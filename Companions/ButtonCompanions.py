@@ -304,10 +304,16 @@ PaletteStore.paletteLists['Buttons'] = []
 PaletteStore.palette.append(['Buttons', 'Editor/Tabs/Basic', 
                              PaletteStore.paletteLists['Buttons']])
 PaletteStore.paletteLists['Buttons'].extend([wxButton, wxBitmapButton,
-      wxSpinButton, wxSpinCtrl, wxToggleButton,
+      wxSpinButton, wxSpinCtrl, 
       wxGenButton, wxGenBitmapButton, wxGenBitmapTextButton,
       wxGenToggleButton, wxGenBitmapToggleButton, wxGenBitmapTextToggleButton,
       wxContextHelpButton])
+
+try:
+    PaletteStore.paletteLists['Buttons'].append(wxToggleButton)
+except NameError:
+    # MacOS X
+    pass
 
 PaletteStore.compInfo.update({
     wxButton: ['wxButton', ButtonDTC],
@@ -320,6 +326,11 @@ PaletteStore.compInfo.update({
     wxGenBitmapToggleButton: ['wxGenBitmapToggleButton', GenBitmapToggleButtonDTC],
     wxGenBitmapTextButton: ['wxGenBitmapTextButton', GenBitmapTextButtonDTC],
     wxGenBitmapTextToggleButton: ['wxGenBitmapTextToggleButton', GenBitmapTextToggleButtonDTC],
-    wxToggleButton: ['wxToggleButton', ToggleButtonDTC],
     wxContextHelpButton: ['wxContextHelpButton', ContextHelpButtonDTC],
 })
+
+try:
+    PaletteStore.compInfo[wxToggleButton] = ['wxToggleButton', ToggleButtonDTC]
+except NameError:
+    # MacOS X
+    pass

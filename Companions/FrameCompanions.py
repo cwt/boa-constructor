@@ -263,7 +263,14 @@ PaletteStore.compInfo.update({wxApp: ['wxApp', None],
     wxMiniFrame: ['wxMiniFrame', MiniFrameDTC],
     wxMDIParentFrame: ['wxMDIParentFrame', MDIParentFrameDTC],
     wxMDIChildFrame: ['wxMDIChildFrame', MDIChildFrameDTC],
-    wxPopupWindow: ['wxPopupWindow', PopupWindowDTC],
-    wxPopupTransientWindow: ['wxPopupTransientWindow', PopupWindowDTC],
     wxFramePanel: ['wxFramePanel', FramePanelDTC],
 })
+
+try:
+    PaletteStore.compInfo.update({
+        wxPopupWindow: ['wxPopupWindow', PopupWindowDTC],
+        wxPopupTransientWindow: ['wxPopupTransientWindow', PopupWindowDTC]})
+except NameError:
+    # wxMAC
+    pass
+    
