@@ -89,24 +89,25 @@ class DataView(wxListView, InspectableObjectView):
                 creators[ctrl.comp_name] = ctrl
 
         for name in self.objectOrder:
+            idx = -1
             ctrl = creators[name]
+            className = ctrl.class_name
             try:
-                classObj = PaletteMapping.evalCtrl(ctrl.class_name)
-                className = classObj.__name__
-                idx1 = self.il.Add(PaletteStore.bitmapForComponent(classObj))
-            except:
-                # XXX Check this !!
-                className = ctrl.class_name
-                module = self.model.getModule()
-                if len(module.classes[className].super):
-                    base = module.classes[className].super[0]
-                    try: base = base.__class__.__name__
-                    except: pass #print 'ERROR', base
-                    idx1 = self.il.Add(PaletteStore.bitmapForComponent(className, base))
+                ClassObj = PaletteMapping.evalCtrl(className)
+            except NameError:    
+                if className in self.model.customClasses:
+                    ClassObj = self.model.customClasses[className]
                 else:
-                    idx1 = self.il.Add(PaletteStore.bitmapForComponent(className, 'Component'))
+                    idx = self.il.Add(PaletteStore.bitmapForComponent(className, 
+                          'Component'))
+            else:
+                className = ClassObj.__name__
 
-            self.InsertImageStringItem(self.GetItemCount(), '%s : %s' % (ctrl.comp_name, className), idx1)
+            if idx == -1:
+                idx = self.il.Add(PaletteStore.bitmapForComponent(ClassObj))
+
+            self.InsertImageStringItem(self.GetItemCount(), '%s : %s' % (
+                  ctrl.comp_name, className), idx)
         self.opened = true
 
     def saveCtrls(self, definedCtrls, module=None, collDeps=None):
@@ -121,7 +122,6 @@ class DataView(wxListView, InspectableObjectView):
     def loadControl(self, CtrlClass, CtrlCompanion, ctrlName, params):
         """ Create and register given control and companion.
             See also: newControl """
-        #evalDct = copy.copy(self.model.specialAttrs)    
         args = self.setupArgs(ctrlName, params,
           CtrlCompanion.handledConstrParams, evalDct = self.model.specialAttrs)
 
@@ -189,11 +189,20 @@ class DataView(wxListView, InspectableObjectView):
                 selected.append( (name, itemIdx) )
         return selected
 
-    def OnSelectOrAdd(self, event):
+    def OnSelectOrAdd(self, event=None):
         """ Control is clicked. Either select it or add control from palette """
         if self.compPal.selection:
+            CtrlClass, CtrlCompanion = self.compPal.selection[1:3]
+            # XXX this must be generic
+            if CtrlCompanion.host == 'Data' and self.viewName == 'Sizers' or \
+               CtrlCompanion.host == 'Sizers' and self.viewName == 'Data':
+                view = self.model.views[CtrlCompanion.host]
+                view.focus()
+                view.OnSelectOrAdd()
+                return 
+            
             try:
-                objName = self.newObject(self.compPal.selection[1], self.compPal.selection[2])
+                objName = self.newObject(CtrlClass, CtrlCompanion)
             except DesignerError, err:
                 if str(err) == 'Wrong Designer':
                     return
@@ -203,7 +212,8 @@ class DataView(wxListView, InspectableObjectView):
             self.selectCtrls([objName])
         else:
             # Skip so that OnObjectSelect may be fired
-            event.Skip()
+            if event:
+                event.Skip()
 
     def updateSelection(self):
         if len(self.selection) == 1:
