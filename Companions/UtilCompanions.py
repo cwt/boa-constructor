@@ -6,7 +6,7 @@ from Constructors import *
 from PropEdit.PropertyEditors import IntConstrPropEdit, StrConstrPropEdit, CollectionPropEdit, BitmapConstrPropEdit, EnumConstrPropEdit, LCCEdgeConstrPropEdit, WinEnumConstrPropEdit, BoolConstrPropEdit, MenuEnumConstrPropEdit
 import HelpCompanions, methodparse
 from PropEdit import Enumerations
-import EventCollections
+import EventCollections, RTTI
 import os, copy
 
 class ImageListDTC(ImageListConstr, UtilityDTC):
@@ -541,4 +541,57 @@ class IndividualLayoutConstraintOCDTC(LayoutConstraintsConstr, OwnedCollectionDT
         print 'INITCOLLECTION'
         self.inited = true
         self.applyConstraints()
+
+class SizerDTC(EmptyConstr, UtilityDTC):#DesignTimeCompanion):
+    wxDocs = HelpCompanions.wxSizerDocs
+
+    def __init__(self, name, designer, objClass):
+        UtilityDTC.__init__(self, name, designer, objClass)
+        self.editors.update({'Controls': CollectionPropEdit})
+        self.subCompanions['Controls'] = SizerControlsCDTC
+
+    def properties(self):
+        props = CollectionDTC.properties(self)
+        props.update({'Controls':  ('NoneRoute', None, None)})
+        return props
+
+    def dependentProps(self):
+        return UtilityDTC.dependentProps(self) + ['Controls']
+
+    def designTimeSource(self, position = 'wxDefaultPos', size = 'wxDefaultSize'):
+        return {}
+
+    def initDesignTimeControl(self):
+        pass
+        
+    def vetoedMethods(self):
+        return UtilityDTC.vetoedMethods(self)+['GetPosition', 'SetPosition', 'GetSize', 'SetSize']
+
+    def hideDesignTime(self):
+        return []
+
+class BoxSizerDTC(SizerDTC):
+    pass
+
+class SizerControlsCDTC(SizerControlsConstr, CollectionDTC):        
+    wxDocs = HelpCompanions.wxSizerDocs
+    propName = 'Controls'
+#    displayProp = 'title'
+    indexProp = '(None)'
+    insertionMethod = 'AddWindow'
+    deletionMethod = 'Remove'
+
+    def __init__(self, name, designer, parentCompanion, ctrl):
+        CollectionDTC.__init__(self, name, designer, parentCompanion, ctrl)
+        self.editors.update({'Window': WinEnumConstrPropEdit,
+                             'Option': IntConstrPropEdit,
+                             'Flag':   IntConstrPropEdit,
+                             'Border': IntConstrPropEdit})
+
+    def designTimeSource(self, wId):
+        return {'window': 'None',
+                'option': '0',
+                'flag':   '0',
+                'border': '0'}
+    
         
