@@ -48,17 +48,22 @@ class DynamicSashWindowDTC(GizmoDTCMix, Constructors.WindowConstr, BaseCompanion
     def events(self):
         return BaseCompanions.WindowDTC.events(self) + ['DynamicSashEvent']
 
+    def writeImports(self):
+        return '\n'.join( (BaseCompanions.WindowDTC.writeImports(self), 
+                           GizmoDTCMix.writeImports(self)) )
+
 PaletteStore.paletteLists['ContainersLayout'].append(wxDynamicSashWindow)
 PaletteStore.compInfo[wxDynamicSashWindow] = ['wxDynamicSashWindow', DynamicSashWindowDTC]
 
 #-------------------------------------------------------------------------------
 
 LEDNumberCtrlAlignment = [wxLED_ALIGN_LEFT, wxLED_ALIGN_RIGHT,
-                          wxLED_ALIGN_CENTER, wxLED_ALIGN_MASK]
+                          wxLED_ALIGN_CENTER, wxLED_ALIGN_MASK, wxLED_DRAW_FADED]
 LEDNumberCtrlAlignmentNames = {'wxLED_ALIGN_LEFT': wxLED_ALIGN_LEFT,
                                'wxLED_ALIGN_RIGHT': wxLED_ALIGN_RIGHT,
                                'wxLED_ALIGN_CENTER': wxLED_ALIGN_CENTER,
-                               'wxLED_ALIGN_MASK': wxLED_ALIGN_MASK}
+                               'wxLED_ALIGN_MASK': wxLED_ALIGN_MASK,
+                               'wxLED_DRAW_FADED': wxLED_DRAW_FADED}
 
 class LEDNumberCtrlDTC(GizmoDTCMix, BaseCompanions.WindowDTC):
     def __init__(self, name, designer, parent, ctrlClass):
@@ -79,6 +84,10 @@ class LEDNumberCtrlDTC(GizmoDTCMix, BaseCompanions.WindowDTC):
                 'size':  'wxSize(%d, %d)'%(Preferences.dsDefaultControlSize.x,
                                            Preferences.dsDefaultControlSize.y),
                 'style': 'wxLED_ALIGN_LEFT'}
+
+    def writeImports(self):
+        return '\n'.join( (BaseCompanions.WindowDTC.writeImports(self), 
+                           GizmoDTCMix.writeImports(self)) )
 
 PaletteStore.paletteLists['BasicControls'].append(wxLEDNumberCtrl)
 PaletteStore.compInfo[wxLEDNumberCtrl] = ['wxLEDNumberCtrl', LEDNumberCtrlDTC]
@@ -102,5 +111,40 @@ class EditableListBoxDTC(GizmoDTCMix, ContainerCompanions.PanelDTC):
                 'size':  self.getDefCtrlSize(),
                 'name': `self.name`}
 
+    def writeImports(self):
+        return '\n'.join( (ContainerCompanions.PanelDTC.writeImports(self), 
+                           GizmoDTCMix.writeImports(self)) )
+
 PaletteStore.paletteLists['ListControls'].append(wxEditableListBox)
 PaletteStore.compInfo[wxEditableListBox] = ['wxEditableListBox', EditableListBoxDTC]
+
+#-------------------------------------------------------------------------------
+
+import ListCompanions
+
+class TreeListCtrlDTC(GizmoDTCMix, ListCompanions.TreeCtrlDTC):
+    def __init__(self, name, designer, parent, ctrlClass):
+        ListCompanions.TreeCtrlDTC.__init__(self, name, designer, parent, ctrlClass)
+        self.ctrlDisabled = true
+        self.compositeCtrl = true
+
+    def writeImports(self):
+        return '\n'.join( (ListCompanions.TreeCtrlDTC.writeImports(self), 
+                           GizmoDTCMix.writeImports(self)) )
+
+##    def constructor(self):
+##        return {'Position': 'pos', 'Size': 'size', 'Style': 'style', 
+##                'Name': 'name'}
+##
+##    def designTimeSource(self, position = 'wxDefaultPosition', size = 'wxDefaultSize'):
+##        return {'pos':   position,
+##                'size':  self.getDefCtrlSize(),
+##                'name': `self.name`,
+##                'style': 'wxTR_DEFAULT_STYLE',}
+
+try:
+    PaletteStore.paletteLists['ListControls'].append(wxTreeListCtrl)
+    PaletteStore.compInfo[wxTreeListCtrl] = ['wxTreeListCtrl', TreeListCtrlDTC]
+except NameError:
+    # pre 2.4.1.2
+    pass
