@@ -13,7 +13,7 @@ print 'importing Companions.BasicCompanions'
 
 from wxPython.wx import *
 
-from wxPython.html import wxHtmlWindow
+from wxPython.html import *
 from wxPython.stc import *
 
 from BaseCompanions import WindowDTC, ChoicedDTC
@@ -51,7 +51,7 @@ class ComboBoxDTC(ChoicedDTC):
     def constructor(self):
         return {'Value': 'value', 'Position': 'pos', 'Size': 'size',
                 'Choices': 'choices', 'Style': 'style',
-                'Validator': 'validator', 'Name': 'name'}
+                'Name': 'name'} #'Validator': 'validator', 
 
     def designTimeSource(self, position = 'wxDefaultPosition', size = 'wxDefaultSize'):
         return {'value': `self.name`,
@@ -59,7 +59,7 @@ class ComboBoxDTC(ChoicedDTC):
                 'size': size,
                 'choices': '[]',
                 'style': '0',
-                'validator': 'wxDefaultValidator',
+##                'validator': 'wxDefaultValidator',
                 'name': `self.name`}
 
 ##    def vetoedMethods(self):
@@ -86,7 +86,7 @@ class ChoiceDTC(Constructors.ListConstr, ChoicedDTC):
                 'size': size,
                 'choices': `[]`,
                 'style': '0',
-                'validator': 'wxDefaultValidator',
+##                'validator': 'wxDefaultValidator',
                 'name': `self.name`}
 
     def events(self):
@@ -97,7 +97,12 @@ class ChoiceDTC(Constructors.ListConstr, ChoicedDTC):
         insp.pages.SetSelection(2)
         insp.events.doAddEvent('ChoiceEvent', 'EVT_CHOICE')
 
-class StaticTextDTC(Constructors.LabeledNonInputConstr, WindowDTC):
+class LabeledNonInputConstr:
+    def constructor(self):
+        return {'Position': 'pos', 'Size': 'size', 'Label': 'label',
+                'Style': 'style', 'Name': 'name'}
+
+class StaticTextDTC(LabeledNonInputConstr, WindowDTC):
     #wxDocs = HelpCompanions.wxStaticTextDocs
     def __init__(self, name, designer, parent, ctrlClass):
         WindowDTC.__init__(self, name, designer, parent, ctrlClass)
@@ -118,13 +123,16 @@ class TextCtrlDTC(WindowDTC):
         WindowDTC.__init__(self, name, designer, parent, ctrlClass)
         self.windowStyles = ['wxTE_PROCESS_ENTER', 'wxTE_PROCESS_TAB',
                              'wxTE_MULTILINE', 'wxTE_PASSWORD',
-                             'wxTE_READONLY', 'wxTE_RICH', 'wxTE_AUTO_URL',
-                             'wxTE_NOHIDESEL',
+                             'wxTE_READONLY', 'wxTE_RICH', 'wxTE_RICH2', 
+                             'wxTE_AUTO_URL', 'wxTE_NOHIDESEL',
+                             'wxTE_LEFT', 'wxTE_CENTER', 'wxTE_RIGHT', 
+                             'wxTE_DONTWRAP', 'wxTE_LINEWRAP', 'wxTE_WORDWRAP',
                              ] + self.windowStyles
 
     def constructor(self):
         return {'Value': 'value', 'Position': 'pos', 'Size': 'size',
-                'Style': 'style', 'Validator': 'validator', 'Name': 'name'}
+                'Style': 'style', 'Name': 'name'}
+                #'Validator': 'validator', 
 
     def designTimeSource(self, position = 'wxDefaultPosition', size = 'wxDefaultSize'):
         return {'value': `self.name`,
@@ -201,7 +209,7 @@ class SliderDTC(WindowDTC):
     def constructor(self):
         return {'Value': 'value', 'MinValue': 'minValue', 'MaxValue': 'maxValue',
                 'Position': 'point', 'Size': 'size', 'Style': 'style',
-                'Validator': 'validator', 'Name': 'name'}
+                'Name': 'name'} #'Validator': 'validator', 
 
     def designTimeSource(self, position = 'wxDefaultPosition', size = 'wxDefaultSize'):
         return {'value': '0',
@@ -210,7 +218,7 @@ class SliderDTC(WindowDTC):
                 'point': position,
                 'size': size,
                 'style': 'wxSL_HORIZONTAL',
-                'validator': 'wxDefaultValidator',
+                #'validator': 'wxDefaultValidator',
                 'name': `self.name`}
 
     def hideDesignTime(self):
@@ -233,17 +241,17 @@ class GaugeDTC(WindowDTC):
 
     def constructor(self):
         return {'Range': 'range', 'Position': 'pos', 'Size': 'size',
-                'Style': 'style', 'Validator': 'validator', 'Name': 'name'}
+                'Style': 'style', 'Name': 'name'} #'Validator': 'validator', 
 
     def designTimeSource(self, position = 'wxDefaultPosition', size = 'wxDefaultSize'):
         return {'range': '100',
                 'pos': position,
                 'size': size,
                 'style': 'wxGA_HORIZONTAL',
-                'validator': 'wxDefaultValidator',
+                #'validator': 'wxDefaultValidator',
                 'name': `self.name`}
 
-class StaticBoxDTC(Constructors.LabeledNonInputConstr, WindowDTC):
+class StaticBoxDTC(LabeledNonInputConstr, WindowDTC):
     #wxDocs = HelpCompanions.wxStaticBoxDocs
     def designTimeSource(self, position = 'wxDefaultPosition', size = 'wxDefaultSize'):
         return {'label': `self.name`,
@@ -251,6 +259,11 @@ class StaticBoxDTC(Constructors.LabeledNonInputConstr, WindowDTC):
                 'size': self.getDefCtrlSize(),
                 'style': '0',
                 'name': `self.name`}
+    
+    def properties(self):
+        props = WindowDTC.properties(self)
+        del props['Sizer']
+        return props
 
 class StaticLineDTC(Constructors.WindowConstr, WindowDTC):
     #wxDocs = HelpCompanions.wxStaticLineDocs
@@ -284,7 +297,9 @@ class StaticBitmapDTC(WindowDTC):
 class HtmlWindowDTC(WindowDTC):
     def __init__(self, name, designer, parent, ctrlClass):
         WindowDTC.__init__(self, name, designer, parent, ctrlClass)
-        self.editors['Style']
+        self.windowStyles = ['wxHW_SCROLLBAR_NEVER', 'wxHW_SCROLLBAR_AUTO'] + self.windowStyles
+        self.initPropsThruCompanion.append('Borders')
+        self._borders = 10
 
     def constructor(self):
         return {'Position': 'pos', 'Size': 'size', 'Name': 'name', 'Style': 'style'}
@@ -295,12 +310,24 @@ class HtmlWindowDTC(WindowDTC):
                 'style': 'wxHW_SCROLLBAR_AUTO',
                 'name': `self.name`}
 
+    def properties(self):
+        props = WindowDTC.properties(self)
+        props.update({'Borders':  ('CompnRoute', self.GetBorders, self.SetBorders)})
+        return props
+
     def events(self):
         return WindowDTC.events(self) + ['ScrollEvent']
 
     def writeImports(self):
         return '\n'.join( (WindowDTC.writeImports(self), 
                            'from wxPython.html import *') )
+
+    def GetBorders(self, x):
+        return self._borders
+
+    def SetBorders(self, value):
+        self._borders = value
+        self.control.SetBorders(value)
 
 stcEOLMode = [wxSTC_EOL_CRLF, wxSTC_EOL_CR, wxSTC_EOL_LF]
 stcEOLModeNames = {'wxSTC_EOL_CRLF': wxSTC_EOL_CRLF,
@@ -397,9 +424,9 @@ class StyledTextCtrlDTC(Constructors.WindowConstr, WindowDTC):
                            'WrapMode': stcWrapModeNames,
                           })
 
-    def designTimeSource(self, position = 'wxDefaultPosition', size = 'wxDefaultSize'):
+    def designTimeSource(self, position='wxDefaultPosition', size='wxDefaultSize'):
         return {'pos': position,
-                'size': size,
+                'size': self.getDefCtrlSize(),
                 'style': '0',
                 'name': `self.name`}
 
