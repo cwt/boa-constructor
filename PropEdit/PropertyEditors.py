@@ -32,7 +32,7 @@ from wxPython.wx import *
 from InspectorEditorControls import *
 
 import Utils
-from Enumerations import reverseDict
+import Enumerations
 
 StringTypes = [StringType]
 try: StringTypes.append(UnicodeType)
@@ -128,6 +128,12 @@ class PropertyEditor:
         if self.obj and hasattr(self.obj, 'Refresh'):
             self.obj.Refresh()
 
+    def isValuesEqual(self, propVal, ctrlVal):
+        if isinstance(propVal, wxFontPtr) and isinstance(ctrlVal, wxFontPtr):
+            return fontAsExpr(propVal) == fontAsExpr(ctrlVal)
+        else:
+            return `propVal` == `ctrlVal`
+
     def validateProp(self, oldVal, newVal):
         pass
 
@@ -137,7 +143,7 @@ class PropertyEditor:
             v = self.getValue()
             cv = self.getCtrlValue()
             # Only post changes
-            if `v` != `cv`:
+            if not self.isValuesEqual(v, cv):
                 self.validateProp(v, cv)
                 self.setCtrlValue(cv, v)
                 self.refreshCompCtrl()
@@ -413,7 +419,7 @@ class OptionedPropEdit(PropertyEditor):
         self.options = options
         self.names = names
         if names:
-            self.revNames = reverseDict(names)
+            self.revNames = Enumerations.reverseDict(names)
         else:
             self.revNames = None
 
@@ -448,6 +454,17 @@ class ConstrPropEdit(ConstrPropEditFacade, PropertyEditor):
         else:
             self.propWrapper.setValue(value)
 
+class ReadOnlyConstrPropEdit(ConstrPropEdit):
+    def getValue(self):
+        self.value = self.getCtrlValue()
+        return self.value
+    def inspectorEdit(self):
+        val = self.getValue()
+        self.editorCtrl = BeveledLabelIEC(self, val)
+        self.editorCtrl.createControl(self.parent, self.idx, self.width)
+##    def getDisplayValue(self):
+##        return 'RO:`self.getValue()`
+    
 class ColourConstrPropEdit(ConstrPropEdit):
     def getValue(self):
         if self.editorCtrl:
@@ -546,6 +563,12 @@ class BitmapPropEditMix:
                   '.png': 'wxBITMAP_TYPE_PNG',
                   '.py':  'ResourceModule'}
 
+    srcClass = 'wxBitmap'
+    ctrlClass = wxBitmap
+    nullClass = 'wxNullBitmap'
+
+    onlyIcons = false
+
     def showImgDlg(self, dir, name, tpe='Bitmap'):
         model = self.companion.designer.model
         selImg = ''
@@ -595,12 +618,26 @@ class BitmapPropEditMix:
                         tpe = 'Bitmap'
                         continue
                     return resInfo[0], resInfo[1], 'ResourceModule'
-            return abspth, pth, self.extTypeMap[ext]
+            try:
+                ext = self.extTypeMap[ext]
+            except KeyError, err:
+                raise Exception('Files of type %s not allowed for this '
+                                'property editor.\n The following types '
+                                'are allowed %s'%(str(err), 
+                                ', '.join(self.extTypeMap.keys())))
+            else:
+                return abspth, pth, ext
 
     def extractPathFromSrc(self, src):
         if src:
-            if src.startswith('wxBitmap('):
-                filename = src[len('wxBitmap(')+1:]
+            if src.startswith(self.nullClass):
+                return os.path.join('.', self.nullClass, 'Bitmap'), '.', '', 'Bitmap'
+            elif src.startswith('wxBitmap(') or src.startswith('wxIcon('):
+                if src.startswith('wxBitmap('):
+                    filename = src[len('wxBitmap(')+1:]
+                else:
+                    filename = src[len('wxIcon(')+1:]
+                    
                 pth = filename[:filename.rfind(',')-1]
                 if not os.path.isabs(pth):
                     mbd = Utils.getModelBaseDir(self.companion.designer.model)
@@ -618,7 +655,7 @@ class BitmapPropEditMix:
                     src = os.path.join(importName, imageName, 'ResourceModule')
                     return (src, importName, imageName, 'ResourceModule')
 
-        return '', '.', '', 'Unknown'
+        return './Unknown/Unknown', '.', '', 'Unknown'
 
     def handleResourceFiles(self, resourceFilename, relResourceFilename, image=''):
         from Models import Controllers
@@ -653,16 +690,17 @@ class BitmapPropEditMix:
                     importName = importName[3:]
             importName = importName.replace('/', '.')
         
-        #return '%s.get%sBitmap()'%(importName, imageName)
         return importName, imageName
 
     def getSrcForResPath(self, importName, imageName):
-        return '%s.get%sBitmap()'%(importName, imageName)
+        if self.onlyIcons: cls = 'Icon'
+        else:              cls = 'Bitmap'
+        return '%s.get%s%s()'%(importName, imageName, cls)
 
     def showResourceDlg(self, filename, image=''):
         from Models import ResourceSupport
         resDlg = ResourceSupport.ResourceSelectDlg(self.parent, 
-            self.companion.designer.model.editor, filename, image)
+          self.companion.designer.model.editor, filename, image, self.onlyIcons)
         try:
             result = resDlg.ShowModal()
             if result == wxID_CANCEL:
@@ -687,8 +725,9 @@ class BitmapPropEditMix:
             
             return src, value, bmpPath
         else:
-            wxLogError('%s could not be loaded as a Resource Module'%importName)
-            return '', None, ''
+            raise Exception, '%s could not be loaded as a Resource Module'%importName
+            #wxLogError('%s could not be loaded as a Resource Module'%importName)
+            #return '', None, ''
 
 
 class BitmapConstrPropEdit(IntConstrPropEdit, BitmapPropEditMix):
@@ -726,7 +765,7 @@ class BitmapPropEdit(PropertyEditor, BitmapPropEditMix):
 ##        return ClassPropEdit.getStyle(self) + [esDialog, esReadOnly]
 
     def getDisplayValue(self):
-        return '(wxBitmapPtr)'
+        return '(%sPtr)'%self.srcClass
 
     def inspectorEdit(self):
         self.editorCtrl = ButtonIEC(self, self.value)
@@ -737,6 +776,8 @@ class BitmapPropEdit(PropertyEditor, BitmapPropEditMix):
         else:
             constr = self.companion.persistedPropVal(self.name, 
                   self.propWrapper.getSetterName())
+            if constr is not None:
+                constr = constr[0]
 
         self.bmpPath = self.extractPathFromSrc(constr)[0]
 
@@ -753,7 +794,7 @@ class BitmapPropEdit(PropertyEditor, BitmapPropEditMix):
         if tpe == 'ResourceModule':
             self.value, self.bmpPath = self.assureResourceLoaded(abspth, pth)[1:]
         else:
-            self.value = wxBitmap(abspth, getattr(wx, tpe))
+            self.value = self.ctrlClass(abspth, getattr(wx, tpe))
             self.bmpPath = os.path.join(pth, 'Bitmap')
         self.inspectorPost(false)
 
@@ -765,14 +806,31 @@ class BitmapPropEdit(PropertyEditor, BitmapPropEditMix):
             path, tpe = os.path.split(self.bmpPath)
             dir, name = os.path.split(path)
             if tpe == 'Bitmap':
-                return 'wxBitmap(%s, %s)'%(`path`,
-                    self.extTypeMap[os.path.splitext(path)[-1].lower()])
+                # XXX path and name both?
+                if path == self.nullClass:
+                    return self.nullClass
+                elif name == self.nullClass:
+                    return self.nullClass
+                else:
+                    return '%s(%s, %s)'%(self.srcClass, `path`,
+                           self.extTypeMap[os.path.splitext(path)[-1].lower()])
             elif tpe == 'ResourceModule':
                 return self.getSrcForResPath(dir, name)
+            elif tpe == 'Unknown':
+                return self.nullClass
             else:
                 raise Exception, 'Unhandled image handling type: %s'%tpe
         else:
-            return 'wxNullBitmap'
+            return self.nullClass
+
+class IconPropEdit(BitmapPropEdit):
+    srcClass = 'wxIcon'
+    ctrlClass = wxIcon
+    nullClass = 'wxNullIcon'
+    onlyIcons = true
+
+    extTypeMap = {'.ico': 'wxBITMAP_TYPE_ICO',
+                  '.py':  'ResourceModule'}
 
 
 class EnumConstrPropEdit(IntConstrPropEdit):
@@ -782,9 +840,11 @@ class EnumConstrPropEdit(IntConstrPropEdit):
     def valueToIECValue(self):
         return self.getValue()
     def inspectorEdit(self):
-        self.editorCtrl = ChoiceIEC(self, self.getValue())
+        value = self.getValue()
+        self.editorCtrl = ChoiceIEC(self, value)
         self.editorCtrl.createControl(self.parent, self.idx, self.width)
-        self.editorCtrl.setValue(self.getValue())
+        self.editorCtrl.setValue(value)
+        
     def getDisplayValue(self):
         return self.valueToIECValue()
     def getValues(self):
@@ -793,7 +853,7 @@ class EnumConstrPropEdit(IntConstrPropEdit):
 class ClassConstrPropEdit(ConstrPropEdit):
     def inspectorEdit(self):
         val = self.getValue()
-        if self.companion.designer.model.customClasses.has_key(self.value):
+        if self.companion.designer.model.customClasses.has_key(val):
             self.editorCtrl = ChoiceIEC(self, val)
             self.editorCtrl.createControl(self.parent, self.idx, self.width)
             self.editorCtrl.setValue(val)
@@ -851,7 +911,6 @@ class LCCEdgeConstrPropEdit(EnumConstrPropEdit):
     def getValue(self):
         if self.editorCtrl:
             try:
-                # Sad to admit, a hack; don't use combo value if it's None
                 if self.editorCtrl.getValue():
                     self.value = self.editorCtrl.getValue()
                 else:
@@ -878,7 +937,6 @@ class ObjEnumConstrPropEdit(EnumConstrPropEdit):
     def getValue(self):
         if self.editorCtrl:
             try:
-                # Sad to say, a hack; don't use combo value if it's None
                 if self.editorCtrl.getValue():
                     self.value = self.editorCtrl.getValue()
                 else:
@@ -1297,6 +1355,9 @@ class TuplePropEdit(BITPropEditor):
     pass
 
 class BoolPropEdit(OptionedPropEdit):
+    def __init__(self, name, parent, companion, rootCompanion, propWrapper, idx, width, options=None, names=None):
+        OptionedPropEdit.__init__(self, name, parent, companion, rootCompanion, propWrapper, idx, width, options, names)
+
     def valueToIECValue(self):
         v = self.value
         if type(v) == IntType:
@@ -1315,6 +1376,7 @@ class BoolPropEdit(OptionedPropEdit):
             # trick to convert boolean string to integer
             v = self.editorCtrl.getValue()
             self.value = self.getValues().index(self.editorCtrl.getValue())
+            #self.value = self.companion.eval(self.editorCtrl.getValue())
         return self.value
 
 class EnumPropEdit(OptionedPropEdit):
@@ -1340,6 +1402,8 @@ class EnumPropEdit(OptionedPropEdit):
             name = `self.value`
         if name not in vals:
             vals.append(name)
+        # XXX !
+        vals.sort()
         return vals
     def setValue(self, value):
         self.value = value
@@ -1410,7 +1474,8 @@ class WindowClassLinkPropEdit(ClassLinkPropEdit):
 
 class WindowClassLinkWithParentPropEdit(WindowClassLinkPropEdit):
     def getValues(self):
-        return ['None'] + self.companion.designer.getObjectsOfClassWithParent(self.linkClass, self.companion.name).keys()
+        return ['None'] + self.companion.designer.getObjectsOfClassWithParent(
+               self.linkClass, self.companion.name).keys()
 
 class StatusBarClassLinkPropEdit(ClassLinkPropEdit):
     linkClass = wxStatusBarPtr
@@ -1451,7 +1516,6 @@ class ListCtrlImageListClassLinkPropEdit(ImageListClassLinkPropEdit):
         self.editorCtrl = ChoiceIEC(self, self.valueToIECValue())
         self.editorCtrl.createControl(self.parent, self.idx, self.width)
         self.editorCtrl.setValue(self.valueToIECValue())
-#        self.setValue(self.value[0])
 
     def getValue(self):
         if self.editorCtrl:
@@ -1546,12 +1610,8 @@ class PosPropEdit(ClassPropEdit):
         return PosDTC
 
 class FontPropEdit(ClassPropEdit):
-    def __init__(self, name, parent, companion, rootCompanion, propWrapper, idx, width, _1=None , _2=None):
-        ClassPropEdit.__init__(self, name, parent, companion, rootCompanion, propWrapper, idx, width)
-        import Enumerations
-        self.fontFamily = reverseDict(Enumerations.fontFamilyNames)
-        self.fontStyle = reverseDict(Enumerations.fontStyleNames)
-        self.fontWeight = reverseDict(Enumerations.fontWeightNames)
+#    def __init__(self, name, parent, companion, rootCompanion, propWrapper, idx, width, _1=None , _2=None):
+#        ClassPropEdit.__init__(self, name, parent, companion, rootCompanion, propWrapper, idx, width)
 
     def getStyle(self):
         return ClassPropEdit.getStyle(self) + [esDialog, esReadOnly, esRecreateProp]
@@ -1577,16 +1637,25 @@ class FontPropEdit(ClassPropEdit):
                 self.inspectorPost(false)
         finally:
             dlg.Destroy()
+
     def valueAsExpr(self):
-        # XXX Duplication with sub property editors
         fnt = self.value
-        return 'wxFont(%d, %s, %s, %s, %s, %s)'%(\
-            fnt.GetPointSize(),
-            self.fontFamily[fnt.GetFamily()],
-            self.fontStyle[fnt.GetStyle()],
-            self.fontWeight[fnt.GetWeight()],
-            fnt.GetUnderlined() and 'True' or 'False',
-            `fnt.GetFaceName()`)
+        return fontAsExpr(fnt)
+
+def fontAsExpr(fnt):
+    fontFamily = Enumerations.reverseDict(Enumerations.fontFamilyNames)
+    fontStyle = Enumerations.reverseDict(Enumerations.fontStyleNames)
+    fontWeight = Enumerations.reverseDict(Enumerations.fontWeightNames)
+    
+    family = fontFamily.get(fnt.GetFamily(), fnt.GetFamily())
+    style = fontStyle.get(fnt.GetStyle(), fnt.GetStyle())
+    weight = fontWeight.get(fnt.GetWeight(), fnt.GetWeight())
+
+    return 'wxFont(%d, %s, %s, %s, %s, %s)'%(
+        fnt.GetPointSize(), family, style, weight, 
+        fnt.GetUnderlined() and 'True' or 'False',
+        `fnt.GetFaceName()`)
+
 
 class AnchorPropEdit(OptionedPropEdit):
     def getStyle(self):
@@ -1724,6 +1793,7 @@ def registerEditors(reg):
 registeredTypes = [
     ('Type', IntType, [IntPropEdit]),
     ('Type', StringType, [StrPropEdit]),
+    ('Type', UnicodeType, [StrPropEdit]),
     ('Type', TupleType, [TuplePropEdit]),
     ('Class', wxSize, [SizePropEdit]),
     ('Class', wxSizePtr, [SizePropEdit]),
@@ -1732,11 +1802,11 @@ registeredTypes = [
     ('Class', wxFontPtr, [FontPropEdit]),
     ('Class', wxColourPtr, [ColPropEdit]),
     ('Class', wxBitmapPtr, [BitmapPropEdit]),
+    ('Class', wxIconPtr, [IconPropEdit]),
     ('Class', wxValidator, [ClassLinkPropEdit]),
 ]
 
 try:
-    registeredTypes.append( ('Type', UnicodeType, [StrPropEdit]) )
-except:
-    # 1.5.2
-    pass
+    registeredTypes.append( ('Type', BooleanType, [BoolPropEdit]) )
+except NameError: # 2.2
+    pass 
