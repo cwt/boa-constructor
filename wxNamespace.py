@@ -31,6 +31,8 @@ if _Prefs.ccImportWxPyStc:
     from wxPython.stc import *
 if _Prefs.ccImportWxPyGizmos:
     from wxPython.gizmos import *
+if _Prefs.ccImportWxPyWizard:
+    from wxPython.wizard import *
 
 import types; _types = types; del types
 
