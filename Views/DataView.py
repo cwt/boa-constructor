@@ -42,6 +42,7 @@ class DataView(wxListCtrl, InspectableObjectCollectionView):
         self.active = true
 
     def initialize(self):
+        print self.model.objectCollections
         objCol = self.model.objectCollections[self.collectionMethod]
         objCol.indexOnCtrlName()
 
@@ -129,7 +130,8 @@ class DataView(wxListCtrl, InspectableObjectCollectionView):
         self.inspector.containment.cleanup()
         self.selected = event.m_itemIndex
         name = string.split(self.GetItemText(self.selected), ' : ')[0]
-        self.inspector.selectObject(self.objects[name][1], self.objects[name][0], false)
+#        self.inspector.selectObject(self.objects[name][1], self.objects[name][0], false)
+        self.inspector.selectObject(self.objects[name][0], false)
 
     def OnObjectDeselect(self, event):
         self.inspector.cleanup()
