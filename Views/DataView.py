@@ -4,14 +4,14 @@
 #
 # Author:      Riaan Booysen
 #
-# Created:     2000/02/14
+# Created:     1999
 # RCS-ID:      $Id$
 # Copyright:   (c) 1999 - 2003 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
 print 'importing Views.DataView'
 
-import os
+import os, copy
 
 from wxPython.wx import *
 
@@ -20,16 +20,18 @@ import Preferences, Utils
 import sourceconst
 import PaletteMapping, PaletteStore, Help
 
-from InspectableViews import InspectableObjectView
+from InspectableViews import InspectableObjectView, DesignerError
+import ObjCollection
 
-class DataView(wxListCtrl, InspectableObjectView):
+class DataView(wxListView, InspectableObjectView):
     viewName = 'Data'
     collectionMethod = sourceconst.init_utils
     postBmp = 'Images/Inspector/Post.png'
     cancelBmp = 'Images/Inspector/Cancel.png'
     def __init__(self, parent, inspector, model, compPal):
         [self.wxID_DATAVIEW] = map(lambda _init_ctrls: wxNewId(), range(1))
-        wxListCtrl.__init__(self, parent, self.wxID_DATAVIEW, style = Preferences.dataViewListStyle | wxSUNKEN_BORDER)#wxLC_LIST)
+        wxListView.__init__(self, parent, self.wxID_DATAVIEW, size=(0,0), 
+              style=Preferences.dataViewListStyle | wxSUNKEN_BORDER)
 
         InspectableObjectView.__init__(self, inspector, model, compPal,
           (('Default editor', self.OnDefaultEditor, '-', ''),
@@ -59,8 +61,11 @@ class DataView(wxListCtrl, InspectableObjectView):
         self.active = true
 
     def initialize(self):
-        objCol = self.model.objectCollections[self.collectionMethod]
-        objCol.indexOnCtrlName()
+        if self.model.objectCollections.has_key(self.collectionMethod):
+            objCol = self.model.objectCollections[self.collectionMethod]
+            objCol.indexOnCtrlName()
+        else:
+            objCol = ObjCollection.ObjectCollection() 
 
         deps, depLinks = {}, {}
         self.initObjectsAndCompanions(objCol.creators, objCol, deps, depLinks)
@@ -70,12 +75,13 @@ class DataView(wxListCtrl, InspectableObjectView):
         self.initIdOnlyObjEvts(objColl.events, creators)
 
     def refreshCtrl(self):
-        #if self.opened: return
-
         self.DeleteAllItems()
 
-        objCol = self.model.objectCollections[self.collectionMethod]
-        objCol.indexOnCtrlName()
+        if self.model.objectCollections.has_key(self.collectionMethod):
+            objCol = self.model.objectCollections[self.collectionMethod]
+            objCol.indexOnCtrlName()
+        else:
+            objCol = ObjCollection.ObjectCollection()
 
         creators = {}
         for ctrl in objCol.creators:
@@ -103,8 +109,8 @@ class DataView(wxListCtrl, InspectableObjectView):
             self.InsertImageStringItem(self.GetItemCount(), '%s : %s' % (ctrl.comp_name, className), idx1)
         self.opened = true
 
-    def saveCtrls(self, definedCtrls, module=None):
-        InspectableObjectView.saveCtrls(self, definedCtrls, module)
+    def saveCtrls(self, definedCtrls, module=None, collDeps=None):
+        InspectableObjectView.saveCtrls(self, definedCtrls, module, collDeps)
 
         compns = []
         for objInf in self.objects.values():
@@ -115,6 +121,7 @@ class DataView(wxListCtrl, InspectableObjectView):
     def loadControl(self, CtrlClass, CtrlCompanion, ctrlName, params):
         """ Create and register given control and companion.
             See also: newControl """
+        #evalDct = copy.copy(self.model.specialAttrs)    
         args = self.setupArgs(ctrlName, params,
           CtrlCompanion.handledConstrParams, evalDct = self.model.specialAttrs)
 
@@ -149,10 +156,11 @@ class DataView(wxListCtrl, InspectableObjectView):
         self.selectNone()
 
         # notify other components of deletion
-        self.controllerView.notifyAction(self.objects[name][0], 'delete')
+        if self.objects.has_key(name):
+            self.controllerView.notifyAction(self.objects[name][0], 'delete')
 
-        InspectableObjectView.deleteCtrl(self, name, parentRef)
-        self.refreshCtrl()
+            InspectableObjectView.deleteCtrl(self, name, parentRef)
+            self.refreshCtrl()
 
     def renameCtrl(self, oldName, newName):
         self.controllerView.renameCtrlAndParentRefs(oldName, newName)
@@ -184,7 +192,12 @@ class DataView(wxListCtrl, InspectableObjectView):
     def OnSelectOrAdd(self, event):
         """ Control is clicked. Either select it or add control from palette """
         if self.compPal.selection:
-            objName = self.newObject(self.compPal.selection[1], self.compPal.selection[2])
+            try:
+                objName = self.newObject(self.compPal.selection[1], self.compPal.selection[2])
+            except DesignerError, err:
+                if str(err) == 'Wrong Designer':
+                    return
+                raise
             self.compPal.selectNone()
             self.refreshCtrl()
             self.selectCtrls([objName])
@@ -215,7 +228,6 @@ class DataView(wxListCtrl, InspectableObjectView):
             else:
                 idx = idx + 1
 
-#        self.inspector.cleanup()
         self.updateSelection()
 
     def OnPost(self, event):
@@ -231,7 +243,7 @@ class DataView(wxListCtrl, InspectableObjectView):
 
     def OnCutSelected(self, event):
         """ Cut current selection to the clipboard """
-        ctrls = map(lambda ni: ni[0], self.selection)
+        ctrls = [ni[0] for ni in self.selection]
 
         output = []
         self.cutCtrls(ctrls, [], output)
@@ -242,7 +254,7 @@ class DataView(wxListCtrl, InspectableObjectView):
 
     def OnCopySelected(self, event):
         """ Copy current selection to the clipboard """
-        ctrls = map(lambda ni: ni[0], self.selection)
+        ctrls = [ni[0] for ni in self.selection]
 
         output = []
         self.copyCtrls(ctrls, [], output)
@@ -275,13 +287,11 @@ class DataView(wxListCtrl, InspectableObjectView):
         Help.showCtrlHelp(self.objects[self.selection[0][0]][0].GetClass())
 
     def OnRecreateSelected(self, event):
-        wxLogError('Recreating not supported in the Data view')
+        wxLogError('Recreating not supported in the %s view'%self.viewName)
 
     def OnCreationOrder(self, event):
-        #names = [name for name, idx in self.getSelectedNames()]
-        names = []
-        for name, idx in self.getSelectedNames():
-            names.append(name)
+        names = [name for name, idx in self.getSelectedNames()]
         self.showCreationOrderDlg(None)
         self.refreshCtrl()
         self.selectCtrls(names)
+
