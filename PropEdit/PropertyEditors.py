@@ -1495,9 +1495,6 @@ class MenuBarClassLinkPropEdit(ClassLinkPropEdit):
 class ImageListClassLinkPropEdit(ClassLinkPropEdit):
     linkClass = wxImageListPtr
 
-class SizerClassLinkPropEdit(ClassLinkPropEdit):
-    linkClass = wxSizerPtr
-
 class ButtonClassLinkPropEdit(ClassLinkPropEdit):
     linkClass = wxButtonPtr
 
@@ -1557,6 +1554,51 @@ class SplitterWindow1LinkPropEdit(SplitterWindowLinkPropEdit):
 class SplitterWindow2LinkPropEdit(SplitterWindowLinkPropEdit):
     def getOtherWindow(self): 
         return self.companion.GetWindow1(None)
+
+def getValidSizers(parent, designer, value):
+    # build a list of nested parent sizers
+    sizerParents = [parent]
+    while hasattr(parent, '_sub_sizer'):
+        parent = parent._sub_sizer
+        sizerParents.append(parent)
+
+    sizers = designer.getObjectsOfClass(wxSizerPtr)
+    # remove invalid sizers from the list
+    for n, s in sizers.items():
+        if s in sizerParents or \
+              hasattr(s, '_sub_sizer') or hasattr(s, '_has_control'):
+            del sizers[n]
+
+    sizerNames = sizers.keys()
+    sizerNames.sort()
+
+    res = ['None'] + sizerNames
+    if value != 'None':
+        res.insert(1, value)
+    return res
+    
+
+
+class SizerEnumConstrPropEdit(ObjEnumConstrPropEdit):
+    def getObjects(self):
+        return getValidSizers(self.companion.parentCompanion.control, 
+                              self.companion.designer, value)
+
+    def getCtrlValue(self):
+        return self.companion.GetSizer()
+    def setCtrlValue(self, oldValue, value):
+        self.companion.SetSizer(value)
+
+class SizerClassLinkPropEdit(ClassLinkPropEdit):
+    linkClass = wxSizerPtr
+    def getValues(self):
+        if self.value is None:
+            value = 'None'
+        else:
+            value = sizer.GetName()
+            
+        return getValidSizers(self.companion.control, 
+                              self.companion.designer, value)
     
     
 class ColPropEdit(ClassPropEdit):

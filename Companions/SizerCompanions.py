@@ -27,7 +27,8 @@ import Companions
 from PropEdit.PropertyEditors import IntConstrPropEdit, StrConstrPropEdit, \
       CollectionPropEdit, ObjEnumConstrPropEdit, EnumConstrPropEdit, \
       FlagsConstrPropEdit, WinEnumConstrPropEdit, BoolConstrPropEdit, \
-      BoolPropEdit, EnumPropEdit, ReadOnlyConstrPropEdit
+      BoolPropEdit, EnumPropEdit, ReadOnlyConstrPropEdit, \
+      SizerEnumConstrPropEdit
 from PropEdit import Enumerations
 import EventCollections, RTTI, methodparse
 import PaletteStore
@@ -113,35 +114,6 @@ class SizerWinEnumConstrPropEdit(ObjEnumConstrPropEdit):
         return self.companion.GetWindow()
     def setCtrlValue(self, oldValue, value):
         self.companion.SetWindow(value)
-
-class SizerEnumConstrPropEdit(ObjEnumConstrPropEdit):
-    def getObjects(self):
-        # build a list of nested parent sizers
-        parent = self.companion.parentCompanion.control
-        sizerParents = [parent]
-        while hasattr(parent, '_sub_sizer'):
-            parent = parent._sub_sizer
-            sizerParents.append(parent)
-
-        sizers = self.companion.designer.getObjectsOfClass(wxSizerPtr)
-        # remove invalid sizers from the list
-        for n, s in sizers.items():
-            if s in sizerParents or \
-                  hasattr(s, '_sub_sizer') or hasattr(s, '_has_control'):
-                del sizers[n]
-
-        sizerNames = sizers.keys()
-        sizerNames.sort()
-
-        res = ['None'] + sizerNames
-        if self.value != 'None':
-            res.insert(1, self.value)
-        return res
-
-    def getCtrlValue(self):
-        return self.companion.GetSizer()
-    def setCtrlValue(self, oldValue, value):
-        self.companion.SetSizer(value)
 
 # XXX Remove 'Insert' special casing, no longer used
 
