@@ -133,11 +133,16 @@ defInfoBlock = """#-------------------------------------------------------------
 #-----------------------------------------------------------------------------
 """ 
 
-itot = 15
-[imgFolder, imgPathFolder, imgCVSFolder, imgZopeFolder, imgZopeControlPanel,
+# Indexes for the imagelist
+[imgAppModel, imgFrameModel, imgDialogModel, imgMiniFrameModel, 
+ imgMDIParentModel, imgMDIChildModel, imgModuleModel, imgPackageModel,
+ imgTextModel, imgConfigFileModel, imgZopeExportFileModel, imgBitmapFileModel,
+ imgZipFileModel, imgCPPModel, imgUnknownFileModel, imgHTMLFileModel,
+ 
+ imgFolder, imgPathFolder, imgCVSFolder, imgZopeFolder, imgZopeControlPanel,
  imgZopeProductFolder, imgZopeInstalledProduct, imgZopeUserFolder, imgZopeDTMLDoc, 
  imgZopeImage, imgZopeSystemObj, imgZopeConnection, imgBoaLogo, imgFolderUp, 
- imgFSDrive, imgFolderBookmark] = range(itot, itot + 16)
+ imgFSDrive, imgFolderBookmark] = range(32)
 
 class EditorModel:
     defaultName = 'abstract'
@@ -305,14 +310,14 @@ class BitmapFileModel(EditorModel):
     modelIdentifier = 'Bitmap'
     defaultName = 'bmp'
     bitmap = 'Bitmap_s.bmp'
-    imgIdx = 11
+    imgIdx = imgBitmapFileModel
     ext = '.bmp'
 
 class UnknownFileModel(EditorModel):
     modelIdentifier = 'Unknown'
     defaultName = '*'
     bitmap = 'Unknown_s.bmp'
-    imgIdx = 13
+    imgIdx = imgUnknownFileModel
     ext = '.*'
 
 
@@ -320,14 +325,14 @@ class ZipFileModel(EditorModel):
     modelIdentifier = 'ZipFile'
     defaultName = 'zip'
     bitmap = 'ZipFile_s.bmp'
-    imgIdx = 12
+    imgIdx = imgZipFileModel
     ext = '.zip'
 
 class ZopeExportFileModel(EditorModel):
     modelIdentifier = 'ZopeExport'
     defaultName = 'zexp'
     bitmap = 'ZopeExport_s.bmp'
-    imgIdx = 10
+    imgIdx = imgZopeExportFileModel
     ext = '.zexp'
 
 class ZopeDocumentModel(EditorModel):
@@ -398,7 +403,7 @@ class PackageModel(EditorModel):
     modelIdentifier = 'Package'
     defaultName = 'package'
     bitmap = 'Package_s.bmp'
-    imgIdx = 7
+    imgIdx = imgPackageModel
     pckgIdnt = '__init__.py'
     ext = '.py'
 
@@ -494,7 +499,7 @@ class ModuleModel(SourceModel):
     modelIdentifier = 'Module'
     defaultName = 'module'
     bitmap = 'Module_s.bmp'
-    imgIdx = 6
+    imgIdx = imgModuleModel
     ext = '.py'
 
     saveBmp = 'Images/Editor/Save.bmp'
@@ -721,15 +726,9 @@ class ModuleModel(SourceModel):
         resultView.diffWith = filename
         resultView.refresh()
         resultView.focus()
-                
-class TextModel(EditorModel):
 
-    modelIdentifier = 'Text'
-    defaultName = 'text'
-    bitmap = 'Text_s.bmp'
-    imgIdx = 8
-    ext = '.txt'
-
+class BasicFileModel(EditorModel):
+    
     saveBmp = 'Images/Editor/Save.bmp'
     saveAsBmp = 'Images/Editor/SaveAs.bmp'
 
@@ -760,40 +759,27 @@ class TextModel(EditorModel):
         self.update()
         if notify: self.notify()
 
-class CPPModel(EditorModel):
+class TextModel(BasicFileModel):
+
+    modelIdentifier = 'Text'
+    defaultName = 'text'
+    bitmap = 'Text_s.bmp'
+    imgIdx = imgTextModel
+    ext = '.txt'
+
+
+class CPPModel(BasicFileModel):
 
     modelIdentifier = 'CPP'
     defaultName = 'cpp'
     bitmap = 'Cpp_s.bmp'
-    imgIdx = 13
+    imgIdx = imgCPPModel
     ext = '.cxx'
 
-    saveBmp = 'Images/Editor/Save.bmp'
-    saveAsBmp = 'Images/Editor/SaveAs.bmp'
-
     def __init__(self, data, name, editor, saved):
-        EditorModel.__init__(self, name, data, editor, saved)
-        if data: self.update()
+        BasicFileModel.__init__(self, data, name, editor, saved)
         self.loadHeader()
         
-    def addTools(self, toolbar):
-        EditorModel.addTools(self, toolbar)
-        AddToolButtonBmpIS(self.editor, toolbar, self.saveBmp, 'Save', self.editor.OnSave)
-        AddToolButtonBmpIS(self.editor, toolbar, self.saveAsBmp, 'Save as...', self.editor.OnSaveAs)
-
-    def addMenus(self, menu):
-        accls = EditorModel.addMenus(self, menu)
-        self.addMenu(menu, Editor.wxID_EDITORSAVE, 'Save', accls, (keyDefs['Save']))
-        self.addMenu(menu, Editor.wxID_EDITORSAVEAS, 'Save as...', accls, (keyDefs['SaveAs']))
-        return accls
-
-    def new(self):
-        self.data = ''
-        self.savedAs = false
-        self.modified = true
-        self.update()
-        self.notify()
-
     def loadHeader(self):
         header = os.path.splitext(self.filename)[0]+'.h'
         if os.path.exists(header):
@@ -802,8 +788,7 @@ class CPPModel(EditorModel):
             self.headerData = ''
 
     def load(self, notify = true):
-        print 'CPP load'
-        EditorModel.load(self, false)
+        BasicFileModel.load(self, false)
         self.loadHeader()
         self.update()
         if notify: self.notify()
@@ -815,13 +800,20 @@ class CPPModel(EditorModel):
 ##    imgIdx = 13
 ##    ext = '.h'
                 
-class ConfigFileModel(TextModel):
+class ConfigFileModel(BasicFileModel):
     modelIdentifier = 'Config'
     defaultName = 'config'
     bitmap = 'Config_s.bmp'
-    imgIdx = 9
+    imgIdx = imgConfigFileModel
     ext = '.cfg'
 
+class HTMLFileModel(BasicFileModel):
+    modelIdentifier = 'HTML'
+    defaultName = 'html'
+    bitmap = 'Text_s.bmp'
+    imgIdx = imgHTMLFileModel
+    ext = '.html'
+    
 class ClassModel(ModuleModel):
     """ Represents access to 1 maintained main class in the module.
         This class is identified by the 3rd header entry  #Boa:Model:Class """
@@ -1158,35 +1150,35 @@ class FrameModel(BaseFrameModel):
     modelIdentifier = 'Frame'
     defaultName = 'wxFrame'
     bitmap = 'wxFrame_s.bmp'
-    imgIdx = 1
+    imgIdx = imgFrameModel
     companion = Companions.FrameDTC
 
 class DialogModel(BaseFrameModel):
     modelIdentifier = 'Dialog'
     defaultName = 'wxDialog'
     bitmap = 'wxDialog_s.bmp'
-    imgIdx = 2
+    imgIdx = imgDialogModel
     companion = Companions.DialogDTC
 
 class MiniFrameModel(BaseFrameModel):
     modelIdentifier = 'MiniFrame'
     defaultName = 'wxMiniFrame'
     bitmap = 'wxMiniFrame_s.bmp'
-    imgIdx = 3
+    imgIdx = imgMiniFrameModel
     companion = Companions.MiniFrameDTC
 
 class MDIParentModel(BaseFrameModel):
     modelIdentifier = 'MDIParent'
     defaultName = 'wxMDIParentFrame'
     bitmap = 'wxMDIParentFrame_s.bmp'
-    imgIdx = 4
+    imgIdx = imgMDIParentModel
     companion = Companions.MDIParentFrameDTC
 
 class MDIChildModel(BaseFrameModel):
     modelIdentifier = 'MDIChild'
     defaultName = 'wxMDIChildFrame'
     bitmap = 'wxMDIChildFrame_s.bmp'
-    imgIdx = 5
+    imgIdx = imgMDIChildModel
     companion = Companions.MDIChildFrameDTC
     
 # XXX Autocreated frames w/ corresponding imports
@@ -1196,15 +1188,33 @@ class AppModel(ClassModel):
     modelIdentifier = 'App'
     defaultName = 'wxApp'
     bitmap = 'wxApp_s.bmp'
-    imgIdx = 0
-    def __init__(self, data, name, main, editor, saved):
+    imgIdx = imgAppModel
+    def __init__(self, data, name, main, editor, saved, openModules):
         self.moduleModels = {}
         self.textInfos = {}
         self.unsavedTextInfos = []
+        self.modules = {}
         ClassModel.__init__(self, data, name, main, editor, saved, self)
         if data:
             self.update()
             self.notify()
+
+        # Connect all open modules to this app obj if they are defined in
+        # the app's modules
+        # XXX This does not work yet, the problem is that the menus and toolbar
+        # XXX def is built in the constructors so they cannot yet be changed
+        # XXX to include the runn app button / action
+        abspaths = self.absModulesPaths()
+        for modPage in openModules.values():
+            if hasattr(modPage.model, 'app') and modPage.model.filename in abspaths:
+                modPage.model.app = self
+    
+    def absModulesPaths(self):
+        modules = self.modules.keys()
+        abspaths = []
+        for moduleName in modules:
+            abspaths.append(self.normaliseModuleRelativeToApp(self.modules[moduleName][2]))
+        return abspaths
 
     def addMenus(self, menu):
         accls = ClassModel.addMenus(self, menu)
@@ -1528,16 +1538,19 @@ modelReg = {AppModel.modelIdentifier: AppModel,
             BitmapFileModel.modelIdentifier: BitmapFileModel,
             ZipFileModel.modelIdentifier: ZipFileModel,
             CPPModel.modelIdentifier: CPPModel,
-            UnknownFileModel.modelIdentifier: UnknownFileModel}
+            UnknownFileModel.modelIdentifier: UnknownFileModel,
+            HTMLFileModel.modelIdentifier: HTMLFileModel}
 
 # All non python files recogniseable by extension
 extMap = {}
 for mod in modelReg.values():
     extMap[mod.ext] = mod
 del extMap['.py']
-extMap['.cpp'] = CPPModel
-extMap['.c'] = CPPModel
-extMap['.h'] = CPPModel
+del extMap['.*']
+extMap['.cpp'] = extMap['.c'] = extMap['.h'] = CPPModel
+extMap['.jpg'] = extMap['.gif'] = extMap['png'] = BitmapFileModel
+
+internalFilesReg = ['.umllay', '.implay', '.brk', '.trace', '.stack']
 
 def identifyHeader(headerStr):
     header = string.split(headerStr, ':')
