@@ -28,7 +28,7 @@ prog_update = re.compile('<<(?P<cnt>[0-9]+)/(?P<tot>[0-9]+)>>')
 
 about_html = '''
 <html>
-<body bgcolor="#99ccff">
+<body bgcolor="#4488FF">
 <center>
 <table cellpadding="5" bgcolor="#FFFFFF" width="100%%">
   <tr>
@@ -56,7 +56,7 @@ progress_text = '''<p>
 
 credits_html = '''
 <html>
-<body bgcolor="#99ccff">
+<body bgcolor="#4488FF">
 <center>
 <table bgcolor="#FFFFFF" width="100%%">
   <tr>
@@ -216,7 +216,7 @@ class AboutBox(AboutBoxMixin, wxDialog):
 DefAboutBox = AboutBox
 
 class AboutBoxSplash(AboutBoxMixin, wxFrame):
-    progressBorder = 2
+    progressBorder = 1
     fileOpeningFactor = 10
     def _init_ctrls(self, prnt):
         wxFrame.__init__(self, size=wxSize(410, 320), pos=(-1, -1),
@@ -224,7 +224,7 @@ class AboutBoxSplash(AboutBoxMixin, wxFrame):
               name='AboutBoxSplash', style=wxSIMPLE_BORDER)
         self.progressId = wxNewId()
         self.gaugePId = wxNewId()
-        self.SetBackgroundColour(wxColour(0x99, 0xcc, 0xff))
+        self.SetBackgroundColour(wxColour(0x44, 0x88, 0xFF))#wxColour(0x99, 0xcc, 0xff))
 
     def setPage(self):
         self.html.SetPage(about_html % (Utils.toPyPath('Images/Shared/Boa.jpg'),
@@ -236,7 +236,7 @@ class AboutBoxSplash(AboutBoxMixin, wxFrame):
         self.label.SetSize((parentWidth - 40, self.label.GetSize().y))
 
         gaugePrnt = self.FindWindowById(self.gaugePId)
-        gaugePrnt.SetBackgroundColour(wxColour(0x99, 0xcc, 0xff))
+        gaugePrnt.SetBackgroundColour(wxBLACK)#wxColour(0x99, 0xcc, 0xff))
         gaugeSze = gaugePrnt.GetClientSize()
         self.gauge = wxGauge(gaugePrnt, -1,
               range=self.moduleTotal+self.fileTotal*self.fileOpeningFactor,
