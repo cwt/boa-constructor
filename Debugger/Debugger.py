@@ -135,9 +135,11 @@ class StackViewCtrl(wxListCtrl):
             editor.SetFocus()
             editor.openOrGotoModule(filename)
             model = editor.getActiveModulePage().model
-            model.views['Source'].focus()
-            model.views['Source'].SetFocus()
-            model.views['Source'].selectLine(lineno - 1)
+            view = model.getSourceView()
+            if view is not None:
+                view.focus()
+                view.SetFocus()
+                view.selectLine(lineno - 1)
 
 
 [wxID_BREAKVIEW, wxID_BREAKSOURCE, wxID_BREAKEDIT, wxID_BREAKDELETE,
@@ -281,11 +283,12 @@ class BreakViewCtrl(wxListCtrl):
         editor = self.debugger.editor
         editor.SetFocus()
         model, ctrlr = editor.openOrGotoModule(filename)
-        sourceView = model.views['Source']
-        sourceView.focus()
-        #sourceView.SetFocus()
-        #sourceView.selectLine(bp['lineno'] - 1)
-        sourceView.GotoLine(bp['lineno'] - 1)
+        view = model.getSourceView()
+        if view is not None:
+            view.focus()
+            #view.SetFocus()
+            #view.selectLine(bp['lineno'] - 1)
+            view.GotoLine(bp['lineno'] - 1)
 
     def OnDelete(self, event):
         sel = self.rightsel
@@ -1319,12 +1322,13 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
 
     def clearStepPos(self):
         if self.lastStepView is not None:
-            self.lastStepView.clearStepPos(self.lastStepLineno)
+            if hasattr(self.lastStepView, 'clearStepPos'):
+                self.lastStepView.clearStepPos(self.lastStepLineno)
             self.lastStepView = None
 
     def getEditorSourceView(self, filename):
         if self.editor.modules.has_key(filename):
-            return self.editor.modules[filename].model.views['Source']
+            return self.editor.modules[filename].model.getSourceView()
         else:
             return None
 
@@ -1342,13 +1346,17 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
                       'Debugger: Failed to open file %s'%filename, 'Error')
             else:
                 model = self.editor.getActiveModulePage().model
-                sourceView = model.views['Source']
-                sourceView.focus(false)
-                #sourceView.selectLine(lineno - 1)
-                sourceView.GotoLine(lineno - 1)
-                sourceView.setStepPos(lineno - 1)
-                self.lastStepView = sourceView
-                self.lastStepLineno = lineno - 1
+                view = model.getSourceView()
+                if view is not None:
+                    view.focus(false)
+                    #view.selectLine(lineno - 1)
+                    view.GotoLine(lineno - 1)
+                    if hasattr(view, 'setStepPos'):
+                        view.setStepPos(lineno - 1)
+                    else:
+                        view.selectLine(lineno - 1)
+                    self.lastStepView = view
+                    self.lastStepLineno = lineno - 1
 
     def isSourceTracing(self):
         return self.toolbar.GetToolState(self.sourceTraceId)
