@@ -98,7 +98,7 @@ class ControlSizeFrame(wxDialog):
 
             if dosize:
                 sel.size  = wxPoint(newX, newY)
-                sel.OnSizeEnd2(None)
+                sel.OnSizeEnd2()
                 sel.setSelection()
                 sel.sizeUpdate()
 
