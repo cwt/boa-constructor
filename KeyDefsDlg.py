@@ -1,5 +1,7 @@
 #Boa:Dialog:KeyDefsDialog
 
+import string
+
 from wxPython.wx import *
 
 import Preferences, Utils

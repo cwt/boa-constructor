@@ -12,8 +12,7 @@
 #-----------------------------------------------------------------------------
 #Boa:Dialog:wxBoaFileDialog
 
-from os import path
-import os, glob
+import os, glob, string
 
 from wxPython.wx import *
 from wxPython.html import *
@@ -145,7 +144,7 @@ class wxBoaFileDialog(wxDialog, Utils.FrameRestorerMixin):
 
         if defaultDir == '.':
             if self.currentDir == '.':
-                defaultDir = path.abspath(self.currentDir)
+                defaultDir = os.path.abspath(self.currentDir)
             else:
                 defaultDir = self.currentDir
 
@@ -211,7 +210,7 @@ class wxBoaFileDialog(wxDialog, Utils.FrameRestorerMixin):
         event.Skip()
 
     def newFileNode(self, defaultDir):
-        return FileExplorer.PyFileNode(path.basename(defaultDir), defaultDir,
+        return FileExplorer.PyFileNode(os.path.basename(defaultDir), defaultDir,
               None, EditorHelper.imgFolder, None, None)
 
 #---URL path label management and window layout---------------------------------

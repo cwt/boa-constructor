@@ -22,7 +22,7 @@ Hence the needed import * and execfile.
 # XXX This module should be renamed it's function has changed over time
 # XXX Maybe: BoaNamespace/DesignTimeNamespace
 
-import os
+import os, string
 
 import Preferences, Utils
 from Preferences import IS

@@ -9,9 +9,12 @@
 # Copyright:   (c) 1999, 2000 Riaan Booysen
 # Licence:     GPL
 #-----------------------------------------------------------------------------
-from wxPython.wx import *
+
+import string
 from os import path
 from popen2import import popen3
+
+from wxPython.wx import *
 
 import ErrorStack
 

@@ -11,7 +11,7 @@
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 
-
+import string
 from os import path
 from wxPython.wx import *
 

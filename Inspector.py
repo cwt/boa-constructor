@@ -19,7 +19,7 @@ print 'importing Inspector'
 
 # XXX Disable clipboards buttons when non Designer item is selected !!
 
-import os
+import os, string
 from types import *
 
 from wxPython.wx import *

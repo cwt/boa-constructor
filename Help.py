@@ -10,7 +10,7 @@
 # Licence:     GPL
 #----------------------------------------------------------------------
 
-import os, marshal
+import os, marshal, string
 
 from wxPython.wx import *
 from wxPython.html import *
