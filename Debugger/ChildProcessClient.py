@@ -1,4 +1,3 @@
-
 import os, string, sys, time, socket
 from ExternalLib import xmlrpclib
 from wxPython import wx
@@ -11,6 +10,11 @@ from DebugClient import DebugClient, MultiThreadedDebugClient, \
 KEEP_STREAMS_OPEN = 1
 USE_TCPWATCH = 0
 
+def canReadStream(stream):
+    try:
+        return stream.CanRead()
+    except AttributeError:
+        return not stream.eof()
 
 class TransportWithAuth (xmlrpclib.Transport):
     """Adds a proprietary but simple authentication header to the
@@ -77,10 +81,10 @@ def spawnChild(monitor, process, args=''):
             while monitor.isAlive() and string.find(line, '\n') < 0:
                 # don't take more time than the process we wait for ;)
                 time.sleep(0.00001)
-                if not istream.eof():
+                if canReadStream(istream):
                     line = line + istream.read(1)
                 # test for tracebacks on stderr
-                if not estream.eof():
+                if canReadStream(estream):
                     err = estream.read()
                     errlines = string.split(err, '\n')
                     while not string.strip(errlines[-1]): del errlines[-1]
@@ -190,10 +194,10 @@ class ChildProcessClient(MultiThreadedDebugClient):
         stdin_text = ''
         stderr_text = ''
         stream = self.input_stream
-        if stream is not None and not stream.eof():
+        if stream is not None and canReadStream(stream):
             stdin_text = stream.read()
         stream = self.error_stream
-        if stream is not None and not stream.eof():
+        if stream is not None and not canReadStream(stream):
             stderr_text = stream.read()
         return (stdin_text, stderr_text)
 
