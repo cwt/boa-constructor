@@ -49,6 +49,8 @@ if len(sys.argv) > 1:
         # XXX are drag/dropped on a Boa shortcut, why?
         startupModules = args
 
+startupErrors = []
+
 # Custom installations
 
 # Only install if it's not a 'binary' distribution
@@ -72,9 +74,13 @@ import About
 import Utils
 
 if hasattr(wxPython, '__file__'):
-    # Install/update run time libs if necessary
-    Utils.updateDir(os.path.join(boaPath, 'bcrtl'),
-         os.path.join(wxPythonLibPath, 'bcrtl'))
+    try:
+        # Install/update run time libs if necessary
+        Utils.updateDir(os.path.join(boaPath, 'bcrtl'),
+             os.path.join(wxPythonLibPath, 'bcrtl'))
+    except Exception, error:
+        startupErrors.extend(['Error while installing Run Time Libs:', 
+                              '    '+str(error)])
 
 # XXX Remaining milestones before alpha
 # XXX auto created frames (main frame handled currently)
@@ -83,7 +89,90 @@ if hasattr(wxPython, '__file__'):
 
 pad = 80*' '
 
-modules ={'ExplorerNodes': [0, '', 'Explorers/ExplorerNodes.py'], 'UserCompanions': [0, '', 'Companions/UserCompanions.py'], 'EditorViews': [0, '', 'Views/EditorViews.py'], 'Editor': [0, 'Source code editor hosting models and views', 'Editor.py'], 'Inspector': [0, "Inspects object's constructor/properties/events/parents", 'Inspector.py'], 'Infofields': [0, '', 'Infofields.py'], 'ErrorStack': [0, '', 'ErrorStack.py'], 'AppModuleProps': [0, '', 'AppModuleProps.py'], 'InspectableViews': [0, '', 'Views/InspectableViews.py'], 'UtilCompanions': [0, '', 'Companions/UtilCompanions.py'], 'HTMLCyclops': [0, '', 'HTMLCyclops.py'], 'ZopeFTP': [0, '', 'ZopeLib/ZopeFTP.py'], 'CtrlAlign': [0, '', 'CtrlAlign.py'], 'FileDlg': [0, '', 'FileDlg.py'], 'Constructors': [0, '', 'Companions/Constructors.py'], 'Utils': [0, '', 'Utils.py'], 'ExtMethDlg': [0, '', 'ZopeLib/ExtMethDlg.py'], 'CollectionEdit': [0, '', 'Views/CollectionEdit.py'], 'sender': [0, '', 'sender.py'], 'ProcessProgressDlg': [0, '', 'ProcessProgressDlg.py'], 'ProfileView': [0, '', 'Views/ProfileView.py'], 'RunCyclops': [0, '', 'RunCyclops.py'], 'popen2import': [0, '', 'popen2import.py'], 'ClassBrowser': [0, '', 'ClassBrowser.py'], 'RTTI': [0, '', 'RTTI.py'], 'PySourceView': [0, '', 'Views/PySourceView.py'], 'sourceconst': [0, '', 'sourceconst.py'], 'GCFrame': [0, '', 'GCFrame.py'], 'PythonInterpreter': [0, '', 'ExternalLib/PythonInterpreter.py'], 'SSHExplorer': [0, '', 'Explorers/SSHExplorer.py'], 'ModRunner': [0, '', 'ModRunner.py'], 'ObjCollection': [0, '', 'Views/ObjCollection.py'], 'SelectionTags': [0, '', 'Views/SelectionTags.py'], 'DiffView': [0, '', 'Views/DiffView.py'], 'PrefsGTK': [0, '', 'PrefsGTK.py'], 'About': [0, '', 'About.py'], 'InspectorEditorControls': [0, '', 'PropEdit/InspectorEditorControls.py'], 'methodparse': [0, '', 'methodparse.py'], 'Search': [0, '', 'Search.py'], 'PhonyApp': [0, '', 'PhonyApp.py'], 'DialogCompanions': [0, '', 'Companions/DialogCompanions.py'], 'relpath': [0, '', 'relpath.py'], 'ImageStore': [0, '', 'ImageStore.py'], 'OGLViews': [0, '', 'Views/OGLViews.py'], 'StyledTextCtrls': [0, '', 'Views/StyledTextCtrls.py'], 'FileExplorer': [0, '', 'Explorers/FileExplorer.py'], 'EditorModels': [0, '', 'EditorModels.py'], 'PropertyEditors': [0, '', 'PropEdit/PropertyEditors.py'], 'HelpCompanions': [0, '', 'Companions/HelpCompanions.py'], 'DataView': [0, '', 'Views/DataView.py'], 'EventCollections': [0, '', 'Companions/EventCollections.py'], 'moduleparse': [0, '', 'moduleparse.py'], 'Explorer': [0, '', 'Explorers/Explorer.py'], 'CtrlSize': [0, '', 'CtrlSize.py'], 'Designer': [0, '', 'Views/Designer.py'], 'ErrorStackFrm': [0, '', 'ErrorStackFrm.py'], 'Companions': [0, '', 'Companions/Companions.py'], 'LoginDialog': [0, '', 'ZopeLib/LoginDialog.py'], 'PaletteMapping': [0, '', 'PaletteMapping.py'], 'PrefsMSW': [0, '', 'PrefsMSW.py'], 'ZopeCompanions': [0, '', 'Companions/ZopeCompanions.py'], 'ShellEditor': [0, '', 'ShellEditor.py'], 'PropDlg': [0, '', 'ZopeLib/PropDlg.py'], 'BaseCompanions': [0, '', 'Companions/BaseCompanions.py'], 'ComCompanions': [0, '', 'Companions/ComCompanions.py'], 'AppViews': [0, '', 'Views/AppViews.py'], 'Help': [0, '', 'Help.py'], 'Debugger': [0, '', 'Debugger/Debugger.py'], 'ndiff': [0, '', 'ExternalLib/ndiff.py'], 'ZopeExplorer': [0, '', 'Explorers/ZopeExplorer.py'], 'CVSExplorer': [0, '', 'Explorers/CVSExplorer.py'], 'ZipExplorer': [0, '', 'Explorers/ZipExplorer.py'], 'Enumerations': [0, '', 'PropEdit/Enumerations.py'], 'Browse': [0, '', 'Browse.py'], 'CVSResults': [0, '', 'Explorers/CVSResults.py'], 'ImageViewer': [0, '', 'ZopeLib/ImageViewer.py'], 'Preferences': [0, '', 'Preferences.py'], 'Tests': [0, '', 'Tests.py'], 'Palette': [1, '', 'Palette.py'], 'PrefsKeys': [0, '', 'PrefsKeys.py'], 'FTPExplorer': [0, '', 'Explorers/FTPExplorer.py']}
+modules ={'About': [0, '', 'About.py'],
+ 'AppModuleProps': [0, '', 'AppModuleProps.py'],
+ 'AppViews': [0, '', 'Views/AppViews.py'],
+ 'BaseCompanions': [0, '', 'Companions/BaseCompanions.py'],
+ 'Browse': [0, '', 'Browse.py'],
+ 'CVSExplorer': [0, '', 'Explorers/CVSExplorer.py'],
+ 'CVSResults': [0, '', 'Explorers/CVSResults.py'],
+ 'ClassBrowser': [0, '', 'ClassBrowser.py'],
+ 'CollectionEdit': [0, '', 'Views/CollectionEdit.py'],
+ 'ComCompanions': [0, '', 'Companions/ComCompanions.py'],
+ 'Companions': [0, '', 'Companions/Companions.py'],
+ 'Constructors': [0, '', 'Companions/Constructors.py'],
+ 'CtrlAlign': [0, '', 'CtrlAlign.py'],
+ 'CtrlSize': [0, '', 'CtrlSize.py'],
+ 'DataView': [0, '', 'Views/DataView.py'],
+ 'Debugger': [0, '', 'Debugger/Debugger.py'],
+ 'Designer': [0, '', 'Views/Designer.py'],
+ 'DialogCompanions': [0, '', 'Companions/DialogCompanions.py'],
+ 'DiffView': [0, '', 'Views/DiffView.py'],
+ 'Editor': [0, 'Source code editor hosting models and views', 'Editor.py'],
+ 'EditorModels': [0, '', 'EditorModels.py'],
+ 'EditorViews': [0, '', 'Views/EditorViews.py'],
+ 'Enumerations': [0, '', 'PropEdit/Enumerations.py'],
+ 'ErrorStack': [0, '', 'ErrorStack.py'],
+ 'ErrorStackFrm': [0, '', 'ErrorStackFrm.py'],
+ 'EventCollections': [0, '', 'Companions/EventCollections.py'],
+ 'Explorer': [0, '', 'Explorers/Explorer.py'],
+ 'ExplorerNodes': [0, '', 'Explorers/ExplorerNodes.py'],
+ 'ExtMethDlg': [0, '', 'ZopeLib/ExtMethDlg.py'],
+ 'FTPExplorer': [0, '', 'Explorers/FTPExplorer.py'],
+ 'FileDlg': [0, '', 'FileDlg.py'],
+ 'FileExplorer': [0, '', 'Explorers/FileExplorer.py'],
+ 'GCFrame': [0, '', 'GCFrame.py'],
+ 'HTMLCyclops': [0, '', 'HTMLCyclops.py'],
+ 'Help': [0, '', 'Help.py'],
+ 'HelpCompanions': [0, '', 'Companions/HelpCompanions.py'],
+ 'ImageStore': [0, '', 'ImageStore.py'],
+ 'ImageViewer': [0, '', 'ZopeLib/ImageViewer.py'],
+ 'Infofields': [0, '', 'Infofields.py'],
+ 'InspectableViews': [0, '', 'Views/InspectableViews.py'],
+ 'Inspector': [0,
+               "Inspects object's constructor/properties/events/parents",
+               'Inspector.py'],
+ 'InspectorEditorControls': [0, '', 'PropEdit/InspectorEditorControls.py'],
+ 'LoginDialog': [0, '', 'ZopeLib/LoginDialog.py'],
+ 'ModRunner': [0, '', 'ModRunner.py'],
+ 'OGLViews': [0, '', 'Views/OGLViews.py'],
+ 'ObjCollection': [0, '', 'Views/ObjCollection.py'],
+ 'Palette': [1, '', 'Palette.py'],
+ 'PaletteMapping': [0, '', 'PaletteMapping.py'],
+ 'PhonyApp': [0, '', 'PhonyApp.py'],
+ 'Preferences': [0, '', 'Preferences.py'],
+ 'PrefsGTK': [0, '', 'PrefsGTK.py'],
+ 'PrefsKeys': [0, '', 'PrefsKeys.py'],
+ 'PrefsMSW': [0, '', 'PrefsMSW.py'],
+ 'ProcessProgressDlg': [0, '', 'ProcessProgressDlg.py'],
+ 'ProfileView': [0, '', 'Views/ProfileView.py'],
+ 'PropDlg': [0, '', 'ZopeLib/PropDlg.py'],
+ 'PropertyEditors': [0, '', 'PropEdit/PropertyEditors.py'],
+ 'PySourceView': [0, '', 'Views/PySourceView.py'],
+ 'PythonInterpreter': [0, '', 'ExternalLib/PythonInterpreter.py'],
+ 'RTTI': [0, '', 'RTTI.py'],
+ 'RunCyclops': [0, '', 'RunCyclops.py'],
+ 'SSHExplorer': [0, '', 'Explorers/SSHExplorer.py'],
+ 'Search': [0, '', 'Search.py'],
+ 'SelectionTags': [0, '', 'Views/SelectionTags.py'],
+ 'ShellEditor': [0, '', 'ShellEditor.py'],
+ 'StyledTextCtrls': [0, '', 'Views/StyledTextCtrls.py'],
+ 'Tests': [0, '', 'Tests.py'],
+ 'UserCompanions': [0, '', 'Companions/UserCompanions.py'],
+ 'UtilCompanions': [0, '', 'Companions/UtilCompanions.py'],
+ 'Utils': [0, '', 'Utils.py'],
+ 'ZipExplorer': [0, '', 'Explorers/ZipExplorer.py'],
+ 'ZopeCompanions': [0, '', 'Companions/ZopeCompanions.py'],
+ 'ZopeExplorer': [0, '', 'Explorers/ZopeExplorer.py'],
+ 'ZopeFTP': [0, '', 'ZopeLib/ZopeFTP.py'],
+ 'curry': [0, '', 'curry.py'],
+ 'methodparse': [0, '', 'methodparse.py'],
+ 'moduleparse': [0, '', 'moduleparse.py'],
+ 'ndiff': [0, '', 'ExternalLib/ndiff.py'],
+ 'popen2import': [0, '', 'popen2import.py'],
+ 'relpath': [0, '', 'relpath.py'],
+ 'sender': [0, '', 'sender.py'],
+ 'sourceconst': [0, '', 'sourceconst.py']}
 
 class BoaApp(wxApp):
     def __init__(self, redirect=false):
@@ -158,6 +247,10 @@ class BoaApp(wxApp):
 
             sys.stderr = LoggerPF(wxLogError, sys.__stderr__, false)
             sys.stdout = LoggerPF(wxLogMessage, sys.__stdout__)
+        
+        if startupErrors:
+            for error in startupErrors:
+                wxLogError(error)
 
         return true
 
