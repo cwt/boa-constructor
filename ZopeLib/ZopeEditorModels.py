@@ -77,8 +77,8 @@ for m_type, file in ZOAImages:
 
 class ZopeEditorModel(EditorModels.BasePersistentModel):
     modelIdentifier = 'Zope'
-    def __init__(self, name, data, editor, saved, zopeObject):
-        EditorModels.BasePersistentModel.__init__(self, name, data, editor, saved)
+    def __init__(self, data, name, editor, saved, zopeObject):
+        EditorModels.BasePersistentModel.__init__(self, data, name, editor, saved)
         self.transport = zopeObject  #this is the instance of our node now
 
     def load(self, notify = true):
@@ -122,8 +122,8 @@ class ZopeDocumentModel(ZopeEditorModel):
 
     saveBmp = 'Images/Editor/Save.png'
 
-    def __init__(self, name, data, editor, saved, zopeObject):
-        ZopeEditorModel.__init__(self, name, data, editor, saved, zopeObject)
+    def __init__(self, data, name, editor, saved, zopeObject):
+        ZopeEditorModel.__init__(self, data, name, editor, saved, zopeObject)
         self.savedAs = true
 
     def saveAs(self, filename):
@@ -147,8 +147,8 @@ class ZopeSQLMethodModel(ZopeDocumentModel):
 
 class ZopePythonSourceModel(ZopeDocumentModel):
     modelIdentifier = 'ZopePythonSource'
-    def __init__(self, name, data, editor, saved,  zopeObject):
-        ZopeDocumentModel.__init__(self, name, data, editor, saved,  zopeObject)
+    def __init__(self, data, name, editor, saved,  zopeObject):
+        ZopeDocumentModel.__init__(self, data, name, editor, saved,  zopeObject)
         self._module = None
 
     def getModule(self):
@@ -267,7 +267,7 @@ class ZopeController(Controllers.PersistentController):
         return accls
 
     def createModel(self, source, filename, main, saved, transport):
-        return self.Model(filename, main, self.editor, saved, transport)
+        return self.Model(source, filename, self.editor, saved, transport)
 
     def createNewModel(self, modelParent=None):
         pass
