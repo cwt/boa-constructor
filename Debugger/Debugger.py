@@ -1035,7 +1035,7 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
     def setDebugClient(self, client=None):
         if client is None:
             from ChildProcessClient import ChildProcessClient
-            client = ChildProcessClient(self)
+            client = ChildProcessClient(self, '--zope')
         self.debug_client = client
 
     def invokeInDebugger(self, m_name, m_args=(), r_name=None, r_args=()):
@@ -1238,8 +1238,8 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
         stack = info['stack']
         # Translate server filenames to client filenames.
         for frame in stack:
-            frame['client_filename'] = \
-                  self.serverFNToClientFN(frame['filename'])
+            frame['client_filename'] = (
+                self.serverFNToClientFN(frame['filename']))
 
         # Determine the current lineno, filename, and
         # funcname from the stack.
@@ -1457,6 +1457,7 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
         self.locs.load_dict({})
         self.globs.load_dict({})
         self.sb.updateState('Ready', 'info')
+        self.refreshTools()
 
     def OnCloseWindow(self, event):
         self._closing = 1
