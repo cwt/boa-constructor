@@ -14,7 +14,7 @@ from wxPython.wx import *
 from wxPython.stc import *
 import os, string
 import EditorViews, ProfileView, Search, Help, Preferences
-from StyledTextCtrls import PythonStyledTextCtrlMix, BrowseStyledTextCtrlMix, HTMLStyledTextCtrlMix, FoldingStyledTextCtrlMix, CPPStyledTextCtrlMix, idWord, new_stc, old_stc
+from StyledTextCtrls import PythonStyledTextCtrlMix, BrowseStyledTextCtrlMix, HTMLStyledTextCtrlMix, FoldingStyledTextCtrlMix, CPPStyledTextCtrlMix, idWord, new_stc, old_stc, object_delim
 from PrefsKeys import keyDefs
 import methodparse
 import bdb, time
@@ -281,10 +281,10 @@ class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView):
         finally:
             dlg.Destroy()
 
-##        print self.lastMatchPosition, self.lastSearchResults
         if self.lastMatchPosition is not None and \
           len(self.lastSearchResults) > self.lastMatchPosition:
             pos = self.lastSearchResults[self.lastMatchPosition]
+            self.model.editor.addBrowseMarker(self.GetCurrentLine())
             self.selectSection(pos[0], pos[1], self.lastSearchPattern)
         else:
             dlg = wxMessageDialog(self.model.editor, 'No matches',
@@ -329,11 +329,14 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix, BrowseStyl
               ('Dedent', self.OnDedent, '-', keyDefs['Dedent']),
               ('-', None, '-', ()),
               ('Profile', self.OnProfile, self.profileBmp, ()),
-              ('Compile', self.OnCompile, self.compileBmp, keyDefs['Compile']))
+              ('Check source', self.OnCompile, self.compileBmp, keyDefs['CheckSource']))
         a3 = (('Run module', self.OnRun, self.runBmp, keyDefs['RunMod']),
               ('Run module with parameters', self.OnRunParams, '-', ()),
               ('Debug', self.OnDebug, self.debugBmp, keyDefs['Debug']),
               ('Debug with parameters', self.OnDebugParams, '-', ()),
+              ('Step in', self.OnDebugStepIn, '-', keyDefs['DebugStep']),
+              ('Step over', self.OnDebugStepOver, '-', keyDefs['DebugOver']),
+              ('Step out', self.OnDebugStepOut, '-', keyDefs['DebugOut']),
               ('-', None, '', ()),
               ('Run to cursor', self.OnRunToCursor, self.runCrsBmp, ()),
               ('Toggle breakpoint', self.OnSetBreakPoint, self.breakBmp, keyDefs['ToggleBrk']),
@@ -412,34 +415,36 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix, BrowseStyl
                 textLst[idx] = textLst[idx][indentLevel:]
         return textLst
 
-    def getAttribs(self, cls, partial):
+    def getWxAttribs(self, cls, mems = None):
+        if mems is None: mems = []
+        
+        for base in cls.__bases__:
+            self.getWxAttribs(base, mems)
+
+        mems.extend(dir(cls))
+        return mems
+
+    def getAttribs(self, cls):
         loopCls = cls
-        list = []
+        lst = []
         while loopCls:
-            list.extend(loopCls.methods.keys() + loopCls.attributes.keys())
+            lst.extend(loopCls.methods.keys() + loopCls.attributes.keys())
             if len(loopCls.super):
                 prnt = loopCls.super[0]
+                # Modules
                 if type(prnt) == type(self): # :)
                     loopCls = prnt
+                # Possible wxPython ancestor
                 else:
+                    klass = wxNamespace.getWxClass(prnt)
+                    if klass:
+                        lst.extend(self.getWxAttribs(klass))
                     loopCls = None
             else:
                 loopCls = None
 
-        sel = ''
-        if partial:
-            for key in list:
-##                print key[:len(partial)], partial
-                if key[:len(partial)] == partial:
-                    sel = key
-                    break
-
-        uniqueDct = {}
-        for attr in list:
-            uniqueDct[attr] = None
-        
-        return uniqueDct.keys(), sel
-    
+        return lst
+            
     def checkCallTipHighlight(self):
         if self.CallTipActive():
             pass
@@ -476,13 +481,14 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix, BrowseStyl
                 meth = line[dot+1:piv-1]
                 print 'self', meth
                 if cls.methods.has_key(meth):
-##                    print 'has meth', `cls.methods[meth].signature`
                     sigLst = methodparse.safesplitfields(cls.methods[meth].signature, ',')
-##                    print sigLst
                     if len(sigLst) > 1:
                         self.CallTipShow(pos, string.join(sigLst[1:], ', '))
                         self.currParamList = sigLst[1:]
                         self.checkCallTipHighlight()
+
+    typeMap = {'dict': dir({}), 'list': dir([]), 'string': dir(''), 
+               'tuple': dir(()), 'number': dir(0)}
 
     def checkCodeComp(self):
         pos = self.GetCurrentPos()
@@ -493,25 +499,44 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix, BrowseStyl
         start, length = idWord(line, piv, lnStPs)
         startLine = start-lnStPs
         word = line[startLine:startLine+length]
-##        print word
         module = self.model.getModule()
         cls = module.getClassForLineNo(lnNo)
         if not cls: return
         dot = string.rfind(line, '.', 0, piv)
         if dot != -1:
+            lst = []
             if line[dot-4:dot] == 'self':
                 partial = line[dot+1:piv]
-##                print partial
-                list, sel = self.getAttribs(cls, partial)
-
+                lst = self.getAttribs(cls)
+            else:
+                # check if previous attr isn't self
+                prevdot = string.rfind(line, '.', 0, dot)
+                if prevdot != -1 and line[prevdot-4:prevdot] == 'self':
+                    partial = line[dot+1:piv]
+                    attrib = line[prevdot+1:dot]
+                    # Only handling current classes attrs
+                    if cls.attributes.has_key(attrib):
+                        objtype = cls.attributes[attrib][0].signature
+                        if self.typeMap.has_key(objtype):
+                            lst = self.typeMap[objtype]
+                        elif module.classes.has_key(objtype):
+                            lst = self.getAttribs(module.classes[objtype])
+                        else:
+                            klass = wxNamespace.getWxClass(objtype)
+                            if klass:
+                                lst = self.getWxAttribs(klass)
+            if lst:
+                uniqueDct = {}
+                for attr in lst:
+                    uniqueDct[attr] = None
+                lst = uniqueDct.keys()
                 if old_stc:
-                    self.AutoCompShow(string.join(list, ' '))
+                    self.AutoCompShow(string.join(lst, ' '))
                 else:
-                    self.AutoCompShow(len(partial), string.join(list, ' '))
-                if sel:
-                    if new_stc:
-                        print 'auto selecting', partial, sel
+                    self.AutoCompShow(len(partial), string.join(lst, ' '))
+                if partial and new_stc:
                         self.AutoCompSelect(partial)
+                            
         else:
             blnk = string.rfind(line, ' ', 0, piv)
             partial = line[blnk+1:piv]
@@ -520,7 +545,8 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix, BrowseStyl
                 self.AutoCompShow(string.join(list, ' '))
             else:
                 self.AutoCompShow(len(partial), string.join(list, ' '))
-                self.AutoCompSelect(partial)
+                if partial and new_stc:
+                    self.AutoCompSelect(partial)
 
 #-------Browsing----------------------------------------------------------------
     def StyleVeto(self, style):
@@ -535,21 +561,28 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix, BrowseStyl
             outside the scope of the active module are inaccessible.
         """
         module = self.model.getModule()
-        if line[start-5: start] == 'self.':
+
+        if self.model.editor.debugger:
+            self.model.editor.debugger.add_watch(word, true)
+        elif line[start-5: start] == 'self.':
             cls = module.getClassForLineNo(lineNo)
             if cls:
                 self.doClearBrwsLn()
+                gotoLine = -1
                 if cls.attributes.has_key(word):
-                    self.GotoLine(cls.attributes[word][0].start-1)
+                    gotoLine = cls.attributes[word][0].start-1
                 elif cls.methods.has_key(word):
-                    self.GotoLine(cls.methods[word].start-1)
+                    gotoLine = cls.methods[word].start-1
                 else:
                     found, cls, block = module.find_declarer(cls, word, None)
                     if found:
                         if type(block) == type([]):
-                            self.GotoLine(block[0].start-1)
+                            gotoLine = block[0].start-1
                         else:
-                            self.GotoLine(block.start-1)
+                            gotoLine = block.start-1
+                if gotoLine != -1:
+                    self.model.editor.addBrowseMarker(lineNo)#self.GetCurrentLine())
+                    self.GotoLine(gotoLine)
                 return true
         # Imports
         elif module.imports.has_key(word):
@@ -581,7 +614,32 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix, BrowseStyl
 #            print dir(obj)
 #            self.GotoLine(globals()[word].block.start-1)
             return true
-            
+
+    def goto(self, gotoLine):
+        print 'jumping to line', gotoLine
+        self.GotoLine(gotoLine)
+
+    def underlineWord(self, start, length):
+        start, length = BrowseStyledTextCtrlMix.underlineWord(self, start, length)
+        if self.model.editor.debugger:
+            word, line, lnNo, wordStart = self.getStyledWordElems(start, length)
+            self.IndicatorSetColour(0, wxRED)
+            try:
+                val = self.model.editor.debugger.getVarValue(word)
+            except Exception, message:
+                val = str(message)
+            if val:
+                self.model.editor.statusBar.setHint(val)
+        else:
+            self.IndicatorSetColour(0, wxBLUE)
+                
+        return start, length
+
+    def getBrowsableText(self, line, piv, lnStPs):
+        if self.model.editor.debugger:
+            return idWord(line, piv, lnStPs, object_delim)
+        else:
+            return BrowseStyledTextCtrlMix.getBrowsableText(self, line, piv, lnStPs)
                         
 #-------Debugger----------------------------------------------------------------
     def setInitialBreakpoints(self):
@@ -658,10 +716,11 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix, BrowseStyl
             if self.stepPos:
                 self.MarkerDelete(self.stepPos, stepPosMrk)
             if lineNo:
-##                print 'adding lineno', lineNo
                 self.MarkerAdd(lineNo, stepPosMrk)
         self.stepPos = lineNo
             
+    def getBreakpointFilename(self):
+        return os.path.splitext(self.model.filename)[0]+'.brk'    
             
 #-------Events------------------------------------------------------------------
     def OnMarginClick(self, event):
@@ -741,6 +800,18 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix, BrowseStyl
                 self.model.debug(methodparse.safesplitfields(self.lastDebugParams, ' '))
         finally:
             dlg.Destroy()
+
+    def OnDebugStepIn(self, event):
+        if self.model.editor.debugger:
+            self.model.editor.debugger.OnStep(event)
+            
+    def OnDebugStepOver(self, event):
+        if self.model.editor.debugger:
+            self.model.editor.debugger.OnOver(event)
+
+    def OnDebugStepOut(self, event):
+        if self.model.editor.debugger:
+            self.model.editor.debugger.OnOut(event)
 
     def OnCompile(self, event):
         if not self.model.savedAs or self.model.modified or \
@@ -908,25 +979,6 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix, BrowseStyl
         self.menu.Check(miid, check)
         self.SetViewEOL(check)
         
-    def underlineWord(self, start, length):
-        start, length = BrowseStyledTextCtrlMix.underlineWord(self, start, length)
-        if self.model.editor.debugger:
-            word, line, lnNo, wordStart = self.getStyledWordElems(start, length)
-            self.IndicatorSetColour(0, wxRED)
-            try:
-                val = self.model.editor.debugger.getVarValue(word)
-            except Exception, message:
-                val = str(message)
-            if val:
-                self.model.editor.statusBar.setHint(val)
-        else:
-            self.IndicatorSetColour(0, wxBLUE)
-                
-        return start, length
-    
-    def getBreakpointFilename(self):
-        return os.path.splitext(self.model.filename)[0]+'.brk'    
-
     def OnSaveBreakPoints(self, event):
         self.saveBreakpoints()
         
