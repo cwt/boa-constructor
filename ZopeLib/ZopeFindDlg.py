@@ -1,6 +1,6 @@
 #-----------------------------------------------------------------------------
 # Name:        ZopeFindDlg.py
-# Purpose:     
+# Purpose:
 #
 # Author:      Riaan Booysen
 #

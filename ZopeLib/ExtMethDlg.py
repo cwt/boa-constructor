@@ -1,6 +1,6 @@
 #-----------------------------------------------------------------------------
 # Name:        ExtMethDlg.py
-# Purpose:     
+# Purpose:
 #
 # Author:      Riaan Booysen
 #

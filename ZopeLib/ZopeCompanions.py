@@ -16,13 +16,13 @@ import os, string
 from wxPython import wx
 
 from Explorers.ExplorerNodes import ExplorerCompanion
-from ZopeLib import Client, ExtMethDlg
-from ZopeLib.DateTime import DateTime
-import RTTI
-import methodparse
 from PropEdit.PropertyEditors import PropertyEditor
 from PropEdit import InspectorEditorControls
 import PaletteStore
+import methodparse, RTTI
+
+from ZopeLib import Client, ExtMethDlg
+from ZopeLib.DateTime import DateTime
 
 true=1;false=0
 
@@ -144,7 +144,7 @@ class ZopeConnection:
             wx.wxBeginBusyCursor()
             try:
                 if objPath and objPath[0] != '/': objPath = '/'+objPath
-                url = 'http://%s:%d/%s/%s' % (self.host, self.port, objPath, method)
+                url = 'http://%s:%d%s/%s' % (self.host, self.port, objPath, method)
                 return apply(Client.call, (url, self.user, self.password), kw)
             finally:
                 wx.wxEndBusyCursor()
@@ -156,7 +156,7 @@ class ZopeConnection:
             wx.wxBeginBusyCursor()
             try:
                 if objPath and objPath[0] != '/': objPath = '/'+objPath
-                url = 'http://%s:%d/%s/%s' % (self.host, self.port, objPath, method)
+                url = 'http://%s:%d%s/%s' % (self.host, self.port, objPath, method)
                 return apply(Client.call, (url, self.user, self.password), kw)
             finally:
                 wx.wxEndBusyCursor()
