@@ -72,6 +72,8 @@ class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView):
         self.SetEOLMode(wxSTC_EOL_LF)
         self.eol = endOfLines[self.GetEOLMode()]
 
+        #self.SetCaretPeriod(0)
+
         self.pos = 0
         self.stepPos = 0
         self.nonUserModification  = false 
@@ -244,12 +246,7 @@ class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView):
 #-------Canned events-----------------------------------------------------------
 
     def OnRefresh(self, event):
-##        t1 = time.time()
-##        for i in range(1):
         self.refreshModel()
-##        t2 = time.time()
-####        print t2 - t1
-        
 
     def OnEditCut(self, event):
         self.Cut()   
@@ -265,6 +262,28 @@ class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView):
 
     def OnEditRedo(self, event):
         self.Redo()
+        
+    def doFind(self, pattern):
+        self.lastSearchResults = Search.findInText(\
+          string.split(self.GetText(), self.eol), pattern, false)
+        self.lastSearchPattern = pattern
+        if len(self.lastSearchResults):
+            self.lastMatchPosition = 0
+    
+    def doNextMatch(self):
+        if self.lastMatchPosition is not None and \
+          len(self.lastSearchResults) > self.lastMatchPosition:
+            pos = self.lastSearchResults[self.lastMatchPosition]
+            self.model.editor.addBrowseMarker(self.GetCurrentLine())
+            self.selectSection(pos[0], pos[1], self.lastSearchPattern)
+            self.lastMatchPosition = self.lastMatchPosition + 1
+        else:
+            dlg = wxMessageDialog(self.model.editor, 
+                  'No%smatches'% (self.lastMatchPosition is not None and ' further ' or ' '),
+                  'Find in module', wxOK | wxICON_INFORMATION)
+            dlg.ShowModal()
+            dlg.Destroy()
+            self.lastMatchPosition = None
                        
     def OnFind(self, event):
         s, e = self.GetSelection()
@@ -276,41 +295,19 @@ class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView):
           'Find in module', txt)
         try:
             if dlg.ShowModal() == wxID_OK:
-                self.lastSearchResults = Search.findInText(\
-                  string.split(self.GetText(), self.eol), dlg.GetValue(), false)
-                self.lastSearchPattern = dlg.GetValue()
-                if len(self.lastSearchResults):
-                    self.lastMatchPosition = 0
+                self.doFind(dlg.GetValue())
             else:
                 return
         finally:
             dlg.Destroy()
-
-        if self.lastMatchPosition is not None and \
-          len(self.lastSearchResults) > self.lastMatchPosition:
-            pos = self.lastSearchResults[self.lastMatchPosition]
-            self.model.editor.addBrowseMarker(self.GetCurrentLine())
-            self.selectSection(pos[0], pos[1], self.lastSearchPattern)
-        else:
-            dlg = wxMessageDialog(self.model.editor, 'No matches',
-                      'Find in module', wxOK | wxICON_INFORMATION)
-            dlg.ShowModal()
-            dlg.Destroy()
+        
+        self.doNextMatch()
 
     def OnFindAgain(self, event):
         if self.lastMatchPosition is None:
             self.OnFind(event)
         else: 
-            if self.lastMatchPosition < len(self.lastSearchResults) -1:
-                self.lastMatchPosition = self.lastMatchPosition + 1
-                pos = self.lastSearchResults[self.lastMatchPosition]
-                self.selectSection(pos[0], pos[1], self.lastSearchPattern)
-            else:
-                dlg = wxMessageDialog(self.model.editor, 'No further matches',
-                          'Find in module', wxOK | wxICON_INFORMATION)
-                dlg.ShowModal()
-                dlg.Destroy()
-                self.lastMatchPosition = None
+            self.doNextMatch()
 
 class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix, BrowseStyledTextCtrlMix, FoldingStyledTextCtrlMix):
     viewName = 'Source'
@@ -422,7 +419,7 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix, BrowseStyl
 
     def getWxAttribs(self, cls, mems = None):
         if mems is None: mems = []
-        
+
         for base in cls.__bases__:
             self.getWxAttribs(base, mems)
 
@@ -467,7 +464,6 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix, BrowseStyl
 ##            self.CallTipSetHighlight(0, len(sigLst[1])
 
     def checkCallTip(self):
-        print 'checkCallTip'
         pos = self.GetCurrentPos()
         lnNo = self.GetCurrentLine()
         lnStPs = self.GetLineStartPos(lnNo)
@@ -476,11 +472,10 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix, BrowseStyl
         start, length = idWord(line, piv, lnStPs)
         startLine = start-lnStPs
         word = line[startLine:startLine+length]
-        print word, line[piv-1]
+        #print word, line[piv-1]
         module = self.model.getModule()
         cls = module.getClassForLineNo(lnNo)
         if cls and line[piv-1] == '(':
-            print 'got ('
             dot = string.rfind(line, '.', 0, piv)
             if dot != -1 and line[dot-4:dot] == 'self':
                 meth = line[dot+1:piv-1]
@@ -567,7 +562,7 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix, BrowseStyl
         """
         module = self.model.getModule()
 
-        if self.model.editor.debugger:
+        if self.model.editor.debugger and self.model.editor.debugger.isDebugBrowsing():
             self.model.editor.debugger.add_watch(word, true)
         elif line[start-5: start] == 'self.':
             cls = module.getClassForLineNo(lineNo)
@@ -621,12 +616,11 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix, BrowseStyl
             return true
 
     def goto(self, gotoLine):
-        print 'jumping to line', gotoLine
         self.GotoLine(gotoLine)
 
     def underlineWord(self, start, length):
         start, length = BrowseStyledTextCtrlMix.underlineWord(self, start, length)
-        if self.model.editor.debugger:
+        if self.model.editor.debugger and self.model.editor.debugger.isDebugBrowsing():
             word, line, lnNo, wordStart = self.getStyledWordElems(start, length)
             self.IndicatorSetColour(0, wxRED)
             try:
@@ -641,7 +635,7 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix, BrowseStyl
         return start, length
 
     def getBrowsableText(self, line, piv, lnStPs):
-        if self.model.editor.debugger:
+        if self.model.editor.debugger and self.model.editor.debugger.isDebugBrowsing():
             return idWord(line, piv, lnStPs, object_delim)
         else:
             return BrowseStyledTextCtrlMix.getBrowsableText(self, line, piv, lnStPs)
@@ -656,19 +650,20 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix, BrowseStyl
             self.MarkerAdd(bp.line -1, brkPtMrk)
 
     def deleteBreakPoint(self, lineNo):
-#        ln = self.MarkerLineFromHandle(self.breaks[lineClicked])
-        if self.breaks.has_key(lineNo):
-            bp = self.breaks[lineNo]
-            if bp.temporary:
-                self.MarkerDelete(lineNo - 1, tmpBrkPtMrk)
-            else:
-                self.MarkerDelete(lineNo - 1, brkPtMrk)
+        if not self.breaks.has_key(lineNo):
+            return
+        
+        bp = self.breaks[lineNo]
+        if bp.temporary:
+            self.MarkerDelete(lineNo - 1, tmpBrkPtMrk)
+        else:
+            self.MarkerDelete(lineNo - 1, brkPtMrk)
 
         if self.model.editor.debugger:
-            if self.breaks.has_key(lineNo):
-                bp = self.breaks[lineNo]
-                self.model.editor.debugger.clear_break(bp.file, bp.line)
-                self.model.editor.debugger.breakpts.refreshList()
+            bp = self.breaks[lineNo]
+            res = self.model.editor.debugger.clear_break(bp.file, bp.line)
+            if res: print res 
+            self.model.editor.debugger.breakpts.refreshList()
         else:
             self.breaks[lineNo].deleteMe()
         
@@ -692,16 +687,24 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix, BrowseStyl
     def tryLoadBreakpoints(self):    
         import pickle
         fn = self.getBreakpointFilename()
+        update = false
         if os.path.exists(fn):
             self.breaks = pickle.load(open(fn))
             self.setInitialBreakpoints()
             BrkPt = bdb.Breakpoint
             for lineNo, brk in self.breaks.items():
-                BrkPt.bpbynumber.append(brk)
-                if BrkPt.bplist.has_key((brk.file, brk.line)):
-                    BrkPt.bplist[brk.file, brk.line].append(brk)
+                if self.model.editor.debugger:
+                    self.model.editor.debugger.set_break(brk.file, lineNo)
+                    update = true
                 else:
-                    BrkPt.bplist[brk.file, brk.line] = [brk]
+                    BrkPt.bpbynumber.append(brk)
+                    if BrkPt.bplist.has_key((brk.file, brk.line)):
+                        BrkPt.bplist[brk.file, brk.line].append(brk)
+                    else:
+                        BrkPt.bplist[brk.file, brk.line] = [brk]
+            if update:
+                self.model.editor.debugger.breakpts.refreshList()
+                
             return true
         else:
             self.breaks = {}
@@ -726,7 +729,11 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix, BrowseStyl
             
     def getBreakpointFilename(self):
         return os.path.splitext(self.model.filename)[0]+'.brk'    
-            
+
+    def disableSource(self, doDisable):
+        self.SetReadOnly(doDisable)
+        self.grayout(doDisable)
+        
 #-------Events------------------------------------------------------------------
     def OnMarginClick(self, event):
         if event.GetMargin() == 1:
@@ -905,7 +912,7 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix, BrowseStyl
                 while prevline[i] in (' ', '\t'): i = i + 1
                 indent = prevline[:i]
             else:
-                indent = prevline
+                indent = prevline[:-1]
             if string.rstrip(prevline)[-1:] == ':':
                 indent = indent + (indentLevel*' ')
             self.BeginUndoAction()
@@ -1027,7 +1034,6 @@ class HPPSourceView(CPPSourceView):
 
     def refreshCtrl(self):
         self.pos = self.GetCurrentPos() 
-#        line = self.GetCurrentLine()
         prevVsblLn = self.GetFirstVisibleLine()
         
         self.SetText(self.model.headerData)
@@ -1065,7 +1071,6 @@ class TstPythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix, BrowseS
         EVT_STC_CHARADDED(self, wxID_PYTHONSOURCEVIEW, self.OnAddChar)
 
     def OnUpdateUI(self, event):
-        # don't update if not fully initialised
         if hasattr(self, 'pageIdx'):
             self.updateViewState()
 
