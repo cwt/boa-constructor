@@ -23,7 +23,7 @@ from StyledTextCtrls import PythonStyledTextCtrlMix, BrowseStyledTextCtrlMix,\
      FoldingStyledTextCtrlMix, AutoCompleteCodeHelpSTCMix, \
      CallTipCodeHelpSTCMix, DebuggingViewSTCMix, idWord, word_delim, object_delim
 from Preferences import keyDefs
-import methodparse
+import methodparse, sourceconst
 import wxNamespace
 
 mrkCnt = SourceViews.markerCnt
@@ -742,8 +742,12 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
         try: import __future__
         except ImportError: compflags = 0
         else:
-            mod = self.model.getModule()
+            # XXX Should check future imports from parsed module object
+            # XXX Too expensive for now
+            # mod = self.model.getModule()
             compflags = 0
+            try: compflags = compflags | __future__.generators.compiler_flag
+            except AttributeError: pass
 
         try:
             try:
@@ -757,6 +761,10 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
             if err[0] == 'unexpected EOF while parsing':
                 errstr = 'incomplete (%d)'%lineNo
             elif err[0] == "'return' outside function":
+                self.checkSyntax(prevlines, lineNo, getPrevLine,
+                      'def func():\n', ' ')
+                return
+            elif err[0] == "'yield' outside function":
                 self.checkSyntax(prevlines, lineNo, getPrevLine,
                       'def func():\n', ' ')
                 return
@@ -1046,7 +1054,7 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
                 else:
                     parms = 'self, '
 
-                module.addMethod(cls.name, methName, parms, ['        pass'], true)
+                module.addMethod(cls.name, methName, parms, [sourceconst.bodyIndent+'pass'], true)
                 if cls.methods.has_key(methName):
                     lnNo = cls.methods[methName].start+1
                     self.model.refreshFromModule()
@@ -1072,6 +1080,7 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
                         baseName = base1.name
                     methName, meth = cls.getMethodForLineNo(lnNo+1)
                     if meth:
+                        # XXX Not tab aware
                         module.addLine('%s%s.%s(%s)'%(' '*startOffset, baseName,
                               word, meth.signature), lnNo+1)
                         self.model.refreshFromModule()
