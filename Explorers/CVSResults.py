@@ -8,10 +8,10 @@ def create(parent):
 [wxID_CVSRESULTSDLGTEXTCTRL1, wxID_CVSRESULTSDLGBUTTON3, wxID_CVSRESULTSDLGBUTTON1, wxID_CVSRESULTSDLGBUTTON2, wxID_CVSRESULTSDLG] = map(lambda _init_ctrls: wxNewId(), range(5))
 
 class CVSResultsDlg(wxDialog):
-    def _init_utils(self): 
+    def _init_utils(self):
         pass
 
-    def _init_ctrls(self, prnt): 
+    def _init_ctrls(self, prnt):
         wxDialog.__init__(self, size = wxSize(488, 323), id = wxID_CVSRESULTSDLG, title = 'CVS Results', parent = prnt, name = 'CVSResultsDlg', style = wxDEFAULT_DIALOG_STYLE, pos = wxPoint(138, 124))
         self._init_utils()
 
@@ -23,5 +23,5 @@ class CVSResultsDlg(wxDialog):
 
         self.button3 = wxButton(label = 'Decorate open modules', id = wxID_CVSRESULTSDLGBUTTON3, parent = self, name = 'button3', size = wxSize(136, 24), style = 0, pos = wxPoint(336, 264))
 
-    def __init__(self, parent): 
+    def __init__(self, parent):
         self._init_ctrls(parent)
