@@ -91,9 +91,11 @@ class ZopeCatNode(ExplorerNodes.CategoryNode):
         
 class ZopeItemNode(ExplorerNodes.ExplorerNode):
     protocol = 'zope'
-    Model = None
+    Model = EditorModels.ZopeBlankEditorModel
     defaultViews = ()
     additionalViews = ()
+    additionalViews = (Views.EditorViews.ZopeSecurityView, 
+                       Views.EditorViews.ZopeUndoView)
 
     def __init__(self, name, resourcepath, clipboard, imgIdx, parent, zftp, zftpi, root, properties):
         ExplorerNodes.ExplorerNode.__init__(self, name, resourcepath, clipboard, imgIdx, 
@@ -473,10 +475,32 @@ class ZopeController(ExplorerNodes.Controller, ExplorerNodes.ClipboardController
                         dlg.Destroy()
 
     def OnSecurityZopeItem(self, event):
-        pass
+        if self.list.node:
+            zopeItem = self.list.getSelection()
+            if zopeItem:
+                model = self.editor.openOrGotoZopeDocument(zopeItem)
+                viewName = Views.EditorViews.ZopeSecurityView.viewName
+                if not model.views.has_key(viewName):
+                    resultView = self.editor.addNewView(viewName, 
+                          Views.EditorViews.ZopeSecurityView)
+                else:
+                    resultView = model.views[viewName]
+                resultView.refresh()
+                resultView.focus()        
 
     def OnUndoZopeItem(self, event):
-        pass
+        if self.list.node:
+            zopeItem = self.list.getSelection()
+            if zopeItem and Views.EditorViews.ZopeUndoView in zopeItem.additionalViews:
+                model = self.editor.openOrGotoZopeDocument(zopeItem)
+                viewName = Views.EditorViews.ZopeUndoView.viewName
+                if not model.views.has_key(viewName):
+                    resultView = self.editor.addNewView(viewName, 
+                          Views.EditorViews.ZopeUndoView)
+                else:
+                    resultView = model.views[viewName]
+                resultView.refresh()
+                resultView.focus()        
                         
 
 def getServer(host,Url,User,Password):
@@ -546,8 +570,7 @@ class ZSQLNode(ZopeNode):
 class PythonNode(ZopeNode):
     Model = EditorModels.ZopePythonScriptModel
     defaultViews = (Views.PySourceView.PythonSourceView,)
-    additionalViews = (Views.EditorViews.ZopeUndoView, 
-          Views.EditorViews.ZopeSecurityView, Views.EditorViews.ToDoView,)
+    additionalViews = (Views.EditorViews.ZopeSecurityView, Views.EditorViews.ToDoView,)
 
       #manage_edit("newschas","self,p","return 'hello'"
     def getParams(self):
@@ -565,6 +588,8 @@ class PythonNode(ZopeNode):
         eatandforget=self.server.__getattr__(self.name).manage_edit(self.name,self.getParams(),self.getBody())
     
 class PythonScriptNode(PythonNode):
+    additionalViews = (Views.EditorViews.ZopeSecurityView, 
+          Views.EditorViews.ZopeUndoView, Views.EditorViews.ToDoView,)
    
     def preparedata(self):
         tmp=string.split(self.rawdata,"\n")
