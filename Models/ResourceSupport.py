@@ -6,7 +6,7 @@
 #
 # Created:     2003/07/27
 # RCS-ID:      $Id$
-# Copyright:   (c) 2003
+# Copyright:   (c) 2003 - 2004
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 #Boa:Dialog:ResourceSelectDlg
@@ -108,7 +108,7 @@ class ResourceSelectDlg(wxDialog):
 #-------------------------------------------------------------------------------
 
 import os
-from cStringIO import StringIO
+from StringIO import StringIO
 
 import Preferences, Utils
 

@@ -7,7 +7,7 @@
 #
 # Created:     1999
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999 - 2003 Riaan Booysen
+# Copyright:   (c) 1999 - 2004 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
 
@@ -17,7 +17,7 @@
 print 'importing Models.EditorModels'
 
 import os, sys, tempfile
-from cStringIO import StringIO
+from StringIO import StringIO
 
 from wxPython import wx
 
