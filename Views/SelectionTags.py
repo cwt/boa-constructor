@@ -13,13 +13,7 @@
 #----------------------------------------------------------------------
 
 from wxPython.wx import *
-import string, sys
-try:
-    import sender
-except ImportError:
-    # ignore during testing
-    if __name__ != '__main__':
-        raise
+import string, sys, time
 
 defPos = (0, 0)
 defSze = (0, 0)
@@ -30,34 +24,34 @@ anchorEnabledCol = wxBLUE
 anchorDisabledCol = wxColour(40, 100, 110)
 
 def granularise(val, oldVal = None):
-    nv = None
+    """ Snap value to grid points, including original value as grid point.
+    
+        Used by sizing
+    """
     if oldVal is not None:
         # get prior and next grid points
         prior = (oldVal /screenGran)*screenGran
-        next = ( (oldVal + screenGran ) /screenGran)*screenGran
-        if val >= prior and val <= next:
-            dvp = abs(val-prior)
-            dvov = abs(val-oldVal)
-            dvn = abs(val-next)
-            if dvov <= dvp <= dvn or dvov <= dvn <= dvp:
-                nv = oldVal
-        
-    if nv is not None:
-#        print 'GRAN:', nv
-        return nv
-    else:
-#        print 'GRAN:', ((val + screenGran / 2) /screenGran)*screenGran
-        return ((val + screenGran / 2) /screenGran)*screenGran
+        next = prior + screenGran
+        if val >= prior and val < next:
+            # Delta values
+            dvPrev = abs(val-prior)
+            dvOld = abs(val-oldVal)
+            dvNext = abs(val-next)
+            if dvOld <= dvPrev <= dvNext or dvOld <= dvNext <= dvPrev:
+                return oldVal
 
+    return ((val + screenGran / 2) /screenGran)*screenGran
 
-##def granularise2(val):
-##    if val % (screenGran/2) or not val % screenGran:
-##        return granularise(val)
-##    else:
-##        return granularise(val - 1)
+def granulariseMove(val, oldVal = None):
+    """ Snap value to screen gran multiples of oldVal. 
+    
+        Used by moving
+    """
+    return oldVal % screenGran + (val /screenGran)*screenGran
 
-_cno = 0
 class SelectionGroup:
+    """ Group of tags and lines used to show selection, moving and sizing. 
+    """
     def newLine(self):
         line = wxPanel(self.parent, -1)
         line.SetSize(wxSize(1, 1))
@@ -82,18 +76,14 @@ class SelectionGroup:
         self.startSize = None
         self.colour = colour
         self.name = ''
-        global _cno
-        self._cno = _cno
-        _cno = _cno + 1
-#        self.pnlStyle = pnlStyle
         
         self.position = wxPoint(defPos[0], defPos[1])
         self.size = wxSize(defSze[0], defSze[1])
 
-        self.sfT = self.newLine()
-        self.sfR = self.newLine()
-        self.sfB = self.newLine()
-        self.sfL = self.newLine()
+        self.slT = self.newLine()
+        self.slR = self.newLine()
+        self.slB = self.newLine()
+        self.slL = self.newLine()
         
         # Create selection tags
         self.stTL = TLSelTag(parent, wxCURSOR_SIZENWSE, tagSize, self, pnlStyle)
@@ -105,7 +95,7 @@ class SelectionGroup:
         self.stL = LSelTag(parent, wxCURSOR_SIZEWE, tagSize, self, pnlStyle)
         self.stR = RSelTag(parent, wxCURSOR_SIZEWE, tagSize, self, pnlStyle)
 
-        self.tags = [self.sfT, self.sfR, self.sfB, self.sfL,
+        self.tags = [self.slT, self.slR, self.slB, self.slL,
                      self.stTL, self.stTR, self.stBR, self.stBL,
                      self.stT, self.stB, self.stR, self.stL]
         self.anchorTags = [self.stL, self.stT, self.stR, self.stB]
@@ -114,7 +104,7 @@ class SelectionGroup:
             self.senders.addObject(tag)
 
     def destroy(self):
-        print 'Destroy selection group', self._cno
+#        print 'Destroy selection group', self._cno
 #        print 'group ref cnt:', sys.getrefcount(self)
         self.stT.destroy();self.stB.destroy()
         self.stR.destroy();self.stL.destroy()
@@ -122,8 +112,8 @@ class SelectionGroup:
         self.stTL.destroy();self.stTR.destroy()
         self.stBR.destroy();self.stBL.destroy()
 
-        self.sfT.Destroy();self.sfR.Destroy()
-        self.sfB.Destroy();self.sfL.Destroy()
+        self.slT.Destroy();self.slR.Destroy()
+        self.slB.Destroy();self.slL.Destroy()
 
         del self.tags
 
@@ -132,9 +122,6 @@ class SelectionGroup:
         del self.designer
         del self.selection
         del self.inspSel
-        
-##    def __del__(self):
-##        print '__del__ selection group'
         
     def assign(self, group):
         self.hideTags()
@@ -159,8 +146,8 @@ class SelectionGroup:
         self.stT.Show(true); self.stB.Show(true)
         self.stL.Show(true); self.stR.Show(true)
 
-        self.sfL.Show(false); self.sfR.Show(false)
-        self.sfB.Show(false); self.sfT.Show(false)
+        self.slL.Show(false); self.slR.Show(false)
+        self.slB.Show(false); self.slT.Show(false)
 
         map(lambda tag: tag.Refresh(), self.tags)
 
@@ -178,11 +165,10 @@ class SelectionGroup:
 
         # Begin a drag
         # don't drag frame
-        if ctrl != self.designer:
+        if ctrl.this != self.designer.this:
             self.dragging = true
             self.dragOffset = pos
             self.showFramedTags(None)
-##        print 'Capture', self.startPos, self.startSize
 
     def moving(self, ctrl, pos, multiDragCtrl = None):
         # Calculate relative position if it is a multiple selection drag
@@ -196,7 +182,7 @@ class SelectionGroup:
         parentPos = self.parent.ScreenToClient(screenPos)
         # Sizing
         if self.dragTag:
-            if ctrl == self.designer:
+            if ctrl.this == self.designer.this:
                 tb = self.designer.GetToolBar()
                 if tb:
                     parentPos.y = parentPos.y - tb.GetSize().y
@@ -239,8 +225,10 @@ class SelectionGroup:
                 self.selection.Show(true)
                 pass
 
-            self.dragging = false
-            self.setSelection()
+            self.setSelection(finishDragging=true)
+
+            self.initStartVals()
+
             self.positionUpdate()
             self.showTags()
 
@@ -249,7 +237,6 @@ class SelectionGroup:
         self.startSize = wxSize(self.size.x, self.size.y)
         
     def selectCtrl(self, ctrl, compn, selectInInspector = true):
-##        print 'selectCtrl', ctrl
         self.hideTags()
         if not ctrl:
             self.selection = None
@@ -257,8 +244,7 @@ class SelectionGroup:
             self.inspSel = None
         else: 
             # XXX fix!
-            if ctrl == self.designer:
-##                print 'desgn sel'
+            if ctrl.this == self.designer.this:
                 self.name = ''
                 self.parent = ctrl
                 cp = wxPoint(0, 0)
@@ -282,10 +268,7 @@ class SelectionGroup:
             self.selCompn = compn
             
             self.initStartVals()
-            
-            self.startPos = wxPoint(self.position.x, self.position.y)
-            self.startSize = wxSize(self.size.x, self.size.y)
-            
+                        
             self.updateAnchors()
             self.setSelection()
 
@@ -298,19 +281,13 @@ class SelectionGroup:
     def resizeCtrl(self):
         """ Set the selected control's dimensions by granulising
             the current selection group's size & pos """
-        self.selCompn.beforeResize()
+        if self.selCompn: self.selCompn.beforeResize()
 
-## XXXG
-##        sz = self.startSize
-##        ps = self.startPos
-                
-##        self.selection.SetDimensions( \
-##          granularise(self.position.x, ps.x), granularise(self.position.y, ps.y), 
-##          granularise(self.size.x, sz.x), granularise(self.size.y, sz.y) )
-        self.selection.SetDimensions(self.position.x, self.position.y, 
-                                     self.size.x, self.size.y)
-
-        self.selCompn.afterResize()
+        try:
+            self.selection.SetDimensions(self.position.x, self.position.y, 
+                                         self.size.x, self.size.y)
+        finally:
+            if self.selCompn: self.selCompn.afterResize()
 
     def sizeFromCtrl(self):
         """ Called from outside the module. Set the group's size & pos from
@@ -322,46 +299,68 @@ class SelectionGroup:
             self.sizeUpdate()
             self.positionUpdate()
         
-    def setSelection(self):
+    def setSelection(self, finishDragging=false):
         position = self.position
         size = self.size
 
         sz = self.startSize
         ps = self.startPos
         
-        if sz is None and ps is None:
-            trPos = wxPoint(granularise(position.x), granularise(position.y))
-            trSze = wxSize(granularise(size.x), granularise(size.y))
-        else:
-            trPos = wxPoint(granularise(position.x, ps.x), granularise(position.y, ps.y))
-            trSze = wxSize(granularise(size.x + position.x, sz.x + ps.x) - trPos.x, 
-                           granularise(size.y + position.y, sz.y + ps.y) - trPos.y)
-        
         if not self.dragging:
+            # Sizing
+            if sz is None and ps is None:
+                trPos = wxPoint(granularise(position.x), granularise(position.y))
+                trSze = wxSize(granularise(size.x), granularise(size.y))
+            else:
+                trPos = wxPoint(granularise(position.x, ps.x), granularise(position.y, ps.y))
+                trSze = wxSize(granularise(size.x + position.x, sz.x + ps.x) - trPos.x, 
+                               granularise(size.y + position.y, sz.y + ps.y) - trPos.y)
+
             self.stTL.SetDimensions(trPos.x -4, trPos.y -4, tagSize, tagSize)
             self.stTR.SetDimensions(trPos.x -3 + trSze.x, trPos.y -4, tagSize, tagSize)
             self.stBR.SetDimensions(trPos.x -3 + trSze.x, trPos.y -3 + trSze.y, tagSize, tagSize)
             self.stBL.SetDimensions(trPos.x -4, trPos.y -3 + trSze.y, tagSize, tagSize)
-    
+
             self.stT.SetDimensions(trPos.x -4 + trSze.x/2, trPos.y -4, tagSize, tagSize)
             self.stB.SetDimensions(trPos.x -4 + trSze.x/2, trPos.y -3 + trSze.y, tagSize, tagSize)
             self.stL.SetDimensions(trPos.x -4, trPos.y -4 + trSze.y/2, tagSize, tagSize)
             self.stR.SetDimensions(trPos.x -3 +trSze.x, trPos.y -4 + trSze.y/2, tagSize, tagSize)
-        
-        self.sfT.SetDimensions(trPos.x -frmWid, trPos.y -2, trSze.x +frmWid, frmWid)
-        self.sfR.SetDimensions(trPos.x + trSze.x, trPos.y -frmWid, frmWid, trSze.y+frmWid*2)
-        self.sfB.SetDimensions(trPos.x -frmWid, trPos.y + trSze.y, trSze.x +frmWid*2, frmWid)
-        self.sfL.SetDimensions(trPos.x -2, trPos.y-frmWid, frmWid, trSze.y +frmWid)
+ 
+        else:
+            # Moving
+            trPos = wxPoint(granulariseMove(position.x, ps.x), granulariseMove(position.y, ps.y))
+            trSze = wxSize(sz.x, sz.y)
+
+        self.slT.SetDimensions(trPos.x -frmWid, trPos.y -2, trSze.x +frmWid, frmWid)
+        self.slR.SetDimensions(trPos.x + trSze.x, trPos.y -frmWid, frmWid, trSze.y+frmWid*2)
+        self.slB.SetDimensions(trPos.x -frmWid, trPos.y + trSze.y, trSze.x +frmWid*2, frmWid)
+        self.slL.SetDimensions(trPos.x -2, trPos.y-frmWid, frmWid, trSze.y +frmWid)
+
+        if finishDragging:
+            self.dragging = false
+            self.startPos = trPos
+            self.startSize = trSze
+
+            self.stTL.SetDimensions(trPos.x -4, trPos.y -4, tagSize, tagSize)
+            self.stTR.SetDimensions(trPos.x -3 + trSze.x, trPos.y -4, tagSize, tagSize)
+            self.stBR.SetDimensions(trPos.x -3 + trSze.x, trPos.y -3 + trSze.y, tagSize, tagSize)
+            self.stBL.SetDimensions(trPos.x -4, trPos.y -3 + trSze.y, tagSize, tagSize)
+
+            self.stT.SetDimensions(trPos.x -4 + trSze.x/2, trPos.y -4, tagSize, tagSize)
+            self.stB.SetDimensions(trPos.x -4 + trSze.x/2, trPos.y -3 + trSze.y, tagSize, tagSize)
+            self.stL.SetDimensions(trPos.x -4, trPos.y -4 + trSze.y/2, tagSize, tagSize)
+            self.stR.SetDimensions(trPos.x -3 +trSze.x, trPos.y -4 + trSze.y/2, tagSize, tagSize)
 
         self.position  = trPos
         self.size = trSze
 
     def updateAnchors(self):
-        for idx in range(4):
-            if self.selCompn.anchorSettings:
-                self.anchorTags[idx].setAnchor(self.selCompn.anchorSettings[idx])
-            else:
-                self.anchorTags[idx].setAnchor(None)
+        if self.selCompn:
+            for idx in range(4):
+                if self.selCompn.anchorSettings:
+                    self.anchorTags[idx].setAnchor(self.selCompn.anchorSettings[idx])
+                else:
+                    self.anchorTags[idx].setAnchor(None)
         
     def OnMouseOver(self, event):
         if event.Dragging():
@@ -445,37 +444,41 @@ class SelectionTag(wxPanel):
         EVT_LEFT_UP(self, group.OnSizeEnd)
         EVT_MOTION(self, group.OnMouseOver)
         EVT_RIGHT_UP(self, self.OnRightClick)
-
+    
+    def doFlip(self, grpPos, grpSize, oldPos, oldSize, startPos, startSize):
+        grpSize = abs(grpSize)
+        # flipping from right to left
+        if oldPos == grpPos: 
+            grpPos = oldPos - grpSize
+            startPos = startPos - startSize
+        # left to right
+        else: 
+            grpPos = oldPos + oldSize
+            startPos = startPos + startSize
+        
+        return grpPos, grpSize, startPos
+        
     def setPos(self, position, mirrorX, mirrorY, mirrorXY, oldPos = None, oldSize = None):
         grp = self.group
         # Handle cases where the selection has flipped over
         # horizontally or vertically or both
         if grp.size.x < 0 and grp.size.y < 0:
-            grp.size.x = screenGran - grp.size.x % screenGran
-            grp.size.y = screenGran - grp.size.y % screenGran
-            if oldPos and oldSize:
-                if oldPos.x != grp.position.x:
-                    grp.position.x = oldPos.x + oldSize.x
-                if  oldPos.y != grp.position.y:
-                    grp.position.y = oldPos.y + oldSize.y
-            grp.startPos = wxPoint(grp.position.x, grp.position.y)
-            grp.startSize = wxSize(grp.size.x, grp.size.y)
-            grp.dragTag = mirrorXY
-        elif grp.size.x < 0:
-            grp.size.x = screenGran - grp.size.x % screenGran
-            if oldPos and oldSize and not (oldPos.x == grp.position.x):
-                grp.position.x = oldPos.x + oldSize.x
-            grp.startPos = wxPoint(grp.position.x, grp.position.y)
-            grp.startSize = wxSize(grp.size.x, grp.size.y)
+            mirrorX = mirrorY = mirrorXY
+            
+        if grp.size.x < 0:
+            grp.position.x, grp.size.x, grp.startPos.x  = \
+                  self.doFlip(grp.position.x, grp.size.x, oldPos.x, oldSize.x, 
+                              grp.startPos.x, grp.startSize.x)
+
             grp.dragTag = mirrorX
-        elif self.group.size.y < 0:
-            grp.size.y = screenGran - grp.size.y % screenGran
-            if oldPos and oldSize and not (oldPos.y == grp.position.y): 
-                grp.position.y = oldPos.y + oldSize.y
-            grp.dragTag = mirrorY
-            grp.startPos = wxPoint(grp.position.x, grp.position.y)
-            grp.startSize = wxSize(grp.size.x, grp.size.y)
-             
+            
+        if self.group.size.y < 0:
+            grp.position.y, grp.size.y, grp.startPos.y = \
+                  self.doFlip(grp.position.y, grp.size.y, oldPos.y, oldSize.y, 
+                              grp.startPos.y, grp.startSize.y)
+
+            grp.dragTag = mirrorY            
+            
         grp.setSelection()
     
     def destroy(self):
@@ -602,7 +605,7 @@ class RSelTag(SideSelTag):
         grp.size = wxSize((position.x - oldPos.x), grp.size.y)
         grp.position = wxPoint(grp.position.x, grp.position.y)
 
-        SelectionTag.setPos(self, position, grp.stL, None, None)
+        SelectionTag.setPos(self, position, grp.stL, None, None, oldPos, oldSize)
 
 class BSelTag(SideSelTag):
     name = 'bottom'
@@ -614,26 +617,5 @@ class BSelTag(SideSelTag):
         grp.size = wxSize(grp.size.x, (position.y - oldPos.y))
         grp.position = wxPoint(grp.position.x, grp.position.y)
 
-        SelectionTag.setPos(self, position, None, grp.stT, None)
+        SelectionTag.setPos(self, position, None, grp.stT, None, oldPos, oldSize)
 
-def test():
-    global screenGran
-    screenGran = 8
-    
-    oldVal = 14
-    tstData = [0, 3, 7, 8, 15, 20, 30]
-    
-    answers = [0, 0, 8, 8, 14, 24, 32]
-    
-    results = []
-    
-    for tstVal, answ in zip(tstData, answers):
-        gv = granularise(tstVal, oldVal)
-        if gv != answ:
-            print 'failed for', tstVal, oldVal, 'got', gv, 'should be', answ
-        results.append(gv)
-    
-    print 'results:', results
-
-if __name__ == '__main__':
-    test()
