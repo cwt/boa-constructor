@@ -16,8 +16,8 @@ from wxPython.wx import wxNewId
 
 # Indexes for the imagelist
 imgCounter=27
-[imgFolder, imgPathFolder, imgCVSFolder, imgZopeSystemObj, imgZopeConnection,
- imgBoaLogo, imgFolderUp, imgFSDrive, imgFolderBookmark,
+[imgFolder, imgFolderUp, imgPathFolder, imgCVSFolder, imgZopeSystemObj, 
+ imgZopeConnection, imgBoaLogo, imgFSDrive, imgFolderBookmark,
 
  imgAppModel, imgFrameModel, imgDialogModel, imgMiniFrameModel,
  imgMDIParentModel, imgMDIChildModel, imgModuleModel, imgPackageModel,
