@@ -11,17 +11,19 @@
 #----------------------------------------------------------------------
 #Boa:Frame:BoaFrame
 
+print 'importing PaletteMapping'
 import PaletteMapping
-print 'imported PaletteMapping'
+print 'importing Editor'
 import Editor
-print 'imported Editor'
+print 'importing Inspector'
 import Inspector
-print 'imported Inspector'
+print 'importing sender'
 import sender
+print 'importing ClassBrowser'
 import ClassBrowser, Help, Preferences
 from wxPython.wx import *
 from Preferences import logFontSize, IS, toPyPath, flatTools
-from ExternalLib.buttons import wxGenButton, wxGenBitmapButton, wxGenToggleButton, wxGenBitmapToggleButton
+from ExternalLib.buttons import wxGenButton, wxGenBitmapButton, wxGenToggleButton, wxGenBitmapToggleButton, wxGenButtonEvent
 import Utils
 import os
 
@@ -80,6 +82,9 @@ class BoaFrame(wxFrame):
         self.componentSB = ComponentSelection(self)
 
         self.toolBar.AddSeparator()
+        self.addTool('Images/Shared/Help', 'Test', 'Test', self.OnTest)
+
+        self.toolBar.AddSeparator()
         self.addTool('Images/Shared/Help', 'Help', 'Show help', self.OnHelpToolClick)
         self.addTool('Images/Shared/wxWinHelp', 'wxWindows help', 'Show help', self.OnWxWinHelpToolClick)
         self.addTool('Images/Shared/PythonHelp', 'Python help', 'Show help', self.OnPythonHelpToolClick)
@@ -106,11 +111,31 @@ class BoaFrame(wxFrame):
         self.toolBar.AddSeparator()
         self.toolBar.Realize()
 
+#        print 'adding pages'
         # Setup palette
         self.palette = wxNotebook(self, -1)
 
         self.palettePages = []
         self.senders = sender.SenderMapper()
+        
+        self.buildPalette()
+
+        print 'creating Inspector'
+        self.inspector = Inspector.InspectorFrame(self)
+
+        print 'creating Editor'
+        if cyclopsing:
+            self.editor = Editor.EditorFrame(self, -1, self.inspector,
+              wxMenu(), self.componentSB, app)
+        else:
+            self.editor = Editor.EditorFrame(self, -1, self.inspector,
+              wxMenu(), self.componentSB, app)#palettePage.menu
+
+        EVT_NEW_PACKAGE(self, self.OnNewPackage)
+        EVT_CLOSE(self, self.OnCloseWindow)
+    
+    def buildPalette(self):
+
         if Preferences.transparentPaletteBitmaps:
             transpSF = ''
         else:
@@ -131,6 +156,8 @@ class BoaFrame(wxFrame):
             palettePage.addButton('Package', None, None, self.OnNewPackagePost, self.OnHint, self.OnHintLeave, wxGenBitmapButton)
             palettePage.addButton('Setup', None, None, self.OnNewSetup, self.OnHint, self.OnHintLeave, wxGenBitmapButton)
             palettePage.addButton('Text', None, None, self.OnNewText, self.OnHint, self.OnHintLeave, wxGenBitmapButton)
+            if Utils.IsComEnabled():
+                palettePage.addButton('MakePy Dialog', None, None, self.OnMakePyDlg, self.OnHint, self.OnHintLeave, wxGenBitmapButton)
             self.palettePages.append(palettePage)
             # Normal control pages
             for palette in PaletteMapping.palette:
@@ -145,6 +172,7 @@ class BoaFrame(wxFrame):
                   self.OnDialogPaletteClick, self.OnHint, self.OnHintLeave, wxGenBitmapButton)
             self.palettePages.append(self.dialogPalettePage)
             # Zope page
+            conf = Utils.createAndReadConfig('Explorer')
             if conf.has_option('explorer', 'zope'):
                 self.zopePalettePage = ZopePalettePage(self.palette, PaletteMapping.zopePalette[0], 'Images/Palette/'+transpSF, self, self.widgetSet, self.senders, self.componentSB)
                 self.zopePalettePage.addToggleBitmaps(PaletteMapping.zopePalette[2], None, None)
@@ -189,27 +217,12 @@ class BoaFrame(wxFrame):
 ##        self.splitter.SetSashPosition(Preferences.screenWidth)
 ##
 
-        self.inspector = Inspector.InspectorFrame(self)
-
-        if cyclopsing:
-            self.editor = Editor.EditorFrame(self, -1, self.inspector,
-              wxMenu(), self.componentSB, app)
-        else:
-            self.editor = Editor.EditorFrame(self, -1, self.inspector,
-              wxMenu(), self.componentSB, app)#palettePage.menu
-
-        EVT_NEW_PACKAGE(self, self.OnNewPackage)
-        EVT_CLOSE(self, self.OnCloseWindow)
-
     def addTool(self, filename, text, help, func, toggle = false):
         mID = wxNewId()
         self.toolBar.AddTool(mID, IS.load(filename+'.bmp'), #wxBitmap(filename+'.bmp', wxBITMAP_TYPE_BMP),
           shortHelpString = text, isToggle = toggle)
         EVT_TOOL(self, mID, func)
         return mID
-
-##    def OnClick(self, event):
-##        self.componentSB.SetStatusText('Palette Click'+`event.GetId()`)
 
     def OnOpenToolClick(self, event):
         dlg = wxFileDialog(self, "Choose a file", ".", "", "*.*", wxOPEN)
@@ -244,8 +257,6 @@ class BoaFrame(wxFrame):
         help.Show(true)
 
     def OnPrefsToolClick(self, event):
-##        print 'inspector', sys.getrefcount(self.inspector)
-##        print 'editor', sys.getrefcount(self.editor)
         self.editor.openOrGotoModule(toPyPath('Preferences.py'))
 
     def OnLeave(self, event):
@@ -284,8 +295,14 @@ class BoaFrame(wxFrame):
     def OnNewSetup(self, event):
         self.editor.addNewSetupPage()
 
-##    def OnNewWidget(self, event):
-##        pass
+    def OnMakePyDlg(self, event):
+        import makepydialog
+        dlg = makepydialog.create(self)
+        try:
+            if dlg.ShowModal() == wxID_OK and dlg.generatedFilename:
+                self.editor.openOrGotoModule(dlg.generatedFilename)
+        finally:
+            dlg.Destroy()
 
     def OnNewPackagePost(self, event):
         wxPostEvent(self, NewPackageEvent())
@@ -314,7 +331,12 @@ class BoaFrame(wxFrame):
 
     def OnExplorerToolClick(self, event):
         if not self.browser:
-            self.browser = ClassBrowser.ClassBrowserFrame(self, -1, "Class explorer")
+            wxBeginBusyCursor()
+            try:
+                self.browser = ClassBrowser.ClassBrowserFrame(self, -1, 
+                     'wxPython Class explorer')
+            finally:
+                wxEndBusyCursor()
         self.browser.Show(true)
         self.browser.Raise()
 
@@ -355,6 +377,11 @@ class BoaFrame(wxFrame):
     def OnSearchEnter(self, event):
         Help.showContextHelp(self, self.toolBar, self.contextHelpSearch.GetValue())
         event.Skip()
+
+    def OnTest(self, event):
+        import Tests
+        Tests.test_wxFrame(self)
+        
 
 class ComponentSelection:
     """ Controls the selection of the palette and access to associated
@@ -458,6 +485,7 @@ class PanelPalettePage(wxPanel, BasePalettePage):
         self.posX = self.defX
         self.posY = self.defY
         self.widgets = widgets
+        self.buttons = {}
         parent.AddPage(self, name)
         self.eventOwner = eventOwner
 
@@ -467,6 +495,7 @@ class PanelPalettePage(wxPanel, BasePalettePage):
     def destroy(self):
         del self.senders
         del self.widgets
+        del self.buttons
 #        pass
 
     def addButton(self, widgetName, wxClass, constrClass, clickEvt, hintFunc, hintLeaveFunc, btnType):
@@ -490,13 +519,14 @@ class PanelPalettePage(wxPanel, BasePalettePage):
 
         self.senders.addObject(newButton)
         self.widgets[`mID`] = (widgetName, wxClass, constrClass)
+        self.buttons[widgetName] = newButton
         self.posX = self.posX + bmp.GetWidth() + 11
 
         return mID
 
     def getButtonBmp(self, name, wxClass):
-        return IS.load('%s%s.bmp' %(self.bitmapPath, name))
-#        return wxBitmap('%s%s.bmp' %(self.bitmapPath, name), wxBITMAP_TYPE_BMP)
+        return PaletteMapping.bitmapForComponent(wxClass)
+#        return IS.load('%s%s.bmp' %(self.bitmapPath, name))
 
 class NewPalettePage(PanelPalettePage):
     def __init__(self, parent, name, bitmapPath, eventOwner, widgets, senders, statusbar):
@@ -513,6 +543,9 @@ class NewPalettePage(PanelPalettePage):
         self.menu.Append(mID, widgetName)
         EVT_MENU(self, mID, clickEvt)
         return mID
+
+    def getButtonBmp(self, name, wxClass):
+        return IS.load('%s%s.bmp' %(self.bitmapPath, name))
 
 class PalettePage(PanelPalettePage):
     def __init__(self, parent, name, bitmapPath, eventOwner, widgets, senders, statusbar):
