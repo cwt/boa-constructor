@@ -29,7 +29,7 @@ trace_mode = 'functions' # 'lines'
 trace_save = 'all'#'lastline' # 'all'
 def trace_func(frame, event, arg):
     """ Callback function when Boa runs in tracing mode"""
-    if frame:
+    if frame and tracefile:
         info = '%s|%d|%d|%s|\n' % (frame.f_code.co_filename, frame.f_lineno,
               id(frame), event)
         if trace_save == 'lastline':
@@ -381,6 +381,8 @@ class BoaApp(wxApp):
         wxInitAllImageHandlers()
 
         wxToolTip_Enable(true)
+        try: self.SetAssertMode(wxPYAPP_ASSERT_EXCEPTION)
+        except AttributeError: pass # < 2.3.4
 
         conf = Utils.createAndReadConfig('Explorer')
         modTot = conf.getint('splash', 'modulecount')
@@ -388,76 +390,76 @@ class BoaApp(wxApp):
 
         abt = About.createSplash(None, modTot, fileTot)
         abt.Show()
+        # Let the splash screen repaint
+        wxYield()
+        
+        print 'creating Palette'
+        import Palette
+        self.main = Palette.BoaFrame(None, -1, self)
+        
+        print 'creating Inspector'
+        import Inspector
+        inspector = Inspector.InspectorFrame(self.main)
+        
+        print 'creating Editor'
+        import Editor
+        editor = Editor.EditorFrame(self.main, -1, inspector, wxMenu(),
+            self.main.componentSB, self, self.main)
+
+        inspector.editor = editor
+
+        conf.set('splash', 'modulecount', `len(sys.modules)`)
         try:
-            # Let the splash screen repaint
-            wxYield()
+            Utils.writeConfig(conf)
+        except IOError, err:
+            startupErrors.append('Error writing config file: %s\nPlease '
+          'ensure that the Explorer.*.cfg file is not read only.'% str(err))
 
-            print 'creating Palette'
-            import Palette
-            self.main = Palette.BoaFrame(None, -1, self)
+        if not emptyEditor:
+            editor.restoreEditorState()
 
-            print 'creating Inspector'
-            import Inspector
-            inspector = Inspector.InspectorFrame(self.main)
-
-            print 'creating Editor'
-            import Editor
-            editor = Editor.EditorFrame(self.main, -1, inspector, wxMenu(),
-                self.main.componentSB, self, self.main)
-
-            inspector.editor = editor
-
-            conf.set('splash', 'modulecount', `len(sys.modules)`)
-            try:
-                Utils.writeConfig(conf)
-            except IOError, err:
-                startupErrors.append('Error writing config file: %s\nPlease '
-              'ensure that the Explorer.*.cfg file is not read only.'% str(err))
-
-            if not emptyEditor:
-                editor.restoreEditorState()
-
-            self.main.initPalette(inspector, editor)
+        self.main.initPalette(inspector, editor)
 
 ##            editor.setupToolBar()
 
-            import Help
-            print 'attaching wxPython doc strings'
-            Help.initWxPyDocStrs()
-            if not Preferences.delayInitHelp:
-                print 'initialising Help'
-                Help.initHelp()
+        import Help
+        print 'attaching wxPython doc strings'
+        Help.initWxPyDocStrs()
+        if not Preferences.delayInitHelp:
+            print 'initialising Help'
+            Help.initHelp()
 
-            global constricted
-            constricted = constricted or Preferences.suBoaConstricted
+        global constricted
+        constricted = constricted or Preferences.suBoaConstricted
 
-            print 'showing main frames <<100/100>>'
-            if constricted:
-                pos = self.main.GetPosition()
-                self.main.Center()
-                #editor.Center()
-                self.main.SetPosition(pos)
-                #editor.SetIcon(self.main.GetIcon())
-            else:
-                self.main.Show();self.main.Hide();self.main.Show()
-                inspector.Show(true)
-                # For some reason the splitters have to be visible on GTK before they
-                # can be sized.
-                inspector.initSashes()
+        print 'showing main frames <<100/100>>'
+        if constricted:
+            pos = self.main.GetPosition()
+            self.main.Center()
+            #editor.Center()
+            self.main.SetPosition(pos)
+            #editor.SetIcon(self.main.GetIcon())
+        else:
+            self.main.Show()
+            inspector.Show(true)
+            # For some reason the splitters have to be visible on GTK before they
+            # can be sized.
+            inspector.initSashes()
 
-            editor.Show();editor.Hide();editor.Show()
-            self.SetTopWindow(editor)
-            editor.doAfterShownActions()
+        editor.Show()
+        self.SetTopWindow(editor)
+        editor.doAfterShownActions()
 
-            # Call startup files after complete editor initialisation
-            global startupfile
-            if Preferences.suExecPythonStartup and startupEnv:
-                startupfile = startupEnv
+        # Call startup files after complete editor initialisation
+        global startupfile
+        if Preferences.suExecPythonStartup and startupEnv:
+            startupfile = startupEnv
 
-            editor.shell.execStartupScript(startupfile)
-        finally:
-            abt.Destroy()
-            del abt
+        editor.shell.execStartupScript(startupfile)
+
+        abt.Destroy()
+        del abt
+
 
         # Apply command line switches
         if doDebug and startupModules:
@@ -570,3 +572,4 @@ def main(argv=None):
 
 if __name__ == '__main__':
     main()
+
