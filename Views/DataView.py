@@ -10,14 +10,17 @@
 # Licence:     GPL
 #----------------------------------------------------------------------
 
+import os
+
 from wxPython.wx import *
-from Designer import InspectableObjectCollectionView
-from EditorModels import init_utils
+
+from sourceconst import init_utils
 import PaletteMapping, Utils
 from PrefsKeys import keyDefs
-import os
+
+from InspectableViews import InspectableObjectView
             
-class DataView(wxListCtrl, InspectableObjectCollectionView):
+class DataView(wxListCtrl, InspectableObjectView):
     viewName = 'Data'
     collectionMethod = init_utils
     postBmp = 'Images/Inspector/Post.bmp'
@@ -26,7 +29,7 @@ class DataView(wxListCtrl, InspectableObjectCollectionView):
         [self.wxID_DATAVIEW] = map(lambda _init_ctrls: wxNewId(), range(1))    
         wxListCtrl.__init__(self, parent, self.wxID_DATAVIEW, style = wxLC_SMALL_ICON)#wxLC_LIST)
 
-        InspectableObjectCollectionView.__init__(self, inspector, model, compPal,
+        InspectableObjectView.__init__(self, inspector, model, compPal,
           (('Default editor', self.OnDefaultEditor, '-', ()),
            ('Post', self.OnPost, self.postBmp, ()),
            ('Cancel', self.OnCancel, self.cancelBmp, ()),
@@ -57,16 +60,12 @@ class DataView(wxListCtrl, InspectableObjectCollectionView):
         self.initObjectsAndCompanions(objCol.creators, objCol, deps, depLinks)
 
     def refreshCtrl(self):
-        print 'refreshCtrl'
         self.DeleteAllItems()
 
         objCol = self.model.objectCollections[self.collectionMethod]
         objCol.indexOnCtrlName()
 
-#        ctrls, props, events = self.organiseCollection()
-
         for ctrl in objCol.creators:
-            print 'refreshCtrl', ctrl
             if ctrl.comp_name:
                 try:
                     classObj = eval(ctrl.class_name)
@@ -85,21 +84,9 @@ class DataView(wxListCtrl, InspectableObjectCollectionView):
                 
                 self.InsertImageStringItem(self.GetItemCount(), '%s : %s' % (ctrl.comp_name, className), idx1)
 
-##        for name, idx in self.selection:
-##            self.SetItemState(idx, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED)
-
-##        print '$$$$ INIT DV'
-##        for i in self.collEditors.values():
-##            print id(i.companion.textConstrLst),
-##            print id(self.model.objectCollections[i.companion.collectionMethod].creators)
-
-##    def renameCtrl(self, oldName, newName):
-##        print self.objects
-
     def loadControl(self, ctrlClass, ctrlCompanion, ctrlName, params):
         """ Create and register given control and companion.
             See also: newControl """
-        print 'loadControl', params
         args = self.setupArgs(ctrlName, params, self.handledProps)
         
         # Create control and companion
@@ -130,17 +117,16 @@ class DataView(wxListCtrl, InspectableObjectCollectionView):
         # notify other components of deletion
         self.notifyAction(self.objects[name][0], 'delete')
         
-        InspectableObjectCollectionView.deleteCtrl(self, name, parentRef)
+        InspectableObjectView.deleteCtrl(self, name, parentRef)
         self.refreshCtrl()                
 
     def renameCtrl(self, oldName, newName):
-        InspectableObjectCollectionView.renameCtrl(self, oldName, newName)
+        InspectableObjectView.renameCtrl(self, oldName, newName)
         self.refreshCtrl()                
 
     def close(self):
-##        print 'DATAVIEW CLOSE'
         self.cleanup()
-        InspectableObjectCollectionView.close(self)
+        InspectableObjectView.close(self)
 
     def getSelectedName(self):
         return string.split(self.GetItemText(self.selection), ' : ')[0]
@@ -170,12 +156,10 @@ class DataView(wxListCtrl, InspectableObjectCollectionView):
             self.inspector.selectObject(self.objects[self.selection[0][0]][0], false)
         else:
             self.inspector.cleanup()
-##            self.selectNone()
     
     def OnObjectSelect(self, event):
         self.inspector.containment.cleanup()
         self.selection = self.getSelectedNames()
-        print 'updateSelection', self.selection
         self.updateSelection()
 
     def OnObjectDeselect(self, event):
@@ -216,7 +200,6 @@ class DataView(wxListCtrl, InspectableObjectCollectionView):
     def OnCopySelected(self, event):
         """ Copy current selection to the clipboard """
         ctrls = map(lambda ni: ni[0], self.selection)
-        print 'OnCopySelected', ctrls
 
         output = []
         self.copyCtrls(ctrls, [], output)

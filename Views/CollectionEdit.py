@@ -10,13 +10,16 @@
 # Licence:     GPL                                                            
 #-----------------------------------------------------------------------------
 
+import os
+
 from wxPython.wx import *
+
 import Utils, Preferences
 from Preferences import IS
-from Views import Designer
 from PrefsKeys import keyDefs
-import os
-#from EditorModels import init_coll
+import sourceconst
+
+import InspectableViews
 
 #wxNullBitmap = Preferences.IS.load('Images/Inspector/wxNullBitmap.bmp')
 
@@ -109,13 +112,16 @@ class CollectionEditor(wxFrame):
         ni = self.collEditView.companion.appendItem()
         self.collEditView.refreshCtrl()
         self.selectObject(self.itemList.GetItemCount() -1)
+        self.Raise()
 
     def OnDeleteClick(self, event):
         if self.selected >= 0:
             idx = self.selected
-            print 'OnDeleteClick', self.collEditView.companion.index
             self.collEditView.deleteCtrl()
-            self.selected = -1
+            
+            if idx == self.itemList.GetItemCount():
+                idx = idx - 1
+            self.selectObject(idx)
 
     def OnUpClick(self, event):
         if self.selected > 0:
@@ -136,8 +142,9 @@ class CollectionEditor(wxFrame):
     
     def OnObjectDClick(self, event):
         if self.selected >= 0:
-            print 'OnObjectDClick', self.collEditView.companion.defaultAction
+##            print 'OnObjectDClick', self.collEditView.companion.defaultAction
             self.collEditView.companion.defaultAction()
+            self.Raise()
             
     def OnSeledClick(self, event):
         result = []
@@ -161,13 +168,13 @@ class ImageListCollectionEditor(CollectionEditor):
     def addItem(self, idx, displayProp):
         self.itemList.InsertImageStringItem(idx, displayProp, idx)
                 
-class CollectionEditorView(Designer.InspectableObjectCollectionView):
+class CollectionEditorView(InspectableViews.InspectableObjectView):
     viewName = 'CollectionEditor'
-    collectionMethod = '_init_coll_'
+    collectionMethod = sourceconst.init_coll
     collectionParams = 'self, parent'
 
     def __init__(self, parent, inspector, model, companion): 
-        Designer.InspectableObjectCollectionView.__init__(self, inspector, 
+        InspectableViews.InspectableObjectView.__init__(self, inspector, 
           model, None, (), -1, false)
 
         self.parent = parent
@@ -187,13 +194,6 @@ class CollectionEditorView(Designer.InspectableObjectCollectionView):
 
     def initObjCreator(self, constrPrs):
         pass
-##        print 'COLLVIEW initObjCreator', constrPrs.asText()
-##        ctrlClass = eval(constrPrs.class_name)
-##        ctrlCompnClass = PaletteMapping.compInfo[ctrlClass][1]
-##        ctrlName = self.loadControl(ctrlClass, ctrlCompnClass, 
-##          constrPrs.comp_name, constrPrs.params)            
-##        ctrlCompn = self.objects[ctrlName][0]
-##        ctrlCompn.setConstr(constrPrs)
 
     def renameCtrl(self, oldName, newName):
         oldCollMeth = self.collectionMethod
@@ -205,8 +205,11 @@ class CollectionEditorView(Designer.InspectableObjectCollectionView):
         self.model.objectCollections[self.collectionMethod] = objColl
 
         if self.frame:
-            self.frame.SetTitle('Collection Editor - %s.%s'%(self.companion.name,
-              self.companion.propName))
+            self.updateFrameTitle()
+
+    def updateFrameTitle(self):
+        self.frame.SetTitle('%s.%s - Collection Editor'%(self.companion.name,
+          self.companion.propName))
 
     def saveCtrls(self):
         def hasCode(lst):
@@ -318,13 +321,12 @@ class CollectionEditorView(Designer.InspectableObjectCollectionView):
 
     def close(self):
         self.cleanup()
-        Designer.InspectableObjectCollectionView.close(self)
+        InspectableViews.InspectableObjectView.close(self)
 
     def show(self):
         if not self.frame:
             self.frame = self.companion.CollEditorFrame(self.parent, self)
-            self.frame.SetTitle('Collection Editor - %s.%s'%(self.companion.name,
-              self.companion.propName))
+            self.updateFrameTitle()
             self.refreshCtrl()
         self.frame.Show(true)
         self.frame.Raise()
