@@ -1,6 +1,8 @@
 import os, sys, time, socket
-from ExternalLib import xmlrpclib
 from wxPython import wx
+
+import Preferences, Utils
+from ExternalLib import xmlrpclib
 
 from DebugClient import DebugClient, MultiThreadedDebugClient, \
      EmptyResponseError, DebuggerTask, EVT_DEBUGGER_START, \
@@ -9,6 +11,7 @@ from DebugClient import DebugClient, MultiThreadedDebugClient, \
 
 KEEP_STREAMS_OPEN = 1
 USE_TCPWATCH = 0
+LOG_TRACEBACKS = 0
 
 def canReadStream(stream):
     try:
@@ -54,16 +57,24 @@ class TransportWithAuth (xmlrpclib.Transport):
         p.close()
         return u.close()
 
+class UnknownError(Exception):
+    pass
 
 def spawnChild(monitor, process, args=''):
     """Returns an xmlrpclib.Server, a connection to an xml-rpc server,
     and the input and error streams.
     """
     # Start ChildProcessServerStart.py in a new process.
+    # XXX Using PYTHONPATH is wrong
+    # XXX ExternalLib.xmlrpclib  and script dir should end up in sys.path
     script_fn = os.path.join(os.path.dirname(__file__),
                              'ChildProcessServerStart.py')
-    os.environ['PYTHONPATH'] = os.pathsep.join(sys.path)
-    cmd = '%s "%s" %s' % (sys.executable, script_fn, args)
+    pyIntpPath = Preferences.getPythonInterpreterPath()
+    if pyIntpPath == sys.executable:
+        os.environ['PYTHONPATH'] = os.pathsep.join(sys.path)
+    else:
+        os.environ['PYTHONPATH'] = Preferences.pyPath
+    cmd = '%s "%s" %s' % (pyIntpPath, script_fn, args)
     try:
         if wx.wxVERSION > (2, 3, 2):
             flags = wx.wxEXEC_NOHIDE
@@ -86,6 +97,9 @@ def spawnChild(monitor, process, args=''):
                 # test for tracebacks on stderr
                 if canReadStream(estream):
                     err = estream.read()
+                    if LOG_TRACEBACKS:
+                        fn = os.path.join(os.path.dirname(__file__), 'DebugTracebacks.txt')
+                        open(fn, 'a').write(err)
                     errlines = err.split('\n')
                     while not errlines[-1].strip(): del errlines[-1]
                     exctype, excvalue = errlines[-1].split(':')
@@ -95,7 +109,11 @@ def spawnChild(monitor, process, args=''):
                         errfile = ' (%s)' % errlines[-1].strip()
                     else:
                         errfile = ''
-                    raise __builtins__[exctype.strip()], (excvalue.strip()+errfile)
+                    try:
+                        Error, val = __builtins__[exctype.strip()], (excvalue.strip()+errfile)
+                    except KeyError:
+                        Error, val = UnknownError, (exctype.strip()+':'+excvalue.strip()+errfile)
+                    raise Error, val
 
         if not KEEP_STREAMS_OPEN:
             process.CloseOutput()
@@ -221,10 +239,15 @@ class ChildProcessClient(MultiThreadedDebugClient):
                         self, process, self.process_args)
                 self.taskHandler.addTask(evt.GetTask())
             except:
-                t, v = sys.exc_info()[:2]
+                t, v, tb = sys.exc_info()
                 evt = self.createEvent(wxEVT_DEBUGGER_EXC)
                 evt.SetExc(t, v)
                 self.postEvent(evt)
+                if LOG_TRACEBACKS:
+                    import traceback
+                    fn = os.path.join(os.path.dirname(__file__), 'DebugTracebacks.txt')
+                    open(fn, 'a').write(''.join(traceback.format_exception(t, v, tb)))
+                del tb
         finally:
             wx.wxEndBusyCursor()
 
