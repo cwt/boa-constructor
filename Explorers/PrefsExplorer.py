@@ -80,7 +80,7 @@ class BoaPrefGroupNode(PreferenceGroupNode):
         self.preferences.append(self.platform_pref)
 
         self.keys_pref = KeyDefsSrcPrefColNode('Key bindings', ('*',),
-            os.path.join(Preferences.rcPath, 'prefskeys.rc.py'), prefImgIdx,
+            os.path.join(Preferences.rcPath, 'prefs.keys.rc.py'), prefImgIdx,
             self, Preferences.keyDefs)
         self.preferences.append(self.keys_pref)
 
