@@ -26,8 +26,8 @@ import Utils
 from Preferences import pyPath, IS, flatTools
 #from PhonyApp import wxPhonyApp
 from Breakpoint import bplist
-import threading
-from Queue import Queue
+#import threading
+#from Queue import Queue
 
 from IsolatedDebugger import DebuggerConnection, DebuggerController
 
