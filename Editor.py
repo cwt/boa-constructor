@@ -38,6 +38,7 @@ from Views.PySourceView import PythonSourceView, HTMLSourceView, TextView, CPPSo
 print 'importing Explorers'
 from Explorers.CVSExplorer import CVSConflictsView
 from Explorers import Explorer
+from ZopeLib import ImageViewer
 
 print 'importing Models'
 from EditorModels import *
@@ -62,8 +63,11 @@ adtPackageModelViews = (CVSConflictsView,)
 defTextModelViews = (TextView,)
 adtTextModelViews = ()
 
+defHTMLFileModelViews = (HTMLSourceView,)
+adtHTMLFileModelViews = (HTMLFileView,)
+
 defZopeDocModelViews = (HTMLSourceView,)
-adtZopeDocModelViews = ()
+adtZopeDocModelViews = (ZopeHTMLView,)
 
 defCPPModelViews = (CPPSourceView, HPPSourceView)
 adtCPPModelViews = (CVSConflictsView,)
@@ -76,8 +80,9 @@ adtCPPModelViews = (CVSConflictsView,)
  wxID_EDITORTOGGLEVIEW, wxID_EDITORSWITCHEXPLORER, wxID_EDITORSWITCHSHELL,
  wxID_EDITORSWITCHPALETTE, wxID_EDITORSWITCHINSPECTOR, wxID_EDITORDIFF,
  wxID_EDITORCMPAPPS, wxID_EDITORHELPABOUT, wxID_EDITORPREVPAGE, 
- wxID_EDITORNEXTPAGE, wxID_EDITORBROWSEFORW, wxID_EDITORBROWSEBACK] = \
- map(lambda _editor_menus: wxNewId(), range(23))
+ wxID_EDITORNEXTPAGE, wxID_EDITORBROWSEFORW, wxID_EDITORBROWSEBACK,
+ wxID_EDITORHELPGUIDE, wxID_EDITORHELPTIPS
+ ] = map(lambda _editor_menus: wxNewId(), range(25))
                
 [wxID_EDITORFRAME, wxID_PAGECHANGED] = map(lambda _init_ctrls: wxNewId(), range(2))
 
@@ -166,11 +171,15 @@ class EditorFrame(wxFrame):
         self.blankViewMenu = wxMenu()
         self.helpMenu = wxMenu()
         self.helpMenu.Append(wxID_EDITORHELP, 'Help')
+        self.helpMenu.Append(wxID_EDITORHELPGUIDE, 'Getting started guide')
+        self.helpMenu.Append(wxID_EDITORHELPTIPS, 'Tips')
         self.helpMenu.AppendSeparator()
         self.helpMenu.Append(wxID_EDITORHELPABOUT, 'About')
 
         EVT_MENU(self, wxID_EDITORHELP, self.OnHelp)
         EVT_MENU(self, wxID_EDITORHELPABOUT, self.OnHelpAbout)
+        EVT_MENU(self, wxID_EDITORHELPGUIDE, self.OnHelpGuide)
+        EVT_MENU(self, wxID_EDITORHELPTIPS, self.OnHelpTips)
         EVT_MENU(self, wxID_EDITOROPEN, self.OnOpen)
         EVT_MENU(self, wxID_EDITORSAVE, self.OnSave)
         EVT_MENU(self, wxID_EDITORSAVEAS, self.OnSaveAs)
@@ -225,9 +234,11 @@ class EditorFrame(wxFrame):
 
         self.mainMenu.Append(self.helpMenu, 'Help')
         
-        self.defaultAdtViews = {AppModel: [], BaseFrameModel: [], 
-                                ModuleModel: [], PackageModel: [], TextModel: [],
-                                ZopeDocumentModel: [], CPPModel: []}
+        self.defaultAdtViews = {}
+##        {AppModel: [], BaseFrameModel: [], 
+##                                ModuleModel: [], PackageModel: [], TextModel: [],
+##                                ZopeDocumentModel: [], CPPModel: [], 
+##                                HTMLFileModel: []}
 
         # Toolbar
         self.toolBar = EditorToolBar(self, -1)#, style = wxTB_HORIZONTAL|wxNO_BORDER|wxTB_FLAT)#|wxTB_FLAT
@@ -383,7 +394,7 @@ class EditorFrame(wxFrame):
             self.tabs.AddPage(modulePage.notebook, modulePage.pageName, true, imgIdx)
         elif wxPlatform == '__WXGTK__':
             self.tabs.AddPage(modulePage.notebook, modulePage.pageName)
-        wxYield()
+#        wxYield()
 
         self.tabs.SetSelection(spIdx)
         modulePage.refresh()
@@ -416,6 +427,7 @@ class EditorFrame(wxFrame):
 
     def addNewPackage(self):
         filename, success = self.saveAsDlg('__init__.py')
+        print filename
         if success:
             model = PackageModel('# Package initialisation', filename, self, false)
             self.addModulePage(model, model.packageName, defPackageModelViews, 
@@ -428,7 +440,7 @@ class EditorFrame(wxFrame):
     def addNewAppPage(self):
 
         appname = self.getValidName(AppModel)
-        appmodel = AppModel('', appname, appname[:-3], self, false)
+        appmodel = AppModel('', appname, appname[:-3], self, false, self.modules)
 
         self.addModulePage(appmodel, appname, defAppModelViews, adtAppModelViews, 
           AppModel.imgIdx)
@@ -487,7 +499,13 @@ class EditorFrame(wxFrame):
             if view and view.viewName == 'Source':
                 compn = dlgCompanion('dlg', None)
                 view.insertCodeBlock(compn.body())
-         
+    
+    def getAppModules(self):
+        apps = []
+        for modPage in self.modules.values():
+            if modPage.model.modelIdentifier == 'App':
+                apps.append(modPage.model)
+        return apps
     
     def openOrGotoModule(self, name, app = None):
         if self.modules.has_key(name):
@@ -526,7 +544,7 @@ class EditorFrame(wxFrame):
                 views = adtPackageModelViews
                 name = model.packageName
             elif modCls is AppModel:
-                model = AppModel(source, filename, '', self, true)
+                model = AppModel(source, filename, '', self, true, self.modules)
                 defViews = defAppModelViews
                 views = adtAppModelViews
             elif modCls in (FrameModel, DialogModel, MiniFrameModel, 
@@ -542,6 +560,20 @@ class EditorFrame(wxFrame):
                 model = CPPModel(source, filename, self, true)
                 defViews = defCPPModelViews
                 views = adtCPPModelViews
+            elif modCls is HTMLFileModel:
+                model = HTMLFileModel(source, filename, self, true)
+                defViews = defHTMLFileModelViews
+                views = adtHTMLFileModelViews
+            elif modCls is ConfigFileModel:
+                model = ConfigFileModel(source, filename, self, true)
+                defViews = defTextModelViews
+                views = adtTextModelViews
+            elif modCls is BitmapFileModel:
+                model = BitmapFileModel(source, filename, self, true)
+                ImageViewer.create(self).showImage(filename)
+                return model
+##                defViews = defTextModelViews
+##                views = adtTextModelViews
             else:
                 model = ModuleModel(source, filename, self, true, app)
                 defViews = defModModelViews
@@ -582,8 +614,6 @@ class EditorFrame(wxFrame):
         self.updateTitle()
         
     def showDesigner(self):
-        # XXX Disable source control as editing source with the designer
-        # XXX will loose code in certain cases
         modulePage = self.getActiveModulePage()
         if modulePage:
             model = modulePage.model
@@ -624,7 +654,7 @@ class EditorFrame(wxFrame):
             model.views['Designer'].Show(true)
             
             # Make source read only
-            model.views['Source'].SetReadOnly(true)
+            model.views['Source'].disableSource(true)
                 
     def showImportsView(self):
         self.addNewView('Imports', ImportsView) 
@@ -685,7 +715,7 @@ class EditorFrame(wxFrame):
             for modPge in self.modules.values():
                 modPge.removedPage(idx)
             
-        else: print name, 'not found in OnClose'
+        else: print name, 'not found in OnClose', self.modules
 
     def saveAs(self, filename):
         """ Brings up a save as file dialog with filename as initial name """
@@ -820,6 +850,12 @@ class EditorFrame(wxFrame):
     def OnHelp(self, event):
         Help.showHelp(self, Help.BoaHelpFrame, 'Editor.html')
 
+    def OnHelpGuide(self, event):
+        Help.showHelp(self, Help.BoaHelpFrame, 'Guide/index.html')
+
+    def OnHelpTips(self, event):
+        Utils.showTip(self, true)
+
     def OnToggleView(self, event):
         evtId = event.GetId()
         mod = self.getActiveModulePage()
@@ -855,10 +891,10 @@ class EditorFrame(wxFrame):
         evtId = event.GetId()
         view, model = self.viewDefaultIds[event.GetId()]
         if self.mainMenu.IsChecked(evtId):
-            if view not in self.defaultAdtViews[model]:
+            if view not in self.defaultAdtViews.get(model, []):
                 self.defaultAdtViews[model].append(view)
         else:
-            if view in self.defaultAdtViews[model]:
+            if view in self.defaultAdtViews.get(model, []):
                 self.defaultAdtViews[model].remove(view)
                         
 
@@ -965,6 +1001,7 @@ class MyToolBar(wxToolBar):
 
     def AddSeparator(self):
         wxToolBar.AddSeparator(self)
+        self.toolLst.append(-1)
         self.toolCount = self.toolCount + 1
         
     def DeleteTool(self, id):
@@ -979,9 +1016,32 @@ class MyToolBar(wxToolBar):
             self.DeleteToolByPos(pos)
             
         for wid in self.toolLst:
-            self.GetParent().Disconnect(wid),
+            if wid != -1:
+                self.GetParent().Disconnect(wid),
         self.toolLst = []
         self.toolCount = 0
+    
+    def GetToolPopupPosition(self, id):
+        margins = self.GetToolMargins()
+        toolSize = self.GetToolSize()
+        xPos = margins.x
+        for tId in self.toolLst:
+            if tId == id:
+                return wxPoint(xPos, margins.y + toolSize.y)
+
+            if tId == -1:
+                xPos = xPos + self.GetToolSeparation()
+            else:
+                xPos = xPos + toolSize.x
+            
+        return wxPoint(0, 0)
+
+    def PopupToolMenu(self, toolId, menu):
+        self.PopupMenu(menu, self.GetToolPopupPosition(toolId))
+
+##        menu = wxMenu()
+##        menu.Append(1, 'asdf asdf')
+##        self.toolBar.PopupToolMenu(event.GetId(), menu)
 
 class EditorToolBar(MyToolBar):
     pass
@@ -1037,10 +1097,10 @@ class ModulePage:
         EVT_MENU(self.editor, self.windowId, self.editor.OnGotoModulePage)
 
         cls = model.__class__
-        if not editor.defaultAdtViews.has_key(cls):
-            cls = model.__class__.__bases__[0]
+#        if not editor.defaultAdtViews.has_key(cls):
+#            cls = model.__class__.__bases__[0]
             
-        tot = len(defViews) + len(editor.defaultAdtViews[cls])
+        tot = len(defViews) + len(editor.defaultAdtViews.get(cls, []))
         if tot:
             stepsDone = 50.0
             editor.statusBar.progress.SetValue(int(stepsDone))
@@ -1050,7 +1110,7 @@ class ModulePage:
                 stepsDone = stepsDone + step
                 editor.statusBar.progress.SetValue(int(stepsDone))
             
-            for view in editor.defaultAdtViews[cls]:
+            for view in editor.defaultAdtViews.get(cls, []):
                 self.addView(view)
                 stepsDone = stepsDone + step
                 editor.statusBar.progress.SetValue(int(stepsDone))
@@ -1123,8 +1183,11 @@ class ModulePage:
         if idx is None: idx = self.notebook.GetSelection()
         if idx == -1: return None
         name = self.notebook.GetPageText(idx)
-        if name[0] == '~': name = name[1:-1]
-        return self.model.views[name]
+        if name and name[0] == '~': name = name[1:-1]
+        try:
+            return self.model.views[name]
+        except KeyError:
+            return None
 
 ### decl viewSelectionMenu(self) -> wxMenu
     def viewSelectionMenu(self):
@@ -1144,12 +1207,12 @@ class ModulePage:
         for view, wId in self.adtViews:
             self.viewMenu.Check(wId, view in viewClss)
 
-    def addView(self, view, viewName = ''):        
+    def addView(self, view, viewName = ''):
         """ Add a view to the model and display it as a page in the notebook
-            of view instances.""" 
+            of view instances."""
         if not viewName: viewName = view.viewName
         if wxPlatform == '__WXGTK__':
-            panel = wxPanel(self.notebook, -1, style=wxTAB_TRAVERSAL | wxCLIP_CHILDREN)
+	    panel = wxPanel(self.notebook, -1, style=wxTAB_TRAVERSAL | wxCLIP_CHILDREN)
             self.model.views[viewName] = apply(view, (panel, self.model))
             def OnWinSize(evt, win=self.model.views[viewName]):
                 win.SetSize(evt.GetSize())
