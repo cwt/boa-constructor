@@ -13,7 +13,6 @@
 
 from wxPython.wx import *
 from wxPython.lib.anchors import LayoutAnchors
-from wxPython.tools import img2py
 
 [wxID_RESOURCESELECTDLG, wxID_RESOURCESELECTDLGBTNCANCEL, 
  wxID_RESOURCESELECTDLGBTNFILEDLG, wxID_RESOURCESELECTDLGBTNOK, 
@@ -215,6 +214,7 @@ class PyResourceBitmapModel(PythonEditorModels.ModuleModel):
     imgIdx = EditorHelper.imgPyResBitmap = EditorHelper.imgIdxRange()
 
     def updateData(self, data, subImage):
+        from wxPython.tools import img2py
         crunched = StringIO(img2py.crunch_data(data, subImage['zip'])).readlines()
         if subImage['zip']:
             crunched[-1].rstrip()
