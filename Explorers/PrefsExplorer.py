@@ -6,21 +6,22 @@
 #
 # Created:     2001/06/08
 # RCS-ID:      $Id$
-# Copyright:   (c) 2001 - 2002
+# Copyright:   (c) 2001 - 2003
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 print 'importing Explorers.PrefsExplorer'
-import string, os, sys, glob, pprint, imp
+import os, sys, glob, pprint, imp
 import types
 
 from wxPython import wx
 true=1;false=0
 
-#sys.path.append('..')
-import ExplorerNodes, Preferences, Utils
+import Preferences, Utils, Plugins
+
+import ExplorerNodes
 from Models import EditorHelper
 from Views import STCStyleEditor
-import methodparse
+import methodparse, relpath
 
 class PreferenceGroupNode(ExplorerNodes.ExplorerNode):
     """ Represents a group of preference collections """
@@ -58,7 +59,7 @@ class BoaPrefGroupNode(PreferenceGroupNode):
         self.source_pref.preferences = [
             UsedModuleSrcBsdPrefColNode('Default settings',
                 Preferences.exportedSTCProps, os.path.join(Preferences.rcPath,
-                'prefs.rc.py'), prefImgIdx, self, Preferences, false)]
+                'prefs.rc.py'), prefImgIdx, self, Preferences, true)]
 
         for name, lang, STCClass, stylesFile in ExplorerNodes.langStyleInfoReg:
             if not os.path.isabs(stylesFile):
@@ -96,8 +97,11 @@ class BoaPrefGroupNode(PreferenceGroupNode):
         self.plugin_pref = PreferenceGroupNode('Plug-ins', self)
 
         self.core_plugpref = UsedModuleSrcBsdPrefColNode('Core support',
-            Preferences.exportedPluginProps, os.path.join(Preferences.rcPath,
-            'prefs.rc.py'), prefImgIdx, self, Preferences, false)
+            Preferences.exportedCorePluginProps, os.path.join(Preferences.rcPath,
+            'prefs.rc.py'), prefImgIdx, self, Preferences, true)
+        self.plugin_plugpref = UsedModuleSrcBsdPrefColNode('Preferences', Preferences.exportedPluginProps,#('*',), 
+            os.path.join(Preferences.rcPath, 'prefs.plug-ins.rc.py'), prefImgIdx, 
+            self, Preferences, true)
         self.files_plugpref = PluginFilesGroupNode()
         self.transp_plugpref = PreferenceGroupNode('Transports', self)
         self.transp_plugpref.preferences = [
@@ -107,11 +111,17 @@ class BoaPrefGroupNode(PreferenceGroupNode):
 
         self.plugin_pref.preferences = [
             self.core_plugpref,
+            self.plugin_plugpref,
             self.files_plugpref,
             self.transp_plugpref,
         ]
 
         self.preferences.insert(1, self.plugin_pref)
+
+        self.help_pref = HelpConfigBooksPGN()
+
+        self.preferences.insert(2, self.help_pref)
+
 
 class PreferenceCollectionNode(ExplorerNodes.ExplorerNode):
     """ Represents an inspectable preference collection """
@@ -158,9 +168,15 @@ class STCStyleEditPrefsCollNode(PreferenceCollectionNode):
             for view in modPge.model.views.values():
                 if isinstance(view, self.STCclass):
                     openSTCViews.append(view)
+        
         # also check the shell
-        if isinstance(editor.shell, self.STCclass):
-            openSTCViews.append(editor.shell)
+        if Preferences.psPythonShell == 'Shell':
+            if isinstance(editor.shell, self.STCclass):
+                openSTCViews.append(editor.shell)
+        #elif Preferences.psPythonShell == 'PyCrust':
+        #    if self.language == 'python':
+        #        openSTCViews.append(editor.shell.shellWin)
+        
         dlg = STCStyleEditor.STCStyleEditDlg(editor, self.name, self.language,
               self.resourcepath, openSTCViews)
         try: dlg.ShowModal()
@@ -204,14 +220,14 @@ class SourceBasedPrefColNode(PreferenceCollectionNode):
                 del module.globals[name]
             else:
                 # XXX Should handle multiline assign
-                code = string.join(module.source[\
+                code = '\n'.join(module.source[\
                       module.globals[name].start-1 : \
-                      module.globals[name].end], '\n')
+                      module.globals[name].end])
 
                 # Extract value
-                s = string.find(code, '=')
+                s = code.find('=')
                 if s != -1:
-                    values.append(string.strip(code[s+1:]))
+                    values.append(code[s+1:].strip())
                 else:
                     values.append('')
 
@@ -220,20 +236,20 @@ class SourceBasedPrefColNode(PreferenceCollectionNode):
                 option = ''
                 idx = module.globals[name].start-2
                 while idx >= 0:
-                    line = string.strip(module.source[idx])
+                    line = module.source[idx].strip()
                     if len(line) > 11 and line[:11] == '## options:':
-                        option = string.strip(line[11:])
+                        option = line[11:].strip()
                         idx = idx - 1
                     elif len(line) > 8 and line[:8] == '## type:':
-                        option = string.strip('##'+line[8:])
+                        option = '##'+line[8:].strip()
                         idx = idx - 1
                     elif line and line[0] == '#':
-                        comment.append(string.lstrip(line[1:]))
+                        comment.append(line[1:].lstrip())
                         idx = idx - 1
                     else:
                         break
                 comment.reverse()
-                comments.append(string.join(comment, '\n'))
+                comments.append('\n'.join(comment))
                 options.append(option)
 
         if self.showBreakLines: breaks = module.break_lines
@@ -286,7 +302,7 @@ class KeyDefsSrcPrefColNode(PreferenceCollectionNode):
         start = end = idx = -1
         for line in src:
             idx = idx + 1
-            line = string.strip(line)
+            line = line.strip()
             if line == 'keyDefs = {':
                 start = idx
             elif start != -1 and line:
@@ -294,10 +310,10 @@ class KeyDefsSrcPrefColNode(PreferenceCollectionNode):
                     end = idx
                     break
                 elif line[0] != '#':
-                    colon = string.find(line, ':')
+                    colon = line.find(':')
                     if colon == -1: raise Exception('Invalid KeyDef item: %s'%line)
-                    name = string.rstrip(line[:colon])[1:-1]
-                    val = string.lstrip(line[colon+1:])
+                    name = line[:colon].rstrip()[1:-1]
+                    val = line[colon+1:].lstrip()
                     keydefs[name] = moduleparse.CodeBlock(val, idx+1, idx+1)
                     names.append(name)
                     values.append(val)
@@ -377,11 +393,11 @@ class PreferenceCompanion(ExplorerNodes.ExplorerCompanion):
 
         if opts:
             if opts[:2] == '##':
-                return self.customTypeMap.get(string.strip(opts[2:]), None)
+                return self.customTypeMap.get(opts[2:].strip(), None)
             else:
                 return PropertyEditors.EnumConfPropEdit
 
-        if string.lower(srcVal) in ('true', 'false'):
+        if srcVal.lower() in ('true', 'false'):
             return PropertyEditors.BoolConfPropEdit
 
         try:
@@ -416,13 +432,22 @@ class PreferenceCompanion(ExplorerNodes.ExplorerCompanion):
 
         res = []
         for name, value, comment, option in map(None, order, vals, comments, options):
-            if breaksIdx is not None and \
-                  props[name].start > breakLinenos[breaksIdx]:
-                res.append( (self._breaks[breakLinenos[breaksIdx]], '', None, '', '') )
-                if breaksIdx == len(self._breaks) -1:
+            if breaksIdx is not None:
+                # find closest break above property
+                while breaksIdx < len(breakLinenos)-1 and \
+                      props[name].start > breakLinenos[breaksIdx+1]:
+                    breaksIdx += 1
+                
+                if breaksIdx >= len(breakLinenos):
                     breaksIdx = None
-                else:
-                    breaksIdx = breaksIdx + 1
+                
+                if breaksIdx is not None and props[name].start > breakLinenos[breaksIdx]:
+                    res.append( (self._breaks[breakLinenos[breaksIdx]], '', None, '', '') )
+                    breaksIdx += 1
+                    #if breaksIdx == len(self._breaks) -1:
+                    #    breaksIdx = None
+                    #else:
+                    #    breaksIdx = breaksIdx + 1
             res.append( (name, value, props[name], comment, option) )
         return res
 
@@ -493,6 +518,11 @@ class CorePluginsGroupNode(PreferenceGroupNode):
     def notifyBeginLabelEdit(self, event):
         event.Veto()
 
+def getPluginSection(pluginFile):
+    pluginPath = os.path.dirname(pluginFile)
+    return Preferences.pluginSections[
+              Preferences.pluginPaths.index(pluginPath)]
+    
 class PluginFileExplNode(ExplorerNodes.ExplorerNode):
     """  """
     def __init__(self, name, enabled, status, resourcepath, imgIdx):
@@ -510,18 +540,19 @@ class PluginFileExplNode(ExplorerNodes.ExplorerNode):
 
         if wx.wxMessageBox('%s %s?'%(msg, self.name), 'Confirm Toggle Plug-in',
               wx.wxYES_NO | wx.wxICON_QUESTION) == wx.wxYES:
-            initPluginPath = os.path.dirname(self.resourcepath)
-            initPluginGlobals = Utils.readInitPluginGlobals(initPluginPath)
+            section = getPluginSection(self.resourcepath)
+            ordered, disabled = Plugins.readPluginsState(section)
 
             if self.pluginEnabled:
-                initPluginGlobals['__disabled__'].append(self.name)
+                disabled.append(self.name)
             else:
                 try:
-                    initPluginGlobals['__disabled__'].remove(self.name)
+                    disabled.remove(self.name)
                 except ValueError:
                     pass
 
-            Utils.writeInitPluginGlobals(initPluginPath, initPluginGlobals)
+            #Plugins.writeInitPluginGlobals(initPluginPath, initPluginGlobals)
+            Plugins.writePluginsState(section, ordered, disabled)
 
             editor.explorer.list.refreshCurrent()
 
@@ -538,9 +569,10 @@ class PluginFileExplNode(ExplorerNodes.ExplorerNode):
         event.Veto()
 
     def changeOrder(self, direction):
-        initPluginPath = os.path.dirname(self.resourcepath)
-        initPluginGlobals = Utils.readInitPluginGlobals(initPluginPath)
-        ordered = initPluginGlobals['__ordered__']
+        section = getPluginSection(self.resourcepath)
+        #initPluginPath = os.path.dirname(self.resourcepath)
+        ordered, disabled = Plugins.readPluginsState(section)
+        #ordered = initPluginGlobals['__ordered__']
         try:
             idx = ordered.index(self.name)
         except ValueError:
@@ -550,7 +582,8 @@ class PluginFileExplNode(ExplorerNodes.ExplorerNode):
         idx = max(idx + direction, 0)
         if idx <= len(ordered):
             ordered.insert(idx, self.name)
-        Utils.writeInitPluginGlobals(initPluginPath, initPluginGlobals)
+        #Plugins.writeInitPluginGlobals(initPluginPath, initPluginGlobals)
+        Plugins.writePluginsState(section, ordered, disabled)
 
 
 class PluginFilesGroupNode(PreferenceGroupNode):
@@ -564,20 +597,17 @@ class PluginFilesGroupNode(PreferenceGroupNode):
     def openList(self):
         res = []
         splitext = os.path.splitext
-        for filename, ordered, enabled in Utils.buildPluginExecList():
+        for filename, ordered, enabled in Plugins.buildPluginExecList():
             if os.path.basename(filename) == '__init__.plug-in.py':
                 continue
-##
-##                for path in Preferences.pluginPaths:
-##            for filename in glob.glob('%s/*plug-in*.py'%path):
-##            enabled = filename[-19:] != 'plug-in.disabled.py'
+
             name = splitext(splitext(os.path.basename(filename))[0])[0]
             if not enabled:
                 name = splitext(name)[0]
                 status = 'Disabled'
                 imgIdx = EditorHelper.imgSystemObjDisabled
             else:
-                fn = string.lower(filename)
+                fn = filename.lower()
                 if Preferences.failedPlugins.has_key(fn):
                     kind, msg = Preferences.failedPlugins[fn]
                     if kind == 'Skipped':
@@ -614,7 +644,7 @@ class PluginFilesGroupNodeController(ExplorerNodes.Controller):
 
         [wxID_PF_TOGGLE, wxID_PF_OPEN, wxID_PF_UP, wxID_PF_DOWN] = Utils.wxNewIds(4)
 
-        self.transpMenuDef = ( (wxID_PF_TOGGLE, 'Toggle Enable/Disabled',
+        self.transpMenuDef = [ (wxID_PF_TOGGLE, 'Toggle Enable/Disabled',
                                 self.OnToggleState, '-'),
                                (wxID_PF_OPEN, 'Open plug-in file',
                                 self.OnOpenPlugin, '-'),
@@ -623,14 +653,14 @@ class PluginFilesGroupNodeController(ExplorerNodes.Controller):
                                 self.OnMovePluginUp, self.moveUpBmp),
                                (wxID_PF_DOWN, 'Move down',
                                 self.OnMovePluginDown, self.moveDownBmp),
-                               )
+                             ]
 
         self.setupMenu(self.menu, self.list, self.transpMenuDef)
         self.toolbarMenus = [self.transpMenuDef]
 
     def destroy(self):
-        self.transpMenuDef = ()
-        self.toolbarMenus = ()
+        self.transpMenuDef = []
+        self.toolbarMenus = []
         self.menu.Destroy()
 
     def OnToggleState(self, event):
@@ -710,7 +740,7 @@ class TransportPluginsController(ExplorerNodes.Controller):
 
         [wxID_TP_NEW, wxID_TP_DEL, wxID_TP_UP, wxID_TP_DOWN] = Utils.wxNewIds(4)
 
-        self.transpMenuDef = ( (wxID_TP_NEW, 'Add new '+self.itemDescr,
+        self.transpMenuDef = [ (wxID_TP_NEW, 'Add new '+self.itemDescr,
                                 self.OnNewTransport, self.addItemBmp),
                                (wxID_TP_DEL, 'Remove '+self.itemDescr,
                                 self.OnDeleteTransport, self.removeItemBmp),
@@ -719,14 +749,14 @@ class TransportPluginsController(ExplorerNodes.Controller):
                                 self.OnMoveTransportUp, self.moveUpBmp),
                                (wxID_TP_DOWN, 'Move down',
                                 self.OnMoveTransportDown, self.moveDownBmp),
-                               )
+                             ]
 
         self.setupMenu(self.menu, self.list, self.transpMenuDef)
         self.toolbarMenus = [self.transpMenuDef]
 
     def destroy(self):
-        self.transpMenuDef = ()
-        self.toolbarMenus = ()
+        self.transpMenuDef = []
+        self.toolbarMenus = []
         self.menu.Destroy()
 
     def editorUpdateNotify(self, info=''):
@@ -955,12 +985,258 @@ class TransportPluginsTreeDisplayOrderGroupNode(PreferenceGroupNode):
     def clearEmptyConfigEntry(self, protocol):
         conf = Utils.createAndReadConfig('Explorer')
         if conf.has_option('explorer', protocol) and \
-              eval(string.strip(conf.get('explorer', protocol)), {}) == {}:
+              eval(conf.get('explorer', protocol).strip(), {}) == {}:
             conf.remove_option('explorer', protocol)
             Utils.writeConfig(conf)
 
 
+class HelpConfigPGN(PreferenceGroupNode):
+    """  """
+    protocol = 'prefs.group.help.config'
+    defName = 'HelpConfigPrefsGroup'
+    def __init__(self):
+        name = 'Help system'
+        PreferenceGroupNode.__init__(self, name, None)
+
+    def openList(self):
+        return 
+
+
+class HelpConfigBooksPGN(PreferenceGroupNode):
+    """  """
+    protocol = 'prefs.group.help.config.books'
+    defName = 'HelpConfigBooksPrefsGroup'
+    def __init__(self):
+        name = 'Help books'
+        PreferenceGroupNode.__init__(self, name, None)
+
+    def openList(self):
+        bookPaths = self.readBooks()
+        return [HelpConfigBookNode(bookPath) 
+                for bookPath in bookPaths]
+
+
+    def readBooks(self):
+        return eval(Utils.createAndReadConfig('Explorer').get('help', 'books'), {})
+
+    def writeBooks(self, books):
+        conf = Utils.createAndReadConfig('Explorer')
+        conf.set('help', 'books', pprint.pformat(books))
+        Utils.writeConfig(conf)
+
+
+    def preparePath(self, path):
+        helpPath = Preferences.pyPath+'/Docs/'
+        
+        if path.startswith('file://'):
+            path = path[7:]
+        
+        # Add relative paths for files inside Docs directory
+        if os.path.normcase(path).startswith(os.path.normcase(helpPath)):
+            return path[len(helpPath):]
+        else:
+            return path
+
+    def editBook(self, curPath, newPath):
+        books = self.readBooks()
+        books[books.index(curPath)] = self.preparePath(newPath)
+        self.writeBooks(books)
+
+    def addBook(self, path):
+        path = self.preparePath(path)
+        self.writeBooks(self.readBooks() + [path])
+    
+    def removeBook(self, path):
+        books = self.readBooks()
+        books.remove(path)
+        self.writeBooks(books)
+
+    def updateOrder(self, paths):
+        self.writeBooks(paths)
+
+
+class HelpConfigBookNode(ExplorerNodes.ExplorerNode):
+    """  """
+    protocol = 'help.book'
+    def __init__(self, resourcepath):
+        fullpath = self.getAbsPath(resourcepath)
+
+        name = os.path.basename(resourcepath)
+        if os.path.splitext(fullpath)[1] == '.hhp':
+            # Peek at title inside hhp file
+            for line in open(fullpath).readlines():
+                if line.startswith('Title'):
+                    name = line.split('=')[1].strip()
+
+        ExplorerNodes.ExplorerNode.__init__(self, name, resourcepath, None,
+              EditorHelper.imgHelpBook, None, {})
+
+    def open(self, editor):
+        return None, None
+
+##    def getURI(self):
+##        return '%s (%s)'%(ExplorerNodes.ExplorerNode.getURI(self),
+##                          self.pluginStatus)
+
+    def isFolderish(self):
+        return false
+
+    def notifyBeginLabelEdit(self, event):
+        event.Veto()
+
+    def getAbsPath(self, resourcepath):
+        if not os.path.isabs(resourcepath):
+            return os.path.join(Preferences.pyPath, 'Docs', resourcepath)
+        else:
+            return resourcepath
+
+
+
+class HelpConfigBooksController(ExplorerNodes.Controller):
+    addItemBmp = 'Images/Shared/NewItem.png'
+    removeItemBmp = 'Images/Shared/DeleteItem.png'
+    moveUpBmp = 'Images/Shared/up.png'
+    moveDownBmp = 'Images/Shared/down.png'
+
+    itemDescr = 'item'
+
+    def __init__(self, editor, list, inspector, controllers):
+        ExplorerNodes.Controller.__init__(self, editor)
+        self.list = list
+        self.menu = wx.wxMenu()
+
+        [wxID_HB_EDIT, wxID_HB_NEW, wxID_HB_DEL, wxID_HB_UP, wxID_HB_DOWN, 
+         wxID_HB_REST, wxID_HB_CLRI, wxID_HB_OPEN] = Utils.wxNewIds(8)
+
+        self.helpBooksMenuDef = [ (wxID_HB_EDIT, 'Edit '+self.itemDescr,
+                                   self.OnEditBookPath, '-'),
+                                  (wxID_HB_NEW, 'Add new '+self.itemDescr,
+                                   self.OnNewBook, self.addItemBmp),
+                                  (wxID_HB_DEL, 'Remove '+self.itemDescr,
+                                   self.OnRemoveBook, self.removeItemBmp),
+                                  (-1, '-', None, ''),
+                                  (wxID_HB_UP, 'Move up',
+                                   self.OnMoveBookUp, self.moveUpBmp),
+                                  (wxID_HB_DOWN, 'Move down',
+                                   self.OnMoveBookDown, self.moveDownBmp),
+                                  (-1, '-', None, '-'),
+                                  (wxID_HB_OPEN, 'Open hhp file',
+                                   self.OnOpenHHP, '-'),
+                                  (-1, '-', None, '-'),
+                                  (wxID_HB_REST, 'Restart the help system',
+                                   self.OnRestartHelp, '-'),
+                                  (wxID_HB_CLRI, 'Clear the help indexes',
+                                   self.OnClearHelpIndexes, '-'),
+                                ]
+
+        self.setupMenu(self.menu, self.list, self.helpBooksMenuDef)
+        self.toolbarMenus = [self.helpBooksMenuDef]
+
+    def destroy(self):
+        self.helpBooksMenuDef = ()
+        self.toolbarMenus = ()
+        self.menu.Destroy()
+
+    def editorUpdateNotify(self, info=''):
+        self.OnReloadItems()
+
+    def OnReloadItems(self, event=None):
+        if self.list.node:
+            self.list.refreshCurrent()
+
+    def moveBook(self, node, idx, direc):
+        paths = [item.resourcepath for item in self.list.items]
+
+        path = paths[idx]
+        del paths[idx]
+        paths.insert(idx + direc, path)
+
+        self.list.node.updateOrder(paths)
+
+        self.list.refreshCurrent()
+        self.list.selectItemByIdx(idx+direc+1)
+
+    def OnMoveBookUp(self, event):
+        if self.list.node:
+            ms = self.list.getMultiSelection()
+            nodes = self.getNodesForSelection(ms)
+            if len(nodes) != 1:
+                wx.wxLogError('Can only move 1 at a time')
+            else:
+                node = nodes[0]
+                idx = self.list.items.index(node)
+                if idx == 0:
+                    wx.wxLogError('Already at the beginning')
+                else:
+                    self.moveBook(node, idx, -1)
+
+    def OnMoveBookDown(self, event):
+        if self.list.node:
+            ms = self.list.getMultiSelection()
+            nodes = self.getNodesForSelection(ms)
+            if len(nodes) != 1:
+                wx.wxLogError('Can only move 1 at a time')
+            else:
+                node = nodes[0]
+                idx = self.list.items.index(node)
+                if idx >= len(self.list.items) -1:
+                    wx.wxLogError('Already at the end')
+                else:
+                    self.moveBook(node, idx, 1)
+
+    def OnEditBookPath(self, event):
+        if self.list.node:
+            ms = self.list.getMultiSelection()
+            for node in self.getNodesForSelection(ms):
+                if not os.path.isabs(node.resourcepath):
+                    path = os.path.join(Preferences.pyPath, 
+                                        'Docs', node.resourcepath)
+                else:
+                    path = node.resourcepath
+
+                curpath, curfile = os.path.split(path)
+                newpath = self.editor.openFileDlg('AllFiles', curdir=curpath)
+                if newpath:
+                    self.list.node.editBook(node.resourcepath, path)
+                    self.list.refreshCurrent()
+
+    def OnNewBook(self, event):
+        path = self.editor.openFileDlg('AllFiles', curdir=Preferences.pyPath+'/Docs')
+        if path and self.list.node:
+            self.list.node.addBook(path)
+            self.list.refreshCurrent()
+
+    def OnRemoveBook(self, event):
+        if self.list.node:
+            ms = self.list.getMultiSelection()
+            for node in self.getNodesForSelection(ms):
+                self.list.node.removeBook(node.resourcepath)
+            self.list.refreshCurrent()
+            
+    def OnRestartHelp(self, event):
+        import Help
+        Help.delHelp()
+        wx.wxYield()
+        Help.initHelp()
+
+    def OnClearHelpIndexes(self, event):
+        import Help
+        
+        cd = Help.getCacheDir()
+        for name in os.listdir(cd):
+            if os.path.splitext(name)[1] == '.cached':
+                os.remove(os.path.join(cd, name))
+                wx.wxLogMessage('Deleted %s'%name)
+            
+    def OnOpenHHP(self, event):
+        if self.list.node:
+            ms = self.list.getMultiSelection()
+            for node in self.getNodesForSelection(ms):
+                self.editor.openOrGotoModule(node.getAbsPath(node.resourcepath))
+
 #-------------------------------------------------------------------------------
+
+
 ExplorerNodes.register(BoaPrefGroupNode)
 ExplorerNodes.register(PluginFilesGroupNode,
       controller=PluginFilesGroupNodeController)
@@ -968,3 +1244,4 @@ ExplorerNodes.register(TransportPluginsLoadOrderGroupNode,
       controller=TransportPluginsLoadOrderController)
 ExplorerNodes.register(TransportPluginsTreeDisplayOrderGroupNode,
       controller=TransportPluginsTreeDisplayOrderController)
+ExplorerNodes.register(HelpConfigBooksPGN, controller=HelpConfigBooksController)
