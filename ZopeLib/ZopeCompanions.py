@@ -113,6 +113,12 @@ class BoolZopePropEdit(ZopePropEdit):
 ##            self.value = self.getValues().index(self.editorCtrl.getValue())
         return self.value
 
+class ReadOnlyZopePropEdit(ZopePropEdit):
+    def inspectorEdit(self):
+        self.editorCtrl = InspectorEditorControls.BevelIEC(self, str(self.value))
+        self.editorCtrl.createControl(self.parent, self.idx, self.width)
+
+
 #-------------------------------------------------------------------------------
 
 class ZopeConnection:
@@ -161,7 +167,8 @@ class ZopeCompanion(ExplorerCompanion, ZopeConnection):
     propMapping = {'string':          StrZopePropEdit,
                    'boolean':         BoolZopePropEdit,
                    'string:selection':StrZopePropEdit,
-                   'default':         EvalZopePropEdit}
+                   'default':         EvalZopePropEdit,
+                   'readonly':        ReadOnlyZopePropEdit,}
     def __init__(self, name, objPath, localPath = ''):
         ExplorerCompanion.__init__(self, name)
         self.objPath = objPath
@@ -393,7 +400,7 @@ class MailHostZC(CustomZopePropsMixIn, ZopeCompanion):
     propOrder = ('title', 'smtp_host', 'smtp_port')
     propTypeMap = {'title': ('string', 'title'),
                    'smtp_host': ('string', 'smtp_host'),
-                   'smtp_port': ('int', 'smtp_port')} 
+                   'smtp_port': ('int', 'smtp_port')}
 
 class ZCatalogZC(ZopeCompanion):
     def create(self):
@@ -489,7 +496,15 @@ class VersionZC(ZopeCompanion):
         mime, res = self.call(self.objPath, 'manage_addProduct/OFSP/manage_addVersion',
               id = self.name, title = '')
 
-class UserZC(ZopeCompanion):
+class UserZC(CustomZopePropsMixIn, ZopeCompanion):
+    def getProps(self):
+        path, name = os.path.split(self.objPath)
+        mime, res = self.call(path, 'zoa/props/User', name=name)
+        return eval(res)
+
+    def SetProp(self, name, value):
+        pass
+
     def create(self):
         dlg = wx.wxTextEntryDialog(None, 'Enter the username:\n(The password will '\
               'be set to this username and\ncan be updated in the Inspector)',
@@ -501,6 +516,13 @@ class UserZC(ZopeCompanion):
                    submit='Add', name=username, password=username, confirm=username)
         finally:
             dlg.Destroy()
+
+    propOrder = ('id', 'roles', 'domains')
+    propTypeMap = {'id':     ('readonly', 'id'),
+                   'roles':   ('readonly', 'roles'),
+                   'domains': ('readonly', 'domains'),
+                   #'passwd':    ('string', 'passwd'),
+                  }
 
 class UserFolderZC(ZopeCompanion):
     def create(self):
