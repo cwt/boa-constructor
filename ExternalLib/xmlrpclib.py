@@ -64,7 +64,7 @@
 # --------------------------------------------------------------------
 
 import string, time
-import urllib, xmllib
+import urllib
 from types import *
 from cgi import escape
 
@@ -72,6 +72,7 @@ try:
     import xml
     from xml import sax
 except ImportError:
+    import xmllib
     sax = None     # sax not available.
 
 __version__ = "0.9.8-sax-patch"
@@ -192,27 +193,13 @@ WRAPPERS = DateTime, Binary, Boolean
 # --------------------------------------------------------------------
 # XML parsers
 
-class SlowParser(xmllib.XMLParser):
-    # slow but safe standard parser, based on the XML parser in
-    # Python's standard library
-
-    def __init__(self, target):
-	self.unknown_starttag = target.start
-	self.handle_data = target.data
-	self.unknown_endtag = target.end
-	xmllib.XMLParser.__init__(self)
-
-    def feedStream(self, f):
-	while 1:
-	    data = f.read(1024)
-	    if not data:
-		break
-	    self.feed(data)
-        self.close()
+# The target should have three methods: start(tagname, attrs),
+# data(characters), and end(tagname).
 
 if sax:
 
-    class SAXHandler(xml.sax.handler.ContentHandler):
+    class TargetedXMLParser(xml.sax.handler.ContentHandler):
+        # Fast parser based on SAX.
 
         def __init__(self, target):
             self.startElement = target.start
@@ -224,8 +211,22 @@ if sax:
 
 else:
 
-    SAXHandler = None
+    class TargetedXMLParser(xmllib.XMLParser):
+        # Slow but safe parser based on xmllib.
+        
+        def __init__(self, target):
+            self.unknown_starttag = target.start
+            self.handle_data = target.data
+            self.unknown_endtag = target.end
+            xmllib.XMLParser.__init__(self)
 
+        def feedStream(self, f):
+            while 1:
+                data = f.read(1024)
+                if not data:
+                    break
+                self.feed(data)
+            self.close()
 
 
 # --------------------------------------------------------------------
@@ -330,16 +331,16 @@ class Marshaller:
     dispatch[InstanceType] = dump_instance
 
 
-class Unmarshaller (xml.sax.handler.ContentHandler):
+class Unmarshaller:
 
-    # unmarshal an XML-RPC response, based on incoming XML event
+    # Unmarshall an XML-RPC response, based on incoming XML event
     # messages (start, data, end).  call close to get the resulting
     # data structure
 
-    # note that this reader is fairly tolerant, and gladly accepts
+    # Note that this reader is fairly tolerant, and gladly accepts
     # bogus XML-RPC data without complaining (but not bogus XML).
 
-    # and again, if you don't understand what's going on in here,
+    # And again, if you don't understand what's going on in here,
     # that's perfectly ok.
 
     def __init__(self):
@@ -476,9 +477,7 @@ def getparser():
     # get the fastest available parser, and attach it to an
     # unmarshalling object.  return both objects.
     target = Unmarshaller()
-    if SAXHandler:
-        return SAXHandler(target), target
-    return SlowParser(target), target
+    return TargetedXMLParser(target), target
 
 def dumps(params, methodname=None, methodresponse=None):
     # convert a tuple or a fault object to an XML-RPC packet
