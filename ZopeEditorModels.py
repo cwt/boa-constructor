@@ -1,12 +1,12 @@
 #-----------------------------------------------------------------------------
 # Name:        ZopeEditorModels.py
-# Purpose:
+# Purpose:     Models for Zope objects that can be opened in the Editor
 #
 # Author:      Riaan Booysen
 #
 # Created:     2001/06/04
 # RCS-ID:      $Id$
-# Copyright:   (c) 2001
+# Copyright:   (c) 2001 Riaan Booysen
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 import string, os
@@ -15,11 +15,10 @@ from wxPython import wx
 
 import EditorModels, Utils, EditorHelper
 from Preferences import keyDefs
-import moduleparse
 
 true = 1; false = 0
 
-# Indexes for the ZOA relevant imagelist
+# meta-type: filename mapping for ZOA imagelist
 ZOAImages = [\
  ('root', 'Images/ZOA/Zope.bmp'),
  ('Folder', 'Images/ZOA/Folder.bmp'),
@@ -57,13 +56,13 @@ ZOAImages = [\
  ('Vocabulary', 'Images/ZOA/Vocabulary.bmp'),
 ]
 
+# meta-type to image index mapping
 imgCounter = EditorHelper.imgCounter
-
 ZOAIcons = {}
 for m_type, file in ZOAImages:
     ZOAIcons[m_type] = imgCounter
     imgCounter = imgCounter + 1
-
+EditorHelper.imgCounter = imgCounter
 
 class ZopeEditorModel(EditorModels.BasePersistentModel):
     modelIdentifier = 'Zope'
@@ -109,23 +108,7 @@ class ZopeDocumentModel(ZopeEditorModel):
         ZopeEditorModel.__init__(self, name, data, editor, saved, zopeObject)
         self.savedAs = true
 
-##    def addTools(self, toolbar):
-##        ZopeEditorModel.addTools(self, toolbar)
-##        Utils.AddToolButtonBmpIS(self.editor, toolbar, self.saveBmp, 'Save',
-##              self.editor.OnSave)
-
-##    def addMenus(self, menu):
-##        accls = ZopeEditorModel.addMenus(self, menu)
-##        self.addMenu(menu, EditorHelper.wxID_EDITORSAVE, 'Save', accls,
-##              (keyDefs['Save']))
-##        self.addMenu(menu, EditorHelper.wxID_EDITORCLOSEPAGE, 'Close', accls,
-##              (keyDefs['Close']))
-##        return accls
-
     def saveAs(self, filename):
-        """ Saves contents of data to file specified by filename.
-        Override this to catch name changes. """
-
         raise 'Save as not supported'
 
     def getPageName(self):
@@ -152,6 +135,7 @@ class ZopePythonSourceModel(ZopeDocumentModel):
 
     def getModule(self):
         if self._module is None:
+            import moduleparse
             wx.wxBeginBusyCursor()
             try:
                 self._module = moduleparse.Module(
@@ -187,8 +171,10 @@ class ZopeExportFileModel(EditorModels.EditorModel):
     modelIdentifier = 'ZopeExport'
     defaultName = 'zexp'
     bitmap = 'ZopeExport_s.bmp'
-    imgIdx = EditorModels.imgZopeExportFileModel
+    imgIdx = EditorHelper.imgZopeExportFileModel
     ext = '.zexp'
 
 EditorHelper.modelReg[ZopeExportFileModel.modelIdentifier] = ZopeExportFileModel
 EditorHelper.extMap[ZopeExportFileModel.ext] = ZopeExportFileModel
+
+
