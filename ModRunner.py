@@ -42,6 +42,7 @@ class ModuleRunner:
                 self.esf.display(len(err))
                 return tbs
             else:
+                self.esf.updateCtrls([])
                 return None
         else:
             self.results = {'err': err,
@@ -72,6 +73,7 @@ class CompileModuleRunner(ModuleRunner):
                 etype, value, tb = sys.exc_info()
                 msg, (_filename, lineno, offset, line) = value.args
                 if not _filename:
+                    # XXX this is broken on too long lines
                     value.args = msg, (filename, lineno, offset, line)
                     value.filename = filename
                 import traceback
