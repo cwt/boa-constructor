@@ -8,7 +8,7 @@
 #
 # Created:     2001
 # RCS-ID:      $Id$
-# Copyright:   (c) 2001 - 2003 Riaan Booysen
+# Copyright:   (c) 2001 - 2004 Riaan Booysen
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 print 'importing Views.InspectableViews'
@@ -69,16 +69,17 @@ class InspectableObjectView(EditorViews.EditorView, InspectorSessionMix):
             if paramKey in dontEval:
                 args[paramKey] = params[paramKey]
             else:
-                try:
-                    args[paramKey] = PaletteMapping.evalCtrl(params[paramKey], 
-                          evalDct)
-                except AttributeError:
-                    args[paramKey] = PaletteMapping.evalCtrl(params[paramKey], 
-                          {'self': self.controllerView.objectNamespace})
+                #try:
+                args[paramKey] = PaletteMapping.evalCtrl(params[paramKey], 
+                      evalDct)
+                #except AttributeError:
+                #    args[paramKey] = PaletteMapping.evalCtrl(params[paramKey], 
+                #          {'self': self.controllerView.objectNamespace})
 
         return args
 
-    def __init__(self, inspector, model, compPal, actions = (), dclickActionIdx = -1, editorIsWindow = true):
+    def __init__(self, inspector, model, compPal, actions=(), dclickActionIdx=-1, 
+          editorIsWindow=true):
         self.compPal = compPal
         EditorViews.EditorView.__init__(self, model, actions, dclickActionIdx, editorIsWindow)
         self.selection = None
