@@ -90,6 +90,8 @@ class FindReplaceEngine:
             view.model.editor.setStatus('Search wrapped', 'Warning', ringBell=1)
 
         view.SetSelection(result[0], result[1])
+        
+        view.EnsureVisible(view.LineFromPosition(result[0]))
 
     def findNextInSource(self, view):
         self.findInSource(view, self.findHistory[-1])
