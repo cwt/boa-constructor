@@ -26,8 +26,6 @@ import sourceconst
 
 import InspectableViews
 
-#wxNullBitmap = Preferences.IS.load('Images/Inspector/wxNullBitmap.png')
-
 def create(parent):
     return CollectionEditor(parent, None)
 
