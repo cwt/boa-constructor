@@ -36,6 +36,7 @@ init_sizers = '_init_sizers'
 code_gen_warning = "generated method, don't edit"
 
 defEnvPython = wsfix('#!/usr/bin/env python\n')
+# XXX Frame Companion could return this source in writeImports?
 defImport = wsfix('from wxPython.wx import *\n\n')
 defSig = boaIdent+wsfix(':%(modelIdent)s:%(main)s\n\n')
 
@@ -52,12 +53,8 @@ defWindowIdsCont = wsfix('''] = map(lambda %(idIdent)s: wxNewId(), range(%(idCou
 
 defClass = wsfix('''
 class %(main)s(%(defaultName)s):
-\tdef '''+init_utils+'''(self):
-\t\tpass
-
 \tdef '''+init_ctrls+'''(self, prnt):
 \t\t%(defaultName)s.__init__(%(params)s)
-\t\tself.'''+init_utils+'''()
 
 \tdef __init__(self, parent):
 \t\tself.'''+init_ctrls+'''(parent)
@@ -65,15 +62,15 @@ class %(main)s(%(defaultName)s):
 
 defApp = wsfix('''import %(mainModule)s
 
-modules = {'%(mainModule)s' : [1, 'Main frame of Application', '%(mainModule)s.py']}
+modules = {'%(mainModule)s' : [1, 'Main frame of Application', 'none://%(mainModule)s.py']}
 
 class BoaApp(wxApp):
 \tdef OnInit(self):
 \t\twxInitAllImageHandlers()
 \t\tself.main = %(mainModule)s.create(None)
 \t\t# needed when running from Boa under Windows 9X
+\t\tself.main.Show()
 \t\tself.SetTopWindow(self.main)
-\t\tself.main.Show();self.main.Hide();self.main.Show()
 \t\treturn True
 
 def main():
@@ -130,8 +127,7 @@ if __name__ == '__main__':
 \tapp = wxPySimpleApp()
 \twxInitAllImageHandlers()
 \tframe = create(None)
-\t# needed when running from Boa under Windows 9X
-\tframe.Show();frame.Hide();frame.Show()
+\tframe.Show()
 
 \tapp.MainLoop()
 ''')
