@@ -10,14 +10,16 @@
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 
+import sys, linecache, traceback, shutil
+
+from wxPython import wx
+from wxPython.stc import *
+
 from ExternalLib import ndiff
 from EditorViews import EditorView, ClosableViewMix
-from wxPython.stc import *
 from StyledTextCtrls import PythonStyledTextCtrlMix
 from Preferences import keyDefs
-from wxPython import wx
 import Preferences, Utils
-import sys, linecache, traceback, shutil
 
 uniqueFile1Mrk = 1
 uniqueFile2Mrk = 2
@@ -64,9 +66,12 @@ class PythonSourceDiffView(wxStyledTextCtrl, EditorView, PythonStyledTextCtrlMix
 
         self.SetMarginType(1, wxSTC_MARGIN_SYMBOL)
         self.SetMarginWidth(1, 16)
-        self.MarkerDefine(uniqueFile1Mrk, wxSTC_MARK_MINUS, 'BLACK', 'WHITE')
-        self.MarkerDefine(uniqueFile2Mrk, wxSTC_MARK_PLUS, 'BLACK', 'WHITE')
-        self.MarkerDefine(newToBothMrk, wxSTC_MARK_SMALLRECT, 'BLACK', 'WHITE')
+        markIdnt, markBorder, markCenter = Preferences.STCDiffRemovedMarker
+        self.MarkerDefine(uniqueFile1Mrk, markIdnt, markBorder, markCenter)
+        markIdnt, markBorder, markCenter = Preferences.STCDiffAddedMarker
+        self.MarkerDefine(uniqueFile2Mrk, markIdnt, markBorder, markCenter)
+        markIdnt, markBorder, markCenter = Preferences.STCDiffChangesMarker
+        self.MarkerDefine(newToBothMrk, markIdnt, markBorder, markCenter)
 
         self.SetMarginSensitive(1, wx.true)
         EVT_STC_MARGINCLICK(self, wxID_PYTHONSOURCEDIFFVIEW, self.OnMarginClick)
@@ -92,7 +97,7 @@ class PythonSourceDiffView(wxStyledTextCtrl, EditorView, PythonStyledTextCtrlMix
                 sys.stdout = DiffPSOut(self)
                 try:
 #                    self.model.editor.app.saveStdio = sys.stdout, sys.stderr
-                    ndiff.fcompare(self.model.filename, self.diffWith)
+                    ndiff.fcompare(self.model.assertLocalFile(), self.diffWith)
                 except:
                     (sys.last_type, sys.last_value,
                      sys.last_traceback) = sys.exc_info()
@@ -118,26 +123,22 @@ class PythonSourceDiffView(wxStyledTextCtrl, EditorView, PythonStyledTextCtrlMix
     def OnMarginClick(self, event):
         if event.GetMargin() == 1:
             ln = self.LineFromPosition(event.GetPosition())
-#            ln = event.GetLine()
-            print ln, self.MarkerGet(ln)
 
     def OnPrev(self, event):
         self.currSearchLine = self.MarkerPrevious(self.currSearchLine,
           maskMarkSet) - 1
-#        self.SetFocus()
-#        self.EnsureVisible(self.currSearchLine)
         self.gotoLine(self.currSearchLine + 1)
 
     def OnNext(self, event):
         self.currSearchLine = self.MarkerNext(self.currSearchLine,
           maskMarkSet) + 1
-#        self.SetFocus()
         self.gotoLine(self.currSearchLine - 1)
-#        self.EnsureVisible(self.currSearchLine)
 
     def OnApplyAllChanges(self, event):
+        filename = self.model.assertLocalFile()
         if self.diffWith and Utils.yesNoDialog(self, 'Are you sure?',
-          'Replace %s with %s?'% (self.model.filename, self.diffWith)):
-            shutil.copyfile(self.diffWith, self.model.filename)
+              'Replace %s with %s?'% (filename, self.diffWith)):
+            shutil.copyfile(self.diffWith, filename)
+            # reload 
             self.model.load()
             self.deleteFromNotebook('Source', self.tabName)
