@@ -18,4 +18,10 @@ def scramble(str):
               182,128,158,208,162,132,167,209,149,241,153,251,237,236,171,195,
               243,233,253,240,194,250,191,155,142,137,245,235,163,242,178,152 )
 
-    return 'A'+string.join(map(lambda c,shifts=shifts: chr(shifts[ord(c)]), list(str)), '')
+    return 'A'+string.join(map(lambda c,shifts=shifts: chr(shifts[ord(c)]), 
+                           list(str)), '')
+
+if __name__ == '__main__':
+    import sys
+    for passwd in sys.argv[1:]:
+        print scramble(passwd)
