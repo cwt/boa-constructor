@@ -31,6 +31,7 @@ from wxPython import wx
 #---Paths-----------------------------------------------------------------------
 
 pyPath = sys.path[0] = os.path.abspath(sys.path[0])
+sys.path.insert(1, '')
 
 #---Import preference namespace from resource .rc. files------------------------
 
@@ -81,6 +82,10 @@ else:
 if not os.path.isdir(rcPath):
     rcPath = os.path.join(pyPath, 'Config')
 
+# no editors for these settings yet, can be redefined in prefs.rc.py if needed
+# e.g. wx.wxFont(10, wx.wxDEFAULT, wx.wxNORMAL, wx.wxNORMAL, 0, 'Courier New')
+eoErrOutFont = wx.wxNORMAL_FONT
+
 
 wxPlatforms = {'__WXMSW__': 'msw',
                '__WXGTK__': 'gtk',
@@ -88,9 +93,9 @@ wxPlatforms = {'__WXMSW__': 'msw',
 thisPlatform = wxPlatforms[wx.wxPlatform]
 
 # upgrade if needed and exec in our namespace
-for prefsFile, version in (('prefs.rc.py', 9),
+for prefsFile, version in (('prefs.rc.py', 10),
                            ('prefs.%s.rc.py'%thisPlatform, 8),
-                           ('prefs.keys.rc.py', 8),
+                           ('prefs.keys.rc.py', 9),
                            ('prefs.plug-ins.rc.py', None)):
     file = os.path.join(rcPath, prefsFile)
 
