@@ -1,4 +1,4 @@
-## rc-version: 7 ##
+## rc-version: 8 ##
 # RCS-ID:      $Id$
 
 
@@ -49,6 +49,9 @@ braceHighLight = false
 
 # Minimize the IDE while running applications
 minimizeOnRun = false
+
+# Minimize the IDE when using Debug/Continue while debugging 
+minimizeOnDebug = false
 
 explorerFileSysRootDefault = ('/', '/')
 
@@ -110,8 +113,8 @@ exportedProperties2 = ['exCaseInsensitiveSorting', 'edShowFileNewMenu',
  'edUseCustomSTCPaintEvtHandler', 'edSTCFolding', 'verticalTaskbarWidth',
  'horizontalTaskbarHeight', 'editorScreenWidthPerc',
  'windowManagerTop', 'windowManagerBottom', 'windowManagerSide',
- 'braceHighLight', 'minimizeOnRun', 'inspStatBarFontSize',
- 'drawDesignerGrid', 'drawDesignerGridForSubWindows', 'drawGridMethod',
+ 'braceHighLight', 'minimizeOnRun', 'minimizeOnDebug', 'inspStatBarFontSize', 
+ 'drawDesignerGrid', 'drawDesignerGridForSubWindows',  'drawGridMethod', 
  'grayoutSource',
  'ccImportWxPyUtils', 'ccImportWxPyHtml', 'ccImportWxPyHtmlHelp',
  'ccImportWxPyHelp', 'ccImportWxPyCalendar', 'ccImportWxPyGrid',
