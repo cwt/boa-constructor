@@ -1,49 +1,90 @@
 To do
 -----
 
+Features
+--------
+
+* Non modal Process dialogs 
+* Debug hook for hooking GUI exceptions to the debugger
+* Multiple help windows
+* File filters
+
+Framework Extensions
+--------------------
+
+* Allow submenus under File and Edit
+* Define resource files for menus and and menu context help (for i18n)
+
+format: 
+[ClassName]
+method=('menu', 'OnMethod', 'image/path.png', 'shortcut', 'description')
+
+
 Missing wxPython features
 -------------------------
 
-* wxSizers
-* wxAcceleratorTable
 * wxWizard
-* improved wxApp support (properties and events)
 * wxArtProvider
-* Alternate bitmap support (e.g. from img2* or ResourcePackage)
+* wxAcceleratorTable
+* More wxPython.lib controls
+  * MaskEdits
+* improved wxApp support (properties and events)
+* Two step Create and extra style flags
+
 
 High level features
 -------------------
 
+* Improve code completion
+* Correct Syntax Error highlighing
 * Better default property handling, possibly cutting some cruft from
   generated source by omitting unchanged defaults.
-
-Support for more than one method in Collections, this would allow
-* Sub-menus, separators
-* Adding controls to toolbars
-* Remove one of the barriers to Sizers
 
 Detail
 ------
 
+Documentation
+- Tutorial
+ - Debugging section
+ - Image handling
+- Link to method docs from selected property
+
+
 Editor
 - More actions should use the progress bar
 - Use Idle extensions
+  - The Tkinter editor control interface sucks.
+  - As a test, converted the IDLE extension FormatParagraph. See Plug-ins.
+    It was quite simple, only had to change the tkinter text control code
+    to wxSTC code and write the Boa IDE hooks to publish it under 
+    Py:Edit->Format paragraph
+
 - Add toggleable action type
 - Look into possibly extending wxApp's stdio redirection to speak to boa
 - Goto CVS file from Open Module
-- Switch to opening files in binary mode
+
+
+Designer
+- Multi-select, when moving not all tags snap togeter
+- Correctly ordered parameters
+- Multi-select/multi-edit, showing a filtering of only properties that can 
+  be edited en mass
+- Icon support
+- Add Palette as Popup menu. e.g. New->Container/Layout->wxPanel
+  - Bind Inser to Popup New menu
+- Source generation for the new wx.package way of writing
+
+Companions
+- Better initial sizes for a few controls
 
 
 Help
 - wx methods help: From Inspector while on property
-- Tag matches in results from search  to be able to jump to the next match
-  in a file. Also have to tidy up colouring so that only text outside <>
-  are coloured. This currently breaks some links.
-- Support wxHtmlHelpProjects (hhp, hhk, hhc) as filetypes and from the Palette
-- Add py2exe page to the help
 
 Documentation View
-- Option: Don't print empty sections
+- Options: 
+  - Don't print empty sections (no __doc__ ) 
+  - Don't print _private methods
 
 Explore View
 - Move method up/down actions
@@ -54,31 +95,25 @@ Tree Views
 - Remember which nodes are open and reopen after refreshing
 
 Zope
-- CMF
-
-Collection editors
-- Move up, move down
+- CMF, Plone
 
 Debugging
 - Preferences to
-  - Minimize on run
   - Toggle script debugging
+  - Optionally break in with the debugger on top level GUI exceptions using
+    sys.excepthook
+  - Specify modules and packages which the debugger should not step into
 
-UML
-- Some form of zooming (25%, 50%, 75%, 100%)
 
 Explorer
 - Simple caching for slow connections
 - Synch Explorer operations like moving files around with
   any open applications
-- Check file operations against open modules
 - Connect opened module if possible to an open app module
-- Bind backspace to folder up, F2 to rename
-- Bind Insert to New menu
 - Key mappings!
-
-Companions
-- Better initial sizes for a few controls
+- Delete directories.
+- Improve/Extend the File Dialog enough to stop dependency on the Explorer.
+  - E.g. Preference management and Zope support through the File Dialog/Inspector
 
 CVS
 - Conflict resolution editor integration
@@ -90,6 +125,9 @@ CVS
 - Import needs to setup masks for recognised file types
 - Run in background/non non modal
 - Refesh action
+- Colour indication for folders which contain modified files
+                            or
+- CVS Reports, like search results
 
 
 App
@@ -99,11 +137,6 @@ App
 Inspector
 - Enable/Disable toolbar buttons depending on state
   or only show applicable buttons (not enough space for all btns)
-
-Designer
-- Add Palette as Popup menu. e.g. New->Container/Layout->wxPanel
-  - Bind Inser to Popup New menu
-- Cursor keys should navigate thru controls
 
 GTK
 - Incremental typing lookup on wxListCtrl, hopefully in a base class high up :)
@@ -143,8 +176,6 @@ Boa 2.0
   - One possibility is hooking a db aware control
     framework to the ZODB
 - C/C++ extension writing and possibly debugging support
-- Help projects
-- Validators
 
 
 *

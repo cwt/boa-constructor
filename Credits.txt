@@ -18,6 +18,7 @@ babeliser.py by Jonathan Feinberg and Babelfish for translation
 David Adams' Speller, an xml-rpc spellchecker server
 Jeff Sasmor for wxStyledTextCtrl docs
 Hernan M. Foffani for ZopeShelf from which the Zope Book was converted
+Phil Dawes et al for the Bicycle Repair Man project, a Python refactoring package
 
 The authors of CVS, SSH, SCP
 
