@@ -371,7 +371,7 @@ class HTMLDocView(HTMLView):
 
     def OnSaveHTML(self, event):
         from FileDlg import wxFileDialog
-        dlg = wxFileDialog(self, 'Save as...', '', '', '*.html',
+        dlg = wxFileDialog(self, 'Save as...', '.', '', '*.html',
           wxSAVE | wxOVERWRITE_PROMPT)
         try:
             if dlg.ShowModal() == wxID_OK:
