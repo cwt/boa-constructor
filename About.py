@@ -63,11 +63,12 @@ credits_html = '''
     <br>
 <b>The Boa Team</b><br>
 <br>
-Riaan Booysen (riaan@e.co.za)<br>
+Riaan Booysen (riaan@e.co.za)<p>
 Shane Hathaway (shane@digicool.com)<br>
 Kevin Gill (kevin@telcotek.com)<br>
 Robert Boulanger (robert@boulanger.de)<br>
 Tim Hochberg (tim.hochberg@ieee.org)<br>
+Kevin Light (klight@walkertechnical.com)<br>
 <p>
 <b>Many thanks to</b><br>
 <br>
@@ -88,7 +89,6 @@ babeliser.py by Jonathan Feinberg and Babelfish for translation<br>
 David Adams' Speller, an xml-rpc spellchecker server<br>
 <p>
 Mike Fletcher for reports, ideas and patches (MakePy dialog and much improved UML layout)<br>
-Kevin Light for reports, fixes and ideas.
 <p>
 <b>Boa interfaces with the following external applications, thanks to their authors</b><br>
 Zope, CVS, SSH, SCP<br>
