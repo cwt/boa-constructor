@@ -268,6 +268,15 @@ EventCategories = {'ActivateEvent': (EVT_ACTIVATE, EVT_ACTIVATE_APP),
 
 }
 
+##EventCategoryNames = {
+##    'ActivateEvent': ('Activate', 
+##                      'ActivateApp'),
+##    'MiscEvent':   ('Size', 'Move', 'Paint', 'EraseBackground'),
+##    'FocusEvent' : ('SetFocus', 'KillFocus'),
+##    'KeyEvent' : ('Char', 'CharHook', 'KeyDown', 'KeyUp'),
+##    'MouseEvent' : ('LeftDown', 'LeftUp', 'MiddleDown',
+##                    'MiddleUp',
+
 normalCategories = ['MiscEvent','FocusEvent','KeyEvent','MouseEvent','AppEvent',
 'FrameEvent', 'ScrollEvent']
 commandCategories = ['ListEvent', 'TreeEvent', 'CmdScrollEvent', 'SpinEvent',
@@ -292,14 +301,21 @@ reservedWxIds = [
 
 # Other names that may clash in the 'id' namespace ;)
 ## copy of UtilCompanions.stockCursorIds
-reservedWxNames = reservedWxIds + ['wxCURSOR_ARROW', 'wxCURSOR_BULLSEYE', 'wxCURSOR_CHAR',
-      'wxCURSOR_CROSS', 'wxCURSOR_HAND', 'wxCURSOR_IBEAM', 'wxCURSOR_LEFT_BUTTON',
-      'wxCURSOR_MAGNIFIER', 'wxCURSOR_MIDDLE_BUTTON', 'wxCURSOR_NO_ENTRY',
-      'wxCURSOR_PAINT_BRUSH', 'wxCURSOR_PENCIL', 'wxCURSOR_POINT_LEFT',
-      'wxCURSOR_POINT_RIGHT', 'wxCURSOR_QUESTION_ARROW', 'wxCURSOR_RIGHT_BUTTON',
-      'wxCURSOR_SIZENESW', 'wxCURSOR_SIZENS', 'wxCURSOR_SIZENWSE', 'wxCURSOR_SIZEWE',
-      'wxCURSOR_SIZING', 'wxCURSOR_SPRAYCAN', 'wxCURSOR_WAIT', 'wxCURSOR_WATCH',
-      'wxCURSOR_ARROWWAIT']
+
+# >>> print "reservedCursors = ['"+"', '".join([k for k in wx.__dict__ if k.startswith('wxCURSOR_')])+"']"
+
+reservedCursors = ['wxCURSOR_LEFT_BUTTON', 'wxCURSOR_PAINT_BRUSH', 
+ 'wxCURSOR_WATCH', 'wxCURSOR_CROSS', 'wxCURSOR_BLANK', 'wxCURSOR_MAX',
+ 'wxCURSOR_CHAR', 'wxCURSOR_RIGHT_ARROW', 'wxCURSOR_POINT_RIGHT',
+ 'wxCURSOR_SIZENESW', 'wxCURSOR_MIDDLE_BUTTON', 'wxCURSOR_WAIT',
+ 'wxCURSOR_BULLSEYE', 'wxCURSOR_SIZING', 'wxCURSOR_POINT_LEFT',
+ 'wxCURSOR_IBEAM', 'wxCURSOR_SIZENWSE', 'wxCURSOR_MAGNIFIER',
+ 'wxCURSOR_SPRAYCAN', 'wxCURSOR_SIZEWE',  'wxCURSOR_RIGHT_BUTTON',
+ 'wxCURSOR_ARROWWAIT', 'wxCURSOR_DEFAULT', 'wxCURSOR_PENCIL',
+ 'wxCURSOR_NONE', 'wxCURSOR_QUESTION_ARROW', 'wxCURSOR_HAND',
+ 'wxCURSOR_ARROW', 'wxCURSOR_NO_ENTRY', 'wxCURSOR_SIZENS']
+
+reservedWxNames = reservedWxIds + reservedCursors
 
 def renameCmdIdInDict(dct, name, newId):
     if dct[name] in reservedWxNames:
