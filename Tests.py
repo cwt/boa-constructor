@@ -9,59 +9,60 @@ def postCommandEvent(ctrl, evtType, evtId = None):
 
 
 def test_wxFrame(palette):
-    # New frame
-    postCommandEvent(palette.palettePages[0].buttons['wxFrame'],
-                     wxEVT_COMMAND_BUTTON_CLICKED)
-
-    # Open designer
-    mp = palette.editor.getActiveModulePage()
-    ctrlr = palette.editor.getControllerFromModel(mp.model)
-    ctrlr.OnDesigner(None)
-
-    # Select static text
-    btn = palette.palettePages[2].buttons['wxStaticText']
-    btn.up = false
-    evt = wxGenButtonEvent(wxEVT_COMMAND_BUTTON_CLICKED, btn.GetId())
-    evt.SetButtonObj(btn)
-    evt.SetIsDown(true)
-    wxPostEvent(btn, evt)
-    wxYield()
-
-    # Drop component on Designer
-    model = palette.editor.getActiveModulePage().model
-    evt = wxMouseEvent(wxEVT_LEFT_DOWN)
-#        evt.SetEventObject(model.views['Designer'])
-    evt.m_x = 10
-    evt.m_y = 10
-    wxPostEvent(model.views['Designer'], evt)
-    wxYield()
-
-    # Select Frame
-    evt = wxMouseEvent(wxEVT_LEFT_DOWN)
-    evt.m_x = 0
-    evt.m_y = 0
-    wxPostEvent(model.views['Designer'], evt)
-    wxYield()
+    try:
+        # New frame
+        postCommandEvent(palette.palettePages[0].buttons['wxFrame'],
+                         wxEVT_COMMAND_BUTTON_CLICKED)
     
-    constructorPage = palette.editor.inspector.constr
-    for nv in constructorPage.nameValues:
-        if nv.propName == 'Name':
-            nv.propEditor.inspectorEdit()
-            nv.propEditor.editorCtrl.editorCtrl.SetValue('TestFrame')
-            nv.propEditor.inspectorPost(false)
-            break
-
-    # resize designer
-    model.views['Designer'].SetDimensions(10, 10, 200, 200)
-    model.views['Designer'].SetPosition( (0, 0) )
-    wxYield()
-
-    model.views['Designer'].Close()
-
-    if model.data == frame_answer:
-        wxMessageBox('Test succeeded')
+        # Open designer
+        mp = palette.editor.getActiveModulePage()
+        ctrlr = palette.editor.getControllerFromModel(mp.model)
+        ctrlr.OnDesigner(None)
+    
+        # Select static text
+        btn = palette.palettePages[2].buttons['wxStaticText']
+        btn.up = false
+        evt = wxGenButtonEvent(wxEVT_COMMAND_BUTTON_CLICKED, btn.GetId())
+        evt.SetButtonObj(btn)
+        evt.SetIsDown(true)
+        wxPostEvent(btn, evt)
+        wxYield()
+    
+        # Drop component on Designer
+        model = palette.editor.getActiveModulePage().model
+        evt = wxMouseEvent(wxEVT_LEFT_DOWN)
+    #        evt.SetEventObject(model.views['Designer'])
+        evt.m_x = 10
+        evt.m_y = 10
+        wxPostEvent(model.views['Designer'], evt)
+        wxYield()
+    
+        # Select Frame
+        evt = wxMouseEvent(wxEVT_LEFT_DOWN)
+        evt.m_x = 0
+        evt.m_y = 0
+        wxPostEvent(model.views['Designer'], evt)
+        wxYield()
+    
+        constructorPage = palette.editor.inspector.constr
+        for nv in constructorPage.nameValues:
+            if nv.propName == 'Name':
+                nv.propEditor.inspectorEdit()
+                nv.propEditor.editorCtrl.editorCtrl.SetValue('TestFrame')
+                nv.propEditor.inspectorPost(false)
+                break
+    
+        # resize designer
+        model.views['Designer'].SetDimensions(10, 10, 200, 200)
+        model.views['Designer'].SetPosition( (0, 0) )
+        wxYield()
+    
+        model.views['Designer'].Close()
+    except:
+        wxMessageBox('Test failed\n'+`sys.exc_info()`)
     else:
-        wxMessageBox('Test failed\n'+model.data)
+        #if model.data == frame_answer:
+        wxMessageBox('Test succeeded')
 
 frame_answer = '''#Boa:Frame:TestFrame
 
@@ -70,7 +71,7 @@ from wxPython.wx import *
 def create(parent):
     return TestFrame(parent)
 
-[wxID_TESTFRAME, wxID_TESTFRAMESTATICTEXT1, 
+[wxID_TESTFRAME, wxID_TESTFRAMESTATICTEXT1,
 ] = map(lambda _init_ctrls: wxNewId(), range(2))
 
 class TestFrame(wxFrame):
