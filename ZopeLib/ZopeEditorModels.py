@@ -64,6 +64,7 @@ ZOAImages = [\
  ('Z Gadfly Database Connection', 'Images/ZOA/db.png'),
  ('ZCatalog', 'Images/ZOA/ZCatalog.png'),
  ('Vocabulary', 'Images/ZOA/Vocabulary.png'),
+ ('WebDAV Lock Manager', 'Images/ZOA/davlocked.png'),
 ]
 
 EditorHelper.imgZopeExportFileModel = EditorHelper.imgCounter
