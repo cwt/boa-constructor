@@ -1238,18 +1238,16 @@ class DesignerView(wxFrame, InspectableObjectCollectionView):
               self.inspector.selCmp.wxDocs, None)
     
     def OnAlignSelected(self, event):
-        dlg = CtrlAlign.create(self)
-        try:
-            dlg.ShowModal()
-        finally:
-            dlg.Destroy()
+        if self.multiSelection:
+            dlg = CtrlAlign.ControlAlignmentFrame(self, self.multiSelection)
+            try: dlg.ShowModal()
+            finally: dlg.Destroy()
         
     def OnSizeSelected(self, event):
-        dlg = CtrlSize.create(self)
-        try:
-            dlg.ShowModal()
-        finally:
-            dlg.Destroy()
+        if self.multiSelection:
+            dlg = CtrlSize.ControlSizeFrame(self, self.multiSelection)
+            try: dlg.ShowModal()
+            finally: dlg.Destroy()
     
     def OnSelectParent(self, event):
         if self.selection:
