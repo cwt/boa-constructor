@@ -83,37 +83,23 @@ class AppFindResults(ListCtrlView, ClosableViewMix):
 
 class AppView(ListCtrlView):
     openBmp = 'Images/Editor/OpenFromApp.bmp'
-#    openAllBmp = 'Images/Editor/OpenAll.bmp'
-    saveAllBmp = 'Images/Editor/SaveAll.bmp'
     addModBmp = 'Images/Editor/AddToApp.bmp'
     remModBmp = 'Images/Editor/RemoveFromApp.bmp'
     findBmp = 'Images/Shared/Find.bmp'
-    profileBmp = 'Images/Debug/Profile.bmp'
-    runBmp = 'Images/Debug/RunApp.bmp'
-    debugBmp = 'Images/Debug/Debug.bmp'
-    cyclBmp = 'Images/Shared/Cyclops.bmp'
-#    importsBmp = 'Images/Editor/Imports.bmp'
 
     viewName = 'Application'
     def __init__(self, parent, model):
         ListCtrlView.__init__(self, parent, model, wxLC_REPORT,
           (('Open', self.OnOpen, self.openBmp, ()),
-           ('Save all modules', self.OnSaveAll, self.saveAllBmp, ()),
            ('-', None, '', ()),
            ('Add', self.OnAdd, self.addModBmp, keyDefs['Insert']),
            ('Edit', self.OnEdit, '-', ()),
            ('Remove', self.OnRemove, self.remModBmp, keyDefs['Delete']),
            ('-', None, '', ()),
            ('Find', self.OnFind, self.findBmp, keyDefs['Find']),
-           ('-', None, '', ()),
-           ('Make module main module', self.OnMakeMain, '-', ()),
            ('-', None, '-', ()),
-           ('Cyclops', self.OnCyclops, self.cyclBmp, ()),
-           ('-', None, '', ()),
-           ('Profile', self.OnProfile, self.profileBmp, ()),
-           ('View trace log as Traceback', self.OnCrashLog, '-', ()),
-           ('Run application', self.OnRun, self.runBmp, keyDefs['RunApp']),
-           ('Debugger', self.OnDebugger, self.debugBmp, keyDefs['Debug'])), 0)
+           ('Make module main module', self.OnMakeMain, '-', ()),
+           ), 0)
 
         self.InsertColumn(0, 'Module', width = 150)
         self.InsertColumn(1, 'Type', width = 50)
@@ -197,53 +183,6 @@ class AppView(ListCtrlView):
                 wxMessageBox('Cannot remove the main frame of an application',
                     'Module remove error')
 
-    def OnRun(self, event):
-        wxBeginBusyCursor()
-        try:
-            self.model.run()
-        finally:
-            wxEndBusyCursor()
-
-    def OnDebugger(self, event):
-        self.model.debug()
-
-    def OnProfile(self, event):
-        stats, profDir = self.model.profile()
-        resName = 'Profile stats: %s'%time.strftime('%H:%M:%S', time.gmtime(time.time()))
-        if not self.model.views.has_key(resName):
-            resultView = self.model.editor.addNewView(resName, ProfileView.ProfileStatsView)
-        else:
-            resultView = self.model.views[resName]
-        resultView.tabName = resName
-        resultView.stats = stats
-        resultView.profDir = profDir
-        resultView.refresh()
-        resultView.focus()
-
-    def OnCrashLog(self, event):
-        wxBeginBusyCursor()
-        try:
-            self.model.crashLog()
-        finally:
-            wxEndBusyCursor()
-
-    def OnCyclops(self, event):
-        wxBeginBusyCursor()
-        try:
-            report = self.model.cyclops()
-        finally:
-            wxEndBusyCursor()
-
-        resName = 'Cyclops report: %s'%time.strftime('%H:%M:%S', time.gmtime(time.time()))
-        if not self.model.views.has_key(resName):
-            resultView = self.model.editor.addNewView(resName, CyclopsView)
-        else:
-            resultView = self.model.views[resName]
-        resultView.tabName = resName
-        resultView.report = report
-        resultView.refresh()
-        resultView.focus()
-
     def OnImports(self, events):
         wxBeginBusyCursor()
         try:
@@ -264,19 +203,6 @@ class AppView(ListCtrlView):
                 self.model.editor.openOrGotoModule(\
                   self.model.modules[mod][2])
             except: pass
-
-    def OnSaveAll(self, event):
-        for modulePage in self.model.editor.modules.values():
-            mod = modulePage.model
-            if mod != self.model:
-                if hasattr(mod, 'app') and mod.app == self.model and \
-                  (mod.modified or len(mod.viewsModified)):
-                    if len(mod.viewsModified):
-                        mod.refreshFromViews()
-                    modulePage.saveOrSaveAs()
-            else:
-                appModPage = modulePage
-        appModPage.saveOrSaveAs()
 
     def OnFind(self, event):
         dlg = wxTextEntryDialog(self.model.editor, 'Enter text:', 'Find in application', self.lastSearchPattern)
