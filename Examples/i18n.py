@@ -13,8 +13,8 @@ def create(parent):
 ENG, AFR = range(2)
 GlobalLang = AFR
 
-[wxID_WXFRAME1, wxID_WXFRAME1BUTTON1, wxID_WXFRAME1BUTTON2, 
- wxID_WXFRAME1STATICTEXT1, 
+[wxID_WXFRAME1, wxID_WXFRAME1BUTTON1, wxID_WXFRAME1BUTTON2,
+ wxID_WXFRAME1STATICTEXT1,
 ] = map(lambda _init_ctrls: wxNewId(), range(4))
 
 class wxFrame1(wxFrame):
