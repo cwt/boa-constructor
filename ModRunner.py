@@ -11,8 +11,8 @@
 #-----------------------------------------------------------------------------
 
 import string, traceback
-from os import path
-from popen2import import popen3
+import os
+from cStringIO import StringIO
 
 from wxPython.wx import *
 
@@ -21,20 +21,17 @@ import Preferences, Utils
 import ErrorStack
 
 class ModuleRunner:
-    def __init__(self, esf, app, runningDir=''):
-        self.init(esf, app)
+    def __init__(self, esf, runningDir=''):
+        self.init(esf)
         self.runningDir = runningDir
         self.results = {}
+        self.pid = 0
 
     def run(self, cmd):
         pass
 
-    def init(self, esf, app):
+    def init(self, esf):
         self.esf = esf
-        if esf:
-            self.esf.app = app
-        else:
-            self.app = app
 
     def recheck(self):
         if self.results:
@@ -66,7 +63,9 @@ class CompileModuleRunner(ModuleRunner):
     def run(self, filename, source, modified):
         protsplit = string.find(filename, '://')
         if protsplit != -1:
-            prot, filename = filename[:protsplit], filename[protsplit+3:]
+            prot, _filename = filename[:protsplit], filename[protsplit+3:]
+            if prot != 'none':
+                filename = _filename
         else:
             prot = 'file'
 
@@ -120,12 +119,44 @@ class ProcessModuleRunner(ModuleRunner):
         finally:
             dlg.Destroy()
 
+class wxPopenModuleRunner(ModuleRunner):
+    def run(self, cmd, inpLines=[], execFinish=None):
+
+        out=[]
+        def outputFunc(val):
+            out.append(val)
+        
+        err = []
+        def errorsFunc(val):
+            err.append(val)
+        
+        def finFunc():
+            errors = StringIO(''.join(err)).readlines()
+            output = StringIO(''.join(out)).readlines()
+            
+            serr = ErrorStack.buildErrorList(errors)
+    
+            if serr or output:
+                self.checkError(serr, 'Ran', output, errRaw=errors)
+
+            if execFinish:
+                execFinish(self)
+
+        import wxPopen
+        proc = wxPopen.wxPopen3(cmd, inpLines, outputFunc, errorsFunc, finFunc)
+        
+        self.pid = proc.pid
+        
+
 class PopenModuleRunner(ModuleRunner):
     """ Uses Python's popen2, output and errors are redirected and displayed
         in a frame. """
-    def run(self, cmd, inpLines=[]):
+    def run(self, cmd, inpLines=[], execStart=None):
         inpLines.reverse()
-        inp, outp, errp = popen3(cmd)
+        inp, outp, errp = os.popen3(cmd)
+        pid = 0 # XXX only available on unix :(
+        if execStart:
+            wxCallAfter(execStart, pid)
         out = []
         while 1:
             if inpLines:
@@ -136,6 +167,7 @@ class PopenModuleRunner(ModuleRunner):
 
         errLines = errp.readlines()
         serr = ErrorStack.buildErrorList(errLines)
+        self.pid = pid
 
         if serr or out:
             return self.checkError(serr, 'Ran', out, errRaw=errLines)
@@ -144,13 +176,13 @@ class PopenModuleRunner(ModuleRunner):
 
 PreferredRunner = PopenModuleRunner
 
-wxEVT_EXEC_FINISH = wxNewId()
-
-def EVT_EXEC_FINISH(win, func):
-    win.Connect(-1, -1, wxEVT_EXEC_FINISH, func)
-
-class ExecFinishEvent(wxPyEvent):
-    def __init__(self, runner):
-        wxPyEvent.__init__(self)
-        self.SetEventType(wxEVT_EXEC_FINISH)
-        self.runner = runner
+##wxEVT_EXEC_FINISH = wxNewId()
+##
+##def EVT_EXEC_FINISH(win, func):
+##    win.Connect(-1, -1, wxEVT_EXEC_FINISH, func)
+##
+##class ExecFinishEvent(wxPyEvent):
+##    def __init__(self, runner):
+##        wxPyEvent.__init__(self)
+##        self.SetEventType(wxEVT_EXEC_FINISH)
+##        self.runner = runner
