@@ -136,6 +136,10 @@ class FileSysController(ExplorerNodes.Controller, ExplorerNodes.ClipboardControl
             for node in nodes:
                 if node.isFolderish():
                     node.bookmarks.add(node.resourcepath)
+                    self.editor.statusBar.setHint('Bookmarked %s'% node.resourcepath, 'Info')
+                else:
+                    self.editor.statusBar.setHint('Not a directory: %s'% node.resourcepath, 'Error')
+                    
 
     def OnTest(self, event):
         print self.list.node.clipboard.globClip.currentClipboard
@@ -258,7 +262,7 @@ class PyFileNode(ExplorerNodes.ExplorerNode):
                       other.protocol in self.allowedProtocols:
                     if otherIdFunc(filename):
                         return 'fol', other(file, filename, self.clipboard, 
-                              imgIdx, self)
+                              imgIdx, self, self.bookmarks)
             return 'mod', PyFileNode(file, filename, self.clipboard,
               EditorModels.identifyFile(filename)[0].imgIdx, self, self.bookmarks,
               {'datetime': time.strftime('%a %b %d %H:%M:%S %Y',
@@ -270,7 +274,7 @@ class PyFileNode(ExplorerNodes.ExplorerNode):
                       other.protocol in self.allowedProtocols:
                     if otherIdFunc(filename):
                         return 'fol', other(file, filename, self.clipboard, 
-                              imgIdx, self)
+                              imgIdx, self, self.bookmarks)
             return 'fol', PyFileNode(file, filename, self.clipboard,
                   EditorHelper.imgFolder, self, self.bookmarks)
         elif self.filter == 'AllFiles':

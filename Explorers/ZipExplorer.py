@@ -114,7 +114,7 @@ class ZipItemNode(ExplorerNodes.ExplorerNode):
 
 class ZipFileNode(ZipItemNode):
     protocol = 'zip'
-    def __init__(self, name, resourcepath, clipboard, imgIdx, parent):
+    def __init__(self, name, resourcepath, clipboard, imgIdx, parent, bookmarks=None):
         if clipboard:
             zipClip = ZipExpClipboard(clipboard.globClip)
         else:

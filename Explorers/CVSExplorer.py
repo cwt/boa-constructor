@@ -502,7 +502,7 @@ class CVSUnAddedItem(ExplorerNodes.ExplorerNode):
 
 class FSCVSFolderNode(ExplorerNodes.ExplorerNode):
     protocol = 'cvs'
-    def __init__(self, name, resourcepath, clipboard, imgIdx, parent):
+    def __init__(self, name, resourcepath, clipboard, imgIdx, parent, bookmarks=None):
         ExplorerNodes.ExplorerNode.__init__(self, name, resourcepath, clipboard,
               EditorModels.CVSFolderModel.imgIdx, parent)
         self.dirpos = 0
