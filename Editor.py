@@ -31,14 +31,14 @@ print 'importing Editor'
 # XXX Add a wxPython Class Browser entry to Windows menu
 
 import os, sys, string, pprint
-import threading, Queue
+import Queue
 
 from wxPython.wx import *
 from wxPython.help import *
 
-from Models import EditorHelper, Controllers, PythonControllers
+from Models import EditorHelper, Controllers
 
-from EditorUtils import EditorToolBar, EditorStatusBar, ModulePage
+from EditorUtils import EditorToolBar, EditorStatusBar, ModulePage, socketFileOpenServerListen
 
 import Preferences, Utils
 from Preferences import keyDefs, IS, flatTools
@@ -163,6 +163,8 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
         EVT_MENU(self, EditorHelper.wxID_EDITORSWITCHPREFS, self.OnSwitchPrefs)
         EVT_MENU(self, EditorHelper.wxID_EDITORSWITCHPALETTE, self.OnSwitchPalette)
         EVT_MENU(self, EditorHelper.wxID_EDITORSWITCHINSPECTOR, self.OnSwitchInspector)
+        EVT_MENU(self, EditorHelper.wxID_EDITORBROWSEFWD, self.OnBrowseForward)
+        EVT_MENU(self, EditorHelper.wxID_EDITORBROWSEBACK, self.OnBrowseBack)
         EVT_MENU(self, EditorHelper.wxID_EDITORPREVPAGE, self.OnPrevPage)
         EVT_MENU(self, EditorHelper.wxID_EDITORNEXTPAGE, self.OnNextPage)
         EVT_MENU(self, EditorHelper.wxID_EDITORHIDEPALETTE, self.OnHidePalette)
@@ -193,11 +195,17 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
         self.winMenu.Append(EditorHelper.wxID_EDITORSWITCHPREFS,
               'Preferences', 'Switch to the Preferences in the Explorer')
         self.winMenu.Append(-1, '-')
+        self.winMenu.Append(EditorHelper.wxID_EDITORBROWSEBACK,
+              'Browse back',#\t%s'%keyDefs['BrowseBack'][2],
+              'Go back in browsing history stack')
+        self.winMenu.Append(EditorHelper.wxID_EDITORBROWSEFWD,
+              'Browse forward',#\t%s'%keyDefs['BrowseFwd'][2],
+              'Go forward in browsing history stack')
         self.winMenu.Append(EditorHelper.wxID_EDITORPREVPAGE,
-              'Previous window\t%s'%keyDefs['PrevPage'][2],
+              'Previous page\t%s'%keyDefs['PrevPage'][2],
               'Switch to the previous page of the main notebook')
         self.winMenu.Append(EditorHelper.wxID_EDITORNEXTPAGE,
-              'Next window\t%s'%keyDefs['NextPage'][2],
+              'Next page\t%s'%keyDefs['NextPage'][2],
               'Switch to the next page of the main notebook')
         self.winMenu.Append(-1, '-')
         self.winMenu.AppendMenu(EditorHelper.wxID_EDITORWINDIMS,
@@ -234,9 +242,7 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
         if Preferences.suSocketFileOpenServer:
             # Start listening for requests to open files. Listener will run, putting
             # files to open into open_queue, until closed is set.
-            self.open_queue = Queue.Queue(0)
-            self.closed = threading.Event()
-            self.listener = Listener(self.open_queue, self.closed).start()
+            self.open_queue, self.closed, self.listener = socketFileOpenServerListen()
         else:
             self.closed = None
 
@@ -350,6 +356,8 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
                   (keyDefs['HelpFind'], EditorHelper.wxID_EDITORHELPFIND),
                   (keyDefs['GotoShell'], EditorHelper.wxID_EDITORSWITCHSHELL),
                   (keyDefs['GotoExplorer'], EditorHelper.wxID_EDITORSWITCHEXPLORER),
+                  (keyDefs['BrowseBack'], EditorHelper.wxID_EDITORBROWSEBACK),
+                  (keyDefs['BrowseFwd'], EditorHelper.wxID_EDITORBROWSEFWD),
                   (keyDefs['PrevPage'], EditorHelper.wxID_EDITORPREVPAGE),
                   (keyDefs['NextPage'], EditorHelper.wxID_EDITORNEXTPAGE) ):
             accLst.append( (ctrlKey, key, wId) )
@@ -371,20 +379,13 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
 
         activeView = None
         actMod = self.getActiveModulePage(modelIdx)
+        #print actMod
         if actMod:
             actMod.connectEvts()
             self._prevMod = actMod
 
             ModClass = actMod.model.__class__
             ctrlr = self.getControllerFromModel(actMod.model)
-##            ctrlr = None
-##            if Controllers.modelControllerReg.has_key(ModClass):
-##                Controller = Controllers.modelControllerReg[ModClass]
-##                if self.controllers.has_key(Controller):
-##                    ctrlr = self.controllers[Controller]
-##                elif self.controllers.has_key(ModClass):
-##                    ctrlr = self.controllers[ModClass]
-
             if ctrlr:
                 self.toolBar.AddSeparator()
                 ctrlr.addTools(self.toolBar, actMod.model)
@@ -537,11 +538,25 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
         if notebook is None:
             notebook = self.tabs
 
-        spIdx = notebook.GetPageCount()
-        modulePage = ModulePage(notebook, model, defViews, views, spIdx, self)
-        self.modules[moduleName] = modulePage
-        # Idx will be same as count after selection
-        notebook.AddPage(modulePage.notebook, modulePage.pageName, true, imgIdx)
+        if Preferences.editorNotebookOpenPos == 'current':
+            spIdx = max(notebook.GetSelection() + 1, 2)
+
+            modulePage = ModulePage(notebook, model, defViews, views, spIdx, self)
+
+            # notify pages for idx adjustments
+            for modPge in self.modules.values():
+                modPge.addedPage(spIdx)
+
+            self.modules[moduleName] = modulePage
+            notebook.InsertPage(spIdx, modulePage.notebook, modulePage.pageName, true, imgIdx)
+
+        elif Preferences.editorNotebookOpenPos == 'append':
+            spIdx = notebook.GetPageCount()
+
+            modulePage = ModulePage(notebook, model, defViews, views, spIdx, self)
+            self.modules[moduleName] = modulePage
+            notebook.AddPage(modulePage.notebook, modulePage.pageName, true, imgIdx)
+
 
         # XXX wxGTK does not trigger an AfterPageChangeEvent
         if wxPlatform == '__WXGTK__':
@@ -554,6 +569,7 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
     def closeModulePage(self, modulePage, shutdown=false):
         actPge = self.tabs.GetSelection()
         numPgs = self.tabs.GetPageCount()
+        ##print actPge, numPgs
         if modulePage:
             try:
                 self.closeModule(modulePage)
@@ -573,6 +589,13 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
                 self.tabs.SetSelection(actPge)
             self.editorUpdateNotify()
 
+            # XXX Work around bug where notebook change event differs between
+            # XXX 2.3.2 and 2.3.3
+            # XXX This overrides the wrong title and toolbar/menus set by the
+            # XXX notebook change event
+            sel = self.tabs.GetSelection()
+            self.updateTitle(sel)
+            self.setupToolBar(sel)
 
     def getActiveModulePage(self, page = None):
         if page is None: page = self.tabs.GetSelection()
@@ -685,7 +708,7 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
             # XXX Use default controller class
             # XXX This path broken for Zope because of Model keys
             controller = self.getController(Controllers.modelControllerReg.get(
-                  model.__class__, PythonControllers.ModuleController))
+                  model.__class__, Controllers.DefaultController))
 
         return model, controller
 
@@ -734,7 +757,7 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
 
         # Get MVC objects
         controller = self.getController(Controllers.modelControllerReg.get(
-              modCls, PythonControllers.ModuleController))
+              modCls, Controllers.DefaultController))
         model = controller.createModel(source, filename, main, true, app)
         defViews = controller.DefaultViews
         views = controller.AdditionalViews
@@ -886,12 +909,15 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
 #                if not vis:
 #                    self.tabs.Hide()
 
+            self.browser.checkRemoval(modulePage)
             self.tabs.RemovePage(idx)
             del self.modules[name]
             modulePage.destroy()
+            #print 'modulePage destroyed'
             # notify pages for idx adjustments
             for modPge in self.modules.values():
                 modPge.removedPage(idx)
+
 
         else:
             print name, 'not found in OnClose', pprint.pprint(self.modules)
@@ -948,6 +974,12 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
         else:
             return self
 
+    def minimizeBoa(self):
+        if self.palette.IsShown() and not self.palette.IsIconized():
+            self.palette.Iconize(true)
+        elif not self.IsIconized():
+            self.Iconize(true)
+
     def OnOpen(self, event, curdir='.'):
         fn = self.openFileDlg(curdir=curdir)
         if fn:
@@ -965,6 +997,12 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
     def OnTabsNotebookPageChanged(self, event, sel=None):
         if sel is None:
             sel = event.GetSelection()
+##            print sel
+##        else:
+##            if event is not None:
+##                print sel, event.GetSelection()
+##            else:
+##                print 'force %s'%sel
         if sel > -1:
             self.updateTitle(sel)
             if self._created:
@@ -1206,15 +1244,16 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
 #---Misc events-----------------------------------------------------------------
     def OnExecFinish(self, event):
         if self.erroutFrm:
+            if self.palette.IsShown():
+                self.palette.restore()
+            self.restore()
+
             event.runner.init(self.erroutFrm, event.runner.app)
             errs = event.runner.recheck()
             if errs:
                 self.statusBar.setHint('Finished execution, there were errors', 'Warning')
             else:
                 self.statusBar.setHint('Finished execution.')
-            if self.palette.IsShown():
-                self.palette.restore()
-            self.restore()
 
     def OnExitBoa(self, event):
         self.palette.Close()
@@ -1343,49 +1382,15 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
             else:
                 self.restore()
 
-socketPort = 50007
-selectTimeout = 0.25
-class Listener(threading.Thread):
-    def __init__(self, queue, closed):
-        self.queue = queue
-        self.closed = closed
-        threading.Thread.__init__(self)
 
-    def run(self, host='127.0.0.1', port=socketPort):
-        #print 'running listner thread %d'%id(self)
-        import socket
-        from select import select
-        # Open a socket and listen.
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        try:
-            s.bind((host, port))
-        except socket.error, err:
-            ##print 'Socket error', str(err)
-            # printing from thread not useful because it's async
-            ##if err[0] == 10048: # Address already in use
-            ##    print 'Already a Boa running as a server'
-            ##else:
-            ##    print 'Server mode not started:', err
-            self.closed.set()
-            return
-        s.listen(5)
-        while 1:
-            while 1:
-                # Listen for 0.25 s, then check if closed is set. In that case,
-                # end thread by returning.
-                ready, dummy, dummy = select([s],[],[], selectTimeout)
-                if self.closed.isSet():
-                    #print 'closing listner thread %d'%id(self)
-                    return
-                if ready:
-                    break
-            # Accept a connection, read the data and put it into the queue.
-            conn, addr = s.accept()
-            l = []
-            while 1:
-                data = conn.recv(1024)
-                if not data: break
-                l.append(data)
-            name = ''.join(l)
-            self.queue.put(name)
-            conn.close()
+
+if __name__ == '__main__':
+    app = wxPySimpleApp()
+    wxInitAllImageHandlers()
+
+    import Palette
+    palette = Palette.BoaFrame(None, -1, app)
+
+    frame = EditorFrame(None, -1, None, None, None, app, palette)
+    frame.Show()
+    app.MainLoop()
