@@ -14,7 +14,7 @@
 
 from wxPython.wx import *
 import string, sys, time
-
+print 'importing SelectionTags'
 defPos = (0, 0)
 defSze = (0, 0)
 tagSize = 7
