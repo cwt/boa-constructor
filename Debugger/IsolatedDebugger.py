@@ -531,6 +531,8 @@ class DebugServer (Bdb):
 
         # Allow a stop in any thread.
         self._lock.releaseIfOwned()
+        if not full_speed:
+            sys.settrace(self.trace_dispatch)
 
     def hard_break_here(self, frame):
         """Indicates whether the debugger should stop at a hard breakpoint.
