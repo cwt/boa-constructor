@@ -11,9 +11,9 @@
 #-----------------------------------------------------------------------------
 #Boa:Dialog:ExtMethDlg
 
+import os
+
 from wxPython.wx import *
-import os, string
-from os import path
 
 def create(parent, zopepath):
     return ExtMethDlg(parent, zopepath)
@@ -22,19 +22,19 @@ class ExternalMethodFinder:
     def __init__(self, zopeDir):
         self.zopeDir = zopeDir
         if self.zopeDir:
-            self.prodsDir = path.join(zopeDir, 'lib','python','Products')
+            self.prodsDir = os.path.join(zopeDir, 'lib','python','Products')
         else:
             self.prodsDir = ''
 
     def getModules(self):
-        mods = self._addPyMods(path.join(self.zopeDir, 'Extensions'))
+        mods = self._addPyMods(os.path.join(self.zopeDir, 'Extensions'))
 
         if self.prodsDir:
             prods = os.listdir(self.prodsDir)
             for p in prods:
-                if path.exists(path.join(self.prodsDir, p)) and \
-                      path.exists(path.join(self.prodsDir, p, 'Extensions')):
-                    mods.extend(self._addPyMods(path.join(self.prodsDir, p,
+                if os.path.exists(os.path.join(self.prodsDir, p)) and \
+                      os.path.exists(os.path.join(self.prodsDir, p, 'Extensions')):
+                    mods.extend(self._addPyMods(os.path.join(self.prodsDir, p,
                           'Extensions'), p))
         return mods
 
@@ -44,24 +44,24 @@ class ExternalMethodFinder:
         mods = []
         fls = Explorer.listdirEx(pypath, '.py')
         for file in fls:
-            mods.append(prod +(prod and '.')+path.splitext(file)[0])
+            mods.append(prod +(prod and '.')+os.path.splitext(file)[0])
         return mods
 
     def getExtPath(self, module):
-        modLst = string.split(module, '.')
+        modLst = module.split('.')
         if len(modLst) == 1:
-            modpath = path.join(self.zopeDir, 'Extensions', modLst[0] + '.py')
+            modpath = os.path.join(self.zopeDir, 'Extensions', modLst[0] + '.py')
         else:
-            modpath = path.join(self.prodsDir, modLst[0], 'Extensions', modLst[1]+'.py')
-        return string.replace(modpath, '<LocalFS::directory>', '<LocalFS::file>')
+            modpath = os.path.join(self.prodsDir, modLst[0], 'Extensions', modLst[1]+'.py')
+        return modpath.replace('<LocalFS::directory>', '<LocalFS::file>')
 
     def getFunctions(self, module):
         from Explorers import Explorer
         extPath = self.getExtPath(module)
 
         src = Explorer.openEx(extPath).load()
-        sep = string.count(src, '\r\n') < string.count(src, '\n') and '\n' or '\r\n'
-        srclines = string.split(src, sep)
+        sep = src.count('\r\n') < src.count('\n') and '\n' or '\r\n'
+        srclines = src.split(sep)
 
         import moduleparse
         module = moduleparse.Module('test', srclines)
