@@ -7,7 +7,7 @@
 #
 # Created:     2000/09/17
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999 - 2002 Riaan Booysen
+# Copyright:   (c) 1999 - 2004 Riaan Booysen
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 #Boa:Dialog:wxBoaFileDialog
@@ -373,7 +373,8 @@ class wxBoaFileDialog(wxDialog, Utils.FrameRestorerMixin):
         if self.GetFilename():
             self.editorFilterNode.setFilter(self.editorFilter)
             dir = self.GetDirectory()
-            wxBoaFileDialog.currentDir = dir
+            if not dir.startswith('recent.files://'):
+                wxBoaFileDialog.currentDir = dir
             wxBoaFileDialog._lastSize = self.GetClientSize()
             self.saveDims()
             self.EndModal(wxID_OK)
