@@ -2,6 +2,8 @@
 
 from wxPython.wx import *
 
+import Preferences
+
 def create(parent):
     return AttachDlg(parent)
 
@@ -104,6 +106,8 @@ class AttachDlg(wxDialog):
         
         self._init_ctrls(editor)
         self.editor = editor
+        
+        self.SetIcon(Preferences.IS.load('Images/Icons/Debug.ico'))
 
     def OnOkButton(self, event):
         host = self.host_ctrl.GetValue()
