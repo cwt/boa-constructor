@@ -13,11 +13,6 @@ KEEP_STREAMS_OPEN = 1
 USE_TCPWATCH = 0
 LOG_TRACEBACKS = 0
 
-def canReadStream(stream):
-    try:
-        return stream.CanRead()
-    except AttributeError:
-        return not stream.eof()
 
 class TransportWithAuth (xmlrpclib.Transport):
     """Adds a proprietary but simple authentication header to the
@@ -65,22 +60,12 @@ def spawnChild(monitor, process, args=''):
     and the input and error streams.
     """
     # Start ChildProcessServerStart.py in a new process.
-    # XXX Using PYTHONPATH is wrong
-    # XXX ExternalLib.xmlrpclib  and script dir should end up in sys.path
     script_fn = os.path.join(os.path.dirname(__file__),
                              'ChildProcessServerStart.py')
     pyIntpPath = Preferences.getPythonInterpreterPath()
-    if pyIntpPath == sys.executable:
-        os.environ['PYTHONPATH'] = os.pathsep.join(sys.path)
-    else:
-        os.environ['PYTHONPATH'] = Preferences.pyPath
     cmd = '%s "%s" %s' % (pyIntpPath, script_fn, args)
     try:
-        if wx.wxVERSION > (2, 3, 2):
-            flags = wx.wxEXEC_NOHIDE
-        else:
-            flags = 0
-        pid = wx.wxExecute(cmd, flags, process)
+        pid = wx.wxExecute(cmd, wx.wxEXEC_NOHIDE, process)
 
         line = ''
         if monitor.isAlive():
@@ -92,10 +77,10 @@ def spawnChild(monitor, process, args=''):
             while monitor.isAlive() and line.find('\n') < 0:
                 # don't take more time than the process we wait for ;)
                 time.sleep(0.00001)
-                if canReadStream(istream):
+                if istream.CanRead():
                     line = line + istream.read(1)
                 # test for tracebacks on stderr
-                if canReadStream(estream):
+                if estream.CanRead():
                     err = estream.read()
                     if LOG_TRACEBACKS:
                         fn = os.path.join(os.path.dirname(__file__), 'DebugTracebacks.txt')
@@ -139,7 +124,7 @@ def spawnChild(monitor, process, args=''):
             trans = TransportWithAuth(auth)
             server = xmlrpclib.Server(
                 'http://127.0.0.1:%d' % int(port), trans)
-            return server, istream, estream, pid
+            return server, istream, estream, pid, pyIntpPath
         else:
             raise RuntimeError, 'The debug server failed to start'
     except:
@@ -159,7 +144,8 @@ class ChildProcessClient(MultiThreadedDebugClient):
     process = None      # A wxProcess
     input_stream = None
     error_stream = None
-
+    pyIntpPath = None
+    
     def __init__(self, win, process_args=''):
         self.process_args = process_args
         DebugClient.__init__(self, win)
@@ -204,18 +190,19 @@ class ChildProcessClient(MultiThreadedDebugClient):
             if KEEP_STREAMS_OPEN:
                 process.CloseOutput()
 
-    def __del__(self):
-        pass#self.kill()
+##    def __del__(self):
+##        pass#self.kill()
 
     def pollStreams(self):
-        stdin_text = ''
         stderr_text = ''
-        stream = self.input_stream
-        if stream is not None and canReadStream(stream):
-            stdin_text = stream.read()
         stream = self.error_stream
-        if stream is not None and not canReadStream(stream):
+        if stream is not None and stream.CanRead():
             stderr_text = stream.read()
+        stdin_text = ''
+        stream = self.input_stream
+        if stream is not None and stream.CanRead():
+            stdin_text = stream.read()
+        
         return (stdin_text, stderr_text)
 
     def getProcessId(self):
@@ -235,7 +222,7 @@ class ChildProcessClient(MultiThreadedDebugClient):
                     wx.EVT_END_PROCESS(self.event_handler, self.win_id,
                                        self.OnProcessEnded)
                     (self.server, self.input_stream, self.error_stream,
-                     self.processId) = spawnChild(
+                     self.processId, self.pyIntpPath) = spawnChild(
                         self, process, self.process_args)
                 self.taskHandler.addTask(evt.GetTask())
             except:
