@@ -10,7 +10,6 @@
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 import string, re, os, sys, pprint
-from ShellEditor import PseudoFile
 import Utils
 
 if sys.version[:2] == '2.':
@@ -31,7 +30,7 @@ class StackEntry:
         return 'File "%s", line %d\n%s' % (self.file, self.lineNo, self.line)
 
 
-class RecFile(PseudoFile):
+class RecFile(Utils.PseudoFile):
     def write(self, s):
         self.output.append(s)
 
@@ -133,7 +132,7 @@ class CrashTraceLogParser(StackErrorParser):
                         _file, _lineno, _frameid, _event = string.split(lines[idx], '|')[:4]
                     except:
                         print 'Error on find', cnt, lines[idx]
-                        break
+                        pass
 
                     if _file == file and _frameid == frameid and _event == 'call':
                         del lines[:idx+1]
