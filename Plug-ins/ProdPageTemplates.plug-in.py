@@ -23,29 +23,18 @@ class PageTemplateZopeController(ZopeController):
 Controllers.modelControllerReg[ZopePageTemplateModel] = PageTemplateZopeController
 
 #---Views-----------------------------------------------------------------------
-import urllib
-
-class GUIFancyURLopener(urllib.FancyURLopener):
-    _user_prompt = ''
-    _passwd_prompt = ''
-    def prompt_user_passwd(self, host, realm):
-        return self._user_prompt, self._passwd_prompt
     
 from ZopeLib import ZopeViews
 class ZopePTHTMLView(ZopeViews.ZopeHTMLView):
     viewName = 'Source.html'
     def generatePage(self):
         props = self.model.zopeObj.properties
-        url = 'http://%s:%d/%s/source.html'%(props['host'], props['httpport'],
+        url = 'http://%s:%s@%s:%d/%s/source.html'%(props['username'], 
+              props['passwd'], props['host'], props['httpport'],
               self.model.zopeObj.whole_name())
-        urllib._urlopener = gfurlo = GUIFancyURLopener()
-        gfurlo._user_prompt = props['name']
-        gfurlo._passwd_prompt = props['passwd']
-        try:
-            f = urllib.urlopen(url)
-            return f.read()
-        finally:
-            urllib._urlopener = None
+        import urllib
+        f = urllib.urlopen(url)
+        return f.read()
 
 #---Explorer--------------------------------------------------------------------
 
