@@ -143,9 +143,9 @@ class wxPopenModuleRunner(ModuleRunner):
                 execFinish(self)
 
         import wxPopen
-        proc = wxPopen.wxPopen3(cmd, inpLines, outputFunc, errorsFunc, finFunc)
+        self.proc = wxPopen.wxPopen3(cmd, inpLines, outputFunc, errorsFunc, finFunc, self.esf)
         
-        self.pid = proc.pid
+        self.pid = self.proc.pid
         
 
 class PopenModuleRunner(ModuleRunner):
@@ -176,13 +176,13 @@ class PopenModuleRunner(ModuleRunner):
 
 PreferredRunner = PopenModuleRunner
 
-##wxEVT_EXEC_FINISH = wxNewId()
-##
-##def EVT_EXEC_FINISH(win, func):
-##    win.Connect(-1, -1, wxEVT_EXEC_FINISH, func)
-##
-##class ExecFinishEvent(wxPyEvent):
-##    def __init__(self, runner):
-##        wxPyEvent.__init__(self)
-##        self.SetEventType(wxEVT_EXEC_FINISH)
-##        self.runner = runner
+wxEVT_EXEC_FINISH = wxNewId()
+
+def EVT_EXEC_FINISH(win, func):
+    win.Connect(-1, -1, wxEVT_EXEC_FINISH, func)
+
+class ExecFinishEvent(wxPyEvent):
+    def __init__(self, runner):
+        wxPyEvent.__init__(self)
+        self.SetEventType(wxEVT_EXEC_FINISH)
+        self.runner = runner
