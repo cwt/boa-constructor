@@ -70,10 +70,16 @@ def incLevel(level, pos):
 def decLevel(level, pos):
     return max(level - 1, 0), pos + 1
 
-def safesplitfields(params, delim):
+def safesplitfields(params, delim, returnBlanks = 0, 
+      containBegin=containBegin, containEnd=containEnd):
     """ Returns a list of parameters split on delim but not if delim are
         within containers (), {}, [], '', ""
         Also skip '', "" content
+        Note that results are stripped
+        
+        Added returnBlanks flag for compatibility with python's split
+        split('', ',') returns ['']
+        Usually I want the result of such a split to be []
     """
 
     locparams =  params
@@ -83,8 +89,8 @@ def safesplitfields(params, delim):
     singlequotelevel = 0
     doublequotelevel = 0
 
-    if not params:
-        return ['']
+    if returnBlanks and not string.strip(params):
+        return [params]
 
     while i < len(locparams):
         curchar = locparams[i]
@@ -128,6 +134,39 @@ def safesplitfields(params, delim):
         list.append(lastentry)
     return list
 
+# XXX does not handle ",' yet
+def matchbracket(text, findBracket, dir=None):
+    if findBracket in containBegin or (dir is not None and dir == -1): 
+        dir = -1
+        start = len(text)-1
+        end = -1
+        brktIdx = containBegin.index(findBracket)
+    elif findBracket in containEnd or (dir is not None and dir == 1): 
+        dir = 1
+        start = 0
+        end = len(text)
+        brktIdx = containEnd.index(findBracket)
+    else: 
+        raise 'Unhandled bracket'
+
+    # () {} []
+    levels = [0, 0, 0]
+
+    for cIdx in range(start, end, dir):
+        c = text[cIdx]
+        if c in containBegin:
+            idx = containBegin.index(c)
+            levels[idx] = levels[idx] + dir
+        elif c in containEnd:
+            idx = containEnd.index(c)
+            levels[idx] = levels[idx] - dir
+
+        if levels[brktIdx] < 0:
+            return cIdx
+##        for lev in levels:
+##            if lev < 0:
+##                return -1
+    return -1
 
 def parseMixedBody(parseClasses, lines):
     """ Return a dictionary with keys representing classes that
@@ -135,6 +174,7 @@ def parseMixedBody(parseClasses, lines):
         of the found class
     """
     cat = {}
+    unmatched = []
     for parseClass in parseClasses:
         cat[parseClass] = []
 
@@ -149,7 +189,9 @@ def parseMixedBody(parseClasses, lines):
                 if res:
                     cat[parseClass].append(res)
                     break
-    return cat
+        else:
+            unmatched.append(line)
+    return cat, unmatched
 
 
 def parseBody(parseClass, lines):
@@ -161,6 +203,8 @@ def parseBody(parseClass, lines):
             continue
         list.append(parseClass(ln))
     return list
+
+param_splitter = ' = '
 
 class PerLineParser:
     def value(self):
@@ -196,8 +240,10 @@ class PerLineParser:
 
     def KVParamsAsText(self, params):
         kvlist = []
-        for key in params.keys():
-            kvlist.append(key+' = '+params[key])
+        sortedkeys = params.keys()
+        sortedkeys.sort()
+        for key in sortedkeys:
+            kvlist.append(key+param_splitter+params[key])
         return string.join(kvlist, ', ')
 
 idc = '[A-Za-z_][A-Za-z0-9_]*'
