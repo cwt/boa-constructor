@@ -225,9 +225,8 @@ class PersistentController(EditorController):
         if model:
             if self.checkUnsaved(model): return
             if not filename:
-                filename = self.editor.openFileDlg()
+                filename = self.editor.openFileDlg(curfile=os.path.basename(model.filename))
             if filename:
-                #filename = model.assertLocalFile(filename)
                 tbName = 'Diff with : '+filename
                 if not model.views.has_key(tbName):
                     resultView = self.editor.addNewView(tbName, 
