@@ -12,6 +12,7 @@
 
 from wxPython.wx import *
 import Utils, Preferences
+from Preferences import IS
 from Views import Designer
 from PrefsKeys import keyDefs
 import os
@@ -29,7 +30,6 @@ class CollectionEditor(wxFrame):
         wxFrame.__init__(self, size = wxSize(200, 247), id = wxID_COLLECTIONEDITOR, title = 'Collection Editor', parent = prnt, name = 'CollectionEditor', style = wxDEFAULT_FRAME_STYLE, pos = wxPoint(341, 139))
 
         self.toolBar = wxToolBar(size = wxDefaultSize, id = wxID_COLLECTIONEDITORTOOLBAR, pos = wxPoint(32, 4), parent = self, name = 'toolBar1', style = wxTB_HORIZONTAL | wxNO_BORDER | Preferences.flatTools)
-
         self.SetToolBar(self.toolBar)
 
     def __init__(self, parent, collEditView, lvStyle = wxLC_REPORT): 
@@ -38,10 +38,10 @@ class CollectionEditor(wxFrame):
         self.itemList = wxListCtrl(size = wxPyDefaultSize, id = wxID_COLLECTIONEDITORITEMLIST, parent = self, name = 'itemList', validator = wxDefaultValidator, style = lvStyle | wxLC_SINGLE_SEL, pos = wxPyDefaultPosition)
         EVT_LIST_ITEM_SELECTED(self.itemList, wxID_COLLECTIONEDITORITEMLIST, self.OnObjectSelect)
         EVT_LIST_ITEM_DESELECTED(self.itemList, wxID_COLLECTIONEDITORITEMLIST, self.OnObjectDeselect)
+        EVT_LEFT_DCLICK(self.itemList, self.OnObjectDClick)
 
         if wxPlatform == '__WXMSW__':
-            self.SetIcon(wxIcon(Preferences.toPyPath('Images/Icons/Collection.ico'), 
-              wxBITMAP_TYPE_ICO))
+            self.SetIcon(IS.load('Images/Icons/Collection.ico'))
 
         self.collEditView = collEditView
         self.selected = -1
@@ -73,10 +73,10 @@ class CollectionEditor(wxFrame):
         if lvStyle == wxLC_REPORT:
             self.itemList.InsertColumn(0, 'Name')
 
-	EVT_CLOSE(self, self.OnCloseWindow)
-	
-	# Hack to force a refresh, it's not displayed correctly initialy
-	self.SetSize((self.GetSize().x +1, self.GetSize().y))
+        EVT_CLOSE(self, self.OnCloseWindow)
+
+        # Hack to force a refresh, it's not displayed correctly initialy
+        self.SetSize((self.GetSize().x +1, self.GetSize().y))
 
     def destroy(self):
         self.collEditView.frame = None
@@ -105,12 +105,6 @@ class CollectionEditor(wxFrame):
         self.selected = -1
         self.collEditView.deselectObject()
 
-    def OnItemlistListItemSelected(self, event):
-        self.selected = event.m_itemIndex
-
-    def OnItemlistListItemDeselected(self, event):
-        self.selected = -1
-
     def OnNewClick(self, event):
         ni = self.collEditView.companion.appendItem()
         self.collEditView.refreshCtrl()
@@ -119,10 +113,9 @@ class CollectionEditor(wxFrame):
     def OnDeleteClick(self, event):
         if self.selected >= 0:
             idx = self.selected
-            self.collEditView.deselectObject()
-            ni = self.collEditView.companion.deleteItem(idx)
+            print 'OnDeleteClick', self.collEditView.companion.index
+            self.collEditView.deleteCtrl()
             self.selected = -1
-            self.collEditView.refreshCtrl()
 
     def OnUpClick(self, event):
         if self.selected > 0:
@@ -140,6 +133,11 @@ class CollectionEditor(wxFrame):
             self.itemList.InsertStringItem(idx +1, name)
             self.itemList.SetItemState(idx +1, wxLIST_STATE_SELECTED, 
               wxLIST_STATE_SELECTED)
+    
+    def OnObjectDClick(self, event):
+        if self.selected >= 0:
+            print 'OnObjectDClick', self.collEditView.companion.defaultAction
+            self.collEditView.companion.defaultAction()
             
     def OnSeledClick(self, event):
         result = []
@@ -267,8 +265,6 @@ class CollectionEditorView(Designer.InspectableObjectCollectionView):
             else:
                 return false
 
-#        objColl = self.model.objectCollections[self.collectionMethod]
-        
         self.companion.writeCollectionInitialiser(output)
         self.companion.writeCollectionItems(output)
         self.companion.writeEvents(output, addModuleMethod = false)
@@ -284,8 +280,7 @@ class CollectionEditorView(Designer.InspectableObjectCollectionView):
         if self.frame:
             if keepSelected: sel = self.frame.selected
             self.frame.clear()
-            
-            
+ 
             for idx in range(len(self.companion.textConstrLst)):
                 self.companion.setIndex(idx)
                 displayProp = self.companion.getDisplayProp()
@@ -313,6 +308,13 @@ class CollectionEditorView(Designer.InspectableObjectCollectionView):
 
     def deselectObject(self):
         self.inspector.cleanup()
+
+    def deleteCtrl(self):
+        self.deselectObject()
+        self.notifyAction(self.companion, 'delete')
+        self.companion.designer.notifyAction(self.companion, 'delete')
+        self.companion.deleteItem(self.companion.index)
+        self.refreshCtrl()
 
     def close(self):
         self.cleanup()

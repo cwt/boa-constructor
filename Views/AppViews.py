@@ -53,8 +53,8 @@ class AppFindResults(ListCtrlView, ClosableViewMix):
         for mod in self.results.keys():
             for result in self.results[mod]:   
                 self.listResultIdxs.append((mod, result))
-                i = self.addReportItems(i, path.basename(mod), `result[1]`, 
-                  `result[0]`, string.strip(result[2]))
+                i = self.addReportItems(i, path.basename(mod), `result[0]`, 
+                  `result[1]`, string.strip(result[2]))
                 
 ##                self.InsertStringItem(i, path.basename(mod))
 ##                self.SetStringItem(i, 1, `result[1]`)
@@ -296,7 +296,8 @@ class AppView(ListCtrlView):
                 resultView.focus()
                         
         finally:
-            dlg.Destroy()         
+            dlg.Destroy()
+            event.Skip()
 
 
 class AppModuleDocView(ModuleDocView):
