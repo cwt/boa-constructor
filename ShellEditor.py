@@ -10,6 +10,8 @@
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 
+# XXX Try to handle multi line paste
+
 import sys, keyword, types
 
 from wxPython.wx import *
@@ -68,8 +70,11 @@ class ShellEditor(StyledTextCtrls.wxStyledTextCtrl,
         self.lastResult = ''
 
         self.CallTipSetBackground(wxColour(255, 255, 232))
-        try: self.SetWrapMode(1)
-        except AttributeError: pass
+        # 2, 4, 1, 2 crashes in wrap mode.
+        # XXX remove when min version > 2.4.1.2
+        if wxVERSION[:4] != (2, 4, 1, 2):
+            try: self.SetWrapMode(1)
+            except AttributeError: pass
 
         self.bindShortcuts()
 
@@ -210,9 +215,6 @@ class ShellEditor(StyledTextCtrls.wxStyledTextCtrl,
     def OnShellEnter(self, event):
         self.BeginUndoAction()
         try:
-##            if self.AutoCompActive():
-##                self.AutoCompComplete()
-##                return
             if self.CallTipActive():
                 self.CallTipCancel()
 
@@ -284,8 +286,8 @@ class ShellEditor(StyledTextCtrls.wxStyledTextCtrl,
             self.SetAnchor(lnStPs)
 
     def OnKeyDown(self, event):
-        #if Preferences.handleSpecialEuropeanKeys:
-        #    self.handleSpecialEuropeanKeys(event, Preferences.euroKeysCountry)
+        if Preferences.handleSpecialEuropeanKeys:
+            self.handleSpecialEuropeanKeys(event, Preferences.euroKeysCountry)
 
         kk = event.KeyCode()
         controlDown = event.ControlDown()
