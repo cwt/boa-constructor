@@ -110,6 +110,9 @@ setup(name = '%s',
 )
 '''
 
+defPackageSrc = '''# Package initialisation
+'''
+
 simpleModuleRunSrc = '''
 
 if __name__ == '__main__':
