@@ -1,6 +1,6 @@
 #-----------------------------------------------------------------------------
 # Name:        wxPythonEditorModels.py
-# Purpose:     
+# Purpose:
 #
 # Author:      Riaan Booysen
 #
@@ -12,22 +12,22 @@
 
 print 'importing Models.wxPythonEditorModels'
 
-import re, string
+import re, string, os
 
 from wxPython import wx
 
 import Preferences, Utils
 
 import EditorHelper
-from PythonEditorModels import ClassModel, BaseAppModel
+from PythonEditorModels import ClassModel, BaseAppModel, ModuleModel
 from Companions import Companions
 
-from sourceconst import *
+import sourceconst
 
-true=1;false=0
+true,false=1,0
 
-(imgAppModel, imgFrameModel, imgDialogModel, imgMiniFrameModel, 
- imgMDIParentModel, imgMDIChildModel, imgPopupWindowModel, 
+(imgAppModel, imgFrameModel, imgDialogModel, imgMiniFrameModel,
+ imgMDIParentModel, imgMDIChildModel, imgPopupWindowModel,
  imgPopupTransientWindowModel,
 ) = EditorHelper.imgIdxRange(8)
 
@@ -45,7 +45,7 @@ class BaseFrameModel(ClassModel):
     def __init__(self, data, name, main, editor, saved, app = None):
         ClassModel.__init__(self, data, name, main, editor, saved, app)
         self.designerTool = None
-        self.specialAttrs = []
+        self.specialAttrs = {}
 
     def renameMain(self, oldName, newName):
         """ Rename the main class of the module """
@@ -62,18 +62,21 @@ class BaseFrameModel(ClassModel):
         """ Create a new frame module """
         paramLst = []
         for param in params.keys():
-            paramLst.append('%s = %s'%(param, params[param]))
+            paramLst.append(Preferences.cgKeywordArgFormat %{'keyword': param,
+                                                        'value': params[param]})
         paramStr = 'self, ' + string.join(paramLst, ', ')
 
-        self.data = (defSig + defImport + defCreateClass + defWindowIds + \
-          defClass) % (self.modelIdentifier, self.main, self.main,
-          Utils.windowIdentifier(self.main, ''), init_ctrls, 1, self.main,
-          self.defaultName, self.defaultName, paramStr)
+        self.data = (sourceconst.defSig + sourceconst.defImport + \
+                     sourceconst.defCreateClass + sourceconst.defWindowIds + \
+                     sourceconst.defClass) % (
+                       self.modelIdentifier, self.main, self.main,
+                       Utils.windowIdentifier(self.main, ''),
+                       sourceconst.init_ctrls, 1, self.main, self.defaultName,
+                       self.defaultName, paramStr)
 
         self.savedAs = false
         self.modified = true
         self.initModule()
-#        self.readComponents()
         self.notify()
 
     def identifyCollectionMethods(self):
@@ -176,21 +179,55 @@ class BaseFrameModel(ClassModel):
         will display as bold values and cannot be edited (yet).
         """
         initMeth = cls.methods['__init__']
+        # determine end of attrs and possible external attrs init
         startline = initMeth.start
+        extAttrInitLine = -1
+        extAttrInitName = ''
         for idx in range(startline, initMeth.end):
-            if Utils.startswith(string.strip(mod.source[idx]), 'self._init_ctrls('):
+            line = string.strip(mod.source[idx])
+            if Utils.startswith(line, 'self._init_ctrls('):
                 endline = idx
                 break
+            elif string.find(line, '_AttrMixin.__init__(self') != -1:
+                extAttrInitLine = idx
+                extAttrInitName = string.split(line, '.__init__')[0]
         else:
             raise 'self._init_ctrls not found in __init__'
 
+        # build list of attrs
         attrs = []
-        for attr, blocks in cls.attributes.items():
-            for block in blocks:
-                if startline <= block.start <= endline and attr not in attrs:
-                    line = mod.source[block.start-1]
-                    val = line[string.find(line, '=')+1:]
-                    attrs.append( (attr, val) )
+
+        def readAttrsFromSrc(attrs, attributes, source, startline, endline):
+            for attr, blocks in attributes.items():
+                for block in blocks:
+                    if startline <= block.start <= endline and attr not in attrs:
+                        line = source[block.start-1]
+                        val = string.strip(line[string.find(line, '=')+1:])
+                        attrs.append( (attr, val) )
+
+        if extAttrInitName:
+            if not mod.from_imports_names.has_key(extAttrInitName):
+                raise '%s.__init__ called, but not imported in the form: '\
+                      'from [ModuleName] import %s'%(extAttrInitName, extAttrInitName)
+            # try to load external attrs
+            extModName = mod.from_imports_names[extAttrInitName]
+            extModFilename = os.path.join(os.path.dirname(self.filename),
+                                          extModName+'.py')
+            from Explorers.Explorer import openEx
+            try:
+                data = openEx(extModFilename).load()
+            except Exception, error:
+                raise 'Problem loading %s: File expected at: %s'%(extModName,
+                                                                 extModFilename)
+            exModModel = ModuleModel(data, extModFilename, self.editor, 1)
+            extModule = exModModel.getModule()
+            extClass = extModule.classes[extAttrInitName]
+            extMeth = extClass.methods['__init__']
+
+            readAttrsFromSrc(attrs, extClass.attributes, extModule.source,
+                  extMeth.start, extMeth.end)
+
+        readAttrsFromSrc(attrs, cls.attributes, mod.source, startline, endline)
 
         import PaletteMapping
         # build a dictionary that can be passed to eval
@@ -277,9 +314,10 @@ class BaseFrameModel(ClassModel):
                         self.objectCollections[oc].properties.remove(prop)
 
             # Set the model's constructor
-            if self.objectCollections.has_key(init_ctrls):
+            if self.objectCollections.has_key(sourceconst.init_ctrls):
                 try:
-                    self.mainConstr = self.objectCollections[init_ctrls].creators[0]
+                    self.mainConstr = \
+                      self.objectCollections[sourceconst.init_ctrls].creators[0]
                 except IndexError:
                     raise 'Inherited __init__ method missing'
 
@@ -287,7 +325,7 @@ class BaseFrameModel(ClassModel):
         """ Remove a method's corresponding window ids from the source code """
         # find windowids in source
         winIdIdx = -1
-        reWinIds = re.compile(srchWindowIds % colMeth)
+        reWinIds = re.compile(sourceconst.srchWindowIds % colMeth)
         module = self.getModule()
         for idx in range(len(module.source)):
             match = reWinIds.match(module.source[idx])
@@ -304,7 +342,7 @@ class BaseFrameModel(ClassModel):
 
         # find windowids in source
         winIdIdx = -1
-        reWinIds = re.compile(srchWindowIds % colMeth)
+        reWinIds = re.compile(sourceconst.srchWindowIds % colMeth)
         module = self.getModule()
         for idx in range(len(module.source)):
             match = reWinIds.match(module.source[idx])
@@ -325,22 +363,22 @@ class BaseFrameModel(ClassModel):
                 # No window id definitions could be found add one above class def
                 insPt = module.classes[self.main].block.start - 1
                 module.source[insPt:insPt] = \
-                  [string.strip(defWindowIds % (string.join(lst, ', '), colMeth,
-                  len(lst))), '']
+                  [string.strip(sourceconst.defWindowIds % (
+                  string.join(lst, ', '), colMeth, len(lst))), '']
                 module.renumber(2, insPt)
         else:
             # Update window ids
             module.source[idx] = \
-              string.strip(defWindowIds % (string.join(lst, ', '), colMeth, len(lst)))
+              string.strip(sourceconst.defWindowIds % (string.join(lst, ', '),
+              colMeth, len(lst)))
 
     def update(self):
         ClassModel.update(self)
-#        self.readComponents()
 
     def getSimpleRunnerSrc(self):
         """ Return template of source code that will run this module type as
         a stand-alone file """
-        return simpleAppFrameRunSrc
+        return sourceconst.simpleAppFrameRunSrc
 
 class FrameModel(BaseFrameModel):
     modelIdentifier = 'Frame'
@@ -357,7 +395,7 @@ class DialogModel(BaseFrameModel):
     companion = Companions.DialogDTC
 
     def getSimpleRunnerSrc(self):
-        return simpleAppDialogRunSrc
+        return sourceconst.simpleAppDialogRunSrc
 
 class MiniFrameModel(BaseFrameModel):
     modelIdentifier = 'MiniFrame'
@@ -388,7 +426,7 @@ class PopupWindowModel(BaseFrameModel):
     companion = Companions.PopupWindowDTC
 
     def getSimpleRunnerSrc(self):
-        return simpleAppPopupRunSrc
+        return sourceconst.simpleAppPopupRunSrc
 
 class PopupTransientWindowModel(BaseFrameModel):
     modelIdentifier = 'PopupTransientWindow'
@@ -398,7 +436,7 @@ class PopupTransientWindowModel(BaseFrameModel):
     companion = Companions.PopupWindowDTC
 
     def getSimpleRunnerSrc(self):
-        return simpleAppPopupRunSrc
+        return sourceconst.simpleAppPopupRunSrc
 
 class AppModel(BaseAppModel):
     modelIdentifier = 'App'
@@ -412,9 +450,10 @@ class AppModel(BaseAppModel):
           ['    application = %s(0)'%newName, '    application.MainLoop()', ''])
 
     def new(self, mainModule):
-        self.data = (defEnvPython + defSig + defImport + defApp) \
-          %(self.modelIdentifier, boaClass, mainModule, mainModule,
-            mainModule, mainModule)
+        self.data = (sourceconst.defEnvPython + sourceconst.defSig + \
+              sourceconst.defImport + sourceconst.defApp)%(
+                self.modelIdentifier, sourceconst.boaClass, mainModule,
+                mainModule, mainModule, mainModule)
         self.saved = false
         self.modified = true
         self.update()
@@ -431,4 +470,3 @@ EditorHelper.modelReg.update({AppModel.modelIdentifier: AppModel,
             PopupWindowModel.modelIdentifier: PopupWindowModel,
             PopupTransientWindowModel.modelIdentifier: PopupTransientWindowModel,
             })
-
