@@ -28,6 +28,9 @@ class BaseFrameDTC(ContainerDTC):
         		     'MenuBar': MenuBarClassLinkPropEdit,
         		     'ToolBar': ToolBarClassLinkPropEdit })
         self.triggers.update({'ToolBar': self.ChangeToolBar})
+
+    def hideDesignTime(self):
+        return ContainerDTC.hideDesignTime(self) + ['Constraints']
         
     def generateWindowId(self):
         if self.designer: 
@@ -513,6 +516,7 @@ class StaticTextDTC(LabeledNonInputConstr, WindowDTC):
         	'name': `self.name`}
 
 EventCategories['TextCtrlEvent'] = (EVT_TEXT, EVT_TEXT_ENTER)
+commandCategories.append('TextCtrlEvent')
 class TextCtrlDTC(TextCtrlConstr, WindowDTC):
     wxDocs = HelpCompanions.wxTextCtrlDocs
     def designTimeSource(self, position, size = 'wxDefaultSize'):
