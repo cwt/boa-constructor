@@ -185,10 +185,10 @@ def parseMixedBody(parseClasses, lines):
     while idx < len(lines):
         line = string.strip(lines[idx])
         ln = cont + line
-        if (ln == 'pass') or (ln == ''): 
+        if (ln == 'pass') or (ln == ''):
             idx = idx + 1
             continue
-        
+
         for ParseClass in parseClasses:
             # build up the string if lines continue
             try:
@@ -284,7 +284,7 @@ class PerLineParser:
         line = string.strip(line)
         if line and line[-1] == ',':
             raise IncompleteLineError
-        
+
 
 idc = '[A-Za-z_][A-Za-z0-9_]*'
 # self.name=class(params)
@@ -327,7 +327,7 @@ class ConstructorParse(PerLineParser):
                         self.class_name = ''
                         self.factory = (self.m.group('factory'), self.m.group('method'))
                         self.params = self.extractKVParams(self.m.group('params'))
-                    
+
 
     def renameCompName2(self, old_value, new_value):
         if self.params.has_key('parent') and \
@@ -343,7 +343,7 @@ class ConstructorParse(PerLineParser):
                   self.params['id'][:-len(old_value)]+string.upper(new_value)
         if self.factory and self.factory[0] == old_value:
             self.factory = (new_value, self.factory[1])
-            
+
 
     def prependFrameWinId(self, frame):
         idPrfx = self.getIdPrefix(frame)
@@ -562,7 +562,7 @@ class EventParse(PerLineParser):
             self.m = is_event.search(line)
             if self.m:
                 self.checkContinued(line)
-                
+
                 params = string.split(self.m.group('params'), ',')
                 name = string.strip(params[0])
                 if name != 'self':
@@ -631,14 +631,14 @@ def testRename():
     print ep2.asText()
 
 def test():
-  cp = parseMixedBody([ConstructorParse], [
-   "        wxFrame.__init__(self, style = wxDEFAULT_FRAME_STYLE, name = '', ",
-   "              parent = prnt, title = 'wxFrame2', id = wxID_WXFRAME2, ",
-   "              pos = (-1, -1), size = (-1, -1))  ",
-   "        self._init_utils()",
-  ])[0][ConstructorParse]
-  
-  print cp[0].params
+    cp = parseMixedBody([ConstructorParse], [
+     "        wxFrame.__init__(self, style = wxDEFAULT_FRAME_STYLE, name = '', ",
+     "              parent = prnt, title = 'wxFrame2', id = wxID_WXFRAME2, ",
+     "              pos = (-1, -1), size = (-1, -1))  ",
+     "        self._init_utils()",
+    ])[0][ConstructorParse]
+
+    print cp[0].params
 
 if __name__ == '__main__':
     test()

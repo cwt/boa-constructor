@@ -12,14 +12,14 @@
 
 """ The global preferences module shared by most Boa modules.
 
-This namespace is populated by *.rc.py files from the selected 
+This namespace is populated by *.rc.py files from the selected
 resource configuration.
 
-The resource config files are version checked and updated from the 
+The resource config files are version checked and updated from the
 resource config files in the Boa root (so that a CVS updated schema will
 override old settings in external resource config directories.
 
-Application, Plug-ins and Image paths are initialised and the global ImageStore 
+Application, Plug-ins and Image paths are initialised and the global ImageStore
 is configured.
 
 """
@@ -189,7 +189,7 @@ except: pass
 def cleanup():
     IS.cleanup()
     g = globals()
-    cleanWxClasses = (wxColourPtr, wxPointPtr, wxSizePtr, wxFontPtr, 
+    cleanWxClasses = (wxColourPtr, wxPointPtr, wxSizePtr, wxFontPtr,
                       wxPenPtr, wxBrushPtr, wxPen, wxBrush)
     for k, v in g.items():
         if hasattr(wx, k):
