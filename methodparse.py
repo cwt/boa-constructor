@@ -61,7 +61,9 @@ import re, string
 import Preferences, Utils
 from Companions import EventCollections
 
-true=1;false=0
+import sourceconst
+
+true,false=1,0
 
 containers = [('(', ')'), ('{', '}'), ('[', ']')]
 containBegin = map(lambda d: d[0], containers)
@@ -166,9 +168,6 @@ def matchbracket(text, findBracket, dir=None):
 
         if levels[brktIdx] < 0:
             return cIdx
-##        for lev in levels:
-##            if lev < 0:
-##                return -1
     return -1
 
 def parseMixedBody(parseClasses, lines):
@@ -193,7 +192,8 @@ def parseMixedBody(parseClasses, lines):
                     cat[parseClass].append(res)
                     break
         else:
-            unmatched.append(line)
+            if string.strip(line) != '# %s'%sourceconst.code_gen_warning:
+                unmatched.append(line)
     return cat, unmatched
 
 
@@ -244,16 +244,13 @@ class PerLineParser:
     def extractKVParams(self, paramsStr):
         params = safesplitfields(paramsStr, ',')
         result = {}
-        #cnt = 0
         for param in params:
             try:
                 sidx = string.index(param, '=')
             except ValueError:
                 pass
-                #result[`cnt`] = string.strip(param)
             else:
                 result[string.strip(param[:sidx])] = string.strip(param[sidx+1:])
-            #cnt = cnt + 1
         return result
 
     def KVParamsAsText(self, params):
@@ -306,7 +303,6 @@ class ConstructorParse(PerLineParser):
 
     def prependFrameWinId(self, frame):
         idPrfx = self.getIdPrefix(frame)
-        #and self.params.has_key('parent')
         if self.params.has_key('id') and \
               self.params['id'] not in EventCollections.reservedWxNames:
             self.params['id'] = idPrfx + self.params['id']
@@ -355,7 +351,7 @@ class PropertyParse(PerLineParser):
                 elif len(compsetter) == 2:
                     self.comp_name = compsetter[0]
                     self.prop_setter = compsetter[1]
-                else: raise 'Too many sections'
+                else: raise 'Too many attribute levels'
 
     def renameCompName2(self, old_value, new_value):
         # XXX This is ugly but has to do until a better
@@ -371,7 +367,6 @@ class PropertyParse(PerLineParser):
 
         for idx in range(len(self.params)):
             segs = string.split(self.params[idx], oldCtrlSrcRef)
-            #lst = ()
             if len(segs) > 1:
                 lst = [segs[0]]
                 for s in segs[1:]:
@@ -394,9 +389,6 @@ class PropertyParse(PerLineParser):
     def asText(self, stripFrameWinIdPrefix=''):
         return '%s.%s(%s)' %(Utils.srcRefFromCtrlName(self.comp_name),
                 self.prop_setter, string.join(self.params, ', '))
-
-##def splitCollInitMeth(meth):
-##    meth[len(coll_init)+len(self.comp_name)+1:]
 
 def ctrlNameFromMeth(meth):
     return string.join(string.split(meth, '_')[3:-1], '_')
@@ -433,7 +425,6 @@ class CollectionInitParse(PerLineParser):
 # Because the object name of some collection items cannot be directly derived
 # from the source, the information is attached to the items
 def decorateParseItems(parseItems, ctrlName, frameName):
-    #print 'decorateCollItems %s %s'%(ctrlName, frameName)
     for parseItem in parseItems:
         parseItem.ctrl_name = ctrlName
         parseItem.frame_name = frameName
@@ -462,7 +453,6 @@ class CollectionItemInitParse(PerLineParser):
 
     def renameCompName2(self, old_value, new_value):
         # Regenerate window ids
-        #print 'CIIP.renameCompName2', self.ctrl_name, old_value, new_value
         if self.ctrl_name == old_value:
             self.ctrl_name = new_value
             if self.params.has_key('id'):
