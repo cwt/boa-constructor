@@ -6,7 +6,7 @@
 #
 # Created:     1999
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999 - 2003 Riaan Booysen
+# Copyright:   (c) 1999 - 2004 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
 print 'importing Views'
@@ -22,7 +22,7 @@ from Preferences import IS, staticInfoPrefs, keyDefs
 import Search
 from Models import EditorHelper
 
-# XXX Python spesific views should probably move out to PythonViews
+# XXX Python specific views should probably move out to PythonViews
 
 wxwHeaderTemplate ='''<html> <head>
    <title>%(Title)s</title>
