@@ -86,6 +86,10 @@ def main():
     sys.stdout.write('%010d %s%s' % (port, auth_str, os.linesep))
     sys.stdout.flush()
 
+    # Provide a hard breakpoint hook.  Use it like this:
+    # if hasattr(sys, 'breakpoint'): sys.breakpoint()
+    sys.breakpoint = debug_server.set_trace
+
     def serve_forever(server):
         while 1:
             server.handle_request()
@@ -99,13 +103,14 @@ def main():
     startDaemon(streamFlushThread)
     startDaemon(debug_server.servicerThread)
 
+
     # Serve until the stdin pipe closes.
     #print 'serving until stdin returns EOF'
     #sys.stdin.read()
 
     global serving; serving = 1
     while serving: 
-        time.sleep(0.01)
+        time.sleep(0.1)
 
     sys.exit(0)
 
