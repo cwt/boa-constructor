@@ -8,7 +8,7 @@ from Views import EditorViews, AppViews, SourceViews, PySourceView, OGLViews, Da
 from Explorers import CVSExplorer, ExplorerNodes
 import Preferences, Utils
 import methodparse, sourceconst
-from PrefsKeys import keyDefs
+from Preferences import keyDefs
 from ModRunner import ProcessModuleRunner
 import ErrorStack
 
@@ -126,9 +126,10 @@ class PersistentController(EditorController):
             wxLogError(str(error))
 
     def OnReload(self, event):
-        if modulePage:
+        model = self.getModel()
+        if model:
             try:
-                self.getModel().load()
+                model.load()
             except ExplorerNodes.TransportLoadError, error:
                 wxLogError(str(error))
         
@@ -158,6 +159,7 @@ class ModuleController(PersistentController):
         EVT_MENU(self.editor, EditorHelper.wxID_MODULEDEBUGSTEPIN, self.OnDebugStepIn)
         EVT_MENU(self.editor, EditorHelper.wxID_MODULEDEBUGSTEPOVER, self.OnDebugStepOver)
         EVT_MENU(self.editor, EditorHelper.wxID_MODULEDEBUGSTEPOUT, self.OnDebugStepOut)
+        EVT_MENU(self.editor, EditorHelper.wxID_EDITORATTACHTODEBUGGER, self.OnAttachToDebugger)
         EVT_MENU(self.editor, EditorHelper.wxID_EDITORSWITCHAPP, self.OnSwitchApp)
         EVT_MENU(self.editor, EditorHelper.wxID_EDITORDIFF, self.OnDiffModules)
         EVT_MENU(self.editor, EditorHelper.wxID_EDITORPYCHECK, self.OnRunPyChecker)
@@ -183,6 +185,8 @@ class ModuleController(PersistentController):
         self.addMenu(menu, EditorHelper.wxID_MODULERUNPARAMS, 'Run module with parameters', accls, ())
         self.addMenu(menu, EditorHelper.wxID_MODULEDEBUG, 'Debug module', accls, (keyDefs['Debug']))
         self.addMenu(menu, EditorHelper.wxID_MODULEDEBUGPARAMS, 'Debug module with parameters', accls, ())
+        if Preferences.useDebugger == 'new':
+            self.addMenu(menu, EditorHelper.wxID_EDITORATTACHTODEBUGGER, 'Attach to debugger', accls, ())
         self.addMenu(menu, EditorHelper.wxID_MODULEDEBUGSTEPIN, 'Step in', accls, (keyDefs['DebugStep']))
         self.addMenu(menu, EditorHelper.wxID_MODULEDEBUGSTEPOVER, 'Step over', accls, (keyDefs['DebugOver']))
         self.addMenu(menu, EditorHelper.wxID_MODULEDEBUGSTEPOUT, 'Step out', accls, (keyDefs['DebugOut']))
@@ -278,11 +282,20 @@ class ModuleController(PersistentController):
 
     def OnDebug(self, event):
         model = self.getModel()
-        if not model.savedAs or model.modified or \
-          len(model.viewsModified):
-            wxMessageBox('Cannot debug an unsaved or modified module.')
-            return
-        model.debug()
+        if Preferences.useDebugger == 'new':
+            model.debug(cont_if_running=1, cont_always=0, temp_breakpoint=None)
+        elif Preferences.useDebugger == 'old':
+            if not model.savedAs or model.modified or \
+              len(model.viewsModified):
+                wxMessageBox('Cannot debug an unsaved or modified module.')
+                return
+            model.debug()
+            
+            if not self.model.savedAs or self.model.modified or \
+              len(self.model.viewsModified):
+                wxMessageBox('Cannot debug an unsaved or modified module.')
+                return
+        
 
     def OnDebugParams(self, event):
         model = self.getModel()
@@ -398,6 +411,11 @@ class ModuleController(PersistentController):
         model = self.getModel()
         if model:
             model.reindent()
+
+    def OnAttachToDebugger(self, event):
+        # Attach dialog code here
+        from Debugger.RemoteDialog import create
+        create(self.editor).ShowModal()
 
 
 
@@ -720,7 +738,7 @@ class TextController(PersistentController):
 class ConfigFileController(TextController):
     def __init__(self, editor):
         TextController.__init__(self, editor)
-        self.Model = EditorModels.TextModel
+        self.Model = EditorModels.ConfigFileModel
 
 class CPPController(PersistentController):
     def __init__(self, editor):
@@ -842,4 +860,4 @@ PaletteStore.newControllers.update({'wxApp': AppController,
 
 if Utils.IsComEnabled():
     PaletteStore.newControllers['MakePy Dialog'] = MakePyController
-           
+            
