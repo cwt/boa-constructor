@@ -37,8 +37,7 @@ class ClassBrowserFrame(wxFrame):
         EVT_CLOSE(self, self.OnCloseWindow)
 
         if wxPlatform == '__WXMSW__':
-            self.icon = wxIcon(Preferences.toPyPath('Images/Icons/ClassBrowser.ico'), wxBITMAP_TYPE_ICO)
-            self.SetIcon(self.icon)
+            self.SetIcon(IS.load('Images/Icons/ClassBrowser.ico'))
 
         self.classes = pyclbr.readmodule('wxPython.wx')
 
@@ -49,7 +48,7 @@ class ClassBrowserFrame(wxFrame):
         self.hierarchy = wxTreeCtrl(self.pages, tID)
         self.pages.AddPage(self.hierarchy, 'Hierarchy')
         wxYield() 
-        root = self.hierarchy.AddRoot("wxObject")
+        root = self.hierarchy.AddRoot('wxObject')
 
         clsDict = {}
 
@@ -65,7 +64,7 @@ class ClassBrowserFrame(wxFrame):
         self.pages.AddPage(self.tree, 'Modules')
         wxYield() 
         
-        root = self.tree.AddRoot("Modules")
+        root = self.tree.AddRoot('Modules')
         modules = {}
         moduleName = ''
         for className in self.classes.keys():
@@ -148,4 +147,3 @@ def buildTree(tree, parent, dict):
         child = tree.AppendItem(parent, item)
         if len(dict[item].keys()):
             buildTree(tree, child, dict[item])
-   
