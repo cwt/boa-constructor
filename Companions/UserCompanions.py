@@ -88,5 +88,5 @@ class DateTimePropEditor(PropertyEditors.BITPropEditor):
     def valueToIECValue(self):
         return self.valueAsExpr()
 
-PropertyEditors.registeredTypes.append( ('Class', wxDateTimePtr, 
+PropertyEditors.registeredTypes.append( ('Class', wxDateTimePtr,
                                          [DateTimePropEditor]) )

@@ -22,7 +22,7 @@ import os, copy
 import PaletteStore
 
 PaletteStore.paletteLists['Utilities'] = []
-PaletteStore.palette.append(['Utilities', 'Editor/Tabs/Utilities', 
+PaletteStore.palette.append(['Utilities', 'Editor/Tabs/Utilities',
                              PaletteStore.paletteLists['Utilities']])
 
 class ImageListDTC(ImageListConstr, UtilityDTC):
@@ -557,12 +557,12 @@ class wxComModule:
         self._LCID = LCID
         self._Major = Major
         self._Minor = Minor
-        
+
     def GetGUID(self):
         return self._GUID
     def SetGUID(self, GUID):
         self._GUID = GUID
-    
+
     def GetLCID(self):
         return self._LCID
     def SetLCID(self, LCID):
@@ -577,18 +577,18 @@ class wxComModule:
         return self._Minor
     def SetMinor(self, Minor):
         self._Minor = Minor
-    
+
     def GetComModule(self):
         if self._ComModule:
             return self._ComModule
 
     def EnsureModule(self):
         self._ComModule = win32com.client.gencache.EnsureModule(self._GUID, self._LCID, self._Major, self._Minor)
-    
-    
+
+
 class ComModuleDTC(EmptyConstr, UtilityDTC):
     pass
-    
+
 PaletteStore.paletteLists['Utilities'].extend([wxMenuBar, wxMenu, wxImageList])
 
 PaletteStore.compInfo.update({wxMenuBar: ['wxMenuBar', MenuBarDTC],

@@ -152,7 +152,7 @@ finally:
 
 '''
 
-PaletteStore.paletteLists['Dialogs'].extend([wxColourDialog, wxFontDialog, 
+PaletteStore.paletteLists['Dialogs'].extend([wxColourDialog, wxFontDialog,
       wxFileDialog, wxDirDialog, wxPrintDialog, wxPageSetupDialog,
       wxSingleChoiceDialog, wxTextEntryDialog, wxMessageDialog])
 
