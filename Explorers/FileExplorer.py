@@ -1,12 +1,12 @@
 #-----------------------------------------------------------------------------
 # Name:        FileExplorer.py
-# Purpose:
+# Purpose:     Classes for filesystem exploring
 #
 # Author:      Riaan Booysen
 #
 # Created:     2001/03/06
 # RCS-ID:      $Id$
-# Copyright:   (c) 2001
+# Copyright:   (c) 2001 Riaan Booysen
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 import string, os, time, stat
@@ -20,15 +20,31 @@ import EditorModels, EditorHelper, Utils, Preferences
 
 class FileSysCatNode(ExplorerNodes.CategoryNode):
 #    protocol = 'config.file'
+    itemProtocol = 'file'
     defName = Preferences.explorerFileSysRootDefault[0]
     defaultStruct = Preferences.explorerFileSysRootDefault[1]
     def __init__(self, clipboard, config, parent, bookmarks):
         ExplorerNodes.CategoryNode.__init__(self, 'Filesystem', ('explorer', 'filesystem'),
               clipboard, config, parent)
         self.bookmarks = bookmarks
+        
+        if not self.entries and wxPlatform == '__WXMSW__':
+            if wxMessageBox('No drives defined, attempt autodetect?', 
+                  'Detect Drives', style=wxYES_NO | wxICON_QUESTION) == wxYES:
+                drives = {'A:\\':'A:\\'} 
+                for x in range(66, 90): 
+                    driveName = '%s:\\'%(chr(x)) 
+                    if os.path.exists(driveName): 
+                        drives[driveName] = driveName
+                
+                self.entries = drives
+                self.updateConfig()
+                wxMessageBox('%d drives added to the filesystem definition\n'\
+                  'This test only occurs when there are no drives defined.'%len(drives), 
+                  'Added', style=wxICON_INFORMATION)
 
     def createParentNode(self):
-        return self
+        return self.parent
 
     def createCatCompanion(self, catNode):
         comp = ExplorerNodes.CategoryStringCompanion(catNode.treename, self)
@@ -51,11 +67,15 @@ class FileSysCatNode(ExplorerNodes.CategoryNode):
         del self.entries[name]
         self.updateConfig()
 
+    def getNodeFromPath(self, respath):
+        cn = self.createChildNode(os.path.basename(respath), respath)
+        return cn
+
 
 (wxID_FSOPEN, wxID_FSTEST, wxID_FSNEW, wxID_FSNEWFOLDER, wxID_FSCVS,
  wxID_FSBOOKMARK, wxID_FSFILTERBOAMODULES, wxID_FSFILTERALLMODULES,
  wxID_FSFILTER, wxID_FSFILTERINTMODULES, wxID_FSFINDINFILES, wxID_FSFINDFILES,
-) = map(lambda x: wxNewId(), range(12))
+) = Utils.wxNewIds(12)
 
 class FileSysController(ExplorerNodes.Controller, ExplorerNodes.ClipboardControllerMix):
     bookmarkBmp = 'Images/Shared/Bookmark.bmp'
@@ -69,14 +89,18 @@ class FileSysController(ExplorerNodes.Controller, ExplorerNodes.ClipboardControl
         self.cvsController = cvsController
         self.menu = wxMenu()
 
-#              (wxID_FSTEST, 'Test', self.OnTest),
         self.fileMenuDef = (
               (wxID_FSOPEN, 'Open', self.OnOpenItems, '-'),
               (-1, '-', None, '') ) +\
               self.clipMenuDef +\
             ( (-1, '-', None, ''),
               (wxID_FSFINDINFILES, 'Find', self.OnFindFSItem, self.findBmp),
-              (wxID_FSBOOKMARK, 'Bookmark', self.OnBookmarkFSItem, self.bookmarkBmp),
+##              (wxID_FSBOOKMARK, 'Bookmark a folder', self.OnBookmarkFSItem, self.bookmarkBmp),
+##              (wxID_FSFILTER, 'Filter', (
+##                (wxID_FSFILTERBOAMODULES, '+Boa files', self.OnFilterFSItemBoa, '-'),
+##                (wxID_FSFILTERINTMODULES, '+Internal files', self.OnFilterFSItemInt, '-'),
+##                (wxID_FSFILTERALLMODULES, '+All files', self.OnFilterFSItemAll, '-'),), '-'),
+              
         )
         self.setupMenu(self.menu, self.list, self.fileMenuDef)
 
@@ -93,21 +117,10 @@ class FileSysController(ExplorerNodes.Controller, ExplorerNodes.ClipboardControl
 
         self.menu.AppendMenu(wxID_FSFILTER, 'Filter', self.fileFilterMenu)
 
-        self.newMenu = wxMenu()
-        self.setupMenu(self.newMenu, self.list, (
-              (wxID_FSNEWFOLDER, 'Folder', self.OnNewFolderFSItems, '-'),
-        ))
-        self.menu.AppendMenu(wxID_FSNEW, 'New', self.newMenu)
-
         if cvsController:
             self.menu.AppendMenu(wxID_FSCVS, 'CVS', cvsController.fileCVSMenu)
 
         self.toolbarMenus = [self.fileMenuDef]
-
-    def __del__(self):
-        pass
-#        self.newMenu.Destroy()
-##        self.fileFilterMenu.Destroy()
 
     def destroy(self):
         ExplorerNodes.ClipboardControllerMix.destroy(self)
@@ -115,32 +128,6 @@ class FileSysController(ExplorerNodes.Controller, ExplorerNodes.ClipboardControl
         self.fileMenuDef = ()
         self.toolbarMenus = ()
         self.menu.Destroy()
-#
-
-##    def OnOpenFSItems(self, event):
-##        if self.list.node:
-##            nodes = self.getNodesForSelection(self.list.getMultiSelection())
-##            for node in nodes:
-##                if not node.isFolderish():
-##                    node.open(self.editor)
-
-    def OnNewFolderFSItems(self, event):
-        if self.list.node:
-            name = self.list.node.newFolder()
-            self.list.refreshCurrent()
-            self.list.selectItemNamed(name)
-            self.list.EditLabel(self.list.selected)
-
-    def OnBookmarkFSItem(self, event):
-        if self.list.node:
-            nodes = self.getNodesForSelection(self.list.getMultiSelection())
-            for node in nodes:
-                if node.isFolderish():
-                    node.bookmarks.add(node.resourcepath)
-                    self.editor.statusBar.setHint('Bookmarked %s'% node.resourcepath, 'Info')
-                else:
-                    self.editor.statusBar.setHint('Not a directory: %s'% node.resourcepath, 'Error')
-                    
 
     def OnTest(self, event):
         print self.list.node.clipboard.globClip.currentClipboard
@@ -174,7 +161,6 @@ class FileSysController(ExplorerNodes.Controller, ExplorerNodes.ClipboardControl
                       progressMsg = 'Search files...', joiner = os.sep)
                 nd = self.list.node
                 self.list.node = ResultsFolderNode('Results', nd.resourcepath, nd.clipboard, -1, nd, nd.bookmarks)
-                #self.list.node.results = map(lambda r: r[1], res)
                 self.list.node.results = res
                 self.list.node.lastSearch = dlg.GetValue()
                 self.list.refreshCurrent()
@@ -203,9 +189,6 @@ class FileSysExpClipboard(ExplorerNodes.ExplorerClipboard):
         for zopeNode in nodes:
             zopeNode.downloadToFS(os.path.join(node.resourcepath, zopeNode.name))
 
-##            file.zopeConn.download(file.resourcepath+'/'+file.name,
-##                  os.path.join(node.resourcepath, file.name))
-
     def clipPaste_FTPExpClipboard(self, node, nodes, mode):
         # XXX Pasting a cut from FTP does not delete the cut items from FTP
         for file in nodes:
@@ -221,6 +204,8 @@ class PyFileNode(ExplorerNodes.ExplorerNode):
     filter = 'BoaFiles'
     lastSearch = ''
     subExplorerReg = {'file': [], 'folder': []}
+    connection = false
+    pathSep = os.sep
     def __init__(self, name, resourcepath, clipboard, imgIdx, parent, 
           bookmarks = None, properties = {}):
         ExplorerNodes.ExplorerNode.__init__(self, name, resourcepath, clipboard,
@@ -231,7 +216,8 @@ class PyFileNode(ExplorerNodes.ExplorerNode):
 
         self.doCVS = true
         self.doZip = true
-        self.allowedProtocols = ['*']        
+        self.allowedProtocols = ['*']
+        self.updateStdAttrs()
 
     def destroy(self):
         self.entries = []
@@ -297,15 +283,6 @@ class PyFileNode(ExplorerNodes.ExplorerNode):
         self.entries = entries['fol'] + entries['mod']
         return self.entries
     
-    def open(self, editor):
-        apps = editor.getAppModules()
-        for app in apps:
-            mods = app.absModulesPaths()
-            if self.resourcepath in mods:
-                return editor.openOrGotoModule(self.resourcepath, app, self)
-
-        return editor.openOrGotoModule(self.resourcepath, transport = self)
-
     def deleteItems(self, names):
         for name in names:
             path = os.path.join(self.resourcepath, name)
@@ -319,9 +296,14 @@ class PyFileNode(ExplorerNodes.ExplorerNode):
         newfile = os.path.join(self.resourcepath, newName)
         os.rename(oldfile, newfile)
 
-    def newFolder(self):
-        name = Utils.getValidName(map(lambda n: n.name, self.entries), 'Folder')
+    def newFolder(self, name):
         os.mkdir(os.path.join(self.resourcepath, name))
+        return name
+
+    def newBlankDocument(self, name=''):
+        newpath = os.path.join(self.resourcepath, name)
+        if not os.path.exists(newpath):
+            open(newpath, 'w').write(' ')
         return name
 
     def copyFileFrom(self, node):
@@ -383,7 +365,6 @@ class PyFileNode(ExplorerNodes.ExplorerNode):
             raise ExplorerNodes.TransportLoadError(error, self.resourcepath)
 
     def save(self, filename, data, mode='wb'):
-        # XXX Maybe IOError should be translated to ExplorerSaveError or something
         if self.resourcepath != filename:
             self.resourcepath = filename
             self.name = os.path.basename(self.resourcepath)
@@ -391,17 +372,17 @@ class PyFileNode(ExplorerNodes.ExplorerNode):
             open(self.resourcepath, mode).write(data)
         except IOError, error:
             raise ExplorerNodes.TransportSaveError(error, self.resourcepath)
+        self.updateStdAttrs()
 
-##        try:
-##            f = open(self.resourcepath, mode)
-##        except IOError, message:
-##            dlg = wx.wxMessageDialog(None, 'Could not save\n'+message.strerror,
-##                                  'Error', wx.wxOK | wx.wxICON_ERROR)
-##            try: dlg.ShowModal()
-##            finally: dlg.Destroy()
-##        else:
-##            f.write(data)
-##            f.close()
+    def getNodeFromPath(self, respath):
+        name = os.path.basename(respath)
+        return self.createChildNode(name, respath)
+
+    def updateStdAttrs(self):
+        self.stdAttrs['read-only'] = os.path.exists(self.resourcepath) and \
+              not os.access(self.resourcepath, os.W_OK)
+
+FileSysController.Node = PyFileNode
 
 def isPackage(filename):
     return os.path.exists(os.path.join(filename, EditorModels.PackageModel.pckgIdnt))    
@@ -433,18 +414,33 @@ class ResultsFolderNode(PyFileNode):
         return true
 
     def open(self, node, editor):
-        mod = node.open(editor)
+        mod, cntrl = node.open(editor)
         if mod.views.has_key('Source'):
             mod.views['Source'].doFind(self.lastSearch)
             mod.views['Source'].doNextMatch()
-        return mod
+        return mod, cntrl
 
     def getTitle(self):
         return 'Find results for %s in %s' % (self.lastSearch, self.resourcepath)
 
-
-
 class NonCheckPyFolderNode(PyFileNode):
     def isFolderish(self):
         return true
- 
+
+class CurWorkDirNode(PyFileNode):
+    def __init__(self, clipboard, parent, bookmarks):
+        self.cwd = os.path.abspath(os.getcwd())
+        PyFileNode.__init__(self, 'os.cwd', self.cwd, clipboard,
+              EditorHelper.imgPathFolder, parent)
+        self.bookmarks = bookmarks
+        self.bold = true
+        #self.setFilter('AllFiles')
+
+    def openList(self):
+        self.cwd = os.path.abspath(os.getcwd())
+        return PyFileNode.openList(self)
+
+    def getTitle(self):
+        return 'os.cwd://%s'%self.cwd
+    def getURI(self):
+        return self.getTitle()
