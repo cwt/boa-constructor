@@ -1418,6 +1418,16 @@ class AppModel(ClassModel):
                     self.refreshFromModule()
 
             self.writeModules()
+    
+    def crashLog(self):
+        err = ErrorStack.crashError(os.path.splitext(self.filename)[0]+'.trace')
+        if err:
+            import ErrorStackFrm
+            esf = ErrorStackFrm.ErrorStackMF(self.editor, self.app, self.editor)
+            esf.initTree(err)
+            esf.Show(true)
+        else:
+            wx.wxLogError('Trace file not found. Run with command line param -T')
             
                 
             
