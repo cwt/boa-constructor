@@ -556,15 +556,16 @@ class DebugStatusBar(wxStatusBar):
 def simplifyPathList(data,
                      SequenceTypes=(type(()), type([])),
                      ExcludeTypes=(type(None),) ):
+    # Takes a possibly nested structure and turns it into a flat tuple.
     if type(data) in SequenceTypes:
         newdata = []
         for d in data:
             nd = simplifyPathList(d)
-            if nd is not None:
+            if nd:
                 newdata.extend(nd)
         return newdata
     elif type(data) in ExcludeTypes:
-        return None
+        return ()
     else:
         return list(string.split(str(data), os.pathsep))
 
@@ -840,14 +841,18 @@ class DebuggerFrame(wxFrame):
         self.debug_client.stop()
 
     def OnStreamTimer(self, event=None, force_timer=0):
+        self.updateOutputWindow()
+        if force_timer or self.nbTop.GetSelection() == 2:
+            # The user is looking at the output page.
+            self.stream_timer.Start(300, 1)  # One-shot mode.
+
+    def updateOutputWindow(self):
+        # TODO: Trim output before reaching 32K.
         stdout_text, stderr_text = self.debug_client.pollStreams()
         if stdout_text:
             self.outp.AppendText(stdout_text)
         if stderr_text:
             self.outp.AppendText(stderr_text)
-        if force_timer or self.nbTop.GetSelection() == 2:
-            # The user is looking at the output page.
-            self.stream_timer.Start(300, 1)  # One-shot mode.
         
     def OnUpperPageChange(self, event):
         sel = event.GetSelection()
@@ -873,17 +878,20 @@ class DebuggerFrame(wxFrame):
             'Debugger Communication Exception',
             wxYES_NO | wxYES_DEFAULT | wxICON_EXCLAMATION |
             wxCENTRE).ShowModal() == wxID_YES):
+            # TODO: make sure the debugger doesn't pop up another
+            # exception.
             self.stopDebugger()
             self.clearViews()
 
-    def runProcess(self):
+    def runProcess(self, autocont=0):
         self.running = 1
         self.sb.writeError('Running...', 0)
         brks = bplist.getBreakpointList()
-        add_paths = simplifyPathList((self.modpath, pyPath))
+        add_paths = simplifyPathList(pyPath)
+        filename = path.normcase(path.abspath(self.filename))
         self.invokeInDebugger(
             'runFileAndRequestStatus',
-            (self.filename, self.params or [], add_paths, brks),
+            (filename, self.params or [], autocont, add_paths, brks),
             'receiveDebuggerStatus')
 
         # InProcessClient TODO: setup the execution environment
@@ -927,17 +935,22 @@ class DebuggerFrame(wxFrame):
 ##            #sys.argv = tmpArgs
 ##            #os.chdir(cwd)
 
-    def proceedAndRequestStatus(self, command):
+    def proceedAndRequestStatus(self, command, temp_breakpoint=None):
         # Non-blocking.
         self.sb.writeError('Running...', 0)
-        self.invokeInDebugger('proceedAndRequestStatus', (command,),
+        if not temp_breakpoint:
+            temp_breakpoint = 0
+        self.invokeInDebugger('proceedAndRequestStatus',
+                              (command, temp_breakpoint),
                               'receiveDebuggerStatus')
 
     def deleteBreakpoints(self, filename, lineno):
+        filename = path.normcase(path.abspath(filename))
         self.invokeInDebugger('clearBreakpoints', (filename, lineno))
         self.breakpts.refreshList()
 
     def setBreakpoint(self, filename, lineno, tmp):
+        filename = path.normcase(path.abspath(filename))
         self.invokeInDebugger('addBreakpoint', (filename, lineno, tmp))
         self.breakpts.refreshList()
 
@@ -1013,7 +1026,9 @@ class DebuggerFrame(wxFrame):
         self.invalidatePanes()
         # Update the currently selected pane.
         self.updateSelectedPane()
-    
+        # Receive stream data even if the user isn't looking.
+        self.updateOutputWindow()
+
     def resolvePath(self, filename):
         # Try to find file in Main module directory,
         # Boa directory and Current directory
@@ -1051,9 +1066,14 @@ class DebuggerFrame(wxFrame):
     def isRunning(self):
         return self.running
 
-    def ensureRunning(self):
-        if not self.running:
-            self.runProcess()
+    def ensureRunning(self, cont_if_running=0, cont_always=0,
+                      temp_breakpoint=None):
+        if self.isRunning():
+            if cont_if_running or cont_always:
+                self.doDebugStep('set_continue', temp_breakpoint)
+        else:
+            # Assume temp. breakpoint is already in bplist.
+            self.runProcess(cont_always)
 
     def enableStepping(self):
         # FUTURE: enable the step buttons.
@@ -1063,7 +1083,7 @@ class DebuggerFrame(wxFrame):
         # FUTURE: disable the step buttons.
         self.stepping_enabled = 0
 
-    def doDebugStep(self, method=None):
+    def doDebugStep(self, method=None, temp_breakpoint=None):
         if self.stepping_enabled:
             self.disableStepping()
             self.invalidatePanes()
@@ -1071,15 +1091,10 @@ class DebuggerFrame(wxFrame):
             if not self.running:
                 self.runProcess()
             elif method:
-                self.proceedAndRequestStatus(method)
+                self.proceedAndRequestStatus(method, temp_breakpoint)
             return 1
         else:
             return 0
-
-    def setContinue(self):
-        if self.doDebugStep():
-            # Always continue.
-            self.proceedAndRequestStatus('set_continue')
 
     def OnDebug(self, event):
         # Continue only if not running.

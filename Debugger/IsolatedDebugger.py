@@ -2,11 +2,13 @@
 import sys, threading, Queue
 import pprint
 from os import chdir
-from os.path import normcase, abspath, dirname
+from os import path
 import bdb
-from bdb import Bdb, BdbQuit
+from bdb import Bdb, BdbQuit, Breakpoint
 from repr import Repr
 from Tasks import ThreadedTaskHandler
+##from CommonFilenames import convertToBasicName, isMixedCase, \
+##     convertToFilename
 
 try: from cStringIO import StringIO
 except: from StringIO import StringIO
@@ -76,11 +78,12 @@ class DebuggerConnection:
         '''
         self._callNoWait('run', 1, cmd, globals, locals)
 
-    def runFile(self, filename, params=(), add_paths=()):
+    def runFile(self, filename, params=(), autocont=0, add_paths=()):
         '''Starts debugging.  Stops the process at the
-        first source line.  Non-blocking.
+        first source line.  Use the autocont parameter to proceed immediately
+        rather than stop.  Non-blocking.
         '''
-        self._callNoWait('runFile', 1, filename, params, add_paths)
+        self._callNoWait('runFile', 1, filename, params, autocont, add_paths)
 
     def set_continue(self, full_speed=0):
         '''Proceeds until a breakpoint or program stop.
@@ -184,9 +187,11 @@ class DebuggerConnection:
         '''
         return self._callMethod('getInteractionUpdate', 0)
 
-    def proceedAndRequestStatus(self, command):
+    def proceedAndRequestStatus(self, command, temp_breakpoint=0):
         '''Executes one non-blocking command then returns
         getInteractionUpdate().  Blocking.'''
+        if temp_breakpoint:
+            self.addBreakpoint(temp_breakpoint[0], temp_breakpoint[1], 1)
         if command:
             allowed = ('set_continue', 'set_step', 'set_step_over',
                        'set_step_out', 'set_quit')
@@ -195,12 +200,12 @@ class DebuggerConnection:
             getattr(self, command)()
         return self.getInteractionUpdate()
 
-    def runFileAndRequestStatus(self, filename, params, add_paths,
-                                breaks):
+    def runFileAndRequestStatus(self, filename, params=(), autocont=0,
+                                add_paths=(), breaks=()):
         '''Calls setAllBreakpoints(), runFile(), and
         getInteractionUpdate().  Blocking.'''
         self.setAllBreakpoints(breaks)
-        self._callNoWait('runFile', 1, filename, params, add_paths)
+        self._callNoWait('runFile', 1, filename, params, autocont, add_paths)
         return self.getInteractionUpdate()
 
     def getSafeDict(self, locals, frameno):
@@ -390,10 +395,13 @@ class DebugServer (Bdb):
     exc_info = None
     max_string_len = 250
     ignore_stopline = -1
+    autocont = 0
     _enable_process_modification = 0
 
     def __init__(self):
         Bdb.__init__(self)
+        self.fncache = {}
+
         self.__queue = Queue.Queue(0)
         self.servicer_running = 0
 
@@ -431,8 +439,11 @@ class DebugServer (Bdb):
 
     def cleanupServer(self):
         self.reset()
+        self.ignore_stopline = -1
+        self.autocont = 0
         self.frame = None
         self.exc_info = None
+        self.fncache.clear()
 
     def topServerLoop(self, started=1):
         try:
@@ -470,6 +481,18 @@ class DebugServer (Bdb):
         if sm.doReturn():
             return 0
         return 1
+
+    # Bdb overrides.
+    def canonic(self, filename):
+        canonic = self.fncache.get(filename, None)
+        if not canonic:
+            if filename[:1] == '<' and filename[-1:] == '>':
+                canonic = filename
+            else:
+                # Should we deal with URL's here?
+                canonic = path.normcase(path.abspath(filename))
+            self.fncache[filename] = canonic
+        return canonic
 
     def stop_here(self, frame):
         # Redefine stopping.
@@ -522,7 +545,7 @@ class DebugServer (Bdb):
     # A literal copy of Bdb.set_break() without the print statement
     # at the end, returning the Breakpoint object.
     def set_break(self, filename, lineno, temporary=0, cond=None):
-        orig_filename = filename
+        #orig_filename = filename
         filename = self.canonic(filename)
         import linecache # Import as late as possible
         line = linecache.getline(filename, lineno)
@@ -531,7 +554,7 @@ class DebugServer (Bdb):
         self.set_internal_breakpoint(filename, lineno, temporary, cond)
         bp = bdb.Breakpoint(filename, lineno, temporary, cond)
         # Save the original filename for passing back the stats.
-        bp.orig_filename = orig_filename
+        #bp.orig_filename = orig_filename
         return bp
 
     # An oversight in bdb?
@@ -560,6 +583,10 @@ class DebugServer (Bdb):
     # redone.
     def user_line(self, frame):
         # This method is called when we stop or break at a line
+        if self.autocont:
+            self.autocont = 0
+            self.set_continue()
+            return
         self.ignore_stopline = -1
         self.frame = frame
         self.exc_info = None
@@ -588,19 +615,24 @@ class DebugServer (Bdb):
         self.stopframe = None
         self.returnframe = None
 
-    def runFile(self, filename, params, add_paths):
+    def runFile(self, filename, params, autocont, add_paths):
         d = {'__name__': '__main__',
              '__doc__': 'Debugging',
              '__builtins__': __builtins__,}
         
+        fn = path.normcase(path.abspath(filename))
         if self._enable_process_modification:
-            sys.argv = [filename] + list(params)
+            bn = path.basename(fn)
+            dn = path.dirname(fn)
+            sys.argv = [bn] + list(params)
             if not add_paths:
                 add_paths = []
-            sys.path = list(add_paths) + list(_orig_syspath)
-            chdir(dirname(filename))
+            sys.path = [dn] + list(add_paths) + list(_orig_syspath)
+            chdir(dn)
+
+        self.autocont = autocont
         
-        self.run("execfile(fn, d)", {'fn':filename, 'd':d})
+        self.run("execfile(fn, d)", {'fn':fn, 'd':d})
 
     def run(self, cmd, globals=None, locals=None):
         try:
@@ -697,7 +729,7 @@ class DebugServer (Bdb):
                     # Python 2.x -> ustr()?
                     exc_type = "%s" % str(exc_type)
                 if exc_value is not None:
-                    exc_value = self.safeRepr(exc_value)
+                    exc_value = str(exc_value)
                 stack, frame_stack_len = self.get_stack(
                     exc_tb.tb_frame, exc_tb)
                 if 0:
@@ -737,7 +769,7 @@ class DebugServer (Bdb):
                 except:
                     modname = ''
                 code = frame.f_code
-                filename = code.co_filename
+                filename = self.canonic(code.co_filename)
                 co_name = code.co_name
                 stack_summary.append(
                     {'filename':filename, 'lineno':lineno,
@@ -758,7 +790,8 @@ class DebugServer (Bdb):
         rval = []
         for bps in bdb.Breakpoint.bplist.values():
             for bp in bps:
-                filename = getattr(bp, 'orig_filename', bp.file)
+                #filename = getattr(bp, 'orig_filename', bp.file)
+                filename = bp.file  # Already canonic
                 rval.append({'filename':filename,
                              'lineno':bp.line,
                              'cond':bp.cond or '',
