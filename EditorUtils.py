@@ -12,14 +12,14 @@ class MyToolBar(wxToolBar):
         self.toolLst = []
         self.toolCount = 0
 
-    def AddTool(self, id, bitmap, toggleBitmap = wxNullBitmap, shortHelpString = '', isToggle = false):
-        wxToolBar.AddTool(self, id, bitmap, toggleBitmap, isToggle = isToggle,
-            shortHelpString = shortHelpString)
+    def AddTool(self, id, bitmap, toggleBitmap=wxNullBitmap, shortHelpString='', isToggle=false):
+        wxToolBar.AddTool(self, id, bitmap, toggleBitmap, isToggle=isToggle,
+            shortHelpString=shortHelpString)
 
         self.toolLst.append(id)
         self.toolCount = self.toolCount + 1
 
-    def AddTool2(self, id, bitmapname, shortHelpString = '', toggleBitmap = wxNullBitmap, isToggle = false):
+    def AddTool2(self, id, bitmapname, shortHelpString='', toggleBitmap=wxNullBitmap, isToggle=false):
         self.AddTool(id, Preferences.IS.load(bitmapname), toggleBitmap, shortHelpString, isToggle)
 
     def AddSeparator(self):
@@ -69,7 +69,7 @@ class EditorStatusBar(wxStatusBar):
     """ Displays information about the current view. Also global stats/
         progress bar etc. """
     def __init__(self, *_args, **_kwargs):
-        wxStatusBar.__init__(self, _kwargs['parent'], _kwargs['id'], style = wxST_SIZEGRIP)
+        wxStatusBar.__init__(self, _kwargs['parent'], _kwargs['id'], style=wxST_SIZEGRIP)
         self.SetFieldsCount(4)
         if wxPlatform == '__WXGTK__':
             imgWidth = 21
@@ -89,10 +89,11 @@ class EditorStatusBar(wxStatusBar):
                        'Warning': Preferences.IS.load('Images/Shared/Warning.bmp'),
                        'Error': Preferences.IS.load('Images/Shared/Error.bmp')}
         
-    def setHint(self, hint, msgType = 'Info'):
+    def setHint(self, hint, msgType='Info', ringBell=false):
         self.SetStatusText(hint, 1)
         self.img.SetToolTipString(hint)
         self.img.SetBitmap(self.images[msgType])
+        if ringBell: wxBell()
 
     def OnEditorNotification(self, event):
         self.setHint(event.message)
@@ -118,27 +119,28 @@ class ModulePage:
         self.updatePageName()
 
         self.windowId = wxNewId()
-        self.editor.winMenu.Append(self.windowId, self.model.filename)
+        self.editor.winMenu.Append(self.windowId, self.model.filename,
+              'Switch to highlighted file')
         EVT_MENU(self.editor, self.windowId, self.editor.OnGotoModulePage)
 
         Class = model.__class__
-#        if not editor.defaultAdtViews.has_key(cls):
-#            cls = model.__class__.__bases__[0]
+##        if not editor.defaultAdtViews.has_key(cls):
+##            cls = model.__class__.__bases__[0]
 
-        tot = len(defViews) + len(editor.defaultAdtViews.get(Class, []))
+        tot = len(defViews) ##+ len(editor.defaultAdtViews.get(Class, []))
         if tot:
             stepsDone = 50.0
             editor.statusBar.progress.SetValue(int(stepsDone))
             step = (100 - stepsDone) / tot
             for View in defViews:
-                view = self.addView(View)
-                stepsDone = stepsDone + step
-                editor.statusBar.progress.SetValue(int(stepsDone))
-
-            for View in editor.defaultAdtViews.get(Class, []):
                 self.addView(View)
                 stepsDone = stepsDone + step
                 editor.statusBar.progress.SetValue(int(stepsDone))
+
+##            for View in editor.defaultAdtViews.get(Class, []):
+##                self.addView(View)
+##                stepsDone = stepsDone + step
+##                editor.statusBar.progress.SetValue(int(stepsDone))
 
         if defViews:
             self.default = defViews[0].viewName
@@ -188,13 +190,17 @@ class ModulePage:
 
         if self.model.modified: m = '*'
         else: m = ''
+        
+        if self.model.transport and self.model.transport.stdAttrs['read-only']:
+            ro = ' (read only)'
+        else: ro = ''
 
-        self.pageName = '%s%s%s%s%s%s%s' % (m, vm, sa1, pageName, sa2, vm, m)
+        self.pageName = '%s%s%s%s%s%s%s%s' % (m, vm, sa1, pageName, ro, sa2, vm, m)
 
         return self.pageName
 
 ### decl getActiveView(self, idx : int) -> EditorView
-    def getActiveView(self, idx = None):
+    def getActiveView(self, idx=None):
         if idx is None: idx = self.notebook.GetSelection()
         if idx == -1: return None
         name = self.notebook.GetPageText(idx)
@@ -231,7 +237,7 @@ class ModulePage:
         for view, wId in self.adtViews:
             self.viewMenu.Check(wId, view in viewClss)
 
-    def addView(self, view, viewName = ''):
+    def addView(self, view, viewName=''):
         """ Add a view to the model and display it as a page in the notebook
             of view instances."""
         if not viewName: viewName = view.viewName
@@ -277,7 +283,11 @@ class ModulePage:
             if self.saveAs(oldName) and (oldName != model.filename):
                 del editor.modules[oldName]
                 editor.modules[model.filename] = self
-
+                
+                item = editor.winMenu.FindItemById(self.windowId)
+                item.SetText(model.filename)
+                editor.editorUpdateNotify()
+                
                 editor.statusBar.setHint('%s saved.'%\
                       os.path.basename(model.filename))
         else:
