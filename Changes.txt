@@ -1,9 +1,66 @@
 Changes
 -------
 
--- 0.1.1- alpha (CVS) --
+-- 0.2.0 (Release) --
 
-02-02-02 - 02-03-31
+2003-01-13
+
+* Added Zope ExternalMethod for runtime hooking of the debugger.
+  No longer need to run z2.py from the IDE, see the Debugger page in the docs.
+* Changes to accommodate MacOS X, many, many problems remain, but Boa can now
+  at least start up on MacOS X! Thanks to Kevin Altis.
+* Added plug-in for using XRC files.
+* Many minor bug fixes
+
+-- 0.1.5 (CVS) --
+
+2003-01-03
+
+* Generated source can now be wrapped over multiple lines.
+  Lines are only broken up after commas, inside brackets,
+  but this works well enough.
+  3 new Preferences added to the General->Code generation
+  section. This feature is now on by default.
+* I've abandoned the strategy of renaming plug-ins to disable them. 
+  This was too unfriendly for things like CVS.
+  Also plug-ins can now be ordered.
+  Both these changes are implemented with a new file called
+  __init__.plug-in.py in your Plug-ins directory which defines the 
+  list of disabled and ordered plugin names.
+  Ordered plug-ins are executed first (in order!) 
+  Everything can be managed thru the GUI under
+  Preferences->Plug-ins->Plug-in files.
+* Improved Find/Replace dialog.
+  Now supports 'Find in files' and seaching in the Explorer.
+  Thanks to Roman Yakovenko for the patches!
+* Refactored Controller menu/toolbar definitions to use the
+  same format that View menu/toolbar definitions uses.
+  One visible result of this is that menu items can now display images.
+* Improved tab support. The frame designer can now properly generate 
+  tab indented code.
+  People who care about this, please test as I don't use this.  
+* Added ImageEditor.plug-in.py.
+  This is an image editor I hacked up ages ago.
+  (I needed masked PNG support!)
+  I just wrapped up the editor as a Boa View.
+  It's rough but it works ;)
+  (Hint: When editing images with masks, set the mask again before
+         saving, otherwise the previous mask is used)
+* Shortcut keys now work better on Linux (Ctrl-S works!!!).
+* Composite controls like wxGrid now work properly in the Designer 
+  on Linux.
+  Unfortunately many other controls still misbehave on Linux :(
+* Added wxSpinCtrl
+* Zope: Added SiteErrorLog support. 
+  Just delete your zoa folder in your Zope root and the new
+  zoa will be automatically installed.
+* Removed the bundled PyChecker from the repository.
+  Boa now tries to use the one installed on your system.
+
+
+-- 0.1.3 - alpha (CVS) --
+
+02-02-02 - 
 
 * Python 2.2 compatibility issues fixed
 * Feature rich out of process Debugger capable of debugging most Python.

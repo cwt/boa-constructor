@@ -1,7 +1,13 @@
 Bugs & Issues 
 -------------
 
-Find in App does not search app
+A strange thing which sometimes happens is that Boa uses 100% CPU after startup
+on windows. Just minimizing and restoring the application makes the CPU return 
+to 0%. Bizarre!
+
+Sometimes (but rarely) Boa crashes at startup while opening files in the Editor.
+To get around it you may start Boa with the command-line switch -E which will
+start with an empty Editor. I don't think it's a Boa bug.
 
 ---
 Current Designer behaviour may seem weird where a
@@ -37,7 +43,7 @@ Other bugs
 
 Recreate controls not implemented for the Data View.
 
-ToolBars confuse the Designer (and the author).
+ToolBars confuse the Designer somtimes (and the author).
 Components are offset by the height of the toolbar
 
 Toolbars still cause big trouble by moving the frame coordinates down
@@ -52,11 +58,8 @@ The moral of the story is to not have controls directly on a frame for
 now, rather put them in a panel, this is the recommended procedure
 in any case.
 
-Debugger causes core dump if Boa is closed while still debugging.
-
 Parser must be fixed sometime to correctly parse
-- methods within methods
-- multiline docstrings
+nested methods and nested classes
 
 GTK
 ---
@@ -66,4 +69,21 @@ Still some problems with accelerator keys.
 GTK Critical warnings are produced in the following cases:
 - When there is a 'New' submenu connected under 'File'. Off by default on wxGTK.
 - When controls are reparented from the Notebook to another control. 
+
+---
+
+Find in App does not search app
+
+moduleparse.Module.name sometimes have extension, sometimes not. Decide!
+
+Remove the silly assert for local uris (assertLocalFile), should be 
+checkLocalFile that raises a TransportError
+
+Top of Notebook now triggers selection but with wrong offset
+
+Check AccelEnter -> Notebook paste bug
+
+refreshCtrl is called twice on open pyd
+
+Snap to grid snaps more to left/top sides
 

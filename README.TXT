@@ -2,10 +2,10 @@
 
 Thanks for checking out Boa Constructor.
 
-Boa is supposed to be a simple Delphi for wxPython.
+Boa aims to be a simple Delphi for wxPython.
 It is an IDE for Python development including visual wxPython frame
-design, object browsers, documentation genaration, debugging,
-source control (CVS) and more.
+design, object browsers, documentation generation, debugging,
+source control (CVS) and much more.
 The Boa IDE also integrates with other Python technologies like 
 Distutils, Zope, PyChecker.
 
@@ -13,12 +13,12 @@ If you are new to Boa and wxPython, work through the Getting Started Guide
 and Tutorial.
 
 Look at Changes.txt for the latest improvements.
-Look at Bugs.txt for important info about problems & bugs.
+Look at Bugs.txt for info about problems & bugs.
 
 If you have an environmental variable set named HOME and the directory
 it points to contains a directory named '.boa' (which you must create
-yourself) all preferences and config files will be copied to and used from 
-this directory.
+yourself on windows) all preferences and config files will be copied to and 
+used from this directory.
 
 NB: Please unzip Boa to an empty directory
 
@@ -29,15 +29,21 @@ Licence:
 GPL
 
 Version:
-0.1.1 - Alpha
-Requires wxPython 2.3.2.1 If you have problems using Boa with a later version,
-please try this version.
+0.2.0 - Alpha
+Requires at least wxPython 2.3.2.1.
+If you have problems using Boa with version later than 2.4.0, please
+please use 2.3.2, 2.3.4 or 2.4.0.
+
+0.2.0 will be the last version to support Python 1.5.2. Some parts like the
+Debugger already require Python 2.x, but file editing still work.
 
 Copyright:
-Riaan Booysen 1999 - 2002
+Riaan Booysen 1999 - 2003
 riaan@e.co.za
 
 Release history:
+
+2003-01-13 - Boa Constructor 0.2.0
 
 2002-01-28 - Boa Constructor 0.1.0 alpha
 

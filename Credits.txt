@@ -17,7 +17,7 @@ py2exe by Thomas Heller
 babeliser.py by Jonathan Feinberg and Babelfish for translation
 David Adams' Speller, an xml-rpc spellchecker server
 
-The authors of CVS, SSH, SCP, PSCP
+The authors of CVS, SSH, SCP
 
 People who have helped out or contributed:
 
@@ -25,8 +25,9 @@ Shane Hathaway <shane@zope.com>
 * Bug fixes and obtimizations
 * Out of process debugger
 Kevin Gill <kevin@focussed.com>
+* Tutorial
 * Many bug fixes
-* Huge wxStyledTextCtrl speedups on wxGTK
+* wxStyledTextCtrl speedups on wxGTK (Not needed/used anymore)
 * Feature additions
   * Multiple inheritance in Hierarchy view
   * UMLView popup menu for navigation
@@ -38,6 +39,11 @@ Tim Hochberg <tim.hochberg@ieee.org>
 Mike C Fletcher <mcfletch@home.com>
 * MakePy dialog
 * Much improved UML layout
+Kevin Altis
+* MacOS X support
+Roman Yakovenko
+* Improved Find dialog
+* Clipboard plus
 
-Also thanks to Roman Yakovenko, Patrick 'O Brien, Kevin Light, 
-Cliff Baeseman, Larry Poorman and anyone else I've forgotten!
+Also thanks to Kevin Light, Patrick 'O Brien, John Bell, Gerrit van Dyk, 
+Cliff Baeseman, Larry Poorman and anyone else I may have forgotten!
