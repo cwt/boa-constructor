@@ -408,8 +408,8 @@ class TemplateListCtrlPalPage(ListCtrlPalettePage):
     pass
 
 class PanelPalettePage(wxPanel, BasePalettePage):
-    defX = 5
-    defY = 3
+    buttonSep = 11
+    buttonBorder = 7
     def __init__(self, parent, name, bitmapPath, eventOwner, widgets, components, palette):
         wxPanel.__init__(self, parent, -1)
 
@@ -417,11 +417,11 @@ class PanelPalettePage(wxPanel, BasePalettePage):
         self.components = components
         self.name = name
         self.bitmapPath = bitmapPath
-        self.posX = self.defX
-        self.posY = self.defY
         self.widgets = widgets
         self.buttons = {}
         parent.AddPage(self, name)
+        self.posX = self.buttonSep/2
+        self.posY = (self.GetSize().y -(24+self.buttonBorder))/2
         self.eventOwner = eventOwner
         self.menu = wxMenu()
         self.menusCheckable = false
@@ -450,8 +450,8 @@ class PanelPalettePage(wxPanel, BasePalettePage):
             return mID
 
         bmp = self.getButtonBmp(widgetName, wxClass)
-        width = bmp.GetWidth() + 7
-        height = bmp.GetHeight() + 7
+        width = bmp.GetWidth() + self.buttonBorder
+        height = bmp.GetHeight() + self.buttonBorder
 
         newButton = btnType(self, mID, None, wxPoint(self.posX, self.posY),
                            wxSize(width, height))
