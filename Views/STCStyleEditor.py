@@ -16,7 +16,7 @@
 Reads in property style definitions from a config file.
 Modified styled can be saved (and optionally applied to a given list of STCs)
 
-It can also maintain a Common definition dictionary of font names, colours and 
+It can also maintain a Common definition dictionary of font names, colours and
 sizes which can be shared across multiple language style definitions.
 This is also used to store platform spesific settings as fonts and sizes
 vary with platform.
@@ -42,7 +42,7 @@ styleidnames - Dictionary of language spesific style numbers and names
 0 or more predefined style groups or 'themes'
 [style.<language>.<predefined name>]
 
-Currently the following languages are supported: 
+Currently the following languages are supported:
     python, html, xml, cpp, text, props
 Other languages can be added by just defining the above settings for them in
 the config file (if wxSTC implements them).
@@ -58,185 +58,189 @@ from wxPython.stc import *
 
 settingsIdNames = {-1: 'Selection', -2: 'Caret', -3: 'Edge'}
 
-commonPropDefs = {'fore': '#888888', 'size': 8, 
+commonPropDefs = {'fore': '#888888', 'size': 8,
   'face': wxSystemSettings_GetSystemFont(wxSYS_DEFAULT_GUI_FONT).GetFaceName()}
 
 styleCategoryDescriptions = {
-'-----Language-----': 'Styles spesific to the language',
-'-----Standard-----': 'Styles shared by all languages',
-'-----Settings-----': 'Properties set by STC methods', 
-'-----Common-----': 'User definable values that can be shared between languages'}
+ '----Language----': 'Styles spesific to the language',
+ '----Standard----': 'Styles shared by all languages',
+ '----Settings----': 'Properties set by STC methods',
+ '----Common----': 'User definable values that can be shared between languages'}
 
-[wxID_STCSTYLEEDITDLG, wxID_STCSTYLEEDITDLGADDCOMMONITEMBTN, wxID_STCSTYLEEDITDLGBGCOLBTN, wxID_STCSTYLEEDITDLGBGCOLCB, wxID_STCSTYLEEDITDLGBGCOLDEFCB, wxID_STCSTYLEEDITDLGCANCELBTN, wxID_STCSTYLEEDITDLGCOMMONDEFSBTN, wxID_STCSTYLEEDITDLGELEMENTLB, wxID_STCSTYLEEDITDLGFACECB, wxID_STCSTYLEEDITDLGFACEDEFCB, wxID_STCSTYLEEDITDLGFGCOLBTN, wxID_STCSTYLEEDITDLGFGCOLCB, wxID_STCSTYLEEDITDLGFGCOLDEFCB, wxID_STCSTYLEEDITDLGFIXEDWIDTHCHK, wxID_STCSTYLEEDITDLGOKBTN, wxID_STCSTYLEEDITDLGPANEL1, wxID_STCSTYLEEDITDLGPANEL2, wxID_STCSTYLEEDITDLGREMOVECOMMONITEMBTN, wxID_STCSTYLEEDITDLGSIZECB, wxID_STCSTYLEEDITDLGSPEEDSETTINGCH, wxID_STCSTYLEEDITDLGSTATICBOX1, wxID_STCSTYLEEDITDLGSTATICBOX2, wxID_STCSTYLEEDITDLGSTATICLINE1, wxID_STCSTYLEEDITDLGSTATICTEXT2, wxID_STCSTYLEEDITDLGSTATICTEXT3, wxID_STCSTYLEEDITDLGSTATICTEXT4, wxID_STCSTYLEEDITDLGSTATICTEXT6, wxID_STCSTYLEEDITDLGSTATICTEXT7, wxID_STCSTYLEEDITDLGSTATICTEXT8, wxID_STCSTYLEEDITDLGSTATICTEXT9, wxID_STCSTYLEEDITDLGSTC, wxID_STCSTYLEEDITDLGSTYLEDEFST, wxID_STCSTYLEEDITDLGTABOLDCB, wxID_STCSTYLEEDITDLGTABOLDDEFCB, wxID_STCSTYLEEDITDLGTAEOLFILLEDCB, wxID_STCSTYLEEDITDLGTAEOLFILLEDDEFCB, wxID_STCSTYLEEDITDLGTAITALICCB, wxID_STCSTYLEEDITDLGTAITALICDEFCB, wxID_STCSTYLEEDITDLGTASIZEDEFCB, wxID_STCSTYLEEDITDLGTAUNDERLINEDCB, wxID_STCSTYLEEDITDLGTAUNDERLINEDDEFCB] = map(lambda _init_ctrls: wxNewId(), range(41))
+[wxID_STCSTYLEEDITDLG, wxID_STCSTYLEEDITDLGADDCOMMONITEMBTN, wxID_STCSTYLEEDITDLGBGCOLBTN, wxID_STCSTYLEEDITDLGBGCOLCB, wxID_STCSTYLEEDITDLGBGCOLDEFCB, wxID_STCSTYLEEDITDLGCANCELBTN, wxID_STCSTYLEEDITDLGCOMMONDEFSBTN, wxID_STCSTYLEEDITDLGELEMENTLB, wxID_STCSTYLEEDITDLGFACECB, wxID_STCSTYLEEDITDLGFACEDEFCB, wxID_STCSTYLEEDITDLGFGCOLBTN, wxID_STCSTYLEEDITDLGFGCOLCB, wxID_STCSTYLEEDITDLGFGCOLDEFCB, wxID_STCSTYLEEDITDLGFIXEDWIDTHCHK, wxID_STCSTYLEEDITDLGOKBTN, wxID_STCSTYLEEDITDLGPANEL1, wxID_STCSTYLEEDITDLGPANEL2, wxID_STCSTYLEEDITDLGPANEL3, wxID_STCSTYLEEDITDLGPANEL4, wxID_STCSTYLEEDITDLGREMOVECOMMONITEMBTN, wxID_STCSTYLEEDITDLGSIZECB, wxID_STCSTYLEEDITDLGSPEEDSETTINGCH, wxID_STCSTYLEEDITDLGSTATICBOX1, wxID_STCSTYLEEDITDLGSTATICBOX2, wxID_STCSTYLEEDITDLGSTATICLINE1, wxID_STCSTYLEEDITDLGSTATICTEXT2, wxID_STCSTYLEEDITDLGSTATICTEXT3, wxID_STCSTYLEEDITDLGSTATICTEXT4, wxID_STCSTYLEEDITDLGSTATICTEXT6, wxID_STCSTYLEEDITDLGSTATICTEXT7, wxID_STCSTYLEEDITDLGSTATICTEXT8, wxID_STCSTYLEEDITDLGSTATICTEXT9, wxID_STCSTYLEEDITDLGSTC, wxID_STCSTYLEEDITDLGSTYLEDEFST, wxID_STCSTYLEEDITDLGTABOLDCB, wxID_STCSTYLEEDITDLGTABOLDDEFCB, wxID_STCSTYLEEDITDLGTAEOLFILLEDCB, wxID_STCSTYLEEDITDLGTAEOLFILLEDDEFCB, wxID_STCSTYLEEDITDLGTAITALICCB, wxID_STCSTYLEEDITDLGTAITALICDEFCB, wxID_STCSTYLEEDITDLGTASIZEDEFCB, wxID_STCSTYLEEDITDLGTAUNDERLINEDCB, wxID_STCSTYLEEDITDLGTAUNDERLINEDDEFCB] = map(lambda _init_ctrls: wxNewId(), range(43))
 
 class STCStyleEditDlg(wxDialog):
     """ Style editor for the wxStyledTextCtrl """
     _custom_classes = {'wxWindow' : ['wxStyledTextCtrl']}
-    def _init_utils(self): 
+    def _init_utils(self):
         pass
 
-    def _init_ctrls(self, prnt): 
-        wxDialog.__init__(self, id = wxID_STCSTYLEEDITDLG, name = 'STCStyleEditDlg', parent = prnt, pos = wxPoint(416, 307), size = wxSize(425, 481), style = wxWANTS_CHARS | wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER, title = self.stc_title)
+    def _init_ctrls(self, prnt):
+        wxDialog.__init__(self, id = wxID_STCSTYLEEDITDLG, name = 'STCStyleEditDlg', parent = prnt, pos = wxPoint(505, 369), size = wxSize(442, 482), style = wxWANTS_CHARS | wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER, title = self.stc_title)
         self._init_utils()
-        self.SetClientSize(wxSize(417, 454))
+        self.SetClientSize(wxSize(434, 455))
         self.SetAutoLayout(true)
         self.SetSizeHints(425, 400, -1, -1)
         EVT_SIZE(self, self.OnStcstyleeditdlgSize)
 
-        self.staticBox2 = wxStaticBox(id = wxID_STCSTYLEEDITDLGSTATICBOX2, label = 'Text attributes', name = 'staticBox2', parent = self, pos = wxPoint(296, 56), size = wxSize(112, 99), style = 0)
-        self.staticBox2.SetConstraints(LayoutAnchors(self.staticBox2, false, true, true, false))
-
-        self.staticBox1 = wxStaticBox(id = wxID_STCSTYLEEDITDLGSTATICBOX1, label = 'Colour', name = 'staticBox1', parent = self, pos = wxPoint(157, 56), size = wxSize(128, 99), style = 0)
-        self.staticBox1.SetConstraints(LayoutAnchors(self.staticBox1, false, true, true, false))
-
-        self.elementLb = wxListBox(choices = [], id = wxID_STCSTYLEEDITDLGELEMENTLB, name = 'elementLb', parent = self, pos = wxPoint(8, 72), size = wxSize(144, 112), style = 0, validator = wxDefaultValidator)
+        self.elementLb = wxListBox(choices = [], id = wxID_STCSTYLEEDITDLGELEMENTLB, name = 'elementLb', parent = self, pos = wxPoint(8, 72), size = wxSize(161, 112), style = 0, validator = wxDefaultValidator)
         self.elementLb.SetConstraints(LayoutAnchors(self.elementLb, true, true, true, false))
         EVT_LISTBOX(self.elementLb, wxID_STCSTYLEEDITDLGELEMENTLB, self.OnElementlbListbox)
 
-        self.styleDefST = wxStaticText(id = wxID_STCSTYLEEDITDLGSTYLEDEFST, label = '(nothing selected)', name = 'styleDefST', parent = self, pos = wxPoint(56, 8), size = wxSize(352, 16), style = wxST_NO_AUTORESIZE)
-        self.styleDefST.SetFont(wxFont(8, wxSWISS, wxNORMAL, wxBOLD, false, self.sys_font))
+        self.styleDefST = wxStaticText(id = wxID_STCSTYLEEDITDLGSTYLEDEFST, label = '(nothing selected)', name = 'styleDefST', parent = self, pos = wxPoint(96, 8), size = wxSize(349, 16), style = wxST_NO_AUTORESIZE)
+        self.styleDefST.SetFont(wxFont(self.style_font_size, wxSWISS, wxNORMAL, wxBOLD, false, ''))
         self.styleDefST.SetConstraints(LayoutAnchors(self.styleDefST, true, true, true, false))
 
-        self.taEOLfilledCb = wxCheckBox(id = wxID_STCSTYLEEDITDLGTAEOLFILLEDCB, label = 'EOL filled', name = 'taEOLfilledCb', parent = self.staticBox2, pos = wxPoint(8, 75), size = wxSize(72, 16), style = 0)
-        self.taEOLfilledCb.SetValue(false)
-        EVT_CHECKBOX(self.taEOLfilledCb, wxID_STCSTYLEEDITDLGTAEOLFILLEDCB, self.OnTaeoffilledcbCheckbox)
-
-        self.staticText2 = wxStaticText(id = wxID_STCSTYLEEDITDLGSTATICTEXT2, label = 'default', name = 'staticText2', parent = self.staticBox2, pos = wxPoint(72, 11), size = wxSize(32, 16), style = 0)
-
-        self.taItalicCb = wxCheckBox(id = wxID_STCSTYLEEDITDLGTAITALICCB, label = 'Italic', name = 'taItalicCb', parent = self.staticBox2, pos = wxPoint(8, 43), size = wxSize(72, 16), style = 0)
-        EVT_CHECKBOX(self.taItalicCb, wxID_STCSTYLEEDITDLGTAITALICCB, self.OnTaitaliccbCheckbox)
-
-        self.taUnderlinedDefCb = wxCheckBox(id = wxID_STCSTYLEEDITDLGTAUNDERLINEDDEFCB, label = 'checkBox1', name = 'taUnderlinedDefCb', parent = self.staticBox2, pos = wxPoint(88, 59), size = wxSize(16, 16), style = 0)
-
-        self.taBoldDefCb = wxCheckBox(id = wxID_STCSTYLEEDITDLGTABOLDDEFCB, label = 'checkBox1', name = 'taBoldDefCb', parent = self.staticBox2, pos = wxPoint(88, 27), size = wxSize(16, 16), style = 0)
-
-        self.taItalicDefCb = wxCheckBox(id = wxID_STCSTYLEEDITDLGTAITALICDEFCB, label = 'checkBox1', name = 'taItalicDefCb', parent = self.staticBox2, pos = wxPoint(88, 43), size = wxSize(16, 16), style = 0)
-
-        self.taBoldCb = wxCheckBox(id = wxID_STCSTYLEEDITDLGTABOLDCB, label = 'Bold', name = 'taBoldCb', parent = self.staticBox2, pos = wxPoint(8, 27), size = wxSize(72, 16), style = 0)
-        EVT_CHECKBOX(self.taBoldCb, wxID_STCSTYLEEDITDLGTABOLDCB, self.OnTaboldcbCheckbox)
-
-        self.taEOLfilledDefCb = wxCheckBox(id = wxID_STCSTYLEEDITDLGTAEOLFILLEDDEFCB, label = 'checkBox1', name = 'taEOLfilledDefCb', parent = self.staticBox2, pos = wxPoint(88, 75), size = wxSize(16, 16), style = 0)
-
-        self.taUnderlinedCb = wxCheckBox(id = wxID_STCSTYLEEDITDLGTAUNDERLINEDCB, label = 'Underlined', name = 'taUnderlinedCb', parent = self.staticBox2, pos = wxPoint(8, 59), size = wxSize(72, 16), style = 0)
-        EVT_CHECKBOX(self.taUnderlinedCb, wxID_STCSTYLEEDITDLGTAUNDERLINEDCB, self.OnTaunderlinedcbCheckbox)
-
-        self.fgColDefCb = wxCheckBox(id = wxID_STCSTYLEEDITDLGFGCOLDEFCB, label = 'checkBox1', name = 'fgColDefCb', parent = self.staticBox1, pos = wxPoint(104, 31), size = wxSize(16, 16), style = 0)
-
-        self.staticText3 = wxStaticText(id = wxID_STCSTYLEEDITDLGSTATICTEXT3, label = 'default', name = 'staticText3', parent = self.staticBox1, pos = wxPoint(88, 16), size = wxSize(32, 16), style = 0)
-
-        self.bgColDefCb = wxCheckBox(id = wxID_STCSTYLEEDITDLGBGCOLDEFCB, label = 'checkBox1', name = 'bgColDefCb', parent = self.staticBox1, pos = wxPoint(104, 71), size = wxSize(16, 16), style = 0)
-
-        self.fgColBtn = wxButton(id = wxID_STCSTYLEEDITDLGFGCOLBTN, label = 'Foreground', name = 'fgColBtn', parent = self.staticBox1, pos = wxPoint(8, 16), size = wxSize(72, 16), style = 0)
-        EVT_BUTTON(self.fgColBtn, wxID_STCSTYLEEDITDLGFGCOLBTN, self.OnFgcolbtnButton)
-
-        self.bgColBtn = wxButton(id = wxID_STCSTYLEEDITDLGBGCOLBTN, label = 'Background', name = 'bgColBtn', parent = self.staticBox1, pos = wxPoint(8, 56), size = wxSize(72, 16), style = 0)
-        EVT_BUTTON(self.bgColBtn, wxID_STCSTYLEEDITDLGBGCOLBTN, self.OnBgcolbtnButton)
-
-        self.staticLine1 = wxStaticLine(id = wxID_STCSTYLEEDITDLGSTATICLINE1, name = 'staticLine1', parent = self, pos = wxPoint(36, 62), size = wxSize(115, 2), style = wxLI_HORIZONTAL)
+        self.staticLine1 = wxStaticLine(id = wxID_STCSTYLEEDITDLGSTATICLINE1, name = 'staticLine1', parent = self, pos = wxPoint(48, 62), size = wxSize(120, 2), style = wxLI_HORIZONTAL)
         self.staticLine1.SetConstraints(LayoutAnchors(self.staticLine1, true, true, true, false))
 
-        self.staticText6 = wxStaticText(id = wxID_STCSTYLEEDITDLGSTATICTEXT6, label = 'Style', name = 'staticText6', parent = self, pos = wxPoint(8, 56), size = wxSize(23, 13), style = 0)
+        self.staticText6 = wxStaticText(id = wxID_STCSTYLEEDITDLGSTATICTEXT6, label = 'Style', name = 'staticText6', parent = self, pos = wxPoint(8, 56), size = wxSize(40, 13), style = 0)
 
-        self.okBtn = wxButton(id = wxID_STCSTYLEEDITDLGOKBTN, label = 'OK', name = 'okBtn', parent = self, pos = wxPoint(248, 422), size = wxSize(75, 23), style = 0)
+        self.okBtn = wxButton(id = wxID_STCSTYLEEDITDLGOKBTN, label = 'OK', name = 'okBtn', parent = self, pos = wxPoint(265, 423), size = wxSize(75, 23), style = 0)
         self.okBtn.SetConstraints(LayoutAnchors(self.okBtn, false, false, true, true))
         self.okBtn.SetToolTipString('Save changes to the config file')
         EVT_BUTTON(self.okBtn, wxID_STCSTYLEEDITDLGOKBTN, self.OnOkbtnButton)
 
-        self.cancelBtn = wxButton(id = wxID_STCSTYLEEDITDLGCANCELBTN, label = 'Cancel', name = 'cancelBtn', parent = self, pos = wxPoint(332, 422), size = wxSize(75, 23), style = 0)
+        self.cancelBtn = wxButton(id = wxID_STCSTYLEEDITDLGCANCELBTN, label = 'Cancel', name = 'cancelBtn', parent = self, pos = wxPoint(349, 423), size = wxSize(75, 23), style = 0)
         self.cancelBtn.SetConstraints(LayoutAnchors(self.cancelBtn, false, false, true, true))
         self.cancelBtn.SetToolTipString('Close dialog without saving changes')
         EVT_BUTTON(self.cancelBtn, wxID_STCSTYLEEDITDLGCANCELBTN, self.OnCancelbtnButton)
 
-        self.commonDefsBtn = wxButton(id = wxID_STCSTYLEEDITDLGCOMMONDEFSBTN, label = 'Common definitions', name = 'commonDefsBtn', parent = self, pos = wxPoint(8, 422), size = wxSize(104, 23), style = 0)
+        self.commonDefsBtn = wxButton(id = wxID_STCSTYLEEDITDLGCOMMONDEFSBTN, label = 'Common definitions', name = 'commonDefsBtn', parent = self, pos = wxPoint(8, 423), size = wxSize(104, 23), style = 0)
         self.commonDefsBtn.SetConstraints(LayoutAnchors(self.commonDefsBtn, true, false, false, true))
         self.commonDefsBtn.SetToolTipString('Directly edit the common definitions dictionary')
         self.commonDefsBtn.Show(false)
         EVT_BUTTON(self.commonDefsBtn, wxID_STCSTYLEEDITDLGCOMMONDEFSBTN, self.OnCommondefsbtnButton)
 
-        self.staticText8 = wxStaticText(id = wxID_STCSTYLEEDITDLGSTATICTEXT8, label = 'Style def:', name = 'staticText8', parent = self, pos = wxPoint(8, 8), size = wxSize(44, 13), style = 0)
+        self.staticText8 = wxStaticText(id = wxID_STCSTYLEEDITDLGSTATICTEXT8, label = 'Style def:', name = 'staticText8', parent = self, pos = wxPoint(8, 8), size = wxSize(88, 13), style = 0)
 
-        self.staticText9 = wxStaticText(id = wxID_STCSTYLEEDITDLGSTATICTEXT9, label = 'SpeedSetting:', name = 'staticText9', parent = self, pos = wxPoint(8, 32), size = wxSize(67, 13), style = 0)
+        self.staticText9 = wxStaticText(id = wxID_STCSTYLEEDITDLGSTATICTEXT9, label = 'SpeedSetting:', name = 'staticText9', parent = self, pos = wxPoint(8, 32), size = wxSize(88, 13), style = 0)
 
-        self.speedsettingCh = wxChoice(choices = [], id = wxID_STCSTYLEEDITDLGSPEEDSETTINGCH, name = 'speedsettingCh', parent = self, pos = wxPoint(88, 28), size = wxSize(320, 21), style = 0, validator = wxDefaultValidator)
+        self.speedsettingCh = wxChoice(choices = [], id = wxID_STCSTYLEEDITDLGSPEEDSETTINGCH, name = 'speedsettingCh', parent = self, pos = wxPoint(96, 28), size = wxSize(329, 21), style = 0, validator = wxDefaultValidator)
         self.speedsettingCh.SetConstraints(LayoutAnchors(self.speedsettingCh, true, true, true, false))
         EVT_CHOICE(self.speedsettingCh, wxID_STCSTYLEEDITDLGSPEEDSETTINGCH, self.OnSpeedsettingchChoice)
 
-        self.stc = wxStyledTextCtrl(id = wxID_STCSTYLEEDITDLGSTC, name = 'stc', parent = self, pos = wxPoint(8, 208), size = wxSize(401, 206), style = wxSUNKEN_BORDER)
+        self.stc = wxStyledTextCtrl(id = wxID_STCSTYLEEDITDLGSTC, name = 'stc', parent = self, pos = wxPoint(8, 208), size = wxSize(418, 207), style = wxSUNKEN_BORDER)
         self.stc.SetConstraints(LayoutAnchors(self.stc, true, true, true, true))
         EVT_LEFT_UP(self.stc, self.OnUpdateUI)
         EVT_KEY_UP(self.stc, self.OnUpdateUI)
 
-        self.panel1 = wxPanel(id = wxID_STCSTYLEEDITDLGPANEL1, name = 'panel1', parent = self, pos = wxPoint(157, 161), size = wxSize(128, 40), style = wxTAB_TRAVERSAL)
+        self.panel1 = wxPanel(id = wxID_STCSTYLEEDITDLGPANEL1, name = 'panel1', parent = self, pos = wxPoint(174, 161), size = wxSize(128, 40), style = wxTAB_TRAVERSAL)
         self.panel1.SetConstraints(LayoutAnchors(self.panel1, false, true, true, false))
 
-        self.staticText4 = wxStaticText(id = wxID_STCSTYLEEDITDLGSTATICTEXT4, label = 'Face:', name = 'staticText4', parent = self.panel1, pos = wxPoint(0, 0), size = wxSize(27, 13), style = 0)
+        self.staticText4 = wxStaticText(id = wxID_STCSTYLEEDITDLGSTATICTEXT4, label = 'Face:', name = 'staticText4', parent = self.panel1, pos = wxPoint(0, 0), size = wxSize(48, 13), style = 0)
 
         self.faceDefCb = wxCheckBox(id = wxID_STCSTYLEEDITDLGFACEDEFCB, label = 'checkBox1', name = 'faceDefCb', parent = self.panel1, pos = wxPoint(104, 0), size = wxSize(16, 16), style = 0)
 
         self.fixedWidthChk = wxCheckBox(id = wxID_STCSTYLEEDITDLGFIXEDWIDTHCHK, label = '', name = 'fixedWidthChk', parent = self.panel1, pos = wxPoint(0, 23), size = wxSize(13, 19), style = 0)
-        self.fixedWidthChk.SetValue(false)
         self.fixedWidthChk.SetToolTipString('Check this for Fixed Width fonts')
         EVT_CHECKBOX(self.fixedWidthChk, wxID_STCSTYLEEDITDLGFIXEDWIDTHCHK, self.OnFixedwidthchkCheckbox)
 
-        self.addCommonItemBtn = wxButton(id = wxID_STCSTYLEEDITDLGADDCOMMONITEMBTN, label = 'Add', name = 'addCommonItemBtn', parent = self, pos = wxPoint(8, 184), size = wxSize(72, 16), style = 0)
+        self.addCommonItemBtn = wxButton(id = wxID_STCSTYLEEDITDLGADDCOMMONITEMBTN, label = 'Add', name = 'addCommonItemBtn', parent = self, pos = wxPoint(8, 184), size = wxSize(80, 17), style = 0)
         self.addCommonItemBtn.SetToolTipString('Add new Common definition')
         EVT_BUTTON(self.addCommonItemBtn, wxID_STCSTYLEEDITDLGADDCOMMONITEMBTN, self.OnAddsharebtnButton)
 
-        self.removeCommonItemBtn = wxButton(id = wxID_STCSTYLEEDITDLGREMOVECOMMONITEMBTN, label = 'Remove', name = 'removeCommonItemBtn', parent = self, pos = wxPoint(80, 184), size = wxSize(72, 16), style = 0)
-        self.removeCommonItemBtn.Enable(false)
+        self.removeCommonItemBtn = wxButton(id = wxID_STCSTYLEEDITDLGREMOVECOMMONITEMBTN, label = 'Remove', name = 'removeCommonItemBtn', parent = self, pos = wxPoint(88, 184), size = wxSize(80, 17), style = 0)
         self.removeCommonItemBtn.SetToolTipString('Remove the selected Common definition')
         EVT_BUTTON(self.removeCommonItemBtn, wxID_STCSTYLEEDITDLGREMOVECOMMONITEMBTN, self.OnRemovesharebtnButton)
 
-        self.panel2 = wxPanel(id = wxID_STCSTYLEEDITDLGPANEL2, name = 'panel2', parent = self, pos = wxPoint(296, 162), size = wxSize(112, 40), style = wxTAB_TRAVERSAL)
+        self.panel2 = wxPanel(id = wxID_STCSTYLEEDITDLGPANEL2, name = 'panel2', parent = self, pos = wxPoint(313, 162), size = wxSize(112, 40), style = wxTAB_TRAVERSAL)
         self.panel2.SetConstraints(LayoutAnchors(self.panel2, false, true, true, false))
 
-        self.staticText7 = wxStaticText(id = wxID_STCSTYLEEDITDLGSTATICTEXT7, label = 'Size:', name = 'staticText7', parent = self.panel2, pos = wxPoint(0, 0), size = wxSize(23, 13), style = 0)
+        self.staticText7 = wxStaticText(id = wxID_STCSTYLEEDITDLGSTATICTEXT7, label = 'Size:', name = 'staticText7', parent = self.panel2, pos = wxPoint(0, 0), size = wxSize(40, 13), style = 0)
 
         self.taSizeDefCb = wxCheckBox(id = wxID_STCSTYLEEDITDLGTASIZEDEFCB, label = 'checkBox1', name = 'taSizeDefCb', parent = self.panel2, pos = wxPoint(88, 0), size = wxSize(16, 16), style = 0)
 
         self.sizeCb = wxComboBox(choices = [], id = wxID_STCSTYLEEDITDLGSIZECB, name = 'sizeCb', parent = self.panel2, pos = wxPoint(0, 17), size = wxSize(112, 21), style = 0, validator = wxDefaultValidator, value = '')
-        self.sizeCb.SetLabel('')
 
         self.faceCb = wxComboBox(choices = [], id = wxID_STCSTYLEEDITDLGFACECB, name = 'faceCb', parent = self.panel1, pos = wxPoint(17, 18), size = wxSize(111, 21), style = 0, validator = wxDefaultValidator, value = '')
-        self.faceCb.SetLabel('')
 
-        self.fgColCb = wxComboBox(choices = [], id = wxID_STCSTYLEEDITDLGFGCOLCB, name = 'fgColCb', parent = self.staticBox1, pos = wxPoint(8, 32), size = wxSize(91, 21), style = 0, validator = wxDefaultValidator, value = '')
-        self.fgColCb.SetLabel('')
+        self.panel3 = wxPanel(id = wxID_STCSTYLEEDITDLGPANEL3, name = 'panel3', parent = self, pos = wxPoint(174, 56), size = wxSize(131, 104), style = wxTAB_TRAVERSAL)
+        self.panel3.SetConstraints(LayoutAnchors(self.panel3, false, true, true, false))
 
-        self.bgColCb = wxComboBox(choices = [], id = wxID_STCSTYLEEDITDLGBGCOLCB, name = 'bgColCb', parent = self.staticBox1, pos = wxPoint(8, 72), size = wxSize(91, 21), style = 0, validator = wxDefaultValidator, value = '')
-        self.bgColCb.SetLabel('')
+        self.fgColBtn = wxButton(id = wxID_STCSTYLEEDITDLGFGCOLBTN, label = 'Foreground', name = 'fgColBtn', parent = self.panel3, pos = wxPoint(8, 16), size = wxSize(72, 16), style = 0)
+        EVT_BUTTON(self.fgColBtn, wxID_STCSTYLEEDITDLGFGCOLBTN, self.OnFgcolbtnButton)
 
-    def __init__(self, parent, langTitle, lang, configFile, STCsToUpdate=()): 
+        self.fgColCb = wxComboBox(choices = [], id = wxID_STCSTYLEEDITDLGFGCOLCB, name = 'fgColCb', parent = self.panel3, pos = wxPoint(8, 32), size = wxSize(91, 21), style = 0, validator = wxDefaultValidator, value = '')
+
+        self.staticText3 = wxStaticText(id = wxID_STCSTYLEEDITDLGSTATICTEXT3, label = 'default', name = 'staticText3', parent = self.panel3, pos = wxPoint(84, 16), size = wxSize(37, 16), style = 0)
+
+        self.fgColDefCb = wxCheckBox(id = wxID_STCSTYLEEDITDLGFGCOLDEFCB, label = 'checkBox1', name = 'fgColDefCb', parent = self.panel3, pos = wxPoint(104, 31), size = wxSize(16, 16), style = 0)
+
+        self.bgColBtn = wxButton(id = wxID_STCSTYLEEDITDLGBGCOLBTN, label = 'Background', name = 'bgColBtn', parent = self.panel3, pos = wxPoint(8, 56), size = wxSize(72, 16), style = 0)
+        EVT_BUTTON(self.bgColBtn, wxID_STCSTYLEEDITDLGBGCOLBTN, self.OnBgcolbtnButton)
+
+        self.bgColCb = wxComboBox(choices = [], id = wxID_STCSTYLEEDITDLGBGCOLCB, name = 'bgColCb', parent = self.panel3, pos = wxPoint(8, 72), size = wxSize(91, 21), style = 0, validator = wxDefaultValidator, value = '')
+
+        self.bgColDefCb = wxCheckBox(id = wxID_STCSTYLEEDITDLGBGCOLDEFCB, label = 'checkBox1', name = 'bgColDefCb', parent = self.panel3, pos = wxPoint(104, 71), size = wxSize(16, 16), style = 0)
+
+        self.staticBox1 = wxStaticBox(id = wxID_STCSTYLEEDITDLGSTATICBOX1, label = 'Colour', name = 'staticBox1', parent = self.panel3, pos = wxPoint(1, 0), size = wxSize(125, 99), style = 0)
+        self.staticBox1.SetConstraints(LayoutAnchors(self.staticBox1, false, true, true, false))
+
+        self.panel4 = wxPanel(id = wxID_STCSTYLEEDITDLGPANEL4, name = 'panel4', parent = self, pos = wxPoint(313, 56), size = wxSize(114, 104), style = wxTAB_TRAVERSAL)
+        self.panel4.SetConstraints(LayoutAnchors(self.panel4, false, true, true, false))
+
+        self.staticBox2 = wxStaticBox(id = wxID_STCSTYLEEDITDLGSTATICBOX2, label = 'Text attributes', name = 'staticBox2', parent = self.panel4, pos = wxPoint(0, 0), size = wxSize(112, 99), style = 0)
+        self.staticBox2.SetConstraints(LayoutAnchors(self.staticBox2, false, true, true, false))
+
+        self.staticText2 = wxStaticText(id = wxID_STCSTYLEEDITDLGSTATICTEXT2, label = 'default', name = 'staticText2', parent = self.panel4, pos = wxPoint(68, 11), size = wxSize(37, 16), style = 0)
+
+        self.taBoldDefCb = wxCheckBox(id = wxID_STCSTYLEEDITDLGTABOLDDEFCB, label = 'checkBox1', name = 'taBoldDefCb', parent = self.panel4, pos = wxPoint(88, 27), size = wxSize(16, 16), style = 0)
+
+        self.taItalicDefCb = wxCheckBox(id = wxID_STCSTYLEEDITDLGTAITALICDEFCB, label = 'checkBox1', name = 'taItalicDefCb', parent = self.panel4, pos = wxPoint(88, 43), size = wxSize(16, 16), style = 0)
+
+        self.taUnderlinedDefCb = wxCheckBox(id = wxID_STCSTYLEEDITDLGTAUNDERLINEDDEFCB, label = 'checkBox1', name = 'taUnderlinedDefCb', parent = self.panel4, pos = wxPoint(88, 59), size = wxSize(16, 16), style = 0)
+
+        self.taEOLfilledDefCb = wxCheckBox(id = wxID_STCSTYLEEDITDLGTAEOLFILLEDDEFCB, label = 'checkBox1', name = 'taEOLfilledDefCb', parent = self.panel4, pos = wxPoint(88, 75), size = wxSize(16, 16), style = 0)
+
+        self.taEOLfilledCb = wxCheckBox(id = wxID_STCSTYLEEDITDLGTAEOLFILLEDCB, label = 'EOL filled', name = 'taEOLfilledCb', parent = self.panel4, pos = wxPoint(8, 75), size = wxSize(72, 16), style = 0)
+        EVT_CHECKBOX(self.taEOLfilledCb, wxID_STCSTYLEEDITDLGTAEOLFILLEDCB, self.OnTaeoffilledcbCheckbox)
+
+        self.taUnderlinedCb = wxCheckBox(id = wxID_STCSTYLEEDITDLGTAUNDERLINEDCB, label = 'Underlined', name = 'taUnderlinedCb', parent = self.panel4, pos = wxPoint(8, 59), size = wxSize(72, 16), style = 0)
+        EVT_CHECKBOX(self.taUnderlinedCb, wxID_STCSTYLEEDITDLGTAUNDERLINEDCB, self.OnTaunderlinedcbCheckbox)
+
+        self.taItalicCb = wxCheckBox(id = wxID_STCSTYLEEDITDLGTAITALICCB, label = 'Italic', name = 'taItalicCb', parent = self.panel4, pos = wxPoint(8, 43), size = wxSize(72, 16), style = 0)
+        EVT_CHECKBOX(self.taItalicCb, wxID_STCSTYLEEDITDLGTAITALICCB, self.OnTaitaliccbCheckbox)
+
+        self.taBoldCb = wxCheckBox(id = wxID_STCSTYLEEDITDLGTABOLDCB, label = 'Bold', name = 'taBoldCb', parent = self.panel4, pos = wxPoint(8, 27), size = wxSize(72, 16), style = 0)
+        EVT_CHECKBOX(self.taBoldCb, wxID_STCSTYLEEDITDLGTABOLDCB, self.OnTaboldcbCheckbox)
+
+    def __init__(self, parent, langTitle, lang, configFile, STCsToUpdate=()):
         self.stc_title = 'wxStyledTextCtrl Style Editor'
         self.stc_title = 'wxStyledTextCtrl Style Editor - %s' % langTitle
-        self.sys_font = wxSystemSettings_GetSystemFont(wxSYS_DEFAULT_GUI_FONT).GetFaceName()
+        if wxPlatform == '__WXMSW__':
+            self.style_font_size = 8
+        else:            
+            self.style_font_size = 10
         self._init_ctrls(parent)
-
         self.lang = lang
         self.configFile = configFile
         self.style = ''
+        self.styleNum = 0
         self.names = []
         self.values = {}
         self.STCsToUpdate = STCsToUpdate
-        
-        for combo, evtRet, evtCB, evtRDC in ( 
+        self._blockUpdate = false
+
+
+        for combo, evtRet, evtCB, evtRDC in (
          (self.fgColCb, self.OnfgColRet, self.OnfgColCombobox, self.OnGotoCommonDef),
          (self.bgColCb, self.OnbgColRet, self.OnbgColCombobox, self.OnGotoCommonDef),
          (self.faceCb, self.OnfaceRet, self.OnfaceCombobox, self.OnGotoCommonDef),
          (self.sizeCb, self.OnsizeRet, self.OnsizeCombobox, self.OnGotoCommonDef)):
             self.bindComboEvts(combo, evtRet, evtCB, evtRDC)
-        
-        (self.config, self.commonDefs, self.styleIdNames, self.styles, 
-         self.styleGroupNames, self.predefStyleGroups, 
+
+        (self.config, self.commonDefs, self.styleIdNames, self.styles,
+         self.styleGroupNames, self.predefStyleGroups,
          self.otherLangStyleGroupNames, self.otherLangStyleGroups,
          self.displaySrc, self.lexer, self.keywords, self.braceInfo) = \
-              initFromConfig(configFile, lang)    
-        
+              initFromConfig(configFile, lang)
+
         self.currSpeedSetting = 'style.%s'%self.lang
         for grp in [self.currSpeedSetting]+self.styleGroupNames:
             self.speedsettingCh.Append(grp)
         self.speedsettingCh.SetSelection(0)
-        
+
         margin = 0
         self.stc.SetMarginType(margin, wxSTC_MARGIN_NUMBER)
         self.stc.SetMarginWidth(margin, 25)
@@ -248,14 +252,13 @@ class STCStyleEditDlg(wxDialog):
         self.stc.SetIndentationGuides(true)
         self.stc.SetEdgeMode(wxSTC_EDGE_BACKGROUND)
         self.stc.SetEdgeColumn(44)
-        
+
         self.setStyles()
 
         self.populateStyleSelector()
 
         self.defNames, self.defValues = parseProp(\
               self.styleDict.get(wxSTC_STYLE_DEFAULT, ''))
-
         self.stc.SetText(self.displaySrc)
         self.stc.EmptyUndoBuffer()
         self.stc.SetCurrentPos(self.stc.GetTextLength())
@@ -264,21 +267,21 @@ class STCStyleEditDlg(wxDialog):
         self.populateCombosWithCommonDefs()
 
         # Logical grouping of controls and the property they edit
-        self.allCtrls = [((self.fgColBtn, self.fgColCb), self.fgColDefCb, 
+        self.allCtrls = [((self.fgColBtn, self.fgColCb), self.fgColDefCb,
                              'fore', wxID_STCSTYLEEDITDLGFGCOLDEFCB),
-                         ((self.bgColBtn, self.bgColCb), self.bgColDefCb, 
+                         ((self.bgColBtn, self.bgColCb), self.bgColDefCb,
                              'back', wxID_STCSTYLEEDITDLGBGCOLDEFCB),
-                         (self.taBoldCb, self.taBoldDefCb, 
+                         (self.taBoldCb, self.taBoldDefCb,
                              'bold', wxID_STCSTYLEEDITDLGTABOLDDEFCB),
-                         (self.taItalicCb, self.taItalicDefCb, 
-                             'italic', wxID_STCSTYLEEDITDLGTAITALICDEFCB), 
-                         (self.taUnderlinedCb, self.taUnderlinedDefCb, 
+                         (self.taItalicCb, self.taItalicDefCb,
+                             'italic', wxID_STCSTYLEEDITDLGTAITALICDEFCB),
+                         (self.taUnderlinedCb, self.taUnderlinedDefCb,
                              'underline', wxID_STCSTYLEEDITDLGTAUNDERLINEDDEFCB),
-                         (self.taEOLfilledCb, self.taEOLfilledDefCb, 
+                         (self.taEOLfilledCb, self.taEOLfilledDefCb,
                              'eolfilled', wxID_STCSTYLEEDITDLGTAEOLFILLEDDEFCB),
-                         (self.sizeCb, self.taSizeDefCb, 
+                         (self.sizeCb, self.taSizeDefCb,
                              'size', wxID_STCSTYLEEDITDLGTASIZEDEFCB),
-                         ((self.faceCb, self.fixedWidthChk), self.faceDefCb, 
+                         ((self.faceCb, self.fixedWidthChk), self.faceDefCb,
                              'face', wxID_STCSTYLEEDITDLGFACEDEFCB)]
 
         self.clearCtrls(disableDefs=true)
@@ -288,16 +291,16 @@ class STCStyleEditDlg(wxDialog):
             self.chbIdMap[wid] = ctrl, chb, prop, wid
             EVT_CHECKBOX(chb, wid, self.OnDefaultCheckBox)
             chb.SetToolTipString('Toggle defaults')
-        
+
         self.Center(wxBOTH)
-                
+
 #---Property methods------------------------------------------------------------
     def getCtrlForProp(self, findprop):
         for ctrl, chb, prop, wid in self.allCtrls:
             if findprop == prop:
                 return ctrl, chb
         raise Exception('PropNotFound', findprop)
-            
+
     def editProp(self, on, prop, val=''):
         oldstyle = self.rememberStyles()
         if on:
@@ -309,7 +312,7 @@ class STCStyleEditDlg(wxDialog):
             except ValueError: pass
             try: del self.values[prop]
             except KeyError: pass
-        
+
         try:
             self.updateStyle()
             return true
@@ -321,17 +324,18 @@ class STCStyleEditDlg(wxDialog):
 
 #---Control population methods--------------------------------------------------
     def setStyles(self):
+        if self._blockUpdate: return
         self.styles, self.styleDict, self.styleNumIdxMap = \
-              setSTCStyles(self.stc, self.styles, self.styleIdNames, 
+              setSTCStyles(self.stc, self.styles, self.styleIdNames,
               self.commonDefs, self.lang, self.lexer, self.keywords)
-        
+
     def updateStyle(self):
         # called after a control edited self.names, self.values
         # Special case for saving common defs settings
         if self.styleNum == 'common':
             strVal = self.style[2] = self.values.values()[0]
             if self.style[1] == 'size': self.style[2] = int(strVal)
-            
+
             self.commonDefs[self.style[0]] = self.style[2]
             self.styleDefST.SetLabel(strVal)
         else:
@@ -340,7 +344,7 @@ class STCStyleEditDlg(wxDialog):
             self.styles[self.styleNumIdxMap[self.styleNum]] = styleDecl
             self.styleDefST.SetLabel(self.style)
         self.setStyles()
-    
+
     def findInStyles(self, txt, styles):
         for style in styles:
             if string.find(style, txt) != -1:
@@ -355,61 +359,69 @@ class STCStyleEditDlg(wxDialog):
         self.updateStyle()
 
     def clearCtrls(self, isDefault=false, disableDefs=false):
-        for ctrl, chb, prop, wid in self.allCtrls:
-            if prop in ('fore', 'back'):
-                btn, txt = ctrl
-                btn.SetBackgroundColour(\
-                      wxSystemSettings_GetSystemColour(wxSYS_COLOUR_BTNFACE))
-                btn.SetForegroundColour(wxColour(255, 255, 255))
-                btn.Enable(isDefault)
-                txt.SetValue('')
-                txt.Enable(isDefault)
-            elif prop == 'size':
-                ctrl.SetValue('')
-                ctrl.Enable(isDefault)
-            elif prop == 'face':
-                ctrl[0].SetValue('')
-                ctrl[0].Enable(isDefault)
-                ctrl[1].Enable(isDefault)
-                ctrl[1].SetValue(false)
-            elif prop in ('bold', 'italic', 'underline', 'eolfilled'):
-                ctrl.SetValue(false)
-                ctrl.Enable(isDefault)
+        self._blockUpdate = true
+        try:
+            for ctrl, chb, prop, wid in self.allCtrls:
+                if prop in ('fore', 'back'):
+                    btn, txt = ctrl
+                    btn.SetBackgroundColour(\
+                          wxSystemSettings_GetSystemColour(wxSYS_COLOUR_BTNFACE))
+                    btn.SetForegroundColour(wxColour(255, 255, 255))
+                    btn.Enable(isDefault)
+                    txt.SetValue('')
+                    txt.Enable(isDefault)
+                elif prop == 'size':
+                    ctrl.SetValue('')
+                    ctrl.Enable(isDefault)
+                elif prop == 'face':
+                    ctrl[0].SetValue('')
+                    ctrl[0].Enable(isDefault)
+                    ctrl[1].Enable(isDefault)
+                    ctrl[1].SetValue(false)
+                elif prop in ('bold', 'italic', 'underline', 'eolfilled'):
+                    ctrl.SetValue(false)
+                    ctrl.Enable(isDefault)
 
-            chb.Enable(not isDefault and not disableDefs)
-            chb.SetValue(true)        
+                chb.Enable(not isDefault and not disableDefs)
+                chb.SetValue(true)
+        finally:
+            self._blockUpdate = false
 
     def populateProp(self, items, default, forceDisable=false):
-        for name, val in items:
-            if name:
-                ctrl, chb = self.getCtrlForProp(name)
-                    
-                if name in ('fore', 'back'):
-                    btn, txt = ctrl
-                    repval = val%self.commonDefs
-                    btn.SetBackgroundColour(strToCol(repval))
-                    btn.SetForegroundColour(wxColour(0, 0, 0))
-                    btn.Enable(not forceDisable)
-                    txt.SetValue(val)
-                    txt.Enable(not forceDisable)
-                    chb.SetValue(default)
-                elif name  == 'size':
-                    ctrl.SetValue(val)
-                    ctrl.Enable(not forceDisable)
-                    chb.SetValue(default)
-                elif name  == 'face':
-                    ctrl[0].SetValue(val)
-                    ctrl[0].Enable(not forceDisable)
-                    ctrl[1].Enable(not forceDisable)
-                    chb.SetValue(default)
-                elif name in ('bold', 'italic', 'underline', 'eolfilled'):
-                    ctrl.Enable(not forceDisable)
-                    ctrl.SetValue(true)
-                    chb.SetValue(default)
-    
+        self._blockUpdate = true
+        try:
+            for name, val in items:
+                if name:
+                    ctrl, chb = self.getCtrlForProp(name)
+
+                    if name in ('fore', 'back'):
+                        btn, txt = ctrl
+                        repval = val%self.commonDefs
+                        btn.SetBackgroundColour(strToCol(repval))
+                        btn.SetForegroundColour(wxColour(0, 0, 0))
+                        btn.Enable(not forceDisable)
+                        txt.SetValue(val)
+                        txt.Enable(not forceDisable)
+                        chb.SetValue(default)
+                    elif name  == 'size':
+                        ctrl.SetValue(val)
+                        ctrl.Enable(not forceDisable)
+                        chb.SetValue(default)
+                    elif name  == 'face':
+                        ctrl[0].SetValue(val)
+                        ctrl[0].Enable(not forceDisable)
+                        ctrl[1].Enable(not forceDisable)
+                        chb.SetValue(default)
+                    elif name in ('bold', 'italic', 'underline', 'eolfilled'):
+                        ctrl.Enable(not forceDisable)
+                        ctrl.SetValue(true)
+                        chb.SetValue(default)
+        finally:
+            self._blockUpdate = false
+
     def valIsCommonDef(self, val):
         return len(val) >= 5 and val[:2] == '%('
-    
+
     def populateCtrls(self):
         self.clearCtrls(self.styleNum == wxSTC_STYLE_DEFAULT,
             disableDefs=self.styleNum < 0)
@@ -419,13 +431,13 @@ class STCStyleEditDlg(wxDialog):
             self.fgColDefCb.Enable(true)
             if self.styleNum == -1:
                 self.bgColDefCb.Enable(true)
-            
+
         # populate with default style
-        self.populateProp(self.defValues.items(), true, 
+        self.populateProp(self.defValues.items(), true,
             self.styleNum != wxSTC_STYLE_DEFAULT)
         # override with current settings
         self.populateProp(self.values.items(), false)
-    
+
     def getCommonDefPropType(self, commonDefName):
         val = self.commonDefs[commonDefName]
         if type(val) == type(0): return 'size'
@@ -442,41 +454,45 @@ class STCStyleEditDlg(wxDialog):
             'the drop down button to select Common definition (if applicable)')
 
     def populateCombosWithCommonDefs(self, fixedWidthOnly=None):
-        commonDefs = {'fore': [], 'face': [], 'size': []}
-        
-        if self.elementLb.GetSelection() < self.commonDefsStartIdx:
-            for common in self.commonDefs.keys():
-                prop = self.getCommonDefPropType(common)
-                commonDefs[prop].append('%%(%s)%s'%(common, 
-                                                   prop=='size' and 'd' or 's'))
+        self._blockUpdate = true
+        try:
+            commonDefs = {'fore': [], 'face': [], 'size': []}
 
-        # Colours
-        currFg, currBg = self.fgColCb.GetValue(), self.bgColCb.GetValue()
-        self.fgColCb.Clear(); self.bgColCb.Clear()
-        for colCommonDef in commonDefs['fore']:
-            self.fgColCb.Append(colCommonDef)
-            self.bgColCb.Append(colCommonDef)
-        self.fgColCb.SetValue(currFg); self.bgColCb.SetValue(currBg)
-            
-        # Font
-        if fixedWidthOnly is None:
-            fixedWidthOnly = self.fixedWidthChk.GetValue()
-        fontEnum = wxFontEnumerator()
-        fontEnum.EnumerateFacenames(fixedWidthOnly=fixedWidthOnly)
-        fontNameList = fontEnum.GetFacenames()
+            if self.elementLb.GetSelection() < self.commonDefsStartIdx:
+                for common in self.commonDefs.keys():
+                    prop = self.getCommonDefPropType(common)
+                    commonDefs[prop].append('%%(%s)%s'%(common,
+                                                       prop=='size' and 'd' or 's'))
 
-        currFace = self.faceCb.GetValue()
-        self.faceCb.Clear()
-        for colCommonDef in ['']+fontNameList+commonDefs['face']:
-            self.faceCb.Append(colCommonDef)
-        self.faceCb.SetValue(currFace)
+            # Colours
+            currFg, currBg = self.fgColCb.GetValue(), self.bgColCb.GetValue()
+            self.fgColCb.Clear(); self.bgColCb.Clear()
+            for colCommonDef in commonDefs['fore']:
+                self.fgColCb.Append(colCommonDef)
+                self.bgColCb.Append(colCommonDef)
+            self.fgColCb.SetValue(currFg); self.bgColCb.SetValue(currBg)
 
-        # Size (XXX add std font sizes)
-        currSize = self.sizeCb.GetValue()
-        self.sizeCb.Clear()
-        for colCommonDef in commonDefs['size']:
-            self.sizeCb.Append(colCommonDef)
-        self.sizeCb.SetValue(currSize)
+            # Font
+            if fixedWidthOnly is None:
+                fixedWidthOnly = self.fixedWidthChk.GetValue()
+            fontEnum = wxFontEnumerator()
+            fontEnum.EnumerateFacenames(fixedWidthOnly=fixedWidthOnly)
+            fontNameList = fontEnum.GetFacenames()
+
+            currFace = self.faceCb.GetValue()
+            self.faceCb.Clear()
+            for colCommonDef in ['']+fontNameList+commonDefs['face']:
+                self.faceCb.Append(colCommonDef)
+            self.faceCb.SetValue(currFace)
+
+            # Size (XXX add std font sizes)
+            currSize = self.sizeCb.GetValue()
+            self.sizeCb.Clear()
+            for colCommonDef in commonDefs['size']:
+                self.sizeCb.Append(colCommonDef)
+            self.sizeCb.SetValue(currSize)
+        finally:
+            self._blockUpdate = false
 
     def populateStyleSelector(self):
         numStyles = self.styleIdNames.items()
@@ -488,8 +504,8 @@ class STCStyleEditDlg(wxDialog):
         # add styles
         for num, name in numStyles:
             if num == wxSTC_STYLE_DEFAULT:
-                self.elementLb.InsertItems([name, '-----Language-----'], 0)
-                self.elementLb.Append('-----Standard-----')
+                self.elementLb.InsertItems([name, '----Language----'], 0)
+                self.elementLb.Append('----Standard----')
                 stdStart = stdPos = self.elementLb.Number()
             else:
                 # std styles
@@ -497,7 +513,7 @@ class STCStyleEditDlg(wxDialog):
                     self.elementLb.InsertItems([name], stdStart + stdOffset)
                     stdOffset = stdOffset + 1
                 # extra styles
-                elif num >= 40:                    
+                elif num >= 40:
                     self.elementLb.InsertItems([name], stdStart + extrOffset -1)
                     extrOffset = extrOffset + 1
                 # normal lang styles
@@ -506,7 +522,7 @@ class STCStyleEditDlg(wxDialog):
             self.styleNumLookup[name] = num
 
         # add settings
-        self.elementLb.Append('-----Settings-----')
+        self.elementLb.Append('----Settings----')
         settings = settingsIdNames.items()
         settings.sort();settings.reverse()
         for num, name in settings:
@@ -514,13 +530,13 @@ class STCStyleEditDlg(wxDialog):
             self.styleNumLookup[name] = num
 
         # add definitions
-        self.elementLb.Append('-----Common-----')
+        self.elementLb.Append('----Common----')
         self.commonDefsStartIdx = self.elementLb.Number()
         for common in self.commonDefs.keys():
             tpe = type(self.commonDefs[common])
             self.elementLb.Append('%('+common+')'+(tpe is type('') and 's' or 'd'))
             self.styleNumLookup[common] = num
-        
+
 #---Colour methods--------------------------------------------------------------
     def getColourDlg(self, colour, title=''):
         data = wxColourData()
@@ -538,9 +554,9 @@ class STCStyleEditDlg(wxDialog):
 
     colDlgTitles = {'fore': 'Foreground', 'back': 'Background'}
     def editColProp(self, colBtn, colCb, prop):
-        col = self.getColourDlg(colBtn.GetBackgroundColour(), 
+        col = self.getColourDlg(colBtn.GetBackgroundColour(),
               self.colDlgTitles[prop]+ ' colour')
-        if col: 
+        if col:
             colBtn.SetForegroundColour(wxColour(0, 0, 0))
             colBtn.SetBackgroundColour(col)
             colStr = colToStr(col)
@@ -558,10 +574,10 @@ class STCStyleEditDlg(wxDialog):
             colStr = colCb.GetValue()
         else:
             colStr = val
-        if colStr: 
+        if colStr:
             col = strToCol(colStr%self.commonDefs)
         if self.editProp(colStr!='', prop, colStr):
-            if colStr: 
+            if colStr:
                 colBtn.SetForegroundColour(wxColour(0, 0, 0))
                 colBtn.SetBackgroundColour(col)
             else:
@@ -574,6 +590,7 @@ class STCStyleEditDlg(wxDialog):
         except AssertionError: wxLogError('Not a valid colour value')
 
     def OnfgColCombobox(self, event):
+        if self._blockUpdate: return
         try: self.editColTCProp(self.fgColCb, self.fgColBtn, 'fore', event.GetString())
         except AssertionError: wxLogError('Not a valid colour value')
 
@@ -582,6 +599,7 @@ class STCStyleEditDlg(wxDialog):
         except AssertionError: wxLogError('Not a valid colour value')
 
     def OnbgColCombobox(self, event):
+        if self._blockUpdate: return
         try: self.editColTCProp(self.bgColCb, self.bgColBtn, 'back', event.GetString())
         except AssertionError: wxLogError('Not a valid colour value')
 
@@ -609,9 +627,10 @@ class STCStyleEditDlg(wxDialog):
     def OnfaceRet(self, event):
         self.setFace(self.faceCb.GetValue())
 
-    def OnfaceCombobox(self, event):        
+    def OnfaceCombobox(self, event):
+        if self._blockUpdate: return
         self.setFace(event.GetString())
-    
+
     def setFace(self, val):
         try: val%self.commonDefs
         except KeyError: wxLogError('Invalid common definition')
@@ -620,9 +639,10 @@ class STCStyleEditDlg(wxDialog):
     def OnsizeRet(self, event):
         self.setSize(self.sizeCb.GetValue())
 
-    def OnsizeCombobox(self, event):        
+    def OnsizeCombobox(self, event):
+        if self._blockUpdate: return
         self.setSize(event.GetString())
-    
+
     def setSize(self, val):
         try: int(val%self.commonDefs)
         except ValueError: wxLogError('Not a valid integer size value')
@@ -656,21 +676,20 @@ class STCStyleEditDlg(wxDialog):
             self.styleNum = 'common'
             self.style = [common, prop, commonDefVal]
             self.names, self.values = [prop], {prop: commonDefVal}
-           
+
         # normal style element selected
         elif len(styleIdent) >=2 and styleIdent[:2] != '--':
             self.styleNum = self.styleNumLookup[styleIdent]
             self.style = self.styleDict[self.styleNum]
             self.names, self.values = parseProp(self.style)
-            
             if self.styleNum == wxSTC_STYLE_DEFAULT:
                 self.defNames, self.defValues = \
                       self.names, self.values
 
             self.checkBraces(self.styleNum)
-                
+
             self.styleDefST.SetLabel(self.style)
-            
+
             self.populateCtrls()
         # separator selected
         else:
@@ -679,7 +698,7 @@ class STCStyleEditDlg(wxDialog):
                 self.styleDefST.SetLabel(styleCategoryDescriptions[styleIdent])
 
         self.populateCombosWithCommonDefs()
-        
+
     def OnDefaultCheckBox(self, event):
         if self.chbIdMap.has_key(event.GetId()):
             ctrl, chb, prop, wid = self.chbIdMap[event.GetId()]
@@ -716,19 +735,19 @@ class STCStyleEditDlg(wxDialog):
             self.config.SetPath('')
             self.config.Write(commonDefsFile, `self.commonDefs`)
             self.config.Flush()
-    
+
             for stc in self.STCsToUpdate:
-                setSTCStyles(stc, self.styles, self.styleIdNames, self.commonDefs, 
+                setSTCStyles(stc, self.styles, self.styleIdNames, self.commonDefs,
                       self.lang, self.lexer, self.keywords)
         finally:
-            wxEndBusyCursor()    
+            wxEndBusyCursor()
         self.EndModal(wxID_OK)
 
     def OnCancelbtnButton(self, event):
         self.EndModal(wxID_CANCEL)
 
     def OnCommondefsbtnButton(self, event):
-        dlg = wxTextEntryDialog(self, 'Edit common definitions dictionary', 
+        dlg = wxTextEntryDialog(self, 'Edit common definitions dictionary',
               'Common definitions', pprint.pformat(self.commonDefs),
               style=wxTE_MULTILINE | wxOK | wxCANCEL | wxCENTRE)
         try:
@@ -745,7 +764,7 @@ class STCStyleEditDlg(wxDialog):
                     self.commonDefs = oldDefs
                     self.setStyles()
                 self.populateCombosWithCommonDefs()
-                    
+
         finally:
             dlg.Destroy()
 
@@ -782,8 +801,8 @@ class STCStyleEditDlg(wxDialog):
 
     def OnRemovesharebtnButton(self, event):
         ownGroup = 'style.%s'%self.lang
-        comDef = self.elementLb.GetStringSelection()        
-        
+        comDef = self.elementLb.GetStringSelection()
+
         # Search ALL styles before removing
         srchDct = {ownGroup: self.styles}
         srchDct.update(self.predefStyleGroups)
@@ -813,7 +832,7 @@ class STCStyleEditDlg(wxDialog):
     def OnUpdateUI(self, event):
         styleBefore = self.stc.GetStyleAt(self.stc.GetCurrentPos())
         if self.styleIdNames.has_key(styleBefore):
-            self.elementLb.SetStringSelection(self.styleIdNames[styleBefore], 
+            self.elementLb.SetStringSelection(self.styleIdNames[styleBefore],
                   true)
         else:
             self.elementLb.SetSelection(0, false)
@@ -846,7 +865,7 @@ class STCStyleEditDlg(wxDialog):
         self.elementLb.SetStringSelection('Line numbers', true)
         self.OnElementlbListbox(None)
 
-            
+
 #---Common definition dialog----------------------------------------------------
 
 [wxID_COMMONDEFDLG, wxID_COMMONDEFDLGCANCELBTN, wxID_COMMONDEFDLGCOMDEFNAMETC, wxID_COMMONDEFDLGOKBTN, wxID_COMMONDEFDLGPROPTYPERBX, wxID_COMMONDEFDLGSTATICBOX1] = map(lambda _init_ctrls: wxNewId(), range(6))
@@ -876,8 +895,8 @@ class CommonDefDlg(wxDialog):
         self._propTypeIdx = 0
         self._propTypeIdx = propIdx
         self._init_ctrls(parent)
-        
-        self.propMap = {0: 'fore', 1: 'face', 2: 'size'}                
+
+        self.propMap = {0: 'fore', 1: 'face', 2: 'size'}
         self.result = ( '', '' )
 
         self.Center(wxBOTH)
@@ -890,9 +909,9 @@ class CommonDefDlg(wxDialog):
     def OnCancelbtnButton(self, event):
         self.result = ( '', '' )
         self.EndModal(wxID_CANCEL)
-        
+
 #---Functions useful outside of the editor----------------------------------
-    
+
 def setSelectionColour(stc, style):
     names, values = parseProp(style)
     if 'fore' in names:
@@ -912,11 +931,11 @@ def setEdgeColour(stc, style):
 
 def strToCol(strCol):
     assert len(strCol) == 7 and strCol[0] == '#', 'Not a valid colour string'
-    return wxColour(string.atoi('0x'+strCol[1:3], 16), 
-                    string.atoi('0x'+strCol[3:5], 16), 
+    return wxColour(string.atoi('0x'+strCol[1:3], 16),
+                    string.atoi('0x'+strCol[3:5], 16),
                     string.atoi('0x'+strCol[5:7], 16))
 def colToStr(col):
-    return '#%s%s%s' % (string.zfill(string.upper(hex(col.Red())[2:]), 2), 
+    return '#%s%s%s' % (string.zfill(string.upper(hex(col.Red())[2:]), 2),
                         string.zfill(string.upper(hex(col.Green())[2:]), 2),
                         string.zfill(string.upper(hex(col.Blue())[2:]), 2))
 
@@ -945,12 +964,13 @@ def parseProp(prop):
         else:
             values[nameVal[0]] = string.strip(nameVal[1])
     return names, values
-            
+
 def parsePropLine(prop):
     name, value = string.split(prop, '=')
     return int(string.split(name, '.')[-1]), value
 
 def setSTCStyles(stc, styles, styleIdNames, commonDefs, lang, lexer, keywords):
+    #wxLogMessage('Set style')
     styleDict = {}
     styleNumIdxMap = {}
 
@@ -970,7 +990,7 @@ def setSTCStyles(stc, styles, styleIdNames, commonDefs, lang, lexer, keywords):
             styleDict[num] = ''
         newStyles.append(writeProp(num, styleDict[num], lang))
         idx = idx + 1
-        
+
     # Set background colour to reduce flashing effect on refresh or page switch
     bkCol = None
     if styleDict.has_key(0): prop = styleDict[0]
@@ -983,11 +1003,12 @@ def setSTCStyles(stc, styles, styleIdNames, commonDefs, lang, lexer, keywords):
     stc.SetBackgroundColour(bkCol)
 
     # Set the styles on the wxSTC
+#    stc.Show(false)
     stc.StyleResetDefault()
     stc.ClearDocumentStyle()
     stc.SetLexer(lexer)
     stc.SetKeyWords(0, keywords)
-    stc.StyleSetSpec(wxSTC_STYLE_DEFAULT, 
+    stc.StyleSetSpec(wxSTC_STYLE_DEFAULT,
           styleDict[wxSTC_STYLE_DEFAULT] % commonDefs)
     stc.StyleClearAll()
 
@@ -1002,7 +1023,8 @@ def setSTCStyles(stc, styles, styleIdNames, commonDefs, lang, lexer, keywords):
             setEdgeColour(stc, style % commonDefs)
 
     stc.Colourise(0, stc.GetTextLength())
-    
+#    stc.Show(true)
+
     return newStyles, styleDict, styleNumIdxMap
 
 #---Config reading and writing -------------------------------------------------
@@ -1023,9 +1045,9 @@ def initFromConfig(configFile, lang):
                 predefStyleGroupNames.append(val)
             else:
                 otherLangStyleGroupNames.append(val)
-        
+
         cont, val, idx = cfg.GetNextGroup(idx)
-    
+
     # read in common elements
     commonDefs = eval(cfg.Read(commonDefsFile))
     assert type(commonDefs) is type({}), \
@@ -1036,7 +1058,7 @@ def initFromConfig(configFile, lang):
           'Common definitions (%s) not a valid dict'%'common.styleidnames'
 
     # Lang spesific settings
-    cfg.SetPath(lang)                
+    cfg.SetPath(lang)
     styleIdNames = eval(cfg.Read('styleidnames'))
     assert type(commonStyleIdNames) is type({}), \
           'Not a valid dict [%s] styleidnames)'%lang
@@ -1044,7 +1066,7 @@ def initFromConfig(configFile, lang):
     braceInfo = eval(cfg.Read('braces'))
     assert type(commonStyleIdNames) is type({}), \
           'Not a valid dict [%s] braces)'%lang
-    
+
     displaySrc = cfg.Read('displaysrc')
     lexer = eval(cfg.Read('lexer'))
     keywords = cfg.Read('keywords')
@@ -1054,7 +1076,7 @@ def initFromConfig(configFile, lang):
     # read in current styles
     styles = readStylesFromConfig(cfg, groupPrefix)
 
-    # read in predefined styles 
+    # read in predefined styles
     predefStyleGroups = {}
     for group in predefStyleGroupNames:
         predefStyleGroups[group] = readStylesFromConfig(cfg, group)
@@ -1063,14 +1085,14 @@ def initFromConfig(configFile, lang):
     otherLangStyleGroups = {}
     for group in otherLangStyleGroupNames:
         otherLangStyleGroups[group] = readStylesFromConfig(cfg, group)
-    
-    return (cfg, commonDefs, styleIdNames, styles, predefStyleGroupNames, 
+
+    return (cfg, commonDefs, styleIdNames, styles, predefStyleGroupNames,
             predefStyleGroups, otherLangStyleGroupNames, otherLangStyleGroups,
             displaySrc, lexer, keywords, braceInfo)
 
 def readStylesFromConfig(config, group):
     config.SetPath('')
-    config.SetPath(group)                
+    config.SetPath(group)
     styles = []
     cont, val, idx = config.GetFirstEntry()
     while cont:
@@ -1094,10 +1116,10 @@ def writeStylesToConfig(config, group, styles):
 #-------------------------------------------------------------------------------
 def initSTC(stc, config, lang):
     """ Main module entry point. Initialise a wxSTC from given config file."""
-    (cfg, commonDefs, styleIdNames, styles, predefStyleGroupNames, 
+    (cfg, commonDefs, styleIdNames, styles, predefStyleGroupNames,
      predefStyleGroups, otherLangStyleGroupNames, otherLangStyleGroups,
      displaySrc, lexer, keywords, braceInfo) = initFromConfig(config, lang)
-    
+
     setSTCStyles(stc, styles, styleIdNames, commonDefs, lang, lexer, keywords)
 
 #-------------------------------------------------------------------------------
@@ -1106,7 +1128,6 @@ if __name__ == '__main__':
     home = os.environ.get('HOME')
     if home: home = os.path.join(home, '.boa')
     config = os.path.abspath(os.path.join(home, 'stc-styles.rc.cfg'))
-    
     if 0:
         f = wxFrame(None, -1, 'Test frame (double click for editor)')
         stc = wxStyledTextCtrl(f, -1)
@@ -1120,13 +1141,13 @@ if __name__ == '__main__':
         f.Show(true)
         app.MainLoop()
     else:
-        dlg = STCStyleEditDlg(None, 
+        dlg = STCStyleEditDlg(None,
             'Python', 'python',
             #'HTML', 'html',
             #'XML', 'xml',
-            #'C++', 'cpp',  
-            #'Text', 'text',  
-            #'Properties', 'prop',  
+            #'C++', 'cpp',
+            #'Text', 'text',
+            #'Properties', 'prop',
             config)
         try: dlg.ShowModal()
         finally: dlg.Destroy()
