@@ -28,6 +28,8 @@ bdb.__traceable__ = 0
 class DebugError(Exception):
     """Incorrect operation of the debugger"""
 
+class BreakpointError(DebugError):
+    """Incorrect operation on a breakpoint"""
 
 
 class DebuggerConnection:
@@ -138,9 +140,17 @@ class DebuggerConnection:
         self._ds.conditionalBreakpoints(filename, lineno, cond)
 
     def clearBreakpoints(self, filename, lineno):
-        """Clears all breakpoints on a line.  Non-blocking and immediate.
+        """Clears all breakpoints on a line.  
+        Non-blocking and immediate.
         """
         self._ds.clearBreakpoints(filename, lineno)
+
+    def adjustBreakpoints(self, filename, lineno, delta):
+        """Moves all applicable breakpoints when delta lines are added or 
+        deleted.  
+        Non-blocking and immediate.
+        """
+        self._ds.adjustBreakpoints(filename, lineno, delta)
 
     ### Blocking methods.
 
@@ -761,7 +771,7 @@ class DebugServer (Bdb):
         bp = self.set_break(filename, lineno, temporary, cond)
         if type(bp) == type(''):
             # Note that checking for string type is strange. Argh.
-            raise DebugError(bp)
+            raise BreakpointError(bp)
         elif bp is not None and not enabled:
             bp.disable()
         bp.ignore = ignore
@@ -781,7 +791,6 @@ class DebugServer (Bdb):
         Non-blocking.
         """
         bps = self.get_breaks(filename, lineno)
-        print 'ignoreBreakpoints', filename, self.breaks.keys(), bps
         if bps:
             for bp in bps:
                 bp.ignore = ignore
@@ -796,11 +805,42 @@ class DebugServer (Bdb):
                 bp.cond = cond
 
     def clearBreakpoints(self, filename, lineno):
-        """Clears all breakpoints on a line.  Non-blocking.
+        """Clears all breakpoints on a line.
+        Non-blocking.
         """
         msg = self.clear_break(filename, lineno)
         if msg is not None:
-            raise DebugError(msg)
+            raise BreakpointError(msg)
+
+    def adjustBreakpoints(self, filename, lineno, delta):
+        """Moves all applicable breakpoints when delta lines are added or 
+        deleted. 
+        Non-blocking.
+        """
+        ## This can be more efficient, but for now sticking to the bdb interface
+        # Unfortunately this must be done on a low level
+        filename = self.canonic(filename)
+        breaklines = self.get_file_breaks(filename)
+        bplist = bdb.Breakpoint.bplist
+        set_breaks = []
+        # store reference and remove from (fn, ln) refed dict.
+        for line in breaklines[:]:
+            if line > lineno:
+                set_breaks.append(self.get_breaks(filename, line))
+                breaklines.remove(line)
+                del bplist[filename, line]
+        # put old break at new place and renumber
+        for brks in set_breaks:
+            for brk in brks:
+                brk.line = brk.line + delta
+                breaklines.append(brk.line)
+                # merge in moved breaks
+                if bplist.has_key((filename, brk.line)):
+                    bplist[filename, brk.line].append(brk)
+                else:
+                    bplist[filename, brk.line] = [brk]
+        # reorder lines
+        breaklines.sort()
 
     def getStackInfo(self):
         try:
@@ -878,7 +918,6 @@ class DebugServer (Bdb):
         rval = []
         for bps in bdb.Breakpoint.bplist.values():
             for bp in bps:
-                #filename = getattr(bp, 'orig_filename', bp.file)
                 filename = bp.file  # Already canonic
                 rval.append({'filename':filename,
                              'lineno':bp.line,

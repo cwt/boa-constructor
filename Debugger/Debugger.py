@@ -1179,6 +1179,11 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
         self.invokeInDebugger('clearBreakpoints', (fn, lineno))
         self.breakpts.refreshList()
 
+    def adjustBreakpoints(self, filename, lineno, delta):
+        fn = self.clientFNToServerFN(filename)
+        self.invokeInDebugger('adjustBreakpoints', (fn, lineno, delta))
+        self.breakpts.refreshList()
+
     def setBreakpoint(self, filename, lineno, tmp):
         fn = self.clientFNToServerFN(filename)
         self.invokeInDebugger('addBreakpoint', (fn, lineno, tmp))
