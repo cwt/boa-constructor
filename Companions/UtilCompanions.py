@@ -170,7 +170,7 @@ class MenuDTC(MenuConstr, UtilityDTC):
         return props
 
     def designTimeSource(self):
-        return {'title': `self.name`}
+        return {'title': `''`}
 
     def hideDesignTime(self):
         return ['NextHandler', 'PreviousHandler', 'EventHandler', 'Id',
