@@ -14,7 +14,7 @@ import sys
 
 logFontSize = 7
 srchCtrlOffset = 0
-paletteHeight = 140
+paletteHeight = 118
 
 windowManagerTop = 0
 windowManagerBottom = 0

@@ -11,7 +11,7 @@
 #----------------------------------------------------------------------
 logFontSize = 10
 srchCtrlOffset = 0
-paletteHeight = 125
+paletteHeight = 120
 
 braceHighLight = 0
 
