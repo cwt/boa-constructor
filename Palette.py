@@ -40,41 +40,57 @@ class NewPackageEvent(wxPyEvent):
         wxPyEvent.__init__(self)
         self.SetEventType(wxEVT_NEW_PACKAGE)
 
-[wxID_CONTEXTSEARCH] = map(lambda _init_actions: wxNewId(), range(1))
+[wxID_BOAFRAME, wxID_BOAFRAMECONTEXTHELPSEARCH, wxID_BOAFRAMEPALETTE, wxID_BOAFRAMETOOLBAR] = map(lambda _init_ctrls: wxNewId(), range(4))
 
-[wxID_BOAFRAME] = map(lambda _init_ctrls: wxNewId(), range(1))
+[wxID_BOAFRAMETOOLBARTOOLS0, wxID_BOAFRAMETOOLBARTOOLS1, wxID_BOAFRAMETOOLBARTOOLS2] = map(lambda _init_coll_toolBar_Tools: wxNewId(), range(3))
 
 class BoaFrame(wxFrame):
+    def _init_coll_toolBar_Tools(self, parent):
+
+        parent.AddTool(bitmap = IS.load('Images/Shared/Inspector.bmp'), id = wxID_BOAFRAMETOOLBARTOOLS0, isToggle = false, longHelpString = '', pushedBitmap = wxNullBitmap, shortHelpString = 'Brings the Inspector to the front')
+        parent.AddTool(bitmap = IS.load('Images/Shared/Editor.bmp'), id = wxID_BOAFRAMETOOLBARTOOLS1, isToggle = false, longHelpString = '', pushedBitmap = wxNullBitmap, shortHelpString = 'Brings the Editor to the front')
+        parent.AddTool(bitmap = IS.load('Images/Shared/ClassBrowser.bmp'), id = wxID_BOAFRAMETOOLBARTOOLS2, isToggle = false, longHelpString = '', pushedBitmap = wxNullBitmap, shortHelpString = 'Opens the Class explorer for wxPython')
+        EVT_TOOL(self, wxID_BOAFRAMETOOLBARTOOLS0, self.OnInspectorToolClick)
+        EVT_TOOL(self, wxID_BOAFRAMETOOLBARTOOLS1, self.OnEditorToolClick)
+        EVT_TOOL(self, wxID_BOAFRAMETOOLBARTOOLS2, self.OnExplorerToolClick)
+
+        parent.Realize()
+
     def _init_utils(self):
         pass
 
     def _init_ctrls(self, prnt):
-        wxFrame.__init__(self, size = (-1, -1), id = wxID_BOAFRAME, title = 'Boa Constructor - Python IDE & wxPython GUI Builder', parent = prnt, name = '', style = wxDEFAULT_FRAME_STYLE, pos = (-1, -1))
+        wxFrame.__init__(self, id = wxID_BOAFRAME, name = '', parent = prnt, pos = wxPoint(116, 275), size = wxSize(645, 130), style = wxDEFAULT_FRAME_STYLE, title = 'Boa Constructor - Python IDE & wxPython GUI Builder')
+        self._init_utils()
+        EVT_CLOSE(self, self.OnCloseWindow)
+
+        self.toolBar = wxToolBar(id = wxID_BOAFRAMETOOLBAR, name = 'toolBar', parent = self, pos = wxPoint(0, -28), size = wxSize(637, 28), style = wxTB_HORIZONTAL | wxNO_BORDER | Preferences.flatTools)
+        self._init_coll_toolBar_Tools(self.toolBar)
+        self.SetToolBar(self.toolBar)
+
+        self.palette = wxNotebook(id = wxID_BOAFRAMEPALETTE, name = 'palette', parent = self, pos = wxPoint(0, 0), size = wxSize(637, 75), style = 0)
+
+        self.contextHelpSearch = wxTextCtrl(id = wxID_BOAFRAMECONTEXTHELPSEARCH, name = 'contextHelpSearch', parent = self.toolBar, pos = wxPoint(232, 0), size = wxSize(100, 21), style = 0, value = '')
+        EVT_TEXT_ENTER(self.contextHelpSearch, wxID_BOAFRAMECONTEXTHELPSEARCH, self.OnSearchEnter)
+        EVT_SET_FOCUS(self.contextHelpSearch, self.OnHelpSearchFocus)
 
     def __init__(self, parent, id, app):
-
         self._init_ctrls(parent)
-        self._init_utils()
 
         self.SetDimensions(0, 0, Preferences.screenWidth - Preferences.windowManagerSide * 2, Preferences.paletteHeight)
 
         self.app = app
         self.destroying = false
 
-#        self.splitter = wxSplitterWindow(self, -1, style = wxSP_NOBORDER)
-
         self.widgetSet = {}
         if wxPlatform == '__WXMSW__':
             self.SetIcon(IS.load('Images/Icons/Boa.ico'))
 
-        # Setup toolbar
         self.browser = None
-        self.toolBar = wxToolBar(self, -1, style = wxTB_HORIZONTAL|wxNO_BORDER|flatTools)
-        self.SetToolBar(self.toolBar)
 
-        self.addTool('Images/Shared/Inspector', 'Inspector', 'Brings the Inspector to the front', self.OnInspectorToolClick)
-        self.addTool('Images/Shared/Editor', 'Editor', 'Brings the Editor to the front', self.OnEditorToolClick)
-        self.addTool('Images/Shared/ClassBrowser', 'ClassExplorer', 'Opens the Class explorer for wxPython', self.OnExplorerToolClick)
+##        self.addTool('Images/Shared/Inspector', 'Inspector', 'Brings the Inspector to the front', self.OnInspectorToolClick)
+##        self.addTool('Images/Shared/Editor', 'Editor', 'Brings the Editor to the front', self.OnEditorToolClick)
+##        self.addTool('Images/Shared/ClassBrowser', 'ClassExplorer', 'Opens the Class explorer for wxPython', self.OnExplorerToolClick)
         self.toolBar.AddSeparator()
         self.addTool('Images/Shared/Preferences', 'Preferences', 'Set preferences (not implemented)', self.OnPrefsToolClick)
         self.toolBar.AddSeparator()
@@ -100,10 +116,6 @@ class BoaFrame(wxFrame):
             EVT_TOOL(self, mID, self.OnCustomHelpToolClick)
             self.customHelpItems[mID] = (caption, helpFile)
 
-        self.contextHelpSearch = wxTextCtrl(self.toolBar, wxID_CONTEXTSEARCH)
-        EVT_TEXT_ENTER(self, wxID_CONTEXTSEARCH, self.OnSearchEnter)
-        EVT_SET_FOCUS(self.contextHelpSearch, self.OnHelpSearchFocus)
-
         self.toolBar.AddControl(self.contextHelpSearch)
 
         if wxPlatform == '__WXGTK__':
@@ -111,10 +123,6 @@ class BoaFrame(wxFrame):
             self.addTool('Images/Shared/CloseWindow', 'Exit', '', self.OnCloseClick)
         self.toolBar.AddSeparator()
         self.toolBar.Realize()
-
-#        print 'adding pages'
-        # Setup palette
-        self.palette = wxNotebook(self, -1)
 
         self.palettePages = []
         self.senders = sender.SenderMapper()
@@ -135,7 +143,6 @@ class BoaFrame(wxFrame):
         self.contextHelpSearch.SetFocus()
 
         EVT_NEW_PACKAGE(self, self.OnNewPackage)
-        EVT_CLOSE(self, self.OnCloseWindow)
 
     def buildPalette(self):
 
@@ -208,16 +215,6 @@ class BoaFrame(wxFrame):
 ##        self.templates.InsertStringItem(0, 'Menu/Toolbar/StatusBar')
 ##        self.templates.InsertStringItem(0, 'Wizard')
 ##        self.templates.Enable(false)
-
-
-##        self.log = wxTextCtrl(self.splitter, -1, '', style = wxTE_MULTILINE | \
-##          wxTE_RICH | wxVSCROLL)
-##        self.log.SetFont(wxFont(logFontSize, wxSWISS, wxNORMAL, wxNORMAL, false))
-##
-##        self.splitter.SetMinimumPaneSize(0)
-##        self.splitter.SplitVertically(self.palette, self.log)
-##        self.splitter.SetSashPosition(Preferences.screenWidth)
-##
 
     def addTool(self, filename, text, help, func, toggle = false):
         mID = wxNewId()
@@ -335,8 +332,7 @@ class BoaFrame(wxFrame):
         if not self.browser:
             wxBeginBusyCursor()
             try:
-                self.browser = ClassBrowser.ClassBrowserFrame(self, -1,
-                     'wxPython Class explorer')
+                self.browser = ClassBrowser.ClassBrowserFrame(self)
             finally:
                 wxEndBusyCursor()
         self.browser.Show(true)
@@ -396,7 +392,6 @@ class BoaFrame(wxFrame):
         self.contextHelpSearch.SetSelection(0,
               len(self.contextHelpSearch.GetValue()))
         event.Skip()
-
 
 class ComponentSelection:
     """ Controls the selection of the palette and access to associated
