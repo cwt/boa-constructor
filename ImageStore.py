@@ -23,7 +23,7 @@ class ImageStore:
         self.useCache = cache
     
     def cleanup(self):
-        del self.images
+        self.images = {}
 
     def createImage(self, filename, ext):
         if ext == '.bmp':
@@ -49,15 +49,20 @@ class ImageStore:
             return self.createImage(path.join(self.rootpath, name),
                   path.splitext(name)[1])
 
-
 class ZippedImageStore(ImageStore):
     def __init__(self, rootpath, defaultArchive, images = None):
         ImageStore.__init__(self, rootpath, images)
         self.archives = {}
         self.addArchive(defaultArchive)
+        # XXX do not erase tempfiles until app exits, but then crashes will leak 
+        #self.tempfiles = {}
+
+    def cleanup(self):
+        #ImageStore.cleanup(self)
+        self.zipfile.close()
 
     def addArchive(self, defaultArchive):
-        import zipfile, tempfile
+        import zipfile
         zf = zipfile.ZipFile(path.join(self.rootpath, defaultArchive))
         self.archives[defaultArchive] = map(lambda fl: fl.filename, zf.filelist)
 
@@ -68,25 +73,28 @@ class ZippedImageStore(ImageStore):
             imgExt = path.splitext(img)[1]
             bmpPath = path.join(path.splitext(defaultArchive)[0],
                   os.path.normpath(img))
-
-            tmpname = tempfile.mktemp()
-            open(tmpname, 'w').write(zf.read(img))
-            try:
-                if not self.images.has_key(bmpPath):
-                    try:
-                        self.images[bmpPath] = self.createImage(tmpname, imgExt)
-                    except Exception, error:
-                        print 'Ext not handled', bmpPath, str(error)
-            finally:
-                os.remove(tmpname)
-
-        zf.close()
+    
+            self.images[bmpPath] = (img, imgExt)
+            
+        self.zipfile = zf
 
     def load(self, name):
+        import tempfile
         name = path.normpath(name)
         try:
-            return self.images[name]
+            img, imgExt = self.images[name]
         except KeyError:
             print name, 'not found by zipped image store'
             return wx.wxNullBitmap
+        else:
+            tmpname = tempfile.mktemp()
+            open(tmpname, 'wb').write(self.zipfile.read(img))
+            try:
+                try:
+                    return self.createImage(tmpname, imgExt)
+                except Exception, error:
+                    print 'Image creation failed', name, str(error)
+                    return wx.wxNullBitmap
+            finally:
+                os.remove(tmpname)
      
