@@ -7,7 +7,7 @@
 # Created:     1999
 # RCS-ID:      $Id$
 # Copyright:   Changes (c) 1999 - 2003 Riaan Booysen
-# Licence:     GPL
+# Licence:     Python
 #----------------------------------------------------------------------
 
 """Parse one Python file and retrieve classes, methods, functions,
