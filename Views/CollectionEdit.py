@@ -229,8 +229,10 @@ class CollectionEditorView(Designer.InspectableObjectCollectionView):
 
         # add method to source
         if hasCode(newBody):
-            self.model.module.addMethod(self.model.main, 
-              self.collectionMethod, self.collectionParams, newBody, 0)
+            module = self.model.getModule()
+            module.addMethod(
+                self.model.main, self.collectionMethod,
+                self.collectionParams, newBody, 0)
         # or remove references to it in other object collections
         else:
             self.model.objectCollections[self.companion.designer.collectionMethod].\

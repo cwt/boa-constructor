@@ -472,16 +472,24 @@ class ModuleModel(EditorModel):
         EditorModel.load(self, false)
         self.update()
         if notify: self.notify()
+
+    def getModule(self):
+        if self._module is None:
+            t1 = time()
+            self._module = moduleparse.Module(
+                self.moduleName, string.split(self.data, '\012'))
+            t2 = time()
+            print 'parse module', t2 - t1
+        return self._module
         
     def initModule(self):
-        t1 = time()
-        self.module = moduleparse.Module(self.moduleName, string.split(self.data, '\012'))
-        t2 = time()
-#        print 'parse', t2 - t1
+        # Don't parse the module until it's needed.
+        self._module = None
         
     def refreshFromModule(self):
-        """ Must call this method to apply changes were made to module object. """
-        self.data = string.join(self.module.source, '\012')#os.linesep)
+        """ Must call this method to apply changes made
+        to the module object. """
+        self.data = string.join(self.getModule().source, '\012')#os.linesep)
         self.notify()
     
     def renameClass(self, oldname, newname):
@@ -686,24 +694,24 @@ class ClassModel(ModuleModel):
         ModuleModel.__init__(self, data, name, editor, saved, app)
     
     def renameMain(self, oldName, newName):
-        self.module.renameClass(oldName, newName)
+        self.getModule().renameClass(oldName, newName)
         self.main = newName
 
         idx = 0
-        for line in self.module.source:
+        for line in self.getModule().source:
             if line:
                 if line[0] != '#': break
                 
                 header = string.split(string.strip(line), ':')
                 if (len(header) == 3) and (header[0] == boaIdent):
-                    self.module.source[idx] = string.join((header[0], header[1], newName), ':')
+                    self.getModule().source[idx] = string.join((header[0], header[1], newName), ':')
                     break
             else: break
             idx = idx + 1
 
-##        header = string.split(string.strip(self.module.source[0]), ':')
+##        header = string.split(string.strip(self.getModule().source[0]), ':')
 ##        if (len(header) == 3) and (header[0] == '#Boa'):
-##            self.module.source[0] = string.join((header[0], header[1], newName), ':')
+##            self.getModule().source[0] = string.join((header[0], header[1], newName), ':')
 
 class ObjectCollection:
     def __init__(self):#, creators = [], properties = [], events = [], collections = []):
@@ -841,8 +849,8 @@ class BaseFrameModel(ClassModel):
 
     def renameMain(self, oldName, newName):
         ClassModel.renameMain(self, oldName, newName)
-        if self.module.functions.has_key('create'):
-            self.module.replaceFunctionBody('create', 
+        if self.getModule().functions.has_key('create'):
+            self.getModule().replaceFunctionBody('create', 
                   ['    return %s(parent)'%newName, ''])
 
     def renameCtrl(self, oldName, newName):
@@ -868,8 +876,9 @@ class BaseFrameModel(ClassModel):
     
     def identifyCollectionMethods(self):
         results = []
-        if self.module.classes.has_key(self.main):
-            main = self.module.classes[self.main]
+        module = self.getModule()
+        if module.classes.has_key(self.main):
+            main = module.classes[self.main]
             for meth in main.methods.keys():
                 print meth, 
                 if len(meth) > len('_init_') and meth[:6] == '_init_':
@@ -930,11 +939,12 @@ class BaseFrameModel(ClassModel):
     def readComponents(self):
         """ Setup object collection dict by parsing all designer controlled methods """
         self.objectCollections = {}
-        if self.module.classes.has_key(self.main):
-            main = self.module.classes[self.main]
+        module = self.getModule()
+        if module.classes.has_key(self.main):
+            main = module.classes[self.main]
             for oc in self.identifyCollectionMethods(): 
                 codeSpan = main.methods[oc]
-                codeBody = self.module.source[codeSpan.start : codeSpan.end]
+                codeBody = module.source[codeSpan.start : codeSpan.end]
 
                 # XXX This should not be necessary
                 if oc[:11] == init_ctrls and \
@@ -952,12 +962,13 @@ class BaseFrameModel(ClassModel):
         # find windowids in source
         winIdIdx = -1
         reWinIds = re.compile(srchWindowIds % colMeth)
-        for idx in range(len(self.module.source)):
-            match = reWinIds.match(self.module.source[idx])
+        module = self.getModule()
+        for idx in range(len(module.source)):
+            match = reWinIds.match(module.source[idx])
             if match:
-                del self.module.source[idx]
-                del self.module.source[idx]
-                self.module.renumber(-2, idx)
+                del module.source[idx]
+                del module.source[idx]
+                module.renumber(-2, idx)
                 break
 
     def writeWindowIds(self, colMeth, companions):
@@ -967,8 +978,9 @@ class BaseFrameModel(ClassModel):
         # find windowids in source
         winIdIdx = -1
         reWinIds = re.compile(srchWindowIds % colMeth)
-        for idx in range(len(self.module.source)):
-            match = reWinIds.match(self.module.source[idx])
+        module = self.getModule()
+        for idx in range(len(module.source)):
+            match = reWinIds.match(module.source[idx])
             if match:
                 winIdIdx = idx
                 break
@@ -985,14 +997,14 @@ class BaseFrameModel(ClassModel):
         if winIdIdx == -1:
             if lst:
                 # No window id definitions could be found add one above class def
-                insPt = self.module.classes[self.main].block.start - 1
-                self.module.source[insPt:insPt] = \
+                insPt = module.classes[self.main].block.start - 1
+                module.source[insPt:insPt] = \
                   [string.strip(defWindowIds % (string.join(lst, ', '), colMeth, 
                   len(lst))), '']
-                self.module.renumber(2, insPt)
+                module.renumber(2, insPt)
         else:
 	    # Update window ids
-	    self.module.source[idx] = \
+	    module.source[idx] = \
 	      string.strip(defWindowIds % (string.join(lst, ', '), colMeth, len(lst)))
 	    
     def update(self):
@@ -1082,7 +1094,7 @@ class AppModel(ClassModel):
 
     def renameMain(self, oldName, newName):
         ClassModel.renameMain(self, oldName, newName)
-        self.module.replaceFunctionBody('main', 
+        self.getModule().replaceFunctionBody('main', 
           ['    application = %s(0)'%newName, '    application.MainLoop()', ''])
 
     def new(self, mainModule):
@@ -1119,11 +1131,12 @@ class AppModel(ClassModel):
             self.moduleModels[name], main = identifyFile(absPath)
         else:
             if self.editor.modules.has_key(absPath):
-                self.moduleModels[name], main = identifySource( \
-                  self.editor.modules[absPath].model.module.source)
+                self.moduleModels[name], main = identifySource(
+                    self.editor.modules[absPath].model.getModule().source)
             elif self.editor.modules.has_key(path.basename(absPath)):
-                self.moduleModels[name], main = identifySource( \
-                  self.editor.modules[path.basename(absPath)].model.module.source)
+                self.moduleModels[name], main = identifySource(
+                    self.editor.modules[path.basename(absPath)
+                                        ].model.getModule().source)
             else:
                 print 'could not find unsaved module', absPath, self.editor.modules
 
@@ -1259,10 +1272,10 @@ class AppModel(ClassModel):
                 data = f.read()
                 f.close()
                 model = ModuleModel(data, module[2], self.editor, 1)
-                relationships[moduleName] = model.module#.imports
+                relationships[moduleName] = model.getModule() #.imports
             
-            totLOC = totLOC + model.module.loc
-            classCnt = classCnt + len(model.module.classes)
+            totLOC = totLOC + model.getModule().loc
+            classCnt = classCnt + len(model.getModule().classes)
         
         print 'Project LOC', totLOC
         print 'Class count', classCnt

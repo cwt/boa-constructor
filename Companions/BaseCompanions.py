@@ -375,9 +375,10 @@ class DesignTimeCompanion(Companion):
             if evt.trigger_meth != '(delete)':
                 output.append(bodyIndent + evt.asText())
                 model = self.designer.model
-                if addModuleMethod and not model.module.classes[\
-                      model.main].methods.has_key(evt.trigger_meth):
-                    model.module.addMethod(model.main, evt.trigger_meth, 
+                module = model.getModule()
+                if addModuleMethod and not module.classes[
+                    model.main].methods.has_key(evt.trigger_meth):
+                    module.addMethod(model.main, evt.trigger_meth, 
                           'self, event', ['        pass'])
 
     def writeCollections(self, output, collDeps):

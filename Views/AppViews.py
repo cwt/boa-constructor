@@ -302,8 +302,9 @@ class AppModuleDocView(ModuleDocView):
 
     def genModuleSect(self, page):
         classList, classNames = self.genClassListSect()
+        module = self.model.getModule()
         modBody = wxwAppModuleTemplate % { \
-          'ModuleSynopsis': self.model.module.getModuleDoc(),
+          'ModuleSynopsis': module.getModuleDoc(),
           'Module': self.model.moduleName,
           'ModuleList': self.genModuleListSect()[0],
           'ClassList': classList,
