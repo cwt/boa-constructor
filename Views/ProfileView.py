@@ -55,8 +55,8 @@ class ProfileStatsView(ListCtrlView, ClosableViewMix):
         
         self.sortAscend = false
         self.sortCol = 0
-	self.all_callees = None
-	
+        self.all_callees = None
+
         self.active = true
         self.stats = None
     
@@ -125,7 +125,7 @@ class ProfileStatsView(ListCtrlView, ClosableViewMix):
                     all_callees[func2] = {}
                 all_callees[func2][func] = callers[func2]
         return
-	
+
     def refreshCtrl(self):
         ListCtrlView.refreshCtrl(self)
         if self.stats:
@@ -227,8 +227,8 @@ class ProfileStatsView(ListCtrlView, ClosableViewMix):
         else:
             self.sortAscend = not self.sortAscend
 
-	self.sortCol = event.m_col
-	            
+        self.sortCol = event.m_col
+
         if event.m_col in (0, 1, 2):
             self.SortItems(self.sortFunction)
         elif event.m_col == 3:

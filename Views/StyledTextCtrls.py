@@ -252,7 +252,10 @@ class PythonStyledTextCtrlMix:
                 charBefore = self.GetCharAt(caretPos - 1)
                 styleBefore = ord(self.GetStyleAt(caretPos - 1))
             else:
-                charBefore = chr(self.GetCharAt(caretPos - 1))
+                try:
+                    charBefore = chr(self.GetCharAt(caretPos - 1))
+                except ValueError:
+                    charBefore = ''
                 styleBefore = self.GetStyleAt(caretPos - 1)
 
         # check before
@@ -265,7 +268,10 @@ class PythonStyledTextCtrlMix:
                 charAfter = self.GetCharAt(caretPos)
                 styleAfter = ord(self.GetStyleAt(caretPos))
             else:
-                charAfter = chr(self.GetCharAt(caretPos))
+                try:
+                    charAfter = chr(self.GetCharAt(caretPos))
+                except ValueError:
+                    charAfter = ''
                 styleAfter = self.GetStyleAt(caretPos)
 
             if charAfter and charAfter in "[]{}()" and styleAfter == 10:
@@ -477,7 +483,7 @@ class HTMLStyledTextCtrlMix:
         'text password checkbox radio submit reset '\
         'file hidden image '
         
-        zope_elements = 'dtml-var dtml-in dtml-if '
+        zope_elements = 'dtml-var dtml-in dtml-if dtml-with '
         
         self.SetLexer(wxSTC_LEX_HTML)
         if old_stc:
