@@ -6,7 +6,7 @@
 #
 # Created:     2000
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999 - 2001 Riaan Booysen
+# Copyright:   (c) 1999 - 2003 Riaan Booysen
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 #Boa:Frame:CollectionEditor
@@ -98,6 +98,14 @@ class CollectionEditor(wxFrame, Utils.FrameRestorerMixin):
         EVT_MENU(self, wId, self.OnRefresh)
         acclst.append( (keyDefs['Refresh'][0], keyDefs['Refresh'][1], wId) )
         self.toolLst.append(wId)
+
+        wId = wxNewId()
+        EVT_MENU(self, wId, self.OnSwitchToInspector)
+        acclst.append( (keyDefs['Inspector'][0], keyDefs['Inspector'][1], wId) )
+
+        wId = wxNewId()
+        EVT_MENU(self, wId, self.OnSwitchToDesigner)
+        acclst.append( (keyDefs['Designer'][0], keyDefs['Designer'][1], wId) )
 
         self.SetAcceleratorTable(wxAcceleratorTable(acclst))
 
@@ -235,6 +243,14 @@ class CollectionEditor(wxFrame, Utils.FrameRestorerMixin):
 
     def OnMoreNewItemClick(self, event):
         print self.additIds[event.GetId()]
+
+    def OnSwitchToInspector(self, event):
+        self.collEditView.model.editor.inspector.restore()
+
+    def OnSwitchToDesigner(self, event):
+        # XXX Should switch to data view
+        if self.collEditView.model.views.has_key('Designer'):
+            self.collEditView.model.views['Designer'].restore()
 
 class ImageListCollectionEditor(CollectionEditor):
     def __init__(self, parent, collEditView):
