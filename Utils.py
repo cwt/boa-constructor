@@ -506,6 +506,11 @@ def getEntireWxNamespace():
     return namespace
 
 class FrameRestorerMixin:
+    """ Used by top level windows to restore from gidden or iconised state
+    and to load and persist window dimensions 
+    
+    Classes using the mixin mus define self.setDefaultDimensions()
+    """
     confFile = 'Explorer'
     confSection = 'windowdims'
 
@@ -515,17 +520,27 @@ class FrameRestorerMixin:
             self.Iconize(false)
         self.Raise()
 
+    def setDimensions(self, dims):
+        apply(self.SetDimensions, dims)        
+
+    def getDimensions(self):
+        return self.GetPosition().asTuple() + self.GetSize().asTuple()        
+
     def loadDims(self):
         conf = createAndReadConfig(self.confFile)
-        dims = eval(conf.get(self.confSection , self.winConfOption))
+        if not conf.has_option(self.confSection, self.winConfOption):
+            dims = None
+        else:
+            dims = eval(conf.get(self.confSection , self.winConfOption))
+
         if dims:
-            apply(self.SetDimensions, dims)
+            self.setDimensions(dims)
         else:
             self.setDefaultDimensions()
 
     def saveDims(self, dims=()):
         if dims == ():
-            dims = self.GetPosition().asTuple() + self.GetSize().asTuple()
+            dims = self.getDimensions()
         conf = createAndReadConfig(self.confFile)
         conf.set(self.confSection, self.winConfOption, `dims`)
         writeConfig(conf)

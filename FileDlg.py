@@ -34,9 +34,11 @@ htmlCurrItem = '''<b><font color="#0000BB">%s</font></b>'''
 
 [wxID_WXBOAFILEDIALOG, wxID_WXBOAFILEDIALOGBTCANCEL, wxID_WXBOAFILEDIALOGBTOK, wxID_WXBOAFILEDIALOGCHTYPES, wxID_WXBOAFILEDIALOGHTMLWINDOW1, wxID_WXBOAFILEDIALOGSTATICTEXT1, wxID_WXBOAFILEDIALOGSTATICTEXT2, wxID_WXBOAFILEDIALOGTCFILENAME] = map(lambda _init_ctrls: wxNewId(), range(8))
 
-class wxBoaFileDialog(wxDialog):
+class wxBoaFileDialog(wxDialog, Utils.FrameRestorerMixin):
     currentDir = '.'
     _lastSize = None
+    _fileListCtrlSize = (384, 152)
+    _dialogClientSize = (400, 256)
     _custom_classes = {'wxHtmlWindow': ['wxUrlClickHtmlWindow']}
     def _init_utils(self):
         pass
@@ -107,11 +109,11 @@ class wxBoaFileDialog(wxDialog):
         EVT_HTML_URL_CLICK(self.htmlWindow1, self.OnHtmlPathClick)
 
         self.lcFiles = createFileDlgFolderListClass()(self, self,
-              defaultDir, pos = wxPoint(8, 21), size = wxSize(384, 152))
+              defaultDir, pos = wxPoint(8, 21), size = self._fileListCtrlSize)
         self.lcFiles.SetConstraints(LayoutAnchors(self.lcFiles, true, true, true, true))
 
-        if self._lastSize:
-            self.SetClientSize(self._lastSize)
+        self.winConfOption = 'filedialog'
+        self.loadDims()
 
         EVT_LEFT_DCLICK(self.lcFiles, self.OnOpen)
 
@@ -139,6 +141,18 @@ class wxBoaFileDialog(wxDialog):
 
     #def OnSize(self, event):
     #    self.Layout()
+
+    def setDimensions(self, dims):
+        self.SetClientSize(dims)        
+
+    def getDimensions(self):
+        return self.GetClientSize()
+    
+    def setDefaultDimensions(self):
+        if self._lastSize:
+            self.SetClientSize(self._lastSize)
+        else:
+            self.SetClientSize(self._dialogClientSize)
 
     def Destroy(self):
         self.htmlBackCol = None
@@ -230,6 +244,7 @@ class wxBoaFileDialog(wxDialog):
             dir = self.GetDirectory()
             wxBoaFileDialog.currentDir = dir
             wxBoaFileDialog._lastSize = self.GetClientSize()
+            self.saveDims()
             self.EndModal(wxID_OK)
 
     def OnOpen(self, event):
