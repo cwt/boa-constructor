@@ -26,8 +26,6 @@ from Preferences import IS, staticInfoPrefs
 from Utils import BoaFileDropTarget
 from PrefsKeys import keyDefs
 
-# XXX Add close option to source
-
 wxwHeaderTemplate ="""<html>
 <head>
    <title>%(Title)s</title>
@@ -196,8 +194,6 @@ class EditorView:
     def update(self):
         self.modified = true
         if self.active:
-##            try: self.refresh()
-##            except Exception, message: print Exception, message
             self.refresh()
 	
     def refresh(self):
@@ -210,7 +206,6 @@ class EditorView:
         self.model.notify()
     
     def focus(self, refresh = true):
-#        wxYield()
         self.notebook.SetSelection(self.pageIdx)
         if refresh: self.notebook.Refresh()
     
@@ -276,13 +271,7 @@ class HTMLView(wxHtmlWindow, EditorView):
 
     def generatePage(self):
         page = wxwHeaderTemplate % {'Title': self.title}
-        
         page = self.genCustomPage(page) + wxwFooterTemplate
-        
-##        f = open('tst.html', 'w')
-##        f.write(page)
-##        f.close()   
-        
         return page
 
     def genCustomPage(self, page):
@@ -378,9 +367,6 @@ class ClosableViewMix:
     def OnClose(self, event):
         del self.closingActionItems
         self.deleteFromNotebook('Source', self.tabName)
-        print 'closable view close', self.model.views[self.tabName], self
-#        del self.model.views[self.tabName]
-#        self.destroy()
 
 class CyclopsView(HTMLView, ClosableViewMix):
     viewName = 'Cyclops report'
@@ -389,8 +375,6 @@ class CyclopsView(HTMLView, ClosableViewMix):
         HTMLView.__init__(self, parent, model, ( ('-', -1, '', ()), ) + 
           self.closingActionItems)
 
-#          ('Save', self.OnSaveReport, self.saveAsBmp, ())))
-          
     def OnLinkClicked(self, linkinfo):
         """ classlink, attriblink """
         url = linkinfo.GetHref()
@@ -502,7 +486,6 @@ class ListCtrlView(wxListCtrl, EditorView):
     def sortColumn(self, itemIdx1, itemIdx2):
         item1 = self.GetItem(itemIdx1, self.sortCol)
         item2 = self.GetItem(itemIdx2, self.sortCol)
-#        print itemIdx1, itemIdx2, self.sortCol, item1.GetText() < item2.GetText(), item1.GetText() , item2.GetText()
         txt1, txt2 = item1.GetText(), item2.GetText()
         if txt1 < txt2: return -1
         if txt1 > txt2: return 1
@@ -521,7 +504,6 @@ class ListCtrlView(wxListCtrl, EditorView):
         self.selected = -1
     
     def OnColClick(self, event):
-#        print event.m_col, event.GetColumn()
         if event.m_col in self.sortOnColumns:
             self.sortCol = event.m_col
             self.SortItems(self.sortColumn)
@@ -594,9 +576,8 @@ class PackageView(ListCtrlView):
                 self.model.openFile(name)
 
 class InfoView(wxTextCtrl, EditorView):
-##    addInfoBmp = wxBitmap('Editor/Refresh.bmp', wxBITMAP_TYPE_BMP)
-
     viewName = 'Info'
+
     def __init__(self, parent, model):
         wxTextCtrl.__init__(self, parent, -1, '', style = wxTE_MULTILINE | wxTE_RICH | wxHSCROLL)
         EditorView.__init__(self, ('Add comment block to code', self.OnAddInfo, ()), 5)
@@ -691,7 +672,6 @@ class HierarchyView(wxTreeCtrl, EditorView):
         wxTreeCtrl.__init__(self, parent, id)
         EditorView.__init__(self, model, 
           (('Goto line', self.OnGoto, self.gotoLineBmp, ()),), 0)
-#          style = wxTR_HAS_BUTTONS | wxTR_LINES_AT_ROOT)# | wxTR_EDIT_LABELS)
 
         self.tokenImgLst = wxImageList(16, 16)
         self.tokenImgLst.Add(IS.load('Images/Views/Hierarchy/inherit.bmp'))

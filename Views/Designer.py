@@ -297,11 +297,15 @@ class InspectableObjectCollectionView(EditorViews.EditorView):
                 self.collEditors[(newName, prop)] = collEditor
 
     def saveEvts(self, compn, newBody):
+        """ For every event definition not defined in source add an empty
+            method to the bottom of the class """
+            
         for evt in compn.textEventList:
             if evt.trigger_meth != '(delete)':
                 newBody.append(bodyIndent + evt.asText())
                 if not self.model.module.classes[\
                   self.model.main].methods.has_key(evt.trigger_meth):
+                    print self.model.main, self.model.module.classes[self.model.main].extent
                     self.model.module.addMethod(self.model.main, 
                       evt.trigger_meth, 'self, event', ['        pass'])
 
@@ -314,7 +318,7 @@ class InspectableObjectCollectionView(EditorViews.EditorView):
         """ Replace current source of method in collectionMethod with values from
             constructors, properties and events. 
         """
-   
+
         newBody = []
         deps = {}
         depLinks = {}
