@@ -15,7 +15,7 @@ import os, string, time, dis
 from wxPython.wx import *
 from wxPython.stc import *
 
-import EditorViews, ProfileView, Search, Help, Preferences, ShellEditor, Utils
+import EditorViews, ProfileView, Search, Help, Preferences, Utils
 from StyledTextCtrls import PythonStyledTextCtrlMix, BrowseStyledTextCtrlMix, HTMLStyledTextCtrlMix, XMLStyledTextCtrlMix, FoldingStyledTextCtrlMix, CPPStyledTextCtrlMix, idWord, new_stc, old_stc, object_delim
 from PrefsKeys import keyDefs
 
@@ -352,7 +352,7 @@ class PythonDisView(EditorStyledTextCtrl, PythonStyledTextCtrlMix):#, BrowseStyl
             code = compile(self.model.data, self.model.filename, 'exec')
         except:
             oldOut = sys.stdout
-            sys.stdout = ShellEditor.PseudoFileOutStore()
+            sys.stdout = Utils.PseudoFileOutStore()
             try:
                 print "''' Code does not compile\n\n    Disassembly of Traceback:\n'''"
                 try:
@@ -364,7 +364,7 @@ class PythonDisView(EditorStyledTextCtrl, PythonStyledTextCtrlMix):#, BrowseStyl
                 sys.stdout = oldOut
 
         oldOut = sys.stdout
-        sys.stdout = ShellEditor.PseudoFileOutStore()
+        sys.stdout = Utils.PseudoFileOutStore()
         try:
             try:
                 dis.disco(code)
