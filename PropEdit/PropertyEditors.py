@@ -337,7 +337,7 @@ class IntConstrPropEdit(ConstrPropEdit):
                     self.value = self.getCtrlValue()
             except Exception, message:
                 self.value = self.getCtrlValue()
-                print 'invalid constr prop value', message
+                print 'invalid constr prop value', message, self.editorCtrl.getValue()
         else:
             self.value = self.getCtrlValue()
         return self.value
@@ -403,6 +403,11 @@ class EnumConstrPropEdit(IntConstrPropEdit):
 class BoolConstrPropEdit(EnumConstrPropEdit):
     def __init__(self, name, parent, companion, rootCompanion, propWrapper, idx, width, options, names):
         EnumConstrPropEdit.__init__(self, name, parent, companion, rootCompanion, propWrapper, idx, width, options, ['true', 'false'])
+
+    def inspectorEdit(self):
+        self.editorCtrl = CheckBoxIEC(self, self.value)
+        self.editorCtrl.createControl(self.parent, self.idx, self.width)
+        self.editorCtrl.setValue(self.value)
 
 class LCCEdgeConstrPropEdit(EnumConstrPropEdit):
     def getCtrlValue(self):
