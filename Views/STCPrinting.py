@@ -108,7 +108,7 @@ class STCPrintDlg(wxDialog):
         pdd.SetPrintData(self.printData)
         pdd.SetSetupDialog(true)
         printerDlg.ShowModal()
-        self.printData = pdd.GetPrintData()
+        self.printData = wxPrintData(pdd.GetPrintData())
         printerDlg.Destroy()
 
     def createSTCPrintout(self):
@@ -143,7 +143,7 @@ class STCPrintDlg(wxDialog):
         if not printer.Print(self.parentFrame, printout):
             wxLogError('An error occured while printing.')
         else:
-            self.printData = printer.GetPrintDialogData().GetPrintData()
+            self.printData = wxPrintData(printer.GetPrintDialogData().GetPrintData())
         printout.Destroy()
         
         self.EndModal(wxOK)
