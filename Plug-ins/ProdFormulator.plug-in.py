@@ -1,5 +1,11 @@
 import os, sys, string
 true=1;false=0
+
+import Preferences, Utils
+
+if not Utils.transportInstalled('ZopeLib.ZopeExplorer'):
+    raise Utils.SkipPlugin, 'Zope support is not enabled'
+
 #---Model-----------------------------------------------------------------------
 
 # Define new zope image and a Model for opening in the Editor
@@ -256,6 +262,7 @@ class FormulatorFieldNode(ZopeNode):
     Model = FormulatorFormModel
     def open(self, editor):
         editor.explorer.controllers['zope'].doInspectZopeItem(self)
+        return None, None
 
 zopeClassMap['Formulator Form'] = FormulatorFormNode
 

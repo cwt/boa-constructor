@@ -1,12 +1,17 @@
 from wxPython import wx
 
+import Preferences, Utils
+
+if not Utils.transportInstalled('ZopeLib.ZopeExplorer'):
+    raise Utils.SkipPlugin, 'Zope support is not enabled'
+
 from ZopeLib.ZopeCompanions import ZopeCompanion, DBAdapterZC
 from Models import EditorHelper, Controllers, XMLSupport, HTMLSupport
 from ZopeLib import ZopeEditorModels
 
 class PythonMethodZC(ZopeCompanion):
     def create(self):
-        mime, res = self.call(self.objPath, 
+        mime, res = self.call(self.objPath,
               '/manage_addProduct/PythonMethod/manage_addPythonMethod',
               id=self.name, title='', params='', body='pass')
 
@@ -21,13 +26,13 @@ Controllers.modelControllerReg[ZopePythonMethodModel] = ZopeEditorModels.ZopeCon
 
 class TransparentFolderZC(ZopeCompanion):
     def create(self):
-        mime, res = self.call(self.objPath, 
+        mime, res = self.call(self.objPath,
               'manage_addProduct/TransparentFolder/manage_addTransparentFolder',
               id=self.name, title='')
 
 class LocalFSZC(ZopeCompanion):
     def create(self):
-        mime, res = self.call(self.objPath, 
+        mime, res = self.call(self.objPath,
               'manage_addProduct/LocalFS/manage_addLocalFS',
               id=self.name, title='', basepath='')
 
@@ -107,7 +112,7 @@ class ZODBCDAZC(DBAdapterZC):
             dlg.Destroy()
 
 ZopeEditorModels.addZOAImage('Z ODBC Database Connection', 'Images/ZOA/db.png')
-    
+
 import PaletteStore
 PaletteStore.paletteLists['Zope'].extend(['Python Method',
       'LocalFS', 'Transparent Folder', 'ZODBCDA'] )

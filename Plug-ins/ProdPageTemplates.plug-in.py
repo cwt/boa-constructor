@@ -1,5 +1,10 @@
 import os, sys
 
+import Preferences, Utils
+
+if not Utils.transportInstalled('ZopeLib.ZopeExplorer'):
+    raise Utils.SkipPlugin, 'Zope support is not enabled'
+
 #---Model-----------------------------------------------------------------------
 
 # Define new zope image and a Model for opening in the Editor
@@ -23,13 +28,13 @@ class PageTemplateZopeController(ZopeController):
 Controllers.modelControllerReg[ZopePageTemplateModel] = PageTemplateZopeController
 
 #---Views-----------------------------------------------------------------------
-    
+
 from ZopeLib import ZopeViews
 class ZopePTHTMLView(ZopeViews.ZopeHTMLView):
     viewName = 'Source.html'
     def generatePage(self):
         props = self.model.zopeObj.properties
-        url = 'http://%s:%s@%s:%d/%s/source.html'%(props['username'], 
+        url = 'http://%s:%s@%s:%d/%s/source.html'%(props['username'],
               props['passwd'], props['host'], props['httpport'],
               self.model.zopeObj.whole_name())
         import urllib

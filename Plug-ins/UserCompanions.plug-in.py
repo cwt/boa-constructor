@@ -14,6 +14,11 @@ from Companions import BaseCompanions, Companions, EventCollections, Constructor
 from PropEdit import PropertyEditors
 import PaletteStore
 
+try:
+    import wxPython.lib.bcrtl
+except ImportError:
+    raise ImportError, 'The "bcrtl" package is not installed, turn on "installBCRTL" under Preferences'
+
 # Defines a new page for the palette
 PaletteStore.paletteLists['User'] = []
 # Adds the page to the palette
