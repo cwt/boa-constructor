@@ -23,16 +23,23 @@ import Preferences, About, Help
 from os import path
 import Utils, Browse
 
+print 'importing Views.EditorViews'
 from Views.EditorViews import *
+print 'importing Views.AppViews'
 from Views.AppViews import AppView, AppFindResults, AppModuleDocView
-from Views.AppViews import AppREADME_TIFView, AppTODO_TIFView, AppBUGS_TIFView
+from Views.AppViews import AppREADME_TIFView, AppTODO_TIFView, AppBUGS_TIFView, AppCHANGES_TIFView
+print 'importing Views.DesignerViews'
 from Views.Designer import DesignerView
-from Views.OGLViews import UMLView, ImportsView
 from Views.DataView import DataView
+print 'importing Views.DesignerViews'
+from Views.OGLViews import UMLView, ImportsView
+print 'importing Views.SourceViews'
 from Views.PySourceView import PythonSourceView, HTMLSourceView, TextView, CPPSourceView, HPPSourceView
+print 'importing Explorers'
 from Explorers.CVSExplorer import CVSConflictsView
 from Explorers import Explorer
 
+print 'importing Models'
 from EditorModels import *
 from PrefsKeys import keyDefs
 import ShellEditor
@@ -40,7 +47,7 @@ from Preferences import IS, wxFileDialog, flatTools
 
 defAppModelViews = (AppView, PythonSourceView)
 adtAppModelViews = (AppModuleDocView, ToDoView, ImportsView, CVSConflictsView, 
-                    AppREADME_TIFView, AppREADME_TIFView, AppTODO_TIFView, 
+                    AppREADME_TIFView, AppCHANGES_TIFView, AppTODO_TIFView, 
                     AppBUGS_TIFView)
 
 defModModelViews = (PythonSourceView, ExploreView)
@@ -159,6 +166,8 @@ class EditorFrame(wxFrame):
     """ Source code editor and Mode/View controller"""
 
     openBmp = 'Images/Editor/Open.bmp'
+    backBmp = 'Images/Shared/Previous.bmp'
+    forwBmp = 'Images/Shared/Next.bmp'
     helpBmp = 'Images/Shared/Help.bmp'
         
     def _init_utils(self): 
@@ -364,6 +373,8 @@ class EditorFrame(wxFrame):
         fileMenu.Append(wxID_EDITOROPEN, 'Open', 'Open a module')
 
         Utils.AddToolButtonBmpObject(self, self.toolBar, IS.load(self.openBmp), 'Open a module', self.OnOpen)
+        self.bbId = Utils.AddToolButtonBmpObject(self, self.toolBar, IS.load(self.backBmp), 'Browse back', self.OnBrowseBack)
+        self.bfId = Utils.AddToolButtonBmpObject(self, self.toolBar, IS.load(self.forwBmp), 'Browse forward', self.OnBrowseForward)
         actMod = self.getActiveModulePage(modelIdx) 
         if actMod:
             activeView = actMod.getActiveView(viewIdx)
@@ -396,8 +407,16 @@ class EditorFrame(wxFrame):
                 self.mainMenu.Replace(mmViews, menu, 'Views').Destroy()
 #                self.mainMenu.Replace(mmViews, actMod.viewMenu, 'Views')
         else:
+            if modelIdx == 1:
+                self.explorer.addTools(self.toolBar)
+                menu = self.explorer.getMenu()
+                if menu:
+                    self.mainMenu.Replace(mmEdit, Utils.duplicateMenu(menu), 'Edit').Destroy()
+                else:
+                    self.mainMenu.Replace(mmEdit, Utils.duplicateMenu(self.blankEditMenu), 'Edit').Destroy()
+            else:
+                self.mainMenu.Replace(mmEdit, Utils.duplicateMenu(self.blankEditMenu), 'Edit').Destroy()
             self.mainMenu.Replace(mmFile, fileMenu, 'File').Destroy()
-            self.mainMenu.Replace(mmEdit, Utils.duplicateMenu(self.blankEditMenu), 'Edit').Destroy()
 #            self.mainMenu.Replace(mmEdit, self.blankEditMenu, 'Edit')
 
 ##            m = self.mainMenu.GetMenu(mmViews)
@@ -412,8 +431,14 @@ class EditorFrame(wxFrame):
             
         self.toolBar.Realize()
 
+        self.updateBrowserBtns()
+
         if accLst: self.SetAcceleratorTable(wxAcceleratorTable(accLst))
 #        print 'end setup toolbar',
+
+    def updateBrowserBtns(self):
+        self.toolBar.EnableTool(self.bbId, self.browser.canBack())
+        self.toolBar.EnableTool(self.bfId, self.browser.canForward())
     
     def addShellPage(self):
         """ Adds the interactive interpreter to the editor """
@@ -467,7 +492,6 @@ class EditorFrame(wxFrame):
           TextModel.imgIdx)
         model.new()
 
-        self.tabs.Refresh()
         self.updateTitle()
 
     def addNewPackage(self):
@@ -479,7 +503,6 @@ class EditorFrame(wxFrame):
             model.save()
             model.notify()
 
-            self.tabs.Refresh()
             self.updateTitle()
 
     def addNewAppPage(self):
@@ -494,7 +517,6 @@ class EditorFrame(wxFrame):
         frmNme = path.splitext(path.basename(frmMod.filename))[0]
         appmodel.new(frmNme)
 
-        self.tabs.Refresh()
         self.updateTitle()
 
     def addNewModulePage(self):
@@ -508,7 +530,6 @@ class EditorFrame(wxFrame):
         model.new()
         if activeApp: activeApp.addModule(model.filename, '')
 
-        self.tabs.Refresh()
         self.updateTitle()
 
     def addNewFramePage(self, modId, app = None):
@@ -535,7 +556,6 @@ class EditorFrame(wxFrame):
         model.new(params)
         if activeApp: activeApp.model.addModule(model.filename, '')
 
-        self.tabs.Refresh()
         self.updateTitle()
         
         return model
@@ -599,7 +619,6 @@ class EditorFrame(wxFrame):
                 defViews = defTextModelViews
                 views = adtTextModelViews
             elif modCls is CPPModel:
-                print 'Identified CPP'
                 model = CPPModel(source, filename, self, true)
                 defViews = defCPPModelViews
                 views = adtCPPModelViews
@@ -615,7 +634,7 @@ class EditorFrame(wxFrame):
         model.notify()
 
         if wxPlatform != '__WXGTK__':
-            self.tabs.Refresh()
+#            self.tabs.Refresh()
             self.updateTitle()
 
         return model
@@ -639,8 +658,6 @@ class EditorFrame(wxFrame):
 
         model.save()
         model.notify()
-
-        self.tabs.Refresh()
 
         self.updateTitle()
         
@@ -781,7 +798,7 @@ class EditorFrame(wxFrame):
         else:
             modPge = self.modules[model.filename]
         self.tabs.SetPageText(modPge.tIdx, modPge.updatePageName())
-        self.tabs.Refresh()
+#        self.tabs.Refresh()
     
     def updateStatusRowCol(self, row, col):
         self.statusBar.row.SetLabel(`row`)
@@ -986,6 +1003,23 @@ class EditorFrame(wxFrame):
         if idx < 0: idx = pc - 1
         self.tabs.SetSelection(idx)
 
+    def addBrowseMarker(self, marker):
+        modulePage = self.getActiveModulePage()
+        if modulePage:
+            print 'addBrowseMarker', marker
+            activeView = modulePage.getActiveView()
+            page = Browse.BrowsePage(modulePage, activeView.viewName, marker)
+            self.browser.add(page)
+            self.updateBrowserBtns()
+    
+    def OnBrowseBack(self, event):
+        self.browser.back()
+        self.updateBrowserBtns()
+
+    def OnBrowseForward(self, event):
+        self.browser.forward()
+        self.updateBrowserBtns()
+
 #-----Toolbar-------------------------------------------------------------------
 
 class MyToolBar(wxToolBar):
@@ -1035,8 +1069,8 @@ class EditorStatusBar(wxStatusBar):
         progress bar etc. """
     def __init__(self, parent):
         wxStatusBar.__init__(self, parent, -1, style = wxST_SIZEGRIP)
-        self.SetFieldsCount(5)
-        self.SetStatusWidths([30, 30, 300, 150, -1])
+        self.SetFieldsCount(4)
+        self.SetStatusWidths([16, 400, 150, -1])#30, 30, 
         wID = NewId()
 
         dc = wxClientDC(self)
@@ -1045,12 +1079,12 @@ class EditorStatusBar(wxStatusBar):
         self.h = int(h * 1.8)
         self.SetSize(wxSize(100, self.h-1))
 
-        self.col = wxStaticText(self, -1, '0   ', wxPoint(3, 4))
-        self.row = wxStaticText(self, -1, '0   ', wxPoint(37, 4))
-        self.hint = wxStaticText(self, -1, ' ', wxPoint(72, 4), 
-          wxSize(290, self.h -8), style = wxST_NO_AUTORESIZE | wxALIGN_LEFT)
+#        self.col = wxStaticText(self, -1, '0   ', wxPoint(3, 4))
+#        self.row = wxStaticText(self, -1, '0   ', wxPoint(37, 4))
+        self.hint = wxStaticText(self, -1, ' ', wxPoint(28, 4), 
+          wxSize(390, self.h -8), style = wxST_NO_AUTORESIZE | wxALIGN_LEFT)
         self.progress = wxGauge(self, -1, 100, 
-          pos = wxPoint(368+Preferences.editorProgressFudgePosX, 2), 
+          pos = wxPoint(422+Preferences.editorProgressFudgePosX, 2), 
           size = wxSize(150, self.h -5 + Preferences.editorProgressFudgeSizeY))
     
     def setHint(self, hint):
@@ -1187,36 +1221,28 @@ class ModulePage:
         viewClss = map(lambda x: x.__class__, self.model.views.values())
         for view, wId in self.adtViews:
             self.viewMenu.Check(wId, view in viewClss)
-        
-            
+
     def addView(self, view, viewName = ''):        
         """ Add a view to the model and display it as a page in the notebook
             of view instances.""" 
-        if wxPlatform == '__WXGTK__':
-            panel = wxPanel(self.notebook, -1, style=wxTAB_TRAVERSAL | wxCLIP_CHILDREN)
-        
         if not viewName: viewName = view.viewName
         if wxPlatform == '__WXGTK__':
+            panel = wxPanel(self.notebook, -1, style=wxTAB_TRAVERSAL | wxCLIP_CHILDREN)
             self.model.views[viewName] = apply(view, (panel, self.model))
             self.model.nb_handler = NoteBookPanelPaintEventHandler(self.model.views[viewName])
-        else:
-            self.model.views[viewName] = apply(view, (self.notebook, self.model))
-
-        if wxPlatform == '__WXGTK__':
             def OnWinSize(evt, win=self.model.views[viewName]):
                 win.SetSize(evt.GetSize())
             EVT_SIZE(panel, OnWinSize)
-
-        if view.docked:
-            if wxPlatform == '__WXGTK__':
+            if view.docked:
                 self.model.views[viewName].addToNotebook(self.notebook, viewName,
-                    panel=panel)
-            else:
+                        panel=panel)
+        else:
+            self.model.views[viewName] = apply(view, (self.notebook, self.model))
+            if view.docked:
                 self.model.views[viewName].addToNotebook(self.notebook, viewName)
-        
+
         return self.model.views[viewName]
-            
-        
+
     def refresh(self):
         pass
         # self.notebook.Refresh()
