@@ -56,8 +56,8 @@ class frame1(wxFrame):
         self._init_ctrls()
 """
 
-from string import strip, split, join, find, rfind, upper, replace
-import re
+#from string import strip, split, join, find, rfind, upper, replace
+import re, string
 import Utils
 
 containers = [('(', ')'), ('{', '}'), ('[', ']')]
@@ -90,7 +90,7 @@ def safesplitfields(params, delim):
           and (curchar == delim):
             param = locparams[:i]
             list.append(param)
-            locparams = strip(locparams[i +1:])
+            locparams = string.strip(locparams[i +1:])
             i = 0
             continue
         
@@ -120,7 +120,7 @@ def safesplitfields(params, delim):
             i = i + 1 
     
     # add last entry not delimited by comma
-    lastentry = strip(locparams)
+    lastentry = string.strip(locparams)
     if lastentry:
         list.append(lastentry)
     return list
@@ -136,7 +136,7 @@ def parseMixedBody(parseClasses, lines):
         cat[parseClass] = []
 
     for line in lines:
-        ln = strip(line)
+        ln = string.strip(line)
         if (ln == 'pass') or (ln == ''): continue
         for parseClass in parseClasses:
             try: res = parseClass(ln).value()
@@ -152,7 +152,7 @@ def parseMixedBody(parseClasses, lines):
 def parseBody(parseClass, lines):
     list = []
     for line in lines:
-        ln = strip(line)
+        ln = string.strip(line)
         if ln == 'pass': return []
         if ln == '':
             continue
@@ -181,11 +181,11 @@ class PerLineParser:
         result = {}
         cnt = 0
         for param in params:
-            kv = split(param, '=')
+            kv = string.split(param, '=')
             if len(kv) == 2:
-                result[strip(kv[0])] = strip(kv[1])
+                result[string.strip(kv[0])] = string.strip(kv[1])
             else:
-                result[`cnt`] = strip(kv[0])
+                result[`cnt`] = string.strip(kv[0])
             cnt = cnt + 1
         return result
     
@@ -193,7 +193,7 @@ class PerLineParser:
         kvlist = []
         for key in params.keys():
             kvlist.append(key+' = '+params[key])
-        return join(kvlist, ', ')
+        return string.join(kvlist, ', ')
 
 idc = '[A-Za-z_][A-Za-z0-9_]*'
 is_constr = re.compile('^[ \t]*self[.](?P<name>'+idc+')[ \t]*=[ \t]*(?P<class>'+\
@@ -230,7 +230,8 @@ class ConstructorParse(PerLineParser):
             if self.params.has_key('name'):
                 self.params['name'] = `new_value`
             if self.params.has_key('id'):
-                self.params['id'] = self.params['id'][:-len(old_value)]+upper(new_value)
+                self.params['id'] = \
+                  self.params['id'][:-len(old_value)]+string.upper(new_value)
             
     def asText(self):
         if self.comp_name:
@@ -257,7 +258,7 @@ class PropertyParse(PerLineParser):
             self.m = is_prop.search(line)
             if self.m:
                 self.params = safesplitfields(self.m.group('params'), ',')
-                compsetter = split(self.m.group('name'), '.')
+                compsetter = string.split(self.m.group('name'), '.')
                     
                 if len(compsetter) < 1: raise 'atleast 1 required '+`compsetter`
                 if len(compsetter) == 1:
@@ -267,9 +268,35 @@ class PropertyParse(PerLineParser):
                     self.comp_name = compsetter[0]
                     self.prop_setter = compsetter[1]
                 else: raise 'Too many sections'
+
+    def renameCompName2(self, old_value, new_value):
+        # XXX This is ugly but has to do until a better
+        # XXX strategy is conceived.
+        
+        # Rename references to ctrl in string of property param
+        oldCtrlSrcRef = Utils.srcRefFromCtrlName(old_value)
+        newCtrlSrcRef = Utils.srcRefFromCtrlName(new_value)
+        
+        for idx in range(len(self.params)):
+            segs = string.split(self.params[idx], oldCtrlSrcRef)
+            #lst = ()
+            if len(segs) > 1:
+                lst = [segs[0]]
+                for s in segs[1:]:
+                    if s and s[0] in string.letters+string.digits+'_':
+                        lst[-1] = lst[-1] + s
+                    else:
+                        lst.append(s)
+                self.params[idx] = string.join(lst, newCtrlSrcRef)
+                            
+##            self.params[idx] = replace(self.params[idx], 
+##                  oldCtrlSrcRef, newCtrlSrcRef)
+        
+        PerLineParser.renameCompName2(self, old_value, new_value)
+        
     def asText(self):
         return '%s.%s(%s)' %(Utils.srcRefFromCtrlName(self.comp_name), 
-                self.prop_setter, join(self.params, ', '))
+                self.prop_setter, string.join(self.params, ', '))
 ##        if self.comp_name:
 ##            return 'self.%s.%s(%s)' %(self.comp_name, self.prop_setter, 
 ##              join(self.params, ', '))
@@ -313,7 +340,7 @@ class CollectionInitParse(PerLineParser):
 ##        else:
 ##            comp_name = 'self'
         return 'self.%s(%s)' %(self.method, 
-             join([Utils.srcRefFromCtrlName(self.comp_name)]+self.params, ', '))
+             string.join([Utils.srcRefFromCtrlName(self.comp_name)]+self.params, ', '))
 
 def decorateCollItemInitsWithCtrl(collInits, ctrlname):
     for collInitParse in collInits:
@@ -339,12 +366,20 @@ class CollectionItemInitParse(PerLineParser):
 ##        if self.params.has_key('parent') and \
 ##              self.params['parent'] == Utils.srcRefFromCtrlName(old_value):
 ##            self.params['parent'] = Utils.srcRefFromCtrlName(new_value)
+        print 'CollectionItemInitParse.rename', old_value, new_value
+
+        # Regenerate window ids
         if self.ctrl_name == old_value:
             self.ctrl_name = new_value
             if self.params.has_key('id'):
-                self.params['id'] = replace(self.params['id'], upper(old_value), 
-                      upper(new_value))
-                
+                self.params['id'] = string.replace(self.params['id'], 
+                      string.upper(old_value), string.upper(new_value))
+        # Check for references
+        src_old = Utils.srcRefFromCtrlName(old_value)
+        for key, val in self.params.items()[:]:
+            if val == src_old:
+                print 'renamed ref'
+                self.params[key] = Utils.srcRefFromCtrlName(new_value)
                     
     def asText(self):
         return '%s.%s(%s)' %(self.comp_name, self.method, self.KVParamsAsText(self.params))
@@ -367,7 +402,7 @@ class EventParse(PerLineParser):
             else:
                 self.m = is_event3p.search(line)
                 if self.m:
-                    self.windowid = strip(self.m.group('wid'))
+                    self.windowid = string.strip(self.m.group('wid'))
                     self.trigger_meth = self.m.group('func')
                 else: return
             
@@ -379,7 +414,9 @@ class EventParse(PerLineParser):
     def renameCompName2(self, old_value, new_value):
         if self.comp_name == old_value:
             self.comp_name = new_value
-            self.windowid = self.windowid[:-len(old_value)]+upper(new_value)
+            # Check for command events
+            if self.windowid:
+                self.windowid = self.windowid[:-len(old_value)]+string.upper(new_value)
 
     def asText(self):
 ##        if self.comp_name:
