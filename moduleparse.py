@@ -1,18 +1,17 @@
 #----------------------------------------------------------------------
-# Name:        moduleparse.py
-# Purpose:     
-#
-# Author:      Riaan Booysen, based on 'pyclbr.py'
-#
-# Created:     1999
+# Name:        moduleparse.py                                          
+# Purpose:                                                             
+#                                                                      
+# Author:      Riaan Booysen, based on 'pyclbr.py'                     
+#                                                                      
+# Created:     1999                                                    
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999, 2000 Riaan Booysen
-# Licence:     GPL
+# Copyright:   Changes (c) 1999, 2000 Riaan Booysen                    
+# Licence:     GPL                                                     
 #----------------------------------------------------------------------
 
 '''Parse one Python file and retrieve classes and methods,
-store the code spans and facilitate the extraction and replacement of
-method bodies
+store the code spans and facilitate the manipulation of method bodies
 
 This file is heavly based on 'pyclbr.py' from the standard python lib
 
@@ -21,7 +20,7 @@ Methods within methods not handled
 
 <from pyclbr.py>
 Continuation lines are not dealt with at all and strings may confuse
-the hell out of the parser, but it usually works.''' # ' <-- bow to font lock
+the hell out of the parser, but it usually works.''' 
 
 import os, sys
 import imp
@@ -84,6 +83,12 @@ class CodeBlock:
             self.end = self.end + increment
         elif self.end > from_line:
             self.end = self.end + increment
+    
+    def contains(self, line):
+        return line >= self.start and line <= self.end
+    
+    def size(self):
+        return self.end - self.start
             
 # each Python class is represented by an instance of this class
 class Class:
@@ -104,15 +109,30 @@ class Class:
     def extend_extent(self, lineno):
         if lineno > self.extent: self.extent = lineno                
 
-    def _addmethod(self, name, sig, linestart, lineend = None):
+    def _addmethod(self, name, sig, linestart, lineend = None, to_bottom = 1):
         if not lineend: lineend = linestart
         self.methods[name] = CodeBlock(sig, linestart, lineend)
-        self.method_order.append(name)
+        if to_bottom:
+            self.method_order.append(name)
+        else:
+            self.method_order.insert(0, name)
         self.extend_extent(lineend)
 
     def _endmethod(self, name, lineend):
         self.methods[name].end = lineend
         self.extend_extent(lineend)
+
+    def remove_method(self, name):
+#        self.block.end = self.block.end - self.methods[name].size() - 1
+
+        del self.methods[name]
+        self.method_order.remove(name)
+        
+    def add_attr(self, name, lineno):
+        if self.attributes.has_key(name):
+            self.attributes[name].append(CodeBlock('', lineno, lineno))
+        else:
+            self.attributes[name] = [CodeBlock('', lineno, lineno)]
 
 def Test2():
     pass
@@ -131,7 +151,7 @@ class Module:
             if cur_meth:
                 cur_class._endmethod(cur_meth, lineno -1)
                 cur_meth = ''
-            cur_class.block.end = lineno
+            cur_class.block.end = lineno -1
             cur_class = None
             cur_func = ''
         elif cur_func:
@@ -146,8 +166,7 @@ class Module:
         self.lineno = self.lineno + 1
         return line	# remove line feed        
 
-    def __init__(self, module, modulesrc, classes = {}, class_order = [], 
-      file = ''):
+    def __init__(self, module, modulesrc):#, classes = {}, class_order = [], file = ''):
         self.classes = {}#classes
         self.class_order = []#class_order
         self.functions = {}
@@ -158,6 +177,7 @@ class Module:
         cur_class = None
         cur_meth = ''
         cur_func = ''
+        file = ''
         imports = []
         self.lineno = 0
         self.source = modulesrc
@@ -234,8 +254,7 @@ class Module:
                 # found a attribute binding
                 if cur_class:
                     # and we know the class it belongs to
-                    cur_class.attributes[res.group('name')] = CodeBlock('', 
-                      self.lineno, self.lineno)
+                    cur_class.add_attr(res.group('name'), self.lineno)
                            
                 continue
 
@@ -274,19 +293,39 @@ class Module:
         cur_class, cur_meth, cur_func = self.finaliseEntry(cur_class, cur_meth, 
           cur_func, self.lineno +1)
 
+    def find_declarer(self, cls, attr, value, found = 0):
+    #    print 'find_declarer', cls, attr, found
+        if found: 
+            return found, cls, value
+        else:
+            for base in cls.super:
+                if type(base) == type(''):
+                    return found, cls, value
+                if base.attributes.has_key(attr):
+                    return 1, base, base.attributes[attr]
+                elif base.methods.has_key(attr):
+                    return 1, base, base.methods[attr]
+                else:
+                    found, cls, value = self.find_declarer(base, attr, value, 0)
+        return found, cls, value      
+
+
     def extractClassBody(self, class_name):
          block = self.classes[class_name].block
          return self.source[block.start:block.end]
 
-    def addMethod(self, class_name, method_name, method_params, method_body):
+    def addMethod(self, class_name, method_name, method_params, method_body, to_bottom = 1):
         new_length = len(method_body) + 2
         if not method_body: return
         a_class = self.classes[class_name]
         
         # Add a method code block
-        ins_point = a_class.extent + 1
+        if to_bottom:
+            ins_point = a_class.extent
+        else:
+            ins_point = a_class.block.start
         a_class._addmethod(method_name, method_params, ins_point, ins_point + \
-          new_length)
+          new_length, to_bottom)
         
         # Add in source
         self.source[ins_point : ins_point] = \
@@ -305,8 +344,9 @@ class Module:
                 cls.block.renumber(start, deltaLines)
                 for block in cls.methods.values():
                     block.renumber(start, deltaLines)
-                for block in cls.attributes.values():
-                    block.renumber(start, deltaLines)
+                for attr_lst in cls.attributes.values():
+                    for block in attr_lst:
+                        block.renumber(start, deltaLines)
             for func in self.functions.values():
                 func.renumber(func.start, deltaLines)
 
@@ -322,7 +362,20 @@ class Module:
         self.renumber(deltaLines, code_block.start)
 
     def replaceMethodBody(self, class_name, method_name, new_body):
+        if not string.strip(string.join(new_body)): new_body = ['        pass', '']
         self.replaceBody(method_name, self.classes[class_name].methods, new_body)
+
+    def removeMethod(self, class_name, name):
+        code_block = self.classes[class_name].methods[name]
+        totLines = code_block.end - code_block.start + 1 # def decl
+
+        self.source[code_block.start-1 : code_block.end] = []
+        
+        self.renumber(-totLines, code_block.start-1)
+        
+        self.classes[class_name].remove_method(name)
+##        del self.classes[class_name].methods[name]
+##        self.classes[class_name].method_order.remove(name)
         
     def searchDoc(self, body):
         m = is_doc.search(body)
@@ -392,6 +445,7 @@ class Module:
         self.class_order.insert(idx, new_class_name)
     
     def renameMethod(self, class_name, old_method_name, new_method_name):
+        # untested
         meth = self.classes[class_name].methods[old_method_name]
         idx = meth.start -1
         self.source[idx] = string.replace(self.source[idx], old_method_name, 
@@ -399,13 +453,46 @@ class Module:
         del self.classes[class_name].methods[old_method_name]
         self.classes[class_name].methods[new_method_name] = meth
         #rename order
-        idx = self.classes[class_name].method_order.index(old_method_name)
-        del self.classes[class_name].method_order[idx]
-        self.classes[class_name].method_order.insert(idx, new_method_name)
+##        idx = self.classes[class_name].method_order.index(old_method_name)
+##        del self.classes[class_name].method_order[idx]
+##        self.classes[class_name].method_order.insert(idx, new_method_name)
+
+        self.classes[class_name].method_order[\
+          self.classes[class_name].method_order.index(old_method_name)] = new_method_name
         
+
+    def addFunction(self, func_name, func_params, func_body):
+        new_length = len(func_body) + 2
+        if not func_body: return
+
+        # Add a func code block
+        ins_point = self.source
+        a_class._addmethod(method_name, method_params, ins_point, ins_point + \
+          new_length)
+        self.functions[func_name] = CodeBlock(func_params, 
+          ins_point, ins_point+len(func_body))
+        self.function_order.append(func_name)
+        
+        # Add in source
+        self.source[ins_point : ins_point] = \
+          ['def %s(%s):' % (func_name, func_params)] + func_body + ['']
+          
+        # renumber code blocks
+#        self.renumber(new_length, ins_point)
     
     def replaceFunctionBody(self, func_name, new_body):
         self.replaceBody(func_name, self.functions, new_body)
+    
+    def removeFunction(slef, func_name):
+        cb  = self.functions[func_name]
+        ins_point = cb.start
+        func_size = cb.end - ins_point
+
+        self.source[ins_point : cb.end] = []
+	self.function_order.remove(func_name)
+	del self.functions[func_name]
+
+	self.renumber(func_size, ins_point)
 
     def travTilBase(self, name, classes, root):
         """ Recursive method that traverses the class hierarchy """
@@ -453,6 +540,13 @@ class Module:
                 else: return 'no info'
                         
         return info_block
+    
+    def getClassForLineNo(self, line_no):
+        for cls in self.classes.values():
+            if cls.block.contains(line_no):
+                return cls
+        return None
+        
             
             
 def moduleFile(module, path=[], inpackage=0):
@@ -497,4 +591,12 @@ def moduleFile(module, path=[], inpackage=0):
     mod = Module(module, f.readlines())
     f.close()
     return mod
-
+    
+    
+    
+    
+    
+    
+    
+    
+  

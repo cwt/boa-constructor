@@ -35,7 +35,7 @@ def count(filename, pattern, caseSensitive):
     finally:
         f.close()
 
-def findInText(sourcelines, pattern, caseSensitive):
+def findInText(sourcelines, pattern, caseSensitive, includeLine = 0):
     results = []
     if not caseSensitive:
         sourcelines = map(lambda sourceline: string.lower(sourceline), sourcelines) 
@@ -47,17 +47,20 @@ def findInText(sourcelines, pattern, caseSensitive):
         while 1:
             idx = string.find(line, pattern, idx + 1)
             if idx == -1: break
-            else: results.append((sourceIdx, idx))
+            else:
+               result = [sourceIdx, idx]
+               if includeLine:
+                   result.append(line)
+               results.append(tuple(result))
     return results
 
-def findInFile(filename, pattern, caseSensitive):
+def findInFile(filename, pattern, caseSensitive, includeLine = 0):
     results = []
     try: f = open(filename, 'r')
     except IOError: return results
     try:
         sourcelines = f.readlines()
-        print 'len data', len(sourcelines)
-        return findInText(sourcelines, pattern, caseSensitive)
+        return findInText(sourcelines, pattern, caseSensitive, includeLine)
     finally:
         f.close()
         
@@ -91,3 +94,4 @@ def findInFiles(parent, srchPath, pattern, callback, deeperPath = '', filemask =
         return results
     finally:
         dlg.Destroy()
+#        wxYield()

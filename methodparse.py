@@ -45,31 +45,24 @@ event
 Boilerplate
 
 class frame1(wxFrame):
-    def _init_create(self):
+    def _init_utils(self):
         pass
     
-    def _init_props(self):
+    def _init_ctrls(self):
         pass
         
-    def _init_event(self):
-        pass
-    
-    def _init(self):
-        self._init_create()
-        self._init_props()
-        self._init_event()
-
     def __init__(self):
-        self._init()
+        self._init_utils()
+        self._init_ctrls()
         
 """
 
 from string import strip, split, join, find, rfind
 import re
 
-delimeters = [('(', ')'), ('{', '}'), ('[', ']')]
-delimBegin = map(lambda d: d[0], delimeters)    
-delimEnd = map(lambda d: d[1], delimeters)    
+containers = [('(', ')'), ('{', '}'), ('[', ']')]
+containBegin = map(lambda d: d[0], containers)    
+containEnd = map(lambda d: d[1], containers)    
 
 def incLevel(level, pos):
     return level + 1, pos + 1
@@ -79,8 +72,9 @@ def decLevel(level, pos):
 
 def safesplitfields(params, delim):
     """ Returns a list of parameters split on delim but not if commas are 
-        within (), {}, [], '', ""  
-        Also skip '', "" content  """
+        within containers (), {}, [], '', ""  
+        Also skip '', "" content  
+    """
     
     locparams =  params
     list = []
@@ -92,8 +86,8 @@ def safesplitfields(params, delim):
     while i < len(locparams):
         curchar = locparams[i]
         # only check for delimiter if not inside some block
-        if (not nestlevel) and (not singlequotelevel) and (not doublequotelevel) and \
-          (curchar == delim):
+        if (not nestlevel) and (not singlequotelevel) and (not doublequotelevel)\
+          and (curchar == delim):
             param = locparams[:i]
             list.append(param)
             locparams = strip(locparams[i +1:])
@@ -101,12 +95,12 @@ def safesplitfields(params, delim):
             continue
         
         if (not singlequotelevel) and (not doublequotelevel) and nestlevel and \
-          (curchar in delimEnd):
+          (curchar in containEnd):
             nestlevel, i = decLevel(nestlevel, i)
             continue
 
         if (not singlequotelevel) and (not doublequotelevel) and \
-          (curchar in delimBegin):
+          (curchar in containBegin):
             nestlevel, i = incLevel(nestlevel, i)
             continue
  
@@ -118,22 +112,25 @@ def safesplitfields(params, delim):
             doublequotelevel, i = decLevel(doublequotelevel, i)
             continue
         
-        if curchar == '"':
-            doublequotelevel = doublequotelevel + 1
-        elif curchar == "'":
-            singlequotelevel = singlequotelevel + 1
-        
-        i = i + 1
+        if (not singlequotelevel) and curchar == '"':
+            doublequotelevel, i = incLevel(doublequotelevel, i)
+        elif (not doublequotelevel) and curchar == "'":
+            singlequotelevel, i = incLevel(singlequotelevel, i)
+        else:
+            i = i + 1 
     
     # add last entry not delimited by comma
-    list.append(strip(locparams))
+    lastentry = strip(locparams)
+    if lastentry:
+        list.append(lastentry)
     return list
 
 
 def parseMixedBody(parseClasses, lines):
     """ Return a dictionary with keys representing classes that
         'understood' the line and values a list of found instances
-        of the found class """
+        of the found class 
+    """
     cat = {}
     for parseClass in parseClasses:
         cat[parseClass] = []
@@ -147,7 +144,7 @@ def parseMixedBody(parseClasses, lines):
             else:
                 if res:
                     cat[parseClass].append(res)
-#                    print 'found:', parseClass
+##                    print 'found:', parseClass
                     break
     return cat
 
@@ -169,95 +166,153 @@ class PerLineParser:
     def asText(self):
         return ''
 
-id = '[A-Za-z_][A-Za-z0-9_]*'
-is_constr = re.compile('^[ \t]*self[.](?P<name>'+id+')[ \t]*=[ \t]*(?P<class>'+\
-  id+')\((?P<params>.*)\)$')
-is_constr_frm = re.compile('^[ \t]*(?P<class>'+id+\
+    def __repr__(self):
+        return self.asText()
+
+    def extractKVParams(self, paramsStr):
+        params = safesplitfields(paramsStr, ',')
+        result = {}
+        cnt = 0
+        for param in params:
+            kv = split(param, '=')
+            if len(kv) == 2:
+                result[strip(kv[0])] = strip(kv[1])
+            else:
+                result[`cnt`] = strip(kv[0])
+            cnt = cnt + 1
+        return result
+    
+    def KVParamsAsText(self, params):
+        kvlist = []
+        for key in params.keys():
+            kvlist.append(key+' = '+params[key])
+        return join(kvlist, ', ')
+
+idc = '[A-Za-z_][A-Za-z0-9_]*'
+is_constr = re.compile('^[ \t]*self[.](?P<name>'+idc+')[ \t]*=[ \t]*(?P<class>'+\
+  idc+')\((?P<params>.*)\)$')
+is_constr_frm = re.compile('^[ \t]*(?P<class>'+idc+\
   ')[.]__init__\(self,[ \t]*(?P<params>.*)\)$')
 
 class ConstructorParse(PerLineParser):
-    def __init__(self, line = None, comp_name = '', class_name = '', params = {}):
+    def __init__(self, line = None, comp_name = '', class_name = '', params = None):
         self.comp_name = comp_name
         self.class_name = class_name
-        self.params = params
+        if params is None: self.params = {}
+        else:              self.params = params
+        
         if line:
             self.m = is_constr.search(line)
             if self.m:
+##                print self.m.group('name'), self.m.group('class'), self.m.group('params')
                 self.comp_name = self.m.group('name')
                 self.class_name = self.m.group('class')
-                params = safesplitfields(self.m.group('params'), ',')
-                self.params = {}
-                cnt = 0
-                for param in params:
-                    kv = split(param, '=')
-                    if len(kv) == 2:
-                        self.params[strip(kv[0])] = strip(kv[1])
-                    else:
-                        self.params[`cnt`] = strip(kv[0])
-                    cnt = cnt + 1
-                        
+                self.params = self.extractKVParams(self.m.group('params'))
             else:
                 self.m = is_constr_frm.search(line)
                 if self.m:
                     self.comp_name = ''
                     self.class_name = self.m.group('class')
-                    params = safesplitfields(self.m.group('params'), ',')
-                    self.params = {}
-                    for param in params:
-                        kv = split(param, '=')
-                        self.params[strip(kv[0])] = strip(kv[1])
+                    self.params = self.extractKVParams(self.m.group('params'))
             
     def asText(self):
-#        print 'constructor: asText()'
-        params = []
-        for key in self.params.keys():
-            params.append(key+' = '+self.params[key])
         if self.comp_name:
             return 'self.%s = %s(%s)' %(self.comp_name, self.class_name, 
-              join(params, ', '))
+              self.KVParamsAsText(self.params))
         else:
-            return '%s.__init__(self, %s)' %(self.class_name, join(params, ', '))
+            return '%s.__init__(self, %s)' %(self.class_name, 
+              self.KVParamsAsText(self.params))
 
-def parseConstructors(body):
-    return parseBody(ConstructorParse, body)
+is_constr_col = re.compile('^[ \t]*self._init_coll_(?P<meth>'+idc+\
+  ')[.]__init__\(self,[ \t]*(?P<params>.*)\)$')
 
 idp = '[A-Za-z_][A-Za-z0-9_.]*'
-is_prop = re.compile('^[ \t]*(?P<name>'+idp+')[ \t]*\([ \t]*(?P<params>.*)[ \t]*\)$')
+is_prop = re.compile('^[ \t]*self[.](?P<name>'+idp+')[ \t]*\([ \t]*(?P<params>.*)[ \t]*\)$')
 class PropertyParse(PerLineParser):
-    def __init__(self, line = None, comp_name = '', prop_setter = '', params = []):
+    def __init__(self, line = None, comp_name = '', prop_setter = '', params = None, prop_name = ''):
         self.comp_name = comp_name
         self.prop_setter = prop_setter
+        if params is None: self.params = []
+        else:              self.params = params
         self.params = params
+        self.prop_name = prop_name
         if line:
             self.m = is_prop.search(line)
             if self.m:
                 self.params = safesplitfields(self.m.group('params'), ',')
                 compsetter = split(self.m.group('name'), '.')
                     
-                if len(compsetter) < 2: raise 'atleast 2 required '+`compsetter`
-                if compsetter[0] != 'self': raise 'access outside component invaild', line
-                if len(compsetter) == 2:
+                if len(compsetter) < 1: raise 'atleast 1 required '+`compsetter`
+##                if compsetter[0] != 'self': raise 'access outside component invaild', line
+                if len(compsetter) == 1:
                     self.comp_name = ''
+                    self.prop_setter = compsetter[0]
+                elif len(compsetter) == 2:
+                    self.comp_name = compsetter[0]
                     self.prop_setter = compsetter[1]
-                elif len(compsetter) == 3:
-                    self.comp_name = compsetter[1]
-                    self.prop_setter = compsetter[2]
                 else: raise 'Too many sections'
     def asText(self):
-#        print 'properties: asText()', self.params
+##        print 'properties: asText()', self.params
         if self.comp_name:
             return 'self.%s.%s(%s)' %(self.comp_name, self.prop_setter, 
               join(self.params, ', '))
         else:
             return 'self.%s(%s)' %(self.prop_setter, join(self.params, ', '))
+
+coll_init = '_init_coll_'
+is_coll_init = re.compile('^[ \t]*self[.](?P<method>'+coll_init+idp+')[ \t]*\((?P<comp_name>'+idp+')[ \t,]*(?P<params>.*)\)$')
+
+class CollectionInitParse(PerLineParser):
+    def __init__(self, line = None, comp_name = '', method = '', params = None, prop_name = ''):
+        self.comp_name = comp_name
+        self.method = method
+        if params is None: self.params = []
+        else:              self.params = params
+        self.prop_name = prop_name
+        if line:
+            self.m = is_coll_init.search(line)
+            if self.m:
+                self.params = safesplitfields(self.m.group('params'), ',')
+                self.method = self.m.group('method')
+                self.comp_name = self.m.group('comp_name')[5:]
+                self.prop_name = self.method[len(coll_init)+len(self.comp_name)+1:]
+    
+    def getPropName(self):
+        return self.method[len(coll_init)+len(self.comp_name)+1:]
+    
+    def renameCompName(self, new_value):
+        self.method = '%s%s_%s'%(coll_init, new_value, self.getPropName())
+        self.comp_name = new_value
+                    
+    def asText(self):
+        if self.comp_name:
+            comp_name = 'self.'+self.comp_name
+        else:
+            comp_name = 'self'
+        return 'self.%s(%s)' %(self.method, join([comp_name]+self.params, ', '))
+
+#item_parent = 'parent'
+is_coll_item_init = re.compile('^[ \t]*(?P<ident>'+idp+')[.](?P<method>'+idc+')[ \t]*\([ \t,]*(?P<params>.*)\)$')
+
+class CollectionItemInitParse(PerLineParser):
+    def __init__(self, line = None, comp_name = '', method = '', params = None):
+        self.comp_name = comp_name
+        self.method = method
+        if params is None: self.params = {}
+        else:              self.params = params
+        if line:
+            self.m = is_coll_item_init.search(line)
+            if self.m:
+                self.comp_name = self.m.group('ident')
+                self.method = self.m.group('method')
+                self.params = self.extractKVParams(self.m.group('params'))
+                    
+    def asText(self):
+        return '%s.%s(%s)' %(self.comp_name, self.method, self.KVParamsAsText(self.params))
          
-
-def parseProperties(body):
-    return parseBody(PropertyParse, body)
-
-is_event2p = re.compile('^[ \t]*EVT_(?P<evtname>'+id+')[ \t]*\([ \t]*(?P<name>'+\
+is_event2p = re.compile('^[ \t]*EVT_(?P<evtname>'+idc+')[ \t]*\([ \t]*(?P<name>'+\
   idp+')[ \t]*\,[ \t]*self[.](?P<func>'+idp+')\)$')
-is_event3p = re.compile('^[ \t]*EVT_(?P<evtname>'+id+')[ \t]*\([ \t]*(?P<name>'+\
+is_event3p = re.compile('^[ \t]*EVT_(?P<evtname>'+idc+')[ \t]*\([ \t]*(?P<name>'+\
   idp+')[ \t]*\,(?P<wid>.*)[ \t]*\,[ \t]*self[.](?P<func>'+idp+')\)$')
 class EventParse(PerLineParser):
     def __init__(self, line = None, comp_name = '', event_name = '', 
@@ -273,7 +328,7 @@ class EventParse(PerLineParser):
             else:
                 self.m = is_event3p.search(line)
                 if self.m:
-                    self.windowid = self.m.group('wid')
+                    self.windowid = strip(self.m.group('wid'))
                     self.trigger_meth = self.m.group('func')
                 else: return
             
@@ -283,7 +338,7 @@ class EventParse(PerLineParser):
             self.event_name = self.m.group('evtname')
 
     def asText(self):
-#        print 'event: asText'
+##        print 'event: asText'
         if self.comp_name:
             evt_comp = 'self.'+self.comp_name
         else:
@@ -296,8 +351,11 @@ class EventParse(PerLineParser):
             return 'EVT_%s(%s, self.%s)' %(self.event_name, evt_comp, 
               self.trigger_meth)
             
-            
+        
 
-def parseEvents(body):
-    return parseBody(EventParse, body)
+
+
+
+
+
 
