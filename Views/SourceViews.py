@@ -28,7 +28,8 @@ endOfLines = {  wxSTC_EOL_CRLF : '\r\n',
                 wxSTC_EOL_CR : '\r',
                 wxSTC_EOL_LF : '\n'}
 
-brkPtMrk, stepPosMrk, tmpBrkPtMrk, markPlaceMrk, linePtrMrk = range(1, 6)
+markPlaceMrk, stepPosMrk = (1, 2)
+markerCnt = 2
 
 [wxID_TEXTVIEW, wxID_SOURCECUT, wxID_SOURCECOPY, wxID_SOURCEPASTE,
  wxID_SOURCEUNDO, wxID_SOURCEREDO] \
@@ -87,7 +88,7 @@ class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView):
         markIdnt, markBorder, markCenter = Preferences.STCMarkPlaceMarker
         self.MarkerDefine(markPlaceMrk, markIdnt, markBorder, markCenter)
         markIdnt, markBorder, markCenter = Preferences.STCLinePointer
-        self.MarkerDefine(linePtrMrk, markIdnt, markBorder, markCenter)
+        self.MarkerDefine(stepPosMrk , markIdnt, markBorder, markCenter)
         self._linePtrHdl = None
 
     def getModelData(self):
@@ -294,9 +295,9 @@ class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView):
             self._linePtrHdl = None
         if lineNo >= 0:
             # XXX temp while handle returns None
-            self.MarkerDeleteAll(linePtrMrk)
+            self.MarkerDeleteAll(stepPosMrk)
 
-            self._linePtrHdl = self.MarkerAdd(lineNo, linePtrMrk)
+            self._linePtrHdl = self.MarkerAdd(lineNo, stepPosMrk)
 
 #-------Canned events-----------------------------------------------------------
 
