@@ -15,7 +15,7 @@
 # XXX debugging, reload sometimes works
 # XXX Going to source code on an error
 
-import string, sys, os
+import sys, os
 
 from wxPython.wx import *
 
@@ -101,9 +101,12 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
         self.debugBrowseId = Utils.AddToolButtonBmpIS(self, self.toolbar,
           'Images/Debug/DebugBrowse.png',  'Debug browsing',
           self.OnDebugBrowse, '1')
-        self.shellNamespaceId = Utils.AddToolButtonBmpIS(self, self.toolbar,
-          'Images/Debug/ShellDebug.png',  'Eval in shell',
-          self.OnDebugNamespace, '1')
+        if Preferences.psPythonShell == 'Shell':
+            self.shellNamespaceId = Utils.AddToolButtonBmpIS(self, self.toolbar,
+              'Images/Debug/ShellDebug.png',  'Eval in shell',
+              self.OnDebugNamespace, '1')
+        else:
+            self.shellNamespaceId = -1
         self.toolbar.AddSeparator()
         self.splitOrientId = Utils.AddToolButtonBmpIS(self, self.toolbar,
           'Images/Debug/SplitOrient.png',  'Toggle split orientation',
@@ -121,8 +124,7 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
         self.toolbar.ToggleTool(self.debugBrowseId, false)
 
         self.splitter = wxSplitterWindow(self, -1,
-               style=wxSP_NOBORDER|wxSP_3DSASH|wxSP_FULLSASH|\
-                     wxSP_LIVE_UPDATE|wxCLIP_CHILDREN)
+               style=wxSP_NOBORDER|Preferences.splitterStyle)
 
         (stackImgIdx, breaksImgIdx, watchesImgIdx, localsImgIdx,
                   globalsImgIdx) = range(5)
@@ -195,8 +197,7 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
             self.stream_timer = None
 
     def setDefaultDimensions(self):
-        self.SetDimensions(0, Preferences.paletteHeight + \
-              Preferences.windowManagerTop + Preferences.windowManagerBottom,
+        self.SetDimensions(0, Preferences.underPalette,
               Preferences.inspWidth, Preferences.bottomHeight)
 
     _sashes_inited = 0
@@ -303,7 +304,7 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
             self.editor.statusBar.setHint(val)
 
     def getVarValue(self, name):
-        if not string.strip(name):
+        if not name.strip():
             return None
         self._hasReceivedVal = 0
         self._receivedVal = None
@@ -796,7 +797,10 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
             # else wait for an OnDebuggerStopped message
 
     def isInShellNamepace(self):
-        return self.toolbar.GetToolState(self.shellNamespaceId)
+        if self.shellNamespaceId == -1:
+            return false
+        else:
+            return self.toolbar.GetToolState(self.shellNamespaceId)
 
     def OnDebugNamespace(self, event):
         self.editor.OnSwitchShell()
@@ -828,4 +832,4 @@ def simplifyPathList(data,
     elif type(data) in ExcludeTypes:
         return ()
     else:
-        return list(string.split(str(data), os.pathsep))
+        return list(str(data).split(os.pathsep))
