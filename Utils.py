@@ -151,6 +151,13 @@ def methodLooksLikeEvent(method):
 def startswith(str, substr):
     return len(str) >= len(substr) and str[:len(substr)] == substr
 
+ws2s = string.maketrans(string.whitespace, ' '*len(string.whitespace))
+def whitespacetospace(str):
+    return string.translate(str, ws2s)    
+
+##tst_str = ' 1\t\n 3'
+##print `whitespacetospace(tst_str)`
+
 class PaintEventHandler(wxEvtHandler):
     """ This class is used to merge paint requests.
 
@@ -315,3 +322,12 @@ def wxProxyPanel(parent, win, *args, **kwargs):
         win.SetSize(evt.GetSize())
     EVT_SIZE(panel, OnWinSize)
     return panel, win
+
+def IsComEnabled():
+    if Preferences.blockCOM: return false
+    try:
+        import win32com
+    except ImportError:
+        return false
+    else:
+        return true
