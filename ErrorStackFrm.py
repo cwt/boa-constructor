@@ -163,8 +163,11 @@ class ErrorStackMF(wxFrame, Utils.FrameRestorerMixin):
             selIdx = 0
         elif errorList:
             selIdx = 2
-        else:
+        elif outputList:
             selIdx = 1
+        elif errRaw:
+            selIdx = 2
+
         self.notebook1.SetSelection(selIdx)
         
         return parsedTracebacks
@@ -260,7 +263,7 @@ class ErrorStackMF(wxFrame, Utils.FrameRestorerMixin):
             model.views['Source'].SetFocus()
             model.views['Source'].gotoLine(data.lineNo - 1)
             model.views['Source'].setLinePtr(data.lineNo - 1)
-            self.editor.statusBar.setHint(string.join(data.error, ' : '),
+            self.editor.setStatus(string.join(data.error, ' : '),
                 self.tracebackType)
 #            self.Lower()
 #            self.editor.Raise()
