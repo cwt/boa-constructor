@@ -3,7 +3,7 @@ import ExplorerNodes, ZopeLib.LoginDialog, EditorModels
 import ftplib, os
 import urlparse,string
 from ZopeLib.ZopeFTP import ZopeFTP
-from ZopeLib import xmlrpclib,BasicAuthTransport
+from ExternalLib import xmlrpclib, BasicAuthTransport
 from ZopeLib import ImageViewer, Client
 from Companions.ZopeCompanions import ZopeConnection, ZopeCompanion, FolderZC
 from Preferences import IS, wxFileDialog
