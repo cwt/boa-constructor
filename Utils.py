@@ -875,3 +875,17 @@ def getEOLMode(text, default=os.linesep):
 
 def toUnixEOLMode(text):
     return text.replace('\r\n', '\n').replace('\r', '\n')
+
+def checkMixedEOLs(text):
+    """ Returns false for mixed EOLs """
+
+    crlf = text.count('\r\n')
+    lf = text.count('\n')
+    cr = text.count('\r')
+
+    if crlf and (lf > crlf or cr > crlf):
+        return true
+    elif not crlf and cr and lf:
+        return true
+    else:
+        return false
