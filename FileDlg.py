@@ -26,8 +26,9 @@ from Utils import wxUrlClickHtmlWindow, EVT_HTML_URL_CLICK
 openStr = 'Open'
 saveStr = 'Save'
 
-htmlPath = '''<body bgcolor="#%x%x%x"><font size=-1><a href="ROOT">top</a> | <a href="UP">up</a> | <a href="NEWFOLDER">new
-folder</a> ||&nbsp;<a href="PROTROOT">%s</a><b>://</b>%s</font></body>'''
+htmlPath = '''<body bgcolor="#%x%x%x"><font size=-1><a href="ROOT">top</a> | 
+<a href="UP">up</a> | <a href="NEWFOLDER">new folder</a> 
+||&nbsp;<a href="PROTROOT">%s</a><b>://</b>%s</font></body>'''
 htmlLnk = '''<a href="%s">%s</a>'''
 htmlCurrItem = '''<b><font color="#0000BB">%s</font></b>'''
 
@@ -35,6 +36,7 @@ htmlCurrItem = '''<b><font color="#0000BB">%s</font></b>'''
 
 class wxBoaFileDialog(wxDialog):
     currentDir = '.'
+    _lastSize = None
     _custom_classes = {'wxHtmlWindow': ['wxUrlClickHtmlWindow']}
     def _init_utils(self):
         pass
@@ -54,6 +56,7 @@ class wxBoaFileDialog(wxDialog):
         self.tcFilename = wxTextCtrl(id = wxID_WXBOAFILEDIALOGTCFILENAME, name = 'tcFilename', parent = self, pos = wxPoint(90, 184), size = wxSize(214, 24), style = wxTE_PROCESS_ENTER, value = '')
         self.tcFilename.SetConstraints(LayoutAnchors(self.tcFilename, true, false, true, true))
         EVT_TEXT_ENTER(self.tcFilename, wxID_WXBOAFILEDIALOGTCFILENAME, self.OnTcfilenameTextEnter)
+        EVT_KEY_DOWN(self.tcFilename, self.OnTcfilenameKeyDown)
 
         self.chTypes = wxChoice(choices = self.filterOpts, id = wxID_WXBOAFILEDIALOGCHTYPES, name = 'chTypes', parent = self, pos = wxPoint(90, 216), size = wxSize(214, 21), style = 0, validator = wxDefaultValidator)
         self.chTypes.SetConstraints(LayoutAnchors(self.chTypes, true, false, true, true))
@@ -106,6 +109,9 @@ class wxBoaFileDialog(wxDialog):
         self.lcFiles = createFileDlgFolderListClass()(self, self,
               defaultDir, pos = wxPoint(8, 21), size = wxSize(384, 152))
         self.lcFiles.SetConstraints(LayoutAnchors(self.lcFiles, true, true, true, true))
+
+        if self._lastSize:
+            self.SetClientSize(self._lastSize)
 
         EVT_LEFT_DCLICK(self.lcFiles, self.OnOpen)
 
@@ -218,10 +224,12 @@ class wxBoaFileDialog(wxDialog):
             self.btOK.SetLabel(btn)
             return
 
-        if self.tcFilename.GetValue():
+        if self.GetFilename():
+            #if self.lcFiles.hasItemNamed(self.GetFilename())
             self.editorFilterNode.setFilter(self.editorFilter)
             dir = self.GetDirectory()
             wxBoaFileDialog.currentDir = dir
+            wxBoaFileDialog._lastSize = self.GetClientSize()
             self.EndModal(wxID_OK)
 
     def OnOpen(self, event):
@@ -300,9 +308,10 @@ class wxBoaFileDialog(wxDialog):
         else:
             node = self.lcFiles.getSelection()
             if node: node.allowedProtocols = ['file', 'zip']
-
+        
+        nameExistsInDir = self.lcFiles.hasItemNamed(self.GetFilename())
         if (node and not node.isFolderish() or not node) and self.style & wxOVERWRITE_PROMPT:
-            if self.lcFiles.hasItemNamed(self.GetFilename()):
+            if nameExistsInDir:
                 dlg = wxMessageDialog(self, 'This file already exists.\n'\
                       'Do you want to overwrite the file?', 'Overwrite file?',
                       wxYES_NO | wxICON_WARNING)
@@ -311,6 +320,12 @@ class wxBoaFileDialog(wxDialog):
                         return
                 finally:
                     dlg.Destroy()
+        elif not node and nameExistsInDir:
+            self.lcFiles.selectItemNamed(self.GetFilename())
+            node = self.lcFiles.getSelection()
+            if node.isFolderish():
+                self.SetFilename('')
+            
         self.open(node)
 
     def OnBtokButton(self, event):
@@ -450,6 +465,20 @@ class wxBoaFileDialog(wxDialog):
 ##    def GetFilenames(self, *_args, **_kwargs):
 ##    def GetPaths(self, *_args, **_kwargs):
 
+    def OnTcfilenameKeyDown(self, event):
+        key = event.GetKeyCode()
+        if key == WXK_TAB:
+            names = self.lcFiles.getAllNames()
+            partial = self.GetFilename()
+            for name in names:
+                if Utils.startswith(name, partial):
+                    self.lcFiles.selectItemNamed(name)
+                    self.SetFilename(name)
+                    self.tcFilename.SetSelection(len(partial), len(name))
+                    return
+        else:
+            event.Skip()
+
 
 def createFileDlgFolderListClass():
     # XXX This is a bit convoluted ;)
@@ -539,7 +568,10 @@ def createFileDlgFolderListClass():
 
         def OnFDBeginLabelEdit(self, event):
             self.oldLabelVal = event.GetText()
-            event.Skip()
+            if self.oldLabelVal == '..':
+                event.Veto()
+            else:
+                event.Skip()
 
         def OnFDEndLabelEdit(self, event):
             newText = event.GetText()
@@ -573,6 +605,6 @@ if __name__ == '__main__':
         if dlg.ShowModal() == wxID_OK:
             wxMessageBox(dlg.GetPath())
     finally:
-        dlg.Destroy()
+        pass#dlg.Destroy()
         
-    Preferences.cleanup()
+    #Preferences.cleanup()
