@@ -14,11 +14,6 @@ except:
     sys.path[0:0] = [os.pardir]
     from ExternalLib.xmlrpcserver import RequestHandler
 
-try:
-    from cStringIO import StringIO
-except ImportError:
-    from StringIO import StringIO
-
 
 debug_server = None
 connection = None
