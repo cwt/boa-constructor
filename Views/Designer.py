@@ -256,13 +256,8 @@ class DesignerView(wxFrame, InspectableObjectView, Utils.FrameRestorerMixin):
         companions = map(lambda i: i[0], self.objects.values())
         self.model.writeWindowIds(self.collectionMethod, companions)
 
-    def renameCtrl(self, oldName, newName):
-        """ Rename control, references to control and update parent tree """
-
-        prel, pref = self.buildParentRelationship()
-
+    def renameCtrlAndParentRefs(self, oldName, newName, children=()):
         # rename other ctrl references like parent
-        children = pref[oldName].keys()
         for ctrl in self.objectOrder:
             # Notify
             self.objects[ctrl][0].renameCtrlRefs(oldName, newName)
@@ -272,6 +267,15 @@ class DesignerView(wxFrame, InspectableObjectView, Utils.FrameRestorerMixin):
         # also do collections
         for coll in self.collEditors.values():
             coll.companion.renameCtrlRefs(oldName, newName)
+
+    def renameCtrl(self, oldName, newName):
+        """ Rename control, references to control and update parent tree """
+
+        prel, pref = self.buildParentRelationship()
+
+        # rename other ctrl references like parent
+        children = pref[oldName].keys()
+        self.renameCtrlAndParentRefs(oldName, newName, children)
 
         InspectableObjectView.renameCtrl(self, oldName, newName)
         selName = self.inspector.containment.selectedName()
@@ -426,16 +430,16 @@ class DesignerView(wxFrame, InspectableObjectView, Utils.FrameRestorerMixin):
 
         return ctrlName
 
-    def newControl(self, parent, ctrlClass, ctrlCompanion, position = None, size = None):
+    def newControl(self, parent, CtrlClass, CtrlCompanion, position = None, size = None):
         """ At design time, when adding a new ctrl from the palette, create and
             register given control and companion.
             See also: loadControl
         """
-        ctrlName = self.newObjName(ctrlClass.__name__)
+        ctrlName = self.newObjName(CtrlClass.__name__)
 
-        self.checkHost(ctrlCompanion)
+        self.checkHost(CtrlCompanion)
 
-        companion = ctrlCompanion(ctrlName, self, parent, ctrlClass)
+        companion = CtrlCompanion(ctrlName, self, parent, CtrlClass)
 
         params = companion.designTimeSource('wxPoint(%d, %d)' % (position.x, position.y))
 
@@ -447,11 +451,18 @@ class DesignerView(wxFrame, InspectableObjectView, Utils.FrameRestorerMixin):
         if not companion.suppressWindowId:
             params[companion.windowIdName] = companion.id
 
-        companion.persistConstr(ctrlClass.__name__, params)
+        companion.persistConstr(CtrlClass.__name__, params)
 
         self.refreshContainment()
 
         return ctrlName
+
+    def initObjCreator(self, constrPrs):
+        # decorate class_name if it's a factory constructor
+        if not constrPrs.class_name and constrPrs.factory:
+            factoryObj, factoryMeth = constrPrs.factory
+            constrPrs.class_name = self.dataView.objects[factoryObj][0].factory(factoryMeth)
+        InspectableObjectView.initObjCreator(self, constrPrs)
 
     def getParentNames(self, parent):
         if parent.GetName() != self.GetName():
@@ -488,7 +499,7 @@ class DesignerView(wxFrame, InspectableObjectView, Utils.FrameRestorerMixin):
                 self.clearMultiSelection()
                 self.assureSingleSelection()
 
-            if ctrl != self:
+            if ctrl and ctrl != self:
                 parentName, dummy = self.getParentNames(ctrl.GetParent())
                 self.inspector.containment.selectName(parentName)
 
@@ -1213,13 +1224,17 @@ class DesignerControlsEvtHandler(wxEvtHandler):
                                 'grid'  : self.drawGrid_grid}
         self._points = (0, 0), []
 
-    def connectEvts(self, ctrl):
-        EVT_MOTION(ctrl, self.OnMouseOver)
-        EVT_LEFT_DOWN(ctrl, self.OnControlSelect)
-        EVT_LEFT_UP(ctrl, self.OnControlRelease)
-        EVT_LEFT_DCLICK(ctrl, self.OnControlDClick)
-        EVT_SIZE(ctrl, self.OnControlResize)
-        EVT_MOVE(ctrl, self.OnControlMove)
+    def connectEvts(self, ctrl, connectChildren=false):
+        ctrls = [ctrl]
+        if connectChildren:
+            ctrls.extend(ctrl.GetChildren())
+        for ctrl in ctrls:
+            EVT_MOTION(ctrl, self.OnMouseOver)
+            EVT_LEFT_DOWN(ctrl, self.OnControlSelect)
+            EVT_LEFT_UP(ctrl, self.OnControlRelease)
+            EVT_LEFT_DCLICK(ctrl, self.OnControlDClick)
+            EVT_SIZE(ctrl, self.OnControlResize)
+            EVT_MOVE(ctrl, self.OnControlMove)
 
         # XXX Hack testing grid paint, should be flag esPaintGrid for companions
         if Preferences.drawDesignerGrid:
@@ -1243,15 +1258,34 @@ class DesignerControlsEvtHandler(wxEvtHandler):
 
         event.Skip()
 
-    def OnControlSelect(self, event):
-        """ Control is clicked. Either select it or add control from palette """
-        dsgn = self.designer
+    def getCtrlAndPosFromEvt(self, event):
+        pos = event.GetPosition()
         ctrl = event.GetEventObject()
         # XXX only here for when testing
         if not ctrl:
-            ctrl = dsgn
+            ctrl = self.designer
+        else:
+            if hasattr(ctrl, '_composite_child'):
+                pos = ctrl.ClientToScreen(pos)
+                ctrl = ctrl.GetParent()
+                pos = ctrl.ScreenToClient(pos)
+        return ctrl, pos
 
-        if dsgn.selectControlByPos(ctrl, event.GetPosition(), event.ShiftDown()):
+    def OnControlSelect(self, event):
+        """ Control is clicked. Either select it or add control from palette """
+        dsgn = self.designer
+        ctrl, pos = self.getCtrlAndPosFromEvt(event)
+##        ctrl = event.GetEventObject()
+##        # XXX only here for when testing
+##        if not ctrl:
+##            ctrl = dsgn
+##        else:
+##            if hasattr(ctrl, '_composite_child'):
+##                pos = ctrl.ClientToScreen(pos)
+##                ctrl = ctrl.GetParent()
+##                pos = ctrl.ScreenToClient(pos)
+##
+        if dsgn.selectControlByPos(ctrl, pos, event.ShiftDown()):
             event.Skip()
 
     def OnControlRelease(self, event):
@@ -1312,9 +1346,10 @@ class DesignerControlsEvtHandler(wxEvtHandler):
         dsgn = self.designer
 
         if dsgn.selection:
-            ctrl = event.GetEventObject()
+            #ctrl = event.GetEventObject()
+            ctrl, pos = self.getCtrlAndPosFromEvt(event)
 
-            dsgn.selectControlByPos(ctrl, event.GetPosition(), event.ShiftDown())
+            dsgn.selectControlByPos(ctrl, pos, event.ShiftDown())
             if ctrl == dsgn:
                 companion = dsgn.companion
                 ctrlName = ''
