@@ -482,11 +482,17 @@ class DebugServer (Bdb):
             thread.exit()
         if sm.doReturn():
             # Return to user code
+            self.beforeResume()
             if self.starting_trace:
                 self.starting_trace = 0
                 sys.settrace(self.trace_dispatch)
             return 0
         return 1
+
+    def beforeResume(self):
+        """Frees references before jumping back into user code."""
+        self.frame = None
+        self.exc_info = None
 
     # Bdb overrides.
     def canonic(self, filename):
@@ -705,10 +711,10 @@ class DebugServer (Bdb):
         self.eventLoop()
 
     def user_return(self, frame, return_value):
-        # This method is called when a return trap is set here
-        # frame.f_locals['__return__'] = return_value
-        # self.interaction(frame, None)
-        pass
+        # This method is called when stepping in or next,
+        # but not when stepping out.
+        frame.f_locals['__return__'] = return_value
+        self.user_line(frame)
 
     def user_exception(self, frame, exc_info):
         # This method should be used to automatically stop
@@ -773,7 +779,9 @@ class DebugServer (Bdb):
         """Stop when returning from the topmost frame."""
         frame = self.getFrameByNumber(-1)
         if frame is not None:
-            self.set_return(frame)
+            self.stopframe = frame.f_back
+            self.returnframe = None
+            self.quitting = 0
         else:
             raise DebugError('No current frame')
 
