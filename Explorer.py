@@ -16,9 +16,9 @@ from EditorModels import *
 
 from ConfigParser import ConfigParser
 from os import path
-import string, time
+import string, time, ftplib
 from stat import *
-import Preferences, Zope.LoginDialog
+import Preferences, Zope.LoginDialog, Utils
 from Preferences import IS
 from types import StringType
 from Zope.ZopeFTP import ZopeFTP
@@ -30,7 +30,7 @@ ctrl_pnl = 'Control_Panel'
 prods = 'Products'
 acl_usr = 'acl_users'
 
-[wxID_PFE, wxID_PFT, wxID_PFL] = map(lambda x: NewId(), range(3))
+[wxID_PFE, wxID_PFT, wxID_PFL] = map(lambda x: wxNewId(), range(3))
 
 def isCVS(filename):
     file = path.basename(filename)
@@ -62,7 +62,12 @@ class ZopeItemNode(ExplorerNode):
         self.zopeObj = zftpi
          
     def openList(self):
-        items = self.zopeConn.dir(self.zopeObj.whole_name())
+        try:
+            items = self.zopeConn.dir(self.zopeObj.whole_name())
+        except ftplib.error_perm, resp:
+            Utils.ShowMessage(None, 'Zope Error', resp)
+            raise
+            
         result = []
         for obj in items:
             if obj.name != '..':

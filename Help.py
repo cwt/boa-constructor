@@ -24,7 +24,23 @@ def showHelp(parent, helpClass, filename, toolbar = None):
     help.loadPage(filename)
     help.Show(true)
 
-[wxID_HELPFRAME] = map(lambda _init_ctrls: NewId(), range(1))
+def showContextHelp(parent, toolbar, word):
+    print 'looking up help for', word
+    from Companions import HelpCompanions
+    helpStr = word+'Docs'
+    if HelpCompanions.__dict__.has_key(helpStr):
+        print 'loading wxWin help', HelpCompanions.__dict__[helpStr]
+        showHelp(parent, wxWinHelpFrame, HelpCompanions.__dict__[helpStr], toolbar)
+    elif HelpCompanions.libRefDocs.has_key(word):
+        print 'loading python lib ref help', HelpCompanions.libRefDocs[word]
+        showHelp(parent, PythonHelpFrame, HelpCompanions.libRefDocs[word], toolbar)
+    elif HelpCompanions.modRefDocs.has_key(word):
+        print 'loading python mod idx help', HelpCompanions.modRefDocs[word]
+        showHelp(parent, PythonHelpFrame, HelpCompanions.modRefDocs[word], toolbar)
+    else:
+        print 'No help found'
+    
+[wxID_HELPFRAME] = map(lambda _init_ctrls: wxNewId(), range(1))
     
 class HelpFrame(wxFrame):
     """ Base class for help defining a home page and search facilities. """
@@ -170,7 +186,7 @@ class BoaHelpFrame(HelpFrame):
     toolBmp = 'Images/Shared/Help.bmp'
     helpStr = 'Boa help'
     def __init__(self, parent, paletteToolbar = None):
-        HelpFrame.__init__(self, parent, Preferences.toPyPath('Docs'), 'Boa.html',
+        HelpFrame.__init__(self, parent, path.join(Preferences.pyPath, 'Docs'), 'index.html',
           'Help.ico', paletteToolbar)
 
 class wxWinHelpFrame(HelpFrame):

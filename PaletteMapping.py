@@ -37,7 +37,8 @@ palette = [
   ['Frame bars', 'Editor/Tabs/Singletons', 
     [wxMenuBar, wxToolBar, wxStatusBar]],
   ['Containers/Layout', 'Editor/Tabs/Containers', 
-    [wxPanel, wxScrolledWindow, wxNotebook, wxSplitterWindow]], 
+    [wxPanel, wxScrolledWindow, wxNotebook, wxSplitterWindow, wxSashWindow,
+     wxSashLayoutWindow]], 
   ['Basic Controls', 'Editor/Tabs/Basic', 
     [wxStaticText, wxTextCtrl, wxComboBox, wxChoice, wxCheckBox, wxRadioButton, 
      wxSlider, wxGauge, wxStaticBox, wxScrollBar, wxStaticBitmap, wxStaticLine, 
@@ -88,7 +89,7 @@ compInfo = {
     wxStaticBitmap: ['wxStaticBitmap', StaticBitmapDTC],
     wxListBox: ['wxListBox', ListBoxDTC],
     wxCheckListBox: ['wxCheckListBox', CheckListBoxDTC],
-    wxGrid: ['wxGrid', GridDTC], 
+    wxGrid: ['wxGrid', NYIDTC], 
     wxListCtrl: ['wxListCtrl', ListCtrlDTC],
     wxTreeCtrl: ['wxTreeCtrl', TreeCtrlDTC],
     wxScrollBar: ['wxScrollBar', ScrollBarDTC],
@@ -118,6 +119,8 @@ compInfo = {
     wxGenBitmapToggleButton: ['wxGenBitmapToggleButton', GenBitmapButtonDTC],
     wxTextDropTarget: ['wxTextDropTarget', NYIDTC],
     wxFileDropTarget: ['wxFileDropTarget', NYIDTC],
+    wxSashWindow: ['wxSashWindow', SashWindowDTC],
+    wxSashLayoutWindow: ['wxSashLayoutWindow', SashLayoutWindowDTC],
 }
 
 def compInfoByName(name):

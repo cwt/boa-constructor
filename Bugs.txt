@@ -1,115 +1,58 @@
-Bugs & Issues - Horribly incomplete cryptic buglist
-$ - Solved/Fixed/Hacked around
+Bugs & Issues 
+-------------
 
---
+I am not satisfied with the way in which the Designer's selection
+forces the granularity and this will probably change in the near
+future.
 
-$ Accessing a property whose property editor was edited on a previous selection of a component
-$ coredumps wxPython (dang pointers)
+Path's to bitmaps are currently stored as absolute paths. This is
+not ideal and I'm looking for alternatives. The problem with relative
+paths is that programs can then be only run from the directory in
+which they are stored.
+Ideally there should be a library function to convert relative paths
+to absolute paths based on the path of the main Python module.
 
-$ Collapsing subproperty tries to store value after property editor
-$ is destroyed
+Current Designer behaviour (under wxMSW) may seem weird where a
+single control is dropped on a frame; At first the control keeps its
+default size, but when the frame is resized, it fills the frame.
+(toolbars, statusbars and menubars connected to the frame are 
+excepted from this rule)
+This behaviour emulates the way frames/containers auto sizes a control 
+if only one is dropped on a frame/container, but it gives you the 
+chance to add a second control (before it fills the parent). 
+If you have a control filling a parent and want to add another to
+the parent, resize/move it out of the way and drop the second
+(painful I know)
 
-$After design time creating a dropping a new component the SelectionGroup gets selected
-$but not the object in the inspector 
+White space is quite significant for collection item methods!
+The spacing/blank lines within the method delimit the 3 possible
+sections, I might change this to rather be delimited by comments
+(but I don't want to have meaningfull comments either :( )
+Anyway don't mess with the whitespace and expect this to change.
 
-$Property editor controls sometimes sized wrong on edit
+Another biggish gotcha is that changes to most (there are exceptions) 
+constructor properties and collection item constructor properties 
+will only take effect after the frame has been opened and closed.
+This is partially due to constructors only being called once ;)
+I expect this limitation to be addressed when cut/copy/paste is
+implemented. After changes to these properties the controls (and
+all their children) will be recreated (cut and paste :)
 
-$On selecting new component in Designer, namevalue width = default, not current Inspector width
+Speed is still a problem. I have spent a lot of time trying to
+address this issue and Boa have certainly improved because of
+that (no more growing leaks or circular references) but it still
+gets quite slow with a lot of modules open. Help with these 
+issues will be greatly appreciated.
 
-$Selecting frame offsets the SelectionGroup relative to screen coords instead of inside corners
-$of frame
+Cyclops and wxGenButtons don't mix for some strange reason. Disable
+any wxGenButtons code before running Cyclops.
+To run Boa in Cyclops, turn the cyclopsing flag on in Palette.py
 
-$ Designer sizing bug: Control returns to default size after resizing a second time 
+Other bugs
+----------
 
-$ Designer sizing bug: If a panel on a frame is selected and the frame is resized 
-$ it is not resized to the new size of the form. This is due to the fact that the selection
-$ group are 4 panels therefor there are 5 ctrls on the frame and the frame will only
-$ resize the panel if it was the only control. 
-$ This behaviour has to be emulated. Will be possible by looking at the child count of
-$ the frame in the parents tree
-
-$ Module does not open
-
-$ Old problem of InspectorScrollWindows' scrollbar getting confused and not being able
-$ to scroll back up
-
-$ Cannot parse ftplib.py
-$ ftplib has a funny character line 669
-
-$wxTreeCtrl.GetParent gives problems, Robin promises fix for next release
-
-$ Frame size/move not updating in source if frame is not currently selected in the 
-$ inspector, this is a fundamentaly very tricky one to fix properly. 
-$ One hack is to auto select the frame before beginning a move/size ??
-
-$?Closing while on full parent view tree sometimes crashes python
-
-$Second instance of a module type not showing image in AppView
-
-$Slider not working
-
-$ RadioBox, NoteBook does not trigger mouse events, and static box only triggers over it's
-$ label. ComboBox only over drop down button
-$ A work around is for containers to first do a hit test if clicks are within the region
-$ of any child controls. A bit of a pain tho. Note these controls can still be selected in
-$ the parents page of the inspector
-
-$Saved as modules should notify application of path change
-
-$Module paths are reletivised wrong when App is saved somewhere else
-
-$ Frame loses events
-
-$ If the last window is closed notebook does not switch to shell
-
-$Module name not changing after rename, only after reload
-
-$Find out why Debugger.py loads so slowly
-
-Can't handle zero length module modules
- $ no infinite loops anymore but still problems
-
-$ Inspector does not behave correctly when switching between 2 frame designers
-
-$ Frame not updating position when moved
-
-$ Add saving btns to text models
-
-$ Parent view not behaving correctly to selection of different designers
-
-$ Views must update model if they are modified
-
-$ Not prompted when overwriting a file
-
-$ Property order is random
-
-$ OGLViews crash on closing (fixed by 2.2.0)
-
-$ After renaming with name property selected changing components cores
-
-$ Doesn't check if name exists before renaming
-
-$ Deleting all utilities from DataView leaves old code in _init_utils
-
-$ Make failure on tips file less fatal
-
-$ Selection box jiggles when sizing from the left and top
-
-$ Negative selections don't work
-
-$ When there are only a few components the linked properties 
-$ (MenuBar/FrameBar/ToolBar) does not show in prop editor on
-$ startup. If another control is selected and the frame is selected
-$ they show correctly, please someone help!
-
-$ Having only a menubar on a frame does not link design time controls
-$ Connecting a menubar to a frame generates an OnSize which generated chaos
-$ I now see there is actually a reference to this in the docs
-
-$ Deleting utils
-
-$ ToolBars confuse the Designer (and the author).
-$ Components are offset by the height of the toolbar
+ToolBars confuse the Designer (and the author).
+Components are offset by the height of the toolbar
 
 Toolbars still cause big trouble by moving the frame coordinates down
 when linked to a frame.
@@ -119,9 +62,16 @@ other components (this breaks the pattern completely ouch :()
 Also have to compensate for all top level controls (ctrls directly on
 frame) by adjusting their coordinates upon linking of the toolbar,
 because their source won't be updated.
+The moral of the story is to not have controls directly on a frame for
+now, rather put them in a panel, this is the recommended procedure
+in any case.
 
-The infamous 'After a file dialog by cursor keys don't work' bug.
-This is a MAJOR pain in the neck for NT users (including myself)
+OGL divided shapes (used in UML view and Import views) do not display
+their text until the divider is resized, wxWindows bug.
+
+The infamous 'After a file dialog the cursor keys don't work' bug.
+This is a MAJOR pain in the neck for Boa/NT users (including myself)
+Currently I run a second Boa to create and save new modules.
 
 Debugger causes core dump if Boa is closed while still debugging
 Pressing Stop before closing prevents this. I'm trying to do this
@@ -150,31 +100,24 @@ Setting linked property to None should clear the source
 
 Some help links break when found text is highlighted in html
 
-Diff views crash on closing
-
 Controls not in the wx namespace should add appropriate import 
 statements to source
 
 Event identifier duplication in source
 
-Events sometimes added after code following class
-
-ComboBox constructor has keyword param 'choices'
+App find does not find correctly when module is open.
+Reimplement find in source using Scintilla's find, find again.
 
 GTK
 ---
 
-Many coredumps, especially on closing modules
+wxListCtrl returns the wrong window Id from the mouse click,
+no workarounds yet, but was mentioned on wx-dev.
 
 STC is slow/sluggish, especially painful on key repeats
 
-$ Menus can't be swapped around by wxMenuBar.Replace(), cores
-$ Temp patch: ModelPage/View still maintains its own menu but it is cloned
-$ before connecting to the menubar
-
 With the accelerator table wxACCEL_ALT binds to shift key
-
-$ AppView.modules: the path is invalid because of M$ \\'s
+THis does not happen with a test case, must still track down the difference
 
 wxStyledTextCtrl crashes with Brace Highlighting enabled
 

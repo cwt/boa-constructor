@@ -155,8 +155,8 @@ class EditorModel:
 
     def destroy(self):
         print 'destroy', self.__class__.__name__
-        for i in self.views.values():
-            print sys.getrefcount(i)
+#        for i in self.views.values():
+#            print sys.getrefcount(i)
         
         del self.views
         del self.viewsModified
@@ -171,7 +171,7 @@ class EditorModel:
             accls.append((code[0], code[1], wId),)
     
     def addMenus(self, menu):
-        self.addMenu(menu, Editor.wxID_EDITORCLOSEPAGE, 'Close', [])
+        self.addMenu(menu, Editor.wxID_EDITORCLOSEPAGE, 'Close', (keyDefs['Close']))
         return []
 
     def reorderFollowingViewIdxs(self, idx):
@@ -498,7 +498,7 @@ class ModuleModel(EditorModel):
         t1 = time()
         self.module = moduleparse.Module(self.moduleName, string.split(self.data, '\012'))
         t2 = time()
-        print 'parse', t2 - t1
+#        print 'parse', t2 - t1
         
     def refreshFromModule(self):
         """ Must call this method to apply changes were made to module object. """
@@ -694,7 +694,7 @@ class TextModel(EditorModel):
 
 class ClassModel(ModuleModel):
     """ Represents access to 1 maintained main class in the module.
-        This class is identified by the 3rd header entry  """
+        This class is identified by the 3rd header entry  #Boa:Model:Class """
     def __init__(self, data, name, main, editor, saved, app = None):
         self.main = main
         self.mainConstr = None
@@ -734,16 +734,13 @@ class ObjectCollection:
 
     def removeReference(self, name, method):
         i = 0
-##        print self.collections
         while i < len(self.collections):
             if self.collections[i].method == method:
-##                print 'OC: removeRef self.collections'
                 del self.collections[i]
             else:
                 i = i + 1
 
         if self.collectionsByName.has_key(name):
-##            print 'OC: removeRef found', self.collectionsByName[name]
             namedColls = self.collectionsByName[name]
             
             i = 0
@@ -783,7 +780,6 @@ class ObjectCollection:
     def setupList(self, list):
         dict = {}
         for item in list:
-##           print 'setupList', item
             if not dict.has_key(item.comp_name):
                 dict[item.comp_name] = []
             dict[item.comp_name].append(item)
@@ -792,11 +788,8 @@ class ObjectCollection:
     def indexOnCtrlName(self):
         self.creatorByName = self.setupList(self.creators)
         self.propertiesByName = self.setupList(self.properties)
-##        print 'indexOnCtrlName', self.propertiesByName
         self.eventsByName = self.setupList(self.events)
         self.collectionsByName = self.setupList(self.collections)
-        
-##        print self
 
     def __repr__(self):
         return '<ObjectCollection instance: %s,\n %s,\n %s,\n %s,\n %s,\n %s,\n %s,\n %s,>'%\
@@ -808,7 +801,6 @@ class BaseFrameModel(ClassModel):
     modelIdentifier = 'Frames'
     companion = Companions.DesignTimeCompanion
     designerBmp = 'Images/Shared/Designer.bmp'
-##    objectCollectionMethods = [init_ctrls, init_utils]
     def __init__(self, data, name, main, editor, saved, app = None):
         ClassModel.__init__(self, data, name, main, editor, saved, app)
         self.designerTool = None
@@ -821,7 +813,6 @@ class BaseFrameModel(ClassModel):
     def addMenus(self, menu):
         accls = ClassModel.addMenus(self, menu)
         self.addMenu(menu, Editor.wxID_EDITORDESIGNER, 'Frame Designer', accls, (keyDefs['Designer']))
-##        self.addMenu(menu, 'Add simple app', self.editor.OnAddSimpleApp, accls, ())
         return accls
 
     def renameMain(self, oldName, newName):
@@ -832,12 +823,6 @@ class BaseFrameModel(ClassModel):
         # Currently DesignerView maintains ctrls
         pass
         
-##    def saveAs(self, filename):
-##        oldFilename = self.filename  
-##        ClassModel.saveAs(self, filename)
-##        if self.app:
-##            pass#self.app.modulePathChange(oldFilename, filename)       
-    
     def new(self, params):
         paramLst = []
         for param in params.keys():
@@ -862,7 +847,6 @@ class BaseFrameModel(ClassModel):
             for meth in main.methods.keys():
                 if len(meth) > len('_init_') and meth[:6] == '_init_':
                     results.append(meth)
-#        print 'identifyCollectionMethods', main.methods.keys(), results
         return results
     
     def allObjects(self):
@@ -885,7 +869,6 @@ class BaseFrameModel(ClassModel):
 
     def readComponents(self):
         from methodparse import *
-##        print 'ReadComponents 1'
         self.objectCollections = {}
         if self.module.classes.has_key(self.main):
             main = self.module.classes[self.main]
@@ -895,7 +878,6 @@ class BaseFrameModel(ClassModel):
                 if len(oc) > len('_init_coll_') and oc[:11] == '_init_coll_':
                     try:
                         res = Utils.split_seq(codeBody, '')
-##                        print 'Collection body', res
                         inits, body, fins = res[:3]
                     except ValueError:
                         raise 'Collection body '+oc+' not in init, body, fin form'
@@ -917,7 +899,6 @@ class BaseFrameModel(ClassModel):
                     allInitialisers = parseMixedBody([ConstructorParse, 
                       EventParse, CollectionInitParse, PropertyParse], codeBody)
                     
-##                    print 'READCOMPONENTS', allInitialisers
                     creators = self.getInitialiser(ConstructorParse, allInitialisers)
                     if creators and oc == init_ctrls:
                         self.mainConstr = creators[0]
@@ -928,8 +909,6 @@ class BaseFrameModel(ClassModel):
                 self.objectCollections[oc] = ObjectCollection()
                 self.objectCollections[oc].setup(creators, properties, events, 
                   collectionInits, inits, fins)
-##        print 'ReadComponents 2'
-        
 
     def removeWindowIds(self, colMeth):
         # find windowids in source
@@ -1199,8 +1178,6 @@ class AppModel(ClassModel):
             self.modules[newName][2] = self.convertToUnixPath(relative)
 
             self.writeModules()
-        
-
 
     def openModule(self, name):
         absPath = self.moduleFilename(name)
@@ -1218,10 +1195,12 @@ class AppModel(ClassModel):
         else:
             return path.normpath(path.join(path.dirname(self.filename), relFilename))
         
-    def buildImportRelationshipDict(self):
+    def buildImportRelationshipDict(self, modules = None):
         relationships = {}
         
-        modules = self.modules.keys()
+        if modules is None:
+            modules = self.modules.keys()
+            
         tot = len(modules)
         self.editor.statusBar.progress.SetRange(tot)
         prog = 0
@@ -1244,6 +1223,7 @@ class AppModel(ClassModel):
         return relationships
     
     def showImportsView(self):
+        # XXX Should be more generic
         self.editor.showImportsView()
     
     def compareApp(self, filename):

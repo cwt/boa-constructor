@@ -28,7 +28,6 @@ from Views.AppViews import AppView, AppFindResults, AppModuleDocView
 from Views.Designer import DesignerView
 from Views.OGLViews import UMLView, ImportsView
 from Views.DataView import DataView
-##from Views.CodeBrowseView import CodeBrowseView
 from Views.PySourceView import PythonSourceView, HTMLSourceView, TextView
 
 from EditorModels import *
@@ -107,7 +106,7 @@ class EditorFrame(wxFrame):
         EVT_NOTEBOOK_PAGE_CHANGED(self.tabs, wxID_PAGECHANGED, self.OnPageChange)
 
         self.modelImageList = wxImageList(16, 16)
-
+        
         # Build imagelist of all models
         orderedModList = []
         for mod in modelReg.values(): orderedModList.append((mod.imgIdx, mod))
@@ -239,14 +238,16 @@ class EditorFrame(wxFrame):
         return menu
 
     def setupToolBar(self, modelIdx = None, viewIdx = None):
-        #return
         if self.palette.destroying:
             return
         
-#        print 'start setup toolbar',
-        
-        accLst = [keyDefs['Inspector']] 
         self.toolBar.ClearTools()
+        
+        accLst = []
+        for (ctrlKey, key), wId in \
+                ( (keyDefs['Inspector'], wxID_EDITORSWITCHINSPECTOR),
+                  (keyDefs['Open'], wxID_EDITOROPEN) ):
+            accLst.append( (ctrlKey, key, wId) ) 
             
         # primary option: open a module
         fileMenu = wxMenu()
@@ -356,7 +357,6 @@ class EditorFrame(wxFrame):
           TextModel.imgIdx)
         model.new()
 
-##        self.tabs.ResizeChildren()
         self.tabs.Refresh()
 
         self.updateTitle()
@@ -370,7 +370,6 @@ class EditorFrame(wxFrame):
             model.save()
             model.notify()
 
-##            self.tabs.ResizeChildren()
             self.tabs.Refresh()
 
             self.updateTitle()
@@ -387,7 +386,6 @@ class EditorFrame(wxFrame):
         frmNme = path.splitext(path.basename(frmMod.filename))[0]
         appmodel.new(frmNme)
 
-##        self.tabs.ResizeChildren()
         self.tabs.Refresh()
 
         self.updateTitle()
@@ -403,7 +401,6 @@ class EditorFrame(wxFrame):
         model.new()
         if activeApp: activeApp.addModule(model.filename, '')
 
-##        self.tabs.ResizeChildren()
         self.tabs.Refresh()
 
         self.updateTitle()
@@ -432,7 +429,6 @@ class EditorFrame(wxFrame):
         model.new(params)
         if activeApp: activeApp.model.addModule(model.filename, '')
 
-##        self.tabs.ResizeChildren()
         self.tabs.Refresh()
 
         self.updateTitle()
@@ -504,7 +500,6 @@ class EditorFrame(wxFrame):
 
         model.notify()
 
-##        self.tabs.ResizeChildren()
         self.tabs.Refresh()
 
         self.updateTitle()
@@ -530,7 +525,6 @@ class EditorFrame(wxFrame):
         model.save()
         model.notify()
 
-##        self.tabs.ResizeChildren()
         self.tabs.Refresh()
 
         self.updateTitle()
@@ -553,7 +547,6 @@ class EditorFrame(wxFrame):
             model.refreshFromViews()
 
             model.initModule()
-##            print 'EDITOR RC'
             model.readComponents()  
 
             # add or focus data view
@@ -580,11 +573,6 @@ class EditorFrame(wxFrame):
             
             # Make source read only
             model.views['Source'].SetReadOnly(true)
-
-##            designer = model.views['Designer']
-##            if designer.selection:
-##                designer.selCmp = None
-##                designer.selection.selectCtrl(designer, designer.companion)
                 
     def showImportsView(self):
         self.addNewView('Imports', ImportsView) 
@@ -592,12 +580,10 @@ class EditorFrame(wxFrame):
     def addNewView(self, name, viewClass):
         module = self.getActiveModulePage()
         if module:
-#            try:
             if not module.model.views.has_key(name):
                 return module.addView(viewClass, name)
             else:
                 return module.model.views[name]
-#            finally:
             module.model.views[name].Show(true)
                                 
     def openFileDlg(self):
@@ -626,7 +612,6 @@ class EditorFrame(wxFrame):
     def closeModule(self, modulePage):
         idx = modulePage.tIdx
         name = modulePage.model.filename
-##        print 'closing', name, modulePage, modulePage.tIdx
         if self.modules.has_key(name):
             if modulePage.model.views.has_key('Designer'):
                 modulePage.model.views['Designer'].close()
@@ -635,7 +620,6 @@ class EditorFrame(wxFrame):
                 if Utils.yesNoDialog(self, 'Close module', 'There are changes, do you want to save?'):
                     self.saveOrSaveAs()
                     name = modulePage.model.filename
-##                    print 'Close, new name', name
             modulePage.destroy()
             self.tabs.RemovePage(idx)
             del self.modules[name]
@@ -677,7 +661,6 @@ class EditorFrame(wxFrame):
             modPge = self.modules[model.filename]
         self.tabs.SetPageText(modPge.tIdx, modPge.updatePageName())
 	self.tabs.Refresh()
-##        self.tabs.ResizeChildren();
     
     def updateStatusRowCol(self, row, col):
         self.statusBar.row.SetLabel(`row`)
@@ -764,7 +747,6 @@ class EditorFrame(wxFrame):
             # hack to avoid core dump, first setting the notebook to anything but
             # the last page before setting it to the last page allows us to close
             # this window from the palette. Weird?
-##            self.toolBar.ClearTools()
             self.tabs.SetSelection(0)
             pgeCnt = self.tabs.GetPageCount()
             self.tabs.SetSelection(pgeCnt -1)
@@ -858,10 +840,12 @@ class EditorFrame(wxFrame):
         self.tabs.SetSelection(1)
         
     def OnSwitchPalette(self, event):
+        print 'Switch Palette'
         self.palette.Show(true)
         self.palette.Raise()
         
     def OnSwitchInspector(self, event):
+        print 'Switch Inspector'
         self.inspector.Show(true)
         if self.inspector.IsIconized():
             self.inspector.Iconize(false)

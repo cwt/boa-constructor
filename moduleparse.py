@@ -42,7 +42,7 @@ is_doc_quote = re.compile("'''")
 id_doc_quote_dbl = re.compile('"""')
 is_todo = re.compile('^[ \t]*# XXX')
 list = '[A-Za-z_][A-Za-z0-9_]*'	# match identifier
-is_wid = re.compile('^\[(?P<wids>.*)\][ \t]*[=][ \t]*NewIds[(](?P<count>\d+)[)]$')
+is_wid = re.compile('^\[(?P<wids>.*)\][ \t]*[=][ \t]*wxNewId[(](?P<count>\d+)[)]$')
 
 sq3string = r"(\b[rR])?'''([^'\\]|\\.|'(?!''))*(''')?"
 dq3string = r'(\b[rR])?"""([^"\\]|\\.|"(?!""))*(""")?'
@@ -62,13 +62,13 @@ str_licence = '# Licence:[ \t]*(?P<licence>[^#]*#[-]+)'
 is_info = re.compile(sep_line + str_name + str_purpose + str_author + \
   str_created + str_rcs_id + str_copyright + str_licence, re.DOTALL)
 
-def NewIds(cnt):
+def wxNewIds(cnt):
     l = []
     for i in range(cnt):
         l.append(i)
     return l
 
-def NewIds(cnt):
+def wxNewIds(cnt):
     return map(lambda _init_ctrls: NewId(), range(cnt))
     
 class CodeBlock:
@@ -92,7 +92,7 @@ class CodeBlock:
             
 # each Python class is represented by an instance of this class
 class Class:
-    '''Class to represent a Python class.'''
+    """Class to represent a Python class."""
     def __init__(self, module, name, super, file, lineno):
         self.module = module
         self.name = name
@@ -335,7 +335,7 @@ class Module:
         
         # Add in source
         self.source[ins_point : ins_point] = \
-          ['    def %s(%s):' % (method_name, method_params)] + method_body + ['']
+          [''] + ['    def %s(%s):' % (method_name, method_params)] + method_body 
           
         # renumber code blocks
         self.renumber(new_length, ins_point)

@@ -23,9 +23,11 @@ windowManagerBottom = 7
 
 transparentPaletteBitmaps = 0
 
+# These settings may be specific to Red Hat, change them if the help
+# complains about missing files.
+# Note: If you want to use different versions of the help, see Scripts/HelpScrpt.py
 pythonDocsPath = '/usr/doc/python-docs-1.5.2/Doc'
-
-wxWinDocsPath = '/usr/doc/wxPython-2.1.13'
+wxWinDocsPath = '/usr/doc/wxPython-2.2.1'
 
 #Current issues
 # Notebooks lack images

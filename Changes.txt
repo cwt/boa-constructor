@@ -3,7 +3,7 @@ Changes
 
 -- 0.0.4 --
 
-00-03-01 - 00-06-26
+00-03-01 - 00-08-30
 
 * Put the website into Zope 
 * Put application help into Zope 
