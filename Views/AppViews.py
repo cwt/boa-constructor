@@ -398,10 +398,10 @@ class TextInfoFileView(PySourceView.EditorStyledTextCtrl):
             self.model.unsavedTextInfos.append(self.viewName)
 
 class AppREADME_TIFView(TextInfoFileView): 
-    viewName = 'README'
+    viewName = 'README.txt'
 
 class AppTODO_TIFView(TextInfoFileView): 
-    viewName = 'TODO'
+    viewName = 'TODO.txt'
 
 class AppBUGS_TIFView(TextInfoFileView): 
-    viewName = 'BUGS'
+    viewName = 'BUGS.txt'
