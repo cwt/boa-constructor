@@ -74,7 +74,7 @@ class ErrorStackMF(wxFrame, Utils.FrameRestorerMixin):
         self.outputText = 'Output'
         self.errorsImgIdx = 2
         self.errorsText = 'Errors'
-        
+
         self.diffPage = None
         self.diffImgIdx = 3
 
@@ -98,7 +98,7 @@ class ErrorStackMF(wxFrame, Utils.FrameRestorerMixin):
             for img in ('Images/Shared/Traceback.png',
                         'Images/Shared/Info.png',
                         'Images/Shared/Error.png',
-                        'Images/CVSPics/Diff.png'):
+                        'Images/CvsPics/Diff.png'):
                 self.images.Add(Preferences.IS.load(img))
             self.notebook1.AssignImageList(self.images)
 
@@ -113,7 +113,7 @@ class ErrorStackMF(wxFrame, Utils.FrameRestorerMixin):
 
         self.winConfOption = 'errout'
         self.loadDims()
-        
+
         self.lastClick = (0, 0)
 
     def setDefaultDimensions(self):
@@ -142,7 +142,7 @@ class ErrorStackMF(wxFrame, Utils.FrameRestorerMixin):
                     tree.SetItemHasChildren(errTI, true)
                     tree.SetPyData(errTI, err.stack[-1])
                     parsedTracebacks = parsedTracebacks + 1
-                    
+
         tree.SetItemHasChildren(rtTI, true)
         tree.Expand(rtTI)
         cookie = 0; firstErr, cookie = tree.GetFirstChild(rtTI, cookie)
@@ -160,7 +160,7 @@ class ErrorStackMF(wxFrame, Utils.FrameRestorerMixin):
             self.errorTC.SetValue('')
 
         selIdx = -1
-        if parsedTracebacks: 
+        if parsedTracebacks:
             selIdx = 0
         elif errorList:
             selIdx = 2
@@ -171,7 +171,7 @@ class ErrorStackMF(wxFrame, Utils.FrameRestorerMixin):
 
         if selIdx >= 0:
             self.notebook1.SetSelection(selIdx)
-        
+
         return parsedTracebacks
 
     def display(self, errs):
@@ -210,8 +210,8 @@ class ErrorStackMF(wxFrame, Utils.FrameRestorerMixin):
 ##        chars = 0
 ##        for i in range(numLinesToShow):
 ##            chars = chars + tc.GetLineLength(lines - i)
-##        tc.ShowPosition(tc.GetLastPosition()-chars) 
-        
+##        tc.ShowPosition(tc.GetLastPosition()-chars)
+
         # XXX just make editor err out visible for now, the others would be
         # XXX too jarring
         if self.notebook1.GetGrandParent() == self.editor:
@@ -225,7 +225,7 @@ class ErrorStackMF(wxFrame, Utils.FrameRestorerMixin):
                         tc.Refresh()
                         break
                 splitter.openBottomWindow()
-                
+
     def appendToOutput(self, txt):
         self.appendToTextCtrl(self.outputTC, txt)
 
@@ -238,7 +238,7 @@ class ErrorStackMF(wxFrame, Utils.FrameRestorerMixin):
 
     def displayDiff(self, diffResult):
         if not self.diffPage:
-            self.diffPage = wxStyledTextCtrl(self.notebook1, -1, 
+            self.diffPage = wxStyledTextCtrl(self.notebook1, -1,
                 style=wxSUNKEN_BORDER|wxCLIP_CHILDREN)
             self.diffPage.SetMarginWidth(1, 0)
             self.diffPage.SetLexer(wxSTC_LEX_DIFF)
@@ -251,7 +251,7 @@ class ErrorStackMF(wxFrame, Utils.FrameRestorerMixin):
                   (6, 'back:#CCFFCC') ): #'+'
                 self.diffPage.StyleSetSpec(num, style)
             self.diffPage.SetText(diffResult)
-            self.notebook1.AddPage(strText='Diffs', bSelect=not not diffResult, 
+            self.notebook1.AddPage(strText='Diffs', bSelect=not not diffResult,
                 pPage=self.diffPage, imageId=self.diffImgIdx)
         else:
             self.diffPage.SetText(diffResult)
