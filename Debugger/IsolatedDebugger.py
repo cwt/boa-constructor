@@ -101,12 +101,13 @@ class DebuggerConnection:
         self._ds.stopAnywhere()
 
     def set_quit(self):
-        """Quits debugging, executing only the try/finally handlers.
-        Non-blocking and immediate.
+        """Attempts to quits debugging, executing only the try/finally
+        handlers.  Non-blocking.
         """
-        self._ds.stopAnywhere()
-        if self._ds.isRunning():
-            self._callNoWait('set_quit', 1)
+        self._callNoWait('set_quit', 1)
+##        self._ds.stopAnywhere()
+##        if self._ds.isRunning():
+##            self._callNoWait('set_quit', 1)
 
     def setAllBreakpoints(self, brks):
         """brks is a list of mappings containing the keys:
@@ -404,6 +405,9 @@ class DebugServer (Bdb):
     # exc_info is set only while paused and an exception occurred.
     exc_info = None
 
+    # starting_trace is set only while paused after a hard breakpoint.
+    starting_trace = 0
+
     # ignore_stopline is the line number we should *not* stop on.
     ignore_stopline = -1
 
@@ -449,6 +453,7 @@ class DebugServer (Bdb):
         self.ignore_stopline = -1
         self.autocont = 0
         self.exc_info = None
+        self.starting_trace = 0
         self.fncache.clear()
         self._lock.releaseIfOwned()
 
@@ -478,6 +483,10 @@ class DebugServer (Bdb):
         if sm.doExit():
             thread.exit()
         if sm.doReturn():
+            # Return to user code
+            if self.starting_trace:
+                self.starting_trace = 0
+                sys.settrace(self.trace_dispatch)
             return 0
         return 1
 
@@ -536,6 +545,7 @@ class DebugServer (Bdb):
         if full_speed:
             # run without debugger overhead
             sys.settrace(None)
+            self.starting_trace = 0
             try:
                 raise 'gen_exc_info'
             except:
@@ -551,8 +561,6 @@ class DebugServer (Bdb):
 
         # Allow a stop in any thread.
         self._lock.releaseIfOwned()
-        if not full_speed:
-            sys.settrace(self.trace_dispatch)
 
     def hard_break_here(self, frame):
         """Indicates whether the debugger should stop at a hard breakpoint.
@@ -606,6 +614,8 @@ class DebugServer (Bdb):
             self.botframe = root_frame
         # Set a default stepping mode
         self.set_step()
+        # Get sys.settrace() called when resuming.
+        self.starting_trace = 1
         # Pause in the frame
         self.user_line(frame)
 
@@ -1012,7 +1022,8 @@ class DebugServer (Bdb):
                 return pprint.pformat(v)
             except:
                 t, v = sys.exc_info()[:2]
-                return str(v)
+                import traceback
+                return ''.join(traceback.format_exception_only(t, v))
 
     def safeRepr(self, s):
         return self.repr.repr(s)
