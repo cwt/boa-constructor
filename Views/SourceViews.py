@@ -16,8 +16,8 @@ from wxPython.wx import *
 from wxPython.stc import *
 
 import EditorViews, ProfileView, Search, Help, Preferences, Utils
-from StyledTextCtrls import PythonStyledTextCtrlMix, BrowseStyledTextCtrlMix, HTMLStyledTextCtrlMix, XMLStyledTextCtrlMix, FoldingStyledTextCtrlMix, CPPStyledTextCtrlMix, idWord, new_stc, old_stc, object_delim
-from PrefsKeys import keyDefs
+from StyledTextCtrls import PythonStyledTextCtrlMix, BrowseStyledTextCtrlMix, HTMLStyledTextCtrlMix, XMLStyledTextCtrlMix, FoldingStyledTextCtrlMix, CPPStyledTextCtrlMix, idWord, object_delim
+from Preferences import keyDefs
 
 indentLevel = 4
 endOfLines = {  wxSTC_EOL_CRLF : '\r\n',
@@ -30,7 +30,6 @@ tmpBrkPtMrk = 3
 markPlaceMrk = 4
 #brwsIndc = 0
 
-#wxID_PYTHONSOURCEVIEW,
 [wxID_CPPSOURCEVIEW, wxID_HTMLSOURCEVIEW, wxID_XMLSOURCEVIEW, wxID_TEXTVIEW,
  wxID_SOURCECUT, wxID_SOURCECOPY, wxID_SOURCEPASTE, wxID_SOURCEUNDO,
  wxID_SOURCEREDO] \
@@ -67,8 +66,6 @@ class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView):
         self.SetEOLMode(wxSTC_EOL_LF)
         self.eol = endOfLines[self.GetEOLMode()]
 
-        #self.SetCaretPeriod(0)
-
         self.pos = 0
         self.stepPos = 0
         self.nonUserModification  = false
@@ -82,6 +79,7 @@ class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView):
             self.paint_handler = Utils.PaintEventHandler(self)
 
         self.lastStart = 0
+        self._blockUpdate = false
 
         self.MarkerDefine(markPlaceMrk, wxSTC_MARK_SHORTARROW, 'NAVY', 'YELLOW')
 
@@ -95,6 +93,9 @@ class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView):
 
     def setModelData(self, data):
         self.model.data = data
+    
+    def saveNotification(self):
+        self.EmptyUndoBuffer()
 
     def refreshCtrl(self):
         if wxPlatform == '__WXGTK__':
@@ -116,11 +117,22 @@ class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView):
             redraw=1
         if redraw == 1:
             prevVsblLn = self.GetFirstVisibleLine()
-            self.SetText(self.getModelData())
-            self.EmptyUndoBuffer()
-            self.GotoPos(self.pos)
-            curVsblLn = self.GetFirstVisibleLine()
-            self.ScrollBy(0, prevVsblLn - curVsblLn)
+            self._blockUpdate = true
+            try:
+                newData = self.getModelData()
+                txtLen = self.GetTextLength()
+                if txtLen and newData != self.GetText() or not txtLen:
+                    self.SetText(newData)
+                    if not txtLen:
+                        self.EmptyUndoBuffer()
+                self.GotoPos(self.pos)
+                curVsblLn = self.GetFirstVisibleLine()
+                self.LineScroll(0, prevVsblLn - curVsblLn)
+                self.SetSavePoint()
+            finally:
+                self._blockUpdate = false
+
+            #self.EmptyUndoBuffer()
 
         self.nonUserModification = false
         self.updatePageName()
@@ -130,12 +142,18 @@ class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView):
         if self.isModified():
             self.model.modified = true
         self.nonUserModification = false
-
-        # hack to stop wxSTC from eating the last character
-        self.InsertText(self.GetTextLength(), ' ')
+    
+##        pos = self.GetCurrentPos()
+##        prevVsblLn = self.GetFirstVisibleLine()
 
         self.setModelData(self.GetText())
-        self.EmptyUndoBuffer()
+        
+##        self.GotoPos(pos)
+##        curVsblLn = self.GetFirstVisibleLine()
+##        self.LineScroll(0, prevVsblLn - curVsblLn)
+        
+        #self.EmptyUndoBuffer()
+        self.SetSavePoint()
         if wxPlatform == '__WXGTK__':
             # We are updating the model from the editor view.
             # this flag is to prevent  the model updating the view
@@ -152,13 +170,13 @@ class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView):
     def gotoLine(self, lineno, offset = -1):
         self.GotoLine(lineno)
         vl = self.GetFirstVisibleLine()
-        self.ScrollBy(0, lineno -  vl)
-        if offset != -1: self.SetCurrentPosition(self.GetCurrentPos()+offset+1)
+        self.LineScroll(0, lineno -  vl)
+        if offset != -1: self.SetCurrentPos(self.GetCurrentPos()+offset+1)
 
     def selectSection(self, lineno, start, word):
         self.gotoLine(lineno)
         length = len(word)
-        startPos = self.GetLineStartPos(lineno) + start
+        startPos = self.PositionFromLine(lineno) + start
         endPos = startPos + length
         self.SetSelection(startPos, endPos)
 
@@ -166,8 +184,8 @@ class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView):
 
     def selectLine(self, lineno):
         self.GotoLine(lineno)
-        sp = self.GetLineStartPos(lineno)
-        ep = self.GetLineStartPos(lineno+1)-1
+        sp = self.PositionFromLine(lineno)
+        ep = self.PositionFromLine(lineno+1)-1
         self.SetSelection(sp, ep)
 
     def updatePageName(self):
@@ -189,8 +207,8 @@ class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView):
 
     def updateStatusBar(self):
         pos = self.GetCurrentPos()
-        ln = self.GetLineFromPos(pos)
-        st = pos - self.GetLineStartPos(ln)
+        ln = self.LineFromPosition(pos)
+        st = pos - self.PositionFromLine(ln)
 #        self.model.editor.updateStatusRowCol(st + 1, ln + 1)
 
     def updateEditor(self):
@@ -203,8 +221,8 @@ class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView):
 
     def insertCodeBlock(self, text):
         cp = self.GetCurrentPos()
-        ln = self.GetLineFromPos(cp)
-        indent = cp - self.GetLineStartPos(ln)
+        ln = self.LineFromPosition(cp)
+        indent = cp - self.PositionFromLine(ln)
         lns = string.split(text, self.eol)
         text = string.join(lns, self.eol+indent*' ')
 
@@ -217,18 +235,18 @@ class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView):
             self.SetSelection(cp + selTxtPos, cp + selTxtPos + 11)
 
     def isModified(self):
-        return self.GetModified() or self.nonUserModification
+        return self.GetModify() or self.nonUserModification
 
 #---Block commands----------------------------------------------------------
 
     def reselectSelectionAsBlock(self):
         selStartPos, selEndPos = self.GetSelection()
-        selStartLine = self.GetLineFromPos(selStartPos)
-        startPos = self.GetLineStartPos(selStartLine)
-        selEndLine = self.GetLineFromPos(selEndPos)
-        if selEndPos != self.GetLineStartPos(selEndLine):
+        selStartLine = self.LineFromPosition(selStartPos)
+        startPos = self.PositionFromLine(selStartLine)
+        selEndLine = self.LineFromPosition(selEndPos)
+        if selEndPos != self.PositionFromLine(selEndLine):
             selEndLine = selEndLine + 1
-        endPos = self.GetLineStartPos(selEndLine)
+        endPos = self.PositionFromLine(selEndLine)
 #        if endPos > startPos: endPos = endPos -1
         self.SetSelection(startPos, endPos)
         return selStartLine, selEndLine
@@ -240,8 +258,8 @@ class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView):
             textLst = func(string.split(self.GetSelectedText(), self.eol))[:-1]
             self.ReplaceSelection(string.join(textLst, self.eol)+self.eol)
             if sle > sls:
-                self.SetSelection(self.GetLineStartPos(sls),
-                  self.GetLineStartPos(sle)-1)
+                self.SetSelection(self.PositionFromLine(sls),
+                  self.PositionFromLine(sle)-1)
         finally:
             self.EndUndoAction()
 
@@ -322,7 +340,7 @@ class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView):
             self.doNextMatch()
 
     def OnMarkPlace(self, event):
-        lineno = self.GetLineFromPos(self.GetCurrentPos())
+        lineno = self.LineFromPosition(self.GetCurrentPos())
         self.MarkerAdd(lineno, markPlaceMrk)
         self.model.editor.addBrowseMarker(lineno)
         # Encourage a redraw
@@ -445,7 +463,7 @@ class HPPSourceView(CPPSourceView):
         self.EmptyUndoBuffer()
         self.GotoPos(self.pos)
         curVsblLn = self.GetFirstVisibleLine()
-        self.ScrollBy(0, prevVsblLn - curVsblLn)
+        self.LineScroll(0, prevVsblLn - curVsblLn)
 
         self.nonUserModification = false
         self.updatePageName()
@@ -519,18 +537,18 @@ class TstPythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix, BrowseS
         elif key == 9:
             pos = self.GetCurrentPos()
             self.InsertText(pos, indentLevel*' ')
-            self.SetCurrentPosition(pos + indentLevel)
+            self.SetCurrentPos(pos + indentLevel)
             return
         elif key == 8:
-            line = self.GetCurrentLineText()
+            line = self.GetCurLine()
             if len(line): line = line[0]
             else: line = ''
             pos = self.GetCurrentPos()
             #ignore indenting when at start of line
-            if self.GetLineStartPos(self.GetLineFromPos(pos)) != pos:
+            if self.PositionFromLine(self.LineFromPosition(pos)) != pos:
                 pos = pos -1
-                ln = self.GetLineFromPos(pos)
-                ls = self.GetLineStartPos(ln)
+                ln = self.LineFromPosition(pos)
+                ls = self.PositionFromLine(ln)
                 st = pos - ls
                 if not string.strip(line[:st]):
                     self.SetSelection(ls + st/4*4, pos+1)
@@ -538,3 +556,4 @@ class TstPythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix, BrowseS
                     return
         event.Skip()
         BrowseStyledTextCtrlMix.OnKeyDown(self, event)
+ 
