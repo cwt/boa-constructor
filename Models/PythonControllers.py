@@ -565,7 +565,7 @@ class SetupController(ModuleController):
         os.chdir(filedir)
         try:
             ProcessModuleRunner(self.editor.erroutFrm, model.app, filedir).run(\
-            '"%s" setup.py %s'%(`Preferences.pythonInterpreterPath`[1:-1], cmd),
+            '"%s" setup.py %s'%(`Preferences.getPythonInterpreterPath()`[1:-1], cmd),
             caption='Running distutil command...')
         finally:
             os.chdir(cwd)
@@ -625,14 +625,57 @@ PaletteStore.newControllers.update({'PythonApp': PyAppController,
 
 PaletteStore.paletteLists['New'].extend(['PythonApp', 'Module', 'Package', 'Setup'])
 
+
+# Python extensions to the Explorer
+
 # Register Packages as a File Explorer sub type
-from Explorers import FileExplorer
+from Explorers import ExplorerNodes, FileExplorer
 
 def isPackage(filename):
     return os.path.exists(os.path.join(filename, PythonEditorModels.PackageModel.pckgIdnt))
-
 FileExplorer.FileSysNode.subExplorerReg['folder'].append(
   (FileExplorer.FileSysNode, isPackage, PythonEditorModels.PackageModel.imgIdx),
 )
 
-EditorHelper.editorToolsReg.append( ('Attach to debugger', ToolsOnAttachToDebugger) )
+class SysPathNode(ExplorerNodes.ExplorerNode):
+    protocol = 'sys.path'
+    def __init__(self, clipboard, parent, bookmarks):
+        ExplorerNodes.ExplorerNode.__init__(self, 'sys.path', '', clipboard,
+              EditorHelper.imgPathFolder, parent)
+        self.bookmarks = bookmarks
+        self.bold = true
+        self.vetoSort = true
+
+    def isFolderish(self):
+        return true
+
+    def createChildNode(self, shpth, pth):
+        return FileExplorer.FileSysNode(shpth, pth, self.clipboard,
+              EditorHelper.imgPathFolder, self, self.bookmarks)
+
+    def refresh(self):
+        self.entries = []
+        pythonDir = os.path.dirname(sys.executable)
+        for pth in sys.path:
+            pth = os.path.abspath(pth)
+            shortPath = pth
+            if pth:
+                if pth[0:len(pythonDir)] == pythonDir:
+                    shortPath = pth[len(pythonDir):]
+                    if not shortPath:
+                        shortPath = '<Python root>'
+                self.entries.append( (shortPath, pth) )
+
+    def openList(self):
+        self.refresh()
+        res = []
+        for short, entry in self.entries:
+            res.append(self.createChildNode(short, entry))
+        return res
+    
+ExplorerNodes.register(SysPathNode, clipboard='file', controller='file', root=True)
+
+
+# Hook debugger attaching to Tools menu
+EditorHelper.editorToolsReg.append( ('Attach to debugger', ToolsOnAttachToDebugger,
+      'Images/Shared/Debugger.png') )
