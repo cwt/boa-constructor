@@ -91,6 +91,7 @@ class EditableListBoxDTC(GizmoDTCMix, ContainerCompanions.PanelDTC):
         ContainerCompanions.PanelDTC.__init__(self, name, designer, parent, ctrlClass)
         self.editors['Strings'] = PropertyEditors.BITPropEditor
         self.ctrlDisabled = true
+        self.compositeCtrl = true
 
     def constructor(self):
         return {'Label': 'label', 'Position': 'pos', 'Size': 'size', 'Name': 'name'}
