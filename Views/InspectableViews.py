@@ -564,6 +564,11 @@ class InspectableObjectView(EditorViews.EditorView, InspectorSessionMix):
         # Rename possible name clashes
         objCol.indexOnCtrlName()
         pasteNameClasses = objCol.getCtrlNames()
+        
+        for name, cls in pasteNameClasses:
+            methodparse.decorateParseItems(objCol.eventsByName[name], name, 
+                  self.model.main)
+        
         newNames = []
         oldNames = []
         # Preserve order, but determine all new names before creating objs
