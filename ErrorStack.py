@@ -10,6 +10,7 @@
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 import string, re, os, sys, pprint
+from ShellEditor import PseudoFile
 
 if sys.version[:2] == '2.':
     tb_id = 'Traceback (most recent call last):'
@@ -27,20 +28,20 @@ class StackEntry:
     def __repr__(self):
         return 'File "%s", line %d\n%s' % (self.file, self.lineNo, self.line)
 
-class PseudoFile:
-    """ Base class for file like objects to facilitate StdOut for the Shell."""
-    def __init__(self, output = None):
-        if output is None: output = []
-        self.output = output
-
-    def writelines(self, l):
-        map(self.write, l)
-    
-    def write(s):
-        pass
-
-    def flush(self):
-        pass
+##class PseudoFile:
+##    """ Base class for file like objects to facilitate StdOut for the Shell."""
+##    def __init__(self, output = None):
+##        if output is None: output = []
+##        self.output = output
+##
+##    def writelines(self, l):
+##        map(self.write, l)
+##    
+##    def write(s):
+##        pass
+##
+##    def flush(self):
+##        pass
 
 class RecFile(PseudoFile):
     def write(self, s):
@@ -69,10 +70,10 @@ class StackErrorParser:
 #    def write(self, s):
 #        self.lines.append(s)
 
-def errorList(stderr):
+def buildErrorList(lines):
     errs = []
     currerr = []
-    lines = stderr.readlines()
+    
     lines.reverse()
     for line in lines:
         if string.strip(line) == tb_id:
@@ -82,12 +83,17 @@ def errorList(stderr):
             currerr.append(line)
     errs.reverse()
 
+    # undo :)
+    lines.reverse()
+
     res = []
     for err in errs:
         err.reverse()
         res.append(StdErrErrorParser(err))
     return res
 
+def errorList(stderr):
+    return buildErrorList(stderr.readlines())
 
 
 class StdErrErrorParser(StackErrorParser):    
@@ -198,3 +204,5 @@ def test():
           '    err.parse()\n',
           'AttributeError: parse\n']
     return errorList(pf(tb))
+
+test()
