@@ -27,6 +27,10 @@ def EVT_DEBUGGER_STOPPED(win, id, func):
     win.Connect(id, -1, wxEVT_DEBUGGER_STOPPED, func)
 
 
+class EmptyResponseError (Exception):
+    """Empty debugger response"""
+
+
 class DebuggerCommEvent(wxPyCommandEvent):
     receiver_name = None
     receiver_args = ()

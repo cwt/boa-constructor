@@ -1,6 +1,11 @@
+
 import os, string, sys, time, socket
 from ExternalLib import xmlrpclib
 from wxPython import wx
+
+from DebugClient import DebugClient, MultiThreadedDebugClient, \
+     EmptyResponseError, DebuggerTask, EVT_DEBUGGER_START, \
+     wxEVT_DEBUGGER_START, wxEVT_DEBUGGER_EXC, wxEVT_DEBUGGER_STOPPED
 
 
 KEEP_STREAMS_OPEN = 1
@@ -17,6 +22,33 @@ class TransportWithAuth (xmlrpclib.Transport):
     def send_user_agent(self, connection):
         xmlrpclib.Transport.send_user_agent(self, connection)
         connection.putheader("X-Auth", self._auth)
+
+    def parse_response(self, f, sock=None):
+        # read response from input file, and parse it
+        # If there was no response, raise a special exception.
+        got_data = 0
+
+        p, u = self.getparser()
+
+        while 1:
+            if sock:
+                response = sock.recv(1024)
+            else:
+                response = f.read(1024)
+            if not response:
+                break
+            else:
+                got_data = 1
+            if self.verbose:
+                print "body:", repr(response)
+            p.feed(response)
+
+        f.close()
+        if not got_data:
+            raise EmptyResponseError, 'Empty response from debugger process'
+
+        p.close()
+        return u.close()
 
 
 def spawnChild(monitor, process):
@@ -90,11 +122,6 @@ def spawnChild(monitor, process):
 
 
 ###################################################################
-
-
-from DebugClient import DebugClient, MultiThreadedDebugClient, \
-     DebuggerTask, wxEVT_DEBUGGER_EXC, wxEVT_DEBUGGER_START, \
-     wxEVT_DEBUGGER_STOPPED, EVT_DEBUGGER_START
 
 
 class ChildProcessClient(MultiThreadedDebugClient):
@@ -189,6 +216,7 @@ class ChildProcessClient(MultiThreadedDebugClient):
 
     def OnProcessEnded(self, evt):
         self.pollStreams()
+        self.server = None
         self.kill()
         evt = self.createEvent(wxEVT_DEBUGGER_STOPPED)
         self.postEvent(evt)
