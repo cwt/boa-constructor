@@ -114,6 +114,7 @@ class wxBoaFileDialog(wxDialog):
         self.SetFilename(defaultFile)
 
         self.editorFilter = self.lcFiles.node.filter
+        self.editorFilterNode = self.lcFiles.node
 
         if self.lcFiles.node.filter == 'BoaFiles':
             self.chTypes.SetStringSelection('Boa files')
@@ -140,7 +141,7 @@ class wxBoaFileDialog(wxDialog):
                 self.btOK.SetLabel(btn)
                 return
         if self.tcFilename.GetValue():           
-            self.lcFiles.node.setFilter(self.editorFilter)
+            self.editorFilterNode.setFilter(self.editorFilter)
             wxBoaFileDialog.currentDir = self.GetDirectory()
             self.EndModal(wxID_OK)
                     
@@ -186,7 +187,7 @@ class wxBoaFileDialog(wxDialog):
         self.ok()
         
     def OnBtcancelButton(self, event):
-        self.lcFiles.node.setFilter(self.editorFilter)
+        self.editorFilterNode.setFilter(self.editorFilter)
         self.EndModal(wxID_CANCEL)
         
     def OnTcfilenameTextEnter(self, event):
