@@ -514,7 +514,7 @@ class DebugServer (Bdb):
         filename = frame.f_code.co_filename
         if filename == 'Script (Python)':
             # XXX
-            filename, lineno = self.adjustedFrameInfo(frame)[:-2]
+            filename, lineno = self.adjustedFrameInfo(frame)[-2:]
         else:
             filename = self.canonic(filename)
             lineno = frame.f_lineno
