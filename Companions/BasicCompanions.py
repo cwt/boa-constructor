@@ -36,7 +36,7 @@ class ScrollBarDTC(MultiItemCtrlsConstr, WindowDTC):
                 'name': `self.name`}
 
     def events(self):
-        return WindowDTC.events(self) + ['ScrollEvent']
+        return WindowDTC.events(self) + ['ScrollEvent', 'CmdScrollEvent']
 
 class ComboConstr(PropertyKeywordConstructor):
     def constructor(self):
@@ -213,7 +213,7 @@ class SliderDTC(SliderConstr, WindowDTC):
         return WindowDTC.hideDesignTime(self) + ['TickFreq']
 
     def events(self):
-        return WindowDTC.events(self) + ['ScrollEvent']
+        return WindowDTC.events(self) + ['ScrollEvent', 'CmdScrollEvent']
 
     def defaultAction(self):
         insp = self.designer.inspector
