@@ -17,7 +17,7 @@ import string, time, stat, os
 from wxPython.lib.dialogs import wxScrolledMessageDialog
 from wxPython.wx import *
 
-import ExplorerNodes, FileExplorer, EditorModels, EditorHelper
+import ExplorerNodes, EditorModels, EditorHelper
 from Preferences import IS
 import Views.EditorViews
 import ProcessProgressDlg, Utils
@@ -102,7 +102,6 @@ class CVSController(ExplorerNodes.Controller):
               (-1, '-', None, ''),
               (wxID_FSCVSLOGIN, 'Login', self.OnLoginCVS, '-'),
               (wxID_FSCVSLOGOUT, 'Logout', self.OnLogoutCVS, '-'),
-              (-1, '-', None, ''),
         )
 
         self.fileCVSMenu = wxMenu()
@@ -118,16 +117,17 @@ class CVSController(ExplorerNodes.Controller):
 ##        self.fileCVSMenu.AppendMenu(wxID_FSCVSENV, 'CVS shell environment vars', self.cvsEnvMenu)
 
         self.images = wxImageList(16, 16)
-        self.images.Add(IS.load('Images/CvsPics/File.bmp'))
-        self.images.Add(IS.load('Images/CvsPics/BinaryFile.bmp'))
-        self.images.Add(IS.load('Images/CvsPics/ModifiedFile.bmp'))
-        self.images.Add(IS.load('Images/CvsPics/ModifiedBinaryFile.bmp'))
-        self.images.Add(IS.load('Images/CvsPics/MissingFile.bmp'))
-        self.images.Add(IS.load('Images/CvsPics/ConflictingFile.bmp'))
-        self.images.Add(IS.load('Images/CvsPics/Dir.bmp'))
-        self.images.Add(IS.load('Images/Modules/FolderUp_s.bmp'))
-        self.images.Add(IS.load('Images/CvsPics/UnknownDir.bmp'))
-        self.images.Add(IS.load('Images/CvsPics/UnknownFile.bmp'))
+        for cvsImg in ( 'Images/CvsPics/File.bmp',
+                        'Images/CvsPics/BinaryFile.bmp',
+                        'Images/CvsPics/ModifiedFile.bmp',
+                        'Images/CvsPics/ModifiedBinaryFile.bmp',
+                        'Images/CvsPics/MissingFile.bmp',
+                        'Images/CvsPics/ConflictingFile.bmp',
+                        'Images/CvsPics/Dir.bmp',
+                        'Images/Modules/FolderUp_s.bmp',
+                        'Images/CvsPics/UnknownDir.bmp',
+                        'Images/CvsPics/UnknownFile.bmp'):
+            self.images.AddWithColourMask(IS.load(cvsImg), wxColour(255, 0, 255))
 
         self.toolbarMenus = [self.cvsMenuDef]
 
@@ -188,8 +188,6 @@ class CVSController(ExplorerNodes.Controller):
                                 string.index(wholeCommand, ']')+1)
             except ValueError:
                 te.SetInsertionPoint(len(wholeCommand))
-        
-        
         try:
             if dlg.ShowModal() == wxID_OK:
                 return dlg.GetValue()
@@ -461,7 +459,6 @@ class CVSFolderNode(ExplorerNodes.ExplorerNode):
             tree.Expand(chd)
         cvsChd = tree.getChildNamed(chd, 'CVS')
         tree.SelectItem(cvsChd)
-#        editor.openOrGotoModule(self.resourcepath)
 
 class CVSFileNode(ExplorerNodes.ExplorerNode):
     protocol = 'cvs'
@@ -503,7 +500,7 @@ class CVSFileNode(ExplorerNodes.ExplorerNode):
         if self.conflict:
             node = editor.explorer.list.getSelection()
             # XXX app is not connected to module
-            model = editor.openOrGotoModule(node.resourcepath, transport = node)
+            model, controller = editor.openOrGotoModule(node.resourcepath, transport=node)
             if not model.views.has_key(CVSConflictsView.viewName):
                 resultView = editor.addNewView(CVSConflictsView.viewName, CVSConflictsView)
             else:
@@ -611,7 +608,6 @@ class FSCVSFolderNode(ExplorerNodes.ExplorerNode):
         return lst
 
     def open(self, editor):
-        print 'FSCVSFolderNode.open'
         editor.openOrGotoModule(self.resourcepath)
 
     def openParent(self, editor):
@@ -680,6 +676,8 @@ class CVSConflictsView(Views.EditorViews.ListCtrlView):
             self.model.rejectConflictChange(self.conflicts[self.selected])
 
 # Register cvs dirs as a subtype of file explorers
+import FileExplorer
 FileExplorer.PyFileNode.subExplorerReg['folder'].append( 
       (FSCVSFolderNode, isCVS, EditorHelper.imgCVSFolder)
 )    
+
