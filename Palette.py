@@ -6,7 +6,7 @@
 #
 # Created:     1999
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999 - 2002 Riaan Booysen
+# Copyright:   (c) 1999 - 2003 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
 #Boa:Frame:BoaFrame
@@ -18,16 +18,23 @@ import os
 from wxPython.wx import *
 
 import PaletteMapping, PaletteStore
-import Help, Preferences, Utils
+import Help, Preferences, Utils, Plugins
 
 from Preferences import IS, flatTools
 
-if sys.version[:3] == '2.2' and wxVERSION == (2,3,2):
-    from ExternalLib.buttons import wxGenButton, wxGenBitmapButton, wxGenToggleButton, wxGenBitmapToggleButton, wxGenButtonEvent
-else:
-    from wxPython.lib.buttons import wxGenButton, wxGenBitmapButton, wxGenToggleButton, wxGenBitmapToggleButton, wxGenButtonEvent
+#if sys.version[:3] == '2.2' and wxVERSION == (2,3,2):
+#    from ExternalLib.buttons import wxGenButton, wxGenBitmapButton, wxGenToggleButton, wxGenBitmapToggleButton, wxGenButtonEvent
+#else:
+from wxPython.lib.buttons import wxGenButton, wxGenBitmapButton, wxGenToggleButton, wxGenBitmapToggleButton, wxGenButtonEvent
 
 currentMouseOverTip = ''
+
+##        self.contextHelpSearch = wxTextCtrl(id=wxID_BOAFRAMECONTEXTHELPSEARCH,
+##              name='contextHelpSearch', parent=self.toolBar, pos=wxPoint(232,
+##              0), size=wxSize(100, 21), style=0, value='')
+##        EVT_TEXT_ENTER(self.contextHelpSearch, wxID_BOAFRAMECONTEXTHELPSEARCH,
+##              self.OnSearchEnter)
+##        EVT_SET_FOCUS(self.contextHelpSearch, self.OnHelpSearchFocus)
 
 [wxID_BOAFRAME, wxID_BOAFRAMECONTEXTHELPSEARCH, wxID_BOAFRAMEPALETTE,
  wxID_BOAFRAMETOOLBAR,
@@ -49,13 +56,8 @@ class BoaFrame(wxFrame, Utils.FrameRestorerMixin):
               id=wxID_BOAFRAMETOOLBARTOOLS1, isToggle=false, longHelpString='',
               pushedBitmap=wxNullBitmap,
               shortHelpString='Brings the Editor to the front')
-        parent.AddTool(bitmap=IS.load('Images/Shared/ClassBrowser.png'),
-              id=wxID_BOAFRAMETOOLBARTOOLS2, isToggle=false, longHelpString='',
-              pushedBitmap=wxNullBitmap,
-              shortHelpString='Opens the Class explorer for wxPython')
         EVT_TOOL(self, wxID_BOAFRAMETOOLBARTOOLS0, self.OnInspectorToolClick)
         EVT_TOOL(self, wxID_BOAFRAMETOOLBARTOOLS1, self.OnEditorToolClick)
-        EVT_TOOL(self, wxID_BOAFRAMETOOLBARTOOLS2, self.OnExplorerToolClick)
 
         parent.Realize()
 
@@ -83,12 +85,6 @@ class BoaFrame(wxFrame, Utils.FrameRestorerMixin):
         self.palette = wxNotebook(id=wxID_BOAFRAMEPALETTE, name='palette',
               parent=self, pos=wxPoint(0, 24), size=wxSize(637, 23), style=0)
 
-        self.contextHelpSearch = wxTextCtrl(id=wxID_BOAFRAMECONTEXTHELPSEARCH,
-              name='contextHelpSearch', parent=self.toolBar, pos=wxPoint(232,
-              0), size=wxSize(100, 21), style=0, value='')
-        EVT_TEXT_ENTER(self.contextHelpSearch, wxID_BOAFRAMECONTEXTHELPSEARCH,
-              self.OnSearchEnter)
-        EVT_SET_FOCUS(self.contextHelpSearch, self.OnHelpSearchFocus)
 
     def __init__(self, parent, id, app):
         self.frameTitle = 'Boa Constructor - Python IDE & wxPython GUI Builder'
@@ -117,8 +113,9 @@ class BoaFrame(wxFrame, Utils.FrameRestorerMixin):
 
         self.componentSB = ComponentSelection(self)
 
-        self.toolBar.AddSeparator()
-        self.addTool('Images/Shared/CustomHelp', 'Test', 'Test', self.OnTest)
+        if Preferences.showFrameTestButton:
+            self.toolBar.AddSeparator()
+            self.addTool('Images/Shared/CustomHelp', 'Test', 'Test', self.OnTest)
 
         # Add main helpbuttons defined in the config file
         conf = Utils.createAndReadConfig('Explorer')
@@ -142,7 +139,7 @@ class BoaFrame(wxFrame, Utils.FrameRestorerMixin):
             EVT_TOOL(self, mID, self.OnCustomHelpToolClick)
             self.customHelpItems[mID] = (caption, helpFile)
 
-        self.toolBar.AddControl(self.contextHelpSearch)
+        #self.toolBar.AddControl(self.contextHelpSearch)
 
         if wxPlatform == '__WXGTK__':
             self.toolBar.AddSeparator()
@@ -201,7 +198,7 @@ class BoaFrame(wxFrame, Utils.FrameRestorerMixin):
                 if mb:
                     mb.Append(menu = self.dialogPalettePage.menu, title = 'Dialogs')
             # Zope page
-            if Utils.transportInstalled('ZopeLib.ZopeExplorer'):
+            if Plugins.transportInstalled('ZopeLib.ZopeExplorer'):
                 self.zopePalettePage = ZopePalettePage(self.palette,
                       PaletteMapping.zopePalette[0], 'Images/Palette/'+transpSF,
                       self, self.widgetSet, self.componentSB, self)
@@ -240,7 +237,7 @@ class BoaFrame(wxFrame, Utils.FrameRestorerMixin):
 ##        self.templates.Enable(false)
 
     def setDefaultDimensions(self):
-        self.SetDimensions(0, 0,
+        self.SetDimensions(0, Preferences.topMenuHeight,
             Preferences.screenWidth - Preferences.windowManagerSide * 2,
             Preferences.paletteHeight)
 
@@ -283,17 +280,6 @@ class BoaFrame(wxFrame, Utils.FrameRestorerMixin):
     def OnZopePaletteClick(self, event):
         cls, cmp = self.zopePalettePage.widgets[event.GetId()][1:]
 
-    def OnExplorerToolClick(self, event):
-        if not self.browser:
-            import ClassBrowser
-
-            wxBeginBusyCursor()
-            try:
-                self.browser = ClassBrowser.ClassBrowserFrame(self)
-            finally:
-                wxEndBusyCursor()
-        self.browser.restore()
-
     def OnComposeClick(self, event):
         pass
     def OnInheritClick(self, event):
@@ -335,18 +321,18 @@ class BoaFrame(wxFrame, Utils.FrameRestorerMixin):
     def OnUncheckComponent(self, event):
         self.componentSB.selectNone()
 
-    def OnSearchEnter(self, event):
-        Help.showContextHelp(self.contextHelpSearch.GetValue())
-        event.Skip()
+    #def OnSearchEnter(self, event):
+    #    Help.showContextHelp(self.contextHelpSearch.GetValue())
+    #    event.Skip()
 
     def OnTest(self, event):
         import Tests
         Tests.test_wxFrame(self)
 
-    def OnHelpSearchFocus(self, event):
-        self.contextHelpSearch.SetSelection(0,
-              len(self.contextHelpSearch.GetValue()))
-        event.Skip()
+    #def OnHelpSearchFocus(self, event):
+    #    self.contextHelpSearch.SetSelection(0,
+    #          len(self.contextHelpSearch.GetValue()))
+    #    event.Skip()
 
     def OnCreateNew(self, name, controller):
         self.editor.addNewPage(name, controller)
@@ -411,7 +397,9 @@ class PanelPalettePage(wxPanel, BasePalettePage):
     buttonSep = 11
     buttonBorder = 7
     def __init__(self, parent, name, bitmapPath, eventOwner, widgets, components, palette):
-        wxPanel.__init__(self, parent, -1)
+        # default size provided for better sizing on GTK where notebook page
+        # size isn't available at button creation time
+        wxPanel.__init__(self, parent, -1, size=(44, 44))
 
         self.palette = palette
         self.components = components
@@ -549,3 +537,13 @@ class ZopePalettePage(PalettePage):
 
     def getButtonBmp(self, name, wxClass):
         return IS.load('%s%s.png' %(self.bitmapPath, name))
+
+
+if __name__ == '__main__':
+    app = wxPySimpleApp()
+    wxInitAllImageHandlers()
+    palette = BoaFrame(None, -1, app)
+    #palette.initPalette(inspector=None, editor=None)
+    palette.Show()
+
+    app.MainLoop()
