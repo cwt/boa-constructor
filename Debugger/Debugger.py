@@ -26,11 +26,14 @@ from wxPython.wx import *
 import Preferences, Utils
 from Preferences import pyPath, IS, flatTools, keyDefs
 from Breakpoint import bplist
-from DebugClient import EVT_DEBUGGER_OK, EVT_DEBUGGER_EXC, EVT_DEBUGGER_STOPPED
+from DebugClient import EVT_DEBUGGER_OK, EVT_DEBUGGER_EXC, \
+     EVT_DEBUGGER_STOPPED, EmptyResponseError
 
 # When an output window surpasses these limits, it will be trimmed.
 TEXTCTRL_MAXLEN = 30000
 TEXTCTRL_GOODLEN = 20000
+
+STOP_GENTLY = 0
 
 wxID_STACKVIEW = NewId()
 class StackViewCtrl(wxListCtrl):
@@ -722,6 +725,8 @@ wxID_PAGECHANGED = NewId()
 wxID_TOPPAGECHANGED = NewId()
 class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
     debug_client = None
+    _destroyed = 0
+    _closing = 0
 
     def __init__(self, editor, filename=None, slave_mode=1):
         wxFrame.__init__(self, editor, -1, 'Debugger')
@@ -862,19 +867,21 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
         self.stream_timer = wxPyTimer(self.OnStreamTimer)
         self.stream_timer.Start(100)
 
-        self._destroyed = 0
         EVT_CLOSE(self, self.OnCloseWindow)
 
     def destroy(self):
-        if self._destroyed: return 
+        if self._destroyed:
+            return
+        self._destroyed = 1
         
         self.breakpts.destroy()
         self.watches.destroy()
         self.locs.destroy()
         self.globs.destroy()
         self.sb.stateCols = None
-        self.stream_timer = None
-        self._destroyed = 1
+        if self.stream_timer is not None:
+            self.stream_timer.Stop()
+            self.stream_timer = None
 
     def setDefaultDimensions(self):
         self.SetDimensions(0, Preferences.paletteHeight + \
@@ -1040,15 +1047,14 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
         self.debug_client.invokeOnServer(m_name, m_args, r_name, r_args)
 
     def killDebugger(self):
-        if self._destroyed: return
+        if self._destroyed:
+            return
         self.running = 0
         if self.debug_client:
             try:
                 self.debug_client.kill()
             except:
                 print 'Error on killing debugger: %s: %s'%sys.exc_info()[:2]
-            else:
-                self.debug_client = None
         self.clearViews()
 
     def OnDebuggerStopped(self, event):
@@ -1057,37 +1063,31 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
         if self.running:
             show_dialog = 1
         self.killDebugger()
-        if show_dialog:
+        if self._closing:
+            # Close the window.
+            self.destroy()
+            self.Destroy()
+        elif show_dialog:
             wxMessageBox('The debugger process stopped prematurely.',
                   'Debugger stopped', wxOK | wxICON_EXCLAMATION | wxCENTRE)
-        self.Close()
-        self.Destroy()
 
-    def OnStreamTimer(self, event=None, force_timer=0):
+    def OnStreamTimer(self, event=None):
         if self.stream_timer:
-            if not self.stream_timer.IsRunning():
-                self.stream_timer.Start(100)  # One-shot mode.
             self.updateOutputWindow()
 
     def updateOutputWindow(self):
-        while self.debug_client:
+        if self.debug_client:
             info = self.debug_client.pollStreams()
-            if info:
-                errout = self.editor.erroutFrm
+            if info and self.editor:
                 stdout_text, stderr_text = info
                 if stdout_text:
-                    errout.appendToOutput(stdout_text)
-                    #self.appendToOutputWindow(stdout_text)
+                    self.editor.erroutFrm.appendToOutput(stdout_text)
                 if stderr_text:
-                    errout.appendToErrors(stderr_text)
-                    #self.appendToOutputWindow(stderr_text)
-                if not stdout_text and not stderr_text:
-                    break
-            else:
-                break
+                    self.editor.erroutFrm.appendToErrors(stderr_text)
 
     def OnDebuggerOk(self, event):
-        if self._destroyed: return
+        if self._destroyed:
+            return
 
         self.restoreDebugger()
         self.enableStepping()
@@ -1097,16 +1097,20 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
             apply(rcv, (event.GetResult(),) + event.GetReceiverArgs())
 
     def OnDebuggerException(self, event):
-        if self._destroyed: return
+        if self._destroyed:
+            return
 
-        self.restoreDebugger()
         self.enableStepping()
         t, v = event.GetExc()
+        if isinstance(v, EmptyResponseError):
+            if not self.debug_client or not self.debug_client.isAlive():
+                # If the debugger was killed, this exception is normal.
+                return
+
+        self.restoreDebugger()
         if hasattr(t, '__name__'):
             t = t.__name__
         msg = '%s: %s.' % (t, v)
-        #if len(msg) > 100:
-        #    msg = msg[:100] + '...'
         
         confirm = wxMessageBox(msg + '\n\nStop debugger?',
                   'Debugger Communication Exception',
@@ -1412,11 +1416,14 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
             self.invokeInDebugger('set_pause')
 
     def OnStop(self, event):
-        self.clearStepPos()
-        self.enableStepping()
-        self.invalidatePanes()
-        self.updateSelectedPane(do_request=0)
-        self.proceedAndRequestStatus('set_quit')
+        if STOP_GENTLY:
+            self.clearStepPos()
+            self.enableStepping()
+            self.invalidatePanes()
+            self.updateSelectedPane(do_request=0)
+            self.proceedAndRequestStatus('set_quit')
+        else:
+            self.killDebugger()
 
     def OnSourceTrace(self, event):
         pass
@@ -1433,10 +1440,12 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
         self.sb.updateState('Ready', 'info')
 
     def OnCloseWindow(self, event):
+        self._closing = 1
+        if self.debug_client:
+            was_alive = self.debug_client.isAlive()
         try:
             self.killDebugger()
         finally:
-            self.destroy()
             # closing must succeed
             if self.editor:
                 try:
@@ -1448,9 +1457,10 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
                     #print 'close shell debug failed', cls, str(err)
                 self.editor.debugger = None
                 self.editor = None
-            # Window is not destroyed here because it still needs to 
-            # process the OnDebuggerStoppedEvent which will Destroy() us
-            self.Hide()
+            if not was_alive:
+                self.destroy()
+                self.Destroy()
+            # else wait for an OnDebuggerStopped message
 
     def isInShellNamepace(self):
         return self.toolbar.GetToolState(self.shellNamespaceId)
