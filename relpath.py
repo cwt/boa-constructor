@@ -30,8 +30,6 @@ def splitpath(apath):
 
 def relpath(base, comp):
     """ Return a path to file comp relative to path base. """
-    print 'b:', base
-    print 'c:', comp
     base_drive, base_path = path.splitdrive(base)
     comp_drive, comp_path = path.splitdrive(comp)
     base_path_list = splitpath(base_path)
@@ -48,10 +46,8 @@ def relpath(base, comp):
     for idx in range(len(base_path_list)):
         if base_path_list[idx] != comp_path_list[idx]:
             rel_path = comp_path_list[idx:]
-            print 'differ at', idx
             found = 0
             break
-    print 'b, i:', len(base_path_list), idx
     for cnt in range(max(len(base_path_list) - idx + found, 0)):
         rel_path.insert(0, os.pardir) 
 #    for cnt in range(max(1 + len(base_path_list) - len(comp_path_list), 0)):
