@@ -31,10 +31,12 @@ def yesNoDialog(parent, title, question):
     try: return (dlg.ShowModal() == wxID_YES)
     finally: dlg.Destroy()
 
-def AddToolButtonBmpObject(frame, toolbar, thebitmap, hint, triggermeth, toggleBitmap = wxNullBitmap):
+def AddToolButtonBmpObject(frame, toolbar, thebitmap, hint, triggermeth, theToggleBitmap = wxNullBitmap):
     nId = wxNewId()
+    doToggle = theToggleBitmap != wxNullBitmap
+    print doToggle
 #    t = toolbar.AddTool(nId, thebitmap, toggleBitmap, shortHelpString = hint, toggle = toggleBitmap != wxNullBitmap)
-    toolbar.AddTool(nId, thebitmap, toggleBitmap, shortHelpString = hint)#, toggle = toggleBitmap != wxNullBitmap)
+    toolbar.AddTool(nId, thebitmap, theToggleBitmap, shortHelpString = hint)#, toggle = doToggle)
     EVT_TOOL(frame, nId, triggermeth)
     return nId
 
@@ -44,9 +46,19 @@ def AddToolButtonBmpFile(frame, toolbar, filename, hint, triggermeth):
 
 def AddToolButtonBmpIS(frame, toolbar, name, hint, triggermeth, toggleBmp = ''):
     if toggleBmp:
-        return AddToolButtonBmpObject(frame, toolbar, IS.load(name), hint, triggermeth, IS.load(toggleBmp))
+        return AddToggleToolButtonBmpObject(frame, toolbar, IS.load(name), hint, triggermeth)
     else:
         return AddToolButtonBmpObject(frame, toolbar, IS.load(name), hint, triggermeth)
+
+def AddToggleToolButtonBmpObject(frame, toolbar, thebitmap, hint, triggermeth):
+    nId = wxNewId()
+    from Views.StyledTextCtrls import new_stc
+    if new_stc:
+        toolbar.AddTool(nId, thebitmap, thebitmap, shortHelpString = hint, isToggle = true)
+    else:
+        toolbar.AddTool(nId, thebitmap, thebitmap, shortHelpString = hint, toggle = true)
+    EVT_TOOL(frame, nId, triggermeth)
+    return nId
 
 #This format follows wxWindows conventions
 def windowIdentifier(frameName, ctrlName):
@@ -130,5 +142,6 @@ def srcRefFromCtrlName(ctrlName):
 def ctrlNameFromSrcRef(srcRef): 
     return srcRef == 'self' and '' or srcRef[5:]
             
-            
+def winIdRange(count):
+    return map(lambda x: wxNewId(), range(count))            
           
