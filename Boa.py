@@ -7,7 +7,7 @@
 #
 # Created:     1999
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999 - 2003 Riaan Booysen
+# Copyright:   (c) 1999 - 2004 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
 #Boa:App:BoaApp
@@ -225,8 +225,16 @@ if wxVersion < __version__.wx_version:
     wxPySimpleApp()
     wxMessageBox('Sorry! This version of Boa requires at least '\
                  'wxPython %d.%d.%d.%d'%__version__.wx_version,
-          'Version error', wxOK | wxICON_ERROR)
+                 'Version error', wxOK | wxICON_ERROR)
     raise 'wxPython >= %d.%d.%d.%d required'%__version__.wx_version
+
+if __version__.wx_version_max and wxVersion > __version__.wx_version_max:
+    wxPySimpleApp()
+    wxMessageBox('Sorry! This version of Boa does not work under '\
+                 'wxPython %d.%d.%d.%d, please downgrade to '\
+                 'wxPython %d.%d.%d.%d'% (wxVersion+__version__.wx_version_max),
+                 'Version error', wxOK | wxICON_ERROR)
+    raise 'wxPython %d.%d.%d.%d not supported'%wxVersion
 
 import Preferences, Utils, About
 print 'running main...'
@@ -235,10 +243,6 @@ print 'running main...'
 # XXX More companion classes! $
 
 # XXX Find: Exceptions should not cancel the search
-
-# XXX Mechanism to detect file date changes external of boa
-# XXX Possibly on Explorer level, checking before saving on systems where
-# XXX getting a time stamp makes sense and is available
 
 # XXX Refactor PropertyEditor/Companion/Inspector interfaces
 
@@ -454,6 +458,8 @@ class BoaApp(wxApp):
         wxApp.__init__(self, false)
 
     def OnInit(self):
+        Preferences.initScreenVars()
+        
         wxInitAllImageHandlers()
 
         wxToolTip_Enable(true)
@@ -538,8 +544,8 @@ class BoaApp(wxApp):
         
         finally:
             abt.Destroy()
-            del abt
-            #pass
+            #del abt
+            pass
 
         # Apply command line switches
         if doDebug and startupModules:
