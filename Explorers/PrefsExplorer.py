@@ -45,6 +45,7 @@ class PreferenceGroupNode(ExplorerNodes.ExplorerNode):
 class BoaPrefGroupNode(PreferenceGroupNode):
     """ The Preference node in the Explorer """
     protocol = 'boa.prefs.group'
+    customPrefs = [] # list of tupples ('name', 'file')
     def __init__(self, parent):
         PreferenceGroupNode.__init__(self, 'Preferences', parent)
         self.bold = true
@@ -53,19 +54,19 @@ class BoaPrefGroupNode(PreferenceGroupNode):
         stcPrefImgIdx = EditorHelper.imgPrefsSTCStyles
 
         self.source_pref = PreferenceGroupNode('Source', self)
-        
+
         self.source_pref.preferences = [
             UsedModuleSrcBsdPrefColNode('Default settings',
                 Preferences.exportedSTCProps, os.path.join(Preferences.rcPath,
                 'prefs.rc.py'), prefImgIdx, self, Preferences, false)]
-                
+
         for name, lang, STCClass, stylesFile in ExplorerNodes.langStyleInfoReg:
             if not os.path.isabs(stylesFile):
                 stylesFile = os.path.join(Preferences.rcPath, stylesFile)
             self.source_pref.preferences.append(STCStyleEditPrefsCollNode(
                   name, lang, STCClass, stylesFile, stcPrefImgIdx, self))
         self.preferences.append(self.source_pref)
-      
+
         self.general_pref = UsedModuleSrcBsdPrefColNode('General',
             Preferences.exportedProperties, os.path.join(Preferences.rcPath,
             'prefs.rc.py'), prefImgIdx, self, Preferences)
@@ -82,6 +83,10 @@ class BoaPrefGroupNode(PreferenceGroupNode):
             self, Preferences.keyDefs)
         self.preferences.append(self.keys_pref)
 
+        for name, filename in self.customPrefs:
+            self.preferences.append(UsedModuleSrcBsdPrefColNode(name,
+            ('*',), os.path.join(Preferences.rcPath, filename), prefImgIdx,
+            self, Preferences))
 
 ##        self.pychecker_pref = SourceBasedPrefColNode('PyChecker',
 ##            ('*',), Preferences.pyPath+'/.pycheckrc', prefImgIdx, self)
@@ -105,6 +110,7 @@ class PreferenceCollectionNode(ExplorerNodes.ExplorerNode):
         if editor.inspector.pages.GetSelection() != 1:
             editor.inspector.pages.SetSelection(1)
         editor.inspector.selectObject(comp, false)
+        return None, None
 
     def isFolderish(self):
         return false
@@ -139,6 +145,8 @@ class STCStyleEditPrefsCollNode(PreferenceCollectionNode):
               self.resourcepath, openSTCViews)
         try: dlg.ShowModal()
         finally: dlg.Destroy()
+
+        return None, None
 
     def getURI(self):
         return '%s://%s' %(PreferenceCollectionNode.getURI(self), self.language)
