@@ -36,6 +36,7 @@ if Preferences.csWxPythonSupport:
     from Companions.Companions import *
 
     from Companions.FrameCompanions import *
+    from Companions.WizardCompanions import *
     from Companions.ContainerCompanions import *
     if Preferences.dsUseSizers:
         from Companions.SizerCompanions import *
