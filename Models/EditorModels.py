@@ -32,7 +32,6 @@ class EditorModel:
     defaultName = 'abstract'
     bitmap = 'None'
     imgIdx = -1
-    closeBmp = 'Images/Editor/Close.png'
     objCnt = 0
     plugins = ()
     def __init__(self, data, name, editor, saved):
