@@ -30,7 +30,6 @@ from Companions import EventCollections
 import Preferences, RTTI, Utils
 from Preferences import IS, oiLineHeight, inspPageNames, flatTools
 from Preferences import keyDefs
-from ZopeLib import PropDlg
 
 scrollBarWidth = 0
 IECWidthFudge = 3
@@ -363,6 +362,7 @@ class InspectorFrame(wxFrame, Utils.FrameRestorerMixin):
         self.selectObject(cmpn)
     def OnNewItem(self, event):
         if self.selCmp and hasattr(self.selCmp, 'propItems'):
+            from ZopeLib import PropDlg
             dlg = PropDlg.create(self)
             try:
                 if dlg.ShowModal() == wxID_OK:

@@ -19,7 +19,6 @@ from wxPython.wx import *
 
 import PaletteMapping
 import sender
-import ClassBrowser
 import Help, Preferences, Utils
 
 from Preferences import IS, toPyPath, flatTools
@@ -271,6 +270,8 @@ class BoaFrame(wxFrame, Utils.FrameRestorerMixin):
 
     def OnExplorerToolClick(self, event):
         if not self.browser:
+            import ClassBrowser
+
             wxBeginBusyCursor()
             try:
                 self.browser = ClassBrowser.ClassBrowserFrame(self)
