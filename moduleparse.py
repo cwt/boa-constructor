@@ -29,11 +29,13 @@ import string
 from types import IntType, StringType
 
 id = '[A-Za-z_][A-Za-z0-9_]*'	# match identifier
+obj_def = '[A-Za-z_][A-Za-z0-9_.]*'	# match identifier
 blank_line = re.compile('^[ \t]*($|#)')
 is_class = re.compile('^class[ \t]+(?P<id>%s)[ \t]*(?P<sup>\([^)]*\))?[ \t]*:'%id)
 is_method = re.compile('^[ \t]*def[ \t]+(?P<id>%s)[ \t]*\((?P<sig>.*)\)[ \t]*[:][ \t]*$'%id) 
 is_func = re.compile('^def[ \t]+(?P<id>%s)[ \t]*\((?P<sig>.*)\)[ \t]*[:][ \t]*$'%id) 
-is_attrib = re.compile('[ \t]*self[.](?P<name>%s)[ \t]*='%id) 
+is_attrib = re.compile('[ \t]*self[.](?P<name>%s)[ \t]*=[ \t]*'%id) 
+is_attrib_from_call = re.compile('[ \t]*self[.](?P<name>%s)[ \t]*=[ \t]*(?P<classpath>%s)\('%(id, obj_def)) 
 is_import = re.compile('^import[ \t]*(?P<imp>[^#;]+)')
 is_from = re.compile('^from[ \t]+(?P<module>%s([ \t]*\\.[ \t]*%s)*)[ \t]+import[ \t]+(?P<imp>[^#;]+)'%(id, id))
 dedent = re.compile('^[^ \t]')
@@ -89,6 +91,16 @@ class CodeBlock:
     
     def size(self):
         return self.end - self.start
+
+class Attrib:
+    def __init__(self, name, lineno, objtype = ''):
+        self.name = name
+        self.lineno = lineno
+        self.objtype = objtype
+    
+    def renumber(self, from_line, increment):
+        if self.lineno > from_line:
+            self.lineno = self.lineno + increment
             
 # each Python class is represented by an instance of this class
 class Class:
@@ -97,7 +109,7 @@ class Class:
         self.module = module
         self.name = name
         if super is None:
-	    super = []
+            super = []
         self.super = super
         self.methods = {}
         self.method_order = []
@@ -128,12 +140,20 @@ class Class:
         del self.methods[name]
         self.method_order.remove(name)
         
-        
-    def add_attr(self, name, lineno):
+    def add_attr(self, name, lineno, thetype = ''):
         if self.attributes.has_key(name):
-            self.attributes[name].append(CodeBlock('', lineno, lineno))
+            self.attributes[name].append(CodeBlock(thetype, lineno, lineno))
         else:
-            self.attributes[name] = [CodeBlock('', lineno, lineno)]
+            self.attributes[name] = [CodeBlock(thetype, lineno, lineno)]
+    
+    def renumber(self, start, deltaLines):
+        self.block.renumber(start, deltaLines)
+        for block in self.methods.values():
+            block.renumber(start, deltaLines)
+        for attr_lst in self.attributes.values():
+            for block in attr_lst:
+                block.renumber(start, deltaLines)
+
 
 def Test2():
     pass
@@ -259,12 +279,33 @@ class Module:
                     cur_meth = meth_name
                 continue
 
-            res = is_attrib.match(line)
+            res = is_attrib_from_call.match(line)
             if res:
                 # found a attribute binding
                 if cur_class:
                     # and we know the class it belongs to
-                    cur_class.add_attr(res.group('name'), self.lineno)
+                    classpath = res.group('classpath')
+                    cur_class.add_attr(res.group('name'), self.lineno, classpath)
+
+                continue
+
+            res = is_attrib.match(line)
+            if res:
+                # found a attribute binding with possible object type
+                if cur_class:
+                    # and we know the class it belongs to
+                    # try to determine type
+                    rem = line[res.end():]
+                    objtype = ''
+                    if rem:
+                        if rem[0] in ('"', "'"): objtype = 'string'
+                        elif rem[0] in string.digits: objtype = 'number'
+                        elif rem[0] == '{': objtype = 'dict'
+                        elif rem[0] == '[': objtype = 'list'
+                        elif rem[0] == '(': objtype = 'tuple'
+                        elif rem[0] in string.letters+'_': objtype = 'ref'
+                        
+                    cur_class.add_attr(res.group('name'), self.lineno, objtype)
                            
                 continue
 
@@ -292,7 +333,7 @@ class Module:
             res = is_wid.match(line)
             if res:
                 self.wids.append((self.lineno, res))
-	    
+
             if dedent.match(line):
                 # end of class definition
                 cur_class, cur_meth, cur_func = self.finaliseEntry(cur_class, 
@@ -349,22 +390,23 @@ class Module:
         self.renumber(new_length, ins_point)
           
     def extractMethodBody(self, class_name, method_name):
-	block = self.classes[class_name].methods[method_name]
-	return self.source[block.start:block.end]
+        block = self.classes[class_name].methods[method_name]
+        return self.source[block.start:block.end]
 
     def renumber(self, deltaLines, start):
         if deltaLines:
             for cls in self.classes.values():
-                cls.block.renumber(start, deltaLines)
-                for block in cls.methods.values():
-                    block.renumber(start, deltaLines)
-                for attr_lst in cls.attributes.values():
-                    for block in attr_lst:
-                        block.renumber(start, deltaLines)
+                cls.renumber(start, deltaLines)
+##                cls.block.renumber(start, deltaLines)
+##                for block in cls.methods.values():
+##                    block.renumber(start, deltaLines)
+##                for attr_lst in cls.attributes.values():
+##                    for block in attr_lst:
+##                        block.renumber(start, deltaLines)
             for func in self.functions.values():
                 func.renumber(func.start, deltaLines)
 
-    def replaceBody(self, name, code_block_dict, new_body, ):
+    def replaceBody(self, name, code_block_dict, new_body):
         newLines = len(new_body)
         if not new_body: return
         code_block = code_block_dict[name]
@@ -503,10 +545,10 @@ class Module:
         func_size = cb.end - ins_point
 
         self.source[ins_point : cb.end] = []
-	self.function_order.remove(func_name)
-	del self.functions[func_name]
+        self.function_order.remove(func_name)
+        del self.functions[func_name]
 
-	self.renumber(func_size, ins_point)
+        self.renumber(func_size, ins_point)
 
     def travTilBase(self, name, classes, root):
         """ Recursive method that traverses the class hierarchy """
