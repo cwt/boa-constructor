@@ -111,6 +111,7 @@ class DesignerView(wxFrame, InspectableObjectView, Utils.FrameRestorerMixin):
                                            args.get('size', CompanionClass.defFrameSize),
                                            style=CompanionClass.defFrameStyle)
         InspectableObjectView.__init__(self, inspector, model, compPal)
+        self.controllerView = self
 
         if model.dialogLook:
             self.SetBackgroundColour(
