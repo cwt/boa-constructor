@@ -3,7 +3,6 @@ from EventCollections import *
 import PaletteStore
 
 PaletteStore.paletteLists['COM'] = []
-PaletteStore.palette.append(['COM', 'Editor/Tabs/COM', PaletteStore.paletteLists['COM']])
 
 class ComCtrlDTC(WindowDTC):
     GUID = '{00000000-0000-0000-0000-000000000000}'
@@ -25,8 +24,8 @@ class ComCtrlDTC(WindowDTC):
 # Acrobat PDF control
 try:
     from wxPython.lib.bcrtl.activex.acrobat import wxComPdf
-except ImportError:
-    pass
+except ImportError, error:
+    print 'Acrobat not registered', error
 else:
     class PdfComCDTC(ComCtrlDTC):
         GUID = '{CA8A9783-280D-11CF-A24D-444553540000}'
@@ -39,8 +38,8 @@ else:
 # Internet Explorer webbrowser
 try:
     from wxPython.lib.bcrtl.activex.IE import *
-except ImportError:    
-    pass
+except ImportError, error:    
+    print 'Internet Explorer not registered', error
 else:
     EventCategories['WebBrowserEvent'] = (EVT_CWB_BEFORENAVIGATE, 
      EVT_CWB_TITLECHANGE, EVT_CWB_DOWNLOADBEGIN, EVT_CWB_PROPERTYCHANGE, 
@@ -62,5 +61,8 @@ else:
     PaletteStore.compInfo[wxComWebBrowser] = ['IEWebBrowser', WebBrowserComCDTC]
 
 
-    
+
+# If any controls successfully installed add the page to the Palette 
+if len(PaletteStore.paletteLists['COM']):
+    PaletteStore.palette.append(['COM', 'Editor/Tabs/COM', PaletteStore.paletteLists['COM']])
     
