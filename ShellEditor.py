@@ -55,6 +55,8 @@ class ShellEditor(StyledTextCtrls.wxStyledTextCtrl,
         try: self.SetWrapMode(1)
         except AttributeError: pass
 
+        self.bindShortcuts()
+
         EVT_KEY_DOWN(self, self.OnKeyDown)
 
         EVT_MENU(self, wxID_SHELL_HISTORYUP, self.OnHistoryUp)
@@ -64,7 +66,6 @@ class ShellEditor(StyledTextCtrls.wxStyledTextCtrl,
         EVT_MENU(self, wxID_SHELL_CODECOMP, self.OnShellCodeComplete)
         EVT_MENU(self, wxID_SHELL_CALLTIPS, self.OnShellCallTips)
 
-        self.bindShortcuts()
 
         self.history = []
         self.historyIndex = 1
@@ -81,6 +82,7 @@ class ShellEditor(StyledTextCtrls.wxStyledTextCtrl,
         self.LineScroll(-10, 0)
         self.SetSavePoint()
 
+
     def destroy(self):
         if self.stdin.isreading():
             self.stdin.kill()
@@ -92,13 +94,12 @@ class ShellEditor(StyledTextCtrls.wxStyledTextCtrl,
         del self.interp
 
     def bindShortcuts(self):
-        self.SetAcceleratorTable(wxAcceleratorTable( [
-         (keyDefs['HistoryUp'][0], keyDefs['HistoryUp'][1], wxID_SHELL_HISTORYUP),
-         (keyDefs['HistoryDown'][0], keyDefs['HistoryDown'][1], wxID_SHELL_HISTORYDOWN),
-         (keyDefs['CodeComplete'][0], keyDefs['CodeComplete'][1], wxID_SHELL_CODECOMP),
-         (keyDefs['CallTips'][0], keyDefs['CallTips'][1], wxID_SHELL_CALLTIPS),
-         (0, WXK_HOME, wxID_SHELL_HOME),
-        ] ))
+        # dictionnary of shortcuts: (MOD, KEY) -> function
+        self.sc = {}
+        self.sc[(keyDefs['HistoryUp'][0], keyDefs['HistoryUp'][1])] = self.OnHistoryUp
+        self.sc[(keyDefs['HistoryDown'][0], keyDefs['HistoryDown'][1])] = self.OnHistoryDown
+        self.sc[(keyDefs['CodeComplete'][0], keyDefs['CodeComplete'][1])] = self.OnShellCodeComplete
+        self.sc[(keyDefs['CallTips'][0], keyDefs['CallTips'][1])] = self.OnShellCallTips
 
     def execStartupScript(self, startupfile):
         if startupfile:
@@ -261,18 +262,23 @@ class ShellEditor(StyledTextCtrls.wxStyledTextCtrl,
         #    self.handleSpecialEuropeanKeys(event, Preferences.euroKeysCountry)
 
         kk = event.KeyCode()
+        controlDown = event.ControlDown()
+        altDown = event.AltDown()
+        shiftDown = event.ShiftDown()
         if kk == 13 and not (event.ShiftDown() or event.HasModifiers()):
             if self.AutoCompActive():
                 self.AutoCompComplete()
                 return
             self.OnShellEnter(event)
             return
-        else:
-            if kk == 8:
+        elif kk == 8:
                 # don't delete the prompt
-                if self.lines.current == self.lines.count -1 and \
-                  self.lines.pos - self.PositionFromLine(self.lines.current) < 5:
-                    return
+            if self.lines.current == self.lines.count -1 and \
+              self.lines.pos - self.PositionFromLine(self.lines.current) < 5:
+                return
+        elif controlDown:
+            if shiftDown and self.sc.has_key((wxACCEL_CTRL|wxACCEL_SHIFT, kk)): self.sc[(wxACCEL_CTRL|wxACCEL_SHIFT, kk)](self)
+            elif self.sc.has_key((wxACCEL_CTRL, kk)): self.sc[(wxACCEL_CTRL, kk)](self)
 
         if self.CallTipActive():
             self.callTipCheck()
