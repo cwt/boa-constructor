@@ -276,7 +276,7 @@ class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView,
         self.BeginUndoAction()
         try:
             sls, sle = self.reselectSelectionAsBlock()
-            lines = StringIO(str(self.GetSelectedText())).readlines()
+            lines = StringIO(self.GetSelectedText()).readlines()
             text = ''.join(func(lines, indtBlock))
             self.ReplaceSelection(text)
             self.SetSelection(self.PositionFromLine(sls), 
