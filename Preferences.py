@@ -46,8 +46,6 @@ elif wx.wxPlatform == '__WXGTK__':
 inspWidth = screenWidth * (1/3.75) - windowManagerSide * 2
 edWidth = screenWidth - inspWidth + 1 - windowManagerSide * 4
 
-bottomHeight = screenHeight - paletteHeight
-
 #-Miscellaneous-----------------------------------------------------------------
 
 # Should toolbars have flat buttons
@@ -56,6 +54,11 @@ flatTools = wx.wxTB_FLAT # 0
 # E.g. to prevent child windows from appearing on the taskbar set
 # childFrameStyle = wx.wxCLIP_CHILDREN | wxFRAME_TOOL_WINDOW
 childFrameStyle = wx.wxCLIP_CHILDREN
+# Should the palette be a menubar ('menu') or a notebook ('tabs')
+paletteStyle = 'tabs'
+
+paletteHeight = paletteHeights[paletteStyle]
+bottomHeight = screenHeight - paletteHeight
 
 # Alternating background colours used in ListCtrls (pastel blue and yellow)
 pastels = 1
@@ -183,8 +186,9 @@ if useBoaFileDlg:
 else:
     wxFileDialog = wx.wxFileDialog
 
-exportedProperties = ['flatTools', 'childFrameStyle', 'pastels', 'pastelMedium', 
-  'pastelLight', 'useBoaFileDlg', 'undefinedWindowCol', 'autoAddToApplication',
+exportedProperties = ['flatTools', 'childFrameStyle', 'paletteStyle',
+  'pastels', 'pastelMedium', 'pastelLight', 
+  'useBoaFileDlg', 'undefinedWindowCol', 'autoAddToApplication',
   'useImageArchive',  'handleSpecialEuropeanKeys', 'euroKeysCountry', 
   'autoReindent', 'logStdStreams', 'recordModuleCallPoint', 'blockCOM', 
   'checkSyntax', 'onlyCheckIfLineModified', 'pythonInterpreterPath', 

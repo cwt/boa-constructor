@@ -6,14 +6,14 @@
 #
 # Created:     2000/01/07
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999, 2000 Riaan Booysen
+# Copyright:   (c) 1999 - 2001 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
 from os import path
 import sys
 
 # Height of the Palette window. Adjust if you use big fonts
-paletteHeight = 118
+paletteHeights = {'tabs': 118, 'menu': 72}
 
 # Window manager dependent values useful for mostly for GTK
 windowManagerTop = 0
@@ -32,7 +32,7 @@ transparentPaletteBitmaps = 1
 braceHighLight = 1
 
 # Minimize the IDE while running applications
-minimizeOnRun = 0
+minimizeOnRun = 1
 
 # Draw grid in designer
 drawDesignerGrid = 1
@@ -76,7 +76,7 @@ faces = { 'times'  : 'Times New Roman',
           'lnsize' : 6,
           'backcol': '#FFFFFF',}
 
-exportedProperties2 = ['logFontSize', 'srchCtrlOffset', 'paletteHeight',
+exportedProperties2 = ['logFontSize', 'srchCtrlOffset', 'paletteHeights',
  'windowManagerTop', 'windowManagerBottom', 'windowManagerSide',
  'editorProgressFudgePosX', 'editorProgressFudgeSizeY',
  'transparentPaletteBitmaps', 'braceHighLight', 'minimizeOnRun',

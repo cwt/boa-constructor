@@ -13,7 +13,7 @@
 
 
 # Height of the Palette window. Adjust if you use big fonts
-paletteHeight = 100
+paletteHeights = {'tabs': 100, 'menu': 56}
 
 # Window manager dependent values useful for mostly for GTK
 windowManagerTop = 16
@@ -66,7 +66,7 @@ faces = { 'times'  : 'Times',
           'lnsize' : 8,
           'backcol': '#FFFFFF',}
 
-exportedProperties2 = ['logFontSize', 'srchCtrlOffset', 'paletteHeight',
+exportedProperties2 = ['logFontSize', 'srchCtrlOffset', 'paletteHeights',
  'windowManagerTop', 'windowManagerBottom', 'windowManagerSide',
  'editorProgressFudgePosX', 'editorProgressFudgeSizeY',
  'transparentPaletteBitmaps', 'braceHighLight', 'minimizeOnRun',
