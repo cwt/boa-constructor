@@ -533,9 +533,9 @@ class EditorFrame(wxFrame):
 
         model.notify()
 
-        self.tabs.Refresh()
-
-        self.updateTitle()
+        if wxPlatform != '__WXGTK__':
+            self.tabs.Refresh()
+            self.updateTitle()
 
         return model
     
