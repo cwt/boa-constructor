@@ -19,8 +19,8 @@ from wxPython.stc import *
 from Preferences import keyDefs
 import Utils
 
-import EditorViews, ProfileView, Search, Help, Preferences, Utils
-from StyledTextCtrls import PythonStyledTextCtrlMix, TextSTCMix, idWord, object_delim
+import EditorViews, Search, Help, Preferences, Utils
+from StyledTextCtrls import TextSTCMix, idWord, object_delim
 
 from Explorers import ExplorerNodes
 from ClipboardPlus import ClipboardPlus
@@ -69,6 +69,8 @@ class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView):
               ('Mark place', self.OnMarkPlace, '-', 'MarkPlace'),
               ('Goto line', self.OnGotoLine, '-', 'GotoLine'),
               ('STC settings', self.OnSTCSettings, '-', ''),
+              ##('Toggle Record macro', self.OnRecordMacro, '-', ''),
+              ##('Playback macro', self.OnPlaybackMacro, '-', ''),
               ('-', None, '-', ''),
               ('Translate selection (via HTTP)', self.OnTranslate, '-', ''),
               ('Spellcheck selection (via HTTP)', self.OnSpellCheck, '-', ''),
@@ -102,6 +104,8 @@ class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView):
         self._linePtrHdl = None
 
         EVT_STC_MARGINCLICK(self, wId, self.OnMarginClick)
+
+        EVT_STC_MACRORECORD(self, wId, self.OnRecordingMacro)
 
         EVT_MENU(self, wxID_STC_WS, self.OnSTCSettingsWhiteSpace)
         EVT_MENU(self, wxID_STC_EOL, self.OnSTCSettingsEOL)
@@ -330,8 +334,10 @@ class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView):
             lineno = self.LineFromPosition(self.GetCurrentPos())
             self.MarkerAdd(lineno, markPlaceMrk)
             self.model.editor.addBrowseMarker(lineno)
+            self.model.editor.setStatus('Code marker added to Browse History', ringBell=true)
             # Encourage a redraw
             wxYield()
+            time.sleep(0.125)
             self.MarkerDelete(lineno, markPlaceMrk)
         finally:
             self._marking = false
@@ -375,8 +381,7 @@ class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView):
         pass
 
     def OnEditCopyPlus(self, event):
-        self.Copy()
-        self.clipboardPlus.update()
+        self.clipboardPlus.updateClipboard(self.GetSelectedText())
 
     def OnEditPastePlus(self, event):
         buffer = self.clipboardPlus.getClipboardList()
@@ -390,6 +395,8 @@ class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView):
                     self.Paste()
             finally:
                 dlg.Destroy()
+
+#---STC Settings----------------------------------------------------------------
 
     def OnSTCSettings(self, event):
         menu = wxMenu()
@@ -407,58 +414,51 @@ class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView):
         self.PopupMenuXY(menu, s.x/2, s.y/2)
         menu.Destroy()
 
-    def OnSTCSettingsWhiteSpace(self, event):
+    def _getEventChecked(self, event):
         checked = not event.IsChecked()
         if wxPlatform == '__WXGTK__':
-            checked = not checked
+            return not checked
+        else:
+            return checked
 
-        self.SetViewWhiteSpace(checked)
+    def OnSTCSettingsWhiteSpace(self, event):
+        self.SetViewWhiteSpace(self._getEventChecked(event))
 
     def OnSTCSettingsEOL(self, event):
-        checked = not event.IsChecked()
-        if wxPlatform == '__WXGTK__':
-            checked = not checked
-
-        self.SetViewEOL(checked)
+        self.SetViewEOL(self._getEventChecked(event))
 
     def OnSTCSettingsBufferedDraw(self, event):
-        checked = not event.IsChecked()
-        if wxPlatform == '__WXGTK__':
-            checked = not checked
-
-        self.SetBufferedDraw(checked)
+        self.SetBufferedDraw(self._getEventChecked(event))
 
     def OnSTCSettingsIndentGuide(self, event):
-        checked = not event.IsChecked()
-        if wxPlatform == '__WXGTK__':
-            checked = not checked
+        self.SetIndentationGuides(self._getEventChecked(event))
 
-        self.SetIndentationGuides(checked)
+#---Macro recording/playback----------------------------------------------------
+    _recordingMacro = false
+    _recordedMacro = false
+    stcMacroCmds = ()
+    def OnRecordMacro(self, event):
+        if self._recordingMacro:
+            self.model.editor.setStatus('Macro recorded', ringBell=true)
+            self.StopRecord()
+            self._recordedMacro = true
+        else:
+            self.model.editor.setStatus('Recording macro...', 'Warning')
+            self.stcMacroCmds = []
+            self.StartRecord()
 
-class PythonDisView(EditorStyledTextCtrl, PythonStyledTextCtrlMix):
-    viewName = 'Disassemble'
-    breakBmp = 'Images/Debug/Breakpoints.png'
-    def __init__(self, parent, model):
-        wxID_PYTHONDISVIEW = wxNewId()
+        self._recordingMacro = not self._recordingMacro
 
-        EditorStyledTextCtrl.__init__(self, parent, wxID_PYTHONDISVIEW,
-          model, (), -1)
-        PythonStyledTextCtrlMix.__init__(self, wxID_PYTHONDISVIEW, ())
+    def OnPlaybackMacro(self, event):
+        if self._recordedMacro:
+            for stcMsg, stcLPrm in self.stcMacroCmds:
+                self.CmdKeyExecute(stcMsg)
+            self.model.editor.setStatus('Macro executed')
 
-        self.active = true
-
-    def refreshModel(self):
-        # Do not update model
-        pass
-
-    def getModelData(self):
-        return self.model.disassembleSource()
-
-    def setModelData(self, data):
-        pass
-
-    def updateFromAttrs(self):
-        self.SetReadOnly(true)
+    def OnRecordingMacro(self, event):
+        data = (event.GetMessage(), event.GetLParam())
+        self.model.editor.setStatus('Recording macro: %s'%str(data), 'Warning')
+        self.stcMacroCmds.append(data)
 
 class TextView(EditorStyledTextCtrl, TextSTCMix):
     viewName = 'Text'
