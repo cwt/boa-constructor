@@ -21,26 +21,26 @@ from wxPython.wx import *
 
 # This should be the first time the Companion classes are imported
 # As the modules are imported they add themselves to the PaletteStore
-print 'importing Companions.Companions'
+##print 'importing Companions.Companions'
 from Companions.Companions import *
 
 if Utils.IsComEnabled():
-    print 'importing Companions.ComCompanions'
+    ##print 'importing Companions.ComCompanions'
     from Companions.ComCompanions import *
 
-print 'importing Companions.UserCompanions'
+##print 'importing Companions.UserCompanions'
 try:
     from Companions.UserCompanions import *
 except Exception, error:
     wxLogError('Problem importing User companions: '+str(error))
 
-print 'importing Companions.UtilCompanions'
+##print 'importing Companions.UtilCompanions'
 from Companions.UtilCompanions import *
 
-print 'importing Companions.DialogCompanions'
+##print 'importing Companions.DialogCompanions'
 from Companions.DialogCompanions import *
 
-print 'importing Companions.ZopeCompanions'
+##print 'importing Companions.ZopeCompanions'
 from Companions.ZopeCompanions import *
 
 palette = PaletteStore.palette
