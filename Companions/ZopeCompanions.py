@@ -1,12 +1,11 @@
 from BaseCompanions import Companion
-from Zope import Client
-from Zope.DateTime import DateTime
+from ZopeLib import Client, ExtMethDlg
+from ZopeLib.DateTime import DateTime
 import RTTI
 import moduleparse
 import string
 from wxPython import wx
 from PropEdit.PropertyEditors import StrZopePropEdit, BoolZopePropEdit, EvalZopePropEdit
-from Zope import ExtMethDlg
 
 # XXX This creation logic should be in the model, the companions should only
 # XXX manage prperties
@@ -90,7 +89,7 @@ class ZopeCompanion(Companion, ZopeConnection):
     def getPropList(self):
         propLst = []
         for prop in self.propItems:
-            propLst.append(RTTI.PropertyWrapper(prop[0], 'ZopeRoute', 
+            propLst.append(RTTI.PropertyWrapper(prop[0], 'NameRoute', 
                   self.GetProp, self.SetProp))
         return {'constructor':[], 'properties': propLst}
 
