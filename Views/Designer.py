@@ -6,7 +6,7 @@
 #
 # Created:     1999
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999 - 2003 Riaan Booysen
+# Copyright:   (c) 1999 - 2004 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
 
@@ -1395,7 +1395,7 @@ class DesignerControlsEvtHandler(wxEvtHandler):
         event.Skip()
 
     def OnControlResize(self, event):
-        """ Control is resized, emulate native wxWindows layout behaviour """
+        """ Control is resized, emulate native wxWidgets layout behaviour """
         dsgn = self.designer
         try:
             if dsgn.vetoResize:
