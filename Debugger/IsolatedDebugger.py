@@ -1090,8 +1090,19 @@ class DebugServer (Bdb):
 
         _ts, sys.stdout = sys.stdout, StringIO('')
         try:
-            exec compile(code, name, 'single') in globalsDict, localsDict
+            co = compile(code, name, 'single')
+            exec co in globalsDict, localsDict
             return sys.stdout.getvalue()
+# lame attempt at handling None values
+##            res = sys.stdout.getvalue()
+##            if not res:
+##                try:
+##                    if eval(co, globalsDict, localsDict) is None:
+##                        return 'None'
+##                except:
+##                    pass
+##            return res
+                    
         finally:
             sys.stdout = _ts
 
