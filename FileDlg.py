@@ -236,7 +236,13 @@ class wxBoaFileDialog(wxDialog, Utils.FrameRestorerMixin):
 
     def open(self, node):
         if node and node.isFolderish():
-            self.lcFiles.refreshItems(self.modImages, node)
+            from Explorers.ExplorerNodes import TransportError
+            try:
+                self.lcFiles.refreshItems(self.modImages, node)
+            except TransportError, v:
+                wxMessageBox(str(v), 'Transport Error',
+                             wxOK | wxICON_EXCLAMATION | wxCENTRE)
+                return
             self.updatePathLabel()
             if self.style & wxSAVE: btn = saveStr
             else: btn = openStr
@@ -354,6 +360,7 @@ class wxBoaFileDialog(wxDialog, Utils.FrameRestorerMixin):
     def OnBtcancelButton(self, event):
         self.editorFilterNode.setFilter(self.editorFilter)
         wxBoaFileDialog._lastSize = self.GetClientSize()
+        self.saveDims()
         self.EndModal(wxID_CANCEL)
 
     def OnTcfilenameTextEnter(self, event):
