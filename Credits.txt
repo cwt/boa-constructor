@@ -46,6 +46,9 @@ Kevin Altis
 Roman Yakovenko
 * Improved Find dialog
 * Clipboard plus
+Cédric Delfosse
+* Debian package
+* Bug fixes
 
 Also thanks to Kevin Light, Patrick 'O Brien, John Bell, Gerrit van Dyk, 
 Cliff Baeseman, Larry Poorman and anyone else I may have forgotten!
