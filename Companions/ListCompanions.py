@@ -337,10 +337,12 @@ class GridDTC(Constructors.WindowConstr, WindowDTC):
                 'name': `self.name`}
 
     def properties(self):
-        return {'Editable': ('CtrlRoute',
+        props = WindowDTC.properties(self)
+        props.update({'Editable': ('CtrlRoute',
                       wxGridPtr.IsEditable, wxGridPtr.EnableEditing),
-                'GridLinesEnabled': ('CtrlRoute',
-                      wxGridPtr.GridLinesEnabled, wxGridPtr.EnableGridLines)}
+                      'GridLinesEnabled': ('CtrlRoute',
+                      wxGridPtr.GridLinesEnabled, wxGridPtr.EnableGridLines)})
+        return props
 
     def designTimeControl(self, position, size, args = None):
         dtc = WindowDTC.designTimeControl(self, position, size, args)
