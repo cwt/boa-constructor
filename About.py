@@ -25,7 +25,7 @@ about_html = '''
 
 progress_text = '''
 <wxp class="wxStaticText">
-  <param name="label" value="                                                                ">
+  <param name="label" value="-                                                                -">
   <param name="id"    value="%d">
   <param name="style" value="wxALIGN_CENTER">
 </wxp>
@@ -174,7 +174,7 @@ class AboutBox(AboutBoxMixin, wxDialog):
 
 class AboutBoxSplash(AboutBoxMixin, wxFrame):
     def _init_ctrls(self, prnt):
-        wxFrame.__init__(self, size = wxSize(400,280), pos = (-1, -1), id = wxID_ABOUTBOX, title = 'About Boa Constructor', parent = prnt, name = 'AboutBox', style = wxSIMPLE_BORDER)
+        wxFrame.__init__(self, size = wxSize(400,280), pos = (-1, -1), id = wxID_ABOUTBOX, title = 'Boa Constructor', parent = prnt, name = 'AboutBoxSplash', style = wxSIMPLE_BORDER)
         self.progressId = wxNewId()
 
     def setPage(self):
@@ -184,13 +184,14 @@ class AboutBoxSplash(AboutBoxMixin, wxFrame):
         self.label = self.FindWindowById(self.progressId)
         self.label.SetBackgroundColour(wxWHITE)
         sys.stdout = StaticTextPF(self.label)
-    
-    def __del__(self):
+
+    def Destroy(self):
         if sys:
             sys.stdout = sys.__stdout__
+        wxFrame.Destroy(self)
 
-import ShellEditor
-class StaticTextPF(ShellEditor.PseudoFile):
+import Utils
+class StaticTextPF(Utils.PseudoFile):
     def write(self, s):
         ss = string.strip(s)
         if ss:
