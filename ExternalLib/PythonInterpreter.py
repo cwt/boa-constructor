@@ -46,7 +46,7 @@ class PythonInterpreter:
         try:
             if sys.version_info[:2] >= (2, 2):
                 import __future__
-                code = compile(line, self.name, "single", 
+                code = compile(line, self.name, "single",
                                __future__.generators.compiler_flag, 1)
             else:
                 code = compile(line, self.name, "single")
@@ -81,8 +81,8 @@ class PythonInterpreter:
             # emulate interpreter behaviour
             if len(sys.exc_value.args) == 2:
                 sys.stderr.write(" " * (sys.exc_value[1][2] + 3) + "^\n")
-            sys.stderr.write("'''" + str(sys.exc_type) + " : " + \
-                  str(sys.exc_value[0])+"'''\n")
+            sys.stderr.write("'''" + str(sys.exc_type) + \
+                str(sys.exc_value.args and (" : " +sys.exc_value[0]) or '')+"'''\n")
         else:
             traceback.print_tb(sys.exc_traceback, None)
             sys.stderr.write("'''" + str(sys.exc_type) + " : " + \
