@@ -24,6 +24,7 @@ from Companions.ZopeCompanions import ZopeConnection, ZopeCompanion, FolderZC
 from Preferences import IS, wxFileDialog
 import Utils, Preferences
 import Views
+import Views.PySourceView
 from Views import ZopeViews
 import PaletteStore
 
