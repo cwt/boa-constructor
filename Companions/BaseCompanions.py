@@ -959,6 +959,12 @@ class CollectionDTC(DesignTimeCompanion):
     def SetName(self, oldValue, newValue):
         self.name = newValue
         self.setCollectionMethod()
+    
+    def GetClass(self, dummy=None):
+        return self.propName
+
+    def SetClass(self, value):
+        pass
 
     def updateWindowIds(self):
         pass
