@@ -267,7 +267,7 @@ class ModulePage:
             menu.Append(wId, view.viewName)
         menu.AppendSeparator()
         for view, wId in self.adtViews:
-            menu.Append(wId, view.viewName, checkable = view not in self.adtViews)
+            menu.Append(wId, view.viewName, '', view not in self.adtViews)
 
         return menu
 

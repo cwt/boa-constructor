@@ -202,8 +202,15 @@ class ErrorStackMF(wxFrame, Utils.FrameRestorerMixin):
         if newsz >= TEXTCTRL_MAXLEN:
             olddata = tc.GetValue()[newsz - TEXTCTRL_GOODLEN:]
             tc.SetValue(olddata)
+        tc.SetFocus()
         tc.AppendText(txt)
-        tc.ShowPosition(tc.GetLastPosition())
+        # heuristic so some text is still visible
+##        numLinesToShow = 3
+##        lines = tc.GetNumberOfLines() - 1
+##        chars = 0
+##        for i in range(numLinesToShow):
+##            chars = chars + tc.GetLineLength(lines - i)
+##        tc.ShowPosition(tc.GetLastPosition()-chars) 
         
         # XXX just make editor err out visible for now, the others would be
         # XXX too jarring

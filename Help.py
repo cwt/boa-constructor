@@ -125,7 +125,7 @@ class wxHelpFrameEx:
     def __init__(self, helpctrlr):
         self.controller = helpctrlr
         self.frame = helpctrlr.GetFrame()
-
+        
         wxID_QUITHELP, wxID_FOCUSHTML = wxNewId(), wxNewId()
         EVT_MENU(self.frame, wxID_QUITHELP, self.OnQuitHelp)
         EVT_MENU(self.frame, wxID_FOCUSHTML, self.OnFocusHtml)
@@ -141,7 +141,27 @@ class wxHelpFrameEx:
             _none, self.toolbar, self.splitter = self.frame.GetChildren()
         else:
             self.toolbar, self.splitter = self.frame.GetChildren()
-        self.html, self.navPages = self.splitter.GetChildren()
+        self.html, nav = self.splitter.GetChildren()
+
+        # handle 2.3.3 change
+        if isinstance(nav, wxNotebookPtr):
+            self.navPages = nav
+
+            # Extend toolbar
+            if self.toolbar.GetToolShortHelp(wxID_COPYTOCLIP) != \
+                  'Copy contents as text to clipboard':
+                self.toolbar.AddSeparator()
+                self.copyToClipId = wxID_COPYTOCLIP
+                self.toolbar.AddTool(id = self.copyToClipId, isToggle=0,
+                    bitmap=Preferences.IS.load('Images/Shared/CopyHelp.png'),
+                    pushedBitmap=wxNullBitmap,
+                    shortHelpString='Copy contents as text to clipboard',
+                    longHelpString='')
+                EVT_TOOL(self.frame, self.copyToClipId, self.OnCopyPage)
+                self.toolbar.Realize()
+
+        else:
+            self.navPages = nav.GetChildren()[0]
 
         assert self.navPages.GetPageText(0) == 'Contents'
         self.contentsPanel = self.navPages.GetPage(0)
@@ -155,18 +175,6 @@ class wxHelpFrameEx:
         self.indexTextCtrl, self.indexShowAllBtn, self.indexFindBtn = \
               self.indexPanel.GetChildren()[:3]
 
-        # Extend toolbar
-        if self.toolbar.GetToolShortHelp(wxID_COPYTOCLIP) != \
-              'Copy contents as text to clipboard':
-            self.toolbar.AddSeparator()
-            self.copyToClipId = wxID_COPYTOCLIP
-            self.toolbar.AddTool(id = self.copyToClipId, isToggle=0,
-                bitmap=Preferences.IS.load('Images/Shared/CopyHelp.png'),
-                pushedBitmap=wxNullBitmap,
-                shortHelpString='Copy contents as text to clipboard',
-                longHelpString='')
-            EVT_TOOL(self.frame, self.copyToClipId, self.OnCopyPage)
-            self.toolbar.Realize()
 
 ##    def restore(self):
 ##        Utils.FrameRestorerMixin.restore(self.frame)
