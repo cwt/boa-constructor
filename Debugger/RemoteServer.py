@@ -109,3 +109,8 @@ def start(username, password, host='127.0.0.1', port=26200,
         pass
     else:
         atexit.register(server.socket.close)
+
+def stop():
+    global debug_server, connection
+    debug_server = None
+    connection = None
