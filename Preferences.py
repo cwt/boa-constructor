@@ -88,9 +88,9 @@ wxPlatforms = {'__WXMSW__': 'msw',
 thisPlatform = wxPlatforms[wx.wxPlatform]
 
 # upgrade if needed and exec in our namespace
-for prefsFile, version in (('prefs.rc.py', 8),
-                           ('prefs.%s.rc.py'%thisPlatform, 7),
-                           ('prefskeys.rc.py', 7),
+for prefsFile, version in (('prefs.rc.py', 9),
+                           ('prefs.%s.rc.py'%thisPlatform, 8),
+                           ('prefskeys.rc.py', 8),
                            ('prefs.plug-ins.rc.py', None)):
     file = os.path.join(rcPath, prefsFile)
 
@@ -118,7 +118,7 @@ for prefsFile, version in (('prefs.rc.py', 8),
                         bkno=bkno+1;bkstr=str(bkno)
                     else:
                         break
-                shutil.copy2(os.path.join(pyPath, prefsFile), file)
+                shutil.copy2(os.path.join(pyPath, 'Config', prefsFile), file)
                 print 'Preference file %s replaced, previous version backed up to %s'%(
                       file, bkfile)
 
@@ -159,9 +159,11 @@ else:
     UseImageStore = ImageStore.ImageStore
 IS = UseImageStore(imageStorePaths, cache=useImageCache)
 
-# If user does not override interpreter, use own interpreter path
-if not pythonInterpreterPath:
-    pythonInterpreterPath = sys.executable
+def getPythonInterpreterPath():
+    if not pythonInterpreterPath:
+        return sys.executable
+    else:
+        return pythonInterpreterPath
 
 #-Window size calculations------------------------------------------------------
 
