@@ -289,7 +289,8 @@ class MenuItemsCIDTC(MenuItemsConstr, BaseMenuItemsCIDTC):
 
     def properties(self):
         props = BaseMenuItemsCIDTC.properties(self)
-        #props['Label'] = ('IndexRoute', wxMenu.GetLabel, wxMenu.SetLabel)
+        props['Label'] = ('IdRoute', wxMenu.GetLabel, wxMenu.SetLabel)
+        props['HelpString'] = ('IdRoute', wxMenu.GetHelpString, wxMenu.SetHelpString)
         return props
 
     def applyDesignTimeDefaults(self, params):

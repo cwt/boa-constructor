@@ -1221,6 +1221,9 @@ class CollectionIddDTC(CollectionDTC):
     def getWinId(self):
         return self.textConstrLst[self.index].params[self.idProp]
 
+    def getDesignTimeWinId(self):
+        return self.control.GetMenuItems()[self.index].GetId()
+
     def addIds(self, lst):
         for constr in self.textConstrLst:
             lst.append(constr.params[self.idProp])
