@@ -15,18 +15,16 @@ print 'importing PythonEditorModels'
 import os, sys, pprint, imp, stat, types, tempfile
 from thread import start_new_thread
 from time import time, gmtime, strftime
-from StringIO import StringIO
+from cStringIO import StringIO
 
 from wxPython import wx
 
 import Preferences, Utils
 
 import EditorHelper, ErrorStack
-from EditorModels import PersistentModel, SourceModel, EditorModel
+from EditorModels import PersistentModel, SourceModel, EditorModel, BitmapFileModel
 
-import relpath
-
-import sourceconst
+import relpath, sourceconst
 
 true,false=1,0
 
@@ -112,7 +110,7 @@ class ModuleModel(SourceModel):
     def refreshFromModule(self):
         """ Must call this method to apply changes made
         to the module object. """
-        self.setDataFromLines(self.getModule().source)
+        self.setDataFromLines(self.getModule().getEOLFixedLines())
         self.notify()
 
     def renameClass(self, oldname, newname):
@@ -146,12 +144,13 @@ class ModuleModel(SourceModel):
             self.editor.statusBar.setHint('Running %s...' % filename)
             if Preferences.minimizeOnRun:
                 self.editor.minimizeBoa()
-            if self.useInputStream:
-                inpLines = StringIO(self.editor.erroutFrm.inputPage.GetValue()).readlines()
-            else:
-                inpLines = []
+            inpLines = []
+            if self.useInputStream and self.editor.erroutFrm.inputPage:
+                inpLines = StringIO(
+                      self.editor.erroutFrm.inputPage.GetValue()).readlines()
+                
             start_new_thread(self.runInThread, (filename, args,
-                  self.app, Preferences.pythonInterpreterPath, inpLines))
+                  self.app, Preferences.getPythonInterpreterPath(), inpLines))
 
     # XXX Not used!
     def runAsScript(self):
@@ -186,7 +185,8 @@ class ModuleModel(SourceModel):
                 report = tempfile.mktemp()
 
                 # execute Cyclops in Python with module as parameter
-                command = '"%s" "%s" "%s" "%s"'%(Preferences.pythonInterpreterPath,
+                command = '"%s" "%s" "%s" "%s"'%(
+                      Preferences.getPythonInterpreterPath(),
                       Utils.toPyPath('RunCyclops.py'), name, report)
                 wx.wxExecute(command, true)
 
@@ -233,7 +233,7 @@ class ModuleModel(SourceModel):
         try:
             profCmd = """"%s" -c "import profile;profile.run('execfile('+chr(34)+%s+chr(34)+')', '%s')" """.strip()
 
-            cmd = profCmd % (`Preferences.pythonInterpreterPath`[1:-1],
+            cmd = profCmd % (`Preferences.getPythonInterpreterPath()`[1:-1],
                   `os.path.basename(filename)`, `statFile`[1:-1])
 
             if hasattr(self, 'app'): app = self.app
@@ -267,8 +267,9 @@ class ModuleModel(SourceModel):
     def reindent(self, updateModulePage=true):
         from ExternalLib import reindent
         self.refreshFromViews()
+        eol = Utils.getEOLMode(self.data)
         file = SourcePseudoFile(self.getDataAsLines())
-        ri = reindent.Reindenter(file)
+        ri = reindent.Reindenter(file, eol=eol)
         try:
             if ri.run():
                 file.output = []
@@ -448,8 +449,7 @@ class ModuleModel(SourceModel):
     def readGlobalDict(self, name):
         start, end = self.findGlobalDict(name)
         try:
-            return eval(self.data[start:end].replace('\r\n', '\n'),
-                        wx.__dict__)
+            return eval(Utils.toUnixEOLMode(self.data[start:end]), wx.__dict__)
         except Exception, err:
             raise '"%s" must be a valid dictionary global dict.\nError: %s'%(name, str(err))
 
@@ -1030,6 +1030,30 @@ class SetupModuleModel(ModuleModel):
 
     def getPageName(self):
         return 'setup (%s)' % os.path.basename(os.path.dirname(self.filename))
+
+   
+##    def saveAs(self, filename):
+##        # catch image type changes
+##        newExt = os.path.splitext(filename)[1].lower()
+##        oldExt = os.path.splitext(self.filename)[1].lower()
+##        updateViews = 0
+##        if newExt != oldExt:
+##            updateViews = 1
+##            bmp = wx.wxBitmapFromImage(wx.wxImageFromStream(StringIO(self.data)))
+##            fn = tempfile.mktemp(newExt)
+##            try:
+##                bmp.SaveFile(fn, self.extTypeMap[newExt])
+##            except KeyError:
+##                raise Exception, '%s image file types not supported'%newExt
+##            try:
+##                # convert data to new image format
+##                self.data = open(fn, 'rb').read()
+##            finally:
+##                os.remove(fn)
+##
+##        # Actually save the file
+##        PersistentModel.saveAs(self, filename)
+
 
 #-------------------------------------------------------------------------------
 
