@@ -62,7 +62,7 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
               ('-', None, '-', ''),
               ('Run to cursor', self.OnRunToCursor, self.runCrsBmp, ''),
               # evts defined in DebuggingViewSTCMix
-              ('Toggle breakpoint', self.OnSetBreakPoint, self.breakBmp, 'ToggleBrk'), 
+              ('Toggle breakpoint', self.OnSetBreakPoint, self.breakBmp, 'ToggleBrk'),
               ('Load breakpoints', self.OnLoadBreakPoints, '-', ''),
               ('Save breakpoints', self.OnSaveBreakPoints, '-', ''),
               ('-', None, '', ''),
@@ -89,7 +89,7 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
         FoldingStyledTextCtrlMix.__init__(self, wxID_PYTHONSOURCEVIEW, foldMrg)
         AutoCompleteCodeHelpSTCMix.__init__(self)
         CallTipCodeHelpSTCMix.__init__(self)
-        DebuggingViewSTCMix.__init__(self, (brkPtMrk, tmpBrkPtMrk, 
+        DebuggingViewSTCMix.__init__(self, (brkPtMrk, tmpBrkPtMrk,
               disabledBrkPtMrk, stepPosMrk))
 
         self.lsp = 0
@@ -604,9 +604,6 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
 
         return false
 
-    def goto(self, gotoLine):
-        self.GotoLine(gotoLine)
-
     def underlineWord(self, start, length):
         start, length = BrowseStyledTextCtrlMix.underlineWord(self, start, length)
         debugger = self.model.editor.debugger
@@ -634,7 +631,7 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
     def disableSource(self, doDisable):
         self.SetReadOnly(doDisable)
         self.grayout(doDisable)
-        
+
 #---Syntax checking-------------------------------------------------------------
 
     def checkChangesAndSyntax(self, lineNo=None):
@@ -647,7 +644,7 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
               lineNo == self.damagedLine:
             slb, sle = ( self.GetStyleAt(self.PositionFromLine(lineNo)),
                          self.GetStyleAt(self.GetLineEndPosition(lineNo)-1) )
-            line = self.GetLine(lineNo)#[:-1]
+            line = self.GetLine(lineNo)
             self.checkSyntax( (line,), lineNo +1, self.GetLine,
                 lineStartStyle = slb, lineEndStyle = sle)
 
@@ -727,7 +724,7 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
             compstr = compprefix+string.join(\
                   map(lambda line, indent=indent: indent+string.strip(line),
                   prevlines), '\n')+'\n'
-        
+
         try: import __future__
         except ImportError: compflags = 0
         else:
@@ -895,13 +892,15 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
         if selStartPos != selEndPos:
             self.processSelectionBlock(self.processIndent)
         else:
-            self.AddText(indentLevel*' ')
+            self.AddText(Utils.getIndentBlock())
 
     def OnDedent(self, event):
         selStartPos, selEndPos = self.GetSelection()
+        indentBlock = Utils.getIndentBlock()
+        indentLevel = len(indentBlock)
         if selStartPos != selEndPos:
             self.processSelectionBlock(self.processDedent)
-        elif self.GetTextRange(selStartPos - indentLevel, selStartPos) == indentLevel*' ':
+        elif self.GetTextRange(selStartPos - indentLevel, selStartPos) == indentBlock:
             self.SetSelection(selStartPos - indentLevel, selStartPos)
             self.ReplaceSelection('')
 
@@ -1082,7 +1081,7 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
         # repair breakpoints
         if linesAdded:
             self.adjustBreakpoints(linesAdded, modType, event.GetPosition())
-        
+
         # XXX The rest is too buggy
         event.Skip()
         return
@@ -1094,7 +1093,6 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
             totAdded = linesAdded
             if len(lines) > 1 and len(lines) == linesAdded + 1:
                 wxPostEvent(self, wxFixPasteEvent(self, string.join(lines, '\n')))
-
 
         # Update module line numbers
         # module has to have been parsed at least once
