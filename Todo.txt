@@ -4,14 +4,27 @@ To do
 Features
 --------
 
+* Maker sizer usage less cumbersome
+  * Auto-adding controls as sizer items if Sizer is set on window
+    * Issues: determining nested sizers
+  * Nested tree view
 * Non modal Process dialogs 
 * Multiple help windows
-* File filters
+
+wxPython 2.5 migration issues
+-----------------------------
+* General compatibility issues with renamers and API changes
+  * Menu item parameters
+* from wxPython.wx import * -> import wx 
+  * GUI Code generation
+  * Boa code base
 
 
 Future features
 ------------------
 
+* Multi language support
+* I18n support
 * DB aware framework
 * Actions
 
@@ -87,7 +100,6 @@ Designer
 - Correctly ordered parameters
 - Multi-select/multi-edit, showing a filtering of only properties that can 
   be edited en mass
-- Icon support
 - Add Palette as Popup menu. e.g. New->Container/Layout->wxPanel
   - Bind Inser to Popup New menu
 - Source generation for the new wx.package way of writing
