@@ -765,8 +765,8 @@ class BitmapPropEdit(PropertyEditor, BitmapPropEditMix):
             path, tpe = os.path.split(self.bmpPath)
             dir, name = os.path.split(path)
             if tpe == 'Bitmap':
-                return 'wxBitmap(%s, %s)'%(`self.bmpPath`,
-                    self.extTypeMap[os.path.splitext(self.bmpPath)[-1].lower()])
+                return 'wxBitmap(%s, %s)'%(`path`,
+                    self.extTypeMap[os.path.splitext(path)[-1].lower()])
             elif tpe == 'ResourceModule':
                 return self.getSrcForResPath(dir, name)
             else:
