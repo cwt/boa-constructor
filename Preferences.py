@@ -53,12 +53,17 @@ bottomHeight = screenHeight - paletteHeight
 # Should toolbars have flat buttons
 flatTools = wx.wxTB_FLAT # 0
 # Frame style for child windows of the main frame
+# E.g. to prevent child windows from appearing on the taskbar set
+# childFrameStyle = wx.wxCLIP_CHILDREN | wxFRAME_TOOL_WINDOW
 childFrameStyle = wx.wxCLIP_CHILDREN
 
-# Alternating background colours used in ListCtrls
+# Alternating background colours used in ListCtrls (pastel blue and yellow)
 pastels = 1
 pastelMedium = wx.wxColour(235, 246, 255)
 pastelLight = wx.wxColour(255, 255, 240)
+# White and lightgray
+##pastelMedium = wx.wxColour(234, 234, 234)
+##pastelLight = wx.wxColour(255, 255, 255)
 
 # Replace the standard file dialog with Boa's own dialog
 useBoaFileDlg = 1
@@ -80,7 +85,7 @@ staticInfoPrefs = { 'Purpose':   '',
 # a module is created from the palette
 autoAddToApplication = 1
 
-# Load images from a singe image archive (zip of image directory)
+# Load images from a singe file Image.archive (zip of Image directory)
 useImageArchive = 0
 # Only load image 1st time it is requested then cache it
 # Turn this off to conserve resources on win9x
@@ -108,6 +113,7 @@ blockCOM = 1
 # Underlines possible syntax errors with a red squigly line
 # Syntax is checked whwn the cursor moves off a line that was modified
 checkSyntax = 1
+# Only do syntax checking if cursor moves off line that was modified
 onlyCheckIfLineModified = 1
 
 # Path to an alternative Python Interpreter. By default (blank string) Boa
@@ -115,7 +121,7 @@ onlyCheckIfLineModified = 1
 pythonInterpreterPath = ''
 #pythonInterpreterPath = 'd:/progra~1/zope/2-3-1/bin/python.exe'
 
-# Should the files open when closing Boa be reloaded at next startup
+# Should the files open when closing Boa be reloaded at next startup?
 rememberOpenFiles = 1
 rememberOpenApps = 0
 
@@ -123,16 +129,21 @@ rememberOpenApps = 0
 
 # Display properties for which source will be generated in Bold
 showModifiedProps = 1
+# Colour of property value static text ctrls
+propValueColour = wx.wxColour(0, 0, 100)
 # Inspector row height
 oiLineHeight = 18
 # Default Inspector Names (1st coloumn) width
 oiNamesWidth = 100
-inspNotebookFlags = 0 #32
+# Inspector notebook style flags
+# 16 (FxdWdth), 32 (lft), 64 (rght), 128 (btm)
+inspNotebookFlags = 0 
+# Should the stderr and stdout notebook be hosted in the inspector?
+showErrOutInInspector = 1
 ##inspPageNames = {'Constr': 'Constructor',
 ##                 'Props': 'Properties',
 ##                 'Evts': 'Events',
 ##                 'Objs': 'Objects'}
-
 #Smaller version if you don't have have high enough res
 inspPageNames = {'Constr': 'Constr',
                  'Props': 'Props',
@@ -175,5 +186,6 @@ exportedProperties = ['flatTools', 'childFrameStyle', 'pastels', 'pastelMedium',
   'useImageArchive',  'handleSpecialEuropeanKeys', 'euroKeysCountry', 
   'autoReindent', 'logStdStreams', 'recordModuleCallPoint', 'blockCOM', 
   'checkSyntax', 'onlyCheckIfLineModified', 'pythonInterpreterPath', 
-  'rememberOpenFiles', 'showModifiedProps', 'oiLineHeight', 'oiNamesWidth', 
-  'inspNotebookFlags', 'ps1', 'ps2' ]
+  'rememberOpenFiles', 'showModifiedProps', 'propValueColour', 
+  'oiLineHeight', 'oiNamesWidth', 'inspNotebookFlags', 'showErrOutInInspector', 
+  'ps1', 'ps2' ]
