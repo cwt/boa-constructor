@@ -188,6 +188,11 @@ class PersistentController(EditorController):
     def OnReload(self, event):
         model = self.getModel()
         if model:
+            if not model.savedAs:
+                wxMessageBox('Cannot reload, this file has not been saved yet.', 
+                             'Reload', wxOK | wxICON_ERROR)
+                return
+                
             if model.hasUnsavedChanges() and \
                   wxMessageBox('There are unsaved changes.\n'\
                   'Are you sure you want to reload?',
@@ -317,11 +322,9 @@ def identifyFile(filename, source=None, localfs=true):
     """ Return appropriate model for given source file.
         Assumes header will be part of the first continious comment block """
     Model, main, lext = identifyFilename(filename)
-    if (Model is not None):# and (lext not in EditorHelper.inspectableFilesReg.keys()):
+    if Model is not None:
         return Model, main
 
-    #if Model is not None:
-    #    BaseModel = Model
     if lext == defaultExt:
         BaseModel = DefaultModel
     else:
@@ -375,3 +378,6 @@ identifyHeader = {}
 identifySource = {}
 # dictionary of filetypes recognised by the whole name
 fullnameTypes = {}
+
+# Classed from which the Designer can load resources
+resourceClasses = []
