@@ -32,7 +32,7 @@ def instance_filter(cycle):
 def run():
     # flag for code which needs to be aware of Cyclops' presence
     sys.cyclops = 1
-    
+
     mod_name = path.splitext(sys.argv[1])[0]
     # remove command line option
     del sys.argv[1]
@@ -58,14 +58,14 @@ serves as the entrypoint for Cyclops.<br>'''
                 z.run(mod.main)
             except:
                 import traceback
-    
+
                 tp, vl, tb = sys.exc_info()
                 err = '<font color="#FF4444"><h3>Error:</h3></font>'+\
                   string.join(traceback.format_exception(tp, vl, tb), '<br>')
                 f.write(err)
             else:
                 z.find_cycles()
-        
+
                 # Comment out any of the following lines to not show a certain section
                 # of the report.
                 z.show_stats(z.stats_list())        # Statistics
@@ -74,7 +74,7 @@ serves as the entrypoint for Cyclops.<br>'''
                 z.show_sccs()                 # Cycle objects partitioned into maximal SCCs
                 z.show_arcs()                 # Arc types involved in cycles
                 z.iterate_til_steady_state(show_objs=0) # Repeatedly purge until there are no more dead roots
-        
+
                 # Write out the report
                 f.write(z.get_page())
     finally:
