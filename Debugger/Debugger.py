@@ -739,20 +739,20 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
         else:
             self.nbTop.AddPage(self.breakpts, 'Breakpoints')
 
-        self.outp = wxTextCtrl(self.nbTop, -1, '',
-                               style = wxTE_MULTILINE)# | wxTE_READONLY)
-        self.outp.SetBackgroundColour(wxBLACK)
-        self.outp.SetForegroundColour(wxWHITE)
-        if (not compareColors(self.outp.GetBackgroundColour(), wxBLACK) or
-            not compareColors(self.outp.GetForegroundColour(), wxWHITE)):
-            # The color setting was ignored.  Use standard colors instead.
-            self.outp.SetBackgroundColour(wxWHITE)
-            self.outp.SetForegroundColour(wxBLACK)
-        self.outp.SetFont(wxFont(9, wxDEFAULT, wxNORMAL, wxNORMAL, false))
-        if use_images:
-            self.nbTop.AddPage(self.outp, 'Output', imageId = 5)
-        else:
-            self.nbTop.AddPage(self.outp, 'Output')
+##        self.outp = wxTextCtrl(self.nbTop, -1, '',
+##                               style = wxTE_MULTILINE)# | wxTE_READONLY)
+##        self.outp.SetBackgroundColour(wxBLACK)
+##        self.outp.SetForegroundColour(wxWHITE)
+##        if (not compareColors(self.outp.GetBackgroundColour(), wxBLACK) or
+##            not compareColors(self.outp.GetForegroundColour(), wxWHITE)):
+##            # The color setting was ignored.  Use standard colors instead.
+##            self.outp.SetBackgroundColour(wxWHITE)
+##            self.outp.SetForegroundColour(wxBLACK)
+##        self.outp.SetFont(wxFont(9, wxDEFAULT, wxNORMAL, wxNORMAL, false))
+##        if use_images:
+##            self.nbTop.AddPage(self.outp, 'Output', imageId = 5)
+##        else:
+##            self.nbTop.AddPage(self.outp, 'Output')
 
         # Create a Notebook
         self.nbBottom = wxNotebook(self.splitter, wxID_PAGECHANGED)
@@ -806,7 +806,8 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
         EVT_CLOSE(self, self.OnCloseWindow)
 
     def destroy(self):
-        #self.viewsImgLst = None
+        if self._destroyed: return 
+        
         self.breakpts.destroy()
         self.watches.destroy()
         self.locs.destroy()
@@ -970,20 +971,23 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
         self.debug_client = client
 
     def invokeInDebugger(self, m_name, m_args=(), r_name=None, r_args=()):
-        '''
+        """
         Invokes a method asynchronously in the debugger,
         possibly expecting a debugger event to be generated
         when finished.
-        '''
+        """
         self.debug_client.invokeOnServer(m_name, m_args, r_name, r_args)
 
     def killDebugger(self):
+        if self._destroyed: return
         self.running = 0
         if self.debug_client:
             try:
                 self.debug_client.kill()
             except:
                 print 'Error on killing debugger: %s: %s'%sys.exc_info()[:2]
+            else:
+                self.debug_client = None
         self.clearViews()
 
     def OnDebuggerStopped(self, event):
@@ -991,11 +995,11 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
         show_dialog = 0
         if self.running:
             show_dialog = 1
-        if not self._destroyed:
-            self.killDebugger()
+        self.killDebugger()
         if show_dialog:
             wxMessageBox('The debugger process stopped prematurely.',
                   'Debugger stopped', wxOK | wxICON_EXCLAMATION | wxCENTRE)
+        self.Close()
         self.Destroy()
 
     def OnStreamTimer(self, event=None, force_timer=0):
@@ -1009,25 +1013,28 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
 ##            if not self.stream_timer.IsRunning():
 ##                self.stream_timer.Start(100, 1)  # One-shot mode.
 
-    def appendToOutputWindow(self, t):
-        # Before appending to the output, remove old data.
-        outp = self.outp
-        cursz = outp.GetLastPosition()
-        newsz = cursz + len(t)
-        if newsz >= TEXTCTRL_MAXLEN:
-            olddata = outp.GetValue()[newsz - TEXTCTRL_GOODLEN:]
-            outp.SetValue(olddata)
-        outp.AppendText(t)
+##    def appendToOutputWindow(self, t):
+##        # Before appending to the output, remove old data.
+##        outp = self.outp
+##        cursz = outp.GetLastPosition()
+##        newsz = cursz + len(t)
+##        if newsz >= TEXTCTRL_MAXLEN:
+##            olddata = outp.GetValue()[newsz - TEXTCTRL_GOODLEN:]
+##            outp.SetValue(olddata)
+##        outp.AppendText(t)
 
     def updateOutputWindow(self):
         while self.debug_client:
             info = self.debug_client.pollStreams()
             if info:
+                errout = self.editor.erroutFrm
                 stdout_text, stderr_text = info
                 if stdout_text:
-                    self.appendToOutputWindow(stdout_text)
+                    errout.appendToOutput(stdout_text)
+                    #self.appendToOutputWindow(stdout_text)
                 if stderr_text:
-                    self.appendToOutputWindow(stderr_text)
+                    errout.appendToErrors(stderr_text)
+                    #self.appendToOutputWindow(stderr_text)
                 if not stdout_text and not stderr_text:
                     break
             else:
@@ -1145,12 +1152,15 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
 
     def receiveDebuggerStatus(self, info):
         # Get stdout and stderr if available.
+        errout = self.editor.erroutFrm
         data = info.get('stdout', None)
         if data:
-            self.appendToOutputWindow(data)
+            errout.appendToOutput(data)
+            #self.appendToOutputWindow(data)
         data = info.get('stderr', None)
         if data:
-            self.appendToOutputWindow(data)
+            errout.appendToErrors(data)
+            #self.appendToOutputWindow(data)
 
         self.setDebugFile(self.filename)
 
@@ -1216,6 +1226,7 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
             item['client_filename'] = self.serverFNToClientFN(
                 item['filename'])
         self.breakpts.refreshList()
+
         self.selectSourceLine(filename, lineno)
 
         # All info in watches, locals, and globals panes is now invalid.
@@ -1226,7 +1237,8 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
         self.updateOutputWindow()
         
         self.restoreDebugger()
-
+        self.refreshTools()
+        
     def restoreDebugger(self):
         if self.editor.palette.IsShown():
             if self.editor.palette.IsIconized():
@@ -1250,29 +1262,23 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
             try:
                 self.editor.openOrGotoModule(filename)
             except Exception, err:
-                print 'Counld not open: %s'%filename
+                self.editor.setStatus(
+                      'Debugger: Failed to open file %s'%filename, 'Error')
             else:
                 model = self.editor.getActiveModulePage().model
                 sourceView = model.views['Source']
                 sourceView.focus(false)
-                #sourceView.SetFocus()
-                sourceView.selectLine(lineno - 1)
+                #sourceView.selectLine(lineno - 1)
+                sourceView.GotoLine(lineno - 1)
                 sourceView.setStepPos(lineno - 1)
                 self.lastStepView = sourceView
                 self.lastStepLineno = lineno - 1
-
-    def enableTools(self, enable = true):
-        self.toolbar.EnableTool(self.runId, enable)
-        self.toolbar.EnableTool(self.stepId, enable)
-        self.toolbar.EnableTool(self.overId, enable)
-        self.toolbar.EnableTool(self.outId, enable)
-        self.toolbar.EnableTool(self.stopId, enable)
 
     def isSourceTracing(self):
         return self.toolbar.GetToolState(self.sourceTraceId)
 
     def isDebugBrowsing(self):
-        return self.toolbar.GetToolState(self.debugBrowseId)
+        return self.toolbar.GetToolState(self.debugBrowseId) and self.running
 
     def isInShellNamepace(self):
         return self.toolbar.GetToolState(self.shellNamespaceId)
@@ -1295,17 +1301,26 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
             # Assume temp. breakpoint is already in bplist.
             self.runProcess(cont_always)
 
+    def enableTools(self, stepping, running):
+        for wid, enabled in ((self.stepId, stepping), 
+                             (self.overId, stepping), 
+                             (self.outId, stepping), 
+                             (self.pauseId, not stepping),
+                             (self.stopId, running), 
+                             (self.debugBrowseId, running),
+                             (self.shellNamespaceId, running)):
+            self.toolbar.EnableTool(wid, enabled)
+
+    def refreshTools(self):
+        self.enableTools(self.stepping_enabled, self.running)
+
     def enableStepping(self):
-        # TODO: enable the step buttons.
         self.stepping_enabled = 1
-        for wid in (self.stepId, self.overId, self.outId):
-            self.toolbar.EnableTool(wid, 1)
+        self.refreshTools()
 
     def disableStepping(self):
-        # TODO: disable the step buttons.
         self.stepping_enabled = 0
-        for wid in (self.stepId, self.overId, self.outId):
-            self.toolbar.EnableTool(wid, 0)
+        self.refreshTools()
 
     def doDebugStep(self, method=None, temp_breakpoint=None, args=()):
         if self.stepping_enabled:
@@ -1319,8 +1334,7 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
                 self.proceedAndRequestStatus(method, temp_breakpoint, args)
         else:
             if temp_breakpoint:
-                self.setBreakpoint(temp_breakpoint[0],
-                                   temp_breakpoint[1], 1)
+                self.setBreakpoint(temp_breakpoint[0], temp_breakpoint[1], 1)
 
     def OnDebug(self, event):
         self.doDebugStep('set_continue')
@@ -1367,14 +1381,21 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
         try:
             self.killDebugger()
         finally:
-            self.debug_client = None
             self.destroy()
-            try: self.editor.debugger = None
-            except: pass
-            self.editor = None
-            #event.Skip()
+            # closing must succeed
+            if self.editor:
+                try:
+                    if self.isInShellNamepace():
+                        self.editor.shell.debugShell(0, None)
+                except:
+                    pass
+                    #cls, err = sys.exc_info()[:2]
+                    #print 'close shell debug failed', cls, str(err)
+                self.editor.debugger = None
+                self.editor = None
+            # Window is not destroyed here because it still needs to 
+            # process the OnDebuggerStoppedEvent which will Destroy() us
             self.Hide()
-            #self.Destroy()
 
     def isInShellNamepace(self):
         return self.toolbar.GetToolState(self.shellNamespaceId)
