@@ -9,17 +9,17 @@
 # Copyright:   (c) 1999, 2000 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
-#Boa:Frame:HelpFrame
 
-import os
+import os, marshal
 from os import path
 
 from wxPython.wx import *
 from wxPython.html import *
+from wxPython.htmlhelp import *
 
 from Preferences import IS, flatTools
-import Preferences, Search
-from PrefsKeys import keyDefs
+import Preferences, Search, Utils
+from Preferences import keyDefs
 from Utils import AddToolButtonBmpFile
 
 def tagEater(strg):
@@ -36,257 +36,202 @@ def tagEater(strg):
             res = strg[i] + res
     return res
 
-def showHelp(parent, helpClass, filename, toolbar = None):
-    help = helpClass(parent, toolbar)
-    help.loadPage(filename)
-    help.Show(true)
+def showMainHelp(bookname):
+    _hc.Display(bookname).ExpandBook(bookname)
+
+def showCtrlHelp(wxClass, method=''):
+    _hc.Display(wxClass).ExpandCurrAsWxClass(method)
+    
+def showHelp(filename):
+    _hc.Display(filename)
 
 def showContextHelp(parent, toolbar, word):
-#    print 'looking up help for', word
-    from Companions import HelpCompanions
-    helpStr = word+'Docs'
-    if HelpCompanions.__dict__.has_key(helpStr):
-#        print 'loading wxWin help', HelpCompanions.__dict__[helpStr]
-        showHelp(parent, wxWinHelpFrame, HelpCompanions.__dict__[helpStr], toolbar)
-    elif HelpCompanions.libRefDocs.has_key(word):
-#        print 'loading python lib ref help', HelpCompanions.libRefDocs[word]
-        showHelp(parent, PythonHelpFrame, HelpCompanions.libRefDocs[word], toolbar)
-    elif HelpCompanions.modRefDocs.has_key(word):
-#        print 'loading python mod idx help', HelpCompanions.modRefDocs[word]
-        showHelp(parent, PythonHelpFrame, HelpCompanions.modRefDocs[word], toolbar)
+    if word in sys.builtin_module_names:
+        word = '%s (built-in module)'%word
     else:
-        print 'No help found'
+        try:
+            libPath = os.path.dirname(os.__file__)
+        except AttributeError, error:
+            pass
+        else:
+            if os.path.isfile('%s/%s.py'%(libPath, word)):
+                word = '%s (standard module)'%word
+    _hc.Display(word).IndexFind(word)
 
-[wxID_HELPFRAME] = map(lambda _init_ctrls: wxNewId(), range(1))
-[wxID_HELPFIND, wxID_HELPCLOSE] = map(lambda help: wxNewId(), range(2))
-
-class HelpFrame(wxFrame):
-    """ Base class for help defining a home page and search facilities. """
-    def _init_utils(self):
+def decorateWxPythonWithDocStrs(dbfile):
+    namespace = Utils.getEntireWxNamespace()
+    
+    try:
+        db = marshal.load(open(dbfile, 'rb'))
+    except IOError:
         pass
+    else:
+        for name, doc in db['classes'].items():
+            try:
+                wxClass = eval(name, namespace)
+                wxClass.__doc__ = doc
+    
+                wxClass = eval(name+'Ptr', namespace)
+                wxClass.__doc__ = doc
+            except:
+                pass
+    
+        for name, doc in db['methods'].items():
+            try:
+                wxMeth = eval(name, namespace)
+                wxMeth.im_func.__doc__ = doc
+    
+                cls, mth = string.split(name, '.')
+                wxMeth = eval(string.join((cls+'Ptr', mth), '.'), namespace)
+                wxMeth.im_func.__doc__ = doc
+            except:
+                pass
 
-    def _init_ctrls(self, prnt):
-        wxFrame.__init__(self, size = (-1, -1), id = wxID_HELPFRAME, title = 'Help', parent = prnt, name = 'HelpFrame', style = wxDEFAULT_FRAME_STYLE | wxTAB_TRAVERSAL | Preferences.childFrameStyle, pos = (-1, -1))
-        self._init_utils()
+class wxHtmlHelpControllerEx(wxHtmlHelpController):
+    def Display(self, text):
+        wxHtmlHelpController.Display(self, text)
+        frameX = wxHelpFrameEx(self)
+        if frameX.frame.IsIconized():
+            frameX.frame.Iconize(false)
+        frameX.frame.Raise()
+        return frameX
 
-    def __init__(self, parent, home, index, icon, paletteToolbar = None):
-        self._init_ctrls(parent)
+    def UseConfig(self, config):
+        # Fix config file if stored as minimised
+        if config.ReadInt('hcX') == -32000:
+            map(config.DeleteEntry, ('hcX', 'hcY', 'hcW', 'hcH'))
+##        # Must have nav panel (for now)
+##        if config.HasEntry('hcNavigPanel'):
+##            config.DeleteEntry('hcNavigPanel')
 
-        self.SetSize( (round(Preferences.screenWidth / 1.5),
-                      round(Preferences.screenHeight / 1.5)) )
-        self.CenterOnScreen(wxBOTH)
+        wxHtmlHelpController.UseConfig(self, config)
+        self.config = config
 
+class _CloseEvtHandler(wxEvtHandler):
+    def __init__(self, frame):
+        wxEvtHandler.__init__(self)
+        EVT_CLOSE(frame, self.OnClose)
+        self.frame = frame
+        
+    def OnClose(self, event):
+        self.frame.Hide()
+        event.Skip()
+        self.frame.PopEventHandler().Destroy()
+        
+# Note, I think this works nicely because of OOR
+class wxHelpFrameEx:
+    def __init__(self, helpctrlr):
+        self.controller = helpctrlr
+        self.frame = helpctrlr.GetFrame()
+        
+        wxID_QUITHELP = wxNewId()
+        EVT_MENU(self.frame, wxID_QUITHELP, self.OnQuitHelp)
+        
+        self.frame.PushEventHandler(_CloseEvtHandler(self.frame))
+        
+        # helpfrm.cpp defines no accelerators so this is ok
+        self.frame.SetAcceleratorTable(
+              wxAcceleratorTable([(0, WXK_ESCAPE, wxID_QUITHELP)]))
+        
         if wxPlatform == '__WXMSW__':
-            self.SetIcon(IS.load('Images/Icons/'+icon))
-
-        self.html = wxHtmlWindow(self)
-        self.home = home
-        self.index = index
-
-        # This is disabled until wxPython bug is fixed or a workaround is implemented
-        paletteToolbar = None
-
-        self.paletteToolbar = paletteToolbar
-
-        self.statusBar = self.CreateStatusBar()
-
-        self.html.SetRelatedFrame(self, 'Help - %s')
-        self.html.SetRelatedStatusBar(0)
-
-        self.toolBar = self.CreateToolBar(style = \
-              wxTB_HORIZONTAL|wxNO_BORDER|wxTAB_TRAVERSAL|flatTools)
-
-        AddToolButtonBmpFile(self, self.toolBar,
-          path.join(Preferences.pyPath, 'Images','Shared', 'Previous.bmp'),
-          'Previous', self.OnPrevious)
-        AddToolButtonBmpFile(self, self.toolBar,
-          path.join(Preferences.pyPath, 'Images','Shared', 'Next.bmp'),
-          'Next', self.OnNext)
-        AddToolButtonBmpFile(self, self.toolBar,
-          path.join(Preferences.pyPath, 'Images','Shared', 'Home.bmp'),
-          'home', self.OnHome)
-
-        self.toolBar.AddSeparator()
-        wxID_SEARCHCTRL = wxNewId()
-        self.searchCtrl = wxTextCtrl(self.toolBar, wxID_SEARCHCTRL, "",
-          size=(150, -1), style = wxTE_PROCESS_ENTER)#self.toolBar.GetSize().y))# - Preferences.srchCtrlOffset))wxTE_PROCESS_ENTER
-        self.searchCtrl.SetToolTipString('Enter text to search')
-        self.toolBar.AddControl(self.searchCtrl)
-        EVT_TEXT_ENTER(self, wxID_SEARCHCTRL, self.OnSearchEnter)
-        AddToolButtonBmpFile(self, self.toolBar,
-          path.join(Preferences.pyPath, 'Images','Shared', 'Find.bmp'),
-          'Search', self.OnSearchEnter)
-        self.toolBar.AddSeparator()
-        wxID_RESULTSCTRL = wxNewId()
-        self.resultsCtrl = wxComboBox(self.toolBar, wxID_RESULTSCTRL, "",
-          choices=['', '(Results)', '1', '2', '3', '4'], size=(175,-1),
-          style=wxCB_DROPDOWN | wxCB_READONLY)
-        self.resultsCtrl.SetToolTipString('Matched files\nNumber of matches :: Filename')
-        self.resultsCtrl.Clear()
-        self.toolBar.AddControl(self.resultsCtrl)
-        EVT_COMBOBOX(self, wxID_RESULTSCTRL, self.OnResultSelect)
-#        EVT_TEXT_ENTER(self, wxID_RESULTSCTRL, self.OnSearchEnter)
-
-        wxID_SUBRESULTSCTRL = wxNewId()
-        self.subResultsCtrl = wxComboBox(self.toolBar, wxID_SUBRESULTSCTRL, "",
-          choices=['', '(Results)', '1', '2', '3', '4'], size=(275,-1),
-          style=wxCB_DROPDOWN | wxCB_READONLY)
-        self.subResultsCtrl.SetToolTipString('Matches in file')
-        self.subResultsCtrl.Clear()
-        self.toolBar.AddControl(self.subResultsCtrl)
-        EVT_COMBOBOX(self, wxID_SUBRESULTSCTRL, self.OnSubResultSelect)
-
-        self.toolBar.Realize()
-
-        if paletteToolbar:
-            self.toolIdx = wxNewId()
-            paletteToolbar.AddTool(self.toolIdx, IS.load(self.toolBmp),
-              shortHelpString = self.helpStr)
-            EVT_TOOL(paletteToolbar.GetParent(), self.toolIdx, self.OnSelect)
-            paletteToolbar.Realize()
+            _none, self.toolbar, self.splitter = self.frame.GetChildren()
         else:
-            self.toolIdx = None
+            self.toolbar, self.splitter = self.frame.GetChildren()
+        self.html, self.navPages = self.splitter.GetChildren()
 
-        EVT_MENU(self, wxID_HELPFIND, self.OnFindFocus)
-        EVT_MENU(self, wxID_HELPCLOSE, self.OnCloseHelp)
-        accLst = []
-        for (ctrlKey, key, code), wId in \
-                ( (keyDefs['Find'], wxID_HELPFIND),
-                  (keyDefs['Escape'], wxID_HELPCLOSE) ):
-            accLst.append( (ctrlKey, key, wId) )
+        assert self.navPages.GetPageText(0) == 'Contents'
+        self.contentsPanel = self.navPages.GetPage(0)
+        self.contentsAddBookmark, self.contentsDelBookmark, \
+              self.contentsChooseBookmark, self.contentsTree = \
+              self.contentsPanel.GetChildren()
+        
+        assert self.navPages.GetPageText(1) == 'Index'
+        self.indexPanel = self.navPages.GetPage(1)
 
-        self.SetAcceleratorTable(wxAcceleratorTable(accLst))
-        EVT_CLOSE(self, self.OnCloseWindow)
-
-    def loadPage(self, filename = '', highlight = ''):
-        if filename:
-            fn = path.normpath(path.join(self.home, filename))
+        self.indexTextCtrl, self.indexShowAllBtn, self.indexFindBtn = \
+              self.indexPanel.GetChildren()[:3]
+    
+    def IndexFind(self, text):
+        self.controller.DisplayIndex()
+        self.indexTextCtrl.SetValue(text)
+        
+        wxPostEvent(self.frame, wxCommandEvent(wxEVT_COMMAND_BUTTON_CLICKED, 
+              self.indexFindBtn.GetId()))
+    
+    def ShowNavPanel(self, show = true):
+        if show:
+            self.splitter.SplitVertically(self.navPages, self.html)
         else:
-            fn = path.normpath(path.join(self.home, self.index))
+            self.splitter.Unsplit(self.navPages)
+    
+    def ExpandBook(self, name):
+        self.navPages.SetSelection(0)
+        rn = self.contentsTree.GetRootItem()
+        ck = 0; nd, ck = self.contentsTree.GetFirstChild(rn, ck)
+        while nd.IsOk():
+            if self.contentsTree.GetItemText(nd) == name:
+                self.contentsTree.Expand(nd)
+                break
+            nd, ck = self.contentsTree.GetNextChild(rn, ck)
 
-        mn = 0
-        self.subResults = []
-        if highlight:
-            page = open(fn).read()
+    def ExpandCurrAsWxClass(self, anchor):
+        self.navPages.SetSelection(0)
+        self.contentsTree.Expand(self.contentsTree.GetSelection())
+        page = self.html.GetOpenedPage()
+        if anchor:
+            self.controller.Display('%s#%s' % (page, string.lower(anchor)))
 
-            lst = string.split(page, highlight)
-            np = ''
-            for s in lst[:-1]:
-                anchStr = ''
-                matchAnchor = '<a NAME="result_match_%d"></a>' % mn
-                matchStr = (tagEater(s[-100:])+highlight)[-50:]
-                matchStr = string.replace(matchStr, '\r\n', ' ')
-                matchStr = string.replace(matchStr, '\n', ' ')
-                self.subResults.append(matchStr)
-                for i in xrange(len(np)-1, -1, -1):
-                    if np[i] == '<':
-                        anchStr = s[:-i] + matchAnchor + s[-i:]
-                        break
-                    elif np[i] == '>':
-                        anchStr = s + matchAnchor
-                        break
-                if not anchStr:
-                    anchStr = s + matchAnchor
+    def OnQuitHelp(self, event):
+#        self.frame.Hide()
+        self.frame.Close()
+    
+        
+wxHF_TOOLBAR                = 0x0001
+wxHF_CONTENTS               = 0x0002
+wxHF_INDEX                  = 0x0004
+wxHF_SEARCH                 = 0x0008
+wxHF_BOOKMARKS              = 0x0010
+wxHF_OPEN_FILES             = 0x0020
+wxHF_PRINT                  = 0x0040
+wxHF_FLAT_TOOLBAR           = 0x0080
+wxHF_MERGE_BOOKS            = 0x0100
+wxHF_ICONS_BOOK             = 0x0200
+wxHF_ICONS_BOOK_CHAPTER     = 0x0400
+wxHF_ICONS_FOLDER           = 0x0000
+wxHF_DEFAULT_STYLE          = (wxHF_TOOLBAR | wxHF_CONTENTS | wxHF_INDEX | \
+                               wxHF_SEARCH | wxHF_BOOKMARKS | wxHF_PRINT)
 
-                np = '%s%s<font size="+2" color="#00AA00">%s</font>' % (np, anchStr, highlight)
-                mn = mn + 1
-            np = np + lst[-1]
+_hc = None
 
-##            page = string.replace(page, highlight,
-##              '<font size="+2" color="#00AA00">%s</font>'%highlight)
+def initHelp():
+    jn = os.path.join
+    global _hc
+    docsDir = jn(Preferences.pyPath, 'Docs')
+    
+    _hc = wxHtmlHelpControllerEx(wxHF_ICONS_BOOK_CHAPTER | \
+        wxHF_DEFAULT_STYLE | (Preferences.flatTools and wxHF_FLAT_TOOLBAR or 0))
+    cf = wxFileConfig(localFilename=os.path.normpath(jn(Preferences.rcPath, 
+        'helpfrm.cfg')), style=wxCONFIG_USE_LOCAL_FILE)
+    _hc.UseConfig(cf)
+    _hc.SetTempDir(jn(docsDir, 'cache'))
 
-            self.html.SetPage(np)
-        else:
-            self.html.LoadPage(fn)
-        self.subResultsCount = mn
+    conf = Utils.createAndReadConfig('Explorer')
+    books = eval(conf.get('help', 'books'), {})
+    for book in books:
+        print 'Help: loading %s'% os.path.basename(book)
+        _hc.AddBook(os.path.normpath(jn(docsDir, book+'.hhp')), 
+         not os.path.exists(jn(docsDir, 'cache', 
+         os.path.basename(book)+'.hhp.cached')))
 
-    def OnCloseWindow(self, event):
-#        print 'Close help', self.toolIdx, self.paletteToolbar
+    decorateWxPythonWithDocStrs(jn(docsDir, 'wxDocStrings.msh'))
+    
 
-        if self.paletteToolbar:
-            print self.paletteToolbar.DeleteTool(self.toolIdx)
-            self.paletteToolbar.Realize()
-
-        self.Destroy()
-
-    def OnPrevious(self, event):
-        if not self.html.HistoryBack():
-            wxMessageBox('No more items in history')
-
-    def OnNext(self, event):
-        if not self.html.HistoryForward():
-            wxMessageBox('No more items in history')
-
-    def progressCallback(self, dlg, count, file, msg):
-        dlg.Update(count, msg +' '+ file)
-
-    def OnSearchEnter(self, event):
-        results =  Search.findInFiles(self, self.home,
-          self.searchCtrl.GetValue(), self.progressCallback)
-
-        self.resultsCtrl.Clear()
-        self.subResultsCtrl.Clear()
-        results.sort()
-        results.reverse()
-        for ocs, result in results:
-            self.resultsCtrl.Append('%d :: %s' %(ocs, result))
-        self.Raise()
-        self.resultsCtrl.SetFocus()
-
-    def OnResultSelect(self, event):
-        pge = string.split(self.resultsCtrl.GetValue(), ' :: ')[1]
-        self.loadPage(pge, self.searchCtrl.GetValue())
-
-        self.subResultsCtrl.Clear()
-        for res in self.subResults:
-            self.subResultsCtrl.Append(res)
-        event.Skip()
-
-    def OnSubResultSelect(self, event):
-        self.html.LoadPage('#result_match_%d'%self.subResultsCtrl.GetSelection())
-        #self.html.Scroll(0, -1)
-
-        event.Skip()
-
-    def OnHome(self, event):
-        self.loadPage()
-
-    def OnSelect(self, event):
-        self.Show(true)
-        if self.IsIconized():
-            self.Iconize(false)
-        self.Raise()
-
-    def OnFindFocus(self, event):
-        self.searchCtrl.SetFocus()
-
-    def OnCloseHelp(self, event):
-        self.Close()
-
-class BoaHelpFrame(HelpFrame):
-    toolBmp = 'Images/Shared/Help.bmp'
-    helpStr = 'Boa help'
-    def __init__(self, parent, paletteToolbar = None):
-        HelpFrame.__init__(self, parent, path.join(Preferences.pyPath, 'Docs'), 'index.html',
-          'Help.ico', paletteToolbar)
-
-class wxWinHelpFrame(HelpFrame):
-    toolBmp = 'Images/Shared/wxWinHelp.bmp'
-    helpStr = 'wxWindows help'
-    def __init__(self, parent, paletteToolbar = None):
-        HelpFrame.__init__(self, parent, Preferences.wxWinDocsPath, 'wx.htm',
-          'wxWinHelp.ico', paletteToolbar)
-
-class PythonHelpFrame(HelpFrame):
-    toolBmp = 'Images/Shared/PythonHelp.bmp'
-    helpStr = 'Python help'
-    def __init__(self, parent, paletteToolbar = None):
-        HelpFrame.__init__(self, parent, Preferences.pythonDocsPath, 'index.html',
-          'PythonHelp.ico', paletteToolbar)
-
-class CustomHelpFrame(HelpFrame):
-    toolBmp = 'Images/Shared/CustomHelp.bmp'
-    helpStr = 'Python help'
-    def __init__(self, parent, helpRoot, indexDoc, paletteToolbar = None):
-        HelpFrame.__init__(self, parent, helpRoot, indexDoc,
-          'CustomHelp.ico', paletteToolbar)
+if __name__ == '__main__':
+    app = wxPySimpleApp()
+    wxInitAllImageHandlers()
+    initHelp()
+    ##_hc.Display('Boa').IndexFind('reduce')
+    _hc.Display('Python Documentation').ExpandBook('Python Documentation')
+    app.MainLoop()
+    _hc.config.Flush()
+    
