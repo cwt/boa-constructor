@@ -65,8 +65,9 @@ class DataView(wxListCtrl, InspectableObjectCollectionView):
                     idx1 = self.il.Add(PaletteMapping.bitmapForComponent(classObj, gray = true))
                 except:
                     className = aclass
-                    if len(self.model.module.classes[aclass].super):
-                        base = self.model.module.classes[aclass].super[0]
+                    module = self.model.getModule()
+                    if len(module.classes[aclass].super):
+                        base = module.classes[aclass].super[0]
                         try: base = base.__class__.__name__
                         except: pass #print 'ERROR', base
                         idx1 = self.il.Add(PaletteMapping.bitmapForComponent(aclass, base, gray = true))
