@@ -38,15 +38,18 @@ class ZopeHTMLStyledTextCtrlMix(BaseHTMLStyledTextCtrlMix):
         zope_dtml_elements = 'dtml-var dtml-in dtml-if dtml-elif dtml-else dtml-unless '\
         'dtml-with dtml-let dtml-call dtml-comment dtml-tree dtml-try dtml-except '\
         'dtml-raise dtml-finally dtml-sqlvar '
-        
+
         zope_zsql_tags = 'params '
 
         zope_attributes=\
         'sequence-key sequence-item sequence-start sequence-end sequence-odd '
 
         zope_pt_attributes=\
-        'z tal tal:content tal:replace tal:condition tal:attributes tal:define '\
-        'tal:repeat tales metal '
+        'tal tal:block tal:content tal:replace tal:condition tal:attributes '\
+        'tal:define tal:repeat tal:omit-tag tal:on-error '\
+        'tales '\
+        'metal metal:block metal:use-macro metal:define-macro metal:fill-slot '\
+        'metal:define-slot '
 
         self.keywords = self.keywords + ' public !doctype '+ zope_dtml_elements +\
               zope_zsql_tags + zope_attributes + zope_pt_attributes
@@ -66,13 +69,13 @@ class ZopeHTMLSourceView(EditorStyledTextCtrl, ZopeHTMLStyledTextCtrlMix):
 class ZopeDebugHTMLSourceView(ZopeHTMLSourceView, DebuggingViewSTCMix):
     breakBmp = 'Images/Debug/Breakpoints.png'
     def __init__(self, parent, model, actions=()):
-        ZopeHTMLSourceView.__init__(self, parent, model, 
+        ZopeHTMLSourceView.__init__(self, parent, model,
       (('Toggle breakpoint', self.OnSetBreakPoint, self.breakBmp, 'ToggleBrk'),)
         )
 
         from Views.PySourceView import brkPtMrk, tmpBrkPtMrk, disabledBrkPtMrk, \
                                        stepPosMrk, symbolMrg
-        DebuggingViewSTCMix.__init__(self, (brkPtMrk, tmpBrkPtMrk, 
+        DebuggingViewSTCMix.__init__(self, (brkPtMrk, tmpBrkPtMrk,
               disabledBrkPtMrk, stepPosMrk))
         self.setupDebuggingMargin(symbolMrg)
 
@@ -92,9 +95,9 @@ class ZopeHTMLView(HTMLView):
 ##            if len(self.model.viewsModified):
 ##                return self.lastpage
         import urllib
-        url = 'http://%s:%d/%s'%(self.model.zopeObj.properties['host'],
-              self.model.zopeObj.properties['httpport'],
-              self.model.zopeObj.whole_name())
+        url = 'http://%s:%d/%s'%(self.model.transport.properties['host'],
+              self.model.transport.properties['httpport'],
+              self.model.transport.whole_name())
         f = urllib.urlopen(url)
         s = f.read()
 #        print url, s
@@ -117,8 +120,7 @@ class ZopeUndoView(ListCtrlView):
         ListCtrlView.refreshCtrl(self)
 
         try:
-            #print 'ZOPEOBJ '+repr(self.model.zopeObj)
-            undos = self.model.zopeObj.getUndoableTransactions()
+            undos = self.model.transport.getUndoableTransactions()
         except xmlrpclib.Fault, error:
             wx.wxLogError(Utils.html2txt(error.faultString))
         else:
@@ -134,7 +136,7 @@ class ZopeUndoView(ListCtrlView):
     def OnUndo(self, event):
         if self.selected != -1:
             try:
-                self.model.zopeObj.undoTransaction([self.undoIds[self.selected]])
+                self.model.transport.undoTransaction([self.undoIds[self.selected]])
             except xmlrpclib.Fault, error:
                 wx.wxLogError(Utils.html2txt(error.faultString))
             except xmlrpclib.ProtocolError, error:
@@ -158,8 +160,8 @@ class ZopeSecurityView(ListCtrlView):
     def refreshCtrl(self):
         ListCtrlView.refreshCtrl(self)
 
-        perms = self.model.zopeObj.getPermissions()
-        roles = self.model.zopeObj.getRoles()
+        perms = self.model.transport.getPermissions()
+        roles = self.model.transport.getRoles()
 
         colls = [('Acquired', 40), ('Permission', 275)]
         for role in roles:
