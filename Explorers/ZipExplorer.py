@@ -105,11 +105,15 @@ class ZipItemNode(ExplorerNodes.ExplorerNode):
         zf.close()
 
     def load(self, mode='rb'):
-        zf = zipfile.ZipFile(self.zipFileNode.resourcepath, 'r')
-        return zf.read(self.resourcepath)
+        try:
+            zf = zipfile.ZipFile(self.zipFileNode.resourcepath, 'r')
+            return zf.read(self.resourcepath)
+        except Exception, error:
+            raise ExplorerNodes.TransportLoadError(error, self.resourcepath)
 
     def save(self, filename, data, mode='wb'):
-        pass
+        raise ExplorerNodes.TransportSaveError(\
+              'Saving not supported on Zip files (yet)', self.resourcepath)
 
 
 class ZipFileNode(ZipItemNode):

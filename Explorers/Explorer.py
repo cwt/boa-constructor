@@ -14,6 +14,8 @@ from os import path
 import os, sys
 import string, time
 
+##sys.path.append('..')
+
 from wxPython.wx import *
 
 import Preferences, Utils

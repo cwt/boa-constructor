@@ -145,26 +145,32 @@ class SSHItemNode(ExplorerNodes.ExplorerNode):
         from FileExplorer import PyFileNode
         import tempfile
         fn = tempfile.mktemp()
-        self.copyToFS(PyFileNode('', os.path.dirname(fn), None, -1, None, None), os.path.basename(fn))
         try:
-            return open(fn, mode).read()
-        finally:
-            os.remove(fn)
+            self.copyToFS(PyFileNode('', os.path.dirname(fn), None, -1, None, None), os.path.basename(fn))
+            try:
+                return open(fn, mode).read()
+            finally:
+                os.remove(fn)
+        except Exception, error:
+            raise ExplorerNodes.TransportLoadError(error, self.resourcepath)
 
     def save(self, filename, data, mode='wb'):
         from FileExplorer import PyFileNode
         import tempfile
         name = os.path.basename(self.resourcepath)
         fn = tempfile.mktemp()
-        open(fn, mode).write(data)
         try:
-            if self.parent:
-                self.parent.copyFromFS(PyFileNode('', fn, None, -1, None, None),
-                      name)
-            else:
-                raise 'No Parent!'
-        finally:
-            os.remove(fn)
+            open(fn, mode).write(data)
+            try:
+                if self.parent:
+                    self.parent.copyFromFS(PyFileNode('', fn, None, -1, None, None),
+                          name)
+                else:
+                    raise 'No Parent!'
+            finally:
+                os.remove(fn)
+        except Exception, error:
+            raise ExplorerNodes.TransportSaveError(error, self.resourcepath)
 
 
 class SSHExpClipboard(ExplorerNodes.ExplorerClipboard):

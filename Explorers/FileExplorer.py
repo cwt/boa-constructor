@@ -376,23 +376,31 @@ class PyFileNode(ExplorerNodes.ExplorerNode):
             return ('.*',)
 
     def load(self, mode='rb'):
-        return open(self.resourcepath, mode).read()
+        try:
+            return open(self.resourcepath, mode).read()
+        except IOError, error:
+            raise ExplorerNodes.TransportLoadError(error, self.resourcepath)
 
     def save(self, filename, data, mode='wb'):
-        # XXX move dialog to gui layer
+        # XXX Maybe IOError should be translated to ExplorerSaveError or something
         if self.resourcepath != filename:
             self.resourcepath = filename
             self.name = os.path.basename(self.resourcepath)
         try:
-            f = open(self.resourcepath, mode)
-        except IOError, message:
-            dlg = wx.wxMessageDialog(self.editor, 'Could not save\n'+message.strerror,
-                                  'Error', wx.wxOK | wx.wxICON_ERROR)
-            try: dlg.ShowModal()
-            finally: dlg.Destroy()
-        else:
-            f.write(data)
-            f.close()
+            open(self.resourcepath, mode).write(data)
+        except IOError, error:
+            raise ExplorerNodes.TransportSaveError(error, self.resourcepath)
+
+##        try:
+##            f = open(self.resourcepath, mode)
+##        except IOError, message:
+##            dlg = wx.wxMessageDialog(None, 'Could not save\n'+message.strerror,
+##                                  'Error', wx.wxOK | wx.wxICON_ERROR)
+##            try: dlg.ShowModal()
+##            finally: dlg.Destroy()
+##        else:
+##            f.write(data)
+##            f.close()
 
 def isPackage(filename):
     return os.path.exists(os.path.join(filename, EditorModels.PackageModel.pckgIdnt))    

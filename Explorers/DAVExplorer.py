@@ -197,10 +197,19 @@ class DAVItemNode(ExplorerNodes.ExplorerNode):
             0, self.properties).resource.move(self.resourcepath+'/'+newName)
 
     def load(self, mode='rb'):
-        return self.resource.get().body
+        try:
+            return self.resource.get().body
+        # XXX Catch only loading errors
+        except Exception, error:
+            raise ExplorerNodes.TransportLoadError(error, self.resourcepath)
 
     def save(self, filename, data, mode='wb'):
-        self.resource.put(data)
+        try:
+            self.resource.put(data)
+        # XXX Catch only saving errors
+        # XXX Invalid dtml does not raise an exception. WebDAV.client problem
+        except Exception, error:
+            raise ExplorerNodes.TransportSaveError(error, self.resourcepath)
 
     def newFolder(self, name):
         self.createChildNode(self.resourcepath+'/'+name,

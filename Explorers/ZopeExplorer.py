@@ -25,11 +25,10 @@ from Preferences import IS, wxFileDialog
 import Utils
 import Views
 from Views import ZopeViews
-import PaletteStore, HTMLResponse
+import PaletteStore
 
 # XXX Add owner property
 
-# XXX Problem with opening objects with '.' in their name !!
 # XXX root attribute is no longer really necessary
 
 class ZopeEClip(ExplorerNodes.ExplorerClipboard):
@@ -205,10 +204,11 @@ class ZopeItemNode(ExplorerNodes.ExplorerNode):
         try:
             self.entries, self.entryIds = self.server.ZOA('items')
         except xmlrpclib.Fault, error:
-            frm = HTMLResponse.create(None, error.faultString)
-            frm.Show(true)
-            # XXX Add Errorhandler here
-            raise 'Zope Error: '+str(error.faultCode)
+            raise Utils.html2txt(error.faultString)
+##            frm = HTMLResponse.create(None, error.faultString)
+##            frm.Show(true)
+##            # XXX Add Errorhandler here
+##            raise 'Zope Error: '+str(error.faultCode)
 
         self.cache = {}
         result = []
@@ -682,7 +682,9 @@ class ZSQLNode(ZopeNode):
         except xmlrpclib.ProtocolError, error:
             # Getting a zero content warning is not an error
             if error.errcode != 204:
-                raise
+                raise ExplorerNodes.TransportSaveError(error, filename)
+        except Exception, error:
+            raise ExplorerNodes.TransportSaveError(error, filename)
 
 class PythonNode(ZopeNode):
     Model = ZopeEditorModels.ZopePythonScriptModel

@@ -124,13 +124,18 @@ class FTPItemNode(ExplorerNodes.ExplorerNode):
 ##    def getTitle(self):
 ##        return 'ftp:/'+ExplorerNodes.ExplorerNode.getTitle(self)
 
-    def load(self):
-        return self.ftpConn.load(self.ftpObj)
+    def load(self, mode='rb'):
+        try:
+            return self.ftpConn.load(self.ftpObj)
+        except Exception, error:
+            raise ExplorerNodes.TransportLoadError(error, self.ftpObj.whole_name())
 
-    def save(self, filename, data):
+    def save(self, filename, data, mode='wb'):
         # XXX save under different filename not supported yet
-        #print 'FTPObj', filename, self.ftpObj.whole_name(), self.ftpObj.name, self.ftpObj.path
-        self.ftpConn.save(self.ftpObj, data)
+        try:
+            self.ftpConn.save(self.ftpObj, data)
+        except Exception, error:
+            raise ExplorerNodes.TransportSaveError(error, self.ftpObj.whole_name())
 
 
 class FTPConnectionNode(FTPItemNode):

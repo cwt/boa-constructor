@@ -21,7 +21,7 @@ sensitive_properties = ('passwd', 'scp_pass')
 # Guidelines
 #  Creation of a node should be cheap and not significant resources
 #  Opening/getting the contents/sublists should start connections/resources
-
+    
 class GlobalClipper:
     def __init__(self):
         self.currentClipboard = None
@@ -112,9 +112,7 @@ class Controller:
     def getNamesForSelection(self, idxs):
         res = []
         for idx in idxs:
-            #print 'names', self.list.items[idx], type(self.list.items[idx])
             res.append(self.getName(self.list.items[idx]))
-#        print res
         return res
 
     def getNodesForSelection(self, idxs):
@@ -172,8 +170,16 @@ class ClipboardControllerMix:
                 if not node.isFolderish():
                     node.open(self.editor)
 
-##class Transport:
 
+class TransportError(Exception):
+    def __str__(self): 
+        return str(self.args[0])
+
+class TransportLoadError(TransportError): 
+    pass
+class TransportSaveError(TransportError): 
+    pass   
+ 
 
 class ExplorerNode:
     protocol = None
@@ -464,6 +470,12 @@ class ExplorerCompanion(Companion):
         prop, idx = self.findProp(name)
         if self.setPropHook(name, value, prop):
             self.propItems[idx] = (name, value) + prop[2:]
+    
+    def GetClass(self, dummy=None):
+        return 'Explorer Item'
+        
+    def SetClass(self, value):
+        pass
 
     def updateProps(self):
         self.propItems = self.getPropertyItems()
