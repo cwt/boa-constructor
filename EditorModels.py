@@ -33,7 +33,6 @@ from Utils import AddToolButtonBmpIS
 from time import time, gmtime, strftime
 from stat import *
 from PrefsKeys import keyDefs
-from Debugger import Debugger
 
 #from wxPython.lib.dialogs import wxScrolledMessageDialog
 import wxPython
@@ -630,6 +629,7 @@ class ModuleModel(SourceModel):
         if self.savedAs:
             debugger = self.editor.debugger
             if not debugger:
+                from Debugger import Debugger
                 debugger = Debugger.DebuggerFrame(self)
                 self.editor.debugger = debugger
                 debugger.setParams(params)
