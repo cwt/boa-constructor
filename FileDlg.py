@@ -373,7 +373,8 @@ class wxBoaFileDialog(wxDialog, Utils.FrameRestorerMixin):
         if self.GetFilename():
             self.editorFilterNode.setFilter(self.editorFilter)
             dir = self.GetDirectory()
-            if not dir.startswith('recent.files://'):
+            if not dir.startswith('recent.files://') and \
+               not dir.startswith('config://'):
                 wxBoaFileDialog.currentDir = dir
             wxBoaFileDialog._lastSize = self.GetClientSize()
             self.saveDims()
