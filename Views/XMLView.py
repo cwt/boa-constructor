@@ -35,14 +35,6 @@ class XMLTreeView(wxTreeCtrl, EditorView):
 
         self.nodeStack = []
 
-##        self.tokenImgLst = wxImageList(16, 16)
-##        self.tokenImgLst.Add(IS.load('Images/Views/Hierarchy/inherit.bmp'))
-##        self.tokenImgLst.Add(IS.load('Images/Views/Hierarchy/inherit_base.bmp'))
-##        self.tokenImgLst.Add(IS.load('Images/Views/Hierarchy/inherit_outside.bmp'))
-##        self.tokenImgLst.Add(IS.load('Images/Modules/'+self.model.bitmap))
-##
-##        self.SetImageList(self.tokenImgLst)
-
         EVT_KEY_UP(self, self.OnKeyPressed)
 
         self.active = true
@@ -137,3 +129,4 @@ class XMLTree(wxTreeCtrl):
 
         # Parse the XML File
         ParserStatus = Parser.Parse(open(filename,'r').read(), 1)
+ 
