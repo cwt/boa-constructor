@@ -155,7 +155,7 @@ class DebuggerConnection:
                        'set_step_out', 'set_pause', 'set_quit')
             if command not in allowed:
                 raise DebugError('Illegal command: %s' % command)
-            getattr(self, command)(*args)
+            apply(getattr(self, command), args)
         ss = self.getStatusSummary()
         return ss
 
@@ -651,7 +651,7 @@ class DebugServer (Bdb):
                 Bdb.run(self, cmd, globals, locals)
             except (BdbQuit, SystemExit):
                 pass
-            except Exception, e:
+            except:
                 # Provide post-mortem analysis.
                 import traceback
                 traceback.print_exc()
