@@ -182,15 +182,16 @@ class PerLineParser:
     def extractKVParams(self, paramsStr):
         params = safesplitfields(paramsStr, ',')
         result = {}
-        cnt = 0
+        #cnt = 0
         for param in params:
             try:
                 sidx = string.index(param, '=')
             except ValueError:
-                result[`cnt`] = string.strip(param[sidx+1:])
+                pass
+                #result[`cnt`] = string.strip(param)
             else:
                 result[string.strip(param[:sidx])] = string.strip(param[sidx+1:])
-            cnt = cnt + 1
+            #cnt = cnt + 1
         return result
 
     def KVParamsAsText(self, params):
