@@ -113,10 +113,9 @@ class EditorModel:
         if not self.transport:
             raise 'No transport for loading'
 
-        self.data = self.transport.load()
-##        f = open(self.filename, 'r')
-##        self.data = f.read()
-##        f.close()
+        rd = string.split(self.transport.load(), os.linesep)
+        print 'load', len(rd)
+        self.data = string.join(string.split(self.transport.load(), os.linesep), '\n')
         self.modified = false
         self.saved = false
         self.update()
@@ -128,7 +127,8 @@ class EditorModel:
             raise 'No transport for saving'
 
         if self.filename:
-            self.transport.save(self.filename, self.data)
+            self.transport.save(self.filename, 
+                  string.join(string.split(self.data, '\n'), os.linesep))
             self.modified = false
             self.saved = true
 
@@ -447,7 +447,7 @@ class ModuleModel(SourceModel):
     def refreshFromModule(self):
         """ Must call this method to apply changes made
         to the module object. """
-        self.data = string.join(self.getModule().source, '\012')#os.linesep)
+        self.setDataFromLines(self.getModule().source)
         self.notify()
 
     def renameClass(self, oldname, newname):
@@ -1073,7 +1073,7 @@ class AppModel(ClassModel):
           ['    application = %s(0)'%newName, '    application.MainLoop()', ''])
 
     def new(self, mainModule):
-        self.data = (defSig + defEnvPython + defImport + defApp) \
+        self.data = (defEnvPython + defSig + defImport + defApp) \
           %(self.modelIdentifier, boaClass, mainModule, mainModule,
             mainModule, mainModule)
         self.saved = false
@@ -1119,20 +1119,14 @@ class AppModel(ClassModel):
         modS, modE = self.findModules()
         try:
             self.modules = eval(self.data[modS:modE])
-        except: raise 'Module list not a valid dictionary'
+        except: 
+            raise 'Module list not a valid dictionary'
 
         for mod in self.modules.keys():
             self.idModel(mod)
 
-##    def readImports(self):
-##        impS, impE = self.findImports()
-##        try:
-##            self.imports = string.split(self.data[impS:impE], ', ')
-##        except: raise 'Module import list not a comma delimited list'
-
     def writeModules(self, notify = true):
         modS, modE = self.findModules()
-#        self.data = self.data[:modS]+`self.modules`+self.data[modE:]
         self.data = self.data[:modS]+pprint.pformat(self.modules)+self.data[modE:]
 
         self.modified = true
@@ -1140,12 +1134,6 @@ class AppModel(ClassModel):
         self.editor.updateModulePage(self)
 
         if notify: self.notify()
-
-##    def writeImports(self, notify = true):
-##        impS, impE = self.findImports()
-##        self.data = self.data[:impS]+string.join(self.imports, ', ')+ \
-##          self.data[impE:]
-##        if notify: self.notify()
 
     def viewAddModule(self):
         fn = self.editor.openFileDlg()
