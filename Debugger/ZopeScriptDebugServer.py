@@ -119,10 +119,10 @@ class ZopeScriptDebugServer(DebugServer):
             if code.co_name == 'setPosition':
                 if frame.f_globals.get('__name__') == TALES_MODULE_NAME:
                     # Trace calls to PageTemplate.TALES.Context.setPosition().
-                    if not frame.f_locals.get('__traced'):
-                        # Avoid getting called more than once.
-                        frame.f_locals['__traced'] = 1
+                    # Avoid stopping more than once per call.
+                    if frame.f_lineno == frame.f_code.co_firstlineno:
                         return 1
+            return 0
         return DebugServer.isTraceable(self, frame)
 
     def isAScriptFrame(self, frame):
