@@ -23,7 +23,7 @@ def toPyPath(filename):
 
 #---Import preference namespace from resource .rc. files------------------------
 
-print 'setting user preferences'
+print 'reading user preferences'
 
 # This cannot be stored as a Preference option for obvious reasons :)
 prefsDirName = '.boa'
@@ -45,9 +45,20 @@ if '--BlockHomePrefs' in sys.argv or '-B' in sys.argv:
     print 'ignoring $HOME (if set)'
     rcPath = os.path.join(pyPath, prefsDirName)
 else:
-    rcPath = os.path.join(os.environ.get('HOME', pyPath), prefsDirName)
+    homedir = os.environ.get('HOME', None)
+    if homedir is not None and os.path.isdir(homedir):
+        rcPath = os.path.join(homedir, prefsDirName)
+        if not os.path.isdir(rcPath):
+            try:
+                os.mkdir(rcPath)
+                print "Created directory: %s" % rcPath
+            except OSError:
+                # Protected
+                pass
+    else:
+        rcPath = os.path.join(pyPath, prefsDirName)
 
-# fall back to defaults in Boa src root if .boa does not exist
+# fall back to defaults in Boa src root if .boa is not available.
 if not os.path.isdir(rcPath):
     rcPath = pyPath
 
