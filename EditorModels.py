@@ -82,20 +82,6 @@ class EditorModel:
         del self.viewsModified
         del self.editor
 
-    def addTools(self, toolbar):
-        AddToolButtonBmpIS(self.editor, toolbar, self.closeBmp, 'Close', self.editor.OnClosePage)
-
-    def addMenu(self, menu, wId, label, accls, code = ()):
-        menu.Append(wId, label + (code and '     <'+code[2]+'>' or ''))#, label)
-        if code:
-            accls.append((code[0], code[1], wId),)
-
-    def addMenus(self, menu):
-        accls = []
-        self.addMenu(menu, EditorHelper.wxID_EDITORCLOSEPAGE, 'Close', accls, (keyDefs['Close']))
-        self.addMenu(menu, EditorHelper.wxID_EDITORRELOAD, 'Reload', accls, ())
-        return accls
-
     def reorderFollowingViewIdxs(self, idx):
         for view in self.views.values():
             if view.pageIdx > idx:
@@ -106,41 +92,6 @@ class EditorModel:
     def setDataFromLines(self, lines):
         self.data = string.join(lines, '\012')
 
-    def load(self, notify = true):
-        """ Loads contents of data from file specified by self.filename.
-            Note: Load not really used currently objects are constructed
-                  with their data as parameter """
-        if not self.transport:
-            raise 'No transport for loading'
-
-        rd = string.split(self.transport.load(), os.linesep)
-        self.data = self.transport.load(mode='r')
-        #string.join(string.split(self.transport.load(), os.linesep), '\n')
-        self.modified = false
-        self.saved = false
-        self.update()
-        if notify: self.notify()
-
-    def save(self):
-        """ Saves contents of data to file specified by self.filename. """
-        if not self.transport:
-            raise 'No transport for saving'
-
-        if self.filename:
-            self.transport.save(self.filename, self.data, mode='w')
-#                  string.join(string.split(self.data, '\n'), os.linesep))
-            self.modified = false
-            self.saved = true
-
-        else:
-            raise 'No filename'
-
-    def saveAs(self, filename):
-        """ Saves contents of data to file specified by filename.
-            Override this to catch name changes. """
-        self.filename = filename
-        self.save()
-        self.savedAs = true
 
     def notify(self):
         """ Update all views connected to this model.
@@ -236,78 +187,41 @@ class ZipFileModel(EditorModel):
     imgIdx = imgZipFileModel
     ext = '.zip'
 
-class PackageModel(EditorModel):
-    """ Must be constructed in a valid path, name being filename, actual
-        name will be derived from path """
-
-    modelIdentifier = 'Package'
-    defaultName = 'package'
-    bitmap = 'Package_s.bmp'
-    imgIdx = imgPackageModel
-    pckgIdnt = '__init__.py'
-    ext = '.py'
-
-    saveBmp = 'Images/Editor/Save.bmp'
-    saveAsBmp = 'Images/Editor/SaveAs.bmp'
-
-    def __init__(self, data, name, editor, saved):
-        EditorModel.__init__(self, name, data, editor, saved)
-        self.packagePath, dummy = os.path.split(self.filename)
-        dummy, self.packageName = os.path.split(self.packagePath)
-        self.savedAs = true
-        self.modified = false
-
-    def addTools(self, toolbar):
-        EditorModel.addTools(self, toolbar)
-        AddToolButtonBmpIS(self.editor, toolbar, self.saveBmp, 'Save', self.editor.OnSave)
-        AddToolButtonBmpIS(self.editor, toolbar, self.saveAsBmp, 'Save as...', self.editor.OnSaveAs)
-
-    def addMenus(self, menu):
-        accls = EditorModel.addMenus(self, menu)
-        self.addMenu(menu, EditorHelper.wxID_EDITORSAVE, 'Save', accls, (keyDefs['Save']))
-        self.addMenu(menu, EditorHelper.wxID_EDITORSAVEAS, 'Save as...', accls, (keyDefs['SaveAs']))
-        return accls
-
-    def openPackage(self, name):
-        self.editor.openModule(os.path.join(self.packagePath, name, self.pckgIdnt))
-
-    def openFile(self, name):
-        self.editor.openModule(os.path.join(self.packagePath, name + self.ext))
-
-    def generateFileList(self):
-        """ Generate a list of modules and packages in the package path """
-        files = os.listdir(self.packagePath)
-        packages = []
-        modules = []
-        for file in files:
-            filename = os.path.join(self.packagePath, file)
-            mod, ext = os.path.splitext(file)
-            if file == self.pckgIdnt: continue
-            elif (ext == self.ext) and os.path.isfile(filename):
-                modules.append((mod, identifyFile(filename)[0]))
-            elif os.path.isdir(filename) and \
-              os.path.exists(os.path.join(filename, self.pckgIdnt)):
-                packages.append((file, PackageModel))
-
-        return packages + modules
-
-    def getPageName(self):
-        return self.packageName
-
 class BasePersistentModel(EditorModel):
     saveBmp = 'Images/Editor/Save.bmp'
     saveAsBmp = 'Images/Editor/SaveAs.bmp'
 
-    def addTools(self, toolbar):
-        EditorModel.addTools(self, toolbar)
-        AddToolButtonBmpIS(self.editor, toolbar, self.saveBmp, 'Save', self.editor.OnSave)
-        AddToolButtonBmpIS(self.editor, toolbar, self.saveAsBmp, 'Save as...', self.editor.OnSaveAs)
+    def load(self, notify = true):
+        """ Loads contents of data from file specified by self.filename.
+            Note: Load not really used currently objects are constructed
+                  with their data as parameter """
+        if not self.transport:
+            raise 'No transport for loading'
 
-    def addMenus(self, menu):
-        accls = EditorModel.addMenus(self, menu)
-        self.addMenu(menu, EditorHelper.wxID_EDITORSAVE, 'Save', accls, (keyDefs['Save']))
-        self.addMenu(menu, EditorHelper.wxID_EDITORSAVEAS, 'Save as...', accls, (keyDefs['SaveAs']))
-        return accls
+        self.data = self.transport.load(mode='r')
+        self.modified = false
+        self.saved = false
+        self.update()
+        if notify: self.notify()
+
+    def save(self):
+        """ Saves contents of data to file specified by self.filename. """
+        if not self.transport:
+            raise 'No transport for saving'
+
+        if self.filename:
+            self.transport.save(self.filename, self.data, mode='w')
+            self.modified = false
+            self.saved = true
+        else:
+            raise 'No filename'
+
+    def saveAs(self, filename):
+        """ Saves contents of data to file specified by filename.
+            Override this to catch name changes. """
+        self.filename = filename
+        self.save()
+        self.savedAs = true
 
     def new(self):
         self.data = ''
@@ -373,14 +287,14 @@ class ModuleModel(SourceModel):
     imgIdx = imgModuleModel
     ext = '.py'
 
-##    saveBmp = 'Images/Editor/Save.bmp'
-##    saveAsBmp = 'Images/Editor/SaveAs.bmp'
-
     def __init__(self, data, name, editor, saved, app = None):
         SourceModel.__init__(self, name, data, editor, saved)
         self.moduleName = os.path.split(self.filename)[1]
         self.app = app
         self.debugger = None
+        self.lastRunParams = ''
+        self.lastDebugParams = ''
+        
         if data:
             if Preferences.autoReindent:
                 if not self.reindent(false):
@@ -392,22 +306,6 @@ class ModuleModel(SourceModel):
         SourceModel.destroy(self)
         del self.app
         del self.debugger
-
-##    def addTools(self, toolbar):
-##        SourceModel.addTools(self, toolbar)
-##        AddToolButtonBmpIS(self.editor, toolbar, self.saveBmp, 'Save', self.editor.OnSave)
-##        AddToolButtonBmpIS(self.editor, toolbar, self.saveAsBmp, 'Save as...', self.editor.OnSaveAs)
-
-    def addMenus(self, menu):
-        accls = SourceModel.addMenus(self, menu)
-##        self.addMenu(menu, EditorHelper.wxID_EDITORSAVE, 'Save', accls, (keyDefs['Save']))
-##        self.addMenu(menu, EditorHelper.wxID_EDITORSAVEAS, 'Save as...', accls, (keyDefs['SaveAs']))
-        menu.Append(-1, '-')
-        self.addMenu(menu, EditorHelper.wxID_EDITORSWITCHAPP, 'Switch to app', accls, (keyDefs['SwitchToApp']))
-        self.addMenu(menu, EditorHelper.wxID_EDITORDIFF, 'Diff modules...', accls, ())
-        self.addMenu(menu, EditorHelper.wxID_EDITORPYCHECK, 'Run PyChecker', accls, ())
-        self.addMenu(menu, EditorHelper.wxID_EDITORCONFPYCHECK, 'Configure PyChecker', accls, ())
-        return accls
 
     def new(self):
         self.data = ''
@@ -471,7 +369,8 @@ class ModuleModel(SourceModel):
             runner.run(cmd)
             wx.wxPostEvent(self.editor, ExecFinishEvent(runner))
         finally:
-            os.chdir(cwd)
+            if os:
+                os.chdir(cwd)
 
     def run(self, args = ''):
         """ Excecute the current saved image of the application. """
@@ -613,7 +512,7 @@ class ModuleModel(SourceModel):
 
     def saveAs(self, filename):
         oldFilename = self.filename
-        EditorModel.saveAs(self, filename)
+        SourceModel.saveAs(self, filename)
         if self.app:
             self.app.moduleSaveAsNotify(self, oldFilename, filename)
         self.moduleName = os.path.basename(filename)
@@ -663,6 +562,51 @@ class ModuleModel(SourceModel):
 
     def getSimpleRunnerSrc(self):
         return simpleModuleRunSrc
+
+class PackageModel(ModuleModel):
+    """ Must be constructed in a valid path, name being filename, actual
+        name will be derived from path """
+
+    modelIdentifier = 'Package'
+    defaultName = 'package'
+    bitmap = 'Package_s.bmp'
+    imgIdx = imgPackageModel
+    pckgIdnt = '__init__.py'
+    ext = '.py'
+
+    def __init__(self, data, name, editor, saved, app = None):
+        ModuleModel.__init__(self, data, name, editor, saved, app)
+        self.packagePath, dummy = os.path.split(self.filename)
+        dummy, self.packageName = os.path.split(self.packagePath)
+        self.savedAs = true
+        self.modified = false
+        #print self.data
+
+    def openPackage(self, name):
+        self.editor.openModule(os.path.join(self.packagePath, name, self.pckgIdnt))
+
+    def openFile(self, name):
+        self.editor.openModule(os.path.join(self.packagePath, name + self.ext))
+
+    def generateFileList(self):
+        """ Generate a list of modules and packages in the package path """
+        files = os.listdir(self.packagePath)
+        packages = []
+        modules = []
+        for file in files:
+            filename = os.path.join(self.packagePath, file)
+            mod, ext = os.path.splitext(file)
+            if file == self.pckgIdnt: continue
+            elif (ext == self.ext) and os.path.isfile(filename):
+                modules.append((mod, identifyFile(filename)[0]))
+            elif os.path.isdir(filename) and \
+              os.path.exists(os.path.join(filename, self.pckgIdnt)):
+                packages.append((file, PackageModel))
+
+        return packages + modules
+
+    def getPageName(self):
+        return self.packageName
 
 class SourcePseudoFile(Utils.PseudoFileOutStore):
     def readlines(self):
@@ -767,21 +711,10 @@ class BaseFrameModel(ClassModel):
     """
     modelIdentifier = 'Frames'
     companion = Companions.DesignTimeCompanion
-    designerBmp = 'Images/Shared/Designer.bmp'
     def __init__(self, data, name, main, editor, saved, app = None):
         ClassModel.__init__(self, data, name, main, editor, saved, app)
         self.designerTool = None
         self.specialAttrs = []
-
-    def addTools(self, toolbar):
-        ClassModel.addTools(self, toolbar)
-        toolbar.AddSeparator()
-        AddToolButtonBmpIS(self.editor, toolbar, self.designerBmp, 'Frame Designer', self.editor.OnDesigner)
-
-    def addMenus(self, menu):
-        accls = ClassModel.addMenus(self, menu)
-        self.addMenu(menu, EditorHelper.wxID_EDITORDESIGNER, 'Frame Designer', accls, (keyDefs['Designer']))
-        return accls
 
     def renameMain(self, oldName, newName):
         """ Rename the main class of the module """
@@ -1148,11 +1081,6 @@ class AppModel(ClassModel):
             abspaths.append(self.normaliseModuleRelativeToApp(self.modules[moduleName][2]))
         return abspaths
 
-    def addMenus(self, menu):
-        accls = ClassModel.addMenus(self, menu)
-        self.addMenu(menu, EditorHelper.wxID_EDITORCMPAPPS, 'Compare apps...', accls, ())
-        return accls
-
     def convertToUnixPath(self, filename):
         # Don't convert absolute windows paths, will stay illegal until saved
         if os.path.splitdrive(filename)[0] != '':
@@ -1484,10 +1412,6 @@ class AppModel(ClassModel):
         self.editor.statusBar.setHint('')
         return relationships
 
-    def showImportsView(self):
-        # XXX Should be more generic
-        self.editor.showImportsView()
-
     def compareApp(self, filename):
         tbName = 'App. Compare : '+filename
         if not self.views.has_key(tbName):
@@ -1522,19 +1446,6 @@ class SetupModuleModel(ModuleModel):
         if data:
             self.update()
             self.notify()
-
-    def addMenus(self, menu):
-        accls = ModuleModel.addMenus(self, menu)
-        menu.AppendSeparator()
-        self.addMenu(menu, EditorHelper.wxID_SETUPBUILD, 'build', accls, ())
-        self.addMenu(menu, EditorHelper.wxID_SETUPCLEAN, 'clean', accls, ())
-        self.addMenu(menu, EditorHelper.wxID_SETUPINSTALL, 'install', accls, ())
-        self.addMenu(menu, EditorHelper.wxID_SETUPSDIST, 'sdist', accls, ())
-        self.addMenu(menu, EditorHelper.wxID_SETUPBDIST, 'bdist', accls, ())
-        self.addMenu(menu, EditorHelper.wxID_SETUPBDIST_WININST, 'bdist_wininst', accls, ())
-        menu.AppendSeparator()
-        self.addMenu(menu, EditorHelper.wxID_SETUPPY2EXE, 'py2exe', accls, ())
-        return accls
 
     def new(self):
         self.data = (defSetup_py) % ('default', '0.1', '')
@@ -1638,3 +1549,4 @@ def identifySource(source):
                 return headerInfo
         else:
             return ModuleModel, ''
+ 
