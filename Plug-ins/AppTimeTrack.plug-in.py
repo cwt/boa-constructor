@@ -1,3 +1,5 @@
+""" Plugin that adds a simple time tracking view to Application Models """
+
 import os, sys, time
 
 from StringIO import StringIO
@@ -63,7 +65,7 @@ class AppTimeTrackView(ListCtrlView):
     def readTimes(self):
         transp = Explorer.openEx(self.getTTVFilename())
         data = StringIO(transp.load())
-        
+
         return map(lambda line: eval(line), data.readlines())
 
     def writeTimes(self):
@@ -75,7 +77,7 @@ class AppTimeTrackView(ListCtrlView):
         uri = self.getTTVFilename()
         transp = Explorer.openEx(uri)
         transp.save(transp.currentFilename(), timesFile.read())
-        
+
     def OnStart(self, event):
         self.times.append( (time.time(), 0, '') )
         #self.writeTimeEntry(open(self.getTTVFilename(), 'a'), time.time(), 0, '')
@@ -130,4 +132,3 @@ PythonControllers.BaseAppController.AdditionalViews.append(AppFEATURES_TIFView)
 
 from Models import EditorHelper
 EditorHelper.internalFilesReg.append('.ttv')
-
