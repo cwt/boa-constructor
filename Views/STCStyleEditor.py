@@ -54,10 +54,13 @@ Use the initSTC function to initialise your wxSTC from a config file.
 import os, sys, string, pprint, copy
 
 from wxPython.wx import *
-from wxPython.help import *
 from wxPython.lib.anchors import LayoutAnchors
 from wxPython.stc import *
 from wxPython import stc
+try:
+    from wxPython.help import *
+except ImportError: # >= 2.5
+    pass
 
 settingsIdNames = {-1: 'Selection', -2: 'Caret', -3: 'Edge'}
 
@@ -679,7 +682,7 @@ class STCStyleEditDlg(wxDialog):
             if num == wxSTC_STYLE_DEFAULT:
                 self.elementLb.InsertItems([name, '----Language----'], 0)
                 self.elementLb.Append('----Standard----')
-                stdStart = stdPos = self.elementLb.Number()
+                stdStart = stdPos = self.elementLb.GetCount()
             else:
                 # std styles
                 if num >= 33 and num < 40:
@@ -704,7 +707,7 @@ class STCStyleEditDlg(wxDialog):
 
         # add definitions
         self.elementLb.Append('----Common----')
-        self.commonDefsStartIdx = self.elementLb.Number()
+        self.commonDefsStartIdx = self.elementLb.GetCount()
         for common in self.commonDefs.keys():
             tpe = type(self.commonDefs[common])
             self.elementLb.Append('%('+common+')'+(tpe is type('') and 's' or 'd'))
@@ -974,7 +977,7 @@ class STCStyleEditDlg(wxDialog):
                     self.commonDefs[name] = commonPropDefs[prop]
                     self.elementLb.Append('%('+name+')'+\
                      (type(commonPropDefs[prop]) is type('') and 's' or 'd'))
-                    self.elementLb.SetSelection(self.elementLb.Number()-1, true)
+                    self.elementLb.SetSelection(self.elementLb.GetCount()-1, true)
                     self.populateCombosWithCommonDefs()
                     self.OnElementlbListbox(None)
         finally:
@@ -1004,7 +1007,7 @@ class STCStyleEditDlg(wxDialog):
             self.populateCombosWithCommonDefs()
             selIdx = self.elementLb.GetSelection()
             self.elementLb.Delete(selIdx)
-            if selIdx == self.elementLb.Number():
+            if selIdx == self.elementLb.GetCount():
                 selIdx = selIdx - 1
             self.elementLb.SetSelection(selIdx, true)
             self.OnElementlbListbox(None)
@@ -1308,7 +1311,10 @@ def initSTC(stc, config, lang):
 
 #-------------------------------------------------------------------------------
 if __name__ == '__main__':
-    from wxPython.help import *
+    try:
+        from wxPython.help import *
+    except ImportError: # >= 2.5
+        pass
 
     app = wxPySimpleApp()
 
