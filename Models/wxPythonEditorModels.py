@@ -347,12 +347,21 @@ class BaseFrameModel(ClassModel):
 
         # find windowids in source
         winIdIdx = -1
-        reWinIds = re.compile(sourceconst.srchWindowIds % colMeth)
+        winIdLen = 2
+        reWinIds = re.compile(sourceconst.srchWindowIdsCont % colMeth)
         module = self.getModule()
         for idx in range(len(module.source)):
-            match = reWinIds.match(module.source[idx])
+            line = module.source[idx]
+            match = reWinIds.match(line)
             if match:
-                winIdIdx = idx
+                startLine = line
+                startIdx = idx
+                while startIdx > 0 and startLine[0] != '[':
+                    startIdx = startIdx - 1
+                    startLine = module.source[startIdx]
+                
+                winIdIdx = startIdx
+                winIdLen = idx - startIdx + 2
                 break
 
         # build window id list
@@ -363,21 +372,36 @@ class BaseFrameModel(ClassModel):
             comp.addIds(lst)
         lst.sort()
 
-        if winIdIdx == -1:
-            if lst:
-                # No window id definitions could be found add one above class def
-                insPt = module.classes[self.main].block.start - 1
-                module.source[insPt:insPt] = \
-                  [string.strip(sourceconst.defWindowIds % {
-                  'idNames': string.join(lst, ', '), 'idIdent': colMeth,
-                  'idCount': len(lst)}), '']
-                module.renumber(2, insPt)
-        else:
-            # Update window ids
-            module.source[idx] = \
-              string.strip(sourceconst.defWindowIds % {
+        if lst:
+            lines = []
+            if len(lst) > 1 and Preferences.cgWrapLines:
+                # build win ids spanning multiple lines
+                line = '['+lst[0]+', '
+                for seg in lst[1:]:
+                    newLine = line+seg +', '
+                    if len(newLine) >= Preferences.cgLineWrapWidth:
+                        lines.append(line)
+                        line = ' '+seg+', '
+                    else:
+                        line = newLine
+                lines.append(line)
+                lines.append(string.strip(sourceconst.defWindowIdsCont % 
+                      {'idIdent': colMeth, 'idCount': len(lst)}))
+            else:
+                lines.append(string.strip(sourceconst.defWindowIds % {
                     'idNames': string.join(lst, ', '), 'idIdent': colMeth,
-                    'idCount': len(lst)})
+                    'idCount': len(lst)}))
+            lines.append('')
+
+        if winIdIdx == -1:
+            # No window id definitions could be found add one above class def
+            if lst:
+                insPt = module.classes[self.main].block.start - 1
+                module.source[insPt:insPt] = lines
+                module.renumber(len(lines), insPt)
+        else:
+            module.source[winIdIdx:winIdIdx + winIdLen] = lines
+            module.renumber(len(lines)-winIdLen, winIdIdx)
 
     def update(self):
         ClassModel.update(self)
@@ -424,6 +448,7 @@ class MDIChildModel(BaseFrameModel):
     defaultName = 'wxMDIChildFrame'
     bitmap = 'wxMDIChildFrame_s.png'
     imgIdx = imgMDIChildModel
+    dialogLook = true
     Companion = FrameCompanions.MDIChildFrameDTC
 
 class PopupWindowModel(BaseFrameModel):
