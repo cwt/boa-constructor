@@ -6,7 +6,7 @@
 #
 # Created:     2001/03/06
 # RCS-ID:      $Id$
-# Copyright:   (c) 2001 - 2002 Riaan Booysen
+# Copyright:   (c) 2001 - 2003 Riaan Booysen
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 print 'importing Explorers.FileExplorer'
@@ -19,8 +19,6 @@ import Preferences, Utils
 
 import ExplorerNodes
 from Models import Controllers, EditorHelper
-
-# XXX Move Python spesific filetype logic to it's own module
 
 class FileSysCatNode(ExplorerNodes.CategoryNode):
 #    protocol = 'config.file'
@@ -494,9 +492,22 @@ class CurWorkDirNode(PyFileNode):
     def getURI(self):
         return self.getTitle()
 
+def uriSplitFile(filename, filepath):
+    return 'file', '', filepath, filename
+
+def findFileExplorerNode(category, respath, transports):
+    for tp in transports.entries:
+        if tp.itemProtocol == 'file':
+            return tp.getNodeFromPath(respath, forceFolder=false)
+    raise ExplorerNodes.TransportError(
+          'FileSysCatNode not found in transports %s'%transports.entries)
+
 #-------------------------------------------------------------------------------
 ExplorerNodes.register(PyFileNode, clipboard=FileSysExpClipboard,
       confdef=('explorer', 'file'), controller=FileSysController,
       category=FileSysCatNode)
 ExplorerNodes.register(CurWorkDirNode, clipboard='file', controller='file')
 ExplorerNodes.fileOpenDlgProtReg.append('file')
+ExplorerNodes.uriSplitReg[('file', 2)] = uriSplitFile
+ExplorerNodes.uriSplitReg[('os.cwd', 2)] = uriSplitFile
+ExplorerNodes.transportFindReg['file'] = findFileExplorerNode

@@ -6,7 +6,7 @@
 #
 # Created:     2001
 # RCS-ID:      $Id$
-# Copyright:   (c) 2001 - 2002
+# Copyright:   (c) 2001 - 2003
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 
@@ -185,9 +185,19 @@ class ZipFileNode(ZipItemNode):
         return files
 
 
+def uriSplitZip(filename, zipfile, zipentry):
+    return 'zip', zipfile, zipentry, filename
+
+def findZipExplorerNode(category, respath, transports):
+    zf = ZipFileNode(os.path.basename(category), category, None, -1, None, None)
+    zf.openList()
+    return zf.getNodeFromPath(respath)
+
 #-------------------------------------------------------------------------------
 # Register zip files as a subtype of file explorers
 FileExplorer.PyFileNode.subExplorerReg['file'].append(
       (ZipFileNode, isZip, EditorHelper.imgZipFileModel))
 ExplorerNodes.register(ZipItemNode, clipboard=ZipExpClipboard,
       controller=ZipController)
+ExplorerNodes.uriSplitReg[('zip', 3)] = uriSplitZip
+ExplorerNodes.transportFindReg['zip'] = findZipExplorerNode

@@ -6,7 +6,7 @@
 #
 # Created:     2000/11/02
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999 - 2002 Riaan Booysen
+# Copyright:   (c) 1999 - 2003 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
 
@@ -26,32 +26,14 @@ from Models import EditorHelper
 
 import ExplorerNodes
 from ExplorerNodes import TransportError, TransportLoadError, TransportSaveError
-
-class TransportCategoryError(TransportError):
-    def __init__(self, msg='', filepath=None):
-        TransportError.__init__(self, msg, filepath)
-        self.msg = msg
-        self.filepath = filepath
-
-
-    def __str__(self):
-        if self.filepath:
-            return '%s: %s' % (self.msg, self.filepath)
-        else:
-            return self.msg
-
+from ExplorerNodes import TransportCategoryError
 
 #---Explorer utility functions--------------------------------------------------
 
-# Global reference to container for all transport protocols
-# The first Explorer Tree created will define this
-# XXX This attribute should move to ExplorerNodes
-all_transports = None
-
 def openEx(filename, transports=None):
     prot, category, respath, filename = splitURI(filename)
-    if transports is None and all_transports:
-        transports = all_transports
+    if transports is None and ExplorerNodes.all_transports:
+        transports = ExplorerNodes.all_transports
     return getTransport(prot, category, respath, transports)
 
 def listdirEx(filepath, extfilter = ''):
@@ -66,90 +48,28 @@ def splitURI(filename):
     # check FS (No prot defaults to 'file')
     if len(protsplit) == 1:
         return 'file', '', filename, 'file://'+filename
-
-    elif len(protsplit) == 2:
-        prot, filepath = protsplit
-        # file://[path] format
-        if prot == 'file':
-            return prot, '', filepath, filename
-
-        # zope://[category]/<[meta type]>/[path] format
-        elif prot == 'zope':
-            segs = string.split(filepath, '/')
-            if len(segs) < 2:
-                raise TransportCategoryError('Category not found', filepath)
-            category = segs[0]+'|'+segs[1][1:-1]
-            return prot, category, string.join(segs[2:], '/'), filename
-        # zopedebug://[host[:post]]/[path]/[meta type]
-        # magically maps zopedebug urls to Boa zope uris
-        elif prot == 'zopedebug':
-            segs = string.split(filepath, '/')
-            if len(segs) < 3:
-                raise TransportCategoryError('Zope debug path invalid', filepath)
-            host, filepath, meta = segs[0], segs[1:-1], segs[-1]
-            try:               host, port = string.split(host, ':')
-            except ValueError: port = 80
-            else:              port = int(port)
-            # try to find category that can open this url
-            lw = string.lower
-            for cat in all_transports.entries:
-                if cat.itemProtocol == 'zope':
-                    itms = cat.openList()
-                    for itm in itms:
-                        props = itm.properties
-                        if lw(props['host']) == lw(host) and \
-                              props['httpport'] == port:
-                            filepath = string.join(filepath, '/')
-                            name = itm.name or itm.treename
-                            return 'zope', '%s|%s' %(name, meta), filepath, \
-                                   'zope://%s/<%s>/%s'%(name, meta, filepath)
-
-            raise TransportCategoryError(\
-                  'Could not map Zope debug path to defined Zope Category item',
-                  filepath)
-
-        # Other transports [prot]://[category]/[path] format
-        elif prot == 'reg':
-            try:
-                category, respath = string.split(filepath, '//', 1)
-            except:
-                raise
-            return prot, category, respath, filename
+    else:
+        itemLen = len(protsplit)
+        if ExplorerNodes.uriSplitReg.has_key( (protsplit[0], itemLen) ):
+            return apply(ExplorerNodes.uriSplitReg[(protsplit[0], itemLen)],
+                        [filename]+protsplit[1:])
         else:
+            prot, filepath = protsplit
             idx = string.find(filepath, '/')
             if idx == -1:
                 raise TransportCategoryError('Category not found', filepath)
             else:
                 category, respath = filepath[:idx], filepath[idx+1:]
             return prot, category, respath, filename
-    # Multiprot URIs
-    elif len(protsplit) == 3:
-        prot, zipfile, zipentry = protsplit
-        if prot == 'zip':
-            return prot, zipfile, zipentry, filename
-        else:
-            raise TransportError('Unhandled protocol: %s'%prot)
-    else:
-        raise TransportError('Too many protocol separators (://)')
-
+            
 def getTransport(prot, category, respath, transports):
-    if prot == 'file':
-        for tp in transports.entries:
-            if tp.itemProtocol == 'file':
-                return tp.getNodeFromPath(respath, forceFolder=false)
-        raise TransportError('FileSysCatNode not found in transports %s'\
-              %transports.entries)
-    elif prot == 'zip':
-        from ZipExplorer import ZipFileNode
-        zf = ZipFileNode(os.path.basename(category), category, None, -1, None, None)
-        zf.openList()
-        return zf.getNodeFromPath(respath)
-    elif prot == 'zope':
-        return findZopeExplorerNode(category, respath, transports)
+    if ExplorerNodes.transportFindReg.has_key(prot):
+        return ExplorerNodes.transportFindReg[prot](category, respath, transports)
     elif category:
         return findCatExplorerNode(prot, category, respath, transports)
     else:
         raise TransportError('Unhandled transport', (prot, category, respath))
+        
 
 def findCatExplorerNode(prot, category, respath, transports):
     for cat in transports.entries:
@@ -162,17 +82,7 @@ def findCatExplorerNode(prot, category, respath, transports):
                     #    itm.openList()
                     return itm.getNodeFromPath(respath)
     raise TransportError('Catalog transport could not be found: %s || %s'%(category, respath))
-#    return None
 
-def findZopeExplorerNode(catandmeta, respath, transports):
-    category, metatype = string.split(catandmeta, '|')
-    for cat in transports.entries:
-        if hasattr(cat, 'itemProtocol') and cat.itemProtocol == 'zope':
-            itms = cat.openList()
-            for itm in itms:
-                if itm.name == category or itm.treename == category:
-                    return itm.getNodeFromPath('/'+respath, metatype)
-    raise TransportError('Zope transport could not be found: %s || %s'%(category, respath))
 
 (wxID_PFE, wxID_PFT, wxID_PFL) = Utils.wxNewIds(3)
 
@@ -292,9 +202,8 @@ class ExplorerTree(BaseExplorerTree):
         self.transports = ExplorerNodes.ContainerNode('Transport', EditorHelper.imgFolder)
         self.transports.entriesByProt = {}
 
-        global all_transports
-        if all_transports is None:
-            all_transports = self.transports
+        if ExplorerNodes.all_transports is None:
+            ExplorerNodes.all_transports = self.transports
             self._ref_all_transp = true
 
         self.transports.bold = true
@@ -364,8 +273,7 @@ class ExplorerTree(BaseExplorerTree):
 
     def destroy(self):
         if self._ref_all_transp:
-            global all_transports
-            all_transports = None
+            ExplorerNodes.all_transports = None
         self.transports = None
         self.clipboards = None
         self.defaultBookmarkItem = None
@@ -496,19 +404,23 @@ class BaseExplorerList(wxListCtrl, Utils.ListCtrlSelectionManagerMix):
         """ Display ExplorerNode items """
 
         # Try to get the file listing before changing anything.
-        wxBeginBusyCursor()
-        try: items = explNode.openList()
-        finally: wxEndBusyCursor()
-
         self.selected = -1
 
         if self.node:
             self.node.destroy()
 
         self.node = explNode
-        self.DeleteAllItems()
         self.SetImageList(images, wxIMAGE_LIST_SMALL)
         self.currImages = images
+
+        # Setup a blank list
+        self.DeleteAllItems()
+        self.items = []
+        self.InsertImageStringItem(self.GetItemCount(), '..', explNode.upImgIdx)
+
+        wxBeginBusyCursor()
+        try: items = explNode.openList()
+        finally: wxEndBusyCursor()
 
         # Build a filtered, sorted list
         orderedList = []
@@ -524,8 +436,6 @@ class BaseExplorerList(wxListCtrl, Utils.ListCtrlSelectionManagerMix):
             orderedList.sort()
 
         # Populate the ctrl
-        self.items = []
-        self.InsertImageStringItem(self.GetItemCount(), '..', explNode.upImgIdx)
         self.idxOffset = 1
         for dummy, dummy, name, itm in orderedList:
             self.items.append(itm)
@@ -686,10 +596,11 @@ class BaseExplorerSplitter(wxSplitterWindow):
         # Event is triggered twice, work around with flag
         if self.selecting:
             item = event.GetItem()
-            self.selectTreeItem(item)
-        self.selecting = false
-
-        event.Skip()
+            try:
+                self.selectTreeItem(item)
+            finally:
+                self.selecting = false
+                event.Skip()
 
     def OnOpen(self, event):
         tree, list = self.tree, self.list
