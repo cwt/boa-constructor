@@ -16,13 +16,13 @@ import string
 # Why did I capitalise these ????
 
 def ShowErrorMessage(parent, caption, mess):
-    dlg = wxMessageDialog(parent, mess.__class__.__name__ +': '+mess.args[0],
+    dlg = wxMessageDialog(parent, mess.__class__.__name__ +': '+`mess`,
                           caption, wxOK | wxICON_EXCLAMATION)
     try: dlg.ShowModal()
     finally: dlg.Destroy()
 
-def ShowMessage(parent, caption, message):
-    dlg = wxMessageDialog(parent, message, caption, wxOK | wxICON_INFORMATION)
+def ShowMessage(parent, caption, message, msgTpe = wxICON_INFORMATION):
+    dlg = wxMessageDialog(parent, message, caption, wxOK | msgTpe)
     try: dlg.ShowModal()
     finally: dlg.Destroy()
 
@@ -59,7 +59,6 @@ class BoaFileDropTarget(wxFileDropTarget):
         self.editor = editor
 
     def OnDropFiles(self, x, y, filenames):
-        print 'DROP'
         wxBeginBusyCursor()
         try:
             for filename in filenames:
@@ -84,6 +83,7 @@ allowed_width = 78
 def human_split(line):
     indent = string.find(line, string.strip(line))
 
+    # XXX use safe split, commas in quotes will break
     segments = string.split(line, ',')
     for idx in range(len(segments)-1):
         segments[idx] = segments[idx]+','
@@ -116,6 +116,19 @@ def duplicateMenu(source):
                 mi.Check(true)
     return dest            
                     
+
+def getValidName(usedNames, baseName, ext = '', n = 1, itemCB = lambda x:x):
+    def tryName(baseName, ext, n): 
+        return '%s%d%s' %(baseName, n, ext and '.'+ext)
+    while filter(lambda key, name = tryName(baseName, ext, n), itemCB = itemCB: \
+                 itemCB(key) == name, usedNames): n = n + 1
+    return tryName(baseName, ext, n)
+
+def srcRefFromCtrlName(ctrlName): 
+    return ctrlName and 'self.'+ctrlName or 'self'
+    
+def ctrlNameFromSrcRef(srcRef): 
+    return srcRef == 'self' and '' or srcRef[5:]
             
             
           
