@@ -18,8 +18,7 @@ class ImageViewer(wxMiniFrame):
         pass
 
     def _init_ctrls(self, prnt): 
-        wxMiniFrame.__init__(self, size = wxSize(446, 282), id = wxID_IMAGEVIEWER, title = 'Image viewer', parent = prnt, name = 'ImageViewer', style = wxDEFAULT_FRAME_STYLE, pos = wxPoint(357, 303))
-        self.SetClientSize(wxSize(438, 255))
+        wxMiniFrame.__init__(self, size = wxSize(446, 282), id = wxID_IMAGEVIEWER, title = 'Image viewer', parent = prnt, name = 'ImageViewer', style = wxDEFAULT_FRAME_STYLE | wxSTAY_ON_TOP, pos = wxPoint(357, 303))
 
         self.staticBitmap1 = wxStaticBitmap(bitmap = wxNullBitmap, id = wxID_IMAGEVIEWERSTATICBITMAP1, parent = self, name = 'staticBitmap1', size = wxDefaultSize, style = 0, pos = wxPoint(8, 8))
 
@@ -31,8 +30,9 @@ class ImageViewer(wxMiniFrame):
     def showImage(self, filename):
         self.SetTitle('Image Viewer - %s' %(os.path.basename(filename)))
         bmp = wxImage(filename, imgs[string.lower(os.path.splitext(filename)[1])]).ConvertToBitmap()
-        self.staticBitmap1.SetBitmap(bmp)
         self.SetClientSize(wxSize(bmp.GetWidth(), bmp.GetHeight())) 
+        self.staticBitmap1.SetBitmap(bmp)
+            
         self.Centre(wxBOTH)
         self.Show(true)
 
