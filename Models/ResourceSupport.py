@@ -69,7 +69,8 @@ class ResourceSelectDlg(wxDialog):
 
         self._init_sizers()
 
-    def __init__(self, parent, editor, resourceFilename, imageName=''):
+    def __init__(self, parent, editor, resourceFilename, imageName='', 
+          onlyIcons=false):
         self._init_ctrls(parent)
         
         from Explorers import Explorer
@@ -80,6 +81,8 @@ class ResourceSelectDlg(wxDialog):
         self.resources = PyResourceImagesSelectionView(self, model,
               listStyle=wxLC_SMALL_ICON | wxLC_ALIGN_TOP, 
               imgLstStyle=wxIMAGE_LIST_SMALL)
+        self.resources.onlyIcons = onlyIcons
+        
         self.boxSizerMain.Prepend(self.resources, 1, 
                                   wxLEFT|wxRIGHT|wxTOP|wxGROW, 15)
         self.resources.refreshCtrl()
@@ -132,6 +135,8 @@ class PyResourceImagesView(EditorViews.ListCtrlView):
     gotoLineBmp = 'Images/Editor/GotoLine.png'
     
     imageSize = (32, 32)
+    
+    onlyIcons = false
 
     def __init__(self, parent, model, listStyle=wxLC_ICON | wxLC_ALIGN_TOP, 
                                       imgLstStyle=wxIMAGE_LIST_NORMAL):
@@ -165,6 +170,8 @@ class PyResourceImagesView(EditorViews.ListCtrlView):
                 if f.startswith('get') and f.endswith('Data'):
                     name = f[3:-4]
                     iconFunction = m.functions.has_key('get%sIcon'%name)
+                    if self.onlyIcons and not iconFunction:
+                        continue
                     bmpFunctionStart = m.functions['get%sBitmap'%name].start
                     firstDataLine = m.source[m.functions['get%sData'%name].start]
                     compressed = firstDataLine.strip().startswith('return zlib.decompress')
