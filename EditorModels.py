@@ -44,6 +44,7 @@ true = 1
 false = 0
 
 boaIdent = '#Boa'
+boaClass = 'BoaApp'
 #nl = chr(13)+chr(10)
 init_ctrls = '_init_ctrls'
 init_coll = '_init_coll_'
@@ -132,7 +133,7 @@ defInfoBlock = """#-------------------------------------------------------------
 #-----------------------------------------------------------------------------
 """ 
 
-itot = 14
+itot = 15
 [imgFolder, imgPathFolder, imgCVSFolder, imgZopeFolder, imgZopeControlPanel,
  imgZopeProductFolder, imgZopeInstalledProduct, imgZopeUserFolder, imgZopeDTMLDoc, 
  imgZopeImage, imgZopeSystemObj, imgZopeConnection, imgBoaLogo, imgFolderUp, 
@@ -307,6 +308,14 @@ class BitmapFileModel(EditorModel):
     imgIdx = 11
     ext = '.bmp'
 
+class UnknownFileModel(EditorModel):
+    modelIdentifier = 'Unknown'
+    defaultName = '*'
+    bitmap = 'Unknown_s.bmp'
+    imgIdx = 13
+    ext = '.*'
+
+
 class ZipFileModel(EditorModel):
     modelIdentifier = 'ZipFile'
     defaultName = 'zip'
@@ -320,7 +329,6 @@ class ZopeExportFileModel(EditorModel):
     bitmap = 'ZopeExport_s.bmp'
     imgIdx = 10
     ext = '.zexp'
-    
 
 class ZopeDocumentModel(EditorModel):
     modelIdentifier = 'ZopeDocument'
@@ -463,7 +471,24 @@ class SourceModel(EditorModel):
                 confCnt = confCnt + 1
             lineNo = lineNo + 1
         return conflicts
-                
+
+    def applyChangeBlock(self, conflict, blockIdx):
+        rev, start, size = conflict
+        lines = string.split(self.data, '\012')
+        
+        blocks = Utils.split_seq(lines[start+1 : start+size], '=======')
+        lines[start:start+size+1] = blocks[blockIdx]
+        self.data = string.join(lines, '\012')
+
+        self.update()
+        self.notify()
+
+    def acceptConflictChange(self, conflict):
+        self.applyChangeBlock(conflict, 1)
+        
+    def rejectConflictChange(self, conflict):
+        self.applyChangeBlock(conflict, 0)
+
 class ModuleModel(SourceModel):
 
     modelIdentifier = 'Module'
@@ -516,8 +541,12 @@ class ModuleModel(SourceModel):
     def getModule(self):
         if self._module is None:
             t1 = time()
-            self._module = moduleparse.Module(
-                self.moduleName, string.split(self.data, '\012'))
+            wx.wxBeginBusyCursor()
+            try:
+                self._module = moduleparse.Module(
+                    self.moduleName, string.split(self.data, '\012'))
+            finally:
+                wx.wxEndBusyCursor()
             t2 = time()
             print 'parse module', t2 - t1
         return self._module
@@ -637,6 +666,7 @@ class ModuleModel(SourceModel):
                 self.editor.debugger.debug_file(self.editor.debugger.filename, params)
     
     def profile(self):
+        # XXX Should change to the profile file directory
         if self.savedAs:
             cwd = path.abspath(os.getcwd())
             os.chdir(path.dirname(self.filename))
@@ -657,7 +687,6 @@ class ModuleModel(SourceModel):
                 wxPython.wx.wxApp = tmpApp
                 del wxProfilerPhonyApp.realApp
                 os.chdir(cwd)
-        
 
     def addModuleInfo(self, prefs):
         # XXX Check that module doesn't already have an info block
@@ -1117,9 +1146,9 @@ class BaseFrameModel(ClassModel):
                   len(lst))), '']
                 module.renumber(2, insPt)
         else:
-	    # Update window ids
-	    module.source[idx] = \
-	      string.strip(defWindowIds % (string.join(lst, ', '), colMeth, len(lst)))
+            # Update window ids
+            module.source[idx] = \
+              string.strip(defWindowIds % (string.join(lst, ', '), colMeth, len(lst)))
 
     def update(self):
         ClassModel.update(self)
@@ -1224,7 +1253,7 @@ class AppModel(ClassModel):
 
     def new(self, mainModule):
         self.data = (defSig + defEnvPython + defImport + defApp) \
-          %(self.modelIdentifier, 'BoaApp', mainModule, mainModule,
+          %(self.modelIdentifier, boaClass, mainModule, mainModule,
             mainModule, mainModule)
         self.saved = false
         self.modified = true
@@ -1317,6 +1346,7 @@ class AppModel(ClassModel):
 
     def removeModule(self, name):
         if not self.modules.has_key(name): raise 'No such module in application'
+        
         del self.modules[name]
         self.writeModules()
     
@@ -1355,7 +1385,42 @@ class AppModel(ClassModel):
                 del self.modules[oldName]
             self.modules[newName][2] = self.convertToUnixPath(relative)
 
+            # Check if it's autocreated module
+            if self.modules[newName][0]:
+                if len(self.viewsModified):
+                    self.refreshFromViews()
+                module = self.getModule()
+                if module.imports.has_key(oldName):
+                    impLine = module.imports[oldName][0]-1
+                    #read in the import line
+                    line = module.source[impLine]
+                    imports = string.split(line[7:], ', ')
+                    impIdx = imports.index(oldName)
+                    imports[impIdx] = newName
+                    module.imports[newName] = module.imports[oldName]
+                    del module.imports[oldName]
+                    module.source[impLine] = 'import '+string.join(imports, ', ')
+                    
+                    # check if it's the main module, first in the import list is 
+                    # always the main module
+                    if not impIdx:
+                        block = module.classes[boaClass].methods['OnInit']
+                        mainDef = 'self.main = %s.'
+                        fndOldStr = mainDef % oldName
+                        repNewStr = mainDef % newName
+                        
+                        for idx in range(block.start, block.end):
+                            line = module.source[idx]
+                            newLine = string.replace(line, fndOldStr, repNewStr)
+                            if newLine != line:
+                                module.source[idx] = newLine
+
+                    self.refreshFromModule()
+
             self.writeModules()
+            
+                
+            
 
     def openModule(self, name):
         absPath = self.moduleFilename(name)
@@ -1452,7 +1517,8 @@ modelReg = {AppModel.modelIdentifier: AppModel,
             ZopeExportFileModel.modelIdentifier: ZopeExportFileModel,
             BitmapFileModel.modelIdentifier: BitmapFileModel,
             ZipFileModel.modelIdentifier: ZipFileModel,
-            CPPModel.modelIdentifier: CPPModel}
+            CPPModel.modelIdentifier: CPPModel,
+            UnknownFileModel.modelIdentifier: UnknownFileModel}
 
 # All non python files recogniseable by extension
 extMap = {}
