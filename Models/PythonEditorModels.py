@@ -896,14 +896,8 @@ class BaseAppModel(ClassModel, ImportRelationshipMix):
                 return '%s://%s' %(prot, string.replace(normedpath, '\\', '/'))
 
     def buildImportRelationshipDict(self):
-        import time
-        t = time.time()
-        try:
-            return ImportRelationshipMix.buildImportRelationshipDict(self,
-              self.absModulesPaths())
-        finally:
-            print 'buildImportRelationshipDict:', time.time() -t
-
+        return ImportRelationshipMix.buildImportRelationshipDict(self,
+               self.absModulesPaths())
 
     def update(self):
         ClassModel.update(self)
