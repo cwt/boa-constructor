@@ -42,12 +42,21 @@ def isCVS(filename):
 
 def cvsFileLocallyModified(filename, timestamp):
     """  cvsFileLocallyModified -> modified, conflict """
+    ismerge = string.split(timestamp, '+')
+    conflict = ismerge[0] == 'Result of merge'
     filets = time.asctime(time.gmtime(os.stat(filename)[stat.ST_MTIME]))
-    filesegs, cvssegs = string.split(filets), string.split(timestamp)
+    if conflict and len(ismerge) ==1:
+        filesegs, cvssegs = 1, 0
     # convert day to int to avoid zero padded differences
-    filesegs[2], cvssegs[2] = int(filesegs[2]), int(cvssegs[2])
+    else:
+        if conflict:
+            filesegs, cvssegs = string.split(filets), string.split(ismerge[1])
+        else:
+            filesegs, cvssegs = string.split(filets), string.split(timestamp)
+        filesegs[2], cvssegs[2] = int(filesegs[2]), int(cvssegs[2])
+
     return ( filesegs != cvssegs, 
-             string.split(timestamp, '+')[0] == 'Result of merge')
+             conflict)
 
 
 class CVSController(ExplorerNodes.Controller):
@@ -168,9 +177,12 @@ class CVSController(ExplorerNodes.Controller):
         return 'cvs %s %s %s %s' % (cvsOpts, command, options, string.join(files, ' '))
 
     def cvsCmdPrompt(self, wholeCommand, inDir, help = ''):
+        if isinstance(self.list.node, FSCVSFolderNode):
+            cvsroot = self.list.node.root
+        else:
+            cvsroot = os.environ.get('CVSROOT', '(not defined)')
         dlg = wxTextEntryDialog(self.list, 'CVSROOT: %s\nCVS_RSH: %s\n(in dir %s)\n\n%s'\
-              %(os.environ.get('CVSROOT', '(not defined)'),
-                os.environ.get('CVS_RSH', '(not defined)'), inDir, help),
+              %(cvsroot, os.environ.get('CVS_RSH', '(not defined)'), inDir, help),
               'CVS command line', wholeCommand)
         if wxPlatform == '__WXMSW__':
             te = Utils.getCtrlsFromDialog(dlg, 'wxTextCtrlPtr')[0]
