@@ -26,40 +26,43 @@ init_props = '_init_props'
 init_events = '_init_events'
 defEnvPython = '#!/usr/bin/env python\n'
 defImport = 'from wxPython.wx import *\n\n'
-defSig = boaIdent+':%s:%s\n\n'
+defSig = boaIdent+':%(modelIdent)s:%(main)s\n\n'
 code_gen_warning = "generated method, don't edit"
 
-defCreateClass = string.replace('''def create(parent):
-\treturn %s(parent)
+def tabfix(s):
+    return string.replace(s, '\t', idnt)
 
-''', '\t', idnt)
+defCreateClass = tabfix('''def create(parent):
+\treturn %(main)s(parent)
+
+''')
 
 wid = '[A-Za-z0-9_, ]*'
 srchWindowIds = '\[(?P<winids>[A-Za-z0-9_, ]*)\] = '+\
 'map\(lambda %s: [wx]*NewId\(\), range\((?P<count>\d+)\)\)'
-defWindowIds = '''[%s] = map(lambda %s: wxNewId(), range(%d))\n'''
+defWindowIds = '''[%(idNames)s] = map(lambda %(idIdent)s: wxNewId(), range(%(idCount)d))\n'''
 
-defClass = string.replace('''
-class %s(%s):
+defClass = tabfix('''
+class %(main)s(%(defaultName)s):
 \tdef '''+init_utils+'''(self):
 \t\tpass
 
 \tdef '''+init_ctrls+'''(self, prnt):
-\t\t%s.__init__(%s)
+\t\t%(defaultName)s.__init__(%(params)s)
 \t\tself.'''+init_utils+'''()
 
 \tdef __init__(self, parent):
 \t\tself.'''+init_ctrls+'''(parent)
-''', '\t', idnt)
+''')
 
-defApp = string.replace('''import %s
+defApp = tabfix('''import %(mainModule)s
 
-modules = {'%s' : [1, 'Main frame of Application', '%s.py']}
+modules = {'%(mainModule)s' : [1, 'Main frame of Application', '%(mainModule)s.py']}
 
 class BoaApp(wxApp):
 \tdef OnInit(self):
 \t\twxInitAllImageHandlers()
-\t\tself.main = %s.create(None)
+\t\tself.main = %(mainModule)s.create(None)
 \t\t#workaround for running in wxProcess
 \t\tself.main.Show();self.main.Hide();self.main.Show()
 \t\tself.SetTopWindow(self.main)
@@ -71,7 +74,7 @@ def main():
 
 if __name__ == '__main__':
 \tmain()
-''', '\t', idnt)
+''')
 
 defInfoBlock = '''#-----------------------------------------------------------------------------
 # Name:        %(Name)s
@@ -89,31 +92,31 @@ defInfoBlock = '''#-------------------------------------------------------------
 defSetup_py = '''
 from distutils.core import setup
 
-setup(name = '%s',
-      version = '%s',
-      scripts = [%s],
+setup(name = '%(name)s',
+      version = '%(version)s',
+      scripts = [%(scripts)s],
 )
 '''
 
 defPackageSrc = '''# Package initialisation
 '''
 
-defPyApp = string.replace('''modules = {}
+defPyApp = tabfix('''modules = {}
 
 def main():
 \tpass
 
 if __name__ == '__main__':
 \tmain()
-''', '\t', idnt)
+''')
 
-simpleModuleRunSrc = string.replace('''
+simpleModuleRunSrc = tabfix('''
 
 if __name__ == '__main__':
 \tpass # add a call to run your script here
-''', '\t', idnt)
+''')
 
-simpleAppFrameRunSrc = string.replace('''
+simpleAppFrameRunSrc = tabfix('''
 
 if __name__ == '__main__':
 \tapp = wxPySimpleApp()
@@ -121,9 +124,9 @@ if __name__ == '__main__':
 \tframe = create(None)
 \tframe.Show();frame.Hide();frame.Show() #workaround for running in wxProcess
 \tapp.MainLoop()
-''', '\t', idnt)
+''')
 
-simpleAppDialogRunSrc = string.replace('''
+simpleAppDialogRunSrc = tabfix('''
 
 if __name__ == '__main__':
 \tapp = wxPySimpleApp()
@@ -133,9 +136,9 @@ if __name__ == '__main__':
 \t\tdlg.ShowModal()
 \tfinally:
 \t\tdlg.Destroy()
-''', '\t', idnt)
+''')
 
-simpleAppPopupRunSrc = string.replace('''
+simpleAppPopupRunSrc = tabfix('''
 
 if __name__ == '__main__':
 \tapp = wxPySimpleApp()
@@ -146,4 +149,4 @@ if __name__ == '__main__':
 \tpopup = create(frame)
 \tpopup.Show(true)
 \tapp.MainLoop()
-''', '\t', idnt)
+''')
