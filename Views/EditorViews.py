@@ -797,7 +797,26 @@ class ToDoView(ListCtrlView):
             module = self.model.getModule()
             srcView.gotoLine(int(module.todos[self.selected][0]) -1)
 
-class PackageView(ListCtrlView):
+class FindResultsAdderMixin:
+    def addFindResults(self, pattern, mapResults):
+        """ mapResult is map of tuples where
+            Key - 'Module', file name
+            Value - ('Line no', 'Col', 'Text')
+        """
+        from FindResults import FindResults
+        name = 'Results: ' + pattern
+        if not self.model.views.has_key(name):
+            resultView = self.model.editor.addNewView(name, FindResults)
+        else:
+            resultView = self.model.views[name]
+        resultView.tabName = name
+        resultView.results = mapResults
+        resultView.findPattern = pattern
+        resultView.refresh()
+        resultView.focus()
+    
+
+class PackageView(ListCtrlView, FindResultsAdderMixin):
     viewName = 'Package'
     findBmp = 'Images/Shared/Find.png'
 
