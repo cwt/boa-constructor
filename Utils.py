@@ -382,6 +382,14 @@ class PseudoFile:
     def flush(self):
         pass
 
+class PseudoFileOutStore(PseudoFile):
+    def write(self, s):
+        self.output.append(s)
+
+    def read(self):
+        return string.join(self.output, '')
+
+
 class LoggerPF(PseudoFile):
     def pad(self, s):
         padded = s + pad
@@ -394,7 +402,7 @@ class OutputLoggerPF(LoggerPF):
                 frame = get_current_frame()
                 ss = '%s : <<%s, %d>>' % (string.strip(s),
                      frame.f_back.f_back.f_code.co_filename,
-                     frame.f_back.f_back.f_lineno)
+                     frame.f_back.f_back.f_lineno,)
             else:
                 ss = s
             wxLogMessage(self.pad(ss))
