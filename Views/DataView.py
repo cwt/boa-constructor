@@ -11,7 +11,7 @@
 #----------------------------------------------------------------------
 print 'importing Views.DataView'
 
-import os
+import os, string
 
 from wxPython.wx import *
 

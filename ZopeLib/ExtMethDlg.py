@@ -12,7 +12,7 @@
 #Boa:Dialog:ExtMethDlg
 
 from wxPython.wx import *
-import os
+import os, string
 from os import path
 
 def create(parent, zopepath):

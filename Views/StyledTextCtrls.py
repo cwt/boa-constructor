@@ -10,7 +10,7 @@
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 
-import os, re, keyword
+import os, re, keyword, string
 
 from wxPython.wx import *
 from wxPython.stc import *

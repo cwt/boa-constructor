@@ -11,9 +11,7 @@
 #----------------------------------------------------------------------
 print 'importing Views.OGLViews'
 
-import pickle, os
-
-#import sys; sys.path.append('..')
+import pickle, os, string
 
 from wxPython.wx import *
 from wxPython.ogl import *

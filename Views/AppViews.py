@@ -14,8 +14,8 @@ print 'importing Views.AppViews'
 """ View classes for the AppModel """
 
 from os import path
-import time
-#from time import time, gmtime, strftime
+import time, string
+
 try:
     from cmp import cmp
 except ImportError:
