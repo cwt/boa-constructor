@@ -31,7 +31,7 @@ def streamPollThread():
         sleep(0.15)
 
 print 'spawning...'
-s, input, output = spawnChild(monitor, process)
+s, input, output, processId = spawnChild(monitor, process)
 
 t = threading.Thread(target=streamPollThread)
 t.setDaemon(1)
