@@ -497,7 +497,7 @@ class ModuleModel(SourceModel):
     def writeGlobalDict(self, name, dct):
         start, end = self.findGlobalDict(name)
         eol = Utils.getEOLMode(self.data)
-        self.data = self.data[:start]+pprint.pformat(dct).replace('\r', eol)+\
+        self.data = self.data[:start]+pprint.pformat(dct).replace('\n', eol)+\
               self.data[end:]
 
     def buildResourceSearchList(self):
