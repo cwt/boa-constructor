@@ -238,7 +238,8 @@ class ErrorStackMF(wxFrame, Utils.FrameRestorerMixin):
 
     def displayDiff(self, diffResult):
         if not self.diffPage:
-            self.diffPage = wxStyledTextCtrl(self.notebook1, -1)
+            self.diffPage = wxStyledTextCtrl(self.notebook1, -1, 
+                style=wxSUNKEN_BORDER|wxCLIP_CHILDREN)
             self.diffPage.SetMarginWidth(1, 0)
             self.diffPage.SetLexer(wxSTC_LEX_DIFF)
             self.diffPage.StyleClearAll()
