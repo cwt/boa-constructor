@@ -3,7 +3,7 @@
 # Name:        wx25upgrade.py
 # Purpose:     Upgrade code from 2.4 style to 2.5
 #
-# Author:      Paul Sorensen
+# Author:      Paul Sorenson
 # Contrib.:    Werner F. Bruhin
 #              Riaan Booysen
 #
@@ -85,7 +85,7 @@
 #   - wxTreeList to wx.gizmos.TreeList
 #   - wxEmptyBitmap to wx.EmptyBitmap
 #   - wxCOPY to wx.COPY
-#   - wxImage to Image
+#   - wxImage to wx.Image
 #   - wxWave to wx.Sound
 #   - wxUsleep to wx.Usleep
 #
@@ -220,7 +220,7 @@ class Upgrade:
         intOnly = Word(nums)
         uident2 = Word(string.ascii_uppercase+"_",string.ascii_uppercase+"_123456789")
         
-        wxExp = Literal("wx").suppress()
+        wxExp = Suppress("wx")
         flagExp = (wxExp+uident2)
         flags = delimitedList(flagExp, delim="|")
         
@@ -251,24 +251,24 @@ class Upgrade:
 
         # Append keyword args
         karg = ident + EQ + (quotedString | ident)
-        append = Literal(".Append").suppress() \
+        append = Suppress(".Append") \
             + LPAREN + karg + COMMA + karg + COMMA \
             + karg + COMMA + karg + RPAREN
         append.setParseAction(self.appendAction)
 
         # wxFont
-        wxfont = Literal("wxFont").suppress() + LPAREN + \
+        wxfont = Suppress("wxFont") + LPAREN + \
                         intOnly + COMMA + ident + COMMA + ident + COMMA + \
                         ident
         wxfont.setParseAction(self.wxfontAction)
 
         # SetStatusText keyword args
-        setStatusText = Literal(".SetStatusText").suppress() \
+        setStatusText = Suppress(".SetStatusText") \
             + LPAREN + ident + EQ + intOnly
         setStatusText.setParseAction(self.setStatusTextAction)
 
         # AddSpacer keyword args
-        addSpacer = Literal(".AddSpacer").suppress() \
+        addSpacer = Suppress(".AddSpacer") \
             + LPAREN + intOnly + COMMA + intOnly
         addSpacer.setParseAction(self.addSpacerAction)
 
@@ -277,9 +277,9 @@ class Upgrade:
         flags.setParseAction(self.flagsAction)
 
         # map(lambda... to wx.NewId() for etc
-        RANGE = Literal("range").suppress() + Literal("(").suppress()
-        COL = Literal(":").suppress()
-        repId1 = Literal("map(lambda").suppress() + qualIdent2 + COL \
+        RANGE = Suppress("range") + Suppress("(")
+        COL = Suppress(":")
+        repId1 = Suppress("map(lambda") + qualIdent2 + COL \
                 + qualIdent2 + COMMA + RANGE + intOnly + RPAREN + RPAREN
         repId1.setParseAction(self.repId1Action)
         
