@@ -5,7 +5,7 @@
 # Author:      Riaan Booysen                                                  
 #                                                                             
 # Created:     2000/04/26                                                     
-# RCS-ID:      $Id$                                       
+# RCS-ID:      $Id$  
 # Copyright:   (c) 1999, 2000 Riaan Booysen                                   
 # Licence:     GPL                                                            
 #-----------------------------------------------------------------------------
@@ -13,23 +13,35 @@
 from wxPython.wx import *
 from wxPython.stc import *
 
-delim  = string.letters + string.digits + '_'
+from Preferences import faces
 
-if wxPlatform == '__WXMSW__':
-    faces = { 'times' : 'Times New Roman',
-              'mono'  : 'Courier New',
-              'helv'  : 'Lucida Console',
-              'lucd'  : 'Lucida Console',
-              'other' : 'Comic Sans MS',
-              'size'  : 8,
-              'lnsize': 6,}
-else:
-    faces = { 'times' : 'Times',
-              'mono'  : 'Courier',
-              'helv'  : 'Helvetica',
-              'other' : 'new century schoolbook',
-              'size'  : 11,
-              'lnsize': 9,}
+def ver_tot(ma, mi, re):
+    return ma*200+mi*20+re
+
+old_ver = ver_tot(2,2,1)    
+cur_ver = ver_tot(wxMAJOR_VERSION, wxMINOR_VERSION, wxRELEASE_NUMBER)
+new_stc = cur_ver > old_ver
+old_stc = not new_stc
+
+if new_stc:
+    wxStyledTextCtrl.SetKeywords        = wxStyledTextCtrl.SetKeyWords
+    wxStyledTextCtrl.SetCurrentPosition = wxStyledTextCtrl.SetCurrentPos
+    wxStyledTextCtrl.GetCurrentPosition = wxStyledTextCtrl.GetCurrentPos
+    wxStyledTextCtrl.IndicatorSetColour = wxStyledTextCtrl.IndicatorSetForeground
+    wxStyledTextCtrl.IndicatorGetColour = wxStyledTextCtrl.IndicatorGetForeground
+    wxStyledTextCtrl.GetModified        = wxStyledTextCtrl.GetModify
+    wxStyledTextCtrl.GetLineFromPos     = wxStyledTextCtrl.LineFromPosition
+    wxStyledTextCtrl.GetLineStartPos    = wxStyledTextCtrl.PositionFromLine
+    wxStyledTextCtrl.ScrollBy           = wxStyledTextCtrl.LineScroll
+    wxStyledTextCtrl.GetCurrentLineText = wxStyledTextCtrl.GetCurLine
+    wxStyledTextCtrl.BraceBadlight      = wxStyledTextCtrl.BraceBadLight
+    wxStyledTextCtrl.SetStyleFor        = wxStyledTextCtrl.SetStyling
+    wxStyledTextCtrl.MarkerGetNextLine  = wxStyledTextCtrl.MarkerNext
+    wxStyledTextCtrl.MarkerGetPrevLine  = wxStyledTextCtrl.MarkerPrevious
+
+# GetCharAt, GetStyleAt now returns int instead of char
+
+delim  = string.letters + string.digits + '_'
 
 class FoldingStyledTextCtrlMix:
     def __init__(self, wId, margin):
@@ -134,15 +146,23 @@ class PythonStyledTextCtrlMix:
         self.SetEdgeColumn(80)
 
         self.SetLexer(wxSTC_LEX_PYTHON)
-        self.SetKeywords(0,
-          'and assert break class continue def del elif else except '
-          'exec finally for from global if import in is lambda None '
-          'not or pass print raise return try while true false')
-        self.SetViewWhitespace(false)
+        if old_stc:
+            self.SetKeywords(0,
+              'and assert break class continue def del elif else except '
+              'exec finally for from global if import in is lambda None '
+              'not or pass print raise return try while true false')
+
+            self.SetViewWhitespace(false)
+        else:
+            self.SetKeyWords(0,
+              'and assert break class continue def del elif else except '
+              'exec finally for from global if import in is lambda None '
+              'not or pass print raise return try while true false')
+
+            self.SetViewWhiteSpace(false)
+ 
         self.SetProperty("fold", "1")
 
-##        self.SetViewEOL(true)
-##        self.SetMargins(1, 1)
         # line numbers in the margin
         if margin != -1:
             self.SetMarginType(margin, wxSTC_MARGIN_NUMBER)
@@ -154,7 +174,6 @@ class PythonStyledTextCtrlMix:
 
         # Global default styles for all languages
         # Default
-
         self.StyleSetSpec(wxSTC_STYLE_DEFAULT, "face:%(mono)s,size:%(size)d" % faces)
 
         self.StyleClearAll()
@@ -212,18 +231,27 @@ class PythonStyledTextCtrlMix:
         charBefore = None
         caretPos = self.GetCurrentPos()
         if caretPos > 0:
-            charBefore = self.GetCharAt(caretPos - 1)
-            styleBefore = self.GetStyleAt(caretPos - 1)
+            if old_stc:
+                charBefore = self.GetCharAt(caretPos - 1)
+                styleBefore = ord(self.GetStyleAt(caretPos - 1))
+            else:
+                charBefore = chr(self.GetCharAt(caretPos - 1))
+                styleBefore = self.GetStyleAt(caretPos - 1)
 
         # check before
-        if charBefore and charBefore in "[]{}()" and ord(styleBefore) == 10:
+        if charBefore and charBefore in "[]{}()" and styleBefore == 10:
             braceAtCaret = caretPos - 1
 
         # check after
         if braceAtCaret < 0:
-            charAfter = self.GetCharAt(caretPos)
-            styleAfter = self.GetStyleAt(caretPos)
-            if charAfter and charAfter in "[]{}()" and ord(styleAfter) == 10:
+            if old_stc:
+                charAfter = self.GetCharAt(caretPos)
+                styleAfter = ord(self.GetStyleAt(caretPos))
+            else:
+                charAfter = chr(self.GetCharAt(caretPos))
+                styleAfter = self.GetStyleAt(caretPos)
+
+            if charAfter and charAfter in "[]{}()" and styleAfter == 10:
                 braceAtCaret = caretPos
 
         if braceAtCaret >= 0:
@@ -254,12 +282,16 @@ class BrowseStyledTextCtrlMix:
         functionality for browsing the code.
     """
 
+    # XXX Set red style for Debugging.
+    # XXX General problem; Updating all Scintilla's settings when something
+    # XXX global like this changes
     def __init__(self):
         self.handCrs = wxStockCursor(wxCURSOR_HAND)
         self.stndCrs = wxStockCursor(wxCURSOR_ARROW)
         self.IndicatorSetStyle(0, wxSTC_INDIC_PLAIN)
         self.IndicatorSetColour(0, wxBLUE)
-        self.styleStart = self.styleLength = 0
+        self.styleStart = 0
+        self.styleLength = 0
         self.ctrlDown = false
         EVT_MOTION(self, self.OnBrowseMotion)
         EVT_LEFT_DOWN(self, self.OnBrowseClick)
@@ -271,8 +303,8 @@ class BrowseStyledTextCtrlMix:
             self.clearUnderline(self.styleStart, self.styleLength)
     
     def BrowseClick(self, word, line, lineNo, start, style):
-        '''Called when a link is clicked.
-           Override to use, return true if click is swallowed '''
+        """Called when a link is clicked.
+           Override to use, return true if click is swallowed """
         return false
     
     def StyleVeto(self, style):
@@ -285,7 +317,7 @@ class BrowseStyledTextCtrlMix:
         
         self.StartStyling(start, wxSTC_INDICS_MASK)
         self.SetStyleFor(length, wxSTC_INDIC0_MASK)
-        self.Refresh(false)
+#        self.Refresh(false)
         return start, length
         
     def clearUnderline(self, start, length):
@@ -305,7 +337,11 @@ class BrowseStyledTextCtrlMix:
                 mp = event.GetPosition()
                 pos = self.PositionFromPoint(wxPoint(mp.x, mp.y))
     
-                stl = ord(self.GetStyleAt(pos)) & 31
+                if old_stc:
+                    stl = ord(self.GetStyleAt(pos)) & 31
+                else:
+                    stl = self.GetStyleAt(pos) & 31
+                    
                 if self.StyleVeto(stl):
                     if self.styleLength > 0:
                         self.styleStart, self.styleLength = \
@@ -336,16 +372,27 @@ class BrowseStyledTextCtrlMix:
                   self.clearUnderline(self.styleStart, self.styleLength)
         finally:
             event.Skip()
-        
-    def OnBrowseClick(self, event):
-        if self.styleLength > 0:
-            lnNo = self.GetLineFromPos(self.styleStart)
+    
+    def getStyledWordElems(self, styleStart, styleLength):
+        if styleLength > 0:
+            lnNo = self.GetLineFromPos(styleStart)
             lnStPs = self.GetLineStartPos(lnNo)
             line = self.GetLine(lnNo)
-            start = self.styleStart-lnStPs
-            word = line[start:start+self.styleLength]
-            style = ord(self.GetStyleAt(self.styleStart)) & 31
-            if self.BrowseClick(word, line, lnNo, start, style): return
+            start = styleStart - lnStPs
+            word = line[start:start+styleLength]
+            return word, line, lnNo, start
+        else: 
+            return '', 0, 0, 0
+        
+    def OnBrowseClick(self, event):
+        word, line, lnNo, start = self.getStyledWordElems(self.styleStart, self.styleLength)
+        if word:
+            if old_stc:
+                style = ord(self.GetStyleAt(self.styleStart)) & 31
+            else:                
+                style = self.GetStyleAt(self.styleStart) & 31
+            if self.BrowseClick(word, line, lnNo, start, style): 
+                return
         event.Skip()
 
     def OnKeyDown(self, event):
@@ -411,8 +458,12 @@ class HTMLStyledTextCtrlMix:
         zope_elements = 'dtml-var dtml-in dtml-if '
         
         self.SetLexer(wxSTC_LEX_HTML)
-        self.SetKeywords(0, hypertext_elements + hypertext_attributes + \
-          ' public !doctype '+zope_elements)
+        if old_stc:
+            self.SetKeywords(0, hypertext_elements + hypertext_attributes + \
+              ' public !doctype '+zope_elements)
+        else:
+            self.SetKeyWords(0, hypertext_elements + hypertext_attributes + \
+              ' public !doctype '+zope_elements)
 
         self.SetMargins(1, 1)
         # line numbers in the margin
@@ -466,18 +517,27 @@ class HTMLStyledTextCtrlMix:
         charBefore = None
         caretPos = self.GetCurrentPos()
         if caretPos > 0:
-            charBefore = self.GetCharAt(caretPos - 1)
-            styleBefore = self.GetStyleAt(caretPos - 1)
+            if old_stc:
+                charBefore = self.GetCharAt(caretPos - 1)
+                styleBefore = ord(self.GetStyleAt(caretPos - 1))
+            else:
+                charBefore = chr(self.GetCharAt(caretPos - 1))
+                styleBefore = self.GetStyleAt(caretPos - 1)
 
         # check before
-        if charBefore and charBefore in "<>[]{}()" and ord(styleBefore) == 10:
+        if charBefore and charBefore in "<>[]{}()" and styleBefore == 10:
             braceAtCaret = caretPos - 1
 
         # check after
         if braceAtCaret < 0:
-            charAfter = self.GetCharAt(caretPos)
-            styleAfter = self.GetStyleAt(caretPos)
-            if charAfter and charAfter in "<>[]{}()" and ord(styleAfter) == 10:
+            if old_stc:
+                charAfter = self.GetCharAt(caretPos)
+                styleAfter = ord(self.GetStyleAt(caretPos))
+            else:
+                charAfter = chr(self.GetCharAt(caretPos))
+                styleAfter = self.GetStyleAt(caretPos)
+                
+            if charAfter and charAfter in "<>[]{}()" and styleAfter == 10:
                 braceAtCaret = caretPos
 
         if braceAtCaret >= 0:
@@ -488,3 +548,64 @@ class HTMLStyledTextCtrlMix:
         else:
             self.BraceHighlight(braceAtCaret, braceOpposite)
             # self.Refresh(false)
+
+class CPPStyledTextCtrlMix:
+    def __init__(self, wId):
+        self.SetEOLMode(wxSTC_EOL_LF)
+        self.eol = wxSTC_EOL_LF #endOfLines[self.GetEOLMode()]
+        
+        keyWds = \
+            'asm auto bool break case catch char class const const_cast continue '\
+            'default delete do double dynamic_cast else enum explicit export '\
+            'extern false float for friend goto if inline int long mutable '\
+            'namespace new operator private protected public register '\
+            'reinterpret_cast return short signed sizeof static static_cast '\
+            'struct switch template this throw true try typedef typeid typename '\
+            'union unsigned using virtual void volatile wchar_t while'
+
+        self.SetLexer(wxSTC_LEX_CPP)
+        if old_stc:
+            self.SetKeywords(0, keyWds)
+        else:
+            self.SetKeyWords(0, keyWds)
+
+        self.SetMargins(1, 1)
+        # line numbers in the margin
+        self.SetMarginType(0, wxSTC_MARGIN_NUMBER)
+        self.SetMarginWidth(0, 20)
+
+        EVT_STC_UPDATEUI(self, wId, self.OnUpdateUI)
+
+        # Default
+        self.StyleSetSpec(wxSTC_STYLE_DEFAULT, 
+          'fore:#000000,font:%(mono)s,size:%(size)s' % faces)
+
+        self.StyleClearAll()
+
+        self.StyleSetSpec(wxSTC_STYLE_LINENUMBER, 
+          'size:%(lnsize)d,face:%(helv)s' % faces)
+
+        # Comment
+        self.StyleSetSpec(1, 'fore:#007F00,size:8')
+        # Line Comment
+        self.StyleSetSpec(2, 'fore:#007F00,size:8')
+        # Doc comment
+        self.StyleSetSpec(3, 'fore:#7F7F7F')
+        # Number
+        self.StyleSetSpec(4, 'fore:#007F7F')
+        # Keyword
+        self.StyleSetSpec(5, 'fore:#00007F,bold')
+        # Double quoted string
+        self.StyleSetSpec(6, 'fore:#7F007F')
+        # Single quoted strings
+        self.StyleSetSpec(7, 'fore:#7F007F')
+        # Symbols 
+        self.StyleSetSpec(8, 'fore:#007F7F')
+        # Preprocessor
+        self.StyleSetSpec(9, 'fore:#7F7F00')
+        # Operators
+        self.StyleSetSpec(10, 'bold')
+        # Identifiers
+        self.StyleSetSpec(11, '')
+        # End of line where string is not closed
+        self.StyleSetSpec(12, 'fore:#000000,back:#E0C0E0,eolfilled')
