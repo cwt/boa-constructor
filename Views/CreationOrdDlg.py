@@ -9,28 +9,24 @@ def create(parent):
     return CreationOrderDlg(parent)
 
 [wxID_CREATIONORDERDLG, wxID_CREATIONORDERDLGBBDOWN,
- wxID_CREATIONORDERDLGBBUP, wxID_CREATIONORDERDLGBTCANCEL,
+ wxID_CREATIONORDERDLGBBDOWNLAST, wxID_CREATIONORDERDLGBBUP,
+ wxID_CREATIONORDERDLGBBUPFIRST, wxID_CREATIONORDERDLGBTCANCEL,
  wxID_CREATIONORDERDLGBTOK, wxID_CREATIONORDERDLGCONTEXTHELPBUTTON1,
  wxID_CREATIONORDERDLGLBOBJECTS, wxID_CREATIONORDERDLGPANEL1,
  wxID_CREATIONORDERDLGSTATICBOX1,
-] = map(lambda _init_ctrls: wxNewId(), range(9))
+] = map(lambda _init_ctrls: wxNewId(), range(11))
 
 class CreationOrderDlg(wxDialog):
-    def _init_utils(self):
-        # generated method, don't edit
-        pass
-
     def _init_ctrls(self, prnt):
         # generated method, don't edit
         wxDialog.__init__(self, id=wxID_CREATIONORDERDLG,
-              name='CreationOrderDlg', parent=prnt, pos=wxPoint(230, 132),
-              size=wxSize(280, 281), style=wxDEFAULT_DIALOG_STYLE,
+              name='CreationOrderDlg', parent=prnt, pos=wxPoint(396, 265),
+              size=wxSize(272, 254), style=wxDEFAULT_DIALOG_STYLE,
               title='Change creation order')
-        self._init_utils()
         self.SetClientSize(wxSize(272, 254))
 
         self.panel1 = wxPanel(id=wxID_CREATIONORDERDLGPANEL1, name='panel1',
-              parent=self, pos=wxPoint(0, 0), size=wxSize(272, 254),
+              parent=self, pos=wxPoint(1, 1), size=wxSize(270, 252),
               style=wxTAB_TRAVERSAL)
         self.panel1.SetHelpText('This dialog manages the order of controls on the level (share a parent). When the parent is recreated, the onjects will be recreated in the new order.')
 
@@ -42,7 +38,14 @@ class CreationOrderDlg(wxDialog):
         self.lbObjects = wxListBox(choices=[],
               id=wxID_CREATIONORDERDLGLBOBJECTS, name='lbObjects',
               parent=self.panel1, pos=wxPoint(16, 16), size=wxSize(200, 184),
-              style=0, validator=wxDefaultValidator)
+              style=wxLB_EXTENDED, validator=wxDefaultValidator)
+
+        self.bbUpFirst = wxBitmapButton(bitmap=self.bmpUpFirst,
+              id=wxID_CREATIONORDERDLGBBUPFIRST, name='bbUpFirst',
+              parent=self.panel1, pos=wxPoint(224, 40), size=wxSize(24, 24),
+              style=wxBU_AUTODRAW)
+        EVT_BUTTON(self.bbUpFirst, wxID_CREATIONORDERDLGBBUPFIRST,
+              self.OnBbUpFirstButton)
 
         self.bbUp = wxBitmapButton(bitmap=self.bmpUp,
               id=wxID_CREATIONORDERDLGBBUP, name='bbUp', parent=self.panel1,
@@ -56,6 +59,13 @@ class CreationOrderDlg(wxDialog):
               validator=wxDefaultValidator)
         EVT_BUTTON(self.bbDown, wxID_CREATIONORDERDLGBBDOWN,
               self.OnBbdownButton)
+
+        self.bbDownLast = wxBitmapButton(bitmap=self.bmpDownLast,
+              id=wxID_CREATIONORDERDLGBBDOWNLAST, name='bbDownLast',
+              parent=self.panel1, pos=wxPoint(224, 136), size=wxSize(24, 24),
+              style=wxBU_AUTODRAW)
+        EVT_BUTTON(self.bbDownLast, wxID_CREATIONORDERDLGBBDOWNLAST,
+              self.OnBbDownLastButton)
 
         self.btOK = wxButton(id=wxID_CREATIONORDERDLGBTOK, label='OK',
               name='btOK', parent=self.panel1, pos=wxPoint(112, 224),
@@ -74,6 +84,8 @@ class CreationOrderDlg(wxDialog):
     def __init__(self, parent, controls, allctrls):
         self.bmpUp = Preferences.IS.load('Images/Shared/up.png')
         self.bmpDown = Preferences.IS.load('Images/Shared/down.png')
+        self.bmpUpFirst = Preferences.IS.load('Images/Shared/UpFirst.png')
+        self.bmpDownLast = Preferences.IS.load('Images/Shared/DownLast.png')
         self._init_ctrls(parent)
 
         self.ctrlIdxs, self.ctrlNames = [], []
@@ -90,19 +102,34 @@ class CreationOrderDlg(wxDialog):
 
         self.lbObjects.InsertItems(self.ctrlNames, 0)
 
-    def OnBbupButton(self, event):
-        selIdx = self.lbObjects.GetSelection()
-        if selIdx < 0: return
-        newIdx = max(0, selIdx - 1)
+    def OnBbUpFirstButton(self, event):
+        selItems = self.lbObjects.GetSelections()
+        if selItems[0] < 1: return
+        for item in selItems:
+            self.moveObject(item, item - selItems[0])
 
-        self.moveObject(selIdx, newIdx)
+    def OnBbupButton(self, event):
+        selItems = self.lbObjects.GetSelections()
+        if selItems[0] < 1: return
+        for item in selItems:
+            self.moveObject(item, item - 1)
 
     def OnBbdownButton(self, event):
-        selIdx = self.lbObjects.GetSelection()
-        if selIdx < 0: return
-        newIdx = min(len(self.ctrlNames)-1, selIdx + 1)
+        selItems = self.lbObjects.GetSelections()
+        cnt = len(selItems)
+        if selItems[cnt-1] > ( len(self.ctrlNames) - 2 ): return
+        for i in range( cnt ):
+            item = selItems[cnt - i - 1]
+            self.moveObject(item, item + 1)
 
-        self.moveObject(selIdx, newIdx)
+    def OnBbDownLastButton(self, event):
+        selItems = self.lbObjects.GetSelections()
+        cnt = len(selItems)
+        if selItems[cnt-1] > ( len(self.ctrlNames) - 2 ): return
+        shift = len(self.ctrlNames) - 1 - selItems[cnt - 1]
+        for i in range( cnt ):
+            item = selItems[cnt - i - 1]
+            self.moveObject(item, item + shift)
 
     def OnBtokButton(self, event):
         self.EndModal(wxID_OK)
@@ -113,8 +140,8 @@ class CreationOrderDlg(wxDialog):
     def moveObject(self, selIdx, newIdx):
         if selIdx != newIdx:
             lbSel = newIdx
-            if newIdx > selIdx:
-                newIdx, selIdx = selIdx, newIdx
+            #if newIdx > selIdx:
+            #    newIdx, selIdx = selIdx, newIdx
             name = self.ctrlNames[selIdx]
             newName = self.ctrlNames[newIdx]
             del self.ctrlNames[selIdx]
@@ -126,6 +153,10 @@ class CreationOrderDlg(wxDialog):
             self.lbObjects.InsertItems([name], newIdx)
 
             self.lbObjects.SetSelection(lbSel)
+            
+            return True
+        else:
+            return False
 
 
 if __name__ == '__main__':
