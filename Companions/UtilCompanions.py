@@ -321,7 +321,7 @@ class MenuItemsCIDTC(MenuItemsConstr, BaseMenuItemsCIDTC):
             return {'id': winId,
                     'item': `newItemName`,
                     'helpString': `''`,
-                    'checkable': 'false'}
+                    'checkable': 'False'}
 
     def events(self):
         return ['MenuEvent']

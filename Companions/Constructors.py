@@ -189,8 +189,8 @@ class StatusBarFieldsConstr(PropertyKeywordConstructor):
 
 class NotebookPageConstr(PropertyKeywordConstructor):
     def constructor(self):
-        return {'Page': 'pPage', 'Text': 'strText',
-                'Selected' : 'bSelect', 'ImageId': 'imageId'}
+        return {'Page': 'page', 'Text': 'text',
+                'Selected' : 'select', 'ImageId': 'imageId'}
 
 class AcceleratorTableEntriesConstr(PropertyKeywordConstructor):
     def constructor(self):

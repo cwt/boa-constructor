@@ -240,7 +240,7 @@ class NotebookDTC(WindowConstr, ContainerDTC):
 class NotebookPagesCDTC(NotebookPageConstr, CollectionDTC):
     #wxDocs = HelpCompanions.wxNotebookDocs
     propName = 'Pages'
-    displayProp = 'strText'
+    displayProp = 'text'
     indexProp = '(None)'
     insertionMethod = 'AddPage'
     deletionMethod = 'RemovePage'
@@ -268,9 +268,9 @@ class NotebookPagesCDTC(NotebookPageConstr, CollectionDTC):
 ##        CollectionDTC.appendItem(self)
 
     def designTimeSource(self, wId):
-        return {'pPage': 'None',
-                'strText': `'%s%d'%(self.propName, wId)`,
-                'bSelect': 'true',
+        return {'page': 'None',
+                'text': `'%s%d'%(self.propName, wId)`,
+                'select': 'True',
                 'imageId': `-1`}
 
     def initDesignTimeEvents(self, ctrl):
@@ -284,16 +284,16 @@ class NotebookPagesCDTC(NotebookPageConstr, CollectionDTC):
     def applyDesignTimeDefaults(self, params):
         prms = copy.copy(params)
 
-        page = BlankWindowPage(self.control, self.designer, params, 'pPage')
+        page = BlankWindowPage(self.control, self.designer, params, 'page')
         self.tempPlaceHolders.append(page)
-        if params['pPage'] != 'None':
-            ctrl = self.designer.objects[prms['pPage'][5:]][1]
+        if params['page'] != 'None':
+            ctrl = self.designer.objects[prms['page'][5:]][1]
             ctrl.Reparent(page)
             page.ctrl = ctrl
 
-        del prms['pPage']
+        del prms['page']
         params = self.designTimeDefaults(prms)
-        params['pPage'] = page
+        params['page'] = page
 
         apply(getattr(self.control, self.insertionMethod), (), params)
 
@@ -323,7 +323,7 @@ class NotebookPagesCDTC(NotebookPageConstr, CollectionDTC):
     def updateSelection(self, newSelection):
         idx = 0
         for constr in self.textConstrLst:
-            constr.params['bSelect'] = newSelection == idx and 'true' or 'false'
+            constr.params['select'] = newSelection == idx and 'True' or 'False'
             idx = idx + 1
 
     def defaultAction(self):
@@ -342,12 +342,12 @@ class NotebookPagesCDTC(NotebookPageConstr, CollectionDTC):
                 # Notebook page being deleted
                 # XXX Consider overwriting deleteItem for this
                 constr = self.textConstrLst[compn.index]
-                if constr.params['pPage'] != 'None':
-                    self.designer.deleteCtrl(Utils.ctrlNameFromSrcRef(constr.params['pPage']))
+                if constr.params['page'] != 'None':
+                    self.designer.deleteCtrl(Utils.ctrlNameFromSrcRef(constr.params['page']))
             else:
                 for constr in self.textConstrLst:
-                    if Utils.srcRefFromCtrlName(compn.name) == constr.params['pPage']:
-                        constr.params['pPage'] == 'None'
+                    if Utils.srcRefFromCtrlName(compn.name) == constr.params['page']:
+                        constr.params['page'] == 'None'
 
                 for tph in self.tempPlaceHolders:
                     if tph.ctrl == compn.control:
@@ -357,9 +357,9 @@ class NotebookPagesCDTC(NotebookPageConstr, CollectionDTC):
         CollectionDTC.writeCollectionItems(self, output, stripFrmId)
         warn = 0
         for constr in self.textConstrLst:
-            if constr.params['pPage'] == 'None':
+            if constr.params['page'] == 'None':
                 wxLogWarning('No control for %s, page %s'%(
-                      self.parentCompanion.name, constr.params['strText']))
+                      self.parentCompanion.name, constr.params['text']))
                 warn = 1
         if warn:
             wxLogWarning('The red-dashed area of a wxNotebook page must contain\n'\

@@ -1015,14 +1015,14 @@ class WindowDTC(WindowConstr, ControlDTC):
     def GetShown(self, x):
         for prop in self.textPropList:
             if prop.prop_setter == 'Show':
-                return prop.params[0] == 'true'
+                return string.lower(prop.params[0]) == 'true'
         return true
     def Show(self, value):
         pass
     def GetEnabled(self, x):
         for prop in self.textPropList:
             if prop.prop_setter == 'Enable':
-                return prop.params[0] == 'true'
+                return string.lower(prop.params[0]) == 'true'
         return true
     def Enable(self, value):
         pass
