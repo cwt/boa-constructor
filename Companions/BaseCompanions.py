@@ -574,13 +574,14 @@ class WindowDTC(ControlDTC):
         
     def properties(self):
         return {'Shown': ('CtrlRoute', wxWindow.IsShown.im_func, wxWindow.Show.im_func),
-        	'Enabled': ('CtrlRoute', wxWindowPtr.IsEnabled.im_func, wxWindowPtr.Enable.im_func)
-#        	'ToolTip': (wxWindowPtr.GetName.im_func, wxWindowPtr.SetToolTipString.im_func)
+        	'Enabled': ('CtrlRoute', wxWindowPtr.IsEnabled.im_func, wxWindowPtr.Enable.im_func),
+        	'ToolTipString': ('CompnRoute', self.GetToolTipString, self.SetToolTipString)
+#        	    (wxWindowPtr.GetName.im_func, wxWindowPtr.SetToolTipString.im_func)
         }
 
     def hideDesignTime(self):
         return ['NextHandler', 'PreviousHandler', 'EventHandler', 'Id', 'Caret',
-                'WindowStyleFlag']
+                'WindowStyleFlag', 'ToolTip']
 
     def dontPersistProps(self):
         return ['ClientSize']
@@ -588,6 +589,12 @@ class WindowDTC(ControlDTC):
 	return ['Shown', 'Enabled', 'EvtHandlerEnabled']
     def events(self):
         return ['MiscEvent', 'MouseEvent', 'FocusEvent', 'KeyEvent']
+    
+    def GetToolTipString(self, blah):
+        return self.control.GetToolTip().GetTip()
+
+    def SetToolTipString(self, value):
+        self.control.SetToolTipString(value)
     
 ##    def getToolTip(self):
 ##        return self.ToolTip
