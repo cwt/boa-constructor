@@ -1,5 +1,7 @@
 #Boa:Dialog:TranslateDialog
 
+import string
+
 from wxPython.wx import *
 from wxPython.lib.anchors import LayoutAnchors
 
