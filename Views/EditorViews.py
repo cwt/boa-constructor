@@ -156,7 +156,7 @@ class EditorView:
             EVT_LEFT_DCLICK(self, actions[dclickActionIdx][1])
     
     def destroy(self):
-        print 'destroy', self.__class__.__name__, sys.getrefcount(self)
+##        print 'destroy', self.__class__.__name__, sys.getrefcount(self)
         for wId in self.ids:
             if wId != -1:
                 self.model.editor.Disconnect(wId)
@@ -231,7 +231,7 @@ class EditorView:
         self.readOnly = val
     
     def close(self):
-        print 'EditorView close'
+##        print 'EditorView close'
         self.destroy()
     
 ##    def viewMenu(self):
@@ -251,8 +251,8 @@ class EditorView:
     def isModified(self):
         return self.modified 
     
-    def goto(self, marker):
-        print 'GOTO MARKER', marker
+##    def goto(self, marker):
+##        print 'GOTO MARKER', marker
     
     def OnRightDown(self, event):
         self.popx = event.GetX()
@@ -279,7 +279,7 @@ class HTMLView(wxHtmlWindow, EditorView):
     def __init__(self, parent, model, actions = ()):
         wxHtmlWindow.__init__(self, parent)
         EditorView.__init__(self, model, (('Back', self.OnPrev, self.prevBmp, ()),
-                                   ('Forward', self.OnNext, self.nextBmp, ()) )+ actions, -1)
+                      ('Forward', self.OnNext, self.nextBmp, ()) )+ actions, -1)
         self.SetRelatedFrame(model.editor, 'Editor')
         self.SetRelatedStatusBar(2)
 
