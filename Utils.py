@@ -149,16 +149,19 @@ def startswith(str, substr):
     return len(str) >= len(substr) and str[:len(substr)] == substr
 
 class PaintEventHandler(wxEvtHandler):
-    """ This class is used to merge paint reqeusts. Each paint is 
-    captured and saved. Later on the idle event, the non-duplicated
-    paints are executed. The code attempts to be efficient by determining
-    the enclosing rectangle where multiple rectangles intersect.
-    This is required only on GTK systems.
-   
-    Note: there is an assumption here that event handling is synchronous
-    i.e. the paints called from the idle event handler are processed
-    before the Refresh() call returns."""
-
+    """ This class is used to merge paint requests. 
+    
+        Each paint is captured and saved. Later on the idle event, 
+        the non-duplicated paints are executed. The code attempts to be 
+        efficient by determining the enclosing rectangle where multiple 
+        rectangles intersect.
+        This is required only on GTK systems.
+       
+        Note: there is an assumption here that event handling is synchronous
+        i.e. the paints called from the idle event handler are processed
+        before the Refresh() call returns.
+    """
+    
     def __init__(self, window):
         wxEvtHandler.__init__(self)
         self.painting=0
