@@ -17,7 +17,7 @@
 print 'importing Models.EditorModels'
 
 import os, sys, tempfile
-from StringIO import StringIO
+from cStringIO import StringIO
 
 from wxPython import wx
 
@@ -70,14 +70,15 @@ class EditorModel:
                 view.pageIdx = view.pageIdx - 1
 
     def getDataAsLines(self):
-        return self.data.split('\012')
+        return StringIO(self.data).readlines()
 
     def setDataFromLines(self, lines):
         data = self.data
         strlines = []
         for line in lines:
-            strlines.append(str(line))
-        self.data = '\012'.join(strlines)
+            # encodes unicode in the default encoding
+            strlines.append(Utils.stringFromControl(line))
+        self.data = ''.join(strlines)
         self.modified = self.modified or self.data != data
 
     def hasUnsavedChanges(self):
@@ -172,15 +173,8 @@ class CVSFolderModel(FolderModel):
         finally:
             f.close()
 
-class ZipFileModel(EditorModel):
-    modelIdentifier = 'ZipFile'
-    defaultName = 'zip'
-    bitmap = 'ZipFile_s.png'
-    imgIdx = EditorHelper.imgZipFileModel
-    ext = '.zip'
-
 class BasePersistentModel(EditorModel):
-    fileModes = ('r', 'w')
+    fileModes = ('rb', 'wb')
     saveBmp = 'Images/Editor/Save.png'
     saveAsBmp = 'Images/Editor/SaveAs.png'
 
@@ -333,7 +327,6 @@ class BitmapFileModel(PersistentModel):
         if updateViews:
             self.notify()
 
-
 class SourceModel(BasePersistentModel):
     modelIdentifier = 'Source'
     def __init__(self, data, name, editor, saved):
@@ -408,15 +401,14 @@ extMap = EditorHelper.extMap
 # model registry: add to this dict to register a Model (needed for explorer images)
 modelReg.update({
             TextModel.modelIdentifier: TextModel,
-            ZipFileModel.modelIdentifier: ZipFileModel,
             UnknownFileModel.modelIdentifier: UnknownFileModel,
             BitmapFileModel.modelIdentifier: BitmapFileModel,
             InternalFileModel.modelIdentifier: InternalFileModel,
             })
 
 extMap[''] = TextModel
-extMap['.jpg'] = extMap['.gif'] = extMap['.png'] = BitmapFileModel
+extMap['.jpg'] = extMap['.gif'] = extMap['.png'] = extMap['.ico'] =BitmapFileModel
 
-EditorHelper.imageExtReg.extend(['.bmp', '.jpg', '.gif', '.png'])
+EditorHelper.imageExtReg.extend(['.bmp', '.jpg', '.gif', '.png', '.ico'])
 EditorHelper.internalFilesReg.extend(['.umllay', '.implay', '.brk', '.trace', '.stack', '.cycles', '.prof', '.cached'])
-EditorHelper.binaryFilesReg.extend(['.zip', '.zexp', '.prof'])
+EditorHelper.binaryFilesReg.extend(['.zexp', '.prof'])
