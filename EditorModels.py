@@ -102,7 +102,7 @@ class %s(%s):
             raise
 '''
 
-defApp = """import %s
+defApp = '''import %s
 
 modules = {'%s' : [1, 'Main frame of Application', '%s.py']}
 
@@ -118,9 +118,9 @@ def main():
     application.MainLoop()
 
 if __name__ == '__main__':
-    main()"""
+    main()'''
 
-defInfoBlock = """#-----------------------------------------------------------------------------
+defInfoBlock = '''#-----------------------------------------------------------------------------
 # Name:        %s
 # Purpose:     %s
 #                
@@ -131,18 +131,28 @@ defInfoBlock = """#-------------------------------------------------------------
 # Copyright:   %s
 # Licence:     %s
 #-----------------------------------------------------------------------------
-""" 
+''' 
+
+defSetup_py = '''
+from distutils.core import setup
+
+setup(name = '%s',
+      version = '%s',
+      scripts = [%s],
+)
+'''
 
 # Indexes for the imagelist
 [imgAppModel, imgFrameModel, imgDialogModel, imgMiniFrameModel, 
  imgMDIParentModel, imgMDIChildModel, imgModuleModel, imgPackageModel,
  imgTextModel, imgConfigFileModel, imgZopeExportFileModel, imgBitmapFileModel,
- imgZipFileModel, imgCPPModel, imgUnknownFileModel, imgHTMLFileModel,
+ imgZipFileModel, imgCPPModel, imgUnknownFileModel, imgHTMLFileModel, 
+ imgSetupModel,
  
  imgFolder, imgPathFolder, imgCVSFolder, imgZopeFolder, imgZopeControlPanel,
  imgZopeProductFolder, imgZopeInstalledProduct, imgZopeUserFolder, imgZopeDTMLDoc, 
  imgZopeImage, imgZopeSystemObj, imgZopeConnection, imgBoaLogo, imgFolderUp, 
- imgFSDrive, imgFolderBookmark] = range(32)
+ imgFSDrive, imgFolderBookmark] = range(33)
 
 class EditorModel:
     defaultName = 'abstract'
@@ -180,7 +190,7 @@ class EditorModel:
         AddToolButtonBmpIS(self.editor, toolbar, self.closeBmp, 'Close', self.editor.OnClosePage)
 
     def addMenu(self, menu, wId, label, accls, code = ()):
-        menu.Append(wId, label)
+        menu.Append(wId, label + (code and '     <'+code[2]+'>' or ''))
         if code:
             accls.append((code[0], code[1], wId),)
     
@@ -334,67 +344,6 @@ class ZopeExportFileModel(EditorModel):
     bitmap = 'ZopeExport_s.bmp'
     imgIdx = imgZopeExportFileModel
     ext = '.zexp'
-
-class ZopeDocumentModel(EditorModel):
-    modelIdentifier = 'ZopeDocument'
-    defaultName = 'zopedoc'
-    bitmap = 'Package_s.bmp'
-    imgIdx = imgZopeDTMLDoc
-
-    saveBmp = 'Images/Editor/Save.bmp'
-
-    def __init__(self, name, data, editor, saved, zopeConnection, zopeObject):
-        EditorModel.__init__(self, name, data, editor, saved)
-        self.zopeConn = zopeConnection
-        self.zopeObj = zopeObject
-        self.savedAs = true
-
-##    def addTools(self, toolbar):
-##        EditorModel.addTools(self, toolbar)
-##
-##    def addMenu(self, menu, label, meth, accls, code):
-##        newId = NewId()
-##        menu.Append(newId, label)
-##        EVT_MENU(self.editor, newId, meth)
-##        accls.append((code[0], code[1], newId),)
-    
-
-    def addTools(self, toolbar):
-        EditorModel.addTools(self, toolbar)
-        AddToolButtonBmpIS(self.editor, toolbar, self.saveBmp, 'Save', self.editor.OnSave)
-        
-    def addMenus(self, menu):
-        accls = EditorModel.addMenus(self, menu)
-        self.addMenu(menu, Editor.wxID_EDITORSAVE, 'Save', accls, (keyDefs['Save']))
-        return accls
-
-    def load(self, notify = true):
-        self.data = self.zopeConn.load(self.zopeObj)
-        self.modified = false
-        self.saved = false
-        self.update()
-        if notify: self.notify()
-    
-    def save(self):
-        """ Saves contents of data to file specified by self.filename. """
-        print self.filename
-        if self.filename:
-            self.zopeConn.save(self.zopeObj, self.data)
-            self.modified = false
-        else:
-            raise 'No filename'
-    
-    def saveAs(self, filename):
-        """ Saves contents of data to file specified by filename.
-            Override this to catch name changes. """
-
-        raise 'Save as not supported'
-
-    def getPageName(self):
-        if self.zopeObj.name == 'index_html':
-            return '%s (%s)' % (self.zopeObj.name, string.split(self.zopeObj.path, '/')[-1])
-        else:
-            return self.zopeObj.name
                         
 class PackageModel(EditorModel):
     """ Must be constructed in a valid path, name being filename, actual
@@ -573,18 +522,6 @@ class ModuleModel(SourceModel):
         EditorModel.update(self)
         self.initModule()
 
-    def checkError(self, err, str):    
-#        err.parse()
-        if len(err):
-            import ErrorStackFrm
-            esf = ErrorStackFrm.ErrorStackMF(self.editor, self.app, self.editor)
-            print 'checkError', err
-            esf.initTree(err)
-            esf.Show(true)
-        else:
-            self.editor.statusBar.setHint('%s %s successfully.' %\
-              (str, path.basename(self.filename)))
-
     def run(self, args = ''):
         """ Excecute the current saved image of the application. """
         if self.savedAs:
@@ -596,22 +533,24 @@ class ModuleModel(SourceModel):
                 sys.path.append(Preferences.pyPath)
                 cmd = '"%s" %s %s'%(sys.executable, path.basename(self.filename), args)
                 print 'executing', cmd, args
+                
+                from ModRunner import PreferredRunner
+                if Preferences.minimizeOnRun:
+                    self.editor.palette.Iconize(true)
                 try:
-                    from popen2import import popen3
-                    #wx.wxExecute(cmd, true)
-                    inp, outp, errp = popen3(cmd)
+                    if self.editor.erroutFrm:
+                        self.editor.erroutFrm.Destroy()
+                    self.editor.erroutFrm = PreferredRunner(self.editor, self.app).run(cmd)
+                finally:
+                    if Preferences.minimizeOnRun:
+                        self.editor.palette.Iconize(false)
+                        if self.editor.erroutFrm:
+                            self.editor.erroutFrm.Raise()
+##                        self.editor.palette.Raise()
+##                        self.editor.inspector.Raise()
+##                        self.editor.Raise()
+        
                     
-##                    while 1:
-##                        l = b.readline()
-##                        if not l: break
-                    print outp.read()
-                    serr = ErrorStack.errorList(errp)
-                    if len(serr):
-                        self.checkError(serr, 'Ran')
-                    else:
-                        print 'no errors'
-                except:
-                    raise                    
             finally:
                 sys.path = oldSysPath
                 sys.stderr = oldErr
@@ -622,16 +561,17 @@ class ModuleModel(SourceModel):
     
     def compile(self):
         if self.savedAs:
+            import ModRunner
+            oldErr = sys.stderr
+            sys.stderr = ErrorStack.RecFile()
             try:
-                oldErr = sys.stderr
-                sys.stderr = ErrorStack.RecFile()
                 try:
-                    py_compile.compile(self.filename)
+                    cmr = ModRunner.CompileModuleRunner(self.filename)
                 except:
                     print 'Compile Exception!'
                     raise
                 serr = ErrorStack.errorList(sys.stderr)
-                self.checkError(serr, 'Compiled')
+                cmr.checkError(serr, 'Compiled')
             finally:
                 sys.stderr = oldErr
 
@@ -726,6 +666,57 @@ class ModuleModel(SourceModel):
         resultView.diffWith = filename
         resultView.refresh()
         resultView.focus()
+
+class ZopeDocumentModel(EditorModel):
+    modelIdentifier = 'ZopeDocument'
+    defaultName = 'zopedoc'
+    bitmap = 'Package_s.bmp'
+    imgIdx = imgZopeDTMLDoc
+
+    saveBmp = 'Images/Editor/Save.bmp'
+
+    def __init__(self, name, data, editor, saved, zopeConnection, zopeObject):
+        EditorModel.__init__(self, name, data, editor, saved)
+        self.zopeConn = zopeConnection
+        self.zopeObj = zopeObject
+        self.savedAs = true
+
+    def addTools(self, toolbar):
+        EditorModel.addTools(self, toolbar)
+        AddToolButtonBmpIS(self.editor, toolbar, self.saveBmp, 'Save', self.editor.OnSave)
+        
+    def addMenus(self, menu):
+        accls = EditorModel.addMenus(self, menu)
+        self.addMenu(menu, Editor.wxID_EDITORSAVE, 'Save', accls, (keyDefs['Save']))
+        return accls
+
+    def load(self, notify = true):
+        self.data = self.zopeConn.load(self.zopeObj)
+        self.modified = false
+        self.saved = false
+        self.update()
+        if notify: self.notify()
+    
+    def save(self):
+        """ Saves contents of data to file specified by self.filename. """
+        print self.filename
+        if self.filename:
+            self.zopeConn.save(self.zopeObj, self.data)
+            self.modified = false
+        else:
+            raise 'No filename'
+    
+    def saveAs(self, filename):
+        """ Saves contents of data to file specified by filename.
+            Override this to catch name changes. """
+
+        raise 'Save as not supported'
+
+    def getPageName(self):
+        if self.zopeObj.name == 'index_html':
+            return '%s (%s)' % (self.zopeObj.name, string.split(self.zopeObj.path, '/')[-1])
+        else:
+            return self.zopeObj.name
 
 class BasicFileModel(EditorModel):
     
@@ -869,6 +860,23 @@ class ObjectCollection:
         self.collections = collections
         self.initialisers = initialisers
         self.finalisers = finalisers
+    
+    def merge(self, objColl):
+        """ Merge another object collection with this one """
+
+        def mergeList(myLst, newLst):
+            print 'mergeList', newLst, myLst
+            for item in newLst:
+                myLst.append(item)
+        
+        mergeList(self.creators, objColl.creators)
+        mergeList(self.properties, objColl.properties)
+        mergeList(self.events, objColl.events)
+        mergeList(self.collections, objColl.collections)
+        mergeList(self.initialisers, objColl.initialisers)
+        mergeList(self.finalisers, objColl.finalisers)
+        
+        self.indexOnCtrlName()
     
     def getCtrlNames(self):
         """ Return a list of (name, class) tuples """
@@ -1038,7 +1046,7 @@ class BaseFrameModel(ClassModel):
         # Collection method
         if isInitCollMeth(meth):
             try:
-                res = Utils.split_seq(codeBody, '')
+                res = Utils.split_seq(codeBody, '', string.strip)
                 inits, body, fins = res[:3]
             except ValueError:
                 raise 'Collection body %s not in init, body, fin form' % meth
@@ -1402,7 +1410,7 @@ class AppModel(ClassModel):
                 module = self.getModule()
                 if module.imports.has_key(oldName):
                     impLine = module.imports[oldName][0]-1
-                    #read in the import line
+                    # read in the import line
                     line = module.source[impLine]
                     imports = string.split(line[7:], ', ')
                     impIdx = imports.index(oldName)
@@ -1434,11 +1442,12 @@ class AppModel(ClassModel):
         if err:
             import ErrorStackFrm
             esf = ErrorStackFrm.ErrorStackMF(self.editor, self.app, self.editor)
-            esf.initTree(err)
+            esf.updateCtrls(err)
             esf.Show(true)
+            return esf
         else:
             wx.wxLogError('Trace file not found. Run with command line param -T')
-            
+            return NOne
                 
             
 
@@ -1523,6 +1532,40 @@ class AppModel(ClassModel):
         else:
             self.textInfos[viewName] = ''
 
+class SetupModuleModel(ModuleModel):
+    modelIdentifier = 'setup'
+    defaultName = 'Setup'
+    bitmap = 'Setup_s.bmp'
+    imgIdx = imgSetupModel
+    def __init__(self, data, name, editor, saved, app = None):
+        ModuleModel.__init__(self, data, name, editor, saved, app)
+        if data:
+            self.update()
+            self.notify()
+
+    def addMenus(self, menu):
+        accls = ModuleModel.addMenus(self, menu)
+        menu.AppendSeparator()
+        self.addMenu(menu, Editor.wxID_SETUPBUILD, 'build', accls, ())
+        self.addMenu(menu, Editor.wxID_SETUPCLEAN, 'clean', accls, ())
+        self.addMenu(menu, Editor.wxID_SETUPINSTALL, 'install', accls, ())
+        self.addMenu(menu, Editor.wxID_SETUPSDIST, 'sdist', accls, ())
+        self.addMenu(menu, Editor.wxID_SETUPBDIST, 'bdist', accls, ())
+        self.addMenu(menu, Editor.wxID_SETUPBDIST_WININST, 'bdist_wininst', accls, ())
+        menu.AppendSeparator()
+        self.addMenu(menu, Editor.wxID_SETUPPY2EXE, 'py2exe', accls, ())
+        return accls
+    
+    def new(self):
+        self.data = (defSetup_py) % ('default', '0.1', '')
+        self.saved = false
+        self.modified = true
+        self.update()
+        self.notify()
+
+    def getPageName(self):
+        return 'setup (%s)' % os.path.basename(os.path.dirname(self.filename))
+
 # model registry: add to this dict to register a Model
 modelReg = {AppModel.modelIdentifier: AppModel, 
             FrameModel.modelIdentifier: FrameModel,
@@ -1539,7 +1582,8 @@ modelReg = {AppModel.modelIdentifier: AppModel,
             ZipFileModel.modelIdentifier: ZipFileModel,
             CPPModel.modelIdentifier: CPPModel,
             UnknownFileModel.modelIdentifier: UnknownFileModel,
-            HTMLFileModel.modelIdentifier: HTMLFileModel}
+            HTMLFileModel.modelIdentifier: HTMLFileModel,
+            SetupModuleModel.modelIdentifier: SetupModuleModel}
 
 # All non python files recogniseable by extension
 extMap = {}
@@ -1549,6 +1593,7 @@ del extMap['.py']
 del extMap['.*']
 extMap['.cpp'] = extMap['.c'] = extMap['.h'] = CPPModel
 extMap['.jpg'] = extMap['.gif'] = extMap['.png'] = BitmapFileModel
+extMap['.htm'] = extMap['.html']
 
 internalFilesReg = ['.umllay', '.implay', '.brk', '.trace', '.stack']
 
@@ -1566,6 +1611,8 @@ def identifyFile(filename):
         dummy, name = path.split(filename)
         if name == '__init__.py':
             return PackageModel, ''
+        if name == 'setup.py':
+            return SetupModuleModel, ''
         dummy, ext = path.splitext(filename)
         if extMap.has_key(ext):
             return extMap[ext], ''
@@ -1599,3 +1646,5 @@ def identifySource(source):
                 return headerInfo
         else:
             return ModuleModel, ''
+
+
