@@ -75,7 +75,7 @@ class StdErrErrorParser(StackErrorParser):
 class PyCheckerErrorParser(StackErrorParser):
     def parse(self):
         import linecache
-        if len(self.lines):
+        if self.lines:
             pyCheckWarn = self.lines.pop()
             try:
                 filename, lineNo, warng = eval(string.strip(pyCheckWarn))
@@ -86,6 +86,23 @@ class PyCheckerErrorParser(StackErrorParser):
                 self.stack.append(StackEntry(os.path.abspath(filename), lineNo,
                       linecache.getline(filename, lineNo), self.error))
 
+class PyLintErrorParser(StackErrorParser):
+    def parse(self):
+        import linecache
+        if self.lines:
+            filename, lineNo, msg = self.lines.pop()
+            self.error[:] = [msg]
+            self.stack.append(StackEntry(os.path.abspath(filename), lineNo,
+                  linecache.getline(filename, lineNo), self.error))
+
+def buildLintWarningList(lines):
+    res = []
+    for line in lines:
+        res.append(PyLintErrorParser([line]))
+    return res
+
+#    return [PyLintErrorParser([line]) for line in lines]
+            
 # Limit stack size / processing time
 # Zero to ignore limit
 max_stack_depth = 100
