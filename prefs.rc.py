@@ -208,19 +208,19 @@ STCEdgeColumnWidth = 80
 
 # Colours
 STCCallTipBackColour = wxColour(255, 255, 240)
-STCSyntaxErrorColour = wxColour(255, 128, 0)
-STCCodeBrowseColour = wxColour(0, 255, 255)
-STCDebugBrowseColour = wxColour(255, 128, 0)#wxRED
+STCSyntaxErrorColour = wxColour(255, 0, 0)
+STCCodeBrowseColour = wxColour(0, 0, 255)
+STCDebugBrowseColour = wxColour(255, 0, 0)
 
 # Markers
 from wxPython.stc import wxSTC_MARK_CIRCLE, wxSTC_MARK_ROUNDRECT, \
       wxSTC_MARK_ARROW, wxSTC_MARK_SMALLRECT, wxSTC_MARK_SHORTARROW, \
       wxSTC_MARK_EMPTY, wxSTC_MARK_ARROWDOWN, wxSTC_MARK_MINUS, wxSTC_MARK_PLUS 
 
-STCBreakpointMarker = wxSTC_MARK_CIRCLE, '#FF8080', 'RED' #'BLACK', 'RED'
-STCLinePointer = wxSTC_MARK_SHORTARROW, '#00FFFF', 'BLUE' #'NAVY', 'BLUE'
-STCTmpBreakpointMarker = wxSTC_MARK_CIRCLE, '#00FFFF', 'BLUE' #'BLACK', 'BLUE'
-STCMarkPlaceMarker = wxSTC_MARK_SHORTARROW, 'WHITE', 'YELLOW' #'NAVY', 'YELLOW'
+STCBreakpointMarker = wxSTC_MARK_CIRCLE, 'BLACK', 'RED'
+STCLinePointer = wxSTC_MARK_SHORTARROW, 'NAVY', 'BLUE'
+STCTmpBreakpointMarker = wxSTC_MARK_CIRCLE, 'BLACK', 'BLUE'
+STCMarkPlaceMarker = wxSTC_MARK_SHORTARROW, 'NAVY', 'YELLOW'
 
 STCDiffAddedMarker = wxSTC_MARK_PLUS, 'BLACK', 'WHITE'
 STCDiffRemovedMarker = wxSTC_MARK_MINUS, 'BLACK', 'WHITE'
