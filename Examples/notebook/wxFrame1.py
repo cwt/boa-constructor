@@ -100,7 +100,7 @@ class wxFrame1(wxFrame):
         try:
             if dlg.ShowModal() == wxID_OK:
                 filename = dlg.GetPath()
-                self.txtEditor.LoadFile(filename)
+                self.txtEditor.SetValue(open(filename, 'rb').read())
                 self.FileName=filename
         finally:
             dlg.Destroy()

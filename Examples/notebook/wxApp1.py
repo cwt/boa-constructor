@@ -20,5 +20,5 @@ def main():
     application.MainLoop()
 
 if __name__ == '__main__':
-    # XXX Test ToDo on line 24
+    # XXX Test ToDo on line 23
     main()
