@@ -350,7 +350,7 @@ class CVSController(ExplorerNodes.Controller):
     def OnDiffCVSItems(self, event):
         # a syntax highlighted window is provided for unified diffs
         res = self.doCvsCmdOnSelection('diff', '-u', cvsOutput='tuple')
-        if len(res)==2:
+        if res is not None and len(res)==2:
             outls, errls = res
             out, err = string.join(outls, ''), string.join(errls, '')
             errout = self.editor.erroutFrm
