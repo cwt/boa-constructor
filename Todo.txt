@@ -1,6 +1,8 @@
 To do
 -----
 
+UPDATE CVS
+
 for 0.0.5
 ---------
 
@@ -21,6 +23,7 @@ Menus on Explorer trees to edit config
 Toolbar tools for explorer
 
 Debugger polishing
+- Trace in source
 
 Renamings on clipboard paste file clashes
 
@@ -74,6 +77,14 @@ Editor
   - Show wx* parent objects methods
 - Code parsing / generation
   - Should generate/understand multilined code
+- Better find / replace dialog
+- General purpose wxStyledTextCtrl settings editor dialog
+- Look into possibly extending wxApp's stdio redirection to speak to boa
+- Hard code white as background for Views with images until masking
+  is sorted out. 
+- Change run/debug/compile to be methods on the model, not the source view
+- Goto CVS file from Open Module
+
 Help
 - wx methods help: From Inspector while on property
 - Tag matches in results from search  to be able to jump to the next match
@@ -87,6 +98,11 @@ Documentation View
 
 Explore View
 - Move method up/down actions
+- Switch to explorer view in the class and focused on the
+  current method
+
+Tree Views
+- Remember which nodes are open and reopen after refreshing
 
 Zope
 - Propery editing (Maybe in Inspector)
@@ -102,12 +118,13 @@ Zope
     - Might need more than one call per folder while browsing
     - Don't know how to find out which of a list of item is folderish
       I do not want to do a query on every item in the list!!!
+
 - Editing ExternalMethods and PythonMethods' Python source in the Editor.
-  - PythonMethods must be implemented over http, they don't support an
-    FTP interface.
-  - ExternalMethods should be loaded from the local filesystem,
-    ExternalMethods don't support properties (why??) and except for parsing
-    HTML, I don't even know how to access their info
+- PythonMethods must be implemented over http, they don't support an
+  FTP interface.
+- ExternalMethods should be loaded from the local filesystem,
+  ExternalMethods don't support properties (why??) and except for parsing
+  HTML, I don't even know how to access their info
 
 Collection editors
 - Move up, move down
@@ -126,7 +143,6 @@ UML
 - Some form of zooming (25%, 50%, 75%, 100%)
 
 Explorer
-- Toolbar commands
 - Simple caching for slow connections
 - Synch Explorer operations like moving files around with
   any open applications
@@ -138,6 +154,7 @@ Companions
 
 CVS
 - Conflict resolution editor integration
+  - Accept, Reject
 - Update/Commit/Diff from SourceView
 - Visual interface to set options
 - Update open modules if a cvs operation modified an
@@ -146,13 +163,23 @@ CVS
 App
 - Add README, CHANGES, INSTALL, BUGS, TODO as optional
   views on the AppModel
+- App may not have wxDialog as main frame because an app object
+  does not quit with dialog as main frame.
+
+Inspector
+- Enable/Disable toolbar buttons depending on state
+  or only show applicable buttons (not enough space for all btns)
 
 Python 2.0
 - Boa will stay 1.5.2 compatible until at least the end of
   2000. Will consider using new language features then.
 - Already using some new Python 2.0 modules (ConfigParser, zipfile)
 
+Designer
+- wxDialogs should use wxDialog intead of wxFrame
 
+GTK
+- Incremental typing lookup on wxListCtrl, hopefully in a parent high up :)
 
 *
 Roadmap
@@ -172,7 +199,9 @@ Boa 2.0
     framework to the ZODB
 - C/C++ extension writing and possibly debugging support
 - wxWindows C++ code generation (maybe)
+- Simple project planning utils, timelines, feature management
 - Distutils distribution packaging
+- Validators
 
 
 *
