@@ -177,37 +177,54 @@ def parseMixedBody(parseClasses, lines):
     """
     cat = {}
     unmatched = []
-    for parseClass in parseClasses:
-        cat[parseClass] = []
+    for ParseClass in parseClasses:
+        cat[ParseClass] = []
 
-    for line in lines:
-        ln = string.strip(line)
-        if (ln == 'pass') or (ln == ''): continue
-        for parseClass in parseClasses:
-            try: res = parseClass(ln).value()
-            except Exception, message:
-                print str(message)
+    idx = 0
+    cont = ''
+    while idx < len(lines):
+        line = string.strip(lines[idx])
+        ln = cont + line
+        if (ln == 'pass') or (ln == ''): 
+            idx = idx + 1
+            continue
+        
+        for ParseClass in parseClasses:
+            # build up the string if lines continue
+            try:
+                res = ParseClass(ln).value()
+            except IncompleteLineError:
+                cont = ln
+                break
             else:
                 if res:
-                    cat[parseClass].append(res)
+                    cat[ParseClass].append(res)
+                    cont = ''
                     break
         else:
-            if string.strip(line) != '# %s'%sourceconst.code_gen_warning:
+            if ln != '# %s'%sourceconst.code_gen_warning:
                 unmatched.append(line)
+        idx = idx + 1
+
     return cat, unmatched
 
 
-def parseBody(parseClass, lines):
-    list = []
-    for line in lines:
-        ln = string.strip(line)
-        if ln == 'pass': return []
-        if ln == '':
-            continue
-        list.append(parseClass(ln))
-    return list
+##def parseBody(parseClass, lines):
+##    # XXX unused?
+##    list = []
+##    for line in lines:
+##        ln = string.strip(line)
+##        if ln == 'pass': return []
+##        if ln == '':
+##            continue
+##        list.append(parseClass(ln))
+##    return list
 
 param_splitter = ' = '
+
+class IncompleteLineError(Exception): pass
+
+#_used_names = {}
 
 class PerLineParser:
     """ Class which parses 1 line of source code """
@@ -258,15 +275,27 @@ class PerLineParser:
         sortedkeys = params.keys()
         sortedkeys.sort()
         for key in sortedkeys:
+            #_used_names[key] = 1
             kvlist.append(Preferences.cgKeywordArgFormat%{'keyword': key,
                                                           'value': params[key]})
         return string.join(kvlist, ', ')
 
+    def checkContinued(self, line):
+        line = string.strip(line)
+        if line and line[-1] == ',':
+            raise IncompleteLineError
+        
+
 idc = '[A-Za-z_][A-Za-z0-9_]*'
+# self.name=class(params)
 is_constr = re.compile('^[ \t]*self[.](?P<name>'+idc+')[ \t]*=[ \t]*(?P<class>'+\
-  idc+')\((?P<params>.*)\)$')
+  idc+')\((?P<params>.*)(\)|,)$')
+# class.__init__(self,params)
 is_constr_frm = re.compile('^[ \t]*(?P<class>'+idc+\
-  ')[.]__init__\(self,[ \t]*(?P<params>.*)\)$')
+  ')[.]__init__\(self,[ \t]*(?P<params>.*)(\)|,)$')
+# self.name=self.factory.method(params)
+is_constr_factory = re.compile('^[ \t]*self[.](?P<name>'+idc+')[ \t]*=[ \t]*self[.](?P<factory>'+\
+  idc+')[.](?P<method>'+idc+')\((?P<params>.*)(\)|,)$')
 
 class ConstructorParse(PerLineParser):
     def __init__(self, line=None, comp_name='', class_name='', params=None):
@@ -274,19 +303,31 @@ class ConstructorParse(PerLineParser):
         self.class_name = class_name
         if params is None: self.params = {}
         else:              self.params = params
+        self.factory = None
 
         if line:
             self.m = is_constr.search(line)
             if self.m:
+                self.checkContinued(line)
                 self.comp_name = self.m.group('name')
                 self.class_name = self.m.group('class')
                 self.params = self.extractKVParams(self.m.group('params'))
             else:
                 self.m = is_constr_frm.search(line)
                 if self.m:
+                    self.checkContinued(line)
                     self.comp_name = ''
                     self.class_name = self.m.group('class')
                     self.params = self.extractKVParams(self.m.group('params'))
+                else:
+                    self.m = is_constr_factory.search(line)
+                    if self.m:
+                        self.checkContinued(line)
+                        self.comp_name = self.m.group('name')
+                        self.class_name = ''
+                        self.factory = (self.m.group('factory'), self.m.group('method'))
+                        self.params = self.extractKVParams(self.m.group('params'))
+                    
 
     def renameCompName2(self, old_value, new_value):
         if self.params.has_key('parent') and \
@@ -300,6 +341,9 @@ class ConstructorParse(PerLineParser):
                   self.params['id'] not in EventCollections.reservedWxNames:
                 self.params['id'] = \
                   self.params['id'][:-len(old_value)]+string.upper(new_value)
+        if self.factory and self.factory[0] == old_value:
+            self.factory = (new_value, self.factory[1])
+            
 
     def prependFrameWinId(self, frame):
         idPrfx = self.getIdPrefix(frame)
@@ -317,19 +361,24 @@ class ConstructorParse(PerLineParser):
         else:
             params = self.params
 
-        if self.comp_name:
+        if self.factory:
+            factory, method = self.factory
+            return 'self.%s = self.%s.%s(%s)' %(self.comp_name, factory, method,
+              self.KVParamsAsText(params))
+        elif self.comp_name:
             return 'self.%s = %s(%s)' %(self.comp_name, self.class_name,
               self.KVParamsAsText(params))
         else:
             return '%s.__init__(self, %s)' %(self.class_name,
               self.KVParamsAsText(params))
 
-is_constr_col = re.compile('^[ \t]*self._init_coll_(?P<meth>'+idc+\
-  ')[.]__init__\(self,[ \t]*(?P<params>.*)\)$')
+##is_constr_col = re.compile('^[ \t]*self._init_coll_(?P<meth>'+idc+\
+##  ')[.]__init__\(self,[ \t]*(?P<params>.*)\)$')
 
 coll_init = '_init_coll_'
 idp = '[A-Za-z_][A-Za-z0-9_.]*'
-is_prop = re.compile('^[ \t]*self[.](?P<name>'+idp+')[ \t]*\([ \t]*(?P<params>.*)[ \t]*\)$')
+# self.name(params)
+is_prop = re.compile('^[ \t]*self[.](?P<name>'+idp+')[ \t]*\([ \t]*(?P<params>.*)[ \t]*(\)|,)$')
 class PropertyParse(PerLineParser):
     def __init__(self, line=None, comp_name='', prop_setter='', params=None, prop_name=''):
         self.comp_name = comp_name
@@ -341,6 +390,7 @@ class PropertyParse(PerLineParser):
         if line:
             self.m = is_prop.search(line)
             if self.m:
+                self.checkContinued(line)
                 self.params = safesplitfields(self.m.group('params'), ',')
                 compsetter = string.split(self.m.group('name'), '.')
 
@@ -393,7 +443,9 @@ class PropertyParse(PerLineParser):
 def ctrlNameFromMeth(meth):
     return string.join(string.split(meth, '_')[3:-1], '_')
 
-is_coll_init = re.compile('^[ \t]*self[.](?P<method>'+coll_init+idp+')[ \t]*\((?P<comp_name>'+idp+')[ \t,]*(?P<params>.*)\)$')
+# self._init_coll_method(comp_name, params)
+is_coll_init = re.compile('^[ \t]*self[.](?P<method>'+coll_init+idp+\
+      ')[ \t]*\((?P<comp_name>'+idp+')[ \t,]*(?P<params>.*)(\)|,)$')
 
 class CollectionInitParse(PerLineParser):
     def __init__(self, line=None, comp_name='', method='', params=None, prop_name=''):
@@ -405,6 +457,7 @@ class CollectionInitParse(PerLineParser):
         if line:
             self.m = is_coll_init.search(line)
             if self.m:
+                self.checkContinued(line)
                 self.params = safesplitfields(self.m.group('params'), ',')
                 self.method = self.m.group('method')
                 self.comp_name = self.m.group('comp_name')[5:]
@@ -430,7 +483,9 @@ def decorateParseItems(parseItems, ctrlName, frameName):
         parseItem.frame_name = frameName
 
 #item_parent = 'parent'
-is_coll_item_init = re.compile('^[ \t]*(?P<ident>'+idp+')[.](?P<method>'+idc+')[ \t]*\([ \t,]*(?P<params>.*)\)$')
+# ident.method(params)
+is_coll_item_init = re.compile('^[ \t]*(?P<ident>'+idp+')[.](?P<method>'+idc+\
+      ')[ \t]*\([ \t,]*(?P<params>.*)(\)|,)')
 class CollectionItemInitParse(PerLineParser):
     def __init__(self, line=None, comp_name='', method='', params=None):
         self.comp_name = comp_name
@@ -441,6 +496,7 @@ class CollectionItemInitParse(PerLineParser):
         if line:
             self.m = is_coll_item_init.search(line)
             if self.m:
+                self.checkContinued(line)
                 self.comp_name = self.m.group('ident')
                 self.method = self.m.group('method')
                 self.params = self.extractKVParams(self.m.group('params'))
@@ -482,11 +538,16 @@ class CollectionItemInitParse(PerLineParser):
             params = self.params
         return '%s.%s(%s)' %(self.comp_name, self.method, self.KVParamsAsText(params))
 
-is_event2p = re.compile('^[ \t]*EVT_(?P<evtname>'+idc+')[ \t]*\([ \t]*(?P<name>'+\
-  idp+')[ \t]*\,[ \t]*self[.](?P<func>'+idp+')\)$')
-# EVT_EVTNAME(self.win, ID, self.OnEvt)
-is_event3p = re.compile('^[ \t]*EVT_(?P<evtname>'+idc+')[ \t]*\([ \t]*(?P<name>'+\
-  idp+')[ \t]*\,(?P<wid>.*)[ \t]*\,[ \t]*self[.](?P<func>'+idp+')\)$')
+### EVT_evtname(name, func)
+##is_event2p = re.compile('^[ \t]*EVT_(?P<evtname>'+idc+')[ \t]*\([ \t]*(?P<name>'+\
+##  idp+')[ \t]*\,[ \t]*self[.](?P<func>'+idp+')(\)|,)$')
+### EVT_evtname(name, wid, func)
+##is_event3p = re.compile('^[ \t]*EVT_(?P<evtname>'+idc+')[ \t]*\([ \t]*(?P<name>'+\
+##  idp+')[ \t]*\,(?P<wid>.*)[ \t]*\,[ \t]*self[.](?P<func>'+idp+')(\)|,)$')
+
+# EVT_evtname(params)
+is_event = re.compile('^[ \t]*EVT_(?P<evtname>'+idc+')[ \t]*\([ \t]*(?P<params>.*)(\)|,)$')
+
 class EventParse(PerLineParser):
     def __init__(self, line=None, comp_name='', event_name='',
       trigger_meth = '', windowid = None):
@@ -496,22 +557,23 @@ class EventParse(PerLineParser):
         self.trigger_meth = trigger_meth
         self.prev_trigger_meth = ''
         self.windowid = windowid
-        self.show_scope = 'this' # can be 'all', 'same', 'this'
+        self.show_scope = 'own' # can be 'all', 'own'
         if line:
-            self.m = is_event2p.search(line)
+            self.m = is_event.search(line)
             if self.m:
-                self.trigger_meth = self.m.group('func')
-            else:
-                self.m = is_event3p.search(line)
-                if self.m:
-                    self.windowid = string.strip(self.m.group('wid'))
-                    self.trigger_meth = self.m.group('func')
-                else: return
+                self.checkContinued(line)
+                
+                params = string.split(self.m.group('params'), ',')
+                name = string.strip(params[0])
+                if name != 'self':
+                    self.comp_name = name[5:]
+                if len(params) == 2:
+                    self.trigger_meth = string.strip(params[1])[5:]
+                elif len(params) == 3:
+                    self.windowid = string.strip(params[1])
+                    self.trigger_meth = string.strip(params[2])[5:]
 
-            if self.m.group('name') != 'self':
-                self.comp_name = self.m.group('name')[5:]
-
-            self.event_name = self.m.group('evtname')
+                self.event_name = self.m.group('evtname')
 
     def renameFrameName(self, old_value, new_value):
         PerLineParser.renameFrameName(self, old_value, new_value)
@@ -549,11 +611,7 @@ class EventParse(PerLineParser):
             return 'EVT_%s(%s, self.%s)' %(self.event_name,
               Utils.srcRefFromCtrlName(self.comp_name), self.trigger_meth)
 
-def test():
-##    PLP = PerLineParser()
-##    print PLP.extractKVParams('a = 10, b = 20') == {'a': '10', 'b': '20'}
-##    print PLP.extractKVParams('a = "b\'c", b = "a=b"') == {'a': '"b\'c"', 'b': '"a=b"'}
-
+def testRename():
     cp = ConstructorParse("self.menu1 = wxMenu(title = '')")
     print cp.asText('wxFrame1')
     cp = ConstructorParse("self.button1 = wxButton(id = wxID_WXFRAME1BUTTON1, label = 'button1', name = 'button1', parent = self, pos = wxPoint(232, 168), size = wxSize(75, 23), style = 0)")
@@ -571,6 +629,16 @@ def test():
     ep2 = EventParse(ep.asText('wxFrame1'))
     ep2.prependFrameWinId('wxFrame2')
     print ep2.asText()
+
+def test():
+  cp = parseMixedBody([ConstructorParse], [
+   "        wxFrame.__init__(self, style = wxDEFAULT_FRAME_STYLE, name = '', ",
+   "              parent = prnt, title = 'wxFrame2', id = wxID_WXFRAME2, ",
+   "              pos = (-1, -1), size = (-1, -1))  ",
+   "        self._init_utils()",
+  ])[0][ConstructorParse]
+  
+  print cp[0].params
 
 if __name__ == '__main__':
     test()
