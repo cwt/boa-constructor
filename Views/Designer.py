@@ -15,7 +15,8 @@ import string, copy, os
 from os import path
 import sender
 import EditorViews, PaletteMapping, Preferences, Utils, Help
-from SelectionTags import SingleSelectionGroup, MultiSelectionGroup, granularise
+from Preferences import IS
+import SelectionTags
 from EditorModels import init_ctrls, init_utils, ObjectCollection, isInitCollMeth, getCollName
 import CtrlAlign, CtrlSize
 import RTTI, PrefsKeys, pprint
@@ -28,6 +29,113 @@ bodyIndent = ' '*8
  wxID_EDITRECREATE, 
 ] = map(lambda _init_ctrls: wxNewId(), range(11))
 
+[wxID_EDITMOVELEFT, wxID_EDITMOVERIGHT, wxID_EDITMOVEUP, wxID_EDITMOVEDOWN,
+ wxID_EDITWIDTHINC, wxID_EDITWIDTHDEC, wxID_EDITHEIGHTINC, wxID_EDITHEIGHTDEC,
+] = map(lambda _keys_move_size: wxNewId(), range(8))
+
+class DesignerControlsEvtHandler(wxEvtHandler):
+    def __init__(self, designer):
+        wxEvtHandler.__init__(self)
+        self.designer = designer
+
+    def connectEvts(self, ctrl):
+        EVT_MOTION(ctrl, self.OnMouseOver)
+        EVT_LEFT_DOWN(ctrl, self.OnControlSelect)
+        EVT_LEFT_UP(ctrl, self.OnControlRelease)
+        EVT_LEFT_DCLICK(ctrl, self.OnControlDClick)
+        EVT_SIZE(ctrl, self.OnControlResize)
+
+    def OnMouseOver(self, event):
+        if event.Dragging():
+            dsgn = self.designer
+            pos = event.GetPosition()
+            ctrl = dsgn.senderMapper.getObject(event)
+
+            if dsgn.selection: 
+                dsgn.selection.moving(ctrl, pos)
+            elif dsgn.multiSelection:
+                for sel in dsgn.multiSelection:
+                    sel.moving(ctrl, pos, dsgn.mainMultiDrag)
+                    
+        event.Skip()
+
+    def OnControlSelect(self, event):
+        """ Control is clicked. Either select it or add control from palette """
+        dsgn = self.designer
+        ctrl = dsgn.senderMapper.getObject(event)
+
+        if dsgn.selectControlByPos(ctrl, event.GetPosition(), event.ShiftDown()):
+            event.Skip()
+    
+    def OnControlRelease(self, event):
+        """ A select or drag operation is ended """
+        dsgn = self.designer
+        if dsgn.selection:
+            dsgn.selection.moveRelease()
+        elif dsgn.multiSelection:
+            for sel in dsgn.multiSelection:
+                sel.moveRelease()
+            dsgn.mainMultiDrag = None
+        event.Skip()
+        
+    def OnControlResize(self, event):
+        """ Control is resized, emulate native wxWindows layout behaviour """
+        dsgn = self.designer
+        try:
+            if event.GetId() == dsgn.GetId() and dsgn.selection:
+                dsgn.selection.selectCtrl(dsgn, dsgn.companion)
+
+## XXXG
+##                # Granularise frame sizing so that controls inside main frame
+##                # fits exactly
+##                sze = dsgn.GetClientSize()
+##                granSze = granularise(sze.x), granularise(sze.y)
+##                if sze.asTuple() != granSze:
+##                    dsgn.SetClientSize(granSze)
+
+                # Compensate for autolayout=false and 1 ctrl on frame behaviour
+                # Needed because incl selection tags there are actually 5 ctrls
+                
+                if not dsgn.GetAutoLayout():
+                    # Count children
+                    c = 0
+                    ctrl = None
+                    for ctrlLst in dsgn.objects.values():
+                        if len(ctrlLst) > 2 and ctrlLst[2] == '' and \
+                          (ctrlLst[1].__class__ not in dsgn.ignoreWindows):
+                            c = c + 1
+                            ctrl = ctrlLst[1]
+                    
+                    if c == 1:
+                        s = dsgn.GetClientSize()
+                        ctrl.SetDimensions(0, 0, s.x, s.y)
+                        
+            if dsgn.selection:
+                dsgn.selection.sizeFromCtrl()
+                dsgn.selection.setSelection()
+        finally:
+            event.Skip()
+            #self.Layout()
+
+    def OnControlDClick(self, event):
+        dsgn = self.designer
+
+        if dsgn.selection:
+            ctrl = dsgn.senderMapper.getObject(event)
+    
+            dsgn.selectControlByPos(ctrl, event.GetPosition(), event.ShiftDown())
+            if ctrl == dsgn:
+                companion = dsgn.companion
+                ctrlName = ''
+            else: 
+                ctrlName = ctrl.GetName()
+                companion = dsgn.objects[ctrlName][0]
+    
+            selCtrl, selCompn, selPos = \
+                  dsgn.checkChildCtrlClick(ctrlName, ctrl, companion, event.GetPosition())
+    
+            selCompn.defaultAction()
+
 class InspectableObjectCollectionView(EditorViews.EditorView):
     viewName = 'InspectableObjectCollection'
     collectionMethod = 'init_'
@@ -38,11 +146,16 @@ class InspectableObjectCollectionView(EditorViews.EditorView):
     def setupArgs(self, ctrlName, params, dontEval):
         """ Create a dictionary of parameters for the constructor of the        
             control from a dictionary of string/source parameters.              
-            Catches design time parameter overrides.                         """
+            Catches design time parameter overrides.
+        """
 
         args = {}
         # Build dictionary of params
         for paramKey in params.keys():
+            value = params[paramKey]
+            if len(value) >= 11 and value[:11] == 'self._init_':
+                collItem = methodparse.CollectionInitParse(value)
+                self.addCollView(paramKey, collItem.method, false)
             if paramKey in dontEval:
                 args[paramKey] = params[paramKey]
             else:
@@ -62,7 +175,7 @@ class InspectableObjectCollectionView(EditorViews.EditorView):
         self.collEditors = {}
     
     def destroy(self):
-        print 'DESTROY InspectableObjectCollectionView', self.__class__.__name__
+#        print 'DESTROY InspectableObjectCollectionView', self.__class__.__name__
         del self.controllerView
         del self.inspector
         for objval in self.objects.values():
@@ -74,11 +187,16 @@ class InspectableObjectCollectionView(EditorViews.EditorView):
         del self.senderMapper
         EditorViews.EditorView.destroy(self)
 
+# XXX Consider building subsets of the tree where possible
+# XXX may become an issue on frames with many controls
 ##  decl buildParentRelationship(self) -> (dict, dict)
     def buildParentRelationship(self):
         """ Build a nested dictionary of key = name, value = dict pairs
             describing parental relationship.
             Assuming parents are created before children
+            
+            parRel : Nested relationship dictionary
+            parRef : Flat reference dictionary
         """
      
         parRel = {}
@@ -93,19 +211,19 @@ class InspectableObjectCollectionView(EditorViews.EditorView):
                 parRef[ctrl] = parRef[ce[2]][ctrl]
 
         return  parRel, parRef
-        
-    def initObjectsAndCompanions(self, creators, objColl, dependents, depLinks):
-        collDeps = {}
-        for ctrl in creators:
-            self.initObjCreator(ctrl)
-            self.initObjProps(objColl.propertiesByName, ctrl.comp_name, ctrl, dependents, depLinks)
-            self.initObjColls(objColl.collectionsByName, ctrl.comp_name, ctrl, collDeps)
-            self.initObjEvts(objColl.eventsByName, ctrl.comp_name, ctrl)
             
-            self.applyDepsForCtrl(ctrl.comp_name, depLinks)
+    def initObjectsAndCompanions(self, creators, objColl, dependents, depLinks):#, definedCtrls):
+        collDeps = {}
+        for constr in creators:
+            self.initObjCreator(constr)
+            self.initObjProps(objColl.propertiesByName, constr.comp_name, constr, dependents, depLinks)
+            self.initObjColls(objColl.collectionsByName, constr.comp_name, constr, collDeps)
+            self.initObjEvts(objColl.eventsByName, constr.comp_name, constr)
+            
+            self.applyDepsForCtrl(constr.comp_name, depLinks)
+            
+            #definedControls.append(constr.comp_name
 
-#        self.initObjDeps(dependents)
-                
         for ctrlName in collDeps.keys():
             for collInit in collDeps[ctrlName]:
                 self.addCollView(ctrlName, collInit.method, false)
@@ -134,9 +252,12 @@ class InspectableObjectCollectionView(EditorViews.EditorView):
                     self.addDepLink(prop, name, dependents, depLinks)
                 # Collection initialisers
                 elif prop.params[0][:11] == 'self._init_':
-#                    from methodparse import CollectionInitParse
                     collItem = methodparse.CollectionInitParse(prop.params[0])
                     self.addCollView(name, collItem.method, false)
+                # Check for custom evaluator
+                elif comp.customPropEvaluators.has_key(prop.prop_name):
+                    args = comp.customPropEvaluators[prop.prop_name](prop.params, self.getAllObjects())
+                    apply(RTTI.getFunction(ctrl, prop.prop_setter), (ctrl, )+ args)
                 # Normal property, eval value and apply it
                 else:                     
                     try:
@@ -175,6 +296,7 @@ class InspectableObjectCollectionView(EditorViews.EditorView):
             self.objects[name][0].setEvents(events[name])
 
     def addCollView(self, name, collInitMethod, create):
+##        print 'addCollView' , name, collInitMethod, create
         import CollectionEdit
         
         comp, ctrl = self.objects[name][:2]
@@ -196,47 +318,90 @@ class InspectableObjectCollectionView(EditorViews.EditorView):
             collComp.applyDesignTimeDefaults(crt.params)
         collComp.initCollection()
         
+        comp.collections[collName] = collComp
+        
         collEditView = CollectionEdit.CollectionEditorView(self, self.inspector, 
             self.model, collComp)
         collEditView.initialise()
                 
         self.collEditors[(comp.name, collName)] = collEditView
+
+    def getRefsFromProp(self, prop):
+        refs = []
+        # Build lst of ctrl references from property
+        for param in prop.params:
+            if len(param) >= 4 and param[:4] == 'self':
+                refs.append(Utils.ctrlNameFromSrcRef(param))
+        return refs
         
     def checkAndAddDepLink(self, ctrlName, prop, dependentProps, deps, depLinks, definedCtrls):
         if prop.prop_name in dependentProps:
-            # Don't postpone if target ctrl already defined
-            target = Utils.ctrlNameFromSrcRef(prop.params[0])
-            if target not in definedCtrls:
+            refs = self.getRefsFromProp(prop)
+            # Postpone if target ctrls not yet defined
+            allCtrlsDefined = len(refs) > 0
+            for ref in refs:
+                if ref not in definedCtrls:
+                    allCtrlsDefined = false
+            
+            if not allCtrlsDefined:
                 self.addDepLink(prop, ctrlName, deps, depLinks)
                 return true
+
         return false
 
     def applyDepsForCtrl(self, ctrlName, depLinks):
         if depLinks.has_key(ctrlName):
-            for prop in depLinks[ctrlName]:
-                ctrl = self.objects[prop.comp_name][1] 
-                if ctrlName == '': 
-                    value = self
+            for prop, otherRefs in depLinks[ctrlName]:
+                for oRf in otherRefs:
+                    if not oRf in self.objectOrder:
+                        break
                 else:
-                    ord, objs = self.model.allObjects()
-                    
-                    if objs.has_key(ctrlName):
-                        value = objs[ctrlName][1]
+                    # Dependent properties are usually one parameter name
+                    # references
+                    ctrl = self.objects[prop.comp_name][1] 
+                    if len(prop.params) == 1:
+                        if ctrlName == '': 
+                            value = self
+                        else:
+                            ord, objs = self.model.allObjects()
+                            
+                            if objs.has_key(ctrlName):
+                                value = objs[ctrlName][1]
+                            else:
+                                continue
+                        RTTI.getFunction(ctrl, prop.prop_setter)(ctrl, value)
                     else:
-                        continue
-                RTTI.getFunction(ctrl, prop.prop_setter)(ctrl, value)
+                        refs = []
+                        # Build lst of ctrl references from property
+                        for param in prop.params:
+                            if len(param) >= 4 and param[:4] == 'self':
+                                refs.append(self.objects[Utils.ctrlNameFromSrcRef(param)][1])
+                            else:
+                                refs.append(eval(param))
+                        
+                        apply(RTTI.getFunction(ctrl, prop.prop_setter), [ctrl,]+refs)
+            
             del depLinks[ctrlName]
-
+                                            
     def addDepLink(self, prop, name, dependents, depLinks):
-        if not dependents.has_key(name):
-            dependents[name] = []
-        dependents[name].append(prop)
+        # XXX dependents does not seem to be used anymore ????
+##        if not dependents.has_key(name):
+##            dependents[name] = []
+##        dependents[name].append(prop)
 
-        link = Utils.ctrlNameFromSrcRef(prop.params[0])
-
-        if not depLinks.has_key(link):
-            depLinks[link] = []
-        depLinks[link].append(prop)
+        refs = self.getRefsFromProp(prop)
+##        print 'addDepLink', refs
+        for link in refs:
+            if not depLinks.has_key(link):
+                depLinks[link] = []
+            otherRefs = refs[:]
+            otherRefs.remove(link)
+            depLinks[link].append( (prop, otherRefs) )
+            
+##        link = Utils.ctrlNameFromSrcRef(prop.params[0])
+##        if not depLinks.has_key(link):
+##            depLinks[link] = []
+##        depLinks[link].append(prop)
     
     def finaliseDepLinks(self, depLinks):
         for ctrlName in depLinks.keys()[:]:
@@ -244,6 +409,9 @@ class InspectableObjectCollectionView(EditorViews.EditorView):
 
     def renameCtrl(self, oldName, newName):
         """ Rename a control and update all its properties and events."""
+
+##        prl, prf = self.buildParentRelationship()
+##        children = prf[oldName].keys()
 
         ctrl = self.objects[oldName]
         del self.objects[oldName]
@@ -256,15 +424,20 @@ class InspectableObjectCollectionView(EditorViews.EditorView):
 
         companion = self.objects[newName][0]
         companion.renameCtrl(oldName, newName)
-
+        companion.renameCtrlRefs(oldName, newName)
+        
         for name, prop in self.collEditors.keys():
             if name == oldName:
                 collEditor = self.collEditors[(name, prop)]
                 collEditor.renameCtrl(oldName, newName)
                 del self.collEditors[(name, prop)]
                 self.collEditors[(newName, prop)] = collEditor
+##
+##        # rename ctrl references like parent
+##        for ctrl in children:
+##            self.objects[ctrl][0].renameCtrlRefs(oldName, newName)
+##            self.objects[ctrl][2] = newName
 
-                        
     def saveCtrls(self, definedCtrls):
         """ Replace current source of method in collectionMethod with values from
             constructors, properties and events. 
@@ -274,6 +447,7 @@ class InspectableObjectCollectionView(EditorViews.EditorView):
         deps = {}
         depLinks = {}
         collDeps = []
+        imports = []
 
         for collView in self.collEditors.values():
             collView.saveCtrls()
@@ -289,7 +463,11 @@ class InspectableObjectCollectionView(EditorViews.EditorView):
             compn.writeCollections(newBody, collDeps)
             compn.writeEvents(newBody, addModuleMethod = true)
 
-            compn.writeDependencies(newBody, ctrlName, depLinks)
+            compn.writeDependencies(newBody, ctrlName, depLinks, definedCtrls)
+            
+            imp = compn.writeImports()
+            if imp and imp not in imports:
+                imports.append(imp)
                 
             newBody.append('')
 
@@ -297,6 +475,10 @@ class InspectableObjectCollectionView(EditorViews.EditorView):
             newBody.extend(collDeps + [''])
         
         module = self.model.getModule()
+
+        for imp in imports:
+            module.addImportStatement(imp)
+            
         if module.classes[self.model.main].methods.has_key(\
           self.collectionMethod):
             # Add doc string
@@ -344,12 +526,14 @@ class InspectableObjectCollectionView(EditorViews.EditorView):
             definedCtrls.append(ctrlName)
             compn = self.objects[ctrlName][0]
             
+            compn.updatePosAndSize()
+
             compn.writeConstructor(output, self.collectionMethod)
             compn.writeProperties(output, ctrlName, definedCtrls, deps, depLinks) 
             compn.writeCollections(output, collDeps)
             compn.writeEvents(output, addModuleMethod = false)
 
-            compn.writeDependencies(output, ctrlName, depLinks)
+            compn.writeDependencies(output, ctrlName, depLinks, definedCtrls)
                 
             output.append('')
 
@@ -380,11 +564,9 @@ class InspectableObjectCollectionView(EditorViews.EditorView):
             else:
                 try:
                     currMeth.append(line)
-                except:
+                except NameError:
                     print 'PASTE ERROR', input
         
-        print methList
-
         collObjColls = []
         pastedCtrls = []            
         # find main method
@@ -403,45 +585,57 @@ class InspectableObjectCollectionView(EditorViews.EditorView):
 
         # Parse input source
         objCol = self.model.readDesignerMethod(collMethod, methBody)
+##        print 'read desgn meth', collMethod, methBody
         
         if not len(objCol.creators):
-            print 'Empty clipboard'
             return []
-            #return 0
 
         # Rename possible name clashes
         objCol.indexOnCtrlName()
-        pns = objCol.getCtrlNames()
+        pasteNameClasses = objCol.getCtrlNames()
         newNames = []
-        for name, clss in pns:
+        oldNames = []
+        # Preserve order, but determine all new names before 
+        for name, clss in pasteNameClasses:
             if name in self.objectOrder:
                 newName = self.newObjName(clss, newNames)
                 newNames.append(newName)
-                objCol.renameCtrl(name, newName)
+                oldNames.append(name)
+            else:
+                newNames.append(name)
+                oldNames.append(name)
+
+        for oldName, newName in map(None, oldNames, newNames):
+            if newName != oldName:
+                objCol.renameCtrl(oldName, newName)
                 pastedCtrls.append(newName)
                 for idx in range(len(collObjColls)):
                     meth, collCtrlName, collObjColl = collObjColls[idx]
-                    if collCtrlName == name:
-                        print 'renaming Coll Obj Coll'
+                    collObjColl.renameCtrl(oldName, newName)
+                    if collCtrlName == oldName:
                         itms = string.split(meth, '_')
                         itms[3:-1] = [newName]
-                        collObjColl.renameCtrl(name, newName)
                         collObjColls[idx] = (string.join(itms, '_'), newName, collObjColl)
             else:
-                pastedCtrls.append(name)
+                pastedCtrls.append(oldName)
 
-        # Update model's object collections
-        print 'Update models object collections'
+##        # Update references to renamed controls
+##        for oldName, oldName in map(None, oldNames, newNames):
+##            for name, clss in pasteNameClasses:
+##                if name != oldName:
+##                    self.objects[newName][0].renameCtrlRefs(oldName, newName)
+
+        # Update model's object collections' collections
         for meth, collCtrlName, collObjColl in collObjColls:
-            print meth, collCtrlName
             self.model.objectCollections[meth] = collObjColl
 
         # Get previous parent, 1st item in the group's parent will always be
         # the root parent
-        # XXX Not working
-        copySource = objCol.creators[0].params['parent']
-        objCol.reparent(copySource, Utils.srcRefFromCtrlName(destCtrlName))
-
+        # Only reparent visual controls
+        if objCol.creators[0].params.has_key('parent'):
+            copySource = objCol.creators[0].params['parent']
+            objCol.reparent(copySource, Utils.srcRefFromCtrlName(destCtrlName))
+        
         # create controls
         deps = {}
         depLnks = {}
@@ -450,6 +644,9 @@ class InspectableObjectCollectionView(EditorViews.EditorView):
             self.initObjectsAndCompanions(objCol.creators, objCol, deps, depLnks)
         finally:
             self.inspector.vetoSelect = false
+
+        # merge pasted controls with current controls
+        self.model.objectCollections[collMethod].merge(objCol)
     
         return pastedCtrls
         
@@ -531,7 +728,8 @@ class InspectableObjectCollectionView(EditorViews.EditorView):
         # OnCloseWindow destroys everything, don't call inherited
 ##        EditorViews.EditorView.close(self)
     
-    def refreshContainment(self, selectName = None):        
+    def refreshContainment(self, selectName = None):
+        """ Rebuild parent tree and optionally select given control """        
         parRelations, parReference = self.buildParentRelationship()
         self.inspector.containment.refreshCtrl(self.model.main, parRelations, self)
         if selectName is not None:
@@ -543,7 +741,21 @@ class InspectableObjectCollectionView(EditorViews.EditorView):
         results = {}
         for objName in self.objects.keys():
             if issubclass(self.objects[objName][1].__class__, theClass):
-                results['self.'+objName] = self.objects[objName][1]
+                if objName:
+                    results['self.'+objName] = self.objects[objName][1]
+                else:    
+                    results['self'] = self.objects[objName][1]
+        return results
+
+    def getObjectsOfClassWithParent(self, theClass, theParentName):
+        results = {}
+        for objName in self.objects.keys():
+            if self.objects[objName][2] == theParentName and \
+                  issubclass(self.objects[objName][1].__class__, theClass):
+                if objName:
+                    results['self.'+objName] = self.objects[objName][1]
+                else:    
+                    results['self'] = self.objects[objName][1]
         return results
 
     def getAllObjects(self):
@@ -563,6 +775,7 @@ class InspectableObjectCollectionView(EditorViews.EditorView):
         return results
 
     def showCollectionEditor(self, ctrlName, propName):
+        """ Show the Collection Editor frame for given name and prop """
         # XXX param ctrlName is actually wrong!
         if ctrlName == self.GetName():
             ctrlName = ''
@@ -587,6 +800,24 @@ class InspectableObjectCollectionView(EditorViews.EditorView):
             try: dlg.ShowModal()
             finally: dlg.Destroy()
             raise 'Wrong Designer'
+
+    def expandNamesToContainers(self, ctrlNames):
+        """ Expand set of names to include the names of all their children """
+        return ctrlNames
+
+    def collapseNamesToContainers(self, ctrlNames):
+        """ Collapse set of names to exclude the names of all their children """
+        return ctrlNames
+    
+    def notifyAction(self, compn, action):
+        # notify components
+        for otherCompn, otherCtrl, otherPrnt in self.objects.values():
+            otherCompn.notification(compn, action)
+        
+        # notify collections
+        for collView in self.collEditors.values():
+            collView.companion.notification(compn, action)
+            
                         
 class DesignerView(wxFrame, InspectableObjectCollectionView):
     """ Frame Designer for design-time creation/manipulation of visual controls 
@@ -649,16 +880,24 @@ class DesignerView(wxFrame, InspectableObjectCollectionView):
         InspectableObjectCollectionView.__init__(self, inspector, model, compPal)
 
         if wxPlatform == '__WXMSW__':
-            self.SetIcon(wxIcon(path.join(Preferences.toPyPath(\
-              'Images/Icons/Designer.ico')), wxBITMAP_TYPE_ICO))
+            self.SetIcon(IS.load('Images/Icons/Designer.ico'))
 
         EVT_MOVE(self, self.OnFramePos)
+        if Preferences.drawDesignerGrid:
+            EVT_PAINT(self, self.OnPaint)
 
+        self.drawGridMethods = {'lines' : self.drawGrid_intersectingLines,
+                                'dots'  : self.drawGrid_dots,
+                                'bitmap': self.drawGrid_bitmap,
+                                'grid'  : self.drawGrid_grid}
+        
         self.pageIdx = -1
         self.dataView = dataView
         self.dataView.controllerView = self
         self.controllerView = self
         self.saveOnClose = true
+        
+        self.ctrlEvtHandler = DesignerControlsEvtHandler(self)
         
         self.companion = companionClass(self.model.main, self, self)
         self.companion.id = Utils.windowIdentifier(self.model.main, '')
@@ -705,6 +944,16 @@ class DesignerView(wxFrame, InspectableObjectCollectionView):
         EVT_MENU(self, wxID_EDITCOPY, self.OnCopySelected)
         EVT_MENU(self, wxID_EDITPASTE, self.OnPasteSelected)
         EVT_MENU(self, wxID_EDITRECREATE, self.OnRecreateSelected)
+
+        EVT_MENU(self, wxID_EDITMOVELEFT, self.OnMoveLeft)
+        EVT_MENU(self, wxID_EDITMOVERIGHT, self.OnMoveRight)
+        EVT_MENU(self, wxID_EDITMOVEUP, self.OnMoveUp)
+        EVT_MENU(self, wxID_EDITMOVEDOWN, self.OnMoveDown)
+        EVT_MENU(self, wxID_EDITWIDTHINC, self.OnWidthInc)
+        EVT_MENU(self, wxID_EDITWIDTHDEC, self.OnWidthDec)
+        EVT_MENU(self, wxID_EDITHEIGHTINC, self.OnHeightInc)
+        EVT_MENU(self, wxID_EDITHEIGHTDEC, self.OnHeightDec)
+
         # Key bindings
         accLst = []
         for name, wId in (('Delete', wxID_EDITDELETE), 
@@ -713,25 +962,61 @@ class DesignerView(wxFrame, InspectableObjectCollectionView):
                           ('ContextHelp', wxID_CTRLHELP),
                           ('Escape', wxID_CTRLPARENT),
                           ('Copy', wxID_EDITCOPY),
-                          ('Paste', wxID_EDITPASTE)):
-            tpe, key = PrefsKeys.keyDefs[name]
+                          ('Paste', wxID_EDITPASTE),
+                          ('MoveLeft', wxID_EDITMOVELEFT),
+                          ('MoveRight', wxID_EDITMOVERIGHT),
+                          ('MoveUp', wxID_EDITMOVEUP),
+                          ('MoveDown', wxID_EDITMOVEDOWN),
+                          ('WidthInc', wxID_EDITWIDTHINC),
+                          ('WidthDec', wxID_EDITWIDTHDEC),
+                          ('HeightInc', wxID_EDITHEIGHTINC),
+                          ('HeightDec', wxID_EDITHEIGHTDEC),
+                        ):
+            tpe, key, code = PrefsKeys.keyDefs[name]
             accLst.append((tpe, key, wId))
 
         self.SetAcceleratorTable(wxAcceleratorTable(accLst))
                     
     def saveCtrls(self, definedCtrls):
+        """ Generate source code for Designer """
         # Remove all collection methods
         for oc in self.model.identifyCollectionMethods(): 
             if len(oc) > len('_init_coll_') and oc[:11] == '_init_coll_':
                 module = self.model.getModule()
                 module.removeMethod(self.model.main, oc)
 
+        # Update all size and pos parameters possibly updated externally
+        for compn, ctrl, prnt in self.objects.values():
+            compn.updatePosAndSize()
+        
+        # Generate code
         InspectableObjectCollectionView.saveCtrls(self, definedCtrls) 
 
+        # Regenerate window ids
         companions = map(lambda i: i[0], self.objects.values())
         self.model.writeWindowIds(self.collectionMethod, companions)
 
     def renameCtrl(self, oldName, newName):
+        """ Rename control, references to control and update
+            parent tree """
+            
+        prel, pref = self.buildParentRelationship()
+        # rename other ctrl references like parent
+#        for ctrl in pref[oldName].keys():
+        # XXX Not adequate to only notify the children
+        
+        children = pref[oldName].keys()
+        for ctrl in self.objectOrder:
+##            print 'notifying', ctrl
+            # Notify
+            self.objects[ctrl][0].renameCtrlRefs(oldName, newName)
+            # Rename childrens' parents
+            if ctrl in children:
+                self.objects[ctrl][2] = newName
+        # also do collections
+        for coll in self.collEditors.values():
+            coll.companion.renameCtrlRefs(oldName, newName)
+
         InspectableObjectCollectionView.renameCtrl(self, oldName, newName)
         selName = self.inspector.containment.selectedName()
         if selName == oldName: selName = newName
@@ -739,6 +1024,9 @@ class DesignerView(wxFrame, InspectableObjectCollectionView):
         self.refreshContainment(selName)
 
     def refreshCtrl(self):
+        """ Model View method that is called when the Designer should
+            create itself from source
+        """
         if self.destroying: return
 
         # Delete previous
@@ -746,8 +1034,9 @@ class DesignerView(wxFrame, InspectableObjectCollectionView):
         
         # Create selection if none is defined
         if not self.selection:
-            self.selection = SingleSelectionGroup(self, self.senderMapper, 
-              self.inspector, self)
+            self.selection = \
+                  SelectionTags.SingleSelectionGroup(self, self.senderMapper, 
+                  self.inspector, self)
 
         self.model.editor.statusBar.setHint('Creating frame')
         
@@ -792,8 +1081,9 @@ class DesignerView(wxFrame, InspectableObjectCollectionView):
         self.model.editor.statusBar.setHint(' ')
                         
     def initSelection(self):
-        self.selection = SingleSelectionGroup(self, self.senderMapper, 
-              self.inspector, self)
+        """ Create a selection group """
+        self.selection = SelectionTags.SingleSelectionGroup(self, 
+              self.senderMapper, self.inspector, self)
 
     def loadControl(self, ctrlClass, ctrlCompanion, ctrlName, params):
         """ Create and register given control and companion.
@@ -851,10 +1141,11 @@ class DesignerView(wxFrame, InspectableObjectCollectionView):
         # XXX Remove event!
         self.inspector.eventUpdate(name, true)
            
-    def CtrlAnchored(self, ctrl):
-        result = (ctrl == self)
+##    def CtrlAnchored(self, ctrl):
+##        result = (ctrl == self)
 
     def getObjectsOfClass(self, theClass):
+        """ Overridden to also add objects from the DataView """
         results = InspectableObjectCollectionView.getObjectsOfClass(self, theClass)
         dataResults = {}
         for objName in self.dataView.objects.keys():
@@ -863,7 +1154,8 @@ class DesignerView(wxFrame, InspectableObjectCollectionView):
         results.update(dataResults)
         return results
 
-    def getAllObjects(self):#, theClass):
+    def getAllObjects(self):
+        """ Overridden to also add objects from the DataView """
         results = InspectableObjectCollectionView.getAllObjects(self)
         for objName in self.dataView.objects.keys():
             if objName:
@@ -887,6 +1179,8 @@ class DesignerView(wxFrame, InspectableObjectCollectionView):
                 self.inspector.containment.selectName(parentName)
     
     def renameFrame(self, oldName, newName):
+        """ Hook that also updates the Model and window ids of the
+            Frame when it's name changes """
         self.SetName(newName)
 
         # update windowids & ctrls
@@ -903,6 +1197,7 @@ class DesignerView(wxFrame, InspectableObjectCollectionView):
         self.refreshContainment(selName)
 
     def deleteCtrl(self, name, parentRef = None):
+        """ Delete a control, update selection and parent tree """
         ctrlInfo = self.objects[name]
         if ctrlInfo[1] == self:
             wxMessageBox("Can't delete frame")
@@ -915,11 +1210,16 @@ class DesignerView(wxFrame, InspectableObjectCollectionView):
             parentName = ctrlInfo[1].GetParent().GetName()
             if parentName == self.GetName(): parentName = ''
 
+##            print 'Selecting parent'
             self.selectParent(ctrlInfo[1])
             parRel, parRef = self.buildParentRelationship()
         else:
             parRef = parentRef
+        
+        # notify other components of deletion
+        self.notifyAction(ctrlInfo[0], 'delete')
             
+        # delete all children
         children = parRef[name]
         for child in children.keys():
             self.deleteCtrl(child, parRef)
@@ -929,6 +1229,7 @@ class DesignerView(wxFrame, InspectableObjectCollectionView):
         ctrlInfo[1].Destroy()
         
         if parRel is not None:
+##            print 'refreshing containment'
             self.refreshContainment(parentName)
         
     def selectNone(self):
@@ -958,6 +1259,9 @@ class DesignerView(wxFrame, InspectableObjectCollectionView):
                 childCtrl.SetPosition( (pos.x, pos.y - toolBar.GetSize().y) )
 
     def checkChildCtrlClick(self, ctrlName, ctrl, companion, clickPos):
+        """ Check whether the click on the control actually falls
+            within a region occupied by one of it's children.
+            The click is then transfered to the child. """
         selCtrl, selCompn, selPos = ctrl, companion, clickPos
         
         if companion.container:
@@ -972,6 +1276,7 @@ class DesignerView(wxFrame, InspectableObjectCollectionView):
             if tb:
                 tbOffset = tb.GetSize().y * -1
 
+        # XXX Is this going to become to slow for frames with many ctrls?
         parRel, parRef = self.buildParentRelationship()
         if ctrl == self:
             children = parRef['']
@@ -985,32 +1290,36 @@ class DesignerView(wxFrame, InspectableObjectCollectionView):
             except:
                 print 'could not get child ctrl size', childCtrl
             else:
-                if wxIntersectRect((clickPos.x, clickPos.y + tbOffset, 1, 1),
+                if childCtrl.IsShown() and wxIntersectRect((clickPos.x, clickPos.y + tbOffset, 1, 1),
                       (pos.x, pos.y, sze.x, sze.y)) is not None:
                     selCtrl = childCtrl
                     selCompn = childCompn
                     selPos = wxPoint(clickPos.x - pos.x, 
                           clickPos.y + tbOffset - pos.y)
-                    break;
+                    break
 
         return selCtrl, selCompn, selPos
     
     def clearMultiSelection(self):
+        """ Destroys multi selection groups """
         for sel in self.multiSelection:
             sel.destroy()
         self.multiSelection = []
 
     def assureSingleSelection(self):
+        """ Assure that a valid single selection exists """
         if not self.selection:
-            self.selection = SingleSelectionGroup(self, self.senderMapper, 
-                  self.inspector, self)
+            self.selection = SelectionTags.SingleSelectionGroup(self, 
+                  self.senderMapper, self.inspector, self)
     
     def flattenParentRelationship(self, rel, lst):
+        """ Add all items in a nested dictionary into a single list """
         for itm in rel.keys():
             lst.append(itm)
             self.flattenParentRelationship(rel[itm], lst)
         
     def expandNamesToContainers(self, ctrlNames):
+        """ Expand set of names to include the names of all their children """
         exp = ctrlNames[:]
         rel, ref = self.buildParentRelationship()
         for ctrl in ctrlNames:
@@ -1020,36 +1329,53 @@ class DesignerView(wxFrame, InspectableObjectCollectionView):
         
         return exp
 
-    def OnMouseOver(self, event):
-        if event.Dragging():
-            pos = event.GetPosition()
-            ctrl = self.senderMapper.getObject(event)
-
-            if self.selection: 
-                self.selection.moving(ctrl, pos)
-            elif self.multiSelection:
-                for sel in self.multiSelection:
-                    sel.moving(ctrl, pos, self.mainMultiDrag)
-                    
-        event.Skip()
-
-    def OnControlSelect(self, event):
-        """ Control is clicked. Either select it or add control from palette """
+    def collapseNamesToContainers(self, ctrlNames):
+        """ Collapse set of names to exclude the names of all their children """
         
-        ctrl = self.senderMapper.getObject(event)
+        def hasParentInList(item, list):
+            return intem in list
+        exp = ctrlNames[:]
+        
+#        rel, ref = self.buildParentRelationship()
+        colLst = filter(\
+            lambda name, names=ctrlNames, objs=self.objects: \
+                objs[name][2] not in names, ctrlNames)
 
+        return colLst
+
+    def selectControlByPos(self, ctrl, pos, multiSelect):
+        """ Handle selection of a control from a users click of creation
+            of a new one if a component was selected on the palette.
+            
+            Some ctrls do not register clicks, the click is then
+            picked up from the parent which checks if a click
+            intersects any child regions. For efficiency this
+            is only applied for 2 levels.
+            
+            Also handles single and multiple selection logic.
+            
+            Returns true if the ctrl also wants the click event
+        """
         if ctrl == self:
             companion = self.companion
         else: 
             companion = self.objects[ctrl.GetName()][0]
+            
+        ctrlName = companion.name
+
+        selCtrl, selCompn, selPos = \
+              self.checkChildCtrlClick(ctrlName, ctrl, companion, pos)
+        
+        #print 'selectControlByPos', selCtrl, selCompn, selPos
+            
         # Component on palette selected, create it
         if self.compPal.selection:
-            pos = event.GetPosition()
-            if companion.container:
-                parent = ctrl
+            if selCompn.container:
+                parent = selCtrl
+                pos = selPos
             else:
-                parent = ctrl.GetParent()
-                screenPos = ctrl.ClientToScreen(pos)
+                parent = selCtrl.GetParent()
+                screenPos = selCtrl.ClientToScreen(selPos)
                 pos = parent.ScreenToClient(screenPos)
 
             # Workaround toolbar offset bug
@@ -1059,7 +1385,8 @@ class DesignerView(wxFrame, InspectableObjectCollectionView):
                     pos.y = pos.y - tb.GetSize().y
 
             # Granularise position
-            pos = wxPoint(granularise(pos.x), granularise(pos.y))
+## XXXG
+##            pos = wxPoint(granularise(pos.x), granularise(pos.y))
                         
             ctrlName = self.newControl(parent, self.compPal.selection[1], self.compPal.selection[2], pos)
             self.compPal.selectNone()
@@ -1070,30 +1397,30 @@ class DesignerView(wxFrame, InspectableObjectCollectionView):
         # Select ctrl
         else:
             if self.selection or self.multiSelection:
-                evtPos = event.GetPosition()    
-                ctrlName = companion.name
-
-                selCtrl, selCompn, selPos = \
-                      self.checkChildCtrlClick(ctrlName, ctrl, companion, evtPos)
+                #evtPos = event.GetPosition()    
+##                ctrlName = companion.name
+##
+##                selCtrl, selCompn, selPos = \
+##                      self.checkChildCtrlClick(ctrlName, ctrl, companion, pos)
                                        
                 # Multi selection
-                if event.ShiftDown():
+                if multiSelect:
                     # Verify that it's a legal multi selection
                     # They must have the same parent
                     if self.selection:
-                        if ctrl.GetParent().this != self.selection.selection.GetParent().this:
+                        if selCtrl.GetParent().this != self.selection.selection.GetParent().this:
                             return
                     elif self.multiSelection:
-                        if ctrl.GetParent().this != self.multiSelection[0].selection.GetParent().this:
+                        if selCtrl.GetParent().this != self.multiSelection[0].selection.GetParent().this:
                             return
                         
                     if not self.multiSelection:
                         # don't select if multiselecting single selection
-                        if ctrl == self.selection.selection:
+                        if selCtrl == self.selection.selection:
                             return
 
-                        newSelection = MultiSelectionGroup(self, self.senderMapper, 
-                              self.inspector, self)
+                        newSelection = SelectionTags.MultiSelectionGroup(self, 
+                              self.senderMapper, self.inspector, self)
                         newSelection.assign(self.selection)
                         self.selection.destroy()
                         self.selection = None
@@ -1109,7 +1436,7 @@ class DesignerView(wxFrame, InspectableObjectCollectionView):
                                 # Change to single selection if 2nd last one
                                 # deselected
                                 if len(self.multiSelection) == 1:
-                                    self.selection = SingleSelectionGroup(self, 
+                                    self.selection = SelectionTags.SingleSelectionGroup(self, 
                                         self.senderMapper, self.inspector, self)
                                     
                                     self.selection.assign(self.multiSelection[0])
@@ -1118,10 +1445,11 @@ class DesignerView(wxFrame, InspectableObjectCollectionView):
                                     self.clearMultiSelection()
                                 return   
 
-                    newSelection = MultiSelectionGroup(self, self.senderMapper, 
-                          self.inspector, self)
+                    newSelection = SelectionTags.MultiSelectionGroup(self, 
+                          self.senderMapper, self.inspector, self)
                     newSelection.selectCtrl(selCtrl, selCompn)
                     self.multiSelection.append(newSelection)
+                # Single selection
                 else:
                     # Deselect multiple selection or start multiple drag
                     if self.multiSelection:
@@ -1133,7 +1461,6 @@ class DesignerView(wxFrame, InspectableObjectCollectionView):
                                 others.remove(sel)
                                 for capSel in others:
                                     capSel.moveCapture(capSel.selection, capSel.selCompn, selPos)
-#                                    capSel.showFrameTags()
                                 return
                         
                         self.clearMultiSelection()
@@ -1142,62 +1469,69 @@ class DesignerView(wxFrame, InspectableObjectCollectionView):
 
                     self.selection.selectCtrl(selCtrl, selCompn)
                     self.selection.moveCapture(selCtrl, selCompn, selPos)
-    
-    def OnControlRelease(self, event):
-        if self.selection:
-            self.selection.moveRelease()
-        elif self.multiSelection:
-            for sel in self.multiSelection:
-                sel.moveRelease()
-            self.mainMultiDrag = None
-        event.Skip()
-        
-    def OnControlResize(self, event):
-        try:
-            if event.GetId() == self.GetId():
-                self.selection.selectCtrl(self, self.companion)
-
-                # Granularise frame sizing so that controls inside main frame
-                # fits exactly
-                sze = self.GetSize()
-                granSze = granularise(sze.x), granularise(sze.y)+3
-                self.SetSize(granSze)
-
-                # Compensate for autolayout=false and 1 ctrl on frame behaviour
-                # Needed because incl selection tags there are actually 5 ctrls
-                
-                if not self.GetAutoLayout():
-                    # Count children
-                    c = 0
-                    ctrl = None
-                    for ctrlLst in self.objects.values():
-                        if len(ctrlLst) > 2 and ctrlLst[2] == '' and \
-                          (ctrlLst[1].__class__ not in self.ignoreWindows):
-                            c = c + 1
-                            ctrl = ctrlLst[1]
                     
-                    if c == 1:
-                        s = self.GetClientSize()
-                        ctrl.SetDimensions(0, 0, s.x, s.y)
-                        
-            if self.selection:
-                self.selection.sizeFromCtrl()
-                self.selection.setSelection()
-        finally:
-            event.Skip()
-            self.Layout()
-
-    def OnControlDClick(self, event):
-        pass
-
-    def OnFramePos(self, event):
-        # Called when frame repositioned
-        self.assureSingleSelection()
-        self.selection.selectCtrl(self, self.companion)
-        self.inspector.constructorUpdate('Position')
-        event.Skip()
+                    return 0#selCompn.letClickThru
         
+    def OnFramePos(self, event):
+        """ Called when frame is repositioned """
+#        self.assureSingleSelection()
+#        self.selection.selectCtrl(self, self.companion)
+        if self.selection and self.selection.selection == self:
+            self.inspector.constructorUpdate('Position')
+        event.Skip()
+    
+    def _drawLines(self, dc, col, loglFunc, sze, sg):
+        pen1 = wxPen(col)
+        dc.SetPen(pen1)
+        dc.SetLogicalFunction(loglFunc)
+        for y in range(sze.y / sg):
+            dc.DrawLine(0, y * sg, sze.x, y * sg)
+        
+        for x in range(sze.x / sg):
+            dc.DrawLine(x * sg, 0, x * sg, sze.y)
+
+    def drawGrid_intersectingLines(self, dc, sze, sg):
+        bgCol = dc.GetBackground().GetColour()
+        xorBgCol = wxColour(255^bgCol.Red(), 255^bgCol.Green(), 255^bgCol.Blue())
+        
+        self._drawLines(dc, xorBgCol, wxCOPY, sze, sg)
+        self._drawLines(dc, wxNamedColour('WHITE'), wxXOR, sze, sg)
+    
+    darken = 20    
+    def drawGrid_grid(self, dc, sze, sg):
+        bgCol = dc.GetBackground().GetColour()
+        darkerBgCol = wxColour(max(bgCol.Red()   -self.darken, 0), 
+                               max(bgCol.Green() -self.darken, 0), 
+                               max(bgCol.Blue()  -self.darken, 0))
+
+        self._drawLines(dc, darkerBgCol, wxCOPY, sze, sg)
+    
+    def drawGrid_dots(self, dc, sze, sg):
+        pen1 = wxPen(wxNamedColour('BLACK'))
+        dc.SetPen(pen1)
+        for y in range(sze.y / sg):
+            for x in range(sze.x / sg):
+                dc.DrawPoint(x * sg, y * sg)
+    
+    def drawGrid_bitmap(self, dc, sze, sg):
+        pass
+    
+    def OnPaint(self, event):
+        dc = wxPaintDC(self)
+        sze = self.GetSize()
+        sg = SelectionTags.screenGran
+        
+        drawGrid = self.drawGridMethods[Preferences.drawGridMethod]
+        
+        dc.BeginDrawing()
+        try:
+            drawGrid(dc, sze, sg)
+        finally:
+            dc.EndDrawing()
+
     def OnCloseWindow(self, event):
+        """ When the Designer closes, the code generation process is started.
+            General Inspector and Designer clean-up"""
         self.destroying = true
         if self.selection:
             self.selection.destroy()
@@ -1236,17 +1570,26 @@ class DesignerView(wxFrame, InspectableObjectCollectionView):
         event.Skip()
     
     def OnRightDown(self, event):
+        """ Store popup position of the menu relative to the control that 
+            triggered the event """
         ctrl = self.senderMapper.getObject(event)
         screenPos = ctrl.ClientToScreen(wxPoint(event.GetX(), event.GetY()))
         parentPos = self.ScreenToClient(screenPos)
         self.popx = parentPos.x
         self.popy = parentPos.y
+
+    def OnEditor(self, event):
+        """ Bring Editor to the front """
+        self.model.editor.Show(true)
+        self.model.editor.Raise()
     
     def OnInspector(self, event):
+        """ Bring Inspector to the front """
         self.inspector.Show(true)
         self.inspector.Raise()
         
     def OnControlDelete(self, event):
+        """ Delete the currently selected controls """
         ctrls = []
         if self.selection:
             ctrls = [self.selection.name]
@@ -1256,35 +1599,37 @@ class DesignerView(wxFrame, InspectableObjectCollectionView):
         #map(self.deleteCtrl, ctrls)
         for ctrlName in ctrls:
             self.deleteCtrl(ctrlName)
-        
-    def OnEditor(self, event):
-        self.model.editor.Show(true)
-        self.model.editor.Raise()
-    
+            
     def OnCtrlHelp(self, event):
+        """ Show help for the selected control """
         if self.inspector.selCmp:
             Help.showHelp(self, Help.wxWinHelpFrame, 
               self.inspector.selCmp.wxDocs, None)
     
     def OnAlignSelected(self, event):
+        """ Show alignment dialog for multi selections"""
         if self.multiSelection:
             dlg = CtrlAlign.ControlAlignmentFrame(self, self.multiSelection)
             try: dlg.ShowModal()
             finally: dlg.Destroy()
         
     def OnSizeSelected(self, event):
+        """ Show size dialog for multi selections"""
         if self.multiSelection:
             dlg = CtrlSize.ControlSizeFrame(self, self.multiSelection)
             try: dlg.ShowModal()
             finally: dlg.Destroy()
     
     def OnSelectParent(self, event):
+        """ Select parent of the selected control """
         if self.selection:
             self.selectParent(self.selection.selection)        
         elif self.multiSelection:
             self.selectParent(self.multiSelection[0].selection)        
         
+#---Clipboard operations--------------------------------------------------------
     def OnCutSelected(self, event):
+        """ Cut current selection to the clipboard """
         if self.selection:
             ctrls = [self.selection.name]
         elif self.multiSelection:
@@ -1293,16 +1638,12 @@ class DesignerView(wxFrame, InspectableObjectCollectionView):
         output = []
         self.cutCtrls(ctrls, [], output)
         
-        clip = wxTheClipboard
-        clip.Open()
-        try:
-            clip.SetData(wxTextDataObject(string.join(output, os.linesep)))
-        finally:
-            clip.Close()
+        Utils.writeTextToClipboard(string.join(output, os.linesep))
         
         self.refreshContainment()
 
     def OnCopySelected(self, event):
+        """ Copy current selection to the clipboard """
         if self.selection:
             ctrls = [self.selection.name]
         elif self.multiSelection:
@@ -1311,38 +1652,42 @@ class DesignerView(wxFrame, InspectableObjectCollectionView):
         output = []
         self.copyCtrls(ctrls, [], output)
 
-        clip = wxTheClipboard
-        clip.Open()
-        try:
-            clip.SetData(wxTextDataObject(string.join(output, os.linesep)))
-        finally:
-            clip.Close()
+        Utils.writeTextToClipboard(string.join(output, os.linesep))
 
     def OnPasteSelected(self, event):
+        """ Paste current clipboard contents into the current selection """
         if self.selection:
-            clip = wxTheClipboard
-            clip.Open()
-            try:
-                data = wxTextDataObject()
-                clip.GetData(data)
-            finally:
-                clip.Close()
-
+            if not self.selection.selCompn.container:
+                self.selectParent(self.selection.selection)
             pasted = self.pasteCtrls(self.selection.name, 
-                  string.split(data.GetText(), os.linesep))
+                  string.split(Utils.readTextFromClipboard(), os.linesep))
             if len(pasted):
                 self.refreshContainment()
-                # XXX not selecting root component
-                self.selection.selectCtrl(self.objects[pasted[0]][1], 
-                      self.objects[pasted[0]][0])        
-
+                pasted = self.collapseNamesToContainers(pasted)
+                if len(pasted) == 1:
+                    self.selection.selectCtrl(self.objects[pasted[0]][1], 
+                          self.objects[pasted[0]][0])        
+                else:
+                    self.selection.destroy()
+                    self.selection = None
+                    self.multiSelection = []
+                    for ctrlName in pasted:
+                        selCompn, selCtrl, prnt = self.objects[ctrlName]
+                        newSelection = SelectionTags.MultiSelectionGroup(self, 
+                              self.senderMapper, self.inspector, self)
+                        newSelection.selectCtrl(selCtrl, selCompn)
+                        self.multiSelection.append(newSelection)
+            
     def OnRecreateSelected(self, event):
+        """ Recreate the current selection by cutting and pasting it.
+            The clipboard is not disturbed.
+            This is useful for applying changes to constructor parameters """
         if self.selection and self.selection.selection != self:
             output = []
             ctrlName = self.selection.name
             # XXX Boa should be able to tell me this
             parent = self.selection.selection.GetParent()
-            print parent
+##            print parent
             if parent.GetId() == self.GetId():
                 parentName = ''
             else:
@@ -1350,3 +1695,62 @@ class DesignerView(wxFrame, InspectableObjectCollectionView):
                 
             self.cutCtrls([ctrlName], [], output)
             self.pasteCtrls(parentName, output)
+
+#---Moving/Sizing selections with the keyboard----------------------------------
+    def OnMoveLeft(self, event): 
+        sel = self.selection
+        if sel and sel.selection != self:
+            sel.position.x = sel.position.x - 1
+            sel.startPos.x = sel.startPos.x - 1
+            sel.resizeCtrl()
+            sel.setSelection()
+    def OnMoveRight(self, event): 
+        sel = self.selection
+        if sel and sel.selection != self:
+            sel.position.x = sel.position.x + 1
+            sel.startPos.x = sel.startPos.x + 1
+            sel.resizeCtrl()
+            sel.setSelection()
+    def OnMoveUp(self, event): 
+        sel = self.selection
+        if sel and sel.selection != self:
+            sel.position.y = sel.position.y - 1
+            sel.startPos.y = sel.startPos.y - 1
+            sel.resizeCtrl()
+            sel.setSelection()
+    def OnMoveDown(self, event): 
+        sel = self.selection
+        if sel and sel.selection != self:
+            sel.position.y = sel.position.y + 1
+            sel.startPos.y = sel.startPos.y + 1
+            sel.resizeCtrl()
+            sel.setSelection()
+    def OnWidthInc(self, event): 
+        sel = self.selection
+        if sel and sel.selection != self:
+            sel.size.x = sel.size.x + 1
+            sel.startSize.x = sel.startSize.x + 1
+            sel.resizeCtrl()
+            sel.setSelection()
+    def OnWidthDec(self, event): 
+        sel = self.selection
+        if sel and sel.selection != self:
+            sel.size.x = sel.size.x - 1
+            sel.startSize.x = sel.startSize.x - 1
+            sel.resizeCtrl()
+            sel.setSelection()
+    def OnHeightInc(self, event): 
+        sel = self.selection
+        if sel and sel.selection != self:
+            sel.size.y = sel.size.y + 1
+            sel.startSize.y = sel.startSize.y + 1
+            sel.resizeCtrl()
+            sel.setSelection()
+    def OnHeightDec(self, event): 
+        sel = self.selection
+        if sel and sel.selection != self:
+            sel.size.y = sel.size.y - 1
+            sel.startSize.y = sel.startSize.y - 1
+            sel.resizeCtrl()
+            sel.setSelection()
+
