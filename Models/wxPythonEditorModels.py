@@ -131,7 +131,7 @@ class BaseFrameModel(ClassModel):
                 raise 'Collection body %s not in init, body, fin form' % meth
 
             allInitialisers, unmatched = methodparse.parseMixedBody(\
-             [methodparse.CollectionItemInitParse, methodparse.EventParse],body)
+             [methodparse.EventParse, methodparse.CollectionItemInitParse],body)
 
             creators = allInitialisers.get(methodparse.CollectionItemInitParse, [])
             collectionInits = []
