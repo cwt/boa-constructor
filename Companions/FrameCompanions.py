@@ -15,13 +15,15 @@ from wxPython.wx import *
 
 from BaseCompanions import ContainerDTC
 
-from Constructors import *
+import Constructors
 from EventCollections import *
 
 from PropEdit.PropertyEditors import *
 from PropEdit.Enumerations import *
 
 from Preferences import wxDefaultFrameSize, wxDefaultFramePos
+
+import sourceconst
 
 class BaseFrameDTC(ContainerDTC):
     def __init__(self, name, designer, frameCtrl):
@@ -71,8 +73,17 @@ class BaseFrameDTC(ContainerDTC):
                     size = self.control.GetClientSize()
                     prop.params = ['wxSize(%d, %d)' % (size.x, size.y)]
 
+    def writeConstructor(self, output, collectionMethod, stripFrmId=''):
+        ContainerDTC.writeConstructor(self, output, collectionMethod, stripFrmId='')
+        if self.textConstr:
+            # Add call to init utils after frame constructor
+            if self.textConstr.comp_name == '' and \
+              collectionMethod == sourceconst.init_ctrls:
+                if self.designer.dataView.objects:
+                    output.append('%sself.%s()'%(sourceconst.bodyIndent, 
+                                                 sourceconst.init_utils))
 
-class FramesConstr(PropertyKeywordConstructor):
+class FramesConstr(Constructors.PropertyKeywordConstructor):
     def constructor(self):
         return {'Title': 'title', 'Position': 'pos', 'Size': 'size',
                 'Style': 'style', 'Name': 'name'}
@@ -226,7 +237,7 @@ class PopupWindowDTC(ContainerDTC):
 
 EventCategories['PanelEvent'] = (EVT_SYS_COLOUR_CHANGED,)
 
-class FramePanelDTC(WindowConstr, BaseFrameDTC):
+class FramePanelDTC(Constructors.WindowConstr, BaseFrameDTC):
     #wxDocs = HelpCompanions.wxPanelDocs
     suppressWindowId = false
     def __init__(self, name, designer, frameCtrl):
