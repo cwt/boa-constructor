@@ -297,7 +297,10 @@ class ClipboardControllerMix:
 
 class TransportError(Exception):
     def __str__(self):
-        return str(self.args[0])
+        try:
+            return str(self.args[0])
+        except:
+            return str(self.args)
 
 class TransportLoadError(TransportError):
     pass
@@ -1045,7 +1048,7 @@ explorerRootNodesReg = []
 
 
 def register(Node, clipboard=None, confdef=('', ''), controller=None, 
-             category=None, root=False):
+             category=None, root=false):
     """ Register a new explorer Node.
 
     clipboard  : Clipboard class or protocol name (string) of existing clipboard
