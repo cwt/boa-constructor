@@ -20,13 +20,13 @@ class ZipController(ExplorerNodes.Controller, ExplorerNodes.ClipboardControllerM
         self.menu = wxMenu()
 
         self.setupMenu(self.menu, self.list, self.clipMenuDef)
-        
+
         mi = self.menu.GetMenuItems()
         for m in mi:
             if m.GetId() != ExplorerNodes.wxID_CLIPCOPY:
                 m.Enable(false)
         self.toolbarMenus = [self.clipMenuDef]
-            
+
 
 class ZipExpClipboard(ExplorerNodes.ExplorerClipboard): pass
 ##    def clipPaste_FileSysExpClipboard(self, node, nodes, mode):
@@ -42,7 +42,7 @@ class ZipExpClipboard(ExplorerNodes.ExplorerClipboard): pass
 class ZipItemNode(ExplorerNodes.ExplorerNode):
     protocol = 'zip'
     def __init__(self, name, resourcepath, clipboard, isFolder, imgIdx, parent, zipFileNode):
-        ExplorerNodes.ExplorerNode.__init__(self, name, resourcepath, clipboard, imgIdx, 
+        ExplorerNodes.ExplorerNode.__init__(self, name, resourcepath, clipboard, imgIdx,
               parent)
         self.isFolder = isFolder
         self.zipFileNode = zipFileNode
@@ -52,47 +52,47 @@ class ZipItemNode(ExplorerNodes.ExplorerNode):
 #        return self.zipFileNode.isDir(self.resourcepath+'/'+self.name)
 
     def createChildNode(self, name, resourcepath, isFolder):
-        
+
         imgIdx = isFolder and EditorModels.FolderModel.imgIdx or \
               EditorModels.TextModel.imgIdx
         print 'rp', resourcepath, 'base', resourcepath and resourcepath+'/'+name or name
         return ZipItemNode(name, resourcepath and resourcepath+'/'+name or name, self.clipboard,
               isFolder, imgIdx, self, self.zipFileNode)
-        
+
     def openList(self, resourcepath = None):
         if resourcepath is None: resourcepath = self.resourcepath
         res = []
         files = self.zipFileNode.getFiles(resourcepath)
         for file in files:
             segs = string.split(file, '/')
-            if segs[-1] == '': 
+            if segs[-1] == '':
                 base = segs[-2]
                 dir = string.join(segs[:-2], '/')
             else:
                 base = segs[-1]
                 dir = string.join(segs[:-1], '/')
-                
+
             res.append(self.createChildNode(base, dir, self.zipFileNode.isDir(file)) )
         return res
-    
+
 ##    def copyFromFS(self, fsNode):
 ##        fn = os.path.basename(fsNode.resourcepath)
-##        cmd = 'pscp -pw %s %s %s' %(self.properties['scp_pass'], 
+##        cmd = 'pscp -pw %s %s %s' %(self.properties['scp_pass'],
 ##              fsNode.resourcepath,  self.remotePath(fn))
 ##        self.execSCP(cmd)
 
     def copyToFS(self, fsFolderNode):
         fn = os.path.join(fsFolderNode.resourcepath, self.name)
 
-        zf = zipfile.ZipFile(self.zipFileNode.resourcepath)        
+        zf = zipfile.ZipFile(self.zipFileNode.resourcepath)
         if self.isFolderish():
-            # XXX directories should be recursively copied or complete list 
+            # XXX directories should be recursively copied or complete list
             # XXX should be build by ZipClip
             os.mkdir(fn)
         else:
             open(fn, 'w').write(zf.read(self.resourcepath))
         zf.close()
-        
+
 class ZipFileNode(ZipItemNode):
     protocol = 'zip'
     def __init__(self, name, resourcepath, clipboard, imgIdx, parent):
@@ -100,25 +100,25 @@ class ZipFileNode(ZipItemNode):
             zipClip = ZipExpClipboard(clipboard.globClip)
         else:
             zipClip = None
-        ZipItemNode.__init__(self, name, resourcepath, zipClip, true, imgIdx, 
+        ZipItemNode.__init__(self, name, resourcepath, zipClip, true, imgIdx,
               parent, self)
         self.allFiles = []
         self.allFileNames = []
 
     def isFolderish(self):
         return true
-    
+
     def isDir(self, path):
         return path[-1] == '/'
 
     def openList(self):
-        zf = zipfile.ZipFile(self.resourcepath)        
+        zf = zipfile.ZipFile(self.resourcepath)
         self.allFiles = zf.filelist
         zf.close()
-        
+
         self.allFileNames = map(lambda fl: fl.filename, self.allFiles)
         return ZipItemNode.openList(self, '')
-        
+
     def getFiles(self, base):
         files = []
         for file in self.allFiles:
@@ -129,6 +129,3 @@ class ZipFileNode(ZipItemNode):
             if os.path.dirname(fn) == base:
                 files.append(file.filename)
         return files
-    
-
-    

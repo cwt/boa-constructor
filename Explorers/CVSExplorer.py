@@ -1,9 +1,9 @@
 #-----------------------------------------------------------------------------
 # Name:        CVSExplorer.py
-# Purpose:     
-#                
+# Purpose:
+#
 # Author:      Riaan Booysen
-#                
+#
 # Created:     2000/10/22
 # RCS-ID:      $Id$
 # Copyright:   (c) 1999, 2000 Riaan Booysen
@@ -17,6 +17,7 @@ import ExplorerNodes, EditorModels
 from Preferences import IS
 import Views.EditorViews
 import ProcessProgressDlg
+import scrm
 
 cvs_environ_vars = ['CVSROOT', 'CVS_RSH', 'HOME']
 cvs_environ_ids  = map(lambda x: wxNewId(), range(len(cvs_environ_vars)))
@@ -37,31 +38,10 @@ def isCVS(filename):
 
 def cvsFileLocallyModified(filename, timestamp):
     """  cvsFileLocallyModified -> modified, conflict """
-    filets = time.strftime('%a %b %d %H:%M:%S %Y', 
+    filets = time.strftime('%a %b %d %H:%M:%S %Y',
           time.gmtime(os.stat(filename)[stat.ST_MTIME]))
     return timestamp != filets, string.split(timestamp, '+')[0] == 'Result of merge'
 
-
-def scramble(str):
-    """ Directly but unrecognisably translated from CVS' scramble.c ;) """
-    shifts = (0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15,
-              16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31,
-              114,120, 53, 79, 96,109, 72,108, 70, 64, 76, 67,116, 74, 68, 87,
-              111, 52, 75,119, 49, 34, 82, 81, 95, 65,112, 86,118,110,122,105,
-              41, 57, 83, 43, 46,102, 40, 89, 38,103, 45, 50, 42,123, 91, 35,
-              125, 55, 54, 66,124,126, 59, 47, 92, 71,115, 78, 88,107,106, 56,
-              36,121,117,104,101,100, 69, 73, 99, 63, 94, 93, 39, 37, 61, 48,
-              58,113, 32, 90, 44, 98, 60, 51, 33, 97, 62, 77, 84, 80, 85,223,
-              225,216,187,166,229,189,222,188,141,249,148,200,184,136,248,190,
-              199,170,181,204,138,232,218,183,255,234,220,247,213,203,226,193,
-              174,172,228,252,217,201,131,230,197,211,145,238,161,179,160,212,
-              207,221,254,173,202,146,224,151,140,196,205,130,135,133,143,246,
-              192,159,244,239,185,168,215,144,139,165,180,157,147,186,214,176,
-              227,231,219,169,175,156,206,198,129,164,150,210,154,177,134,127,
-              182,128,158,208,162,132,167,209,149,241,153,251,237,236,171,195,
-              243,233,253,240,194,250,191,155,142,137,245,235,163,242,178,152 )
-
-    return 'A'+string.join(map(lambda c,shifts=shifts: chr(shifts[ord(c)]), list(str)), '')
 
 class CVSController(ExplorerNodes.Controller):
     updateBmp = 'Images/CvsPics/Update.bmp'
@@ -105,18 +85,18 @@ class CVSController(ExplorerNodes.Controller):
               (wxID_FSCVSCHECKOUT, 'Checkout', self.OnCheckoutCVSFSItems, '-'),
               (-1, '-', None, ''),
               (wxID_FSCVSLOGIN, 'Login', self.OnLoginCVS, '-'),
-              (wxID_FSCVSLOGOUT, 'Logout', self.OnLogoutCVS, '-'), 
+              (wxID_FSCVSLOGOUT, 'Logout', self.OnLogoutCVS, '-'),
               (-1, '-', None, ''),
         )
 
         self.fileCVSMenu = wxMenu()
         self.setupMenu(self.fileCVSMenu, self.list, self.fileCVSMenuDef)
-        
+
         self.cvsEnvMenu = wxMenu()
         menus = []
         for env, id in map(lambda x, v = cvs_environ_vars, i = cvs_environ_ids: \
             (v[x], i[x]), range(len(cvs_environ_vars))):
-              menus.append( (id, env, self.OnEditEnv, '-') )  
+            menus.append( (id, env, self.OnEditEnv, '-') )
         self.setupMenu(self.cvsEnvMenu, self.list, menus)
 
         self.fileCVSMenu.AppendMenu(wxID_FSCVSENV, 'CVS shell environment vars', self.cvsEnvMenu)
@@ -134,17 +114,17 @@ class CVSController(ExplorerNodes.Controller):
         self.images.Add(IS.load('Images/CvsPics/UnknownFile.bmp'))
 
         self.toolbarMenus = [self.cvsMenuDef]
-        
+
         FSCVSFolderNode.images = self.images
 
     def __del__(self):
         self.menu.Destroy()
         self.fileCVSMenu.Destroy()
         self.cvsEnvMenu.Destroy()
-    
+
     def setupListCtrl(self):
         self.list.SetWindowStyleFlag(wxLC_REPORT)
-        self.list.InsertColumn(0, 'Name', wxLIST_FORMAT_LEFT, 150) 
+        self.list.InsertColumn(0, 'Name', wxLIST_FORMAT_LEFT, 150)
         self.list.InsertColumn(1, 'Rev.', wxLIST_FORMAT_LEFT, 50)
         self.list.InsertColumn(2, 'Date', wxLIST_FORMAT_LEFT, 150)
         self.list.InsertColumn(3, 'Status', wxLIST_FORMAT_LEFT, 150)
@@ -155,7 +135,7 @@ class CVSController(ExplorerNodes.Controller):
         cols.reverse()
         for col in cols:
             self.list.DeleteColumn(col)
-            
+
     def showMessage(self, cmd, msg):
         dlg = wxScrolledMessageDialog(self.list, msg, cmd)
         try: dlg.ShowModal()
@@ -163,12 +143,12 @@ class CVSController(ExplorerNodes.Controller):
 
     def cvsCmd(self, command, options, files):
         return 'cvs %s %s %s %s' % (self.cvsOptions, command, options, string.join(files, ' '))
-    
+
     def cvsCmdPrompt(self, wholeCommand, inDir, help = ''):
         print help
         dlg = wxTextEntryDialog(self.list, 'CVSROOT: %s\nCVS_RSH: %s\n(in dir %s)\n\n%s'\
-              %(os.environ.get('CVSROOT', '(not defined)'), 
-                os.environ.get('CVS_RSH', '(not defined)'), inDir, help), 
+              %(os.environ.get('CVSROOT', '(not defined)'),
+                os.environ.get('CVS_RSH', '(not defined)'), inDir, help),
               'CVS command line', wholeCommand)
         try:
             if dlg.ShowModal() == wxID_OK:
@@ -177,13 +157,13 @@ class CVSController(ExplorerNodes.Controller):
                 return ''
         finally:
             dlg.Destroy()
-    
+
     def getCvsHelp(self, cmd, option = '-H'):
 ##        from popen2import import popen3
 ##        inp, outp, errp = popen3('cvs %s %s'% (option, cmd))
 ##        # remove last line
 ##        return string.join(errp.readlines()[:-1])
-        CVSPD = ProcessProgressDlg.ProcessProgressDlg(self.list, 
+        CVSPD = ProcessProgressDlg.ProcessProgressDlg(self.list,
                   'cvs %s %s'% (option, cmd), '', modally=false)
         try:
             return string.join(CVSPD.errors[:-1])
@@ -193,9 +173,9 @@ class CVSController(ExplorerNodes.Controller):
     def doCvsCmd(self, cmd, cvsDir, stdinput = ''):
         # Repaint background
         wxYield()
-        
+
 #        from popen2import import popen3
-            
+
         cwd = os.getcwd()
         try:
             os.chdir(cvsDir)
@@ -215,7 +195,7 @@ class CVSController(ExplorerNodes.Controller):
 ##                    if not ln: break
 ##                    print string.strip(ln)
 ##                    outls.append(ln)
-##            finally: 
+##            finally:
 ##                wxEndBusyCursor()
 ##
 ##            wxBeginBusyCursor()
@@ -230,13 +210,13 @@ class CVSController(ExplorerNodes.Controller):
                     return
             finally:
                 CVSPD.Destroy()
-                        
+
             if string.strip(err):
                 dlg = wxMessageDialog(self.list, err,
                   'Server response or Error', wxOK | wxICON_EXCLAMATION)
                 try: dlg.ShowModal()
                 finally: dlg.Destroy()
-                
+
             if outls and not (len(outls) == 1 and not string.strip(outls[0])):
                 outls.append(`len(outls)`)
                 self.showMessage(cmd, string.join(outls, ''))
@@ -251,22 +231,22 @@ class CVSController(ExplorerNodes.Controller):
             if not names: names = ['.']
 ##                names = ['']
 ##                cvsDir, names[0] = os.path.split(cvsDir)
-            cmdStr = self.cvsCmdPrompt(self.cvsCmd(cmd, cmdOpts, names), cvsDir, 
+            cmdStr = self.cvsCmdPrompt(self.cvsCmd(cmd, cmdOpts, names), cvsDir,
                   self.getCvsHelp(cmd))
-            if cmdStr: 
+            if cmdStr:
                 if preCmdFunc: preCmdFunc(names)
                 self.doCvsCmd(cmdStr, cvsDir)
                 if postCmdFunc: postCmdFunc(names)
 
     def doCvsCmdInDir(self, cmd, cmdOpts, cvsDir, items):
-        cmdStr = self.cvsCmdPrompt(self.cvsCmd(cmd, cmdOpts, items), 
+        cmdStr = self.cvsCmdPrompt(self.cvsCmd(cmd, cmdOpts, items),
               cvsDir, self.getCvsHelp(cmd))
         if cmdStr:
             self.doCvsCmd(cmdStr, cvsDir)
 
     def importCVSItems(self):
         # Imports are called from normal folders not CVS folders
-        
+
         # XXX Check if CVS folder exists ?
         cvsDir = self.list.node.resourcepath
         self.doCvsCmdInDir('import', '', cvsDir, ['[MODULE]', 'VENDOR', 'RELEASE'])
@@ -280,14 +260,14 @@ class CVSController(ExplorerNodes.Controller):
         self.doCvsCmdInDir('checkout', '-P', cvsDir, ['[MODULE]'])
 
         self.list.refreshCurrent()
-    
+
     def updateCVSItems(self):
         self.doCvsCmdOnSelection('update', '')
         self.list.refreshCurrent()
 
     def OnUpdateCVSItems(self, event):
         self.updateCVSItems()
-            
+
     def OnCommitCVSItems(self, event):
         self.doCvsCmdOnSelection('commit', '-m "no message"')
         self.list.refreshCurrent()
@@ -324,8 +304,8 @@ class CVSController(ExplorerNodes.Controller):
 
     def OnImportCVSFSItems(self, event):
         self.importCVSItems()
-            
-    def OnCheckoutCVSFSItems(self, event): 
+
+    def OnCheckoutCVSFSItems(self, event):
         self.checkoutCVSItems()
 
     def OnTagCVSItems(self, event):
@@ -339,11 +319,11 @@ class CVSController(ExplorerNodes.Controller):
 
     def OnUnlockCVSItems(self, event):
         self.doCvsCmdOnSelection('admin', '-u[REV]')
-    
+
     def OnLoginCVS(self, event):
         cvsDir = self.list.node.resourcepath
 #                self.doCvsCmdInDir('login', '', cvsDir, [], answer + '\n')
-        
+
         # Login can be called from file system folders and cvs folders
         if isinstance(self.list.node, FSCVSFolderNode):
             cvsroot = self.list.node.root
@@ -359,7 +339,7 @@ class CVSController(ExplorerNodes.Controller):
               style = wxOK | wxCANCEL | wxCENTRE | wxTE_PASSWORD)
         try:
             if dlg.ShowModal() == wxID_OK:
-                password = scramble(dlg.GetValue())
+                password = scrm.scramble(dlg.GetValue())
             else:
                 return
         finally:
@@ -379,19 +359,19 @@ class CVSController(ExplorerNodes.Controller):
             raise Exception('HOME env var is not defined or not legal')
 
         passln = cvsroot + ' ' +password + '\n'
-        
+
         if passln not in passwds:
             passfile.write(passln)
-        passfile.close()    
-        
+        passfile.close()
+
     def OnLogoutCVS(self, event):
         cvsDir = self.list.node.resourcepath
         self.doCvsCmdInDir('logout', '', cvsDir, [])
-    
+
     def OnEditEnv(self, event):
         envKey = cvs_environ_vars[cvs_environ_ids.index(event.GetId())]
         envVal = os.environ.get(envKey, '(not defined)')
-        dlg = wxTextEntryDialog(self.list, 'Edit CVS shell environment variable: %s\nA blank entry will remove the variable.'% envKey, 
+        dlg = wxTextEntryDialog(self.list, 'Edit CVS shell environment variable: %s\nA blank entry will remove the variable.'% envKey,
             'CVS shell environment variables', envVal)
         try:
             if dlg.ShowModal() == wxID_OK:
@@ -406,12 +386,12 @@ class CVSController(ExplorerNodes.Controller):
                         del os.environ[envKey]
         finally:
             dlg.Destroy()
-    
+
     def OnTest(self, event):
         print 'TEST'
-#        self.list.SetWindowStyleFlag(wxLC_REPORT)    
+#        self.list.SetWindowStyleFlag(wxLC_REPORT)
         self.setupListCtrl()
-    
+
 class CVSFolderNode(ExplorerNodes.ExplorerNode):
     protocol = 'cvs'
     def __init__(self, entriesLine, resourcepath, dirpos, parent):
@@ -420,15 +400,15 @@ class CVSFolderNode(ExplorerNodes.ExplorerNode):
               string.split(entriesLine[2:], '/')
         else:
             name=self.revision=self.timestamp=self.options=self.tagdate = ''
-    
+
         ExplorerNodes.ExplorerNode.__init__(self, name, resourcepath, None, cvsFolderImgIdx, parent)
-        
+
         self.dirpos = dirpos
 
     def text(self):
         return string.join(('D', self.name, self.revision, self.timestamp, self.options, self.tagdate), '/')
 
-    def isFolderish(self): 
+    def isFolderish(self):
         return false
 
     def createParentNode(self):
@@ -467,13 +447,13 @@ class CVSFileNode(ExplorerNodes.ExplorerNode):
                 self.modified, self.conflict = cvsFileLocallyModified(filename, self.timestamp)
             else:
                 self.missing = true
-        
+
         self.imgIdx = self.missing and self.missing << 2 \
                       or (self.options == '-kb' and not self.modified) \
                       or (self.options == '-kb' and self.modified and 3) \
-                      or self.conflict *5 or self.modified << 1 
+                      or self.conflict *5 or self.modified << 1
 
-    def isFolderish(self): 
+    def isFolderish(self):
         return false
 
     def getDescription(self):
@@ -490,9 +470,9 @@ class CVSFileNode(ExplorerNodes.ExplorerNode):
             else:
                 resultView = model.views[CVSConflictsView.viewName]
             resultView.refresh()
-            resultView.focus()        
-        
-        
+            resultView.focus()
+
+
     def text(self):
         return string.join(('', self.name, self.revision, self.timestamp, self.options, self.tagdate), '/')
 
@@ -504,18 +484,18 @@ class CVSUnAddedItem(ExplorerNodes.ExplorerNode):
         tree = editor.explorer.tree
         tree.SelectItem(tree.GetItemParent(tree.GetSelection()))
         editor.explorer.list.selectItemNamed(self.name)
-    
+
 class FSCVSFolderNode(ExplorerNodes.ExplorerNode):
     protocol = 'cvs'
     def __init__(self, name, resourcepath, clipboard, parent):
-        ExplorerNodes.ExplorerNode.__init__(self, name, resourcepath, clipboard, 
+        ExplorerNodes.ExplorerNode.__init__(self, name, resourcepath, clipboard,
               EditorModels.CVSFolderModel.imgIdx, parent)
         self.dirpos = 0
         self.upImgIdx = 7
-    
+
     def destroy(self):
         self.entries = []
-    
+
     def getDescription(self):
         try:
             return '%s'% (self.root)
@@ -528,7 +508,7 @@ class FSCVSFolderNode(ExplorerNodes.ExplorerNode):
         except AttributeError:
             return ExplorerNodes.ExplorerNode.getTitle(self)
 
-    def isFolderish(self): 
+    def isFolderish(self):
         return true
 
     def createParentNode(self):
@@ -542,7 +522,7 @@ class FSCVSFolderNode(ExplorerNodes.ExplorerNode):
     def createChildNode(self, txtEntry):
         if not txtEntry or txtEntry == 'D':
             return None
-            # XXX Maybe add all dirs?   
+            # XXX Maybe add all dirs?
         elif txtEntry[0] == 'D':
             return CVSFolderNode(txtEntry, self.resourcepath, self.dirpos, self)
             self.dirpos = self.dirpos + 1
@@ -573,29 +553,29 @@ class FSCVSFolderNode(ExplorerNodes.ExplorerNode):
                 res[cvsNode.name] = cvsNode
                 if cvsNode.name not in filenames:
                     missingEntries.append(cvsNode)
-        
-        lst = []         
+
+        lst = []
         for entry in fileEntries:
             testCVSDir = os.path.join(entry.resourcepath, 'CVS')
             if os.path.isdir(entry.resourcepath) and \
                   os.path.exists(testCVSDir) and isCVS(testCVSDir):
-                node = CVSFolderNode('D/%s////'%entry.name, self.resourcepath, 
+                node = CVSFolderNode('D/%s////'%entry.name, self.resourcepath,
                   self.dirpos, self)
             else:
-                node = res.get(entry.name, CVSUnAddedItem(entry.name, entry.resourcepath, self, entry.isFolderish()))    
+                node = res.get(entry.name, CVSUnAddedItem(entry.name, entry.resourcepath, self, entry.isFolderish()))
             if node:
                 lst.append(node)
-        
+
         for missing in missingEntries:
             lst.append(missing)
-        
+
         self.entries = lst
         return lst
 
     def open(self, editor):
         editor.openOrGotoModule(self.resourcepath)
 
-    def openParent(self, editor): 
+    def openParent(self, editor):
         tree = editor.explorer.tree
         cvsParentItemParent = tree.GetItemParent(tree.GetItemParent(tree.GetSelection()))
 
@@ -612,11 +592,11 @@ class CVSConflictsView(Views.EditorViews.ListCtrlView):
     gotoLineBmp = 'Images/Editor/GotoLine.bmp'
     acceptBmp = 'Images/Inspector/Post.bmp'
     rejectBmp = 'Images/Inspector/Cancel.bmp'
-    
+
     def __init__(self, parent, model):
-        Views.EditorViews.ListCtrlView.__init__(self, parent, model, wxLC_REPORT, 
+        Views.EditorViews.ListCtrlView.__init__(self, parent, model, wxLC_REPORT,
           (('Goto line', self.OnGoto, self.gotoLineBmp, ()),
-           ('Accept changes', self.OnAcceptChanges, self.acceptBmp, ()), 
+           ('Accept changes', self.OnAcceptChanges, self.acceptBmp, ()),
            ('Reject changes', self.OnRejectChanges, self.rejectBmp, ()) ), 0)
         self.InsertColumn(0, 'Rev')
         self.InsertColumn(1, 'Line#')
@@ -625,11 +605,11 @@ class CVSConflictsView(Views.EditorViews.ListCtrlView):
         self.SetColumnWidth(1, 40)
         self.SetColumnWidth(2, 40)
 
-        self.conflicts = []        
+        self.conflicts = []
 
     def refreshCtrl(self):
         Views.EditorViews.ListCtrlView.refreshCtrl(self)
-        
+
         self.conflicts = self.model.getCVSConflicts()
 
         confCnt = 0
