@@ -1,3 +1,14 @@
+#-----------------------------------------------------------------------------
+# Name:        ModRunner.py
+# Purpose:     Different process executers.
+#                
+# Author:      Riaan Booysen
+#                
+# Created:     2001/12/02
+# RCS-ID:      $Id$
+# Copyright:   (c) 1999, 2000 Riaan Booysen
+# Licence:     GPL
+#-----------------------------------------------------------------------------
 from wxPython.wx import *
 from os import path
 
@@ -26,7 +37,8 @@ class ModuleRunner:
 class CompileModuleRunner(ModuleRunner):
     """ Uses compiles a module to show errors in frame"""
     def run(self, filename):
-        py_compile.compile(self.filename)
+        import py_compile
+        py_compile.compile(filename)
         
 class ExecuteModuleRunner(ModuleRunner):
     """ Uses wxPython's wxExecute, no redirection """
