@@ -149,7 +149,7 @@ class AboutBoxMixin:
               size=self.GetClientSize(), style=wxCLIP_CHILDREN)
         self.blackback.SetBackgroundColour(wxBLACK)
 
-        self.html = Utils.wxUrlClickHtmlWindow(self.blackback, -1, flags=wxCLIP_CHILDREN)
+        self.html = Utils.wxUrlClickHtmlWindow(self.blackback)#, -1, style=wxCLIP_CHILDREN)
         Utils.EVT_HTML_URL_CLICK(self.html, self.OnLinkClick)
         self.setPage()
         self.blackback.SetAutoLayout(true)
