@@ -18,7 +18,9 @@ from wxPython import wx
 
 from Views.EditorViews import HTMLView, ListCtrlView
 from Views.SourceViews import EditorStyledTextCtrl
+from Views.StyledTextCtrls import DebuggingViewSTCMix
 from Models.HTMLSupport import BaseHTMLStyledTextCtrlMix
+
 import Utils
 
 from ExternalLib import xmlrpclib
@@ -51,18 +53,39 @@ class ZopeHTMLStyledTextCtrlMix(BaseHTMLStyledTextCtrlMix):
 
         self.setStyles()
 
-class ZopeHTMLSourceView(EditorStyledTextCtrl, ZopeHTMLStyledTextCtrlMix):
+class ZopeHTMLSourceView(EditorStyledTextCtrl, 
+                         ZopeHTMLStyledTextCtrlMix, 
+                         DebuggingViewSTCMix):
     viewName = 'ZopeHTML'
-    def __init__(self, parent, model):
+    breakBmp = 'Images/Debug/Breakpoints.png'
+    def __init__(self, parent, model, actions=()):
         wxID_ZOPEHTMLSOURCEVIEW = wx.wxNewId()
         EditorStyledTextCtrl.__init__(self, parent, wxID_ZOPEHTMLSOURCEVIEW,
-          model, (('Refresh', self.OnRefresh, '-', 'Refresh'),), -1)
+          model, (('Refresh', self.OnRefresh, '-', 'Refresh'),) + actions, -1)
         ZopeHTMLStyledTextCtrlMix.__init__(self, wxID_ZOPEHTMLSOURCEVIEW)
         self.active = true
 
-    def OnUpdateUI(self, event):
-        if hasattr(self, 'pageIdx'):
-            self.updateViewState()
+class ZopeDebugHTMLSourceView(ZopeHTMLSourceView, DebuggingViewSTCMix):
+    breakBmp = 'Images/Debug/Breakpoints.png'
+    def __init__(self, parent, model, actions=()):
+        ZopeHTMLSourceView.__init__(self, parent, model, 
+      (('Toggle breakpoint', self.OnSetBreakPoint, self.breakBmp, 'ToggleBrk'),)
+        )
+
+        from Views.PySourceView import brkPtMrk, tmpBrkPtMrk, disabledBrkPtMrk, \
+                                       stepPosMrk, symbolMrg
+        DebuggingViewSTCMix.__init__(self, (brkPtMrk, tmpBrkPtMrk, 
+              disabledBrkPtMrk, stepPosMrk))
+        self.setupDebuggingMargin(symbolMrg)
+
+        self.active = true
+
+    def OnMarginClick(self, event):
+        DebuggingViewSTCMix.OnMarginClick(self, event)
+
+    def refreshCtrl(self):
+        ZopeHTMLSourceView.refreshCtrl(self)
+        self.setInitialBreakpoints()
 
 class ZopeHTMLView(HTMLView):
     viewName = 'View'
