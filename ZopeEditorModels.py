@@ -72,12 +72,17 @@ class ZopeEditorModel(EditorModels.EditorModel):
         self.zopeObj = zopeObject  #this is the instance of our node now
 
     def save(self):
+        """ This is perhaps not the best style, but here all exceptions
+            on saving are caught and transformed to TransportSaveErrors.
+            To much maintenance for every Node type to add exceptions
+        """
         from ExternalLib.xmlrpclib import Fault
-        import HTMLResponse
         try:
             EditorModels.EditorModel.save(self)
         except Fault, err:
-            HTMLResponse.create(self.editor, err.faultString).Show(true)
+            from Explorers import ExplorerNodes
+            raise ExplorerNodes.TransportSaveError(Utils.html2txt(err.faultString),
+                self.zopeObj.resourcepath)
 
 class ZopeBlankEditorModel(ZopeEditorModel):
     """ Objects which are's loaded and saved and does not have a 'Main' view,
