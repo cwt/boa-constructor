@@ -675,7 +675,7 @@ class ZSQLNode(ZopeNode):
     defaultViews = (Views.SourceViews.HTMLSourceView,)
     additionalViews = (ZopeViews.ZopeSecurityView, Views.EditorViews.ToDoView,
                        ZopeViews.ZopeUndoView)
-    def save(self, filename, data):
+    def save(self, filename, data, mode='wb'):
         """ Saves contents of data to Zope """
         try:
             self.getResource().PUT({'BODY':data})
@@ -707,7 +707,7 @@ class PythonNode(ZopeNode):
             tmp2.append(l)
         return string.join(tmp2, '\n')
 
-    def save(self, filename, data):
+    def save(self, filename, data, mode='wb'):
         self.getResource().manage_edit(self.name, self.getParams(data),
               self.getBody(data))
 
