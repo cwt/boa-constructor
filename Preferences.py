@@ -77,9 +77,9 @@ if not os.path.isdir(rcPath):
 
 # upgrade if needed and exec in our namespace
 plat = wx.wxPlatform == '__WXMSW__' and 'msw' or 'gtk'
-for prefsFile, version in (('prefs.rc.py', 6),
-                           ('prefs.%s.rc.py'%plat, 5),
-                           ('prefskeys.rc.py', 5)):
+for prefsFile, version in (('prefs.rc.py', 7),
+                           ('prefs.%s.rc.py'%plat, 6),
+                           ('prefskeys.rc.py', 6)):
     file = os.path.join(rcPath, prefsFile)
 
     # first time, install to env dir
@@ -181,7 +181,7 @@ else:
     oglBoldFont = wxFont(12, wxDEFAULT, wxNORMAL, wxBOLD, false)
     oglStdFont = wxFont(10, wxDEFAULT, wxNORMAL, wxNORMAL, false)
 
-
+expandEditorOnCloseInspector = false
 
 #-------------------------------------------------------------------------------
 # Delays wxApp_Cleanup
