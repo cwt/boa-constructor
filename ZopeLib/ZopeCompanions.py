@@ -90,7 +90,7 @@ class StrZopePropEdit(ZopePropEdit):
         return self.value
 
 class BoolZopePropEdit(ZopePropEdit):
-    boolValMap = {'on': 'true', '': 'false', '1': 'true', '0': 'false'}
+    boolValMap = {'on': 'True', '': 'False', '1': 'True', '0': 'False'}
     boolKeyMap = {'true': 'on', 'false': ''}
     def valueToIECValue(self):
 ##        return self.boolValMap[self.value]
@@ -105,10 +105,10 @@ class BoolZopePropEdit(ZopePropEdit):
     def getDisplayValue(self):
         return self.valueToIECValue()
     def getValues(self):
-        return ['false', 'true']
+        return ['False', 'True']
     def getValue(self):
         if self.editorCtrl:
-            self.value = self.boolKeyMap[self.editorCtrl.getValue()]
+            self.value = self.boolKeyMap[string.lower(self.editorCtrl.getValue())]
 ##            if v == 'true'
 ##            self.value = self.getValues().index(self.editorCtrl.getValue())
         return self.value
