@@ -225,44 +225,42 @@ class BrowseStyledTextCtrlMix:
         return idWord(line, piv, lnStPs)
 
     def OnBrowseMotion(self, event):
-        try:
-            #check if words should be underlined
-            if event.ControlDown():
-                mp = event.GetPosition()
-                pos = self.PositionFromPoint(wxPoint(mp.x, mp.y))
+        event.Skip()
+        #check if words should be underlined
+        if event.ControlDown():
+            mp = event.GetPosition()
+            pos = self.PositionFromPoint(wxPoint(mp.x, mp.y))
 
-                stl = self.GetStyleAt(pos) & 31
+            stl = self.GetStyleAt(pos) & 31
 
-                if self.StyleVeto(stl):
-                    if self.styleLength > 0:
-                        self.styleStart, self.styleLength = \
-                          self.clearUnderline(self.styleStart, self.styleLength)
-                    return
-
-                lnNo = self.LineFromPosition(pos)
-                lnStPs = self.PositionFromLine(lnNo)
-                line = self.GetLine(lnNo)
-                piv = pos - lnStPs
-                start, length = self.getBrowsableText(line, piv, lnStPs)
-                #mark new
-                if length > 0 and self.styleStart != start:
-                    if self.styleLength > 0:
-                        self.clearUnderline(self.styleStart, self.styleLength)
-                    self.styleStart,self.styleLength = \
-                      self.underlineWord(start, length)
-                #keep current
-                elif self.styleStart == start: pass
-                #delete previous
-                elif self.styleLength > 0:
+            if self.StyleVeto(stl):
+                if self.styleLength > 0:
                     self.styleStart, self.styleLength = \
                       self.clearUnderline(self.styleStart, self.styleLength)
+                return
 
-            #clear any underlined words
+            lnNo = self.LineFromPosition(pos)
+            lnStPs = self.PositionFromLine(lnNo)
+            line = self.GetLine(lnNo)
+            piv = pos - lnStPs
+            start, length = self.getBrowsableText(line, piv, lnStPs)
+            #mark new
+            if length > 0 and self.styleStart != start:
+                if self.styleLength > 0:
+                    self.clearUnderline(self.styleStart, self.styleLength)
+                self.styleStart,self.styleLength = \
+                  self.underlineWord(start, length)
+            #keep current
+            elif self.styleStart == start: pass
+            #delete previous
             elif self.styleLength > 0:
                 self.styleStart, self.styleLength = \
                   self.clearUnderline(self.styleStart, self.styleLength)
-        finally:
-            event.Skip()
+
+        #clear any underlined words
+        elif self.styleLength > 0:
+            self.styleStart, self.styleLength = \
+              self.clearUnderline(self.styleStart, self.styleLength)
 
     def getStyledWordElems(self, styleStart, styleLength):
         if styleLength > 0:
@@ -726,6 +724,9 @@ class PythonStyledTextCtrlMix(LanguageSTCMix):
         LanguageSTCMix.__init__(self, wId, margin, 'python', stcConfigPath)
 
         self.keywords = self.keywords + ' yield true false None'
+        try: True
+        except NameError: pass
+        else: self.keywords = self.keywords + ' True False'
 
         self.setStyles()
 
