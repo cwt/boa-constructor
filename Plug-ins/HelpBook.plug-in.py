@@ -333,19 +333,21 @@ class HelpBookModel(EditorModels.SourceModel):
         EditorModels.SourceModel.__init__(self, data, name, editor, saved)
 
         contents = os.path.splitext(name)[0]+'.hhc'
-        transport = Explorer.openEx(contents)
         try:
+            transport = Explorer.openEx(contents)
             data = transport.load()
         except ExplorerNodes.TransportError:
+            transport = None
             data = ''
         self.contentsModel = EditorModels.SourceModel(data, contents, editor, saved)
         self.contentsModel.transport = transport
 
         indexes = os.path.splitext(name)[0]+'.hhk'
-        transport = Explorer.openEx(indexes)
         try:
+            transport = Explorer.openEx(indexes)
             data = transport.load()
         except ExplorerNodes.TransportError:
+            transport = None
             data = ''
         self.indexesModel = EditorModels.SourceModel(data, indexes, editor, saved)
         self.indexesModel.transport = transport
