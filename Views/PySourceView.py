@@ -913,9 +913,12 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
         selStartPos, selEndPos = self.GetSelection()
         if selStartPos != selEndPos:
             self.processSelectionBlock(self.processUncomment)
-        elif self.GetTextRange(selStartPos, selStartPos+2) == '##':
-            self.SetSelection(selStartPos, selStartPos+2)
-            self.ReplaceSelection('')
+        else:
+            linePos = self.PositionFromLine(self.LineFromPosition(selStartPos))
+            if self.GetTextRange(linePos, linePos+2) == '##':
+                self.SetSelection(linePos, linePos+2)
+                self.ReplaceSelection('')
+                self.SetSelection(selStartPos, selStartPos)
 
     def OnIndent(self, event):
         selStartPos, selEndPos = self.GetSelection()
@@ -990,25 +993,27 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
 ##            if not self.AutoCompActive(): return
         # Smart delete
         elif key == 8:
-            if self.GetUseTabs():
-                indtSze = 1
-            else:
-                indtSze = self.GetTabWidth()
-            line = self.GetCurLine()
-            if len(line): line = line[0]
-            else: line = ''
-            pos = self.GetCurrentPos()
-            self.damagedLine = self.LineFromPosition(pos)
-            #ignore indenting when at start of line
-            if self.PositionFromLine(self.LineFromPosition(pos)) != pos:
-                pos = pos -1
-                ln = self.LineFromPosition(pos)
-                ls = self.PositionFromLine(ln)
-                st = pos - ls
-                if not line[:st].strip():
-                    self.SetSelection(ls + st/indtSze*indtSze, pos+1)
-                    self.ReplaceSelection('')
-                    return
+            selStartPos, selEndPos = self.GetSelection()
+            if selStartPos == selEndPos:
+                if self.GetUseTabs():
+                    indtSze = 1
+                else:
+                    indtSze = self.GetTabWidth()
+                line = self.GetCurLine()
+                if len(line): line = line[0]
+                else: line = ''
+                pos = self.GetCurrentPos()
+                self.damagedLine = self.LineFromPosition(pos)
+                #ignore indenting when at start of line
+                if self.PositionFromLine(self.LineFromPosition(pos)) != pos:
+                    pos = pos -1
+                    ln = self.LineFromPosition(pos)
+                    ls = self.PositionFromLine(ln)
+                    st = pos - ls
+                    if not line[:st].strip():
+                        self.SetSelection(ls + st/indtSze*indtSze, pos+1)
+                        self.ReplaceSelection('')
+                        return
         #event.Skip()
         BrowseStyledTextCtrlMix.OnKeyDown(self, event)
 
@@ -1018,7 +1023,7 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
         ln = self.LineFromPosition(pos)
         ls = self.PositionFromLine(ln)
         self.InsertText(ls, '#-------------------------------------------'
-                                    '------------------------------------'+self.eol)
+                            '------------------------------------'+self.eol)
         self.SetCurrentPos(ls+4)
         self.SetAnchor(ls+4)
 
