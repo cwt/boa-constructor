@@ -1,24 +1,24 @@
 #----------------------------------------------------------------------------
 # Name:         Debugger.py
-# Purpose:      wxPython debugger, currently a port of IDLE's debugger
-#               written by Guido van Rossum
+# Purpose:      wxPython debugger, a port of IDLE's debugger written by Guido 
 #
 # Author:       Riaan Booysen
 #
 # Created:      2000/01/11
 # RCS-ID:       $Id$
-# Copyright:    (c) Riaan Booysen
-# Licence:      GPL
+# Copyright:    (c) 2000 - 2001
+# Licence:      dual GPL & Python
 #----------------------------------------------------------------------------
 
-from   wxPython.wx import *
-import wxPython
-import ShellEditor, Preferences
 import string, sys, os
 from os import path
 from repr import Repr
 import bdb, traceback, linecache, imp, pprint
-import Utils
+
+from wxPython.wx import *
+import wxPython
+
+import Preferences, Utils
 from Preferences import pyPath, IS, flatTools
 from PhonyApp import wxPhonyApp
 
@@ -563,6 +563,11 @@ class DebugStatusBar(wxStatusBar):
 
 class DebuggerFrame(wxFrame, bdb.Bdb):
     def __init__(self, model, stack = None):
+        try:
+            self.filename = model.assertLocalFile()
+        except AssertionError:
+            raise Exception('Can only debug local files.')
+
         bdb.Bdb.__init__(self)
         wxFrame.__init__(self, model.editor, -1, 'Debugger - %s - %s' \
           % (path.basename(model.filename), model.filename),
@@ -582,7 +587,6 @@ class DebuggerFrame(wxFrame, bdb.Bdb):
         self.viewsImgLst.Add(IS.load('Images/Debug/Output.bmp'))
 
         self.interacting = 0
-        self.filename = model.filename
 #        self.app = app
         self.model = model
         self.app = self.model.editor.app
@@ -610,7 +614,7 @@ class DebuggerFrame(wxFrame, bdb.Bdb):
           'Images/Debug/DebugBrowse.bmp',  'Debug browsing',
           self.OnDebugBrowse, '1')
         self.shellNamespaceId = Utils.AddToolButtonBmpIS(self, self.toolbar,
-          'Images/Debug/DebugBrowse.bmp',  'Namespace in shell',
+          'Images/Debug/ShellDebug.bmp',  'Eval in shell',
           self.OnDebugNamespace, '1')
 
         self.toolbar.Realize()
@@ -618,7 +622,7 @@ class DebuggerFrame(wxFrame, bdb.Bdb):
         self.toolbar.ToggleTool(self.sourceTraceId, true)
         self.toolbar.ToggleTool(self.debugBrowseId, true)
 
-        self.splitter = wxSplitterWindow(self, -1, style = wxSP_NOBORDER)
+        self.splitter = wxSplitterWindow(self, -1, style = wxSP_NOBORDER| wxSP_3DSASH | wxSP_FULLSASH)
 
         # Create a Notebook
         self.nbTop = wxNotebook(self.splitter, -1)
@@ -724,7 +728,6 @@ class DebuggerFrame(wxFrame, bdb.Bdb):
         self.show_variables()
 
     def getVarValue(self, name):
-        print 'getVarValue', name
         if self.frame:
             try:
                 return pprint.pformat(eval(name, self.frame.f_globals, self.frame.f_locals))
@@ -765,21 +768,23 @@ class DebuggerFrame(wxFrame, bdb.Bdb):
         tmpApp = wxPython.wx.wxApp
         tmpSimpleApp = wxPython.wx.wxPySimpleApp
         tmpArgs = sys.argv[:]
-        wxPhonyApp.debugger = self
-        wxPython.wx.wxApp = wxPhonyApp
-        wxPython.wx.wxPySimpleApp = wxPhonyApp
+        wxPython.wx.wxApp.debugger = self
+##        wxPhonyApp.debugger = self
+##        wxPython.wx.wxApp = wxPhonyApp
+##        wxPython.wx.wxPySimpleApp = wxPhonyApp
 
         self.modpath = os.path.dirname(filename)
         sys.argv = [filename] + params
         tmpPaths = sys.path[:]
-        sys.path.append(self.modpath)
+        sys.path.insert(0, self.modpath)
         sys.path.append(Preferences.pyPath)
+        sysMods = sys.modules.keys()
         cwd = path.abspath(os.getcwd())
         os.chdir(path.dirname(filename))
         try:
-            sys.stderr = ShellEditor.PseudoFileErrTC(owin)
+            sys.stderr = PseudoFileErrTC(owin)
             try:
-                sys.stdout = ShellEditor.PseudoFileOutTC(owin)
+                sys.stdout = PseudoFileOutTC(owin)
                 try:
                     editor.app.saveStdio = sys.stdout, sys.stderr
 
@@ -793,7 +798,7 @@ class DebuggerFrame(wxFrame, bdb.Bdb):
                     try:
                         mod.__file__ = filename
                     except AttributeError:
-                        print "I''m frozen!"
+                        print "I'm frozen!"
 
                     self.run("execfile(%s)" % `filename`, mod.__dict__)
                 except:
@@ -807,13 +812,30 @@ class DebuggerFrame(wxFrame, bdb.Bdb):
         finally:
             sys.stderr = saveerr
             editor.app.saveStdio = sys.stdout, sys.stderr
-            wxPython.wx.wxApp = tmpApp
-            wxPython.wx.wxPySimpleApp = tmpSimpleApp
+            del wxPython.wx.wxApp.debugger
+##            wxPython.wx.wxApp = tmpApp
+##            wxPython.wx.wxPySimpleApp = tmpSimpleApp
             sys.path = tmpPaths
             sys.argv = tmpArgs
             os.chdir(cwd)
+            
+##            for mod in sys.modules.keys():
+##                if mod in sysMods:
+##                    sysMods.remove(mod)
+##            if len(sysMods):
+##                wxLogMessage('sys.modules changed '+string.join(sysMods, ', '))
+
+##            if len(sysMods) and wxMessageBox('The following modules were introduced during '
+##                'Debug:\n'+string.join(sysMods, ', '), 'Delete from sys.modules',
+##                wxYES_NO) == wxYES:
+##                if mod in sysMods:
+##                    del sys.modules[mod]
+
+##            else:
+##                wxLogMessage('sys.modules not changed')
 
     def set_breakpoint_here(self, filename, lineno, tmp):
+        wxLogMessage('SetBreak %s %d'%(filename, lineno))
         self.nbTop.SetSelection(1)
         filename = self.canonic(filename)
         brpt = self.set_break(filename, lineno, tmp)
@@ -836,6 +858,20 @@ class DebuggerFrame(wxFrame, bdb.Bdb):
         self.set_internal_breakpoint(filename, lineno, temporary, cond)
         return bdb.Breakpoint(filename, lineno, temporary, cond)
 
+    def set_continue(self):
+        self.stopframe = self.botframe
+        self.returnframe = None
+        self.quitting = 0
+##        if not self.breaks:
+##            # no breakpoints; run without debugger overhead
+##            sys.settrace(None)
+##            try:
+##                1 + ''  # raise an exception
+##            except:
+##                frame = sys.exc_info()[2].tb_frame.f_back
+##            while frame and frame is not self.botframe:
+##                del frame.f_trace
+##                frame = frame.f_back
 
 
     def run(self, *args):
@@ -907,9 +943,12 @@ class DebuggerFrame(wxFrame, bdb.Bdb):
         self.breakpts.refreshList()
         self.selectSourceLine()
 
+        self.sb.status.SetLabel('Paused')
+
+        # process debugger events
         self.startMainLoop()
 
-        self.sb.status.SetLabel('')
+        self.sb.status.SetLabel('Running')
         self.sb.writeError('')
 
         self.frame = None
@@ -968,10 +1007,9 @@ class DebuggerFrame(wxFrame, bdb.Bdb):
     def OnDebug(self, event):
         if self.interacting:
             self.set_continue()
-            self.stopMainLoop()
         else:
             self.debug_file(self.filename)
-            self.stopMainLoop()
+        self.stopMainLoop()
 
     def OnStep(self, event):
         self.set_step()
@@ -986,11 +1024,13 @@ class DebuggerFrame(wxFrame, bdb.Bdb):
         self.stopMainLoop()
 
     def OnStop(self, event):
-        wxPhonyApp.inMainLoop = false
+        ##wxPhonyApp.inMainLoop = false
         self.set_quit()
-        self.model.editor.clearAllStepPoints()
-        self.stackView.load_stack([])
-#        self.stopMainLoop()
+        if hasattr(self.model, 'editor'):
+            self.model.editor.clearAllStepPoints()
+            self.stackView.load_stack([])
+        self.frame = None
+        self.stopMainLoop()
 
     def OnSourceTrace(self, event):
         pass
@@ -1003,19 +1043,34 @@ class DebuggerFrame(wxFrame, bdb.Bdb):
             if self.interacting:
                 # XXX mmm
                 self.OnStop(None)
+            self.app.quit = true
             self.locs.destroy()
             self.globs.destroy()
             self.breakpts.destroy()
             self.watches.destroy()
-            self.model.editor.debugger = None
-
-            # PhonyApp should set this
-            print 'quiting from Debug window'
-            self.app.quit = true
-
+            if hasattr(self.model, 'editor'):
+                self.model.editor.debugger = None
         finally:
             self.Destroy()
             event.Skip()
 
     def OnDebugNamespace(self, event):
-        print 'OnDebugNamespace', self.isInShellNamepace()
+##        try:
+        self.model.editor.OnSwitchShell(None)
+        self.model.editor.shell.debugShell(self.isInShellNamepace(), self)
+##        except Exception, error:
+##            wxLogError(str(error))
+
+echo = true
+class PseudoFileOutTC(Utils.PseudoFile):
+    tags = 'stderr'
+    def write(self, s):
+        self.output.AppendText(s)
+        if echo: sys.__stdout__.write(s)
+
+class PseudoFileErrTC(Utils.PseudoFile):
+    tags = 'stdout'
+    def write(self, s):
+        self.output.AppendText(s)
+        if echo: sys.__stderr__.write(s)
+
