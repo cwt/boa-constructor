@@ -86,11 +86,6 @@ class AcceleratorTableDTC(ChoicesConstr, NYIDTC):
         UtilityDTC.__init__(self, name, designer, objClass)
         self.editors.update({'Entries': CollectionPropEdit})
         self.subCompanions['Entries'] = AcceleratorTableEntriesCDTC
-        
-##    def properties(self):
-##        props = UtilityDTC.properties(self)
-##        props.update({'Entries': ('NoneRoute', None, None)})
-##        return props
 
     def designTimeSource(self):
         return {'choices':'[]'}
@@ -103,20 +98,14 @@ class AcceleratorTableEntriesCDTC(AcceleratorTableEntriesConstr, CollectionDTC):
     insertionMethod = 'append'
     deletionMethod = '(None)'
     sourceObjName = 'list'
-#    linkProperty = 'SetConstraints'
 
     def __init__(self, name, designer, parentCompanion, ctrl):
         CollectionDTC.__init__(self, name, designer, parentCompanion, ctrl)
-#        self.constraints = wxLayoutConstraints()
         
         self.editors.update({'Flags':   IntConstrPropEdit,
                         'KeyCode': IntConstrPropEdit,
                         'Command': IntConstrPropEdit})
         
-##        self.names = {'OtherEdge':    Enumerations.constraintEdges, 
-##                      'Relationship': Enumerations.constraintRelationships}
-##        self.inited = false
-
     def persistCollInit(self, method, ctrlName, propName, params = {}):
         
         collInitParse = methodparse.CollectionInitParse(None, ctrlName, method, 
@@ -128,14 +117,6 @@ class AcceleratorTableEntriesCDTC(AcceleratorTableEntriesConstr, CollectionDTC):
     
     def SetName(self, oldName, newName):
         CollectionDTC.SetName(self, oldName, newName)
-
-##        collInitParse = methodparse.CollectionInitParse(None, newName, 
-##          self.collectionMethod, [], self.propName)
-##
-##        for textProp in self.parentCompanion.textPropList:
-##            if textProp.prop_setter == self.linkProperty:
-##                print 'redefined OwnedColl'
-##                textProp.params[0] = collInitParse.asText()
 
     def designTimeSource(self, idx):
         return {'flags': '0', 'keyCode': '0', 'cmd': '0'}
@@ -241,13 +222,6 @@ class MenuBarDTC(MenuBarConstr, UtilityDTC):#DesignTimeCompanion):
     def dependentProps(self):
         return UtilityDTC.dependentProps(self) + ['Menus']
 
-##    def __init__(self, name, designer, parent, ctrlClass):
-##        DesignTimeCompanion.__init__(self, name, designer)
-##        self.parent = parent
-##        self.ctrlClass = ctrlClass
-###        self.generateWindowId()
-##        self.container = false
-
     def designTimeSource(self, position = 'wxDefaultPos', size = 'wxDefaultSize'):
         return {}
 
@@ -255,7 +229,8 @@ class MenuBarDTC(MenuBarConstr, UtilityDTC):#DesignTimeCompanion):
         pass
         
     def vetoedMethods(self):
-        return UtilityDTC.vetoedMethods(self)+['GetPosition', 'SetPosition', 'GetSize', 'SetSize']
+        return UtilityDTC.vetoedMethods(self)+['GetPosition', 'SetPosition', 
+               'GetSize', 'SetSize', 'GetRect', 'SetRect']
 
     def hideDesignTime(self):
         return []
@@ -275,12 +250,6 @@ class MenuBarMenusCDTC(MenuBarMenusConstr, CollectionDTC):
         CollectionDTC.__init__(self, name, designer, parentCompanion, ctrl)
         self.editors.update({'Menu': MenuEnumConstrPropEdit,
                              'Title': StrConstrPropEdit})
-   
-##    def properties(self):
-##        props = CollectionDTC.properties(self)
-##        props.update({'Menu':  ('CompnRoute', self.GetMenu, self.SetMenu),
-##                      'Mask':    ('NoneRoute', None, None)})
-##        return props
 
     def designTimeSource(self, wId):
         return {'menu': 'wxMenu()',
@@ -308,13 +277,6 @@ class MenuBarMenusCDTC(MenuBarMenusConstr, CollectionDTC):
     def events(self):
         return ['MenuEvent']
 
-##    def deleteItem(self, idx):
-##        # XXX Refactor: separate index from id
-##        # look up menu id based on idx
-##        menuId = int(self.textConstrLst[idx].params['id'])
-##        self.control.Remove(menuId)
-##
-##        del self.textConstrLst[idx]
     def vetoedMethods(self):
         return CollectionDTC.vetoedMethods(self)+['GetPosition', 'SetPosition', 'GetSize', 'SetSize']
     
@@ -416,12 +378,6 @@ class IndividualLayoutConstraintOCDTC(LayoutConstraintsConstr, OwnedCollectionDT
                     apply(attr.Set, [], params)
                     
                 self.parentCompanion.control.SetConstraints(constraints)
-
-##    def properties(self):
-##        props = CollectionDTC.properties(self)
-##        props.update({'Bitmap':  ('CompnRoute', None, self.setBitmap),
-##                      'Mask':    ('NoneRoute', None, None)})
-##        return props
 
     def designTimeSource(self, wId):
         return {'rel':       'wxUnconstrained',
