@@ -120,6 +120,7 @@ def human_split(line):
     return result
 
 def duplicateMenu(source):
+    """ Create an duplicate of a menu (does not do sub menus)"""
     dest = wxMenu()
     for menu in source.GetMenuItems():
         if menu.IsSeparator():
@@ -245,6 +246,10 @@ class PaintEventHandler(wxEvtHandler):
         return rv
 
 def showTip(frame, forceShow = 0):
+    """ Displays tip of the day.
+    
+    Driven from and updates config file
+    """
     try:
         conf = createAndReadConfig('Explorer')
     except IOError:
@@ -287,6 +292,7 @@ def writeTextToClipboard(text):
         clip.Close()
 
 def createAndReadConfig(name, forPlatform = 1):
+    """ Return an initialised ConfigFile object """
     conf = ConfigParser()
     confFile = '%s/%s%s.cfg' % (Preferences.pyPath, name,
         forPlatform and wx.wxPlatform == '__WXMSW__' and '.msw' \
@@ -309,6 +315,10 @@ class wxHtmlWindowUrlClick(wxPyEvent):
         self.linkinfo = (linkinfo.GetHref(), linkinfo.GetTarget())
 
 class wxUrlClickHtmlWindow(html.wxHtmlWindow):
+    """ HTML window that generates and OnLinkClicked event.
+    
+    Use this to avoid having to override HTMLWindow
+    """
     def OnLinkClicked(self, linkinfo):
         wxPostEvent(self, wxHtmlWindowUrlClick(linkinfo))
 
@@ -319,7 +329,15 @@ def wxProxyPanel(parent, Win, *args, **kwargs):
         Based on a pattern by Kevin Gill.
     """
     panel = wxPanel(parent, -1, style=wxTAB_TRAVERSAL | wxCLIP_CHILDREN)
-    win = apply(Win, (panel,) + args, kwargs)
+
+    if type(Win) is types.ClassType:
+        win = apply(Win, (panel,) + args, kwargs)
+    elif type(Win) is types.InstanceType:
+        win = Win
+        win.Reparent(panel)
+    else:
+        raise 'Unhandled type for Win'
+
     def OnWinSize(evt, win=win):
         win.SetSize(evt.GetSize())
     EVT_SIZE(panel, OnWinSize)
@@ -337,8 +355,11 @@ def IsComEnabled():
 import stat, shutil
 skipdirs = ('CVS',)
 dofiles = ('.py',)
+
 def updateDir(src, dst):
+    """ Traverse src and assures that dst is up to date """
     os.path.walk(src, visit_update, (src, dst) )
+
 def visit_update(paths, dirname, names):
     src, dst = paths
     reldir = dirname[len(src)+1:]
@@ -383,6 +404,7 @@ class PseudoFile:
         pass
 
 class PseudoFileOutStore(PseudoFile):
+    """ File like obj with list storage """
     def write(self, s):
         self.output.append(s)
 
@@ -391,11 +413,13 @@ class PseudoFileOutStore(PseudoFile):
 
 
 class LoggerPF(PseudoFile):
+    """ Base class for logging file like objects """
     def pad(self, s):
         padded = s + pad
         return padded[:padWidth] + string.strip(padded[padWidth:])
 
 class OutputLoggerPF(LoggerPF):
+    """ Logs stdout to wxLog functions"""
     def write(self, s):
         if string.strip(s):
             if Preferences.recordModuleCallPoint:
@@ -410,6 +434,7 @@ class OutputLoggerPF(LoggerPF):
         sys.__stdout__.write(s)
 
 class ErrorLoggerPF(LoggerPF):
+    """ Logs stderr to wxLog functions"""
     def write(self, s):
         if not hasattr(self, 'buffer'):
             self.buffer = ''
@@ -422,3 +447,10 @@ class ErrorLoggerPF(LoggerPF):
             wxLogError(self.pad(self.buffer+s[:-1]))
 
         sys.__stderr__.write(s)
+
+def getCtrlsFromDialog(dlg, className):
+    """ Returns children of given class from dialog.
+    
+    This is useful for standard dialogs that does not expose their children """
+    return filter(lambda d, cn=className: d.__class__.__name__ == cn, 
+                  dlg.GetChildren())
