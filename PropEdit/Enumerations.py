@@ -60,6 +60,17 @@ constraintRelationships = ['wxUnconstrained', 'wxAsIs', 'wxAbove', 'wxBelow',
 formatStyle = ['wxLIST_FORMAT_LEFT', 'wxLIST_FORMAT_RIGHT','wxLIST_FORMAT_CENTRE',
                'wxLIST_FORMAT_CENTER']
 
+sashLayoutOrientation = [wxLAYOUT_HORIZONTAL, wxLAYOUT_VERTICAL]
+sashLayoutOrientationNames = {'wxLAYOUT_HORIZONTAL' : wxLAYOUT_HORIZONTAL, 
+                              'wxLAYOUT_VERTICAL' : wxLAYOUT_VERTICAL}
+
+sashLayoutAlignment = [wxLAYOUT_NONE, wxLAYOUT_TOP, wxLAYOUT_LEFT, wxLAYOUT_RIGHT, 
+                       wxLAYOUT_BOTTOM]
+sashLayoutAlignmentNames = {'wxLAYOUT_NONE' : wxLAYOUT_NONE,
+                            'wxLAYOUT_TOP' : wxLAYOUT_TOP,
+                            'wxLAYOUT_LEFT' : wxLAYOUT_LEFT, 
+                            'wxLAYOUT_RIGHT' : wxLAYOUT_RIGHT,
+                            'wxLAYOUT_BOTTOM' : wxLAYOUT_BOTTOM}
 class BinarySet:
     def __init__(self, elements, names, set):
         self.elements = elements
