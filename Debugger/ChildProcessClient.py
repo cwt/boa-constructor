@@ -79,7 +79,7 @@ def spawnChild(monitor, process):
             trans = TransportWithAuth(auth)
             server = xmlrpclib.Server(
                 'http://127.0.0.1:%d' % int(port), trans)
-            return server, istream, estream
+            return server, istream, estream, pid
         else:
             raise RuntimeError, 'The debug server failed to start'
     except:
@@ -100,6 +100,7 @@ from DebugClient import DebugClient, MultiThreadedDebugClient, \
 class ChildProcessClient(MultiThreadedDebugClient):
 
     server = None
+    serverId = 0
     process = None
     input_stream = None
     error_stream = None
@@ -170,8 +171,8 @@ class ChildProcessClient(MultiThreadedDebugClient):
                     self.process = process
                     wx.EVT_END_PROCESS(self.event_handler, self.win_id,
                                        self.OnProcessEnded)
-                    self.server, self.input_stream, self.error_stream = \
-                                 spawnChild(self, process)
+                    self.server, self.input_stream, self.error_stream, \
+                          self.serverId = spawnChild(self, process)
                 self.taskHandler.addTask(evt.GetTask())
             except:
                 t, v, tb = sys.exc_info()#[:2]
