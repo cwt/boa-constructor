@@ -258,13 +258,17 @@ class InspectorFrame(wxFrame):
 
     def OnPost(self, event):
         if self.selDesgn:
-            self.selDesgn.saveOnClose = true
-            self.selDesgn.Close()
+            self.selDesgn.controllerView.saveOnClose = true
+            self.selDesgn.controllerView.Close()
+##        else:
+##            wxLogError('Please use Post in the Editor or from the Designer.')
 
     def OnCancel(self, event):
         if self.selDesgn:
-            self.selDesgn.saveOnClose = false
-            self.selDesgn.Close()
+            self.selDesgn.controllerView.saveOnClose = false
+            self.selDesgn.controllerView.Close()
+##        else:
+##            wxLogError('Please use Cancel in the Editor.')
 
     def OnHelp(self, event):
         if self.selDesgn:
