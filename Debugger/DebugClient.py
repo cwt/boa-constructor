@@ -11,7 +11,6 @@ from wxPython.wx import NewId, wxPyCommandEvent
 
 wxEVT_DEBUGGER_OK = NewId()
 wxEVT_DEBUGGER_EXC = NewId()
-wxEVT_DEBUGGER_STDIO = NewId()
 wxEVT_DEBUGGER_START = NewId()
 
 def EVT_DEBUGGER_OK(win, id, func):
@@ -19,9 +18,6 @@ def EVT_DEBUGGER_OK(win, id, func):
 
 def EVT_DEBUGGER_EXC(win, id, func):
     win.Connect(id, -1, wxEVT_DEBUGGER_EXC, func)
-
-def EVT_DEBUGGER_STDIO(win, id, func):
-    win.Connect(id, -1, wxEVT_DEBUGGER_STDIO, func)
 
 def EVT_DEBUGGER_START(win, id, func):
     win.Connect(id, -1, wxEVT_DEBUGGER_START, func)
@@ -85,6 +81,9 @@ class DebugClient:
 
     def postEvent(self, evt):
         self.event_handler.AddPendingEvent(evt)
+
+    def pollStreams(self):
+        return ('', '')
 
 
 class DebuggerTask:

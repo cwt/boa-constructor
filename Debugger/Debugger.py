@@ -25,8 +25,7 @@ import traceback, linecache, imp, pprint
 import Utils
 from Preferences import pyPath, IS, flatTools
 from Breakpoint import bplist
-from DebugClient import EVT_DEBUGGER_OK, EVT_DEBUGGER_EXC, \
-     EVT_DEBUGGER_STDIO
+from DebugClient import EVT_DEBUGGER_OK, EVT_DEBUGGER_EXC
 #from InProcessClient import InProcessClient
 from ChildProcessClient import ChildProcessClient
 
@@ -558,6 +557,7 @@ class DebugStatusBar(wxStatusBar):
 
 
 wxID_PAGECHANGED = NewId()
+wxID_TOPPAGECHANGED = NewId()
 class DebuggerFrame(wxFrame):
     def __init__(self, model, stack = None):
         wxFrame.__init__(
@@ -621,9 +621,11 @@ class DebuggerFrame(wxFrame):
         self.splitter = wxSplitterWindow(self, -1, style=wxSP_NOBORDER)
 
         # Create a Notebook
-        self.nbTop = wxNotebook(self.splitter, -1)
+        self.nbTop = wxNotebook(self.splitter, wxID_TOPPAGECHANGED)
         if wxPlatform == '__WXMSW__':
             self.nbTop.SetImageList(self.viewsImgLst)
+        EVT_NOTEBOOK_PAGE_CHANGED(self.nbTop, wxID_TOPPAGECHANGED,
+                                  self.OnUpperPageChange)
         
         self.stackView = StackViewCtrl(self.nbTop, None, self)
 
@@ -641,6 +643,10 @@ class DebuggerFrame(wxFrame):
         self.outp = wxTextCtrl(self.nbTop, -1, '', style = wxTE_MULTILINE)
         self.outp.SetBackgroundColour(wxBLACK)
         self.outp.SetForegroundColour(wxWHITE)
+        if (self.outp.GetForegroundColour() != (0xff, 0xff, 0xff)):
+            # The color setting was ignored.  Use standard colors instead.
+            self.outp.SetBackgroundColour(wxWHITE)
+            self.outp.SetForegroundColour(wxBLACK)
         self.outp.SetFont(wxFont(7, wxDEFAULT, wxNORMAL, wxNORMAL, false))
         if wxPlatform == '__WXMSW__':
             self.nbTop.AddPage(self.outp, 'Output', imageId = 5)
@@ -690,8 +696,9 @@ class DebuggerFrame(wxFrame):
 
         EVT_DEBUGGER_OK(self, self.GetId(), self.OnDebuggerOk)
         EVT_DEBUGGER_EXC(self, self.GetId(), self.OnDebuggerException)
-        EVT_DEBUGGER_STDIO(self, self.GetId(), self.OnDebuggerStdio)
-        
+
+        self.stream_timer = wxPyTimer(self.OnStreamTimer)
+
 	EVT_CLOSE(self, self.OnCloseWindow)
 
     def add_watch(self, name, local):
@@ -702,8 +709,7 @@ class DebuggerFrame(wxFrame):
 
     def OnPageChange(self, event):
         sel = event.GetSelection()
-        if sel >= 0: # and sel != self.nbBottomPageNo:
-            # self.nbBottomPageNo = sel
+        if sel >= 0:
             self.updateSelectedPane(sel)
         event.Skip()
         
@@ -838,8 +844,22 @@ class DebuggerFrame(wxFrame):
     def stopDebugger(self):
         self.debug_client.stop()
 
-    def OnDebuggerStdio(self, event):
-        self.outp.AppendText(event.GetResult())
+    def OnStreamTimer(self, event=None, force_timer=0):
+        stdout_text, stderr_text = self.debug_client.pollStreams()
+        if stdout_text:
+            self.outp.AppendText(stdout_text)
+        if stderr_text:
+            self.outp.AppendText(stderr_text)
+        if force_timer or self.nbTop.GetSelection() == 2:
+            # The user is looking at the output page.
+            self.stream_timer.Start(300, 1)  # One-shot mode.
+        
+    def OnUpperPageChange(self, event):
+        sel = event.GetSelection()
+        if sel == 2:
+            # Selected the output window.
+            self.OnStreamTimer(None, 1)
+        event.Skip()
         
     def OnDebuggerOk(self, event):
         self.enableStepping()
@@ -905,8 +925,7 @@ class DebuggerFrame(wxFrame):
 ##            #os.chdir(cwd)
 
     def proceedAndRequestStatus(self, command):
-        # - Ignores the command if we are waiting for status?
-        # - Non-blocking.
+        # Non-blocking.
         self.sb.writeError('Running...', 0)
         self.invokeInDebugger('proceedAndRequestStatus', (command,),
                               'receiveDebuggerStatus')
@@ -920,14 +939,16 @@ class DebuggerFrame(wxFrame):
         self.breakpts.refreshList()
 
     def receiveDebuggerStatus(self, info):
-        # stdout and stderr.
+        # Get stdout and stderr if available.
         data = info.get('stdout', None)
         if data:
             self.outp.AppendText(data)
         data = info.get('stderr', None)
         if data:
             self.outp.AppendText(data)
-        # stack.
+
+        # Determine the current lineno, filename, and
+        # funcname from the stack.
         self.running = info['running']
         stack = info['stack']
         if stack:
@@ -939,15 +960,16 @@ class DebuggerFrame(wxFrame):
         else:
             filename = funcname = lineno = base = ''
 
+        # Show running status.
         if self.running:
             message = "%s:%s" % (base, lineno)
             if funcname != "?":
                 message = "%s: %s()" % (message, funcname)
         else:
             message = 'Finished.'
-
         self.sb.status.SetLabel(message)
-        # exception.
+
+        # Show exception information.
         exc_type = info.get('exc_type', None)
         exc_value = info.get('exc_value', None)
         if exc_type is not None:
@@ -961,16 +983,16 @@ class DebuggerFrame(wxFrame):
         else:
             m1 = ''
             bg = wxNamedColour('white')#self.errorbg
-
         self.sb.writeError(m1)
         
+        # Load the stack view.
         sv = self.stackView
-
         if sv:
             i = info['frame_stack_len']
             sv.load_stack(stack, i)
             sv.selectCurrentEntry()
 
+        # If at a breakpoint, display status.
         if bplist.hasBreakpoint(filename, lineno):
             bplist.clearTemporaryBreakpoints(filename, lineno)
             self.sb.error.SetBackgroundColour(wxNamedColour('red'))
@@ -979,12 +1001,12 @@ class DebuggerFrame(wxFrame):
             self.sb.error.SetDimensions(rect.x+2, rect.y+2, 
                                         rect.width-4, rect.height-4)
 
-        # Breakpoint stats.
+        # Update breakpoints view with stats.
         self.breakpts.stats = info['breaks']
         self.breakpts.refreshList()
         self.selectSourceLine(filename, lineno)
 
-        # All info in watches, locals, or globals is now invalid.
+        # All info in watches, locals, and globals panes is now invalid.
         self.invalidatePanes()
         # Update the currently selected pane.
         self.updateSelectedPane()
@@ -1031,9 +1053,11 @@ class DebuggerFrame(wxFrame):
             self.runProcess()
 
     def enableStepping(self):
+        # FUTURE: enable the step buttons.
         self.stepping_enabled = 1
 
     def disableStepping(self):
+        # FUTURE: disable the step buttons.
         self.stepping_enabled = 0
 
     def doDebugStep(self, method=None):

@@ -1,7 +1,7 @@
 
 import os, string, sys, threading
 from DebugClient import DebugClient, MultiThreadedDebugClient, \
-     DebuggerTask, wxEVT_DEBUGGER_EXC, wxEVT_DEBUGGER_STDIO, \
+     DebuggerTask, wxEVT_DEBUGGER_EXC, \
      wxEVT_DEBUGGER_START, EVT_DEBUGGER_START
 from ExternalLib import xmlrpclib
 from wxPython.wx import wxProcess, wxExecute, EVT_IDLE, EVT_END_PROCESS
@@ -68,13 +68,13 @@ class ChildProcessClient (wxProcess, MultiThreadedDebugClient):
     def __init__(self, win):
         DebugClient.__init__(self, win)
         self.win = win
-        EVT_IDLE(win, self.OnIdle)
         EVT_END_PROCESS(win, win.GetId(), self.OnProcessEnded)
         EVT_DEBUGGER_START(win, win.GetId(), self.OnDebuggerStart)
 
     def invokeOnServer(self, m_name, m_args=(), r_name=None, r_args=()):
         task = DebuggerTask(self, m_name, m_args, r_name, r_args)
         if self.server is None:
+            # Make sure the spawn occurs in the main thread *only*.
             evt = self.createEvent(wxEVT_DEBUGGER_START)
             evt.SetTask(task)
             self.postEvent(evt)
@@ -116,19 +116,18 @@ class ChildProcessClient (wxProcess, MultiThreadedDebugClient):
             self.process.CloseOutput()
             self.process = None
 
-    def _receiveStreamData(self):
+    def pollStreams(self):
+        stdin_text = ''
         if self.process is not None:
-            text = ''
             stream = self.process.GetInputStream()
             if not stream.eof():
-                text = stream.read()
+                stdin_text = stream.read()
+        stderr_text = ''
+        if self.process is not None:
             stream = self.process.GetErrorStream()
             if not stream.eof():
-                text = text + stream.read()
-            if text:
-                evt = self.createEvent(wxEVT_DEBUGGER_STDIO)
-                evt.SetResult(text)
-                self.postEvent(evt)
+                stderr_text = stream.read()
+        return (stdin_text, stderr_text)
 
     def OnDebuggerStart(self, evt):
         try:
@@ -141,13 +140,10 @@ class ChildProcessClient (wxProcess, MultiThreadedDebugClient):
             evt.SetExc(t, v)
             self.postEvent(evt)
 
-    def OnIdle(self, evt):
-        self._receiveStreamData()
-
     def OnProcessEnded(self, evt):
         self._receiveStreamData()
         self.process.CloseOutput()
         self.process.Detach()
         self.process = None
         self.server = None
-        # TODO: Post a wxEVT_DEBUGGER_STOPPED event.
+        # TODO: Post a wxEVT_DEBUGGER_STOPPED event?
