@@ -106,6 +106,11 @@ class DebuggerConnection:
         or above.  Non-blocking.'''
         self._callNoWait('set_step_over', 1)
 
+    def set_pause(self):
+        '''Stops as soon as possible.  Non-blocking.
+        '''
+        self._ds.stopAnywhere()
+
     def set_quit(self):
         '''Quits debugging, executing only the try/finally handlers.
         Non-blocking.
@@ -194,7 +199,7 @@ class DebuggerConnection:
             self.addBreakpoint(temp_breakpoint[0], temp_breakpoint[1], 1)
         if command:
             allowed = ('set_continue', 'set_step', 'set_step_over',
-                       'set_step_out', 'set_quit')
+                       'set_step_out', 'set_pause', 'set_quit')
             if command not in allowed:
                 raise DebugError('Illegal command')
             getattr(self, command)()
@@ -499,21 +504,28 @@ class DebugServer (Bdb):
         if frame is self.botframe:
             # Don't stop in the bottom frame.
             return 0
-        if self.stopframe is None:
+        sf = self.stopframe
+        if sf is None:
             # Stop anywhere.
             return 1
-        if (frame is self.stopframe and
+        if (frame is sf and
             frame.f_lineno != self.ignore_stopline):
             # Stop in the current frame unless we're on
             # ignore_stopline.
             return 1
-        f = self.stopframe
+        f = sf
         while f is not self.botframe:
             # Stop at any frame that called stopframe except botframe.
             if frame is f:
                 return 1
             f = f.f_back
         return 0
+
+    def break_anywhere(self, frame):
+        # Allow a stop anywhere, anytime.
+        # todo: Optimize by stopping only when in one of the
+        # files being debugged?  Problem: callbacks don't get debugged.
+        return 1
 
     def set_continue(self, full_speed=0):
         # Don't stop except at breakpoints or when finished
