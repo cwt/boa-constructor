@@ -49,8 +49,9 @@ bodyIndent = ' '*8
     
 """
 
-wxNullBitmap = Preferences.IS.load('Images\\Inspector\\wxNullBitmap.bmp')
-##wxNullBitmap = wxBitmap('Images\\Inspector\\wxNullBitmap.bmp', wxBITMAP_TYPE_BMP)
+# XXX This bitmap must be added to the scope of any method
+# XXX that evaluates parameters or properies
+#wxNullBitmap = Preferences.IS.load('Images/Inspector/wxNullBitmap.bmp')
 
 class Companion:
     """ Default companion, entity with a name and default documentation """
