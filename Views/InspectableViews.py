@@ -566,8 +566,9 @@ class InspectableObjectView(EditorViews.EditorView, InspectorSessionMix):
         pasteNameClasses = objCol.getCtrlNames()
         
         for name, cls in pasteNameClasses:
-            methodparse.decorateParseItems(objCol.eventsByName[name], name, 
-                  self.model.main)
+            if objCol.eventsByName.has_key(name):
+                methodparse.decorateParseItems(objCol.eventsByName[name], name, 
+                      self.model.main)
         
         newNames = []
         oldNames = []
