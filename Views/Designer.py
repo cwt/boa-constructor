@@ -14,10 +14,9 @@ import string, copy, os, pprint
 
 from wxPython.wx import *
 
-import PaletteMapping, Preferences, Utils, Help
+import Preferences, PrefsKeys, Utils, Help
 from Preferences import IS
 import CtrlAlign, CtrlSize
-import PrefsKeys
 import sourceconst, sender
 
 from InspectableViews import InspectableObjectView
@@ -31,6 +30,8 @@ import SelectionTags
 [wxID_EDITMOVELEFT, wxID_EDITMOVERIGHT, wxID_EDITMOVEUP, wxID_EDITMOVEDOWN,
  wxID_EDITWIDTHINC, wxID_EDITWIDTHDEC, wxID_EDITHEIGHTINC, wxID_EDITHEIGHTDEC,
 ] = map(lambda _keys_move_size: wxNewId(), range(8))
+
+
 
 class DesignerView(wxFrame, InspectableObjectView):
     """ Frame Designer for design-time creation/manipulation of visual controls
@@ -1029,9 +1030,14 @@ class DesignerControlsEvtHandler(wxEvtHandler):
         event.Skip()
 
     def OnControlSelect(self, event):
+        print 'OnControlSelect'
         """ Control is clicked. Either select it or add control from palette """
         dsgn = self.designer
-        ctrl = dsgn.senderMapper.getObject(event)
+        # XXX wxPython bug workaround only here for when testing
+        if event.GetEventObject():
+            ctrl = dsgn.senderMapper.getObject(event)
+        else:
+            ctrl = dsgn
         if dsgn.selectControlByPos(ctrl, event.GetPosition(), event.ShiftDown()):
             event.Skip()
 
