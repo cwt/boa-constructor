@@ -1,8 +1,0 @@
-Sampled people and software 
-
-wxPython (Robin Dunn) & wxWindows (Julian Smart et al.) ofcourse
-Cliff Baeseman for sorting out wxGTK problems
-moduleparse.py borrows from pyclbrs.py - standard python library
-uses PythonInterpreter.py by Fredrik Lundh
-debugger based on IDLE's debugger by Guido van Rossum
-Mozilla & Delphi for iconic inspirations

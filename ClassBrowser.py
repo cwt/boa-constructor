@@ -9,50 +9,35 @@
 # Copyright:   (c) 1999, 2000 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
+#Boa:Frame:ClassBrowserFrame
+
 from wxPython.wx import *
 import pyclbr
 import string
+import Preferences
+from os import path
 
-def findInsertModules(name, tree):
-    ri = tree.GetRootItem()
-    item = ri
-    found = false
-    while item:
-        item = tree.GetNextSibling(item)
-        if tree.GetItemText(item) == name:
-            found = true
-            return item
-    
-    return tree.AddRoot(name)
+[wxID_CLASSBROWSERFRAME] = map(lambda _init_ctrls: NewId(), range(1))
 
-
-def travTilBase(name, classes, root):
-    if len(classes[name].super) == 0:
-	if not root.has_key(name):
-	    root[name] = {}
-	return root[name]
-    else:
-	c = travTilBase(classes[name].super[0].name, classes, root)
-        if not c.has_key(name):
-	    c[name] = {}
-	return c[name]
-
-def buildTree(tree, parent, dict):
-    for item in dict.keys():
-        child = tree.AppendItem(parent, item)
-	if len(dict[item].keys()):
-	    buildTree(tree, child, dict[item])
-    
-def extractFilename(filename):
-    return filename[string.rfind(filename, '\\')+ 1: len(filename) -3]
-    
 class ClassBrowserFrame(wxFrame):
+    def _init_utils(self): 
+        pass
+
+    def _init_ctrls(self, prnt): 
+        wxFrame.__init__(self, size = (-1, -1), id = wxID_CLASSBROWSERFRAME, title = 'Inspector', parent = prnt, name = '', style = wxDEFAULT_FRAME_STYLE, pos = (-1, -1))
+
     def __init__(self, parent, id, title):
-        wxFrame.__init__(self, parent, -1, title,
-                         wxPoint(100, 157), wxSize(200, 250))
+        self._init_ctrls(parent)
+        self._init_utils()
+        self.SetDimensions(0,
+          Preferences.paletteHeight + Preferences.windowManagerTop + \
+          Preferences.windowManagerBottom,
+          Preferences.inspWidth, 
+          Preferences.bottomHeight)
+        EVT_CLOSE(self, self.OnCloseWindow)
 
         if wxPlatform == '__WXMSW__':
-            self.icon = wxIcon('Images/Icons/ClassBrowser.ico', wxBITMAP_TYPE_ICO)
+            self.icon = wxIcon(Preferences.toPyPath('Images/Icons/ClassBrowser.ico'), wxBITMAP_TYPE_ICO)
             self.SetIcon(self.icon)
 
 	self.classes = pyclbr.readmodule('wxPython.wx')
@@ -85,7 +70,7 @@ class ClassBrowserFrame(wxFrame):
         modules = {}
         moduleName = ''
         for className in self.classes.keys():
-            moduleName = extractFilename(self.classes[className].file)
+            moduleName = path.basename(self.classes[className].file)
             if not modules.has_key(moduleName):
  	        modules[moduleName] = {}
 	    modules[moduleName][className] = {}
@@ -133,4 +118,36 @@ class ClassBrowserFrame(wxFrame):
 #                for super in self.classes[className].super:
 #                    aMethod = self.tree.AppendItem(supers, super.name)
         self.tree.Expand(root)
-#	self.tree.Show(true)
+
+    def OnCloseWindow(self, event):
+        self.Show(false)
+
+def findInsertModules(name, tree):
+    ri = tree.GetRootItem()
+    item = ri
+    found = false
+    while item:
+        item = tree.GetNextSibling(item)
+        if tree.GetItemText(item) == name:
+            found = true
+            return item
+    
+    return tree.AddRoot(name)
+
+def travTilBase(name, classes, root):
+    if len(classes[name].super) == 0:
+	if not root.has_key(name):
+	    root[name] = {}
+	return root[name]
+    else:
+	c = travTilBase(classes[name].super[0].name, classes, root)
+        if not c.has_key(name):
+	    c[name] = {}
+	return c[name]
+
+def buildTree(tree, parent, dict):
+    for item in dict.keys():
+        child = tree.AppendItem(parent, item)
+	if len(dict[item].keys()):
+	    buildTree(tree, child, dict[item])
+   

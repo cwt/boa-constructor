@@ -23,9 +23,7 @@ transparentPaletteBitmaps = 1
 
 pythonDocsPath = path.join(path.dirname(sys.executable), 'Doc')
 
-wxWinDocsPath = '../docs'
-for pth in sys.path:
-    if path.basename(pth) == 'wxPython':
-        wxWinDocsPath = path.join(pth, 'docs') 
+import wxPython
+wxWinDocsPath = path.join(path.dirname(wxPython.__file__), 'docs', 'wx')
 
 inspStatBarFontSize = 9

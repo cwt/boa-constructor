@@ -1,6 +1,7 @@
-Bugs - Horribly incomplete cryptic buglist
-$ - Solved
+Bugs & Issues - Horribly incomplete cryptic buglist
+$ - Solved/Fixed/Hacked around
 
+--
 
 $ Accessing a property whose property editor was edited on a previous selection of a component
 $ coredumps wxPython (dang pointers)
@@ -11,7 +12,7 @@ $ is destroyed
 $After design time creating a dropping a new component the SelectionGroup gets selected
 $but not the object in the inspector 
 
-Property editor controls sometimes sized wrong on edit
+$Property editor controls sometimes sized wrong on edit
 
 $On selecting new component in Designer, namevalue width = default, not current Inspector width
 
@@ -20,27 +21,28 @@ $of frame
 
 $ Designer sizing bug: Control returns to default size after resizing a second time 
 
-Designer sizing bug: If a panel on a frame is selected and the frame is resized 
-it is not resized to the new size of the form. This is due to the fact that the selection
-group are 4 panels therefor there are 5 ctrls on the frame and the frame will only
-resize the panel if it was the only control. 
-This behaviour has to be emulated. Will be possible by looking at the child count of
-the frame in the parents tree
+$ Designer sizing bug: If a panel on a frame is selected and the frame is resized 
+$ it is not resized to the new size of the form. This is due to the fact that the selection
+$ group are 4 panels therefor there are 5 ctrls on the frame and the frame will only
+$ resize the panel if it was the only control. 
+$ This behaviour has to be emulated. Will be possible by looking at the child count of
+$ the frame in the parents tree
 
 Changing sub-properties in inspector does not update ctrl
 
 $ Module does not open
 
-Old problem of InspectorScrollWindows' scrollbar getting confused and not being able
-to scroll back up
+$ Old problem of InspectorScrollWindows' scrollbar getting confused and not being able
+$ to scroll back up
 
-Cannot parse ftplib.py
+$ Cannot parse ftplib.py
+$ ftplib has a funny character line 669
 
 $wxTreeCtrl.GetParent gives problems, Robin promises fix for next release
 
-Frame size/move not updating in source if frame is not currently selected in the 
-inspector, this is a fundamentaly very tricky one to fix properly. 
-One hack is to auto select the frame before beginning a move/size ??
+$ Frame size/move not updating in source if frame is not currently selected in the 
+$ inspector, this is a fundamentaly very tricky one to fix properly. 
+$ One hack is to auto select the frame before beginning a move/size ??
 
 $?Closing while on full parent view tree sometimes crashes python
 
@@ -48,11 +50,11 @@ $Second instance of a module type not showing image in AppView
 
 $Slider not working
 
-RadioBox, NoteBook does not trigger mouse events, and static box only triggers over it's
-label. ComboBox only over drop down button
-A work around is for containers to first do a hit test if clicks are within the region
-of any child controls. A bit of a pain tho. Note these controls can still be selected in
-the parents page of the inspector
+$ RadioBox, NoteBook does not trigger mouse events, and static box only triggers over it's
+$ label. ComboBox only over drop down button
+$ A work around is for containers to first do a hit test if clicks are within the region
+$ of any child controls. A bit of a pain tho. Note these controls can still be selected in
+$ the parents page of the inspector
 
 $Saved as modules should notify application of path change
 
@@ -60,7 +62,7 @@ $Module paths are reletivised wrong when App is saved somewhere else
 
 Font property misbehaves: value of font after selected != default font
 
-Frame loses events
+$ Frame loses events
 
 $If the last window is closed notebook does not switch to shell
 
@@ -95,4 +97,23 @@ Parser must be fixed sometime to correctly parse
 - multiline docstrings
 - method definitions continued over more than 1 line
 
-Not prompted when overwriting a file
+$ Not prompted when overwriting a file
+
+$ Property order is random
+
+When there are only a few componentes the linked properties 
+(MenuBar/FrameBar/ToolBar) does not show in prop editor on
+startup. If another control is selected and the frame is selected
+they show correctly, please someone help!
+
+ToolBars confuse the Designer (and the author).
+Components are offset by the height of the toolbar
+
+OGLViews crash on closing
+
+GTK
+---
+
+AppView.modules: the path is invalid because of M$ \\'s
+Preferences.wxDefaultFrameSize: wxSize expected, tuple found
+wxStyledTextCtrl crashes with Brace Highlighting enabled
