@@ -23,6 +23,7 @@ import EditorViews, ProfileView, Search, Help, Preferences, Utils
 from StyledTextCtrls import PythonStyledTextCtrlMix, TextSTCMix, idWord, object_delim
 
 from Explorers import ExplorerNodes
+from ClipboardPlus import ClipboardPlus
 
 endOfLines = {  wxSTC_EOL_CRLF : '\r\n',
                 wxSTC_EOL_CR : '\r',
@@ -35,6 +36,9 @@ markerCnt = 2
  wxID_SOURCEUNDO, wxID_SOURCEREDO] \
  = Utils.wxNewIds(6)
 
+[wxID_STC_WS, wxID_STC_EOL, wxID_STC_BUF, wxID_STC_IDNT] \
+ = Utils.wxNewIds(4)
+
 class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView):
     refreshBmp = 'Images/Editor/Refresh.png'
     undoBmp = 'Images/Shared/Undo.png'
@@ -44,6 +48,9 @@ class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView):
     pasteBmp = 'Images/Shared/Paste.png'
     findBmp = 'Images/Shared/Find.png'
     findAgainBmp = 'Images/Shared/FindAgain.png'
+
+    clipboardPlus = ClipboardPlus()
+
     def __init__(self, parent, wId, model, actions, defaultAction = -1):
         wxStyledTextCtrl.__init__(self, parent, wId, style = wxCLIP_CHILDREN | wxSUNKEN_BORDER)
         a =  (('Refresh', self.OnRefresh, self.refreshBmp, 'Refresh'),
@@ -54,11 +61,14 @@ class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView):
               ('Cut', self.OnEditCut, self.cutBmp, ''),
               ('Copy', self.OnEditCopy, self.copyBmp, ''),
               ('Paste', self.OnEditPaste, self.pasteBmp, ''),
+              ('Copy+', self.OnEditCopyPlus, '-', 'CopyPlus'),
+              ('Paste+', self.OnEditPastePlus, '-', 'PastePlus'),
               ('-', None, '', ''),
               ('Find \ Replace', self.OnFind, self.findBmp, 'Find'),
               ('Find again', self.OnFindAgain, self.findAgainBmp, 'FindAgain'),
               ('Mark place', self.OnMarkPlace, '-', 'MarkPlace'),
               ('Goto line', self.OnGotoLine, '-', 'GotoLine'),
+              ('STC settings', self.OnSTCSettings, '-', ''),
               ('-', None, '-', ''),
               ('Translate selection (via HTTP)', self.OnTranslate, '-', ''),
               ('Spellcheck selection (via HTTP)', self.OnSpellCheck, '-', ''),
@@ -92,6 +102,11 @@ class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView):
         self._linePtrHdl = None
 
         EVT_STC_MARGINCLICK(self, wId, self.OnMarginClick)
+
+        EVT_MENU(self, wxID_STC_WS, self.OnSTCSettingsWhiteSpace)
+        EVT_MENU(self, wxID_STC_EOL, self.OnSTCSettingsEOL)
+        EVT_MENU(self, wxID_STC_BUF, self.OnSTCSettingsBufferedDraw)
+        EVT_MENU(self, wxID_STC_IDNT, self.OnSTCSettingsIndentGuide)
 
     def getModelData(self):
         return self.model.data
@@ -142,7 +157,7 @@ class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView):
         pos = self.GetCurrentPos()
         prevVsblLn = self.GetFirstVisibleLine()
 
-        self.setModelData(self.GetText())
+        self.setModelData(str(self.GetText()))
 
         self.GotoPos(pos)
         curVsblLn = self.GetFirstVisibleLine()
@@ -183,37 +198,6 @@ class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView):
         # Dont do whole screen selection
         ep = max(0, self.PositionFromLine(lineno+1)-1)
         self.SetSelection(sp, ep)
-
-    def updatePageName(self):
-        if hasattr(self, 'notebook'):
-            currName = self.notebook.GetPageText(self.pageIdx)
-
-            if self.isModified(): newName = '~%s~' % self.viewName
-            else: newName = self.viewName
-
-            if currName != newName:
-                if newName == self.viewName:
-                    if self.model.viewsModified.count(self.viewName):
-                        self.model.viewsModified.remove(self.viewName)
-                else:
-                    if not self.model.viewsModified.count(self.viewName):
-                        self.model.viewsModified.append(self.viewName)
-                self.notebook.SetPageText(self.pageIdx, newName)
-    # XXX check if this makes a difference
-    #            self.notebook.Refresh()
-                self.updateEditor()
-
-##    def updateStatusBar(self):
-##        pos = self.GetCurrentPos()
-##        ln = self.LineFromPosition(pos)
-##        st = pos - self.PositionFromLine(ln)
-
-    def updateEditor(self):
-        self.model.editor.updateModulePage(self.model)
-        self.model.editor.updateTitle()
-
-    def updateViewState(self):
-        self.updatePageName()
 
     def insertCodeBlock(self, text):
         cp = self.GetCurrentPos()
@@ -272,6 +256,7 @@ class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView):
         return range(self.LineFromPosition(selStartPos),
               self.LineFromPosition(selEndPos))
 
+#-------------------------------------------------------------------------------
     def setLinePtr(self, lineNo):
         if self._linePtrHdl:
             self.MarkerDeleteHandle(self._linePtrHdl)
@@ -281,6 +266,11 @@ class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView):
             self.MarkerDeleteAll(linePtrMrk)
 
             self._linePtrHdl = self.MarkerAdd(lineNo, linePtrMrk)
+
+    def gotoBrowseMarker(self, marker):
+        self.GotoLine(marker)
+        self.setLinePtr(marker)
+        EditorViews.EditorView.gotoBrowseMarker(self, marker)
 
 #-------Canned events-----------------------------------------------------------
 
@@ -333,22 +323,6 @@ class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView):
         import FindReplaceDlg
         FindReplaceDlg.findAgain(self, self.model.editor.finder, self)
 
-##        if self.model.editor.finder.lastFind == "":
-##            self.OnFind(event)
-##        else:
-##            self.model.editor.finder.findNextInSource(self)
-
-##    def OnFind(self, event):
-##        s, e = self.GetSelection()
-##        if s == e:
-##            txt = self.lastSearchPattern
-##        else:
-##            txt = self.GetSelectedText()
-##        self.findReplacer.Find(txt)
-##
-##    def OnFindAgain(self, event):
-##        self.findReplacer.FindNext()
-
     def OnMarkPlace(self, event):
         if self._marking : return
         self._marking = true
@@ -400,6 +374,67 @@ class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView):
     def OnMarginClick(self, event):
         pass
 
+    def OnEditCopyPlus(self, event):
+        self.Copy()
+        self.clipboardPlus.update()
+
+    def OnEditPastePlus(self, event):
+        buffer = self.clipboardPlus.getClipboardList()
+        if len(buffer) == 1:
+            self.Paste()
+        else:
+            dlg = wxSingleChoiceDialog(self, 'Context', 'Smart clipboard', buffer)
+            try:
+                if dlg.ShowModal() == wxID_OK:
+                    self.clipboardPlus.updateClipboard( dlg.GetStringSelection() )
+                    self.Paste()
+            finally:
+                dlg.Destroy()
+
+    def OnSTCSettings(self, event):
+        menu = wxMenu()
+        menu.Append(wxID_STC_WS, 'View Whitespace', '', 1) #checkable
+        menu.Check(wxID_STC_WS, self.GetViewWhiteSpace())
+        menu.Append(wxID_STC_EOL, 'View EOL symbols', '', 1) #checkable
+        menu.Check(wxID_STC_EOL, self.GetViewEOL())
+        menu.Append(wxID_STC_BUF, 'Buffered draw', '', 1) #checkable
+        menu.Check(wxID_STC_BUF, self.GetBufferedDraw())
+        menu.Append(wxID_STC_IDNT, 'Use indentation guides', '', 1) #checkable
+        menu.Check(wxID_STC_IDNT, self.GetIndentationGuides())
+
+        s = self.GetClientSize()
+
+        self.PopupMenuXY(menu, s.x/2, s.y/2)
+        menu.Destroy()
+
+    def OnSTCSettingsWhiteSpace(self, event):
+        checked = not event.IsChecked()
+        if wxPlatform == '__WXGTK__':
+            checked = not checked
+
+        self.SetViewWhiteSpace(checked)
+
+    def OnSTCSettingsEOL(self, event):
+        checked = not event.IsChecked()
+        if wxPlatform == '__WXGTK__':
+            checked = not checked
+
+        self.SetViewEOL(checked)
+
+    def OnSTCSettingsBufferedDraw(self, event):
+        checked = not event.IsChecked()
+        if wxPlatform == '__WXGTK__':
+            checked = not checked
+
+        self.SetBufferedDraw(checked)
+
+    def OnSTCSettingsIndentGuide(self, event):
+        checked = not event.IsChecked()
+        if wxPlatform == '__WXGTK__':
+            checked = not checked
+
+        self.SetIndentationGuides(checked)
+
 class PythonDisView(EditorStyledTextCtrl, PythonStyledTextCtrlMix):
     viewName = 'Disassemble'
     breakBmp = 'Images/Debug/Breakpoints.png'
@@ -432,6 +467,5 @@ class TextView(EditorStyledTextCtrl, TextSTCMix):
         TextSTCMix.__init__(self, wxID_TEXTVIEW)
         self.active = true
 
-ExplorerNodes.langStyleInfoReg.append( ('Text', 'text', TextSTCMix, 
+ExplorerNodes.langStyleInfoReg.append( ('Text', 'text', TextSTCMix,
       'stc-styles.rc.cfg') )
-
