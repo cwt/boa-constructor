@@ -73,7 +73,7 @@ class FileBreakpointList:
 
     def adjustBreakpoints(self, lineno, delta):
         set_breaks = []
-        # traverse list twice, first deleting then re-adding to avoid stepping 
+        # traverse list twice, first deleting then re-adding to avoid stepping
         # on our own toes
         for brklineno, breaks in self.lines.items():
             if lineno < brklineno-1:
@@ -189,6 +189,15 @@ class BreakpointList:
         if self.files.has_key(filename):
             filelist = self.files[filename]
             filelist.clearTemporaryBreakpoints(lineno)
+
+    def renameFileBreakpoints(self, oldname, newname):
+        oldname = self.normalize(oldname)
+        newname = self.normalize(newname)
+        if self.files.has_key(oldname):
+            filelist = self.files[oldname]
+            filelist.clearAllBreakpoints()
+            del self.files[oldname]
+            self.files[newname] = filelist
 
     def getFileBreakpoints(self, filename):
         filename = self.normalize(filename)
