@@ -1,7 +1,7 @@
 import string
 import re
 
-fileLine = re.compile('[ ]*File "(?P<filename>.+)", line (?P<lineno>[0-9]+)')
+fileLine = re.compile('  File "(?P<filename>.+)", line (?P<lineno>[0-9]+)')
 
 class StackEntry:
     def __init__(self, file = '', lineNo = 0, line = ''):
@@ -14,7 +14,8 @@ class StackEntry:
 
 class PseudoFile:
     """ Base class for file like objects to facilitate StdOut for the Shell."""
-    def __init__(self, output):
+    def __init__(self, output = None):
+        if output is None: output = []
         self.output = output
 
     def writelines(self, l):
@@ -25,26 +26,82 @@ class PseudoFile:
 
     def flush(self):
         pass
+
+class RecFile(PseudoFile):
+    def write(self, s):
+        self.output.append(s)
+    
+    def readlines(self):
+        return self.output
+
                 
-class ErrorParser(PseudoFile):
-    def __init__(self):
-        self.lines = []
+class ErrorParser:
+    def __init__(self, lines):
+        self.lines = lines
         self.stack = []
         self.error = ()
+        self.parse()
         
-    def write(self, s):
-        self.lines.append(s)
+#    def write(self, s):
+#        self.lines.append(s)
     
     def parse(self):
         if len(self.lines) >= 2:
             self.error = list(string.split(self.lines.pop(), ': '))
-            self.error.append(string.find(self.lines.pop(), '^'))
-            for idx in range(0, len(self.lines), 2):
+#            self.error.append(string.find(self.lines.pop(), '^'))
+            for idx in range(0, len(self.lines) -1):
                 mo = fileLine.match(self.lines[idx])
-                self.stack.append(StackEntry(mo.group('filename'), 
-                  int(mo.group('lineno')), self.lines[idx + 1]))
+                if mo:
+                    self.stack.append(StackEntry(mo.group('filename'), 
+                          int(mo.group('lineno')), self.lines[idx + 1]))
 
     def printError(self):
         print self.error
         for se in self.stack:
             print se
+
+def errorList(stderr):
+    errs = []
+    currerr = []
+    lines = stderr.readlines()
+    print lines
+    lines.reverse()
+    for line in lines:
+        if string.strip(line) == 'Traceback (innermost last):':
+            errs.append(currerr)
+            currerr = []
+        else:
+            currerr.append(line)
+    errs.reverse()
+
+    res = []
+    for err in errs:
+        err.reverse()
+        res.append(ErrorParser(err))
+    return res
+    
+    
+def test():
+    class pf:
+        def __init__(self, data):
+            self.data = data
+        def readlines(self):
+            return self.data
+            
+    tb = ['Traceback (innermost last):\n',
+          '  File "Views\AppViews.py", line 172, in OnRun\n',
+          '    self.model.run()\n',
+          '  File "EditorModels.py", line 548, in run\n',
+          "    self.checkError(c, 'Ran')",
+          '  File "EditorModels.py", line 513, in checkError\n',
+          '    err.parse()\n',
+          'AttributeError: parse\n',
+          'Traceback (innermost last):\n',
+          '  File "Views\AppViews.py", line 172, in OnRun\n',
+          '    self.model.run()\n',
+          '  File "EditorModels.py", line 548, in run\n',
+          "    self.checkError(c, 'Ran')",
+          '  File "EditorModels.py", line 513, in checkError\n',
+          '    err.parse()\n',
+          'AttributeError: parse\n']
+    return errorList(pf(tb))
