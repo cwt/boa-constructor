@@ -446,6 +446,8 @@ class TextCtrlDTC(TextCtrlConstr, WindowDTC):
         	'size': size,
         	'style': '0',
         	'name': `self.name`}
+    def hideDesignTime(self):
+        return ['Selection']
     def events(self):
         return WindowDTC.events(self) + ['TextCtrlEvent']
 
