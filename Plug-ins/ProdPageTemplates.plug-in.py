@@ -29,10 +29,20 @@ class ZopePageTemplateFSModel(HTMLFileModel):
 
 EditorHelper.modelReg[ZopePageTemplateFSModel.modelIdentifier] = ZopePageTemplateFSModel
 EditorHelper.extMap['.pt'] = ZopePageTemplateFSModel
+EditorHelper.extMap['.zpt'] = ZopePageTemplateFSModel
 
 #---Views-----------------------------------------------------------------------
 
 from ZopeLib import ZopeViews
+
+ZopeViews.zope_additional_attributes += \
+      'tal tal:block tal:content tal:replace tal:condition tal:attributes '\
+      'tal:define tal:repeat tal:omit-tag tal:on-error '\
+      'tales '\
+      'metal metal:block metal:use-macro metal:define-macro metal:fill-slot '\
+      'metal:define-slot '\
+      'i18n i18n:translate i18n:attributes '
+
 class ZopePTHTMLView(ZopeViews.ZopeHTMLView):
     viewName = 'Source.html'
     def generatePage(self):
