@@ -1428,7 +1428,7 @@ class BaseAppModel(ClassModel):
             self.update()
 
     def crashLog(self):
-        err = ErrorStack.crashError(os.path.splitext(self.filename)[0]+'.trace')
+        err = ErrorStack.crashError(os.path.splitext(self.assertLocalFile())[0]+'.trace')
         if err:
             frm = self.editor.erroutFrm
             if frm:
@@ -1693,3 +1693,4 @@ def identifySource(source):
                 return headerInfo
         else:
             return ModuleModel, ''
+ 
