@@ -88,7 +88,8 @@ class Upgrade:
                              'EditableListBox': 'wx.gizmos.EditableListBox',
                              'TreeListCtrl': 'wx.gizmos.TreeListCtrl'
                              }
-        self.specialNames2 = {'wxInitAllImageHandlers(' : 'wx.InitAllImageHandlers',
+        self.specialNames2 = {'wxInitAllImageHandlers' : 'wx.InitAllImageHandlers',
+                              'wxPySimpleApp' : 'wx.PySimpleApp',
                               'wxIcon' : 'wx.Icon',
                               'wxBITMAP' : 'wx.BITMAP',
                               'wxBitmap' : 'wx.Bitmap',
@@ -185,8 +186,8 @@ class Upgrade:
         repId1.setParseAction(self.repId1Action)
         
         # wxID_WX to wxID_
-        repId2 = Literal("wxID_WX") + ident
-        repId2.setParseAction(self.repId2Action)
+        #repId2 = Literal("wxID_WX") + ident
+        #repId2.setParseAction(self.repId2Action)
         
         # import
         imp = Literal("from wxPython") + qualIdent3
@@ -216,7 +217,7 @@ class Upgrade:
         repFalse = Literal("false")
         repFalse.setParseAction(lit('False'))
 
-        self.grammar = evt_P2 ^ evt_P3 ^ append ^ repId1 ^ repId2 ^ imp\
+        self.grammar = evt_P2 ^ evt_P3 ^ append ^ repId1 ^ imp\
             ^ repWXSpec ^ repWX ^ repWX2 ^ repWX3\
             ^ repTrue ^ repFalse ^ setStatusText\
             ^ addSpacer ^ flags
@@ -268,9 +269,9 @@ class Upgrade:
         a, b, c = t
         return "[wx.NewId() for _init_ctrls in range("+c+")]"
 
-    def repId2Action(self, s, l, t):
-        a, b = t
-        return "wxID_"+b
+#    def repId2Action(self, s, l, t):
+#        a, b = t
+#        return "wxID_"+b
     
     def impAction(self, s, l, t):
         a, b = t
