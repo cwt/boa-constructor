@@ -1,45 +1,53 @@
-import sys
 
-if __name__ == '__main__':
-    sys.path.append('.')  # Fix later
-
+import sys, os
+import whrandom, sha, threading
+from SocketServer import TCPServer
 from ExternalLib.xmlrpcserver import RequestHandler
-from SocketServer import StreamRequestHandler
 from IsolatedDebugger import DebuggerController, DebuggerConnection
+from Tasks import ThreadedTaskHandler
 
-verify_auth = 1
 
 class DebugRequestHandler (RequestHandler):
 
     _authstr = None
     __dc = DebuggerController()
     __conn_id = __dc.createServer()
-    __conn = DebuggerConnection(__dc, __conn_id)
+    _conn = DebuggerConnection(__dc, __conn_id)
 
     def call(self, method, params):
 	# override this method to implement RPC methods
-        print 'DebugSP step 1'
         h = self.headers
-        if verify_auth and (not h.has_key('x-auth') or h['x-auth']
+        if self._authstr and (not h.has_key('x-auth') or h['x-auth']
             != self._authstr):
             raise 'Unauthorized', 'x-auth missing or incorrect'
-        m = getattr(self.__conn, method)
-        print 'DebugSP step 2'
+        m = getattr(self._conn, method)
         result = apply(m, params)
-        print 'DebugSP step 3'
         if result is None:
             result = 0
         return result
 
-    #def log_message(self, format, *args):
-    #    pass
+    def log_message(self, format, *args):
+        pass
 
 
-if __name__ == '__main__':
+class FlushingStream:
 
-    import whrandom, sha, threading
-    from Tasks import ThreadedTaskHandler
-    from SocketServer import TCPServer
+    def __init__(self, s):
+        self.s = s
+
+    def __getattr__(self, name):
+        return getattr(self.s, name)
+
+    def write(self, data):
+        self.s.write(data)
+        self.s.flush()
+
+    def writelines(self, data):
+        self.s.writelines(data)
+        self.s.flush()
+
+
+def main():
 
     class TaskingMixIn:
         """Mix-in class to handle each request in a task thread."""
@@ -53,14 +61,19 @@ if __name__ == '__main__':
     class TaskingTCPServer(TaskingMixIn, TCPServer): pass
 
     auth = sha.new(str(whrandom.random())).hexdigest()  # Always 40 chars.
-    # Setting a class attribute this way is unsightly...
     DebugRequestHandler._authstr = auth
 
     # port is 0 to allocate any port.
     server = TaskingTCPServer(('', 0), DebugRequestHandler)
     port = int(server.socket.getsockname()[1])
-    sys.stdout.write('%010d %s\n' % (port, auth))
+    sys.stdout.write('%010d %s%s' % (port, auth, os.linesep))
     sys.stdout.flush()
+
+    sys.stdout = FlushingStream(sys.stdout)
+    sys.stderr = FlushingStream(sys.stderr)
+
+    #sys.stdout = DebugRequestHandler._conn._getStdoutBuf()
+    #sys.stderr = DebugRequestHandler._conn._getStderrBuf()
 
     def serve_forever(server):
         while 1:
@@ -73,3 +86,7 @@ if __name__ == '__main__':
     # Serve until the stdin pipe closes.
     sys.stdin.read()
     sys.exit(0)
+
+
+if __name__ == '__main__':
+    main()

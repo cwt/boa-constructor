@@ -24,10 +24,11 @@ from repr import Repr
 import traceback, linecache, imp, pprint
 import Utils
 from Preferences import pyPath, IS, flatTools
-#from PhonyApp import wxPhonyApp
 from Breakpoint import bplist
 from DebugClient import EVT_DEBUGGER_OK, EVT_DEBUGGER_EXC, \
-     InProcessDebugClient, SpawningDebugClient
+     EVT_DEBUGGER_STDIO
+#from InProcessClient import InProcessClient
+from ChildProcessClient import ChildProcessClient
 
 
 wxID_STACKVIEW = NewId()
@@ -565,7 +566,7 @@ class DebuggerFrame(wxFrame):
             wxPoint(0, Preferences.paletteHeight), 
             wxSize(Preferences.inspWidth, Preferences.bottomHeight))
 
-        self.debug_client = SpawningDebugClient(self)
+        self.debug_client = ChildProcessClient(self)
         # self.debug_client = InProcessDebugClient(self)
 
         if wxPlatform == '__WXMSW__':
@@ -689,6 +690,7 @@ class DebuggerFrame(wxFrame):
 
         EVT_DEBUGGER_OK(self, self.GetId(), self.OnDebuggerOk)
         EVT_DEBUGGER_EXC(self, self.GetId(), self.OnDebuggerException)
+        EVT_DEBUGGER_STDIO(self, self.GetId(), self.OnDebuggerStdio)
         
 	EVT_CLOSE(self, self.OnCloseWindow)
 
@@ -835,6 +837,9 @@ class DebuggerFrame(wxFrame):
 
     def stopDebugger(self):
         self.debug_client.stop()
+
+    def OnDebuggerStdio(self, event):
+        self.outp.AppendText(event.GetResult())
         
     def OnDebuggerOk(self, event):
         self.enableStepping()
@@ -915,7 +920,14 @@ class DebuggerFrame(wxFrame):
         self.breakpts.refreshList()
 
     def receiveDebuggerStatus(self, info):
-        # TODO: Use info['stdout'] and info['stderr'].
+        # stdout and stderr.
+        data = info.get('stdout', None)
+        if data:
+            self.outp.AppendText(data)
+        data = info.get('stderr', None)
+        if data:
+            self.outp.AppendText(data)
+        # stack.
         self.running = info['running']
         stack = info['stack']
         if stack:
@@ -935,7 +947,7 @@ class DebuggerFrame(wxFrame):
             message = 'Finished.'
 
         self.sb.status.SetLabel(message)
-
+        # exception.
         exc_type = info.get('exc_type', None)
         exc_value = info.get('exc_value', None)
         if exc_type is not None:
@@ -966,8 +978,8 @@ class DebuggerFrame(wxFrame):
             rect = self.sb.GetFieldRect(1)
             self.sb.error.SetDimensions(rect.x+2, rect.y+2, 
                                         rect.width-4, rect.height-4)
-            # TODO: Unmark temporary breakpoints in the editor.
-            
+
+        # Breakpoint stats.
         self.breakpts.stats = info['breaks']
         self.breakpts.refreshList()
         self.selectSourceLine(filename, lineno)
@@ -1026,7 +1038,7 @@ class DebuggerFrame(wxFrame):
 
     def doDebugStep(self, method=None):
         if self.stepping_enabled:
-            self.stepping_enabled = 0
+            self.disableStepping()
             self.invalidatePanes()
             self.updateSelectedPane(do_request=0)
             if not self.running:
