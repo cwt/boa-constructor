@@ -26,7 +26,7 @@ import copy
 print 'importing extra wxPython libraries'
 from wxPython.grid import wxGrid
 from wxPython.html import wxHtmlWindow
-from wxPython.lib.buttons import wxGenButton, wxGenBitmapButton #, wxGenToggleButton, wxGenBitmapToggleButton
+from wxPython.lib.buttons import wxGenButton, wxGenBitmapButton , wxGenToggleButton, wxGenBitmapToggleButton
 from wxPython.stc import wxStyledTextCtrl
 from wxPython.lib.anchors import LayoutAnchors
 from wxPython.calendar import *
@@ -58,6 +58,9 @@ class BaseFrameDTC(ContainerDTC):
               'wxRESIZE_BORDER', 'wxTHICK_FRAME', 'wxFRAME_FLOAT_ON_PARENT',
               'wxFRAME_TOOL_WINDOW'] + self.windowStyles
 
+    def extraConstrProps(self):
+        return {}
+
     def hideDesignTime(self):
         hdt = ContainerDTC.hideDesignTime(self) + ['Label', 'Constraints', 'Anchors']
         hdt.remove('Title')
@@ -72,7 +75,6 @@ class BaseFrameDTC(ContainerDTC):
         return ContainerDTC.events(self) + ['FrameEvent']
 
     def SetName(self, oldValue, newValue):
-##        print 'setting frame name from', oldValue, 'to', newValue
         self.name = newValue
         self.designer.renameFrame(oldValue, newValue)
 
@@ -283,6 +285,7 @@ class ScrolledWindowDTC(WindowConstr, ContainerDTC):
 
 EventCategories['NotebookEvent'] = (EVT_NOTEBOOK_PAGE_CHANGED,
                                     EVT_NOTEBOOK_PAGE_CHANGING)
+commandCategories.append('NotebookEvent')
 class NotebookDTC(WindowConstr, ContainerDTC):
     wxDocs = HelpCompanions.wxNotebookDocs
     def __init__(self, name, designer, parent, ctrlClass):
@@ -389,7 +392,6 @@ class NotebookPagesCDTC(NotebookPageConstr, CollectionDTC):
 
     def applyDesignTimeDefaults(self, params):
         prms = copy.copy(params)
-        insMeth = RTTI.getFunction(self.control, self.insertionMethod)
 
         page = BlankWindowPage(self.control, self.designer, params, 'pPage')
         self.tempPlaceHolders.append(page)
@@ -402,7 +404,7 @@ class NotebookPagesCDTC(NotebookPageConstr, CollectionDTC):
         params = self.designTimeDefaults(prms)
         params['pPage'] = page
 
-        apply(insMeth, [self.control], params)
+        apply(getattr(self.control, self.insertionMethod), (), params)
 
     def deleteItem(self, idx):
         activePageDeleted = self.control.GetSelection() == idx
@@ -626,7 +628,6 @@ class SplitterWindowDTC(SplitterWindowConstr, ContainerDTC):
                    wxSPLIT_HORIZONTAL: 'SplitHorizontally'}
 
     def renameCtrlRefs(self, oldName, newName):
-        print 'Splitter.renameCtrlRefs', oldName, newName,
         ContainerDTC.renameCtrlRefs(self, oldName, newName)
         # Check if subwindow references have changed
         # XXX should maybe be done with notification, action = 'rename'
@@ -778,7 +779,8 @@ class ButtonDTC(LabeledInputConstr, WindowDTC):
                 'pos': position,
                 'size': size,
                 'name': `self.name`,
-                'style': '0'}
+                'style': '0',}
+                #'validator': 'wxDefaultValidator'}
 
     def events(self):
         return WindowDTC.events(self) + ['ButtonEvent']
@@ -1734,7 +1736,8 @@ PaletteStore.paletteLists['BasicControls'].extend([wxStaticText, wxTextCtrl,
       wxComboBox, wxChoice, wxCheckBox, wxRadioButton, wxSlider, wxGauge,
       wxScrollBar, wxStaticBitmap, wxStaticLine, wxStaticBox, wxHtmlWindow])
 PaletteStore.paletteLists['Buttons'].extend([wxButton, wxBitmapButton,
-      wxSpinButton, wxGenButton, wxGenBitmapButton])
+      wxSpinButton, wxGenButton, wxGenBitmapButton, wxGenToggleButton, 
+      wxGenBitmapToggleButton])
 PaletteStore.paletteLists['ListControls'].extend([wxRadioBox, wxListBox,
       wxCheckListBox, wxGrid, wxListCtrl, wxTreeCtrl])
 
@@ -1780,8 +1783,8 @@ PaletteStore.compInfo.update({wxApp: ['wxApp', None],
     wxSpinCtrl: ['wxSpinCtrl', NYIDTC],
     wxGenButton: ['wxGenButton', GenButtonDTC],
     wxGenBitmapButton: ['wxGenBitmapButton', GenBitmapButtonDTC],
-#    wxGenToggleButton: ['wxGenToggleButton', GenButtonDTC],
-#    wxGenBitmapToggleButton: ['wxGenBitmapToggleButton', GenBitmapButtonDTC],
+    wxGenToggleButton: ['wxGenToggleButton', GenButtonDTC],
+    wxGenBitmapToggleButton: ['wxGenBitmapToggleButton', GenBitmapButtonDTC],
 
     wxWindow: ['wxWindow', ContainerDTC],
 })
