@@ -28,7 +28,6 @@
 # - .Append for menu, changes 'helpString' to 'help', 'item' to 'text' and
 #   wxITEM to wx.ITEM
 # - changes the 'map(lambda _init_whatever: wxNewId()' to the new format
-# - changes 'wxID_WX' to the new format
 # - changes the classes from wxName to wx.Name
 #   check "self.specialNames" to see which special cases are handled
 # - changes the 'init' from wxName.__init to wx.Name.__init
@@ -38,10 +37,10 @@
 # - AddSpacer "n, n" to wx.Size(n, n)
 # - flag= i.e. flag=wxALL
 # - style= i.e. style=wxDEFAULT_DIALOG_STYLE
-# - wxInitAllImageHandlers to wx.InitAllImageHandlers
 # - orient=wx to orient=wx.
 # - kind=wx to kind=wx.
 # - Following changes are handled, see self.specialNames2
+#   - wxInitAllImageHandlers to wx.InitAllImageHandlers
 #   - wxIcon( to wx.Icon(
 #   - wxBITMAP to wx.BITMAP
 #   - wxBitmap( to wx.Bitmap(
@@ -56,14 +55,22 @@
 #   - wxGREEN to wx.GREEN
 #   - wxBLUE to wx.BLUE
 #   - wxGrid.wxGrid to wx.grid.Grid.wxGrid
+#   - wxACCEL to wx.ACCEL
+#   - wxAcceleratorTable to wx.AcceleratorTable
+#   - wxTheClipboard to wx.TheClipboard
+#   - wxID_YES to wx.ID_YES
+#   - wxOK to wx.OK
+#   - wxICON_ to wx.ICON_
+#   - wxPySimpleApp to wx.PySimpleApp
+#   - wxYES_NO to wx.YES_NO
+#   - wxYES_DEFAULT to wx.YES_DEFAULT
+#   - wxNO_DEFAULT to wx.NO_DEFAULT
+#   - wxID_YES to wx.ID_YES
+#   - wxID_NO to wx.ID_NO
+#   - wxID_OK to wx.ID_OK
+#   - wxID_CANCEL to wx.ID_CANCEL
+#
 # - wxFont(8,wxSWISS,wxNORMAL,wxNORMAL to wx.Font(8,wx.SWISS,wx.NORMAL,wx.NORMAL
-# - wxACCEL to wx.ACCEL
-# - wxAcceleratorTable to wx.AcceleratorTable
-# - wxTheClipboard to wx.TheClipboard
-# - wxID_YES to wx.ID_YES
-# - wxOK to wx.OK
-# - wxICON_QUESTION to wx.ICON_QUESTION
-# - wxICON_EXCLAMATION wx.ICON_EXCLAMATION
 #
 #
 # A lot is converted however manual inspection and correction of code
@@ -95,7 +102,7 @@ class Upgrade:
                              'IntCtrl': 'wx.lib.intctrl.IntCtrl',
                              'Grid': 'wx.grid.Grid',                             
                              'EditableListBox': 'wx.gizmos.EditableListBox',
-                             'TreeListCtrl': 'wx.gizmos.TreeListCtrl'
+                             'TreeListCtrl': 'wx.gizmos.TreeListCtrl',
                              }
 
         self.specialNames2 = {'wxInitAllImageHandlers' : 'wx.InitAllImageHandlers',
@@ -108,19 +115,23 @@ class Upgrade:
                               'wxNewId': 'wx.NewId',
                               'wxColour': 'wx.Colour',
                               'wxOPEN': 'wx.OPEN',
-                              'wxID_OK': 'wx.ID_OK',
                               'wxRED': 'wx.RED',
                               'wxBLUE': 'wx.BLUE',
                               'wxGREEN': 'wx.GREEN',
                               'wxGrid.wxGrid': 'wx.grid.Grid.wxGrid',
-                              'wxACCEL':'wx.ACCEL',
-                              'wxAcceleratorTable':'wx.AcceleratorTable',
-                              'wxTheClipboard':'wx.TheClipboard',
-                              'wxID_YES':'wx.ID_YES',
-                              'wxOK':'wx.OK',
-                              'wxICON_QUESTION':'wx.ICON_QUESTION',
-                              'wxICON_EXCLAMATION':'wx.ICON_EXCLAMATION',
-                              'wxPySimpleApp' : 'wx.PySimpleApp'
+                              'wxACCEL': 'wx.ACCEL',
+                              'wxAcceleratorTable': 'wx.AcceleratorTable',
+                              'wxTheClipboard': 'wx.TheClipboard',
+                              'wxOK': 'wx.OK',
+                              'wxICON_': 'wx.ICON_',
+                              'wxPySimpleApp': 'wx.PySimpleApp',
+                              'wxYES_NO': 'wx.YES_NO',
+                              'wxYES_DEFAULT': 'wx.YES_DEFAULT',
+                              'wxNO_DEFAULT': 'wx.NO_DEFAULT',
+                              'wxID_YES': 'wx.ID_YES',
+                              'wxID_NO': 'wx.ID_NO',
+                              'wxID_OK': 'wx.ID_OK',
+                              'wxID_CANCEL': 'wx.ID_CANCEL',
                               }
 
         self.importNames = {'.wx import *': 'import wx',
