@@ -19,7 +19,7 @@ class InProcessCallback:
             self.event_handler.AddPendingEvent(evt)
 
     def notifyException(self):
-        t, v = sys.exc_info()
+        t, v = sys.exc_info()[:2]
         evt = DebuggerCommEvent(wxEVT_DEBUGGER_EXC, self.win_id)
         evt.SetExc(t, v)
         self.event_handler.AddPendingEvent(evt)
