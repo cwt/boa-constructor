@@ -290,7 +290,7 @@ class DesignerView(wxFrame, InspectableObjectView):
         self.model.editor.statusBar.progress.SetValue(80)
         self.refreshContainment()
         self.model.editor.statusBar.progress.SetValue(0)
-        self.model.editor.statusBar.setHint(' ')
+        self.model.editor.statusBar.setHint('Designer refreshed')
 
     def initSelection(self):
         """ Create a selection group """
@@ -725,6 +725,7 @@ class DesignerView(wxFrame, InspectableObjectView):
         """ When the Designer closes, the code generation process is started.
             General Inspector and Designer clean-up"""
         self.destroying = true
+        self.vetoResize = true
         if self.selection:
             self.selection.destroy()
             self.selection = None
@@ -740,14 +741,21 @@ class DesignerView(wxFrame, InspectableObjectView):
         self.model.views['Source'].disableSource(false)
 
         if self.saveOnClose:
-            self.saveCtrls(self.dataView.objectOrder[:])
-            self.model.modified = true
-            self.model.editor.updateModulePage(self.model)
+            oldData = self.model.data
 
+            self.saveCtrls(self.dataView.objectOrder[:])
             self.dataView.saveCtrls([])
 
-            self.refreshModel()
+            newData = self.model.data
 
+            self.model.modified = self.model.modified or newData != oldData
+            self.model.editor.updateModulePage(self.model)
+
+            self.refreshModel()
+            self.model.editor.statusBar.setHint('Designer session Posted.')
+        else:
+            self.model.editor.statusBar.setHint('Designer session Cancelled.', 
+                  'Warning')
 
         self.dataView.deleteFromNotebook('Source', 'Data')
 
