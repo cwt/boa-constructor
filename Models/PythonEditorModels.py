@@ -223,16 +223,12 @@ class ModuleModel(SourceModel):
         if self.savedAs:
             debugger = self.editor.debugger
             if not debugger:
-                if self.defaultName != 'App' and self.app:
-                    filename = self.app.filename
-                else:
-                    filename = self.filename
-                filename = self.assertLocalFile(filename)
+                filename = self.assertLocalFile(self.filename)
                 debugger = Debugger.DebuggerFrame(self.editor, filename)
                 debugger.setDebugClient()
                 debugger.setParams(params)
                 self.editor.debugger = debugger
-            debugger.Show(true)
+            debugger.Show()
             debugger.initSashes()
             debugger.ensureRunning(cont_if_running, cont_always,
                                    temp_breakpoint)

@@ -227,6 +227,11 @@ class BasePersistentModel(EditorModel):
         self.save()
         self.savedAs = true
 
+    def localFilename(self, filename=None):
+        if filename is None: filename = self.filename
+        from Explorers.Explorer import splitURI
+        return splitURI(filename)[2]
+        
     def assertLocalFile(self, filename=None):
         if filename is None:
             filename = self.filename

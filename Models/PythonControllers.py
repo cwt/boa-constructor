@@ -30,19 +30,20 @@ from Views import EditorViews, AppViews, SourceViews, PySourceView, OGLViews, Pr
 from ModRunner import ProcessModuleRunner
 import ErrorStack
 
-true=1;false=0
-
 import methodparse, sourceconst
 
 (wxID_MODULEPROFILE, wxID_MODULECHECKSOURCE, wxID_MODULERUNAPP, wxID_MODULERUN,
- wxID_MODULERUNPARAMS, wxID_MODULEDEBUG, wxID_MODULEDEBUGPARAMS,
+ wxID_MODULEDEBUGAPP, wxID_MODULEDEBUG, 
  wxID_MODULEDEBUGSTEPIN, wxID_MODULEDEBUGSTEPOVER, wxID_MODULEDEBUGSTEPOUT,
  wxID_MODULECYCLOPSE, wxID_MODULEREINDENT, wxID_MODULETABNANNY,
  wxID_MODULEIMPORTINSHELL, wxID_MODULERELOADINSHELL,
  wxID_MODULEPYCHECK, wxID_MODULECONFPYCHECK,
  wxID_MODULEDIFF, wxID_MODULESWITCHAPP, wxID_MODULEADDTOAPP, 
- wxID_MODULEATTACHTODEBUGGER, wxID_MODULEASSOSWITHAPP, 
+ wxID_MODULEATTACHTODEBUGGER, wxID_MODULEASSOSWITHAPP, wxID_MODULESETPARAMS,
 ) = Utils.wxNewIds(22)
+
+# TODO: Profile, Cyclops and other file runners should use the command-line 
+# TODO: parameters whenever possible
 
 class ModuleController(SourceController):
     activeApp = None
@@ -64,11 +65,11 @@ class ModuleController(SourceController):
         self.addEvt(wxID_MODULEPROFILE, self.OnProfile)
         self.addEvt(wxID_MODULECYCLOPSE, self.OnCyclops)
         self.addEvt(wxID_MODULECHECKSOURCE, self.OnCheckSource)
+        self.addEvt(wxID_MODULESETPARAMS, self.OnSetRunParams)
         self.addEvt(wxID_MODULERUNAPP, self.OnRunApp)
         self.addEvt(wxID_MODULERUN, self.OnRun)
-        self.addEvt(wxID_MODULERUNPARAMS, self.OnRunParams)
+        self.addEvt(wxID_MODULEDEBUGAPP, self.OnDebugApp)
         self.addEvt(wxID_MODULEDEBUG, self.OnDebug)
-        self.addEvt(wxID_MODULEDEBUGPARAMS, self.OnDebugParams)
         self.addEvt(wxID_MODULEDEBUGSTEPIN, self.OnDebugStepIn)
         self.addEvt(wxID_MODULEDEBUGSTEPOVER, self.OnDebugStepOver)
         self.addEvt(wxID_MODULEDEBUGSTEPOUT, self.OnDebugStepOut)
@@ -100,12 +101,11 @@ class ModuleController(SourceController):
         self.addMenu(menu, wxID_MODULEIMPORTINSHELL, 'Import module into Shell', accls, ())
         self.addMenu(menu, wxID_MODULERELOADINSHELL, 'Reload module in Shell', accls, ())
         menu.Append(-1, '-')
-        if hasattr(model, 'app') and model.app:
-            self.addMenu(menu, wxID_MODULERUNAPP, 'Run application', accls, (keyDefs['RunApp']))
+        self.addMenu(menu, wxID_MODULESETPARAMS, 'Set command-line parameters', accls, ())
+        self.addMenu(menu, wxID_MODULERUNAPP, 'Run application', accls, (keyDefs['RunApp']))
         self.addMenu(menu, wxID_MODULERUN, 'Run module', accls, (keyDefs['RunMod']))
-        self.addMenu(menu, wxID_MODULERUNPARAMS, 'Run module with parameters', accls, ())
-        self.addMenu(menu, wxID_MODULEDEBUG, 'Debug module', accls, (keyDefs['Debug']))
-        self.addMenu(menu, wxID_MODULEDEBUGPARAMS, 'Debug module with parameters', accls, ())
+        self.addMenu(menu, wxID_MODULEDEBUGAPP, 'Debug application', accls, (keyDefs['Debug']))
+        self.addMenu(menu, wxID_MODULEDEBUG, 'Debug module', accls, ())
         self.addMenu(menu, wxID_MODULEATTACHTODEBUGGER, 'Attach to debugger', accls, ())
         self.addMenu(menu, wxID_MODULEDEBUGSTEPIN, 'Step in', accls, (keyDefs['DebugStep']))
         self.addMenu(menu, wxID_MODULEDEBUGSTEPOVER, 'Step over', accls, (keyDefs['DebugOver']))
@@ -198,48 +198,64 @@ class ModuleController(SourceController):
                 self.editor.erroutFrm.display(len(warnings))
             self.editor.setStatus('Lint completed')
 
-    def OnRun(self, event):
+    def OnSetRunParams(self, event):
         model = self.getModel()
-        if self.checkUnsaved(model): return
-        model.run()
-
-    def OnRunParams(self, event):
-        model = self.getModel()
-        if self.checkUnsaved(model): return
         dlg = wxTextEntryDialog(self.editor, 'Parameters:',
-          'Run with parameters', model.lastRunParams)
+          'Command-line parameters', model.lastRunParams)
         try:
             if dlg.ShowModal() == wxID_OK:
                 model.lastRunParams = dlg.GetValue()
-                model.run(model.lastRunParams)
+                # update running debuggers debugging this module
+                debugger = self.editor.debugger
+                if debugger and debugger.filename == model.localFilename():
+                    if model.lastRunParams:
+                        params = methodparse.safesplitfields(model.lastRunParams, ' ')
+                    else:
+                        params = None
+                    self.editor.debugger.setParams(params)
+                
+                
         finally:
             dlg.Destroy()
 
-    def OnRunApp(self, event):
+    def OnRun(self, event):
+        self.OnRunApp(event, self.getModel())
+
+    def OnRunApp(self, event=None, runModel=None):
         model = self.getModel()
         if self.checkUnsaved(model): return
         wxBeginBusyCursor()
         try:
-            model.app.run()
+            if runModel is None:
+                if model.app:
+                    runModel = model.app
+                else:
+                    runModel = model
+            runModel.run(runModel.lastRunParams)
         finally:
             wxEndBusyCursor()
 
     def OnDebug(self, event):
-        model = self.getModel()
-        if self.checkUnsaved(model, true): return
-        model.debug(cont_if_running=1, cont_always=0, temp_breakpoint=None)
+        self.OnDebugApp(event, self.getModel())
 
-    def OnDebugParams(self, event):
+    def OnDebugApp(self, event=None, debugModel=None):
         model = self.getModel()
-        if self.checkUnsaved(model, true): return
-        dlg = wxTextEntryDialog(self.editor, 'Parameters:',
-          'Debug with parameters', model.lastDebugParams)
+        if self.checkUnsaved(model): return
+        wxBeginBusyCursor()
         try:
-            if dlg.ShowModal() == wxID_OK:
-                model.lastDebugParams = dlg.GetValue()
-                model.debug(methodparse.safesplitfields(model.lastDebugParams, ' '))
+            if debugModel is None:
+                if model.app:
+                    debugModel = model.app
+                else:   
+                    debugModel = model
+            
+            if debugModel.lastRunParams:
+                params = methodparse.safesplitfields(debugModel.lastRunParams, ' ')
+            else:
+                params = None
+            debugModel.debug(params, cont_if_running=1)
         finally:
-            dlg.Destroy()
+            wxEndBusyCursor()
 
     def OnDebugStepIn(self, event):
         if self.editor.debugger:
@@ -456,6 +472,7 @@ class ModuleController(SourceController):
         if model:
             msg, status  = model.reloadInShell()
             self.editor.setStatus(msg, status)
+
 
 (wxID_APPSAVEALL, wxID_APPCMPAPPS, wxID_APPCRASHLOG) = Utils.wxNewIds(3)
 
