@@ -6,7 +6,7 @@
 #
 # Created:     2002
 # RCS-ID:      $Id$
-# Copyright:   (c) 2002-2003
+# Copyright:   (c) 2002 - 2003
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 print 'importing Companions.BasicCompanions'
@@ -246,7 +246,7 @@ class StaticBoxDTC(LabeledNonInputConstr, WindowDTC):
     def designTimeSource(self, position = 'wxDefaultPosition', size = 'wxDefaultSize'):
         return {'label': `self.name`,
                 'pos': position,
-                'size': 'wxSize(150, 150)',
+                'size': self.getDefCtrlSize(),
                 'style': '0',
                 'name': `self.name`}
 
@@ -278,12 +278,12 @@ class StaticBitmapDTC(StaticBitmapConstr, WindowDTC):
 class HtmlWindowDTC(HtmlWindowConstr, WindowDTC):
     def __init__(self, name, designer, parent, ctrlClass):
         WindowDTC.__init__(self, name, designer, parent, ctrlClass)
-        del self.editors['Style']
+        self.editors['Style']
 
     def designTimeSource(self, position = 'wxDefaultPosition', size = 'wxDefaultSize'):
         return {'pos': position,
-                'size': size,
-##                'style': 'wxHW_SCROLLBAR_AUTO',
+                'size': self.getDefCtrlSize(),
+                'style': 'wxHW_SCROLLBAR_AUTO',
                 'name': `self.name`}
 
     def events(self):
