@@ -297,7 +297,8 @@ class wxBoaFileDialog(wxDialog):
         self.style = style
     def SetWildcard(self, wildcard):
         self.wildcard = wildcard
-        self.chTypes.SetStringSelection(wildcard)
+        #print `wildcard`
+        #self.chTypes.SetStringSelection(wildcard)
 ##    def ShowModal(self, *_args, **_kwargs):
 ##        pass
 ##    def GetFilenames(self, *_args, **_kwargs):
