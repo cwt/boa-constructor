@@ -405,6 +405,7 @@ class BoaApp(wxApp):
         import Editor
         editor = Editor.EditorFrame(self.main, -1, inspector, wxMenu(),
             self.main.componentSB, self, self.main)
+        self.SetTopWindow(editor)
 
         inspector.editor = editor
 
@@ -447,7 +448,6 @@ class BoaApp(wxApp):
             inspector.initSashes()
 
         editor.Show()
-        self.SetTopWindow(editor)
         editor.doAfterShownActions()
 
         # Call startup files after complete editor initialisation
