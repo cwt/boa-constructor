@@ -1,3 +1,17 @@
+#-----------------------------------------------------------------------------
+# Name:        EditorHelper.py
+# Purpose:     
+#
+# Author:      Riaan Booysen
+#
+# Created:     2001
+# RCS-ID:      $Id$
+# Copyright:   (c) 2001, 2002
+# Licence:     GPL
+#-----------------------------------------------------------------------------
+
+""" Global namespace for general IDE window ids, image indexes and registries """
+
 import Preferences, Utils
 
 (wxID_EDITOROPEN, wxID_EDITORSAVE, wxID_EDITORSAVEAS, wxID_EDITORCLOSEPAGE,
@@ -20,6 +34,7 @@ builtinImgs =('Images/Modules/FolderUp_s.png',
               'Images/Modules/Folder_green_s.png',
               'Images/Modules/Folder_cyan_s.png',
               'Images/Shared/SystemObj.png',
+              'Images/Shared/SystemObjOrdered.png',
               'Images/Shared/SystemObjBroken.png',
               'Images/Shared/SystemObjPending.png',
               'Images/Shared/SystemObjDisabled.png',
@@ -31,24 +46,33 @@ builtinImgs =('Images/Modules/FolderUp_s.png',
               'Images/Modules/OpenEditorModels_s.png',
               'Images/Modules/PrefsFolder_s.png',
               'Images/Shared/PrefsSTCStyles.png',
-              'Images/Editor/RecentFiles.png')
+              'Images/Editor/RecentFiles.png',
+              'Images/Editor/Shell.png',
+              'Images/Editor/Explorer.png',
+              )
 
 imgCounter=0
-def imgIdxRange(cnt):
+def imgIdxRange(cnt=0):
+    """ Allocates either a range of image indexes or a single one """
     global imgCounter
-    rng = range(imgCounter, imgCounter + cnt)
-    imgCounter = imgCounter + cnt
-    return rng
+    if cnt:
+        rng = range(imgCounter, imgCounter + cnt)
+        imgCounter = imgCounter + cnt
+        return rng
+    else:
+        imgCounter = imgCounter + 1
+        return imgCounter - 1
 
 # Indexes for the imagelist
 (imgFolderUp, imgFolder, imgPathFolder, imgCVSFolder, imgSystemObj,
- imgSystemObjBroken, imgSystemObjPending, imgSystemObjDisabled,
+ imgSystemObjOrdered, imgSystemObjBroken, imgSystemObjPending, imgSystemObjDisabled,
  imgZopeConnection, imgBoaLogo, imgFSDrive, imgNetDrive, imgFolderBookmark,
  imgOpenEditorModels, imgPrefsFolder, imgPrefsSTCStyles, imgRecentFiles,
+ imgShell, imgExplorer,
 
  imgTextModel, imgBitmapFileModel, imgZipFileModel,
  imgUnknownFileModel, imgInternalFileModel,
-) = imgIdxRange(22)
+) = imgIdxRange(25)
 
 # Registry of all modules {modelIdentifier : Model} (populated by EditorModels)
 # Used for images and header identifier
