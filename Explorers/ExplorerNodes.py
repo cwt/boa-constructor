@@ -147,7 +147,6 @@ class ClipboardControllerMix:
             self.list.node.clipCut(nodes)
 
     def OnCopyItems(self, event):
-        print 'Clip copy'
         if self.list.node:
             nodes = self.getNodesForSelection(self.list.getMultiSelection())
             self.list.node.clipCopy(nodes)
@@ -171,7 +170,6 @@ class ClipboardControllerMix:
             nodes = self.getNodesForSelection(self.list.getMultiSelection())
             for node in nodes:
                 if not node.isFolderish():
-                    print 'Opening item', node
                     node.open(self.editor)
 
 ##class Transport:
