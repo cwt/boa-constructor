@@ -752,7 +752,7 @@ class ListCtrlSelectionManagerMix:
 def wxCallAfter(callable, *args, **kw):
     handler, evtType = wxEvtHandler(), wxNewId()
     handler.Connect(-1, -1, evtType, lambda event, handler=handler,
-          callable=callable, args=args, kw=kw: callable(*args, **kw) )
+          callable=callable, args=args, kw=kw: apply(callable, args, kw) )
     evt = wxPyEvent()
     evt.SetEventType(evtType)
     wxPostEvent(handler, evt)
