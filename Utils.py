@@ -898,3 +898,19 @@ def checkMixedEOLs(text):
         return true
     else:
         return false
+
+#-------------------------------------------------------------------------------
+
+class InspectorSessionMix:
+    def doPost(self, inspector):
+        pass
+
+    def doCancel(self, inspector):
+        pass
+
+    def promptPostOrCancel(self, inspector):
+        pass
+
+    # Up is included because it can exit a session
+    def doUp(self, inspector):
+        pass
