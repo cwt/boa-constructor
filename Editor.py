@@ -31,7 +31,7 @@ from Views.AppViews import AppREADME_TIFView, AppTODO_TIFView, AppBUGS_TIFView, 
 print 'importing Views.DesignerViews'
 from Views.Designer import DesignerView
 from Views.DataView import DataView
-print 'importing Views.DesignerViews'
+print 'importing Views.UMLViews'
 from Views.OGLViews import UMLView, ImportsView
 print 'importing Views.SourceViews'
 from Views.PySourceView import PythonSourceView, HTMLSourceView, TextView, CPPSourceView, HPPSourceView
@@ -873,6 +873,8 @@ class EditorFrame(wxFrame):
     def OnCloseWindow(self, event):
         self.Show(false) 
         if self.palette.destroying:
+            if self.debugger:
+                self.debugger.Close()
             # hack to avoid core dump, first setting the notebook to anything but
             # the last page before setting it to the last page allows us to close
             # this window from the palette. Weird?
