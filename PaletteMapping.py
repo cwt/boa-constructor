@@ -55,7 +55,7 @@ def compInfoByName(name):
         if comp.__name__ == name: return comp
     raise name+' not found'
 
-def loadBitmap(name, subfold = ''):
+def loadBitmap(name, subfold=''):
     """ Loads bitmap if it exists, else loads default bitmap """
     filepath = Preferences.pyPath+ '/Images/Palette/' + subfold + name+'.bmp'
     if path.exists(filepath):
@@ -64,7 +64,7 @@ def loadBitmap(name, subfold = ''):
         return IS.load('Images/Palette/Component.bmp')
 
 
-def bitmapForComponent(wxClass, wxBase = 'None', gray = false):
+def bitmapForComponent(wxClass, wxBase='None', gray=false):
     """ Returns a bitmap for given comonent class.
     
     "Aquires" bitmap by traversing inheritance thru if necessary.
@@ -91,7 +91,7 @@ def bitmapForComponent(wxClass, wxBase = 'None', gray = false):
             return loadBitmap('Component')
 
 _NB = None
-def evalCtrl(expr, localsDct = None):
+def evalCtrl(expr, localsDct=None):
     """ Function usually used to evaluate source snippets.
     
     Uses the namespace of this module which contain all the wxPython libs
