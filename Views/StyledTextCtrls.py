@@ -432,6 +432,168 @@ class CallTipCodeHelpSTCMix(CodeHelpStyledTextCtrlMix):
                 self.lastCallTip = tip
                 self.lastTipHilite = hilite
 
+class DebuggingViewSTCMix:
+    def __init__(self, debugMarkers):
+        
+        (self.brkPtMrk, self.tmpBrkPtMrk, self.disabledBrkPtMrk, 
+         self.stepPosMrk) = debugMarkers
+        
+        # Initialize breakpoints from file and running debugger
+        # XXX Remote breakpoints should be stored in a local pickle
+        try: 
+            filename = self.model.assertLocalFile() 
+        except AssertionError: 
+            filename = self.model.filename
+        
+        from Debugger.Breakpoint import bplist
+        self.breaks = bplist.getFileBreakpoints(filename)
+        self.tryLoadBreakpoints()
+
+    def setupDebuggingMargin(self, symbolMrg):
+        self.SetMarginType(symbolMrg, wxSTC_MARGIN_SYMBOL)
+        self.SetMarginWidth(symbolMrg, Preferences.STCSymbolMarginWidth)
+        self.SetMarginSensitive(symbolMrg, true)
+
+        markIdnt, markBorder, markCenter = Preferences.STCBreakpointMarker
+        self.MarkerDefine(self.brkPtMrk, markIdnt, markBorder, markCenter)
+
+        markIdnt, markBorder, markCenter = Preferences.STCLinePointer
+        self.MarkerDefine(self.stepPosMrk, markIdnt, markBorder, markCenter)
+
+        markIdnt, markBorder, markCenter = Preferences.STCTmpBreakpointMarker
+        self.MarkerDefine(self.tmpBrkPtMrk, markIdnt, markBorder, markCenter)
+
+        markIdnt, markBorder, markCenter = Preferences.STCDisabledBreakpointMarker
+        self.MarkerDefine(self.disabledBrkPtMrk, markIdnt, markBorder, markCenter)
+    
+    def setInitialBreakpoints(self):
+        # Adds markers where the breakpoints are located.
+        for brk in self.breaks.listBreakpoints():
+            self.setBreakMarker(brk)
+
+    def setBreakMarker(self, brk):
+        if brk['temporary']: mrk = self.tmpBrkPtMrk
+        elif not brk['enabled']: mrk = self.disabledBrkPtMrk
+        else: mrk = self.brkPtMrk
+        lineno = brk['lineno'] - 1
+        currMrk = self.MarkerGet(lineno) & (1 << mrk)
+        if currMrk:
+            self.MarkerDelete(lineno, mrk)
+        self.MarkerAdd(lineno, mrk)
+
+    def deleteBreakMarkers(self, lineNo):
+        self.MarkerDelete(lineNo - 1, self.brkPtMrk)
+        self.MarkerDelete(lineNo - 1, self.tmpBrkPtMrk)
+        self.MarkerDelete(lineNo - 1, self.disabledBrkPtMrk)
+
+    def deleteBreakPoint(self, lineNo):
+        self.breaks.deleteBreakpoints(lineNo)
+        debugger = self.model.editor.debugger
+        if debugger:
+            # Try to apply to the running debugger.
+            debugger.deleteBreakpoints(self.model.filename, lineNo)
+        self.deleteBreakMarkers(lineNo)
+        
+    def addBreakPoint(self, lineNo, temp=0, notify_debugger=1):
+        filename = self.model.filename
+
+        self.breaks.addBreakpoint(lineNo, temp)
+        if notify_debugger:
+            debugger = self.model.editor.debugger
+            if debugger:
+                # Try to apply to the running debugger.
+                debugger.setBreakpoint(filename, lineNo, temp)
+        if temp: mrk = self.tmpBrkPtMrk
+        else: mrk = self.brkPtMrk
+        self.MarkerAdd(lineNo - 1, mrk)
+
+    def moveBreakpoint(self, bpt, delta):
+        # remove
+        index = (bpt.file, bpt.line)
+
+        if index not in bpt.bplist.keys():
+            return
+
+        bpt.bplist[index].remove(bpt)
+        if not bpt.bplist[index]:
+            del bpt.bplist[index]
+
+        del self.breaks[bpt.line]
+
+        bpt.line = bpt.line + delta
+
+        # re-add
+        index = (bpt.file, bpt.line)
+        if bpt.bplist.has_key(index):
+            bpt.bplist[index].append(bpt)
+        else:
+            bpt.bplist[index] = [bpt]
+
+        self.breaks[bpt.line] = bpt
+
+    def tryLoadBreakpoints(self):
+        import pickle
+        fn = self.getBreakpointFilename()
+
+        if fn:
+            rval = self.breaks.loadBreakpoints(fn)
+            if rval:
+                self.setInitialBreakpoints()
+        else:
+            rval = None
+        return rval
+
+    def saveBreakpoints(self):
+        # XXX This is not yet called automatically on saving a module,
+        # should it be ?
+        fn = self.getBreakpointFilename()
+        if fn:
+            self.breaks.saveBreakpoints()
+
+    def clearStepPos(self, lineNo):
+        if lineNo < 0:
+            lineNo = 0
+        self.MarkerDelete(lineNo, self.stepPosMrk)
+
+    def setStepPos(self, lineNo):
+        if lineNo < 0:
+            lineNo = 0
+        self.MarkerDeleteAll(self.stepPosMrk)
+        self.MarkerAdd(lineNo, self.stepPosMrk)
+        if self.breaks.hasBreakpoint(lineNo + 1):
+            # Be sure all the breakpoints for this file are displayed.
+            self.setInitialBreakpoints()
+        self.MarkerDelete(lineNo, self.tmpBrkPtMrk)
+
+    def getBreakpointFilename(self):
+        try:
+            return os.path.splitext(self.model.assertLocalFile())[0]+'.brk'
+        except AssertionError:
+            return ''
+
+    def adjustBreakpoints(self, linesAdded, modType, evtPos):
+        line = self.LineFromPosition(evtPos)#event.GetPosition())
+        
+        debugger = self.model.editor.debugger
+        if debugger:
+            endline = self.GetLineCount()
+            if self.breaks.hasBreakpoint(
+                  min(line, endline), max(line, endline)):
+                # XXX also check that module has been imported
+                # XXX this should apply; with or without breakpoint
+                if debugger.running and \
+                      not modType & wxSTC_PERFORMED_UNDO:
+                    wxLogWarning('Adding or removing lines from the '
+                                 'debugger will cause the source and the '
+                                 'debugger to be out of sync.'
+                                 '\nPlease undo this action.')
+                
+                changed = self.breaks.adjustBreakpoints(line, linesAdded)
+                
+                debugger.adjustBreakpoints(self.model.filename, line, 
+                      linesAdded)
+    
+
 #---Language mixins-------------------------------------------------------------
 class LanguageSTCMix:
     def __init__(self, wId, marginNumWidth, language, config):

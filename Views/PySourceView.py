@@ -20,17 +20,15 @@ import ProfileView, Search, Help, Preferences, ShellEditor, Utils, SourceViews
 
 from SourceViews import EditorStyledTextCtrl
 from StyledTextCtrls import PythonStyledTextCtrlMix, BrowseStyledTextCtrlMix,\
-     FoldingStyledTextCtrlMix, AutoCompleteCodeHelpSTCMix, CallTipCodeHelpSTCMix,\
-     idWord, object_delim
+     FoldingStyledTextCtrlMix, AutoCompleteCodeHelpSTCMix, \
+     CallTipCodeHelpSTCMix, DebuggingViewSTCMix, idWord, object_delim
 from Preferences import keyDefs
 import methodparse
 import wxNamespace
-from Debugger.Breakpoint import bplist
 
-stepPosMrk = SourceViews.stepPosMrk
 mrkCnt = SourceViews.markerCnt
-brkPtMrk, tmpBrkPtMrk, disabledBrkPtMrk = range(mrkCnt+1, mrkCnt+4)
-SourceViews.markerCnt = mrkCnt + 3
+brkPtMrk, tmpBrkPtMrk, disabledBrkPtMrk, stepPosMrk = range(mrkCnt+1, mrkCnt+5)
+SourceViews.markerCnt = mrkCnt + 4
 
 brwsIndc, synErrIndc = range(0, 2)
 lineNoMrg, symbolMrg, foldMrg = range(0, 3)
@@ -49,7 +47,8 @@ class wxFixPasteEvent(wxPyEvent):
 
 class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
                        BrowseStyledTextCtrlMix, FoldingStyledTextCtrlMix,
-                       AutoCompleteCodeHelpSTCMix, CallTipCodeHelpSTCMix):
+                       AutoCompleteCodeHelpSTCMix, CallTipCodeHelpSTCMix,
+                       DebuggingViewSTCMix):
     viewName = 'Source'
     breakBmp = 'Images/Debug/Breakpoints.png'
     runCrsBmp = 'Images/Editor/RunToCursor.png'
@@ -89,15 +88,8 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
         FoldingStyledTextCtrlMix.__init__(self, wxID_PYTHONSOURCEVIEW, foldMrg)
         AutoCompleteCodeHelpSTCMix.__init__(self)
         CallTipCodeHelpSTCMix.__init__(self)
-
-        # Initialize breakpoints from file and running debugger
-        # XXX Remote breakpoints should be stored in a local pickle
-        try: 
-            filename = self.model.assertLocalFile() 
-        except AssertionError: 
-            filename = self.model.filename
-        self.breaks = bplist.getFileBreakpoints(filename)
-        self.tryLoadBreakpoints()
+        DebuggingViewSTCMix.__init__(self, (brkPtMrk, tmpBrkPtMrk, 
+              disabledBrkPtMrk, stepPosMrk))
 
         self.lsp = 0
         # XXX These could be persisted
@@ -107,17 +99,7 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
         # last line # that was edited
         self.damagedLine = -1
 
-        self.SetMarginType(symbolMrg, wxSTC_MARGIN_SYMBOL)
-        self.SetMarginWidth(symbolMrg, Preferences.STCSymbolMarginWidth)
-        self.SetMarginSensitive(symbolMrg, true)
-        markIdnt, markBorder, markCenter = Preferences.STCBreakpointMarker
-        self.MarkerDefine(brkPtMrk, markIdnt, markBorder, markCenter)
-        markIdnt, markBorder, markCenter = Preferences.STCLinePointer
-        self.MarkerDefine(stepPosMrk, markIdnt, markBorder, markCenter)
-        markIdnt, markBorder, markCenter = Preferences.STCTmpBreakpointMarker
-        self.MarkerDefine(tmpBrkPtMrk, markIdnt, markBorder, markCenter)
-        markIdnt, markBorder, markCenter = Preferences.STCDisabledBreakpointMarker
-        self.MarkerDefine(disabledBrkPtMrk, markIdnt, markBorder, markCenter)
+        self.setupDebuggingMargin(symbolMrg)
 
         # Error indicator
         self.IndicatorSetStyle(synErrIndc, wxSTC_INDIC_SQUIGGLE)
@@ -648,115 +630,10 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
 ##        else:
 ##            return BrowseStyledTextCtrlMix.getBrowsableText(self, line, piv, lnStPs)
 
-#-------Debugger----------------------------------------------------------------
-    def setInitialBreakpoints(self):
-        # Adds markers where the breakpoints are located.
-        for brk in self.breaks.listBreakpoints():
-            self.setBreakMarker(brk)
-
-    def setBreakMarker(self, brk):
-        if brk['temporary']: mrk = tmpBrkPtMrk
-        elif not brk['enabled']: mrk = disabledBrkPtMrk
-        else: mrk = brkPtMrk
-        lineno = brk['lineno'] - 1
-        currMrk = self.MarkerGet(lineno) & (1 << mrk)
-        if not currMrk:
-            self.MarkerAdd(lineno, mrk)
-
-    def deleteBreakMarkers(self, lineNo):
-        self.MarkerDelete(lineNo - 1, brkPtMrk)
-        self.MarkerDelete(lineNo - 1, tmpBrkPtMrk)
-        self.MarkerDelete(lineNo - 1, disabledBrkPtMrk)
-
-    def deleteBreakPoint(self, lineNo):
-        self.breaks.deleteBreakpoints(lineNo)
-        debugger = self.model.editor.debugger
-        if debugger:
-            # Try to apply to the running debugger.
-            debugger.deleteBreakpoints(self.model.filename, lineNo)
-        self.deleteBreakMarkers(lineNo)
-        
-    def addBreakPoint(self, lineNo, temp=0, notify_debugger=1):
-        filename = self.model.filename
-
-        self.breaks.addBreakpoint(lineNo, temp)
-        if notify_debugger:
-            debugger = self.model.editor.debugger
-            if debugger:
-                # Try to apply to the running debugger.
-                debugger.setBreakpoint(filename, lineNo, temp)
-        if temp: mrk = tmpBrkPtMrk
-        else: mrk = brkPtMrk
-        self.MarkerAdd(lineNo - 1, mrk)
-
-    def moveBreakpoint(self, bpt, delta):
-        # remove
-        index = (bpt.file, bpt.line)
-
-        if index not in bpt.bplist.keys():
-            return
-
-        bpt.bplist[index].remove(bpt)
-        if not bpt.bplist[index]:
-            del bpt.bplist[index]
-
-        del self.breaks[bpt.line]
-
-        bpt.line = bpt.line + delta
-
-        # re-add
-        index = (bpt.file, bpt.line)
-        if bpt.bplist.has_key(index):
-            bpt.bplist[index].append(bpt)
-        else:
-            bpt.bplist[index] = [bpt]
-
-        self.breaks[bpt.line] = bpt
-
-    def tryLoadBreakpoints(self):
-        import pickle
-        fn = self.getBreakpointFilename()
-
-        if fn:
-            rval = self.breaks.loadBreakpoints(fn)
-            if rval:
-                self.setInitialBreakpoints()
-        else:
-            rval = None
-        return rval
-
-    def saveBreakpoints(self):
-        # XXX This is not yet called automatically on saving a module,
-        # should it be ?
-        fn = self.getBreakpointFilename()
-        if fn:
-            self.breaks.saveBreakpoints()
-
-    def clearStepPos(self, lineNo):
-        if lineNo < 0:
-            lineNo = 0
-        self.MarkerDelete(lineNo, stepPosMrk)
-
-    def setStepPos(self, lineNo):
-        if lineNo < 0:
-            lineNo = 0
-        if self.breaks.hasBreakpoint(lineNo + 1):
-            # Be sure all the breakpoints for this file are displayed.
-            self.setInitialBreakpoints()
-        self.MarkerAdd(lineNo, stepPosMrk)
-        self.MarkerDelete(lineNo, tmpBrkPtMrk)
-
-    def getBreakpointFilename(self):
-        try:
-            return os.path.splitext(self.model.assertLocalFile())[0]+'.brk'
-        except AssertionError:
-            return ''
-        
-
     def disableSource(self, doDisable):
         self.SetReadOnly(doDisable)
         self.grayout(doDisable)
-
+        
 #---Syntax checking-------------------------------------------------------------
 
     def checkChangesAndSyntax(self, lineNo=None):
@@ -1230,26 +1107,7 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
 
         # repair breakpoints
         if linesAdded:
-            line = self.LineFromPosition(event.GetPosition())
-            
-            debugger = self.model.editor.debugger
-            if debugger:
-                endline = self.GetLineCount()
-                if self.breaks.hasBreakpoint(
-                      min(line, endline), max(line, endline)):
-                    # XXX also check that module has been imported
-                    # XXX this should apply; with or without breakpoint
-                    if debugger.running and \
-                          not modType & wxSTC_PERFORMED_UNDO:
-                        wxLogWarning('Adding or removing lines from the '
-                                     'debugger will cause the source and the '
-                                     'debugger to be out of sync.'
-                                     '\nPlease undo this action.')
-                    
-                    changed = self.breaks.adjustBreakpoints(line, linesAdded)
-                    
-                    debugger.adjustBreakpoints(self.model.filename, line, 
-                          linesAdded)
+            self.adjustBreakpoints(linesAdded, modType, event.GetPosition())
         
         # XXX The rest is too buggy
         event.Skip()
