@@ -7,14 +7,16 @@
 # Created:     2000/03/15
 # RCS-ID:      $Id$
 # Copyright:   (c) 1999 - 2003 Riaan Booysen
-# Licence:     GPL
+# Licence:     BSD
 #----------------------------------------------------------------------
 
-import os
+import os, cStringIO
 
 from wxPython import wx
 
-class InvalidImgPathError(Exception): pass
+class ImageStoreError(Exception): pass
+class InvalidImgPathError(ImageStoreError): pass
+class UnhandledExtError(ImageStoreError): pass
 
 class ImageStore:
     def __init__(self, rootpaths, images=None, cache=1):
@@ -22,12 +24,15 @@ class ImageStore:
         self.rootpaths = []
         self.images = images
         self.useCache = cache
+        
+        self.dataReg = {}
 
         for rootpath in rootpaths:
             self.addRootPath(rootpath)
 
     def cleanup(self):
         self.images = {}
+        self.dataReg = {}
 
     def createImage(self, filename, ext):
         if ext == '.bmp':
@@ -40,8 +45,11 @@ class ImageStore:
             return wx.wxImage(filename, wx.wxBITMAP_TYPE_GIF).ConvertToBitmap()
         elif ext == '.ico':
             return wx.wxIcon(filename, wx.wxBITMAP_TYPE_ICO)
+        elif ext == 'data':
+            stream = cStringIO.StringIO(self.dataReg[filename])
+            return wx.wxBitmapFromImage(wx.wxImageFromStream(stream))
         else:
-            raise 'Extension not handled '+ext
+            raise UnhandledExtError, 'Extension not handled: '+ext
 
     def pathExtFromName(self, root, name):
         imgPath = self.canonizePath(os.path.join(root, name))
@@ -50,6 +58,9 @@ class ImageStore:
         return imgPath, ext
 
     def load(self, name):
+        if self.dataReg.has_key(name):
+            return self.createImage(name, 'data')
+            
         for rootpath in self.rootpaths:
             try:
                 imgpath, ext = self.pathExtFromName(rootpath, name)
@@ -65,6 +76,9 @@ class ImageStore:
         raise InvalidImgPathError, '%s not found in image paths' %name
 
     def canLoad(self, name):
+        if self.dataReg.has_key(name):
+            return 1
+
         for rootpath in self.rootpaths:
             try:
                 imgpath, ext = self.pathExtFromName(rootpath, name)
@@ -78,19 +92,22 @@ class ImageStore:
         return os.path.normpath(imgPath).replace('\\', '/')
 
     def checkPath(self, imgPath):
+        if self.dataReg.has_key(imgPath):
+            return
+
         if not os.path.isfile(imgPath):
             raise InvalidImgPathError, '%s not valid' %imgPath
 
     def addRootPath(self, rootPath):
         self.rootpaths.append(rootPath)
 
+    def registerImage(self, name, data):
+        self.dataReg[name] = data
+
 class ZippedImageStore(ImageStore):
     def __init__(self, rootpaths, images=None, cache=1):
         self.archives = {}
         ImageStore.__init__(self, rootpaths, images, cache)
-
-    def cleanup(self):
-        ImageStore.cleanup(self)
 
     def addRootPath(self, rootPath):
         ImageStore.addRootPath(self, rootPath)
@@ -101,7 +118,6 @@ class ZippedImageStore(ImageStore):
             import zipfile
             zf = zipfile.ZipFile(archive)
             self.archives[archive] = [fl.filename for fl in zf.filelist]
-                                    #map(lambda fl: fl.filename, zf.filelist)
 
             for img in self.archives[archive]:
                 if img[-1] == '/':
@@ -109,7 +125,7 @@ class ZippedImageStore(ImageStore):
 
                 imgData = zf.read(img)
                 imgExt = os.path.splitext(img)[1]
-                bmpPath = img#self.canonizePath(path.join(path.splitext(archive)[0], img))
+                bmpPath = img
                 self.images[bmpPath] = (imgData, imgExt)
             zf.close()
 
@@ -119,7 +135,6 @@ class ZippedImageStore(ImageStore):
         try:
             imgData, imgExt = self.images[name]
         except KeyError:
-            #print name, 'not found by zipped image store'
             return ImageStore.load(self, name)
         else:
             tmpname = tempfile.mktemp()
@@ -128,7 +143,6 @@ class ZippedImageStore(ImageStore):
                 try:
                     return self.createImage(tmpname, imgExt)
                 except Exception, error:
-                    #print 'Image creation failed', name, str(error)
                     return ImageStore.load(self, name)
             finally:
                 os.remove(tmpname)
@@ -137,3 +151,10 @@ class ZippedImageStore(ImageStore):
         name = self.canonizePath(name)
         if not self.images.has_key(name):
             return ImageStore.canLoad(self, name)
+    
+
+class ResourseImageStore(ImageStore):
+    def __init__(self, rootpaths, images=None, cache=1):
+        self.resources = {}
+        ImageStore.__init__(self, rootpaths, images, cache)
+        
