@@ -233,7 +233,7 @@ class PythonStyledTextCtrlMix:
             self.BraceBadlight(braceAtCaret)
         else:
             self.BraceHighlight(braceAtCaret, braceOpposite)
-            self.Refresh(false)
+            # self.Refresh(false)
 
 def idWord(line, piv, lineStart):
     if piv >= len(line):
@@ -487,5 +487,4 @@ class HTMLStyledTextCtrlMix:
             self.BraceBadlight(braceAtCaret)
         else:
             self.BraceHighlight(braceAtCaret, braceOpposite)
-            self.Refresh(false)        
-        
+            # self.Refresh(false)
