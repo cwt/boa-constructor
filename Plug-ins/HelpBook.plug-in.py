@@ -312,7 +312,8 @@ from Models import Controllers, EditorHelper, EditorModels
 from Views import EditorViews, SourceViews, StyledTextCtrls
 from Explorers import Explorer, ExplorerNodes
 
-import StringIO, glob, zipfile
+import glob, zipfile
+from cStringIO import StringIO
 
 Plugins.registerPreference('HelpBook', 'hbShowDocumentTitles', 'True', 
                            ['Should the document title be parsed from HTML and '
@@ -350,7 +351,7 @@ class HelpBookModel(EditorModels.SourceModel):
         self.update()
 
     def update(self):
-        self.config = HelpConfigParser(StringIO.StringIO(self.data).readlines())
+        self.config = HelpConfigParser(StringIO(self.data).readlines())
         self.contentsModel.update()
         self.contents = parseHelpFile(self.contentsModel.data).result
         self.indexesModel.update()
