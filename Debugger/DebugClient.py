@@ -3,14 +3,16 @@ from string import rfind
 from Tasks import ThreadedTaskHandler
 from wxPython.wx import wxNewId, wxPyCommandEvent
 
-'''
-    The debug client connects to the debug server.  The debug server
-    does the dirty work.
+'''wxPython debugging client code.  This runs in the IDE.
+A debug client connects to a debug server, generally in a different
+process.  The debug server does the dirty work of stepping and
+stopping at breakpoints.
 '''
 
 wxEVT_DEBUGGER_OK = wxNewId()
 wxEVT_DEBUGGER_EXC = wxNewId()
 wxEVT_DEBUGGER_START = wxNewId()
+wxEVT_DEBUGGER_STOPPED = wxNewId()
 
 def EVT_DEBUGGER_OK(win, id, func):
     win.Connect(id, -1, wxEVT_DEBUGGER_OK, func)
@@ -20,6 +22,9 @@ def EVT_DEBUGGER_EXC(win, id, func):
 
 def EVT_DEBUGGER_START(win, id, func):
     win.Connect(id, -1, wxEVT_DEBUGGER_START, func)
+
+def EVT_DEBUGGER_STOPPED(win, id, func):
+    win.Connect(id, -1, wxEVT_DEBUGGER_STOPPED, func)
 
 
 class DebuggerCommEvent(wxPyCommandEvent):
@@ -71,27 +76,36 @@ class DebuggerCommEvent(wxPyCommandEvent):
         return self.tb
 
 class DebugClient:
+    """The base class expected to be used by all DebugClients.
+    """
     def __init__(self, win):
         self.win_id = win.GetId()
         self.event_handler = win.GetEventHandler()
 
     def invokeOnServer(self, m_name, m_args=(), r_name=None, r_args=()):
-        pass
+        """Invokes an event on the debug server."""
+        raise NotImplementedError
 
     def kill(self):
-        pass
+        """Terminates the debugger."""
+        raise NotImplementedError
 
     def createEvent(self, typ):
+        """Creates an event."""
         return DebuggerCommEvent(typ, self.win_id)
 
     def postEvent(self, evt):
+        """Adds an event to the event queue."""
         self.event_handler.AddPendingEvent(evt)
 
     def pollStreams(self):
+        """Returns the data sent to stdout and stderr."""
         return ('', '')
 
 
 class DebuggerTask:
+    """Calls invoke() on a debug client then posts an event on return.
+    """
     def __init__(self, client, m_name, m_args=(), r_name='', r_args=()):
         self.client = client
         self.m_name = m_name
@@ -126,7 +140,7 @@ class MultiThreadedDebugClient (DebugClient):
     taskHandler = ThreadedTaskHandler()
 
     def invoke(self, m_name, m_args):
-        pass
+        raise NotImplementedError
 
     def invokeOnServer(self, m_name, m_args=(), r_name=None, r_args=()):
         task = DebuggerTask(self, m_name, m_args, r_name, r_args)
