@@ -18,7 +18,7 @@ from AttrMixins import Test_AttrMixin
 def create(parent):
     return AttrMixinFrame(parent)
 
-[wxID_ATTRMIXINFRAME, wxID_ATTRMIXINFRAMEBUTTON1, 
+[wxID_ATTRMIXINFRAME, wxID_ATTRMIXINFRAMEBUTTON1,
 ] = map(lambda _init_ctrls: wxNewId(), range(2))
 
 # Note: Inherits from the AttrMixin class after wxFrame
