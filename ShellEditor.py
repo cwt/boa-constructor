@@ -15,6 +15,7 @@ from Views.StyledTextCtrls import PythonStyledTextCtrlMix
 from wxPython.stc import *
 from ExternalLib.PythonInterpreter import PythonInterpreter
 import string
+import Preferences
 
 ps1 = '>>> '
 ps2 = '... '
@@ -51,6 +52,10 @@ class ShellEditor(wxStyledTextCtrl, PythonStyledTextCtrlMix):
                 sys.stdout = tmpstdout
                 sys.stderr = tmpstderr
 	else: event.Skip()
+
+    def OnUpdateUI(self, event):
+	if Preferences.braceHighLight:
+            PythonStyledTextCtrlMix.OnUpdateUI(self, event)
         
         
 #-----Output redirectors--------------------------------------------------------

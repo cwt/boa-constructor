@@ -101,7 +101,17 @@ def human_split(line):
     
     return result
         
-            
+def duplicateMenu(source):
+    dest = wxMenu()
+    for menu in source.GetMenuItems():
+        if menu.IsSeparator():
+            dest.AppendSeparator()
+        else:
+            dest.Append(menu.GetId(), menu.GetText(), menu.GetHelp(), menu.IsCheckable())
+            mi = dest.FindItemById(menu.GetId())
+            if menu.IsChecked():
+                mi.Check(true)
+    return dest            
                     
             
             
