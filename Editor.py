@@ -43,9 +43,18 @@ from ZopeLib import ImageViewer
 print 'importing Models'
 from EditorModels import *
 from PrefsKeys import keyDefs
-import ShellEditor
+import ShellEditor, PaletteStore
 from Preferences import IS, wxFileDialog, flatTools
 
+# Models available on the 'New' palette page
+PaletteStore.paletteLists['New'].extend(['wxApp', 'wxFrame', 'wxDialog', 
+    'wxMiniFrame', 'wxMDIParentFrame', 'wxMDIChildFrame', 'Module', 'Package', 
+    'Setup', 'Text'])
+
+if Utils.IsComEnabled():
+    PaletteStore.paletteLists['New'].append('MakePy Dialog')
+
+# Views associated with a model, default views and additional views
 defAppModelViews = (AppView, PythonSourceView)
 adtAppModelViews = (AppModuleDocView, ToDoView, ImportsView, CVSConflictsView,
                     AppREADME_TIFView, AppCHANGES_TIFView, AppTODO_TIFView,
@@ -70,8 +79,6 @@ adtHTMLFileModelViews = (HTMLFileView,)
 
 defZopeDocModelViews = (HTMLSourceView,)
 adtZopeDocModelViews = (ZopeHTMLView,)
-##defZopeDocModelViews = (PythonSourceView,)
-##adtZopeDocModelViews = ()
 
 defCPPModelViews = (CPPSourceView, HPPSourceView)
 adtCPPModelViews = (CVSConflictsView,)
