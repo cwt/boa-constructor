@@ -39,7 +39,7 @@ class ScrollBarDTC(Constructors.MultiItemCtrlsConstr, WindowDTC):
     def events(self):
         return WindowDTC.events(self) + ['ScrollEvent', 'CmdScrollEvent']
 
-EventCategories['ComboEvent'] = (EVT_COMBOBOX, EVT_TEXT)
+EventCategories['ComboEvent'] = (EVT_COMBOBOX, EVT_TEXT, EVT_TEXT_ENTER)
 commandCategories.append('ComboEvent')
 class ComboBoxDTC(ChoicedDTC):
     #wxDocs = HelpCompanions.wxComboBoxDocs
