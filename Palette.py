@@ -22,9 +22,21 @@ import ClassBrowser, Help, Preferences
 from wxPython.wx import *
 from Preferences import logFontSize, IS, toPyPath, flatTools
 from wxPython.lib.buttons import wxGenButton, wxGenBitmapButton, wxGenToggleButton, wxGenBitmapToggleButton
+from ExternalLib.ConfigParser import ConfigParser
+import os
 
 currentMouseOverTip = ''
 cyclopsing = 0
+
+wxEVT_NEW_PACKAGE = wxNewId()
+
+def EVT_NEW_PACKAGE(win, func):
+    win.Connect(-1, -1, wxEVT_NEW_PACKAGE, func)
+
+class NewPackageEvent(wxPyEvent):
+    def __init__(self):
+        wxPyEvent.__init__(self)
+        self.SetEventType(wxEVT_NEW_PACKAGE)
 
 [wxID_CONTEXTSEARCH] = map(lambda _init_ctrls: wxNewId(), range(1))
 
@@ -72,6 +84,20 @@ class BoaFrame(wxFrame):
         self.addTool('Images/Shared/wxWinHelp', 'wxWindows help', 'Show help', self.OnWxWinHelpToolClick)
         self.addTool('Images/Shared/PythonHelp', 'Python help', 'Show help', self.OnPythonHelpToolClick)
         
+        # Add additional helpbuttons if defined in the config file
+        conf = ConfigParser()
+        if wxPlatform == '__WXMSW__': plat = 'msw'
+        else: plat = 'gtk'
+        conf.read(Preferences.pyPath+'/Explorer.'+plat+'.cfg')
+        customHelpItems = eval(conf.get('preferences', 'customhelp'))
+        self.customHelpItems = {}
+        for caption, helpFile in customHelpItems.items():
+            mID = wxNewId()
+            self.toolBar.AddTool(mID, IS.load('Images/Shared/CustomHelp.bmp'), 
+              shortHelpString = caption)
+            EVT_TOOL(self, mID, self.OnCustomHelpToolClick)
+            self.customHelpItems[mID] = (caption, helpFile)
+
         self.contextHelpSearch = wxTextCtrl(self.toolBar, wxID_CONTEXTSEARCH)
         EVT_TEXT_ENTER(self, wxID_CONTEXTSEARCH, self.OnSearchEnter)
         self.toolBar.AddControl(self.contextHelpSearch)
@@ -104,7 +130,7 @@ class BoaFrame(wxFrame):
             palettePage.addButton('wxMDIParentFrame', None, None, self.OnNewMDIMainFrame, self.OnHint, self.OnHintLeave, wxGenBitmapButton)
             palettePage.addButton('wxMDIChildFrame', None, None, self.OnNewMDIChildFrame, self.OnHint, self.OnHintLeave, wxGenBitmapButton)
             palettePage.addButton('Module', None, None, self.OnNewModule, self.OnHint, self.OnHintLeave, wxGenBitmapButton)
-            palettePage.addButton('Package', None, None, self.OnNewPackage, self.OnHint, self.OnHintLeave, wxGenBitmapButton)
+            palettePage.addButton('Package', None, None, self.OnNewPackagePost, self.OnHint, self.OnHintLeave, wxGenBitmapButton)
             palettePage.addButton('Text', None, None, self.OnNewText, self.OnHint, self.OnHintLeave, wxGenBitmapButton)
             self.palettePages.append(palettePage)
             # Normal control pages
@@ -173,6 +199,7 @@ class BoaFrame(wxFrame):
             self.editor = Editor.EditorFrame(self, -1, self.inspector, 
               wxMenu(), self.componentSB, app)#palettePage.menu
     
+        EVT_NEW_PACKAGE(self, self.OnNewPackage)
         EVT_CLOSE(self, self.OnCloseWindow)
 
     def addTool(self, filename, text, help, func):
@@ -181,8 +208,8 @@ class BoaFrame(wxFrame):
           shortHelpString = text)
         EVT_TOOL(self, mID, func)
     
-    def OnClick(self, event):
-        self.componentSB.SetStatusText('Palette Click'+`event.GetId()`)
+##    def OnClick(self, event):
+##        self.componentSB.SetStatusText('Palette Click'+`event.GetId()`)
 
     def OnOpenToolClick(self, event):
         dlg = wxFileDialog(self, "Choose a file", ".", "", "*.*", wxOPEN)
@@ -209,6 +236,13 @@ class BoaFrame(wxFrame):
     def OnPythonHelpToolClick(self, event):
         Help.showHelp(self, Help.PythonHelpFrame, '', self.toolBar)
 
+    def OnCustomHelpToolClick(self, event):
+        caption, helpFile = self.customHelpItems[event.GetId()]
+        help = Help.CustomHelpFrame(self, os.path.dirname(helpFile), 
+            os.path.basename(helpFile), self.toolBar)
+        help.loadPage(helpFile)
+        help.Show(true)
+
     def OnPrefsToolClick(self, event):
 ##        print 'inspector', sys.getrefcount(self.inspector)
 ##        print 'editor', sys.getrefcount(self.editor)
@@ -219,7 +253,6 @@ class BoaFrame(wxFrame):
     
     def OnNewClick(self, event):
         pass
-    
 
     def OnNewFrame(self, event):
         self.editor.addNewFramePage('Frame')
@@ -248,12 +281,14 @@ class BoaFrame(wxFrame):
     def OnNewText(self, event):
         self.editor.addNewTextPage()
 
-    def OnNewWidget(self, event):
-        pass
+##    def OnNewWidget(self, event):
+##        pass
+
+    def OnNewPackagePost(self, event):
+        wxPostEvent(self, NewPackageEvent())
 
     def OnNewPackage(self, event):
         self.editor.addNewPackage()
-        pass
 
     def OnDialogPaletteClick(self, event):
         cls, cmp = self.dialogPalettePage.widgets[`event.GetId()`][1:]
