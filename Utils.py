@@ -10,6 +10,7 @@
 # Licence:     GPL
 #----------------------------------------------------------------------
 from wxPython.wx import *
+import Preferences
 from Preferences import IS
 import string
 
@@ -225,3 +226,18 @@ class PaintEventHandler(wxEvtHandler):
         rv = wxRect(x, y, width, height)
         return rv
 
+def showTip(frame, forceShow = 0):
+    try:
+        showTipsFile = Preferences.toPyPath('data/showTips')
+        showTipText = open(showTipsFile).read()
+        showTip, index = eval(showTipText)
+    except IOError:
+        showTip, index = (1, 0)
+    if showTip or forceShow:
+        tp = wxCreateFileTipProvider(Preferences.toPyPath('data/tips.txt'), index)
+        showTip = wxShowTip(frame, tp, showTip)
+        index = tp.GetCurrentTip()
+        try:
+            open(showTipsFile, 'w').write(str( (showTip, index) ))
+        except IOError:
+            print 'Could not update tips file', showTipsFile, '(check permissions)'
