@@ -20,6 +20,8 @@ import HelpCompanions, RTTI, Preferences
 import methodparse
 import string, copy
 
+bodyIndent = ' '*8
+
 # XXX parent passed in constr not used
 
 # XXX New design option: Having the design time ctrls multiply inherit
@@ -64,7 +66,6 @@ class DesignTimeCompanion(Companion):
     """
     def __init__(self, name, designer):
         Companion.__init__(self, name)
-##        print 'DESIGNTIMECOMPANION:', name, designer
         self.parentCompanion = None
         self.designer = designer
         # Design time window id
@@ -103,6 +104,9 @@ class DesignTimeCompanion(Companion):
 
 #    def defaults(self):
 #        return {}
+
+    def getPropList(self):
+        return RTTI.getPropList(self.control, self)
 
     def properties(self):
         """ Properties additional to those gleened thru reflection. 
@@ -331,13 +335,66 @@ class DesignTimeCompanion(Companion):
                 return prop
         if setter[:3] == 'Set': return setter[3:]
         else: return setter
-    
-tPopupIDUp = 200
-tPopupIDCut = 201
-tPopupIDCopy = 202
-tPopupIDPaste = 203
-tPopupIDDelete = 204
 
+    def writeConstructor(self, output, collectionMethod):
+        # Add constructor
+        if self.textConstr:
+            output.append(bodyIndent + self.textConstr.asText())
+            # XXX HACK attack
+            # Add call to init utils after frame constructor
+            if self.textConstr.comp_name == '' and \
+              collectionMethod == '_init_ctrls':
+                output.append(bodyIndent + 'self._init_utils()')
+
+##        try:
+##            # Add constructor
+##            if compn.textConstr:
+##                newBody.append(bodyIndent + compn.textConstr.asText())
+##                # XXX HACK attack
+##                # Add call to init utils after frame constructor
+##                if compn.textConstr.comp_name == '' and \
+##                  self.collectionMethod == '_init_ctrls':
+##                    newBody.append(bodyIndent + 'self._init_utils()')
+##        except: 
+##            print 'no constr:', ctrlName
+        
+    def writeProperties(self, output, ctrlName, definedCtrls, deps, depLinks):
+        # Add properties
+        for prop in self.textPropList:
+            # Postpone dependent props
+            if self.designer.checkAndAddDepLink(ctrlName, prop, 
+                  self.dependentProps(), deps, depLinks, definedCtrls):
+                continue
+            output.append(bodyIndent + prop.asText())
+
+    def writeEvents(self, output, addModuleMethod = false):
+        """ Write out EVT_* calls for all events. Optionally For every event 
+            definition not defined in source add an empty method declaration to 
+            the bottom of the class """
+        for evt in self.textEventList:
+            if evt.trigger_meth != '(delete)':
+                output.append(bodyIndent + evt.asText())
+                model = self.designer.model
+                if addModuleMethod and not model.module.classes[\
+                      model.main].methods.has_key(evt.trigger_meth):
+                    model.module.addMethod(model.main, evt.trigger_meth, 
+                          'self, event', ['        pass'])
+
+    def writeCollections(self, output, collDeps):
+        # Add collection initialisers
+        for collInit in self.textCollInitList:
+            if collInit.getPropName() in self.dependentProps():
+                collDeps.append(bodyIndent + collInit.asText())
+            else:
+                output.append(bodyIndent + collInit.asText())
+
+    def writeDependencies(self, output, ctrlName, depLinks):
+        if depLinks.has_key(ctrlName):
+            for prop in depLinks[ctrlName]:
+                output.append(bodyIndent + prop.asText())
+
+                          
+        
 class NYIDTC(DesignTimeCompanion):
     host = 'Not Implemented'
     def __init__(self, name, designer, parent, ctrlClass):
@@ -660,6 +717,16 @@ class CollectionDTC(DesignTimeCompanion):
     
     def initCollection(self):
         pass
+    
+    def writeCollectionInitialiser(self, output):
+        output.extend(self.initialiser())
+
+    def writeCollectionItems(self, output):        
+        for creator in self.textConstrLst:
+            output.append(bodyIndent + creator.asText())
+
+    def writeCollectionFinaliser(self, output):
+        output.extend(self.finaliser())
 
 class CollectionIddDTC(CollectionDTC):
     windowIdName = 'id'
