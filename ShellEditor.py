@@ -31,7 +31,7 @@ class ShellEditor(wxStyledTextCtrl, PythonStyledTextCtrlMix):
         self.SetLexer(wxSTC_LEX_PYTHON)
         self.SetCurrentPosition(self.GetTextLength())
 ##        self.EnsureCaretVisible()
-        self.ScrollToColumn(0)
+##        self.ScrollToColumn(0)
         EVT_CHAR(self, self.OnShellKey)
 
     def OnShellKey(self, event):
@@ -39,7 +39,7 @@ class ShellEditor(wxStyledTextCtrl, PythonStyledTextCtrlMix):
             try:
                 tmpstdout = sys.stdout
                 tmpstderr = sys.stderr
-                line = string.rstrip(self.GetLine(self.GetLineCount() -2)[4:])
+                line = string.rstrip(self.GetLine(self.GetLineCount() -2)[4:-1])
                 print 'shell line', `line`
                 sys.stdout = PseudoFileOut(self)
                 sys.stderr = PseudoFileErr(self)
