@@ -585,7 +585,7 @@ class PythonSourceView (EditorStyledTextCtrl,
         for brk in self.breaks.listBreakpoints():
             if brk['temporary']: mrk = tmpBrkPtMrk
             else: mrk = brkPtMrk
-            self.MarkerAdd(bp['lineno'] - 1, mrk)
+            self.MarkerAdd(brk['lineno'] - 1, mrk)
 
     #def setBdbBreakpoints(self):
     #    for bp in self.breaks.values():
@@ -621,7 +621,7 @@ class PythonSourceView (EditorStyledTextCtrl,
         #del self.breaks[lineNo]
     
     def addBreakPoint(self, lineNo, temp = 0):
-        self.breaks.setBreakpoint(lineNo, temp)
+        self.breaks.addBreakpoint(lineNo, temp)
         debugger = self.model.editor.debugger
         if debugger:
             # Try to apply to the running debugger.
