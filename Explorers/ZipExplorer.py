@@ -104,11 +104,11 @@ class ZipItemNode(ExplorerNodes.ExplorerNode):
             open(fn, 'wb').write(zf.read(self.resourcepath))
         zf.close()
 
-    def load(self):
-        zf = zipfile.ZipFile(self.zipFileNode.resourcepath)
+    def load(self, mode='rb'):
+        zf = zipfile.ZipFile(self.zipFileNode.resourcepath, 'r')
         return zf.read(self.resourcepath)
 
-    def save(self, filename, data):
+    def save(self, filename, data, mode='wb'):
         pass
 
 

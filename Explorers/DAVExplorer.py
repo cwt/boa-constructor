@@ -196,10 +196,10 @@ class DAVItemNode(ExplorerNodes.ExplorerNode):
         self.createChildNode(self.resourcepath+'/'+name,
             0, self.properties).resource.move(self.resourcepath+'/'+newName)
 
-    def load(self):
+    def load(self, mode='rb'):
         return self.resource.get().body
 
-    def save(self, filename, data):
+    def save(self, filename, data, mode='wb'):
         self.resource.put(data)
 
     def newFolder(self, name):

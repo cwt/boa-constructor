@@ -178,6 +178,7 @@ class ClipboardControllerMix:
 class ExplorerNode:
     protocol = None
     images = None
+    viewMode = 'list'
     def __init__(self, name, resourcepath, clipboard, imgIdx, parent = None, properties = None):
         self.name = name
         self.resourcepath = resourcepath
@@ -228,10 +229,10 @@ class ExplorerNode:
         return false
 
 #---Persistance (loading and saving)--------------------------------------------
-    def load(self):
+    def load(self, mode='r'):
         """ Return item data from appropriate transport """
         return None
-    def save(self, filename, data):
+    def save(self, filename, data, mode='w'):
         """ Persist data on appropriate transport. Should handle renames """
         pass
 
@@ -418,24 +419,30 @@ class ExplorerCompanion(Companion):
         self.propItems = []
         self.designer = None
         self.control = None
+        self.mutualDepProps = ()
     def constructor(self):
         return {}
+    def extraConstrProps(self):
+        return {}
     def events(self):
-        return []
+        return ()
     def getEvents(self):
-        return []
+        return ()
     def getPropEditor(self, prop):
         return None
     def getPropOptions(self, prop):
-        return []
+        return ()
     def getPropNames(self, prop):
-        return []
+        return ()
     def checkTriggers(self, name, oldValue, value):
         pass
     def persistProp(self, name, setterName, value):
         pass
     def propIsDefault(self, name, setterName):
         return true
+    def persistedPropVal(self, name, setterName):
+        return ''
+    
     def getPropList(self):
         propLst = []
         for prop in self.propItems:

@@ -141,22 +141,22 @@ class SSHItemNode(ExplorerNodes.ExplorerNode):
         self.execCmd('mv %s %s' % (self.resourcepath + '/' + name,
                                    self.resourcepath + '/' + newName))
 
-    def load(self):
+    def load(self, mode='rb'):
         from FileExplorer import PyFileNode
         import tempfile
         fn = tempfile.mktemp()
         self.copyToFS(PyFileNode('', os.path.dirname(fn), None, -1, None, None), os.path.basename(fn))
         try:
-            return open(fn, 'rb').read()
+            return open(fn, mode).read()
         finally:
             os.remove(fn)
 
-    def save(self, filename, data):
+    def save(self, filename, data, mode='wb'):
         from FileExplorer import PyFileNode
         import tempfile
         name = os.path.basename(self.resourcepath)
         fn = tempfile.mktemp()
-        open(fn, 'wb').write(data)
+        open(fn, mode).write(data)
         try:
             if self.parent:
                 self.parent.copyFromFS(PyFileNode('', fn, None, -1, None, None),

@@ -290,10 +290,10 @@ class ZopeItemNode(ExplorerNodes.ExplorerNode):
     def getRoles(self):
         return self.getResource().valid_roles()
 
-    def load(self):
+    def load(self, mode='rb'):
         return self.getResource().document_src()
 
-    def save(self, filename, data):
+    def save(self, filename, data, mode='wb'):
         """ Saves contents of data to Zope """
         self.getResource().manage_upload(data)
 
@@ -743,11 +743,11 @@ class PythonScriptNode(PythonNode):
                 tmp2.append('    ' + l)
         return 'def %s(%s):\n%s' % (self.name, params, string.join(tmp2, '\n'))
 
-    def load(self):
-        data = PythonNode.load(self)
+    def load(self, mode='rb'):
+        data = PythonNode.load(self, mode)
         return self.preparedata(data)
 
-    def save(self, filename, data):
+    def save(self, filename, data, mode='wb'):
         self.getResource().ZPythonScriptHTML_editAction('fake',
               self.name, self.getParams(data), self.getBody(data))
 
@@ -764,7 +764,7 @@ class ExtPythonNode(PythonNode):
 
     # XXX Consider routing to a normal file open instead of just loading/saving
     # XXX the data
-    def load(self):
+    def load(self, mode='rb'):
         zopePath = self.properties['localpath']
         if not os.path.exists(zopePath):
             raise 'Property localpath of the Zope connection is not a valid path'
@@ -776,9 +776,9 @@ class ExtPythonNode(PythonNode):
         emf = ExtMethDlg.ExternalMethodFinder(zopePath)
         extPath = emf.getExtPath(module)
 
-        return open(extPath, 'rb').read()
+        return open(extPath, mode).read()
 
-    def save(self, filename, data):
+    def save(self, filename, data, mode='wb'):
         zopePath = self.properties['localpath']
         if not os.path.exists(zopePath):
             raise 'Property localpath of the Zope connection is not a valid path'
@@ -790,7 +790,7 @@ class ExtPythonNode(PythonNode):
         emf = ExtMethDlg.ExternalMethodFinder(zopePath)
         extPath = emf.getExtPath(module)
 
-        return open(extPath, 'wb').write(data)
+        return open(extPath, mode).write(data)
 
 class DTMLDocNode(ZopeNode):
     Model = ZopeEditorModels.ZopeDTMLDocumentModel
