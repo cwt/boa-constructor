@@ -184,7 +184,7 @@ class Function:
             t=type(v)
             if can_marshal(t): q=type2marshal[t](k,v)
             else: q='%s=%s' % (k,quote(v))
-            print k, v, q
+#            print k, v, q
             query.append(q)
 
         url=self.rurl
@@ -275,7 +275,7 @@ class Function:
 
         try:
             sock=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-            sock.connect(self.host,self.port)
+            sock.connect( (self.host,self.port) )
             sock.send(rq)
             reply=sock.makefile('rb')
             sock=None
