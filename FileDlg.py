@@ -191,7 +191,7 @@ class wxBoaFileDialog(wxDialog):
     def ok(self):
         if self.lcFiles.selected == 0:
             node = self.lcFiles.node.createParentNode()
-            if node: node.doCVS = false
+            if node: node.allowedProtocols = []
             if node.resourcepath == self.lcFiles.node.resourcepath:
                 from ExternalLib.ConfigParser import ConfigParser
                 import Preferences
@@ -208,7 +208,7 @@ class wxBoaFileDialog(wxDialog):
                 return
         else:
             node = self.lcFiles.getSelection()
-            if node: node.doCVS = false
+            if node: node.allowedProtocols = []
 
         if (node and not node.isFolderish() or not node) and self.style & wxOVERWRITE_PROMPT:
             if path.exists(self.GetPath()):
@@ -270,7 +270,7 @@ class wxBoaFileDialog(wxDialog):
         return self.wildcard
     def SetDirectory(self, newDir):
         node = self.newFileNode(newDir)
-        node.doCVS = false
+        node.allowedProtocols = []
         self.lcFiles.refreshItems(self.modImages, node)
         self.updatePathLabel()
     def SetFilename(self, filename):
