@@ -65,21 +65,16 @@ if hasattr(wxPython, '__file__'):
         shutil.copy(os.path.join(boaPath, 'anchors.py'), wxPythonLibPath)
         import wxPython.lib.anchors
 
-    # Install run time libs if necessary
-    try:
-        from wxPython.lib import bcrtl
-    except ImportError:
-        print 'installing Boa Constructor Run Time Library'
-        import shutil
-        shutil.copytree(os.path.join(boaPath, 'bcrtl'),
-             os.path.join(wxPythonLibPath, 'bcrtl'))
-        import wxPython.lib.bcrtl
-
 print 'importing Preferences'
 import Preferences
 from wxPython.wx import *
 import About
 import Utils
+
+if hasattr(wxPython, '__file__'):
+    # Install/update run time libs if necessary
+    Utils.updateDir(os.path.join(boaPath, 'bcrtl'),
+         os.path.join(wxPythonLibPath, 'bcrtl'))
 
 # XXX Remaining milestones before alpha
 # XXX auto created frames (main frame handled currently)
@@ -157,6 +152,8 @@ class BoaApp(wxApp):
                                  frame.f_back.f_back.f_code.co_filename,
                                  frame.f_back.f_back.f_lineno)
                         self.logFunc((ss+pad)[:80]+string.strip((ss+pad)[80:]))
+                        if not self.mayDoRecord:
+                            s = s + '\n'
                         self.realStrm.write(s)
 
             sys.stderr = LoggerPF(wxLogError, sys.__stderr__, false)
