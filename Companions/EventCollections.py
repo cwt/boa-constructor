@@ -159,7 +159,7 @@ EventCategories = {'ActivateEvent': (EVT_ACTIVATE, EVT_ACTIVATE_APP),
                 EVT_ERASE_BACKGROUND),
 
 'FocusEvent' : (EVT_SET_FOCUS,
-		EVT_KILL_FOCUS),
+                EVT_KILL_FOCUS),
 
 'KeyEvent' : (  EVT_CHAR, 
                 EVT_CHAR_HOOK, 
