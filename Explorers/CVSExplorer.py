@@ -16,9 +16,7 @@ import string, time, stat, os
 import ExplorerNodes, EditorModels
 from Preferences import IS
 import Views.EditorViews
-
-true = 1
-false = 0
+import ProcessProgressDlg
 
 cvs_environ_vars = ['CVSROOT', 'CVS_RSH', 'HOME']
 cvs_environ_ids  = map(lambda x: wxNewId(), range(len(cvs_environ_vars)))
@@ -181,42 +179,57 @@ class CVSController(ExplorerNodes.Controller):
             dlg.Destroy()
     
     def getCvsHelp(self, cmd, option = '-H'):
-        from popen2import import popen3
-        inp, outp, errp = popen3('cvs %s %s'% (option, cmd))
-        # remove last line
-        return string.join(errp.readlines()[:-1])
+##        from popen2import import popen3
+##        inp, outp, errp = popen3('cvs %s %s'% (option, cmd))
+##        # remove last line
+##        return string.join(errp.readlines()[:-1])
+        CVSPD = ProcessProgressDlg.ProcessProgressDlg(self.list, 
+                  'cvs %s %s'% (option, cmd), '', modally=false)
+        try:
+            return string.join(CVSPD.errors[:-1])
+        finally:
+            CVSPD.Destroy()
 
     def doCvsCmd(self, cmd, cvsDir, stdinput = ''):
         # Repaint background
         wxYield()
         
-        from popen2import import popen3
+#        from popen2import import popen3
             
         cwd = os.getcwd()
         try:
             os.chdir(cvsDir)
 
-            inp, outp, errp = popen3(cmd)
-
-            if stdinput:
-                wxBeginBusyCursor()
-                try: inp.write(stdinput)
-                finally: wxEndBusyCursor()
-
-            outls = []
-            wxBeginBusyCursor()
+##            inp, outp, errp = popen3(cmd)
+##
+##            if stdinput:
+##                wxBeginBusyCursor()
+##                try: inp.write(stdinput)
+##                finally: wxEndBusyCursor()
+##
+##            outls = []
+##            wxBeginBusyCursor()
+##            try:
+##                while 1:
+##                    ln = outp.readline()
+##                    if not ln: break
+##                    print string.strip(ln)
+##                    outls.append(ln)
+##            finally: 
+##                wxEndBusyCursor()
+##
+##            wxBeginBusyCursor()
+##            try: err = errp.read()
+##            finally: wxEndBusyCursor()
+            CVSPD = ProcessProgressDlg.ProcessProgressDlg(self.list, cmd, 'CVS progress...')
             try:
-                while 1:
-                    ln = outp.readline()
-                    if not ln: break
-                    print string.strip(ln)
-                    outls.append(ln)
-            finally: 
-                wxEndBusyCursor()
-
-            wxBeginBusyCursor()
-            try: err = errp.read()
-            finally: wxEndBusyCursor()
+                if CVSPD.ShowModal() == wxOK:
+                    outls = CVSPD.output
+                    err = string.join(CVSPD.errors, '')
+                else:
+                    return
+            finally:
+                CVSPD.Destroy()
                         
             if string.strip(err):
                 dlg = wxMessageDialog(self.list, err,
@@ -224,7 +237,8 @@ class CVSController(ExplorerNodes.Controller):
                 try: dlg.ShowModal()
                 finally: dlg.Destroy()
                 
-            if outls:
+            if outls and not (len(outls) == 1 and not string.strip(outls[0])):
+                outls.append(`len(outls)`)
                 self.showMessage(cmd, string.join(outls, ''))
 
         finally:
@@ -498,6 +512,9 @@ class FSCVSFolderNode(ExplorerNodes.ExplorerNode):
               EditorModels.CVSFolderModel.imgIdx, parent)
         self.dirpos = 0
         self.upImgIdx = 7
+    
+    def destroy(self):
+        self.entries = []
     
     def getDescription(self):
         try:
