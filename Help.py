@@ -20,6 +20,20 @@ import os
 from os import path
 from Utils import AddToolButtonBmpFile
 
+def tagEater(strg):
+    res = ''
+    inTag = 0
+    for i in range(len(strg)-1, -1, -1):
+        if strg[i] == '>':
+            inTag = 1
+            continue
+        elif strg[i] == '<':
+            inTag = 0
+            continue
+        if not inTag:
+            res = strg[i] + res
+    return res
+
 def showHelp(parent, helpClass, filename, toolbar = None):
     help = helpClass(parent, toolbar)
     help.loadPage(filename)
@@ -50,7 +64,7 @@ class HelpFrame(wxFrame):
         pass
 
     def _init_ctrls(self, prnt): 
-        wxFrame.__init__(self, size = (-1, -1), id = wxID_HELPFRAME, title = 'Help', parent = prnt, name = 'HelpFrame', style = wxDEFAULT_FRAME_STYLE, pos = (-1, -1))
+        wxFrame.__init__(self, size = (-1, -1), id = wxID_HELPFRAME, title = 'Help', parent = prnt, name = 'HelpFrame', style = wxDEFAULT_FRAME_STYLE | wxTAB_TRAVERSAL, pos = (-1, -1))
 
     def __init__(self, parent, home, index, icon, paletteToolbar = None):
         self._init_ctrls(parent)
@@ -76,7 +90,8 @@ class HelpFrame(wxFrame):
         self.html.SetRelatedFrame(self, 'Help - %s')
         self.html.SetRelatedStatusBar(0)
 
-        self.toolBar = self.CreateToolBar(style = wxTB_HORIZONTAL|wxNO_BORDER|flatTools)
+        self.toolBar = self.CreateToolBar(style = \
+              wxTB_HORIZONTAL|wxNO_BORDER|wxTAB_TRAVERSAL|flatTools)
         
         AddToolButtonBmpFile(self, self.toolBar, 
           path.join(Preferences.pyPath, 'Images','Shared', 'Previous.bmp'), 
@@ -91,7 +106,8 @@ class HelpFrame(wxFrame):
         self.toolBar.AddSeparator()
         wxID_SEARCHCTRL = wxNewId()
         self.searchCtrl = wxTextCtrl(self.toolBar, wxID_SEARCHCTRL, "",
-          size=(150, -1))#self.toolBar.GetSize().y))# - Preferences.srchCtrlOffset))
+          size=(150, -1), style = wxTE_PROCESS_ENTER)#self.toolBar.GetSize().y))# - Preferences.srchCtrlOffset))wxTE_PROCESS_ENTER
+        self.searchCtrl.SetToolTipString('Enter text to search')
         self.toolBar.AddControl(self.searchCtrl)
         EVT_TEXT_ENTER(self, wxID_SEARCHCTRL, self.OnSearchEnter)
         AddToolButtonBmpFile(self, self.toolBar, 
@@ -100,12 +116,22 @@ class HelpFrame(wxFrame):
         self.toolBar.AddSeparator()
         wxID_RESULTSCTRL = wxNewId()
         self.resultsCtrl = wxComboBox(self.toolBar, wxID_RESULTSCTRL, "", 
-          choices=['', '(Results)', '1', '2', '3', '4'], size=(300,-1), 
+          choices=['', '(Results)', '1', '2', '3', '4'], size=(175,-1), 
           style=wxCB_DROPDOWN | wxCB_READONLY)
+        self.resultsCtrl.SetToolTipString('Matched files\nNumber of matches :: Filename')
         self.resultsCtrl.Clear()  
         self.toolBar.AddControl(self.resultsCtrl)
         EVT_COMBOBOX(self, wxID_RESULTSCTRL, self.OnResultSelect)
 #        EVT_TEXT_ENTER(self, wxID_RESULTSCTRL, self.OnSearchEnter)
+
+        wxID_SUBRESULTSCTRL = wxNewId()
+        self.subResultsCtrl = wxComboBox(self.toolBar, wxID_SUBRESULTSCTRL, "", 
+          choices=['', '(Results)', '1', '2', '3', '4'], size=(275,-1), 
+          style=wxCB_DROPDOWN | wxCB_READONLY)
+        self.subResultsCtrl.SetToolTipString('Matches in file')
+        self.subResultsCtrl.Clear()  
+        self.toolBar.AddControl(self.subResultsCtrl)
+        EVT_COMBOBOX(self, wxID_SUBRESULTSCTRL, self.OnSubResultSelect)
         
         self.toolBar.Realize()
 
@@ -135,15 +161,41 @@ class HelpFrame(wxFrame):
         else:
             fn = path.normpath(path.join(self.home, self.index))
 
+        mn = 0
+        self.subResults = []
         if highlight:
             page = open(fn).read()
-    
-            page = string.replace(page, highlight, 
-              '<font size="+2" color="#00AA00">%s</font>'%highlight)
             
-            self.html.SetPage(page)
+            lst = string.split(page, highlight)
+            np = ''
+            for s in lst[:-1]:
+                anchStr = ''
+                matchAnchor = '<a NAME="result_match_%d"></a>' % mn
+                matchStr = (tagEater(s[-100:])+highlight)[-50:]
+                matchStr = string.replace(matchStr, '\r\n', ' ')
+                matchStr = string.replace(matchStr, '\n', ' ')
+                self.subResults.append(matchStr)
+                for i in xrange(len(np)-1, -1, -1):
+                    if np[i] == '<':
+                        anchStr = s[:-i] + matchAnchor + s[-i:]
+                        break
+                    elif np[i] == '>':
+                        anchStr = s + matchAnchor
+                        break
+                if not anchStr:
+                    anchStr = s + matchAnchor
+
+                np = '%s%s<font size="+2" color="#00AA00">%s</font>' % (np, anchStr, highlight)
+                mn = mn + 1
+            np = np + lst[-1]
+    
+##            page = string.replace(page, highlight, 
+##              '<font size="+2" color="#00AA00">%s</font>'%highlight)
+            
+            self.html.SetPage(np)
         else:
             self.html.LoadPage(fn)
+        self.subResultsCount = mn
 
     def OnCloseWindow(self, event):
 #        print 'Close help', self.toolIdx, self.paletteToolbar
@@ -166,34 +218,37 @@ class HelpFrame(wxFrame):
         dlg.Update(count, msg +' '+ file)
         
     def OnSearchEnter(self, event):
-##        max = len(os.listdir(self.home))
-##        dlg = wxProgressDialog('Search help files...',
-##                               'Searching...',
-##                               max,
-##                               self,
-##                               wxPD_CAN_ABORT | wxPD_APP_MODAL)
-##        try:
         results =  Search.findInFiles(self, self.home, 
           self.searchCtrl.GetValue(), self.progressCallback)
-##        finally:
-##            dlg.Destroy()
                     
         self.resultsCtrl.Clear()
+        self.subResultsCtrl.Clear()
         results.sort()
         results.reverse()
         for ocs, result in results:
             self.resultsCtrl.Append('%d :: %s' %(ocs, result))
+        self.Raise()
+        self.resultsCtrl.SetFocus()
     
     def OnResultSelect(self, event):
         pge = string.split(self.resultsCtrl.GetValue(), ' :: ')[1]
         self.loadPage(pge, self.searchCtrl.GetValue())
+
+        self.subResultsCtrl.Clear()
+        for res in self.subResults:
+            self.subResultsCtrl.Append(res)
+        event.Skip()
+
+    def OnSubResultSelect(self, event):
+        self.html.LoadPage('#result_match_%d'%self.subResultsCtrl.GetSelection())
+        #self.html.Scroll(0, -1)
+        
         event.Skip()
 
     def OnHome(self, event):
         self.loadPage()
 
     def OnSelect(self, event):
-        print 'select' 
         self.Show(true)
         if self.IsIconized():
             self.Iconize(false)
@@ -225,6 +280,13 @@ class PythonHelpFrame(HelpFrame):
     def __init__(self, parent, paletteToolbar = None):
         HelpFrame.__init__(self, parent, Preferences.pythonDocsPath, 'index.html',
           'PythonHelp.ico', paletteToolbar)
+
+class CustomHelpFrame(HelpFrame):
+    toolBmp = 'Images/Shared/CustomHelp.bmp'
+    helpStr = 'Python help'
+    def __init__(self, parent, helpRoot, indexDoc, paletteToolbar = None):
+        HelpFrame.__init__(self, parent, helpRoot, indexDoc,
+          'CustomHelp.ico', paletteToolbar)
         
 
 
