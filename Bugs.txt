@@ -9,6 +9,12 @@ Sometimes (but rarely) Boa crashes at startup while opening files in the Editor.
 I've added code to start Boa empty at the next startup attempt to work around 
 this issue.
 
+Under wxGTK, Num Lock *must* be turned off. Because of a strange bug in 
+wxWidgets having Num Lock on is the same as holding in Alt. 
+This causes the short cuts to trigger, e.g. pressing "S" in the Editor
+would cause the Save As dialog to pop up because Alt-S is registered.
+The only know solution for wxPython 2.4.2.4 is to turn off Num Lock.
+
 ---
 Current Designer behaviour may seem weird where a
 single control is dropped on a frame; At first the control keeps its
