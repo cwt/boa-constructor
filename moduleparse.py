@@ -218,7 +218,7 @@ class Module:
         return line
 
     def decomment(self, line):
-        return methodparse.safesplitfields(line, '#')[0]
+        return methodparse.safesplitfields(line, '#', returnBlanks = 1)[0]
 
     line_conts = (',', '\\', '(')
     def readcontinuedlines(self, lineno, terminator):
@@ -282,6 +282,10 @@ class Module:
                 # ignore blank (and comment only) lines
                 self.loc = self.loc - 1
                 continue
+
+##            if dedent.match(line):
+##                print 'dedent', self.lineno
+
 
             res2 = is_class_start.match(line)
             if res2:
@@ -405,30 +409,6 @@ class Module:
 
                 continue
 
-            res = is_name.match(line)
-            if res:
-                # found a name binding
-                # class attribute
-                if cur_class:
-                    # and we know the class it belongs to
-                    # try to determine type
-                    if cur_meth:
-                        cur_class.add_local(res.group('name'), cur_meth, self.lineno)
-                # function
-                elif cur_func:
-                    name = res.group('name')
-                    if self.functions.has_key(cur_func):
-                        if name not in self.functions[cur_func].locals.keys():
-                            self.functions[cur_func].locals[name] = Attrib(name, self.lineno)
-                #global
-                else:
-                    name = res.group('name')
-                    if not self.globals.has_key(name):
-                        self.globals[name] = CodeBlock(name, self.lineno, self.lineno)
-                        self.global_order.append(name)
-
-                continue
-
             res = is_import.match(line)
             if res:
                 # import module
@@ -458,6 +438,30 @@ class Module:
                 # end of class definition
                 cur_class, cur_meth, cur_func = self.finaliseEntry(cur_class,
                   cur_meth, cur_func, self.lineno)
+
+            res = is_name.match(line)
+            if res:
+                # found a name binding
+                # class attribute
+                if cur_class:
+                    # and we know the class it belongs to
+                    # try to determine type
+                    if cur_meth:
+                        cur_class.add_local(res.group('name'), cur_meth, self.lineno)
+                # function
+                elif cur_func:
+                    name = res.group('name')
+                    if self.functions.has_key(cur_func):
+                        if name not in self.functions[cur_func].locals.keys():
+                            self.functions[cur_func].locals[name] = Attrib(name, self.lineno)
+                #global
+                else:
+                    name = res.group('name')
+                    if not self.globals.has_key(name):
+                        self.globals[name] = CodeBlock(name, self.lineno, self.lineno)
+                        self.global_order.append(name)
+
+                continue
 
         # if it's the last class in the source, it will not dedent
         # check manually
