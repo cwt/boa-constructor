@@ -13,12 +13,10 @@ print 'importing Views.PySourceView'
 
 import os, string, bdb, sys, types
 
-#sys.path.insert(0, '..')
-
 from wxPython.wx import *
 from wxPython.stc import *
 
-import ProfileView, Search, Help, Preferences, ShellEditor, Utils
+import ProfileView, Search, Help, Preferences, ShellEditor, Utils, SourceViews
 
 from SourceViews import EditorStyledTextCtrl
 from StyledTextCtrls import PythonStyledTextCtrlMix, BrowseStyledTextCtrlMix,\
@@ -29,9 +27,13 @@ import methodparse
 import wxNamespace
 from Debugger.Breakpoint import bplist
 
-brkPtMrk, stepPosMrk, tmpBrkPtMrk, markPlaceMrk, disabledBrkPtMrk = range(1, 6)
-brwsIndc, synErrIndc = range (0, 2)
-lineNoMrg, symbolMrg, foldMrg = range (0, 3)
+stepPosMrk = SourceViews.stepPosMrk
+mrkCnt = SourceViews.markerCnt
+brkPtMrk, tmpBrkPtMrk, disabledBrkPtMrk = range(mrkCnt+1, mrkCnt+4)
+SourceViews.markerCnt = mrkCnt + 3
+
+brwsIndc, synErrIndc = range(0, 2)
+lineNoMrg, symbolMrg, foldMrg = range(0, 3)
 
 wxEVT_FIX_PASTE = wxNewId()
 
@@ -128,7 +130,7 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
         EVT_STC_CHARADDED(self, wxID_PYTHONSOURCEVIEW, self.OnAddChar)
 
         # still too buggy
-        #EVT_STC_MODIFIED(self, wxID_PYTHONSOURCEVIEW, self.OnModified)
+        EVT_STC_MODIFIED(self, wxID_PYTHONSOURCEVIEW, self.OnModified)
         EVT_FIX_PASTE(self, self.OnFixPaste)
 
         self.active = true
@@ -1216,31 +1218,45 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
 
     def OnModified(self, event):
         modType = event.GetModificationType()
-        if modType == (wxSTC_MOD_CHANGEMARKER):
-            pass
         linesAdded = event.GetLinesAdded()
-        textAdded = event.GetText()
+
+        if self._blockUpdate: return
+
+        # repair breakpoints
+        if linesAdded:
+            line = self.LineFromPosition(event.GetPosition())
+            
+            debugger = self.model.editor.debugger
+            if debugger:
+                endline = self.GetLineCount()
+                if self.breaks.hasBreakpoint(
+                      min(line, endline), max(line, endline)):
+                    # XXX also check that module has been imported
+                    # XXX this should apply; with or without breakpoint
+                    if debugger.running and \
+                          not modType & wxSTC_PERFORMED_UNDO:
+                        wxLogWarning('Adding or removing lines from the '
+                                     'debugger will cause the source and the '
+                                     'debugger to be out of sync.'
+                                     '\nPlease undo this action.')
+                    
+                    changed = self.breaks.adjustBreakpoints(line, linesAdded)
+                    
+                    debugger.adjustBreakpoints(self.model.filename, line, 
+                          linesAdded)
+        
+        # XXX The rest is too buggy
+        event.Skip()
+        return
 
         # Repair pasting CR/LF from clipboard to LF source
+        textAdded = event.GetText()
         if linesAdded > 0:
             lines = string.split(textAdded, '\r\n')
             totAdded = linesAdded
             if len(lines) > 1 and len(lines) == linesAdded + 1:
                 wxPostEvent(self, wxFixPasteEvent(self, string.join(lines, '\n')))
 
-        # XXX The rest is too buggy
-        return
-
-        if self._blockUpdate: return
-
-        # repair breakpoints
-        update = false
-        if linesAdded:
-            line = self.LineFromPosition(event.GetPosition())
-            self.breaks.moveBreakpoint(line, line + linesAdded)
-
-            if update and self.model.editor.debugger:
-                self.model.editor.debugger.breakpts.refreshList()
 
         # Update module line numbers
         # module has to have been parsed at least once
