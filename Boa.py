@@ -409,11 +409,10 @@ class BoaApp(wxApp):
         menu.Destroy()
 
     def OnTaskBarActivate(self, event):
-        if self.main.IsIconized():
-            self.main.Iconize(false)
         if not self.main.IsShown():
-            self.main.Show(true)
-        self.main.Raise()
+            self.main.editor.restore()
+        else:
+            self.main.restore()
 
     def OnTaskBarClose(self, event):
         self.main.Close()

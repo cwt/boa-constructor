@@ -180,6 +180,7 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
         EVT_MENU(self, EditorHelper.wxID_EDITORSWITCHINSPECTOR, self.OnSwitchInspector)
         EVT_MENU(self, EditorHelper.wxID_EDITORPREVPAGE, self.OnPrevPage)
         EVT_MENU(self, EditorHelper.wxID_EDITORNEXTPAGE, self.OnNextPage)
+        EVT_MENU(self, EditorHelper.wxID_EDITORHIDEPALETTE, self.OnHidePalette)
 
         self.winMenu = wxMenu()
         self.winMenu.Append(EditorHelper.wxID_EDITORSWITCHPALETTE, 'Palette', 'Switch to the Palette frame.')
@@ -195,6 +196,9 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
               'Previous window\t%s'%keyDefs['PrevPage'][2], 'Switch to the previous page of the main notebook')
         self.winMenu.Append(EditorHelper.wxID_EDITORNEXTPAGE, 
               'Next window\t%s'%keyDefs['NextPage'][2], 'Switch to the next page of the main notebook')
+        self.winMenu.Append(-1, '-')
+        self.winMenu.Append(EditorHelper.wxID_EDITORHIDEPALETTE, 
+              'Hide Palette', 'Hide the Palette frame')
         self.winMenu.Append(-1, '-')
         self.mainMenu.Append(self.winMenu, 'Windows')
 
@@ -1085,7 +1089,13 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
             except Queue.Empty:
                 break
         if opened:
-            self.palette.restore()
+            if self.palette.IsShown():
+                self.palette.restore()
+            else:
+                self.restore()
+
+    def OnHidePalette(self, event):
+        self.palette.Show(false)
 
 class Listener(threading.Thread):
     def __init__(self, queue, closed):
