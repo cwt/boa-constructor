@@ -99,7 +99,7 @@ class CollectionEditor(wxFrame, Utils.FrameRestorerMixin):
         self.toolLst.append(wId)
         if additAdders:
             wId = Utils.AddToolButtonBmpIS(self, self.toolBar,
-                  'Images/Shared/NewItems.png', 'More new ...', self.OnNewClick)
+                  'Images/Shared/NewItems.png', 'More new ...', self.OnMoreNewClick)
             EVT_MENU(self, wId, self.OnMoreNewClick)
             self.toolLst.append(wId)
     
