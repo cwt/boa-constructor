@@ -70,6 +70,7 @@ Kevin Gill (kevin@telcotek.com)<br>
 Robert Boulanger (robert@boulanger.de)<br>
 Tim Hochberg (tim.hochberg@ieee.org)<br>
 Kevin Light (klight@walkertechnical.com)<br>
+Marius van Wyk (marius@e.co.za)<br>
 <p>
 <b>Many thanks to</b><br>
 <br>
@@ -103,7 +104,11 @@ sponsoring my time on this project.<br>
 <a href="Python"><img src="%s"></a>&nbsp;
 <a href="wxPython"><img src="%s"></a>&nbsp;
 <a href="wxWindows"><img src="%s"></a><br>
-<br>
+<p>
+<b>Boa Constructor is packaged for:</b><br>
+<a href="Debian"><img src="%s"></a>&nbsp;
+<a href="Gentoo"><img src="%s"></a>&nbsp;
+<p>
 <a href="Back">Back</a><br>
     </td>
   </tr>
@@ -144,7 +149,9 @@ def addImagesToFS():
         ('Boa.jpg', 'Images/Shared/Boa.jpg', wxBITMAP_TYPE_JPEG),
         ('PythonPowered.png', 'Images/Shared/PythonPowered.png', wxBITMAP_TYPE_PNG),
         ('wxPyButton.png', 'Images/Shared/wxPyButton.png', wxBITMAP_TYPE_PNG),
-        ('wxWinButton.png', 'Images/Shared/wxWinButton.png', wxBITMAP_TYPE_PNG)]:
+        ('wxWinButton.png', 'Images/Shared/wxWinButton.png', wxBITMAP_TYPE_PNG),
+        ('Debian.png', 'Images/Shared/Debian.png', wxBITMAP_TYPE_PNG),
+        ('Gentoo.png', 'Images/Shared/Gentoo.png', wxBITMAP_TYPE_PNG)]:
         if name not in addImagesToFS.addedImages:
             wxMemoryFSHandler_AddFile(name, Preferences.IS.load(path), type)
             addImagesToFS.addedImages.append(name)
@@ -199,7 +206,9 @@ class AboutBoxMixin:
         if clicked == 'Credits':
             self.html.SetPage(credits_html % ('memory:PythonPowered.png',
                                               'memory:wxPyButton.png', 
-                                              'memory:wxWinButton.png'))
+                                              'memory:wxWinButton.png',
+                                              'memory:Debian.png',
+                                              'memory:Gentoo.png',))
         elif clicked == 'Back':
             self.setPage()
             #self.html.HistoryBack()
@@ -209,6 +218,12 @@ class AboutBoxMixin:
             self.gotoInternetUrl('http://wxpython.org')
         elif clicked == 'wxWindows':
             self.gotoInternetUrl('http://www.wxwindows.org')
+        elif clicked == 'Debian':
+            self.gotoInternetUrl(
+               'http://packages.debian.org/unstable/devel/boa-constructor.html')
+        elif clicked == 'Gentoo':
+            self.gotoInternetUrl(
+               'http://www.gentoo.org/dyn/pkgs/dev-util/boa-constructor.xml')
         elif clicked == 'Boa':
             self.gotoInternetUrl('http://boa-constructor.sourceforge.net')
         elif clicked == 'TBS':
@@ -268,7 +283,7 @@ class AboutBoxSplash(AboutBoxMixin, wxFrame):
     def monitorModuleCount(self):
         self._live = true
         lastCnt = 0
-        if sys and len(sys.modules) >= self.moduleTotal:
+        if self and sys and len(sys.modules) >= self.moduleTotal:
             wx.wxPostEvent(self, ModCntUpdateEvent(self.moduleTotal, 'importing'))
         else:
             while self and self._live and sys and len(sys.modules) < self.moduleTotal:
