@@ -7,14 +7,12 @@
 ##parameters=
 ##title=
 ##
-import sys
+try:
+    import sys
+except ImportError:
+    raise Exception('Please install the Breakpoint product in the ZopeLib directory')
 
 try:
     sys.breakpoint()
 except AttributeError:
-    print 'Please install the Breakpoint product in the ZopeLib directory and run Zope in the Debugger'
-else:
-    print 'breakpoint'
-
-return printed
-
+    raise Exception('Zope must be running in the Debugger')
