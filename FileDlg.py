@@ -627,3 +627,6 @@ if __name__ == '__main__':
         pass#dlg.Destroy()
         
     #Preferences.cleanup()
+
+# redefine wxFileDialog
+wxFileDialog = wxBoaFileDialog

@@ -119,10 +119,6 @@ if useImageArchive and os.path.exists(pyPath+'/Images/Images.archive'):
 else:
     IS = ImageStore.ImageStore(imageStorePaths, cache=useImageCache)
 
-import FileDlg
-wxFileDialog = FileDlg.wxBoaFileDialog
-del FileDlg
-
 # If user does not override interpreter, use own interpreter path
 if not pythonInterpreterPath:
     pythonInterpreterPath = sys.executable
@@ -165,7 +161,8 @@ else:
 
 #-------------------------------------------------------------------------------
 # Delays wxApp_Cleanup
-sys._wxApp_Cleanup = wx.__cleanMeUp
+try: sys._wxApp_Cleanup = wx.__cleanMeUp
+except: pass
 
 def cleanup():
     IS.cleanup()
