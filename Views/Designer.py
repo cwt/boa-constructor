@@ -96,18 +96,17 @@ class DesignerView(wxFrame, InspectableObjectView, Utils.FrameRestorerMixin):
 
     defPos = wxPyDefaultPosition
 
-    def __init__(self, parent, inspector, model, compPal, companionClass, 
+    def __init__(self, parent, inspector, model, compPal, CompanionClass, 
           dataView):
         args = self.setupArgs(model.main, model.mainConstr.params,
-          ['parent', 'id'], parent, companionClass, model.specialAttrs)
-        #if model.modelIdentifier == 'Dialog':
-        #    style = wxRESIZE_BORDER | wxCAPTION | wxSYSTEM_MENU
-        #else:
+          CompanionClass.handledConstrParams, parent, CompanionClass, 
+          model.specialAttrs)
+
         style = wxDEFAULT_FRAME_STYLE
         wxFrame.__init__(self, parent, -1, args.get('title', ''),
-                                           args.get('pos', companionClass.defFramePos),
-                                           args.get('size', companionClass.defFrameSize),
-                                           style=companionClass.defFrameStyle)
+                                           args.get('pos', CompanionClass.defFramePos),
+                                           args.get('size', CompanionClass.defFrameSize),
+                                           style=CompanionClass.defFrameStyle)
         InspectableObjectView.__init__(self, inspector, model, compPal)
 
         if model.dialogLook:
@@ -128,7 +127,7 @@ class DesignerView(wxFrame, InspectableObjectView, Utils.FrameRestorerMixin):
 
         self.ctrlEvtHandler = DesignerControlsEvtHandler(self)
 
-        self.companion = companionClass(self.model.main, self, self)
+        self.companion = CompanionClass(self.model.main, self, self)
         self.companion.id = Utils.windowIdentifier(self.model.main, '')
 
         self.companion.control = self
@@ -300,9 +299,13 @@ class DesignerView(wxFrame, InspectableObjectView, Utils.FrameRestorerMixin):
         if self.sizersView:
             self.sizersView.designerRenameNotify(oldName, newName)
         selName = self.inspector.containment.selectedName()
-        if selName == oldName: selName = newName
-
+        if selName == oldName: 
+            selName = newName
+        
         self.refreshContainment(selName)
+
+        if self.selection.name == oldName:
+            self.selection.name = newName
 
     def renameFrame(self, oldName, newName):
         """ Hook that also updates the Model and window ids of the
