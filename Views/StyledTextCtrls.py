@@ -54,10 +54,25 @@ class FoldingStyledTextCtrlMix:
         self.SetMarginMask(margin, wxSTC_MASK_FOLDERS)
         self.SetMarginSensitive(margin, true)
         self.SetMarginWidth(margin, Preferences.STCFoldingMarginWidth)
-        markIdnt, markBorder, markCenter = Preferences.STCFoldingOpen
-        self.MarkerDefine(wxSTC_MARKNUM_FOLDER, markIdnt, markBorder, markCenter)
+
+#wxSTC_MARKNUM_FOLDEREND,wxSTC_MARKNUM_FOLDEROPENMID,wxSTC_MARKNUM_FOLDERMIDTAIL,wxSTC_MARKNUM_FOLDERTAIL,wxSTC_MARKNUM_FOLDERSUB,wxSTC_MARKNUM_FOLDER,wxSTC_MARKNUM_FOLDEROPEN
+
         markIdnt, markBorder, markCenter = Preferences.STCFoldingClose
+        self.MarkerDefine(wxSTC_MARKNUM_FOLDER, markIdnt, markBorder, markCenter)
+        #self.MarkerDefine(wxSTC_MARKNUM_FOLDEREND, markIdnt, markBorder, markCenter)
+        self.MarkerDefine(wxSTC_MARKNUM_FOLDEREND, wxSTC_MARK_EMPTY, markBorder, markCenter)
+
+        markIdnt, markBorder, markCenter = Preferences.STCFoldingOpen
         self.MarkerDefine(wxSTC_MARKNUM_FOLDEROPEN, markIdnt, markBorder, markCenter)
+        #self.MarkerDefine(wxSTC_MARKNUM_FOLDEROPENMID, markIdnt, markBorder, markCenter)
+        self.MarkerDefine(wxSTC_MARKNUM_FOLDEROPENMID, wxSTC_MARK_EMPTY, markBorder, markCenter)
+
+        try: wxSTC_MARK_BACKGROUND
+        except: pass
+        else:
+            self.MarkerDefine(wxSTC_MARKNUM_FOLDERMIDTAIL, wxSTC_MARK_BACKGROUND, "white", "black")
+            self.MarkerDefine(wxSTC_MARKNUM_FOLDERSUB, wxSTC_MARK_BACKGROUND, "white", "black")
+            self.MarkerDefine(wxSTC_MARKNUM_FOLDERTAIL, wxSTC_MARK_BACKGROUND, "white", "black")
 
 
         EVT_STC_MARGINCLICK(self, wId, self.OnMarginClick)
