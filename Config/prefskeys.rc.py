@@ -1,4 +1,4 @@
-## rc-version: 7 ##
+## rc-version: 8 ##
 # RCS-ID:      $Id$
 
 from wxPython.wx import *
@@ -50,8 +50,6 @@ keyDefs = {
   'Cut'         : (wxACCEL_SHIFT, WXK_DELETE, 'Shift-Del'),
   'Copy'        : (wxACCEL_CTRL, WXK_INSERT, 'Ctrl-Ins'),
   'Paste'       : (wxACCEL_SHIFT, WXK_INSERT, 'Shift-Ins'),
-  'CopyPlus'    : (wxACCEL_CTRL|wxACCEL_SHIFT, ord('C') , 'Ctrl-Shift-C'),
-  'PastePlus'   : (wxACCEL_CTRL|wxACCEL_SHIFT, ord('V'), 'Ctrl-Shift-V'),
 #--Designer---------------------------------------------------------------------
   'MoveLeft'    : (wxACCEL_CTRL, WXK_LEFT, 'Ctrl-Left'),
   'MoveRight'   : (wxACCEL_CTRL, WXK_RIGHT, 'Ctrl-Right'),
