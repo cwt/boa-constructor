@@ -161,7 +161,13 @@ class ChildProcessClient(MultiThreadedDebugClient):
     def kill(self):
         server = self.server
         if server is not None:
-            self.invokeOnServer('exit_debugger')
+            def call_exit(server=server):
+                try:
+                    server.exit_debugger()
+                except socket.error:
+                    # Already stopped.
+                    pass
+            self.taskHandler.addTask(call_exit)
             self.server = None
         self.input_stream = None
         self.error_stream = None
