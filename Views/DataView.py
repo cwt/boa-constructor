@@ -12,9 +12,9 @@
 
 from wxPython.wx import *
 from Designer import InspectableObjectCollectionView
-from Utils import AddToolButtonBmpIS
 from EditorModels import init_utils
-import PaletteMapping
+import PaletteMapping, Utils
+from PrefsKeys import keyDefs
 import os
             
 class DataView(wxListCtrl, InspectableObjectCollectionView):
@@ -27,8 +27,15 @@ class DataView(wxListCtrl, InspectableObjectCollectionView):
         wxListCtrl.__init__(self, parent, self.wxID_DATAVIEW, style = wxLC_SMALL_ICON)#wxLC_LIST)
 
         InspectableObjectCollectionView.__init__(self, inspector, model, compPal,
-          (('Post', self.OnPost, self.postBmp, ()),
-           ('Cancel', self.OnCancel, self.cancelBmp, ())), 0)
+          (('Default editor', self.OnDefaultEditor, '-', ()),
+           ('Post', self.OnPost, self.postBmp, ()),
+           ('Cancel', self.OnCancel, self.cancelBmp, ()),
+           ('-', None, '-', ()),
+           ('Cut', self.OnCutSelected, '-', ()),
+           ('Copy', self.OnCopySelected, '-', keyDefs['Copy']),
+           ('Paste', self.OnPasteSelected, '-', keyDefs['Paste']),
+           ('Delete', self.OnControlDelete, '-', keyDefs['Delete']),
+           ), 0)
 
         self.il = wxImageList(24, 24)
         self.SetImageList(self.il, wxIMAGE_LIST_SMALL)
@@ -37,7 +44,8 @@ class DataView(wxListCtrl, InspectableObjectCollectionView):
         EVT_LIST_ITEM_SELECTED(self, self.wxID_DATAVIEW, self.OnObjectSelect)
         EVT_LIST_ITEM_DESELECTED(self, self.wxID_DATAVIEW, self.OnObjectDeselect)
 
-        self.selected = -1
+        self.selection = []
+        self.vetoSelect = false
 
         self.active = true
 
@@ -49,6 +57,7 @@ class DataView(wxListCtrl, InspectableObjectCollectionView):
         self.initObjectsAndCompanions(objCol.creators, objCol, deps, depLinks)
 
     def refreshCtrl(self):
+        print 'refreshCtrl'
         self.DeleteAllItems()
 
         objCol = self.model.objectCollections[self.collectionMethod]
@@ -57,6 +66,7 @@ class DataView(wxListCtrl, InspectableObjectCollectionView):
 #        ctrls, props, events = self.organiseCollection()
 
         for ctrl in objCol.creators:
+            print 'refreshCtrl', ctrl
             if ctrl.comp_name:
                 try:
                     classObj = eval(ctrl.class_name)
@@ -73,7 +83,10 @@ class DataView(wxListCtrl, InspectableObjectCollectionView):
                     else:
                         idx1 = self.il.Add(PaletteMapping.bitmapForComponent(aclass, 'Component'))
                 
-                self.InsertImageStringItem(0, '%s : %s' % (ctrl.comp_name, className), idx1)
+                self.InsertImageStringItem(self.GetItemCount(), '%s : %s' % (ctrl.comp_name, className), idx1)
+
+##        for name, idx in self.selection:
+##            self.SetItemState(idx, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED)
 
 ##        print '$$$$ INIT DV'
 ##        for i in self.collEditors.values():
@@ -86,6 +99,7 @@ class DataView(wxListCtrl, InspectableObjectCollectionView):
     def loadControl(self, ctrlClass, ctrlCompanion, ctrlName, params):
         """ Create and register given control and companion.
             See also: newControl """
+        print 'loadControl', params
         args = self.setupArgs(ctrlName, params, self.handledProps)
         
         # Create control and companion
@@ -99,51 +113,138 @@ class DataView(wxListCtrl, InspectableObjectCollectionView):
         for itemIdx in range(self.GetItemCount()):
             a = wxLIST_STATE_SELECTED
             state = self.GetItemState(itemIdx, a)
-            self.SetItemState(itemIdx, 0, wxLIST_STATE_SELECTED)
+            self.SetItemState(itemIdx, 0, a)
+
+    def selectCtrls(self, ctrls):
+        for itemIdx in range(self.GetItemCount()):
+            name = string.split(self.GetItemText(itemIdx), ' : ')[0]
+            a = wxLIST_STATE_SELECTED
+            if name in ctrls: f = a
+            else: f = 0
+            state = self.GetItemState(itemIdx, a)
+            self.SetItemState(itemIdx, f, a)
 
     def deleteCtrl(self, name, parentRef = None):
         self.selectNone()
+        
+        # notify other components of deletion
+        self.notifyAction(self.objects[name][0], 'delete')
+        
         InspectableObjectCollectionView.deleteCtrl(self, name, parentRef)
         self.refreshCtrl()                
 
     def renameCtrl(self, oldName, newName):
         InspectableObjectCollectionView.renameCtrl(self, oldName, newName)
         self.refreshCtrl()                
-        self.SetItemState(self.selected, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED)
 
     def close(self):
 ##        print 'DATAVIEW CLOSE'
         self.cleanup()
         InspectableObjectCollectionView.close(self)
 
+    def getSelectedName(self):
+        return string.split(self.GetItemText(self.selection), ' : ')[0]
+
+    def getSelectedNames(self):
+        selected = []
+        for itemIdx in range(self.GetItemCount()):
+            name = string.split(self.GetItemText(itemIdx), ' : ')[0]
+            state = self.GetItemState(itemIdx, wxLIST_STATE_SELECTED)
+            if state:
+                selected.append( (name, itemIdx) )
+        return selected
+                
     def OnSelectOrAdd(self, event):
         """ Control is clicked. Either select it or add control from palette """
         if self.compPal.selection:
             objName = self.newObject(self.compPal.selection[1], self.compPal.selection[2])
             self.compPal.selectNone()
             self.refreshCtrl()
+            self.selectCtrls([objName])
         else:
             # Skip so that OnObjectSelect may be fired
             event.Skip()
     
+    def updateSelection(self):
+        if len(self.selection) == 1:
+            self.inspector.selectObject(self.objects[self.selection[0][0]][0], false)
+        else:
+            self.inspector.cleanup()
+##            self.selectNone()
+    
     def OnObjectSelect(self, event):
         self.inspector.containment.cleanup()
-        self.selected = event.m_itemIndex
-        name = string.split(self.GetItemText(self.selected), ' : ')[0]
-#        self.inspector.selectObject(self.objects[name][1], self.objects[name][0], false)
-        self.inspector.selectObject(self.objects[name][0], false)
+        self.selection = self.getSelectedNames()
+        print 'updateSelection', self.selection
+        self.updateSelection()
 
     def OnObjectDeselect(self, event):
-        self.inspector.cleanup()
+        event.Skip()
+        if self.vetoSelect: return
+        idx = 0
+        while idx < len(self.selection):
+            name, ctrlIdx = self.selection[idx]
+            if ctrlIdx == event.m_itemIndex:
+                del self.selection[idx]
+            else:
+                idx = idx + 1
+
+#        self.inspector.cleanup()
+        self.updateSelection()
 
     def OnPost(self, event):
+        """ Close all designers and save all changes """
         self.controllerView.saveOnClose = true
         self.close()
 
     def OnCancel(self, event):
+        """ Close all designers and discard all changes """
         self.controllerView.saveOnClose = false
         self.close()
+    
+    def OnCutSelected(self, event):
+        """ Cut current selection to the clipboard """
+        ctrls = map(lambda ni: ni[0], self.selection)
+
+        output = []
+        self.cutCtrls(ctrls, [], output)
         
+        Utils.writeTextToClipboard(string.join(output, os.linesep))
+        
+        self.refreshCtrl()
+        
+    def OnCopySelected(self, event):
+        """ Copy current selection to the clipboard """
+        ctrls = map(lambda ni: ni[0], self.selection)
+        print 'OnCopySelected', ctrls
+
+        output = []
+        self.copyCtrls(ctrls, [], output)
+
+        Utils.writeTextToClipboard(string.join(output, os.linesep))
+
+    def OnPasteSelected(self, event):
+        """ Paste current clipboard contents into the current selection """
+        pasted = self.pasteCtrls('', string.split(Utils.readTextFromClipboard(), 
+                                                  os.linesep))
+        if len(pasted):
+            self.refreshCtrl()
+            self.selectCtrls(pasted)
+    
+    def OnControlDelete(self, event):
+        self.vetoSelect = true
+        try:
+            for name, idx in self.selection:
+                self.deleteCtrl(name)
+        finally:
+            self.vetoSelect = false
+
+        self.selection = self.getSelectedNames()
+        self.updateSelection()
+
+    def OnDefaultEditor(self, event):
+        if len(self.selection) == 1:
+            self.objects[self.selection[0][0]][0].defaultAction()        
         
         
         
