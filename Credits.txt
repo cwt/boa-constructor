@@ -1,8 +1,61 @@
-Sampled people and software 
+Credits
+-------
 
-wxPython (Robin Dunn) & wxWindows (Julian Smart et al.) ofcourse
-Cliff Baeseman for sorting out wxGTK problems
+Thanks to Guido van Rossum and Python Labs for Python.
+
+wxPython (Robin Dunn) & wxWidgets (Julian Smart, Robert Roebling, Vadim Zeitlin, et al.) 
+
+Neil Hodgson for Scintilla
 moduleparse.py borrows from pyclbrs.py - standard python library
 uses PythonInterpreter.py by Fredrik Lundh
-debugger based on IDLE's debugger by Guido van Rossum
-Mozilla & Delphi for iconic inspirations
+Debugger GUI originally based on IDLE's debugger by Guido van Rossum
+Mozilla, Delphi, WinCVS for iconic inspirations
+Cyclops, ndiff by Tim Peters
+Client.py and the DateTime package from Digital Creations for Zope integration
+PyChecker by Neal Norwitz & Eric C. Newton
+py2exe by Thomas Heller
+babeliser.py by Jonathan Feinberg and Babelfish for translation
+David Adams' Speller, an xml-rpc spellchecker server
+Jeff Sasmor for wxStyledTextCtrl docs
+Hernan M. Foffani for ZopeShelf from which the Zope Book was converted
+Phil Dawes et al for the Bicycle Repair Man project, a Python refactoring package
+
+The authors of CVS, SSH, SCP
+
+People who have helped out or contributed:
+
+Shane Hathaway <shane@zope.com>
+* Bug fixes and obtimizations
+* Out of process debugger
+Kevin Gill <kevin@focussed.com>
+* Tutorial
+* Many bug fixes
+* wxStyledTextCtrl speedups on wxGTK (Not needed/used anymore)
+* Feature additions
+  * Multiple inheritance in Hierarchy view
+  * UMLView popup menu for navigation
+Robert Boulanger <robert@bluedynamics.com>
+* Initial Zope/xmlrpc integration 
+Tim Hochberg <tim.hochberg@ieee.org>
+* Find/replace
+* Socket server mode
+Mike C Fletcher <mcfletch@home.com>
+* MakePy dialog
+* Much improved UML layout
+Marius van Wyk and Kevin Altis
+* MacOS X support
+Roman Yakovenko
+* Improved Find dialog
+* Clipboard plus
+Cedric Delfosse
+* Debian package
+* Bug fixes
+Werner Brunin
+* Mailing list help
+* Tutorial updates
+* Bug reports and fixes
+* Help with the 2.5 Upgrader
+
+Also thanks to Kevin Light, Paul Sorenson, Oleg Deribas, Patrick 'O Brien, 
+John Bell, Gerrit van Dyk, Cliff Baeseman, Larry Poorman and anyone else 
+I may have forgotten!

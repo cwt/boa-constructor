@@ -1,98 +1,107 @@
-Bugs - Horribly incomplete cryptic buglist
-$ - Solved
+Bugs & Issues 
+-------------
 
+Sometimes (but rarely, not seen under wxPython 2.5 yet) Boa crashes at startup 
+while opening files in the Editor.
+I've added code to start Boa empty at the next startup attempt to work around 
+this issue.
 
-$ Accessing a property whose property editor was edited on a previous selection of a component
-$ coredumps wxPython (dang pointers)
+Under wxGTK, Num Lock *must* be turned off. Because of a strange bug in 
+wxWidgets having Num Lock on is the same as holding in Alt. 
+This causes the short cuts to trigger, e.g. pressing "S" in the Editor
+would cause the Save As dialog to pop up because Alt-S is registered.
+The only know solution for wxPython 2.4.2.4 is to turn off Num Lock.
 
-$ Collapsing subproperty tries to store value after property editor
-$ is destroyed
+---
+Current Designer behaviour may seem weird where a
+single control is dropped on a frame; At first the control keeps its
+default size, but when the frame is resized, it fills the frame.
+(toolbars, statusbars and menubars connected to the frame are 
+excepted from this rule)
+This behaviour emulates the way frames/containers auto sizes a control 
+if only one is dropped on a frame/container, but it gives you the 
+chance to add a second control (before it fills the parent). 
+If you have a control filling a parent and want to add another to
+the parent, resize/move it out of the way and drop the second
+(painful I know)
 
-$After design time creating a dropping a new component the SelectionGroup gets selected
-$but not the object in the inspector 
+White space is quite significant for collection item methods!
+The spacing/blank lines within the method delimit the 3 possible
+sections, I might change this to rather be delimited by comments
+(but I don't want to have meaningfull comments either :( )
+Anyway don't mess with the whitespace and expect this to change.
 
-Property editor controls sometimes sized wrong on edit
+Another biggish gotcha is that changes to many (there are exceptions) 
+constructor properties and collection item constructor properties 
+will only take effect after the frame has been opened and closed
+or the property refreshed.
+This is partially due to constructors only being called once ;)
 
-$On selecting new component in Designer, namevalue width = default, not current Inspector width
+Cyclops and wxGenButtons don't mix for some strange reason. Disable
+any wxGenButtons code before running Cyclops.
+To run Boa in Cyclops, turn the cyclopsing flag on in Palette.py
 
-$Selecting frame offsets the SelectionGroup relative to screen coords instead of inside corners
-$of frame
+Other bugs
+----------
 
-$ Designer sizing bug: Control returns to default size after resizing a second time 
+Recreate controls not implemented for the Data View.
 
-Designer sizing bug: If a panel on a frame is selected and the frame is resized 
-it is not resized to the new size of the form. This is due to the fact that the selection
-group are 4 panels therefor there are 5 ctrls on the frame and the frame will only
-resize the panel if it was the only control. 
-This behaviour has to be emulated. Will be possible by looking at the child count of
-the frame in the parents tree
+ToolBars confuse the Designer somtimes (and the author).
+Components are offset by the height of the toolbar
 
-Changing sub-properties in inspector does not update ctrl
-
-$ Module does not open
-
-Old problem of InspectorScrollWindows' scrollbar getting confused and not being able
-to scroll back up
-
-Cannot parse ftplib.py
-
-$wxTreeCtrl.GetParent gives problems, Robin promises fix for next release
-
-Frame size/move not updating in source if frame is not currently selected in the 
-inspector, this is a fundamentaly very tricky one to fix properly. 
-One hack is to auto select the frame before beginning a move/size ??
-
-$?Closing while on full parent view tree sometimes crashes python
-
-$Second instance of a module type not showing image in AppView
-
-$Slider not working
-
-RadioBox, NoteBook does not trigger mouse events, and static box only triggers over it's
-label. ComboBox only over drop down button
-A work around is for containers to first do a hit test if clicks are within the region
-of any child controls. A bit of a pain tho. Note these controls can still be selected in
-the parents page of the inspector
-
-$Saved as modules should notify application of path change
-
-$Module paths are reletivised wrong when App is saved somewhere else
-
-Font property misbehaves: value of font after selected != default font
-
-Frame loses events
-
-$If the last window is closed notebook does not switch to shell
-
-Help select search result triggers loadpage event 3 times
-
-Attributes aren't updated in moduleparse.Class.attributes after working in the Designer
-The undelying problem is that the frame designers maintain the source code
-and the module is not reparsed when the designers are closed, only their changes
-are applied. Attributes get picked up on parsing.
-
-$Module name not changing after rename, only after reload
-
-$Find out why Debugger.py loads so slowly
-
-Can't handle zero length module modules
- $ no infinite loops anymore but still problems
-
-$Inspector does not behave correctly when switching between 2 frame designers
-
-$Frame not updating position when moved
-
-$Add saving btns to text models
-
-$Parent view not behaving correctly to selection of different designers
-
-Utility control must be selected after being added
-
-$Views must update model if they are modified
+Toolbars still cause big trouble by moving the frame coordinates down
+when linked to a frame.
+The only way I can see this working is by always having the toolbar
+as the first component and immediately linking it before creating any
+other components (this breaks the pattern completely ouch :()
+Also have to compensate for all top level controls (ctrls directly on
+frame) by adjusting their coordinates upon linking of the toolbar,
+because their source won't be updated.
+The moral of the story is to not have controls directly on a frame for
+now, rather put them in a panel, this is the recommended procedure
+in any case.
 
 Parser must be fixed sometime to correctly parse
-- methods within methods
-- multiline docstrings
-- method definitions continued over more than 1 line
+nested methods and nested classes
 
-Not prompted when overwriting a file
+Sometimes get a DeadObject assertion error when using the debugger by attaching
+to it.
+
+GTK
+---
+
+Under RedHat 8, fonts are sometimes displayed incorrectly, the suggested 
+workaround is to have an environment variable like this defined:
+LANG=en_US
+
+GTK Critical warnings are produced in the following cases:
+- When there is a 'New' submenu connected under 'File'. Off by default on wxGTK.
+- When controls are reparented from the Notebook to another control. 
+  - This now causes a coredump :(
+
+---
+
+Find in App does not search app
+
+moduleparse.Module.name sometimes have extension, sometimes not. Decide!
+
+Remove the silly assert for local uris (assertLocalFile), should be 
+checkLocalFile that raises a TransportError
+
+Check AccelEnter -> Notebook paste bug
+
+refreshCtrl is called twice on open pyd
+
+Snap to grid snaps more to left/top sides
+
+Filenames starting with . aren't handled correctly.
+
+moduleparse does not pick up 1st variable if defined before any other construct
+
+F10 outside Boa seems to set the dir according to app, breaks traceback.
+Clue; seems os.cwd is sometimes used.
+
+When an App is closed, it's remaining open modules stil refer to it.
+
+Inspector page splitter sometimes ends up in the center of the page after
+selecting nothing.
