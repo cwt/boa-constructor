@@ -43,7 +43,6 @@ class BaseFrameDTC(ContainerDTC):
         self.designer.renameFrame(oldValue, newValue)
     
     def ChangeToolBar(self, oldValue, newValue):
-        print 'ChangeToolBar', oldValue, newValue
         if newValue:
             self.designer.connectToolBar(newValue)
         else:
@@ -98,6 +97,62 @@ class PanelDTC(WindowConstr, ContainerDTC):
 
     def events(self):
         return ContainerDTC.events(self) + ['PanelEvent']
+
+EventCategories['SashEvent'] = (EVT_SASH_DRAGGED, )
+commandCategories.append('SashEvent')
+class SashWindowDTC(WindowConstr, ContainerDTC):
+    wxDocs = HelpCompanions.wxSashWindowDocs
+    def designTimeSource(self, position, size = 'wxDefaultSize'):
+        return {'pos':   position,
+        	'size':  size,
+        	'style': 'wxCLIP_CHILDREN | wxSW_3D',
+        	'name':  `self.name`}
+
+    def events(self):
+        return ContainerDTC.events(self) + ['SashEvent']
+
+class SashLayoutWindowDTC(WindowConstr, ContainerDTC):
+    wxDocs = HelpCompanions.wxSashLayoutWindowDocs
+    def __init__(self, name, designer, parent, ctrlClass):
+        ContainerDTC.__init__(self, name, designer, parent, ctrlClass)
+        self.editors.update({'Alignment'   : EnumPropEdit,
+        		     'Orientation' : EnumPropEdit,
+#        		     'DefaultSize' : SizePropEdit
+                            })
+        self.options.update({'Alignment'   : sashLayoutAlignment,
+        		     'Orientation' : sashLayoutOrientation
+                            })
+        self.names.update({'Alignment'   : sashLayoutAlignmentNames,
+                           'Orientation' : sashLayoutOrientationNames
+                          })
+#        self.defaultSize = wxSize(self.control.GetSize())
+    
+    def designTimeSource(self, position, size = 'wxDefaultSize'):
+        return {'pos':   position,
+        	'size':  size,
+        	'style': 'wxCLIP_CHILDREN | wxSW_3D',
+        	'name':  `self.name`}
+
+    def properties(self):
+        props = ContainerDTC.properties(self) 
+        props.update({'DefaultSize': ('CompnRoute', self.GetDefaultSize, 
+          self.SetDefaultSize)})
+        return props
+        
+    def events(self):
+        return ContainerDTC.events(self) + ['SashEvent']
+    
+    def GetDefaultSize(self, something):
+        if self.control:
+            return self.control.GetSize()
+        else:
+            return wxSize(15, 15)
+            
+
+    def SetDefaultSize(self, size):
+        if self.control:
+            self.control.SetSize(size)
+            wxLayoutAlgorithm().LayoutWindow(self.control)
 
 class ScrolledWindowDTC(WindowConstr, ContainerDTC):
     wxDocs = HelpCompanions.wxScrolledWindowDocs
