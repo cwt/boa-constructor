@@ -7,7 +7,7 @@
 #
 # Created:     1999
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999 - 2001 Riaan Booysen
+# Copyright:   (c) 1999 - 2002 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
 #Boa:Frame:EditorFrame
@@ -55,7 +55,9 @@ addTool = Utils.AddToolButtonBmpIS
 
 (mmFile, mmEdit, mmViews, mmWindows, mmHelp) = range(5)
 
-[wxID_EDITORFRAME, wxID_EDITORFRAMESTATUSBAR, wxID_EDITORFRAMETABS, wxID_EDITORFRAMETABSSPLITTER, wxID_EDITORFRAMETOOLBAR] = map(lambda _init_ctrls: wxNewId(), range(5))
+[wxID_EDITORFRAME, wxID_EDITORFRAMESTATUSBAR, wxID_EDITORFRAMETABS, 
+ wxID_EDITORFRAMETABSSPLITTER, wxID_EDITORFRAMETOOLBAR, 
+] = map(lambda _init_ctrls: wxNewId(), range(5))
 
 class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
     """ Source code editor and host for the Model/View/Controller classes"""
@@ -65,46 +67,65 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
     forwBmp = 'Images/Shared/Next.png'
     helpBmp = 'Images/Shared/Help.png'
     ctxHelpBmp = 'Images/Shared/ContextHelp.png'
+    shellBmp = 'Images/Editor/Shell.png'
+    explBmp = 'Images/Editor/Explorer.png'
+    inspBmp = 'Images/Shared/Inspector.png'
+    prefsBmp = 'Images/Modules/PrefsFolder_s.png'
+    
     _custom_classes = {'wxToolBar': ['EditorToolBar'],
                        'wxStatusBar': ['EditorStatusBar'],
                        'wxSplitterWindow': ['BottomAligningSplitterWindow']}
     def _init_coll_mainMenu_Menus(self, parent):
+        # generated method, don't edit
 
-        parent.Append(menu = wxMenu(), title = 'File')
-        parent.Append(menu = wxMenu(), title = 'Edit')
-        parent.Append(menu = wxMenu(), title = 'Views')
+        parent.Append(menu=wxMenu(), title='File')
+        parent.Append(menu=wxMenu(), title='Edit')
+        parent.Append(menu=wxMenu(), title='Views')
 
     def _init_utils(self):
-        self.modelImageList = wxImageList(height = 16, width = 16)
+        # generated method, don't edit
+        self.modelImageList = wxImageList(height=16, width=16)
 
         self.mainMenu = wxMenuBar()
 
-        self.blankEditMenu = wxMenu(title = '')
+        self.blankEditMenu = wxMenu(title='')
 
-        self.blankViewMenu = wxMenu(title = '')
+        self.blankViewMenu = wxMenu(title='')
 
-        self.helpMenu = wxMenu(title = '')
+        self.helpMenu = wxMenu(title='')
 
         self._init_coll_mainMenu_Menus(self.mainMenu)
 
     def _init_ctrls(self, prnt):
-        wxFrame.__init__(self, id = wxID_EDITORFRAME, name = '', parent = prnt, pos = wxPoint(182, 189), size = wxSize(810, 515), style = wxDEFAULT_FRAME_STYLE | Preferences.childFrameStyle, title = 'Editor')
+        # generated method, don't edit
+        wxFrame.__init__(self, id=wxID_EDITORFRAME, name='', parent=prnt,
+              pos=wxPoint(182, 189), size=wxSize(810, 515),
+              style=wxDEFAULT_FRAME_STYLE | Preferences.childFrameStyle,
+              title='Editor')
         self._init_utils()
         self.SetMenuBar(self.mainMenu)
         self.SetClientSize(wxSize(802, 488))
         EVT_CLOSE(self, self.OnCloseWindow)
 
-        self.statusBar = EditorStatusBar(id = wxID_EDITORFRAMESTATUSBAR, name = 'statusBar', parent = self, style = 0)
+        self.statusBar = EditorStatusBar(id=wxID_EDITORFRAMESTATUSBAR,
+              name='statusBar', parent=self, style=0)
         self.SetStatusBar(self.statusBar)
 
-        self.toolBar = EditorToolBar(id = wxID_EDITORFRAMETOOLBAR, name = 'toolBar', parent = self, pos = wxPoint(0, -28), size = wxSize(802, 28), style = wxTB_HORIZONTAL | wxNO_BORDER)
+        self.toolBar = EditorToolBar(id=wxID_EDITORFRAMETOOLBAR, name='toolBar',
+              parent=self, pos=wxPoint(0, 0), size=wxSize(802, 28),
+              style=wxTB_HORIZONTAL | wxNO_BORDER)
         self.SetToolBar(self.toolBar)
 
-        self.tabsSplitter = BottomAligningSplitterWindow(id = wxID_EDITORFRAMETABSSPLITTER, name = 'tabsSplitter', parent = self, point = wxPoint(0, 0), size = wxSize(802, 421), style = wxCLIP_CHILDREN | wxSP_LIVE_UPDATE | wxSP_3DSASH | wxSP_FULLSASH)
+        self.tabsSplitter = BottomAligningSplitterWindow(id=wxID_EDITORFRAMETABSSPLITTER,
+              name='tabsSplitter', parent=self, point=wxPoint(0, 0),
+              size=wxSize(802, 421),
+              style=wxCLIP_CHILDREN | wxSP_LIVE_UPDATE | wxSP_3DSASH | wxSP_FULLSASH)
 
-        self.tabs = wxNotebook(id = wxID_EDITORFRAMETABS, name = 'tabs', parent = self.tabsSplitter, pos = wxPoint(2, 2), size = wxSize(798, 417), style = wxCLIP_CHILDREN)
-        EVT_NOTEBOOK_PAGE_CHANGED(self.tabs, wxID_EDITORFRAMETABS, self.OnTabsNotebookPageChanged)
-
+        self.tabs = wxNotebook(id=wxID_EDITORFRAMETABS, name='tabs',
+              parent=self.tabsSplitter, pos=wxPoint(2, 2), size=wxSize(798,
+              417), style=wxCLIP_CHILDREN)
+        EVT_NOTEBOOK_PAGE_CHANGED(self.tabs, wxID_EDITORFRAMETABS,
+              self.OnTabsNotebookPageChanged)
 
     def __init__(self, parent, id, inspector, newMenu, componentPalette, app, palette):
         self._created = false
@@ -138,7 +159,7 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
         # Explorer
         self.explorer = Explorer.ExplorerSplitter(self.tabs,
               self.modelImageList, self)
-        self.tabs.AddPage(self.explorer, 'Explorer')
+        self.tabs.AddPage(self.explorer, 'Explorer', imageId=EditorHelper.imgExplorer)
         self.tabs.SetSelection(1)
 
         # Add open editor models to explorer
@@ -183,29 +204,31 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
         self.winMenu = wxMenu()
         self.winMenu.Append(EditorHelper.wxID_EDITORSWITCHPALETTE, 'Palette',
               'Switch to the Palette frame.')
-        self.winMenu.Append(EditorHelper.wxID_EDITORSWITCHINSPECTOR,
-              'Inspector\t%s'%keyDefs['Inspector'][2],
+        Utils.appendMenuItem(self.winMenu, EditorHelper.wxID_EDITORSWITCHINSPECTOR, 
+              'Inspector', keyDefs['Inspector'], self.inspBmp, 
               'Switch to the Inspector frame.')
         self.winMenu.Append(-1, '-')
-        self.winMenu.Append(EditorHelper.wxID_EDITORSWITCHSHELL,
-              'Shell\t%s'%keyDefs['GotoShell'][2], 'Switch to the Shell page')
-        self.winMenu.Append(EditorHelper.wxID_EDITORSWITCHEXPLORER,
-              'Explorer\t%s'%keyDefs['GotoExplorer'][2],
+        Utils.appendMenuItem(self.winMenu, EditorHelper.wxID_EDITORSWITCHSHELL,
+              'Shell', keyDefs['GotoShell'], self.shellBmp, 
+              'Switch to the Shell page')
+        Utils.appendMenuItem(self.winMenu, EditorHelper.wxID_EDITORSWITCHEXPLORER,
+              'Explorer', keyDefs['GotoExplorer'], self.explBmp, 
               'Switch to the Explorer page')
-        self.winMenu.Append(EditorHelper.wxID_EDITORSWITCHPREFS,
-              'Preferences', 'Switch to the Preferences in the Explorer')
+        Utils.appendMenuItem(self.winMenu, EditorHelper.wxID_EDITORSWITCHPREFS,
+              'Preferences', (), self.prefsBmp, 
+              'Switch to the Preferences in the Explorer')
         self.winMenu.Append(-1, '-')
-        self.winMenu.Append(EditorHelper.wxID_EDITORBROWSEBACK,
-              'Browse back',#\t%s'%keyDefs['BrowseBack'][2],
+        Utils.appendMenuItem(self.winMenu, EditorHelper.wxID_EDITORBROWSEBACK,
+              'Browse back', (), self.backBmp, #\t%s'%keyDefs['BrowseBack'][2],
               'Go back in browsing history stack')
-        self.winMenu.Append(EditorHelper.wxID_EDITORBROWSEFWD,
-              'Browse forward',#\t%s'%keyDefs['BrowseFwd'][2],
+        Utils.appendMenuItem(self.winMenu, EditorHelper.wxID_EDITORBROWSEFWD,
+              'Browse forward', (), self.forwBmp, #\t%s'%keyDefs['BrowseFwd'][2],
               'Go forward in browsing history stack')
-        self.winMenu.Append(EditorHelper.wxID_EDITORPREVPAGE,
-              'Previous page\t%s'%keyDefs['PrevPage'][2],
+        Utils.appendMenuItem(self.winMenu, EditorHelper.wxID_EDITORPREVPAGE,
+              'Previous page', keyDefs['PrevPage'], '-',
               'Switch to the previous page of the main notebook')
-        self.winMenu.Append(EditorHelper.wxID_EDITORNEXTPAGE,
-              'Next page\t%s'%keyDefs['NextPage'][2],
+        Utils.appendMenuItem(self.winMenu, EditorHelper.wxID_EDITORNEXTPAGE,
+              'Next page', keyDefs['NextPage'], '-',
               'Switch to the next page of the main notebook')
         self.winMenu.Append(-1, '-')
         self.winMenu.AppendMenu(EditorHelper.wxID_EDITORWINDIMS,
@@ -217,8 +240,8 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
         self.mainMenu.Append(self.winMenu, 'Windows')
 
         # Help menu
-        self.helpMenu.Append(EditorHelper.wxID_EDITORHELP, 'Help',
-              'Opens help for the Editor')
+        Utils.appendMenuItem(self.helpMenu, EditorHelper.wxID_EDITORHELP, 'Help',
+              (), self.helpBmp, 'Opens help for the Editor')
         self.helpMenu.Append(EditorHelper.wxID_EDITORHELPGUIDE,
               'Getting started guide', 'Opens the Getting started guide')
         self.helpMenu.AppendSeparator()
@@ -367,10 +390,10 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
         if self.palette.palettePages and Preferences.edShowFileNewMenu:
             fileMenu.AppendMenu(wxNewId(), 'New',
                   Utils.duplicateMenu(self.palette.palettePages[0].menu))
-        fileMenu.Append(EditorHelper.wxID_EDITOROPEN,
-              'Open\t%s'%keyDefs['Open'][2], 'Open a module')
-        fileMenu.Append(EditorHelper.wxID_EDITOROPENRECENT,
-              'Open recent files', '')
+        Utils.appendMenuItem(fileMenu, EditorHelper.wxID_EDITOROPEN, 'Open',
+              keyDefs['Open'], self.openBmp, 'Open a module')
+        Utils.appendMenuItem(fileMenu, EditorHelper.wxID_EDITOROPENRECENT,
+              'Open recent files')
 
         addTool(self, self.toolBar, self.openBmp, 'Open a module', self.OnOpen)
 
@@ -388,14 +411,13 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
             ctrlr = self.getControllerFromModel(actMod.model)
             if ctrlr:
                 self.toolBar.AddSeparator()
-                ctrlr.addTools(self.toolBar, actMod.model)
-                ctrlr.addEvts()
+                accls = ctrlr.addActions(self.toolBar, fileMenu, actMod.model)
                 self._prevContrl = ctrlr
-                accls = ctrlr.addMenus(fileMenu, actMod.model)
                 accLst.extend(accls)
 
             fileMenu.AppendSeparator()
-            fileMenu.Append(EditorHelper.wxID_EDITOREXITBOA, 'Exit Boa Constructor', 'Exit Boa Constructor')
+            fileMenu.Append(EditorHelper.wxID_EDITOREXITBOA, 
+                  'Exit Boa Constructor', 'Exit Boa Constructor')
             self.mainMenu.Replace(mmFile, fileMenu, 'File').Destroy()
             # Edit menu
             self.toolBar.AddSeparator()
@@ -499,7 +521,7 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
         else:
             shellEdit = tabPage = ShellEditor.ShellEditor(self.tabs, -1)
 
-        self.tabs.AddPage(tabPage, 'Shell')
+        self.tabs.AddPage(tabPage, 'Shell', imageId=EditorHelper.imgShell)
 
         return shellEdit
 
@@ -517,23 +539,6 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
 
         return tryName(modelClass, n)
 
-    def editorUpdateNotify(self):
-        self.explorer.editorUpdateNotify()
-
-    def explorerRenameNotify(self, oldURI, newNode):
-        if self.modules.has_key(oldURI):
-            modulePage = self.modules[oldURI]
-            modulePage.model.transport = newNode
-            modulePage.model.updateNameFromTransport()
-            newURI = newNode.getURI()
-            modulePage.rename(oldURI, newURI)
-
-            self.updateModulePage(modulePage.model, newURI)
-
-    def explorerDeleteNotify(self, URI):
-        if self.modules.has_key(URI):
-            self.closeModulePage(self.modules[URI])
-
     def addModulePage(self, model, moduleName, defViews, views, imgIdx, notebook=None):
         if notebook is None:
             notebook = self.tabs
@@ -547,6 +552,8 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
             for modPge in self.modules.values():
                 modPge.addedPage(spIdx)
 
+            if self.modules.has_key(moduleName):
+                print 'module %s exists'%moduleName
             self.modules[moduleName] = modulePage
             notebook.InsertPage(spIdx, modulePage.notebook, modulePage.pageName, true, imgIdx)
 
@@ -569,7 +576,6 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
     def closeModulePage(self, modulePage, shutdown=false):
         actPge = self.tabs.GetSelection()
         numPgs = self.tabs.GetPageCount()
-        ##print actPge, numPgs
         if modulePage:
             try:
                 self.closeModule(modulePage)
@@ -609,7 +615,7 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
 
     def activeApp(self):
         actMod = self.getActiveModulePage()
-        if actMod and actMod.model.modelIdentifier in ('App', 'PyApp') \
+        if actMod and actMod.model.modelIdentifier in Controllers.appModelIdReg \
               and actMod.model.data <> '':
             return actMod
         else:
@@ -647,7 +653,7 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
         """ Return a list of all open Application modules """
         apps = []
         for modPage in self.modules.values():
-            if modPage.model.modelIdentifier in ('App', 'PyApp'):
+            if modPage.model.modelIdentifier in Controllers.appModelIdReg:
                 apps.append(modPage.model)
         return apps
 
@@ -659,7 +665,6 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
                 return self.controllers[Controller]
             elif self.controllers.has_key(ModClass):
                 return self.controllers[ModClass]
-        print 'no contrl found', model
         return None
 
 #---Opening and closing items in the IDE----------------------------------------
@@ -682,6 +687,7 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
             except: lineno = -1
 
         controller = None
+        name = Explorer.splitURI(name)[-1]
         if self.modules.has_key(name):
             self.modules[name].focus()
             model = self.modules[name].model
@@ -719,6 +725,8 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
         """
         # Get transport based on filename
         prot, category, respath, filename = Explorer.splitURI(filename)
+        
+        assert not self.modules.has_key(filename), 'File already open.'
 
         if prot == 'zope':
             if transport is None:
@@ -726,8 +734,8 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
                       self.explorer.tree.transports)
             return self.openZopeDocument(transport, filename)
         else:
-# XXX commented for testing
-##        elif not transport:
+        # XXX commented for testing
+        #elif not transport:
             transport = Explorer.getTransport(prot, category, respath,
                 self.explorer.tree.transports)
             # connect if not a stateless connection
@@ -738,15 +746,20 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
 
         assert transport, 'Cannot open, no transport defined.'
 
+        if os.path.splitext(filename)[1] in EditorHelper.getBinaryFiles():
+            mode = 'rb'
+        else:
+            mode = 'r'
+
         wxBeginBusyCursor()
-        try: source = transport.load('r')
+        try: source = transport.load(mode)
         finally: wxEndBusyCursor()
 
         # Get Model based on the file type
         modCls, main = Controllers.identifyFile(filename, source)#, prot == 'file')
 
         # See if file is entry in an open app
-        if app is None:
+        if modCls.modelIdentifier not in Controllers.appModelIdReg and app is None:
             for openApp in self.getAppModules():
                 normedMods = []
                 for pth in openApp.absModulesPaths():
@@ -837,6 +850,8 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
                 filename = actMod.model.filename
                 if filename:
                     curdir = os.path.dirname(filename)
+                    if not curdir:
+                        curdir = '.'
 
         from FileDlg import wxFileDialog
         dlg = wxFileDialog(self, 'Choose a file', curdir, '', filter, wxOPEN)
@@ -874,7 +889,7 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
             modulePage.model.refreshFromViews()
             modulePage.saveOrSaveAs(forceSaveAs)
 
-    def closeModule(self, modulePage):
+    def prepareForCloseModule(self, modulePage, focusPromptingPages=false):
         # XXX most of this should move to ModulePage
         idx = modulePage.tIdx
         model = modulePage.model
@@ -889,12 +904,15 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
                   hasattr(insp.selCmp, 'model') and model is insp.selCmp.model:
                     insp.sessionHandler.promptPostOrCancel(insp)
             except:
+                if focusPromptingPages:
+                    self.tabs.SetSelection(modulePage.tIdx)
+
                 raise 'Cancelled'
+
             model.refreshFromViews()
             if model.modified:
-#                vis = self.tabs.IsShown()
-#                if not vis:
-#                    self.tabs.Show(true)
+                if focusPromptingPages:
+                    self.tabs.SetSelection(modulePage.tIdx)
 
                 dlg = wxMessageDialog(self, 'There are changes, do you want to save?',
                         'Close module', wxYES_NO | wxCANCEL |wxICON_QUESTION)
@@ -905,22 +923,26 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
                     name = model.filename
                 elif res == wxID_CANCEL:
                     raise 'Cancelled'
+            return idx, name
+        else:
+            return -1, None
 
-#                if not vis:
-#                    self.tabs.Hide()
 
+    def closeModule(self, modulePage):
+        idx, name = self.prepareForCloseModule(modulePage)
+        
+        if idx != -1:
             self.browser.checkRemoval(modulePage)
             self.tabs.RemovePage(idx)
             del self.modules[name]
             modulePage.destroy()
-            #print 'modulePage destroyed'
+
             # notify pages for idx adjustments
             for modPge in self.modules.values():
                 modPge.removedPage(idx)
 
-
-        else:
-            print name, 'not found in OnClose', pprint.pprint(self.modules)
+##        else:
+##            print name, 'not found in OnClose', pprint.pprint(self.modules)
 
 #---Visual updating methods-----------------------------------------------------
     def updateModuleState(self, model, filename = '', pageIdx=None):
@@ -979,6 +1001,23 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
             self.palette.Iconize(true)
         elif not self.IsIconized():
             self.Iconize(true)
+
+    def editorUpdateNotify(self):
+        self.explorer.editorUpdateNotify()
+
+    def explorerRenameNotify(self, oldURI, newNode):
+        if self.modules.has_key(oldURI):
+            modulePage = self.modules[oldURI]
+            modulePage.model.transport = newNode
+            modulePage.model.updateNameFromTransport()
+            newURI = newNode.getURI()
+            modulePage.rename(oldURI, newURI)
+
+            self.updateModulePage(modulePage.model, newURI)
+
+    def explorerDeleteNotify(self, URI):
+        if self.modules.has_key(URI):
+            self.closeModulePage(self.modules[URI])
 
     def OnOpen(self, event, curdir='.'):
         fn = self.openFileDlg(curdir=curdir)
@@ -1100,6 +1139,8 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
                         if viewCls in modVwClss:
                             viewName = viewCls.viewName
                             view = mod.model.views[viewName]
+                            if view.modified:
+                                view.refreshModel()
                             view.deleteFromNotebook(mod.default, viewName)
 
                             self.mainMenu.Check(evtId, false)
@@ -1107,12 +1148,10 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
                         else:
                             print 'Remove: View already exists'
                     break
-            else:
-                print 'Menu Id not found'
 
     def OnSwitchedToView(self, event):
         # This is triggered twice, I'd love to know why
-        event.Skip()
+        pass
 
 #---Switching to different windows----------------------------------------------
     def OnGotoModulePage(self, event):
@@ -1284,28 +1323,38 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
             self.persistEditorState()
             self.finder.saveOptions()
 
-            # Close open items
-            # hack to avoid core dump, first setting the notebook to anything but
-            # the last page before setting it to the last page allows us to close
-            # this window from the palette. Weird?
-            self.tabs.SetSelection(0)
-##            self.tabs.Hide()
-            pgeCnt = self.tabs.GetPageCount()
-            self.tabs.SetSelection(pgeCnt -1)
-            for p in range(pgeCnt):
+            modPageList = []
+            for name, modPage in self.modules.items():
+                modPageList.append( (modPage.tIdx, name, modPage) )
+            modPageList.sort()
+            for idx, name, modPage in modPageList:
                 try:
-                    self.closeModulePage(self.getActiveModulePage(), true)
+                    self.prepareForCloseModule(modPage, true)
                 except 'Cancelled':
-##                    self.tabs.Show()
-##                    self.tabs.Refresh()
                     self.palette.destroying = false
                     return
                 except TransportSaveError, error:
-##                    self.tabs.Show()
-##                    self.tabs.Refresh()
                     self.palette.destroying = false
                     wxLogError(str(error))
                     return
+
+##            # Close open items
+##            # hack to avoid core dump, first setting the notebook to anything but
+##            # the last page before setting it to the last page allows us to close
+##            # this window from the palette. Weird?
+##            self.tabs.SetSelection(0)
+##            pgeCnt = self.tabs.GetPageCount()
+##            self.tabs.SetSelection(pgeCnt -1)
+##            for p in range(pgeCnt):
+##                try:
+##                    self.closeModulePage(self.getActiveModulePage(), true)
+##                except 'Cancelled':
+##                    self.palette.destroying = false
+##                    return
+##                except TransportSaveError, error:
+##                    self.palette.destroying = false
+##                    wxLogError(str(error))
+##                    return
 
             # stop accepting files over socket
             if self.closed:
@@ -1319,6 +1368,7 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
             self.palette.editor = None
             self.inspector = None
             self.controllers = None
+            self.explorer.Hide()
             self.explorer.destroy()
 
             self.newMenu.Destroy()
