@@ -1,14 +1,13 @@
 #Boa:FramePanel:ImageEditorPanel
 
-import os, math, tempfile, StringIO, string
+import os, math, tempfile, string
+from cStringIO import StringIO
 
 from wxPython.wx import *
 from wxPython.lib.anchors import LayoutAnchors
+from wxPython.tools import img2py
 
 import Utils, Plugins
-
-if wxVERSION < (2,3,3):
-    raise Plugins.SkipPlugin, 'This plugin requires wxPython 2.3.3 or higher'
 
 # draw destination consts
 ddCanvas = 1
@@ -179,6 +178,7 @@ class ImageEditorPanel(wxPanel):
                   '.gif': wxBITMAP_TYPE_GIF,
                   '.jpg': wxBITMAP_TYPE_JPEG,
                   '.png': wxBITMAP_TYPE_PNG,
+                  '.ico': wxBITMAP_TYPE_ICO,
                   }
 
 #---Public methods--------------------------------------------------------------
@@ -187,7 +187,7 @@ class ImageEditorPanel(wxPanel):
         """ Initialise editor with data """
         if data:
             self.mDC = wxMemoryDC()
-            self.bmp = wxBitmapFromImage(wxImageFromStream(StringIO.StringIO(data)))
+            self.bmp = wxBitmapFromImage(wxImageFromStream(StringIO(data)))
             self.mDC.SelectObject(self.bmp)
         else:
             self.mDC, self.bmp = self.getTempMemDC(16, 16)
@@ -195,6 +195,10 @@ class ImageEditorPanel(wxPanel):
             self.mDC.SetBackground(brush)
             self.mDC.Clear()
 
+        # Default back to png when opening data from source
+        if ext == '.py':
+            ext = '.png'
+        
         self.imgExt = ext
 
         self.editWindow.Refresh()
@@ -207,11 +211,13 @@ class ImageEditorPanel(wxPanel):
         self.updateScrollbars()
         self.updateImageInfo()
 
-    def getImageData(self, ext=None):
+    def getImageData(self, ext=''):
         """ Returns the current bitmap data """
-        if not ext: ext = self.imgExt
+        if not ext:
+            ext = self.imgExt
 
-        fn = tempfile.mktemp(ext)
+        fn = tempfile.mktemp()
+        #if ext == '?': ext = '.png'
         tpe = self.extTypeMap[string.lower(ext)]
         self.bmp.SaveFile(fn, tpe)
         try:
@@ -761,13 +767,15 @@ class ImageEditorPanel(wxPanel):
         self.mDC.SelectObject(self.bmp)
 
         self.updateImageInfo()
-
+        self.imageModified()
+        
     def OnClearTransparentMask(self, event):
         self.mDC.SelectObject(wxNullBitmap)
         self.bmp.SetMask(None)
         self.mDC.SelectObject(self.bmp)
 
         self.updateImageInfo()
+        self.imageModified()
 
     def OnResize(self, event):
         dlg = wxTextEntryDialog(self, 'Enter a tuple for the new size',
@@ -856,7 +864,6 @@ if __name__ == '__main__':
     sys.exit()
 
 #-------------------------------------------------------------------------------
-#-------------------------------------------------------------------------------
 
 import Preferences
 
@@ -875,7 +882,7 @@ class ImageView(wxPanel, EditorViews.EditorView):
     imgsep = 32
     def refreshCtrl(self):
         if self.model.data:
-            sio = StringIO.StringIO(self.model.data)
+            sio = StringIO(self.model.data)
             bmp = wxBitmapFromImage(wxImageFromStream(sio))
             self.staticBitmapSmall.SetBitmap(bmp)
             self.staticBitmapSmall.SetDimensions(self.imgsep, self.imgsep,
@@ -888,11 +895,10 @@ class ImageEditorView(ImageEditorPanel, EditorViews.EditorView):
     viewName = 'Edit'
 
     refreshBmp = 'Images/Editor/Refresh.png'
-    #cutBmp = 'Images/Shared/Cut.png'
     copyBmp = 'Images/Shared/Copy.png'
     pasteBmp = 'Images/Shared/Paste.png'
     undoBmp = 'Images/Shared/Undo.png'
-    def __init__(self, parent, model):
+    def __init__(self, parent, model, actions=()):
         ImageEditorPanel.__init__(self, parent)
         EditorViews.EditorView.__init__(self, model, (
           ('Refresh', self.OnRefresh, self.refreshBmp, ''),
@@ -909,16 +915,26 @@ class ImageEditorView(ImageEditorPanel, EditorViews.EditorView):
           ('-', None, '-', ''),
           ('Use current colour to set transparent mask', self.OnSetTransparentMask, '-', ''),
           ('Clear current transparent mask', self.OnClearTransparentMask, '-', ''),
-        ), -1)
+          ('-', None, '-', ''),
+        ) + actions, -1)
 
         EVT_RIGHT_DOWN(self.editWindow, self.OnRightDown)
         EVT_RIGHT_UP(self.editWindow, self.OnRightClick)
 
         self.active = true
+        self.subImage = None
+    
+    def refreshCtrl(self, subImage=None):
+        if subImage is None and self.subImage is None:
+            data = self.model.data
+        else:
+            if not self.subImage:
+                self.subImage = subImage
+            data = self.subImage['data']
 
-    def refreshCtrl(self):
         ext = os.path.splitext(self.model.filename)[-1]
-        self.initImageData(ext, self.model.data)
+
+        self.initImageData(ext, data)
         self.editWindow.Refresh()
 
         self.modified = false
@@ -926,10 +942,22 @@ class ImageEditorView(ImageEditorPanel, EditorViews.EditorView):
 
     def refreshModel(self):
         ext = os.path.splitext(self.model.filename)[-1]
+        if ext == '.py':
+            ext = '.png'
+        
         data = self.getImageData(ext)
-        if self.model.data != data:
-            self.model.data = data
-            self.model.modified = true
+        
+        if self.subImage:
+            modelData = self.subImage['data']
+        else:
+            modelData = self.model.data
+
+        if modelData != data:
+            if self.subImage:
+                self.model.updateData(data, self.subImage)
+            else:
+                self.model.data = data
+                self.model.modified = true
 
         if self.model.viewsModified.count(self.viewName):
             self.model.viewsModified.remove(self.viewName)
@@ -956,11 +984,13 @@ class BitmapEditorFileController(Controllers.PersistentController):
     AdditionalViews = [ImageEditorView]
 
     editBmpBmp = 'Images/EditBitmap.png'
+    conv2ModBmp = 'Images/Modules/PyResBitmap_s.png'
 
     def actions(self, model):
         return Controllers.PersistentController.actions(self, model) + [
               ('-', None, '-', ''),
-              ('Edit image', self.OnGotoEditView, self.editBmpBmp, '')]
+              ('Edit image', self.OnGotoEditView, self.editBmpBmp, ''),
+              ('Convert to module', self.OnConvertToModule, self.conv2ModBmp, ''),]
 
     def OnGotoEditView(self, event):
         model = self.getModel()
@@ -976,9 +1006,119 @@ class BitmapEditorFileController(Controllers.PersistentController):
             view = model.views['Edit']
         view.focus()
 
+    def OnConvertToModule(self, event):
+        model = self.getModel()
+        imgPath = model.localFilename()
+        ConvertImgToPy(imgPath, self.editor)
 
-Controllers.modelControllerReg[EditorModels.BitmapFileModel] = BitmapEditorFileController
+zopt = '-u '
+def ConvertImgToPy(imgPath, editor):
+    pyResPath, ok = editor.saveAsDlg(os.path.splitext(imgPath)[0]+'_img.py')
+    if ok:
+        if pyResPath.find('://') != -1:
+            pyResPath = pyResPath.split('://', 1)[1]
+    
+        # snip script usage, leave only options
+        docs = img2py.__doc__[img2py.__doc__.find('Options:')+11:]
+        
+        cmdLine = zopt+'-n %s'%(os.path.basename(os.path.splitext(imgPath)[0]))
+        if os.path.exists(pyResPath):
+            cmdLine = '-a ' + cmdLine
+
+        dlg = wxTextEntryDialog(editor, 
+              'Options:\n\n%s\n\nEdit options string:'%docs, 'img2py', cmdLine)
+        try:
+            if dlg.ShowModal() != wxID_OK:
+                return
+            cmdLine = dlg.GetValue().strip()
+        finally:
+            dlg.Destroy()
+
+        opts = cmdLine.split()
+        opts.extend([imgPath, pyResPath])
+        
+        tmp = sys.argv[0]
+        sys.argv[0] = 'Boa Constructor'
+        try:
+            img2py.main(opts)
+        finally:
+            sys.argv[0] = tmp
+            
+        import sourceconst
+        header = (sourceconst.defSig%{'modelIdent':'PyImgResource', 'main':''}).strip()
+        src = open(pyResPath, 'r').readlines()
+        if not (src and src[0].startswith(header)):
+            src.insert(0, header+'\n')
+            src.insert(1, '\n')
+            open(pyResPath, 'w').writelines(src)
+
+        m, c = editor.openOrGotoModule(pyResPath)
+        c.OnReload(None)
+
+class CloseableImageEditorView(ImageEditorView, EditorViews.CloseableViewMix):
+    def __init__(self, parent, model):
+        EditorViews.CloseableViewMix.__init__(self, 'image editor')
+        ImageEditorView.__init__(self, parent, model, self.closingActionItems)
+
+
+from Models import ResourceSupport
+    
+class PyResourceImagesViewPlugin:
+    editImgBmp = 'Images/EditBitmap.png'
+
+    def __init__(self, model, view, actions):
+        self.model = model
+        self.view = view
+        actions.extend( (
+              ('Edit image', self.OnEditImage, self.editImgBmp, ''), 
+        ) )
+
+    def OnEditImage(self, event):
+        if self.view.selected != -1:
+            name, (dataStartLn, bmpStartLine), zipped, icon = \
+                  self.view.imageSrcInfo[self.view.selected]
+            viewName = ResourceSupport.PyResourceImagesView.viewName
+            if name:
+                viewName += ':'+name
+
+            if not self.model.views.has_key(viewName):
+                modPge = self.model.editor.getActiveModulePage()
+                view = modPge.addView(CloseableImageEditorView, viewName)
+                view.tabName = view.viewName = viewName
+                data = self.view.functions.imageFunctions['get%sData'%name]()
+                subImage = {'data': data, 'name': name, 'start': dataStartLn+1,
+                            'end': bmpStartLine-2, 'zip': zipped, 
+                            'icon': icon, 'cat': self.view.cataloged, 
+                            'eol': self.view.eol}
+                view.refreshCtrl(subImage)
+            else:
+                view = self.model.views[viewName]
+            view.focus()
+
+ResourceSupport.PyResourceImagesView.plugins += (PyResourceImagesViewPlugin,)
+
+#-------------------------------------------------------------------------------
+
+Controllers.modelControllerReg[EditorModels.BitmapFileModel] = \
+      BitmapEditorFileController
 
 import PaletteStore
 PaletteStore.newControllers['Bitmap'] = BitmapEditorFileController
 PaletteStore.paletteLists['New'].append('Bitmap')
+
+#-------------------------------------------------------------------------------
+#Boa:PyImgResource:EditBitmap
+def getEditBitmapData():
+    return \
+'\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x10\x00\x00\x00\x10\x08\x06\
+\x00\x00\x00\x1f\xf3\xffa\x00\x00\x00\x04sBIT\x08\x08\x08\x08|\x08d\x88\x00\
+\x00\x00\x91IDATx\x9c\xa5\x92\xbb\x11\xc30\x0c\xc5\xc0\xa4Q\xa9Q=\x02\xbd\
+\x81F\xcaHo\x03\xa6\x89e\xe9\xf2\xa3\xce\xecX\x00\x07\x9dh\xb5V\xae\xccm\x15\
+\xd8\xb6-\xc6\xddV\n$E\x00\x06\xd4Zm\xa9\xe0\x80\x01|(I\x15H\x8a\x88\xc0\xcc\
+\xf0\x97\xe0(\xb8\x97RR0\x18f\xe0\x8f\x13\xfe\xfb\x84\x11\xdewp\x9f\xe1\x9f\
+\x82\x0c\xfcU\x90\x85?\nV\xe07\xc1*<\t\xfa\xbfZ\x1e\x86\xe1\x0e$M\'\x9a\x81{\
+\xc1x\xdf\xee\x9e\x86{\x81\xa4pwZkip\x12\\\x99\'\xc3{a\x05\x01 \x1c\xda\x00\
+\x00\x00\x00IEND\xaeB`\x82' 
+
+Preferences.IS.registerImage('Images/EditBitmap.png', getEditBitmapData())
+
