@@ -23,7 +23,6 @@ from wxPython.wx import wxProgressDialog, wxPD_CAN_ABORT, wxPD_APP_MODAL, wxPD_A
 ##            results.append(file)
     
 def count(filename, pattern, caseSensitive):
-    print 'count', filename
     try: f = open(filename, 'r')
     except IOError: return 0
     try:
@@ -69,7 +68,6 @@ def defaultProgressCallback(dlg, count, file, msg):
     dlg.Update(count, msg +' '+ file)
                 
 def findInFiles(parent, srchPath, pattern, callback = defaultProgressCallback, deeperPath = '', filemask = ('.htm', '.html', '.txt'), progressMsg = 'Search help files...', dlg = None, joiner = '/'):
-    print 'FindInText', srchPath, pattern
     results = []
     names = os.listdir(srchPath)
     cnt = 0   
@@ -87,7 +85,6 @@ def findInFiles(parent, srchPath, pattern, callback = defaultProgressCallback, d
         for file in names:
             filePath = path.join(srchPath, file)
             ext = path.splitext(file)[1]
-            print 'fif', ext, filemask
             if ext in filemask or ('.*' in filemask and ext):
                 callback(dlg, cnt, file, 'Searching')
                 ocs = count(filePath, pattern, 0)
