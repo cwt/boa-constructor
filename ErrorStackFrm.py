@@ -61,6 +61,10 @@ class ErrorStackMF(wxFrame):
 
     def __init__(self, parent, editor):
         self._init_ctrls(parent)
+
+        if wxPlatform == '__WXMSW__':
+            self.SetIcon(Preferences.IS.load('Images/Icons/OutputError.ico'))
+
         self.app = None
         self.editor = editor
         self.vetoEvents = false
@@ -76,11 +80,12 @@ class ErrorStackMF(wxFrame):
 
         self.lastClick = (0, 0)
 
-    def updateCtrls(self, errorList, outputList = None, rootName = 'Errors', runningDir = ''):
+    def updateCtrls(self, errorList, outputList = None, rootName = 'Error', runningDir = ''):
         self.runningDir = runningDir
+        self.tracebackType = rootName
         tree = self.errorStackTC
         tree.DeleteAllItems()
-        rtTI = tree.AddRoot(rootName)
+        rtTI = tree.AddRoot(rootName+'s')
         for err in errorList:
             if err.error and err.stack:
                 errTI = tree.AppendItem(rtTI, string.strip(string.join(err.error, ' : ')))
@@ -123,6 +128,8 @@ class ErrorStackMF(wxFrame):
             model.views['Source'].SetFocus()
             model.views['Source'].gotoLine(data.lineNo - 1)
             model.views['Source'].setStepPos(data.lineNo - 1)
+            self.editor.statusBar.setHint(string.join(data.error, ' : '),
+                self.tracebackType)
 #            self.Lower()
 #            self.editor.Raise()
 #            self.editor.Focus()
