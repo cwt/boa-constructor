@@ -1,4 +1,4 @@
-## rc-version: 12 ##
+## rc-version: 13 ##
 # RCS-ID:      $Id$
 
 # The main preference file.
@@ -119,6 +119,9 @@ checkSourceOnSave = True
 # Should the model be refresh before invoking code completion or call tips.
 # This causes a delay but is more accurate.
 autoRefreshOnCodeComplete = True
+
+# Should call tips be invoked after typing an open paren
+callTipsOnOpenParen = False
 
 # Flag for turning on special checking for european keyboard characters by
 # checking for certain codes while ctrl alt is held.
@@ -428,8 +431,9 @@ exportedProperties = ['flatTools', 'childFrameStyle', 'dataViewListStyle',
   'eoErrOutDockWindow', 'eoErrOutWindowHeightPerc',
 
   'checkSyntax', 'onlyCheckIfLineModified', 'checkSourceOnSave',
-  'autoRefreshOnCodeComplete', 'handleSpecialEuropeanKeys', 'euroKeysCountry',
-  'autoReindent', 'neverEmptyUndoBuffer',
+  'autoRefreshOnCodeComplete', 'callTipsOnOpenParen', 
+  'handleSpecialEuropeanKeys', 'euroKeysCountry', 'autoReindent', 
+  'neverEmptyUndoBuffer',
 
   'rememberOpenFiles', 'showFilenameExtensions', 'editorNotebookOpenPos',
   'editorMenuImages', 'expandEditorOnCloseInspector',
