@@ -1,8 +1,22 @@
+#-----------------------------------------------------------------------------
+# Name:        ZipExplorer.py
+# Purpose:
+#
+# Author:      Riaan Booysen
+#
+# Created:     2001
+# RCS-ID:      $Id$
+# Copyright:   (c) 2001 - 2002
+# Licence:     GPL
+#-----------------------------------------------------------------------------
+
+print 'importing Explorers.ZipExplorer'
 import string, os
 
 from wxPython.wx import wxMenu, EVT_MENU, wxMessageBox, wxPlatform, wxNewId
 
-import ExplorerNodes, FileExplorer, EditorModels, EditorHelper
+import ExplorerNodes, FileExplorer
+from Models import EditorModels, EditorHelper
 from ExternalLib import zipfile
 
 true = 1
@@ -14,7 +28,7 @@ def isZip(file):
 wxID_ZIPOPEN = wxNewId()
 
 class ZipController(ExplorerNodes.Controller, ExplorerNodes.ClipboardControllerMix):
-    def __init__(self, editor, list):
+    def __init__(self, editor, list, inspector, controllers):
         ExplorerNodes.ClipboardControllerMix.__init__(self)
         ExplorerNodes.Controller.__init__(self, editor)
 
@@ -36,8 +50,6 @@ class ZipController(ExplorerNodes.Controller, ExplorerNodes.ClipboardControllerM
         self.toolbarMenus = ()
         self.menu.Destroy()
 
-    def __del__(self):
-        pass#
 
 class ZipExpClipboard(ExplorerNodes.ExplorerClipboard): pass
 ##    def clipPaste_FileSysExpClipboard(self, node, nodes, mode):
@@ -64,10 +76,11 @@ class ZipItemNode(ExplorerNodes.ExplorerNode):
 
     def createChildNode(self, name, resourcepath, isFolder):
 
-        imgIdx = isFolder and EditorModels.FolderModel.imgIdx or \
-              EditorModels.TextModel.imgIdx
+        imgIdx = isFolder and EditorHelper.imgFolder or \
+              EditorHelper.imgTextModel
         if not isFolder:
-            imgIdx = EditorModels.identifyFile(name, localfs=false)[0].imgIdx
+            from Models import Controllers
+            imgIdx = Controllers.identifyFile(name, localfs=false)[0].imgIdx
         zin = ZipItemNode(name, resourcepath and resourcepath+'/'+name or name, self.clipboard,
               isFolder, imgIdx, self, self.zipFileNode)
         zin.category = self.category
@@ -88,7 +101,7 @@ class ZipItemNode(ExplorerNodes.ExplorerNode):
             dir = string.join(segs[:-1], '/')
             isdir = 0
         return base, dir, isdir
-        
+
     def openList(self, resourcepath = None):
         if resourcepath is None: resourcepath = self.resourcepath
         res = []
@@ -99,17 +112,11 @@ class ZipItemNode(ExplorerNodes.ExplorerNode):
             res.append(self.createChildNode(base, dir, self.zipFileNode.isDir(file)) )
         return res
 
-##    def copyFromFS(self, fsNode):
-##        fn = os.path.basename(fsNode.resourcepath)
-##        cmd = 'pscp -pw %s %s %s' %(self.properties['scp_pass'],
-##              fsNode.resourcepath,  self.remotePath(fn))
-##        self.execSCP(cmd)
-
     def copyToFS(self, fsFolderNode):
         fn = os.path.join(fsFolderNode.resourcepath, self.name)
 
         zf = zipfile.ZipFile(self.zipFileNode.resourcepath)
-        
+
         if self.isFolderish():
             # XXX directories should be recursively copied or complete list
             # XXX should be build by ZipClip
@@ -131,7 +138,7 @@ class ZipItemNode(ExplorerNodes.ExplorerNode):
 
     def getNodeFromPath(self, respath):
         base, dir, isdir = self.splitBaseDir(respath)
-        return self.createChildNode(base, dir, self.zipFileNode.isDir(respath)) 
+        return self.createChildNode(base, dir, self.zipFileNode.isDir(respath))
 
 class ZipFileNode(ZipItemNode):
     protocol = 'zip'
@@ -140,12 +147,12 @@ class ZipFileNode(ZipItemNode):
             zipClip = ZipExpClipboard(clipboard.globClip)
         else:
             zipClip = None
-        ZipItemNode.__init__(self, name, resourcepath, zipClip, true, 
+        ZipItemNode.__init__(self, name, resourcepath, zipClip, true,
             imgIdx, parent, self)
         self.allFiles = []
         self.allFileNames = []
         self.category = self.getTitle()+'://'
-    
+
     def getURI(self):
         return '%s://%s' % (self.protocol, self.getTitle())
 
@@ -176,9 +183,11 @@ class ZipFileNode(ZipItemNode):
             if os.path.dirname(fn) == base:
                 files.append(file.filename)
         return files
-    
 
 
+#-------------------------------------------------------------------------------
 # Register zip files as a subtype of file explorers
-FileExplorer.PyFileNode.subExplorerReg['file'].append( 
+FileExplorer.PyFileNode.subExplorerReg['file'].append(
       (ZipFileNode, isZip, EditorHelper.imgZipFileModel))
+ExplorerNodes.register(ZipItemNode, clipboard=ZipExpClipboard,
+      controller=ZipController)

@@ -2,18 +2,20 @@ import os, string
 
 from wxPython import wx
 
-import ExplorerNodes, EditorHelper, Utils
+import Preferences, Utils
+
+import ExplorerNodes
+from Models import EditorHelper
 
 true=1;false=0
 
-[wxID_EDTGOTO, wxID_EDTRELOAD, wxID_EDTCLOSE, wxID_EDTMOVEUP, wxID_EDTMOVEDOWN, 
- wxID_EDTCOPYPATH] =\
- map(lambda _init_ctrls: wx.wxNewId(), range(6))
+[wxID_EDTGOTO, wxID_EDTRELOAD, wxID_EDTCLOSE, wxID_EDTMOVEUP, wxID_EDTMOVEDOWN,
+ wxID_EDTCOPYPATH] = Utils.wxNewIds(6)
 
 class EditorController(ExplorerNodes.Controller):
-    closeBmp = 'Images/Editor/Close.bmp'
-    moveUpBmp = 'Images/Shared/up.bmp'
-    moveDownBmp = 'Images/Shared/down.bmp'
+    closeBmp = 'Images/Editor/Close.png'
+    moveUpBmp = 'Images/Shared/up.png'
+    moveDownBmp = 'Images/Shared/down.png'
 
     def __init__(self, editor, list):
         ExplorerNodes.Controller.__init__(self, editor)
@@ -27,11 +29,11 @@ class EditorController(ExplorerNodes.Controller):
                                (wxID_EDTCLOSE, 'Close', self.OnCloseModels, self.closeBmp),
                                (-1, '-', None, ''),
                                (wxID_EDTMOVEUP, 'Move up', self.OnMoveModelUp, self.moveUpBmp),
-                               (wxID_EDTMOVEDOWN, 'Move down', self.OnMoveModelDown, self.moveDownBmp), 
+                               (wxID_EDTMOVEDOWN, 'Move down', self.OnMoveModelDown, self.moveDownBmp),
                                (-1, '-', None, '-'),
                                (wxID_EDTCOPYPATH, 'Copy filepath(s) to clipboard', self.OnCopyPath, '-'),
                                )
-    
+
         self.setupMenu(self.menu, self.list, self.editorMenuDef)
         self.toolbarMenus = [self.editorMenuDef]
 
@@ -53,7 +55,7 @@ class EditorController(ExplorerNodes.Controller):
             nodes = self.getNodesForSelection(ms)
             for node in nodes:
                 self.editor.closeModulePage(node.modulePage)
-    
+
     def moveModel(self, node, idx, direc):
         page = self.editor.tabs.GetPage(idx)
         text = self.editor.tabs.GetPageText(idx)
@@ -88,7 +90,7 @@ class EditorController(ExplorerNodes.Controller):
                     wx.wxLogError('Already at the beginning')
                 else:
                     self.moveModel(node, idx, -1)
-                            
+
     def OnMoveModelDown(self, event):
         if self.list.node:
             ms = self.list.getMultiSelection()
@@ -120,12 +122,12 @@ class EditorController(ExplorerNodes.Controller):
             for node in nodes:
                 paths.append(node.resourcepath)
             Utils.writeTextToClipboard(string.join(paths, os.linesep))
-            
+
 class OpenModelsNode(ExplorerNodes.ExplorerNode):
     protocol = 'boa.open-models'
     def __init__(self, editor, parent):
-        ExplorerNodes.ExplorerNode.__init__(self, 'Editor', '', None, 
-              EditorHelper.imgOpenEditorModels, parent, {})
+        ExplorerNodes.ExplorerNode.__init__(self, 'Editor', '', None,
+              EditorHelper.imgOpenEditorModels, None, {})
         self.editor = editor
         self.bold = true
         self.vetoSort = true
@@ -137,14 +139,14 @@ class OpenModelsNode(ExplorerNodes.ExplorerNode):
         return true
 
     def createChildNode(self, name, modulePage):
-        return OpenModelItemNode(os.path.basename(name), name, modulePage, self)
+        return OpenModelItemNode(modulePage.updatePageName(), name, modulePage, self)
 
     def openList(self):
         res = []
         mods = []
         for name, modPage in self.editor.modules.items():
             mods.append( (modPage.tIdx, name, modPage) )
-        
+
         mods.sort()
         for idx, name, modPage in mods:
             res.append(self.createChildNode(name, modPage))
@@ -154,7 +156,7 @@ class OpenModelsNode(ExplorerNodes.ExplorerNode):
 class OpenModelItemNode(ExplorerNodes.ExplorerNode):
     protocol = 'boa.model'
     def __init__(self, name, resourcepath, modulePage, parent):
-        ExplorerNodes.ExplorerNode.__init__(self, name, resourcepath, None, 
+        ExplorerNodes.ExplorerNode.__init__(self, name, resourcepath, None,
               modulePage.model.imgIdx, parent, {})
         self.modulePage = modulePage
         self.model = modulePage.model
@@ -164,10 +166,10 @@ class OpenModelItemNode(ExplorerNodes.ExplorerNode):
 
     def isFolderish(self):
         return false
-    
+
     def open(self, editor):
         editor.openOrGotoModule(self.resourcepath)
-    
+
 ##    def openList(self):
 ##        res = []
 ##        for view in self.model.views.keys():
@@ -181,16 +183,16 @@ class OpenModelItemNode(ExplorerNodes.ExplorerNode):
 class ModelViewItemNode(ExplorerNodes.ExplorerNode):
     protocol = 'boa.view'
     def __init__(self, name, model, parent):
-        ExplorerNodes.ExplorerNode.__init__(self, name, '', None, 
+        ExplorerNodes.ExplorerNode.__init__(self, name, '', None,
               EditorHelper.imgFolder, parent, {})
         self.model = model
-        
+
     def notifyBeginLabelEdit(self, event):
         event.Veto()
 
     def isFolderish(self):
         return true
-    
+
     def openList(self):
         res = []
         for item in self.model.views[self.name].explore():
@@ -200,3 +202,66 @@ class ModelViewItemNode(ExplorerNodes.ExplorerNode):
 class ViewItemNode(ExplorerNodes.ExplorerNode):
     def open(self, editor):
         pass
+
+#-------------------------------------------------------------------------------
+
+wxID_NEWCREATE = wx.wxNewId()
+class EditorNewController(ExplorerNodes.Controller):
+    createBmp = 'Images/Editor/Close.png'
+
+    def __init__(self, editor, list):
+        ExplorerNodes.Controller.__init__(self, editor)
+        self.list = list
+        self.menu = wx.wxMenu()
+
+        self.editorMenuDef = ( (wxID_NEWCREATE, 'Create', self.OnCreate, '-'), )
+
+        self.setupMenu(self.menu, self.list, self.editorMenuDef)
+        self.toolbarMenus = [self.editorMenuDef]
+
+    def destroy(self):
+        self.editorMenuDef = ()
+        self.toolbarMenus = ()
+        self.menu.Destroy()
+
+    def OnCreate(self, event):
+        print 'Create'
+
+class NewPaletteNode(ExplorerNodes.ExplorerNode):
+    protocol = 'boa.new-palette'
+    def __init__(self, editor, parent):
+        ExplorerNodes.ExplorerNode.__init__(self, 'Editor', '', None,
+              EditorHelper.imgOpenEditorModels, None, {})
+        self.editor = editor
+        self.bold = true
+        self.vetoSort = true
+
+    def isFolderish(self):
+        return true
+
+    def createChildNode(self, name, modulePage):
+        return NewPaletteItemNode(modulePage.updatePageName(), name, modulePage, self)
+
+    def openList(self):
+        res = []
+        mods = []
+        for name, modPage in self.editor.modules.items():
+            mods.append( (modPage.tIdx, name, modPage) )
+
+        mods.sort()
+        for idx, name, modPage in mods:
+            res.append(self.createChildNode(name, modPage))
+        return res
+
+
+class NewPaletteItemNode(ExplorerNodes.ExplorerNode):
+    protocol = 'boa.new-item'
+    def __init__(self, name, resourcepath, palette, newitem):
+        ExplorerNodes.ExplorerNode.__init__(self, name, resourcepath, None,
+              modulePage.model.imgIdx, parent, {})
+
+    def notifyBeginLabelEdit(self, event):
+        event.Veto()
+
+    def isFolderish(self):
+        return false

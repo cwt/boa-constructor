@@ -6,17 +6,20 @@
 #
 # Created:     2001
 # RCS-ID:      $Id$
-# Copyright:   (c) 2001 Riaan Booysen
+# Copyright:   (c) 2001 - 2002 Riaan Booysen
 # Licence:     GPL
 #-----------------------------------------------------------------------------
+print 'importing Explorers.ExplorerNodes'
 
 import string, sys, os, time, stat, copy, pprint
 
 from wxPython import wx
 
-import EditorHelper, Utils, Preferences
+import Preferences, Utils
+
+from Models import EditorHelper
 import scrm
-false = 0;true = 1
+false=0;true=1
 
 sensitive_properties = ('passwd', 'scp_pass')
 
@@ -32,7 +35,7 @@ sensitive_properties = ('passwd', 'scp_pass')
 #  Opening/getting the contents/sublists should start connections/resources
 
 # Accelerator shortcuts
-    
+
 class GlobalClipper:
     def __init__(self):
         self.currentClipboard = None
@@ -69,9 +72,9 @@ class ExplorerClipboard:
     def clipPaste(self, node):
         if self.globClip.currentClipboard:
             methName = 'clipPaste_'+self.globClip.currentClipboard.__class__.__name__
-            try:
-                clipMeth = eval('self.%s' % methName)
-            except AttributeError, message:
+            if hasattr(self, methName):
+                clipMeth = getattr(self, methName)
+            else:
                 clipMeth = self.clipPaste_Default
             clipMeth(node, self.globClip.currentClipboard.clipNodes,
                   self.globClip.currentClipboard.clipMode)
@@ -92,7 +95,7 @@ class Controller:
                     help = help[1:]
                 else:
                     canCheck = false
-                
+
                 if type(method) == type(()):
                     subMenu = wx.wxMenu()
                     self.setupMenu(subMenu, win, method)
@@ -140,19 +143,19 @@ class Controller:
     def createNode(self, category, name, resourcepath, uri):
         return self.Node(name, resourcepath, None, -1, None, None,
               properties = {})
-        
+
 
 (wxID_CLIPCUT, wxID_CLIPCOPY, wxID_CLIPPASTE, wxID_CLIPDELETE, wxID_CLIPRENAME,
  wxID_CLIPNEWFOLDER, wxID_CLIPNEWBLANKDOC, wxID_CLIPRELOAD, wxID_CLIPBOOKMARK) \
- = Utils.winIdRange(9)
+ = Utils.wxNewIds(9)
 
 # XXX Maybe needs to be called StandardControllerMixin ??
 class ClipboardControllerMix:
-    cutBmp = 'Images/Shared/Cut.bmp'
-    copyBmp = 'Images/Shared/Copy.bmp'
-    pasteBmp = 'Images/Shared/Paste.bmp'
-    deleteBmp = 'Images/Shared/Delete.bmp'
-    bookmarkBmp = 'Images/Shared/Bookmark.bmp'
+    cutBmp = 'Images/Shared/Cut.png'
+    copyBmp = 'Images/Shared/Copy.png'
+    pasteBmp = 'Images/Shared/Paste.png'
+    deleteBmp = 'Images/Shared/Delete.png'
+    bookmarkBmp = 'Images/Shared/Bookmark.png'
     def __init__(self):
         self.clipMenuDef = ( (wxID_CLIPRELOAD, 'Reload', self.OnReloadItems, '-'),
                              (-1, '-', None, '-'),
@@ -163,11 +166,11 @@ class ClipboardControllerMix:
                              (wxID_CLIPDELETE, 'Delete', self.OnDeleteItems, self.deleteBmp),
                              (wxID_CLIPRENAME, 'Rename', self.OnRenameItems, '-'),
                              (-1, '-', None, ''),
-                             (wxID_CLIPBOOKMARK, 'Bookmark folder', self.OnBookmarkItems, self.bookmarkBmp),
                              (wx.wxNewId(), 'New', (
                                (wxID_CLIPNEWFOLDER, 'Folder', self.OnNewFolder, '-'),
                                (wxID_CLIPNEWBLANKDOC, 'Blank document', self.OnNewBlankDoc, '-'),
                              ), '-'),
+                             (wxID_CLIPBOOKMARK, 'Bookmark folder', self.OnBookmarkItems, self.bookmarkBmp),
                               )
     def destroy(self):
         self.clipMenuDef = ()
@@ -253,14 +256,14 @@ class ClipboardControllerMix:
                         self.editor.statusBar.setHint('Not a directory: %s'% node.resourcepath, 'Error')
 
 class TransportError(Exception):
-    def __str__(self): 
+    def __str__(self):
         return str(self.args[0])
 
-class TransportLoadError(TransportError): 
+class TransportLoadError(TransportError):
     pass
-class TransportSaveError(TransportError): 
-    pass   
- 
+class TransportSaveError(TransportError):
+    pass
+
 
 class ExplorerNode:
     """ Base class for items in the explorer. """
@@ -340,12 +343,14 @@ class ExplorerNode:
 
 #---Persistance (loading and saving)--------------------------------------------
     def assertFilename(self, filename):
-        """ Utility function to strip and arrert the protocol from the uri """
+        """ Utility function to strip and assert the protocol from the uri """
         from Explorers.Explorer import splitURI
         prot, cat, res, uri = splitURI(filename)
         assert self.protocol==prot, 'Illegal protocol change'
         return res
-            
+    def currentFilename(self):
+        return self.assertFilename(self.getURI())
+
     def load(self, mode='r'):
         """ Return item data from appropriate transport """
         return None
@@ -394,7 +399,7 @@ class RootNode(ContainerNode):
     protocol = 'root'
     def __init__(self, name, imgIdx=EditorHelper.imgBoaLogo):
         ContainerNode.__init__(self, name, imgIdx)
-        
+
 cat_section = 0
 cat_option = 1
 class CategoryNode(ExplorerNode):
@@ -402,9 +407,8 @@ class CategoryNode(ExplorerNode):
     defName = 'config'
     defaultStruct = {}
     itemProtocol = ''
-    def __init__(self, name, resourcepath, clipboard, config, parent, imgIdx = EditorHelper.imgFolder):
-        ExplorerNode.__init__(self, name, resourcepath, clipboard,
-              imgIdx, parent)
+    def __init__(self, name, resourcepath, clipboard, config, parent, imgIdx=EditorHelper.imgFolder):
+        ExplorerNode.__init__(self, name, resourcepath, clipboard, imgIdx, parent)
         self.config = config
         self.bold = true
         self.refresh()
@@ -452,7 +456,7 @@ class CategoryNode(ExplorerNode):
             try:
                 del self.entries[name]
             except KeyError:
-                wx.wxLogWarning('Could not find %s in %s for deletion'%(name, 
+                wx.wxLogWarning('Could not find %s in %s for deletion'%(name,
                       self.entries.keys()))
         self.updateConfig()
 
@@ -476,17 +480,17 @@ class CategoryNode(ExplorerNode):
     def updateConfig(self):
         self.config.set(self.resourcepath[cat_section],
                   self.resourcepath[cat_option], pprint.pformat(self.entries))
-        self.config.write(open(self.config.confFile, 'w'))
+        Utils.writeConfig(self.config)
 
 (wxID_CATNEW, wxID_CATINSPECT, wxID_CATDELETE, wxID_CATRENAME, wxID_CATRELOAD) \
  = Utils.wxNewIds(5)
 
 class CategoryController(Controller):
-    newBmp = 'Images/Shared/NewItem.bmp'
-    inspectBmp = 'Images/Shared/Inspector.bmp'
-    deleteBmp = 'Images/Shared/Delete.bmp'
+    newBmp = 'Images/Shared/NewItem.png'
+    inspectBmp = 'Images/Shared/Inspector.png'
+    deleteBmp = 'Images/Shared/Delete.png'
 
-    def __init__(self, editor, list, inspector, menuDefs = ()):
+    def __init__(self, editor, list, inspector, controllers, menuDefs = ()):
         Controller.__init__(self, editor)
         self.list = list
         self.menu = wx.wxMenu()
@@ -511,7 +515,7 @@ class CategoryController(Controller):
         if self.list.node:
             # Create new companion for selection
             catItem = self.list.getSelection()
-            if not catItem: return #zopeItem = self.list.node
+            if not catItem: return 
             catComp = self.list.node.createCatCompanion(catItem)
             catComp.updateProps()
 
@@ -544,7 +548,7 @@ class CategoryController(Controller):
 
 class BookmarksCatNode(CategoryNode):
     """ Stores folderish references to any transport protocol """
-#    protocol = 'config.bookmark'
+    #protocol = 'config.bookmark'
     defName = 'Bookmark'
     defaultStruct = Preferences.explorerFileSysRootDefault[1]
     refTree = true
@@ -556,29 +560,35 @@ class BookmarksCatNode(CategoryNode):
         self.treeitem = None
         self.clipboards = clipboards
         self.imgIdx = EditorHelper.imgFolderBookmark
-        
+
+    def cleanup(self):
+        self.catTransports = None
+        self.tree = None
+        self.clipboards = None
+
     def createChildNode(self, name, value):
-        from Explorers.Explorer import splitURI, getTransport
-        prot, cat, res, uri = splitURI(value)
-        node = getTransport(prot, cat, res, self.catTransports)
-        if not node:
-            return None
-        if prot == 'file':
-            node.imgIdx = EditorHelper.imgFSDrive
-        elif prot == 'zope':
-            node.imgIdx = EditorHelper.imgZopeConnection
+        if type(value) == type({}):
+            return SubBookmarksCatNode(self, name, value)
         else:
-            node.imgIdx = EditorHelper.imgNetDrive
-            
-        node.treename = name
-        return node
+            from Explorers.Explorer import splitURI, getTransport
+            prot, cat, res, uri = splitURI(value)
+            node = getTransport(prot, cat, res, self.catTransports)
+            if not node:
+                # XXX should return broken link items
+                #print 'transport not found %s %s %s' %(prot, cat, res)
+                return None
+            if prot == 'file':
+                node.imgIdx = EditorHelper.imgFSDrive
+            elif prot == 'zope':
+                node.imgIdx = EditorHelper.imgZopeConnection
+            else:
+                node.imgIdx = EditorHelper.imgNetDrive
+    
+            node.treename = name
+            return node
 
     def getDefault(self):
-        try:
-            return self.entries[self.config.get(self.resourcepath[0],
-                  'defaultbookmark')]
-        except KeyError:
-            return ''
+        return self.config.get(self.resourcepath[0], 'defaultbookmark') 
 
     def add(self, respath):
         respath=str(respath)
@@ -590,18 +600,45 @@ class BookmarksCatNode(CategoryNode):
             name = Utils.getValidName(self.entries.keys(), name)
         self.entries[name] = respath
         self.updateConfig()
-        
+
         if self.tree and self.treeitem and self.treeitem.IsOk():
             if self.tree.IsExpanded(self.treeitem):
                 self.tree.CollapseAndReset(self.treeitem)
                 self.tree.Expand(self.treeitem)
 
     def createCatCompanion(self, catNode):
-        comp = CategoryStringCompanion(catNode.treename, self)
-        return comp
+        return BookmarkCategoryStringCompanion(catNode.treename, self)
 
+class SubBookmarksCatNode(BookmarksCatNode):
+    def __init__(self, parent, name, bookmarks):
+        self._entries = bookmarks
+        BookmarksCatNode.__init__(self, parent.clipboards, parent.config, 
+              parent, parent.catTransports, parent.tree)
+        #self.entries = bookmarks
+        self.bold = false
+        self.name = self.treename = name
+    
+    def refresh(self):
+        self.entries = self._entries
+
+    def getURI(self):
+        return '%s/%s'%(self.parent.getURI(), self.name)
+
+    def updateConfig(self):
+        self.parent.updateConfig()
+
+# Bookmarks clipboard should copy entries between bookmark dicts and
+# paste as a bookmark the uri to items copied to clipboard in other transports
+class BookmarksClipboard(ExplorerClipboard):
+    def clipPaste_BookmarksClipboard(self, node, nodes, mode):
+        for clipnode in nodes:
+            if mode == 'cut':
+                node.entries[clipnode.name] = None # XXX
+                self.clipNodes = []
+            elif mode == 'copy': pass
+        
 class SysPathNode(ExplorerNode):
-    protocol = 'syspath'
+    protocol = 'sys.path'
     def __init__(self, clipboard, parent, bookmarks):
         ExplorerNode.__init__(self, 'sys.path', '', clipboard,
               EditorHelper.imgPathFolder, parent)
@@ -676,7 +713,7 @@ class ExplorerCompanion(Companion):
         return true
     def persistedPropVal(self, name, setterName):
         return ''
-    
+
     def getPropList(self):
         propLst = []
         for prop in self.propItems:
@@ -698,11 +735,11 @@ class ExplorerCompanion(Companion):
         prop, idx = self.findProp(name)
         if self.setPropHook(name, value, prop):
             self.propItems[idx] = (name, value) + prop[2:]
-    
+
     def GetClass(self, dummy=None):
         # XXX Add protocol from transport
         return 'Explorer Item'
-        
+
     def SetClass(self, value):
         pass
 
@@ -774,4 +811,40 @@ class CategoryStringCompanion(CategoryCompanion):
     def setPropHook(self, name, value, oldProp = None):
         self.catNode.entries[self.name] = value
         self.catNode.updateConfig()
-  
+
+class BookmarkCategoryStringCompanion(CategoryStringCompanion):
+    def setPropHook(self, name, value, oldProp = None):
+        if value == '{}': value = {}
+        CategoryStringCompanion.setPropHook(self, name, value, oldProp)
+
+
+#-Registry for explorer nodes-------------------------------------------------
+
+explorerNodeReg = {}
+nodeRegByProt = {}
+# successfully loaded modules
+installedModules = []
+# Registry for language styles which can be edited under Preferences.Source
+langStyleInfoReg = []
+
+def register(Node, clipboard=None, confdef=('', ''), controller=None, category=None):
+    """ Register a new explorer Node.
+
+    clipboard  : Clipboard class or protocol name (string) of existing clipboard
+    confdef    : (section, option) tuple for the config file
+    controller : Controller class or protocol name (string) of existing controller
+    category   : Category node class for node when added as a transport to the tree
+    """
+
+    explorerNodeReg[Node] = {'clipboard': clipboard, 'confdef': confdef,
+                             'controller': controller, 'category': category}
+    nodeRegByProt[Node.protocol] = Node
+
+def isTransportAvailable(conf, section, prot):
+    return conf.has_option(section, prot) and nodeRegByProt.has_key(prot)
+
+
+#-------------------------------------------------------------------------------
+
+register(CategoryNode, controller=CategoryController)
+register(SysPathNode, clipboard='file', controller='file')

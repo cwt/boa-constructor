@@ -1,15 +1,29 @@
+#-----------------------------------------------------------------------------
+# Name:        SSHExplorer.py
+# Purpose:
+#
+# Author:      Riaan Booysen
+#
+# Created:     2001
+# RCS-ID:      $Id$
+# Copyright:   (c) 2001 - 2002
+# Licence:     GPL
+#-----------------------------------------------------------------------------
+print 'importing Explorers.SSHExplorer'
+
 import string, os, sys
 
 from wxPython.wx import wxMenu, EVT_MENU, wxMessageBox, wxPlatform, wxOK, wxNewId, true, false
 
 #sys.path.append('..')
-import ExplorerNodes, EditorModels
+import ExplorerNodes
+from Models import Controllers, EditorHelper
 from ProcessProgressDlg import ProcessProgressDlg
 
 wxID_SSHOPEN = wxNewId()
 
 class SSHController(ExplorerNodes.Controller, ExplorerNodes.ClipboardControllerMix):
-    def __init__(self, editor, list):
+    def __init__(self, editor, list, inspector, controllers):
         ExplorerNodes.ClipboardControllerMix.__init__(self)
         ExplorerNodes.Controller.__init__(self, editor)
 
@@ -45,7 +59,7 @@ class SSHCatNode(ExplorerNodes.CategoryNode):
 
     def createChildNode(self, name, props):
         itm = SSHItemNode(name, props, props['root'], self.clipboard, true,
-              EditorModels.imgNetDrive, self)
+              EditorHelper.imgNetDrive, self)
         itm.category = name
         itm.bookmarks = self.bookmarks
         return itm
@@ -72,10 +86,10 @@ class SSHItemNode(ExplorerNodes.ExplorerNode):
         if not respath:
             respath = self.resourcepath+'/'+name
         item = SSHItemNode(name, props, respath, self.clipboard,
-              isFolder, isFolder and EditorModels.FolderModel.imgIdx or \
-              EditorModels.TextModel.imgIdx, self)
+              isFolder, isFolder and EditorHelper.imgFolder or \
+              EditorHelper.imgTextModel, self)
         if not isFolder:
-            item.imgIdx = EditorModels.identifyFile(name, localfs=false)[0].imgIdx
+            item.imgIdx = Controllers.identifyFile(name, localfs=false)[0].imgIdx
         item.category = self.category
         item.bookmarks = self.bookmarks
         return item
@@ -151,10 +165,10 @@ class SSHItemNode(ExplorerNodes.ExplorerNode):
     def renameItem(self, name, newName):
         self.execCmd('mv %s %s' % (self.resourcepath + '/' + name,
                                    self.resourcepath + '/' + newName))
-    
+
     def newFolder(self, name):
         self.execCmd('mkdir %s' % (self.resourcepath + '/' + name))
-        
+
     def newBlankDocument(self, name):
         self.execCmd('echo " " > %s' % (self.resourcepath + '/' + name))
 
@@ -188,12 +202,14 @@ class SSHItemNode(ExplorerNodes.ExplorerNode):
                 os.remove(fn)
         except Exception, error:
             raise ExplorerNodes.TransportSaveError(error, self.resourcepath)
-    
+
     def getNodeFromPath(self, respath):
+        if not respath: respath = '/'
+
         isFolder = respath[-1] == '/'
         if isFolder:
             respath = respath[:-1]
-        return self.createChildNode(os.path.basename(respath), isFolder, 
+        return self.createChildNode(os.path.basename(respath), isFolder,
               self.properties, '/'+respath)
 
 
@@ -215,3 +231,7 @@ class SSHExpClipboard(ExplorerNodes.ExplorerClipboard):
                 self.clipNodes = []
             elif mode == 'copy':
                 node.copyFileFrom(sshNode)
+
+#-------------------------------------------------------------------------------
+ExplorerNodes.register(SSHItemNode, clipboard=SSHExpClipboard,
+      confdef=('explorer', 'ssh'), controller=SSHController, category=SSHCatNode)

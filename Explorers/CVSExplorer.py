@@ -6,9 +6,10 @@
 #
 # Created:     2000/10/22
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999, 2000 Riaan Booysen
+# Copyright:   (c) 1999 - 2002 Riaan Booysen
 # Licence:     GPL
 #-----------------------------------------------------------------------------
+print 'importing Explorers.CVSExplorer'
 
 """ Explorer classes for CVS browsing and operations """
 
@@ -17,9 +18,10 @@ import string, time, stat, os
 from wxPython.lib.dialogs import wxScrolledMessageDialog
 from wxPython.wx import *
 
-import ExplorerNodes, EditorModels, EditorHelper
+import ExplorerNodes
+from Models import EditorModels, EditorHelper
 from Preferences import IS
-import Views.EditorViews
+
 import ProcessProgressDlg, Utils
 import scrm
 
@@ -55,22 +57,22 @@ def cvsFileLocallyModified(filename, timestamp):
             filesegs, cvssegs = string.split(filets), string.split(timestamp)
         filesegs[2], cvssegs[2] = int(filesegs[2]), int(cvssegs[2])
 
-    return ( filesegs != cvssegs, 
+    return ( filesegs != cvssegs,
              conflict)
 
 
 class CVSController(ExplorerNodes.Controller):
-    updateBmp = 'Images/CvsPics/Update.bmp'
-    commitBmp = 'Images/CvsPics/Commit.bmp'
-    addBmp = 'Images/CvsPics/Add.bmp'
-    addBinBmp = 'Images/CvsPics/AddBinary.bmp'
-    removeBmp = 'Images/CvsPics/Remove.bmp'
-    diffBmp = 'Images/CvsPics/Diff.bmp'
-    logBmp = 'Images/CvsPics/Log.bmp'
-    statusBmp = 'Images/CvsPics/Status.bmp'
-    tagBmp = 'Images/CvsPics/Tag.bmp'
-    branchBmp = 'Images/CvsPics/Branch.bmp'
-    def __init__(self, editor, list):
+    updateBmp = 'Images/CvsPics/Update.png'
+    commitBmp = 'Images/CvsPics/Commit.png'
+    addBmp = 'Images/CvsPics/Add.png'
+    addBinBmp = 'Images/CvsPics/AddBinary.png'
+    removeBmp = 'Images/CvsPics/Remove.png'
+    diffBmp = 'Images/CvsPics/Diff.png'
+    logBmp = 'Images/CvsPics/Log.png'
+    statusBmp = 'Images/CvsPics/Status.png'
+    tagBmp = 'Images/CvsPics/Tag.png'
+    branchBmp = 'Images/CvsPics/Branch.png'
+    def __init__(self, editor, list, inspector, controllers):
         ExplorerNodes.Controller.__init__(self, editor)
         self.list = list
         self.menu = wxMenu()
@@ -92,7 +94,7 @@ class CVSController(ExplorerNodes.Controller):
               (wxID_CVSTAG, 'Tag', self.OnTagCVSItems, self.tagBmp),
               (wxID_CVSBRANCH, 'Branch', self.OnBranchCVSItems, self.branchBmp),
               (wxID_CVSLOCK, 'Lock', self.OnLockCVSItems, '-'),
-              (wxID_CVSLOCK, 'Unlock', self.OnUnlockCVSItems, '-') )
+              (wxID_CVSUNLOCK, 'Unlock', self.OnUnlockCVSItems, '-') )
 
         self.setupMenu(self.menu, self.list, self.cvsMenuDef)
 
@@ -117,17 +119,17 @@ class CVSController(ExplorerNodes.Controller):
 ##        self.fileCVSMenu.AppendMenu(wxID_FSCVSENV, 'CVS shell environment vars', self.cvsEnvMenu)
 
         self.images = wxImageList(16, 16)
-        for cvsImg in ( 'Images/CvsPics/File.bmp',
-                        'Images/CvsPics/BinaryFile.bmp',
-                        'Images/CvsPics/ModifiedFile.bmp',
-                        'Images/CvsPics/ModifiedBinaryFile.bmp',
-                        'Images/CvsPics/MissingFile.bmp',
-                        'Images/CvsPics/ConflictingFile.bmp',
-                        'Images/CvsPics/Dir.bmp',
-                        'Images/Modules/FolderUp_s.bmp',
-                        'Images/CvsPics/UnknownDir.bmp',
-                        'Images/CvsPics/UnknownFile.bmp'):
-            self.images.AddWithColourMask(IS.load(cvsImg), wxColour(255, 0, 255))
+        for cvsImg in ( 'Images/CvsPics/File.png',
+                        'Images/CvsPics/BinaryFile.png',
+                        'Images/CvsPics/ModifiedFile.png',
+                        'Images/CvsPics/ModifiedBinaryFile.png',
+                        'Images/CvsPics/MissingFile.png',
+                        'Images/CvsPics/ConflictingFile.png',
+                        'Images/CvsPics/Dir.png',
+                        'Images/Modules/FolderUp_s.png',
+                        'Images/CvsPics/UnknownDir.png',
+                        'Images/CvsPics/UnknownFile.png'):
+            self.images.Add(IS.load(cvsImg))
 
         self.toolbarMenus = [self.cvsMenuDef]
 
@@ -184,7 +186,7 @@ class CVSController(ExplorerNodes.Controller):
         if wxPlatform == '__WXMSW__':
             te = Utils.getCtrlsFromDialog(dlg, 'wxTextCtrlPtr')[0]
             try:
-                te.SetSelection(string.index(wholeCommand, '['), 
+                te.SetSelection(string.index(wholeCommand, '['),
                                 string.index(wholeCommand, ']')+1)
             except ValueError:
                 te.SetInsertionPoint(len(wholeCommand))
@@ -204,7 +206,8 @@ class CVSController(ExplorerNodes.Controller):
         finally:
             CVSPD.Destroy()
 
-    def doCvsCmd(self, cmd, cvsDir, stdinput = ''):
+    # cvsOutput can be 'output window', 'dialogs' or 'tuple'
+    def doCvsCmd(self, cmd, cvsDir, stdinput='', cvsOutput='output window'): 
         # Repaint background
         wxYield()
 
@@ -215,31 +218,41 @@ class CVSController(ExplorerNodes.Controller):
             try:
                 if CVSPD.ShowModal() == wxOK:
                     outls = CVSPD.output
-                    err = string.join(CVSPD.errors, '')
+                    errls = CVSPD.errors
                 else:
                     return
             finally:
                 CVSPD.Destroy()
 
-            if string.strip(err):
-                dlg = wxMessageDialog(self.list, err,
-                  'Server response or Error', wxOK | wxICON_EXCLAMATION)
-                try: dlg.ShowModal()
-                finally: dlg.Destroy()
-##                for line in string.split(err, os.linesep):
-##                    if string.strip(line):
-##                        wxLogError(line)
+            err = string.strip(string.join(errls, ''))
 
-            if outls and not (len(outls) == 1 and not string.strip(outls[0])):
-                #outls.append(`len(outls)`)
-##                for line in outls:
-##                    wxLogMessage(string.rstrip(line))
-                self.showMessage(cmd, string.join(outls, ''))
+            if cvsOutput == 'output window':
+                errout = self.editor.erroutFrm
+                tbs = errout.updateCtrls((), outls, 'CVS Results', '', err)
+                errout.display(tbs)
+                
+            elif cvsOutput == 'dialogs':
+                if string.strip(err):
+                    dlg = wxMessageDialog(self.list, err,
+                      'Server response or Error', wxOK | wxICON_EXCLAMATION)
+                    try: dlg.ShowModal()
+                    finally: dlg.Destroy()
+    
+                if outls and not (len(outls) == 1 and not string.strip(outls[0])):
+                    self.showMessage(cmd, string.join(outls, ''))
+            elif cvsOutput == 'tuple':
+                return outls, errls
+            
+            #msgType = 'warning' if err else 'info' # i wish
+            if err: msgType = 'Warning'
+            else: msgType = 'Info'
+            self.editor.setStatus('CVS command completed: %s'%cmd, msgType)
 
         finally:
             os.chdir(cwd)
 
-    def doCvsCmdOnSelection(self, cmd, cmdOpts, preCmdFunc = None, postCmdFunc = None):
+    def doCvsCmdOnSelection(self, cmd, cmdOpts, 
+              preCmdFunc=None, postCmdFunc=None, cvsOutput='output window'):
         if self.list.node:
             names = self.getNamesForSelection(self.list.getMultiSelection())
             cvsDir = os.path.dirname(self.list.node.resourcepath)
@@ -250,8 +263,9 @@ class CVSController(ExplorerNodes.Controller):
                   self.getCvsHelp(cmd))
             if cmdStr:
                 if preCmdFunc: preCmdFunc(names)
-                self.doCvsCmd(cmdStr, cvsDir)
+                res = self.doCvsCmd(cmdStr, cvsDir, cvsOutput=cvsOutput)
                 if postCmdFunc: postCmdFunc(names)
+                return res
 
     def doCvsCmdInDir(self, cmd, cmdOpts, cvsDir, items, cvsOpts = ''):
         cmdStr = self.cvsCmdPrompt(self.cvsCmd(cmd, cmdOpts, items, cvsOpts),
@@ -280,7 +294,7 @@ class CVSController(ExplorerNodes.Controller):
             cvsroots.append(string.split(line)[0])
         if cvsroots:
             dlg = wxSingleChoiceDialog(self.list, 'Select and click OK to set CVSROOT'\
-             ' or Cancel to use environment variable.\n\nYou have pserver access to the following servers:', 
+             ' or Cancel to use environment variable.\n\nYou have pserver access to the following servers:',
              'Choose CVSROOT (-d parameter)', cvsroots)
             try:
                 if dlg.ShowModal() == wxID_OK:
@@ -291,8 +305,8 @@ class CVSController(ExplorerNodes.Controller):
                 dlg.Destroy()
         else:
             cvsOpts = ''
-            
-            
+
+
         cvsDir = self.list.node.resourcepath
         if self.doCvsCmdInDir('checkout', '-P', cvsDir, ['[MODULE]'], cvsOpts):
             self.list.refreshCurrent()
@@ -316,10 +330,14 @@ class CVSController(ExplorerNodes.Controller):
         self.doCvsCmdOnSelection('add', '-kb')
         self.list.refreshCurrent()
 
+    quotes = ('"', "'")
     def selPreCmd_remove(self, list):
         dir = os.path.dirname(self.list.node.resourcepath)
         for name in list:
             try:
+                
+                if name[0] in self.quotes and name[-1] in self.quotes:
+                    name = name[1:-1]
                 os.remove(os.path.join(dir, name))
             except OSError, err:
                 # Skip files already removed
@@ -330,8 +348,17 @@ class CVSController(ExplorerNodes.Controller):
         self.list.refreshCurrent()
 
     def OnDiffCVSItems(self, event):
-        self.doCvsCmdOnSelection('diff', '')
-
+        # a syntax highlighted window is provided for unified diffs
+        res = self.doCvsCmdOnSelection('diff', '-u', cvsOutput='tuple')
+        if len(res)==2:
+            outls, errls = res
+            out, err = string.join(outls, ''), string.join(errls, '')
+            errout = self.editor.erroutFrm
+            tbs = errout.updateCtrls((), outls, 'CVS Result', '', err)
+            errout.display(tbs)
+            errout.displayDiff(out)
+            
+    
     def OnLogCVSItems(self, event):
         self.doCvsCmdOnSelection('log', '')
 
@@ -501,6 +528,7 @@ class CVSFileNode(ExplorerNodes.ExplorerNode):
             node = editor.explorer.list.getSelection()
             # XXX app is not connected to module
             model, controller = editor.openOrGotoModule(node.resourcepath, transport=node)
+            from Views.EditorViews import CVSConflictsView
             if not model.views.has_key(CVSConflictsView.viewName):
                 resultView = editor.addNewView(CVSConflictsView.viewName, CVSConflictsView)
             else:
@@ -623,63 +651,11 @@ class FSCVSFolderNode(ExplorerNodes.ExplorerNode):
             return false
 
 #---------------------------------------------------------------------------
-class CVSConflictsView(Views.EditorViews.ListCtrlView):
-    viewName = 'CVS conflicts'
-    gotoLineBmp = 'Images/Editor/GotoLine.bmp'
-    acceptBmp = 'Images/Inspector/Post.bmp'
-    rejectBmp = 'Images/Inspector/Cancel.bmp'
-
-    def __init__(self, parent, model):
-        Views.EditorViews.ListCtrlView.__init__(self, parent, model, wxLC_REPORT,
-          (('Goto line', self.OnGoto, self.gotoLineBmp, ()),
-           ('Accept changes', self.OnAcceptChanges, self.acceptBmp, ()),
-           ('Reject changes', self.OnRejectChanges, self.rejectBmp, ()) ), 0)
-        self.InsertColumn(0, 'Rev')
-        self.InsertColumn(1, 'Line#')
-        self.InsertColumn(2, 'Size')
-        self.SetColumnWidth(0, 40)
-        self.SetColumnWidth(1, 40)
-        self.SetColumnWidth(2, 40)
-
-        self.conflicts = []
-
-    def refreshCtrl(self):
-        Views.EditorViews.ListCtrlView.refreshCtrl(self)
-
-        self.conflicts = self.model.getCVSConflicts()
-
-        confCnt = 0
-        for rev, lineNo, size in self.conflicts:
-            self.InsertStringItem(confCnt, rev)
-            self.SetStringItem(confCnt, 1, `lineNo`)
-            self.SetStringItem(confCnt, 2, `size`)
-            confCnt = confCnt + 1
-
-
-        self.pastelise()
-
-    def OnGoto(self, event):
-        if self.model.views.has_key('Source'):
-            srcView = self.model.views['Source']
-            srcView.focus()
-            lineNo = int(self.conflicts[self.selected][1]) -1
-            srcView.gotoLine(lineNo)
-
-    # XXX I've still to decide on this, operations should usually be applied
-    # XXX thru the model, but by applying thru the STC you get it in the
-    # XXX undo history
-    def OnAcceptChanges(self, event):
-        if self.selected != -1:
-            self.model.acceptConflictChange(self.conflicts[self.selected])
-
-    def OnRejectChanges(self, event):
-        if self.selected != -1:
-            self.model.rejectConflictChange(self.conflicts[self.selected])
-
 # Register cvs dirs as a subtype of file explorers
 import FileExplorer
-FileExplorer.PyFileNode.subExplorerReg['folder'].append( 
+FileExplorer.PyFileNode.subExplorerReg['folder'].append(
       (FSCVSFolderNode, isCVS, EditorHelper.imgCVSFolder)
-)    
+)
 
- 
+ExplorerNodes.register(FSCVSFolderNode, clipboard=None, confdef=('', ''),
+                       controller=CVSController)
