@@ -6,12 +6,12 @@
 #
 # Created:     2000/06/19
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999, 2000 Riaan Booysen
+# Copyright:   (c) 1999 - 2001 Riaan Booysen
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 
-import string, os, sys
-import keyword, types, getopt
+import string, sys
+import keyword, types
 
 from wxPython.wx import *
 from wxPython.stc import *
@@ -21,7 +21,6 @@ from ExternalLib.PythonInterpreter import PythonInterpreter
 import Preferences
 from Preferences import keyDefs
 import Utils
-from methodparse import safesplitfields, matchbracket
 echo = true
 
 p2c = 'Type "copyright", "credits" or "license" for more information.'
@@ -40,7 +39,7 @@ class ShellEditor(StyledTextCtrls.wxStyledTextCtrl,
         StyledTextCtrls.wxStyledTextCtrl.__init__(self, parent, wId, 
               style = wxCLIP_CHILDREN)
         StyledTextCtrls.CallTipCodeHelpSTCMix.__init__(self)
-        StyledTextCtrls.PythonStyledTextCtrlMix.__init__(self, wId, -1)
+        StyledTextCtrls.PythonStyledTextCtrlMix.__init__(self, wId, ())
 
         self.lines = StyledTextCtrls.STCLinesList(self)
         self.interp = PythonInterpreter()
@@ -78,14 +77,13 @@ class ShellEditor(StyledTextCtrls.wxStyledTextCtrl,
         self.stdout = PseudoFileOut(self)
         self.stderr = PseudoFileErr(self)
         self.stdin = PseudoFileIn(self, self.buffer)
+        
+        self._debugger = None
 
         self.AddText('# Python %s (Boa)\n# %s'%(sys.version, copyright))
         self.LineScroll(-10, 0)
         self.SetSavePoint()
        
-    def setDebugNamespace(self, ns):
-        pass
-
     def destroy(self):
         if self.stdin.isreading():
             self.stdin.kill()
@@ -101,6 +99,15 @@ class ShellEditor(StyledTextCtrls.wxStyledTextCtrl,
             self.pushLine('print %s;execfile(%s)'%(`startuptext`, `startupfile`))
         else:
             self.pushLine('')
+    
+    def debugShell(self, doDebug, debugger):
+        if doDebug:
+            self._debugger = debugger
+            self.stdout.write('\n## Debug mode turned on.')
+            self.pushLine('print "?"')
+        else:
+            self._debugger = None
+            self.pushLine('print "## Debug mode turned %s."'% (doDebug and 'on' or 'off'))
 
     def OnUpdateUI(self, event):
         if Preferences.braceHighLight:
@@ -141,7 +148,13 @@ class ShellEditor(StyledTextCtrls.wxStyledTextCtrl,
             tmpstdout,tmpstderr,tmpstdin = sys.stdout,sys.stderr,sys.stdin
             sys.stdout,sys.stderr,sys.stdin = self.stdout,self.stderr,self.stdin
             self.lastResult = ''
-            if self.interp.push(line):
+            if self._debugger:
+                prompt = Preferences.ps3
+                val = self._debugger.getVarValue(line)
+                if val is not None:
+                    print val
+                return false
+            elif self.interp.push(line):
                 prompt = Preferences.ps2
                 self.stdout.fin(); self.stderr.fin()
                 return true
@@ -173,7 +186,7 @@ class ShellEditor(StyledTextCtrls.wxStyledTextCtrl,
             ct = self.GetCurLine()[0]
             line = string.rstrip(ct[4:])
             self.SetCurrentPos(self.GetTextLength())
-            ll = self.GetCurrentLine()
+            #ll = self.GetCurrentLine()
 
             # bottom line, process the line
             if cl == lc -1:
@@ -246,7 +259,7 @@ class ShellEditor(StyledTextCtrls.wxStyledTextCtrl,
                         sig = str(Signature.Signature(obj))
                         docs = string.replace(sig, '(self, ', '(')
                         docs = string.replace(docs, '(self)', '()')
-                    except ValueError, TypeError:
+                    except (ValueError, TypeError):
                         try: docs = obj.__doc__
                         except AttributeError: docs = ''
 
@@ -264,7 +277,6 @@ class ShellEditor(StyledTextCtrls.wxStyledTextCtrl,
         self.callTipCheck()
 
     def OnShellHome(self, event):
-        pos = self.GetCurrentPos()
         lnNo = self.GetCurrentLine()
         lnStPs = self.PositionFromLine(lnNo)
         line = self.GetCurLine()[0]
@@ -395,4 +407,18 @@ class PseudoFileErrTC(Utils.PseudoFile):
         if echo: sys.__stderr__.write(s)
 
 
-            
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
