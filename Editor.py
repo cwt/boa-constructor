@@ -15,12 +15,13 @@
 # the center of creation
 # Alchemy
 
+from os import path
+import sys, string, time
+
 from wxPython.wx import *
 from wxPython.stc import *
 
-import sys, string, time
 import Preferences, About, Help
-from os import path
 import Utils, Browse
 
 print 'importing Views.EditorViews'
@@ -50,6 +51,8 @@ import ShellEditor, PaletteStore, ErrorStack
 from Preferences import IS, wxFileDialog, flatTools
 from EditorHelper import *
 from ModRunner import EVT_EXEC_FINISH
+
+from EditorUtils import EditorToolBar, EditorStatusBar
 
 # Models available on the 'New' palette page
 PaletteStore.paletteLists['New'].extend(['wxApp', 'wxFrame', 'wxDialog',
@@ -146,6 +149,17 @@ class EditorFrame(wxFrame):
 
         self.modelImageList = wxImageList(16, 16)
 
+        # System images
+        self.modelImageList.Add(IS.load('Images/Modules/Folder_s.bmp'))
+        self.modelImageList.Add(IS.load('Images/Modules/Folder_green_s.bmp'))
+        self.modelImageList.Add(IS.load('Images/Modules/Folder_cyan_s.bmp'))
+        self.modelImageList.Add(IS.load('Images/Zope/System_obj.bmp'))
+        self.modelImageList.Add(IS.load('Images/Zope/Zope_connection.bmp'))
+        self.modelImageList.Add(IS.load('Images/Shared/BoaLogo.bmp'))
+        self.modelImageList.Add(IS.load('Images/Modules/FolderUp_s.bmp'))
+        self.modelImageList.Add(IS.load('Images/Modules/Drive_s.bmp'))
+        self.modelImageList.Add(IS.load('Images/Modules/FolderBookmark_s.bmp'))
+
         # Build imagelist of all models
         print 'Editor (loading images)'
         orderedModList = []
@@ -153,23 +167,6 @@ class EditorFrame(wxFrame):
         orderedModList.sort()
         for mod in orderedModList:
             self.modelImageList.Add(IS.load('Images/Modules/'+mod[1].bitmap))
-
-        self.modelImageList.Add(IS.load('Images/Modules/Folder_s.bmp'))
-        self.modelImageList.Add(IS.load('Images/Modules/Folder_green_s.bmp'))
-        self.modelImageList.Add(IS.load('Images/Modules/Folder_cyan_s.bmp'))
-##        self.modelImageList.Add(IS.load('Images/Zope/Folder_icon.bmp'))
-##        self.modelImageList.Add(IS.load('Images/Zope/ControlPanel_icon.bmp'))
-##        self.modelImageList.Add(IS.load('Images/Zope/ProductFolder_icon.bmp'))
-##        self.modelImageList.Add(IS.load('Images/Zope/InstalledProduct_icon.bmp'))
-##        self.modelImageList.Add(IS.load('Images/Zope/UserFolder_icon.bmp'))
-##        self.modelImageList.Add(IS.load('Images/Zope/dtmldoc.bmp'))
-##        self.modelImageList.Add(IS.load('Images/Zope/Image_icon.bmp'))
-        self.modelImageList.Add(IS.load('Images/Zope/System_obj.bmp'))
-        self.modelImageList.Add(IS.load('Images/Zope/Zope_connection.bmp'))
-        self.modelImageList.Add(IS.load('Images/Shared/BoaLogo.bmp'))
-        self.modelImageList.Add(IS.load('Images/Modules/FolderUp_s.bmp'))
-        self.modelImageList.Add(IS.load('Images/Modules/Drive_s.bmp'))
-        self.modelImageList.Add(IS.load('Images/Modules/FolderBookmark_s.bmp'))
 
         # Add Zoa Images
         import ZopeEditorModels
@@ -188,6 +185,12 @@ class EditorFrame(wxFrame):
           self.modelImageList, '', self)
         self.tabs.AddPage(self.explorer, 'Explorer')
         self.tabs.SetSelection(1)
+        
+        from Explorers import EditorExplorer
+        root = self.explorer.tree.boaRoot
+        root.entries.insert(0, EditorExplorer.OpenModelsNode(self, root))
+        
+        self.explorer.tree.openDefaultNodes()
 
         # Menus
         self.newMenu = newMenu
@@ -290,22 +293,24 @@ class EditorFrame(wxFrame):
         self.SetToolBar(self.toolBar)
         self.setupToolBar(viewIdx = 0)
 
-        tree = self.explorer.tree
-        if tree.defaultBookmarkItem:
-            ws = tree.getChildNamed(tree.GetRootItem(), 'Bookmarks')
-#        self.defaultBookmarkItem = self.getChildNamed(ws, self.boaRoot.entries[1].getDefault())
-#            self.getChildNamed(ws, tree.boaRoot.entries[1].getDefault())
-            tree.SelectItem(tree.getChildNamed(ws, tree.boaRoot.entries[1].getDefault()))
-#            self.explorer.tree.defaultBookmarkItem)
 
-#            print 'Setting default', self.explorer.tree.defaultBookmarkItem
-#            self.explorer.tree.SelectItem(self.explorer.tree.defaultBookmarkItem)
-#            print 'Set def', self.explorer.tree.GetSelection()
-
-            if self.explorer.list.GetItemCount():
-                item = self.explorer.list.GetItem(0)
-                item.SetState(wxLIST_STATE_SELECTED | wxLIST_STATE_FOCUSED)
-                self.explorer.list.SetItem(item)
+# XXX Nothing works
+##        tree = self.explorer.tree
+##        if tree.defaultBookmarkItem:
+##            ws = tree.getChildNamed(tree.GetRootItem(), 'Bookmarks')
+###        self.defaultBookmarkItem = self.getChildNamed(ws, self.boaRoot.entries[1].getDefault())
+###            self.getChildNamed(ws, tree.boaRoot.entries[1].getDefault())
+##            tree.SelectItem(tree.getChildNamed(ws, tree.boaRoot.entries[1].getDefault()))
+###            self.explorer.tree.defaultBookmarkItem)
+##
+###            print 'Setting default', self.explorer.tree.defaultBookmarkItem
+###            self.explorer.tree.SelectItem(self.explorer.tree.defaultBookmarkItem)
+###            print 'Set def', self.explorer.tree.GetSelection()
+##
+##            if self.explorer.list.GetItemCount():
+##                item = self.explorer.list.GetItem(0)
+##                item.SetState(wxLIST_STATE_SELECTED | wxLIST_STATE_FOCUSED)
+##                self.explorer.list.SetItem(item)
 
         dt = Utils.BoaFileDropTarget(self)
         self.SetDropTarget(dt)
@@ -322,6 +327,9 @@ class EditorFrame(wxFrame):
         EVT_EXEC_FINISH(self, self.OnExecFinish)
 
         self.restoreEditorState()
+    
+    def __repr__(self):
+        return '<EditorFrame instance at %d>'%id(self)
 
     def defsMenu(self, model, viewClss):
         """ Default menus specifying which views are opened by default when a
@@ -511,6 +519,28 @@ class EditorFrame(wxFrame):
         model.new()
 
         self.updateTitle()
+
+    def addNewPage(self, metatype):
+        
+        # Choose controller
+        
+        # Create controller
+        
+        # Create model
+        
+        # Add ModulePage
+        self.addModulePage(model, name, defViews, adtViews, imgIdx)
+        
+        # Update title
+        self.updateTitle()
+        
+##        name = 'setup.py'
+##        model = SetupModuleModel(defSetup_py, name, self, false)
+##        model.transport = self.newFileTransport('', name)
+##        self.addModulePage(model, name, defSetupModelViews, adtSetupModelViews,
+##          SetupModuleModel.imgIdx)
+##        model.new()
+
 
     def addNewPackage(self):
         filename, success = self.saveAsDlg('__init__.py')
@@ -732,36 +762,60 @@ class EditorFrame(wxFrame):
                 model.views['Designer'].Raise()
                 return
 
-            # update any view modifications
-            model.refreshFromViews()
-
-            model.initModule()
-            model.readComponents()
-
-            # add or focus data view
-            if not model.views.has_key('Data'):
-                dataView = DataView(modulePage.notebook, self.inspector,
-                  model, self.compPalette)
-                dataView.addToNotebook(modulePage.notebook)
-                model.views['Data'] = dataView
-                dataView.initialize()
-            else:
-                dataView = model.views['Data']
+            dataView = None
+            try:
+                # update any view modifications
+                model.refreshFromViews()
+    
+                model.initModule()
+                model.readComponents()
+    
+                try:
+                    # add or focus data view
+                    if not model.views.has_key('Data'):
+                        dataView = DataView(modulePage.notebook, self.inspector,
+                          model, self.compPalette)
+                        dataView.addToNotebook(modulePage.notebook)
+                        model.views['Data'] = dataView
+                        dataView.initialize()
+                    else:
+                        dataView = model.views['Data']
+                except:
+                    if model.views.has_key('Data'):
+                        model.views['Data'].focus()
+                        model.views['Data'].saveOnClose = false
+                        model.views['Data'].deleteFromNotebook('Source', 'Data')
+                    raise
+        
                 dataView.focus()
+                #modulePage.notebook.SetSelection(modulePage.notebook.GetPageCount()-1)
+                dataView.refreshCtrl()
+                
+                try:
+                    # add or focus frame designer
+                    if not model.views.has_key('Designer'):
+                        designer = DesignerView(self, self.inspector,
+                          model, self.compPalette, model.companion, dataView)
+                        model.views['Designer'] = designer
+                        designer.refreshCtrl()
+                    model.views['Designer'].Show(true)
+                except:
+                    if model.views.has_key('Designer'):
+                        model.views['Designer'].saveOnClose = false
+                        model.views['Designer'].close()
+                    raise
+    
+                # Make source read only
+                model.views['Source'].disableSource(true)
 
-            modulePage.notebook.SetSelection(modulePage.notebook.GetPageCount()-1)
-            dataView.refreshCtrl()
+                self.statusBar.setHint('Designer session started.')
 
-            # add or focus frame designer
-            if not model.views.has_key('Designer'):
-                designer = DesignerView(self, self.inspector,
-                  model, self.compPalette, model.companion, dataView)
-                model.views['Designer'] = designer
-                designer.refreshCtrl()
-            model.views['Designer'].Show(true)
-
-            # Make source read only
-            model.views['Source'].disableSource(true)
+            except Exception, error:
+                self.statusBar.setHint(\
+                    'An error occured while opening the Designer: %s'%str(error),
+                    'Error')
+                self.statusBar.progress.SetValue(0)
+                raise
 
     def showImportsView(self):
         self.addNewView('Imports', ImportsView)
@@ -1104,7 +1158,7 @@ class EditorFrame(wxFrame):
                 from ModRunner import ProcessModuleRunner
                 ProcessModuleRunner(self.erroutFrm, actMod.model.app,
                       newCwd).run(cmd, ErrorStack.PyCheckerErrorParser,
-                      'PyChecker', 'Warnings', true)
+                      'PyChecker', 'Warning', true)
             finally:
                 sys.path = oldSysPath
                 sys.stderr = oldErr
@@ -1252,104 +1306,13 @@ class EditorFrame(wxFrame):
 
     def OnExecFinish(self, event):
         event.runner.init(self.erroutFrm, event.runner.app)
-        event.runner.recheck()
-        self.statusBar.setHint('Finished execution.')
+        errs = event.runner.recheck()
+        if errs:
+            self.statusBar.setHint('Finished execution, there were errors', 'Warning')
+        else:
+            self.statusBar.setHint('Finished execution.')
         #print 'OnExecFinish', event.runner
 
-
-#-----Toolbar-------------------------------------------------------------------
-
-class MyToolBar(wxToolBar):
-    def __init__(self, parent, winid):
-        wxToolBar.__init__(self, parent, winid,
-          style = wxTB_HORIZONTAL|wxNO_BORDER|flatTools)#wxDOUBLE_BORDER|
-        self.toolLst = []
-        self.toolCount = 0
-
-    def AddTool(self, id, bitmap, toggleBitmap = wxNullBitmap, shortHelpString = '', isToggle = false):
-        from Views.StyledTextCtrls import new_stc
-        if new_stc:
-            wxToolBar.AddTool(self, id, bitmap, toggleBitmap, isToggle = isToggle,
-                shortHelpString = shortHelpString)
-        else:
-            wxToolBar.AddTool(self, id, bitmap, toggleBitmap, toggle = isToggle,
-                shortHelpString = shortHelpString)
-
-        self.toolLst.append(id)
-        self.toolCount = self.toolCount + 1
-
-    def AddSeparator(self):
-        wxToolBar.AddSeparator(self)
-        self.toolLst.append(-1)
-        self.toolCount = self.toolCount + 1
-
-    def DeleteTool(self, id):
-        wxToolBar.DeleteTool(self, id)
-        self.toolLst.remove(id)
-        self.toolCount = self.toolCount - 1
-
-    def ClearTools(self):
-        posLst = range(self.toolCount)
-        posLst.reverse()
-        for pos in posLst:
-            self.DeleteToolByPos(pos)
-
-        for wid in self.toolLst:
-            if wid != -1:
-                self.GetParent().Disconnect(wid),
-        self.toolLst = []
-        self.toolCount = 0
-
-    def GetToolPopupPosition(self, id):
-        margins = self.GetToolMargins()
-        toolSize = self.GetToolSize()
-        xPos = margins.x
-        for tId in self.toolLst:
-            if tId == id:
-                return wxPoint(xPos, margins.y + toolSize.y)
-
-            if tId == -1:
-                xPos = xPos + self.GetToolSeparation()
-            else:
-                xPos = xPos + toolSize.x
-
-        return wxPoint(0, 0)
-
-    def PopupToolMenu(self, toolId, menu):
-        self.PopupMenu(menu, self.GetToolPopupPosition(toolId))
-
-##        menu = wxMenu()
-##        menu.Append(1, 'asdf asdf')
-##        self.toolBar.PopupToolMenu(event.GetId(), menu)
-
-class EditorToolBar(MyToolBar):
-    pass
-
-class EditorStatusBar(wxStatusBar):
-    """ Displays information about the current view. Also global stats/
-        progress bar etc. """
-    def __init__(self, parent):
-        wxStatusBar.__init__(self, parent, -1, style = wxST_SIZEGRIP)
-        self.SetFieldsCount(4)
-        self.SetStatusWidths([16, 400, 150, -1])#30, 30,
-
-        self.h = self.GetClientSize().y
-
-#        self.col = wxStaticText(self, -1, '0   ', wxPoint(3, 4))
-#        self.row = wxStaticText(self, -1, '0   ', wxPoint(37, 4))
-        self.hint = wxStaticText(self, -1, ' ', wxPoint(28, 4),
-          wxSize(390, self.h -5), style = wxST_NO_AUTORESIZE | wxALIGN_LEFT)
-        self.progress = wxGauge(self, -1, 100,
-          pos = wxPoint(422+Preferences.editorProgressFudgePosX, 2),
-          size = wxSize(150, self.h -2 + Preferences.editorProgressFudgeSizeY))
-
-    def setHint(self, hint):
-        self.hint.SetLabel(hint)
-        self.hint.SetSize(wxSize(390, self.h -5))
-        self.hint.SetToolTipString(hint)
-
-    def OnEditorNotification(self, event):
-        self.setHint(event.message)
 
 #-----Model hoster--------------------------------------------------------------
 
@@ -1526,6 +1489,8 @@ class ModulePage:
             model.save()
             model.editor.updateModulePage(model)
             model.editor.updateTitle()
+
+        model.editor.statusBar.setHint('%s saved.'%os.path.basename(model.filename))
 
     def OnPageChange(self, event):
         viewIdx = event.GetSelection()
