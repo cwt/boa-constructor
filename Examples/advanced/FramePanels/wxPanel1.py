@@ -5,7 +5,7 @@ from wxPython.wx import *
 def create(parent):
     return wxPanel1(parent)
 
-[wxID_WXPANEL1, wxID_WXPANEL1STATICTEXT1, wxID_WXPANEL1TEXTCTRL1, 
+[wxID_WXPANEL1, wxID_WXPANEL1STATICTEXT1, wxID_WXPANEL1TEXTCTRL1,
 ] = map(lambda _init_ctrls: wxNewId(), range(3))
 
 class wxPanel1(wxPanel):
