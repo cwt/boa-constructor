@@ -510,12 +510,12 @@ def html2txt(htmlblock):
 def getEntireWxNamespace():
     """ Return a dictionary containing the entire (non filtered) wxPython
         namespace """
-    from wxPython import wx, html, htmlhelp, grid, calendar, stc, ogl
+    from wxPython import wx, html, htmlhelp, grid, calendar, stc
     from wxPython import help, gizmos, wizard
     namespace = {}
     map(namespace.update, [wx.__dict__, html.__dict__, htmlhelp.__dict__,
                            grid.__dict__, calendar.__dict__, 
-                           stc.__dict__, ogl.__dict__, gizmos.__dict__,
+                           stc.__dict__, gizmos.__dict__,
                            help.__dict__, wizard.__dict__])
     return namespace
 
