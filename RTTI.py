@@ -18,7 +18,7 @@ def sort_proxy(self, other):
 class PropertyWrapper:
     def __init__(self, name, rType, getter, setter):
         """ Types: 'CtrlRoute', 'CompnRoute', 'EventRoute', 'NoneRoute', 
-                   'IndexRoute', 'ZopeRoute'
+                   'IndexRoute', 'NameRoute'
         """
     
         self.name = name
@@ -56,7 +56,7 @@ class PropertyWrapper:
             return self.getter(params[0])
         elif self.routeType == 'IndexRoute' and self.compn and len(params):
             return self.getter(self.ctrl, params[0])
-        elif self.routeType == 'ZopeRoute':
+        elif self.routeType == 'NameRoute':
             return self.getter(self.name)
         else:
             return None
@@ -74,7 +74,7 @@ class PropertyWrapper:
             self.setter(self.ctrl, params[0], value)
         elif self.routeType == 'ReApplyRoute' and self.compn and len(params):
             apply(self.setter, [self.ctrl], params)
-        elif self.routeType == 'ZopeRoute':
+        elif self.routeType == 'NameRoute':
             return self.setter(self.name, value)
     
     def getSetterName(self):
