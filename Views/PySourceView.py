@@ -925,7 +925,9 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
         if selStartPos != selEndPos:
             self.processSelectionBlock(self.processIndent)
         else:
+            self.GotoPos(self.PositionFromLine(self.LineFromPosition(selStartPos)))
             self.AddText(Utils.getIndentBlock())
+            self.SetSelection(selStartPos, selStartPos)
 
     def OnDedent(self, event):
         selStartPos, selEndPos = self.GetSelection()
@@ -933,9 +935,12 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
         indentLevel = len(indentBlock)
         if selStartPos != selEndPos:
             self.processSelectionBlock(self.processDedent)
-        elif self.GetTextRange(selStartPos - indentLevel, selStartPos) == indentBlock:
-            self.SetSelection(selStartPos - indentLevel, selStartPos)
-            self.ReplaceSelection('')
+        else:
+            linePos = self.PositionFromLine(self.LineFromPosition(selStartPos))
+            if self.GetTextRange(linePos, linePos + indentLevel) == indentBlock:
+                self.SetSelection(linePos, linePos + indentLevel)
+                self.ReplaceSelection('')
+                self.SetSelection(selStartPos, selStartPos)
 
     def OnAddSimpleApp(self, event):
         self.BeginUndoAction()
