@@ -648,7 +648,7 @@ class NameValue:
                         srcVal = srcVal[0]
                     else:
                         srcVal = ''
-                if Utils.startswith(srcVal, 'self.') and \
+                if srcVal.startswith('self.') and \
                  hasattr(companion.designer.model.specialAttrs['self'], srcVal[5:]):
                     return PropertyEditors.LockedPropEdit, srcVal, false
         return None, '', false
