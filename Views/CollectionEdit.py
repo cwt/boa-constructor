@@ -86,9 +86,9 @@ class CollectionEditor(wxFrame, Utils.FrameRestorerMixin):
         acclst.append( (keyDefs['Delete'][0], keyDefs['Delete'][1], wId) )
         self.toolLst.append(wId)
         self.toolBar.AddSeparator()
-        Utils.AddToolButtonBmpIS(self, self.toolBar, 'Images/Shared/Up.png',
+        Utils.AddToolButtonBmpIS(self, self.toolBar, 'Images/Shared/up.png',
           'Up', self.OnUpClick)
-        Utils.AddToolButtonBmpIS(self, self.toolBar, 'Images/Shared/Down.png',
+        Utils.AddToolButtonBmpIS(self, self.toolBar, 'Images/Shared/down.png',
           'Down', self.OnDownClick)
         self.toolBar.AddSeparator()
         wId = Utils.AddToolButtonBmpIS(self, self.toolBar,
