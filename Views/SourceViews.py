@@ -6,12 +6,12 @@
 #
 # Created:     2000/05/05
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999 - 2002 Riaan Booysen
+# Copyright:   (c) 1999 - 2003 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
 print 'importing Views.SourceViews'
 
-import os, string, time
+import time
 
 from wxPython.wx import *
 from wxPython.stc import *
@@ -45,6 +45,7 @@ class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView):
     pasteBmp = 'Images/Shared/Paste.png'
     findBmp = 'Images/Shared/Find.png'
     findAgainBmp = 'Images/Shared/FindAgain.png'
+    printBmp = 'Images/Shared/Print.png'
 
     clipboardPlus = ClipboardPlus()
 
@@ -63,17 +64,18 @@ class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView):
               ('-', None, '', ''),
               ('Find \ Replace', self.OnFind, self.findBmp, 'Find'),
               ('Find again', self.OnFindAgain, self.findAgainBmp, 'FindAgain'),
+              ('Print...', self.OnPrint, self.printBmp, ''),
               ('Mark place', self.OnMarkPlace, '-', 'MarkPlace'),
               ('Goto line', self.OnGotoLine, '-', 'GotoLine'),
               ('STC settings', self.OnSTCSettings, '-', ''),
               ##('Toggle Record macro', self.OnRecordMacro, '-', ''),
               ##('Playback macro', self.OnPlaybackMacro, '-', ''),
-              ('-', None, '-', ''),
-              ('Translate selection (via HTTP)', self.OnTranslate, '-', ''),
-              ('Spellcheck selection (via HTTP)', self.OnSpellCheck, '-', ''),
+              ##('-', None, '-', ''),
+              ##('Translate selection (via HTTP)', self.OnTranslate, '-', ''),
+              ##('Spellcheck selection (via HTTP)', self.OnSpellCheck, '-', ''),
               )
 
-        EditorViews.EditorView.__init__(self, model, a + actions, defaultAction)
+        EditorViews.EditorView.__init__(self, model, a + actions, -1)#defaultAction)
 
         self.SetEOLMode(wxSTC_EOL_LF)
         self.eol = endOfLines[self.GetEOLMode()]
@@ -108,6 +110,8 @@ class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView):
         EVT_MENU(self, wxID_STC_EOL, self.OnSTCSettingsEOL)
         EVT_MENU(self, wxID_STC_BUF, self.OnSTCSettingsBufferedDraw)
         EVT_MENU(self, wxID_STC_IDNT, self.OnSTCSettingsIndentGuide)
+        
+        EVT_MIDDLE_UP(self, self.OnEditPasteSelection)
 
     def getModelData(self):
         return self.model.data
@@ -121,6 +125,7 @@ class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView):
 
     def refreshCtrl(self):
         self.pos = self.GetCurrentPos()
+        selection = self.GetSelection()
         prevVsblLn = self.GetFirstVisibleLine()
         self._blockUpdate = true
         try:
@@ -137,6 +142,8 @@ class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView):
             self.GotoPos(self.pos)
             curVsblLn = self.GetFirstVisibleLine()
             self.LineScroll(0, prevVsblLn - curVsblLn)
+            # XXX not preserving selection
+            self.SetSelection(*selection)
         finally:
             self._blockUpdate = false
 
@@ -157,10 +164,12 @@ class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView):
 
         pos = self.GetCurrentPos()
         prevVsblLn = self.GetFirstVisibleLine()
+        sel = self.GetSelection()
 
         self.setModelData(str(self.GetText()))
 
         self.GotoPos(pos)
+        self.SetSelection(*sel)
         curVsblLn = self.GetFirstVisibleLine()
         self.LineScroll(0, prevVsblLn - curVsblLn)
 
@@ -204,11 +213,11 @@ class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView):
         cp = self.GetCurrentPos()
         ln = self.LineFromPosition(cp)
         indent = cp - self.PositionFromLine(ln)
-        lns = string.split(text, self.eol)
+        lns = text.split(self.eol)
         # XXX adapt for tab mode
-        text = string.join(lns, self.eol+indent*' ')
+        text = (self.eol+indent*' ').join(lns)
 
-        selTxtPos = string.find(text, '# Your code')
+        selTxtPos = text.find('# Your code')
         self.InsertText(cp, text)
         self.nonUserModification = true
         self.updateViewState()
@@ -241,8 +250,8 @@ class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView):
         self.BeginUndoAction()
         try:
             sls, sle = self.reselectSelectionAsBlock()
-            textLst = func(string.split(self.GetSelectedText(), self.eol), indtBlock)[:-1]
-            self.ReplaceSelection(string.join(textLst, self.eol)+self.eol)
+            textLst = func(self.GetSelectedText().split(self.eol), indtBlock)[:-1]
+            self.ReplaceSelection(self.eol.join(textLst)+self.eol)
             if sle > sls:
                 self.SetSelection(self.PositionFromLine(sls),
                   self.PositionFromLine(sle)-1)
@@ -286,6 +295,15 @@ class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView):
 
     def OnEditPaste(self, event):
         self.Paste()
+    
+    def OnEditPasteSelection(self, event):
+        # XXX I'm limiting this to GTK for the moment, too non standard for MSW
+        # XXX Maybe this should rather be a preference
+        if wxPlatform == '__WXGTK__':
+            text = self.GetSelectedText()
+            pos = self.PositionFromPoint(event.GetPosition())
+            self.InsertText(pos, text)
+            self.SetSelection(pos, pos + len(text))
 
     def OnEditUndo(self, event):
         self.Undo()
@@ -296,7 +314,7 @@ class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView):
     # XXX
     def doFind(self, pattern):
         self.lastSearchResults = Search.findInText(\
-          string.split(self.GetText(), self.eol), pattern, false)
+          self.GetText().split(self.eol), pattern, false)
         self.lastSearchPattern = pattern
         if len(self.lastSearchResults):
             self.lastMatchPosition = 0
@@ -378,6 +396,7 @@ class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView):
             self.model.editor.statusBar.setColumnPos(col)
 
     def OnTranslate(self, event):
+        # XXX web service no longer works
         import TranslateDlg
         dlg = TranslateDlg.create(None, self.GetSelectedText())
         try:
@@ -387,6 +406,7 @@ class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView):
             dlg.Destroy()
 
     def OnSpellCheck(self, event):
+        # XXX web service no longer works
         import TranslateDlg
         self.model.editor.setStatus('Spell checking...', 'Warning')
         wxBeginBusyCursor()
@@ -479,6 +499,14 @@ class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView):
         self.model.editor.setStatus('Recording macro: %s'%str(data), 'Warning')
         self.stcMacroCmds.append(data)
 
+    def OnPrint(self, event):
+        import STCPrinting
+        
+        dlg = STCPrinting.STCPrintDlg(self.model.editor, self, self.model.filename)
+        dlg.ShowModal()
+        dlg.Destroy()
+        
+
 class TextView(EditorStyledTextCtrl, TextSTCMix):
     viewName = 'Text'
     def __init__(self, parent, model):
@@ -486,5 +514,5 @@ class TextView(EditorStyledTextCtrl, TextSTCMix):
         TextSTCMix.__init__(self, wxID_TEXTVIEW)
         self.active = true
 
-ExplorerNodes.langStyleInfoReg.append( ('Text', 'text', TextSTCMix,
-      'stc-styles.rc.cfg') )
+ExplorerNodes.langStyleInfoReg.append( 
+      ('Text', 'text', TextSTCMix, 'stc-styles.rc.cfg') )
