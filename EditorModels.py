@@ -20,127 +20,29 @@
 
 # XXX form inheritance
 
-import moduleparse, string, os, sys, re, py_compile
-from os import path
-import relpath, pprint
-from Companions import Companions
-import Editor, ErrorStack
-from Views.DiffView import PythonSourceDiffView
-from Views.AppViews import AppCompareView
-import Preferences, Utils
-from wxPython import wx 
-from Utils import AddToolButtonBmpIS
+import string, os, sys, re, py_compile, relpath, pprint
 from time import time, gmtime, strftime
 from stat import *
+import profile
+
+import Preferences, Utils, Editor, ErrorStack
+from Companions import Companions
+from Views.DiffView import PythonSourceDiffView
+from Views.AppViews import AppCompareView
+from Views import ObjCollection
+from wxPython import wx 
+from Utils import AddToolButtonBmpIS
 from PrefsKeys import keyDefs
 from Debugger import Debugger
+import moduleparse
+from sourceconst import *
 
-#from wxPython.lib.dialogs import wxScrolledMessageDialog
 import wxPython
 from PhonyApp import wxProfilerPhonyApp
-import profile
+
 
 true = 1
 false = 0
-
-boaIdent = '#Boa'
-boaClass = 'BoaApp'
-#nl = chr(13)+chr(10)
-init_ctrls = '_init_ctrls'
-init_coll = '_init_coll_'
-init_utils = '_init_utils'
-init_props = '_init_props'
-init_events = '_init_events'
-defEnvPython = '#!/bin/env python\n'
-defImport = 'from wxPython.wx import *\n\n'
-defSig = boaIdent+':%s:%s\n\n'
-
-defCreateClass = '''def create(parent):
-    return %s(parent)
-\n'''
-wid = '[A-Za-z0-9_, ]*'
-srchWindowIds = '\[(?P<winids>[A-Za-z0-9_, ]*)\] = '+\
-'map\(lambda %s: [wx]*NewId\(\), range\((?P<count>\d+)\)\)'
-defWindowIds = '''[%s] = map(lambda %s: wxNewId(), range(%d))\n'''
-
-defClass = '''
-class %s(%s):
-    def '''+init_utils+'''(self): 
-        pass
-
-    def '''+init_ctrls+'''(self, prnt): 
-        %s.__init__(%s)
-        self.'''+init_utils+'''()
-        
-    def __init__(self, parent): 
-        self.'''+init_ctrls+'''(parent)
-'''
-
-# This the closest I get to destroying partially created 
-# frames without mucking up my indentation. 
-# This doesn't not handle the case where the constructor itself fails
-# Replace defClass with this in line 412 if you feel the need
-
-defSafeClass = '''
-class %s(%s):
-    def '''+init_utils+'''(self): 
-        pass
-
-    def '''+init_ctrls+'''(self, prnt): 
-        %s.__init__(%s)
-        
-    def __init__(self, parent): 
-        self.'''+init_utils+'''()
-        try: 
-            self.'''+init_ctrls+'''(parent)
-
-            # Your code
-        except: 
-            self.Destroy()
-            import traceback
-            traceback.print_exc()
-            raise
-'''
-
-defApp = '''import %s
-
-modules = {'%s' : [1, 'Main frame of Application', '%s.py']}
-
-class BoaApp(wxApp):
-    def OnInit(self):
-        self.main = %s.create(None)
-        self.main.Show(true)
-        self.SetTopWindow(self.main)
-        return true
-
-def main():
-    application = BoaApp(0)
-    application.MainLoop()
-
-if __name__ == '__main__':
-    main()'''
-
-defInfoBlock = '''#-----------------------------------------------------------------------------
-# Name:        %s
-# Purpose:     %s
-#                
-# Author:      %s
-#                
-# Created:     %s
-# RCS-ID:      %s
-# Copyright:   %s
-# Licence:     %s
-#-----------------------------------------------------------------------------
-''' 
-
-defSetup_py = '''
-from distutils.core import setup
-
-setup(name = '%s',
-      version = '%s',
-      scripts = [%s],
-)
-'''
 
 # Indexes for the imagelist
 [imgAppModel, imgFrameModel, imgDialogModel, imgMiniFrameModel, 
@@ -258,7 +160,7 @@ class EditorModel:
             self.views[view].refreshModel()
 
     def getPageName(self):
-        return path.splitext(path.basename(self.filename))[0]
+        return os.path.splitext(os.path.basename(self.filename))[0]
 
 class FolderModel(EditorModel):
     modelIdentifier = 'Folder'
@@ -292,11 +194,11 @@ class CVSFolderModel(FolderModel):
         finally: f.close()
 
     def readFiles(self):
-        self.root = self.readFile(path.join(self.filepath, 'Root'))
-        self.repository = self.readFile(path.join(self.filepath, 'Repository'))
+        self.root = self.readFile(os.path.join(self.filepath, 'Root'))
+        self.repository = self.readFile(os.path.join(self.filepath, 'Repository'))
         self.entries = []
 
-        f = open(path.join(self.filepath, 'Entries'), 'r')
+        f = open(os.path.join(self.filepath, 'Entries'), 'r')
         dirpos = 0 
         try:
             txtEntries = f.readlines()
@@ -361,8 +263,8 @@ class PackageModel(EditorModel):
 
     def __init__(self, data, name, editor, saved):
         EditorModel.__init__(self, name, data, editor, saved)
-        self.packagePath, dummy = path.split(self.filename)
-        dummy, self.packageName = path.split(self.packagePath)
+        self.packagePath, dummy = os.path.split(self.filename)
+        dummy, self.packageName = os.path.split(self.packagePath)
         self.savedAs = true
         self.modified = false
     
@@ -378,10 +280,10 @@ class PackageModel(EditorModel):
         return accls
 
     def openPackage(self, name):
-        self.editor.openModule(path.join(self.packagePath, name, self.pckgIdnt))
+        self.editor.openModule(os.path.join(self.packagePath, name, self.pckgIdnt))
     
     def openFile(self, name):
-        self.editor.openModule(path.join(self.packagePath, name + self.ext))
+        self.editor.openModule(os.path.join(self.packagePath, name + self.ext))
     
     def generateFileList(self):
         """ Generate a list of modules and packages in the package path """
@@ -389,13 +291,13 @@ class PackageModel(EditorModel):
         packages = []
         modules = []
         for file in files:
-            filename = path.join(self.packagePath, file)
-            mod, ext = path.splitext(file)
+            filename = os.path.join(self.packagePath, file)
+            mod, ext = os.path.splitext(file)
             if file == self.pckgIdnt: continue
-            elif (ext == self.ext) and path.isfile(filename):
+            elif (ext == self.ext) and os.path.isfile(filename):
                 modules.append((mod, identifyFile(filename)[0]))
-            elif path.isdir(filename) and \
-              path.exists(path.join(filename, self.pckgIdnt)):
+            elif os.path.isdir(filename) and \
+              os.path.exists(os.path.join(filename, self.pckgIdnt)):
                 packages.append((file, PackageModel))
         
         return packages + modules
@@ -456,7 +358,7 @@ class ModuleModel(SourceModel):
 
     def __init__(self, data, name, editor, saved, app = None):
         SourceModel.__init__(self, name, data, editor, saved)
-        self.moduleName = path.split(self.filename)[1]
+        self.moduleName = os.path.split(self.filename)[1]
         self.app = app
         self.debugger = None
         if data: self.update()
@@ -525,13 +427,13 @@ class ModuleModel(SourceModel):
     def run(self, args = ''):
         """ Excecute the current saved image of the application. """
         if self.savedAs:
-            cwd = path.abspath(os.getcwd())
-            os.chdir(path.dirname(self.filename))
+            cwd = os.path.abspath(os.getcwd())
+            os.chdir(os.path.dirname(self.filename))
             oldErr = sys.stderr
             oldSysPath = sys.path[:]
             try:
                 sys.path.append(Preferences.pyPath)
-                cmd = '"%s" %s %s'%(sys.executable, path.basename(self.filename), args)
+                cmd = '"%s" %s %s'%(sys.executable, os.path.basename(self.filename), args)
                 print 'executing', cmd, args
                 
                 from ModRunner import PreferredRunner
@@ -581,11 +483,11 @@ class ModuleModel(SourceModel):
     def cyclops(self):
         """ Excecute the current saved image of the application. """
         if self.savedAs:
-            cwd = path.abspath(os.getcwd())
-            os.chdir(path.dirname(self.filename))
+            cwd = os.path.abspath(os.getcwd())
+            os.chdir(os.path.dirname(self.filename))
             page = ''
             try:
-                name = path.basename(self.filename)
+                name = os.path.basename(self.filename)
 
                 # excecute Cyclops in Python with module as parameter
                 command = '"%s" "%s" "%s"'%(sys.executable, 
@@ -616,8 +518,8 @@ class ModuleModel(SourceModel):
     def profile(self):
         # XXX Should change to the profile file directory
         if self.savedAs:
-            cwd = path.abspath(os.getcwd())
-            os.chdir(path.dirname(self.filename))
+            cwd = os.path.abspath(os.getcwd())
+            os.chdir(os.path.dirname(self.filename))
 
             tmpApp = wxPython.wx.wxApp
             wxProfilerPhonyApp.realApp = self.editor.app
@@ -625,7 +527,7 @@ class ModuleModel(SourceModel):
             try:
                 prof = profile.Profile()
                 try:
-                    prof = prof.run('execfile("%s")'% path.basename(self.filename))
+                    prof = prof.run('execfile("%s")'% os.path.basename(self.filename))
                 except SystemExit:
                     pass
                 prof.create_stats()
@@ -655,7 +557,7 @@ class ModuleModel(SourceModel):
         EditorModel.saveAs(self, filename)
         if self.app: 
             self.app.moduleSaveAsNotify(self, oldFilename, filename)
-        self.moduleName = path.basename(filename)
+        self.moduleName = os.path.basename(filename)
         self.notify()
 
     def diff(self, filename):
@@ -834,144 +736,6 @@ class ClassModel(ModuleModel):
 ##        header = string.split(string.strip(self.getModule().source[0]), ':')
 ##        if (len(header) == 3) and (header[0] == '#Boa'):
 ##            self.getModule().source[0] = string.join((header[0], header[1], newName), ':')
-
-class ObjectCollection:
-    def __init__(self):#, creators = [], properties = [], events = [], collections = []):
-        self.creators = []
-        self.properties = []
-        self.events = []
-        self.collections = []
-        self.initialisers = []
-        self.finalisers = []
-        
-        self.creatorByName = {}
-        self.propertiesByName = {}
-        self.eventsByName = {}
-        self.collectionsByName = {}
-
-    def __repr__(self):
-        return '<ObjectCollection instance: %s,\n %s,\n %s,\n %s,\nBy name:\n %s,\n %s,\n %s,\n %s,>'% (`self.creators`, `self.properties`, 
-           `self.collections`, `self.events`, 
-           `self.creatorByName`, `self.propertiesByName`, 
-           `self.collectionsByName`, `self.eventsByName`)
-
-    def setup(self, creators, properties, events, collections, initialisers, finalisers):
-        self.creators = creators
-        self.properties = properties
-        self.events = events
-        self.collections = collections
-        self.initialisers = initialisers
-        self.finalisers = finalisers
-    
-    def merge(self, objColl):
-        """ Merge another object collection with this one """
-
-        def mergeList(myLst, newLst):
-            for item in newLst:
-                myLst.append(item)
-        
-        mergeList(self.creators, objColl.creators)
-        mergeList(self.properties, objColl.properties)
-        mergeList(self.events, objColl.events)
-        mergeList(self.collections, objColl.collections)
-        mergeList(self.initialisers, objColl.initialisers)
-        mergeList(self.finalisers, objColl.finalisers)
-        
-        self.indexOnCtrlName()
-    
-    def getCtrlNames(self):
-        """ Return a list of (name, class) tuples """
-        return map(lambda x, d=self.creatorByName: (d[x][0].comp_name, 
-              d[x][0].class_name), self.creatorByName.keys())
-
-    def removeReference(self, name, method):
-        i = 0
-        while i < len(self.collections):
-            if self.collections[i].method == method:
-                del self.collections[i]
-            else:
-                i = i + 1
-
-        if self.collectionsByName.has_key(name):
-            namedColls = self.collectionsByName[name]
-            
-            i = 0
-            while i < len(namedColls):
-                if namedColls[i].method == method:
-                    del namedColls[i]
-                else:
-                    i = i + 1
-
-        i = 0
-        while i < len(self.properties):
-            prop = self.properties[i]
-            if len(prop.params) and prop.params[0][5:len(method) +5] == method:
-                del self.properties[i]
-            else:
-                i = i + 1
-
-        i = 0
-        if self.propertiesByName.has_key(name):
-            props = self.propertiesByName[name]
-            while i < len(props):
-                prop = props[i]
-                if len(prop.params) and prop.params[0][5:len(method) +5] == method:
-                    del props[i]
-                else:
-                    i = i + 1
-
-    def renameList(self, lst, dict, name, new_name):
-        for item in lst:
-            item.renameCompName2(name, new_name)
-        
-        # keep named colls in sync
-        if dict.has_key(name):
-            dict[new_name] = dict[name]
-            del dict[name]
-
-    def renameCtrl(self, name, new_name):
-        self.renameList(self.creators, self.creatorByName, name, new_name)
-        self.renameList(self.properties, self.propertiesByName, name, new_name)
-        self.renameList(self.events, self.eventsByName, name, new_name)
-        self.renameList(self.collections, self.collectionsByName, name, new_name)
-            
-    def deleteCtrl(self, name):
-        for list in (self.creators, self.properties, self.events):
-            i = 0
-            while i < len(list):
-                if list[i].comp_name == name:
-                    del list[i]
-                else:
-                    i = i + 1
-    
-##    def findRootParent(self):
-##        for crt in self.creators:
-##            if crt.params.has_key('parent'):
-                
-    def reparent(self, oldParent, newParent):
-        for crt in self.creators:
-            if crt.params.has_key('parent') and crt.params['parent'] == oldParent:
-                crt.params['parent'] = newParent
-
-    def setupList(self, list):
-        dict = {}
-        for item in list:
-            if not dict.has_key(item.comp_name):
-                dict[item.comp_name] = []
-            dict[item.comp_name].append(item)
-        return dict
-        
-    def indexOnCtrlName(self):
-        self.creatorByName = self.setupList(self.creators)
-        self.propertiesByName = self.setupList(self.properties)
-        self.eventsByName = self.setupList(self.events)
-        self.collectionsByName = self.setupList(self.collections)
-
-def isInitCollMeth(meth):
-    return len(meth) > len(init_coll) and meth[:11] == init_coll
-
-def getCollName(collInitMethod, name):
-    return collInitMethod[len('_init_coll_'+name)+1:]
     
 class BaseFrameModel(ClassModel):
     modelIdentifier = 'Frames'
@@ -1044,7 +808,7 @@ class BaseFrameModel(ClassModel):
         """ Create a new ObjectCollection by parsing the given method body """
         import methodparse
         # Collection method
-        if isInitCollMeth(meth):
+        if ObjCollection.isInitCollMeth(meth):
             try:
                 res = Utils.split_seq(codeBody, '', string.strip)
                 inits, body, fins = res[:3]
@@ -1074,7 +838,7 @@ class BaseFrameModel(ClassModel):
             properties = allInitialisers.get(methodparse.PropertyParse, [])
             events = allInitialisers.get(methodparse.EventParse, [])
 
-        newObjColl = ObjectCollection()
+        newObjColl = ObjCollection.ObjectCollection()
         newObjColl.setup(creators, properties, events, collectionInits, inits, fins)
         
         return newObjColl
@@ -1229,7 +993,7 @@ class AppModel(ClassModel):
         
     def convertToUnixPath(self, filename):
         # Don't convert absolute windows paths, will stay illegal until saved
-        if path.splitdrive(filename)[0] != '':
+        if os.path.splitdrive(filename)[0] != '':
             return filename
         else:
             return string.join(string.split(filename, '\\'), '/')
@@ -1297,15 +1061,15 @@ class AppModel(ClassModel):
             
     def idModel(self, name):
         absPath = self.normaliseModuleRelativeToApp(self.modules[name][2])
-        if path.exists(absPath):
+        if os.path.exists(absPath):
             self.moduleModels[name], main = identifyFile(absPath)
         else:
             if self.editor.modules.has_key(absPath):
                 self.moduleModels[name], main = identifySource(
                     self.editor.modules[absPath].model.getModule().source)
-            elif self.editor.modules.has_key(path.basename(absPath)):
+            elif self.editor.modules.has_key(os.path.basename(absPath)):
                 self.moduleModels[name], main = identifySource(
-                    self.editor.modules[path.basename(absPath)
+                    self.editor.modules[os.path.basename(absPath)
                                         ].model.getModule().source)
             else:
                 print 'could not find unsaved module', absPath, self.editor.modules
@@ -1348,10 +1112,10 @@ class AppModel(ClassModel):
             self.addModule(fn, '')
         
     def addModule(self, filename, descr):
-        name, ext = path.splitext(path.basename(filename))
+        name, ext = os.path.splitext(path.basename(filename))
         if self.modules.has_key(name): raise 'Module exists in application'
         if self.savedAs:
-            relative = relpath.relpath(path.dirname(self.filename), filename)
+            relative = relpath.relpath(os.path.dirname(self.filename), filename)
         else:
             relative = filename
         self.modules[name] = [0, descr, self.convertToUnixPath(relative)]
@@ -1375,10 +1139,10 @@ class AppModel(ClassModel):
     def moduleFilename(self, name):
         if not self.modules.has_key(name): raise 'No such module in application: '+name
         if self.savedAs:
-            if path.isabs(self.modules[name][2]):
+            if os.path.isabs(self.modules[name][2]):
                 absPath = self.modules[name][2]
             else:
-                absPath = path.normpath(path.join(path.dirname(self.filename), 
+                absPath = os.path.normpath(os.path.join(os.path.dirname(self.filename), 
                   self.modules[name][2]))
         else:
             absPath = name + ModuleModel.ext
@@ -1386,13 +1150,13 @@ class AppModel(ClassModel):
 
     def moduleSaveAsNotify(self, module, oldFilename, newFilename):
         if module != self:
-            newName, ext = path.splitext(path.basename(newFilename))
-            oldName = path.splitext(path.basename(oldFilename))[0]
+            newName, ext = os.path.splitext(os.path.basename(newFilename))
+            oldName = os.path.splitext(os.path.basename(oldFilename))[0]
  
             if not self.modules.has_key(oldName): raise 'Module does not exists in application'
 
             if self.savedAs:
-                relative = relpath.relpath(path.dirname(self.filename), newFilename)
+                relative = relpath.relpath(os.path.dirname(self.filename), newFilename)
             else:
                 relative = newFilename
 
@@ -1461,9 +1225,9 @@ class AppModel(ClassModel):
 
     def normaliseModuleRelativeToApp(self, relFilename):
         if not self.savedAs:
-            return path.normpath(path.join(Preferences.pyPath, relFilename))
+            return os.path.normpath(os.path.join(Preferences.pyPath, relFilename))
         else:
-            return path.normpath(path.join(path.dirname(self.filename), relFilename))
+            return os.path.normpath(os.path.join(os.path.dirname(self.filename), relFilename))
         
     def buildImportRelationshipDict(self, modules = None):
         relationships = {}
@@ -1606,12 +1370,12 @@ def identifyFile(filename):
         Assumes header will be part of the first continious comment block """
     f = open(filename)
     try:
-        dummy, name = path.split(filename)
+        dummy, name = os.path.split(filename)
         if name == '__init__.py':
             return PackageModel, ''
         if name == 'setup.py':
             return SetupModuleModel, ''
-        dummy, ext = path.splitext(filename)
+        dummy, ext = os.path.splitext(filename)
         if extMap.has_key(ext):
             return extMap[ext], ''
 ##        if ext == '.txt':
