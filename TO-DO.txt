@@ -1,0 +1,258 @@
+To do
+-----
+
+for 0.0.5
+---------
+
+Visual clipboard functionality: Cut, Copy & Paste.
+
+Multiple selection in the designer.
+- Selections must still update source code after moving
+
+Zope object creation/clipboard support.
+
+CVS update/diff/commit support
+- Import needs to setup masks for recognised file types
+
+Python 2.0 compatability
+
+Menus on Explorer trees to edit config
+
+Toolbar tools for explorer
+
+Debugger polishing
+
+Renamings on clipboard paste file clashes
+
+*
+Other Features
+--------------
+
+Better default property handling, possibly cutting some cruft from
+generated source by omitting unchanged defaults.
+
+Native design time sizer support. I ran into a hitch while doing the
+collection editors. Currently only one type of collection insertion
+method is supported e.g. wxToolbar.AddTool().
+Sizers need various methods and will be done as soon as I overcome this
+limitation.
+Menus will then also support sub-menus and separators.
+
+Constructor style property editor
+
+C++, Makefile support. Personally I plan very basic support and hope
+that someone else will take this further. This should expand into
+useful facilities for extension writing.
+
+Multi parameter method mapping to multiple properties
+
+Browser arrows to traverse actions like view switches, find, code browse etc.
+
+Template for threaded wxPython app?
+
+Update Shell to use wxPython shell.
+
+There should be more interaction possible between your source and
+generated source, your objects should be allowed in generated code
+at worst these properties should just become inactive or grayed out
+while in design mode.
+
+*
+Detail
+------
+
+Editor
+- Last sucessful action or error should display in status bar pref with
+  status picture
+- More actions should use the progress bar
+- Use Idle extensions
+- Add toggleable action type 
+- Refreshing should not delete editor undo history, the update model need changing
+- Parameter tips
+  - Bold current parameter
+- Code completion
+  - Show wx* parent objects methods
+- Code parsing / generation
+  - Should generate/understand multilined code
+Help
+- wx methods help: From Inspector while on property
+- Tag matches in results from search  to be able to jump to the next match
+  in a file. Also have to tidy up colouring so that only text outside <>
+  are coloured. This currently breaks some links.
+
+Documentation View
+- Add functions to documentation
+- Option: Don't print empty sections
+- keep formatting like with module docs
+
+Explore View
+- Move method up/down actions
+
+Zope
+- Propery editing (Maybe in Inspector)
+  - Parse <FORM> tags from zope prop pages?
+  - XMLRPC
+- Replacing FTP completely with http
+  - Advantages
+    - Zope does not need zserver or ftp setup
+    - Firewalls etc.
+    - Not limited to 3 types (document, folder, system obj)
+  - issues:
+    - FTP is very quick
+    - Might need more than one call per folder while browsing
+    - Don't know how to find out which of a list of item is folderish
+      I do not want to do a query on every item in the list!!!
+- Editing ExternalMethods and PythonMethods' Python source in the Editor.
+  - PythonMethods must be implemented over http, they don't support an
+    FTP interface.
+  - ExternalMethods should be loaded from the local filesystem,
+    ExternalMethods don't support properties (why??) and except for parsing
+    HTML, I don't even know how to access their info
+
+Collection editors
+- Move up, move down
+
+Debugging
+- Emulating the mainloop
+- Breaking into running code??
+- Jump to should not place jumped to line at the top
+  or bottom of source page, at 5 lines from top or bottom
+- Multi selection delete in watches
+- Step over steps in
+- Closing with open debugger crashes
+
+UML
+- Make view scrollable and size able
+- Some form of zooming (25%, 50%, 75%, 100%)
+
+Explorer
+- Toolbar commands
+- Simple caching for slow connections
+- Synch Explorer operations like moving files around with
+  any open applications
+- Check file operations against open modules
+- Connect opened module if possible to an open app module
+
+Companions
+- Better initial sizes for a few controls
+
+CVS
+- Conflict resolution editor integration
+- Update/Commit/Diff from SourceView
+- Visual interface to set options
+- Update open modules if a cvs operation modified an
+  open module
+
+App
+- Add README, CHANGES, INSTALL, BUGS, TODO as optional
+  views on the AppModel
+
+Python 2.0
+- Boa will stay 1.5.2 compatible until at least the end of
+  2000. Will consider using new language features then.
+- Already using some new Python 2.0 modules (ConfigParser, zipfile)
+
+
+
+*
+Roadmap
+-------
+
+Boa 1.0
+- wxPython IDE with visual frame designer
+- Working debugger
+- Layout editors
+- Integrated source control (cvs)
+- Zope Support
+
+Boa 2.0
+- Database support
+  - DB Aware controls
+  - One exiting possibility is hooking a db aware control
+    framework to the ZODB
+- C/C++ extension writing and possibly debugging support
+- wxWindows C++ code generation (maybe)
+- Distutils distribution packaging
+
+
+*
+Scriblings
+----------
+
+Refactoring tools
+* Expand ExploreView to show params & method next to tree
+* Refactorings
+  * Move selection to method
+     - Input: selection, method name
+     - Process: Identify local variables
+                      Pass vars as parameters
+                      Correct indentation
+
+  * Extract common expression
+     - Input: common expr (selection), source (selection), new_name
+     - Process: Find all occurences of common expr in source
+                      Add initialiser above first use of source: 	
+                          new_name = common_expr
+                      Replace occurences with new_name
+
+  * Renaming of Classes/Methods/Functions/Modules within an app,
+     - This seems incredibly hard to do 100% correct given Python's 
+       dynamic nature, but there are interesting possibilities in
+       post mortem inspection of profiler statistics.
+       With a thorough test suite an accurate log of all every 
+       access to a certain function is recorded.
+       This leads to...
+
+  * Testing facilities, how should GUI classes be tested?
+     - Window scraping sucks!
+     - Look into PyUnit
+     - Strategies:
+       - Methods (as opposed to event methods) could be tested with doctest.py
+         another Tim Peters module :)
+         Maybe it can be extended to handle events as follows:
+         - List of events that can be posted and assertion of certain 
+           control values after posting
+         I am not very optimistic about this route as none of my own GUI
+         objects seem testable in a few lines and usually depend on other
+         frames being open/initialised. Nevertheless this needs to be
+         pursued and at least those that are testable should be tested.
+                      
+* Code tools/shortcuts
+  * Expand creation params:
+    class MyClass(YourClass):
+        def __init__(self, param1, param2, ...):
+    to:
+    class MyClass(YourClass):
+        def __init__(self, param1, param2, ...):
+            YourClass.__init__(self, param1, param2, ...)
+            self.param1 = param1
+            self.param2 = param2
+            ...
+
+  * Window id registration:
+	wxID_*
+    to:
+    [wxID_*, ...] = map(lambda i: wxNewId(), range(n))
+
+  * Event creation:
+	EVT_*(self, id, self.OnEvtFunc) 
+    to:
+        def OnEvtFunc(self, event):
+            |
+
+
+
+UML
+* Update attibutes in uml
+
+Look at Idle's class browser source parser and Idle extensions
+
+_Fundamental changes_
+
+Handle more than one class per source file
+
+Add inheritable components
+
+
+Add revision entry frmt:
+# Revision 1.23  1999/08/03 20:49:05  riaan
