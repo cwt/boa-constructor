@@ -37,6 +37,9 @@ import SelectionTags
 [wxID_EDITSELECTLEFT, wxID_EDITSELECTRIGHT, wxID_EDITSELECTUP, wxID_EDITSELECTDOWN,
 ] = Utils.wxNewIds(4)
 
+# XXX When opening a frame with a connected menubar, the frame is not selected
+# XXX in the inspector
+
 class DesignerView(wxFrame, InspectableObjectView, Utils.FrameRestorerMixin):
     """ Frame Designer for design-time creation/manipulation of visual controls
         on frames. """
@@ -866,6 +869,7 @@ class DesignerView(wxFrame, InspectableObjectView, Utils.FrameRestorerMixin):
     def OnEditor(self, event):
         """ Bring Editor to the front """
         self.model.editor.restore()
+        self.model.editor.modules[self.model.filename].focus()
 
     def OnInspector(self, event):
         """ Bring Inspector to the front """
@@ -899,21 +903,21 @@ class DesignerView(wxFrame, InspectableObjectView, Utils.FrameRestorerMixin):
         if self.inspector.selCmp:
             Help.showCtrlHelp(self.inspector.selCmp.GetClass())
 
-    def OnAlignSelected(self, event):
+    def OnAlignSelected(self, event=None):
         """ Show alignment dialog for multi selections"""
         if self.multiSelection:
             dlg = CtrlAlign.ControlAlignmentFrame(self, self.multiSelection)
             try: dlg.ShowModal()
             finally: dlg.Destroy()
 
-    def OnSizeSelected(self, event):
+    def OnSizeSelected(self, event=None):
         """ Show size dialog for multi selections"""
         if self.multiSelection:
             dlg = CtrlSize.ControlSizeFrame(self, self.multiSelection)
             try: dlg.ShowModal()
             finally: dlg.Destroy()
 
-    def OnSelectParent(self, event):
+    def OnSelectParent(self, event=None):
         """ Select parent of the selected control """
         if self.selection:
             self.selectParent(self.selection.selection)
@@ -1197,6 +1201,15 @@ class DesignerView(wxFrame, InspectableObjectView, Utils.FrameRestorerMixin):
                 selName = ''
             self.showCreationOrderDlg(selName)
 
+#---Inspector session-----------------------------------------------------------
+    def doPost(self, inspector):
+        self.saveOnClose = true
+        self.Close()
+
+    def doCancel(self, inspector):
+        self.saveOnClose = false
+        self.confirmCancel = true
+        self.Close()
 
 class DesignerControlsEvtHandler(wxEvtHandler):
     def __init__(self, designer):
