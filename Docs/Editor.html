@@ -1,76 +1,104 @@
-<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
-<html>
-<head>
-   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-   <meta name="GENERATOR" content="Mozilla/4.61 [en] (WinNT; I) [Netscape]">
-   <meta name="Author" content="Riaan Booysen">
-   <title>Editor</title>
-</head>
-<body text="#000000" bgcolor="#FFFFFF" link="#0000EE" vlink="#551A8B" alink="#FF0000">
+<html><head><title>Editor</title></head>
+<body text="#000000" bgcolor="#FFFFFF" link="#0000FF" vlink="#000099" alink="#FF0000">
 
-<center><a href="Boa.html"><img SRC="contents.gif" ALT="Contents" BORDER=0 height=24 width=65></a></center>
-<br>
+<center><a href="index.html"><img SRC="contents.gif" ALT="Home" BORDER=0></a></center>
+
 <table BORDER=0 CELLSPACING=0 CELLPADDING=2 WIDTH="100%" BGCOLOR="#000000" >
-<tr>
-<td>
-<table BORDER=0 CELLSPACING=0 WIDTH="100%" BGCOLOR="#FFFFFF" >
-<tr>
-<td BGCOLOR="#33CCFF">
-<center><img SRC="1x1.GIF" height=1 width=1></center>
-</td>
-</tr>
+  <tr><td>
+  <table BORDER=0 CELLSPACING=0 WIDTH="100%" BGCOLOR="#FFFFFF" >
+    <tr><td BGCOLOR="#99ccff">
+    <center><img SRC="dot.gif" height=1 width=1></center>
+    </td></tr>
+  </table>
+  </td></tr>
 </table>
-</td>
-</tr>
-</table>
+
+
 
 <h2>
 <img SRC="Editor.jpg" height=32 width=32>&nbsp; Editor</h2>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 The Editor is the IDE. The top level notebook represent open modules. A
 module is a source code file like a python module, a Python package, an
 wxApp file or any of the wxFrame variants (To create a module see <a href="Palette.html">Palette</a>)
 <br>For each module the views supported by the module will be hosted on
 a second level notebook. Any actions applicable to the view like refreshing
 the source code or adding a module will be accessible by right clicking
-on the view. Usually a default action will be triggered by double clicking
+on the view or selecting from the 'Edit' menu. Most of these options
+are also available from the toolbar. Usually a default action will be 
+triggered by double clicking
 on a view.
 <br>&nbsp;
 <p><b><font size=+1>Modules</font></b>
 <p>&nbsp;These are the supported modules:
-<table BGCOLOR="#33CCFF" >
+<table>
 <tr>
-<td WIDTH="15%"><b>Python module</b></td>
+<td WIDTH="25%" VALIGN=TOP BGCOLOR="#99ccff" >
 
-<td>Standard python source code file.</td>
+<b>Python module</b></td>
+
+<td VALIGN=TOP BGCOLOR="#99ccff" >
+
+Standard python source code file.</td>
 </tr>
 
 <tr>
-<td VALIGN=TOP><b>Python package</b></td>
+<td WIDTH="25%" VALIGN=TOP BGCOLOR="#99ccff" >
 
-<td>Standard python package, loads any __init__.py and shows it's directory
+<b>Python package</b></td>
+
+<td VALIGN=TOP BGCOLOR="#99ccff" >
+
+Standard python package, loads any __init__.py and shows it's directory
 as a package of modules as well as sub-directories containing a __init__.py
 file.</td>
 </tr>
 
 <tr>
-<td><b>Text</b></td>
+<td WIDTH="25%" VALIGN=TOP BGCOLOR="#99ccff" >
 
-<td>Plain text file</td>
+<b>Text</b></td>
+
+<td VALIGN=TOP BGCOLOR="#99ccff" >
+
+Plain text file</td>
 </tr>
 
 <tr>
-<td VALIGN=TOP><b>wxApp</b></td>
+<td WIDTH="25%" VALIGN=TOP BGCOLOR="#99ccff" >
 
-<td VALIGN=TOP>The module that hosts the wxApp object. A module list is
+<b>wxApp</b></td>
+
+<td VALIGN=TOP BGCOLOR="#99ccff" >
+
+The module that hosts the wxApp object. A module list is
 maintained in this module. The App module controls which is the main frame
 of an application and currently maintains relative paths for the module
 list.</td>
 </tr>
 
 <tr>
-<td VALIGN=TOP><b>wxFrame variants</b></td>
+<td WIDTH="25%" VALIGN=TOP BGCOLOR="#99ccff" >
 
-<td VALIGN=TOP>Currently wrapped wxFrame type modules are <i>wxFrame</i>,
+<b>wxFrame variants</b></td>
+
+<td VALIGN=TOP BGCOLOR="#99ccff" >
+
+Currently wrapped wxFrame type modules are <i>wxFrame</i>,
 <i>wxDialog</i>,
 <i>wxMiniFrame</i>,
 <i>wxMDIParentFrame</i>,
@@ -81,60 +109,105 @@ list.</td>
 
 <p><b><font size=+1>Standard Pages</font></b>
 <p>&nbsp;These are the standard pages:
-<table BGCOLOR="#33CCFF" >
+<table>
 <tr>
-<td WIDTH="15%"><b>Interactive shell&nbsp;</b></td>
+<td WIDTH="25%" VALIGN=TOP BGCOLOR="#99ccff" >
 
-<td>Quick python shell, only one-lines work currently.</td>
+<b>Interactive shell&nbsp;</b></td>
+<td VALIGN=TOP BGCOLOR="#99ccff" >
+
+Simple python shell.</td>
 </tr>
 
 <tr>
-<td VALIGN=TOP><b>Explorer</b></td>
+<td WIDTH="25%" VALIGN=TOP BGCOLOR="#99ccff" >
 
-<td>An Explorer for your filesystem / workspace and sys.path. It shows
+<b>Explorer</b></td>
+<td VALIGN=TOP BGCOLOR="#99ccff" >
+
+An Explorer for your filesystem / workspace and sys.path. It shows
 folders and packages in a tree on the left and all valid Boa modules in
-a list on the right.</td>
+a list on the right.<br>
+CVS folders (cyan) will display their entries file with icons showing if the file
+has been modified since the last check in. CVS update facilities are planned.<br>
+Zope browsing / document editing is also supported.
+<p>
+The explorer configuration can not be edited in the GUI (yet), edit the file
+Explorer.msw.cfg or Explorer.gtk.cfg depending on your platform.
+Under the Explorer section, the following key/values are defined:<br>
+<b>Filesystem</b>: List of root drives or network shares<br>
+<b>Workspaces</b>: Dictionary {name: path} of frequently used source direcories<br>
+<b>DefaultWorkspace</b>: Name of workspace in which Boa will open up.<br>
+<b>Zope</b>: Structure {name: {'host': [host], 'httpport': [httpport], 'ftpport': [ftpport], 'username': [username], 'passwd': [passwd], 'path': [path to object], 'name': [name of object]}}
+
+</td>
 </tr>
 </table>
 
 <p><b><font size=+1>Views</font></b>
 <p>&nbsp;These are the views on modules:
-<table BGCOLOR="#33CCFF" >
+<table>
 <tr ALIGN=LEFT>
-<td VALIGN=TOP WIDTH="15%"><b>Source</b></td>
+<td WIDTH="25%" VALIGN=TOP BGCOLOR="#99ccff" >
 
-<td VALIGN=TOP>Your basic text view on the source code. I've not spent
-time on this and am waiting in gleeful anticipation for something Robin
-is working on.</td>
+<b>Source</b></td>
+<td VALIGN=TOP BGCOLOR="#99ccff" >
+
+Syntax highlighting source code editor. It is based on the fantastic Scintilla
+editor by Neil Hodgson and wrapped for wxWindows by Robin.<br>
+Basic supported functionality:
+<ul>
+ <li>Auto indent/dedent</li>
+ <li>Block indent/dedent</li>
+ <li>Block comment/uncomment</li>
+ <li>Find text</li>
+ <li>Limited code completion and parameter tips</li>
+ <li>Folding</li>
+ <li>Limited code browsing, hold down ctrl and move mouse cursor over source code</li>
+</ul>
+
+</td>
 </tr>
 
 <tr>
-<td><b><a href="Designer.html">Designer</a></b></td>
+<td WIDTH="25%" VALIGN=TOP BGCOLOR="#99ccff" >
 
-<td>This is the GUI bulder view for the source.
-<br>The view is activated by clicking the&nbsp;<a href="Designer.html"><img SRC="Designer-small.JPG" height=20 width=18></a>
+<b><a href="Designer.html">Designer</a></b></td>
+<td VALIGN=TOP BGCOLOR="#99ccff" >
+
+This is the GUI bulder view for the source.<br>
+The view is activated by clicking the&nbsp;<a href="Designer.html"><img SRC="Designer-small.jpg" height=20 width=18></a>
 button</td>
 </tr>
 
 <tr>
-<td><b>Data</b></td>
+<td WIDTH="25%" VALIGN=TOP BGCOLOR="#99ccff" >
 
-<td>The DataView shows the invisible design-time objects. These are objects
+<b>Data</b></td>
+<td VALIGN=TOP BGCOLOR="#99ccff" >
+
+The DataView shows the invisible design-time objects. These are objects
 created from the 'Utilities' palette page.</td>
 </tr>
 
 <tr>
-<td VALIGN=TOP><b>Explore</b></td>
+<td WIDTH="25%" VALIGN=TOP BGCOLOR="#99ccff" >
 
-<td>This view show the list of classes and function defined in a module.
+<b>Explore</b></td>
+<td VALIGN=TOP BGCOLOR="#99ccff" >
+
+This view show the list of classes and function defined in a module.
 Exploding reveals methods and events.
 <br>Use this view for navigating quickly thru your code.</td>
 </tr>
 
 <tr>
-<td VALIGN=TOP><b>Hierarchy</b></td>
+<td WIDTH="25%" VALIGN=TOP BGCOLOR="#99ccff" >
 
-<td>The inheritance hierarchy of the objects in the model, color coded
+<b>Hierarchy</b></td>
+<td VALIGN=TOP BGCOLOR="#99ccff" >
+
+The inheritance hierarchy of the objects in the model, color coded
 as follows:
 <table COLS=2 WIDTH="100%" BGCOLOR="#FFFFFF" >
 <tr>
@@ -159,75 +232,160 @@ as follows:
 </tr>
 
 <tr>
-<td VALIGN=TOP><b>Documentation</b></td>
+<td WIDTH="25%" VALIGN=TOP BGCOLOR="#99ccff" >
 
-<td VALIGN=TOP>An html view on the doc strings in your code. The format
+<b>Documentation</b></td>
+<td VALIGN=TOP BGCOLOR="#99ccff" >
+
+An html view on the doc strings in your code. The format
 is structured around the wxWindows look.</td>
 </tr>
 
 <tr>
-<td VALIGN=TOP><b>UML</b></td>
+<td WIDTH="25%" VALIGN=TOP BGCOLOR="#99ccff" >
 
-<td VALIGN=TOP>OGL enabled view of all the classes and their inheritance
-relationships. This view is not complete by any means, the next sorely
-needed feature to be added will be the ability to save the size and position
-of your classes.</td>
+<b>UML</b></td>
+<td VALIGN=TOP BGCOLOR="#99ccff" >
+
+OGL enabled view of all the classes and their inheritance
+relationships. This view is not complete yet.</td>
 </tr>
 
 <tr>
-<td VALIGN=TOP><b>Info</b></td>
+<td WIDTH="25%" VALIGN=TOP BGCOLOR="#99ccff" >
 
-<td>View for creation and maintenance of the comment block at the top of
+<b>Info</b></td>
+<td VALIGN=TOP BGCOLOR="#99ccff" >
+
+View for creation and maintenance of the comment block at the top of
 code identifying the author, licence etc.</td>
 </tr>
 
 <tr>
-<td VALIGN=TOP><b>ToDo</b></td>
+<td WIDTH="25%" VALIGN=TOP BGCOLOR="#99ccff" >
 
-<td>Displays a list of all comments in your code started with # XXX
+<b>ToDo</b></td>
+<td VALIGN=TOP BGCOLOR="#99ccff" >
+
+Displays a list of all comments in your code started with # XXX
 <br>Handy for reviewing what needs to be done and a jumppad for quick access.</td>
 </tr>
 
 <tr>
-<td VALIGN=TOP><b>Application</b></td>
+<td WIDTH="25%" VALIGN=TOP BGCOLOR="#99ccff" >
 
-<td>View on wxApp files for maintenance of an application. Add edit and
+<b>Application</b></td>
+<td VALIGN=TOP BGCOLOR="#99ccff" >
+
+View on wxApp files for maintenance of an application. Add edit and
 remove modules of the application thru this view.
-<p>Currently the Imports view can only be accessed from this view.
+<p>The Imports view can only be accessed from this view.
 <br>&nbsp;</td>
 </tr>
 
 <tr>
-<td VALIGN=TOP><b>Imports</b></td>
+<td WIDTH="25%" VALIGN=TOP BGCOLOR="#99ccff" >
 
-<td>Another OGL enabled view, this time showing the import relationships
+<b>Imports</b></td>
+<td VALIGN=TOP BGCOLOR="#99ccff" >
+
+Another OGL enabled view, this time showing the import relationships
 between modules of an application.&nbsp;
 <br>i.e. who imports who.</td>
 </tr>
 
 <tr>
-<td><b>Package</b></td>
+<td WIDTH="25%" VALIGN=TOP BGCOLOR="#99ccff" >
 
-<td>Shows all modules and other packages inside a package.</td>
+<b>Package</b></td>
+<td VALIGN=TOP BGCOLOR="#99ccff" >
+
+Shows all modules and other packages inside a package.</td>
 </tr>
+</table>
+
+<p><b><font size=+1>Results Views</font></b>
+<p>&nbsp;There can be multiple instances of these views on a module, they are usually the result of 
+an operation on the module.<br>
+The following are defined:
+
+<table>
+
+<tr ALIGN=LEFT>
+<td WIDTH="25%" VALIGN=TOP BGCOLOR="#99ccff" >
+
+<b>Application find results</b></td>
+<td VALIGN=TOP BGCOLOR="#99ccff" >
+
+List of modules in which the search text was found.</td>
+</tr>
+
+<tr>
+<td WIDTH="25%" VALIGN=TOP BGCOLOR="#99ccff" >
+
+<b>Cyclops</b></td>
+<td VALIGN=TOP BGCOLOR="#99ccff" >
+
+An HTML report of all circular references and related info.<br>
+Based on module by Tim Peters</td>
+</tr>
+
+<tr>
+<td WIDTH="25%" VALIGN=TOP BGCOLOR="#99ccff" >
+
+<b>Profiler</b></td>
+<td VALIGN=TOP BGCOLOR="#99ccff" >
+
+List of profiling statistics. Sortable on the columns.</td>
+</tr>
+
+<tr>
+<td WIDTH="25%" VALIGN=TOP BGCOLOR="#99ccff" >
+
+<b>Diff modules</b></td>
+<td VALIGN=TOP BGCOLOR="#99ccff" >
+
+Difference between two modules. The current module (1) and another 
+selected module (2) is used. <br>
+Differences are noted in the margin. Plus means that a line was 
+added in (2) and minus means that a line from (1) is no longer in (2)<br>
+A block specifies an informational line that underlines the lines in the source with +'s and -'s<br>
+Uses ndiff written by Tim Peters
+</td>
+</tr>
+
+<tr>
+<td WIDTH="25%" VALIGN=TOP BGCOLOR="#99ccff" >
+
+<b>Compare apps</b></td>
+<td VALIGN=TOP BGCOLOR="#99ccff" >
+
+The result of the comparison of the current app and another selected 
+by the file dialog. Double clicking on a result in the list opens a module diff of the two
+modules in the apps.</td>
+</tr>
+
 </table>
 
 <br>&nbsp;
+<br>
 <table BORDER=0 CELLSPACING=0 CELLPADDING=2 WIDTH="100%" BGCOLOR="#000000" >
-<tr>
-<td>
-<table BORDER=0 CELLSPACING=0 WIDTH="100%" BGCOLOR="#FFFFFF" >
-<tr>
-<td BGCOLOR="#33CCFF">
-<center><img SRC="1x1.GIF" height=1 width=1></center>
-</td>
-</tr>
-</table>
-</td>
-</tr>
+  <tr><td>
+  <table BORDER=0 CELLSPACING=0 WIDTH="100%" BGCOLOR="#FFFFFF" >
+    <tr><td BGCOLOR="#99ccff">
+    <center><img SRC="dot.gif" height=1 width=1></center>
+    </td></tr>
+  </table>
+  </td></tr>
 </table>
 
-<center><img SRC="spot-small.GIF" height=9 width=9></center>
 
-</body>
-</html>
+<p>
+</body></html>
+
+
+
+
+
+
+
