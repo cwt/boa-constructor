@@ -1,4 +1,4 @@
-## rc-version: 4 ##
+## rc-version: 5 ##
 # RCS-ID:      $Id$
 
 
@@ -18,7 +18,7 @@ exCaseInsensitiveSorting = false
 edShowFileNewMenu = false
 
 # Should a custom wxSTC paint handler he installed which minimizes refresing?
-edUseCustomSTCPaintEvtHandler = true
+edUseCustomSTCPaintEvtHandler = false
 # There is a problem with folding on GTK
 edSTCFolding = false
 
