@@ -6,7 +6,7 @@
 #
 # Created:     2000
 # RCS-ID:      $Id$
-# Copyright:   (c) 2000 - 2002
+# Copyright:   (c) 2000 - 2003
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 
@@ -15,6 +15,7 @@ from thread import start_new_thread
 
 from wxPython.wx   import *
 from wxPython.html import *
+import wxPython
 import wxPython.lib.wxpTag
 
 import __version__
@@ -49,7 +50,7 @@ progress_text = '''<p>
 </wxp>
 <wxp class="wxWindow">
   <param name="id"    value="%d">
-  <param name="size"  value="wxSize(352, 11)">
+  <param name="size"  value="wxSize(352, 16)">
 </wxp>'''
 
 
@@ -115,11 +116,11 @@ about_text = '''
 <p>A <b>Python</b> IDE and <b>wxPython</b> GUI builder
 </p>
 <p><a href="Boa">http://boa-constructor.sourceforge.net</a><br></u>
-&copy;1999-2002 <b>Riaan Booysen</b>. <a href="MailMe">riaan@e.co.za</a><br>
+&copy;1999-2003 <b>Riaan Booysen</b>. <a href="MailMe">riaan@e.co.za</a><br>
 <a href="Credits">Credits</a>
 </p>
 <p><font size=-1 color="#000077">Python %s</font><br>
-<font size=-1 color="#000077">wxPlatform: %s %d.%d.%d</font></p>
+<font size=-1 color="#000077">wxPlatform: %s %s</font></p>
 <hr>
 <wxp class="wxButton">
   <param name="label" value="Okay">
@@ -168,11 +169,7 @@ class AboutBoxMixin:
         self.html.SetConstraints(lc)
         self.blackback.Layout()
         self.Center(wxBOTH)
-        EVT_BUTTON(self, wxID_YES, self.OnNews)
         self.SetAcceleratorTable(wxAcceleratorTable([(0, WXK_ESCAPE, wxID_OK)]))
-
-    def OnNews(self, event):
-        self.html.LoadPage('http://boa-constructor.sourceforge.net/News.html')
 
     def gotoInternetUrl(self, url):
         try:
@@ -215,15 +212,14 @@ class AboutBox(AboutBoxMixin, wxDialog):
     def setPage(self):
         self.html.SetPage((about_html % (
               Utils.toPyPath('Images/Shared/Boa.jpg'), __version__.version,
-              '', about_text % (sys.version, wxPlatform, wxMAJOR_VERSION,
-              wxMINOR_VERSION, wxRELEASE_NUMBER))))
+              '', about_text % (sys.version, wxPlatform, wxPython.__version__))))
 DefAboutBox = AboutBox
 
 class AboutBoxSplash(AboutBoxMixin, wxFrame):
-    progressBorder = 1
+    progressBorder = 2
     fileOpeningFactor = 10
     def _init_ctrls(self, prnt):
-        wxFrame.__init__(self, size=wxSize(410, 315), pos=(-1, -1),
+        wxFrame.__init__(self, size=wxSize(410, 320), pos=(-1, -1),
               id=wxID_ABOUTBOX, title='Boa Constructor', parent=prnt,
               name='AboutBoxSplash', style=wxSIMPLE_BORDER)
         self.progressId = wxNewId()
