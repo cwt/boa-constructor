@@ -32,14 +32,14 @@ class ModuleRunner:
 
     def recheck(self):
         if self.results:
-            apply(self.checkError, (), self.results)
+            return apply(self.checkError, (), self.results)
 
-    def checkError(self, err, caption, out = None, root = 'Errors'):
+    def checkError(self, err, caption, out = None, root = 'Error'):
         if self.esf:
             if err or out:
                 self.esf.updateCtrls(err, out, root, self.runningDir)
                 self.esf.Show(true)
-                return self.esf
+                return len(err)
             else:
                 return None
         else:
@@ -62,7 +62,7 @@ class ProcessModuleRunner(ModuleRunner):
         in a frame. A cancelable dialog displays while the process executes
         This currently only works for non GUI processes """
     def run(self, cmd, Parser = ErrorStack.StdErrErrorParser,
-            caption='Execute module', root='Errors', autoClose = false):
+            caption='Execute module', root='Error', autoClose = false):
         import ProcessProgressDlg
         dlg = ProcessProgressDlg.ProcessProgressDlg(None, cmd, caption, autoClose)
         try:
