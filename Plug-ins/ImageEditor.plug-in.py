@@ -44,7 +44,6 @@ class ImageEditorPanel(wxPanel):
               id=wxID_IMAGEEDITORPANELMODECHOICE, name='modeChoice',
               parent=self, pos=wxPoint(8, 7), size=wxSize(64, 21), style=0,
               validator=wxDefaultValidator)
-        self.modeChoice.SetColumns(2)
         self.modeChoice.SetToolTipString('Current drawing mode')
         EVT_CHOICE(self.modeChoice, wxID_IMAGEEDITORPANELMODECHOICE,
               self.OnModeChoiceChoice)
