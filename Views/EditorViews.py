@@ -20,7 +20,7 @@ from os import path
 from wxPython.wx import *
 from wxPython.html import *
 
-import PaletteMapping, Search, Preferences, Utils
+import Search, Preferences, Utils
 from moduleparse import CodeBlock
 from Preferences import IS, staticInfoPrefs
 from PrefsKeys import keyDefs
@@ -505,6 +505,7 @@ class CyclopsView(HTMLView, ClosableViewMix):
         if suc and self.stats:
             pass
 
+# XXX Add addReportColumns( list of name, width tuples) !
 class ListCtrlView(wxListCtrl, EditorView):
     viewName = 'List (abstract)'
     def __init__(self, parent, model, listStyle, actions, dclickActionIdx=-1):
@@ -514,6 +515,7 @@ class ListCtrlView(wxListCtrl, EditorView):
         EVT_LIST_ITEM_SELECTED(self, -1, self.OnItemSelect)
         EVT_LIST_ITEM_DESELECTED(self, -1, self.OnItemDeselect)
         EVT_LIST_ITEM_ACTIVATED(self, -1, self.OnItemActivate)
+        # To catch enter to emulate activated event (bug with notebook and key events on windows)
         if wxPlatform == '__WXMSW__':
             EVT_KEY_UP(self, self.OnKeyPressed)
         EVT_LIST_COL_CLICK(self, -1, self.OnColClick)
@@ -524,19 +526,28 @@ class ListCtrlView(wxListCtrl, EditorView):
         self.sortCol = -1
         self.sortData = {}
         self.active = true
+        self.flipDir = false
 
     def pastelPicker(self, idx):
         return idx % 2
 
     def pastelise(self):
         if Preferences.pastels:
-            for idx in range(self.GetItemCount()):
-                item = self.GetItem(idx)
-                if self.pastelPicker(idx):
-                    item.SetBackgroundColour(Preferences.pastelMedium)
-                else:
-                    item.SetBackgroundColour(Preferences.pastelLight)
-                self.SetItem(item)
+            # XXX Hack to reduce flicker on windows
+            vis = self.IsShown()
+            if vis and wxPlatform == '__WXMSW__': self.Show(false)
+            try:
+                for idx in range(self.GetItemCount()):
+                    item = self.GetItem(idx)
+                    if self.pastelPicker(idx):
+                        item.SetBackgroundColour(Preferences.pastelMedium)
+                    else:
+                        item.SetBackgroundColour(Preferences.pastelLight)
+                    self.SetItem(item)
+            finally:
+                # XXX Hack to reduce flicker on windows
+                if vis and wxPlatform == '__WXMSW__': self.Show(true)
+                
 
     def refreshCtrl(self):
         self.DeleteAllItems()
@@ -556,10 +567,18 @@ class ListCtrlView(wxListCtrl, EditorView):
                     self.SetStringItem(index, col, text)
                     col = col + 1
         return index + 1
+    
+    def getSelectedIndex(self):
+        if self.selected == -1:
+            return -1
+        else:
+            return self.GetItemData(self.selected)
 
     def sortColumn(self, itemIdx1, itemIdx2):
         item1 = self.sortData[itemIdx1][self.sortCol]
         item2 = self.sortData[itemIdx2][self.sortCol]
+        if self.flipDir:
+            item1, item2 = item2, item1
         if item1 < item2: return -1
         if item1 > item2: return 1
         return 0
@@ -580,9 +599,15 @@ class ListCtrlView(wxListCtrl, EditorView):
 
     def OnColClick(self, event):
         if event.m_col in self.sortOnColumns:
-            self.sortCol = event.m_col
+            if self.sortCol == event.m_col:
+                self.flipDir = not self.flipDir
+            else:
+                self.sortCol = event.m_col
+                self.flipDir = false
             self.SortItems(self.sortColumn)
-            self.pastelise()
+            # XXX This might be necessary for wxGTK, test !!!
+            if wxPlatform == '__WXGTK__':
+                self.pastelise()
 
     def OnItemActivate(self, event):
         if self.defaultActionIdx < len(self.actions) and self.defaultActionIdx > -1:
@@ -597,6 +622,9 @@ class ToDoView(ListCtrlView):
     def __init__(self, parent, model):
         ListCtrlView.__init__(self, parent, model, wxLC_REPORT,
           (('Goto line', self.OnGoto, self.gotoLineBmp, ()),), 0)
+
+        self.sortOnColumns = [0, 1]
+          
         self.InsertColumn(0, 'Line#')
         self.InsertColumn(1, 'Urgency')
         self.InsertColumn(2, 'Entry')
@@ -619,17 +647,19 @@ class ToDoView(ListCtrlView):
         self.distinctTodos = []
         module = self.model.getModule()
         for todo in module.todos:
-            if todo[0] - 1 == lastLine:
-                self.InsertStringItem(i, '')
-                self.SetStringItem(i, 1, '')
-            else:
-                self.InsertStringItem(i, `todo[0]`)
-                self.SetStringItem(i, 1, 'Unknown')
+            todoStr = string.rstrip(todo[1])
+            idx = -1
+            while todoStr[idx] == '!':
+                idx = idx -1
+            urgency = `idx * -1 -1`
+            
+            if todo[0] - 1 != lastLine:
                 todoCnt = todoCnt + 1
+            lineNo = `todo[0]`
             lastLine = todo[0]
 
             self.distinctTodos.append(todoCnt)
-            self.SetStringItem(i, 2, todo[1])
+            self.addReportItems(i, (lineNo, urgency, todoStr))
             i = i + 1
 
         self.pastelise()
