@@ -2,7 +2,11 @@ from wxPython.wx import *
 from wxPython.lib.activexwrapper import MakeActiveXClass
 import win32com.client.gencache
 
-IEModule = win32com.client.gencache.EnsureModule('{EAB22AC0-30C1-11CF-A7EB-0000C05BAE0B}', 0x0, 1, 1)
+try:
+    IEModule = win32com.client.gencache.EnsureModule('{EAB22AC0-30C1-11CF-A7EB-0000C05BAE0B}', 0x0, 1, 1)
+except Exception, error:
+    raise ImportError, error
+
 defaultNamedNotOptArg = IEModule.defaultNamedNotOptArg
 
 [wxEVT_CWB_BEFORENAVIGATE, wxEVT_CWB_TITLECHANGE, wxEVT_CWB_DOWNLOADBEGIN,
