@@ -6,7 +6,7 @@
 #
 # Created:     2000/17/07
 # RCS-ID:      $Id$
-# Copyright:   (c) 2000 - 2003 Riaan Booysen
+# Copyright:   (c) 2000 - 2004 Riaan Booysen
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 
@@ -100,7 +100,7 @@ class PythonSourceDiffView(wxStyledTextCtrl, EditorView, PythonStyledTextCtrlMix
         self.currSearchLine = 1
 
         ## Install the handler for refreshs.
-        if wx.wxPlatform == '__WXGTK__':
+        if wx.wxPlatform == '__WXGTK__' and Preferences.edUseCustomSTCPaintEvtHandler:
             self.paint_handler = Utils.PaintEventHandler(self)
 
         self.active = wx.true
