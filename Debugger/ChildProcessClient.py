@@ -161,12 +161,8 @@ class ChildProcessClient(MultiThreadedDebugClient):
     def kill(self):
         server = self.server
         if server is not None:
+            self.invokeOnServer('exit_debugger')
             self.server = None
-            try:
-                server.exit_debugger()
-            except socket.error, err:
-                pass # server is already shut down
-            server = None
         self.input_stream = None
         self.error_stream = None
         process = self.process
@@ -211,7 +207,7 @@ class ChildProcessClient(MultiThreadedDebugClient):
                         self, process, self.process_args)
                 self.taskHandler.addTask(evt.GetTask())
             except:
-                t, v, tb = sys.exc_info()#[:2]
+                t, v = sys.exc_info()[:2]
                 evt = self.createEvent(wxEVT_DEBUGGER_EXC)
                 evt.SetExc(t, v)
                 self.postEvent(evt)
