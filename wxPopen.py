@@ -98,8 +98,9 @@ class ProcessRunnerMix:
     def OnProcessEnded(self, event):
         self.OnIdle()
 
-        self.process.Destroy()
-        self.process = None
+        if self.process:
+            self.process.Destroy()
+            self.process = None
 
         self.finished = true
         
