@@ -7,7 +7,8 @@ class BasicAuthTransport(xmlrpclib.Transport):
     def __init__(self,username=None,password=None):
         self.username=username
         self.password=password
-    def request(self,host,handler,request_body):
+        self.verbose=0
+    def request(self,host,handler,request_body,verbose=0):
         h=httplib.HTTP(host)
         h.putrequest("POST",handler)
         h.putheader("Host",host)
