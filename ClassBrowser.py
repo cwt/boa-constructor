@@ -170,7 +170,9 @@ def travTilBase(name, classes, root):
         return c[name]
 
 def buildTree(tree, parent, dict):
-    for item in dict.keys():
+    items = dict.keys()
+    items.sort()
+    for item in items:
         child = tree.AppendItem(parent, item)
         if len(dict[item].keys()):
             buildTree(tree, child, dict[item])
