@@ -343,7 +343,7 @@ class IntConstrPropEdit(ConstrPropEdit):
           self.width)
 
     def getValue(self):
-        if self.editorCtrl:
+        if self.editorCtrl and self.editorCtrl.getValue():
             try:
                 anInt = eval(self.editorCtrl.getValue())
                 if type(anInt) is IntType:
@@ -352,7 +352,7 @@ class IntConstrPropEdit(ConstrPropEdit):
                     self.value = self.getCtrlValue()
             except Exception, message:
                 self.value = self.getCtrlValue()
-                print 'invalid constr prop value', message, self.editorCtrl.getValue()
+                #print 'invalid constr prop value', message, self.editorCtrl.getValue()
         else:
             self.value = self.getCtrlValue()
         return self.value
