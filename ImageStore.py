@@ -21,6 +21,9 @@ class ImageStore:
         self.rootpath = rootpath
         self.images = images
         self.useCache = cache
+    
+    def cleanup(self):
+        del self.images
 
     def createImage(self, filename, ext):
         if ext == '.bmp':
@@ -40,6 +43,7 @@ class ImageStore:
             if not self.images.has_key(name):
                 self.images[name] = self.createImage(path.join(self.rootpath,
                     name), path.splitext(name)[1])
+            #print '%s:%s'%(self.images[name].this, name)
             return self.images[name]
         else:
             return self.createImage(path.join(self.rootpath, name),
@@ -85,3 +89,4 @@ class ZippedImageStore(ImageStore):
         except KeyError:
             print name, 'not found by zipped image store'
             return wx.wxNullBitmap
+     
