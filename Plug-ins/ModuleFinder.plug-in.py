@@ -70,10 +70,15 @@ def openModuleFinder(editor):
         dlg.Destroy()
     
 from Models import EditorHelper
-Preferences.keyDefs['ModuleFinder'] = (wxACCEL_ALT, ord('M'), 'Alt-M')
+if wxPlatform == '__WXMSW__':
+    keyIdent = 'ModuleFinder'
+    Preferences.keyDefs[keyIdent] = (wxACCEL_ALT, ord('M'), 'Alt-M')
+else:
+    keyIdent = ''
+    
 EditorHelper.editorToolsReg.append( 
       ('Module finder', openModuleFinder, 
-       'Images/ModuleFinder.png', 'ModuleFinder') )
+       'Images/ModuleFinder.png', keyIdent) )
 
 #-------------------------------------------------------------------------------
 

@@ -96,3 +96,5 @@ class ClipboardPlusViewPlugin:
 from Views import SourceViews
 SourceViews.EditorStyledTextCtrl.plugins += (ClipboardPlusViewPlugin,)
 
+Preferences.keyDefs['CopyPlus'] = (wxACCEL_CTRL|wxACCEL_SHIFT, ord('C') , 'Ctrl-Shift-C')
+Preferences.keyDefs['PastePlus'] = (wxACCEL_CTRL|wxACCEL_SHIFT, ord('V'), 'Ctrl-Shift-V')
