@@ -404,7 +404,7 @@ class SingleSelectionGroup(SelectionGroup):
         self.initStartVals()
 
     def OnSizeEnd(self, event):
-        if self.dragging:
+        if self.dragging and not self.dragTag:
             self.moveRelease()
         else:
             self.resizeCtrl()
