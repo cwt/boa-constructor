@@ -387,8 +387,11 @@ class BoaApp(wxApp):
                 self.main.componentSB, self, self.main)
 
             conf.set('splash', 'modulecount', `len(sys.modules)`)
-            Utils.writeConfig(conf)
-
+            try:
+                Utils.writeConfig(conf)
+            except IOError, err:
+                startupErrors.append('Error writing config file: %s\nPlease '
+              'ensure that the Explorer.*.cfg file is not read only.'% str(err))
             editor.restoreEditorState()
 
             self.main.initPalette(inspector, editor)
