@@ -27,6 +27,8 @@ from Utils import BoaFileDropTarget
 from PrefsKeys import keyDefs
 from Debugger import Debugger
 #from thread import start_new_thread
+from ExternalLib import xmlrpclib
+import HTMLResponse
 
 wxwHeaderTemplate ='''<html>
 <head>
@@ -192,7 +194,8 @@ class EditorView:
     def deleteFromNotebook(self, focusView, tabName):
         # set selection to source view
         self.model.reorderFollowingViewIdxs(self.pageIdx) 
-        self.model.views[focusView].focus()
+        if focusView is not None:
+            self.model.views[focusView].focus()
         del self.model.views[tabName]
         self.destroy()
         self.notebook.DeletePage(self.pageIdx)
@@ -695,24 +698,26 @@ class ZopeUndoView(ListCtrlView):
     def refreshCtrl(self):
         ListCtrlView.refreshCtrl(self)
         
-        undos = self.model.zopeObj.getUndoableTransactions()
-        i = 0
-        self.undoIds = []
-        for undo in undos:
-            self.addReportItems(i, undo['description'], undo['user_name'], str(undo['time']) )
-            self.undoIds.append(undo['id'])
-            i = i + 1
+        try:
+            undos = self.model.zopeObj.getUndoableTransactions()
+        except xmlrpclib.Fault, error:
+            frm = HTMLResponse.create(None, error.faultString)
+            frm.Show(true)
+        else:
+            i = 0
+            self.undoIds = []
+            for undo in undos:
+                self.addReportItems(i, undo['description'], undo['user_name'], str(undo['time']) )
+                self.undoIds.append(undo['id'])
+                i = i + 1
 
-        self.pastelise()
+            self.pastelise()
 
     def OnUndo(self, event):
         if self.selected != -1:
-            from ExternalLib import xmlrpclib
-    
             try:
                 self.model.zopeObj.undoTransaction([self.undoIds[self.selected]])
             except xmlrpclib.Fault, error:
-                import HTMLResponse
                 frm = HTMLResponse.create(None, error.faultString)
                 frm.Show(true)
             except xmlrpclib.ProtocolError, error:
@@ -720,7 +725,6 @@ class ZopeUndoView(ListCtrlView):
                     # This is actually a successful move
                     self.refreshCtrl()
                 else:
-                    import HTMLResponse
                     frm = HTMLResponse.create(None, error.errmsg)
                     frm.Show(true)
             else:
