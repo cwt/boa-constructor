@@ -910,7 +910,7 @@ def appendMenuItem(menu, wId, label, code=(), bmp='', help=''):
     text = label + (code and ' \t'+code[2] or '')
     menuItem = wxMenuItem(menu, wId, text, help)
     if Preferences.editorMenuImages and bmp and bmp != '-':
-        if wxPlatform == '__WXGTK__' and wxVersion >= (2,3,3) or \
+        if wxPlatform == '__WXGTK__' and wxVERSION >= (2,3,3) or \
               wxPlatform == '__WXMSW__':
             menuItem.SetBitmap(Preferences.IS.load(bmp))
     menu.AppendItem(menuItem)
