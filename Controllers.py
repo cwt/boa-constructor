@@ -1,10 +1,24 @@
-# Controllers 
+#-----------------------------------------------------------------------------
+# Name:        Controllers.py
+# Purpose:     Controller classes for the MVC pattern
+#
+# Author:      Riaan Booysen
+#
+# Created:     2001/13/08
+# RCS-ID:      $Id$
+# Copyright:   (c) 2001 Riaan Booysen
+# Licence:     GPL
+#-----------------------------------------------------------------------------
+print 'importing Controllers'
+
 import os, sys, time
+import marshal, stat
 
 from wxPython.wx import *
 
 import EditorModels, ZopeEditorModels, EditorHelper, PaletteStore
-from Views import EditorViews, AppViews, SourceViews, PySourceView, OGLViews, DataView, Designer, ProfileView
+from Views import EditorViews, AppViews, SourceViews, PySourceView, OGLViews, \
+                  DataView, Designer, ProfileView
 from Explorers import CVSExplorer, ExplorerNodes
 import Preferences, Utils
 import methodparse, sourceconst
@@ -112,8 +126,16 @@ class PersistentController(EditorController):
 
         return model, name
 
+    def checkUnsaved(self, model, checkModified=false):
+        if not model.savedAs or checkModified and (model.modified or \
+              len(model.viewsModified)): 
+            wxLogError('Cannot perform this action on an unsaved%s module'%(
+                  checkModified and '/modified' or '') )
+            return true
+        else:
+            return false
+
     def OnSave(self, event):
-        #print 'save'
         try:
             self.editor.activeModSaveOrSaveAs()
         except ExplorerNodes.TransportSaveError, error:
@@ -161,6 +183,7 @@ class ModuleController(PersistentController):
         EVT_MENU(self.editor, EditorHelper.wxID_MODULEDEBUGSTEPOUT, self.OnDebugStepOut)
         EVT_MENU(self.editor, EditorHelper.wxID_EDITORATTACHTODEBUGGER, self.OnAttachToDebugger)
         EVT_MENU(self.editor, EditorHelper.wxID_EDITORSWITCHAPP, self.OnSwitchApp)
+        EVT_MENU(self.editor, EditorHelper.wxID_EDITORADDTOAPP, self.OnAddToOpenApp)
         EVT_MENU(self.editor, EditorHelper.wxID_EDITORDIFF, self.OnDiffModules)
         EVT_MENU(self.editor, EditorHelper.wxID_EDITORPYCHECK, self.OnRunPyChecker)
         EVT_MENU(self.editor, EditorHelper.wxID_EDITORCONFPYCHECK, self.OnConfigPyChecker)
@@ -199,6 +222,8 @@ class ModuleController(PersistentController):
         menu.Append(-1, '-')
         if hasattr(model, 'app') and model.app:
             self.addMenu(menu, EditorHelper.wxID_EDITORSWITCHAPP, 'Switch to app', accls, (keyDefs['SwitchToApp']))
+        else:
+            self.addMenu(menu, EditorHelper.wxID_EDITORADDTOAPP, 'Add to an open application', accls, ())
         self.addMenu(menu, EditorHelper.wxID_EDITORDIFF, 'Diff modules...', accls, ())
         self.addMenu(menu, EditorHelper.wxID_EDITORPYCHECK, 'Run PyChecker', accls, ())
         self.addMenu(menu, EditorHelper.wxID_EDITORCONFPYCHECK, 'Configure PyChecker', accls, ())
@@ -227,7 +252,23 @@ class ModuleController(PersistentController):
 
     def OnProfile(self, event):
         model = self.getModel()
-        stats, profDir = model.profile()
+        if self.checkUnsaved(model): return
+        
+        statFile, modtime, profDir = model.profile()
+
+        if modtime is not None:
+            curmodtime = os.stat(statFile)[stat.ST_MTIME]
+            if curmodtime == modtime:
+                wxMessageBox('Stats file date unchanged!')
+                return
+        elif not os.path.exists(statFile):
+            wxMessageBox('Stats file not found')
+            return
+        
+        self.editor.setStatus('Loading stats...')
+        stats = marshal.load(open(statFile, 'rb'))
+        
+        #stats, profDir = model.profile()
         resName = 'Profile stats: %s'%time.strftime('%H:%M:%S', time.gmtime(time.time()))
         if not model.views.has_key(resName):
             resultView = self.editor.addNewView(resName,
@@ -237,29 +278,36 @@ class ModuleController(PersistentController):
         resultView.tabName = resName
         resultView.stats = stats
         resultView.profDir = profDir
+        self.editor.setStatus('Refreshing view...')
         resultView.refresh()
         resultView.focus()
+        self.editor.setStatus('Profiling complete.')
 
     def OnCheckSource(self, event):
         model = self.getModel()
-        if not model.savedAs or model.modified or \
-          len(model.viewsModified):
-            wxMessageBox('Cannot compile an unsaved or modified module.')
-            return
-        model.compile()
+        self.editor.setStatus('Compiling...')
+        if model.compile():
+            self.editor.setStatus('There were errors', 'Warning')
+        else:
+            self.editor.setStatus('Compiled successfully')
+
+        if Preferences.runPyLintOnCheckSource:
+            self.editor.setStatus('Running lint...')
+            warnings = model.runLint()
+            if warnings and self.editor.erroutFrm:
+                self.editor.erroutFrm.updateCtrls(warnings, [], 'Warning', 
+                    os.path.dirname(model.assertLocalFile()))
+                self.editor.erroutFrm.display(len(warnings))
+            self.editor.setStatus('Lint completed')
 
     def OnRun(self, event):
         model = self.getModel()
-        if not model.savedAs: #modified or len(self.model.viewsModified):
-            wxMessageBox('Cannot run an unsaved module.')
-            return
+        if self.checkUnsaved(model): return
         model.run()
-
+    
     def OnRunParams(self, event):
         model = self.getModel()
-        if not model.savedAs: #modified or len(self.model.viewsModified):
-            wxMessageBox('Cannot run an unsaved module.')
-            return
+        if self.checkUnsaved(model): return
         dlg = wxTextEntryDialog(self.editor, 'Parameters:',
           'Run with parameters', model.lastRunParams)
         try:
@@ -271,9 +319,7 @@ class ModuleController(PersistentController):
 
     def OnRunApp(self, event):
         model = self.getModel()
-        if not model.app.savedAs: #modified or len(self.model.viewsModified):
-            wxMessageBox('Cannot run an unsaved application.')
-            return
+        if self.checkUnsaved(model): return
         wxBeginBusyCursor()
         try:
             model.app.run()
@@ -282,27 +328,15 @@ class ModuleController(PersistentController):
 
     def OnDebug(self, event):
         model = self.getModel()
+        if self.checkUnsaved(model, true): return
         if Preferences.useDebugger == 'new':
             model.debug(cont_if_running=1, cont_always=0, temp_breakpoint=None)
         elif Preferences.useDebugger == 'old':
-            if not model.savedAs or model.modified or \
-              len(model.viewsModified):
-                wxMessageBox('Cannot debug an unsaved or modified module.')
-                return
             model.debug()
             
-            if not self.model.savedAs or self.model.modified or \
-              len(self.model.viewsModified):
-                wxMessageBox('Cannot debug an unsaved or modified module.')
-                return
-        
-
     def OnDebugParams(self, event):
         model = self.getModel()
-        if not model.savedAs or model.modified or \
-          len(model.viewsModified):
-            wxMessageBox('Cannot debug an unsaved or modified module.')
-            return
+        if self.checkUnsaved(model, true): return
         dlg = wxTextEntryDialog(self.editor, 'Parameters:',
           'Debug with parameters', model.lastDebugParams)
         try:
@@ -328,21 +362,36 @@ class ModuleController(PersistentController):
         model = self.getModel()
         if model and isinstance(model, EditorModels.ModuleModel) and model.app:
             # does this ensure correct app is reconnected?
-            appmodel = self.editor.openOrGotoModule(model.app.filename)
+            appmodel, controller = self.editor.openOrGotoModule(model.app.filename)
             appmodel.views['Application'].focus()
 
-    def OnDiffModules(self, event):
+    def OnDiffModules(self, event=None, filename=''):
         model = self.getModel()
         if model:
-            fn = self.editor.openFileDlg()
-            if fn:
-                model.diff(fn)
+            if self.checkUnsaved(model): return
+            if not filename:
+                filename = self.editor.openFileDlg()
+            if filename:
+                filename = model.assertLocalFile(filename)
+                tbName = 'Diff with : '+filename
+                if not model.views.has_key(tbName):
+                    from Views.DiffView import PythonSourceDiffView
+                    resultView = self.editor.addNewView(tbName, PythonSourceDiffView)
+                else:
+                    resultView = model.views[tbName]
+        
+                resultView.tabName = tbName
+                resultView.diffWith = filename
+                resultView.refresh()
+                resultView.focus()
 
     def OnRunPyChecker(self, event):
         model = self.getModel()
         if model:
+            if self.checkUnsaved(model): return
+            filename = model.assertLocalFile()
             cwd = os.path.abspath(os.getcwd())
-            newCwd = os.path.dirname(model.filename)
+            newCwd = os.path.dirname(filename)
             os.chdir(newCwd)
             oldErr = sys.stderr
             oldSysPath = sys.path[:]
@@ -351,7 +400,7 @@ class ModuleController(PersistentController):
                 cmd = '"%s" "%s" %s'%(sys.executable,
                       os.path.join(Preferences.pyPath, 'ExternalLib',
                       'PyChecker', 'checker_custom.py'),
-                      os.path.basename(model.filename))
+                      os.path.basename(filename))
 
                 ProcessModuleRunner(self.editor.erroutFrm, model.app,
                       newCwd).run(cmd, ErrorStack.PyCheckerErrorParser,
@@ -369,7 +418,8 @@ class ModuleController(PersistentController):
                 appDir = home
                 appConfig = home+'/.pycheckrc'
             else:
-                appDir = os.path.dirname(model.filename)
+                filename = model.assertLocalFile()
+                appDir = os.path.dirname(filename)
                 appConfig = appDir+'/.pycheckrc'
             if not os.path.exists(appConfig):
                 dlg = wxMessageDialog(self.editor, 'The PyChecker configuration file '
@@ -391,6 +441,7 @@ class ModuleController(PersistentController):
     def OnCyclops(self, event):
         model = self.getModel()
         if model:
+            if self.checkUnsaved(model): return
             wxBeginBusyCursor()
             try:
                 report = model.cyclops()
@@ -417,13 +468,37 @@ class ModuleController(PersistentController):
         from Debugger.RemoteDialog import create
         create(self.editor).ShowModal()
 
+    def OnAddToOpenApp(self, event):
+        model = self.getModel()
+        if model:
+            openApps = self.editor.getAppModules()
+            if not openApps:
+                wxMessageBox('No open applications.', style=wxICON_ERROR)
+                return
+            chooseApps = {}
+            for app in openApps:
+                chooseApps[os.path.basename(app.filename)] = app
+            dlg = wxSingleChoiceDialog(self.editor, 
+                  'Select application to add the current file to', 
+                  'Add to Applcation', chooseApps.keys())
+            try:
+                if dlg.ShowModal() == wxID_OK:
+                    app = chooseApps[dlg.GetStringSelection()]
+                    if model.savedAs: src = None
+                    else: src = model.getDataAsLines()
+                        
+                    app.addModule(model.filename, '', src)
+                    model.app = app
+                    self.editor.setupToolBar()
+            finally:
+                dlg.Destroy()
 
 
-class AppController(ModuleController):
+class BaseAppController(ModuleController):
     saveAllBmp = 'Images/Editor/SaveAll.bmp'
-    def __init__(self, editor):
+    def __init__(self, editor, Model):
         ModuleController.__init__(self, editor)
-        self.Model = EditorModels.AppModel, 
+        self.Model = Model 
         self.DefaultViews = (AppViews.AppView,) + self.DefaultViews
         self.AdditionalViews = (AppViews.AppModuleDocView, EditorViews.ToDoView, 
                                 OGLViews.ImportsView, 
@@ -451,21 +526,16 @@ class AppController(ModuleController):
         return accls
 
     def createModel(self, source, filename, main, saved, modelParent=None):
-        return EditorModels.AppModel(source, filename, main, self.editor, 
-              saved, self.editor.modules)
+        return self.Model(source, filename, main, self.editor, saved, 
+           self.editor.modules)
 
     def createNewModel(self, modelParent=None):
-        appName = self.editor.getValidName(EditorModels.AppModel)
+        appName = self.editor.getValidName(self.Model)
         appModel = self.createModel('', appName, appName[:-3], false)
         appModel.transport = self.newFileTransport(appName[:-3], appName)
 
         return appModel, appName
 
-    def afterAddModulePage(self, model):
-        frmMod = self.editor.addNewPage('Frame', FrameController, model)
-
-        frmNme = os.path.splitext(os.path.basename(frmMod.filename))[0]
-        model.new(frmNme)
 
     def OnSaveAll(self, event):
         model = self.getModel()
@@ -488,7 +558,18 @@ class AppController(ModuleController):
         if model:
             fn = self.editor.openFileDlg()
             if fn:
-                model.compareApp(fn)
+                filename = model.assertLocalFile(fn)
+                tbName = 'App. Compare : '+filename
+                if not model.views.has_key(tbName):
+                    from Views.AppViews import AppCompareView
+                    resultView = self.editor.addNewView(tbName, AppCompareView)
+                else:
+                    resultView = model.views[tbName]
+        
+                resultView.tabName = tbName
+                resultView.compareTo = filename
+                resultView.refresh()
+                resultView.focus()
 
     def OnCrashLog(self, event):
         model = self.getModel()
@@ -499,6 +580,23 @@ class AppController(ModuleController):
             finally:
                 wxEndBusyCursor()
 
+class AppController(BaseAppController):
+    def __init__(self, editor):
+        BaseAppController.__init__(self, editor, EditorModels.AppModel)
+
+    def afterAddModulePage(self, model):
+        frmMod = self.editor.addNewPage('Frame', FrameController, model)
+
+        frmNme = os.path.splitext(os.path.basename(frmMod.filename))[0]
+        model.new(frmNme)
+
+class PyAppController(BaseAppController):
+    def __init__(self, editor):
+        BaseAppController.__init__(self, editor, EditorModels.PyAppModel)
+
+    def afterAddModulePage(self, model):
+        model.new()
+            
 class BaseFrameController(ModuleController):
     designerBmp = 'Images/Shared/Designer.bmp'
     def __init__(self, editor, Model):
@@ -553,8 +651,7 @@ class BaseFrameController(ModuleController):
         model = modulePage.model
         if model.views.has_key('Designer'):
             model.views['Data'].focus()
-            model.views['Designer'].Show(true)
-            model.views['Designer'].Raise()
+            model.views['Designer'].restore()
             return
 
         dataView = None
@@ -610,10 +707,10 @@ class BaseFrameController(ModuleController):
             # Make source read only
             model.views['Source'].disableSource(true)
 
-            self.editor.statusBar.setHint('Designer session started.')
+            self.editor.setStatus('Designer session started.')
 
         except Exception, error:
-            self.editor.statusBar.setHint(\
+            self.editor.setStatus(\
                 'An error occured while opening the Designer: %s'%str(error),
                 'Error')
             self.editor.statusBar.progress.SetValue(0)
@@ -674,7 +771,14 @@ class SetupController(ModuleController):
         EVT_MENU(self.editor, EditorHelper.wxID_SETUPSDIST, self.OnSetupSDist)
         EVT_MENU(self.editor, EditorHelper.wxID_SETUPBDIST, self.OnSetupBDist)
         EVT_MENU(self.editor, EditorHelper.wxID_SETUPBDIST_WININST, self.OnSetupBDist_WinInst)
-        EVT_MENU(self.editor, EditorHelper.wxID_SETUPPY2EXE, self.OnSetupPy2Exe)
+        
+        # detect py2exe
+        import imp
+        try: imp.find_module('py2exe')
+        except ImportError: self._py2exe = false
+        else:
+            self._py2exe = true
+            EVT_MENU(self.editor, EditorHelper.wxID_SETUPPY2EXE, self.OnSetupPy2Exe)
 
     def addMenus(self, menu, model):
         accls = ModuleController.addMenus(self, menu, model)
@@ -685,8 +789,9 @@ class SetupController(ModuleController):
         self.addMenu(menu, EditorHelper.wxID_SETUPSDIST, 'setup.py sdist', accls, ())
         self.addMenu(menu, EditorHelper.wxID_SETUPBDIST, 'setup.py bdist', accls, ())
         self.addMenu(menu, EditorHelper.wxID_SETUPBDIST_WININST, 'setup.py bdist_wininst', accls, ())
-        menu.AppendSeparator()
-        self.addMenu(menu, EditorHelper.wxID_SETUPPY2EXE, 'setup.py py2exe', accls, ())
+        if self._py2exe:
+            menu.AppendSeparator()
+            self.addMenu(menu, EditorHelper.wxID_SETUPPY2EXE, 'setup.py py2exe', accls, ())
         return accls
 
     def createNewModel(self, modelParent=None):
@@ -698,17 +803,22 @@ class SetupController(ModuleController):
         return model, name
 
     def runDistUtilsCmd(self, cmd):
+        model = self.getModel()
+        if not model.savedAs:
+            wxLogError('Cannot run distutils on an unsaved module')
+            return 
+
         import ProcessProgressDlg
         cwd = os.path.abspath(os.getcwd())
-        os.chdir(os.path.dirname(self.getModel().filename))
+        filename = model.assertLocalFile()
+        os.chdir(os.path.dirname(filename))
         try:
             PD = ProcessProgressDlg.ProcessProgressDlg(self.editor,
-              'python setup.py %s'%cmd, 'Running distutil command...', 
+              '"%s" setup.py %s'%(`Preferences.pythonInterpreterPath`[1:-1], cmd), 
+              'Running distutil command...', 
               autoClose = false)
-            try:
-                PD.ShowModal()
-            finally:
-                PD.Destroy()
+            try: PD.ShowModal()
+            finally: PD.Destroy()
         finally:
             os.chdir(cwd)
 
@@ -735,10 +845,11 @@ class TextController(PersistentController):
             DefaultViews=(SourceViews.TextView,),
             AdditionalViews=() )
 
-class ConfigFileController(TextController):
+class ConfigFileController(PersistentController):
     def __init__(self, editor):
-        TextController.__init__(self, editor)
-        self.Model = EditorModels.ConfigFileModel
+        PersistentController.__init__(self, editor, EditorModels.ConfigFileModel,
+            DefaultViews=(SourceViews.ConfigView,),
+            AdditionalViews=() )
 
 class CPPController(PersistentController):
     def __init__(self, editor):
@@ -760,7 +871,7 @@ class XMLFileController(PersistentController):
         except ImportError:
             adtViews = ()
         PersistentController.__init__(self, editor, EditorModels.XMLFileModel,
-            DefaultViews=(XMLSourceView,),
+            DefaultViews=(SourceViews.XMLSourceView,),
             AdditionalViews=adtViews )
 
 class BitmapFileController(BaseEditorController):
@@ -818,6 +929,7 @@ modelControllerReg = {EditorModels.AppModel: AppController,
                       EditorModels.MiniFrameModel: MiniFrameController,
                       EditorModels.MDIParentModel: MDIParentController,
                       EditorModels.MDIChildModel: MDIChildController,
+                      EditorModels.PyAppModel: PyAppController,
                       EditorModels.ModuleModel: ModuleController,
                       EditorModels.PackageModel: PackageController,
                       EditorModels.SetupModuleModel: SetupController,
@@ -841,8 +953,9 @@ modelControllerReg = {EditorModels.AppModel: AppController,
 
 # Register controllers on the New palette
 PaletteStore.paletteLists['New'].extend(['wxApp', 'wxFrame', 'wxDialog',
-  'wxMiniFrame', 'wxMDIParentFrame', 'wxMDIChildFrame', 'Module', 'Package',
-  'Setup', 'Text'])
+  'wxMiniFrame', 'wxMDIParentFrame', 'wxMDIChildFrame', 
+  'PythonApp', 'Module', 'Package', 'Setup', 
+  'Text'])
   
 if Utils.IsComEnabled():
     PaletteStore.paletteLists['New'].append('MakePy Dialog')
@@ -853,6 +966,7 @@ PaletteStore.newControllers.update({'wxApp': AppController,
                                     'wxMiniFrame': MiniFrameController,
                                     'wxMDIParentFrame': MDIParentController,
                                     'wxMDIChildFrame': MDIChildController,
+                                    'PythonApp': PyAppController,
                                     'Module': ModuleController,
                                     'Package': PackageController,
                                     'Setup': SetupController,
@@ -860,4 +974,10 @@ PaletteStore.newControllers.update({'wxApp': AppController,
 
 if Utils.IsComEnabled():
     PaletteStore.newControllers['MakePy Dialog'] = MakePyController
-            
+
+
+
+
+
+
+    
