@@ -786,8 +786,17 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
     def openFileDlg(self, filter = '*.py'):
         if filter == '*.py': filter = Preferences.exDefaultFilter
 
+        curdir = '.'
+        if getattr(Preferences, 'exOpenFromHere', 1):
+            # Open relative to the file in the active module page.
+            actMod = self.getActiveModulePage()
+            if actMod:
+                filename = actMod.model.filename
+                if filename:
+                    curdir = os.path.dirname(filename)
+
         from FileDlg import wxFileDialog
-        dlg = wxFileDialog(self, 'Choose a file', '.', '', filter, wxOPEN)
+        dlg = wxFileDialog(self, 'Choose a file', curdir, '', filter, wxOPEN)
         try:
             if dlg.ShowModal() == wxID_OK:
                 return dlg.GetPath()
