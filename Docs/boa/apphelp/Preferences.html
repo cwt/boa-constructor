@@ -1,0 +1,145 @@
+<html><head><title>Preferences and Configuration</title></head>
+<body text="#000000" bgcolor="#FFFFFF" link="#0000FF" vlink="#000099" alink="#FF0000">
+
+<center><a href="index.html"><img SRC="contents.gif" ALT="Home" BORDER=0></a></center>
+
+<table BORDER=0 CELLSPACING=0 CELLPADDING=2 WIDTH="100%" BGCOLOR="#000000" >
+  <tr><td>
+  <table BORDER=0 CELLSPACING=0 WIDTH="100%" BGCOLOR="#FFFFFF" >
+    <tr><td BGCOLOR="#ddeeff">
+    <center><img SRC="dot.gif" height=1 width=1></center>
+    </td></tr>
+  </table>
+  </td></tr>
+</table>
+
+
+
+<h2>
+<img SRC="Boa.jpg" height=32 width=32>&nbsp; Preferences and Configuration</h2>
+
+
+
+
+<p>
+Boa has an extensive preferences system that can for the most part be managed 
+through the GUI. 
+<p>
+<a name="#ResourceConfig"></a>You may also specify different <b>resource configuration</b>
+directories. (see <a href="CommandLine.html">command-line</a> options -O and -B) 
+This allows you to run differently configured Boas from one codebase with 
+different resource config directories.
+
+<p>
+By default Boa uses the configuration files defined in the Boa root install 
+directory. When the environmental variable HOME is set, Boa will automatically 
+check for a .boa directory in HOME first. 
+
+<p>
+Throughout the documentation there are references to setting <i>Preferences->*</i>.
+This refers to an item path accessible from the Preferences tree. It is rooted 
+at the bottom of the Explorer tree. Double-click Preference items to edit in the 
+Inspector or open further in the Explorer.
+
+<p>
+<b>Note:</b><i>Many</i> preference changes require a restart to take effect!<br>
+Some other preference changes will only apply to files opened after the changes was set.
+
+<p>
+Digest:
+<table CELLSPACING=0 CELLPADDING=0 BORDER=0 BGCOLOR="#000000"><tr><td>
+<table CELLSPACING=2 CELLPADDING=4>
+<tr>
+<td WIDTH="25%" VALIGN=TOP BGCOLOR="#ddeeff" >
+
+<b>prefs.rc.py</b></td>
+<td VALIGN=TOP BGCOLOR="#ddeeff" >
+
+Source code file of 
+preferences common to all platforms.
+<p>
+Values are edited under: <i>Preferences->General</i>
+</tr>
+
+<tr>
+<td WIDTH="25%" VALIGN=TOP BGCOLOR="#ddeeff" >
+
+<b>prefs.rc.*.py</b></td>
+<td VALIGN=TOP BGCOLOR="#ddeeff" >
+
+Source code file of preferences for specific 
+platforms.<p>
+Values are edited under: <i>Preferences->Platform spesific</i></td>
+</tr>
+
+<tr>
+<td WIDTH="25%" VALIGN=TOP BGCOLOR="#ddeeff" >
+
+<b>prefskeys.rc.py</b></td>
+<td VALIGN=TOP BGCOLOR="#ddeeff" >
+
+Source code file of preferences for key bindings.
+<p>
+Values are edited under: <i>Preferences->Key bindings</i></td>
+</tr>
+
+<tr>
+<td WIDTH="25%" VALIGN=TOP BGCOLOR="#ddeeff" >
+
+<b>Explorer.*.cfg</b></td>
+<td VALIGN=TOP BGCOLOR="#ddeeff" >
+
+Config file of settings used by the Explorer and
+state data used by the Editor.
+<p>
+Values are generally edited thru the Explorer interface.</td>
+</tr>
+
+<tr>
+<td WIDTH="25%" VALIGN=TOP BGCOLOR="#ddeeff" >
+
+<b>stc-styles.rc.cfg</b></td>
+<td VALIGN=TOP BGCOLOR="#ddeeff" >
+
+Config file of source code style definitions used by
+the source views.
+<p>
+Edited by the Styled Text Dialog available under <br>
+<i>Preferences->Source->[LanguageName]</i>
+<p>
+To change style settings shared by all source code editors, open <br>
+<i>Preferences->Source->Default settings</i>
+</td>
+</tr>
+
+<tr>
+<td WIDTH="25%" VALIGN=TOP BGCOLOR="#ddeeff" >
+
+<b>helpfrm.cfg</b></td>
+<td VALIGN=TOP BGCOLOR="#ddeeff" >
+
+Config file used by the <a href="Help.html">Help</a> system.</td>
+</tr>
+
+</table>
+</td></tr></table>
+
+<p>
+<br>
+<table BORDER=0 CELLSPACING=0 CELLPADDING=2 WIDTH="100%" BGCOLOR="#000000" >
+  <tr><td>
+  <table BORDER=0 CELLSPACING=0 WIDTH="100%" BGCOLOR="#FFFFFF" >
+    <tr><td BGCOLOR="#ddeeff">
+    <center><img SRC="dot.gif" height=1 width=1></center>
+    </td></tr>
+  </table>
+  </td></tr>
+</table>
+
+
+<div align=right><font size="-1">Boa Constructor - Application Help - <b>Preferences and Configuration</b></font></div>
+<p>
+</body></html>
+
+
+

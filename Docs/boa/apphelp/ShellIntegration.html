@@ -1,0 +1,99 @@
+<html><head><title>Shell Integration</title></head>
+<body text="#000000" bgcolor="#FFFFFF" link="#0000FF" vlink="#000099" alink="#FF0000">
+
+<center><a href="index.html"><img SRC="contents.gif" ALT="Home" BORDER=0></a></center>
+
+<table BORDER=0 CELLSPACING=0 CELLPADDING=2 WIDTH="100%" BGCOLOR="#000000" >
+  <tr><td>
+  <table BORDER=0 CELLSPACING=0 WIDTH="100%" BGCOLOR="#FFFFFF" >
+    <tr><td BGCOLOR="#ddeeff">
+    <center><img SRC="dot.gif" height=1 width=1></center>
+    </td></tr>
+  </table>
+  </td></tr>
+</table>
+
+
+
+<h2>
+<img SRC="Boa.jpg" height=32 width=32>&nbsp; Shell Integration</h2>
+
+
+
+
+<p>
+There are many ways to open files in or start Boa. Also, when there is a Boa 
+running in <a href="#SocketServer">socket server mode</a> filenames can be 
+passed to it via command-line.
+<p>
+<h3>Command-line</h3>
+Any number of filenames can be pased to Boa (after the switches) on the 
+<a href="CommandLine.html">command-line</a> that will be opened in the Editor.<p>
+The filenames should be in url format and can even specify the line number.
+<font color="#101090"><pre>
+[&lt;prot>://]&lt;filepath>[::&lt;lineno>]
+</pre></font>
+<b>prot</b> defaults to <b>file</b> if not specified.
+<p>
+<h3>Shortcuts</h3>
+It's recommended that you add a shortcut for starting Boa to either your desktop,
+taskbar or whatever app launcher you use.<br>
+Remember that Boa does not need to start up in it's own root directory, change the
+current directory or the shortcut's "Start in" directory to your own development
+directory or whereever you want.
+<p>
+<h3>Drag & Drop</h3>
+Boa supports opening files dropped onto the Editor window from the OS file manager.<br>
+Also (because Boa accepts filenames on the command-line), you may drag & drop a 
+Python file from the OS file manager onto a Shortcut for Boa and to open it.
+<p>
+<h3>Shell integration</h3>
+On Windows you may associate Boa as an editor for .py files. This adds
+<b>Edit with Boa</b> as a menu item in the context pop-up of the Windows Explorer.<br>
+If there is a Boa sunning socket server mode, the filename will be transfered
+instantaneously to it, otherwise a new instance starts up.
+<p>
+Notes for Win2000:<br>
+In the Windows Explorer choose Tools->Folder Options.<br>
+On the Dialog notebook, click File Types page.<br>
+Select PY extension in file types list.<br>
+Click the <b>Advanced</b> button at the bottom of the dialog.<br>
+Click the <b>New...</b> button to create a new action.<br>
+Action: <br>
+<b>Edit with Boa</b><br>
+Application used to perform action:<br>
+<b>absolute\path\to\python.exe absolute\path\to\Boa.py "%1"</b><br>
+Ok all the dialogs.
+
+<p>
+<a name="SocketServer"></a>
+<h3>Socket Server Mode</h3>
+This mode is on by default and consists of two flags. The first can be toggled 
+under:<br> <i>Preferences->General->Miscellaneous->suSocketFileOpenServer</i>
+This flag determines whether Boa runs a socket in a thread ready to receive
+filenames which will be opened in the Editor.
+<p>
+The second flag (also on by default) is near the top of <b>Boa.py</b>, named 
+<b>server_mode</b>.<br> This flag determines whether filenames passed to Boa on 
+the command-line should be transfered to another instance of Boa (the one 
+running the socket server). Is this flag is off or if no other Boa is running 
+the socket server, Boa continues starting up and displays the file. 
+<p>
+<br>
+<table BORDER=0 CELLSPACING=0 CELLPADDING=2 WIDTH="100%" BGCOLOR="#000000" >
+  <tr><td>
+  <table BORDER=0 CELLSPACING=0 WIDTH="100%" BGCOLOR="#FFFFFF" >
+    <tr><td BGCOLOR="#ddeeff">
+    <center><img SRC="dot.gif" height=1 width=1></center>
+    </td></tr>
+  </table>
+  </td></tr>
+</table>
+
+
+<div align=right><font size="-1">Boa Constructor - Application Help - <b>Shell Integration</b></font></div>
+<p>
+</body></html>
+
+
+

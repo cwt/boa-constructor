@@ -1,0 +1,76 @@
+<html><head><title>Layout Anchors</title></head>
+<body text="#000000" bgcolor="#FFFFFF" link="#0000FF" vlink="#000099" alink="#FF0000">
+
+<center><a href="index.html"><img SRC="contents.gif" ALT="Home" BORDER=0></a></center>
+
+<table BORDER=0 CELLSPACING=0 CELLPADDING=2 WIDTH="100%" BGCOLOR="#000000" >
+  <tr><td>
+  <table BORDER=0 CELLSPACING=0 WIDTH="100%" BGCOLOR="#FFFFFF" >
+    <tr><td BGCOLOR="#ddeeff">
+    <center><img SRC="dot.gif" height=1 width=1></center>
+    </td></tr>
+  </table>
+  </td></tr>
+</table>
+
+
+
+<h2>
+<img SRC="Designer.jpg" height=32 width=32>&nbsp; Layout Anchors</h2>
+
+
+
+
+To manage window layout, Boa supports LayoutAnchors, fully integrated with 
+the Frame Designer.<br>
+<p>
+Layout Anchors are based on Delphi's Anchors and implemented with 
+wxLayoutConstraints and defined in wxPython.lib.anchors.LayoutAnchors.<br>
+<p>
+Anchored sides maintain the distance from the edge of the
+control to the same edge of the parent.<br>
+When neither side is selected, the control keeps the same
+relative position to both sides.<br>
+<p>
+At design time anchors can be set and cleared by right clicking on 
+a Selection Tag and toggling the <b>Anchored</b> popup menu.<br>
+To remove already set Anchors, click on the Ellipsis button of the 
+Anchors property in the Inspector. This will delete the anchors 
+or create new default anchors.
+<p>
+When using anchors at run-time, remember that the current position 
+and size of the control and it's parent is used when setting up 
+the constraints. <br>
+To change the size or position of an already anchored control, 
+set the constraints to None, reposition or resize and reapply the anchors.
+</p>
+Example:<br>
+<img src="Anchors.jpg"> Stretched -> <img src="AnchorsStretched.jpg"><br>
+<p>
+These are the default colours:
+<table COLS=2 WIDTH="25%" >
+<tr>
+<td BGCOLOR="#0000FF"><font color="#FFFFFF"><b>Anchored</b></font></td>
+<td BGCOLOR="#008080"><font color="#FFFFFF"><b>Unanchored</b></font></td>
+</tr>
+</table>
+<p>
+<br>
+<table BORDER=0 CELLSPACING=0 CELLPADDING=2 WIDTH="100%" BGCOLOR="#000000" >
+  <tr><td>
+  <table BORDER=0 CELLSPACING=0 WIDTH="100%" BGCOLOR="#FFFFFF" >
+    <tr><td BGCOLOR="#ddeeff">
+    <center><img SRC="dot.gif" height=1 width=1></center>
+    </td></tr>
+  </table>
+  </td></tr>
+</table>
+
+
+<div align=right><font size="-1">Boa Constructor - Application Help - <b>Layout Anchors</b></font></div>
+<p>
+</body></html>
+
+
+
+

@@ -1,0 +1,227 @@
+<html><head><title>Working with generated source code</title></head>
+<body text="#000000" bgcolor="#FFFFFF" link="#0000FF" vlink="#000099" alink="#FF0000">
+
+<center><a href="index.html"><img SRC="contents.gif" ALT="Home" BORDER=0></a></center>
+
+<table BORDER=0 CELLSPACING=0 CELLPADDING=2 WIDTH="100%" BGCOLOR="#000000" >
+  <tr><td>
+  <table BORDER=0 CELLSPACING=0 WIDTH="100%" BGCOLOR="#FFFFFF" >
+    <tr><td BGCOLOR="#ddeeff">
+    <center><img SRC="dot.gif" height=1 width=1></center>
+    </td></tr>
+  </table>
+  </td></tr>
+</table>
+
+
+
+<h2>
+<img SRC="Editor.jpg" height=32 width=32>&nbsp; Working with generated source code</h2>
+
+
+
+
+As a simple rule; Don't modify the code in generated <b>_init_*</b> methods unless you know what you are doing.
+<p>
+Boa currently generates / maintains the source code for:
+<ul>
+ <li>The wxApp class / modules</li>
+ <ul>
+  <li>The modules dictionary</li>
+  <li>References, importing and the creation of the main frame</li>
+ </ul>
+ <li>Frame classes / modules (Frames, Dialogs and MDI frames)</li>
+ <ul>
+  <li>Importing of needed wxPython modules</li>
+  <li>Window identifiers: <b>wxID_*</b> Each method has it's own window id list</li>
+  <li>Special methods: <b>_init_*</b></li>
+  <ul>
+   <li><b>_init_ctrls</b>: Create and setup visual controls</li>
+   <li><b>_init_utils</b>: Create and setup non visible objects</li>
+   <li><b>_init_coll_*</b>: Create and setup of collections</li>
+  </ul>
+  <li>Event method declarations: <b>On*</b><br>Note: Boa only defines the methods, 
+it does not maintain their code bodies, this is your responsibility</li>
+ </ul>
+</ul>
+
+<h3>Unsupported controls</h3>
+If you want to add controls or objects not available on the Palette, simply 
+add your code to the <b>__init__</b> method below the call to _init_ctrls(). 
+Don't add it in the Special methods listed above. Your code will be lost.
+Also, don't add your own window identifier to the list Boa maintains. 
+Define your own window ids in a seperate list.<br>
+Note: Boa now has Custom Classes, see below.
+
+<h3>Generated code policy</h3>
+Although is is possible to change the generated code by hand, it is not advised,
+and under normal circumstances, not necessary.
+<p>
+If you really need to modify generated code, keep the following in mind:
+<ul>
+ <li>Appart from <a href="#CustomClasses">custom classes</a> only controls 
+defined on the Palette may be used.</li>
+ <li>Constructors need all parameters passed, and in keyword argument form</li>
+ <li>Only methods defined or identified as property setter methods may be used</li>
+ <li>Whitespace (blank lines) is significant for collection methods.<br>
+They are in the form:<br>
+ Initialiser (optional)<br>
+ blank line<br>
+ Item definitions (1 or more lines)<br>
+ blank line<br>
+ Finaliser (optional)<br></li>
+ <li>The window identifier list does not need to be updated manually when you
+ remove components by hand from the source. It will be corrected the next time
+ that the Designer is opened and posted.</li>
+ <li>You may change the <b>id</b> property of a component in the source to
+ special wxPython identifiers and the Designer will not overwrite these changes.<br>
+ <b>Don't</b> remove the generated id from the id definition list when you change
+ it in the source.<br>
+ E.g. you may change the id of a wxButton to wxID_OK on a dialog and then 
+ you don't have to hook an event handler to EndModal OK it.</li>
+</ul>
+In summary, if Boa can't generate the code, it will also not be able to parse it.
+<p>
+
+<a name="SpecialFrameAttrs"></a>
+<h3>Special frame attributes</h3>
+
+For frame like classes, you may define special attributes that the designer will 
+respect and preserve in the generated source.
+<p>
+All instance attributes defined between the top of the __init__ method
+and the _init_ctrls() method call will be available to the Designer
+as valid names bound to properties.
+<p>
+For an attribute to qualify, it has to have a simple deduceable type;
+Python builtin or wxPython objects.<br>
+If for example the attribute is bound to a variable passed in as a
+parameter, you have to first initialise it to a literal of the same
+type. This value will be used at design time.
+<p>
+e.g.    
+<font color="#101090"><pre>
+def __init__(self, parent, myFrameCaption):
+    <b>self.frameCaption = 'Design time frame caption'
+    self.frameCaption = myFrameCaption</b>
+    self._init_ctrls(parent)
+</pre></font>
+<p>
+Now you may add this attribute as a parameter or property value
+in the source by hand.
+<p>
+e.g. (actually on one line)   
+<font color="#101090"><pre>
+wxFrame.__init__(self, size = (-1, -1), id = wxID_WXFRAME1, pos = (-1, -1), 
+  title = <b>self.frameCaption</b>, parent = prnt, name = '', style = wxDEFAULT_FRAME_STYLE)
+</pre></font>
+<p>
+In the Inspector property values recognised as special attributes
+will display as bold values and cannot be edited in the property editor (yet).
+<p>
+See <i>Examples/advanced/SpecialAttributes/wxFrame1.py</i>
+<p>
+<a name="AttrMixins"></a>
+<h3>Attribute mixin classes</h3>
+
+Attribute Mixin classes can be used to centralise special frame attribute 
+declarations that can be shared between frames.
+<p>
+The AttrMixin class must end with the postfix _AttrMixin, must be imported in 
+the form <b>from module import class</b> and it's module must be in the same 
+directory as the frame module.
+<p>
+Your frame should multiply-inherit from wxFrame and the mixin class and the 
+call to the inherited mixin constructor must be placed before the 
+<b>_init_ctrls</b> call.<br>
+e.g.
+<font color="#101090"><pre>
+class AttrMixinFrame(wxFrame, <b>Test_AttrMixin</b>):
+    ...
+    def __init__(self, parent):
+        <b>Test_AttrMixin.__init__(self)</b>
+
+        self._init_ctrls(parent)
+</pre></font>
+<p>
+See <i>Examples/advanced/AttrMixins</i>
+<p>
+
+<a name="CustomClasses"></a>
+<h3>Defining custom classes</h3>
+
+You may now define classes equivalent to standard wxPython classes which need
+not be defined on the palette in order to use in the Designer.
+<p>
+Custom Classes can be defined as a class attribute named <b>_custom_classes</b>
+containing a dictionary defining wxPython classes and their custom
+equivalents. Note that this class attribute must be set at the top of the
+class definition before the first method.
+<p>
+e.g.
+<font color="#101090"><pre>
+class wxFrame1(wxFrame):
+    <b>_custom_classes = {'wxTreeCtrl': ['MyTreeCtrl', 'AdvancedTreeCtrl']}</b>
+    def _init_utils(self):
+        pass
+</pre></font>
+<p>
+These custom classes will then be available to the Designer
+and will act as equivalent to the corresponding wxPython class,
+but will generate source for the custom definition.
+<p>
+One implication is that you loose the constructor. Because Boa
+will generate the creation code for the object the constructor
+signature has to be the same as the wxPython class.
+<p>
+See <i>Examples/advanced/CustomClasses/wxFrame1.py</i>
+<p>
+
+
+<a name="FramePanels"></a>
+<h3>Frame panels</h3>
+This allows you derive from wxPanel (Palette->New->wxFramePanel) and visually 
+design a container that can be used as a custom class in frames or dialogs.
+<p>
+Note that it's a simple implementation with the same limitations as custom
+classes.<br>
+e.g. When adding your custom panel to the frame as a custom class, it will
+display in the designer as a blank wxPanel (because that is it's equivalent class. 
+See Custom classes above).
+<p>
+To use, create a new custom panel from the Palette, name, design and save it.<br>
+Next go to the frame module where you want to use it, add an import statement
+for it and add the <b>_custom_classes</b> attribute for it.<br>
+e.g.
+
+<font color="#101090"><pre>
+<b>from wxMyPanel1 import wxMyPanel1
+from wxMyPanel2 import wxMyPanel2</b>
+...
+class wxFrame1(wxFrame):
+    <b>_custom_classes = {'wxPanel': ['wxMyPanel1', 'wxMyPanel2']}</b>
+    def _init_utils(self):
+        pass
+</pre></font>
+<p>
+See <i>Examples/advanced/FramePanels</i>
+<p>
+<br>
+<table BORDER=0 CELLSPACING=0 CELLPADDING=2 WIDTH="100%" BGCOLOR="#000000" >
+  <tr><td>
+  <table BORDER=0 CELLSPACING=0 WIDTH="100%" BGCOLOR="#FFFFFF" >
+    <tr><td BGCOLOR="#ddeeff">
+    <center><img SRC="dot.gif" height=1 width=1></center>
+    </td></tr>
+  </table>
+  </td></tr>
+</table>
+
+
+<div align=right><font size="-1">Boa Constructor - Application Help - <b>Working with generated source code</b></font></div>
+<p>
+</body></html>
+
+
+
+

@@ -1,0 +1,80 @@
+<html><head><title>Window Layout</title></head>
+<body text="#000000" bgcolor="#FFFFFF" link="#0000FF" vlink="#000099" alink="#FF0000">
+
+<center><a href="index.html"><img SRC="contents.gif" ALT="Home" BORDER=0></a></center>
+
+<table BORDER=0 CELLSPACING=0 CELLPADDING=2 WIDTH="100%" BGCOLOR="#000000" >
+  <tr><td>
+  <table BORDER=0 CELLSPACING=0 WIDTH="100%" BGCOLOR="#FFFFFF" >
+    <tr><td BGCOLOR="#ddeeff">
+    <center><img SRC="dot.gif" height=1 width=1></center>
+    </td></tr>
+  </table>
+  </td></tr>
+</table>
+
+
+
+<h2>
+<img SRC="Designer.jpg" height=32 width=32>&nbsp; Window Layout</h2>
+
+
+
+
+wxPython offers various flavours of window layout. The two main systems are 
+<b>Constraints</b> and <b>Sizers</b>.
+<p>
+<b>Constraints</b> allow layout relationships to be setup between controls and edges.<br>
+A constraint must define 4 valid individual layout constraints or chaos will ensue.<br>
+Boa offers support but not complete integration of constraints currently. They can be 
+set up in the Collection Editor accessible from the <i>Constraints</i> property of controls.<br>
+One problem is currently is that the relative offsets (margin and value) are not kept
+in sync when controls are moved and sized.
+<p>
+There are two more modules to help with this somewhat tedious 
+to setup, but powerful layout mechanism.<br>
+They can be found in <b>wxPython.lib</b> as <b>layoutf</b> and <b>anchors</b>.<br>
+With <b>layoutf</b> constraints can be specified in concise printf like format.
+There is no built-in support for <b>layoutf</b> in Boa but they can be added by hand. 
+See the layoutf's source for documentation<br>
+The <b>LayoutAnchors</b> class in <b>anchors</b> derives from <b>wxLayoutConstraint</b>
+and can be used in it's place. They offer a simple subset of normal constraints where
+the sides of a control may be 'anchored' on it's parent. Anchors are completely
+integrated into the Designer and available by right clicking on a selection tag in the 
+Designer or from the <i>Anchors</i> property of controls.<br>
+See <a href="LayoutAnchors.html">LayoutAnchors</a> for detailed info.
+<p>
+<b>Sizers</b> allow controls and other sizers to be packed horizontally and vertically
+in window. They can grow, align to sides, proportionally resize or be centered.<br>
+Boa has no built-in support for sizers currently. I have trouble integrating them into 
+Boa's current design time framework. They also need special visual support in the Designer 
+, and the 'packing' of controls goes against the current placing and sizing methodology.
+Support is planned at a later stage.<br>
+Remember that you can always add Sizers by hand (to __init__) if you really need them. 
+<p>
+Please note that a window's <i>AutoLayout</i> property should be set to true for
+the window to automatically apply layout for sizers and constraints.
+If this is not set you'll have to call Layout() yourself in the OnSize event of the 
+window, but constraints will not be applied for that window at design-time.<br>
+<p>
+See examples under <b>Examples/layout</b>
+<p>
+<br>
+<table BORDER=0 CELLSPACING=0 CELLPADDING=2 WIDTH="100%" BGCOLOR="#000000" >
+  <tr><td>
+  <table BORDER=0 CELLSPACING=0 WIDTH="100%" BGCOLOR="#FFFFFF" >
+    <tr><td BGCOLOR="#ddeeff">
+    <center><img SRC="dot.gif" height=1 width=1></center>
+    </td></tr>
+  </table>
+  </td></tr>
+</table>
+
+
+<div align=right><font size="-1">Boa Constructor - Application Help - <b>Window Layout</b></font></div>
+<p>
+</body></html>
+
+
+
+

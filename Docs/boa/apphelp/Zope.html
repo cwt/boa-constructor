@@ -1,0 +1,197 @@
+<html><head><title>Zope</title></head>
+<body text="#000000" bgcolor="#FFFFFF" link="#0000FF" vlink="#000099" alink="#FF0000">
+
+<center><a href="index.html"><img SRC="contents.gif" ALT="Home" BORDER=0></a></center>
+
+<table BORDER=0 CELLSPACING=0 CELLPADDING=2 WIDTH="100%" BGCOLOR="#000000" >
+  <tr><td>
+  <table BORDER=0 CELLSPACING=0 WIDTH="100%" BGCOLOR="#FFFFFF" >
+    <tr><td BGCOLOR="#ddeeff">
+    <center><img SRC="dot.gif" height=1 width=1></center>
+    </td></tr>
+  </table>
+  </td></tr>
+</table>
+
+
+
+<h2>
+<img SRC="Editor.jpg" height=32 width=32>&nbsp; Zope</h2>
+
+
+
+
+Boa provides a management interface for Zope, integrated with the IDE.
+<p>
+Before you can start editing Zope objects, you need to define a new Zope Connection.
+See <a href="Explorer.html#CatalogNodes">Catalog Nodes</a> for more info.<br>
+If you define the <b>localpath</b> property to point to the folder where Zope
+is installed, certain actions like Importing zexps become easier (just 
+double-click on them anywhere in your filesystem in the Boa explorer and they will
+be copied to the Zope install's imports directory). 
+Setting <b>localpath</b> also makes it possible to open ExternalMethods in the 
+Editor directly from the Zope tree.
+<p>
+To create new Zope objects, browse to the folder where you want to create
+the object, select the object from the Zope <a href="Palette.html">Palette</a> 
+page and click in the Zope Explorer folder where you want it created.<br>
+<p>
+Double clicking on a Zope document will open it up for editing in the Editor.<br>
+When a item is essentially folderish it will expand in the tree instead of 
+opening in the Editor. If you need to open such objects, select and choose
+<b>Open in Editor</b> from the pop-up menu.
+<p>
+When a Zope item is opened in the Editor, additional to the usual Source view 
+you may open other standard Zope views like <b>Undo</b> and <b>Security</b>.
+See the available pages under the <b>Views</b> menu.
+<p>
+<b>Important:</b> The "Viewing" Zope views use the wxHTMLWindow to render 
+html output from Zope. Use these views at your own risk. They can only render
+HTML version 3. If you are generating 'advanced' html do not use these viewing 
+views as they have been known to cause crashes.<br>
+From the Zope Explorer, you may right-click and select <b>View in Browser</b>
+to view a Zope page in your default browser.
+<p>
+The following actions are available from the popupmenu or toolbar, they apply to 
+the current selection:
+<table CELLSPACING=0 CELLPADDING=0 BORDER=0 BGCOLOR="#000000"><tr><td>
+<table CELLSPACING=2 CELLPADDING=4>
+<tr>
+<td WIDTH="25%" VALIGN=TOP BGCOLOR="#ddeeff" >
+
+<b>Inspect</b></td>
+<td VALIGN=TOP BGCOLOR="#ddeeff" >
+
+Will open the object's properties in the 
+Inspector.<br>
+New properties can be defined by clicking the <b>New item</b> button 
+in the Inspector.<br>
+Similarly <b>Delete item</b> will delete the selected property.
+<p>
+A small warning; When an object is inspected that does not support properties, 
+the Inspector will automatically display the properties of it's container.
+This is a consequence of aquisition.
+</td>
+</tr>
+
+<tr>
+<td WIDTH="25%" VALIGN=TOP BGCOLOR="#ddeeff" >
+
+<b>Cut, Copy, Paste</b></td>
+<td VALIGN=TOP BGCOLOR="#ddeeff" >
+
+Zope objects can be copied and pasted between Zope 
+folders and also between Zope and the Filesystem.</td>
+</tr>
+
+<tr>
+<td WIDTH="25%" VALIGN=TOP BGCOLOR="#ddeeff" >
+
+<b>Rename</b></td>
+<td VALIGN=TOP BGCOLOR="#ddeeff" >
+
+An editor will open on the list control.</td>
+</tr>
+
+<tr>
+<td WIDTH="25%" VALIGN=TOP BGCOLOR="#ddeeff" >
+
+<b>Delete</b></td>
+<td VALIGN=TOP BGCOLOR="#ddeeff" >
+
+Delete the selection.</td>
+</tr>
+
+<tr>
+<td WIDTH="25%" VALIGN=TOP BGCOLOR="#ddeeff" >
+
+<b>Upload</b></td>
+<td VALIGN=TOP BGCOLOR="#ddeeff" >
+
+Replace the contents of an object.</td>
+</tr>
+
+<tr>
+<td WIDTH="25%" VALIGN=TOP BGCOLOR="#ddeeff" >
+
+<b>Import</b></td>
+<td VALIGN=TOP BGCOLOR="#ddeeff" >
+
+Select a zexp object to import</td>
+</tr>
+
+<tr>
+<td WIDTH="25%" VALIGN=TOP BGCOLOR="#ddeeff" >
+
+<b>Export</b></td>
+<td VALIGN=TOP BGCOLOR="#ddeeff" >
+
+Export an object as a zexp file</td>
+</tr>
+
+<tr>
+<td WIDTH="25%" VALIGN=TOP BGCOLOR="#ddeeff" >
+
+<b>Find</b></td>
+<td VALIGN=TOP BGCOLOR="#ddeeff" >
+
+Brings up a searching dialog to find objects by 
+name or content. <br>
+Results are displayed as items in the Explorer list. Click the <b>..</b>
+item at the top to return to your previous location.</td>
+</tr>
+
+</table>
+</td></tr></table>
+<p>
+Currently supported Zope objects:
+<ul>
+<li>Folder</li>
+<li>DTMLDocument</li>
+<li>DTMLMethod</li>
+<li>ExternalMethod</li>
+<li>PythonScript</li>
+<li>File</li>
+<li>Image</li>
+<li>MailHost</li>
+<li>ZCatalog (very incomplete)</li>
+<li>UserFolder (incomplete)</li>
+<li>SQLMethod</li>
+<li>GadflyDA</li>
+<li>PageTemplate</li> 
+<li>SiteErrorLog</li> 
+<p>
+<li>Formulator (incomplete)</li>
+<li>LocalFS</li>
+<li>TransparentFolders</li>
+<li>ZODBCDA</li>
+</ul>
+
+The following objects cannot be supported because of limitations of the Zope web api:<br>
+(Please update me if you know of workarounds)
+<ul>
+<li>TemporaryFolder: (returns Folder meta_type)</li>
+<li>TransientObjectContainer: (raises Unautorised on accessing meta_type)</li>
+</ul>
+<p>
+Also see the <a href="Debugger.html#ZopeDebugging">Zope Debugging</a> support available.
+<p>
+<br>
+<table BORDER=0 CELLSPACING=0 CELLPADDING=2 WIDTH="100%" BGCOLOR="#000000" >
+  <tr><td>
+  <table BORDER=0 CELLSPACING=0 WIDTH="100%" BGCOLOR="#FFFFFF" >
+    <tr><td BGCOLOR="#ddeeff">
+    <center><img SRC="dot.gif" height=1 width=1></center>
+    </td></tr>
+  </table>
+  </td></tr>
+</table>
+
+
+<div align=right><font size="-1">Boa Constructor - Application Help - <b>Zope</b></font></div>
+<p>
+</body></html>
+
+
+
+
