@@ -327,7 +327,6 @@ class PyFileNode(ExplorerNodes.ExplorerNode):
         """ Copy node into self (only called for folders)"""
         import shutil
         if not node.isDir():
-            
             if node.resourcepath == os.path.join(self.resourcepath, node.name):
                 newNameBase = os.path.join(self.resourcepath, 'copy%s_of_'+node.name)
                 num = ''
@@ -341,16 +340,13 @@ class PyFileNode(ExplorerNodes.ExplorerNode):
                         break
             else:
                 shutil.copy(node.resourcepath, self.resourcepath)
-            # 
-#            if node.resourcepath == self.resourcepath:
-                
 ##                names = map(lambda n: n.name, self.entries)
 ##                dir, name = os.path.split(self.resourcepath)
 ##                name, ext = os.path.splitext(name)
 ##                name = Util.getValidName(names, name, ext)
 ##                shutil.copy(node.resourcepath, name)
 ##            else:
-            shutil.copy(node.resourcepath, self.resourcepath)
+##            shutil.copy(node.resourcepath, self.resourcepath)
         else:
             shutil.copytree(node.resourcepath, os.path.join(self.resourcepath, node.name))
 
@@ -379,16 +375,16 @@ class PyFileNode(ExplorerNodes.ExplorerNode):
         if self.filter == 'AllFiles':
             return ('.*',)
 
-    def load(self):
-        return open(self.resourcepath, 'rb').read()
+    def load(self, mode='rb'):
+        return open(self.resourcepath, mode).read()
 
-    def save(self, filename, data):
+    def save(self, filename, data, mode='wb'):
         # XXX move dialog to gui layer
         if self.resourcepath != filename:
             self.resourcepath = filename
             self.name = os.path.basename(self.resourcepath)
         try:
-            f = open(self.resourcepath, 'wb')
+            f = open(self.resourcepath, mode)
         except IOError, message:
             dlg = wx.wxMessageDialog(self.editor, 'Could not save\n'+message.strerror,
                                   'Error', wx.wxOK | wx.wxICON_ERROR)
