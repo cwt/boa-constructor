@@ -29,6 +29,9 @@ wxGenBitmapToggleButton the same but with bitmaps.
 
 from wxPython.wx import *
 
+# Flag that protects weird crashing caused during tracing mode
+no_sys_col = 0
+
 #----------------------------------------------------------------------
 
 class wxGenButtonEvent(wxPyCommandEvent):
@@ -67,7 +70,6 @@ class wxGenButton(wxControl):
         self.bezelWidth = 2
         self.hasFocus = false
         self.useFocusInd = true
-        self.evtToSend = []
 
         self.SetLabel(label)
         self.SetPosition(pos)
@@ -87,7 +89,6 @@ class wxGenButton(wxControl):
         EVT_KEY_UP(self,           self.OnKeyUp)
         EVT_ERASE_BACKGROUND(self, self.OnEraseBackground)
         EVT_PAINT(self,            self.OnPaint)
-        EVT_IDLE(self,             self.OnIdle)
 
 
     def SetBestSize(self, size=None):
@@ -138,14 +139,31 @@ class wxGenButton(wxControl):
 
 
     def InitColours(self):
-        faceClr      = wxSystemSettings_GetSystemColour(wxSYS_COLOUR_BTNFACE)
-        textClr      = wxSystemSettings_GetSystemColour(wxSYS_COLOUR_BTNTEXT)
+	if no_sys_col:
+            faceClr      = wxColour(192, 192, 192)
+            textClr      = wxColour(0, 0, 0)
+        else:
+            faceClr      = wxSystemSettings_GetSystemColour(wxSYS_COLOUR_BTNFACE)
+            textClr      = wxSystemSettings_GetSystemColour(wxSYS_COLOUR_BTNTEXT)
         self.faceDnClr = faceClr
         self.SetBackgroundColour(faceClr)
         self.SetForegroundColour(textClr)
 
-        shadowClr    = wxSystemSettings_GetSystemColour(wxSYS_COLOUR_BTNSHADOW)
-        highlightClr = wxSystemSettings_GetSystemColour(wxSYS_COLOUR_BTNHIGHLIGHT)
+	if no_sys_col:
+            shadowClr    = wxColour(128, 128, 128)
+            highlightClr = wxColour(228, 228, 228)
+        else:
+            shadowClr    = wxSystemSettings_GetSystemColour(wxSYS_COLOUR_BTNSHADOW)
+            highlightClr = wxSystemSettings_GetSystemColour(wxSYS_COLOUR_BTNHIGHLIGHT)
+
+##        faceClr      = wxSystemSettings_GetSystemColour(wxSYS_COLOUR_BTNFACE)
+##        textClr      = wxSystemSettings_GetSystemColour(wxSYS_COLOUR_BTNTEXT)
+##        self.faceDnClr = faceClr
+##        self.SetBackgroundColour(faceClr)
+##        self.SetForegroundColour(textClr)
+##
+##        shadowClr    = wxSystemSettings_GetSystemColour(wxSYS_COLOUR_BTNSHADOW)
+##        highlightClr = wxSystemSettings_GetSystemColour(wxSYS_COLOUR_BTNHIGHLIGHT)
         self.shadowPen    = wxPen(shadowClr, 1, wxSOLID)
         self.highlightPen = wxPen(highlightClr, 1, wxSOLID)
         ##self.focusIndPen  = wxPen(textClr, 1, wxUSER_DASH)
@@ -176,14 +194,7 @@ class wxGenButton(wxControl):
         evt = wxGenButtonEvent(wxEVT_COMMAND_BUTTON_CLICKED, self.GetId())
         evt.SetIsDown(not self.up)
         evt.SetButtonObj(self)
-        self.evtToSend.append(evt)
-
-
-    def OnIdle(self, evt):
-        while self.evtToSend:
-            evt = self.evtToSend[0]
-            del self.evtToSend[0]
-            self.GetEventHandler().ProcessEvent(evt)
+        self.GetEventHandler().ProcessEvent(evt)
 
 
     def DrawBezel(self, dc, x1, y1, x2, y2):
@@ -430,3 +441,5 @@ class wxGenBitmapToggleButton(__ToggleMixin, wxGenBitmapButton):
     pass
 
 #----------------------------------------------------------------------
+
+
