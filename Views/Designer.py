@@ -94,18 +94,20 @@ class DesignerView(wxFrame, InspectableObjectView, Utils.FrameRestorerMixin):
 
         return args
 
+    defPos = wxPyDefaultPosition
+
     def __init__(self, parent, inspector, model, compPal, companionClass, 
           dataView):
         args = self.setupArgs(model.main, model.mainConstr.params,
           ['parent', 'id'], parent, companionClass, model.specialAttrs)
-        if model.modelIdentifier == 'Dialog':
-            style = wxRESIZE_BORDER | wxCAPTION | wxSYSTEM_MENU
-        else:
-            style = wxDEFAULT_FRAME_STYLE
+        #if model.modelIdentifier == 'Dialog':
+        #    style = wxRESIZE_BORDER | wxCAPTION | wxSYSTEM_MENU
+        #else:
+        style = wxDEFAULT_FRAME_STYLE
         wxFrame.__init__(self, parent, -1, args.get('title', ''),
-                                           args.get('pos', wxPyDefaultPosition),
-                                           args.get('size', wxPyDefaultSize),
-                                           style=style)
+                                           args.get('pos', companionClass.defFramePos),
+                                           args.get('size', companionClass.defFrameSize),
+                                           style=companionClass.defFrameStyle)
         InspectableObjectView.__init__(self, inspector, model, compPal)
 
         if model.dialogLook:
@@ -472,14 +474,11 @@ class DesignerView(wxFrame, InspectableObjectView, Utils.FrameRestorerMixin):
             register given control and companion.
             See also: loadControl
         """
-        ctrlName = self.newObjName(CtrlClass.__name__)
-
         self.checkHost(CtrlCompanion)
 
+        ctrlName = self.newObjName(CtrlClass.__name__)
         companion = CtrlCompanion(ctrlName, self, parent, CtrlClass)
-
         params = companion.designTimeSource('wxPoint(%d, %d)' % (position.x, position.y))
-
         parentName, params[companion.windowParentName] = self.getParentNames(parent)
 
         self.addObject(ctrlName, companion,
@@ -669,36 +668,29 @@ class DesignerView(wxFrame, InspectableObjectView, Utils.FrameRestorerMixin):
 
         for childName in children.keys():
             childCompn, childCtrl = self.objects[childName][:2]
-            try:
-                pos = childCtrl.GetPosition()
-                sze = childCtrl.GetSize()
-            except:
-                print 'could not get child ctrl size', childCtrl
-            else:
-                realParent = childCtrl.GetParent()
-                # Compensate for BlankWindowPages's offset
-                if realParent.this[:8] != \
-                      self.objects[officialParent][1].this[:8]:
-                    offset[0] += realParent.GetPosition().x
-                    offset[1] += realParent.GetPosition().y
+            pos = childCtrl.GetPosition()
+            sze = childCtrl.GetSize()
+            realParent = childCtrl.GetParent()
+            # Compensate for BlankWindowPages's offset
+            if realParent.this[:8] != \
+                  self.objects[officialParent][1].this[:8]:
+                offset[0] += realParent.GetPosition().x
+                offset[1] += realParent.GetPosition().y
 
-                # Check for intersection
-                if childCtrl.IsShown() and realParent.IsShown() and \
-                      wxIntersectRect((clickPos.x - offset[0],
-                                       clickPos.y - offset[1], 1, 1),
-                                      (pos.x, pos.y, max(sze.x, 1),
-                                       max(sze.y, 1))) is not None:
+            # Check for intersection
+            if childCtrl.IsShown() and realParent.IsShown() and \
+                  wxIntersectRect((clickPos.x - offset[0],
+                                   clickPos.y - offset[1], 1, 1),
+                                  (pos.x, pos.y, max(sze.x, 1),
+                                   max(sze.y, 1))) is not None:
 
-                    #print clickPos, offset, pos, sze
+                #print clickPos, offset, pos, sze
 
-                    selCtrl = childCtrl
-                    selCompn = childCompn
-                    selPos = wxPoint(clickPos.x - offset[0] - pos.x,
-                          clickPos.y - offset[1] - pos.y)
-                    break
-        #else:
-        #    selPos.x -= offset[0]
-        #    selPos.y -= offset[1]
+                selCtrl = childCtrl
+                selCompn = childCompn
+                selPos = wxPoint(clickPos.x - offset[0] - pos.x,
+                      clickPos.y - offset[1] - pos.y)
+                break
             
         return selCtrl, selCompn, selPos
 
@@ -737,9 +729,12 @@ class DesignerView(wxFrame, InspectableObjectView, Utils.FrameRestorerMixin):
             return intem in list
         exp = ctrlNames[:]
 
-        colLst = filter(\
-            lambda name, names=ctrlNames, objs=self.objects: \
-                objs[name][2] not in names, ctrlNames)
+        #colLst = filter(\
+        #    lambda name, names=ctrlNames, objs=self.objects: \
+        #        objs[name][2] not in names, ctrlNames)
+
+        colLst = [name for name in ctrlNames 
+                  if self.objects[name][2] not in ctrlNames]
 
         return colLst
 
@@ -753,9 +748,8 @@ class DesignerView(wxFrame, InspectableObjectView, Utils.FrameRestorerMixin):
             is only applied for 2 levels.
 
             Also handles single and multiple selection logic.
-
-            #Returns true if the ctrl also wants the click event
         """
+
         self.vetoResize = true
         try:
             if ctrl == self:
@@ -767,9 +761,7 @@ class DesignerView(wxFrame, InspectableObjectView, Utils.FrameRestorerMixin):
 
             selCtrl, selCompn, selPos = \
                   self.checkChildCtrlClick(ctrlName, ctrl, companion, pos)
-
-            #print ctrlName, ctrl, companion, pos, '---'
-            #print selCtrl, selCompn, selPos
+                  
             # Component on palette selected, create it
             if self.compPal.selection:
                 if selCompn.container:
@@ -790,8 +782,14 @@ class DesignerView(wxFrame, InspectableObjectView, Utils.FrameRestorerMixin):
                 pos = wxPoint(SelectionTags.granularise(pos.x),
                               SelectionTags.granularise(pos.y))
 
-                ctrlName = self.newControl(parent, self.compPal.selection[1],
-                    self.compPal.selection[2], pos)
+                CtrlClass, CtrlCompanion = self.compPal.selection[1:3]
+                if CtrlCompanion.host in ('Data', 'Sizers'):
+                    view = self.model.views[CtrlCompanion.host]
+                    view.focus()
+                    view.OnSelectOrAdd()
+                    return
+
+                ctrlName = self.newControl(parent, CtrlClass, CtrlCompanion, pos)
                 self.compPal.selectNone()
 
                 if self.selection:
@@ -867,7 +865,7 @@ class DesignerView(wxFrame, InspectableObjectView, Utils.FrameRestorerMixin):
                         self.selection.selectCtrl(selCtrl, selCompn)
                         self.selection.moveCapture(selCtrl, selCompn, selPos)
 
-                        return 0#selCompn.letClickThru
+                        return
         finally:
             self.vetoResize = false
 
@@ -1343,7 +1341,6 @@ class DesignerControlsEvtHandler(wxEvtHandler):
             dsgn = self.designer
             pos = event.GetPosition()
             ctrl = event.GetEventObject()
-            self.designer.model.editor.setStatus(`ctrl`+':'+`pos`)
 
             if dsgn.selection:
                 dsgn.selection.moving(ctrl, pos)
@@ -1416,7 +1413,7 @@ class DesignerControlsEvtHandler(wxEvtHandler):
                 # Compensate for autolayout=false and 1 ctrl on frame behaviour
                 # Needed because incl selection tags there are actually 5 ctrls
 
-                if not dsgn.GetAutoLayout():
+                if not dsgn.GetAutoLayout() and not dsgn.companion.dialogLayout:
                     # Count children
                     c = 0
                     ctrl = None
