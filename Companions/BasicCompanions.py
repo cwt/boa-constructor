@@ -18,13 +18,13 @@ from wxPython.stc import *
 
 from BaseCompanions import WindowDTC, ChoicedDTC
 
-from Constructors import *
+import Constructors
 from EventCollections import *
 
 from PropEdit.PropertyEditors import *
 from PropEdit.Enumerations import *
 
-class ScrollBarDTC(MultiItemCtrlsConstr, WindowDTC):
+class ScrollBarDTC(Constructors.MultiItemCtrlsConstr, WindowDTC):
     #wxDocs = HelpCompanions.wxScrollBarDocs
     def __init__(self, name, designer, parent, ctrlClass):
         WindowDTC.__init__(self, name, designer, parent, ctrlClass)
@@ -39,20 +39,20 @@ class ScrollBarDTC(MultiItemCtrlsConstr, WindowDTC):
     def events(self):
         return WindowDTC.events(self) + ['ScrollEvent', 'CmdScrollEvent']
 
-class ComboConstr(PropertyKeywordConstructor):
-    def constructor(self):
-        return {'Value': 'value', 'Position': 'pos', 'Size': 'size',
-                'Choices': 'choices', 'Style': 'style',
-                'Validator': 'validator', 'Name': 'name'}
-
 EventCategories['ComboEvent'] = (EVT_COMBOBOX, EVT_TEXT)
 commandCategories.append('ComboEvent')
-class ComboBoxDTC(ComboConstr, ChoicedDTC):
+class ComboBoxDTC(ChoicedDTC):
     #wxDocs = HelpCompanions.wxComboBoxDocs
     def __init__(self, name, designer, parent, ctrlClass):
         ChoicedDTC.__init__(self, name, designer, parent, ctrlClass)
         self.windowStyles = ['wxCB_SIMPLE', 'wxCB_DROPDOWN', 'wxCB_READONLY',
                              'wxCB_SORT'] + self.windowStyles
+
+    def constructor(self):
+        return {'Value': 'value', 'Position': 'pos', 'Size': 'size',
+                'Choices': 'choices', 'Style': 'style',
+                'Validator': 'validator', 'Name': 'name'}
+
     def designTimeSource(self, position = 'wxDefaultPosition', size = 'wxDefaultSize'):
         return {'value': `self.name`,
                 'pos': position,
@@ -79,7 +79,7 @@ class ComboBoxDTC(ComboConstr, ChoicedDTC):
 
 EventCategories['ChoiceEvent'] = (EVT_CHOICE,)
 commandCategories.append('ChoiceEvent')
-class ChoiceDTC(ListConstr, ChoicedDTC):
+class ChoiceDTC(Constructors.ListConstr, ChoicedDTC):
     #wxDocs = HelpCompanions.wxChoiceDocs = 'wx41.htm'
     def designTimeSource(self, position = 'wxDefaultPosition', size = 'wxDefaultSize'):
         return {'pos': position,
@@ -97,7 +97,7 @@ class ChoiceDTC(ListConstr, ChoicedDTC):
         insp.pages.SetSelection(2)
         insp.events.doAddEvent('ChoiceEvent', 'EVT_CHOICE')
 
-class StaticTextDTC(LabeledNonInputConstr, WindowDTC):
+class StaticTextDTC(Constructors.LabeledNonInputConstr, WindowDTC):
     #wxDocs = HelpCompanions.wxStaticTextDocs
     def __init__(self, name, designer, parent, ctrlClass):
         WindowDTC.__init__(self, name, designer, parent, ctrlClass)
@@ -112,7 +112,7 @@ class StaticTextDTC(LabeledNonInputConstr, WindowDTC):
 
 EventCategories['TextCtrlEvent'] = (EVT_TEXT, EVT_TEXT_ENTER, EVT_TEXT_URL, EVT_TEXT_MAXLEN)
 commandCategories.append('TextCtrlEvent')
-class TextCtrlDTC(TextCtrlConstr, WindowDTC):
+class TextCtrlDTC(WindowDTC):
     #wxDocs = HelpCompanions.wxTextCtrlDocs
     def __init__(self, name, designer, parent, ctrlClass):
         WindowDTC.__init__(self, name, designer, parent, ctrlClass)
@@ -121,6 +121,10 @@ class TextCtrlDTC(TextCtrlConstr, WindowDTC):
                              'wxTE_READONLY', 'wxTE_RICH', 'wxTE_AUTO_URL',
                              'wxTE_NOHIDESEL',
                              ] + self.windowStyles
+
+    def constructor(self):
+        return {'Value': 'value', 'Position': 'pos', 'Size': 'size',
+                'Style': 'style', 'Validator': 'validator', 'Name': 'name'}
 
     def designTimeSource(self, position = 'wxDefaultPosition', size = 'wxDefaultSize'):
         return {'value': `self.name`,
@@ -138,7 +142,7 @@ class TextCtrlDTC(TextCtrlConstr, WindowDTC):
 
 EventCategories['RadioButtonEvent'] = (EVT_RADIOBUTTON,)
 commandCategories.append('RadioButtonEvent')
-class RadioButtonDTC(LabeledInputConstr, WindowDTC):
+class RadioButtonDTC(Constructors.LabeledInputConstr, WindowDTC):
     #wxDocs = HelpCompanions.wxRadioButtonDocs
     def __init__(self, name, designer, parent, ctrlClass):
         WindowDTC.__init__(self, name, designer, parent, ctrlClass)
@@ -163,7 +167,7 @@ class RadioButtonDTC(LabeledInputConstr, WindowDTC):
 
 EventCategories['CheckBoxEvent'] = (EVT_CHECKBOX,)
 commandCategories.append('CheckBoxEvent')
-class CheckBoxDTC(LabeledInputConstr, WindowDTC):
+class CheckBoxDTC(Constructors.LabeledInputConstr, WindowDTC):
     #wxDocs = HelpCompanions.wxCheckBoxDocs = 'wx39.htm'
     def __init__(self, name, designer, parent, ctrlClass):
         WindowDTC.__init__(self, name, designer, parent, ctrlClass)
@@ -182,14 +186,8 @@ class CheckBoxDTC(LabeledInputConstr, WindowDTC):
         insp.pages.SetSelection(2)
         insp.events.doAddEvent('CheckBoxEvent', 'EVT_CHECKBOX')
 
-class SliderConstr(PropertyKeywordConstructor):
-    def constructor(self):
-        return {'Value': 'value', 'MinValue': 'minValue', 'MaxValue': 'maxValue',
-                'Position': 'point', 'Size': 'size', 'Style': 'style',
-                'Validator': 'validator', 'Name': 'name'}
 
-
-class SliderDTC(SliderConstr, WindowDTC):
+class SliderDTC(WindowDTC):
     #wxDocs = HelpCompanions.wxSliderDocs
     def __init__(self, name, designer, parent, ctrlClass):
         WindowDTC.__init__(self, name, designer, parent, ctrlClass)
@@ -199,6 +197,11 @@ class SliderDTC(SliderConstr, WindowDTC):
                              'wxSL_AUTOTICKS', 'wxSL_LABELS', 'wxSL_LEFT',
                              'wxSL_RIGHT', 'wxSL_TOP',
                              'wxSL_SELRANGE'] + self.windowStyles
+
+    def constructor(self):
+        return {'Value': 'value', 'MinValue': 'minValue', 'MaxValue': 'maxValue',
+                'Position': 'point', 'Size': 'size', 'Style': 'style',
+                'Validator': 'validator', 'Name': 'name'}
 
     def designTimeSource(self, position = 'wxDefaultPosition', size = 'wxDefaultSize'):
         return {'value': '0',
@@ -221,17 +224,16 @@ class SliderDTC(SliderConstr, WindowDTC):
         insp.pages.SetSelection(2)
         insp.events.doAddEvent('ScrollEvent', 'EVT_SCROLL')
 
-class GaugeConstr(PropertyKeywordConstructor):
-    def constructor(self):
-        return {'Range': 'range', 'Position': 'pos', 'Size': 'size',
-                'Style': 'style', 'Validator': 'validator', 'Name': 'name'}
-
-class GaugeDTC(GaugeConstr, WindowDTC):
+class GaugeDTC(WindowDTC):
     #wxDocs = HelpCompanions.wxGaugeDocs
     def __init__(self, name, designer, parent, ctrlClass):
         WindowDTC.__init__(self, name, designer, parent, ctrlClass)
         self.windowStyles = ['wxGA_HORIZONTAL', 'wxGA_VERTICAL',
                         'wxGA_PROGRESSBAR', 'wxGA_SMOOTH'] + self.windowStyles
+
+    def constructor(self):
+        return {'Range': 'range', 'Position': 'pos', 'Size': 'size',
+                'Style': 'style', 'Validator': 'validator', 'Name': 'name'}
 
     def designTimeSource(self, position = 'wxDefaultPosition', size = 'wxDefaultSize'):
         return {'range': '100',
@@ -241,7 +243,7 @@ class GaugeDTC(GaugeConstr, WindowDTC):
                 'validator': 'wxDefaultValidator',
                 'name': `self.name`}
 
-class StaticBoxDTC(LabeledNonInputConstr, WindowDTC):
+class StaticBoxDTC(Constructors.LabeledNonInputConstr, WindowDTC):
     #wxDocs = HelpCompanions.wxStaticBoxDocs
     def designTimeSource(self, position = 'wxDefaultPosition', size = 'wxDefaultSize'):
         return {'label': `self.name`,
@@ -250,7 +252,7 @@ class StaticBoxDTC(LabeledNonInputConstr, WindowDTC):
                 'style': '0',
                 'name': `self.name`}
 
-class StaticLineDTC(WindowConstr, WindowDTC):
+class StaticLineDTC(Constructors.WindowConstr, WindowDTC):
     #wxDocs = HelpCompanions.wxStaticLineDocs
     def __init__(self, name, designer, parent, ctrlClass):
         WindowDTC.__init__(self, name, designer, parent, ctrlClass)
@@ -262,11 +264,15 @@ class StaticLineDTC(WindowConstr, WindowDTC):
                 'style': '0',
                 'name': `self.name`}
 
-class StaticBitmapDTC(StaticBitmapConstr, WindowDTC):
+class StaticBitmapDTC(WindowDTC):
     #wxDocs = HelpCompanions.wxStaticBitmapDocs
     def __init__(self, name, designer, parent, ctrlClass):
         WindowDTC.__init__(self, name, designer, parent, ctrlClass)
         self.editors['Bitmap'] = BitmapPropEdit
+
+    def constructor(self):
+        return {'Bitmap': 'bitmap', 'Label': 'label', 'Position': 'pos',
+                'Size': 'size', 'Style': 'style', 'Name': 'name'}
 
     def designTimeSource(self, position = 'wxDefaultPosition', size = 'wxDefaultSize'):
         return {'bitmap': 'wxNullBitmap',
@@ -275,10 +281,13 @@ class StaticBitmapDTC(StaticBitmapConstr, WindowDTC):
                 'style': '0',
                 'name': `self.name`}
 
-class HtmlWindowDTC(HtmlWindowConstr, WindowDTC):
+class HtmlWindowDTC(WindowDTC):
     def __init__(self, name, designer, parent, ctrlClass):
         WindowDTC.__init__(self, name, designer, parent, ctrlClass)
         self.editors['Style']
+
+    def constructor(self):
+        return {'Position': 'pos', 'Size': 'size', 'Name': 'name', 'Style': 'style'}
 
     def designTimeSource(self, position = 'wxDefaultPosition', size = 'wxDefaultSize'):
         return {'pos': position,
@@ -290,7 +299,8 @@ class HtmlWindowDTC(HtmlWindowConstr, WindowDTC):
         return WindowDTC.events(self) + ['ScrollEvent']
 
     def writeImports(self):
-        return 'from wxPython.html import *'
+        return '\n'.join( (WindowDTC.writeImports(self), 
+                           'from wxPython.html import *') )
 
 stcEOLMode = [wxSTC_EOL_CRLF, wxSTC_EOL_CR, wxSTC_EOL_LF]
 stcEOLModeNames = {'wxSTC_EOL_CRLF': wxSTC_EOL_CRLF,
@@ -350,7 +360,7 @@ stcWrapMode = [wxSTC_WRAP_NONE, wxSTC_WRAP_WORD]
 stcWrapModeNames = {'wxSTC_WRAP_NONE': wxSTC_WRAP_NONE,
                     'wxSTC_WRAP_WORD': wxSTC_WRAP_WORD}
 
-class StyledTextCtrlDTC(WindowConstr, WindowDTC):
+class StyledTextCtrlDTC(Constructors.WindowConstr, WindowDTC):
     def __init__(self, name, designer, parent, ctrlClass):
         WindowDTC.__init__(self, name, designer, parent, ctrlClass)
         self.editors.update(
@@ -399,7 +409,8 @@ class StyledTextCtrlDTC(WindowConstr, WindowDTC):
                'Status', 'STCFocus']
 
     def writeImports(self):
-        return 'from wxPython.stc import *'
+        return '\n'.join( (WindowDTC.writeImports(self), 
+                           'from wxPython.stc import *') )
 
 #-------------------------------------------------------------------------------
 import PaletteStore
