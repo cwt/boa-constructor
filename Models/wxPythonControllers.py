@@ -55,7 +55,7 @@ class BaseFrameController(ModuleController):
         else:
             name = self.editor.getValidName(self.Model)
 
-        model = self.createModel('', name, name[:-3], false, modelParent)
+        model = self.createModel('', name, name[7:-3], false, modelParent)
         model.transport = self.newFileTransport('', model.filename)
 
         self.activeApp = modelParent
@@ -224,6 +224,26 @@ class FramePanelController(BaseFrameController):
         params['id'] = Utils.windowIdentifier(model.main, '')
         return params
 
+class WizardController(DialogController):
+    Model = wxPythonEditorModels.WizardModel
+
+class PyWizardPageController(FramePanelController):
+    Model = wxPythonEditorModels.PyWizardPageModel
+    def getModelParams(self, model):
+        tempComp = self.Model.Companion('', None, None)
+        params = tempComp.designTimeSource()
+        params['parent'] = 'prnt'
+        return params
+
+class WizardPageSimpleController(FramePanelController):
+    Model = wxPythonEditorModels.WizardPageSimpleModel
+    def getModelParams(self, model):
+        tempComp = self.Model.Companion('', None, None)
+        params = tempComp.designTimeSource()
+        params['parent'] = 'prnt'
+        return params
+
+
 #-------------------------------------------------------------------------------
 
 Preferences.paletteTitle = Preferences.paletteTitle +' - wxPython GUI Builder'
@@ -245,6 +265,9 @@ Controllers.modelControllerReg.update({
       wxPythonEditorModels.PopupWindowModel: PopupWindowController,
       wxPythonEditorModels.PopupTransientWindowModel: PopupTransientWindowController,
       wxPythonEditorModels.FramePanelModel: FramePanelController,
+      wxPythonEditorModels.WizardModel: WizardController,
+      wxPythonEditorModels.PyWizardPageModel: PyWizardPageController,
+      wxPythonEditorModels.WizardPageSimpleModel: WizardPageSimpleController,
      })
 
 PaletteStore.newControllers.update({
@@ -257,10 +280,14 @@ PaletteStore.newControllers.update({
       'wxPopupWindow': PopupWindowController,
       'wxPopupTransientWindow': PopupTransientWindowController,
       'wxFramePanel': FramePanelController,
+      'wxWizard': WizardController,
+      'wxPyWizardPage': PyWizardPageController,
+      'wxWizardPageSimple': WizardPageSimpleController,
      })
 
 
 # Register controllers on the New palette
 PaletteStore.paletteLists['New'].extend(['wxApp', 'wxFrame', 'wxDialog',
   'wxMiniFrame', 'wxMDIParentFrame', 'wxMDIChildFrame',
-  'wxPopupWindow', 'wxPopupTransientWindow', 'wxFramePanel'])
+  'wxPopupWindow', 'wxPopupTransientWindow', 'wxFramePanel',
+  'wxWizard', 'wxPyWizardPage', 'wxWizardPageSimple'])
