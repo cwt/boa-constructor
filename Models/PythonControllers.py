@@ -448,7 +448,8 @@ def ToolsOnAttachToDebugger(editor):
 
 class BaseAppController(ModuleController):
     DefaultViews    = [AppViews.AppView] + ModuleController.DefaultViews
-    AdditionalViews = [AppViews.AppModuleDocView, EditorViews.ToDoView,
+    AdditionalViews = [AppViews.AppModuleDocView, AppViews.AppToDoView,
+                       EditorViews.ToDoView,
                        OGLViews.ImportsView, EditorViews.CVSConflictsView,
                        AppViews.AppREADME_TIFView, AppViews.AppCHANGES_TIFView,
                        AppViews.AppTODO_TIFView, AppViews.AppBUGS_TIFView]
