@@ -67,9 +67,9 @@ PaletteStore.paletteLists['User'].extend([
 # <component class>: ['Palette tip name and bitmap file', <companion>]
 PaletteStore.compInfo.update({
     wx.lib.bcrtl.user.ExampleST.ExampleStaticText: 
-        ['wxExampleStaticText', ExampleSTDTC],
+        ['ExampleStaticText', ExampleSTDTC],
     wx.lib.bcrtl.user.StaticTextCtrl.StaticTextCtrl: 
-        ['wxStaticTextCtrl', StaticTextCtrlDTC]})
+        ['StaticTextCtrl', StaticTextCtrlDTC]})
 
 #-------------------------------------------------------------------------------
 

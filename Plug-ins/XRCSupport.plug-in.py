@@ -94,6 +94,6 @@ class XrcPanel(wxPanel):
 
 import PaletteStore
 PaletteStore.paletteLists['Utilities (Data)'].append(wxXmlResource)
-PaletteStore.compInfo.update({wxXmlResource: ['wxXmlResource', XmlResourceDTC]})
+PaletteStore.compInfo.update({wxXmlResource: ['wx.xrc.XmlResource', XmlResourceDTC]})
 PaletteStore.paletteLists['ContainersLayout'].append(XrcPanel)
 PaletteStore.compInfo[XrcPanel] = ['XrcPanel', XrcPanelDTC]
