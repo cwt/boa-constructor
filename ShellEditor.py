@@ -41,51 +41,17 @@ class ShellEditor(StyledTextCtrls.wxStyledTextCtrl,
               style = wxCLIP_CHILDREN)
         StyledTextCtrls.CallTipCodeHelpSTCMix.__init__(self)
         StyledTextCtrls.PythonStyledTextCtrlMix.__init__(self, wId, -1)
-        #self.SetCaretPeriod(0)
+
         self.lines = StyledTextCtrls.STCLinesList(self)
         self.interp = PythonInterpreter()
         self.lastResult = ''
 
-        try:
-            license
-            #_license = license
-        except NameError:
-            pass
-        else:
-            class MyLicensePrinter:
-                """ This class replaces the standard license printer obj
-                that causes a freeze because it blocks reading from
-                the keyboard """
-                def __init__(self, _license):
-                    self._license = _license
-
-                def __call__(self):
-                    self._license._Printer__setup()
-                    print "'''\n%s\n'''"%string.join(self._license._Printer__lines, '\n')
-                
-                def __repr__(self):
-                    return repr(self._license)
-
-            self.interp.locals['license'] = MyLicensePrinter(license)
-
-        def my_raw_input(prompt = ''):
-            """ This function replaces the builtin raw_input which reads
-            from the console """
-            dlg = wxTextEntryDialog(None, prompt, 'raw_input', '')
-            try:
-                if dlg.ShowModal() == wxID_OK:
-                    return dlg.GetValue()
-            finally:
-                dlg.Destroy()
-
-            return ''
-        self.interp.locals['raw_input'] = my_raw_input
-    
         if sys.hexversion < 0x01060000:
             copyright = sys.copyright
         else:
             copyright = p2c
         self.CallTipSetBackground(wxColour(255, 255, 232))
+
         EVT_KEY_UP(self, self.OnKeyUp)
 
         EVT_MENU(self, wxID_SHELL_HISTORYUP, self.OnHistoryUp)
@@ -106,9 +72,12 @@ class ShellEditor(StyledTextCtrls.wxStyledTextCtrl,
 
         self.history = []
         self.historyIndex = 1
+        
+        self.buffer = []
 
         self.stdout = PseudoFileOut(self)
         self.stderr = PseudoFileErr(self)
+        self.stdin = PseudoFileIn(self, self.buffer)
 
         self.AddText('# Python %s (Boa)\n# %s'%(sys.version, copyright))
         self.LineScroll(-10, 0)
@@ -118,9 +87,13 @@ class ShellEditor(StyledTextCtrls.wxStyledTextCtrl,
         pass
 
     def destroy(self):
+        if self.stdin.isreading():
+            self.stdin.kill()
+
         del self.lines
         del self.stdout
         del self.stderr
+        del self.stdin
 
     def execStartupScript(self, startupfile):
         if startupfile:
@@ -162,22 +135,28 @@ class ShellEditor(StyledTextCtrls.wxStyledTextCtrl,
 
     def pushLine(self, line):
         self.AddText('\n')
+        prompt = ''
         try:
-            tmpstdout = sys.stdout
-            tmpstderr = sys.stderr
-            sys.stdout = self.stdout
-            sys.stderr = self.stderr
-
+            self.stdin.clear()
+            tmpstdout,tmpstderr,tmpstdin = sys.stdout,sys.stderr,sys.stdin
+            sys.stdout,sys.stderr,sys.stdin = self.stdout,self.stderr,self.stdin
             self.lastResult = ''
             if self.interp.push(line):
-                self.AddText(Preferences.ps2)
+                prompt = Preferences.ps2
+                self.stdout.fin(); self.stderr.fin()
                 return true
             else:
-                self.AddText(Preferences.ps1)
+                # check if already destroyed
+                if not hasattr(self, 'stdin'):
+                    return false
+
+                prompt = Preferences.ps1
+                self.stdout.fin(); self.stderr.fin()
                 return false
         finally:
-            sys.stdout = tmpstdout
-            sys.stderr = tmpstderr
+            sys.stdout,sys.stderr,sys.stdin = tmpstdout,tmpstderr,tmpstdin
+            if prompt:
+                self.AddText(prompt)
             self.EnsureCaretVisible()
 
     def OnShellEnter(self, event):
@@ -198,6 +177,10 @@ class ShellEditor(StyledTextCtrls.wxStyledTextCtrl,
 
             # bottom line, process the line
             if cl == lc -1:
+                if self.stdin.isreading():
+                    self.AddText('\n')
+                    self.buffer.append(line)
+                    return
                 # Auto indent
                 if self.pushLine(line):
                     self.doAutoIndent(line, self.GetCurrentPos())
@@ -311,26 +294,77 @@ def recdir(obj):
     for name in res: unq[name] = None
     return unq.keys()
 
-#-----Output redirectors--------------------------------------------------------
+#-----Pipe redirectors--------------------------------------------------------
 
-class PseudoFileOut(PseudoFile):
-    tags = 'stdout'
+class PseudoFileIn:
+    def __init__(self, output, buffer):
+        self._buffer = buffer
+        self._output = output
+
+    def clear(self):
+        self._buffer[:] = []
+        self._reading = false
+    
+    def isreading(self):
+        return self._reading
+    
+    def kill(self):
+        self._buffer.append(None)
+                        
+    def readline(self):
+        self._reading = true
+        self._output.AddText('\n'+Preferences.ps4)
+        self._output.EnsureCaretVisible()
+        try:
+            while not self._buffer:
+                # XXX with safe yield once the STC loses focus there is no way
+                # XXX to give it back the focus
+                # wxSafeYield()
+                wxYield()
+            line = self._buffer.pop()
+            if line is None: raise 'Terminate'
+            if not(string.strip(line)): return '\n'
+            else: return line
+        finally:
+            self._reading = false
+
+class QuoterPseudoFile(PseudoFile):
+    quotes = '```'
+    def __init__(self, output = None, quote=false):
+        PseudoFile.__init__(self, output)
+        self._dirty = false
+        self._quote = quote
+    
+    def _addquotes(self):
+        if self._quote:
+            self.output.AddText(self.quotes+'\n')
+        
     def write(self, s):
-        #self.output.SetLexer(wxSTC_LEX_NULL)
+        if not self._dirty:
+            self._addquotes()
+            self._dirty = true
+    
+    def fin(self):
+        if self._dirty:
+            self._addquotes()
+            self._dirty = false
+
+class PseudoFileOut(QuoterPseudoFile):
+    tags = 'stdout'
+    quotes = '"""'
+    def write(self, s):
+        QuoterPseudoFile.write(self, s)
         self.output.AddText(s)
         self.output.lastResult = self.tags
-        #self.output.SetLexer(wxSTC_LEX_PYTHON)
-        #self.output.Refresh(false)
 
-class PseudoFileErr(PseudoFile):
+class PseudoFileErr(QuoterPseudoFile):
     tags = 'stderr'
+    quotes = "'''"
     def write(self, s):
-        #self.output.SetLexer(wxSTC_LEX_NULL)
+        QuoterPseudoFile.write(self, s)
         self.output.AddText(s)
         self.output.EnsureCaretVisible()
         self.output.lastResult = self.tags
-        #self.output.SetLexer(wxSTC_LEX_PYTHON)
-        #self.output.Refresh(false)
 
 class PseudoFileOutTC(PseudoFile):
     tags = 'stderr'
