@@ -1,6 +1,11 @@
 from wxPython.wx import *
+from wxPython.utils import *
 from wxPython.stc import *
 from wxPython.html import *
+from wxPython.htmlhelp import *
+from wxPython.calendar import *
+from wxPython.grid import *
+from wxPython.ogl import *
 
 def getWxNameSpace():
     return globals().keys()
