@@ -16,6 +16,8 @@ class SenderMapper:
         self.objectDict = {}
 
     def stripThis(self, eventObject):
+        if type(eventObject) is not type(''):
+            eventObject = eventObject.this
         return eventObject[1:string.find(eventObject, '_', 1)]
 
     def addObject(self, obj):
@@ -24,7 +26,7 @@ class SenderMapper:
     def getObject(self, eventObject):
         evtObj = eventObject.GetEventObject()
         if evtObj:
-            return self.objectDict[self.stripThis(eventObject.GetEventObject())]
+            return self.objectDict[self.stripThis(evtObj)]
         else:
             print 'no evt obj'
 
