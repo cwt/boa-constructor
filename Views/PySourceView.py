@@ -587,10 +587,6 @@ class PythonSourceView (EditorStyledTextCtrl,
             else: mrk = brkPtMrk
             self.MarkerAdd(brk['lineno'] - 1, mrk)
 
-    #def setBdbBreakpoints(self):
-    #    for bp in self.breaks.values():
-    #        self.MarkerAdd(bp.line -1, brkPtMrk)
-
     def deleteBreakPoint(self, lineNo):
         self.breaks.deleteBreakpoints(lineNo)
         debugger = self.model.editor.debugger
@@ -601,25 +597,6 @@ class PythonSourceView (EditorStyledTextCtrl,
         self.MarkerDelete(lineNo - 1, brkPtMrk)
         self.MarkerDelete(lineNo - 1, tmpBrkPtMrk)
 
-#        ln = self.MarkerLineFromHandle(self.breaks[lineClicked])
-        #if self.breaks.has_key(lineNo):
-        #    bp = self.breaks[lineNo]
-        #    if bp.temporary:
-        #        self.MarkerDelete(lineNo - 1, tmpBrkPtMrk)
-        #    else:
-        #        self.MarkerDelete(lineNo - 1, brkPtMrk)
-
-        #debugger = self.model.editor.debugger
-        #if debugger:
-        #    if self.breaks.has_key(lineNo):
-        #        bp = self.breaks[lineNo]
-        #        debugger.clear_break(bp.file, bp.line)
-        #        debugger.breakpts.refreshList()
-        #else:
-        #    self.breaks[lineNo].deleteMe()
-        
-        #del self.breaks[lineNo]
-    
     def addBreakPoint(self, lineNo, temp = 0):
         self.breaks.addBreakpoint(lineNo, temp)
         debugger = self.model.editor.debugger
@@ -631,14 +608,6 @@ class PythonSourceView (EditorStyledTextCtrl,
         else: mrk = brkPtMrk
         self.MarkerAdd(lineNo - 1, mrk)
 
-        #filename = string.lower(self.model.filename)
-        #debugger = self.model.editor.debugger
-        #if debugger:
-        #    self.breaks[lineNo] = debugger.set_breakpoint_here(
-        #        filename, lineNo, temp)
-        #else:
-        #    self.breaks[lineNo] = bdb.Breakpoint(filename, lineNo, temp)
-
     def tryLoadBreakpoints(self):
         fn = self.getBreakpointFilename()
         rval = self.breaks.loadBreakpoints(fn)
@@ -646,32 +615,11 @@ class PythonSourceView (EditorStyledTextCtrl,
             self.setInitialBreakpoints()
         return rval
 
-        #if os.path.exists(fn):
-        #    self.breaks = pickle.load(open(fn))
-        #    self.setInitialBreakpoints()
-        #    BrkPt = bdb.Breakpoint
-        #    for lineNo, brk in self.breaks.items():
-        #        BrkPt.bpbynumber.append(brk)
-        #        if BrkPt.bplist.has_key((brk.file, brk.line)):
-        #            BrkPt.bplist[brk.file, brk.line].append(brk)
-        #        else:
-        #            BrkPt.bplist[brk.file, brk.line] = [brk]
-        #    return true
-        #else:
-        #    self.breaks = {}
-        #    return false
-
     def saveBreakpoints(self):
         # XXX This is not yet called automatically on saving a module,
         # should it be ?
         fn = self.getBreakpointFilename()
         self.breaks.saveBreakpoints(fn)
-        
-        #import pickle
-        #if len(self.breaks):
-        #    pickle.dump(self.breaks, open(fn, 'w'))
-        #elif os.path.exists(fn):
-        #    os.remove(fn)
         
     def clearStepPos(self, lineNo):
         if lineNo < 0:
@@ -682,6 +630,7 @@ class PythonSourceView (EditorStyledTextCtrl,
         if lineNo < 0:
             lineNo = 0
         self.MarkerAdd(lineNo, stepPosMrk)
+        self.MarkerDelete(lineNo, tmpBrkPtMrk)
             
             
 #-------Events------------------------------------------------------------------
@@ -704,8 +653,8 @@ class PythonSourceView (EditorStyledTextCtrl,
 
     def OnRunToCursor(self, event):
         line = self.GetLineFromPos(self.GetCurrentPos()) + 1
-        if not self.breaks.hasBreakpoint(line):
-            self.addBreakPoint(line, 1)
+        #if not self.breaks.hasBreakpoint(line):
+        self.addBreakPoint(line, 1)
         self.OnDebug(event, autocont=1)
 #        else return  
         # XXX Case where module is run, outside app
