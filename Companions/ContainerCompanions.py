@@ -199,6 +199,7 @@ class NotebookDTC(Constructors.WindowConstr, ContainerDTC):
     def properties(self):
         props = ContainerDTC.properties(self)
         props.update({'Pages': ('NoneRoute', None, None)})
+        del props['Sizer']
         return props
 
     def designTimeControl(self, position, size, args = None):
@@ -208,7 +209,7 @@ class NotebookDTC(Constructors.WindowConstr, ContainerDTC):
 
     def designTimeSource(self, position = 'wxDefaultPosition', size = 'wxDefaultSize'):
         return {'pos':   position,
-                'size':  size,
+                'size':  self.getDefCtrlSize(),
                 'style': '0',
                 'name':  `self.name`}
 
@@ -730,7 +731,9 @@ class ToolBarDTC(Constructors.WindowConstr, ContainerDTC):
         self.editors.update({'Tools': CollectionPropEdit})
         self.subCompanions['Tools'] = ToolBarToolsCDTC
         self.windowStyles = ['wxTB_FLAT', 'wxTB_DOCKABLE', 'wxTB_HORIZONTAL',
-                             'wxTB_VERTICAL', 'wxTB_3DBUTTONS'] + self.windowStyles
+                             'wxTB_VERTICAL', 'wxTB_3DBUTTONS', 'wxTB_TEXT',
+                             'wxTB_NOICONS', 'wxTB_NODIVIDER', 'wxTB_NOALIGN',
+                            ] + self.windowStyles
 
     def properties(self):
         props = ContainerDTC.properties(self)
@@ -755,28 +758,44 @@ class BlankToolControl(wxStaticBitmap): pass
 class ToolBarToolsCDTC(CollectionIddDTC):
     #wxDocs = HelpCompanions.wxToolBarDocs
     propName = 'Tools'
-    displayProp = 'shortHelpString'
+    displayProp = 'shortHelp'
     indexProp = '(None)'
-    insertionMethod = 'AddTool'
+    insertionMethod = 'DoAddTool'
     deletionMethod = 'DeleteToolByPos'
     idProp = 'id'
     idPropNameFrom = 'tools'
     
     additionalMethods = {'AddSeparator': ('Add separator', '', '(None)'),
-                         'AddControl': ('Add control', 'control', '(None)')}
+                         'AddControl': ('Add control', 'control', '(None)'),
+                         'AddTool': ('Old add tool', 'shortHelpString', '(None)')
+                        }
 
     def __init__(self, name, designer, parentCompanion, ctrl):
         CollectionIddDTC.__init__(self, name, designer, parentCompanion, ctrl)
         self.editors.update({'Bitmap': BitmapConstrPropEdit,
-                             'BitmapOn': BitmapConstrPropEdit,
+                             'PushedBitmap': BitmapConstrPropEdit,
+                             'BitmapDisabled': BitmapConstrPropEdit,
                              'IsToggle': BoolConstrPropEdit,
+                             'Label': StrConstrPropEdit,
                              'ShortHelpString': StrConstrPropEdit,
                              'LongHelpString': StrConstrPropEdit,
+                             'ShortHelp': StrConstrPropEdit,
+                             'LongHelp': StrConstrPropEdit,
+                             'Kind': EnumConstrPropEdit,
                              'Control': WinEnumConstrPropEdit})
+        self.names['Kind'] = ['wxITEM_NORMAL', 'wxITEM_CHECK', 'wxITEM_RADIO']
 
     def constructor(self):
         tcl = self.textConstrLst[self.index]
-        if tcl.method == 'AddTool':
+        if tcl.method == 'DoAddTool':
+            return {'ItemId': 'id',
+                    'Label': 'label', 
+                    'Bitmap': 'bitmap',
+                    'BitmapDisabled': 'bmpDisabled',
+                    'Kind': 'kind',
+                    'ShortHelp': 'shortHelp',
+                    'LongHelp': 'longHelp'}
+        elif tcl.method == 'AddTool':
             return {'ItemId': 'id', 'Bitmap': 'bitmap', 
                     'PushedBitmap': 'pushedBitmap',
                     'IsToggle': 'isToggle',
@@ -793,7 +812,15 @@ class ToolBarToolsCDTC(CollectionIddDTC):
         
         newItemName, winId = self.newUnusedItemNames(wId)
 
-        if method == 'AddTool':
+        if method == 'DoAddTool':
+            return {'id': winId,
+                    'label': `''`,
+                    'bitmap': 'wxNullBitmap',
+                    'bmpDisabled': 'wxNullBitmap',
+                    'kind': 'wxITEM_NORMAL',
+                    'shortHelp': `newItemName`,
+                    'longHelp': `''`}
+        elif method == 'AddTool':
             return {'id': winId,
                     'bitmap': 'wxNullBitmap',
                     'pushedBitmap': 'wxNullBitmap',
@@ -913,9 +940,12 @@ class StatusBarDTC(ContainerDTC):
         props.update({'Fields': ('NoneRoute', None, None)})
         return props
 
-    def designTimeSource(self, position = 'wxDefaultPosition', size = 'wxDefaultSize'):
+    def designTimeSource(self, position='wxDefaultPosition', size='wxDefaultSize'):
         return {'style': '0',
                 'name': `self.name`}
+
+    def hideDesignTime(self):
+        return ContainerDTC.hideDesignTime(self) + ['Position', 'Size', 'ClientSize']
 
 class StatusBarFieldsCDTC(CollectionDTC):
     #wxDocs = HelpCompanions.wxStatusBarDocs
@@ -952,6 +982,10 @@ class StatusBarFieldsCDTC(CollectionDTC):
 
     def finaliser(self):
         return ['', sourceconst.bodyIndent+'parent.SetStatusWidths(%s)'%`self.widths`]
+
+    def initCollection(self):
+        if self.widths:
+            self.control.SetStatusWidths(self.widths)
 
     def appendItem(self, method=None):
         self.widths.append(-1)
