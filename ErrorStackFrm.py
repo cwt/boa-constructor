@@ -35,7 +35,7 @@ class ErrorStackMF(wxFrame):
         pass
 
     def _init_ctrls(self, prnt):
-        wxFrame.__init__(self, size = wxSize(330, 443), id = wxID_ERRORSTACKMF, title = 'Traceback and Output browser', parent = prnt, name = 'ErrorStackMF', style = wxDEFAULT_FRAME_STYLE | Preferences.childFrameStyle, pos = wxPoint(464, 228))
+        wxFrame.__init__(self, size = wxSize(330, 443), id = wxID_ERRORSTACKMF, title = 'Traceback and Output browser', parent = prnt, name = 'ErrorStackMF', style = wxDEFAULT_FRAME_STYLE | wxFRAME_TOOL_WINDOW, pos = wxPoint(464, 228)) #Preferences.childFrameStyle
         self._init_utils()
         EVT_CLOSE(self, self.OnErrorstackmfClose)
 
@@ -105,8 +105,18 @@ class ErrorStackMF(wxFrame):
         if outputList:
             self.outputTC.SetValue(string.join(outputList, ''))
 
-            if not errorList:
-                self.notebook1.SetSelection(1)
+        self.notebook1.SetSelection(not errorList)
+    
+    def display(self, errs):
+        if self.notebook1.GetParent().GetId() == self.GetId():
+            self.Show(true)
+        else:
+            inspPages = self.notebook1.GetGrandParent()
+            inspPages.SetFocus()
+            for idx in range(inspPages.GetPageCount()-1, -1, -1):
+                if inspPages.GetPageText(idx) == 'ErrOut':
+                    inspPages.SetSelection(idx)
+                    break
 
     def Destroy(self):
         self.vetoEvents = true
