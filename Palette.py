@@ -22,7 +22,7 @@ import sender
 print 'importing ClassBrowser'
 import ClassBrowser, Help, Preferences
 from wxPython.wx import *
-from Preferences import logFontSize, IS, toPyPath, flatTools
+from Preferences import IS, toPyPath, flatTools
 from ExternalLib.buttons import wxGenButton, wxGenBitmapButton, wxGenToggleButton, wxGenBitmapToggleButton, wxGenButtonEvent
 import Utils
 import os
@@ -91,7 +91,6 @@ class BoaFrame(wxFrame):
 
         # Add additional helpbuttons if defined in the config file
         conf = Utils.createAndReadConfig('Explorer')
-
         customHelpItems = eval(conf.get('preferences', 'customhelp'))
         self.customHelpItems = {}
         for caption, helpFile in customHelpItems.items():
@@ -103,6 +102,8 @@ class BoaFrame(wxFrame):
 
         self.contextHelpSearch = wxTextCtrl(self.toolBar, wxID_CONTEXTSEARCH)
         EVT_TEXT_ENTER(self, wxID_CONTEXTSEARCH, self.OnSearchEnter)
+        EVT_SET_FOCUS(self.contextHelpSearch, self.OnHelpSearchFocus)
+
         self.toolBar.AddControl(self.contextHelpSearch)
 
         if wxPlatform == '__WXGTK__':
@@ -117,7 +118,7 @@ class BoaFrame(wxFrame):
 
         self.palettePages = []
         self.senders = sender.SenderMapper()
-        
+
         self.buildPalette()
 
         print 'creating Inspector'
@@ -131,16 +132,17 @@ class BoaFrame(wxFrame):
             self.editor = Editor.EditorFrame(self, -1, self.inspector,
               wxMenu(), self.componentSB, app)#palettePage.menu
 
+        self.contextHelpSearch.SetFocus()
+
         EVT_NEW_PACKAGE(self, self.OnNewPackage)
         EVT_CLOSE(self, self.OnCloseWindow)
-    
+
     def buildPalette(self):
 
         if Preferences.transparentPaletteBitmaps:
             transpSF = ''
         else:
             transpSF = 'Gray/'
-
 
         # XXX Set these from class
         if not cyclopsing:
@@ -333,7 +335,7 @@ class BoaFrame(wxFrame):
         if not self.browser:
             wxBeginBusyCursor()
             try:
-                self.browser = ClassBrowser.ClassBrowserFrame(self, -1, 
+                self.browser = ClassBrowser.ClassBrowserFrame(self, -1,
                      'wxPython Class explorer')
             finally:
                 wxEndBusyCursor()
@@ -349,12 +351,14 @@ class BoaFrame(wxFrame):
         self.Close()
 
     def OnCloseWindow(self, event):
-        self.Show(false)
+#        self.Show(false)
         self.destroying = true
         try:
             if hasattr(self, 'editor') and self.editor:
                 self.editor.destroying = true
                 self.editor.Close()
+                if not self.destroying:
+                    return
 
             if hasattr(self, 'inspector'):
                 self.inspector.destroying = true
@@ -368,20 +372,31 @@ class BoaFrame(wxFrame):
                 page.destroy()
 
         finally:
-            self.Destroy()
-            event.Skip()
+            if not self.destroying:
+#                self.Show(true)
+                self.editor.destroying = false
+                self.inspector.destroying = false
+            else:
+                self.Destroy()
+                event.Skip()
 
     def OnUncheckComponent(self, event):
         self.componentSB.selectNone()
 
     def OnSearchEnter(self, event):
-        Help.showContextHelp(self, self.toolBar, self.contextHelpSearch.GetValue())
+        Help.showContextHelp(self, self.toolBar,
+              self.contextHelpSearch.GetValue())
         event.Skip()
 
     def OnTest(self, event):
         import Tests
         Tests.test_wxFrame(self)
-        
+
+    def OnHelpSearchFocus(self, event):
+        self.contextHelpSearch.SetSelection(0,
+              len(self.contextHelpSearch.GetValue()))
+        event.Skip()
+
 
 class ComponentSelection:
     """ Controls the selection of the palette and access to associated
@@ -396,7 +411,7 @@ class ComponentSelection:
         cId = palette.addTool('Images/Shared/Compose', 'Compose', ' ', palette.OnComposeClick, toggle = true)
         iId = palette.addTool('Images/Shared/Inherit', 'Inherit', ' ', palette.OnInheritClick, toggle = true)
         palette.toolBar.ToggleTool(cId, true)
-        palette.toolBar.EnableTool(iId, false)
+#        palette.toolBar.EnableTool(iId, false)
 
         self.selection = None
         self.prevPage = None
