@@ -16,20 +16,20 @@ from wxPython.stc import *
 delim  = string.letters + string.digits + '_'
 
 if wxPlatform == '__WXMSW__':
-    faces = { 'times': 'Times New Roman',
-              'mono' : 'Courier New',
-              'helv' : 'Lucida Console',
-              'lucd' : 'Lucida Console',
-              'other': 'Comic Sans MS',
-              'size' : 8,
-              'size2': 6,}
+    faces = { 'times' : 'Times New Roman',
+              'mono'  : 'Courier New',
+              'helv'  : 'Lucida Console',
+              'lucd'  : 'Lucida Console',
+              'other' : 'Comic Sans MS',
+              'size'  : 8,
+              'lnsize': 6,}
 else:
-    faces = { 'times': 'Times',
-              'mono' : 'Courier',
-              'helv' : 'Helvetica',
-              'other': 'new century schoolbook',
-              'size' : 11,
-              'size2': 9,}
+    faces = { 'times' : 'Times',
+              'mono'  : 'Courier',
+              'helv'  : 'Helvetica',
+              'other' : 'new century schoolbook',
+              'size'  : 11,
+              'lnsize': 9,}
 
 class FoldingStyledTextCtrlMix:
     def __init__(self, wId, margin):
@@ -137,7 +137,7 @@ class PythonStyledTextCtrlMix:
         self.SetKeywords(0,
           'and assert break class continue def del elif else except '
           'exec finally for from global if import in is lambda None '
-          'not or pass print raise return try while')
+          'not or pass print raise return try while true false')
         self.SetViewWhitespace(false)
         self.SetProperty("fold", "1")
 
@@ -148,7 +148,7 @@ class PythonStyledTextCtrlMix:
             self.SetMarginType(margin, wxSTC_MARGIN_NUMBER)
             self.SetMarginWidth(margin, 25)
             self.StyleSetSpec(wxSTC_STYLE_LINENUMBER, 
-              "size:%(size2)d,face:%(helv)s,back:#707070" % faces)
+              "size:%(lnsize)d,face:%(helv)s,back:#707070" % faces)
 
         EVT_STC_UPDATEUI(self, wId, self.OnUpdateUI)
 
@@ -161,7 +161,7 @@ class PythonStyledTextCtrlMix:
 
         # Line number
         self.StyleSetSpec(32, "face:%(mono)s,size:%(size)d" % faces)
-        self.StyleSetSpec(33, "back:#C0C0C0,face:%(helv)s,size:%(size2)d" % faces)
+        self.StyleSetSpec(33, "back:#C0C0C0,face:%(helv)s,size:%(lnsize)d" % faces)
         # Brace highlight
 #        self.StyleSetSpec(34, "fore:#0000FF,bold")
         # Brace incomplete highlight
@@ -423,40 +423,41 @@ class HTMLStyledTextCtrlMix:
 
         # Default
 #        style.hypertext.0=fore:#000000,font:Times New Roman,size:11
-        self.StyleSetSpec(wxSTC_STYLE_DEFAULT, "fore:#000000,font:Courier New,size:8")
+        self.StyleSetSpec(wxSTC_STYLE_DEFAULT, 
+          'fore:#000000,font:%(mono)s,size:%(size)s' % faces)
 
         self.StyleClearAll()
 
         self.StyleSetSpec(wxSTC_STYLE_LINENUMBER, 
-          "size:%(size2)d,face:%(helv)s" % faces)
+          'size:%(lnsize)d,face:%(helv)s' % faces)
 
         # Tags
-        self.StyleSetSpec(1, "fore:#400080,bold")
+        self.StyleSetSpec(1, 'fore:#400080,bold')
         # Unknown Tags
-        self.StyleSetSpec(2, "fore:#900050,bold")
+        self.StyleSetSpec(2, 'fore:#900050,bold')
         # Attributes
-        self.StyleSetSpec(3, "fore:#000000,bold")
+        self.StyleSetSpec(3, 'fore:#000000,bold')
         # Unknown Attributes
-        self.StyleSetSpec(4, "fore:#900050,bold")
+        self.StyleSetSpec(4, 'fore:#900050,bold')
         # Numbers
-        self.StyleSetSpec(5, "fore:#800080")
+        self.StyleSetSpec(5, 'fore:#800080')
         # Double quoted strings
-        self.StyleSetSpec(6, "fore:#4040F0")
+        self.StyleSetSpec(6, 'fore:#4040F0')
         # Single quoted strings
-        self.StyleSetSpec(7, "fore:#4040F0")
+        self.StyleSetSpec(7, 'fore:#4040F0')
         # Other inside tag
-        self.StyleSetSpec(8, "fore:#800080")
+        self.StyleSetSpec(8, 'fore:#800080')
         # Comment
-        self.StyleSetSpec(9, "fore:#808000")
+        self.StyleSetSpec(9, 'fore:#808000')
         # Entities
-        self.StyleSetSpec(10, "fore:#800080,font:Courier New,size:8")
+        self.StyleSetSpec(10, 'fore:#800080,font:%(mono)s,size:%(size)s' % faces)
         # XML identifier begin '<?'
-        self.StyleSetSpec(23, "fore:#0000FF")
+        self.StyleSetSpec(23, 'fore:#0000FF')
         # XML identifier end '?>'
-        self.StyleSetSpec(24, "fore:#0000FF")
+        self.StyleSetSpec(24, 'fore:#0000FF')
         # Matched Operators
-        self.StyleSetSpec(34, "fore:#0000FF,back:#FFFF88,bold")
-        self.StyleSetSpec(35, "fore:#FF0000,back:#FFFF88,bold")
+        self.StyleSetSpec(34, 'fore:#0000FF,back:#FFFF88,bold')
+        self.StyleSetSpec(35, 'fore:#FF0000,back:#FFFF88,bold')
             
     def OnUpdateUI(self, evt):
         # check for matching braces
