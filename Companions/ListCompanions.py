@@ -76,7 +76,7 @@ class ListCtrlDTC(MultiItemCtrlsConstr, WindowDTC):
 
     def EvalImageList(self, exprs, objects):
         imgLst, lstTpe = exprs
-        return objects[imgLst], eval(lstTpe)
+        return objects[imgLst], self.eval(lstTpe)
 
     def notification(self, compn, action):
         WindowDTC.notification(self, compn, action)

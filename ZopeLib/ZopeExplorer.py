@@ -277,7 +277,7 @@ class ZopeItemNode(ExplorerNodes.ExplorerNode):
     def getUndoableTransactions(self):
         from ZopeLib.DateTime import DateTime
         svr, name = self.getParentResource()
-        return eval(svr.zoa.undo(name))
+        return eval(svr.zoa.undo(name), {})
 
     def undoTransaction(self, transactionIds):
         self.getResource().manage_undo_transactions(transactionIds)

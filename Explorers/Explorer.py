@@ -232,7 +232,7 @@ class ExplorerTree(BaseExplorerTree):
 
         # Populate transports with registered node categories
         # Protocol also has to be defined in the explorer section of the config
-        transport_order = eval(conf.get('explorer', 'transportstree'))
+        transport_order = eval(conf.get('explorer', 'transportstree'), {})
         for name in transport_order:
             for Clss in ExplorerNodes.explorerNodeReg.keys():
                 if Clss.protocol == name:
@@ -261,7 +261,7 @@ class ExplorerTree(BaseExplorerTree):
     def importExplorers(self, conf):
         """ Import names defined in the config files to register them """
         installTransports = ['Explorers.PrefsExplorer'] + \
-              eval(conf.get('explorer', 'installedtransports'))
+              eval(conf.get('explorer', 'installedtransports'), {})
 
         warned = false
         for moduleName in installTransports:
@@ -669,7 +669,11 @@ class BaseExplorerSplitter(wxSplitterWindow):
         oldURI = renameNode.getURI()
         if newText != self.oldLabelVal:
             event.Skip()
-            self.list.node.renameItem(self.oldLabelVal, newText)
+            try:
+                self.list.node.renameItem(self.oldLabelVal, newText)
+            except:
+                Utils.wxCallAfter(self.list.refreshCurrent)
+                raise
             self.list.refreshCurrent()
             # XXX Renames on files with unsaved changes should have opt out
             # XXX Maybe load renamedNode from openEx

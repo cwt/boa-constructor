@@ -6,7 +6,7 @@
 #
 # Created:     1999
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999 - 2002 Riaan Booysen
+# Copyright:   (c) 1999 - 2003 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
 """
@@ -150,7 +150,7 @@ class PropertyEditor:
                     # XXX Font's want new objects assigned to them before
                     # XXX they update
                     if esRecreateProp in self.ownerPropEdit.getStyle():
-                        v = eval(self.ownerPropEdit.valueAsExpr())
+                        v = self.companion.eval(self.ownerPropEdit.valueAsExpr())
                         self.ownerPropEdit.setCtrlValue(v, v)
 
                     self.ownerPropEdit.persistValue(self.ownerPropEdit.valueAsExpr())
@@ -315,7 +315,7 @@ class EvalConfPropEdit(ConfPropEdit):
     def getValue(self):
         if self.editorCtrl:
             try:
-                self.value = eval(self.editorCtrl.getValue())
+                self.value = eval(self.editorCtrl.getValue(), {})
             except Exception, message:
                 self.value = self.getCtrlValue()
                 print 'invalid constr prop value', message
@@ -361,12 +361,12 @@ class FilepathConfPropEdit(ConfPropEdit):
         dlg = wxFileDialog(self.parent, 'Choose the file', '.', '', 'AllFiles', wxSAVE)
         try:
             if dlg.ShowModal() == wxID_OK:
-                self.editorCtrl.value = `dlg.GetFilePath()`
+                self.editorCtrl.setValue(`dlg.GetFilePath()`)
                 self.inspectorPost(false)
             else:
                 if wxMessageBox('Clear the current property value?',
                       'Clear filepath?', style=wxICON_QUESTION | wxYES_NO) == wxYES:
-                    self.editorCtrl.value = "''"
+                    self.editorCtrl.setValue("''")
                     self.inspectorPost(false)
         finally:
             dlg.Destroy()
@@ -377,16 +377,16 @@ class DirpathConfPropEdit(ConfPropEdit):
         self.editorCtrl.createControl(self.parent, self.idx, self.width, self.edit)
 
     def edit(self, event):
-        dlg = wxDirDialog(self.parent, defaultPath=self.editorCtrl.value)
+        dlg = wxDirDialog(self.parent)#, defaultPath=self.editorCtrl.value)
         try:
-            dlg.SetPath(self.editorCtrl.value)
+            dlg.SetPath(self.companion.eval(self.editorCtrl.value))
             if dlg.ShowModal() == wxID_OK:
-                self.editorCtrl.value = `dlg.GetPath()`
+                self.editorCtrl.setValue(`dlg.GetPath()`)
                 self.inspectorPost(false)
             else:
                 if wxMessageBox('Clear the current property value?',
                       'Clear dirpath?', style=wxICON_QUESTION | wxYES_NO) == wxYES:
-                    self.editorCtrl.value = "''"
+                    self.editorCtrl.setValue("''")
                     self.inspectorPost(false)
         finally:
             dlg.Destroy()
@@ -495,7 +495,7 @@ class IntConstrPropEdit(ConstrPropEdit):
     def getValue(self):
         if self.editorCtrl and self.editorCtrl.getValue():
             try:
-                anInt = eval(self.editorCtrl.getValue())
+                anInt = self.companion.eval(self.editorCtrl.getValue())
                 if type(anInt) is IntType:
                     self.value = self.editorCtrl.getValue()
                 else:
@@ -750,7 +750,7 @@ class BaseFlagsConstrPropEdit(IntConstrPropEdit):
         """ For efficiency override the entire getValue"""
         if self.editorCtrl:
             try:
-                anInt = eval(self.editorCtrl.getValue())
+                anInt = self.companion.eval(self.editorCtrl.getValue())
                 if type(anInt) is IntType:
                     self.value = string.join(map(string.strip,
                         string.split(self.editorCtrl.getValue(), '|')), ' | ')
@@ -775,7 +775,7 @@ class FlagsConstrPropEdit(BaseFlagsConstrPropEdit):
 
 class StrConstrPropEdit(ConstrPropEdit):
     def valueToIECValue(self):
-        return eval(self.value)
+        return self.companion.eval(self.value)
 
     def inspectorEdit(self):
         self.editorCtrl = TextCtrlIEC(self, self.value)
@@ -808,7 +808,7 @@ class NameConstrPropEdit(StrConstrPropEdit):
                 value = self.getCtrlValue()
 
             if value != self.value:
-                strVal = eval(value)
+                strVal = self.companion.eval(value)
                 if not strVal:
                     message = 'Invalid name for Python object'
                     wxLogError(message)
@@ -835,8 +835,9 @@ class NameConstrPropEdit(StrConstrPropEdit):
         return `self.companion.name`
 
     def setCtrlValue(self, oldValue, newValue):
-        self.companion.checkTriggers(self.name, eval(oldValue), eval(newValue))
-#        self.companion.name = eval(newValue)
+        self.companion.checkTriggers(self.name, 
+              self.companion.eval(oldValue), 
+              self.companion.eval(newValue))
 
     def persistValue(self, value):
         pass
@@ -850,7 +851,7 @@ class ChoicesConstrPropEdit(ConstrPropEdit):
     def getValue(self):
         if self.editorCtrl:
             try:
-                aList = eval(self.editorCtrl.getValue())
+                aList = self.companion.eval(self.editorCtrl.getValue())
                 if type(aList) is ListType:
                     self.value = self.editorCtrl.getValue()
                 else:
@@ -871,7 +872,7 @@ class MajorDimensionConstrPropEdit(ConstrPropEdit):
     def getValue(self):
         if self.editorCtrl:
             try:
-                anInt = eval(self.editorCtrl.getValue())
+                anInt = self.companion.eval(self.editorCtrl.getValue())
                 if type(anInt) is IntType:
                     self.value = self.editorCtrl.getValue()
                 else:
@@ -1012,7 +1013,7 @@ class BITPropEditor(FactoryPropEdit):
     def getValue(self):
         if self.editorCtrl:
             try:
-                value = eval(self.editorCtrl.getValue())
+                value = self.companion.eval(self.editorCtrl.getValue())
             except Exception, mess:
                 wxLogError('Invalid value: %s' % str(mess))
                 raise
@@ -1138,7 +1139,7 @@ class EnumPropEdit(OptionedPropEdit):
             try:
                 self.value = self.names[strVal]
             except KeyError:
-                self.value = eval(strVal)
+                self.value = self.companion.eval(strVal)
 
         return self.value
 # SetPropEdit
@@ -1283,6 +1284,7 @@ class ColPropEdit(ClassPropEdit):
             if dlg.ShowModal() == wxID_OK:
                 self.value = dlg.GetColourData().GetColour()
                 self.inspectorPost(false)
+                self.editorCtrl.setValue(self.value)
                 #self.propWrapper.setValue(self.value)
                 #self.obj.Refresh()
         finally:
@@ -1305,7 +1307,7 @@ class SizePropEdit(ClassPropEdit):
     def getValue(self):
         if self.editorCtrl:
             try:
-                tuplePos = eval(self.editorCtrl.getValue())
+                tuplePos = self.companion.eval(self.editorCtrl.getValue())
             except Exception, mess:
                 Utils.ShowErrorMessage(self.parent, 'Invalid value', mess)
                 raise
@@ -1328,7 +1330,7 @@ class PosPropEdit(ClassPropEdit):
     def getValue(self):
         if self.editorCtrl:
             try:
-                tuplePos = eval(self.editorCtrl.getValue())
+                tuplePos = self.companion.eval(self.editorCtrl.getValue())
             except Exception, mess:
                 Utils.ShowErrorMessage(self.parent, 'Invalid value', mess)
                 raise

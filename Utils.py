@@ -533,7 +533,9 @@ class FrameRestorerMixin:
         if not conf.has_option(self.confSection, self.winConfOption):
             dims = None
         else:
-            dims = eval(conf.get(self.confSection , self.winConfOption))
+            dims = eval(conf.get(self.confSection , self.winConfOption), 
+                        {'wxSize': wxSize,
+                         'wxPoint': wxPoint})
 
         if dims:
             self.setDimensions(dims)
@@ -827,7 +829,7 @@ def importFromPlugins(name):
 
 def transportInstalled(transport):
     return transport in eval(
-         createAndReadConfig('Explorer').get('explorer', 'installedtransports'))
+         createAndReadConfig('Explorer').get('explorer', 'installedtransports'),{})
 
 def readInitPluginGlobals(pluginPath):
     initPlugin = os.path.join(pluginPath, '__init__.plug-in.py')

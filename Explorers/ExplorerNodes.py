@@ -474,7 +474,7 @@ class CategoryNode(ExplorerNode):
         from ExternalLib import ConfigParser
         try:
             return eval(self.config.get(self.resourcepath[cat_section],
-                        self.resourcepath[cat_option]))
+                        self.resourcepath[cat_option]), {})
         except ConfigParser.NoOptionError, err:
             return self.entries
 

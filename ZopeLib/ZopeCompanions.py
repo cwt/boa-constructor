@@ -60,7 +60,7 @@ class EvalZopePropEdit(ZopePropEdit):
     def getValue(self):
         if self.editorCtrl:
             try:
-                self.value = eval(self.editorCtrl.getValue())
+                self.value = eval(self.editorCtrl.getValue(), {})
             except Exception, message:
                 self.value = self.getCtrlValue()
                 print 'invalid constr prop value', message
@@ -207,7 +207,7 @@ class ZopeCompanion(ExplorerCompanion, ZopeConnection):
                      {'id': self.propItems[1][0], 'type': tpe2} ]
         else:
             mime, res = self.call(self.objPath, 'propertyMap')
-            return eval(res)
+            return eval(res, {})
 
     def getPropertyItems(self):
         # [ (<prop name>, <prop value>), ...]
@@ -216,7 +216,7 @@ class ZopeCompanion(ExplorerCompanion, ZopeConnection):
         except:
             #pass bci.
             return []
-        return eval(res)
+        return eval(res, {})
 
     def getPropertyType(self, name):
         for p in self.propMap:
@@ -362,7 +362,7 @@ class ExternalMethodZC(CustomZopePropsMixIn, ZopeCompanion):
     def getProps(self):
         path, name = os.path.split(self.objPath)
         mime, res = self.call(path, 'zoa/props/ExternalMethod', name=name)
-        return eval(res)
+        return eval(res, {})
 
     def SetProp(self, name, value):
         props = self.getProps()
@@ -385,7 +385,7 @@ class MailHostZC(CustomZopePropsMixIn, ZopeCompanion):
 
     def getProps(self):
         mime, res = self.call(self.objPath, 'zoa/props/MailHost')
-        return eval(res)
+        return eval(res, {})
 
     def SetProp(self, name, value):
         props = self.getProps()
@@ -425,7 +425,7 @@ class SQLMethodZC(CustomZopePropsMixIn, ZopeCompanion):
 
     def getProps(self):
         mime, res = self.call(self.objPath, 'zoa/props/SQLMethod')
-        return eval(res)
+        return eval(res, {})
 
     def SetProp(self, name, value):
         props = self.getProps()
@@ -463,7 +463,7 @@ class SQLMethodZC(CustomZopePropsMixIn, ZopeCompanion):
 class DBAdapterZC(CustomZopePropsMixIn, ZopeCompanion):
     def getProps(self):
         mime, res = self.call(self.objPath, 'zoa/props/DBAdapter')
-        return eval(res)
+        return eval(res, {})
 
     def SetProp(self, name, value):
         props = self.getProps()
@@ -502,7 +502,7 @@ class UserZC(CustomZopePropsMixIn, ZopeCompanion):
     def getProps(self):
         path, name = os.path.split(self.objPath)
         mime, res = self.call(path, 'zoa/props/User', name=name)
-        return eval(res)
+        return eval(res, {})
 
     def SetProp(self, name, value):
         pass
@@ -533,7 +533,7 @@ class UserFolderZC(ZopeCompanion):
 class SiteErrorLogZC(CustomZopePropsMixIn, ZopeCompanion):
     def getProps(self):
         mime, res = self.call(self.objPath, 'zoa/props/SiteErrorLog')
-        return eval(res)
+        return eval(res, {})
 
     def SetProp(self, name, value):
         props = self.getProps()

@@ -122,7 +122,7 @@ class BoaFrame(wxFrame, Utils.FrameRestorerMixin):
 
         # Add main helpbuttons defined in the config file
         conf = Utils.createAndReadConfig('Explorer')
-        self.paletteHelpItems = eval(conf.get('help', 'palettehelp'))
+        self.paletteHelpItems = eval(conf.get('help', 'palettehelp'), {})
 
         self.toolBar.AddSeparator()
         self.addTool('Images/Shared/Help', 'Boa or selected component help',
@@ -133,7 +133,7 @@ class BoaFrame(wxFrame, Utils.FrameRestorerMixin):
               'Show help', self.OnPythonHelpToolClick)
 
         # Add additional helpbuttons if defined in the config file
-        customHelpItems = eval(conf.get('help', 'customhelp'))
+        customHelpItems = eval(conf.get('help', 'customhelp'), {})
         self.customHelpItems = {}
         for caption, helpFile in customHelpItems.items():
             mID = wxNewId()

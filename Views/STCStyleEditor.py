@@ -56,6 +56,7 @@ from wxPython.wx import *
 from wxPython.help import *
 from wxPython.lib.anchors import LayoutAnchors
 from wxPython.stc import *
+from wxPython import stc
 
 settingsIdNames = {-1: 'Selection', -2: 'Caret', -3: 'Edge'}
 
@@ -933,7 +934,7 @@ class STCStyleEditDlg(wxDialog):
               style=wxTE_MULTILINE | wxOK | wxCANCEL | wxCENTRE)
         try:
             if dlg.ShowModal() == wxID_OK:
-                answer = eval(dlg.GetValue())
+                answer = eval(dlg.GetValue(), stc.__dict__)
                 assert type(answer) is type({}), 'Not a valid dictionary'
                 oldDefs = self.commonDefs
                 self.commonDefs = answer
@@ -1212,7 +1213,7 @@ def setSTCStyles(stc, styles, styleIdNames, commonDefs, lang, lexer, keywords):
 commonDefsFile = 'common.defs.%s'%(wxPlatform == '__WXMSW__' and 'msw' or 'gtk')
 
 def readPyValFromConfig(conf, name):
-    return eval(string.replace(conf.Read(name), '\r\n', '\n')+'\n')
+    return eval(string.replace(conf.Read(name), '\r\n', '\n')+'\n', stc.__dict__)
 
 def initFromConfig(configFile, lang):
     cfg = wxFileConfig(localFilename=configFile, style=wxCONFIG_USE_LOCAL_FILE)

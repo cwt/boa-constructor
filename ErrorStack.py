@@ -80,7 +80,7 @@ class PyCheckerErrorParser(StackErrorParser):
         if self.lines:
             pyCheckWarn = self.lines.pop()
             try:
-                filename, lineNo, warng = eval(string.strip(pyCheckWarn))
+                filename, lineNo, warng = eval(string.strip(pyCheckWarn), {})
             except:
                 pass
             else:

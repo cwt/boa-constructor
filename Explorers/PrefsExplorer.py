@@ -882,7 +882,7 @@ class TransportPluginsLoadOrderGroupNode(PreferenceGroupNode):
     def openList(self):
         conf = Utils.createAndReadConfig('Explorer')
 
-        modules = eval(conf.get('explorer', 'installedtransports'))
+        modules = eval(conf.get('explorer', 'installedtransports'), {})
         assert isinstance(modules, types.ListType)
 
         res = []
@@ -926,7 +926,7 @@ class TransportPluginsTreeDisplayOrderGroupNode(PreferenceGroupNode):
     def openList(self):
         conf = Utils.createAndReadConfig('Explorer')
 
-        treeOrder = eval(conf.get('explorer', 'transportstree'))
+        treeOrder = eval(conf.get('explorer', 'transportstree'), {})
         assert isinstance(treeOrder, type([]))
 
         res = []
@@ -955,7 +955,7 @@ class TransportPluginsTreeDisplayOrderGroupNode(PreferenceGroupNode):
     def clearEmptyConfigEntry(self, protocol):
         conf = Utils.createAndReadConfig('Explorer')
         if conf.has_option('explorer', protocol) and \
-              eval(string.strip(conf.get('explorer', protocol))) == {}:
+              eval(string.strip(conf.get('explorer', protocol)), {}) == {}:
             conf.remove_option('explorer', protocol)
             Utils.writeConfig(conf)
 
