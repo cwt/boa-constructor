@@ -5,7 +5,7 @@ from wxPython.wx import *
 def create(parent):
     return wxFrame1(parent)
 
-[wxID_WXFRAME1, wxID_WXFRAME1BUTTON1, wxID_WXFRAME1BUTTON2, 
+[wxID_WXFRAME1, wxID_WXFRAME1BUTTON1, wxID_WXFRAME1BUTTON2,
 ] = map(lambda _init_ctrls: wxNewId(), range(3))
 
 class wxFrame1(wxFrame):
