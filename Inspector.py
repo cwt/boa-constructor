@@ -20,7 +20,7 @@ from types import *
 
 from wxPython.wx import *
 
-import PaletteStore, sender, Preferences, Help
+import PaletteMapping, PaletteStore, sender, Preferences, Help
 print 'importing PropertyEditors'
 from PropEdit import PropertyEditors
 from Companions.EventCollections import *
@@ -444,7 +444,7 @@ class NameValue:
           wxPoint(8 * self.indent + 16, idx * oiLineHeight +2),
           wxSize(inspector.panelNames.GetSize().x, oiLineHeight -3),
           style = wxCLIP_CHILDREN | wxST_NO_AUTORESIZE)
-        self.nameCtrl.SetToolTipString(name)
+        self.nameCtrl.SetToolTipString(companion.getPropertyHelp(name))
         EVT_LEFT_DOWN(self.nameCtrl, self.OnSelect)
 
         self.showPropNameModified()
