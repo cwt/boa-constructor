@@ -1,4 +1,4 @@
-## rc-version: 5 ##
+## rc-version: 6 ##
 # RCS-ID:      $Id$
 
 from wxPython.wx import *
@@ -70,28 +70,28 @@ keyDefs = {
   'HistoryDown' : (wxACCEL_CTRL, WXK_DOWN, 'Ctrl-Down'),
 }
 
-##  'NextView'    : (wxACCEL_SHIFT|wxACCEL_CTRL, ord('T'), 'Ctrl-Shft-T'),
-##  'PrevView'    : (wxACCEL_SHIFT|wxACCEL_CTRL, ord('R'), 'Ctrl-Shft-R'),
+##  'NextView'    : (wxACCEL_SHIFT|wxACCEL_CTRL, ord('T'), 'Ctrl-Shift-T'),
+##  'PrevView'    : (wxACCEL_SHIFT|wxACCEL_CTRL, ord('R'), 'Ctrl-Shift-R'),
 
-if wxPlatform == '__WXMSW__':
-    keyDefs.update({'SaveAs'      : (wxACCEL_ALT, ord('S'), 'Alt-S'),
-                    'Comment'     : (wxACCEL_ALT, ord('3'), 'Alt-3'),
-                    'Uncomment'   : (wxACCEL_ALT, ord('4'), 'Alt-4'),
-                    'SwitchToApp' : (wxACCEL_ALT, ord('A'), 'Alt-A'),
-                    'CodeXform'   : (wxACCEL_ALT, ord('C'), 'Alt-C'),
-                  })
-elif wxPlatform == '__WXGTK__':
+if wxPlatform == '__WXGTK__':
     keyDefs.update({'SaveAs'      : (wxACCEL_CTRL, ord('1'), 'Ctrl-1'),
                     'Comment'     : (wxACCEL_CTRL, ord('3'), 'Ctrl-3'),
                     'Uncomment'   : (wxACCEL_CTRL, ord('4'), 'Ctrl-4'),
                     'SwitchToApp' : (wxACCEL_CTRL, ord('5'), 'Ctrl-5'),
                     'CodeXform'   : (wxACCEL_CTRL, ord('E'), 'Ctrl-E'),
                   })
-
+else:
+    keyDefs.update({'SaveAs'      : (wxACCEL_ALT, ord('S'), 'Alt-S'),
+                    'Comment'     : (wxACCEL_ALT, ord('3'), 'Alt-3'),
+                    'Uncomment'   : (wxACCEL_ALT, ord('4'), 'Alt-4'),
+                    'SwitchToApp' : (wxACCEL_ALT, ord('A'), 'Alt-A'),
+                    'CodeXform'   : (wxACCEL_ALT, ord('C'), 'Alt-C'),
+                  })
+    
 # Not used yet, defined for completeness
-stcDefs = {'Cut'        : 'Shft-Del',
+stcDefs = {'Cut'        : 'Shift-Del',
            'Copy'       : 'Ctrl-Ins',
-           'Paste'      : 'Shft-Ins',
+           'Paste'      : 'Shift-Ins',
            'SelectAll'  : 'Ctrl-A',
            'Undo'       : 'Ctrl-Z',
            'Redo'       : 'Ctrl-Y',
