@@ -318,6 +318,16 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
         #if not self.palette.IsShown():
         #    self.Center()
 
+    def expandOnInspectorClose(self):
+        iPos = self.inspector.GetPosition()
+        ePos = self.GetPosition()
+        size = self.GetSize()
+        width = size.x +self.inspector.GetSize().x
+        self.SetDimensions(min(iPos.x, ePos.x), ePos.y, width, size.y)
+
+    def restoreOnInspectorRestore(self):
+        Utils.FrameRestorerMixin.loadDims(self)
+        
     def releasePrevResources(self):
         self.toolBar.DisconnectToolIds()
         self.SetToolBar(None)
@@ -719,8 +729,9 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
             controller = self.getController(Controllers.modelControllerReg.get(
                   model.__class__, Controllers.DefaultController))
 
-        if self.palette.IsShown() and self.palette.IsIconized():
-            self.palette.restore()
+        if self.palette.IsShown():
+            if self.palette.IsIconized() and self.IsIconized():
+                self.palette.restore()
         elif self.IsIconized():
             self.restore()
 
@@ -1240,7 +1251,7 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
         if Preferences.rememberOpenFiles:
             conf = Utils.createAndReadConfig('Explorer')
             if conf.has_section('editor'):
-                files = eval(conf.get('editor', 'openfiles'))
+                files = eval(conf.get('editor', 'openfiles'), {})
                 self._blockToolbar = true
                 try:
                     cnt = 0

@@ -148,7 +148,8 @@ class InspectorFrame(wxFrame, Utils.FrameRestorerMixin):
 
         for cmpInf in PaletteStore.compInfo.values():
             filename ='Images/Palette/'+ cmpInf[0]+'.png'
-            if os.path.exists(Preferences.pyPath+'/'+filename):
+            if IS.canLoad(filename):
+            #if os.path.exists(Preferences.pyPath+'/'+filename):
                 cmpInf.append(self.paletteImages.Add(IS.load(filename)))
             else:
                 cmpInf.append(self.paletteImages.Add(IS.load('Images/Palette/Component.png')))
@@ -450,6 +451,14 @@ class InspectorFrame(wxFrame, Utils.FrameRestorerMixin):
             self.events.destroy()
             self.Destroy()
             event.Skip()
+        elif Preferences.expandEditorOnCloseInspector:
+            self.editor.expandOnInspectorClose()
+    
+    def restore(self):
+        Utils.FrameRestorerMixin.restore(self)
+        if Preferences.expandEditorOnCloseInspector:
+            self.editor.restoreOnInspectorRestore()
+            
 
 wxID_PARENTTREE = wxNewId()
 wxID_PARENTTREESELECTED = wxNewId()
