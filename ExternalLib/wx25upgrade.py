@@ -25,9 +25,9 @@
 # 
 # This file currently munges the 
 # - EVT_xxx change from wxPython 2.4 style to 2.5 style
-# - changes the 'helpString' to 'help' for .Append
-# - changes the 'item' to 'text' for .Append
-# - changes the 'map(lambda _init_ctrls: wxNewId()' to the new format
+# - .Append for menu, changes 'helpString' to 'help', 'item' to 'text' and
+#   wxITEM to wx.ITEM
+# - changes the 'map(lambda _init_whatever: wxNewId()' to the new format
 # - changes 'wxID_WX' to the new format
 # - changes the classes from wxName to wx.Name
 #   check "self.specialNames" to see which special cases are handled
@@ -38,23 +38,32 @@
 # - AddSpacer "n, n" to wx.Size(n, n)
 # - flag= i.e. flag=wxALL
 # - style= i.e. style=wxDEFAULT_DIALOG_STYLE
-# - wxInitAllImageHandlers( to wx.InitAllImageHandlers(
+# - wxInitAllImageHandlers to wx.InitAllImageHandlers
 # - orient=wx to orient=wx.
 # - kind=wx to kind=wx.
-# - wxIcon( to wx.Icon(
-# - wxBITMAP to wx.BITMAP
-# - wxBitmap( to wx.Bitmap(
-# - wxSize( to wx.Size(
-# - wxNullBitmap to wx.NullBitmap
-# - wxPoint( to wx.Point(
-# - wxNewID to wx.NewID (if used in user code)
-# - wxColour to wx.Colour
-# - wxOPEN to wx.OPEN
-# - wxID_OK to wx.ID_OK
-# - wxRED to wx.RED
-# - wxGREEN to wx.GREEN
-# - wxBLUE to wx.BLUE
-# - wxGrid.wxGrid to wx.grid.Grid.wxGrid
+# - Following changes are handled, see self.specialNames2
+#   - wxIcon( to wx.Icon(
+#   - wxBITMAP to wx.BITMAP
+#   - wxBitmap( to wx.Bitmap(
+#   - wxSize( to wx.Size(
+#   - wxNullBitmap to wx.NullBitmap
+#   - wxPoint( to wx.Point(
+#   - wxNewID to wx.NewID (if used in user code)
+#   - wxColour to wx.Colour
+#   - wxOPEN to wx.OPEN
+#   - wxID_OK to wx.ID_OK
+#   - wxRED to wx.RED
+#   - wxGREEN to wx.GREEN
+#   - wxBLUE to wx.BLUE
+#   - wxGrid.wxGrid to wx.grid.Grid.wxGrid
+# - wxFont(8,wxSWISS,wxNORMAL,wxNORMAL to wx.Font(8,wx.SWISS,wx.NORMAL,wx.NORMAL
+# - wxACCEL to wx.ACCEL
+# - wxAcceleratorTable to wx.AcceleratorTable
+# - wxTheClipboard to wx.TheClipboard
+# - wxID_YES to wx.ID_YES
+# - wxOK to wx.OK
+# - wxICON_QUESTION to wx.ICON_QUESTION
+# - wxICON_EXCLAMATION wx.ICON_EXCLAMATION
 #
 #
 # A lot is converted however manual inspection and correction of code
@@ -88,8 +97,8 @@ class Upgrade:
                              'EditableListBox': 'wx.gizmos.EditableListBox',
                              'TreeListCtrl': 'wx.gizmos.TreeListCtrl'
                              }
+
         self.specialNames2 = {'wxInitAllImageHandlers' : 'wx.InitAllImageHandlers',
-                              'wxPySimpleApp' : 'wx.PySimpleApp',
                               'wxIcon' : 'wx.Icon',
                               'wxBITMAP' : 'wx.BITMAP',
                               'wxBitmap' : 'wx.Bitmap',
@@ -103,8 +112,17 @@ class Upgrade:
                               'wxRED': 'wx.RED',
                               'wxBLUE': 'wx.BLUE',
                               'wxGREEN': 'wx.GREEN',
-                              'wxGrid.wxGrid': 'wx.grid.Grid.wxGrid'
+                              'wxGrid.wxGrid': 'wx.grid.Grid.wxGrid',
+                              'wxACCEL':'wx.ACCEL',
+                              'wxAcceleratorTable':'wx.AcceleratorTable',
+                              'wxTheClipboard':'wx.TheClipboard',
+                              'wxID_YES':'wx.ID_YES',
+                              'wxOK':'wx.OK',
+                              'wxICON_QUESTION':'wx.ICON_QUESTION',
+                              'wxICON_EXCLAMATION':'wx.ICON_EXCLAMATION',
+                              'wxPySimpleApp' : 'wx.PySimpleApp'
                               }
+
         self.importNames = {'.wx import *': 'import wx',
                             '.stc import *': 'import wx.stc',
                             '.gizmos import *': 'import wx.gizmos',
@@ -166,6 +184,12 @@ class Upgrade:
             + karg + COMMA + karg + RPAREN
         append.setParseAction(self.appendAction)
 
+        # wxFont
+        wxfont = Literal("wxFont").suppress() + LPAREN + \
+                        intOnly + COMMA + ident + COMMA + ident + COMMA + \
+                        ident
+        wxfont.setParseAction(self.wxfontAction)
+
         # SetStatusText keyword args
         setStatusText = Literal(".SetStatusText").suppress() \
             + LPAREN + ident + EQ + intOnly
@@ -180,14 +204,12 @@ class Upgrade:
         flags = Or(map(Literal, ["flag=", "style=", "orient=", "kind=",])) + flags
         flags.setParseAction(self.flagsAction)
 
-        # wxNewId() to wx.NewId()
-        repId1 = Literal("map(lambda _init_ctrls: wxNewId()") +\
-                COMMA + "range(" + ident + RPAREN + RPAREN
+        # map(lambda... to wx.NewId() for etc
+        RANGE = Literal('range(').suppress()
+        COL = Literal(':').suppress()
+        repId1 = Literal("map(lambda ").suppress() + qualIdent2 + COL \
+                + qualIdent2 + COMMA + RANGE + intOnly + RPAREN + RPAREN
         repId1.setParseAction(self.repId1Action)
-        
-        # wxID_WX to wxID_
-        #repId2 = Literal("wxID_WX") + ident
-        #repId2.setParseAction(self.repId2Action)
         
         # import
         imp = Literal("from wxPython") + qualIdent3
@@ -217,10 +239,11 @@ class Upgrade:
         repFalse = Literal("false")
         repFalse.setParseAction(lit('False'))
 
-        self.grammar = evt_P2 ^ evt_P3 ^ append ^ repId1 ^ imp\
+        self.grammar = evt_P2 ^ evt_P3 ^ append ^ wxfont\
+            ^ setStatusText ^ addSpacer ^ flags ^ repId1 ^ imp\
             ^ repWXSpec ^ repWX ^ repWX2 ^ repWX3\
-            ^ repTrue ^ repFalse ^ setStatusText\
-            ^ addSpacer ^ flags
+            ^ repTrue ^ repFalse\
+             
         if specialEventCode:
             self.grammar ^= evt_P3a 
 
@@ -254,6 +277,13 @@ class Upgrade:
             arglist.append("%s=%s" % (kw, arg))
         return '.Append(' + string.join(arglist, ', ') + ')'
 
+    def wxfontAction(self, s, l, t):
+        a, b, c, d = t
+        b = b.replace('wx', 'wx.')
+        c = c.replace('wx', 'wx.')
+        d = d.replace('wx', 'wx.')
+        return 'wx.Font('+a+','+b+','+c+','+d
+
     def setStatusTextAction(self, s, l, t):
         a, b = t
         return '.SetStatusText(' + "number" + "=" + b
@@ -267,12 +297,8 @@ class Upgrade:
 
     def repId1Action(self, s, l, t):
         a, b, c = t
-        return "[wx.NewId() for _init_ctrls in range("+c+")]"
+        return "[wx.NewId() for "+a+" in range("+c+")]"
 
-#    def repId2Action(self, s, l, t):
-#        a, b = t
-#        return "wxID_"+b
-    
     def impAction(self, s, l, t):
         a, b = t
         try:
@@ -331,11 +357,6 @@ if __name__ == "__main__":
     filename = sys.argv[1]
     fin = file(filename, 'r')
     try:
-        frag = []
-        for non, rep in u.scanner(fin.read()):
-            frag.append(non);
-            frag.append(rep);
-        newtext = string.join(frag, '')
-        print newtext
+        print u.upgrade(fin.read())
     finally:
         fin.close()
