@@ -17,10 +17,16 @@ class HistoryBrowsePage:
         self.marker = marker
 
     def goto(self):
-        # XXX What if page has been closed, notification
         self.modulePage.focus()
         self.modulePage.model.views[self.view].gotoBrowseMarker(self.marker)
 
+    def __cmp__(self, other):
+        if not isinstance(other, HistoryBrowsePage):
+            return -1
+        if self.modulePage == other.modulePage and self.view == other.view and \
+           self.marker == other.marker:
+            return 0
+        return -1
 
     def __repr__(self):
         return 'BrowsePage(%s, %s, %s)' % (`self.modulePage`, `self.view`,
@@ -34,18 +40,19 @@ class HistoryBrowser:
 
     def add(self, modulepage, view, marker):
         page = HistoryBrowsePage(modulepage, view, marker)
+        if self.pages and page == self.pages[self.idx]:
+            return
         if self.idx == len(self.pages)-1:
             self.pages.append(page)
         else:
             self.pages[self.idx:] = [page]
         self.idx = len(self.pages)-1
-#        print 'add idx', self.idx, self.pages
 
     def checkRemoval(self, modPage):
         for page in self.pages[:]:
             if page.modulePage == modPage:
                 idx = self.pages.index(page)
-                if idx < self.idx:
+                if idx <= self.idx:
                     self.idx = self.idx - 1
                 del self.pages[idx]
 
@@ -57,7 +64,6 @@ class HistoryBrowser:
         return self.idx < len(self.pages)-1
 
     def forward(self):
-#        print 'forward', self.idx, self.canForward()
         if self.canForward():
             self.step(1)
 
@@ -65,6 +71,5 @@ class HistoryBrowser:
         return self.idx >= 0
 
     def back(self):
-#        print 'back', self.idx, self.canBack()
         if self.canBack():
             self.step(-1)
