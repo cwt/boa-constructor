@@ -71,7 +71,7 @@ class BoaApp(wxApp):
 \t\t# needed when running from Boa under Windows 9X
 \t\tself.SetTopWindow(self.main)
 \t\tself.main.Show();self.main.Hide();self.main.Show()
-\t\treturn true
+\t\treturn True
 
 def main():
 \tapplication = BoaApp(0)
@@ -152,9 +152,9 @@ if __name__ == '__main__':
 \tapp = wxPySimpleApp()
 \twxInitAllImageHandlers()
 \tframe = wxFrame(None, -1, 'Parent')
-\tframe.SetAutoLayout(true)
+\tframe.SetAutoLayout(True)
 \tframe.Show()
 \tpopup = create(frame)
-\tpopup.Show(true)
+\tpopup.Show(True)
 \tapp.MainLoop()
 ''')
