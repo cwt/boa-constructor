@@ -271,7 +271,7 @@ class ZopeController(Controllers.PersistentController):
         return Controllers.PersistentController.actions(self, model) + [
           ('Inspect', self.OnInspect, self.inspectBmp, ''), # F11?
           ('View in browser', self.OnViewInBrowser, self.viewInBrowserBmp, '')]
-              
+
     def createModel(self, source, filename, main, saved, transport):
         return self.Model(source, filename, self.editor, saved, transport)
 

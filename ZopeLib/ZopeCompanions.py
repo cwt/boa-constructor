@@ -572,6 +572,6 @@ PaletteStore.compInfo.update({'DTML Document': ['DTMLDocument', DTMLDocumentZC],
     'User Folder': ['UserFolder', UserFolderZC],
     'Version': ['Version', VersionZC],
     'Z Gadfly Database Connection': ['GadflyDA', GadflyDAZC],
-    'User' : ['User', UserZC], 
+    'User' : ['User', UserZC],
     'Site Error Log':['SiteErrorLog', SiteErrorLogZC],
 })

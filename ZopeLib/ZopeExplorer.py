@@ -132,7 +132,7 @@ class ZopeItemNode(ExplorerNodes.ExplorerNode):
         if path:
             if path == '/':
                 path = '//'
-            if path[0] != '/': 
+            if path[0] != '/':
                 path = '/'+path
         else:
             path = '//'
@@ -335,8 +335,8 @@ class ZopeItemNode(ExplorerNodes.ExplorerNode):
 (wxID_ZOPEEXPORT, wxID_ZOPEIMPORT, wxID_ZOPEINSPECT, wxID_ZOPEOPENINEDITOR,
  wxID_ZOPEUPLOAD, wxID_ZOPESECURITY, wxID_ZOPEUNDO, wxID_ZOPEVIEWBROWSER,
  wxID_ZCCSTART, wxID_ZCCRESTART, wxID_ZCCSHUTDOWN, wxID_ZCCTEST, wxID_ZCCOPENLOG,
- wxID_ZACONFZ2, wxID_ZOPEMANAGEBROWSER, wxID_ZOPEFIND, 
- wxID_ZCOPENZ2, wxID_ZCBREAKINTO, 
+ wxID_ZACONFZ2, wxID_ZOPEMANAGEBROWSER, wxID_ZOPEFIND,
+ wxID_ZCOPENZ2, wxID_ZCBREAKINTO,
 ) = Utils.wxNewIds(18)
 
 class ZopeCatController(ExplorerNodes.CategoryController):
@@ -486,7 +486,7 @@ class ZopeCatController(ExplorerNodes.CategoryController):
 
     def breakpointInBackground(self, zc):
         zc.call('zoa', 'breakpoint')
-        
+
     def OnBreakInto(self, event):
         for node in self.getNodesForSelection(self.list.getMultiSelection()):
             props = node.properties
