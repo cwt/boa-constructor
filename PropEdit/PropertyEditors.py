@@ -27,7 +27,7 @@ from types import *
 import os
 
 from wxPython.wx import *
-from wxPython.utils import *
+#from wxPython.utils import *
 
 from InspectorEditorControls import *
 
@@ -899,38 +899,39 @@ class EventPropEdit(OptionedPropEdit):
 
     extraOpts = ['(delete)', '(rename)']
     scopeOpts = {'(show all)': 'all',
-                 '(show same controls)': 'same',
-                 '(only this control)': 'this'}
+                 '(show own)': 'own'}
     def getValues(self):
         """ Build event list based on currently selected scope for the event """
+        # XXX Should ideally do this one day:
+        # XXX   Show event's of similar types, e.g. mouse events, cmd events.
+        # XXX   Also show events from the code not bound to the frame
         vals = []
-##        showScope = 'this'
+        showScope = 'own'
         if self.companion:
             for evt in self.companion.textEventList:
-##                if evt.event_name == self.name:
-##                    showScope = evt.show_scope
+                if evt.event_name == self.name:
+                    showScope = evt.show_scope
 
                 if evt.trigger_meth not in self.extraOpts:
                     try: vals.index(evt.trigger_meth)
                     except ValueError: vals.append(evt.trigger_meth)
 
-##            if showScope != 'this':
-##                # Add evts from other scopes
-##                # XXX Collection items' events aren't handled correctly
-##                # XXX designer != CollEditorView
-##                for comp, ctrl, prnt in self.companion.designer.objects.values():
-##                    if comp != self.companion and (showScope == 'all' or \
-##                          showScope == 'same' and \
-##                          comp.__class__ == self.companion.__class__):
-##                        for evt in comp.textEventList:
-##                            if evt.trigger_meth not in self.extraOpts:
-##                                try: vals.index(evt.trigger_meth)
-##                                except ValueError: vals.append(evt.trigger_meth)
-##
-##        scopeChoices = self.scopeOpts.keys()
-##        del scopeChoices[self.scopeOpts.values().index(showScope)]
+            if showScope != 'own':
+                # Add evts from other scopes
+                # XXX Collection items' events aren't handled correctly
+                # XXX designer != CollEditorView
+                for comp, ctrl, prnt in self.companion.designer.objects.values():
+                    if comp != self.companion and showScope == 'all':
+                        #or  showScope == 'same' and comp.__class__ == self.companion.__class__):
+                        for evt in comp.textEventList:
+                            if evt.trigger_meth not in self.extraOpts:
+                                try: vals.index(evt.trigger_meth)
+                                except ValueError: vals.append(evt.trigger_meth)
 
-        vals.extend(self.extraOpts)## + scopeChoices)
+        scopeChoices = self.scopeOpts.keys()
+        del scopeChoices[self.scopeOpts.values().index(showScope)]
+
+        vals.extend(self.extraOpts + scopeChoices)
         return vals
 
     def _repopulateChoice(self, value):
