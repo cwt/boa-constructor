@@ -80,15 +80,61 @@ class FormatCodePropEdit(PropertyEditors.StrPropEdit):
         finally:
             dlg.Destroy()
 
+class AutoFormatPropMixin:
+    dependents = ['mask', 'datestyle', 'formatcodes',
+                  'description', 'excludeChars', 'validRegex']
+    
+    def __init__(self):
+        self.editors['Autoformat'] = PropertyEditors.StringEnumPropEdit
+
+        from wxPython.lib import maskededit 
+        autofmt = maskededit.masktags.keys()
+        autofmt.sort()
+        self.options['Autoformat'] = [s for s in ['']+autofmt]
+        self.names['Autoformat'] = {}
+        for opt in self.options['Autoformat']: 
+            self.names['Autoformat'][opt] = opt
+        
+        self.mutualDepProps += ['Autoformat'] + [s[0].upper()+s[1:] 
+                                                 for s in self.dependents]
+
+    def properties(self):
+        props = {'Autoformat': ('CompnRoute', self.GetAutoformat, 
+                                              self.SetAutoformat)}
+        return props
+
+    def GetAutoformat(self, x):
+        return self.control.GetAutoformat()
+
+    def SetAutoformat(self, val):
+        currVals = {}
+        for dp in self.dependents:
+            currVals[dp] = self.control.GetCtrlParameter(dp)
+
+        self.control.SetAutoformat(val)
+        
+        # call delayed so that Inspector may update first
+        wxCallAfter(self.revertAutoFormatDeps, currVals)
+    
+    def revertAutoFormatDeps(self, currVals):
+        # revert source for properties that were changed to default values
+        for dp in self.dependents:
+            newVal = self.control.GetCtrlParameter(dp)
+            if newVal != currVals[dp]:
+                prop = dp[0].upper()+dp[1:]
+                self.propRevertToDefault(prop, 'Set'+prop)
+
 
 class MaskedDTCMixin:
     def __init__(self):
         BoolPE = PropertyEditors.BoolPropEdit
-        EnumPE = PropertyEditors.EnumPropEdit
-        self.editors.update({'UseFixedWidthFont': BoolPE, 
+        StrEnumPE = PropertyEditors.StringEnumPropEdit
+        BITPropEdit = PropertyEditors.BITPropEditor
+        self.editors.update({'AutoCompleteKeycodes': BITPropEdit,
+                             'UseFixedWidthFont': BoolPE, 
                              'RetainFieldValidation': BoolPE,
-                             'Autoformat': EnumPE,
-                             'Datestyle': EnumPE,
+                             'Datestyle': StrEnumPE,
+                             'Choices': BITPropEdit,
                              'ChoiceRequired': BoolPE, 
                              'CompareNoCase': BoolPE, 
                              'EmptyInvalid': BoolPE, 
@@ -101,22 +147,13 @@ class MaskedDTCMixin:
         for opt in self.options['Datestyle']: 
             self.names['Datestyle'][opt] = opt
         
-        from wxPython.lib import maskededit 
-        autofmt = maskededit.masktags.keys()
-        autofmt.sort()
-        self.options['Autoformat'] = [s for s in ['']+autofmt]
-        self.names['Autoformat'] = {}
-        for opt in self.options['Autoformat']: 
-            self.names['Autoformat'][opt] = opt
-        
-        self.mutualDepProps = ['Autoformat', 'Mask', 'Dateformat', 'Formatcodes',
-              'Description', 'ExcludeChars', 'ValidRegex']
-
     def writeImports(self):
         return 'from wxPython.lib.maskededit import *'
+    
+    def hideDesignTime(self):
+        return ['Demo', 'Fields', 'Autoformat', 'ValidFunc']
 
-
-class MaskedTextCtrlDTC(MaskedDTCMixin, TextCtrlDTC):
+class BaseMaskedTextCtrlDTC(TextCtrlDTC, MaskedDTCMixin):
     def __init__(self, name, designer, parent, ctrlClass):
         TextCtrlDTC.__init__(self, name, designer, parent, ctrlClass)
         MaskedDTCMixin.__init__(self)
@@ -126,36 +163,80 @@ class MaskedTextCtrlDTC(MaskedDTCMixin, TextCtrlDTC):
         dts['value'] = "''"
         return dts
 
+    def hideDesignTime(self):
+        return TextCtrlDTC.hideDesignTime(self) + MaskedDTCMixin.hideDesignTime(self)
 
-class IpAddrCtrlDTC(MaskedTextCtrlDTC):
+
+class MaskedTextCtrlDTC(BaseMaskedTextCtrlDTC, AutoFormatPropMixin):
+    def __init__(self, name, designer, parent, ctrlClass):
+        BaseMaskedTextCtrlDTC.__init__(self, name, designer, parent, ctrlClass)
+        AutoFormatPropMixin.__init__(self)
+
+    def properties(self):
+        props = BaseMaskedTextCtrlDTC.properties(self)
+        props.update(AutoFormatPropMixin.properties(self))
+        return props
+
+
+class IpAddrCtrlDTC(BaseMaskedTextCtrlDTC):
     pass
+##    def hideDesignTime(self):
+##        return BaseMaskedTextCtrlDTC.hideDesignTime(self) + ['Datestyle', 
+##               'AutoCompleteKeycodes', 'SignedForegroundColour', 
+##               'GroupChar', 'DecimalChar', 'ShiftDecimalChar', 
+##               'UseParensForNegatives', 'ExcludeChars', 'IncludeChars',
+##               'CompareNoCase']
 
-
-class MaskedComboBoxDTC(MaskedDTCMixin, ComboBoxDTC):
+class MaskedComboBoxDTC(ComboBoxDTC, MaskedDTCMixin, AutoFormatPropMixin):
     def __init__(self, name, designer, parent, ctrlClass):
         ComboBoxDTC.__init__(self, name, designer, parent, ctrlClass)
         MaskedDTCMixin.__init__(self)
+        AutoFormatPropMixin.__init__(self)
 
     def designTimeSource(self, position = 'wxDefaultPosition', size = 'wxDefaultSize'):
         dts = ComboBoxDTC.designTimeSource(self, position, size)
         dts['value'] = "''"
         return dts
 
-    def hideDesignTime(self):
-        return ComboBoxDTC.hideDesignTime(self) + ['Mark', 'emptyInvalid']
+    def properties(self):
+        props = ComboBoxDTC.properties(self)
+        props.update(AutoFormatPropMixin.properties(self))
+        return props
 
-class MaskedNumCtrlDTC(MaskedDTCMixin, TextCtrlDTC):
+    def hideDesignTime(self):
+        return ComboBoxDTC.hideDesignTime(self) + \
+               MaskedDTCMixin.hideDesignTime(self)
+##               ['Mark', 'EmptyInvalid']
+
+class MaskedNumCtrlDTC(TextCtrlDTC, MaskedDTCMixin):
     def __init__(self, name, designer, parent, ctrlClass):
         TextCtrlDTC.__init__(self, name, designer, parent, ctrlClass)
         MaskedDTCMixin.__init__(self)
+
+        self.editors.update({'Min': PropertyEditors.BITPropEditor, 
+                             'Max': PropertyEditors.BITPropEditor, 
+                             'Bounds': PropertyEditors.BITPropEditor})
+
+        self.mutualDepProps += ['Bounds', 'Min', 'Max']
 
     def designTimeSource(self, position = 'wxDefaultPosition', size = 'wxDefaultSize'):
         dts = TextCtrlDTC.designTimeSource(self, position, size)
         dts['value'] = '0'
         return dts
 
+    def events(self):
+        return TextCtrlDTC.events(self) + ['MaskedNumCtrlEvent']
+
     def writeImports(self):
         return 'from wxPython.lib.maskednumctrl import *'
+
+    def hideDesignTime(self):
+        return TextCtrlDTC.hideDesignTime(self) + \
+               MaskedDTCMixin.hideDesignTime(self) 
+##               ['Datestyle', 'AutoCompleteKeycodes', 'ExcludeChars', 
+##               'IncludeChars', 'Choices', 'ChoiceRequired', 'CompareNoCase', 
+##               'ValidRange']
+
 
 #-------------------------------------------------------------------------------
 
@@ -182,25 +263,35 @@ class SpinButtonClassLinkPropEdit(PropertyEditors.ClassLinkPropEdit):
     linkClass = wxSpinButtonPtr
     
 #EventCollections.EventCategories['TimeCtrlEvent'] = (EVT_TIMEUPDATE,)
-EventCollections.commandCategories.append('TimeCtrlEvent')
+#EventCollections.commandCategories.append('TimeCtrlEvent')
 
 # XXX min, max & limited params not supported yet
-class TimeCtrlDTC(TextCtrlDTC):
+# XXX should be implemented as a wxDateTime property editor using
+# XXX this very time ctrl, a problem is how to handle None values.
+
+class TimeCtrlDTC(MaskedTextCtrlDTC):
     def __init__(self, name, designer, parent, ctrlClass):
-        TextCtrlDTC.__init__(self, name, designer, parent, ctrlClass)
+        MaskedTextCtrlDTC.__init__(self, name, designer, parent, ctrlClass)
         BoolPE = PropertyEditors.BoolConstrPropEdit
         ColourPE = PropertyEditors.ColourConstrPropEdit
         self.editors.update({'Format24Hours': BoolPE, 
                              'SpinButton': SpinButtonClassLinkPropEdit,
                              'OutOfBoundsColour': ColourPE,
                              'DisplaySeconds': BoolPE,
-                             'UseFixedWidthFont': BoolPE, })
+                             'UseFixedWidthFont': BoolPE, 
+                             'Format': PropertyEditors.StringEnumPropEdit})
+
+        format = ['MILHHMMSS', 'MILHHMM', 'HHMMSS', 'HHMM']
+        self.options['Format'] = format
+        self.names['Format'] = {}
+        for name in format: self.names['Format'][name] = name
+            
 
         self._spinbutton = None
         self.initPropsThruCompanion.extend(['SpinButton', 'BindSpinButton'])
 
     def constructor(self):
-        constr = TextCtrlDTC.constructor(self)
+        constr = MaskedTextCtrlDTC.constructor(self)
         constr.update({'Format24Hours':     'fmt24hr', 
                        'DisplaySeconds':    'display_seconds',
                        'OutOfBoundsColour': 'oob_color',
@@ -209,7 +300,7 @@ class TimeCtrlDTC(TextCtrlDTC):
         return constr
 
     def designTimeSource(self, position = 'wxDefaultPosition', size = 'wxDefaultSize'):
-        dts = TextCtrlDTC.designTimeSource(self, position, size)
+        dts = MaskedTextCtrlDTC.designTimeSource(self, position, size)
         dts.update({'value': "'12:00:00 AM'",
                     'fmt24hr': 'False',
                     'display_seconds': 'True',
@@ -219,19 +310,34 @@ class TimeCtrlDTC(TextCtrlDTC):
         return dts
 
     def properties(self):
-        props = TextCtrlDTC.properties(self)
+        props = MaskedTextCtrlDTC.properties(self)
+        if props.has_key('Autoformat'):
+            del props['Autoformat']
         props['SpinButton'] = ('CompnRoute', self.GetSpinButton, 
                                              self.BindSpinButton)
+##        props['Format24Hours'] = ('CompnRoute', self.GetFormat24Hours, 
+##                                                self.SetFormat24Hours)
+##        props['DisplaySeconds'] = ('CompnRoute', self.GetDisplaySeconds, 
+##                                                 self.SetDisplaySeconds)
+                                                
         return props
 
     def dependentProps(self):
-        return TextCtrlDTC.dependentProps(self) + ['SpinButton', 'BindSpinButton']
+        return MaskedTextCtrlDTC.dependentProps(self) + ['SpinButton', 'BindSpinButton']
 
     def events(self):
-        return TextCtrlDTC.events(self) + ['TimeCtrlEvent']
+        return MaskedTextCtrlDTC.events(self) + ['TimeCtrlEvent']
 
     def writeImports(self):
         return 'from wxPython.lib.timectrl import *'
+
+##    def hideDesignTime(self):
+##        return MaskedTextCtrlDTC.hideDesignTime(self) + ['Mask',
+##               'Datestyle', 'AutoCompleteKeycodes', 'EmptyBackgroundColour',
+##               'SignedForegroundColour', 'GroupChar', 'DecimalChar', 
+##               'ShiftDecimalChar', 'UseParensForNegatives', 'ExcludeChars', 
+##               'IncludeChars', 'Choices', 'ChoiceRequired', 'CompareNoCase',
+##               'AutoSelect', 'ValidRegex', 'ValidRange']
 
     def GetSpinButton(self, x):
         return self._spinbutton
@@ -243,10 +349,17 @@ class TimeCtrlDTC(TextCtrlDTC):
             if value in spins:
                 self.control.BindSpinButton(spins[value])
 
+##    def GetDisplaySeconds(self, x):
+##        return self.eval(self.textConstr.params['display_seconds'])
+##
+##    def SetDisplaySeconds(self, value):
+##        self.textConstr.params['display_seconds'] = self.eval(value)
+
 #-------------------------------------------------------------------------------
 
 #EventCollections.EventCategories['IntCtrlEvent'] = (EVT_INT,)
-EventCollections.commandCategories.append('IntCtrlEvent')
+#EventCollections.commandCategories.append('IntCtrlEvent')
+
 
 class IntCtrlDTC(TextCtrlDTC):
     def __init__(self, name, designer, parent, ctrlClass):
@@ -280,8 +393,8 @@ class IntCtrlDTC(TextCtrlDTC):
                     'oob_color': 'wxRED'})
         return dts
 
-    def hideDesignTime(self):
-        return TextCtrlDTC.hideDesignTime(self) + ['Bounds', 'InsertionPoint']
+##    def hideDesignTime(self):
+##        return TextCtrlDTC.hideDesignTime(self) + ['Bounds', 'InsertionPoint']
 
     def events(self):
         return TextCtrlDTC.events(self) + ['IntCtrlEvent']
@@ -303,9 +416,8 @@ PaletteStore.palette.append(['wxPython.lib', 'Editor/Tabs/Basic',
 libPalette = [wxGenStaticText]
 libCompInfo = {wxGenStaticText:  ['wxGenStaticText',  GenStaticTextDTC]}
 
-# the controls require the new as yet unreleased maskededit.py
 try:
-    from wxPython.lib.maskednumctrl import wxMaskedNumCtrl
+    from wxPython.lib.maskednumctrl import wxMaskedNumCtrl, EVT_MASKEDNUM
     from wxPython.lib.maskededit import wxMaskedTextCtrl, wxMaskedComboBox, wxIpAddrCtrl, Field
     from wxPython.lib.timectrl import wxTimeCtrl, EVT_TIMEUPDATE
 except ImportError: # <= 2.4.1.2
@@ -317,14 +429,21 @@ else:
         wxMaskedTextCtrl: ['wxMaskedTextCtrl', MaskedTextCtrlDTC], 
         wxIpAddrCtrl:     ['wxIpAddrCtrl',     IpAddrCtrlDTC],
         wxMaskedComboBox: ['wxMaskedComboBox', MaskedComboBoxDTC], 
-        wxMaskedNumCtrl:  ['wxMaskedNumCtrl', MaskedNumCtrlDTC],
-        wxTimeCtrl:       ['wxTimeCtrl', TimeCtrlDTC],
+        wxMaskedNumCtrl:  ['wxMaskedNumCtrl',  MaskedNumCtrlDTC],
+        wxTimeCtrl:       ['wxTimeCtrl',       TimeCtrlDTC],
     })
 
+    EventCollections.EventCategories['MaskedNumCtrlEvent'] = (EVT_MASKEDNUM,)
+    EventCollections.commandCategories.append('MaskedNumCtrlEvent')    
+
     EventCollections.EventCategories['TimeCtrlEvent'] = (EVT_TIMEUPDATE,)
+    EventCollections.commandCategories.append('TimeCtrlEvent')    
     
 from wxPython.lib.intctrl import wxIntCtrl, EVT_INT
+
 EventCollections.EventCategories['IntCtrlEvent'] = (EVT_INT,)
+EventCollections.commandCategories.append('IntCtrlEvent')
+
 libPalette.append(wxIntCtrl)
 libCompInfo[wxIntCtrl] = ['wxIntCtrl', IntCtrlDTC]
 
