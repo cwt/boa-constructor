@@ -742,8 +742,8 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
         self.nbTop = wxNotebook(self.splitter, wxID_TOPPAGECHANGED)
         if use_images:
             self.nbTop.SetImageList(self.viewsImgLst)
-        EVT_NOTEBOOK_PAGE_CHANGED(self.nbTop, wxID_TOPPAGECHANGED,
-                                  self.OnUpperPageChange)
+##        EVT_NOTEBOOK_PAGE_CHANGED(self.nbTop, wxID_TOPPAGECHANGED,
+##                                  self.OnUpperPageChange)
 
         self.stackView = StackViewCtrl(self.nbTop, None, self)
 
@@ -820,6 +820,7 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
         EVT_DEBUGGER_STOPPED(self, self.GetId(), self.OnDebuggerStopped)
 
         self.stream_timer = wxPyTimer(self.OnStreamTimer)
+        self.stream_timer.Start(100)
 
         self._destroyed = 0
         EVT_CLOSE(self, self.OnCloseWindow)
@@ -1054,12 +1055,12 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
             else:
                 break
 
-    def OnUpperPageChange(self, event):
-        sel = event.GetSelection()
-        if sel == 2:
-            # Selected the output window.
-            self.OnStreamTimer(None, 1)
-        event.Skip()
+##    def OnUpperPageChange(self, event):
+##        sel = event.GetSelection()
+##        if sel == 2:
+##            # Selected the output window.
+##            self.OnStreamTimer(None, 1)
+##        event.Skip()
 
     def OnDebuggerOk(self, event):
         if self._destroyed: return
