@@ -69,9 +69,18 @@ class MyEvtHandler(wxShapeEvtHandler):
     def OnSize(self, x, y):
         self.base_OnSize(x, y)
 
-    def OnRightClick(self, x, y, a, b):
-        print 'rightclick', x, y, a, b
-#        self.PopupMenu(self.menu, wxPoint(self.x, self.y))
+    def OnRightClick(self, x, y, keys, attachment):
+        shape = self.GetShape()
+        if not shape.Selected():
+            self.OnLeftClick(x, y, keys, attachment)
+#        print shape.GetId()
+
+#        if hasattr(self, 'view') and self.view:
+#            import pprint
+#            pprint.pprint(self.view.AllClasses)
+
+        if hasattr(self, 'menu') and self.menu:
+            shape.GetCanvas().PopupMenu(self.menu, wxPoint(x, y))
 
     def OnRightDown(self, event):
         print "OnRightDown", event
@@ -138,7 +147,6 @@ class PersistentShapeCanvas(wxShapeCanvas):
         diagram.Clear(dc)
         diagram.Redraw(dc)
 
-
 class PerstShape:
     def __init__(self, unqPclName):
         self.unqPclName = unqPclName
@@ -185,29 +193,40 @@ class PerstDividedShape(wxDividedShape, PerstShape):
             count = count + 1
 
 class ScrollingContainer(wxScrolledWindow):
-    def __init__(self, parent):
+    scrollStepX = 10
+    scrollStepY = 10
+    def __init__(self, parent, size):
         wxScrolledWindow.__init__(self, parent, -1, style = wxSUNKEN_BORDER)
-        self.SetScrollbars(10, 10, 100, 100)
+        self.SetScrollbars(self.scrollStepX, self.scrollStepY, 
+                           size.x / self.scrollStepX, size.y / self.scrollStepY)
 
 class PersistentOGLView(ScrollingContainer, EditorViews.EditorView):
     viewName = 'OGL'
     loadBmp = 'Images/Editor/Open.bmp'
     saveBmp = 'Images/Editor/Save.bmp'
+    defSize = 2000
 
     def __init__(self, parent, model, actions = ()):
-        ScrollingContainer.__init__(self, parent)
+        ScrollingContainer.__init__(self, parent, wxSize(self.defSize, self.defSize))
         EditorViews.EditorView.__init__(self, model,
           (('(Re)load diagram', self.OnLoad, self.loadBmp, ()),
-#           ('tst', self.OnTst, self.loadBmp, ()),
-           ('Save diagram', self.OnSave, self.saveBmp, ()))+actions)
+           ('Save diagram', self.OnSave, self.saveBmp, ()),
+           ('-', None, '-', ()),
+           ('Change size', self.OnSetSize, '-', ()))+actions)
 
         self.shapes = []
         self.canvas = PersistentShapeCanvas(self, self.shapes)
         self.canvas.SetSize(self.GetVirtualSize())
+        
+        EVT_RIGHT_UP(self.canvas, self.OnRightClick)
 
         self.diagram = wxDiagram()
         self.canvas.SetDiagram(self.diagram)
         self.diagram.SetCanvas(self.canvas)
+        
+        self.shapeMenu = None
+        
+        self.size = self.defSize
 
         self.active = true
 
@@ -269,6 +288,8 @@ class PersistentOGLView(ScrollingContainer, EditorViews.EditorView):
         shape.Show(true)
 
         evthandler = MyEvtHandler()
+        evthandler.menu = self.shapeMenu
+        evthandler.view = self
         evthandler.SetShape(shape)
         evthandler.SetPreviousHandler(shape.GetEventHandler())
         shape.SetEventHandler(evthandler)
@@ -276,6 +297,13 @@ class PersistentOGLView(ScrollingContainer, EditorViews.EditorView):
         self.shapes.append(shape)
 
         return len(self.shapes) -1
+    
+    def setSize(self, size):
+        nvsx, nvsy = size.x / self.scrollStepX, size.y / self.scrollStepY
+        self.Scroll(0, 0)
+        self.SetScrollbars(self.scrollStepX, self.scrollStepY, nvsx, nvsy)
+        self.canvas.SetSize(self.GetVirtualSize())
+        
 
     def OnLoad(self, event):
         self.canvas.loadSizes(path.splitext(self.model.filename)[0]+self.ext)
@@ -287,6 +315,22 @@ class PersistentOGLView(ScrollingContainer, EditorViews.EditorView):
         pass
 ##        dc = wxClientDC(self)
 ##        self.diagram.RecentreAll(dc)
+
+    def OnSetSize(self, event):
+        dlg = wxTextEntryDialog(self, 'Enter new canvas size (width==height)', 
+            'Size', `self.size`)
+        try:
+            if dlg.ShowModal() == wxID_OK:
+                self.size = int(dlg.GetValue())
+                self.setSize(wxSize(self.size, self.size))
+        finally:
+            dlg.Destroy()
+
+    def OnRightClick1(self, event):
+        print self.canvas.HitTest(event.GetX(), event.GetX())
+        event.Skip()
+        
+        
 
 if wxPlatform == '__WXGTK__':
     boldFont = wxFont(12, wxDEFAULT, wxNORMAL, wxBOLD, false)
@@ -315,6 +359,8 @@ class UMLView(PersistentOGLView):
         id = wxNewId()
         self.menuStdClass.Append(id, "Goto Documentation", checkable = 0)
         EVT_MENU(self, id, self.OnGotoDoc)
+        
+        self.shapeMenu = self.menuStdClass
 
     def newClass(self, size, pos, className, classMeths, classAttrs):
         shape = PerstDividedShape(className, size[0], size[1])
@@ -460,12 +506,13 @@ class UMLView(PersistentOGLView):
 
     ## This allows me to pop-up a menu for the shape. However it loses the
     ## main menu position (x, y) go to 0,0 after the skip
-    def OnRightDown(self, event):
+    def OnRightClick(self, event):
         """If the event occurs on one of our shapes, I want to pop-up a shape"""
-        (x, y) = (event.m_x, event.m_y)
+        x, y = (event.m_x, event.m_y)
         for (name, shape) in self.AllClasses.items():
             (hit, attach_point, distance) = shape.HitTest(x, y)
             if hit: break
+        x, y = self.CalcScrolledPosition(x, y)
         if not hit:
             self.PopupMenu(self.menu, wxPoint(x, y))
             return
