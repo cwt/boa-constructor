@@ -10,8 +10,11 @@
 # Licence:     GPL
 #----------------------------------------------------------------------
 
+from wxPython.wx import *
+
 from BaseCompanions import CodeCompanion
 import HelpCompanions
+import PaletteStore
 
 class CommonDialogCompanion(CodeCompanion):
     def __init__(self, name, parent):
@@ -149,4 +152,17 @@ finally:
 
 '''
 
-#class wxProgressDialog(wxProgressDialogPtr):
+PaletteStore.paletteLists['Dialogs'].extend([wxColourDialog, wxFontDialog, 
+      wxFileDialog, wxDirDialog, wxPrintDialog, wxPageSetupDialog,
+      wxSingleChoiceDialog, wxTextEntryDialog, wxMessageDialog])
+
+PaletteStore.compInfo.update({wxColourDialog: ['wxColorDialog', ColourDialogCDC],
+    wxFontDialog: ['wxFontDialog', FontDialogCDC],
+    wxFileDialog: ['wxFileDialog', FileDialogCDC],
+    wxPrintDialog: ['wxPrintDialog', PrintDialogCDC],
+    wxPageSetupDialog: ['wxPageSetupDialog', PageSetupDialogCDC],
+    wxDirDialog: ['wxDirDialog', DirDialogCDC],
+    wxSingleChoiceDialog: ['wxSingleChoiceDialog', SingleChoiceDialogCDC],
+    wxTextEntryDialog: ['wxTextEntryDialog', TextEntryDialogCDC],
+    wxMessageDialog: ['wxMessageDialog', MessageDialogCDC],
+})
