@@ -57,37 +57,6 @@ class StackErrorParser:
 #    def write(self, s):
 #        self.lines.append(s)
 
-def buildErrorList(lines):
-    errs = []
-    currerr = None
-
-    for line in lines:
-        if string.strip(line) == tb_id:
-            currerr = []
-            errs.append(currerr)
-        elif line:
-            if currerr is not None:
-                currerr.append(line)
-                if line[0] not in string.whitespace:
-                    currerr = None
-            else:
-                # Try catch syntax errors
-                if Utils.startswith(line, '  File '):
-                    currerr = [line]
-                    errs.append(currerr)
-                else:     
-                    currerr = None
-                    errs.append([line])
-
-    res = []
-    for err in errs:
-        res.append(StdErrErrorParser(err))
-    return res
-
-def errorList(stderr):
-    return buildErrorList(stderr.readlines())
-
-
 class StdErrErrorParser(StackErrorParser):
     def parse(self):
         if len(self.lines):
@@ -102,6 +71,20 @@ class StdErrErrorParser(StackErrorParser):
                 if mo:
                     self.stack.append(StackEntry(mo.group('filename'),
                           int(mo.group('lineno')), self.lines[idx + 1]))
+
+class PyCheckerErrorParser(StackErrorParser):
+    def parse(self):
+        import linecache
+        if len(self.lines):
+            pyCheckWarn = self.lines.pop()
+            try:
+                filename, lineNo, warng = eval(string.strip(pyCheckWarn))
+            except:
+                pass
+            else:
+                self.error = [warng]
+                self.stack.append(StackEntry(os.path.abspath(filename), lineNo,
+                      linecache.getline(filename, lineNo)))
 
 # Limit stack size / processing time
 # Zero to ignore limit
@@ -166,6 +149,36 @@ class CrashTraceLogParser(StackErrorParser):
             stack.reverse()
         else:
             self.error = ('Empty (resolved) stack', 'trace file size: '+`fileSize`)
+
+def buildErrorList(lines, Parser = StdErrErrorParser):
+    errs = []
+    currerr = None
+
+    for line in lines:
+        if string.strip(line) == tb_id:
+            currerr = []
+            errs.append(currerr)
+        elif line:
+            if currerr is not None:
+                currerr.append(line)
+                if line[0] not in string.whitespace:
+                    currerr = None
+            else:
+                # Try catch syntax errors
+                if Utils.startswith(line, '  File '):
+                    currerr = [line]
+                    errs.append(currerr)
+                else:
+                    currerr = None
+                    errs.append([line])
+
+    res = []
+    for err in errs:
+        res.append(Parser(err))
+    return res
+
+def errorList(stderr):
+    return buildErrorList(stderr.readlines())
 
 
 def crashError(file):
@@ -238,16 +251,16 @@ def test():
 [File "Views\\SelectionTags.py", line 23
     :
 ]]'''
-    
+
     # Syntax errors
     test_buildErrorList('Short traceback', tb2, tb2_answ)
 
     single_line_excp = "Exception exceptions.TypeError: 'call of non-function (type None)' in <method wxColourPtr.__del__ of wxColour instance at 03190B4C> ignored"
     single_line_excp_answ = '''[['Exception exceptions.TypeError', "'call of non-function (type None)' in <method wxColourPtr.__del__ of wxColour instance at 03190B4C> ignored"]\n[]]'''
 
-    # One line 'warning' exceptions (e.g. wxPython objects deleted after 
+    # One line 'warning' exceptions (e.g. wxPython objects deleted after
     # the libraries have already unloaded
-    
+
     test_buildErrorList('Single line exception', [single_line_excp], single_line_excp_answ)
 
 if __name__ == '__main__':
