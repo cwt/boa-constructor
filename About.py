@@ -254,15 +254,14 @@ class AboutBoxSplash(AboutBoxMixin, wxFrame):
         start_new_thread(self.monitorModuleCount, ())
 
         EVT_MOD_CNT_UPD(self, self.OnUpdateProgress)
-        #print 'Mod count, Start %d'%len(sys.modules)
 
     def monitorModuleCount(self):
         self._live = true
         lastCnt = 0
-        if len(sys.modules) >= self.moduleTotal:
+        if sys and len(sys.modules) >= self.moduleTotal:
             wx.wxPostEvent(self, ModCntUpdateEvent(self.moduleTotal, 'importing'))
         else:
-            while self._live and len(sys.modules) < self.moduleTotal:
+            while self._live and sys and len(sys.modules) < self.moduleTotal:
                 mc = len(sys.modules)
                 if mc > lastCnt:
                     lastCnt = mc
@@ -270,7 +269,6 @@ class AboutBoxSplash(AboutBoxMixin, wxFrame):
                 time.sleep(0.125)
 
     def Destroy(self):
-        #print 'Mod count, End %d'%len(sys.modules)
         self._live = false
         self.gauge = None
 
