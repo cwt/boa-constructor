@@ -304,6 +304,19 @@ class ZopeItemNode(ExplorerNodes.ExplorerNode):
         try: return self.lines.pop()+'\n'
         except IndexError: return ''
 
+    def getUndoableTransactions(self):
+        from ZopeLib.DateTime import DateTime
+        return eval(self.server.__getattr__(self.name).ZOA('undo'))
+
+    def undoTransaction(self, transactionIds):
+        print self.server.__getattr__(self.name).manage_undo_transactions(transactionIds)
+    
+    def getPermissions(self):
+        return self.server.__getattr__(self.name).permission_settings()#ZOA('permissions')
+
+    def getRoles(self):
+        return self.server.__getattr__(self.name).valid_roles()
+
 class ZopeConnectionNode(ZopeItemNode):
     protocol = 'zope'
     def __init__(self, name, properties, clipboard, parent):
@@ -350,7 +363,7 @@ class ZopeConnectionNode(ZopeItemNode):
 
 (wxID_ZOPEUP, wxID_ZOPECUT, wxID_ZOPECOPY, wxID_ZOPEPASTE, wxID_ZOPEDELETE, 
  wxID_ZOPERENAME, wxID_ZOPEEXPORT, wxID_ZOPEIMPORT, wxID_ZOPEINSPECT,
- wxID_ZOPEUPLOAD) = map(lambda x: wxNewId(), range(10))
+ wxID_ZOPEUPLOAD, wxID_ZOPESECURITY, wxID_ZOPEUNDO) = map(lambda x: wxNewId(), range(12))
 
 class ZopeController(ExplorerNodes.Controller, ExplorerNodes.ClipboardControllerMix):
     inspectBmp = 'Images/Shared/Inspector.bmp'
@@ -372,7 +385,11 @@ class ZopeController(ExplorerNodes.Controller, ExplorerNodes.ClipboardController
           ( (-1, '-', None, ''),
             (wxID_ZOPEUPLOAD, 'Upload', self.OnUploadZopeItem, self.uploadBmp),
             (wxID_ZOPEEXPORT, 'Export', self.OnExportZopeItem, self.exportBmp),
-            (wxID_ZOPEIMPORT, 'Import', self.OnImportZopeItem, self.importBmp) )
+            (wxID_ZOPEIMPORT, 'Import', self.OnImportZopeItem, self.importBmp),
+            (-1, '-', None, ''),
+            (wxID_ZOPESECURITY, 'Security', self.OnSecurityZopeItem, '-'),
+            (wxID_ZOPEUNDO,     'Undo',     self.OnUndoZopeItem, '-'), 
+          )
 
         self.setupMenu(self.menu, self.list, self.zopeMenuDef)
         self.toolbarMenus = [self.zopeMenuDef]
@@ -454,6 +471,12 @@ class ZopeController(ExplorerNodes.Controller, ExplorerNodes.ClipboardController
                             currPath = dlg.GetDirectory()
                     finally: 
                         dlg.Destroy()
+
+    def OnSecurityZopeItem(self, event):
+        pass
+
+    def OnUndoZopeItem(self, event):
+        pass
                         
 
 def getServer(host,Url,User,Password):
@@ -523,7 +546,8 @@ class ZSQLNode(ZopeNode):
 class PythonNode(ZopeNode):
     Model = EditorModels.ZopePythonScriptModel
     defaultViews = (Views.PySourceView.PythonSourceView,)
-    additionalViews = (Views.EditorViews.ToDoView,)
+    additionalViews = (Views.EditorViews.ZopeUndoView, 
+          Views.EditorViews.ZopeSecurityView, Views.EditorViews.ToDoView,)
 
       #manage_edit("newschas","self,p","return 'hello'"
     def getParams(self):
@@ -574,12 +598,14 @@ class ExtPythonNode(ZopeNode):
 class DTMLDocNode(ZopeNode):
     Model = EditorModels.ZopeDocumentModel
     defaultViews = (Views.PySourceView.HTMLSourceView,)
-    additionalViews = (Views.EditorViews.ZopeHTMLView,)
+    additionalViews = (Views.EditorViews.ZopeUndoView, 
+          Views.EditorViews.ZopeSecurityView, Views.EditorViews.ZopeHTMLView,)
 
 class DTMLMethodNode(ZopeNode):
     Model = EditorModels.ZopeDocumentModel
     defaultViews = (Views.PySourceView.HTMLSourceView,)
-    additionalViews = (Views.EditorViews.ZopeHTMLView,)
+    additionalViews = (Views.EditorViews.ZopeUndoView, 
+          Views.EditorViews.ZopeSecurityView, Views.EditorViews.ZopeHTMLView,)
             
 class LFSNode(DirNode):
     
