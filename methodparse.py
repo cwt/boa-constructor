@@ -140,11 +140,11 @@ def parseMixedBody(parseClasses, lines):
         if (ln == 'pass') or (ln == ''): continue
         for parseClass in parseClasses:
             try: res = parseClass(ln).value()
-            except: pass
+            except Exception, message: 
+                print str(message)
             else:
                 if res:
                     cat[parseClass].append(res)
-##                    print 'found:', parseClass
                     break
     return cat
 
@@ -244,6 +244,7 @@ class ConstructorParse(PerLineParser):
 is_constr_col = re.compile('^[ \t]*self._init_coll_(?P<meth>'+idc+\
   ')[.]__init__\(self,[ \t]*(?P<params>.*)\)$')
 
+coll_init = '_init_coll_'
 idp = '[A-Za-z_][A-Za-z0-9_.]*'
 is_prop = re.compile('^[ \t]*self[.](?P<name>'+idp+')[ \t]*\([ \t]*(?P<params>.*)[ \t]*\)$')
 class PropertyParse(PerLineParser):
@@ -272,8 +273,12 @@ class PropertyParse(PerLineParser):
     def renameCompName2(self, old_value, new_value):
         # XXX This is ugly but has to do until a better
         # XXX strategy is conceived.
+        # XXX The problem is that the useful logic is in the
+        # XXX companion which is not available for the clipboard
+        # XXX The source's ctrl needs to be renamed for a companion
+        # XXX to be created.
         
-        # Rename references to ctrl in string of property param
+        # Rename references to ctrl in parameters of property
         oldCtrlSrcRef = Utils.srcRefFromCtrlName(old_value)
         newCtrlSrcRef = Utils.srcRefFromCtrlName(new_value)
         
@@ -288,22 +293,21 @@ class PropertyParse(PerLineParser):
                     else:
                         lst.append(s)
                 self.params[idx] = string.join(lst, newCtrlSrcRef)
-                            
-##            self.params[idx] = replace(self.params[idx], 
-##                  oldCtrlSrcRef, newCtrlSrcRef)
+
+            # Handle case where _init_coll_* methods are used as parameters
+            param = self.params[idx]
+            if Utils.startswith(param, 'self.'+coll_init):
+                nameEnd = string.rfind(param, '_')
+                name = param[16:nameEnd]
+                if name == old_value:
+                    self.params[idx] = 'self.'+coll_init+new_value+param[nameEnd:]
         
         PerLineParser.renameCompName2(self, old_value, new_value)
         
     def asText(self):
         return '%s.%s(%s)' %(Utils.srcRefFromCtrlName(self.comp_name), 
                 self.prop_setter, string.join(self.params, ', '))
-##        if self.comp_name:
-##            return 'self.%s.%s(%s)' %(self.comp_name, self.prop_setter, 
-##              join(self.params, ', '))
-##        else:
-##            return 'self.%s(%s)' %(self.prop_setter, join(self.params, ', '))
 
-coll_init = '_init_coll_'
 is_coll_init = re.compile('^[ \t]*self[.](?P<method>'+coll_init+idp+')[ \t]*\((?P<comp_name>'+idp+')[ \t,]*(?P<params>.*)\)$')
 
 class CollectionInitParse(PerLineParser):
@@ -335,10 +339,6 @@ class CollectionInitParse(PerLineParser):
             self.method = '%s%s_%s'%(coll_init, new_value, self.prop_name)
                     
     def asText(self):
-##        if self.comp_name:
-##            comp_name = 'self.'+self.comp_name
-##        else:
-##            comp_name = 'self'
         return 'self.%s(%s)' %(self.method, 
              string.join([Utils.srcRefFromCtrlName(self.comp_name)]+self.params, ', '))
 
@@ -354,7 +354,7 @@ class CollectionItemInitParse(PerLineParser):
         self.ctrl_name = '&None&'
         self.method = method
         if params is None: self.params = {}
-        else:              self.params = params
+        else: self.params = params
         if line:
             self.m = is_coll_item_init.search(line)
             if self.m:
@@ -363,11 +363,6 @@ class CollectionItemInitParse(PerLineParser):
                 self.params = self.extractKVParams(self.m.group('params'))
 
     def renameCompName2(self, old_value, new_value):
-##        if self.params.has_key('parent') and \
-##              self.params['parent'] == Utils.srcRefFromCtrlName(old_value):
-##            self.params['parent'] = Utils.srcRefFromCtrlName(new_value)
-        print 'CollectionItemInitParse.rename', old_value, new_value
-
         # Regenerate window ids
         if self.ctrl_name == old_value:
             self.ctrl_name = new_value
@@ -378,7 +373,6 @@ class CollectionItemInitParse(PerLineParser):
         src_old = Utils.srcRefFromCtrlName(old_value)
         for key, val in self.params.items()[:]:
             if val == src_old:
-                print 'renamed ref'
                 self.params[key] = Utils.srcRefFromCtrlName(new_value)
                     
     def asText(self):
@@ -419,11 +413,6 @@ class EventParse(PerLineParser):
                 self.windowid = self.windowid[:-len(old_value)]+string.upper(new_value)
 
     def asText(self):
-##        if self.comp_name:
-##            evt_comp = 'self.'+self.comp_name
-##        else:
-##            evt_comp = 'self'
-
         if self.windowid:
             return 'EVT_%s(%s, %s, self.%s)' %(self.event_name, 
               Utils.srcRefFromCtrlName(self.comp_name), self.windowid, self.trigger_meth)
