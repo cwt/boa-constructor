@@ -6,7 +6,7 @@
 #
 # Created:     1999
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999 - 2004 Riaan Booysen
+# Copyright:   (c) 1999 - 2005 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
 """
@@ -1477,7 +1477,7 @@ class ClassLinkPropEdit(OptionedPropEdit):
                 return k
         objs = self.companion.designer.getObjectsOfClass(LinkClass)
         for objName in objs.keys():
-            if objs[objName] and value and objs[objName].this == value.this:
+            if objs[objName] and value and objs[objName] == value:
                 return objName
         return `None`
     
@@ -1542,7 +1542,7 @@ class ListCtrlImageListClassLinkPropEdit(ImageListClassLinkPropEdit):
         if self.value[0] is None: return `None`
         objs = self.companion.designer.getObjectsOfClass(self.linkClass)
         for objName in objs.keys():
-            if objs[objName] and self.value[0] and objs[objName].this == self.value[0].this:
+            if objs[objName] and self.value[0] and objs[objName] == self.value[0]:
                 return objName
         return `None`
 
