@@ -117,7 +117,7 @@ class KeyDefsDialog(wxDialog):
             if ctrl.GetValue():
                 flags.append(flagValNames[flag][0])
         if flags:
-            flags = string.join(flags, ' | ')
+            flags = ' | '.join(flags)
         else:
             flags = 'wxACCEL_NORMAL'
 
@@ -127,7 +127,7 @@ class KeyDefsDialog(wxDialog):
         if keyCode not in specialKeys.keys() + otherKeys1 + otherKeys2:
             if len(keyCode) != 1 or keyCode not in string.letters+string.digits:
                 raise InvalidValueError('Key code must either be a single character (letter or digit) or an identifier selected from the combobox')
-            keyCode = "ord('%s')" % string.upper(keyCode)
+            keyCode = "ord('%s')" % keyCode.upper()
 
         shortcut = self.shortcutTc.GetValue()
         if not shortcut:
@@ -145,7 +145,7 @@ class KeyDefsDialog(wxDialog):
         if keyCode:
             segs.append(printableKeyCode(keyCode))
 
-        self.shortcutTc.SetValue(string.join(segs, '-'))
+        self.shortcutTc.SetValue('-'.join(segs))
 
     def OnOkbtnButton(self, event):
         try:
@@ -167,9 +167,9 @@ class KeyDefsDialog(wxDialog):
 
 def printableKeyCode(keyCode):
     if len(keyCode) >=5 and keyCode[:4] == 'WXK_':
-        return string.capitalize(keyCode[4:])
+        return keyCode[4:].capitalize()
     else:
-        return string.upper(keyCode)
+        return keyCode.upper()
 
 flagValNames = {wxACCEL_CTRL:  ('wxACCEL_CTRL', 'Ctrl'),
                 wxACCEL_ALT:   ('wxACCEL_ALT', 'Alt'),
