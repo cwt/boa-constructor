@@ -107,8 +107,8 @@ class EditorModel:
         views = self.views
         if views.has_key('Source'):
             return views['Source']
-        elif views.has_key('HTML'):
-            return views['HTML']
+        elif views.has_key('ZopeHTML'):
+            return views['ZopeHTML']
         return None
 
 
