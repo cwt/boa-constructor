@@ -19,6 +19,8 @@ import Preferences, Utils
 defPos = (0, 0)
 defSze = (0, 0)
 
+dbgInfo = false
+
 def granularise(val, oldVal = None):
     """ Snap value to grid points, including original value as grid point.
 
@@ -39,13 +41,13 @@ def granularise(val, oldVal = None):
 
     return ((val + gran / 2) /gran)*gran
 
-def granulariseMove(val, oldVal = None):
+def granulariseMove(val, oldVal):
     """ Snap value to screen gran multiples of oldVal.
-
         Used by moving
     """
     gran = Preferences.dsGridSize
-    return oldVal % gran + (val /gran)*gran
+    return oldVal + int(round((val-oldVal)/float(gran))) * gran
+
 
 class SelectionGroup:
     """ Group of tags and lines used to show selection, moving and sizing.
@@ -335,7 +337,10 @@ class SelectionGroup:
 
         else:
             # Moving
-            trPos = wxPoint(granulariseMove(position.x, ps.x), granulariseMove(position.y, ps.y))
+            if dbgInfo: InspDbgInfo(self.inspector, `position`+':'+`ps`, 1)
+            trPos = wxPoint(granulariseMove(position.x, ps.x), 
+                            granulariseMove(position.y, ps.y))
+            if dbgInfo: InspDbgInfo(self.inspector, `trPos`, 0)
             trSze = wxSize(sz.x, sz.y)
 
         self.slT.SetDimensions(trPos.x -frmWid, trPos.y -frmWid, trSze.x +frmWid, frmWid)
@@ -617,7 +622,8 @@ class SideSelTag(SelectionTag):
             companion = self.group.selCompn
             designer = companion.designer
             if designer.sizersView:
-                s = companion.control._in_sizer
+                s = companion.control.GetContainingSizer()#companion.control._in_sizer
+                #print s, companion.control.GetContainingSizer()
                 for objName, objInfo in designer.sizersView.objects.items():
                     if objInfo[1] == s:
                         compn = objInfo[0]
@@ -737,3 +743,6 @@ class BSelTag(SideSelTag):
         grp.position = wxPoint(grp.position.x, grp.position.y)
 
         SelectionTag.setPos(self, position, None, grp.stT, None, oldPos, oldSize)
+
+def InspDbgInfo(insp, msg, i):
+    insp.statusBar.SetStatusText(msg, i)
