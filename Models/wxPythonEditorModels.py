@@ -399,15 +399,14 @@ class BaseFrameModel(ClassModel):
                     'idCount': len(lst)}).strip())
             lines.append('')
 
-        if winIdIdx == -1:
-            # No window id definitions could be found add one above class def
-            if lst:
+            if winIdIdx == -1:
+                # No window id definitions could be found add one above class def
                 insPt = module.classes[self.main].block.start - 1
                 module.source[insPt:insPt] = lines
                 module.renumber(len(lines), insPt)
-        else:
-            module.source[winIdIdx:winIdIdx + winIdLen] = lines
-            module.renumber(len(lines)-winIdLen, winIdIdx)
+            else:
+                module.source[winIdIdx:winIdIdx + winIdLen] = lines
+                module.renumber(len(lines)-winIdLen, winIdIdx)
 
     def update(self):
         ClassModel.update(self)
