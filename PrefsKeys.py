@@ -63,6 +63,7 @@ keyDefs = {
   'HistoryDown' : (wxACCEL_CTRL, WXK_DOWN, 'Ctrl-Down'),
   'CodeComplete': (wxACCEL_CTRL, WXK_SPACE, 'Ctrl-Space'),
   'CallTips'    : (wxACCEL_SHIFT|wxACCEL_CTRL, WXK_SPACE, 'Ctrl-Shft-Space'),
+  'GotoLine'    : (wxACCEL_CTRL, ord('G'), 'Ctrl-G'),
 }
 
 if wxPlatform == '__WXMSW__':
