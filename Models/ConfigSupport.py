@@ -1,6 +1,6 @@
 #-----------------------------------------------------------------------------
 # Name:        ConfigSupport.py
-# Purpose:     
+# Purpose:
 #
 # Author:      Riaan Booysen
 #
@@ -21,9 +21,9 @@ import EditorHelper
 EditorHelper.imgConfigFileModel = EditorHelper.imgCounter
 EditorHelper.imgCounter = EditorHelper.imgCounter + 1
 
-from Models.EditorModels import PersistentModel
+from Models.EditorModels import SourceModel
 
-class ConfigFileModel(PersistentModel):
+class ConfigFileModel(SourceModel):
     modelIdentifier = 'Config'
     defaultName = 'config'
     bitmap = 'Config_s.png'
@@ -49,14 +49,14 @@ class ConfigView(EditorStyledTextCtrl, ConfigSTCMix):
         self.active = true
 
 from Explorers import ExplorerNodes
-ExplorerNodes.langStyleInfoReg.append( ('Config', 'prop', ConfigSTCMix, 
+ExplorerNodes.langStyleInfoReg.append( ('Config', 'prop', ConfigSTCMix,
       'stc-styles.rc.cfg') )
 
 import Controllers
-class ConfigFileController(Controllers.PersistentController):
+class ConfigFileController(Controllers.SourceController):
     Model           = ConfigFileModel
     DefaultViews    = [ConfigView]
-    AdditionalViews = []
+#    AdditionalViews = []
 
 Controllers.modelControllerReg[ConfigFileModel] = ConfigFileController
 
