@@ -11,14 +11,15 @@
 #-----------------------------------------------------------------------------
 
 print 'importing Explorers.ZipExplorer'
-import os, zipfile
-from StringIO import StringIO
+import os, zipfile, gzip, time
+from cStringIO import StringIO
 
-from wxPython.wx import wxMenu, EVT_MENU, wxMessageBox, wxPlatform, wxNewId
+from wxPython.wx import wxMenu, EVT_MENU, wxMessageBox, wxPlatform, wxNewId, wxLogError
 
 import ExplorerNodes, FileExplorer
 from Models import EditorModels, EditorHelper
-#from ExternalLib import zipfile
+
+from ExternalLib import tarfile
 
 true = 1
 false = 0
@@ -40,10 +41,6 @@ class ZipController(ExplorerNodes.Controller, ExplorerNodes.ClipboardControllerM
             [ (wxID_ZIPOPEN, 'Open', self.OnOpenItems, '-'),
               (-1, '-', None, '') ] + self.clipMenuDef)
 
-        #mi = self.menu.GetMenuItems()
-        #for m in mi:
-        #    if m.GetId() != ExplorerNodes.wxID_CLIPCOPY:
-        #        m.Enable(false)
         self.toolbarMenus = [self.clipMenuDef]
 
     def destroy(self):
@@ -63,12 +60,18 @@ class ZipExpClipboard(ExplorerNodes.ExplorerClipboard):
 
 class ZipItemNode(ExplorerNodes.ExplorerNode):
     protocol = 'zip'
-    def __init__(self, name, resourcepath, clipboard, isFolder, imgIdx, parent, zipFileNode):
-        ExplorerNodes.ExplorerNode.__init__(self, name, resourcepath, clipboard, imgIdx,
-              parent)
+    ArchiveClass = zipfile.ZipFile
+    InfoClass = zipfile.ZipInfo
+    
+    def __init__(self, name, resourcepath, clipboard, isFolder, imgIdx, parent, 
+          zipFileNode, ChildClass):
+        ExplorerNodes.ExplorerNode.__init__(self, name, resourcepath, clipboard, 
+              imgIdx, parent)
         self.isFolder = isFolder
         self.zipFileNode = zipFileNode
-        self.lineSep = None # meaning binary
+        ##self.lineSep = None # meaning binary
+        self.ChildClass = ChildClass
+        self.compression = zipfile.ZIP_DEFLATED
 
     def isFolderish(self):
         return self.isFolder
@@ -80,10 +83,15 @@ class ZipItemNode(ExplorerNodes.ExplorerNode):
         if not isFolder:
             from Models import Controllers
             imgIdx = Controllers.identifyFile(name, localfs=false)[0].imgIdx
-        zin = ZipItemNode(name, resourcepath and resourcepath+'/'+name or name, self.clipboard,
-              isFolder, imgIdx, self, self.zipFileNode)
+        zin = self.ChildClass(name, resourcepath and resourcepath+'/'+name or name, 
+              self.clipboard, isFolder, imgIdx, self, self.zipFileNode, self.ChildClass)
         zin.category = self.category
         return zin
+    
+    def newInfoClass(self, name):
+        info = self.InfoClass(name)
+        info.compress_type = self.compression
+        return info
 
     def splitBaseDir(self, file):
         if not file:
@@ -100,7 +108,7 @@ class ZipItemNode(ExplorerNodes.ExplorerNode):
             isdir = 0
         return base, dir, isdir
 
-    def openList(self, resourcepath = None):
+    def openList(self, resourcepath=None):
         if resourcepath is None: resourcepath = self.resourcepath
         res = []
         files = self.zipFileNode.getFiles(resourcepath)
@@ -151,11 +159,10 @@ class ZipItemNode(ExplorerNodes.ExplorerNode):
 
             # append new
             if new:
-                zf = zipfile.ZipFile(self.zipFileNode.resourcepath, 'a')
+                zf = self.ArchiveClass(self.zipFileNode.resourcepath, 'a', self.compression)
                 try:
                     for arcname, filename in new:
-                        zi = zipfile.ZipInfo(arcname)
-                        zi.compress_type = zipfile.ZIP_DEFLATED
+                        zi = self.newInfoClass(arcname)
                         zf.writestr(zi, open(filename, 'rb').read())
                 finally:
                     zf.close()
@@ -169,10 +176,12 @@ class ZipItemNode(ExplorerNodes.ExplorerNode):
                 # XXX prompt?
                 self.replaceFilesInArchive([(destName, '', data)])
             else:
-                zf = zipfile.ZipFile(self.zipFileNode.resourcepath, 'a')
+                zf = self.ArchiveClass(self.zipFileNode.resourcepath, 'a', self.compression)
                 try:
-                    zi = zipfile.ZipInfo(destName)
+                    zi = self.newInfoClass(destName)
                     zi.compress_type = zipfile.ZIP_DEFLATED
+                    zi.file_size = len(data)
+                    zi.date_time = time.gmtime(fsNode.stdAttrs['modify-date'])[:6]
                     zf.writestr(zi, data)
                 finally:
                     zf.close()
@@ -181,7 +190,7 @@ class ZipItemNode(ExplorerNodes.ExplorerNode):
     def copyToFS(self, fsFolderNode):
         fn = os.path.join(fsFolderNode.resourcepath, self.name)
 
-        zf = zipfile.ZipFile(self.zipFileNode.resourcepath)
+        zf = self.ArchiveClass(self.zipFileNode.resourcepath, self.compression)
         try:
             if self.isFolderish():
                 try: os.mkdir(fn)
@@ -198,13 +207,15 @@ class ZipItemNode(ExplorerNodes.ExplorerNode):
             zf.close()
 
     def newFolder(self, name):
-        zf = zipfile.ZipFile(self.zipFileNode.resourcepath, 'a')
+        zf = self.ArchiveClass(self.zipFileNode.resourcepath, 'a', self.compression)
         try:
             ad = self.getArcDir()
             if ad: ad +='/'
             newArcName = '%s%s/'%(ad, name)
-            zi = zipfile.ZipInfo(newArcName)
+            zi = self.newInfoClass(newArcName)
+            zi.file_size = 0
             zi.flag_bits = 0x02
+            zi.date_time = time.gmtime()[:6]
             zf.writestr(zi, '')
             self.zipFileNode.allFiles = None
         finally:
@@ -213,12 +224,14 @@ class ZipItemNode(ExplorerNodes.ExplorerNode):
         #raise Exception, 'The zipfile module does not suppport adding empty folders'
 
     def newBlankDocument(self, name=''):
-        zf = zipfile.ZipFile(self.zipFileNode.resourcepath, 'a')
+        zf = self.ArchiveClass(self.zipFileNode.resourcepath, 'a', self.compression)
         try:
             ad = self.getArcDir()
             if ad: ad +='/'
             newArcName = '%s%s'%(ad, name)
-            zi = zipfile.ZipInfo(newArcName)
+            zi = self.newInfoClass(newArcName)
+            zi.file_size = 0
+            zi.date_time = time.gmtime()[:6]
             zf.writestr(zi, '')
             self.zipFileNode.allFiles = None
         finally:
@@ -226,19 +239,22 @@ class ZipItemNode(ExplorerNodes.ExplorerNode):
         return name
 
     def load(self, mode='rb'):
-        zf = zipfile.ZipFile(self.zipFileNode.resourcepath, 'r')
-        data = zf.read(self.resourcepath)
-        if os.path.splitext(self.resourcepath)[1] in EditorHelper.binaryFilesReg:
-            self.lineSep = None
-            return data
-        else:
-            if data.find('\r\n') != -1:
-                self.lineSep = '\r\n'
-                return data.replace('\r\n', '\n')
-            else:
-                self.lineSep = '\n'
-                return data
-                
+        zf = self.ArchiveClass(self.zipFileNode.resourcepath, 'r')
+        try:
+            return zf.read(self.resourcepath)
+        finally:
+            zf.close()
+            
+##        if os.path.splitext(self.resourcepath)[1] in EditorHelper.binaryFilesReg:
+##            self.lineSep = None
+##            return data
+##        else:
+##            if data.find('\r\n') != -1:
+##                self.lineSep = '\r\n'
+##                return data.replace('\r\n', '\n')
+##            else:
+##                self.lineSep = '\n'
+##                return data
 
     def save(self, filename, data, mode='wb', overwriteNewer=true):
         self.replaceFilesInArchive([(self.resourcepath, filename, data)])
@@ -253,12 +269,12 @@ class ZipItemNode(ExplorerNodes.ExplorerNode):
         # There seems to be no way to replace a zip entry.
         # Here the whole archive is recreated
         zipStream = StringIO(open(self.zipFileNode.resourcepath, 'rb').read())
-        zfSrc = zipfile.ZipFile(zipStream, 'r')
-        changed = False
+        zfSrc = self.ArchiveClass(zipStream, 'r')
         try:
-            zfDst = zipfile.ZipFile(self.zipFileNode.resourcepath, 'w')
+            changed = False
+            zfDst = self.ArchiveClass(self.zipFileNode.resourcepath, 'w', self.compression)
             try:
-                for zi in zfSrc.filelist:
+                for zi in zfSrc.infolist():
                     for fn, nfn, data in filesData:
                         if zi.filename == fn:
                             changed = True
@@ -266,17 +282,12 @@ class ZipItemNode(ExplorerNodes.ExplorerNode):
                                 zi.filename = nfn
                             if data is None:
                                 zipData = data = zfSrc.read(fn)
-                            elif os.path.splitext(zi.filename)[1] in \
-                                  EditorHelper.binaryFilesReg:
-                                zipData = data
-                            # XXX wrong!
-                            elif self.lineSep == '\r\n':
-                                zipData = data.replace('\n', '\r\n')
                             else:
                                 zipData = data
                             break
                     else:
                         zipData = zfSrc.read(zi.filename)
+                    zi.size = zi.file_size = len(zipData)
                     zfDst.writestr(zi, zipData)
             finally:
                 zfDst.close()
@@ -293,14 +304,17 @@ class ZipItemNode(ExplorerNodes.ExplorerNode):
 
 class ZipFileNode(ZipItemNode):
     protocol = 'zip'
-    def __init__(self, name, resourcepath, clipboard, imgIdx, parent, bookmarks=None):
+    ChildClass = ZipItemNode
+
+    def __init__(self, name, resourcepath, clipboard, imgIdx, parent, 
+          bookmarks=None):
         if clipboard:
             zipClip = ZipExpClipboard(clipboard.globClip)
         else:
             zipClip = None
         ZipItemNode.__init__(self, name, resourcepath, zipClip, true,
-            imgIdx, parent, self)
-        self.allFiles = []
+            imgIdx, parent, self, self.ChildClass)
+        self.allFiles = None
         self.allFileNames = []
         self.category = self.getTitle()+'://'
 
@@ -333,7 +347,7 @@ class ZipFileNode(ZipItemNode):
                     break
                 if path not in self.allFileNames:
                     self.allFileNames.insert(0, path)
-                    self.allFiles.insert(0, zipfile.ZipInfo(path))
+                    self.allFiles.insert(0, self.newInfoClass(path))
                 
         return ZipItemNode.openList(self, '')
 
@@ -364,12 +378,23 @@ class ZipFileNode(ZipItemNode):
         return files
 
     def updateFilelists(self):
-        zf = zipfile.ZipFile(self.resourcepath)
-        self.allFiles = zf.filelist
-        zf.close()
+        zf = self.ArchiveClass(self.resourcepath, 'r')
+        try:
+            self.compression = zf.compression
+            self.allFiles = zf.infolist()
+            self.allFileNames = [fl.filename for fl in self.allFiles]
+        finally:
+            zf.close()
 
-        self.allFileNames = [fl.filename for fl in self.allFiles]
 
+EditorHelper.imgZipFileModel = \
+      EditorHelper.addPluginImgs('Images/Modules/ZipFile_s.png')
+class ZipFileModel(EditorModels.EditorModel):
+    modelIdentifier = 'ZipFile'
+    defaultName = 'zip'
+    bitmap = 'ZipFile_s.png'
+    imgIdx = EditorHelper.imgZipFileModel
+    ext = '.zip'
 
 def uriSplitZip(filename, zipfile, zipentry):
     return 'zip', zipfile, zipentry, filename
@@ -388,3 +413,78 @@ ExplorerNodes.register(ZipItemNode, clipboard=ZipExpClipboard,
 ExplorerNodes.uriSplitReg[('zip', 3)] = uriSplitZip
 ExplorerNodes.transportFindReg['zip'] = findZipExplorerNode
 ExplorerNodes.fileOpenDlgProtReg.append('zip')
+EditorHelper.modelReg[ZipFileModel.modelIdentifier] = ZipFileModel
+EditorHelper.binaryFilesReg.append('.zip')
+
+#-------------------------------------------------------------------------------
+
+def isTarGzip(file):
+    name, ext = os.path.splitext(file)
+    return ext == '.tgz' or ext == '.gz' and os.path.splitext(name)[1] == '.tar'
+
+class TarGzipController(ZipController): pass
+
+class TarGzipInfoMixin:
+    InfoClass = tarfile.TarInfo
+    def newInfoClass(self, name):
+        info = ZipItemNode.newInfoClass(self, name)
+        info.filename = name
+        if name[-1] == '/':
+            info.type = tarfile.DIRTYPE
+        ##info.type = self.compression
+        #info.file_size = m.size
+        #info.date_time = time.gmtime(m.mtime)[:6]
+        return info
+
+class TarGzipItemNode(TarGzipInfoMixin, ZipItemNode): 
+    protocol = 'tar.gz'
+    ArchiveClass = tarfile.TarFileCompat
+
+
+class TarGzipFileNode(TarGzipInfoMixin, ZipFileNode): 
+    protocol = 'tar.gz'
+    ArchiveClass = tarfile.TarFileCompat
+    ChildClass = TarGzipItemNode
+
+    def isDir(self, path=''):
+        if path:
+            try: idx = self.allFileNames.index(path)
+            except ValueError: return path[-1] == '/'
+            return self.allFiles[idx].isdir()
+        else:
+            return false
+
+EditorHelper.imgTarGzipFileModel = \
+      EditorHelper.addPluginImgs('Images/Modules/TarGzipFile_s.png')
+class TarGzipFileModel(EditorModels.EditorModel):
+    modelIdentifier = 'TarGzipFile'
+    defaultName = 'tar'
+    bitmap = 'TarGzipFile_s.png'
+    imgIdx = EditorHelper.imgTarGzipFileModel
+    ext = '.gz'
+
+def uriSplitTarGzip(filename, gzipfile, gzipentry):
+    return 'tar.gz', gzipfile, gzipentry, filename
+
+def uriSplitTGZ(filename, gzipfile, gzipentry):
+    return 'tgz', gzipfile, gzipentry, filename
+
+def findTarGzipExplorerNode(category, respath, transports):
+    gzf = TarGzipFileNode(os.path.basename(category), category, None, -1, None, None)
+    gzf.openList()
+    return gzf.getNodeFromPath(respath)
+
+#-------------------------------------------------------------------------------
+# Register gzip files as a subtype of file explorers
+FileExplorer.FileSysNode.subExplorerReg['file'].append(
+      (TarGzipFileNode, isTarGzip, EditorHelper.imgZipFileModel))
+ExplorerNodes.register(TarGzipItemNode, clipboard=ZipExpClipboard,
+      controller=TarGzipController)
+ExplorerNodes.uriSplitReg[('tar.gz', 3)] = uriSplitTarGzip
+ExplorerNodes.uriSplitReg[('tgz', 3)] = uriSplitTGZ
+ExplorerNodes.transportFindReg['tar.gz'] = findTarGzipExplorerNode
+ExplorerNodes.transportFindReg['tgz'] = findTarGzipExplorerNode
+ExplorerNodes.fileOpenDlgProtReg.extend(['tar.gz', 'tgz'])
+EditorHelper.modelReg[TarGzipFileModel.modelIdentifier] = TarGzipFileModel
+EditorHelper.binaryFilesReg.extend(['.gz', '.tgz'])
+EditorHelper.extMap['.tgz'] = TarGzipFileModel
