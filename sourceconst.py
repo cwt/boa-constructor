@@ -85,7 +85,8 @@ def main():
     application.MainLoop()
 
 if __name__ == '__main__':
-    main()'''
+    main()
+'''
 
 defInfoBlock = '''#-----------------------------------------------------------------------------
 # Name:        %s
@@ -121,7 +122,8 @@ if __name__ == '__main__':
     app = wxPySimpleApp()
     frame = create(None)
     frame.Show(true)
-    app.MainLoop()'''
+    app.MainLoop()
+'''
 
 simpleAppDialogRunSrc = '''
 
@@ -131,4 +133,5 @@ if __name__ == '__main__':
     try:
         dlg.ShowModal()
     finally:
-        dlg.Destroy()'''
+        dlg.Destroy()
+'''
