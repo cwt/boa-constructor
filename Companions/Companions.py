@@ -7,21 +7,15 @@
 #
 # Created:     1999
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999, 2000 Riaan Booysen
+# Copyright:   (c) 1999 - 2001 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
 
-from wxPython.wx import *
+""" Classes defining and implementing the design time behaviour of controls """
 
-# XXX Fix these to not import * !
-from PropEdit.PropertyEditors import *
-from PropEdit.Enumerations import *
-from EventCollections import *
-from BaseCompanions import *
-from Constructors import *
-from Preferences import wxDefaultFrameSize, wxDefaultFramePos
-import PaletteStore
 import copy
+
+from wxPython.wx import *
 
 print 'importing extra wxPython libraries'
 from wxPython.grid import wxGrid
@@ -31,6 +25,17 @@ from wxPython.stc import wxStyledTextCtrl
 from wxPython.lib.anchors import LayoutAnchors
 from wxPython.calendar import *
 from wxPython.utils import *
+from wxPython.ogl import *
+
+# XXX Fix less of these to import * !
+from PropEdit.PropertyEditors import *
+from PropEdit.Enumerations import *
+from EventCollections import *
+from BaseCompanions import *
+from Constructors import *
+from Preferences import wxDefaultFrameSize, wxDefaultFramePos
+import PaletteStore
+
 #wxCalendarCtrl
 
 PaletteStore.paletteLists.update({'ContainersLayout': [],
@@ -60,6 +65,15 @@ class BaseFrameDTC(ContainerDTC):
 
     def extraConstrProps(self):
         return {}
+
+    def dontPersistProps(self):
+        # Note this is a workaround for a problem on wxGTK where the size
+        # passed to the frame constructor is actually means ClientSize on wxGTK
+        # By having this property always set, this overrides the frame size
+        # and uses the same size on Win and Lin
+        props = ContainerDTC.dontPersistProps(self) 
+        props.remove('ClientSize')
+        return props
 
     def hideDesignTime(self):
         hdt = ContainerDTC.hideDesignTime(self) + ['Label', 'Constraints', 'Anchors']
@@ -110,12 +124,27 @@ class BaseFrameDTC(ContainerDTC):
             if mb and mb.GetId() == compn.control.GetId():
                 self.propRevertToDefault('MenuBar', 'SetMenuBar')
                 self.control.SetMenuBar(None)
+                if wxPlatform == '__WXGTK__':
+                    wxLogWarning('GTK only allows connecting the wxMenuBar once to the wxFrame')
 
             # ToolBar
             tb = self.control.GetToolBar()
             if tb and tb.GetId() == compn.control.GetId():
                 self.propRevertToDefault('ToolBar', 'SetToolBar')
                 self.control.SetToolBar(None)
+
+    def updatePosAndSize(self):
+        ContainerDTC.updatePosAndSize(self)
+        # Argh, this is needed so that ClientSize is up to date
+        # XXX Delete links to frame bars so client size is accurate
+        self.control.SetToolBar(None)
+        self.control.SetStatusBar(None)
+        self.control.SetMenuBar(None)
+        if self.textPropList:
+            for prop in self.textPropList:
+                if prop.prop_name == 'ClientSize':
+                    size = self.control.GetClientSize()
+                    prop.params = ['wxSize(%d, %d)' % (size.x, size.y)]
 
 class FrameDTC(FramesConstr, BaseFrameDTC):
     #wxDocs = HelpCompanions.wxFrameDocs
@@ -133,6 +162,7 @@ class DialogDTC(FramesConstr, BaseFrameDTC):
         dts = BaseFrameDTC.designTimeSource(self)
         dts.update({'style': 'wxDEFAULT_DIALOG_STYLE'})
         return dts
+#wxSystemSettings_GetSystemColour(wxSYS_COLOUR_BTNFACE)
 
     def events(self):
         return BaseFrameDTC.events(self) + ['DialogEvent']
@@ -184,14 +214,14 @@ class SashWindowDTC(WindowConstr, ContainerDTC):
                              'SashVisibleRight' : SashVisiblePropEdit,
                              'SashVisibleBottom' : SashVisiblePropEdit})
         self.windowStyles = ['wxSW_3D', 'wxSW_3DSASH', 'wxSW_3DBORDER',
-                                  'wxSW_BORDER'] + self.windowStyles
+                             'wxSW_BORDER'] + self.windowStyles
         self.edgeNameMap = {'SashVisibleLeft'  : wxSASH_LEFT,
                             'SashVisibleTop'   : wxSASH_TOP,
                             'SashVisibleRight' : wxSASH_RIGHT,
                             'SashVisibleBottom': wxSASH_BOTTOM}
-        for name in self.edgeNameMap.keys():
+        for name in self.edgeNameMap.keys() + ['SashVisible']:
             self.customPropEvaluators[name] = self.EvalSashVisible
-        self.customPropEvaluators['SashVisible'] = self.EvalSashVisible
+        #self.customPropEvaluators['SashVisible'] = self.EvalSashVisible
 
     def properties(self):
         props = ContainerDTC.properties(self)
@@ -218,7 +248,7 @@ class SashWindowDTC(WindowConstr, ContainerDTC):
     def EvalSashVisible(self, exprs, objects):
         res = []
         for expr in exprs:
-            res.append(eval(expr))
+            res.append(self.eval(expr))
         return tuple(res)
 
     def persistProp(self, name, setterName, value):
@@ -465,6 +495,18 @@ class NotebookPagesCDTC(NotebookPageConstr, CollectionDTC):
                 for tph in self.tempPlaceHolders:
                     if tph.ctrl == compn.control:
                         tph.clearCtrl()
+
+    def writeCollectionItems(self, output):
+        CollectionDTC.writeCollectionItems(self, output)
+        warn = 0
+        for constr in self.textConstrLst:
+            if constr.params['pPage'] == 'None':
+                wxLogWarning('No control for %s, page %s'%(
+                      self.parentCompanion.name, constr.params['strText']))
+                warn = 1
+        if warn:
+            wxLogWarning('The red-dashed area of a wxNotebook page must contain\n'\
+            'a control or the generated source will be invalid outside the Designer')
 
 
 [wxID_CTRLPARENT, wxID_EDITPASTE, wxID_EDITDELETE,
@@ -1139,6 +1181,12 @@ class SpinButtonDTC(WindowConstr, WindowDTC):
         WindowDTC.__init__(self, name, designer, parent, ctrlClass)
         self.windowStyles = ['wxSP_HORIZONTAL', 'wxSP_VERTICAL',
                              'wxSP_ARROW_KEYS', 'wxSP_WRAP'] + self.windowStyles
+        self.customPropEvaluators['Range'] = self.EvalRange
+
+    def properties(self):
+        props = WindowDTC.properties(self)
+        props['Range'] = ('CompnRoute', self.GetRange, self.SetRange)
+        return props
 
     def designTimeSource(self, position = 'wxDefaultPosition', size = 'wxDefaultSize'):
         return {'pos': position,
@@ -1153,6 +1201,33 @@ class SpinButtonDTC(WindowConstr, WindowDTC):
         insp = self.designer.inspector
         insp.pages.SetSelection(2)
         insp.events.doAddEvent('SpinEvent', 'EVT_SPIN')
+
+    def GetRange(self, dummy):
+        return (self.control.GetMin(), self.control.GetMax())
+
+    def SetRange(self, value):
+        self.control.SetRange(value[0], value[1])
+
+    def EvalRange(self, exprs, objects):
+        res = []
+        for expr in exprs:
+            res.append(self.eval(expr))
+        return tuple(res)
+
+    def persistProp(self, name, setterName, value):
+        if setterName == 'SetRange':
+            rMin, rMax = self.eval(value)
+            newParams = [`rMin`, `rMax`]
+            # edit if exists
+            for prop in self.textPropList:
+                if prop.prop_setter == setterName:
+                    prop.params = newParams
+                    return
+            # add if not defined
+            self.textPropList.append(methodparse.PropertyParse( None, self.name,
+                setterName, newParams, 'SetRange'))
+        else:
+            WindowDTC.persistProp(self, name, setterName, value)
 
 # XXX FreqTick handled wrong
 EventCategories['SliderEvent'] = (EVT_SLIDER,)
@@ -1798,4 +1873,3 @@ PaletteStore.helperClasses.update({'wxFontPtr': FontDTC,
     'wxColourPtr': ColourDTC,
     'Anchors': AnchorsDTC
 })
- 
