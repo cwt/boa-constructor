@@ -35,7 +35,7 @@ class ImageViewer(wxMiniFrame):
         self._init_utils()
         self._init_ctrls(parent)
         self.Centre(wxBOTH)
-        
+
         if doubleClickCallback:
             EVT_LEFT_DCLICK(self.staticBitmap1, doubleClickCallback)
 
