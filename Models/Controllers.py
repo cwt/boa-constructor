@@ -6,12 +6,12 @@
 #
 # Created:     2001/13/08
 # RCS-ID:      $Id$
-# Copyright:   (c) 2001 - 2002 Riaan Booysen
+# Copyright:   (c) 2001 - 2003 Riaan Booysen
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 print 'importing Models.Controllers'
 
-import os, string
+import os
 
 from wxPython.wx import *
 
@@ -20,7 +20,7 @@ from Preferences import keyDefs, IS
 
 import EditorHelper, PaletteStore, EditorModels
 
-from Views import EditorViews, SourceViews
+from Views import EditorViews, SourceViews, DiffView
 
 from Explorers import ExplorerNodes
 
@@ -40,9 +40,14 @@ class BaseEditorController:
     Model           = None
     DefaultViews    = []
     AdditionalViews = []
+    
+    plugins = ()
+
     def __init__(self, editor):
         self.editor = editor
         self.evts = []
+        
+        self.plugins = [Plugin(self) for Plugin in self.plugins]
 
     def getModel(self):
         return self.editor.getActiveModulePage().model
@@ -57,8 +62,8 @@ class BaseEditorController:
         pass
 
     def newFileTransport(self, name, filename):
-        from Explorers.FileExplorer import PyFileNode
-        return PyFileNode(name, filename, None, -1, None, None, properties = {})
+        from Explorers.FileExplorer import FileSysNode
+        return FileSysNode(name, filename, None, -1, None, None, properties = {})
 
     def addEvt(self, wId, meth):
         EVT_MENU(self.editor, wId, meth)
@@ -85,6 +90,9 @@ class BaseEditorController:
 
     def addActions(self, toolbar, menu, model):
         actions = self.actions(model)
+        for plugin in self.plugins:
+            actions.extend(plugin.actions(model))
+        
         accls = []
 
         for name, event, bmp, key in actions:
@@ -126,7 +134,8 @@ class PersistentController(EditorController):
                 ('Save', self.OnSave, self.saveBmp, 'Save'),
                 ('Save as...', self.OnSaveAs, self.saveAsBmp, 'SaveAs'),
                 ('-', None, '', ''),
-                ('Toggle read-only', self.OnToggleReadOnly, '-', '')]
+                ('Toggle read-only', self.OnToggleReadOnly, '-', ''),
+                ('NDiff files...', self.OnNDiffFile, '-', '')]
 
     def createModel(self, source, filename, main, saved, modelParent=None):
         return self.Model(source, filename, self.editor, saved)
@@ -205,6 +214,28 @@ class PersistentController(EditorController):
         else:
             wxLogError('Read-only not supported on this transport')
 
+    def OnNDiffFile(self, event=None, filename=''):
+        model = self.getModel()
+        model.refreshFromViews()
+        if model:
+            if self.checkUnsaved(model): return
+            if not filename:
+                filename = self.editor.openFileDlg()
+            if filename:
+                #filename = model.assertLocalFile(filename)
+                tbName = 'Diff with : '+filename
+                if not model.views.has_key(tbName):
+                    resultView = self.editor.addNewView(tbName, 
+                          DiffView.PythonSourceDiffView)
+                else:
+                    resultView = model.views[tbName]
+
+                resultView.tabName = tbName
+                resultView.diffWith = filename
+                resultView.refresh()
+                resultView.focus()
+
+
 class SourceController(PersistentController):
     AdditionalViews = [EditorViews.CVSConflictsView]
 
@@ -270,11 +301,11 @@ class MakePyController(BaseEditorController):
 def identifyFilename(filename):
     dummy, name = os.path.split(filename)
     base, ext = os.path.splitext(filename)
-    lext = string.lower(ext)
+    lext = ext.lower()
 
     if fullnameTypes.has_key(name):
         return fullnameTypes[name]
-    if not ext and string.upper(base) == base:
+    if not ext and base.upper() == base:
         return EditorModels.TextModel, '', lext
     if EditorHelper.extMap.has_key(lext):
         return EditorHelper.extMap[lext], '', lext
@@ -286,38 +317,44 @@ def identifyFile(filename, source=None, localfs=true):
     """ Return appropriate model for given source file.
         Assumes header will be part of the first continious comment block """
     Model, main, lext = identifyFilename(filename)
-    if Model is not None:
+    if (Model is not None):# and (lext not in EditorHelper.inspectableFilesReg.keys()):
         return Model, main
 
+    #if Model is not None:
+    #    BaseModel = Model
     if lext == defaultExt:
         BaseModel = DefaultModel
     else:
         BaseModel = EditorModels.UnknownFileModel
 
     if source is None and not localfs:
-        return BaseModel, ''
-    elif lext in EditorHelper.inspectableFilesReg:
+        if lext in EditorHelper.inspectableFilesReg.keys():
+            return EditorHelper.inspectableFilesReg[lext], ''
+        else:
+            return BaseModel, ''
+    elif lext in EditorHelper.inspectableFilesReg.keys():
+        BaseModel = EditorHelper.inspectableFilesReg[lext]
         if source is not None:
-            return identifySource[lext](string.split(source, '\n'))
+            return identifySource[lext](source.split('\n'))
         elif not Preferences.exInspectInspectableFiles:
             return BaseModel, ''
-        f = open(filename)
-        try:
-            while 1:
-                line = f.readline()
-                if not line: break
-                line = string.strip(line)
-                if line and headerStartChar.has_key(lext):
-                    if line[0] != headerStartChar[lext]:
-                        return BaseModel, ''
-                    headerInfo = identifyHeader[lext](line)
-                    if headerInfo[0] != DefaultModel:
-                        return headerInfo
-            return BaseModel, ''
-        finally:
-            f.close()
-    else:
-        return BaseModel, ''
+        if os.path.exists(filename):
+            f = open(filename)
+            try:
+                while 1:
+                    line = f.readline()
+                    if not line: break
+                    line = line.strip()
+                    if line and headerStartChar.has_key(lext):
+                        if line[0] != headerStartChar[lext]:
+                            return BaseModel, ''
+                        headerInfo = identifyHeader[lext](line)
+                        if headerInfo[0] != BaseModel:
+                            return headerInfo
+                return BaseModel, ''
+            finally:
+                f.close()
+    return BaseModel, ''
 
 
 #-Registration of this modules classes---------------------------------------
