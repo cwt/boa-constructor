@@ -304,8 +304,8 @@ class AppCompareView(ListCtrlView, CloseableViewMix):
     def refreshCtrl(self):
         ListCtrlView.refreshCtrl(self)
 
-        from EditorModels import AppModel
-        otherApp = AppModel('', self.compareTo, '', self.model.editor, true, {})
+        from Models.PythonEditorModels import BaseAppModel
+        otherApp = BaseAppModel('', self.compareTo, '', self.model.editor, true, {})
 
         from Explorers.Explorer import openEx
         otherApp.transport = openEx(self.compareTo)
