@@ -341,8 +341,8 @@ STCDiffAddedMarker = wxSTC_MARK_PLUS, 'BLACK', 'WHITE'
 STCDiffRemovedMarker = wxSTC_MARK_MINUS, 'BLACK', 'WHITE'
 STCDiffChangesMarker = wxSTC_MARK_SMALLRECT, 'BLACK', 'WHITE'
 
-STCFoldingOpen = wxSTC_MARK_PLUS, 'BLACK', 'WHITE'
-STCFoldingClose = wxSTC_MARK_MINUS, 'BLACK', 'WHITE'
+STCFoldingOpen = wxSTC_MARK_MINUS, 'BLACK', 'WHITE'
+STCFoldingClose = wxSTC_MARK_PLUS, 'BLACK', 'WHITE'
 
 #-------------------------------------------------------------------------------
 
