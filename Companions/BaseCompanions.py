@@ -50,6 +50,8 @@ class Companion:
     wxDocs = HelpCompanions.wxDefaultDocs
     def __init__(self, name):
         self.name = name
+    def getPropertyHelp(self, propName):
+        return propName
 
 class CodeCompanion(Companion):
     pass
@@ -497,6 +499,7 @@ class ControlDTC(DesignTimeCompanion):
         dts = self.designTimeSource('wxPoint(%s, %s)'%(position.x, position.y),
           'wxSize(%s, %s)'%(size.x, size.y))
 
+        import PaletteMapping
         for param in dts.keys():
             try:
                 dts[param] = PaletteMapping.evalCtrl(dts[param])
@@ -652,6 +655,7 @@ class UtilityDTC(DesignTimeCompanion):
 
         dts = self.designTimeSource()
 
+        import PaletteMapping
         for param in dts.keys():
             try:
                 dts[param] = PaletteMapping.evalCtrl(dts[param])
@@ -744,7 +748,8 @@ class WindowDTC(WindowConstr, ControlDTC):
 
 #---ToolTips--------------------------------------------------------------------
     def GetToolTipString(self, blah):
-        return self.control.GetToolTip().GetTip()
+        # XXX Workaround wxPython bug. GetToolTip returns wrong obj type
+        return wxPyTypeCast(self.control.GetToolTip(), 'wxToolTip').GetTip()
 
     def SetToolTipString(self, value):
         self.control.SetToolTipString(value)
@@ -945,6 +950,7 @@ class CollectionDTC(DesignTimeCompanion):
         """ Return a dictionary of parameters for the constructor of a wxPython
             control. e.g. {'name': 'button1', etc) """
         dtd = {}
+        import PaletteMapping
         for param in vals.keys():
             try:
                 dtd[param] = PaletteMapping.evalCtrl(vals[param])
