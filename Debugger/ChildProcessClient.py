@@ -61,7 +61,12 @@ def spawnChild(monitor, process, args=''):
     os.environ['PYTHONPATH'] = string.join(sys.path, os.pathsep)
     cmd = '%s "%s" %s' % (sys.executable, script_fn, args)
     try:
-        pid = wx.wxExecute(cmd, 0, process)
+        if wx.wxVERSION > (2, 3, 2):
+            flags = wx.wxEXEC_NOHIDE
+        else:
+            flags = 0
+        pid = wx.wxExecute(cmd, flags, process)
+
         line = ''
         if monitor.isAlive():
             istream = process.GetInputStream()
