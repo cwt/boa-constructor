@@ -20,7 +20,7 @@ import Preferences, Utils
 
 import EditorHelper
 from PythonEditorModels import ClassModel, BaseAppModel, ModuleModel
-from Companions import BaseCompanions, FrameCompanions
+from Companions import BaseCompanions, FrameCompanions, WizardCompanions
 
 import sourceconst
 
@@ -29,7 +29,8 @@ true,false=1,0
 (imgAppModel, imgFrameModel, imgDialogModel, imgMiniFrameModel,
  imgMDIParentModel, imgMDIChildModel, imgPopupWindowModel,
  imgPopupTransientWindowModel, imgFramePanelModel,
-) = EditorHelper.imgIdxRange(9)
+ imgWizardModel, imgPyWizardPageModel, imgWizardPageSimpleModel,
+) = EditorHelper.imgIdxRange(12)
 
 class _your_frame_attrs_: pass
 #    def __repr__(self):return `self.__dict__`
@@ -50,6 +51,8 @@ class BaseFrameModel(ClassModel):
 
         self.defCreateClass = sourceconst.defCreateClass
         self.defClass = sourceconst.defClass
+        self.defImport = sourceconst.defImport
+        self.defWindowIds = sourceconst.defWindowIds
 
 
     def renameMain(self, oldName, newName):
@@ -71,8 +74,8 @@ class BaseFrameModel(ClassModel):
                                                         'value': params[param]})
         paramStr = 'self, ' + ', '.join(paramLst)
 
-        self.data = (sourceconst.defSig + sourceconst.defImport + \
-                     self.defCreateClass + sourceconst.defWindowIds + \
+        self.data = (sourceconst.defSig + self.defImport + \
+                     self.defCreateClass + self.defWindowIds + \
                      self.defClass) % {
                       'modelIdent': self.modelIdentifier, 'main': self.main,
                       'idNames': Utils.windowIdentifier(self.main, ''),
@@ -295,62 +298,6 @@ class BaseFrameModel(ClassModel):
                     res[custom] = wxClass
         return res
 
-    def loadResource(self, importName, searchPath):
-        d={}
-        syspath = sys.path[:]
-        sys.path[:] = searchPath
-        try:
-            try:
-                exec 'import %s'%importName in d
-                exec 'reload(%s)'%importName in d
-            finally:
-                sys.path[:] = syspath
-            imageMod = eval(importName, d)
-            del d['__builtins__']
-            rootModName, rootMod = d.items()[0]
-        finally:
-            try: del sys.modules[importName]
-            except KeyError: pass
-            del d
-
-        return imageMod, rootModName, rootMod
-
-    def assureResourceLoaded(self, importName, resources, searchPath=None,
-                             specialAttrs=None):
-        if searchPath is None:
-            searchPath = self.buildResourceSearchList()
-
-        try:
-            f, fn, desc = Utils.find_dotted_module(importName, searchPath)
-        except ImportError:
-            self.editor.setStatus('Could not find %s'%importName, 'Error')
-            return false
-        f.close()
-        
-        import Controllers
-        Model, main = Controllers.identifyFile(fn)
-        for ResourceClass in Controllers.resourceClasses:
-            if issubclass(Model, ResourceClass):
-                try:
-                    imageMod, rootName, rootMod = self.loadResource(importName, 
-                                                                    searchPath)
-                    resources[importName] = imageMod
-                    specialAttrs[rootName] = rootMod
-                except ImportError:
-                    self.editor.setStatus('Could not load %s'%importName, 'Error')
-                    return false
-                return true
-
-        self.editor.setStatus('%s is not a valid Resource Module'%importName, 'Error')
-        return false
-    
-    def readResources(self, mod, cls, specialAttrs):
-        resources = {}
-        searchPath = self.buildResourceSearchList()
-        for impName in mod.imports.keys():
-            self.assureResourceLoaded(impName, resources, searchPath, specialAttrs)
-        return resources
-
     def readComponents(self):
         """ Setup object collection dict by parsing all designer controlled methods """
         module = self.getModule()
@@ -363,7 +310,6 @@ class BaseFrameModel(ClassModel):
             self.customClasses = self.readCustomClasses(module, main)
             self.resources = self.readResources(module, main, 
                   specialAttrs=self.specialAttrs)
-            #self.specialAttrs.update(self.resources)
 
             for oc in self.identifyCollectionMethods():
                 codeSpan = main.methods[oc]
@@ -394,6 +340,7 @@ class BaseFrameModel(ClassModel):
         for idx in range(len(module.source)):
             match = reWinIds.match(module.source[idx])
             if match:
+                # XX always 2 lines? check this
                 del module.source[idx]
                 del module.source[idx]
                 module.renumber(-2, idx)
@@ -469,12 +416,6 @@ class BaseFrameModel(ClassModel):
         """ Return template of source code that will run this module type as
         a stand-alone file """
         return sourceconst.simpleAppFrameRunSrc
-
-    def buildResourceSearchList(self):
-        searchPath = [os.path.abspath(os.path.dirname(self.localFilename()))]
-        if self.app:
-            searchPath.append(os.path.abspath(os.path.dirname(self.app.localFilename())))
-        return searchPath
 
 
 class FrameModel(BaseFrameModel):
@@ -580,15 +521,79 @@ class FramePanelModel(BaseFrameModel):
     def getSimpleRunnerSrc(self):
         return ''
 
+sourceconst.defWizardImport = sourceconst.wsfix('\nfrom wxPython.wizard import *\n')
+
+class WizardModel(DialogModel):
+    modelIdentifier = 'Wizard'
+    defaultName = 'wxWizard'
+    bitmap = 'wxWizard_s.png'
+    imgIdx = imgWizardModel
+    dialogLook = true
+    Companion = WizardCompanions.WizardDTC
+
+    def __init__(self, data, name, main, editor, saved, app=None):
+        DialogModel.__init__(self, data, name, main, editor, saved, app)
+        self.defImport = sourceconst.defImport.strip()+sourceconst.defWizardImport
+        
+    def getSimpleRunnerSrc(self):
+        return ''
+
+sourceconst.defPyWizPageClass = sourceconst.defClass+sourceconst.wsfix('''
+\tdef GetNext(self):
+\t\treturn None
+
+\tdef GetPrev(self):
+\t\treturn None
+''')
+
+
+class PyWizardPageModel(FramePanelModel):
+    modelIdentifier = 'PyWizardPage'
+    defaultName = 'wxPyWizardPage'
+    bitmap = 'wxPyWizardPage_s.png'
+    imgIdx = imgPyWizardPageModel
+    dialogLook = true
+    Companion = WizardCompanions.PyWizardPageDTC
+
+    def __init__(self, data, name, main, editor, saved, app=None):
+        FramePanelModel.__init__(self, data, name, main, editor, saved, app)
+        self.defClass = sourceconst.defPyWizPageClass
+        self.defImport = sourceconst.defImport.strip()+sourceconst.defWizardImport
+        self.defWindowIds = ''
+
+    def getSimpleRunnerSrc(self):
+        return ''
+
+class WizardPageSimpleModel(FramePanelModel):
+    modelIdentifier = 'WizardPageSimple'
+    defaultName = 'wxWizardPageSimple'
+    bitmap = 'wxWizardPageSimple_s.png'
+    imgIdx = imgWizardPageSimpleModel
+    dialogLook = true
+    Companion = WizardCompanions.WizardPageSimpleDTC
+
+    def __init__(self, data, name, main, editor, saved, app=None):
+        FramePanelModel.__init__(self, data, name, main, editor, saved, app)
+        self.defClass = sourceconst.defClass
+        self.defImport = sourceconst.defImport.strip()+sourceconst.defWizardImport
+        self.defWindowIds = ''
+        
+    def getSimpleRunnerSrc(self):
+        return ''
+
 #-------------------------------------------------------------------------------
 # model registry: add to this dict to register a Model (needed for explorer images)
-EditorHelper.modelReg.update({AppModel.modelIdentifier: AppModel,
-            FrameModel.modelIdentifier: FrameModel,
-            DialogModel.modelIdentifier: DialogModel,
-            MiniFrameModel.modelIdentifier: MiniFrameModel,
-            MDIParentModel.modelIdentifier: MDIParentModel,
-            MDIChildModel.modelIdentifier: MDIChildModel,
-            PopupWindowModel.modelIdentifier: PopupWindowModel,
-            PopupTransientWindowModel.modelIdentifier: PopupTransientWindowModel,
-            FramePanelModel.modelIdentifier: FramePanelModel,
-            })
+EditorHelper.modelReg.update({
+      AppModel.modelIdentifier: AppModel,
+      FrameModel.modelIdentifier: FrameModel,
+      DialogModel.modelIdentifier: DialogModel,
+      MiniFrameModel.modelIdentifier: MiniFrameModel,
+      MDIParentModel.modelIdentifier: MDIParentModel,
+      MDIChildModel.modelIdentifier: MDIChildModel,
+      PopupWindowModel.modelIdentifier: PopupWindowModel,
+      PopupTransientWindowModel.modelIdentifier: PopupTransientWindowModel,
+      FramePanelModel.modelIdentifier: FramePanelModel,
+      WizardModel.modelIdentifier: WizardModel,
+      PyWizardPageModel.modelIdentifier: PyWizardPageModel,
+      WizardPageSimpleModel.modelIdentifier: WizardPageSimpleModel,
+})
