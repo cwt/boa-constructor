@@ -36,7 +36,7 @@ class ClassBrowserFrame(wxFrame, Utils.FrameRestorerMixin):
         self.SetClientSize(wxSize(291, 470))
         EVT_CLOSE(self, self.OnCloseWindow)
 
-        self.statusBar = wxStatusBar(id = wxID_CLASSBROWSERFRAMESTATUSBAR, name = 'statusBar', parent = self, pos = wxPoint(0, 450), size = wxSize(291, 20), style = wxST_SIZEGRIP)
+        self.statusBar = wxStatusBar(id = wxID_CLASSBROWSERFRAMESTATUSBAR, name = 'statusBar', parent = self, style = wxST_SIZEGRIP)
         self.SetStatusBar(self.statusBar)
 
         self.pages = wxNotebook(id = wxID_CLASSBROWSERFRAMEPAGES, name = 'pages', parent = self, pos = wxPoint(0, 0), size = wxSize(291, 450), style = 0)
@@ -49,21 +49,18 @@ class ClassBrowserFrame(wxFrame, Utils.FrameRestorerMixin):
 
     def __init__(self, parent):
         self._init_ctrls(parent)
-        self.SetDimensions(0,
-          Preferences.paletteHeight + Preferences.windowManagerTop + \
-          Preferences.windowManagerBottom,
-          Preferences.inspWidth,
-          Preferences.bottomHeight)
 
-        if wxPlatform == '__WXMSW__':
-            self.SetIcon(IS.load('Images/Icons/ClassBrowser.ico'))
+        self.winConfOption = 'classbrowser'
+        self.loadDims()
+
+        self.SetIcon(IS.load('Images/Icons/ClassBrowser.ico'))
 
         self.classes = pyclbr.readmodule('wxPython.wx')
 
 #        self.pages = wxNotebook(self, -1)
 #        self.statusBar = self.CreateStatusBar()
 
-        tID = NewId()
+        tID = wxNewId()
 #        self.hierarchy = wxTreeCtrl(self.pages, tID)
 #        self.pages.AddPage(self.hierarchy, 'Hierarchy')
 #        wxYield()
@@ -77,7 +74,7 @@ class ClassBrowserFrame(wxFrame, Utils.FrameRestorerMixin):
         buildTree(self.hierarchy, root, clsDict)
         self.hierarchy.Expand(root)
 
-        tID = NewId()
+        tID = wxNewId()
 
 #        self.tree = wxTreeCtrl(self.pages, tID)
 #        self.pages.AddPage(self.tree, 'Modules')
@@ -135,12 +132,19 @@ class ClassBrowserFrame(wxFrame, Utils.FrameRestorerMixin):
 #                    aMethod = self.tree.AppendItem(supers, super.name)
         self.tree.Expand(root)
 
+    def setDefaultDimensions(self):
+        self.SetDimensions(0,
+          Preferences.paletteHeight + Preferences.windowManagerTop + \
+          Preferences.windowManagerBottom,
+          Preferences.inspWidth,
+          Preferences.bottomHeight)
+
     def OnCloseWindow(self, event):
         self.Show(true)
         self.Show(false)
         if __name__ == '__main__':
             self.Destroy()
-        
+
 
 def findInsertModules(name, tree):
     ri = tree.GetRootItem()

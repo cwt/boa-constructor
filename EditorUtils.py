@@ -1,4 +1,4 @@
-import os
+import os, time
 
 from wxPython.wx import *
 import Preferences, Utils
@@ -68,6 +68,7 @@ class EditorToolBar(MyToolBar):
 class EditorStatusBar(wxStatusBar):
     """ Displays information about the current view. Also global stats/
         progress bar etc. """
+    maxHistorySize = 50
     def __init__(self, *_args, **_kwargs):
         wxStatusBar.__init__(self, _kwargs['parent'], _kwargs['id'], style=wxST_SIZEGRIP)
         self.SetFieldsCount(4)
@@ -75,21 +76,37 @@ class EditorStatusBar(wxStatusBar):
             imgWidth = 21
         else:
             imgWidth = 16
-            
+
         self.SetStatusWidths([imgWidth, 400, 150, -1])
 
         rect = self.GetFieldRect(0)
-        self.img = wxStaticBitmap(self, -1, wxNullBitmap, 
+        self.img = wxStaticBitmap(self, -1, Preferences.IS.load('Images/Shared/BoaLogo.png'),
             (rect.x+1, rect.y+1), (16, 16))
+        EVT_LEFT_DCLICK(self.img, self.OnShowHistory)
 
-        rect = self.GetFieldRect(2)
-        self.progress = wxGauge(self, -1, 100, rect.GetPosition(), rect.GetSize())
-        
-        self.images = {'Info': Preferences.IS.load('Images/Shared/Info.bmp'),
-                       'Warning': Preferences.IS.load('Images/Shared/Warning.bmp'),
-                       'Error': Preferences.IS.load('Images/Shared/Error.bmp')}
-        
+        self.progress = wxGauge(self, -1, 100)
+        self.linkProgressToStatusBar()
+
+        self.images = {'Info': Preferences.IS.load('Images/Shared/Info.png'),
+                       'Warning': Preferences.IS.load('Images/Shared/Warning.png'),
+                       'Error': Preferences.IS.load('Images/Shared/Error.png')}
+        self.history = []
+        self._histcnt = 0
+    
+    def destroy(self):
+        del self.images
+
     def setHint(self, hint, msgType='Info', ringBell=false):
+        """ Show a status message in the statusbar, optionally rings a bell.
+
+        msgType can be 'Info', 'Warning' or 'Error'
+        """
+        self._histcnt = self._histcnt - 1
+        self.history.append( (msgType, time.strftime('%H:%M:%S', 
+              time.gmtime(time.time())), hint, ringBell) )
+        if len(self.history) > self.maxHistorySize:
+            del self.history[0]
+
         self.SetStatusText(hint, 1)
         self.img.SetToolTipString(hint)
         self.img.SetBitmap(self.images[msgType])
@@ -98,8 +115,41 @@ class EditorStatusBar(wxStatusBar):
     def OnEditorNotification(self, event):
         self.setHint(event.message)
 
+    logDlgs = {'Info': wxLogMessage,
+               'Warning': wxLogWarning,
+               'Error': wxLogError}
+    def OnShowHistory(self, event):
+        hist = self.history[:]
+        hp = HistoryPopup(self.GetParent(), hist, self.images)
+
+    def linkProgressToStatusBar(self):
+        rect = self.GetFieldRect(2)
+        self.progress.SetDimensions(rect.x+1, rect.y+1, rect.width -2, rect.height -2)
+
+
+def HistoryPopup(parent, hist, imgs):
+    f = wxMiniFrame(parent, -1, 'Editor status history', size = (350, 200))
+    lc = wxListCtrl(f, style=wxLC_REPORT | wxLC_VRULES | wxLC_NO_HEADER)
+    lc.il = wxImageList(16, 16)
+    idxs = {}
+    for tpe, img in imgs.items():
+        idxs[tpe] = lc.il.Add(img)
+    lc.SetImageList(lc.il, wxIMAGE_LIST_SMALL)
+    lc.InsertColumn(0, 'Time')
+    lc.InsertColumn(1, 'Message')
+    lc.SetColumnWidth(0, 75)
+    lc.SetColumnWidth(1, 750)
+    for tpe, tme, msg, _bell in hist:
+        lc.InsertImageStringItem(0, tme, idxs[tpe])
+        lc.SetStringItem(0, 1, msg)
+    f.Center()
+    f.Show()
+    wxPostEvent(f, wxSizeEvent(f.GetSize()))
+    return f
+
 
 #-----Model hoster--------------------------------------------------------------
+
 
 wxID_MODULEPAGEVIEWCHANGE = wxNewId()
 
@@ -167,7 +217,7 @@ class ModulePage:
 
         self.model.destroy()
         self.model = None
-        
+
         self.notebook.Destroy()
 
 ##    def __del__(self):
@@ -190,7 +240,7 @@ class ModulePage:
 
         if self.model.modified: m = '*'
         else: m = ''
-        
+
         if self.model.transport and self.model.transport.stdAttrs['read-only']:
             ro = ' (read only)'
         else: ro = ''
@@ -266,7 +316,7 @@ class ModulePage:
             Decrements tIdx if bigger than idx. """
         if idx < self.tIdx:
             self.tIdx = self.tIdx - 1
-    
+
     def saveAs(self, filename):
         newFilename, success = self.editor.saveAsDlg(filename)
         if success:
@@ -283,11 +333,11 @@ class ModulePage:
             if self.saveAs(oldName) and (oldName != model.filename):
                 del editor.modules[oldName]
                 editor.modules[model.filename] = self
-                
+
                 item = editor.winMenu.FindItemById(self.windowId)
                 item.SetText(model.filename)
                 editor.editorUpdateNotify()
-                
+
                 editor.statusBar.setHint('%s saved.'%\
                       os.path.basename(model.filename))
         else:
@@ -300,9 +350,16 @@ class ModulePage:
 
     def OnPageChange(self, event):
         viewIdx = event.GetSelection()
-        if event.GetOldSelection() != viewIdx:
+        if event.GetOldSelection() != viewIdx or wxPlatform == '__WXGTK__':
             self.editor.setupToolBar(viewIdx=viewIdx)
             view = self.getActiveView(viewIdx)
             if hasattr(view, 'OnPageActivated'):
                 view.OnPageActivated(event)
         event.Skip()
+
+
+
+if __name__ == '__main__':
+    app = wxPySimpleApp()
+    frame = HistoryPopup(None, (), {})
+    app.MainLoop()

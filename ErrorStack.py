@@ -102,11 +102,11 @@ def buildLintWarningList(lines):
     return res
 
 #    return [PyLintErrorParser([line]) for line in lines]
-            
+
 # Limit stack size / processing time
 # Zero to ignore limit
 max_stack_depth = 100
-max_lines_to_process = 10000
+max_lines_to_process = 20000
 
 # XXX Look into speeding this up a bit :) !
 class CrashTraceLogParser(StackErrorParser):
@@ -130,7 +130,7 @@ class CrashTraceLogParser(StackErrorParser):
             line = lines[0]
             del lines[0]
             try:
-                file, lineno, frameid, event, arg = string.split(line, '|')[:5]
+                file, lineno, frameid, event, arg = string.split(line, '|', 4)
             except:
                 print 'Error on line', cnt, line
                 break
@@ -146,10 +146,11 @@ class CrashTraceLogParser(StackErrorParser):
                 idx = 0
                 while 1:
                     try:
-                        _file, _lineno, _frameid, _event = string.split(lines[idx], '|')[:4]
-                    except:
-                        print 'Error on find', cnt, lines[idx]
-                        pass
+                        _file, _lineno, _frameid, _event, _rest = string.split(lines[idx], '|', 4)
+                        #print _file, _lineno, _frameid, _event
+                    except Exception, error:
+                        print 'Error on find', cnt, idx, lines[idx], str(error)
+                        break
 
                     if _file == file and _frameid == frameid and _event == 'call':
                         del lines[:idx+1]
@@ -158,7 +159,7 @@ class CrashTraceLogParser(StackErrorParser):
 
                     idx = idx + 1
                     if idx >= len(lines):
-                        print 'Call not found'
+                        print 'Call not found', file, lineno, frameid, len(lines)
                         del lines[:]
                         break
 

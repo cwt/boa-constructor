@@ -6,28 +6,35 @@
 #
 # Created:     2000/03/15
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999, 2000 Riaan Booysen
+# Copyright:   (c) 1999 - 2002 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
 
 from os import path
-import sys, os, string
+import sys, os, string, pprint
 
 from wxPython import wx
 
+class InvalidImgPathError(Exception): pass
+
 class ImageStore:
-    def __init__(self, rootpath, images = None, cache = 1):
+    def __init__(self, rootpaths, images = None, cache = 1):
         if not images: images = {}
-        self.rootpath = rootpath
+        if type(rootpaths) == type(''):
+            self.rootpaths = [rootpaths]
+        else:
+            self.rootpaths = rootpaths
         self.images = images
         self.useCache = cache
-    
+
     def cleanup(self):
         self.images = {}
 
     def createImage(self, filename, ext):
         if ext == '.bmp':
             return wx.wxImage(filename, wx.wxBITMAP_TYPE_BMP).ConvertToBitmap()
+        elif ext == '.png':
+            return wx.wxImage(filename, wx.wxBITMAP_TYPE_PNG).ConvertToBitmap()
         elif ext == '.jpg':
             return wx.wxImage(filename, wx.wxBITMAP_TYPE_JPEG).ConvertToBitmap()
         elif ext == '.gif':
@@ -37,24 +44,49 @@ class ImageStore:
         else:
             raise 'Extension not handled '+ext
 
+    def pathExtFromName(self, root, name):
+        imgPath = string.replace(path.normpath(path.join(root, name)), '\\', '/')
+        ext = path.splitext(name)[1]
+        self.checkPath(imgPath)
+        return imgPath, ext
+
     def load(self, name):
-        name = path.normpath(name)
-        if self.useCache:
-            if not self.images.has_key(name):
-                self.images[name] = self.createImage(path.join(self.rootpath,
-                    name), path.splitext(name)[1])
-            #print '%s:%s'%(self.images[name].this, name)
-            return self.images[name]
-        else:
-            return self.createImage(path.join(self.rootpath, name),
-                  path.splitext(name)[1])
+        for rootpath in self.rootpaths:
+            try:
+                imgpath, ext = self.pathExtFromName(rootpath, name)
+            except InvalidImgPathError, err:
+                continue
+
+            if self.useCache:
+                if not self.images.has_key(name):
+                    self.images[name] = self.createImage(imgpath, ext)
+                return self.images[name]
+            else:
+                return self.createImage(imgpath, ext)
+        raise InvalidImgPathError, '%s not found in image paths' %name
+
+    def canLoad(self, name):
+        for rootpath in self.rootpaths:
+            try:
+                imgpath, ext = self.pathExtFromName(rootpath, name)
+            except InvalidImgPathError, err:
+                continue
+            else:
+                return 1
+        return 0
+##        name, ext = self.pathExtFromName(name)
+##        return os.path.isfile(name)
+
+    def checkPath(self, imgPath):
+        if not path.isfile(imgPath):
+            raise InvalidImgPathError, '%s not valid' %imgPath
 
 class ZippedImageStore(ImageStore):
-    def __init__(self, rootpath, defaultArchive, images = None):
-        ImageStore.__init__(self, rootpath, images)
+    def __init__(self, rootpaths, defaultArchive, images = None):
+        ImageStore.__init__(self, rootpaths, images)
         self.archives = {}
         self.addArchive(defaultArchive)
-        # XXX do not erase tempfiles until app exits, but then crashes will leak 
+        # XXX do not erase tempfiles until app exits, but then crashes will leak
         #self.tempfiles = {}
 
     def cleanup(self):
@@ -71,16 +103,16 @@ class ZippedImageStore(ImageStore):
                 continue
 
             imgExt = path.splitext(img)[1]
-            bmpPath = path.join(path.splitext(defaultArchive)[0],
-                  os.path.normpath(img))
-    
+            bmpPath = string.replace(path.join(path.splitext(defaultArchive)[0],
+                  os.path.normpath(img)), '\\', '/')
+
             self.images[bmpPath] = (img, imgExt)
-            
+
         self.zipfile = zf
 
     def load(self, name):
         import tempfile
-        name = path.normpath(name)
+        name = string.replace(path.normpath(name), '\\', '/')
         try:
             img, imgExt = self.images[name]
         except KeyError:
@@ -97,4 +129,8 @@ class ZippedImageStore(ImageStore):
                     return wx.wxNullBitmap
             finally:
                 os.remove(tmpname)
-     
+
+    def canLoad(self, name):
+        name = string.replace(path.normpath(name), '\\', '/')
+        return self.images.has_key(name)
+

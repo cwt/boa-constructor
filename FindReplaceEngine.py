@@ -1,6 +1,6 @@
 #-----------------------------------------------------------------------------
 # Name:        FindReplaceEngine.py
-# Purpose:     
+# Purpose:
 #
 # Author:      Tim Hochberg
 #
@@ -20,7 +20,7 @@ class FindError(ValueError):
     pass
 
 def _fix(match, offset, length, selectionStart):
-    if match is None: 
+    if match is None:
         return None
     r = []
     try:
@@ -28,9 +28,9 @@ def _fix(match, offset, length, selectionStart):
             r.append((i + offset) % length + selectionStart)
     except:pass
     return tuple(r)
-        
+
 class FindReplaceEngine:
-    
+
     def __init__(self, case=0, word=0, regex=0, wrap=1, reverse=0):
         self.case = 0
         self.word = 0
@@ -43,36 +43,36 @@ class FindReplaceEngine:
         self.replaceHistory = ['']
         self.suffixes = [".py"]
         self.regions = {}
-        
+
         self.loadOptions()
-    
+
     def addFind(self, pattern):
         if pattern:
             if pattern in self.findHistory:
                 self.findHistory.remove(pattern)
             self.findHistory.append(pattern)
-        
+
     def addReplace(self, pattern):
         if pattern:
             if pattern in self.replaceHistory:
                 self.replaceHistory.remove(pattern)
             self.replaceHistory.append(pattern)
-    
+
     def setRegion(self, view, region):
         self.regions[view] = region
-        
+
     def getRegion(self, view):
         region = self.regions.get(view, view.GetSelection())
         if region[0] == region[1]:
             region = (0, view.GetTextLength())
         return region
-    
+
     def findInSource(self, view, pattern):
         region = self.getRegion(view)
         self.addFind(pattern)
         start = view.GetSelection()[not self.reverse]
         if self.selection:
-            result = self._find(view.GetTextRange(*region), pattern, start, region[0])
+            result = self._find(apply(view.GetTextRange, region), pattern, start, region[0])
         else:
             result = self._find(view.GetText(), pattern, start, 0)
         if result is None:
@@ -84,7 +84,7 @@ class FindReplaceEngine:
             view.model.editor.setStatus('Search wrapped', 'Warning', ringBell=1)
 
         view.SetSelection(result[0], result[1])
-        
+
     def findNextInSource(self, view):
         self.findInSource(view, self.findHistory[-1])
 
@@ -98,12 +98,12 @@ class FindReplaceEngine:
             line = string.split(text[left:], "\n", 1)[0]
             viewResults.append((lineNo+1, index+1, line))
         return viewResults
-            
+
     def findAllInSource(self, view, pattern):
         region = self.getRegion(view)
         self.addFind(pattern)
         if self.selection:
-            results = self._findAllInSource(view.GetTextRange(*region), pattern, region[0])
+            results = self._findAllInSource(apply(view.GetTextRange, region), pattern, region[0])
         else:
             results = self._findAllInSource(view.GetText(), pattern, 0)
         name = 'Results: ' + pattern
@@ -115,7 +115,7 @@ class FindReplaceEngine:
         resultView.results = {view.model.filename : results} # XXX should this be viewName?
         resultView.findPattern = pattern
         resultView.refresh()
-        resultView.focus() 
+        resultView.focus()
 
     def replaceInSource(self, view, pattern, new):
         region = self.getRegion(view)
@@ -126,12 +126,12 @@ class FindReplaceEngine:
         selText = view.GetSelectedText()
         if selRange[0] == selRange[1]:
             selText = ''
-        # If the text to be replaced is not yet selected, don't replace, just 
+        # If the text to be replaced is not yet selected, don't replace, just
         # look for the next occurence.
         if self._find(selText, pattern, 0, 0) is not None: # XXX make more specific
             start = selRange[self.reverse]
             if self.selection:
-                result = self._find(view.GetTextRange(*region), pattern, start, region[0])
+                result = self._find(apply(view.GetTextRange, region), pattern, start, region[0])
             else:
                 result = self._find(view.GetText(), pattern, start, 0)
             if result is None:
@@ -141,13 +141,13 @@ class FindReplaceEngine:
             if self.mode == 'regex':
                 new = compiled.sub(new, view.GetSelectedText())
             view.ReplaceSelection(new)
-            
+
         # Attempt to find the next replacement
         try:
             self.findInSource(view, pattern)
         except FindError:
             pass
- 
+
     def replaceAllInSource(self, view, pattern, new):
         region = self.getRegion(view)
         self.addFind(pattern)
@@ -157,7 +157,7 @@ class FindReplaceEngine:
         # the indices getting messed up.
         self.reverse, oldReverse = 1, self.reverse
         if self.selection:
-            results = self._findAll(view.GetTextRange(*region), pattern, region[0], region[0])
+            results = self._findAll(apply(view.GetTextRange, region), pattern, region[0], region[0])
         else:
             results = self._findAll(view.GetText(), pattern, 0, 0)
         self.reverse = oldReverse
@@ -165,14 +165,14 @@ class FindReplaceEngine:
         if results == []:
             return
         view.model.editor.addBrowseMarker(view.GetCurrentLine())
-        for item in results: 
+        for item in results:
             view.SetSelection(item[0], item[1])
             n = new
             if self.mode == 'regex':
                 n = compiled.sub(new, view.GetSelectedText())
             view.ReplaceSelection(n)
         view.model.editor.statusBar.setHint("%s items replaced" % len(results))
-    
+
     def findNamesInPackage(self, view):
         names = []
         packages = [os.path.dirname(view.model.assertLocalFile())]
@@ -185,7 +185,7 @@ class FindReplaceEngine:
                     packages.append(p)
         names.sort(lambda x, y : os.path.basename(x) > os.path.basename(y))
         return names
-        
+
     def findAllInFiles(self, names, view, pattern):
         self.addFind(pattern)
         results = {}
@@ -212,7 +212,7 @@ class FindReplaceEngine:
             resultView.results = results
             resultView.findPattern = pattern
             resultView.refresh()
-            resultView.focus()            
+            resultView.focus()
         finally:
             dlg.Destroy()
         name = 'Results: ' + pattern
@@ -223,14 +223,14 @@ class FindReplaceEngine:
 
     def findAllInPackage(self, view, pattern):
         self.findAllInFiles(self.findNamesInPackage(view), view, pattern)
- 
+
     def findAllInApp(self, view, pattern):
         names = map(view.model.moduleFilename, view.model.modules.keys())
         #names = [view.model.moduleFilename(m) for m in modules]
         names.sort()
         self.findAllInFiles(names, view, pattern)
 
-    
+
     def _compile(self, pattern):
         flags = [re.IGNORECASE, 0][self.case]
         if not self.mode == 'regex':
@@ -254,27 +254,27 @@ class FindReplaceEngine:
             offset = 0
             domain = before
         return domain, offset
-            
+
     def _findAll(self, text, pattern, start, selectionStart):
-        start -= selectionStart
+        start = start - selectionStart
         compiled = self._compile(pattern)
         domain, offset = self._processText(text, start)
         matches = []
         start = 0
         while 1:
             s = compiled.search(domain, start)
-            if s is None or s.end() == 0: 
+            if s is None or s.end() == 0:
                 break
             start = s.end()
             matches.append(_fix(s, offset, len(text), selectionStart))
         if self.reverse:
             matches.reverse()
         return matches
-        
-    def _find(self, text, pattern, start, selectionStart): 
+
+    def _find(self, text, pattern, start, selectionStart):
         if self.reverse:
             return (self._findAll(text, pattern, start, selectionStart) + [None])[0]
-        start -= selectionStart
+        start = start - selectionStart
         compiled = self._compile(pattern)
         domain, offset = self._processText(text, start)
         return _fix(compiled.search(domain), offset, len(text), selectionStart)
@@ -282,7 +282,7 @@ class FindReplaceEngine:
     def loadOptions(self):
         try:
             conf = Utils.createAndReadConfig('Explorer')
-            if conf.has_section('finder'): 
+            if conf.has_section('finder'):
                 self.wrap = conf.getint('finder', 'wrap')
                 self.closeOnFound = conf.getint('finder', 'closeonfound')
         except:
@@ -294,7 +294,7 @@ class FindReplaceEngine:
             if not conf.has_section('finder'): conf.add_section('finder')
             conf.set('finder', 'wrap', self.wrap)
             conf.set('finder', 'closeonfound', self.closeOnFound)
-            conf.write(open(conf.confFile, 'w'))
+            Utils.writeConfig(conf)
         except Exception, err:
             print 'Problem saving finder options: %s' % err
 
@@ -306,4 +306,3 @@ class FindReplaceEngine:
                 return ''
             return protsplit[1]
         return filename
-

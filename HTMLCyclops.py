@@ -1,14 +1,14 @@
 #-----------------------------------------------------------------------------
 # Name:        HTMLCyclops.py
 # Purpose:     Displays a Cyclops report in HTML format.
-#              Pretty much a copy of code from Cyclops
+#              Pretty much a copy of code from Cyclops by Tim Peters
 #
 # Author:      of changes, Riaan Booysen
 #
 # Created:     2000/05/20
 # RCS-ID:      $Id$
-# Copyright:   of changes (c) 1999, 2000 Riaan Booysen
-# Licence:     GPL
+# Copyright:   of changes (c) 1999 - 2002 Riaan Booysen
+# Licence:     Dual GPL & Python
 #-----------------------------------------------------------------------------
 
 from ExternalLib import Cyclops
