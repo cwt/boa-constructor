@@ -893,8 +893,8 @@ class ClassConstrPropEdit(ConstrPropEdit):
         for name, Cls in custClss.items():
             if MyCls == Cls:
                 vals.append(name)
-        vals.remove(MyCls.__name__)
-        vals.insert(0, MyCls.__name__)
+        vals.remove(Utils.getWxPyNameForClass(MyCls))
+        vals.insert(0, Utils.getWxPyNameForClass(MyCls))
         return vals
 
 
