@@ -58,8 +58,6 @@ class PythonInterpreter:
             self.showtraceback()
 
         else:
-
-            #
             # execute
             try:
                 exec code in self.locals
@@ -75,12 +73,14 @@ class PythonInterpreter:
         exc_type, exc_value, exc_traceback = sys.exc_info()
         if exc_type == SyntaxError:# and len(sys.exc_value) == 2:
             # emulate interpreter behaviour
-            # print "  File \"%s\", line %d" % (self.name, sys.exc_value[1][1])
-            sys.stderr.write(" " * (sys.exc_value[1][2] + 3) + "^\n")
-            sys.stderr.write(str(sys.exc_type) + " : " + str(sys.exc_value[0])+"\n")
+            if len(sys.exc_value.args) == 2:
+                sys.stderr.write(" " * (sys.exc_value[1][2] + 3) + "^\n")
+            sys.stderr.write("'''" + str(sys.exc_type) + " : " + \
+                  str(sys.exc_value[0])+"'''\n")
         else:
             traceback.print_tb(sys.exc_traceback, None)
-            sys.stderr.write(str(sys.exc_type) + " : " + str(sys.exc_value)+"\n")
+            sys.stderr.write("'''" + str(sys.exc_type) + " : " + \
+                  str(sys.exc_value)+"'''\n")
 
 
 # --------------------------------------------------------------------
