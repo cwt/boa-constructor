@@ -181,11 +181,12 @@ class PerLineParser:
         result = {}
         cnt = 0
         for param in params:
-            kv = string.split(param, '=')
-            if len(kv) == 2:
-                result[string.strip(kv[0])] = string.strip(kv[1])
+            try:
+                sidx = string.find(param, '=')
+            except ValueError:
+                result[`cnt`] = string.strip(param[sidx+1:])
             else:
-                result[`cnt`] = string.strip(kv[0])
+                result[string.strip(param[:sidx])] = string.strip(param[sidx+1:])
             cnt = cnt + 1
         return result
 
@@ -419,3 +420,11 @@ class EventParse(PerLineParser):
         else:
             return 'EVT_%s(%s, self.%s)' %(self.event_name,
               Utils.srcRefFromCtrlName(self.comp_name), self.trigger_meth)
+
+def test():
+    PLP = PerLineParser()
+    print PLP.extractKVParams('a = 10, b = 20') == {'a': '10', 'b': '20'}
+    print PLP.extractKVParams('a = "b\'c", b = "a=b"') == {'a': '"b\'c"', 'b': '"a=b"'}
+
+if __name__ == '__main__':
+    test()
