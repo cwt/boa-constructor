@@ -19,7 +19,7 @@ from wxPython.help import *
 
 from BaseCompanions import WindowDTC
 
-from Constructors import *
+import Constructors
 from EventCollections import *
 
 from PropEdit.PropertyEditors import *
@@ -30,19 +30,26 @@ import methodparse
 EventCategories['ButtonEvent'] = (EVT_BUTTON,)
 commandCategories.append('ButtonEvent')
 
-class ButtonDTC(LabeledInputConstr, WindowDTC):
+class ButtonDTC(Constructors.LabeledInputConstr, WindowDTC):
     #wxDocs = HelpCompanions.wxButtonDocs
     def __init__(self, name, designer, parent, ctrlClass):
         WindowDTC.__init__(self, name, designer, parent, ctrlClass)
+        self.editors['Default'] = BoolPropEdit
         self.windowStyles = ['wxBU_LEFT', 'wxBU_TOP', 'wxBU_RIGHT',
-                             'wxBU_BOTTOM'] + self.windowStyles
+                             'wxBU_BOTTOM', 'wxBU_EXACTFIT'] + self.windowStyles
+        self.customPropEvaluators['Default'] = self.EvalDefault
+        
+    def properties(self):
+        props = WindowDTC.properties(self)
+        props['Default'] = ('CompnRoute', self.GetDefault, self.SetDefault)
+        return props
+
     def designTimeSource(self, position = 'wxDefaultPosition', size = 'wxDefaultSize'):
         return {'label': `self.name`,
                 'pos': position,
                 'size': size,
                 'name': `self.name`,
                 'style': '0',}
-                #'validator': 'wxDefaultValidator'}
 
     def events(self):
         return WindowDTC.events(self) + ['ButtonEvent']
@@ -51,6 +58,43 @@ class ButtonDTC(LabeledInputConstr, WindowDTC):
         insp = self.designer.inspector
         insp.pages.SetSelection(2)
         insp.events.doAddEvent('ButtonEvent', 'EVT_BUTTON')
+
+    def GetDefault(self, x):
+        prnt = self.control.GetParent()
+        if hasattr(prnt, '_default'):
+            return prnt._default == self
+        else:
+            return false
+
+    def SetDefault(self, value):
+        prnt = self.control.GetParent()
+        if value:
+            if hasattr(prnt, '_default') and prnt._default != self:
+                prnt._default.persistProp('Default', 'SetDefault', 'False')
+            prnt._default = self
+            self.control.SetDefault()
+        else:
+            del prnt._default
+
+    def EvalDefault(self, exprs, objects):
+        self.SetDefault(true)
+        return ()
+
+    def persistProp(self, name, setterName, value):
+        if name == 'Default':
+            for prop in self.textPropList:
+                if prop.prop_setter == setterName:
+                    if value.lower() == 'true':
+                        prop.params = []
+                    else:
+                        del self.textPropList[self.textPropList.index(prop)]
+                    return
+            if value.lower() == 'true':
+                self.textPropList.append(methodparse.PropertyParse(
+                      None, self.getCompName(), setterName, [], name))
+        else:
+            WindowDTC.persistProp(self, name, setterName, value)
+
 
 EventCategories['ToggleButtonEvent'] = (EVT_TOGGLEBUTTON,)
 commandCategories.append('ToggleButtonEvent')
@@ -64,7 +108,7 @@ class ToggleButtonDTC(ButtonDTC):
         return ButtonDTC.events(self) + ['ToggleButtonEvent']
 
 
-class BitmapButtonDTC(BitmapButtonConstr, WindowDTC):
+class BitmapButtonDTC(WindowDTC):
     #wxDocs = HelpCompanions.wxBitmapButtonDocs
     def __init__(self, name, designer, parent, ctrlClass):
         WindowDTC.__init__(self, name, designer, parent, ctrlClass)
@@ -74,6 +118,10 @@ class BitmapButtonDTC(BitmapButtonConstr, WindowDTC):
                              'BitmapDisabled' : BitmapPropEdit})
         self.windowStyles = ['wxBU_AUTODRAW', 'wxBU_LEFT', 'wxBU_TOP',
                              'wxBU_RIGHT', 'wxBU_BOTTOM'] + self.windowStyles
+
+    def constructor(self):
+        return {'Bitmap': 'bitmap', 'Position': 'pos', 'Size': 'size',
+                'Style': 'style', 'Validator': 'validator', 'Name': 'name'}
 
     def designTimeSource(self, position = 'wxDefaultPosition', size = 'wxDefaultSize'):
         return {'bitmap': 'wxNullBitmap',
@@ -98,7 +146,7 @@ class BitmapButtonDTC(BitmapButtonConstr, WindowDTC):
         insp.pages.SetSelection(2)
         insp.events.doAddEvent('ButtonEvent', 'EVT_BUTTON')
 
-class SpinButtonDTC(WindowConstr, WindowDTC):
+class SpinButtonDTC(Constructors.WindowConstr, WindowDTC):
     #wxDocs = HelpCompanions.wxSpinButtonDocs
     def __init__(self, name, designer, parent, ctrlClass):
         WindowDTC.__init__(self, name, designer, parent, ctrlClass)
@@ -188,12 +236,8 @@ class SpinCtrlDTC(SpinButtonDTC):
         insp.pages.SetSelection(2)
         insp.events.doAddEvent('SpinCtrlEvent', 'EVT_SPINCTRL')
 
-class GenButtonConstr(PropertyKeywordConstructor):
-    def constructor(self):
-        return {'Label': 'label', 'Position': 'pos', 'Size': 'size',
-                'Style': 'style', 'Validator': 'validator', 'Name': 'name'}
 
-class GenButtonDTC(GenButtonConstr, WindowDTC):
+class GenButtonDTC(WindowDTC):
     #wxDocs = HelpCompanions.wxDefaultDocs
     handledConstrParams = ('parent', 'ID')
     windowIdName = 'ID'
@@ -201,6 +245,10 @@ class GenButtonDTC(GenButtonConstr, WindowDTC):
         WindowDTC.__init__(self, name, designer, parent, ctrlClass)
         self.editors['UseFocusIndicator'] = BoolPropEdit
         self.ctrlDisabled = true
+
+    def constructor(self):
+        return {'Label': 'label', 'Position': 'pos', 'Size': 'size',
+                'Style': 'style', 'Validator': 'validator', 'Name': 'name'}
 
     def designTimeSource(self, position = 'wxDefaultPosition', size = 'wxDefaultSize'):
         return {'label': `self.name`,
@@ -213,14 +261,11 @@ class GenButtonDTC(GenButtonConstr, WindowDTC):
         return WindowDTC.events(self) + ['ButtonEvent']
 
     def writeImports(self):
-        return 'from wxPython.lib.buttons import *'
+        return '\n'.join( (WindowDTC.writeImports(self), 
+                           'from wxPython.lib.buttons import *') )
 
-class GenBitmapButtonConstr(PropertyKeywordConstructor):
-    def constructor(self):
-        return {'BitmapLabel': 'bitmap', 'Position': 'pos', 'Size': 'size',
-                'Style': 'style', 'Validator': 'validator', 'Name': 'name'}
 
-class GenBitmapButtonDTC(GenBitmapButtonConstr, GenButtonDTC):
+class GenBitmapButtonDTC(GenButtonDTC):
     #wxDocs = HelpCompanions.wxDefaultDocs
     windowIdName = 'ID'
     def __init__(self, name, designer, parent, ctrlClass):
@@ -230,6 +275,11 @@ class GenBitmapButtonDTC(GenBitmapButtonConstr, GenButtonDTC):
                              'BitmapSelected' : BitmapPropEdit,
                              'BitmapFocus'    : BitmapPropEdit,
                              'BitmapDisabled' : BitmapPropEdit})
+
+    def constructor(self):
+        return {'BitmapLabel': 'bitmap', 'Position': 'pos', 'Size': 'size',
+                'Style': 'style', 'Validator': 'validator', 'Name': 'name'}
+
     def designTimeSource(self, position = 'wxDefaultPosition', size = 'wxDefaultSize'):
         return {'bitmap': 'wxNullBitmap',
                 'pos': position,
@@ -243,13 +293,12 @@ class GenBitmapButtonDTC(GenBitmapButtonConstr, GenButtonDTC):
         insp.pages.SetSelection(2)
         insp.events.doAddEvent('ButtonEvent', 'EVT_BUTTON')
 
-class GenBitmapTextButtonConstr(PropertyKeywordConstructor):
+class GenBitmapTextButtonDTC(GenBitmapButtonDTC):
     def constructor(self):
         return {'BitmapLabel': 'bitmap', 'Position': 'pos', 'Size': 'size',
                 'Label': 'label', 'Style': 'style', 'Validator': 'validator',
                 'Name': 'name'}
 
-class GenBitmapTextButtonDTC(GenBitmapTextButtonConstr, GenBitmapButtonDTC):
     def designTimeSource(self, position = 'wxDefaultPosition', size = 'wxDefaultSize'):
         return {'bitmap': 'wxNullBitmap',
                 'label': `self.name`,
@@ -276,16 +325,15 @@ class GenBitmapTextToggleButtonDTC(GenBitmapTextButtonDTC, GenToggleButtonMix):
         GenToggleButtonMix.__init__(self)
 
 
-class ContextHelpButtonConstr:
-    def constructor(self):
-        return {'Position': 'pos', 'Size': 'size', 'Style': 'style'}
-
-class ContextHelpButtonDTC(ContextHelpButtonConstr, WindowDTC):
+class ContextHelpButtonDTC(WindowDTC):
     suppressWindowId = true
     def __init__(self, name, designer, parent, ctrlClass):
         WindowDTC.__init__(self, name, designer, parent, ctrlClass)
         self.windowStyles = ['wxBU_AUTODRAW', 'wxBU_LEFT', 'wxBU_TOP',
                              'wxBU_RIGHT', 'wxBU_BOTTOM'] + self.windowStyles
+
+    def constructor(self):
+        return {'Position': 'pos', 'Size': 'size', 'Style': 'style'}
 
     def designTimeSource(self, position = 'wxDefaultPosition', size = 'wxDefaultSize'):
         return {'pos':   position,
@@ -293,8 +341,8 @@ class ContextHelpButtonDTC(ContextHelpButtonConstr, WindowDTC):
                 'style': 'wxBU_AUTODRAW',}
 
     def writeImports(self):
-        return 'from wxPython.help import *'
-
+        return '\n'.join( (WindowDTC.writeImports(self), 
+                           'from wxPython.help import *') )
 
 
 #-------------------------------------------------------------------------------
