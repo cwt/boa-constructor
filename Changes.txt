@@ -1,6 +1,35 @@
 Changes
 -------
 
+-- 0.3.0 (Release) -- 
+
+2004-08-16
+
+* Started with the conversion to wxPython 2.5 compatible code, but it's 
+  currently impossible to support both 2.4 and 3.5 in the GUI Designer 
+  because of the wx namespace change. 
+  In __version__.py, wx_version_max can be set to None to run under 2.5, 
+  but beware that there are still many issues under 2.5 and the Designer 
+  doesn't work.
+* BoaDebugger zope product added as an alternative/improved interface for 
+  debugging Zope, thanks to Robert Boulanger. See Debugger/BoaDebugger/*
+* Added properies/events:
+  * wxComboBox enter event
+  * wxTextCtrl.MaxLength (thanks Oleg Deribas)
+* New wxPython/Python docs bundle
+* Tutorial improvements (thanks Kevin Light)
+* Added examples for resource images and wizards
+* Special attributess can now span multiple lines 
+  (continued lines must end on comma)
+* wxWindows renamed to wxWidgets
+* Many bug fixes
+  * Fixed problem with window id handling
+  * Fixed Sizer and linked Sizer properties
+  * Fixed KeyError bug if renaming after recreating a control in the Designer.
+  * Fixed consistency problem with multi-line vs single-line indent and comment  
+    Thanks to Tim Diggins for report and initial patch
+  * Improved error messages in case of user changed GUI code. 
+
 -- 0.2.8 (CVS) --
 
 2003-12-10
