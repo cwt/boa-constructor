@@ -50,9 +50,7 @@ class PropertyWrapper:
         self.compn = compn
 
     def getValue(self, *params):
-##        print 'PropWrapper.GetValue', self.routeType, self.ctrl, self.getter
         if self.routeType == 'CtrlRoute' and self.ctrl:
-##            print 'PropWrapper.GetValue.CtrlRoute', self.ctrl, self.getter, self.getter(self.ctrl)
             return self.getter(self.ctrl)
         elif self.routeType == 'CompnRoute' and self.compn:
             return self.getter(self.compn)
@@ -66,7 +64,6 @@ class PropertyWrapper:
             return None
 
     def setValue(self, value, *params):
-##        print 'PropWrap setValue', self.name, value, self.routeType
         if self.routeType == 'CtrlRoute' and self.ctrl:
             self.setter(self.ctrl, value)
         elif self.routeType == 'CompnRoute' and self.compn:
@@ -74,7 +71,6 @@ class PropertyWrapper:
         elif self.routeType == 'EventRoute' and self.compn and len(params):
             self.setter(params[0], value)
         elif self.routeType == 'IndexRoute' and self.ctrl and len(params):
-##            print 'PropWrap setValue index route', self.ctrl, params[0], value
             self.setter(self.ctrl, params[0], value)
         elif self.routeType == 'ReApplyRoute' and self.compn and len(params):
             apply(self.setter, [self.ctrl], params)
@@ -167,7 +163,6 @@ def getPropList(obj, cmp):
     props['Built-ins']= {}
 
     # traverse inheritance hierarchy
-##    print 'traverse inheritance hierarchy'
     # populate property list
     propLst = []
     constrLst = []
@@ -231,7 +226,7 @@ def getPropList(obj, cmp):
                       constrNames, propLst, constrLst)
                 except: pass
         else:
-            print 'Empty object', obj, cmp
+            pass #print 'Empty object', obj, cmp
 
     return {'constructor': constrLst, 'properties': propLst}
 
