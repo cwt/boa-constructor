@@ -14,16 +14,19 @@
 
 from os import path
 from wxPython.wx import *
-from Views.EditorViews import ListCtrlView, ClosableViewMix
 
-class FindResults(ListCtrlView, ClosableViewMix):
+from Views.EditorViews import ListCtrlView, CloseableViewMix
+from Preferences import keyDefs
+
+class FindResults(ListCtrlView, CloseableViewMix):
     gotoLineBmp = 'Images/Editor/GotoLine.png'
     viewName = 'Find Results'
 
     def __init__(self, parent, model):
-        ClosableViewMix.__init__(self, 'find results')
+        CloseableViewMix.__init__(self, 'find results')
         ListCtrlView.__init__(self, parent, model, wxLC_REPORT,
           ( ('Goto match', self.OnGoto, self.gotoLineBmp, ()),
+            ('Re-run query', self.OnRerun, '-', 'Refresh')
           ) + self.closingActionItems, 0)
 
         self.InsertColumn(0, 'Module', width = 100)
@@ -37,13 +40,15 @@ class FindResults(ListCtrlView, ClosableViewMix):
         self.findPattern = ''
         self.active = true
         self.model = model
+        self.rerunCallback = None
+        self.rerunParams = ()
 
-        EVT_IDLE(self, self.OnIdle)
-        self.doRefresh = 0
+        #EVT_IDLE(self, self.OnIdle)
+        #self.doRefresh = 0
 
-    def _refresh(self):
-        self.refreshCtrl()
-        self.modified = false
+##    def _refresh(self):
+##        self.refreshCtrl()
+##        self.modified = false
 
     def refreshCtrl(self):
         wxBeginBusyCursor()
@@ -63,12 +68,13 @@ class FindResults(ListCtrlView, ClosableViewMix):
             wxEndBusyCursor()
 
     def refresh(self):
-        self.doRefresh = 1
+        self.refreshCtrl()
+        #self.doRefresh = 1
 
-    def OnIdle(self, event):
-        if self.doRefresh:
-            self.doRefresh = 0
-            self._refresh()
+##    def OnIdle(self, event):
+##        if self.doRefresh:
+##            self.doRefresh = 0
+##            self._refresh()
 
     def OnGoto(self, event):
         if self.selected >= 0:
@@ -91,4 +97,5 @@ class FindResults(ListCtrlView, ClosableViewMix):
             self.model.prevSwitch = self
 
     def OnRerun(self, event):
-        pass
+        if self.rerunCallback:
+            apply(self.rerunCallback, self.rerunParams)
