@@ -283,7 +283,7 @@ class ErrorStackMF(wxFrame, Utils.FrameRestorerMixin):
         elif self.notebook.GetGrandParent() == self.editor:
             splitter = self.editor.tabsSplitter
             win2 = splitter.GetWindow2()
-            if win2 and not win2.GetSize().y:
+            if win2 and win2.GetSize().y == splitter.GetMinimumPaneSize():
                 splitter.openBottomWindow()
 
     def appendToTextCtrl(self, tc, txt,

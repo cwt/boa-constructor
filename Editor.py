@@ -117,6 +117,7 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
               name='tabsSplitter', parent=self, #point=wxPoint(0, 0),
               size=wxSize(802, 421),
               style=wxCLIP_CHILDREN | wxSP_LIVE_UPDATE | wxSP_3DSASH)# | wxSP_FULLSASH)
+        self.tabsSplitter.SetMinimumPaneSize(1)
 
         self.tabs = wxNotebook(id=wxID_EDITORFRAMETABS, name='tabs',
               parent=self.tabsSplitter, pos=wxPoint(2, 2), size=wxSize(798,
