@@ -142,38 +142,7 @@ class ModuleModel(SourceModel):
             start_new_thread(self.runInThread, (filename, args,
                   self.app, Preferences.pythonInterpreterPath))
 
-##        if self.savedAs:
-##            cwd = os.path.abspath(os.getcwd())
-##            newCwd = os.path.dirname(self.filename)
-##            os.chdir(newCwd)
-##            oldErr = sys.stderr
-##            oldSysPath = sys.path[:]
-##            try:
-##                sys.path.append(Preferences.pyPath)
-##                if not Preferences.pythonInterpreterPath:
-##                    pythonIntPath = sys.executable
-##                else:
-##                    pythonIntPath = Preferences.pythonInterpreterPath
-##                cmd = '"%s" %s %s'%(pythonIntPath,
-##                      os.path.basename(self.filename), args)
-##
-##                from ModRunner import PreferredRunner
-##                if Preferences.minimizeOnRun:
-##                    self.editor.palette.Iconize(true)
-##                try:
-##                    PreferredRunner(self.editor.erroutFrm, self.app, newCwd).run(cmd)
-##                finally:
-##                    pass
-##                    if Preferences.minimizeOnRun:
-##                        self.editor.palette.Iconize(false)
-##                        if self.editor.erroutFrm:
-##                            self.editor.erroutFrm.Raise()
-##
-##            finally:
-##                sys.path = oldSysPath
-##                sys.stderr = oldErr
-##                os.chdir(cwd)
-
+    # XXX Not used!
     def runAsScript(self):
         filename = self.assertLocalFile()
         execfile(filename)
@@ -226,7 +195,8 @@ class ModuleModel(SourceModel):
                 filename = self.assertLocalFile(self.filename)
                 debugger = Debugger.DebuggerFrame(self.editor, filename)
                 debugger.setDebugClient()
-                debugger.setParams(params)
+                if params is not None: # pass [] to clear parameters
+                    debugger.setParams(params)
                 self.editor.debugger = debugger
             debugger.Show()
             debugger.initSashes()
