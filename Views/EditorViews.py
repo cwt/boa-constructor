@@ -93,7 +93,8 @@ class EditorView:
           editorIsWindow=true, overrideDClick=false):
         self.active = false
         self.model = model
-        self.editorDisconnect = self.model.editor.Disconnect
+        try:self.editorDisconnect = self.model.editor.Disconnect
+        except: pass
         self.modified = false
         if editorIsWindow:
             EVT_RIGHT_DOWN(self, self.OnRightDown)
@@ -185,19 +186,25 @@ class EditorView:
                 self.editorDisconnect(wId)
 
     def addViewTools(self, toolbar):
+        addedSep = false
         for name, meth, bmp, accls in self.actions:
             if name == '-' and not bmp:
                 toolbar.AddSeparator()
+                addedSep = true
             elif bmp != '-':
                 if name[0] == '+':
                     # XXX Add toggle button
                     name = name [1:]
+                if not addedSep:
+                    # this is the separator between File and Edit
+                    toolbar.AddSeparator()
+                    addedSep = true
                 Utils.AddToolButtonBmpObject(self.model.editor, toolbar,
                       IS.load(bmp), name, meth)
 
 #---Page management-------------------------------------------------------------
     docked = true
-    def addToNotebook(self, notebook, viewName = '', panel = None):
+    def addToNotebook(self, notebook, viewName='', panel=None):
         self.notebook = notebook
         if not viewName: viewName = self.viewName
         if panel:
@@ -490,6 +497,7 @@ class ModuleDocView(HTMLDocView):
 
         return page + ' '.join(functions)
 
+# XXX For editing views there should be a prompt before closing.
 class CloseableViewMix:
     """ Defines a closing action for views like results.
         Deletes page named tabName
@@ -573,20 +581,22 @@ class CyclopsView(HTMLView, CloseableViewMix):
         return self.report
 
     def OnSaveReport(self, event):
-        fn, suc = self.model.editor.saveAsDlg(\
+        fn, ok = self.model.editor.saveAsDlg(\
           os.path.splitext(self.model.filename)[0]+'.cycles', '*.cycles')
-        if suc:
+        if ok:
             from Explorers.Explorer import openEx
             transport = openEx(fn)
             transport.save(transport.currentFilename(), self.report, 'w')
 
 
 # XXX Add addReportColumns( list of name, width tuples) !
-class ListCtrlView(wxListCtrl, EditorView, Utils.ListCtrlSelectionManagerMix):
+class ListCtrlView(wxListView, EditorView, Utils.ListCtrlSelectionManagerMix):
     viewName = 'List (abstract)'
     def __init__(self, parent, model, listStyle, actions, dclickActionIdx=-1):
-        wxListCtrl.__init__(self, parent, -1, style=listStyle | wxSUNKEN_BORDER | wxLC_SINGLE_SEL) #wxWANTS_CHARS |
-        EditorView.__init__(self, model, actions, dclickActionIdx, overrideDClick=true)
+        wxListView.__init__(self, parent, -1, 
+              style=listStyle | wxSUNKEN_BORDER | wxLC_SINGLE_SEL)
+        EditorView.__init__(self, model, actions, dclickActionIdx, 
+              overrideDClick=true)
         Utils.ListCtrlSelectionManagerMix.__init__(self)
 
         EVT_LIST_ITEM_SELECTED(self, -1, self.OnItemSelect)
