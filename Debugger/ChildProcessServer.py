@@ -24,6 +24,7 @@ class DebugRequestHandler (RequestHandler):
     _conn._enableProcessModification()
 
     def call(self, method, params):
+        print 'DebugRequestHandler.call(%s, %s)' % (method, params)
         h = self.headers
         if self._authstr and (not h.has_key('x-auth') or h['x-auth']
             != self._authstr):
@@ -32,10 +33,11 @@ class DebugRequestHandler (RequestHandler):
         result = apply(m, params)
         if result is None:
             result = 0
+        print 'DebugRequestHandler.call() result =', result
         return result
 
-    def log_message(self, format, *args):
-        pass
+    #def log_message(self, format, *args):
+    #    pass
 
 
 class TaskingMixIn:
@@ -69,8 +71,8 @@ def main():
     sys.stdout.flush()
 
     def serve_forever(server):
-        print 'serve_forever waiting for request...'
         while 1:
+            print 'serve_forever waiting for request...'
             server.handle_request()
 
     def startDaemon(target, args=()):
@@ -85,6 +87,7 @@ def main():
 
     # Serve until the stdin pipe closes.
     sys.stdin.read()
+    print 'exiting ChildProcessServer'
     sys.exit(0)
 
 
