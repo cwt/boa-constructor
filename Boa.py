@@ -507,9 +507,9 @@ def main(argv=None):
             # Install/update run time libs if necessary
             Utils.updateDir(join(Preferences.pyPath, 'bcrtl'),
                   join(wxPythonLibPath, 'bcrtl'))
-            # Install debugger hard breakpoint hook
-            Utils.updateFile(join(Preferences.pyPath, 'Debugger', 'bcdb.lib.py'), 
-                             join(pythonLibPath, 'bcdb.py'))
+            ## Install debugger hard breakpoint hook
+            ##Utils.updateFile(join(Preferences.pyPath, 'Debugger', 'bcdb.lib.py'), 
+            ##                 join(pythonLibPath, 'bcdb.py'))
         except Exception, error:
             startupErrors.extend(['Error while installing Run Time Libs:',
             '    '+str(error),
