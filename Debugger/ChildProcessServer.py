@@ -75,17 +75,14 @@ def main():
         while 1:
             server.handle_request()
 
-    t = threading.Thread(target=DebugRequestHandler._ds.servicerThread)
-    t.setDaemon(1)
-    t.start()
+    def startDaemon(target, args=()):
+        t = threading.Thread(target=target, args=args)
+        t.setDaemon(1)
+        t.start()
 
-    t = threading.Thread(target=serve_forever, args=(server,))
-    t.setDaemon(1)
-    t.start()
-
-    t = threading.Thread(target=streamFlushThread)
-    t.setDaemon(1)
-    t.start()
+    startDaemon(serve_forever, (server,))
+    startDaemon(streamFlushThread)
+    startDaemon(DebugRequestHandler._ds.servicerThread)
 
     # Serve until the stdin pipe closes.
     sys.stdin.read()

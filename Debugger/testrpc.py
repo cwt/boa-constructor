@@ -8,6 +8,7 @@ from time import sleep
 import threading
 
 class Monitor: pass
+monitor = Monitor()
 
 
 process = wxProcess()
@@ -16,22 +17,23 @@ process.Redirect()
 def pollStreams():
     stream = process.GetInputStream()
     if not stream.eof():
-        print stream.read()
+        print '<<' + stream.read() + '>>'
     stream = process.GetErrorStream()
     if not stream.eof():
-        print stream.read()
+        print '<<<' + stream.read() + '>>>'
+
+poll_streams = 1
 
 def streamPollThread():
-    while 1:
+    while poll_streams:
         pollStreams()
         sleep(0.15)
 
+print 'spawning...'
+s = spawnChild(monitor, process)
+
 t = threading.Thread(target=streamPollThread)
 t.setDaemon(1)
-
-print 'spawning...'
-s = spawnChild(Monitor(), process)
-
 t.start()
 
 print 'starting... (via %s)' % s
@@ -47,5 +49,7 @@ print 'running...'
 status = s.proceedAndRequestStatus('set_continue')
 sleep(0.5)
 print status
+poll_streams = 0
+sleep(0.3)
 
 # Should stop in the middle of the process.

@@ -540,6 +540,10 @@ class DebugServer (Bdb):
 
     def stop_here(self, frame):
         # Redefine stopping.
+        # Note that stopframe is now a very odd variable:
+        #   None: Stop anywhere
+        #   frame object: Stop in that frame
+        #   (): Stop nowhere
         if self.ignore_frame and frame is self.ignore_frame:
             # Don't stop in ignore_frame.
             return 0
@@ -547,6 +551,9 @@ class DebugServer (Bdb):
         if sf is None:
             # Stop anywhere.
             return 1
+        elif sf is ():
+            # Stop nowhere.
+            return 0
         if (frame is sf and
             frame.f_lineno != self.ignore_stopline):
             # Stop in the current frame unless we're on
@@ -568,7 +575,8 @@ class DebugServer (Bdb):
 
     def set_continue(self, full_speed=0):
         # Don't stop except at breakpoints or when finished
-        self.stopframe = self.botframe
+        #self.stopframe = self.botframe
+        self.stopframe = ()
         self.returnframe = None
         self.quitting = 0
         if full_speed:
