@@ -21,7 +21,7 @@ import ProfileView, Search, Help, Preferences, ShellEditor, Utils, SourceViews
 from SourceViews import EditorStyledTextCtrl
 from StyledTextCtrls import PythonStyledTextCtrlMix, BrowseStyledTextCtrlMix,\
      FoldingStyledTextCtrlMix, AutoCompleteCodeHelpSTCMix, \
-     CallTipCodeHelpSTCMix, DebuggingViewSTCMix, idWord, object_delim
+     CallTipCodeHelpSTCMix, DebuggingViewSTCMix, idWord, word_delim, object_delim
 from Preferences import keyDefs
 import methodparse
 import wxNamespace
@@ -76,6 +76,7 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
               ('Code transformation', self.OnCodeTransform, '-', 'CodeXform'),
               ('Code completion', self.OnCompleteCode, '-', 'CodeComplete'),
               ('Call tips', self.OnParamTips, '-', 'CallTips'),
+              ('Browse to', self.OnBrowseTo, '-', 'BrowseTo'),
               ('-', None, '-', ''),
               ('Context help', self.OnContextHelp, '-', 'ContextHelp'))
 
@@ -408,11 +409,11 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
         else:
             return None
 
-    def gotoName(self, module, word):
-        # XXX Integrate with browsing
+    def gotoName(self, module, word, currLineNo):
         line = self.findNameInModule(module, word)
         if line is not None:
             self.doClearBrwsLn()
+            self.model.editor.addBrowseMarker(currLineNo)
             self.GotoLine(line)
             return true
         else:
@@ -442,7 +443,7 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
             return true
         return false
 
-    def handleBrwsImports(self, module, word):
+    def handleBrwsImports(self, module, word, currLineNo):
         words = string.split(word, '.')
 
         # Standard imports
@@ -453,19 +454,22 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
             except ImportError: return false, None
             else:
                 if impType == 'package':
-                    model, ctrlr = self.model.editor.openOrGotoModule(os.path.join(path, '__init__.py'))
+                    self.model.editor.addBrowseMarker(currLineNo)
+                    model, ctrlr = self.model.editor.openOrGotoModule(
+                          os.path.join(path, '__init__.py'))
                     return true, model
                 elif impType in ('name', 'module'):
+                    self.model.editor.addBrowseMarker(currLineNo)
                     model, ctrlr = self.model.editor.openOrGotoModule(path)
                     return true, model
             return false, None
         # Handle module part of from module import name
         elif module.from_imports.has_key(word):
-            #modName = module.from_imports[word]
             try: path, impType = self.model.findModule(word)
             except ImportError: return false, None
             else:
                 self.doClearBrwsLn()
+                self.model.editor.addBrowseMarker(currLineNo)
                 model, ctrlr = self.model.editor.openOrGotoModule(path)
                 return true, model
         # Handle name part of from module import name
@@ -475,19 +479,22 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
             except ImportError: return false, None
             else:
                 self.doClearBrwsLn()
+                self.model.editor.addBrowseMarker(currLineNo)
                 model, ctrlr = self.model.editor.openOrGotoModule(path)
                 if impType == 'name':
-                    model.views['Source'].gotoName(model.getModule(), word)
+                    model.views['Source'].gotoName(model.getModule(), word,
+                          currLineNo)
                 return true, model
         else:
             # Handle [package.]module.name
             if len(words) > 1:
                 testMod = string.join(words[:-1], '.')
-                handled, model = self.handleBrwsImports(module, testMod)
+                handled, model = self.handleBrwsImports(module, testMod, currLineNo)
                 if handled is None:
                     return None, None # unhandled
                 elif handled:
-                    if not model.views['Source'].gotoName(model.getModule(), words[-1]):
+                    if not model.views['Source'].gotoName(model.getModule(),
+                          words[-1], currLineNo):
                         wxLogWarning('"%s" not found.'%words[-1])
                     return true, model
                 else:
@@ -508,6 +515,7 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
             locals = codeBlock.localnames()
             if word in locals:
                 self.doClearBrwsLn()
+                self.model.editor.addBrowseMarker(lineNo)
                 if word in codeBlock.locals.keys():
                     self.GotoLine(codeBlock.locals[word].lineno-1)
                 else:
@@ -515,7 +523,7 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
                 return true
         return false
 
-    def handleBrwsRuntimeGlobals(self, word):
+    def handleBrwsRuntimeGlobals(self, word, currLineNo):
         # The current runtime values of the shell is inspected
         # as well as the wxPython namespaces
         shellLocals = self.model.editor.shell.interp.locals
@@ -528,19 +536,20 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
 
         self.doClearBrwsLn()
         if hasattr(obj, '__init__') and type(obj.__init__) == types.MethodType:
+            self.model.editor.addBrowseMarker(currLineNo)
             path = os.path.abspath(obj.__init__.im_func.func_code.co_filename)
             mod, cntrl = self.model.editor.openOrGotoModule(path)
             mod.views['Source'].GotoLine(obj.__init__.im_func.func_code.co_firstlineno -1)
         elif hasattr(obj, 'func_code'):
+            self.model.editor.addBrowseMarker(currLineNo)
             path = os.path.abspath(obj.func_code.co_filename)
             mod, cntrl = self.model.editor.openOrGotoModule(path)
             mod.views['Source'].GotoLine(obj.func_code.co_firstlineno -1)
         else:
             return false
-            ##print 'unhandled obj', obj
         return true
 
-    def handleBrwsCheckImportStars(self, module, word):
+    def handleBrwsCheckImportStars(self, module, word, currLineNo):
         # try to match names from * imports modules currently open
 
         # Cache first time
@@ -556,6 +565,7 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
                 starModule = starModPage.model.getModule()
                 lineNo = self.findNameInModule(starModule, word)
                 if lineNo is not None:
+                    self.model.editor.addBrowseMarker(currLineNo)
                     starModPage.focus()
                     starModPage.model.views['Source'].focus()
                     starModPage.model.views['Source'].GotoLine(lineNo)
@@ -584,22 +594,22 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
         if len(words) >= 2 and words[0] == 'self':
             return self.handleBrwsObjAttrs(module, words[1], lineNo)
         # Imports
-        handled, model = self.handleBrwsImports(module, word)
+        handled, model = self.handleBrwsImports(module, word, lineNo)
         if handled is not None:
             return handled
         # Only non dotted names allowed past this point
         if len(words) != 1:
             return false
         # Check for module global classes, funcs and attrs
-        if self.gotoName(module, word):
+        if self.gotoName(module, word, lineNo):
             return true
         if self.handleBrwsLocals(module, word, lineNo):
             return true
-        if self.handleBrwsRuntimeGlobals(word):
+        if self.handleBrwsRuntimeGlobals(word, lineNo):
             return true
 
         # As the last check, see if word is defined in any import * module
-        if self.handleBrwsCheckImportStars(module, word):
+        if self.handleBrwsCheckImportStars(module, word, lineNo):
             return true
 
         return false
@@ -631,6 +641,10 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
     def disableSource(self, doDisable):
         self.SetReadOnly(doDisable)
         self.grayout(doDisable)
+
+    def OnBrowseTo(self, event):
+        word, line, lnNo, start, startOffset = self.getWordAtCursor()
+        self.BrowseClick(word, line, lnNo, start, None)
 
 #---Syntax checking-------------------------------------------------------------
 
@@ -860,16 +874,19 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
         model.debug(cont_if_running=1, cont_always=1,
                          temp_breakpoint=temp_breakpoint)
 
-    def OnContextHelp(self, event):
+    def getWordAtCursor(self, delim=word_delim):
         pos = self.GetCurrentPos()
         lnNo = self.GetCurrentLine()
         lnStPs = self.PositionFromLine(lnNo)
         line = self.GetCurLine()[0]
         piv = pos - lnStPs
-        start, length = idWord(line, piv, lnStPs)
-        startLine = start-lnStPs
-        word = line[startLine:startLine+length]
-        Help.showContextHelp(word)
+        start, length = idWord(line, piv, lnStPs, delim)
+        startOffset = start-lnStPs
+        word = line[startOffset:startOffset+length]
+        return word, line, lnNo, start, startOffset
+
+    def OnContextHelp(self, event):
+        Help.showContextHelp(self.getWordAtCursor()[0])
 
     def OnComment(self, event):
         selStartPos, selEndPos = self.GetSelection()
@@ -1012,14 +1029,8 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
 
     # XXX 1st Xform, should maybe add beneath current method
     def OnCodeTransform(self, event):
-        pos = self.GetCurrentPos()
-        lnNo = self.GetCurrentLine()
-        lnStPs = self.PositionFromLine(lnNo)
-        line = self.GetLine(lnNo)
-        piv = pos - lnStPs
-        start, length = idWord(line, piv, lnStPs, object_delim)
-        startLine = start-lnStPs
-        word = line[startLine:startLine+length]
+        word, line, lnNo, start, startOffset = self.getWordAtCursor(object_delim)
+        self.model.editor.addBrowseMarker(lnNo)
         # 1st Xform; Add method at cursor to the class
         if Utils.startswith(word, 'self.'):
             methName = word[5:]
@@ -1049,7 +1060,7 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
         else:
             # 2nd Xform; Add inherited method call underneath method declation
             #            at cursor
-            if string.strip(line[:startLine]) == 'def':
+            if string.strip(line[:startOffset]) == 'def':
                 self.model.refreshFromViews()
                 module = self.model.getModule()
                 cls = module.getClassForLineNo(lnNo)
@@ -1061,7 +1072,7 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
                         baseName = base1.name
                     methName, meth = cls.getMethodForLineNo(lnNo+1)
                     if meth:
-                        module.addLine('%s%s.%s(%s)'%(' '*startLine, baseName,
+                        module.addLine('%s%s.%s(%s)'%(' '*startOffset, baseName,
                               word, meth.signature), lnNo+1)
                         self.model.refreshFromModule()
                         self.model.modified = true
@@ -1109,6 +1120,31 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
     def OnFixPaste(self, event):
         self.Undo()
         self.AddText(event.newtext)
+
+class PythonDisView(EditorStyledTextCtrl, PythonStyledTextCtrlMix):
+    viewName = 'Disassemble'
+    breakBmp = 'Images/Debug/Breakpoints.png'
+    def __init__(self, parent, model):
+        wxID_PYTHONDISVIEW = wxNewId()
+
+        EditorStyledTextCtrl.__init__(self, parent, wxID_PYTHONDISVIEW,
+          model, (), -1)
+        PythonStyledTextCtrlMix.__init__(self, wxID_PYTHONDISVIEW, ())
+
+        self.active = true
+
+    def refreshModel(self):
+        # Do not update model
+        pass
+
+    def getModelData(self):
+        return self.model.disassembleSource()
+
+    def setModelData(self, data):
+        pass
+
+    def updateFromAttrs(self):
+        self.SetReadOnly(true)
 
 #-------------------------------------------------------------------------------
 from Explorers import ExplorerNodes
