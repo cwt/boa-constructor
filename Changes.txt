@@ -23,7 +23,7 @@ Changes
     underlined code to browse to it
   * Code completion, currently only object attributes self.*
 * OGL improvements including saving of position
-* Keyboard support in the Inspector and Editor
+* Keyboard support in the Inspector, Editor and Designer
 * Added Zope interface
 * Fixed a lot of little bugs in the Inspector
 * Added a MenuBar for the Editor
@@ -61,7 +61,10 @@ Changes
   Still to be implemented:
   * wxAcceleratorTable.Entries (broken, doesn't fit yet)
   * wxBoxSizers, wxStaticBoxSizer
+  * Sub menus
+  * Different types of insertion methods 
 * Directory compare (lib's cmp) and diff facilities (Tim Peter's ndiff)
+* Fixed many memory leaks and circular references
 
 -- 0.0.3 --
 

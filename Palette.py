@@ -282,7 +282,7 @@ class BoaFrame(wxFrame):
                 page.destroy()
 
         finally:
-#            self.Destroy()
+            self.Destroy()
             event.Skip()
 
 class ComponentStatusBar(wxStatusBar):
@@ -297,9 +297,9 @@ class ComponentStatusBar(wxStatusBar):
         self.selComp = wxCheckBox(self, wID, '', wxPoint(157, 4), wxSize(140, 15))
         self.selComp.Enable(false)
         EVT_CHECKBOX(self.selComp, wID, self.OnUncheck)
-        self.selCompose = wxRadioButton(self, -1, 'Compose', wxPoint(320, 4))#, wxSize(70, 15))
+        self.selCompose = wxRadioButton(self, -1, 'Compose', wxPoint(320, 3), wxSize(70, 15))
         self.selCompose.SetValue(true)
-        self.selInherit = wxRadioButton(self, -1, 'Inherit', wxPoint(400, 4))#, wxSize(55, 15))
+        self.selInherit = wxRadioButton(self, -1, 'Inherit', wxPoint(400, 3), wxSize(55, 15))
         self.selInherit.Enable(false)
 
         self.selection = None

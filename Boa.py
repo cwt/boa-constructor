@@ -29,8 +29,6 @@ import sys, os
 currentMouseOverTip = ''
 
 # Remaining milestones before alpha
-# XXX $Event separation 2, 3
-# XXX Constructor params which aren't properties $
 # XXX auto created frames
 # XXX sub-properties apply changes
 # XXX More property editors!
@@ -55,6 +53,8 @@ class BoaApp(wxApp):
         wxImage_AddHandler(wxJPEGHandler())
         wxImage_AddHandler(wxPNGHandler())
         wxImage_AddHandler(wxGIFHandler())
+        
+#        EVT_ACTIVATE_APP(self, self.OnActivate)
 
         self.main = Palette.BoaFrame(None, -1, self)
         
@@ -71,9 +71,12 @@ class BoaApp(wxApp):
         self.main.editor.Show(true)
         
         if os.path.exists('1stTime'):
-            self.main.editor.openOrGotoModule('README.txt')
-            self.main.editor.openOrGotoModule('Changes.txt')
-            os.remove('1stTime')
+            try:
+                self.main.editor.openOrGotoModule('README.txt')
+                self.main.editor.openOrGotoModule('Changes.txt')
+                os.remove('1stTime')
+            except:
+                print 'Could not load intro text files'
         
         if len(sys.argv) > 1:
             self.main.editor.openModule(sys.argv[1])
@@ -89,12 +92,22 @@ class BoaApp(wxApp):
             showTip, index = eval(showTipText)
         except IOError:
             showTip, index = (1, 0)
-        print showTip, index
         if showTip:
             tp = wxCreateFileTipProvider(Preferences.toPyPath('data/tips.txt'), index)
             showTip = wxShowTip(frame, tp)
             index = tp.GetCurrentTip()
-            open(showTipsFile, 'w').write(str( (showTip, index) ))
+            try:
+                open(showTipsFile, 'w').write(str( (showTip, index) ))
+            except IOError:
+                print 'Could not update tips file', showTipsFile, '(check permissions)'
+    
+    def OnActivate(self, event):
+        # XXX this event does not fire (supposed to fire on wxMSW)
+        print 'App activate'
+        self.main.Raise()
+        self.main.inspector.Raise()
+        self.main.editor.Raise()
+        self.Skip()
 
 def main():
     app = BoaApp(0)

@@ -24,7 +24,7 @@ class ClassBrowserFrame(wxFrame):
         pass
 
     def _init_ctrls(self, prnt): 
-        wxFrame.__init__(self, size = (-1, -1), id = wxID_CLASSBROWSERFRAME, title = 'Inspector', parent = prnt, name = '', style = wxDEFAULT_FRAME_STYLE, pos = (-1, -1))
+        wxFrame.__init__(self, size = (-1, -1), id = wxID_CLASSBROWSERFRAME, title = 'wxPython Class Browser', parent = prnt, name = '', style = wxDEFAULT_FRAME_STYLE, pos = (-1, -1))
 
     def __init__(self, parent, id, title):
         self._init_ctrls(parent)

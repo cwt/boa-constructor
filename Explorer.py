@@ -447,6 +447,8 @@ class PackageFolderExplorer(wxSplitterWindow):
         self.cvsimages.Add(IS.load('Images/CVSPics/MissingFile.bmp'))
         self.cvsimages.Add(IS.load('Images/CVSPics/Dir.bmp'))
         EVT_LEFT_DCLICK(self.list, self.OnOpen)
+        EVT_KEY_UP(self.list, self.OnKeyPressed)
+        
         self.tree = PackageFolderTree(self, modimages, root)
         EVT_TREE_SEL_CHANGED(self, wxID_PFT, self.OnSelect)
 
@@ -513,15 +515,10 @@ class PackageFolderExplorer(wxSplitterWindow):
                 else: 
                     self.editor.openOrGotoZopeDocument(item.zopeConn, item.zopeObj)
 
-
-
-
-
-
-              
-              
-              
-              
-              
-              
+    def OnKeyPressed(self, event):
+        key = event.KeyCode()
+        if key == 13:
+            self.OnOpen(event)
+        else:
+            event.Skip()
      

@@ -495,7 +495,10 @@ class ModuleModel(EditorModel):
         if notify: self.notify()
         
     def initModule(self):
+        t1 = time()
         self.module = moduleparse.Module(self.moduleName, string.split(self.data, '\012'))
+        t2 = time()
+        print 'parse', t2 - t1
         
     def refreshFromModule(self):
         """ Must call this method to apply changes were made to module object. """
@@ -523,7 +526,7 @@ class ModuleModel(EditorModel):
             self.editor.statusBar.setHint('%s %s successfully.' %\
               (str, path.basename(self.filename)))
 
-    def run(self):
+    def run(self, args = ''):
         """ Excecute the current saved image of the application. """
         if self.savedAs:
             cwd = path.abspath(os.getcwd())
@@ -531,8 +534,8 @@ class ModuleModel(EditorModel):
             oldErr = sys.stderr
             sys.stderr = ErrorStack.ErrorParser()
             try:
-                cmd = '"%s" %s'%(sys.executable, path.basename(self.filename))
-                print 'executing', cmd
+                cmd = '"%s" %s %s'%(sys.executable, path.basename(self.filename), args)
+                print 'executing', cmd, args
                 try:
                     wx.wxExecute(cmd, true)
                 except:
@@ -639,12 +642,13 @@ class ModuleModel(EditorModel):
         self.notify()
 
     def diff(self, filename):
-        if not self.views.has_key(PythonSourceDiffView.viewName):
-            resultView = self.editor.addNewView(PythonSourceDiffView.viewName, 
-              PythonSourceDiffView)
+        tbName = 'Diff with : '+filename
+        if not self.views.has_key(tbName):
+            resultView = self.editor.addNewView(tbName, PythonSourceDiffView)
         else:
-            resultView = self.views[PythonSourceDiffView.viewName]
+            resultView = self.views[tbName]
             
+        resultView.tabName = tbName
         resultView.diffWith = filename
         resultView.refresh()
         resultView.focus()
@@ -1243,12 +1247,13 @@ class AppModel(ClassModel):
         self.editor.showImportsView()
     
     def compareApp(self, filename):
-        if not self.views.has_key(AppCompareView.viewName):
-            resultView = self.editor.addNewView(AppCompareView.viewName, 
-              AppCompareView)
+        tbName = 'App. Compare : '+filename
+        if not self.views.has_key(tbName):
+            resultView = self.editor.addNewView(tbName, AppCompareView)
         else:
-            resultView = self.views[AppCompareView.viewName]
+            resultView = self.views[tbName]
             
+        resultView.tabName = tbName
         resultView.compareTo = filename
         resultView.refresh()
         resultView.focus()

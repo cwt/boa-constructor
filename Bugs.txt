@@ -91,6 +91,35 @@ $ Doesn't check if name exists before renaming
 
 $ Deleting all utilities from DataView leaves old code in _init_utils
 
+$ Make failure on tips file less fatal
+
+$ Selection box jiggles when sizing from the left and top
+
+$ Negative selections don't work
+
+$ When there are only a few components the linked properties 
+$ (MenuBar/FrameBar/ToolBar) does not show in prop editor on
+$ startup. If another control is selected and the frame is selected
+$ they show correctly, please someone help!
+
+$ Having only a menubar on a frame does not link design time controls
+$ Connecting a menubar to a frame generates an OnSize which generated chaos
+$ I now see there is actually a reference to this in the docs
+
+$ Deleting utils
+
+$ ToolBars confuse the Designer (and the author).
+$ Components are offset by the height of the toolbar
+
+Toolbars still cause big trouble by moving the frame coordinates down
+when linked to a frame.
+The only way I can see this working is by always having the toolbar
+as the first component and immediately linking it before creating any
+other components (this breaks the pattern completely ouch :()
+Also have to compensate for all top level controls (ctrls directly on
+frame) by adjusting their coordinates upon linking of the toolbar,
+because their source won't be updated.
+
 The infamous 'After a file dialog by cursor keys don't work' bug.
 This is a MAJOR pain in the neck for NT users (including myself)
 
@@ -117,23 +146,20 @@ Parser must be fixed sometime to correctly parse
 - multiline docstrings
 - method definitions continued over more than 1 line
 
-When there are only a few components the linked properties 
-(MenuBar/FrameBar/ToolBar) does not show in prop editor on
-startup. If another control is selected and the frame is selected
-they show correctly, please someone help!
-
-Having only a menubar on a frame does not link design time controls
-
 Setting linked property to None should clear the source
-
-Deleting utils
-
-ToolBars confuse the Designer (and the author).
-Components are offset by the height of the toolbar
 
 Some help links break when found text is highlighted in html
 
 Diff views crash on closing
+
+Controls not in the wx namespace should add appropriate import 
+statements to source
+
+Event identifier duplication in source
+
+Events sometimes added after code following class
+
+ComboBox constructor has keyword param 'choices'
 
 GTK
 ---
@@ -155,3 +181,5 @@ wxStyledTextCtrl crashes with Brace Highlighting enabled
 STC being refreshed many times causes flickering.
 I don't know if GTK refreshes more or that MSW just doesn't flash
 that much
+
+Toolbars don't work correctly in the designer

@@ -577,6 +577,9 @@ class EditorFrame(wxFrame):
                 model.views['Designer'] = designer
                 designer.refreshCtrl()
             model.views['Designer'].Show(true)
+            
+            # Make source read only
+            model.views['Source'].SetReadOnly(true)
 
 ##            designer = model.views['Designer']
 ##            if designer.selection:
@@ -702,16 +705,7 @@ class EditorFrame(wxFrame):
     def saveOrSaveAs(self):
         modulePage = self.getActiveModulePage()
         if modulePage:
-            model = modulePage.model
-            if not model.savedAs:
-                oldName = model.filename
-                if self.saveAs(oldName) and (oldName != model.filename):
-                    del self.modules[oldName]
-                    self.modules[model.filename] = modulePage
-            else:
-                model.save()                
-                self.updateModulePage(model)
-                self.updateTitle()
+            modulePage.saveOrSaveAs()
 
     def OnSave(self, event):
         modulePage = self.getActiveModulePage()
@@ -794,7 +788,6 @@ class EditorFrame(wxFrame):
         Help.showHelp(self, Help.BoaHelpFrame, 'Editor.html')
 
     def OnToggleView(self, event):
-        # This is triggered twice, I'd love to know why
         evtId = event.GetId()
         mod = self.getActiveModulePage()
         if mod:
@@ -809,23 +802,21 @@ class EditorFrame(wxFrame):
                             view.refreshCtrl()
                             view.focus()
                         else:
-                            print 'View already exists'
+                            print 'Add: View already exists'
                     else:
                         #Should be removed, but check that it does exist
                         if viewCls in modVwClss:
                             viewName = viewCls.viewName
                             view = mod.model.views[viewName]
-                            view.deleteFromNotebook(mod.default)
-                            del mod.model.views[viewName]
+                            view.deleteFromNotebook(mod.default, viewName)
+
                             self.mainMenu.Check(evtId, false)
                             return
-                            #mod.removeView(viewCls)
                         else:
-                            print 'View already exists'                        
+                            print 'Remove: View already exists'                        
                     break
             else:
                 print 'Menu Id not found'
-        event.Skip()
     
     def OnDefaultsToggle(self, event):
         evtId = event.GetId()
@@ -1106,6 +1097,18 @@ class ModulePage:
             Decrements tIdx if bigger than idx. """
         if idx < self.tIdx:
             self.tIdx = self.tIdx - 1
+    
+    def saveOrSaveAs(self):
+        model = self.model
+        if not model.savedAs:
+            oldName = model.filename
+            if model.editor.saveAs(oldName) and (oldName != model.filename):
+                del model.editor.modules[oldName]
+                model.editor.modules[model.filename] = self
+        else:
+            model.save()                
+            model.editor.updateModulePage(model)
+            model.editor.updateTitle()
     
     def OnPageChange(self, event):
         if event.GetOldSelection() != event.GetSelection():

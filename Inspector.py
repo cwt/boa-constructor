@@ -82,6 +82,7 @@ class InspectorFrame(wxFrame):
 	
         EVT_SIZE(self, self.OnSizing)
 
+        self.vetoSelect = false
         self.selObj = None
         self.selCmp = None
         self.prevDesigner = None 
@@ -144,7 +145,7 @@ class InspectorFrame(wxFrame):
             
     def selectObject(self, obj, compn, selectInContainment = true):
         print 'select object'
-        if self.selObj == obj and self.selCmp == compn:
+        if (self.selObj == obj and self.selCmp == compn) or self.vetoSelect:
             return
         print 'selecting object'
 
@@ -574,9 +575,9 @@ class EventsWindow(wxSplitterWindow):
         EVT_LIST_ITEM_DESELECTED(self.categoryMacros, 101, self.OnMacClassDeselect)
         EVT_LEFT_DCLICK(self.categoryMacros, self.OnMacroSelect) 
 
-        f = self.categoryMacros.GetFont()
-        f.SetPointSize(f.GetPointSize() -5)
-        self.categoryMacros.SetFont(f)
+        #f = self.categoryMacros.GetFont()
+        #f.SetPointSize(f.GetPointSize() -5)
+        #self.categoryMacros.SetFont(f)
         self.selMacClass = -1
 
         self.categories.SetMinimumPaneSize(20)
