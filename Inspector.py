@@ -6,7 +6,7 @@
 #
 # Created:     1999
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999 - 2002 Riaan Booysen
+# Copyright:   (c) 1999 - 2003 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
 #Boa:Frame:InspectorFrame
@@ -451,8 +451,8 @@ class InspectorFrame(wxFrame, Utils.FrameRestorerMixin):
             self.Destroy()
             event.Skip()
 
-wxID_PARENTTREE = NewId()
-wxID_PARENTTREESELECTED = NewId()
+wxID_PARENTTREE = wxNewId()
+wxID_PARENTTREESELECTED = wxNewId()
 class ParentTree(wxTreeCtrl):
     """ Specialised tree ctrl that displays parent child relationship of
         controls on the frame """
