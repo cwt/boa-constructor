@@ -665,21 +665,19 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
         self.MarkerDelete(lineNo - 1, tmpBrkPtMrk)
 
     def addBreakPoint(self, lineNo, temp=0, notify_debugger=1):
-        filename = os.path.normcase(self.model.assertLocalFile())
+        filename = self.model.assertLocalFile()
 
         self.breaks.addBreakpoint(lineNo, temp)
         if notify_debugger:
             debugger = self.model.editor.debugger
             if debugger:
                 # Try to apply to the running debugger.
-                ##filename = self.model.filename
                 debugger.setBreakpoint(filename, lineNo, temp)
         if temp: mrk = tmpBrkPtMrk
         else: mrk = brkPtMrk
         self.MarkerAdd(lineNo - 1, mrk)
 
     def moveBreakpoint(self, bpt, delta):
-        #print 'moving break', delta, bpt.bplist
         # remove
         index = (bpt.file, bpt.line)
 
