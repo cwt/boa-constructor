@@ -231,7 +231,7 @@ class CVSController(ExplorerNodes.Controller):
 
             if cvsOutput == 'output window':
                 errout = self.editor.erroutFrm
-                tbs = errout.updateCtrls((), outls, 'CVS Results', '', err)
+                tbs = errout.updateCtrls((), outls, 'CVS Result', '', err)
                 errout.display(tbs)
 
             elif cvsOutput == 'dialogs':
