@@ -1,6 +1,6 @@
 #-----------------------------------------------------------------------------
 # Name:        AppViews.py
-# Purpose:
+# Purpose:     Views for application management
 #
 # Author:      Riaan Booysen
 #
@@ -27,7 +27,7 @@ import ProfileView
 import PySourceView
 from Preferences import keyDefs
 import Search, Utils
-
+   
 class AppFindResults(ListCtrlView, ClosableViewMix):
     gotoLineBmp = 'Images/Editor/GotoLine.bmp'
 
@@ -69,7 +69,7 @@ class AppFindResults(ListCtrlView, ClosableViewMix):
     def OnGoto(self, event):
         if self.selected >= 0:
             modName = self.listResultIdxs[self.selected][0]
-            model = self.model.openModule(modName)
+            model, cntrl = self.model.openModule(modName)
             srcView = model.views['Source']
             srcView.focus()
             foundInfo = self.listResultIdxs[self.selected][1]
@@ -84,8 +84,9 @@ class AppFindResults(ListCtrlView, ClosableViewMix):
             srcView.selectSection(foundInfo[0], foundInfo[1], self.findPattern)
 
     def OnRerun(self, event):
-        pass
+        self.rerun(None)
 
+# XXX Add 'Get description from module info' option
 class AppView(ListCtrlView):
     openBmp = 'Images/Editor/OpenFromApp.bmp'
     addModBmp = 'Images/Editor/AddToApp.bmp'
@@ -210,40 +211,53 @@ class AppView(ListCtrlView):
             except: pass
 
     def OnFind(self, event):
-        dlg = wxTextEntryDialog(self.model.editor, 'Enter text:', 'Find in application', self.lastSearchPattern)
-        try:
-            te = Utils.getCtrlsFromDialog(dlg, 'wxTextCtrlPtr')[0]
-            te.SetSelection(0, len(self.lastSearchPattern))
-            if dlg.ShowModal() == wxID_OK:
-                self.lastSearchPattern = dlg.GetValue()
-                modules = self.model.modules.keys()
-                modules.sort()
-                applicationResults = {}
-                for mod in modules:
-                    filename = self.model.moduleFilename(mod)
-                    if self.model.editor.modules.has_key(filename):
-                        results = Search.findInText(string.split(\
-                          self.model.editor.modules[filename].model.data, '\n'),
-                          self.lastSearchPattern, false, true)
-                    else:
-                        results = Search.findInFile(filename,
-                          self.lastSearchPattern, false, true)
-                    applicationResults[mod] = results
+        import FindReplaceDlg
+        FindReplaceDlg.find(self, self.model.editor.finder, self)
 
-                resName = 'Results: '+dlg.GetValue()
-                if not self.model.views.has_key(resName):
-                    resultView = self.model.editor.addNewView(resName, AppFindResults)
-                else:
-                    resultView = self.model.views[resName]
-                resultView.tabName = resName
-                resultView.results = applicationResults
-                resultView.findPattern = self.lastSearchPattern
-                resultView.refresh()
-                resultView.focus()
-
-        finally:
-            dlg.Destroy()
-            event.Skip()
+##        dlg = FindReplaceDlg(self, self.model.editor.finder, self)
+##        dlg.ShowModal()
+##        dlg.Destroy()
+        
+##    def OnFind(self, event):
+##        dlg = wxTextEntryDialog(self.model.editor, 'Enter text:', 'Find in application', self.lastSearchPattern)
+##        try:
+##            te = Utils.getCtrlsFromDialog(dlg, 'wxTextCtrlPtr')[0]
+##            te.SetSelection(0, len(self.lastSearchPattern))
+##            if dlg.ShowModal() == wxID_OK:
+##                self.lastSearchPattern = dlg.GetValue()
+##                modules = self.model.modules.keys()
+##                modules.sort()
+##                applicationResults = {}
+##                for mod in modules:
+##                    filename = self.model.moduleFilename(mod)
+##                    if self.model.editor.modules.has_key(filename):
+##                        results = Search.findInText(string.split(\
+##                          self.model.editor.modules[filename].model.data, '\n'),
+##                          self.lastSearchPattern, false, true)
+##                    else:
+##                        prot, file = self.model.splitProtFile(filename)
+##                        if prot != 'file':
+##                            wxLogWarning('%s is on a remote transport, not searched'%filename)
+##                            results = []
+##                        else:
+##                            results = Search.findInFile(file,
+##                                  self.lastSearchPattern, false, true)
+##                    applicationResults[mod] = results
+##
+##                resName = 'Results: '+dlg.GetValue()
+##                if not self.model.views.has_key(resName):
+##                    resultView = self.model.editor.addNewView(resName, AppFindResults)
+##                    resultView.rerun = self.OnFind
+##                else:
+##                    resultView = self.model.views[resName]
+##                resultView.tabName = resName
+##                resultView.results = applicationResults
+##                resultView.findPattern = self.lastSearchPattern
+##                resultView.refresh()
+##                resultView.focus()
+##
+##        finally:
+##            dlg.Destroy()
 
     def OnMakeMain(self, event):
         if self.selected >= 0:
@@ -260,7 +274,7 @@ class AppModuleDocView(ModuleDocView):
             self.base_OnLinkClicked(linkinfo)
         else:
             mod = path.splitext(url)[0]
-            newMod = self.model.openModule(mod)
+            newMod, cntrl = self.model.openModule(mod)
             view  = newMod.editor.addNewView(ModuleDocView.viewName, ModuleDocView)
             view.refreshCtrl()
             view.focus()
@@ -315,26 +329,32 @@ class AppCompareView(ListCtrlView, ClosableViewMix):
 
     def refreshCtrl(self):
         ListCtrlView.refreshCtrl(self)
+
         from EditorModels import AppModel
         otherApp = AppModel('', self.compareTo, '', self.model.editor, true, {})
-        otherApp.load()
 
+        from Explorers.Explorer import openEx
+        otherApp.transport = openEx(self.compareTo)      
+
+        otherApp.load()
         otherApp.readModules()
 
-        i = 0
+        filename, otherFilename = self.model.assertLocalFile(), otherApp.assertLocalFile()
 
+        i = 0
         # Compare apps
-        if not cmp(self.model.filename, otherApp.filename):
+        if not cmp(filename, otherFilename):
             i = self.addReportItems(i,
-              (path.splitext(path.basename(self.model.filename))[0],
-              otherApp.filename, 'changed'))
+                  (path.splitext(path.basename(filename))[0], otherFilename, 
+                   'changed'))
 
         # Find changed modules and modules not occuring in other module
         for module in self.model.modules.keys():
             if otherApp.modules.has_key(module):
-                otherFile = otherApp.moduleFilename(module)
+                otherFile = otherApp.assertLocalFile(otherApp.moduleFilename(module))
+                filename = self.model.assertLocalFile(self.model.moduleFilename(module))
                 try:
-                    if not cmp(self.model.moduleFilename(module), otherFile):
+                    if not cmp(filename, otherFile):
                         i = self.addReportItems(i, (module, otherFile, 'changed') )
                 except OSError:
                     pass
@@ -344,7 +364,7 @@ class AppCompareView(ListCtrlView, ClosableViewMix):
         # Find modules only occuring in other module
         for module in otherApp.modules.keys():
             if not self.model.modules.has_key(module):
-                otherFile = otherApp.moduleFilename(module)
+                #otherFile = otherApp.moduleFilename(module)
                 i = self.addReportItems(i, (module, '', 'added') )
 
         self.pastelise()
@@ -352,10 +372,10 @@ class AppCompareView(ListCtrlView, ClosableViewMix):
     def OnGoto(self, event):
         if self.selected >= 0:
             module = self.GetItemText(self.selected)
-            model = self.model.openModule(module)
+            model, controller = self.model.openModule(module)
             otherModule = self.GetItem(self.selected, 1).GetText()
             if otherModule:
-                model.diff(otherModule)
+                controller.OnDiffModules(filename=otherModule)
 
 class TextInfoFileView(PySourceView.EditorStyledTextCtrl):
     viewName = 'TextInfo'
