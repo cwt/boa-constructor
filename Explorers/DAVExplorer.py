@@ -6,7 +6,7 @@
 #
 # Created:     2001/06/02
 # RCS-ID:      $Id$
-# Copyright:   (c) 2001 - 2002 Riaan Booysen
+# Copyright:   (c) 2001 - 2003 Riaan Booysen
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 print 'importing Explorers.DAVExplorer'
@@ -236,7 +236,7 @@ class DAVItemNode(ExplorerNodes.ExplorerNode):
         except Exception, error:
             raise ExplorerNodes.TransportLoadError(error, self.resourcepath)
 
-    def save(self, filename, data, mode='wb'):
+    def save(self, filename, data, mode='wb', overwriteNewer=false):
         if filename != self.resourcepath:
             self.name = os.path.basename(filename)
             self.resourcepath = filename

@@ -6,7 +6,7 @@
 #
 # Created:     2001
 # RCS-ID:      $Id$
-# Copyright:   (c) 2001 - 2002
+# Copyright:   (c) 2001 - 2003
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 print 'importing Explorers.SSHExplorer'
@@ -204,7 +204,7 @@ class SSHItemNode(ExplorerNodes.ExplorerNode):
         except Exception, error:
             raise ExplorerNodes.TransportLoadError(error, self.resourcepath)
 
-    def save(self, filename, data, mode='wb'):
+    def save(self, filename, data, mode='wb', overwriteNewer=false):
         from FileExplorer import PyFileNode
         import tempfile
         name = os.path.basename(self.resourcepath)

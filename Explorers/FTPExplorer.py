@@ -6,7 +6,7 @@
 #
 # Created:     2001
 # RCS-ID:      $Id$
-# Copyright:   (c) 2001 - 2002
+# Copyright:   (c) 2001 - 2003
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 print 'importing Explorers.FTPExplorer'
@@ -149,7 +149,7 @@ class FTPItemNode(ExplorerNodes.ExplorerNode):
         except Exception, error:
             raise ExplorerNodes.TransportLoadError(error, self.ftpObj.whole_name())
 
-    def save(self, filename, data, mode='wb'):
+    def save(self, filename, data, mode='wb', overwriteNewer=false):
         if filename != self.currentFilename():
             self.ftpObj.path = os.path.dirname(filename)
             self.ftpObj.name = os.path.basename(filename)
@@ -200,9 +200,9 @@ class FTPConnectionNode(FTPItemNode):
         self.testConnect()
         return FTPItemNode.load(self, mode)
 
-    def save(self, filename, data, mode='wb'):
+    def save(self, filename, data, mode='wb', overwriteNewer=false):
         self.testConnect()
-        FTPItemNode.save(self, filename, data, mode)
+        FTPItemNode.save(self, filename, data, mode, overwriteNewer)
 
     def createChildNode(self, obj, root, respath=None):
         return FTPItemNode.createChildNode(self, obj, root, respath, not self.connected)
