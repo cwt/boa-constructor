@@ -19,6 +19,7 @@ from PrefsKeys import keyDefs
 import methodparse
 import bdb, time
 import wxNamespace
+import Utils
 
 simpleAppText = '''
 
@@ -78,6 +79,10 @@ class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView):
         self.lastSearchResults = []
         self.lastSearchPattern = ''
         self.lastMatchPosition = None
+
+        ## Install the handler for refreshs.
+        if wxPlatform == '__WXGTK__':
+            self.paint_handler = Utils.PaintEventHandler(self)
 
         self.lastStart = 0
 

@@ -75,6 +75,10 @@ class PythonSourceDiffView(wxStyledTextCtrl, EditorView, PythonStyledTextCtrlMix
         self.tabName = 'Diff'  
         self.diffWith = ''
         self.currSearchLine = 1
+
+        ## Install the handler for refreshs.
+        if wx.wxPlatform == '__WXGTK__':
+            self.paint_handler = Utils.PaintEventHandler(self)
         
         self.active = wx.true
 
