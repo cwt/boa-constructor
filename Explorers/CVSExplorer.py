@@ -145,7 +145,6 @@ class CVSController(ExplorerNodes.Controller):
         return 'cvs %s %s %s %s' % (self.cvsOptions, command, options, string.join(files, ' '))
 
     def cvsCmdPrompt(self, wholeCommand, inDir, help = ''):
-        print help
         dlg = wxTextEntryDialog(self.list, 'CVSROOT: %s\nCVS_RSH: %s\n(in dir %s)\n\n%s'\
               %(os.environ.get('CVSROOT', '(not defined)'),
                 os.environ.get('CVS_RSH', '(not defined)'), inDir, help),
@@ -166,7 +165,7 @@ class CVSController(ExplorerNodes.Controller):
         CVSPD = ProcessProgressDlg.ProcessProgressDlg(self.list,
                   'cvs %s %s'% (option, cmd), '', modally=false)
         try:
-            return string.join(CVSPD.errors[:-1])
+            return string.expandtabs(string.join(CVSPD.errors[:-1]), 8)
         finally:
             CVSPD.Destroy()
 
