@@ -572,12 +572,14 @@ class PythonStyledTextCtrlMix:
         finally:
             self.EndUndoAction()    
 
-    keymap={'euro': {81: chr(64), 56: chr(91), 57: chr(93), 55: chr(123), 
-                     48: chr(125), 219: chr(92), 337: chr(126), 226: chr(124)},
-            'france': {48: chr(64), 53: chr(91), 219: chr(93), 52: chr(123),
-                       337: chr(125), 56: chr(92), 50: chr(126), 226: chr(54),
-                       55: chr(96), 51: chr(35), 54: chr(124)},
-           } 
+    keymap={'euro': {219: '\\', 57: ']', 56: '[', 55: '{', 337: '~', 226: '|', 
+                     81: '@', 48: '}'}, 
+            'france': {51: '#', 219: ']', 56: '\\', 55: '`', 54: '|', 53: '[', 
+                       52: '{', 226: '6', 50: '~', 337: '}', 48: '@'}, 
+            'swiss-german': {223: '}', 221: '~', 220: '{', 219: '`', 186: '[', 
+                             55: '|', 226: '\\', 51: '#', 50: '@', 192: ']'},
+           }
+
     def handleSpecialEuropeanKeys(self, event, countryKeymap='euro'):
         key = event.KeyCode()
         keymap = self.keymap[countryKeymap]
