@@ -355,7 +355,7 @@ class ComponentSelection:
         palette mapping structures. Accessed by the Designer """
     def __init__(self, palette):
         wID = wxNewId()
-        self.selComp = wxCheckBox(palette.toolBar, wID, '  (Nothing selected)', size = wxSize(120, 20))
+        self.selComp = wxCheckBox(palette.toolBar, wID, '  (Nothing selected)', size = wxSize(160, 20))
         self.selComp.Enable(false)
         EVT_CHECKBOX(self.selComp, wID, palette.OnUncheckComponent)
         palette.toolBar.AddControl(self.selComp)
