@@ -17,14 +17,14 @@ from wxPython.wx import *
 
 import Preferences, Utils
 
-from sourceconst import init_utils
+import sourceconst
 import PaletteMapping, Help
 
 from InspectableViews import InspectableObjectView
 
 class DataView(wxListCtrl, InspectableObjectView):
     viewName = 'Data'
-    collectionMethod = init_utils
+    collectionMethod = sourceconst.init_utils
     postBmp = 'Images/Inspector/Post.png'
     cancelBmp = 'Images/Inspector/Cancel.png'
     def __init__(self, parent, inspector, model, compPal):
@@ -125,6 +125,11 @@ class DataView(wxListCtrl, InspectableObjectView):
 
         return ctrlName
 
+    def restore(self):
+        # This is needed for when the inspector switches to it's designer
+        self.model.editor.restore()
+        # XXX Should probably switch to the DataView page in the notebook.
+
     def selectNone(self):
         for itemIdx in range(self.GetItemCount()):
             a = wxLIST_STATE_SELECTED
@@ -187,7 +192,8 @@ class DataView(wxListCtrl, InspectableObjectView):
 
     def updateSelection(self):
         if len(self.selection) == 1:
-            self.inspector.selectObject(self.objects[self.selection[0][0]][0], false)
+            self.inspector.selectObject(self.objects[self.selection[0][0]][0],
+                  false, sessionHandler=self.controllerView)
         else:
             self.inspector.cleanup()
 
