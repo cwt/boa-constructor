@@ -243,6 +243,7 @@ class ProfileStatsView(ListCtrlView, CloseableViewMix):
             self.SortItems(self.sortCumTime)
         elif event.m_col == 7:
             self.SortItems(self.sortCumPerCall)
+        self.pastelise()
 
     def OnSaveStats(self, event):
         fn, suc = self.model.editor.saveAsDlg(\
