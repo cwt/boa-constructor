@@ -154,7 +154,7 @@ class FoldingStyledTextCtrlMix:
 
         return line
 
-def idWord(line, piv, lineStart, leftDelim = word_delim, rightDelim = word_delim):
+def idWord(line, piv, lineStart, leftDelim=word_delim, rightDelim=word_delim):
     if piv >= len(line):
         return 0, 0
     pivL = pivR = piv
@@ -314,12 +314,16 @@ class CodeHelpStyledTextCtrlMix:
 
 
 class AutoCompleteCodeHelpSTCMix(CodeHelpStyledTextCtrlMix):
+    """ Mixin that assists with code completion
+
+        Users should implement:
+        def getCodeCompOptions(self, word, rootWord, matchWord, lnNo):
+            return ['list', 'of', 'options']
+    """
+
     def __init__(self):
         self.AutoCompSetIgnoreCase(true)
         self.AutoCompSetCancelAtStart(false)
-
-##    def getCodeCompOptions(self, word, rootWord, matchWord, lnNo):
-##        return []
 
     def codeCompCheck(self):
         pos, lnNo, lnStPs, line, piv = self.getCurrLineInfo()
@@ -373,6 +377,12 @@ class AutoCompleteCodeHelpSTCMix(CodeHelpStyledTextCtrlMix):
         #self.AutoCompSelect(matchWord)
 
 class CallTipCodeHelpSTCMix(CodeHelpStyledTextCtrlMix):
+    """ Mixin that assists with code completion
+
+        Users should implement:
+            def getTipValue(word, lnNo):
+                return 'Tip'
+    """
     def __init__(self):
         self.lastCallTip = ''
         self.lastTipHilite = (0, 0)
@@ -669,8 +679,8 @@ class LanguageSTCMix:
               olsg, ds, self.lexer, self.keywords, bi) = \
               self.getSTCStyles(config, language)
 
-        self.SetEOLMode(wxSTC_EOL_LF)
-        self.eol = '\n'
+        #self.SetEOLMode(wxSTC_EOL_LF)
+        #self.eol = '\n'
         self.SetBufferedDraw(Preferences.STCBufferedDraw)
         self.SetCaretPeriod(Preferences.STCCaretPeriod)
 
