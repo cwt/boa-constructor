@@ -285,11 +285,13 @@ class UMLView(PersistentOGLView):
     showAttributes = 1
     showMethods = 1
     AllClasses = {}
+    toggleAttrBmp = 'Images/Views/UML/attribute.bmp'
+    toggleMethBmp = 'Images/Views/UML/method.bmp'
 
     def __init__(self, parent, model):
-        PersistentOGLView.__init__(self, parent, model,
-            (('Toggle Attributes', self.OnToggleAttributes, self.loadBmp, ()),
-            ('Toggle Methods', self.OnToggleMethods, self.loadBmp, ())))
+        PersistentOGLView.__init__(self, parent, model, (
+            ('Toggle Attributes', self.OnToggleAttributes, self.toggleAttrBmp, ()),
+            ('Toggle Methods', self.OnToggleMethods, self.toggleMethBmp, ())))
         self.menuStdClass = wxMenu()
         id = wxNewId()
         self.menuStdClass.Append(id, "Goto Source", checkable = 0)
