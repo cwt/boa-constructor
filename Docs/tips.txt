@@ -1,0 +1,57 @@
+Create new source code files from the New tab on the Palette.
+wxApp modules also act as Project files for wxPython applications. For pure Python projects, choose PythonApp from the New palette.
+You can drag files onto Boa from the operating system's file manager.
+Boa accepts a file as command-line parameter which it will open on start up. Optionally you may include the line number where the cursor should be by appending ::<lineno>
+When Boa runs in server mode, and another Boa is started with a file on the commandline, the filename is passed to the first Boa (via a socket) and it is opened there.
+Boa supports 'constricted' mode where only the Editor window opens at startup. Pass the command-line flag -C to use this mode.
+If you have a reproduceable test which crashes Boa and are adventurous you may run Boa in tracing mode using command-line flag -T. This creates a (huge) log of every function call. After the crash, restart Boa, open Boa.py and select File->View crashlog as traceback and wait (patiently) while the log is crunched to create a traceback.
+To add a control to a frame, select the control on the Palette and click on the place that you want to place it in the Designer.
+To define an event, select the control, go to the events page in the Inspector, select the event category and double-click the event.
+When using Dialogs from the Palette, don't try and use them with the Designer, position your cursor where you want the code in the Source Editor and click the Palette button.
+Constructor properties are not live (yet). A frame has to be closed and reopened before changes will take effect.
+Double click on a component to open the default editor or define the default event.
+To multiple-select components, hold down shift while selecting components. Only controls on the same level can be multiple selected.
+Use the cursor keys to select another control on the same level as the one currently selected.
+Controls can be precisely sized by holding down shift and using the cursor keys or moved by holding down ctrl and using the cursor keys. Moving also works for multiple selections.
+Multiple selections can be aligned and sized in one go. Multiple-select, right click and choose 'Align...' or 'Size...'
+The Creation/Tab order of controls can be changed by selecting and right clicking on the container and selecting 'Creation/Tab order...'. When the Designer is posted, the controls will be saved in their new order.
+When you use a wxFrame and you want to create multiple controls on it, it's highly recommended that you put them on a wxPanel instead of directly on the frame. In addition to a MenuBar, ToolBar and/or Status, one container control should go directly on the frame. 
+Toggle the different views for each module type under the Views menu.
+Anchors can be used to manage layout of windows. Shortly Anchors work on the principle of anchoring a side of a control to the same side of it's parent.
+Anchors are integrated with the Designer; right click on a selection tag in the Designer to get a menu to toggle it's anchors.
+The Designer supports copy/paste operations. It is also sometimes useful to copy controls from the Designer and to then paste directly in the source.
+To change the properties of items in the Explorer, select the item in the ListCtrl and choose Inspect.
+Blank pages in a wxNotebook (filled with diagonal red lines) must be given a control or they will generate illegal code.
+Diagonal lines on image control mean that the bitmap is still currently set to wxNullBitmap.
+Components on the 'Utilities' page are non visual objects and must be created on the Data View (white page that opens in the Editor when the Designer is opened)
+To test Frame type modules by themselves without running from their wxApp module, select Edit->Add simple app. Code will be added to the bottom of the file. Now click Run module (blue play button)
+Preferences are accessed via the Explorer and the Inspector. Select Preferences in the Explorer and double-click on an item to edit it's settings in the Inspector.
+Most Preferences have help. Hover with the mouse pointer over the Preference name in the Inspector and wait for the tooltip.
+Some Preference changes will only take effect when Boa is restarted. Some of the values are only used at startup.
+Preferences are stored in Preferences.py, prefs.rc.py, prefs.(msw|gtk).rc.py and prefskeys.rc.py. They will either be in the Boa root or in your .boa directory.
+Change the Source Editor's colours and fonts in the Explorer under Preferences.Source
+Accelerator key definitions for Boa can be changed in the Explorer under Preferences.Key bindings
+Non american keyboards are also supported. Set handleSpecialEuropeanKeys under Preferences to true. Change to your country with euroKeysCountry. If your keyboard is not supported, please add your keys and send it to me, see Views/wxStyledTextCtrls.py
+If you have a HOME environment variable set, and create a directory called '.boa' in your home, Boa will automatically save options settings and preferences there. The .boa directory may optionally also contain 'docs-cache' and 'Plug-ins' directories.
+COM support is turned off be default because of stability problems on Win9x. Works for me on WinNT/Win2000. If the COM demos in the wxPython demo work you may turn on COM support under Preferences. 
+ActiveX controls can not be automatically added to the Palette. You have to write a thin wrapper for controls you wish to add. See Companions/ComCompanions.py and bcrtl/activex.
+Put your cursor on a word in the Source Editor and press F1 for context help.
+Code Completion and Call Tips are (sometimes) available. The default keys for this are Ctrl-Space and Ctrl-Shft-Space.
+Code Browsing is available for Python source by holding down Ctrl and moving your mouse over identifiers in the source. When/if the word turns into a hyperlink, you may click on it to jump to the declaration or initialisation (if it can be found).
+Code Transforms does context dependant (where your cursor is) code completions. So far; adding the method definition if not defined in the current class; writing the inherited call to base class in a method.
+Syntax checking on Python source is performed when you move off a line that was modified. An error is indicated by being underlined with red squiggels. This feature has some overhead and may be turned off under Preferences.
+CVS is integrated with the Explorer. Command-line cvs needs to be installed and working. Once a CVS repository has been checked out, CVS folders will display as cyan folders. Open such a folder to view the CVS state of the files and perform CVS operations like Update and Commit.
+The top node in the Explorer tree is called Editor and it shows a list of all the open modules in the IDE. Here you may change the order of the modules and close groups of files in one operation.
+Files can be copy/pasted, bookmarked, opened, edited and saved over and between the following transports: Filesystem, FTP, DAV, SSH & Zope.
+Boa has a lot of support for editing and managing Zope objects. You need to import the zoa.zexp file into the root of your Zope tree. This file is in the ZopeLib directory.
+If your Zope server runs locally or is available on a network drive, please define the localpath property of the items under Transports->Zope. This improves importing Zope objects and opening ExternalMethods.
+After Inspecting and changing the properties of items in the Explorer, right-click and select Reload before opening the item.
+To add new definitions of non-filesystem transports, select the transport in the Explorer tree and right-click select New or click it from the toolbar. Rename the item. Now click Inspect and setup the Item. After clicking Reload you may open the new transport.
+Some controls process events different from usual and don't register mouse events like select and move in the Designer. Select these controls from the 'Objs' page in the Inspector.
+You are encouraged to extend Boa with your own controls or extensions to existing controls, filetypes or transports. All modules in the Plug-ins directory can be executed on startup. This is turned off by default. Turn it on under Preferences. See Plug-ins/UserCompanions.py for examples.
+There is some support for distutils. On the New palette, clicking Setup will create a setup.py script. This script must be manually maintained, but distutils commands may be run from the File menu.
+If py2exe is installed, it can be invoked for a setup.py module from the File menu.
+By default Boa starts up in the current directory of the process (settable from a shortcut's 'Start in'). This can be overriden with the Preferences.General setting exWorkingDirectory. In the Explorer tree, the os.cwd node shows the current working directory. 
+At startup wxPython objects (even wxSTC) have their __doc__ attribute defined to a text version of the wxWindows html help. The method signatures are pythonised and used by parameter call tips on wxPython objects. You may also print the __doc__ attribute of the class or class.method in the shell.
+Menu items and ToolBar tools now have an ItemId property which is used to generate the window id for the item and also the method name of the event. Change this property before hooking the event.
+Built-in window id's (e.g. wxID_OK, wxID_CANCEL, etc.) will now be respected by the Designer. Note that you have to change the id yourself in the generated source. Leave the name in the list where all the window ids are defined.
