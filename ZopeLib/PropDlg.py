@@ -27,13 +27,13 @@ class NewPropDlg(wxDialog):
 
         self.tcPropName = wxTextCtrl(size = wxSize(144, 24), value = '', pos = wxPoint(56, 8), parent = self.panel1, name = 'tcPropName', style = 0, id = wxID_NEWPROPDLGTCPROPNAME)
 
-        self.staticText2 = wxStaticText(label = 'Type:', id = wxID_NEWPROPDLGSTATICTEXT2, parent = self.panel1, name = 'staticText2', size = wxSize(27, 13), style = 0, pos = wxPoint(8, 80))
-
-        self.chType = wxChoice(size = wxSize(144, 21), id = wxID_NEWPROPDLGCHTYPE, choices = ['boolean', 'date', 'float', 'int', 'lines', 'long', 'string', 'text', 'tokens', 'selection', 'multiple selection'], parent = self.panel1, name = 'chType', validator = wxDefaultValidator, style = 0, pos = wxPoint(56, 72))
-
         self.staticText3 = wxStaticText(label = 'Value:', id = wxID_NEWPROPDLGSTATICTEXT3, parent = self.panel1, name = 'staticText3', size = wxSize(30, 13), style = 0, pos = wxPoint(8, 48))
 
         self.tcValue = wxTextCtrl(size = wxSize(144, 24), value = '', pos = wxPoint(56, 40), parent = self.panel1, name = 'tcValue', style = 0, id = wxID_NEWPROPDLGTCVALUE)
+
+        self.staticText2 = wxStaticText(label = 'Type:', id = wxID_NEWPROPDLGSTATICTEXT2, parent = self.panel1, name = 'staticText2', size = wxSize(27, 13), style = 0, pos = wxPoint(8, 80))
+
+        self.chType = wxChoice(size = wxSize(144, 21), id = wxID_NEWPROPDLGCHTYPE, choices = ['boolean', 'date', 'float', 'int', 'lines', 'long', 'string', 'text', 'tokens', 'selection', 'multiple selection'], parent = self.panel1, name = 'chType', validator = wxDefaultValidator, style = 0, pos = wxPoint(56, 72))
 
         self.btOK = wxButton(label = 'OK', id = wxID_NEWPROPDLGBTOK, parent = self.panel1, name = 'btOK', size = wxSize(72, 24), style = 0, pos = wxPoint(48, 112))
         EVT_BUTTON(self.btOK, wxID_NEWPROPDLGBTOK, self.OnBtokButton)
