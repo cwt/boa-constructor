@@ -28,10 +28,10 @@ import re
 import string
 from types import IntType, StringType
 
-id = '[A-Za-z_][A-Za-z0-9_]*'	# match identifier
-obj_def = '[A-Za-z_][A-Za-z0-9_.]*'	# match identifier
+id = '[A-Za-z_][A-Za-z0-9_]*'
+obj_def = '[A-Za-z_][A-Za-z0-9_.]*'      
 blank_line = re.compile('^[ \t]*($|#)')
-is_class = re.compile('^class[ \t]+(?P<id>%s)[ \t]*(?P<sup>\([^)]*\))?[ \t]*:'%id)
+is_class = re.compile('^[ \t]*class[ \t]+(?P<id>%s)[ \t]*(?P<sup>\([^)]*\))?[ \t]*:'%id)
 is_method = re.compile('^[ \t]*def[ \t]+(?P<id>%s)[ \t]*\((?P<sig>.*)\)[ \t]*[:][ \t]*$'%id) 
 is_func = re.compile('^def[ \t]+(?P<id>%s)[ \t]*\((?P<sig>.*)\)[ \t]*[:][ \t]*$'%id) 
 is_attrib = re.compile('[ \t]*self[.](?P<name>%s)[ \t]*=[ \t]*'%id) 
@@ -43,7 +43,6 @@ indent = re.compile('^[^ \t]*')
 is_doc_quote = re.compile("'''")
 id_doc_quote_dbl = re.compile('"""')
 is_todo = re.compile('^[ \t]*# XXX')
-list = '[A-Za-z_][A-Za-z0-9_]*'	# match identifier
 is_wid = re.compile('^\[(?P<wids>.*)\][ \t]*[=][ \t]*wxNewId[(](?P<count>\d+)[)]$')
 
 sq3string = r"(\b[rR])?'''([^'\\]|\\.|'(?!''))*(''')?"
@@ -191,7 +190,7 @@ class Module:
     def readline(self):
         line = self.source[self.lineno]
         self.lineno = self.lineno + 1
-        return line	# remove line feed        
+        return line
 
     def __init__(self, module, modulesrc):#, classes = {}, class_order = [], file = ''):
         self.classes = {}#classes
@@ -343,6 +342,8 @@ class Module:
         # check manually
         cur_class, cur_meth, cur_func = self.finaliseEntry(cur_class, cur_meth, 
           cur_func, self.lineno +1)
+        
+#        print self.imports
 
     def find_declarer(self, cls, attr, value, found = 0):
         if found: 
@@ -604,6 +605,36 @@ class Module:
                 else: return 'no info'
                         
         return info_block
+    
+    def addImportStatement(self, impStmt):
+        """ Adds an import statement to the code and internal dict if it isn't 
+            added yet """
+        m = is_import.match(impStmt)
+        impLine = ''
+        if m:
+            for n in string.splitfields(res.group('imp'), ','):
+                n = string.strip(n)
+                if not self.imports.has_key(n):
+                    self.imports[n] = [self.lineno]
+                    impLine = impStmt
+        else:
+            m = is_from.match(impStmt)
+            if m:
+                mod = m.group('module')
+                if not self.imports.has_key(mod):
+                    self.imports[mod] = [self.lineno]
+                    impLine = impStmt
+            else:
+                raise 'Import statement invalid'
+
+        if impLine:
+            # XXX Decide on default position if module does not have 
+            # XXX from wxPython.wx import *
+            # Add it beneath from wxPython.wx import *
+            if self.imports.has_key('wxPython.wx'):
+                insLine = self.imports['wxPython.wx'][0]
+                self.source.insert(insLine, impLine)
+                self.renumber(1, insLine)
     
     def getClassForLineNo(self, line_no):
         for cls in self.classes.values():
