@@ -128,6 +128,16 @@ class DebuggerConnection:
         elif bp is not None and not enabled:
             bp.disable()
 
+    def enableBreakpoints(self, filename, lineno, enabled=1):
+        '''Sets the enabled flag for all breakpoints on a given line.
+        '''
+        ds = self._ds
+        bps = ds.get_breaks(filename, lineno)
+        if bps:
+            for bp in bps:
+                if enabled: bp.enable()
+                else: bp.disable()
+
     def clear_breaks(self, filename, lineno):
         '''Clears all breakpoints on a line.  Non-blocking.
         '''
@@ -142,10 +152,10 @@ class DebuggerConnection:
 ##        ds = self._ds
 ##        ds.clear_all_breaks()
     
-##    def getSafeLocalsAndGlobals(self):
-##        '''Returns the repr-fied mappings of locals and globals in a
-##        tuple. Blocking.'''
-##        return self._callMethod('getSafeLocalsAndGlobals', 0)
+    def getSafeDict(self, locals=0):
+        '''Returns the repr-fied mappings of locals and globals in a
+        tuple. Blocking.'''
+        return self._callMethod('getSafeDict', 0, locals)
 
 ##    def getFrameInfo(self):
 ##        '''Returns a mapping containing the keys:
@@ -164,12 +174,12 @@ class DebuggerConnection:
 ##        '''
 ##        return self._callMethod('getExtendedFrameInfo', 0)
 
-##    def evaluateWatches(self, exprs):
-##        '''Evalutes the watches listed in exprs and returns the
-##        results. Input is a tuple of mappings with keys name and
-##        local, output is a mapping of name -> svalue.  Blocking.
-##        '''
-##        return self._callMethod('evaluateWatches', 0, exprs)
+    def evaluateWatches(self, exprs):
+        '''Evalutes the watches listed in exprs and returns the
+        results. Input is a tuple of mappings with keys name and
+        local, output is a mapping of name -> svalue.  Blocking.
+        '''
+        return self._callMethod('evaluateWatches', 0, exprs)
 
     def getVariablesAndWatches(self, exprs):
         '''Combines the output from getSafeLocalsAndGlobals() and
@@ -187,6 +197,8 @@ class DebuggerConnection:
         than the topmost.  n corresponds to the stack entry number
         from the result of calling getInteractionUpdate().
         '''
+        # TODO: This functionality needs to be replaced
+        # with a parameter to the watch methods.
         self._callNoWait('setWatchQueryFrame', 0, n)
 
     def pprintVarValue(self, name):
@@ -199,6 +211,8 @@ class DebuggerConnection:
         Also returns and empties the stdout and stderr buffers.
         stack is a list of mappings containing the keys:
           filename, lineno, funcname, modname.
+        breaks contains the breakpoint statistics information
+          for all current breakpoints.
         The most recent stack entry will be at the last
         of the list.  Blocking.
         '''
@@ -436,12 +450,6 @@ class DebugServer (Bdb):
             return 0
         return 1
 
-    # Overrides of Bdb methods.
-    def canonic(self, filename):
-        # Canonicalize filename.
-        # XXX This is expensive.
-        return normcase(abspath(filename))
-
     def stop_here(self, frame):
         # Redefine stopping.
         if frame is self.botframe:
@@ -499,13 +507,17 @@ class DebugServer (Bdb):
     # A literal copy of Bdb.set_break() without the print statement
     # at the end, returning the Breakpoint object.
     def set_break(self, filename, lineno, temporary=0, cond=None):
+        orig_filename = filename
         filename = self.canonic(filename)
         import linecache # Import as late as possible
         line = linecache.getline(filename, lineno)
         if not line:
                 return 'That line does not exist!'
         self.set_internal_breakpoint(filename, lineno, temporary, cond)
-        return bdb.Breakpoint(filename, lineno, temporary, cond)
+        bp = bdb.Breakpoint(filename, lineno, temporary, cond)
+        # Save the original filename for passing back the stats.
+        bp.orig_filename = orig_filename
+        return bp
 
     # An oversight in bdb?
     def do_clear(self, bpno):
@@ -547,25 +559,26 @@ class DebugServer (Bdb):
         # XXX This is imperfect.
         sys.argv = (filename,) + tuple(params)
         
+        self.run("execfile(fn, d)", {'d':d, 'fn':filename})
+
+    def run(self, cmd, globals=None, locals=None):
         exc = None
         try:
             self._running = 1
             try:
-                try:
-                    self.run("execfile(fn, d)", {'d':d, 'fn':filename})
-                except:
-                    exc = sys.exc_info()
-            finally:
-                self._running = 0
-
-            if exc is not None:
+                Bdb.run(self, cmd, globals, locals)
+            except:
                 # Provide post-mortem analysis.
-                self.exc_info = exc
+                self.exc_info = exc = sys.exc_info()
                 tb = exc[2]
                 self.frame = tb.tb_frame
                 self.query_frame = self.frame
+                tb = None
+                exc = None
                 self.serverLoop()
         finally:
+            self._running = 0
+            self.cleanupServer()
             # Kill circ. refs
             tb = None
             exc = None
@@ -600,7 +613,7 @@ class DebugServer (Bdb):
 ##        return {'filename':file, 'lineno':lineno, 'funcname':co_name,
 ##                'is_exception':(not not self.exc_info)}
 
-    def getStackInfo(self, prune_exceptions=1):
+    def getStackInfo(self, prune_exceptions=0):
         try:
             if self.exc_info is not None:
                 exc_type, exc_value, exc_tb = self.exc_info
@@ -615,7 +628,7 @@ class DebugServer (Bdb):
                     exc_tb.tb_frame, exc_tb)
                 if prune_exceptions:
                     # Remove the part before the exception handler.
-                    stack = stack[frame_stack_len + 2:]
+                    stack = stack[frame_stack_len + 1:]
                     frame_stack_len = len(stack)
             else:
                 exc_type = None
@@ -623,7 +636,7 @@ class DebugServer (Bdb):
                 stack, frame_stack_len = self.get_stack(
                     self.frame, None)
             # Ignore the first stack entry.
-            stack = stack[1:]
+            #stack = stack[1:]
             return exc_type, exc_value, stack, frame_stack_len
         finally:
             exc_tb = None
@@ -653,12 +666,47 @@ class DebugServer (Bdb):
             frame = None
             stack = None
 
+    def getBreakpointStats(self):
+        rval = []
+        for bps in bdb.Breakpoint.bplist.values():
+            for bp in bps:
+                filename = getattr(bp, 'orig_filename', bp.file)
+                rval.append({'filename':filename,
+                             'lineno':bp.line,
+                             'cond':bp.cond,
+                             'temporary':bp.temporary,
+                             'enabled':bp.enabled,
+                             'hits':bp.hits,
+                             'ignore':bp.ignore
+                             })
+        return rval
+
+    def getInteractionUpdate(self):
+        rval = {'stdout':self.stdoutbuf,
+                'stderr':self.stderrbuf,
+                }
+        self.stdoutbuf = ''
+        self.stderrbuf = ''
+        info = self.getExtendedFrameInfo()
+        rval.update(info)
+        rval['breaks'] = self.getBreakpointStats()
+        return rval
+
     def getSafeLocalsAndGlobals(self):
         if self.query_frame is None:
             return ({}, {})
         l = self.safeReprDict(self.query_frame.f_locals)
         g = self.safeReprDict(self.query_frame.f_globals)
         return (l, g)
+
+    def getSafeDict(self, locals):
+        if self.query_frame is None:
+            return {}
+        if locals:
+            d = self.safeReprDict(self.query_frame.f_locals)
+        else:
+            d = self.safeReprDict(self.query_frame.f_globals)
+        return d
 
     def evaluateWatches(self, exprs):
         if self.query_frame is None:
@@ -696,10 +744,10 @@ class DebugServer (Bdb):
         localsDict = self.query_frame.f_locals
         globalsDict = self.query_frame.f_globals
         try: inst_items = dir(eval(expr, globalsDict, localsDict))
-        except: inst_items = ()
+        except: inst_items = []
         try: clss_items = dir(eval(expr, globalsDict, localsDict)
                               .__class__)
-        except: clss_items = ()
+        except: clss_items = []
         return inst_items + clss_items
 
     def setWatchQueryFrame(self, n):
@@ -725,16 +773,6 @@ class DebugServer (Bdb):
         else:
             return ''
 
-    def getInteractionUpdate(self):
-        rval = {'stdout':self.stdoutbuf,
-                'stderr':self.stderrbuf,
-                }
-        self.stdoutbuf = ''
-        self.stderrbuf = ''
-        info = self.getExtendedFrameInfo()
-        rval.update(info)
-        return rval
-
     def safeRepr(self, s):
         return self.repr.repr(s)
 
@@ -744,6 +782,6 @@ class DebugServer (Bdb):
         if len(l) >= self.maxdict2:
             l = l[:self.maxdict2]
         for key, value in l:
-            rval[self.safeRepr(key)] = self.safeRepr(value)
+            rval[str(key)] = self.safeRepr(value)
         return rval
 

@@ -16,7 +16,7 @@ def test():
     
 if __name__ == '__main__':
   test()
-  if 0:    
+  if 1:
     import IsolatedDebugger
     dc = IsolatedDebugger.DebuggerController()
     id = dc.createServer()

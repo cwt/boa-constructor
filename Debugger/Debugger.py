@@ -54,10 +54,11 @@ class StackViewCtrl(wxListCtrl):
 
     def load_stack(self, stack, index=None):
         self.stack = stack
-        self.DeleteAllItems()
+        data = []
 
-        for i in range(len(stack)):
-            entry = stack[i]
+        pos = 0
+        count = self.GetItemCount()
+        for entry in stack:
             lineno = entry['lineno']
             modname = entry['modname']
             filename = entry['filename']
@@ -71,25 +72,49 @@ class StackViewCtrl(wxListCtrl):
                 item = "%s.%s(), line %d: %s" % (modname, funcname,
                                                  lineno, sourceline)
                 attrib = modname+'.'+funcname
-                
-            if i == index:
+            if pos == index:
                 item = "> " + item
-            pos = self.GetItemCount()
-            self.InsertStringItem(pos, attrib)
+            if pos >= count:
+                # Insert.
+                self.InsertStringItem(pos, attrib)
+                count = count + 1
+            else:
+                # Update.
+                self.SetStringItem(pos, 0, attrib, -1)
             self.SetStringItem(pos, 1, `lineno`, -1)
             self.SetStringItem(pos, 2, sourceline, -1)
+            pos = pos + 1
 
+        while pos < count:
+            self.DeleteItem(count - 1)
+            count = count - 1
+                
     def OnStackItemSelected(self, event):
         self.selection = event.m_itemIndex
 
         stacklen = len(self.stack)
         if 0 <= self.selection < stacklen:
             self.debugger.debug_conn.setWatchQueryFrame(self.selection)
-            self.debugger.show_variables()
+            self.debugger.invalidatePanes()
+            #self.debugger.show_variables()
             #self.debugger.show_frame(self.stack[self.selection])
         
     def OnStackItemDeselected(self, event):
         self.selection = -1
+
+    def selectCurrentEntry(self):
+        newsel = self.GetItemCount() - 1
+        if newsel != self.selection:
+            if self.selection >= 0:
+                item = self.GetItem(self.selection)
+                item.m_state = item.m_state & ~wxLIST_STATE_SELECTED
+                self.SetItem(item)
+            if newsel >= 0:
+                item = self.GetItem(newsel)
+                item.m_state = item.m_state | wxLIST_STATE_SELECTED
+                self.SetItem(item)
+        if newsel >= 0:
+            self.EnsureVisible(newsel)
             
     def OnGotoSource(self, event):
         if self.selection != -1:
@@ -130,10 +155,10 @@ class BreakViewCtrl(wxListCtrl):
         self.brkImgLst.Add(IS.load('Images/Debug/Breakpoint-gray.bmp'))
         self.brkImgLst.Add(IS.load('Images/Debug/Breakpoint-blue.bmp'))
 
-        EVT_LIST_ITEM_SELECTED(self, wxID_BREAKVIEW,
-                               self.OnBreakpointSelected)
-        EVT_LIST_ITEM_DESELECTED(self, wxID_BREAKVIEW,
-                                 self.OnBreakpointDeselected)
+##        EVT_LIST_ITEM_SELECTED(self, wxID_BREAKVIEW,
+##                               self.OnBreakpointSelected)
+##        EVT_LIST_ITEM_DESELECTED(self, wxID_BREAKVIEW,
+##                                 self.OnBreakpointDeselected)
         EVT_LEFT_DCLICK(self, self.OnGotoSource) 
 
         EVT_RIGHT_DOWN(self, self.OnRightDown)
@@ -159,9 +184,10 @@ class BreakViewCtrl(wxListCtrl):
 
         self.SetImageList(self.brkImgLst, wxIMAGE_LIST_SMALL)
 
-        self.selection = -1
+        self.rightsel = -1
         self.debugger = debugger
         self.bps = []
+        self.stats = {}
 
         #for file, lineno in bdb.Breakpoint.bplist.keys():
         #    self.debugger.set_internal_breakpoint(file, lineno)
@@ -170,7 +196,7 @@ class BreakViewCtrl(wxListCtrl):
         self.menu.Destroy()
             
     def refreshList(self):
-        self.selection = -1
+        self.rightsel = -1
         self.DeleteAllItems()
         bps = bplist.getBreakpointList()
         # Sort by filename and lineno.
@@ -189,25 +215,33 @@ class BreakViewCtrl(wxListCtrl):
                 p, path.basename(bp['filename']), imgIdx)
             self.SetStringItem(p, 1, str(bp['lineno']))
             if bp['enabled']: self.SetStringItem(p, 3, '*')
-            # TODO: Reenable hit counts.
-            #self.SetStringItem(p, 2, `bp.ignore`)
-            #self.SetStringItem(p, 3, `bp.hits`)
-            self.SetStringItem(p, 2, '')
-            self.SetStringItem(p, 3, '')
+
+            hits = ''
+            ignore = ''
+            if self.stats:
+                for sbp in self.stats:
+                    if (bp['filename'] == sbp['filename'] and
+                        bp['lineno'] == sbp['lineno']):
+                        hits = str(sbp['hits'])
+                        ignore = str(sbp['ignore'])
+                        break
+            self.SetStringItem(p, 2, ignore)
+            self.SetStringItem(p, 3, hits)
             self.SetStringItem(p, 4, bp['cond'] or '')
     
     def addBreakpoint(self, filename, lineno):
         self.refreshList()
 
-    def OnBreakpointSelected(self, event):
-        self.selection = event.m_itemIndex
+##    def OnBreakpointSelected(self, event):
+##        self.selection = event.m_itemIndex
         
-    def OnBreakpointDeselected(self, event):
-        self.selection = -1
+##    def OnBreakpointDeselected(self, event):
+##        self.selection = -1
     
     def OnGotoSource(self, event):
-        if self.selection != -1:
-            bp = self.bps[self.selection]
+        sel = self.rightsel
+        if sel != -1:
+            bp = self.bps[sel]
 
             filename = self.debugger.resolvePath(bp['filename'])
             if not filename: return
@@ -218,38 +252,47 @@ class BreakViewCtrl(wxListCtrl):
             model = editor.getActiveModulePage().model
             model.views['Source'].focus()
             model.views['Source'].SetFocus()
-            model.views['Source'].selectLine(bp.line - 1)
+            model.views['Source'].selectLine(bp['lineno'] - 1)
 
     def OnEdit(self, event):
         pass
 
     def OnDelete(self, event):
-        if self.selection != -1:
-            bp = self.bps[self.selection]
+        sel = self.rightsel
+        if sel != -1:
+            bp = self.bps[sel]
             bplist.deleteBreakpoints(bp['filename'], bp['lineno'])
-            # TODO: notify process.
+            self.debugger.debug_conn.clear_breaks(
+                bp['filename'], bp['lineno'])
+            # TODO: Unmark the breakpoint in the editor.
             self.refreshList()
 
     def OnRefresh(self, event):
         self.refreshList()
 
     def OnToggleEnabled(self, event):
-        if self.selection != -1:
-            bp = self.bps[self.selection]
-            bp['enabled'] = not bp['enabled']
-            # TODO: notify process.
+        sel = self.rightsel
+        if sel != -1:
+            bp = self.bps[sel]
+            filename = bp['filename']
+            lineno = bp['lineno']
+            enabled = not bp['enabled']
+            bplist.enableBreakpoints(filename, lineno, enabled)
+            self.debugger.debug_conn.enableBreakpoints(
+                filename, lineno, enabled)
             self.refreshList()
          
     def OnRightDown(self, event):
-        self.x = event.GetX()
-        self.y = event.GetY()
+        self.pos = event.GetPosition()
 
     def OnRightClick(self, event):
-        if self.selection != -1:
-            bp = self.bps[self.selection]
+        sel = self.HitTest(self.pos)[0]
+        if sel != -1:
+            self.rightsel = sel
+            bp = self.bps[sel]
             self.menu.Check(wxID_BREAKENABLED, bp['enabled'])
-            self.PopupMenu(self.menu, wxPoint(self.x, self.y))
-        
+            self.PopupMenu(self.menu, self.pos)
+
 
 # XXX Expose classes' dicts as indented items
 wxID_NSVIEW = NewId()
@@ -317,10 +360,10 @@ class NamespaceViewCtrl(wxListCtrl):
                 row = row + 1
 
         self.dict = dict
-    
+
     def OnAddAsWatch(self, event):
-        if self.selected != -1:
-            name = self.names[self.selected]
+        if self.rightsel != -1:
+            name = self.names[self.rightsel]
             self.add_watch(name, self.is_local)
 
     def OnAddAWatch(self, event):
@@ -333,11 +376,13 @@ class NamespaceViewCtrl(wxListCtrl):
         self.selected = -1
 
     def OnRightDown(self, event):
-        self.x = event.GetX()
-        self.y = event.GetY()
+        self.pos = event.GetPosition()
 
     def OnRightClick(self, event):
-        self.PopupMenu(self.menu, wxPoint(self.x, self.y))
+        sel = self.HitTest(self.pos)[0]
+        if sel != -1:
+            self.rightsel = sel
+            self.PopupMenu(self.menu, self.pos)
 
 ##    def close(self):
 ##        self.frame.destroy()
@@ -360,9 +405,9 @@ class WatchViewCtrl(wxListCtrl):
 
         self.SetImageList(images, wxIMAGE_LIST_SMALL)
 
-        EVT_LIST_ITEM_SELECTED(self, -1, self.OnItemSelect)
-        EVT_LIST_ITEM_DESELECTED(self, -1, self.OnItemDeselect)
-        self.selected = -1
+##        EVT_LIST_ITEM_SELECTED(self, -1, self.OnItemSelect)
+##        EVT_LIST_ITEM_DESELECTED(self, -1, self.OnItemDeselect)
+        self.rightsel = -1
 
         EVT_RIGHT_DOWN(self, self.OnRightDown)
         EVT_COMMAND_RIGHT_CLICK(self, -1, self.OnRightClick)
@@ -376,6 +421,9 @@ class WatchViewCtrl(wxListCtrl):
         id = NewId()
         self.menu.Append(id, 'Expand')
         EVT_MENU(self, id, self.OnExpand)
+        id = NewId()
+        self.menu.Append(id, 'Delete All')
+        EVT_MENU(self, id, self.OnDeleteAll)
         self.x = self.y = 0
     
     def destroy(self):
@@ -383,9 +431,12 @@ class WatchViewCtrl(wxListCtrl):
 
     dict = -1
     
-    def add_watch(self, name, local):
-        if name: 
-            self.watches.append((name, local))
+    def add_watch(self, name, local, pos=-1):
+        if name:
+            if pos < 0 or pos >= len(self.watches):
+                self.watches.append((name, local))
+            else:
+                self.watches.insert(pos, (name, local))
         else:  
             dlg = wxTextEntryDialog(
                 self, 'Enter name:', 'Add a watch:', '')
@@ -412,27 +463,35 @@ class WatchViewCtrl(wxListCtrl):
             row = row + 1
 
     def OnDelete(self, event):
-        if self.selected != -1:
-            del self.watches[self.selected]
-            self.DeleteItem(self.selected)
+        sel = self.rightsel
+        if sel != -1:
+            del self.watches[sel]
+            self.DeleteItem(sel)
+
+    def OnDeleteAll(self, event):
+        del self.watches[:]
+        self.DeleteAllItems()
 
     def OnExpand(self, event):
-        if self.selected != -1:
-            name, local = self.watches[self.selected]
-            self.debugger.expand_watch(name, local)
+        sel = self.rightsel
+        if sel != -1:
+            name, local = self.watches[sel]
+            self.debugger.expand_watch(name, local, sel + 1)
 
-    def OnItemSelect(self, event):
-        self.selected = event.m_itemIndex
+##    def OnItemSelect(self, event):
+##        self.selected = event.m_itemIndex
 
-    def OnItemDeselect(self, event):
-        self.selected = -1
+##    def OnItemDeselect(self, event):
+##        self.selected = -1
 
     def OnRightDown(self, event):
-        self.x = event.GetX()
-        self.y = event.GetY()
+        self.pos = event.GetPosition()
 
     def OnRightClick(self, event):
-        self.PopupMenu(self.menu, wxPoint(self.x, self.y))
+        sel = self.HitTest(self.pos)[0]
+        if sel != -1:
+            self.rightsel = sel
+            self.PopupMenu(self.menu, self.pos)
 
 class DebugStatusBar(wxStatusBar):
     def __init__(self, parent):
@@ -476,6 +535,7 @@ class DebugStatusBar(wxStatusBar):
                                  rect.width-4, rect.height-4)
 
 
+wxID_PAGECHANGED = NewId()
 class DebuggerFrame(wxFrame):
     def __init__(self, model, stack = None):
         wxFrame.__init__(
@@ -503,6 +563,7 @@ class DebuggerFrame(wxFrame):
         self.viewsImgLst.Add(IS.load('Images/Debug/Output.bmp'))
 
         self.running = 0
+        self.invalidatePanes(update=0)
 
         if model.defaultName != 'App' and model.app:
             filename = model.app.filename
@@ -574,7 +635,10 @@ class DebuggerFrame(wxFrame):
             self.nbTop.AddPage(self.outp, 'Output')
 
         # Create a Notebook
-        self.nbBottom = wxNotebook(self.splitter, -1)
+        self.nbBottom = wxNotebook(self.splitter, wxID_PAGECHANGED)
+        EVT_NOTEBOOK_PAGE_CHANGED(self.nbBottom, wxID_PAGECHANGED,
+                                  self.OnPageChange)
+
         if wxPlatform == '__WXMSW__':
             self.nbBottom.SetImageList(self.viewsImgLst)
             
@@ -614,38 +678,76 @@ class DebuggerFrame(wxFrame):
     def add_watch(self, name, local):
         self.watches.add_watch(name, local)
         self.nbBottom.SetSelection(0)
-        self.show_variables()        
+        self.invalidatePanes()        
 
-    def expand_watch(self, name, local):
+    def expand_watch(self, name, local, pos):
         names = self.debug_conn.getWatchSubobjects(name)
         for item in names:
-            self.watches.add_watch('%s.%s' %(name, item), local)
+            self.watches.add_watch('%s.%s' %(name, item), local, pos)
+            pos = pos + 1
         self.nbBottom.SetSelection(0)
-        self.show_variables()        
+        self.invalidatePanes()
+
+    def OnPageChange(self, event):
+        sel = event.GetSelection()
+        if sel >= 0: # and sel != self.nbBottomPageNo:
+            # self.nbBottomPageNo = sel
+            self.updateSelectedPane(sel)
+        event.Skip()
         
-    def show_variables(self, force=0):
+    def invalidatePanes(self, update=1):
+        self.updated_panes = [0, 0, 0]
+        if update:
+            self.updateSelectedPane()
+
+    def updateSelectedPane(self, pageno=-1):
+        if pageno < 0:
+            pageno = self.nbBottom.GetSelection()
+        if not self.updated_panes[pageno]:
+            if pageno == 0:
+                self.showWatches()
+            else:
+                dict = self.debug_conn.getSafeDict(locals=(pageno == 1))
+                if pageno == 1:
+                    self.locs.load_dict(dict)
+                elif pageno == 2:
+                    self.globs.load_dict(dict)
+            self.updated_panes[pageno] = 1
+
+    def showWatches(self):
         ws = self.watches.watches
         exprs = []
         for name, local in ws:
             exprs.append({'name':name, 'local':local})
-        info = self.debug_conn.getVariablesAndWatches(exprs)
-        if info is not None:
-            ldict, gdict, svalues = info
+        if exprs:
+            svalues = self.debug_conn.evaluateWatches(exprs)
         else:
-            ldict, gdict, svalues = None, None, {}
-        #frame = self.frame
-        #if not frame:
-        #    ldict = gdict = None
-        #else:
-        #    ldict = frame.f_locals
-        #    gdict = frame.f_globals
-        #    if self.locs and self.globs and ldict is gdict:
-        #        ldict = None
-        if self.locs:
-            self.locs.load_dict(ldict, force)
-        if self.globs:
-            self.globs.load_dict(gdict, force)
-        self.watches.load_dict(svalues, force)
+            svalues = None
+        self.watches.load_dict(svalues)
+
+##    def show_variables(self, force=0):
+##        ws = self.watches.watches
+##        exprs = []
+##        for name, local in ws:
+##            exprs.append({'name':name, 'local':local})
+##        info = self.debug_conn.getVariablesAndWatches(exprs)
+##        if info is not None:
+##            ldict, gdict, svalues = info
+##        else:
+##            ldict, gdict, svalues = None, None, {}
+##        #frame = self.frame
+##        #if not frame:
+##        #    ldict = gdict = None
+##        #else:
+##        #    ldict = frame.f_locals
+##        #    gdict = frame.f_globals
+##        #    if self.locs and self.globs and ldict is gdict:
+##        #        ldict = None
+##        if self.locs:
+##            self.locs.load_dict(ldict, force)
+##        if self.globs:
+##            self.globs.load_dict(gdict, force)
+##        self.watches.load_dict(svalues, force)
 
     #def show_frame(self, (frame, lineno)):
     #    self.frame = frame
@@ -664,9 +766,9 @@ class DebuggerFrame(wxFrame):
     
 #---------------------------------------------------------------------------
 
-    def canonic(self, filename):
-        # Canonicalize filename.
-        return os.path.normcase(os.path.abspath(filename))
+##    def canonic(self, filename):
+##        # Canonicalize filename.
+##        return os.path.normcase(os.path.abspath(filename))
 
     #def do_clear(self, arg):
     #    self.clear_bpbynumber(arg)
@@ -799,21 +901,24 @@ class DebuggerFrame(wxFrame):
         if sv:
             i = info['frame_stack_len']
             sv.load_stack(stack, i)
+            sv.selectCurrentEntry()
 
-##        if ((string.lower(filename), lineno) in
-##            bdb.Breakpoint.bplist.keys()):
         if bplist.hasBreakpoint(filename, lineno):
+            bplist.clearTemporaryBreakpoints(filename, lineno)
             self.sb.error.SetBackgroundColour(wxNamedColour('red'))
             self.sb.error.SetLabel('Breakpoint.')
-
             rect = self.sb.GetFieldRect(1)
             self.sb.error.SetDimensions(rect.x+2, rect.y+2, 
                                         rect.width-4, rect.height-4)
-            # TODO: Remove temporary breakpoints from bplist
-            # and unmark them in the editor.
+            # TODO: Unmark temporary breakpoints in the editor.
             
+        self.breakpts.stats = info['breaks']
         self.breakpts.refreshList()
         self.selectSourceLine(filename, lineno)
+
+        # Update the currently selected pane
+        # (watches, locals, or globals.)
+        self.invalidatePanes()
 
         #self.startMainLoop()
         #self.sb.status.SetLabel('')
