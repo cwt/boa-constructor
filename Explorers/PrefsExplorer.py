@@ -6,7 +6,7 @@
 #
 # Created:     2001/06/08
 # RCS-ID:      $Id$
-# Copyright:   (c) 2001 - 2003
+# Copyright:   (c) 2001 - 2004
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 print 'importing Explorers.PrefsExplorer'
@@ -73,7 +73,7 @@ class BoaPrefGroupNode(PreferenceGroupNode):
             'prefs.rc.py'), prefImgIdx, self, Preferences)
         self.preferences.append(self.general_pref)
 
-        self.platform_pref = UsedModuleSrcBsdPrefColNode('Platform spesific',
+        self.platform_pref = UsedModuleSrcBsdPrefColNode('Platform specific',
             Preferences.exportedProperties2, os.path.join(Preferences.rcPath,
             'prefs.%s.rc.py' % (wx.wxPlatform == '__WXMSW__' and 'msw' or 'gtk')),
             prefImgIdx, self, Preferences)

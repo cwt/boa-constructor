@@ -6,7 +6,7 @@
 #
 # Created:     2001/06/02
 # RCS-ID:      $Id$
-# Copyright:   (c) 2001 - 2003 Riaan Booysen
+# Copyright:   (c) 2001 - 2004 Riaan Booysen
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 print 'importing Explorers.DAVExplorer'
