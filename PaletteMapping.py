@@ -30,26 +30,27 @@ from Companions.DialogCompanions import *
 from Companions.Companions import *
 from Companions.UtilCompanions import *
 from Companions.DialogCompanions import *
+from Companions.ZopeCompanions import *
 
 utilities = [wxMenu, wxImageList, wxAcceleratorTable, wxTextDropTarget, wxFileDropTarget]
 
 palette = [
   ['Frame bars', 'Editor/Tabs/Singletons', 
-    [wxMenuBar, wxToolBar, wxStatusBar]],
+    [wxMenuBar, wxToolBar, wxStatusBar] ],
   ['Containers/Layout', 'Editor/Tabs/Containers', 
     [wxPanel, wxScrolledWindow, wxNotebook, wxSplitterWindow, wxSashWindow,
-     wxSashLayoutWindow]], 
+     wxSashLayoutWindow] ], 
   ['Basic Controls', 'Editor/Tabs/Basic', 
     [wxStaticText, wxTextCtrl, wxComboBox, wxChoice, wxCheckBox, wxRadioButton, 
      wxSlider, wxGauge, wxStaticBox, wxScrollBar, wxStaticBitmap, wxStaticLine, 
-     wxHtmlWindow, wxSpinCtrl, wxCalendarCtrl, wxStyledTextCtrl]],
+     wxHtmlWindow, wxSpinCtrl, wxCalendarCtrl, wxStyledTextCtrl] ],
   ['Buttons', 'Editor/Tabs/Basic',
     [wxButton, wxBitmapButton, wxSpinButton, wxGenButton, wxGenBitmapButton, 
-     wxGenToggleButton, wxGenBitmapToggleButton]],
+     wxGenToggleButton, wxGenBitmapToggleButton] ],
   ['List Controls', 'Editor/Tabs/Lists', 
-    [wxRadioBox, wxListBox, wxCheckListBox, wxGrid, wxListCtrl, wxTreeCtrl]],
+    [wxRadioBox, wxListBox, wxCheckListBox, wxGrid, wxListCtrl, wxTreeCtrl] ],
   ['Utilities', 'Editor/Tabs/Utilities', 
-    utilities]]
+    utilities] ]
 
 helperClasses = {
     'wxFontPtr': FontDTC,
@@ -59,7 +60,11 @@ helperClasses = {
 dialogPalette =  ['Dialogs', 'Editor/Tabs/Dialogs', 
     [wxColourDialog, wxFontDialog, wxFileDialog, wxDirDialog, 
     wxPrintDialog, wxPageSetupDialog, 
-    wxSingleChoiceDialog, wxTextEntryDialog, wxMessageDialog]]
+    wxSingleChoiceDialog, wxTextEntryDialog, wxMessageDialog] ]
+
+zopePalette =  ['Zope', 'Editor/Tabs/Zope', 
+    ['DTML Document', 'DTML Method', 'Folder', 'File', 'Image', 'External Method',
+     'Python Method', 'Mail Host', 'ZCatalog', 'User Folder'] ]#'SQL Method', 
 
 compInfo = {
     wxApp: ['wxApp', None],
@@ -121,6 +126,19 @@ compInfo = {
     wxFileDropTarget: ['wxFileDropTarget', NYIDTC],
     wxSashWindow: ['wxSashWindow', SashWindowDTC],
     wxSashLayoutWindow: ['wxSashLayoutWindow', SashLayoutWindowDTC],
+    
+    'DTML Document': ['DTMLDocument', DTMLDocumentZC], 
+    'DTML Method': ['DTMLMethod', DTMLMethodZC], 
+    'Folder': ['Folder', FolderZC],
+    'File': ['File', FileZC],
+    'Image': ['Image', ImageZC],
+    'External Method': ['ExternalMethod', ExternalMethodZC],
+    'Python Method': ['PythonMethod', PythonMethodZC], 
+    'Mail Host': ['MailHost', MailHostZC], 
+    'ZCatalog': ['ZCatalog', ZCatalogZC],
+#    'SQL Method': ['SQLMethod', SQLMethodZC],
+    'User Folder': ['UserFolder', UserFolderZC],
+    
 }
 
 def compInfoByName(name):
