@@ -12,7 +12,8 @@
 
 from wxPython.wx import *
 from wxPython.stc import *
-import os, string
+import string
+from os import path
 import EditorViews, ProfileView, Search, Help, Preferences
 from StyledTextCtrls import PythonStyledTextCtrlMix, BrowseStyledTextCtrlMix, HTMLStyledTextCtrlMix, FoldingStyledTextCtrlMix, CPPStyledTextCtrlMix, idWord, new_stc, old_stc
 from PrefsKeys import keyDefs
@@ -597,13 +598,14 @@ class PythonSourceView (EditorStyledTextCtrl,
         self.MarkerDelete(lineNo - 1, brkPtMrk)
         self.MarkerDelete(lineNo - 1, tmpBrkPtMrk)
 
-    def addBreakPoint(self, lineNo, temp = 0):
+    def addBreakPoint(self, lineNo, temp=0, notify_debugger=1):
         self.breaks.addBreakpoint(lineNo, temp)
-        debugger = self.model.editor.debugger
-        if debugger:
-            # Try to apply to the running debugger.
-            filename = self.model.filename #string.lower(self.model.filename)
-            debugger.setBreakpoint(filename, lineNo, temp)
+        if notify_debugger:
+            debugger = self.model.editor.debugger
+            if debugger:
+                # Try to apply to the running debugger.
+                filename = self.model.filename
+                debugger.setBreakpoint(filename, lineNo, temp)
         if temp: mrk = tmpBrkPtMrk
         else: mrk = brkPtMrk
         self.MarkerAdd(lineNo - 1, mrk)
@@ -652,12 +654,7 @@ class PythonSourceView (EditorStyledTextCtrl,
             self.addBreakPoint(line)
 
     def OnRunToCursor(self, event):
-        line = self.GetLineFromPos(self.GetCurrentPos()) + 1
-        #if not self.breaks.hasBreakpoint(line):
-        self.addBreakPoint(line, 1)
-        self.OnDebug(event, autocont=1)
-#        else return  
-        # XXX Case where module is run, outside app
+        self.OnDebug(event, to_cursor=1)
 
     def OnRun(self, event):
         if not self.model.savedAs: #modified or len(self.model.viewsModified):
@@ -688,15 +685,23 @@ class PythonSourceView (EditorStyledTextCtrl,
         finally:
             wxEndBusyCursor()
 
-    def OnDebug(self, event, autocont=0):
+    def OnDebug(self, event, to_cursor=0):
         if not self.model.savedAs or self.model.modified or \
           len(self.model.viewsModified):
             wxMessageBox('Cannot debug an unsaved or modified module.')
             return
-        was_running = self.model.debug()
-        if autocont or was_running:
-            debugger = self.model.editor.debugger
-            debugger.setContinue()
+
+        temp_breakpoint = None
+        if to_cursor:
+            line = self.GetLineFromPos(self.GetCurrentPos()) + 1
+            self.addBreakPoint(line, temp=1, notify_debugger=0)
+            # Avoid a race condition by sending the breakpoint
+            # along with the "continue" instruction.
+            temp_breakpoint = (path.normcase(path.abspath(
+                self.model.filename)), line)
+
+        self.model.debug(cont_if_running=1, cont_always=to_cursor,
+                         temp_breakpoint=temp_breakpoint)
 
     def OnDebugParams(self, event):
         if not self.model.savedAs or self.model.modified or \
@@ -893,7 +898,7 @@ class PythonSourceView (EditorStyledTextCtrl,
         return start, length
     
     def getBreakpointFilename(self):
-        return os.path.splitext(self.model.filename)[0]+'.brk'
+        return path.splitext(self.model.filename)[0]+'.brk'
 
     def OnSaveBreakPoints(self, event):
         self.saveBreakpoints()
