@@ -119,7 +119,7 @@ class ProcessProgressDlg(wxDialog):
             self.updateStream(self.outputStream, self.output, self.outputTctrl)
             
         wxWakeUpIdle()
-        time.sleep(0.0001)
+        time.sleep(0.01)
 
     def OnProcessEnded(self, event):
         self.OnIdle(None)
