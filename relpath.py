@@ -15,23 +15,54 @@
 ##d = 'c:\\a\\b\\h\\i\\j.txt'
 ##e = 'd:\\z\\x\\y\\j\\k.txt'
 
-import os
+import os, string
 from os import path
 
 def splitpath(apath):
     """ Splits a path into a list of directory names """
     path_list = []
+    drive, apath = path.splitdrive(apath)
     head, tail = path.split(apath)
-    while tail:
-        path_list.insert(0, tail)
-        head, tail = path.split(head)
+    while 1:
+        if tail:
+            path_list.insert(0, tail)
+        newhead, tail = path.split(head)
+        if newhead == head:
+            break
+        else:
+            head = newhead
+    if drive:
+        path_list.insert(0, drive)
     return path_list
 
 
 def relpath(base, comp):
     """ Return a path to file comp relative to path base. """
-    base_drive, base_path = path.splitdrive(base)
-    comp_drive, comp_path = path.splitdrive(comp)
+    protsplitbase = string.split(base, '://')
+    if len(protsplitbase) == 1:
+        baseprot, nbase = 'file', protsplitbase[0]
+    elif len(protsplitbase) == 2:
+        baseprot, nbase = protsplitbase
+    elif len(protsplitbase) == 3:
+        baseprot, nbase, zipentry = protsplitbase
+    else:
+        raise 'Unhandled path %s'%`protsplitbase`
+
+    protsplitcomp = string.split(comp, '://')
+    if len(protsplitcomp) == 1:
+        compprot, ncomp  = 'file', protsplitcomp[0]
+    elif len(protsplitcomp) == 2:
+        compprot, ncomp = protsplitcomp
+    elif len(protsplitcomp) == 3:
+        compprot, ncomp, zipentry = protsplitcomp
+    else:
+        raise 'Unhandled path %s'%`protsplitcomp`
+
+    if baseprot != compprot:
+        return comp
+        
+    base_drive, base_path = path.splitdrive(nbase)
+    comp_drive, comp_path = path.splitdrive(ncomp)
     base_path_list = splitpath(base_path)
     comp_path_list = splitpath(comp_path)
 
@@ -50,8 +81,6 @@ def relpath(base, comp):
             break
     for cnt in range(max(len(base_path_list) - idx + found, 0)):
         rel_path.insert(0, os.pardir)
-#    for cnt in range(max(1 + len(base_path_list) - len(comp_path_list), 0)):
-#        rel_path.insert(0, os.pardir)
 
     return apply(path.join, rel_path)
 
