@@ -14,6 +14,7 @@ import os, string
 from wxPython import wx
 
 from Explorers.ExplorerNodes import ExplorerCompanion
+import ZopeLib
 from ZopeLib import Client, ExtMethDlg
 from ZopeLib.DateTime import DateTime
 import RTTI

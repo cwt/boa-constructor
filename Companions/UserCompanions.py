@@ -10,7 +10,7 @@
 
 from wxPython.wx import *
 
-import BaseCompanions, Companions, HelpCompanions, EventCollections, PropEdit
+import BaseCompanions, Companions, EventCollections, PropEdit
 import PaletteStore
 
 # Defines a new page for the palette
@@ -78,7 +78,7 @@ EventCollections.EventCategories['CalendarEvent'] = (EVT_CALENDAR,
 EventCollections.commandCategories.append('CalendarEvent')
 
 class CalendarDTC(CalendarConstr, BaseCompanions.WindowDTC):
-    wxDocs = HelpCompanions.wxCalendarCtrlDocs
+    #wxDocs = HelpCompanions.wxCalendarCtrlDocs
     def __init__(self, name, designer, parent, ctrlClass):
         BaseCompanions.WindowDTC.__init__(self, name, designer, parent, ctrlClass)
         self.windowStyles = ['wxCAL_SUNDAY_FIRST', 'wxCAL_MONDAY_FIRST',

@@ -15,7 +15,7 @@ from BaseCompanions import UtilityDTC, CollectionDTC, CollectionIddDTC, wxNullBi
 from Constructors import *
 #ImageListConstr, EmptyConstr, MenuConstr, MenuBarConstr, ImageListImagesConstr, LayoutConstraintsConstr, ChoicesConstr, AcceleratorTableEntriesConstr
 from PropEdit.PropertyEditors import IntConstrPropEdit, StrConstrPropEdit, CollectionPropEdit, BitmapConstrPropEdit, EnumConstrPropEdit, LCCEdgeConstrPropEdit, WinEnumConstrPropEdit, BoolConstrPropEdit, MenuEnumConstrPropEdit
-import HelpCompanions, methodparse
+#import HelpCompanions, methodparse
 from PropEdit import Enumerations
 import EventCollections, RTTI
 import os, copy
@@ -26,7 +26,7 @@ PaletteStore.palette.append(['Utilities', 'Editor/Tabs/Utilities',
                              PaletteStore.paletteLists['Utilities']])
 
 class ImageListDTC(ImageListConstr, UtilityDTC):
-    wxDocs = HelpCompanions.wxImageListDocs
+    #wxDocs = HelpCompanions.wxImageListDocs
     def __init__(self, name, designer, objClass):
         UtilityDTC.__init__(self, name, designer, objClass)
         self.editors.update({'Width': IntConstrPropEdit,
@@ -51,7 +51,7 @@ class ImageListDTC(ImageListConstr, UtilityDTC):
             nv.propEditor.edit(None)
 
 class ImageListImagesCDTC(ImageListImagesConstr, CollectionDTC):
-    wxDocs = HelpCompanions.wxImageListDocs
+    #wxDocs = HelpCompanions.wxImageListDocs
     propName = 'Images'
     displayProp = 'bitmap'
     indexProp = '(None)'
@@ -93,7 +93,7 @@ class ImageListImagesCDTC(ImageListImagesConstr, CollectionDTC):
 
 # XXX Needs ctrl derivation before it can be implemented
 class TimerDTC(EmptyConstr, UtilityDTC):
-    wxDocs = HelpCompanions.wxTimerDocs
+    #wxDocs = HelpCompanions.wxTimerDocs
     def __init__(self, name, designer, objClass):
         UtilityDTC.__init__(self, name, designer, objClass)
     def designTimeSource(self):
@@ -101,7 +101,7 @@ class TimerDTC(EmptyConstr, UtilityDTC):
 
 class AcceleratorTableDTC(ChoicesConstr, NYIDTC):
 #class AcceleratorTableDTC(ChoicesConstr, UtilityDTC):
-    wxDocs = HelpCompanions.wxAcceleratorTableDocs
+    #wxDocs = HelpCompanions.wxAcceleratorTableDocs
     def __init__(self, name, designer, objClass):
         UtilityDTC.__init__(self, name, designer, objClass)
         self.editors.update({'Entries': CollectionPropEdit})
@@ -111,7 +111,7 @@ class AcceleratorTableDTC(ChoicesConstr, NYIDTC):
         return {'choices':'[]'}
 
 class AcceleratorTableEntriesCDTC(AcceleratorTableEntriesConstr, CollectionDTC):
-    wxDocs = HelpCompanions.wxIndividualLayoutConstraintDocs
+    #wxDocs = HelpCompanions.wxIndividualLayoutConstraintDocs
     propName = 'Entries'
     displayProp = 'flags'
     indexProp = '(None)'
@@ -157,7 +157,7 @@ EventCollections.EventCategories['MenuEvent'] = (EVT_MENU,)
 EventCollections.commandCategories.append('MenuEvent')
 
 class MenuDTC(MenuConstr, UtilityDTC):
-    wxDocs = HelpCompanions.wxMenuDocs
+    #wxDocs = HelpCompanions.wxMenuDocs
     def __init__(self, name, designer, objClass):
         UtilityDTC.__init__(self, name, designer, objClass)
         self.editors.update({'Title': StrConstrPropEdit,
@@ -185,7 +185,7 @@ class MenuDTC(MenuConstr, UtilityDTC):
             nv.propEditor.edit(None)
 
 class MenuItemsCIDTC(MenuItemsConstr, CollectionIddDTC):
-    wxDocs = HelpCompanions.wxMenuDocs
+    #wxDocs = HelpCompanions.wxMenuDocs
     propName = 'Items'
     displayProp = 'item'
     indexProp = '(None)'
@@ -237,7 +237,7 @@ class MenuItemsCIDTC(MenuItemsConstr, CollectionIddDTC):
         insp.events.doAddEvent('MenuEvent', 'EVT_MENU')
 
 class MenuBarDTC(MenuBarConstr, UtilityDTC):#DesignTimeCompanion):
-    wxDocs = HelpCompanions.wxMenuBarDocs
+    #wxDocs = HelpCompanions.wxMenuBarDocs
 
     def __init__(self, name, designer, objClass):
         UtilityDTC.__init__(self, name, designer, objClass)
@@ -271,7 +271,7 @@ class MenuBarDTC(MenuBarConstr, UtilityDTC):#DesignTimeCompanion):
             nv.propEditor.edit(None)
 
 class MenuBarMenusCDTC(MenuBarMenusConstr, CollectionDTC):
-    wxDocs = HelpCompanions.wxMenuBarDocs
+    #wxDocs = HelpCompanions.wxMenuBarDocs
     propName = 'Menus'
     displayProp = 'title'
     indexProp = '(None)'
@@ -313,7 +313,7 @@ class MenuBarMenusCDTC(MenuBarMenusConstr, CollectionDTC):
         self.textConstrLst[self.index].params['menu'] = value
 
 class LayoutConstraintsDTC(EmptyConstr, UtilityDTC):
-    wxDocs = HelpCompanions.wxLayoutConstraintsDocs
+    #wxDocs = HelpCompanions.wxLayoutConstraintsDocs
     def __init__(self, name, designer, objClass):
         UtilityDTC.__init__(self, name, designer, objClass)
         self.editors.update({'Constraints': CollPropEdit})
@@ -352,7 +352,7 @@ class OwnedCollectionDTC(CollectionDTC):
 
 
 class IndividualLayoutConstraintOCDTC(LayoutConstraintsConstr, OwnedCollectionDTC):
-    wxDocs = HelpCompanions.wxIndividualLayoutConstraintDocs
+    #wxDocs = HelpCompanions.wxIndividualLayoutConstraintDocs
     propName = 'Constraints'
     displayProp = '(None)'
     indexProp = '(None)'
@@ -495,7 +495,7 @@ class IndividualLayoutConstraintOCDTC(LayoutConstraintsConstr, OwnedCollectionDT
         self.applyConstraints()
 
 class SizerDTC(EmptyConstr, UtilityDTC):#DesignTimeCompanion):
-    wxDocs = HelpCompanions.wxSizerDocs
+    #wxDocs = HelpCompanions.wxSizerDocs
 
     def __init__(self, name, designer, objClass):
         UtilityDTC.__init__(self, name, designer, objClass)
@@ -526,7 +526,7 @@ class BoxSizerDTC(SizerDTC):
     pass
 
 class SizerControlsCDTC(SizerControlsConstr, CollectionDTC):
-    wxDocs = HelpCompanions.wxSizerDocs
+    #wxDocs = HelpCompanions.wxSizerDocs
     propName = 'Controls'
 #    displayProp = 'title'
     indexProp = '(None)'

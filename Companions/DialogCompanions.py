@@ -13,7 +13,6 @@
 from wxPython.wx import *
 
 from BaseCompanions import CodeCompanion
-import HelpCompanions
 import PaletteStore
 
 class CommonDialogCompanion(CodeCompanion):
@@ -26,7 +25,7 @@ class DataCDC(CommonDialogCompanion):
         return '    dlg = %(dlgclass)s(%(parent)s, data = None)'
 
 class ColourDialogCDC(DataCDC): #(parent, data = None)
-    wxDocs = HelpCompanions.wxColourDialogDocs
+    #wxDocs = HelpCompanions.wxColourDialogDocs
     def body(self):
         return '''data = wxColourData()
 data.SetChooseFull(true)
@@ -41,7 +40,7 @@ finally:
 '''
 
 class FontDialogCDC(DataCDC): #(parent, data = None)
-    wxDocs = HelpCompanions.wxFontDialogDocs
+    #wxDocs = HelpCompanions.wxFontDialogDocs
     def body(self):
         return '''data = wxFontData()
 dlg = wxFontDialog(self, data)
@@ -56,7 +55,7 @@ finally:
 '''
 
 class PrintDialogCDC(DataCDC): #(parent, data = None)
-    wxDocs = HelpCompanions.wxPrintDialogDocs
+    #wxDocs = HelpCompanions.wxPrintDialogDocs
     def body(self):
         return '''data = wxPrintDialogData()
 data.EnablePrintToFile(true)
@@ -72,7 +71,7 @@ finally:
 '''
 
 class PageSetupDialogCDC(DataCDC): #(parent, data = None)
-    wxDocs = HelpCompanions.wxPageSetupDialogDocs
+    #wxDocs = HelpCompanions.wxPageSetupDialogDocs
     def body(self):
         return '''data = wxPageSetupDialogData()
 data.SetMarginTopLeft(wxPoint(50,50))
@@ -91,7 +90,7 @@ class MessagedCDC(CommonDialogCompanion):
     pass
 
 class DirDialogCDC(MessagedCDC): #(parent, message = 'Choose a directory', defaultPath = '', style = 0, pos = wxDefaultPosition)
-    wxDocs = HelpCompanions.wxDirDialogDocs
+    #wxDocs = HelpCompanions.wxDirDialogDocs
     def body(self):
         return '''dlg = wxDirDialog(self)
 try:
@@ -103,7 +102,7 @@ finally:
 '''
 
 class FileDialogCDC(MessagedCDC): #(parent, message = 'Choose a file', defaultDir = '', defaultFile = '', wildcard ='*.*', style = 0, pos = wxDefaultPosition)
-    wxDocs = HelpCompanions.wxFileDialogDocs
+    #wxDocs = HelpCompanions.wxFileDialogDocs
     def body(self):
         return '''dlg = wxFileDialog(self, "Choose a file", ".", "", "*.*", wxOPEN)
 try:
@@ -115,7 +114,7 @@ finally:
 '''
 
 class SingleChoiceDialogCDC(MessagedCDC): #(parent, message, caption, choices, clientData = None, style = wxOK | wxCANCEL | wxCENTER, pos = wxDefaultPosition)
-    wxDocs = HelpCompanions.wxSingleChoiceDialogDocs
+    #wxDocs = HelpCompanions.wxSingleChoiceDialogDocs
     def body(self):
         return '''dlg = wxSingleChoiceDialog(self, 'Question', 'Caption', [])
 try:
@@ -128,7 +127,7 @@ finally:
 '''
 
 class TextEntryDialogCDC(MessagedCDC): #(parent, message, caption = 'Please enter text', defaultValue = '', style = wxOK | wxCANCEL | wxCENTER, pos = wxDefaultPosition)
-    wxDocs = HelpCompanions.wxTextEntryDialogDocs
+    #wxDocs = HelpCompanions.wxTextEntryDialogDocs
     def body(self):
         return '''dlg = wxTextEntryDialog(self, 'Question', 'Caption', 'Default answer')
 try:
@@ -141,7 +140,7 @@ finally:
 '''
 
 class MessageDialogCDC(MessagedCDC): #(parent, message, caption = 'Message box', style = wxOK | wxCANCEL | wxCENTER, pos = wxDefaultPosition)
-    wxDocs = HelpCompanions.wxMessageDialogDocs
+    #wxDocs = HelpCompanions.wxMessageDialogDocs
     def body(self):
         return '''dlg = wxMessageDialog(self, 'Message',
   'Caption', wxOK | wxICON_INFORMATION)

@@ -14,7 +14,7 @@
 from wxPython.wx import *
 from PropEdit.PropertyEditors import *
 from Constructors import WindowConstr
-import HelpCompanions, RTTI, Preferences, Utils
+import RTTI, Preferences, Utils
 import methodparse
 import string, copy
 
@@ -47,7 +47,6 @@ bodyIndent = ' '*8
 
 class Companion:
     """ Default companion, entity with a name and default documentation """
-    wxDocs = HelpCompanions.wxDefaultDocs
     def __init__(self, name):
         self.name = name
     def getPropertyHelp(self, propName):
