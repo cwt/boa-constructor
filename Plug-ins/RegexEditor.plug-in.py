@@ -6,11 +6,13 @@ from wxPython.wx import *
 from wxPython.lib.anchors import LayoutAnchors
 from wxPython.stc import *
 
+import Preferences, Utils
+
 reFlags = {'IGNORECASE': re.IGNORECASE, 'LOCALE': re.LOCALE,
            'MULTILINE': re.MULTILINE, 'DOTALL': re.DOTALL, 
            'UNICODE': re.UNICODE, 'VERBOSE': re.VERBOSE}
 
-def create(parent):
+def createRegexEditor(parent):
     return RegexEditorFrm(parent)
 
 [wxID_REGEXEDITORFRM, wxID_REGEXEDITORFRMCLBFLAGS, 
@@ -22,7 +24,7 @@ def create(parent):
  wxID_REGEXEDITORFRMTXTREGEX, wxID_REGEXEDITORFRMTXTSTRING, 
 ] = map(lambda _init_ctrls: wxNewId(), range(14))
 
-class RegexEditorFrm(wxFrame):
+class RegexEditorFrm(wxFrame, Utils.FrameRestorerMixin):
     def _init_coll_statusBar_Fields(self, parent):
         # generated method, don't edit
         parent.SetFieldsCount(2)
@@ -53,7 +55,6 @@ class RegexEditorFrm(wxFrame):
               style=wxDEFAULT_FRAME_STYLE, title='Regex Editor')
         self._init_utils()
         self.SetClientSize(wxSize(495, 482))
-        self.Center(wxBOTH)
 
         self.panel = wxPanel(id=wxID_REGEXEDITORFRMPANEL, name='panel',
               parent=self, pos=wxPoint(0, 0), size=wxSize(495, 462),
@@ -149,6 +150,12 @@ class RegexEditorFrm(wxFrame):
         self.sbImage = wxStaticBitmap(self.statusBar, -1, self.statusImages[0],
             (rect.x+1, rect.y+1), (16, 16))
 
+        self.winConfOption = 'regexeditor'
+        self.loadDims()
+
+    def setDefaultDimensions(self):
+        self.Center(wxBOTH)
+
     def OnUpdate(self, event):
         string = self.txtString.GetValue()
         regex = self.txtRegex.GetValue()
@@ -210,7 +217,7 @@ if __name__ == '__main__':
 #-------------------------------------------------------------------------------
 
 def openRegexEditor(editor):
-    frame = create(editor)
+    frame = createRegexEditor(editor)
     frame.Show()
     
 from Models import EditorHelper
