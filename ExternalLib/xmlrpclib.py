@@ -69,11 +69,12 @@ from types import *
 from cgi import escape
 
 try:
-    import sgmlop
+    import xml
+    from xml import sax
 except ImportError:
-    sgmlop = None # accelerator not available
+    sax = None     # sax not available.
 
-__version__ = "0.9.8"
+__version__ = "0.9.8-sax-patch"
 
 
 # --------------------------------------------------------------------
@@ -191,45 +192,6 @@ WRAPPERS = DateTime, Binary, Boolean
 # --------------------------------------------------------------------
 # XML parsers
 
-if sgmlop:
-
-    class FastParser:
-	# sgmlop based XML parser.  this is typically 15x faster
-	# than SlowParser...
-
-	def __init__(self, target):
-
-	    # setup callbacks
-	    self.finish_starttag = target.start
-	    self.finish_endtag = target.end
-	    self.handle_data = target.data
-
-	    # activate parser
-	    self.parser = sgmlop.XMLParser()
-	    self.parser.register(self)
-	    self.feed = self.parser.feed
-	    self.entity = {
-		"amp": "&", "gt": ">", "lt": "<",
-		"apos": "'", "quot": '"'
-		}
-
-	def close(self):
-	    try:
-		self.parser.close()
-	    finally:
-		self.parser = None # nuke circular reference
-
-	def handle_entityref(self, entity):
-	    # <string> entity
-	    try:
-		self.handle_data(self.entity[entity])
-	    except KeyError:
-		self.handle_data("&%s;" % entity)
-
-else:
-
-    FastParser = None
-
 class SlowParser(xmllib.XMLParser):
     # slow but safe standard parser, based on the XML parser in
     # Python's standard library
@@ -239,6 +201,31 @@ class SlowParser(xmllib.XMLParser):
 	self.handle_data = target.data
 	self.unknown_endtag = target.end
 	xmllib.XMLParser.__init__(self)
+
+    def feedStream(self, f):
+	while 1:
+	    data = f.read(1024)
+	    if not data:
+		break
+	    self.feed(data)
+        self.close()
+
+if sax:
+
+    class SAXHandler(xml.sax.handler.ContentHandler):
+
+        def __init__(self, target):
+            self.startElement = target.start
+            self.characters = target.data
+            self.endElement = target.end
+
+        def feedStream(self, f):
+            sax.parse(f, self)
+
+else:
+
+    SAXHandler = None
+
 
 
 # --------------------------------------------------------------------
@@ -343,7 +330,7 @@ class Marshaller:
     dispatch[InstanceType] = dump_instance
 
 
-class Unmarshaller:
+class Unmarshaller (xml.sax.handler.ContentHandler):
 
     # unmarshal an XML-RPC response, based on incoming XML event
     # messages (start, data, end).  call close to get the resulting
@@ -385,7 +372,7 @@ class Unmarshaller:
 	self._value = (tag == "value")
 
     def data(self, text):
-	self._data.append(text)
+	self._data.append(str(text))
 
     dispatch = {}
 
@@ -489,8 +476,8 @@ def getparser():
     # get the fastest available parser, and attach it to an
     # unmarshalling object.  return both objects.
     target = Unmarshaller()
-    if FastParser:
-	return FastParser(target), target
+    if SAXHandler:
+        return SAXHandler(target), target
     return SlowParser(target), target
 
 def dumps(params, methodname=None, methodresponse=None):
@@ -526,9 +513,12 @@ def loads(data):
     # convert an XML-RPC packet to data plus a method name (None
     # if not present).  if the XML-RPC packet represents a fault
     # condition, this function raises a Fault exception.
+    try:
+        from cStringIO import StringIO
+    except ImportError:
+        from StringIO import StringIO
     p, u = getparser()
-    p.feed(data)
-    p.close()
+    p.feedStream(StringIO(data))
     return u.close(), u.getmethodname()
 
 
@@ -589,14 +579,9 @@ class Transport:
 
 	p, u = getparser()
 
-	while 1:
-	    response = f.read(1024)
-	    if not response:
-		break
-	    p.feed(response)
+        p.feedStream(f)
 
 	f.close()
-	p.close()
 
 	return u.close()
 
