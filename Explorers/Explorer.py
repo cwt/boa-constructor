@@ -655,6 +655,7 @@ class ExplorerSplitter(wxSplitterWindow):
                       self.controllers.has_key(self.list.node.protocol):
                     ctrlr = self.controllers[self.list.node.protocol]
                     if hasattr(ctrlr, 'OnInspectItem'):
+                        event.Skip()
                         ctrlr.OnInspectItem(None)
                         return
                 item = self.list.items[self.list.selected-1]
