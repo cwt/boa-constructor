@@ -40,11 +40,10 @@ class ClassBrowserFrame(wxFrame):
             self.icon = wxIcon(Preferences.toPyPath('Images/Icons/ClassBrowser.ico'), wxBITMAP_TYPE_ICO)
             self.SetIcon(self.icon)
 
-	self.classes = pyclbr.readmodule('wxPython.wx')
+        self.classes = pyclbr.readmodule('wxPython.wx')
 
-	self.pages = wxNotebook(self, -1)
+        self.pages = wxNotebook(self, -1)
         self.statusBar = self.CreateStatusBar()
-#	self.panel = wxPanel(self, -1)
 
         tID = NewId()
         self.hierarchy = wxTreeCtrl(self.pages, tID)
@@ -52,12 +51,12 @@ class ClassBrowserFrame(wxFrame):
         wxYield() 
         root = self.hierarchy.AddRoot("wxObject")
 
-	clsDict = {}
+        clsDict = {}
 
-	for i in self.classes.keys():
-	    travTilBase(i, self.classes, clsDict)
+        for i in self.classes.keys():
+            travTilBase(i, self.classes, clsDict)
 
-	buildTree(self.hierarchy, root, clsDict)
+        buildTree(self.hierarchy, root, clsDict)
         self.hierarchy.Expand(root)
 
         tID = NewId()
@@ -72,33 +71,32 @@ class ClassBrowserFrame(wxFrame):
         for className in self.classes.keys():
             moduleName = path.basename(self.classes[className].file)
             if not modules.has_key(moduleName):
- 	        modules[moduleName] = {}
-	    modules[moduleName][className] = {}
-	    modules[moduleName][className]['Properties'] = {}
- 	    modules[moduleName][className]['Methods'] = {}
- 	    modules[moduleName][className]['Built-in'] = {}
-	    for method in self.classes[className].methods.keys():
+                modules[moduleName] = {}
+            modules[moduleName][className] = {}
+            modules[moduleName][className]['Properties'] = {}
+            modules[moduleName][className]['Methods'] = {}
+            modules[moduleName][className]['Built-in'] = {}
+            for method in self.classes[className].methods.keys():
                 if (method[:2] == '__'):
- 	            modules[moduleName][className]['Built-in'][method] = self.classes[className].lineno
+                    modules[moduleName][className]['Built-in'][method] = self.classes[className].lineno
                 elif (method[:3] == 'Get'):
                     if self.classes[className].methods.has_key('Set'+method[3:]):
- 	                modules[moduleName][className]['Properties'][method[3:]] = self.classes[className].lineno
-		    else:	
- 	                modules[moduleName][className]['Methods'][method] = self.classes[className].lineno
+                        modules[moduleName][className]['Properties'][method[3:]] = self.classes[className].lineno
+                    else:
+                        modules[moduleName][className]['Methods'][method] = self.classes[className].lineno
                 elif (method[:3] == 'Set'):
                     if self.classes[className].methods.has_key('Get'+method[3:]):
- 	                modules[moduleName][className]['Properties'][method[3:]] = self.classes[className].lineno
-		    else:	
- 	                modules[moduleName][className]['Methods'][method] = self.classes[className].lineno
+                        modules[moduleName][className]['Properties'][method[3:]] = self.classes[className].lineno
+                    else:
+                        modules[moduleName][className]['Methods'][method] = self.classes[className].lineno
                 else:
- 	            modules[moduleName][className]['Methods'][method] = self.classes[className].lineno
- 	
- 	moduleLst = modules.keys()
-	moduleLst.sort() 	               
-	for module in moduleLst:
+                    modules[moduleName][className]['Methods'][method] = self.classes[className].lineno
+        moduleLst = modules.keys()
+        moduleLst.sort()
+        for module in moduleLst:
             roots = self.tree.AppendItem(root, module)
- 	    classLst = modules[module].keys()
-	    classLst.sort() 	               
+            classLst = modules[module].keys()
+            classLst.sort()
             for classes in classLst:
                 aClass = self.tree.AppendItem(roots, classes)
                 methItem = self.tree.AppendItem(aClass, 'Methods')
@@ -136,18 +134,18 @@ def findInsertModules(name, tree):
 
 def travTilBase(name, classes, root):
     if len(classes[name].super) == 0:
-	if not root.has_key(name):
-	    root[name] = {}
-	return root[name]
+        if not root.has_key(name):
+            root[name] = {}
+        return root[name]
     else:
-	c = travTilBase(classes[name].super[0].name, classes, root)
+        c = travTilBase(classes[name].super[0].name, classes, root)
         if not c.has_key(name):
-	    c[name] = {}
-	return c[name]
+            c[name] = {}
+        return c[name]
 
 def buildTree(tree, parent, dict):
     for item in dict.keys():
         child = tree.AppendItem(parent, item)
-	if len(dict[item].keys()):
-	    buildTree(tree, child, dict[item])
+        if len(dict[item].keys()):
+            buildTree(tree, child, dict[item])
    
