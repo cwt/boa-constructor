@@ -307,7 +307,9 @@ class BoaFrame(wxFrame, Utils.FrameRestorerMixin):
                 self.Destroy()
                 event.Skip()
 
-                wxGetApp().tbicon.Destroy()
+                app = wxGetApp()
+                if hasattr(app, 'tbicon'):
+                    app.tbicon.Destroy()
             
 
     def OnUncheckComponent(self, event):
