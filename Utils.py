@@ -459,7 +459,7 @@ class OutputLoggerPF(LoggerPF):
                      frame.f_back.f_lineno,)
             else:
                 ss = s
-            wxLogMessage(self.pad(ss))
+            wxLogMessage(string.replace(self.pad(ss), '%', '%%'))
 
         sys.__stdout__.write(s)
 
@@ -474,7 +474,7 @@ class ErrorLoggerPF(LoggerPF):
         elif s[-1] != '\n':
             self.buffer = self.buffer + s
         else:
-            wxLogError(self.pad(self.buffer+s[:-1]))
+            wxLogError(string.replace(self.pad(self.buffer+s[:-1]), '%', '%%'))
 
         sys.__stderr__.write(s)
 
