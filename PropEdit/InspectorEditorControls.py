@@ -25,11 +25,9 @@ class InspectorEditorControl:
         self.value = value
 
     def createControl(self):
-        print 'create IEC:', self.editorCtrl
         if self.editorCtrl: self.editorCtrl.SetFocus()
     
     def destroyControl(self):
-        print 'destr iec ctrl'
         if self.editorCtrl:
      	    self.editorCtrl.Destroy()
      	    self.editorCtrl = None
@@ -91,17 +89,14 @@ class TextCtrlIEC(InspectorEditorControl):
         
 class ChoiceIEC(InspectorEditorControl):
     def createControl(self, parent, idx, sizeX):
-        print 'IEC: ChoiceIEC', sizeX, self.value
         self.editorCtrl = wxChoice(parent, self.wID, 
          wxPoint(-2, idx*Preferences.oiLineHeight -1), wxSize(sizeX, Preferences.oiLineHeight+3),
          self.propEditor.getValues())
         InspectorEditorControl.createControl(self); 
     def getValue(self):
-        print 'ciec getvalue:', self.editorCtrl
         if self.editorCtrl:
             return self.editorCtrl.GetStringSelection()
     def setValue(self, value):
-        print 'ciec setvalue:', `value`
         if self.editorCtrl:
             self.editorCtrl.SetStringSelection(value)
 
