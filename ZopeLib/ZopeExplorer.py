@@ -20,7 +20,7 @@ from Models import EditorHelper, Controllers
 from ExternalLib import xmlrpclib, BasicAuthTransport
 from ZopeLib import ZopeEditorModels, ZopeViews, Client, ExtMethDlg
 from ZopeLib.ZopeCompanions import ZopeConnection, ZopeCompanion, FolderZC
-from Preferences import IS, wxFileDialog
+from Preferences import IS
 import Utils, Preferences
 import Views
 import Views.PySourceView
@@ -563,6 +563,7 @@ class ZopeController(ExplorerNodes.Controller, ExplorerNodes.ClipboardController
                 if item:
                     zexp = item.exportObj()
 
+                    from FileDlg import wxFileDialog
                     dlg = wxFileDialog(self.list, 'Save as...', currPath,
                           item.name+'.zexp', '', wxSAVE | wxOVERWRITE_PROMPT)
                     try:
