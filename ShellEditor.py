@@ -263,9 +263,8 @@ class ShellEditor(StyledTextCtrls.wxStyledTextCtrl,
 
         kk = event.KeyCode()
         controlDown = event.ControlDown()
-        altDown = event.AltDown()
         shiftDown = event.ShiftDown()
-        if kk == 13 and not (event.ShiftDown() or event.HasModifiers()):
+        if kk == 13 and not (shiftDown or event.HasModifiers()):
             if self.AutoCompActive():
                 self.AutoCompComplete()
                 return
@@ -277,8 +276,12 @@ class ShellEditor(StyledTextCtrls.wxStyledTextCtrl,
               self.lines.pos - self.PositionFromLine(self.lines.current) < 5:
                 return
         elif controlDown:
-            if shiftDown and self.sc.has_key((wxACCEL_CTRL|wxACCEL_SHIFT, kk)): self.sc[(wxACCEL_CTRL|wxACCEL_SHIFT, kk)](self)
-            elif self.sc.has_key((wxACCEL_CTRL, kk)): self.sc[(wxACCEL_CTRL, kk)](self)
+            if shiftDown and self.sc.has_key((wxACCEL_CTRL|wxACCEL_SHIFT, kk)):
+                self.sc[(wxACCEL_CTRL|wxACCEL_SHIFT, kk)](self)
+                return
+            elif self.sc.has_key((wxACCEL_CTRL, kk)):
+                self.sc[(wxACCEL_CTRL, kk)](self)
+                return
 
         if self.CallTipActive():
             self.callTipCheck()
