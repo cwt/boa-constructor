@@ -7,6 +7,9 @@ from bdb import Bdb, BdbQuit
 from repr import Repr
 from Tasks import ThreadedTaskHandler
 
+try: from cStringIO import StringIO
+except: from StringIO import StringIO
+
 
 class DebugError(Exception):
     '''Incorrect operation of the debugger'''
@@ -37,6 +40,12 @@ class DebuggerConnection:
         self._ds.queueServerMessage(sm)
         # Block.
         return sm.getResult(self._getMessageTimeout())
+
+    def _getStdoutBuf(self):
+        return self._ds.stdoutbuf
+
+    def _getStderrBuf(self):
+        return self._ds.stderrbuf
 
 ##    def _return(self):
 ##        ds = self._ds
@@ -230,6 +239,7 @@ class NonBlockingDebuggerConnection (DebuggerConnection):
 ##        sm.setCallback(self.callback)
 ##        self._ds.queueServerMessage(sm)
 
+
 class DebuggerController:
     '''Interfaces between DebuggerConnections and DebugServers.'''
 
@@ -356,41 +366,6 @@ class MethodCall (ServerMessage):
 ##        return 1
 
 
-##serversQueue = Queue.Queue(0)
-##free_threads = 0
-##server_threads_lock = threading.Lock()
-
-### Set keep_threads_alive to 1 when thread-bound variables are
-### used in a long-running process (such as Zope.)
-### It may be better to leave on anyway.
-##keep_threads_alive = 1
-
-##def serverThread():
-##    global free_threads
-##    while 1:
-##        ds = serversQueue.get()  # Blocks.
-##        try:
-##            ds.topServerLoop(1)
-##        except SystemExit, BdbQuit:
-##            # A request to exit thread.
-##            # Ignore: Exit only if do_exit is set.
-##            pass
-##        except:
-##            # Expected to never happen.
-##            import traceback
-##            traceback.print_exc()
-##        server_threads_lock.acquire()
-##        try:
-##            ds = None
-##            if keep_threads_alive:
-##                # loop and wait to service another DebugServer.
-##                free_threads = free_threads + 1
-##            else:
-##                break
-##        finally:
-##            server_threads_lock.release()
-
-
 debugger_tasks = ThreadedTaskHandler()
 servicer_running_lock = threading.Lock()
 
@@ -405,7 +380,6 @@ class DebugServer (Bdb):
     def __init__(self):
         Bdb.__init__(self)
         self.__queue = Queue.Queue(0)
-##        self._queue_servicer_running = 0
         self.servicer_running = 0
 
         self.repr = repr = Repr()
@@ -414,9 +388,8 @@ class DebugServer (Bdb):
         self.maxdict2 = 1000
 
         self._running = 0
-        self.stdoutbuf = ''
-        self.stderrbuf = ''
-        self.stdinbuf = ''
+        self.stdoutbuf = StringIO()
+        self.stderrbuf = StringIO()
 
     def queueServerMessage(self, sm):
         servicer_running_lock.acquire()
@@ -427,33 +400,10 @@ class DebugServer (Bdb):
                 debugger_tasks.addTask(self.topServerLoop)
         finally:
             servicer_running_lock.release()
-##        global free_threads
-##        server_threads_lock.acquire()
-##        try:
-##            self.__queue.put(sm)
-##            if not self._queue_servicer_running:
-##                self._queue_servicer_running = 1
-##                if free_threads < 1:
-##                    t = threading.Thread(target=serverThread)
-##                    t.setDaemon(1)
-##                    t.start()
-##                else:
-##                    free_threads = free_threads - 1
-##                serversQueue.put(self)
-##        finally:
-##            server_threads_lock.release()
 
     def executeMessageInPlace(self, sm):
         # Lets the debugger work in an existing thread.
         started = 0
-##        server_threads_lock.acquire()
-##        try:
-##            self.__queue.put(sm)
-##            if not self._queue_servicer_running:
-##                self._queue_servicer_running = 1
-##                started = 1
-##        finally:
-##            server_threads_lock.release()
         servicer_running_lock.acquire()
         try:
             self.__queue.put(sm)
@@ -573,14 +523,34 @@ class DebugServer (Bdb):
     def do_clear(self, bpno):
         self.clear_bpbynumber(bpno)
 
+    def clearTemporaryBreakpoints(self, filename, lineno):
+        filename = self.canonic(filename)
+        if not self.breaks.has_key(filename):
+            return
+        if lineno not in self.breaks[filename]:
+            return
+        # If all bp's are removed for that file,line
+        # pair, then remove the breaks entry
+        for bp in Breakpoint.bplist[filename, lineno][:]:
+            if bp.temporary:
+                bp.deleteMe()
+        if not Breakpoint.bplist.has_key((filename, lineno)):
+            self.breaks[filename].remove(lineno)
+        if not self.breaks[filename]:
+            del self.breaks[filename]
+
     # Bdb callbacks.
     # Note that ignore_stopline probably should be set by the
-    # dispatch methods, not the user methods...
+    # dispatch methods, not the user methods.  Someday bdb might be
+    # redone.
     def user_line(self, frame):
         # This method is called when we stop or break at a line
         self.ignore_stopline = -1
         self.frame = frame
         self.exc_info = None
+        filename = frame.f_code.co_filename
+        lineno = frame.f_lineno
+        self.clearTemporaryBreakpoints(filename, lineno)
         self.serverLoop()
 	
     def user_return(self, frame, return_value):
@@ -779,11 +749,13 @@ class DebugServer (Bdb):
         return rval
 
     def getInteractionUpdate(self):
-        rval = {'stdout':self.stdoutbuf,
-                'stderr':self.stderrbuf,
+        rval = {'stdout':self.stdoutbuf.getvalue(),
+                'stderr':self.stderrbuf.getvalue(),
                 }
-        self.stdoutbuf = ''
-        self.stderrbuf = ''
+        self.stdoutbuf.seek(0)
+        self.stdoutbuf.truncate()
+        self.stderrbuf.seek(0)
+        self.stderrbuf.truncate()
         info = self.getExtendedFrameInfo()
         rval.update(info)
         rval['breaks'] = self.getBreakpointStats()
