@@ -5,10 +5,10 @@ import os, math, tempfile, StringIO, string
 from wxPython.wx import *
 from wxPython.lib.anchors import LayoutAnchors
 
-import Utils
+import Utils, Plugins
 
 if wxVERSION < (2,3,3):
-    raise Utils.SkipPlugin, 'This plugin requires wxPython 2.3.3 or higher'
+    raise Plugins.SkipPlugin, 'This plugin requires wxPython 2.3.3 or higher'
 
 # draw destination consts
 ddCanvas = 1
@@ -875,8 +875,8 @@ class ImageView(wxPanel, EditorViews.EditorView):
     imgsep = 32
     def refreshCtrl(self):
         if self.model.data:
-            bmp = wxBitmapFromImage(wxImageFromStream(
-                                    StringIO.StringIO(self.model.data)))
+            sio = StringIO.StringIO(self.model.data)
+            bmp = wxBitmapFromImage(wxImageFromStream(sio))
             self.staticBitmapSmall.SetBitmap(bmp)
             self.staticBitmapSmall.SetDimensions(self.imgsep, self.imgsep,
                                                  bmp.GetWidth(), bmp.GetHeight())
