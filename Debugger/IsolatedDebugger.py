@@ -904,19 +904,30 @@ class DebugServer (Bdb):
             exc_tb = None
             stack = None
 
-    def getQueryFrame(self, frameno):
+    def getFrameByNumber(self, frameno):
+        """Gets the specified frame number from the stack.
+
+        Returns None if the stack is not available.
+        """
         try:
             stack = self.getStackInfo()[2]
             if stack:
-                if frameno > len(stack):
-                    return stack[-1][0]
-                else:
-                    return stack[frameno][0]
+                if frameno >= len(stack):
+                    # Should we be doing this?
+                    frameno = len(stack) - 1
+                return stack[frameno][0]
             else:
                 return None
         finally:
             stack = None
-    
+
+    def getFrameNamespaces(self, frame):
+        """Returns the locals and globals for a frame.
+
+        Can be overridden for high-level scripts.
+        """
+        return frame.f_globals, frame.f_locals
+
     def getExtendedFrameInfo(self):
         try:
             (exc_type, exc_value, stack,
@@ -966,21 +977,21 @@ class DebugServer (Bdb):
             rname = 'locals'
         else:
             rname = 'globals'
-        query_frame = self.getQueryFrame(frameno)
-        if query_frame is None:
+        frame = self.getFrameByNumber(frameno)
+        if frame is None:
             return {'frameno':frameno, rname:{}}
+        globalsDict, localsDict = self.getFrameNamespaces(frame)
         if locals:
-            d = self.safeReprDict(query_frame.f_locals)
+            d = self.safeReprDict(localsDict)
         else:
-            d = self.safeReprDict(query_frame.f_globals)
+            d = self.safeReprDict(globalsDict)
         return {'frameno':frameno, rname:d}
 
     def evaluateWatches(self, exprs, frameno):
-        query_frame = self.getQueryFrame(frameno)
-        if query_frame is None:
+        frame = self.getFrameByNumber(frameno)
+        if frame is None:
             return {'frameno':frameno, 'watches':{}}
-        localsDict = query_frame.f_locals
-        globalsDict = query_frame.f_globals
+        globalsDict, localsDict = self.getFrameNamespaces(frame)
         rval = {}
         for info in exprs:
             name = info['name']
@@ -1003,11 +1014,10 @@ class DebugServer (Bdb):
     def getWatchSubobjects(self, expr, frameno):
         """Returns a tuple containing the names of subobjects
         available through the given watch expression."""
-        query_frame = self.getQueryFrame(frameno)
-        if query_frame is None:
+        frame = self.getFrameByNumber(frameno)
+        if frame is None:
             return []
-        localsDict = query_frame.f_locals
-        globalsDict = query_frame.f_globals
+        globalsDict, localsDict = self.getFrameNamespaces(frame)
         try: inst_items = dir(eval(expr, globalsDict, localsDict))
         except: inst_items = []
         try: clss_items = dir(eval(expr, globalsDict, localsDict)
@@ -1016,12 +1026,13 @@ class DebugServer (Bdb):
         return inst_items + clss_items
 
     def pprintVarValue(self, expr, frameno):
-        query_frame = self.getQueryFrame(frameno)
-        if query_frame is None:
-            return ''
+        frame = self.getFrameByNumber(frameno)
+        if frame is None:
+            return 'error: no current frame'
         else:
             try:
-                v = eval(expr, query_frame.f_globals, query_frame.f_locals)
+                globalsDict, localsDict = self.getFrameNamespaces(frame)
+                v = eval(expr, globalsDict, localsDict)
                 return pprint.pformat(v)
             except:
                 t, v = sys.exc_info()[:2]
