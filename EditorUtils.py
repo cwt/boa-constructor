@@ -1,4 +1,4 @@
-import os, time
+import os, time, threading, Queue, socket
 
 from wxPython.wx import *
 import Preferences, Utils
@@ -154,7 +154,7 @@ def HistoryPopup(parent, hist, imgs):
 #-----Model hoster--------------------------------------------------------------
 
 
-wxID_MODULEPAGEVIEWCHANGE, wx_MODULEPAGECLOSEVIEW = Utils.wxNewIds(2)
+wxID_MODULEPAGEVIEWCHANGE, wxID_MODULEPAGECLOSEVIEW = Utils.wxNewIds(2)
 
 class ModulePage:
     """ Represents a notebook on a page of the top level notebook hosting
@@ -175,7 +175,7 @@ class ModulePage:
         self.editor.winMenu.Append(self.windowId, self.getMenuLabel(),
               'Switch to highlighted file')
         EVT_MENU(self.editor, self.windowId, self.editor.OnGotoModulePage)
-        EVT_MENU(self.notebook, wx_MODULEPAGECLOSEVIEW, self.OnDirectActionClose)
+        EVT_MENU(self.notebook, wxID_MODULEPAGECLOSEVIEW, self.OnDirectActionClose)
         EVT_RIGHT_DOWN(self.notebook, self.OnRightDown)
 
         Class = model.__class__
@@ -229,7 +229,7 @@ class ModulePage:
 ##        print '__del__', self.__class__.__name__
 
     def __repr__(self):
-        return '<%s: %s, %d>' %(self.__class__.__name__, self.model.defaultName, self.tIdx)
+        return '<%s: %s, %d>' %(self.__class__.__name__, os.path.basename(self.model.filename), self.tIdx)
 
     def updatePageName(self):
         """ Return a name that is decorated with () meaning never been saved
@@ -322,6 +322,10 @@ class ModulePage:
         if idx < self.tIdx:
             self.tIdx = self.tIdx - 1
 
+    def addedPage(self, idx):
+        if idx <= self.tIdx:
+            self.tIdx = self.tIdx + 1
+
     def saveAs(self, filename):
         newFilename, success = self.editor.saveAsDlg(filename)
         if success:
@@ -387,7 +391,7 @@ class ModulePage:
 
         if doDirectMenuPopup:
             directMenu = wxMenu()
-            directMenu.Append(wx_MODULEPAGECLOSEVIEW, 'Close active view')
+            directMenu.Append(wxID_MODULEPAGECLOSEVIEW, 'Close active view')
 
             self.notebook.PopupMenu(directMenu, event.GetPosition())
             directMenu.Destroy()
@@ -419,6 +423,58 @@ class ModulePage:
         return '%s (%s)'%(os.path.basename(self.model.filename),
                           self.model.filename)
 
+
+socketPort = 50007
+selectTimeout = 0.25
+class Listener(threading.Thread):
+    def __init__(self, queue, closed):
+        self.queue = queue
+        self.closed = closed
+        threading.Thread.__init__(self)
+
+    def run(self, host='127.0.0.1', port=socketPort):
+        #print 'running listner thread %d'%id(self)
+        import socket
+        from select import select
+        # Open a socket and listen.
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        try:
+            s.bind((host, port))
+        except socket.error, err:
+            ##print 'Socket error', str(err)
+            # printing from thread not useful because it's async
+            ##if err[0] == 10048: # Address already in use
+            ##    print 'Already a Boa running as a server'
+            ##else:
+            ##    print 'Server mode not started:', err
+            self.closed.set()
+            return
+        s.listen(5)
+        while 1:
+            while 1:
+                # Listen for 0.25 s, then check if closed is set. In that case,
+                # end thread by returning.
+                ready, dummy, dummy = select([s],[],[], selectTimeout)
+                if self.closed.isSet():
+                    #print 'closing listner thread %d'%id(self)
+                    return
+                if ready:
+                    break
+            # Accept a connection, read the data and put it into the queue.
+            conn, addr = s.accept()
+            l = []
+            while 1:
+                data = conn.recv(1024)
+                if not data: break
+                l.append(data)
+            name = ''.join(l)
+            self.queue.put(name)
+            conn.close()
+
+
+def socketFileOpenServerListen():
+    queue, closed = Queue.Queue(0), threading.Event()
+    return queue, closed, Listener(queue, closed).start()
 
 
 if __name__ == '__main__':
