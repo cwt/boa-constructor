@@ -58,7 +58,7 @@ class ListCtrlDTC(Constructors.MultiItemCtrlsConstr, WindowDTC):
 
     def designTimeSource(self, position='wxDefaultPosition', size='wxDefaultSize'):
         return {'pos': position,
-                'size': size,
+                'size': self.getDefCtrlSize(),
                 'style': 'wxLC_ICON',
                 #'validator': 'wxDefaultValidator',
                 'name': `self.name`}
