@@ -201,7 +201,7 @@ class MenuItemsCIDTC(MenuItemsConstr, CollectionIddDTC):
                              'Checkable': BoolConstrPropEdit})
 
     def properties(self):
-        props = CollectionDTC.properties(self)
+        props = CollectionIddDTC.properties(self)
         props.update({'Label':  ('IndexRoute', wxMenu.GetLabel, wxMenu.SetLabel)})
         return props
 
@@ -245,7 +245,7 @@ class MenuBarDTC(MenuBarConstr, UtilityDTC):#DesignTimeCompanion):
         self.subCompanions['Menus'] = MenuBarMenusCDTC
 
     def properties(self):
-        props = CollectionDTC.properties(self)
+        props = UtilityDTC.properties(self)
         props.update({'Menus':  ('NoneRoute', None, None)})
         return props
 
@@ -305,9 +305,6 @@ class MenuBarMenusCDTC(MenuBarMenusConstr, CollectionDTC):
                     print 'could not eval 4', vals[param], message
 
         return dtd
-
-    def events(self):
-        return ['MenuEvent']
 
     def vetoedMethods(self):
         return CollectionDTC.vetoedMethods(self)+['GetPosition', 'SetPosition', 'GetSize', 'SetSize']
