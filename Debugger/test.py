@@ -1,19 +1,21 @@
 
 def test1():
+    q = 1
     print 'I'
     print 'am'
     print 'here.'
-
+    
 def test():
     print 'Hello'
     print 'World!'
     print 'Message:'
     test1()
     print 'Bye.'
+    raise 'I refuse to finish!'
     print 'yeah.'
     
 if __name__ == '__main__':
-  test1()
+  test()
   if 0:    
     import IsolatedDebugger
     dc = IsolatedDebugger.DebuggerController()

@@ -84,8 +84,7 @@ class StackViewCtrl(wxListCtrl):
 
         stacklen = len(self.stack)
         if 0 <= self.selection < stacklen:
-            self.debugger.debug_conn.setWatchQueryFrame(
-                stacklen - self.selection)
+            self.debugger.debug_conn.setWatchQueryFrame(self.selection)
             self.debugger.show_variables()
             #self.debugger.show_frame(self.stack[self.selection])
         
@@ -247,8 +246,8 @@ class BreakViewCtrl(wxListCtrl):
 
     def OnRightClick(self, event):
         if self.selection != -1:
-            self.menu.Check(wxID_BREAKENABLED, 
-              self.listAllBreakpoints()[self.selection].enabled)
+            bp = self.bps[self.selection]
+            self.menu.Check(wxID_BREAKENABLED, bp['enabled'])
             self.PopupMenu(self.menu, wxPoint(self.x, self.y))
         
 

@@ -6,6 +6,11 @@ import bdb
 from bdb import Bdb, BdbQuit
 from repr import Repr
 
+class DebugError(Exception):
+    '''Incorrect operation of the debugger'''
+    pass
+
+
 class DebuggerConnection:
     '''A debugging connection that can be operated via RPC.
     It is possible to operate in both stateful and
@@ -22,6 +27,7 @@ class DebuggerConnection:
     def _callNoWait(self, func_name, do_return, *args, **kw):
         ds = self._ds
         sm = MethodCall(func_name, args, kw, do_return)
+        sm.setWait(0)
         ds.queueServerMessage(sm)
         return sm
 
@@ -178,9 +184,10 @@ class DebuggerConnection:
 
     def setWatchQueryFrame(self, n):
         '''Temporarily causes watch queries to work on a frame other
-        than the topmost.
+        than the topmost.  n corresponds to the stack entry number
+        from the result of calling getInteractionUpdate().
         '''
-        self._callNoWait('selectFrameFromStack', 0, n)
+        self._callNoWait('setWatchQueryFrame', 0, n)
 
     def pprintVarValue(self, name):
         '''Pretty-prints the value of name.'''
@@ -195,7 +202,8 @@ class DebuggerConnection:
         The most recent stack entry will be at the last
         of the list.  Blocking.
         '''
-        return self._callMethod('getInteractionUpdate', 0)
+        rval = self._callMethod('getInteractionUpdate', 0)
+        return rval
 
     def closeConnection(self):
         '''Terminates the connection to the DebugServer.'''
@@ -258,6 +266,10 @@ class MethodCall (ServerMessage):
         self.args = args
         self.kw = kw
         self.do_return = do_return
+        self.waiting = 1
+
+    def setWait(self, val):
+        self.waiting = val
 
     def doExecute(self):
         return 1
@@ -269,7 +281,12 @@ class MethodCall (ServerMessage):
         except SystemExit, BdbQuit:
             raise
         except:
-            self.exc = sys.exc_info()
+            if self.waiting:
+                self.exc = sys.exc_info()
+            else:
+                # No one will see this message otherwise.
+                import traceback
+                traceback.print_exc()
         if hasattr(self, 'event'):
             self.event.set()
 
@@ -490,6 +507,10 @@ class DebugServer (Bdb):
         self.set_internal_breakpoint(filename, lineno, temporary, cond)
         return bdb.Breakpoint(filename, lineno, temporary, cond)
 
+    # An oversight in bdb?
+    def do_clear(self, bpno):
+        self.clear_bpbynumber(bpno)
+
     # Bdb callbacks.
     # Note that ignore_stopline probably should be set by the
     # dispatch methods, not the user methods...
@@ -526,11 +547,28 @@ class DebugServer (Bdb):
         # XXX This is imperfect.
         sys.argv = (filename,) + tuple(params)
         
+        exc = None
         try:
             self._running = 1
-            self.run("execfile('%s', d)" % filename, {'d':d})
+            try:
+                try:
+                    self.run("execfile('%s', d)" % filename, {'d':d})
+                except:
+                    exc = sys.exc_info()
+            finally:
+                self._running = 0
+
+            if exc is not None:
+                # Provide post-mortem analysis.
+                self.exc_info = exc
+                tb = exc[2]
+                self.frame = tb.tb_frame
+                self.query_frame = self.frame
+                self.serverLoop()
         finally:
-            self._running = 0
+            # Kill circ. refs
+            tb = None
+            exc = None
 
     def isRunning(self):
         return self._running
@@ -562,31 +600,40 @@ class DebugServer (Bdb):
 ##        return {'filename':file, 'lineno':lineno, 'funcname':co_name,
 ##                'is_exception':(not not self.exc_info)}
 
-    def getExtendedFrameInfo(self):
-        exc_info = self.exc_info
+    def getStackInfo(self, prune_exceptions=1):
         try:
-            if exc_info is not None:
+            if self.exc_info is not None:
+                exc_type, exc_value, exc_tb = self.exc_info
                 try:
-                    exc_type, exc_value, exc_tb = exc_info
-                    try:
-                        exc_type = exc_type.__name__
-                    except AttributeError:
-                        # Python 2.x -> ustr()?
-                        exc_type = "%s" % str(exc_type)
-                    if exc_value is not None:
-                        exc_value = self.safeRepr(exc_value)
-                    stack, frame_stack_len = self.get_stack(
-                        exc_tb.tb_frame, exc_tb)
-                finally:
-                    exc_tb = None
+                    exc_type = exc_type.__name__
+                except AttributeError:
+                    # Python 2.x -> ustr()?
+                    exc_type = "%s" % str(exc_type)
+                if exc_value is not None:
+                    exc_value = self.safeRepr(exc_value)
+                stack, frame_stack_len = self.get_stack(
+                    exc_tb.tb_frame, exc_tb)
+                if prune_exceptions:
+                    # Remove the part before the exception handler.
+                    stack = stack[frame_stack_len + 2:]
+                    frame_stack_len = len(stack)
             else:
                 exc_type = None
                 exc_value = None
                 stack, frame_stack_len = self.get_stack(
                     self.frame, None)
-            stack_summary = []
             # Ignore the first stack entry.
             stack = stack[1:]
+            return exc_type, exc_value, stack, frame_stack_len
+        finally:
+            exc_tb = None
+            stack = None
+
+    def getExtendedFrameInfo(self):
+        try:
+            (exc_type, exc_value, stack,
+             frame_stack_len) = self.getStackInfo()
+            stack_summary = []
             for frame, lineno in stack:
                 try:
                     modname = frame.f_globals['__name__']
@@ -603,11 +650,12 @@ class DebugServer (Bdb):
                     'frame_stack_len':frame_stack_len,
                     'running':self._running}
         finally:
+            frame = None
             stack = None
 
     def getSafeLocalsAndGlobals(self):
         if self.query_frame is None:
-            return None
+            return ({}, {})
         l = self.safeReprDict(self.query_frame.f_locals)
         g = self.safeReprDict(self.query_frame.f_globals)
         return (l, g)
@@ -638,8 +686,9 @@ class DebugServer (Bdb):
 
     def getVariablesAndWatches(self, expr):
         # Generate a three-element tuple.
-        return (self.getSafeLocalsAndGlobals() +
-                (self.evaluateWatches(expr),))
+        result = (self.getSafeLocalsAndGlobals() +
+                  (self.evaluateWatches(expr),))
+        return result
 
     def getWatchSubobjects(self, expr):
         '''Returns a tuple containing the names of subobjects
@@ -653,11 +702,16 @@ class DebugServer (Bdb):
         except: clss_items = ()
         return inst_items + clss_items
 
-    def setQueryFrame(self, n):
-        query_frame = self.frame
-        while query_frame is not None and n > 0:
-            query_frame = query_frame.f_back
-        self.query_frame = query_frame
+    def setWatchQueryFrame(self, n):
+        try:
+            (exc_type, exc_value, stack,
+             frame_stack_len) = self.getStackInfo()
+##            if n == len(stack) - 1:
+##                self.query_frame = self.frame
+##            else:
+            self.query_frame, lineno = stack[n]
+        finally:
+            stack = None
 
     def pprintVarValue(self, name):
         if self.query_frame:
