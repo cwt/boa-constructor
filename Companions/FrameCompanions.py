@@ -235,10 +235,6 @@ class FramePanelDTC(WindowConstr, BaseFrameDTC):
         self.editors['DefaultItem'] = ButtonClassLinkPropEdit
         self.windowStyles.insert(0, 'wxTAB_TRAVERSAL')
 
-    def dontPersistProps(self):
-        # skip the code that removes ClientSize from the 'remove' list
-        return ContainerDTC.dontPersistProps(self)
-
     def hideDesignTime(self):
         return BaseFrameDTC.hideDesignTime(self) + ['ToolBar', 'MenuBar',
               'StatusBar', 'Icon', 'Title', 'Anchors']
