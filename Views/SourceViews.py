@@ -446,11 +446,11 @@ class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView,
         menu.AppendSeparator()
 
         eolModeMenu = wxMenu()
-        eolModeMenu.Append(wxID_STC_EOL_CRLF, 'CRLF', '', wxITEM_RADIO)
+        eolModeMenu.Append(wxID_STC_EOL_CRLF, 'CRLF', '', kind=wxITEM_RADIO)
         eolModeMenu.Check(wxID_STC_EOL_CRLF, self.GetEOLMode() == wxSTC_EOL_CRLF)
-        eolModeMenu.Append(wxID_STC_EOL_LF, 'LF', '', wxITEM_RADIO)
+        eolModeMenu.Append(wxID_STC_EOL_LF, 'LF', '', kind=wxITEM_RADIO)
         eolModeMenu.Check(wxID_STC_EOL_LF, self.GetEOLMode() == wxSTC_EOL_LF)
-        eolModeMenu.Append(wxID_STC_EOL_CR, 'CR', '', wxITEM_RADIO)
+        eolModeMenu.Append(wxID_STC_EOL_CR, 'CR', '', kind=wxITEM_RADIO)
         eolModeMenu.Check(wxID_STC_EOL_CR, self.GetEOLMode() == wxSTC_EOL_CR)
 
         menu.AppendMenu(wxID_STC_EOL_MODE, 'EOL mode', eolModeMenu)
@@ -461,8 +461,9 @@ class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView,
         menu.Destroy()
 
     def _getEventChecked(self, event):
+        # XXX Chaos :(
         checked = not event.IsChecked()
-        if wxPlatform == '__WXGTK__':
+        if wxPlatform == '__WXGTK__' or wxVERSION[:3] > (2, 5, 3):
             return not checked
         else:
             return checked
