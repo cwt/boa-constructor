@@ -14,11 +14,10 @@
 """ The model classes represent different types of source code files,
     Different views can be connected to a model  """
 
-# XXX form inheritance
-
 print 'importing Models.EditorModels'
 
-import string, os, sys
+import string, os, sys, tempfile
+from StringIO import StringIO
 
 from wxPython import wx
 
@@ -173,13 +172,6 @@ class CVSFolderModel(FolderModel):
         finally:
             f.close()
 
-class BitmapFileModel(EditorModel):
-    modelIdentifier = 'Bitmap'
-    defaultName = 'bmp'
-    bitmap = 'Bitmap_s.png'
-    imgIdx = EditorHelper.imgBitmapFileModel
-    ext = '.bmp'
-
 class ZipFileModel(EditorModel):
     modelIdentifier = 'ZipFile'
     defaultName = 'zip'
@@ -297,6 +289,51 @@ class PersistentModel(BasePersistentModel):
         self.update()
         if notify: self.notify()
 
+class BitmapFileModel(PersistentModel):
+    modelIdentifier = 'Bitmap'
+    defaultName = 'bitmap'
+    bitmap = 'Bitmap_s.png'
+    imgIdx = EditorHelper.imgBitmapFileModel
+    ext = '.bmp'
+
+    fileModes = ('rb', 'wb')
+
+    extTypeMap = {'.bmp': wx.wxBITMAP_TYPE_BMP, #'.gif': wx.wxBITMAP_TYPE_GIF,
+                  '.jpg': wx.wxBITMAP_TYPE_JPEG, '.png': wx.wxBITMAP_TYPE_PNG}
+
+    def save(self, overwriteNewer=false):
+        ext = string.lower(os.path.splitext(self.filename)[1])
+        if ext == '.gif':
+            raise Exception, 'Saving .gif format not supported'
+        
+        PersistentModel.save(self, overwriteNewer)
+
+    def saveAs(self, filename):
+        # catch image type changes
+        newExt = string.lower(os.path.splitext(filename)[1])
+        oldExt = string.lower(os.path.splitext(self.filename)[1])
+        updateViews = 0
+        if newExt != oldExt:
+            updateViews = 1
+            bmp = wx.wxBitmapFromImage(wx.wxImageFromStream(StringIO(self.data)))
+            fn = tempfile.mktemp(newExt)
+            try:
+                bmp.SaveFile(fn, self.extTypeMap[newExt])
+            except KeyError:
+                raise Exception, '%s image file types not supported'%newExt
+            try:
+                # convert data to new image format
+                self.data = open(fn, 'rb').read()
+            finally:
+                os.remove(fn)
+               
+        # Actually save the file
+        PersistentModel.saveAs(self, filename)
+        
+        if updateViews:
+            self.notify()
+        
+
 class SourceModel(BasePersistentModel):
     modelIdentifier = 'Source'
     def __init__(self, data, name, editor, saved):
@@ -341,12 +378,6 @@ class SourceModel(BasePersistentModel):
     def rejectConflictChange(self, conflict):
         self.applyChangeBlock(conflict, 0)
 
-#class DiffModel(PersistentModel):
-#    modelIdentifier = 'Diff'
-#    defaultName = 'diff'
-#    bitmap = 'Diff_s.png'
-#    imgIdx = EditorHelper.imgDiffModel
-#    ext = '.diff'
 
 class TextModel(PersistentModel):
     modelIdentifier = 'Text'
