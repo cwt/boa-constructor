@@ -9,6 +9,9 @@ Note, as running is always proxied to the main application, you won't be able
 to run the link app module itself from the IDE!
 
 Linked apps can be chained but beware of cycles! ;)
+
+Only proxies the run and debug methods to the parent app.
+
 """
 
 import sourceconst
@@ -16,17 +19,16 @@ from Models import PythonEditorModels, PythonControllers, EditorHelper, Controll
 
 EditorHelper.imgLinkAppModel = EditorHelper.imgIdxRange()
 
-class LinkAppModel(PythonEditorModels.BaseAppModel):
+class LinkAppModel(PythonEditorModels.PyAppModel):
     modelIdentifier = 'LinkApp'
     defaultName = 'LinkApp'
     bitmap = 'LinkApp_s.png'
     imgIdx = EditorHelper.imgLinkAppModel
 
-    def getDefaultData(self):
-        return sourceconst.defSig %(self.modelIdentifier, '')
+#    def getDefaultData(self):
+#        return sourceconst.defSig %{'modelIdent':self.modelIdentifier, 'main': ''}
 
-    def run(self, args = ''):
-        # find app module
+    def findAppInModules(self, args):
         for name, Model in self.moduleModels.items():
             if Model.modelIdentifier in Controllers.appModelIdReg:
                 filepath = self.moduleFilename(name)
@@ -34,10 +36,24 @@ class LinkAppModel(PythonEditorModels.BaseAppModel):
                     model = self.editor.modules[filepath].model
                 else:
                     model = Model('', filepath, '', self.editor, 0, {})
-                model.run(args)
-                return
+                return model
+        return None
 
-        wxLogWarning('No Application module found in modules list to link to')
+    def run(self, args = ''):
+        app = self.findAppInModules(args)
+        if app:
+            app.run(args)
+        else:
+            wxLogWarning('No Application module found in modules list to link to')
+
+    def debug(self, params=None, cont_if_running=0, cont_always=0,
+              temp_breakpoint=None):
+        app = self.findAppInModules(params)
+        if app:
+            app.debug(params, cont_if_running, cont_always, temp_breakpoint)
+        else:
+            wxLogWarning('No Application module found in modules list to link to')
+                
 
 class LinkAppController(PythonControllers.BaseAppController):
     Model = LinkAppModel
