@@ -1,3 +1,14 @@
+#-----------------------------------------------------------------------------
+# Name:        ErrorStack.py
+# Purpose:     
+#                
+# Author:      Riaan Booysen
+#                
+# Created:     2000/05/29
+# RCS-ID:      $Id$
+# Copyright:   (c) 1999, 2000 Riaan Booysen
+# Licence:     GPL
+#-----------------------------------------------------------------------------
 import string
 import re
 import sys
