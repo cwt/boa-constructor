@@ -11,10 +11,6 @@
 # Licence:      GPL                                                          
 #----------------------------------------------------------------------------
 
-# XXX I must still try to see if it's not possible the change code while
-# XXX debugging, reload sometimes work
-# XXX Going to source code on an error
-
 from   wxPython.wx import *
 import wxPython
 import ShellEditor, Preferences
@@ -360,7 +356,7 @@ class WatchViewCtrl(wxListCtrl):
 
     def __init__(self, parent, images, debugger):
         wxListCtrl.__init__(self, parent, wxID_WATCHVIEW, 
-          style = wxLC_REPORT | wxLC_SINGLE_SEL )
+          style = wxLC_REPORT)# | wxLC_SINGLE_SEL )
         self.InsertColumn(0, 'Attribute', wxLIST_FORMAT_LEFT, 125) 
         self.InsertColumn(1, 'Value', wxLIST_FORMAT_LEFT, 200)
  
@@ -381,36 +377,56 @@ class WatchViewCtrl(wxListCtrl):
         EVT_COMMAND_RIGHT_CLICK(self, -1, self.OnRightClick)
         EVT_RIGHT_UP(self, self.OnRightClick)
 
+        EVT_LEFT_DCLICK(self, self.OnDoubleClick) 
         self.menu = wxMenu()
 
-        id = NewId()
+        id = wxNewId()
+        self.menu.Append(id, 'Add')
+        EVT_MENU(self, id, self.OnAdd)
+        id = wxNewId()
+        self.menu.Append(id, 'Edit')
+        EVT_MENU(self, id, self.OnEdit)
+        id = wxNewId()
         self.menu.Append(id, 'Delete')
         EVT_MENU(self, id, self.OnDelete)
-        id = NewId()
+        id = wxNewId()
         self.menu.Append(id, 'Expand')
         EVT_MENU(self, id, self.OnExpand)
+        self.menu.AppendSeparator()
+        self.localId = wxNewId()
+        self.menu.Append(self.localId, 'Local', checkable = true)
+        EVT_MENU(self, self.localId, self.OnEvalLocal)
+        self.globalId = wxNewId()
+        self.menu.Append(self.globalId, 'Global', checkable = true)
+        EVT_MENU(self, self.globalId, self.OnEvalGlobal)
+
         self.x = self.y = 0
     
     def destroy(self):
         self.menu.Destroy()
 
+    def getSelection(self):
+        res = []
+        for idx in range(self.GetItemCount()):
+            item = self.GetItem(idx)
+            if item.GetState() & wxLIST_STATE_SELECTED:
+                res.append(idx)
+        return res
+
     dict = -1
     
     def add_watch(self, name, local):
         if name: 
-            self.watches.append((name, local))
+            self.watches.append([name, local])
         else:  
             dlg = wxTextEntryDialog(self, 'Enter name:', 'Add a watch:', '')
             try:
                 if dlg.ShowModal() == wxID_OK:
-                    self.watches.append((dlg.GetValue(), local))
+                    self.watches.append([dlg.GetValue(), local])
             finally:
                 dlg.Destroy()         
 
     def load_dict(self, localsDict, globalsDict, force=0):
-##        if ict is self.dict and not force:
-##            return
-
         self.DeleteAllItems()
         row = 0
         for name, local in self.watches:
@@ -442,13 +458,28 @@ class WatchViewCtrl(wxListCtrl):
 
     def OnDelete(self, event):
         if self.selected != -1:
-            del self.watches[self.selected]
-            self.DeleteItem(self.selected)
+            selItems = self.getSelection()
+            selItems.sort()
+            selItems.reverse()
+            for idx in selItems:
+                del self.watches[idx]
+                self.DeleteItem(idx)
 
     def OnExpand(self, event):
         if self.selected != -1:
             name, local = self.watches[self.selected]
             self.debugger.expand_watch(name, local)
+
+    def OnEdit(self, event):
+        watch = self.watches[self.selected]
+        dlg = wxTextEntryDialog(self, 'Current expression:', 'Edit watch:', watch[0])
+        try:
+            if dlg.ShowModal() == wxID_OK:
+                del self.watches[self.selected]
+                self.watches.insert(self.selected, [dlg.GetValue(), watch[1]] )
+                self.debugger.show_variables()        
+        finally:
+            dlg.Destroy()         
 
     def OnItemSelect(self, event):
         self.selected = event.m_itemIndex
@@ -461,7 +492,34 @@ class WatchViewCtrl(wxListCtrl):
         self.y = event.GetY()
 
     def OnRightClick(self, event):
-        self.PopupMenu(self.menu, wxPoint(self.x, self.y))
+        if self.selected != -1:
+            local = self.watches[self.selected][1]
+            self.menu.Check(self.localId, local)
+            self.menu.Check(self.globalId, not local)
+            
+            self.PopupMenu(self.menu, wxPoint(self.x, self.y))
+    
+    def OnEvalLocal(self, event):
+        if self.selected != -1:
+            for idx in self.getSelection():
+                self.watches[idx][1] = true
+        self.debugger.show_variables()        
+        
+    def OnEvalGlobal(self, event):
+        if self.selected != -1:
+            for idx in self.getSelection():
+                self.watches[idx][1] = false
+        self.debugger.show_variables()        
+    
+    def OnAdd(self, event):
+        self.add_watch('', true)
+        self.debugger.show_variables()        
+    
+    def OnDoubleClick(self, event):
+        if self.selected != -1:
+            self.OnEdit(event)
+        else:
+            self.OnAdd(event)
 
 class DebugStatusBar(wxStatusBar):
     def __init__(self, parent):
@@ -491,6 +549,7 @@ class DebugStatusBar(wxStatusBar):
         else:
             self.error.SetBackgroundColour(wxNamedColour('white'))
         self.error.SetLabel(message)
+        self.error.SetToolTipString(message)
 
         rect = self.GetFieldRect(1)
         self.error.SetDimensions(rect.x+2, rect.y+2, rect.width-4, rect.height-4)
@@ -527,34 +586,34 @@ class DebuggerFrame(wxFrame, bdb.Bdb):
         self.filename = model.filename
 #        self.app = app
         self.model = model
-
+        self.app = self.model.editor.app
         self.sb = DebugStatusBar(self)
         self.SetStatusBar(self.sb)
 
         self.toolbar = wxToolBar(self, -1, style = wxTB_HORIZONTAL|wxNO_BORDER|flatTools)
         self.SetToolBar(self.toolbar)
         
-        Utils.AddToolButtonBmpIS(self, self.toolbar, 
+        self.runId = Utils.AddToolButtonBmpIS(self, self.toolbar, 
           'Images/Debug/Debug.bmp', 'Debug', self.OnDebug)
-        Utils.AddToolButtonBmpIS(self, self.toolbar, 
+        self.stepId = Utils.AddToolButtonBmpIS(self, self.toolbar, 
           'Images/Debug/Step.bmp', 'Step', self.OnStep)
-        Utils.AddToolButtonBmpIS(self, self.toolbar, 
+        self.overId = Utils.AddToolButtonBmpIS(self, self.toolbar, 
           'Images/Debug/Over.bmp', 'Over', self.OnOver)
-        Utils.AddToolButtonBmpIS(self, self.toolbar, 
+        self.outId = Utils.AddToolButtonBmpIS(self, self.toolbar, 
           'Images/Debug/Out.bmp', 'Out', self.OnOut)
-        Utils.AddToolButtonBmpIS(self, self.toolbar, 
+        self.stopId = Utils.AddToolButtonBmpIS(self, self.toolbar, 
           'Images/Debug/Stop.bmp',  'Stop', self.OnStop)
         self.toolbar.AddSeparator()
-        Utils.AddToolButtonBmpIS(self, self.toolbar, 
+        self.sourceTraceId = Utils.AddToolButtonBmpIS(self, self.toolbar, 
           'Images/Debug/SourceTrace-Off.bmp',  'Trace in source',
           self.OnSourceTrace, '1')
 #          true, 'Images/Debug/SourceTrace-Off.bmp')
 
-        
         self.toolbar.Realize()
+        
+        self.toolbar.ToggleTool(self.sourceTraceId, true)
     
         self.splitter = wxSplitterWindow(self, -1, style = wxSP_NOBORDER)
- 
     
         # Create a Notebook
         self.nbTop = wxNotebook(self.splitter, -1)
@@ -670,14 +729,18 @@ class DebuggerFrame(wxFrame, bdb.Bdb):
             return ''
 
     def startMainLoop(self):
-        self.model.editor.app.MainLoop()
+        self.app.MainLoop()
         self.mlc = self.mlc + 1
         
     def stopMainLoop(self):
-        self.model.editor.app.ExitMainLoop()
+        self.app.ExitMainLoop()
         self.mlc = self.mlc - 1
     
 #---------------------------------------------------------------------------
+
+##    def trace_dispatch(self, frame, event, arg):
+##        print event, arg
+##        return bdb.Bdb.trace_dispatch(self, frame, event, arg)
 
     def canonic(self, filename):
         # Canonicalize filename -- called by Bdb
@@ -695,9 +758,11 @@ class DebuggerFrame(wxFrame, bdb.Bdb):
         owin = self.outp
         editor = self.model.editor
         tmpApp = wxPython.wx.wxApp
+        tmpSimpleApp = wxPython.wx.wxPySimpleApp
         tmpArgs = sys.argv[:]
         wxPhonyApp.debugger = self
         wxPython.wx.wxApp = wxPhonyApp
+        wxPython.wx.wxPySimpleApp = wxPhonyApp
         
         self.modpath = os.path.dirname(filename)
         sys.argv = [filename] + params
@@ -735,6 +800,7 @@ class DebuggerFrame(wxFrame, bdb.Bdb):
             sys.stderr = saveerr
             editor.app.saveStdio = sys.stdout, sys.stderr
             wxPython.wx.wxApp = tmpApp
+            wxPython.wx.wxPySimpleApp = tmpSimpleApp
             sys.path = tmpPaths
             sys.argv = tmpArgs
             os.chdir(cwd)
@@ -786,7 +852,6 @@ class DebuggerFrame(wxFrame, bdb.Bdb):
         self.interaction(frame, info)
 
     def interaction(self, frame, info=None):
-        print 'interaction'
         self.frame = frame
         code = frame.f_code
         file = code.co_filename
@@ -853,11 +918,9 @@ class DebuggerFrame(wxFrame, bdb.Bdb):
         return fn
 
     def selectSourceLine(self):
-        if self.stackView.stack:
+        if self.stackView.stack and self.toolbar.GetToolState(self.sourceTraceId):
             stack = self.stackView.stack
-#            print stack
             frame, lineno = stack[len(stack)-1]
-            print 'ssl', lineno
             try:
                 modname = frame.f_globals['__name__']
             except:
@@ -877,7 +940,13 @@ class DebuggerFrame(wxFrame, bdb.Bdb):
                 model.views['Source'].SetFocus()
                 model.views['Source'].selectLine(lineno -1)
                 model.views['Source'].setStepPos(lineno -1)
-        
+
+    def enableTools(self, enable = true):        
+        self.toolbar.EnableTool(self.runId, enable)
+        self.toolbar.EnableTool(self.stepId, enable)
+        self.toolbar.EnableTool(self.overId, enable)
+        self.toolbar.EnableTool(self.outId, enable)
+        self.toolbar.EnableTool(self.stopId, enable)
 
     def OnDebug(self, event):
         if self.interacting:
@@ -892,6 +961,7 @@ class DebuggerFrame(wxFrame, bdb.Bdb):
         self.stopMainLoop()
 
     def OnOver(self, event):
+        self.set_next(self.frame)
         self.stopMainLoop()
 
     def OnOut(self, event):
