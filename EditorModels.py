@@ -158,33 +158,33 @@ imgCounter=33
 
 # Indexes for the ZOA relevant imagelist
 ZOAIcons={}
-ZOAIcons["root"] =imgCounter
-ZOAIcons["Folder"] =imgCounter+1
+ZOAIcons["root"] =imgCounter
+ZOAIcons["Folder"] =imgCounter+1
 ZOAIcons["directory"]=ZOAIcons["Local Directory"]=ZOAIcons["Folder"]
-ZOAIcons["Z Class"] =imgCounter+2
-ZOAIcons["Product Help"] =imgCounter+3
-ZOAIcons["Product Management"] =imgCounter+4
-ZOAIcons["Python Method"] =ZOAIcons["Script (Python)"] =imgCounter+5
-ZOAIcons["Z ODBC Database Connection"] =imgCounter+6
-ZOAIcons["User Folder"] =imgCounter+7
-ZOAIcons["Local File System"] =imgCounter+8
-ZOAIcons["Control Panel"] =imgCounter+9
-ZOAIcons["External Method"] =imgCounter+10
-ZOAIcons["Product"] =imgCounter+11
-ZOAIcons["DTML Method"] =imgCounter+12
-ZOAIcons["Broken Because Product is Gone"] =imgCounter+13
-ZOAIcons["DTML Document"] =imgCounter+14
-ZOAIcons["unknown"] =imgCounter+15
-ZOAIcons["Zope Factory"] =imgCounter+16
-ZOAIcons["Zope Permission"] =imgCounter+17
-ZOAIcons["Z SQL Method"] =imgCounter+18
-ZOAIcons["Debug Information"]=imgCounter+19
-ZOAIcons["Version Management"] =imgCounter+20
-ZOAIcons["Database Management"] =imgCounter+21
-ZOAIcons["Version"] =imgCounter+22
-ZOAIcons["common"] =imgCounter+23
-ZOAIcons["Base Class"] =imgCounter+24
-ZOAIcons["Aggregation"] =imgCounter+25
+ZOAIcons["Z Class"] =imgCounter+2
+ZOAIcons["Product Help"] =imgCounter+3
+ZOAIcons["Product Management"] =imgCounter+4
+ZOAIcons["Python Method"] =ZOAIcons["Script (Python)"] =imgCounter+5
+ZOAIcons["Z ODBC Database Connection"] =imgCounter+6
+ZOAIcons["User Folder"] =imgCounter+7
+ZOAIcons["Local File System"] =imgCounter+8
+ZOAIcons["Control Panel"] =imgCounter+9
+ZOAIcons["External Method"] =imgCounter+10
+ZOAIcons["Product"] =imgCounter+11
+ZOAIcons["DTML Method"] =imgCounter+12
+ZOAIcons["Broken Because Product is Gone"] =imgCounter+13
+ZOAIcons["DTML Document"] =imgCounter+14
+ZOAIcons["unknown"] =imgCounter+15
+ZOAIcons["Zope Factory"] =imgCounter+16
+ZOAIcons["Zope Permission"] =imgCounter+17
+ZOAIcons["Z SQL Method"] =imgCounter+18
+ZOAIcons["Debug Information"]=imgCounter+19
+ZOAIcons["Version Management"] =imgCounter+20
+ZOAIcons["Database Management"] =imgCounter+21
+ZOAIcons["Version"] =imgCounter+22
+ZOAIcons["common"] =imgCounter+23
+ZOAIcons["Base Class"] =imgCounter+24
+ZOAIcons["Aggregation"] =imgCounter+25
 
         
 
