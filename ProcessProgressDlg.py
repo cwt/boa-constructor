@@ -51,7 +51,7 @@ class ProcessProgressDlg(wxDialog):
         self.statusGge = wxGauge(size = wxSize(184, 16), id = wxID_PROCESSPROGRESSDLGSTATUSGGE, style = wxGA_HORIZONTAL, parent = self, name = 'statusGge', validator = wxDefaultValidator, range = 100, pos = wxPoint(8, 312))
         self.statusGge.SetConstraints(LayoutAnchors(self.statusGge, true, false, true, true))
 
-    def __init__(self, parent, command, caption, modally = true, linesep = os.linesep, autoClose = true):
+    def __init__(self, parent, command, caption, modally = true, linesep = os.linesep, autoClose = true, overrideDisplay = ''):
         self._init_ctrls(parent)
         self.SetTitle(caption)
         self.Center(wxBOTH)
@@ -68,7 +68,10 @@ class ProcessProgressDlg(wxDialog):
         EVT_IDLE(self, self.OnIdle)
         EVT_END_PROCESS(self, -1, self.OnProcessEnded)
 
-        self.cmdStxt.SetLabel(command)
+        if overrideDisplay:
+            self.cmdStxt.SetLabel(overrideDisplay)
+        else:
+            self.cmdStxt.SetLabel(command)
         self.execute(command, modally)
         if not modally:
             while not self.finished: wxYield()
