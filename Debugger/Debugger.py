@@ -186,9 +186,6 @@ class BreakViewCtrl(wxListCtrl):
         self.bps = []
         self.stats = {}
 
-        #for file, lineno in bdb.Breakpoint.bplist.keys():
-        #    self.debugger.set_internal_breakpoint(file, lineno)
-
     def destroy(self):
         self.menu.Destroy()
             
@@ -556,6 +553,22 @@ class DebugStatusBar(wxStatusBar):
                                  rect.width-4, rect.height-4)
 
 
+def simplifyPathList(data,
+                     SequenceTypes=(type(()), type([])),
+                     ExcludeTypes=(type(None),) ):
+    if type(data) in SequenceTypes:
+        newdata = []
+        for d in data:
+            nd = simplifyPathList(d)
+            if nd is not None:
+                newdata.extend(nd)
+        return newdata
+    elif type(data) in ExcludeTypes:
+        return None
+    else:
+        return list(string.split(str(data), os.pathsep))
+
+
 wxID_PAGECHANGED = NewId()
 wxID_TOPPAGECHANGED = NewId()
 class DebuggerFrame(wxFrame):
@@ -812,26 +825,8 @@ class DebuggerFrame(wxFrame):
         self.params = params
 
     def setDebugFile(self, filename):
-        # IsolatedDebugger TODO: setup the execution environment
-        # the way it used to be done.
         self.filename = path.join(pyPath, filename)
-        #saveout = sys.stdout
-        #saveerr = sys.stderr
-
-        #owin = self.outp
-        #editor = self.model.editor
-        #tmpApp = wxPython.wx.wxApp
-        #tmpArgs = sys.argv[:]
-        #wxPhonyApp.debugger = self
-        #wxPython.wx.wxApp = wxPhonyApp
-        
         self.modpath = os.path.dirname(self.filename)
-        #sys.argv = [filename] + params
-        #tmpPaths = sys.path[:]
-        #sys.path.append(self.modpath)
-        #sys.path.append(Preferences.pyPath)
-        #cwd = path.abspath(os.getcwd())
-        #os.chdir(path.dirname(filename))
 
     def invokeInDebugger(self, m_name, m_args=(), r_name=None, r_args=()):
         '''
@@ -885,10 +880,18 @@ class DebuggerFrame(wxFrame):
         self.running = 1
         self.sb.writeError('Running...', 0)
         brks = bplist.getBreakpointList()
+        add_paths = simplifyPathList((self.modpath, pyPath))
         self.invokeInDebugger(
             'runFileAndRequestStatus',
-            (self.filename, self.params or [], brks),
+            (self.filename, self.params or [], add_paths, brks),
             'receiveDebuggerStatus')
+
+        # InProcessClient TODO: setup the execution environment
+        # the way it used to be done.
+
+        #tmpApp = wxPython.wx.wxApp
+        #wxPhonyApp.debugger = self
+        #wxPython.wx.wxApp = wxPhonyApp
 
 ##        try:
 ##            #sys.stderr = ShellEditor.PseudoFileErrTC(owin)

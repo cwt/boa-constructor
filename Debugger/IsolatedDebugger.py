@@ -1,7 +1,8 @@
 
 import sys, threading, Queue
 import pprint
-from os.path import normcase, abspath
+from os import chdir
+from os.path import normcase, abspath, dirname
 import bdb
 from bdb import Bdb, BdbQuit
 from repr import Repr
@@ -63,17 +64,23 @@ class DebuggerConnection:
 
     ### Low-level calls.
 
+    def _enableProcessModification(self, enable=1):
+        '''Allows the debugger to set sys.path, sys.argv, and
+        use os.chdir().
+        '''
+        self._ds._enable_process_modification = enable
+
     def run(self, cmd, globals=None, locals=None):
         '''Starts debugging.  Stops the process at the
         first source line.  Non-blocking.
         '''
         self._callNoWait('run', 1, cmd, globals, locals)
 
-    def runFile(self, filename, params=()):
+    def runFile(self, filename, params=(), add_paths=()):
         '''Starts debugging.  Stops the process at the
         first source line.  Non-blocking.
         '''
-        self._callNoWait('runFile', 1, filename, params)
+        self._callNoWait('runFile', 1, filename, params, add_paths)
 
     def set_continue(self, full_speed=0):
         '''Proceeds until a breakpoint or program stop.
@@ -188,11 +195,12 @@ class DebuggerConnection:
             getattr(self, command)()
         return self.getInteractionUpdate()
 
-    def runFileAndRequestStatus(self, filename, params, breaks):
+    def runFileAndRequestStatus(self, filename, params, add_paths,
+                                breaks):
         '''Calls setAllBreakpoints(), runFile(), and
         getInteractionUpdate().'''
         self.setAllBreakpoints(breaks)
-        self._callNoWait('runFile', 1, filename, params)
+        self._callNoWait('runFile', 1, filename, params, add_paths)
         return self.getInteractionUpdate()
 
     def getSafeDict(self, locals, frameno):
@@ -369,6 +377,8 @@ class MethodCall (ServerMessage):
 debugger_tasks = ThreadedTaskHandler()
 servicer_running_lock = threading.Lock()
 
+_orig_syspath = sys.path
+
 
 class DebugServer (Bdb):
 
@@ -376,6 +386,7 @@ class DebugServer (Bdb):
     exc_info = None
     max_string_len = 250
     ignore_stopline = -1
+    _enable_process_modification = 0
 
     def __init__(self):
         Bdb.__init__(self)
@@ -573,13 +584,17 @@ class DebugServer (Bdb):
         self.stopframe = None
         self.returnframe = None
 
-    def runFile(self, filename, params):
+    def runFile(self, filename, params, add_paths):
         d = {'__name__': '__main__',
              '__doc__': 'Debugging',
              '__builtins__': __builtins__,}
         
-        # XXX This is imperfect.
-        sys.argv = (filename,) + tuple(params)
+        if self._enable_process_modification:
+            sys.argv = [filename] + list(params)
+            if not add_paths:
+                add_paths = []
+            sys.path = list(_orig_syspath) + list(add_paths)
+            chdir(dirname(filename))
         
         self.run("execfile(fn, d)", {'fn':filename, 'd':d})
 

@@ -1,8 +1,10 @@
 
+import sys, os
+print os.getcwd()
+print sys.path
 
 for n in range(2):
     print 'hi!'
-import sys
 sys.stdout.flush()
 
 

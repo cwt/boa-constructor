@@ -13,9 +13,9 @@ class DebugRequestHandler (RequestHandler):
     __dc = DebuggerController()
     __conn_id = __dc.createServer()
     _conn = DebuggerConnection(__dc, __conn_id)
+    _conn._enableProcessModification()
 
     def call(self, method, params):
-	# override this method to implement RPC methods
         h = self.headers
         if self._authstr and (not h.has_key('x-auth') or h['x-auth']
             != self._authstr):
