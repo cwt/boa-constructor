@@ -15,7 +15,6 @@ import string, os, sys
 
 from wxPython.wx import wxMenu, EVT_MENU, wxMessageBox, wxPlatform, wxOK, wxNewId, true, false
 
-#sys.path.append('..')
 import ExplorerNodes
 from Models import Controllers, EditorHelper
 from ProcessProgressDlg import ProcessProgressDlg
@@ -94,6 +93,8 @@ class SSHItemNode(ExplorerNodes.ExplorerNode):
         ls = self.execCmd("ls -la '%s'" % self.resourcepath)[1:]
         for line in ls:
             name = string.strip(string.split(line, ' ')[-1])
+            if name and name[-1] == '/':
+                name = name[:-1]
             if name not in ('.', '..'):
                 res.append(self.createChildNode(name, line[0] == 'd', self.properties))
         return res
@@ -130,7 +131,7 @@ class SSHItemNode(ExplorerNodes.ExplorerNode):
         cwd = os.getcwd()
         os.chdir(os.path.dirname(fsNode.resourcepath))
         try:
-            cmd = 'scp %s %s' % (os.path.basename(fsNode.resourcepath), 
+            cmd = 'scp %s %s' % (os.path.basename(fsNode.resourcepath),
                                  self.remotePath(fn))
             self.execSCP(cmd)
         finally:
@@ -161,7 +162,7 @@ class SSHItemNode(ExplorerNodes.ExplorerNode):
         absNames = []
         for name in names:
             absNames.append(self.resourcepath + '/' +name)
-        self.execCmd("rm '%s'" % string.join(absNames, ' '))
+        self.execCmd("rm -rf '%s'" % string.join(absNames, ' '))
 
     def renameItem(self, name, newName):
         self.execCmd("mv '%s' '%s'" % (self.resourcepath + '/' + name,
