@@ -687,7 +687,7 @@ class HelpBookIndexView(wxSplitterWindow, EditorViews.EditorView):
     delBmp = 'Images/Shared/DeleteItem.png'
     def __init__(self, parent, model):
         wxSplitterWindow.__init__(self, parent, -1,
-              style=wxCLIP_CHILDREN | wxNO_3D | wxSP_3DSASH)# | wxSP_FULLSASH)
+              style=wxCLIP_CHILDREN | wxNO_3D | wxSP_3DSASH)
 
         self.indexes = HelpBookIndexListView(self, model, self)
         self.files = HelpBookFilesView(self, model, False)
@@ -857,7 +857,7 @@ class HelpBookContentsView(wxSplitterWindow, EditorViews.EditorView):
     delBmp = 'Images/Shared/DeleteItem.png'
     def __init__(self, parent, model):
         wxSplitterWindow.__init__(self, parent, -1,
-              style=wxCLIP_CHILDREN|wxNO_3D|wxSP_3DSASH|wxSP_FULLSASH)
+              style=wxCLIP_CHILDREN|wxNO_3D|wxSP_3DSASH)
 
         self.contents = HelpBookContentsTreeView(self, model, self)
         self.files = HelpBookFilesView(self, model, False)
