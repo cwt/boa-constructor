@@ -47,9 +47,9 @@ class FindReplaceDlg(wxDialog):
         self.SetAutoLayout(true)
         self.SetClientSize(wxSize(364, 207))
 
-        self.findTxt = wxComboBox(choices = [], id = wxID_FINDREPLACEDLGFINDTXT, name = 'findTxt', parent = self, pos = wxPoint(88, 4), size = wxSize(268, 21), style = wxTE_PROCESS_ENTER, value = '')
+        self.findTxt = wxComboBox(choices = [], id = wxID_FINDREPLACEDLGFINDTXT, name = 'findTxt', parent = self, pos = wxPoint(88, 4), size = wxSize(268, 21), style = 0, value = '')
 
-        self.replaceTxt = wxComboBox(choices = [], id = wxID_FINDREPLACEDLGREPLACETXT, name = 'replaceTxt', parent = self, pos = wxPoint(88, 28), size = wxSize(268, 21), style = wxTE_PROCESS_ENTER, value = '')
+        self.replaceTxt = wxComboBox(choices = [], id = wxID_FINDREPLACEDLGREPLACETXT, name = 'replaceTxt', parent = self, pos = wxPoint(88, 28), size = wxSize(268, 21), style = 0, value = '')
         EVT_KEY_UP(self.replaceTxt, self.OnFindtxtChar)
 
         self.directionRB = wxRadioBox(choices = ['Forward', 'Backward'], id = wxID_FINDREPLACEDLGDIRECTIONRB, label = 'Direction', majorDimension = 1, name = 'directionRB', parent = self, point = wxPoint(8, 56), size = wxSize(112, 64), style = wxRA_SPECIFY_COLS, validator = wxDefaultValidator)
@@ -335,9 +335,11 @@ Boa Constructor         Boa Constructor         Boa Constructor
         def __init__(self): self.statusBar = PseudoStatusBar()
         def addBrowseMarker(self, lineNo): pass
         def addNewView(self, name, View): return createFramedView(name, View, self.model, self.parent, (400, 200))[1]
+        def Disconnect(self): pass
+
 
     e = PseudoEditor()
-    from PythonEditorModels import ModuleModel
+    from Models.PythonEditorModels import ModuleModel
     m = ModuleModel(testText, 'test.py', e, true)
     from Views.PySourceView import PythonSourceView
     f, v = createFramedView('Find/Replace Dlg Tester (Cancel to quit)', PythonSourceView, m, size=(600, 400))
