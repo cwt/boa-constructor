@@ -288,7 +288,6 @@ modules ={'About': [0, 'About box and Splash screen', 'About.py'],
                   'Storage for variables defining the palette organisation',
                   'PaletteStore.py'],
  'PascalSupport.plug-in': [0, '', 'Plug-ins/PascalSupport.plug-in.py'],
- 'PhonyApp': [0, '', 'PhonyApp.py'],
  'Preferences': [0,
                  'Central store of customiseable properties',
                  'Preferences.py'],
@@ -528,7 +527,7 @@ def main(argv=None):
         wxMessageBox(str(error), 'Error on startup')
         raise
 
-    #import bcdb; bcdb.set_trace()
+    #if hasattr(sys, 'breakpoint'): sys.breakpoint()
     app.MainLoop()
 
     # Clean up (less warnings)
