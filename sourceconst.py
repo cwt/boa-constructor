@@ -18,7 +18,7 @@ init_coll = '_init_coll_'
 init_utils = '_init_utils'
 init_props = '_init_props'
 init_events = '_init_events'
-defEnvPython = '#!/bin/env python\n'
+defEnvPython = '#!/usr/bin/env python\n'
 defImport = 'from wxPython.wx import *\n\n'
 defSig = boaIdent+':%s:%s\n\n'
 
