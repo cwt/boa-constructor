@@ -190,7 +190,8 @@ class ZipItemNode(ExplorerNodes.ExplorerNode):
     def copyToFS(self, fsFolderNode):
         fn = os.path.join(fsFolderNode.resourcepath, self.name)
 
-        zf = self.ArchiveClass(self.zipFileNode.resourcepath, self.compression)
+        zf = self.ArchiveClass(self.zipFileNode.resourcepath, 
+                               compression=self.compression)
         try:
             if self.isFolderish():
                 try: os.mkdir(fn)
@@ -239,23 +240,12 @@ class ZipItemNode(ExplorerNodes.ExplorerNode):
         return name
 
     def load(self, mode='rb'):
-        zf = self.ArchiveClass(self.zipFileNode.resourcepath, 'r')
+        zf = self.ArchiveClass(self.zipFileNode.resourcepath)
         try:
             return zf.read(self.resourcepath)
         finally:
             zf.close()
             
-##        if os.path.splitext(self.resourcepath)[1] in EditorHelper.binaryFilesReg:
-##            self.lineSep = None
-##            return data
-##        else:
-##            if data.find('\r\n') != -1:
-##                self.lineSep = '\r\n'
-##                return data.replace('\r\n', '\n')
-##            else:
-##                self.lineSep = '\n'
-##                return data
-
     def save(self, filename, data, mode='wb', overwriteNewer=true):
         self.replaceFilesInArchive([(self.resourcepath, filename, data)])
 
@@ -431,9 +421,6 @@ class TarGzipInfoMixin:
         info.filename = name
         if name[-1] == '/':
             info.type = tarfile.DIRTYPE
-        ##info.type = self.compression
-        #info.file_size = m.size
-        #info.date_time = time.gmtime(m.mtime)[:6]
         return info
 
 class TarGzipItemNode(TarGzipInfoMixin, ZipItemNode): 
