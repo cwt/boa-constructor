@@ -614,8 +614,6 @@ class ControlDTC(DesignTimeCompanion):
         except:
             pass
 
-        self.designer.senderMapper.addObject(self.control)
-
         self.initDesignTimeEvents(self.control)
 
         self.popx = self.popy = 0
@@ -812,9 +810,10 @@ class WindowDTC(WindowConstr, ControlDTC):
         return ['Show', 'Enable']
 
     def hideDesignTime(self):
-        return ['NextHandler', 'PreviousHandler', 'EventHandler', 'Id', 'Caret',
-                'WindowStyleFlag', 'ToolTip', 'Title', 'Sizer', 'Rect',
-                'EvtHandlerEnabled', 'DragTarget']
+        return ['NextHandler', 'PreviousHandler', 'EventHandler', 'EvtHandlerEnabled', 
+                'Id', 'Caret', 'WindowStyleFlag', 'ToolTip', 'Title', 'Rect',
+                'DragTarget', 'DropTarget','Cursor', 'VirtualSize',
+                'Sizer', 'ContainingSizer']
 
     def dontPersistProps(self):
         return ControlDTC.dontPersistProps(self) + ['ClientSize']
@@ -861,8 +860,8 @@ class WindowDTC(WindowConstr, ControlDTC):
         if Utils.startswith(exprs[0], 'LayoutAnchors'):
             ctrl, left, top, right, bottom = \
              methodparse.safesplitfields(exprs[0][len('LayoutAnchors')+1:-1], ',')
-            ctrl, left, top, right, bottom = \
-               objects[ctrl], eval(left), eval(top), eval(right), eval(bottom)
+            ctrl, left, top, right, bottom = (objects[ctrl], self.eval(left),
+                  self.eval(top), self.eval(right), self.eval(bottom))
             self.anchorSettings = [left, top, right, bottom]
             return (self.LayoutAnchors(ctrl, left, top, right, bottom), )
         return (None,)
