@@ -100,6 +100,19 @@ class ChoiceIEC(InspectorEditorControl):
         if self.editorCtrl:
             self.editorCtrl.SetStringSelection(value)
 
+class ComboIEC(InspectorEditorControl):
+    def createControl(self, parent, idx, sizeX):
+        self.editorCtrl = wxComboBox(parent, self.wID, self.value,
+         wxPoint(-2, idx*Preferences.oiLineHeight -1), wxSize(sizeX, Preferences.oiLineHeight+3),
+         self.propEditor.getValues())
+        InspectorEditorControl.createControl(self); 
+    def getValue(self):
+        if self.editorCtrl:
+            return self.editorCtrl.GetStringSelection()
+    def setValue(self, value):
+        if self.editorCtrl:
+            self.editorCtrl.SetSelection(self.editorCtrl.FindString(value))
+
 class ButtonIEC(BevelIEC):
     def createControl(self, parent, idx, sizeX, editMeth):
        # XXX use image store
