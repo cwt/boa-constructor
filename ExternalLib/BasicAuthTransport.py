@@ -1,7 +1,7 @@
 from base64 import *
 import string
 import httplib
-from xmlrpclib
+import xmlrpclib
 
 class BasicAuthTransport(xmlrpclib.Transport):
 	def __init__(self,username=None,password=None):
