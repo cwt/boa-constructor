@@ -709,7 +709,10 @@ class ExploreView(wxTreeCtrl, EditorView):
     def OnPageActivated(self, evt):
         if not self._populated_tree:
             self._populated_tree = 1
-            start_new_thread(self.refreshCtrl, (1,))
+            if wxPlatform == '__WXGTK__':
+                self.refreshCtrl(1)
+            else:
+                start_new_thread(self.refreshCtrl, (1,))
         
     def refreshCtrl(self, load_now=0):
         self.DeleteAllItems()
