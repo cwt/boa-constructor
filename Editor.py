@@ -42,9 +42,11 @@ from Views.PySourceView import PythonSourceView
 from Views.SourceViews import HTMLSourceView, XMLSourceView, TextView, CPPSourceView, HPPSourceView, PythonDisView
 print 'importing ZopeViews'
 from Views.ZopeViews import ZopeHTMLView, ZopeUndoView, ZopeSecurityView
+
 print 'importing Explorers'
-from Explorers.CVSExplorer import CVSConflictsView
 from Explorers import Explorer
+from Explorers.CVSExplorer import CVSConflictsView
+from Explorers.ExplorerNodes import TransportSaveError, TransportLoadError
 from ZopeLib import ImageViewer
 
 print 'importing Models'
@@ -893,6 +895,7 @@ class EditorFrame(wxFrame):
             dlg.Destroy()
 
     def closeModule(self, modulePage):
+        # XXX most of this should move to ModulePage
         idx = modulePage.tIdx
         name = modulePage.model.filename
         if self.modules.has_key(name):
@@ -909,8 +912,7 @@ class EditorFrame(wxFrame):
                 try: res = dlg.ShowModal()
                 finally: dlg.Destroy()
                 if res == wxID_YES:
-#                if Utils.yesNoDialog(self, 'Close module', 'There are changes, do you want to save?'):
-                    self.saveOrSaveAs()
+                    self.activeModSaveOrSaveAs()
                     name = modulePage.model.filename
                 elif res == wxID_CANCEL:
                     raise 'Cancelled'
@@ -927,17 +929,11 @@ class EditorFrame(wxFrame):
 
         else: print name, 'not found in OnClose', self.modules
 
-    def saveAs(self, filename):
-        """ Brings up a save as file dialog with filename as initial name """
-        model = self.modules[filename].model
+##    def saveAs(self, filename):
+##        """ Brings up a save as file dialog with filename as initial name """
+##        #model = self.modules[filename].model
+##        self.modules[filename].saveAs(filename)
 
-        newFilename, success = self.saveAsDlg(filename)
-        if success:
-            # XXX Check for renaming and update models
-            model.saveAs(newFilename)
-            self.updateModulePage(model, filename)
-            self.updateTitle()
-        return success
 
     def updateTitle(self, pageIdx = None):
         """ Updates the title of the Editor to reflect changes in selection,
@@ -973,31 +969,31 @@ class EditorFrame(wxFrame):
         fn = self.openFileDlg()
         if fn: self.openOrGotoModule(fn)
 
-    def saveOrSaveAs(self):
-        modulePage = self.getActiveModulePage()
-        if modulePage:
-            modulePage.saveOrSaveAs()
-
-    def OnSave(self, event):
-        modulePage = self.getActiveModulePage()
-        modulePage.model.refreshFromViews()
-        self.saveOrSaveAs()
-
-    def OnSaveAs(self, event):
+    def activeModSaveOrSaveAs(self, forceSaveAs=false):
         modulePage = self.getActiveModulePage()
         if modulePage:
             modulePage.model.refreshFromViews()
-            model = modulePage.model
-            oldName = model.filename
+            modulePage.saveOrSaveAs(forceSaveAs)
 
-            if self.saveAs(oldName) and (oldName != model.filename):
-                del self.modules[oldName]
-                self.modules[model.filename] = modulePage
+    def OnSave(self, event):
+        try:
+            self.activeModSaveOrSaveAs()
+        except TransportSaveError, error:
+            wxLogError(str(error))
+
+    def OnSaveAs(self, event):
+        try:
+            self.activeModSaveOrSaveAs(forceSaveAs=true)
+        except TransportSaveError, error:
+            wxLogError(str(error))
 
     def OnReload(self, event):
         modulePage = self.getActiveModulePage()
         if modulePage:
-            modulePage.model.load()
+            try:
+                modulePage.model.load()
+            except TransportLoadError, error:
+                wxLogError(str(error))
 
     def OnClosePage(self, event):
         # Replace view's edit menu with editor managed blankEditMenu
@@ -1013,9 +1009,12 @@ class EditorFrame(wxFrame):
             try:
                 self.closeModule(modulePage)
             except 'Cancelled':
-                if not event:
-                    raise
+                if not event: raise
+                else: return
+            except TransportSaveError, error:
+                if not event: raise
                 else:
+                    wxLogError(str(error))
                     return
 
             self.mainMenu.Replace(mmEdit, wxMenu(), 'Edit').Destroy()
@@ -1062,6 +1061,11 @@ class EditorFrame(wxFrame):
                 except 'Cancelled':
                     self.Show(true)
                     self.palette.destroying = false
+                    return
+                except TransportSaveError, error:
+                    self.Show(true)
+                    self.palette.destroying = false
+                    wxLogError(str(error))
                     return
 
             if self.debugger:
@@ -1519,20 +1523,33 @@ class ModulePage:
             Decrements tIdx if bigger than idx. """
         if idx < self.tIdx:
             self.tIdx = self.tIdx - 1
+    
+    def saveAs(self, filename):
+        newFilename, success = self.editor.saveAsDlg(filename)
+        if success:
+            self.model.saveAs(newFilename)
+            self.editor.updateModulePage(self.model, filename)
+            self.editor.updateTitle()
+        return success
 
-    def saveOrSaveAs(self):
+    def saveOrSaveAs(self, forceSaveAs=false):
         model = self.model
-        if not model.savedAs:
+        editor = self.editor
+        if forceSaveAs or not model.savedAs:
             oldName = model.filename
-            if model.editor.saveAs(oldName) and (oldName != model.filename):
-                del model.editor.modules[oldName]
-                model.editor.modules[model.filename] = self
+            if self.saveAs(oldName) and (oldName != model.filename):
+                del editor.modules[oldName]
+                editor.modules[model.filename] = self
+
+                editor.statusBar.setHint('%s saved.'%\
+                      os.path.basename(model.filename))
         else:
             model.save()
-            model.editor.updateModulePage(model)
-            model.editor.updateTitle()
+            editor.updateModulePage(model)
+            editor.updateTitle()
 
-        model.editor.statusBar.setHint('%s saved.'%os.path.basename(model.filename))
+            editor.statusBar.setHint('%s saved.'%\
+                  os.path.basename(model.filename))
 
     def OnPageChange(self, event):
         viewIdx = event.GetSelection()
