@@ -61,6 +61,9 @@ def installFromFS(conninfo, filepath):
     os.path.walk(filepath, installList, (filepath, conninfo) )
 
 def installList(info, dirname, names):
+    if os.path.basename(dirname) == 'CVS':
+        return
+
     fsPath, (url, user, passwd) = info
 
     reldir = dirname[len(fsPath)+1:]
@@ -73,4 +76,5 @@ def installList(info, dirname, names):
         if ext == '.py':
             installZopeScript(info, name, open(os.path.join(dirname, item)).read())
         else:
-            installZopeFolder(info, item)
+            if item != 'CVS':
+                installZopeFolder(info, item)
