@@ -8,6 +8,7 @@ from ZopeLib import ImageViewer, Client
 from Companions.ZopeCompanions import ZopeConnection, ZopeCompanion, FolderZC
 from Preferences import IS, wxFileDialog
 import Utils
+import Views
 
 ctrl_pnl = 'Control_Panel'
 prods = 'Products'
@@ -90,6 +91,10 @@ class ZopeCatNode(ExplorerNodes.CategoryNode):
         
 class ZopeItemNode(ExplorerNodes.ExplorerNode):
     protocol = 'zope'
+    Model = None
+    defaultViews = ()
+    additionalViews = ()
+
     def __init__(self, name, resourcepath, clipboard, imgIdx, parent, zftp, zftpi, root, properties):
         ExplorerNodes.ExplorerNode.__init__(self, name, resourcepath, clipboard, imgIdx, 
               parent, properties)
@@ -163,30 +168,34 @@ class ZopeItemNode(ExplorerNodes.ExplorerNode):
         return itm
         
     def checkentry(self,id,entry,path):
-        if  entry == 'Folder'  or entry == 'Product Help':
-            childnode=DirNode(id, path, self.clipboard, -1,self, self.zopeConn, self.server, self.root, self.properties)
-        elif entry == 'User Folder':
-            childnode=UserFolderNode(id, path, self.clipboard, -1,self, self.zopeConn, self.server, self.root, self.properties)
-        elif entry == 'Control Panel':
-            childnode=ControlNode(id, path, self.clipboard, -1,self, self.zopeConn, self.server, self.root, self.properties)
-        elif entry == 'Local File System' or entry == 'Local Directory' or entry == 'directory':
-            childnode=LFSNode(id, path, self.clipboard, -1,self, self.zopeConn, self.server, self.root, self.properties)
-        elif entry == 'Z SQL Method':
-            childnode=ZSQLNode(id, path, self.clipboard, -1,self, self.zopeConn, self.server, self.root, self.properties)
-        elif entry == 'DTML Document':
-            childnode=DTMLDocNode(id, path, self.clipboard, -1,self, self.zopeConn, self.server, self.root, self.properties)
-        elif entry == 'DTML Method':
-            childnode=DTMLMethodNode(id, path, self.clipboard, -1,self, self.zopeConn, self.server, self.root, self.properties)
-        elif entry == 'Python Method':
-            childnode=PythonNode(id, path, self.clipboard, -1,self, self.zopeConn, self.server, self.root, self.properties)
-        elif entry == 'External Method':
-            childnode=ExtPythonNode(id, path, self.clipboard, -1,self, self.zopeConn, self.server, self.root, self.properties)    
-        elif entry == 'Script (Python)':
-            childnode=PythonScriptNode(id, path, self.clipboard, -1,self, self.zopeConn, self.server, self.root, self.properties)    
-        else:
-            childnode=ZopeItemNode(id, path, self.clipboard, -1,self, self.zopeConn, self.server, self.root, self.properties)
-        return childnode
+##        if  entry == 'Folder'  or entry == 'Product Help':
+##            childnode=DirNode(id, path, self.clipboard, -1,self, self.zopeConn, self.server, self.root, self.properties)
+##        elif entry == 'User Folder':
+##            childnode=UserFolderNode(id, path, self.clipboard, -1,self, self.zopeConn, self.server, self.root, self.properties)
+##        elif entry == 'Control Panel':
+##            childnode=ControlNode(id, path, self.clipboard, -1,self, self.zopeConn, self.server, self.root, self.properties)
+##        elif entry == 'Local File System' or entry == 'Local Directory' or entry == 'directory':
+##            childnode=LFSNode(id, path, self.clipboard, -1,self, self.zopeConn, self.server, self.root, self.properties)
+##        elif entry == 'Z SQL Method':
+##            childnode=ZSQLNode(id, path, self.clipboard, -1,self, self.zopeConn, self.server, self.root, self.properties)
+##        elif entry == 'DTML Document':
+##            childnode=DTMLDocNode(id, path, self.clipboard, -1,self, self.zopeConn, self.server, self.root, self.properties)
+##        elif entry == 'DTML Method':
+##            childnode=DTMLMethodNode(id, path, self.clipboard, -1,self, self.zopeConn, self.server, self.root, self.properties)
+##        elif entry == 'Python Method':
+##            childnode=PythonNode(id, path, self.clipboard, -1,self, self.zopeConn, self.server, self.root, self.properties)
+##        elif entry == 'External Method':
+##            childnode=ExtPythonNode(id, path, self.clipboard, -1,self, self.zopeConn, self.server, self.root, self.properties)    
+##        elif entry == 'Script (Python)':
+##            childnode=PythonScriptNode(id, path, self.clipboard, -1,self, self.zopeConn, self.server, self.root, self.properties)    
+##        else:
+##            childnode=ZopeItemNode(id, path, self.clipboard, -1,self, self.zopeConn, self.server, self.root, self.properties)
+##        return childnode
 
+         ZopeNodeClass = zopeClassMap.get(entry, ZopeItemNode)
+         return apply(ZopeNodeClass, (id, path, self.clipboard, -1, self, 
+             self.zopeConn, self.server, self.root, self.properties))
+        
     def whole_name(self):
         tmp1=self.buildUrl()
         tmp=urlparse.urlparse("http://" + tmp1)
@@ -270,6 +279,7 @@ class ZopeItemNode(ExplorerNodes.ExplorerNode):
         except Exception, message:
             wxMessageBox(`message.args`, 'Error on import')
             #raise
+
     def newItem(self, name, Compn, getNewValidName = true):
         props = self.root.properties
         if getNewValidName:
@@ -511,6 +521,10 @@ class ZSQLNode(ZopeNode):
     pass
 
 class PythonNode(ZopeNode):
+    Model = EditorModels.ZopePythonScriptModel
+    defaultViews = (Views.PySourceView.PythonSourceView,)
+    additionalViews = ()
+
       #manage_edit("newschas","self,p","return 'hello'"
     def getParams(self):
         return self.data[string.find(self.data,"(")+1:string.find(self.data,")")]    
@@ -527,6 +541,7 @@ class PythonNode(ZopeNode):
         eatandforget=self.server.__getattr__(self.name).manage_edit(self.name,self.getParams(),self.getBody())
     
 class PythonScriptNode(PythonNode):
+   
     def preparedata(self):
         tmp=string.split(self.rawdata,"\n")
         tmp2=[]
@@ -551,15 +566,19 @@ class PythonScriptNode(PythonNode):
         self.rawdata = self.server.__getattr__(self.name).document_src()
         self.data = self.preparedata()
         return self.data    
+
 class ExtPythonNode(ZopeNode):
     pass
 
 class DTMLDocNode(ZopeNode):
-    pass    
+    Model = EditorModels.ZopeDocumentModel
+    defaultViews = (Views.PySourceView.HTMLSourceView,)
+    additionalViews = (Views.EditorViews.ZopeHTMLView,)
 
 class DTMLMethodNode(ZopeNode):
-    pass    
-
+    Model = EditorModels.ZopeDocumentModel
+    defaultViews = (Views.PySourceView.HTMLSourceView,)
+    additionalViews = (Views.EditorViews.ZopeHTMLView,)
             
 class LFSNode(DirNode):
     
@@ -578,4 +597,18 @@ class LFNode(LFSNode):
 class LFDirNode(LFSNode):
     def isFolderish(self): 
         return true   
+
+zopeClassMap = { 'Folder': DirNode, 'Product Help': DirNode,
+        'User Folder': UserFolderNode,
+        'Control Panel': ControlNode,
+        'Local File System': LFSNode,
+        'Local Directory': LFSNode,
+        'directory': LFSNode,
+        'Z SQL Method': ZSQLNode,
+        'DTML Document': DTMLDocNode,
+        'DTML Method': DTMLMethodNode,
+        'Python Method': PythonNode, 
+        'External Method': ExtPythonNode,
+        'Script (Python)': PythonScriptNode,
+       }
     
