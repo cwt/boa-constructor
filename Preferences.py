@@ -6,7 +6,7 @@
 #
 # Created:     1999
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999 - 2003 Riaan Booysen
+# Copyright:   (c) 1999 - 2004 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
 
@@ -93,7 +93,7 @@ wxPlatforms = {'__WXMSW__': 'msw',
 thisPlatform = wxPlatforms[wx.wxPlatform]
 
 # upgrade if needed and exec in our namespace
-for prefsFile, version in (('prefs.rc.py', 10),
+for prefsFile, version in (('prefs.rc.py', 11),
                            ('prefs.%s.rc.py'%thisPlatform, 8),
                            ('prefs.keys.rc.py', 9),
                            ('prefs.plug-ins.rc.py', None)):
@@ -173,39 +173,50 @@ def getPythonInterpreterPath():
 #-Window size calculations------------------------------------------------------
 
 # thnx Mike Fletcher
-screenWidth =  wx.wxSystemSettings_GetSystemMetric(wx.wxSYS_SCREEN_X)
-screenHeight = wx.wxSystemSettings_GetSystemMetric(wx.wxSYS_SCREEN_Y)
-if wx.wxPlatform == '__WXMSW__':
-    _x, _y, screenWidth, screenHeight = wxGetClientDisplayRect()
-    screenHeight -= topMenuHeight
-else:
-    # handle dual monitors on Linux
-    if screenWidth / screenHeight >= 2:
-        screenWidth = screenWidth / 2
+screenWidth = screenHeight = wxDefaultFramePos = wxDefaultFrameSize = \
+    edWidth = inspWidth = paletteHeight = bottomHeight = underPalette = \
+    oglBoldFont = oglStdFont = None
 
-    screenWidth = int(screenWidth - verticalTaskbarWidth)
-    screenHeight = int(screenHeight - horizontalTaskbarHeight - topMenuHeight)
+def initScreenVars():
+    global screenWidth, screenHeight, wxDefaultFramePos, wxDefaultFrameSize
+    global edWidth, inspWidth, paletteHeight, bottomHeight, underPalette 
+    
+    screenWidth = wx.wxSystemSettings_GetSystemMetric(wx.wxSYS_SCREEN_X)
+    screenHeight = wx.wxSystemSettings_GetSystemMetric(wx.wxSYS_SCREEN_Y)
+    if wx.wxPlatform == '__WXMSW__':
+        _x, _y, screenWidth, screenHeight = wxGetClientDisplayRect()
+        screenHeight -= topMenuHeight
+    else:
+        # handle dual monitors on Linux
+        if screenWidth / screenHeight >= 2:
+            screenWidth = screenWidth / 2
+    
+        screenWidth = int(screenWidth - verticalTaskbarWidth)
+        screenHeight = int(screenHeight - horizontalTaskbarHeight - topMenuHeight)
+    
+    if wx.wxPlatform == '__WXMSW__':
+        wxDefaultFramePos = wx.wxDefaultPosition
+        wxDefaultFrameSize = wx.wxDefaultSize
+    else:
+        wxDefaultFramePos = (screenWidth / 4, screenHeight / 4)
+        wxDefaultFrameSize = (int(round(screenWidth / 1.5)), int(round(screenHeight / 1.5)))
+    
+    edWidth = int(screenWidth * editorScreenWidthPerc - windowManagerSide * 2)
+    inspWidth = screenWidth - edWidth + 1 - windowManagerSide * 4
+    paletteHeight = paletteHeights[paletteStyle]
+    bottomHeight = screenHeight - paletteHeight
+    underPalette = paletteHeight + windowManagerTop + windowManagerBottom + topMenuHeight
 
-if wx.wxPlatform == '__WXMSW__':
-    wxDefaultFramePos = wx.wxDefaultPosition
-    wxDefaultFrameSize = wx.wxDefaultSize
-else:
-    wxDefaultFramePos = (screenWidth / 4, screenHeight / 4)
-    wxDefaultFrameSize = (int(round(screenWidth / 1.5)), int(round(screenHeight / 1.5)))
+    if wxPlatform == '__WXMSW__':
+        oglBoldFont = wxFont(7, wxDEFAULT, wxNORMAL, wxBOLD, false)
+        oglStdFont = wxFont(7, wxDEFAULT, wxNORMAL, wxNORMAL, false)
+    else:
+        oglBoldFont = wxFont(12, wxDEFAULT, wxNORMAL, wxBOLD, false)
+        oglStdFont = wxFont(10, wxDEFAULT, wxNORMAL, wxNORMAL, false)
 
-edWidth = int(screenWidth * editorScreenWidthPerc - windowManagerSide * 2)
-inspWidth = screenWidth - edWidth + 1 - windowManagerSide * 4
-paletteHeight = paletteHeights[paletteStyle]
-bottomHeight = screenHeight - paletteHeight
-underPalette = paletteHeight + windowManagerTop + windowManagerBottom + topMenuHeight
+
 paletteTitle = 'Boa Constructor'
 
-if wxPlatform == '__WXMSW__':
-    oglBoldFont = wxFont(7, wxDEFAULT, wxNORMAL, wxBOLD, false)
-    oglStdFont = wxFont(7, wxDEFAULT, wxNORMAL, wxNORMAL, false)
-else:
-    oglBoldFont = wxFont(12, wxDEFAULT, wxNORMAL, wxBOLD, false)
-    oglStdFont = wxFont(10, wxDEFAULT, wxNORMAL, wxNORMAL, false)
 
 #-------------------------------------------------------------------------------
 # Delays wxApp_Cleanup
