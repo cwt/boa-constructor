@@ -179,7 +179,8 @@ screenWidth = screenHeight = wxDefaultFramePos = wxDefaultFrameSize = \
 
 def initScreenVars():
     global screenWidth, screenHeight, wxDefaultFramePos, wxDefaultFrameSize
-    global edWidth, inspWidth, paletteHeight, bottomHeight, underPalette 
+    global edWidth, inspWidth, paletteHeight, bottomHeight, underPalette
+    global oglBoldFont, oglStdFont 
     
     screenWidth = wx.wxSystemSettings_GetSystemMetric(wx.wxSYS_SCREEN_X)
     screenHeight = wx.wxSystemSettings_GetSystemMetric(wx.wxSYS_SCREEN_Y)
