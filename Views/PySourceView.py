@@ -19,7 +19,9 @@ from wxPython.stc import *
 import ProfileView, Search, Help, Preferences, ShellEditor, Utils
 
 from SourceViews import EditorStyledTextCtrl, indentLevel
-from StyledTextCtrls import PythonStyledTextCtrlMix, BrowseStyledTextCtrlMix, FoldingStyledTextCtrlMix, idWord, new_stc, old_stc, object_delim
+from StyledTextCtrls import PythonStyledTextCtrlMix, BrowseStyledTextCtrlMix,\
+     FoldingStyledTextCtrlMix, AutoCompleteCodeHelpSTCMix, CallTipCodeHelpSTCMix,\
+     idWord, new_stc, old_stc, object_delim
 from PrefsKeys import keyDefs
 import methodparse
 import wxNamespace
@@ -30,7 +32,8 @@ tmpBrkPtMrk = 3
 markPlaceMrk = 4
 
 class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
-                       BrowseStyledTextCtrlMix, FoldingStyledTextCtrlMix):
+                       BrowseStyledTextCtrlMix, FoldingStyledTextCtrlMix,
+                       AutoCompleteCodeHelpSTCMix, CallTipCodeHelpSTCMix):
     viewName = 'Source'
     breakBmp = 'Images/Debug/Breakpoints.bmp'
     runCrsBmp = 'Images/Editor/RunToCursor.bmp'
@@ -87,6 +90,7 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
         PythonStyledTextCtrlMix.__init__(self, wxID_PYTHONSOURCEVIEW, 0)
         BrowseStyledTextCtrlMix.__init__(self)
         FoldingStyledTextCtrlMix.__init__(self, wxID_PYTHONSOURCEVIEW, 2)
+        CallTipCodeHelpSTCMix.__init__(self)
 
         # Initialise breakpts from file and bdb.Breakpoint
         self.tryLoadBreakpoints()
@@ -153,6 +157,124 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
                 textLst[idx] = textLst[idx][indentLevel:]
         return textLst
 
+    def checkCallTipHighlight(self):
+        if self.CallTipActive():
+            pass
+
+#---Call Tips-------------------------------------------------------------------
+
+    def getTipValue(self, word, lnNo):
+        """ Overwritten Mixin method, returns string to display as tool tip """
+        module = self.model.getModule()
+        objPth = string.split(word, '.')
+        safesplit = methodparse.safesplitfields
+
+        cls = module.getClassForLineNo(lnNo)
+        if cls:
+            if len(objPth) == 1:
+                if module.classes.has_key(objPth[0]) and \
+                     module.classes[objPth[0]].methods.has_key('__init__'):
+                    return self.prepareModSigTip(objPth[0],
+                        module.classes[objPth[0]].methods['__init__'].signature)
+                elif module.functions.has_key(objPth[0]):
+                    return self.prepareModSigTip(objPth[0], 
+                        module.functions[objPth[0]].signature)
+                elif __builtins__.has_key(objPth[0]):
+                    return self.getFirstContinousBlock(
+                          __builtins__[objPth[0]].__doc__)
+                else:
+                    return self.getFirstContinousBlock(
+                           self.checkWxPyTips(module, objPth[0]))
+                    
+            if len(objPth) == 2 and objPth[0] == 'self':
+                if cls.methods.has_key(objPth[1]):
+                    return self.prepareModSigTip(objPth[1],
+                          cls.methods[objPth[1]].signature)
+                elif cls.super and type(cls.super[0]) is type(''):
+                    return self.getFirstContinousBlock(
+                      self.checkWxPyMethodTips(module, cls.super[0], objPth[1]))
+                          
+            if len(objPth) == 3 and objPth[0] == 'self':
+                return self.getFirstContinousBlock(
+                    self.getAttribSig(module, cls, objPth[1], objPth[2]))
+
+            return ''
+
+        else:
+            if len(objPth) == 1:
+                if module.functions.has_key(objPth[0]):
+                    return self.prepareModSigTip(objPth[0], 
+                        cls.functions[objPth[0]].signature)
+                else:
+                    return ''
+        return ''
+
+    def checkWxPyTips(self, module, name):
+        if module.imports.has_key('wxPython.wx'):
+            if wx.__dict__.has_key(name):
+                t = type(wx.__dict__[name])
+                if t is types.ClassType:
+                    if wx.__dict__[name].__init__.__doc__:
+                        return wx.__dict__[name].__init__.__doc__
+        return ''
+
+    def checkWxPyMethodTips(self, module, cls, name):
+        if module.imports.has_key('wxPython.wx'):
+            if wx.__dict__.has_key(cls):
+                Cls = wx.__dict__[cls]
+                if hasattr(Cls, name):
+                    meth = getattr(Cls, name)
+                    if meth.__doc__:
+                        return meth.__doc__
+        return ''
+
+    def getAttribSig(self, module, cls, attrib, meth):
+        if cls.attributes.has_key(attrib):
+            objtype = cls.attributes[attrib][0].signature
+            if module.classes.has_key(objtype) and \
+                  module.classes[objtype].methods.has_key(meth):
+                return module.classes[objtype].methods[meth].signature
+            klass = wxNamespace.getWxClass(objtype)
+            if klass:
+                if hasattr(klass, meth):
+                    return getattr(klass, meth).__doc__
+        return ''
+
+    def prepareModSigTip(self, name, paramsStr):
+        if Utils.startswith(paramsStr, 'self,'):
+            paramsStr = string.strip(paramsStr[5:])
+        elif paramsStr == 'self':
+            paramsStr = ''
+        return '%s(%s)'%(name, paramsStr)
+
+#---Code Completion-------------------------------------------------------------
+
+    def getCodeCompOptions(self, word, rootWord, matchWord, lnNo):
+        """ Overwritten Mixin method, returns list of code completion names """
+        module = self.model.getModule()
+        cls = module.getClassForLineNo(lnNo)
+        if cls:
+            objPth = string.split(rootWord, '.')
+
+            if len(objPth) == 1:
+                if objPth[0] == 'self':
+                    return self.getAttribs(cls)
+                if objPth[0] == '':
+                    meth = cls.getMethodForLineNo(lnNo)
+                    return self.getCodeNamespace(module, meth)
+                else:
+                    return []
+
+            elif len(objPth) == 2 and objPth[0] == 'self':
+                attrib = objPth[1]
+                return self.getAttribAttribs(module, cls, attrib)
+
+            else:
+                return []
+        else:
+            func = module.getFunctionForLineNo(lnNo)
+            return self.getCodeNamespace(module, func)
+
     def getWxAttribs(self, cls, mems = None):
         if mems is None: mems = []
 
@@ -183,136 +305,38 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
 
         return lst
 
-    def checkCallTipHighlight(self):
-        if self.CallTipActive():
-            pass
-##            pos = self.GetCurrentPos()
-##            lnNo = self.GetCurrentLine()
-##            lnStPs = self.GetLineStartPos(lnNo)
-##            line = self.GetCurrentLineText()[0]
-##            piv = pos - lnStPs
-##            start, length = idWord(line, piv, lnStPs)
-##            startLine = start-lnStPs
-##            word = line[startLine:startLine+length]
-##            print word, line[piv-1]
-##            cls = self.model.getModule().getClassForLineNo(lnNo)
-##
-##            self.CallTipSetHighlight(0, len(sigLst[1])
-
-    def checkCallTip(self):
-        pos = self.GetCurrentPos()
-        lnNo = self.GetCurrentLine()
-        lnStPs = self.GetLineStartPos(lnNo)
-        line = self.GetCurrentLineText()[0]
-        piv = pos - lnStPs
-        start, length = idWord(line, piv, lnStPs)
-        startLine = start-lnStPs
-        word = line[startLine:startLine+length]
-        #print word, line[piv-1]
-        module = self.model.getModule()
-        cls = module.getClassForLineNo(lnNo)
-        if cls and line[piv-1] == '(':
-            dot = string.rfind(line, '.', 0, piv)
-            if dot != -1 and line[dot-4:dot] == 'self':
-                meth = line[dot+1:piv-1]
-                if cls.methods.has_key(meth):
-                    sigLst = methodparse.safesplitfields(cls.methods[meth].signature, ',')
-                    if len(sigLst) > 1:
-                        self.CallTipShow(pos, string.join(sigLst[1:], ', '))
-                        self.currParamList = sigLst[1:]
-                        self.checkCallTipHighlight()
-
     typeMap = {'dict': dir({}), 'list': dir([]), 'string': dir(''),
                'tuple': dir(()), 'number': dir(0)}
 
-    def checkCodeComp(self):
-        pos = self.GetCurrentPos()
-        lnNo = self.GetCurrentLine()
-        lnStPs = self.GetLineStartPos(lnNo)
-        line = self.GetCurrentLineText()[0]
-        piv = pos - lnStPs
-        start, length = idWord(line, piv, lnStPs)
-        startLine = start-lnStPs
-        word = line[startLine:startLine+length]
-        module = self.model.getModule()
-        cls = module.getClassForLineNo(lnNo)
-        if cls:
-            dot = string.rfind(line, '.', 0, piv)
-            if dot != -1:
-                lst = []
-                if line[dot-4:dot] == 'self':
-                    partial = line[dot+1:piv]
-                    lst = self.getAttribs(cls)
-                else:
-                    # check if previous attr isn't self
-                    prevdot = string.rfind(line, '.', 0, dot)
-                    if prevdot != -1 and line[prevdot-4:prevdot] == 'self':
-                        partial = line[dot+1:piv]
-                        attrib = line[prevdot+1:dot]
-                        # Only handling current classes attrs
-                        if cls.attributes.has_key(attrib):
-                            objtype = cls.attributes[attrib][0].signature
-                            if self.typeMap.has_key(objtype):
-                                lst = self.typeMap[objtype]
-                            elif module.classes.has_key(objtype):
-                                lst = self.getAttribs(module.classes[objtype])
-                            else:
-                                klass = wxNamespace.getWxClass(objtype)
-                                if klass:
-                                    lst = self.getWxAttribs(klass)
-                if lst:
-                    uniqueDct = {}
-                    for attr in lst:
-                        uniqueDct[attr] = None
-                    lst = uniqueDct.keys()
-                    if old_stc:
-                        self.AutoCompShow(string.join(lst, ' '))
-                    else:
-                        self.AutoCompShow(len(partial), string.join(lst, ' '))
-                    if partial and new_stc:
-                        self.AutoCompSelect(partial)
-
+    def getAttribAttribs(self, module, cls, attrib):
+        if cls.attributes.has_key(attrib):
+            objtype = cls.attributes[attrib][0].signature
+            if self.typeMap.has_key(objtype):
+                return self.typeMap[objtype]
+            elif module.classes.has_key(objtype):
+                return self.getAttribs(module.classes[objtype])
             else:
-                meth = cls.getMethodForLineNo(lnNo)
-                if meth:
-                    locals = meth.localnames()
-                else:
-                    locals = []
-                if module.imports.has_key('wxPython.wx'):
-                    list = wxNamespace.getWxNameSpace() + locals
-                else:
-                    list = locals
+                klass = wxNamespace.getWxClass(objtype)
+                if klass:
+                    return self.getWxAttribs(klass)
+        return []
 
-                blnk = string.rfind(line, ' ', 0, piv)
-                partial = line[blnk+1:piv]
+    def getCodeNamespace(self, module, block):
+        names = []
+        
+        names.extend(module.imports.keys())
+        names.extend(module.class_order)
+        names.extend(module.function_order)
+        names.extend(module.global_order)
+        names.extend(__builtins__.keys())
+        
+        if block: 
+            names.extend(block.localnames())
 
-                if old_stc:
-                    self.AutoCompShow(string.join(list, ' '))
-                else:
-                    self.AutoCompShow(len(partial), string.join(list, ' '))
-                    if partial and new_stc:
-                        self.AutoCompSelect(partial)
+        if module.imports.has_key('wxPython.wx'):
+            return wxNamespace.getWxNameSpace() + names
         else:
-            func = module.getFunctionForLineNo(lnNo)
-            if func:
-                locals = func.localnames()
-            else:
-                locals = []
-            if module.imports.has_key('wxPython.wx'):
-                list = wxNamespace.getWxNameSpace() + locals
-            else:
-                list = locals
-
-            if list:
-                blnk = string.rfind(line, ' ', 0, piv)
-                partial = line[blnk+1:piv]
-
-                if old_stc:
-                    self.AutoCompShow(string.join(list, ' '))
-                else:
-                    self.AutoCompShow(len(partial), string.join(list, ' '))
-                    if partial and new_stc:
-                        self.AutoCompSelect(partial)
+            return names
 
 #-------Browsing----------------------------------------------------------------
     def StyleVeto(self, style):
@@ -564,7 +588,7 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
                 lineStartStyle = slb, lineEndStyle = sle)
             ##print time.time()-t1, 'synchecked'#, slb, sle, line
 
-    def indicateError(self, lineNo, errOffset):
+    def indicateError(self, lineNo, errOffset, errorHint):
         """ Underline the point of error at the given line """
         # Display red squigly indicator underneath error
         errPos = self.PositionFromLine(lineNo-1)
@@ -577,6 +601,9 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
         self.SetStyling(styleLen, wxSTC_INDIC1_MASK)
         # XXX I have to set the styling past the cursor position, why????
         self.SetStyling(lenAfterErr+nextLineLen, 0)#wxSTC_INDIC0_MASK)
+
+        if errorHint:
+            self.model.editor.statusBar.setHint(errorHint, 'Error')
 
     def stripComment(self, line):
         segs = methodparse.safesplitfields(line, '#')
@@ -609,19 +636,19 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
         # XXX     ZopeCompanions 278
         # XXX     print a, b,
         # XXX         c, d
-        errstr = 'valid '+`lineNo`
+        errstr = 'Line %d valid '%lineNo
         prevline = prevlines[-1]
         stripprevline = string.strip(prevline)
 
         # Special case for blank lines
         if not stripprevline:
-            self.model.editor.statusBar.setHint('blank '+`lineNo`)
+            self.model.editor.statusBar.setHint(errstr)
             return
 
         # Ignore multiline strings
         if lineStartStyle in self.ignore_styles.keys() or \
               lineEndStyle in self.ignore_styles.keys():
-            self.model.editor.statusBar.setHint('multiline string '+`lineNo`)
+            self.model.editor.statusBar.setHint(errstr)
             return
 
         # Special case for \ followed by whitespace (don't strip it!)
@@ -659,7 +686,8 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
                 return
             elif err[0] == 'invalid token':
                 self.indicateError(lineNo,
-                      err.offset + indentpl - len(indent) - contLinesOffset)
+                      err.offset + indentpl - len(indent) - contLinesOffset,
+                      'SyntaxError: %s'%err[0])
 
             # Invalid syntax
             else:
@@ -730,14 +758,19 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
                 else:
                     erroffset = err.offset
 
-                self.indicateError(lineNo, erroffset + indentpl - len(indent) - contLinesOffset)
+                self.indicateError(lineNo, 
+                    erroffset + indentpl - len(indent) - contLinesOffset,
+                    errstr)
+                self.damagedLine = -1
+                return
 
         except Exception, err:
             errstr = err.__class__.__name__+': '+str(err)
 
-        self.model.editor.statusBar.setHint(errstr)
-        self.damagedLine = -1
+        if errstr:
+            self.model.editor.statusBar.setHint(errstr)
 
+        self.damagedLine = -1
 
 #-------Events------------------------------------------------------------------
     def OnMarginClick(self, event):
@@ -883,7 +916,6 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
             self.SetSelection(selStartPos - indentLevel, selStartPos)
             self.ReplaceSelection('')
 
-
     def OnAddSimpleApp(self, event):
         self.BeginUndoAction()
         try:
@@ -925,48 +957,26 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
             pos = self.GetCurrentPos()
             # XXX GetLine returns garbage in the last char
             prevline = self.GetLine(lineNo -1)[:-1]
-            stripprevline = string.strip(prevline)
-            if stripprevline:
-                indent = prevline[:string.find(prevline, stripprevline)]
-            else:
-                indent = prevline[:-1]
-            if string.rstrip(prevline)[-1:] == ':':
-                indent = indent + (indentLevel*' ')
-            self.BeginUndoAction()
-            try:
-                self.InsertText(pos, indent)
-                self.GotoPos(pos + len(indent))
-            finally:
-                self.EndUndoAction()
+            
+            self.doAutoIndent(prevline, pos)
 
             self.damagedLine = lineNo-1
             self.checkChangesAndSyntax(lineNo-1)
 
-    keymap={81: chr(64), 56: chr(91), 57: chr(93), 55: chr(123), 48: chr(125),
-            219: chr(92), 337: chr(126), 226: chr(124)}
-
     def OnKeyDown(self, event):
+        if self.CallTipActive():
+            self.callTipCheck()
+
         key = event.KeyCode()
 
         # thx to Robert Boulanger
-        if Preferences.handleSpecialEuropeanKeys and event.AltDown() and \
-              event.ControlDown():
-            if self.keymap.has_key(key):
-                currPos = self.GetCurrentPos()
-                self.InsertText(currPos, self.keymap[key])
-                self.SetCurrentPos(self.GetCurrentPos()+1)
-                self.SetSelectionStart(self.GetCurrentPos())
+        if Preferences.handleSpecialEuropeanKeys:
+            self.handleSpecialEuropeanKeys(event)
 
         if key in (WXK_UP, WXK_DOWN):
             self.checkChangesAndSyntax()
         # Tabbed indent
         elif key == 9:
-##            pos = self.GetCurrentPos()
-##            self.InsertText(pos, indentLevel*' ')
-##            if old_stc:
-##                self.SetCurrentPosition(pos + indentLevel)
-##            else:
-##                self.SetSelectionStart(pos + indentLevel)
             self.AddText(indentLevel*' ')
             self.damagedLine = self.GetCurrentLine()
             if not self.AutoCompActive(): return
@@ -1101,7 +1111,7 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
             module.renumber(linesAdded, lineNo)
 
     def OnCompleteCode(self, event):
-        self.checkCodeComp()
+        self.codeCompCheck()
 
     def OnParamTips(self, event):
-        self.checkCallTip()
+        self.callTipCheck()
