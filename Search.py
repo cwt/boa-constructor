@@ -12,7 +12,7 @@
 from os import path
 import os
 import string, time
-from wxPython.wx import wxProgressDialog, wxPD_CAN_ABORT, wxPD_APP_MODAL
+from wxPython.wx import wxProgressDialog, wxPD_CAN_ABORT, wxPD_APP_MODAL, wxPD_AUTO_HIDE, true, false
 
 ##def visit(info, dirname, names):
 ##    pattern = info[0]
@@ -23,6 +23,7 @@ from wxPython.wx import wxProgressDialog, wxPD_CAN_ABORT, wxPD_APP_MODAL
 ##            results.append(file)
     
 def count(filename, pattern, caseSensitive):
+    print 'count', filename
     try: f = open(filename, 'r')
     except IOError: return 0
     try:
@@ -63,23 +64,31 @@ def findInFile(filename, pattern, caseSensitive, includeLine = 0):
         return findInText(sourcelines, pattern, caseSensitive, includeLine)
     finally:
         f.close()
-        
-def findInFiles(parent, srchPath, pattern, callback, deeperPath = '', filemask = ('.htm', '.html', '.txt')):
+
+def defaultProgressCallback(dlg, count, file, msg):
+    dlg.Update(count, msg +' '+ file)
+                
+def findInFiles(parent, srchPath, pattern, callback = defaultProgressCallback, deeperPath = '', filemask = ('.htm', '.html', '.txt'), progressMsg = 'Search help files...', dlg = None, joiner = '/'):
+    print 'FindInText', srchPath, pattern
     results = []
     names = os.listdir(srchPath)
     cnt = 0   
 
+    owndlg = false
     max = len(names)
-    dlg = wxProgressDialog('Search help files...',
+    if not dlg:
+    	dlg = wxProgressDialog(progressMsg,
                            'Searching...',
                            max,
                            parent,
-                           wxPD_CAN_ABORT | wxPD_APP_MODAL)
+                           wxPD_CAN_ABORT | wxPD_APP_MODAL | wxPD_AUTO_HIDE)
+        owndlg = true
     try:
         for file in names:
             filePath = path.join(srchPath, file)
             ext = path.splitext(file)[1]
-            if ext in filemask:
+            print 'fif', ext, filemask
+            if ext in filemask or ('.*' in filemask and ext):
                 callback(dlg, cnt, file, 'Searching')
                 ocs = count(filePath, pattern, 0)
      	        if ocs:
@@ -87,11 +96,12 @@ def findInFiles(parent, srchPath, pattern, callback, deeperPath = '', filemask =
             else:
                 if path.isdir(filePath):
                     results.extend(findInFiles(parent, filePath, pattern, 
-                      callback, file+'/'))
+                      callback, file+joiner, filemask, dlg = dlg, joiner = joiner))
                 else:
                     callback(dlg, cnt, file, 'Skipping')
             cnt = cnt + 1
         return results
     finally:
-        dlg.Destroy()
+        if owndlg:
+            dlg.Destroy()
 
