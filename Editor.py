@@ -1111,14 +1111,29 @@ class ModulePage:
     def addView(self, view, viewName = ''):        
         """ Add a view to the model and display it as a page in the notebook
             of view instances.""" 
+        if wxPlatform == '__WXGTK__':
+            panel = wxPanel(self.notebook, -1, style=wxTAB_TRAVERSAL | wxCLIP_CHILDREN)
         
         if not viewName: viewName = view.viewName
-        self.model.views[viewName] = apply(view, (self.notebook, self.model))
+        if wxPlatform == '__WXGTK__':
+            self.model.views[viewName] = apply(view, (panel, self.model))
+        else:
+            self.model.views[viewName] = apply(view, (self.notebook, self.model))
+
+        if wxPlatform == '__WXGTK__':
+            def OnWinSize(evt, win=self.model.views[viewName]):
+                win.SetSize(evt.GetSize())
+            EVT_SIZE(panel, OnWinSize)
 
         if view.docked:
-            self.model.views[viewName].addToNotebook(self.notebook, viewName)
+            if wxPlatform == '__WXGTK__':
+                self.model.views[viewName].addToNotebook(self.notebook, viewName,
+                    panel=panel)
+            else:
+                self.model.views[viewName].addToNotebook(self.notebook, viewName)
         
         return self.model.views[viewName]
+            
         
     def refresh(self):
         pass
