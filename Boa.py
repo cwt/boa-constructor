@@ -16,7 +16,7 @@
 
 Handles creation/initialisation of main objects and commandline arguments """
 
-import sys, os, string, time
+import sys, os, string, time, warnings
 
 #try: import psyco; psyco.background()
 #except ImportError: pass
@@ -27,6 +27,8 @@ t1 = time.time()
 # already running instance of Boa. There is another flag under Preferences
 # which determines if Boa should create and listen on the socket.
 server_mode = 1
+
+main_script = 'Boa.py'
 
 trace_mode = 'functions' # 'lines'
 trace_save = 'all'#'lastline' # 'all'
@@ -68,19 +70,21 @@ startupErrors = []
 import __version__
 
 # Command line options
-doDebug = constricted = emptyEditor = 0
+doDebug = constricted = emptyEditor = blockSocketServer = 0
 startupfile = ''
 startupModules = ()
 startupEnv = os.environ.get('BOASTARTUP') or os.environ.get('PYTHONSTARTUP')
 
 def processArgs(argv):
     _doDebug = _doRemoteDebugSvr = _constricted = _emptyEditor = 0
+    _blockSocketServer = 0
     _startupfile = ''
     _startupModules = ()
     import getopt
-    optlist, args = getopt.getopt(argv, 'CDTSBO:ERhv', ['Constricted', 'Debug',
-          'Trace', 'StartupFile', 'BlockHomePrefs', 'OverridePrefsDirName',
-          'EmptyEditor', 'RemoteDebugServer', 'help', 'version'])
+    optlist, args = getopt.getopt(argv, 'CDTSBO:ERNHVhv', 
+         ['Constricted', 'Debug', 'Trace', 'StartupFile', 'BlockHomePrefs', 
+          'OverridePrefsDirName', 'EmptyEditor', 'RemoteDebugServer', 
+          'NoCmdLineTransfer', 'Help', 'Version', 'help', 'version'])
     if (('-D', '') in optlist or ('--Debug', '') in optlist) and len(args):
         # XXX should be able to 'debug in running Boa'
         _doDebug = 1
@@ -112,9 +116,13 @@ def processArgs(argv):
     if ('-E', '') in optlist or ('--EmptyEditor', '') in optlist:
         _emptyEditor = 1
 
-    if ('-h', '') in optlist or ('--help', '') in optlist:
-        print 'Version: %s'%__version__.version
-        print 'Command-line usage: Boa.py [options] [file1] [file2] ...'
+    if ('-N', '') in optlist or ('--NoCmdLineTransfer', '') in optlist:
+        _blockSocketServer = 1
+
+    if ('-h', '') in optlist or ('--help', '') in optlist or \
+       ('-H', '') in optlist or ('--Help', '') in optlist:
+        print 'Boa Constructor (%s)'%__version__.version
+        print 'Command-line usage: %s [options] [file1] [file2] ...'%main_script
         print '-C, --Constricted:'
         print '\tRuns in constricted mode, overrides the Preference'
         print '-D, --Debug:'
@@ -139,21 +147,26 @@ def processArgs(argv):
         print "\tDon't open the files that were open last time Boa was closed."
         print '-R, --RemoteDebugServer:'
         print "\tRuns the first filename passed on the command-line in a "
-        print "\tRemote Debugger Server that can be connected to over a socket.'"
+        print "\tRemote Debugger Server that can be connected to over a socket."
+        print '-N, --NoCmdLineTransfer:'
+        print "\tDon't transfer command line options to a running Boa, start a "
+        print "\tnew instance."
 
         sys.exit()
-    if ('-v', '') in optlist or ('--version', '') in optlist:
+
+    if ('-v', '') in optlist or ('--version', '') in optlist or \
+       ('-V', '') in optlist or ('--Version', '') in optlist:
         print 'Version: %s'%__version__.version
         sys.exit()
 
     return (_doDebug, _startupfile, _startupModules, _constricted, _emptyEditor,
-            _doRemoteDebugSvr, optlist, args)
+            _doRemoteDebugSvr, _blockSocketServer, optlist, args)
 
 # This happens as early as possible (before wxPython loads) to make filename
 # transfer to a running Boa as quick as possible and little NS pollution
 if __name__ == '__main__' and len(sys.argv) > 1:
     (doDebug, startupfile, startupModules, constricted, emptyEditor, doDebugSvr,
-     opts, args) = processArgs(sys.argv[1:])
+     blockSocketServer, opts, args) = processArgs(sys.argv[1:])
     if doDebugSvr and startupModules:
         print 'Running as a Remote Debug Server'
         from Debugger.RemoteServer import start
@@ -166,8 +179,9 @@ if __name__ == '__main__' and len(sys.argv) > 1:
                                '__builtins__': __builtins__})
 
         sys.exit()
+
     # Try connect to running Boa using sockets, tnx to Tim Hochberg
-    if startupModules and server_mode:
+    if not blockSocketServer and startupModules and server_mode:
         if sendToRunningBoa(startupModules):
             print 'Transfered arguments to running Boa, exiting.'
             sys.exit()
@@ -192,6 +206,8 @@ except NameError:
 
 from wxPython.wx import *
 wxRegisterId(15999)
+
+warnings.filterwarnings('ignore', '', DeprecationWarning, 'wxPython.imageutils')
 
 # Use package version string as it is the only one containing bugfix version number
 import wxPython
@@ -242,6 +258,7 @@ modules ={'About': [0, 'About box and Splash screen', 'About.py'],
  'AppViews': [0, 'Views for the AppModel', 'Views/AppViews.py'],
  'BaseCompanions': [0, '', 'Companions/BaseCompanions.py'],
  'BasicCompanions': [0, '', 'Companions/BasicCompanions.py'],
+ 'BicycleRepairMan.plug-in': [0, '', 'Plug-ins/BicycleRepairMan.plug-in.py'],
  'Breakpoint': [0, '', 'Debugger/Breakpoint.py'],
  'Browse': [0, 'History for navigation through the IDE', 'Browse.py'],
  'ButtonCompanions': [0, '', 'Companions/ButtonCompanions.py'],
@@ -254,6 +271,7 @@ modules ={'About': [0, 'About box and Splash screen', 'About.py'],
  'ClassBrowser': [0,
                   'Frame that displays the wxPython object hierarchy by Class and Module',
                   'ClassBrowser.py'],
+ 'ClipboardPlus.plug-in': [0, '', 'Plug-ins/ClipboardPlus.plug-in.py'],
  'CollectionEdit': [0, '', 'Views/CollectionEdit.py'],
  'ComCompanions': [0,
                    'Companion classes for COM (win32 only)',
@@ -301,12 +319,16 @@ modules ={'About': [0, 'About box and Splash screen', 'About.py'],
               'Explorers/Explorer.py'],
  'ExplorerNodes': [0, '', 'Explorers/ExplorerNodes.py'],
  'ExtMethDlg': [0, 'Dialog for ExternalMethods', 'ZopeLib/ExtMethDlg.py'],
+ 'ExtraZopeCompanions.plug-in': [0,
+                                 '',
+                                 'Plug-ins/ExtraZopeCompanions.plug-in.py'],
  'FTPExplorer': [0, '', 'Explorers/FTPExplorer.py'],
  'FileDlg': [0, 'Replacement for the standard file dialog. ', 'FileDlg.py'],
  'FileExplorer': [0, '', 'Explorers/FileExplorer.py'],
  'FindReplaceDlg': [0, '', 'FindReplaceDlg.py'],
  'FindReplaceEngine': [0, '', 'FindReplaceEngine.py'],
  'FindResults': [0, '', 'FindResults.py'],
+ 'FlexGridGrowableDlg': [0, '', 'Companions/FlexGridGrowableDlg.py'],
  'FrameCompanions': [0, '', 'Companions/FrameCompanions.py'],
  'GCFrame': [0, '', 'GCFrame.py'],
  'GizmoCompanions': [0, '', 'Companions/GizmoCompanions.py'],
@@ -315,6 +337,7 @@ modules ={'About': [0, 'About box and Splash screen', 'About.py'],
  'HTMLSupport': [0, '', 'Models/HTMLSupport.py'],
  'Help': [0, 'Interactive help frame', 'Help.py'],
  'HelpBook.plug-in': [0, '', 'Plug-ins/HelpBook.plug-in.py'],
+ 'ImageEditor.plug-in': [0, '', 'Plug-ins/ImageEditor.plug-in.py'],
  'ImageStore': [0,
                 'Centralised point to load images (cached/zipped/etc)',
                 'ImageStore.py'],
@@ -333,6 +356,7 @@ modules ={'About': [0, 'About box and Splash screen', 'About.py'],
  'ModRunner': [0,
                'Module that runs processes in a variety of ways',
                'ModRunner.py'],
+ 'ModuleFinder.plug-in': [0, '', 'Plug-ins/ModuleFinder.plug-in.py'],
  'OGLViews': [0, '', 'Views/OGLViews.py'],
  'ObjCollection': [0, '', 'Views/ObjCollection.py'],
  'Palette': [1,
@@ -355,12 +379,15 @@ modules ={'About': [0, 'About box and Splash screen', 'About.py'],
                      'Module defining property editors used in the Inspector',
                      'PropEdit/PropertyEditors.py'],
  'PySourceView': [0, '', 'Views/PySourceView.py'],
+ 'PyrexSupport.plug-in': [0, '', 'Plug-ins/PyrexSupport.plug-in.py'],
  'PythonControllers': [0, '', 'Models/PythonControllers.py'],
  'PythonEditorModels': [0, '', 'Models/PythonEditorModels.py'],
  'PythonInterpreter': [0, '', 'ExternalLib/PythonInterpreter.py'],
  'RTTI': [0, 'Introspection code. Run time type info', 'RTTI.py'],
+ 'RegexEditor.plug-in': [0, '', 'Plug-ins/RegexEditor.plug-in.py'],
  'RemoteClient': [0, '', 'Debugger/RemoteClient.py'],
  'RemoteDialog': [0, '', 'Debugger/RemoteDialog.py'],
+ 'ResourceSupport': [0, '', 'Models/ResourceSupport.py'],
  'RunCyclops': [0, '', 'RunCyclops.py'],
  'SSHExplorer': [0, '', 'Explorers/SSHExplorer.py'],
  'STCStyleEditor': [0, '', 'Views/STCStyleEditor.py'],
@@ -370,12 +397,15 @@ modules ={'About': [0, 'About box and Splash screen', 'About.py'],
                    'Views/SelectionTags.py'],
  'ShellEditor': [0, 'Python Interpreter Shell window', 'ShellEditor.py'],
  'Signature': [0, '', 'ExternalLib/Signature.py'],
+ 'SizerCompanions': [0, '', 'Companions/SizerCompanions.py'],
+ 'SizersView': [0, '', 'Views/SizersView.py'],
  'SourceViews': [0, '', 'Views/SourceViews.py'],
  'StyledTextCtrls': [0,
                      'Mixin classes to use features of Scintilla',
                      'Views/StyledTextCtrls.py'],
  'Tasks': [0, '', 'Debugger/Tasks.py'],
  'Tests': [0, '', 'Tests.py'],
+ 'UserCompanions.plug-in': [0, '', 'Plug-ins/UserCompanions.plug-in.py'],
  'UtilCompanions': [0, '', 'Companions/UtilCompanions.py'],
  'Utils': [0, 'General utility routines and classes', 'Utils.py'],
  'XMLSupport': [0, '', 'Models/XMLSupport.py'],
@@ -386,7 +416,6 @@ modules ={'About': [0, 'About box and Splash screen', 'About.py'],
  'ZopeExplorer': [0, '', 'ZopeLib/ZopeExplorer.py'],
  'ZopeFTP': [0, '', 'ZopeLib/ZopeFTP.py'],
  'ZopeViews': [0, '', 'ZopeLib/ZopeViews.py'],
- 'babeliser': [0, '', 'ExternalLib/babeliser.py'],
  'methodparse': [0,
                  'Module responsible for parsing code inside generated methods',
                  'methodparse.py'],
@@ -395,10 +424,14 @@ modules ={'About': [0, 'About box and Splash screen', 'About.py'],
                  'moduleparse.py'],
  'ndiff': [0, '', 'ExternalLib/ndiff.py'],
  'popen2import': [0, '', 'popen2import.py'],
+ 'prefs.gtk.rc': [0, '', 'Config/prefs.gtk.rc.py'],
+ 'prefs.mac.rc': [0, '', 'Config/prefs.mac.rc.py'],
+ 'prefs.msw.rc': [0, '', 'Config/prefs.msw.rc.py'],
+ 'prefs.plug-ins.rc': [0, '', 'Config/prefs.plug-ins.rc.py'],
  'prefs.rc': [0, '', 'Config/prefs.rc.py'],
+ 'prefskeys.rc': [0, '', 'Config/prefskeys.rc.py'],
  'reindent': [0, '', 'ExternalLib/reindent.py'],
  'relpath': [0, '', 'relpath.py'],
- 'sender': [0, '', 'sender.py'],
  'sourceconst': [0, 'Source generation constants', 'sourceconst.py'],
  'wxNamespace': [0, '', 'wxNamespace.py'],
  'wxPythonControllers': [0, '', 'Models/wxPythonControllers.py'],
@@ -416,85 +449,92 @@ class BoaApp(wxApp):
         wxInitAllImageHandlers()
 
         wxToolTip_Enable(true)
-        try: self.SetAssertMode(wxPYAPP_ASSERT_SUPPRESS)
-        except AttributeError: pass # < 2.3.4
+        if Preferences.debugMode == 'release':
+            self.SetAssertMode(wxPYAPP_ASSERT_SUPPRESS)
+        elif Preferences.debugMode == 'development':
+            self.SetAssertMode(wxPYAPP_ASSERT_EXCEPTION)
+            
 
         conf = Utils.createAndReadConfig('Explorer')
         modTot = conf.getint('splash', 'modulecount')
         fileTot = len(eval(conf.get('editor', 'openfiles'), {}))
 
         abt = About.createSplash(None, modTot, fileTot)
-        abt.Show()
-        # Let the splash screen repaint
-        wxYield()
-
-        print 'creating Palette'
-        import Palette
-        self.main = Palette.BoaFrame(None, -1, self)
-
-        print 'creating Inspector'
-        import Inspector
-        inspector = Inspector.InspectorFrame(self.main)
-
-        print 'creating Editor'
-        import Editor
-        editor = Editor.EditorFrame(self.main, -1, inspector, wxMenu(),
-            self.main.componentSB, self, self.main)
-        self.SetTopWindow(editor)
-
-        inspector.editor = editor
-
-        conf.set('splash', 'modulecount', `len(sys.modules)`)
         try:
-            Utils.writeConfig(conf)
-        except IOError, err:
-            startupErrors.append('Error writing config file: %s\nPlease '
-          'ensure that the Explorer.*.cfg file is not read only.'% str(err))
+            abt.Show()
+            # Let the splash screen repaint
+            wxYield()
+    
+            print 'creating Palette'
+            import Palette
+            self.main = Palette.BoaFrame(None, -1, self)
+    
+            print 'creating Inspector'
+            import Inspector
+            inspector = Inspector.InspectorFrame(self.main)
+    
+            print 'creating Editor'
+            import Editor
+            editor = Editor.EditorFrame(self.main, -1, inspector, wxMenu(),
+                self.main.componentSB, self, self.main)
+            self.SetTopWindow(editor)
+    
+            inspector.editor = editor
+    
+            conf.set('splash', 'modulecount', `len(sys.modules)`)
+            try:
+                Utils.writeConfig(conf)
+            except IOError, err:
+                startupErrors.append('Error writing config file: %s\nPlease '
+              'ensure that the Explorer.*.cfg file is not read only.'% str(err))
+    
+            if not emptyEditor:
+                editor.restoreEditorState()
+    
+            self.main.initPalette(inspector, editor)
+    
+    ##            editor.setupToolBar()
+    
+            import Help
+            print 'attaching wxPython doc strings'
+            Help.initWxPyDocStrs()
+            if not Preferences.delayInitHelp:
+                print 'initialising Help'
+                Help.initHelp()
+    
+            global constricted
+            constricted = constricted or Preferences.suBoaConstricted
+    
+            print 'showing main frames <<100/100>>'
+            if constricted:
+                #pos = self.main.GetPosition()
+                #self.main.Center()
+                editor.CenterOnScreen()
+                inspector.CenterOnScreen()
+                #self.main.SetPosition(pos)
+                #editor.SetIcon(self.main.GetIcon())
+                inspector.initSashes()
+            else:
+                self.main.Show()
+                inspector.Show()
+                # For some reason the splitters have to be visible on GTK before they
+                # can be sized.
+                inspector.initSashes()
 
-        if not emptyEditor:
-            editor.restoreEditorState()
-
-        self.main.initPalette(inspector, editor)
-
-##            editor.setupToolBar()
-
-        import Help
-        print 'attaching wxPython doc strings'
-        Help.initWxPyDocStrs()
-        if not Preferences.delayInitHelp:
-            print 'initialising Help'
-            Help.initHelp()
-
-        global constricted
-        constricted = constricted or Preferences.suBoaConstricted
-
-        print 'showing main frames <<100/100>>'
-        if constricted:
-            pos = self.main.GetPosition()
-            self.main.Center()
-            #editor.Center()
-            self.main.SetPosition(pos)
-            #editor.SetIcon(self.main.GetIcon())
-        else:
-            self.main.Show()
-            inspector.Show()
-            # For some reason the splitters have to be visible on GTK before they
-            # can be sized.
-            inspector.initSashes()
-
-        editor.Show()
-        editor.doAfterShownActions()
-
-        # Call startup files after complete editor initialisation
-        global startupfile
-        if Preferences.suExecPythonStartup and startupEnv:
-            startupfile = startupEnv
-
-        if editor.shell:
-            editor.shell.execStartupScript(startupfile)
-
-        abt.Destroy()
-        del abt
+            editor.Show()
+            editor.doAfterShownActions()
+    
+            # Call startup files after complete editor initialisation
+            global startupfile
+            if Preferences.suExecPythonStartup and startupEnv:
+                startupfile = startupEnv
+    
+            if editor.shell:
+                editor.shell.execStartupScript(startupfile)
+        
+        finally:
+            abt.Destroy()
+            del abt
 
 
         # Apply command line switches
@@ -585,9 +625,9 @@ def main(argv=None):
 
     if argv is not None:
         global doDebug, startupfile, startupModules, constricted, emptyEditor, \
-              doDebugSvr
+              doDebugSvr, blockSocketServer
         doDebug, startupfile, startupModules, constricted, emptyEditor, \
-              doDebugSvr, opts, args = processArgs(argv)
+              doDebugSvr, blockSocketServer, opts, args = processArgs(argv)
     try:
         app = BoaApp()
     except Exception, error:
