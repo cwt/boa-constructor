@@ -94,7 +94,6 @@ class PersistentShapeCanvas(wxShapeCanvas):
         f = open(filename, 'w')
         pickle.dump(persProps, f)
         f.close()
-        print persProps, 'wrote file', filename
 
     def loadSizes(self, filename):
         # construct list of non matching 
@@ -102,8 +101,6 @@ class PersistentShapeCanvas(wxShapeCanvas):
         f = open(filename, 'r')
         persProps = pickle.load(f)
         f.close()
-
-        print persProps
 
         unmatchedPcls = persProps.keys()
         matchedShapes = []
@@ -285,17 +282,21 @@ else:
 class UMLView(PersistentOGLView):
     ext = '.umllay'
     viewName = 'UML'
+    # XXX Get this from preferences file
+    showAttributes = 1
+    AllClasses = {}
 
     def __init__(self, parent, model):
         PersistentOGLView.__init__(self, parent, model)
      
-    def newClass(self, size, pos, className, classMeths):
+    def newClass(self, size, pos, className, classMeths, classAttrs):
         shape = PerstDividedShape(className, size[0], size[1])
 
         maxWidth = 10 #padding
+        if not self.showAttributes: classAttrs = [' ']
 
         regionName, maxWidth, nameHeight = self.newRegion(boldFont, 'class_name', [className], maxWidth)
-        regionAttribs, maxWidth, attribsHeight = self.newRegion(font, 'attributes', [' '], maxWidth)
+        regionAttribs, maxWidth, attribsHeight = self.newRegion(font, 'attributes', classAttrs, maxWidth)
         regionMeths, maxWidth, methsHeight = self.newRegion(font, 'methods', classMeths, maxWidth)
         
         totHeight = nameHeight + attribsHeight + methsHeight
@@ -319,29 +320,62 @@ class UMLView(PersistentOGLView):
 
         return self.shapes[idx] 
 
+    def newExternalClass(self, size, pos, className):
+        shape = PerstDividedShape(className, size[0], size[1])
+
+        maxWidth = 10 #padding
+
+        regionName, maxWidth, nameHeight = self.newRegion(boldFont, 'class_name', [className], maxWidth)
+        
+        totHeight = nameHeight
+
+        regionName.SetProportions(0.0, 1.0*(nameHeight/float(totHeight)))
+       
+        shape.AddRegion(regionName)
+
+        shape.SetSize(maxWidth + 10, totHeight + 10)
+        
+        shape.SetRegionSizes()
+        
+        idx = self.addShape(shape, pos[0], pos[1], wxBLACK_PEN, 
+          wxGREY_BRUSH, '')
+
+        shape.FlushText()
+
+        return self.shapes[idx] 
+
     def processLevel(self, dc, hierc, pos, incx, fromShape = None):
+        module = self.model.getModule()
         for clss in hierc.keys():
-            module = self.model.getModule()
-            if module.classes.has_key(clss):
-                toShape = self.newClass((20, 30), (pos[0], pos[1]), 
-                  clss, module.classes[clss].methods.keys())
-                if fromShape:
-                    self.newLine(dc, toShape, fromShape)
+            if self.AllClasses.has_key(clss):
+                toShape = self.AllClasses[clss]
+                px, py = pos[0], pos[1] 
+            else:
+                if module.classes.has_key(clss):
+                    toShape = self.newClass((20, 30), (pos[0], pos[1]), 
+                      clss, module.classes[clss].methods.keys(),
+                       module.classes[clss].attributes.keys())
+                    self.AllClasses[clss] = toShape
+                else:
+                    toShape = self.newExternalClass((20, 30), (pos[0], pos[1]), clss)
+                    self.AllClasses[clss] = toShape
                 k = hierc[clss].keys()
                 if len(k):
                     px, py, incx = self.processLevel(dc, hierc[clss], 
-                      [pos[0], pos[1]+incy], incx, toShape)
+                        [pos[0], pos[1]+incy], incx, toShape)
                 else: px, py = pos[0], pos[1] 
-                pos[0] = px + incx
-#                pos[1] = p
-                if pos[0] > 700:
-                    pos[1] = py + incy
-                    pos[0] = 40
-                    incx = incx *-1
-                elif pos[0] < 40:
-                    pos[1] = py + incy
-                    pos[0] = 700
-                    incx = incx *-1
+            if fromShape:
+                self.newLine(dc, toShape, fromShape)
+
+            pos[0] = px + incx
+            if pos[0] > 700:
+                pos[1] = py + incy
+                pos[0] = 40
+                incx = incx *-1
+            elif pos[0] < 40:
+                pos[1] = py + incy
+                pos[0] = 700
+                incx = incx *-1
         
         return pos[0], pos[1], incx
         
@@ -351,6 +385,7 @@ class UMLView(PersistentOGLView):
         self.PrepareDC(dc)
         
         self.destroyShapes()
+        self.AllClasses = {}
 
         module = self.model.getModule()
         hierc = module.createHierarchy()
@@ -361,6 +396,7 @@ class UMLView(PersistentOGLView):
         self.processLevel(dc, hierc, pos, incx)
         
         PersistentOGLView.refreshCtrl(self)
+
 
 class ImportsView(PersistentOGLView):
     ext = '.implay'
