@@ -31,7 +31,11 @@ braceHighLight = 1
 
 pythonDocsPath = path.join(path.dirname(sys.executable), 'Doc')
 import wxPython
-wxWinDocsPath = path.join(path.dirname(wxPython.__file__), 'docs', 'wx')
+try:
+    wxWinDocsPath = path.join(path.dirname(wxPython.__file__), 'docs', 'wx')
+except AttributeError:
+    # We're probably frozen!
+    wxWinDocsPath = path.join(path.dirname(sys.executable), 'wxPython', 'docs', 'wx')
 
 inspStatBarFontSize = 9
 
