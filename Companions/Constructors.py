@@ -167,7 +167,7 @@ class GaugeConstr(PropertyKeywordConstructor):
 
 class SliderConstr(PropertyKeywordConstructor):
     def constructor(self):
-        return {'Value': 'vange', 'MinValue': 'minValue', 'MaxValue': 'maxValue',
+        return {'Value': 'value', 'MinValue': 'minValue', 'MaxValue': 'maxValue',
                 'Position': 'point', 'Size': 'size', 'Style': 'style', 
                 'Validator': 'validator', 'Name': 'name'}
 ##wxSlider(wxWindow* parent, wxWindowID id, int value , int minValue, int maxValue, const wxPoint& point =
@@ -279,7 +279,7 @@ class GenBitmapButtonConstr(PropertyKeywordConstructor):
 class ToolBarToolsConstr(PropertyKeywordConstructor):
     def constructor(self):
         return {'Id': 'id', 'Bitmap': 'bitmap', 'PushedBitmap': 'pushedBitmap',
-                'IsToggle': 'toggle', 
+                'IsToggle': 'isToggle', 
 #                'XPos': 'xPos', 'YPos': 'yPos',
                 'ShortHelpString': 'shortHelpString', 
                 'LongHelpString': 'longHelpString'}
