@@ -550,35 +550,43 @@ class Module:
 
         self.renumber(func_size, ins_point)
 
-    def travTilBase(self, name, classes, root):
-        """ Recursive method that traverses the class hierarchy """
-        if len(classes[name].super) == 0:
-            if not root.has_key(name):
-                root[name] = {}
-            return root[name]
-        else:
-            for super in classes[name].super:
-                #base class of this module
-                if type(super) is StringType:
-                    if not root.has_key(super):
-                        root[super] = {name: {}}
-                    elif not root[super].has_key(name):
-                        root[super][name] = {}
-                    
-                    continue 
+    def ExhaustBranch(self, name, classes, path, result):
+        """This method will traverse the class heirarchy, from a given
+        class and build up a nested dictionary of super-classes. The
+        result is intended to be inverted, i.e. the highest level
+        are the super classes."""
+
+        def AddPathToHierarchy(path, result, fn):
+            """We have an exhausted path. Simply put it into the result dictionary."""
+            if path[0] in result.keys():
+                if len(path) > 1: fn(path[1:], result[path[0]], fn)
+            else: 
+                for part in path:
+                    result[part] = {}
+                    result = result[part]
+
+        rv = {}
+        if classes.has_key(name):
+            for cls in classes[name].super:
+                if type(cls) == StringType:  # strings are always termination
+                    rv[cls] = {}
+                    exhausted = path + [cls]
+                    exhausted.reverse()
+                    AddPathToHierarchy(exhausted, result, AddPathToHierarchy)
                 else:
-                    c = self.travTilBase(super.name, classes, root)
-                    if not c.has_key(name):
-                        c[name] = {}
-                    return c[name]
-            return root[super][name]
+                    rv [cls.name] = self.ExhaustBranch(cls.name, classes, 
+                        path + [cls.name], result)
+        if len(rv) == 0:
+            exhausted = path 
+            exhausted.reverse()
+            AddPathToHierarchy(exhausted, result, AddPathToHierarchy)
+        return rv
 
     def createHierarchy(self):
         """ Build the inheritance hierarchy """
         hierc = {}
         for cls in self.classes.keys():
-            self.travTilBase(cls, self.classes, hierc)
-        
+            self.ExhaustBranch(cls, self.classes, [cls], hierc)
         return hierc
     
     def getInfoBlock(self):
@@ -648,11 +656,3 @@ def moduleFile(module, path=[], inpackage=0):
     f.close()
     return mod
     
-    
-    
-    
-    
-    
-    
-    
-  
