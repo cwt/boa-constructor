@@ -10,6 +10,8 @@
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 
+import re, keyword
+
 from wxPython.wx import *
 from wxPython.stc import *
 
@@ -22,6 +24,20 @@ import Preferences
 import methodparse
 
 indentLevel = 4
+
+# from PythonWin from IDLE :)
+_is_block_opener = re.compile(r':\s*(#.*)?$').search
+_is_block_closer = re.compile(r'''
+    \s*
+    ( return
+    | break
+    | continue
+    | raise
+    | pass
+    )
+    \b
+''', re.VERBOSE).match
+
 
 def ver_tot(ma, mi, re):
     return ma*10000+mi*100+re
@@ -437,20 +453,9 @@ class PythonStyledTextCtrlMix:
         self.SetEdgeColumn(80)
 
         self.SetLexer(wxSTC_LEX_PYTHON)
-        if old_stc:
-            self.SetKeywords(0,
-              'and assert break class continue def del elif else except '
-              'exec finally for from global if import in is lambda None '
-              'not or pass print raise return try while true false')
+        self.SetKeyWords(0, string.join(keyword.kwlist)+' true false None')
 
-            self.SetViewWhitespace(false)
-        else:
-            self.SetKeyWords(0,
-              'and assert break class continue def del elif else except '
-              'exec finally for from global if import in is lambda None '
-              'not or pass print raise return try while true false')
-
-            self.SetViewWhiteSpace(false)
+        self.SetViewWhiteSpace(false)
 
         # line numbers in the margin
         if margin != -1:
@@ -554,8 +559,12 @@ class PythonStyledTextCtrlMix:
             indent = prevline[:string.find(prevline, stripprevline)]
         else:
             indent = prevline[:-1]
-        if string.rstrip(prevline)[-1:] == ':':
+        
+        if _is_block_opener(prevline):
             indent = indent + (indentLevel*' ')
+        elif _is_block_closer(prevline):
+            indent = indent[:-4]
+            
         self.BeginUndoAction()
         try:
             self.InsertText(pos, indent)
