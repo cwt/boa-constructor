@@ -1,0 +1,85 @@
+Changes / Diary
+
+00-01-06
+Merged wxGTK changes back into source. Added wxGTK.py, wxMSW.py for platform 
+specific consts
+Added a preview of pyDE (currently a view on ModuleModel)
+
+00-01-07
+Added searching functionality to Help (incomplete/bugs)
+Differentiating between command and normal events, window id generation
+
+00-01-08
+Added window id allocation
+
+00-01-09
+Resized images to 16*16. This sorts out the last of the MSW incompatibilities GTK 
+changes caused
+Updated frame and ctrl renaming code to also maintain window ids
+Added wxStaticLine
+
+*
+Hazy period in which I:
+- prototyped a debugger
+- got a new system (K6-3 450, 3dfx Voodoo 3500 :)
+- played a hell of a lot of Unreal / Homeworld
+*
+
+00-01-20
+Resumed work on Pygasm.
+Trying to only develop in Pygasm, missing syntax hilighting and prod tools, 
+ going a bit slowly but docs and view are nice
+Implemented screensize from system metrics as suggested on mailing list.
+Started with watches in the debugger
+
+00-01-21
+Added attributes to classes (moduleparse.Class.attributes, EditorViews.ExploreView)
+Added different help for Pygasm/wxPython/Python
+Added TextModel and TextView
+
+00-01-23
+Refactored help into neater classes
+Made more images for debugger
+
+00-01-24
+Hunted down bugs in the Editor
+
+00-01-26
+My birthday, did absolutely nothing!
+
+00-01-27
+Refactored documentation. Added AppModuleDocView
+
+*
+Put Linux (RH 6.1) on my old machine (P1 166)
+Mini break
+*
+
+00-02-08
+Dialog to ask to save changes on closing (long overdue, lost code a few times)
+Info block
+Bug fixes
+
+00-02-11
+Added an Explorer to Boa, packages, folders and supported modules are browseable
+
+00-02-12
+Replaced wxBitmapButtons with  generic toggle buttons on the palette
+Added source code line no's to ExploreView, double click to go to source line
+Added dynamic context sensitive toolbar buttons (reflecting methods of the
+editor, model and view)
+
+00-02-13 - 20
+Changed ExploreView & HierarchyView to have one root (GTK friendly)
+Implemented basic architechture for invisible components
+Various bug fixes
+
+00-02-21 - 28
+Worked on wxGTK compatibility
+Designed a web site
+Added Dialogs, these are created directly in your source code at the current
+cursor position from a template
+Many bug fixes
+
+00-02-29
+Released! 0.0.3
