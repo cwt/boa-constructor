@@ -261,7 +261,7 @@ class ZipItemNode(ExplorerNodes.ExplorerNode):
         zipStream = StringIO(open(self.zipFileNode.resourcepath, 'rb').read())
         zfSrc = self.ArchiveClass(zipStream, 'r')
         try:
-            changed = False
+            changed = false
             zfDst = self.ArchiveClass(self.zipFileNode.resourcepath, 'w', self.compression)
             try:
                 for zi in zfSrc.infolist():
@@ -341,7 +341,7 @@ class ZipFileNode(ZipItemNode):
                 
         return ZipItemNode.openList(self, '')
 
-    def getFiles(self, base, nested=False):
+    def getFiles(self, base, nested=false):
         files = []
         if self.allFiles is None:
             self.updateFilelists()
