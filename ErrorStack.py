@@ -185,7 +185,7 @@ def buildErrorList(lines, Parser = StdErrErrorParser):
                     currerr = None
             else:
                 # Try catch syntax errors
-                if Utils.startswith(line, '  File '):
+                if line.startswith('  File '):
                     currerr = [line]
                     errs.append(currerr)
                 else:
