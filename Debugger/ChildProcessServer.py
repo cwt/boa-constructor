@@ -19,9 +19,6 @@ except ImportError: from StringIO import StringIO
 class DebugRequestHandler (RequestHandler):
 
     _authstr = None
-    #__dc = DebuggerController()
-    #__conn_id = __dc.createServer()
-    #_conn = DebuggerConnection(__dc, __conn_id)
     _ds = DebugServer()
     _conn = DebuggerConnection(_ds)
     _conn._enableProcessModification()
@@ -72,10 +69,12 @@ def main():
     sys.stdout.flush()
 
     def serve_forever(server):
+        print 'serve_forever waiting for request...'
         while 1:
             server.handle_request()
 
     def startDaemon(target, args=()):
+        print 'starting daemon', target
         t = threading.Thread(target=target, args=args)
         t.setDaemon(1)
         t.start()
