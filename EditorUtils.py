@@ -71,13 +71,13 @@ class EditorStatusBar(wxStatusBar):
     maxHistorySize = 50
     def __init__(self, *_args, **_kwargs):
         wxStatusBar.__init__(self, _kwargs['parent'], _kwargs['id'], style=wxST_SIZEGRIP)
-        self.SetFieldsCount(4)
+        self.SetFieldsCount(5)
         if wxPlatform == '__WXGTK__':
             imgWidth = 21
         else:
             imgWidth = 16
 
-        self.SetStatusWidths([imgWidth, 400, 150, -1])
+        self.SetStatusWidths([imgWidth, 400, 25, 150, -1])
 
         rect = self.GetFieldRect(0)
         self.img = wxStaticBitmap(self, -1, Preferences.IS.load('Images/Shared/BoaLogo.png'),
@@ -123,8 +123,11 @@ class EditorStatusBar(wxStatusBar):
         hp = HistoryPopup(self.GetParent(), hist, self.images)
 
     def linkProgressToStatusBar(self):
-        rect = self.GetFieldRect(2)
+        rect = self.GetFieldRect(3)
         self.progress.SetDimensions(rect.x+1, rect.y+1, rect.width -2, rect.height -2)
+    
+    def setColumnPos(self, value):
+        self.SetStatusText(str(value), 2)
 
 
 def HistoryPopup(parent, hist, imgs):
