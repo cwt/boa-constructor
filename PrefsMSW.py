@@ -26,9 +26,22 @@ transparentPaletteBitmaps = 1
 
 braceHighLight = 1
 
-pythonDocsPath = path.join(path.dirname(sys.executable), 'Doc')
 
+
+
+pythonDocsPath = path.join(path.dirname(sys.executable), 'Doc')
 import wxPython
 wxWinDocsPath = path.join(path.dirname(wxPython.__file__), 'docs', 'wx')
 
 inspStatBarFontSize = 9
+
+explorerFileSysRootDefault = ('DRIVE:\\', 'C:\\')
+
+# Scintilla/wxStyledTextCtrl font definitions 
+faces = { 'times' : 'Times New Roman',
+          'mono'  : 'Courier New',
+          'helv'  : 'Lucida Console',
+          'lucd'  : 'Lucida Console',
+          'other' : 'Comic Sans MS',
+          'size'  : 8,
+          'lnsize': 6,}
