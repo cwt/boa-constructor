@@ -6,7 +6,7 @@
 #
 # Created:     2000
 # RCS-ID:      $Id$
-# Copyright:   (c) 2000 - 2003
+# Copyright:   (c) 2000 - 2004
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 
@@ -42,13 +42,13 @@ about_html = '''
 </html>
 '''
 progress_text = '''<p>
-<wxp class="wxStaticText">
+<wxp module="wxPython.wx" class="wxStaticText">
   <param name="label" value="  ">
   <param name="id"    value="%d">
   <param name="style" value="wxALIGN_CENTER | wxCLIP_CHILDREN | wxST_NO_AUTORESIZE">
   <param name="size"  value="wxSize(352, 20)">
 </wxp>
-<wxp class="wxWindow">
+<wxp module="wxPython.wx" class="wxWindow">
   <param name="id"    value="%d">
   <param name="size"  value="wxSize(352, 16)">
 </wxp>'''
@@ -76,7 +76,7 @@ Marius van Wyk (marius@e.co.za)<br>
 <br>
 Guido van Rossum and PythonLabs for Python<br>
 <br>
-wxPython (Robin Dunn) & wxWindows (Julian Smart, Robert Roebling, Vadim Zeitlin, et al.)<br>
+wxPython (Robin Dunn) & wxWidgets (Julian Smart, Robert Roebling, Vadim Zeitlin, et al.)<br>
 Neil Hodgson for Scintilla<br>
 <br>
 moduleparse.py borrows from pyclbrs.py - standard python library<br>
@@ -103,7 +103,7 @@ sponsoring my time on this project.<br>
 <b>Boa Constructor is built on:</b><br>
 <a href="Python"><img src="%s"></a>&nbsp;
 <a href="wxPython"><img src="%s"></a>&nbsp;
-<a href="wxWindows"><img src="%s"></a><br>
+<a href="wxWidgets"><img src="%s"></a><br>
 <p>
 <b>Boa Constructor is packaged for:</b><br>
 <a href="Debian"><img src="%s"></a>&nbsp;
@@ -122,13 +122,13 @@ about_text = '''
 <p>A <b>Python</b> IDE and <b>wxPython</b> GUI builder
 </p>
 <p><a href="Boa">http://boa-constructor.sourceforge.net</a><br></u>
-&copy;1999-2003 <b>Riaan Booysen</b>. <a href="MailMe">riaan@e.co.za</a><br>
+&copy;1999-2004 <b>Riaan Booysen</b>. <a href="MailMe">riaan@e.co.za</a><br>
 <a href="Credits">Credits</a>
 </p>
 <p><font size=-1 color="#000077">Python %s</font><br>
 <font size=-1 color="#000077">wxPlatform: %s %s</font></p>
 <hr>
-<wxp class="wxButton">
+<wxp module="wxPython.wx" class="wxButton">
   <param name="label" value="Okay">
   <param name="id"    value="wxID_OK">
 </wxp>
@@ -150,7 +150,7 @@ def addImagesToFS():
         ('Boa.jpg', 'Images/Shared/Boa.jpg', wxBITMAP_TYPE_JPEG),
         ('PythonPowered.png', 'Images/Shared/PythonPowered.png', wxBITMAP_TYPE_PNG),
         ('wxPyButton.png', 'Images/Shared/wxPyButton.png', wxBITMAP_TYPE_PNG),
-        ('wxWinButton.png', 'Images/Shared/wxWinButton.png', wxBITMAP_TYPE_PNG),
+        ('wxWidgetsButton.png', 'Images/Shared/wxWidgetsButton.png', wxBITMAP_TYPE_PNG),
         ('Debian.png', 'Images/Shared/Debian.png', wxBITMAP_TYPE_PNG),
         ('Gentoo.png', 'Images/Shared/Gentoo.png', wxBITMAP_TYPE_PNG),
         ('FreeBSD.png', 'Images/Shared/FreeBSD.png', wxBITMAP_TYPE_PNG),
@@ -209,7 +209,7 @@ class AboutBoxMixin:
         if clicked == 'Credits':
             self.html.SetPage(credits_html % ('memory:PythonPowered.png',
                                               'memory:wxPyButton.png', 
-                                              'memory:wxWinButton.png',
+                                              'memory:wxWidgetsButton.png',
                                               'memory:Debian.png',
                                               'memory:Gentoo.png',
                                               'memory:FreeBSD.png',
@@ -221,8 +221,8 @@ class AboutBoxMixin:
             self.gotoInternetUrl('http://www.python.org')
         elif clicked == 'wxPython':
             self.gotoInternetUrl('http://wxpython.org')
-        elif clicked == 'wxWindows':
-            self.gotoInternetUrl('http://www.wxwindows.org')
+        elif clicked == 'wxWidgets':
+            self.gotoInternetUrl('http://www.wxwidgets.org')
         elif clicked == 'Debian':
             self.gotoInternetUrl(
                'http://packages.debian.org/unstable/devel/boa-constructor.html')
