@@ -10,30 +10,32 @@ from wxPython.lib.buttons import *
 from wxPython.html import *
 from wxPython.gizmos import *
 
+import Everything_img
+
 def create(parent):
     return wxFrame1(parent)
 
-[wxID_WXFRAME1, wxID_WXFRAME1BITMAPBUTTON1, wxID_WXFRAME1BUTTON1,
- wxID_WXFRAME1CHECKBOX1, wxID_WXFRAME1CHECKLISTBOX1, wxID_WXFRAME1CHOICE1,
- wxID_WXFRAME1COMBOBOX1, wxID_WXFRAME1CONTEXTHELPBUTTON1,
- wxID_WXFRAME1DYNAMICSASHWINDOW1, wxID_WXFRAME1EDITABLELISTBOX1,
- wxID_WXFRAME1GAUGE1, wxID_WXFRAME1GENBITMAPBUTTON1,
- wxID_WXFRAME1GENBITMAPTEXTTOGGLEBUTTON1, wxID_WXFRAME1GENBITMAPTOGGLEBUTTON1,
- wxID_WXFRAME1GENBUTTON1, wxID_WXFRAME1GENTOGGLEBUTTON1, wxID_WXFRAME1GRID1,
- wxID_WXFRAME1HTMLWINDOW1, wxID_WXFRAME1LEDNUMBERCTRL1, wxID_WXFRAME1LISTBOX1,
- wxID_WXFRAME1LISTCTRL1, wxID_WXFRAME1NOTEBOOK1, wxID_WXFRAME1PANEL1,
- wxID_WXFRAME1PANEL2, wxID_WXFRAME1PANEL3, wxID_WXFRAME1PANEL4,
- wxID_WXFRAME1PANEL5, wxID_WXFRAME1PANEL6, wxID_WXFRAME1RADIOBOX1,
- wxID_WXFRAME1RADIOBUTTON1, wxID_WXFRAME1SASHLAYOUTWINDOW1,
- wxID_WXFRAME1SASHWINDOW1, wxID_WXFRAME1SCROLLBAR1,
- wxID_WXFRAME1SCROLLEDWINDOW1, wxID_WXFRAME1SLIDER1, wxID_WXFRAME1SPINBUTTON1,
- wxID_WXFRAME1SPLITTERWINDOW1, wxID_WXFRAME1STATICBITMAP1,
- wxID_WXFRAME1STATICBOX1, wxID_WXFRAME1STATICLINE1, wxID_WXFRAME1STATICTEXT1,
- wxID_WXFRAME1STATUSBAR1, wxID_WXFRAME1TEXTCTRL1, wxID_WXFRAME1TOGGLEBUTTON1,
- wxID_WXFRAME1TOOLBAR1, wxID_WXFRAME1TREECTRL1, wxID_WXFRAME1WINDOW1,
- wxID_WXFRAME1WINDOW10, wxID_WXFRAME1WINDOW2, wxID_WXFRAME1WINDOW3,
- wxID_WXFRAME1WINDOW4, wxID_WXFRAME1WINDOW5, wxID_WXFRAME1WINDOW6,
- wxID_WXFRAME1WINDOW7, wxID_WXFRAME1WINDOW8, wxID_WXFRAME1WINDOW9,
+[wxID_WXFRAME1, wxID_WXFRAME1BITMAPBUTTON1, wxID_WXFRAME1BUTTON1, 
+ wxID_WXFRAME1CHECKBOX1, wxID_WXFRAME1CHECKLISTBOX1, wxID_WXFRAME1CHOICE1, 
+ wxID_WXFRAME1COMBOBOX1, wxID_WXFRAME1CONTEXTHELPBUTTON1, 
+ wxID_WXFRAME1DYNAMICSASHWINDOW1, wxID_WXFRAME1EDITABLELISTBOX1, 
+ wxID_WXFRAME1GAUGE1, wxID_WXFRAME1GENBITMAPBUTTON1, 
+ wxID_WXFRAME1GENBITMAPTEXTTOGGLEBUTTON1, wxID_WXFRAME1GENBITMAPTOGGLEBUTTON1, 
+ wxID_WXFRAME1GENBUTTON1, wxID_WXFRAME1GENTOGGLEBUTTON1, wxID_WXFRAME1GRID1, 
+ wxID_WXFRAME1HTMLWINDOW1, wxID_WXFRAME1LEDNUMBERCTRL1, wxID_WXFRAME1LISTBOX1, 
+ wxID_WXFRAME1LISTCTRL1, wxID_WXFRAME1NOTEBOOK1, wxID_WXFRAME1PANEL1, 
+ wxID_WXFRAME1PANEL2, wxID_WXFRAME1PANEL3, wxID_WXFRAME1PANEL4, 
+ wxID_WXFRAME1PANEL5, wxID_WXFRAME1PANEL6, wxID_WXFRAME1RADIOBOX1, 
+ wxID_WXFRAME1RADIOBUTTON1, wxID_WXFRAME1SASHLAYOUTWINDOW1, 
+ wxID_WXFRAME1SASHWINDOW1, wxID_WXFRAME1SCROLLBAR1, 
+ wxID_WXFRAME1SCROLLEDWINDOW1, wxID_WXFRAME1SLIDER1, wxID_WXFRAME1SPINBUTTON1, 
+ wxID_WXFRAME1SPLITTERWINDOW1, wxID_WXFRAME1STATICBITMAP1, 
+ wxID_WXFRAME1STATICBOX1, wxID_WXFRAME1STATICLINE1, wxID_WXFRAME1STATICTEXT1, 
+ wxID_WXFRAME1STATUSBAR1, wxID_WXFRAME1TEXTCTRL1, wxID_WXFRAME1TOGGLEBUTTON1, 
+ wxID_WXFRAME1TOOLBAR1, wxID_WXFRAME1TREECTRL1, wxID_WXFRAME1WINDOW1, 
+ wxID_WXFRAME1WINDOW10, wxID_WXFRAME1WINDOW2, wxID_WXFRAME1WINDOW3, 
+ wxID_WXFRAME1WINDOW4, wxID_WXFRAME1WINDOW5, wxID_WXFRAME1WINDOW6, 
+ wxID_WXFRAME1WINDOW7, wxID_WXFRAME1WINDOW8, wxID_WXFRAME1WINDOW9, 
 ] = map(lambda _init_ctrls: wxNewId(), range(56))
 
 [wxID_WXFRAME1TOOLBAR1TOOLS0] = map(lambda _init_coll_toolBar1_Tools: wxNewId(), range(1))
@@ -57,18 +59,17 @@ class wxFrame1(wxFrame):
     def _init_coll_notebook1_Pages(self, parent):
         # generated method, don't edit
 
-        parent.AddPage(select=true, imageId=-1, page=self.panel1,
+        parent.AddPage(imageId=-1, page=self.panel1, select=True,
               text='Containers/Layout')
-        parent.AddPage(select=false, imageId=-1, page=self.panel2,
+        parent.AddPage(imageId=-1, page=self.panel2, select=False,
               text='Basic Controls')
-        parent.AddPage(select=false, imageId=-1, page=self.panel3,
+        parent.AddPage(imageId=-1, page=self.panel3, select=False,
               text='Buttons')
-        parent.AddPage(select=false, imageId=-1, page=self.panel4,
+        parent.AddPage(imageId=-1, page=self.panel4, select=False,
               text='List Controls')
-        parent.AddPage(select=false, imageId=-1, page=self.panel5,
+        parent.AddPage(imageId=-1, page=self.panel5, select=False,
               text='Anchors')
-        parent.AddPage(select=false, imageId=-1, page=self.panel6,
-              text='Misc')
+        parent.AddPage(imageId=-1, page=self.panel6, select=False, text='Misc')
 
     def _init_coll_statusBar1_Fields(self, parent):
         # generated method, don't edit
@@ -82,9 +83,9 @@ class wxFrame1(wxFrame):
     def _init_coll_toolBar1_Tools(self, parent):
         # generated method, don't edit
 
-        parent.AddTool(bitmap=wxNullBitmap, id=wxID_WXFRAME1TOOLBAR1TOOLS0,
-              isToggle=false, longHelpString='', pushedBitmap=wxNullBitmap,
-              shortHelpString='Tools0')
+        parent.AddTool(bitmap=Everything_img.getBoaBitmap(),
+              id=wxID_WXFRAME1TOOLBAR1TOOLS0, isToggle=false, longHelpString='',
+              pushedBitmap=wxNullBitmap, shortHelpString='Tools0')
         EVT_TOOL(self, wxID_WXFRAME1TOOLBAR1TOOLS0, self.OnToolbar1tools0Tool)
 
         parent.Realize()
@@ -94,7 +95,6 @@ class wxFrame1(wxFrame):
         self.menuBar1 = wxMenuBar()
 
         self.menu1 = wxMenu(title='')
-        self._init_coll_menu1_Items(self.menu1)
 
         self.imageList1 = wxImageList(height=16, width=16)
 
@@ -104,11 +104,12 @@ class wxFrame1(wxFrame):
         EVT_TIMER(self, wxID_WXFRAME1TIMER1, self.OnTimer1Timer)
 
         self._init_coll_menuBar1_Menus(self.menuBar1)
+        self._init_coll_menu1_Items(self.menu1)
 
     def _init_ctrls(self, prnt):
         # generated method, don't edit
         wxFrame.__init__(self, id=wxID_WXFRAME1, name='', parent=prnt,
-              pos=wxPoint(555, 294), size=wxSize(516, 476),
+              pos=wxPoint(556, 282), size=wxSize(516, 476),
               style=wxDEFAULT_FRAME_STYLE, title='Everything')
         self._init_utils()
         self.SetClientSize(wxSize(508, 449))
@@ -118,7 +119,6 @@ class wxFrame1(wxFrame):
         self.toolBar1 = wxToolBar(id=wxID_WXFRAME1TOOLBAR1, name='toolBar1',
               parent=self, pos=wxPoint(0, 0), size=wxSize(508, 27),
               style=wxTB_HORIZONTAL | wxNO_BORDER)
-        self._init_coll_toolBar1_Tools(self.toolBar1)
         self.SetToolBar(self.toolBar1)
 
         self.statusBar1 = wxStatusBar(id=wxID_WXFRAME1STATUSBAR1,
@@ -204,9 +204,9 @@ class wxFrame1(wxFrame):
               size=wxSize(120, 14), style=wxSB_HORIZONTAL)
         self.scrollBar1.SetThumbPosition(0)
 
-        self.staticBitmap1 = wxStaticBitmap(bitmap=wxNullBitmap,
+        self.staticBitmap1 = wxStaticBitmap(bitmap=Everything_img.getBoaBitmap(),
               id=wxID_WXFRAME1STATICBITMAP1, name='staticBitmap1',
-              parent=self.panel2, pos=wxPoint(160, 136), size=wxSize(128, 16),
+              parent=self.panel2, pos=wxPoint(160, 136), size=wxSize(16, 16),
               style=0)
 
         self.staticLine1 = wxStaticLine(id=wxID_WXFRAME1STATICLINE1,
@@ -219,7 +219,7 @@ class wxFrame1(wxFrame):
 
         self.htmlWindow1 = wxHtmlWindow(id=wxID_WXFRAME1HTMLWINDOW1,
               name='htmlWindow1', parent=self.panel2, pos=wxPoint(152, 168),
-              size=wxSize(144, 80))
+              size=wxSize(144, 80), style=wxHW_SCROLLBAR_AUTO)
 
         self.lEDNumberCtrl1 = wxLEDNumberCtrl(id=wxID_WXFRAME1LEDNUMBERCTRL1,
               parent=self.panel2, pos=wxPoint(152, 40), size=wxSize(136, 40),
@@ -236,7 +236,7 @@ class wxFrame1(wxFrame):
         EVT_BUTTON(self.button1, wxID_WXFRAME1BUTTON1, self.OnButton1Button)
         EVT_LEFT_UP(self.button1, self.OnButton1LeftUp)
 
-        self.bitmapButton1 = wxBitmapButton(bitmap=wxNullBitmap,
+        self.bitmapButton1 = wxBitmapButton(bitmap=Everything_img.getBoaBitmap(),
               id=wxID_WXFRAME1BITMAPBUTTON1, name='bitmapButton1',
               parent=self.panel3, pos=wxPoint(16, 56), size=wxSize(72, 24),
               style=wxBU_AUTODRAW, validator=wxDefaultValidator)
@@ -260,8 +260,9 @@ class wxFrame1(wxFrame):
               pos=wxPoint(16, 160), size=wxSize(88, 37), style=0)
 
         self.genBitmapButton1 = wxGenBitmapButton(ID=wxID_WXFRAME1GENBITMAPBUTTON1,
-              bitmap=wxNullBitmap, name='genBitmapButton1', parent=self.panel3,
-              pos=wxPoint(16, 192), size=wxSize(59, 58), style=0)
+              bitmap=Everything_img.getBoaBitmap(), name='genBitmapButton1',
+              parent=self.panel3, pos=wxPoint(16, 192), size=wxSize(59, 58),
+              style=0)
 
         self.genToggleButton1 = wxGenToggleButton(ID=wxID_WXFRAME1GENTOGGLEBUTTON1,
               label='genToggleButton1', name='genToggleButton1',
@@ -269,9 +270,9 @@ class wxFrame1(wxFrame):
               style=0)
 
         self.genBitmapToggleButton1 = wxGenBitmapToggleButton(ID=wxID_WXFRAME1GENBITMAPTOGGLEBUTTON1,
-              bitmap=wxNullBitmap, name='genBitmapToggleButton1',
-              parent=self.panel3, pos=wxPoint(72, 192), size=wxSize(59, 58),
-              style=0)
+              bitmap=Everything_img.getBoaBitmap(),
+              name='genBitmapToggleButton1', parent=self.panel3, pos=wxPoint(72,
+              192), size=wxSize(59, 58), style=0)
 
         self.genBitmapTextToggleButton1 = wxGenBitmapTextToggleButton(ID=wxID_WXFRAME1GENBITMAPTEXTTOGGLEBUTTON1,
               bitmap=wxNullBitmap, label='genBitmapTextToggleButton1',
@@ -393,6 +394,7 @@ class wxFrame1(wxFrame):
               validator=wxDefaultValidator)
         self.gauge1.SetValue(50)
 
+        self._init_coll_toolBar1_Tools(self.toolBar1)
         self._init_coll_notebook1_Pages(self.notebook1)
 
     def __init__(self, parent):
