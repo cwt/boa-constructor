@@ -5,8 +5,8 @@ from wxPython.wx import *
 def create(parent):
     return wxMDIChildFrame1(parent)
 
-[wxID_WXMDICHILDFRAME1, wxID_WXMDICHILDFRAME1BUTTON1, 
- wxID_WXMDICHILDFRAME1RADIOBUTTON1, 
+[wxID_WXMDICHILDFRAME1, wxID_WXMDICHILDFRAME1BUTTON1,
+ wxID_WXMDICHILDFRAME1RADIOBUTTON1,
 ] = map(lambda _init_ctrls: wxNewId(), range(3))
 
 class wxMDIChildFrame1(wxMDIChildFrame):

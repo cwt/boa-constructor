@@ -5,8 +5,8 @@ from wxPython.wx import *
 def create(parent):
     return wxDialog1(parent)
 
-[wxID_WXDIALOG1, wxID_WXDIALOG1BUTTON1, wxID_WXDIALOG1STATICBITMAP1, 
- wxID_WXDIALOG1STATICTEXT1, wxID_WXDIALOG1STATICTEXT2, 
+[wxID_WXDIALOG1, wxID_WXDIALOG1BUTTON1, wxID_WXDIALOG1STATICBITMAP1,
+ wxID_WXDIALOG1STATICTEXT1, wxID_WXDIALOG1STATICTEXT2,
 ] = map(lambda _init_ctrls: wxNewId(), range(5))
 
 class wxDialog1(wxDialog):

@@ -6,7 +6,7 @@ from wxPython.grid import *
 def create(parent):
     return wxFrame1(parent)
 
-[wxID_WXFRAME1, wxID_WXFRAME1GRID1, 
+[wxID_WXFRAME1, wxID_WXFRAME1GRID1,
 ] = map(lambda _init_ctrls: wxNewId(), range(2))
 
 class wxFrame1(wxFrame):

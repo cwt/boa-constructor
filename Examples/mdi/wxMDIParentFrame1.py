@@ -8,8 +8,8 @@ import wxMDIChildFrame1
 def create(parent):
     return wxMDIParentFrame1(parent)
 
-[wxID_WXMDIPARENTFRAME1, wxID_WXMDIPARENTFRAME1SASHLAYOUTWINDOW1, 
- wxID_WXMDIPARENTFRAME1TREECTRL1, 
+[wxID_WXMDIPARENTFRAME1, wxID_WXMDIPARENTFRAME1SASHLAYOUTWINDOW1,
+ wxID_WXMDIPARENTFRAME1TREECTRL1,
 ] = map(lambda _init_ctrls: wxNewId(), range(3))
 
 [wxID_WXMDIPARENTFRAME1MENU1ITEMS0] = map(lambda _init_coll_menu1_Items: wxNewId(), range(1))
