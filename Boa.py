@@ -174,6 +174,13 @@ print 'importing wxPython'
 from wxPython.wx import *
 wxRegisterId(15999)
 
+import wxPython.__version__
+if wxPython.__version__ == '2.4.0.4':
+    wxPySimpleApp()
+    versionError = 'wxPython 2.4.0.4 not supported yet'
+    wxMessageBox(versionError, 'Version not supported', wxOK | wxICON_ERROR)
+    raise versionError
+
 if wxVERSION < __version__.wx_version:
     wxPySimpleApp()
     wxMessageBox('Sorry! This version of Boa requires at least '\
