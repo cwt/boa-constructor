@@ -84,11 +84,6 @@ Changing sub-properties in inspector does not update ctrl
 
 Help select search result triggers loadpage event 3 times
 
-Attributes aren't updated in moduleparse.Class.attributes after working in the Designer
-The undelying problem is that the frame designers maintain the source code
-and the module is not reparsed when the designers are closed, only their changes
-are applied. Attributes get picked up on parsing.
-
 Utility control must be selected after being added
 
 Parser must be fixed sometime to correctly parse
@@ -103,30 +98,24 @@ Some help links break when found text is highlighted in html
 Controls not in the wx namespace should add appropriate import 
 statements to source
 
-Event identifier duplication in source
-
 App find does not find correctly when module is open.
 Reimplement find in source using Scintilla's find, find again.
-
-Add check that new name is a valid Python identifier
 
 Display warning when frame closes with Notebook with empty
 pages
 
 .cfg, .bmp opens as python modules
 
-Renaming main frame does not update the App variables
-
-ZopeCatNode don't traverse correctly in the list
-
 Changing the name property in the inspector and immediately
 selecting another control in the Designer causes the first
 control to be repositioned on the newly selected one.
 
-MSW
----
+Browsing does not work from the first character of the source.
 
-MenuBar's menus crash on creation
+Cannot save (like in zope) dtml with errors, don't know how
+to get error msg from ftp.
+
+Menubars lose connected to frame when designer is reopened
 
 GTK
 ---

@@ -3,8 +3,10 @@ Changes
 
 -- 0.0.5 --
 
+* New Getting Started Guide
 * Redid the Explorer, the following explorer types supported
   * File/Package Explorer
+    * Can filter on all files for general purpose cliboard use
   * CVS Explorer
     * command line CVS needs to be installed successfully
     * basic cvs functionality: browse, update, commit, add, 
@@ -35,16 +37,22 @@ Changes
   other in-process Python debuggers.
   * Can browse (ctrl/mouse over) variable values, almost like
     debugger tips in Delphi and other IDEs, only does single
-    word variables currently
+    word variables currently, clicking adds as watch.
 * Support for C++ source
 * Added ToolTipString property
 * Python 2.0 compatibility
-* Error stack browser:
+* Traceback browser:
   * jump to source from a tree ctrl showing exception tracebacks
+  * Create a traceback tree from a Boa.trace file
 * New palette look saving some space.
 * Modules are parsed when needed allowing snappier opening - Shane Hathaway
 * Keeps old StyledTextControl backward compatibility, will be depreciated 
   in the next release
+* Auto created frames (main frame) works correctly.
+* Code browsing/jumping history (back and forward buttons)
+* More code completion support (but not enough yet)
+  * wxPython methods for wxPython object decendants
+  * Attribute type and methods
        
 -- 0.0.4 --
 
