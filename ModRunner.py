@@ -24,7 +24,6 @@ class ModuleRunner:
         if err or out:
             self.esf.updateCtrls(err, out)
             self.esf.Show(true)
-            print 'MR shown'
             return self.esf
         else:
             return None
@@ -46,7 +45,7 @@ class ProcessModuleRunner(ModuleRunner):
         This currently only works for non GUI processes """
     def run(self, cmd):
         import ProcessProgressDlg, ErrorStack
-        dlg = ProcessProgressDlg.ProcessProgressDlg(self.editor, cmd, 'Execute module')
+        dlg = ProcessProgressDlg.ProcessProgressDlg(None, cmd, 'Execute module')
         try:
             dlg.ShowModal()
             serr = ErrorStack.buildErrorList(dlg.errors)
@@ -71,7 +70,6 @@ class PopenModuleRunner(ModuleRunner):
             l = outp.readline()
             if not l: break
             out.append(l)
-            print l,
 
         serr = ErrorStack.errorList(errp)
 
