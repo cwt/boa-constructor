@@ -91,14 +91,12 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
         CallTipCodeHelpSTCMix.__init__(self)
 
         # Initialize breakpoints from file and running debugger
+        # XXX Remote breakpoints should be stored in a local pickle
         try: 
-            filename = self.model.assertLocalFile() #string.lower(self.model.filename)
-            self._bpfilename = filename
-            self.breaks = bplist.getFileBreakpoints(filename)
+            filename = self.model.assertLocalFile() 
         except AssertionError: 
             filename = self.model.filename
-            self._bpfilename = filename
-            self.breaks = bplist.getFileBreakpoints('')
+        self.breaks = bplist.getFileBreakpoints(filename)
         self.tryLoadBreakpoints()
 
         self.lsp = 0
@@ -675,12 +673,11 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
         debugger = self.model.editor.debugger
         if debugger:
             # Try to apply to the running debugger.
-            filename = self.model.assertLocalFile()
-            debugger.deleteBreakpoints(filename, lineNo)
+            debugger.deleteBreakpoints(self.model.filename, lineNo)
         self.deleteBreakMarkers(lineNo)
         
     def addBreakPoint(self, lineNo, temp=0, notify_debugger=1):
-        filename = self.model.assertLocalFile()
+        filename = self.model.filename
 
         self.breaks.addBreakpoint(lineNo, temp)
         if notify_debugger:
@@ -720,15 +717,20 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
         import pickle
         fn = self.getBreakpointFilename()
 
-        rval = self.breaks.loadBreakpoints(fn)
-        if rval:
-            self.setInitialBreakpoints()
+        if fn:
+            rval = self.breaks.loadBreakpoints(fn)
+            if rval:
+                self.setInitialBreakpoints()
+        else:
+            rval = None
         return rval
 
     def saveBreakpoints(self):
         # XXX This is not yet called automatically on saving a module,
         # should it be ?
-        self.breaks.saveBreakpoints(self.getBreakpointFilename())
+        fn = self.getBreakpointFilename()
+        if fn:
+            self.breaks.saveBreakpoints()
 
     def clearStepPos(self, lineNo):
         if lineNo < 0:
@@ -986,7 +988,7 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
         self.addBreakPoint(line, temp=1, notify_debugger=0)
         # Avoid a race condition by sending the breakpoint
         # along with the "continue" instruction.
-        temp_breakpoint = (self.model.assertLocalFile(), line)
+        temp_breakpoint = (self.model.filename, line)
         if self.model.app:
             model = self.model.app
         else:
