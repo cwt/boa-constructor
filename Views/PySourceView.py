@@ -654,6 +654,10 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
             else: mrk = brkPtMrk
             self.MarkerAdd(brk['lineno'] - 1, mrk)
 
+    def deleteBreakMarkers(self, lineNo):
+        self.MarkerDelete(lineNo - 1, brkPtMrk)
+        self.MarkerDelete(lineNo - 1, tmpBrkPtMrk)
+
     def deleteBreakPoint(self, lineNo):
         self.breaks.deleteBreakpoints(lineNo)
         debugger = self.model.editor.debugger
@@ -661,9 +665,8 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
             # Try to apply to the running debugger.
             filename = self.model.assertLocalFile()
             debugger.deleteBreakpoints(filename, lineNo)
-        self.MarkerDelete(lineNo - 1, brkPtMrk)
-        self.MarkerDelete(lineNo - 1, tmpBrkPtMrk)
-
+        self.deleteBreakMarkers(lineNo)
+        
     def addBreakPoint(self, lineNo, temp=0, notify_debugger=1):
         filename = self.model.assertLocalFile()
 
@@ -967,9 +970,12 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
         self.addBreakPoint(line, temp=1, notify_debugger=0)
         # Avoid a race condition by sending the breakpoint
         # along with the "continue" instruction.
-        temp_breakpoint = (os.path.normcase(os.path.abspath(
-            self.model.assertLocalFile())), line)
-        self.model.debug(cont_if_running=1, cont_always=1,
+        temp_breakpoint = (self.model.assertLocalFile(), line)
+        if self.model.app:
+            model = self.model.app
+        else:
+            model = self.model
+        model.debug(cont_if_running=1, cont_always=1,
                          temp_breakpoint=temp_breakpoint)
 
     def OnContextHelp(self, event):
