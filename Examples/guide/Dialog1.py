@@ -30,7 +30,7 @@ class Dialog1(wx.Dialog):
               size=wx.Size(201, 13), style=0)
         self.staticText2.SetBackgroundColour(wx.Colour(255, 255, 128))
 
-        self.staticBitmap1 = wx.StaticBitmap(bitmap=wx.Bitmap('C:/Python24/Lib/site-packages/boa/Examples/guide/Boa.jpg',
+        self.staticBitmap1 = wx.StaticBitmap(bitmap=wx.Bitmap('Boa.jpg',
               wx.BITMAP_TYPE_JPEG), id=wxID_DIALOG1STATICBITMAP1,
               name='staticBitmap1', parent=self, pos=wx.Point(72, 80),
               size=wx.Size(236, 157), style=0)
