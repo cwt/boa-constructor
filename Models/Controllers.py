@@ -77,16 +77,16 @@ class BaseEditorController:
 #-------------------------------------------------------------------------------
     def actions(self, model):
         """ Override to define Controller/Model actions
-        
+
         Should return a list of tuples in this form:
         [('Name', self.OnEvent, 'BmpPath', 'KeyDef'), ...]
         """
         return []
-    
+
     def addActions(self, toolbar, menu, model):
         actions = self.actions(model)
         accls = []
-        
+
         for name, event, bmp, key in actions:
             if name != '-':
                 wId = wxNewId()
@@ -96,13 +96,13 @@ class BaseEditorController:
                 self.addMenu(menu, wId, name, accls, code, bmp)
             else:
                 menu.AppendSeparator()
-            
+
             if bmp:
                 if bmp != '-':
                     addTool(self.editor, toolbar, bmp, name, event)
                 elif name == '-' and bmp == '-':
                     toolbar.AddSeparator()
-        
+
         return accls
 
 

@@ -359,7 +359,7 @@ class BaseFrameModel(ClassModel):
                 while startIdx > 0 and startLine[0] != '[':
                     startIdx = startIdx - 1
                     startLine = module.source[startIdx]
-                
+
                 winIdIdx = startIdx
                 winIdLen = idx - startIdx + 2
                 break
@@ -385,7 +385,7 @@ class BaseFrameModel(ClassModel):
                     else:
                         line = newLine
                 lines.append(line)
-                lines.append(string.strip(sourceconst.defWindowIdsCont % 
+                lines.append(string.strip(sourceconst.defWindowIdsCont %
                       {'idIdent': colMeth, 'idCount': len(lst)}))
             else:
                 lines.append(string.strip(sourceconst.defWindowIds % {

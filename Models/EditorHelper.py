@@ -1,6 +1,6 @@
 #-----------------------------------------------------------------------------
 # Name:        EditorHelper.py
-# Purpose:     
+# Purpose:
 #
 # Author:      Riaan Booysen
 #

@@ -72,21 +72,21 @@ class ModuleController(SourceController):
               ('-', None, '', ''),
               ('Reindent whole file', self.OnReindent, '-', ''),
               ('-', None, '', '')]
-            
+
         if hasattr(model, 'app') and model.app:
             actions.append(('Switch to app', self.OnSwitchApp, '-', 'SwitchToApp'))
         else:
             actions.extend(
              [('Add to an open application', self.OnAddToOpenApp, '-', ''),
               ('Associate with an open application', self.OnAssosiateWithOpenApp, '-', '')])
-               
+
         actions.extend([
               ('NDiff modules...', self.OnDiffModules, '-', ''),
               ('Run PyChecker', self.OnRunPyChecker, '-', ''),
               ('Configure PyChecker', self.OnConfigPyChecker, '-', '')])
-              
+
         return SourceController.actions(self, model) + actions
-        
+
     def createModel(self, source, filename, main, saved, modelParent=None):
         return self.Model(source, filename, self.editor, saved, modelParent)
 
@@ -374,7 +374,7 @@ class ModuleController(SourceController):
             if app:
                 if model.savedAs: src = None
                 else: src = model.getDataAsLines()
-    
+
                 app.addModule(model.filename, '', src)
                 model.app = app
                 self.editor.setupToolBar()
@@ -549,11 +549,11 @@ class SetupController(ModuleController):
         else:
             actions.append(('setup.py bdist_wininst', self.OnSetupBDist_WinInst, '-', ''))
 
-        try: 
+        try:
             imp.find_module('py2exe')
-        except ImportError: 
+        except ImportError:
             pass
-        else: 
+        else:
             actions.append(('setup.py py2exe', self.OnSetupPy2Exe, '-', ''))
 
         return ModuleController.actions(self, model) + actions

@@ -305,7 +305,7 @@ class BitmapFileModel(PersistentModel):
         ext = string.lower(os.path.splitext(self.filename)[1])
         if ext == '.gif':
             raise Exception, 'Saving .gif format not supported'
-        
+
         PersistentModel.save(self, overwriteNewer)
 
     def saveAs(self, filename):
@@ -326,13 +326,13 @@ class BitmapFileModel(PersistentModel):
                 self.data = open(fn, 'rb').read()
             finally:
                 os.remove(fn)
-               
+
         # Actually save the file
         PersistentModel.saveAs(self, filename)
-        
+
         if updateViews:
             self.notify()
-        
+
 
 class SourceModel(BasePersistentModel):
     modelIdentifier = 'Source'

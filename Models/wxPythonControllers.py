@@ -45,7 +45,7 @@ class BaseFrameController(ModuleController):
     def actions(self, model):
         return ModuleController.actions(self, model) + [
               ('Frame Designer', self.OnDesigner, self.designerBmp, 'Designer')]
-        
+
     def createModel(self, source, filename, main, saved, modelParent=None):
         return self.Model(source, filename, main, self.editor, saved, modelParent)
 
