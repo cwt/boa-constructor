@@ -3,7 +3,7 @@ import ExplorerNodes, ZopeLib.LoginDialog, EditorModels
 import ftplib, os
 from ZopeLib.ZopeFTP import ZopeFTP
 from ZopeLib import ImageViewer, Client
-from Companions.ZopeCompanions import ZopeConnection, ZopeCompanion
+from Companions.ZopeCompanions import ZopeConnection, ZopeCompanion, FolderZC
 from Preferences import IS, wxFileDialog
 import Utils
 
@@ -37,24 +37,27 @@ class ZopeEClip(ExplorerNodes.ExplorerClipboard):
         mime, res = self.zc.call(node.zopeObj.whole_name(), 
               'manage_pasteObjects', cb_copy_data = self.clipRef)
     
-    def pasteFileSysFolder(self, folderpath, nodepath, zopeConn):
-        zopeConn.add_folder(os.path.basename(folderpath), nodepath)
+    def pasteFileSysFolder(self, folderpath, nodepath, node):
+        # XXX Should use http commands to paste
+        # XXX FTP does not want to upload binary correctly
+        node.zopeConn.add_folder(os.path.basename(folderpath), nodepath)
+#        node.newItem(os.path.basename(folderpath), FolderZC, false)
         files = os.listdir(folderpath)
         folder = os.path.basename(folderpath)
         newNodepath = nodepath+'/'+folder
         for file in files:
             file = os.path.join(folderpath, file)
             if os.path.isdir(file):
-                self.pasteFileSysFolder(file, newNodepath, zopeConn)
+                self.pasteFileSysFolder(file, newNodepath, node)
             else:
-                zopeConn.upload(file, newNodepath)
+                node.zopeConn.upload(file, newNodepath)
     
     def clipPaste_FileSysExpClipboard(self, node, nodes, mode):
         nodepath = node.resourcepath+'/'+node.name
         for file in nodes:
             if file.isDir():
                 self.pasteFileSysFolder(file.resourcepath, nodepath, 
-                      node.zopeConn)
+                      node)
             else:
                 node.zopeConn.upload(file.resourcepath, nodepath)
 
@@ -92,6 +95,9 @@ class ZopeItemNode(ExplorerNodes.ExplorerNode):
         self.zopeObj = zftpi
         self.root = root
         self.cache = []
+    
+    def destroy(self):
+        self.cache = {}
     
     def canAdd(self, paletteName):
         return paletteName == 'Zope'
@@ -132,7 +138,7 @@ class ZopeItemNode(ExplorerNodes.ExplorerNode):
             finally:
                 wxEndBusyCursor()
         except ftplib.error_perm, resp:
-            Utils.ShowMessage(None, 'Zope Error', resp)
+            Utils.ShowMessage(None, 'Zope Error', `resp`)
             raise
         
 #        itmTyps =
@@ -185,10 +191,11 @@ class ZopeItemNode(ExplorerNodes.ExplorerNode):
         mime, res = self.clipboard.zc.call(self.zopeObj.whole_name(), 
               'manage_importObject', file = name)
 
-    def newItem(self, name, Compn):
+    def newItem(self, name, Compn, getNewValidName = true):
         props = self.root.properties
-        cmp = Compn(Utils.getValidName(self.cache.keys(), name),
-            self.zopeObj.whole_name(), props.get('localpath', ''))
+        if getNewValidName:
+            name = Utils.getValidName(self.cache.keys(), name)
+        cmp = Compn(name, self.zopeObj.whole_name(), props.get('localpath', ''))
         cmp.connect(props['host'], props['httpport'], 
                     props['username'], props['passwd'])
         cmp.create()
