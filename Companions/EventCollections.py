@@ -1,6 +1,6 @@
 #----------------------------------------------------------------------
 # Name:        EventCollections.py
-# Purpose:     
+# Purpose:
 #
 # Author:      Riaan Booysen
 #
@@ -161,22 +161,22 @@ EventCategories = {'ActivateEvent': (EVT_ACTIVATE, EVT_ACTIVATE_APP),
 'FocusEvent' : (EVT_SET_FOCUS,
                 EVT_KILL_FOCUS),
 
-'KeyEvent' : (  EVT_CHAR, 
-                EVT_CHAR_HOOK, 
-                EVT_KEY_DOWN, 
+'KeyEvent' : (  EVT_CHAR,
+                EVT_CHAR_HOOK,
+                EVT_KEY_DOWN,
                 EVT_KEY_UP),
 
-'MouseEvent' : (EVT_LEFT_DOWN, 
-                EVT_LEFT_UP, 
-                EVT_MIDDLE_DOWN, 
-                EVT_MIDDLE_UP,  
-                EVT_RIGHT_UP, 
-                EVT_MOTION, 
-                EVT_LEFT_DCLICK, 
-                EVT_MIDDLE_DCLICK, 
+'MouseEvent' : (EVT_LEFT_DOWN,
+                EVT_LEFT_UP,
+                EVT_MIDDLE_DOWN,
+                EVT_MIDDLE_UP,
+                EVT_RIGHT_UP,
+                EVT_MOTION,
+                EVT_LEFT_DCLICK,
+                EVT_MIDDLE_DCLICK,
                 EVT_RIGHT_DCLICK,
-                EVT_LEAVE_WINDOW, 
-                EVT_ENTER_WINDOW, 
+                EVT_LEAVE_WINDOW,
+                EVT_ENTER_WINDOW,
                 EVT_MOUSE_EVENTS),
 
 'ScrollEvent' :(EVT_SCROLL,

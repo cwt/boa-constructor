@@ -1,14 +1,14 @@
 #-------------------------------------------------------------------------------
-# Name:        BaseCompanions.py                                                
-# Purpose:     Classes that 'shadow' controls. They implement design time       
-#              behaviour and interfaces                                         
-#                                                                               
-# Author:      Riaan Booysen                                                    
-#                                                                               
-# Created:     1999                                                             
+# Name:        BaseCompanions.py
+# Purpose:     Classes that 'shadow' controls. They implement design time
+#              behaviour and interfaces
+#
+# Author:      Riaan Booysen
+#
+# Created:     1999
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999, 2000 Riaan Booysen                                     
-# Licence:     GPL                                                              
+# Copyright:   (c) 1999, 2000 Riaan Booysen
+# Licence:     GPL
 #-------------------------------------------------------------------------------
 
 from wxPython.wx import *
@@ -29,7 +29,7 @@ bodyIndent = ' '*8
           * Property editors
 
     XXX Todo XXX
-    
+
     * write/wrap many more classes
     * streaming of properties
         * xml option
@@ -37,7 +37,7 @@ bodyIndent = ' '*8
     * define event and name for popup menu on component
     * overrideable method or new multi inheritance class
       for palette creation in container companions,
-    
+
 """
 
 # XXX This bitmap must be added to the scope of any method
@@ -71,7 +71,7 @@ class DesignTimeCompanion(Companion):
         # Enumerated display values for the options of a property editor
         # XXX Change to something less generic
         self.names = {}
-        
+
         # Companion methods that must be called when a property changes
         self.triggers = {'Name': self.SetName}
         # Companions for properties for which a companion can not be deduced
@@ -82,7 +82,7 @@ class DesignTimeCompanion(Companion):
         # as customPropEvaluators are also used to initialise multi parameter
         # properties
         self.customPropEvaluators = {}
-        # Run time dict of created collection companions 
+        # Run time dict of created collection companions
         self.collections = {}
         # Can't work, remove
         self.letClickThru = false
@@ -94,14 +94,14 @@ class DesignTimeCompanion(Companion):
         self.textPropList = []
         self.textEventList = []
         self.textCollInitList = []
-        
+
     def destroy(self):
         del self.triggers
 
     def constructor(self):
         """ This method must be overriden by defining it in in another class
-            and multiply inheriting from this new class and a 
-            DesignTimeCompanion derivative. This allows groups of components 
+            and multiply inheriting from this new class and a
+            DesignTimeCompanion derivative. This allows groups of components
             having the same constructor to be created."""
 
         return {}
@@ -113,12 +113,12 @@ class DesignTimeCompanion(Companion):
         return RTTI.getPropList(self.control, self)
 
     def properties(self):
-        """ Properties additional to those gleened thru reflection. 
-            Dictionary key=propname : type, val=getter, setter tuple. 
+        """ Properties additional to those gleened thru reflection.
+            Dictionary key=propname : type, val=getter, setter tuple.
             type = 'CtrlRoute' : Routed to get/setters on the control
                    'CompnRoute': Routed to get/setters on the companion
-        """ 
- 
+        """
+
         return {}
 
     def setConstr(self, constr):
@@ -139,7 +139,7 @@ class DesignTimeCompanion(Companion):
 
     def getEvents(self):
         return self.textEventList
-    
+
     def getWinId(self):
         return self.id
 
@@ -168,11 +168,11 @@ class DesignTimeCompanion(Companion):
     # Rename to links
     def dependentProps(self):
         """ These are properties that depend on other controls already
-            being created. They will be initialised right at the end of 
+            being created. They will be initialised right at the end of
             the definition block
         """
         return []
-        
+
     def applyRunTime(self):
         """ Properties whose value will be modifyable at design-time
             and whose changes will be applied to the source but will
@@ -189,7 +189,7 @@ class DesignTimeCompanion(Companion):
         else: return None
 
     def getPropNames(self, prop):
-        
+
         if self.names.has_key(prop):
             return self.names[prop]
         else:
@@ -199,18 +199,18 @@ class DesignTimeCompanion(Companion):
         for evt in self.textEventList:
             if evt.event_name == name: return evt.trigger_meth
         return None
-        
+
     def evtSetter(self, name, value):
         for evt in self.textEventList:
-            if evt.event_name == name: 
+            if evt.event_name == name:
                 evt.trigger_meth = value
-                return 
+                return
 
     def persistConstr(self, className, params):
         """ Define a new constructor for source code, called when creating a
             new component from the palette
             See also: setConstr """
-            
+
         paramStrs = []
         for param in params.keys():
             paramStrs.append('%s = %s'%(param, params[param]))
@@ -220,21 +220,21 @@ class DesignTimeCompanion(Companion):
         self.designer.addCtrlToObjectCollection(self.textConstr)
 
     def persistCollInit(self, method, ctrlName, propName, params = {}):
-        """ Define a new collection init method for source code, called when    
-            creating a new item in CollectionEditor                             
+        """ Define a new collection init method for source code, called when
+            creating a new item in CollectionEditor
         """
-        
+
 ##        paramStrs = []
 ##        print 'persist constr'
 ##        for param in params.keys():
 ##            print param, params[param]
 ##            paramStrs.append('%s = %s'%(param, params[param]))
 
-        collInitParse = methodparse.CollectionInitParse(None, ctrlName, method, 
+        collInitParse = methodparse.CollectionInitParse(None, ctrlName, method,
           [], propName)
 
         self.parentCompanion.textCollInitList.append(collInitParse)
-        
+
         self.designer.addCollToObjectCollection(collInitParse)
 
     def checkTriggers(self, name, oldValue, newValue):
@@ -250,10 +250,10 @@ class DesignTimeCompanion(Companion):
         #property
         elif name not in self.dontPersistProps():
             for prop in self.textPropList:
-                if prop.prop_setter == setterName: 
+                if prop.prop_setter == setterName:
                     prop.params = [value]
-                    return 
-            
+                    return
+
             if id(self.control) == id(self.designer):
                 comp_name = ''
             else:
@@ -270,7 +270,7 @@ class DesignTimeCompanion(Companion):
         elif name not in self.dontPersistProps():
             for prop in self.textPropList:
                 try:
-                    if prop.prop_setter == setterName: 
+                    if prop.prop_setter == setterName:
                         return prop.params
                 except:
                     print 'except in persistprop'
@@ -290,7 +290,7 @@ class DesignTimeCompanion(Companion):
             idx = 0
             while idx < len(self.textPropList):
                 prop = self.textPropList[idx]
-                if prop.prop_setter == setterName: 
+                if prop.prop_setter == setterName:
                     del self.textPropList[idx]
                 else:
                     idx = idx + 1
@@ -310,7 +310,7 @@ class DesignTimeCompanion(Companion):
         #property
         elif name not in self.dontPersistProps():
             for prop in self.textPropList:
-                if prop.prop_setter == setterName: 
+                if prop.prop_setter == setterName:
                     return false
         return true
 
@@ -318,14 +318,14 @@ class DesignTimeCompanion(Companion):
         """ Add a source entry for an event or update the trigger method of
             am existing event. """
         for evt in self.textEventList:
-            if evt.event_name == name: 
+            if evt.event_name == name:
                 evt.trigger_meth = value
                 return
         if self.control == self.designer: # or wId is not None:
             comp_name = ''
         else:
             comp_name = self.name
-        self.textEventList.append(methodparse.EventParse(None, comp_name, name, 
+        self.textEventList.append(methodparse.EventParse(None, comp_name, name,
                                                          value, wId))
 ##        print 'PersistEvt', self.textEventList
 
@@ -333,7 +333,7 @@ class DesignTimeCompanion(Companion):
         """ Optional callback companions can override for extra functionality
             after updating a property e.g. refreshing """
         pass
-    
+
     def SetName(self, oldValue, newValue):
         """ Triggered when the 'Name' property is changed """
         if self.designer.objects.has_key(newValue):
@@ -342,7 +342,7 @@ class DesignTimeCompanion(Companion):
             self.name = newValue
             self.designer.model.renameCtrl(oldValue, newValue)
             self.designer.renameCtrl(oldValue, newValue)
-    
+
     def evtName(self):
         return self.name
 
@@ -354,7 +354,7 @@ class DesignTimeCompanion(Companion):
             collInit.renameCompName(newName)
         for evt in self.textEventList:
             evt.comp_name = newName
-    
+
     def renameCtrlRefs(self, oldName, newName):
         """ Notification of a the rename of another control, used to fix up
             references
@@ -363,11 +363,11 @@ class DesignTimeCompanion(Companion):
             self.textConstr.renameCompName2(oldName, newName)
         for prop in self.textPropList:
             prop.renameCompName2(oldName, newName)
-    
+
     def addIds(self, lst):
         if self.id is not None:
-            lst.append(self.id)        
-        
+            lst.append(self.id)
+
     def getPropNameFromSetter(self, setter):
         props = self.properties()
         for prop in props.keys():
@@ -375,20 +375,20 @@ class DesignTimeCompanion(Companion):
                 return prop
         if setter[:3] == 'Set': return setter[3:]
         else: return setter
-    
+
     def defaultAction(self):
         """ Invoke the default property editor for this component,
             This can be anything from a custom editor to an event.
-        """ 
+        """
         pass
-    
+
     def notification(self, compn, action):
-        """ Called after components are added and before they are removed. 
-            Used for initialisation or finalisation hooks in other 
+        """ Called after components are added and before they are removed.
+            Used for initialisation or finalisation hooks in other
             components.
         """
         pass
-    
+
     def writeImports(self):
         """ Return import line that will be added to module
         """
@@ -413,14 +413,14 @@ class DesignTimeCompanion(Companion):
         # Add properties
         for prop in self.textPropList:
             # Postpone dependent props
-            if self.designer.checkAndAddDepLink(ctrlName, prop, 
+            if self.designer.checkAndAddDepLink(ctrlName, prop,
                   self.dependentProps(), deps, depLinks, definedCtrls):
                 continue
             output.append(bodyIndent + prop.asText())
 
     def writeEvents(self, output, addModuleMethod = false):
-        """ Write out EVT_* calls for all events. Optionally For every event 
-            definition not defined in source add an empty method declaration to 
+        """ Write out EVT_* calls for all events. Optionally For every event
+            definition not defined in source add an empty method declaration to
             the bottom of the class """
         for evt in self.textEventList:
             if evt.trigger_meth != '(delete)':
@@ -429,7 +429,7 @@ class DesignTimeCompanion(Companion):
                 module = model.getModule()
                 if addModuleMethod and not module.classes[
                     model.main].methods.has_key(evt.trigger_meth):
-                    module.addMethod(model.main, evt.trigger_meth, 
+                    module.addMethod(model.main, evt.trigger_meth,
                           'self, event', ['        pass'])
 
     def writeCollections(self, output, collDeps):
@@ -449,19 +449,19 @@ class DesignTimeCompanion(Companion):
                 for oRf in otherRefs:
                     if oRf not in definedCtrls:
 ##                        print 'not added dep prop', oRf
-                        break 
+                        break
                 else:
                     output.append(bodyIndent + prop.asText())
-        
-                          
-        
+
+
+
 class NYIDTC(DesignTimeCompanion):
     """ Blank holder for companions which have not been implemented."""
     host = 'Not Implemented'
     def __init__(self, name, designer, parent, ctrlClass):
         raise 'Not Implemented'
-    
-    
+
+
 class ControlDTC(DesignTimeCompanion):
     """ Visible controls created on a Frame and defined from
         _init_ctrls.
@@ -486,13 +486,13 @@ class ControlDTC(DesignTimeCompanion):
         self.initDesignTimeControl()
         return self.control
 
-    def designTimeDefaults(self, position = wxDefaultPosition, 
+    def designTimeDefaults(self, position = wxDefaultPosition,
                                  size = wxDefaultSize):
         """ Return a dictionary of parameters for the constructor of a wxPython
             control. e.g. {'name': 'Frame1', etc) """
         if not position: position = wxDefaultPosition
         if not size: size = wxDefaultSize
-        
+
         dts = self.designTimeSource('wxPoint(%s, %s)'%(position.x, position.y),
           'wxSize(%s, %s)'%(size.x, size.y))
 
@@ -501,28 +501,28 @@ class ControlDTC(DesignTimeCompanion):
                 dts[param] = PaletteMapping.evalCtrl(dts[param])
             except:
                 print 'could not eval design time default param', dts[param]
-        
+
         dts.update({self.windowParentName: self.parent, self.windowIdName: self.dId})
         return dts
 
     def designTimeSource(self, position, size):
         """ Return a dictionary of parameters for the constructor of a wxPython
-            control's source. 'parent' and 'id' handled automatically 
+            control's source. 'parent' and 'id' handled automatically
         """
-        return {}    
+        return {}
 
     def generateWindowId(self):
-        if self.designer: 
+        if self.designer:
             self.id = Utils.windowIdentifier(self.designer.GetName(), self.name)
         else: self.id = `wxNewId()`
 
     def SetName(self, oldValue, newValue):
         DesignTimeCompanion.SetName(self, oldValue, newValue)
         self.updateWindowIds()
-    
+
     def updateWindowIds(self):
         self.generateWindowId()
-        self.textConstr.params[self.windowIdName] = self.id        
+        self.textConstr.params[self.windowIdName] = self.id
         for evt in self.textEventList:
             if evt.windowid:
                 evt.windowid = self.id
@@ -539,11 +539,11 @@ class ControlDTC(DesignTimeCompanion):
     def initDesignTimeControl(self):
         #try to set the name
         try:
-           self.control.SetName(self.name)
-           self.control.SetToolTipString(self.name)
+            self.control.SetName(self.name)
+            self.control.SetToolTipString(self.name)
         except:
-           pass
-           
+            pass
+
         self.designer.senderMapper.addObject(self.control)
 
         self.initDesignTimeEvents(self.control)
@@ -555,7 +555,7 @@ class ControlDTC(DesignTimeCompanion):
 #        EVT_COMMAND_RIGHT_CLICK(self.control, -1, self.designer.OnRightClick)
         # for wxGTK
         EVT_RIGHT_UP(self.control, self.designer.OnRightClick)
-    
+
     def beforeResize(self):
         pass
         #print 'beforeResize'
@@ -563,7 +563,7 @@ class ControlDTC(DesignTimeCompanion):
     def afterResize(self):
         pass
         #print 'afterResize'
-    
+
     def updatePosAndSize(self):
         if self.textConstr and self.textConstr.params.has_key('pos') \
               and self.textConstr.params.has_key('size'):
@@ -576,9 +576,9 @@ class MultipleSelectionDTC(DesignTimeCompanion):
     """ Semi mythical class at the moment that will represent a group of
         selected objects. It's properties should represent the common subset
         of properties of the selection.
-        
+
         Currently only used so the inspector has something to hold on to during
-        multiple selection        
+        multiple selection
     """
 
 # sub properties (Font etc)
@@ -593,7 +593,7 @@ class HelperDTC(DesignTimeCompanion):
         self.ownerPW = ownerPropWrap
 
         self.updateObjFromOwner()
-    
+
     def updateObjFromOwner(self):
         """ The object to which a sub object is connected may change
             this method reconnects the property to the current object.
@@ -612,7 +612,7 @@ class HelperDTC(DesignTimeCompanion):
     def persistProp(self, name, setterName, value):
         """ When a subobject's property is told to persist, it
             should persist it's owner
-            
+
            This is currently managed by the property editor
         """
         pass
@@ -621,11 +621,11 @@ class HelperDTC(DesignTimeCompanion):
 class UtilityDTC(DesignTimeCompanion):
     """ Utility companions are 'invisible' components that
         are not owned by the Frame.
-        
+
         Utilities are created before the frame and controls
         and defined in the _init_utils method.
     """
-        
+
     host = 'Data'
     def __init__(self, name, designer, objClass):
         DesignTimeCompanion.__init__(self, name, designer)
@@ -664,14 +664,14 @@ class UtilityDTC(DesignTimeCompanion):
 
     def updatePosAndSize(self):
         pass
-        
+
 # Testing
-class TestDTC(ControlDTC):        
+class TestDTC(ControlDTC):
     def __init__(self, name, designer, parent, ctrlClass):
         ControlDTC.__init__(self, name, designer, parent, ctrlClass)
-        self.editors = {'boolean': BoolPropEdit, 
+        self.editors = {'boolean': BoolPropEdit,
                         'Shown': BoolPropEdit, }
-        
+
     def properties(self):
         return {'Shown': ['CtrlRoute', wxWindow.IsShown, wxWindow.Show]}
     def applyRunTime(self):
@@ -681,12 +681,12 @@ class TestDTC(ControlDTC):
 
 # XXX Parents, from constructor or current selected container in designer
 class WindowDTC(ControlDTC):
-    """ Defines the wxWindow interface overloading/defining specialised 
+    """ Defines the wxWindow interface overloading/defining specialised
         property editors. """
     def __init__(self, name, designer, parent, ctrlClass):
         ControlDTC.__init__(self, name, designer, parent, ctrlClass)
         self.editors = {'AutoLayout': BoolPropEdit,
-                        'Shown': BoolPropEdit, 
+                        'Shown': BoolPropEdit,
                         'Enabled': BoolPropEdit,
                         'EvtHandlerEnabled': BoolPropEdit,
                         'Style': StyleConstrPropEdit,
@@ -694,23 +694,23 @@ class WindowDTC(ControlDTC):
                         'Name': NamePropEdit,
 #                        'Sizer': SizerClassLinkPropEdit,
                         'Anchors': AnchorPropEdit}
-        self.triggers.update({'Size'     : self.SizeUpdate, 
+        self.triggers.update({'Size'     : self.SizeUpdate,
                               'Position' : self.PositionUpdate})
         self.customPropEvaluators.update({'Constraints': self.EvalConstraints})
-        
-        self.windowStyles = ['wxCAPTION', 'wxMINIMIZE_BOX', 'wxMAXIMIZE_BOX', 
-                             'wxTHICK_FRAME', 'wxSIMPLE_BORDER', 'wxDOUBLE_BORDER', 
-                             'wxSUNKEN_BORDER', 'wxRAISED_BORDER', 
-                             'wxSTATIC_BORDER', 'wxTRANSPARENT_WINDOW', 'wxNO_3D', 
-                             'wxTAB_TRAVERSAL', 'wxWANTS_CHARS', 
-                             'wxNO_FULL_REPAINT_ON_RESIZE', 'wxVSCROLL', 'wxHSCROLL', 
+
+        self.windowStyles = ['wxCAPTION', 'wxMINIMIZE_BOX', 'wxMAXIMIZE_BOX',
+                             'wxTHICK_FRAME', 'wxSIMPLE_BORDER', 'wxDOUBLE_BORDER',
+                             'wxSUNKEN_BORDER', 'wxRAISED_BORDER',
+                             'wxSTATIC_BORDER', 'wxTRANSPARENT_WINDOW', 'wxNO_3D',
+                             'wxTAB_TRAVERSAL', 'wxWANTS_CHARS',
+                             'wxNO_FULL_REPAINT_ON_RESIZE', 'wxVSCROLL', 'wxHSCROLL',
                              'wxCLIP_CHILDREN']
-                             
+
         import UtilCompanions
         self.subCompanions['Constraints'] = UtilCompanions.IndividualLayoutConstraintOCDTC
         self.anchorSettings = []#true, true, false, false]
         self._applyConstraints = false
-        
+
     def properties(self):
         return {'Shown': ('CtrlRoute', wxWindow.IsShown.im_func, wxWindow.Show.im_func),
                 'Enabled': ('CtrlRoute', wxWindowPtr.IsEnabled.im_func, wxWindowPtr.Enable.im_func),
@@ -719,7 +719,7 @@ class WindowDTC(ControlDTC):
 
     def hideDesignTime(self):
         return ['NextHandler', 'PreviousHandler', 'EventHandler', 'Id', 'Caret',
-                'WindowStyleFlag', 'ToolTip', 'Title', 'Sizer']
+                'WindowStyleFlag', 'ToolTip', 'Title', 'Sizer', 'Rect']
 
     def dontPersistProps(self):
         return ['ClientSize']
@@ -741,7 +741,7 @@ class WindowDTC(ControlDTC):
 
     def SetToolTipString(self, value):
         self.control.SetToolTipString(value)
-    
+
 #---Anchors---------------------------------------------------------------------
     from wxPython.lib.anchors import LayoutAnchors
 
@@ -772,22 +772,22 @@ class WindowDTC(ControlDTC):
             self.anchorSettings = [left, top, right, bottom]
             return (self.LayoutAnchors(ctrl, left, top, right, bottom), )
         return (None,)
-    
+
     def updateAnchors(self, flagset, value):
         if not self.anchorSettings:
             self.defaultAnchors()
-            
+
         for idx in range(4):
             if flagset[idx]:
                 self.anchorSettings[idx] = value
-    
+
     def removeAnchors(self):
         self.anchorSettings = []
         idx = 0
         while idx < len(self.textPropList):
             prop = self.textPropList[idx]
             if prop.prop_setter == 'SetConstraints' and \
-                  Utils.startswith(prop.params[0], 'LayoutAnchors'): 
+                  Utils.startswith(prop.params[0], 'LayoutAnchors'):
                 del self.textPropList[idx]
                 break
             else:
@@ -803,14 +803,14 @@ class WindowDTC(ControlDTC):
 
     def beforeResize(self):
         lc = self.control.GetConstraints()
-        self._applyConstraints = lc != None and self.anchorSettings 
+        self._applyConstraints = lc != None and self.anchorSettings
         if self._applyConstraints:
             self.SetConstraints(None)
 
     def afterResize(self):
         if self._applyConstraints and self.anchorSettings:
             self.applyConstraints()
-            
+
 #---Designer updaters-----------------------------------------------------------
     def SizeUpdate(self, oldValue, newValue):
         if self.designer.selection:
@@ -826,27 +826,27 @@ class ChoicedDTC(WindowDTC):
     def __init__(self, name, designer, parent, ctrlClass):
         WindowDTC.__init__(self, name, designer, parent, ctrlClass)
         self.editors['Choices'] = ChoicesConstrPropEdit
-    
+
 class ContainerDTC(WindowDTC):
     """ Parent for controls that contain/own other controls """
     def __init__(self, name, designer, parent, ctrlClass):
         WindowDTC.__init__(self, name, designer, parent, ctrlClass)
         self.container = true
-        
+
 class CollectionDTC(DesignTimeCompanion):
-    """ Companions encapsulating list maintaining behaviour into a single 
+    """ Companions encapsulating list maintaining behaviour into a single
         property
-        Maintains an index which points to the currently active item in the 
+        Maintains an index which points to the currently active item in the
         collection
     """
-    
+
     propName = 'undefined'
     insertionMethod = 'undefined'
     deletionMethod = 'undefined'
     displayProp = 'undefined'
     indexProp = 'undefined'
     sourceObjName = 'parent'
-    
+
     def __init__(self, name, designer, parentCompanion, ctrl):
         DesignTimeCompanion.__init__(self, name, designer)
         from Views.CollectionEdit import CollectionEditor
@@ -855,10 +855,10 @@ class CollectionDTC(DesignTimeCompanion):
         self.setCollectionMethod()
         self.index = 0
         self.parentCompanion = parentCompanion
-    
+
     def setCollectionMethod(self):
         self.collectionMethod = '_init_coll_%s_%s' %(self.name, self.propName)
-    
+
     def setIndex(self, index):
         self.index = index
         self.setConstr(self.textConstrLst[index])
@@ -866,13 +866,13 @@ class CollectionDTC(DesignTimeCompanion):
     def setConstrs(self, constrLst, inits, fins):
         self.initialisers = inits
         self.finalisers = fins
-        
+
         self.textConstrLst = constrLst
-    
+
     def renameCtrl(self, oldName, newName):
         DesignTimeCompanion.renameCtrl(self, oldName, newName)
         self.setCollectionMethod()
-    
+
     def renameCtrlRefs(self, oldName, newName):
         # textConstr and textPropList not used in collections
         # DesignTimeCompanion.renameCtrlRefs(self, oldName, newName)
@@ -881,10 +881,10 @@ class CollectionDTC(DesignTimeCompanion):
 
     def getCount(self):
         return len(self.textConstrLst)
-    
+
     def getDisplayProp(self):
-        return eval(self.textConstrLst[self.index].params[self.displayProp])    
-    
+        return eval(self.textConstrLst[self.index].params[self.displayProp])
+
     def initialiser(self):
         """ When overriding, append this after derived initialiser """
         return ['']
@@ -892,18 +892,18 @@ class CollectionDTC(DesignTimeCompanion):
     def finaliser(self):
         """ When overriding, append this before derived finaliser """
         return []
-        
+
     def appendItem(self):
         self.index = self.getCount()
-        collItemInit = methodparse.CollectionItemInitParse(None, 
-          self.sourceObjName, self.insertionMethod, 
+        collItemInit = methodparse.CollectionItemInitParse(None,
+          self.sourceObjName, self.insertionMethod,
           self.designTimeSource(self.index))
-          
+
         self.textConstrLst.append(collItemInit)
         self.setConstr(collItemInit)
-        
+
         self.applyDesignTimeDefaults(collItemInit.params)
-        
+
         return collItemInit
 
     def deleteItem(self, idx):
@@ -911,7 +911,7 @@ class CollectionDTC(DesignTimeCompanion):
         if self.deletionMethod != '(None)':
             f = RTTI.getFunction(self.control, self.deletionMethod)
             apply(f, [self.control, idx])
-        
+
         del self.textConstrLst[idx]
         # renumber items following deleted one
         if self.indexProp != '(None)':
@@ -943,16 +943,16 @@ class CollectionDTC(DesignTimeCompanion):
                 dtd[param] = PaletteMapping.evalCtrl(vals[param])
             except Exception, message:
                 print 'could not eval 3', param, vals[param], message
-        
+
         return dtd
-    
+
     def initCollection(self):
         pass
-    
+
     def writeCollectionInitialiser(self, output):
         output.extend(self.initialiser())
 
-    def writeCollectionItems(self, output):        
+    def writeCollectionItems(self, output):
         for creator in self.textConstrLst:
             output.append(bodyIndent + creator.asText())
 
@@ -961,7 +961,7 @@ class CollectionDTC(DesignTimeCompanion):
 
     def getPropList(self):
         """ Returns a dictionary of methods suported by the control
-        
+
             The dict has 'properties' and 'methods' keys which contain the
             getters/setters and undefined methods.
          """
@@ -974,24 +974,25 @@ class CollectionDTC(DesignTimeCompanion):
         """
         pass
 ##        print 'CDTC', self.textConstrLst[self.index]
-    
+
     def notification(self, compn, action):
         """ Called when other components are deleted.
-        
+
             Use it to clear references to components which are being deleted.
         """
         # XXX Should use this mechanism to trap renames as well
         pass
 ##        print 'CollectionDTC.notification', compn, action
-        
+
 class CollectionIddDTC(CollectionDTC):
+    """ Collections which have window ids and events """
     windowIdName = 'id'
-    idProp = '(undefined)'    
+    idProp = '(undefined)'
     idPropNameFrom = '(undefined)'
 
     def evtName(self):
         return '%s%s%d' % (self.name, self.propName, self.index)
-    
+
 ##    def setIndex(self, idx):
 ##        CollectionDCT.setIndex(idx)
 ##        self.setEvents(
@@ -1006,25 +1007,35 @@ class CollectionIddDTC(CollectionDTC):
 
     def getWinId(self):
         return self.textConstrLst[self.index].params[self.idProp]
-        
+
     def addIds(self, lst):
         for constr in self.textConstrLst:
             lst.append(constr.params[self.windowIdName])
-        
+
     def appendItem(self):
         CollectionDTC.appendItem(self)
 
         self.generateWindowId(self.index)
 
+    def deleteItemEvents(self, idx):
+        wIdStr = self.textConstrLst[idx].params[self.idProp]
+        for evt in self.textEventList[:]:
+            if evt.windowid == wIdStr:
+                self.textEventList.remove(evt)
+
+    def deleteItem(self, idx):
+        self.deleteItemEvents(idx)
+        CollectionDTC.deleteItem(self, idx)
+
     def newWinId(self, itemName):
-        return Utils.windowIdentifier(self.designer.controllerView.GetName(), 
+        return Utils.windowIdentifier(self.designer.controllerView.GetName(),
               self.name + itemName)
-              
+
     def generateWindowId(self, idx):
-        if self.designer: 
+        if self.designer:
             oldId = self.textConstrLst[idx].params[self.idProp]
             newId = self.newWinId('%s%d' % (self.propName, idx))
-            
+
             if oldId != newId:
                 self.textConstrLst[idx].params[self.idProp] = newId
                 for evt in self.textEventList:
@@ -1041,7 +1052,7 @@ class CollectionIddDTC(CollectionDTC):
             if evt.event_name == name and evt.windowid == wId:
                 return evt.trigger_meth
         return None
-        
+
     def evtSetter(self, name, value):
         wId = self.getWinId()
         for evt in self.textEventList:
@@ -1053,16 +1064,16 @@ class CollectionIddDTC(CollectionDTC):
         """ Add a source entry for an event or update the trigger method of
             am existing event. """
         for evt in self.textEventList:
-            if evt.event_name == name and evt.windowid == wId: 
+            if evt.event_name == name and evt.windowid == wId:
                 evt.trigger_meth = value
                 return
         if self.control == self.designer or wId is not None:
             comp_name = ''
         else:
             comp_name = self.name
-        self.textEventList.append(methodparse.EventParse(None, comp_name, name, 
+        self.textEventList.append(methodparse.EventParse(None, comp_name, name,
                                                          value, wId))
-    
+
     def updateWindowIds(self):
         for idx in range(len(self.textConstrLst)):
             self.generateWindowId(idx)
@@ -1075,4 +1086,3 @@ class CollectionIddDTC(CollectionDTC):
         dts = CollectionDTC.designTimeDefaults(self, values)
         dts[self.idProp] = wxNewId()
         return dts
-    

@@ -1,6 +1,6 @@
 #----------------------------------------------------------------------
 # Name:        DialogCompanions.py
-# Purpose:     
+# Purpose:
 #
 # Author:      Riaan Booysen
 #
@@ -20,14 +20,14 @@ class CommonDialogCompanion(CodeCompanion):
 
 class DataCDC(CommonDialogCompanion):
     def constructor(self):
-        return '    dlg = %(dlgclass)s(%(parent)s, data = None)'  
+        return '    dlg = %(dlgclass)s(%(parent)s, data = None)'
 
 class ColourDialogCDC(DataCDC): #(parent, data = None)
     wxDocs = HelpCompanions.wxColourDialogDocs
     def body(self):
         return '''data = wxColourData()
 data.SetChooseFull(true)
-dlg = wxColourDialog(frame, data)
+dlg = wxColourDialog(self, data)
 try:
     if dlg.ShowModal() == wxID_OK:
         data = dlg.GetColourData()
@@ -137,7 +137,7 @@ finally:
 
 '''
 
-class MessageDialogCDC(MessagedCDC): #(parent, message, caption = 'Message box', style = wxOK | wxCANCEL | wxCENTER, pos = wxDefaultPosition) 
+class MessageDialogCDC(MessagedCDC): #(parent, message, caption = 'Message box', style = wxOK | wxCANCEL | wxCENTER, pos = wxDefaultPosition)
     wxDocs = HelpCompanions.wxMessageDialogDocs
     def body(self):
         return '''dlg = wxMessageDialog(self, 'Message',

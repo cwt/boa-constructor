@@ -17,7 +17,7 @@ class ZopeConnection:
         self.port = port
         self.user = user
         self.password = password
-    
+
     def parseInstanceListToTypeLst(self, instLstStr):
         instLstStr = instLstStr[1:-1]
         instLst = methodparse.safesplitfields(instLstStr, ',')
@@ -87,25 +87,25 @@ class ZopeCompanion(Companion, ZopeConnection):
     def updateZopeProps(self):
         self.propItems = self.getPropertyItems()
         self.propMap = self.getPropertyMap()
-        
+
     def getPropList(self):
         propLst = []
         for prop in self.propItems:
-            propLst.append(RTTI.PropertyWrapper(prop[0], 'NameRoute', 
+            propLst.append(RTTI.PropertyWrapper(prop[0], 'NameRoute',
                   self.GetProp, self.SetProp))
         return {'constructor':[], 'properties': propLst}
 
     def getObjectItems(self):
         mime, res = self.call(self.objPath, 'objectItems')
         return self.parseInstanceToTypeList(res)
-        
+
     def getPropertyMap(self):
 ##        # [ {'id': <prop name>, 'type': <prop type>}, ... ]
         # This is a workaround for zope returning 2 prop map items incorrectly
         if len(self.propItems) == 2:
             mime, tpe1 = self.call(self.objPath, 'getPropertyType', id=self.propItems[0][0])
             mime, tpe2 = self.call(self.objPath, 'getPropertyType', id=self.propItems[1][0])
-            return [ {'id': self.propItems[0][0], 'type': tpe1}, 
+            return [ {'id': self.propItems[0][0], 'type': tpe1},
                      {'id': self.propItems[1][0], 'type': tpe2} ]
         else:
             mime, res = self.call(self.objPath, 'propertyMap')
@@ -120,13 +120,13 @@ class ZopeCompanion(Companion, ZopeConnection):
         for p in self.propMap:
             if p['id'] == name:
                 if name == 'passwd':
-                    return 'passwd' 
+                    return 'passwd'
                 return p['type']
         return 'string'
-        
+
     def setZopeProp(self, name, value):
         mime, res = self.callkw(self.objPath, 'manage_changeProperties', {name: value})#'id=name, value=value, type = tpe)
-        
+
     def addProperty(self, name, value, tpe):
         mime, res = self.call(self.objPath, 'manage_addProperty', id=name, value=value, type = tpe)
 
@@ -136,7 +136,7 @@ class ZopeCompanion(Companion, ZopeConnection):
     def GetProp(self, name):
         for prop in self.propItems:
             if prop[0] == name: return prop[1]
-    
+
     def SetProp(self, name, value):
         for idx in range(len(self.propItems)):
             if self.propItems[idx][0] == name:
@@ -147,7 +147,7 @@ class ZopeCompanion(Companion, ZopeConnection):
 class DTMLDocumentZC(ZopeCompanion):
     def create(self):
         mime, res = self.call(self.objPath, 'manage_addDTMLDocument', id = self.name)
-    
+
 class DTMLMethodZC(ZopeCompanion):
     def create(self):
         mime, res = self.call(self.objPath, 'manage_addDTMLMethod', id = self.name)
@@ -159,7 +159,7 @@ class FolderZC(ZopeCompanion):
 class FileZC(ZopeCompanion):
     def create(self):
         mime, res = self.call(self.objPath, 'manage_addFile', id = self.name, file = '')
-    
+
 class ImageZC(ZopeCompanion):
     def create(self):
         mime, res = self.call(self.objPath, 'manage_addImage', id = self.name, file = '')
@@ -170,34 +170,31 @@ class ExternalMethodZC(ZopeCompanion):
         dlg = ExtMethDlg.ExtMethDlg(None, self.localPath)
         try:
             if dlg.ShowModal() == wx.wxID_OK:
-                mime, res = self.call(self.objPath, prodPath+'manage_addExternalMethod', 
-                      id = self.name, title = '', 
+                mime, res = self.call(self.objPath, prodPath+'manage_addExternalMethod',
+                      id = self.name, title = '',
                       function = dlg.chFunction.GetValue(),
                       module = dlg.cbModule.GetValue())
         finally:
             dlg.Destroy()
-    
+
 class PythonMethodZC(ZopeCompanion):
     def create(self):
         prodPath = '/manage_addProduct/PythonMethod/'
-        mime, res = self.call(self.objPath, prodPath+'manage_addPythonMethod', 
+        mime, res = self.call(self.objPath, prodPath+'manage_addPythonMethod',
               id = self.name, title = '', params = '', body = 'pass')
-    
+
 class MailHostZC(ZopeCompanion):
     def create(self):
         mime, res = self.call(self.objPath, 'manage_addMailHost', id = self.name)
-    
+
 class ZCatalogZC(ZopeCompanion):
     def create(self):
-        mime, res = self.call(self.objPath, 'manage_addProduct/ZCatalog/manage_addZCatalog', 
+        mime, res = self.call(self.objPath, 'manage_addProduct/ZCatalog/manage_addZCatalog',
               id = self.name, title = '')
-    
+
 ##class SQLMethodZC(ZopeCompanion):
 ##    zMeth = 'manage_addProduct.ZSQLMethods.add'
-    
+
 class UserFolderZC(ZopeCompanion):
     def create(self):
         mime, res = self.call(self.objPath, 'manage_addUserFolder')
-
-    
-    

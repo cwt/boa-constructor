@@ -1,7 +1,18 @@
+#-----------------------------------------------------------------------------
+# Name:        UtilCompanions.py
+# Purpose:     Companion classes for non visible objects
+#
+# Author:      Riaan Booysen
+#
+# Created:     2000
+# RCS-ID:      $Id$
+# Copyright:   (c) 2000, 2001 Riaan Booysen
+# Licence:     GPL
+#-----------------------------------------------------------------------------
 from wxPython.wx import *
 
 from BaseCompanions import UtilityDTC, CollectionDTC, CollectionIddDTC, wxNullBitmap, NYIDTC
-from Constructors import * 
+from Constructors import *
 #ImageListConstr, EmptyConstr, MenuConstr, MenuBarConstr, ImageListImagesConstr, LayoutConstraintsConstr, ChoicesConstr, AcceleratorTableEntriesConstr
 from PropEdit.PropertyEditors import IntConstrPropEdit, StrConstrPropEdit, CollectionPropEdit, BitmapConstrPropEdit, EnumConstrPropEdit, LCCEdgeConstrPropEdit, WinEnumConstrPropEdit, BoolConstrPropEdit, MenuEnumConstrPropEdit
 import HelpCompanions, methodparse
@@ -17,12 +28,12 @@ class ImageListDTC(ImageListConstr, UtilityDTC):
                         'Height': IntConstrPropEdit,
                         'Images': CollectionPropEdit})
         self.subCompanions['Images'] = ImageListImagesCDTC
-        
+
     def properties(self):
         props = UtilityDTC.properties(self)
         props.update({'Images': ('NoneRoute', None, None)})
         return props
-                        
+
     def designTimeSource(self):
         return {'width': '16',
                 'height': '16'}
@@ -30,9 +41,11 @@ class ImageListDTC(ImageListConstr, UtilityDTC):
 #                  'initialCount': '1'}
 
     def defaultAction(self):
-        self.designer.inspector.props.getNameValue('Images').propEditor.edit(None)
+        nv = self.designer.inspector.props.getNameValue('Images')
+        if nv:
+            nv.propEditor.edit(None)
 
-class ImageListImagesCDTC(ImageListImagesConstr, CollectionDTC):        
+class ImageListImagesCDTC(ImageListImagesConstr, CollectionDTC):
     wxDocs = HelpCompanions.wxImageListDocs
     propName = 'Images'
     displayProp = 'bitmap'
@@ -46,7 +59,7 @@ class ImageListImagesCDTC(ImageListImagesConstr, CollectionDTC):
                         'Mask': BitmapConstrPropEdit}
         from Views.CollectionEdit import ImageListCollectionEditor
         self.CollEditorFrame = ImageListCollectionEditor
-    
+
     def properties(self):
         props = CollectionDTC.properties(self)
         props.update({'Bitmap':  ('CompnRoute', None, self.setBitmap),
@@ -69,7 +82,9 @@ class ImageListImagesCDTC(ImageListImagesConstr, CollectionDTC):
             self.designer.collEditors[(self.name, self.propName)].refreshCtrl(true)
 
     def defaultAction(self):
-        self.designer.inspector.constr.getNameValue('Bitmap').propEditor.edit(None)
+        nv = self.designer.inspector.constr.getNameValue('Bitmap')
+        if nv:
+            nv.propEditor.edit(None)
 
 # XXX Needs ctrl derivation before it can be implemented
 class TimerDTC(EmptyConstr, UtilityDTC):
@@ -90,7 +105,7 @@ class AcceleratorTableDTC(ChoicesConstr, NYIDTC):
     def designTimeSource(self):
         return {'choices':'[]'}
 
-class AcceleratorTableEntriesCDTC(AcceleratorTableEntriesConstr, CollectionDTC):        
+class AcceleratorTableEntriesCDTC(AcceleratorTableEntriesConstr, CollectionDTC):
     wxDocs = HelpCompanions.wxIndividualLayoutConstraintDocs
     propName = 'Entries'
     displayProp = 'flags'
@@ -101,20 +116,20 @@ class AcceleratorTableEntriesCDTC(AcceleratorTableEntriesConstr, CollectionDTC):
 
     def __init__(self, name, designer, parentCompanion, ctrl):
         CollectionDTC.__init__(self, name, designer, parentCompanion, ctrl)
-        
+
         self.editors.update({'Flags':   IntConstrPropEdit,
                         'KeyCode': IntConstrPropEdit,
                         'Command': IntConstrPropEdit})
-        
+
     def persistCollInit(self, method, ctrlName, propName, params = {}):
-        
-        collInitParse = methodparse.CollectionInitParse(None, ctrlName, method, 
+
+        collInitParse = methodparse.CollectionInitParse(None, ctrlName, method,
           [], propName)
 
         self.parentCompanion.textConstr.params = {'choices': collInitParse.asText()}
 
         self.designer.addCollToObjectCollection(collInitParse)
-    
+
     def SetName(self, oldName, newName):
         CollectionDTC.SetName(self, oldName, newName)
 
@@ -153,16 +168,18 @@ class MenuDTC(MenuConstr, UtilityDTC):
         return {'title': `self.name`}
 
     def hideDesignTime(self):
-        return ['NextHandler', 'PreviousHandler', 'EventHandler', 'Id', 
+        return ['NextHandler', 'PreviousHandler', 'EventHandler', 'Id',
                 'Parent', 'InvokingWindow']
 
     def updateWindowIds(self):
         pass
 
     def defaultAction(self):
-        self.designer.inspector.props.getNameValue('Items').propEditor.edit(None)
+        nv = self.designer.inspector.props.getNameValue('Items')
+        if nv:
+            nv.propEditor.edit(None)
 
-class MenuItemsCIDTC(MenuItemsConstr, CollectionIddDTC):        
+class MenuItemsCIDTC(MenuItemsConstr, CollectionIddDTC):
     wxDocs = HelpCompanions.wxMenuDocs
     propName = 'Items'
     displayProp = 'item'
@@ -170,14 +187,14 @@ class MenuItemsCIDTC(MenuItemsConstr, CollectionIddDTC):
     insertionMethod = 'Append'
     deletionMethod = 'Remove'
     idProp = 'id'
-    idPropNameFrom = 'item'    
+    idPropNameFrom = 'item'
 
     def __init__(self, name, designer, parentCompanion, ctrl):
         CollectionDTC.__init__(self, name, designer, parentCompanion, ctrl)
         self.editors.update({'Label': StrConstrPropEdit,
                              'HelpString': StrConstrPropEdit,
                              'Checkable': BoolConstrPropEdit})
-   
+
     def properties(self):
         props = CollectionDTC.properties(self)
         props.update({'Label':  ('IndexRoute', wxMenu.GetLabel, wxMenu.SetLabel)})
@@ -191,11 +208,17 @@ class MenuItemsCIDTC(MenuItemsConstr, CollectionIddDTC):
                 'checkable': 'false'}
 
     def deleteItem(self, idx):
-        # XXX Refactor: separate index from id
-        # look up menu id based on idx
-        menuId = int(self.textConstrLst[idx].params['id'])
+        menuId = self.control.GetMenuItems()[idx].GetId()
         self.control.Remove(menuId)
 
+        # remove event references
+        self.deleteItemEvents(idx)
+##        wIdStr = self.textConstrLst[idx].params['id']
+##        for evt in self.textEventList[:]:
+##            if evt.windowid == wIdStr:
+##                self.textEventList.remove(evt)
+
+        # remove menu reference
         del self.textConstrLst[idx]
 
     def events(self):
@@ -227,18 +250,20 @@ class MenuBarDTC(MenuBarConstr, UtilityDTC):#DesignTimeCompanion):
 
     def initDesignTimeControl(self):
         pass
-        
+
     def vetoedMethods(self):
-        return UtilityDTC.vetoedMethods(self)+['GetPosition', 'SetPosition', 
+        return UtilityDTC.vetoedMethods(self)+['GetPosition', 'SetPosition',
                'GetSize', 'SetSize', 'GetRect', 'SetRect']
 
     def hideDesignTime(self):
         return []
 
     def defaultAction(self):
-        self.designer.inspector.props.getNameValue('Menus').propEditor.edit(None)
+        nv  = self.designer.inspector.props.getNameValue('Menus')
+        if nv:
+            nv.propEditor.edit(None)
 
-class MenuBarMenusCDTC(MenuBarMenusConstr, CollectionDTC):        
+class MenuBarMenusCDTC(MenuBarMenusConstr, CollectionDTC):
     wxDocs = HelpCompanions.wxMenuBarDocs
     propName = 'Menus'
     displayProp = 'title'
@@ -271,7 +296,7 @@ class MenuBarMenusCDTC(MenuBarMenusConstr, CollectionDTC):
                     dtd[param] = eval(vals[param])
                 except Exception, message:
                     print 'could not eval 4', vals[param], message
-        
+
         return dtd
 
     def events(self):
@@ -279,7 +304,7 @@ class MenuBarMenusCDTC(MenuBarMenusConstr, CollectionDTC):
 
     def vetoedMethods(self):
         return CollectionDTC.vetoedMethods(self)+['GetPosition', 'SetPosition', 'GetSize', 'SetSize']
-    
+
     def GetMenu(self):
         return self.textConstrLst[self.index].params['menu']
 
@@ -302,30 +327,30 @@ class OwnedCollectionDTC(CollectionDTC):
     linkProperty = 'undefined'
     def persistCollInit(self, method, ctrlName, propName, params = {}):
         """ Define a new collection init method for source code, and a
-            property initialised by it 
+            property initialised by it
         """
-        
-        collInitParse = methodparse.CollectionInitParse(None, ctrlName, method, 
+
+        collInitParse = methodparse.CollectionInitParse(None, ctrlName, method,
           [], propName)
 
-        self.parentCompanion.textPropList.append(methodparse.PropertyParse( None, 
-          self.parentCompanion.name, self.linkProperty, 
+        self.parentCompanion.textPropList.append(methodparse.PropertyParse( None,
+          self.parentCompanion.name, self.linkProperty,
           [collInitParse.asText()], self.propName))
 
         self.designer.addCollToObjectCollection(collInitParse)
-    
+
     def SetName(self, oldName, newName):
         CollectionDTC.SetName(self, oldName, newName)
 
-        collInitParse = methodparse.CollectionInitParse(None, newName, 
+        collInitParse = methodparse.CollectionInitParse(None, newName,
           self.collectionMethod, [], self.propName)
 
         for textProp in self.parentCompanion.textPropList:
             if textProp.prop_setter == self.linkProperty:
                 textProp.params[0] = collInitParse.asText()
-        
-     
-class IndividualLayoutConstraintOCDTC(LayoutConstraintsConstr, OwnedCollectionDTC):        
+
+
+class IndividualLayoutConstraintOCDTC(LayoutConstraintsConstr, OwnedCollectionDTC):
     wxDocs = HelpCompanions.wxIndividualLayoutConstraintDocs
     propName = 'Constraints'
     displayProp = '(None)'
@@ -338,15 +363,15 @@ class IndividualLayoutConstraintOCDTC(LayoutConstraintsConstr, OwnedCollectionDT
     def __init__(self, name, designer, parentCompanion, ctrl):
         OwnedCollectionDTC.__init__(self, name, designer, parentCompanion, ctrl)
 #        self.constraints = wxLayoutConstraints()
-        
+
         self.editors.update({'Value':        IntConstrPropEdit,
                         'Margin':       IntConstrPropEdit,
                         'OtherEdge':    EnumConstrPropEdit,
                         'Relationship': EnumConstrPropEdit,
                         'Edge':         LCCEdgeConstrPropEdit,
                         'OtherWindow':  WinEnumConstrPropEdit})
-        
-        self.names = {'OtherEdge':    Enumerations.constraintEdges, 
+
+        self.names = {'OtherEdge':    Enumerations.constraintEdges,
                       'Relationship': Enumerations.constraintRelationships}
         self.inited = false
 
@@ -358,8 +383,8 @@ class IndividualLayoutConstraintOCDTC(LayoutConstraintsConstr, OwnedCollectionDT
             for constrt in self.textConstrLst:
                 if constrt.params['rel'] not in nullConstr:
                     validConstr = validConstr + 1
-            
-            if validConstr == 4:        
+
+            if validConstr == 4:
                 for constrt in self.textConstrLst:
                     params = copy.copy(constrt.params)
                     otherWin = params['otherWin'][5:]
@@ -372,11 +397,11 @@ class IndividualLayoutConstraintOCDTC(LayoutConstraintsConstr, OwnedCollectionDT
                             params['otherWin'] = self.designer.objects[''][1]
                         else:
                             params['otherWin'] = self.designer.objects[otherWin][1]
-                    
-                    attr = getattr(constraints, 
+
+                    attr = getattr(constraints,
                       string.split(constrt.comp_name, '.')[1])
                     apply(attr.Set, [], params)
-                    
+
                 self.parentCompanion.control.SetConstraints(constraints)
 
     def designTimeSource(self, wId):
@@ -398,16 +423,16 @@ class IndividualLayoutConstraintOCDTC(LayoutConstraintsConstr, OwnedCollectionDT
             try: result.remove(string.split(item.comp_name, '.')[1])
             except: pass
         return result
-            
+
     def appendItem(self):
         if len(self.textConstrLst) == 4:
             raise 'Only 4 constraints allowed'
         ai = self.availableItems()
         if not ai:
             raise 'All constraints set'
-            
+
         self.sourceObjName = '%s.%s'%(self.__class__.sourceObjName, ai[0])
-        
+
         OwnedCollectionDTC.appendItem(self)
         self.applyConstraints()
 
@@ -416,7 +441,7 @@ class IndividualLayoutConstraintOCDTC(LayoutConstraintsConstr, OwnedCollectionDT
         if self.deletionMethod != '(None)':
             f = RTTI.getFunction(self.control, self.deletionMethod)
             apply(f, [self.control, idx])
-        
+
         del self.textConstrLst[idx]
         # renumber items following deleted one
         if self.indexProp != '(None)':
@@ -425,9 +450,9 @@ class IndividualLayoutConstraintOCDTC(LayoutConstraintsConstr, OwnedCollectionDT
 
     def applyDesignTimeDefaults(self, params):
         return
-        attr = getattr(self.constraints, 
+        attr = getattr(self.constraints,
           string.split(self.textConstrLst[self.index].comp_name, '.')[1])
-        
+
         params = copy.copy(params)
         otherWin = params['otherWin'][5:]
         if params['otherWin'] == 'None':
@@ -439,17 +464,17 @@ class IndividualLayoutConstraintOCDTC(LayoutConstraintsConstr, OwnedCollectionDT
                 params['otherWin'] = self.designer.objects[''][1]
             else:
                 params['otherWin'] = self.designer.objects[otherWin][1]
-        
+
         apply(attr.Set, [], params)
 
         self.applyConstraints()
 
     def getDisplayProp(self):
         return string.split(self.textConstrLst[self.index].comp_name, '.')[1]
-    
+
 #    def SetName(self, oldName, newName):
 #        OwnedCollectionDTC.SetName(self, oldName, newName)
-        
+
 
     def GetEdge(self):
         return self.textConstrLst[self.index].comp_name
@@ -457,14 +482,14 @@ class IndividualLayoutConstraintOCDTC(LayoutConstraintsConstr, OwnedCollectionDT
     def SetEdge(self, value):
         self.textConstrLst[self.index].comp_name = value
         self.applyConstraints()
-    
+
     def GetOtherWin(self):
         return self.textConstrLst[self.index].params['otherWin']
-    
+
     def SetOtherWin(self, value):
         self.textConstrLst[self.index].params['otherWin'] = value
         self.applyConstraints()
-        
+
     def initCollection(self):
         self.inited = true
         self.applyConstraints()
@@ -490,7 +515,7 @@ class SizerDTC(EmptyConstr, UtilityDTC):#DesignTimeCompanion):
 
     def initDesignTimeControl(self):
         pass
-        
+
     def vetoedMethods(self):
         return UtilityDTC.vetoedMethods(self)+['GetPosition', 'SetPosition', 'GetSize', 'SetSize']
 
@@ -500,7 +525,7 @@ class SizerDTC(EmptyConstr, UtilityDTC):#DesignTimeCompanion):
 class BoxSizerDTC(SizerDTC):
     pass
 
-class SizerControlsCDTC(SizerControlsConstr, CollectionDTC):        
+class SizerControlsCDTC(SizerControlsConstr, CollectionDTC):
     wxDocs = HelpCompanions.wxSizerDocs
     propName = 'Controls'
 #    displayProp = 'title'

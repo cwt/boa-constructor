@@ -1,14 +1,14 @@
 #----------------------------------------------------------------------
-# Name:        Companions.py                                           
-# Purpose:     Classes defining and implementing the design time       
-#              behaviour of controls                                   
-#                                                                      
-# Author:      Riaan Booysen                                           
-#                                                                      
-# Created:     1999                                                    
+# Name:        Companions.py
+# Purpose:     Classes defining and implementing the design time
+#              behaviour of controls
+#
+# Author:      Riaan Booysen
+#
+# Created:     1999
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999, 2000 Riaan Booysen                            
-# Licence:     GPL                                                     
+# Copyright:   (c) 1999, 2000 Riaan Booysen
+# Licence:     GPL
 #----------------------------------------------------------------------
 
 from wxPython.wx import *
@@ -25,22 +25,22 @@ class BaseFrameDTC(ContainerDTC):
     def __init__(self, name, designer, frameCtrl):
         ContainerDTC.__init__(self, name, designer, None, None)
         self.control = frameCtrl
-        self.editors.update({'StatusBar': StatusBarClassLinkPropEdit, 
+        self.editors.update({'StatusBar': StatusBarClassLinkPropEdit,
                              'MenuBar': MenuBarClassLinkPropEdit,
                              'ToolBar': ToolBarClassLinkPropEdit })
         self.triggers.update({'ToolBar': self.ChangeToolBar})
-        self.windowStyles = ['wxDEFAULT_FRAME_STYLE', 'wxICONIZE', 
-              'wxMINIMIZE', 'wxMAXIMIZE', 'wxSTAY_ON_TOP', 'wxSYSTEM_MENU', 
-              'wxRESIZE_BORDER', 'wxTHICK_FRAME', 'wxFRAME_FLOAT_ON_PARENT', 
+        self.windowStyles = ['wxDEFAULT_FRAME_STYLE', 'wxICONIZE',
+              'wxMINIMIZE', 'wxMAXIMIZE', 'wxSTAY_ON_TOP', 'wxSYSTEM_MENU',
+              'wxRESIZE_BORDER', 'wxTHICK_FRAME', 'wxFRAME_FLOAT_ON_PARENT',
               'wxFRAME_TOOL_WINDOW'] + self.windowStyles
-               
+
     def hideDesignTime(self):
         hdt = ContainerDTC.hideDesignTime(self) + ['Label', 'Constraints', 'Anchors']
         hdt.remove('Title')
         return hdt
-        
+
     def generateWindowId(self):
-        if self.designer: 
+        if self.designer:
             self.id = Utils.windowIdentifier(self.designer.GetName(), '')
         else: self.id = `wxNewId()`
 
@@ -51,7 +51,7 @@ class BaseFrameDTC(ContainerDTC):
 ##        print 'setting frame name from', oldValue, 'to', newValue
         self.name = newValue
         self.designer.renameFrame(oldValue, newValue)
-    
+
     def ChangeToolBar(self, oldValue, newValue):
         if newValue:
             self.designer.connectToolBar(newValue)
@@ -68,7 +68,7 @@ class BaseFrameDTC(ContainerDTC):
     def dependentProps(self):
         return ContainerDTC.dependentProps(self) + \
           ['ToolBar', 'MenuBar', 'StatusBar']
-    
+
     def notification(self, compn, action):
         if action == 'delete':
             # StatusBar
@@ -99,9 +99,9 @@ class DialogDTC(FramesConstr, BaseFrameDTC):
     wxDocs = HelpCompanions.wxDialogDocs
     def __init__(self, name, designer, frameCtrl):
         BaseFrameDTC.__init__(self, name, designer, frameCtrl)
-        self.windowStyles = ['wxDIALOG_MODAL', 'wxDIALOG_MODELESS', 
+        self.windowStyles = ['wxDIALOG_MODAL', 'wxDIALOG_MODELESS',
               'wxDEFAULT_DIALOG_STYLE'] + self.windowStyles
-              
+
     def designTimeSource(self):
         dts = BaseFrameDTC.designTimeSource(self)
         dts.update({'style': 'wxDEFAULT_DIALOG_STYLE'})
@@ -131,7 +131,7 @@ class PanelDTC(WindowConstr, ContainerDTC):
         ContainerDTC.__init__(self, name, designer, parent, ctrlClass)
         self.editors['DefaultItem'] = ButtonClassLinkPropEdit
         self.windowStyles.insert(0, 'wxTAB_TRAVERSAL')
-        
+
     def designTimeSource(self, position = 'wxDefaultPosition', size = 'wxDefaultSize'):
         return {'pos':   position,
                 'size':  'wxSize(100, 100)',
@@ -153,7 +153,7 @@ class SashWindowDTC(WindowConstr, ContainerDTC):
                              'SashVisibleBottom' : SashVisiblePropEdit})
         self.windowStyles = ['wxSW_3D', 'wxSW_3DSASH', 'wxSW_3DBORDER',
                                   'wxSW_BORDER'] + self.windowStyles
-        self.edgeNameMap = {'SashVisibleLeft'  : wxSASH_LEFT, 
+        self.edgeNameMap = {'SashVisibleLeft'  : wxSASH_LEFT,
                             'SashVisibleTop'   : wxSASH_TOP,
                             'SashVisibleRight' : wxSASH_RIGHT,
                             'SashVisibleBottom': wxSASH_BOTTOM}
@@ -179,10 +179,10 @@ class SashWindowDTC(WindowConstr, ContainerDTC):
 
     def GetSashVisible(self, name):
         return self.edgeNameMap[name], self.control.GetSashVisible(self.edgeNameMap[name])
-        
+
     def SetSashVisible(self, name, value):
         self.control.SetSashVisible(self.edgeNameMap[name], value[1])
-    
+
     def EvalSashVisible(self, exprs, objects):
         res = []
         for expr in exprs:
@@ -193,10 +193,10 @@ class SashWindowDTC(WindowConstr, ContainerDTC):
         if setterName == 'SetSashVisible':
             edge, visbl = string.split(value, ',')
             for prop in self.textPropList:
-                if prop.prop_setter == setterName and prop.params[0] == edge: 
+                if prop.prop_setter == setterName and prop.params[0] == edge:
                     prop.params = [string.strip(edge), string.strip(visbl)]
-                    return 
-            self.textPropList.append(methodparse.PropertyParse( None, self.name, 
+                    return
+            self.textPropList.append(methodparse.PropertyParse( None, self.name,
                 setterName, [string.strip(edge), string.strip(visbl)], 'SetSashVisible'))
         else:
             ContainerDTC.persistProp(self, name, setterName, value)
@@ -216,7 +216,7 @@ class SashLayoutWindowDTC(SashWindowDTC):
                            'Orientation' : sashLayoutOrientationNames
                           })
 #        self.defaultSize = wxSize(self.control.GetSize())
-    
+
     def designTimeSource(self, position = 'wxDefaultPosition', size = 'wxDefaultSize'):
         return {'pos':   position,
                 'size':  size,
@@ -224,14 +224,14 @@ class SashLayoutWindowDTC(SashWindowDTC):
                 'name':  `self.name`}
 
     def properties(self):
-        props = SashWindowDTC.properties(self) 
-        props.update({'DefaultSize': ('CompnRoute', self.GetDefaultSize, 
+        props = SashWindowDTC.properties(self)
+        props.update({'DefaultSize': ('CompnRoute', self.GetDefaultSize,
           self.SetDefaultSize)})
         return props
-        
+
 ##    def events(self):
 ##        return ContainerDTC.events(self) + ['SashEvent']
-    
+
     def GetDefaultSize(self, something):
         if self.control:
             return self.control.GetSize()
@@ -263,7 +263,7 @@ class NotebookDTC(WindowConstr, ContainerDTC):
         self.editors.update({'Pages':     CollectionPropEdit,
                              'ImageList': ImageListClassLinkPropEdit})
         self.subCompanions['Pages'] = NotebookPagesCDTC
-        self.windowStyles = ['wxNB_FIXEDWIDTH', 'wxNB_LEFT', 'wxNB_RIGHT', 
+        self.windowStyles = ['wxNB_FIXEDWIDTH', 'wxNB_LEFT', 'wxNB_RIGHT',
                              'wxNB_BOTTOM'] + self.windowStyles
         self.letClickThru = true
 
@@ -288,14 +288,14 @@ class NotebookDTC(WindowConstr, ContainerDTC):
           ['ImageList', 'Pages']
 
     def dontPersistProps(self):
-        return ContainerDTC.dependentProps(self) + ['Selection']
+        return ContainerDTC.dontPersistProps(self) + ['Selection']
 
     def events(self):
         return ContainerDTC.events(self) + ['NotebookEvent']
 
     def defaultAction(self):
         self.designer.inspector.props.getNameValue('Pages').propEditor.edit(None)
-    
+
     def OnPageChanged(self, event):
         try:
             self.collections['Pages'].updateSelection(event.GetSelection())
@@ -312,7 +312,7 @@ class NotebookDTC(WindowConstr, ContainerDTC):
 ##            if sb and sb.GetId() == compn.control.GetId():
 ##                self.propRevertToDefault('StatusBar', 'SetStatusBar')
 ##                self.control.SetStatusBar(None)
-        
+
 ##        self.designer.inspector.propertyUpdate('Selection')
 
 class NotebookPagesCDTC(NotebookPageConstr, CollectionDTC):
@@ -331,7 +331,7 @@ class NotebookPagesCDTC(NotebookPageConstr, CollectionDTC):
                         'ImageId': IntConstrPropEdit}
 
         self.tempPlaceHolders = []
-    
+
     def properties(self):
         props = CollectionDTC.properties(self)
         props.update({'Page': ('NoneRoute', None, None),
@@ -373,14 +373,14 @@ class NotebookPagesCDTC(NotebookPageConstr, CollectionDTC):
         del prms['pPage']
         params = self.designTimeDefaults(prms)
         params['pPage'] = page
-        
-        apply(insMeth, [self.control], params)# , idx, page, text
-        
+
+        apply(insMeth, [self.control], params)
+
     def deleteItem(self, idx):
         activePageDeleted = self.control.GetSelection() == idx
-        
+
         CollectionDTC.deleteItem(self, idx)
-        
+
         # Delete BlankWindow
         self.tempPlaceHolders[idx].Destroy()
         del self.tempPlaceHolders[idx]
@@ -397,8 +397,8 @@ class NotebookPagesCDTC(NotebookPageConstr, CollectionDTC):
                 self.updateSelection(newIdx)
                 self.control.SetSelection(newIdx)
                 self.control.Refresh()
-        
-    
+
+
     def updateSelection(self, newSelection):
         idx = 0
         for constr in self.textConstrLst:
@@ -408,51 +408,59 @@ class NotebookPagesCDTC(NotebookPageConstr, CollectionDTC):
     def defaultAction(self):
         self.SetPageSelected(true)
         #print 'CDTC', self.textConstrLst[self.index]
-    
+
     def GetPageSelected(self, compn):
         pass
-##        print 'GetPageSelected'
 
     def SetPageSelected(self, value):
         if value:
             self.control.SetSelection(self.index)
-##        self.textConstrLst[self.index].
-##        print 'SetPageSelected', value
-    
 
     def notification(self, compn, action):
-##        print 'notification', compn, action
         if action == 'delete':
             if compn == self:
                 # Notebook page being deleted
                 # XXX Consider overwriting deleteItem for this
                 constr = self.textConstrLst[compn.index]
                 if constr.params['pPage'] != 'None':
-##                    print 'NPD deleting', self.textConstrLst[compn.index].params['pPage']
                     self.designer.deleteCtrl(Utils.ctrlNameFromSrcRef(constr.params['pPage']))
             else:
                 for constr in self.textConstrLst:
                     if Utils.srcRefFromCtrlName(compn.name) == constr.params['pPage']:
-##                        print 'Notebook page ref clear', compn.name
                         constr.params['pPage'] == 'None'
-    
+
                 for tph in self.tempPlaceHolders:
                     if tph.ctrl == compn.control:
-##                        print 'Notebook page delete', compn.control
                         tph.clearCtrl()
 
+
+[wxID_CTRLPARENT, wxID_EDITPASTE, wxID_EDITDELETE,
+] = map(lambda _bwp_menu: wxNewId(), range(3))
 
 class BlankWindowPage(wxWindow):
     """ Window representing uninitialised space, it grabs the first control
         dropped onto it and replaces None with new ctrl in code.
-        
+
         Used by wxNotebook for a default page
     """
-    
+
+    # XXX A delete of this object should remove the page from the notebook
+
+    # XXX Copy/Cutting a blank page does not make sense ???
+
     def __init__(self, parent, designer, params, nameKey):
         wxWindow.__init__(self, parent, -1)
         self.params = params
         self.designer = designer
+
+        self.menu = wxMenu()
+        self.menu.Append(wxID_CTRLPARENT, 'Up')
+        self.menu.Append(-1, '-')
+        self.menu.Append(wxID_EDITPASTE, 'Paste')
+        self.menu.Append(wxID_EDITDELETE, 'Delete')
+        EVT_MENU(self, wxID_CTRLPARENT, self.OnCtrlParent)
+        EVT_MENU(self, wxID_EDITPASTE, self.OnCtrlPaste)
+        EVT_MENU(self, wxID_EDITDELETE, self.OnCtrlDelete)
 
         ctrlEvtHandler = self.designer.ctrlEvtHandler
         EVT_MOTION(self, ctrlEvtHandler.OnMouseOver)
@@ -462,30 +470,36 @@ class BlankWindowPage(wxWindow):
         EVT_SIZE(self, self.OnControlResize)
         EVT_MOVE(self, self.OnControlMove)
         EVT_PAINT(self, self.OnPaint)
- 
+        EVT_RIGHT_UP(self, self.OnPopupMenu)
+
         self.SetName(parent.GetName())
         self.designer.senderMapper.addObject(self)
         self.ctrl = None
         self.nameKey = nameKey
-    
+
+        self.proxyContainer = true
+
     def clearCtrl(self):
         self.ctrl = None
         self.params[self.nameKey] = 'None'
-        
+
     def OnControlSelect(self, event):
+        """ Select parent of proxy container or create new control, update
+            page reference to it and resize new ctrl to fill proxy container
+        """
         dsgn = self.designer
         new = dsgn.compPal.selection
         if self.ctrl:
             dsgn.selectControlByPos(self.ctrl, event.GetPosition(), event.ShiftDown())
         else:
-            dsgn.ctrlEvtHandler.OnControlSelect(event)
+            dsgn.ctrlEvtHandler.OnControlSelect(event, self.GetParent())
 
         if new:
-            self.ctrl = dsgn.objects[dsgn.objectOrder[-1:][0]][1]
-            self.params[self.nameKey] = Utils.srcRefFromCtrlName(self.ctrl.GetName())
-            self.OnControlResize(None)
+            self.linkToNewestControl()
 
     def OnControlResize(self, event):
+        """ Child ctrl of the proxy container should be sized to fill the control
+        """
         if self.ctrl:
             p = self.GetPosition()
             s = self.GetSize()
@@ -495,6 +509,9 @@ class BlankWindowPage(wxWindow):
 
     dashSize = 8
     def OnPaint(self, event):
+        """ Draw red dash pattern, hopefully implying danger are that must be
+            filled
+        """
         try:
             if self.ctrl is None:
                 dc = wxPaintDC(self)
@@ -511,16 +528,36 @@ class BlankWindowPage(wxWindow):
             event.Skip()
 
     def OnControlMove(self, event):
+        """ When moved or sized, ignore and fill the proxy container
+        """
         parent = self.GetParent()
         wxPostEvent(parent, wxSizeEvent( parent.GetSize() ))
 
-                    
-EventCategories['SplitterWindowEvent'] = (EVT_SPLITTER_SASH_POS_CHANGING, 
+    def OnCtrlParent(self, event):
+        self.designer.OnSelectParent(event)
+
+    def OnCtrlPaste(self, event):
+        self.designer.OnPasteSelected(event)
+
+    def OnCtrlDelete(self, event):
+        self.designer.OnControlDelete(event)
+
+    def OnPopupMenu(self, event):
+        self.PopupMenu(self.menu, event.GetPosition())
+
+    def linkToNewestControl(self):
+        print 'Linking'
+        self.ctrl = self.designer.objects[self.designer.objectOrder[-1:][0]][1]
+        self.params[self.nameKey] = Utils.srcRefFromCtrlName(self.ctrl.GetName())
+        self.OnControlResize(None)
+
+
+EventCategories['SplitterWindowEvent'] = (EVT_SPLITTER_SASH_POS_CHANGING,
                                           EVT_SPLITTER_SASH_POS_CHANGED,
                                           EVT_SPLITTER_UNSPLIT,
                                           EVT_SPLITTER_DOUBLECLICKED)
 commandCategories.append('SplitterWindowEvent')
-class SplitterWindowDTC(SplitterWindowConstr, ContainerDTC):        
+class SplitterWindowDTC(SplitterWindowConstr, ContainerDTC):
     wxDocs = HelpCompanions.wxSplitterWindowDocs
     def __init__(self, name, designer, parent, ctrlClass):
         ContainerDTC.__init__(self, name, designer, parent, ctrlClass)
@@ -529,9 +566,9 @@ class SplitterWindowDTC(SplitterWindowConstr, ContainerDTC):
                              'Window2'  : WindowClassLinkWithParentPropEdit})
         self.options['SplitMode'] = splitterWindowSplitMode
         self.names['SplitMode'] = splitterWindowSplitModeNames
-        self.windowStyles = ['wxSP_3D', 'wxSP_BORDER', 'wxSP_NOBORDER', 
-                             'wxSP_PERMIT_UNSPLIT', 
-                             'wxSP_LIVE_UPDATE'] + self.windowStyles #'wxSP_3DSASH', 'wxSP_3DBORDER', 'wxSP_FULLSASH', 
+        self.windowStyles = ['wxSP_3D', 'wxSP_BORDER', 'wxSP_NOBORDER',
+                             'wxSP_PERMIT_UNSPLIT',
+                             'wxSP_LIVE_UPDATE'] + self.windowStyles #'wxSP_3DSASH', 'wxSP_3DBORDER', 'wxSP_FULLSASH',
         self.win1 = None
         self.win2 = None
 
@@ -541,7 +578,7 @@ class SplitterWindowDTC(SplitterWindowConstr, ContainerDTC):
                       'Window2'  : ('CompnRoute', self.GetWindow2, self.SetWindow2),
                       'SplitMode': ('CompnRoute', self.GetSplitMode, self.SetSplitMode),})
         return props
-        
+
     def designTimeSource(self, position = 'wxDefaultPosition', size = 'wxDefaultSize'):
         return {'point': position,
                 'size':  size,
@@ -562,7 +599,7 @@ class SplitterWindowDTC(SplitterWindowConstr, ContainerDTC):
                    wxSPLIT_HORIZONTAL: 'SplitHorizontally'}
 
     def renameCtrlRefs(self, oldName, newName):
-        print 'Splitter.renameCtrlRefs', oldName, newName, 
+        print 'Splitter.renameCtrlRefs', oldName, newName,
         ContainerDTC.renameCtrlRefs(self, oldName, newName)
         # Check if subwindow references have changed
         # XXX should maybe be done with notification, action = 'rename'
@@ -572,29 +609,29 @@ class SplitterWindowDTC(SplitterWindowConstr, ContainerDTC):
                 if oldSrc in prop.params:
                     prop.params[prop.params.index(oldSrc)] = \
                           Utils.srcRefFromCtrlName(newName)
-        
+
     def persistProp(self, name, setterName, value):
         """ When attempting to persist the Window properties and the
             SplitMode property, add, or update a previously
             defined  SplitVertically or SplitHorizontally method."""
-            
+
         if setterName in ('SetWindow1', 'SetWindow2'):
             propSN = setterName
             setterName = self.modeMethMap[self.control.GetSplitMode()]
-            
+
             win1, win2, sashPos = self.GetWindow1(None), self.GetWindow2(None), `self.control.GetSashPosition()`
-            
+
             if win1: win1 = 'self.'+win1.GetName()
             else: win1 = 'None'
             if win2: win2 = 'self.'+win2.GetName()
             else: win2 = 'None'
 
             for prop in self.textPropList:
-                if prop.prop_setter in ('SplitVertically', 'SplitHorizontally'): 
+                if prop.prop_setter in ('SplitVertically', 'SplitHorizontally'):
                     prop.prop_setter = setterName
                     prop.params = [win1, win2, sashPos]
-                    return 
-            self.textPropList.append(methodparse.PropertyParse( None, self.name, 
+                    return
+            self.textPropList.append(methodparse.PropertyParse( None, self.name,
                 setterName, [win1, win2, sashPos], setterName))
         elif setterName == 'SetSplitMode':
             sm = self.control.GetSplitMode()
@@ -616,12 +653,12 @@ class SplitterWindowDTC(SplitterWindowConstr, ContainerDTC):
     def notification(self, compn, action):
         if action == 'delete':
             # Win 1
-            # If Window1 is None, splitter can only be unsplit 
+            # If Window1 is None, splitter can only be unsplit
             if compn.control == self.GetWindow1(None):
                 self.control.Unsplit()
                 if self.win2: self.win2.Show(true)
                 self.win1 = self.win2 = None
-                
+
                 setterName = self.modeMethMap[self.control.GetSplitMode()]
                 self.propRevertToDefault('Window1', setterName)
                 self.designer.inspector.propertyUpdate('Window1')
@@ -633,7 +670,7 @@ class SplitterWindowDTC(SplitterWindowConstr, ContainerDTC):
                 self.persistProp('Window2', setterName, None)
                 self.designer.inspector.propertyUpdate('Window2')
                 return
-    
+
 #---Split mode------------------------------------------------------------------
     def GetSplitMode(self, compn):
         return self.control.GetSplitMode()
@@ -676,7 +713,7 @@ class SplitterWindowDTC(SplitterWindowConstr, ContainerDTC):
             return None
         else:
             return win
-    
+
     def GetWindow1(self, compn):
         self.win1 = self.getWindow(self.win1, self.control.GetWindow1)
         return self.win1
@@ -707,7 +744,7 @@ class ButtonDTC(LabeledInputConstr, WindowDTC):
     wxDocs = HelpCompanions.wxButtonDocs
     def __init__(self, name, designer, parent, ctrlClass):
         WindowDTC.__init__(self, name, designer, parent, ctrlClass)
-        self.windowStyles = ['wxBU_LEFT', 'wxBU_TOP', 'wxBU_RIGHT', 
+        self.windowStyles = ['wxBU_LEFT', 'wxBU_TOP', 'wxBU_RIGHT',
                              'wxBU_BOTTOM'] + self.windowStyles
     def designTimeSource(self, position = 'wxDefaultPosition', size = 'wxDefaultSize'):
         return {'label': `self.name`,
@@ -715,7 +752,7 @@ class ButtonDTC(LabeledInputConstr, WindowDTC):
                 'size': size,
                 'name': `self.name`,
                 'style': '0'}
-    
+
     def events(self):
         return WindowDTC.events(self) + ['ButtonEvent']
 
@@ -732,9 +769,9 @@ class BitmapButtonDTC(BitmapButtonConstr, WindowDTC):
                              'BitmapSelected' : BitmapPropEdit,
                              'BitmapFocused'  : BitmapPropEdit,
                              'BitmapDisabled' : BitmapPropEdit})
-        self.windowStyles = ['wxBU_AUTODRAW', 'wxBU_LEFT', 'wxBU_TOP', 
+        self.windowStyles = ['wxBU_AUTODRAW', 'wxBU_LEFT', 'wxBU_TOP',
                              'wxBU_RIGHT', 'wxBU_BOTTOM'] + self.windowStyles
-        
+
     def designTimeSource(self, position = 'wxDefaultPosition', size = 'wxDefaultSize'):
         return {'bitmap': 'wxNullBitmap',
                 'pos': position,
@@ -745,7 +782,7 @@ class BitmapButtonDTC(BitmapButtonConstr, WindowDTC):
 
     def properties(self):
         props = WindowDTC.properties(self)
-        props.update({'Bitmap': ('CtrlRoute', wxBitmapButton.GetBitmapLabel, 
+        props.update({'Bitmap': ('CtrlRoute', wxBitmapButton.GetBitmapLabel,
           wxBitmapButton.SetBitmapLabel)})
         return props
 
@@ -767,7 +804,7 @@ class GenButtonDTC(GenButtonConstr, WindowDTC):
                 'size': size,
                 'name': `self.name`,
                 'style': '0'}
-    
+
     def events(self):
         return WindowDTC.events(self) + ['ButtonEvent']
 
@@ -790,7 +827,7 @@ class GenBitmapButtonDTC(GenBitmapButtonConstr, WindowDTC):
                 'size': size,
                 'name': `self.name`,
                 'style': '0'}
-    
+
     def events(self):
         return WindowDTC.events(self) + ['ButtonEvent']
 
@@ -810,12 +847,12 @@ class ListCtrlDTC(MultiItemCtrlsConstr, WindowDTC):
         self.editors.update({'Columns':         ListColumnsColPropEdit,
                              'ImageListSmall':  ListCtrlImageListClassLinkPropEdit,
                              'ImageListNormal': ListCtrlImageListClassLinkPropEdit})
-        self.windowStyles = ['wxLC_LIST', 'wxLC_REPORT', 'wxLC_ICON', 
-                             'wxLC_SMALL_ICON', 'wxLC_ALIGN_TOP', 
-                             'wxLC_ALIGN_LEFT', 'wxLC_AUTOARRANGE', 
-                             'wxLC_USER_TEXT', 'wxLC_EDIT_LABELS', 
-                             'wxLC_NO_HEADER', 'wxLC_SINGLE_SEL', 
-                             'wxLC_SORT_ASCENDING', 
+        self.windowStyles = ['wxLC_LIST', 'wxLC_REPORT', 'wxLC_ICON',
+                             'wxLC_SMALL_ICON', 'wxLC_ALIGN_TOP',
+                             'wxLC_ALIGN_LEFT', 'wxLC_AUTOARRANGE',
+                             'wxLC_USER_TEXT', 'wxLC_EDIT_LABELS',
+                             'wxLC_NO_HEADER', 'wxLC_SINGLE_SEL',
+                             'wxLC_SORT_ASCENDING',
                              'wxLC_SORT_DECENDING'] + self.windowStyles
         self.subCompanions['Columns'] = ListCtrlColumnsCDTC
         self.listTypeNameMap = {'ImageListSmall'  : wxIMAGE_LIST_SMALL,
@@ -827,26 +864,26 @@ class ListCtrlDTC(MultiItemCtrlsConstr, WindowDTC):
     def properties(self):
         props = WindowDTC.properties(self)
         props['Columns'] =  ('NoneRoute', None, None)
-        
+
         prop = ('NameRoute', self.GetImageList, self.SetImageList)
         for name in self.listTypeNameMap.keys():
             props[name] = prop
-        
+
         return props
-    
+
     def designTimeSource(self, position = 'wxDefaultPosition', size = 'wxDefaultSize'):
         return {'pos': position,
                 'size': size,
                 'style': 'wxLC_ICON',
                 'validator': 'wxDefaultValidator',
                 'name': `self.name`}
-            
+
     def events(self):
         return WindowDTC.events(self) + ['ListEvent']
-    
+
 #---Image list management-------------------------------------------------------
     def GetImageList(self, name):
-        return (self.control.GetImageList(self.listTypeNameMap[name]), 
+        return (self.control.GetImageList(self.listTypeNameMap[name]),
             self.listTypeNameMap[name])
 
     def SetImageList(self, name, value):
@@ -862,16 +899,16 @@ class ListCtrlDTC(MultiItemCtrlsConstr, WindowDTC):
             imgList, listType = string.split(value, ',')
             imgList, listType = string.strip(imgList), string.strip(listType)
             for prop in self.textPropList:
-                if prop.prop_setter == setterName and prop.params[1] == listType: 
+                if prop.prop_setter == setterName and prop.params[1] == listType:
                     prop.params = [imgList, listType]
-                    return 
-            self.textPropList.append(methodparse.PropertyParse( None, self.name, 
+                    return
+            self.textPropList.append(methodparse.PropertyParse( None, self.name,
                 setterName, [imgList, listType], 'SetImageList'))
         else:
             ContainerDTC.persistProp(self, name, setterName, value)
-        
 
-class ListCtrlColumnsCDTC(ListCtrlColumnsConstr, CollectionDTC):        
+
+class ListCtrlColumnsCDTC(ListCtrlColumnsConstr, CollectionDTC):
     wxDocs = HelpCompanions.wxListCtrlDocs
     propName = 'Columns'
     displayProp = 'heading'
@@ -886,13 +923,13 @@ class ListCtrlColumnsCDTC(ListCtrlColumnsConstr, CollectionDTC):
                         'Format': EnumConstrPropEdit}#StyleConstrPropEdit}
 #        self.options = {'Format': formatStyle}
         self.names = {'Format': formatStyle}
-    
+
     def properties(self):
         props = CollectionDTC.properties(self)
         props.update({'Column':  ('NoneRoute', None, None),
                       'Heading': ('NoneRoute', None, None),
 ##                      'Format':  ('IndexRoute', None, None),
-                      'Width':   ('IndexRoute', wxListCtrl.GetColumnWidth, 
+                      'Width':   ('IndexRoute', wxListCtrl.GetColumnWidth,
                                                 wxListCtrl.SetColumnWidth)})
         return props
 
@@ -901,12 +938,12 @@ class ListCtrlColumnsCDTC(ListCtrlColumnsConstr, CollectionDTC):
                 'heading': `'%s%d'%(self.propName, wId)`,
                 'format': 'wxLIST_FORMAT_LEFT',
                 'width': `-1`}
-    
+
 class TreeCtrlDTC(MultiItemCtrlsConstr, WindowDTC):
     wxDocs = HelpCompanions.wxTreeCtrlDocs
     def __init__(self, name, designer, parent, ctrlClass):
         WindowDTC.__init__(self, name, designer, parent, ctrlClass)
-        self.windowStyles = ['wxTR_HAS_BUTTONS', 'wxTR_EDIT_LABELS', 
+        self.windowStyles = ['wxTR_HAS_BUTTONS', 'wxTR_EDIT_LABELS',
                              'wxTR_MULTIPLE'] + self.windowStyles
 
     def designTimeSource(self, position = 'wxDefaultPosition', size = 'wxDefaultSize'):
@@ -915,7 +952,7 @@ class TreeCtrlDTC(MultiItemCtrlsConstr, WindowDTC):
                 'style': 'wxTR_HAS_BUTTONS',
                 'validator': 'wxDefaultValidator',
                 'name': `self.name`}
-        
+
     def events(self):
         return WindowDTC.events(self) + ['TreeEvent']
 
@@ -925,31 +962,35 @@ class ScrollBarDTC(MultiItemCtrlsConstr, WindowDTC):
         WindowDTC.__init__(self, name, designer, parent, ctrlClass)
         self.windowStyles = ['wxSB_HORIZONTAL', 'wxSB_VERTICAL'] + self.windowStyles
 
-    def designTimeSource(self, position, size = 'wxDefaultSize'):
+    def designTimeSource(self, position = 'wxDefaultPosition', size = 'wxDefaultSize'):
         return {'pos': position,
                 'size': size,
                 'style': 'wxSB_HORIZONTAL',
                 'name': `self.name`}
-            
+
     def events(self):
         return WindowDTC.events(self) + ['ScrollEvent']
-    
+
 EventCategories['ComboEvent'] = (EVT_COMBOBOX, EVT_TEXT)
 commandCategories.append('ComboEvent')
 class ComboBoxDTC(ComboConstr, ChoicedDTC):
     wxDocs = HelpCompanions.wxComboBoxDocs
     def __init__(self, name, designer, parent, ctrlClass):
         ChoicedDTC.__init__(self, name, designer, parent, ctrlClass)
-        self.windowStyles = ['wxCB_SIMPLE', 'wxCB_DROPDOWN', 'wxCB_READONLY', 
+        self.windowStyles = ['wxCB_SIMPLE', 'wxCB_DROPDOWN', 'wxCB_READONLY',
                              'wxCB_SORT'] + self.windowStyles
     def designTimeSource(self, position = 'wxDefaultPosition', size = 'wxDefaultSize'):
         return {'value': `self.name`,
                 'pos': position,
                 'size': size,
-                'choices': `[]`,
+                'choices': '[]',
                 'style': '0',
                 'validator': 'wxDefaultValidator',
                 'name': `self.name`}
+
+    def vetoedMethods(self):
+        return ['GetColumns', 'SetColumns', 'GetSelection', 'SetSelection',
+                'GetStringSelection', 'SetStringSelection']
 
     def events(self):
         return ChoicedDTC.events(self) + ['ComboEvent']
@@ -983,7 +1024,7 @@ class StaticTextDTC(LabeledNonInputConstr, WindowDTC):
     wxDocs = HelpCompanions.wxStaticTextDocs
     def __init__(self, name, designer, parent, ctrlClass):
         WindowDTC.__init__(self, name, designer, parent, ctrlClass)
-        self.windowStyles = ['wxALIGN_LEFT', 'wxALIGN_RIGHT', 'wxALIGN_CENTRE', 
+        self.windowStyles = ['wxALIGN_LEFT', 'wxALIGN_RIGHT', 'wxALIGN_CENTRE',
                              'wxST_NO_AUTORESIZE'] + self.windowStyles
     def designTimeSource(self, position = 'wxDefaultPosition', size = 'wxDefaultSize'):
         return {'label': `self.name`,
@@ -998,8 +1039,8 @@ class TextCtrlDTC(TextCtrlConstr, WindowDTC):
     wxDocs = HelpCompanions.wxTextCtrlDocs
     def __init__(self, name, designer, parent, ctrlClass):
         WindowDTC.__init__(self, name, designer, parent, ctrlClass)
-        self.windowStyles = ['wxTE_PROCESS_ENTER', 'wxTE_PROCESS_TAB', 
-                             'wxTE_MULTILINE', 'wxTE_PASSWORD', 
+        self.windowStyles = ['wxTE_PROCESS_ENTER', 'wxTE_PROCESS_TAB',
+                             'wxTE_MULTILINE', 'wxTE_PASSWORD',
                              'wxTE_READONLY'] + self.windowStyles
 
     def designTimeSource(self, position = 'wxDefaultPosition', size = 'wxDefaultSize'):
@@ -1062,7 +1103,7 @@ class SpinButtonDTC(WindowConstr, WindowDTC):
     wxDocs = HelpCompanions.wxSpinButtonDocs
     def __init__(self, name, designer, parent, ctrlClass):
         WindowDTC.__init__(self, name, designer, parent, ctrlClass)
-        self.windowStyles = ['wxSP_HORIZONTAL', 'wxSP_VERTICAL', 
+        self.windowStyles = ['wxSP_HORIZONTAL', 'wxSP_VERTICAL',
                              'wxSP_ARROW_KEYS', 'wxSP_WRAP'] + self.windowStyles
 
     def designTimeSource(self, position = 'wxDefaultPosition', size = 'wxDefaultSize'):
@@ -1078,7 +1119,7 @@ class SpinButtonDTC(WindowConstr, WindowDTC):
         insp = self.designer.inspector
         insp.pages.SetSelection(2)
         insp.events.doAddEvent('SpinEvent', 'EVT_SPIN')
-    
+
 # XXX FreqTick handled wrong
 EventCategories['SliderEvent'] = (EVT_SLIDER,)
 commandCategories.append('SliderEvent')
@@ -1088,11 +1129,11 @@ class SliderDTC(SliderConstr, WindowDTC):
         WindowDTC.__init__(self, name, designer, parent, ctrlClass)
         self.editors['MinValue'] = IntConstrPropEdit
         self.editors['MaxValue'] = IntConstrPropEdit
-        self.windowStyles = ['wxSL_HORIZONTAL', 'wxSL_VERTICAL', 
-                             'wxSL_AUTOTICKS', 'wxSL_LABELS', 'wxSL_LEFT', 
-                             'wxSL_RIGHT', 'wxSL_TOP', 
+        self.windowStyles = ['wxSL_HORIZONTAL', 'wxSL_VERTICAL',
+                             'wxSL_AUTOTICKS', 'wxSL_LABELS', 'wxSL_LEFT',
+                             'wxSL_RIGHT', 'wxSL_TOP',
                              'wxSL_SELRANGE'] + self.windowStyles
-            
+
     def designTimeSource(self, position = 'wxDefaultPosition', size = 'wxDefaultSize'):
         return {'value': '0',
                 'minValue': '0',
@@ -1115,9 +1156,9 @@ class GaugeDTC(GaugeConstr, WindowDTC):
     wxDocs = HelpCompanions.wxGaugeDocs
     def __init__(self, name, designer, parent, ctrlClass):
         WindowDTC.__init__(self, name, designer, parent, ctrlClass)
-        self.windowStyles = ['wxGA_HORIZONTAL', 'wxGA_VERTICAL', 
+        self.windowStyles = ['wxGA_HORIZONTAL', 'wxGA_VERTICAL',
                         'wxGA_PROGRESSBAR', 'wxGA_SMOOTH'] + self.windowStyles
-                        
+
     def designTimeSource(self, position = 'wxDefaultPosition', size = 'wxDefaultSize'):
         return {'range': '100',
                 'pos': position,
@@ -1149,7 +1190,7 @@ class StaticLineDTC(WindowConstr, WindowDTC):
                 'size': size,
                 'style': '0',
                 'name': `self.name`}
-    
+
 EventCategories['ListBoxEvent'] = (EVT_LISTBOX, EVT_LISTBOX_DCLICK)
 commandCategories.append('ListBoxEvent')
 class ListBoxDTC(ListConstr, ChoicedDTC):
@@ -1157,8 +1198,8 @@ class ListBoxDTC(ListConstr, ChoicedDTC):
     def __init__(self, name, designer, parent, ctrlClass):
         WindowDTC.__init__(self, name, designer, parent, ctrlClass)
         self.editors['Choices'] = ChoicesConstrPropEdit
-        self.windowStyles = ['wxLB_SINGLE', 'wxLB_MULTIPLE', 'wxLB_EXTENDED', 
-                             'wxLB_HSCROLL', 'wxLB_ALWAYS_SB', 'wxLB_NEEDED_SB', 
+        self.windowStyles = ['wxLB_SINGLE', 'wxLB_MULTIPLE', 'wxLB_EXTENDED',
+                             'wxLB_HSCROLL', 'wxLB_ALWAYS_SB', 'wxLB_NEEDED_SB',
                              'wxLB_SORT'] + self.windowStyles
 
     def designTimeSource(self, position = 'wxDefaultPosition', size = 'wxDefaultSize'):
@@ -1179,7 +1220,7 @@ class ListBoxDTC(ListConstr, ChoicedDTC):
 
 class CheckListBoxDTC(ListBoxDTC):
     wxDocs = HelpCompanions.wxCheckListBoxDocs
-   
+
 class StaticBitmapDTC(StaticBitmapConstr, WindowDTC):
     wxDocs = HelpCompanions.wxStaticBitmapDocs
     def __init__(self, name, designer, parent, ctrlClass):
@@ -1201,7 +1242,7 @@ class RadioBoxDTC(RadioBoxConstr, ChoicedDTC):
         ChoicedDTC.__init__(self, name, designer, parent, ctrlClass)
         self.editors['MajorDimension'] = MajorDimensionConstrPropEdit
         self.windowStyles = ['wxRA_SPECIFY_ROWS', 'wxRA_SPECIFY_COLS'] + self.windowStyles
-        
+
     def designTimeSource(self, position = 'wxDefaultPosition', size = 'wxDefaultSize'):
         return {'label': `self.name`,
                 'point': position,
@@ -1226,7 +1267,7 @@ class GridDTC(WindowConstr, WindowDTC):
         WindowDTC.__init__(self, name, designer, parent, ctrlClass)
         self.editors['Editable'] = self.editors['EditInPlace'] = BoolPropEdit
 
-    def designTimeSource(self, position, size = 'wxDefaultSize'):
+    def designTimeSource(self, position = 'wxDefaultPosition', size = 'wxDefaultSize'):
         return {'pos': position,
                 'size': size,
                 'style': '0',
@@ -1249,7 +1290,7 @@ class HtmlWindowDTC(HtmlWindowConstr, WindowDTC):
     def writeImports(self):
         return 'from wxPython.html import *'
 
-EventCategories['ToolEvent'] = (EVT_TOOL,)
+EventCategories['ToolEvent'] = (EVT_TOOL, EVT_TOOL_RCLICKED)
 commandCategories.append('ToolEvent')
 class ToolBarDTC(WindowConstr, ContainerDTC):
     wxDocs = HelpCompanions.wxToolBarDocs
@@ -1257,7 +1298,7 @@ class ToolBarDTC(WindowConstr, ContainerDTC):
         ContainerDTC.__init__(self, name, designer, parent, ctrlClass)
         self.editors.update({'Tools': CollectionPropEdit})
         self.subCompanions['Tools'] = ToolBarToolsCDTC
-        self.windowStyles = ['wxTB_FLAT', 'wxTB_DOCKABLE', 'wxTB_HORIZONTAL', 
+        self.windowStyles = ['wxTB_FLAT', 'wxTB_DOCKABLE', 'wxTB_HORIZONTAL',
                              'wxTB_VERTICAL', 'wxTB_3DBUTTONS'] + self.windowStyles
 
     def properties(self):
@@ -1274,14 +1315,14 @@ class ToolBarDTC(WindowConstr, ContainerDTC):
     def defaultAction(self):
         self.designer.inspector.props.getNameValue('Tools').propEditor.edit(None)
 
-class ToolBarToolsCDTC(ToolBarToolsConstr, CollectionIddDTC):        
+class ToolBarToolsCDTC(ToolBarToolsConstr, CollectionIddDTC):
     wxDocs = HelpCompanions.wxToolBarDocs
     propName = 'Tools'
     displayProp = 'shortHelpString'
     indexProp = '(None)'
     insertionMethod = 'AddTool'
-    deletionMethod = 'DeleteTool'
-    idProp = 'id'    
+    deletionMethod = 'DeleteToolByPos'
+    idProp = 'id'
     idPropNameFrom = 'tools'
     def __init__(self, name, designer, parentCompanion, ctrl):
         CollectionDTC.__init__(self, name, designer, parentCompanion, ctrl)
@@ -1290,10 +1331,10 @@ class ToolBarToolsCDTC(ToolBarToolsConstr, CollectionIddDTC):
                         'IsToggle': BoolConstrPropEdit,
                         'ShortHelpString': StrConstrPropEdit,
                         'LongHelpString': StrConstrPropEdit}
-    
+
     def designTimeSource(self, wId):
         newItemName = '%s%d'%(self.propName, wId)
-        return {'id': self.newWinId(newItemName), 
+        return {'id': self.newWinId(newItemName),
                 'bitmap': 'wxNullBitmap',
                 'pushedBitmap': 'wxNullBitmap',
                 'isToggle': 'false',
@@ -1318,7 +1359,7 @@ class ToolBarToolsCDTC(ToolBarToolsConstr, CollectionIddDTC):
         insp = self.designer.inspector
         insp.pages.SetSelection(2)
         insp.events.doAddEvent('ToolEvent', 'EVT_TOOL')
-                
+
 class StatusBarDTC(WindowConstr, ContainerDTC):
     wxDocs = HelpCompanions.wxStatusBarDocs
     def __init__(self, name, designer, parent, ctrlClass):
@@ -1338,7 +1379,7 @@ class StatusBarDTC(WindowConstr, ContainerDTC):
                 'style': '0',
                 'name': `self.name`}
 
-class StatusBarFieldsCDTC(StatusBarFieldsConstr, CollectionDTC):        
+class StatusBarFieldsCDTC(StatusBarFieldsConstr, CollectionDTC):
     wxDocs = HelpCompanions.wxStatusBarDocs
     propName = 'Fields'
     displayProp = 'text'
@@ -1352,7 +1393,7 @@ class StatusBarFieldsCDTC(StatusBarFieldsConstr, CollectionDTC):
                         'Text': StrConstrPropEdit,
                         'Width': SBFWidthConstrPropEdit}
         self.widths = []
-    
+
     def properties(self):
         props = CollectionDTC.properties(self)
         props.update({'Index':  ('NoneRoute', None, None),
@@ -1363,7 +1404,7 @@ class StatusBarFieldsCDTC(StatusBarFieldsConstr, CollectionDTC):
     def designTimeSource(self, wId):
         return {'i': `wId`,
                 'text': `'%s%d'%(self.propName, wId)`}
-    
+
     def initialiser(self):
         return ['        parent.SetFieldsCount(%d)'%self.getCount()]+CollectionDTC.initialiser(self)
 
@@ -1374,7 +1415,7 @@ class StatusBarFieldsCDTC(StatusBarFieldsConstr, CollectionDTC):
         self.widths.append(-1)
         self.control.SetFieldsCount(len(self.widths))
         CollectionDTC.appendItem(self)
-        
+
     def deleteItem(self, index):
         CollectionDTC.deleteItem(self, index)
         for idx in range(index, len(self.widths)):
@@ -1445,7 +1486,7 @@ class ColourDTC(HelperDTC):
                 'Blue' : ('CompnRoute', self.GetBlue, self.SetBlue),}
 
     def GetRed(self, cmpn):
-        return self.obj.Red() 
+        return self.obj.Red()
     def SetRed(self, value):
         self.obj.Set(max(min(value, 255), 0), self.obj.Green(), self.obj.Blue())
 
@@ -1464,7 +1505,7 @@ class PosDTC(HelperDTC):
         HelperDTC.__init__(self, name, designer, cmpn, obj, ownerPW)
         self.editors = {'X' : IntPropEdit,
                         'Y' : IntPropEdit}
-        
+
     def properties(self):
         return {'X': ('CompnRoute', self.GetX, self.SetX),
                 'Y': ('CompnRoute', self.GetY, self.SetY)}
@@ -1480,7 +1521,7 @@ class PosDTC(HelperDTC):
         self.obj.Set(self.obj.x, value)
 
 class SizeDTC(HelperDTC): pass
-    
+
 class AnchorsDTC(HelperDTC):
     def __init__(self, name, designer, cmpn, obj, ownerPW):
         HelperDTC.__init__(self, name, designer, cmpn, obj, ownerPW)
@@ -1520,49 +1561,49 @@ class AnchorsDTC(HelperDTC):
         self.ownerCompn.anchorSettings = [self.left, self.top, self.right, self.bottom]
         self.obj = LayoutAnchors(self.anchCtrl, self.left, self.top, self.right, self.bottom)
 
-    def GetLeftAnchor(self, name): 
+    def GetLeftAnchor(self, name):
         self.assureAnchors()
         self.left = self.ownerCompn.anchorSettings[0]
         return self.left
-    def SetLeftAnchor(self, value): 
+    def SetLeftAnchor(self, value):
         self.assureAnchors()
         self.left = value
         self.updateAnchors()
 
-    def GetTopAnchor(self, name): 
+    def GetTopAnchor(self, name):
         self.assureAnchors()
         self.top = self.ownerCompn.anchorSettings[1]
         return self.top
-    def SetTopAnchor(self, value): 
+    def SetTopAnchor(self, value):
         self.assureAnchors()
         self.top = value
         self.updateAnchors()
 
-    def GetRightAnchor(self, name): 
+    def GetRightAnchor(self, name):
         self.assureAnchors()
         self.right = self.ownerCompn.anchorSettings[2]
         return self.right
-    def SetRightAnchor(self, value): 
+    def SetRightAnchor(self, value):
         self.assureAnchors()
         self.right = value
         self.updateAnchors()
 
-    def GetBottomAnchor(self, name): 
+    def GetBottomAnchor(self, name):
         self.assureAnchors()
         self.bottom = self.ownerCompn.anchorSettings[3]
         return self.bottom
     def SetBottomAnchor(self, value):
         self.assureAnchors()
         self.bottom = value
-        self.updateAnchors()        
-        
-        
+        self.updateAnchors()
+
+
 class WindowStyleDTC(HelperDTC):
     def __init__(self, name, designer, cmpn, obj, ownerPW):
         HelperDTC.__init__(self, name, designer, cmpn, obj, ownerPW)
         self.editors = {}
         for flag in self.ownerCompn.windowStyles:
-            self.editors[flag] = BoolPropEdit         
+            self.editors[flag] = BoolPropEdit
 
     def properties(self):
         props = {}
@@ -1574,13 +1615,13 @@ class WindowStyleDTC(HelperDTC):
     def getPropList(self):
         propLst = []
         for prop in self.ownerCompn.windowStyles:
-            propLst.append(RTTI.PropertyWrapper(prop, 'NameRoute', 
+            propLst.append(RTTI.PropertyWrapper(prop, 'NameRoute',
                   self.GetStyle, self.SetStyle))
         return {'constructor':[], 'properties': propLst}
-        
+
     def GetStyle(self, name):
         return name in string.split(self.ownerCompn.textConstr.params['style'], ' | ')
-    
+
     def SetStyle(self, name, value):
         flags = string.split(self.ownerCompn.textConstr.params['style'], ' | ')
         if value:
