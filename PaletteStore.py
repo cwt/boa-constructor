@@ -1,4 +1,3 @@
-
 paletteLists = {'New': [],
                 'Dialogs': [],
                 'Zope': [],
