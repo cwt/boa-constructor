@@ -283,4 +283,7 @@ class ToolBarToolsConstr(PropertyKeywordConstructor):
 #                'XPos': 'xPos', 'YPos': 'yPos',
                 'ShortHelpString': 'shortHelpString', 
                 'LongHelpString': 'longHelpString'}
-                
+
+class SizerControlsConstr(PropertyKeywordConstructor):
+    def constructor(self):
+        return {'Window': 'window', 'Option': 'option', 'Flag': 'flag', 'Border': 'border'}
