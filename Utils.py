@@ -304,13 +304,13 @@ def createAndReadConfig(name, forPlatform = 1):
     confFile = '%s/%s%s.cfg' % (Preferences.rcPath, name,
         forPlatform and wx.wxPlatform == '__WXMSW__' and '.msw' \
         or forPlatform and '.gtk' or '')
-    
+
     if not _sharedConfs.has_key(confFile):
         conf = ConfigParser()
         conf.read(confFile)
         conf.confFile = confFile
         _sharedConfs[confFile] = conf
-    
+
     return _sharedConfs[confFile]
 
 def writeConfig(conf):
@@ -380,7 +380,7 @@ def updateFile(src, dst):
               os.stat(dst)[stat.ST_MTIME] < os.stat(src)[stat.ST_MTIME]):
             print 'copying', src, dst
             shutil.copy2(src, dst)
-    
+
 
 def updateDir(src, dst):
     """ Traverse src and assures that dst is up to date """
@@ -402,7 +402,7 @@ def visit_update(paths, dirname, names):
         srcname = os.path.join(dirname, name)
         dstname = os.path.join(dstdirname, name)
         updateFile(srcname, dstname)
-        
+
 def get_current_frame():
     try:
         raise 'get_exc_info'
@@ -411,7 +411,7 @@ def get_current_frame():
 
 def descr_frame(frame):
     if frame: return ('<frame:%s(%s)%s [%s]>'%(
-          os.path.basename(frame.f_code.co_filename), frame.f_lineno, 
+          os.path.basename(frame.f_code.co_filename), frame.f_lineno,
           frame.f_code.co_name, id(frame)) )
     else: return 'None'
 
@@ -495,7 +495,7 @@ def html2txt(htmlblock):
     return string.strip(s.getvalue())
 
 def getEntireWxNamespace():
-    """ Return a dictionary containing the entire (non filtered) wxPython 
+    """ Return a dictionary containing the entire (non filtered) wxPython
         namespace """
     from wxPython import wx, html, htmlhelp, grid, calendar, utils, stc, ogl, gizmos, help
     namespace = {}
@@ -507,8 +507,8 @@ def getEntireWxNamespace():
 
 class FrameRestorerMixin:
     """ Used by top level windows to restore from gidden or iconised state
-    and to load and persist window dimensions 
-    
+    and to load and persist window dimensions
+
     Classes using the mixin mus define self.setDefaultDimensions()
     """
     confFile = 'Explorer'
@@ -521,10 +521,10 @@ class FrameRestorerMixin:
         self.Raise()
 
     def setDimensions(self, dims):
-        apply(self.SetDimensions, dims)        
+        apply(self.SetDimensions, dims)
 
     def getDimensions(self):
-        return self.GetPosition().asTuple() + self.GetSize().asTuple()        
+        return self.GetPosition().asTuple() + self.GetSize().asTuple()
 
     def loadDims(self):
         conf = createAndReadConfig(self.confFile)
@@ -544,7 +544,7 @@ class FrameRestorerMixin:
         conf = createAndReadConfig(self.confFile)
         conf.set(self.confSection, self.winConfOption, `dims`)
         writeConfig(conf)
-        
+
     def restoreDefDims(self):
         self.saveDims(None)
         self.loadDims()
@@ -651,7 +651,7 @@ class ListCtrlLabelEditFixEH(wxEvtHandler):
         EVT_LIST_BEGIN_LABEL_EDIT(listCtrl, listCtrl.GetId(), self.OnBeginLabelEdit)
         self.Connect(-1, -1, self.wxEVT_CTRLEDIT, self.OnCtrlLabelEdit)
         listCtrl.PushEventHandler(self)
-    
+
     def OnBeginLabelEdit(self, event):
         if not self._blockMouseEdit and wxPlatform == '__WXMSW__':
             event.Veto()
@@ -669,31 +669,6 @@ class ListCtrlLabelEditFixEH(wxEvtHandler):
         self._blockMouseEdit = true
         self.listCtrl.EditLabel(event.idx)
         event.Skip()
-
-def importFromPlugins(name):
-    # find module
-    pluginsPath = Preferences.pyPath + '/Plug-ins'
-    paths = [pluginsPath]
-    if Preferences.extraPluginsPath:
-        paths.append(Preferences.extraPluginsPath)
-    pluginRcPath = Preferences.rcPath+ '/Plug-ins'
-    if Preferences.rcPath != Preferences.pyPath and os.path.isdir(pluginRcPath):
-        paths.append(pluginRcPath)
-
-    modname = string.replace(name, '.', '/') + '.py'
-    for pth in paths:
-        modpath = os.path.join(pth, modname)
-        if os.path.isfile(modpath):
-            break
-    else:
-        raise ImportError, 'Module %s could not be found in Plug-ins'
-    
-    import new
-    mod = new.module(name)
-    
-    execfile(modpath, mod.__dict__)
-    
-    return mod
 
 SEL_FOC = wxLIST_STATE_SELECTED | wxLIST_STATE_FOCUSED
 def selectBeforePopup(event):
@@ -723,9 +698,9 @@ def getListCtrlSelection(listctrl, state=wxLIST_STATE_SELECTED):
     return res
 
 class ListCtrlSelectionManagerMix:
-    """Mixin that defines a platform independent selection policy 
-    
-    As selection single and multi-select list return the item index or a 
+    """Mixin that defines a platform independent selection policy
+
+    As selection single and multi-select list return the item index or a
     list of item indexes respectively.
     """
     wxEVT_DOPOPUPMENU = wxNewId()
@@ -742,11 +717,11 @@ class ListCtrlSelectionManagerMix:
     def setPopupMenu(self, menu):
         """ Must be set for default behaviour """
         self._menu = menu
-        
+
     def afterPopupMenu(self, menu):
         """ Override to implement dynamic menus (destroy) """
         pass
-    
+
     def getSelection(self):
         res = getListCtrlSelection(self)
         if self.GetWindowStyleFlag() & wxLC_SINGLE_SEL:
@@ -762,6 +737,11 @@ class ListCtrlSelectionManagerMix:
         menu = self.getPopupMenu()
         #event.Skip()
         if menu:
+            # XXX
+            self.PopupMenu(menu, event.GetPosition())
+            self.afterPopupMenu(menu)
+            return
+            
             evt = wxPyEvent()
             evt.SetEventType(self.wxEVT_DOPOPUPMENU)
             evt.menu = menu
@@ -771,3 +751,74 @@ class ListCtrlSelectionManagerMix:
     def OnLCSMDoPopup(self, event):
         self.PopupMenu(event.menu, event.pos)
         self.afterPopupMenu(event.menu)
+
+
+# Does this version leak event handlers?
+def wxCallAfter(callable, *args, **kw):
+    handler, evtType = wxEvtHandler(), wxNewId()
+    handler.Connect(-1, -1, evtType, lambda event, handler=handler,
+          callable=callable, args=args, kw=kw: callable(*args, **kw) )
+    evt = wxPyEvent()
+    evt.SetEventType(evtType)
+    wxPostEvent(handler, evt)
+
+_wxCallAfterId = None
+def wxCallAfter(callable, *args, **kw):
+    app = wxGetApp()
+    assert app, 'No wxApp created yet'
+
+    global _wxCallAfterId
+    if _wxCallAfterId is None:
+        _wxCallAfterId = wxNewId()
+        app.Connect(-1, -1, _wxCallAfterId,
+              lambda event: apply(event.callable, event.args, event.kw) )
+    evt = wxPyEvent()
+    evt.SetEventType(_wxCallAfterId)
+    evt.callable = callable
+    evt.args = args
+    evt.kw = kw
+    wxPostEvent(app, evt)
+
+def getIndentBlock():
+    if Preferences.STCUseTabs:
+        return '\t'
+    else:
+        return Preferences.STCIndent*' '
+
+#---Plugin and transport utils--------------------------------------------------
+
+class PluginError(Exception):
+    pass
+
+class SkipPlugin(PluginError):
+    """ Special error, used to abort importing plugins early if they depend
+    on modules not loaded"""
+
+def importFromPlugins(name):
+    # find module
+    pluginsPath = Preferences.pyPath + '/Plug-ins'
+    paths = [pluginsPath]
+    if Preferences.extraPluginsPath:
+        paths.append(Preferences.extraPluginsPath)
+    pluginRcPath = Preferences.rcPath+ '/Plug-ins'
+    if Preferences.rcPath != Preferences.pyPath and os.path.isdir(pluginRcPath):
+        paths.append(pluginRcPath)
+
+    modname = string.replace(name, '.', '/') + '.py'
+    for pth in paths:
+        modpath = os.path.join(pth, modname)
+        if os.path.isfile(modpath):
+            break
+    else:
+        raise ImportError, 'Module %s could not be found in Plug-ins'
+
+    import new
+    mod = new.module(name)
+
+    execfile(modpath, mod.__dict__)
+
+    return mod
+
+def transportInstalled(transport):
+    return transport in eval(
+         createAndReadConfig('Explorer').get('explorer', 'installedtransports'))
