@@ -19,84 +19,13 @@ import os, time, sys
 
 # XXX Change to be non-modal, minimizable and run CVS operation in thread !!
 
-# XXX remove when 2.3.3 is minimum version
 import Preferences
-from Utils import canReadStream
 
-class ProcessRunnerMix:
-    def __init__(self):
-        EVT_IDLE(self, self.OnIdle)
-        EVT_END_PROCESS(self, -1, self.OnProcessEnded)
-
-        self.reset()
-
-    def reset(self):
-        self.process = None
-        self.pid = -1
-        self.output = []
-        self.errors = []
-        self.errorStream = None
-        self.outputStream = None
-        self.finished = false
-        self.responded = false
-
-    def execute(self, cmd):
-        self.process = wxProcess(self)
-        self.process.Redirect()
-
-        self.pid = wxExecute(cmd, false, self.process)
-
-        self.errorStream = self.process.GetErrorStream()
-        self.outputStream = self.process.GetInputStream()
-
-        self.OnIdle()
-
-    def detach(self):
-        if self.process is not None:
-            self.process.CloseOutput()
-            self.process.Detach()
-            self.process = None
-
-    def updateStream(self, stream, data):
-        if stream and canReadStream(stream):
-            if not self.responded:
-                self.responded = true
-            text = stream.read()
-            data.append(text)
-            return text
-        else:
-            return None
-
-    def updateErrStream(self, stream, data):
-        return self.updateStream(stream, data)
-
-    def updateOutStream(self, stream, data):
-        return self.updateStream(stream, data)
-
-    def OnIdle(self, event=None):
-        if self.process is not None:
-            self.updateErrStream(self.errorStream, self.errors)
-            self.updateOutStream(self.outputStream, self.output)
-
-        wxWakeUpIdle()
-        time.sleep(0.001)
-
-    def OnProcessEnded(self, event):
-        self.OnIdle()
-
-        self.process.Destroy()
-        self.process = None
-
-        self.finished = true
-
-class ProcessRunner(wxEvtHandler, ProcessRunnerMix):
-    def __init__(self):
-        wxEvtHandler.__init__(self)
-        ProcessRunnerMix.__init__(self)
+from wxPopen import ProcessRunnerMix
 
 [wxID_PROCESSPROGRESSDLG, wxID_PROCESSPROGRESSDLGCANCELBTN,
  wxID_PROCESSPROGRESSDLGCMDSTXT, wxID_PROCESSPROGRESSDLGERRORTCTRL,
- wxID_PROCESSPROGRESSDLGOUTPUTTCTRL, wxID_PROCESSPROGRESSDLGSPLITTERWINDOW1,
+ wxID_PROCESSPROGRESSDLGOUTPUTTCTRL, wxID_PROCESSPROGRESSDLGSPLITTERWINDOW,
  wxID_PROCESSPROGRESSDLGSTATUSGGE, wxID_PROCESSPROGRESSDLGSTATUSSTXT,
 ] = map(lambda _init_ctrls: wxNewId(), range(8))
 
@@ -131,22 +60,22 @@ class ProcessProgressDlg(wxDialog, ProcessRunnerMix):
         self.cmdStxt.SetConstraints(LayoutAnchors(self.cmdStxt, true, true,
               true, false))
 
-        self.splitterWindow1 = wxSplitterWindow(id=wxID_PROCESSPROGRESSDLGSPLITTERWINDOW1,
-              name='splitterWindow1', parent=self, point=wxPoint(8, 80),
+        self.splitterWindow = wxSplitterWindow(id=wxID_PROCESSPROGRESSDLGSPLITTERWINDOW,
+              name='splitterWindow', parent=self, point=wxPoint(8, 80),
               size=wxSize(360, 192), style=self.splitterStyle)
-        self.splitterWindow1.SetConstraints(LayoutAnchors(self.splitterWindow1,
+        self.splitterWindow.SetConstraints(LayoutAnchors(self.splitterWindow,
               true, true, true, true))
 
         self.errorTctrl = wxTextCtrl(id=wxID_PROCESSPROGRESSDLGERRORTCTRL,
-              name='errorTctrl', parent=self.splitterWindow1, pos=wxPoint(0, 0),
+              name='errorTctrl', parent=self.splitterWindow, pos=wxPoint(0, 0),
               size=wxSize(360, 80), style=wxTE_MULTILINE | wxTE_RICH, value='')
         self.errorTctrl.SetForegroundColour(wxColour(128, 0, 0))
 
         self.outputTctrl = wxTextCtrl(id=wxID_PROCESSPROGRESSDLGOUTPUTTCTRL,
-              name='outputTctrl', parent=self.splitterWindow1, pos=wxPoint(0,
+              name='outputTctrl', parent=self.splitterWindow, pos=wxPoint(0,
               87), size=wxSize(360, 105), style=wxTE_MULTILINE | wxTE_RICH,
               value='')
-        self.splitterWindow1.SplitHorizontally(self.errorTctrl,
+        self.splitterWindow.SplitHorizontally(self.errorTctrl,
               self.outputTctrl, 80)
 
         self.statusStxt = wxStaticText(id=wxID_PROCESSPROGRESSDLGSTATUSSTXT,
@@ -162,15 +91,17 @@ class ProcessProgressDlg(wxDialog, ProcessRunnerMix):
         self.statusGge.SetConstraints(LayoutAnchors(self.statusGge, true, false,
               true, true))
 
-    def __init__(self, parent, command, caption, modally = true, linesep = os.linesep, autoClose = true, overrideDisplay = ''):
+    def __init__(self, parent, command, caption, modally=true, 
+          linesep=os.linesep, autoClose=true, overrideDisplay=''):
+
         self.dlg_caption = 'Progress'
         self.dlg_caption = caption
         self.splitterStyle = Preferences.splitterStyle
         self._init_ctrls(parent)
 
-        self.splitterWindow1.SetMinimumPaneSize(20)
+        self.splitterWindow.SetMinimumPaneSize(20)
 
-        ProcessRunnerMix.__init__(self)
+        ProcessRunnerMix.__init__(self, [])
 
         self.Center(wxBOTH)
 
@@ -274,7 +205,7 @@ if __name__ == '__main__':
             dlg.ShowModal()
         #print dlg.errors, dlg.output
         dlg.Destroy()
-        dlg.MainLoop()
+        app.MainLoop()
     else:
         class TestProcessRunner(ProcessRunner):
             def updateErrStream(self, stream, data):
