@@ -131,8 +131,11 @@ class PropertyEditor:
     def isValuesEqual(self, propVal, ctrlVal):
         if isinstance(propVal, wxFontPtr) and isinstance(ctrlVal, wxFontPtr):
             return fontAsExpr(propVal) == fontAsExpr(ctrlVal)
+        elif isinstance(propVal, (types.StringType, types.UnicodeType)) and \
+             isinstance(ctrlVal, (types.StringType, types.UnicodeType)):
+            return propVal == ctrlVal
         else:
-            return `propVal` == `ctrlVal`
+            return propVal == ctrlVal
 
     def validateProp(self, oldVal, newVal):
         pass
@@ -1421,7 +1424,10 @@ class EnumPropEdit(OptionedPropEdit):
                 self.value = self.companion.eval(strVal)
 
         return self.value
-# SetPropEdit
+
+class StringEnumPropEdit(EnumPropEdit):
+    def getDisplayValue(self):
+        return `self.value`
 
 # Property editors for classes
 class ClassPropEdit(FactoryPropEdit):
@@ -1530,6 +1536,29 @@ class ListCtrlImageListClassLinkPropEdit(ImageListClassLinkPropEdit):
     def valueAsExpr(self):
         return '%s, %s'%(self.valueToIECValue(), self.listTypeMap[self.value[1]])
 
+class SplitterWindowLinkPropEdit(WindowClassLinkPropEdit):
+    def getValues(self):
+        children = self.companion.designer.getObjectsOfClassWithParent(
+               self.linkClass, self.companion.name).keys()
+        otherWin = self.getOtherWindow()
+        if otherWin:
+            otherWinName = 'self.%s'%otherWin.GetName()
+            if otherWinName in children:
+                children.remove(otherWinName)
+
+        return ['None'] + children
+
+    def getOtherWindow(self): return None
+
+class SplitterWindow1LinkPropEdit(SplitterWindowLinkPropEdit):
+    def getOtherWindow(self):
+        return self.companion.GetWindow2(None)
+
+class SplitterWindow2LinkPropEdit(SplitterWindowLinkPropEdit):
+    def getOtherWindow(self): 
+        return self.companion.GetWindow1(None)
+    
+    
 class ColPropEdit(ClassPropEdit):
     def getStyle(self):
         return [esExpandable]
