@@ -105,15 +105,12 @@ class TextCtrlIEC(InspectorEditorControl):
         self.editorCtrl = wxTextCtrl(parent, self.wID, value,
               (-2, idx*Preferences.oiLineHeight -2),
               (sizeX, Preferences.oiLineHeight+3), style = style)
+        EVT_TEXT_ENTER(parent, self.wID, self.OnSelect)
         InspectorEditorControl.createControl(self)
 
         if value:
             self.editorCtrl.SetSelection(0, len(value))
 
-        # XXX Ideally the text ctrl should catch the 'enter' keystroke
-        # XXX and post the inspector, but I cant seem to catch it
-        # XXX This is currently handled by the Inspector with an
-        # XXX accelerator table binding on Enter
     def getValue(self):
         if self.editorCtrl:
             self.value = self.editorCtrl.GetValue()
