@@ -6,11 +6,11 @@
 #
 # Created:     2000/17/07
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999, 2000 Riaan Booysen
+# Copyright:   (c) 2000 - 2003 Riaan Booysen
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 
-import sys, linecache, traceback, shutil
+import sys, linecache, traceback, shutil, StringIO
 
 from wxPython import wx
 from wxPython.stc import *
@@ -24,6 +24,25 @@ uniqueFile1Mrk = 1
 uniqueFile2Mrk = 2
 newToBothMrk = 3
 maskMarkSet = 1 << uniqueFile1Mrk | 1 << uniqueFile2Mrk | 1 << newToBothMrk
+
+def ndiff_lcompare(a, b):
+    """ Copy of ndiff.fcompare, works on lines instread of files """
+
+    cruncher = ndiff.SequenceMatcher(ndiff.IS_LINE_JUNK, a, b)
+    for tag, alo, ahi, blo, bhi in cruncher.get_opcodes():
+        if tag == 'replace':
+            ndiff.fancy_replace(a, alo, ahi, b, blo, bhi)
+        elif tag == 'delete':
+            ndiff.dump('-', a, alo, ahi)
+        elif tag == 'insert':
+            ndiff.dump('+', b, blo, bhi)
+        elif tag == 'equal':
+            ndiff.dump(' ', a, alo, ahi)
+        else:
+            raise ValueError, 'unknown tag ' + `tag`
+
+    return 1
+
 
 class DiffPSOut(Utils.PseudoFile):
     def write(self, s):
@@ -52,7 +71,7 @@ class PythonSourceDiffView(wxStyledTextCtrl, EditorView, PythonStyledTextCtrlMix
         wxID_PYTHONSOURCEDIFFVIEW = wxNewId()
 
         wxStyledTextCtrl.__init__(self, parent, wxID_PYTHONSOURCEDIFFVIEW,
-          style = wx.wxCLIP_CHILDREN)
+          style = wx.wxCLIP_CHILDREN | wx.wxSUNKEN_BORDER)
         PythonStyledTextCtrlMix.__init__(self, wxID_PYTHONSOURCEDIFFVIEW, 0)
         CloseableViewMix.__init__(self, 'diffs')
         EditorView.__init__(self, model,
@@ -88,6 +107,7 @@ class PythonSourceDiffView(wxStyledTextCtrl, EditorView, PythonStyledTextCtrlMix
         self.lineIndex = []
 
     def refreshCtrl(self):
+        from Explorers.Explorer import openEx
         self.SetReadOnly(wx.false)
         self.ClearAll()
         if self.diffWith:
@@ -95,8 +115,11 @@ class PythonSourceDiffView(wxStyledTextCtrl, EditorView, PythonStyledTextCtrlMix
             try:
                 sys.stdout = DiffPSOut(self)
                 try:
+                    src = StringIO.StringIO(self.model.data).readlines()
+                    # XXX could sometimes use data from file open in IDE ???
+                    dst = StringIO.StringIO(openEx(self.diffWith).load('r')).readlines()
 #                    self.model.editor.app.saveStdio = sys.stdout, sys.stderr
-                    ndiff.fcompare(self.model.assertLocalFile(), self.diffWith)
+                    ndiff_lcompare(src, dst)
                 except:
                     (sys.last_type, sys.last_value,
                      sys.last_traceback) = sys.exc_info()
