@@ -21,7 +21,7 @@ from Preferences import keyDefs
 import EditorHelper, PaletteStore, EditorModels
 
 import PythonEditorModels
-if Preferences.suWxPythonSupport:
+if Preferences.csWxPythonSupport:
     import wxPythonEditorModels
 
 from Views import EditorViews, SourceViews, OGLViews
@@ -32,9 +32,7 @@ addTool = Utils.AddToolButtonBmpIS
 
 true=1;false=0
 
-from sourceconst import *
-
-# XXX Controller should handle transport attachment
+import sourceconst
 
 class BaseEditorController:
     """ Between user and model operations
@@ -259,7 +257,7 @@ class BitmapFileController(UndockedController):
     Model           = EditorModels.BitmapFileModel
     DefaultViews    = []
     AdditionalViews = []
-    
+
     def display(self, model):
         from ZopeLib import ImageViewer
         ImageViewer.create(self.editor).showImage(model.filename, model.transport)
@@ -283,12 +281,6 @@ class MakePyController(BaseEditorController):
             dlg.Destroy()
 
 #-------------------------------------------------------------------------------
-
-def identifyHeader(headerStr):
-    header = string.split(headerStr, ':')
-    if len(header) and (header[0] == boaIdent) and EditorHelper.modelReg.has_key(header[1]):
-        return EditorHelper.modelReg[header[1]], header[2]
-    return PythonEditorModels.ModuleModel, ''
 
 def identifyFilename(filename):
     dummy, name = os.path.split(filename)
@@ -325,7 +317,7 @@ def identifyFile(filename, source=None, localfs=true):
         return BaseModel, ''
     elif lext in EditorHelper.inspectableFilesReg:
         if source is not None:
-            return identifySource(string.split(source, '\n'))
+            return identifySource[lext](string.split(source, '\n'))
         elif not Preferences.exInspectInspectableFiles:
             return BaseModel, ''
         f = open(filename)
@@ -335,9 +327,9 @@ def identifyFile(filename, source=None, localfs=true):
                 if not line: break
                 line = string.strip(line)
                 if line:
-                    if line[0] != '#':
+                    if line[0] != headerStartChar[lext]:
                         return BaseModel, ''
-                    headerInfo = identifyHeader(line)
+                    headerInfo = identifyHeader[lext](line)
                     if headerInfo[0] != PythonEditorModels.ModuleModel:
                         return headerInfo
             return BaseModel, ''
@@ -347,22 +339,11 @@ def identifyFile(filename, source=None, localfs=true):
         return BaseModel, ''
 
 
-def identifySource(source):
-    """ Return appropriate model for given Python source.
-        The logic is a copy paste from above func """
-    for line in source:
-        if line:
-            if line[0] != '#':
-                return PythonEditorModels.ModuleModel, ''
-
-            headerInfo = identifyHeader(string.strip(line))
-
-            if headerInfo[0] != PythonEditorModels.ModuleModel:
-                return headerInfo
-        else:
-            return PythonEditorModels.ModuleModel, ''
-
 #-Registration of this modules classes---------------------------------------
 modelControllerReg = {EditorModels.TextModel: TextController,
                       EditorModels.BitmapFileModel: BitmapFileController}
 
+# Dictionaries of functions keyed on file extension
+headerStartChar = {}
+identifyHeader = {}
+identifySource = {}
