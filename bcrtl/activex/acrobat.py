@@ -2,7 +2,10 @@ from wxPython.wx import *
 from wxPython.lib.activexwrapper import MakeActiveXClass
 import win32com.client.gencache
 
-acrobatModule = win32com.client.gencache.EnsureModule('{CA8A9783-280D-11CF-A24D-444553540000}', 0x0, 1, 3)
+try:
+    acrobatModule = win32com.client.gencache.EnsureModule('{CA8A9783-280D-11CF-A24D-444553540000}', 0x0, 1, 3)
+except Exception, error:
+    raise ImportError, error
 
 wxComPdfPtr = MakeActiveXClass(acrobatModule.Pdf)
 class wxComPdf(wxComPdfPtr):
