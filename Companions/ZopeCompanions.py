@@ -19,8 +19,11 @@ from ZopeLib.DateTime import DateTime
 import RTTI
 import moduleparse, methodparse
 from PropEdit.PropertyEditors import PropertyEditor
+from PropEdit import InspectorEditorControls
 #StrZopePropEdit, BoolZopePropEdit, EvalZopePropEdit
 import PaletteStore
+
+true=1;false=0
 
 # XXX This creation logic should be in the model, the companions should only
 # XXX manage prperties
@@ -49,7 +52,7 @@ class EvalZopePropEdit(ZopePropEdit):
         return `self.value`
 
     def inspectorEdit(self):
-        self.editorCtrl = TextCtrlIEC(self, `self.value`)
+        self.editorCtrl = InspectorEditorControls.TextCtrlIEC(self, `self.value`)
         self.editorCtrl.createControl(self.parent, self.value, self.idx,
           self.width)
 
@@ -70,7 +73,7 @@ class StrZopePropEdit(ZopePropEdit):
 #        return eval(self.value)
 
     def inspectorEdit(self):
-        self.editorCtrl = TextCtrlIEC(self, self.value)
+        self.editorCtrl = InspectorEditorControls.TextCtrlIEC(self, self.value)
         self.editorCtrl.createControl(self.parent, self.value, self.idx,
           self.width)
 
@@ -95,7 +98,7 @@ class BoolZopePropEdit(ZopePropEdit):
         else:
             return self.getValues()[0]
     def inspectorEdit(self):
-        self.editorCtrl = CheckBoxIEC(self, self.valueToIECValue())
+        self.editorCtrl = InspectorEditorControls.CheckBoxIEC(self, self.valueToIECValue())
         self.editorCtrl.createControl(self.parent, self.idx, self.width)
         self.editorCtrl.setValue(self.valueToIECValue())
     def getDisplayValue(self):
