@@ -58,7 +58,6 @@ flatTools = wx.wxTB_FLAT # 0
 pastels = 1
 pastelMedium = wx.wxColour(235, 246, 255)
 pastelLight = wx.wxColour(255, 255, 240)
-
 # Replace the standard file dialog with Boa's own dialog
 useBoaFileDlg = 1
 
@@ -94,6 +93,14 @@ handleSpecialEuropeanKeys = 0
 # Auto correct indentation and EOL characters on load, save and refresh
 # This only works for Python 2.0 and up
 autoReindent = 0
+
+# Redirect stderrout to logmessages
+logStdStreams = 0
+recordModuleCallPoint = 1
+
+# Safety net so COM support has to be explicitly turned on
+# Will stay here until the win9x crashes has been sorted out
+blockCOM = 1
 
 #-Inspector---------------------------------------------------------------------
 
