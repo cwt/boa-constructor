@@ -21,13 +21,16 @@
 # XXX Value getting setting of value between internal and sometime control value
 # XXX Is still too fuzzy
 
+from types import *
+
 from wxPython.wx import *
 from wxPython.utils import *
-from types import *
+
+from InspectorEditorControls import *
+
+from Preferences import wxFileDialog
 import Utils
 from Enumerations import reverseDict
-from InspectorEditorControls import *
-from Preferences import wxFileDialog
 #import PaletteMapping
 
 class EditorStyles:pass
@@ -149,10 +152,18 @@ class PropertyEditor:
 
                     self.ownerPropEdit.persistValue(self.ownerPropEdit.valueAsExpr())
                     self.ownerPropEdit.refreshCompCtrl()
+                
+                if self.name in self.companion.mutualDepProps:
+                    for prop in self.companion.mutualDepProps:
+                        if prop != self.name:
+                            insp = self.companion.designer.inspector
+                            insp.constructorUpdate(prop)
+                            insp.propertyUpdate(prop)
 
             if closeEditor and self.editorCtrl:
                 self.editorCtrl.destroyControl()
                 self.editorCtrl = None
+            
 
     def inspectorCancel(self):
         if self.editorCtrl:
@@ -212,6 +223,10 @@ class PropertyEditor:
 class FactoryPropEdit(PropertyEditor):
     pass
 
+class LockedPropEdit(PropertyEditor):
+    def getDisplayValue(self):
+        return self.value
+    
 
 class ConfPropEdit(PropertyEditor):
     def __init__(self, name, parent, companion, rootCompanion, propWrapper, idx,
@@ -309,7 +324,7 @@ class ConstrPropEdit(ConstrPropEditFacade, PropertyEditor):
     def valueToIECValue(self):
         return self.value
     def getDisplayValue(self):
-        return  self.getValue()
+        return self.getValue()
     def setCtrlValue(self, oldValue, value):
         self.companion.checkTriggers(self.name, oldValue, value)
         if hasattr(self.companion, 'index'):
@@ -399,6 +414,49 @@ class EnumConstrPropEdit(IntConstrPropEdit):
         return self.valueToIECValue()
     def getValues(self):
         return self.names
+
+class ClassConstrPropEdit(ConstrPropEdit):
+    def inspectorEdit(self):
+        val = self.getValue()
+        if self.companion.designer.model.customClasses.has_key(self.value):
+            self.editorCtrl = ChoiceIEC(self, val)
+            self.editorCtrl.createControl(self.parent, self.idx, self.width)
+            self.editorCtrl.setValue(val)
+        else:
+            self.editorCtrl = BeveledLabelIEC(self, val)
+            self.editorCtrl.createControl(self.parent, self.idx, self.width)
+            
+    def setCtrlValue(self, oldValue, value):
+        #self.companion.checkTriggers(self.name, oldValue, value)
+        self.propWrapper.setValue(value)
+    def getCtrlValue(self):
+        return self.propWrapper.getValue()
+
+    def getValue(self):
+        if self.editorCtrl:
+            self.value = self.editorCtrl.getValue()
+        else:
+            self.value = self.getCtrlValue()
+        return self.value
+
+    def getValues(self):
+        custClss = self.companion.designer.model.customClasses
+        MyCls = custClss[self.value]
+        vals = []
+        for name, Cls in custClss.items():
+            if MyCls == Cls:
+                vals.append(name)
+        vals.remove(MyCls.__name__)
+        vals.insert(0, MyCls.__name__)
+        return vals
+                
+            
+
+
+##    def getDisplayValue(self):
+##        dv = EnumConstrPropEdit.getDisplayValue(self)
+##        print dv
+##        return dv
 
 class BoolConstrPropEdit(EnumConstrPropEdit):
     def __init__(self, name, parent, companion, rootCompanion, propWrapper, idx, width, options, names):
