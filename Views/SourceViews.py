@@ -32,12 +32,9 @@ endOfLines = {  wxSTC_EOL_CRLF : '\r\n',
 markPlaceMrk, linePtrMrk = (1, 2)
 markerCnt = 2
 
-[wxID_TEXTVIEW, wxID_SOURCECUT, wxID_SOURCECOPY, wxID_SOURCEPASTE,
- wxID_SOURCEUNDO, wxID_SOURCEREDO] \
- = Utils.wxNewIds(6)
+wxID_TEXTVIEW = wxNewId()
 
-[wxID_STC_WS, wxID_STC_EOL, wxID_STC_BUF, wxID_STC_IDNT] \
- = Utils.wxNewIds(4)
+[wxID_STC_WS, wxID_STC_EOL, wxID_STC_BUF, wxID_STC_IDNT] = Utils.wxNewIds(4)
 
 class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView):
     refreshBmp = 'Images/Editor/Refresh.png'
@@ -318,6 +315,23 @@ class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView):
             dlg.ShowModal()
             dlg.Destroy()
             self.lastMatchPosition = None
+
+    def addFindResults(self, pattern, mapResults):
+        """ mapResult is map of tuples where
+            Key - 'Module', file name
+            Value - ('Line no', 'Col', 'Text')
+        """
+        from FindResults import FindResults
+        name = 'Results: ' + pattern
+        if not self.model.views.has_key(name):
+            resultView = self.model.editor.addNewView(name, FindResults)
+        else:
+            resultView = self.model.views[name]
+        resultView.tabName = name
+        resultView.results = mapResults
+        resultView.findPattern = pattern
+        resultView.refresh()
+        resultView.focus()
 
     def OnFind(self, event):
         import FindReplaceDlg
