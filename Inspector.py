@@ -72,12 +72,12 @@ class InspectorFrame(wxFrame, Utils.FrameRestorerMixin):
     def _init_coll_pages_Pages(self, parent):
         # generated method, don't edit
 
-        parent.AddPage(bSelect=true, imageId=-1, pPage=self.constr,
-              strText=self.constr_name)
-        parent.AddPage(bSelect=false, imageId=-1, pPage=self.props,
-              strText=self.props_name)
-        parent.AddPage(bSelect=false, imageId=-1, pPage=self.events,
-              strText=self.events_name)
+        parent.AddPage(select=true, imageId=-1, page=self.constr,
+              text=self.constr_name)
+        parent.AddPage(select=false, imageId=-1, page=self.props,
+              text=self.props_name)
+        parent.AddPage(select=false, imageId=-1, page=self.events,
+              text=self.events_name)
 
     def _init_utils(self):
         # generated method, don't edit
@@ -578,7 +578,7 @@ class NameValue:
                 mID = wxNewId()
                 self.expander = wxCheckBox(nameParent, mID, '',
                   wxPoint(8 * self.indent, self.idx * oiLineHeight +2),
-                  wxSize(12, 14))
+                  wxSize(13, 14))
                 self.expander.SetValue(true)
                 EVT_CHECKBOX(self.expander, mID, self.OnExpand)
         else:
@@ -1414,9 +1414,9 @@ class InspectorNotebook(wxNotebook):
         self.pages = None
         self.inspector = None
 
-    def AddPage(self, pPage, strText, bSelect=false, imageId=-1):
-        wxNotebook.AddPage(self, pPage, strText)
-        self.pages[strText] = pPage
+    def AddPage(self, page, text, select=false, imageId=-1):
+        wxNotebook.AddPage(self, page, text)
+        self.pages[text] = page
 
     def extendHelpUrl(self, cls):
         return self.pages[self.GetPageText(self.GetSelection())].extendHelpUrl(cls, '')
