@@ -597,7 +597,7 @@ class DebugServer (Bdb):
             sys.argv = [filename] + list(params)
             if not add_paths:
                 add_paths = []
-            sys.path = list(_orig_syspath) + list(add_paths)
+            sys.path = list(add_paths) + list(_orig_syspath)
             chdir(dirname(filename))
         
         self.run("execfile(fn, d)", {'fn':filename, 'd':d})
@@ -609,6 +609,8 @@ class DebugServer (Bdb):
                 Bdb.run(self, cmd, globals, locals)
             except:
                 # Provide post-mortem analysis.
+                import traceback
+                traceback.print_exc()
                 self.quitting = 0
                 self.exc_info = sys.exc_info()
                 self.frame = self.exc_info[2].tb_frame
