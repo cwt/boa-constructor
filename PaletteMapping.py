@@ -19,47 +19,48 @@ import PaletteStore
 
 from wxPython.wx import *
 
-if Preferences.suWxPythonSupport:
+if Preferences.csWxPythonSupport:
     # This should be the first time the Companion classes are imported
     # As the modules are imported they add themselves to the PaletteStore
     from Companions.Companions import *
-    
+
     from Companions.GizmoCompanions import *
-    
+
     if Utils.IsComEnabled():
         from Companions.ComCompanions import *
-    
+
     from Companions.UtilCompanions import *
-    
+
     from Companions.DialogCompanions import *
 
-if Utils.createAndReadConfig('Explorer').has_option('explorer', 'zope'):
+if Utils.transportInstalled('ZopeLib.ZopeExplorer'):
     from ZopeLib.ZopeCompanions import *
 
 #-Controller imports which auto-regisers themselves on the Palette--------------
-from Models import Controllers
-
-if Preferences.suWxPythonSupport:
-    from Models import wxPythonControllers
 
 from Models import PythonControllers, EditorHelper
 
-if not Preferences.suWxPythonSupport:
-    # useful hack to alias wxApp modules to PyApp modules
+if Preferences.csWxPythonSupport:
+    from Models import wxPythonControllers
+
+if not Preferences.csWxPythonSupport:
+    # useful hack to alias wxApp modules to PyApp modules when wxPython support
+    # is not loaded
     EditorHelper.modelReg['App'] = PythonControllers.PythonEditorModels.PyAppModel
-    
+
 # The text and makepy controllers are registered outside the Controllers
 # module so that their palette order can be fine tuned
+from Models import Controllers
 PaletteStore.newControllers['Text'] = Controllers.TextController
 PaletteStore.paletteLists['New'].append('Text')
 
 #-Registration of other built in support---------------------------------------
-from Models import ConfigSupport
-from Models import HTMLSupport
-from Models import XMLSupport
-from Models import CPPSupport
+if Preferences.csConfigSupport: from Models import ConfigSupport
+if Preferences.csCppSupport: from Models import CPPSupport
+if Preferences.csHtmlSupport: from Models import HTMLSupport
+if Preferences.csXmlSupport: from Models import XMLSupport
 
-if Utils.createAndReadConfig('Explorer').has_option('explorer', 'zope'):
+if Utils.transportInstalled('ZopeLib.ZopeExplorer'):
     import ZopeLib.ZopeEditorModels
 
 if Utils.IsComEnabled():
@@ -75,11 +76,18 @@ if Preferences.pluginPaths:
     print 'executing plug-ins...'
     for globpath in pluginPathGlobs:
         for pluginFilename in glob.glob(globpath):
+            pluginBasename = os.path.basename(pluginFilename)
             try:
                 execfile(pluginFilename)
+            except Utils.SkipPlugin, msg:
+                wxLogWarning('Plugin skipped: %s, %s'%(pluginBasename, msg))
             except Exception, error:
-                wxLogError('Problem executing plug-in %s:\n%s' %\
-                    (os.path.basename(pluginFilename), str(error)) )
+                if Preferences.pluginErrorHandling == 'raise':
+                    raise
+                elif Preferences.pluginErrorHandling == 'report':
+                    wxLogError('Problem executing plug-in %s:\n%s' %\
+                        (pluginBasename, str(error)) )
+                # else ignore
 
 #-------------------------------------------------------------------------------
 # called after all models have been imported
@@ -148,6 +156,7 @@ def evalCtrl(expr, localsDct=None):
         localsDct = locals()
     else:
         localsDct['wxNullBitmap'] = _NB
+    localsDct['_'] = str
 
     try:
         return eval(expr, globals(), localsDct)
