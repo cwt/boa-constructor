@@ -125,7 +125,7 @@ class wxHelpFrameEx:
     def __init__(self, helpctrlr):
         self.controller = helpctrlr
         self.frame = helpctrlr.GetFrame()
-        
+
         wxID_QUITHELP, wxID_FOCUSHTML = wxNewId(), wxNewId()
         EVT_MENU(self.frame, wxID_QUITHELP, self.OnQuitHelp)
         EVT_MENU(self.frame, wxID_FOCUSHTML, self.OnFocusHtml)
@@ -172,8 +172,14 @@ class wxHelpFrameEx:
         assert self.navPages.GetPageText(1) == 'Index'
         self.indexPanel = self.navPages.GetPage(1)
 
-        self.indexTextCtrl, self.indexShowAllBtn, self.indexFindBtn = \
+        self.indexTextCtrl, btn1, btn2 = \
               self.indexPanel.GetChildren()[:3]
+
+        # done this way to work on 2.3.2 and 2.3.3
+        if btn1.GetLabel() == 'Show all':
+            self.indexShowAllBtn, self.indexFindBtn = btn1, btn2
+        else:
+            self.indexShowAllBtn, self.indexFindBtn = btn2, btn1
 
 
 ##    def restore(self):
@@ -293,8 +299,19 @@ def main(args):
         _hc.Display('')
     app.MainLoop()
     delHelp()
-    
+
+def _test(word):
+    app = wxPySimpleApp()
+    wxInitAllImageHandlers()
+    initHelp()
+    if word:
+        showContextHelp(word)
+    else:
+        _hc.Display('')
+    app.MainLoop()
+    delHelp()
 
 if __name__ == '__main__':
     #initWxPyDocStrs()
-    main(sys.argv[1:])
+    #main(sys.argv[1:])
+    _test('Keycodes')
