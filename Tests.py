@@ -14,9 +14,9 @@ def test_wxFrame(palette):
                      wxEVT_COMMAND_BUTTON_CLICKED)
 
     # Open designer
-    import Editor
+    from Models import EditorHelper
     postCommandEvent(palette.editor, wxEVT_COMMAND_MENU_SELECTED,
-                     Editor.wxID_EDITORDESIGNER)
+                     EditorHelper.wxID_EDITORDESIGNER)
 
     # Select static text
     btn = palette.palettePages[2].buttons['wxStaticText']
@@ -53,17 +53,20 @@ from wxPython.wx import *
 def create(parent):
     return wxFrame1(parent)
 
-[wxID_WXFRAME1STATICTEXT1, wxID_WXFRAME1] = map(lambda _init_ctrls: wxNewId(), range(2))
+[wxID_WXFRAME1, wxID_WXFRAME1STATICTEXT1] = map(lambda _init_ctrls: wxNewId(), range(2))
 
 class wxFrame1(wxFrame):
     def _init_utils(self):
+        # generated method, don't edit
         pass
 
     def _init_ctrls(self, prnt):
-        wxFrame.__init__(self, size = wxSize(200, 200), id = wxID_WXFRAME1, title = 'wxFrame1', parent = prnt, name = '', style = wxDEFAULT_FRAME_STYLE, pos = wxPoint(10, 10))
+        # generated method, don't edit
+        wxFrame.__init__(self, id = wxID_WXFRAME1, name = '', parent = prnt, pos = wxPoint(10, 10), size = wxSize(200, 200), style = wxDEFAULT_FRAME_STYLE, title = 'wxFrame1')
         self._init_utils()
+        self.SetClientSize(wxSize(192, 173))
 
-        self.staticText1 = wxStaticText(label = 'staticText1', id = wxID_WXFRAME1STATICTEXT1, parent = self, name = 'staticText1', size = wxSize(192, 173), style = 0, pos = wxPoint(0, 0))
+        self.staticText1 = wxStaticText(id = wxID_WXFRAME1STATICTEXT1, label = 'staticText1', name = 'staticText1', parent = self, pos = wxPoint(0, 0), size = wxSize(192, 173), style = 0)
 
     def __init__(self, parent):
         self._init_ctrls(parent)
