@@ -52,7 +52,7 @@ recordModuleCallPoint = false
 
 # Safety net so COM support has to be explicitly turned on
 # Will stay here until the win9x crashes has been sorted out
-blockCOM = false
+blockCOM = true
 
 # Debugger to use
 # Before changing this variable, save all modified files.
