@@ -1,4 +1,4 @@
-## rc-version: 8 ##
+## rc-version: 9 ##
 # RCS-ID:      $Id$
 
 from wxPython.wx import *
@@ -13,23 +13,28 @@ keyDefs = {
   'ToggleBrk'   : (wxACCEL_NORMAL, WXK_F5, 'F5'),
   'Indent'      : (wxACCEL_CTRL, ord('I'), 'Ctrl-I'),
   'Dedent'      : (wxACCEL_CTRL, ord('U'), 'Ctrl-U'),
+  'Comment'     : (wxACCEL_ALT, ord('3'), 'Alt-3'),
+  'Uncomment'   : (wxACCEL_ALT, ord('4'), 'Alt-4'),
   'DashLine'    : (wxACCEL_CTRL, ord('B'), 'Ctrl-B'),
   'MarkPlace'   : (wxACCEL_CTRL, ord('M'), 'Ctrl-M'),
   'CodeComplete': (wxACCEL_CTRL, WXK_SPACE, 'Ctrl-Space'),
   'CallTips'    : (wxACCEL_SHIFT|wxACCEL_CTRL, WXK_SPACE, 'Ctrl-Shift-Space'),
+  'CodeXform'   : (wxACCEL_ALT, ord('C'), 'Alt-C'),
   'BrowseTo'    : (wxACCEL_CTRL, WXK_RETURN, 'Ctrl-Return'),
   'BrowseFwd'   : (wxACCEL_SHIFT|wxACCEL_CTRL, ord('K'), 'Ctrl-K'),
   'BrowseBack'  : (wxACCEL_SHIFT|wxACCEL_CTRL, ord('J'), 'Ctrl-J'),
 #-Modules-----------------------------------------------------------------------
   'RunApp'      : (wxACCEL_NORMAL, WXK_F9, 'F9'),
   'RunMod'      : (wxACCEL_NORMAL, WXK_F10, 'F10'),
-  'Close'       : (wxACCEL_CTRL, ord('Q'), 'Ctrl-Q'),
+  'Close'       : (wxACCEL_CTRL, ord('W'), 'Ctrl-W'),
   'Save'        : (wxACCEL_CTRL, ord('S'), 'Ctrl-S'),
+  'SaveAs'      : (wxACCEL_ALT, ord('S'), 'Alt-S'),
   'CheckSource' : (wxACCEL_NORMAL, WXK_F2, 'F2'),
   'Debug'       : (wxACCEL_NORMAL, WXK_F4, 'F4'),
   'DebugOut'    : (wxACCEL_NORMAL, WXK_F6, 'F6'),
   'DebugStep'   : (wxACCEL_NORMAL, WXK_F7, 'F7'),
   'DebugOver'   : (wxACCEL_NORMAL, WXK_F8, 'F8'),
+  'SwitchToApp' : (wxACCEL_ALT, ord('A'), 'Alt-A'),
 #--General----------------------------------------------------------------------
   'ContextHelp' : (wxACCEL_NORMAL, WXK_F1, 'F1'),
   'Open'        : (wxACCEL_CTRL, ord('O'), 'Ctrl-O'),
@@ -45,7 +50,7 @@ keyDefs = {
   'HelpFind'    : (wxACCEL_CTRL, ord('H'), 'Ctrl-H'),
   'GotoExplorer': (wxACCEL_CTRL, ord('E'), 'Ctrl-E'),
   'GotoShell'   : (wxACCEL_CTRL, ord('P'), 'Ctrl-P'),
-  'CloseView'   : (wxACCEL_CTRL, ord('W'), 'Ctrl-W'),
+  'CloseView'   : (wxACCEL_CTRL, ord('Q'), 'Ctrl-Q'),
 #--Clipboard--------------------------------------------------------------------
   'Cut'         : (wxACCEL_SHIFT, WXK_DELETE, 'Shift-Del'),
   'Copy'        : (wxACCEL_CTRL, WXK_INSERT, 'Ctrl-Ins'),
@@ -71,23 +76,23 @@ keyDefs = {
 ##  'NextView'    : (wxACCEL_SHIFT|wxACCEL_CTRL, ord('T'), 'Ctrl-Shift-T'),
 ##  'PrevView'    : (wxACCEL_SHIFT|wxACCEL_CTRL, ord('R'), 'Ctrl-Shift-R'),
 
-if wxPlatform == '__WXGTK__':
-    keyDefs.update({'SaveAs'      : (wxACCEL_CTRL, ord('1'), 'Ctrl-1'),
-                    'Comment'     : (wxACCEL_CTRL, ord('3'), 'Ctrl-3'),
-                    'Uncomment'   : (wxACCEL_CTRL, ord('4'), 'Ctrl-4'),
-                    'SwitchToApp' : (wxACCEL_CTRL, ord('5'), 'Ctrl-5'),
-                    'CodeXform'   : (wxACCEL_CTRL, ord('E'), 'Ctrl-E'),
-                  })
-else:
-    keyDefs.update({'SaveAs'      : (wxACCEL_ALT, ord('S'), 'Alt-S'),
-                    'Comment'     : (wxACCEL_ALT, ord('3'), 'Alt-3'),
-                    'Uncomment'   : (wxACCEL_ALT, ord('4'), 'Alt-4'),
-                    'SwitchToApp' : (wxACCEL_ALT, ord('A'), 'Alt-A'),
-                    'CodeXform'   : (wxACCEL_ALT, ord('C'), 'Alt-C'),
-                  })
+##if wxPlatform == '__WXGTK__':
+##    keyDefs.update({'SaveAs'      : (wxACCEL_CTRL, ord('1'), 'Ctrl-1'),
+##                    'Comment'     : (wxACCEL_CTRL, ord('3'), 'Ctrl-3'),
+##                    'Uncomment'   : (wxACCEL_CTRL, ord('4'), 'Ctrl-4'),
+##                    'SwitchToApp' : (wxACCEL_CTRL, ord('5'), 'Ctrl-5'),
+##                    'CodeXform'   : (wxACCEL_CTRL, ord('E'), 'Ctrl-E'),
+##                  })
+##else:
+##    keyDefs.update({'SaveAs'      : (wxACCEL_ALT, ord('S'), 'Alt-S'),
+##                    'Comment'     : (wxACCEL_ALT, ord('3'), 'Alt-3'),
+##                    'Uncomment'   : (wxACCEL_ALT, ord('4'), 'Alt-4'),
+##                    'SwitchToApp' : (wxACCEL_ALT, ord('A'), 'Alt-A'),
+##                    'CodeXform'   : (wxACCEL_ALT, ord('C'), 'Alt-C'),
+##                  })
     
 # Not used yet, defined for completeness
-stcDefs = {'Cut'        : 'Shift-Del',
+_stcDefs = {'Cut'        : 'Shift-Del',
            'Copy'       : 'Ctrl-Ins',
            'Paste'      : 'Shift-Ins',
            'SelectAll'  : 'Ctrl-A',
