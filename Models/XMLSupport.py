@@ -1,6 +1,6 @@
 #-----------------------------------------------------------------------------
 # Name:        XMLSupport.py
-# Purpose:     
+# Purpose:
 #
 # Author:      Riaan Booysen
 #
@@ -50,19 +50,17 @@ class XMLSourceView(EditorStyledTextCtrl, XMLStyledTextCtrlMix):
         self.active = true
 
 from Explorers import ExplorerNodes
-ExplorerNodes.langStyleInfoReg.append( ('XML', 'xml', XMLStyledTextCtrlMix, 
+ExplorerNodes.langStyleInfoReg.append( ('XML', 'xml', XMLStyledTextCtrlMix,
      'stc-styles.rc.cfg') )
 
-#from Models 
 import Controllers
 class XMLFileController(Controllers.PersistentController):
     Model           = XMLFileModel
     DefaultViews    = [XMLSourceView]
-    try:              
-        #from Views.XMLView import XMLTreeView
-        #AdditionalViews = [XMLTreeView]
-        AdditionalViews = []
-    except ImportError: 
+    try:
+        from Views.XMLView import XMLTreeView
+        AdditionalViews = [XMLTreeView]
+    except ImportError:
         AdditionalViews = []
 
 Controllers.modelControllerReg[XMLFileModel] = XMLFileController
