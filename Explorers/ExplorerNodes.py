@@ -769,7 +769,7 @@ class MRUCatNode(BookmarksCatNode):
         self.entries.insert(0, respath)
 
         if len(self.entries) > Preferences.exRecentFilesListSize:
-            self.entries[-Preferences.exRecentFilesListSize:] = []
+            self.entries[Preferences.exRecentFilesListSize:] = []
 
         self.updateConfig()
 
