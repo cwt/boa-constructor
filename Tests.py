@@ -14,9 +14,9 @@ def test_wxFrame(palette):
                      wxEVT_COMMAND_BUTTON_CLICKED)
 
     # Open designer
-    from Models import EditorHelper
-    postCommandEvent(palette.editor, wxEVT_COMMAND_MENU_SELECTED,
-                     EditorHelper.wxID_EDITORDESIGNER)
+    mp = palette.editor.getActiveModulePage()
+    ctrlr = palette.editor.getControllerFromModel(mp.model)
+    ctrlr.OnDesigner(None)
 
     # Select static text
     btn = palette.palettePages[2].buttons['wxStaticText']
@@ -36,7 +36,24 @@ def test_wxFrame(palette):
     wxPostEvent(model.views['Designer'], evt)
     wxYield()
 
+    # Select Frame
+    evt = wxMouseEvent(wxEVT_LEFT_DOWN)
+    evt.m_x = 0
+    evt.m_y = 0
+    wxPostEvent(model.views['Designer'], evt)
+    wxYield()
+    
+    constructorPage = palette.editor.inspector.constr
+    for nv in constructorPage.nameValues:
+        if nv.propName == 'Name':
+            nv.propEditor.inspectorEdit()
+            nv.propEditor.editorCtrl.editorCtrl.SetValue('TestFrame')
+            nv.propEditor.inspectorPost(false)
+            break
+
+    # resize designer
     model.views['Designer'].SetDimensions(10, 10, 200, 200)
+    model.views['Designer'].SetPosition( (0, 0) )
     wxYield()
 
     model.views['Designer'].Close()
@@ -46,27 +63,32 @@ def test_wxFrame(palette):
     else:
         wxMessageBox('Test failed\n'+model.data)
 
-frame_answer = '''#Boa:Frame:wxFrame1
+frame_answer = '''#Boa:Frame:TestFrame
 
 from wxPython.wx import *
 
 def create(parent):
-    return wxFrame1(parent)
+    return TestFrame(parent)
 
-[wxID_WXFRAME1, wxID_WXFRAME1STATICTEXT1] = map(lambda _init_ctrls: wxNewId(), range(2))
+[wxID_TESTFRAME, wxID_TESTFRAMESTATICTEXT1, 
+] = map(lambda _init_ctrls: wxNewId(), range(2))
 
-class wxFrame1(wxFrame):
+class TestFrame(wxFrame):
     def _init_utils(self):
         # generated method, don't edit
         pass
 
     def _init_ctrls(self, prnt):
         # generated method, don't edit
-        wxFrame.__init__(self, id = wxID_WXFRAME1, name = '', parent = prnt, pos = wxPoint(10, 10), size = wxSize(200, 200), style = wxDEFAULT_FRAME_STYLE, title = 'wxFrame1')
+        wxFrame.__init__(self, id=wxID_TESTFRAME, name='TestFrame', parent=prnt,
+              pos=wxPoint(0, 0), size=wxSize(200, 200),
+              style=wxDEFAULT_FRAME_STYLE, title='wxFrame1')
         self._init_utils()
         self.SetClientSize(wxSize(192, 173))
 
-        self.staticText1 = wxStaticText(id = wxID_WXFRAME1STATICTEXT1, label = 'staticText1', name = 'staticText1', parent = self, pos = wxPoint(0, 0), size = wxSize(192, 173), style = 0)
+        self.staticText1 = wxStaticText(id=wxID_TESTFRAMESTATICTEXT1,
+              label='staticText1', name='staticText1', parent=self,
+              pos=wxPoint(0, 0), size=wxSize(192, 173), style=0)
 
     def __init__(self, parent):
         self._init_ctrls(parent)
