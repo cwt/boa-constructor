@@ -438,18 +438,12 @@ class EditorFrame(wxFrame):
         """ Adds the interactive interpreter to the editor """
         if wxPlatform == '__WXGTK__':
             # A panel between the STC and notebook reduces flicker
-            shellEdit, dummy = Utils.wxProxyPanel(self.tabs, ShellEditor.ShellEditor, -1)
-
-##            panel = wxPanel(self.tabs, -1, style=wxTAB_TRAVERSAL | wxCLIP_CHILDREN)
-##            shellEdit = ShellEditor.ShellEditor(panel, -1)
-##            def OnWinSize(evt, win=shellEdit):
-##                win.SetSize(evt.GetSize())
-##            EVT_SIZE(panel, OnWinSize)
-##            self.tabs.AddPage(panel, 'Shell')
+            tabPage, shellEdit = \
+                  Utils.wxProxyPanel(self.tabs, ShellEditor.ShellEditor, -1)
         else:
-            shellEdit = ShellEditor.ShellEditor(self.tabs, -1)
+            shellEdit = tabPage = ShellEditor.ShellEditor(self.tabs, -1)
 
-        self.tabs.AddPage(shellEdit, 'Shell')
+        self.tabs.AddPage(tabPage, 'Shell')
 
         return shellEdit
 
