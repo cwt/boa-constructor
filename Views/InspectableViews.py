@@ -1,3 +1,15 @@
+#-----------------------------------------------------------------------------
+# Name:        InspectableViews.py
+# Purpose:     
+#
+# Author:      Riaan Booysen
+#
+# Created:     2001
+# RCS-ID:      $Id$
+# Copyright:   (c) 2001
+# Licence:     GPL
+#-----------------------------------------------------------------------------
+
 import string, copy, os
 
 from wxPython.wx import *
@@ -131,7 +143,7 @@ class InspectableObjectView(EditorViews.EditorView):
                 if prop.prop_name in comp.dependentProps():
                     self.addDepLink(prop, name, dependents, depLinks)
                 # Collection initialisers
-                elif prop.params[0][:11] == 'self._init_':
+                elif len(prop.params) and prop.params[0][:11] == 'self._init_':
                     collItem = methodparse.CollectionInitParse(prop.params[0])
                     self.addCollView(name, collItem.method, false)
                 # Check for custom evaluator
@@ -147,6 +159,9 @@ class InspectableObjectView(EditorViews.EditorView):
                             value = self.objects[name][1]
                         else:
                             raise
+                    except:
+                        print 'Problem with: %s' % prop.asText()
+                        raise
                     RTTI.getFunction(ctrl, prop.prop_setter)(ctrl, value)
 
             # store default prop vals
