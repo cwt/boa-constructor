@@ -1,6 +1,6 @@
 #Boa:FramePanel:ImageEditorPanel
 
-import os, math, tempfile, StringIO
+import os, math, tempfile, StringIO, string
 
 from wxPython.wx import *
 from wxPython.lib.anchors import LayoutAnchors
