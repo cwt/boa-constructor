@@ -13,6 +13,9 @@
 import pickle
 from os import path
 
+#import sys
+#sys.path.append('..')
+
 from wxPython.wx import *
 from wxPython.ogl import *
 
@@ -79,9 +82,10 @@ incy = 45
 
 class PersistentShapeCanvas(wxShapeCanvas):
     ext = '.lay'
-    def __init__(self, parent):
-        wxShapeCanvas.__init__(self, parent)
-        self.shapes = []
+    def __init__(self, parent, shapes):
+        wxShapeCanvas.__init__(self, parent, style = 0)
+        self.SetBackgroundColour(wxWHITE)
+        self.shapes = shapes
 
     def saveSizes(self, filename):
         '''Build a picklable dictionary of sizes/positions and save.'''
@@ -181,25 +185,29 @@ class PerstDividedShape(wxDividedShape, PerstShape):
             count = count + 1
 
 class ScrollingContainer(wxScrolledWindow):
-    pass
+    def __init__(self, parent):
+        wxScrolledWindow.__init__(self, parent, -1, style = wxSUNKEN_BORDER)
+        self.SetScrollbars(10, 10, 100, 100)
 
-class PersistentOGLView(PersistentShapeCanvas, EditorViews.EditorView):
+class PersistentOGLView(ScrollingContainer, EditorViews.EditorView):
     viewName = 'OGL'
     loadBmp = 'Images/Editor/Open.bmp'
     saveBmp = 'Images/Editor/Save.bmp'
 
     def __init__(self, parent, model, actions = ()):
-        PersistentShapeCanvas.__init__(self, parent)
+        ScrollingContainer.__init__(self, parent)
         EditorViews.EditorView.__init__(self, model,
           (('(Re)load diagram', self.OnLoad, self.loadBmp, ()),
 #           ('tst', self.OnTst, self.loadBmp, ()),
            ('Save diagram', self.OnSave, self.saveBmp, ()))+actions)
 
-        self.SetBackgroundColour(wxWHITE)
-        self.diagram = wxDiagram()
-        self.SetDiagram(self.diagram)
-        self.diagram.SetCanvas(self)
         self.shapes = []
+        self.canvas = PersistentShapeCanvas(self, self.shapes)
+        self.canvas.SetSize(self.GetVirtualSize())
+
+        self.diagram = wxDiagram()
+        self.canvas.SetDiagram(self.diagram)
+        self.diagram.SetCanvas(self.canvas)
 
         self.active = true
 
@@ -208,18 +216,18 @@ class PersistentOGLView(PersistentShapeCanvas, EditorViews.EditorView):
         EditorViews.EditorView.destroy(self)
 
     def destroyShapes(self):
-        self.shapes = []
+        self.shapes[:] = []
         self.diagram.DeleteAllShapes()
 
     def refreshCtrl(self):
         layoutFile = path.splitext(self.model.filename)[0]+self.ext
         if path.exists(layoutFile):
-            self.loadSizes(layoutFile)
+            self.canvas.loadSizes(layoutFile)
 
 
     def newLine(self, dc, fromShape, toShape):
         line = wxLineShape()
-        line.SetCanvas(self)
+        line.SetCanvas(self.canvas)
         line.SetPen(wxBLACK_PEN)
         line.SetBrush(wxBLACK_BRUSH)
         line.AddArrow(ARROW_ARROW)
@@ -233,7 +241,7 @@ class PersistentOGLView(PersistentShapeCanvas, EditorViews.EditorView):
 
     def newRegion(self, font, name, textLst, maxWidth, totHeight = 10):
         region = wxShapeRegion()
-        dc = wxClientDC(self)
+        dc = wxClientDC(self.canvas)
         dc.SetFont(font)
 
         for text in textLst:
@@ -249,7 +257,7 @@ class PersistentOGLView(PersistentShapeCanvas, EditorViews.EditorView):
 
     def addShape(self, shape, x, y, pen, brush, text):
 #        shape.SetDraggable(false)
-        shape.SetCanvas(self)
+        shape.SetCanvas(self.canvas)
         shape.SetX(x)
         shape.SetY(y)
         shape.SetPen(pen)
@@ -270,14 +278,15 @@ class PersistentOGLView(PersistentShapeCanvas, EditorViews.EditorView):
         return len(self.shapes) -1
 
     def OnLoad(self, event):
-        self.loadSizes(path.splitext(self.model.filename)[0]+self.ext)
+        self.canvas.loadSizes(path.splitext(self.model.filename)[0]+self.ext)
 
     def OnSave(self, event):
-        self.saveSizes(path.splitext(self.model.filename)[0]+self.ext)
+        self.canvas.saveSizes(path.splitext(self.model.filename)[0]+self.ext)
 
     def OnTst(self, event):
-        dc = wxClientDC(self)
-        self.diagram.RecentreAll(dc)
+        pass
+##        dc = wxClientDC(self)
+##        self.diagram.RecentreAll(dc)
 
 if wxPlatform == '__WXGTK__':
     boldFont = wxFont(12, wxDEFAULT, wxNORMAL, wxBOLD, false)
@@ -395,8 +404,8 @@ class UMLView(PersistentOGLView):
 
 
     def refreshCtrl(self):
-        dc = wxClientDC(self)
-        self.PrepareDC(dc)
+        dc = wxClientDC(self.canvas)
+        self.canvas.PrepareDC(dc)
 
         self.destroyShapes()
         self.AllClasses = {}
