@@ -61,6 +61,8 @@ class DebuggerConnection:
         ds.queueServerMessage(sm)
         sm.wait(self._getMessageTimeout())
 
+    ### Low-level calls.
+
     def run(self, cmd, globals=None, locals=None):
         '''Starts debugging.  Stops the process at the
         first source line.  Non-blocking.
@@ -152,11 +154,6 @@ class DebuggerConnection:
 ##        ds = self._ds
 ##        ds.clear_all_breaks()
     
-    def getSafeDict(self, locals=0):
-        '''Returns the repr-fied mappings of locals and globals in a
-        tuple. Blocking.'''
-        return self._callMethod('getSafeDict', 0, locals)
-
 ##    def getFrameInfo(self):
 ##        '''Returns a mapping containing the keys:
 ##          filename, lineno, funcname, is_exception.
@@ -164,7 +161,7 @@ class DebuggerConnection:
 ##        '''
 ##        return self._callMethod('getFrameInfo', 0)
 
-##    def getExtendedFrameInfo(self):
+##    def getExtendedFrameInfo(self, frameno=-1):
 ##        '''Returns a mapping containing the keys:
 ##          exc_type, exc_value, stack, frame_stack_len, running.
 ##        stack is a list of mappings containing the keys:
@@ -172,38 +169,17 @@ class DebuggerConnection:
 ##        The most recent stack entry will be at the last
 ##        of the list.  Blocking.
 ##        '''
-##        return self._callMethod('getExtendedFrameInfo', 0)
+##        return self._callMethod('getExtendedFrameInfo', 0, frameno)
 
-    def evaluateWatches(self, exprs):
-        '''Evalutes the watches listed in exprs and returns the
-        results. Input is a tuple of mappings with keys name and
-        local, output is a mapping of name -> svalue.  Blocking.
-        '''
-        return self._callMethod('evaluateWatches', 0, exprs)
+##    def getVariablesAndWatches(self, exprs, frameno=-1):
+##        '''Combines the output from getSafeLocalsAndGlobals() and
+##        evaluateWatches().  Blocking.
+##        '''
+##        return self._callMethod('getVariablesAndWatches', 0, exprs, frameno)
 
-    def getVariablesAndWatches(self, exprs):
-        '''Combines the output from getSafeLocalsAndGlobals() and
-        evaluateWatches().  Blocking.
-        '''
-        return self._callMethod('getVariablesAndWatches', 0, exprs)
-
-    def getWatchSubobjects(self, expr):
-        '''Returns a tuple containing the names of subobjects
-        available through the given watch expression.'''
-        return self._callMethod('getWatchSubobjects', 0, expr)
-
-    def setWatchQueryFrame(self, n):
-        '''Temporarily causes watch queries to work on a frame other
-        than the topmost.  n corresponds to the stack entry number
-        from the result of calling getInteractionUpdate().
-        '''
-        # TODO: This functionality needs to be replaced
-        # with a parameter to the watch methods.
-        self._callNoWait('setWatchQueryFrame', 0, n)
-
-    def pprintVarValue(self, name):
+    def pprintVarValue(self, name, frameno=-1):
         '''Pretty-prints the value of name.'''
-        return self._callMethod('pprintVarValue', 0, name)
+        return self._callMethod('pprintVarValue', 0, name, frameno)
 
     def getInteractionUpdate(self):
         '''Returns a mapping containing the keys:
@@ -223,6 +199,43 @@ class DebuggerConnection:
         '''Terminates the connection to the DebugServer.'''
         self.set_quit()
         self._controller._deleteServer(self._id)
+
+    ### High-level calls (perform one or more of the above functions
+    ### and return a standardized mapping)
+
+    def proceedAndRequestStatus(self, command):
+        '''Executes one non-blocking command then returns
+        getInteractionUpdate().'''
+        if command not in ('set_continue', 'set_step', 'set_step_over',
+                           'set_step_out', 'set_quit'):
+            raise DebugError('Illegal command')
+        getattr(self, command)()
+        return self.getInteractionUpdate()
+
+    def runFileAndRequestStatus(self, filename, params=(), breaks=None):
+        '''Calls setAllBreakpoints(), runFile(), and
+        getInteractionUpdate().'''
+        if breaks:
+            self.setAllBreakpoints(breaks)
+        self.runFile(filename, params)
+        return self.getInteractionUpdate()
+
+    def getSafeDict(self, locals=0, frameno=-1):
+        '''Returns the repr-fied mappings of locals and globals in a
+        tuple. Blocking.'''
+        return self._callMethod('getSafeDict', 0, locals, frameno)
+
+    def evaluateWatches(self, exprs, frameno=-1):
+        '''Evalutes the watches listed in exprs and returns the
+        results. Input is a tuple of mappings with keys name and
+        local, output is a mapping of name -> svalue.  Blocking.
+        '''
+        return self._callMethod('evaluateWatches', 0, exprs, frameno)
+
+    def getWatchSubobjects(self, expr, frameno=-1):
+        '''Returns a tuple containing the names of subobjects
+        available through the given watch expression.'''
+        return self._callMethod('getWatchSubobjects', 0, expr, frameno)
 
 
 class DebuggerController:
@@ -410,7 +423,6 @@ class DebugServer (Bdb):
     def cleanupServer(self):
         self.reset()
         self.frame = None
-        self.query_frame = None
         self.exc_info = None
 
     def topServerLoop(self, started=0):
@@ -530,7 +542,6 @@ class DebugServer (Bdb):
         # This method is called when we stop or break at a line
         self.ignore_stopline = -1
         self.frame = frame
-        self.query_frame = frame
         self.exc_info = None
         self.serverLoop()
 	
@@ -545,7 +556,6 @@ class DebugServer (Bdb):
         # when specific exception types occur.
         #self.ignore_stopline = -1
         #self.frame = frame
-        #self.query_frame = frame
         #self.exc_info = exc_info
         #self.serverLoop()
         pass
@@ -559,7 +569,7 @@ class DebugServer (Bdb):
         # XXX This is imperfect.
         sys.argv = (filename,) + tuple(params)
         
-        self.run("execfile(fn, d)", {'d':d, 'fn':filename})
+        self.run("execfile(fn, d)", {'fn':filename, 'd':d})
 
     def run(self, cmd, globals=None, locals=None):
         exc = None
@@ -569,19 +579,12 @@ class DebugServer (Bdb):
                 Bdb.run(self, cmd, globals, locals)
             except:
                 # Provide post-mortem analysis.
-                self.exc_info = exc = sys.exc_info()
-                tb = exc[2]
-                self.frame = tb.tb_frame
-                self.query_frame = self.frame
-                tb = None
-                exc = None
+                self.exc_info = sys.exc_info()
+                self.frame = self.exc_info[2].tb_frame
                 self.serverLoop()
         finally:
             self._running = 0
             self.cleanupServer()
-            # Kill circ. refs
-            tb = None
-            exc = None
 
     def isRunning(self):
         return self._running
@@ -603,9 +606,9 @@ class DebugServer (Bdb):
             raise DebugError('No current frame')
 
 ##    def getFrameInfo(self):
-##        if self.query_frame is None:
+##        if self.frame is None:
 ##            return None
-##        frame = self.query_frame
+##        frame = self.frame
 ##        code = frame.f_code
 ##        co_name = code.co_name
 ##        file = code.co_filename
@@ -613,7 +616,7 @@ class DebugServer (Bdb):
 ##        return {'filename':file, 'lineno':lineno, 'funcname':co_name,
 ##                'is_exception':(not not self.exc_info)}
 
-    def getStackInfo(self, prune_exceptions=0):
+    def getStackInfo(self):
         try:
             if self.exc_info is not None:
                 exc_type, exc_value, exc_tb = self.exc_info
@@ -626,7 +629,7 @@ class DebugServer (Bdb):
                     exc_value = self.safeRepr(exc_value)
                 stack, frame_stack_len = self.get_stack(
                     exc_tb.tb_frame, exc_tb)
-                if prune_exceptions:
+                if 0:
                     # Remove the part before the exception handler.
                     stack = stack[frame_stack_len + 1:]
                     frame_stack_len = len(stack)
@@ -640,6 +643,16 @@ class DebugServer (Bdb):
             return exc_type, exc_value, stack, frame_stack_len
         finally:
             exc_tb = None
+            stack = None
+
+    def getQueryFrame(self, frameno):
+        try:
+            stack = self.getStackInfo()[2]
+            if stack:
+                return stack[frameno][0]
+            else:
+                return None
+        finally:
             stack = None
 
     def getExtendedFrameInfo(self):
@@ -692,27 +705,34 @@ class DebugServer (Bdb):
         rval['breaks'] = self.getBreakpointStats()
         return rval
 
-    def getSafeLocalsAndGlobals(self):
-        if self.query_frame is None:
-            return ({}, {})
-        l = self.safeReprDict(self.query_frame.f_locals)
-        g = self.safeReprDict(self.query_frame.f_globals)
-        return (l, g)
+##    def getSafeLocalsAndGlobals(self, frameno):
+##        query_frame = self.getQueryFrame(frameno)
+##        if query_frame is None:
+##            return ({}, {})
+##        l = self.safeReprDict(query_frame.f_locals)
+##        g = self.safeReprDict(query_frame.f_globals)
+##        return (l, g)
 
-    def getSafeDict(self, locals):
-        if self.query_frame is None:
-            return {}
+    def getSafeDict(self, locals, frameno):
         if locals:
-            d = self.safeReprDict(self.query_frame.f_locals)
+            rname = 'locals'
         else:
-            d = self.safeReprDict(self.query_frame.f_globals)
-        return d
+            rname = 'globals'
+        query_frame = self.getQueryFrame(frameno)
+        if query_frame is None:
+            return {'frameno':frameno, rname:None}
+        if locals:
+            d = self.safeReprDict(query_frame.f_locals)
+        else:
+            d = self.safeReprDict(query_frame.f_globals)
+        return {'frameno':frameno, rname:d}
 
-    def evaluateWatches(self, exprs):
-        if self.query_frame is None:
-            return None
-        localsDict = self.query_frame.f_locals
-        globalsDict = self.query_frame.f_globals
+    def evaluateWatches(self, exprs, frameno):
+        query_frame = self.getQueryFrame(frameno)
+        if query_frame is None:
+            return {'frameno':frameno, 'watches':None}
+        localsDict = query_frame.f_locals
+        globalsDict = query_frame.f_globals
         rval = {}
         for info in exprs:
             name = info['name']
@@ -730,19 +750,22 @@ class DebugServer (Bdb):
                     value = '??? (%s)' % message
             svalue = self.safeRepr(value)
             rval[name] = svalue
-        return rval
+        return {'frameno':frameno, 'watches':rval}
 
-    def getVariablesAndWatches(self, expr):
-        # Generate a three-element tuple.
-        result = (self.getSafeLocalsAndGlobals() +
-                  (self.evaluateWatches(expr),))
-        return result
+##    def getVariablesAndWatches(self, expr):
+##        # Generate a three-element tuple.
+##        result = (self.getSafeLocalsAndGlobals() +
+##                  (self.evaluateWatches(expr),))
+##        return result
 
-    def getWatchSubobjects(self, expr):
+    def getWatchSubobjects(self, expr, frameno):
         '''Returns a tuple containing the names of subobjects
         available through the given watch expression.'''
-        localsDict = self.query_frame.f_locals
-        globalsDict = self.query_frame.f_globals
+        query_frame = self.getQueryFrame(frameno)
+        if query_frame is None:
+            return []
+        localsDict = query_frame.f_locals
+        globalsDict = query_frame.f_globals
         try: inst_items = dir(eval(expr, globalsDict, localsDict))
         except: inst_items = []
         try: clss_items = dir(eval(expr, globalsDict, localsDict)
@@ -750,28 +773,21 @@ class DebugServer (Bdb):
         except: clss_items = []
         return inst_items + clss_items
 
-    def setWatchQueryFrame(self, n):
-        try:
-            (exc_type, exc_value, stack,
-             frame_stack_len) = self.getStackInfo()
-##            if n == len(stack) - 1:
-##                self.query_frame = self.frame
-##            else:
-            self.query_frame, lineno = stack[n]
-        finally:
-            stack = None
-
-    def pprintVarValue(self, name):
-        if self.query_frame:
-            frame = self.query_frame
-            l, g = frame.f_locals, frame.f_globals
-            if l.has_key(name): d = l
-            elif g.has_key(name): d = g
-            else: return ''
-#            return self.repr.repr(d[name])
-            return pprint.pformat(d[name])
-        else:
+    def pprintVarValue(self, name, frameno):
+        query_frame = self.getQueryFrame(frameno)
+        if query_frame is None:
             return ''
+        else:
+            try:
+                l = query_frame.f_locals
+                g = query_frame.f_globals
+                if l.has_key(name): d = l
+                elif g.has_key(name): d = g
+                else: return ''
+                return pprint.pformat(d[name])
+            except:
+                t, v = sys.exc_info()[:2]
+                return str(v)
 
     def safeRepr(self, s):
         return self.repr.repr(s)

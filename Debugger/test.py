@@ -8,6 +8,8 @@ def test1():
 def test():
     print 'Hello'
     print 'World!'
+    for n in range(10000):
+        pass
     print 'Message:'
     test1()
     print 'Bye.'
