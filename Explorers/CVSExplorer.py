@@ -169,12 +169,13 @@ class CVSController(ExplorerNodes.Controller):
               %(os.environ.get('CVSROOT', '(not defined)'),
                 os.environ.get('CVS_RSH', '(not defined)'), inDir, help),
               'CVS command line', wholeCommand)
-        te = Utils.getCtrlsFromDialog(dlg, 'wxTextCtrlPtr')[0]
-        try:
-            te.SetSelection(string.index(wholeCommand, '['), 
-                            string.index(wholeCommand, ']')+1)
-        except ValueError:
-            te.SetInsertionPoint(len(wholeCommand))
+        if wxPlatform == '__WXMSW__':
+            te = Utils.getCtrlsFromDialog(dlg, 'wxTextCtrlPtr')[0]
+            try:
+                te.SetSelection(string.index(wholeCommand, '['), 
+                                string.index(wholeCommand, ']')+1)
+            except ValueError:
+                te.SetInsertionPoint(len(wholeCommand))
         
         
         try:
