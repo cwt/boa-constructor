@@ -42,9 +42,10 @@ about_html = '''
 '''
 progress_text = '''<p>
 <wxp class="wxStaticText">
-  <param name="label" value="-                                                                -">
+  <param name="label" value="  ">
   <param name="id"    value="%d">
-  <param name="style" value="wxALIGN_CENTER | wxCLIP_CHILDREN">
+  <param name="style" value="wxALIGN_CENTER | wxCLIP_CHILDREN | wxST_NO_AUTORESIZE">
+  <param name="size"  value="wxSize(352, 20)">
 </wxp>
 <wxp class="wxWindow">
   <param name="id"    value="%d">
@@ -80,7 +81,7 @@ PythonInterpreter.py by Fredrik Lundh<br>
 Debugger based on IDLE's debugger by Guido van Rossum<br>
 Mozilla, Delphi, WinCVS for iconic inspirations<br>
 Cyclops, ndiff, reindent by Tim Peters<br>
-Client.py, WebDAV and DateTime package from Digital Creations for Zope integration<br>
+Client.py, WebDAV and DateTime package from Zope Corporation for Zope integration<br>
 PyChecker by Neal Norwitz & Eric C. Newton<br>
 py2exe by Thomas Heller<br>
 babeliser.py by Jonathan Feinberg and Babelfish for translation<br>
@@ -90,7 +91,7 @@ Mike Fletcher for reports, ideas and patches (MakePy dialog and much improved UM
 Kevin Light for reports, fixes and ideas.
 <p>
 <b>Boa interfaces with the following external applications, thanks to their authors</b><br>
-Zope, CVS, SSH, SCP, PuttySCP<br>
+Zope, CVS, SSH, SCP<br>
 <p>
 Last but not least, a very big thank you to <a href="TBS">Tangible Business Software</a> for partially
 sponsoring my time on this project.<br>
@@ -233,10 +234,12 @@ class AboutBoxSplash(AboutBoxMixin, wxFrame):
 
         self.label = self.FindWindowById(self.progressId)
         self.label.SetBackgroundColour(wxWHITE)
+        parentWidth = self.label.GetParent().GetClientSize().x
+        self.label.SetSize((parentWidth - 40, self.label.GetSize().y))
+
         gaugePrnt = self.FindWindowById(self.gaugePId)
         gaugePrnt.SetBackgroundColour(wxColour(0x99, 0xcc, 0xff))
         gaugeSze = gaugePrnt.GetClientSize()
-
         self.gauge = wxGauge(gaugePrnt, -1,
               range=self.moduleTotal+self.fileTotal*self.fileOpeningFactor,
               style=wxGA_HORIZONTAL|wxGA_SMOOTH,
@@ -279,7 +282,7 @@ class AboutBoxSplash(AboutBoxMixin, wxFrame):
             cnt = event.cnt
             if event.tpe == 'opening':
                 cnt = cnt * self.fileOpeningFactor + self.moduleTotal
-            self.gauge.SetValue(cnt)
+            self.gauge.SetValue(min(self.gauge.GetRange(), cnt))
 
 class StaticTextPF(Utils.PseudoFile):
     def write(self, s):
