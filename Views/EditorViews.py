@@ -9,7 +9,7 @@
 # Copyright:   (c) 1999, 2000 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
-
+print 'importing Views'
 # So many views
 # on the same thing
 # facets, aspects, perspectives
@@ -20,11 +20,9 @@ from os import path
 from wxPython.wx import *
 from wxPython.html import *
 
-import Search, Preferences, Utils
+import Search, Preferences, Utils, EditorHelper
 from moduleparse import CodeBlock
-from Preferences import IS, staticInfoPrefs
-from Preferences import keyDefs
-#from thread import start_new_thread
+from Preferences import IS, staticInfoPrefs, keyDefs
 
 wxwHeaderTemplate ='''<html> <head>
    <title>%(Title)s</title>
@@ -129,17 +127,18 @@ class EditorView:
             dt = Utils.BoaFileDropTarget(model.editor)
             self.SetDropTarget(dt)
 
-        self.menu = wxMenu()
-        self.editorMenu = wxMenu()
+##        self.menu = wxMenu()
+##        self.editorMenu = wxMenu()
         self.popx = self.popy = 0
         
         self.canExplore = false
 
         self.defaultActionIdx = dclickActionIdx
         self.accelLst = []
+        self.menuDefn = []
 
         # Build Edit/popup menu and accelerator list
-        for name, meth, bmp, accl in actions:
+        for name, meth, bmp, accl in self.actions:
             if name == '-': wId = -1
             else: wId = wxNewId()
 
@@ -150,11 +149,10 @@ class EditorView:
                 canCheck = false
 
             if accl:
-#                name = name + (accl[2] and '     <'+accl[2]+'>' or '')
                 name = name + (accl[2] and '\t'+accl[2] or '')
 
-            self.menu.Append(wId, name, checkable = canCheck)
-            self.editorMenu.Append(wId, name, checkable = canCheck)
+            self.menuDefn.append( (wId, name, canCheck) )
+
             if wId != -1:
                 self.methodsIds.append( (wId, meth) )
             if accl: self.accelLst.append( (accl[0], accl[1], wId) )
@@ -162,7 +160,16 @@ class EditorView:
         # Connect default action of the view to doubleclick on view
         if not overrideDClick and dclickActionIdx < len(actions) and dclickActionIdx > -1:
             EVT_LEFT_DCLICK(self, actions[dclickActionIdx][1])
-
+    
+    def generateMenu(self):
+        menu = wxMenu()
+        for wId, name, canCheck in self.menuDefn:        
+            menu.Append(wId, name, checkable = canCheck)
+        return menu
+    
+    def addViewMenus(self):
+        return self.generateMenu(), self.accelLst
+    
     def connectEvts(self):
         for wId, meth in self.methodsIds:
             EVT_MENU(self, wId, meth)
@@ -178,8 +185,8 @@ class EditorView:
 ##        print 'destroy', self.__class__.__name__, sys.getrefcount(self)
         self.disconnectEvts()
         
-        self.menu.Destroy()
-        self.editorMenu.Destroy()
+##        self.menu.Destroy()
+##        self.editorMenu.Destroy()
         self.model = None
         del self.actions
 
@@ -245,13 +252,11 @@ class EditorView:
         self.model.notify()
 
     def focus(self, refresh = true):
-        self.notebook.SetSelection(self.pageIdx)
+        if hasattr(self, 'notebook'):
+            self.notebook.SetSelection(self.pageIdx)
         if refresh:
 ##            self.notebook.Refresh()
             self.SetFocus()
-
-    def setReadOnly(self, val):
-        self.readOnly = val
 
     def saveNotification(self):
         pass
@@ -286,7 +291,9 @@ class EditorView:
         self.popy = event.GetY()
 
     def OnRightClick(self, event):
-        self.PopupMenu(self.menu, wxPoint(event.GetX(), event.GetY()))
+        menu = self.generateMenu()
+        event.GetEventObject().PopupMenuXY(menu, event.GetX(), event.GetY())
+        menu.Destroy()
 
 class TestView(wxTextCtrl, EditorView):
     viewName = 'Test'
@@ -460,7 +467,7 @@ class ClosableViewMix:
 
     def __init__(self, hint = 'results'):
         self.closingActionItems = ( ('Close '+ hint, self.OnClose,
-                                     self.closeBmp, keyDefs['Close']), )
+                                     self.closeBmp, keyDefs['CloseView']), )
 
     def OnClose(self, event):
         del self.closingActionItems
@@ -496,20 +503,20 @@ class CyclopsView(HTMLView, ClosableViewMix):
                     pack = []
 
             for dirname in sys.path:
-                fullname = path.abspath(os.path.join(dirname, mod+'.py'))
-                if path.exists(fullname):
+                fullname = os.path.abspath(os.path.join(dirname, mod+'.py'))
+                if os.path.exists(fullname):
                     found = fullname
                     break
                 else:
                     pckPth = string.join(pack, '/')
-                    fullname = path.abspath(path.join(dirname, pckPth, mod+'.py'))
+                    fullname = os.path.abspath(os.path.join(dirname, pckPth, mod+'.py'))
                     if os.path.exists(fullname):
                         found = fullname
                         break
 
             else: return
 
-            model = self.model.editor.openOrGotoModule(fullname)
+            model, controller = self.model.editor.openOrGotoModule(fullname)
             module = model.getModule()
             if jumpType == 'classlink':
                 lineno = module.classes[clss].block.start
@@ -536,9 +543,12 @@ class CyclopsView(HTMLView, ClosableViewMix):
 
     def OnSaveReport(self, event):
         fn, suc = self.model.editor.saveAsDlg(\
-          path.splitext(self.model.filename)[0]+'.cycles', '*.cycles')
-        if suc and self.stats:
-            pass
+          os.path.splitext(self.model.filename)[0]+'.cycles', '*.cycles')
+        if suc:
+            from Explorers.Explorer import openEx
+            transport = openEx(fn)
+            transport.save(transport.resourcepath, self.report, 'w')
+            
 
 # XXX Add addReportColumns( list of name, width tuples) !
 class ListCtrlView(wxListCtrl, EditorView):
@@ -755,14 +765,14 @@ class ToDoView(ListCtrlView):
             module = self.model.getModule()
             srcView.gotoLine(int(module.todos[self.selected][0]) -1)
 
-tPopupIDPackageOpen = 300
-
 class PackageView(ListCtrlView):
     viewName = 'Package'
+    findBmp = 'Images/Shared/Find.bmp'
+
     def __init__(self, parent, model):
         ListCtrlView.__init__(self, parent, model, wxLC_LIST,
-          (('Open', self.OnOpen, '-', ()),), 0)
-
+          (('Open', self.OnOpen, '-', ()),
+           ('Find', self.OnFind, self.findBmp, keyDefs['Find']),), 0)
         self.SetImageList(model.editor.modelImageList, wxIMAGE_LIST_SMALL)
 
     def refreshCtrl(self):
@@ -770,20 +780,24 @@ class PackageView(ListCtrlView):
 
         self.filenames = {}
         self.packageFiles = self.model.generateFileList()
-        self.packageFiles.reverse()
-        for file in self.packageFiles:
-            self.filenames[file[0]] = file[1]
-            self.InsertImageStringItem(0, file[0], file[1].imgIdx)
+        for itm in self.packageFiles:
+            name = os.path.splitext(itm.treename or itm.name)[0]
+            self.InsertImageStringItem(self.GetItemCount(), name, itm.imgIdx)
+            self.filenames[name] = itm
 
     def OnOpen(self, event):
         if self.selected >= 0:
             name = self.GetItemText(self.selected)
-            modCls = self.filenames[name]
-            if modCls.defaultName == 'package':
+            item = self.filenames[name]
+            if item.imgIdx == EditorHelper.imgPackageModel:
                 self.model.openPackage(name)
             else:
                 self.model.openFile(name)
 
+    def OnFind(self, event):
+        import FindReplaceDlg
+        FindReplaceDlg.find(self, self.model.editor.finder, self)
+        
 class InfoView(wxTextCtrl, EditorView):
     viewName = 'Info'
 
@@ -793,10 +807,6 @@ class InfoView(wxTextCtrl, EditorView):
         self.active = true
         self.model = model
         self.SetFont(wxFont(9, wxMODERN, wxNORMAL, wxNORMAL, false))
-
-    def setReadOnly(self, val):
-        EditorView.readOnly(self, val)
-        self.SetEditable(val)
 
     def refreshCtrl(self):
         pass
@@ -819,13 +829,14 @@ class ExploreView(wxTreeCtrl, EditorView):
         EditorView.__init__(self, model, (('Goto line', self.OnGoto, self.gotoLineBmp, ()),), 0)
 
         self.tokenImgLst = wxImageList(16, 16)
-        self.tokenImgLst.Add(IS.load('Images/Views/Explore/class.bmp'))
-        self.tokenImgLst.Add(IS.load('Images/Views/Explore/method.bmp'))
-        self.tokenImgLst.Add(IS.load('Images/Views/Explore/event.bmp'))
-        self.tokenImgLst.Add(IS.load('Images/Views/Explore/function.bmp'))
-        self.tokenImgLst.Add(IS.load('Images/Views/Explore/attribute.bmp'))
-        self.tokenImgLst.Add(IS.load('Images/Modules/'+self.model.bitmap))
-        self.tokenImgLst.Add(IS.load('Images/Views/Explore/global.bmp'))
+        for exploreImg in ('Images/Views/Explore/class.bmp',
+                           'Images/Views/Explore/method.bmp',
+                           'Images/Views/Explore/event.bmp',
+                           'Images/Views/Explore/function.bmp',
+                           'Images/Views/Explore/attribute.bmp',
+                           'Images/Modules/'+self.model.bitmap,
+                           'Images/Views/Explore/global.bmp'):
+            self.tokenImgLst.AddWithColourMask(IS.load(exploreImg), wxColour(255, 0, 255))
         self.SetImageList(self.tokenImgLst)
 
         self.active = true
@@ -915,10 +926,11 @@ class HierarchyView(wxTreeCtrl, EditorView):
           (('Goto line', self.OnGoto, self.gotoLineBmp, ()),), 0)
 
         self.tokenImgLst = wxImageList(16, 16)
-        self.tokenImgLst.Add(IS.load('Images/Views/Hierarchy/inherit.bmp'))
-        self.tokenImgLst.Add(IS.load('Images/Views/Hierarchy/inherit_base.bmp'))
-        self.tokenImgLst.Add(IS.load('Images/Views/Hierarchy/inherit_outside.bmp'))
-        self.tokenImgLst.Add(IS.load('Images/Modules/'+self.model.bitmap))
+        for hierImg in ('Images/Views/Hierarchy/inherit.bmp',
+                        'Images/Views/Hierarchy/inherit_base.bmp',
+                        'Images/Views/Hierarchy/inherit_outside.bmp',
+                        'Images/Modules/'+self.model.bitmap):
+            self.tokenImgLst.AddWithColourMask(IS.load(hierImg), wxColour(255, 0, 255))
 
         self.SetImageList(self.tokenImgLst)
 
@@ -994,4 +1006,3 @@ class DistUtilView(wxPanel, EditorView):
 #      parent/child relationship tree hosted in inspector
 
 #class XMLView(wxTextCtrl, EditorView) -> FrameM
-   
