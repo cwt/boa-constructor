@@ -19,7 +19,7 @@ class ThreadedTaskHandler:
         task is a callable object which will be executed in another
         thread.
         '''
-        if 0:
+        if 0:  # Set to 1 to get equivalent but slower processing.
             if kw is None: kw = {}
             t = threading.Thread(target=task, args=args, kwargs=kw)
             t.setDaemon(1)
@@ -43,13 +43,10 @@ class ThreadedTaskHandler:
         finally:
             cond.release()
 
-    def cleanup(self):
-        """If there is a need to make sure the number of threads is
-        kept under control, call this periodically."""
-        if self.running_threads > self.target_threads:
-            self.cond.notifyAll()
-
     def clientThread(self):
+        '''
+        Performs tasks.
+        '''
         exit_loop = 0
         while not exit_loop:
             task = args = kw = None
@@ -58,14 +55,15 @@ class ThreadedTaskHandler:
             try:
                 queue = self.queue
                 if len(queue) < 1:
-                    self.idle_threads = self.idle_threads + 1
-                    cond.wait()
+                    if self.running_threads > self.target_threads:
+                        exit_loop = 1
+                        self.running_threads = self.running_threads - 1
+                    else:
+                        self.idle_threads = self.idle_threads + 1
+                        cond.wait()
                 if len(queue) > 0:
                     task, args, kw = queue[0]
                     del queue[0]
-                if self.running_threads > self.target_threads:
-                    exit_loop = 1
-                    self.running_threads = self.running_threads - 1
             finally:
                 cond.release()
 
@@ -91,7 +89,7 @@ if __name__ == '__main__':
     tth = ThreadedTaskHandler()
     start = 0
     end = 0
-    # Speed test.
+
     class SpeedTest:
         def __init__(self, count):
             self.count = count
@@ -103,6 +101,7 @@ if __name__ == '__main__':
                 evt.set()
             else:
                 tth.addTask(self)
+
     count = 1000
     t = SpeedTest(count)
     start = time()
