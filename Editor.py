@@ -1125,8 +1125,19 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
                 self.setupToolBar(sel)
                 if sel == 1:
                     self.editorUpdateNotify()
+            
+            if event: event.Skip()
+            # focus the active page
+            if sel > 1:
+                wxCallAfter(self.focusView, sel)
 
-        if event: event.Skip()
+    def focusView(self, sel):
+        page = self.tabs.GetPage(sel)
+        if page.__class__.__name__ != 'Notebook':
+            page = page.GetChildren()[0]
+        
+        view = page.GetPage(page.GetSelection())
+        view.SetFocus()
 
 #---Help events-----------------------------------------------------------------
     def OnHelp(self, event):
