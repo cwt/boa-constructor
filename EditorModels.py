@@ -171,14 +171,14 @@ class EditorModel:
         self.modified = not saved
         self.viewsModified = []
         
-        self.objCnt = self.objCnt + 1
+##        self.objCnt = self.objCnt + 1
     
-    def __del__(self):
-        self.objCnt = self.objCnt - 1
-        print '__del__', self.__class__.__name__
+##    def __del__(self):
+##        self.objCnt = self.objCnt - 1
+##        print '__del__', self.__class__.__name__
 
     def destroy(self):
-        print 'destroy', self.__class__.__name__
+#        print 'destroy', self.__class__.__name__
 #        for i in self.views.values():
 #            print sys.getrefcount(i)
         
@@ -494,15 +494,15 @@ class ModuleModel(SourceModel):
 
     def getModule(self):
         if self._module is None:
-            t1 = time()
+#            t1 = time()
             wx.wxBeginBusyCursor()
             try:
                 self._module = moduleparse.Module(
                     self.moduleName, string.split(self.data, '\012'))
             finally:
                 wx.wxEndBusyCursor()
-            t2 = time()
-            print 'parse module', t2 - t1
+#            t2 = time()
+#            print 'parse module', t2 - t1
         return self._module
         
     def initModule(self):
@@ -566,10 +566,13 @@ class ModuleModel(SourceModel):
             sys.stderr = ErrorStack.RecFile()
             try:
                 try:
-                    cmr = ModRunner.CompileModuleRunner(self.filename)
+                    cmr = ModRunner.CompileModuleRunner(self.editor, self.app)
+                    cmr.run(self.filename)
                 except:
                     print 'Compile Exception!'
                     raise
+                else:
+                    print 'Compiled Successfully'
                 serr = ErrorStack.errorList(sys.stderr)
                 cmr.checkError(serr, 'Compiled')
             finally:
@@ -699,7 +702,6 @@ class ZopeDocumentModel(EditorModel):
     
     def save(self):
         """ Saves contents of data to file specified by self.filename. """
-        print self.filename
         if self.filename:
             self.zopeConn.save(self.zopeObj, self.data)
             self.modified = false
@@ -865,7 +867,6 @@ class ObjectCollection:
         """ Merge another object collection with this one """
 
         def mergeList(myLst, newLst):
-            print 'mergeList', newLst, myLst
             for item in newLst:
                 myLst.append(item)
         
@@ -1023,7 +1024,6 @@ class BaseFrameModel(ClassModel):
         if module.classes.has_key(self.main):
             main = module.classes[self.main]
             for meth in main.methods.keys():
-                print meth, 
                 if len(meth) > len('_init_') and meth[:6] == '_init_':
                     results.append(meth)
         return results
@@ -1127,8 +1127,6 @@ class BaseFrameModel(ClassModel):
             if match:
                 winIdIdx = idx
                 break
-        
-        print 'writeWindowIds', winIdIdx
         
         # build window id list
         lst = []
