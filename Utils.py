@@ -144,3 +144,84 @@ def ctrlNameFromSrcRef(srcRef):
 def winIdRange(count):
     return map(lambda x: wxNewId(), range(count))            
           
+
+class PaintEventHandler(wxEvtHandler):
+    """ This class is used to merge paint reqeusts. Each paint is 
+    captured and saved. Later on the idle event, the non-duplicated
+    paints are executed. The code attempts to be efficient by determining
+    the enclosing rectangle where multiple rectangles intersect.
+    This is required only on GTK systems.
+   
+    Note: there is an assumption here that event handling is synchronous
+    i.e. the paints called from the idle event handler are processed
+    before the Refresh() call returns."""
+
+    def __init__(self, window):
+        wxEvtHandler.__init__(self)
+        self.painting=0
+        self.updates=[]
+        self.window = window
+        window.PushEventHandler(self)
+        EVT_PAINT(self, self.OnPaint)
+        EVT_IDLE(self, self.OnIdle)
+    def OnPaint(self, event):
+        if self.painting == 1:
+            event.Skip()
+            return
+        newRect = self.window.GetUpdateRegion().GetBox()
+        newList=[]
+        for rect in self.updates:
+            if self.RectanglesOverlap(rect, newRect):
+                newRect = self.MergeRectangles(rect,newRect)
+            else:
+                newList.append(rect)
+        self.updates = newList
+        self.updates.append(newRect)
+    def OnIdle(self, event):
+        if len(self.updates) == 0:
+            event.Skip()
+            if len(self.updates) > 0:
+                self.RequestMore()
+            return
+        self.painting=1
+        for rect in self.updates:
+            self.window.Refresh(0, rect)
+        self.updates=[]
+        self.painting=0
+        event.Skip()
+    def RectanglesOverlap(self, rect1, rect2):
+        " Returns 1 if Rectangles overlap, 0 otherwise "
+        if rect1.x > rect2.x + rect2.width : return 0
+        if rect1.y > rect2.y + rect2.height : return 0
+        if rect1.x + rect1.width < rect2.x : return 0
+        if rect1.y + rect1.height < rect2.y : return 0
+        return 1
+    def MergeRectangles(self, rect1, rect2):
+        " Returns a rectangle containing both rect1 and rect2"
+        if rect1.x < rect2.x:
+            x=rect1.x
+            if x+rect1.width > rect2.x + rect2.width:
+                width = rect1.width
+            else:
+                width = rect2.x + rect2.width - rect1.x
+        else:
+            x=rect2.x
+            if x+rect2.width > rect1.x + rect1.width:
+                width = rect2.width
+            else:
+                width = rect1.x + rect1.width - rect2.x
+        if rect1.y < rect2.y:
+            y=rect1.y
+            if y+rect1.height > rect2.y + rect2.height:
+                height = rect1.height
+            else:
+                height = rect2.y + rect2.height - rect1.y
+        else:
+            y=rect2.y
+            if y+rect2.height > rect1.y + rect1.height:
+                height = rect2.height
+            else:
+                height = rect1.y + rect1.height - rect2.y
+        rv = wxRect(x, y, width, height)
+        return rv
+
