@@ -37,13 +37,15 @@ if Preferences.csWxPythonSupport:
 
     from Companions.FrameCompanions import *
     from Companions.ContainerCompanions import *
+    if Preferences.dsUseSizers:
+        from Companions.SizerCompanions import *
     from Companions.BasicCompanions import *
     from Companions.ButtonCompanions import *
     from Companions.ListCompanions import *
     from Companions.GizmoCompanions import *
+    from Companions.LibCompanions import *
     if Utils.IsComEnabled():
         from Companions.ComCompanions import *
-    from Companions.LibCompanions import *
     # Define and add a User page to the palette
     PaletteStore.paletteLists['User'] = upl = []
     PaletteStore.palette.append(['User', 'Editor/Tabs/User', upl])
@@ -117,11 +119,6 @@ if Preferences.pluginPaths:
                 wxLogError('Problem executing plug-in %s:\n%s' %\
                     (pluginBasename, str(error)) )
             # else ignore
-
-#-------------------------------------------------------------------------------
-# called after all models have been imported and plugins executed
-EditorHelper.initExtMap()
-#-------------------------------------------------------------------------------
 
 # XXX legacy references
 palette = PaletteStore.palette
