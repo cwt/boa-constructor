@@ -33,6 +33,7 @@ from Utils import AddToolButtonBmpIS
 from time import time, gmtime, strftime
 from stat import *
 from PrefsKeys import keyDefs
+#from Filenames import fixcase
 
 #from wxPython.lib.dialogs import wxScrolledMessageDialog
 import wxPython
@@ -224,6 +225,7 @@ class EditorModel:
         """ Saves contents of data to file specified by filename.
             Override this to catch name changes. """
         self.filename = filename
+##        self.getDisplayName(1)
         self.save()
         self.savedAs = true
             
@@ -242,6 +244,19 @@ class EditorModel:
 
     def getPageName(self):
         return path.splitext(path.basename(self.filename))[0]
+##        return path.splitext(path.basename(self.getDisplayName()))[0]
+        
+##    def getDisplayName(self, recompute=1):
+##        dn = getattr(self, 'display_name', None)
+##        if recompute or not dn:
+##            dn = self.filename
+##            try:
+##                dn = fixcase(self.filename)
+##            except:
+##                pass
+##            self.display_name = dn
+##        return dn
+
 
 class FolderModel(EditorModel):
     modelIdentifier = 'Folder'
@@ -477,6 +492,7 @@ class ModuleModel(SourceModel):
     def __init__(self, data, name, editor, saved, app = None):
         SourceModel.__init__(self, name, data, editor, saved)
         self.moduleName = path.split(self.filename)[1]
+##        self.moduleName = path.split(self.getDisplayName())[1]
         self.app = app
         self.debugger = None
         if data: self.update()
@@ -625,7 +641,8 @@ class ModuleModel(SourceModel):
             wxLogWarning('Save before running Cyclops')
             raise 'Not saved yet!' 
 
-    def debug(self, params=None):
+    def debug(self, params=None, cont_if_running=0, cont_always=0,
+              temp_breakpoint=None):
         if self.savedAs:
             debugger = self.editor.debugger
             if not debugger:
@@ -634,9 +651,8 @@ class ModuleModel(SourceModel):
                 self.editor.debugger = debugger
                 debugger.setParams(params)
             debugger.Show(true)
-            was_running = debugger.isRunning()
-            debugger.ensureRunning()
-            return was_running
+            debugger.ensureRunning(cont_if_running, cont_always,
+                                   temp_breakpoint)
     
     def profile(self):
         if self.savedAs:
@@ -681,6 +697,8 @@ class ModuleModel(SourceModel):
         if self.app: 
             self.app.moduleSaveAsNotify(self, oldFilename, filename)
         self.moduleName = path.basename(filename)
+##            self.app.moduleSaveAsNotify(self, oldFilename, self.filename)
+##        self.moduleName = path.basename(self.getDisplayName())
         self.notify()
 
     def diff(self, filename):
