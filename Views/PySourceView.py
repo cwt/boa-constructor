@@ -1,0 +1,857 @@
+#----------------------------------------------------------------------
+# Name:        PySourceView.py                                         
+# Purpose:     Views for editing source code                           
+#                                                                      
+# Author:      Riaan Booysen                                           
+#                                                                      
+# Created:     2000/04/26                                              
+# RCS-ID:      $Id$                                   
+# Copyright:   (c) 1999, 2000 Riaan Booysen                            
+# Licence:     GPL                                                     
+#----------------------------------------------------------------------
+
+from wxPython.wx import *
+from wxPython.stc import *
+import os, string
+import EditorViews, ProfileView, Search, Help, Preferences
+from StyledTextCtrls import PythonStyledTextCtrlMix, BrowseStyledTextCtrlMix, HTMLStyledTextCtrlMix, FoldingStyledTextCtrlMix, idWord
+from PrefsKeys import keyDefs
+import methodparse
+import bdb
+
+simpleAppText = '''
+
+if __name__ == '__main__':
+    app = wxPySimpleApp()
+    frame = create(None)
+    frame.Show(true)
+    app.MainLoop()'''
+    
+indentLevel = 4
+endOfLines = {  wxSTC_EOL_CRLF : '\r\n',
+                wxSTC_EOL_CR : '\r',
+                wxSTC_EOL_LF : '\n'}
+
+brkPtMrk = 1
+stepPosMrk = 2
+tmpBrkPtMrk = 3
+#brwsIndc = 0
+
+#wxID_PYTHONSOURCEVIEW, 
+[wxID_HTMLSOURCEVIEW, wxID_TEXTVIEW, wxID_SOURCECUT, wxID_SOURCECOPY, wxID_SOURCEPASTE, wxID_SOURCEUNDO, wxID_SOURCEREDO] = map(lambda x: wxNewId(), range(7))
+
+class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView):
+    refreshBmp = 'Images/Editor/Refresh.bmp'
+    undoBmp = 'Images/Shared/Undo.bmp'
+    redoBmp = 'Images/Shared/Redo.bmp'
+    cutBmp = 'Images/Shared/Cut.bmp'
+    copyBmp = 'Images/Shared/Copy.bmp'
+    pasteBmp = 'Images/Shared/Paste.bmp'
+    findBmp = 'Images/Shared/Find.bmp'
+    findAgainBmp = 'Images/Shared/FindAgain.bmp'
+    def __init__(self, parent, wId, model, actions, defaultAction = -1):
+        wxStyledTextCtrl.__init__(self, parent, wId, style = wxCLIP_CHILDREN)
+        a =  (('Refresh', self.OnRefresh, self.refreshBmp, keyDefs['Refresh']),
+              ('-', None, '', ()),
+              ('Undo', self.OnEditUndo, self.undoBmp, ()),
+              ('Redo', self.OnEditRedo, self.redoBmp, ()),
+              ('-', None, '', ()),
+              ('Cut', self.OnEditCut, self.cutBmp, ()),
+              ('Copy', self.OnEditCopy, self.copyBmp, ()),
+              ('Paste', self.OnEditPaste, self.pasteBmp, ()),
+              ('-', None, '', ()),
+              ('Find', self.OnFind, self.findBmp, keyDefs['Find']),
+              ('Find again', self.OnFindAgain, self.findAgainBmp, keyDefs['FindAgain']))
+
+        EditorViews.EditorView.__init__(self, model, a + actions, defaultAction)
+
+        self.SetEOLMode(wxSTC_EOL_LF)
+        self.eol = endOfLines[self.GetEOLMode()]
+
+        self.pos = 0
+        self.stepPos = 0
+        self.nonUserModification  = false 
+
+        self.lastSearchResults = []
+        self.lastSearchPattern = ''
+        self.lastMatchPosition = None
+
+
+    def setReadOnly(self, val):
+        EditorViews.EditorView.readOnly(self, val)
+        self.SetEditable(val)
+
+    def refreshCtrl(self):
+        self.pos = self.GetCurrentPos() 
+#        line = self.GetCurrentLine()
+        prevVsblLn = self.GetFirstVisibleLine()
+        
+        self.SetText(self.model.data)
+        self.EmptyUndoBuffer()
+        self.GotoPos(self.pos)
+        curVsblLn = self.GetFirstVisibleLine()
+        self.ScrollBy(0, prevVsblLn - curVsblLn)
+        
+        self.nonUserModification = false 
+        self.updatePageName()
+
+    def refreshModel(self):
+        if self.isModified():
+            self.model.modified = true
+        self.nonUserModification = false 
+        
+        # hack to stop wxSTC from eating the last character
+        self.InsertText(self.GetTextLength(), ' ')
+        
+        self.model.data = self.GetText()
+        self.EmptyUndoBuffer()
+        EditorViews.EditorView.refreshModel(self) 
+        if self.model.viewsModified.count(self.viewName):
+             self.model.viewsModified.remove(self.viewName)
+        self.updateEditor()
+
+    def gotoLine(self, lineno, offset = -1):
+        self.GotoLine(lineno)
+        vl = self.GetFirstVisibleLine()
+        self.ScrollBy(0, lineno -  vl)
+        if offset != -1: self.SetCurrentPosition(self.GetCurrentPos()+offset+1)
+        
+    def selectSection(self, lineno, start, word):
+        self.gotoLine(lineno)
+        length = len(word)
+        startPos = self.GetLineStartPos(lineno) + start
+        endPos = startPos + length
+        self.SetSelection(startPos, endPos)
+
+        self.SetFocus()
+
+    def selectLine(self, lineno):
+        self.GotoLine(lineno)
+        sp = self.GetLineStartPos(lineno)
+        ep = self.GetLineStartPos(lineno+1)-1
+        self.SetSelection(sp, ep)
+
+    def updatePageName(self):
+        currName = self.notebook.GetPageText(self.pageIdx)
+        if self.isModified(): newName = '~%s~' % self.viewName
+        else: newName = self.viewName
+
+        if currName != newName:
+            if newName == self.viewName:
+                if self.model.viewsModified.count(self.viewName):
+                    self.model.viewsModified.remove(self.viewName)
+            else:
+                if not self.model.viewsModified.count(self.viewName):
+                    self.model.viewsModified.append(self.viewName)
+            self.notebook.SetPageText(self.pageIdx, newName)
+            self.notebook.Refresh()
+            self.updateEditor()
+
+    def updateStatusBar(self):
+        pos = self.GetCurrentPos()
+        ln = self.GetLineFromPos(pos)
+        st = pos - self.GetLineStartPos(ln) 
+#        self.model.editor.updateStatusRowCol(st + 1, ln + 1)
+
+    def updateEditor(self):
+        self.model.editor.updateModulePage(self.model)
+        self.model.editor.updateTitle()
+    
+    def updateViewState(self):
+        self.updatePageName()
+        self.updateStatusBar()
+
+    def insertCodeBlock(self, text):
+        cp = self.GetCurrentPos()
+        ln = self.GetLineFromPos(cp)
+        indent = cp - self.GetLineStartPos(ln)
+        lns = string.split(text, self.eol)
+        text = string.join(lns, self.eol+indent*' ')
+
+        selTxtPos = string.find(text, '# Your code')
+        self.InsertText(cp, text)  
+        self.nonUserModification = true
+        self.updateViewState()
+        self.SetFocus()
+        if selTxtPos != -1:
+            self.SetSelection(cp + selTxtPos, cp + selTxtPos + 11)
+
+    def isModified(self):
+        return self.GetModified() or self.nonUserModification
+
+#---Block commands----------------------------------------------------------
+
+    def reselectSelectionAsBlock(self):
+        selStartPos, selEndPos = self.GetSelection()
+        selStartLine = self.GetLineFromPos(selStartPos)
+        startPos = self.GetLineStartPos(selStartLine)
+        selEndLine = self.GetLineFromPos(selEndPos)
+        if selEndPos != self.GetLineStartPos(selEndLine):
+            selEndLine = selEndLine + 1
+        endPos = self.GetLineStartPos(selEndLine)
+#        if endPos > startPos: endPos = endPos -1
+        self.SetSelection(startPos, endPos)
+        return selStartLine, selEndLine
+
+    def processSelectionBlock(self, func):
+        self.BeginUndoAction()
+        try:
+            sls, sle = self.reselectSelectionAsBlock()
+            textLst = func(string.split(self.GetSelectedText(), self.eol))[:-1]
+            self.ReplaceSelection(string.join(textLst, self.eol)+self.eol)
+            if sle > sls: 
+                self.SetSelection(self.GetLineStartPos(sls),
+                  self.GetLineStartPos(sle)-1)                  
+        finally:
+            self.EndUndoAction()
+
+#-------Canned events-----------------------------------------------------------
+
+    def OnRefresh(self, event):
+        self.refreshModel()
+
+    def OnEditCut(self, event):
+        self.Cut()   
+
+    def OnEditCopy(self, event):
+        self.Copy()   
+
+    def OnEditPaste(self, event):
+        self.Paste()
+
+    def OnEditUndo(self, event):
+        self.Undo()
+
+    def OnEditRedo(self, event):
+        self.Redo()
+                       
+    def OnFind(self, event):
+        s, e = self.GetSelection()
+        if s == e:
+            txt = self.lastSearchPattern
+        else:
+            txt = self.GetSelectedText()
+        dlg = wxTextEntryDialog(self.model.editor, 'Enter text:', 
+          'Find in module', txt)
+        try:
+            if dlg.ShowModal() == wxID_OK:
+                self.lastSearchResults = Search.findInText(\
+                  string.split(self.GetText(), self.eol), dlg.GetValue(), false)
+                self.lastSearchPattern = dlg.GetValue()
+                if len(self.lastSearchResults):
+                    self.lastMatchPosition = 0
+            else:
+                return
+        finally:
+            dlg.Destroy()
+
+##        print self.lastMatchPosition, self.lastSearchResults
+        if self.lastMatchPosition is not None and \
+          len(self.lastSearchResults) > self.lastMatchPosition:
+            pos = self.lastSearchResults[self.lastMatchPosition]
+            self.selectSection(pos[0], pos[1], self.lastSearchPattern)
+        else:
+            dlg = wxMessageDialog(self.model.editor, 'No matches',
+                      'Find in module', wxOK | wxICON_INFORMATION)
+            dlg.ShowModal()
+            dlg.Destroy()
+
+    def OnFindAgain(self, event):
+        if self.lastMatchPosition is None:
+            self.OnFind(event)
+        else: 
+            if self.lastMatchPosition < len(self.lastSearchResults) -1:
+                self.lastMatchPosition = self.lastMatchPosition + 1
+                pos = self.lastSearchResults[self.lastMatchPosition]
+                self.selectSection(pos[0], pos[1], self.lastSearchPattern)
+            else:
+                dlg = wxMessageDialog(self.model.editor, 'No further matches',
+                          'Find in module', wxOK | wxICON_INFORMATION)
+                dlg.ShowModal()
+                dlg.Destroy()
+                self.lastMatchPosition = None
+
+class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix, BrowseStyledTextCtrlMix, FoldingStyledTextCtrlMix):
+#class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix):
+    viewName = 'Source'
+    breakBmp = 'Images/Debug/Breakpoints.bmp'
+    runCrsBmp = 'Images/Editor/RunToCursor.bmp'
+    runAppBmp = 'Images/Debug/RunApp.bmp'
+    runBmp = 'Images/Debug/Run.bmp'
+    compileBmp = 'Images/Debug/Compile.bmp'
+    debugBmp = 'Images/Debug/Debug.bmp'
+    modInfoBmp = 'Images/Modules/InfoBlock.bmp'
+    profileBmp = 'Images/Debug/Profile.bmp'
+    def __init__(self, parent, model):
+        if hasattr(model, 'app') and model.app:
+            a2 = (('Run application', self.OnRunApp, self.runAppBmp, keyDefs['RunApp']),)
+        else:
+            a2 = ()
+        a1 = (('-', None, '', ()),
+              ('Comment', self.OnComment, '-', keyDefs['Comment']),
+              ('Uncomment', self.OnUnComment, '-', keyDefs['Uncomment']),
+              ('Indent', self.OnIndent, '-', keyDefs['Indent']),
+              ('Dedent', self.OnDedent, '-', keyDefs['Dedent']),
+              ('-', None, '-', ()),
+              ('Profile', self.OnProfile, self.profileBmp, ()),
+              ('Compile', self.OnCompile, self.compileBmp, keyDefs['Compile']))
+        a3 = (('Run module', self.OnRun, self.runBmp, keyDefs['RunMod']),
+              ('Debug', self.OnDebug, self.debugBmp, keyDefs['Debug']),
+              ('-', None, '', ()),
+              ('Run to cursor', self.OnRunToCursor, self.runCrsBmp, ()),
+              ('Toggle breakpoint', self.OnSetBreakPoint, self.breakBmp, keyDefs['ToggleBrk']),
+              ('-', None, '', ()),
+              ('Add module info', self.OnAddModuleInfo, self.modInfoBmp, ()),
+              ('Add comment line', self.OnAddCommentLine, '-', keyDefs['DashLine']),
+              ('Add simple app', self.OnAddSimpleApp, '-', ()),
+              ('-', None, '-', ()),
+              ('Context help', self.OnContextHelp, '-', keyDefs['ContextHelp']))
+            
+        
+        wxID_PYTHONSOURCEVIEW = wxNewId()
+        
+        EditorStyledTextCtrl.__init__(self, parent, wxID_PYTHONSOURCEVIEW, 
+          model, a1 + a2 + a3, -1)
+        PythonStyledTextCtrlMix.__init__(self, wxID_PYTHONSOURCEVIEW, 0)
+        BrowseStyledTextCtrlMix.__init__(self)
+        FoldingStyledTextCtrlMix.__init__(self, wxID_PYTHONSOURCEVIEW, 2)
+        
+        # Initialise breakpts from bdb.Breakpoint
+        self.breaks = {}
+        filename = string.lower(self.model.filename)
+        for file, lineno in bdb.Breakpoint.bplist.keys():
+            if file == filename:
+                for bp in bdb.Breakpoint.bplist[(file, lineno)]:
+                    self.breaks[lineno] = bp
+
+        self.lsp = 0
+        self.CallTipSetBackground(wxColour(255, 255, 232))
+
+        self.SetMarginType(1, wxSTC_MARGIN_SYMBOL)
+        self.SetMarginWidth(1, 13)
+        self.SetMarginSensitive(1, true)
+        self.MarkerDefine(brkPtMrk, wxSTC_MARK_CIRCLE, 'BLACK', 'RED')
+        self.MarkerDefine(stepPosMrk, wxSTC_MARK_SHORTARROW, 'NAVY', 'BLUE')
+        self.MarkerDefine(tmpBrkPtMrk, wxSTC_MARK_CIRCLE, 'BLACK', 'BLUE')
+
+        # Don't use event, override method from Browser parent
+##        EVT_KEY_DOWN(self, self.OnKeyPressed) 
+        
+        EVT_STC_CHARADDED(self, wxID_PYTHONSOURCEVIEW, self.OnAddChar)
+
+##        EVT_STC_CMDKEY(self, wxID_PYTHONSOURCEVIEW, self.OnKeyPressed)
+        self.active = true
+
+    def refreshCtrl(self):
+        self.setInitialBreakpoints()
+        EditorStyledTextCtrl.refreshCtrl(self)    
+        
+    def processComment(self, textLst):
+        return map(lambda l: '##%s'%l, textLst)
+
+    def processUncomment(self, textLst):
+        for idx in range(len(textLst)):
+            if len(textLst[idx]) >= 2 and textLst[idx][:2] == '##':
+                textLst[idx] = textLst[idx][2:]
+        return textLst
+
+    def processIndent(self, textLst):
+        return map(lambda l: '%s%s'%(indentLevel*' ', l), textLst)
+
+    def processDedent(self, textLst):
+        for idx in range(len(textLst)):
+            if len(textLst[idx]) >= indentLevel and \
+              textLst[idx][:indentLevel] == indentLevel*' ':
+                textLst[idx] = textLst[idx][indentLevel:]
+        return textLst
+    
+    def checkCallTipHighlight(self):
+        if self.CallTipActive():
+            pass
+##            pos = self.GetCurrentPos()
+##            lnNo = self.GetCurrentLine()
+##            lnStPs = self.GetLineStartPos(lnNo)
+##            line = self.GetCurrentLineText()[0]
+##            piv = pos - lnStPs
+##            start, length = idWord(line, piv, lnStPs)
+##            startLine = start-lnStPs
+##            word = line[startLine:startLine+length]
+##            print word, line[piv-1]
+##            cls = self.model.module.getClassForLineNo(lnNo)
+##            
+##            self.CallTipSetHighlight(0, len(sigLst[1])
+
+    def checkCallTip(self):
+        pos = self.GetCurrentPos()
+        lnNo = self.GetCurrentLine()
+        lnStPs = self.GetLineStartPos(lnNo)
+        line = self.GetCurrentLineText()[0]
+        piv = pos - lnStPs
+        start, length = idWord(line, piv, lnStPs)
+        startLine = start-lnStPs
+        word = line[startLine:startLine+length]
+##        print word, line[piv-1]
+        cls = self.model.module.getClassForLineNo(lnNo)
+        if cls and line[piv-1] == '(':
+##            print 'got ('
+            dot = string.rfind(line, '.', 0, piv)
+            if dot != -1 and line[dot-4:dot] == 'self':
+                meth = line[dot+1:piv-1]
+##                print 'self', meth
+                if cls.methods.has_key(meth):
+##                    print 'has meth', `cls.methods[meth].signature`
+                    sigLst = methodparse.safesplitfields(cls.methods[meth].signature, ',')
+##                    print sigLst
+                    if len(sigLst) > 1:
+                        self.CallTipShow(pos, string.join(sigLst[1:], ', '))
+                        self.currParamList = sigLst[1:]
+                        self.checkCallTipHighlight()
+
+    def checkCodeComp(self):
+        pos = self.GetCurrentPos()
+        lnNo = self.GetCurrentLine()
+        lnStPs = self.GetLineStartPos(lnNo)
+        line = self.GetCurrentLineText()[0]
+        piv = pos - lnStPs
+        start, length = idWord(line, piv, lnStPs)
+        startLine = start-lnStPs
+        word = line[startLine:startLine+length]
+##        print word
+        cls = self.model.module.getClassForLineNo(lnNo)
+        if not cls: return
+        dot = string.rfind(line, '.', 0, piv)
+        if dot != -1:
+            if line[dot-4:dot] == 'self':
+                partial = line[dot+1:piv-1]
+##                print partial
+                list = cls.methods.keys() + cls.attributes.keys()
+                sel = ''
+                if partial:
+                    for key in list:
+##                        print key[:len(partial)], partial
+                        
+                        if key[:len(partial)] == partial:
+                            sel = key
+                            break
+
+                self.AutoCompShow(string.join(list, ' '))
+                if sel:
+                    print 'auto selecting', partial, sel
+#                    self.AutoCompSelect(sel)
+                        
+        
+
+#-------Browsing----------------------------------------------------------------
+    def StyleVeto(self, style):
+##        print 'STC: StyleVeto'
+        return style != 11
+
+    def BrowseClick(self, word, line, lineNo, start, style):
+        """ Overridden from BrowseStyledTextCtrlMix, jumps to declaration or
+            opens module
+            
+            Currently only the open module is inspected, classes declared 
+            outside the scope of the active module are inaccessible.
+        """
+        module = self.model.module
+        if line[start-5: start] == 'self.':
+            cls = module.getClassForLineNo(lineNo)
+            if cls:
+                self.doClearBrwsLn()
+                if cls.attributes.has_key(word):
+                    self.GotoLine(cls.attributes[word][0].start-1)
+                elif cls.methods.has_key(word):
+                    self.GotoLine(cls.methods[word].start-1)
+                else:
+                    found, cls, block = module.find_declarer(cls, word, None)
+                    if found:
+                        if type(block) == type([]):
+                            self.GotoLine(block[0].start-1)
+                        else:
+                            self.GotoLine(block.start-1)
+                return true
+        # Imports
+        elif self.model.module.imports.has_key(word):
+            # XXX Should rather examine path to find module instead of implicit 
+            # XXX path
+            self.doClearBrwsLn()
+            self.model.editor.openOrGotoModule(word+'.py')
+            return true
+        # Classes
+        elif self.model.module.classes.has_key(word):
+            self.doClearBrwsLn()
+            self.GotoLine(self.model.module.classes[word].block.start-1)
+            return true
+        # Global functions
+        elif self.model.module.functions.has_key(word):
+            self.doClearBrwsLn()
+            self.GotoLine(self.model.module.functions[word].start-1)
+            return true
+        # Global namespace including wxPython declarations
+        elif globals().has_key(word):
+            self.doClearBrwsLn()
+            obj = globals()[word]
+            if hasattr(obj, '__init__'):
+                mod = self.model.editor.openOrGotoModule(obj.__init__.im_func.func_code.co_filename)
+                mod.views['Source'].GotoLine(obj.__init__.im_func.func_code.co_firstlineno -1)
+            elif hasattr(obj, 'func_code'):
+                mod = self.model.editor.openOrGotoModule(obj.func_code.co_filename)
+                mod.views['Source'].GotoLine(obj.func_code.co_firstlineno -1)
+#            print dir(obj)
+#            self.GotoLine(globals()[word].block.start-1)
+            return true
+            
+                        
+#-------Debugger----------------------------------------------------------------
+    def setInitialBreakpoints(self):
+        for bp in self.breaks.values():
+            self.MarkerAdd(bp.line -1, brkPtMrk)
+
+    def deleteBreakPoint(self, lineNo):
+#        ln = self.MarkerLineFromHandle(self.breaks[lineClicked])
+        if self.breaks.has_key(lineNo):
+            bp = self.breaks[lineNo]
+            if bp.temporary:
+                self.MarkerDelete(lineNo - 1, tmpBrkPtMrk)
+            else:
+                self.MarkerDelete(lineNo - 1, brkPtMrk)
+
+        if self.model.editor.debugger:
+            if self.breaks.has_key(lineNo):
+                bp = self.breaks[lineNo]
+                self.model.editor.debugger.clear_break(bp.file, bp.line)
+                self.model.editor.debugger.breakpts.refreshList()
+        else:
+            self.breaks[lineNo].deleteMe()
+        
+        del self.breaks[lineNo]        
+    
+    def addBreakPoint(self, lineNo, temp = 0):
+        if temp:
+            mrk = tmpBrkPtMrk
+        else:
+            mrk = brkPtMrk
+        hnd = self.MarkerAdd(lineNo - 1, mrk)
+        filename = string.lower(self.model.filename)
+
+        if self.model.editor.debugger:
+            self.breaks[lineNo] = self.model.editor.debugger.set_breakpoint_here(\
+              filename, lineNo, temp)        
+        else:
+            self.breaks[lineNo] = \
+              bdb.Breakpoint(filename, lineNo, temp)
+    
+    def setStepPos(self, lineNo):
+        if self.stepPos != lineNo:
+            if self.stepPos:
+                self.MarkerDelete(self.stepPos, stepPosMrk)
+            if lineNo:
+##                print 'adding lineno', lineNo
+                self.MarkerAdd(lineNo, stepPosMrk)
+        self.stepPos = lineNo
+            
+            
+#-------Events------------------------------------------------------------------
+    def OnMarginClick(self, event):
+        if event.GetMargin() == 1:
+            lineClicked = self.GetLineFromPos(event.GetPosition()) + 1
+            if self.breaks.has_key(lineClicked):
+                self.deleteBreakPoint(lineClicked)
+            else:
+                self.addBreakPoint(lineClicked)
+        else: 
+            FoldingStyledTextCtrlMix.OnMarginClick(self, event)
+            
+    def OnSetBreakPoint(self, event):
+        line = self.GetLineFromPos(self.GetCurrentPos()) + 1
+        if self.breaks.has_key(line):
+            self.deleteBreakPoint(line)
+        else:
+            self.addBreakPoint(line)
+
+    def OnRunToCursor(self, event):
+        line = self.GetLineFromPos(self.GetCurrentPos()) + 1
+        if not self.breaks.has_key(line):
+            self.addBreakPoint(line, 1)
+        if self.model.defaultName == 'App':
+            self.model.editor.debugger.debug_file(self.model.filename)
+        elif self.model.app:
+            self.model.editor.debugger.debug_file(self.model.app.filename)
+#        else return  
+        # XXX Case where module is run, outside app
+
+    def OnRun(self, event):
+        if not self.model.savedAs: #modified or len(self.model.viewsModified):
+            wxMessageBox('Cannot run an unsaved module.')
+            return
+        self.model.run()
+
+    def OnRunApp(self, event):
+        if not self.model.app.savedAs: #modified or len(self.model.viewsModified):
+            wxMessageBox('Cannot run an unsaved application.')
+            return
+        wxBeginBusyCursor()
+        try:
+            self.model.app.run()
+        finally:
+            wxEndBusyCursor()
+
+    def OnDebug(self, event):
+        if not self.model.savedAs or self.model.modified or \
+          len(self.model.viewsModified):
+            wxMessageBox('Cannot debug an unsaved or modified module.')
+            return
+        self.model.debug()
+
+    def OnCompile(self, event):
+        if not self.model.savedAs or self.model.modified or \
+          len(self.model.viewsModified):
+            wxMessageBox('Cannot compile an unsaved or modified module.')
+            return
+        self.model.compile()
+
+    def OnProfile(self, event):
+        stats = self.model.profile()
+        resName = 'Profile stats'
+        if not self.model.views.has_key(resName):
+            resultView = self.model.editor.addNewView(resName, ProfileView.ProfileStatsView)
+        else:
+            resultView = self.model.views[resName]
+        resultView.tabName = resName
+        resultView.stats = stats
+        resultView.refresh()
+        resultView.focus()
+
+    def OnContextHelp(self, event):
+        pos = self.GetCurrentPos()
+        lnNo = self.GetCurrentLine()
+        lnStPs = self.GetLineStartPos(lnNo)
+        line = self.GetCurrentLineText()[0]
+        piv = pos - lnStPs
+        start, length = idWord(line, piv, lnStPs)
+        startLine = start-lnStPs
+        word = line[startLine:startLine+length]
+        print 'looking up help for', word
+        from Companions import HelpCompanions
+        helpStr = word+'Docs'
+        if HelpCompanions.__dict__.has_key(helpStr):
+            print 'loading wxWin help', HelpCompanions.__dict__[helpStr]
+            Help.showHelp(self.model.editor, Help.wxWinHelpFrame, 
+              HelpCompanions.__dict__[helpStr], self.model.editor.palette.toolBar)
+        elif HelpCompanions.libRefDocs.has_key(word):
+            print 'loading python help', HelpCompanions.libRefDocs[word]
+            Help.showHelp(self.model.editor, Help.PythonHelpFrame, 
+              HelpCompanions.libRefDocs[word], self.model.editor.palette.toolBar)
+        else:
+            print 'No help found'
+
+    def OnComment(self, event):
+        self.processSelectionBlock(self.processComment)
+                
+    def OnUnComment(self, event):
+        self.processSelectionBlock(self.processUncomment)
+    
+    def OnIndent(self, event):
+        self.processSelectionBlock(self.processIndent)
+                
+    def OnDedent(self, event):
+        self.processSelectionBlock(self.processDedent)
+
+    def OnAddSimpleApp(self, event):
+        self.BeginUndoAction()
+        try: self.InsertText(self.GetTextLength(), simpleAppText)
+        finally: self.EndUndoAction()
+        
+    def OnStyle(self, event):
+        pass
+
+    def OnAddModuleInfo(self, event):
+        self.refreshModel() 
+        prefs = Preferences.staticInfoPrefs.copy() 
+        self.model.addModuleInfo(prefs)
+        self.updateEditor()
+
+    def OnUpdateUI(self, event):
+##        print 'STC: OnUpdateUI'
+        # don't update if not fully initialised
+        if hasattr(self, 'pageIdx'):
+            self.updateViewState()
+        
+	if Preferences.braceHighLight:
+            PythonStyledTextCtrlMix.OnUpdateUI(self, event)
+
+    def OnAddChar(self, event):
+##        print 'STC: OnAddChar'
+        char = event.GetKey()
+        # On enter indent to same indentation as line above
+        # If ends in : indent xtra block
+        if char == 10:
+            lineNo = self.GetCurrentLine()
+            pos = self.GetCurrentPos()
+            prevline = self.GetLine(lineNo -1)[:-1*len(self.eol)]
+            i = 0
+            if string.strip(prevline):
+                while prevline[i] in (' ', '\t'): i = i + 1
+                indent = prevline[:i]
+            else:
+                indent = prevline
+            if string.rstrip(prevline)[-1:] == ':':
+                indent = indent + (indentLevel*' ')
+            self.BeginUndoAction()
+            try:
+                self.InsertText(pos, indent)
+                self.GotoPos(pos + len(indent))
+            finally:
+                self.EndUndoAction()
+
+    def OnKeyDown(self, event):
+##        print 'STC: OnKeyDown'
+        key = event.KeyCode()
+##        if self.CallTipActive():
+##            print 'tip active'
+##            event.Skip()
+##            return
+        if key == 32 and event.ControlDown():
+            # Tips
+            if event.ShiftDown():
+                self.checkCallTip()
+            # Code completion
+            else:
+                self.checkCodeComp()
+        elif key == 9:
+            pos = self.GetCurrentPos()
+            self.InsertText(pos, indentLevel*' ')
+            self.SetCurrentPosition(pos + indentLevel)
+            if not self.AutoCompActive(): return
+        elif key == 8:
+            line = self.GetCurrentLineText()
+            if len(line): line = line[0]
+            else: line = ''
+            pos = self.GetCurrentPos()
+            #ignore indenting when at start of line
+            if self.GetLineStartPos(self.GetLineFromPos(pos)) != pos:
+                pos = pos -1
+                ln = self.GetLineFromPos(pos)
+                ls = self.GetLineStartPos(ln)
+                st = pos - ls
+                if not string.strip(line[:st]):
+                    self.SetSelection(ls + st/4*4, pos+1)
+                    self.ReplaceSelection('')
+                    return
+        event.Skip()            
+        BrowseStyledTextCtrlMix.OnKeyDown(self, event)
+
+#---Meta comment----------------------------------------------------------------
+    def OnAddCommentLine(self, event):
+        pos = self.GetCurrentPos()
+        ln = self.GetLineFromPos(pos)
+        ls = self.GetLineStartPos(ln)
+        self.InsertText(ls, '#-------------------------------------------'
+                                    '------------------------------------'+'\n')
+        self.SetCurrentPosition(ls+4)
+
+class HTMLSourceView(EditorStyledTextCtrl, HTMLStyledTextCtrlMix):
+    viewName = 'HTML'
+    def __init__(self, parent, model):
+        EditorStyledTextCtrl.__init__(self, parent, wxID_HTMLSOURCEVIEW, 
+          model, (('Refresh', self.OnRefresh, '-', keyDefs['Refresh']),), -1)
+        HTMLStyledTextCtrlMix.__init__(self, wxID_HTMLSOURCEVIEW)
+        self.active = true
+
+    def OnUpdateUI(self, event):
+        # don't update if not fully initialised
+        if hasattr(self, 'pageIdx'):
+            self.updateViewState()
+        HTMLStyledTextCtrlMix.OnUpdateUI(self, event)
+
+class TextView(EditorStyledTextCtrl):
+    viewName = 'Text'
+    def __init__(self, parent, model):
+        EditorStyledTextCtrl.__init__(self, parent, wxID_TEXTVIEW, 
+          model, (), 0)
+        self.active = true
+        EVT_STC_UPDATEUI(self, wxID_TEXTVIEW, self.OnUpdateUI)
+    
+    def OnUpdateUI(self, event):
+        # don't update if not fully initialised
+        if hasattr(self, 'pageIdx'):
+            self.updateViewState()
+    
+    
+class TstPythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix, BrowseStyledTextCtrlMix):
+    viewName = 'Source'
+    def __init__(self, parent, model):
+        EditorStyledTextCtrl.__init__(self, parent, wxID_PYTHONSOURCEVIEW, 
+          model, (), 0)
+        PythonStyledTextCtrlMix.__init__(self)
+        BrowseStyledTextCtrlMix.__init__(self)
+        self.active = true
+        EVT_STC_UPDATEUI(self, wxID_PYTHONSOURCEVIEW, self.OnUpdateUI)
+        EVT_STC_CHARADDED(self, wxID_PYTHONSOURCEVIEW, self.OnAddChar)
+
+    def OnUpdateUI(self, event):
+        # don't update if not fully initialised
+        if hasattr(self, 'pageIdx'):
+            self.updateViewState()
+
+    def setStepPos(self, lineNo):
+        pass
+        
+    def OnAddChar(self, event):
+        char = event.GetKey()
+        lineNo = self.GetCurrentLine()
+        pos = self.GetCurrentPos()
+        # On enter indent to same indentation as line above
+        # If ends in : indent xtra block
+        if char == 10:
+            prevline = self.GetLine(lineNo -1)[:-1*len(self.eol)]
+            i = 0
+            if string.strip(prevline):
+                while prevline[i] in (' ', '\t'): i = i + 1
+                indent = prevline[:i]
+            else:
+                indent = prevline
+            if string.rstrip(prevline)[-1:] == ':':
+                indent = indent + (indentLevel*' ')
+            self.BeginUndoAction()
+            try:
+                self.InsertText(pos, indent)
+                self.GotoPos(pos + len(indent))
+            finally:
+                self.EndUndoAction()
+
+    def OnKeyDown(self, event):
+        key = event.KeyCode()
+        if key == 32 and event.ControlDown():
+            pos = self.GetCurrentPos()
+            # Tips
+            if event.ShiftDown():
+                self.CallTipShow(pos, 'param1, param2')
+            # Code completion
+            else:
+                self.AutoCompShow(string.join(self.model.module.classes.keys(), 
+                  ' '))
+        elif key == 9:
+            pos = self.GetCurrentPos()
+            self.InsertText(pos, indentLevel*' ')
+            self.SetCurrentPosition(pos + indentLevel)
+            return
+        elif key == 8:
+            line = self.GetCurrentLineText()
+            if len(line): line = line[0]
+            else: line = ''
+            pos = self.GetCurrentPos()
+            #ignore indenting when at start of line
+            if self.GetLineStartPos(self.GetLineFromPos(pos)) != pos:
+                pos = pos -1
+                ln = self.GetLineFromPos(pos)
+                ls = self.GetLineStartPos(ln)
+                st = pos - ls
+                if not string.strip(line[:st]):
+                    self.SetSelection(ls + st/4*4, pos+1)
+                    self.ReplaceSelection('')
+                    return
+        event.Skip()            
+        BrowseStyledTextCtrlMix.OnKeyDown(self, event)
+        
+        
