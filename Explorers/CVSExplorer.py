@@ -10,10 +10,12 @@
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 
+import string, time, stat, os
+
 from wxPython.lib.dialogs import wxScrolledMessageDialog
 from wxPython.wx import *
-import string, time, stat, os
-import ExplorerNodes, EditorModels
+
+import ExplorerNodes, FileExplorer, EditorModels, EditorHelper
 from Preferences import IS
 import Views.EditorViews
 import ProcessProgressDlg
@@ -486,7 +488,6 @@ class CVSFileNode(ExplorerNodes.ExplorerNode):
             resultView.refresh()
             resultView.focus()
 
-
     def text(self):
         return string.join(('', self.name, self.revision, self.timestamp, self.options, self.tagdate), '/')
 
@@ -501,7 +502,7 @@ class CVSUnAddedItem(ExplorerNodes.ExplorerNode):
 
 class FSCVSFolderNode(ExplorerNodes.ExplorerNode):
     protocol = 'cvs'
-    def __init__(self, name, resourcepath, clipboard, parent):
+    def __init__(self, name, resourcepath, clipboard, imgIdx, parent):
         ExplorerNodes.ExplorerNode.__init__(self, name, resourcepath, clipboard,
               EditorModels.CVSFolderModel.imgIdx, parent)
         self.dirpos = 0
@@ -654,3 +655,8 @@ class CVSConflictsView(Views.EditorViews.ListCtrlView):
     def OnRejectChanges(self, event):
         if self.selected != -1:
             self.model.rejectConflictChange(self.conflicts[self.selected])
+
+# Register cvs dirs as a subtype of file explorers
+FileExplorer.PyFileNode.subExplorerReg['folder'].append( 
+      (FSCVSFolderNode, isCVS, EditorHelper.imgCVSFolder)
+)

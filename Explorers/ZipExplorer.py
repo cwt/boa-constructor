@@ -1,15 +1,15 @@
-import ExplorerNodes, EditorModels
-from ExternalLib import zipfile
 import string, os
+
 from wxPython.wx import wxMenu, EVT_MENU, wxMessageBox, wxPlatform, wxNewId
+
+import ExplorerNodes, FileExplorer, EditorModels, EditorHelper
+from ExternalLib import zipfile
 
 true = 1
 false = 0
 
 def isZip(file):
     return os.path.splitext(file)[1] == '.zip'
-##(wxID_FSOPEN, wxID_FSTEST, wxID_FSNEW, wxID_FSNEWFOLDER, wxID_FSCVS ) \
-## = map(lambda x: wxNewId(), range(5))
 
 wxID_ZIPOPEN = wxNewId()
 
@@ -23,7 +23,6 @@ class ZipController(ExplorerNodes.Controller, ExplorerNodes.ClipboardControllerM
 
         self.setupMenu(self.menu, self.list,
               ( (wxID_ZIPOPEN, 'Open', self.OnOpenItems, '-'),
-#                (wxID_DAVINSPECT, 'Inspect', self.OnInspectItem, '-'),
                 (-1, '-', None, '') ) + self.clipMenuDef)
 
         mi = self.menu.GetMenuItems()
@@ -120,8 +119,8 @@ class ZipFileNode(ZipItemNode):
             zipClip = ZipExpClipboard(clipboard.globClip)
         else:
             zipClip = None
-        ZipItemNode.__init__(self, name, resourcepath, zipClip, true, imgIdx,
-              parent, self)
+        ZipItemNode.__init__(self, name, resourcepath, zipClip, true, 
+            imgIdx, parent, self)
         self.allFiles = []
         self.allFileNames = []
 
@@ -152,3 +151,8 @@ class ZipFileNode(ZipItemNode):
             if os.path.dirname(fn) == base:
                 files.append(file.filename)
         return files
+
+# Register zip files as a subtype of file explorers
+FileExplorer.PyFileNode.subExplorerReg['file'].append( 
+      (ZipFileNode, isZip, EditorHelper.imgZipFileModel)
+)
