@@ -16,15 +16,18 @@ from wxPython import wx
 #from wxPython.wx import wxPlatform, wxDefaultSize, wxDefaultPosition, wxSize, wxColour
 from ImageStore import ImageStore
 
+wx_screenWidthPerc = 1.0
+wx_screenHeightPerc = 0.89
+w32_screenHeightOffset = 20
 try:
     import win32api, win32con
 except ImportError:
     # thnx Mike Fletcher
-    screenWidth = int(wx.wxSystemSettings_GetSystemMetric(wx.wxSYS_SCREEN_X) * 1.0)
-    screenHeight = int(wx.wxSystemSettings_GetSystemMetric(wx.wxSYS_SCREEN_Y) * 0.89)
+    screenWidth = int(wx.wxSystemSettings_GetSystemMetric(wx.wxSYS_SCREEN_X) * wx_screenWidthPerc)
+    screenHeight = int(wx.wxSystemSettings_GetSystemMetric(wx.wxSYS_SCREEN_Y) * wx_screenHeightPerc)
 else:
     screenWidth = win32api.GetSystemMetrics(win32con.SM_CXFULLSCREEN)
-    screenHeight = win32api.GetSystemMetrics(win32con.SM_CYFULLSCREEN) + 20
+    screenHeight = win32api.GetSystemMetrics(win32con.SM_CYFULLSCREEN) + w32_screenHeightOffset
     
 inspWidth = screenWidth * (1/3.75)
 edWidth = screenWidth - inspWidth + 1
