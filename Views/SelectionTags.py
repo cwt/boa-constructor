@@ -14,7 +14,6 @@
 
 from wxPython.wx import *
 import string, sys, time
-print 'importing SelectionTags'
 defPos = (0, 0)
 defSze = (0, 0)
 tagSize = 7
@@ -470,11 +469,9 @@ class SelectionTag(wxPanel):
         self.selection = None
         self.position = wxSize(0, 0)
         self.setAnchor(None)
-        self.menu = wxMenu()
 
         self.wxID_ANCHORED = wxNewId()
-        self.menu.Append(self.wxID_ANCHORED, 'Anchored', checkable = true)
-        EVT_MENU(self.menu, self.wxID_ANCHORED, self.OnAnchorToggle)
+        EVT_MENU(self, self.wxID_ANCHORED, self.OnAnchorToggle)
 
         EVT_LEFT_DOWN(self, group.OnSizeBegin)
         EVT_LEFT_UP(self, group.OnSizeEnd)
@@ -519,7 +516,6 @@ class SelectionTag(wxPanel):
 
     def destroy(self):
         del self.group
-        self.menu.Destroy()
         self.Destroy()
 
     def setAnchor(self, anchor):
@@ -551,11 +547,18 @@ class CornerSelTag(SelectionTag):
 
 class SideSelTag(SelectionTag):
     def OnRightClick(self, event):
-        self.menu.Check(self.wxID_ANCHORED, self.anchored)
-        self.PopupMenu(self.menu, event.GetPosition())
+        menu = wxMenu()
+        try:
+            menu.Append(self.wxID_ANCHORED, 'Anchored', checkable = true)
+            menu.Check(self.wxID_ANCHORED, self.anchored)
+            self.PopupMenu(menu, event.GetPosition())
+        finally:
+            menu.Destroy()
 
     def OnAnchorToggle(self, event):
-        anchor = not self.menu.IsChecked(self.wxID_ANCHORED)
+        anchor = not event.Checked()
+#        anchor = not self.menu.IsChecked(self.wxID_ANCHORED)
+        # XXX Test again !!!!
         if wxPlatform == '__WXGTK__':
             anchor = not anchor
         self.updateCtrlAnchors(anchor)
