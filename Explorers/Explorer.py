@@ -362,6 +362,7 @@ class PackageFolderList(wxListCtrl):
             if item.GetText() == name:
                 item.SetState(wxLIST_STATE_FOCUSED | wxLIST_STATE_SELECTED)
                 self.SetItem(item)
+                self.EnsureVisible(idx)
                 return item
 
     def selectItemByIdx(self, idx):
