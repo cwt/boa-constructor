@@ -15,10 +15,9 @@
 # in a few files far away
 # the story starts
 
+import Preferences
 print 'importing wxPython...' 
 from wxPython.wx import *
-print 'imported wxPython' 
-import Preferences
 print 'imported Prefs'
 import Palette
 print 'imported Palette'
@@ -36,13 +35,12 @@ currentMouseOverTip = ''
 # XXX OGL Views show content bug
 
 # Milestones before beta
-# XXX Invisible components
 # XXX Cut, Copy, Paste
 # XXX Multiple component selection
 # XXX Templates
 # XXX Comment/Licence block creation & maintenance
 
-modules ={'EditorViews': [0, '', 'Views/EditorViews.py'], 'Inspector': [0, "Inspects object's constructor/properties/events/parents", 'Inspector.py'], 'Infofields': [0, '', 'Infofields.py'], 'AppModuleProps': [0, '', 'AppModuleProps.py'], 'UtilCompanions': [0, '', 'Companions/UtilCompanions.py'], 'HTMLCyclops': [0, '', 'HTMLCyclops.py'], 'ZopeFTP': [0, '', 'Zope/ZopeFTP.py'], 'Constructors': [0, '', 'Companions/Constructors.py'], 'Utils': [0, '', 'Utils.py'], 'PhonyApp': [0, '', 'PhonyApp.py'], 'CollectionEdit': [0, '', 'Views/CollectionEdit.py'], 'sender': [0, '', 'sender.py'], 'PrefsKeys': [0, '', 'PrefsKeys.py'], 'ProfileView': [0, '', 'Views/ProfileView.py'], 'RunCyclops': [0, '', 'RunCyclops.py'], 'PrefsMSW': [0, '', 'PrefsMSW.py'], 'ClassBrowser': [0, '', 'ClassBrowser.py'], 'RTTI': [0, '', 'RTTI.py'], 'PySourceView': [0, '', 'Views/PySourceView.py'], 'EventCollections': [0, '', 'Companions/EventCollections.py'], 'PythonInterpreter': [0, '', 'ExternalLib/PythonInterpreter.py'], 'SelectionTags': [0, '', 'Views/SelectionTags.py'], 'DiffView': [0, '', 'Views/DiffView.py'], 'PrefsGTK': [0, '', 'PrefsGTK.py'], 'About': [0, '', 'About.py'], 'InspectorEditorControls': [0, '', 'PropEdit/InspectorEditorControls.py'], 'methodparse': [0, '', 'methodparse.py'], 'Search': [0, '', 'Search.py'], 'StyledTextCtrls': [0, '', 'Views/StyledTextCtrls.py'], 'relpath': [0, '', 'relpath.py'], 'OGLViews': [0, '', 'Views/OGLViews.py'], 'EditorModels': [0, '', 'EditorModels.py'], 'PropertyEditors': [0, '', 'PropEdit/PropertyEditors.py'], 'HelpCompanions': [0, '', 'Companions/HelpCompanions.py'], 'DataView': [0, '', 'Views/DataView.py'], 'moduleparse': [0, '', 'moduleparse.py'], 'Explorer': [0, '', 'Explorer.py'], 'Designer': [0, '', 'Views/Designer.py'], 'LoginDialog': [0, '', 'Zope/LoginDialog.py'], 'PaletteMapping': [0, '', 'PaletteMapping.py'], 'ShellEditor': [0, '', 'ShellEditor.py'], 'BaseCompanions': [0, '', 'Companions/BaseCompanions.py'], 'AppViews': [0, '', 'Views/AppViews.py'], 'Help': [0, '', 'Help.py'], 'Debugger': [0, '', 'Debugger.py'], 'ndiff': [0, '', 'ExternalLib/ndiff.py'], 'Companions': [0, '', 'Companions/Companions.py'], 'Enumerations': [0, '', 'PropEdit/Enumerations.py'], 'Editor': [0, 'Source code editor hosting models and views', 'Editor.py'], 'Preferences': [0, '', 'Preferences.py'], 'Palette': [0, '', 'Palette.py'], 'DialogCompanions': [0, '', 'Companions/DialogCompanions.py']}
+modules ={'EditorViews': [0, '', 'Views/EditorViews.py'], 'Inspector': [0, "Inspects object's constructor/properties/events/parents", 'Inspector.py'], 'Infofields': [0, '', 'Infofields.py'], 'AppModuleProps': [0, '', 'AppModuleProps.py'], 'UtilCompanions': [0, '', 'Companions/UtilCompanions.py'], 'HTMLCyclops': [0, '', 'HTMLCyclops.py'], 'ZopeFTP': [0, '', 'Zope/ZopeFTP.py'], 'CtrlAlign': [0, '', 'CtrlAlign.py'], 'FileDlg': [0, '', 'FileDlg.py'], 'Constructors': [0, '', 'Companions/Constructors.py'], 'Utils': [0, '', 'Utils.py'], 'ExtMethDlg': [0, '', 'Zope/ExtMethDlg.py'], 'CollectionEdit': [0, '', 'Views/CollectionEdit.py'], 'sender': [0, '', 'sender.py'], 'PrefsKeys': [0, '', 'PrefsKeys.py'], 'RunCyclops': [0, '', 'RunCyclops.py'], 'PrefsMSW': [0, '', 'PrefsMSW.py'], 'ClassBrowser': [0, '', 'ClassBrowser.py'], 'RTTI': [0, '', 'RTTI.py'], 'PySourceView': [0, '', 'Views/PySourceView.py'], 'EventCollections': [0, '', 'Companions/EventCollections.py'], 'Browse': [0, '', 'Browse.py'], 'PythonInterpreter': [0, '', 'ExternalLib/PythonInterpreter.py'], 'ZopeCompanions': [0, '', 'Companions/ZopeCompanions.py'], 'SelectionTags': [0, '', 'Views/SelectionTags.py'], 'DiffView': [0, '', 'Views/DiffView.py'], 'PrefsGTK': [0, '', 'PrefsGTK.py'], 'About': [0, '', 'About.py'], 'PropDlg': [0, '', 'Zope/PropDlg.py'], 'InspectorEditorControls': [0, '', 'PropEdit/InspectorEditorControls.py'], 'methodparse': [0, '', 'methodparse.py'], 'Search': [0, '', 'Search.py'], 'StyledTextCtrls': [0, '', 'Views/StyledTextCtrls.py'], 'relpath': [0, '', 'relpath.py'], 'Debugger': [0, '', 'Debugger/Debugger.py'], 'OGLViews': [0, '', 'Views/OGLViews.py'], 'EditorModels': [0, '', 'EditorModels.py'], 'PropertyEditors': [0, '', 'PropEdit/PropertyEditors.py'], 'HelpCompanions': [0, '', 'Companions/HelpCompanions.py'], 'DataView': [0, '', 'Views/DataView.py'], 'moduleparse': [0, '', 'moduleparse.py'], 'Explorer': [0, '', 'Explorer.py'], 'CtrlSize': [0, '', 'CtrlSize.py'], 'Designer': [0, '', 'Views/Designer.py'], 'LoginDialog': [0, '', 'Zope/LoginDialog.py'], 'PaletteMapping': [0, '', 'PaletteMapping.py'], 'ShellEditor': [0, '', 'ShellEditor.py'], 'PhonyApp': [0, '', 'PhonyApp.py'], 'BaseCompanions': [0, '', 'Companions/BaseCompanions.py'], 'AppViews': [0, '', 'Views/AppViews.py'], 'Help': [0, '', 'Help.py'], 'ProfileView': [0, '', 'Views/ProfileView.py'], 'ndiff': [0, '', 'ExternalLib/ndiff.py'], 'Companions': [0, '', 'Companions/Companions.py'], 'Enumerations': [0, '', 'PropEdit/Enumerations.py'], 'Editor': [0, 'Source code editor hosting models and views', 'Editor.py'], 'Preferences': [0, '', 'Preferences.py'], 'Palette': [0, '', 'Palette.py'], 'DialogCompanions': [0, '', 'Companions/DialogCompanions.py']}
         
 class BoaApp(wxApp):
     def __init__(self, redirect=false):
@@ -115,8 +113,8 @@ def main():
         app.MainLoop()
 
 
-if __name__ == '__main__':
-    main()
+#if __name__ == '__main__':
+main()
 
 
 
