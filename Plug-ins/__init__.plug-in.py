@@ -9,4 +9,5 @@ __disabled__ = ['CustomModuleInfo',
  'LinkAppSupport',
  'PascalSupport',
  'ImageEditor',
- 'XRCSupport']
+ 'XRCSupport',
+ 'JavaSupport']
