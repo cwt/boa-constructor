@@ -458,6 +458,12 @@ class PackageFolderList(wxListCtrl):
 
     def refreshItems(self, images, explNode):
         """ Display ExplorerNode items """
+
+        # Try to get the file listing before changing anything.
+        wxBeginBusyCursor()
+        try: items = explNode.openList()
+        finally: wxEndBusyCursor()
+
         self.selected = -1
 
         if self.node:
@@ -467,10 +473,6 @@ class PackageFolderList(wxListCtrl):
         self.DeleteAllItems()
         self.SetImageList(images, wxIMAGE_LIST_SMALL)
         self.currImages = images
-
-        wxBeginBusyCursor()
-        try: items = explNode.openList()
-        finally: wxEndBusyCursor()
 
         # Build a filtered, sorted list
         orderedList = []
