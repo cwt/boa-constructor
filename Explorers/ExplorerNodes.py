@@ -183,9 +183,11 @@ class CategoryNode(ExplorerNode):
         try:
             self.entries = eval(self.config.get(self.resourcepath[cat_section], 
                   self.resourcepath[cat_option]))
-        except Exception, message:
-            print 'invalid config entry for', self.resourcepath[cat_option], message
-            self.entries = copy.copy(self.defaultstruct)
+        except:
+            message = sys.exc_info()[1]
+            print 'invalid config entry for', \
+                  self.resourcepath[cat_option], message
+            self.entries = copy.copy(self.defaultStruct)
 
     def openList(self):
         res = []
