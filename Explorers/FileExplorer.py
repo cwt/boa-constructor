@@ -385,15 +385,21 @@ class PyFileNode(ExplorerNodes.ExplorerNode):
 
     def load(self, mode='rb'):
         try:
-            return open(self.resourcepath, mode).read()
+            data = open(self.resourcepath, mode).read()
+            self.updateStdAttrs()
+            return data
         except IOError, error:
             raise ExplorerNodes.TransportLoadError(error, self.resourcepath)
 
-    def save(self, filename, data, mode='wb'):
+    def save(self, filename, data, mode='wb', overwriteNewer=false):
         if self.resourcepath != filename:
             self.resourcepath = filename
             self.name = os.path.basename(self.resourcepath)
         try:
+            if not overwriteNewer and self.fileIsNewer():
+                raise ExplorerNodes.TransportModifiedSaveError('This file has '
+                  'been saved by someone else since it was loaded', 
+                  self.resourcepath)
             open(self.resourcepath, mode).write(data)
         except IOError, error:
             raise ExplorerNodes.TransportSaveError(error, self.resourcepath)
@@ -404,14 +410,23 @@ class PyFileNode(ExplorerNodes.ExplorerNode):
         return self.createChildNode(name, respath)
 
     def updateStdAttrs(self):
-        self.stdAttrs['read-only'] = os.path.exists(self.resourcepath) and \
+        exists = os.path.exists(self.resourcepath)
+        self.stdAttrs['read-only'] = exists and \
               not os.access(self.resourcepath, os.W_OK)
-
-    def setStdAttr(self, attr, value):
+        self.stdAttrs['modify-date'] = exists and \
+              os.stat(self.resourcepath)[stat.ST_MTIME] or 0.0
+        
+    def setStdAttr(self, attr, value=None):
         if attr == 'read-only':
             os.chmod(self.resourcepath, value and 0444 or 0666)
 
         self.updateStdAttrs()
+    
+    def fileIsNewer(self):
+        return (os.path.exists(self.resourcepath) and \
+            os.stat(self.resourcepath)[stat.ST_MTIME] or \
+            0.0) > self.stdAttrs['modify-date']
+        
 
 FileSysController.Node = PyFileNode
 

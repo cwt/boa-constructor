@@ -272,7 +272,8 @@ class TransportLoadError(TransportError):
     pass
 class TransportSaveError(TransportError):
     pass
-
+class TransportModifiedSaveError(TransportSaveError):
+    pass
 
 class ExplorerNode:
     """ Base class for items in the explorer. """
