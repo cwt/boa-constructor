@@ -23,26 +23,37 @@ class PageTemplateZopeController(ZopeController):
 Controllers.modelControllerReg[ZopePageTemplateModel] = PageTemplateZopeController
 
 #---Views-----------------------------------------------------------------------
+import urllib
 
+class GUIFancyURLopener(urllib.FancyURLopener):
+    _user_prompt = ''
+    _passwd_prompt = ''
+    def prompt_user_passwd(self, host, realm):
+        return self._user_prompt, self._passwd_prompt
+    
 from ZopeLib import ZopeViews
 class ZopePTHTMLView(ZopeViews.ZopeHTMLView):
     viewName = 'Source.html'
     def generatePage(self):
-        import urllib
-        url = 'http://%s:%d/%s/source.html'%(self.model.zopeObj.properties['host'],
-              self.model.zopeObj.properties['httpport'],
+        props = self.model.zopeObj.properties
+        url = 'http://%s:%d/%s/source.html'%(props['host'], props['httpport'],
               self.model.zopeObj.whole_name())
-        f = urllib.urlopen(url)
-        return f.read()
+        urllib._urlopener = gfurlo = GUIFancyURLopener()
+        gfurlo._user_prompt = props['name']
+        gfurlo._passwd_prompt = props['passwd']
+        try:
+            f = urllib.urlopen(url)
+            return f.read()
+        finally:
+            urllib._urlopener = None
 
 #---Explorer--------------------------------------------------------------------
 
 # Node in the explorer
 from ZopeLib.ZopeExplorer import ZopeNode, zopeClassMap
-from Models import HTMLSupport
 class PageTemplateNode(ZopeNode):
     Model = ZopePageTemplateModel
-    defaultViews = (HTMLSupport.HTMLSourceView,)
+    defaultViews = (ZopeViews.ZopeDebugHTMLSourceView,)
     additionalViews = (ZopeViews.ZopeUndoView,
           ZopeViews.ZopeSecurityView, ZopePTHTMLView, ZopeViews.ZopeHTMLView)
     def save(self, filename, data, mode='wb'):
