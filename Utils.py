@@ -9,12 +9,14 @@
 # Copyright:   (c) 1999, 2000 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
+import string, os
+from types import InstanceType
+
 from wxPython.wx import *
+
 import Preferences
 from Preferences import IS
-import string
 from ExternalLib.ConfigParser import ConfigParser
-from types import InstanceType
 # Why did I capitalise these ????
 
 def ShowErrorMessage(parent, caption, mess):
@@ -316,7 +318,7 @@ def wxProxyPanel(parent, win, *args, **kwargs):
         Mainly for better repainting under GTK.
         Based on a pattern by Kevin Gill.
     """
-    panel = wxPanel(parent, -1, style=wxTAB_TRAVERSAL | wxCLIP_CHILDREN)# | wxWANTS_CHARS) doesn't help
+    panel = wxPanel(parent, -1, style=wxTAB_TRAVERSAL | wxCLIP_CHILDREN)
     win = apply(win, (panel,) + args, kwargs)
     def OnWinSize(evt, win=win):
         win.SetSize(evt.GetSize())
@@ -331,3 +333,28 @@ def IsComEnabled():
         return false
     else:
         return true
+
+import stat, shutil
+skipdirs = ('CVS',)
+dofiles = ('.py',)
+def updateDir(src, dst):
+    os.path.walk(src, visit_update, (src, dst) )
+def visit_update(paths, dirname, names):
+    src, dst = paths
+    reldir = dirname[len(src)+1:]
+    dstdirname = os.path.join(dst, reldir)
+    if os.path.basename(dirname) in skipdirs:
+        return
+    if not os.path.exists(dstdirname):
+        print 'creating', dstdirname
+        os.makedirs(dstdirname)
+    for name in names:
+        srcname = os.path.join(dirname, name)
+        dstname = os.path.join(dstdirname, name)
+        if not os.path.isdir(srcname):
+            if os.path.splitext(srcname)[-1] in dofiles and \
+                  ( not os.path.exists(dstname) or \
+                  os.stat(dstname)[stat.ST_MTIME] < os.stat(srcname)[stat.ST_MTIME]):
+                print 'copying', srcname, dstname
+                shutil.copy2(srcname, dstname)
+    
