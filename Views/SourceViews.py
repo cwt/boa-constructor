@@ -34,7 +34,11 @@ markerCnt = 2
 
 wxID_TEXTVIEW = wxNewId()
 
-[wxID_STC_WS, wxID_STC_EOL, wxID_STC_BUF, wxID_STC_IDNT] = Utils.wxNewIds(4)
+[wxID_STC_WS, wxID_STC_EOL, wxID_STC_BUF, wxID_STC_IDNT,
+ wxID_STC_EOL_MODE, wxID_STC_EOL_CRLF, wxID_STC_EOL_LF, wxID_STC_EOL_CR,
+] = Utils.wxNewIds(8)
+
+[wxID_CVT_EOL_LF, wxID_CVT_EOL_CRLF, wxID_CVT_EOL_CR] = Utils.wxNewIds(3)
 
 class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView, 
                            EditorViews.FindResultsAdderMixin):
@@ -66,7 +70,8 @@ class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView,
               ('Print...', self.OnPrint, self.printBmp, ''),
               ('Mark place', self.OnMarkPlace, '-', 'MarkPlace'),
               ('Goto line', self.OnGotoLine, '-', 'GotoLine'),
-              ('STC settings', self.OnSTCSettings, '-', ''),
+              ('STC settings...', self.OnSTCSettings, '-', ''),
+              ('Convert...', self.OnConvert, '-', ''),
               ##('Toggle Record macro', self.OnRecordMacro, '-', ''),
               ##('Playback macro', self.OnPlaybackMacro, '-', ''),
               ##('-', None, '-', ''),
@@ -77,6 +82,7 @@ class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView,
         EditorViews.EditorView.__init__(self, model, a + actions, defaultAction)
 
         self.eol = None
+        self.eolsChecked = false
 
         self.pos = 0
         self.stepPos = 0
@@ -108,6 +114,14 @@ class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView,
         EVT_MENU(self, wxID_STC_EOL, self.OnSTCSettingsEOL)
         EVT_MENU(self, wxID_STC_BUF, self.OnSTCSettingsBufferedDraw)
         EVT_MENU(self, wxID_STC_IDNT, self.OnSTCSettingsIndentGuide)
+        
+        EVT_MENU(self, wxID_STC_EOL_CRLF, self.OnChangeEOLMode)
+        EVT_MENU(self, wxID_STC_EOL_LF, self.OnChangeEOLMode)
+        EVT_MENU(self, wxID_STC_EOL_CR, self.OnChangeEOLMode)
+
+        EVT_MENU(self, wxID_CVT_EOL_CRLF, self.OnConvertEols)
+        EVT_MENU(self, wxID_CVT_EOL_LF, self.OnConvertEols)
+        EVT_MENU(self, wxID_CVT_EOL_CR, self.OnConvertEols)
         
         EVT_MIDDLE_UP(self, self.OnEditPasteSelection)
 
@@ -151,6 +165,14 @@ class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView,
             self.SetEOLMode({'\r\n': wxSTC_EOL_CRLF,
                              '\r':   wxSTC_EOL_CR,
                              '\n':   wxSTC_EOL_LF}[self.eol])
+
+        if not self.eolsChecked:
+            if Utils.checkMixedEOLs(newData):
+                wxLogWarning('Mixed EOLs detected in %s, please use '
+                             'Edit->Convert... to fix this problem.'\
+                             %os.path.basename(self.model.filename))
+            self.eolsChecked = true
+
 
         self.SetSavePoint()
         self.nonUserModification = false
@@ -254,7 +276,7 @@ class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView,
         self.BeginUndoAction()
         try:
             sls, sle = self.reselectSelectionAsBlock()
-            lines = StringIO(self.GetSelectedText()).readlines()
+            lines = StringIO(str(self.GetSelectedText())).readlines()
             text = ''.join(func(lines, indtBlock))
             self.ReplaceSelection(text)
             self.SetSelection(self.PositionFromLine(sls), 
@@ -413,12 +435,23 @@ class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView,
         menu = wxMenu()
         menu.Append(wxID_STC_WS, 'View Whitespace', '', 1) #checkable
         menu.Check(wxID_STC_WS, self.GetViewWhiteSpace())
-        menu.Append(wxID_STC_EOL, 'View EOL symbols', '', 1) #checkable
-        menu.Check(wxID_STC_EOL, self.GetViewEOL())
         menu.Append(wxID_STC_BUF, 'Buffered draw', '', 1) #checkable
         menu.Check(wxID_STC_BUF, self.GetBufferedDraw())
         menu.Append(wxID_STC_IDNT, 'Use indentation guides', '', 1) #checkable
         menu.Check(wxID_STC_IDNT, self.GetIndentationGuides())
+        menu.Append(wxID_STC_EOL, 'View EOL symbols', '', 1) #checkable
+        menu.Check(wxID_STC_EOL, self.GetViewEOL())
+        menu.AppendSeparator()
+
+        eolModeMenu = wxMenu()
+        eolModeMenu.Append(wxID_STC_EOL_CRLF, 'CRLF', '', wxITEM_RADIO)
+        eolModeMenu.Check(wxID_STC_EOL_CRLF, self.GetEOLMode() == wxSTC_EOL_CRLF)
+        eolModeMenu.Append(wxID_STC_EOL_LF, 'LF', '', wxITEM_RADIO)
+        eolModeMenu.Check(wxID_STC_EOL_LF, self.GetEOLMode() == wxSTC_EOL_LF)
+        eolModeMenu.Append(wxID_STC_EOL_CR, 'CR', '', wxITEM_RADIO)
+        eolModeMenu.Check(wxID_STC_EOL_CR, self.GetEOLMode() == wxSTC_EOL_CR)
+
+        menu.AppendMenu(wxID_STC_EOL_MODE, 'EOL mode', eolModeMenu)
 
         s = self.GetClientSize()
 
@@ -443,6 +476,32 @@ class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView,
 
     def OnSTCSettingsIndentGuide(self, event):
         self.SetIndentationGuides(self._getEventChecked(event))
+
+    def OnChangeEOLMode(self, event):
+        eol = {wxID_STC_EOL_CRLF: wxSTC_EOL_CRLF,
+               wxID_STC_EOL_LF:   wxSTC_EOL_LF, 
+               wxID_STC_EOL_CR:   wxSTC_EOL_CR}[event.GetId()]
+               
+        self.SetEOLMode(eol)
+
+#-------------------------------------------------------------------------------
+    def OnConvert(self, event):
+        menu = wxMenu()
+        menu.Append(wxID_CVT_EOL_CRLF, 'EOLs to CRLF')
+        menu.Append(wxID_CVT_EOL_LF,   'EOLs to LF')
+        menu.Append(wxID_CVT_EOL_CR,   'EOLs to CR')
+
+        s = self.GetClientSize()
+
+        self.PopupMenuXY(menu, s.x/2, s.y/2)
+        menu.Destroy()
+        
+    def OnConvertEols(self, event):
+        eol = {wxID_CVT_EOL_CRLF: wxSTC_EOL_CRLF,
+               wxID_CVT_EOL_LF:   wxSTC_EOL_LF, 
+               wxID_CVT_EOL_CR:   wxSTC_EOL_CR}[event.GetId()]
+               
+        self.ConvertEOLs(eol)
 
 #---Macro recording/playback----------------------------------------------------
     _recordingMacro = false
@@ -477,7 +536,7 @@ class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView,
         dlg = STCPrinting.STCPrintDlg(self.model.editor, self, self.model.filename)
         dlg.ShowModal()
         dlg.Destroy()
-        
+
 
 class TextView(EditorStyledTextCtrl, TextSTCMix):
     viewName = 'Text'
