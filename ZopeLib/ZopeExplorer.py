@@ -18,14 +18,13 @@ from wxPython.wx import *
 from Explorers import ExplorerNodes
 from Models import EditorHelper, Controllers
 from ExternalLib import xmlrpclib, BasicAuthTransport
-from ZopeLib import ZopeEditorModels, ZopeViews, Client, ExtMethDlg
-from ZopeLib.ZopeCompanions import ZopeConnection, ZopeCompanion, FolderZC
 from Preferences import IS
 import Utils, Preferences
-import Views
-import Views.PySourceView
-import Views.SourceViews
+import Views, Views.SourceViews, Views.PySourceView
 import PaletteStore
+
+import ZopeEditorModels, ZopeViews, Client, ExtMethDlg
+from ZopeCompanions import ZopeConnection, ZopeCompanion, FolderZC
 
 # XXX Add owner property
 
@@ -72,11 +71,9 @@ class ZopeCatNode(ExplorerNodes.CategoryNode):
     itemProtocol = 'zope'
 
     defName = 'Zope'
-    defaultStruct = {'ftpport': 8021,
-                     'host': 'localhost',
+    defaultStruct = {'host': 'localhost',
                      'httpport': 8080,
                      'localpath': '',
-                     'name': '',
                      'passwd': '',
                      'path': '/',
                      'username': '',
@@ -183,36 +180,26 @@ class ZopeItemNode(ExplorerNodes.ExplorerNode):
             self.entries, self.entryIds = self.server.zoa.items()
         except xmlrpclib.Fault, error:
             #print str(error)
-            # see if ZOA is installed
+            # see if zoa object is installed
             try:
-#                print 'http://%s/zoa'%self.buildUrl()
                 Client.call('http://%s/zoa'%self.buildUrl(),
                       self.properties['username'], self.properties['passwd'],
                       function='version')
             except Client.NotFound:
-                raise 'The zoa object not found in the root of your Zope tree.\n'\
-                      'Please use a browser and import the file '\
-                      'ZopeLib/zoa.zexp into your Zope root.'
-                #raise 'zoa obj missing
-##                    try:
-##                        Client.call('http://%s/manage_addProduct/PythonScripts/'\
-##                              'manage_addPythonScript'%self.buildUrl(),
-##                              self.properties['username'],
-##                              self.properties['passwd'], id = 'ZOA')
-##                    except Client.ServerError, error:
-##                        if error.http_code == 302:
-##                            Client.call('http://%s/ZOA/ZPythonScriptHTML_editAction'\
-##                                %self.buildUrl(), self.properties['username'],
-##                                self.properties['passwd'],
-##                                title = 'ZOA (Boa component)',
-##                                params = 'self, function, args=None',
-##                                body = open(Preferences.pyPath+'/ZopeLib/ZOA.py').read())
-##                    try:
-##                        self.entries, self.entryIds = self.server.ZOA('items')
-##                    except xmlrpclib.Fault, error:
-##                        raise zopeHtmlErr2Strs(error.faultString)
-##                else:
-##                    raise 'The ZOA component must be installed'
+                if wxMessageBox(
+                  'The zoa object not found in the root of your Zope tree.\n\n'
+                  'Do you want to install it?', 'Install zoa',
+                  wxYES_NO | wxICON_QUESTION) == wxYES:
+
+                    import ZoaClient
+                    conninfo = ('http://%s'%self.buildUrl(),
+                         self.properties['username'], self.properties['passwd'])
+                    ZoaClient.installFromFS(conninfo,
+                          os.path.join(Preferences.pyPath, 'ZopeLib', 'zoa', ))
+
+                    # try again, if this fails the real error should break thru
+                    self.entries, self.entryIds = self.server.zoa.items()
+
             else:
                 err = error.faultString
                 raise zopeHtmlErr2Strs(err)
@@ -234,7 +221,7 @@ class ZopeItemNode(ExplorerNodes.ExplorerNode):
         return self.resourcepath
 
     def open(self, editor):
-        editor.openOrGotoZopeDocument(self)
+        return editor.openOrGotoZopeDocument(self)
 
     def deleteItems(self, names):
         mime, res = self.clipboard.zc.call(self.resourcepath,
@@ -288,7 +275,7 @@ class ZopeItemNode(ExplorerNodes.ExplorerNode):
         return eval(svr.zoa.undo(name))
 
     def undoTransaction(self, transactionIds):
-        print self.getResource().manage_undo_transactions(transactionIds)
+        self.getResource().manage_undo_transactions(transactionIds)
 
     def getPermissions(self):
         return self.getResource().permission_settings()#ZOA('permissions')
@@ -322,64 +309,27 @@ class ZopeItemNode(ExplorerNodes.ExplorerNode):
         r.put(filenode.load())
 
     def downloadToFS(self, filename):
-        props = self.properties
-        from ExternalLib.WebDAV.client import Resource
-        r = Resource(('http://%(host)s:%(httpport)s/'+self.resourcepath) % props,
-            props['username'], props['passwd'])
-        open(filename, 'wb').write(r.get().body)
+        open(filename, 'wb').write(self.getResource().manage_FTPget())
 
     def getNodeFromPath(self, respath, metatype):
         return self.createChildNode(metatype, os.path.basename(respath),
               os.path.dirname(respath))
 
-##class ZopeConnectionNode(ZopeItemNode):
-##    protocol = 'zope'
-##    def __init__(self, name, properties, clipboard, parent):
-###        xmlrpcsvr = getServer(properties['host'] + ":" + str(properties['httpport']) + "/","",properties['username'],properties['passwd'])
-##        ZopeItemNode.__init__(self, '', '', clipboard, #zopeObj.name, zopeObj.path, clipboard,
-##            EditorModels.imgZopeConnection, parent, None, self, properties, 'Folder')
-###        self.connected = false
-##        self.treename = name
+    def findItems(self, obj_ids=(), obj_metatypes=None, obj_searchterm=None,
+          search_sub=1):
+        # silly xml-rpc restrictions
+        if obj_metatypes is None: obj_metatypes=0
+        if obj_searchterm is None: obj_searchterm=0
+        if not search_sub: search_sub=''
 
-##    def openList(self):
-##        if not self.connected:
-##            if not string.strip(self.properties['username']):
-##                ld = ZopeLib.LoginDialog.create(None)
-##                try:
-##                    ld.setup(self.properties['host'], self.properties['ftpport'],
-##                      self.properties['httpport'], self.properties['username'],
-##                      self.properties['passwd'])
-##                    if ld.ShowModal() == wxOK:
-##                        self.properties['host'], self.properties['ftpport'],\
-##                          self.properties['httpport'], self.properties['username'],\
-##                          self.properties['passwd'] = ld.getup()
-##                finally:
-##                    ld.Destroy()
-####            try:
-####                self.zopeConn.connect(self.properties['username'],
-####                      self.properties['passwd'], self.properties['host'],
-####                      self.properties['ftpport'])
-####                # XXX AutoImport
-####                #Can't work with zexp files :( must make it manually.. later
-####                #try:
-####                #    self.importObj('BOA_Ext.zexp')
-####                #except:
-####                #    pass
-####            except Exception, message:
-####                wxMessageBox(`message.args`, 'Error on connect')
-####                raise
-##        return ZopeItemNode.openList(self, self)
+        return self.getResource().zoa.find(obj_ids, obj_metatypes, obj_searchterm)
 
-##    def closeList(self):
-##        if self.connected:
-##            self.zopeConn.disconnect()
-##        self.connected = false
 
 (wxID_ZOPEEXPORT, wxID_ZOPEIMPORT, wxID_ZOPEINSPECT, wxID_ZOPEOPENINEDITOR,
  wxID_ZOPEUPLOAD, wxID_ZOPESECURITY, wxID_ZOPEUNDO, wxID_ZOPEVIEWBROWSER,
  wxID_ZCCSTART, wxID_ZCCRESTART, wxID_ZCCSHUTDOWN, wxID_ZCCTEST, wxID_ZCCOPENLOG,
- wxID_ZACONFZ2, wxID_ZOPEMANAGEBROWSER,
-) = Utils.wxNewIds(15)
+ wxID_ZACONFZ2, wxID_ZOPEMANAGEBROWSER, wxID_ZOPEFIND,
+) = Utils.wxNewIds(16)
 
 class ZopeCatController(ExplorerNodes.CategoryController):
     protocol = 'config.zope'
@@ -520,6 +470,7 @@ class ZopeController(ExplorerNodes.Controller, ExplorerNodes.ClipboardController
     importBmp = 'Images/Shared/ZopeImport.png'
     exportBmp = 'Images/Shared/ZopeExport.png'
     uploadBmp = 'Images/ZOA/upload_doc.png'
+    findBmp = 'Images/Shared/Find.png'
     def __init__(self, editor, list, inspector, controllers):
         ExplorerNodes.ClipboardControllerMix.__init__(self)
         ExplorerNodes.Controller.__init__(self, editor)
@@ -533,6 +484,8 @@ class ZopeController(ExplorerNodes.Controller, ExplorerNodes.ClipboardController
             (-1, '-', None, '') ) +\
             self.clipMenuDef +\
           ( (-1, '-', None, ''),
+            (wxID_ZOPEFIND, 'Find', self.OnFindZopeItems, self.findBmp),
+            (-1, '-', None, ''),
             (wxID_ZOPEUPLOAD, 'Upload', self.OnUploadZopeItem, self.uploadBmp),
             (wxID_ZOPEEXPORT, 'Export', self.OnExportZopeItem, self.exportBmp),
             (wxID_ZOPEIMPORT, 'Import', self.OnImportZopeItem, self.importBmp),
@@ -611,10 +564,7 @@ class ZopeController(ExplorerNodes.Controller, ExplorerNodes.ClipboardController
                    props['username'], props['passwd'])
         zc.updateZopeProps()
 
-        # Select in inspector
-        if self.inspector.pages.GetSelection() != 1:
-            self.inspector.pages.SetSelection(1)
-        self.inspector.selectObject(zc, false)
+        self.inspector.selectObject(zc, false, focusPage=1)
 
     def OnInspectItem(self, event):
         if self.list.node:
@@ -691,6 +641,53 @@ class ZopeController(ExplorerNodes.Controller, ExplorerNodes.ClipboardController
             zopeItem = self.list.getSelection()
             if zopeItem:
                 model, cntrlr = self.editor.openOrGotoZopeDocument(zopeItem)
+
+    def OnFindZopeItems(self, event):
+        node = self.list.node
+        if node:
+            from ZopeFindDlg import ZopeFindDlg
+            dlg = ZopeFindDlg(self.editor)
+            try:
+                if dlg.ShowModal() == wxID_OK:
+                    res = string.split(dlg.objIds.GetValue(), ',') or ()
+                    obj_ids = []
+                    for zid in res:
+                        zid = string.strip(zid)
+                        if zid:
+                            obj_ids.append(zid)
+                    meta_type = 0
+                    search_text = dlg.searchText.GetValue() or 0
+                    search_sub = dlg.recurse.GetValue()
+
+                    wxBeginBusyCursor()
+                    try:
+                        results = node.findItems(obj_ids, meta_type,
+                                                 search_text, search_sub)
+                    finally:
+                        wxEndBusyCursor()
+
+                    bookmarks, category = node.bookmarks, node.category
+                    self.list.node = node = ZopeResultsFolderNode(
+                          'Zope Find Results', node.resourcepath,
+                          node.clipboard, -1, node, node.server, node.root,
+                          node.properties, 'Zope Find Results')
+                    node.bookmarks = bookmarks
+                    node.category = category
+
+                    node.results = results
+                    #node.lastSearch = dlg.GetValue()
+
+                    # Collapse possible current contents in tree
+                    tree = self.editor.explorer.tree
+                    item = tree.GetSelection()
+                    tree.CollapseAndReset(item)
+
+                    self.list.refreshCurrent()
+
+            finally:
+                dlg.Destroy()
+
+
 
 
 def getServer(url, user, password):
@@ -899,6 +896,40 @@ from Explorers.PrefsExplorer import SourceBasedPrefColNode
 class ZopeZ2pySourceBasedPrefColNode(SourceBasedPrefColNode):
     pass
 
+class ZopeResultsFolderNode(ZopeItemNode):
+    results = []
+
+    def createChildNode(self, metatype, id, respath, label):
+        item = ZopeItemNode.createChildNode(self, metatype, id, respath)
+        item.name = item.treename = label
+        return item
+
+    def openList(self):
+        self.parentOpensChildren = true
+        entries = []
+
+        for zmeta, zid in self.results:
+            zpath = os.path.dirname(self.resourcepath+'/'+zid)
+            name = os.path.basename(zid)
+            node = self.createChildNode(zmeta, name, zpath, '%s (%s)'%(name, zpath))
+            if node:# and not node.isFolderish():
+                entries.append(node)
+
+        self.entries = entries
+        return self.entries
+
+    def openParent(self, editor):
+        editor.explorer.tree.SelectItem(editor.explorer.tree.GetSelection())
+        return true
+
+    def open(self, node, editor):
+        # recreate with proper name
+        node = node.getNodeFromPath(node.resourcepath, node.metatype)
+        return node.open(editor)
+
+    def getTitle(self):
+        return 'Zope Find Results'
+
 def findBetween(strg, startMarker, endMarker):
     strL = string.lower(strg)
     found = ''
@@ -948,6 +979,7 @@ def zopeHtmlErr2Strs(faultStr):
 # maps meta types to ExplorerNodes
 zopeClassMap = { 'Folder': DirNode,
         'Product Help': DirNode,
+        'Z Class': ZClassNode,
         'User Folder': UserFolderNode,
         'Control Panel': ControlNode,
         'Z SQL Method': ZSQLNode,
@@ -957,6 +989,7 @@ zopeClassMap = { 'Folder': DirNode,
         'External Method': ExtPythonNode,
         'Script (Python)': PythonScriptNode,
         'Image': ZopeImageNode,
+        'File': ZopeNode,
         'User': ZopeUserNode,
        }
 
