@@ -29,7 +29,7 @@ import wx.lib.bcrtl.user.ExampleST
 # available in the wxPython distribution
 class ExampleSTDTC(BasicCompanions.StaticTextDTC):
     def writeImports(self):
-        return 'import wx.lib.bcrtl.user.ExampleST.ExampleStaticText'
+        return 'import wx.lib.bcrtl.user.ExampleST'
 
 #-------------------------------------------------------------------------------
 # Example of a composite control, control itself, implemented in
@@ -50,7 +50,7 @@ class StaticTextCtrlDTC(BasicCompanions.TextCtrlDTC):
                 'Caption': 'caption'}
 
     def writeImports(self):
-        return 'import wx.lib.bcrtl.user.StaticTextCtrl.StaticTextCtrl'
+        return 'import wx.lib.bcrtl.user.StaticTextCtrl'
 
     def designTimeSource(self, position = 'wx.DefaultPosition', size = 'wx.DefaultSize'):
         dts = BasicCompanions.TextCtrlDTC.designTimeSource(self, position, size)
@@ -113,7 +113,7 @@ class CalendarDTC(CalendarConstr, BaseCompanions.WindowDTC):
         return 'import wx.calendar'
 
 PaletteStore.paletteLists['BasicControls'].append(wxCalendarCtrl)
-PaletteStore.compInfo[wxCalendarCtrl] = ['wxCalendarCtrl', CalendarDTC]
+PaletteStore.compInfo[wxCalendarCtrl] = ['wx.calendar.CalendarCtrl', CalendarDTC]
 
 class DateTimePropEditor(PropertyEditors.BITPropEditor):
     def getDisplayValue(self):
@@ -140,7 +140,7 @@ class DateTimePropEditor(PropertyEditors.BITPropEditor):
         
 
 PropertyEditors.registeredTypes.extend( [
-    ('Class', wxDateTimePtr, [DateTimePropEditor]),
+#    ('Class', wxDateTimePtr, [DateTimePropEditor]),
     ('Class', wxDateTime, [DateTimePropEditor]),
 ])
 
