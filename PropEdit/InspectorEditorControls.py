@@ -120,6 +120,29 @@ class TextCtrlIEC(InspectorEditorControl):
         if self.editorCtrl:
             self.editorCtrl.SetValue(value)
 
+class SpinCtrlIEC(InspectorEditorControl):
+    def createControl(self, parent, value, idx, sizeX):
+        value = self.propEditor.valueToIECValue()
+        self.editorCtrl = wxSpinCtrl(parent, self.wID, value,
+              (-2, idx*Preferences.oiLineHeight -2),
+              (sizeX, Preferences.oiLineHeight+3), style = wxSP_VERTICAL)
+        EVT_TEXT_ENTER(parent, self.wID, self.OnSelect)
+        EVT_SPINCTRL(parent, self.wID, self.OnSelect)
+        InspectorEditorControl.createControl(self)
+
+        #if value:
+        #    self.editorCtrl.SetSelection(0, len(value))
+
+    def getValue(self):
+        if self.editorCtrl:
+            self.value = self.editorCtrl.GetValue()
+        return self.value
+
+    def setValue(self, value):
+        self.value = int(value)
+        if self.editorCtrl:
+            self.editorCtrl.SetValue(self.value)
+
 class ChoiceIEC(InspectorEditorControl):
     def createControl(self, parent, idx, sizeX):
         self.editorCtrl = wxChoice(parent, self.wID,
