@@ -361,7 +361,7 @@ class CollectionEditorView(InspectableViews.InspectableObjectView):
         self.companion.writeCollectionFinaliser(output, stripFrmId=frmName)
 
         if hasCode(output):
-            output.insert(0, '%sdef %s(%s):'% (sourceconst.methodIndent, 
+            output.insert(0, '%sdef %s(%s):'% (sourceconst.methodIndent,
                 self.collectionMethod, self.collectionParams))
         else:
             output = []

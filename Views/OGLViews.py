@@ -295,6 +295,7 @@ class PersistentOGLView(ScrollingContainer, EditorViews.EditorView):
 
         region.SetFont(font)
         region.SetText(string.join(textLst, '\n'))
+        #region._text = string.join(textLst, '\n')
         region.SetName(name)
 
         return region, maxWidth, totHeight

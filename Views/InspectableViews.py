@@ -430,7 +430,7 @@ class InspectableObjectView(EditorViews.EditorView, InspectorSessionMix):
         emptyCodeBlock = newBody == ['']
 
         if Preferences.cgAddInitMethodWarning:
-            newBody.insert(0, '%s# %s'%(sourceconst.bodyIndent, 
+            newBody.insert(0, '%s# %s'%(sourceconst.bodyIndent,
                                         sourceconst.code_gen_warning))
 
         if module.classes[self.model.main].methods.has_key(\
@@ -469,7 +469,7 @@ class InspectableObjectView(EditorViews.EditorView, InspectorSessionMix):
                 collView.copyCtrls(collMeth)
                 collMeths.append(collMeth)
 
-        output.insert(0, '%sdef %s(%s):'% (sourceconst.methodIndent, 
+        output.insert(0, '%sdef %s(%s):'% (sourceconst.methodIndent,
               self.collectionMethod, self.collectionParams))
         for ctrlName in ctrlsAndContainedCtrls:
             definedCtrls.append(ctrlName)

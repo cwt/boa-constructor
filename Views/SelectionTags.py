@@ -472,7 +472,7 @@ class MultiSelectionGroup(SelectionGroup):
     def OnMouseOver(self, event):
         if event.Dragging():
             pos = event.GetPosition()
-            ctrl = event.GetEventObject()            
+            ctrl = event.GetEventObject()
             dsgn = self.designer
             for sel in dsgn.multiSelection:
                 sel.moving(ctrl, pos, dsgn.mainMultiDrag)

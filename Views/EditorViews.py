@@ -150,7 +150,7 @@ class EditorView:
                 code = keyDefs[accl]
             else:
                 code = ()
-                
+
             #name = name + (keyDefs[accl][2] and ' \t'+keyDefs[accl][2] or '')
 
             self.menuDefn.append( (wId, name, code, bmp, canCheck) )
@@ -211,10 +211,10 @@ class EditorView:
         if hasattr(self, 'model'):
             if self.modified:
                 #if wxMessageBox('View modified, apply changes?',
-                #  'Close View', 
+                #  'Close View',
                 #  wxOK | wxCANCEL | wxICON_EXCLAMATION) == wxYES:
                 self.refreshModel()
-            
+
             self.model.reorderFollowingViewIdxs(self.pageIdx)
             # XXX If the last view closes should the model close ??
             if self.model.views.has_key(focusView):
@@ -1171,7 +1171,7 @@ class DistUtilManifestView(ListCtrlView):
 
     def __init__(self, parent, model):
         ListCtrlView.__init__(self, parent, model, wxLC_REPORT,
-          (('Open', self.OnOpen, '-', ()), 
+          (('Open', self.OnOpen, '-', ()),
            ('Refresh', self.OnRefresh, self.refreshBmp, 'Refresh')), 0)
         self.InsertColumn(0, 'Name')
         self.InsertColumn(1, 'Filepath')
@@ -1286,4 +1286,3 @@ class FolderEditorView(wxNotebook, EditorView):
 
     def OnPageChange(self, event):
         pass
-
