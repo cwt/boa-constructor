@@ -43,15 +43,18 @@ class PackageFolderTree(wxTreeCtrl):
               wxTreeItemData(self.boaRoot))
         bookCatNode = ExplorerNodes.BookmarksCatNode(self.fsclip, conf, None)
         
-        self.boaRoot.entries = [FileExplorer.FileSysCatNode(self.fsclip, conf, None, bookCatNode), 
-                                bookCatNode,
-                                ExplorerNodes.SysPathNode(self.fsclip, None, bookCatNode)]
+        self.boaRoot.entries = [FileExplorer.FileSysCatNode(self.fsclip, conf, 
+              None, bookCatNode), bookCatNode, 
+              ExplorerNodes.SysPathNode(self.fsclip, None, bookCatNode)]
         if conf.has_option('explorer', 'zope'):
-            self.boaRoot.entries.append(ZopeExplorer.ZopeCatNode(conf, None, self.globClip))
+              self.boaRoot.entries.append(ZopeExplorer.ZopeCatNode(conf, None, 
+              self.globClip))
         if conf.has_option('explorer', 'ssh'):
-            self.boaRoot.entries.append(SSHExplorer.SSHCatNode(self.sshClip, conf, None))
+              self.boaRoot.entries.append(SSHExplorer.SSHCatNode(self.sshClip, 
+              conf, None))
         if conf.has_option('explorer', 'ftp'):
-            self.boaRoot.entries.append(FTPExplorer.FTPCatNode(self.ftpClip, conf, None))
+              self.boaRoot.entries.append(FTPExplorer.FTPCatNode(self.ftpClip, 
+              conf, None))
 
         self.SetItemHasChildren(rootItem, true)
         self.Expand(rootItem)
@@ -60,8 +63,8 @@ class PackageFolderTree(wxTreeCtrl):
         self.Expand(ws)
 
 #        ws = self.getChildNamed(ws, 'Bookmarks')
-        self.defaultBookmarkItem = self.getChildNamed(ws, self.boaRoot.entries[1].getDefault())
-
+        self.defaultBookmarkItem = self.getChildNamed(ws, 
+              self.boaRoot.entries[1].getDefault())
 
     def getChildren(self):
         children = []
