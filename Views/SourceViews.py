@@ -303,8 +303,9 @@ class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView):
         dlg = wxTextEntryDialog(self.model.editor, 'Enter text:',
           'Find in module', txt)
         try:
-            te = Utils.getCtrlsFromDialog(dlg, 'wxTextCtrlPtr')[0]
-            te.SetSelection(0, len(txt))
+            if wxPlatform == '__WXMSW__':
+                te = Utils.getCtrlsFromDialog(dlg, 'wxTextCtrlPtr')[0]
+                te.SetSelection(0, len(txt))
             if dlg.ShowModal() == wxID_OK:
                 self.doFind(dlg.GetValue())
             else:
