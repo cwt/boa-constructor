@@ -178,6 +178,8 @@ class FileSysController(ExplorerNodes.Controller, ExplorerNodes.ClipboardControl
 
 class FileSysExpClipboard(ExplorerNodes.ExplorerClipboard):
     def clipPaste_FileSysExpClipboard(self, node, nodes, mode):
+        # XXX Delayed cut (delete on paste or move) should clear the clipboard
+        # XXX or refresh clipboard with new paths and clear 'cut' mode
         for clipnode in nodes:
             if mode == 'cut':
                 node.moveFileFrom(clipnode)
@@ -233,8 +235,9 @@ class PyFileNode(ExplorerNodes.ExplorerNode):
         return os.path.isdir(self.resourcepath)
 
     def isFolderish(self):
-        return self.isDir() or filter(lambda se, rp=self.resourcepath: se[1](rp),
-            self.subExplorerReg['file'])
+        return self.isDir() or filter(lambda se, rp=self.resourcepath,
+              ap=self.allowedProtocols : (ap == ['*'] or se[0].protocol in ap) and se[1](rp),
+              self.subExplorerReg['file'])
 
     def createParentNode(self):
         parent = os.path.abspath(os.path.join(self.resourcepath, '..'))
@@ -320,8 +323,23 @@ class PyFileNode(ExplorerNodes.ExplorerNode):
         """ Copy node into self (only called for folders)"""
         import shutil
         if not node.isDir():
+            
             if node.resourcepath == os.path.join(self.resourcepath, node.name):
-                return
+                newNameBase = os.path.join(self.resourcepath, 'copy%s_of_'+node.name)
+                num = ''
+                while 1:
+                    newName = newNameBase%num
+                    if os.path.exists(newName):
+                        try: num = str(int(num) + 1)
+                        except: num = '2'
+                    else:
+                        shutil.copy(node.resourcepath, newName)
+                        break
+            else:
+                shutil.copy(node.resourcepath, self.resourcepath)
+            # 
+#            if node.resourcepath == self.resourcepath:
+                
 ##                names = map(lambda n: n.name, self.entries)
 ##                dir, name = os.path.split(self.resourcepath)
 ##                name, ext = os.path.splitext(name)
@@ -358,7 +376,7 @@ class PyFileNode(ExplorerNodes.ExplorerNode):
             return ('.*',)
 
     def load(self):
-        return open(self.resourcepath).read()
+        return open(self.resourcepath, 'rb').read()
 
     def save(self, filename, data):
         # XXX move dialog to gui layer
@@ -366,7 +384,7 @@ class PyFileNode(ExplorerNodes.ExplorerNode):
             self.resourcepath = filename
             self.name = os.path.basename(self.resourcepath)
         try:
-            f = open(self.resourcepath, 'w')
+            f = open(self.resourcepath, 'wb')
         except IOError, message:
             dlg = wx.wxMessageDialog(self.editor, 'Could not save\n'+message.strerror,
                                   'Error', wx.wxOK | wx.wxICON_ERROR)
