@@ -13,6 +13,10 @@
 from wxPython.wx import *
 from wxPython.stc import *
 
+eols = {  wxSTC_EOL_CRLF : '\r\n',
+          wxSTC_EOL_CR : '\r',
+          wxSTC_EOL_LF : '\n'}
+
 from Preferences import faces
 import Preferences
 
@@ -49,15 +53,19 @@ if new_stc:
 word_delim  = string.letters + string.digits + '_'
 object_delim = word_delim + '.'
 
+#---Utility mixins--------------------------------------------------------------
+
 class FoldingStyledTextCtrlMix:
     def __init__(self, wId, margin):
         self.__fold_margin = margin
+        self.SetProperty('fold', '1')
         self.SetMarginType(margin, wxSTC_MARGIN_SYMBOL)
         self.SetMarginMask(margin, wxSTC_MASK_FOLDERS)
         self.SetMarginSensitive(margin, true)
         self.SetMarginWidth(margin, 13)
-        self.MarkerDefine(wxSTC_MARKNUM_FOLDER, wxSTC_MARK_PLUS, "white", "black")
-        self.MarkerDefine(wxSTC_MARKNUM_FOLDEROPEN, wxSTC_MARK_MINUS, "white", "black")
+        self.MarkerDefine(wxSTC_MARKNUM_FOLDER, wxSTC_MARK_PLUS, 'white', 'black')
+        self.MarkerDefine(wxSTC_MARKNUM_FOLDEROPEN, wxSTC_MARK_MINUS, 'white', 'black')
+
 
         EVT_STC_MARGINCLICK(self, wId, self.OnMarginClick)
 
@@ -145,149 +153,6 @@ class FoldingStyledTextCtrlMix:
 
         return line
 
-
-class PythonStyledTextCtrlMix:
-    def __init__(self, wId, margin):
-        self.SetEdgeMode(wxSTC_EDGE_LINE)
-        self.SetEdgeColumn(80)
-
-        self.SetLexer(wxSTC_LEX_PYTHON)
-        if old_stc:
-            self.SetKeywords(0,
-              'and assert break class continue def del elif else except '
-              'exec finally for from global if import in is lambda None '
-              'not or pass print raise return try while true false')
-
-            self.SetViewWhitespace(false)
-        else:
-            self.SetKeyWords(0,
-              'and assert break class continue def del elif else except '
-              'exec finally for from global if import in is lambda None '
-              'not or pass print raise return try while true false')
-
-            self.SetViewWhiteSpace(false)
-
-        self.SetProperty("fold", "1")
-
-        # line numbers in the margin
-        if margin != -1:
-            self.SetMarginType(margin, wxSTC_MARGIN_NUMBER)
-            self.SetMarginWidth(margin, 25)
-            self.StyleSetSpec(wxSTC_STYLE_LINENUMBER,
-              "size:%(lnsize)d,face:%(helv)s,back:#707070" % faces)
-
-        EVT_STC_UPDATEUI(self, wId, self.OnUpdateUI)
-
-        self.setStyles(faces)
-
-    def setStyles(self, faces):
-        # Global default styles for all languages
-        # Default
-        self.StyleSetSpec(wxSTC_STYLE_DEFAULT, "back:%(backcol)s,face:%(mono)s,size:%(size)d" % faces)
-        self.StyleClearAll()
-
-        # Line number
-        self.StyleSetSpec(32, "face:%(mono)s,size:%(size)d" % faces)
-        self.StyleSetSpec(33, "back:#C0C0C0,face:%(helv)s,size:%(lnsize)d" % faces)
-        # Brace highlight
-#        self.StyleSetSpec(34, "fore:#0000FF,bold")
-        # Brace incomplete highlight
-#        self.StyleSetSpec(35, "fore:#FF0000,bold")
-        # Control characters
-        self.StyleSetSpec(36, "face:%(mono)s" % faces)
-
-        # Python styles
-        # White space
-        self.StyleSetSpec(0, "fore:#808080")
-        # Comment
-        self.StyleSetSpec(1, "fore:#007F00,back:#E8FFE8,italic,face:%(mono)s" % faces)
-        # Number
-        self.StyleSetSpec(2, "fore:#007F7F")
-        # String
-        self.StyleSetSpec(3, "fore:#7F007F,face:%(mono)s" % faces)
-        # Single quoted string
-        self.StyleSetSpec(4, "fore:#7F007F,face:%(mono)s" % faces)
-        # Keyword
-        self.StyleSetSpec(5, "fore:#00007F,bold")
-        # Triple quotes
-        self.StyleSetSpec(6, "fore:#7F0000")
-        # Triple double quotes
-        self.StyleSetSpec(7, "fore:#000033,back:#FFFFE8")
-        # Class name definition
-        self.StyleSetSpec(8, "fore:#0000FF,bold")
-        # Function or method name definition
-        self.StyleSetSpec(9, "fore:#007F7F,bold")
-        # Operators
-        self.StyleSetSpec(10, "bold")
-        # Identifiers
-        #self.StyleSetSpec(11, "bold")#,fore:#FF00FF")
-        # Comment-blocks
-        self.StyleSetSpec(12, "fore:#7F7F7F,italic")
-        # End of line where string is not closed
-        self.StyleSetSpec(13, "fore:#000000,face:%(mono)s,back:#E0C0E0,eolfilled" % faces)
-        # Matched Operators
-#        self.StyleSetSpec(34, "fore:#FFFFFF,back:#0000FF,bold")
-#        self.StyleSetSpec(35, "fore:#000000,back:#FF0000,bold")
-        self.StyleSetSpec(34, "fore:#0000FF,back:#FFFF88,bold")
-        self.StyleSetSpec(35, "fore:#FF0000,back:#FFFF88,bold")
-
-    def grayout(self, do):
-        if not Preferences.grayoutSource:
-            return
-        if do:
-            from copy import copy
-            f = copy(faces)
-            f['backcol'] = '#EEF2FF'
-        else:
-            f = faces
-        self.setStyles(f)
-
-    def OnUpdateUI(self, evt):
-#        print 'OnUpdateUI', evt
-        # check for matching braces
-        braceAtCaret = -1
-        braceOpposite = -1
-        charBefore = None
-        caretPos = self.GetCurrentPos()
-        if caretPos > 0:
-            if old_stc:
-                charBefore = self.GetCharAt(caretPos - 1)
-                styleBefore = ord(self.GetStyleAt(caretPos - 1))
-            else:
-                try:
-                    charBefore = chr(self.GetCharAt(caretPos - 1))
-                except ValueError:
-                    charBefore = ''
-                styleBefore = self.GetStyleAt(caretPos - 1)
-
-        # check before
-        if charBefore and charBefore in "[]{}()" and styleBefore == 10:
-            braceAtCaret = caretPos - 1
-
-        # check after
-        if braceAtCaret < 0:
-            if old_stc:
-                charAfter = self.GetCharAt(caretPos)
-                styleAfter = ord(self.GetStyleAt(caretPos))
-            else:
-                try:
-                    charAfter = chr(self.GetCharAt(caretPos))
-                except ValueError:
-                    charAfter = ''
-                styleAfter = self.GetStyleAt(caretPos)
-
-            if charAfter and charAfter in "[]{}()" and styleAfter == 10:
-                braceAtCaret = caretPos
-
-        if braceAtCaret >= 0:
-            braceOpposite = self.BraceMatch(braceAtCaret)
-
-        if braceAtCaret != -1 and braceOpposite == -1:
-            self.BraceBadlight(braceAtCaret)
-        else:
-            self.BraceHighlight(braceAtCaret, braceOpposite)
-            # self.Refresh(false)
-
 def idWord(line, piv, lineStart, leftDelim = word_delim, rightDelim = word_delim):
     if piv >= len(line):
         return 0, 0
@@ -309,7 +174,6 @@ class BrowseStyledTextCtrlMix:
         functionality for browsing the code.
     """
 
-    # XXX Set red style for Debugging.
     # XXX General problem; Updating all Scintilla's settings when something
     # XXX global like this changes
     def __init__(self):
@@ -338,7 +202,6 @@ class BrowseStyledTextCtrlMix:
         return false
 
     def underlineWord(self, start, length):
-##        wxSetCursor(self.handCrs)
         self.SetCursor(self.handCrs)
         self.SetLexer(wxSTC_LEX_NULL)
 
@@ -438,15 +301,128 @@ class BrowseStyledTextCtrlMix:
         event.Skip()
 
 
+#---Language mixins-------------------------------------------------------------
+
+class PythonStyledTextCtrlMix:
+    def __init__(self, wId, margin):
+        self.SetEdgeMode(wxSTC_EDGE_LINE)
+        self.SetEdgeColumn(80)
+
+        self.SetLexer(wxSTC_LEX_PYTHON)
+        if old_stc:
+            self.SetKeywords(0,
+              'and assert break class continue def del elif else except '
+              'exec finally for from global if import in is lambda None '
+              'not or pass print raise return try while true false')
+
+            self.SetViewWhitespace(false)
+        else:
+            self.SetKeyWords(0,
+              'and assert break class continue def del elif else except '
+              'exec finally for from global if import in is lambda None '
+              'not or pass print raise return try while true false')
+
+            self.SetViewWhiteSpace(false)
+
+        # line numbers in the margin
+        if margin != -1:
+            self.SetMarginType(margin, wxSTC_MARGIN_NUMBER)
+            self.SetMarginWidth(margin, 25)
+##            self.StyleSetSpec(wxSTC_STYLE_LINENUMBER,
+##              "size:%(lnsize)d,face:%(helv)s,back:#707070" % faces)
+
+        EVT_STC_UPDATEUI(self, wId, self.OnUpdateUI)
+
+        self.setStyles(faces)
+
+    def setStyles(self, faces):
+        # Global default styles for all languages
+        # Default
+        self.StyleSetSpec(wxSTC_STYLE_DEFAULT, "back:%(backcol)s,face:%(mono)s,size:%(size)d" % faces)
+        self.StyleClearAll()
+
+        self.StyleSetSpec(wxSTC_STYLE_LINENUMBER, "back:#C0C0C0,face:%(helv)s,size:%(lnsize)d" % faces)
+        self.StyleSetSpec(wxSTC_STYLE_CONTROLCHAR, "face:%(mono)s" % faces)
+        self.StyleSetSpec(wxSTC_STYLE_BRACELIGHT, "fore:#0000FF,back:#FFFF88,bold")
+        self.StyleSetSpec(wxSTC_STYLE_BRACEBAD, "fore:#FF0000,back:#FFFF88,bold")
+
+        # Python styles
+        self.StyleSetSpec(wxSTC_P_DEFAULT, "fore:#808080")
+        self.StyleSetSpec(wxSTC_P_COMMENTLINE, "fore:#007F00,back:#E8FFE8,italic,face:%(mono)s" % faces)
+        self.StyleSetSpec(wxSTC_P_NUMBER, "fore:#007F7F")
+        self.StyleSetSpec(wxSTC_P_STRING, "fore:#7F007F,face:%(mono)s" % faces)
+        self.StyleSetSpec(wxSTC_P_CHARACTER, "fore:#7F007F,face:%(mono)s" % faces)
+        self.StyleSetSpec(wxSTC_P_WORD, "fore:#00007F,bold")
+        self.StyleSetSpec(wxSTC_P_TRIPLE, "fore:#7F0000")
+        self.StyleSetSpec(wxSTC_P_TRIPLEDOUBLE, "fore:#000033,back:#FFFFE8")
+        self.StyleSetSpec(wxSTC_P_CLASSNAME, "fore:#0000FF,bold")
+        self.StyleSetSpec(wxSTC_P_DEFNAME, "fore:#007F7F,bold")
+        self.StyleSetSpec(wxSTC_P_OPERATOR, "bold")
+        self.StyleSetSpec(wxSTC_P_IDENTIFIER, "")
+        self.StyleSetSpec(wxSTC_P_COMMENTBLOCK, "fore:#7F7F7F,italic")
+        self.StyleSetSpec(wxSTC_P_STRINGEOL, "fore:#000000,face:%(mono)s,back:#E0C0E0,eolfilled" % faces)
+
+    def grayout(self, do):
+        if not Preferences.grayoutSource:
+            return
+        if do:
+            from copy import copy
+            f = copy(faces)
+            f['backcol'] = '#EEF2FF'
+        else:
+            f = faces
+        self.setStyles(f)
+
+    def OnUpdateUI(self, evt):
+#        print 'OnUpdateUI', evt
+        # check for matching braces
+        braceAtCaret = -1
+        braceOpposite = -1
+        charBefore = None
+        caretPos = self.GetCurrentPos()
+        if caretPos > 0:
+            if old_stc:
+                charBefore = self.GetCharAt(caretPos - 1)
+                styleBefore = ord(self.GetStyleAt(caretPos - 1))
+            else:
+                try:
+                    charBefore = chr(self.GetCharAt(caretPos - 1))
+                except ValueError:
+                    charBefore = ''
+                styleBefore = self.GetStyleAt(caretPos - 1)
+
+        # check before
+        if charBefore and charBefore in "[]{}()" and styleBefore == 10:
+            braceAtCaret = caretPos - 1
+
+        # check after
+        if braceAtCaret < 0:
+            if old_stc:
+                charAfter = self.GetCharAt(caretPos)
+                styleAfter = ord(self.GetStyleAt(caretPos))
+            else:
+                try:
+                    charAfter = chr(self.GetCharAt(caretPos))
+                except ValueError:
+                    charAfter = ''
+                styleAfter = self.GetStyleAt(caretPos)
+
+            if charAfter and charAfter in "[]{}()" and styleAfter == 10:
+                braceAtCaret = caretPos
+
+        if braceAtCaret >= 0:
+            braceOpposite = self.BraceMatch(braceAtCaret)
+
+        if braceAtCaret != -1 and braceOpposite == -1:
+            self.BraceBadlight(braceAtCaret)
+        else:
+            self.BraceHighlight(braceAtCaret, braceOpposite)
+            # self.Refresh(false)
+
 class HTMLStyledTextCtrlMix:
     def __init__(self, wId):
         self.SetEOLMode(wxSTC_EOL_LF)
         self.eol = '\n'#wxSTC_EOL_LF #endOfLines[self.GetEOLMode()]
-
-#        print self.GetSelectionBackground()
-#        wxColour(wxNamedColor("BLUE"))
-#        self.SetSelectionBackground(col)
-#        wxColour(153, 204, 255))
 
         # All hypertext elements and attributes must be listed in lower case
         hypertext_elements = \
@@ -485,7 +461,8 @@ class HTMLStyledTextCtrlMix:
         'text password checkbox radio submit reset '\
         'file hidden image '
 
-        zope_elements = 'dtml-var dtml-in dtml-if dtml-with '
+        zope_elements = 'dtml-var dtml-in dtml-if dtml-else dtml-with dtml-let '\
+        'dtml-call dtml-comment dtml-tree'
 
         self.SetLexer(wxSTC_LEX_HTML)
         if old_stc:
@@ -503,10 +480,105 @@ class HTMLStyledTextCtrlMix:
         EVT_STC_UPDATEUI(self, wId, self.OnUpdateUI)
 
         # Default
-#        style.hypertext.0=fore:#000000,font:Times New Roman,size:11
-        self.StyleSetSpec(wxSTC_STYLE_DEFAULT,
-          'fore:#000000,font:%(mono)s,size:%(size)s' % faces)
+        self.StyleSetSpec(wxSTC_STYLE_DEFAULT, "back:%(backcol)s,face:%(mono)s,size:%(size)d" % faces)
+        self.StyleClearAll()
 
+        self.StyleSetSpec(wxSTC_STYLE_LINENUMBER,
+          'size:%(lnsize)d,face:%(helv)s' % faces)
+
+# XXX Add these
+##wxSTC_H_TAGEND
+##wxSTC_H_XMLSTART
+##wxSTC_H_XMLEND
+##wxSTC_H_SCRIPT
+##wxSTC_H_ASP
+##wxSTC_H_ASPAT
+##wxSTC_H_CDATA
+##wxSTC_H_QUESTION
+##wxSTC_H_VALUE
+
+        self.StyleSetSpec(wxSTC_H_DEFAULT, 'fore:#000000,font:%(mono)s'%faces)
+        self.StyleSetSpec(wxSTC_H_TAG, 'fore:#400080,bold')
+        self.StyleSetSpec(wxSTC_H_TAGUNKNOWN, 'fore:#900050,bold')
+        self.StyleSetSpec(wxSTC_H_ATTRIBUTE, 'fore:#000000,bold')
+        self.StyleSetSpec(wxSTC_H_ATTRIBUTEUNKNOWN, 'fore:#900050,bold')
+        self.StyleSetSpec(wxSTC_H_NUMBER, 'fore:#800080')
+        self.StyleSetSpec(wxSTC_H_DOUBLESTRING, 'fore:#4040F0')
+        self.StyleSetSpec(wxSTC_H_SINGLESTRING, 'fore:#4040F0')
+        self.StyleSetSpec(wxSTC_H_OTHER, 'fore:#800080')
+        self.StyleSetSpec(wxSTC_H_COMMENT, 'fore:#808000')
+        self.StyleSetSpec(wxSTC_H_ENTITY, 'fore:#800080,font:%(mono)s,size:%(size)s' % faces)
+        # XML identifier begin '<?'
+        self.StyleSetSpec(23, 'fore:#0000FF')
+        # XML identifier end '?>'
+        self.StyleSetSpec(24, 'fore:#0000FF')
+        # Matched Operators
+        self.StyleSetSpec(34, 'fore:#0000FF,back:#FFFF88,bold')
+        self.StyleSetSpec(35, 'fore:#FF0000,back:#FFFF88,bold')
+
+    def OnUpdateUI(self, event):
+        pass
+
+# Currently almost a direct copy of the html mixin
+class XMLStyledTextCtrlMix:
+    def __init__(self, wId):
+        self.SetEOLMode(wxSTC_EOL_LF)
+        self.eol = '\n'#wxSTC_EOL_LF #endOfLines[self.GetEOLMode()]
+
+        # All hypertext elements and attributes must be listed in lower case
+        hypertext_elements = \
+        'a abbr acronym address applet area b base basefont '\
+        'bdo big blockquote body br button caption center '\
+        'cite code col colgroup dd del dfn dir div dl dt em '\
+        'fieldset font form frame frameset h1 h2 h3 h4 h5 h6 '\
+        'head hr html i iframe img input ins isindex kbd label '\
+        'legend li link map menu meta noframes noscript '\
+        'object ol optgroup option p param pre q s samp '\
+        'script select small span strike strong style sub sup '\
+        'table tbody td textarea tfoot th thead title tr tt u ul '\
+        'var xmlns '
+
+        hypertext_attributes=\
+        'abbr accept-charset accept accesskey action align alink '\
+        'alt archive axis background bgcolor border '\
+        'cellpadding cellspacing char charoff charset checked cite '\
+        'class classid clear codebase codetype color cols colspan '\
+        'compact content coords '\
+        'data datafld dataformatas datapagesize datasrc datetime '\
+        'declare defer dir disabled enctype '\
+        'face for frame frameborder '\
+        'headers height href hreflang hspace http-equiv '\
+        'id ismap label lang language link longdesc '\
+        'marginwidth marginheight maxlength media method multiple '\
+        'name nohref noresize noshade nowrap '\
+        'object onblur onchange onclick ondblclick onfocus '\
+        'onkeydown onkeypress onkeyup onload onmousedown '\
+        'onmousemove onmouseover onmouseout onmouseup '\
+        'onreset onselect onsubmit onunload '\
+        'profile prompt readonly rel rev rows rowspan rules '\
+        'scheme scope shape size span src standby start style '\
+        'summary tabindex target text title type usemap '\
+        'valign value valuetype version vlink vspace width '\
+        'text password checkbox radio submit reset '\
+        'file hidden image '
+
+        self.SetLexer(wxSTC_LEX_XML)
+        if old_stc:
+            self.SetKeywords(0, hypertext_elements + hypertext_attributes + \
+              ' public !doctype ')
+        else:
+            self.SetKeyWords(0, hypertext_elements + hypertext_attributes + \
+              ' public !doctype ')
+
+        self.SetMargins(1, 1)
+        # line numbers in the margin
+        self.SetMarginType(0, wxSTC_MARGIN_NUMBER)
+        self.SetMarginWidth(0, 20)
+
+        EVT_STC_UPDATEUI(self, wId, self.OnUpdateUI)
+
+        # Default
+        self.StyleSetSpec(wxSTC_STYLE_DEFAULT, "back:%(backcol)s,face:%(mono)s,size:%(size)d" % faces)
         self.StyleClearAll()
 
         self.StyleSetSpec(wxSTC_STYLE_LINENUMBER,
@@ -540,44 +612,9 @@ class HTMLStyledTextCtrlMix:
         self.StyleSetSpec(34, 'fore:#0000FF,back:#FFFF88,bold')
         self.StyleSetSpec(35, 'fore:#FF0000,back:#FFFF88,bold')
 
-    def OnUpdateUI(self, evt):
-        # check for matching braces
-        braceAtCaret = -1
-        braceOpposite = -1
-        charBefore = None
-        caretPos = self.GetCurrentPos()
-        if caretPos > 0:
-            if old_stc:
-                charBefore = self.GetCharAt(caretPos - 1)
-                styleBefore = ord(self.GetStyleAt(caretPos - 1))
-            else:
-                charBefore = chr(self.GetCharAt(caretPos - 1))
-                styleBefore = self.GetStyleAt(caretPos - 1)
+    def OnUpdateUI(self, event):
+        pass
 
-        # check before
-        if charBefore and charBefore in "<>[]{}()" and styleBefore == 10:
-            braceAtCaret = caretPos - 1
-
-        # check after
-        if braceAtCaret < 0:
-            if old_stc:
-                charAfter = self.GetCharAt(caretPos)
-                styleAfter = ord(self.GetStyleAt(caretPos))
-            else:
-                charAfter = chr(self.GetCharAt(caretPos))
-                styleAfter = self.GetStyleAt(caretPos)
-
-            if charAfter and charAfter in "<>[]{}()" and styleAfter == 10:
-                braceAtCaret = caretPos
-
-        if braceAtCaret >= 0:
-            braceOpposite = self.BraceMatch(braceAtCaret)
-
-        if braceAtCaret != -1 and braceOpposite == -1:
-            self.BraceBadlight(braceAtCaret)
-        else:
-            self.BraceHighlight(braceAtCaret, braceOpposite)
-            # self.Refresh(false)
 
 class CPPStyledTextCtrlMix:
     def __init__(self, wId):
@@ -607,9 +644,7 @@ class CPPStyledTextCtrlMix:
         EVT_STC_UPDATEUI(self, wId, self.OnUpdateUI)
 
         # Default
-        self.StyleSetSpec(wxSTC_STYLE_DEFAULT,
-          'fore:#000000,font:%(mono)s,size:%(size)s' % faces)
-
+        self.StyleSetSpec(wxSTC_STYLE_DEFAULT, "back:%(backcol)s,face:%(mono)s,size:%(size)d" % faces)
         self.StyleClearAll()
 
         self.StyleSetSpec(wxSTC_STYLE_LINENUMBER,
@@ -639,3 +674,58 @@ class CPPStyledTextCtrlMix:
         self.StyleSetSpec(11, '')
         # End of line where string is not closed
         self.StyleSetSpec(12, 'fore:#000000,back:#E0C0E0,eolfilled')
+
+    def OnUpdateUI(self, event):
+        pass
+
+from types import IntType, SliceType, StringType
+class STCLinesList:
+    def __init__(self, STC):
+        self.__STC = STC
+
+    def __getitem__(self, key):
+        if type(key) is IntType:
+            # XXX last char is garbage
+            if key < len(self):
+                return self.__STC.GetLine(key)[:-1]
+            else:
+                raise IndexError
+        elif type(key) is SliceType:
+            res = []
+            for idx in range(key.start, key.stop):
+                res.append(self[idx])
+            return res
+        else:
+            raise TypeError, '%s not supported' % `type(key)`
+
+    def __setitem__(self, key, value):
+        stc = self.__STC
+        if type(key) is IntType:
+            assert type(value) is StringType
+            if key < len(self):
+                stc.SetSelection(stc.PositionFromLine(key), stc.GetLineEndPosition(key))
+                stc.ReplaceSelection(value)
+            else:
+                raise IndexError
+        elif type(key) is SliceType:
+            lines = string.join(value, eols[stc.GetEOLMode()])
+            stc.SetSelection(stc.PositionFromLine(key.start),
+                  stc.GetLineEndPosition(key.stop))
+            stc.ReplaceSelection(lines)
+        else:
+            raise TypeError, '%s not supported' % `type(key)`
+
+    def __delitem__(self, key):
+        stc = self.__STC
+        if type(key) is IntType:
+            stc.SetSelection(stc.PositionFromLine(key), stc.GetLineEndPosition(key)+1)
+            stc.ReplaceSelection('')
+        elif type(key) is SliceType:
+            stc.SetSelection(stc.PositionFromLine(key.start),
+                  stc.GetLineEndPosition(key.stop)+1)
+            stc.ReplaceSelection('')
+        else:
+            raise TypeError, '%s not supported' % `type(key)`
+
+    def __len__(self):
+        return self.__STC.GetLineCount()
