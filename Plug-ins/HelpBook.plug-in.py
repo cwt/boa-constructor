@@ -427,58 +427,9 @@ class HTBHelpBookModel(HelpBookModel):
     def save(self, overwriteNewer=False):
         pass
 
-class VirtualListCtrlView(wxListCtrl, EditorViews.EditorView):
-    def __init__(self, parent, model, listStyle, actions, dclickActionIdx=-1):
-        wxListCtrl.__init__(self, parent, -1,
-           style=listStyle | wxLC_VIRTUAL | wxSUNKEN_BORDER)
-        EditorViews.EditorView.__init__(self, model, actions, dclickActionIdx,
-           overrideDClick=true)
+##        if self.GetItemCount():##            itemFrom = self.GetTopItem()##            itemTo   = self.GetTopItem()+1 + self.GetCountPerPage()##            itemTo   = min(itemTo, self.GetItemCount()-1)##            self.RefreshItems(itemFrom, itemTo)
 
-        EVT_LIST_ITEM_SELECTED(self, -1, self.OnItemSelect)
-        EVT_LIST_ITEM_DESELECTED(self, -1, self.OnItemDeselect)
-
-        self.attrPM = wxListItemAttr()
-        self.attrPM.SetBackgroundColour(Preferences.pastelMedium)
-
-        self.attrPL = wxListItemAttr()
-        self.attrPL.SetBackgroundColour(Preferences.pastelLight)
-
-    selected = -1
-    def OnItemSelect(self, event):
-        self.selected = event.GetIndex()
-
-    def OnItemDeselect(self, event):
-        self.selected = -1
-
-    def GetSelections(self):
-        sel = []
-        selCnt = self.GetSelectedItemCount()
-        if selCnt:
-            idx = -1
-            while len(sel) < selCnt:
-                idx = self.GetNextItem(idx, state=wxLIST_STATE_SELECTED)
-                if idx != -1:
-                    sel.append(idx)
-                else:
-                    break
-        return sel
-
-    def OnGetItemImage(self, item):
-        return -1
-
-    def OnGetItemAttr(self, item):
-        if Preferences.pastels:
-            return item % 2 and self.attrPM or self.attrPL
-        else:
-            return None
-
-##        if self.GetItemCount():
-##            itemFrom = self.GetTopItem()
-##            itemTo   = self.GetTopItem()+1 + self.GetCountPerPage()
-##            itemTo   = min(itemTo, self.GetItemCount()-1)
-##            self.RefreshItems(itemFrom, itemTo)
-
-class HelpBookFilesView(VirtualListCtrlView):
+class HelpBookFilesView(EditorViews.VirtualListCtrlView):
     viewName = 'Files'
 
     addBmp = 'Images/Shared/NewItem.png'
@@ -493,7 +444,7 @@ class HelpBookFilesView(VirtualListCtrlView):
                        ('Normalise paths', self.OnNormalisePaths, '-', ''),)
         else:
             actions = ()
-        VirtualListCtrlView.__init__(self, parent, model,
+        EditorViews.VirtualListCtrlView.__init__(self, parent, model,
               wxLC_REPORT, actions, -1)
 
         EVT_LEFT_DOWN(self, self.OnFilesLeftDown)
@@ -731,7 +682,7 @@ class HelpBookIndexView(wxSplitterWindow, EditorViews.EditorView):
     delBmp = 'Images/Shared/DeleteItem.png'
     def __init__(self, parent, model):
         wxSplitterWindow.__init__(self, parent, -1,
-              style=wxCLIP_CHILDREN | wxNO_3D | wxSP_3DSASH | wxSP_FULLSASH)
+              style=wxCLIP_CHILDREN | wxNO_3D | wxSP_3DSASH)# | wxSP_FULLSASH)
 
         self.indexes = HelpBookIndexListView(self, model, self)
         self.files = HelpBookFilesView(self, model, False)
@@ -751,9 +702,9 @@ class HelpBookIndexView(wxSplitterWindow, EditorViews.EditorView):
         self.files.refreshCtrl()
 
 
-class HelpBookIndexListView(VirtualListCtrlView):
+class HelpBookIndexListView(EditorViews.VirtualListCtrlView):
     def __init__(self, parent, model, parentView=None):
-        VirtualListCtrlView.__init__(self, parent, model, wxLC_REPORT,
+        EditorViews.VirtualListCtrlView.__init__(self, parent, model, wxLC_REPORT,
           (), -1)
         self.parentView = parentView
 
