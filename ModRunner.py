@@ -10,11 +10,13 @@
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 
-import string
+import string, traceback
 from os import path
 from popen2import import popen3
 
 from wxPython.wx import *
+
+import Preferences, Utils
 
 import ErrorStack
 
@@ -68,19 +70,27 @@ class CompileModuleRunner(ModuleRunner):
         else:
             prot = 'file'
 
+        source = Utils.toUnixEOLMode(source)+'\n\n'
         try:
             code = compile(source, filename, 'exec')
-        #except SyntaxError:
+        except SyntaxError:
+            etype, value, tb = sys.exc_info()
+            try:
+                traceback.print_exception(etype, value, tb, 0, sys.stderr)
+            finally:
+                etype = value = tb = None
         except:
             # Add filename to traceback object
             etype, value, tb = sys.exc_info()
-            msg, (_filename, lineno, offset, line) = value.args
-            if not _filename:
-                # XXX this is broken on too long lines
-                value.args = msg, (filename, lineno, offset, line)
-                value.filename = filename
-            import traceback
-            traceback.print_exc()
+            try:
+                msg, (_filename, lineno, offset, line) = value.args
+                if not _filename:
+                    # XXX this is broken on too long lines
+                    value.args = msg, (filename, lineno, offset, line)
+                    value.filename = filename
+                traceback.print_exc()
+            finally:
+                etype = value = tb = None
 
         # auto generating pycs is sometimes a pain
         ##        if modified or prot != 'file':
