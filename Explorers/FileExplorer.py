@@ -40,8 +40,8 @@ class FileSysCatNode(ExplorerNodes.CategoryNode):
         
 (wxID_FSOPEN, wxID_FSTEST, wxID_FSNEW, wxID_FSNEWFOLDER, wxID_FSCVS,
  wxID_FSBOOKMARK, wxID_FSFILTERBOAMODULES, wxID_FSFILTERALLMODULES, 
- wxID_FSFILTER, wxID_FSFILTERINTMODULES 
-) = map(lambda x: wxNewId(), range(10))
+ wxID_FSFILTER, wxID_FSFILTERINTMODULES, wxID_FSFINDINFILES, wxID_FSFINDFILES,
+) = map(lambda x: wxNewId(), range(12))
 
 class FileSysController(ExplorerNodes.Controller, ExplorerNodes.ClipboardControllerMix):
     bookmarkBmp = 'Images/Shared/Bookmark.bmp'
@@ -61,7 +61,7 @@ class FileSysController(ExplorerNodes.Controller, ExplorerNodes.ClipboardControl
               (-1, '-', None, '') ) +\
               self.clipMenuDef +\
             ( (-1, '-', None, ''),
-              (wxID_FSBOOKMARK, 'Find', self.OnFindFSItem, self.findBmp),
+              (wxID_FSFINDINFILES, 'Find', self.OnFindFSItem, self.findBmp),
               (wxID_FSBOOKMARK, 'Bookmark', self.OnBookmarkFSItem, self.bookmarkBmp),
         )        
         self.setupMenu(self.menu, self.list, self.fileMenuDef)
@@ -197,6 +197,9 @@ class PyFileNode(ExplorerNodes.ExplorerNode):
         self.doCVS = true
         self.doZip = true
         self.entries = []
+    
+    def destroy(self):
+        self.entries = []
 
     def isDir(self):
         return os.path.isdir(self.resourcepath)
@@ -282,8 +285,17 @@ class PyFileNode(ExplorerNodes.ExplorerNode):
         return name
 
     def copyFileFrom(self, node):
+        """ Copy node into self (only called for folders)"""
         import shutil
         if not node.isDir():
+            if node.resourcepath == os.path.join(self.resourcepath, node.name):
+                return
+##                names = map(lambda n: n.name, self.entries)
+##                dir, name = os.path.split(self.resourcepath)
+##                name, ext = os.path.splitext(name)
+##                name = Util.getValidName(names, name, ext)
+##                shutil.copy(node.resourcepath, name)
+##            else:
             shutil.copy(node.resourcepath, self.resourcepath)
         else:
             shutil.copytree(node.resourcepath, os.path.join(self.resourcepath, node.name))
