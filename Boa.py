@@ -7,7 +7,7 @@
 #
 # Created:     1999
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999 - 2002 Riaan Booysen
+# Copyright:   (c) 1999 - 2003 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
 #Boa:App:BoaApp
@@ -17,6 +17,9 @@
 Handles creation/initialisation of main objects and commandline arguments """
 
 import sys, os, string, time
+
+#try: import psyco; psyco.log(); psyco.full()
+#except ImportError: pass
 
 t1 = time.time()
 
@@ -413,7 +416,7 @@ class BoaApp(wxApp):
 
         conf = Utils.createAndReadConfig('Explorer')
         modTot = conf.getint('splash', 'modulecount')
-        fileTot = len(eval(conf.get('editor', 'openfiles')))
+        fileTot = len(eval(conf.get('editor', 'openfiles'), {}))
 
         abt = About.createSplash(None, modTot, fileTot)
         abt.Show()
@@ -469,7 +472,7 @@ class BoaApp(wxApp):
             #editor.SetIcon(self.main.GetIcon())
         else:
             self.main.Show()
-            inspector.Show(true)
+            inspector.Show()
             # For some reason the splitters have to be visible on GTK before they
             # can be sized.
             inspector.initSashes()
@@ -584,7 +587,6 @@ def main(argv=None):
         wxMessageBox(str(error), 'Error on startup')
         raise
 
-    #if hasattr(sys, 'breakpoint'): sys.breakpoint()
     app.MainLoop()
 
     # Clean up (less warnings)
