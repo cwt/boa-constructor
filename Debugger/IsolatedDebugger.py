@@ -642,12 +642,15 @@ class DebugServer (Bdb):
         if self.botframe is None:
             # Make the entire stack visible.
             self.botframe = root_frame
-        # Set a default stepping mode
-        self.set_step()
         # Get sys.settrace() called when resuming.
         self.starting_trace = 1
+        self.afterHardBreakpoint(frame)
         # Pause in the frame
         self.user_line(frame)
+
+    def afterHardBreakpoint(self, frame):
+        # Set a default stepping mode.
+        self.set_step()
 
     def set_internal_breakpoint(self, filename, lineno, temporary=0,
                                 cond=None):
