@@ -101,7 +101,7 @@ class ZipItemNode(ExplorerNodes.ExplorerNode):
             # XXX should be build by ZipClip
             os.mkdir(fn)
         else:
-            open(fn, 'w').write(zf.read(self.resourcepath))
+            open(fn, 'wb').write(zf.read(self.resourcepath))
         zf.close()
 
     def load(self):

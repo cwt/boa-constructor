@@ -312,7 +312,7 @@ class ZopeItemNode(ExplorerNodes.ExplorerNode):
         from ExternalLib.WebDAV.client import Resource
         r = Resource(('http://%(host)s:%(httpport)s/'+self.resourcepath) % props, 
             props['username'], props['passwd'])
-        open(filename, 'w').write(r.get().body)
+        open(filename, 'wb').write(r.get().body)
 
 ##class ZopeConnectionNode(ZopeItemNode):
 ##    protocol = 'zope'
@@ -776,7 +776,7 @@ class ExtPythonNode(PythonNode):
         emf = ExtMethDlg.ExternalMethodFinder(zopePath)
         extPath = emf.getExtPath(module)
 
-        return open(extPath).read()
+        return open(extPath, 'rb').read()
 
     def save(self, filename, data):
         zopePath = self.properties['localpath']
@@ -790,7 +790,7 @@ class ExtPythonNode(PythonNode):
         emf = ExtMethDlg.ExternalMethodFinder(zopePath)
         extPath = emf.getExtPath(module)
 
-        return open(extPath, 'w').write(data)
+        return open(extPath, 'wb').write(data)
 
 class DTMLDocNode(ZopeNode):
     Model = ZopeEditorModels.ZopeDTMLDocumentModel

@@ -147,7 +147,7 @@ class SSHItemNode(ExplorerNodes.ExplorerNode):
         fn = tempfile.mktemp()
         self.copyToFS(PyFileNode('', os.path.dirname(fn), None, -1, None, None), os.path.basename(fn))
         try:
-            return open(fn).read()
+            return open(fn, 'rb').read()
         finally:
             os.remove(fn)
 
@@ -156,7 +156,7 @@ class SSHItemNode(ExplorerNodes.ExplorerNode):
         import tempfile
         name = os.path.basename(self.resourcepath)
         fn = tempfile.mktemp()
-        open(fn, 'w').write(data)
+        open(fn, 'wb').write(data)
         try:
             if self.parent:
                 self.parent.copyFromFS(PyFileNode('', fn, None, -1, None, None),
