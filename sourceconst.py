@@ -113,6 +113,15 @@ setup(name = '%s',
 defPackageSrc = '''# Package initialisation
 '''
 
+defPyApp = '''modules = {}
+
+def main():
+    pass
+
+if __name__ == '__main__':
+    main()
+'''
+
 simpleModuleRunSrc = '''
 
 if __name__ == '__main__':
