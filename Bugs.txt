@@ -68,23 +68,19 @@ in any case.
 
 OGL divided shapes (used in UML view and Import views) do not display
 their text until the divider is resized, wxWindows bug.
+Kevin implemented a workaround.
 
 The infamous 'After a file dialog the cursor keys don't work' bug.
 This is a MAJOR pain in the neck for Boa/NT users (including myself)
 Using Boa's own file dialog now.
 
-Debugger causes core dump if Boa is closed while still debugging
-Pressing Stop before closing prevents this. I'm trying to do this
-programmatically but failing miserably
+Debugger causes core dump if Boa is closed while still debugging.
 
-Font property misbehaves: value of font after selected != default font
-Problem in general for default values
-
-Changing sub-properties in inspector does not update ctrl
+Module being debugged cannot be closed before stopping the debugger.
+Either block closing the module, also close the debugger or
+remove debugger's dependency on the module's model object.
 
 Help select search result triggers loadpage event 3 times
-
-Utility control must be selected after being added
 
 Parser must be fixed sometime to correctly parse
 - methods within methods
@@ -95,47 +91,38 @@ Setting linked property to None should clear the source
 
 Some help links break when found text is highlighted in html
 
-Controls not in the wx namespace should add appropriate import 
-statements to source
-
 App find does not find correctly when module is open.
 Reimplement find in source using Scintilla's find, find again.
 
 Display warning when frame closes with Notebook with empty
 pages
 
-.cfg, .bmp opens as python modules
-
-Changing the name property in the inspector and immediately
-selecting another control in the Designer causes the first
-control to be repositioned on the newly selected one.
-
 Browsing does not work from the first character of the source.
 
 Cannot save (like in zope) dtml with errors, don't know how
-to get error msg from ftp.
+to get a zope error msg from ftp.
 
-Menubars lose connected to frame when designer is reopened
+Opening binary objects in the editor corrupts them.
+
+On closing the Designer, refreshCtrl is called many times why?
+
+Explorers have many circular references 
 
 GTK
 ---
 
-wxListCtrl returns the wrong window Id from the mouse click,
-no workarounds yet, but was mentioned on wx-dev.
-
-STC is slow/sluggish, especially painful on key repeats
-
 With the accelerator table wxACCEL_ALT binds to shift key
-This does not happen with a test case, must still track down the difference
-
-wxStyledTextCtrl crashes with Brace Highlighting enabled
-
-STC being refreshed many times causes flickering.
-I don't know if GTK refreshes more or that MSW just doesn't flash
-that much
+This does not happen with a test case, must still track down the 
+difference
 
 Toolbars don't work correctly in the designer
 
-Application view not picking up modules in subdirectories correctly
-
 Pastelise (appview) not working correctly when sorting.
+
+Explorers lose their imagelists when filtering
+
+CVS explorers do not pick up their selection correctly and 
+always report '.'
+
+Grid is drawn in the wrong colour (GTK's SetBackgroundColour also 
+does not work correctly)
