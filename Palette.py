@@ -456,7 +456,10 @@ class PanelPalettePage(wxPanel, BasePalettePage):
         newButton.SetBezelWidth(1)
         newButton.SetUseFocusIndicator(0)
         newButton.SetToolTipString(widgetName)
-        newButton.SetBitmapLabel(bmp, false)
+        try:
+            newButton.SetBitmapLabel(bmp, false)
+        except TypeError:
+            newButton.SetBitmapLabel(bmp)
 
         EVT_BUTTON(self, mID, clickEvt)
 
