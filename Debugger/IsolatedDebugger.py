@@ -75,6 +75,11 @@ class DebuggerConnection:
         rather than stop.  Non-blocking.
         """
         self._callNoWait('runFile', 1, filename, params, autocont, add_paths)
+    
+    def post_mortem(self):
+        """ Inspecting tracebacks in the debugger 
+        """
+        self._callMethod('post_mortem', 0)
 
     def set_continue(self, full_speed=0):
         """Proceeds until a breakpoint or program stop.
@@ -97,6 +102,10 @@ class DebuggerConnection:
         or above.  Non-blocking."""
         self._callNoWait('set_step_over', 1)
 
+    def set_step_jump(self, lineno):
+        """Updates the lineno of the bottom frame.  Non-blocking."""
+        self._callMethod('set_step_jump', 0, lineno)
+    
     def set_pause(self):
         """Stops as soon as possible.  Non-blocking and immediate.
         """
@@ -185,7 +194,7 @@ class DebuggerConnection:
         if command:
             allowed = ('set_continue', 'set_step', 'set_step_over',
                        'set_step_out', 'set_pause', 'set_quit',
-                       'set_disconnect',)
+                       'set_disconnect', 'set_step_jump')
             if command not in allowed:
                 raise DebugError('Illegal command: %s' % command)
             apply(getattr(self, command), args)
@@ -227,6 +236,10 @@ class DebuggerConnection:
         available through the given watch expression.  Blocking."""
         return self._callMethod('getWatchSubobjects', 0, expr, frameno)
 
+##    def updateBottomOfStackCodeObject(self, code):
+##        """ Experimental
+##        """
+##        return self._callMethod('updateBottomOfStackCodeObject', 0, code)
 
 class NonBlockingDebuggerConnection (DebuggerConnection):
     """Modifies call semantics in such a way that even blocking
@@ -823,6 +836,21 @@ class DebugServer (Bdb):
 
     def isRunning(self):
         return self._running
+    
+    def post_mortem(self, exc_info=None):
+        if exc_info is None:
+            self.exc_info = sys.exc_info()
+        else:
+            self.exc_info = exc_info
+            
+        if self.exc_info[2] is not None:
+            self.frame = self.exc_info[2].tb_frame
+        else:
+            self.frame = None    
+
+        self._running = 1
+        self.quitting = 0
+        self.eventLoop()
 
     def set_step_out(self):
         """Stop when returning from the topmost frame."""
@@ -844,6 +872,15 @@ class DebugServer (Bdb):
             self.set_next(frame)
         else:
             raise DebugError('No current frame')
+        
+    def set_step_jump(self, lineno):
+        """ Adjust the linenumber attribute of the bottom frame """
+        frame = self.getFrameByNumber(-1)
+        if frame is not None:
+            frame.f_lineno = lineno
+        else:
+            raise DebugError('No current frame')
+    
 
     ### Breakpoint control.
     def setAllBreakpoints(self, brks):
@@ -1130,3 +1167,12 @@ class DebugServer (Bdb):
         for key, value in l:
             rval[str(key)] = self.safeRepr(value)
         return rval
+
+##    def updateBottomOfStackCodeObject(self, code):
+##        frame = self.getFrameByNumber(-1)
+##        if frame is not None:
+##            frame.f_lineno = lineno
+##            self.quitting = 0
+##        else:
+##            raise DebugError('No current frame')
+        
