@@ -1,9 +1,9 @@
 import os, sys
 
-import Preferences, Utils
+import Preferences, Utils, Plugins
 
-if not Utils.transportInstalled('ZopeLib.ZopeExplorer'):
-    raise Utils.SkipPlugin, 'Zope support is not enabled'
+if not Plugins.transportInstalled('ZopeLib.ZopeExplorer'):
+    raise Plugins.SkipPlugin, 'Zope support is not enabled'
 
 #---Model-----------------------------------------------------------------------
 

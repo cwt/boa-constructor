@@ -15,14 +15,16 @@ import string, os, sys
 
 from wxPython import wx
 
+import Preferences, Utils, Plugins
+
 from Explorers import ExplorerNodes
 from Models import EditorModels, EditorHelper
-import RTTI, Utils
+import RTTI
 
 try:
     import _winreg
 except ImportError:
-    raise Utils.SkipPluginSilently, 'Requires windows'
+    raise Plugins.SkipPluginSilently, 'Requires windows'
 
 true = 1
 false = 0
@@ -41,9 +43,9 @@ class RegController(ExplorerNodes.Controller, ExplorerNodes.ClipboardControllerM
         self.inspector = inspector
 
         self.setupMenu(self.menu, self.list,
-              ( (wxID_REGOPEN, 'Open', self.OnOpenItems, '-'),
+              [ (wxID_REGOPEN, 'Open', self.OnOpenItems, '-'),
                 (wxID_REGINSPECT, 'Inspect', self.OnInspectItem, '-'),
-                (-1, '-', None, '') ) + self.clipMenuDef)
+                (-1, '-', None, '') ] + self.clipMenuDef)
         self.toolbarMenus = [self.clipMenuDef]
 
     def destroy(self):
