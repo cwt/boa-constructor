@@ -15,12 +15,20 @@ about_html = '''
   <tr>
     <td align="center"><h2><br>
     <img src="%s"><br>
-    <font color="#006600">Constructor v%s</font></h2></td>
+    <font color="#006600">Constructor v%s</font></h2>%s</td>
   </tr>
 </table>
 %s
 </body>
 </html>
+'''
+
+progress_text = '''
+<wxp class="wxStaticText">
+  <param name="label" value="                                                                ">
+  <param name="id"    value="%d">
+  <param name="style" value="wxALIGN_CENTER">
+</wxp>
 '''
 
 credits_html = '''
@@ -162,12 +170,31 @@ class AboutBox(AboutBoxMixin, wxDialog):
 
     def setPage(self):
         self.html.SetPage((about_html % (Preferences.toPyPath('Images/Shared/Boa.jpg'),
-          __version__, about_text % (wxPlatform, wxMAJOR_VERSION, wxMINOR_VERSION, wxRELEASE_NUMBER))))
+          __version__, '', about_text % (wxPlatform, wxMAJOR_VERSION, wxMINOR_VERSION, wxRELEASE_NUMBER))))
 
 class AboutBoxSplash(AboutBoxMixin, wxFrame):
     def _init_ctrls(self, prnt):
-        wxFrame.__init__(self, size = wxSize(400,265), pos = (-1, -1), id = wxID_ABOUTBOX, title = 'About Boa Constructor', parent = prnt, name = 'AboutBox', style = wxSIMPLE_BORDER)
+        wxFrame.__init__(self, size = wxSize(400,280), pos = (-1, -1), id = wxID_ABOUTBOX, title = 'About Boa Constructor', parent = prnt, name = 'AboutBox', style = wxSIMPLE_BORDER)
+        self.progressId = wxNewId()
 
     def setPage(self):
         self.html.SetPage(about_html % (Preferences.toPyPath('Images/Shared/Boa.jpg'),
-          __version__, ''))
+          __version__, progress_text % self.progressId, ''))
+
+        self.label = self.FindWindowById(self.progressId)
+        self.label.SetBackgroundColour(wxWHITE)
+        sys.stdout = StaticTextPF(self.label)
+    
+    def __del__(self):
+        if sys:
+            sys.stdout = sys.__stdout__
+
+import ShellEditor
+class StaticTextPF(ShellEditor.PseudoFile):
+    def write(self, s):
+        ss = string.strip(s)
+        if ss:
+            self.output.SetLabel(ss)
+        if sys:
+            sys.__stdout__.write(s)
+        wxYield()
