@@ -6,7 +6,7 @@
 #
 # Created:     2002/02/09
 # RCS-ID:      $Id$
-# Copyright:   (c) 2002 - 2003
+# Copyright:   (c) 2002 - 2004
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 
@@ -344,6 +344,8 @@ class BaseFrameModel(ClassModel):
                       self.objectCollections[sourceconst.init_ctrls].creators[0]
                 except IndexError:
                     raise 'Inherited __init__ method missing'
+        else:
+            raise 'Main class "%s" not found. Please fix file header or class name.'%self.main
 
     def removeWindowIds(self, colMeth):
         """ Remove a method's corresponding window ids from the source code """
