@@ -123,7 +123,7 @@ class SizerItemsCDTC(CollectionDTC):
     displayProp = 0
     indexProp = '(None)'
     insertionMethod = 'AddWindow'
-    deletionMethod = 'RemovePos'
+    deletionMethod = 'Remove'
 
     additionalMethods = { 'AddSizer': ('Add sizer', 0, '(None)'),
                           'AddSpacer': ('Add spacer', '', '(None)')
