@@ -20,7 +20,6 @@ from bdb import Bdb, BdbQuit, Breakpoint
 from repr import Repr
 
 
-
 class DebugError(Exception):
     """Incorrect operation of the debugger"""
 
@@ -337,6 +336,38 @@ class MethodCall (ServerMessage):
             raise DebugError, 'Timed out while waiting for debug server.'
         return self.result
 
+
+
+class ThreadChoiceLock:
+    """A reentrant lock designed for simply choosing a thread.
+    It is always released when you call release()."""
+
+    def __init__(self):
+        self._owner = None
+        self._block = thread.allocate_lock()
+
+    def acquire(self, blocking=1):
+        me = thread.get_ident()
+        if self._owner == me:
+            return 1
+        rc = self._block.acquire(blocking)
+        if rc:
+            self._owner = me
+        return rc
+
+    def release(self):
+        me = thread.get_ident()
+        assert me == self._owner, "release of unacquired lock"
+        self._owner = None
+        self._block.release()
+
+    def releaseIfOwned(self):
+        me = thread.get_ident()
+        if me == self._owner:
+            self.release()
+
+
+
 _orig_syspath = sys.path[:]
 
 
@@ -372,9 +403,8 @@ class DebugServer (Bdb):
 
         self.__queue = Queue.Queue(0)
 
-        # self._lock is a reentrant lock that governs which thread
-        # the debugger will stop in.
-        self._lock = threading.RLock()
+        # self._lock governs which thread the debugger will stop in.
+        self._lock = ThreadChoiceLock()
 
         self.repr = repr = Repr()
         repr.maxstring = 100
@@ -395,6 +425,7 @@ class DebugServer (Bdb):
         self.autocont = 0
         self.exc_info = None
         self.fncache.clear()
+        self._lock.releaseIfOwned()
 
     def servicerThread(self):
         """Bootstraps the debugger server loop."""
@@ -462,11 +493,11 @@ class DebugServer (Bdb):
             f = f.f_back
         return 0
 
-    def break_anywhere(self, frame):
-        # Allow a stop anywhere, anytime.
-        # todo: Optimize by stopping only when in one of the
-        # files being debugged?  Problem: callbacks don't get debugged.
-        return 1
+##    def break_anywhere(self, frame):
+##        # Allow a stop anywhere, anytime.
+##        # todo: Optimize by stopping only when in one of the
+##        # files being debugged?  Problem: callbacks don't get debugged.
+##        return 1
 
     def set_continue(self, full_speed=0):
         # Only stop at breakpoints, exceptions or when finished
@@ -477,69 +508,48 @@ class DebugServer (Bdb):
         if full_speed:
             # run without debugger overhead
             sys.settrace(None)
-
-            import bcdb
-            bcdb.waiting_debug_server = self
-
             try:
                 raise 'gen_exc_info'
             except:
                 frame = sys.exc_info()[2].tb_frame.f_back
-                while frame and frame is not self.botframe:
+                while frame:
                     # Clear all the f_trace attributes
                     # that were created while processing with a
                     # settrace callback enabled.
-                    frame.f_trace = None
+                    del frame.f_trace
+                    if frame is self.botframe:
+                        break
                     frame = frame.f_back
 
-        if self._lock.acquire(0):
-            # Allow a stop in any thread.
-            self._lock.release()
+        # Allow a stop in any thread.
+        self._lock.releaseIfOwned()
 
-    def runcall(self, func, *args, **kw):
-        self.reset()
-        sys.settrace(self.trace_dispatch)
-        res = None
-        try:
-            try:
-                res = apply(func, args, kw)
-            except BdbQuit:
-                pass
-        finally:
-            self.quitting = 1
-            sys.settrace(None)
-        return res
-
-    def set_trace(self, call_depth=1):
-        """Start debugging from the caller frame.
+    def set_trace(self):
+        """Start debugging from the caller's frame.
 
         Called by hard breakpoints.
         """
+        if not self._lock.acquire(0):
+            # The debugger is busy.
+            return
         self._running = 1
-        # Note: we can't use Bdb.set_trace() because the
-        # exception trickery below would have to change [2] to [3].
+        root_frame = None
         try:
             raise 'gen_exc_info'
         except:
-            frame = sys.exc_info()[2].tb_frame
-            while call_depth:
-                frame = frame.f_back
-                call_depth = call_depth - 1
-        break_frame = frame
-        #self.reset()
+            frame = sys.exc_info()[2].tb_frame.f_back
         while frame:
             frame.f_trace = self.trace_dispatch
-            #self.botframe = frame # XXX shouldn't botframe stay frame (bdb.run...)
+            root_frame = frame
             frame = frame.f_back
-        #self.set_step()
-        # Semantics have been redefined for this debugger's version of set_trace
-        # The current bottom frame is kept (for a proper stack), 
-        # and the debugger to the next line of the calling frame instead of the 
-        # next instruction
-        self.set_next(break_frame)
-        
+            if frame is self.botframe:
+                break
+        if self.botframe is None:
+            # Make the entire stack visible.
+            self.botframe = root_frame
+        self.set_step()
+        # Careful--don't put any code after the next line!
         sys.settrace(self.trace_dispatch)
-        return self.trace_dispatch
 
     def set_internal_breakpoint(self, filename, lineno, temporary=0,
                                 cond=None):
@@ -565,7 +575,6 @@ class DebugServer (Bdb):
         #bp.orig_filename = orig_filename
         return bp
 
-    # An oversight in bdb?
     def do_clear(self, bpno):
         self.clear_bpbynumber(bpno)
 
@@ -642,7 +651,8 @@ class DebugServer (Bdb):
 
         self.autocont = autocont
 
-        self.run("execfile(fn, d)", {'fn':fn, 'd':d})
+        self.run("execfile(fn, d)", {
+            'fn':fn, 'd':d, '__debugger__': self})
 
     def run(self, cmd, globals=None, locals=None):
         try:
@@ -652,33 +662,16 @@ class DebugServer (Bdb):
             except (BdbQuit, SystemExit):
                 pass
             except:
-                # Provide post-mortem analysis.
                 import traceback
                 traceback.print_exc()
-                self.exc_info = sys.exc_info()
-                self.frame = self.exc_info[2].tb_frame
-                self.quitting = 0
-                self.eventLoop()
+                if self._lock.acquire(0):
+                    # Provide post-mortem analysis.
+                    self.exc_info = sys.exc_info()
+                    self.frame = self.exc_info[2].tb_frame
+                    self.quitting = 0
+                    self.eventLoop()
         finally:
-            sys.settrace(None)
-            self.quitting = 1
-            self._running = 0
-            self.cleanupServer()
-
-    def runFunc(self, func, *args, **kw):
-        try:
-            self._running = 1
-            try:
-                return apply(self.runcall, (func,) + args, kw)
-            except BdbQuit:
-                pass
-            except:
-                # Provide post-mortem analysis.
-                self.exc_info = sys.exc_info()
-                self.frame = self.exc_info[2].tb_frame
-                self.quitting = 0
-                self.eventLoop()
-        finally:
+            sys.settrace(None)  # Just to be sure
             self.quitting = 1
             self._running = 0
             self.cleanupServer()
@@ -694,7 +687,7 @@ class DebugServer (Bdb):
             raise DebugError('No current frame')
 
     def set_step_over(self):
-        # Stop on the next line in the current frame or above.
+        # Stop on the next line in the current frame or in one of its callers.
         frame = self.frame
         if frame is not None:
             self.ignore_stopline = frame.f_lineno
@@ -755,15 +748,18 @@ class DebugServer (Bdb):
                     
                 stack, frame_stack_len = self.get_stack(
                     exc_tb.tb_frame, exc_tb)
-
-                # Remove debugger's own stack
-                stack = stack[frame_stack_len + 2:]
-                frame_stack_len = len(stack)
             else:
                 exc_type = None
                 exc_value = None
                 stack, frame_stack_len = self.get_stack(
                     self.frame, None)
+            # Remove debugger's own stack.
+            for index in range(len(stack)):
+                g = stack[index][0].f_globals
+                if g.get('__debugger__', None) is self:
+                    stack = stack[index + 1:]
+                    frame_stack_len = frame_stack_len - (index + 1)
+                    break
             return exc_type, exc_value, stack, frame_stack_len
         finally:
             exc_tb = None
@@ -909,39 +905,3 @@ class DebugServer (Bdb):
             rval[str(key)] = self.safeRepr(value)
         return rval
 
-    def reset(self):
-        Bdb.reset(self)
-        #self.frame = None
-    
-    #def dispatch_return(self, frame, arg):
-    #    Bdb.dispatch_return(self, frame, arg)
-        # XXX this can be used as a hook to detect when a debugging session is
-        # XXX about to stop. frame.f_back will be None
-        # XXX For the main thread this means the end of the program, but
-        # XXX for threads I want to transfer control (tracing) back to the 
-        # XXX main thread
-
-##waiting_debug_server = None
-##
-##def set_trace():
-##    global waiting_debug_server
-##    ds = waiting_debug_server
-##    if ds:
-##        waiting_debug_server = None
-##        if hasattr(sys, 'boa_debugger'): 
-##            del sys.boa_debugger
-##
-##        ds.set_trace(call_depth=2)
-
-def descrframe(frame):
-    if frame: return ('<frame:%s(%s)%s [%s]>'%(path.basename(frame.f_code.co_filename), 
-          frame.f_lineno, frame.f_code.co_name, id(frame)) )
-    else: return 'None'
-
-# for debugging debugging
-# to track who sets the sys trace function
-_settrace = sys.settrace
-def settrace_prx(func):
-    print 'TRACE: %s set by %s'%(func, threading.currentThread())
-    _settrace(func)
-#sys.settrace = settrace_prx
