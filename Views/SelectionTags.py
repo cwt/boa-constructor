@@ -288,13 +288,18 @@ class SelectionGroup:
             a control and notifies the Inspector.
         """
         if self.selection:
+            currPos, currSize = self.position, self.size
             if self.isProxySelection():
-                self.position = wxPoint(0, 0)
+                position = wxPoint(0, 0)
             else:
-                self.position = self.selection.GetPosition()
-            self.size = self.selection.GetSize()
-            self.sizeUpdate()
-            self.positionUpdate()
+                position = self.selection.GetPosition()
+            size = self.selection.GetSize()
+            
+            #if (currPos, currSize) != (position, size):
+            self.position, self.size = position, size
+                
+            #    self.sizeUpdate()
+            #    self.positionUpdate()
 
     def setSelection(self, finishDragging=false):
         """ Show selection based on granularised position and size.
@@ -399,10 +404,12 @@ class SingleSelectionGroup(SelectionGroup):
                 self.inspector.propertyUpdate(prop)
 
     def positionUpdate(self):
-        self.updateInspectorPageProps(self.selCompn.getPositionDependentProps())
+        if self.selCompn:
+            self.updateInspectorPageProps(self.selCompn.getPositionDependentProps())
 
     def sizeUpdate(self):
-        self.updateInspectorPageProps(self.selCompn.getSizeDependentProps())
+        if self.selCompn:
+            self.updateInspectorPageProps(self.selCompn.getSizeDependentProps())
 
     # Events
     def OnSizeBegin(self, event):
