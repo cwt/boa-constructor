@@ -1,0 +1,3 @@
+import Boa
+
+Boa.main()
