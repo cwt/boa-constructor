@@ -22,7 +22,7 @@ Nested methods and classes not handled
 Continuation lines are not dealt with at all and strings may confuse
 the hell out of the parser, but it usually works.
 
-Continuation lines are now handled for class and function defs
+Continuation lines are now handled for class, method and function defs
 """
 
 import os, sys
@@ -194,10 +194,10 @@ class Class:
                 block.renumber(start, deltaLines)
 
     def getMethodForLineNo(self, line_no):
-        for meth in self.methods.values():
+        for name, meth in self.methods.items():
             if meth.contains(line_no):
-                return meth
-        return None
+                return name, meth
+        return '', None
 
 class Test2: pass
 
@@ -222,11 +222,11 @@ class Module:
             cur_class.block.end = lineno
 
             cur_class = None
-            cur_func = ''
+            cur_func = None
 
         elif cur_func:
-            self.functions[cur_func].end = lineno -1
-            cur_func = ''
+            cur_func.end = lineno -1
+            cur_func = None
 
         return cur_class, cur_meth, cur_func
 
@@ -278,7 +278,7 @@ class Module:
 
         cur_class = None
         cur_meth = ''
-        cur_func = ''
+        cur_func = None
         file = ''
         self.lineno = 0
         self.source = modulesrc
@@ -287,210 +287,254 @@ class Module:
             self.loc = self.loc + 1
             line = string.rstrip(self.readline())
 
-            # bravely attempt to repair line conts
-            # if line[-1] in self.line_conts
-            # XXX Compensate for line continueations
-
-            res = is_todo.match(line)
-            if res:
-                self.todos.append((self.lineno,
-                      string.strip(line[res.span()[1]:])))
-                continue
-
-            if blank_line.match(line):
-                # ignore blank (and comment only) lines
-                self.loc = self.loc - 1
-                continue
-
-##            if dedent.match(line):
-##                print 'dedent', self.lineno
-
-
-            res2 = is_class_start.match(line)
-            if res2:
-                res = is_class.match(line)
-                if not res:
-                    # check for line conts
-                    lno, contl = self.readcontinuedlines(self.lineno-1, ':')
-                    if lno == -1:
-                        continue
-                    class_name = res2.group('id')
-                    inherit = contl[string.find(contl,
-                         '('):string.rfind(contl, ')')+1]
-                else:
-                    class_name = res.group('id')
-                    inherit = res.group('sup')
-
-                # we found a class definition
-                cur_class, cur_meth, cur_func = self.finaliseEntry(cur_class,
-                  cur_meth, cur_func, self.lineno)
-                if inherit:
-                    # the class inherits from other classes
-                    inherit = string.strip(inherit[1:-1])
-                    names = []
-                    for n in string.split(inherit, ','):
-                        n = string.strip(n)
-                        if n:
-                            if self.classes.has_key(n):
-                                # we know this super class
-                                n = self.classes[n]
-                            else:
-                                c = string.splitfields(n, '.')
-                                if len(c) > 1:
-                                    # super class is of the
-                                    # form module.class:
-                                    # look in module for class
-                                    m = c[-2]
-                                    c = c[-1]
-                            names.append(n)
-                    inherit = names
-                # remember this class
-                cur_class = Class(module, class_name, inherit, file, self.lineno)
-                cur_meth = ''
-                self.classes[class_name] = cur_class
-                self.class_order.append(class_name)
-                continue
-
-            res2 = is_func_start.match(line)
-            if res2:
-                res = is_func.match(line)
-                if not res:
-                    lno, contl = self.readcontinuedlines(self.lineno-1, ':')
-                    if lno == -1:
-                        continue
-                    res_group_id = res2.group('id')
-                    res_group_sig = contl[string.find(contl,
-                          '(')+1:string.rfind(contl, ')')]
-                else:
-                    res_group_id = res.group('id')
-                    res_group_sig = res.group('sig')
-
-                cur_class, cur_meth, cur_func = self.finaliseEntry(cur_class,
-                  cur_meth, cur_func, self.lineno)
-                func_name = res_group_id
-                cur_func = func_name
-                self.functions[func_name] = CodeBlock(res_group_sig,
-                  self.lineno, 0)
-                self.function_order.append(func_name)
-                continue
-
-            res2 = is_method_start.match(line)
-            if res2:
-                res = is_method.match(line)
-                if not res:
-                    lno, contl = self.readcontinuedlines(self.lineno-1, ':')
-                    if lno == -1:
-                        continue
-                    res_group_id = res2.group('id')
-                    res_group_sig = contl[string.find(contl,
-                          '(')+1:string.rfind(contl, ')')]
-                else:
-                    res_group_id = res.group('id')
-                    res_group_sig = res.group('sig')
-
-                # found a method definition
-                if cur_class:
-                    # and we know the class it belongs to
-                    if cur_meth:
-                        cur_class.end_method(cur_meth, self.lineno -1)
-                    meth_name = res_group_id
-                    cur_class.add_method(meth_name, res_group_sig, self.lineno)
-                    cur_meth = meth_name
-                continue
-
-            res = is_attrib_from_call.match(line)
-            if res:
-                # found a attribute binding
-                if cur_class:
-                    # and we know the class it belongs to
-                    classpath = res.group('classpath')
-                    cur_class.add_attr(res.group('name'), self.lineno, classpath)
-
-                continue
-
-            res = is_attrib.match(line)
-            if res:
-                # found a attribute binding with possible object type
-                if cur_class:
-                    # and we know the class it belongs to
-                    # try to determine type
-                    rem = line[res.end():]
-                    objtype = ''
-                    if rem:
-                        if rem[0] in ('"', "'"): objtype = 'string'
-                        elif rem[0] in string.digits: objtype = 'number'
-                        elif rem[0] == '{': objtype = 'dict'
-                        elif rem[0] == '[': objtype = 'list'
-                        elif rem[0] == '(': objtype = 'tuple'
-                        elif rem[0] in string.letters+'_': objtype = 'ref'
-
-                    cur_class.add_attr(res.group('name'), self.lineno, objtype)
-
-                continue
-
-            res = is_import.match(line)
-            if res:
-                # import module
-                for n in string.splitfields(res.group('imp'), ','):
-                    n = string.strip(n)
-                    self.imports[n] = [self.lineno]
-                continue
-
-            res = is_from.match(line)
-            if res:
-                # from module import stuff
-                mod = res.group('module')
-                if not self.imports.has_key(mod):
-                    self.imports[mod] = [self.lineno]
-
-##                names = string.splitfields(res.group('imp'), ',')
-##                for n in names:
-##                    n = string.strip(n)
-##                    self.imports[mod].append(n)
-                continue
-
-            res = is_wid.match(line)
-            if res:
-                self.wids.append((self.lineno, res))
-
-            if dedent.match(line):
-                # end of class definition
-                cur_class, cur_meth, cur_func = self.finaliseEntry(cur_class,
-                  cur_meth, cur_func, self.lineno)
-
-            res = is_name.match(line)
-            if res:
-                # found a name binding
-                # class attribute
-                if cur_class:
-                    # and we know the class it belongs to
-                    # try to determine type
-                    if cur_meth:
-                        cur_class.add_local(res.group('name'), cur_meth, self.lineno)
-                    else:
-                        # must be class attr
-                        cur_class.add_class_attr(res.group('name'), self.lineno, line[res.end():])
-                # function
-                elif cur_func:
-                    name = res.group('name')
-                    if self.functions.has_key(cur_func):
-                        if name not in self.functions[cur_func].locals.keys():
-                            self.functions[cur_func].locals[name] = Attrib(name, self.lineno)
-                #global
-                else:
-                    name = res.group('name')
-                    if not self.globals.has_key(name):
-                        self.globals[name] = CodeBlock(name, self.lineno, self.lineno)
-                        self.global_order.append(name)
-
-                continue
-
+            cont, cur_class, cur_meth, cur_func = self.parseLine(module, file,
+                  line, self.lineno, cur_class, cur_meth, cur_func)
+                        
         # if it's the last class in the source, it will not dedent
         # check manually
         cur_class, cur_meth, cur_func = self.finaliseEntry(cur_class, cur_meth,
           cur_func, self.lineno +1)
 
 #        print self.imports
+
+    def parseLineIsolated(self, line, lineno):
+        cls = self.getClassForLineNo(lineno)
+        if cls:
+            mthName, mth = cls.getMethodForLineNo(lineno)
+            return self.parseLine('', '', line, lineno, cls, mthName, None)
+        else:
+            fnc = self.getFunctionForLineNo(lineno)
+            if fnc:
+                return self.parseLine('', '', line, lineno, None, '', fnc)
+        return self.parseLine('', '', line, lineno, None, '', None)
+                
+                
+
+    def parseLine(self, module, file, line, lineno, cur_class, cur_meth, cur_func):
+        res = is_todo.match(line)
+        if res:
+            self.todos.append((lineno,
+                  string.strip(line[res.span()[1]:])))
+            return 0, cur_class, cur_meth, cur_func
+
+        if blank_line.match(line):
+            # ignore blank (and comment only) lines
+            self.loc = self.loc - 1
+            return 0, cur_class, cur_meth, cur_func
+
+##            if dedent.match(line):
+##                print 'dedent', self.lineno
+
+        res2 = is_class_start.match(line)
+        if res2:
+            res = is_class.match(line)
+            if not res:
+                # check for line conts
+                lno, contl = self.readcontinuedlines(lineno-1, ':')
+                if lno == -1:
+                    return 0, cur_class, cur_meth, cur_func
+                class_name = res2.group('id')
+                inherit = contl[string.find(contl,
+                     '('):string.rfind(contl, ')')+1]
+            else:
+                class_name = res.group('id')
+                inherit = res.group('sup')
+
+            # we found a class definition
+            cur_class, cur_meth, cur_func = self.finaliseEntry(cur_class,
+              cur_meth, cur_func, lineno)
+            if inherit:
+                # the class inherits from other classes
+                inherit = string.strip(inherit[1:-1])
+                names = []
+                for n in string.split(inherit, ','):
+                    n = string.strip(n)
+                    if n:
+                        if self.classes.has_key(n):
+                            # we know this super class
+                            n = self.classes[n]
+                        else:
+                            c = string.splitfields(n, '.')
+                            if len(c) > 1:
+                                # super class is of the
+                                # form module.class:
+                                # look in module for class
+                                m = c[-2]
+                                c = c[-1]
+                        names.append(n)
+                inherit = names
+            # remember this class
+
+# An attempt at maintaining state on the fly 
+#(way to much effort, must be done for every parsed type)
+##           order = -1
+##            for cn in self.class_order[:]:
+##                c = self.classes[cn]
+##                if c.block.start == lineno:
+##                    print 'inplace class rename %d'%lineno
+##                    # we are replacing (renaming) a class in-place
+##                    if c.name != class_name:
+##                        del self.classes[c.name]
+##                        self.classes[class_name] = c
+##                        
+##                        idx = self.class_order.index(c.name)
+##                        del self.class_order[idx]
+##                        self.class_order.insert(idx, class_name)
+##                        
+##                    c.name = class_name
+##                    c.super = inherit
+##                    return 0, cur_class, cur_meth, cur_func
+##                
+##                if lineno < c.block.start and order == -1:
+##                    print 'non append order %d above %s:%d'%(lineno, c.name, c.block.start)
+##                    order = self.class_order.index(cn)
+##            else:
+            cur_class = Class(module, class_name, inherit, file, lineno)
+            cur_meth = ''
+            self.classes[class_name] = cur_class
+            self.class_order.append(class_name)
+##            if order == -1:
+##                self.class_order.append(class_name)
+##            else:
+##                self.class_order.insert(order, class_name)
+                
+            return 0, cur_class, cur_meth, cur_func
+
+        res2 = is_func_start.match(line)
+        if res2:
+            res = is_func.match(line)
+            if not res:
+                lno, contl = self.readcontinuedlines(lineno-1, ':')
+                if lno == -1:
+                    return 0, cur_class, cur_meth, cur_func
+                res_group_id = res2.group('id')
+                res_group_sig = contl[string.find(contl,
+                      '(')+1:string.rfind(contl, ')')]
+            else:
+                res_group_id = res.group('id')
+                res_group_sig = res.group('sig')
+
+            cur_class, cur_meth, cur_func = self.finaliseEntry(cur_class,
+              cur_meth, cur_func, lineno)
+            func_name = res_group_id
+            cur_func = self.functions[func_name] = CodeBlock(res_group_sig, lineno, 0)
+            self.function_order.append(func_name)
+            return 0, cur_class, cur_meth, cur_func
+
+        res2 = is_method_start.match(line)
+        if res2:
+            res = is_method.match(line)
+            if not res:
+                lno, contl = self.readcontinuedlines(lineno-1, ':')
+                if lno == -1:
+                    return 0, cur_class, cur_meth, cur_func
+                res_group_id = res2.group('id')
+                res_group_sig = contl[string.find(contl,
+                      '(')+1:string.rfind(contl, ')')]
+            else:
+                res_group_id = res.group('id')
+                res_group_sig = res.group('sig')
+
+            # found a method definition
+            if cur_class:
+                # and we know the class it belongs to
+                if cur_meth:
+                    cur_class.end_method(cur_meth, lineno -1)
+                meth_name = res_group_id
+                cur_class.add_method(meth_name, res_group_sig, lineno)
+                cur_meth = meth_name
+            return 0, cur_class, cur_meth, cur_func
+
+        res = is_attrib_from_call.match(line)
+        if res:
+            # found a attribute binding
+            if cur_class:
+                # and we know the class it belongs to
+                classpath = res.group('classpath')
+                cur_class.add_attr(res.group('name'), lineno, classpath)
+
+            return 0, cur_class, cur_meth, cur_func
+
+        res = is_attrib.match(line)
+        if res:
+            # found a attribute binding with possible object type
+            if cur_class:
+                # and we know the class it belongs to
+                # try to determine type
+                rem = line[res.end():]
+                objtype = ''
+                if rem:
+                    if rem[0] in ('"', "'"): objtype = 'string'
+                    elif rem[0] in string.digits: objtype = 'number'
+                    elif rem[0] == '{': objtype = 'dict'
+                    elif rem[0] == '[': objtype = 'list'
+                    elif rem[0] == '(': objtype = 'tuple'
+                    elif rem[0] in string.letters+'_': objtype = 'ref'
+
+                cur_class.add_attr(res.group('name'), lineno, objtype)
+
+            return 0, cur_class, cur_meth, cur_func
+
+        res = is_import.match(line)
+        if res:
+            # import module
+            for n in string.splitfields(res.group('imp'), ','):
+                n = string.strip(n)
+                self.imports[n] = [lineno]
+            return 0, cur_class, cur_meth, cur_func
+
+        res = is_from.match(line)
+        if res:
+            # from module import stuff
+            mod = res.group('module')
+            if not self.imports.has_key(mod):
+                self.imports[mod] = [lineno]
+
+##                names = string.splitfields(res.group('imp'), ',')
+##                for n in names:
+##                    n = string.strip(n)
+##                    self.imports[mod].append(n)
+            return 0, cur_class, cur_meth, cur_func
+
+        res = is_wid.match(line)
+        if res:
+            self.wids.append((lineno, res))
+
+        if dedent.match(line):
+            # end of class definition
+            cur_class, cur_meth, cur_func = self.finaliseEntry(cur_class,
+              cur_meth, cur_func, lineno)
+
+        res = is_name.match(line)
+        if res:
+            # found a name binding
+            # class attribute
+            if cur_class:
+                # and we know the class it belongs to
+                # try to determine type
+                if cur_meth:
+                    cur_class.add_local(res.group('name'), cur_meth, lineno)
+                else:
+                    # must be class attr
+                    cur_class.add_class_attr(res.group('name'), lineno, line[res.end():])
+            # function
+            elif cur_func:
+                name = res.group('name')
+                if name not in cur_func.locals.keys():
+                        cur_func.locals[name] = Attrib(name, lineno)
+##                if self.functions.has_key(cur_func):
+##                    if name not in self.functions[cur_func].locals.keys():
+##                        self.functions[cur_func].locals[name] = Attrib(name, lineno)
+            #global
+            else:
+                name = res.group('name')
+                if not self.globals.has_key(name):
+                    self.globals[name] = CodeBlock(name, self.lineno, lineno)
+                    self.global_order.append(name)
+
+            return 0, cur_class, cur_meth, cur_func
+        
+        return 1, cur_class, cur_meth, cur_func
 
     def find_declarer(self, cls, attr, value, found = 0):
         if found:
