@@ -24,8 +24,6 @@ import EditorHelper, ErrorStack
 from EditorModels import SourceModel, EditorModel
 
 import relpath
-
-from Debugger import Debugger
     
 from sourceconst import *
 
@@ -192,6 +190,8 @@ class ModuleModel(SourceModel):
         if self.savedAs:
             debugger = self.editor.debugger
             if not debugger:
+                from Debugger import Debugger
+
                 filename = self.assertLocalFile(self.filename)
                 debugger = Debugger.DebuggerFrame(self.editor, filename)
                 debugger.setDebugClient()
@@ -453,38 +453,39 @@ class ImportRelationshipMix:
 
         tot = len(modules)
         self.editor.statusBar.progress.SetRange(tot)
-        prog = 0
-        totLOC = 0
-        classCnt = 0
-        # XXX Rewrite in terms of transport
-        for module in modules:
-            self.editor.statusBar.progress.SetValue(prog)
-            prog = prog + 1
-            self.editor.statusBar.setHint('Parsing '+module+'...')
-            #module = self.modules[moduleName]
-            #filename = self.normaliseModuleRelativeToApp(module[2])
-            if module[:7] != 'file://':
-                print '%s skipped, only local files supported for Imports View'
-            else:
-                module = module[7:]
-            try: f = open(module)
-            except IOError:
-                print "couldn't load %s" % module
-                continue
-            else:
-                data = f.read()
-                f.close()
-                name = os.path.splitext(os.path.basename(module))[0]
-                model = ModuleModel(data, name, self.editor, 1)
-                relationships[name] = model.getModule() #.imports
-
-            totLOC = totLOC + model.getModule().loc
-            classCnt = classCnt + len(model.getModule().classes)
-
-        print 'Project LOC: %d,\n%d classes in %d modules.'%(totLOC, classCnt, len(modules))
-
-        self.editor.statusBar.progress.SetValue(0)
-        self.editor.statusBar.setHint('')
+        try:
+            prog = 0
+            totLOC = 0
+            classCnt = 0
+            # XXX Rewrite in terms of transport
+            for module in modules:
+                self.editor.statusBar.progress.SetValue(prog)
+                prog = prog + 1
+                self.editor.setStatus('Parsing '+module+'...')
+                #module = self.modules[moduleName]
+                #filename = self.normaliseModuleRelativeToApp(module[2])
+                if module[:7] != 'file://':
+                    print '%s skipped, only local files supported for Imports View'
+                else:
+                    module = module[7:]
+                try: f = open(module)
+                except IOError:
+                    print "couldn't load %s" % module
+                    continue
+                else:
+                    data = f.read()
+                    f.close()
+                    name = os.path.splitext(os.path.basename(module))[0]
+                    model = ModuleModel(data, name, self.editor, 1)
+                    relationships[name] = model.getModule() #.imports
+    
+                totLOC = totLOC + model.getModule().loc
+                classCnt = classCnt + len(model.getModule().classes)
+    
+            print 'Project LOC: %d,\n%d classes in %d modules.'%(totLOC, classCnt, len(modules))
+        finally:
+            self.editor.statusBar.progress.SetValue(0)
+            self.editor.statusBar.setHint('')
         return relationships
 
 class PackageModel(ModuleModel, ImportRelationshipMix):
