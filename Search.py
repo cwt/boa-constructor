@@ -11,7 +11,7 @@
 #----------------------------------------------------------------------
 from os import path
 import os
-import string
+import string, time
 from wxPython.wx import wxProgressDialog, wxPD_CAN_ABORT, wxPD_APP_MODAL
 
 ##def visit(info, dirname, names):
@@ -78,7 +78,7 @@ def findInFiles(parent, srchPath, pattern, callback, deeperPath = '', filemask =
     try:
         for file in names:
             filePath = path.join(srchPath, file)
-            dummy, ext = path.splitext(file)
+            ext = path.splitext(file)[1]
             if ext in filemask:
                 callback(dlg, cnt, file, 'Searching')
                 ocs = count(filePath, pattern, 0)
@@ -94,4 +94,4 @@ def findInFiles(parent, srchPath, pattern, callback, deeperPath = '', filemask =
         return results
     finally:
         dlg.Destroy()
-#        wxYield()
+
