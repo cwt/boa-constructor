@@ -117,6 +117,9 @@ class FindReplaceEngine:
         resultView.refresh()
         resultView.focus()
 
+        resultView.rerunCallback = self.findAllInSource
+        resultView.rerunParams = (view, pattern)
+
     def replaceInSource(self, view, pattern, new):
         region = self.getRegion(view)
         self.addFind(pattern)
@@ -213,6 +216,9 @@ class FindReplaceEngine:
             resultView.findPattern = pattern
             resultView.refresh()
             resultView.focus()
+
+            resultView.rerunCallback = self.findAllInFiles
+            resultView.rerunParams = (names, view, pattern)
         finally:
             dlg.Destroy()
         name = 'Results: ' + pattern
