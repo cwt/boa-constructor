@@ -103,7 +103,6 @@ class ProcessProgressDlg(wxDialog):
                 self.statusStxt.SetLabel('Receiving response...')
                 self.responded = true
             text = stream.read()
-            print text
             data.append(text)
             tCtrl.SetFocus()
             tCtrl.AppendText(text)
