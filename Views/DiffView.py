@@ -10,7 +10,8 @@
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 
-import sys, linecache, traceback, shutil, StringIO
+import sys, linecache, traceback, shutil
+from cStringIO import StringIO
 
 from wxPython import wx
 from wxPython.stc import *
@@ -115,9 +116,9 @@ class PythonSourceDiffView(wxStyledTextCtrl, EditorView, PythonStyledTextCtrlMix
             try:
                 sys.stdout = DiffPSOut(self)
                 try:
-                    src = StringIO.StringIO(self.model.data).readlines()
+                    src = StringIO(self.model.data).readlines()
                     # XXX could sometimes use data from file open in IDE ???
-                    dst = StringIO.StringIO(openEx(self.diffWith).load('r')).readlines()
+                    dst = StringIO(openEx(self.diffWith).load('rb')).readlines()
 #                    self.model.editor.app.saveStdio = sys.stdout, sys.stderr
                     ndiff_lcompare(src, dst)
                 except:
