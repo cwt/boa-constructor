@@ -68,21 +68,33 @@ class ZipItemNode(ExplorerNodes.ExplorerNode):
               EditorModels.TextModel.imgIdx
         if not isFolder:
             imgIdx = EditorModels.identifyFile(name, localfs=false)[0].imgIdx
-        return ZipItemNode(name, resourcepath and resourcepath+'/'+name or name, self.clipboard,
+        zin = ZipItemNode(name, resourcepath and resourcepath+'/'+name or name, self.clipboard,
               isFolder, imgIdx, self, self.zipFileNode)
+        zin.category = self.category
+        return zin
 
+    def splitBaseDir(self, file):
+        if not file:
+            return '', '', true
+#        print 'splitBaseDir %s'%file
+        segs = string.split(file, '/')
+        # ends on /
+        if segs[-1] == '':
+            base = segs[-2]
+            dir = string.join(segs[:-2], '/')
+            isdir = 1
+        else:
+            base = segs[-1]
+            dir = string.join(segs[:-1], '/')
+            isdir = 0
+        return base, dir, isdir
+        
     def openList(self, resourcepath = None):
         if resourcepath is None: resourcepath = self.resourcepath
         res = []
         files = self.zipFileNode.getFiles(resourcepath)
         for file in files:
-            segs = string.split(file, '/')
-            if segs[-1] == '':
-                base = segs[-2]
-                dir = string.join(segs[:-2], '/')
-            else:
-                base = segs[-1]
-                dir = string.join(segs[:-1], '/')
+            base, dir, isdir = self.splitBaseDir(file)
 
             res.append(self.createChildNode(base, dir, self.zipFileNode.isDir(file)) )
         return res
@@ -97,6 +109,7 @@ class ZipItemNode(ExplorerNodes.ExplorerNode):
         fn = os.path.join(fsFolderNode.resourcepath, self.name)
 
         zf = zipfile.ZipFile(self.zipFileNode.resourcepath)
+        
         if self.isFolderish():
             # XXX directories should be recursively copied or complete list
             # XXX should be build by ZipClip
@@ -106,16 +119,19 @@ class ZipItemNode(ExplorerNodes.ExplorerNode):
         zf.close()
 
     def load(self, mode='rb'):
-        try:
-            zf = zipfile.ZipFile(self.zipFileNode.resourcepath, 'r')
-            return zf.read(self.resourcepath)
-        except Exception, error:
-            raise ExplorerNodes.TransportLoadError(error, self.resourcepath)
+#        try:
+        zf = zipfile.ZipFile(self.zipFileNode.resourcepath, 'r')
+        return zf.read(self.resourcepath)
+##        except Exception, error:
+##            raise ExplorerNodes.TransportLoadError(error, self.resourcepath)
 
     def save(self, filename, data, mode='wb'):
         raise ExplorerNodes.TransportSaveError(\
               'Saving not supported on Zip files (yet)', self.resourcepath)
 
+    def getNodeFromPath(self, respath):
+        base, dir, isdir = self.splitBaseDir(respath)
+        return self.createChildNode(base, dir, self.zipFileNode.isDir(respath)) 
 
 class ZipFileNode(ZipItemNode):
     protocol = 'zip'
@@ -128,6 +144,10 @@ class ZipFileNode(ZipItemNode):
             imgIdx, parent, self)
         self.allFiles = []
         self.allFileNames = []
+        self.category = self.getTitle()+'://'
+    
+    def getURI(self):
+        return '%s://%s' % (self.protocol, self.getTitle())
 
     def isFolderish(self):
         return true
@@ -156,8 +176,9 @@ class ZipFileNode(ZipItemNode):
             if os.path.dirname(fn) == base:
                 files.append(file.filename)
         return files
+    
+
 
 # Register zip files as a subtype of file explorers
 FileExplorer.PyFileNode.subExplorerReg['file'].append( 
-      (ZipFileNode, isZip, EditorHelper.imgZipFileModel)
-) 
+      (ZipFileNode, isZip, EditorHelper.imgZipFileModel))

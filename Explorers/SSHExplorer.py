@@ -31,22 +31,24 @@ class SSHController(ExplorerNodes.Controller, ExplorerNodes.ClipboardControllerM
 
 
 class SSHCatNode(ExplorerNodes.CategoryNode):
+    itemProtocol = 'ssh'
     defName = 'SSH'
     defaultStruct = {'username': '',
                      'cipher': '',
                      'host': '',
                      'scp_pass': '',
                      'root': '~'}
-    def __init__(self, clipboard, config, parent):
+    def __init__(self, clipboard, config, parent, bookmarks):
         ExplorerNodes.CategoryNode.__init__(self, 'SSH', ('explorer', 'ssh'),
               clipboard, config, parent)
-
-    def createParentNode(self):
-        return self
+        self.bookmarks = bookmarks
 
     def createChildNode(self, name, props):
-        return SSHItemNode(name, props, props['root'], self.clipboard, true,
-              EditorModels.imgFSDrive, self)
+        itm = SSHItemNode(name, props, props['root'], self.clipboard, true,
+              EditorModels.imgNetDrive, self)
+        itm.category = name
+        itm.bookmarks = self.bookmarks
+        return itm
 
     def createCatCompanion(self, catNode):
         comp = ExplorerNodes.CategoryDictCompanion(catNode.treename, self)
@@ -54,6 +56,7 @@ class SSHCatNode(ExplorerNodes.CategoryNode):
 
 class SSHItemNode(ExplorerNodes.ExplorerNode):
     protocol = 'ssh'
+    connection = false
     def __init__(self, name, props, resourcepath, clipboard, isFolder, imgIdx, parent):
         ExplorerNodes.ExplorerNode.__init__(self, name, resourcepath, clipboard, imgIdx,
               parent, props)
@@ -62,12 +65,19 @@ class SSHItemNode(ExplorerNodes.ExplorerNode):
     def isFolderish(self):
         return self.isFolder
 
-    def createChildNode(self, name, isFolder, props):
-        item = SSHItemNode(name, props, self.resourcepath+'/'+name, self.clipboard,
+    def getURI(self):
+        return ExplorerNodes.ExplorerNode.getURI(self) + (self.isFolder and '/' or '')
+
+    def createChildNode(self, name, isFolder, props, respath=''):
+        if not respath:
+            respath = self.resourcepath+'/'+name
+        item = SSHItemNode(name, props, respath, self.clipboard,
               isFolder, isFolder and EditorModels.FolderModel.imgIdx or \
               EditorModels.TextModel.imgIdx, self)
         if not isFolder:
             item.imgIdx = EditorModels.identifyFile(name, localfs=false)[0].imgIdx
+        item.category = self.category
+        item.bookmarks = self.bookmarks
         return item
 
     def openList(self):
@@ -141,6 +151,12 @@ class SSHItemNode(ExplorerNodes.ExplorerNode):
     def renameItem(self, name, newName):
         self.execCmd('mv %s %s' % (self.resourcepath + '/' + name,
                                    self.resourcepath + '/' + newName))
+    
+    def newFolder(self, name):
+        self.execCmd('mkdir %s' % (self.resourcepath + '/' + name))
+        
+    def newBlankDocument(self, name):
+        self.execCmd('echo " " > %s' % (self.resourcepath + '/' + name))
 
     def load(self, mode='rb'):
         from FileExplorer import PyFileNode
@@ -172,6 +188,13 @@ class SSHItemNode(ExplorerNodes.ExplorerNode):
                 os.remove(fn)
         except Exception, error:
             raise ExplorerNodes.TransportSaveError(error, self.resourcepath)
+    
+    def getNodeFromPath(self, respath):
+        isFolder = respath[-1] == '/'
+        if isFolder:
+            respath = respath[:-1]
+        return self.createChildNode(os.path.basename(respath), isFolder, 
+              self.properties, '/'+respath)
 
 
 class SSHExpClipboard(ExplorerNodes.ExplorerClipboard):
@@ -192,4 +215,3 @@ class SSHExpClipboard(ExplorerNodes.ExplorerClipboard):
                 self.clipNodes = []
             elif mode == 'copy':
                 node.copyFileFrom(sshNode)
- 
