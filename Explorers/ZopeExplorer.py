@@ -523,7 +523,7 @@ class ZSQLNode(ZopeNode):
 class PythonNode(ZopeNode):
     Model = EditorModels.ZopePythonScriptModel
     defaultViews = (Views.PySourceView.PythonSourceView,)
-    additionalViews = ()
+    additionalViews = (Views.EditorViews.ToDoView,)
 
       #manage_edit("newschas","self,p","return 'hello'"
     def getParams(self):
@@ -556,6 +556,7 @@ class PythonScriptNode(PythonNode):
             else:
                 tmp2.append("    " + l)
         return "def %s(%s):\n%s" % (self.name, params, string.join(tmp2,"\n"))
+
     def saveDocument(self,data):
         self.data = data
         # I wonder why the write function doesn't work :(
