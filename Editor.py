@@ -677,8 +677,7 @@ class EditorFrame(wxFrame):
             self.modules[wholename].focus()
             return self.modules[wholename].model
         else:
-            self.openZopeDocument(zopeObj,wholename)  #zopeConn, zopeObj
-    
+            return self.openZopeDocument(zopeObj,wholename)
             
     def openZopeDocument(self, zopeObj, wholename):
         if zopeObj.Model:
@@ -691,6 +690,7 @@ class EditorFrame(wxFrame):
             model.notify()
     
             self.updateTitle()
+            return model
         else:
             wxLogWarning('Zope Object %s not supported' % `zopeObj`)
         
