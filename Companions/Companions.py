@@ -62,7 +62,7 @@ class BaseFrameDTC(ContainerDTC):
           ['ToolBar', 'MenuBar', 'StatusBar']
 
 class FrameDTC(FramesConstr, BaseFrameDTC):
-    wxDocs = 'wx104.htm'
+    wxDocs = HelpCompanions.wxFrameDocs
 
 EventCategories['DialogEvent'] = (EVT_INIT_DIALOG,)
 class DialogDTC(FramesConstr, BaseFrameDTC):
