@@ -17,10 +17,8 @@ from wxPython.wx import *
 from wxPython.html import *
 from wxPython.htmlhelp import *
 
-from Preferences import IS, flatTools
-import Preferences, Search, Utils
-from Preferences import keyDefs
-from Utils import AddToolButtonBmpFile
+import Preferences, Utils
+from Preferences import IS, flatTools, keyDefs
 
 def tagEater(strg):
     res = ''
@@ -100,9 +98,6 @@ class wxHtmlHelpControllerEx(wxHtmlHelpController):
         # Fix config file if stored as minimised
         if config.ReadInt('hcX') == -32000:
             map(config.DeleteEntry, ('hcX', 'hcY', 'hcW', 'hcH'))
-##        # Must have nav panel (for now)
-##        if config.HasEntry('hcNavigPanel'):
-##            config.DeleteEntry('hcNavigPanel')
 
         wxHtmlHelpController.UseConfig(self, config)
         self.config = config
@@ -182,7 +177,6 @@ class wxHelpFrameEx:
             self.controller.Display('%s#%s' % (page, string.lower(anchor)))
 
     def OnQuitHelp(self, event):
-#        self.frame.Hide()
         self.frame.Close()
     
         
@@ -213,6 +207,16 @@ def initHelp():
     cf = wxFileConfig(localFilename=os.path.normpath(jn(Preferences.rcPath, 
         'helpfrm.cfg')), style=wxCONFIG_USE_LOCAL_FILE)
     _hc.UseConfig(cf)
+        
+    docStrs = jn(docsDir, 'wxDocStrings.msh')
+    # Early abort if documentation not installed
+    if not os.path.isfile(docStrs):
+        wxLogWarning('Documentation not installed, please download from '
+                     'http://boa-constructor.sourceforge.net/Help/Docs.zip\n'
+                     'or http://boa-constructor.sourceforge.net/Help/Docs.tar.gz\n'
+                     'Unzip into the Boa root directory.')
+        return
+    
     _hc.SetTempDir(jn(docsDir, 'cache'))
 
     conf = Utils.createAndReadConfig('Explorer')
@@ -223,7 +227,7 @@ def initHelp():
          not os.path.exists(jn(docsDir, 'cache', 
          os.path.basename(book)+'.hhp.cached')))
 
-    decorateWxPythonWithDocStrs(jn(docsDir, 'wxDocStrings.msh'))
+    decorateWxPythonWithDocStrs(docStrs)
     
 
 if __name__ == '__main__':
@@ -234,4 +238,4 @@ if __name__ == '__main__':
     _hc.Display('Python Documentation').ExpandBook('Python Documentation')
     app.MainLoop()
     _hc.config.Flush()
-    
+ 
