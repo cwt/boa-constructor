@@ -19,7 +19,7 @@ from wxPython.wx import *
 import Preferences, Utils, Help
 from Preferences import IS
 import CtrlAlign, CtrlSize
-import sourceconst, sender
+import sourceconst
 
 from InspectableViews import InspectableObjectView
 import SelectionTags
@@ -46,14 +46,12 @@ class DesignerView(wxFrame, InspectableObjectView, Utils.FrameRestorerMixin):
     viewName = 'Designer'
     docked = false
     collectionMethod = sourceconst.init_ctrls
-##    handledProps = ['parent', 'id']
     supportsParentView = true
 
     def setupArgs(self, ctrlName, params, dontEval, parent=None, compClass=None, evalDct={}, doId=true):
         """ Create a dictionary of parameters for the constructor of the
             control from a dictionary of string/source parameters.
         """
-        #print 'setupArgs', dontEval
         args = InspectableObjectView.setupArgs(self, ctrlName, params, dontEval, evalDct=evalDct)
 
         if compClass:
@@ -96,9 +94,8 @@ class DesignerView(wxFrame, InspectableObjectView, Utils.FrameRestorerMixin):
         return args
 
     def __init__(self, parent, inspector, model, compPal, companionClass, dataView):
-        #doId = model.modelIdentifier not in ('PopupWindow', 'PopupTransientWindow')
         args = self.setupArgs(model.main, model.mainConstr.params,
-          ['parent', 'id'], parent, companionClass, model.specialAttrs)#, doId)
+          ['parent', 'id'], parent, companionClass, model.specialAttrs)
         if model.modelIdentifier == 'Dialog':
             style = wxRESIZE_BORDER | wxCAPTION | wxSYSTEM_MENU
         else:
@@ -109,8 +106,9 @@ class DesignerView(wxFrame, InspectableObjectView, Utils.FrameRestorerMixin):
                                            style=style)
         InspectableObjectView.__init__(self, inspector, model, compPal)
 
-        if model.modelIdentifier in ('Dialog', 'PopupWindow', 'PopupTransientWindow'):
-            self.SetBackgroundColour(wxSystemSettings_GetSystemColour(wxSYS_COLOUR_BTNFACE))
+        if model.dialogLook:
+            self.SetBackgroundColour(
+                  wxSystemSettings_GetSystemColour(wxSYS_COLOUR_BTNFACE))
 
         self.SetIcon(IS.load('Images/Icons/Designer.ico'))
 
@@ -315,8 +313,7 @@ class DesignerView(wxFrame, InspectableObjectView, Utils.FrameRestorerMixin):
         # Create selection if none is defined
         if not self.selection:
             self.selection = \
-                  SelectionTags.SingleSelectionGroup(self, self.senderMapper,
-                  self.inspector, self)
+                  SelectionTags.SingleSelectionGroup(self, self.inspector, self)
 
         self.model.editor.statusBar.setHint('Creating frame')
 
@@ -409,8 +406,7 @@ class DesignerView(wxFrame, InspectableObjectView, Utils.FrameRestorerMixin):
 
     def initSelection(self):
         """ Create a selection group """
-        self.selection = SelectionTags.SingleSelectionGroup(self,
-              self.senderMapper, self.inspector, self)
+        self.selection = SelectionTags.SingleSelectionGroup(self, self.inspector, self)
 
     def loadControl(self, CtrlClass, CtrlCompanion, ctrlName, params):
         """ Create and register given control and companion.
@@ -641,8 +637,7 @@ class DesignerView(wxFrame, InspectableObjectView, Utils.FrameRestorerMixin):
     def assureSingleSelection(self):
         """ Assure that a valid single selection exists """
         if not self.selection:
-            self.selection = SelectionTags.SingleSelectionGroup(self,
-                  self.senderMapper, self.inspector, self)
+            self.selection = SelectionTags.SingleSelectionGroup(self, self.inspector, self)
 
     def flattenParentRelationship(self, rel, lst):
         """ Add all items in a nested dictionary into a single list """
@@ -748,7 +743,7 @@ class DesignerView(wxFrame, InspectableObjectView, Utils.FrameRestorerMixin):
                                 return
 
                             newSelection = SelectionTags.MultiSelectionGroup(self,
-                                  self.senderMapper, self.inspector, self)
+                                  self.inspector, self)
                             newSelection.assign(self.selection)
                             self.selection.destroy()
                             self.selection = None
@@ -765,7 +760,7 @@ class DesignerView(wxFrame, InspectableObjectView, Utils.FrameRestorerMixin):
                                     # deselected
                                     if len(self.multiSelection) == 1:
                                         self.selection = SelectionTags.SingleSelectionGroup(self,
-                                            self.senderMapper, self.inspector, self)
+                                            self.inspector, self)
 
                                         self.selection.assign(self.multiSelection[0])
                                         self.selection.selectCtrl(self.multiSelection[0].selection,
@@ -774,7 +769,7 @@ class DesignerView(wxFrame, InspectableObjectView, Utils.FrameRestorerMixin):
                                     return
 
                         newSelection = SelectionTags.MultiSelectionGroup(self,
-                              self.senderMapper, self.inspector, self)
+                              self.inspector, self)
                         newSelection.selectCtrl(selCtrl, selCompn)
                         self.multiSelection.append(newSelection)
                     # Single selection
@@ -860,7 +855,7 @@ class DesignerView(wxFrame, InspectableObjectView, Utils.FrameRestorerMixin):
     def OnRightDown(self, event):
         """ Store popup position of the menu relative to the control that
             triggered the event """
-        ctrl = self.senderMapper.getObject(event)
+        ctrl = event.GetEventObject()
         screenPos = ctrl.ClientToScreen(wxPoint(event.GetX(), event.GetY()))
         parentPos = self.ScreenToClient(screenPos)
         self.popx = parentPos.x
@@ -997,7 +992,7 @@ class DesignerView(wxFrame, InspectableObjectView, Utils.FrameRestorerMixin):
                         for ctrlName in pasted:
                             selCompn, selCtrl, prnt = self.objects[ctrlName]
                             newSelection = SelectionTags.MultiSelectionGroup(self,
-                                  self.senderMapper, self.inspector, self)
+                                  self.inspector, self)
                             newSelection.selectCtrl(selCtrl, selCompn)
                             self.multiSelection.append(newSelection)
 
@@ -1011,10 +1006,6 @@ class DesignerView(wxFrame, InspectableObjectView, Utils.FrameRestorerMixin):
             # XXX Boa should be able to tell me this
             parent = self.selection.selection.GetParent()
             parentName, dummy = self.getParentNames(parent)
-##            if parent.GetId() == self.GetId():
-##                parentName = ''
-##            else:
-##                parentName = parent.GetName()
 
             self.cutCtrls([ctrlName], [], output)
             self.pasteCtrls(parentName, output)
@@ -1242,7 +1233,7 @@ class DesignerControlsEvtHandler(wxEvtHandler):
         if event.Dragging():
             dsgn = self.designer
             pos = event.GetPosition()
-            ctrl = dsgn.senderMapper.getObject(event)
+            ctrl = event.GetEventObject()
 
             if dsgn.selection:
                 dsgn.selection.moving(ctrl, pos)
@@ -1255,11 +1246,11 @@ class DesignerControlsEvtHandler(wxEvtHandler):
     def OnControlSelect(self, event):
         """ Control is clicked. Either select it or add control from palette """
         dsgn = self.designer
-        # XXX wxPython bug workaround only here for when testing
-        if event.GetEventObject():
-            ctrl = dsgn.senderMapper.getObject(event)
-        else:
+        ctrl = event.GetEventObject()
+        # XXX only here for when testing
+        if not ctrl:
             ctrl = dsgn
+
         if dsgn.selectControlByPos(ctrl, event.GetPosition(), event.ShiftDown()):
             event.Skip()
 
@@ -1321,7 +1312,7 @@ class DesignerControlsEvtHandler(wxEvtHandler):
         dsgn = self.designer
 
         if dsgn.selection:
-            ctrl = dsgn.senderMapper.getObject(event)
+            ctrl = event.GetEventObject()
 
             dsgn.selectControlByPos(ctrl, event.GetPosition(), event.ShiftDown())
             if ctrl == dsgn:
@@ -1340,8 +1331,8 @@ class DesignerControlsEvtHandler(wxEvtHandler):
             dsgn.selection.moveRelease()
 
     def OnControlMove(self, event):
-        if hasattr(self.designer, 'senderMapper'):
-            ctrl = self.designer.senderMapper.getObject(event)
+        ctrl = event.GetEventObject()
+        if ctrl:
             parent = ctrl.GetParent()
             if parent:
                 wxPostEvent(parent, wxSizeEvent( parent.GetSize() ))
@@ -1408,9 +1399,8 @@ class DesignerControlsEvtHandler(wxEvtHandler):
 
     def OnPaint(self, event):
         # XXX Paint event fired after destruction, should remove EVT ?
-        if hasattr(self.designer, 'senderMapper'):
-            ctrl = self.designer.senderMapper.getObject(event)
-
+        ctrl = event.GetEventObject()
+        if ctrl:
             dc = wxPaintDC(ctrl)
 #            sze = ctrl.GetClientSize()
             sze = ctrl.GetSize()
