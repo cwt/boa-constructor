@@ -168,7 +168,7 @@ class DebuggerConnection:
     ### Blocking methods.
 
     def pprintVarValue(self, name, frameno):
-        '''Pretty-prints the value of name.'''
+        '''Pretty-prints the value of name.  Blocking.'''
         return self._callMethod('pprintVarValue', 0, name, frameno)
 
     def getInteractionUpdate(self):
@@ -186,7 +186,7 @@ class DebuggerConnection:
 
     def proceedAndRequestStatus(self, command):
         '''Executes one non-blocking command then returns
-        getInteractionUpdate().'''
+        getInteractionUpdate().  Blocking.'''
         if command:
             allowed = ('set_continue', 'set_step', 'set_step_over',
                        'set_step_out', 'set_quit')
@@ -198,14 +198,14 @@ class DebuggerConnection:
     def runFileAndRequestStatus(self, filename, params, add_paths,
                                 breaks):
         '''Calls setAllBreakpoints(), runFile(), and
-        getInteractionUpdate().'''
+        getInteractionUpdate().  Blocking.'''
         self.setAllBreakpoints(breaks)
         self._callNoWait('runFile', 1, filename, params, add_paths)
         return self.getInteractionUpdate()
 
     def getSafeDict(self, locals, frameno):
         '''Returns the repr-fied mappings of locals and globals in a
-        tuple. Blocking.'''
+        tuple.  Blocking.'''
         return self._callMethod('getSafeDict', 0, locals, frameno)
 
     def evaluateWatches(self, exprs, frameno):
@@ -217,13 +217,17 @@ class DebuggerConnection:
 
     def getWatchSubobjects(self, expr, frameno):
         '''Returns a tuple containing the names of subobjects
-        available through the given watch expression.'''
+        available through the given watch expression.  Blocking.'''
         return self._callMethod('getWatchSubobjects', 0, expr, frameno)
 
 
 class NonBlockingDebuggerConnection (DebuggerConnection):
-    # Note that a new NonBlockingDebuggerConnection object has to be
-    # created for each call.
+    """Modifies call semantics in such a way that even blocking
+    calls don't block but instead return None.
+    Note that for each call, a new NonBlockingDebuggerConnection object
+    has to be created.  Use setCallback() to receive notification when
+    blocking calls are finished.
+    """
 
     callback = None
 
