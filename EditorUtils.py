@@ -4,8 +4,8 @@ import Preferences
 #-----Toolbar-------------------------------------------------------------------
 
 class MyToolBar(wxToolBar):
-    def __init__(self, parent, winid):
-        wxToolBar.__init__(self, parent, winid,
+    def __init__(self, *_args, **_kwargs):
+        wxToolBar.__init__(self, _kwargs['parent'], _kwargs['id'],
           style = wxTB_HORIZONTAL|wxNO_BORDER|Preferences.flatTools)
         self.toolLst = []
         self.toolCount = 0
@@ -63,30 +63,30 @@ class EditorToolBar(MyToolBar):
 class EditorStatusBar(wxStatusBar):
     """ Displays information about the current view. Also global stats/
         progress bar etc. """
-    def __init__(self, parent):
-        wxStatusBar.__init__(self, parent, -1, style = wxST_SIZEGRIP)
+    def __init__(self, *_args, **_kwargs):
+        wxStatusBar.__init__(self, _kwargs['parent'], _kwargs['id'], style = wxST_SIZEGRIP)
         self.SetFieldsCount(4)
-        self.SetStatusWidths([16, 400, 150, -1])#30, 30,
+        if wxPlatform == '__WXGTK__':
+            imgWidth = 21
+        else:
+            imgWidth = 16
+            
+        self.SetStatusWidths([imgWidth, 400, 150, -1])
 
-        self.h = self.GetClientSize().y
+        rect = self.GetFieldRect(0)
+        self.img = wxStaticBitmap(self, -1, wxNullBitmap, 
+            (rect.x+1, rect.y+1), (16, 16))
 
-#        self.col = wxStaticText(self, -1, '0   ', wxPoint(3, 4))
-#        self.row = wxStaticText(self, -1, '0   ', wxPoint(37, 4))
-        self.hint = wxStaticText(self, -1, ' ', wxPoint(28, 4),
-          wxSize(390, self.h -5), style = wxST_NO_AUTORESIZE | wxALIGN_LEFT)
-        self.progress = wxGauge(self, -1, 100,
-          pos = wxPoint(422+Preferences.editorProgressFudgePosX, 2),
-          size = wxSize(150, self.h -2 + Preferences.editorProgressFudgeSizeY))
-        self.img = wxStaticBitmap(self, -1, wxNullBitmap, (1, 3), (16, 16))
+        rect = self.GetFieldRect(2)
+        self.progress = wxGauge(self, -1, 100, rect.GetPosition(), rect.GetSize())
         
         self.images = {'Info': Preferences.IS.load('Images/Shared/Info.bmp'),
                        'Warning': Preferences.IS.load('Images/Shared/Warning.bmp'),
                        'Error': Preferences.IS.load('Images/Shared/Error.bmp')}
         
     def setHint(self, hint, msgType = 'Info'):
-        self.hint.SetLabel(hint)
-        self.hint.SetSize(wxSize(390, self.h -5))
-        self.hint.SetToolTipString(hint)
+        self.SetStatusText(hint, 1)
+        self.img.SetToolTipString(hint)
         self.img.SetBitmap(self.images[msgType])
 
     def OnEditorNotification(self, event):
