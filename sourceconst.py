@@ -77,7 +77,8 @@ class BoaApp(wxApp):
     def OnInit(self):
         wxInitAllImageHandlers()
         self.main = %s.create(None)
-        self.main.Show(true)
+        #workaround for running in wxProcess
+        self.main.Show();self.main.Hide();self.main.Show() 
         self.SetTopWindow(self.main)
         return true
 
@@ -135,7 +136,7 @@ if __name__ == '__main__':
     app = wxPySimpleApp()
     wxInitAllImageHandlers()
     frame = create(None)
-    frame.Show(true)
+    frame.Show();frame.Hide();frame.Show() #workaround for running in wxProcess
     app.MainLoop()
 '''
 
@@ -158,7 +159,7 @@ if __name__ == '__main__':
     wxInitAllImageHandlers()
     frame = wxFrame(None, -1, 'Parent')
     frame.SetAutoLayout(true)
-    frame.Show(true)
+    frame.Show();frame.Hide();frame.Show() #workaround for running in wxProcess
     popup = create(frame)
     popup.Show(true)
     app.MainLoop()
