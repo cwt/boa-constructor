@@ -21,7 +21,7 @@ from types import StringType
 from ExternalLib.ConfigParser import ConfigParser
 import EditorModels
 
-import ExplorerNodes, FileExplorer, ZopeExplorer, CVSExplorer, SSHExplorer, ZipExplorer
+import ExplorerNodes, FileExplorer, ZopeExplorer, CVSExplorer, SSHExplorer, ZipExplorer, FTPExplorer
 
 (wxID_PFE, wxID_PFT, wxID_PFL) = map(lambda x: wxNewId(), range(3))
 
@@ -40,6 +40,7 @@ class PackageFolderTree(wxTreeCtrl):
         self.globClip = ExplorerNodes.GlobalClipper()
         self.fsclip = FileExplorer.FileSysExpClipboard(self.globClip)
         self.sshClip = SSHExplorer.SSHExpClipboard(self.globClip)
+        self.ftpClip = FTPExplorer.FTPExpClipboard(self.globClip)
         
         confFile = Preferences.pyPath+'/Explorer.'+plat+'.cfg'
         conf.read(confFile)
@@ -58,6 +59,8 @@ class PackageFolderTree(wxTreeCtrl):
             self.boaRoot.entries.append(ZopeExplorer.ZopeCatNode(conf, None, self.globClip))
         if conf.has_option('explorer', 'ssh'):
             self.boaRoot.entries.append(SSHExplorer.SSHCatNode(self.sshClip, conf, None))
+        if conf.has_option('explorer', 'ftp'):
+            self.boaRoot.entries.append(FTPExplorer.FTPCatNode(self.ftpClip, conf, None))
 
         self.SetItemHasChildren(rootItem, true)
         self.Expand(rootItem)
@@ -196,14 +199,12 @@ class PackageFolderList(wxListCtrl):
         self.selected = -1
         event.Skip()
     
-#        event.Veto()
-       
 class ExplorerSplitter(wxSplitterWindow):
     def __init__(self, parent, modimages, root, editor):
         wxSplitterWindow.__init__(self, parent, wxID_PFE, style = wxNO_3D|wxSP_3D)#style = wxSP_3D) #wxSP_NOBORDER)
 
         self.editor = editor
-        self.list = PackageFolderList(self, root, updateNotify = self.OnUpdateNotify)#, editor.palette)
+        self.list = PackageFolderList(self, root, updateNotify = self.OnUpdateNotify)
         self.modimages = modimages
         
         EVT_LEFT_DCLICK(self.list, self.OnOpen)
@@ -227,6 +228,8 @@ class ExplorerSplitter(wxSplitterWindow):
                 SSHExplorer.SSHController(editor, self.list),
               ZipExplorer.ZipItemNode.protocol: \
                 ZipExplorer.ZipController(editor, self.list),
+              FTPExplorer.FTPItemNode.protocol: \
+                FTPExplorer.FTPController(editor, self.list),#, editor.inspector),
               ExplorerNodes.CategoryNode.protocol: \
                 ExplorerNodes.CategoryController(editor, self.list, editor.inspector),
               }
@@ -246,7 +249,7 @@ class ExplorerSplitter(wxSplitterWindow):
             prot = self.list.node.protocol
             tbMenus = []
             for menuLst in self.controllers[prot].toolbarMenus:
-                tbMenus.extend(menuLst)
+                tbMenus.extend(list(menuLst))
             
             for wID, name, meth, bmp in tbMenus:
                 if name == '-' and not bmp:
@@ -255,7 +258,8 @@ class ExplorerSplitter(wxSplitterWindow):
                     if name[0] == '+':
                         # XXX Add toggle button
                         name = name [1:]
-                    Utils.AddToolButtonBmpObject(self.editor, toolbar, IS.load(bmp), name, meth)
+                    Utils.AddToolButtonBmpObject(self.editor, toolbar, 
+                          IS.load(bmp), name, meth)
     
     def getMenu(self):
         if self.list.node and self.controllers.has_key(self.list.node.protocol):
@@ -302,19 +306,22 @@ class ExplorerSplitter(wxSplitterWindow):
     def OnOpen(self, event):
         if self.list.selected != -1:
             name = self.list.GetItemText(self.list.selected)
+            nd = self.list.node
             if name == '..':
-                nd = self.list.node
                 if not nd.openParent(self.editor):
-                    self.tree.SelectItem(self.tree.GetItemParent(self.tree.GetSelection()))
+                    treeItem = self.tree.GetItemParent(self.tree.GetSelection())
+                    if treeItem.IsOk():
+                        self.tree.SelectItem(treeItem)
             else:
                 item = self.list.items[self.list.selected-1]
                 if item.isFolderish():
                     tItm = self.tree.GetSelection()
                     if not self.tree.IsExpanded(tItm):
                         self.tree.Expand(tItm)
-                    chid = self.tree.getChildNamed(self.tree.GetSelection(), 
-                      name)
+                    chid = self.tree.getChildNamed(self.tree.GetSelection(), name)
                     self.tree.SelectItem(chid)
+                elif nd.parentOpensChildren:
+                    nd.open(item, self.editor)
                 else:
                     item.open(self.editor)
 
