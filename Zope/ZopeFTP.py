@@ -1,3 +1,15 @@
+#-----------------------------------------------------------------------------
+# Name:        ZopeFTP.py                                                     
+# Purpose:     FTP interface into Zope                                        
+#                                                                             
+# Author:      Riaan Booysen                                                  
+#                                                                             
+# Created:     2000/05/08                                                     
+# RCS-ID:      $Id$                                               
+# Copyright:   (c) 1999, 2000 Riaan Booysen                                   
+# Licence:     GPL                                                            
+#-----------------------------------------------------------------------------
+
 import string
 import ftplib, os
 

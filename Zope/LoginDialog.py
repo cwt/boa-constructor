@@ -1,3 +1,14 @@
+#-----------------------------------------------------------------------------
+# Name:        LoginDialog.py                                                 
+# Purpose:     Dialog to get zope detail                                      
+#                                                                             
+# Author:      Riaan Booysen                                                  
+#                                                                             
+# Created:     2000/05/06                                                     
+# RCS-ID:      $Id$                                           
+# Copyright:   (c) 1999, 2000 Riaan Booysen                                   
+# Licence:     GPL                                                            
+#-----------------------------------------------------------------------------
 #Boa:Dialog:LoginDialog
 
 from wxPython.wx import *
