@@ -34,7 +34,6 @@ def yesNoDialog(parent, title, question):
 def AddToolButtonBmpObject(frame, toolbar, thebitmap, hint, triggermeth, theToggleBitmap = wxNullBitmap):
     nId = wxNewId()
     doToggle = theToggleBitmap != wxNullBitmap
-    print doToggle
 #    t = toolbar.AddTool(nId, thebitmap, toggleBitmap, shortHelpString = hint, toggle = toggleBitmap != wxNullBitmap)
     toolbar.AddTool(nId, thebitmap, theToggleBitmap, shortHelpString = hint)#, toggle = doToggle)
     EVT_TOOL(frame, nId, triggermeth)
