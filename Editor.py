@@ -118,7 +118,7 @@ class EditorFrame(wxFrame):
         pass
 
     def _init_ctrls(self, prnt):
-        wxFrame.__init__(self, size = (-1, -1), id = wxID_EDITORFRAME, title = 'Editor', parent = prnt, name = '', style = wxDEFAULT_FRAME_STYLE | wxCLIP_CHILDREN, pos = (-1, -1))
+        wxFrame.__init__(self, size = (-1, -1), id = wxID_EDITORFRAME, title = 'Editor', parent = prnt, name = '', style = wxDEFAULT_FRAME_STYLE | Preferences.childFrameStyle, pos = (-1, -1))
 
     def __init__(self, parent, id, inspector, newMenu, componentPalette, app):
         self._init_ctrls(parent)
@@ -176,6 +176,9 @@ class EditorFrame(wxFrame):
 
         if wxPlatform == '__WXMSW__':
             self.tabs.SetImageList(self.modelImageList)
+
+        # Hook for shell and scripts
+        sys.boa_ide = self
 
         # Shell
         self.shell = self.addShellPage()
@@ -663,7 +666,7 @@ class EditorFrame(wxFrame):
             transport = PyFileNode(name, filename, None, -1, None, None,
                   properties = {})
 
-        source = transport.load()
+        source = string.join(string.split(transport.load(), os.linesep), '\n')
         modCls, main = identifyFile(filename, source, true)
 
         imgIdx = modCls.imgIdx
@@ -803,6 +806,12 @@ class EditorFrame(wxFrame):
                     if model.views.has_key('Designer'):
                         model.views['Designer'].saveOnClose = false
                         model.views['Designer'].close()
+
+                    # If designer got exception before actually being created
+                    if model.views.has_key('Data'):
+                        model.views['Data'].focus()
+                        model.views['Data'].saveOnClose = false
+                        model.views['Data'].deleteFromNotebook('Source', 'Data')
                     raise
     
                 # Make source read only
