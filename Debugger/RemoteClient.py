@@ -14,8 +14,6 @@ class TransportWithAuth (xmlrpclib.Transport):
 
     def request(self, host, handler, request_body):
 	# issue XML-RPC request
-        if host == 'localhost':
-            host = ''  # Trigger "special" name
 
 	import httplib
 	h = httplib.HTTP(host)
@@ -39,7 +37,7 @@ class TransportWithAuth (xmlrpclib.Transport):
 	errcode, errmsg, headers = h.getreply()
 
 	if errcode != 200:
-	    raise ProtocolError(
+	    raise xmlrpclib.ProtocolError(
 		host + handler,
 		errcode, errmsg,
 		headers
@@ -48,23 +46,45 @@ class TransportWithAuth (xmlrpclib.Transport):
 	return self.parse_response(h.getfile())
 
 
-from DebugClient import DebugClient, MultiThreadedDebugClient
+from DebugClient import DebugClient, MultiThreadedDebugClient, \
+     DebuggerTask
 
 class RemoteClient (MultiThreadedDebugClient):
 
+    controller = None
+    server = None
+    server_id = None
+
     def __init__(self, win, host, port, user, pw):
         DebugClient.__init__(self, win)
-        trans = TransportWithAuth(user, pw)
-        self.server = xmlrpclib.Server(
-            'http://%s:%s' % (host, port), trans)
+        self.host = host
+        self.port = port
+        self.user = user
+        self.pw = pw
 
     def invoke(self, m_name, m_args):
+        if self.server is None:
+            trans = TransportWithAuth(self.user, self.pw)
+            url = 'http://%s:%d/RemoteDebugControl' % (
+                self.host, int(self.port))
+            self.controller = xmlrpclib.Server(url, trans)
+            # Create a debugging session on the server.
+            self.server_id = self.controller.createServer()
+            url = '%s/%s' % (url, self.server_id)
+            # url now looks like 'http://host:port/RemoteDebugControl/id'
+            self.server = xmlrpclib.Server(url, trans)
         m = getattr(self.server, m_name)
         result = apply(m, m_args)
         return result
 
     def kill(self):
-        pass
+        if self.controller is not None and self.server_id is not None:
+            # Try to free the debug connection on the server.
+            self.taskHandler.addTask(
+                self.controller.deleteServer, (self.server_id,))
+        self.controller = None
+        self.server_id = None
+        self.server = None
 
     def pollStreams(self):
         pass

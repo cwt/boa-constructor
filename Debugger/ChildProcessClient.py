@@ -34,7 +34,7 @@ class TransportWithAuth (xmlrpclib.Transport):
 	errcode, errmsg, headers = h.getreply()
 
 	if errcode != 200:
-	    raise ProtocolError(
+	    raise xmlrpclib.ProtocolError(
 		host + handler,
 		errcode, errmsg,
 		headers

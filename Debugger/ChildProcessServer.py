@@ -3,7 +3,7 @@ import sys, os
 import whrandom, sha, threading
 from time import sleep
 from SocketServer import TCPServer
-from IsolatedDebugger import DebuggerController, DebuggerConnection
+from IsolatedDebugger import DebugServer, DebuggerConnection
 from Tasks import ThreadedTaskHandler
 
 try:
@@ -19,9 +19,11 @@ except ImportError: from StringIO import StringIO
 class DebugRequestHandler (RequestHandler):
 
     _authstr = None
-    __dc = DebuggerController()
-    __conn_id = __dc.createServer()
-    _conn = DebuggerConnection(__dc, __conn_id)
+    #__dc = DebuggerController()
+    #__conn_id = __dc.createServer()
+    #_conn = DebuggerConnection(__dc, __conn_id)
+    _ds = DebugServer()
+    _conn = DebuggerConnection(_ds)
     _conn._enableProcessModification()
 
     def call(self, method, params):
@@ -72,6 +74,10 @@ def main():
     def serve_forever(server):
         while 1:
             server.handle_request()
+
+    t = threading.Thread(target=DebugRequestHandler._ds.servicerThread)
+    t.setDaemon(1)
+    t.start()
 
     t = threading.Thread(target=serve_forever, args=(server,))
     t.setDaemon(1)

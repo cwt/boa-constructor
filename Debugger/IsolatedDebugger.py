@@ -20,17 +20,18 @@ class DebugError(Exception):
 
 
 class DebuggerConnection:
-    '''A debugging connection that can be operated via RPC.
-    It is possible to operate in both stateful and
-    stateless mode.'''
+    '''
+    A debugging connection that can be operated via RPC.
+    '''
 
-    def __init__(self, controller, id):
-        self._controller = controller
-        self._id = id
-        self._ds = controller._getDebugServer(id)
+    def __init__(self, ds): #, controller, id):
+##        self._controller = controller
+##        self._id = id
+        #self._ds = controller._getDebugServer(id)
+        self._ds = ds
 
-    def _getMessageTimeout(self):
-        return self._controller.getMessageTimeout()
+##    def _getMessageTimeout(self):
+##        return self._controller.getMessageTimeout()
 
     def _callNoWait(self, func_name, do_return, *args, **kw):
         sm = MethodCall(func_name, args, kw, do_return)
@@ -42,7 +43,7 @@ class DebuggerConnection:
         sm.setupEvent()
         self._ds.queueServerMessage(sm)
         # Block.
-        return sm.getResult(self._getMessageTimeout())
+        return sm.getResult() #self._getMessageTimeout())
 
     def _getStdoutBuf(self):
         return self._ds.stdoutbuf
@@ -213,6 +214,14 @@ class DebuggerConnection:
         self._callNoWait('runFile', 1, filename, params, autocont, add_paths)
         return self.getStatusSummary()
 
+    def setupAndRequestStatus(self, autocont=0, breaks=()):
+        '''Calls setAllBreakpoints() and
+        getStatusSummary().  Blocking.'''
+        self.setAllBreakpoints(breaks)
+        if autocont:
+            self.set_continue()
+        return self.getStatusSummary()
+
     def getSafeDict(self, locals, frameno):
         '''Returns the repr-fied mappings of locals and globals in a
         tuple.  Blocking.'''
@@ -262,6 +271,11 @@ class NonBlockingDebuggerConnection (DebuggerConnection):
 ##        self._ds.queueServerMessage(sm)
 
 
+# Set exclusive mode to kill all existing debug servers whenever
+# a new connection is created.  This helps avoid resource drains.
+exclusive_mode = 1
+
+
 class DebuggerController:
     '''Interfaces between DebuggerConnections and DebugServers.'''
 
@@ -283,6 +297,11 @@ class DebuggerController:
     def createServer(self):
         '''Returns a string which identifies a new DebugServer.
         '''
+        global exclusive_mode
+        if exclusive_mode:
+            # Kill existing servers.
+            for id in self._debug_servers.keys():
+                self.deleteServer(id)
         ds = DebugServer()
         id = self._newServerId()
         self._debug_servers[id] = ds
@@ -388,8 +407,8 @@ class MethodCall (ServerMessage):
 ##        return 1
 
 
-debugger_tasks = ThreadedTaskHandler()
-servicer_running_lock = threading.Lock()
+##debugger_tasks = ThreadedTaskHandler()
+##servicer_running_lock = threading.Lock()
 
 _orig_syspath = sys.path
 
@@ -402,13 +421,16 @@ class DebugServer (Bdb):
     ignore_stopline = -1
     autocont = 0
     _enable_process_modification = 0
+    ignore_frame = None
+    ignore_first_frame = 0
+##    _enable_auto_servicer = 0
 
     def __init__(self):
         Bdb.__init__(self)
         self.fncache = {}
 
         self.__queue = Queue.Queue(0)
-        self.servicer_running = 0
+##        self.servicer_running = 0
 
         self.repr = repr = Repr()
         repr.maxstring = 60
@@ -420,54 +442,71 @@ class DebugServer (Bdb):
         self.stderrbuf = StringIO()
 
     def queueServerMessage(self, sm):
-        servicer_running_lock.acquire()
-        try:
+##        servicer_running_lock.acquire()
+##        try:
             self.__queue.put(sm)
-            if not self.servicer_running:
-                self.servicer_running = 1
-                debugger_tasks.addTask(self.topServerLoop)
-        finally:
-            servicer_running_lock.release()
+##            if not self.servicer_running:
+##                if self._enable_auto_servicer:
+##                    self.servicer_running = 1
+##                    debugger_tasks.addTask(self.topServerLoop)
+##                else:
+            global waiting_debug_server
+            waiting_debug_server = self
+##        finally:
+##            servicer_running_lock.release()
 
-    def executeMessageInPlace(self, sm):
-        # Lets the debugger work in an existing thread.
-        started = 0
-        servicer_running_lock.acquire()
-        try:
-            self.__queue.put(sm)
-            if not self.servicer_running:
-                self.servicer_running = 1
-                started = 1
-        finally:
-            servicer_running_lock.release()
-        self.topServerLoop(started)
+##    def executeInPlace(self, sm=None):
+##        # Lets the debugger work in an existing thread.
+##        started = 0
+##        servicer_running_lock.acquire()
+##        try:
+##            if sm:
+##                self.__queue.put(sm)
+##            if not self.servicer_running:
+##                self.servicer_running = 1
+##                started = 1
+##        finally:
+##            servicer_running_lock.release()
+##        self.topServerLoop(started)
 
     def cleanupServer(self):
         self.reset()
         self.ignore_stopline = -1
+        self.ignore_first_frame = 0
+        self.ignore_frame = None
         self.autocont = 0
         self.frame = None
         self.exc_info = None
         self.fncache.clear()
 
-    def topServerLoop(self, started=1):
-        try:
-            self.serverLoop()
-        finally:
-            if started:
-                servicer_running_lock.acquire()
-                try:
-                    # Make sure all queued messages get processed.
-                    while not self.__queue.empty():
-                        try:
-                            self.oneServerLoop()
-                        except:
-                            # ??
-                            pass
-                    self.servicer_running = 0
-                finally:
-                    servicer_running_lock.release()
-            self.cleanupServer()
+##    def topServerLoop(self, started=1):
+##        try:
+##            self.serverLoop()
+##        finally:
+##            if started:
+##                servicer_running_lock.acquire()
+##                try:
+##                    # Make sure all queued messages get processed.
+##                    while not self.__queue.empty():
+##                        try:
+##                            self.oneServerLoop()
+##                        except:
+##                            # ??
+##                            pass
+##                    self.servicer_running = 0
+##                finally:
+##                    servicer_running_lock.release()
+##            self.cleanupServer()
+
+    def servicerThread(self):
+        while 1:
+            try:
+                self.serverLoop()
+            except:
+                # ??
+                import traceback
+                traceback.print_exc()
+            self.quitting = 0
 
     def serverLoop(self):
         while not getattr(self, 'quitting', 0):
@@ -501,8 +540,8 @@ class DebugServer (Bdb):
 
     def stop_here(self, frame):
         # Redefine stopping.
-        if frame is self.botframe:
-            # Don't stop in the bottom frame.
+        if self.ignore_frame and frame is self.ignore_frame:
+            # Don't stop in ignore_frame.
             return 0
         sf = self.stopframe
         if sf is None:
@@ -513,9 +552,9 @@ class DebugServer (Bdb):
             # Stop in the current frame unless we're on
             # ignore_stopline.
             return 1
+        # Stop at any frame that called stopframe.
         f = sf
-        while f is not self.botframe:
-            # Stop at any frame that called stopframe except botframe.
+        while f:
             if frame is f:
                 return 1
             f = f.f_back
@@ -545,6 +584,37 @@ class DebugServer (Bdb):
                     # settrace callback enabled.
                     del frame.f_trace
                     frame = frame.f_back
+
+    def runcall(self, func, *args, **kw):
+        self.reset()
+        sys.settrace(self.trace_dispatch)
+        res = None
+        try:
+            try:
+                res = apply(func, args, kw)
+            except BdbQuit:
+                pass
+        finally:
+            self.quitting = 1
+            sys.settrace(None)
+        return res
+
+    def set_trace(self):
+        # Start debugging from here
+        self._running = 1
+        # Note: we can't use Bdb.set_trace() because the
+        # exception trickery below would have to change [2] to [3].
+        try:
+            1 + ''
+        except:
+            frame = sys.exc_info()[2].tb_frame.f_back
+        self.reset()
+        while frame:
+            frame.f_trace = self.trace_dispatch
+            self.botframe = frame
+            frame = frame.f_back
+        self.set_step()
+        sys.settrace(self.trace_dispatch)
 
     def set_internal_breakpoint(self, filename, lineno, temporary=0,
                                 cond=None):
@@ -599,6 +669,11 @@ class DebugServer (Bdb):
             self.autocont = 0
             self.set_continue()
             return
+        elif self.ignore_first_frame:
+            self.ignore_first_frame = 0
+            self.ignore_frame = frame
+            self.set_step()
+            return
         self.ignore_stopline = -1
         self.frame = frame
         self.exc_info = None
@@ -643,6 +718,7 @@ class DebugServer (Bdb):
             chdir(dn)
 
         self.autocont = autocont
+        self.ignore_first_frame = 1
         
         self.run("execfile(fn, d)", {'fn':fn, 'd':d})
 
@@ -655,6 +731,22 @@ class DebugServer (Bdb):
                 # Provide post-mortem analysis.
                 import traceback
                 traceback.print_exc()
+                self.quitting = 0
+                self.exc_info = sys.exc_info()
+                self.frame = self.exc_info[2].tb_frame
+                self.serverLoop()
+                self.quitting = 1
+        finally:
+            self._running = 0
+            self.cleanupServer()
+
+    def runFunc(self, func, *args, **kw):
+        try:
+            self._running = 1
+            try:
+                return apply(self.runcall, (func,) + args, kw)
+            except:
+                # Provide post-mortem analysis.
                 self.quitting = 0
                 self.exc_info = sys.exc_info()
                 self.frame = self.exc_info[2].tb_frame
@@ -764,7 +856,10 @@ class DebugServer (Bdb):
         try:
             stack = self.getStackInfo()[2]
             if stack:
-                return stack[frameno][0]
+                if frameno > len(stack):
+                    return stack[-1][0]
+                else:
+                    return stack[frameno][0]
             else:
                 return None
         finally:
@@ -923,3 +1018,12 @@ class DebugServer (Bdb):
             rval[str(key)] = self.safeRepr(value)
         return rval
 
+
+waiting_debug_server = None
+
+def set_trace():
+    global waiting_debug_server
+    ds = waiting_debug_server
+    if ds:
+        waiting_debug_server = None
+        ds.set_trace()

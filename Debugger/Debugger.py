@@ -877,12 +877,16 @@ class DebuggerFrame(wxFrame):
 
     def updateOutputWindow(self):
         while self.debug_client:
-            stdout_text, stderr_text = self.debug_client.pollStreams()
-            if stdout_text:
-                self.appendToOutputWindow(stdout_text)
-            if stderr_text:
-                self.appendToOutputWindow(stderr_text)
-            if not stdout_text and not stderr_text:
+            info = self.debug_client.pollStreams()
+            if info:
+                stdout_text, stderr_text = info
+                if stdout_text:
+                    self.appendToOutputWindow(stdout_text)
+                if stderr_text:
+                    self.appendToOutputWindow(stderr_text)
+                if not stdout_text and not stderr_text:
+                    break
+            else:
                 break
         
     def OnUpperPageChange(self, event):
@@ -920,17 +924,23 @@ class DebuggerFrame(wxFrame):
             self.clearViews()
 
     def runProcess(self, autocont=0):
-        if not self.slave_mode:
-            return
         self.running = 1
-        self.sb.writeError('Running...', 0)
+        self.sb.writeError('Waiting...', 0)
         brks = bplist.getBreakpointList()
-        add_paths = simplifyPathList(pyPath)
-        filename = path.normcase(path.abspath(self.filename))
-        self.invokeInDebugger(
-            'runFileAndRequestStatus',
-            (filename, self.params or [], autocont, add_paths, brks),
-            'receiveDebuggerStatus')
+        if self.slave_mode:
+            # Work with a child process.
+            add_paths = simplifyPathList(pyPath)
+            filename = path.normcase(path.abspath(self.filename))
+            self.invokeInDebugger(
+                'runFileAndRequestStatus',
+                (filename, self.params or [], autocont, add_paths, brks),
+                'receiveDebuggerStatus')
+        else:
+            # Work with a peer or remote process.
+            self.invokeInDebugger(
+                'setupAndRequestStatus',
+                (autocont, brks),
+                'receiveDebuggerStatus')
 
         # InProcessClient TODO: setup the execution environment
         # the way it used to be done.
@@ -1113,7 +1123,7 @@ class DebuggerFrame(wxFrame):
 
     def ensureRunning(self, cont_if_running=0, cont_always=0,
                       temp_breakpoint=None):
-        if not self.slave_mode or self.isRunning():
+        if self.isRunning():
             if cont_if_running or cont_always:
                 self.doDebugStep('set_continue', temp_breakpoint)
         else:
@@ -1134,7 +1144,7 @@ class DebuggerFrame(wxFrame):
             self.clearStepPos()
             self.invalidatePanes()
             self.updateSelectedPane(do_request=0)
-            if self.slave_mode and not self.isRunning():
+            if not self.isRunning():
                 self.runProcess()
             elif method:
                 self.proceedAndRequestStatus(method, temp_breakpoint)

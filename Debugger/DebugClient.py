@@ -87,7 +87,7 @@ class DebugClient:
 
 
 class DebuggerTask:
-    def __init__(self, client, m_name, m_args, r_name, r_args):
+    def __init__(self, client, m_name, m_args=(), r_name='', r_args=()):
         self.client = client
         self.m_name = m_name
         self.m_args = m_args
