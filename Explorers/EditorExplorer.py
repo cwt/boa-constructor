@@ -43,9 +43,9 @@ class EditorController(ExplorerNodes.Controller):
         self.menu.Destroy()
 
     def editorUpdateNotify(self, info=''):
-        self.OnReloadItems(None)
+        self.OnReloadItems()
 
-    def OnReloadItems(self, event):
+    def OnReloadItems(self, event=None):
         if self.list.node:
             self.list.refreshCurrent()
 
@@ -168,7 +168,7 @@ class OpenModelItemNode(ExplorerNodes.ExplorerNode):
         return false
 
     def open(self, editor):
-        editor.openOrGotoModule(self.resourcepath)
+        return editor.openOrGotoModule(self.resourcepath)
 
 ##    def openList(self):
 ##        res = []
