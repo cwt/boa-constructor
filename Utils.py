@@ -13,6 +13,7 @@ from wxPython.wx import *
 import Preferences
 from Preferences import IS
 import string
+from ExternalLib.ConfigParser import ConfigParser
 
 # Why did I capitalise these ????
 
@@ -78,11 +79,11 @@ class BoaFileDropTarget(wxFileDropTarget):
         finally:
             wxEndBusyCursor()
             
-def split_seq(seq, pivot):
+def split_seq(seq, pivot, transformFunc = None):
     result = []
     cur_sect = []
     for itm in seq:
-        if itm == pivot:
+        if transformFunc and transformFunc(itm) == pivot or itm == pivot:
             result.append(cur_sect)
             cur_sect = []
         else:
@@ -128,7 +129,6 @@ def duplicateMenu(source):
                 mi.Check(true)
     return dest            
                     
-
 def getValidName(usedNames, baseName, ext = '', n = 1, itemCB = lambda x:x):
     def tryName(baseName, ext, n): 
         return '%s%d%s' %(baseName, n, ext and '.'+ext)
@@ -144,7 +144,9 @@ def ctrlNameFromSrcRef(srcRef):
             
 def winIdRange(count):
     return map(lambda x: wxNewId(), range(count))            
-          
+
+def startswith(str, substr):
+    return len(str) >= len(substr) and str[:len(substr)] == substr
 
 class PaintEventHandler(wxEvtHandler):
     """ This class is used to merge paint reqeusts. Each paint is 
@@ -228,16 +230,50 @@ class PaintEventHandler(wxEvtHandler):
 
 def showTip(frame, forceShow = 0):
     try:
-        showTipsFile = Preferences.toPyPath('data/showTips')
-        showTipText = open(showTipsFile).read()
-        showTip, index = eval(showTipText)
+        conf = createAndReadConfig('Explorer')
     except IOError:
+        conf = None
         showTip, index = (1, 0)
+    else:
+        showTip = conf.getint('tips', 'showonstartup')
+        index = conf.getint('tips', 'tipindex')
+
     if showTip or forceShow:
-        tp = wxCreateFileTipProvider(Preferences.toPyPath('data/tips.txt'), index)
+        tp = wxCreateFileTipProvider(Preferences.toPyPath('Docs/tips.txt'), index)
         showTip = wxShowTip(frame, tp, showTip)
         index = tp.GetCurrentTip()
-        try:
-            open(showTipsFile, 'w').write(str( (showTip, index) ))
-        except IOError:
-            print 'Could not update tips file', showTipsFile, '(check permissions)'
+        if conf:            
+            conf.set('tips', 'showonstartup', showTip)
+            conf.set('tips', 'tipindex', index)
+            try:
+                conf.write(open(conf.confFile, 'w'))
+            except IOError:
+                print 'Could not update tips file', showTipsFile, '(check permissions)'
+
+def readTextFromClipboard():
+    clip = wxTheClipboard
+    clip.Open()
+    try:
+        data = wxTextDataObject()
+        clip.GetData(data)
+        return data.GetText()
+    finally:
+        clip.Close()
+
+def writeTextToClipboard(text):
+    clip = wxTheClipboard
+    clip.Open()
+    try:
+        clip.SetData(wxTextDataObject(text))
+    finally:
+        clip.Close()
+
+def createAndReadConfig(name, forPlatform = 1):
+    conf = ConfigParser()
+    confFile = '%s/%s%s.cfg' % (Preferences.pyPath, name,
+        forPlatform and wx.wxPlatform == '__WXMSW__' and '.msw' \
+        or forPlatform and '.gtk' or '')
+    conf.read(confFile)
+    conf.confFile = confFile
+    return conf 
+    
