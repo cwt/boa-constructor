@@ -123,7 +123,11 @@ class Signature:
         #
         if self.func.func_code.co_flags & (self.POS_LIST|self.KEY_DICT):
              x['positional'] = self.func.func_code.co_varnames[n]
-             x['keyword'] = self.func.func_code.co_varnames[n+1]
+             try:
+                 x['keyword'] = self.func.func_code.co_varnames[n+1]
+             except IndexError:
+                 x['keyword'] = x['positional']
+                 del x['positional']
         elif self.func.func_code.co_flags & self.POS_LIST:
             x['positional'] = self.func.func_code.co_varnames[n]
         elif self.func.func_code.co_flags & self.KEY_DICT:
@@ -206,4 +210,4 @@ if __name__ == '__main__':
     print "special_args:", f.special_args()
     print "full_arglist:", f.full_arglist()
     print "defaults:", f.defaults()
-    print "signature:", f
+    print "signature:", 
