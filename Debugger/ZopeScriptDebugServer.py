@@ -1,4 +1,3 @@
-
 from IsolatedDebugger import DebugServer
 
 __traceable__ = 0
@@ -61,7 +60,6 @@ class ZopeScriptDebugServer(DebugServer):
             if script is not None:
                 url = script.absolute_url()
                 url = url.split('://', 1)[-1]
-                # XXX This is not a valid URL according to RFC 2396!
                 filename = 'zopedebug://%s/%s' % (url, meta_type)
                 # Offset for Boa's purposes
                 lineno = lineno + 1
@@ -70,11 +68,11 @@ class ZopeScriptDebugServer(DebugServer):
         if code.co_name == 'interpret' and isATALInterpeterFrame(frame):
             source_file, ln = self.getTALPosition(frame)
             if source_file:
-                return self.TALSourceToURL(source_file), ln
+                return self.TALSourceToURL(source_file, frame), ln
 
         return self.canonic(filename), lineno
 
-    def TALSourceToURL(self, source_file):
+    def TALSourceToURL(self, source_file, frame):
         if source_file.startswith('traversal:'):
             path = source_file[10:]
             if path.startswith('/'):
@@ -82,6 +80,15 @@ class ZopeScriptDebugServer(DebugServer):
             meta_type = 'Page Template'
             host = 'localhost:8080'  # XXX XXX!
             return 'zopedebug://%s/%s/%s' % (host, path, meta_type)
+        elif source_file.startswith('/'):
+            meta_type = 'Page Template'
+            interp = frame.f_locals.get('self')
+            if interp is not None:
+                global_vars = getattr(interp.engine, 'global_vars', {})
+                template = global_vars.get('template', None)
+                if template:
+                    url = template.absolute_url().split('://', 1)[-1]
+                    return 'zopedebug://%s/Page Template'%url
         return source_file  # TODO: something better
 
     def getTALPosition(self, frame):
@@ -181,8 +188,8 @@ class ZopeScriptDebugServer(DebugServer):
                     # Using a macro or slot.
                     # Expect to find saved_source and saved_position in
                     # locals.
-                    saved_source = caller.f_locals.get('saved_source')
-                    position = caller.f_locals.get('saved_position')
+                    saved_source = caller.f_locals.get('prev_source') #saved_source
+                    position = 0#caller.f_locals.get('saved_position')
                     if position:
                         saved_lineno = position[0] or 0
                     else:
@@ -214,4 +221,3 @@ class ZopeScriptDebugServer(DebugServer):
                 return global_vars, local_vars
 
         return frame.f_globals, frame.f_locals
-
