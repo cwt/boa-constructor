@@ -147,17 +147,21 @@ class EditorView:
                 canCheck = false
 
             if accl:
-                name = name + (keyDefs[accl][2] and '\t'+keyDefs[accl][2] or '')
+                code = keyDefs[accl]
+            else:
+                code = ()
+                
+            #name = name + (keyDefs[accl][2] and ' \t'+keyDefs[accl][2] or '')
 
-            self.menuDefn.append( (wId, name, canCheck) )
+            self.menuDefn.append( (wId, name, code, bmp, canCheck) )
 
             if accl:
-                self.accelLst.append( (keyDefs[accl][0], keyDefs[accl][1], wId) )
+                self.accelLst.append( (code[0], code[1], wId) )
 
     def generateMenu(self):
         menu = wxMenu()
-        for wId, name, canCheck in self.menuDefn:
-            menu.Append(wId, name, '', canCheck)
+        for wId, name, code, bmp, canCheck in self.menuDefn:
+            Utils.appendMenuItem(menu, wId, name, code, bmp)
         return menu
 
     def addViewMenus(self):
@@ -205,6 +209,12 @@ class EditorView:
         # set selection to source view
         # check that not already destroyed
         if hasattr(self, 'model'):
+            if self.modified:
+                #if wxMessageBox('View modified, apply changes?',
+                #  'Close View', 
+                #  wxOK | wxCANCEL | wxICON_EXCLAMATION) == wxYES:
+                self.refreshModel()
+            
             self.model.reorderFollowingViewIdxs(self.pageIdx)
             # XXX If the last view closes should the model close ??
             if self.model.views.has_key(focusView):
@@ -468,11 +478,11 @@ class ModuleDocView(HTMLDocView):
         return page + string.join(functions)
 
 class CloseableViewMix:
-    closeBmp = 'Images/Editor/Close.png'
+    closeViewBmp = 'Images/Editor/CloseView.png'
 
     def __init__(self, hint = 'results'):
         self.closingActionItems = ( ('Close '+ hint, self.OnClose,
-                                     self.closeBmp, 'CloseView'), )
+                                     self.closeViewBmp, 'CloseView'), )
 
     def OnClose(self, event):
         del self.closingActionItems
@@ -1157,9 +1167,12 @@ class DistUtilView(wxPanel, EditorView):
 class DistUtilManifestView(ListCtrlView):
     viewName = 'Manifest'
 
+    refreshBmp = 'Images/Editor/Refresh.png'
+
     def __init__(self, parent, model):
         ListCtrlView.__init__(self, parent, model, wxLC_REPORT,
-          (('Open', self.OnOpen, '-', ()), ), 0)
+          (('Open', self.OnOpen, '-', ()), 
+           ('Refresh', self.OnRefresh, self.refreshBmp, 'Refresh')), 0)
         self.InsertColumn(0, 'Name')
         self.InsertColumn(1, 'Filepath')
         self.SetColumnWidth(0, 150)
@@ -1200,6 +1213,9 @@ class DistUtilManifestView(ListCtrlView):
         if self.selected != -1 and self.manifest is not None:
             model, controller = self.model.editor.openOrGotoModule(
                   self.getSetupDir()+'/'+self.manifest[self.selected])
+
+    def OnRefresh(self, event):
+        self.refreshCtrl()
 
 
 class CVSConflictsView(ListCtrlView):
