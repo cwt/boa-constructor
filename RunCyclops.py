@@ -1,7 +1,6 @@
 import HTMLCyclops
 
-import types, sys, string
-from os import path
+import types, sys, os
 
 """ This module runs Tim Peter's Cyclops cycle finder on a module given as
     a command line parameter. It was subclassed to provide browsable HTML.
@@ -33,14 +32,20 @@ def run():
     # flag for code which needs to be aware of Cyclops' presence
     sys.cyclops = 1
 
-    mod_name = path.splitext(sys.argv[1])[0]
+    mod_name = os.path.splitext(sys.argv[1])[0]
+    cycle_file = sys.argv[2]
     # remove command line option
     del sys.argv[1]
-    f = open(mod_name+'.cycles', 'w')
+    #f = open(mod_name+'.cycles', 'w')
+    f = open(cycle_file, 'w')
     sys.path.append('.')
     try:
         z = HTMLCyclops.CycleFinderHTML()
-        mod = __import__(mod_name)
+        try:
+            mod = __import__(mod_name)
+        except:
+            handle_error(f)
+        
 
         # Comment out any of the following lines to not add a chaser or filter
         z.chase_type(types.ModuleType, mod_refs, mod_tag)
@@ -57,12 +62,7 @@ serves as the entrypoint for Cyclops.<br>'''
             try:
                 z.run(mod.main)
             except:
-                import traceback
-
-                tp, vl, tb = sys.exc_info()
-                err = '<font color="#FF4444"><h3>Error:</h3></font>'+\
-                  string.join(traceback.format_exception(tp, vl, tb), '<br>')
-                f.write(err)
+                handle_error(f)
             else:
                 z.find_cycles()
 
@@ -80,5 +80,13 @@ serves as the entrypoint for Cyclops.<br>'''
     finally:
         f.close()
 
+def handle_error(f):
+    import traceback
 
+    tp, vl, tb = sys.exc_info()
+    err = '<font color="#FF4444"><h3>Error:</h3></font>'+\
+      '<br>'.join(traceback.format_exception(tp, vl, tb))
+    f.write(err)
+
+print 'RunCyclops'
 run()
