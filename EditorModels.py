@@ -706,7 +706,12 @@ class ModuleModel(SourceModel):
         resultView.refresh()
         resultView.focus()
 
-class ZopeDocumentModel(EditorModel):
+class ZopeEditorModel(EditorModel):
+    def __init__(self, name, data, editor, saved, zopeObject): 
+        EditorModel.__init__(self, name, data, editor, saved)
+        self.zopeObj = zopeObject  #this is the instance of our node now
+    
+class ZopeDocumentModel(ZopeEditorModel):
     modelIdentifier = 'ZopeDocument'
     defaultName = 'zopedoc'
     bitmap = 'Package_s.bmp'
@@ -714,21 +719,21 @@ class ZopeDocumentModel(EditorModel):
 
     saveBmp = 'Images/Editor/Save.bmp'
 
-    def __init__(self, name, data, editor, saved,  zopeObject): #self, name, data, editor, saved, zopeConnection, zopeObject
+    def __init__(self, name, data, editor, saved, zopeObject): 
+        #self, name, data, editor, saved, zopeConnection, zopeObject
         
-        imgIdx = zopeObject.image #set correct bitmap
-        EditorModel.__init__(self, name, data, editor, saved)
+#        imgIdx = zopeObject.image #set correct bitmap
+        ZopeEditorModel.__init__(self, name, data, editor, saved, zopeObject)
         #self.zopeConn = zopeConnection
-        self.zopeObj = zopeObject  #this is the instance of our node now
         self.savedAs = true
         
         
     def addTools(self, toolbar):
-        EditorModel.addTools(self, toolbar)
+        ZopeEditorModel.addTools(self, toolbar)
         AddToolButtonBmpIS(self.editor, toolbar, self.saveBmp, 'Save', self.editor.OnSave)
         
     def addMenus(self, menu):
-        accls = EditorModel.addMenus(self, menu)
+        accls = ZopeEditorModel.addMenus(self, menu)
         self.addMenu(menu, Editor.wxID_EDITORSAVE, 'Save', accls, (keyDefs['Save']))
         return accls
 
