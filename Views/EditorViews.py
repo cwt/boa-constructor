@@ -10,9 +10,6 @@
 # Licence:     GPL
 #----------------------------------------------------------------------
 print 'importing Views'
-# So many views
-# on the same thing
-# facets, aspects, perspectives
 
 import string, os
 from os import path
@@ -235,8 +232,7 @@ class EditorView:
                 self.updateEditor()
 
     def updateEditor(self):
-        self.model.editor.updateModulePage(self.model)
-        self.model.editor.updateTitle()
+        self.model.editor.updateModuleState(self.model)
 
     def updateViewState(self):
         self.updatePageName()
@@ -931,6 +927,43 @@ class ExploreView(wxTreeCtrl, EditorView):
                 self.actions[self.defaultActionIdx][1](event)
         event.Skip()
 
+class ExplorePythonExtensionView(ExploreView):
+    viewName = 'Explore'
+    def refreshCtrl(self, load_now=0):
+        self.DeleteAllItems()
+
+        rootItem = self.AddRoot(self.model.module.__name__, 5, -1)
+        self.populateItemFromModuleData(rootItem, self.model.moduleData)
+        self.Expand(rootItem)
+
+    def populateItemFromModuleData(self, item, moduleData):
+        classes = moduleData.classes.items()
+        classes.sort()
+        for className, classData in classes:
+            classItem = self.AppendItem(item, className, 0, -1)
+            for meth in classData.methods:
+                methItem = self.AppendItem(classItem, meth, 2, -1)
+            attrs = classData.attrs.items()
+            attrs.sort()
+            for name, attr in attrs:
+                attrItem = self.AppendItem(classItem, '%s: %s'%(name, attr), 6, -1)
+
+        functions = moduleData.functions.items()
+        functions.sort()
+        for funcName, func in functions:
+            funcItem = self.AppendItem(item, funcName, 3, -1)
+
+        attrs = moduleData.attrs.items()
+        attrs.sort()
+        for name, attr in attrs:
+            attrItem = self.AppendItem(item, '%s: %s'%(name, attr), 6, -1)
+
+        modules = moduleData.modules.items()
+        modules.sort()
+        for name, module in modules:
+            modItem = self.AppendItem(item, name, 5, -1)
+            self.populateItemFromModuleData(modItem, module)
+
 class ExploreEventsView(ExploreView):
     viewName = 'Events'
     def __init__(self, parent, model):
@@ -1131,12 +1164,12 @@ class DistUtilManifestView(ListCtrlView):
         self.InsertColumn(1, 'Filepath')
         self.SetColumnWidth(0, 150)
         self.SetColumnWidth(1, 450)
-        
+
         self.manifest = []
 
     def getSetupDir(self):
         return os.path.dirname(self.model.filename)
-    
+
     def refreshCtrl(self):
         ListCtrlView.refreshCtrl(self)
 
@@ -1238,12 +1271,3 @@ class FolderEditorView(wxNotebook, EditorView):
     def OnPageChange(self, event):
         pass
 
-
-#class CVSView : Shows conflicts after merging CVS
-
-#class ImportView(wxOGL, EditorView) -> AppModel: implimented in UMLView.py
-
-#class ContainmentView(wxTreeCtrl, EditorView) -> FrameModel:
-#      parent/child relationship tree hosted in inspector
-
-#class XMLView(wxTextCtrl, EditorView) -> FrameM
