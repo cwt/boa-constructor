@@ -147,9 +147,6 @@ class MaskedDTCMixin:
         for opt in self.options['Datestyle']: 
             self.names['Datestyle'][opt] = opt
         
-    def writeImports(self):
-        return 'from wxPython.lib.maskededit import *'
-    
     def hideDesignTime(self):
         return ['Demo', 'Fields', 'Autoformat', 'ValidFunc']
 
@@ -166,6 +163,8 @@ class BaseMaskedTextCtrlDTC(TextCtrlDTC, MaskedDTCMixin):
     def hideDesignTime(self):
         return TextCtrlDTC.hideDesignTime(self) + MaskedDTCMixin.hideDesignTime(self)
 
+    def writeImports(self):
+        return 'from wxPython.lib.maskededit import *'
 
 class MaskedTextCtrlDTC(BaseMaskedTextCtrlDTC, AutoFormatPropMixin):
     def __init__(self, name, designer, parent, ctrlClass):
@@ -207,6 +206,9 @@ class MaskedComboBoxDTC(ComboBoxDTC, MaskedDTCMixin, AutoFormatPropMixin):
         return ComboBoxDTC.hideDesignTime(self) + \
                MaskedDTCMixin.hideDesignTime(self)
 ##               ['Mark', 'EmptyInvalid']
+
+    def writeImports(self):
+        return 'from wxPython.lib.maskededit import *'
 
 class MaskedNumCtrlDTC(TextCtrlDTC, MaskedDTCMixin):
     def __init__(self, name, designer, parent, ctrlClass):
