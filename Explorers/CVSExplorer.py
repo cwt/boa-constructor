@@ -47,7 +47,7 @@ def cvsFileLocallyModified(filename, timestamp):
     ismerge = string.split(timestamp, '+')
     conflict = ismerge[0] == 'Result of merge'
     filets = time.asctime(time.gmtime(os.stat(filename)[stat.ST_MTIME]))
-    if conflict and len(ismerge) == 1 or ismerge[0] == 'dummy timestamp':
+    if conflict and len(ismerge) == 1 or ismerge[0][:15] == 'dummy timestamp':
         filesegs, cvssegs = 1, 0
     # convert day to int to avoid zero padded differences
     else:
