@@ -110,10 +110,10 @@ class BoaPrefGroupNode(PreferenceGroupNode):
         ]
 
         self.plugin_pref.preferences = [
-            self.core_plugpref,
-            self.plugin_plugpref,
             self.files_plugpref,
             self.transp_plugpref,
+            self.core_plugpref,
+            self.plugin_plugpref,
         ]
 
         self.preferences.insert(1, self.plugin_pref)
