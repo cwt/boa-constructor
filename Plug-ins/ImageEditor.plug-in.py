@@ -14,12 +14,12 @@ if wxVERSION < (2,3,3):
 ddCanvas = 1
 ddGrid = 2
 
-[wxID_IMAGEEDITORPANEL, wxID_IMAGEEDITORPANELBGCOLBTN, 
- wxID_IMAGEEDITORPANELBRUSHCOLBTN, wxID_IMAGEEDITORPANELEDITWINDOW, 
- wxID_IMAGEEDITORPANELFGCOLBTN, wxID_IMAGEEDITORPANELMODECHOICE, 
- wxID_IMAGEEDITORPANELPENBRUSHWINDOW, wxID_IMAGEEDITORPANELSLIDER1, 
- wxID_IMAGEEDITORPANELSPINBUTTON1, wxID_IMAGEEDITORPANELSPINBUTTON2, 
- wxID_IMAGEEDITORPANELSPINBUTTON3, wxID_IMAGEEDITORPANELSTATICTEXT1, 
+[wxID_IMAGEEDITORPANEL, wxID_IMAGEEDITORPANELBGCOLBTN,
+ wxID_IMAGEEDITORPANELBRUSHCOLBTN, wxID_IMAGEEDITORPANELEDITWINDOW,
+ wxID_IMAGEEDITORPANELFGCOLBTN, wxID_IMAGEEDITORPANELMODECHOICE,
+ wxID_IMAGEEDITORPANELPENBRUSHWINDOW, wxID_IMAGEEDITORPANELSLIDER1,
+ wxID_IMAGEEDITORPANELSPINBUTTON1, wxID_IMAGEEDITORPANELSPINBUTTON2,
+ wxID_IMAGEEDITORPANELSPINBUTTON3, wxID_IMAGEEDITORPANELSTATICTEXT1,
 ] = map(lambda _init_ctrls: wxNewId(), range(12))
 
 class ImageEditorPanel(wxPanel):
@@ -132,7 +132,7 @@ class ImageEditorPanel(wxPanel):
         self._init_ctrls(parent)
 
         self.currentCursor = None
-        
+
         self.drawingMethMap = {'Select': (ddCanvas|ddGrid, self.drawSelection),
                                'Draw'  : (ddCanvas,        self.drawPoint),
                                'Line'  : (ddCanvas|ddGrid, self.drawLine),
@@ -184,7 +184,7 @@ class ImageEditorPanel(wxPanel):
 #---Public methods--------------------------------------------------------------
 
     def initImageData(self, ext, data):
-        """ Initialise editor with data """ 
+        """ Initialise editor with data """
         if data:
             self.mDC = wxMemoryDC()
             self.bmp = wxBitmapFromImage(wxImageFromStream(StringIO.StringIO(data)))
@@ -196,10 +196,10 @@ class ImageEditorPanel(wxPanel):
             self.mDC.Clear()
 
         self.imgExt = ext
-            
+
         self.editWindow.Refresh()
 
-        self.mDCundo, self.bmpundo = self.getTempMemDC(self.bmp.GetWidth(), 
+        self.mDCundo, self.bmpundo = self.getTempMemDC(self.bmp.GetWidth(),
                                      self.bmp.GetHeight())
         self.selundo = None
         self.snapshot()
@@ -208,7 +208,7 @@ class ImageEditorPanel(wxPanel):
         self.updateImageInfo()
 
     def getImageData(self, ext=None):
-        """ Returns the current bitmap data """ 
+        """ Returns the current bitmap data """
         if not ext: ext = self.imgExt
 
         fn = tempfile.mktemp(ext)
@@ -222,7 +222,7 @@ class ImageEditorPanel(wxPanel):
     def imageModified(self):
         """ Called whenever image is modified, override to catch """
         pass
-        
+
 #---Utils-----------------------------------------------------------------------
 
     def setMode(self, mode, updateGUI=false):
@@ -237,7 +237,7 @@ class ImageEditorPanel(wxPanel):
 
             self.mode = mode
             self.drawDest, self.drawMeth = self.drawingMethMap[self.mode]
-            
+
             if updateGUI:
                 self.modeChoice.SetStringSelection(mode)
 
@@ -245,10 +245,10 @@ class ImageEditorPanel(wxPanel):
         self.dragoffset = self.dragpos = self.dragbmp = self.dragsrcrect = None
         self.sel = self.line = self.circle = self.box = None
         self.editWindow.SetCursor(self.currentCursor)
-        
+
     def snapshot(self):
         self.mDC.SetUserScale(1.0, 1.0)
-        self.mDCundo.Blit(0, 0, self.bmp.GetWidth(), self.bmp.GetHeight(), 
+        self.mDCundo.Blit(0, 0, self.bmp.GetWidth(), self.bmp.GetHeight(),
               self.mDC, 0, 0)
         if self.sel: self.selundo = self.sel[:]
         else: self.selundo = None
@@ -285,9 +285,9 @@ class ImageEditorPanel(wxPanel):
     def updateScrollbars(self):
         scale = self.slider1.GetValue()
         xPos, yPos = self.editWindow.GetViewStart()
-        self.editWindow.SetScrollbars(scale, scale, 
+        self.editWindow.SetScrollbars(scale, scale,
               self.bmp.GetWidth(), self.bmp.GetHeight(), xPos, yPos)
-    
+
     def updateImageInfo(self):
         if self.imgExt: ext = string.upper(self.imgExt[1:])
         else:           ext = 'UNKNOWN'
@@ -297,18 +297,18 @@ class ImageEditorPanel(wxPanel):
         msk = self.bmp.GetMask()
         if msk: m = 'Image is masked'
         else:   m = 'Image is not masked'
-        
+
         if self.bmp.Ok(): x = ''
         else:             x = 'The bitmap is not valid!'
 
         text = '%s: (%s, %s), depth: %s\n%s. %s'%(ext, w, h, d, m, x)
         self.staticText1.SetLabel(text)
-       
+
 #---Drawing methods-------------------------------------------------------------
 
     def undo(self):
         self.mDC.SetUserScale(1.0, 1.0)
-        self.mDC.Blit(0, 0, self.bmp.GetWidth(), self.bmp.GetHeight(), 
+        self.mDC.Blit(0, 0, self.bmp.GetWidth(), self.bmp.GetHeight(),
               self.mDCundo, 0, 0)
 
     def drawSelection(self, event, state, dc=None):
@@ -372,7 +372,7 @@ class ImageEditorPanel(wxPanel):
                     if not ((x1 < 0 and x2 < 0) or (x1 >= w and x2 >= w) or \
                             (y1 < 0 and y2 < 0) or (y1 >= h and y2 >= h)):
                         self.imageModified()
-                    
+
                     self.line = None
 
             if self.prevLineSeg != self.line:
@@ -391,7 +391,7 @@ class ImageEditorPanel(wxPanel):
             dc.SetPen(self.selpen)
             dc.DrawLine(xoffset + x1 * scale + scale/2, yoffset + y1 * scale + scale/2,
                         xoffset + x2 * scale + scale/2, yoffset + y2 * scale + scale/2)
-            
+
     def drawBox(self, event, state, dc=None):
         if not dc:
             if state == 'start':
@@ -475,7 +475,7 @@ class ImageEditorPanel(wxPanel):
         self.mDC.SetUserScale(1.0, 1.0)
         self.mDC.FloodFill(x, y, self.mDC.GetPixel(x, y))
         self.editWindow.Refresh()
- 
+
         if x >=0 and x < self.bmp.GetWidth() and \
            y >=0 and y < self.bmp.GetHeight():
             self.imageModified()
@@ -526,11 +526,11 @@ class ImageEditorPanel(wxPanel):
         if state == 'end':
             x, y = self.getImgPos(event)
             newcol = self.mDC.GetPixel(x, y)
-    
+
             self.fgcol = newcol
             self.fgpen.SetColour(newcol)
             self.FGColBtn.SetBackgroundColour(self.fgcol)
-            
+
             self.setMode('Draw', updateGUI=true)
 
     def drawGrid(self, dc):
@@ -556,7 +556,7 @@ class ImageEditorPanel(wxPanel):
     def OnEditWindowPaint(self, event):
         dc = wxPaintDC(self.editWindow)
         self.editWindow.PrepareDC(dc)
-        
+
         if not self.mDC or not self.bmp:
             return
 
@@ -770,7 +770,7 @@ class ImageEditorPanel(wxPanel):
         self.updateImageInfo()
 
     def OnResize(self, event):
-        dlg = wxTextEntryDialog(self, 'Enter a tuple for the new size', 
+        dlg = wxTextEntryDialog(self, 'Enter a tuple for the new size',
               'Resize', '%s, %s'%(self.bmp.GetWidth(), self.bmp.GetHeight()))
         try:
             if dlg.ShowModal() != wxID_OK:
@@ -781,7 +781,7 @@ class ImageEditorPanel(wxPanel):
 
         # Create new bitmap of required size and copy current one to it
         mDC, bmp = self.getTempMemDC(width, height)
-        mDC.Blit(0, 0, self.bmp.GetWidth(), self.bmp.GetHeight(), 
+        mDC.Blit(0, 0, self.bmp.GetWidth(), self.bmp.GetHeight(),
                  self.mDC, 0, 0)
         mDC.SelectObject(wxNullBitmap)
 
@@ -792,7 +792,7 @@ class ImageEditorPanel(wxPanel):
         self.imageModified()
 
     def OnScale(self, event):
-        dlg = wxTextEntryDialog(self, 'Enter a tuple for the new size', 
+        dlg = wxTextEntryDialog(self, 'Enter a tuple for the new size',
               'Scale', '%s, %s'%(self.bmp.GetWidth(), self.bmp.GetHeight()))
         try:
             if dlg.ShowModal() != wxID_OK:
@@ -871,7 +871,7 @@ class ImageView(wxPanel, EditorViews.EditorView):
         self.staticBitmapBig = wxStaticBitmap(self, -1, wxNullBitmap)
         EditorViews.EditorView.__init__(self, model, (), -1)
         self.active = true
-    
+
     imgsep = 32
     def refreshCtrl(self):
         if self.model.data:
@@ -881,7 +881,7 @@ class ImageView(wxPanel, EditorViews.EditorView):
             self.staticBitmapSmall.SetDimensions(self.imgsep, self.imgsep,
                                                  bmp.GetWidth(), bmp.GetHeight())
             self.staticBitmapBig.SetBitmap(bmp)
-            self.staticBitmapBig.SetDimensions(bmp.GetWidth()+self.imgsep*2, 
+            self.staticBitmapBig.SetDimensions(bmp.GetWidth()+self.imgsep*2,
                   self.imgsep, bmp.GetWidth()*2, bmp.GetHeight()*2)
 
 class ImageEditorView(ImageEditorPanel, EditorViews.EditorView):
@@ -915,7 +915,7 @@ class ImageEditorView(ImageEditorPanel, EditorViews.EditorView):
         EVT_RIGHT_UP(self.editWindow, self.OnRightClick)
 
         self.active = true
-            
+
     def refreshCtrl(self):
         ext = os.path.splitext(self.model.filename)[-1]
         self.initImageData(ext, self.model.data)
@@ -938,7 +938,7 @@ class ImageEditorView(ImageEditorPanel, EditorViews.EditorView):
 
         self.updateEditor()
         self.updateViewState()
-        
+
     def imageModified(self):
         self.modified = true
         self.updateViewState()
@@ -975,11 +975,10 @@ class BitmapEditorFileController(Controllers.PersistentController):
         else:
             view = model.views['Edit']
         view.focus()
-            
+
 
 Controllers.modelControllerReg[EditorModels.BitmapFileModel] = BitmapEditorFileController
 
 import PaletteStore
 PaletteStore.newControllers['Bitmap'] = BitmapEditorFileController
 PaletteStore.paletteLists['New'].append('Bitmap')
-

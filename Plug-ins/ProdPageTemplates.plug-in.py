@@ -68,7 +68,7 @@ from ZopeLib.ZopeExplorer import ZopeNode, zopeClassMap
 class PageTemplateNode(ZopeNode):
     Model = ZopePageTemplateModel
     defaultViews = (ZopeViews.ZopeDebugHTMLSourceView,)
-    additionalViews = (ZopeViews.ZopeUndoView, ZopeViews.ZopeSecurityView, 
+    additionalViews = (ZopeViews.ZopeUndoView, ZopeViews.ZopeSecurityView,
                        ZopePTHTMLView, ZopeViews.ZopeHTMLView)
     def save(self, filename, data, mode='wb'):
         self.getResource().pt_upload('', data)
