@@ -454,3 +454,12 @@ def getCtrlsFromDialog(dlg, className):
     This is useful for standard dialogs that does not expose their children """
     return filter(lambda d, cn=className: d.__class__.__name__ == cn, 
                   dlg.GetChildren())
+
+def html2txt(htmlblock):
+    import htmllib, formatter, StringIO
+    s = StringIO.StringIO('')
+    w = formatter.DumbWriter(s)
+    f = formatter.AbstractFormatter(w)
+    p = htmllib.HTMLParser(f)
+    p.feed(htmlblock)
+    return string.strip(s.getvalue())
