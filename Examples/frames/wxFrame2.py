@@ -12,11 +12,16 @@ class wxFrame2(wxFrame):
         stop the frame from being destroyed when it is closed. This is done
         by connecting to the close event and hiding the form """
     def _init_utils(self):
+        # generated method, don't edit
         pass
 
     def _init_ctrls(self, prnt):
-        wxFrame.__init__(self, id = wxID_WXFRAME2, name = '', parent = prnt, pos = wxPoint(198, 198), size = wxSize(342, 146), style = wxDEFAULT_FRAME_STYLE, title = 'wxFrame2')
+        # generated method, don't edit
+        wxFrame.__init__(self, id=wxID_WXFRAME2, name='', parent=prnt,
+              pos=wxPoint(198, 198), size=wxSize(342, 146),
+              style=wxDEFAULT_FRAME_STYLE, title='wxFrame2')
         self._init_utils()
+        self.SetClientSize(wxSize(334, 119))
         EVT_CLOSE(self, self.OnWxframe2Close)
 
     def __init__(self, parent):
@@ -24,4 +29,3 @@ class wxFrame2(wxFrame):
 
     def OnWxframe2Close(self, event):
         self.Show(false)
-
