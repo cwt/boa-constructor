@@ -111,7 +111,7 @@ def human_split(line):
         elif len(cur_line + segment) > allowed_width:
             result.append(cur_line)
             cur_line = ' ' * (indent + 2) + segment
-            print cur_line, indent + 2
+#            print cur_line, indent + 2
         else:
             cur_line = cur_line + segment
 
@@ -155,7 +155,7 @@ def startswith(str, substr):
 
 ws2s = string.maketrans(string.whitespace, ' '*len(string.whitespace))
 def whitespacetospace(str):
-    return string.translate(str, ws2s)    
+    return string.translate(str, ws2s)
 
 ##tst_str = ' 1\t\n 3'
 ##print `whitespacetospace(tst_str)`
@@ -312,14 +312,14 @@ class wxUrlClickHtmlWindow(html.wxHtmlWindow):
     def OnLinkClicked(self, linkinfo):
         wxPostEvent(self, wxHtmlWindowUrlClick(linkinfo))
 
-def wxProxyPanel(parent, win, *args, **kwargs):
+def wxProxyPanel(parent, Win, *args, **kwargs):
     """ Function which put's a panel in between two controls.
 
         Mainly for better repainting under GTK.
         Based on a pattern by Kevin Gill.
     """
     panel = wxPanel(parent, -1, style=wxTAB_TRAVERSAL | wxCLIP_CHILDREN)
-    win = apply(win, (panel,) + args, kwargs)
+    win = apply(Win, (panel,) + args, kwargs)
     def OnWinSize(evt, win=win):
         win.SetSize(evt.GetSize())
     EVT_SIZE(panel, OnWinSize)
@@ -357,4 +357,60 @@ def visit_update(paths, dirname, names):
                   os.stat(dstname)[stat.ST_MTIME] < os.stat(srcname)[stat.ST_MTIME]):
                 print 'copying', srcname, dstname
                 shutil.copy2(srcname, dstname)
-    
+
+def get_current_frame():
+    try:
+        1 + ''  # raise an exception
+    except:
+        return sys.exc_info()[2].tb_frame
+
+padWidth = 80
+pad = padWidth*' '
+
+class PseudoFile:
+    """ Base class for file like objects to facilitate StdOut for the Shell."""
+    def __init__(self, output = None):
+        if output is None: output = []
+        self.output = output
+
+    def writelines(self, l):
+        map(self.write, l)
+
+    def write(self, s):
+        pass
+
+    def flush(self):
+        pass
+
+class LoggerPF(PseudoFile):
+    def pad(self, s):
+        padded = s + pad
+        return padded[:padWidth] + string.strip(padded[padWidth:])
+
+class OutputLoggerPF(LoggerPF):
+    def write(self, s):
+        if string.strip(s):
+            if Preferences.recordModuleCallPoint:
+                frame = get_current_frame()
+                ss = '%s : <<%s, %d>>' % (string.strip(s),
+                     frame.f_back.f_back.f_code.co_filename,
+                     frame.f_back.f_back.f_lineno)
+            else:
+                ss = s
+            wxLogMessage(self.pad(ss))
+
+        sys.__stdout__.write(s)
+
+class ErrorLoggerPF(LoggerPF):
+    def write(self, s):
+        if not hasattr(self, 'buffer'):
+            self.buffer = ''
+
+        if s == '    ':
+            self.buffer = s
+        elif s[-1] != '\n':
+            self.buffer = self.buffer + s
+        else:
+            wxLogError(self.pad(self.buffer+s[:-1]))
+
+        sys.__stderr__.write(s)
