@@ -58,6 +58,8 @@ class PropertyWrapper:
             return self.getter(params[0])
         elif self.routeType == 'IndexRoute' and self.ctrl and len(params):
             return self.getter(self.ctrl, params[0])
+        elif self.routeType == 'IdRoute' and self.ctrl and self.compn:
+            return self.getter(self.ctrl, self.compn.getDesignTimeWinId())
         elif self.routeType == 'NameRoute':
             return self.getter(self.name)
         else:
@@ -72,6 +74,8 @@ class PropertyWrapper:
             self.setter(params[0], value)
         elif self.routeType == 'IndexRoute' and self.ctrl and len(params):
             self.setter(self.ctrl, params[0], value)
+        elif self.routeType == 'IdRoute' and self.ctrl and self.compn:
+            self.setter(self.ctrl, self.compn.getDesignTimeWinId(), value)
         elif self.routeType == 'ReApplyRoute' and self.compn and len(params):
             apply(self.setter, [self.ctrl], params)
         elif self.routeType == 'NameRoute':
@@ -146,8 +150,8 @@ def getPropList(obj, cmp):
             propNames = xtraProps.keys()
             propNames.sort()
             for propName in propNames:
-##                if propName in cmp.hideDesignTime():
-##                    continue
+                #if propName in cmp.hideDesignTime():
+                #    continue
                 propMeths = xtraProps[propName]
                 try:
                     catalogProperty(propName, propMeths[0], propMeths[1:],
