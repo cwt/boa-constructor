@@ -405,3 +405,6 @@ class AppTODO_TIFView(TextInfoFileView):
 
 class AppBUGS_TIFView(TextInfoFileView): 
     viewName = 'BUGS.txt'
+
+class AppCHANGES_TIFView(TextInfoFileView): 
+    viewName = 'CHANGES.txt'
