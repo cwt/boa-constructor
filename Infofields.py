@@ -1,6 +1,6 @@
 #----------------------------------------------------------------------
 # Name:        Infofields.py
-# Purpose:     
+# Purpose:
 #
 # Author:      Riaan Booysen
 #
@@ -17,10 +17,10 @@ def create(parent):
     return wxFrame1(parent)
 
 class wxFrame1(wxFrame):
-    def _init_utils(self): 
+    def _init_utils(self):
         pass
 
-    def _init_ctrls(self, prnt): 
+    def _init_ctrls(self, prnt):
         wxFrame.__init__(self, size = wxSize(322, 258), id = -1, title = '', parent = prnt, name = '', style = wxDEFAULT_FRAME_STYLE, pos = wxPoint(264, 221))
         self.SetClientSize(wxSize(314, 231))
 
@@ -51,6 +51,6 @@ class wxFrame1(wxFrame):
         self.textCtrl1 = wxTextCtrl(size = wxSize(200, 19), value = 'textCtrl1', pos = wxPoint(68, 8), parent = self.panel1, name = 'textCtrl1', style = 0, id = 280)
         self.textCtrl1.SetClientSize(wxSize(194, 13))
 
-    def __init__(self, parent): 
+    def __init__(self, parent):
         self._init_utils()
         self._init_ctrls(parent)
