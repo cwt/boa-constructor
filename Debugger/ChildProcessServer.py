@@ -3,9 +3,15 @@ import sys, os
 import whrandom, sha, threading
 from time import sleep
 from SocketServer import TCPServer
-from ExternalLib.xmlrpcserver import RequestHandler
 from IsolatedDebugger import DebuggerController, DebuggerConnection
 from Tasks import ThreadedTaskHandler
+
+try:
+    from ExternalLib.xmlrpcserver import RequestHandler
+except:
+    # Add parent directory to the path search.
+    sys.path[0:0] = [os.pardir]
+    from ExternalLib.xmlrpcserver import RequestHandler
 
 try: from cStringIO import StringIO
 except ImportError: from StringIO import StringIO

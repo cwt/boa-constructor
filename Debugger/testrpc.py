@@ -35,17 +35,17 @@ s = spawnChild(Monitor(), process)
 t.start()
 
 print 'starting... (via %s)' % s
-v = s.runFileAndRequestStatus('test.py', (), 0, (),
-                              ({'filename':'test.py',
-                                'lineno':15,
-                                'cond':'',
-                                'enabled':1,
-                                'temporary':0},
-                               ))
-print v
+status = s.runFileAndRequestStatus('test.py', (), 0, (),
+                                   ({'filename':'test.py',
+                                     'lineno':15,
+                                     'cond':'',
+                                     'enabled':1,
+                                     'temporary':0},
+                                    ))
+print status
 print 'running...'
-v = s.proceedAndRequestStatus('set_continue')
+status = s.proceedAndRequestStatus('set_continue')
 sleep(0.5)
-print v
+print status
 
 # Should stop in the middle of the process.
