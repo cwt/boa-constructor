@@ -1,13 +1,13 @@
 #-----------------------------------------------------------------------------
-# Name:        LoginDialog.py                                                 
-# Purpose:     Dialog to get zope detail                                      
-#                                                                             
-# Author:      Riaan Booysen                                                  
-#                                                                             
-# Created:     2000/05/06                                                     
-# RCS-ID:      $Id$                                           
-# Copyright:   (c) 1999, 2000 Riaan Booysen                                   
-# Licence:     GPL                                                            
+# Name:        LoginDialog.py
+# Purpose:     Dialog to get zope detail
+#
+# Author:      Riaan Booysen
+#
+# Created:     2000/05/06
+# RCS-ID:      $Id$
+# Copyright:   (c) 1999, 2000 Riaan Booysen
+# Licence:     GPL
 #-----------------------------------------------------------------------------
 #Boa:Dialog:LoginDialog
 
@@ -19,10 +19,10 @@ def create(parent):
 [wxID_LOGINDIALOG, wxID_LOGINDIALOGPANEL1, wxID_LOGINDIALOGSTATICTEXT2, wxID_LOGINDIALOGSTATICTEXT3, wxID_LOGINDIALOGSTATICTEXT4, wxID_LOGINDIALOGSTATICTEXT5, wxID_LOGINDIALOGHOSTTC, wxID_LOGINDIALOGFTPPORTTC, wxID_LOGINDIALOGUSERNAMETC, wxID_LOGINDIALOGPASSWORDTC, wxID_LOGINDIALOGBUTTON1, wxID_LOGINDIALOGBUTTON2, wxID_LOGINDIALOGSTATICTEXT1, wxID_LOGINDIALOGHTTPPORTTC] = map(lambda _init_ctrls: NewId(), range(14))
 
 class LoginDialog(wxDialog):
-    def _init_utils(self): 
+    def _init_utils(self):
         pass
 
-    def _init_ctrls(self, prnt): 
+    def _init_ctrls(self, prnt):
         wxDialog.__init__(self, size = wxSize(239, 215), id = wxID_LOGINDIALOG, title = 'Open connection', parent = prnt, name = 'LoginDialog', style = wxDEFAULT_DIALOG_STYLE, pos = wxPoint(421, 324))
         self.SetClientSize(wxSize(231, 188))
 
@@ -55,11 +55,11 @@ class LoginDialog(wxDialog):
         self.httpPortTC = wxTextCtrl(size = wxSize(148, 24), value = '8080', pos = wxPoint(72, 60), parent = self.panel1, name = 'httpPortTC', style = 0, id = wxID_LOGINDIALOGHTTPPORTTC)
 
 
-    def __init__(self, parent): 
+    def __init__(self, parent):
         self._init_utils()
         self._init_ctrls(parent)
         self.Centre(wxBOTH)
-    
+
     def setup(self, host, ftpport, httpport, username, password):
         self.hostTC.SetValue(host)
         self.ftpPortTC.SetValue(str(ftpport))
@@ -71,17 +71,10 @@ class LoginDialog(wxDialog):
         return self.hostTC.GetValue(), int(self.ftpPortTC.GetValue()), \
           int(self.httpPortTC.GetValue()), self.usernameTC.GetValue(), \
           self.passwordTC.GetValue()
-        
+
 
     def OnButton1Button(self, event):
         self.EndModal(wxOK)
 
     def OnButton2Button(self, event):
         self.EndModal(wxCANCEL)
-
-
-
-
-
-
-

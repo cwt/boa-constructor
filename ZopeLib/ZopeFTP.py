@@ -1,13 +1,13 @@
 #-----------------------------------------------------------------------------
-# Name:        ZopeFTP.py                                                     
-# Purpose:     FTP interface into Zope                                        
-#                                                                             
-# Author:      Riaan Booysen                                                  
-#                                                                             
-# Created:     2000/05/08                                                     
-# RCS-ID:      $Id$                                               
-# Copyright:   (c) 1999, 2000 Riaan Booysen                                   
-# Licence:     GPL                                                            
+# Name:        ZopeFTP.py
+# Purpose:     FTP interface into Zope
+#
+# Author:      Riaan Booysen
+#
+# Created:     2000/05/08
+# RCS-ID:      $Id$
+# Copyright:   (c) 1999, 2000 Riaan Booysen
+# Licence:     GPL
 #-----------------------------------------------------------------------------
 
 import string
@@ -15,7 +15,7 @@ import ftplib, os
 
 true = 1
 false = 0
-             
+
 class ZopeFTPItem:
     def __init__(self, path = '', name = '', perms = '----------', id = 0, size = 0, date = ''):
         self.path = path
@@ -25,17 +25,17 @@ class ZopeFTPItem:
         self.size = size
         self.date = date
         self.lines = []
-    
+
     def __repr__(self):
         return '<%s %s, %s>' % (`self.__class__`, self.whole_name(), self.date)
 
     def read(self, line):
-        try: 
+        try:
             self.perms = line[:10]
             entries = filter(None, string.split(line[10:42], ' '))
             self.size = int(entries[3])
             self.date = line[43:55]
-            self.name = string.strip(line[55:]) 
+            self.name = string.strip(line[55:])
         except Exception, message:
             print 'Could not read:', line, message
 #        print line
@@ -44,7 +44,7 @@ class ZopeFTPItem:
     def prepareAsFile(self, data):
         self.lines = string.split(data, '\n')
         self.lines.reverse()
- 
+
     def readline(self):
         try: return self.lines.pop()+'\n'
         except IndexError: return ''
@@ -73,7 +73,7 @@ class ZopeFTP:
         self.username = ''
         self.connected = false
         self.http_port = 8080
-    
+
     def __del__(self):
         self.disconnect()
 
@@ -89,12 +89,12 @@ class ZopeFTP:
 
         # Zope returns 'Login successful' even on wrong passwords :(
         res.append(self.ftp.login(username, password))
-            
+
         self.connected = true
-        
+
         self.ftp.set_pasv(passive)
 
-        return string.join(res, '\n') 
+        return string.join(res, '\n')
 
 
     def disconnect(self):
@@ -126,14 +126,14 @@ class ZopeFTP:
         f = open(local_filename, 'wb')
         self.ftp.retrbinary('RETR %s' % server_filename, f.write)
         f.close()
-     
+
     def load(self, item):
         res = []
         self.ftp.retrlines(item.cmd('RETR'), res.append)
-        return string.join(res, '\n') 
+        return string.join(res, '\n')
 
     def save(self, item, data):
-        item.prepareAsFile(data) 
+        item.prepareAsFile(data)
         self.ftp.storlines(item.cmd('STOR'), item)
 
     def upload(self, filename, dest_path):
@@ -149,9 +149,8 @@ class ZopeFTP:
         else:
             self.ftp.delete(item.whole_name())
             return false
-    
+
     def rename(self, item, new_name):
         old_path = item.whole_name()
         new_path = os.path.dirname(old_path)+'/'+new_name
         self.ftp.rename(old_path, new_path)
-        

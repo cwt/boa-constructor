@@ -14,10 +14,10 @@ def create(parent):
 [wxID_NEWPROPDLGSTATICTEXT1, wxID_NEWPROPDLGCHTYPE, wxID_NEWPROPDLGSTATICTEXT2, wxID_NEWPROPDLGTCPROPNAME, wxID_NEWPROPDLGPANEL1, wxID_NEWPROPDLGSTATICTEXT3, wxID_NEWPROPDLGBTOK, wxID_NEWPROPDLGBTCANCEL, wxID_NEWPROPDLGTCVALUE, wxID_NEWPROPDLG] = map(lambda _init_ctrls: wxNewId(), range(10))
 
 class NewPropDlg(wxDialog):
-    def _init_utils(self): 
+    def _init_utils(self):
         pass
 
-    def _init_ctrls(self, prnt): 
+    def _init_ctrls(self, prnt):
         wxDialog.__init__(self, size = wxSize(221, 169), id = wxID_NEWPROPDLG, title = 'New property', parent = prnt, name = 'NewPropDlg', style = wxDEFAULT_DIALOG_STYLE, pos = wxPoint(359, 240))
         self._init_utils()
 
@@ -41,7 +41,7 @@ class NewPropDlg(wxDialog):
         self.btCancel = wxButton(label = 'Cancel', id = wxID_NEWPROPDLGBTCANCEL, parent = self.panel1, name = 'btCancel', size = wxSize(72, 24), style = 0, pos = wxPoint(128, 112))
         EVT_BUTTON(self.btCancel, wxID_NEWPROPDLGBTCANCEL, self.OnBtcancelButton)
 
-    def __init__(self, parent): 
+    def __init__(self, parent):
         self._init_ctrls(parent)
 
     def OnBtokButton(self, event):

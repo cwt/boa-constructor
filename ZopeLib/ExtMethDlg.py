@@ -11,10 +11,10 @@ from os import path
 [wxID_EXTMETHDLGSTATICTEXT1, wxID_EXTMETHDLGSTATICTEXT2, wxID_EXTMETHDLGCHFUNCTION, wxID_EXTMETHDLGPANEL1, wxID_EXTMETHDLGBTOK, wxID_EXTMETHDLGBTCANCEL, wxID_EXTMETHDLGCBMODULE, wxID_EXTMETHDLG] = map(lambda _init_ctrls: wxNewId(), range(8))
 
 class ExtMethDlg(wxDialog):
-    def _init_utils(self): 
+    def _init_utils(self):
         pass
 
-    def _init_ctrls(self, prnt): 
+    def _init_ctrls(self, prnt):
         wxDialog.__init__(self, size = wxSize(267, 141), id = wxID_EXTMETHDLG, title = 'Add External Method', parent = prnt, name = 'ExtMethDlg', style = wxDEFAULT_DIALOG_STYLE, pos = wxPoint(363, 248))
         self._init_utils()
 
@@ -36,15 +36,15 @@ class ExtMethDlg(wxDialog):
         self.btCancel = wxButton(label = 'Cancel', id = wxID_EXTMETHDLGBTCANCEL, parent = self.panel1, name = 'btCancel', size = wxSize(72, 24), style = 0, pos = wxPoint(176, 80))
         EVT_BUTTON(self.btCancel, wxID_EXTMETHDLGBTCANCEL, self.OnBtcancelButton)
 
-    def __init__(self, parent, zopeDir): 
+    def __init__(self, parent, zopeDir):
         self._init_ctrls(parent)
 
         self.zopeDir = zopeDir#'d:\\program files\\zope\\armalyte1'
         if zopeDir:
             self.prodsDir = path.join(zopeDir, 'lib','python','Products')
-        
+
             self.addPyMods(path.join(zopeDir, 'extensions'))
-            
+
             prods = os.listdir(self.prodsDir)
             for p in prods:
                 if path.exists(path.join(self.prodsDir, p)) and \
@@ -53,7 +53,7 @@ class ExtMethDlg(wxDialog):
         else:
             self.prodsDir = ''
 
-    def addPyMods(self, pypath, prod = ''):            
+    def addPyMods(self, pypath, prod = ''):
         fls = filter(lambda f: path.splitext(f)[1] == '.py', os.listdir(pypath))
         for file in fls:
             self.cbModule.Append(prod +(prod and '.')+path.splitext(file)[0])
@@ -73,12 +73,11 @@ class ExtMethDlg(wxDialog):
                 pypath = path.join(self.zopeDir, 'extensions', modLst[0] + '.py')
             else:
                 pypath = path.join(self.prodsDir, modLst[0], 'extensions', modLst[1]+'.py')
-    
+
             module = moduleparse.Module('test', open(pypath).readlines())
-            
+
             for func in module.functions.keys():
                 self.chFunction.Append(func)
-        
+
     def OnChfunctionCombobox(self, event):
         pass
-
