@@ -12,7 +12,7 @@
 
 print 'importing Models.wxPythonEditorModels'
 
-import re, string, os
+import re, string, os, imp, sys, new
 
 from wxPython import wx
 
@@ -190,7 +190,7 @@ class BaseFrameModel(ClassModel):
         extAttrInitName = ''
         for idx in range(startline, initMeth.end):
             line = mod.source[idx].strip()
-            if Utils.startswith(line, 'self._init_ctrls('):
+            if line.startswith('self._init_ctrls('):
                 endline = idx
                 break
             elif line.find('_AttrMixin.__init__(self') != -1:
@@ -281,7 +281,7 @@ class BaseFrameModel(ClassModel):
                         break
                     except SyntaxError, err:
                         if err[0] == 'unexpected EOF while parsing':
-                            attr_val = attr_val + mod.source[srcline]
+                            attr_val = attr_val + mod.source[srcline].strip()
                             srcline = srcline + 1
                         else:
                             raise
@@ -295,6 +295,61 @@ class BaseFrameModel(ClassModel):
                     res[custom] = wxClass
         return res
 
+    def loadResource(self, importName, searchPath):
+        d={}
+        syspath = sys.path[:]
+        sys.path[:] = searchPath
+        try:
+            try:
+                exec 'import %s'%importName in d
+                exec 'reload(%s)'%importName in d
+            finally:
+                sys.path[:] = syspath
+            imageMod = eval(importName, d)
+            del d['__builtins__']
+            rootModName, rootMod = d.items()[0]
+        finally:
+            try: del sys.modules[importName]
+            except KeyError: pass
+            del d
+
+        return imageMod, rootModName, rootMod
+
+    def assureResourceLoaded(self, importName, resources, searchPath=None,
+                             specialAttrs=None):
+        if searchPath is None:
+            searchPath = self.buildResourceSearchList()
+
+        try:
+            f, fn, desc = Utils.find_dotted_module(importName, searchPath)
+        except ImportError:
+            self.editor.setStatus('Could not find %s'%importName, 'Error')
+            return false
+        f.close()
+        
+        import Controllers
+        Model, main = Controllers.identifyFile(fn)
+        for ResourceClass in Controllers.resourceClasses:
+            if issubclass(Model, ResourceClass):
+                try:
+                    imageMod, rootName, rootMod = self.loadResource(importName, 
+                                                                    searchPath)
+                    resources[importName] = imageMod
+                    specialAttrs[rootName] = rootMod
+                except ImportError:
+                    self.editor.setStatus('Could not load %s'%importName, 'Error')
+                    return false
+                return true
+
+        self.editor.setStatus('%s is not a valid Resource Module'%importName, 'Error')
+        return false
+    
+    def readResources(self, mod, cls, specialAttrs):
+        resources = {}
+        searchPath = self.buildResourceSearchList()
+        for impName in mod.imports.keys():
+            self.assureResourceLoaded(impName, resources, searchPath, specialAttrs)
+        return resources
 
     def readComponents(self):
         """ Setup object collection dict by parsing all designer controlled methods """
@@ -306,6 +361,9 @@ class BaseFrameModel(ClassModel):
 
             self.specialAttrs = self.readSpecialAttrs(module, main)
             self.customClasses = self.readCustomClasses(module, main)
+            self.resources = self.readResources(module, main, 
+                  specialAttrs=self.specialAttrs)
+            #self.specialAttrs.update(self.resources)
 
             for oc in self.identifyCollectionMethods():
                 codeSpan = main.methods[oc]
@@ -315,7 +373,8 @@ class BaseFrameModel(ClassModel):
 
                 # XXX Hack: This should not be necessary !!
                 for prop in self.objectCollections[oc].properties[:]:
-                    if prop.asText() == 'self._init_utils()':
+                    if prop.asText() in ('self.%s()'%sourceconst.init_utils, 
+                                         'self.%s()'%sourceconst.init_sizers):
                         self.objectCollections[oc].properties.remove(prop)
 
             # Set the model's constructor
@@ -410,6 +469,13 @@ class BaseFrameModel(ClassModel):
         """ Return template of source code that will run this module type as
         a stand-alone file """
         return sourceconst.simpleAppFrameRunSrc
+
+    def buildResourceSearchList(self):
+        searchPath = [os.path.abspath(os.path.dirname(self.localFilename()))]
+        if self.app:
+            searchPath.append(os.path.abspath(os.path.dirname(self.app.localFilename())))
+        return searchPath
+
 
 class FrameModel(BaseFrameModel):
     modelIdentifier = 'Frame'
