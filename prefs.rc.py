@@ -270,7 +270,7 @@ STCIndent = 4
 # Margin width used for line numbering
 STCLineNumMarginWidth = 28
 # Margin width used by symbols such as breakpoints and line pointers
-STCSymbolMarginWidth = 13
+STCSymbolMarginWidth = 15
 # Margin width used for line folding, set to 0 to 'disable' folding
 STCFoldingMarginWidth = 13
 # Turns buffered drawing on or off. Buffered drawing draws each line into a bitmap
@@ -331,9 +331,10 @@ from wxPython.stc import wxSTC_MARK_CIRCLE, wxSTC_MARK_ROUNDRECT, \
       wxSTC_MARK_ARROW, wxSTC_MARK_SMALLRECT, wxSTC_MARK_SHORTARROW, \
       wxSTC_MARK_EMPTY, wxSTC_MARK_ARROWDOWN, wxSTC_MARK_MINUS, wxSTC_MARK_PLUS
 
-STCBreakpointMarker = wxSTC_MARK_CIRCLE, 'BLACK', 'RED'
 STCLinePointer = wxSTC_MARK_SHORTARROW, 'BLACK', 'BLUE'
+STCBreakpointMarker = wxSTC_MARK_CIRCLE, 'BLACK', 'RED'
 STCTmpBreakpointMarker = wxSTC_MARK_CIRCLE, 'BLACK', 'BLUE'
+STCDisabledBreakpointMarker = wxSTC_MARK_CIRCLE, 'BLACK', wxColour(0xCC, 0xCC, 0xCC)
 STCMarkPlaceMarker = wxSTC_MARK_SHORTARROW, 'BLACK', 'YELLOW'
 
 STCDiffAddedMarker = wxSTC_MARK_PLUS, 'BLACK', 'WHITE'
