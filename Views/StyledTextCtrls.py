@@ -718,6 +718,33 @@ class LanguageSTCMix:
         """ Override to set values directly """
         return STCStyleEditor.initFromConfig(config, language)
 
+ 
+    keymap={'euro': {226: chr(124), 69: chr(128), 81: chr(64), 77: chr(181), 
+                     48: chr(125), 337: chr(126), 50: chr(178), 51: chr(179), 
+                     55: chr(123), 56: chr(91), 57: chr(93), 219: chr(92),
+                    },
+            'swiss-german': {192: chr(93), 226: chr(92), 50: chr(64), 
+                             51: chr(35), 55: chr(124), 186: chr(91), 
+                             219: chr(96), 220: chr(123), 221: chr(126), 
+                             223: chr(125),
+                            },
+            'italian': {192: chr(64), 337: chr(93), 186: chr(91), 219: chr(123), 
+                        221: chr(125), 222: chr(35),
+                       }, 
+            'france': {226: chr(54), 48: chr(64), 337: chr(125), 50: chr(126), 
+                       51: chr(35), 52: chr(123), 53: chr(91), 54: chr(124), 
+                       55: chr(96), 56: chr(92), 219: chr(93),
+                      }, 
+           }     
+    def handleSpecialEuropeanKeys(self, event, countryKeymap='euro'):   
+        key = event.KeyCode()   
+        keymap = self.keymap[countryKeymap]   
+        if event.AltDown() and event.ControlDown() and keymap.has_key(key):   
+            currPos = self.GetCurrentPos()   
+            self.InsertText(currPos, keymap[key])   
+            self.SetCurrentPos(self.GetCurrentPos()+1)   
+            self.SetSelectionStart(self.GetCurrentPos()) 
+
 
 stcConfigPath = os.path.join(Preferences.rcPath, 'stc-styles.rc.cfg')
 
@@ -780,7 +807,8 @@ class PythonStyledTextCtrlMix(LanguageSTCMix):
         if stripprevline:
             indent = prevline[:prevline.find(stripprevline)]
         else:
-            indent = prevline.strip('\r\n')
+            # python 2.2.1 does not support the strip parameter.
+            indent = string.strip(prevline, '\r\n')
 
         if self.GetUseTabs():
             indtBlock = '\t'
