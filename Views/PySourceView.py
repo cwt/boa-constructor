@@ -6,7 +6,7 @@
 #
 # Created:     2000/04/26
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999 - 2001
+# Copyright:   (c) 1999 - 2001 Riaan Booysen
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 import os, string, bdb, sys, types
@@ -18,7 +18,7 @@ from wxPython.stc import *
 
 import ProfileView, Search, Help, Preferences, ShellEditor, Utils
 
-from SourceViews import EditorStyledTextCtrl, indentLevel
+from SourceViews import EditorStyledTextCtrl
 from StyledTextCtrls import PythonStyledTextCtrlMix, BrowseStyledTextCtrlMix,\
      FoldingStyledTextCtrlMix, AutoCompleteCodeHelpSTCMix, CallTipCodeHelpSTCMix,\
      idWord, object_delim
@@ -27,10 +27,9 @@ import methodparse
 import wxNamespace
 from Debugger.Breakpoint import bplist
 
-brkPtMrk = 1
-stepPosMrk = 2
-tmpBrkPtMrk = 3
-markPlaceMrk = 4
+brkPtMrk, stepPosMrk, tmpBrkPtMrk, markPlaceMrk = range(1, 5)
+brwsIndc, synErrIndc = range (0, 2)
+lineNoMrg, symbolMrg, foldMrg = range (0, 3)
 
 wxEVT_FIX_PASTE = wxNewId()
 
@@ -59,31 +58,31 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
               ('Dedent', self.OnDedent, '-', keyDefs['Dedent']),
               ('-', None, '-', ()),
               ('Run to cursor', self.OnRunToCursor, self.runCrsBmp, ()),
-              ('Toggle breakpoint', self.OnSetBreakPoint, self.breakBmp,
-               keyDefs['ToggleBrk']),
+              ('Toggle breakpoint', self.OnSetBreakPoint, self.breakBmp, keyDefs['ToggleBrk']),
               ('Load breakpoints', self.OnLoadBreakPoints, '-', ()),
               ('Save breakpoints', self.OnSaveBreakPoints, '-', ()),
               ('-', None, '', ()),
-              ('+View whitespace', self.OnViewWhitespace, '-', ()),
-              ('+View EOL characters', self.OnViewEOL, '-', ()),
-              ('-', None, '-', ()),
+##              ('+View whitespace', self.OnViewWhitespace, '-', ()),
+##              ('+View EOL characters', self.OnViewEOL, '-', ()),
+##              ('-', None, '-', ()),
               ('Add module info', self.OnAddModuleInfo, self.modInfoBmp, ()),
-              ('Add comment line', self.OnAddCommentLine, '-',
-               keyDefs['DashLine']),
+              ('Add comment line', self.OnAddCommentLine, '-', keyDefs['DashLine']),
               ('Add simple app', self.OnAddSimpleApp, '-', ()),
               ('Code transformation', self.OnAddClassAtCursor, '-', keyDefs['CodeXform']),
               ('Code completion', self.OnCompleteCode, '-', keyDefs['CodeComplete']),
               ('Call tips', self.OnParamTips, '-', keyDefs['CallTips']),
               ('-', None, '-', ()),
+              ('Translate selection', self.OnTranslate, '-', ()),
               ('Context help', self.OnContextHelp, '-', keyDefs['ContextHelp']))
 
         wxID_PYTHONSOURCEVIEW = wxNewId()
 
         EditorStyledTextCtrl.__init__(self, parent, wxID_PYTHONSOURCEVIEW,
           model, a1, -1)
-        PythonStyledTextCtrlMix.__init__(self, wxID_PYTHONSOURCEVIEW, 0)
-        BrowseStyledTextCtrlMix.__init__(self)
-        FoldingStyledTextCtrlMix.__init__(self, wxID_PYTHONSOURCEVIEW, 2)
+        PythonStyledTextCtrlMix.__init__(self, wxID_PYTHONSOURCEVIEW, 
+              (lineNoMrg, Preferences.STCLineNumMarginWidth))
+        BrowseStyledTextCtrlMix.__init__(self, brwsIndc)
+        FoldingStyledTextCtrlMix.__init__(self, wxID_PYTHONSOURCEVIEW, foldMrg)
         CallTipCodeHelpSTCMix.__init__(self)
 
         # Initialize breakpoints from file and running debugger
@@ -94,7 +93,7 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
         self.tryLoadBreakpoints()
 
         if Preferences.useDebugger == 'old':
-            filename = string.lower(self.model.filename)
+            filename = os.path.normcase(self.model.filename)
             for file, lineno in bdb.Breakpoint.bplist.keys():
                 if file == filename:
                     for bp in bdb.Breakpoint.bplist[(file, lineno)]:
@@ -108,20 +107,23 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
         # last line # that was edited
         self.damagedLine = -1
 
-        self.SetMarginType(1, wxSTC_MARGIN_SYMBOL)
-        self.SetMarginWidth(1, 12)
-        self.SetMarginSensitive(1, true)
-        self.MarkerDefine(brkPtMrk, wxSTC_MARK_CIRCLE, 'BLACK', 'RED')
-        self.MarkerDefine(stepPosMrk, wxSTC_MARK_SHORTARROW, 'NAVY', 'BLUE')
-        self.MarkerDefine(tmpBrkPtMrk, wxSTC_MARK_CIRCLE, 'BLACK', 'BLUE')
-        self.CallTipSetBackground(wxColour(255, 255, 232))
-        self.AutoCompSetIgnoreCase(true)
+        self.SetMarginType(symbolMrg, wxSTC_MARGIN_SYMBOL)
+        self.SetMarginWidth(symbolMrg, Preferences.STCSymbolMarginWidth)
+        self.SetMarginSensitive(symbolMrg, true)
+        markIdnt, markBorder, markCenter = Preferences.STCBreakpointMarker
+        self.MarkerDefine(brkPtMrk, markIdnt, markBorder, markCenter)
+        markIdnt, markBorder, markCenter = Preferences.STCLinePointer
+        self.MarkerDefine(stepPosMrk, markIdnt, markBorder, markCenter)
+        markIdnt, markBorder, markCenter = Preferences.STCTmpBreakpointMarker
+        self.MarkerDefine(tmpBrkPtMrk, markIdnt, markBorder, markCenter)
 
         # Error indicator
-        self.IndicatorSetStyle(1, wxSTC_INDIC_SQUIGGLE)
-        self.IndicatorSetForeground(1, wxRED)
+        self.IndicatorSetStyle(synErrIndc, wxSTC_INDIC_SQUIGGLE)
+        self.IndicatorSetForeground(synErrIndc, Preferences.STCSyntaxErrorColour)
 
-        self.SetBufferedDraw(true)
+        self.CallTipSetBackground(Preferences.STCCallTipBackColour)
+        self.AutoCompSetIgnoreCase(true)
+        self.SetIndentationGuides(Preferences.STCIndentationGuides)
 
         EVT_STC_CHARADDED(self, wxID_PYTHONSOURCEVIEW, self.OnAddChar)
 
@@ -134,22 +136,23 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
         EditorStyledTextCtrl.refreshCtrl(self)
         self.setInitialBreakpoints()
 
-    def processComment(self, textLst):
+    def processComment(self, textLst, idntBlock):
         return map(lambda l: '##%s'%l, textLst)
 
-    def processUncomment(self, textLst):
+    def processUncomment(self, textLst, idntBlock):
         for idx in range(len(textLst)):
             if len(textLst[idx]) >= 2 and textLst[idx][:2] == '##':
                 textLst[idx] = textLst[idx][2:]
         return textLst
 
-    def processIndent(self, textLst):
-        return map(lambda l: '%s%s'%(indentLevel*' ', l), textLst)
+    def processIndent(self, textLst, idntBlock):
+        return map(lambda l, idntBlock=idntBlock: '%s%s'%(idntBlock, l), textLst)
 
-    def processDedent(self, textLst):
+    def processDedent(self, textLst, idntBlock):
+        indentLevel=len(idntBlock)
         for idx in range(len(textLst)):
             if len(textLst[idx]) >= indentLevel and \
-              textLst[idx][:indentLevel] == indentLevel*' ':
+              textLst[idx][:indentLevel] == idntBlock:
                 textLst[idx] = textLst[idx][indentLevel:]
         return textLst
 
@@ -200,7 +203,7 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
             if len(objPth) == 1:
                 if module.functions.has_key(objPth[0]):
                     return self.prepareModSigTip(objPth[0], 
-                        cls.functions[objPth[0]].signature)
+                        module.functions[objPth[0]].signature)
                 else:
                     return ''
         return ''
@@ -335,7 +338,7 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
         else:
             return names
 
-#-------Browsing--------------------------------------------------------
+#-------Browsing----------------------------------------------------------------
     def StyleVeto(self, style):
         return style != 11
 
@@ -374,10 +377,14 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
         elif module.imports.has_key(word):
             import imp
             self.doClearBrwsLn()
+            try: filename = self.model.assertLocalFile()
+            except AssertionError: srchpath = []
+            else: srchpath = [os.path.dirname(filename)]
+            if self.model.app:
+                try: appfilename = self.model.app.assertLocalFile()
+                except AssertionError: pass
+                else: srchpath.insert(0, os.path.dirname(appfilename))
             try:
-                srchpath = [os.path.dirname(self.model.filename)]
-                if self.model.app:
-                    srchpath.insert(0, os.path.dirname(self.model.app.filename))
                 file, path, (ext, mode, tpe) = imp.find_module(word, srchpath)
             except ImportError:
                 try:
@@ -446,10 +453,12 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
                 self.doClearBrwsLn()
                 obj = globals()[word]
                 if hasattr(obj, '__init__'):
-                    mod = self.model.editor.openOrGotoModule(obj.__init__.im_func.func_code.co_filename)
+                    path = os.path.abspath(obj.__init__.im_func.func_code.co_filename)
+                    mod, cntrl = self.model.editor.openOrGotoModule(path)
                     mod.views['Source'].GotoLine(obj.__init__.im_func.func_code.co_firstlineno -1)
                 elif hasattr(obj, 'func_code'):
-                    mod = self.model.editor.openOrGotoModule(obj.func_code.co_filename)
+                    path = os.path.abspath(obj.func_code.co_filename)
+                    mod, cntrl = self.model.editor.openOrGotoModule(path)
                     mod.views['Source'].GotoLine(obj.func_code.co_firstlineno -1)
                 return true
 
@@ -466,16 +475,16 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
             if debugger:
                 word, line, lnNo, wordStart = self.getStyledWordElems(
                     start, length)
-                self.IndicatorSetForeground(0, wxRED)
+                self.IndicatorSetForeground(0, Preferences.STCDebugBrowseColour)
                 debugger.requestVarValue(word)
             else:
-                self.IndicatorSetForeground(0, wxBLUE)
+                self.IndicatorSetForeground(0, Preferences.STCCodeBrowseColour)
                     
             return start, length
         elif Preferences.useDebugger == 'old':
             if debugger and debugger.isDebugBrowsing():
                 word, line, lnNo, wordStart = self.getStyledWordElems(start, length)
-                self.IndicatorSetForeground(0, wxRED)
+                self.IndicatorSetForeground(0, Preferences.STCDebugBrowseColour)
                 try:
                     val = debugger.getVarValue(word)
                 except Exception, message:
@@ -483,7 +492,7 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
                 if val:
                     self.model.editor.statusBar.setHint(val)
             else:
-                self.IndicatorSetForeground(0, wxBLUE)
+                self.IndicatorSetForeground(0, Preferences.STCCodeBrowseColour)
     
             return start, length
 
@@ -512,7 +521,7 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
             debugger = self.model.editor.debugger
             if debugger:
                 # Try to apply to the running debugger.
-                filename = self.model.filename #string.lower(self.model.filename)
+                filename = self.model.assertLocalFile() 
                 debugger.deleteBreakpoints(filename, lineNo)
             self.MarkerDelete(lineNo - 1, brkPtMrk)
             self.MarkerDelete(lineNo - 1, tmpBrkPtMrk)
@@ -520,10 +529,9 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
             if not self.breaks.has_key(lineNo):
                 return
             bp = self.breaks[lineNo]
-            if bp.temporary:
-                self.MarkerDelete(lineNo - 1, tmpBrkPtMrk)
-            else:
-                self.MarkerDelete(lineNo - 1, brkPtMrk)
+            #if bp.temporary:
+            self.MarkerDelete(lineNo - 1, tmpBrkPtMrk)
+            self.MarkerDelete(lineNo - 1, brkPtMrk)
     
             if self.model.editor.debugger:
                 bp = self.breaks[lineNo]
@@ -536,22 +544,24 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
             del self.breaks[lineNo]
             
     def addBreakPoint(self, lineNo, temp=0, notify_debugger=1):
+        filename = os.path.normcase(self.model.assertLocalFile())
+
         if Preferences.useDebugger == 'new':
             self.breaks.addBreakpoint(lineNo, temp)
             if notify_debugger:
                 debugger = self.model.editor.debugger
                 if debugger:
                     # Try to apply to the running debugger.
-                    filename = self.model.filename
+                    ##filename = self.model.filename
                     debugger.setBreakpoint(filename, lineNo, temp)
             if temp: mrk = tmpBrkPtMrk
             else: mrk = brkPtMrk
             self.MarkerAdd(lineNo - 1, mrk)
         elif Preferences.useDebugger == 'old':
-            if wxPlatform == '__WXMSW__':
-                filename = string.lower(self.model.filename)
-            else:
-                filename = self.model.filename
+##            if wxPlatform == '__WXMSW__':
+##                filename = string.lower(self.model.filename)
+##            else:
+##                filename = self.model.filename
     
             if self.model.editor.debugger:
                 bp = self.model.editor.debugger.set_breakpoint_here(\
@@ -670,7 +680,7 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
 
 #---Syntax checking-------------------------------------------------------------
 
-    def checkChangesAndSyntax(self, lineNo = None):
+    def checkChangesAndSyntax(self, lineNo=None):
         """ Called before moving away from a line """
         if not Preferences.checkSyntax:
             return
@@ -723,7 +733,8 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
 
     syntax_errors = ('invalid syntax', 'invalid token')
 
-    def checkSyntax(self, prevlines, lineNo, getPrevLine, compprefix = '', indent = '', contLinesOffset = 0, lineStartStyle = 0, lineEndStyle = 0):
+    def checkSyntax(self, prevlines, lineNo, getPrevLine, compprefix='', 
+          indent='', contLinesOffset=0, lineStartStyle=0, lineEndStyle=0):
         # XXX Should also check syntax before saving.
         # XXX Multiline without brackets not caught
         # XXX Should check indent errors (multilines make this tricky)
@@ -870,7 +881,7 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
 
 #-------Events------------------------------------------------------------------
     def OnMarginClick(self, event):
-        if event.GetMargin() == 1:
+        if event.GetMargin() == symbolMrg:
             lineClicked = self.LineFromPosition(event.GetPosition()) + 1
             if Preferences.useDebugger == 'old':
                 if self.breaks.has_key(lineClicked):
@@ -1009,12 +1020,16 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
         if key in (WXK_UP, WXK_DOWN):
             self.checkChangesAndSyntax()
         # Tabbed indent
-        elif key == 9:
-            self.AddText(indentLevel*' ')
-            self.damagedLine = self.GetCurrentLine()
-            if not self.AutoCompActive(): return
+##        elif key == 9:
+##            self.AddText(indentLevel*' ')
+##            self.damagedLine = self.GetCurrentLine()
+##            if not self.AutoCompActive(): return
         # Smart delete
         elif key == 8:
+            if self.GetUseTabs():
+                indtSze = 1
+            else:
+                indtSze = self.GetTabWidth()
             line = self.GetCurLine()
             if len(line): line = line[0]
             else: line = ''
@@ -1027,7 +1042,7 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
                 ls = self.PositionFromLine(ln)
                 st = pos - ls
                 if not string.strip(line[:st]):
-                    self.SetSelection(ls + st/4*4, pos+1)
+                    self.SetSelection(ls + st/indtSze*indtSze, pos+1)
                     self.ReplaceSelection('')
                     return
         #event.Skip()
@@ -1041,6 +1056,7 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
         self.InsertText(ls, '#-------------------------------------------'
                                     '------------------------------------'+'\n')
         self.SetCurrentPos(ls+4)
+        self.SetAnchor(ls+4)
 
     def OnViewWhitespace(self, event):
         miid = self.menu.FindItem('View whitespace')
@@ -1140,6 +1156,9 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
             if len(lines) > 1 and len(lines) == linesAdded + 1:
                 wxPostEvent(self, wxFixPasteEvent(self, string.join(lines, '\n')))
 
+        # XXX The rest is too buggy
+        return
+
         if self._blockUpdate: return
 
         # repair breakpoints
@@ -1179,4 +1198,11 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
         self.Undo()
         self.AddText(event.newtext)
 
- 
+    def OnTranslate(self, event):
+        import TranslateDlg
+        dlg = TranslateDlg.create(None, self.GetSelectedText())
+        try:
+            if dlg.ShowModal() == wxOK and len(dlg.translated) > 1:
+                self.ReplaceSelection(dlg.translated[1])
+        finally:
+            dlg.Destroy()
