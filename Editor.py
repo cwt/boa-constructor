@@ -1413,7 +1413,8 @@ class ModulePage:
         self.viewMenu.Destroy()
 
         for view in self.model.views.values():
-            view.close()
+            if view:
+                view.close()
         self.notebook.DeleteAllPages()
 
         self.model.destroy()
