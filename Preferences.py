@@ -11,13 +11,15 @@
 #----------------------------------------------------------------------
 import os, sys
 from os import path
+print 'importing wxPython...' 
 from wxPython import wx 
 #import wxSystemSettings_GetSystemMetric, wxSYS_SCREEN_X, wxSYS_SCREEN_Y, wxTB_FLAT
 #from wxPython.wx import wxPlatform, wxDefaultSize, wxDefaultPosition, wxSize, wxColour
-from ImageStore import ImageStore
+from ImageStore import ImageStore, ZippedImageStore
 
+#-Window sizes------------------------------------------------------------------
 wx_screenWidthPerc = 1.0
-wx_screenHeightPerc = 0.89
+wx_screenHeightPerc = 0.93
 w32_screenHeightOffset = 20
 try:
     import win32api, win32con
@@ -43,15 +45,51 @@ elif wx.wxPlatform == '__WXGTK__':
 
 bottomHeight = screenHeight - paletteHeight
 
+#-Miscellaneous-----------------------------------------------------------------
+
+# Should toolbars have flat buttons
 flatTools = wx.wxTB_FLAT # 0
 
+# Alternating background colours used in ListCtrls
 pastels = 1
 pastelMedium = wx.wxColour(235, 246, 255)
 pastelLight = wx.wxColour(255, 255, 240)
 
+# Replace the standard file dialog with Boa's own dialog
 useBoaFileDlg = 1
 
+# Colour used to display uninitialised window space.
+# A control must be placed in this space before valid code can be generated
+undefinedWindowCol = wx.wxColour(128, 0, 0)
+
+# Info that will be filled into the comment block. (Edit->Add module info)
+staticInfoPrefs = { 'Purpose':   '',
+                    'Author':    'Riaan Booysen',
+                    'Copyright': '(c) 1999, 2000 Riaan Booysen',
+                    'Licence':   'GPL'}
+
+# Should modules be added to the application if it is the active Model when
+# a module is created from the palette
+autoAddToApplication = 1
+
+# Minimize the IDE while running applications
+minimizeOnRun = 1
+
+# Load images from image archive or files
+useImageArchive = 0
+
+# Draw grid in designer
+drawDesignerGrid = 1
+# Grid draw method: 'lines', 'dots', 'bitmap', 'grid'
+drawGridMethod = 'grid'
+
+#-Inspector---------------------------------------------------------------------
+
+# Display properties for which source will be generated in Bold
+showModifiedProps = 1
+# Inspector row height
 oiLineHeight = 18
+# Default Inspector Names (1st coloumn) width
 oiNamesWidth = 100
 inspNotebookFlags = 0 #32
 ##inspPageNames = {'Constr': 'Constructor',
@@ -65,25 +103,19 @@ inspPageNames = {'Constr': 'Constr',
                  'Evts': 'Evts',
                  'Objs': 'Objs'}
 
-staticInfoPrefs = { 'Purpose':   '',
-                    'Author':    'Riaan Booysen',
-                    'Copyright': '(c) 1999, 2000 Riaan Booysen',
-                    'Licence':   'GPL'}
+#---Other-----------------------------------------------------------------------
 
 pyPath = path.abspath(path.join(os.getcwd(), sys.path[0]))
-
-IS = ImageStore(pyPath)
+if useImageArchive: 
+    IS = ZippedImageStore(pyPath, 'Images.archive')
+else: 
+    IS = ImageStore(pyPath)
 
 def toPyPath(filename):
     return path.join(pyPath, filename)
 
 def toWxDocsPath(filename):
     return path.join(wxWinDocsPath, filename)
-
-
-def reassignFileDlg():
-    import FileDlg
-    wx.wxFileDialog = FileDlg.wxBoaFileDialog
     
 if useBoaFileDlg:
     import FileDlg
