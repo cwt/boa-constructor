@@ -19,9 +19,31 @@ from wxPython.wx import *
 import Preferences, Utils
 from Preferences import IS, wxFileDialog
 from types import StringType
-import EditorModels
+import EditorHelper
 
-import ExplorerNodes, FileExplorer, ZopeExplorer, CVSExplorer, SSHExplorer, ZipExplorer, FTPExplorer
+import ExplorerNodes, FileExplorer, ZopeExplorer, CVSExplorer, SSHExplorer
+import ZipExplorer, FTPExplorer, PrefsExplorer
+
+try:
+    import DAVExplorer
+except ImportError:
+    DAVExplorer = None
+
+
+# XXX The Tree should actually look like this:
+# XXX
+# XXX Boa
+# XXX   Bookmarks
+# XXX   Transport/DataSources
+# XXX     FileSystem
+# XXX     FTP
+# XXX     DAV
+# XXX     SSH
+# XXX     Zope
+# XXX   sys.path
+# XXX   Preferences
+# XXX
+
 
 (wxID_PFE, wxID_PFT, wxID_PFL) = map(lambda x: wxNewId(), range(3))
 
@@ -37,16 +59,20 @@ class PackageFolderTree(wxTreeCtrl):
         self.fsclip = FileExplorer.FileSysExpClipboard(self.globClip)
         self.sshClip = SSHExplorer.SSHExpClipboard(self.globClip)
         self.ftpClip = FTPExplorer.FTPExpClipboard(self.globClip)
+        if DAVExplorer:
+            self.davClip = DAVExplorer.DAVExpClipboard(self.globClip)
 
         conf = Utils.createAndReadConfig('Explorer')
         self.boaRoot = ExplorerNodes.RootNode('Boa Constructor')
-        rootItem = self.AddRoot('', EditorModels.imgBoaLogo, -1,
+        rootItem = self.AddRoot('', EditorHelper.imgBoaLogo, -1,
               wxTreeItemData(self.boaRoot))
-        bookCatNode = ExplorerNodes.BookmarksCatNode(self.fsclip, conf, None)
+        bookmarkCatNode = ExplorerNodes.BookmarksCatNode(self.fsclip, conf, None)
 
-        self.boaRoot.entries = [FileExplorer.FileSysCatNode(self.fsclip, conf,
-              None, bookCatNode), bookCatNode,
-              ExplorerNodes.SysPathNode(self.fsclip, None, bookCatNode)]
+        self.boaRoot.entries = [
+            FileExplorer.FileSysCatNode(self.fsclip, conf, None, bookmarkCatNode),
+            bookmarkCatNode,
+            ExplorerNodes.SysPathNode(self.fsclip, None, bookmarkCatNode),
+            PrefsExplorer.BoaPrefGroupNode(self.boaRoot)]
         if conf.has_option('explorer', 'zope'):
             self.boaRoot.entries.append(ZopeExplorer.ZopeCatNode(conf, None,
             self.globClip))
@@ -55,6 +81,9 @@ class PackageFolderTree(wxTreeCtrl):
             conf, None))
         if conf.has_option('explorer', 'ftp'):
             self.boaRoot.entries.append(FTPExplorer.FTPCatNode(self.ftpClip,
+            conf, None))
+        if DAVExplorer and conf.has_option('explorer', 'dav'):
+            self.boaRoot.entries.append(DAVExplorer.DAVCatNode(self.davClip,
             conf, None))
 
         self.SetItemHasChildren(rootItem, true)
@@ -122,6 +151,7 @@ class PackageFolderTree(wxTreeCtrl):
 ##            data.closeList()
 ##            self.DeleteChildren(item)
 
+
 class PackageFolderList(wxListCtrl):
     def __init__(self, parent, filepath, pos = wxDefaultPosition, size = wxDefaultSize, updateNotify = None, style = 0):
         wxListCtrl.__init__(self, parent, wxID_PFL, pos = pos, size = size, style = wxLC_LIST | wxLC_EDIT_LABELS | style)
@@ -139,21 +169,27 @@ class PackageFolderList(wxListCtrl):
         self.items = None
         self.currImages = None
 
+    def destroy(self):
+        if self.node:
+            self.node.destroy()
+
     def selectItemNamed(self, name):
         for idx in range(self.GetItemCount()):
             item = self.GetItem(idx)
             if item.GetText() == name:
                 item.SetState(wxLIST_STATE_FOCUSED | wxLIST_STATE_SELECTED)
                 self.SetItem(item)
+                return item
 
     def getSelection(self):
+        # XXX Fix, this can return IndexErrors !!!
         if self.selected >= self.idxOffset:
             return self.items[self.selected-self.idxOffset]
         else:
             return None
 
     def getMultiSelection(self):
-        """ Returns list of indexes that map back to node list"""
+        """ Returns list of indexes that map back to node list """
         res = []
         for idx in range(self.idxOffset, self.GetItemCount()):
             if self.GetItemState(idx, wxLIST_STATE_SELECTED):
@@ -167,7 +203,8 @@ class PackageFolderList(wxListCtrl):
         """ Display ExplorerNode items """
         self.selected = -1
 
-#        if explNode: explNode.destroy()
+        if self.node:
+            self.node.destroy()
 
         self.node = explNode
         self.DeleteAllItems()
@@ -227,10 +264,15 @@ class ExplorerSplitter(wxSplitterWindow):
               ZipExplorer.ZipItemNode.protocol: \
                 ZipExplorer.ZipController(editor, self.list),
               FTPExplorer.FTPItemNode.protocol: \
-                FTPExplorer.FTPController(editor, self.list),#, editor.inspector),
+                FTPExplorer.FTPController(editor, self.list),
               ExplorerNodes.CategoryNode.protocol: \
                 ExplorerNodes.CategoryController(editor, self.list, editor.inspector),
+              ZopeExplorer.ZopeCatNode.protocol: \
+                ZopeExplorer.ZopeCatController(editor, self.list, editor.inspector),
               }
+        if DAVExplorer:
+            self.controllers[DAVExplorer.DAVItemNode.protocol] = \
+                DAVExplorer.DAVController(editor, self.list, editor.inspector)
 
         self.tree = PackageFolderTree(self, modimages, root)
         EVT_TREE_SEL_CHANGING(self, wxID_PFT, self.OnSelecting)
@@ -238,6 +280,8 @@ class ExplorerSplitter(wxSplitterWindow):
 
         EVT_LIST_BEGIN_LABEL_EDIT(self, wxID_PFL, self.OnBeginLabelEdit)
         EVT_LIST_END_LABEL_EDIT(self, wxID_PFL, self.OnEndLabelEdit)
+
+        EVT_KEY_UP(self.tree, self.OnTreeKeyPressed)
 
         self.SplitVertically(self.tree, self.list, 200)
         self.list.SetFocus()
@@ -266,6 +310,11 @@ class ExplorerSplitter(wxSplitterWindow):
             return None
 
     def destroy(self):
+        self.list.destroy()
+        for contr in self.controllers.values():
+            contr.destroy()
+        del self.controllers
+        del self.list
         del self.editor
 
     def selectTreeItem(self, item):
@@ -327,6 +376,8 @@ class ExplorerSplitter(wxSplitterWindow):
         key = event.KeyCode()
         if key == 13:
             self.OnOpen(event)
+        elif key == 9:
+            self.tree.SetFocus()
         else:
             event.Skip()
 
@@ -347,10 +398,12 @@ class ExplorerSplitter(wxSplitterWindow):
 
     def OnBeginLabelEdit(self, event):
         self.oldLabelVal = event.GetText()
+        if self.list.node:
+            self.list.node.notifyBeginLabelEdit(event)
 
     def OnEndLabelEdit(self, event):
         newText = event.GetText()
-        if newText != self.oldLabelVal:# and isinstance(self.list.node, ZopeItemNode):
+        if newText != self.oldLabelVal:
             event.Skip()
             self.list.node.renameItem(self.oldLabelVal, newText)
             self.list.refreshCurrent()
@@ -374,3 +427,10 @@ class ExplorerSplitter(wxSplitterWindow):
         self.list.OnItemDeselect(event)
         if self.list.node:
             self.editor.statusBar.setHint(self.list.node.getDescription())
+
+    def OnTreeKeyPressed(self, event):
+        key = event.KeyCode()
+        if key == 9:
+            self.list.SetFocus()
+        else:
+            event.Skip()
