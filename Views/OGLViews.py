@@ -165,6 +165,20 @@ class PerstDividedShape(wxDividedShape, PerstShape):
 
         return (self.GetX(), self.GetY())
 
+    def FlushText(self):
+        """This method retrieves the text from the shape
+        regions and draws it. There seems to be a problem that
+        the text is not normally drawn. """
+        canvas = self.GetCanvas()
+        dc = wxClientDC(canvas)
+        canvas.PrepareDC(dc)
+        count = 0
+        for region in self.GetRegions():
+            region.SetFormatMode(4)
+            self.FormatText(dc, region.GetText(), count)
+            count = count + 1
+
+
 class PersistentOGLView(PersistentShapeCanvas, EditorViews.EditorView):
     viewName = 'OGL'
     loadBmp = 'Images/Editor/Open.bmp'
@@ -261,8 +275,12 @@ class PersistentOGLView(PersistentShapeCanvas, EditorViews.EditorView):
         dc = wxClientDC(self)
         self.diagram.RecentreAll(dc)
 
-boldFont = wxFont(7, wxDEFAULT, wxNORMAL, wxBOLD, false)   
-font = wxFont(7, wxDEFAULT, wxNORMAL, wxNORMAL, false)
+if wxPlatform == '__WXGTK__':
+    boldFont = wxFont(12, wxDEFAULT, wxNORMAL, wxBOLD, false)   
+    font = wxFont(10, wxDEFAULT, wxNORMAL, wxNORMAL, false)
+else:
+    boldFont = wxFont(7, wxDEFAULT, wxNORMAL, wxBOLD, false)   
+    font = wxFont(7, wxDEFAULT, wxNORMAL, wxNORMAL, false)
 
 class UMLView(PersistentOGLView):
     ext = '.umllay'
@@ -296,6 +314,8 @@ class UMLView(PersistentOGLView):
         
         idx = self.addShape(shape, pos[0], pos[1], wxBLACK_PEN, 
           wxLIGHT_GREY_BRUSH, '')
+
+        shape.FlushText()
 
         return self.shapes[idx] 
 
@@ -377,6 +397,7 @@ class ImportsView(PersistentOGLView):
         shape.SetSize(maxWidth + 10, totHeight + 10)
         
         shape.SetRegionSizes()
+        shape.FlushText()
         
         return shape, maxWidth + 10
 
@@ -456,6 +477,7 @@ class AppPackageView(PersistentOGLView):
         shape.SetSize(maxWidth + 10, totHeight + 10)
         
         shape.SetRegionSizes()
+        shape.FlushText()
         
         return shape, maxWidth + 10
 
