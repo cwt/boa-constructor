@@ -4,9 +4,12 @@ from StringIO import StringIO
 from wxPython.wx import *
 
 class ProcessRunnerMix:
-    def __init__(self, input):
-        EVT_IDLE(self, self.OnIdle)
-        EVT_END_PROCESS(self, -1, self.OnProcessEnded)
+    def __init__(self, input, handler=None):
+        if handler is None:
+            handler = self
+        self.handler = handler    
+        EVT_IDLE(handler, self.OnIdle)
+        EVT_END_PROCESS(handler, -1, self.OnProcessEnded)
 
         input.reverse() # so we can pop
         self.input = input
@@ -28,7 +31,7 @@ class ProcessRunnerMix:
         self.responded = false
 
     def execute(self, cmd):
-        self.process = wxProcess(self)
+        self.process = wxProcess(self.handler)
         self.process.Redirect()
 
         self.pid = wxExecute(cmd, wx.wxEXEC_NOHIDE, self.process)
@@ -37,7 +40,8 @@ class ProcessRunnerMix:
         self.errorStream = self.process.GetErrorStream()
         self.outputStream = self.process.GetInputStream()
 
-        self.OnIdle()
+        #self.OnIdle()
+        wxWakeUpIdle()
     
     def setCallbacks(self, output, errors, finished):
         self.outputFunc = output
@@ -48,6 +52,13 @@ class ProcessRunnerMix:
         if self.process is not None:
             self.process.CloseOutput()
             self.process.Detach()
+            self.process = None
+
+    def kill(self):
+        if self.process is not None:
+            self.process.CloseOutput()
+            if wxProcess_Kill(self.pid, wxSIGTERM) != wxKILL_OK:
+                wxProcess_Kill(self.pid, wxSIGKILL)
             self.process = None
 
     def updateStream(self, stream, data):
@@ -92,6 +103,9 @@ class ProcessRunnerMix:
 
         self.finished = true
         
+        # XXX doesn't work ???
+        #self.handler.Disconnect(-1, wxEVT_IDLE)
+        
         if self.finishedFunc:
             wxCallAfter(self.finishedFunc)
 
@@ -100,45 +114,40 @@ class ProcessRunner(wxEvtHandler, ProcessRunnerMix):
         wxEvtHandler.__init__(self)
         ProcessRunnerMix.__init__(self, input)
 
-def wxPopen3(cmd, input, output, errors, finish):
-    p = ProcessRunner(input)
+def wxPopen3(cmd, input, output, errors, finish, handler=None):
+    p = ProcessRunnerMix(input, handler)
     p.setCallbacks(output, errors, finish)
     p.execute(cmd)
     return p
 
 def _test():
     app = wxPySimpleApp()
+    f = wxFrame(None, -1, 'asd')#, style=0)
+    f.Show()
 
     def output(v):
         print 'OUTPUT:', v
     def errors(v):
         print 'ERRORS:', v
     def fin():
-        app.ExitMainLoop()
+        p.Close()
+        f.Close()
         print 'FINISHED'
+        
 
     def spin(p):
         while not p.finished:
             wxYield()
             time.sleep(0.01)
     
-    input = ['ONE two Three fouR\n', 'BIG bad Wolf\n', '\n', '']
-    p = wxPopen3('e:\\python23\\python.exe inouter.py', 
-                 input, output, errors, fin)
-    print p.pid
+    def evt(self, event):
+        input = []
+        p = wxPopen3('''c:\\python23\\python.exe -c "print '*'*5000"''', 
+                 input, output, errors, fin, f)
+        print p.pid
     
-    f = wxFrame(None, -1, 'asd')
-    f.Show()
-
-    wxCallAfter(spin, p)
-
     app.MainLoop()
 
-def _test2():
-    app = wxPySimpleApp()
-    app.MainLoop()
-    
-    
 if __name__ == '__main__':
     _test()
     
