@@ -271,7 +271,6 @@ class AppView(ListCtrlView):
             if mod != self.model:
                 if hasattr(mod, 'app') and mod.app == self.model and \
                   (mod.modified or len(mod.viewsModified)):
-                    print 'saving', mod.filename
                     if len(mod.viewsModified):
                         mod.refreshFromViews()
                     modulePage.saveOrSaveAs()

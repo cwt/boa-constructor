@@ -592,8 +592,7 @@ class ListCtrlView(wxListCtrl, EditorView):
         return index + 1
 
     def addReportColumns(self, columns):
-        for col in range(self._columnCount):
-            self.DeleteColumn(0)
+        self.DeleteAllColumns()
 
         self._columnCount = 0
 
