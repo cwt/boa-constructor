@@ -1,7 +1,7 @@
 #Boa:MiniFrame:ImageViewer
 
 from wxPython.wx import *
-import os, string, tempfile
+import os, tempfile
 
 def create(parent):
     return ImageViewer(parent)
@@ -47,7 +47,7 @@ class ImageViewer(wxMiniFrame):
             fn = filename
 
         self.SetTitle('Image Viewer - %s' %(os.path.basename(fn)))
-        bmp = wxImage(fn, imgs[string.lower(os.path.splitext(fn)[-1])]).ConvertToBitmap()
+        bmp = wxImage(fn, imgs[os.path.splitext(fn)[-1].lower()]).ConvertToBitmap()
         self.sashWindow1.SetClientSize(wxSize(bmp.GetWidth()+self.borderSize*2,
                                               bmp.GetHeight()+self.borderSize*2))
         self.SetClientSize(self.sashWindow1.GetSize())
