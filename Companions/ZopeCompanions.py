@@ -52,8 +52,8 @@ class ZopeConnection:
 
 class ZopeCompanion(Companion, ZopeConnection):
     propMapping = {'string': StrZopePropEdit,
-               'boolean': BoolZopePropEdit,
-               'default': EvalZopePropEdit}
+                   'boolean': BoolZopePropEdit,
+                   'default': EvalZopePropEdit}
     def __init__(self, name, objPath, localPath = ''):
         Companion.__init__(self, name)
         self.objPath = objPath
@@ -78,6 +78,10 @@ class ZopeCompanion(Companion, ZopeConnection):
     def checkTriggers(self, name, oldValue, value):
         pass
     def persistProp(self, name, setterName, value):
+        pass
+    def propIsDefault(self, name, setterName):
+        return 1
+    def propRevertToDefault(self, name, setterName):
         pass
 
     def updateZopeProps(self):
@@ -113,11 +117,12 @@ class ZopeCompanion(Companion, ZopeConnection):
         return eval(res)
 
     def getPropertyType(self, name):
-        tpe = 'string'
         for p in self.propMap:
-            if p['id'] == name: 
-                tpe = p['type']
-                return tpe
+            if p['id'] == name:
+                if name == 'passwd':
+                    return 'passwd' 
+                return p['type']
+        return 'string'
         
     def setZopeProp(self, name, value):
         mime, res = self.callkw(self.objPath, 'manage_changeProperties', {name: value})#'id=name, value=value, type = tpe)
