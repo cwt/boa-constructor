@@ -19,12 +19,12 @@ class wxFrame1(wxFrame):
     def _init_coll_notebook1_Pages(self, parent):
         # generated method, don't edit
 
-        parent.AddPage(bSelect=false, imageId=-1, pPage=self.panel1,
-              strText='Pages0')
-        parent.AddPage(bSelect=false, imageId=-1, pPage=self.panel2,
-              strText='Pages1')
-        parent.AddPage(bSelect=true, imageId=-1, pPage=self.panel3,
-              strText='Pages2')
+        parent.AddPage(select=false, imageId=-1, page=self.panel1,
+              text='Pages0')
+        parent.AddPage(select=false, imageId=-1, page=self.panel2,
+              text='Pages1')
+        parent.AddPage(select=true, imageId=-1, page=self.panel3,
+              text='Pages2')
 
     def _init_utils(self):
         # generated method, don't edit
