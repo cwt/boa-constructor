@@ -41,6 +41,7 @@ class FontDTC(HelperDTC):
         for fnt in fontNameList:
             fontFaceName.append(fnt)
             fontFaceNameNames[fnt] = fnt
+        fontFaceName.sort()
 
         self.options = {'FaceName' : fontFaceName,
                         'Family'   : fontFamily,
@@ -50,6 +51,10 @@ class FontDTC(HelperDTC):
                       'Family'   : fontFamilyNames,
                       'Style'    : fontStyleNames,
                       'Weight'   : fontWeightNames,}
+
+    def hideDesignTime(self):
+        return HelperDTC.hideDesignTime(self) + ['Encoding', 'NativeFontInfo',
+               'NativeFontInfoUserDesc', 'NoAntiAliasing']
 
 class ColourDTC(HelperDTC):
     def __init__(self, name, designer, cmpn, obj, ownerPW):
