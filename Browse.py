@@ -21,6 +21,10 @@ class BrowsePage:
         self.modulePage.focus()
         self.modulePage.model.views[self.view].goto(self.marker)
         self.modulePage.model.views[self.view].focus()
+    
+    def __repr__(self):
+        return 'BrowsePage(%s, %s, %s)' % (`self.modulePage`, `self.view`, 
+               `self.marker`)
         
 class Browser:
     def __init__(self):
@@ -33,6 +37,7 @@ class Browser:
         else:
             self.pages[self.idx:] = [page]
         self.idx = len(self.pages)-1
+#        print 'add idx', self.idx, self.pages
     
     def checkRemoval(self, modPage):
         for page in self.pages[:]:
@@ -50,6 +55,7 @@ class Browser:
         return self.idx < len(self.pages)-1
     
     def forward(self):
+#        print 'forward', self.idx, self.canForward()
         if self.canForward():
             self.step(1)
             
@@ -57,6 +63,7 @@ class Browser:
         return self.idx >= 0
 
     def back(self):
+#        print 'back', self.idx, self.canBack()
         if self.canBack():
             self.step(-1)
     
