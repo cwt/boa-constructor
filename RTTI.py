@@ -16,6 +16,7 @@ def sort_proxy(self, other):
     return self < other and -1 or self > other and 1 or 0
     
 class PropertyWrapper:
+    # XXX This would be better implemented with subclassing
     def __init__(self, name, rType, getter, setter):
         """ Types: 'CtrlRoute', 'CompnRoute', 'EventRoute', 'NoneRoute', 
                    'IndexRoute', 'NameRoute'
@@ -27,6 +28,9 @@ class PropertyWrapper:
         self.setter = setter 
         self.ctrl = None
         self.compn = None
+        
+        # Not used yet
+        self.setterName = ''
     
     def __cmp__(self, other):
         """ This is for sorting lists of PropertyWrappers """
@@ -54,7 +58,7 @@ class PropertyWrapper:
             return self.getter(self.compn)
         elif self.routeType == 'EventRoute' and self.compn and len(params):
             return self.getter(params[0])
-        elif self.routeType == 'IndexRoute' and self.compn and len(params):
+        elif self.routeType == 'IndexRoute' and self.ctrl and len(params):
             return self.getter(self.ctrl, params[0])
         elif self.routeType == 'NameRoute':
             return self.getter(self.name)
@@ -62,14 +66,14 @@ class PropertyWrapper:
             return None
 
     def setValue(self, value, *params):
-        print 'PropWrap setValue', self.name, value, self.routeType
+##        print 'PropWrap setValue', self.name, value, self.routeType
         if self.routeType == 'CtrlRoute' and self.ctrl:
             self.setter(self.ctrl, value)
         elif self.routeType == 'CompnRoute' and self.compn:
             self.setter(value)
         elif self.routeType == 'EventRoute' and self.compn and len(params):
             self.setter(params[0], value)
-        elif self.routeType == 'IndexRoute' and self.compn and len(params):
+        elif self.routeType == 'IndexRoute' and self.ctrl and len(params):
 ##            print 'PropWrap setValue index route', self.ctrl, params[0], value
             self.setter(self.ctrl, params[0], value)
         elif self.routeType == 'ReApplyRoute' and self.compn and len(params):
@@ -80,15 +84,18 @@ class PropertyWrapper:
     def getSetterName(self):
         from types import FunctionType, MethodType
         if self.setter:
+            if self.setterName:
+                return self.setterName
             if type(self.setter) == FunctionType:
                 return self.setter.func_name
-            elif type(self.setter) == MethodType:
+            if type(self.setter) == MethodType:
                 return self.setter.im_func.func_name
             else:
                 return ''
         else:
             return ''
 
+_methodTypeCache = {}
 def getPropList(obj, cmp):
     """
        Function to extract sorted list of properties and getter/setter methods
@@ -108,30 +115,37 @@ def getPropList(obj, cmp):
             return category, property name, getter, setter
         """
     
-        
-        if (type(dict[method]) == FunctionType):
-            prefix = method[:3]
-            property = method[3:]
+        if _methodTypeCache.has_key( (method, obj) ):
+            return _methodTypeCache[(method, obj)]
+        else:
+            if (type(dict[method]) == FunctionType):
+                prefix = method[:3]
+                property = method[3:]
+                
+                if (method[:2] == '__'):
+                     result = ('Built-ins', method, dict[method], dict[method])
+                elif (prefix == 'Get') and dict.has_key('Set'+property) and property:
+                    try:
+                        #see if getter breaks
+                        v = dict[method](obj)
+                        result = ('Properties', property, dict[method], dict['Set'+property])
+                    except:
+                        result = ('Methods', method, dict[method], dict[method])
+                elif (prefix == 'Set') and dict.has_key('Get'+property) and property:
+                    try:
+                        #see if getter breaks
+                        v = dict['Get'+property](obj)
+                        result = ('Properties', property, dict['Get'+property], dict[method])
+                    except:
+                        result = ('Methods', method, dict[method], dict[method])
+                else:
+                    result = ('Methods', method, dict[method], dict[method])
+            else:
+                result = ('Methods', method, dict[method], dict[method])
             
-            if (method[:2] == '__'):
- 	        return 'Built-ins', method, dict[method], dict[method]
-
-            if (prefix == 'Get') and dict.has_key('Set'+property) and property:
-                try:
-                    #see if getter breaks
-                    v = dict[method](obj)
-                    return 'Properties', property, dict[method], dict['Set'+property]
-                except:
-        	    return 'Methods', method, dict[method], dict[method]
-            if (prefix == 'Set') and dict.has_key('Get'+property) and property:
-                try:
-                    #see if getter breaks
-                    v = dict['Get'+property](obj)
- 	            return 'Properties', property, dict['Get'+property], dict[method]
-                except:
-        	    return 'Methods', method, dict[method], dict[method]
-
- 	return 'Methods', method, dict[method], dict[method]
+            return result
+    
+#            return 'Methods', method, dict[method], dict[method]
     
     def catalogProperty(name, methType, meths, constructors, propLst, constrLst):
         if constructors.has_key(name):
@@ -155,14 +169,14 @@ def getPropList(obj, cmp):
         cls = obj.__class__
         notDone = true
         while notDone:
-	    for m in cls.__dict__.keys():
-	        if m not in vetoes:
-    	            cat, method, methGetter, methSetter = \
-    	              getMethodType(m, obj, cls.__dict__)
-    	            props[cat][method] = (methGetter, methSetter)
-	    notDone = len(cls.__bases__)
-	    if notDone:
-	        cls = cls.__bases__[0]
+            for m in cls.__dict__.keys():
+                if m not in vetoes:
+                    cat, method, methGetter, methSetter = \
+                      getMethodType(m, obj, cls.__dict__)
+                    props[cat][method] = (methGetter, methSetter)
+            notDone = len(cls.__bases__)
+            if notDone:
+                cls = cls.__bases__[0]
 
         # populate property list
         propLst = []
@@ -176,37 +190,39 @@ def getPropList(obj, cmp):
         for propName in propNames:
             if cmp and propName in cmp.hideDesignTime(): 
                 continue
-	    propMeths = props['Properties'][propName]
-	    try:
-	        catalogProperty(propName, 'CtrlRoute', propMeths, 
-	          constrNames, propLst, constrLst)
-	    except:
-	        catalogProperty(propName, 'NoneRoute', (None, None), 
-	          constrNames, propLst, constrLst)
+            propMeths = props['Properties'][propName]
+            try:
+                catalogProperty(propName, 'CtrlRoute', propMeths, 
+                  constrNames, propLst, constrLst)
+            except:
+                catalogProperty(propName, 'NoneRoute', (None, None), 
+                  constrNames, propLst, constrLst)
         if cmp:
             xtraProps = cmp.properties()
             propNames = xtraProps.keys()
             propNames.sort()
             for propName in propNames:
-	        propMeths = xtraProps[propName]
-	        try:
- 	            catalogProperty(propName, propMeths[0], propMeths[1:], 
- 	              constrNames, propLst, constrLst)
-		except: pass
-		
-	propLst.sort()
-	constrLst.sort()
+##                if propName in cmp.hideDesignTime():
+##                    continue
+                propMeths = xtraProps[propName]
+                try:
+                    catalogProperty(propName, propMeths[0], propMeths[1:], 
+                      constrNames, propLst, constrLst)
+                except: pass
+
+        propLst.sort()
+        constrLst.sort()
     else : 
         if cmp:
             xtraProps = cmp.properties()
             propNames = xtraProps.keys()
             propNames.sort()
             for propName in propNames:
-	        propMeths = xtraProps[propName]
-	        try:
- 	            catalogProperty(propName, propMeths[0], propMeths[1:], 
- 	              constrNames, propLst, constrLst)
-		except: pass
+                propMeths = xtraProps[propName]
+                try:
+                    catalogProperty(propName, propMeths[0], propMeths[1:], 
+                      constrNames, propLst, constrLst)
+                except: pass
         else:
             print 'Empty object', obj, cmp
         
@@ -222,20 +238,3 @@ def getFunction(inst, funcName):
     
     return cls.__dict__[funcName]
     
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-  
