@@ -6,8 +6,8 @@ from wxPython.lib.anchors import LayoutAnchors
 def create(parent):
     return wxFrame1(parent)
 
-[wxID_WXFRAME1, wxID_WXFRAME1BUTTON1, wxID_WXFRAME1BUTTON2, 
- wxID_WXFRAME1STATICTEXT1, wxID_WXFRAME1TEXTCTRL1, 
+[wxID_WXFRAME1, wxID_WXFRAME1BUTTON1, wxID_WXFRAME1BUTTON2,
+ wxID_WXFRAME1STATICTEXT1, wxID_WXFRAME1TEXTCTRL1,
 ] = map(lambda _init_ctrls: wxNewId(), range(5))
 
 class wxFrame1(wxFrame):
