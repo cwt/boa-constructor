@@ -94,11 +94,11 @@ modelReg = {}
 extMap = {}
 # List of image file extensions
 imageExtReg = []
-# Dict of ext: ModelType entries. For types where not all files of that ext are images
+# Dict of ext:Model entries. For types where not all files of that ext are images
 imageSubTypeExtReg = {}
 # List of extensions for internal filetypes created by Boa
 internalFilesReg = []
-# List of files which can be further identified by reading a header from the source
+# Dict of ext:Model entries which can be further identified by reading a header from the source
 inspectableFilesReg = {}
 # List of extensions for additional binary files (will not be searched)
 binaryFilesReg = []
