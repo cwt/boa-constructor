@@ -846,6 +846,8 @@ class DebuggerFrame(wxFrame):
     def OnDebuggerException(self, event):
         self.enableStepping()
         t, v = event.GetExc()
+        if hasattr(t, '__name__'):
+            t = t.__name__
         if (wxMessageDialog(
             self, '%s: %s.  Stop debugger?' % (t, v),
             'Debugger Communication Exception',

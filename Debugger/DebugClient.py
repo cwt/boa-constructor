@@ -3,6 +3,7 @@ import string, sys
 from string import rfind
 from Tasks import ThreadedTaskHandler
 from wxPython.wx import NewId, wxPyCommandEvent, wxYield
+import thread
 
 '''
     The client starts and connects to the debug server.  The process
@@ -113,8 +114,6 @@ class InProcessCallback:
         self.event_handler.AddPendingEvent(evt)
 
 
-
-
 class DebuggerTask:
     def __init__(self, client, m_name, m_args, r_name, r_args):
         self.client = client
@@ -156,7 +155,6 @@ class MultiThreadedDebugClient (DebugClient):
 
 
 
-from wxPython.wx import wxExecute, wxProcess, wxYield
 from ExternalLib import xmlrpclib
 import os
 
@@ -175,40 +173,111 @@ def package_home(globals_dict):
         return os.path.join(os.getcwd(), r)
 
 
+class TransportWithAuth (xmlrpclib.Transport):
+    """Adds an authentication header to the RPC mechanism"""
+
+    def __init__(self, auth):
+        self._auth = auth
+
+    def request(self, host, handler, request_body):
+	# issue XML-RPC request
+
+	import httplib
+	h = httplib.HTTP(host)
+	h.putrequest("POST", handler)
+
+	# required by HTTP/1.1
+	h.putheader("Host", host)
+
+	# required by XML-RPC
+	h.putheader("User-Agent", self.user_agent)
+	h.putheader("Content-Type", "text/xml")
+	h.putheader("Content-Length", str(len(request_body)))
+	h.putheader("X-Auth", self._auth)
+
+	h.endheaders()
+
+	if request_body:
+	    h.send(request_body)
+
+	errcode, errmsg, headers = h.getreply()
+
+	if errcode != 200:
+	    raise ProtocolError(
+		host + handler,
+		errcode, errmsg,
+		headers
+		)
+
+	return self.parse_response(h.getfile())
+
+
+
 class SpawningDebugClient (MultiThreadedDebugClient):
 
+    spawn_lock = None
     server = None
 
+    def __init__(self, win):
+        DebugClient.__init__(self, win)
+        self.spawn_lock = thread.allocate_lock()
+
     def invokeOnServer(self, m_name, m_args=(), r_name=None, r_args=()):
-        if self.server is None:
-            self.spawnServer()
         MultiThreadedDebugClient.invokeOnServer(
             self, m_name, m_args, r_name, r_args)
 
     def invoke(self, m_name, m_args):
+        if self.server is None:
+            self.spawn_lock.acquire()
+            try:
+                if self.server is None:
+                    self.spawnServer()
+            finally:
+                self.spawn_lock.release()
+        if self.server is None:
+            raise Exception('Debug server closed')  # Probably never happen
         m = getattr(self.server, m_name)
         result = apply(m, m_args)
         return result
 
     def spawnServer(self):
-        dsp = os.path.join(package_home(globals()), 'DebugServerProcess.py')
-        process = wxProcess()
-        if 0:
-            process.Redirect()
-        wxExecute('%s "%s"' % (sys.executable, dsp), 0, process)
-
-        if 0:
-            line = ''
-            while string.find(line, '\n') < 0:
-                stream = process.GetInputStream()
-                if not stream.eof():
-                    text = stream.read()
-                    line = line + text
-                else:
-                    wxYield()
- 
-            port, auth = string.split(string.strip(line))
+        dsp = os.path.join(
+            package_home(globals()), 'DebugServerProcess.py')
+        homepath = os.getcwd()  # XXX This won't always work.
+        cmd = '%s "%s" -p "%s"' % (sys.executable, dsp, homepath)
+        if hasattr(os, 'popen3'):
+            ostream, istream, eistream = os.popen3(cmd)
         else:
-            port = 3243
-        self.server = xmlrpclib.Server('http://localhost:%s' % port)
+            # Note: something will likely fail if this is ever reached
+            # by Windows 9x because Python 1.52 does not have
+            # os.popen3 and popen() on Python 1.52 reveals a Windows
+            # bug, later covered up by Python 2.0.
+            import popen2
+            istream, ostream, eistream = popen2.popen3(cmd)
 
+        line = istream.read(51)
+        while string.find(line, '\n') < 0:
+            line = line + istream.read(1)
+        port, auth = string.split(string.strip(line))
+
+        trans = TransportWithAuth(auth)
+        self.server = xmlrpclib.Server(
+            'http://localhost:%s' % port, trans)
+        # Note that if any exception occurs, none of the
+        # streams will be kept and therefore will be closed.
+        # DebugServerProcess will shut itself down.  self.server
+        # will also continue to be "None".
+        self.ostream = ostream
+        self.istream = istream
+        self.eistream = eistream
+
+    def close(self):
+        self.spawn_lock.acquire()
+        try:
+            # Implicitly close the streams.
+            self.server = None
+            self.ostream = None
+            self.istream = None
+            self.eistream = None
+        finally:
+            self.spawn_lock.release()

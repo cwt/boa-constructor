@@ -2,6 +2,9 @@
 import threading
 
 class ThreadedTaskHandler:
+    '''Rather than creating a new thread for each task, reuses existing
+    threads for speed.
+    '''
 
     def __init__(self, target_threads=1, limit_threads=0):
         self.queue = []
@@ -77,22 +80,33 @@ class ThreadedTaskHandler:
                     self.running_threads = self.running_threads - 1
                 except:
                     # The task ought to do its own error handling,
-                    # but sometimes it won't.
+                    # but sometimes it doesn't.
                     import traceback
                     traceback.print_exc()
 
 
 if __name__ == '__main__':
-    # Self-test.
-    import time
-    class PrintTask:
-        def __init__(self, s):
-            self.s = s
-        def __call__(self):
-            print self.s
+    from time import time, sleep
+    evt = threading.Event()
     tth = ThreadedTaskHandler()
-    for n in range(10):
-        print 'starting', n
-        tth.addTask(PrintTask(n))
-        time.sleep(1)
-    time.sleep(2)
+    start = 0
+    end = 0
+    # Speed test.
+    class SpeedTest:
+        def __init__(self, count):
+            self.count = count
+        def __call__(self):
+            global end
+            self.count = self.count - 1
+            if self.count <= 0:
+                end = time()
+                evt.set()
+            else:
+                tth.addTask(self)
+    count = 1000
+    t = SpeedTest(count)
+    start = time()
+    tth.addTask(t)
+    evt.wait()
+    print 'Performed %d tasks in %d ms' % (count,
+                                           int((end - start) * 1000))
