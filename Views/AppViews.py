@@ -25,7 +25,7 @@ from wxPython.wx import *
 from EditorViews import ListCtrlView, ModuleDocView, wxwAppModuleTemplate, CyclopsView, ClosableViewMix
 import ProfileView
 import PySourceView
-from PrefsKeys import keyDefs
+from Preferences import keyDefs
 import Search, Utils
 
 class AppFindResults(ListCtrlView, ClosableViewMix):
@@ -35,7 +35,9 @@ class AppFindResults(ListCtrlView, ClosableViewMix):
     def __init__(self, parent, model):
         ClosableViewMix.__init__(self, 'find results')
         ListCtrlView.__init__(self, parent, model, wxLC_REPORT,
-          ( ('Goto match', self.OnGoto, self.gotoLineBmp, ()), ) +
+          ( ('Goto match', self.OnGoto, self.gotoLineBmp, ()), 
+            ('Rerun query', self.OnRerun, '-', ()),
+          ) +
             self.closingActionItems, 0)
 
         self.InsertColumn(0, 'Module', width = 100)
@@ -80,6 +82,9 @@ class AppFindResults(ListCtrlView, ClosableViewMix):
                 print 'foundInfo not found'
 
             srcView.selectSection(foundInfo[0], foundInfo[1], self.findPattern)
+
+    def OnRerun(self, event):
+        pass
 
 class AppView(ListCtrlView):
     openBmp = 'Images/Editor/OpenFromApp.bmp'

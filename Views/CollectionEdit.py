@@ -16,7 +16,7 @@ from wxPython.wx import *
 
 import Utils, Preferences
 from Preferences import IS
-from PrefsKeys import keyDefs
+from Preferences import keyDefs
 import sourceconst
 
 import InspectableViews
