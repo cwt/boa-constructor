@@ -22,7 +22,7 @@ from ExternalLib import xmlrpclib, BasicAuthTransport
 from ZopeLib import Client, ExtMethDlg
 from Companions.ZopeCompanions import ZopeConnection, ZopeCompanion, FolderZC
 from Preferences import IS, wxFileDialog
-import Utils
+import Utils, Preferences
 import Views
 from Views import ZopeViews
 import PaletteStore
@@ -57,25 +57,6 @@ class ZopeEClip(ExplorerNodes.ExplorerClipboard):
         mime, res = self.zc.call(node.resourcepath,
               'manage_pasteObjects', cb_copy_data = self.clipRef)
 
-##    def pasteFileSysFolder(self, folderpath, nodepath, node):
-##        # XXX Should use http commands to paste
-##        # XXX FTP does not want to upload binary correctly
-##        # XXX rewrite to use explorer interfaces
-##        node.newFolder(os.path.basename(folderpath))
-###        node.zopeConn.add_folder(os.path.basename(folderpath), nodepath)
-##
-###        node.newItem(os.path.basename(folderpath), FolderZC, false)
-##
-##        files = os.listdir(folderpath)
-##        folder = os.path.basename(folderpath)
-##        newNodepath = nodepath+'/'+folder
-##        for file in files:
-##            file = os.path.join(folderpath, file)
-##            if os.path.isdir(file):
-##                self.pasteFileSysFolder(file, newNodepath, node)
-##            else:
-##                node.uploadFromFS(file, newNodepath)
-
     def clipPaste_FileSysExpClipboard(self, node, nodes, mode):
         for file in nodes:
             if file.isDir():
@@ -88,6 +69,7 @@ class ZopeEClip(ExplorerNodes.ExplorerClipboard):
 
 class ZopeCatNode(ExplorerNodes.CategoryNode):
     protocol = 'config.zope'
+    itemProtocol = 'zope'
 
     defName = 'Zope'
     defaultStruct = {'ftpport': 8021,
@@ -99,17 +81,20 @@ class ZopeCatNode(ExplorerNodes.CategoryNode):
                      'path': '/',
                      'username': '',
                      'servicename': ''}
-    def __init__(self, config, parent, globClip):
+    def __init__(self, config, parent, globClip, bookmarks):
         ExplorerNodes.CategoryNode.__init__(self, 'Zope', ('explorer', 'zope'), 
               None, config, None)
         self.globClip = globClip
-
+        self.bookmarks = bookmarks
+        
     def createChildNode(self, name, props):
         # Zope clipboards should be global but unique on site / user
         clipboard = ZopeEClip(self.globClip, props)
         zin = ZopeItemNode('', props['path'], clipboard,
             EditorHelper.imgZopeConnection, self, None, None, props, 'Folder')
+        zin.category = name
         zin.treename = name
+        zin.bookmarks = self.bookmarks
         return zin
 
     def createCatCompanion(self, catNode):
@@ -123,7 +108,7 @@ class ZopeItemNode(ExplorerNodes.ExplorerNode):
     additionalViews = (ZopeViews.ZopeSecurityView,
                        ZopeViews.ZopeUndoView)
     itemsSubPath = ''
-
+    connection = false
     def __init__(self, name, resourcepath, clipboard, imgIdx, parent, xmlrpcsvr, root, properties, metatype):
         ExplorerNodes.ExplorerNode.__init__(self, name, resourcepath, clipboard,
               imgIdx, None, properties)
@@ -136,6 +121,10 @@ class ZopeItemNode(ExplorerNodes.ExplorerNode):
         self.entryIds = None
         self.url = self.buildUrl()
         self.typ = None
+#        self.bookmarks = None
+
+    def getURI(self):
+        return '%s://%s/<%s>%s'%(self.protocol, self.category, self.metatype, self.getTitle())
 
     def buildUrl(self):
         return ('%(host)s:%(httpport)d/') % self.properties +urllib.quote(self.resourcepath)
@@ -148,17 +137,20 @@ class ZopeItemNode(ExplorerNodes.ExplorerNode):
     def canAdd(self, paletteName):
         return paletteName == 'Zope'
 
-    def createChildNode(self, metatype, id):
-        # XXX Append All my Icons correctly
-        # CheckEntry Code here !
-        if self.resourcepath =="/":
-            tmppath = self.resourcepath + self.itemsSubPath + id
+    def createChildNode(self, metatype, id, respath=None):
+        if respath is None:
+            respath = self.resourcepath
+            
+        if respath == '/':
+            tmppath = respath + self.itemsSubPath + id
         else:
-            tmppath = self.resourcepath + self.itemsSubPath + '/' + id
+            tmppath = respath + self.itemsSubPath + '/' + id
 
         itm = self.checkentry(id, metatype, tmppath)
         itm.imgIdx = ZopeEditorModels.ZOAIcons.get(metatype,
                      ZopeEditorModels.ZOAIcons['unknown'])
+        itm.category = self.category
+        itm.bookmarks = self.bookmarks
         return itm
 
     def checkentry(self, name, entry, path):
@@ -175,12 +167,47 @@ class ZopeItemNode(ExplorerNodes.ExplorerNode):
         return getServer(url, self.properties['username'],
                self.properties['passwd'])
 
+    def callFromParentResource(self, method):
+        path, name = os.path.split(self.name)
+        return self.getResource(os.path.dirname(self.url)).ZOA(method, name)
+
     def openList(self, root = None):
-        self.server = self.getResource(self.url+self.itemsSubPath)
+        url = self.url+self.itemsSubPath
+        if url[-1] == '/':
+            url = url[:-1]
+        self.server = self.getResource(url)
         try:
             self.entries, self.entryIds = self.server.ZOA('items')
         except xmlrpclib.Fault, error:
-            raise Utils.html2txt(error.faultString)
+            # see if ZOA is installed
+            try:
+                Client.call('http://%s/ZOA'%self.buildUrl(), 
+                      self.properties['username'], self.properties['passwd'])
+            except Client.NotFound:
+                if wxMessageBox('ZOA not found in the Zope root.\n'\
+                      'Install the ZOA Python Method?', 'Install', 
+                      wxYES_NO | wxICON_QUESTION) == wxYES:
+                    try:
+                        Client.call('http://%s/manage_addProduct/PythonScripts/'\
+                              'manage_addPythonScript'%self.buildUrl(), 
+                              self.properties['username'], 
+                              self.properties['passwd'], id = 'ZOA')
+                    except Client.ServerError, error:
+                        if error.http_code == 302:
+                            Client.call('http://%s/ZOA/ZPythonScriptHTML_editAction'\
+                                %self.buildUrl(), self.properties['username'], 
+                                self.properties['passwd'], 
+                                title = 'ZOA (Boa component)', 
+                                params = 'self, function, args=None', 
+                                body = open(Preferences.pyPath+'/ZopeLib/ZOA.py').read())
+                    try:
+                        self.entries, self.entryIds = self.server.ZOA('items')
+                    except xmlrpclib.Fault, error:
+                        raise zopeHtmlErr2Strs(error.faultString)
+                else:
+                    raise 'The ZOA component must be installed'
+            else:
+                raise zopeHtmlErr2Strs(error.faultString)
 
         self.cache = {}
         result = []
@@ -196,7 +223,7 @@ class ZopeItemNode(ExplorerNodes.ExplorerNode):
         return true
 
     def getTitle(self):
-        return 'Zope - '+self.resourcepath
+        return self.resourcepath
 
     def open(self, editor):
         editor.openOrGotoZopeDocument(self)
@@ -246,10 +273,7 @@ class ZopeItemNode(ExplorerNodes.ExplorerNode):
 
     def getUndoableTransactions(self):
         from ZopeLib.DateTime import DateTime
-        if self.server._Server__handler == "/":
-            return eval(self.getResource().ZOA('undoR/%s' % (self.name) ))
-        else:
-            return eval(self.getResource().ZOA('undo'))
+        return eval(self.callFromParentResource('undoM'))
 
     def undoTransaction(self, transactionIds):
         print self.getResource().manage_undo_transactions(transactionIds)
@@ -267,8 +291,15 @@ class ZopeItemNode(ExplorerNodes.ExplorerNode):
         """ Saves contents of data to Zope """
         self.getResource().manage_upload(data)
 
-    def newFolder(self, foldername):
-        self.getResource().manage_addFolder(foldername)
+    def newFolder(self, name):
+        self.getResource().manage_addFolder(name)
+
+    def newBlankDocument(self, name=''):
+        try:
+            self.getResource().manage_addDTMLDocument(name)
+        except xmlrpclib.ProtocolError, error:
+            if error.errcode != 302:
+                raise
 
     def uploadFromFS(self, filenode):
         props = self.properties
@@ -283,6 +314,10 @@ class ZopeItemNode(ExplorerNodes.ExplorerNode):
         r = Resource(('http://%(host)s:%(httpport)s/'+self.resourcepath) % props, 
             props['username'], props['passwd'])
         open(filename, 'wb').write(r.get().body)
+
+    def getNodeFromPath(self, respath, metatype):
+        return self.createChildNode(metatype, os.path.basename(respath), 
+              os.path.dirname(respath))
 
 ##class ZopeConnectionNode(ZopeItemNode):
 ##    protocol = 'zope'
@@ -630,7 +665,7 @@ class ZClassNode(DirNode):
 
 class ZSQLNode(ZopeNode):
     Model = ZopeEditorModels.ZopeDocumentModel
-    defaultViews = (Views.SourceViews.HTMLSourceView,)
+    defaultViews = (ZopeViews.ZopeHTMLSourceView,)
     additionalViews = (ZopeViews.ZopeSecurityView, Views.EditorViews.ToDoView,
                        ZopeViews.ZopeUndoView)
     def save(self, filename, data, mode='wb'):
@@ -669,20 +704,20 @@ class PythonNode(ZopeNode):
         self.getResource().manage_edit(self.name, self.getParams(data),
               self.getBody(data))
 
-    def getUndoableTransactions(self):
-        from ZopeLib.DateTime import DateTime
-        if self.server._Server__handler == '/':
-            all = eval(self.server.ZOA('undoR/%s' % (self.name) ))
-        else:
-            all = eval(self.server.ZOA('undo'))
-        undos = []
-        for u in all:
-            if self.name == string.split(u['description'], '/')[-2]:
-                undos.append(u)
-        return undos
+##    def getUndoableTransactions(self):
+##        from ZopeLib.DateTime import DateTime
+##        if self.server._Server__handler == '/':
+##            all = eval(self.server.ZOA('undoR/%s' % (self.name) ))
+##        else:
+##            all = eval(self.server.ZOA('undo'))
+##        undos = []
+##        for u in all:
+##            if self.name == string.split(u['description'], '/')[-2]:
+##                undos.append(u)
+##        return undos
 
-    def undoTransaction(self, transactionIds):
-        print self.server.manage_undo_transactions(transactionIds)
+##    def undoTransaction(self, transactionIds):
+##        print self.server.manage_undo_transactions(transactionIds)
 
 class PythonScriptNode(PythonNode):
     additionalViews = (ZopeViews.ZopeSecurityView,
@@ -729,8 +764,9 @@ class ExtPythonNode(PythonNode):
         if not os.path.exists(zopePath):
             raise 'Property localpath of the Zope connection is not a valid path'
 
-        path, name = os.path.split(self.name)
-        res = self.getResource(os.path.dirname(self.url)).ZOA('ExtMethod_Props', name)
+        res = self.callFromParentResource('ExtMethod_Props')
+##        path, name = os.path.split(self.name)
+##        res = self.getResource(os.path.dirname(self.url)).ZOA('ExtMethod_Props', name)
         module = res['module']
 
         emf = ExtMethDlg.ExternalMethodFinder(zopePath)
@@ -743,8 +779,7 @@ class ExtPythonNode(PythonNode):
         if not os.path.exists(zopePath):
             raise 'Property localpath of the Zope connection is not a valid path'
 
-        path, name = os.path.split(self.name)
-        res = self.getResource(os.path.dirname(self.url)).ZOA('ExtMethod_Props', name)
+        res = self.callFromParentResource('ExtMethod_Props')
         module = res['module']
 
         emf = ExtMethDlg.ExternalMethodFinder(zopePath)
@@ -754,16 +789,16 @@ class ExtPythonNode(PythonNode):
 
 class DTMLDocNode(ZopeNode):
     Model = ZopeEditorModels.ZopeDTMLDocumentModel
-    defaultViews = (Views.SourceViews.HTMLSourceView,)
+    defaultViews = (ZopeViews.ZopeHTMLSourceView,)
     additionalViews = (ZopeViews.ZopeUndoView,
           ZopeViews.ZopeSecurityView, ZopeViews.ZopeHTMLView,)
 
 class DTMLMethodNode(ZopeNode):
     Model = ZopeEditorModels.ZopeDTMLMethodModel
-    defaultViews = (Views.SourceViews.HTMLSourceView,)
+    defaultViews = (ZopeViews.ZopeHTMLSourceView,)
     additionalViews = (ZopeViews.ZopeUndoView,
           ZopeViews.ZopeSecurityView, ZopeViews.ZopeHTMLView)
-
+    
 class LFSNode(DirNode):
     def checkentry(self,id,entry,path):
         #print entry
@@ -783,6 +818,50 @@ class LFDirNode(LFSNode):
     def isFolderish(self):
         return true
 
+def findBetween(strg, startMarker, endMarker):
+    strL = string.lower(strg)
+    found = ''
+    idx = string.find(strL, startMarker)
+    idx2 = -1
+    if idx != -1:
+        idx2 = string.find(strL, endMarker, idx)
+        if idx2 != -1:
+            found = strg[idx + len(startMarker)+1: idx2]
+    return idx, idx2, found
+
+class ZopeError(Exception):
+    def __init__(self, htmlFaultStr):
+        self.htmlFault = htmlFaultStr
+
+        # find possible traceback
+        idx, idx2, tracebk = findBetween(htmlFaultStr, '<pre>', '</pre>')
+        if tracebk:
+            tracebk = 'Traceback:\n'+tracebk
+        self.traceback = tracebk
+
+        txt = Utils.html2txt(htmlFaultStr)    
+        self.textFault = '%s\n%s\n' % (txt, tracebk)
+        
+        idx, idx1, self.ErrorType = findBetween(txt, 'Error Type:', '\n')
+        idx, idx1, self.ErrorValue = findBetween(txt, 'Error Value:', '\n')
+
+    def __str__(self):
+        return self.ErrorType and ('%s:%s' % (self.ErrorType, self.ErrorValue))  or self.textFault
+    
+#        return self.textFault
+        
+    
+def zopeHtmlErr2Strs(faultStr):
+    fs = string.lower(faultStr)
+    idx = string.find(fs, '<pre>')
+    traceBk = ''
+    if idx != -1:
+        idx2 = string.find(fs, '</pre>', idx)
+        if idx2 != -1:
+            traceBk = '\nTraceback:\n'+faultStr[idx + 5: idx2]
+    txt = Utils.html2txt(faultStr)    
+    return txt+traceBk
+    
 zopeClassMap = { 'Folder': DirNode,
         'Product Help': DirNode,
         'User Folder': UserFolderNode,
@@ -798,4 +877,4 @@ zopeClassMap = { 'Folder': DirNode,
         'Script (Python)': PythonScriptNode,
         'Image': ZopeImageNode,
        }
- 
+
