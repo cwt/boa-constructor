@@ -604,7 +604,7 @@ class BoaApp(wxApp):
         menu = wxMenu()
         menu.Append(self.TBMENU_RESTORE, 'Restore Boa Constructor')
         menu.Append(self.TBMENU_CLOSE,   'Exit')
-        menu.Append(-1, '')
+        menu.AppendSeparator()
         menu.Append(self.TBMENU_ABOUT,   'About')
         self.tbicon.PopupMenu(menu)
         menu.Destroy()
@@ -617,7 +617,7 @@ class BoaApp(wxApp):
 
     def OnTaskBarClose(self, event):
         self.main.Close()
-        self.ProcessIdle()
+        #self.ProcessIdle()
 
     def OnTaskBarAbout(self, event):
         self.main.editor.OnHelpAbout(event)
