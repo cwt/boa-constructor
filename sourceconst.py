@@ -68,8 +68,8 @@ class BoaApp(wxApp):
 \tdef OnInit(self):
 \t\twxInitAllImageHandlers()
 \t\tself.main = %(mainModule)s.create(None)
-\t\t#workaround for running in wxProcess
-\t\tself.main.Show()
+\t\t# needed when running from Boa under Windows 9X
+\t\tself.main.Show();self.main.Hide();self.main.Show() 
 \t\tself.SetTopWindow(self.main)
 \t\treturn true
 
@@ -127,7 +127,9 @@ if __name__ == '__main__':
 \tapp = wxPySimpleApp()
 \twxInitAllImageHandlers()
 \tframe = create(None)
-\tframe.Show()
+\t# needed when running from Boa under Windows 9X
+\tframe.Show();frame.Hide();frame.Show() 
+
 \tapp.MainLoop()
 ''')
 
