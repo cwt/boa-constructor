@@ -6,7 +6,7 @@
 #
 # Created:     2000
 # RCS-ID:      $Id$
-# Copyright:   (c) 2000 - 2003 Riaan Booysen
+# Copyright:   (c) 2000 - 2004
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 print 'importing Companions.UtilCompanions'

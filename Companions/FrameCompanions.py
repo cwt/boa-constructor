@@ -6,7 +6,7 @@
 #
 # Created:     2002
 # RCS-ID:      $Id$
-# Copyright:   (c) 2002 - 2003
+# Copyright:   (c) 2002 - 2004
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 print 'importing Companions.FrameCompanions'
@@ -193,7 +193,7 @@ class DialogDTC(FramesConstr, BaseFrameDTC):
 
     def hideDesignTime(self):
         # Because the Designer is actually a wxFrame pretending to be a
-        # wxDialog, introspection will pick up wxFrame spesific properties
+        # wxDialog, introspection will pick up wxFrame specific properties
         # which must be supressed
         return BaseFrameDTC.hideDesignTime(self) + ['ToolBar', 'MenuBar',
               'StatusBar', 'StatusBarPane']

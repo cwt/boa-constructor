@@ -6,9 +6,10 @@
 #
 # Created:     2003
 # RCS-ID:      $Id$
-# Copyright:   (c) 2003 Riaan Booysen
+# Copyright:   (c) 2003 - 2004
 # Licence:     GPL
 #-----------------------------------------------------------------------------
+
 print 'importing Companions.SizerCompanions'
 
 # XXX _in_sizer is not necessary, use GetContainingSizer() instead

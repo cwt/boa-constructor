@@ -1,3 +1,15 @@
+#-----------------------------------------------------------------------------
+# Name:        WizardCompanions.py
+# Purpose:     
+#
+# Author:      Riaan Booysen
+#
+# Created:     2003
+# RCS-ID:      $Id$
+# Copyright:   (c) 2003 - 2004
+# Licence:     GPL
+#-----------------------------------------------------------------------------
+
 print 'importing Companions.WizardCompanions'
 
 from wxPython.wx import *
