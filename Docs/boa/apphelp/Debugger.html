@@ -225,7 +225,7 @@ You should have a working Zope Connection defined in the Explorer. Open the
 Python Script you want to debug.<br>
 Now run Zope as described in the first step. The easiest way to break into a 
 Python Script (remember that they execute in a different thread than <b>z2.py</b>) is to
-install the extremely small Zope Product found in Debugger/ZopeBreakpoint.zip.
+install the extremely small Zope Product found in <b>Debugger/ZopeBreakpoint.zip.</b>
 All this product does is to allow Scripts to access <b>sys.breakpoint</b>.
 Then using the normal sys.breakpoint() call in your Python Script will break 
 at that line. From now on, normal soft breakpoints will work for the Script.<br>
@@ -233,11 +233,62 @@ If you don't want to install the Product you can still step through
 Python Scripts by setting a hard break somewhere in the Zope code that runs in
 the same thread as the Script. After hitting the hard break, normal breakpoints 
 in your Script should work.
+<p>
+Because of the new Signals support added to Zope 2.6. under unix platforms z2.py
+must be patched on those platforms.<br>
+(Because the debugger doesn't run programs in the main thread and Signals require this).<br>
+<p>
+To patch z2.py, from line 526, change:
+<font color="#101090"><pre>
+# install signal handlers if on posix
+if os.name == 'posix':
+    from Signals import Signals
+    Signals.registerZopeSignals()
+</pre></font>
+to 
+<font color="#101090"><pre>
+# install signal handlers if on posix
+if os.name == 'posix' and not hasattr(sys, 'boa_debugger'):
+    from Signals import Signals
+    Signals.registerZopeSignals()
+</pre></font>
 
-<p> There is already support provided for also debugging Page Templates, but unless you
-are quite adventurous, your will have to wait for Zope 2.6 before this will work.
+<p> There is limited support provided for debugging Page Templates too.<br>
+You may add soft breakpoints next to &lt;tal:*&gt; tags inside &lt;metal:use-macro*&gt;
+sections. The debugger should stop at these breakpoints and you can inspect the
+namespace with watches or the Debugger shell. Stepping is not supported.
+<p>
+Another way to debug Zope from Boa is to install the functions in the 
+<b>Debugger/BoaDebugServer.py</b> module as ExternalMethods.
+<p>
+This allows you to start and hook Zope into the Boa Debug Server at runtime without
+running z2.py in the debugger from the IDE.<br>
+(This also avoids the Signal problems problem on linux and works with an unpatched z2.py)
+<p>
+To install the runtime hooking follow the next steps:
+<ul>
+<li>Boa must be installed on the Zope machine.</li>
+<li>Copy <b>Debugger/BoaDebugServer.py</b> to Zope's <b>Extensions</b> directory.</li>
+<li>Edit BoaDebugServer.py and replace <b>c:/Path/To/Boa</b> with the actual path
+to the installation. You may also optionally replace the username, password passed to the <b>start</b>
+function for security.</li>
+<li>You may create the ExternalMethods anywhere you please, I have the following structure:<br>
+BoaDebugger [Folder]<br>
+&nbsp;&nbsp;StartDebugServer [ExternalMethod]<br>
+&nbsp;&nbsp;HookDebugServer [ExternalMethod]<br>
+</li>
+</ul>
+<p>
+To use the runtime hooking follow these steps:
+<ul>
+<li>With a browser, execute the <b>StartDebugServer</b> method.</li>
+<li>From the IDE (with any Python module open) choose File->Attach to debugger. </li>
+<li>With a browser, execute the <b>HookDebugServer</b> method.</li>
+</ul>
 
-<br>
+The debugger is now hooked and ready and soft breakpoints should work.
+
+<p>
 <br>
 <table BORDER=0 CELLSPACING=0 CELLPADDING=2 WIDTH="100%" BGCOLOR="#000000" >
   <tr><td>
