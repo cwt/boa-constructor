@@ -1,6 +1,6 @@
 #----------------------------------------------------------------------
 # Name:        EditorViews.py
-# Purpose:     
+# Purpose:     Base view classes that are the visual plugins for models
 #
 # Author:      Riaan Booysen
 #
@@ -71,7 +71,7 @@ wxwMethodTemplate = """
 <hr><a NAME="%(Class)s%(Method)s"></a>
 <h3>
 %(Class)s.%(Method)s</h3>
-<b>%(Method)s</b>(<i>%(Params)s)
+<b>%(Method)s</b>(<i>%(Params)s</i>)
 <p>&nbsp;%(MethodSynopsis)s
 <p>
 """
@@ -260,13 +260,15 @@ class HTMLView(wxHtmlWindow, EditorView):
     def __init__(self, parent, model, actions = ()):
         wxHtmlWindow.__init__(self, parent)
         EditorView.__init__(self, model, (('Back', self.OnPrev, self.prevBmp, ()),
-                                   ('Forward', self.OnNext, self.nextBmp, ())) + actions, -1)
+                                   ('Forward', self.OnNext, self.nextBmp, ()),
+                                   ('Save HTML', self.OnSaveHTML, '-', ()) )+ actions, -1)
         self.SetRelatedFrame(model.editor, 'Editor')
         self.SetRelatedStatusBar(2)
 
         model.editor.statusBar.setHint('')
 
         self.title = 'Boa docs'
+        self.data = ''
         self.active = true
 
     def generatePage(self):
@@ -279,13 +281,20 @@ class HTMLView(wxHtmlWindow, EditorView):
         return page
 
     def refreshCtrl(self):
-        self.SetPage(self.generatePage())
+        self.data = self.generatePage()
+        self.SetPage(self.data)
 
     def OnPrev(self, event):
         self.HistoryBack()
 
     def OnNext(self, event):
         self.HistoryForward()
+    
+    def OnSaveHTML(self, event):
+        filename = wxFileSelector('Choose a file', '.', '', 
+          'HTML files (*.html)|*.html', '.html', wxSAVE)
+        if filename:
+            open(filename, 'w').write(self.data)
 
 class ModuleDocView(HTMLView):
 
@@ -362,7 +371,8 @@ class ClosableViewMix:
     closeBmp = 'Images/Editor/Close.bmp'
     
     def __init__(self, hint = 'results'):
-        self.closingActionItems = ( ('Close '+ hint, self.OnClose, self.closeBmp, ()), )
+        self.closingActionItems = ( ('Close '+ hint, self.OnClose, 
+                                     self.closeBmp, keyDefs['Close']), )
 
     def OnClose(self, event):
         del self.closingActionItems

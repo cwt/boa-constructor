@@ -150,10 +150,8 @@ class ProfileStatsView(ListCtrlView, ClosableViewMix):
     def getStatIdx(self):
             for i in range(self.GetItemCount()):
                 if self.GetItemState(i, wxLIST_STATE_SELECTED):
-                    print self.GetItemData(i), self.selected
                     return self.GetItemData(i)
             idx = self.GetItemData(i)
-            print idx, i, self.selected
             return idx
 
     def OnGoto(self, event):
@@ -221,7 +219,9 @@ class ProfileStatsView(ListCtrlView, ClosableViewMix):
                     
     def OnColClick(self, event):
 #        print event.m_col
+#        from time import time
         
+        t1 = time()
         if self.sortCol != event.m_col:
             self.sortAscend = false
         else:
@@ -241,6 +241,9 @@ class ProfileStatsView(ListCtrlView, ClosableViewMix):
             self.SortItems(self.sortCumTime)
         elif event.m_col == 7:
             self.SortItems(self.sortCumPerCall)
+
+        t2 = time()
+#        print 'sort', t2 - t1
     
     def OnSaveStats(self, event):
         fn, suc = self.model.editor.saveAsDlg(\

@@ -124,7 +124,6 @@ class SelectionGroup:
         map(lambda tag, newparent = parent: tag.Reparent(newparent), self.tags)
 
     def moveRelease(self):
-        print 'move release', self.selection
         if self.dragTag:
             # XXX nasty passing a None event
             self.OnSizeEnd(None)
@@ -146,7 +145,6 @@ class SelectionGroup:
             self.inspector.constructorUpdate('Position')
 
     def moveCapture(self, ctrl, compn, pos):
-##        print 'move capture'
         # Put selection around control
 
         self.lastDragPos.x = pos.x
@@ -161,7 +159,6 @@ class SelectionGroup:
 	    self.dragSize = ctrl.GetSize()
 	
     def moving(self, ctrl, pos):
-##        print '### moving,', pos, ctrl.ClientToScreen(pos)
         # Sizing
         if self.dragTag:
      	    screenPos = ctrl.ClientToScreen(pos)
@@ -169,7 +166,6 @@ class SelectionGroup:
             if ctrl == self.designer:
                 tb = self.designer.GetToolBar()
                 if tb:
-##                    print 'toolbar offset / selection'
                     parentPos.y = parentPos.y - tb.GetSize().y
     	    self.dragTag.setPos(parentPos)
     	# Moving
@@ -191,7 +187,6 @@ class SelectionGroup:
             if ctrl == self.designer:
                 tb = self.designer.GetToolBar()
                 if tb:
-##                    print 'toolbar offset / selection'
                     offsetY = offsetY + tb.GetSize().y
                     
             self.position = wxPoint(parentPos.x - self.dragOffset.x - offsetX, 
@@ -262,13 +257,9 @@ class SelectionGroup:
         position = self.position
         size = self.size
 
-##        print position.x, screenGran, position.x % screenGran
         trPos = wxPoint(granularise(position.x), granularise(position.y))
-
-##        print size.x, screenGran, size.x % screenGran
         trSze = wxSize(granularise(size.x -1), granularise(size.y -1))
 
-##        print 'setSelection', position, size, ':', trPos, trSze
         self.stTL.SetDimensions(trPos.x -4, trPos.y -4, tagSize, tagSize)
         self.stTR.SetDimensions(trPos.x -3 + trSze.x, trPos.y -4, tagSize, tagSize)
         self.stBR.SetDimensions(trPos.x -3 + trSze.x, trPos.y -3 + trSze.y, tagSize, tagSize)
@@ -289,19 +280,16 @@ class SelectionGroup:
         
     # Events
     def OnSizeBegin(self, event):
-##        print 'On size begin'
         self.dragTag = self.senders.getObject(event)
         self.showFramedTags(self.dragTag)
 
     def OnSizeEnd(self, event):
-##        print 'On size end'
         self.resizeCtrl()
 #        self.selectCtrl(self.selection)
         self.showTags()
         self.dragTag = None
 
     def OnMouseOver(self, event):
-##        print '### On move over'
         if event.Dragging():
      	    pos = event.GetPosition()
      	    ctrl = self.senders.getObject(event)

@@ -13,6 +13,7 @@
 from wxPython.wx import *
 import Utils, Preferences
 from Views import Designer
+from PrefsKeys import keyDefs
 import os
 #from EditorModels import init_coll
 
@@ -45,19 +46,28 @@ class CollectionEditor(wxFrame):
         self.collEditView = collEditView
         self.selected = -1
 
-        Utils.AddToolButtonBmpIS(self, self.toolBar, 'Images/Shared/NewItem.bmp', 
+        acclst = []
+        wId = Utils.AddToolButtonBmpIS(self, self.toolBar, 'Images/Shared/NewItem.bmp', 
           'New', self.OnNewClick)
-        Utils.AddToolButtonBmpIS(self, self.toolBar, 'Images/Shared/DeleteItem.bmp',  
+        EVT_MENU(self, wId, self.OnNewClick)
+        acclst.append( (keyDefs['Insert'][0], keyDefs['Insert'][1], wId) )
+        wId = Utils.AddToolButtonBmpIS(self, self.toolBar, 'Images/Shared/DeleteItem.bmp',  
           'Delete', self.OnDeleteClick)
+        EVT_MENU(self, wId, self.OnDeleteClick)
+        acclst.append( (keyDefs['Delete'][0], keyDefs['Delete'][1], wId) )
         self.toolBar.AddSeparator()
         Utils.AddToolButtonBmpIS(self, self.toolBar, 'Images/Shared/Up.bmp',
-          'Up', self.OnUpClick)
+          'Up (Not implemented)', self.OnUpClick)
         Utils.AddToolButtonBmpIS(self, self.toolBar, 'Images/Shared/Down.bmp', 
-          'Down', self.OnDownClick)
+          'Down (Not implemented)', self.OnDownClick)
         self.toolBar.AddSeparator()
-        Utils.AddToolButtonBmpIS(self, self.toolBar, 'Images/Editor/Refresh.bmp',
+        wId = Utils.AddToolButtonBmpIS(self, self.toolBar, 'Images/Editor/Refresh.bmp',
           'Refresh', self.OnRefresh)
+        EVT_MENU(self, wId, self.OnRefresh)
+        acclst.append( (keyDefs['Refresh'][0], keyDefs['Refresh'][1], wId) )
 
+        self.SetAcceleratorTable(wxAcceleratorTable(acclst))
+        
         self.toolBar.Realize()
 
         if lvStyle == wxLC_REPORT:

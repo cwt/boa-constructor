@@ -42,7 +42,6 @@ class DataView(wxListCtrl, InspectableObjectCollectionView):
         self.active = true
 
     def initialize(self):
-        print 'DATAVIEW initialize' 
         objCol = self.model.objectCollections[self.collectionMethod]
         objCol.indexOnCtrlName()
 
@@ -50,7 +49,6 @@ class DataView(wxListCtrl, InspectableObjectCollectionView):
         self.initObjectsAndCompanions(objCol.creators, objCol, deps, depLinks)
 
     def refreshCtrl(self):
-        print 'DATAVIEW refreshCtrl'
         self.DeleteAllItems()
 
         objCol = self.model.objectCollections[self.collectionMethod]

@@ -215,7 +215,7 @@ class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView):
         for i in range(1):
             self.refreshModel()
         t2 = time.time()
-        print t2 - t1
+##        print t2 - t1
         
 
     def OnEditCut(self, event):
@@ -353,7 +353,6 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix, BrowseStyl
         self.active = true
 
     def refreshCtrl(self):
-        print 'Source refresh ctrl'
         EditorStyledTextCtrl.refreshCtrl(self)    
         self.setInitialBreakpoints()
         
@@ -676,19 +675,7 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix, BrowseStyl
         start, length = idWord(line, piv, lnStPs)
         startLine = start-lnStPs
         word = line[startLine:startLine+length]
-        print 'looking up help for', word
-        from Companions import HelpCompanions
-        helpStr = word+'Docs'
-        if HelpCompanions.__dict__.has_key(helpStr):
-            print 'loading wxWin help', HelpCompanions.__dict__[helpStr]
-            Help.showHelp(self.model.editor, Help.wxWinHelpFrame, 
-              HelpCompanions.__dict__[helpStr], self.model.editor.palette.toolBar)
-        elif HelpCompanions.libRefDocs.has_key(word):
-            print 'loading python help', HelpCompanions.libRefDocs[word]
-            Help.showHelp(self.model.editor, Help.PythonHelpFrame, 
-              HelpCompanions.libRefDocs[word], self.model.editor.palette.toolBar)
-        else:
-            print 'No help found'
+        Help.showContextHelp(self.model.editor, self.model.editor.palette.toolBar, word)
 
     def OnComment(self, event):
         self.processSelectionBlock(self.processComment)

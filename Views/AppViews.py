@@ -2,10 +2,14 @@ from wxPython.wx import *
 
 from EditorViews import ListCtrlView, ModuleDocView, wxwAppModuleTemplate, CyclopsView, ClosableViewMix
 from ProfileView import ProfileStatsView
+from PrefsKeys import keyDefs
 import Search
 from os import path
 from time import time, gmtime, strftime
-import cmp
+try:
+    from cmp import cmp
+except ImportError:
+    from filecmp import cmp
     
 class AppFindResults(ListCtrlView, ClosableViewMix):
     gotoLineBmp = 'Images/Editor/GotoLine.bmp'
@@ -36,11 +40,14 @@ class AppFindResults(ListCtrlView, ClosableViewMix):
         for mod in self.results.keys():
             for result in self.results[mod]:   
                 self.listResultIdxs.append((mod, result))
-                self.InsertStringItem(i, path.basename(mod))
-                self.SetStringItem(i, 1, `result[1]`)
-                self.SetStringItem(i, 2, `result[0]`)
-                self.SetStringItem(i, 3, string.strip(result[2]))
-                i = i + 1
+                i = self.addReportItems(i, path.basename(mod), `result[1]`, 
+                  `result[0]`, string.strip(result[2]))
+                
+##                self.InsertStringItem(i, path.basename(mod))
+##                self.SetStringItem(i, 1, `result[1]`)
+##                self.SetStringItem(i, 2, `result[0]`)
+##                self.SetStringItem(i, 3, string.strip(result[2]))
+##                i = i + 1
         self.pastelise()
 
     def OnGoto(self, event):
@@ -80,17 +87,17 @@ class AppView(ListCtrlView):
            ('Open all modules', self.OnOpenAll, self.openAllBmp, ()), 
            ('Save all modules', self.OnSaveAll, self.saveAllBmp, ()), 
            ('-', None, '', ()),
-           ('Add', self.OnAdd, self.addModBmp, (0, WXK_INSERT)),
+           ('Add', self.OnAdd, self.addModBmp, keyDefs['Insert']),
            ('Edit', self.OnEdit, '-', ()),
-           ('Remove', self.OnRemove, self.remModBmp, (0, WXK_DELETE)),
+           ('Remove', self.OnRemove, self.remModBmp, keyDefs['Delete']),
            ('-', None, '', ()),
-           ('Find', self.OnFind, self.findBmp, (wxACCEL_CTRL, ord('F'))),
+           ('Find', self.OnFind, self.findBmp, keyDefs['Find']),
            ('-', None, '', ()),
            ('Cyclops', self.OnCyclops, self.cyclBmp, ()),
            ('-', None, '', ()),
            ('Profile', self.OnProfile, self.profileBmp, ()),
-           ('Run application', self.OnRun, self.runBmp, (0, WXK_F9)),
-           ('Debugger', self.OnDebugger, self.debugBmp, (0, WXK_F8))), 0)
+           ('Run application', self.OnRun, self.runBmp, keyDefs['RunApp']),
+           ('Debugger', self.OnDebugger, self.debugBmp, keyDefs['Debug'])), 0)
 
 #           ('-', None, '', ()),
 #           ('Imports...', self.OnImports, self.importsBmp, ())
@@ -327,38 +334,25 @@ class AppCompareView(ListCtrlView, ClosableViewMix):
         i = 0
 
         # Compare apps
-        if not cmp.cmp(self.model.filename, otherApp.filename):
+        if not cmp(self.model.filename, otherApp.filename):
             i = self.addReportItems(i, 
               path.splitext(path.basename(self.model.filename))[0], 
               otherApp.filename, 'changed')
-##            self.InsertStringItem(i, self.model.filename)
-##            self.SetStringItem(i, 1, otherApp.filename)
-##            self.SetStringItem(i, 2, 'changed')
-##            i = i+1
+
         # Find changed modules and modules not occuring in other module
         for module in self.model.modules.keys():
             if otherApp.modules.has_key(module):
                 otherFile = otherApp.moduleFilename(module)
-                if not cmp.cmp(self.model.moduleFilename(module), otherFile):
+                if not cmp(self.model.moduleFilename(module), otherFile):
                     i = self.addReportItems(i, module, otherFile, 'changed')
-##                    self.InsertStringItem(i, module)
-##                    self.SetStringItem(i, 1, otherFile)
-##                    self.SetStringItem(i, 2, 'changed')
-##                    i = i+1
             else:
-                self.InsertStringItem(i, module)
-                self.SetStringItem(i, 1, '')
-                self.SetStringItem(i, 2, 'deleted')
-                i = i+1
+                i = self.addReportItems(i, module, '', 'deleted')
         
         # Find modules only occuring in other module
         for module in otherApp.modules.keys():
             if not self.model.modules.has_key(module):
                 otherFile = otherApp.moduleFilename(module)
-                self.InsertStringItem(i, module)
-                self.SetStringItem(i, 1, '')
-                self.SetStringItem(i, 2, 'added')
-                i = i+1
+                i = self.addReportItems(i, module, '', 'added')
 
         self.pastelise()
 

@@ -108,7 +108,6 @@ class InspectableObjectCollectionView(EditorViews.EditorView):
         return objColl, props, events
         
     def initObjectsAndCompanions(self, creators, objColl, dependents, depLinks):
-        print 'initObjectsAndCompanions', self.__class__.__name__
         collDeps = {}
         for ctrl in creators:
             self.initObjCreator(ctrl)
@@ -128,7 +127,6 @@ class InspectableObjectCollectionView(EditorViews.EditorView):
         if depLinks.has_key(ctrlName):
             for prop in depLinks[ctrlName]:
                 ctrl = self.objects[prop.comp_name][1] 
-                print 'dependants 2 prop', prop, ctrl
                 if ctrlName == '': 
                     value = self
                 else:
@@ -137,7 +135,6 @@ class InspectableObjectCollectionView(EditorViews.EditorView):
                     if objs.has_key(ctrlName):
                         value = objs[ctrlName][1]
                     else:
-                        print 'dependants 2 continue'
                         continue
                 RTTI.getFunction(ctrl, prop.prop_setter)(ctrl, value)
 
@@ -146,7 +143,6 @@ class InspectableObjectCollectionView(EditorViews.EditorView):
         for ctrlName in dependents.keys():
             ctrl = self.objects[ctrlName][1] 
             for prop in dependents[ctrlName]:
-                print 'dependants prop', prop
                 if name == 'self':
                     value = self
                 elif len(name) > 5 and name[:5] == 'self.':
@@ -157,9 +153,7 @@ class InspectableObjectCollectionView(EditorViews.EditorView):
                 else:
                     continue
                 
-                print 'InitDeps', ctrl, prop.prop_setter, value
                 RTTI.getFunction(ctrl, prop.prop_setter)(ctrl, value)
-                print 'after init'
                 
     def initObjCreator(self, constrPrs):
         # Assumes all design time ctrls are imported in global scope
@@ -192,14 +186,12 @@ class InspectableObjectCollectionView(EditorViews.EditorView):
         """ Initialise property list by evaluating 1st parameter and calling    
             prop's setter with it.                                              
             Also associate companion name with prop parse objs               """    
-        print 'INITOBJPROPS', props, name, creator
         
         if props.has_key(name):
             comp = self.objects[name][0]
             ctrl = self.objects[name][1]
             # initialise live component's properies
             for prop in props[name]:
-                print 'initObjProps: propname', prop
                 prop.prop_name = comp.getPropNameFromSetter(prop.prop_setter)
                 # Dependent properties
                 if prop.prop_name in comp.dependentProps():
@@ -305,7 +297,6 @@ class InspectableObjectCollectionView(EditorViews.EditorView):
                 newBody.append(bodyIndent + evt.asText())
                 if not self.model.module.classes[\
                   self.model.main].methods.has_key(evt.trigger_meth):
-                    print self.model.main, self.model.module.classes[self.model.main].extent
                     self.model.module.addMethod(self.model.main, 
                       evt.trigger_meth, 'self, event', ['        pass'])
 
@@ -330,8 +321,6 @@ class InspectableObjectCollectionView(EditorViews.EditorView):
         # XXX Move toolbar up to the 1st position after the frame
 
         for ctrlName in self.objectOrder:
-            print 'Saving', ctrlName
-
             definedCtrls.append(ctrlName)
             compn = self.objects[ctrlName][0]
             try:
@@ -376,7 +365,6 @@ class InspectableObjectCollectionView(EditorViews.EditorView):
         
         if self.model.module.classes[self.model.main].methods.has_key(\
           self.collectionMethod):
-            print 'Method exists', self.collectionMethod
             # Add doc string
             docs = self.model.module.getClassMethDoc(self.model.main, 
               self.collectionMethod)
@@ -452,7 +440,6 @@ class InspectableObjectCollectionView(EditorViews.EditorView):
         pass
 
     def deleteCtrl(self, name, parentRef = None):
-##        print 'DELETE CTRL', name
         self.model.objectCollections[self.collectionMethod].deleteCtrl(name)
         del self.objectOrder[self.objectOrder.index(name)]
         del self.objects[name]
@@ -462,10 +449,10 @@ class InspectableObjectCollectionView(EditorViews.EditorView):
 #                self.collEditors[(ctrlName, propName)].close()
                 del self.collEditors[(ctrlName, propName)]
 
-        print 'Deleted ctrl',
-        for ctrlName in self.objectOrder:
-            print ctrlName,
-        print
+##        print 'Deleted ctrl',
+##        for ctrlName in self.objectOrder:
+##            print ctrlName,
+##        print
 
     def cleanup(self):
         if self == self.inspector.prevDesigner:
@@ -895,7 +882,6 @@ class DesignerView(wxFrame, InspectableObjectCollectionView):
     def OnControlSelect(self, event):
         """ Control is clicked. Either select it or add control from palette """
         
-        print 'OnControlSelect', event.GetEventObject()
         ctrl = self.senderMapper.getObject(event)
 
         if ctrl == self:
@@ -977,7 +963,6 @@ class DesignerView(wxFrame, InspectableObjectCollectionView):
         event.Skip()
         
     def OnControlResize(self, event):
-        print 'Resize'
         try:
             if event.GetId() == self.GetId():
                 self.selection.selectCtrl(self, self.companion)
