@@ -1341,7 +1341,10 @@ class CollectionIddDTC(CollectionDTC):
         return props
 
     def evtName(self):
-        return '%s%s%d' % (self.name, self.propName, self.index)
+#        return '%s%s%d' % (self.name, self.propName, self.index)
+        base = self.newWinId('')
+        itemId = self.GetItemId(None)[len(base):].capitalize()
+        return '%s%s' % (self.name, itemId)
 
 ##    def setIndex(self, idx):
 ##        CollectionDCT.setIndex(idx)
