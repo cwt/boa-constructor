@@ -36,11 +36,11 @@ from Companions import Companions
 from Views.DiffView import PythonSourceDiffView
 from Views.AppViews import AppCompareView
 from Views import ObjCollection
-from PrefsKeys import keyDefs
-from Debugger import Debugger
+from Preferences import keyDefs
 from Utils import AddToolButtonBmpIS
 import moduleparse, relpath
 from sourceconst import *
+from Preferences import Debugger
 
 # Special import for the profiler
 import wxPython
@@ -48,6 +48,8 @@ from PhonyApp import wxProfilerPhonyApp
 from EditorHelper import *
 
 true = 1;false = 0
+
+_vc_hook = None
 
 class EditorModel:
     defaultName = 'abstract'
@@ -89,8 +91,11 @@ class EditorModel:
 
     def getDataAsLines(self):
         return string.split(self.data, '\012')
+
     def setDataFromLines(self, lines):
+        data = self.data
         self.data = string.join(lines, '\012')
+        self.modified = self.modified or self.data != data
 
 
     def notify(self):
@@ -213,6 +218,12 @@ class BasePersistentModel(EditorModel):
             self.transport.save(self.filename, self.data, mode='w')
             self.modified = false
             self.saved = true
+            
+            for view in self.views.values():
+                view.saveNotification()
+            
+            if _vc_hook:
+                _vc_hook.save(self.filename, self.data, mode='w')
         else:
             raise 'No filename'
 
@@ -268,10 +279,13 @@ class SourceModel(BasePersistentModel):
 
         blocks = Utils.split_seq(lines[start+1 : start+size], '=======')
         lines[start:start+size+1] = blocks[blockIdx]
-        self.data = self.setDataFromLines(lines)
+        self.setDataFromLines(lines)
 
         self.update()
         self.notify()
+        
+        self.editor.updateModulePage(self)
+        self.editor.updateTitle()
 
     def acceptConflictChange(self, conflict):
         self.applyChangeBlock(conflict, 1)
@@ -461,16 +475,33 @@ class ModuleModel(SourceModel):
             wx.wxLogWarning('Save before running Cyclops')
             raise 'Not saved yet!'
 
-    def debug(self, params = None):
+    def debug(self, params=None, cont_if_running=0, cont_always=0,
+              temp_breakpoint=None):
         if self.savedAs:
-            if self.editor.debugger:
-                self.editor.debugger.Show(true)
-            else:
-                self.editor.debugger = Debugger.DebuggerFrame(self)
-                self.editor.debugger.Show(true)
-                if params is None: params = []
-                self.editor.debugger.debug_file(self.editor.debugger.filename, params)
-
+            debugger = self.editor.debugger
+            if Preferences.useDebugger == 'old':
+                if debugger:
+                    debugger.Show(true)
+                else:
+                    self.editor.debugger = Debugger.DebuggerFrame(self)
+                    debugger = self.editor.debugger
+                    debugger.Show(true)
+                    if params is None: params = []
+                    debugger.debug_file(debugger.filename, params)
+            elif Preferences.useDebugger == 'new':
+                if not debugger:
+                    if self.defaultName != 'App' and self.app:
+                        filename = self.app.filename
+                    else:
+                        filename = self.filename
+                    debugger = Debugger.DebuggerFrame(self.editor, filename)
+                    debugger.setDebugClient()
+                    self.editor.debugger = debugger
+                    debugger.setParams(params)
+                debugger.Show(true)
+                debugger.ensureRunning(cont_if_running, cont_always,
+                                       temp_breakpoint)
+    
     def profile(self):
         # XXX Should change to the profile file directory
         if self.savedAs:
@@ -883,9 +914,9 @@ class BaseFrameModel(ClassModel):
         These custom classes will then be available to the Designer
         and will act as equivalent to the corresponding wxPython class,
         but will generate source for the custom definition.
-
+        
         One implication is that you loose the constructor. Because Boa
-        will generate the creation code for the object the constructor
+        will generate the creation code for the object, the constructor
         signature has to be the same as the wxPython class.
         """
         res = {}
@@ -1162,8 +1193,6 @@ class AppModel(ClassModel):
                 self.moduleModels[name], main = identifySource(
                     self.editor.modules[os.path.basename(absPath)\
                                        ].model.getModule().source)
-            else:
-                print 'could not find unsaved module', absPath, self.editor.modules
 
     def readModules(self):
         modS, modE = self.findModules()
@@ -1549,4 +1578,3 @@ def identifySource(source):
                 return headerInfo
         else:
             return ModuleModel, ''
- 
