@@ -29,6 +29,9 @@ from DebugClient import EVT_DEBUGGER_OK, EVT_DEBUGGER_EXC
 #from InProcessClient import InProcessClient
 from ChildProcessClient import ChildProcessClient
 
+# When an output window surpasses these limits, it will be trimmed.
+TEXTCTRL_MAXLEN = 30000
+TEXTCTRL_GOODLEN = 20000
 
 wxID_STACKVIEW = NewId()
 class StackViewCtrl(wxListCtrl):
@@ -569,6 +572,11 @@ def simplifyPathList(data,
     else:
         return list(string.split(str(data), os.pathsep))
 
+def compareColors(c1, c2):
+    return (c1.Red() == c2.Red() and
+            c1.Green() == c2.Green() and
+            c1.Blue() == c2.Blue())
+
 
 wxID_PAGECHANGED = NewId()
 wxID_TOPPAGECHANGED = NewId()
@@ -624,6 +632,8 @@ class DebuggerFrame(wxFrame):
         Utils.AddToolButtonBmpIS(self, self.toolbar, 
           'Images/Debug/Out.bmp', 'Out', self.OnOut)
         Utils.AddToolButtonBmpIS(self, self.toolbar, 
+          'Images/Debug/Pause.bmp',  'Pause', self.OnPause)
+        Utils.AddToolButtonBmpIS(self, self.toolbar, 
           'Images/Debug/Stop.bmp',  'Stop', self.OnStop)
         self.toolbar.AddSeparator()
         Utils.AddToolButtonBmpIS(self, self.toolbar, 
@@ -654,10 +664,12 @@ class DebuggerFrame(wxFrame):
         elif wxPlatform == '__WXGTK__':
             self.nbTop.AddPage(self.breakpts, 'Breakpoints')
 
-        self.outp = wxTextCtrl(self.nbTop, -1, '', style = wxTE_MULTILINE)
+        self.outp = wxTextCtrl(self.nbTop, -1, '',
+                               style = wxTE_MULTILINE | wxTE_READONLY)
         self.outp.SetBackgroundColour(wxBLACK)
         self.outp.SetForegroundColour(wxWHITE)
-        if (self.outp.GetForegroundColour() != (0xff, 0xff, 0xff)):
+        if (not compareColors(self.outp.GetBackgroundColour(), wxBLACK) or
+            not compareColors(self.outp.GetForegroundColour(), wxWHITE)):
             # The color setting was ignored.  Use standard colors instead.
             self.outp.SetBackgroundColour(wxWHITE)
             self.outp.SetForegroundColour(wxBLACK)
@@ -729,8 +741,6 @@ class DebuggerFrame(wxFrame):
         
     def invalidatePanes(self):
         self.updated_panes = [0, 0, 0]
-        # TODO: We may also want to clear the panes here
-        # to show to the user that the data is not loaded yet.
 
     def updateSelectedPane(self, pageno=-1, do_request=1):
         if pageno < 0:
@@ -846,13 +856,26 @@ class DebuggerFrame(wxFrame):
             # The user is looking at the output page.
             self.stream_timer.Start(300, 1)  # One-shot mode.
 
+    def appendToOutputWindow(self, t):
+        # Before appending to the output, remove old data.
+        outp = self.outp
+        cursz = outp.GetLastPosition()
+        newsz = cursz + len(t)
+        if newsz >= TEXTCTRL_MAXLEN:
+            #outp.Remove(0, min(newsz - TEXTCTRL_GOODLEN, cursz))
+            olddata = outp.GetValue()[newsz - TEXTCTRL_GOODLEN:]
+            outp.SetValue(olddata)
+        outp.AppendText(t)
+
     def updateOutputWindow(self):
-        # TODO: Trim output before reaching 32K.
-        stdout_text, stderr_text = self.debug_client.pollStreams()
-        if stdout_text:
-            self.outp.AppendText(stdout_text)
-        if stderr_text:
-            self.outp.AppendText(stderr_text)
+        while 1:
+            stdout_text, stderr_text = self.debug_client.pollStreams()
+            if stdout_text:
+                self.appendToOutputWindow(stdout_text)
+            if stderr_text:
+                self.appendToOutputWindow(stderr_text)
+            if not stdout_text and not stderr_text:
+                break
         
     def OnUpperPageChange(self, event):
         sel = event.GetSelection()
@@ -958,10 +981,10 @@ class DebuggerFrame(wxFrame):
         # Get stdout and stderr if available.
         data = info.get('stdout', None)
         if data:
-            self.outp.AppendText(data)
+            self.appendToOutputWindow(data)
         data = info.get('stderr', None)
         if data:
-            self.outp.AppendText(data)
+            self.appendToOutputWindow(data)
 
         # Determine the current lineno, filename, and
         # funcname from the stack.
@@ -1086,6 +1109,7 @@ class DebuggerFrame(wxFrame):
     def doDebugStep(self, method=None, temp_breakpoint=None):
         if self.stepping_enabled:
             self.disableStepping()
+            self.clearStepPos()
             self.invalidatePanes()
             self.updateSelectedPane(do_request=0)
             if not self.running:
@@ -1094,10 +1118,12 @@ class DebuggerFrame(wxFrame):
                 self.proceedAndRequestStatus(method, temp_breakpoint)
             return 1
         else:
+            if temp_breakpoint:
+                self.setBreakpoint(temp_breakpoint[0],
+                                   temp_breakpoint[1], 1)
             return 0
 
     def OnDebug(self, event):
-        # Continue only if not running.
         self.doDebugStep('set_continue')
 
     def OnStep(self, event):
@@ -1108,6 +1134,11 @@ class DebuggerFrame(wxFrame):
 
     def OnOut(self, event):
         self.doDebugStep('set_step_out')
+
+    def OnPause(self, event):
+        # Only meaningful when running.
+        if not self.stepping_enabled:
+            self.invokeInDebugger('set_pause')
 
     def OnStop(self, event):
         self.enableStepping()
