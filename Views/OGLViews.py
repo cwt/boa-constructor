@@ -323,7 +323,215 @@ class PersistentOGLView(ScrollingContainer, EditorViews.EditorView):
         print self.canvas.HitTest(event.GetX(), event.GetX())
         event.Skip()
         
+
+class SortedUMLViewMix:
+    """ Currently uses topological sort to make the UML diagram
+    more readily readable on load.  Also resizes the diagram
+    to the space taken by the actual diagram elements so that
+    very large diagrams can be accomodated.
+
+    The resulting diagrams are far more white-space-intensive
+    than the original jumbles.  A more appropriate algorithm
+    may be found by someone else.
+    """
+##    def refreshCtrl(self):
+##        """Re-written to call buildShapes instead of the processLevel method"""
+##        dc = wxClientDC(self.canvas)
+##        self.canvas.PrepareDC(dc)
+##
+##        self.destroyShapes()
+##        self.AllClasses = {}
+##
+##        self.buildShapes(dc)
+##        PersistentOGLView.refreshCtrl(self)
+    def getShapeSize( self, shape ):
+        """Return the size of a shape's representation, an abstraction point"""
+        return shape.GetBoundingBoxMax()
+    def getCurrentShape( self, className ):
+        """Attempt to retrieve an already-existing class model object, another abstraction point"""
+        return self.AllClasses.get( className )
+    
+    def buildShapes( self, dc ):
+        """Retrieve the current module and build the graph elements
         
+        Where possible, re-use the already-built class shapes.
+        Uses toposort to attempt to arrange the shapes after
+        they have been built.
+        """
+        module = self.model.getModule()
+        routes = []
+        nodes = []
+        todo = [ module.createHierarchy() ]
+        while todo:
+            hierarchy = todo[0]
+            for className in hierarchy.keys():
+                if self.getCurrentShape( className ):
+                    if className not in nodes:
+                        nodes.append( className )
+                else:
+                    # build a new node...
+                    if module.classes.has_key(className):
+                        # this is a local class (defined in this module)
+                        classModel = module.classes[className]
+                        classShape = self.newClass(
+                            (20, 30), (0, 0),
+                            className,
+                            classModel.methods.keys(),
+                            classModel.attributes.keys()
+                        )
+                    else:
+                        # external class
+                        classShape = self.newExternalClass(
+                            (20, 30), (0,0),
+                            className,
+                        )
+                    self.AllClasses[className] = classShape
+                    nodes.append( className )
+                    classShape.SetId(1000 + len(self.AllClasses))
+                # hierarchy maps the children of the classes by name
+                if hierarchy.get( className ):
+                    todo.append( hierarchy.get(className) )
+                    children = hierarchy.get(className).keys()
+                    for child in children:
+                        if (className, child) not in routes:
+                            routes.append( (className, child) )
+            del todo[0]
+        for parent, child in routes:
+            self.newLine(dc, self.getCurrentShape(child), self.getCurrentShape(parent), )
+        # now make it look nice...
+        self.arrangeShapes( dc, nodes, routes)
+    def arrangeShapes( self, dc, nodes, routes, whiteSpaceFactor = 1.1 ):
+        """Given the nodes and routes (values are names only), arrange the shapes
+
+        This could be called as an action after the initial display if prefered.
+        """
+        # okay, we've now built all of the nodes and collected all routes...
+        generations = sort( nodes, routes )
+        # now display the generations...
+        # calculate width + height of all elements
+        sizes = []
+        for generation in generations:
+            sizes.append([])
+            for child in generation:
+                sizes[-1].append( self.getShapeSize(self.getCurrentShape(child)))
+        # calculate total width and total height
+        width = 0
+        height = 0
+        widths = []
+        heights = []
+        for generation in sizes:
+            currentWidth = 0
+            currentHeight = 0
+            for x,y in generation:
+                if y > currentHeight:
+                    currentHeight = y
+                currentWidth = currentWidth + x
+            # update totals
+            if currentWidth > width:
+                width = currentWidth
+            height = height + currentHeight
+            # store generation info
+            widths.append( currentWidth )
+            heights.append( currentHeight )
+        # add in some whitespace so we can see lines...
+        width = width * whiteSpaceFactor
+        rawHeight = height
+        height = height * whiteSpaceFactor
+        verticalWhiteSpace = (height-rawHeight)/(len(generations)-1.0 or 2.0)
+        self.setSize( wxSize(width+50, height+50)) # fudge factors to keep some extra space
+        # distribute each generation across the width
+        # and the generations across height
+        y = 0
+        for currentWidth, currentHeight, generation in map( None, widths, heights, generations ):
+            x = 0
+            # whiteSpace is the space between any two elements...
+            whiteSpace = (width - currentWidth)/(len(generation)-1.0 or 2.0)
+            for className in generation:
+                classShape = self.getCurrentShape(className)
+                shapeX, shapeY = self.getShapeSize(classShape)
+                classShape.Move(
+                    dc,
+                    (shapeX/2)+x,
+                    (shapeY/2)+y,
+                    FALSE, # don't display until finished
+                )
+                x = x + shapeX + whiteSpace
+            y = y + currentHeight + verticalWhiteSpace
+
+
+class RecursionError( OverflowError, ValueError ):
+    """ Unable to calculate result because of recursive structure """
+
+def sort(nodes, routes, noRecursion=1):
+    """ Passed a list of node IDs and a list of source,dest ID routes
+    attempt to create a list of stages where each sub list
+    is one stage in a process.
+    """
+    children, parents = _buildChildrenLists(routes)
+    # first stage is those nodes
+    # having no incoming routes...
+    stage = []
+    stages = [stage]
+    taken = []
+    for node in nodes:
+        if (not parents.get(node)):
+            stage.append (node)
+    if nodes and not stage:
+        # there is no element which does not depend on
+        # some other element!!!
+        stage.append( nodes[0])
+    taken.extend( stage )
+    nodes = filter ( lambda x, l=stage: x not in l, nodes )
+    while nodes:
+        previousStageChildren = []
+        nodelen = len(nodes)
+        # second stage are those nodes
+        # which are direct children of the first stage
+        for node in stage:
+            for child in children.get (node, []):
+                if child not in previousStageChildren and child not in taken:
+                    previousStageChildren.append(child)
+                elif child in taken and noRecursion:
+                    raise RecursionError( (child, node) )
+        # unless they are children of other direct children...
+        # TODO, actually do that...
+        stage = previousStageChildren
+        removes = []
+        for current in stage:
+            currentParents = parents.get( current, [] )
+            for parent in currentParents:
+                if parent in stage and parent != current:
+                    # might wind up removing current...
+                    if not current in parents.get(parent, []):
+                        # is not mutually dependent...
+                        removes.append( current )
+        for remove in removes:
+            while remove in stage:
+                stage.remove( remove )
+        stages.append( stage)
+        taken.extend( stage )
+        nodes = filter ( lambda x, l=stage: x not in l, nodes )
+        if nodelen == len(nodes):
+            if noRecursion:
+                raise RecursionError( nodes )
+            else:
+                stages.append( nodes[:] )
+                nodes = []
+    return stages
+
+def _buildChildrenLists (routes):
+    childrenTable = {}
+    parentTable = {}
+    for sourceID,destinationID in routes:
+        currentChildren = childrenTable.get( sourceID, [])
+        currentParents = parentTable.get( destinationID, [])
+        if not destinationID in currentChildren:
+            currentChildren.append ( destinationID)
+        if not sourceID in currentParents:
+            currentParents.append ( sourceID)
+        childrenTable[sourceID] = currentChildren
+        parentTable[destinationID] = currentParents
+    return childrenTable, parentTable
 
 if wxPlatform == '__WXGTK__':
     boldFont = wxFont(12, wxDEFAULT, wxNORMAL, wxBOLD, false)
@@ -332,7 +540,7 @@ else:
     boldFont = wxFont(7, wxDEFAULT, wxNORMAL, wxBOLD, false)
     font = wxFont(7, wxDEFAULT, wxNORMAL, wxNORMAL, false)
 
-class UMLView(PersistentOGLView):
+class UMLView(PersistentOGLView, SortedUMLViewMix):
     ext = '.umllay'
     viewName = 'UML'
     showAttributes = 1
@@ -409,41 +617,41 @@ class UMLView(PersistentOGLView):
 
         return self.shapes[idx]
 
-    def processLevel(self, dc, hierc, pos, incx, fromShape = None):
-        module = self.model.getModule()
-        for clss in hierc.keys():
-            if self.AllClasses.has_key(clss):
-                toShape = self.AllClasses[clss]
-                px, py = pos[0], pos[1]
-            else:
-                if module.classes.has_key(clss):
-                    toShape = self.newClass((20, 30), (pos[0], pos[1]),
-                      clss, module.classes[clss].methods.keys(),
-                       module.classes[clss].attributes.keys())
-                    self.AllClasses[clss] = toShape
-                else:
-                    toShape = self.newExternalClass((20, 30), (pos[0], pos[1]), clss)
-                    self.AllClasses[clss] = toShape
-                toShape.SetId(1000 + len(self.AllClasses))
-                k = hierc[clss].keys()
-                if len(k):
-                    px, py, incx = self.processLevel(dc, hierc[clss],
-                        [pos[0], pos[1]+incy], incx, toShape)
-                else: px, py = pos[0], pos[1]
-            if fromShape:
-                self.newLine(dc, toShape, fromShape)
-
-            pos[0] = px + incx
-            if pos[0] > 700:
-                pos[1] = py + incy
-                pos[0] = 40
-                incx = incx *-1
-            elif pos[0] < 40:
-                pos[1] = py + incy
-                pos[0] = 700
-                incx = incx *-1
-
-        return pos[0], pos[1], incx
+##    def processLevel(self, dc, hierc, pos, incx, fromShape = None):
+##        module = self.model.getModule()
+##        for clss in hierc.keys():
+##            if self.AllClasses.has_key(clss):
+##                toShape = self.AllClasses[clss]
+##                px, py = pos[0], pos[1]
+##            else:
+##                if module.classes.has_key(clss):
+##                    toShape = self.newClass((20, 30), (pos[0], pos[1]),
+##                      clss, module.classes[clss].methods.keys(),
+##                       module.classes[clss].attributes.keys())
+##                    self.AllClasses[clss] = toShape
+##                else:
+##                    toShape = self.newExternalClass((20, 30), (pos[0], pos[1]), clss)
+##                    self.AllClasses[clss] = toShape
+##                toShape.SetId(1000 + len(self.AllClasses))
+##                k = hierc[clss].keys()
+##                if len(k):
+##                    px, py, incx = self.processLevel(dc, hierc[clss],
+##                        [pos[0], pos[1]+incy], incx, toShape)
+##                else: px, py = pos[0], pos[1]
+##            if fromShape:
+##                self.newLine(dc, toShape, fromShape)
+##
+##            pos[0] = px + incx
+##            if pos[0] > 700:
+##                pos[1] = py + incy
+##                pos[0] = 40
+##                incx = incx *-1
+##            elif pos[0] < 40:
+##                pos[1] = py + incy
+##                pos[0] = 700
+##                incx = incx *-1
+##
+##        return pos[0], pos[1], incx
 
 
     def refreshCtrl(self):
@@ -453,13 +661,16 @@ class UMLView(PersistentOGLView):
         self.destroyShapes()
         self.AllClasses = {}
 
-        module = self.model.getModule()
-        hierc = module.createHierarchy()
+        # Sort shapes, mixin method
+        self.buildShapes(dc)
 
-        pos = [40, 40]
-
-        incx = 40
-        self.processLevel(dc, hierc, pos, incx)
+##        module = self.model.getModule()
+##        hierc = module.createHierarchy()
+##
+##        pos = [40, 40]
+##
+##        incx = 40
+##        self.processLevel(dc, hierc, pos, incx)
 
         PersistentOGLView.refreshCtrl(self)
 
@@ -519,6 +730,8 @@ class UMLView(PersistentOGLView):
             (self.menuShape, self.menuClass) = (shape, name)
             self.PopupMenu(self.menuStdClass, wxPoint(x, y))
             (self.menuShape, self.menuClass) = (None, None)
+
+#-------------------------------------------------------------------------------
 
 class ImportsView(PersistentOGLView):
     ext = '.implay'
@@ -689,4 +902,4 @@ class __Cleanup:
 
 # when this module gets cleaned up then wxOGLCleanUp() will get called
 __cu = __Cleanup()
-   
+    
