@@ -86,6 +86,7 @@ PaletteStore.compInfo[wxLEDNumberCtrl] = ['wxLEDNumberCtrl', LEDNumberCtrlDTC]
 class EditableListBoxDTC(GizmoDTCMix, Companions.PanelDTC):
     def __init__(self, name, designer, parent, ctrlClass):
         Companions.PanelDTC.__init__(self, name, designer, parent, ctrlClass)
+        self.editors['Strings'] = PropertyEditors.BITPropEditor
         self.ctrlDisabled = true
 
     def constructor(self):
