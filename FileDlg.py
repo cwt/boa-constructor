@@ -82,6 +82,14 @@ class wxBoaFileDialog(wxDialog):
                 self.dlg = dlg
                 EVT_LIST_ITEM_SELECTED(self, self.GetId(), self.OnItemSelect)
                 EVT_LIST_ITEM_DESELECTED(self, self.GetId(), self.OnItemDeselect)
+                EVT_RIGHT_UP(self, self.OnListRightUp)
+                self.menu = wxMenu()
+                menuId = wxNewId()
+                self.menu.Append(menuId, 'New Folder')
+                EVT_MENU(self, menuId, self.OnNewFolder)
+                EVT_LIST_BEGIN_LABEL_EDIT(self, self.GetId(), self.OnBeginLabelEdit)
+                EVT_LIST_END_LABEL_EDIT(self, self.GetId(), self.OnEndLabelEdit)
+                
                 
             def OnItemSelect(self, event):
                 from Explorers import Explorer
@@ -91,13 +99,34 @@ class wxBoaFileDialog(wxDialog):
                     self.dlg.SelectItem(item.name)
                 elif self.selected == 0:
                     self.dlg.SelectItem('..')
+                event.Skip()
 
             def OnItemDeselect(self, event):
                 from Explorers import Explorer
                 Explorer.PackageFolderList.OnItemDeselect(self, event)
                 self.dlg.SelectItem(None)
+                event.Skip()
 
-        print 'FileDlg', self.currentDir, defaultDir
+            def OnListRightUp(self, event):
+                self.PopupMenu(self.menu, wxPoint(event.GetX(), event.GetY()))
+                
+            def OnNewFolder(self, event):
+                name = self.node.newFolder()
+                self.refreshCurrent()
+                self.selectItemNamed(name)
+                self.EditLabel(self.selected)
+
+            def OnBeginLabelEdit(self, event):
+                self.oldLabelVal = event.GetText()
+        
+            def OnEndLabelEdit(self, event):
+                newText = event.GetText()
+                if newText != self.oldLabelVal:# and isinstance(self.list.node, ZopeItemNode):
+                    event.Skip()
+                    self.node.renameItem(self.oldLabelVal, newText)
+                    self.refreshCurrent()
+                
+
         if defaultDir == '.':
             defaultDir = path.abspath(self.currentDir)
         else:
@@ -152,7 +181,6 @@ class wxBoaFileDialog(wxDialog):
         if self.lcFiles.selected == 0:
             node = self.lcFiles.node.createParentNode()
             if node: node.doCVS = false
-            print node.resourcepath, self.lcFiles.node.resourcepath
             if node.resourcepath == self.lcFiles.node.resourcepath:
                 from ExternalLib.ConfigParser import ConfigParser
                 import Preferences
