@@ -575,8 +575,13 @@ class NameConstrPropEdit(StrConstrPropEdit):
                 value = self.getCtrlValue()
 
             if value != self.value:
-                for c in value:
-                    if c not in string.letters+string.digits+'_':
+                if not value[1:-1]:
+                    message = 'Invalid name for Python object'
+                    wxLogError(message)
+                    return self.value
+                    
+                for c in value[1:-1]:
+                    if c not in string.letters+string.digits+'_':#"\'':
                         message = 'Invalid name for Python object'
                         wxLogError(message)
                         return self.value
@@ -722,14 +727,17 @@ class NamePropEdit(StrPropEdit):
                 if self.companion.designer.objects.has_key(value):
                     wxLogError('Name already used by another control.')
                     return self.value
-#                    raise 'Name already used by another control.'
+
+                if not value:
+                    message = 'Invalid name for Python object'
+                    wxLogError(message)
+                    return self.value
 
                 for c in value:
                     if c not in self.identifier:
                         message = 'Invalid name for Python object'
                         wxLogError(message)
                         return self.value
-#                        raise message
             self.value = value
         return self.value
     
