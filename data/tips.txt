@@ -8,4 +8,6 @@ Boa accepts a file as command line param which it will open on start up.
 You can edit Zope documents in Boa.
 Constructor properties are not live (yet). A frame has to be closed and reopened before changes will take effect.
 Boa now has Collection Editors!
+There are a few preferences you may change in Preferences.py, Prefs(MSW|GTK).py and PrefsKeys.py
+Please setup your Explorer.(msw|gtk).cfg file to point to commonly used locations.
 There are now keyboard shortcuts for most actions, see the help or PrefsKeys.py for a list.
