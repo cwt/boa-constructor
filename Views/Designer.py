@@ -24,8 +24,9 @@ import methodparse
 bodyIndent = ' '*8
 
 [wxID_CTRLPARENT, wxID_EDITCUT, wxID_EDITCOPY, wxID_EDITPASTE, wxID_EDITDELETE,
- wxID_SHOWINSP, wxID_SHOWEDTR, wxID_CTRLHELP, wxID_EDITALIGN, wxID_EDITSIZE] = \
- map(lambda _init_ctrls: wxNewId(), range(10))
+ wxID_SHOWINSP, wxID_SHOWEDTR, wxID_CTRLHELP, wxID_EDITALIGN, wxID_EDITSIZE,
+ wxID_EDITRECREATE, 
+] = map(lambda _init_ctrls: wxNewId(), range(11))
 
 class InspectableObjectCollectionView(EditorViews.EditorView):
     viewName = 'InspectableObjectCollection'
@@ -372,7 +373,10 @@ class InspectableObjectCollectionView(EditorViews.EditorView):
                 currMeth = [meth]
                 methList.append(currMeth)
             else:
-                currMeth.append(line)
+                try:
+                    currMeth.append(line)
+                except:
+                    print 'PASTE ERROR', input
         
         print methList
 
@@ -385,11 +389,8 @@ class InspectableObjectCollectionView(EditorViews.EditorView):
             if meth[0] == self.collectionMethod:
                 collMethod = meth[0]
                 methBody = meth[1:]
-#                del methList[idx]
-#                break
             else:
                 # XXX not good :(
-                print 'coll init meth', meth[0]
                 ctrlName = string.join(string.split(meth[0], '_')[3:-1], '_')
                 newObjColl = self.model.readDesignerMethod(meth[0], meth[1:])
                 methodparse.decorateCollItemInitsWithCtrl(newObjColl.creators, ctrlName)
@@ -406,9 +407,11 @@ class InspectableObjectCollectionView(EditorViews.EditorView):
         # Rename possible name clashes
         objCol.indexOnCtrlName()
         pns = objCol.getCtrlNames()
+        newNames = []
         for name, clss in pns:
             if name in self.objectOrder:
-                newName = self.newObjName(clss)
+                newName = self.newObjName(clss, newNames)
+                newNames.append(newName)
                 objCol.renameCtrl(name, newName)
                 pastedCtrls.append(newName)
                 for idx in range(len(collObjColls)):
@@ -430,6 +433,7 @@ class InspectableObjectCollectionView(EditorViews.EditorView):
 
         # Get previous parent, 1st item in the group's parent will always be
         # the root parent
+        # XXX Not working
         copySource = objCol.creators[0].params['parent']
         objCol.reparent(copySource, Utils.srcRefFromCtrlName(destCtrlName))
 
@@ -449,9 +453,10 @@ class InspectableObjectCollectionView(EditorViews.EditorView):
         if parentName is not None: self.objects[ctrlName].append(parentName)
         self.objectOrder.append(ctrlName)
                     
-    def newObjName(self, className):
+    def newObjName(self, className, additionalNames = None):
         """ Return a name for a control unique in the scope of the model. """
-
+        
+        if additionalNames is None: additionalNames = []
         # XXX Now that there is multiple maintained methods is may fail because
         # XXX it's only unique in the method.
         num = 1
@@ -460,7 +465,7 @@ class InspectableObjectCollectionView(EditorViews.EditorView):
         else:
             newName = '%s%s'%(string.lower(className[0]), className[1:])
 
-        return Utils.getValidName(self.objects.keys(), newName)
+        return Utils.getValidName(self.objects.keys() + additionalNames, newName)
 
     def newObject(self, objClass, objCompanionClass):
         """ At design time, when adding a new ctrl from the palette, create and
@@ -468,7 +473,6 @@ class InspectableObjectCollectionView(EditorViews.EditorView):
         """
 
         # XXX Only DataView uses this, refc
-        
         objName = self.newObjName(objClass.__name__)
 
         self.checkHost(objCompanionClass)            
@@ -679,6 +683,8 @@ class DesignerView(wxFrame, InspectableObjectCollectionView):
         self.menu.Append(wxID_EDITPASTE, 'Paste')
         self.menu.Append(wxID_EDITDELETE, 'Delete')
         self.menu.Append(-1, "-")
+        self.menu.Append(wxID_EDITRECREATE, 'Recreate')
+        self.menu.Append(-1, "-")
         self.menu.Append(wxID_EDITALIGN, 'Align...')
         self.menu.Append(wxID_EDITSIZE, 'Size...')
 
@@ -693,13 +699,16 @@ class DesignerView(wxFrame, InspectableObjectCollectionView):
         EVT_MENU(self, wxID_EDITCUT, self.OnCutSelected)
         EVT_MENU(self, wxID_EDITCOPY, self.OnCopySelected)
         EVT_MENU(self, wxID_EDITPASTE, self.OnPasteSelected)
+        EVT_MENU(self, wxID_EDITRECREATE, self.OnRecreateSelected)
         # Key bindings
         accLst = []
         for name, wId in (('Delete', wxID_EDITDELETE), 
                           ('Inspector', wxID_SHOWINSP), 
                           ('Editor', wxID_SHOWEDTR), 
                           ('ContextHelp', wxID_CTRLHELP),
-                          ('Escape', wxID_CTRLPARENT)):
+                          ('Escape', wxID_CTRLPARENT),
+                          ('Copy', wxID_EDITCOPY),
+                          ('Paste', wxID_EDITPASTE)):
             tpe, key = PrefsKeys.keyDefs[name]
             accLst.append((tpe, key, wId))
 
@@ -1202,6 +1211,9 @@ class DesignerView(wxFrame, InspectableObjectCollectionView):
 
             self.dataView.saveCtrls([])
             
+            self.refreshModel()
+
+            
         self.dataView.deleteFromNotebook('Source', 'Data')
 
         self.cleanup() 
@@ -1226,7 +1238,16 @@ class DesignerView(wxFrame, InspectableObjectCollectionView):
         self.inspector.Raise()
         
     def OnControlDelete(self, event):
-        self.inspector.OnDelete(event)
+        print 'OnControlDelete'
+        ctrls = []
+        if self.selection:
+            ctrls = [self.selection.name]
+        elif self.multiSelection:
+            ctrls = map(lambda sel: sel.name, self.multiSelection)
+        
+        #map(self.deleteCtrl, ctrls)
+        for ctrlName in ctrls:
+            self.deleteCtrl(ctrlName)
         
     def OnEditor(self, event):
         self.model.editor.Show(true)
@@ -1306,3 +1327,18 @@ class DesignerView(wxFrame, InspectableObjectCollectionView):
                 # XXX not selecting root component
                 self.selection.selectCtrl(self.objects[pasted[0]][1], 
                       self.objects[pasted[0]][0])        
+
+    def OnRecreateSelected(self, event):
+        if self.selection and self.selection.selection != self:
+            output = []
+            ctrlName = self.selection.name
+            # XXX Boa should be able to tell me this
+            parent = self.selection.selection.GetParent()
+            print parent
+            if parent.GetId() == self.GetId():
+                parentName = ''
+            else:
+                parentName = parent.GetName()
+                
+            self.cutCtrls([ctrlName], [], output)
+            self.pasteCtrls(parentName, output)
