@@ -8,7 +8,7 @@ which they are stored.
 Ideally there should be a library function to convert relative paths
 to absolute paths based on the path of the main Python module.
 
-Current Designer behaviour (under wxMSW) may seem weird where a
+Current Designer behaviour may seem weird where a
 single control is dropped on a frame; At first the control keeps its
 default size, but when the frame is resized, it fills the frame.
 (toolbars, statusbars and menubars connected to the frame are 
@@ -44,6 +44,11 @@ To run Boa in Cyclops, turn the cyclopsing flag on in Palette.py
 
 Other bugs
 ----------
+
+The profiler only works for Python scripts and Boa itself, not for
+other wxPython applications.
+
+Recreate controls not implemented for the Data View.
 
 ToolBars confuse the Designer (and the author).
 Components are offset by the height of the toolbar
@@ -109,8 +114,6 @@ difference
 
 Toolbars don't work correctly in the designer
 
-CVS explorers do not pick up their selection correctly and 
-always report '.'
-
+Designer:
 Grid is drawn in the wrong colour (GTK's SetBackgroundColour also 
 does not work correctly)

@@ -1,35 +1,8 @@
 To do
 -----
 
-UPDATE CVS
-
-for 0.0.5
----------
-
-Visual clipboard functionality: Cut, Copy & Paste.
-
-Multiple selection in the designer.
-- Selections must still update source code after moving
-
-Zope object creation/clipboard support.
-
-CVS update/diff/commit support
-- Import needs to setup masks for recognised file types
-
-Python 2.0 compatability
-
-Menus on Explorer trees to edit config
-
-Toolbar tools for explorer
-
-Debugger polishing
-- Trace in source
-
-Renamings on clipboard paste file clashes
-
-*
-Other Features
---------------
+High level features
+-------------------
 
 Better default property handling, possibly cutting some cruft from
 generated source by omitting unchanged defaults.
@@ -41,15 +14,9 @@ Sizers need various methods and will be done as soon as I overcome this
 limitation.
 Menus will then also support sub-menus and separators.
 
-Constructor style property editor
-
 C++, Makefile support. Personally I plan very basic support and hope
 that someone else will take this further. This should expand into
 useful facilities for extension writing.
-
-Multi parameter method mapping to multiple properties
-
-Browser arrows to traverse actions like view switches, find, code browse etc.
 
 Template for threaded wxPython app?
 
@@ -59,6 +26,9 @@ There should be more interaction possible between your source and
 generated source, your objects should be allowed in generated code
 at worst these properties should just become inactive or grayed out
 while in design mode.
+
+Use tuples instead of wxSizes/wxPoints internally, tuples are much more
+efficient
 
 *
 Detail
@@ -84,12 +54,17 @@ Editor
   is sorted out. 
 - Change run/debug/compile to be methods on the model, not the source view
 - Goto CVS file from Open Module
+- Debug browsing should underline the word and all leftside sections
+- Save modified date when opening, check filedate before saving, incase
+  is was saved by someone else.
+- Stack trace should remember executing directory for relative filepaths
 
 Help
 - wx methods help: From Inspector while on property
 - Tag matches in results from search  to be able to jump to the next match
   in a file. Also have to tidy up colouring so that only text outside <>
   are coloured. This currently breaks some links.
+- Use wxHtmlHelpControllers
 
 Documentation View
 - Add functions to documentation
@@ -100,14 +75,12 @@ Explore View
 - Move method up/down actions
 - Switch to explorer view in the class and focused on the
   current method
+- Optional sort on tree
 
 Tree Views
 - Remember which nodes are open and reopen after refreshing
 
 Zope
-- Propery editing (Maybe in Inspector)
-  - Parse <FORM> tags from zope prop pages?
-  - XMLRPC
 - Replacing FTP completely with http
   - Advantages
     - Zope does not need zserver or ftp setup
@@ -125,6 +98,7 @@ Zope
 - ExternalMethods should be loaded from the local filesystem,
   ExternalMethods don't support properties (why??) and except for parsing
   HTML, I don't even know how to access their info
+- Uploading images/files
 
 Collection editors
 - Move up, move down
@@ -135,8 +109,9 @@ Debugging
 - Jump to should not place jumped to line at the top
   or bottom of source page, at 5 lines from top or bottom
 - Multi selection delete in watches
-- Step over steps in
 - Closing with open debugger crashes
+- Debug browsing should eval selection (this conflicts with 
+  execution point line selection)
 
 UML
 - Make view scrollable and size able
@@ -148,6 +123,8 @@ Explorer
   any open applications
 - Check file operations against open modules
 - Connect opened module if possible to an open app module
+- Bind backspace to folder up, F2 to rename
+- Bind Insert to New menu
 
 Companions
 - Better initial sizes for a few controls
@@ -159,10 +136,11 @@ CVS
 - Visual interface to set options
 - Update open modules if a cvs operation modified an
   open module
+- CVS update/diff/commit support
+- Import needs to setup masks for recognised file types
+
 
 App
-- Add README, CHANGES, INSTALL, BUGS, TODO as optional
-  views on the AppModel
 - App may not have wxDialog as main frame because an app object
   does not quit with dialog as main frame.
 
@@ -177,9 +155,15 @@ Python 2.0
 
 Designer
 - wxDialogs should use wxDialog intead of wxFrame
+- Add Palette as Popup menu. e.g. New->Container/Layout->wxPanel
+  - Bind Inser to Popup New menu
+- Cursor keys should navigate thru controls
 
 GTK
-- Incremental typing lookup on wxListCtrl, hopefully in a parent high up :)
+- Incremental typing lookup on wxListCtrl, hopefully in a base class high up :)
+
+Documentation
+- 
 
 *
 Roadmap
@@ -195,12 +179,12 @@ Boa 1.0
 Boa 2.0
 - Database support
   - DB Aware controls
-  - One exiting possibility is hooking a db aware control
+  - One possibility is hooking a db aware control
     framework to the ZODB
 - C/C++ extension writing and possibly debugging support
 - wxWindows C++ code generation (maybe)
-- Simple project planning utils, timelines, feature management
-- Distutils distribution packaging
+- Distutils/Installer distribution packaging
+- Help projects
 - Validators
 
 

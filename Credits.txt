@@ -24,3 +24,7 @@ Kevin Gill <kevin@telcotek.com>
 * Feature additions
   * Multiple inheritance in Hierarchy view
   * UMLView
+Robert Boulanger
+* Zope integration (BOAZOA branch in CVS)
+
+Also thanks to Kevin Light for bug fixes

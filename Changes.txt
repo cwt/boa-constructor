@@ -3,6 +3,8 @@ Changes
 
 -- 0.0.5 --
 
+00-09-01 - 01-03-18
+
 * New Getting Started Guide and Tutorial
 * Support for window layout with Anchors integrated with the Designer
 * Redid the Explorer, the following explorer types supported
