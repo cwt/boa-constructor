@@ -19,12 +19,6 @@ try:
 except ImportError:
     raise ImportError, 'The "bcrtl" package is not installed, turn on "installBCRTL" under Preferences'
 
-# Defines a new page for the palette
-PaletteStore.paletteLists['User'] = []
-# Adds the page to the palette
-PaletteStore.palette.append(['User', 'Editor/Tabs/User',
-                             PaletteStore.paletteLists['User']])
-
 #-------------------------------------------------------------------------------
 
 # Objects which Boa will need at design-time needs to be imported into the
