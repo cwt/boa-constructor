@@ -38,6 +38,8 @@ keyDefs = {
   'Escape'      : (wxACCEL_NORMAL, WXK_ESCAPE),
   'NextPage'    : (wxACCEL_CTRL, ord('K')),
   'PrevPage'    : (wxACCEL_CTRL, ord('J')),
+  'Copy'        : (wxACCEL_CTRL, WXK_INSERT),
+  'Paste'       : (wxACCEL_SHIFT, WXK_INSERT), 
 }
 
 if wxPlatform == '__WXMSW__':
