@@ -18,7 +18,7 @@ from wxPython.wx import *
 import Preferences, Utils
 
 import sourceconst
-import PaletteMapping, Help
+import PaletteMapping, PaletteStore, Help
 
 from InspectableViews import InspectableObjectView
 
@@ -87,7 +87,7 @@ class DataView(wxListCtrl, InspectableObjectView):
             try:
                 classObj = PaletteMapping.evalCtrl(ctrl.class_name)
                 className = classObj.__name__
-                idx1 = self.il.Add(PaletteMapping.bitmapForComponent(classObj))
+                idx1 = self.il.Add(PaletteStore.bitmapForComponent(classObj))
             except:
                 # XXX Check this !!
                 className = ctrl.class_name
@@ -96,9 +96,9 @@ class DataView(wxListCtrl, InspectableObjectView):
                     base = module.classes[className].super[0]
                     try: base = base.__class__.__name__
                     except: pass #print 'ERROR', base
-                    idx1 = self.il.Add(PaletteMapping.bitmapForComponent(className, base))
+                    idx1 = self.il.Add(PaletteStore.bitmapForComponent(className, base))
                 else:
-                    idx1 = self.il.Add(PaletteMapping.bitmapForComponent(className, 'Component'))
+                    idx1 = self.il.Add(PaletteStore.bitmapForComponent(className, 'Component'))
 
             self.InsertImageStringItem(self.GetItemCount(), '%s : %s' % (ctrl.comp_name, className), idx1)
         self.opened = true
