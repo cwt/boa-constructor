@@ -1058,6 +1058,9 @@ def setSTCStyles(stc, styles, styleIdNames, commonDefs, lang, lexer, keywords):
 #---Config reading and writing -------------------------------------------------
 commonDefsFile = 'common.defs.%s'%(wxPlatform == '__WXMSW__' and 'msw' or 'gtk')
 
+def readPyValFromConfig(conf, name):
+    return eval(string.replace(conf.Read(name), '\r\n', '\n')+'\n')
+
 def initFromConfig(configFile, lang):
     cfg = wxFileConfig(localFilename=configFile, style=wxCONFIG_USE_LOCAL_FILE)
     cfg.SetExpandEnvVars(false)
@@ -1077,26 +1080,26 @@ def initFromConfig(configFile, lang):
         cont, val, idx = cfg.GetNextGroup(idx)
 
     # read in common elements
-    commonDefs = eval(cfg.Read(commonDefsFile))
+    commonDefs = readPyValFromConfig(cfg, commonDefsFile)
     assert type(commonDefs) is type({}), \
           'Common definitions (%s) not a valid dict'%commonDefsFile
 
-    commonStyleIdNames = eval(cfg.Read('common.styleidnames'))
+    commonStyleIdNames = readPyValFromConfig(cfg, 'common.styleidnames')
     assert type(commonStyleIdNames) is type({}), \
           'Common definitions (%s) not a valid dict'%'common.styleidnames'
 
     # Lang spesific settings
     cfg.SetPath(lang)
-    styleIdNames = eval(cfg.Read('styleidnames'))
+    styleIdNames = readPyValFromConfig(cfg, 'styleidnames')
     assert type(commonStyleIdNames) is type({}), \
           'Not a valid dict [%s] styleidnames)'%lang
     styleIdNames.update(commonStyleIdNames)
-    braceInfo = eval(cfg.Read('braces'))
+    braceInfo = readPyValFromConfig(cfg, 'braces')
     assert type(commonStyleIdNames) is type({}), \
           'Not a valid dict [%s] braces)'%lang
 
     displaySrc = cfg.Read('displaysrc')
-    lexer = eval(cfg.Read('lexer'))
+    lexer = readPyValFromConfig(cfg, 'lexer')
     keywords = cfg.Read('keywords')
 
     cfg.SetPath('')
