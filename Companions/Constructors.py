@@ -24,11 +24,6 @@ class ChoicesConstr(PropertyKeywordConstructor):
     def constructor(self):
         return {'Name': 'name', 'Entries': 'choices'}
 
-class AcceleratorTableEntriesConstr(PropertyKeywordConstructor):
-    def constructor(self):
-        return {'Name': 'name', 'Flags': 'flags', 'KeyCode': 'keyCode',
-                'Command': 'cmd'}
-
 class WindowConstr(PropertyKeywordConstructor):
     def constructor(self):
         return {'Position': 'pos', 'Size': 'size', 'Style': 'style', 'Name': 'name'}
@@ -50,22 +45,6 @@ class WindowConstr(PropertyKeywordConstructor):
 
 ##wxScrolledWindow(wxWindow* parent, wxWindowID id = -1, const wxPoint& pos = wxDefaultPosition,
 ##const wxSize& size = wxDefaultSize long, style = wxHSCROLL | wxVSCROLL, const wxString& name = "scrolledWindow")
-
-class MenuBarConstr(PropertyKeywordConstructor):
-    def constructor(self):
-        return {'Style': 'style', 'Name': 'name'}
-
-class MenuBarMenusConstr(PropertyKeywordConstructor):
-    def constructor(self):
-        return {'Menu': 'menu', 'Title': 'title'}
-
-class BitmapButtonConstr(PropertyKeywordConstructor):
-    def constructor(self):
-        return {'Bitmap': 'bitmap', 'Position': 'pos', 'Size': 'size',
-                'Style': 'style', 'Validator': 'validator', 'Name': 'name'}
-##wxBitmapButton(wxWindow* parent, wxWindowID id, const wxBitmap& bitmap, const wxPoint& pos, const
-##wxSize& size = wxDefaultSize, long style = wxBU_AUTODRAW, const wxValidator& validator, const
-##wxString& name = "button")
 
 
 class LabeledInputConstr(PropertyKeywordConstructor):
@@ -131,76 +110,3 @@ class MultiItemCtrlsConstr(PropertyKeywordConstructor):
 ##= wxDefaultSize, long style = wxSB_HORIZONTAL, const wxValidator& validator = wxDefaultValidator,
 ##const wxString& name = "scrollBar")
 
-
-class HtmlWindowConstr(PropertyKeywordConstructor):
-    def constructor(self):
-        return {'Position': 'pos', 'Size': 'size', 'Name': 'name'}
-
-##wxHtmlWindow(wxWindow *parent, wxWindowID id = -1, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize,
-##long style = wxHW_SCROLLBAR_AUTO, const wxString& name = "htmlWindow")
-
-class RadioBoxConstr(PropertyKeywordConstructor):
-    def constructor(self):
-        return {'Label': 'label', 'Position': 'point', 'Size': 'size',
-                'Choices': 'choices', 'MajorDimension': 'majorDimension',
-                'Style': 'style', 'Validator': 'validator', 'Name': 'name'}
-##wxRadioBox(wxWindow* parent, wxWindowID id, const wxString& label, const wxPoint& point =
-##wxDefaultPosition, const wxSize& size = wxDefaultSize, int n = 0, const wxString choices[] = NULL, int
-##majorDimension = 0, long style = wxRA_SPECIFY_COLS, const wxValidator& validator =
-##wxDefaultValidator, const wxString& name = "radioBox")
-
-
-class StaticBitmapConstr(PropertyKeywordConstructor):
-    def constructor(self):
-        return {'Bitmap': 'bitmap', 'Label': 'label', 'Position': 'pos',
-                'Size': 'size', 'Style': 'style', 'Name': 'name'}
-##wxStaticBitmap(wxWindow* parent, wxWindowID id, const wxBitmap& label = "", const wxPoint& pos, const
-##wxSize& size = wxDefaultSize, long style = 0, const wxString& name = "staticBitmap")
-
-class TextCtrlConstr(PropertyKeywordConstructor):
-    def constructor(self):
-        return {'Value': 'value', 'Position': 'pos', 'Size': 'size',
-                'Style': 'style', 'Validator': 'validator', 'Name': 'name'}
-##wxTextCtrl(wxWindow* parent, wxWindowID id, const wxString& value = "", const wxPoint& pos, const
-##wxSize& size = wxDefaultSize, long style = 0, const wxValidator& validator, const wxString& name = "text")
-
-class ImageListConstr(PropertyKeywordConstructor):
-    def constructor(self):
-        return {'Name': 'name', 'Width': 'width', 'Height': 'height'}
-##, 'Masked': 'mask',
-##                'InitialCount': 'initialCount'}
-
-class MenuConstr(PropertyKeywordConstructor):
-    def constructor(self):
-        return {'Name': 'name', 'Title': 'title'}
-
-class ListCtrlColumnsConstr(PropertyKeywordConstructor):
-    def constructor(self):
-        return {'Column': 'col', 'Heading': 'heading', 'Format': 'format',
-                'Width': 'width'}
-
-class ImageListImagesConstr(PropertyKeywordConstructor):
-    def constructor(self):
-        return {'Bitmap': 'bitmap', 'Mask': 'mask'}
-
-class StatusBarFieldsConstr(PropertyKeywordConstructor):
-    def constructor(self):
-        return {'Index': 'i', 'Text': 'text', 'Width': 'width'}
-
-class NotebookPageConstr(PropertyKeywordConstructor):
-    def constructor(self):
-        return {'Page': 'page', 'Text': 'text',
-                'Selected' : 'select', 'ImageId': 'imageId'}
-
-class AcceleratorTableEntriesConstr(PropertyKeywordConstructor):
-    def constructor(self):
-        return {'Entries': 'choices'}
-
-class LayoutConstraintsConstr(PropertyKeywordConstructor):
-    def constructor(self):
-        return {'Relationship': 'rel', 'Edge': 'edge', 'OtherEdge': 'otherEdge',
-                'OtherWindow' : 'otherWin', 'Value': 'value', 'Margin': 'margin'}
-
-class SizerControlsConstr(PropertyKeywordConstructor):
-    def constructor(self):
-        return {'Window': 'window', 'Option': 'option', 'Flag': 'flag', 'Border': 'border'}
