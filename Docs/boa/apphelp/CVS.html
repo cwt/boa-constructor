@@ -1,0 +1,117 @@
+<html><head><title>CVS</title></head>
+<body text="#000000" bgcolor="#FFFFFF" link="#0000FF" vlink="#000099" alink="#FF0000">
+
+<center><a href="index.html"><img SRC="contents.gif" ALT="Home" BORDER=0></a></center>
+
+<table BORDER=0 CELLSPACING=0 CELLPADDING=2 WIDTH="100%" BGCOLOR="#000000" >
+  <tr><td>
+  <table BORDER=0 CELLSPACING=0 WIDTH="100%" BGCOLOR="#FFFFFF" >
+    <tr><td BGCOLOR="#ddeeff">
+    <center><img SRC="dot.gif" height=1 width=1></center>
+    </td></tr>
+  </table>
+  </td></tr>
+</table>
+
+
+
+<h2>
+<img SRC="Editor.jpg" height=32 width=32>&nbsp; CVS</h2>
+
+
+
+
+CVS browsing and operations are supported.
+<p>
+<b><i>Requirements</i></b><br>
+Command-line CVS has to be installed and working before CVS operations will 
+work in Boa. CVS operations are implemented as a thin wrapper on top of command line cvs. 
+You should therefor have a working knowledge of cvs before using this facility.<br>
+CVS over SSH is also supported, but only if keys are used and created with empty passphrases.<br>
+<p>
+Command-line CVS requires the following:
+<ul>
+  <li><b>cvs.exe</b> for Windows, available from 
+      <a href="http://ftp.cvshome.org/win32/cvs1-11.zip">http://ftp.cvshome.org/win32/cvs1-11.zip</a> 
+      on Linux cvs is part of most standard distributions.
+  <li>The file cvs.exe must be on the system path (<b>$PATH</b>).
+  <li>The <b>$HOME</b> environment variable be defined to point at a valid directory.
+</ul>
+On Windows NT environment variables can be set from My Computer->Properties-Environment<br>
+On Win9x environment variables can be set in AUTOEXEC.BAT.<br>
+e.g. Say your cvs.exe is in C:\CVSBIN and you have a directory called C:\HOME, you should add<br>
+<b>PATH=%PATH%;C:\CVSBIN</b><br>
+<b>HOME=C:\HOME</b><br>
+to the end of your AUTOEXEC.BAT file. 
+<p>
+<b><i>Checking out a local copy</i></b><br>
+The first thing you have to do before any CVS operation is to login.<br>
+When you log in, the CVSROOT and password is saved in <b>.cvspass</b> in the home directory ($HOME). 
+No communication with the server takes place. CVS uses the .cvspass file for subsequent operations.
+Logging out simply removes the entry from .cvspass.<br>
+It is recommended that you do not logout, this way you do not have to reenter CVSROOT.<br>
+<p>
+In any directory in the Explorer, right click and choose CVS->Login to log in to a CVS repository.<br>
+Fill in the repository's CVSROOT, e.g.:<br>
+<b>:pserver:anonymous@cvs.boa-constructor.sourceforge.net:/cvsroot/boa-constructor</b><br>
+Next you will be prompted for a password. For anonymous CVS access to Boa the password is empty, 
+just press enter. <br>
+<p>
+To checkout, right click and choose CVS->Checkout. Next you will be prompted to choose a CVSROOT. 
+These are all the CVSROOTs defined in your .cvspass file.<br>
+On the given command line, change <b>[MODULE]</b> to the module you want to check out. 
+For Boa this is <b>boa</b>.<br>
+e.g. <b>cvs -z7 -d :pserver:anonymous@cvs.boa-constructor.sourceforge.net:/cvsroot/boa-constructor checkout -P boa</b>
+<p>
+<b><i>Browsing a local copy</i></b><br>
+Enter the cyan <b>CVS</b> <img src="CVSFolder.jpg"> directory of an already checked out module 
+in the Explorer to view the CVS status of the files.<br>
+These directories are created by CVS when a project is checked out of a CVS
+repository. 
+<p>
+The selection determines which files are passed to CVS on the 
+command line. When nothing is selected the the current directory '.' (the one 
+selected in the tree) is used.<br>
+The following CVS commands are supported:
+<ul>
+ <li>Update</li>
+ <li>Commit</li>
+ <li>Add</li>
+ <li>Add binary</li>
+ <li>Remove</li>
+ <li>Diff</li>
+ <li>Log</li>
+ <li>Status</li>
+ <li>Tag</li>
+ <li>Branch</li>
+</ul>
+Right click on the selection and choose a CVS command from the popup menu or from the toolbar.
+<p>
+A confirmation dialog showing the help for your command and the command line 
+that will be executed. Edit the command line if needed.<br>
+Results for stderr (Errors and Server messages) is shown in a message dialog,
+and results on stdout is shown is a multiline text control.
+<p>
+If you need to use SSH, SSH has to be setup to use the public and private keys
+generated with ssh-keygen and an empty passphrase. <a href="http://python.sourceforge.net/winssh.txt">More Info</a>
+<p>
+
+<br>
+<table BORDER=0 CELLSPACING=0 CELLPADDING=2 WIDTH="100%" BGCOLOR="#000000" >
+  <tr><td>
+  <table BORDER=0 CELLSPACING=0 WIDTH="100%" BGCOLOR="#FFFFFF" >
+    <tr><td BGCOLOR="#ddeeff">
+    <center><img SRC="dot.gif" height=1 width=1></center>
+    </td></tr>
+  </table>
+  </td></tr>
+</table>
+
+
+<div align=right><font size="-1">Boa Constructor - Application Help - <b>CVS</b></font></div>
+<p>
+</body></html>
+
+
+
+

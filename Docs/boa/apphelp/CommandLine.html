@@ -1,0 +1,71 @@
+<html><head><title>Command line options</title></head>
+<body text="#000000" bgcolor="#FFFFFF" link="#0000FF" vlink="#000099" alink="#FF0000">
+
+<center><a href="index.html"><img SRC="contents.gif" ALT="Home" BORDER=0></a></center>
+
+<table BORDER=0 CELLSPACING=0 CELLPADDING=2 WIDTH="100%" BGCOLOR="#000000" >
+  <tr><td>
+  <table BORDER=0 CELLSPACING=0 WIDTH="100%" BGCOLOR="#FFFFFF" >
+    <tr><td BGCOLOR="#ddeeff">
+    <center><img SRC="dot.gif" height=1 width=1></center>
+    </td></tr>
+  </table>
+  </td></tr>
+</table>
+
+
+
+<h2>
+<img SRC="Boa.jpg" height=32 width=32>&nbsp; Command line options</h2>
+
+
+
+
+The available command line switches can be printed by running <b>Boa.py -h</b>
+<font color="#101090"><pre>
+Command-line usage: Boa.py [options] [file1] [file2] ...
+-C, --Constricted:
+        Runs in constricted mode, overrides the Preference
+-D, --Debug:
+        Runs the first filename passed on the command-line in the Debugger
+        on startup
+-T, --Trace:
+        Runs in traceing mode. Used for tracking down core dumps. Every
+        function call is logged to a file which can later be parsed for
+        a traceback
+-S, --StartupFile:
+        Executes the script pointed to by $BOASTARTUP or $PYTHONSTARTUP in
+        the Shell namespace. The Editor object is available as sys.boa_ide.
+        Overrides the Preference
+-B, --BlockHomePrefs:
+        Prevents the $HOME directory being used
+-O dirname, --OverridePrefsDirName dirname:
+        Specify a different directory to load Preferences from.
+        Default is .boa and is used if it exists
+-E, --EmptyEditor:
+        Don't open the files that were open last time Boa was closed.
+-R, --RemoteDebugServer:
+        Runs the first filename passed on the command-line in a
+        Remote Debugger Server that can be connected to over a socket.'
+</pre></font>
+
+<p>
+<br>
+<table BORDER=0 CELLSPACING=0 CELLPADDING=2 WIDTH="100%" BGCOLOR="#000000" >
+  <tr><td>
+  <table BORDER=0 CELLSPACING=0 WIDTH="100%" BGCOLOR="#FFFFFF" >
+    <tr><td BGCOLOR="#ddeeff">
+    <center><img SRC="dot.gif" height=1 width=1></center>
+    </td></tr>
+  </table>
+  </td></tr>
+</table>
+
+
+<div align=right><font size="-1">Boa Constructor - Application Help - <b>Command line options</b></font></div>
+<p>
+</body></html>
+
+
+
+
