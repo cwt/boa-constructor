@@ -6,7 +6,7 @@
 #
 # Created:     1999
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999, 2000 Riaan Booysen
+# Copyright:   (c) 1999 - 2002 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
 
@@ -34,7 +34,6 @@ class InspectorEditorControl:
     def destroyControl(self):
         """ Close an open editor control """
         if self.editorCtrl:
-            self.editorCtrl.GetParent().SetFocus()
             self.editorCtrl.Destroy()
             self.editorCtrl = None
 
@@ -102,14 +101,14 @@ class BeveledLabelIEC(BevelIEC):
 
 class TextCtrlIEC(InspectorEditorControl):
     def createControl(self, parent, value, idx, sizeX, style = 0):
-        self.editorCtrl = wxTextCtrl(parent, self.wID,
-              self.propEditor.valueToIECValue(),
+        value = self.propEditor.valueToIECValue()
+        self.editorCtrl = wxTextCtrl(parent, self.wID, value,
               (-2, idx*Preferences.oiLineHeight -2),
               (sizeX, Preferences.oiLineHeight+3), style = style)
         InspectorEditorControl.createControl(self)
 
         if value:
-            self.editorCtrl.SetSelection(0, len(self.propEditor.valueToIECValue()))
+            self.editorCtrl.SetSelection(0, len(value))
 
         # XXX Ideally the text ctrl should catch the 'enter' keystroke
         # XXX and post the inspector, but I cant seem to catch it
@@ -180,6 +179,67 @@ class ButtonIEC(BevelIEC):
             self.editorCtrl.SetDimensions(self.editorCtrl.GetPosition().x,
               idx*Preferences.oiLineHeight +1, 18, Preferences.oiLineHeight-2)
         BevelIEC.setIdx(self, idx)
+
+class TextCtrlButtonIEC(BevelIEC):
+
+    def createControl(self, parent, idx, sizeX, editMeth):
+        bmp = Preferences.IS.load('Images/Shared/ellipsis.png')
+        value = self.propEditor.valueToIECValue()
+        self.wID2 = wxNewId()
+        self.editorCtrl = [
+              wxTextCtrl(parent, self.wID, value,
+               (-2, idx*Preferences.oiLineHeight -2),
+               (sizeX - 18, Preferences.oiLineHeight+3)),#, style = style),
+              wxBitmapButton(parent, self.wID2, bmp,
+               (sizeX - 18 -3, idx*Preferences.oiLineHeight +1),
+               (18, Preferences.oiLineHeight-2))]
+        EVT_BUTTON(self.editorCtrl[1], self.wID2, editMeth)
+
+        if value:
+            self.editorCtrl[0].SetSelection(0, len(value))
+
+        BevelIEC.createControl(self, parent, idx, sizeX)
+
+    def destroyControl(self):
+        """ Close an open editor control """
+        if self.editorCtrl:
+            #self.editorCtrl.GetParent().SetFocus()
+            for ec in self.editorCtrl:
+                ec.Destroy()
+            self.editorCtrl = None
+        if self.bevelTop:
+            self.bevelTop.Destroy()
+            self.bevelTop = None
+            self.bevelBottom.Destroy()
+            self.bevelBottom = None
+
+    # default sizing for controls that span the entire value width
+    def setWidth(self, width):
+        if self.editorCtrl:
+            self.editorCtrl[0].SetSize(wxSize(width -18,
+                  self.editorCtrl[0].GetSize().y))
+            self.editorCtrl[1].SetDimensions(width - 18 -3,
+                  self.editorCtrl[1].GetPosition().y, 18,
+                  Preferences.oiLineHeight-2)
+
+        BevelIEC.setWidth(self, width)
+
+    def setIdx(self, idx):
+        """ Move the to the given index """
+        if self.editorCtrl:
+            for ec in self.editorCtrl:
+                ec.SetPosition(ec.GetPosition().x, idx*Preferences.oiLineHeight -2)
+        BevelIEC.setIdx(self, idx)
+
+    def getValue(self):
+        if self.editorCtrl:
+            self.value = self.editorCtrl[0].GetValue()
+        return self.value
+
+    def setValue(self, value):
+        self.value = value
+        if self.editorCtrl:
+            self.editorCtrl[0].SetValue(value)
 
 class CheckBoxIEC2(InspectorEditorControl):
     def createControl(self, parent, idx, sizeX):

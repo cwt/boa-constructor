@@ -6,7 +6,7 @@
 #
 # Created:     1999
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999 - 2001 Riaan Booysen
+# Copyright:   (c) 1999 - 2002 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
 """
@@ -109,11 +109,7 @@ class PropertyEditor:
         self.initFromComponent()
 
     def initFromComponent(self):
-#        try:
         self.value = self.propWrapper.getValue()
-#        except Exception, message:
-#            print 'initFromComponent error', message
-#            self.value = ''
         if self.editorCtrl:
             self.editorCtrl.setValue(self.valueToIECValue())
 
@@ -192,7 +188,7 @@ class PropertyEditor:
         """ Initialise the prop editor and if needed the editor control """
         self.value = value
         if self.editorCtrl:
-            self.editorCtrl.SetValue(self.value)
+            self.editorCtrl.setValue(self.valueToIECValue())
 
     def getCtrlValue(self):
         """ Read current prop value from designed object """
@@ -221,11 +217,16 @@ class PropertyEditor:
         return self.values
 
     def setValues(self, values):
+        """ Sets list of options """
         self.values = values
 
     def valueToIECValue(self):
         """ Return prop value in the form that the form that the editor control expects """
         return self.value
+
+    def setValueFromIECValue(self, value):
+        """ Set value from the format that the editor control produces """
+        self.value = value
 
     def setWidth(self, width):
         self.width = width
@@ -1018,6 +1019,25 @@ class StrPropEdit(BITPropEditor):
     def getValue(self):
         return FactoryPropEdit.getValue(self)
 
+# The following is a work in progress for having a string editor dlg that
+# also handles gettext formatted strings
+#
+# The current problem is that for normal string properties, the property
+# refers to a string object, not to the source reference, iow _() is not a string
+##    def inspectorEdit(self):
+##        self.editorCtrl = TextCtrlButtonIEC(self, self.value)
+##        self.editorCtrl.createControl(self.parent, self.idx, self.width, self.edit)
+##    def edit(self, event):
+##        import StringPropEditorDlg
+##        dlg = StringPropEditorDlg.create(self.parent, repr(self.value))
+##        try:
+##            if dlg.ShowModal() == wxID_OK:
+##                self.inspectorPost(false)
+##                pass
+##        finally:
+##            dlg.Destroy()
+
+
 class NamePropEdit(StrPropEdit):
     def __init__(self, name, parent, companion, rootCompanion, propWrapper, idx, width, options, names):
         StrPropEdit.__init__(self, name, parent, companion, rootCompanion, propWrapper, idx, width)
@@ -1464,7 +1484,7 @@ class SashVisiblePropEdit(BoolPropEdit):
             return self.getValues()[v]
         else: return `v`
     def inspectorEdit(self):
-        self.editorCtrl = ChoiceIEC(self, self.value[1])
+        self.editorCtrl = CheckBoxIEC(self, self.value[1])
         self.editorCtrl.createControl(self.parent, self.idx, self.width)
         self.editorCtrl.setValue(self.getValues()[self.value[1]])
 ##    def getDisplayValue(self):
@@ -1541,3 +1561,9 @@ registeredTypes = [\
     ('Class', wxBitmapPtr, [BitmapPropEdit]),
     ('Class', wxValidator, [ClassLinkPropEdit]),
 ]
+
+try:
+    registeredTypes.append( ('Type', UnicodeType, [StrPropEdit]) )
+except:
+    # 1.5.2
+    pass
