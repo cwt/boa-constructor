@@ -1,92 +1,91 @@
+<meta name="GENERATOR" content="Boa Constructor - HelpBook">
 <UL>
-  <LI> <OBJECT type="text/sitemap">
-    <param name="Local" value="index.html">
-    <param name="Name" value="Main windows">
-  </OBJECT>
-  <UL> 
-    <LI> <OBJECT type="text/sitemap">
-      <param name="Local" value="Palette.html">
-      <param name="Name" value="The Palette">
-    </OBJECT>
-    <LI> <OBJECT type="text/sitemap">
-      <param name="Local" value="Inspector.html">
-      <param name="Name" value="The Inspector">
-    </OBJECT>
-    <LI> <OBJECT type="text/sitemap">
-      <param name="Local" value="Editor.html">
-      <param name="Name" value="The Editor">
-    </OBJECT>
-    <LI> <OBJECT type="text/sitemap">
-      <param name="Local" value="Designer.html">
-      <param name="Name" value="The GUI Designers">
-    </OBJECT>
-    <LI> <OBJECT type="text/sitemap">
-      <param name="Local" value="Debugger.html">
-      <param name="Name" value="The Debugger">
-    </OBJECT>
-    <LI> <OBJECT type="text/sitemap">
-      <param name="Local" value="Help.html">
-      <param name="Name" value="The Help System">
-    </OBJECT>
-  </UL> 
-</UL> 
-<UL> 
-  <LI> <OBJECT type="text/sitemap">
-    <param name="Local" value="index.html">
-    <param name="Name" value="Other documents">
-  </OBJECT>
-  <UL> 
-    <LI> <OBJECT type="text/sitemap">
-      <param name="Local" value="Keys.html">
-      <param name="Name" value="Key definitions">
-    </OBJECT>
-    <LI> <OBJECT type="text/sitemap">
-      <param name="Local" value="WindowLayout.html">
-      <param name="Name" value="Window layout">
-    </OBJECT>
-    <LI> <OBJECT type="text/sitemap">
-      <param name="Local" value="ShellIntegration.html">
-      <param name="Name" value="Different ways to start or open files">
-    </OBJECT>
-    <LI> <OBJECT type="text/sitemap">
-      <param name="Local" value="CommandLine.html">
-      <param name="Name" value="Command-line switches">
-    </OBJECT>
-    <LI> <OBJECT type="text/sitemap">
-      <param name="Local" value="Preferences.html">
-      <param name="Name" value="Preferences and Configuration">
-    </OBJECT>
-    <LI> <OBJECT type="text/sitemap">
-      <param name="Local" value="ComponentNotes.html">
-      <param name="Name" value="Notes on spesific components">
-    </OBJECT>
-    <LI> <OBJECT type="text/sitemap">
-      <param name="Local" value="Zope.html">
-      <param name="Name" value="Zope support">
-    </OBJECT>
-    <LI> <OBJECT type="text/sitemap">
-      <param name="Local" value="NonASCII.html">
-      <param name="Name" value="Support for Non-ASCII systems">
-    </OBJECT>
-    <LI> <OBJECT type="text/sitemap">
-      <param name="Local" value="MixingSource.html">
-      <param name="Name" value="Mixing your code with generated code">
-    </OBJECT>
-    <LI> <OBJECT type="text/sitemap">
-      <param name="Local" value="ExtendingBoa.html">
-      <param name="Name" value="Extending Boa by writing new components">
-    </OBJECT>
-    <LI> <OBJECT type="text/sitemap">
-      <param name="Local" value="RemainingMilestones.html">
-      <param name="Name" value="The road ahead">
-    </OBJECT>
-    <LI> <OBJECT type="text/sitemap">
-      <param name="Local" value="Philosophy.html">
-      <param name="Name" value="Philosophy behind Boa">
-    </OBJECT>
-    <LI> <OBJECT type="text/sitemap">
-      <param name="Local" value="Glossary.html">
-      <param name="Name" value="Glossary">
-    </OBJECT>
-  </UL> 
-</UL> 
+<LI><OBJECT type="text/sitemap">
+<PARAM name="Local" value="index.html">
+<PARAM name="Name" value="Main windows">
+</OBJECT>
+<UL>
+<LI><OBJECT type="text/sitemap">
+<PARAM name="Local" value="Palette.html">
+<PARAM name="Name" value="The Palette">
+</OBJECT>
+<LI><OBJECT type="text/sitemap">
+<PARAM name="Local" value="Inspector.html">
+<PARAM name="Name" value="The Inspector">
+</OBJECT>
+<LI><OBJECT type="text/sitemap">
+<PARAM name="Local" value="Editor.html">
+<PARAM name="Name" value="The Editor">
+</OBJECT>
+<LI><OBJECT type="text/sitemap">
+<PARAM name="Local" value="Designer.html">
+<PARAM name="Name" value="The GUI Designers">
+</OBJECT>
+<LI><OBJECT type="text/sitemap">
+<PARAM name="Local" value="Debugger.html">
+<PARAM name="Name" value="The Debugger">
+</OBJECT>
+<LI><OBJECT type="text/sitemap">
+<PARAM name="Local" value="Help.html">
+<PARAM name="Name" value="The Help System">
+</OBJECT>
+</UL>
+<LI><OBJECT type="text/sitemap">
+<PARAM name="Local" value="index.html">
+<PARAM name="Name" value="Other documents">
+</OBJECT>
+<UL>
+<LI><OBJECT type="text/sitemap">
+<PARAM name="Local" value="Keys.html">
+<PARAM name="Name" value="Key definitions">
+</OBJECT>
+<LI><OBJECT type="text/sitemap">
+<PARAM name="Local" value="WindowLayout.html">
+<PARAM name="Name" value="Window layout">
+</OBJECT>
+<LI><OBJECT type="text/sitemap">
+<PARAM name="Local" value="ShellIntegration.html">
+<PARAM name="Name" value="Different ways to start or open files">
+</OBJECT>
+<LI><OBJECT type="text/sitemap">
+<PARAM name="Local" value="CommandLine.html">
+<PARAM name="Name" value="Command-line switches">
+</OBJECT>
+<LI><OBJECT type="text/sitemap">
+<PARAM name="Local" value="Preferences.html">
+<PARAM name="Name" value="Preferences and Configuration">
+</OBJECT>
+<LI><OBJECT type="text/sitemap">
+<PARAM name="Local" value="ComponentNotes.html">
+<PARAM name="Name" value="Notes on spesific components">
+</OBJECT>
+<LI><OBJECT type="text/sitemap">
+<PARAM name="Local" value="Zope.html">
+<PARAM name="Name" value="Zope support">
+</OBJECT>
+<LI><OBJECT type="text/sitemap">
+<PARAM name="Local" value="NonASCII.html">
+<PARAM name="Name" value="Support for Non-ASCII systems">
+</OBJECT>
+<LI><OBJECT type="text/sitemap">
+<PARAM name="Local" value="MixingSource.html">
+<PARAM name="Name" value="Mixing your code with generated code">
+</OBJECT>
+<LI><OBJECT type="text/sitemap">
+<PARAM name="Local" value="ExtendingBoa.html">
+<PARAM name="Name" value="Extending Boa by writing new components">
+</OBJECT>
+<LI><OBJECT type="text/sitemap">
+<PARAM name="Local" value="RemainingMilestones.html">
+<PARAM name="Name" value="The road ahead">
+</OBJECT>
+<LI><OBJECT type="text/sitemap">
+<PARAM name="Local" value="Philosophy.html">
+<PARAM name="Name" value="Philosophy behind Boa">
+</OBJECT>
+<LI><OBJECT type="text/sitemap">
+<PARAM name="Local" value="Glossary.html">
+<PARAM name="Name" value="Glossary">
+</OBJECT>
+</UL>
+</UL>
