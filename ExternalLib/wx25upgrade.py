@@ -1,11 +1,19 @@
-# Boa file upgrade helper.
-# paul sorenson Feb 2005
+#-----------------------------------------------------------------------------
+# Name:        wx25upgrade.py
+# Purpose:     Upgrade code from 2.4 style to 2.5
+#
+# Author:      Paul Sorensen
+# Contrib.:    Werner F. Bruhin
+#              Riaan Booysen
+#
+# Created:     Feb 2005
+# RCS-ID:      $Id$
+#-----------------------------------------------------------------------------
+#
 # WARNING - changes files, take care!
-
+#
 # requires: pyparsing
 # usage: python wx25upgrade myFrame.py > myNewFrame.py
-# Current status: concept demonstrator
-# $Id$
 #
 # This file currently munges the 
 # - EVT_xxx change from wxPython 2.4 style to 2.5 style
@@ -24,7 +32,7 @@
 # - style= i.e. style=wxDEFAULT_DIALOG_STYLE
 # - wxInitAllImageHandlers( to wx.InitAllImageHandlers(
 # - orient=wx to orient=wx.
-# - kind=wxITEM to kind=wx.ITEM
+# - kind=wx to kind=wx.
 # - wxIcon( to wx.Icon(
 # - wxBITMAP to wx.BITMAP
 # - wxBitmap( to wx.Bitmap(
@@ -85,7 +93,7 @@ class Upgrade:
         intOnly = Word(nums)
         uident2 = Word(string.ascii_uppercase+"_123456789")
         wxExp = Literal("wx").suppress()
-        flagExp = (wxExp+uident2)
+        flagExp = (wxExp+uident)
         flags = delimitedList(flagExp, delim='|')
         
         # 2 Parameter evt macros.
@@ -131,24 +139,20 @@ class Upgrade:
         addSpacer.setParseAction(self.addSpacerAction)
 
         # Flag
-        flag = Literal("flag=").suppress() \
-            + flags
-        flag.setParseAction(self.flagAction)
+        flag = Literal("flag=")  + flags
+        flag.setParseAction(self.flagsAction)
 
         # Style
-        style = Literal("style=").suppress() \
-            + flags
-        style.setParseAction(self.styleAction)
+        style = Literal("style=") + flags
+        style.setParseAction(self.flagsAction)
 
         # Orient
-        orient = Literal("orient=").suppress() \
-            + flags
-        orient.setParseAction(self.orientAction)
+        orient = Literal("orient=") + flags
+        orient.setParseAction(self.flagsAction)
 
         # kind
-        kind = Literal("kind=").suppress() \
-            + flags
-        kind.setParseAction(self.kindAction)
+        kind = Literal("kind=") + flags
+        kind.setParseAction(self.flagsAction)
 
         # wxNewId() to wx.NewId()
         repId1 = Literal("map(lambda _init_ctrls: wxNewId()") +\
@@ -211,19 +215,13 @@ class Upgrade:
         repFalse = Literal("false")
         repFalse.setParseAction(self.falseAction)
 
-        # changed from ^ to ^, i.e. instead of doing OR match it does MatchFirst
-        # as the things we are looking to convert are unique that should do
-        # maybe a bit faster, but I did not notice a difference 
-        if specialEventCode == False:
-            self.grammar = evt_P2 ^ evt_P3 ^ append ^ repId1 ^ repId2 ^ imp\
-                ^ repWX ^ repWX2 ^ repWX3 ^ repTrue ^ repFalse ^ setStatusText\
-                ^ addSpacer ^ flag ^ style ^ repWX4 ^ orient ^ orient ^ repWX5\
-                ^ repWX6 ^ repWX7 ^ repWX8 ^ repWX9 ^ repWX10
-        else:
-            self.grammar = evt_P2 ^ evt_P3 ^ append ^ repId1 ^ repId2 ^ imp\
-                ^ repWX ^ repWX2 ^ repWX3 ^ evt_P3a ^ repTrue ^ repFalse\
-                ^ setStatusText ^ addSpacer ^ flag ^ style ^ repWX4 ^ orient\
-                ^ kind ^ repWX5 ^ repWX6 ^ repWX7 ^ repWX8 ^ repWX9 ^ repWX10
+        self.grammar = evt_P2 ^ evt_P3 ^ append ^ repId1 ^ repId2 ^ imp\
+            ^ repWX ^ repWX2 ^ repWX3 ^ repWX4 ^ repWX5 ^ repWX6 ^ repWX7\
+            ^ repWX8 ^ repWX9 ^ repWX10\
+            ^ repTrue ^ repFalse ^ setStatusText\
+            ^ addSpacer ^ flag ^ style  ^ orient ^ kind 
+        if specialEventCode:
+            self.grammar ^= evt_P3a 
 
     def evt_P2Action(self, s, l, t):
         ev, evname, win, fn = t
@@ -250,6 +248,8 @@ class Upgrade:
                 kw = subs[kw]
             except:
                 pass
+            if kw == 'kind':
+                arg = arg.replace('wx', 'wx.')
             arglist.append("%s=%s" % (kw, arg))
         result = '.Append(' + string.join(arglist, ', ') + ')'
         return result
@@ -262,45 +262,8 @@ class Upgrade:
         a, b = t
         return ".AddSpacer(wx.Size("+a+","+b+")"
     
-    def flagAction(self, s, l, t):
-        first = False
-        temp = ""
-        for flag in t:
-            if first == True:
-                temp = temp + "|"
-            first = True
-            temp = temp + "wx." +flag
-        return "flag="+temp
-    
-    def styleAction(self, s, l, t):
-        first = False
-        temp = ""
-        for flag in t:
-            if first == True:
-                temp = temp + "|"
-            first = True
-            temp = temp + "wx." +flag
-        return "style="+temp
-
-    def orientAction(self, s, l, t):
-        first = False
-        temp = ""
-        for flag in t:
-            if first == True:
-                temp = temp + "|"
-            first = True
-            temp = temp + "wx." +flag
-        return "orient="+temp
-
-    def kindAction(self, s, l, t):
-        first = False
-        temp = ""
-        for flag in t:
-            if first == True:
-                temp = temp + "|"
-            first = True
-            temp = temp + "wx." +flag
-        return "kind="+temp
+    def flagsAction(self, s, l, t):
+        return t[0] + "wx." + string.join(t[1:], '|wx.')
 
     def repId1Action(self, s, l, t):
         a, b, c = t
