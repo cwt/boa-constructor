@@ -26,7 +26,7 @@ from Preferences import IS, staticInfoPrefs
 from Utils import BoaFileDropTarget
 from PrefsKeys import keyDefs
 from Debugger import Debugger
-from thread import start_new_thread
+#from thread import start_new_thread
 
 wxwHeaderTemplate ='''<html>
 <head>
@@ -114,9 +114,6 @@ class EditorView:
         self.modified = false
         if editorIsWindow: 
             EVT_RIGHT_DOWN(self, self.OnRightDown)
-            # for wxMSW
-#            EVT_COMMAND_RIGHT_CLICK(self, -1, self.OnRightClick)
-            # for wxGTK
             EVT_RIGHT_UP(self, self.OnRightClick)
 
             dt = BoaFileDropTarget(model.editor)
@@ -751,10 +748,11 @@ class ExploreView(wxTreeCtrl, EditorView):
         if not self._populated_tree:
             self._populated_tree = 1
             # XXX Threading should go...
-            if wxPlatform == '__WXGTK__':
-                self.refreshCtrl(1)
-            else:
-                start_new_thread(self.refreshCtrl, (1,))
+##            if wxPlatform == '__WXGTK__':
+##                self.refreshCtrl(1)
+##            else:
+##                start_new_thread(self.refreshCtrl, (1,))
+            self.refreshCtrl(1)
         
     def refreshCtrl(self, load_now=0):
         self.DeleteAllItems()
