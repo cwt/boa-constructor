@@ -49,7 +49,7 @@ class wxBoaFileDialog(wxDialog):
 
         self.stPath = wxStaticText(label = ' ', id = wxID_WXBOAFILEDIALOGSTPATH, parent = self.panel1, name = 'stPath', size = wxSize(3, 13), style = 0, pos = wxPoint(8, 8))
 
-    def __init__(self, parent, message = 'Choose a file', defaultDir = '.', defaultFile = '', style = wxOPEN, wildcard = '*.py; *.txt', pos = wxDefaultPosition): 
+    def __init__(self, parent, message = 'Choose a file', defaultDir = '.', defaultFile = '', wildcard = '*.py; *.txt', style = wxOPEN, pos = wxDefaultPosition): 
         self._init_ctrls(parent)
         self.SetStyle(style)
         self.SetWildcard(wildcard)
@@ -212,6 +212,7 @@ class wxBoaFileDialog(wxDialog):
     def SetStyle(self, style):
         title = 'File Dialog'
         btn = 'OK'
+        print style
         if style & wxOPEN:
             title = 'Open'
             btn = openStr
