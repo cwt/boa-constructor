@@ -33,17 +33,17 @@ SourceViews.markerCnt = mrkCnt + 4
 brwsIndc, synErrIndc = range(0, 2)
 lineNoMrg, symbolMrg, foldMrg = range(0, 3)
 
-wxEVT_FIX_PASTE = wxNewId()
-
-def EVT_FIX_PASTE(win, func):
-    win.Connect(-1, -1, wxEVT_FIX_PASTE, func)
-
-class wxFixPasteEvent(wxPyEvent):
-    def __init__(self, stc, newtext):
-        wxPyEvent.__init__(self)
-        self.SetEventType(wxEVT_FIX_PASTE)
-        self.stc = stc
-        self.newtext = newtext
+##wxEVT_FIX_PASTE = wxNewId()
+##
+##def EVT_FIX_PASTE(win, func):
+##    win.Connect(-1, -1, wxEVT_FIX_PASTE, func)
+##
+##class wxFixPasteEvent(wxPyEvent):
+##    def __init__(self, stc, newtext):
+##        wxPyEvent.__init__(self)
+##        self.SetEventType(wxEVT_FIX_PASTE)
+##        self.stc = stc
+##        self.newtext = newtext
 
 class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
                        BrowseStyledTextCtrlMix, FoldingStyledTextCtrlMix,
@@ -110,7 +110,7 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
 
         # still too buggy
         EVT_STC_MODIFIED(self, wxID_PYTHONSOURCEVIEW, self.OnModified)
-        EVT_FIX_PASTE(self, self.OnFixPaste)
+        #EVT_FIX_PASTE(self, self.OnFixPaste)
 
         self.active = true
 
@@ -132,7 +132,8 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
         return textLst
 
     def processIndent(self, textLst, idntBlock):
-        return map(lambda l, idntBlock=idntBlock: '%s%s'%(idntBlock, l), textLst)
+        #return map(lambda l, idntBlock=idntBlock: '%s%s'%(idntBlock, l), textLst)
+        return ['%s%s'%(idntBlock, t) for t in textLst]
 
     def processDedent(self, textLst, idntBlock):
         indentLevel=len(idntBlock)
@@ -229,7 +230,7 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
         return ''
 
     def prepareModSigTip(self, name, paramsStr):
-        if Utils.startswith(paramsStr, 'self,'):
+        if paramsStr.startswith('self,'):
             paramsStr = paramsStr[5:].strip()
         elif paramsStr == 'self':
             paramsStr = ''
@@ -1016,7 +1017,7 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
         ln = self.LineFromPosition(pos)
         ls = self.PositionFromLine(ln)
         self.InsertText(ls, '#-------------------------------------------'
-                                    '------------------------------------'+'\n')
+                                    '------------------------------------'+self.eol)
         self.SetCurrentPos(ls+4)
         self.SetAnchor(ls+4)
 
@@ -1043,7 +1044,7 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
         word, line, lnNo, start, startOffset = self.getWordAtCursor(object_delim)
         self.model.editor.addBrowseMarker(lnNo)
         # 1st Xform; Add method at cursor to the class
-        if Utils.startswith(word, 'self.'):
+        if word.startswith('self.'):
             methName = word[5:]
             # Apply if there are changes to views
             self.model.refreshFromViews()
@@ -1109,14 +1110,6 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
         event.Skip()
         return
 
-        # Repair pasting CR/LF from clipboard to LF source
-        textAdded = event.GetText()
-        if linesAdded > 0:
-            lines = textAdded.split('\r\n')
-            totAdded = linesAdded
-            if len(lines) > 1 and len(lines) == linesAdded + 1:
-                wxPostEvent(self, wxFixPasteEvent(self, '\n'.join(lines)))
-
         # Update module line numbers
         # module has to have been parsed at least once
         if linesAdded and self.model._module:
@@ -1129,9 +1122,6 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
 
             #self.model.editor.statusBar.setHint('update ren %d %d'%(linesAdded, lineNo))
 
-    def OnFixPaste(self, event):
-        self.Undo()
-        self.AddText(event.newtext)
 
 class PythonDisView(EditorStyledTextCtrl, PythonStyledTextCtrlMix):
     viewName = 'Disassemble'
