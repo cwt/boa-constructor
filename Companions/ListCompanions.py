@@ -376,13 +376,13 @@ try:   PaletteStore.paletteLists['ListControls'].append(wxGenericDirCtrl)
 except NameError: pass
 
 PaletteStore.compInfo.update({
-    wxListBox: ['wxListBox', ListBoxDTC],
-    wxCheckListBox: ['wxCheckListBox', CheckListBoxDTC],
-    wxGrid: ['wxGrid', GridDTC],
-    wxListCtrl: ['wxListCtrl', ListCtrlDTC],
-    wxListView: ['wxListView', ListViewDTC],
-    wxTreeCtrl: ['wxTreeCtrl', TreeCtrlDTC],
-    wxRadioBox: ['wxRadioBox', RadioBoxDTC],
+    wxListBox: ['wx.ListBox', ListBoxDTC],
+    wxCheckListBox: ['wx.CheckListBox', CheckListBoxDTC],
+    wxGrid: ['wx.grid.Grid', GridDTC],
+    wxListCtrl: ['wx.ListCtrl', ListCtrlDTC],
+    wxListView: ['wx.ListView', ListViewDTC],
+    wxTreeCtrl: ['wx.TreeCtrl', TreeCtrlDTC],
+    wxRadioBox: ['wx.RadioBox', RadioBoxDTC],
 })
-try: PaletteStore.compInfo[wxGenericDirCtrl] = ['wxGenericDirCtrl', GenericDirCtrlDTC]
+try: PaletteStore.compInfo[wxGenericDirCtrl] = ['wx.GenericDirCtrl', GenericDirCtrlDTC]
 except NameError: pass

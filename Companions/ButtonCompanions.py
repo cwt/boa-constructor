@@ -367,17 +367,17 @@ except NameError:
     pass
 
 PaletteStore.compInfo.update({
-    wxButton: ['wxButton', ButtonDTC],
-    wxBitmapButton: ['wxBitmapButton', BitmapButtonDTC],
-    wxSpinButton: ['wxSpinButton', SpinButtonDTC],
-    wxSpinCtrl: ['wxSpinCtrl', SpinCtrlDTC],
-    wxGenButton: ['wxGenButton', GenButtonDTC],
-    wxGenBitmapButton: ['wxGenBitmapButton', GenBitmapButtonDTC],
-    wxGenToggleButton: ['wxGenToggleButton', GenToggleButtonDTC],
-    wxGenBitmapToggleButton: ['wxGenBitmapToggleButton', GenBitmapToggleButtonDTC],
-    wxGenBitmapTextButton: ['wxGenBitmapTextButton', GenBitmapTextButtonDTC],
-    wxGenBitmapTextToggleButton: ['wxGenBitmapTextToggleButton', GenBitmapTextToggleButtonDTC],
-    wxContextHelpButton: ['wxContextHelpButton', ContextHelpButtonDTC],
+    wxButton: ['wx.Button', ButtonDTC],
+    wxBitmapButton: ['wx.BitmapButton', BitmapButtonDTC],
+    wxSpinButton: ['wx.SpinButton', SpinButtonDTC],
+    wxSpinCtrl: ['wx.SpinCtrl', SpinCtrlDTC],
+    wxGenButton: ['wx.lib.buttons.GenButton', GenButtonDTC],
+    wxGenBitmapButton: ['wx.lib.buttons.GenBitmapButton', GenBitmapButtonDTC],
+    wxGenToggleButton: ['wx.lib.buttons.GenToggleButton', GenToggleButtonDTC],
+    wxGenBitmapToggleButton: ['wx.lib.buttons.GenBitmapToggleButton', GenBitmapToggleButtonDTC],
+    wxGenBitmapTextButton: ['wx.lib.buttons.GenBitmapTextButton', GenBitmapTextButtonDTC],
+    wxGenBitmapTextToggleButton: ['wx.lib.buttons.GenBitmapTextToggleButton', GenBitmapTextToggleButtonDTC],
+    wxContextHelpButton: ['wx.ContextHelpButton', ContextHelpButtonDTC],
 })
 
 try:

@@ -596,15 +596,15 @@ PaletteStore.paletteLists['Utilities (Data)'].extend([wxMenuBar, wxMenu, #wxAcce
     wxImageList, wxTimer, wxStockCursor]) 
     #wxCursor, causes problems on wxGTK
 
-PaletteStore.compInfo.update({wxMenuBar: ['wxMenuBar', MenuBarDTC],
-    wxImageList: ['wxImageList', ImageListDTC],
+PaletteStore.compInfo.update({wxMenuBar: ['wx.MenuBar', MenuBarDTC],
+    wxImageList: ['wx.ImageList', ImageListDTC],
     #wxAcceleratorTable: ['wxAcceleratorTable', AcceleratorTableDTC],
-    wxMenu: ['wxMenu', MenuDTC],
-    wxCursor: ['wxCursor', CursorDTC],
-    wxStockCursor: ['wxStockCursor', StockCursorDTC],
+    wxMenu: ['wx.Menu', MenuDTC],
+    wxCursor: ['wx.Cursor', CursorDTC],
+    wxStockCursor: ['wx.StockCursor', StockCursorDTC],
 
     # these objects need design time inheritance
-    wxTimer: ['wxTimer', TimerDTC],
-    wxTextDropTarget: ['wxTextDropTarget', NYIDTC],
-    wxFileDropTarget: ['wxFileDropTarget', NYIDTC],
+    wxTimer: ['wx.Timer', TimerDTC],
+    wxTextDropTarget: ['wx.TextDropTarget', NYIDTC],
+    wxFileDropTarget: ['wx.FileDropTarget', NYIDTC],
 })

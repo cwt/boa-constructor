@@ -54,7 +54,7 @@ class DynamicSashWindowDTC(GizmoDTCMix, Constructors.WindowConstr, BaseCompanion
                            GizmoDTCMix.writeImports(self)) )
 
 PaletteStore.paletteLists['ContainersLayout'].append(wxDynamicSashWindow)
-PaletteStore.compInfo[wxDynamicSashWindow] = ['wxDynamicSashWindow', DynamicSashWindowDTC]
+PaletteStore.compInfo[wxDynamicSashWindow] = ['wx.gizmos.DynamicSashWindow', DynamicSashWindowDTC]
 
 #-------------------------------------------------------------------------------
 
@@ -91,7 +91,7 @@ class LEDNumberCtrlDTC(GizmoDTCMix, BaseCompanions.WindowDTC):
                            GizmoDTCMix.writeImports(self)) )
 
 PaletteStore.paletteLists['BasicControls'].append(wxLEDNumberCtrl)
-PaletteStore.compInfo[wxLEDNumberCtrl] = ['wxLEDNumberCtrl', LEDNumberCtrlDTC]
+PaletteStore.compInfo[wxLEDNumberCtrl] = ['wx.gizmos.LEDNumberCtrl', LEDNumberCtrlDTC]
 
 
 #-------------------------------------------------------------------------------
@@ -117,7 +117,7 @@ class EditableListBoxDTC(GizmoDTCMix, ContainerCompanions.PanelDTC):
                            GizmoDTCMix.writeImports(self)) )
 
 PaletteStore.paletteLists['ListControls'].append(wxEditableListBox)
-PaletteStore.compInfo[wxEditableListBox] = ['wxEditableListBox', EditableListBoxDTC]
+PaletteStore.compInfo[wxEditableListBox] = ['wx.gizmos.EditableListBox', EditableListBoxDTC]
 
 #-------------------------------------------------------------------------------
 
@@ -152,7 +152,7 @@ class TreeListCtrlDTC(GizmoDTCMix, ListCompanions.TreeCtrlDTC):
         return ListCompanions.TreeCtrlDTC.writeImports(self) + '\n' +\
                GizmoDTCMix.writeImports(self)
 
-    def designTimeSource(self, position='wxDefaultPosition', size='wxDefaultSize'):
+    def designTimeSource(self, position='wx.DefaultPosition', size='wx.DefaultSize'):
         return ListCompanions.TreeCtrlDTC.designTimeSource(self, position, 
                                                            self.getDefCtrlSize())
     def defaultAction(self):
@@ -193,7 +193,7 @@ class TreeListCtrlColumnsCDTC(BaseCompanions.CollectionDTC):
 
 try:
     PaletteStore.paletteLists['ListControls'].append(wxTreeListCtrl)
-    PaletteStore.compInfo[wxTreeListCtrl] = ['wxTreeListCtrl', TreeListCtrlDTC]
+    PaletteStore.compInfo[wxTreeListCtrl] = ['wx.gizmos.TreeListCtrl', TreeListCtrlDTC]
 except NameError:
     # pre 2.4.1.2
     pass

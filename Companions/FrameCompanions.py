@@ -294,19 +294,19 @@ class wxFramePanel(wxPanel): pass
 #-------------------------------------------------------------------------------
 import PaletteStore
 
-PaletteStore.compInfo.update({wxApp: ['wxApp', None],
-    wxFrame: ['wxFrame', FrameDTC],
-    wxDialog: ['wxDialog', DialogDTC],
-    wxMiniFrame: ['wxMiniFrame', MiniFrameDTC],
-    wxMDIParentFrame: ['wxMDIParentFrame', MDIParentFrameDTC],
-    wxMDIChildFrame: ['wxMDIChildFrame', MDIChildFrameDTC],
-    wxFramePanel: ['wxFramePanel', FramePanelDTC],
+PaletteStore.compInfo.update({wxApp: ['wx.App', None],
+    wxFrame: ['wx.Frame', FrameDTC],
+    wxDialog: ['wx.Dialog', DialogDTC],
+    wxMiniFrame: ['wx.MiniFrame', MiniFrameDTC],
+    wxMDIParentFrame: ['wx.MDIParentFrame', MDIParentFrameDTC],
+    wxMDIChildFrame: ['wx.MDIChildFrame', MDIChildFrameDTC],
+    wxFramePanel: ['wx.FramePanel', FramePanelDTC],
 })
 
 try:
     PaletteStore.compInfo.update({
-        wxPopupWindow: ['wxPopupWindow', PopupWindowDTC],
-        wxPopupTransientWindow: ['wxPopupTransientWindow', PopupWindowDTC]})
+        wxPopupWindow: ['wx.PopupWindow', PopupWindowDTC],
+        wxPopupTransientWindow: ['wx.PopupTransientWindow', PopupWindowDTC]})
 except NameError:
     # wxMAC
     pass

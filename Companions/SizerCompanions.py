@@ -568,10 +568,10 @@ PaletteStore.paletteLists['ContainersLayout'].extend([
 ])
 
 PaletteStore.compInfo.update({
-  wxBoxSizer: ['wxBoxSizer', BoxSizerDTC],
-  wxGridSizer: ['wxGridSizer', GridSizerDTC],
-  wxFlexGridSizer: ['wxFlexGridSizer', FlexGridSizerDTC],
-  wxStaticBoxSizer: ['wxStaticBoxSizer', StaticBoxSizerDTC],
-  wxNotebookSizer: ['wxNotebookSizer', NotebookSizerDTC]
+  wxBoxSizer: ['wx.BoxSizer', BoxSizerDTC],
+  wxGridSizer: ['wx.GridSizer', GridSizerDTC],
+  wxFlexGridSizer: ['wx.FlexGridSizer', FlexGridSizerDTC],
+  wxStaticBoxSizer: ['wx.StaticBoxSizer', StaticBoxSizerDTC],
+  wxNotebookSizer: ['wx.NotebookSizer', NotebookSizerDTC]
   #RowColSizer: ['RowColSizer', RowColSizerDTC],
 })
