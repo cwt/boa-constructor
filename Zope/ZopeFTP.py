@@ -27,17 +27,19 @@ class ZopeFTPItem:
         self.lines = []
     
     def __repr__(self):
-        return '<%s %s>' % (`self.__class__`, self.whole_name())
+        return '<%s %s, %s>' % (`self.__class__`, self.whole_name(), self.date)
 
     def read(self, line):
         try: 
             self.perms = line[:10]
-            entries = filter(None, string.split(line[10:41], ' '))
+            entries = filter(None, string.split(line[10:42], ' '))
             self.size = int(entries[3])
-            self.date = line[42:54]
+            self.date = line[43:55]
             self.name = string.strip(line[55:]) 
-        except:
-            print 'Could not read:', line
+        except Exception, message:
+            print 'Could not read:', line, message
+#        print line
+#        print self
 
     def prepareAsFile(self, data):
         self.lines = string.split(data, '\n')
@@ -54,9 +56,11 @@ class ZopeFTPItem:
         return (self.size == 0) and (self.perms == '----------')
 
     def whole_name(self):
-        print self.path
         if self.path == '/': return '/%s' % self.name
         else: return '%s/%s' % (self.path, self.name)
+
+    def obj_path(self):
+        return string.join(string.split(self.path, '/') + [self.name], '.')
 
     def cmd(self, cmd):
         return '%s %s' % (cmd, self.whole_name())
@@ -81,7 +85,10 @@ class ZopeFTP:
 
         res = []
         res.append(self.ftp.connect(host, port))
+
+        # Zope returns 'Long successfull' even on wring passwords :(
         res.append(self.ftp.login(username, password))
+            
         return string.join(res, '\n') 
 
         self.connected = true
