@@ -206,7 +206,6 @@ class ZopePropEdit(PropertyEditor):
     def initFromComponent(self):
         self.value = self.getCtrlValue()
     def persistValue(self, value):
-        print 'persist zope prop'
         pass
 ##    def getCtrlValue(self):
 ##        return ''#self.getter(self.obj)
@@ -289,7 +288,6 @@ class ConfPropEdit(PropertyEditor):
     def initFromComponent(self):
         self.value = self.getCtrlValue()
     def persistValue(self, value):
-        print 'persist conf prop'
         pass
 
 class StrConfPropEdit(ConfPropEdit):
@@ -570,35 +568,29 @@ class StrConstrPropEdit(ConstrPropEdit):
 class NameConstrPropEdit(StrConstrPropEdit):
     def getValue(self):
         if self.editorCtrl:
-#            try:
             value = self.editorCtrl.getValue()
-#                aStr = self.editorCtrl.getValue()
             if type(value) is StringType:
                 value = `self.editorCtrl.getValue()`
             else:
                 value = self.getCtrlValue()
 
             if value != self.value:
+                for c in value:
+                    if c not in string.letters+string.digits+'_':
+                        message = 'Invalid name for Python object'
+                        wxLogError(message)
+                        return self.value
+                        #raise message
+                        
                 if self.companion.designer.objects.has_key(value):
                     wxLogError('Name already used by another control.')
-                    raise 'Name already used by another control.'
+                    return self.value
+                    #raise 'Name already used by another control.'
             self.value = value
-#            except Exception, message:
-#                self.value = self.getCtrlValue()
-#                print 'invalid constr prop value', message
         else:
             self.value = self.getCtrlValue()
         return self.value
 
-##    def getValue(self):
-##        if self.editorCtrl:
-##            value = self.editorCtrl.getValue()
-##            if value != self.value:
-##                if self.companion.designer.objects.has_key(value):
-##                    wxLogError('Name already used by another control.')
-##                    raise 'Name already used by another control.'
-##            self.value = value
-##        return self.value
 
     def getCtrlValue(self):
         return `self.companion.name`
@@ -718,20 +710,33 @@ class NamePropEdit(StrPropEdit):
     def __init__(self, name, parent, companion, rootCompanion, propWrapper, idx, width, options, names):
         StrPropEdit.__init__(self, name, parent, companion, rootCompanion, propWrapper, idx, width)
 
+    identifier = string.letters+string.digits+'_'
+    
     def getValue(self):
+        # XXX Currently returning the old value in case of error because
+        # XXX an exception here cannot be gracefully handled yet.
+        # XXX Specifically closing the frame with the focus on the
         if self.editorCtrl:
             value = self.editorCtrl.getValue()
             if value != self.value:
                 if self.companion.designer.objects.has_key(value):
                     wxLogError('Name already used by another control.')
-                    raise 'Name already used by another control.'
+                    return self.value
+#                    raise 'Name already used by another control.'
+
+                for c in value:
+                    if c not in self.identifier:
+                        message = 'Invalid name for Python object'
+                        wxLogError(message)
+                        return self.value
+#                        raise message
             self.value = value
         return self.value
     
 class TuplPropEdit(BITPropEditor):
     pass
 
-# Property editors for design type types :)
+# Property editors for design type types
 class BoolPropEdit(OptionedPropEdit):
     def valueToIECValue(self):
     	v = self.value
