@@ -1,6 +1,11 @@
-import ExplorerNodes, EditorModels, Utils
 import string, os
+
+##import sys
+##sys.path.append('..')
+
 from wxPython.wx import wxMenu, EVT_MENU, wxMessageBox, wxPlatform, wxNewId
+
+import ExplorerNodes, EditorModels, Utils
 from ZopeLib.ZopeFTP import ZopeFTP
 import ftplib
 
@@ -160,7 +165,7 @@ class FTPExpClipboard(ExplorerNodes.ExplorerClipboard):
         for file in files:
             file = os.path.join(folderpath, file)
             if os.path.isdir(file):
-                self.pasteFileSysFolder(file, newNodepath, zopeConn)
+                self.pasteFileSysFolder(file, newNodepath, ftpConn)
             else:
                 ftpConn.upload(file, newNodepath)
 
