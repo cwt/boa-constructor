@@ -10,6 +10,8 @@
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 
+""" Explorer classes for CVS browsing and operations """
+
 import string, time, stat, os
 
 from wxPython.lib.dialogs import wxScrolledMessageDialog
@@ -18,7 +20,7 @@ from wxPython.wx import *
 import ExplorerNodes, FileExplorer, EditorModels, EditorHelper
 from Preferences import IS
 import Views.EditorViews
-import ProcessProgressDlg
+import ProcessProgressDlg, Utils
 import scrm
 
 cvs_environ_vars = ['CVSROOT', 'CVS_RSH', 'HOME']
@@ -156,14 +158,25 @@ class CVSController(ExplorerNodes.Controller):
         try: dlg.ShowModal()
         finally: dlg.Destroy()
 
-    def cvsCmd(self, command, options, files):
-        return 'cvs %s %s %s %s' % (self.cvsOptions, command, options, string.join(files, ' '))
+    def cvsCmd(self, command, options, files, extraOptions = ''):
+        cvsOpts = self.cvsOptions
+        if extraOptions:
+            cvsOpts = '%s %s'%(cvsOpts, extraOptions)
+        return 'cvs %s %s %s %s' % (cvsOpts, command, options, string.join(files, ' '))
 
     def cvsCmdPrompt(self, wholeCommand, inDir, help = ''):
         dlg = wxTextEntryDialog(self.list, 'CVSROOT: %s\nCVS_RSH: %s\n(in dir %s)\n\n%s'\
               %(os.environ.get('CVSROOT', '(not defined)'),
                 os.environ.get('CVS_RSH', '(not defined)'), inDir, help),
               'CVS command line', wholeCommand)
+        te = Utils.getCtrlsFromDialog(dlg, 'wxTextCtrlPtr')[0]
+        try:
+            te.SetSelection(string.index(wholeCommand, '['), 
+                            string.index(wholeCommand, ']')+1)
+        except ValueError:
+            te.SetInsertionPoint(len(wholeCommand))
+        
+        
         try:
             if dlg.ShowModal() == wxID_OK:
                 return dlg.GetValue()
@@ -173,10 +186,6 @@ class CVSController(ExplorerNodes.Controller):
             dlg.Destroy()
 
     def getCvsHelp(self, cmd, option = '-H'):
-##        from popen2import import popen3
-##        inp, outp, errp = popen3('cvs %s %s'% (option, cmd))
-##        # remove last line
-##        return string.join(errp.readlines()[:-1])
         CVSPD = ProcessProgressDlg.ProcessProgressDlg(self.list,
                   'cvs %s %s'% (option, cmd), '', modally=false)
         try:
@@ -188,33 +197,9 @@ class CVSController(ExplorerNodes.Controller):
         # Repaint background
         wxYield()
 
-#        from popen2import import popen3
-
         cwd = os.getcwd()
         try:
             os.chdir(cvsDir)
-
-##            inp, outp, errp = popen3(cmd)
-##
-##            if stdinput:
-##                wxBeginBusyCursor()
-##                try: inp.write(stdinput)
-##                finally: wxEndBusyCursor()
-##
-##            outls = []
-##            wxBeginBusyCursor()
-##            try:
-##                while 1:
-##                    ln = outp.readline()
-##                    if not ln: break
-##                    print string.strip(ln)
-##                    outls.append(ln)
-##            finally:
-##                wxEndBusyCursor()
-##
-##            wxBeginBusyCursor()
-##            try: err = errp.read()
-##            finally: wxEndBusyCursor()
             CVSPD = ProcessProgressDlg.ProcessProgressDlg(self.list, cmd, 'CVS progress...')
             try:
                 if CVSPD.ShowModal() == wxOK:
@@ -230,9 +215,14 @@ class CVSController(ExplorerNodes.Controller):
                   'Server response or Error', wxOK | wxICON_EXCLAMATION)
                 try: dlg.ShowModal()
                 finally: dlg.Destroy()
+##                for line in string.split(err, os.linesep):
+##                    if string.strip(line):
+##                        wxLogError(line)
 
             if outls and not (len(outls) == 1 and not string.strip(outls[0])):
-                outls.append(`len(outls)`)
+                #outls.append(`len(outls)`)
+##                for line in outls:
+##                    wxLogMessage(string.rstrip(line))
                 self.showMessage(cmd, string.join(outls, ''))
 
         finally:
@@ -252,28 +242,49 @@ class CVSController(ExplorerNodes.Controller):
                 self.doCvsCmd(cmdStr, cvsDir)
                 if postCmdFunc: postCmdFunc(names)
 
-    def doCvsCmdInDir(self, cmd, cmdOpts, cvsDir, items):
-        cmdStr = self.cvsCmdPrompt(self.cvsCmd(cmd, cmdOpts, items),
+    def doCvsCmdInDir(self, cmd, cmdOpts, cvsDir, items, cvsOpts = ''):
+        cmdStr = self.cvsCmdPrompt(self.cvsCmd(cmd, cmdOpts, items, cvsOpts),
               cvsDir, self.getCvsHelp(cmd))
         if cmdStr:
             self.doCvsCmd(cmdStr, cvsDir)
+            return true
+        else:
+            return false
 
     def importCVSItems(self):
         # Imports are called from normal folders not CVS folders
 
         # XXX Check if CVS folder exists ?
         cvsDir = self.list.node.resourcepath
-        self.doCvsCmdInDir('import', '', cvsDir, ['[MODULE]', 'VENDOR', 'RELEASE'])
-
-        self.list.refreshCurrent()
+        if self.doCvsCmdInDir('import', '', cvsDir, ['[MODULE]', 'VENDOR', 'RELEASE']):
+            self.list.refreshCurrent()
 
 
     def checkoutCVSItems(self):
         # Checkouts are called from normal folders not CVS folders
+        file, lines = self.readCVSPass()
+        del file
+        cvsroots = []
+        for line in lines:
+            cvsroots.append(string.split(line)[0])
+        if cvsroots:
+            dlg = wxSingleChoiceDialog(self.list, 'Select and click OK to set CVSROOT'\
+             ' or Cancel to use environment variable.\n\nYou have pserver access to the following servers:', 
+             'Choose CVSROOT (-d parameter)', cvsroots)
+            try:
+                if dlg.ShowModal() == wxID_OK:
+                    cvsOpts = '-d'+dlg.GetStringSelection()
+                else:
+                    cvsOpts = ''
+            finally:
+                dlg.Destroy()
+        else:
+            cvsOpts = ''
+            
+            
         cvsDir = self.list.node.resourcepath
-        self.doCvsCmdInDir('checkout', '-P', cvsDir, ['[MODULE]'])
-
-        self.list.refreshCurrent()
+        if self.doCvsCmdInDir('checkout', '-P', cvsDir, ['[MODULE]'], cvsOpts):
+            self.list.refreshCurrent()
 
     def updateCVSItems(self):
         self.doCvsCmdOnSelection('update', '')
@@ -283,7 +294,7 @@ class CVSController(ExplorerNodes.Controller):
         self.updateCVSItems()
 
     def OnCommitCVSItems(self, event):
-        self.doCvsCmdOnSelection('commit', '-m "no message"')
+        self.doCvsCmdOnSelection('commit', '-m "[no message]"')
         self.list.refreshCurrent()
 
     def OnAddCVSItems(self, event):
@@ -336,7 +347,6 @@ class CVSController(ExplorerNodes.Controller):
 
     def OnLoginCVS(self, event):
         cvsDir = self.list.node.resourcepath
-#                self.doCvsCmdInDir('login', '', cvsDir, [], answer + '\n')
 
         # Login can be called from file system folders and cvs folders
         if isinstance(self.list.node, FSCVSFolderNode):
@@ -359,24 +369,24 @@ class CVSController(ExplorerNodes.Controller):
         finally:
             dlg.Destroy()
 
-
-        # Read .cvspass file
-        if os.environ.has_key('HOME') and os.path.isdir(os.environ['HOME']):
-            cvspass = os.path.join(os.environ['HOME'], '.cvspass')
-            if os.path.exists(cvspass):
-                passfile = open(cvspass, 'r+')
-                passwds = passfile.readlines()
-            else:
-                passfile = open(cvspass, 'w')
-                passwds = []
-        else:
-            raise Exception('HOME env var is not defined or not legal')
+        passfile, passwds = self.readCVSPass()
 
         passln = cvsroot + ' ' +password + '\n'
 
         if passln not in passwds:
             passfile.write(passln)
         passfile.close()
+
+    def readCVSPass(self):
+        if os.environ.has_key('HOME') and os.path.isdir(os.environ['HOME']):
+            cvspass = os.path.join(os.environ['HOME'], '.cvspass')
+            if os.path.exists(cvspass):
+                passfile = open(cvspass, 'r+')
+                return passfile, passfile.readlines()
+            else:
+                return open(cvspass, 'w'), []
+        else:
+            raise Exception('HOME env var is not defined or not legal')
 
     def OnLogoutCVS(self, event):
         cvsDir = self.list.node.resourcepath
