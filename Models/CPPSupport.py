@@ -20,8 +20,7 @@ import Preferences, Utils
 true=1;false=0
 
 import EditorHelper
-EditorHelper.imgCPPModel = EditorHelper.imgCounter
-EditorHelper.imgCounter = EditorHelper.imgCounter + 1
+EditorHelper.imgCPPModel = EditorHelper.imgIdxRange()
 
 from Models.EditorModels import SourceModel
 class CPPModel(SourceModel):

@@ -18,8 +18,7 @@ import Preferences, Utils
 true=1;false=0
 
 import EditorHelper
-EditorHelper.imgHTMLFileModel = EditorHelper.imgCounter
-EditorHelper.imgCounter = EditorHelper.imgCounter + 1
+EditorHelper.imgHTMLFileModel = EditorHelper.imgIdxRange()
 
 from Models.EditorModels import PersistentModel
 

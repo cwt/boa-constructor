@@ -18,8 +18,7 @@ true=1;false=0
 import Preferences, Utils
 
 import EditorHelper
-EditorHelper.imgXMLFileModel = EditorHelper.imgCounter
-EditorHelper.imgCounter = EditorHelper.imgCounter + 1
+EditorHelper.imgXMLFileModel = EditorHelper.imgIdxRange()
 
 from Models.EditorModels import PersistentModel
 class XMLFileModel(PersistentModel):
@@ -30,7 +29,7 @@ class XMLFileModel(PersistentModel):
     ext = '.xml'
 
 EditorHelper.modelReg[XMLFileModel.modelIdentifier] = XMLFileModel
-EditorHelper.extMap['.dtd'] = XMLFileModel
+EditorHelper.extMap['.dtd'] = EditorHelper.extMap['.xrc'] = XMLFileModel
 
 from Views.StyledTextCtrls import LanguageSTCMix, stcConfigPath
 class XMLStyledTextCtrlMix(LanguageSTCMix):

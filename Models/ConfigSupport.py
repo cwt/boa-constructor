@@ -18,8 +18,7 @@ import Preferences, Utils
 true=1;false=0
 
 import EditorHelper
-EditorHelper.imgConfigFileModel = EditorHelper.imgCounter
-EditorHelper.imgCounter = EditorHelper.imgCounter + 1
+EditorHelper.imgConfigFileModel = EditorHelper.imgIdxRange()
 
 from Models.EditorModels import SourceModel
 
@@ -56,7 +55,6 @@ import Controllers
 class ConfigFileController(Controllers.SourceController):
     Model           = ConfigFileModel
     DefaultViews    = [ConfigView]
-#    AdditionalViews = []
 
 Controllers.modelControllerReg[ConfigFileModel] = ConfigFileController
 
