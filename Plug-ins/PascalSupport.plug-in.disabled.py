@@ -54,7 +54,7 @@ class PascalSourceView(SourceViews.EditorStyledTextCtrl, PascalStyledTextCtrlMix
         self.active = true
 
 # Register a Pascal STC style editor under Preferences
-ExplorerNodes.langStyleInfoReg.append( ('Pascal', 'pascal', 
+ExplorerNodes.langStyleInfoReg.append( ('Pascal', 'pascal',
       PascalStyledTextCtrlMix, cfgfile) )
 
 # The compile action is just added as an example of how to add an action to
@@ -62,7 +62,7 @@ ExplorerNodes.langStyleInfoReg.append( ('Pascal', 'pascal',
 wxID_PASCALCOMPILE = wxNewId()
 class PascalController(Controllers.SourceController):
     compileBmp = 'Images/Debug/Compile.png'
-    
+
     Model = PascalModel
     DefaultViews = [PascalSourceView]
 
@@ -73,12 +73,12 @@ class PascalController(Controllers.SourceController):
     def addTools(self, toolbar, model):
         Controllers.SourceController.addTools(self, toolbar, model)
         toolbar.AddSeparator()
-        Controllers.addTool(self.editor, toolbar, self.compileBmp, 
+        Controllers.addTool(self.editor, toolbar, self.compileBmp,
               'Compile', self.OnCompile)
 
     def addMenus(self, menu, model):
         accls = Controllers.SourceController.addMenus(self, menu, model)
-        self.addMenu(menu, wxID_PASCALCOMPILE, 'Compile', accls, 
+        self.addMenu(menu, wxID_PASCALCOMPILE, 'Compile', accls,
             (Preferences.keyDefs['CheckSource']))
         return accls
 
