@@ -830,10 +830,8 @@ class MRUCatController(Controller):
         self.recentItemsMenuIds[wid]
 
 
-
 # Bookmarks clipboard should copy entries between bookmark dicts and
 # paste as a bookmark the uri to items copied to clipboard in other transports
-
 
 class BookmarksClipboard(ExplorerClipboard):
     def clipPaste_BookmarksClipboard(self, node, nodes, mode):
@@ -843,44 +841,6 @@ class BookmarksClipboard(ExplorerClipboard):
                 self.clipNodes = []
             elif mode == 'copy': pass
 
-class SysPathNode(ExplorerNode):
-    protocol = 'sys.path'
-    def __init__(self, clipboard, parent, bookmarks):
-        ExplorerNode.__init__(self, 'sys.path', '', clipboard,
-              EditorHelper.imgPathFolder, parent)
-        self.bookmarks = bookmarks
-        self.bold = true
-        self.vetoSort = true
-        #self.refresh()
-        #self.imgIdx = EditorHelper.imgPathFolder
-
-    def isFolderish(self):
-        return true
-
-    def createChildNode(self, shpth, pth):
-        import FileExplorer
-        return FileExplorer.FileSysNode(shpth, pth, self.clipboard,
-              EditorHelper.imgPathFolder, self, self.bookmarks)
-
-    def refresh(self):
-        self.entries = []
-        pythonDir = os.path.dirname(sys.executable)
-        for pth in sys.path:
-            pth = os.path.abspath(pth)
-            shortPath = pth
-            if pth:
-                if pth[0:len(pythonDir)] == pythonDir:
-                    shortPath = pth[len(pythonDir):]
-                    if not shortPath:
-                        shortPath = '<Python root>'
-                self.entries.append( (shortPath, pth) )
-
-    def openList(self):
-        self.refresh()
-        res = []
-        for short, entry in self.entries:
-            res.append(self.createChildNode(short, entry))
-        return res
 
 #---Companions------------------------------------------------------------------
 
@@ -1036,12 +996,14 @@ class BookmarkCategoryStringCompanion(CategoryStringCompanion):
 
 
 #-Registry for explorer nodes-------------------------------------------------
-explorerNodeReg = {}
-nodeRegByProt = {}
-# successfully loaded modules
+# Successfully loaded modules from the 
+# Explorer.*.cfg [explorers] installedtransports import list are recorded here. 
+# Explorer Plug-ins bypassing the Explorer imports should add themselves
+# to this list to have their controller classes hooked into the IDE
 installedModules = []
-# dict of modules that failed to load, name: error
+# Dict of modules that failed to load, name: error
 failedModules = {}
+
 # Registry for language styles which can be edited under Preferences.Source
 langStyleInfoReg = []
 # Registry for extra protocols available in the file open dialog
@@ -1050,13 +1012,17 @@ fileOpenDlgProtReg = []
 uriSplitReg = {}
 # Registry for functions to locate connections
 transportFindReg = {}
-# List of protocols that don't have Category nodes, and must be created
-# at the top level of the tree 
-explorerRootNodesReg = []
 
 # Global reference to container for all transport protocols
 # The first Explorer Tree created will define this
 all_transports = None
+
+# Main registries for ExplorerNode classes
+explorerNodeReg = {}
+nodeRegByProt = {}
+# List of protocols that don't have Category nodes, and must be created
+# at the top level of the tree 
+explorerRootNodesReg = []
 
 def register(Node, clipboard=None, confdef=('', ''), controller=None, 
              category=None, root=False):
@@ -1084,4 +1050,3 @@ def isTransportAvailable(conf, section, prot):
 
 register(CategoryNode, controller=CategoryController)
 register(MRUCatNode, controller=MRUCatController)
-register(SysPathNode, clipboard='file', controller='file', root=True)
