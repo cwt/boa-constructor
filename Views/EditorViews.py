@@ -89,37 +89,13 @@ wxwFunctionTemplate = '''
 
 wxwFooterTemplate = '</body></html>'
 
-class ViewBrowser:
-    def __init__(self, model, current):
-        self.prevList = []
-        self.nextList = []
-        self.current = current
-        self.pagers = {}
-
-    def registerPage(self, name, pageFunc):
-        self.pagers[name] = pageFunc
-
-
-    def browseTo(self, place):
-        self.prevList.append(place)
-
-    def previous(self):
-        pass
-
-    def next(self):
-        pass
-
-    def canPrev(self):
-        return len(self.prevList)
-
-    def canNext(self):
-        return len(self.nextList)
-
 class EditorView:
-    def __init__(self, model, actions = [], dclickActionIdx = -1, editorIsWindow = true, overrideDClick = false):
+    def __init__(self, model, actions=[], dclickActionIdx=-1,
+          editorIsWindow=true, overrideDClick=false):
         self.actions = actions
         self.active = false
         self.model = model
+        self.editorDisconnect = self.model.editor.Disconnect
         self.modified = false
         if editorIsWindow:
             EVT_RIGHT_DOWN(self, self.OnRightDown)
@@ -139,6 +115,14 @@ class EditorView:
         if not overrideDClick and dclickActionIdx < len(actions) and dclickActionIdx > -1:
             EVT_LEFT_DCLICK(self, actions[dclickActionIdx][1])
 
+    def destroy(self):
+        self.disconnectEvts()
+
+        self.model = None
+        self.methodsIds = None
+        del self.actions
+
+#---Action management-----------------------------------------------------------
     def buildMethodIds(self):
         self.methodsIds = []
         for name, meth, bmp, accl in self.actions:
@@ -192,17 +176,7 @@ class EditorView:
         if self.model:
             for wId, meth in self.methodsIds:
                 self.Disconnect(wId)
-                self.model.editor.Disconnect(wId)
-
-    def destroy(self):
-        self.disconnectEvts()
-
-        self.model = None
-        self.methodsIds = None
-        del self.actions
-
-##    def __del__(self):
-##        print '__del__', self.__class__.__name__
+                self.editorDisconnect(wId)
 
     def addViewTools(self, toolbar):
         for name, meth, bmp, accls in self.actions:
@@ -215,6 +189,7 @@ class EditorView:
                 Utils.AddToolButtonBmpObject(self.model.editor, toolbar,
                       IS.load(bmp), name, meth)
 
+#---Page management-------------------------------------------------------------
     docked = true
     def addToNotebook(self, notebook, viewName = '', panel = None):
         self.notebook = notebook
@@ -241,6 +216,32 @@ class EditorView:
             self.destroy()
             self.notebook.DeletePage(self.pageIdx)
 
+#---Editor status updating------------------------------------------------------
+    def updatePageName(self):
+        if hasattr(self, 'notebook'):
+            currName = self.notebook.GetPageText(self.pageIdx)
+
+            if self.isModified(): newName = '~%s~' % self.viewName
+            else: newName = self.viewName
+
+            if currName != newName:
+                if newName == self.viewName:
+                    if self.model.viewsModified.count(self.viewName):
+                        self.model.viewsModified.remove(self.viewName)
+                else:
+                    if not self.model.viewsModified.count(self.viewName):
+                        self.model.viewsModified.append(self.viewName)
+                self.notebook.SetPageText(self.pageIdx, newName)
+                self.updateEditor()
+
+    def updateEditor(self):
+        self.model.editor.updateModulePage(self.model)
+        self.model.editor.updateTitle()
+
+    def updateViewState(self):
+        self.updatePageName()
+
+#---Standard interface----------------------------------------------------------
     def activate(self):
         self.active = true
         if self.modified: self.refresh()
@@ -273,22 +274,7 @@ class EditorView:
         pass
 
     def close(self):
-##        print 'EditorView close'
         self.destroy()
-
-##    def viewMenu(self):
-##        return self.menu, self.
-##        menu = wxMenu()
-##        accelLst = []
-##        for name, meth, bmp, accels in self.actions:
-##            if name == '-':
-##                menu.AppendSeparator()
-##            else:
-##                newId = NewId()
-##                menu.Append(newId, name)
-##                EVT_MENU(self, newId, meth)#
-##                if accels: accelLst.append((accels[0], accels[1], newId))
-##        return menu, accelLst
 
     def isModified(self):
         return self.modified
@@ -296,6 +282,11 @@ class EditorView:
     def explore(self):
         """ Return items for Explorer """
         return []
+
+    def gotoBrowseMarker(self, marker):
+        """ Called by the browse history stack, children should override to
+        participate in the HistoryBrowser """
+        self.focus()
 
     def OnRightDown(self, event):
         self.popx = event.GetX()
@@ -480,7 +471,7 @@ class ModuleDocView(HTMLDocView):
 
         return page + string.join(functions)
 
-class ClosableViewMix:
+class CloseableViewMix:
     closeBmp = 'Images/Editor/Close.png'
 
     def __init__(self, hint = 'results'):
@@ -491,10 +482,10 @@ class ClosableViewMix:
         del self.closingActionItems
         self.deleteFromNotebook('Source', self.tabName)
 
-class CyclopsView(HTMLView, ClosableViewMix):
+class CyclopsView(HTMLView, CloseableViewMix):
     viewName = 'Cyclops report'
     def __init__(self, parent, model):
-        ClosableViewMix.__init__(self)
+        CloseableViewMix.__init__(self)
         HTMLView.__init__(self, parent, model, ( ('-', -1, '', ''), ) +
           self.closingActionItems)
 
@@ -569,11 +560,12 @@ class CyclopsView(HTMLView, ClosableViewMix):
 
 
 # XXX Add addReportColumns( list of name, width tuples) !
-class ListCtrlView(wxListCtrl, EditorView):
+class ListCtrlView(wxListCtrl, EditorView, Utils.ListCtrlSelectionManagerMix):
     viewName = 'List (abstract)'
     def __init__(self, parent, model, listStyle, actions, dclickActionIdx=-1):
         wxListCtrl.__init__(self, parent, -1, style=listStyle | wxSUNKEN_BORDER | wxLC_SINGLE_SEL) #wxWANTS_CHARS |
         EditorView.__init__(self, model, actions, dclickActionIdx, overrideDClick=true)
+        Utils.ListCtrlSelectionManagerMix.__init__(self)
 
         EVT_LIST_ITEM_SELECTED(self, -1, self.OnItemSelect)
         EVT_LIST_ITEM_DESELECTED(self, -1, self.OnItemDeselect)
@@ -678,7 +670,7 @@ class ListCtrlView(wxListCtrl, EditorView):
             self.actions[self.defaultActionIdx][1](event)
 #            EVT_LEFT_DCLICK(self, self.actions[self.dclickActionIdx][1])
 
-idGotoLine = NewId()
+idGotoLine = wxNewId()
 class ToDoView(ListCtrlView):
     viewName = 'Todo'
     gotoLineBmp = 'Images/Editor/GotoLine.png'
@@ -766,7 +758,7 @@ class ToDoView(ListCtrlView):
 ##                self.blockReentrant = false
 
     def OnGoto(self, event):
-        if self.model.views.has_key('Source'):
+        if self.model.views.has_key('Source') and self.selected >= 0:
             srcView = self.model.views['Source']
             # XXX Implement an interface for views to talk
             srcView.focus()
@@ -954,9 +946,9 @@ class ExploreEventsView(ExploreView):
             self._populated_tree = 0
             return
         self.AddRoot('Loading...')
-        
+
         from moduleparse import CodeBlock
-        
+
         module = model.getModule()
         self.DeleteAllItems()
         rootItem = self.AddRoot(model.main, 5, -1,
@@ -1129,6 +1121,54 @@ class DistUtilView(wxPanel, EditorView):
     def refreshCtrl(self):
         pass
 
+class DistUtilManifestView(ListCtrlView):
+    viewName = 'Manifest'
+
+    def __init__(self, parent, model):
+        ListCtrlView.__init__(self, parent, model, wxLC_REPORT,
+          (('Open', self.OnOpen, '-', ()), ), 0)
+        self.InsertColumn(0, 'Name')
+        self.InsertColumn(1, 'Filepath')
+        self.SetColumnWidth(0, 150)
+        self.SetColumnWidth(1, 450)
+        
+        self.manifest = []
+
+    def getSetupDir(self):
+        return os.path.dirname(self.model.filename)
+    
+    def refreshCtrl(self):
+        ListCtrlView.refreshCtrl(self)
+
+        from Explorers.Explorer import openEx, TransportError
+        manifestPath = self.getSetupDir() +'/Manifest'
+        try:
+            manifest = openEx(manifestPath).load()
+        except TransportError, err:
+            self.InsertStringItem(0, 'Error')
+            self.SetStringItem(0, 1, str(err))
+            self.manifest = None
+        else:
+            self.manifest = []
+            idx = -1
+            for path in string.split(manifest, '\n'):
+                idx = idx + 1
+                path = string.strip(path)
+                if not path:
+                    continue
+                self.manifest.append(path)
+                name = os.path.basename(path)
+                self.InsertStringItem(idx, name)
+                self.SetStringItem(idx, 1, path)
+
+        self.pastelise()
+
+    def OnOpen(self, event):
+        if self.selected != -1 and self.manifest is not None:
+            model, controller = self.model.editor.openOrGotoModule(
+                  self.getSetupDir()+'/'+self.manifest[self.selected])
+
+
 class CVSConflictsView(ListCtrlView):
     viewName = 'CVS conflicts'
     gotoLineBmp = 'Images/Editor/GotoLine.png'
@@ -1181,6 +1221,23 @@ class CVSConflictsView(ListCtrlView):
     def OnRejectChanges(self, event):
         if self.selected != -1:
             self.model.rejectConflictChange(self.conflicts[self.selected])
+
+class FolderEditorView(wxNotebook, EditorView):
+    viewName = 'Folder'
+
+    def __init__(self, parent, model):
+        wxNotebook.__init__(self, parent, -1)
+        EditorView.__init__(self, model,
+          (), -1)#('Goto line', self.OnGoto, self.gotoLineBmp, ''),), 0)
+        self.SetImageList(self.model.editor.tabs.GetImageList())
+        EVT_NOTEBOOK_PAGE_CHANGED(self, self.GetId(), self.OnPageChange)
+
+    def refreshCtrl(self):
+        pass
+
+    def OnPageChange(self, event):
+        pass
+
 
 #class CVSView : Shows conflicts after merging CVS
 
