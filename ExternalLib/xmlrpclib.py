@@ -126,7 +126,7 @@ Exported functions:
                  name (None if not present).
 """
 
-import re, string, time, operator
+import re, string, time, operator, sys
 
 from types import *
 
@@ -376,7 +376,12 @@ else:
         # fast expat parser for Python 2.0.  this is about 50%
         # slower than sgmlop, on roundtrip testing
         def __init__(self, target):
-            self._parser = parser = expat.ParserCreate(None, None)
+            try:
+                encoding = sys.getdefaultencoding()
+            except AttributeError:
+                encoding = None
+                
+            self._parser = parser = expat.ParserCreate(encoding, None)
             self._target = target
             parser.StartElementHandler = target.start
             parser.EndElementHandler = target.end
@@ -851,7 +856,12 @@ class Transport:
 
         self.verbose = verbose
 
-        return self.parse_response(h.getfile(), h._conn.sock)
+        try:
+            sock = h._conn.sock
+        except AttributeError:
+            sock = h.sock
+
+        return self.parse_response(h.getfile(), sock)
 
     def getparser(self):
         # get parser and unmarshaller
