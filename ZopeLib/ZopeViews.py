@@ -6,12 +6,12 @@
 #
 # Created:     2001
 # RCS-ID:      $Id$
-# Copyright:   (c) 2001
+# Copyright:   (c) 2001 - 2003
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 print 'importing ZopeLib.ZopeViews'
 
-import os, string, time
+import os, time
 
 from wxPython import wx
 
@@ -190,45 +190,45 @@ class ZopeSiteErrorLogParser(ErrorStack.StackErrorParser):
         while lines:
             line = lines.pop()
             if Utils.startswith(line, '  Module '):
-                modPath, lineNo, funcName = string.split(line[9:], ', ')
+                modPath, lineNo, funcName = line[9:].split(', ')
                 lineNo = int(lineNo[5:])
-                modPath = string.strip(modPath)
+                modPath = modPath.strip()
                 if modPath == 'Script (Python)':
                     path = lines.pop()
                     lines.pop()
                     if Utils.startswith(path, '   - <PythonScript at '):
-                        path = string.strip(path[22:])[:-1]
+                        path = path[22:].strip()[:-1]
                         debugUrl = self.baseUrl+path+'/Script (Python)'
                         self.stack.append(
                               ErrorStack.StackEntry(debugUrl, lineNo+1, funcName))
                 elif Utils.startswith(modPath, 'Python expression'):
                     continue
                 else:
-                    modPath = self.libPath+'/'+string.replace(modPath, '.', '/')+'.py'
+                    modPath = self.libPath+'/'+modPath.replace('.', '/')+'.py'
                     self.stack.append(ErrorStack.StackEntry(modPath, lineNo, funcName))
             elif Utils.startswith(line, '   - <PythonScript at '):
-                path = string.strip(line[22:])[:-1]
+                path = line[22:].strip()[:-1]
                 debugUrl = self.baseUrl+path+'/Script (Python)'
                 self.stack.append(
                       ErrorStack.StackEntry(debugUrl, 0, os.path.basename(path)))
             elif Utils.startswith(line, '   - <ZopePageTemplate at '):
-                path = string.strip(line[26:])[:-1]
+                path = line[26:].strip()[:-1]
                 debugUrl = self.baseUrl+path+'/Page Template'
                 self.stack.append(ErrorStack.StackEntry(debugUrl, 0,
                       os.path.basename(path)))
             elif Utils.startswith(line, '   - URL: '):
-                path = string.strip(line[10:])
-                lineNo, colNo = string.split(lines.pop(), ', ')
-                lineNo = int(string.split(lineNo)[-1])
+                path = line[10:].strip()
+                lineNo, colNo = lines.pop().split(', ')
+                lineNo = int(lineNo.split()[-1])
                 debugUrl = self.baseUrl+path+'/Page Template'
                 self.stack.append(ErrorStack.StackEntry(debugUrl, lineNo,
                       os.path.basename(path)))
             elif line and line[0] != ' ':
-                errType, errValue = string.split(line, ': ', 1)
+                errType, errValue = line.split(': ', 1)
                 lines.reverse()
-                errValue = string.strip(errValue + string.join(lines))
+                errValue = (errValue + ' '.join(lines)).strip()
                 if errValue and errValue[0] == '<':
-                    errValue = string.replace(Utils.html2txt(errValue), '\n', ' ')
+                    errValue = Utils.html2txt(errValue).replace('\n', ' ')
 
                 error = [errType, errValue]
                 break
@@ -272,8 +272,7 @@ class ZopeSiteErrorLogView(ListCtrlView):
                 value = entry['value']
                 # pretty print html errors
                 if value and value[0] == '<':
-                    value = string.strip(string.replace(
-                          Utils.html2txt(value), '\n', ' '))
+                    value = Utils.html2txt(value).replace('\n', ' ').strip()
                 self.addReportItems(i, (time.ctime(entry['time']),
                       entry['username'], entry['type'], value, entry['url']) )
                 self.logEntryIds.append(entry['id'])
@@ -290,9 +289,9 @@ class ZopeSiteErrorLogView(ListCtrlView):
             except xmlrpclib.Fault, error:
                 wx.wxLogError(Utils.html2txt(error.faultString))
             else:
-                lines = string.split(textEntry, '\n')
+                lines = textEntry.split('\n')
                 lines.reverse()
-                top = string.strip(lines.pop())
+                top = lines.pop().strip()
                 assert top == 'Traceback (innermost last):'
 
                 props = errLogNode.properties

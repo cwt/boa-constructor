@@ -6,12 +6,12 @@
 #
 # Created:     2001/06/04
 # RCS-ID:      $Id$
-# Copyright:   (c) 2001 - 2002 Riaan Booysen
+# Copyright:   (c) 2001 - 2003 Riaan Booysen
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 print 'importing ZopeLib.ZopeEditorModels'
 
-import string, os
+import os
 
 from wxPython import wx
 
@@ -134,7 +134,7 @@ class ZopeDocumentModel(ZopeEditorModel):
     def getPageName(self):
         if self.transport.name == 'index_html':
             return '%s (%s)' % (self.transport.name,
-                  string.split(self.transport.resourcepath, '/')[-2])
+                  self.transport.resourcepath.split('/')[-2])
         else:
             return self.transport.name
 
@@ -159,7 +159,7 @@ class ZopePythonSourceModel(ZopeDocumentModel):
             wx.wxBeginBusyCursor()
             try:
                 self._module = moduleparse.Module(
-                    self.transport.whole_name, string.split(self.data, '\012'))
+                    self.transport.whole_name, self.data.split('\012'))
             finally:
                 wx.wxEndBusyCursor()
         return self._module
@@ -237,9 +237,8 @@ class ZopeExportFileController(Controllers.UndockedController):
                         if dlg.ShowModal() == wx.wxID_OK:
                             selected = dlg.GetStringSelection()
                             props = localZopes[selected]
-                            zexppath = string.replace(\
-                                props['localpath'] +'/import/' +\
-                                os.path.basename(model.transport.resourcepath),
+                            zexppath = (props['localpath'] +'/import/' +\
+                                os.path.basename(model.transport.resourcepath)).replace(
                                 '<LocalFS::directory>', '<LocalFS::file>')
 
                             model.load()

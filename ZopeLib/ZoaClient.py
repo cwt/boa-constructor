@@ -9,7 +9,7 @@
 # Copyright:   (c) 2002 - 2003
 # Licence:     GPL
 #-----------------------------------------------------------------------------
-import os, string
+import os
 
 import Client
 
@@ -68,7 +68,7 @@ def installList(info, dirname, names):
 
     reldir = dirname[len(fsPath)+1:]
     if reldir:
-        url = string.join([url] + string.split(reldir, os.sep), '/')
+        url = '/'.join([url] + reldir.split(os.sep))
 
     info = (url, user, passwd)
     for item in names:

@@ -11,7 +11,7 @@
 #-----------------------------------------------------------------------------
 print 'importing ZopeLib.ZopeExplorer'
 
-import os, urllib, urlparse, string, time, socket
+import os, urllib, urlparse, time, socket
 from thread import start_new_thread
 
 from wxPython.wx import *
@@ -44,7 +44,7 @@ class ZopeEClip(ExplorerNodes.ExplorerClipboard):
     def callAndSetRef(self, objpath, method, nodes):
         names = map(lambda n :n.name, nodes)
         mime, res = self.zc.call(objpath, method, ids = names)
-        self.clipRef = string.split(mime.get('Set-Cookie'), '"')[1]
+        self.clipRef = mime.get('Set-Cookie').split('"')[1]
     def clipCut(self, node, nodes):
         ExplorerNodes.ExplorerClipboard.clipCut(self, node, nodes)
         self.callAndSetRef(node.resourcepath, 'manage_cutObjects', nodes)
@@ -343,8 +343,8 @@ class ZopeCatController(ExplorerNodes.CategoryController):
     zopeRunning = 'The server is available'
     err_zopeNotRunning = 'The server is not running'
     err_localpathBlank = 'The "localpath" property must be defined'
-    def __init__(self, editor, list, inspector, controllers, menuDefs = ()):
-        zccMenuDef = ( (-1, '-', None, '-'),
+    def __init__(self, editor, list, inspector, controllers, menuDefs = []):
+        zccMenuDef = [ (-1, '-', None, '-'),
                        (wxID_ZCCSTART, 'Start', self.OnStart, '-'),
                        (wxID_ZCCRESTART, 'Restart', self.OnRestart, '-'),
                        (wxID_ZCCSHUTDOWN, 'Shutdown', self.OnShutdown, '-'),
@@ -355,7 +355,7 @@ class ZopeCatController(ExplorerNodes.CategoryController):
                        (-1, '-', None, '-'),
                        (wxID_ZCOPENZ2, 'Open z2.py', self.OnOpenZ2, '-'),
                        (wxID_ZCBREAKINTO, 'Break into', self.OnBreakInto, '-'),
-                     )
+                     ]
         ExplorerNodes.CategoryController.__init__(self, editor, list, inspector,
               controllers, menuDefs = menuDefs + zccMenuDef)
 
@@ -416,7 +416,7 @@ class ZopeCatController(ExplorerNodes.CategoryController):
                 os.system('net start "%s"'%props['servicename'])
                 self.checkAvailability(node.properties, zopeStatupTimeout)
             elif props['localpath']:
-                if string.find(props['localpath'], ' ') != -1:
+                if props['localpath'].find(' ') != -1:
                     wxLogError('Localpath property may not contain spaces (use SHORT~1 version if necessary)')
                 else:
                     os.system('start %s\\start.bat'%props['localpath'])
@@ -511,11 +511,11 @@ class ZopeController(ExplorerNodes.Controller, ExplorerNodes.ClipboardController
         self.menu = wxMenu()
         self.inspector = inspector
 
-        self.zopeMenuDef = (\
+        self.zopeMenuDef = [
             (wxID_ZOPEINSPECT, 'Inspect', self.OnInspectItem, self.inspectBmp),
-            (-1, '-', None, '') ) +\
+            (-1, '-', None, '') ] +\
             self.clipMenuDef +\
-          ( (-1, '-', None, ''),
+          [ (-1, '-', None, ''),
             (wxID_ZOPEFIND, 'Find', self.OnFindZopeItems, self.findBmp),
             (-1, '-', None, ''),
             (wxID_ZOPEUPLOAD, 'Upload', self.OnUploadZopeItem, self.uploadBmp),
@@ -528,7 +528,7 @@ class ZopeController(ExplorerNodes.Controller, ExplorerNodes.ClipboardController
             (-1, '-', None, ''),
             (wxID_ZOPEVIEWBROWSER,'View in browser', self.OnViewInBrowser, self.viewInBrowserBmp),
             (wxID_ZOPEMANAGEBROWSER,'Manage in browser', self.OnManageInBrowser, '-'),
-          )
+        ]
 
         self.setupMenu(self.menu, self.list, self.zopeMenuDef)
         self.toolbarMenus = [self.zopeMenuDef]
@@ -685,10 +685,10 @@ class ZopeController(ExplorerNodes.Controller, ExplorerNodes.ClipboardController
             dlg = ZopeFindDlg(self.editor)
             try:
                 if dlg.ShowModal() == wxID_OK:
-                    res = string.split(dlg.objIds.GetValue(), ',') or ()
+                    res = dlg.objIds.GetValue().split(',') or ()
                     obj_ids = []
                     for zid in res:
-                        zid = string.strip(zid)
+                        zid = zid.strip()
                         if zid:
                             obj_ids.append(zid)
                     meta_type = 0
@@ -797,9 +797,9 @@ class ZSQLNode(ZopeNode):
     defaultViews = (ZopeViews.ZopeHTMLSourceView,)
     additionalViews = (ZopeViews.ZopeSecurityView, ZopeViews.ZopeUndoView)
     def getParams(self, data):
-        return string.split(string.split(data, '<params>')[1], '</params>')[0]
+        return data.split('<params>')[1].split('</params>')[0]
     def getBody(self, data):
-        return string.lstrip(string.split(data, '</params>')[1])
+        return data.split('</params>')[1].lstrip()
     def save(self, filename, data, mode='wb'):
         """ Saves contents of data to Zope """
         props = self.getResource().zoa.props.SQLMethod()
@@ -823,19 +823,19 @@ class PythonNode(ZopeNode):
                        ZopeViews.ZopeUndoView)
 
     def getParams(self, data):
-        return data[string.find(data, '(')+1 : string.find(data, '):')]
+        return data[data.find('(')+1 : data.find('):')]
 
     def getBody(self, data):
-        tmp = string.split(data[string.find(data, ':')+2:], '\n')
+        tmp = data[data.find(':')+2:], '\n'.split()
         tmp2 = []
         for  l in tmp:
             # Handle comments which may be indented less
-            if string.strip(l[:4]):
-                l = string.lstrip(l)
+            if l[:4].strip():
+                l = l.lstrip()
             else:
                 l = l[4:]
             tmp2.append(l)
-        return string.join(tmp2, '\n')
+        return '\n'.join(tmp2)
 
     def save(self, filename, data, mode='wb'):
         self.getResource().manage_edit(self.name, self.getParams(data),
@@ -846,19 +846,19 @@ class PythonScriptNode(PythonNode):
           ZopeViews.ZopeUndoView, Views.EditorViews.ToDoView)
 
     def preparedata(self, data):
-        tmp=string.split(data, '\n')
+        tmp=data.split('\n')
         tmp2=[]
         h=1
         for l in tmp:
             if l[:2] <> '##' :
                 h=0
             if l[:12] == '##parameters':
-                params = l[string.find(l, '=')+1:]
+                params = l[l.find('=')+1:]
             if h:
                 pass # perhaps we need this anytime
             else:
                 tmp2.append('    ' + l)
-        return 'def %s(%s):\n%s' % (self.name, params, string.join(tmp2, '\n'))
+        return 'def %s(%s):\n%s' % (self.name, params, '\n'.join(tmp2))
 
     def load(self, mode='rb'):
         data = PythonNode.load(self, mode)
@@ -965,12 +965,12 @@ class ZopeResultsFolderNode(ZopeItemNode):
         return 'Zope Find Results'
 
 def findBetween(strg, startMarker, endMarker):
-    strL = string.lower(strg)
+    strL = strg.lower()
     found = ''
-    idx = string.find(strL, startMarker)
+    idx = strL.find(startMarker)
     idx2 = -1
     if idx != -1:
-        idx2 = string.find(strL, endMarker, idx)
+        idx2 = strL.find(endMarker, idx)
         if idx2 != -1:
             found = strg[idx + len(startMarker)+1: idx2]
     return idx, idx2, found
@@ -997,11 +997,11 @@ class ZopeError(Exception):
 
 def zopeHtmlErr2Strs(faultStr):
     sFaultStr = str(faultStr)
-    fs = string.lower(sFaultStr)
-    idx = string.find(fs, '<pre>')
+    fs = sFaultStr.lower()
+    idx = fs.find('<pre>')
     traceBk = ''
     if idx != -1:
-        idx2 = string.find(fs, '</pre>', idx)
+        idx2 = fs.find('</pre>', idx)
         if idx2 != -1:
             traceBk = '\nTraceback:\n'+sFaultStr[idx + 5: idx2]
     txt = Utils.html2txt(sFaultStr)
@@ -1009,34 +1009,33 @@ def zopeHtmlErr2Strs(faultStr):
 
 def uriSplitZope(filename, filepath):
     # zope://[category]/<[meta type]>/[path] format
-    segs = string.split(filepath, '/')
+    segs = filepath.split('/')
     if len(segs) < 2:
         raise ExplorerNodes.TransportCategoryError(
               'Category not found', filepath)
     category = segs[0]+'|'+segs[1][1:-1]
-    return 'zope', category, string.join(segs[2:], '/'), filename
+    return 'zope', category, '/'.join(segs[2:]), filename
 
 def uriSplitZopeDebug(filename, filepath):
     # zopedebug://[host[:port]]/[path]/[meta type]
     # magically maps zopedebug urls to Boa zope uris
-    segs = string.split(filepath, '/')
+    segs = filepath.split('/')
     if len(segs) < 3:
         raise ExplorerNodes.TransportCategoryError(
               'Zope debug path invalid', filepath)
     host, filepaths, meta = segs[0], segs[1:-1], segs[-1]
-    try:               host, port = string.split(host, ':')
+    try:               host, port = host.split(':')
     except ValueError: port = 80
     else:              port = int(port)
     # try to find category that can open this url
-    lw = string.lower
     for cat in ExplorerNodes.all_transports.entries:
         if cat.itemProtocol == 'zope':
             itms = cat.openList()
             for itm in itms:
                 props = itm.properties
-                if lw(props['host']) == lw(host) and \
+                if props['host'].lower() == host.lower() and \
                       props['httpport'] == port:
-                    path = string.join(filepaths, '/')
+                    path = '/'.join(filepaths)
                     name = itm.name or itm.treename
                     return 'zope', '%s|%s' %(name, meta), path, \
                            'zope://%s/<%s>/%s'%(name, meta, path)
@@ -1046,7 +1045,7 @@ def uriSplitZopeDebug(filename, filepath):
           filepath)
 
 def findZopeExplorerNode(catandmeta, respath, transports):
-    category, metatype = string.split(catandmeta, '|')
+    category, metatype = catandmeta.split('|')
     for cat in transports.entries:
         if hasattr(cat, 'itemProtocol') and cat.itemProtocol == 'zope':
             itms = cat.openList()

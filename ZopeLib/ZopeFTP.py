@@ -6,11 +6,11 @@
 #
 # Created:     2000/05/08
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999 - 2001 Riaan Booysen
+# Copyright:   (c) 1999 - 2003 Riaan Booysen
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 
-import string, socket
+import socket
 import ftplib, os
 
 true = 1
@@ -33,11 +33,11 @@ class ZopeFTPItem:
         # dos:
         # 08-15-01  09:20AM                  255 __init__.pyc
         # [date  ]  [time ]                  [size] [name]
-        items = filter(None, string.split(line))
+        items = filter(None, line.split())
         # DOS format
         if len(items) == 4:
             try:
-                self.date = string.join((items[0], items[1]))
+                self.date = ' '.join((items[0], items[1]))
                 if items[2] == '<DIR>':
                     self.size = '0'
                     self.perms = 'd'+self.perms[1:]
@@ -51,21 +51,14 @@ class ZopeFTPItem:
         else:
             try:
                 self.perms, dunno, owner, group, self.size = items[:5]
-                self.date = string.join(items[5:8], ' ')
-                #self.perms = line[:10]
-                #entries = filter(None, string.split(line[10:42], ' '))
-                #self.size = int(entries[3])
-                #self.date = line[43:55]
-                self.name = string.join(items[8:], ' ')
-                #print self.perms, self.size, self.name
+                self.date = ' '.join(items[5:8])
+                self.name = ' '.join(items[8:])
 
             except Exception, message:
                 print 'Could not read:', line, message
-#        print line
-#        print self
 
     def prepareAsFile(self, data):
-        self.lines = string.split(data, '\n')
+        self.lines = data.split('\n')
         self.lines.reverse()
 
     def readline(self):
@@ -83,7 +76,7 @@ class ZopeFTPItem:
         else: return '%s/%s' % (self.path, self.name)
 
     def obj_path(self):
-        return string.join(string.split(self.path, '/') + [self.name], '.')
+        return '.'.join(self.path.split('/') + [self.name])
 
     def cmd(self, cmd):
         return '%s %s' % (cmd, self.whole_name())
@@ -120,7 +113,7 @@ class ZopeFTP:
 
         self.ftp.set_pasv(passive)
 
-        return string.join(res, '\n')
+        return '\n'.join(res)
 
 
     def disconnect(self):
@@ -157,7 +150,7 @@ class ZopeFTP:
     def load(self, item):
         res = []
         self.ftp.retrlines(item.cmd('RETR'), res.append)
-        return string.join(res, '\n')
+        return '\n'.join(res)
 
     def save(self, item, data):
         item.prepareAsFile(data)

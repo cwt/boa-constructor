@@ -6,12 +6,12 @@
 #
 # Created:     2001/02/04
 # RCS-ID:      $Id$
-# Copyright:   (c) 2001 - 2002
+# Copyright:   (c) 2001 - 2003
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 print 'importing ZopeLib.ZopeCompanions'
 
-import os, string
+import os
 
 from wxPython import wx
 
@@ -108,7 +108,7 @@ class BoolZopePropEdit(ZopePropEdit):
         return ['False', 'True']
     def getValue(self):
         if self.editorCtrl:
-            self.value = self.boolKeyMap[string.lower(self.editorCtrl.getValue())]
+            self.value = self.boolKeyMap[self.editorCtrl.getValue().lower()]
 ##            if v == 'true'
 ##            self.value = self.getValues().index(self.editorCtrl.getValue())
         return self.value
@@ -134,8 +134,8 @@ class ZopeConnection:
         instLst = methodparse.safesplitfields(instLstStr, ',')
         tpeLst = []
         for inst in instLst:
-            key, val = string.split(inst[1:-1], ', ')
-            val = string.split(val[1:], ' ')[0]
+            key, val = inst[1:-1].split(', ')
+            val = val[1:].split(' ')[0]
             tpeLst.append( (key, val) )
         return tpeLst
 
@@ -300,21 +300,21 @@ class PythonScriptZC(CustomZopePropsMixIn, ZopeCompanion):
     def getProps(self):
         mime, res = self.call(self.objPath, 'document_src')
         props = {}
-        lines = string.split(res, '\n')[1:]
+        lines = res.split('\n')[1:]
         cnt = 0
         for line in lines:
             cnt = cnt + 1
-            line = string.strip(line)
+            line = line.strip()
             if line == '##':
                 break
-            pvt = string.find(line, '=')
+            pvt = line.find('=')
             name = line[2:pvt]
             if len(name) >5 and name[:5] == 'bind ':
                 name = name[5:]
             value = line[pvt+1:]
             props[name] = value
 
-        props['body'] = string.join(lines[cnt:], '\n')
+        props['body'] = lines[cnt:].join('\n')
 
         return props
 
