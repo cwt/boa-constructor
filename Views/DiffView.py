@@ -116,8 +116,9 @@ class PythonSourceDiffView(wxStyledTextCtrl, EditorView, PythonStyledTextCtrlMix
     
     def OnMarginClick(self, event):
         if event.GetMargin() == 1:
-            ln = event.GetLine()
-            print self.MarkerGet(ln)
+            ln = self.GetLineFromPos(event.GetPosition())
+#            ln = event.GetLine()
+            print ln, self.MarkerGet(ln)
 
     def OnPrev(self, event):
         print 'Prev'
