@@ -52,6 +52,8 @@ bottomHeight = screenHeight - paletteHeight
 
 # Should toolbars have flat buttons
 flatTools = wx.wxTB_FLAT # 0
+# Frame style for child windows of the main frame
+childFrameStyle = wx.wxCLIP_CHILDREN
 
 # Alternating background colours used in ListCtrls
 pastels = 1
@@ -87,6 +89,8 @@ useImageCache = 1
 # Flag for turning on special checking for european keyboard characters by
 # checking for certain codes while ctrl alt is held.
 handleSpecialEuropeanKeys = 1
+# Country code for keyboards, options: 'euro', 'france'
+euroKeysCountry = 'france'
 
 # Auto correct indentation and EOL characters on load, save and refresh
 # This only works for Python 2.0 and up
@@ -166,9 +170,10 @@ if useBoaFileDlg:
 else:
     wxFileDialog = wx.wxFileDialog
 
-exportedProperties = ['flatTools', 'pastels', 'pastelMedium', 'pastelLight',
-  'useBoaFileDlg', 'undefinedWindowCol', 'autoAddToApplication',
-  'useImageArchive',  'handleSpecialEuropeanKeys', 'autoReindent', 'logStdStreams',
-  'recordModuleCallPoint', 'blockCOM', 'checkSyntax', 'onlyCheckIfLineModified',
-  'pythonInterpreterPath', 'rememberOpenFiles', 'showModifiedProps',
-  'oiLineHeight', 'oiNamesWidth', 'inspNotebookFlags', 'ps1', 'ps2' ]
+exportedProperties = ['flatTools', 'childFrameStyle', 'pastels', 'pastelMedium', 
+  'pastelLight', 'useBoaFileDlg', 'undefinedWindowCol', 'autoAddToApplication',
+  'useImageArchive',  'handleSpecialEuropeanKeys', 'euroKeysCountry', 
+  'autoReindent', 'logStdStreams', 'recordModuleCallPoint', 'blockCOM', 
+  'checkSyntax', 'onlyCheckIfLineModified', 'pythonInterpreterPath', 
+  'rememberOpenFiles', 'showModifiedProps', 'oiLineHeight', 'oiNamesWidth', 
+  'inspNotebookFlags', 'ps1', 'ps2' ]
