@@ -1,0 +1,116 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+<head>
+   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+   <meta name="GENERATOR" content="Mozilla/4.5 [en] (WinNT; I) [Netscape]">
+   <title>2.5 Adding the Text Control</title>
+</head>
+<body text="#000000" bgcolor="#FFFFFF" link="#0000BB" vlink="#551A8B" alink="#FF0000">
+
+<div CLASS="navigation">&nbsp;
+<table CELLSPACING=2 CELLPADDING=0 WIDTH="100%" >
+<tr>
+<td WIDTH="32" HEIGHT="32"><a href="node26.html"><img SRC="../icons/next.gif" ALT="Next Page" BORDER=0 height=32 width=32></a></td>
+
+<td WIDTH="32" HEIGHT="32"><a href="index.html"><img SRC="../icons/up.gif" ALT="Up One Level" BORDER=0 height=32 width=32></a></td>
+
+<td WIDTH="32" HEIGHT="32"><a href="node24.html"><img SRC="../icons/previous.gif" ALT="Previous Page" BORDER=0 height=32 width=32></a></td>
+
+<td ALIGN=CENTER WIDTH="100%" BGCOLOR="#99CCFF"><b>Getting Started Guide
+for Boa Constructor</b></td>
+
+<td WIDTH="32" HEIGHT="32"><a href="index.html"><img SRC="../icons/contents.gif" ALT="Contents" BORDER=0 height=32 width=32></a></td>
+
+<td WIDTH="32" HEIGHT="32"><img SRC="../icons/blank.gif" ALT="" BORDER=0 height=32 width=32></td>
+
+<td WIDTH="32" HEIGHT="32"><img SRC="../icons/blank.gif" ALT="" BORDER=0 height=32 width=32></td>
+</tr>
+</table>
+<b>Next:<span class='sectref'></b><a href="node26.html">Adding the File
+Menu Functionality</span></a> <b>Up:<span class='sectref'></b><a href="index.html">Getting
+Started Guide for Boa Constructor</span></a> <b>Previous:<span class='sectref'></b><a href="node24.html">Add
+a Menu Bar</a></span>
+<br>
+<hr></div>
+<!--End of Navigation Panel-->
+<h1>
+2.5 Adding the Text Control</h1>
+The next task is to add the main text editing control to our frame. This
+control is called wxTextCtrl.
+<ul>
+<li>
+Open the Designer again to edit the frame, wxFrame1.py.</li>
+
+<li>
+On the palette, select the 'Basic Controls' pane. Select the wxTextControl.
+hint: You can hold the mouse pointer over each control to find out its
+name.</li>
+
+<li>
+Click the mouse on the Designer window. A new text control will be drawn.
+We do not have to size the control. By default it will fill all the available
+area, i.e. between the status bar and the menu bar.</li>
+
+<li>
+The default wxTextControl is a single line entry. We must indicate to the
+control, that we want this to be a multi-line data entry control. To do
+this we edit the 'style' property in the Inspector. This is in the Constructor
+pane.</li>
+
+<li>
+Edit the style and set the style to wxTE_MULTILINE. The style field lets
+you configure styles for your components. The style field contains valid
+python code. To set two logical styles you would separate them with a '|'.
+You can see all the available styles for the wxTextControl in the wxPython
+online help for the class wxTextControl.</li>
+
+<li>
+Rename the text field. The default name is 'textCtrl1'. Set the name to
+'txtEditor'.</li>
+
+<li>
+In the Constructor pane there is a field called 'Value'. This field contains
+the default value of the control. Blank out this field.</li>
+
+<li>
+Update the source code with your new control using the Post button on the
+Inspector window. Save your source code changes.</li>
+
+<li>
+Run your application.</li>
+</ul>
+The txtEditor field is automatically sized to the available space. If you
+resize the frame, the field resizes. Notice that wxWindows provides you
+with a scrollbar. The field will automatically, scroll if you go beyond
+the bottom. If you type line longer than the width of the edit window,
+they will wrap. You also have cut and paste functionality, and block marking
+by default.
+<br><img SRC="image/Boa25.png" ><!--Start of Navigation Panel-->
+<div CLASS="navigation">&nbsp;
+<table CELLSPACING=2 CELLPADDING=0 WIDTH="100%" >
+<tr>
+<td WIDTH="32" HEIGHT="32"><a href="node26.html"><img SRC="../icons/next.gif" ALT="Next Page" BORDER=0 height=32 width=32></a></td>
+
+<td WIDTH="32" HEIGHT="32"><a href="index.html"><img SRC="../icons/up.gif" ALT="Up One Level" BORDER=0 height=32 width=32></a></td>
+
+<td WIDTH="32" HEIGHT="32"><a href="node24.html"><img SRC="../icons/previous.gif" ALT="Previous Page" BORDER=0 height=32 width=32></a></td>
+
+<td ALIGN=CENTER WIDTH="100%" BGCOLOR="#99CCFF"><b>Getting Started Guide
+for Boa Constructor</b></td>
+
+<td WIDTH="32" HEIGHT="32"><a href="index.html"><img SRC="../icons/contents.gif" ALT="Contents" BORDER=0 height=32 width=32></a></td>
+
+<td WIDTH="32" HEIGHT="32"><img SRC="../icons/blank.gif" ALT="" BORDER=0 height=32 width=32></td>
+
+<td WIDTH="32" HEIGHT="32"><img SRC="../icons/blank.gif" ALT="" BORDER=0 height=32 width=32></td>
+</tr>
+</table>
+<b>Next:<span class='sectref'></b><a href="node26.html">Adding the File
+Menu Functionality</span></a> <b>Up:<span class='sectref'></b><a href="index.html">Getting
+Started Guide for Boa Constructor</span></a> <b>Previous:<span class='sectref'></b><a href="node24.html">Add
+a Menu Bar</a></span>
+<br>
+<hr></div>
+<!--End of Navigation Panel-->
+</body>
+</html>

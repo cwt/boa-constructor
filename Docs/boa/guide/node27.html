@@ -1,0 +1,226 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+<head>
+   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+   <meta name="GENERATOR" content="Mozilla/4.5 [en] (WinNT; I) [Netscape]">
+   <title>2.7 Creating a Dialog Window</title>
+</head>
+<body text="#000000" bgcolor="#FFFFFF" link="#0000BB" vlink="#551A8B" alink="#FF0000">
+
+<div CLASS="navigation">&nbsp;
+<table CELLSPACING=2 CELLPADDING=0 WIDTH="100%" >
+<tr>
+<td WIDTH="32" HEIGHT="32"><a href="index.html"><img SRC="../icons/next.gif" ALT="Next Page" BORDER=0 height=32 width=32></a></td>
+
+<td WIDTH="32" HEIGHT="32"><a href="index.html"><img SRC="../icons/up.gif" ALT="Up One Level" BORDER=0 height=32 width=32></a></td>
+
+<td WIDTH="32" HEIGHT="32"><a href="node26.html"><img SRC="../icons/previous.gif" ALT="Previous Page" BORDER=0 height=32 width=32></a></td>
+
+<td ALIGN=CENTER WIDTH="100%" BGCOLOR="#99CCFF"><b>Getting Started Guide
+for Boa Constructor</b></td>
+
+<td WIDTH="32" HEIGHT="32"><a href="index.html"><img SRC="../icons/contents.gif" ALT="Contents" BORDER=0 height=32 width=32></a></td>
+
+<td WIDTH="32" HEIGHT="32"><img SRC="../icons/blank.gif" ALT="" BORDER=0 height=32 width=32></td>
+
+<td WIDTH="32" HEIGHT="32"><img SRC="../icons/blank.gif" ALT="" BORDER=0 height=32 width=32></td>
+</tr>
+</table>
+<b>Next:<span class='sectref'></b><a href="index.html">Getting Started
+Guide for Boa Constructor</span></a> <b>Up:<span class='sectref'></b><a href="index.html">Getting
+Started Guide for Boa Constructor</span></a> <b>Previous:<span class='sectref'></b><a href="node26.html">Adding
+File Menu Functionality</a></span>
+<br>
+<hr></div>
+<!--End of Navigation Panel-->
+<h1>
+2.7 Creating a Dialog Window</h1>
+Dialogs are used to interact with the user and get specific inputs. In
+the previous sections we used the pre-built dialog wxFileDialog. We are
+now going to develop our own Dialog for the About menu option.
+<ul>
+<li>
+The dialog we are going to create will require a new window. It is not
+a component of the wxFrame1 window. It will exist in our application as
+a separate python file. Select the application module 'wxApp1' in the editor.
+Chose the 'Application' pane.</li>
+
+<li>
+On the palette, select the 'New' pane. Select the 'wxDialog' button. This
+will create a new source file wxDialog1.py, and will automatically add
+this new source file to your module.</li>
+
+<li>
+Select the wxFrame1 pane. We want to write the code for the 'About' menu
+option, which is used to display the dialog. This option is implemented
+by the method 'OnHelpitems0Menu'. The code is as follows:</li>
+</ul>
+
+<pre>
+&nbsp;&nbsp;&nbsp; def OnHelpitems0Menu(self, event):
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <b>dlg = wxDialog1.wxDialog1(self)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; try:
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; dlg.ShowModal()
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; finally:
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; dlg.Destroy()</b>&nbsp;&nbsp;
+</pre>
+
+<ul>
+<li>
+This code references the wxDialog1 module. Before this code works, we must
+import the wxDialog1 module. By convention, we keep imports at the start
+of the source. Add the following line to the wxFrame1.py after the line
+which imports from wxPython.</li>
+</ul>
+
+<pre>
+&nbsp;&nbsp;&nbsp; <b>import wxDialog1</b>
+</pre>
+
+<ul>
+<li>
+Save the three source files. You can run the application now. When you
+select the 'About' option from the 'Help' menu your new Dialog will appear.
+Notice that the dialog is modal, i.e. you must close it before you can
+access the wxFrame1 window. Exit the application and return to Boa Constructor.</li>
+
+<li>
+Now we will add some fields to the dialog. For this exercise we will need
+a bitmap file. For the demonstration I used one called Boa.bmp. You can
+create your own bitmap using a paint utility. Copy the bitmap to your application
+directory.</li>
+
+<li>
+Select the wxDialog1.py pane. Start the Designer.</li>
+
+<li>
+First we shall add a label to the Dialog. On the palette select 'Basic
+Controls'. From this pane select the wxStaticText control. On the Designer
+click the mouse button to create the label.</li>
+
+<li>
+On the Inspector edit the field 'Label'. Set the value to 'Note book -
+Simple Text Editor'. Notice that the label in the Designer will grow to
+accomodate your text.</li>
+
+<li>
+We use the style property to configure the alignment of the text within
+the label. Set the style property to 'wxALIGN_CENTRE'. The other options
+for this field can be seen in the wxPython online help.</li>
+
+<li>
+Select the 'Properties' pane in the inspector. Edit the field called 'font'.
+Set the font to a reasonably large font, e.g. 12 or 14 point. Notice that
+you can change both the font and point size with this property.</li>
+
+<li>
+In the Designer window your label will appear with eight markers on the
+edges. You click the mouse left button (and hold it down) on one of these
+markers then move the mouse to resize the box. You can also click in the
+centre of the label, and hold down the mouse button, to move the label.
+Position the label centrally at the top of the box.</li>
+
+<li>
+Now add another label below the first. Set the text to 'This is my first
+Boa Contstructor application'. In the Inspector, select the 'Properties'
+pane. Edit the value 'BackgroundColour'. Pick a colour from the set available
+and press OK. Now reposition and resize your label until it looks balanced.</li>
+
+<li>
+Next we will add the bitmap. From the 'Basic Controls' select the wxStaticBitmap
+control. Place this below the second label on your dialog. In the Inspector
+select the Constructor pane. Edit the Bitmap field. This will give you
+an 'Open File' dialog. Choose the bitmap you painted earlier. The wxStaticBitmap
+field in the Designer will change to accomodate your bitmap. Move the bitmap
+until it is balanced below the two labels.</li>
+
+<li>
+Finally, we will add a button to the Dialog. In the Palette select the
+'Buttons' pane. Select the basic button type, wxButton. Place this on the
+form below the bitmap. On the Inspector Constructor pane edit the 'Label'.
+Set this to 'Close'. Select the Events pane in the Inspector. Add a handler
+for event type EVT_BUTTON. Hint: select the event group first, then the
+event.</li>
+
+<li>
+This is all the controls we are going to add to the Dialog. Size the Dialog
+to accomodate the controls. Reposition and resize the controls until you
+feel they are nicely balanced.</li>
+
+<li>
+Select the wxDialog1 in the Designer. In the Constructor pane in the Inspector,
+edit the Title field. Set this to 'About Notebook'.</li>
+
+<li>
+Press the post button in the Inspector to update the source code with your
+changes.</li>
+
+<li>
+Finally, we need to implement the event handler for the Close button. In
+the Editor select the source for wxDialog1. Go to the source for your method
+'OnButton1Button'. We will use the same 'Close' method as we used in the
+'Exit' menu item. Note that the Close closes the window. Closing the root
+window exits the application. However, closing a child window will simply
+return to the parent window.</li>
+</ul>
+
+<pre>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; def OnButton1Button(self, event):
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <b>self.Close()</b>
+
+</pre>
+Run the application. Your new Dialog should look something like this.
+<br><img SRC="image/Boa27.png" >
+<h3>
+Congratulations: You have built your first application using Boa Constructor.
+Your editor is complete. In this tutorial you have used the core components
+of Boa.</h3>
+Take time to review what you have done so far. You have learnt how to:
+<ul>
+<li>
+Create an application.</li>
+
+<li>
+Create frames, menus and status bars.</li>
+
+<li>
+Create controls such as buttons, text entry fields and labels.</li>
+
+<li>
+Configure the controls to your requirements.</li>
+
+<li>
+Work with common dialogs.</li>
+
+<li>
+Design your own dialogs.</li>
+</ul>
+<!--Start of Navigation Panel-->
+<div CLASS="navigation">&nbsp;
+<table CELLSPACING=2 CELLPADDING=0 WIDTH="100%" >
+<tr>
+<td WIDTH="32" HEIGHT="32"><a href="index.html"><img SRC="../icons/next.gif" ALT="Next Page" BORDER=0 height=32 width=32></a></td>
+
+<td WIDTH="32" HEIGHT="32"><a href="index.html"><img SRC="../icons/up.gif" ALT="Up One Level" BORDER=0 height=32 width=32></a></td>
+
+<td WIDTH="32" HEIGHT="32"><a href="node26.html"><img SRC="../icons/previous.gif" ALT="Previous Page" BORDER=0 height=32 width=32></a></td>
+
+<td ALIGN=CENTER WIDTH="100%" BGCOLOR="#99CCFF"><b>Getting Started Guide
+for Boa Constructor</b></td>
+
+<td WIDTH="32" HEIGHT="32"><a href="index.html"><img SRC="../icons/contents.gif" ALT="Contents" BORDER=0 height=32 width=32></a></td>
+
+<td WIDTH="32" HEIGHT="32"><img SRC="../icons/blank.gif" ALT="" BORDER=0 height=32 width=32></td>
+
+<td WIDTH="32" HEIGHT="32"><img SRC="../icons/blank.gif" ALT="" BORDER=0 height=32 width=32></td>
+</tr>
+</table>
+<b>Next:<span class='sectref'></b><a href="index.html">Getting Started
+Guide for Boa Constructor</span></a> <b>Up:<span class='sectref'></b><a href="index.html">Getting
+Started Guide for Boa Constructor</span></a> <b>Previous:<span class='sectref'></b><a href="node26.html">Adding
+File Menu Functionality</a></span>
+<br>
+<hr></div>
+<!--End of Navigation Panel-->
+</body>
+</html>
