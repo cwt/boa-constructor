@@ -454,8 +454,12 @@ class CategoryNode(ExplorerNode):
         return self.name
 
     def getConfigValue(self):
-        return eval(self.config.get(self.resourcepath[cat_section],
-                  self.resourcepath[cat_option]))
+        from ExternalLib import ConfigParser
+        try:
+            return eval(self.config.get(self.resourcepath[cat_section],
+                        self.resourcepath[cat_option]))
+        except ConfigParser.NoOptionError, err:
+            return self.entries
 
     def refresh(self):
         # Important: To keep the explorer list and the inspector in sync,
