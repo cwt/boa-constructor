@@ -176,10 +176,13 @@ class PythonStyledTextCtrlMix:
               "size:%(lnsize)d,face:%(helv)s,back:#707070" % faces)
 
         EVT_STC_UPDATEUI(self, wId, self.OnUpdateUI)
+        
+        self.setStyles(faces)
 
+    def setStyles(self, faces):
         # Global default styles for all languages
         # Default
-        self.StyleSetSpec(wxSTC_STYLE_DEFAULT, "face:%(mono)s,size:%(size)d" % faces)
+        self.StyleSetSpec(wxSTC_STYLE_DEFAULT, "back:%(backcol)s,face:%(mono)s,size:%(size)d" % faces)
 
         self.StyleClearAll()
 
@@ -227,6 +230,15 @@ class PythonStyledTextCtrlMix:
 #        self.StyleSetSpec(35, "fore:#000000,back:#FF0000,bold")
         self.StyleSetSpec(34, "fore:#0000FF,back:#FFFF88,bold")
         self.StyleSetSpec(35, "fore:#FF0000,back:#FFFF88,bold")
+    
+    def grayout(self, do):
+        if do:
+            from copy import copy
+            f = copy(faces)
+            f['backcol'] = '#EEF2FF'
+        else:
+            f = faces
+        self.setStyles(f)
         
     def OnUpdateUI(self, evt):
 #        print 'OnUpdateUI', evt
@@ -268,17 +280,19 @@ class PythonStyledTextCtrlMix:
             self.BraceHighlight(braceAtCaret, braceOpposite)
             # self.Refresh(false)
 
-def idWord(line, piv, lineStart, delim = word_delim):
+def idWord(line, piv, lineStart, leftDelim = word_delim, rightDelim = word_delim):
     if piv >= len(line):
         return 0, 0
     pivL = pivR = piv
+    # Look left
     for pivL in range(piv, -1, -1):
-        if not line[pivL] in delim:
+        if not line[pivL] in leftDelim:
             pivL = pivL + 1
             break
-
+    # Look right
     for pivR in range(piv + 1, len(line)):
-        if not line[pivR] in delim: break
+        if not line[pivR] in rightDelim: 
+            break
     
     return pivL + lineStart, pivR - pivL
 
@@ -419,7 +433,7 @@ class BrowseStyledTextCtrlMix:
 class HTMLStyledTextCtrlMix:
     def __init__(self, wId):
         self.SetEOLMode(wxSTC_EOL_LF)
-        self.eol = wxSTC_EOL_LF #endOfLines[self.GetEOLMode()]
+        self.eol = '\n'#wxSTC_EOL_LF #endOfLines[self.GetEOLMode()]
         
 #        print self.GetSelectionBackground()
 #        wxColour(wxNamedColor("BLUE"))
@@ -560,7 +574,7 @@ class HTMLStyledTextCtrlMix:
 class CPPStyledTextCtrlMix:
     def __init__(self, wId):
         self.SetEOLMode(wxSTC_EOL_LF)
-        self.eol = wxSTC_EOL_LF #endOfLines[self.GetEOLMode()]
+        self.eol = '\n'
         
         keyWds = \
             'asm auto bool break case catch char class const const_cast continue '\
