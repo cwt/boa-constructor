@@ -102,9 +102,10 @@ def spawnChild(monitor, process, args=''):
             if USE_TCPWATCH:
                 # Start TCPWatch as a connection forwarder.
                 from thread import start_new_thread
-                new_port = 9100
+                new_port = 20202  # Hopefully free
                 def run_tcpwatch(port1, port2):
-                    os.system("tcpwatch -L %d:%d" % (int(port1), int(port2)))
+                    os.system("tcpwatch -L %d:127.0.0.1:%d" % (
+                        int(port1), int(port2)))
                 start_new_thread(run_tcpwatch, (new_port, port))
                 time.sleep(3)
                 port = new_port
