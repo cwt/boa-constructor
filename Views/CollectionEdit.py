@@ -315,6 +315,9 @@ class CollectionEditorView(InspectableViews.InspectableObjectView):
 
         # add method to source
         if hasCode(newBody):
+            if Preferences.cgAddInitMethodWarning:
+                newBody.insert(0, '%s# %s'%(Utils.getIndentBlock()*2,
+                               sourceconst.code_gen_warning))
             module.addMethod(
                 self.model.main, self.collectionMethod,
                 self.collectionParams, newBody, 0)
@@ -390,7 +393,8 @@ class CollectionEditorView(InspectableViews.InspectableObjectView):
             self.inspector.pages.SetSelection(0)
 
         self.companion.setIndex(idx)
-        self.inspector.selectObject(self.companion, false, self)
+        self.inspector.selectObject(self.companion, false, self,
+              sessionHandler=self.controllerView)
 
     def deselectObject(self):
         self.inspector.cleanup()
