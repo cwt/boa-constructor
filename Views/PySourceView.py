@@ -93,18 +93,30 @@ class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView):
         self.model.data = data
 
     def refreshCtrl(self):
+        if wxPlatform == '__WXGTK__':
+            self.NoUpdateUI = 1  ## disable event handler
         self.pos = self.GetCurrentPos() 
 #        line = self.GetCurrentLine()
-        prevVsblLn = self.GetFirstVisibleLine()
         
-        self.SetText(self.getModelData())
-        self.EmptyUndoBuffer()
-        self.GotoPos(self.pos)
-        curVsblLn = self.GetFirstVisibleLine()
-        self.ScrollBy(0, prevVsblLn - curVsblLn)
+        ## This code prevents circular updates on GTK
+        ## It is not important under windows as the windows refresh
+        ## code is more efficient.
+        try:
+            if self.noredraw == 1: redraw = 0
+            else: redraw = 1
+        except:
+            redraw=1
+        if redraw == 1:
+            prevVsblLn = self.GetFirstVisibleLine()
+            self.SetText(self.getModelData())
+            self.EmptyUndoBuffer()
+            self.GotoPos(self.pos)
+            curVsblLn = self.GetFirstVisibleLine()
+            self.ScrollBy(0, prevVsblLn - curVsblLn)
         
         self.nonUserModification = false 
         self.updatePageName()
+        self.NoUpdateUI = 0  ## Enable event handler
 
     def refreshModel(self):
         if self.isModified():
@@ -116,7 +128,12 @@ class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView):
         
         self.setModelData(self.GetText())
         self.EmptyUndoBuffer()
+        if wxPlatform == '__WXGTK__':
+            # We are updating the model from the editor view.
+            # this flag is to prevent  the model updating the view 
+            self.noredraw = 1
         EditorViews.EditorView.refreshModel(self) 
+        self.noredraw = 0
         
         # Remove from modified views list
         if self.model.viewsModified.count(self.viewName):
@@ -784,6 +801,13 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix, BrowseStyl
 
     def OnUpdateUI(self, event):
 ##        print 'STC: OnUpdateUI'
+        ## This event handler may be disabled (execption handler allows
+		## for the case where the flag is not defined.
+        try:
+            if self.NoUpdateUI == 1:
+                return
+        except:
+            pass
         # don't update if not fully initialised
         if hasattr(self, 'pageIdx'):
             self.updateViewState()
