@@ -421,7 +421,7 @@ class DebugServer (Bdb):
     ignore_stopline = -1
     autocont = 0
     _enable_process_modification = 0
-    stop_in_botframe = 1
+    stop_in_botframe = 0
 ##    _enable_auto_servicer = 0
 
     def __init__(self):
@@ -541,7 +541,7 @@ class DebugServer (Bdb):
         #   None: Stop anywhere
         #   frame object: Stop in that frame
         #   (): Stop nowhere
-        if self.stop_in_botframe and frame is self.botframe:
+        if not self.stop_in_botframe and frame is self.botframe:
             # Don't stop in botframe.
             return 0
         sf = self.stopframe
