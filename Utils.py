@@ -9,7 +9,7 @@
 # Copyright:   (c) 1999 - 2001 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
-import string, os
+import string, os, glob, pprint
 from types import InstanceType
 
 from wxPython.wx import *
@@ -37,23 +37,12 @@ def yesNoDialog(parent, title, question):
     try: return (dlg.ShowModal() == wxID_YES)
     finally: dlg.Destroy()
 
-def AddToolButtonBmpObject(frame, toolbar, thebitmap, hint, triggermeth, theToggleBitmap=wxNullBitmap):
+def AddToolButtonBmpObject(frame, toolbar, thebitmap, hint, triggermeth, 
+      theToggleBitmap=wxNullBitmap):
     nId = wxNewId()
-    doToggle = theToggleBitmap != wxNullBitmap
-#    t = toolbar.AddTool(nId, thebitmap, toggleBitmap, shortHelpString = hint, toggle = toggleBitmap != wxNullBitmap)
-    toolbar.AddTool(nId, thebitmap, theToggleBitmap, shortHelpString = hint)#, toggle = doToggle)
+    toolbar.AddTool(nId, thebitmap, theToggleBitmap, shortHelpString = hint)
     EVT_TOOL(frame, nId, triggermeth)
     return nId
-
-##def AddColMaskToolButtonBmpObject(frame, toolbar, thebitmap, hint, triggermeth,
-##      theToggleBitmap=wxNullBitmap, theMaskColour=None):
-##    nId = wxNewId()
-##    doToggle = theToggleBitmap != wxNullBitmap
-##    if theMaskColour:
-##        thebitmap.SetMask(wxMaskColour(thebitmap, theMaskColour))
-##    toolbar.AddTool(nId, thebitmap, theToggleBitmap, shortHelpString = hint)
-##    EVT_TOOL(frame, nId, triggermeth)
-##    return nId
 
 def AddToolButtonBmpFile(frame, toolbar, filename, hint, triggermeth):
     return AddToolButtonBmpObject(frame, toolbar, IS.load(filename),
@@ -465,6 +454,9 @@ class OutputLoggerPF(LoggerPF):
 
         sys.__stdout__.write(s)
 
+# XXX Should try to recognise warnings
+# Match start against [v for k, v in __builtins__.items() if type(v) is types.ClassType and issubclass(v, Warning)]
+
 class ErrorLoggerPF(LoggerPF):
     """ Logs stderr to wxLog functions"""
     def write(self, s):
@@ -789,13 +781,24 @@ def getIndentBlock():
         return Preferences.STCIndent*' '
 
 #---Plugin and transport utils--------------------------------------------------
+# Should move to own module at future stage
 
 class PluginError(Exception):
     pass
 
 class SkipPlugin(PluginError):
     """ Special error, used to abort importing plugins early if they depend
-    on modules not loaded"""
+    on modules not loaded
+    
+    Warning indicating problem is displayed """
+
+class SkipPluginSilently(SkipPlugin):
+    """ Special error, used to abort importing plugins early if they depend
+    on modules not available.
+    
+    Plugin is skipped silently. 
+    Used when user can do nothing about the problem (like switching platforms ;)
+    """
 
 def importFromPlugins(name):
     # find module
@@ -826,6 +829,67 @@ def transportInstalled(transport):
     return transport in eval(
          createAndReadConfig('Explorer').get('explorer', 'installedtransports'))
 
+def readInitPluginGlobals(pluginPath):
+    initPlugin = os.path.join(pluginPath, '__init__.plug-in.py')
+    initPluginGlobals = {'__ordered__': [], '__disabled__': []}
+    if os.path.exists(initPlugin):
+        execfile(initPlugin, initPluginGlobals)
+    return initPluginGlobals
+
+def writeInitPluginGlobals(pluginPath, initPluginGlobals):
+    initPlugin = os.path.join(pluginPath, '__init__.plug-in.py')
+    f = open(initPlugin, 'w')
+    f.write('__ordered__ = %s\n'%pprint.pformat(
+          initPluginGlobals.get('__ordered__', [])))
+    f.write('__disabled__ = %s\n'%pprint.pformat(
+          initPluginGlobals.get('__disabled__', [])))
+    f.close()
+
+def buildPluginExecList():
+    if not Preferences.pluginPaths:
+        return []
+    
+    pluginExecList = []
+    pluginPathGlobs = []
+    for ppth in Preferences.pluginPaths:
+        initPluginGlobals = readInitPluginGlobals(ppth)
+        pluginPathGlobs.append( (os.path.join(ppth, '*.plug-in.py'), initPluginGlobals) )
+
+    for globPath, initPluginGlobals in pluginPathGlobs:
+        ordered = initPluginGlobals['__ordered__']
+        disabled = initPluginGlobals['__disabled__']
+        globList = glob.glob(globPath)
+        
+        insIdx = 0
+        orderedPlugins = []
+        for pluginName in ordered:
+            pluginFilename = os.path.join(os.path.dirname(globPath), 
+                                          pluginName)+'.plug-in.py'
+            try:
+                idx = globList.index(pluginFilename)
+            except ValueError:
+                #wxLogWarning('Ordered plugin: %s not found: %'%pluginFilename)
+                pass
+            else:
+                del globList[idx]
+                globList.insert(insIdx, pluginFilename)
+                insIdx = insIdx + 1
+                orderedPlugins.append(pluginFilename)
+
+        disabledPlugins = []
+        for pluginName in disabled:
+            disabledPlugins.append(os.path.join(os.path.dirname(globPath), 
+                                                pluginName)+'.plug-in.py')
+
+        for pluginFilename in globList:
+            pluginExecList.append( (pluginFilename, 
+                                    pluginFilename in orderedPlugins,
+                                    pluginFilename not in disabledPlugins) )
+    return pluginExecList
+                
+         
+#-------------------------------------------------------------------------------
+
 def canReadStream(stream):
     try:
         return stream.CanRead()
@@ -841,4 +905,11 @@ def find_dotted_module(name, path=None):
         path = [filename]
     return file, filename, desc
     
+def appendMenuItem(menu, wId, label, code=(), bmp='', help=''):
+    # XXX Add kind=wxITEM_NORMAL when 2.3.3 is minimum.
+    text = label + (code and ' \t'+code[2] or '')
+    menuItem = wxMenuItem(menu, wId, text, help)
+    if Preferences.editorMenuImages and bmp and bmp != '-':
+        menuItem.SetBitmap(Preferences.IS.load(bmp))
+    menu.AppendItem(menuItem)
     
