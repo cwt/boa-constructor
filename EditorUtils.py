@@ -38,9 +38,8 @@ class MyToolBar(wxToolBar):
         for pos in posLst:
             self.DeleteToolByPos(pos)
 
-        for wid in self.toolLst:
-            if wid != -1:
-                self.GetParent().Disconnect(wid),
+        self.DisconnectToolIds()
+
         self.toolLst = []
         self.toolCount = 0
 
@@ -61,6 +60,11 @@ class MyToolBar(wxToolBar):
 
     def PopupToolMenu(self, toolId, menu):
         self.PopupMenu(menu, self.GetToolPopupPosition(toolId))
+
+    def DisconnectToolIds(self):
+        for wid in self.toolLst:
+            if wid != -1:
+                self.GetParent().Disconnect(wid)
 
 class EditorToolBar(MyToolBar):
     pass

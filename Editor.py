@@ -328,7 +328,12 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
         #    self.Center()
 
     def releasePrevResources(self):
-        self.toolBar.ClearTools()
+        self.toolBar.DisconnectToolIds()
+        self.SetToolBar(None)
+        self.toolBar.Destroy()
+        self.toolBar = EditorToolBar(parent=self, id=wxID_EDITORFRAMETOOLBAR)
+        self.SetToolBar(self.toolBar)
+        
         if self._prevView:
             self._prevView.disconnectEvts()
             self._prevView = None
@@ -352,7 +357,7 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
             for metatype, filename in ZopeEditorModels.ZOAImages:
                 idx = ZopeEditorModels.ZOAIcons[metatype]
                 if allImages.has_key(idx) and filename != allImages[idx]:
-                    print idx, filename, 'clash with ', allImages[idx]
+                    print 'ImgIdx clash:', idx, filename, 'clashes with', allImages[idx]
                 allImages[idx] = filename
 
         # Populate imagelist
