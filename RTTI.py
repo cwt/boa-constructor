@@ -105,52 +105,6 @@ def getPropList(obj, cmp):
         'properties': [ PropertyWrapper, ... ] }
 
     """
-
-    def getMethodType(method, obj, dict):
-        """ classify methods according to prefix
-            return category, property name, getter, setter
-        """
-
-##        try:
-##            hash( (method, obj) )
-##        except TypeError:
-##            tryCache = false
-##        else:
-##            tryCache = true
-##
-##        if tryCache and _methodTypeCache.has_key( (method, obj) ):
-##            return _methodTypeCache[(method, obj)]
-##        else:
-        if 1:
-            if (type(dict[method]) == FunctionType):
-                prefix = method[:3]
-                property = method[3:]
-
-                if (method[:2] == '__'):
-                    result = ('Built-ins', method, dict[method], dict[method])
-                elif (prefix == 'Get') and dict.has_key('Set'+property) and property:
-                    try:
-                        #see if getter breaks
-                        v = dict[method](obj)
-                        result = ('Properties', property, dict[method], dict['Set'+property])
-                    except:
-                        result = ('Methods', method, dict[method], dict[method])
-                elif (prefix == 'Set') and dict.has_key('Get'+property) and property:
-                    try:
-                        #see if getter breaks
-                        v = dict['Get'+property](obj)
-                        result = ('Properties', property, dict['Get'+property], dict[method])
-                    except:
-                        result = ('Methods', method, dict[method], dict[method])
-                else:
-                    result = ('Methods', method, dict[method], dict[method])
-            else:
-                result = ('Methods', method, dict[method], dict[method])
-
-            return result
-
-#            return 'Methods', method, dict[method], dict[method]
-
     def catalogProperty(name, methType, meths, constructors, propLst, constrLst):
         if constructors.has_key(name):
             constrLst.append(PropertyWrapper(name, methType, meths[0], meths[1]))
@@ -167,23 +121,10 @@ def getPropList(obj, cmp):
     # populate property list
     propLst = []
     constrLst = []
-    vetoes = cmp.vetoedMethods()
     if obj and type(obj) is InstanceType:
-        cls = obj.__class__
-        notDone = true
-        while notDone:
-            for m in cls.__dict__.keys():
-                if m not in vetoes:
-                    cat, method, methGetter, methSetter = \
-                      getMethodType(m, obj, cls.__dict__)
-                    props[cat][method] = (methGetter, methSetter)
-            notDone = len(cls.__bases__)
-            if notDone:
-                cls = cls.__bases__[0]
+        traverseAndBuildProps(props, cmp.vetoedMethods(), obj, obj.__class__)
 
         # populate property list
-        propLst = []
-        constrLst = []
         if cmp:
             constrNames = cmp.constructor()
         else:
@@ -231,12 +172,37 @@ def getPropList(obj, cmp):
 
     return {'constructor': constrLst, 'properties': propLst}
 
-def getFunction(inst, funcName):
-    cls = inst.__class__
-    found = cls.__dict__.has_key(funcName)
-    while not found:
-        if not len(cls.__bases__): raise 'method '+funcName+' not found'
-        cls = cls.__bases__[0]
-        found = cls.__dict__.has_key(funcName)
+def getMethodType(method, obj, dict):
+    """ classify methods according to prefix
+        return category, property name, getter, setter
+    """
+    result = ('Methods', method, dict[method], dict[method])
+    if (type(dict[method]) == FunctionType):
+        prefix = method[:3]
+        property = method[3:]
 
-    return cls.__dict__[funcName]
+        try:
+            if (method[:2] == '__'):
+                result = ('Built-ins', method, dict[method], dict[method])
+            elif (prefix == 'Get') and dict.has_key('Set'+property) and property:
+                #see if getter breaks
+                v = dict[method](obj)
+                result = ('Properties', property, dict[method], dict['Set'+property])
+            elif (prefix == 'Set') and dict.has_key('Get'+property) and property:
+                #see if getter breaks
+                v = dict['Get'+property](obj)
+                result = ('Properties', property, dict['Get'+property], dict[method])
+        except:
+            pass
+    return result
+
+def traverseAndBuildProps(props, vetoes, obj, Class):
+    for m in Class.__dict__.keys():
+        if m not in vetoes:
+            cat, method, methGetter, methSetter = \
+              getMethodType(m, obj, Class.__dict__)
+            props[cat][method] = (methGetter, methSetter)
+    
+    for Cls in Class.__bases__:
+        traverseAndBuildProps(props, vetoes, obj, Cls)
+        
