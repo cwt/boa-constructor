@@ -31,7 +31,7 @@ from ZopeLib import PropDlg
 scrollBarWidth = 0
 IECWidthFudge = 3
 
-[wxID_INSPECTORFRAME, wxID_ENTER, wxID_UNDO, wxID_CRSUP, wxID_CRSDOWN] = map(lambda _init_ctrls: NewId(), range(5))
+[wxID_INSPECTORFRAME, wxID_ENTER, wxID_UNDO, wxID_CRSUP, wxID_CRSDOWN] = map(lambda _init_ctrls: wxNewId(), range(5))
 
 class InspectorFrame(wxFrame):
     """ Main Inspector frame, mainly does frame initialisation and handles
