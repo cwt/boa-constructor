@@ -745,7 +745,11 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
         self.MarkerDelete(lineNo, tmpBrkPtMrk)
 
     def getBreakpointFilename(self):
-        return os.path.splitext(self.model.assertLocalFile())[0]+'.brk'
+        try:
+            return os.path.splitext(self.model.assertLocalFile())[0]+'.brk'
+        except AssertionError:
+            return ''
+        
 
     def disableSource(self, doDisable):
         self.SetReadOnly(doDisable)
