@@ -118,11 +118,11 @@ class AppView(ListCtrlView):
            
         self.InsertColumn(0, 'Module', width = 150)
         self.InsertColumn(1, 'Type', width = 50)
-        self.InsertColumn(2, 'Autocreate', wxLIST_FORMAT_CENTRE, 50)
-        self.InsertColumn(3, 'Description', width = 150)
-        self.InsertColumn(4, 'Relative path', width = 220)
+#        self.InsertColumn(2, 'Autocreate', wxLIST_FORMAT_CENTRE, 50)
+        self.InsertColumn(2, 'Description', width = 150)
+        self.InsertColumn(3, 'Relative path', width = 220)
 
-        self.sortOnColumns = [0, 1, 4]
+        self.sortOnColumns = [0, 1, 3]
         
         EVT_LIST_BEGIN_DRAG(self, self.GetId(), self.OnDrag)
 
@@ -158,9 +158,9 @@ class AppView(ListCtrlView):
             appMod = self.model.modules[mod]
             self.InsertImageStringItem(i, mod, imgIdx)
             self.SetStringItem(i, 1, modTpe)
-            self.SetStringItem(i, 2, `appMod[0]`)
-            self.SetStringItem(i, 3, appMod[1])
-            self.SetStringItem(i, 4, appMod[2])
+#            self.SetStringItem(i, 2, `appMod[0]`)
+            self.SetStringItem(i, 2, appMod[1])
+            self.SetStringItem(i, 3, appMod[2])
             self.SetItemData(i, i)
             i = i + 1
         
