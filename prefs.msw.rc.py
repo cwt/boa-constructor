@@ -1,4 +1,4 @@
-## rc-version: 5 ##
+## rc-version: 6 ##
 # RCS-ID:      $Id$
 
 #-Miscellaneous-----------------------------------------------------------------
@@ -25,7 +25,7 @@ edSTCFolding = true
 #-Window settings---------------------------------------------------------------
 
 # Height of the Palette window. Adjust if you use big fonts
-paletteHeights = {'tabs': 118, 'menu': 72}
+paletteHeights = {'tabs': 120, 'menu': 74}
 
 # The amount of space Boa should leave on the right for a vertical OS Taskbar.
 verticalTaskbarWidth = 0

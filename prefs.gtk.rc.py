@@ -1,4 +1,4 @@
-## rc-version: 5 ##
+## rc-version: 6 ##
 # RCS-ID:      $Id$
 
 
