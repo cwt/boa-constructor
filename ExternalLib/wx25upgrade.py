@@ -22,6 +22,15 @@
 # - AddSpacer "n, n" to wx.Size(n, n)
 # - flag= i.e. flag=wxALL
 # - style= i.e. style=wxDEFAULT_DIALOG_STYLE
+# - wxInitAllImageHandlers( to wx.InitAllImageHandlers(
+# - orient=wx to orient=wx.
+# - kind=wxITEM to kind=wx.ITEM
+# - wxIcon( to wx.Icon(
+# - wxBITMAP to wx.BITMAP
+# - wxBitmap( to wx.Bitmap(
+# - wxSize( to wx.Size(
+# - wxNullBitmap to wx.NullBitmap
+# - wxPoint( to wx.Point(
 #
 #
 # A lot is converted however manual inspection and correction of code
@@ -131,6 +140,16 @@ class Upgrade:
             + flags
         style.setParseAction(self.styleAction)
 
+        # Orient
+        orient = Literal("orient=").suppress() \
+            + flags
+        orient.setParseAction(self.orientAction)
+
+        # kind
+        kind = Literal("kind=").suppress() \
+            + flags
+        kind.setParseAction(self.kindAction)
+
         # wxNewId() to wx.NewId()
         repId1 = Literal("map(lambda _init_ctrls: wxNewId()") +\
                 COMMA + "range(" + ident + RPAREN + RPAREN
@@ -156,6 +175,34 @@ class Upgrade:
         repWX3 = Literal("wx") + ident + ".__"
         repWX3.setParseAction(self.repWX3Action)
 
+        # init wxInitAllImageHandlers( to wx.InitAllImageHandlers(
+        repWX4 = Literal("wxInitAllImageHandlers(")
+        repWX4.setParseAction(self.repWX4Action)
+
+        # init wxIcon( to wx.Icon(
+        repWX5 = Literal("wxIcon(")
+        repWX5.setParseAction(self.repWX5Action)
+
+        # init wxBITMAP to wx.BITMAP
+        repWX6 = Literal("wxBITMAP")
+        repWX6.setParseAction(self.repWX6Action)
+
+        # init wxBitmap( to wx.Bitmap(
+        repWX7 = Literal("wxBitmap(")
+        repWX7.setParseAction(self.repWX7Action)
+
+        # init wxSize( to wx.Size(
+        repWX8 = Literal("wxSize(")
+        repWX8.setParseAction(self.repWX8Action)
+
+        # init wxNullBitmap to wx.NullBitmap
+        repWX9 = Literal("wxNullBitmap")
+        repWX9.setParseAction(self.repWX9Action)
+
+        # init wxPoint( to wx.Point(
+        repWX10 = Literal("wxPoint(")
+        repWX10.setParseAction(self.repWX10Action)
+
         # true to True
         repTrue = Literal("true")
         repTrue.setParseAction(self.trueAction)
@@ -170,11 +217,13 @@ class Upgrade:
         if specialEventCode == False:
             self.grammar = evt_P2 ^ evt_P3 ^ append ^ repId1 ^ repId2 ^ imp\
                 ^ repWX ^ repWX2 ^ repWX3 ^ repTrue ^ repFalse ^ setStatusText\
-                ^ addSpacer ^ flag ^ style
+                ^ addSpacer ^ flag ^ style ^ repWX4 ^ orient ^ orient ^ repWX5\
+                ^ repWX6 ^ repWX7 ^ repWX8 ^ repWX9 ^ repWX10
         else:
             self.grammar = evt_P2 ^ evt_P3 ^ append ^ repId1 ^ repId2 ^ imp\
                 ^ repWX ^ repWX2 ^ repWX3 ^ evt_P3a ^ repTrue ^ repFalse\
-                ^ setStatusText ^ addSpacer ^ flag ^ style
+                ^ setStatusText ^ addSpacer ^ flag ^ style ^ repWX4 ^ orient\
+                ^ kind ^ repWX5 ^ repWX6 ^ repWX7 ^ repWX8 ^ repWX9 ^ repWX10
 
     def evt_P2Action(self, s, l, t):
         ev, evname, win, fn = t
@@ -233,6 +282,26 @@ class Upgrade:
             temp = temp + "wx." +flag
         return "style="+temp
 
+    def orientAction(self, s, l, t):
+        first = False
+        temp = ""
+        for flag in t:
+            if first == True:
+                temp = temp + "|"
+            first = True
+            temp = temp + "wx." +flag
+        return "orient="+temp
+
+    def kindAction(self, s, l, t):
+        first = False
+        temp = ""
+        for flag in t:
+            if first == True:
+                temp = temp + "|"
+            first = True
+            temp = temp + "wx." +flag
+        return "kind="+temp
+
     def repId1Action(self, s, l, t):
         a, b, c = t
         return "[wx.NewId() for _init_ctrls in range("+c+")]"
@@ -267,6 +336,27 @@ class Upgrade:
     def repWX3Action(self, s, l, t):
         a, b, c = t
         return "wx."+b+c
+
+    def repWX4Action(self, s, l, t):
+        return "wx.InitAllImageHandlers("
+
+    def repWX5Action(self, s, l, t):
+        return "wx.Icon("
+
+    def repWX6Action(self, s, l, t):
+        return "wx.BITMAP"
+
+    def repWX7Action(self, s, l, t):
+        return "wx.Bitmap("
+
+    def repWX8Action(self, s, l, t):
+        return "wx.Size("
+
+    def repWX9Action(self, s, l, t):
+        return "wx.NullBitmap"
+
+    def repWX10Action(self, s, l, t):
+        return "wx.Point("
 
     def trueAction(self, s, l, t):
         return "True"
