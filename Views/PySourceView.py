@@ -12,12 +12,11 @@
 
 from wxPython.wx import *
 from wxPython.stc import *
-import os, string
-import EditorViews, ProfileView, Search, Help, Preferences
+import os, string, time, dis, bdb
+import EditorViews, ProfileView, Search, Help, Preferences, ShellEditor
 from StyledTextCtrls import PythonStyledTextCtrlMix, BrowseStyledTextCtrlMix, HTMLStyledTextCtrlMix, FoldingStyledTextCtrlMix, CPPStyledTextCtrlMix, idWord, new_stc, old_stc, object_delim
 from PrefsKeys import keyDefs
 import methodparse
-import bdb, time
 import wxNamespace
 import Utils
 
@@ -37,6 +36,7 @@ endOfLines = {  wxSTC_EOL_CRLF : '\r\n',
 brkPtMrk = 1
 stepPosMrk = 2
 tmpBrkPtMrk = 3
+markPlaceMrk = 4
 #brwsIndc = 0
 
 #wxID_PYTHONSOURCEVIEW, 
@@ -65,7 +65,8 @@ class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView):
               ('Paste', self.OnEditPaste, self.pasteBmp, ()),
               ('-', None, '', ()),
               ('Find', self.OnFind, self.findBmp, keyDefs['Find']),
-              ('Find again', self.OnFindAgain, self.findAgainBmp, keyDefs['FindAgain']))
+              ('Find again', self.OnFindAgain, self.findAgainBmp, keyDefs['FindAgain']),
+              ('Mark place', self.OnMarkPlace, '-', keyDefs['MarkPlace']))
 
         EditorViews.EditorView.__init__(self, model, a + actions, defaultAction)
 
@@ -87,6 +88,8 @@ class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView):
             self.paint_handler = Utils.PaintEventHandler(self)
 
         self.lastStart = 0
+
+        self.MarkerDefine(markPlaceMrk, wxSTC_MARK_SHORTARROW, 'NAVY', 'YELLOW')
 
 
     def setReadOnly(self, val):
@@ -308,6 +311,14 @@ class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView):
             self.OnFind(event)
         else: 
             self.doNextMatch()
+    
+    def OnMarkPlace(self, event):
+        lineno = self.GetLineFromPos(self.GetCurrentPos())
+        self.MarkerAdd(lineno, markPlaceMrk)
+        self.model.editor.addBrowseMarker(lineno)
+        wxYield()
+        self.MarkerDelete(lineno, markPlaceMrk)
+
 
 class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix, BrowseStyledTextCtrlMix, FoldingStyledTextCtrlMix):
     viewName = 'Source'
@@ -922,6 +933,8 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix, BrowseStyl
             finally:
                 self.EndUndoAction()
 
+    keymap={81:chr(64),56:chr(91),57:chr(93),55:chr(123),48:chr(125),
+            219:chr(92),337:chr(126),226:chr(124)}
     def OnKeyDown(self, event):
 ##        print 'STC: OnKeyDown'
         key = event.KeyCode()
@@ -929,6 +942,15 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix, BrowseStyl
 ##            print 'tip active'
 ##            event.Skip()
 ##            return
+
+        caretPos = self.GetCurrentPos()
+        if Preferences.handleSpecialEuropeanKeys and event.AltDown() and \
+              event.ControlDown():
+            if self.keymap.has_key(key):
+                self.InsertText(caretPos, self.keymap[key])
+                self.SetCurrentPos(self.GetCurrentPos()+1)
+                self.SetSelectionStart(self.GetCurrentPos())
+
         if key == 32 and event.ControlDown():
             # Tips
             if event.ShiftDown():
@@ -996,7 +1018,65 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix, BrowseStyl
         
     def OnLoadBreakPoints(self, event):
         self.tryLoadBreakpoints()
+
+class PythonDisView(EditorStyledTextCtrl, PythonStyledTextCtrlMix):#, BrowseStyledTextCtrlMix, FoldingStyledTextCtrlMix):
+    viewName = 'Disassemble'
+    breakBmp = 'Images/Debug/Breakpoints.bmp'
+    def __init__(self, parent, model):
+        wxID_PYTHONDISVIEW = wxNewId()
         
+        EditorStyledTextCtrl.__init__(self, parent, wxID_PYTHONDISVIEW, 
+          model, (), -1)
+        PythonStyledTextCtrlMix.__init__(self, wxID_PYTHONDISVIEW, -1)
+        
+##        self.SetMarginType(1, wxSTC_MARGIN_SYMBOL)
+##        self.SetMarginWidth(1, 12)
+##        self.SetMarginSensitive(1, true)
+##        self.MarkerDefine(brkPtMrk, wxSTC_MARK_CIRCLE, 'BLACK', 'RED')
+##        self.MarkerDefine(stepPosMrk, wxSTC_MARK_SHORTARROW, 'NAVY', 'BLUE')
+##        self.MarkerDefine(tmpBrkPtMrk, wxSTC_MARK_CIRCLE, 'BLACK', 'BLUE')
+#        self.setReadOnly(true)
+        self.active = true
+
+    def refreshModel(self):
+        # Do not update model
+        pass
+        
+    def getModelData(self):
+        try:
+            code = compile(self.model.data, self.model.filename, 'exec')
+        except:
+            oldOut = sys.stdout
+            sys.stdout = ShellEditor.PseudoFileOutStore()
+            try:
+                print "''' Code does not compile\n\n    Disassembly of Traceback:\n'''"
+                try:
+                    dis.distb(sys.exc_info()[2])
+                except:
+                    print "''' Could not disassemble traceback '''\n"
+                return sys.stdout.read()
+            finally:
+                sys.stdout = oldOut
+            
+        oldOut = sys.stdout
+        sys.stdout = ShellEditor.PseudoFileOutStore()
+        try:
+            try:
+                dis.disco(code)
+            except:
+                raise
+            return sys.stdout.read()
+        finally:
+            sys.stdout = oldOut
+        
+        return 'Invisible code'
+            
+    def setModelData(self, data):
+        pass
+
+##    def refreshCtrl(self):
+##                m = __import__(os.path.basename(os.path.splitext(pycFile)))
+##                d = dis.dis(m)
 class HTMLSourceView(EditorStyledTextCtrl, HTMLStyledTextCtrlMix):
     viewName = 'HTML'
     def __init__(self, parent, model):
