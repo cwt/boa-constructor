@@ -27,7 +27,7 @@ about_html = '''
 about_text = '''
 <p>A RAD GUI building IDE for <b>wxPython</b>
 </p>
-<p>&copy;2000 <b>Riaan Booysen</b>.<br>
+<p>&copy;1999-2001 <b>Riaan Booysen</b>.<br>
 <u>http://boa-constructor.sourceforge.net<br></u>
 riaan@e.co.za</p>
 <p><font size=-1 color="#000077">wxPlatform: %s %d.%d.%d</font></p>
