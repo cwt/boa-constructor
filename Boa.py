@@ -12,10 +12,6 @@
 #----------------------------------------------------------------------
 #Boa:App:BoaApp
 
-# Once upon a time
-# the story starts
-# in a few files far away
-
 """ The __main__ file for Boa.
 
 Handles creation/initialisation of main objects and commandline arguments """
@@ -23,7 +19,6 @@ Handles creation/initialisation of main objects and commandline arguments """
 import sys, os, string, time
 
 t1 = time.time()
-#import psyco; psyco.jit(100)
 
 # This flag determines if Boa should try to send the filename via a socket to an
 # already running instance of Boa. There is another flag under Preferences
@@ -136,6 +131,7 @@ def processArgs(argv):
         print '-O dirname, --OverridePrefsDirName dirname:'
         print '\tSpecify a different directory to load Preferences from.'
         print '\tDefault is .boa and is used if it exists'
+        print '\tDirectory will be created (and populated) if it does not exist'
         print '-E, --EmptyEditor:'
         print "\tDon't open the files that were open last time Boa was closed."
         print '-R, --RemoteDebugServer:'
@@ -215,8 +211,10 @@ print 'running main...'
 modules ={'About': [0, 'About box and Splash screen', 'About.py'],
  'AppViews': [0, 'Views for the AppModel', 'Views/AppViews.py'],
  'BaseCompanions': [0, '', 'Companions/BaseCompanions.py'],
+ 'BasicCompanions': [0, '', 'Companions/BasicCompanions.py'],
  'Breakpoint': [0, '', 'Debugger/Breakpoint.py'],
  'Browse': [0, 'History for navigation through the IDE', 'Browse.py'],
+ 'ButtonCompanions': [0, '', 'Companions/ButtonCompanions.py'],
  'CPPSupport': [0, '', 'Models/CPPSupport.py'],
  'CVSExplorer': [0, '', 'Explorers/CVSExplorer.py'],
  'CVSResults': [0, '', 'Explorers/CVSResults.py'],
@@ -237,6 +235,7 @@ modules ={'About': [0, 'About box and Splash screen', 'About.py'],
  'Constructors': [0,
                   'Constructor signature mixin classes',
                   'Companions/Constructors.py'],
+ 'ContainerCompanions': [0, '', 'Companions/ContainerCompanions.py'],
  'Controllers': [0, '', 'Models/Controllers.py'],
  'CtrlAlign': [0, '', 'Views/CtrlAlign.py'],
  'CtrlSize': [0, '', 'Views/CtrlSize.py'],
@@ -278,6 +277,7 @@ modules ={'About': [0, 'About box and Splash screen', 'About.py'],
  'FindReplaceDlg': [0, '', 'FindReplaceDlg.py'],
  'FindReplaceEngine': [0, '', 'FindReplaceEngine.py'],
  'FindResults': [0, '', 'FindResults.py'],
+ 'FrameCompanions': [0, '', 'Companions/FrameCompanions.py'],
  'GCFrame': [0, '', 'GCFrame.py'],
  'GizmoCompanions': [0, '', 'Companions/GizmoCompanions.py'],
  'HTMLCyclops': [0, '', 'HTMLCyclops.py'],
@@ -296,6 +296,7 @@ modules ={'About': [0, 'About box and Splash screen', 'About.py'],
                'Inspector.py'],
  'InspectorEditorControls': [0, '', 'PropEdit/InspectorEditorControls.py'],
  'IsolatedDebugger': [0, '', 'Debugger/IsolatedDebugger.py'],
+ 'ListCompanions': [0, '', 'Companions/ListCompanions.py'],
  'LoginDialog': [0, '', 'ZopeLib/LoginDialog.py'],
  'ModRunner': [0,
                'Module that runs processes in a variety of ways',
@@ -386,7 +387,7 @@ class BoaApp(wxApp):
         fileTot = len(eval(conf.get('editor', 'openfiles')))
 
         abt = About.createSplash(None, modTot, fileTot)
-        abt.Show();abt.Hide();abt.Show()
+        abt.Show()
         try:
             # Let the splash screen repaint
             wxYield()
