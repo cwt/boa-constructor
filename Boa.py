@@ -381,7 +381,7 @@ class BoaApp(wxApp):
         wxInitAllImageHandlers()
 
         wxToolTip_Enable(true)
-        try: self.SetAssertMode(wxPYAPP_ASSERT_EXCEPTION)
+        try: self.SetAssertMode(wxPYAPP_ASSERT_SUPPRESS)
         except AttributeError: pass # < 2.3.4
 
         conf = Utils.createAndReadConfig('Explorer')
