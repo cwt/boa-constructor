@@ -897,7 +897,21 @@ class DebugServer (Bdb):
                 except:
                     modname = ''
                 code = frame.f_code
-                filename = self.canonic(code.co_filename)
+                filename = code.co_filename
+                # Special case to package Python Scripts
+                if filename == 'Script (Python)':
+                    try: 
+                        # adjust for Boa's added def <name>(): line
+                        lineno = lineno+1
+                        # rewite filename to special lookup url that will
+                        # try to find a existing zope category that can open 
+                        # the script
+                        filename = 'zopedebug://'+\
+                            frame.f_globals['script'].absolute_url()[7:]+\
+                            '/'+filename
+                    except: pass
+                else:
+                    filename = self.canonic(code.co_filename)
                 co_name = code.co_name
                 stack_summary.append(
                     {'filename':filename, 'lineno':lineno,
