@@ -4,15 +4,16 @@ import Preferences, Utils
  wxID_EDITORREFRESH, wxID_EDITORDESIGNER, wxID_EDITORDEBUG, wxID_EDITORHELP,
  wxID_DEFAULTVIEWS, wxID_EDITORSWITCHTO, wxID_EDITORDIFF, wxID_EDITORPATCH,
  wxID_EDITORTOGGLEVIEW, wxID_EDITORSWITCHEXPLORER, wxID_EDITORSWITCHSHELL,
- wxID_EDITORSWITCHPALETTE, wxID_EDITORSWITCHINSPECTOR, 
- wxID_EDITORTOGGLERO, wxID_EDITORHELPFIND, wxID_EDITORRELOAD, 
+ wxID_EDITORSWITCHPALETTE, wxID_EDITORSWITCHINSPECTOR,
+ wxID_EDITORTOGGLERO, wxID_EDITORHELPFIND, wxID_EDITORRELOAD,
  wxID_EDITORHELPABOUT, wxID_EDITORHELPGUIDE, wxID_EDITORHELPTIPS,
  wxID_EDITORPREVPAGE, wxID_EDITORNEXTPAGE,
  wxID_EDITORBROWSEFORW, wxID_EDITORBROWSEBACK,
- wxID_EDITOREXITBOA,
- wxID_EDITORHIDEPALETTE, wxID_EDITORWINDIMS, wxID_EDITORWINDIMSLOAD, 
+ wxID_EDITOREXITBOA, wxID_EDITOROPENRECENT,
+ wxID_EDITORHIDEPALETTE, wxID_EDITORWINDIMS, wxID_EDITORWINDIMSLOAD,
  wxID_EDITORWINDIMSSAVE, wxID_EDITORWINDIMSRESDEFS,
-) = Utils.wxNewIds(33)
+ wxID_EDITORSWITCHPREFS,
+) = Utils.wxNewIds(35)
 
 builtinImgs =('Images/Modules/FolderUp_s.png',
               'Images/Modules/Folder_s.png',
@@ -26,7 +27,8 @@ builtinImgs =('Images/Modules/FolderUp_s.png',
               'Images/Modules/FolderBookmark_s.png',
               'Images/Modules/OpenEditorModels_s.png',
               'Images/Modules/PrefsFolder_s.png',
-              'Images/Shared/PrefsSTCStyles.png', )
+              'Images/Shared/PrefsSTCStyles.png',
+              'Images/Editor/RecentFiles.png')
 
 imgCounter=0
 def imgIdxRange(cnt):
@@ -38,11 +40,11 @@ def imgIdxRange(cnt):
 # Indexes for the imagelist
 (imgFolderUp, imgFolder, imgPathFolder, imgCVSFolder, imgSystemObj,
  imgZopeConnection, imgBoaLogo, imgFSDrive, imgNetDrive, imgFolderBookmark,
- imgOpenEditorModels, imgPrefsFolder, imgPrefsSTCStyles,
+ imgOpenEditorModels, imgPrefsFolder, imgPrefsSTCStyles, imgRecentFiles,
 
- imgTextModel, imgBitmapFileModel, imgZipFileModel, 
- imgUnknownFileModel, imgInternalFileModel, 
-) = imgIdxRange(18)
+ imgTextModel, imgBitmapFileModel, imgZipFileModel,
+ imgUnknownFileModel, imgInternalFileModel,
+) = imgIdxRange(19)
 
 # Registry of all modules {modelIdentifier : Model} (populated by EditorModels)
 # Used for images and header identifier
@@ -55,7 +57,7 @@ imageExtReg = []
 internalFilesReg = []
 # List of files which can be further identified by reading a header from the source
 inspectableFilesReg = []
-# List of extensions used by Python 
+# List of extensions used by Python
 pythonBinaryFilesReg = []
 # List of extensions for additional binary files (will not be searched)
 binaryFilesReg = []
@@ -65,5 +67,5 @@ def getBinaryFiles():
 def initExtMap():
     # All non python files identified by extension
     for mod in modelReg.values():
-        if mod.ext not in ('.py', '.*', '.intfile', '.pybin'):
+        if mod.ext not in inspectableFilesReg + ['.*', '.intfile', '.pybin']:
             extMap[mod.ext] = mod
