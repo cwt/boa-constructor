@@ -23,6 +23,7 @@ import os
 from types import *
 
 from wxPython.wx import *
+from wxPython.lib.stattext import wxGenStaticText
 
 import PaletteMapping, PaletteStore, Preferences, Help
 from PropEdit import PropertyEditors
@@ -34,7 +35,10 @@ from Preferences import keyDefs
 scrollBarWidth = 0
 IECWidthFudge = 3
 
-[wxID_ENTER, wxID_UNDOEDIT, wxID_CRSUP, wxID_CRSDOWN, wxID_CONTEXTHELP, wxID_SWITCHDESIGNER, wxID_SWITCHEDITOR, wxID_OPENITEM, wxID_CLOSEITEM] = Utils.wxNewIds(9)
+[wxID_ENTER, wxID_UNDOEDIT, wxID_CRSUP, wxID_CRSDOWN, wxID_CONTEXTHELP, 
+ wxID_SWITCHDESIGNER, wxID_SWITCHEDITOR, wxID_OPENITEM, wxID_CLOSEITEM,
+ wxID_INDEXHELP,
+] = Utils.wxNewIds(10)
 
 [wxID_INSPECTORFRAME, wxID_INSPECTORFRAMECONSTR, wxID_INSPECTORFRAMEEVENTS,
  wxID_INSPECTORFRAMEPAGES, wxID_INSPECTORFRAMEPROPS,
@@ -207,9 +211,11 @@ class InspectorFrame(wxFrame, Utils.FrameRestorerMixin):
 
         EVT_MENU(self, wxID_SWITCHEDITOR, self.OnSwitchEditor)
         EVT_MENU(self, wxID_SWITCHDESIGNER, self.OnSwitchDesigner)
+        EVT_MENU(self, wxID_INDEXHELP, self.OnIndexHelp)
         self.SetAcceleratorTable(wxAcceleratorTable([\
           (keyDefs['Designer'][0], keyDefs['Designer'][1], wxID_SWITCHEDITOR),
-          (keyDefs['Inspector'][0], keyDefs['Inspector'][1], wxID_SWITCHDESIGNER)]
+          (keyDefs['Inspector'][0], keyDefs['Inspector'][1], wxID_SWITCHDESIGNER),
+          (keyDefs['HelpFind'][0], keyDefs['HelpFind'][1], wxID_INDEXHELP)]
         ))
 
         self.updateToolBarState()
@@ -408,6 +414,9 @@ class InspectorFrame(wxFrame, Utils.FrameRestorerMixin):
     def OnHelp(self, event):
         Help.showHelp('Inspector.html')
 
+    def OnIndexHelp(self, event):
+        self.editor.OnHelpFindIndex(event)
+
     def OnRevertItem(self, event):
         if self.selCmp and self.props.prevSel and self.props.prevSel.propEditor:
             propEdit = self.props.prevSel.propEditor
@@ -455,7 +464,8 @@ class InspectorFrame(wxFrame, Utils.FrameRestorerMixin):
         Utils.FrameRestorerMixin.restore(self)
         if Preferences.expandEditorOnCloseInspector:
             self.editor.restoreOnInspectorRestore()
-            
+
+           
 
 wxID_PARENTTREE = wxNewId()
 wxID_PARENTTREESELECTED = wxNewId()
@@ -591,16 +601,8 @@ class NameValue:
             self.propValue = ''
             displayVal = ''
 
-        if wxVERSION >= (2,3,3):
-            # statext uses wxPyControl only for 2.3.3+
-            from wxPython.lib.stattext import wxGenStaticText
-            StaticText = wxGenStaticText
-        else:
-            # pre 2.3.3 compat
-            StaticText = wxStaticText
-
         # Create name and value controls and separators
-        self.nameCtrl = StaticText(nameParent, -1, name,
+        self.nameCtrl = wxGenStaticText(nameParent, -1, name,
           wxPoint(8 * self.indent + 16, idx * oiLineHeight +2),
           wxSize(inspector.panelNames.GetSize().x, oiLineHeight -3),
           style = wxCLIP_CHILDREN | wxST_NO_AUTORESIZE | wxNO_BORDER)
@@ -654,7 +656,7 @@ class NameValue:
         return None, '', false
 
     def destroy(self, cancel = false):
-        self.hideEditor(cancel)
+        self.hideEditor(cancel, noUpdate=true)
         self.destr = true
         self.nameCtrl.Destroy()
         self.value.Destroy()
@@ -700,8 +702,6 @@ class NameValue:
     def updateDisplayValue(self):
         dispVal = self.propEditor.getDisplayValue()
         self.value.SetLabel(dispVal)
-        # XXX if not too expensive, only set Tip if caption does not
-        # XXX fit in window
         self.value.SetToolTipString(dispVal)
         self.showPropNameModified(self.isCat)
 
@@ -753,7 +753,7 @@ class NameValue:
 
     def showEdit(self):
         self.nameBevelTop = wxWindow(self.nameParent, -1,
-          wxPoint(0, self.idx*oiLineHeight -1),
+          wxPoint(0, max(self.idx*oiLineHeight -1, 0)),
           wxSize(self.inspector.panelNames.GetSize().x, 1))
         self.nameBevelTop.SetBackgroundColour(wxBLACK)
         self.nameBevelBottom = wxWindow(self.nameParent, -1,
@@ -767,7 +767,7 @@ class NameValue:
             self.propEditor.inspectorEdit()
         else:
             self.valueBevelTop = wxWindow(self.valueParent, -1,
-              wxPoint(0, self.idx*oiLineHeight -1),
+              wxPoint(0, max(self.idx*oiLineHeight -1, 0)),
               wxSize(self.inspector.getValueWidth(), 1))
             self.valueBevelTop.SetBackgroundColour(wxBLACK)
             self.valueBevelBottom = wxWindow(self.valueParent, -1,
@@ -776,15 +776,23 @@ class NameValue:
             self.valueBevelBottom.SetBackgroundColour(wxWHITE)
         self.editing = true
 
-    def hideEditor(self, cancel = false):
+    def hideEditor(self, cancel=false, noUpdate=false):
         if self.propEditor:# and (not self.destr):
             if cancel:
                 self.propEditor.inspectorCancel()
             else:
-                self.propEditor.inspectorPost()
-                self.updateDisplayValue()
-                self.value.SetSize(wxSize(self.separatorV.GetSize().x,
-                  oiLineHeight-3))
+                if noUpdate:
+                    # swallow exceptions as autoposted values can not be canceled
+                    try: 
+                        self.propEditor.inspectorPost()
+                    except Exception, err:
+                        wxLogError('Could not post %s because: %s: %s'%(
+                              self.propName, err.__class__.__name__, str(err)))
+                else:
+                    self.propEditor.inspectorPost()
+                    self.updateDisplayValue()
+                    self.value.SetSize(wxSize(self.separatorV.GetSize().x,
+                                              oiLineHeight-3))
 
         if self.nameBevelTop:
             self.nameBevelTop.Destroy()
@@ -1012,11 +1020,14 @@ class NameValueEditorScrollWin(wxScrolledWindow):
         EVT_SIZE(self, self.OnSize)
 
     def cleanup(self):
-        # XXX Does this always have to be inited here?
         self.prevSel = None
-        #clean up
+        # first post any open editor
+        for i in self.nameValues:
+            i.hideEditor(false, noUpdate=true)
+        # then clean up
         for i in self.nameValues:
             i.destroy(true)
+
         self.nameValues = []
         self.refreshSplitter()
 
@@ -1185,7 +1196,12 @@ class InspectorScrollWin(NameValueEditorScrollWin):
     def OnEnter(self, event):
         for nv in self.nameValues:
             if nv.editing:
-                nv.propEditor.inspectorPost(false)
+                try:
+                    nv.propEditor.inspectorPost(false)
+                except Exception, err:
+                    wxMessageBox('%s: %s'%(err.__class__, str(err)), 
+                          'Unable to post, please correct.', 
+                          wxOK | wxCENTER | wxICON_ERROR, self)
 
     def OnUndo(self, event):
         # XXX Implement!
