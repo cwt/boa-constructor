@@ -272,7 +272,7 @@ def showHelp(filename):
     getHelpController().Display(filename)
 
 def showContextHelp(word):
-    if Utils.startswith(word, 'EVT_'):
+    if word.startswith('EVT_'):
         word = 'wx%sEvent' % string.join(map(lambda s: string.capitalize(string.lower(s)),
                                 string.split(word[4:], '_')), '')
     elif word in sys.builtin_module_names:
