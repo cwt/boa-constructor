@@ -183,7 +183,7 @@ class AboutBoxMixin:
                   Preferences.toPyPath('Images/Shared/wxPyButton.png'),
                   Preferences.toPyPath('Images/Shared/wxWinButton.png')))
         elif clicked == 'Back':
-            self.setPage()
+            self.html.HistoryBack()
         elif clicked == 'Python':
             self.gotoInternetUrl('http://www.python.org')
         elif clicked == 'wxPython':
@@ -200,25 +200,27 @@ class AboutBoxMixin:
 
 class AboutBox(AboutBoxMixin, wxDialog):
     def _init_ctrls(self, prnt):
-        wxDialog.__init__(self, size=wxSize(400,530), pos=(-1, -1), 
-              id=wxID_ABOUTBOX, title='About Boa Constructor', parent=prnt, 
+        wxDialog.__init__(self, size=wxSize(400,530), pos=(-1, -1),
+              id=wxID_ABOUTBOX, title='About Boa Constructor', parent=prnt,
               name='AboutBox', style=wxDEFAULT_DIALOG_STYLE)
 
     def setPage(self):
         self.html.SetPage((about_html % (
-              Preferences.toPyPath('Images/Shared/Boa.jpg'), __version__.version, 
-              '', about_text % (sys.version, wxPlatform, wxMAJOR_VERSION, 
+              Preferences.toPyPath('Images/Shared/Boa.jpg'), __version__.version,
+              '', about_text % (sys.version, wxPlatform, wxMAJOR_VERSION,
               wxMINOR_VERSION, wxRELEASE_NUMBER))))
+DefAboutBox = AboutBox
 
 class AboutBoxSplash(AboutBoxMixin, wxFrame):
     progressBorder = 1
     fileOpeningFactor = 10
     def _init_ctrls(self, prnt):
-        wxFrame.__init__(self, size=wxSize(400, 315), pos=(-1, -1), 
-              id=wxID_ABOUTBOX, title='Boa Constructor', parent=prnt, 
+        wxFrame.__init__(self, size=wxSize(400, 315), pos=(-1, -1),
+              id=wxID_ABOUTBOX, title='Boa Constructor', parent=prnt,
               name='AboutBoxSplash', style=wxSIMPLE_BORDER)
         self.progressId = wxNewId()
         self.gaugePId = wxNewId()
+        self.SetBackgroundColour(wxColour(0x99, 0xcc, 0xff))
 
     def setPage(self):
         self.html.SetPage(about_html % (Preferences.toPyPath('Images/Shared/Boa.jpg'),
@@ -237,7 +239,7 @@ class AboutBoxSplash(AboutBoxMixin, wxFrame):
               size=(gaugeSze.x - 2 * self.progressBorder,
                     gaugeSze.y - 2 * self.progressBorder))
         self.gauge.SetBackgroundColour(wxColour(0xff, 0x33, 0x00))
-        # route all printing thru the text on the splash screen 
+        # route all printing thru the text on the splash screen
         sys.stdout = StaticTextPF(self.label)
         start_new_thread(self.monitorModuleCount, ())
 
