@@ -105,9 +105,12 @@ class DebuggerConnection:
         handlers.  Non-blocking.
         """
         self._callNoWait('set_quit', 1)
-##        self._ds.stopAnywhere()
-##        if self._ds.isRunning():
-##            self._callNoWait('set_quit', 1)
+
+    def set_disconnect(self):
+        """Raises a BdbQuit exception in the current thread then
+        allows other threads to continue.  Non-blocking.
+        """
+        self._callNoWait('set_disconnect', 1)
 
     def setAllBreakpoints(self, brks):
         """brks is a list of mappings containing the keys:
@@ -179,7 +182,8 @@ class DebuggerConnection:
             self.addBreakpoint(temp_breakpoint[0], temp_breakpoint[1], 1)
         if command:
             allowed = ('set_continue', 'set_step', 'set_step_over',
-                       'set_step_out', 'set_pause', 'set_quit')
+                       'set_step_out', 'set_pause', 'set_quit',
+                       'set_disconnect',)
             if command not in allowed:
                 raise DebugError('Illegal command: %s' % command)
             apply(getattr(self, command), args)
@@ -200,6 +204,8 @@ class DebuggerConnection:
         self.setAllBreakpoints(breaks)
         if autocont:
             self.set_continue()
+        else:
+            self._ds.set_step()
         return self.getStatusSummary()
 
     def getSafeDict(self, locals, frameno):
@@ -405,7 +411,8 @@ class DebugServer (Bdb):
     # exc_info is set only while paused and an exception occurred.
     exc_info = None
 
-    # starting_trace is set only while paused after a hard breakpoint.
+    # starting_trace is set to make sure sys.set_trace() gets called before
+    # resuming user code.
     starting_trace = 0
 
     # ignore_stopline is the line number we should *not* stop on.
@@ -429,6 +436,7 @@ class DebugServer (Bdb):
     def __init__(self):
         Bdb.__init__(self)
         self.fncache = {}
+        self.botframe = None
 
         self.__queue = Queue.Queue(0)
 
@@ -441,6 +449,8 @@ class DebugServer (Bdb):
         self.maxdict2 = 1000
 
         self._running = 0
+        self.cleanupServer()
+        self.stopframe = ()  # Don't stop unless requested to do so.
 
     def queueServerMessage(self, sm):
         self.__queue.put(sm)
@@ -540,6 +550,7 @@ class DebugServer (Bdb):
             self.currentbp = bp.number
             if (flag and bp.temporary):
                 self.do_clear(str(bp.number))
+            self.afterBreakpoint(frame)
             return 1
         else:
             return 0
@@ -573,31 +584,77 @@ class DebugServer (Bdb):
             f = f.f_back
         return 0
 
+    def add_trace_hooks(self, frame):
+        root_frame = None
+        f = frame
+        td = self.trace_dispatch
+        while f:
+            f.f_trace = td
+            root_frame = f
+            f = f.f_back
+            if f is self.botframe:
+                break
+        if self.botframe is None:
+            # Make the entire stack visible.
+            self.botframe = root_frame
+
+    def remove_trace_hooks(self):
+        sys.settrace(None)
+        try:
+            raise 'gen_exc_info'
+        except:
+            frame = sys.exc_info()[2].tb_frame
+            while frame:
+                # Clear all the f_trace attributes
+                # that were created while processing with a
+                # settrace callback enabled.
+                del frame.f_trace
+                if frame is self.botframe:
+                    break
+                frame = frame.f_back
+
     def set_continue(self, full_speed=0):
-        # Only stop at breakpoints, exceptions or when finished
+        """Only stop at breakpoints, exceptions or when finished.
+        """
         self.stopframe = ()
         self.returnframe = None
         self.quitting = 0
 
         if full_speed:
             # run without debugger overhead
-            sys.settrace(None)
             self.starting_trace = 0
+            self.remove_trace_hooks()
+        else:
+            self.starting_trace = 1
+
+        # Allow a stop in any thread.
+        self._lock.releaseIfOwned()
+
+    def set_disconnect(self):
+        """Debugging client disconnected.  Raise a quit exception in just
+        this thread, but allow other threads to continue.
+        """
+        self.set_continue(1)
+        raise BdbQuit, 'Client disconnected'
+
+    def set_traceable(self, enable):
+        """Allows user code to enable/disable tracing without changing the
+        stepping mode.
+        """
+        sys.settrace(None)
+        self._running = 1
+        if enable:
+            # Add trace hooks.
             try:
                 raise 'gen_exc_info'
             except:
                 frame = sys.exc_info()[2].tb_frame.f_back
-                while frame:
-                    # Clear all the f_trace attributes
-                    # that were created while processing with a
-                    # settrace callback enabled.
-                    del frame.f_trace
-                    if frame is self.botframe:
-                        break
-                    frame = frame.f_back
-
-        # Allow a stop in any thread.
-        self._lock.releaseIfOwned()
+            self.add_trace_hooks(frame)
+            sys.settrace(self.trace_dispatch)
+        else:
+            # Remove trace hooks and allow other threads to capture the lock.
+            self.remove_trace_hooks()
+            self._lock.releaseIfOwned()
 
     def hard_break_here(self, frame):
         """Indicates whether the debugger should stop at a hard breakpoint.
@@ -637,24 +694,14 @@ class DebugServer (Bdb):
             filename, lineno = stop
             self.set_break(filename, lineno)
         self._running = 1
-        root_frame = None
-        f = frame
-        while f:
-            f.f_trace = self.trace_dispatch
-            root_frame = f
-            f = f.f_back
-            if f is self.botframe:
-                break
-        if self.botframe is None:
-            # Make the entire stack visible.
-            self.botframe = root_frame
+        self.add_trace_hooks(frame)
         # Get sys.settrace() called when resuming.
         self.starting_trace = 1
-        self.afterHardBreakpoint(frame)
+        self.afterBreakpoint(frame)
         # Pause in the frame
         self.user_line(frame)
 
-    def afterHardBreakpoint(self, frame):
+    def afterBreakpoint(self, frame):
         # Set a default stepping mode.
         self.set_step()
 

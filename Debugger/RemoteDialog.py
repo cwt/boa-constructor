@@ -35,9 +35,9 @@ class AttachDlg(wxDialog):
 
         self.staticText4 = wxStaticText(label = 'Password', id = wxID_ATTACHDLGSTATICTEXT4, parent = self, name = 'staticText4', size = wxSize(56, 16), style = 0, pos = wxPoint(16, 120))
 
-        self.host_ctrl = wxTextCtrl(size = wxSize(160, 24), value = 'localhost', pos = wxPoint(80, 16), parent = self, name = 'host_ctrl', style = 0, id = wxID_ATTACHDLGHOST_CTRL)
+        self.host_ctrl = wxTextCtrl(size = wxSize(160, 24), value = '127.0.0.1', pos = wxPoint(80, 16), parent = self, name = 'host_ctrl', style = 0, id = wxID_ATTACHDLGHOST_CTRL)
 
-        self.port_ctrl = wxTextCtrl(size = wxSize(48, 24), value = '8080', pos = wxPoint(80, 48), parent = self, name = 'port_ctrl', style = 0, id = wxID_ATTACHDLGPORT_CTRL)
+        self.port_ctrl = wxTextCtrl(size = wxSize(48, 24), value = '26200', pos = wxPoint(80, 48), parent = self, name = 'port_ctrl', style = 0, id = wxID_ATTACHDLGPORT_CTRL)
 
         self.username_ctrl = wxTextCtrl(size = wxSize(96, 24), value = '', pos = wxPoint(80, 80), parent = self, name = 'username_ctrl', style = 0, id = wxID_ATTACHDLGUSERNAME_CTRL)
 
@@ -74,8 +74,8 @@ class AttachDlg(wxDialog):
             debugger.setTitleInfo('%s:%s' % (host, port))
 
         self.editor.debugger = debugger
+        debugger.doDebugStep()
         debugger.Show(true)
-        debugger.requestDebuggerStatus()
         self.Close()
 
     def OnCancelButton(self, event):

@@ -191,7 +191,7 @@ class ZopeScriptDebugServer(DebugServer):
 
         return exc_type, exc_value, stack, frame_stack_len
 
-    def afterHardBreakpoint(self, frame):
+    def afterBreakpoint(self, frame):
         # Set a default stepping mode.
         self.set_step()
         # Choose scripts_only_mode based on whether the hard break was in

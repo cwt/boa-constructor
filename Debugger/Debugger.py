@@ -54,6 +54,8 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
         self.slave_mode = slave_mode
         if filename:
             self.setDebugFile(filename)
+        else:
+            self.filename = ''
 
         self.SetIcon(IS.load('Images/Icons/Debug.ico'))
 

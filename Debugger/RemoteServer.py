@@ -1,7 +1,7 @@
 
-import sys, os, time
-import whrandom, sha, threading
-from time import sleep
+import sys, os
+import threading
+import base64
 from SocketServer import TCPServer
 
 from IsolatedDebugger import DebugServer, DebuggerConnection
@@ -21,8 +21,6 @@ except ImportError:
     from StringIO import StringIO
 
 
-serving = 1
-
 debug_server = None
 connection = None
 auth_str = ''
@@ -33,23 +31,20 @@ class DebugRequestHandler (RequestHandler):
 
     def _authenticate(self):
         h = self.headers
-        if auth_str and (not h.has_key('x-auth')
-                         or h['x-auth'] != auth_str):
-            raise 'Unauthorized', 'X-Auth header missing or incorrect'
+        if auth_str:
+            s = h.get('authentication')
+            if not s or s.split()[-1] != auth_str:
+                raise 'Unauthorized', (
+                    'Authentication header missing or incorrect')
 
     def call(self, method, params):
         # Override of xmlrpcserver.RequestHandler.call()
         self._authenticate()
-        if method == 'exit_debugger':
-            global serving
-            serving = 0
-            return 1
-        else:
-            m = getattr(connection, method)
-            result = apply(m, params)
-            if result is None:
-                result = 0
-            return result
+        m = getattr(connection, method)
+        result = apply(m, params)
+        if result is None:
+            result = 0
+        return result
 
     def log_message(self, format, *args):
         pass
@@ -63,40 +58,35 @@ class TaskingMixIn:
         task_handler.addTask(self.finish_request,
                              args=(request, client_address))
 
-class TaskingTCPServer(TaskingMixIn, TCPServer): pass
+class TaskingTCPServer(TaskingMixIn, TCPServer):
+    allow_reuse_address = 1
 
 
-def streamFlushThread():
-    while 1:
-        sys.stdout.flush()
-        sys.stderr.flush()
-        sleep(0.15)  # 150 ms
+def start(username, password, host='127.0.0.1', port=26200,
+          server_type='zope'):
+    global auth_str, debug_server, connection
 
-
-def main(args=None):
-    global auth_str, debug_server, connection, serving
+    if debug_server is not None:
+        raise RuntimeError, 'The debug server is already running'
 
     # Create the debug server.
-    if args is None:
-        args = sys.argv[1:]
-    if args and '--zope' in args:
+    if server_type == 'zope':
         from ZopeScriptDebugServer import ZopeScriptDebugServer
-        debug_server = ZopeScriptDebugServer()
+        ds = ZopeScriptDebugServer()
+    elif server_type == 'basic':
+        ds = DebugServer()
     else:
-        debug_server = DebugServer()
-    connection = DebuggerConnection(debug_server)
+        raise ValueError, 'Unknown debug server type: %s' % server_type
+
+    connection = DebuggerConnection(ds)
     connection.allowEnvChanges()  # Allow changing of sys.path, etc.
 
-    # Create an authentication string, always 40 characters.
-    auth_str = sha.new(str(whrandom.random())).hexdigest()
+    # Create an authentication string.
+    auth_str = base64.encodestring('%s:%s' % (username, password)).strip()
 
-    # port is 0 to allocate any port.
-    server = TaskingTCPServer(('', 0), DebugRequestHandler)
+    debug_server = ds
+    server = TaskingTCPServer((host, port), DebugRequestHandler)
     port = int(server.socket.getsockname()[1])
-
-    # Tell the client what port to connect to and the auth string to send.
-    sys.stdout.write('%010d %s%s' % (port, auth_str, os.linesep))
-    sys.stdout.flush()
 
     # Provide a hard breakpoint hook.  Use it like this:
     # if hasattr(sys, 'breakpoint'): sys.breakpoint()
@@ -114,18 +104,14 @@ def main(args=None):
         t.start()
 
     startDaemon(serve_forever, (server,))
-    startDaemon(streamFlushThread)
-    startDaemon(debug_server.servicerThread)
+    #startDaemon(debug_server.servicerThread)
 
-    # Serve until the stdin pipe closes.
-    #print 'serving until stdin returns EOF'
-    #sys.stdin.read()
+    print >> sys.stderr, "Debug server listening on %s:%s" % tuple(
+        server.socket.getsockname()[:2])
 
-    while serving:
-        time.sleep(0.1)
-
-    sys.exit(0)
-
-
-if __name__ == '__main__':
-    main()
+    try:
+        import atexit
+    except ImportError:
+        pass
+    else:
+        atexit.register(server.socket.close)
