@@ -1020,6 +1020,9 @@ class DesignerView(wxFrame, InspectableObjectView, Utils.FrameRestorerMixin):
 
             self.cutCtrls([ctrlName], [], output)
             self.pasteCtrls(parentName, output)
+            
+            self.refreshContainment()
+            self.inspector.containment.selectName(ctrlName)
 
 #---Moving/Sizing selections with the keyboard----------------------------------
     def getSelAsList(self):
