@@ -25,6 +25,8 @@ from EventCollections import *
 from PropEdit.PropertyEditors import *
 from PropEdit.Enumerations import *
 
+import methodparse
+
 EventCategories['ButtonEvent'] = (EVT_BUTTON,)
 commandCategories.append('ButtonEvent')
 
@@ -150,6 +152,42 @@ class SpinButtonDTC(WindowConstr, WindowDTC):
         else:
             WindowDTC.persistProp(self, name, setterName, value)
 
+EventCategories['SpinCtrlEvent'] = (EVT_SPINCTRL,)
+commandCategories.append('SpinCtrlEvent')
+class SpinCtrlDTC(SpinButtonDTC):
+    def __init__(self, name, designer, parent, ctrlClass):
+        SpinButtonDTC.__init__(self, name, designer, parent, ctrlClass)
+        self.editors['Min'] = IntConstrPropEdit
+        self.editors['Max'] = IntConstrPropEdit
+        self.editors['Initial'] = IntConstrPropEdit
+        self.compositeCtrl = true
+        
+    def constructor(self):
+        return {'Min': 'min', 'Max': 'max',
+                'Position': 'pos', 'Size': 'size', 'Style': 'style',
+                'Initial': 'initial', 'Name': 'name'}
+
+    def designTimeSource(self, position = 'wxDefaultPosition', size = 'wxDefaultSize'):
+        return {#'value': `'0'`,
+                'pos': position,
+                'size': size,
+                'style': 'wxSP_ARROW_KEYS',
+                'min': '0',
+                'max': '100',
+                'initial': '0',
+                'name': `self.name`}
+
+    def events(self):
+        return SpinButtonDTC.events(self) + ['SpinCtrlEvent']
+    
+    def hideDesignTime(self):
+        return SpinButtonDTC.hideDesignTime(self) + ['Label']
+
+    def defaultAction(self):
+        insp = self.designer.inspector
+        insp.pages.SetSelection(2)
+        insp.events.doAddEvent('SpinCtrlEvent', 'EVT_SPINCTRL')
+
 class GenButtonConstr(PropertyKeywordConstructor):
     def constructor(self):
         return {'Label': 'label', 'Position': 'pos', 'Size': 'size',
@@ -266,7 +304,7 @@ PaletteStore.paletteLists['Buttons'] = []
 PaletteStore.palette.append(['Buttons', 'Editor/Tabs/Basic', 
                              PaletteStore.paletteLists['Buttons']])
 PaletteStore.paletteLists['Buttons'].extend([wxButton, wxBitmapButton,
-      wxSpinButton, wxToggleButton,
+      wxSpinButton, wxSpinCtrl, wxToggleButton,
       wxGenButton, wxGenBitmapButton, wxGenBitmapTextButton,
       wxGenToggleButton, wxGenBitmapToggleButton, wxGenBitmapTextToggleButton,
       wxContextHelpButton])
@@ -275,6 +313,7 @@ PaletteStore.compInfo.update({
     wxButton: ['wxButton', ButtonDTC],
     wxBitmapButton: ['wxBitmapButton', BitmapButtonDTC],
     wxSpinButton: ['wxSpinButton', SpinButtonDTC],
+    wxSpinCtrl: ['wxSpinCtrl', SpinCtrlDTC],
     wxGenButton: ['wxGenButton', GenButtonDTC],
     wxGenBitmapButton: ['wxGenBitmapButton', GenBitmapButtonDTC],
     wxGenToggleButton: ['wxGenToggleButton', GenToggleButtonDTC],
