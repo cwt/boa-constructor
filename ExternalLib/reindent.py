@@ -110,17 +110,18 @@ def check(file):
 
 class Reindenter:
 
-    def __init__(self, f):
+    def __init__(self, f, eol="\n"):
         self.find_stmt = 1  # next token begins a fresh stmt?
         self.level = 0      # current indent level
-
+        self.eol = eol
+        
         # Raw file lines.
         self.raw = f.readlines()
 
         # File lines, rstripped & tab-expanded.  Dummy at start is so
         # that we can use tokenize's 1-based line numbering easily.
         # Note that a line is all-blank iff it's "\n".
-        self.lines = [line.rstrip().expandtabs() + "\n"
+        self.lines = [line.rstrip().expandtabs() + self.eol
                       for line in self.raw]
         self.lines.insert(0, None)
         self.index = 1  # index into self.lines of next line
@@ -135,7 +136,7 @@ class Reindenter:
         tokenize.tokenize(self.getline, self.tokeneater)
         # Remove trailing empty lines.
         lines = self.lines
-        while lines and lines[-1] == "\n":
+        while lines and lines[-1] == self.eol:
             lines.pop()
         # Sentinel.
         stats = self.stats
@@ -187,7 +188,7 @@ class Reindenter:
             else:
                 for line in lines[thisstmt:nextstmt]:
                     if diff > 0:
-                        if line == "\n":
+                        if line == self.eol:
                             after.append(line)
                         else:
                             after.append(" " * diff + line)
