@@ -23,8 +23,7 @@ from Models import Controllers, PythonEditorModels, EditorHelper
 class FileSysCatNode(ExplorerNodes.CategoryNode):
 #    protocol = 'config.file'
     itemProtocol = 'file'
-    defName = Preferences.explorerFileSysRootDefault[0]
-    defaultStruct = Preferences.explorerFileSysRootDefault[1]
+    defName, defaultStruct = Preferences.explorerFileSysRootDefault
     def __init__(self, clipboard, config, parent, bookmarks):
         ExplorerNodes.CategoryNode.__init__(self, 'Filesystem', ('explorer', 'file'),
               clipboard, config, parent)
@@ -52,8 +51,13 @@ class FileSysCatNode(ExplorerNodes.CategoryNode):
         if forceFolder: Node = NonCheckPyFolderNode
         else: Node = PyFileNode
 
-        return Node(entry, value, self.clipboard, EditorHelper.imgFSDrive, self,
-            self.bookmarks)
+        node = Node(entry, value, self.clipboard, -1, self, self.bookmarks)
+        if node.isFolderish():
+            node.imgIdx = EditorHelper.imgFSDrive
+        else:
+            node.imgIdx = Controllers.identifyFile(value,
+                localfs=node.filter == 'BoaFiles')[0].imgIdx
+        return node
 
 ##    def newItem(self):
 ##        name = ExplorerNodes.CategoryNode.newItem()
@@ -158,8 +162,7 @@ class FileSysController(ExplorerNodes.Controller, ExplorerNodes.ClipboardControl
 
     def OnFindFSItem(self, event):
         import Search
-        dlg = wxTextEntryDialog(self.list, 'Enter text:',
-          'Find in files', '')
+        dlg = wxTextEntryDialog(self.list, 'Enter text:', 'Find in files', '')
         try:
             if dlg.ShowModal() == wxID_OK:
                 exts = self.list.node.getFilterExts()
@@ -171,7 +174,8 @@ class FileSysController(ExplorerNodes.Controller, ExplorerNodes.ClipboardControl
                       dlg.GetValue(), filemask = exts,
                       progressMsg = 'Search files...', joiner = os.sep)
                 nd = self.list.node
-                self.list.node = ResultsFolderNode('Results', nd.resourcepath, nd.clipboard, -1, nd, nd.bookmarks)
+                self.list.node = ResultsFolderNode('Results', nd.resourcepath,
+                      nd.clipboard, -1, nd, nd.bookmarks)
                 self.list.node.results = res
                 self.list.node.lastSearch = dlg.GetValue()
                 self.list.refreshCurrent()
@@ -232,7 +236,7 @@ class PyFileNode(ExplorerNodes.ExplorerNode):
         ExplorerNodes.ExplorerNode.__init__(self, name, resourcepath, clipboard,
               imgIdx, parent, properties or {})
         self.bookmarks = bookmarks
-        self.exts = EditorHelper.extMap.keys() + ['.py']
+        self.exts = EditorHelper.extMap.keys() + EditorHelper.inspectableFilesReg
         self.entries = []
 
         self.doCVS = true
@@ -376,12 +380,12 @@ class PyFileNode(ExplorerNodes.ExplorerNode):
         self.__class__.filter = filter
 
     def getFilterExts(self):
-        return {'BoaFiles': self.exts + ['.py'],
-                'StdFiles': self.exts + ['.py'],
+        return {'BoaFiles': self.exts,
+                'StdFiles': self.exts,
                 'BoaIntFiles': EditorHelper.internalFilesReg +\
                                EditorHelper.pythonBinaryFilesReg ,
                 'ImageFiles': EditorHelper.imageExtReg,
-                'AllFiles': ('.*',)}[self.filter]
+                'AllFiles': ['.*']}[self.filter]
 
     def load(self, mode='rb'):
         try:
@@ -398,7 +402,7 @@ class PyFileNode(ExplorerNodes.ExplorerNode):
         try:
             if not overwriteNewer and self.fileIsNewer():
                 raise ExplorerNodes.TransportModifiedSaveError('This file has '
-                  'been saved by someone else since it was loaded', 
+                  'been saved by someone else since it was loaded',
                   self.resourcepath)
             open(self.resourcepath, mode).write(data)
         except IOError, error:
@@ -415,20 +419,17 @@ class PyFileNode(ExplorerNodes.ExplorerNode):
               not os.access(self.resourcepath, os.W_OK)
         self.stdAttrs['modify-date'] = exists and \
               os.stat(self.resourcepath)[stat.ST_MTIME] or 0.0
-        
+
     def setStdAttr(self, attr, value=None):
         if attr == 'read-only':
             os.chmod(self.resourcepath, value and 0444 or 0666)
 
         self.updateStdAttrs()
-    
+
     def fileIsNewer(self):
         return (os.path.exists(self.resourcepath) and \
-            os.stat(self.resourcepath)[stat.ST_MTIME] or \
-            0.0) > self.stdAttrs['modify-date']
-        
-
-FileSysController.Node = PyFileNode
+            os.stat(self.resourcepath)[stat.ST_MTIME] or 0.0) > \
+            self.stdAttrs['modify-date']
 
 def isPackage(filename):
     return os.path.exists(os.path.join(filename, PythonEditorModels.PackageModel.pckgIdnt))
@@ -461,9 +462,10 @@ class ResultsFolderNode(PyFileNode):
 
     def open(self, node, editor):
         mod, cntrl = node.open(editor)
-        if mod.views.has_key('Source'):
-            mod.views['Source'].doFind(self.lastSearch)
-            mod.views['Source'].doNextMatch()
+        view = mod.getSourceView()
+        if view:
+            view.doFind(self.lastSearch)
+            view.doNextMatch()
         return mod, cntrl
 
     def getTitle(self):

@@ -13,8 +13,6 @@ print 'importing Explorers.FTPExplorer'
 
 import string, os
 
-##import sys;sys.path.append('..')
-
 from wxPython.wx import wxMenu, EVT_MENU, wxMessageBox, wxPlatform, wxNewId
 
 import Preferences, Utils
@@ -86,7 +84,7 @@ class FTPItemNode(ExplorerNodes.ExplorerNode):
         self.cache = {}
 
     def destroy(self):
-        self.cache = {}
+        pass#self.cache = {}
 
     def isFolderish(self):
         return self.ftpObj.isFolder()
@@ -116,7 +114,7 @@ class FTPItemNode(ExplorerNodes.ExplorerNode):
         item.bookmarks = self.bookmarks
         return item
 
-    def openList(self, root = None):
+    def openList(self, root=None):
         items = self.ftpConn.dir(self.ftpObj.whole_name())
 
         if not root: root = self.root
@@ -152,7 +150,7 @@ class FTPItemNode(ExplorerNodes.ExplorerNode):
             raise ExplorerNodes.TransportLoadError(error, self.ftpObj.whole_name())
 
     def save(self, filename, data, mode='wb'):
-        if filename != self.currentFilename():#self.ftpObj.whole_name():
+        if filename != self.currentFilename():
             self.ftpObj.path = os.path.dirname(filename)
             self.ftpObj.name = os.path.basename(filename)
         try:
@@ -179,10 +177,17 @@ class FTPConnectionNode(FTPItemNode):
         from ZopeLib import ZopeFTP
 
         ftpConn = ZopeFTP.ZopeFTP()
-        ftpObj = ftpConn.folder_item(os.path.basename(respath),
-                                     os.path.dirname(respath))
-        FTPItemNode.__init__(self, '', properties, ftpObj.path, clipboard, true,
-            EditorHelper.imgNetDrive, parent, ftpConn, ftpObj, self)
+        if respath and respath[-1] == '/':
+            ftpObj = ftpConn.folder_item(os.path.basename(respath),
+                                         os.path.dirname(respath))
+            isFolder = true
+        else:
+            ftpObj = ftpConn.add_doc(os.path.basename(respath),
+                                         os.path.dirname(respath))
+            isFolder = false
+
+        FTPItemNode.__init__(self, '', properties, ftpObj.path, clipboard,
+            isFolder, EditorHelper.imgNetDrive, parent, ftpConn, ftpObj, self)
         self.connected = false
         self.treename = name
         self.category = name

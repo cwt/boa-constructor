@@ -146,8 +146,8 @@ class Controller:
 
 
 (wxID_CLIPCUT, wxID_CLIPCOPY, wxID_CLIPPASTE, wxID_CLIPDELETE, wxID_CLIPRENAME,
- wxID_CLIPNEWFOLDER, wxID_CLIPNEWBLANKDOC, wxID_CLIPRELOAD, wxID_CLIPBOOKMARK) \
- = Utils.wxNewIds(9)
+ wxID_CLIPNEWFOLDER, wxID_CLIPNEWBLANKDOC, wxID_CLIPRELOAD, wxID_CLIPBOOKMARK,
+ wxID_CLIPCOPYPATH) = Utils.wxNewIds(10)
 
 # XXX Maybe needs to be called StandardControllerMixin ??
 class ClipboardControllerMix:
@@ -170,8 +170,9 @@ class ClipboardControllerMix:
            (wxID_CLIPNEWFOLDER, 'Folder', self.OnNewFolder, '-'),
            (wxID_CLIPNEWBLANKDOC, 'Blank document', self.OnNewBlankDoc, '-'),
          ), '-'),
-         (wxID_CLIPBOOKMARK, 'Bookmark folder', self.OnBookmarkItems, 
-          self.bookmarkBmp),
+         (-1, '-', None, '-'),
+         (wxID_CLIPBOOKMARK, 'Bookmark', self.OnBookmarkItems, self.bookmarkBmp),
+         (wxID_CLIPCOPYPATH, 'Copy path(s) to clipboard', self.OnCopyPath, '-'),
         )
     def destroy(self):
         self.clipMenuDef = ()
@@ -199,7 +200,10 @@ class ClipboardControllerMix:
         if self.list.node:
             wx.wxBeginBusyCursor()
             try:
-                names = self.getNamesForSelection(self.list.getMultiSelection())
+                idxs = self.list.getMultiSelection()
+                for item in self.getNodesForSelection(idxs):
+                    self.editor.explorerDeleteNotify(item.getURI())
+                names = self.getNamesForSelection(idxs)
                 self.list.node.deleteItems(names)
                 self.list.refreshCurrent()
             finally:
@@ -213,7 +217,17 @@ class ClipboardControllerMix:
             nodes = self.getNodesForSelection(self.list.getMultiSelection())
             for node in nodes:
                 if not node.isFolderish():
-                    node.open(self.editor)
+                    self.list.openNodeInEditor(node, self.editor,
+                          self.editor.explorer.tree)
+                    #node.open(self.editor)
+
+    def selectNewItem(self, name):
+##        # XXX This is broken, select and rename somehow fires before internal
+##        # XXX states are updated
+##        return
+        self.list.selectItemNamed(name)
+        self.list.EnsureVisible(self.list.selected)
+        self.list.EditLabel(self.list.selected)
 
     def OnNewFolder(self, event):
         if self.list.node:
@@ -224,9 +238,8 @@ class ClipboardControllerMix:
             finally:
                 wx.wxEndBusyCursor()
             self.list.refreshCurrent()
-            self.list.selectItemNamed(name)
-            self.list.EnsureVisible(self.list.selected)
-            self.list.EditLabel(self.list.selected)
+            self.selectNewItem(name)
+
 
     def OnNewBlankDoc(self, event):
         if self.list.node:
@@ -237,9 +250,7 @@ class ClipboardControllerMix:
             finally:
                 wx.wxEndBusyCursor()
             self.list.refreshCurrent()
-            self.list.selectItemNamed(name)
-            self.list.EnsureVisible(self.list.selected)
-            self.list.EditLabel(self.list.selected)
+            self.selectNewItem(name)
 
     def OnReloadItems(self, event):
         if self.list.node:
@@ -250,19 +261,25 @@ class ClipboardControllerMix:
             nodes = self.getNodesForSelection(self.list.getMultiSelection())
             for node in nodes:
                 if node.bookmarks:
-                    if node.isFolderish():
-                        node.bookmarks.add(node.getURI())
-                        self.editor.statusBar.setHint(
-                              'Bookmarked %s'% node.resourcepath, 'Info')
-                    else:
-                        self.editor.statusBar.setHint(
-                              'Not a directory: %s'% node.resourcepath, 'Error')
+                    node.bookmarks.add(node.getURI())
+                    self.editor.statusBar.setHint(
+                          'Bookmarked %s'% node.resourcepath, 'Info')
             else:
                 node = self.list.node
                 if not nodes and node.bookmarks:
                     node.bookmarks.add(node.getURI())
-                    self.editor.statusBar.setHint(
-                          'Bookmarked %s'% node.getURI(), 'Info')
+                    self.editor.setStatus('Bookmarked %s'% node.getURI())
+
+    def OnCopyPath(self, event):
+        if self.list.node:
+            ms = self.list.getMultiSelection()
+            nodes = self.getNodesForSelection(ms)
+            paths = []
+            for node in nodes:
+                paths.append(node.resourcepath)
+            Utils.writeTextToClipboard(string.join(paths, os.linesep))
+
+            self.editor.setStatus('Path(s) copied to clipboard')
 
 class TransportError(Exception):
     def __str__(self):
@@ -298,10 +315,12 @@ class ExplorerNode:
         self.treename = name
         self.treeitem = None
         self.bold = false
+        self.colour = None
         self.vetoRequery = false
         self.vetoSort = false
         self.upImgIdx = EditorHelper.imgFolderUp
         self.parentOpensChildren = false
+        self.ignoreParentDir = false
         self.category = ''
         self.stdAttrs = {'size': 0,
                          'creation-date': 0.0,
@@ -417,10 +436,12 @@ class CategoryNode(ExplorerNode):
     defName = 'config'
     defaultStruct = {}
     itemProtocol = ''
+    entries = {}
     def __init__(self, name, resourcepath, clipboard, config, parent, imgIdx=EditorHelper.imgFolder):
         ExplorerNode.__init__(self, name, resourcepath, clipboard, imgIdx, parent)
         self.config = config
         self.bold = true
+        self.entries = copy.copy(self.entries)
         self.refresh()
 
     def destroy(self):
@@ -432,24 +453,24 @@ class CategoryNode(ExplorerNode):
     def getTitle(self):
         return self.name
 
-    def refresh(self):
-        try:
-            self.entries = eval(self.config.get(self.resourcepath[cat_section],
+    def getConfigValue(self):
+        return eval(self.config.get(self.resourcepath[cat_section],
                   self.resourcepath[cat_option]))
-        except:
-            message = sys.exc_info()[1]
-            print 'invalid config entry for', \
-                  self.resourcepath[cat_option], message
-            self.entries = copy.copy(self.defaultStruct)
-        else:
+
+    def refresh(self):
+        # Important: To keep the explorer list and the inspector in sync,
+        #            the reference to self.entries should only be updated
+        #            and not reassigned
+        if type(self.entries) == type({}):
+            self.entries.clear()
+            self.entries.update(self.getConfigValue())
             # unscramble sensitive properties
-            if type(self.entries) == type({}):
-                for item in self.entries.keys():
-                    if type(self.entries[item]) == type({}):
-                        dict = self.entries[item]
-                        for name in dict.keys():
-                            if name in sensitive_properties:
-                                dict[name] = scrm.scramble(dict[name])[2:]
+            for item in self.entries.keys():
+                if type(self.entries[item]) == type({}):
+                    dict = self.entries[item]
+                    for name in dict.keys():
+                        if name in sensitive_properties:
+                            dict[name] = scrm.scramble(dict[name])[2:]
 
     def openList(self):
         res = []
@@ -488,6 +509,9 @@ class CategoryNode(ExplorerNode):
         return name
 
     def updateConfig(self):
+        assert type(self.entries) is type(self.__class__.entries), \
+               'Entries type %s invalid, expected %s'%(str(type(self.entries)),
+                                              str(type(self.__class__.entries)))
         self.config.set(self.resourcepath[cat_section],
                   self.resourcepath[cat_option], pprint.pformat(self.entries))
         Utils.writeConfig(self.config)
@@ -525,22 +549,19 @@ class CategoryController(Controller):
         if self.list.node:
             # Create new companion for selection
             catItem = self.list.getSelection()
-            if not catItem: return 
+            if not catItem: return
             catComp = self.list.node.createCatCompanion(catItem)
             catComp.updateProps()
 
-            # Select in inspector
-            if self.inspector.pages.GetSelection() != 1:
-                self.inspector.pages.SetSelection(1)
-            self.inspector.selectObject(catComp, false)
+            self.inspector.selectObject(catComp, false, focusPage=1, restore=true)
 
     def OnNewItem(self, event):
         if self.list.node:
             name = self.list.node.newItem()
             self.list.refreshCurrent()
             self.list.selectItemNamed(name)
-            # XXX Also select in inspector
             self.list.EditLabel(self.list.selected)
+            self.OnInspectItem(event)
 
     def OnDeleteItems(self, event):
         if self.list.node:
@@ -562,9 +583,9 @@ class BookmarksCatNode(CategoryNode):
     defName = 'Bookmark'
     defaultStruct = Preferences.explorerFileSysRootDefault[1]
     refTree = true
-    def __init__(self, clipboards, config, parent, catTransports, tree=None):
-        CategoryNode.__init__(self, 'Bookmarks', ('explorer', 'bookmarks'),
-              None, config, parent)
+    def __init__(self, clipboards, config, parent, catTransports, tree=None,
+          name='Bookmarks', confSpec=('explorer', 'bookmarks')):
+        CategoryNode.__init__(self, name, confSpec, None, config, parent)
         self.catTransports = catTransports
         self.tree = tree
         self.treeitem = None
@@ -588,18 +609,19 @@ class BookmarksCatNode(CategoryNode):
                 # XXX should return broken link items
                 #print 'transport not found %s %s %s' %(prot, cat, res)
                 return None
-            if prot == 'file':
-                node.imgIdx = EditorHelper.imgFSDrive
-            elif prot == 'zope':
-                node.imgIdx = EditorHelper.imgZopeConnection
-            else:
-                node.imgIdx = EditorHelper.imgNetDrive
-    
+            if node.isFolderish():
+                if prot == 'file':
+                    node.imgIdx = EditorHelper.imgFSDrive
+                elif prot == 'zope':
+                    node.imgIdx = EditorHelper.imgZopeConnection
+                else:
+                    node.imgIdx = EditorHelper.imgNetDrive
+
             node.treename = name
             return node
 
     def getDefault(self):
-        return self.config.get(self.resourcepath[0], 'defaultbookmark') 
+        return self.config.get(self.resourcepath[0], 'defaultbookmark')
 
     def add(self, respath):
         respath=str(respath)
@@ -612,6 +634,12 @@ class BookmarksCatNode(CategoryNode):
         self.entries[name] = respath
         self.updateConfig()
 
+        self.refreshTree()
+
+    def refreshTree(self):
+        # XXX if under bookmarks when adding bookmarks, tree is rebuilt and
+        # XXX position in tree is lost
+        # XXX At least update list when Bookmarks node is selected.
         if self.tree and self.treeitem and self.treeitem.IsOk():
             if self.tree.IsExpanded(self.treeitem):
                 self.tree.CollapseAndReset(self.treeitem)
@@ -623,12 +651,11 @@ class BookmarksCatNode(CategoryNode):
 class SubBookmarksCatNode(BookmarksCatNode):
     def __init__(self, parent, name, bookmarks):
         self._entries = bookmarks
-        BookmarksCatNode.__init__(self, parent.clipboards, parent.config, 
+        BookmarksCatNode.__init__(self, parent.clipboards, parent.config,
               parent, parent.catTransports, parent.tree)
-        #self.entries = bookmarks
         self.bold = false
         self.name = self.treename = name
-    
+
     def refresh(self):
         self.entries = self._entries
 
@@ -638,8 +665,135 @@ class SubBookmarksCatNode(BookmarksCatNode):
     def updateConfig(self):
         self.parent.updateConfig()
 
+class MRUCatNode(BookmarksCatNode):
+    protocol = 'recent.files'
+    defName = 'Recent files'
+    entries = []
+    defaultStruct = ''
+    def __init__(self, clipboards, config, parent, catTransports, tree):
+        BookmarksCatNode.__init__(self, clipboards, config, parent,
+              catTransports, tree, 'Recent files', ('explorer', 'recentfiles'))
+        self.vetoSort = true
+        self.imgIdx = EditorHelper.imgRecentFiles
+        self.ignoreParentDir = true
+
+    def openList(self):
+        res = []
+        for entry in self.entries:
+            try:
+                node = self.createChildNode(entry)
+            except Exception, err:
+                node = None
+
+            if node:
+                res.append(node)
+            else:
+                self.entries.remove(entry)
+        return res
+
+    def add(self, respath):
+        if respath in self.entries:
+            self.entries.remove(respath)
+
+        self.entries.insert(0, respath)
+
+        if len(self.entries) > Preferences.exRecentFilesListSize:
+            self.entries[-Preferences.exRecentFilesListSize:] = []
+
+        self.updateConfig()
+
+        self.refreshTree()
+
+    def createChildNode(self, fullpath):
+        from Explorers.Explorer import splitURI, getTransport, TransportError
+        prot, cat, res, uri = splitURI(fullpath)
+        try:
+            node = getTransport(prot, cat, res, self.catTransports)
+        except TransportError:
+            return None
+        node.name = node.treename = fullpath
+        return node
+
+    def notifyBeginLabelEdit(self, event):
+        event.Veto()
+
+    def refresh(self):
+        self.entries[:] = self.getConfigValue()
+
+(wxID_MRUOPEN, wxID_MRURELOAD, wxID_MRUREMOVE) = Utils.wxNewIds(3)
+
+class MRUCatController(Controller):
+    deleteBmp = 'Images/Shared/Delete.png'
+
+    def __init__(self, editor, list, inspector, controllers, menuDefs = ()):
+        Controller.__init__(self, editor)
+        self.list = list
+        self.menu = wx.wxMenu()
+        self.inspector = inspector
+
+        self.mruMenuDef = ( (wxID_MRUOPEN, 'Open', self.OnOpenItems, '-'),
+                            (-1, '-', None, '-'),
+                            (wxID_MRURELOAD, 'Reload', self.OnReloadItems, '-'),
+                            (-1, '-', None, ''),
+                            (wxID_MRUREMOVE, 'Remove', self.OnRemoveItems, self.deleteBmp))
+
+        self.setupMenu(self.menu, self.list, self.mruMenuDef + menuDefs)
+        self.toolbarMenus = [self.mruMenuDef + menuDefs]
+
+        self.recentItemsMenuIds = {}
+
+    def destroy(self):
+        self.mruMenuDef = ()
+        self.toolbarMenus = ()
+        self.menu.Destroy()
+
+    def createRecentFilesMenu(self):
+        # XXX not finished yet
+        self.recentItemsMenuIds = {}
+        menu = wxMenu()
+        for node in self.list.node.openList():
+            if node.name not in self.recentItemsMenuIds.values():
+                wid = wxNewId()
+                self.recentItemsMenuIds[wid] = node.name
+                EVT_MENU(self.list, wid, self.OnMRUMenuItemSelect)
+            else:
+                for wid, name in self.recentItemsMenuIds.items():
+                    if name == node.name:
+                        break
+                else:
+                    continue
+            menu.Append(wid, node.name)
+        return menu
+
+    def OnOpenItems(self, event):
+        if self.list.node:
+            nodes = self.getNodesForSelection(self.list.getMultiSelection())
+            for node in nodes:
+                if not node.isFolderish():
+                    node.open(self.editor)
+
+    def OnReloadItems(self, event):
+        if self.list.node:
+            self.list.refreshCurrent()
+
+    def OnRemoveItems(self, event):
+        if self.list.node:
+            names = self.list.getMultiSelection()
+            names.sort()
+            names.reverse()
+            self.list.node.deleteItems(names)
+            self.list.refreshCurrent()
+
+    def OnMRUMenuItemSelect(self, event):
+        wid = event.GetId()
+        self.recentItemsMenuIds[wid]
+
+
+
 # Bookmarks clipboard should copy entries between bookmark dicts and
 # paste as a bookmark the uri to items copied to clipboard in other transports
+
+
 class BookmarksClipboard(ExplorerClipboard):
     def clipPaste_BookmarksClipboard(self, node, nodes, mode):
         for clipnode in nodes:
@@ -647,7 +801,7 @@ class BookmarksClipboard(ExplorerClipboard):
                 node.entries[clipnode.name] = None # XXX
                 self.clipNodes = []
             elif mode == 'copy': pass
-        
+
 class SysPathNode(ExplorerNode):
     protocol = 'sys.path'
     def __init__(self, clipboard, parent, bookmarks):
@@ -858,4 +1012,5 @@ def isTransportAvailable(conf, section, prot):
 #-------------------------------------------------------------------------------
 
 register(CategoryNode, controller=CategoryController)
+register(MRUCatNode, controller=MRUCatController)
 register(SysPathNode, clipboard='file', controller='file')
