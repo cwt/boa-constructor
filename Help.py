@@ -11,13 +11,15 @@
 #----------------------------------------------------------------------
 #Boa:Frame:HelpFrame
 
+import os
+from os import path
+
 from wxPython.wx import *
 from wxPython.html import *
+
 from Preferences import IS, flatTools
 import Preferences, Search
 from PrefsKeys import keyDefs
-import os
-from os import path
 from Utils import AddToolButtonBmpFile
 
 def tagEater(strg):
@@ -69,8 +71,8 @@ class HelpFrame(wxFrame):
     def __init__(self, parent, home, index, icon, paletteToolbar = None):
         self._init_ctrls(parent)
         self._init_utils()
-
-        self.SetSize(Preferences.wxDefaultFrameSize)
+        self.SetSize( (round(Preferences.screenWidth / 1.5),
+                      round(Preferences.screenHeight / 1.5)) )
         self.CenterOnScreen(wxBOTH)
 
         if wxPlatform == '__WXMSW__':
