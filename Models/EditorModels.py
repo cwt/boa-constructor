@@ -101,7 +101,10 @@ class EditorModel:
             self.views[view].refreshModel()
 
     def getPageName(self):
-        return os.path.splitext(os.path.basename(self.filename))[0]
+        if getattr(Preferences, 'showFilenameExtensions', 0):
+            return os.path.basename(self.filename)
+        else:
+            return os.path.splitext(os.path.basename(self.filename))[0]
 
     def getSourceView(self):
         views = self.views
