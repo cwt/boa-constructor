@@ -97,7 +97,7 @@ class PseudoFile:
     def writelines(self, l):
         map(self.write, l)
     
-    def write(s):
+    def write(self, s):
         pass
 
     def flush(self):
