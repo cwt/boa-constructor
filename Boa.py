@@ -15,7 +15,7 @@
 # in a few files far away
 # the story starts
 
-import sys, os
+import sys, os, string
 
 def trace_func(frame, event, arg):
     """ Callback function when Boa runs in tracing mode"""
@@ -36,7 +36,7 @@ doDebug = 0
 startupModules = ()
 if len(sys.argv) > 1:
     import getopt
-    optlist, args = getopt.getopt(sys.argv[1:], 'DT')
+    optlist, args = getopt.getopt(sys.argv[1:], 'DTs')
     if ('-D', '') in optlist and len(args):
         doDebug = 1
     elif ('-T', '') in optlist:
@@ -44,6 +44,14 @@ if len(sys.argv) > 1:
         tracefile.write(os.getcwd()+'\n')
         trace_func(get_current_frame(), 'call', None)
         sys.setprofile(trace_func)
+    elif ('-s', '') in optlist:
+        startupfile = os.environ.get('PYTHONSTARTUP')
+        try:
+            execfile(startupfile)
+        except Exception, error:
+            print 'Unable to load startup script', startupfile, ':', str(error)
+        else:
+            print 'Executed PYTHONSTARTUP'
     elif len(args):
         # XXX Only the first file appears in the list when multiple files
         # XXX are drag/dropped on a Boa shortcut, why?
@@ -67,7 +75,6 @@ if hasattr(wxPython, '__file__'):
         shutil.copy(os.path.join(boaPath, 'anchors.py'), wxPythonLibPath)
         import wxPython.lib.anchors
 
-print 'importing Preferences'
 import Preferences
 from wxPython.wx import *
 import About
@@ -79,7 +86,7 @@ if hasattr(wxPython, '__file__'):
         Utils.updateDir(os.path.join(boaPath, 'bcrtl'),
              os.path.join(wxPythonLibPath, 'bcrtl'))
     except Exception, error:
-        startupErrors.extend(['Error while installing Run Time Libs:', 
+        startupErrors.extend(['Error while installing Run Time Libs:',
                               '    '+str(error)])
 
 # XXX Remaining milestones before alpha
@@ -87,7 +94,28 @@ if hasattr(wxPython, '__file__'):
 # XXX More property editors!
 # XXX More companion classes! $
 
-pad = 80*' '
+# XXX Find: Exceptions should not cancel the search
+# XXX Editor should store file names internally in lowercase so that opening
+# XXX from differing filepaths open the same file (M$~1 etc not handled)
+
+# XXX Mechanism to detect file date changes external of boa
+# XXX Possibly on Explorer level, checking before saving on systems where
+# XXX getting a time stamp makes sense and is available
+
+# XXX Refactor PropertyEditor/Companion/Inspector interfaces
+
+# XXX Support IDLE extensions
+
+# XXX Fix transport layer
+# XXX     Rename updates (both ways)
+
+# XXX Code completion
+# XXX     self.qwerty = qwerty
+# XXX     wipes '= qwerty' when qwerty is selected
+
+# XXX Renaming Boa.jpg in root fails
+
+# XXX STC: The Python demo is fast!, look for speedups
 
 modules ={'About': [0, '', 'About.py'],
  'AppModuleProps': [0, '', 'AppModuleProps.py'],
@@ -101,14 +129,16 @@ modules ={'About': [0, '', 'About.py'],
  'ComCompanions': [0, '', 'Companions/ComCompanions.py'],
  'Companions': [0, '', 'Companions/Companions.py'],
  'Constructors': [0, '', 'Companions/Constructors.py'],
- 'CtrlAlign': [0, '', 'CtrlAlign.py'],
- 'CtrlSize': [0, '', 'CtrlSize.py'],
+ 'CtrlAlign': [0, 'Aligns a group of controls', 'CtrlAlign.py'],
+ 'CtrlSize': [0, 'Sizes a group of controls', 'CtrlSize.py'],
+ 'DAVExplorer': [0, '', 'Explorers/DAVExplorer.py'],
  'DataView': [0, '', 'Views/DataView.py'],
  'Debugger': [0, '', 'Debugger/Debugger.py'],
  'Designer': [0, '', 'Views/Designer.py'],
  'DialogCompanions': [0, '', 'Companions/DialogCompanions.py'],
  'DiffView': [0, '', 'Views/DiffView.py'],
  'Editor': [0, 'Source code editor hosting models and views', 'Editor.py'],
+ 'EditorHelper': [0, '', 'EditorHelper.py'],
  'EditorModels': [0, '', 'EditorModels.py'],
  'EditorViews': [0, '', 'Views/EditorViews.py'],
  'Enumerations': [0, '', 'PropEdit/Enumerations.py'],
@@ -123,6 +153,7 @@ modules ={'About': [0, '', 'About.py'],
  'FileExplorer': [0, '', 'Explorers/FileExplorer.py'],
  'GCFrame': [0, '', 'GCFrame.py'],
  'HTMLCyclops': [0, '', 'HTMLCyclops.py'],
+ 'HTMLResponse': [0, '', 'HTMLResponse.py'],
  'Help': [0, '', 'Help.py'],
  'HelpCompanions': [0, '', 'Companions/HelpCompanions.py'],
  'ImageStore': [0, '', 'ImageStore.py'],
@@ -141,6 +172,7 @@ modules ={'About': [0, '', 'About.py'],
  'PaletteMapping': [0, '', 'PaletteMapping.py'],
  'PhonyApp': [0, '', 'PhonyApp.py'],
  'Preferences': [0, '', 'Preferences.py'],
+ 'PrefsExplorer': [0, '', 'Explorers/PrefsExplorer.py'],
  'PrefsGTK': [0, '', 'PrefsGTK.py'],
  'PrefsKeys': [0, '', 'PrefsKeys.py'],
  'PrefsMSW': [0, '', 'PrefsMSW.py'],
@@ -156,16 +188,19 @@ modules ={'About': [0, '', 'About.py'],
  'Search': [0, '', 'Search.py'],
  'SelectionTags': [0, '', 'Views/SelectionTags.py'],
  'ShellEditor': [0, '', 'ShellEditor.py'],
+ 'SourceViews': [0, '', 'Views/SourceViews.py'],
  'StyledTextCtrls': [0, '', 'Views/StyledTextCtrls.py'],
  'Tests': [0, '', 'Tests.py'],
  'UserCompanions': [0, '', 'Companions/UserCompanions.py'],
  'UtilCompanions': [0, '', 'Companions/UtilCompanions.py'],
  'Utils': [0, '', 'Utils.py'],
+ 'XMLView': [0, '', 'Views/XMLView.py'],
  'ZipExplorer': [0, '', 'Explorers/ZipExplorer.py'],
  'ZopeCompanions': [0, '', 'Companions/ZopeCompanions.py'],
+ 'ZopeEditorModels': [0, '', 'ZopeEditorModels.py'],
  'ZopeExplorer': [0, '', 'Explorers/ZopeExplorer.py'],
  'ZopeFTP': [0, '', 'ZopeLib/ZopeFTP.py'],
- 'curry': [0, '', 'curry.py'],
+ 'ZopeViews': [0, '', 'Views/ZopeViews.py'],
  'methodparse': [0, '', 'methodparse.py'],
  'moduleparse': [0, '', 'moduleparse.py'],
  'ndiff': [0, '', 'ExternalLib/ndiff.py'],
@@ -175,6 +210,9 @@ modules ={'About': [0, '', 'About.py'],
  'sourceconst': [0, '', 'sourceconst.py']}
 
 class BoaApp(wxApp):
+    """ Applcation object, responsible for the Splash screen, command line
+        switches, optional logging and creation of the main frames. """
+
     def __init__(self, redirect=false):
         wxApp.__init__(self, redirect)
 
@@ -201,10 +239,11 @@ class BoaApp(wxApp):
             # can be sized.
             self.main.inspector.initSashes()
             self.main.editor.Show(true)
-            
+
         finally:
-            abt.Show(false)
             abt.Destroy()
+            del abt
+
         # Open info text files if run for the first time
         if os.path.exists('1stTime'):
             try:
@@ -225,29 +264,9 @@ class BoaApp(wxApp):
         Utils.showTip(self.main.editor)
 
         if Preferences.logStdStreams:
-            from ShellEditor import PseudoFile
-            class LoggerPF(PseudoFile):
-                def __init__(self, logFunc, realStdStream, mayDoRecord = true):
-                    self.logFunc = logFunc
-                    self.realStrm = realStdStream
-                    self.mayDoRecord = mayDoRecord
-                def write(self, s):
-                    ss = string.rstrip(s)
-                    if ss:
-                        if self.mayDoRecord and Preferences.recordModuleCallPoint:
-                            frame = get_current_frame()
-                            ss = '%s : <<%s, %d>>' % \
-                                (ss,
-                                 frame.f_back.f_back.f_code.co_filename,
-                                 frame.f_back.f_back.f_lineno)
-                        self.logFunc((ss+pad)[:80]+string.strip((ss+pad)[80:]))
-                        if not self.mayDoRecord:
-                            s = s + '\n'
-                        self.realStrm.write(s)
+            sys.stderr = Utils.ErrorLoggerPF()
+            sys.stdout = Utils.OutputLoggerPF()
 
-            sys.stderr = LoggerPF(wxLogError, sys.__stderr__, false)
-            sys.stdout = LoggerPF(wxLogMessage, sys.__stdout__)
-        
         if startupErrors:
             for error in startupErrors:
                 wxLogError(error)
