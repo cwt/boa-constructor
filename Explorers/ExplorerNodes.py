@@ -158,20 +158,21 @@ class ClipboardControllerMix:
     bookmarkBmp = 'Images/Shared/Bookmark.png'
     def __init__(self):
         self.clipMenuDef = ( (wxID_CLIPRELOAD, 'Reload', self.OnReloadItems, '-'),
-                             (-1, '-', None, '-'),
-                             (wxID_CLIPCUT, 'Cut', self.OnCutItems, self.cutBmp),
-                             (wxID_CLIPCOPY, 'Copy', self.OnCopyItems, self.copyBmp),
-                             (wxID_CLIPPASTE, 'Paste', self.OnPasteItems, self.pasteBmp),
-                             (-1, '-', None, ''),
-                             (wxID_CLIPDELETE, 'Delete', self.OnDeleteItems, self.deleteBmp),
-                             (wxID_CLIPRENAME, 'Rename', self.OnRenameItems, '-'),
-                             (-1, '-', None, ''),
-                             (wx.wxNewId(), 'New', (
-                               (wxID_CLIPNEWFOLDER, 'Folder', self.OnNewFolder, '-'),
-                               (wxID_CLIPNEWBLANKDOC, 'Blank document', self.OnNewBlankDoc, '-'),
-                             ), '-'),
-                             (wxID_CLIPBOOKMARK, 'Bookmark folder', self.OnBookmarkItems, self.bookmarkBmp),
-                              )
+         (-1, '-', None, '-'),
+         (wxID_CLIPCUT, 'Cut', self.OnCutItems, self.cutBmp),
+         (wxID_CLIPCOPY, 'Copy', self.OnCopyItems, self.copyBmp),
+         (wxID_CLIPPASTE, 'Paste', self.OnPasteItems, self.pasteBmp),
+         (-1, '-', None, ''),
+         (wxID_CLIPDELETE, 'Delete', self.OnDeleteItems, self.deleteBmp),
+         (wxID_CLIPRENAME, 'Rename', self.OnRenameItems, '-'),
+         (-1, '-', None, ''),
+         (wx.wxNewId(), 'New', (
+           (wxID_CLIPNEWFOLDER, 'Folder', self.OnNewFolder, '-'),
+           (wxID_CLIPNEWBLANKDOC, 'Blank document', self.OnNewBlankDoc, '-'),
+         ), '-'),
+         (wxID_CLIPBOOKMARK, 'Bookmark folder', self.OnBookmarkItems, 
+          self.bookmarkBmp),
+        )
     def destroy(self):
         self.clipMenuDef = ()
 
@@ -251,9 +252,17 @@ class ClipboardControllerMix:
                 if node.bookmarks:
                     if node.isFolderish():
                         node.bookmarks.add(node.getURI())
-                        self.editor.statusBar.setHint('Bookmarked %s'% node.resourcepath, 'Info')
+                        self.editor.statusBar.setHint(
+                              'Bookmarked %s'% node.resourcepath, 'Info')
                     else:
-                        self.editor.statusBar.setHint('Not a directory: %s'% node.resourcepath, 'Error')
+                        self.editor.statusBar.setHint(
+                              'Not a directory: %s'% node.resourcepath, 'Error')
+            else:
+                node = self.list.node
+                if not nodes and node.bookmarks:
+                    node.bookmarks.add(node.getURI())
+                    self.editor.statusBar.setHint(
+                          'Bookmarked %s'% node.getURI(), 'Info')
 
 class TransportError(Exception):
     def __str__(self):
