@@ -7,11 +7,11 @@
 #
 # Created:     2001/01/06
 # RCS-ID:      $Id$
-# Copyright:   (c) 2001 - 2002
-# Licence:
+# Copyright:   (c) 2001 - 2003
+# Licence:     GPL
 #-----------------------------------------------------------------------------
 
-import string, sys
+import sys
 from EditorViews import EditorView
 
 from wxPython.wx import *
@@ -64,7 +64,7 @@ class XMLTreeView(wxTreeCtrl, EditorView):
         self.nodeStack = self.nodeStack[:-1]
 
     def characterData(self, data ):
-        if string.strip(data):
+        if data.strip():
             data = data.encode()
             self.AppendItem(self.nodeStack[-1], data)
 
@@ -114,7 +114,7 @@ class XMLTree(wxTreeCtrl):
         self.nodeStack = self.nodeStack[:-1]
 
     def CharacterData(self, data ):
-        if string.strip(data):
+        if data.strip():
             if py2:
                 data = data.encode()
             self.AppendItem(self.nodeStack[-1], data)

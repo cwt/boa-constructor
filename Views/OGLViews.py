@@ -6,12 +6,12 @@
 #
 # Created:     1999
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999 - 2002 Riaan Booysen
+# Copyright:   (c) 1999 - 2003 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
 print 'importing Views.OGLViews'
 
-import pickle, os, string
+import pickle, os
 
 from wxPython.wx import *
 from wxPython.ogl import *
@@ -292,7 +292,7 @@ class PersistentOGLView(ScrollingContainer, EditorViews.EditorView):
             totHeight = totHeight + h + 0 # interline padding
 
         region.SetFont(font)
-        region.SetText(string.join(textLst, '\n'))
+        region.SetText('\n'.join(textLst))
         #region._text = string.join(textLst, '\n')
         region.SetName(name)
 

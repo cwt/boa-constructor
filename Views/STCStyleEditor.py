@@ -6,7 +6,7 @@
 #
 # Created:     2001/08/20
 # RCS-ID:      $Id$
-# Copyright:   (c) 2001 - 2002 Riaan Booysen
+# Copyright:   (c) 2001 - 2003 Riaan Booysen
 # Licence:     wxWindows license
 #-----------------------------------------------------------------------------
 #Boa:Dialog:STCStyleEditDlg
@@ -512,7 +512,7 @@ class STCStyleEditDlg(wxDialog):
 
     def findInStyles(self, txt, styles):
         for style in styles:
-            if string.find(style, txt) != -1:
+            if style.find(txt) != -1:
                 return true
         return false
 
@@ -998,7 +998,7 @@ class STCStyleEditDlg(wxDialog):
         if matchList:
             wxLogError('Aborted: '+comDef+' is still used in the styles of the \n'\
                   'following groups in the config file (stc-styles.rc.cfg):\n'+ \
-                  string.join(matchList, '\n'))
+                  '\n'.join(matchList))
         else:
             del self.commonDefs[comDef[2:-2]]
             self.setStyles()
@@ -1112,7 +1112,7 @@ def setEdgeColour(stc, style):
         stc.SetEdgeColour(strToCol(values['fore']))
 
 def strToCol(strCol):
-    assert len(strCol) == 7 and strCol[0] == '#', 'Not a valid colour string'
+    assert len(strCol) == 7 and strCol[0] == '#', 'Not a valid colour string: '+strCol
     return wxColour(string.atoi('0x'+strCol[1:3], 16),
                     string.atoi('0x'+strCol[3:5], 16),
                     string.atoi('0x'+strCol[5:7], 16))
@@ -1132,24 +1132,24 @@ def writePropVal(names, values):
     for name in names:
         if name:
             res.append(values[name] and name+':'+values[name] or name)
-    return string.join(res, ',')
+    return ','.join(res)
 
 def parseProp(prop):
-    items = string.split(prop, ',')
+    items = prop.split(',')
     names = []
     values = {}
     for item in items:
-        nameVal = string.split(item, ':')
-        names.append(string.strip(nameVal[0]))
+        nameVal = item.split(':')
+        names.append(nameVal[0].strip())
         if len(nameVal) == 1:
             values[nameVal[0]] = ''
         else:
-            values[nameVal[0]] = string.strip(nameVal[1])
+            values[nameVal[0]] = nameVal[1].strip()
     return names, values
 
 def parsePropLine(prop):
-    name, value = string.split(prop, '=')
-    return int(string.split(name, '.')[-1]), value
+    name, value = prop.split('=')
+    return int(name.split('.')[-1]), value
 
 def setSTCStyles(stc, styles, styleIdNames, commonDefs, lang, lexer, keywords):
     #wxLogMessage('Set style')
@@ -1179,7 +1179,7 @@ def setSTCStyles(stc, styles, styleIdNames, commonDefs, lang, lexer, keywords):
     else: prop = styleDict[wxSTC_STYLE_DEFAULT]
     names, vals = parseProp(prop)
     if 'back' in names:
-        bkCol = strToCol(vals['back'])
+        bkCol = strToCol(vals['back']%commonDefs)
     if bkCol is None:
         bkCol = wxWHITE
     stc.SetBackgroundColour(bkCol)
@@ -1213,7 +1213,7 @@ def setSTCStyles(stc, styles, styleIdNames, commonDefs, lang, lexer, keywords):
 commonDefsFile = 'common.defs.%s'%(wxPlatform == '__WXMSW__' and 'msw' or 'gtk')
 
 def readPyValFromConfig(conf, name):
-    return eval(string.replace(conf.Read(name), '\r\n', '\n')+'\n', stc.__dict__)
+    return eval(conf.Read(name).replace('\r\n', '\n')+'\n', stc.__dict__)
 
 def initFromConfig(configFile, lang):
     cfg = wxFileConfig(localFilename=configFile, style=wxCONFIG_USE_LOCAL_FILE)
@@ -1293,8 +1293,8 @@ def writeStylesToConfig(config, group, styles):
     config.SetPath(group)
 
     for style in styles:
-        name, value = string.split(style, '=')
-        config.Write(name, string.strip(value))
+        name, value = style.split('=')
+        config.Write(name, value.strip())
 
     config.SetPath('')
 

@@ -8,11 +8,9 @@
 #
 # Created:     1999
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999 - 2001 Riaan Booysen
+# Copyright:   (c) 1999 - 2003 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
-
-import string, sys
 
 from wxPython.wx import *
 
@@ -108,8 +106,6 @@ class SelectionGroup:
         self.anchorTags = [self.stL, self.stT, self.stR, self.stB]
 
     def destroy(self):
-#        print 'Destroy selection group', self._cno
-#        print 'group ref cnt:', sys.getrefcount(self)
         self.stT.destroy();self.stB.destroy()
         self.stR.destroy();self.stL.destroy()
 

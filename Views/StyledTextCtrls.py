@@ -6,7 +6,7 @@
 #
 # Created:     2000/04/26
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999 - 2002 Riaan Booysen
+# Copyright:   (c) 1999 - 2003 Riaan Booysen
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 
@@ -303,12 +303,12 @@ class CodeHelpStyledTextCtrlMix:
 
     def getFirstContinousBlock(self, docs):
         res = []
-        for line in string.split(docs, '\n'):
-            if string.strip(line):
+        for line in docs.split('\n'):
+            if line.strip():
                 res.append(line)
             else:
                 break
-        return string.join(res, '\n')
+        return '\n'.join(res)
 
 
 class AutoCompleteCodeHelpSTCMix(CodeHelpStyledTextCtrlMix):
@@ -331,10 +331,10 @@ class AutoCompleteCodeHelpSTCMix(CodeHelpStyledTextCtrlMix):
         word = line[startLine:startLine+length]
         pivword = piv - startLine
 
-        dot = string.rfind(word, '.', 0, pivword+1)
+        dot = word.rfind('.', 0, pivword+1)
         matchWord = word
         if dot != -1:
-            rdot = string.find(word, '.', pivword)
+            rdot = word.find('.', pivword)
             if rdot != -1:
                 matchWord = word[dot+1:rdot]
             else:
@@ -356,9 +356,11 @@ class AutoCompleteCodeHelpSTCMix(CodeHelpStyledTextCtrlMix):
         for name in names: unqNms[name] = None
         names = unqNms.keys()
 
-        sortnames = map(None, map(string.lower, names), names)
+        #sortnames = map(None, map(string.lower, names), names)
+        sortnames = [(name.lower(), name) for name in names]
         sortnames.sort()
-        names = map(lambda n: n[1], sortnames)
+        #names = map(lambda n: n[1], sortnames)
+        names = [n[1] for n in sortnames]
 
         # move _* names to the end of the list
         cnt = 0
@@ -371,7 +373,7 @@ class AutoCompleteCodeHelpSTCMix(CodeHelpStyledTextCtrlMix):
             else:
                 break
 
-        self.AutoCompShow(offset, string.join(names, ' '))
+        self.AutoCompShow(offset, ' '.join(names))
         #self.AutoCompSelect(matchWord)
 
 class CallTipCodeHelpSTCMix(CodeHelpStyledTextCtrlMix):
@@ -407,7 +409,7 @@ class CallTipCodeHelpSTCMix(CodeHelpStyledTextCtrlMix):
             tip = self.getTipValue(word, lnNo)
             if tip:
                 # Minus offset of 1st bracket in the tip
-                tipBrkt = string.find(tip, '(')
+                tipBrkt = tip.find('(')
                 if tipBrkt != -1:
                     pos = pos - tipBrkt - 1
                 else:
@@ -420,12 +422,12 @@ class CallTipCodeHelpSTCMix(CodeHelpStyledTextCtrlMix):
                     paramNo = paramNo - 1
 
                 # get hilight & corresponding parameter from tip
-                tipBrktEnd = string.rfind(tip, ')')
+                tipBrktEnd = tip.rfind(')')
                 tip_param_str = tip[tipBrkt+1:tipBrktEnd]
                 tip_params = methodparse.safesplitfields(\
                     tip_param_str, ',', ('(', '{'), (')', '}') )
                 try:
-                    hiliteStart = tipBrkt+1 + string.find(tip_param_str, tip_params[paramNo])
+                    hiliteStart = tipBrkt+1 + tip_param_str.find(tip_params[paramNo])
                 except IndexError:
                     hilite = (0, 0)
                 else:
@@ -774,9 +776,9 @@ class PythonStyledTextCtrlMix(LanguageSTCMix):
             # self.Refresh(false)
 
     def doAutoIndent(self, prevline, pos):
-        stripprevline = string.strip(prevline)
+        stripprevline = prevline.strip()
         if stripprevline:
-            indent = prevline[:string.find(prevline, stripprevline)]
+            indent = prevline[:prevline.find(stripprevline)]
         else:
             indent = prevline[:-1]
 
@@ -847,7 +849,7 @@ class STCLinesList:
             else:
                 raise IndexError
         elif type(key) is SliceType:
-            lines = string.join(value, eols[stc.GetEOLMode()])
+            lines = eols[stc.GetEOLMode()].join(value)
             stc.SetSelection(stc.PositionFromLine(key.start),
                   stc.GetLineEndPosition(key.stop))
             stc.ReplaceSelection(lines)

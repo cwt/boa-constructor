@@ -6,7 +6,7 @@
 #
 # Created:
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999 - 2002 Riaan Booysen
+# Copyright:   (c) 1999 - 2003 Riaan Booysen
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 print 'importing Views.AppViews'
@@ -14,7 +14,7 @@ print 'importing Views.AppViews'
 """ View classes for the AppModel """
 
 from os import path
-import time, string
+import time
 
 try:
     from cmp import cmp
@@ -59,7 +59,7 @@ class AppFindResults(ListCtrlView, CloseableViewMix):
             for result in self.results[mod]:
                 self.listResultIdxs.append((mod, result))
                 i = self.addReportItems(i, (path.basename(mod), `result[0]`,
-                  `result[1]`, string.strip(result[2])) )
+                  `result[1]`, result[2].strip()) )
 
         self.model.editor.statusBar.setHint('%d matches of "%s".'%(i, self.findPattern))
 
@@ -258,10 +258,10 @@ class AppModuleDocView(ModuleDocView):
         modNames = self.model.modules.keys()
         modNames.sort()
         for amod in modNames:
-            desc = string.strip(self.model.modules[amod][1])
+            desc = self.model.modules[amod][1].strip()
             modLst.append('<tr><td width="25%%"><a href="%s.html">%s</a></td><td>%s</td></tr>' %(amod, amod, desc))
 
-        return '<table BORDER=0 CELLSPACING=0 CELLPADDING=0>'+string.join(modLst, '<BR>')+'</table>', modNames
+        return '<table BORDER=0 CELLSPACING=0 CELLPADDING=0>'+'<BR>'.join(modLst)+'</table>', modNames
 
     def genModuleSect(self, page):
         classList, classNames = self.genClassListSect()

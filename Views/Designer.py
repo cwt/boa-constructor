@@ -6,13 +6,13 @@
 #
 # Created:     1999
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999 - 2002 Riaan Booysen
+# Copyright:   (c) 1999 - 2003 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
 
 print 'importing Views.Designer'
 
-import string, copy, os, pprint, math
+import copy, os, pprint, math
 
 from wxPython.wx import *
 
@@ -82,7 +82,7 @@ class DesignerView(wxFrame, InspectableObjectView, Utils.FrameRestorerMixin):
                     else:
                         raise
             else:
-                dot = string.find(srcPrnt, '.')
+                dot = srcPrnt.find('.')
                 if dot != -1:
                     srcPrnt = srcPrnt[dot + 1:]
                 else: raise 'Component name illegal '+ srcPrnt
@@ -946,7 +946,7 @@ class DesignerView(wxFrame, InspectableObjectView, Utils.FrameRestorerMixin):
         output = []
         self.cutCtrls(ctrls, [], output)
 
-        Utils.writeTextToClipboard(string.join(output, os.linesep))
+        Utils.writeTextToClipboard(os.linesep.join(output))
 
         self.refreshContainment()
 
@@ -964,7 +964,7 @@ class DesignerView(wxFrame, InspectableObjectView, Utils.FrameRestorerMixin):
         output = []
         self.copyCtrls(ctrls, [], output)
 
-        Utils.writeTextToClipboard(string.join(output, os.linesep))
+        Utils.writeTextToClipboard(os.linesep.join(output))
 
     def OnPasteSelected(self, event):
         """ Paste current clipboard contents into the current selection """
@@ -974,7 +974,7 @@ class DesignerView(wxFrame, InspectableObjectView, Utils.FrameRestorerMixin):
                 self.selectParent(self.selection.selection)
 
             pasted = self.pasteCtrls(self.selection.name,
-                  string.split(str(Utils.readTextFromClipboard()), os.linesep))
+                  str(Utils.readTextFromClipboard()).split(os.linesep))
 
             if len(pasted):
                 self.refreshContainment()

@@ -8,12 +8,12 @@
 #
 # Created:     2001
 # RCS-ID:      $Id$
-# Copyright:   (c) 2001 - 2002 Riaan Booysen
+# Copyright:   (c) 2001 - 2003 Riaan Booysen
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 print 'importing Views.InspectableViews'
 
-import string, copy, os, pprint
+import copy, os, pprint
 
 from wxPython.wx import *
 
@@ -82,7 +82,6 @@ class InspectableObjectView(EditorViews.EditorView, InspectorSessionMix):
         self.opened = false
 
     def destroy(self):
-#        print 'DESTROY InspectableObjectCollectionView', self.__class__.__name__
         del self.controllerView
         del self.inspector
         for objval in self.objects.values():
@@ -508,11 +507,11 @@ class InspectableObjectView(EditorViews.EditorView, InspectorSessionMix):
         methList = []
         for line in input:
             if line[:8] == '    def ':
-                meth = line[8:string.find(line, '(', 9)]
+                meth = line[8:line.find('(', 9)]
                 currMeth = [meth]
                 methList.append(currMeth)
             elif line[:5] == '\tdef ':
-                meth = line[5:string.find(line, '(', 6)]
+                meth = line[5:line.find('(', 6)]
                 currMeth = [meth]
                 methList.append(currMeth)
             else:
@@ -590,9 +589,9 @@ class InspectableObjectView(EditorViews.EditorView, InspectorSessionMix):
                     meth, collCtrlName, collObjColl = collObjColls[idx]
                     collObjColl.renameCtrl(oldName, newName)
                     if collCtrlName == oldName:
-                        itms = string.split(meth, '_')
+                        itms = meth.split('_')
                         itms[3:-1] = [newName]
-                        collObjColls[idx] = (string.join(itms, '_'), newName, collObjColl)
+                        collObjColls[idx] = ('_'.join(itms), newName, collObjColl)
             else:
                 pastedCtrls.append(oldName)
 
@@ -640,9 +639,9 @@ class InspectableObjectView(EditorViews.EditorView, InspectorSessionMix):
         # XXX it's only unique in the method.
         num = 1
         if className[:2] == 'wx':
-            newName = '%s%s'%(string.lower(className[2:3]), className[3:])
+            newName = '%s%s'%(className[2:3].lower(), className[3:])
         else:
-            newName = '%s%s'%(string.lower(className[0]), className[1:])
+            newName = '%s%s'%(className[0].lower(), className[1:])
 
         return Utils.getValidName(self.objects.keys() + additionalNames, newName)
 

@@ -6,12 +6,12 @@
 #
 # Created:     2000/02/14
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999 - 2002 Riaan Booysen
+# Copyright:   (c) 1999 - 2003 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
 print 'importing Views.DataView'
 
-import os, string
+import os
 
 from wxPython.wx import *
 
@@ -138,7 +138,7 @@ class DataView(wxListCtrl, InspectableObjectView):
 
     def selectCtrls(self, ctrls):
         for itemIdx in range(self.GetItemCount()):
-            name = string.split(self.GetItemText(itemIdx), ' : ')[0]
+            name = self.GetItemText(itemIdx).split(' : ')[0]
             a = wxLIST_STATE_SELECTED
             if name in ctrls: f = a
             else: f = 0
@@ -170,12 +170,12 @@ class DataView(wxListCtrl, InspectableObjectView):
         InspectableObjectView.close(self)
 
     def getSelectedName(self):
-        return string.split(self.GetItemText(self.selection[0]), ' : ')[0]
+        return self.GetItemText(self.selection[0]).split(' : ')[0]
 
     def getSelectedNames(self):
         selected = []
         for itemIdx in range(self.GetItemCount()):
-            name = string.split(self.GetItemText(itemIdx), ' : ')[0]
+            name = self.GetItemText(itemIdx).split(' : ')[0]
             state = self.GetItemState(itemIdx, wxLIST_STATE_SELECTED)
             if state:
                 selected.append( (name, itemIdx) )
@@ -236,7 +236,7 @@ class DataView(wxListCtrl, InspectableObjectView):
         output = []
         self.cutCtrls(ctrls, [], output)
 
-        Utils.writeTextToClipboard(string.join(output, os.linesep))
+        Utils.writeTextToClipboard(os.linesep.join(output))
 
         self.refreshCtrl()
 
@@ -247,12 +247,11 @@ class DataView(wxListCtrl, InspectableObjectView):
         output = []
         self.copyCtrls(ctrls, [], output)
 
-        Utils.writeTextToClipboard(string.join(output, os.linesep))
+        Utils.writeTextToClipboard(os.linesep.join(output))
 
     def OnPasteSelected(self, event):
         """ Paste current clipboard contents into the current selection """
-        pasted = self.pasteCtrls('', string.split(Utils.readTextFromClipboard(),
-                                                  os.linesep))
+        pasted = self.pasteCtrls('', Utils.readTextFromClipboard().split(os.linesep))
         if len(pasted):
             self.refreshCtrl()
             self.selectCtrls(pasted)

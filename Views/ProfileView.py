@@ -6,15 +6,16 @@
 #
 # Created:     2000/05/17
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999 - 2002 Riaan Booysen
+# Copyright:   (c) 1999 - 2003 Riaan Booysen
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 print 'importing Views.ProfileView'
 
-import marshal, string
-from os import path
-from EditorViews import ListCtrlView, CloseableViewMix
+import marshal, os
+
 from wxPython.wx import *
+
+from EditorViews import ListCtrlView, CloseableViewMix
 
 class ProfileStatsView(ListCtrlView, CloseableViewMix):
     viewName = 'Profile stats'
@@ -136,7 +137,7 @@ class ProfileStatsView(ListCtrlView, CloseableViewMix):
             i = 0
             for filename, lineno, funcname in self.statKeyList:
                 stats = self.stats[(filename, lineno, funcname)]
-                i = self.addReportItems(i, (path.basename(filename), str(lineno),
+                i = self.addReportItems(i, (os.path.basename(filename), str(lineno),
                       funcname, '%d' % stats[0], '%f' % stats[2],
                       stats[0] and '%f' % (stats[2]/stats[0]) or '',
                       '%f' % stats[3],
@@ -158,11 +159,11 @@ class ProfileStatsView(ListCtrlView, CloseableViewMix):
             if key[0] == '<string>':
                 wxLogMessage("Eval'd or exec'd code, no module.")
                 return
-            if path.isabs(key[0]):
+            if os.path.isabs(key[0]):
                 model, controller = self.model.editor.openOrGotoModule(key[0])
             else:
                 model, controller = self.model.editor.openOrGotoModule(
-                      path.join(self.profDir, key[0]))
+                      os.path.join(self.profDir, key[0]))
 
             model.views['Source'].focus()
             model.views['Source'].SetFocus()
@@ -175,7 +176,7 @@ class ProfileStatsView(ListCtrlView, CloseableViewMix):
 
 #            for name, number in callDct.items():
             called = map(lambda x: `x[1]`+': '+x[0][2]+' | '+\
-              path.basename(path.splitext(x[0][0])[0]), callDct.items())
+              os.path.basename(os.path.splitext(x[0][0])[0]), callDct.items())
             dlg = wxSingleChoiceDialog(self.model.editor,
               'Choose a function:',
               '%s was called by...' % self.statKeyList[idx][2], called)
@@ -204,7 +205,7 @@ class ProfileStatsView(ListCtrlView, CloseableViewMix):
                 callDct = self.all_callees[key]
 
                 called = map(lambda x: `x[1]`+': '+x[0][2]+' | '+\
-                  path.basename(path.splitext(x[0][0])[0]), callDct.items())
+                 os.path.basename(os.path.splitext(x[0][0])[0]), callDct.items())
                 dlg = wxSingleChoiceDialog(self.model.editor,
                   'Choose a function:',
                   '%s called...' % self.statKeyList[idx][2], called)
@@ -245,7 +246,7 @@ class ProfileStatsView(ListCtrlView, CloseableViewMix):
 
     def OnSaveStats(self, event):
         fn, suc = self.model.editor.saveAsDlg(\
-          path.splitext(self.model.filename)[0]+'.prof', 'BoaIntFiles')
+          os.path.splitext(self.model.filename)[0]+'.prof', 'BoaIntFiles')
         if suc and self.stats:
             from Explorers.Explorer import openEx
             transport = openEx(fn)

@@ -6,7 +6,7 @@
 #
 # Created:     2000/04/26
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999 - 2002 Riaan Booysen
+# Copyright:   (c) 1999 - 2003 Riaan Booysen
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 print 'importing Views.PySourceView'
@@ -66,9 +66,6 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
               ('Load breakpoints', self.OnLoadBreakPoints, '-', ''),
               ('Save breakpoints', self.OnSaveBreakPoints, '-', ''),
               ('-', None, '', ''),
-##              ('+View whitespace', self.OnViewWhitespace, '-', ()),
-##              ('+View EOL characters', self.OnViewEOL, '-', ()),
-##              ('-', None, '-', ()),
               ('Add simple app', self.OnAddSimpleApp, '-', ''),
               ('-', None, '-', ''),
               ('Add module info', self.OnAddModuleInfo, self.modInfoBmp, ''),
@@ -159,7 +156,7 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
     def getTipValue(self, word, lnNo):
         """ Overwritten Mixin method, returns string to display as tool tip """
         module = self.model.getModule()
-        objPth = string.split(word, '.')
+        objPth = word.split('.')
         safesplit = methodparse.safesplitfields
 
         cls = module.getClassForLineNo(lnNo)
@@ -233,7 +230,7 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
 
     def prepareModSigTip(self, name, paramsStr):
         if Utils.startswith(paramsStr, 'self,'):
-            paramsStr = string.strip(paramsStr[5:])
+            paramsStr = paramsStr[5:].strip()
         elif paramsStr == 'self':
             paramsStr = ''
         return '%s(%s)'%(name, paramsStr)
@@ -248,7 +245,7 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
     def getCodeCompOptions(self, word, rootWord, matchWord, lnNo):
         #print 'getCodeCompOptions', word, rootWord, matchWord, lnNo
         """ Overwritten Mixin method, returns list of code completion names """
-        objPth = string.split(rootWord, '.')
+        objPth = rootWord.split('.')
         module = self.model.getModule()
         cls = module.getClassForLineNo(lnNo)
         if cls:
@@ -259,7 +256,7 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
                 # globals/locals
                 elif objPth[0] == '':
                     if cls.super:
-                        wrds = string.split(string.strip(self.GetLine(lnNo)))
+                        wrds = self.GetLine(lnNo).strip().split()
                         # check for def *, add inherited methods
                         if wrds and wrds[0] == 'def':
                             if type(cls.super[0]) is types.InstanceType:
@@ -303,15 +300,16 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
         module = self.model.getModule()
         names = module.imports.keys() + module.from_imports.keys() +\
                 module.from_imports_names.keys()
-        shellLocals = self.model.editor.shell.interp.locals
-        if words[0] in names and shellLocals.has_key(words[0]):
-            obj = shellLocals[words[0]]
-            for word in words[1:]:
-                if hasattr(obj, word):
-                    obj = getattr(obj, word)
-                else:
-                    return None
-            return obj
+        if self.model.editor.shell:
+            shellLocals = self.model.editor.shell.getShellLocals()
+            if words[0] in names and shellLocals.has_key(words[0]):
+                obj = shellLocals[words[0]]
+                for word in words[1:]:
+                    if hasattr(obj, word):
+                        obj = getattr(obj, word)
+                    else:
+                        return None
+                return obj
         return None
 
     def getShellNames(self, words):
@@ -444,7 +442,7 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
         return false
 
     def handleBrwsImports(self, module, word, currLineNo):
-        words = string.split(word, '.')
+        words = word.split('.')
 
         # Standard imports
         if module.imports.has_key(word):
@@ -470,6 +468,8 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
             else:
                 self.doClearBrwsLn()
                 self.model.editor.addBrowseMarker(currLineNo)
+                if impType == 'package':
+                    path = os.path.join(path, '__init__.py')
                 model, ctrlr = self.model.editor.openOrGotoModule(path)
                 return true, model
         # Handle name part of from module import name
@@ -488,7 +488,7 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
         else:
             # Handle [package.]module.name
             if len(words) > 1:
-                testMod = string.join(words[:-1], '.')
+                testMod = '.'.join(words[:-1])
                 handled, model = self.handleBrwsImports(module, testMod, currLineNo)
                 if handled is None:
                     return None, None # unhandled
@@ -526,7 +526,11 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
     def handleBrwsRuntimeGlobals(self, word, currLineNo):
         # The current runtime values of the shell is inspected
         # as well as the wxPython namespaces
-        shellLocals = self.model.editor.shell.interp.locals
+        if self.model.editor.shell:
+            shellLocals = self.model.editor.shell.getShellLocals()
+        else:
+            shellLocals = {}
+
         if shellLocals.has_key(word):
             obj = shellLocals[word]
         elif hasattr(wxNamespace, word):
@@ -584,7 +588,7 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
             Explicitly imported names are also handled.
         """
         module = self.model.getModule()
-        words = string.split(word, '.')
+        words = word.split('.')
         debugger = self.model.editor.debugger
 
         if debugger and debugger.isDebugBrowsing():
@@ -713,7 +717,7 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
         # XXX         c, d
         errstr = 'Line %d valid '%lineNo
         prevline = prevlines[-1]
-        stripprevline = string.strip(prevline)
+        stripprevline = prevline.strip()
 
         # Special case for blank lines
         if not stripprevline:
@@ -729,15 +733,14 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
         # Special case for \ followed by whitespace (don't strip it!)
         compstr = ''
         if stripprevline[-1] == '\\' and not compprefix:
-            strs = string.split(prevline, '\\')
-            if strs[-1] and not string.strip(strs[-1]):
-                compstr = string.lstrip(prevline)
+            strs = prevline.split('\\')
+            if strs[-1] and not strs[-1].strip():
+                compstr = prevline.lstrip()
 
         # note, removes (flattens) indent
         if not compstr:
-            compstr = compprefix+string.join(\
-                  map(lambda line, indent=indent: indent+string.strip(line),
-                  prevlines), '\n')+'\n'
+            compstr = compprefix+'\n'.join(\
+                  [indent+line.strip() for line in prevlines])+'\n'
 
         try: import __future__
         except ImportError: compflags = 0
@@ -757,7 +760,7 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
         except SyntaxError, err:
             err.lineno = lineNo
             errstr = err.__class__.__name__+': '+str(err)
-            indentpl = string.find(prevline, stripprevline)
+            indentpl = prevline.find(stripprevline)
             if err[0] == 'unexpected EOF while parsing':
                 errstr = 'incomplete (%d)'%lineNo
             elif err[0] == "'return' outside function":
@@ -786,13 +789,13 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
                     # Check for dedenting keywords
                     possblkeyword = stripprevline[:err.offset-len(indent)]
                     if possblkeyword in self.if_keywords.keys():
-                        self.checkSyntax( (string.replace(prevline,
-                            possblkeyword, self.if_keywords[possblkeyword], 1),),
+                        self.checkSyntax( (prevline.replace(possblkeyword, 
+                              self.if_keywords[possblkeyword], 1),),
                             lineNo, getPrevLine)
                         return
                     elif possblkeyword in self.try_keywords.keys():
                         if stripprevline[-1] == ':':
-                            prevline = string.rstrip(prevline)+'pass\n'
+                            prevline = prevline.rstrip()+'pass\n'
 
                         self.checkSyntax( (self.try_keywords[possblkeyword],
                                            prevline), lineNo, getPrevLine)
@@ -806,23 +809,23 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
                         ln = lineNo - 2
 
                         if stripprevline[-1] == '\\':
-                            lines = string.rstrip(prevline)[:-1]+' '
+                            lines = prevline.rstrip()[:-1]+' '
                         else:
-                            lines = string.rstrip(prevline)
+                            lines = prevline.rstrip()
 
                         errOffsetOffset = 0
                         while ln >= 0:
                             line = self.stripComment(getPrevLine(ln)[:-1])
 
-                            rstripline = string.rstrip(line)
+                            rstripline = line.rstrip()
                             if rstripline and rstripline[-1] in self.line_conts:
                                 # replace else, elif's with ifs
-                                lstripline = string.lstrip(line)
+                                lstripline = line.lstrip()
                                 if len(lstripline) >= 4:
                                     possblifkeyword = lstripline[:4]
                                     if possblifkeyword in self.if_keywords.keys():
                                         ##print 'replace if kw'
-                                        rstripline = string.replace(rstripline,
+                                        rstripline = rstripline.replace(
                                               possblifkeyword,
                                               self.if_keywords[possblifkeyword], 1)
 
@@ -1000,7 +1003,7 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
                 ln = self.LineFromPosition(pos)
                 ls = self.PositionFromLine(ln)
                 st = pos - ls
-                if not string.strip(line[:st]):
+                if not line[:st].strip():
                     self.SetSelection(ls + st/indtSze*indtSze, pos+1)
                     self.ReplaceSelection('')
                     return
@@ -1068,7 +1071,7 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
         else:
             # 2nd Xform; Add inherited method call underneath method declation
             #            at cursor
-            if string.strip(line[:startOffset]) == 'def':
+            if line[:startOffset].strip() == 'def':
                 self.model.refreshFromViews()
                 module = self.model.getModule()
                 cls = module.getClassForLineNo(lnNo)
@@ -1109,10 +1112,10 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
         # Repair pasting CR/LF from clipboard to LF source
         textAdded = event.GetText()
         if linesAdded > 0:
-            lines = string.split(textAdded, '\r\n')
+            lines = textAdded.split('\r\n')
             totAdded = linesAdded
             if len(lines) > 1 and len(lines) == linesAdded + 1:
-                wxPostEvent(self, wxFixPasteEvent(self, string.join(lines, '\n')))
+                wxPostEvent(self, wxFixPasteEvent(self, '\n'.join(lines)))
 
         # Update module line numbers
         # module has to have been parsed at least once

@@ -1,3 +1,14 @@
+#-----------------------------------------------------------------------------
+# Name:        ObjCollection.py
+# Purpose:     
+#
+# Author:      Riaan Booysen
+#
+# Created:     2000
+# RCS-ID:      $Id$
+# Copyright:   (c) 2000 - 2003
+# Licence:     GPL
+#-----------------------------------------------------------------------------
 import sourceconst
 
 class ObjectCollection:
