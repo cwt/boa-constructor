@@ -11,7 +11,7 @@
 #
 
 
-import string, sys, traceback
+import string, sys, traceback, linecache
 
 sys.ps1 = ">>> "
 sys.ps2 = "... "
@@ -39,10 +39,11 @@ class PythonInterpreter:
         else:
             if not line:
                 return 0
+            else:
+                line = line.rstrip()+'\n'
 
         #
         # compile what we've got this far
-
         try:
             if sys.version_info[:2] >= (2, 2):
                 import __future__
@@ -80,13 +81,22 @@ class PythonInterpreter:
         if exc_type == SyntaxError:# and len(sys.exc_value) == 2:
             # emulate interpreter behaviour
             if len(sys.exc_value.args) == 2:
-                sys.stderr.write(" " * (sys.exc_value[1][2] + 3) + "^\n")
-            sys.stderr.write("'''" + str(sys.exc_type) + \
-                str(sys.exc_value.args and (" : " +sys.exc_value[0]) or '')+"'''\n")
+                fn, ln, indent = sys.exc_value[1][:3]
+                indent += 3
+                pad = " " * indent
+                if fn is not None:
+                    src = linecache.getline(fn, ln)                    
+                    if src:
+                        src = src.rstrip()+'\n'
+                        sys.stderr.write('  File "%s", line %d\n%s%s'%(
+                                         fn, ln, pad, src))
+                sys.stderr.write(pad + "^\n")
+            sys.stderr.write("''' %s '''\n"%(str(sys.exc_type) + \
+                str(sys.exc_value.args and (" : " +sys.exc_value[0]) or '')))
         else:
-            traceback.print_tb(sys.exc_traceback, None)
-            sys.stderr.write("'''" + str(sys.exc_type) + " : " + \
-                  str(sys.exc_value)+"'''\n")
+            traceback.print_tb(sys.exc_traceback.tb_next, None)
+            sys.stderr.write("''' %s '''\n" %(str(sys.exc_type) + " : " + \
+                                            str(sys.exc_value)))
 
 
 # --------------------------------------------------------------------
