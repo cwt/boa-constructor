@@ -53,9 +53,7 @@ class ZopeHTMLStyledTextCtrlMix(BaseHTMLStyledTextCtrlMix):
 
         self.setStyles()
 
-class ZopeHTMLSourceView(EditorStyledTextCtrl, 
-                         ZopeHTMLStyledTextCtrlMix, 
-                         DebuggingViewSTCMix):
+class ZopeHTMLSourceView(EditorStyledTextCtrl, ZopeHTMLStyledTextCtrlMix):
     viewName = 'ZopeHTML'
     breakBmp = 'Images/Debug/Breakpoints.png'
     def __init__(self, parent, model, actions=()):
