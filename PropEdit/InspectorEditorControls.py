@@ -10,6 +10,8 @@
 # Licence:     GPL
 #----------------------------------------------------------------------
 
+import sys
+
 from wxPython.wx import *
 
 import Preferences, Utils
@@ -124,7 +126,8 @@ class SpinCtrlIEC(InspectorEditorControl):
         value = self.propEditor.valueToIECValue()
         self.editorCtrl = wxSpinCtrl(parent, self.wID, value,
               (-2, idx*Preferences.oiLineHeight -2),
-              (sizeX, Preferences.oiLineHeight+3), style = wxSP_VERTICAL)
+              (sizeX, Preferences.oiLineHeight+3), style=wxSP_VERTICAL,
+              max=sys.maxint, min=-sys.maxint)
         EVT_TEXT_ENTER(parent, self.wID, self.OnSelect)
         EVT_SPINCTRL(parent, self.wID, self.OnSelect)
         InspectorEditorControl.createControl(self)
