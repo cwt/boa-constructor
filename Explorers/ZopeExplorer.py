@@ -38,14 +38,29 @@ class ZopeEClip(ExplorerNodes.ExplorerClipboard):
 #        ExplorerNodes.ExplorerClipboard.clipPaste(self, node)
         
     def clipPaste_ZopeEClip(self, node, nodes, mode):
-        print 'Pasting from ZopeClipboard'
         mime, res = self.zc.call(node.zopeObj.whole_name(), 
               'manage_pasteObjects', cb_copy_data = self.clipRef)
     
+    def pasteFileSysFolder(self, folderpath, nodepath, zopeConn):
+        zopeConn.add_folder(os.path.basename(folderpath), nodepath)
+        files = os.listdir(folderpath)
+        folder = os.path.basename(folderpath)
+        newNodepath = nodepath+'/'+folder
+        for file in files:
+            file = os.path.join(folderpath, file)
+            if os.path.isdir(file):
+                self.pasteFileSysFolder(file, newNodepath, zopeConn)
+            else:
+                zopeConn.upload(file, newNodepath)
+    
     def clipPaste_FileSysExpClipboard(self, node, nodes, mode):
-        print 'Pasting from FileClipboard'
+        nodepath = node.resourcepath+'/'+node.name
         for file in nodes:
-            node.zopeConn.upload(file.resourcepath, node.resourcepath+'/'+node.name)
+            if file.isDir():
+                self.pasteFileSysFolder(file.resourcepath, nodepath, 
+                      node.zopeConn)
+            else:
+                node.zopeConn.upload(file.resourcepath, nodepath)
 
 class ZopeCatNode(ExplorerNodes.CategoryNode):
 #    protocol = 'config.zope'
@@ -218,20 +233,27 @@ class ZopeConnectionNode(ZopeItemNode):
         self.connected = false
 
 class ZopeController(ExplorerNodes.Controller, ExplorerNodes.ClipboardControllerMix):
-    def __init__(self, list, inspector):
+    inspectBmp = 'Images/Shared/Inspector.bmp'
+    importBmp = 'Images/Shared/ZopeImport.bmp'
+    exportBmp = 'Images/Shared/ZopeExport.bmp'
+    def __init__(self, editor, list, inspector):
         ExplorerNodes.ClipboardControllerMix.__init__(self)
+        ExplorerNodes.Controller.__init__(self, editor)
 
         self.list = list
         self.menu = wxMenu()
         self.inspector = inspector
+        
+        self.zopeMenuDef = (\
+            (wxID_ZOPEINSPECT, 'Inspect', self.OnInspectZopeItem, self.inspectBmp),
+            (-1, '-', None, '') ) +\
+            self.clipMenuDef +\
+          ( (-1, '-', None, ''),
+            (wxID_ZOPEEXPORT, 'Export', self.OnExportZopeItem, self.exportBmp),
+            (wxID_ZOPEIMPORT, 'Import', self.OnImportZopeItem, self.importBmp) )
 
-        self.setupMenu(self.menu, self.list, (\
-            (wxID_ZOPEINSPECT, 'Inspect', self.OnInspectZopeItem),
-            (-1, '-', None) ) +
-            self.clipMenuDef +
-          ( (-1, '-', None),
-            (wxID_ZOPEEXPORT, 'Export', self.OnExportZopeItem),
-            (wxID_ZOPEIMPORT, 'Import', self.OnImportZopeItem) ))
+        self.setupMenu(self.menu, self.list, self.zopeMenuDef)
+        self.toolbarMenus = [self.zopeMenuDef]
             
     def OnExportZopeItem(self, event):
         if self.list.node:
@@ -242,7 +264,7 @@ class ZopeController(ExplorerNodes.Controller, ExplorerNodes.ClipboardController
                 if item:
                     zexp = item.exportObj()
         
-                    dlg = wxFileDialog(self, 'Save as...', currPath, 
+                    dlg = wxFileDialog(self.list, 'Save as...', currPath, 
                           item.name+'.zexp', '', wxSAVE | wxOVERWRITE_PROMPT)
                     try:
                         if dlg.ShowModal() == wxID_OK:
