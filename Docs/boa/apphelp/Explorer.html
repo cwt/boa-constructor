@@ -1,0 +1,240 @@
+<html><head><title>Explorer</title></head>
+<body text="#000000" bgcolor="#FFFFFF" link="#0000FF" vlink="#000099" alink="#FF0000">
+
+<center><a href="index.html"><img SRC="contents.gif" ALT="Home" BORDER=0></a></center>
+
+<table BORDER=0 CELLSPACING=0 CELLPADDING=2 WIDTH="100%" BGCOLOR="#000000" >
+  <tr><td>
+  <table BORDER=0 CELLSPACING=0 WIDTH="100%" BGCOLOR="#FFFFFF" >
+    <tr><td BGCOLOR="#ddeeff">
+    <center><img SRC="dot.gif" height=1 width=1></center>
+    </td></tr>
+  </table>
+  </td></tr>
+</table>
+
+
+
+<h2>
+<img SRC="Editor.jpg" height=32 width=32>&nbsp; Explorer</h2>
+
+
+
+
+On the second notebook page of the Editor, you'll find the Explorer.<br>
+The Explorer can browse many different types of datasoures and provides
+a clipboard to copy and paste content between some of them. Any data 
+source can copy to and paste from the filesystem.<br> 
+The default action (double clicking / pressing Enter) of a Node is to
+open in the Editor.<p>
+
+<a name="CatalogNodes"></a>
+<b>Catalog nodes</b> (usually bold in the Explorer's tree) 
+are read from the Explorer.*.cfg file, but can be maintained at runtime 
+in the GUI. To edit these, select the bold node in the tree ctrl to get the 
+list of defined entries in the list ctrl.
+<p>
+To create new Catalog definitions, right-click and select <b>New</b>
+A new item should appear in the list ready to be renamed. Also it's properties
+will open up in the Inspector.
+<p>
+To edit the properties of an existing item, right-click on it and choose 
+<b>Inspect</b> (or click it on the toolbar). 
+The settable properties of the node will appear in the Inspector. Changes
+will be saved to Explorer.*.cfg. This is how all the different explorers
+listed below are configured.
+<p>
+
+Explorer nodes in the root of the Explorer tree.
+<table CELLSPACING=0 CELLPADDING=0 BORDER=0 BGCOLOR="#000000"><tr><td>
+<table CELLSPACING=2 CELLPADDING=4>
+<tr>
+<td WIDTH="25%" VALIGN=TOP BGCOLOR="#ddeeff" >
+
+<b>Editor</b></td>
+<td VALIGN=TOP BGCOLOR="#ddeeff" >
+
+This node shows all the open items in the IDE. 
+Here you may change the order of open items.<br>This is also a good place
+to close many files in one operation. Do a multi-select and click Close.
+</td>
+</tr>
+
+<tr>
+<td WIDTH="25%" VALIGN=TOP BGCOLOR="#ddeeff" >
+
+<b>Recent Files</b></td>
+<td VALIGN=TOP BGCOLOR="#ddeeff" >
+
+A persistent list of recently opened files.
+</td>
+</tr>
+
+<tr>
+<td WIDTH="25%" VALIGN=TOP BGCOLOR="#ddeeff" >
+
+<b>Bookmarks</b></td>
+<td VALIGN=TOP BGCOLOR="#ddeeff" >
+
+Place for frequently visited source code directories.<br>
+Define the current projects that you are working on in here. <br>
+Many Explorer node types can be bookmarked.
+<p>
+To group together your bookmarks, you may define a bookmark folder by adding a 
+new item, inspecting it and changing it's <b>Item</b> property to <b>{}</b>.
+After refreshing the list, the icon for your new folder should be a Bookmarks Folder.
+</td>
+</tr>
+
+<tr>
+<td WIDTH="25%" VALIGN=TOP BGCOLOR="#ddeeff" >
+
+<b>Transports</b></td>
+<td VALIGN=TOP BGCOLOR="#ddeeff" >
+
+Different protocol plug-ins to browse load and save.<be>
+See table below for supported protocols/systems.
+</td>
+</tr>
+
+<tr>
+<td WIDTH="25%" VALIGN=TOP BGCOLOR="#ddeeff" >
+
+<b>sys.path</b></td>
+<td VALIGN=TOP BGCOLOR="#ddeeff" >
+
+Lists the directories in sys.path</td>
+</tr>
+
+<tr>
+<td WIDTH="25%" VALIGN=TOP BGCOLOR="#ddeeff" >
+
+<b>os.cwd</b></td>
+<td VALIGN=TOP BGCOLOR="#ddeeff" >
+
+The current working directory of the process.
+<p>
+This can be changed under the Explorer's Preferences or by right clicking from the 
+Filesystem transport's menu.</td>
+</tr>
+
+<tr>
+<td WIDTH="25%" VALIGN=TOP BGCOLOR="#ddeeff" >
+
+<b><a href="Preferences.html">Preferences</a></b></td>
+<td VALIGN=TOP BGCOLOR="#ddeeff" >
+
+Preference management. Most preference items are 
+activated by double clicking on the item.
+<p>
+Plug-in configuration.
+</td>
+</tr>
+
+</table>
+</td></tr></table>
+
+<p>
+The following protocols have been implemented as Transports:
+<table CELLSPACING=0 CELLPADDING=0 BORDER=0 BGCOLOR="#000000"><tr><td>
+<table CELLSPACING=2 CELLPADDING=4>
+<tr>
+<td WIDTH="25%" VALIGN=TOP BGCOLOR="#ddeeff" >
+
+<b>Filesystem</b></td>
+<td VALIGN=TOP BGCOLOR="#ddeeff" >
+
+This includes your and other network drives 
+accessible through your filesystem. On windows specify a valid UNC path, 
+e.g. <b>//Machine</b> for these network drives.<br>
+If the module opened in the Explorer is also listed in a Application 
+(wxApp module) open in the Editor, the module will be opened as an 
+application module (F9 will run the application).<br>
+</td>
+</tr>
+
+<tr>
+<td WIDTH="25%" VALIGN=TOP BGCOLOR="#ddeeff" >
+
+<b>Zip archives</b></td>
+<td VALIGN=TOP BGCOLOR="#ddeeff" >
+
+Zip files in Filesystem Explorer can be 
+browsed as read only directories. This will be read/write when
+support for 1.5.2 is stopped. Copying from a Zip archive to the
+Filesystem is allowed.</td>
+</tr>
+
+<tr>
+<td WIDTH="25%" VALIGN=TOP BGCOLOR="#ddeeff" >
+
+<b><a href="CVS.html">CVS</a></b></td>
+<td VALIGN=TOP BGCOLOR="#ddeeff" >
+
+CVS browsing and operations are supported.</td>
+</tr>
+
+<tr>
+<td WIDTH="25%" VALIGN=TOP BGCOLOR="#ddeeff" >
+
+<b><a href="Zope.html">Zope</a></b></td>
+<td VALIGN=TOP BGCOLOR="#ddeeff" >
+
+A management interface and document 
+editing support for Zope.</td>
+</tr>
+
+<tr>
+<td WIDTH="25%" VALIGN=TOP BGCOLOR="#ddeeff" >
+
+<b><a name="SSH">SSH</a></b></td>
+<td VALIGN=TOP BGCOLOR="#ddeeff" >
+
+Files can be browsed or copied and pasted between your filesystem and a SSH connection
+and can also be opened and saved in the Editor.<br>
+SSH and SCP have to be installed and working.</td>
+</tr>
+
+<tr>
+<td WIDTH="25%" VALIGN=TOP BGCOLOR="#ddeeff" >
+
+<b><a name="FTP">FTP</a></b></td>
+<td VALIGN=TOP BGCOLOR="#ddeeff" >
+
+Files can be browsed or copied and pasted between your filesystem and a FTP connection
+and can also be opened and saved in the Editor.</td>
+</tr>
+
+<tr>
+<td WIDTH="25%" VALIGN=TOP BGCOLOR="#ddeeff" >
+
+<b><a name="WebDAV">WebDAV</a></b> (incomplete implementation)</td>
+<td VALIGN=TOP BGCOLOR="#ddeeff" >
+
+Files can be browsed, copied and pasted between your filesystem and a WebDAV server
+and can also be opened and saved in the Editor.<br>
+Properties can be read in the inspector, but not yet edited.</td>
+</tr>
+
+</table>
+</td></tr></table>
+<p>
+<br>
+<table BORDER=0 CELLSPACING=0 CELLPADDING=2 WIDTH="100%" BGCOLOR="#000000" >
+  <tr><td>
+  <table BORDER=0 CELLSPACING=0 WIDTH="100%" BGCOLOR="#FFFFFF" >
+    <tr><td BGCOLOR="#ddeeff">
+    <center><img SRC="dot.gif" height=1 width=1></center>
+    </td></tr>
+  </table>
+  </td></tr>
+</table>
+
+
+<div align=right><font size="-1">Boa Constructor - Application Help - <b>Explorer</b></font></div>
+<p>
+</body></html>
+
+
+
+

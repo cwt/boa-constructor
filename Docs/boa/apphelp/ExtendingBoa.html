@@ -1,0 +1,227 @@
+<html><head><title>Extending Boa Constructor</title></head>
+<body text="#000000" bgcolor="#FFFFFF" link="#0000FF" vlink="#000099" alink="#FF0000">
+
+<center><a href="index.html"><img SRC="contents.gif" ALT="Home" BORDER=0></a></center>
+
+<table BORDER=0 CELLSPACING=0 CELLPADDING=2 WIDTH="100%" BGCOLOR="#000000" >
+  <tr><td>
+  <table BORDER=0 CELLSPACING=0 WIDTH="100%" BGCOLOR="#FFFFFF" >
+    <tr><td BGCOLOR="#ddeeff">
+    <center><img SRC="dot.gif" height=1 width=1></center>
+    </td></tr>
+  </table>
+  </td></tr>
+</table>
+
+
+
+<h2>
+<img SRC="Boa.jpg" height=32 width=32>&nbsp; Extending Boa Constructor</h2>
+
+
+
+
+<p>
+Boa IDE can be extended by registering new Components, Controllers or Explorers.
+
+<p>
+Here is a backaground to the classes involved.
+
+<h3>Companions</h3>
+For every control/object that can participate in the Designer, there has to be
+a Companion class. Companions implement the interfaces needed to interact with
+the Inspector and the Designer, basically the design-time behaviour. 
+Companions can also define/override new properties for an object not picked up 
+through reflection.
+
+<h3>Properties</h3>
+Properties are defined by introspection and Companion classes.
+<p>
+e.g. When a wxTextCtrl is inspected in the Designer, the following is found by 
+introspection:
+<font color="#101090"><pre>
+wxTextCtrl.GetValue()
+wxTextCtrl.SetValue(value)
+</pre></font>
+
+So a Property named <b>Value</b> will be picked up automatically.
+<p>
+During introspection it's getter is called and the type is inspected. 
+Simple types like ints, string, etc are handled automatically.
+<p>
+When a property is a reference to an object (for which the getter
+could possibly return None) or some other type which cannot be
+determined by introspection alone, a property definition must be added
+the associated companion class. Update the <b>editors</b> attribute.
+It's a dictionary of this format:
+<font color="#101090"><pre>
+PropertyName: PropertyEditorClass
+</pre></font>
+
+Property values can be 'routed' in many ways. 
+<table CELLSPACING=0 CELLPADDING=0 BORDER=0 BGCOLOR="#000000"><tr><td>
+<table CELLSPACING=2 CELLPADDING=4>
+<tr>
+<td WIDTH="25%" VALIGN=TOP BGCOLOR="#ddeeff" >
+
+<b>CtrlRoute</b></td>
+<td VALIGN=TOP BGCOLOR="#ddeeff" >
+
+
+Get and Set maps directly to component Get and Set.<br>
+This type is automatically picked up by inspection.
+</td></tr>
+<tr>
+<td WIDTH="25%" VALIGN=TOP BGCOLOR="#ddeeff" >
+
+<b>CompnRoute</b></td>
+<td VALIGN=TOP BGCOLOR="#ddeeff" >
+
+
+Get and Set maps to Companion Get and Set.<br>
+Used when you need to fully customise a property.<br>
+Used when the Get and Set methods of the control do not map to Get*, Set*, 
+e.g. Show() and IsShown().<br>
+Used when new (possibly computed) properties are needed for which there are 
+no methods on the component.
+</td></tr>
+<tr>
+<td WIDTH="25%" VALIGN=TOP BGCOLOR="#ddeeff" >
+
+<b>EventRoute</b></td>
+<td VALIGN=TOP BGCOLOR="#ddeeff" >
+
+
+Used by Event definitions.
+</td></tr>
+<tr>
+<td WIDTH="25%" VALIGN=TOP BGCOLOR="#ddeeff" >
+
+<b>IndexRoute</b></td>
+<td VALIGN=TOP BGCOLOR="#ddeeff" >
+
+
+Used by collection editor properties.<br>
+Get and Set maps to Companion Get and Set with index.
+</td></tr>
+<tr>
+<td WIDTH="25%" VALIGN=TOP BGCOLOR="#ddeeff" >
+
+<b>NameRoute</b></td>
+<td VALIGN=TOP BGCOLOR="#ddeeff" >
+
+
+Used when a property is split up into a set of flags.
+Get and Set maps to Companion Get and Set with name.
+</td></tr>
+
+</table>
+</td></tr></table>
+<p>
+For property names which are not picked up by inspection the
+<b>properties</b> method can be overridden. Here you extend the inherited 
+property dictionary.<br>
+Format: 
+<font color="#101090"><pre>
+ProperyName: (RouteType, Getter, Setter)
+</pre></font>
+
+There is also support for enumerated types, dependant properties, 
+linked properties, non persisting, multi parameter and completely 
+custom properties which overrides everything down to code generation 
+(e.g. Anchors/Constraints).
+
+<h3>Property Editors</h3>
+PropertyEditor classes are associated with types or property names.<br>
+<p>
+They only focus on editing values and don't interface with the object whose 
+properties they edit.
+<p>
+In the <b>edit</b> method a PropertyEditor should create an 
+<b>InspectorEditorControl</b> derived class that will be used by the Inspector.
+
+<h3>Explorer Nodes</h3>
+Explorer nodes plug into Models to provide their transport (storage). Various transports
+are defined by default, filesystem, FTP, etc.<br>
+<p>
+
+<h3>MVC Pattern</h3>
+The Boa IDE is built on the Model-View-Controller pattern.
+<p>
+Here is a quick rundown of the roles:
+
+<h3>Models</h3>
+Models usually represent the different types of source files. In the Editor the Model 
+is the object in the top level notebook. Users do not perform actions on the Model 
+directly but works through Views or Controllers.
+<p>
+To add a new model you need to do the following:
+<ul>
+<li>Derive a new model class from <b>EditorModels.EditorModel</b> or a descendant.</li>
+<li>Add a 24x24 png image to <b>Images/Palette</b>. This will be used on the New palette page.<br>
+It must have the same name as the <b>modelIdentifier</b> class attribute.</li>
+<li>Add a 16x16 png image to <b>Images/Modules</b>. This will be used as the IDE 
+notebook and Explorer images.<br>
+It must have the same name as the <b>bitmap</b> class attribute.
+Also, an image index must be allocated with <b>Models.EditorUtils.imgIdxRange</b> 
+and set to the <b>idx</b> class attribute.</li>
+<li>Derive an new Controller from Controller.BaseEditorController or a descendant.<br>
+Set the Controller's <b>Model</b> class attribute to reference your Model class.</li>
+<li>If additional views are needed, derive from an existing View and associate it 
+with the Controller via the Controller's <b>DefaultViews</b> and 
+<b>AdditionalViews</b> class attributes.</li>
+</ul>
+There are many examples of how to do this, e.g. see <i>Plug-ins/PascalSupport.plug-in.py</i>
+for a self contained example.
+
+<h3>Views</h3>
+Views are visual classes that display or edit Models. In the Editor, Views plug into 
+the Model in a second level notebook. Actions on the View are published to the Editor
+under the 'Edit' menu.
+<p>
+To add a new view to a model you need to do the following:
+<ul>
+<li>Derive a new view class from <b>Views.EditorViews.EditorView</b> or a descendant.</li>
+<li>Add the view to the Controller class associated with the model.<br>
+There are two tuples defining the views of the model, <b>Controller.DefaultViews</b> and 
+<b>Controller.AdditionalViews</b>. Add your new view to one of them.</li>
+</ul>
+
+<h3>Controllers</h3>
+Controllers are a gateway between the user and the Model. Controllers are also 
+factories for Models and manage the creation from the Palette and recreation from file.
+Controllers also publish the available Model actions to the Editor as Toolbar buttons
+or Menu items under the 'File' menu.
+<p>
+The Controller classes should also handle GUI code and interactions with the IDE
+like refreshing, dialog boxes and status indications.
+
+<h3>Plug-ins</h3>
+New non-core Boa extensions should be added as plug-ins.<br>
+All modules in the <b>Plug-ins</b> directory of the form <b>*.plug-in.py</b>
+will be executed at startup.<br>
+If there is a Plug-ins directory defined in your
+<a href="Preferences.html#ResourceConfig">resource config</a> 
+directory, it's modules will also be executed.
+You may also spesify another additional plug-in directory by setting 
+Preferences->Plug-ins->Core support->extraPluginPath.
+<p>
+<br>
+<table BORDER=0 CELLSPACING=0 CELLPADDING=2 WIDTH="100%" BGCOLOR="#000000" >
+  <tr><td>
+  <table BORDER=0 CELLSPACING=0 WIDTH="100%" BGCOLOR="#FFFFFF" >
+    <tr><td BGCOLOR="#ddeeff">
+    <center><img SRC="dot.gif" height=1 width=1></center>
+    </td></tr>
+  </table>
+  </td></tr>
+</table>
+
+
+<div align=right><font size="-1">Boa Constructor - Application Help - <b>Extending Boa Constructor</b></font></div>
+<p>
+</body></html>
+
+
+
+
