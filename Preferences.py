@@ -11,10 +11,10 @@
 #----------------------------------------------------------------------
 import os, sys
 from os import path
+
 print 'importing wxPython...' 
 from wxPython import wx 
-#import wxSystemSettings_GetSystemMetric, wxSYS_SCREEN_X, wxSYS_SCREEN_Y, wxTB_FLAT
-#from wxPython.wx import wxPlatform, wxDefaultSize, wxDefaultPosition, wxSize, wxColour
+
 from ImageStore import ImageStore, ZippedImageStore
 
 #-Window sizes------------------------------------------------------------------
@@ -80,7 +80,8 @@ useImageArchive = 0
 
 # Draw grid in designer
 drawDesignerGrid = 1
-# Grid draw method: 'lines', 'dots', 'bitmap', 'grid'
+drawDesignerGridForSubWindows = 1
+# Grid draw method: 'lines', 'dots', 'grid', NYI: 'bitmap'
 drawGridMethod = 'grid'
 
 # Flag for turning on special checking for european keyboard characters by
