@@ -12,15 +12,17 @@
 from os import path
 import sys
 
-logFontSize = 7
-srchCtrlOffset = 0
+# Height of the Palette window. Adjust if you use big fonts
 paletteHeight = 118
 
+# Window manager dependent values useful for mostly for GTK
 windowManagerTop = 0
 windowManagerBottom = 0
 windowManagerSide = 0
 
+# Fudge values for placing the progressbar in the editor
 editorProgressFudgePosX = 0
+# Fudge values for placing the progressbar in the editor
 editorProgressFudgeSizeY = 0
 
 # Try to use transparent bitmaps for palette
@@ -34,6 +36,10 @@ minimizeOnRun = 0
 
 # Draw grid in designer
 drawDesignerGrid = 1
+# Also draw grid for child container controls in the frame
+drawDesignerGridForSubWindows = 1
+# Grid draw method: 'lines', 'dots', 'grid', NYI: 'bitmap'
+drawGridMethod = 'grid'
 
 # Grayout (blueout actually) source while designer is open
 grayoutSource = 1
@@ -46,11 +52,21 @@ except AttributeError:
     # We're probably frozen!
     wxWinDocsPath = path.join(path.dirname(sys.executable), 'wxPython', 'docs', 'wx')
 
+# Font size of the text in the Inspector's statusbar
 inspStatBarFontSize = 9
 
 explorerFileSysRootDefault = ('DRIVE:\\', 'C:\\')
 
 # Scintilla/wxStyledTextCtrl font definitions
+##faces = { 'times'  : 'Courier New',
+##          'mono'   : 'Courier New',
+##          'helv'   : 'Courier New',
+##          'lucd'   : 'Courier New',
+##          'other'  : 'Courier New',
+##          'size'   : 8,
+##          'lnsize' : 6,
+##          'backcol': '#FFFFFF',}
+
 faces = { 'times'  : 'Times New Roman',
           'mono'   : 'Courier New',
           'helv'   : 'Lucida Console',
@@ -59,3 +75,10 @@ faces = { 'times'  : 'Times New Roman',
           'size'   : 8,
           'lnsize' : 6,
           'backcol': '#FFFFFF',}
+
+exportedProperties2 = ['logFontSize', 'srchCtrlOffset', 'paletteHeight',
+ 'windowManagerTop', 'windowManagerBottom', 'windowManagerSide',
+ 'editorProgressFudgePosX', 'editorProgressFudgeSizeY',
+ 'transparentPaletteBitmaps', 'braceHighLight', 'minimizeOnRun',
+ 'drawDesignerGrid', 'drawDesignerGridForSubWindows', 'drawGridMethod',
+ 'grayoutSource', 'inspStatBarFontSize']

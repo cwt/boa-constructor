@@ -12,15 +12,17 @@
 
 
 
-logFontSize = 10
-srchCtrlOffset = 0
+# Height of the Palette window. Adjust if you use big fonts
 paletteHeight = 100
 
+# Window manager dependent values useful for mostly for GTK
 windowManagerTop = 16
 windowManagerBottom = 7
 windowManagerSide = 5
 
+# Fudge values for placing the progressbar in the editor
 editorProgressFudgePosX = -8
+# Fudge values for placing the progressbar in the editor
 editorProgressFudgeSizeY = 2
 
 # Try to use transparent bitmaps for palette
@@ -34,6 +36,10 @@ minimizeOnRun = 0
 
 # Draw grid in designer
 drawDesignerGrid = 0
+# Also draw grid for child container controls in the frame
+drawDesignerGridForSubWindows = 1
+# Grid draw method: 'lines', 'dots', 'grid', NYI: 'bitmap'
+drawGridMethod = 'grid'
 
 # Grayout (blueout actually) source while designer is open
 grayoutSource = 0
@@ -41,10 +47,12 @@ grayoutSource = 0
 # These settings may be specific to Red Hat, change them if the help
 # complains about missing files.
 # Note: If you want to use different versions of the help, see Scripts/HelpScrpt.py
+# Python documentation path
 pythonDocsPath = '/usr/doc/python-docs-1.5.2/Doc'
-
+# wxWindows documentation path
 wxWinDocsPath = '/usr/doc/wxPython-2.2.5'
 
+# Font size of the text in the Inspector's statusbar
 inspStatBarFontSize = 13
 
 explorerFileSysRootDefault = ('/', '/')
@@ -57,3 +65,10 @@ faces = { 'times'  : 'Times',
           'size'   : 9,
           'lnsize' : 8,
           'backcol': '#FFFFFF',}
+
+exportedProperties2 = ['logFontSize', 'srchCtrlOffset', 'paletteHeight',
+ 'windowManagerTop', 'windowManagerBottom', 'windowManagerSide',
+ 'editorProgressFudgePosX', 'editorProgressFudgeSizeY',
+ 'transparentPaletteBitmaps', 'braceHighLight', 'minimizeOnRun',
+ 'drawDesignerGrid', 'grayoutSource', 'inspStatBarFontSize',
+ 'pythonDocsPath', 'wxWinDocsPath']
