@@ -88,13 +88,3 @@ if useBoaFileDlg:
     del FileDlg
 else:
     wxFileDialog = wx.wxFileDialog
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
