@@ -438,7 +438,7 @@ class ImageEditorPanel(wxPanel):
         if not dc:
             if state == 'start':
                 self.circle = self.getImgPos(event) + (0,)
-            elif state in ('drag', 'end'):
+            elif state in ('drag', 'end') and self.circle:
                 x1, y1, x2, y2 = self.circle[:2] + self.getImgPos(event)
                 rad = math.sqrt(pow(x2-x1, 2) + pow(y2-y1, 2)) + 0.5
                 self.circle = (x1, y1, rad)
@@ -448,7 +448,8 @@ class ImageEditorPanel(wxPanel):
                     self.mDC.SetPen(self.fgpen)
                     self.mDC.SetUserScale(1.0, 1.0)
                     self.mDC.SetBrush(self.brush)
-                    self.mDC.DrawEllipse(x1-rad+0.5, y1-rad+0.5, rad*2, rad*2)
+                    self.mDC.DrawEllipse(int(x1-rad+0.5), int(y1-rad+0.5), 
+                                         int(rad*2), int(rad*2))
 
                     x, y, rad = self.circle
                     x1, y1 = x-rad+0.5, y-rad+0.5
@@ -469,9 +470,9 @@ class ImageEditorPanel(wxPanel):
             dc.SetLogicalFunction(wxXOR)
             dc.SetPen(self.selpen)
             dc.SetBrush(wxTRANSPARENT_BRUSH)
-            dc.DrawEllipse(xoffset + (x-rad+0.5) * scale,
-                           yoffset + (y-rad+0.5) * scale,
-                           rad*scale*2, rad*scale*2)
+            dc.DrawEllipse(int(xoffset + (x-rad+0.5) * scale),
+                           int(yoffset + (y-rad+0.5) * scale),
+                           int(rad*scale*2), int(rad*scale*2))
 
     def drawFill(self, event, state):
         self.snapshot()
@@ -605,7 +606,6 @@ class ImageEditorPanel(wxPanel):
             dc.DrawRectangle(0, 0, cs.x, cs.y)
             dc.SetPen(self.fgpen)
             dc.DrawRectangle(cs.x/3-3, cs.y/3-3, cs.x/3+8, cs.y/3+6)
-            #dc.Clear()
         finally:
             dc.EndDrawing()
 
