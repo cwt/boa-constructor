@@ -16,14 +16,15 @@ from wxPython.stc import *
 from Preferences import faces
 
 def ver_tot(ma, mi, re):
-    return ma*200+mi*20+re
+    return ma*10000+mi*100+re
 
-old_ver = ver_tot(2,2,1)    
+old_ver = ver_tot(2,2,1)
 cur_ver = ver_tot(wxMAJOR_VERSION, wxMINOR_VERSION, wxRELEASE_NUMBER)
 new_stc = cur_ver > old_ver
 old_stc = not new_stc
 
 if new_stc:
+  try:
     wxStyledTextCtrl.SetKeywords        = wxStyledTextCtrl.SetKeyWords
     wxStyledTextCtrl.SetCurrentPosition = wxStyledTextCtrl.SetCurrentPos
     wxStyledTextCtrl.GetCurrentPosition = wxStyledTextCtrl.GetCurrentPos
@@ -38,6 +39,9 @@ if new_stc:
     wxStyledTextCtrl.SetStyleFor        = wxStyledTextCtrl.SetStyling
     wxStyledTextCtrl.MarkerGetNextLine  = wxStyledTextCtrl.MarkerNext
     wxStyledTextCtrl.MarkerGetPrevLine  = wxStyledTextCtrl.MarkerPrevious
+  except:
+    new_stc = 0
+    old_stc = 1
 
 # GetCharAt, GetStyleAt now returns int instead of char
 
