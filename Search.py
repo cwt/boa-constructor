@@ -126,7 +126,9 @@ class _file_iter:
         self._folders = folders
         if not self._folders:
             raise LookupError("Root folder was not specified")
-        self._filters = [sExt.lower() for sExt in file_filter]
+        self._filters = []
+        for sExt in file_filter:
+            self._filters.append(sExt.lower())
         self._is_include_filter = bIncludeFilter
         self._is_recursive = bRecursive
         self._files = [] #resulting list
