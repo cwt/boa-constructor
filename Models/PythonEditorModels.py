@@ -185,7 +185,7 @@ class ModuleModel(SourceModel):
     
                 from ModRunner import wxPopenModuleRunner
     
-                runner = wxPopenModuleRunner(None, newCwd)
+                runner = wxPopenModuleRunner(self.editor.erroutFrm, newCwd)
                 runner.run(cmd, inpLines, execFinish)
                 
                 execStart(runner.pid, os.path.basename(interp), basename)
@@ -496,7 +496,9 @@ class ModuleModel(SourceModel):
 
     def writeGlobalDict(self, name, dct):
         start, end = self.findGlobalDict(name)
-        self.data = self.data[:start]+pprint.pformat(dct)+self.data[end:]
+        eol = Utils.getEOLMode(self.data)
+        self.data = self.data[:start]+pprint.pformat(dct).replace('\r', eol)+\
+              self.data[end:]
 
     def buildResourceSearchList(self):
         searchPath = [os.path.abspath(os.path.dirname(self.localFilename()))]
