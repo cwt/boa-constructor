@@ -270,17 +270,17 @@ class PerLineParser:
 
     def checkContinued(self, line):
         line = line.strip()
-        if line and line[-1] == ',':
+        if line and line[-1] in (',', '('):
             raise IncompleteLineError
 
 
 idc = '[A-Za-z_][A-Za-z0-9_]*'
 # self.name=class(params)
 is_constr = re.compile('^[ \t]*self[.](?P<name>'+idc+')[ \t]*=[ \t]*(?P<class>'+\
-  idc+')\((?P<params>.*)(\)|,)$')
+  idc+')\(((?P<params>.*)(\)|,))?$')
 # class.__init__(self,params)
 is_constr_frm = re.compile('^[ \t]*(?P<class>'+idc+\
-  ')[.]__init__\(self,[ \t]*(?P<params>.*)(\)|,)$')
+  ')[.]__init__\(self,[ \t]*((?P<params>.*)(\)|,))?$')
 # self.name=self.factory.method(params)
 is_constr_factory = re.compile('^[ \t]*self[.](?P<name>'+idc+')[ \t]*=[ \t]*self[.](?P<factory>'+\
   idc+')[.](?P<method>'+idc+')\((?P<params>.*)(\)|,)$')
@@ -359,7 +359,7 @@ class ConstructorParse(PerLineParser):
         else:
             return '%s.__init__(self, %s)' %(self.class_name,
               self.KVParamsAsText(params))
-
+    
 ##is_constr_col = re.compile('^[ \t]*self._init_coll_(?P<meth>'+idc+\
 ##  ')[.]__init__\(self,[ \t]*(?P<params>.*)\)$')
 
