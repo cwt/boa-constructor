@@ -11,7 +11,7 @@
 #-----------------------------------------------------------------------------
 print 'importing Models.Controllers'
 
-import os
+import os, string
 
 from wxPython.wx import *
 
