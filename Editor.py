@@ -73,6 +73,89 @@ adtCPPModelViews = (CVSConflictsView,)
  map(lambda _editor_menus: wxNewId(), range(23))
                
 [wxID_EDITORFRAME, wxID_PAGECHANGED] = map(lambda _init_ctrls: wxNewId(), range(2))
+
+##
+## This class is used to merge paint reqeusts. Each paint is 
+## captured and saved. Later on the idle envent, the non-duplicated
+## paints are executed. The code attempts to be efficient by determining
+## the enclosing rectangle where multiple rectangles intersect.
+## This is required only on GTK systems.
+##
+class NoteBookPanelPaintEventHandler(wxEvtHandler):
+    def __init__(self, window):
+        wxEvtHandler.__init__(self)
+        self.dirty=0
+        self.updates=[]
+        self.window = window
+        window.PushEventHandler(self)
+        EVT_PAINT(self, self.OnPaint)
+        EVT_IDLE(self, self.OnIdle)
+    def OnPaint(self, event):
+        self.Id = event.GetId()
+        if self.dirty==2:
+            ### Clear everything out of our update queue
+            ### which is covered by this rectangle. Then
+            ### pass it on.
+            paintRect = self.window.GetUpdateRegion().GetBox()
+            newList=[]
+            for rect in self.updates:
+                if not self.RectangleIncludes(paintRect, rect):
+                    newList.append(rect)
+            self.updates = newList
+            event.Skip()
+            return
+        self.dirty=1
+        newRect = self.window.GetUpdateRegion().GetBox()
+        newList=[]
+        for rect in self.updates:
+            if self.RectanglesOverlap(rect, newRect):
+                newRect = self.MergeRectangles(rect,newRect)
+            else:
+                newList.append(rect)
+        self.updates = newList
+        self.updates.append(newRect)
+    def OnIdle(self, event):
+        if self.dirty != 1:
+            return
+        self.dirty=2
+        for i in range(len(self.updates)):
+            try:
+                rect = self.updates[i]
+                self.window.Refresh(0, rect)
+            except:
+                pass
+        self.updates=[]
+        self.dirty=0
+    def RectangleIncludes(self, rect1, rect2):
+        "Returns 1 if rectangle 2 is included in rectangle 1"
+        if rect1.x > rect2.x : return 0
+        if rect1.y > rect2.y : return 0
+        if rect1.x + rect1.width < rect2.x + rect2.width : return 0
+        if rect1.y + rect1.height < rect2.y + rect2.height : return 0
+        return 1
+    def RectanglesOverlap(self, rect1, rect2):
+        " Returns 1 if Rectangles overlap, 0 otherwise "
+        if rect1.x > rect2.x + rect2.width : return 0
+        if rect1.y > rect2.y + rect2.height : return 0
+        if rect1.x + rect1.width < rect2.x : return 0
+        if rect1.y + rect1.height < rect2.y : return 0
+        return 1
+    def MergeRectangles(self, rect1, rect2):
+        " Returns a rectangle containing both rect1 and rect2"
+        if rect1.x < rect2.x:
+            x=rect1.x
+            width = rect1.width + rect2.width + (rect2.x -(rect1.x + rect1.width))
+        else:
+            x=rect2.x
+            width = rect1.width + rect2.width + (rect1.x -(rect2.x + rect2.width))
+        if rect1.y < rect2.y:
+            y=rect1.y
+            height = rect1.height + rect2.height + (rect2.y -(rect1.y + rect1.height))
+        else:
+            y=rect2.y
+            height = rect1.height + rect2.height + (rect1.y -(rect2.y + rect2.height))
+        return (wxRect(x, y, width, height))
+
                     
 class EditorFrame(wxFrame):
     """ Source code editor and Mode/View controller"""
@@ -1117,6 +1200,7 @@ class ModulePage:
         if not viewName: viewName = view.viewName
         if wxPlatform == '__WXGTK__':
             self.model.views[viewName] = apply(view, (panel, self.model))
+            self.model.nb_handler = NoteBookPanelPaintEventHandler(self.model.views[viewName])
         else:
             self.model.views[viewName] = apply(view, (self.notebook, self.model))
 
