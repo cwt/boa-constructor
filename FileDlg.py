@@ -23,11 +23,16 @@ import Preferences
 import Utils
 from Utils import wxUrlClickHtmlWindow, EVT_HTML_URL_CLICK
 
+from Explorers import ExplorerNodes, Explorer, FileExplorer
+from Models import EditorHelper
+
 openStr = 'Open'
 saveStr = 'Save'
 
-htmlPath = '''<body bgcolor="#%x%x%x"><font size=-1><a href="ROOT">top</a> | 
-<a href="UP">up</a> | <a href="NEWFOLDER">new folder</a> 
+textPath = '''top | up | new folder || %s://%s'''
+
+htmlPath = '''<body bgcolor="#%x%x%x"><font size=-1><a href="ROOT">top</a> |
+<a href="UP">up</a> | <a href="NEWFOLDER">new folder</a>
 ||&nbsp;<a href="PROTROOT">%s</a><b>://</b>%s</font></body>'''
 htmlLnk = '''<a href="%s">%s</a>'''
 htmlCurrItem = '''<b><font color="#0000BB">%s</font></b>'''
@@ -37,17 +42,19 @@ htmlCurrItem = '''<b><font color="#0000BB">%s</font></b>'''
 class wxBoaFileDialog(wxDialog, Utils.FrameRestorerMixin):
     currentDir = '.'
     _lastSize = None
-    _fileListCtrlSize = (384, 152)
+    _fileListCtrlOffsets = (8, 1, 8, 83)
     _dialogClientSize = (400, 256)
+    _fontWidthFudge = 0.925
     _custom_classes = {'wxHtmlWindow': ['wxUrlClickHtmlWindow']}
     def _init_utils(self):
         pass
 
     def _init_ctrls(self, prnt):
-        wxDialog.__init__(self, id = wxID_WXBOAFILEDIALOG, name = 'wxBoaFileDialog', parent = prnt, pos = wxPoint(369, 279), size = wxSize(408, 283), style = wxRESIZE_BORDER | wxDEFAULT_DIALOG_STYLE, title = 'File Dialog')
+        wxDialog.__init__(self, id = wxID_WXBOAFILEDIALOG, name = 'wxBoaFileDialog', parent = prnt, pos = wxPoint(369, 279), size = wxSize(408, 283), style = wxRESIZE_BORDER | wxDEFAULT_DIALOG_STYLE | wxCLIP_CHILDREN, title = 'File Dialog')
         self._init_utils()
         self.SetAutoLayout(true)
         self.SetClientSize(wxSize(400, 256))
+        self.SetSizeHints(250, 200, -1, -1)
 
         self.staticText1 = wxStaticText(id = wxID_WXBOAFILEDIALOGSTATICTEXT1, label = 'File name:', name = 'staticText1', parent = self, pos = wxPoint(8, 192), size = wxSize(70, 16), style = 0)
         self.staticText1.SetConstraints(LayoutAnchors(self.staticText1, true, false, false, true))
@@ -72,31 +79,34 @@ class wxBoaFileDialog(wxDialog, Utils.FrameRestorerMixin):
         self.btCancel.SetConstraints(LayoutAnchors(self.btCancel, false, false, true, true))
         EVT_BUTTON(self.btCancel, wxID_WXBOAFILEDIALOGBTCANCEL, self.OnBtcancelButton)
 
-        self.htmlWindow1 = wxUrlClickHtmlWindow(id = wxID_WXBOAFILEDIALOGHTMLWINDOW1, name = 'htmlWindow1', parent = self, pos = wxPoint(8, 0), size = wxSize(450, 20))
+        self.htmlWindow1 = wxUrlClickHtmlWindow(id = wxID_WXBOAFILEDIALOGHTMLWINDOW1, name = 'htmlWindow1', parent = self, pos = wxPoint(8, 0), size = self._htmlWinSize)
         self.htmlWindow1.SetBackgroundColour(self.htmlBackCol)
         self.htmlWindow1.SetConstraints(LayoutAnchors(self.htmlWindow1, true, true, true, false))
 
-    def __init__(self, parent, message = 'Choose a file', defaultDir = '.', defaultFile = '', wildcard = '', style = wxOPEN, pos = wxDefaultPosition):
-        from Explorers import FileExplorer
-
+    def __init__(self, parent, message='Choose a file', defaultDir='.', defaultFile='', wildcard='', style=wxOPEN, pos=wxDefaultPosition):
         self.htmlBackCol = wxColour(192, 192, 192)
         self.htmlBackCol = wxSystemSettings_GetSystemColour(wxSYS_COLOUR_BTNFACE)
         self.filterOpts = ['Boa files', 'Internal files', 'Image files', 'All files']
 
         self.filterOpts = []
         self.filters = {}
+
         for flt in FileExplorer.filterDescrOrd:
             descr = FileExplorer.filterDescr[flt][0]
             self.filterOpts.append(descr)
             self.filters[descr] = flt
+
+        self._htmlWinSize = wxSize(392, 20)
 
         self._init_ctrls(parent)
         self.SetStyle(style)
 
         self.filterMap = FileExplorer.filterDescr
 
-        #EVT_SIZE(self.panel1, self.OnSize)
-        EVT_KILL_FOCUS(self.btCancel, self.OnBtcancelKillFocus)
+        self.textPath = ''#textPath
+
+        EVT_SIZE(self, self.OnSize)
+        #EVT_KILL_FOCUS(self.btCancel, self.OnBtcancelKillFocus)
         #EVT_CLOSE(self, self.OnCloseWindow)
 
         if defaultDir == '.':
@@ -105,12 +115,18 @@ class wxBoaFileDialog(wxDialog, Utils.FrameRestorerMixin):
             else:
                 defaultDir = self.currentDir
 
-        self.htmlWindow1.SetBorders(2)
-        EVT_HTML_URL_CLICK(self.htmlWindow1, self.OnHtmlPathClick)
+        pos, size = self.calcListDims()
+        self.lcFiles = FileDlgFolderList(self, self, defaultDir, pos=pos,
+              size=size)
+        self.lcFiles.SetConstraints(
+              LayoutAnchors(self.lcFiles, true, true, true, true))
 
-        self.lcFiles = createFileDlgFolderListClass()(self, self,
-              defaultDir, pos = wxPoint(8, 21), size = self._fileListCtrlSize)
-        self.lcFiles.SetConstraints(LayoutAnchors(self.lcFiles, true, true, true, true))
+        NF = wxNORMAL_FONT
+        self.pathLabelFont = wxFont(NF.GetPointSize(), NF.GetFamily(),
+             NF.GetStyle(), NF.GetWeight(), NF.GetUnderlined(), NF.GetFaceName())
+
+        self.htmlWindow1.SetBorders(0)
+        EVT_HTML_URL_CLICK(self.htmlWindow1, self.OnHtmlPathClick)
 
         self.winConfOption = 'filedialog'
         self.loadDims()
@@ -136,18 +152,15 @@ class wxBoaFileDialog(wxDialog, Utils.FrameRestorerMixin):
         EVT_MENU(self, wxID_CLOSEDLG, self.OnClose)
         self.SetAcceleratorTable(
               wxAcceleratorTable([(0, WXK_ESCAPE, wxID_CLOSEDLG)]))
-        
+
         self.dont_pop = 0
 
-    #def OnSize(self, event):
-    #    self.Layout()
-
     def setDimensions(self, dims):
-        self.SetClientSize(dims)        
+        self.SetClientSize(dims)
 
     def getDimensions(self):
         return self.GetClientSize()
-    
+
     def setDefaultDimensions(self):
         if self._lastSize:
             self.SetClientSize(self._lastSize)
@@ -164,14 +177,16 @@ class wxBoaFileDialog(wxDialog, Utils.FrameRestorerMixin):
         event.Skip()
 
     def newFileNode(self, defaultDir):
-        from Explorers import FileExplorer, Explorer
-        return FileExplorer.PyFileNode(path.basename(defaultDir), defaultDir, None,
-              Explorer.EditorHelper.imgFolder, None, None)
+        return FileExplorer.PyFileNode(path.basename(defaultDir), defaultDir,
+              None, EditorHelper.imgFolder, None, None)
+
+#---URL path label management and window layout---------------------------------
 
     def updatePathLabel(self):
         # XXX This is messier than it should be !!!
         dir = self.GetDirectory()
         file = self.GetFilename()
+
         xtrdir = ''
 
         mainSegs = string.split(dir, '://')
@@ -185,8 +200,9 @@ class wxBoaFileDialog(wxDialog, Utils.FrameRestorerMixin):
 
         import relpath
         filepath = []
+        textpathlst = []
         segs = relpath.splitpath(dir)
-        
+
         # handle unix root segment
         if segs and dir and dir[0] == '/':
             segs[0] = '/'+segs[0]
@@ -196,6 +212,7 @@ class wxBoaFileDialog(wxDialog, Utils.FrameRestorerMixin):
             for seg in segs[:-1]:
                 url=url+seg+os.sep
                 filepath.append(htmlLnk%(url, seg))
+                textpathlst.append(seg)
 
             segs2 = relpath.splitpath(xtrdir)
             url = 'zip'+url[4:]
@@ -205,15 +222,19 @@ class wxBoaFileDialog(wxDialog, Utils.FrameRestorerMixin):
                     filepath.append(htmlLnk%(url, segs[-1]))
                 else:
                     filepath.append(htmlCurrItem % segs[-1])
+                textpathlst.append(segs[-1])
 
             filepath2 = []
             url = url +'://'
             for seg in segs2[:-1]:
                 url=url+seg+'/'
                 filepath2.append(htmlLnk%(url, seg))
+                textpathlst.append(seg)
             if segs2:
                 filepath2.append(htmlCurrItem % segs2[-1])
+                textpathlst.append(segs2[-1])
             filepath2.append(file)
+            textpathlst.append(file)
 
             htmlfilepath = string.join(filepath, '<b>%s</b>'%os.sep)
             if segs2:
@@ -223,23 +244,91 @@ class wxBoaFileDialog(wxDialog, Utils.FrameRestorerMixin):
             for seg in segs[:-1]:
                 url=url+seg+self.lcFiles.node.pathSep
                 filepath.append(htmlLnk%(url, seg))
+                textpathlst.append(seg)
             if segs:
                 filepath.append(htmlCurrItem % segs[-1])
+                textpathlst.append(segs[-1])
             filepath.append(file)
+            textpathlst.append(file)
 
             htmlfilepath = string.join(filepath, '<b>%s</b>'%self.lcFiles.node.pathSep)
+
+        textfilepath = string.join(textpathlst, os.sep)
+
+        self.textPath = textPath % (prot, textfilepath)
 
         self.htmlWindow1.SetPage(htmlPath % (self.htmlBackCol.Red(),
               self.htmlBackCol.Green(), self.htmlBackCol.Blue(), prot,
               htmlfilepath))
         self.htmlWindow1.SetBackgroundColour(self.htmlBackCol)
 
+        self.checkTextSize(self.textPath, self.htmlWindow1.GetSize().asTuple())
+
+    def checkTextSize(self, text, size):
+        dc = wxClientDC(self.htmlWindow1)
+        ww, wh = size
+        ww = self._fontWidthFudge * ww
+
+        dc.SetFont(self.pathLabelFont)
+
+        tw, th = dc.GetTextExtent(text)
+
+        hwyo = self._htmlWinSize.y - th
+
+        q, r = divmod(tw, ww)
+        self.resizePathLabel(wh, hwyo + th * (q+1), ww)
+
+    def resizePathLabel(self, oldHeight, newHeight, oldWidth):
+        if newHeight != oldHeight:
+            self.htmlWindow1.SetSize( (oldWidth, newHeight) )
+
+            self.lcFiles.SetConstraints(None)
+            (x, y), (w, h) = self.calcListDims()
+            self.lcFiles.SetDimensions(x, y, w, h)
+            self.lcFiles.SetConstraints(
+                  LayoutAnchors(self.lcFiles, true, true, true, true))
+
+    def refreshCtrls(self):
+        for ctrl in (self.staticText1, self.staticText2, self.tcFilename,
+                     self.chTypes, self.btOK, self.btCancel):
+            ctrl.Refresh(true)
+
+    def calcListDims(self):
+        cs = self.GetClientSize()
+        hws = self.htmlWindow1.GetSize()
+        lcol, lcot, lcor, lcob = self._fileListCtrlOffsets
+        return ( (lcol, hws.y+lcot), (cs.x-lcol-lcor, cs.y-hws.y-lcot-lcob) )
+
+    def OnSize(self, event):
+        event.Skip()
+
+        if self.textPath:
+            self.checkTextSize(self.textPath, self.htmlWindow1.GetSize().asTuple())
+
+        self.refreshCtrls()
+
+    def OnHtmlPathClick(self, event):
+        url = event.linkinfo[0]
+
+        if url == 'UP':
+            self.lcFiles.selected = 0
+            self.ok()
+        elif url == 'NEWFOLDER':
+            self.lcFiles.OnNewFolder()
+        elif url == 'ROOT':
+            self.open(self.transports)
+        elif url == 'PROTROOT':
+            self.openProtRoot(self.lcFiles.node.protocol)
+        else:
+            self.SetDirectory(url)
+
+#-------------------------------------------------------------------------------
+
     def open(self, node):
         if node and node.isFolderish():
-            from Explorers.ExplorerNodes import TransportError
             try:
                 self.lcFiles.refreshItems(self.modImages, node)
-            except TransportError, v:
+            except ExplorerNodes.TransportError, v:
                 wxMessageBox(str(v), 'Transport Error',
                              wxOK | wxICON_EXCLAMATION | wxCENTRE)
                 return
@@ -250,7 +339,6 @@ class wxBoaFileDialog(wxDialog, Utils.FrameRestorerMixin):
             return
 
         if self.GetFilename():
-            #if self.lcFiles.hasItemNamed(self.GetFilename())
             self.editorFilterNode.setFilter(self.editorFilter)
             dir = self.GetDirectory()
             wxBoaFileDialog.currentDir = dir
@@ -268,25 +356,9 @@ class wxBoaFileDialog(wxDialog, Utils.FrameRestorerMixin):
 
             # handle absolute paths
             if pth:
-                from Explorers import ExplorerNodes, Explorer
-                try:
-                    absNode = Explorer.openEx(uri)
-                except Explorer.TransportCategoryError, err:
-                    prot = string.split(uri, ':')[0]
-                    # bare protocol entered, route to right toplevel node
-                    if err.args[0] == 'Category not found' and not err.args[1]:
-                        if prot == 'root':
-                            self.open(self.transports)
-                        elif self.transportsByProtocol.has_key(prot):
-                            self.open(self.transportsByProtocol[prot])
-                        else:
-                            raise
-                        self.SetFilename('')
-                        return
-                    else:
-                        raise
-
-                if not absNode:
+                absNode = self.openAndHandleCategoryErrors(uri)
+                if absNode is None:
+                    self.SetFilename('')
                     wxLogError('Not a valid absolute path')
                     return
 
@@ -334,7 +406,7 @@ class wxBoaFileDialog(wxDialog, Utils.FrameRestorerMixin):
         else:
             node = self.lcFiles.getSelection()
             if node: node.allowedProtocols = ['file', 'zip']
-        
+
         nameExistsInDir = self.lcFiles.hasItemNamed(self.GetFilename())
         if (node and not node.isFolderish() or not node) and self.style & wxOVERWRITE_PROMPT:
             if nameExistsInDir:
@@ -351,7 +423,7 @@ class wxBoaFileDialog(wxDialog, Utils.FrameRestorerMixin):
             node = self.lcFiles.getSelection()
             if node.isFolderish():
                 self.SetFilename('')
-            
+
         self.open(node)
 
     def OnBtokButton(self, event):
@@ -368,6 +440,33 @@ class wxBoaFileDialog(wxDialog, Utils.FrameRestorerMixin):
             self.lcFiles.Select(self.lcFiles.selected, false)
             self.lcFiles.selected = -1
         self.ok()
+
+    def openAndHandleCategoryErrors(self, uri, catFile=''):
+        if catFile:
+            openuri = os.path.join(uri, catFile)
+        else:
+            openuri = uri
+
+        try:
+            prot, cat, res, _uri = Explorer.splitURI(openuri)
+            if catFile:
+                res = os.path.dirname(res)
+            return Explorer.getTransport(prot, cat, res, self.transports)
+        except Explorer.TransportCategoryError, err:
+            prot = string.split(uri, ':')[0]
+            # bare protocol entered, route to right toplevel node
+            if err.args[0] == 'Category not found' and err.args[1]==catFile:
+                if prot == 'root':
+                    self.open(self.transports)
+                    return self.transports
+                elif self.transportsByProtocol.has_key(prot):
+                    node = self.transportsByProtocol[prot]
+                    self.open(node)
+                    return node
+                else:
+                    raise
+            else:
+                raise
 
 #---wxFileDialog lookalike meths------------------------------------------------
 
@@ -397,13 +496,15 @@ class wxBoaFileDialog(wxDialog, Utils.FrameRestorerMixin):
     def GetMessage(self):
         return self.GetTitle()
     def GetPath(self):
-        dir = self.GetDirectory()
-        if dir[-1] != self.lcFiles.node.pathSep:
-            return dir + self.lcFiles.node.pathSep + self.GetFilename()
+        if self.lcFiles.node.ignoreParentDir:
+            return self.GetFilename()
         else:
-            return dir + self.GetFilename()
+            dir = self.GetDirectory()
+            if dir and dir[-1] != self.lcFiles.node.pathSep:
+                return dir + self.lcFiles.node.pathSep + self.GetFilename()
+            else:
+                return dir + self.GetFilename()
     def GetFilePath(self):
-        from Explorers import Explorer
         prot, cat, res, uri = Explorer.splitURI(self.GetPath())
         assert prot == 'file', 'Only filesystem paths allowed'
         return res
@@ -414,11 +515,7 @@ class wxBoaFileDialog(wxDialog, Utils.FrameRestorerMixin):
         return self.wildcard
 
     def SetDirectory(self, newDir, localfilter='*'):
-        from Explorers import Explorer
-
-        prot, cat, res, uri = Explorer.splitURI(os.path.join(newDir,'dummy.tmp'))
-        res = os.path.dirname(res)
-        node = Explorer.getTransport(prot, cat, res, self.transports)
+        node = self.openAndHandleCategoryErrors(newDir, 'dummy.tmp')
         if not node:
             wxMessageBox('Could not open %s' % newDir,
                 'Warning', wxOK | wxICON_EXCLAMATION | wxCENTRE)
@@ -456,12 +553,12 @@ class wxBoaFileDialog(wxDialog, Utils.FrameRestorerMixin):
         self.wildcard = wildcard
         if wildcard in self.filterMap.keys():
             self.chTypes.SetStringSelection(self.filterMap[wildcard][0])
-            self.OnChtypesChoice(None)
+            self.OnChtypesChoice()
 
     def __repr__(self):
-        return '<C wxBoaFileDialog instance at %s>' % (self.this,)
+        return '<wxBoaFileDialog instance at %s>' % (self.this,)
 
-    def OnChtypesChoice(self, event):
+    def OnChtypesChoice(self, event=None):
         self.lcFiles.node.setFilter(self.filters[self.chTypes.GetStringSelection()])
         self.lcFiles.refreshCurrent()
 
@@ -469,25 +566,6 @@ class wxBoaFileDialog(wxDialog, Utils.FrameRestorerMixin):
         self.btOK.SetDefault()
         if self.lcFiles.selected == -1:
             self.lcFiles.selectItemNamed('..')
-
-    def OnHtmlPathClick(self, event):
-        url = event.linkinfo[0]
-
-        if url == 'UP':
-            self.lcFiles.selected = 0
-            self.ok()
-        elif url == 'NEWFOLDER':
-            self.lcFiles.OnNewFolder(None)
-        elif url == 'ROOT':
-            self.open(self.transports)
-        elif url == 'PROTROOT':
-            if self.transportsByProtocol.has_key(self.lcFiles.node.protocol):
-                self.open(self.transportsByProtocol[self.lcFiles.node.protocol])
-            else:
-                self.open(self.transports)
-        else:
-            #print 'URL: %s'%url
-            self.SetDirectory(url)
 
     def OnClose(self, event):
         self.OnBtcancelButton(event)
@@ -510,134 +588,143 @@ class wxBoaFileDialog(wxDialog, Utils.FrameRestorerMixin):
         else:
             event.Skip()
 
+    def openProtRoot(self, protocol):
+        if self.transportsByProtocol.has_key(protocol):
+            self.open(self.transportsByProtocol[protocol])
+        else:
+            self.open(self.transports)
 
-def createFileDlgFolderListClass():
-    # XXX This is a bit convoluted ;)
-    # XXX The late importing is the only way to avoid import problems because
-    # XXX the dialog swapping code is initialised so early on
 
-    from Explorers import Explorer
-    class FileDlgFolderList(Explorer.PackageFolderList):
-        def __init__(self, parent, dlg, filepath, pos = wxDefaultPosition, size = wxDefaultSize):
-            from Explorers import Explorer
-            Explorer.PackageFolderList.__init__(self, parent, '', pos, size,
-                  style = wxSUNKEN_BORDER | wxLC_SINGLE_SEL)
-            self.dlg = dlg
-            EVT_LIST_ITEM_SELECTED(self, self.GetId(), self.OnItemSelect)
-            EVT_LIST_ITEM_DESELECTED(self, self.GetId(), self.OnItemDeselect)
-            EVT_RIGHT_DOWN(self, self.OnListRightUp)
-            self.menu = wxMenu()
-            menuId = wxNewId()
-            self.menu.Append(menuId, 'New Folder')
-            EVT_MENU(self, menuId, self.OnNewFolder)
-            EVT_LIST_BEGIN_LABEL_EDIT(parent, self.GetId(), self.OnFDBeginLabelEdit)
-            EVT_LIST_END_LABEL_EDIT(self, self.GetId(), self.OnFDEndLabelEdit)
+class FileDlgFolderList(Explorer.BaseExplorerList):
+    def __init__(self, parent, dlg, filepath, pos=wxDefaultPosition,
+          size=wxDefaultSize):
+        Explorer.BaseExplorerList.__init__(self, parent, '', pos, size,
+              style=wxSUNKEN_BORDER|wxLC_SINGLE_SEL, menuFunc=self.getMenu)
+        self.dlg = dlg
+        EVT_LIST_ITEM_SELECTED(self, self.GetId(), self.OnItemSelect)
+        EVT_LIST_ITEM_DESELECTED(self, self.GetId(), self.OnItemDeselect)
+        #EVT_RIGHT_DOWN(self, self.OnListRightUp)
 
-            dlg.transports, dlg.transportsByProtocol = self.buildExplorerNodes()
+        self.menu = wxMenu()
+        menuId = wxNewId()
+        self.menu.Append(menuId, 'New Folder')
+        EVT_MENU(self, menuId, self.OnNewFolder)
 
-        def buildExplorerNodes(self):
-            import Preferences, Utils
-            from Models import EditorHelper
-            from Explorers import ExplorerNodes, FileExplorer
+        EVT_LIST_BEGIN_LABEL_EDIT(parent, self.GetId(), self.OnFDBeginLabelEdit)
+        EVT_LIST_END_LABEL_EDIT(self, self.GetId(), self.OnFDEndLabelEdit)
 
-            transports = ExplorerNodes.RootNode('Transport', EditorHelper.imgFolder)
-            transports.parent = transports
-            transports.protocol = 'root'
+        dlg.transports, dlg.transportsByProtocol = self.buildExplorerNodes()
 
-            conf = Utils.createAndReadConfig('Explorer')
-            catnode = FileExplorer.FileSysCatNode(None, conf, transports, None)
-            transports.entries.append(catnode)
-            transportsByProtocol = {'file': catnode}
+    def getMenu(self):
+        return self.menu
 
-            catnode = ExplorerNodes.BookmarksCatNode(None, conf, transports, transports)
-            transports.entries.insert(0, catnode)
-            transportsByProtocol['config.bookmark'] = catnode
+    def buildExplorerNodes(self):
+        transports = ExplorerNodes.RootNode('Transport', EditorHelper.imgFolder)
+        transports.parent = transports
+        transports.protocol = 'root'
 
-            for protocol in ('ftp', 'dav', 'ssh'):
-                if ExplorerNodes.isTransportAvailable(conf, 'explorer', protocol):
-                    Cat = ExplorerNodes.explorerNodeReg[\
-                          ExplorerNodes.nodeRegByProt[protocol]]['category']
-                    if Cat:
-                        catnode = Cat(None, conf, transports, None)
-                        transports.entries.append(catnode)
-                        transportsByProtocol[protocol] = catnode
+        conf = Utils.createAndReadConfig('Explorer')
+        catnode = FileExplorer.FileSysCatNode(None, conf, transports, None)
+        transports.entries.append(catnode)
+        transportsByProtocol = {'file': catnode}
 
-            return transports, transportsByProtocol
+        catnode = ExplorerNodes.BookmarksCatNode(None, conf, transports, transports)
+        transports.entries.insert(0, catnode)
+        transportsByProtocol['config.bookmark'] = catnode
 
-        def destroy(self, dont_pop=0):
-            self.menu.Destroy()
-            from Explorers import Explorer
-            Explorer.PackageFolderList.destroy(self, dont_pop)
+        for protocol in ('ftp', 'dav', 'ssh'):
+            if ExplorerNodes.isTransportAvailable(conf, 'explorer', protocol):
+                Cat = ExplorerNodes.explorerNodeReg[\
+                      ExplorerNodes.nodeRegByProt[protocol]]['category']
+                if Cat:
+                    catnode = Cat(None, conf, transports, None)
+                    transports.entries.append(catnode)
+                    transportsByProtocol[protocol] = catnode
 
-        def OnItemSelect(self, event):
-            from Explorers import Explorer
-            Explorer.PackageFolderList.OnItemSelect(self, event)
-            item = self.getSelection()
-            if item:
-                self.dlg.SelectItem(item.name)
-            elif self.selected == 0:
-                self.dlg.SelectItem('..')
+        syspathnode = ExplorerNodes.nodeRegByProt['sys.path'](None, transports, None)
+        transports.entries.append(syspathnode)
+        transportsByProtocol[syspathnode.protocol] = syspathnode
+
+        oscwdnode = ExplorerNodes.nodeRegByProt['os.cwd'](None, transports, None)
+        transports.entries.append(oscwdnode)
+        transportsByProtocol[oscwdnode.protocol] = oscwdnode
+
+        mrucatnode = ExplorerNodes.MRUCatNode(None, conf, transports,
+              transports, None)
+        transports.entries.insert(0, mrucatnode)
+        transportsByProtocol[mrucatnode.protocol] = mrucatnode
+
+        return transports, transportsByProtocol
+
+    def destroy(self, dont_pop=0):
+        self.menu.Destroy()
+        Explorer.BaseExplorerList.destroy(self, dont_pop)
+
+    def OnItemSelect(self, event):
+        Explorer.BaseExplorerList.OnItemSelect(self, event)
+        item = self.getSelection()
+        if item:
+            self.dlg.SelectItem(item.name)
+        elif self.selected == 0:
+            self.dlg.SelectItem('..')
+        event.Skip()
+
+    def OnItemDeselect(self, event):
+        Explorer.BaseExplorerList.OnItemDeselect(self, event)
+        self.dlg.SelectItem(None)
+        event.Skip()
+
+##        def OnListRightUp(self, event):
+##            self.PopupMenu(self.menu, wxPoint(event.GetX(), event.GetY()))
+##            event.Skip()
+
+    def OnNewFolder(self, event=None):
+        name = Utils.getValidName(self.getAllNames(), 'Folder')
+        self.node.newFolder(name)
+        self.refreshCurrent()
+        self.selectItemNamed(name)
+        self.EnsureVisible(self.selected)
+        self.EditLabel(self.selected)
+
+    def OnFDBeginLabelEdit(self, event):
+        self.oldLabelVal = event.GetText()
+        if self.oldLabelVal == '..':
+            event.Veto()
+        else:
             event.Skip()
 
-        def OnItemDeselect(self, event):
-            from Explorers import Explorer
-            Explorer.PackageFolderList.OnItemDeselect(self, event)
-            self.dlg.SelectItem(None)
-            event.Skip()
-
-        def OnListRightUp(self, event):
-            self.PopupMenu(self.menu, wxPoint(event.GetX(), event.GetY()))
-            event.Skip()
-
-        def OnNewFolder(self, event):
-            name = Utils.getValidName(self.getAllNames(), 'Folder')
-            self.node.newFolder(name)
+    def OnFDEndLabelEdit(self, event):
+        newText = event.GetText()
+        event.Skip()
+        if newText != self.oldLabelVal:# and isinstance(self.list.node, ZopeItemNode):
+            self.node.renameItem(self.oldLabelVal, newText)
             self.refreshCurrent()
-            self.selectItemNamed(name)
+            self.selectItemNamed(newText)
             self.EnsureVisible(self.selected)
-            self.EditLabel(self.selected)
 
-        def OnFDBeginLabelEdit(self, event):
-            self.oldLabelVal = event.GetText()
-            if self.oldLabelVal == '..':
-                event.Veto()
-            else:
-                event.Skip()
-
-        def OnFDEndLabelEdit(self, event):
-            newText = event.GetText()
-            event.Skip()
-            if newText != self.oldLabelVal:# and isinstance(self.list.node, ZopeItemNode):
-                self.node.renameItem(self.oldLabelVal, newText)
-                self.refreshCurrent()
-                self.selectItemNamed(newText)
-                self.EnsureVisible(self.selected)
-
-    return FileDlgFolderList
+#    return FileDlgFolderList
 
 if __name__ == '__main__':
     # simple testing harness
     app = wxPySimpleApp()
     import PaletteMapping
-    from Models import EditorHelper
-    from Explorers import ExplorerNodes, FileExplorer, FTPExplorer
+    from Explorers import FTPExplorer
 
     conf = Utils.createAndReadConfig('Explorer')
     transports = ExplorerNodes.ContainerNode('Transport', EditorHelper.imgFolder)
-    from Explorers import Explorer
     Explorer.all_transports = transports
     transports.entries.append(FileExplorer.FileSysCatNode(None, conf, None, None))
     if conf.has_option('explorer', 'ftp'):
         transports.entries.append(FTPExplorer.FTPCatNode(None, conf, None, None))
 
     wxBoaFileDialog.modImages = wxImageList(16, 16)
-    dlg = wxBoaFileDialog(None, defaultDir='.', wildcard='BoaFiles')
+    dlg = wxBoaFileDialog(None, defaultDir='recent.files://', wildcard='BoaFiles')
     try:
         if dlg.ShowModal() == wxID_OK:
             wxMessageBox(dlg.GetPath())
     finally:
         dlg.Destroy()
-        
+
     #Preferences.cleanup()
 
 # redefine wxFileDialog
