@@ -15,8 +15,6 @@
     and interacts with the designer and companions
 """    
 
-# XXX Expanding properties ditch or fix ?
-
 from wxPython.wx import *
 import PaletteMapping, sender, Preferences, Help
 print 'importing PropertyEditors'
@@ -26,7 +24,6 @@ from Companions.EventCollections import *
 from Utils import AddToolButtonBmpIS
 import Preferences, RTTI
 from Preferences import IS, oiLineHeight, oiNamesWidth, inspPageNames, flatTools
-print 'zpd'
 from ZopeLib import PropDlg
 
 scrollBarWidth = 0
@@ -41,7 +38,7 @@ class InspectorFrame(wxFrame):
         pass
 
     def _init_ctrls(self, prnt): 
-        wxFrame.__init__(self, size = (-1, -1), id = wxID_INSPECTORFRAME, title = 'Inspector', parent = prnt, name = '', style = wxDEFAULT_FRAME_STYLE | wxWANTS_CHARS | wxCLIP_CHILDREN, pos = (-1, -1))
+        wxFrame.__init__(self, size = (-1, -1), id = wxID_INSPECTORFRAME, title = 'Inspector', parent = prnt, name = '', style = wxDEFAULT_FRAME_STYLE | wxCLIP_CHILDREN, pos = (-1, -1)) #wxWANTS_CHARS |
         self._init_utils()
 
     def __init__(self, parent):
@@ -68,9 +65,8 @@ class InspectorFrame(wxFrame):
           wxDEFAULT, wxNORMAL, wxBOLD, false))
 
         if wxPlatform == '__WXMSW__':
-            self.SetIcon(wxIcon(Preferences.toPyPath('Images/Icons/Inspector.ico'), 
-              wxBITMAP_TYPE_ICO))
-	
+            self.SetIcon(IS.load('Images/Icons/Inspector.ico'))
+
         EVT_SIZE(self, self.OnSizing)
 
         self.vetoSelect = false
@@ -95,6 +91,8 @@ class InspectorFrame(wxFrame):
         AddToolButtonBmpIS(self, self.toolBar, 'Images/Editor/Refresh.bmp', 
           'Recreate selection', self.OnRecreateSelection)
         self.toolBar.AddSeparator()
+##        AddToolButtonBmpIS(self, self.toolBar, 'Images/Shared/RevertItem.bmp', 
+##          'Revert item', self.OnRevertItem)
         AddToolButtonBmpIS(self, self.toolBar, 'Images/Shared/NewItem.bmp', 
           'New item', self.OnNewItem)
         AddToolButtonBmpIS(self, self.toolBar, 'Images/Shared/DeleteItem.bmp', 
@@ -113,7 +111,7 @@ class InspectorFrame(wxFrame):
 
         self.constr = InspectorConstrScrollWin(self.pages, self)
         self.pages.AddPage(self.constr, inspPageNames['Constr'])
-	
+
         self.props = InspectorPropScrollWin(self.pages, self)
         self.pages.AddPage(self.props, inspPageNames['Props'])
 
@@ -123,10 +121,10 @@ class InspectorFrame(wxFrame):
         self.containment = ParentTree(self.pages)
         self.containment.SetImageList(self.paletteImages)
         self.pages.AddPage(self.containment, inspPageNames['Objs'])
- 	
+
         self.selection = None
 
-	EVT_CLOSE(self, self.OnCloseWindow)
+        EVT_CLOSE(self, self.OnCloseWindow)
         
     def multiSelectObject(self, compn, designer):
         self.selCmp = compn
@@ -137,20 +135,16 @@ class InspectorFrame(wxFrame):
         """ Select an object in the inspector by populating the property
             pages. This method is called from the InspectableObjectCollection
             derived classes """
-#        if (self.selObj == obj and self.selCmp == compn) or self.vetoSelect:
-        if (self.selCmp == compn) or self.vetoSelect:
+        if self.selCmp == compn or self.vetoSelect:
             return
 
         # Clear inspector selection
-##        self.cleanup()
         self.constr.cleanup()
         self.props.cleanup()
         self.events.cleanup()
 
         if self.prevDesigner and compn.designer and \
           compn.designer != self.prevDesigner:
-##               and \
-##          hasattr(self.prevDesigner, 'selection'):
             if compn.designer.supportsParentView:  
                 compn.designer.refreshContainment()
             else: pass
@@ -183,10 +177,10 @@ class InspectorFrame(wxFrame):
         if selectInContainment and self.containment.valid: 
             # XXX Ugly must change
             try:
-	         treeId = self.containment.treeItems[compn.name]
+                 treeId = self.containment.treeItems[compn.name]
             except:
-	         treeId = self.containment.treeItems['']
-		
+                 treeId = self.containment.treeItems['']
+
             self.containment.valid = false
             self.containment.SelectItem(treeId)
             self.containment.valid = true
@@ -197,8 +191,9 @@ class InspectorFrame(wxFrame):
     # These methods update property pages.
     # Call when changes in the selected control is detected 
     def pageUpdate(self, page, name):
-	nv = page.getNameValue(name)
-        if nv: nv.initFromComponent()
+        nv = page.getNameValue(name)
+        if nv: 
+            page.initFromComponent(name)
     def propertyUpdate(self, name):
         self.pageUpdate(self.props, name)
     def constructorUpdate(self, name):
@@ -213,7 +208,6 @@ class InspectorFrame(wxFrame):
     # While multiple components are selected the inspector does not persist
     # selected control value changes
     def directPositionUpdate(self, comp):
-        print 'directPositionUpdate', comp.name
         comp.persistProp('Position', 'SetPosition', `comp.control.GetPosition()`)
     def directSizeUpdate(self, comp):
         comp.persistProp('Size', 'SetSize', `comp.control.GetSize()`)
@@ -230,7 +224,6 @@ class InspectorFrame(wxFrame):
         self.constr.cleanup()
         self.props.cleanup()
         self.events.cleanup()
-#        self.containment.cleanup()
         self.statusBar.SetStatusText('')
 
     def initSashes(self):
@@ -279,10 +272,17 @@ class InspectorFrame(wxFrame):
             Help.showHelp(self, Help.BoaHelpFrame, 'Inspector.html')
 
     def refreshZopeProps(self):
-        c = self.selCmp
-        self.selCmp.updateZopeProps()
+        cmpn = self.selCmp
+        cmpn.updateZopeProps()
         self.selCmp = None
-        self.selectObject(c)
+        self.selectObject(cmpn)
+
+    def OnRevertItem(self, event):
+        if self.selCmp and self.props.prevSel and self.props.prevSel.propEditor:
+            propEdit = self.props.prevSel.propEditor
+            propEdit.companion.propRevertToDefault(propEdit.name, 
+                  propEdit.propWrapper.getSetterName())
+            self.props.prevSel.showPropNameModified()
     
     def OnNewItem(self, event):
         if self.selCmp and hasattr(self.selCmp, 'propItems'):
@@ -327,7 +327,6 @@ class ParentTree(wxTreeCtrl):
         self.valid = false
         self.treeItems = {}
         self.DeleteAllItems()
- 
                                 
     def addChildren(self, parent, dict, designer):
         """ Recursive method to construct parent/child relationships in a tree """
@@ -371,29 +370,35 @@ class ParentTree(wxTreeCtrl):
 #                if idx == self.root:
 #                if self.GetRootItem() == idx:
                 # Ugly but nothing else works
-                try:    		
+                try:
                     ctrlInfo = self.designer.objects[self.GetItemText(idx)]
                 except KeyError:
                     ctrlInfo = self.designer.objects['']
             
                 if hasattr(self.designer, 'selection') and self.designer.selection:
+                    print 'Insp select:', ctrlInfo[1]
+                    td = self.designer.selection.dragging
+                    self.designer.selection.dragging = false
+                    self.designer.selection.startSize = ctrlInfo[1].GetSize()
+                    self.designer.selection.startPos = ctrlInfo[1].GetPosition()
                     self.designer.selection.selectCtrl(ctrlInfo[1], ctrlInfo[0])
+                    self.designer.selection.dragging = td
     
         
 class NameValue:
     """ Base class for all name value pairs that appear in the Inspector """
     def __init__(self, inspector, nameParent, valueParent, companion, 
       rootCompanion, name, propWrapper, idx, indent, 
-      editor = None, options = None, names = None):
+      editor = None, options = None, names = None, ownerPropEdit = None):
 
-	self.destr = false
+        self.destr = false
         self.lastSizeN = 0
         self.lastSizeV = 0
         self.indent = indent
         self.inspector = inspector
         self.propName = name
         self.editing = false
-	
+
         self.nameParent = nameParent
         self.valueParent = valueParent
         self.idx = idx
@@ -409,35 +414,40 @@ class NameValue:
         else:    
             self.propEditor = self.inspector.inspector.propertyRegistry.factory(name, 
               valueParent, companion, rootCompanion, propWrapper, idx, 
-              valueParent.GetSize().x+IECWidthFudge)
-        	
-	self.expander = None
-	if self.propEditor: 
-	    self.propValue = self.propEditor.getValue()
-	    displayVal = self.propEditor.getDisplayValue()
-	    
-	    # check if it's expandable
-	    if self.propEditor.getStyle().count(PropertyEditors.esExpandable):
-	        mID = NewId()
-	        self.expander = wxCheckBox(nameParent, mID, '', 
-	          wxPoint(8 * self.indent, self.idx * oiLineHeight +2), 
-	          wxSize(12, 14))
-	        self.expander.SetValue(true)
-	        EVT_CHECKBOX(self.expander, mID, self.OnExpand)
-	else: 
-	    self.propValue = ''
-	    displayVal = ''
-	
+              valueParent.GetSize().x + IECWidthFudge)
+
+        self.expander = None
+        if self.propEditor:
+            self.propEditor.ownerPropEdit = ownerPropEdit
+            self.updatePropValue()
+            displayVal = self.propEditor.getDisplayValue()
+
+            # check if it's expandable
+            if PropertyEditors.esExpandable in self.propEditor.getStyle():
+                mID = NewId()
+                self.expander = wxCheckBox(nameParent, mID, '', 
+                  wxPoint(8 * self.indent, self.idx * oiLineHeight +2), 
+                  wxSize(12, 14))
+                self.expander.SetValue(true)
+                EVT_CHECKBOX(self.expander, mID, self.OnExpand)
+        else: 
+            self.propValue = ''
+            displayVal = ''
+
         self.nameCtrl = wxStaticText(nameParent, -1, name, 
           wxPoint(8 * self.indent + 16, idx * oiLineHeight +2), 
           wxSize(inspector.panelNames.GetSize().x, oiLineHeight -3), 
-          style = wxCLIP_CHILDREN)
+          style = wxCLIP_CHILDREN | wxST_NO_AUTORESIZE)
+        self.nameCtrl.SetToolTipString(name)
         EVT_LEFT_DOWN(self.nameCtrl, self.OnSelect)
 
+        self.showPropNameModified()
+        
         self.value = wxStaticText(valueParent, -1, displayVal, 
           wxPoint(2, idx * oiLineHeight +2), wxSize(inspector.getValueWidth(), 
-          oiLineHeight -3), style = wxCLIP_CHILDREN)
+          oiLineHeight -3), style = wxCLIP_CHILDREN | wxST_NO_AUTORESIZE)
         self.value.SetForegroundColour(wxColour(0, 0, 100))
+        self.value.SetToolTipString(displayVal)
         EVT_LEFT_DOWN(self.value, self.OnSelect)
 
         self.separatorN = wxPanel(nameParent, -1, wxPoint(0, 
@@ -452,19 +462,40 @@ class NameValue:
     
     def destroy(self, cancel = false):
         self.hideEditor(cancel)
-	self.destr = true
+        self.destr = true
         self.nameCtrl.Destroy()
         self.value.Destroy()
         self.separatorN.Destroy()
         self.separatorV.Destroy()
         if self.expander:
             self.expander.Destroy()
+    
+    def updatePropValue(self):
+        self.propValue = self.propEditor.getValue()        
+
+    def showPropNameModified(self):
+        if self.propEditor and Preferences.showModifiedProps:
+            propEdit = self.propEditor
+            propSetter = propEdit.propWrapper.getSetterName()
+            mod = not propEdit.companion.propIsDefault(propEdit.name, propSetter)
+            fnt = self.nameCtrl.GetFont()
+            self.nameCtrl.SetFont(wxFont(fnt.GetPointSize(), 
+              fnt.GetFamily(), fnt.GetStyle(), mod and wxBOLD or wxNORMAL, 
+              fnt.GetUnderlined(), fnt.GetFaceName()))
+    
+    def updateDisplayValue(self):
+        dispVal = self.propEditor.getDisplayValue()
+        self.value.SetLabel(dispVal)
+        # XXX if not too expensive, only set Tip if caption does not
+        # XXX fit in window
+        self.value.SetToolTipString(dispVal)
+        self.showPropNameModified()
             
     def setPos(self, idx):
         self.idx = idx
         if self.expander:
             self.expander.SetPosition(wxPoint(8 * self.indent, 
-            self.idx * oiLineHeight))
+            self.idx * oiLineHeight + 2))
         self.nameCtrl.SetPosition(wxPoint(8 * self.indent + 16, idx * oiLineHeight +2))
         self.value.SetPosition(wxPoint(2, idx * oiLineHeight +2))
         self.separatorN.SetPosition(wxPoint(0, (idx +1) * oiLineHeight))
@@ -496,7 +527,7 @@ class NameValue:
                 self.valueBevelTop.SetSize(wxSize(valueWidth, 1))
                 self.valueBevelBottom.SetSize(wxSize(valueWidth, 1))
 
-    	    self.value.SetSize(wxSize(valueWidth, self.value.GetSize().y))
+            self.value.SetSize(wxSize(valueWidth, self.value.GetSize().y))
 
             self.separatorV.SetSize(wxSize(valueWidth, 1))
 
@@ -517,9 +548,10 @@ class NameValue:
         self.nameBevelBottom.SetBackgroundColour(wxWHITE)
         if self.propEditor:
             self.value.SetLabel('')
+            self.value.SetToolTipString('')
             self.value.SetSize((0, 0))
-	    self.propEditor.inspectorEdit()	            
-  	else:
+            self.propEditor.inspectorEdit()
+        else:
             self.valueBevelTop = wxPanel(self.valueParent, -1, 
               wxPoint(0, self.idx*oiLineHeight -1), 
               wxSize(self.inspector.getValueWidth(), 1))
@@ -531,11 +563,14 @@ class NameValue:
         self.editing = true
 
     def hideEditor(self, cancel = false):
-        if (not cancel) and self.propEditor:# and (not self.destr):
-            self.propEditor.inspectorPost()
-	    self.value.SetLabel(self.propEditor.getDisplayValue())            
-    	    self.value.SetSize(wxSize(self.separatorV.GetSize().x, 
-              self.value.GetSize().y))
+        if self.propEditor:# and (not self.destr):
+            if cancel:
+                self.propEditor.inspectorCancel()
+            else:                
+                self.propEditor.inspectorPost()
+                self.updateDisplayValue()
+                self.value.SetSize(wxSize(self.separatorV.GetSize().x, 
+                  oiLineHeight-3))
 
         if self.nameBevelTop:
             self.nameBevelTop.Destroy()
@@ -550,7 +585,7 @@ class NameValue:
             self.valueBevelBottom = None
        
         self.editing = false
-	    
+
     def OnSelect(self, event):
         self.inspector.propertySelected(self)
     
@@ -566,12 +601,20 @@ class PropNameValue(NameValue):
         if self.propEditor: 
             self.propEditor.initFromComponent()
             if not self.propEditor.editorCtrl:
-                self.value.SetLabel(self.propEditor.getDisplayValue())
+                self.updateDisplayValue()
             self.propEditor.persistValue(self.propEditor.valueAsExpr())
 
 class ConstrNameValue(NameValue):
     """ Name value for constructor parameters """
-    pass
+    def initFromComponent(self):
+        """ Update Inspector after possible change to underlying control """
+        if self.propEditor: 
+            self.propEditor.initFromComponent()
+            if not self.propEditor.editorCtrl:
+                self.updateDisplayValue()
+            #self.propEditor.persistValue(self.propEditor.valueAsExpr())
+    def showPropNameModified(self):
+        pass
 
 class EventNameValue(NameValue):
     """ Name value for event definitions """
@@ -579,24 +622,19 @@ class EventNameValue(NameValue):
         if self.propEditor: 
             self.propEditor.initFromComponent()
             if not self.propEditor.editorCtrl:
-                self.value.SetLabel(self.propEditor.getDisplayValue())
+                self.updateDisplayValue()
 
 class ZopePropNameValue(NameValue):
     """ Name value for properties, usually Get/Set methods, but can also be
         routed to Companion methods """
     def initFromComponent(self):
         pass
-##        if self.propEditor: 
-##            self.propEditor.initFromComponent()
-##            if not self.propEditor.editorCtrl:
-##                self.value.SetLabel(self.propEditor.getDisplayValue())
-##            self.propEditor.persistValue(self.propEditor.valueAsExpr())
 
 class EventsWindow(wxSplitterWindow):
     """ Window that hosts event name values and event category selection """
     def __init__(self, parent, inspector):
         wxSplitterWindow.__init__(self, parent, -1, 
-          style = wxSP_NOBORDER|wxSP_LIVE_UPDATE)#wxNO_3D|wxSP_3D)
+          style = wxSP_NOBORDER|wxNO_3D|wxSP_LIVE_UPDATE)#wxNO_3D|wxSP_3D|wxSP_NOBORDER)
         self.inspector = inspector
         
         self.categories = wxSplitterWindow(self, -1, 
@@ -617,9 +655,6 @@ class EventsWindow(wxSplitterWindow):
         EVT_LIST_ITEM_DESELECTED(self.categoryMacros, 101, self.OnMacClassDeselect)
         EVT_LEFT_DCLICK(self.categoryMacros, self.OnMacroSelect) 
 
-        #f = self.categoryMacros.GetFont()
-        #f.SetPointSize(f.GetPointSize() -5)
-        #self.categoryMacros.SetFont(f)
         self.selMacClass = -1
 
         self.categories.SetMinimumPaneSize(20)
@@ -635,7 +670,6 @@ class EventsWindow(wxSplitterWindow):
         EVT_MENU(self, tPopupIDDelete, self.OnDelete)
 
     def readObject(self):
-##        print 'EVENT WINDOW READ OBJECT', self.inspector.selCmp.events()
         #clean up all previous items
         self.cleanup()
         
@@ -643,15 +677,10 @@ class EventsWindow(wxSplitterWindow):
         for catCls in self.inspector.selCmp.events():
             self.categoryClasses.InsertStringItem(0, catCls)
         
-##        vs = self.definitions.GetVirtualSize()
-##        self.definitions.panelNames.SetSize(wxSize(oiNamesWidth, vs[1]))
-##        self.definitions.panelValues.SetSize(wxSize(vs[0] - oiNamesWidth, vs[1]))
-
         self.definitions.readObject()
         
         self.definitions.refreshSplitter()
 
-##	self.definitions.splitter.SetSize(wxSize(self.definitions.GetSize().x, len(self.definitions.nameValues) *18 + 1))
     def cleanup(self):
         self.definitions.cleanup()
         self.categoryClasses.DeleteAllItems()
@@ -672,11 +701,11 @@ class EventsWindow(wxSplitterWindow):
         self.inspector.selCmp.evtSetter(name, value)
         
         self.definitions.addEvent(name)
-	self.definitions.refreshSplitter()
+        self.definitions.refreshSplitter()
 
     def getEvent(self, name):
         return self.definitions.getNameValue(name)
-            	    
+
     def macroNameToEvtName(self, macName):
         flds = string.splitfields(macName, '_')
         del flds[0] #remove 'EVT'
@@ -705,27 +734,30 @@ class EventsWindow(wxSplitterWindow):
     def OnMacClassDeselect(self, event):
         self.selMacClass = -1
     
+    def doAddEvent(self, catClassName, macName):
+        companion = self.inspector.selCmp
+        methName = self.macroNameToEvtName(macName)
+        frameName = companion.designer.GetName()
+        if catClassName in commandCategories:
+            wid = companion.getWinId()
+        else:
+            wid = None
+        nv = self.getEvent(macName[4:])
+        if nv:
+            self.addEvent(macName[4:], methName, wid)
+            nv.initFromComponent()
+            nv.OnSelect(None)
+
+        else: self.addEvent(macName[4:], methName, wid)
+        
+    
     def OnMacroSelect(self, event):
         if self.selMacClass > -1:
-            companion = self.inspector.selCmp
-            macName = self.categoryMacros.GetItemText(self.selMacClass)
-            methName = self.macroNameToEvtName(macName)
             catClassName = self.categoryClasses.GetItemText(self.selCatClass)
-            frameName = companion.designer.GetName()
-            if catClassName in commandCategories:
-##                print 'in cmd cat', companion.getWinId()
-                wid = companion.getWinId()
-            else:
-##                print 'not in cmd cat'
-                wid = None
-            nv = self.getEvent(macName[4:])
-            if nv:
-                self.addEvent(macName[4:], methName, wid)
-                nv.initFromComponent()
-                nv.OnSelect(None)
-
-            else: self.addEvent(macName[4:], methName, wid)
-
+            macName = self.categoryMacros.GetItemText(self.selMacClass)
+            
+            self.doAddEvent(catClassName, macName)
+            
     def OnAdd(self, event):
         self.OnMacroSelect(event)
     
@@ -744,8 +776,7 @@ class NameValueEditorScrollWin(wxScrolledWindow):
     """ Window that hosts a list of name values. Also provides capability to
         scroll a line at a time, depending on the size of the list """
     def __init__(self, parent):
-        wxScrolledWindow.__init__(self, parent, -1, wxPoint(0, 0), wxPyDefaultSize, wxSUNKEN_BORDER)
-#        self.SetBackgroundColour(wxColour(160, 160, 160))
+        wxScrolledWindow.__init__(self, parent, -1, wxPoint(0, 0), wxPyDefaultSize, wxSUNKEN_BORDER | wxTAB_TRAVERSAL)
         self.nameValues = []
         self.prevSel = None
         self.splitter = wxSplitterWindow(self, -1, wxPoint(0, 0), 
@@ -753,9 +784,9 @@ class NameValueEditorScrollWin(wxScrolledWindow):
           style = wxNO_3D|wxSP_3D|wxSP_NOBORDER|wxSP_LIVE_UPDATE)#wxNO_3D|#wxSP_NOBORDER)#wxSP_3D)#
 
         self.panelNames = wxPanel(self.splitter, -1, 
-          wxDefaultPosition, wxSize(100, 1))
+          wxDefaultPosition, wxSize(100, 1), style = wxTAB_TRAVERSAL)
         EVT_SIZE(self.panelNames, self.OnNameSize)   
-        self.panelValues = wxPanel(self.splitter, -1)
+        self.panelValues = wxPanel(self.splitter, -1, style = wxTAB_TRAVERSAL)
         EVT_SIZE(self.panelValues, self.OnNameSize)   
 
         self.splitter.SplitVertically(self.panelNames, self.panelValues)
@@ -764,13 +795,13 @@ class NameValueEditorScrollWin(wxScrolledWindow):
         self.splitter.SetSashSize(4)
         
         EVT_SIZE(self, self.OnSize)   
-	
+
     def cleanup(self):
         # XXX Does this always have to be inited here?
         self.prevSel = None
         #clean up
         for i in self.nameValues:
-            i.destroy()
+            i.destroy(true)
         self.nameValues = []
         self.refreshSplitter()
 
@@ -779,7 +810,7 @@ class NameValueEditorScrollWin(wxScrolledWindow):
             if nv.propName == name:
                 return nv
         return None
-                 	
+
     def getWidth(self):
         return self.GetSize().x
 
@@ -790,28 +821,56 @@ class NameValueEditorScrollWin(wxScrolledWindow):
         return self.panelValues.GetClientSize().x + IECWidthFudge
         
     def refreshSplitter(self):
-#	self.splitter.SetSize(wxSize(self.GetClientSize().x, self.getHeight()))
         s = wxSize(self.GetClientSize().x, self.getHeight())
-	self.splitter.SetDimensions(0, 0, s.x, s.y)
-	
+        wOffset, hOffset = self.GetViewStart()
+        puw, puh = self.GetScrollPixelsPerUnit()
+        if hOffset and len(self.nameValues) < s.y /hOffset:
+            hOffset = 0
+        self.splitter.SetDimensions(wOffset * puw, hOffset * puh * -1, s.x, s.y)
+        self.updateScrollbars(wOffset, hOffset)
+        
+    def updateScrollbars(self, wOffset, hOffset):
+        height = len(self.nameValues)
+        self.SetScrollbars(oiLineHeight, oiLineHeight, 0, height + 1, wOffset, hOffset) #height + 1
+
     def propertySelected(self, nameValue):
         """ Called when a new name value is selected """
         if self.prevSel:
+            if nameValue == self.prevSel: return
             self.prevSel.hideEditor()
-    	nameValue.showEdit()
-    	self.prevSel = nameValue
+        nameValue.showEdit()
+        self.prevSel = nameValue
 
-    def resizeNames(self):	
+    def resizeNames(self):
         for nv in self.nameValues:
            nv.resize(self.panelNames.GetSize().x, self.getValueWidth())
 
     def initSash(self):
         self.splitter.SetSashPosition(self.GetSize().x / 2.25)    
 
+    def initFromComponent(self, name):
+        """ Update a property and it's sub properies from the underlying
+            control """
+            
+        nv = self.getNameValue(name)
+        if nv: 
+            nv.initFromComponent()
+            idx = nv.idx + 1
+            idnt = nv.indent + 1
+            while 1:
+                if idx >= len(self.nameValues): break
+                # XXX Why isn't style updating
+                nv = self.nameValues[idx]
+                if nv.indent < idnt: break
+                nv.propEditor.companion.updateObjFromOwner()
+                nv.propEditor.propWrapper.connect(nv.propEditor.companion.obj, nv.propEditor.companion)
+                nv.initFromComponent()
+                idx = idx + 1
+
     def OnSize(self, event):
         self.refreshSplitter()
         event.Skip()
-	
+
     def OnNameSize(self, event):
         self.resizeNames()
         event.Skip()
@@ -821,11 +880,11 @@ class InspectorScrollWin(NameValueEditorScrollWin):
         Inspector and implements keyboard events """
     def __init__(self, parent, inspector):
         NameValueEditorScrollWin.__init__(self, parent)
-	self.inspector = inspector
-	
-	self.EnableScrolling(false, true)
-	# ?
-	self.expanders = sender.SenderMapper()
+        self.inspector = inspector
+
+        self.EnableScrolling(false, true)
+        # ?
+        self.expanders = sender.SenderMapper()
 
         self.selObj = inspector.selObj
         self.selCmp = inspector.selCmp
@@ -851,22 +910,45 @@ class InspectorScrollWin(NameValueEditorScrollWin):
             initialisation and construction of the name value list """
 
     def deleteNameValues(self, idx, count, cancel = false):
-        # delete sub properties
+        """ Removes a range of name values from the Inspector.
+            Used to collapse sub properties
+        """
         deleted = 0
         if idx < len(self.nameValues):
+            # delete sub properties
             while (idx < len(self.nameValues)) and (deleted < count):
                 if self.nameValues[idx] == self.prevSel: self.prevSel = None
-	        self.nameValues[idx].destroy(cancel)
-	        del self.nameValues[idx]
-	        deleted = deleted + 1
+                self.nameValues[idx].destroy(cancel)
+                del self.nameValues[idx]
+                deleted = deleted + 1
 
-	if idx + 1 < len(self.nameValues):
             # move properties up
             for idx in range(idx, len(self.nameValues)):
                 self.nameValues[idx].setPos(idx)
 
     def extendHelpUrl(self, url):
         return url
+
+    def collapse(self, nameValue):
+        # delete all NameValues until the same indent, count them
+        startIndent = nameValue.indent
+        idx = nameValue.idx + 1
+                
+        # Move deletion into method and use in removeEvent of EventWindow
+        i = idx
+        if i < len(self.nameValues):
+            while (i < len(self.nameValues)) and \
+              (self.nameValues[i].indent > startIndent):
+                i = i + 1
+        count = i - idx
+        
+        self.deleteNameValues(idx, count)
+        self.refreshSplitter()
+        nameValue.propEditor.expanded = false
+
+##    def refreshSplitter(self):
+##        NameValueEditorScrollWin.refreshSplitter(self):
+##        self.updateScrollbars()
 
     def OnEnter(self, event):
         for nv in self.nameValues:
@@ -882,9 +964,14 @@ class InspectorScrollWin(NameValueEditorScrollWin):
             for idx in range(1, len(self.nameValues)):
                 if self.nameValues[idx].editing:
                     self.propertySelected(self.nameValues[idx-1])
+                    #if self.nameValues[idx-1].
                     break
             else:
                 self.propertySelected(self.nameValues[0])
+
+            x, y = self.GetViewStart()
+            if y >= idx:
+                self.Scroll(x, y-1)
             
     def OnCrsDown(self, event):
         if len(self.nameValues) > 1:
@@ -893,134 +980,146 @@ class InspectorScrollWin(NameValueEditorScrollWin):
                     self.propertySelected(self.nameValues[idx+1])
                     break
             else:
-                self.propertySelected(self.nameValues[0])
+                self.propertySelected(self.nameValues[-1])
+
+            dx, dy = self.GetScrollPixelsPerUnit()
+            cs = self.GetClientSize()
+            x, y = self.GetViewStart()
+            if y <= idx + 1 - cs.y / dy:
+                self.Scroll(x, y+1)
 
 class InspectorPropScrollWin(InspectorScrollWin):
     """ Specialised InspectorScrollWin that understands properties """
-    def setNameValues(self, compn, rootCompn, nameValues, insIdx, indent):
-    	top = insIdx
-    	
-    	# Add NameValues to panel
-    	for nameValue in nameValues:
-    	    # Check if there is an associated companion	
+    def setNameValues(self, compn, rootCompn, nameValues, insIdx, indent, ownerPropEdit = None):
+        top = insIdx
+        # Add NameValues to panel
+        for nameValue in nameValues:
+            # Check if there is an associated companion	
             if compn: 
                 self.nameValues.insert(top, PropNameValue(self, self.panelNames, 
                   self.panelValues, compn, rootCompn, nameValue.name, 
                   nameValue, top, indent, 
                   compn.getPropEditor(nameValue.name), 
                   compn.getPropOptions(nameValue.name), 
-                  compn.getPropNames(nameValue.name)))
-	    top = top + 1
+                  compn.getPropNames(nameValue.name),
+                  ownerPropEdit))
+            top = top + 1
 
-	self.refreshSplitter()
+        self.refreshSplitter()
 
     def extendHelpUrl(self, url):
         if self.prevSel:
             suburl = 'get'+string.lower(self.prevSel.name)
         return url + '#' + suburl
 
-#XXX only companion should be passed around, companion contains the controlx
-
     # read in the root object
     def readObject(self, propList):
-##        self.cleanup()
-
-	# create root list
-	self.setNameValues(self.inspector.selCmp, self.inspector.selCmp, 
-	  propList, 0, 0)
-        
-        height = len(self.nameValues)
-        self.SetScrollbars(oiLineHeight, oiLineHeight, 0, height + 1)
+        self.setNameValues(self.inspector.selCmp, self.inspector.selCmp, 
+          propList, 0, 0)
 
     def expand(self, nameValue):
-##        self.readObject(self.nameValues[nameValue.idx].propValue)
-                
-        obj = self.nameValues[nameValue.idx].propValue
+        nv = self.nameValues[nameValue.idx]        
+        obj = nv.propValue
+        compn = nv.propEditor.getSubCompanion()\
+            (nameValue.propName, self.inspector.selCmp.designer, 
+             self.inspector.selCmp, obj, nv.propEditor.propWrapper)
         
-        if PaletteMapping.helperClasses.has_key(obj.__class__.__name__):
-            # XXX passing a None designer
-            compn = PaletteMapping.helperClasses[obj.__class__.__name__]\
-             (nameValue.propName, None, self.inspector.selObj, obj)
+        compn.updateObjFromOwner()
+#                nv.propEditor.propWrapper.connect(nv.propEditor.companion.obj, nv.propEditor.companion)
+        propLst = compn.getPropList()['properties']
+        sze = len(propLst)
+       
+        indt = self.nameValues[nameValue.idx].indent + 1
         
-            propLst = RTTI.getPropList(obj, compn)['properties']
-            sze = len(propLst)
-           
-            indt = self.nameValues[nameValue.idx].indent + 1
-            
-            # move properties down
-            startIdx = nameValue.idx + 1
-            for idx in range(startIdx, len(self.nameValues)):
-                self.nameValues[idx].setPos(idx +sze)
-	    	    
-	    # add sub properties in the gap
-	    self.setNameValues(compn, self.inspector.selCmp, propLst, startIdx, indt)
-	
-    def collapse(self, nameValue):
-        # delete all NameValues until the same indent, count them
-        startIndent = nameValue.indent
-        idx = nameValue.idx + 1
-                
-        # Move deletion into method and use in removeEvent of EventWindow
-        i = idx
-        if i < len(self.nameValues):
-            while (i < len(self.nameValues)) and \
-              (self.nameValues[i].indent > startIndent):
-                i = i + 1
-        count = i - idx
-        
-        self.deleteNameValues(idx, count)
-                	        
+        # move properties down
+        startIdx = nameValue.idx + 1
+        for idx in range(startIdx, len(self.nameValues)):
+            self.nameValues[idx].setPos(idx +sze)
+
+        # add sub properties in the gap
+        self.setNameValues(compn, self.inspector.selCmp, propLst, startIdx, indt, nv.propEditor)
+        nv.propEditor.expanded = true
+        nv.updateDisplayValue()
+
 class InspectorConstrScrollWin(InspectorScrollWin):
     """ Specialised InspectorScrollWin that understands contructor parameters """
     # read in the root object
-    def readObject(self, constrList):
+    def readObject(self, constrList):            
+        params = self.inspector.selCmp.constructor()
+        paramNames = params.keys()
+        paramNames.sort()
+        
+        compn = self.inspector.selCmp
+        self.addParams(constrList, paramNames, compn, compn)
+            
+        self.refreshSplitter()
+
+    def addParams(self, constrList, paramNames, compn, rootCompn, indent = 0, insIdx = -1):
         def findInConstrLst(name, constrList):
             for constr in constrList:
                 if constr.name == name:
                     return constr
             return None
-            
-#        self.cleanup()
-        
-        params = self.inspector.selCmp.constructor()
-        paramNames = params.keys()
-        paramNames.sort()
-        
         for param in paramNames:
             propWrap = findInConstrLst(param, constrList)
             if propWrap:
-                self.addProp(param, propWrap)
+                self.addProp(param, compn, rootCompn, propWrap, indent)
             else:
-                self.addConstr(param)
-            
-	self.refreshSplitter()
+                self.addConstr(param, compn, rootCompn, indent)
 
+    def expand(self, nameValue):
+        nv = self.nameValues[nameValue.idx]        
+        obj = nv.propValue
+        compn = nv.propEditor.getSubCompanion()\
+            (nameValue.propName, self.inspector.selCmp.designer, 
+             self.inspector.selCmp, obj, nv.propEditor.propWrapper)
+        
+        propLst = compn.getPropList()['properties']
+        sze = len(propLst)
+       
+        indt = self.nameValues[nameValue.idx].indent + 1
+        
+        # move properties down
+        startIdx = nameValue.idx + 1
+        for idx in range(startIdx, len(self.nameValues)):
+            self.nameValues[idx].setPos(idx +sze)
 
-    def addConstr(self, name):
-        compn = self.inspector.selCmp
+        # add sub properties in the gap
+        for propWrap in propLst:
+            if propWrap:
+                self.addProp(propWrap.name, compn, self.inspector.selCmp, 
+                      propWrap, indt, startIdx, nv.propEditor)
+                startIdx = startIdx + 1
+        nv.propEditor.expanded = true
+        nv.updateDisplayValue()
+        self.refreshSplitter()
+
+    def addConstr(self, name, compn, rootCompn, indent = 0, insIdx = -1):
         props = compn.properties()
         if props.has_key(name):
             rType, getter, setter = props[name]
             propWrap = RTTI.PropertyWrapper(name, rType, getter, setter)
         else:
             propWrap = RTTI.PropertyWrapper(name, 'NoneRoute', None, None)            
-            
-        self.nameValues.insert(len(self.nameValues), 
-          ConstrNameValue(self, self.panelNames, 
-          self.panelValues, self.inspector.selCmp, self.inspector.selCmp, name, 
-          propWrap, len(self.nameValues), 0, 
+    
+        if insIdx == -1:
+            insIdx = len(self.nameValues)
+        self.nameValues.insert(insIdx, ConstrNameValue(self, self.panelNames, 
+          self.panelValues, compn, rootCompn, name, propWrap, 
+          insIdx, indent, 
           compn.getPropEditor(name), compn.getPropOptions(name), 
           compn.getPropNames(name)))
 
-    def addProp(self, name, propWrap):
-        compn = self.inspector.selCmp
-        self.nameValues.insert(len(self.nameValues), 
+    def addProp(self, name, compn, rootCompn, propWrap, indent = 0, insIdx = -1, ownerPropEdit = None):
+        if insIdx == -1:
+            insIdx = len(self.nameValues)
+        self.nameValues.insert(insIdx, 
           PropNameValue(self, self.panelNames, self.panelValues, 
-          compn, compn, 
-          name, propWrap, len(self.nameValues), 0, 
+          compn, rootCompn, name, propWrap, insIdx, indent, 
           compn.getPropEditor(name), 
           compn.getPropOptions(name), 
-          compn.getPropNames(name)))
+          compn.getPropNames(name),
+          ownerPropEdit))
     
 class InspectorEventScrollWin(InspectorScrollWin):
     """ Specialised InspectorScrollWin that understands events """
@@ -1031,9 +1130,9 @@ class InspectorEventScrollWin(InspectorScrollWin):
             self.addEvent(evt.event_name)
 
         height = len(self.nameValues)
-        self.SetScrollbars(oiLineHeight, oiLineHeight, 0, height + 1)
+#        self.SetScrollbars(oiLineHeight, oiLineHeight, 0, height + 1)
 
-	self.refreshSplitter()
+        self.refreshSplitter()
 
     def addEvent(self, name):
         nv = self.getNameValue(name)
@@ -1071,4 +1170,4 @@ class InspectorNotebook(wxNotebook):
         self.pages[name] = window
 
     def extendHelpUrl(self, name):
-	 return self.pages[name].extendHelpUrl(url)
+        return self.pages[name].extendHelpUrl(url)
