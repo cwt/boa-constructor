@@ -28,7 +28,7 @@ header = '''#-------------------------------------------------------------------
 '''
 
 # Copy the the files declared below into this script's directory and
-# execute the script. Copy HelpCompanions to the COmpanions directory
+# execute the script. Copy HelpCompanions to the Companions directory
 
 # Currently set for 2.2.1's help
 
@@ -49,11 +49,11 @@ helpFileDef = "%sDocs = '%s'\n"
 def ripPythonDocs(splLst, dir, name_term):
     dict = {}
     for line in splLst:
-        if line[:9]=='<a href="':
-            idx = string.find(line, '">')
+        if line[:8]=='<a href=':
+            idx = string.find(line, '>')
             if idx != -1:
-                href = line[9:idx]
-                name = line[idx+2:]
+                href = line[9:idx-1]
+                name = line[idx+1:]
 
                 idx = string.find(name, name_term)
                 if idx != -1:
@@ -79,7 +79,7 @@ libModHtml = fileModRef.read()
 fileModRef.close()
 
 output = open('HelpCompanions.py', 'w')
-output.write(header % strftime('%Y/%d/%m', gmtime(time()), '$', '$'))
+output.write(header % (strftime('%Y/%d/%m', gmtime(time())), '$', '$'))
 
 clssHelpItems = clssHtmlLines[clssHtmlLines.index('<UL>')+1: clssHtmlLines.index('</UL>')]
 
