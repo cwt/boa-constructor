@@ -93,9 +93,9 @@ useImageCache = 1
 
 # Flag for turning on special checking for european keyboard characters by
 # checking for certain codes while ctrl alt is held.
-handleSpecialEuropeanKeys = 1
+handleSpecialEuropeanKeys = 0
 # Country code for keyboards, options: 'euro', 'france'
-euroKeysCountry = 'france'
+euroKeysCountry = 'euro'
 
 # Auto correct indentation and EOL characters on load, save and refresh
 # This only works for Python 2.0 and up
@@ -156,6 +156,8 @@ ps1 = '>>> '
 ps2 = '... '
 # Shell debug prompt (must be 3 chars with trailing space)'
 #ps3 = '>-> '
+# Shell prompt, standard input request (must be 3 chars with trailing space)
+ps4 = '<<< '
 
 # Try to update the wxPython.libs directory with the newest run time libs (Component files)
 installBCRTL = 1
@@ -188,4 +190,4 @@ exportedProperties = ['flatTools', 'childFrameStyle', 'pastels', 'pastelMedium',
   'checkSyntax', 'onlyCheckIfLineModified', 'pythonInterpreterPath', 
   'rememberOpenFiles', 'showModifiedProps', 'propValueColour', 
   'oiLineHeight', 'oiNamesWidth', 'inspNotebookFlags', 'showErrOutInInspector', 
-  'ps1', 'ps2' ]
+  'ps1', 'ps2', 'ps4']
