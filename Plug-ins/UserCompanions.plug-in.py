@@ -92,6 +92,8 @@ class CalendarDTC(CalendarConstr, BaseCompanions.WindowDTC):
               'wxCAL_SHOW_HOLIDAYS', 'wxCAL_NO_YEAR_CHANGE',
               'wxCAL_NO_MONTH_CHANGE'] + self.windowStyles
 
+        self.compositeCtrl = true
+
     def designTimeSource(self, position = 'wxDefaultPosition', size = 'wxDefaultSize'):
         return {'date': 'wxDateTime_Now()',
                 'pos': position,
@@ -111,11 +113,27 @@ PaletteStore.compInfo[wxCalendarCtrl] = ['wxCalendarCtrl', CalendarDTC]
 
 class DateTimePropEditor(PropertyEditors.BITPropEditor):
     def getDisplayValue(self):
-        return '<%s>' % self.value.Format()
+        if self.value.IsValid():
+            return '<%s>' % self.value.Format()
+        else:
+            return '<Invalid date>'
+            
     def valueAsExpr(self):
-        return 'wxDateTimeFromTimeT(%d)' % self.value.GetTicks()
+        if self.value.IsValid():
+            v = self.value
+            return 'wxDateTimeFromDMY(%d, %d, %d, %d, %d, %d)'%(
+               v.GetDay(), v.GetMonth(), v.GetYear(), 
+               v.GetHour(), v.GetMinute(), v.GetSecond()) 
+        else:
+            return '<Invalid date>'
+        
     def valueToIECValue(self):
         return self.valueAsExpr()
+
+    def inspectorEdit(self):
+        if self.value.IsValid():
+            PropertyEditors.BITPropEditor.inspectorEdit(self)
+        
 
 PropertyEditors.registeredTypes.append( ('Class', wxDateTimePtr,
                                          [DateTimePropEditor]) )
