@@ -5,7 +5,7 @@ getBreakpointList()).
 '''
 
 import os
-from os.path import normcase
+from os import path
 
 try: from cPickle import Pickler, Unpickler
 except: from pickle import Pickler, Unpickler
@@ -21,7 +21,7 @@ class FileBreakpointList:
                 f = open(fn, 'rb')
                 u = Unpickler(f)
                 newlines = u.load()
-                # The following line isn't 100% accurate
+                # The following line isn't quite correct
                 # when multiple breakpoints are set on a
                 # single line.
                 self.lines.update(newlines)
@@ -103,26 +103,34 @@ class BreakpointList:
     def __init__(self):
         self.files = {}  # filename -> FileBreakpointList
 
+    def normalize(self, filename):
+        return path.normcase(path.abspath(filename))
+
     def addBreakpoint(self, filename, lineno, temp=0, cond=''):
+        filename = self.normalize(filename)
         filelist = self.getFileBreakpoints(filename)
         filelist.addBreakpoint(lineno, temp, cond)
 
     def deleteBreakpoints(self, filename, lineno):
+        filename = self.normalize(filename)
         if self.files.has_key(filename):
             filelist = self.files[filename]
             filelist.deleteBreakpoints(lineno)
 
     def enableBreakpoints(self, filename, lineno, enable=1):
+        filename = self.normalize(filename)
         if self.files.has_key(filename):
             filelist = self.files[filename]
             filelist.enableBreakpoints(lineno, enable)
 
     def clearTemporaryBreakpoints(self, filename, lineno):
+        filename = self.normalize(filename)
         if self.files.has_key(filename):
             filelist = self.files[filename]
             filelist.clearTemporaryBreakpoints(lineno)
 
     def getFileBreakpoints(self, filename):
+        filename = self.normalize(filename)
         if self.files.has_key(filename):
             return self.files[filename]
         else:
@@ -130,6 +138,7 @@ class BreakpointList:
             return filelist
 
     def hasBreakpoint(self, filename, lineno):
+        filename = self.normalize(filename)
         if self.files.has_key(filename):
             filelist = self.files[filename]
             return filelist.hasBreakpoint(lineno)
@@ -139,6 +148,8 @@ class BreakpointList:
         '''Returns a list designed to pass to the setAllBreakpoints()
         debugger method.'''
         rval = []
+        if fn is not None:
+            fn = self.normalize(fn)
         for filename, filelist in self.files.items():
             if fn is None or filename == fn:
                 for lineno, linebreaks in filelist.lines.items():
