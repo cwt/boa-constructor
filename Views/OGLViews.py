@@ -35,9 +35,7 @@ class MyEvtHandler(wxShapeEvtHandler):
             canvas.Redraw(dc)
         else:
             redraw = false
-            print 'before get shape list'
             shapeList = canvas.GetDiagram().GetShapeList()
-            print 'after get shape list'
             toUnselect = []
             for s in shapeList:
                 try:
@@ -55,25 +53,15 @@ class MyEvtHandler(wxShapeEvtHandler):
                     s.Select(false, dc)
                 canvas.Redraw(dc)
 
-#        self.UpdateStatusBar(shape)
-
 
     def OnEndDragLeft(self, x, y, keys = 0, attachment = 0):
         shape = self.GetShape()
         self.base_OnEndDragLeft(x, y, keys, attachment)
         if not shape.Selected():
             self.OnLeftClick(x, y, keys, attachment)
-#        self.UpdateStatusBar(shape)
-
 
     def OnSize(self, x, y):
         self.base_OnSize(x, y)
-
-
-#    def OnMovePost(self, dc, x, y, oldX, oldY, display):
-#        self.base_OnMovePost(dc, x, y, oldX, oldY, display)
-#        self.UpdateStatusBar(self.GetShape())
-
 
     def OnRightClick(self, x, y, a, b):
         print 'rightclick', x, y, a, b
@@ -189,7 +177,6 @@ class PersistentOGLView(PersistentShapeCanvas, EditorViews.EditorView):
 #           ('tst', self.OnTst, self.loadBmp, ()),
            ('Save diagram', self.OnSave, self.saveBmp, ()))+actions)
 
-        print 'POV: __init__'
         self.SetBackgroundColour(wxWHITE)
         self.diagram = wxDiagram()
         self.SetDiagram(self.diagram)
@@ -197,25 +184,22 @@ class PersistentOGLView(PersistentShapeCanvas, EditorViews.EditorView):
         self.shapes = []
 
         self.active = true
-        
-    def __del__(self):
+    
+    def destroy(self):
         self.destroyShapes()
-
+        EditorViews.EditorView.destroy(self)
+        
     def destroyShapes(self):
-        print 'POV: destroy shapes'
         self.shapes = []
         self.diagram.DeleteAllShapes()
-        print 'POV: destroy shapes 2'
 
     def refreshCtrl(self):
-        print 'POV: refreshCtrl'
         layoutFile = path.splitext(self.model.filename)[0]+self.ext
         if path.exists(layoutFile):
             self.loadSizes(layoutFile)
 
 
     def newLine(self, dc, fromShape, toShape):
-        print 'New line'
         line = wxLineShape()
         line.SetCanvas(self)
         line.SetPen(wxBLACK_PEN)
@@ -228,7 +212,6 @@ class PersistentOGLView(PersistentShapeCanvas, EditorViews.EditorView):
 
         # for some reason, the shapes have to be moved for the line to show up...
         fromShape.Move(dc, fromShape.GetX(), fromShape.GetY())
-        print 'New line 2'
 
     def newRegion(self, font, name, textLst, maxWidth, totHeight = 10):
         region = wxShapeRegion()
@@ -289,8 +272,7 @@ class UMLView(PersistentOGLView):
         PersistentOGLView.__init__(self, parent, model)
      
     def newClass(self, size, pos, className, classMeths):
-        idx = self.addShape(PerstDividedShape(className, size[0], size[1]), 
-          pos[0], pos[1], wxBLACK_PEN, wxLIGHT_GREY_BRUSH, 'UMLC')
+        shape = PerstDividedShape(className, size[0], size[1])
 
         maxWidth = 10 #padding
 
@@ -304,14 +286,17 @@ class UMLView(PersistentOGLView):
         regionAttribs.SetProportions(0.0, 1.0*(attribsHeight/float(totHeight)))
         regionMeths.SetProportions(0.0, 1.0*(methsHeight/float(totHeight)))
        
-        self.shapes[idx].AddRegion(regionName)
-        self.shapes[idx].AddRegion(regionAttribs)
-        self.shapes[idx].AddRegion(regionMeths)
+        shape.AddRegion(regionName)
+        shape.AddRegion(regionAttribs)
+        shape.AddRegion(regionMeths)
 
-        self.shapes[idx].SetSize(maxWidth + 10, totHeight + 10)
+        shape.SetSize(maxWidth + 10, totHeight + 10)
         
-        self.shapes[idx].SetRegionSizes()
+        shape.SetRegionSizes()
         
+        idx = self.addShape(shape, pos[0], pos[1], wxBLACK_PEN, 
+          wxLIGHT_GREY_BRUSH, '')
+
         return self.shapes[idx] 
 
     def processLevel(self, dc, hierc, pos, incx, fromShape = None):
@@ -369,7 +354,7 @@ class ImportsView(PersistentOGLView):
      
     def newModule(self, size, pos, moduleName, importList):
         idx = self.addShape(PerstDividedShape(moduleName, size[0], size[1]), 
-          pos[0], pos[1], wxBLACK_PEN, wxLIGHT_GREY_BRUSH, 'UMLC')
+          pos[0], pos[1], wxBLACK_PEN, wxLIGHT_GREY_BRUSH, '')
 
         maxWidth = 10 #padding
 
@@ -448,7 +433,7 @@ class AppPackageView(PersistentOGLView):
      
     def newModule(self, size, pos, moduleName, importList):
         idx = self.addShape(PerstDividedShape(moduleName, size[0], size[1]), 
-          pos[0], pos[1], wxBLACK_PEN, wxLIGHT_GREY_BRUSH, 'UMLC')
+          pos[0], pos[1], wxBLACK_PEN, wxLIGHT_GREY_BRUSH, '')
 
         maxWidth = 10 #padding
 

@@ -17,7 +17,7 @@ import EditorViews, ProfileView, Search, Help, Preferences
 from StyledTextCtrls import PythonStyledTextCtrlMix, BrowseStyledTextCtrlMix, HTMLStyledTextCtrlMix, FoldingStyledTextCtrlMix, idWord
 from PrefsKeys import keyDefs
 import methodparse
-import bdb
+import bdb, time
 
 simpleAppText = '''
 
@@ -211,7 +211,12 @@ class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView):
 #-------Canned events-----------------------------------------------------------
 
     def OnRefresh(self, event):
-        self.refreshModel()
+        t1 = time.time()
+        for i in range(1):
+            self.refreshModel()
+        t2 = time.time()
+        print t2 - t1
+        
 
     def OnEditCut(self, event):
         self.Cut()   
@@ -299,6 +304,7 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix, BrowseStyl
               ('Profile', self.OnProfile, self.profileBmp, ()),
               ('Compile', self.OnCompile, self.compileBmp, keyDefs['Compile']))
         a3 = (('Run module', self.OnRun, self.runBmp, keyDefs['RunMod']),
+              ('Run module with parameters', self.OnRunParams, '-', ()),
               ('Debug', self.OnDebug, self.debugBmp, keyDefs['Debug']),
               ('-', None, '', ()),
               ('Run to cursor', self.OnRunToCursor, self.runCrsBmp, ()),
@@ -329,7 +335,8 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix, BrowseStyl
 
         self.lsp = 0
         self.CallTipSetBackground(wxColour(255, 255, 232))
-
+        self.lastRunParams = ''
+        
         self.SetMarginType(1, wxSTC_MARGIN_SYMBOL)
         self.SetMarginWidth(1, 13)
         self.SetMarginSensitive(1, true)
@@ -609,6 +616,19 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix, BrowseStyl
             wxMessageBox('Cannot run an unsaved module.')
             return
         self.model.run()
+
+    def OnRunParams(self, event):
+        if not self.model.savedAs: #modified or len(self.model.viewsModified):
+            wxMessageBox('Cannot run an unsaved module.')
+            return
+        dlg = wxTextEntryDialog(self.model.editor, 'Parameters:', 
+          'Run with parameters', self.lastRunParams)
+        try:
+            if dlg.ShowModal() == wxID_OK:
+                self.lastRunParams = dlg.GetValue()
+                self.model.run(self.lastRunParams)
+        finally:
+            dlg.Destroy()
 
     def OnRunApp(self, event):
         if not self.model.app.savedAs: #modified or len(self.model.viewsModified):

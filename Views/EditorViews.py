@@ -178,10 +178,12 @@ class EditorView:
         self.modified =  false
         self.readOnly = false
 
-    def deleteFromNotebook(self, focusView):
+    def deleteFromNotebook(self, focusView, tabName):
         # set selection to source view
         self.model.reorderFollowingViewIdxs(self.pageIdx) 
-        self.model.views[focusView].focus()   
+        self.model.views[focusView].focus()
+        del self.model.views[tabName]
+        self.destroy()
         self.notebook.DeletePage(self.pageIdx)
 
     def activate(self):
@@ -216,7 +218,7 @@ class EditorView:
         self.readOnly = val
     
     def close(self):
-        print 'EditorView sestr'
+        print 'EditorView close'
         self.destroy()
     
 ##    def viewMenu(self):
@@ -367,14 +369,26 @@ class ModuleDocView(HTMLView):
 
         return string.join(methlist), string.join(meths)
 
-class CyclopsView(HTMLView):
+class ClosableViewMix:
     closeBmp = 'Images/Editor/Close.bmp'
-#    saveAsBmp = 'Images/Editor/SaveAs.bmp'
+    
+    def __init__(self, hint = 'results'):
+        self.closingActionItems = ( ('Close '+ hint, self.OnClose, self.closeBmp, ()), )
 
+    def OnClose(self, event):
+        del self.closingActionItems
+        self.deleteFromNotebook('Source', self.tabName)
+        print 'closable view close', self.model.views[self.tabName], self
+#        del self.model.views[self.tabName]
+#        self.destroy()
+
+class CyclopsView(HTMLView, ClosableViewMix):
     viewName = 'Cyclops report'
     def __init__(self, parent, model):
-        HTMLView.__init__(self, parent, model, (('-', -1, '', ()), 
-          ('Close', self.OnCloseReport, self.closeBmp, ())))
+        ClosableViewMix.__init__(self)
+        HTMLView.__init__(self, parent, model, ( ('-', -1, '', ()), ) + 
+          self.closingActionItems)
+
 #          ('Save', self.OnSaveReport, self.saveAsBmp, ())))
           
     def OnLinkClicked(self, linkinfo):
@@ -438,11 +452,6 @@ class CyclopsView(HTMLView):
     def genCustomPage(self, page):
         return self.report
         
-    def OnCloseReport(self, event):
-        self.deleteFromNotebook('Source')
-        del self.model.views[self.tabName]
-        self.destroy()
-
     def OnSaveReport(self, event):        
         fn, suc = self.model.editor.saveAsDlg(\
           path.splitext(self.model.filename)[0]+'.cycles', '*.cycles')
@@ -458,16 +467,14 @@ class ListCtrlView(wxListCtrl, EditorView):
         EVT_LIST_ITEM_SELECTED(self, -1, self.OnItemSelect)
         EVT_LIST_ITEM_DESELECTED(self, -1, self.OnItemDeselect)
         EVT_KEY_UP(self, self.OnKeyPressed)
+        EVT_LIST_COL_CLICK(self, -1, self.OnColClick)
+        
         self.selected = -1
 
+        self.sortOnColumns = []
+        self.sortCol = -1
         self.active = true
 
-    def OnItemSelect(self, event):
-        self.selected = event.m_itemIndex
-
-    def OnItemDeselect(self, event):
-        self.selected = -1
-    
     def pastelise(self):
         if Preferences.pastels:
             for idx in range(self.GetItemCount()):
@@ -484,20 +491,43 @@ class ListCtrlView(wxListCtrl, EditorView):
     def addReportItems(self, index, *list):
         if list:
             self.InsertStringItem(index, list[0])
+            self.SetItemData(index, index)
             col = 1
             if len(list) > 1:
                 for text in list[1:]:
                     self.SetStringItem(index, col, text)
                     col = col + 1
         return index + 1
-            
-        
+
+    def sortColumn(self, itemIdx1, itemIdx2):
+        item1 = self.GetItem(itemIdx1, self.sortCol)
+        item2 = self.GetItem(itemIdx2, self.sortCol)
+#        print itemIdx1, itemIdx2, self.sortCol, item1.GetText() < item2.GetText(), item1.GetText() , item2.GetText()
+        txt1, txt2 = item1.GetText(), item2.GetText()
+        if txt1 < txt2: return -1
+        if txt1 > txt2: return 1
+        return 0
     
     def OnKeyPressed(self, event):
         key = event.KeyCode()
         if key == 13:
             if self.defaultActionIdx != -1:
                 self.actions[self.defaultActionIdx][1](event)
+
+    def OnItemSelect(self, event):
+        self.selected = event.m_itemIndex
+
+    def OnItemDeselect(self, event):
+        self.selected = -1
+    
+    def OnColClick(self, event):
+#        print event.m_col, event.GetColumn()
+        if event.m_col in self.sortOnColumns:
+            self.sortCol = event.m_col
+            self.SortItems(self.sortColumn)
+        # reset idx
+        for idx in range(self.GetItemCount()):
+            self.SetItemData(idx, idx)
  
 idGotoLine = NewId()    
 class ToDoView(ListCtrlView):

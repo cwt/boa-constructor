@@ -5,34 +5,35 @@
 # Author:      Riaan Booysen                                                  
 #                                                                             
 # Created:     2000/05/17                                                     
-# RCS-ID:      $Id$                                           
+# RCS-ID:      $Id$
 # Copyright:   (c) 1999, 2000 Riaan Booysen                                   
 # Licence:     GPL                                                            
 #-----------------------------------------------------------------------------
 
 import marshal, string
 from os import path
-from EditorViews import ListCtrlView
+from EditorViews import ListCtrlView, ClosableViewMix
 from wxPython.wx import *
 
-class ProfileStatsView(ListCtrlView):
+class ProfileStatsView(ListCtrlView, ClosableViewMix):
     viewName = 'Profile stats'
     gotoLineBmp = 'Images/Editor/GotoLine.bmp'
     calleesBmp = 'Images/Editor/Callees.bmp'
     callersBmp = 'Images/Editor/Callers.bmp'
-    closeBmp = 'Images/Editor/Close.bmp'
     saveAsBmp = 'Images/Editor/SaveAs.bmp'
 
     def __init__(self, parent, model):
+        ClosableViewMix.__init__(self, 'stats')
         ListCtrlView.__init__(self, parent, model, wxLC_REPORT | wxLC_SINGLE_SEL, 
-          (('Goto line', self.OnGoto, self.gotoLineBmp, ()),
-           ('-', None, '', ()),
-           ('Callers (called this function)', self.OnCallers, self.callersBmp, ()),
-           ('Callees (are called by this function)', self.OnCallees, self.calleesBmp, ()),
-           ('-', None, '', ()),
-           ('Close stats', self.OnCloseStats, self.closeBmp, ()),
-           ('Save stats', self.OnSaveStats, self.saveAsBmp, ()),
-           ), 0)
+          ( ('Goto line', self.OnGoto, self.gotoLineBmp, ()),
+            ('-', None, '', ()),
+            ('Callers (called this function)', self.OnCallers, self.callersBmp, ()),
+            ('Callees (are called by this function)', self.OnCallees, self.calleesBmp, ()),
+            ('-', None, '', ()) ) +
+            self.closingActionItems +
+          ( ('Save stats', self.OnSaveStats, self.saveAsBmp, ()),
+            ), 0)
+
         self.InsertColumn(0, 'module')
         self.InsertColumn(1, 'line')
         self.InsertColumn(2, 'function')
@@ -241,11 +242,6 @@ class ProfileStatsView(ListCtrlView):
         elif event.m_col == 7:
             self.SortItems(self.sortCumPerCall)
     
-    def OnCloseStats(self, event):
-        self.deleteFromNotebook('Source')
-        del self.model.views[self.tabName]
-#        del self
-
     def OnSaveStats(self, event):
         fn, suc = self.model.editor.saveAsDlg(\
           path.splitext(self.model.filename)[0]+'.prof', '*.prof')
