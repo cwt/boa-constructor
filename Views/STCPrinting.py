@@ -6,8 +6,8 @@
 #
 # Created:     2003/05/21
 # RCS-ID:      $Id$
-# Copyright:   (c) 2003
-# Licence:     wxWindows
+# Copyright:   (c) 2003 - 2004
+# Licence:     wxWidgets
 #-----------------------------------------------------------------------------
 #Boa:Dialog:STCPrintDlg
 

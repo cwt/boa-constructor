@@ -6,8 +6,8 @@
 #
 # Created:     2001/08/20
 # RCS-ID:      $Id$
-# Copyright:   (c) 2001 - 2003 Riaan Booysen
-# Licence:     wxWindows license
+# Copyright:   (c) 2001 - 2004 Riaan Booysen
+# Licence:     wxWidgets license
 #-----------------------------------------------------------------------------
 #Boa:Dialog:STCStyleEditDlg
 
@@ -18,7 +18,7 @@ Modified styled can be saved (and optionally applied to a given list of STCs)
 
 It can also maintain a Common definition dictionary of font names, colours and
 sizes which can be shared across multiple language style definitions.
-This is also used to store platform spesific settings as fonts and sizes
+This is also used to store platform specific settings as fonts and sizes
 vary with platform.
 
 The following items are defined in the stc-styles.rc.cfg file.
@@ -35,7 +35,7 @@ braces - Dictionary defining the (line, column) for showing 'good' and 'bad'
          brace matching (both keys optional)
 keywords - Space separated list of keywords
 lexer - wxSTC constant for the language lexer
-styleidnames - Dictionary of language spesific style numbers and names
+styleidnames - Dictionary of language specific style numbers and names
 
 [style.<language>] - The users current style values
 [style.<language>.default] - Default style values (can be reverted from)
@@ -68,7 +68,7 @@ commonPropDefs = {'fore': '#888888', 'size': 8,
   'face': wxSystemSettings_GetSystemFont(wxSYS_DEFAULT_GUI_FONT).GetFaceName()}
 
 styleCategoryDescriptions = {
- '----Language----': 'Styles spesific to the language',
+ '----Language----': 'Styles specific to the language',
  '----Standard----': 'Styles shared by all languages',
  '----Settings----': 'Properties set by STC methods',
  '----Common----': 'User definable values that can be shared between languages'}
@@ -207,7 +207,7 @@ class STCStyleEditDlg(wxDialog):
               parent=self, pos=wxPoint(8, 224), size=wxSize(469, 191),
               style=wxSUNKEN_BORDER)
         self.stc.SetConstraints(LayoutAnchors(self.stc, True, True, True, True))
-        self.stc.SetHelpText('The style preview window. Click or move the cursor over a spesific style to select the style for editing in the editors above.')
+        self.stc.SetHelpText('The style preview window. Click or move the cursor over a specific style to select the style for editing in the editors above.')
         EVT_LEFT_UP(self.stc, self.OnUpdateUI)
         EVT_KEY_UP(self.stc, self.OnUpdateUI)
 
@@ -1244,7 +1244,7 @@ def initFromConfig(configFile, lang):
     assert type(commonStyleIdNames) is type({}), \
           'Common definitions (%s) not a valid dict'%'common.styleidnames'
 
-    # Lang spesific settings
+    # Lang specific settings
     cfg.SetPath(lang)
     styleIdNames = readPyValFromConfig(cfg, 'styleidnames')
     assert type(commonStyleIdNames) is type({}), \

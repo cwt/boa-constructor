@@ -6,7 +6,7 @@
 #
 # Created:     2000/05/06
 # RCS-ID:      $Id$
-# Copyright:   (c) 2000 - 2003 Riaan Booysen
+# Copyright:   (c) 2000 - 2004 Riaan Booysen
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 #Boa:Dialog:LoginDialog
