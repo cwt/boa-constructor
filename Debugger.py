@@ -18,18 +18,17 @@
 
 from   wxPython.wx import *
 import wxPython
-import Editor, Preferences
+import ShellEditor, Preferences
 import string, sys, os
 from os import path
 from repr import Repr
 import bdb, traceback, linecache, imp
 import Utils
-from Preferences import pyPath
+from Preferences import pyPath, IS, flatTools
 from PhonyApp import wxPhonyApp
     
 wxID_STACKVIEW = NewId()
 class StackViewCtrl(wxListCtrl):
-
     def __init__(self, parent, flist, browser):
         wxListCtrl.__init__(self, parent, wxID_STACKVIEW, style = wxLC_REPORT | wxLC_SINGLE_SEL )
         self.InsertColumn(0, 'Frame', wxLIST_FORMAT_LEFT, 150) 
@@ -131,24 +130,25 @@ def getexception(type=None, value=None):
         s = s + ": " + str(value)
     return s
 
-[wxID_BREAKVIEW, wxID_BREAKSOURCE, wxID_BREAKEDIT, wxID_BREAKDELETE, wxID_BREAKENABLED,
- wxID_BREAKREFRESH] = map(lambda x: NewId(), range(6))
+[wxID_BREAKVIEW, wxID_BREAKSOURCE, wxID_BREAKEDIT, wxID_BREAKDELETE, 
+  wxID_BREAKENABLED, wxID_BREAKREFRESH] = map(lambda x: NewId(), range(6))
 
 class BreakViewCtrl(wxListCtrl):
-    brkImgLst = wxImageList(16, 16)
-    brkImgLst.Add(wxBitmap('Images/Debug/Breakpoint-red.bmp', wxBITMAP_TYPE_BMP))
-    brkImgLst.Add(wxBitmap('Images/Debug/Breakpoint-yellow.bmp', wxBITMAP_TYPE_BMP))
-    brkImgLst.Add(wxBitmap('Images/Debug/Breakpoint-gray.bmp', wxBITMAP_TYPE_BMP))
-    brkImgLst.Add(wxBitmap('Images/Debug/Breakpoint-blue.bmp', wxBITMAP_TYPE_BMP))
-
-
     def __init__(self, parent, debugger):#, flist, browser):
-        wxListCtrl.__init__(self, parent, wxID_BREAKVIEW, style = wxLC_REPORT | wxLC_SINGLE_SEL )
+        wxListCtrl.__init__(self, parent, wxID_BREAKVIEW, 
+          style = wxLC_REPORT | wxLC_SINGLE_SEL )
         self.InsertColumn(0, 'Module', wxLIST_FORMAT_LEFT, 90) 
         self.InsertColumn(1, 'Line', wxLIST_FORMAT_CENTER, 40)
         self.InsertColumn(2, 'Ignore', wxLIST_FORMAT_CENTER, 45)
         self.InsertColumn(3, 'Hits', wxLIST_FORMAT_CENTER, 45)
         self.InsertColumn(4, 'Condition', wxLIST_FORMAT_LEFT, 250)
+
+        self.brkImgLst = wxImageList(16, 16)
+        self.brkImgLst.Add(IS.load('Images/Debug/Breakpoint-red.bmp'))
+        self.brkImgLst.Add(IS.load('Images/Debug/Breakpoint-yellow.bmp'))
+        self.brkImgLst.Add(IS.load('Images/Debug/Breakpoint-gray.bmp'))
+        self.brkImgLst.Add(IS.load('Images/Debug/Breakpoint-blue.bmp'))
+
         EVT_LIST_ITEM_SELECTED(self, wxID_BREAKVIEW, self.OnBreakpointSelected)
         EVT_LIST_ITEM_DESELECTED(self, wxID_BREAKVIEW, self.OnBreakpointDeselected)
         EVT_LEFT_DCLICK(self, self.OnGotoSource) 
@@ -178,7 +178,13 @@ class BreakViewCtrl(wxListCtrl):
 
         self.selection = -1
         self.debugger = debugger
-    
+
+        for file, lineno in bdb.Breakpoint.bplist.keys():
+            self.debugger.set_internal_breakpoint(file, lineno)
+
+    def destroy(self):
+        self.menu.Destroy()
+            
     def bpList(self):
         bpl = []
         for bp in bdb.Breakpoint.bpbynumber:
@@ -247,7 +253,8 @@ class BreakViewCtrl(wxListCtrl):
 
     def OnRightClick(self, event):
         if self.selection != -1:
-            self.menu.Check(wxID_BREAKENABLED, self.bpList()[self.selection].enabled)
+            self.menu.Check(wxID_BREAKENABLED, 
+              self.bpList()[self.selection].enabled)
             self.PopupMenu(self.menu, wxPoint(self.x, self.y))
         
 
@@ -255,7 +262,8 @@ class BreakViewCtrl(wxListCtrl):
 wxID_NSVIEW = NewId()
 class NamespaceViewCtrl(wxListCtrl):
     def __init__(self, parent, add_watch, is_local, name, dict=None):
-        wxListCtrl.__init__(self, parent, wxID_NSVIEW, style = wxLC_REPORT | wxLC_SINGLE_SEL )
+        wxListCtrl.__init__(self, parent, wxID_NSVIEW, 
+          style = wxLC_REPORT | wxLC_SINGLE_SEL )
         self.InsertColumn(0, 'Attribute', wxLIST_FORMAT_LEFT, 125) 
         self.InsertColumn(1, 'Value', wxLIST_FORMAT_LEFT, 200)
 
@@ -287,6 +295,9 @@ class NamespaceViewCtrl(wxListCtrl):
         self.add_watch = add_watch
 
         self.load_dict(dict)
+
+    def destroy(self):
+        self.menu.Destroy()
 
     dict = -1
 
@@ -341,14 +352,16 @@ class NamespaceViewCtrl(wxListCtrl):
 wxID_WATCHVIEW = NewId()
 class WatchViewCtrl(wxListCtrl):
 
-    def __init__(self, parent, images):
-        wxListCtrl.__init__(self, parent, wxID_WATCHVIEW, style = wxLC_REPORT | wxLC_SINGLE_SEL )
+    def __init__(self, parent, images, debugger):
+        wxListCtrl.__init__(self, parent, wxID_WATCHVIEW, 
+          style = wxLC_REPORT | wxLC_SINGLE_SEL )
         self.InsertColumn(0, 'Attribute', wxLIST_FORMAT_LEFT, 125) 
         self.InsertColumn(1, 'Value', wxLIST_FORMAT_LEFT, 200)
  
         self.repr = Repr()
         self.repr.maxstring = 60
         self.repr.maxother = 60
+        self.debugger = debugger
         
         self.watches = []
 
@@ -367,7 +380,13 @@ class WatchViewCtrl(wxListCtrl):
         id = NewId()
         self.menu.Append(id, 'Delete')
         EVT_MENU(self, id, self.OnDelete)
+        id = NewId()
+        self.menu.Append(id, 'Expand')
+        EVT_MENU(self, id, self.OnExpand)
         self.x = self.y = 0
+    
+    def destroy(self):
+        self.menu.Destroy()
 
     dict = -1
     
@@ -420,6 +439,11 @@ class WatchViewCtrl(wxListCtrl):
             del self.watches[self.selected]
             self.DeleteItem(self.selected)
 
+    def OnExpand(self, event):
+        if self.selected != -1:
+            name, local = self.watches[self.selected]
+            self.debugger.expand_watch(name, local)
+
     def OnItemSelect(self, event):
         self.selected = event.m_itemIndex
 
@@ -440,13 +464,14 @@ class DebugStatusBar(wxStatusBar):
 
         rect = self.GetFieldRect(0)
         self.status = wxStaticText(self, 1001, 'Ready')
-        self.status.SetDimensions(rect.x+2, rect.y+2, rect.width-4, rect.height-4)
+        self.status.SetDimensions(rect.x+2, rect.y+2, 
+                                  rect.width-4, rect.height-4)
 
         rect = self.GetFieldRect(1)
         self.error = wxStaticText(self, 1002, ' ')
         self.error.SetBackgroundColour(wxNamedColour('white'))
-        self.error.SetDimensions(rect.x+2, rect.y+2, rect.width-4, rect.height-4)
-
+        self.error.SetDimensions(rect.x+2, rect.y+2, 
+                                 rect.width-4, rect.height-4)
 
         dc = wxClientDC(self)
         dc.SetFont(self.GetFont())
@@ -472,14 +497,6 @@ class DebugStatusBar(wxStatusBar):
         self.error.SetDimensions(rect.x+2, rect.y+2, rect.width-4, rect.height-4)
 
 class DebuggerFrame(wxFrame, bdb.Bdb):
-    viewsImgLst = wxImageList(16, 16)
-    viewsImgLst.Add(wxBitmap('Images/Debug/Stack.bmp', wxBITMAP_TYPE_BMP))
-    viewsImgLst.Add(wxBitmap('Images/Debug/Breakpoints.bmp', wxBITMAP_TYPE_BMP))
-    viewsImgLst.Add(wxBitmap('Images/Debug/Watches.bmp', wxBITMAP_TYPE_BMP))
-    viewsImgLst.Add(wxBitmap('Images/Debug/Locals.bmp', wxBITMAP_TYPE_BMP))
-    viewsImgLst.Add(wxBitmap('Images/Debug/Globals.bmp', wxBITMAP_TYPE_BMP))
-    viewsImgLst.Add(wxBitmap('Images/Debug/Output.bmp', wxBITMAP_TYPE_BMP))
-
     def __init__(self, model, stack = None):
         bdb.Bdb.__init__(self)
         wxFrame.__init__(self, model.editor, -1, 'Debugger - %s - %s' \
@@ -488,8 +505,17 @@ class DebuggerFrame(wxFrame, bdb.Bdb):
           wxSize(Preferences.inspWidth, Preferences.bottomHeight))
 
         if wxPlatform == '__WXMSW__':
-	    self.icon = wxIcon(Preferences.toPyPath('Images\\Icons\\Debug.ico'), wxBITMAP_TYPE_ICO)
+	    self.icon = wxIcon(Preferences.toPyPath('Images\\Icons\\Debug.ico'), 
+	      wxBITMAP_TYPE_ICO)
 	    self.SetIcon(self.icon)
+
+        self.viewsImgLst = wxImageList(16, 16)
+        self.viewsImgLst.Add(IS.load('Images/Debug/Stack.bmp'))
+        self.viewsImgLst.Add(IS.load('Images/Debug/Breakpoints.bmp'))
+        self.viewsImgLst.Add(IS.load('Images/Debug/Watches.bmp'))
+        self.viewsImgLst.Add(IS.load('Images/Debug/Locals.bmp'))
+        self.viewsImgLst.Add(IS.load('Images/Debug/Globals.bmp'))
+        self.viewsImgLst.Add(IS.load('Images/Debug/Output.bmp'))
 
         self.interacting = 0
         self.filename = model.filename
@@ -499,23 +525,24 @@ class DebuggerFrame(wxFrame, bdb.Bdb):
         self.sb = DebugStatusBar(self)
         self.SetStatusBar(self.sb)
 
-        self.toolbar = wxToolBar(self, -1)#wxTB_HORIZONTAL|wxNO_BORDER)
+        self.toolbar = wxToolBar(self, -1, style = wxTB_HORIZONTAL|wxNO_BORDER|flatTools)
         self.SetToolBar(self.toolbar)
         
-        Utils.AddToolButtonBmpFile(self, self.toolbar, path.join(pyPath, 'Images', 'Debug',
-          'Debug.bmp'),  'Debug', self.OnDebug)
-        Utils.AddToolButtonBmpFile(self, self.toolbar, path.join(pyPath, 'Images', 'Debug',
-          'Step.bmp'),  'Step', self.OnStep)
-        Utils.AddToolButtonBmpFile(self, self.toolbar, path.join(pyPath, 'Images', 'Debug',
-          'Over.bmp'),  'Over', self.OnOver)
-        Utils.AddToolButtonBmpFile(self, self.toolbar, path.join(pyPath, 'Images', 'Debug',
-          'Out.bmp'),  'Out', self.OnOut)
-        Utils.AddToolButtonBmpFile(self, self.toolbar, path.join(pyPath, 'Images', 'Debug',
-          'Stop.bmp'),  'Stop', self.OnStop)
+        Utils.AddToolButtonBmpIS(self, self.toolbar, 
+          'Images/Debug/Debug.bmp', 'Debug', self.OnDebug)
+        Utils.AddToolButtonBmpIS(self, self.toolbar, 
+          'Images/Debug/Step.bmp', 'Step', self.OnStep)
+        Utils.AddToolButtonBmpIS(self, self.toolbar, 
+          'Images/Debug/Over.bmp', 'Over', self.OnOver)
+        Utils.AddToolButtonBmpIS(self, self.toolbar, 
+          'Images/Debug/Out.bmp', 'Out', self.OnOut)
+        Utils.AddToolButtonBmpIS(self, self.toolbar, 
+          'Images/Debug/Stop.bmp',  'Stop', self.OnStop)
         self.toolbar.AddSeparator()
-        Utils.AddToggleToolButtonBmpFile(self, self.toolbar, path.join(pyPath, 'Images', 'Debug',
-          'SourceTrace-Off.bmp'),  path.join(pyPath, 'Images', 'Debug',
-          'SourceTrace-Off.bmp'),'Source trace', self.OnSourceTrace)
+        Utils.AddToolButtonBmpIS(self, self.toolbar, 
+          'Images/Debug/SourceTrace-Off.bmp',  'Trace in source',
+          self.OnSourceTrace)
+#          true, 'Images/Debug/SourceTrace-Off.bmp')
 
         
         self.toolbar.Realize()
@@ -528,20 +555,20 @@ class DebuggerFrame(wxFrame, bdb.Bdb):
         if wxPlatform == '__WXMSW__':
             self.nbTop.SetImageList(self.viewsImgLst)
         
-        self.stack = StackViewCtrl(self.nbTop, None, self)
+        self.stackView = StackViewCtrl(self.nbTop, None, self)
         if stack is None:
             try:
                 stack = get_stack()
-                self.stack.load_stack(stack)
+                self.stackView.load_stack(stack)
             except:
                 pass
         else:
-            self.stack.load_stack(stack)
+            self.stackView.load_stack(stack)
 
         if wxPlatform == '__WXMSW__':
-            self.nbTop.AddPage(self.stack, 'Stack', imageId = 0)
+            self.nbTop.AddPage(self.stackView, 'Stack', imageId = 0)
         elif wxPlatform == '__WXGTK__':
-            self.nbTop.AddPage(self.stack, 'Stack')
+            self.nbTop.AddPage(self.stackView, 'Stack')
 
         self.breakpts = BreakViewCtrl(self.nbTop, self)
         if wxPlatform == '__WXMSW__':
@@ -550,6 +577,8 @@ class DebuggerFrame(wxFrame, bdb.Bdb):
             self.nbTop.AddPage(self.breakpts, 'Breakpoints')
 
         self.outp = wxTextCtrl(self.nbTop, -1, '', style = wxTE_MULTILINE)
+        self.outp.SetBackgroundColour(wxBLACK)
+        self.outp.SetForegroundColour(wxWHITE)
         self.outp.SetFont(wxFont(7, wxDEFAULT, wxNORMAL, wxNORMAL, false))
         if wxPlatform == '__WXMSW__':
             self.nbTop.AddPage(self.outp, 'Output', imageId = 5)
@@ -561,7 +590,7 @@ class DebuggerFrame(wxFrame, bdb.Bdb):
         if wxPlatform == '__WXMSW__':
             self.nbBottom.SetImageList(self.viewsImgLst)
             
-        self.watches = WatchViewCtrl(self.nbBottom, self.viewsImgLst)
+        self.watches = WatchViewCtrl(self.nbBottom, self.viewsImgLst, self)
         if wxPlatform == '__WXMSW__':
             self.nbBottom.AddPage(self.watches, 'Watches', imageId = 2)
         elif wxPlatform == '__WXGTK__':
@@ -586,9 +615,20 @@ class DebuggerFrame(wxFrame, bdb.Bdb):
         
         self.mlc = 0
         self.frame = None
-    
+
+	EVT_CLOSE(self, self.OnCloseWindow)
+
     def add_watch(self, name, local):
         self.watches.add_watch(name, local)
+        self.nbBottom.SetSelection(0)
+        self.show_variables()        
+
+    def expand_watch(self, name, local):
+        inst_items = dir(eval(name, self.frame.f_globals, self.frame.f_locals))
+        clss_items = dir(eval(name, self.frame.f_globals, 
+          self.frame.f_locals).__class__)
+        for item in inst_items + clss_items:
+            self.watches.add_watch('%s.%s' %(name, item), local)
         self.nbBottom.SetSelection(0)
         self.show_variables()        
         
@@ -614,13 +654,19 @@ class DebuggerFrame(wxFrame, bdb.Bdb):
 
 
     def startMainLoop(self):
+        print 'before debugger startMainLoop'   
+#        raw_input()
         self.model.editor.app.MainLoop()
+        print 'after debugger startMainLoop'   
         self.mlc = self.mlc + 1
         
         print 'start', self.mlc
         
     def stopMainLoop(self):
+        print 'before debugger stopMainLoop'   
+#        raw_input()
         self.model.editor.app.ExitMainLoop()
+        print 'after debugger stopMainLoop'   
         self.mlc = self.mlc - 1
 
         print 'stop', self.mlc
@@ -644,13 +690,17 @@ class DebuggerFrame(wxFrame, bdb.Bdb):
         wxPhonyApp.debugger = self
         wxPython.wx.wxApp = wxPhonyApp
         
+        print 'debug_file'
+        
         modpth = os.path.dirname(filename)
         sys.path.append(modpth)
         try:
-            sys.stderr = Editor.PseudoFileErr(owin)
+            sys.stderr = ShellEditor.PseudoFileErrTC(owin)
             try:
-                sys.stdout = Editor.PseudoFileOut(owin)
+                sys.stdout = ShellEditor.PseudoFileOutTC(owin)
                 try:
+                    self.model.editor.app.saveStdio = sys.stdout, sys.stderr
+                    
                     modname, ext = os.path.splitext(os.path.basename(filename))
                     if sys.modules.has_key(modname):
                         mod = sys.modules[modname]
@@ -660,6 +710,7 @@ class DebuggerFrame(wxFrame, bdb.Bdb):
                         
                     mod.__file__ = filename
 
+                    print 'debug_file run'
                     self.run("execfile(%s)" % `filename`, mod.__dict__)
                 except:
                     (sys.last_type, sys.last_value,
@@ -667,11 +718,15 @@ class DebuggerFrame(wxFrame, bdb.Bdb):
                     linecache.checkcache()
                     traceback.print_exc()
             finally:
+                pass
                 sys.stdout = saveout
         finally:
             sys.stderr = saveerr
+            self.model.editor.app.saveStdio = sys.stdout, sys.stderr
             wxPython.wx.wxApp = tmpApp
             sys.path.remove(modpth)
+
+        print 'debug_file end'
 
     def run(self, *args):
 #        print args
@@ -695,6 +750,7 @@ class DebuggerFrame(wxFrame, bdb.Bdb):
         self.interaction(frame, info)
 
     def interaction(self, frame, info=None):
+        print 'interaction'
         self.frame = frame
         code = frame.f_code
         file = code.co_filename
@@ -726,7 +782,7 @@ class DebuggerFrame(wxFrame, bdb.Bdb):
 
         self.sb.writeError(m1)
         
-        sv = self.stack
+        sv = self.stackView
         if sv:
             stack, i = self.get_stack(self.frame, tb)
             sv.load_stack(stack, i)
@@ -736,12 +792,15 @@ class DebuggerFrame(wxFrame, bdb.Bdb):
             self.sb.error.SetLabel('Breakpoint.')
 
             rect = self.sb.GetFieldRect(1)
-            self.sb.error.SetDimensions(rect.x+2, rect.y+2, rect.width-4, rect.height-4)
+            self.sb.error.SetDimensions(rect.x+2, rect.y+2, 
+                                        rect.width-4, rect.height-4)
             
         self.breakpts.refreshList()
         self.selectSourceLine()
 
+        print 'debugger interaction, before startMainLoop'
         self.startMainLoop()
+        print 'debugger interaction, after startMainLoop'
 
         self.sb.status.SetLabel('')
         self.sb.writeError('')
@@ -749,10 +808,11 @@ class DebuggerFrame(wxFrame, bdb.Bdb):
         self.frame = None
 
     def selectSourceLine(self):
-        if self.stack.stack:
-            stack = self.stack.stack
-            print stack
+        if self.stackView.stack:
+            stack = self.stackView.stack
+#            print stack
             frame, lineno = stack[len(stack)-1]
+            print 'ssl', lineno
             try:
                 modname = frame.f_globals['__name__']
             except:
@@ -765,53 +825,67 @@ class DebuggerFrame(wxFrame, bdb.Bdb):
                 self.model.editor.SetFocus()
                 self.model.editor.openOrGotoModule(filename)
                 model = self.model.editor.getActiveModulePage().model
-                model.views['Source'].focus()
+                model.views['Source'].focus(false)
                 model.views['Source'].SetFocus()
-                model.views['Source'].selectLine(lineno - 1)
+                model.views['Source'].selectLine(lineno -1)
+                model.views['Source'].setStepPos(lineno -1)
         
 
     def OnDebug(self, event):
+        print 'Evt: Debug'
         if self.interacting:
             self.set_continue()
             self.stopMainLoop()
         else:
             self.debug_file(self.filename)
+            self.stopMainLoop()
 
     def OnStep(self, event):
+        print 'Evt: Step'
         self.set_step()
         self.stopMainLoop()
 
     def OnOver(self, event):
-        self.set_next(self.frame)
+        print 'Evt: Over'
         self.stopMainLoop()
 
     def OnOut(self, event):
+        print 'Evt: Out'
         self.set_return(self.frame)
         self.stopMainLoop()
 
     def OnStop(self, event):
+        print 'Evt: Stop'
         wxPhonyApp.inMainLoop = false
         self.set_quit()
+        self.model.editor.clearAllStepPoints()
+        self.stackView.load_stack([])
         self.stopMainLoop()
     
     def set_breakpoint_here(self, filename, lineno, tmp):
         self.nbTop.SetSelection(1)
+        print filename
         filename = self.canonic(filename)
-        msg = self.set_break(filename, lineno, tmp)
+        print filename
+        brpt = self.set_break(filename, lineno, tmp)
         self.breakpts.refreshList()
+        return brpt
 
-    # A literal copy of Bdb.set_break() without the print statement at the end
-    def set_break(self, filename, lineno, temporary=0, cond = None):
-        import linecache # Import as late as possible
-        line = linecache.getline(filename, lineno)
-        if not line:
-                return 'That line does not exist!'
+    def set_internal_breakpoint(self, filename, lineno, temporary=0, cond = None):
         if not self.breaks.has_key(filename):
                 self.breaks[filename] = []
         list = self.breaks[filename]
         if not lineno in list:
                 list.append(lineno)
-        bp = bdb.Breakpoint(filename, lineno, temporary, cond)
+    # A literal copy of Bdb.set_break() without the print statement at the end, 
+    # returning the breakpoint
+    def set_break(self, filename, lineno, temporary=0, cond = None):
+        import linecache # Import as late as possible
+        line = linecache.getline(filename, lineno)
+        if not line:
+                return 'That line does not exist!'
+        self.set_internal_breakpoint(filename, lineno, temporary, cond)
+        return bdb.Breakpoint(filename, lineno, temporary, cond)
 
     def OnSourceTrace(self, event):
         pass
@@ -819,12 +893,15 @@ class DebuggerFrame(wxFrame, bdb.Bdb):
     def OnCloseWindow(self, event):
         if self.interacting:
             # XXX mmm
-            self.OnStop(self, None)
+            self.OnStop(None)
+        self.locs.destroy()
+        self.globs.destroy()
+        self.breakpts.destroy()
+        self.watches.destroy()
         self.Destroy()
         self.model.editor.debugger = None        
         event.Skip()
         
-
-
-
-
+        
+        
+   
