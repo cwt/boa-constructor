@@ -30,6 +30,8 @@ import ZipExplorer, FTPExplorer, PrefsExplorer
 try: import DAVExplorer
 except ImportError: DAVExplorer = None
 
+from ExplorerNodes import TransportLoadError, TransportSaveError
+
 #---Explorer utility functions--------------------------------------------------
 
 # Global reference to container for all transport protocols
@@ -148,8 +150,8 @@ class PackageFolderTree(wxTreeCtrl):
               wxTreeItemData(self.boaRoot))
 
         self.transports = ExplorerNodes.ContainerNode('Transport', EditorHelper.imgFolder)
+        global all_transports
         if all_transports is None:
-            global all_transports
             all_transports = self.transports
             self._ref_all_transp = true
         
@@ -591,3 +593,4 @@ class ExplorerSplitter(wxSplitterWindow):
         else:
             event.Skip()
 
+ 
