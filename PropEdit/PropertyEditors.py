@@ -609,7 +609,11 @@ class BoolPropEdit(OptionedPropEdit):
 class EnumPropEdit(OptionedPropEdit):
     def valueToIECValue(self):
         if self.revNames:
-    	    return self.revNames[self.value]
+            try:
+                return self.revNames[self.value]
+            except KeyError:
+                return `self.value`
+            
     	else: OptionedPropEdit.getDisplayValue(self)
     def inspectorEdit(self):
         self.editorCtrl = ChoiceIEC(self, self.value)
@@ -618,15 +622,29 @@ class EnumPropEdit(OptionedPropEdit):
     def getDisplayValue(self):
 	return self.valueToIECValue()
     def getValues(self):
-        return self.names.keys()
+        vals = self.names.keys()
+        try:
+            name = self.revNames[self.value]
+        except KeyError:
+            name = `self.value`
+        if name not in vals:
+            vals.append(name)
+        return vals
     def setValue(self, value):
         self.value = value
         if self.editorCtrl:
-            self.editorCtrl.setValue(self.revNames[value])
+            try:
+                self.editorCtrl.setValue(self.revNames[value])
+            except KeyError:
+                self.editorCtrl.setValue(`value`)
     def getValue(self):
         if self.editorCtrl:
 	    strVal = self.editorCtrl.getValue()
-            self.value = self.names[strVal]
+            try:
+                self.value = self.names[strVal]
+            except KeyError:
+                self.value = eval(strVal)
+                
         return self.value
 # SetPropEdit
 
