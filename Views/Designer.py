@@ -1030,7 +1030,6 @@ class DesignerControlsEvtHandler(wxEvtHandler):
         event.Skip()
 
     def OnControlSelect(self, event):
-        print 'OnControlSelect'
         """ Control is clicked. Either select it or add control from palette """
         dsgn = self.designer
         # XXX wxPython bug workaround only here for when testing
