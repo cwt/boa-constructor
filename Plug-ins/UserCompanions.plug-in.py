@@ -10,7 +10,7 @@
 
 from wxPython.wx import *
 
-from Companions import BaseCompanions, Companions, EventCollections, Constructors
+from Companions import BaseCompanions, BasicCompanions, EventCollections, Constructors
 from PropEdit import PropertyEditors
 import PaletteStore
 
@@ -33,7 +33,7 @@ from wxPython.lib.bcrtl.user.ExampleST import *
 
 # Silly barebones example of a companion for a new component that is not
 # available in the wxPython distribution
-class ExampleSTDTC(Companions.StaticTextDTC):
+class ExampleSTDTC(BasicCompanions.StaticTextDTC):
     def writeImports(self):
         return 'from wxPython.lib.bcrtl.user.ExampleST import *'
 
@@ -43,9 +43,9 @@ class ExampleSTDTC(Companions.StaticTextDTC):
 
 from wxPython.lib.bcrtl.user.StaticTextCtrl import wxStaticTextCtrl
 
-class StaticTextCtrlDTC(Companions.TextCtrlDTC):
+class StaticTextCtrlDTC(BasicCompanions.TextCtrlDTC):
     def __init__(self, name, designer, parent, ctrlClass):
-        Companions.TextCtrlDTC.__init__(self, name, designer, parent, ctrlClass)
+        BasicCompanions.TextCtrlDTC.__init__(self, name, designer, parent, ctrlClass)
         self.editors['CaptionAlignment'] = PropertyEditors.EnumPropEdit
         self.options['CaptionAlignment'] = [wx.wxTOP, wx.wxLEFT]
         self.names['CaptionAlignment'] = {'wxTOP': wx.wxTOP, 'wxLEFT': wx.wxLEFT}
@@ -59,7 +59,7 @@ class StaticTextCtrlDTC(Companions.TextCtrlDTC):
         return 'from wxPython.lib.bcrtl.user.StaticTextCtrl import *'
 
     def designTimeSource(self, position = 'wxDefaultPosition', size = 'wxDefaultSize'):
-        dts = Companions.TextCtrlDTC.designTimeSource(self, position, size)
+        dts = BasicCompanions.TextCtrlDTC.designTimeSource(self, position, size)
         dts['caption'] = `self.name`
         return dts
 
@@ -68,7 +68,7 @@ class StaticTextCtrlDTC(Companions.TextCtrlDTC):
 PaletteStore.paletteLists['User'].extend([wxExampleStaticText, wxStaticTextCtrl])
 
 # Add an entry to this dict with the following structure:
-# <component class>: ['Tip name and bitmap file', <companion>]
+# <component class>: ['Palette tip name and bitmap file', <companion>]
 PaletteStore.compInfo.update({wxExampleStaticText: ['wxExampleStaticText', ExampleSTDTC],
                               wxStaticTextCtrl: ['wxStaticTextCtrl', StaticTextCtrlDTC]})
 
