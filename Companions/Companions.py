@@ -68,7 +68,7 @@ class BaseFrameDTC(ContainerDTC):
 
     def dontPersistProps(self):
         # Note this is a workaround for a problem on wxGTK where the size
-        # passed to the frame constructor is actually means ClientSize on wxGTK
+        # passed to the frame constructor is actually means ClientSize on wxGTK.
         # By having this property always set, this overrides the frame size
         # and uses the same size on Win and Lin
         props = ContainerDTC.dontPersistProps(self) 
@@ -162,7 +162,6 @@ class DialogDTC(FramesConstr, BaseFrameDTC):
         dts = BaseFrameDTC.designTimeSource(self)
         dts.update({'style': 'wxDEFAULT_DIALOG_STYLE'})
         return dts
-#wxSystemSettings_GetSystemColour(wxSYS_COLOUR_BTNFACE)
 
     def events(self):
         return BaseFrameDTC.events(self) + ['DialogEvent']
@@ -269,7 +268,6 @@ class SashLayoutWindowDTC(SashWindowDTC):
         SashWindowDTC.__init__(self, name, designer, parent, ctrlClass)
         self.editors.update({'Alignment'   : EnumPropEdit,
                              'Orientation' : EnumPropEdit,
-#                             'DefaultSize' : SizePropEdit
                             })
         self.options.update({'Alignment'   : sashLayoutAlignment,
                              'Orientation' : sashLayoutOrientation
@@ -277,7 +275,6 @@ class SashLayoutWindowDTC(SashWindowDTC):
         self.names.update({'Alignment'   : sashLayoutAlignmentNames,
                            'Orientation' : sashLayoutOrientationNames
                           })
-#        self.defaultSize = wxSize(self.control.GetSize())
 
     def designTimeSource(self, position = 'wxDefaultPosition', size = 'wxDefaultSize'):
         return {'pos':   position,
@@ -470,7 +467,6 @@ class NotebookPagesCDTC(NotebookPageConstr, CollectionDTC):
 
     def defaultAction(self):
         self.SetPageSelected(true)
-        #print 'CDTC', self.textConstrLst[self.index]
 
     def GetPageSelected(self, compn):
         pass
@@ -509,8 +505,7 @@ class NotebookPagesCDTC(NotebookPageConstr, CollectionDTC):
             'a control or the generated source will be invalid outside the Designer')
 
 
-[wxID_CTRLPARENT, wxID_EDITPASTE, wxID_EDITDELETE,
-] = map(lambda _bwp_menu: wxNewId(), range(3))
+[wxID_CTRLPARENT, wxID_EDITPASTE, wxID_EDITDELETE] = Utils.wxNewIds(3)
 
 class BlankWindowPage(wxWindow):
     """ Window representing uninitialised space, it grabs the first control
@@ -528,7 +523,7 @@ class BlankWindowPage(wxWindow):
         self.params = params
         self.designer = designer
 
-        # XXX how can I delete this menu !!
+        # XXX how/when can I delete this menu, it will leak !!
         self.menu = wxMenu()
         self.menu.Append(wxID_CTRLPARENT, 'Up')
         self.menu.Append(-1, '-')
@@ -962,7 +957,6 @@ class ListCtrlDTC(MultiItemCtrlsConstr, WindowDTC):
             self.listTypeNameMap[name])
 
     def SetImageList(self, name, value):
-        print 'SetImageList', name, value
         self.control.SetImageList(value[0], self.listTypeNameMap[name])
 
     def EvalImageList(self, exprs, objects):
@@ -1067,6 +1061,9 @@ class ComboBoxDTC(ComboConstr, ChoicedDTC):
         return ['GetColumns', 'SetColumns', 'GetSelection', 'SetSelection',
                 'GetStringSelection', 'SetStringSelection']
 
+    def hideDesignTime(self):
+        return ['Label']
+
     def events(self):
         return ChoicedDTC.events(self) + ['ComboEvent']
 
@@ -1124,8 +1121,9 @@ class TextCtrlDTC(TextCtrlConstr, WindowDTC):
                 'size': size,
                 'style': '0',
                 'name': `self.name`}
+
     def hideDesignTime(self):
-        return ['Selection']
+        return ['Selection', 'Title', 'Label']
 
     def events(self):
         return WindowDTC.events(self) + ['TextCtrlEvent']
@@ -1277,9 +1275,6 @@ class GaugeDTC(GaugeConstr, WindowDTC):
                 'name': `self.name`}
 
 class StaticBoxDTC(LabeledNonInputConstr, WindowDTC):
-##    def __init__(self, name, designer, parent, ctrlClass):
-##        WindowDTC.__init__(self, name, designer, parent, ctrlClass)
-##        self.container = true
     #wxDocs = HelpCompanions.wxStaticBoxDocs
     def designTimeSource(self, position = 'wxDefaultPosition', size = 'wxDefaultSize'):
         return {'label': `self.name`,
@@ -1593,7 +1588,6 @@ class StatusBarFieldsCDTC(StatusBarFieldsConstr, CollectionDTC):
         self.control.SetFieldsCount(len(self.widths))
 
     def setConstrs(self, constrLst, inits, fins):
-##        print 'setConstrs', inits, fins
         CollectionDTC.setConstrs(self, constrLst, inits, fins)
         if len(fins):
             self.widths = eval(fins[0]\
@@ -1608,11 +1602,9 @@ class StatusBarFieldsCDTC(StatusBarFieldsConstr, CollectionDTC):
         self.control.SetStatusWidths(self.widths)
 
     def GetText(self):
-##        print 'StatusBarFieldsCDTC GetText'
         return `self.control.GetStatusText(self.index)`
 
     def SetText(self, value):
-##        print 'StatusBarFieldsCDTC SetText'
         self.control.SetStatusText(value)
 
 #---Helpers---------------------------------------------------------------------
@@ -1873,3 +1865,4 @@ PaletteStore.helperClasses.update({'wxFontPtr': FontDTC,
     'wxColourPtr': ColourDTC,
     'Anchors': AnchorsDTC
 })
+ 
