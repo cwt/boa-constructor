@@ -34,6 +34,12 @@ keyDefs = {
   'Save'        : (wxACCEL_CTRL, ord('S'), 'Ctrl-S'),
   'Indent'      : (wxACCEL_CTRL, ord('I'), 'Ctrl-I'), # ctrl ] doesn't work
   'Dedent'      : (wxACCEL_CTRL, ord('U'), 'Ctrl-U'), # ctrl [ doesn't work
+# Delphi's indent
+##  'Indent'      : (wxACCEL_SHIFT|wxACCEL_CTRL, ord('I'), 'Ctrl-Shft-I'), 
+##  'Dedent'      : (wxACCEL_SHIFT|wxACCEL_CTRL, ord('U'), 'Ctrl-Shft-U'), 
+# VS's indent
+##  'Indent'      : (wxACCEL_NORMAL, WXK_TAB, 'Tab'), 
+##  'Dedent'      : (wxACCEL_SHIFT, WXK_TAB, 'Shft-Tab'), 
   'DashLine'    : (wxACCEL_CTRL, ord('B'), 'Ctrl-B'),
   'Refresh'     : (wxACCEL_CTRL, ord('R'), 'Ctrl-R'),
   'Insert'      : (wxACCEL_NORMAL, WXK_INSERT, 'Ins'),
