@@ -40,17 +40,12 @@ class SSHController(ExplorerNodes.Controller, ExplorerNodes.ClipboardControllerM
         self.toolbarMenus = ()
         self.menu.Destroy()
 
-    def __del__(self):
-        pass#self.menu.Destroy()
-
-
 class SSHCatNode(ExplorerNodes.CategoryNode):
     itemProtocol = 'ssh'
     defName = 'SSH'
     defaultStruct = {'username': '',
-                     'cipher': '',
+                     'cipher': '3des',
                      'host': '',
-                     'scp_pass': '',
                      'root': '~'}
     def __init__(self, clipboard, config, parent, bookmarks):
         ExplorerNodes.CategoryNode.__init__(self, 'SSH', ('explorer', 'ssh'),
@@ -96,7 +91,7 @@ class SSHItemNode(ExplorerNodes.ExplorerNode):
 
     def openList(self):
         res = []
-        ls = self.execCmd('ls %s -la' % self.resourcepath)[1:]
+        ls = self.execCmd("ls -la '%s'" % self.resourcepath)[1:]
         for line in ls:
             name = string.strip(string.split(line, ' ')[-1])
             if name not in ('.', '..'):
@@ -115,62 +110,68 @@ class SSHItemNode(ExplorerNodes.ExplorerNode):
         return []
 
     def sshCmd(self, command):
-        return 'ssh -v -l %(username)s -c %(cipher)s %(host)s '% self.properties + command
+        return 'ssh -v -l %(username)s -c %(cipher)s %(host)s '% self.properties+\
+                command
 
     def remotePath(self, filename):
         return '%(username)s@%(host)s:'%self.properties + self.resourcepath+\
                (filename and '/'+filename or '')
 
-    def execSCP(self, cmd, dispCmd):
-        dlg = ProcessProgressDlg(None, cmd, 'SCP copy', linesep = '\012',
-              overrideDisplay = dispCmd)
+    def execSCP(self, cmd):
+        dlg = ProcessProgressDlg(None, cmd, 'SCP copy', linesep = '\012')
         try:
             dlg.ShowModal()
         finally:
             dlg.Destroy()
 
-    def buildSCPStrs(self, source, dest):
-        return 'pscp -pw %s %s %s' % (self.properties['scp_pass'], source, dest), \
-        'pscp -pw %s %s %s' %(len(self.properties['scp_pass'])*'*', source, dest)
-
     def copyFromFS(self, fsNode, fn=''):
         if not fn:
             fn = os.path.basename(fsNode.resourcepath)
-        cmd, dispCmd = self.buildSCPStrs(fsNode.resourcepath, self.remotePath(fn))
-        self.execSCP(cmd, dispCmd)
+        cwd = os.getcwd()
+        os.chdir(os.path.dirname(fsNode.resourcepath))
+        try:
+            cmd = 'scp %s %s' % (os.path.basename(fsNode.resourcepath), 
+                                 self.remotePath(fn))
+            self.execSCP(cmd)
+        finally:
+            os.chdir(cwd)
 
     def copyToFS(self, fsFolderNode, fn=''):
         if not fn:
             fn = os.path.basename(self.resourcepath)
-        cmd, dispCmd = self.buildSCPStrs(self.remotePath(''),
-             os.path.join(fsFolderNode.resourcepath, fn))
-        self.execSCP(cmd, dispCmd)
+        cwd = os.getcwd()
+        os.chdir(fsFolderNode.resourcepath)
+        try:
+            cmd = 'scp %s %s' % (self.remotePath(''), fn)
+            self.execSCP(cmd)
+        finally:
+            os.chdir(cwd)
 
     def moveFileFrom(self, other):
         fn = os.path.basename(other.resourcepath)
-        self.execCmd('mv %s %s' % (other.resourcepath,
+        self.execCmd("mv '%s' '%s'" % (other.resourcepath,
                                    self.resourcepath + '/' + fn))
 
     def copyFileFrom(self, other):
         fn = os.path.basename(other.resourcepath)
-        self.execCmd('cp %s %s' % (other.resourcepath,
+        self.execCmd("cp '%s' '%s'" % (other.resourcepath,
                                    self.resourcepath + '/' + fn))
 
     def deleteItems(self, names):
         absNames = []
         for name in names:
             absNames.append(self.resourcepath + '/' +name)
-        self.execCmd('rm '+string.join(absNames, ' '))
+        self.execCmd("rm '%s'" % string.join(absNames, ' '))
 
     def renameItem(self, name, newName):
-        self.execCmd('mv %s %s' % (self.resourcepath + '/' + name,
+        self.execCmd("mv '%s' '%s'" % (self.resourcepath + '/' + name,
                                    self.resourcepath + '/' + newName))
 
     def newFolder(self, name):
-        self.execCmd('mkdir %s' % (self.resourcepath + '/' + name))
+        self.execCmd("mkdir '%s'" % (self.resourcepath + '/' + name))
 
     def newBlankDocument(self, name):
-        self.execCmd('echo " " > %s' % (self.resourcepath + '/' + name))
+        self.execCmd("echo \" \" > '%s'" % (self.resourcepath + '/' + name))
 
     def load(self, mode='rb'):
         from FileExplorer import PyFileNode
@@ -218,11 +219,9 @@ class SSHExpClipboard(ExplorerNodes.ExplorerClipboard):
         for clipnode in nodes:
             if mode == 'cut':
                 node.copyFromFS(clipnode)
-#                node.moveFileFrom(clipnode)
                 self.clipNodes = []
             elif mode == 'copy':
                 node.copyFromFS(clipnode)
-#                node.copyFileFrom(clipnode)
 
     def clipPaste_SSHExpClipboard(self, node, nodes, mode):
         for sshNode in nodes:
@@ -235,3 +234,4 @@ class SSHExpClipboard(ExplorerNodes.ExplorerClipboard):
 #-------------------------------------------------------------------------------
 ExplorerNodes.register(SSHItemNode, clipboard=SSHExpClipboard,
       confdef=('explorer', 'ssh'), controller=SSHController, category=SSHCatNode)
+#ExplorerNodes.fileOpenDlgProtReg.append('ssh')
