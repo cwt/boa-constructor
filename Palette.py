@@ -254,9 +254,6 @@ class BoaFrame(wxFrame):
     def OnNewPackage(self, event):
         self.editor.addNewPackage()
         pass
-    
-##    def OnPaletteClick(self, event):
-##        pass
 
     def OnDialogPaletteClick(self, event):
         cls, cmp = self.dialogPalettePage.widgets[`event.GetId()`][1:]
@@ -264,13 +261,9 @@ class BoaFrame(wxFrame):
 
     def OnZopePaletteClick(self, event):
         cls, cmp = self.zopePalettePage.widgets[`event.GetId()`][1:]
-        print cls, cmp
-#        self.editor.addNewDialog(cls, cmp)
 
     def OnHint(self, event):
         pass
-
-        #linux mod self.componentSB.setHint(self.senders.getObject(event).GetLabel())
 
     def OnHintLeave(self, event):
         self.componentSB.setHint('')
@@ -307,7 +300,6 @@ class BoaFrame(wxFrame):
                     self.app = None
             
             for page in self.palettePages:
-                print page, sys.getrefcount(page)
                 page.destroy()
 
         finally:
