@@ -1,20 +1,20 @@
 #----------------------------------------------------------------------
-# Name:        PhonyApp.py
-# Purpose:     To impersonate a second wxApp for the debugger because
-#              there may only be one
-#
-# Author:      Riaan Booysen
-#
-# Created:     2000/01/15
+# Name:        PhonyApp.py                                             
+# Purpose:     To impersonate a second wxApp for the debugger or       
+#              profiler because there may only be one per process      
+#                                                                      
+# Author:      Riaan Booysen                                           
+#                                                                      
+# Created:     2000/01/15                                              
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999, 2000 Riaan Booysen
-# Licence:     GPL
+# Copyright:   (c) 1999, 2000 Riaan Booysen                            
+# Licence:     GPL                                                     
 #----------------------------------------------------------------------
 true = 1
 false = 0
 import time
 
-class wxPhonyApp:
+class wxBasePhonyApp:
     inMainLoop = false
     def __init__(self, flag):
         self.inMainLoop = true
@@ -36,19 +36,13 @@ class wxPhonyApp:
     def Dispatch(self, *_args, **_kwargs):
         pass
     def ExitMainLoop(self, *_args, **_kwargs):
+        print 'PhonyApp exit mainloop'
         pass
     def Initialized(self, *_args, **_kwargs):
         pass
     def MainLoop(self, *_args, **_kwargs):
-        while self.inMainLoop:
-#            while self.Pending():
-            self.Dispatch()
-            print 'disp!'
-#            time.sleep(0.25)
-            self.debugger.startMainLoop()
-            self.debugger.stopMainLoop()
-
-        self.quit = true
+##      print 'PhonyApp enter mainloop'
+        pass
     def Pending(self, *_args, **_kwargs):
         pass
     def ProcessIdle(self, *_args, **_kwargs):
@@ -60,6 +54,7 @@ class wxPhonyApp:
     def SetClassName(self, *_args, **_kwargs):
         pass
     def SetExitOnFrameDelete(self, *_args, **_kwargs):
+##      print 'PhonyApp: SetExitOnFrameDelete'
         pass
     def SetPrintMode(self, *_args, **_kwargs):
         pass
@@ -71,3 +66,20 @@ class wxPhonyApp:
         pass
     def __repr__(self):
         return "<wxPhonyApp instance at %d>" % (self.id,)
+        
+class wxPhonyApp(wxBasePhonyApp):
+    def MainLoop(self, *_args, **_kwargs):
+        import sys
+        print sys.path
+        while self.inMainLoop:
+            self.Dispatch()
+##          print 'phony app: MainLoop'
+            self.debugger.startMainLoop()
+            self.debugger.stopMainLoop()
+
+        self.quit = true
+
+class wxProfilerPhonyApp(wxBasePhonyApp):
+    def MainLoop(self, *_args, **_kwargs):
+        self.realApp.Dispatch()
+        
