@@ -33,7 +33,6 @@ class ZopeConnection:
             wx.wxBeginBusyCursor()
             try:
                 url = 'http://%s:%d/%s/%s' % (self.host, self.port, objPath, method)
-                print url
                 return apply(Client.call, (url, self.user, self.password), kw)
             finally:
                 wx.wxEndBusyCursor()
@@ -45,7 +44,6 @@ class ZopeConnection:
             wx.wxBeginBusyCursor()
             try:
                 url = 'http://%s:%d/%s/%s' % (self.host, self.port, objPath, method)
-                print url
                 return apply(Client.call, (url, self.user, self.password), kw)
             finally:
                 wx.wxEndBusyCursor()
@@ -117,7 +115,6 @@ class ZopeCompanion(Companion, ZopeConnection):
     def getPropertyType(self, name):
         tpe = 'string'
         for p in self.propMap:
-            print p, name
             if p['id'] == name: 
                 tpe = p['type']
                 return tpe
@@ -132,7 +129,6 @@ class ZopeCompanion(Companion, ZopeConnection):
         mime, res = self.call(self.objPath, 'manage_delProperties', ids=[name])
 
     def GetProp(self, name):
-#        print 'Get ZOPE prop'
         for prop in self.propItems:
             if prop[0] == name: return prop[1]
     
@@ -144,7 +140,6 @@ class ZopeCompanion(Companion, ZopeConnection):
                 break
 
 class DTMLDocumentZC(ZopeCompanion):
-#    zMethPck = 'manage_addProduct.OFSP'
     def create(self):
         mime, res = self.call(self.objPath, 'manage_addDTMLDocument', id = self.name)
     
