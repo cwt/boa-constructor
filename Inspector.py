@@ -15,11 +15,14 @@
     and interacts with the designer and companions
 """
 
+import os
+from types import *
+
 from wxPython.wx import *
-import PaletteMapping, sender, Preferences, Help
+
+import PaletteStore, sender, Preferences, Help
 print 'importing PropertyEditors'
 from PropEdit import PropertyEditors
-from types import *
 from Companions.EventCollections import *
 import Preferences, RTTI, Utils
 from Preferences import IS, oiLineHeight, oiNamesWidth, inspPageNames, flatTools
@@ -55,9 +58,12 @@ class InspectorFrame(wxFrame):
         self.paletteImages = wxImageList(24, 24)
         self.destroying = false
 
-        for cmpInf in PaletteMapping.compInfo.values():
-            cmpInf.append(self.paletteImages.Add(IS.load('Images/Palette/Gray/'+\
-              cmpInf[0]+'.bmp')))
+        for cmpInf in PaletteStore.compInfo.values():
+            filename ='Images/Palette/Gray/'+ cmpInf[0]+'.bmp'
+            if os.path.exists(Preferences.pyPath+'/'+filename):
+                cmpInf.append(self.paletteImages.Add(IS.load(filename)))
+            else:
+                cmpInf.append(self.paletteImages.Add(IS.load('Images/Palette/Gray/Component.bmp')))
 
         self.statusBar = self.CreateStatusBar()
         self.statusBar.SetFont(wxFont(Preferences.inspStatBarFontSize,
@@ -307,7 +313,6 @@ class InspectorFrame(wxFrame):
             self.refreshZopeProps()
 
     def OnCloseWindow(self, event):
-        print 'Insp close', self.IsShown(), self.destroying
         self.Show(false)
         if self.destroying:
             self.cleanup()
@@ -338,7 +343,7 @@ class ParentTree(wxTreeCtrl):
     def addChildren(self, parent, dict, designer):
         """ Recursive method to construct parent/child relationships in a tree """
         for par in dict.keys():
-            img = PaletteMapping.compInfo[designer.objects[par][1].__class__][2]
+            img = PaletteStore.compInfo[designer.objects[par][1].__class__][2]
             itm = self.AppendItem(parent, par, img)
             self.treeItems[par] = itm
             if len(dict[par]):
@@ -350,7 +355,7 @@ class ParentTree(wxTreeCtrl):
         self.cleanup()
         self.designer = designer
         self.root = self.AddRoot(root,
-     PaletteMapping.compInfo[designer.objects[''][1].__class__.__bases__[0]][2])
+     PaletteStore.compInfo[designer.objects[''][1].__class__.__bases__[0]][2])
 
         self.treeItems[''] = self.root
         self.addChildren(self.root, relDict[''], designer)
