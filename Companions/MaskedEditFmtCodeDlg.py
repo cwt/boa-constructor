@@ -32,12 +32,13 @@ class MaskedEditFormatCodesDlg(wxDialog):
     def _init_ctrls(self, prnt):
         # generated method, don't edit
         wxDialog.__init__(self, id=wxID_MASKEDEDITFORMATCODESDLG,
-              name='MaskedEditFormatCodesDlg', parent=prnt, pos=wxPoint(595,
-              274), size=wxSize(436, 399),
+              name='MaskedEditFormatCodesDlg', parent=prnt, pos=wxPoint(433,
+              218), size=wxSize(436, 399),
               style=wxRESIZE_BORDER | wxDEFAULT_DIALOG_STYLE,
               title='Masked Edit - Format Codes')
         self.SetClientSize(wxSize(428, 372))
         self.SetAutoLayout(True)
+        self.Center(wxBOTH)
 
         self.clbFormatCodes = wxCheckListBox(choices=[],
               id=wxID_MASKEDEDITFORMATCODESDLGCLBFORMATCODES,
