@@ -21,14 +21,6 @@ from PrefsKeys import keyDefs
 import methodparse
 import wxNamespace
 
-simpleAppText = '''
-
-if __name__ == '__main__':
-    app = wxPySimpleApp()
-    frame = create(None)
-    frame.Show(true)
-    app.MainLoop()'''
-
 indentLevel = 4
 endOfLines = {  wxSTC_EOL_CRLF : '\r\n',
                 wxSTC_EOL_CR : '\r',
@@ -505,7 +497,6 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix, BrowseStyl
             dot = string.rfind(line, '.', 0, piv)
             if dot != -1 and line[dot-4:dot] == 'self':
                 meth = line[dot+1:piv-1]
-                print 'self', meth
                 if cls.methods.has_key(meth):
                     sigLst = methodparse.safesplitfields(cls.methods[meth].signature, ',')
                     if len(sigLst) > 1:
@@ -899,15 +890,27 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix, BrowseStyl
         self.processSelectionBlock(self.processUncomment)
 
     def OnIndent(self, event):
-        self.processSelectionBlock(self.processIndent)
+        selStartPos, selEndPos = self.GetSelection()
+        if selStartPos != selEndPos:
+            self.processSelectionBlock(self.processIndent)
+        else:
+            self.AddText(indentLevel*' ')            
 
     def OnDedent(self, event):
-        self.processSelectionBlock(self.processDedent)
+        selStartPos, selEndPos = self.GetSelection()
+        if selStartPos != selEndPos:
+            self.processSelectionBlock(self.processDedent)
+        elif self.GetTextRange(selStartPos - indentLevel, selStartPos) == indentLevel*' ':
+            self.SetSelection(selStartPos - indentLevel, selStartPos)
+            self.ReplaceSelection('')
+            
 
     def OnAddSimpleApp(self, event):
         self.BeginUndoAction()
-        try: self.InsertText(self.GetTextLength(), simpleAppText)
-        finally: self.EndUndoAction()
+        try: 
+            self.InsertText(self.GetTextLength(), self.model.getSimpleRunnerSrc())
+        finally: 
+            self.EndUndoAction()
 
     def OnStyle(self, event):
         pass
@@ -982,12 +985,13 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix, BrowseStyl
                 self.checkCodeComp()
         # Tabbed indent
         elif key == 9:
-            pos = self.GetCurrentPos()
-            self.InsertText(pos, indentLevel*' ')
-            if old_stc:
-                self.SetCurrentPosition(pos + indentLevel)
-            else:
-                self.SetSelectionStart(pos + indentLevel)
+##            pos = self.GetCurrentPos()
+##            self.InsertText(pos, indentLevel*' ')
+##            if old_stc:
+##                self.SetCurrentPosition(pos + indentLevel)
+##            else:
+##                self.SetSelectionStart(pos + indentLevel)
+            self.AddText(indentLevel*' ')
             if not self.AutoCompActive(): return
         # Smart delete
         elif key == 8:
