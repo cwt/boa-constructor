@@ -21,14 +21,15 @@ saveStr = 'Save'
 [wxID_WXBOAFILEDIALOGSTATICTEXT1, wxID_WXBOAFILEDIALOGBTCANCEL, wxID_WXBOAFILEDIALOGTCFILENAME, wxID_WXBOAFILEDIALOGPANEL1, wxID_WXBOAFILEDIALOGSTATICTEXT2, wxID_WXBOAFILEDIALOGSTPATH, wxID_WXBOAFILEDIALOGBTOK, wxID_WXBOAFILEDIALOGCHTYPES, wxID_WXBOAFILEDIALOG] = map(lambda _init_ctrls: wxNewId(), range(9))
 
 class wxBoaFileDialog(wxDialog):
+    currentDir = '.'
     def _init_utils(self): 
         pass
 
     def _init_ctrls(self, prnt): 
-        wxDialog.__init__(self, size = wxSize(407, 280), id = wxID_WXBOAFILEDIALOG, title = 'File Dialog', parent = prnt, name = 'wxBoaFileDialog', style = wxDEFAULT_DIALOG_STYLE, pos = wxPoint(174, 117))
+        wxDialog.__init__(self, size = wxSize(408, 283), id = wxID_WXBOAFILEDIALOG, title = 'File Dialog', parent = prnt, name = 'wxBoaFileDialog', style = wxDEFAULT_DIALOG_STYLE, pos = wxPoint(174, 117))
         self._init_utils()
 
-        self.panel1 = wxPanel(size = wxSize(400, 256), id = wxID_WXBOAFILEDIALOGPANEL1, parent = self, name = 'panel1', style = wxTAB_TRAVERSAL, pos = wxPoint(0, 0))
+        self.panel1 = wxPanel(size = wxSize(400, 256), parent = self, id = wxID_WXBOAFILEDIALOGPANEL1, name = 'panel1', style = wxTAB_TRAVERSAL, pos = wxPoint(0, 0))
 
         self.btOK = wxButton(label = 'OK', id = wxID_WXBOAFILEDIALOGBTOK, parent = self.panel1, name = 'btOK', size = wxSize(72, 24), style = 0, pos = wxPoint(320, 184))
         EVT_BUTTON(self.btOK, wxID_WXBOAFILEDIALOGBTOK, self.OnBtokButton)
@@ -39,13 +40,14 @@ class wxBoaFileDialog(wxDialog):
         self.staticText1 = wxStaticText(label = 'File name:', id = wxID_WXBOAFILEDIALOGSTATICTEXT1, parent = self.panel1, name = 'staticText1', size = wxSize(48, 16), style = 0, pos = wxPoint(8, 192))
 
         self.staticText2 = wxStaticText(label = 'Files of type:', id = wxID_WXBOAFILEDIALOGSTATICTEXT2, parent = self.panel1, name = 'staticText2', size = wxSize(72, 16), style = 0, pos = wxPoint(8, 224))
-        self.staticText2.Enable(false)
+        self.staticText2.Enable(true)
 
         self.tcFilename = wxTextCtrl(size = wxSize(224, 24), value = '', pos = wxPoint(80, 184), parent = self.panel1, name = 'tcFilename', style = 0, id = wxID_WXBOAFILEDIALOGTCFILENAME)
         EVT_TEXT_ENTER(self.tcFilename, wxID_WXBOAFILEDIALOGTCFILENAME, self.OnTcfilenameTextEnter)
 
-        self.chTypes = wxChoice(size = wxSize(224, 21), id = wxID_WXBOAFILEDIALOGCHTYPES, choices = ['*.py; *.txt'], parent = self.panel1, name = 'chTypes', validator = wxDefaultValidator, style = 0, pos = wxPoint(80, 216))
-        self.chTypes.Enable(false)
+        self.chTypes = wxChoice(size = wxSize(224, 21), id = wxID_WXBOAFILEDIALOGCHTYPES, choices = ['Boa files', 'Internal files', 'All files'], parent = self.panel1, name = 'chTypes', validator = wxDefaultValidator, style = 0, pos = wxPoint(80, 216))
+        self.chTypes.Enable(true)
+        EVT_CHOICE(self.chTypes, wxID_WXBOAFILEDIALOGCHTYPES, self.OnChtypesChoice)
 
         self.stPath = wxStaticText(label = ' ', id = wxID_WXBOAFILEDIALOGSTPATH, parent = self.panel1, name = 'stPath', size = wxSize(3, 13), style = 0, pos = wxPoint(8, 8))
 
@@ -53,7 +55,7 @@ class wxBoaFileDialog(wxDialog):
         self._init_ctrls(parent)
         self.SetStyle(style)
         self.SetWildcard(wildcard)
-
+        
         # XXX This is a bit convoluted ;)
         # XXX The late importing is the only way to avoid import problems because 
         # XXX the dialog swapping code is initialised so early on
@@ -81,7 +83,11 @@ class wxBoaFileDialog(wxDialog):
                 Explorer.PackageFolderList.OnItemDeselect(self, event)
                 self.dlg.SelectItem(None)
 
-        defaultDir = defaultDir and path.abspath(defaultDir) or path.abspath('.')
+        print 'FileDlg', self.currentDir, defaultDir
+        if defaultDir == '.':
+            defaultDir = path.abspath(self.currentDir)
+        else:
+            defaultDir = defaultDir and path.abspath(defaultDir) or path.abspath(self.currentDir)
         self.lcFiles = FileDlgFolderList(self.panel1, self, 
               defaultDir, pos = wxPoint(8, 21), size = wxSize(384, 152))
 
@@ -92,6 +98,15 @@ class wxBoaFileDialog(wxDialog):
         self.SetDirectory(defaultDir)
         self.SetFilename(defaultFile)
 
+        self.editorFilter = self.lcFiles.node.filter
+
+        if self.lcFiles.node.filter == 'BoaFiles':
+            self.chTypes.SetStringSelection('Boa files')
+        elif self.lcFiles.node.filter == 'BoaInternalFiles':
+            self.chTypes.SetStringSelection('Internal files')
+        if self.lcFiles.node.filter == 'AllFiles':
+            self.chTypes.SetStringSelection('All files')
+
     def newFileNode(self, defaultDir):
         from Explorers import FileExplorer, Explorer
         return FileExplorer.PyFileNode(path.basename(defaultDir), defaultDir, None, 
@@ -101,7 +116,6 @@ class wxBoaFileDialog(wxDialog):
         self.stPath.SetLabel(self.GetPath())
 
     def open(self, node):
-        print 'open'
         if node:
             if node.isFolderish():
                 self.lcFiles.refreshItems(self.modImages, node)
@@ -111,6 +125,8 @@ class wxBoaFileDialog(wxDialog):
                 self.btOK.SetLabel(btn)
                 return
         if self.tcFilename.GetValue():           
+            self.lcFiles.node.setFilter(self.editorFilter)
+            wxBoaFileDialog.currentDir = self.GetDirectory()
             self.EndModal(wxID_OK)
                     
     def OnOpen(self, event):
@@ -120,6 +136,7 @@ class wxBoaFileDialog(wxDialog):
         if self.lcFiles.selected == 0:
             node = self.lcFiles.node.createParentNode()
             if node: node.doCVS = false
+            print node.resourcepath, self.lcFiles.node.resourcepath
             if node.resourcepath == self.lcFiles.node.resourcepath:
                 from ExternalLib.ConfigParser import ConfigParser
                 import Preferences
@@ -127,7 +144,7 @@ class wxBoaFileDialog(wxDialog):
                 conf = ConfigParser()
                 conf.read(Preferences.pyPath+'/Explorer.'+\
                       (wxPlatform == '__WXMSW__' and 'msw' or 'gtk')+'.cfg')
-                fsn = FileExplorer.FileSysCatNode(None, conf, None)
+                fsn = FileExplorer.FileSysCatNode(None, conf, None, None)
                 self.lcFiles.refreshItems(self.modImages, fsn)
                 self.stPath.SetLabel(fsn.name)
                 if self.style & wxSAVE: btn = saveStr
@@ -154,6 +171,7 @@ class wxBoaFileDialog(wxDialog):
         self.ok()
         
     def OnBtcancelButton(self, event):
+        self.lcFiles.node.setFilter(self.editorFilter)
         self.EndModal(wxID_CANCEL)
         
     def OnTcfilenameTextEnter(self, event):
@@ -235,4 +253,14 @@ class wxBoaFileDialog(wxDialog):
 ##        val = apply(cmndlgsc.wxFileDialog_GetPaths,(self,) + _args, _kwargs)
 ##        return val
     def __repr__(self):
-        return "<C wxBoaFileDialog instance at %s>" % (self.this,)
+        return '<C wxBoaFileDialog instance at %s>' % (self.this,)
+
+    def OnChtypesChoice(self, event):
+        fType = self.chTypes.GetStringSelection()
+        if fType == 'Boa files':
+            self.lcFiles.node.setFilter('BoaFiles')
+        elif fType == 'Internal files':
+            self.lcFiles.node.setFilter('BoaInternalFiles')
+        elif fType == 'All files':
+            self.lcFiles.node.setFilter('AllFiles')
+        self.lcFiles.refreshCurrent()
