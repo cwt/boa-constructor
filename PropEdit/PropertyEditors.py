@@ -397,7 +397,7 @@ class BoolConfPropEdit(ConfPropEdit):
         return self.valueToIECValue()
 
     def valueToIECValue(self):
-        return string.lower(self.value) in self.truths and 'True' or 'False'
+        return self.value.lower() in self.truths and 'True' or 'False'
 
     def inspectorEdit(self):
         self.editorCtrl = CheckBoxIEC(self, self.value in self.truths)
@@ -469,7 +469,7 @@ class ItemIdConstrPropEdit(ConstrPropEdit):
             if c in string.digits + string.letters + '_':
                 newname.append(c)
 
-        return string.upper(string.join(newname, ''))
+        return ''.join(newname).upper()
 
     def getValue(self):
         if self.editorCtrl and self.editorCtrl.getValue():
@@ -535,10 +535,10 @@ class BitmapPropEditMix:
               'ImageFiles', wxOPEN)
         try:
             if dlg.ShowModal() == wxID_OK:
-                pth = abspth = string.replace(dlg.GetFilePath(), '\\', '/')
+                pth = abspth = dlg.GetFilePath().replace('\\', '/')
                 if not Preferences.cgAbsoluteImagePaths:
                     pth = Utils.pathRelativeToModel(pth, self.companion.designer.model)
-                return abspth, pth, self.extTypeMap[string.lower(os.path.splitext(pth)[-1])]
+                return abspth, pth, self.extTypeMap[os.path.splitext(pth)[-1].lower()]
             else:
                 return '', '', ''
         finally:
@@ -547,11 +547,11 @@ class BitmapPropEditMix:
     def extractPathFromSrc(self, src):
         if src and Utils.startswith(src, 'wxBitmap('):
             filename = src[len('wxBitmap(')+1:]
-            pth = filename[:string.rfind(filename, ',')-1]
+            pth = filename[:filename.rfind(',')-1]
             if not os.path.isabs(pth):
                 mbd = Utils.getModelBaseDir(self.companion.designer.model)
                 if mbd: mbd = mbd[7:]
-                pth = string.replace(os.path.normpath(os.path.join(mbd, pth)), '\\', '/')
+                pth = os.path.normpath(os.path.join(mbd, pth)).replace('\\', '/')
             dir, name = os.path.split(pth)
             if not dir: dir = '.'
             return pth, dir, name
@@ -752,8 +752,8 @@ class BaseFlagsConstrPropEdit(IntConstrPropEdit):
             try:
                 anInt = self.companion.eval(self.editorCtrl.getValue())
                 if type(anInt) is IntType:
-                    self.value = string.join(map(string.strip,
-                        string.split(self.editorCtrl.getValue(), '|')), ' | ')
+                    self.value = ' | '.join(map(string.strip,
+                        self.editorCtrl.getValue().split('|')))
                 else:
                     self.value = self.getCtrlValue()
             except Exception, message:
@@ -1431,7 +1431,7 @@ class AnchorPropEdit(OptionedPropEdit):
             if t: set.append('top')
             if r: set.append('right')
             if b: set.append('bottom')
-            return '('+string.join(set, ', ')+')'
+            return '('+', '.join(set)+')'
         else:
             return 'None'
 
@@ -1482,7 +1482,7 @@ class BitmapPropEdit(PropertyEditor, BitmapPropEditMix):
     def valueAsExpr(self):
         if self.bmpPath:
             return 'wxBitmap(%s, %s)'%(`self.bmpPath`,
-                    self.extTypeMap[string.lower(os.path.splitext(self.bmpPath)[-1])])
+                    self.extTypeMap[os.path.splitext(self.bmpPath)[-1].lower()])
         else:
             return 'wxNullBitmap'
 

@@ -6,11 +6,9 @@
 #
 # Created:     1999
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999 - 2002 Riaan Booysen
+# Copyright:   (c) 1999 - 2003 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
-
-import string
 
 from wxPython.wx import *
 
@@ -311,7 +309,7 @@ class CheckBoxIEC(BevelIEC):
         if self.editorCtrl:
             self.editorCtrl.SetLabel(value)
             self.editorCtrl.SetValue(
-                string.lower(self.truefalseMap[true]) == string.lower(value))
+                self.truefalseMap[true].lower() == value.lower())
 
     def setIdx(self, idx):
         if self.editorCtrl:
