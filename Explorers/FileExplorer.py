@@ -18,7 +18,9 @@ from wxPython.wx import *
 import Preferences, Utils
 
 import ExplorerNodes
-from Models import Controllers, PythonEditorModels, EditorHelper
+from Models import Controllers, EditorHelper
+
+# XXX Move Python spesific filetype logic to it's own module
 
 class FileSysCatNode(ExplorerNodes.CategoryNode):
 #    protocol = 'config.file'
@@ -285,7 +287,6 @@ class PyFileNode(ExplorerNodes.ExplorerNode):
         elif os.path.isdir(filename):
             for other, otherIdFunc, imgIdx in self.subExplorerReg['folder']:
                 if self.filter == 'BoaFiles' and \
-                  imgIdx == PythonEditorModels.PackageModel.imgIdx and \
                   '*' in self.allowedProtocols or '*' in self.allowedProtocols or \
                       other.protocol in self.allowedProtocols:
                     if otherIdFunc(filename):
@@ -382,8 +383,8 @@ class PyFileNode(ExplorerNodes.ExplorerNode):
     def getFilterExts(self):
         return {'BoaFiles': self.exts,
                 'StdFiles': self.exts,
-                'BoaIntFiles': EditorHelper.internalFilesReg +\
-                               EditorHelper.pythonBinaryFilesReg ,
+                'BoaIntFiles': EditorHelper.internalFilesReg,
+                               #EditorHelper.pythonBinaryFilesReg ,
                 'ImageFiles': EditorHelper.imageExtReg,
                 'AllFiles': ['.*']}[self.filter]
 
@@ -430,14 +431,6 @@ class PyFileNode(ExplorerNodes.ExplorerNode):
         return (os.path.exists(self.resourcepath) and \
             os.stat(self.resourcepath)[stat.ST_MTIME] or 0.0) > \
             self.stdAttrs['modify-date']
-
-def isPackage(filename):
-    return os.path.exists(os.path.join(filename, PythonEditorModels.PackageModel.pckgIdnt))
-
-# Register Packages as a File Explorer sub type
-PyFileNode.subExplorerReg['folder'].append(
-      (PyFileNode, isPackage, PythonEditorModels.PackageModel.imgIdx),
-)
 
 class ResultsFolderNode(PyFileNode):
     results = []
