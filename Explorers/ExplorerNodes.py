@@ -218,7 +218,7 @@ class ClipboardControllerMix:
             for node in nodes:
                 if not node.isFolderish():
                     self.list.openNodeInEditor(node, self.editor,
-                          self.editor.explorer.tree)
+                          self.editor.explorer.tree.recentFiles)
                     #node.open(self.editor)
 
     def selectNewItem(self, name):
@@ -564,8 +564,9 @@ class CategoryController(Controller):
             name = self.list.node.newItem()
             self.list.refreshCurrent()
             self.list.selectItemNamed(name)
-            self.list.EditLabel(self.list.selected)
             self.OnInspectItem(event)
+            #self.list.EditLabel(self.list.selected)
+            
 
     def OnDeleteItems(self, event):
         if self.list.node:
@@ -993,8 +994,12 @@ explorerNodeReg = {}
 nodeRegByProt = {}
 # successfully loaded modules
 installedModules = []
+# dict of modules that failed to load, name: error 
+failedModules = {}
 # Registry for language styles which can be edited under Preferences.Source
 langStyleInfoReg = []
+# Registry for extra protocols available in the file open dialog
+fileOpenDlgProtReg = []
 
 def register(Node, clipboard=None, confdef=('', ''), controller=None, category=None):
     """ Register a new explorer Node.
@@ -1018,4 +1023,3 @@ def isTransportAvailable(conf, section, prot):
 register(CategoryNode, controller=CategoryController)
 register(MRUCatNode, controller=MRUCatController)
 register(SysPathNode, clipboard='file', controller='file')
-
