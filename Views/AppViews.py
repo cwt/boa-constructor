@@ -401,7 +401,7 @@ class AppREADME_TIFView(TextInfoFileView):
     viewName = 'README.txt'
 
 class AppTODO_TIFView(TextInfoFileView): 
-    viewName = 'TODO.txt'
+    viewName = 'TO-DO.txt'
 
 class AppBUGS_TIFView(TextInfoFileView): 
     viewName = 'BUGS.txt'
