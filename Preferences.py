@@ -118,14 +118,15 @@ pluginPaths = []
 installedPlugins = []
 failedPlugins = {}
 if pluginsEnabled:
-    pluginPaths.append(pyPath+'/Plug-ins')
+    pluginPaths.append(os.path.join(pyPath, 'Plug-ins'))
     # Library plugin path
     if extraPluginsPath:
         pluginPaths.append(extraPluginsPath)
     # User plugin path
-    if rcPath != pyPath and os.path.isdir(rcPath+'/Plug-ins'):
-        pluginPaths.append(rcPath +'/Plug-ins')
+    if rcPath != pyPath and os.path.isdir(os.path.join(rcPath, 'Plug-ins')):
+        pluginPaths.append(os.path.join(rcPath, 'Plug-ins'))
 
+editorMenuImages = true
 
 #---Prefs dependent on user prefs-----------------------------------------------
 
@@ -180,6 +181,8 @@ else:
     oglBoldFont = wxFont(12, wxDEFAULT, wxNORMAL, wxBOLD, false)
     oglStdFont = wxFont(10, wxDEFAULT, wxNORMAL, wxNORMAL, false)
 
+
+
 #-------------------------------------------------------------------------------
 # Delays wxApp_Cleanup
 try: sys._wxApp_Cleanup = wx.__cleanMeUp
@@ -188,14 +191,21 @@ except: pass
 def cleanup():
     IS.cleanup()
     g = globals()
-    cleanWxClasses = (wxColourPtr, wxSizePtr, wxFontPtr)
+    cleanWxClasses = (wxColourPtr, wxPointPtr, wxSizePtr, wxFontPtr, 
+                      wxPenPtr, wxBrushPtr, wxPen, wxBrush)
     for k, v in g.items():
         if hasattr(wx, k):
             continue
         for Class in cleanWxClasses:
             if isinstance(v, Class):
-                #print 'deleting %s'%k
-                del g[k]
-                break;
+                g[k] = None
+                break
+
+    import PaletteMapping
+    PaletteMapping._NB = None
+    PM = PaletteMapping.PaletteStore
+    PM.helperClasses = {}
+    PM.compInfo = {}
+    PM.newControllers = {}
 
 #-------------------------------------------------------------------------------
