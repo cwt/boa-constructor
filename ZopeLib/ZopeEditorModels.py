@@ -272,24 +272,6 @@ class ZopeController(Controllers.PersistentController):
           ('Inspect', self.OnInspect, self.inspectBmp, ''), # F11?
           ('View in browser', self.OnViewInBrowser, self.viewInBrowserBmp, '')]
               
-##    def addEvts(self):
-##        Controllers.PersistentController.addEvts(self)
-##        self.addEvt(wxID_ZOPEINSPECT, self.OnInspect)
-##        self.addEvt(wxID_ZOPEVIEWBRWS, self.OnViewInBrowser)
-##
-##    def addTools(self, toolbar, model):
-##        Controllers.PersistentController.addTools(self, toolbar, model)
-##        toolbar.AddSeparator()
-##        Controllers.addTool(self.editor, toolbar, self.inspectBmp, 'Inspect', self.OnInspect)
-##        Controllers.addTool(self.editor, toolbar, self.viewInBrowserBmp, 'View in browser', self.OnViewInBrowser)
-##
-##    def addMenus(self, menu, model):
-##        accls = Controllers.PersistentController.addMenus(self, menu, model)
-##        menu.Append(-1, '-')
-##        self.addMenu(menu, wxID_ZOPEINSPECT, 'Inspect', accls, ())
-##        self.addMenu(menu, wxID_ZOPEVIEWBRWS, 'View in browser', accls, ())
-##        return accls
-
     def createModel(self, source, filename, main, saved, transport):
         return self.Model(source, filename, self.editor, saved, transport)
 
