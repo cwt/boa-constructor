@@ -1056,11 +1056,8 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix, BrowseStyl
                     print 'Method was not added'
 
     def OnReindent(self, event):
-        if not self.model.savedAs or self.model.modified or \
-          len(self.model.viewsModified):
-            wxMessageBox('Cannot reindent an unsaved or modified module.')
-            return
         from ExternalLib import reindent
+        self.model.refreshFromViews()
         module = self.model.getModule()
         file = SourcePseudoFile(module.source)
         ri = reindent.Reindenter(file)
