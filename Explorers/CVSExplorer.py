@@ -31,7 +31,7 @@ cvs_environ_ids  = map(lambda x: wxNewId(), range(len(cvs_environ_vars)))
 (wxID_CVSUPDATE, wxID_CVSCOMMIT, wxID_CVSADD, wxID_CVSADDBINARY, wxID_CVSREMOVE,
  wxID_CVSDIFF, wxID_CVSLOG, wxID_CVSSTATUS, wxID_FSCVSIMPORT, wxID_FSCVSCHECKOUT,
  wxID_FSCVSLOGIN, wxID_FSCVSLOGOUT, wxID_FSCVSENV, wxID_CVSTAG, wxID_CVSBRANCH,
- wxID_CVSLOCK, wxID_CVSUNLOCK, wxID_CVSTEST) = map(lambda x: wxNewId(), range(18))
+ wxID_CVSLOCK, wxID_CVSUNLOCK, wxID_CVSTEST) = Utils.wxNewIds(18)
 
 cvsFolderImgIdx = 6
 
@@ -57,8 +57,7 @@ def cvsFileLocallyModified(filename, timestamp):
             filesegs, cvssegs = string.split(filets), string.split(timestamp)
         filesegs[2], cvssegs[2] = int(filesegs[2]), int(cvssegs[2])
 
-    return ( filesegs != cvssegs,
-             conflict)
+    return (filesegs != cvssegs, conflict)
 
 
 class CVSController(ExplorerNodes.Controller):
@@ -207,7 +206,7 @@ class CVSController(ExplorerNodes.Controller):
             CVSPD.Destroy()
 
     # cvsOutput can be 'output window', 'dialogs' or 'tuple'
-    def doCvsCmd(self, cmd, cvsDir, stdinput='', cvsOutput='output window'): 
+    def doCvsCmd(self, cmd, cvsDir, stdinput='', cvsOutput='output window'):
         # Repaint background
         wxYield()
 
@@ -230,19 +229,19 @@ class CVSController(ExplorerNodes.Controller):
                 errout = self.editor.erroutFrm
                 tbs = errout.updateCtrls((), outls, 'CVS Results', '', err)
                 errout.display(tbs)
-                
+
             elif cvsOutput == 'dialogs':
                 if string.strip(err):
                     dlg = wxMessageDialog(self.list, err,
                       'Server response or Error', wxOK | wxICON_EXCLAMATION)
                     try: dlg.ShowModal()
                     finally: dlg.Destroy()
-    
+
                 if outls and not (len(outls) == 1 and not string.strip(outls[0])):
                     self.showMessage(cmd, string.join(outls, ''))
             elif cvsOutput == 'tuple':
                 return outls, errls
-            
+
             #msgType = 'warning' if err else 'info' # i wish
             if err: msgType = 'Warning'
             else: msgType = 'Info'
@@ -251,12 +250,12 @@ class CVSController(ExplorerNodes.Controller):
         finally:
             os.chdir(cwd)
 
-    def doCvsCmdOnSelection(self, cmd, cmdOpts, 
+    def doCvsCmdOnSelection(self, cmd, cmdOpts,
               preCmdFunc=None, postCmdFunc=None, cvsOutput='output window'):
         if self.list.node:
             names = self.getNamesForSelection(self.list.getMultiSelection())
             cvsDir = os.path.dirname(self.list.node.resourcepath)
-            if not names: names = ['.']
+            if not names: names = ['']
 ##                names = ['']
 ##                cvsDir, names[0] = os.path.split(cvsDir)
             cmdStr = self.cvsCmdPrompt(self.cvsCmd(cmd, cmdOpts, names), cvsDir,
@@ -335,7 +334,7 @@ class CVSController(ExplorerNodes.Controller):
         dir = os.path.dirname(self.list.node.resourcepath)
         for name in list:
             try:
-                
+
                 if name[0] in self.quotes and name[-1] in self.quotes:
                     name = name[1:-1]
                 os.remove(os.path.join(dir, name))
@@ -356,8 +355,8 @@ class CVSController(ExplorerNodes.Controller):
             tbs = errout.updateCtrls((), outls, 'CVS Result', '', errls)
             errout.display(tbs)
             errout.displayDiff(string.join(outls, ''))
-            
-    
+
+
     def OnLogCVSItems(self, event):
         self.doCvsCmdOnSelection('log', '')
 
@@ -488,6 +487,7 @@ class CVSFolderNode(ExplorerNodes.ExplorerNode):
             tree.Expand(chd)
         cvsChd = tree.getChildNamed(chd, 'CVS')
         tree.SelectItem(cvsChd)
+        return None, None
 
 class CVSFileNode(ExplorerNodes.ExplorerNode):
     protocol = 'cvs'
@@ -527,19 +527,33 @@ class CVSFileNode(ExplorerNodes.ExplorerNode):
 
     def open(self, editor):
         tree = editor.explorer.tree
+        node = editor.explorer.list.getSelection()
+        timestamp = node.timestamp
         tree.SelectItem(tree.GetItemParent(tree.GetSelection()))
         editor.explorer.list.selectItemNamed(self.name)
         if self.conflict:
             node = editor.explorer.list.getSelection()
-            # XXX app is not connected to module
-            model, controller = editor.openOrGotoModule(node.resourcepath, transport=node)
-            from Views.EditorViews import CVSConflictsView
-            if not model.views.has_key(CVSConflictsView.viewName):
-                resultView = editor.addNewView(CVSConflictsView.viewName, CVSConflictsView)
-            else:
-                resultView = model.views[CVSConflictsView.viewName]
-            resultView.refresh()
-            resultView.focus()
+
+            if Utils.startswith(timestamp, 'Result of merge+'):
+                model, controller = editor.openOrGotoModule(node.resourcepath,
+                      transport=node)
+
+                # XXX inefficient
+                conflicts = model.getCVSConflicts()
+                if conflicts:
+                    from Views.EditorViews import CVSConflictsView
+                    if not model.views.has_key(CVSConflictsView.viewName):
+                        resultView = editor.addNewView(CVSConflictsView.viewName,
+                              CVSConflictsView)
+                    else:
+                        resultView = model.views[CVSConflictsView.viewName]
+                    resultView.refresh()
+                    resultView.focus()
+                else:
+                    editor.setStatus('No CVS conflicts in file', 'Warning', true)
+
+                return model, controller
+        return None, None
 
     def text(self):
         return string.join(('', self.name, self.revision, self.timestamp, self.options, self.tagdate), '/')
@@ -552,6 +566,7 @@ class CVSUnAddedItem(ExplorerNodes.ExplorerNode):
         tree = editor.explorer.tree
         tree.SelectItem(tree.GetItemParent(tree.GetSelection()))
         editor.explorer.list.selectItemNamed(self.name)
+        return None, None
 
 class FSCVSFolderNode(ExplorerNodes.ExplorerNode):
     protocol = 'cvs'
@@ -645,7 +660,7 @@ class FSCVSFolderNode(ExplorerNodes.ExplorerNode):
         return lst
 
     def open(self, editor):
-        editor.openOrGotoModule(self.resourcepath)
+        return editor.openOrGotoModule(self.resourcepath)
 
     def openParent(self, editor):
         tree = editor.explorer.tree
