@@ -121,6 +121,7 @@ class EditorView:
         self.active = false
         self.model = model
         self.modified = false
+        self.methodsIds = []
         if editorIsWindow:
             EVT_RIGHT_DOWN(self, self.OnRightDown)
             EVT_RIGHT_UP(self, self.OnRightClick)
@@ -135,7 +136,6 @@ class EditorView:
         self.canExplore = false
 
         self.defaultActionIdx = dclickActionIdx
-        self.ids = []
         self.accelLst = []
 
         # Build Edit/popup menu and accelerator list
@@ -150,27 +150,37 @@ class EditorView:
                 canCheck = false
 
             if accl:
-                name = name + (accl[2] and '     <'+accl[2]+'>' or '')
+#                name = name + (accl[2] and '     <'+accl[2]+'>' or '')
+                name = name + (accl[2] and '\t'+accl[2] or '')
 
             self.menu.Append(wId, name, checkable = canCheck)
-            EVT_MENU(self, wId, meth)
             self.editorMenu.Append(wId, name, checkable = canCheck)
-            EVT_MENU(self.model.editor, wId, meth)
-            self.ids.append(wId)
+            if wId != -1:
+                self.methodsIds.append( (wId, meth) )
             if accl: self.accelLst.append( (accl[0], accl[1], wId) )
-
+        
         # Connect default action of the view to doubleclick on view
         if not overrideDClick and dclickActionIdx < len(actions) and dclickActionIdx > -1:
             EVT_LEFT_DCLICK(self, actions[dclickActionIdx][1])
 
+    def connectEvts(self):
+        for wId, meth in self.methodsIds:
+            EVT_MENU(self, wId, meth)
+            EVT_MENU(self.model.editor, wId, meth)
+            
+    def disconnectEvts(self):
+        if self.model:
+            for wId, meth in self.methodsIds:
+                self.Disconnect(wId)
+                self.model.editor.Disconnect(wId)
+
     def destroy(self):
 ##        print 'destroy', self.__class__.__name__, sys.getrefcount(self)
-        for wId in self.ids:
-            if wId != -1:
-                self.model.editor.Disconnect(wId)
+        self.disconnectEvts()
+        
         self.menu.Destroy()
         self.editorMenu.Destroy()
-        del self.model
+        self.model = None
         del self.actions
 
 ##    def __del__(self):
