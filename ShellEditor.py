@@ -12,7 +12,7 @@
 
 # XXX Try to handle multi line paste
 
-import sys, keyword, types
+import sys, keyword, types, time
 
 from wxPython.wx import *
 from wxPython.stc import *
@@ -398,6 +398,7 @@ class PseudoFileIn:
                 # XXX with safe yield once the STC loses focus there is no way
                 # XXX to give it back the focus
                 # wxSafeYield()
+                time.sleep(0.001)
                 wxYield()
             line = self._buffer.pop()
             if line is None: raise 'Terminate'
