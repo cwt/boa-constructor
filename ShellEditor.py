@@ -52,7 +52,7 @@ class ShellEditor(StyledTextCtrls.wxStyledTextCtrl,
             copyright = p2c
         self.CallTipSetBackground(wxColour(255, 255, 232))
 
-        EVT_KEY_UP(self, self.OnKeyUp)
+        EVT_KEY_DOWN(self, self.OnKeyDown)
 
         EVT_MENU(self, wxID_SHELL_HISTORYUP, self.OnHistoryUp)
         EVT_MENU(self, wxID_SHELL_HISTORYDOWN, self.OnHistoryDown)
@@ -66,7 +66,7 @@ class ShellEditor(StyledTextCtrls.wxStyledTextCtrl,
          (keyDefs['HistoryDown'][0], keyDefs['HistoryDown'][1], wxID_SHELL_HISTORYDOWN),
          (keyDefs['CodeComplete'][0], keyDefs['CodeComplete'][1], wxID_SHELL_CODECOMP),
          (keyDefs['CallTips'][0], keyDefs['CallTips'][1], wxID_SHELL_CALLTIPS),
-         (0, WXK_RETURN, wxID_SHELL_ENTER),
+#         (0, WXK_RETURN, wxID_SHELL_ENTER),
          (0, WXK_HOME, wxID_SHELL_HOME),
         ] ))
 
@@ -162,9 +162,9 @@ class ShellEditor(StyledTextCtrls.wxStyledTextCtrl,
     def OnShellEnter(self, event):
         self.BeginUndoAction()
         try:
-            if self.AutoCompActive():
-                self.AutoCompComplete()
-                return
+##            if self.AutoCompActive():
+##                self.AutoCompComplete()
+##                return
             if self.CallTipActive():
                 self.CallTipCancel()
                 
@@ -192,6 +192,7 @@ class ShellEditor(StyledTextCtrls.wxStyledTextCtrl,
             # Other lines, copy the line to the bottom line
             else:
                 self.SetSelection(self.GetLineStartPos(self.GetCurrentLine()), self.GetTextLength())
+                #print `ct`
                 self.ReplaceSelection(string.rstrip(ct))
         finally:
             self.EndUndoAction()
@@ -274,11 +275,15 @@ class ShellEditor(StyledTextCtrls.wxStyledTextCtrl,
             self.SetCurrentPos(lnStPs)
             self.SetAnchor(lnStPs)
 
-    def OnKeyUp(self, event):
+    def OnKeyDown(self, event):
         kk = event.KeyCode()
-        if kk == 13:
+        if kk == 13 and not (event.ShiftDown() or event.HasModifiers()):
+            if self.AutoCompActive():
+                self.AutoCompComplete()
+                return
+            self.OnShellEnter(event)
             return
-        if self.CallTipActive():
+        elif self.CallTipActive():
             self.callTipCheck()
         event.Skip()
 
@@ -377,3 +382,6 @@ class PseudoFileErrTC(PseudoFile):
     def write(self, s):
         self.output.AppendText(s)
         if echo: sys.__stderr__.write(s)
+
+
+            
