@@ -912,18 +912,23 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
                 compn = dlgCompanion('dlg', None)
                 view.insertCodeBlock(compn.body())
 
+    def getOpenFromHereDir(self):
+        curdir = '.'
+        actMod = self.getActiveModulePage()
+        if actMod:
+            filename = actMod.model.filename
+            if filename:
+                curdir = os.path.dirname(filename)
+                if not curdir or curdir == 'none:':
+                    curdir = '.'
+        return curdir
+        
     def openFileDlg(self, filter='*.py', curdir='.', curfile=''):
         if filter == '*.py': filter = Preferences.exDefaultFilter
 
         if curdir=='.' and getattr(Preferences, 'exOpenFromHere', 1):
             # Open relative to the file in the active module page.
-            actMod = self.getActiveModulePage()
-            if actMod:
-                filename = actMod.model.filename
-                if filename:
-                    curdir = os.path.dirname(filename)
-                    if not curdir or curdir == 'none:':
-                        curdir = '.'
+            curdir = self.getOpenFromHereDir()
 
         from FileDlg import wxFileDialog
         dlg = wxFileDialog(self, 'Choose a file', curdir, curfile, filter, wxOPEN)
