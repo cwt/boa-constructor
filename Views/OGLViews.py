@@ -6,7 +6,7 @@
 #
 # Created:     1999
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999 - 2003 Riaan Booysen
+# Copyright:   (c) 1999 - 2004 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
 print 'importing Views.OGLViews'
@@ -100,7 +100,7 @@ class PersistentShapeCanvas(wxShapeCanvas):
         self.shapes = shapes
 
     def saveSizes(self, filename):
-        '''Build a picklable dictionary of sizes/positions and save.'''
+        """ Build a picklable dictionary of sizes/positions and save. """
         persProps = {}
 
         for shape in self.shapes:
@@ -114,6 +114,20 @@ class PersistentShapeCanvas(wxShapeCanvas):
         from Explorers.Explorer import openEx
         t = openEx(filename)
         t.save(t.currentFilename(), pickle.dumps(persProps))
+
+    def printSizes(self, filename):
+        """ Export the Canvas to Postscript """
+        prdata=wxPrintData()
+        from Explorers.Explorer import openEx
+        t=openEx(filename)
+        prdata.SetFilename(t.currentFilename())
+        dc=wxPostScriptDC(prdata)
+        if dc.Ok():
+            dc.StartDoc('Export')
+            self.Redraw(dc)
+            dc.EndDoc()
+            
+            wxLogMessage('Exported %s'%filename)
 
     def loadSizes(self, filename):
         from Explorers.Explorer import openEx, TransportError
@@ -223,6 +237,7 @@ class PersistentOGLView(ScrollingContainer, EditorViews.EditorView):
         EditorViews.EditorView.__init__(self, model,
           (('(Re)load diagram', self.OnLoad, self.loadBmp, ''),
            ('Save diagram', self.OnSave, self.saveBmp, ''),
+           ('Print diagram to PostScript', self.OnPrintToPS, '-', ''), 
            ('-', None, '-', ''),
            ('Change size', self.OnSetSize, '-', ''),
            )+actions)
@@ -334,6 +349,9 @@ class PersistentOGLView(ScrollingContainer, EditorViews.EditorView):
 
     def OnSave(self, event):
         self.canvas.saveSizes(os.path.splitext(self.model.filename)[0]+self.ext)
+
+    def OnPrintToPS(self, event):
+        self.canvas.printSizes(os.path.splitext(self.model.filename)[0]+'.ps')
 
     def OnSetSize(self, event):
         dlg = wxTextEntryDialog(self, 'Enter new canvas size (width==height)',
