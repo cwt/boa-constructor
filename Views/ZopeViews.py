@@ -1,7 +1,24 @@
-from EditorViews import HTMLView, ListCtrlView
-from ExternalLib import xmlrpclib
-import HTMLResponse
+#-----------------------------------------------------------------------------
+# Name:        ZopeViews.py
+# Purpose:     Custom views for Zope models
+#
+# Author:      Riaan Booysen
+#
+# Created:     2001
+# RCS-ID:      $Id$
+# Copyright:   (c) 2001
+# Licence:     GPL
+#-----------------------------------------------------------------------------
+
 from wxPython import wx
+
+##import sys
+##sys.path.append('..')
+
+from EditorViews import HTMLView, ListCtrlView
+import Utils
+
+from ExternalLib import xmlrpclib
 
 true=1; false=0
 
@@ -43,8 +60,7 @@ class ZopeUndoView(ListCtrlView):
         try:
             undos = self.model.zopeObj.getUndoableTransactions()
         except xmlrpclib.Fault, error:
-            frm = HTMLResponse.create(None, error.faultString)
-            frm.Show(true)
+            wx.wxLogError(Utils.html2txt(error.faultString))
         else:
             i = 0
             self.undoIds = []
@@ -60,15 +76,13 @@ class ZopeUndoView(ListCtrlView):
             try:
                 self.model.zopeObj.undoTransaction([self.undoIds[self.selected]])
             except xmlrpclib.Fault, error:
-                frm = HTMLResponse.create(None, error.faultString)
-                frm.Show(true)
+                wx.wxLogError(Utils.html2txt(error.faultString))
             except xmlrpclib.ProtocolError, error:
                 if error.errmsg == 'Moved Temporarily':
                     # This is actually a successful move
                     self.refreshCtrl()
                 else:
-                    frm = HTMLResponse.create(None, error.errmsg)
-                    frm.Show(true)
+                    wx.wxLogError(Utils.html2txt(error.errmsg))
             else:
                 self.refreshCtrl()
 
@@ -106,21 +120,3 @@ class ZopeSecurityView(ListCtrlView):
     def OnEdit(self, event):
         if self.selected != -1:
             pass
-            #from ExternalLib import xmlrpclib
-
-##            try:
-##                self.model.zopeObj.undoTransaction([self.undoIds[self.selected]])
-##            except xmlrpclib.Fault, error:
-##                import HTMLResponse
-##                frm = HTMLResponse.create(None, error.faultString)
-##                frm.Show(true)
-##            except xmlrpclib.ProtocolError, error:
-##                if error.errmsg == 'Moved Temporarily':
-##                    # This is actually a succesful move
-##                    self.refreshCtrl()
-##                else:
-##                    import HTMLResponse
-##                    frm = HTMLResponse.create(None, error.errmsg)
-##                    frm.Show(true)
-##            else:
-##                self.refreshCtrl()
