@@ -20,6 +20,9 @@ import wxPython.lib.wxpTag
 import __version__
 import Preferences, Utils
 
+# XXX Replace img tags with wxpTags/wxStaticBitmap controls and load from 
+# XXX ImageStore
+
 prog_update = re.compile('<<(?P<cnt>[0-9]+)/(?P<tot>[0-9]+)>>')
 
 about_html = '''
@@ -47,6 +50,7 @@ progress_text = '''<p>
   <param name="id"    value="%d">
   <param name="size"  value="wxSize(352, 11)">
 </wxp>'''
+
 
 credits_html = '''
 <html>
@@ -179,11 +183,12 @@ class AboutBoxMixin:
         clicked = event.linkinfo[0]
         if clicked == 'Credits':
             self.html.SetPage(credits_html % (
-                  Preferences.toPyPath('Images/Shared/PythonPowered.gif'),
-                  Preferences.toPyPath('Images/Shared/wxPyButton.png'),
-                  Preferences.toPyPath('Images/Shared/wxWinButton.png')))
+                  Utils.toPyPath('Images/Shared/PythonPowered.gif'),
+                  Utils.toPyPath('Images/Shared/wxPyButton.png'),
+                  Utils.toPyPath('Images/Shared/wxWinButton.png')))
         elif clicked == 'Back':
-            self.html.HistoryBack()
+            self.setPage()
+            #self.html.HistoryBack()
         elif clicked == 'Python':
             self.gotoInternetUrl('http://www.python.org')
         elif clicked == 'wxPython':
@@ -200,13 +205,13 @@ class AboutBoxMixin:
 
 class AboutBox(AboutBoxMixin, wxDialog):
     def _init_ctrls(self, prnt):
-        wxDialog.__init__(self, size=wxSize(400,530), pos=(-1, -1),
+        wxDialog.__init__(self, size=wxSize(410, 545), pos=(-1, -1),
               id=wxID_ABOUTBOX, title='About Boa Constructor', parent=prnt,
               name='AboutBox', style=wxDEFAULT_DIALOG_STYLE)
 
     def setPage(self):
         self.html.SetPage((about_html % (
-              Preferences.toPyPath('Images/Shared/Boa.jpg'), __version__.version,
+              Utils.toPyPath('Images/Shared/Boa.jpg'), __version__.version,
               '', about_text % (sys.version, wxPlatform, wxMAJOR_VERSION,
               wxMINOR_VERSION, wxRELEASE_NUMBER))))
 DefAboutBox = AboutBox
@@ -215,7 +220,7 @@ class AboutBoxSplash(AboutBoxMixin, wxFrame):
     progressBorder = 1
     fileOpeningFactor = 10
     def _init_ctrls(self, prnt):
-        wxFrame.__init__(self, size=wxSize(400, 315), pos=(-1, -1),
+        wxFrame.__init__(self, size=wxSize(410, 315), pos=(-1, -1),
               id=wxID_ABOUTBOX, title='Boa Constructor', parent=prnt,
               name='AboutBoxSplash', style=wxSIMPLE_BORDER)
         self.progressId = wxNewId()
@@ -223,7 +228,7 @@ class AboutBoxSplash(AboutBoxMixin, wxFrame):
         self.SetBackgroundColour(wxColour(0x99, 0xcc, 0xff))
 
     def setPage(self):
-        self.html.SetPage(about_html % (Preferences.toPyPath('Images/Shared/Boa.jpg'),
+        self.html.SetPage(about_html % (Utils.toPyPath('Images/Shared/Boa.jpg'),
           __version__.version, progress_text % (self.progressId, self.gaugePId), ''))
 
         self.label = self.FindWindowById(self.progressId)
