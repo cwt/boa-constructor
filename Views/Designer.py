@@ -26,8 +26,8 @@ bodyIndent = ' '*8
 
 [wxID_CTRLPARENT, wxID_EDITCUT, wxID_EDITCOPY, wxID_EDITPASTE, wxID_EDITDELETE,
  wxID_SHOWINSP, wxID_SHOWEDTR, wxID_CTRLHELP, wxID_EDITALIGN, wxID_EDITSIZE,
- wxID_EDITRECREATE, 
-] = map(lambda _init_ctrls: wxNewId(), range(11))
+ wxID_EDITRECREATE, wxID_EDITSNAPGRID,
+] = map(lambda _init_ctrls: wxNewId(), range(12))
 
 [wxID_EDITMOVELEFT, wxID_EDITMOVERIGHT, wxID_EDITMOVEUP, wxID_EDITMOVEDOWN,
  wxID_EDITWIDTHINC, wxID_EDITWIDTHDEC, wxID_EDITHEIGHTINC, wxID_EDITHEIGHTDEC,
@@ -82,16 +82,14 @@ class DesignerControlsEvtHandler(wxEvtHandler):
         """ Control is resized, emulate native wxWindows layout behaviour """
         dsgn = self.designer
         try:
-            if event.GetId() == dsgn.GetId() and dsgn.selection:
-                dsgn.selection.selectCtrl(dsgn, dsgn.companion)
-
-## XXXG
-##                # Granularise frame sizing so that controls inside main frame
-##                # fits exactly
-##                sze = dsgn.GetClientSize()
-##                granSze = granularise(sze.x), granularise(sze.y)
-##                if sze.asTuple() != granSze:
-##                    dsgn.SetClientSize(granSze)
+            if event.GetId() == dsgn.GetId():
+                if dsgn.selection:
+                    dsgn.selection.selectCtrl(dsgn, dsgn.companion)
+                elif dsgn.multiSelection:
+                    dsgn.clearMultiSelection()
+                    dsgn.assureSingleSelection()
+                    dsgn.selection.selectCtrl(dsgn, dsgn.companion)
+                    return
 
                 # Compensate for autolayout=false and 1 ctrl on frame behaviour
                 # Needed because incl selection tags there are actually 5 ctrls
@@ -390,7 +388,6 @@ class InspectableObjectCollectionView(EditorViews.EditorView):
 ##        dependents[name].append(prop)
 
         refs = self.getRefsFromProp(prop)
-##        print 'addDepLink', refs
         for link in refs:
             if not depLinks.has_key(link):
                 depLinks[link] = []
@@ -929,6 +926,7 @@ class DesignerView(wxFrame, InspectableObjectCollectionView):
         self.menu.Append(-1, "-")
         self.menu.Append(wxID_EDITRECREATE, 'Recreate')
         self.menu.Append(-1, "-")
+        self.menu.Append(wxID_EDITSNAPGRID, 'Snap to grid')
         self.menu.Append(wxID_EDITALIGN, 'Align...')
         self.menu.Append(wxID_EDITSIZE, 'Size...')
 
@@ -944,6 +942,7 @@ class DesignerView(wxFrame, InspectableObjectCollectionView):
         EVT_MENU(self, wxID_EDITCOPY, self.OnCopySelected)
         EVT_MENU(self, wxID_EDITPASTE, self.OnPasteSelected)
         EVT_MENU(self, wxID_EDITRECREATE, self.OnRecreateSelected)
+        EVT_MENU(self, wxID_EDITSNAPGRID, self.OnSnapToGrid)
 
         EVT_MENU(self, wxID_EDITMOVELEFT, self.OnMoveLeft)
         EVT_MENU(self, wxID_EDITMOVERIGHT, self.OnMoveRight)
@@ -1233,8 +1232,15 @@ class DesignerView(wxFrame, InspectableObjectCollectionView):
             self.refreshContainment(parentName)
         
     def selectNone(self):
-        if self.selection: self.selection.selectNone()
-                
+        if self.selection:
+            self.selection.selectNone()
+            self.selection = None
+        elif self.multiSelection:
+            for sel in self.multiSelection:
+                sel.selectNone()
+                sel.destroy()
+            self.multiSelection = []
+                            
     def close(self):
         self.Close()
 
@@ -1385,8 +1391,8 @@ class DesignerView(wxFrame, InspectableObjectCollectionView):
                     pos.y = pos.y - tb.GetSize().y
 
             # Granularise position
-## XXXG
-##            pos = wxPoint(granularise(pos.x), granularise(pos.y))
+            pos = wxPoint(SelectionTags.granularise(pos.x), 
+                          SelectionTags.granularise(pos.y))
                         
             ctrlName = self.newControl(parent, self.compPal.selection[1], self.compPal.selection[2], pos)
             self.compPal.selectNone()
@@ -1509,8 +1515,8 @@ class DesignerView(wxFrame, InspectableObjectCollectionView):
     def drawGrid_dots(self, dc, sze, sg):
         pen1 = wxPen(wxNamedColour('BLACK'))
         dc.SetPen(pen1)
-        for y in range(sze.y / sg):
-            for x in range(sze.x / sg):
+        for y in range(sze.y / sg + 1):
+            for x in range(sze.x / sg + 1):
                 dc.DrawPoint(x * sg, y * sg)
     
     def drawGrid_bitmap(self, dc, sze, sg):
@@ -1687,7 +1693,6 @@ class DesignerView(wxFrame, InspectableObjectCollectionView):
             ctrlName = self.selection.name
             # XXX Boa should be able to tell me this
             parent = self.selection.selection.GetParent()
-##            print parent
             if parent.GetId() == self.GetId():
                 parentName = ''
             else:
@@ -1697,60 +1702,81 @@ class DesignerView(wxFrame, InspectableObjectCollectionView):
             self.pasteCtrls(parentName, output)
 
 #---Moving/Sizing selections with the keyboard----------------------------------
+    def getSelAsList(self):
+        if self.selection:
+            return [self.selection]
+        elif self.multiSelection:
+            return self.multiSelection
+        else:
+            return []
+    
+    def moveUpdate(self, sel):
+        sel.resizeCtrl()
+        sel.setSelection(true)
+        #sel.positionUpdate()
+        
     def OnMoveLeft(self, event): 
-        sel = self.selection
-        if sel and sel.selection != self:
-            sel.position.x = sel.position.x - 1
-            sel.startPos.x = sel.startPos.x - 1
-            sel.resizeCtrl()
-            sel.setSelection()
+        for sel in self.getSelAsList():
+            if sel.selection != self:
+                sel.position.x = sel.position.x - 1
+                sel.startPos.x = sel.startPos.x - 1
+                self.moveUpdate(sel)
     def OnMoveRight(self, event): 
-        sel = self.selection
-        if sel and sel.selection != self:
-            sel.position.x = sel.position.x + 1
-            sel.startPos.x = sel.startPos.x + 1
-            sel.resizeCtrl()
-            sel.setSelection()
+        for sel in self.getSelAsList():
+            if sel.selection != self:
+                sel.position.x = sel.position.x + 1
+                sel.startPos.x = sel.startPos.x + 1
+                self.moveUpdate(sel)
     def OnMoveUp(self, event): 
-        sel = self.selection
-        if sel and sel.selection != self:
-            sel.position.y = sel.position.y - 1
-            sel.startPos.y = sel.startPos.y - 1
-            sel.resizeCtrl()
-            sel.setSelection()
-    def OnMoveDown(self, event): 
-        sel = self.selection
-        if sel and sel.selection != self:
-            sel.position.y = sel.position.y + 1
-            sel.startPos.y = sel.startPos.y + 1
-            sel.resizeCtrl()
-            sel.setSelection()
+        for sel in self.getSelAsList():
+            if sel.selection != self:
+                sel.position.y = sel.position.y - 1
+                sel.startPos.y = sel.startPos.y - 1
+                self.moveUpdate(sel)
+    def OnMoveDown(self, event):
+        for sel in self.getSelAsList():
+            if sel.selection != self:
+                sel.position.y = sel.position.y + 1
+                sel.startPos.y = sel.startPos.y + 1
+                self.moveUpdate(sel)
+
+    def sizeUpdate(self, sel):
+        sel.resizeCtrl()
+        sel.setSelection(true)
+#        sel.positionUpdate()
+
     def OnWidthInc(self, event): 
-        sel = self.selection
+        sel = self.selection 
         if sel and sel.selection != self:
             sel.size.x = sel.size.x + 1
             sel.startSize.x = sel.startSize.x + 1
-            sel.resizeCtrl()
-            sel.setSelection()
+            self.sizeUpdate(sel)
     def OnWidthDec(self, event): 
-        sel = self.selection
-        if sel and sel.selection != self:
+        sel = self.selection 
+        if sel and sel.selection != self and sel.size.x > 0:
             sel.size.x = sel.size.x - 1
             sel.startSize.x = sel.startSize.x - 1
-            sel.resizeCtrl()
-            sel.setSelection()
+            self.sizeUpdate(sel)
     def OnHeightInc(self, event): 
-        sel = self.selection
+        sel = self.selection 
         if sel and sel.selection != self:
             sel.size.y = sel.size.y + 1
             sel.startSize.y = sel.startSize.y + 1
-            sel.resizeCtrl()
-            sel.setSelection()
+            self.sizeUpdate(sel)
     def OnHeightDec(self, event): 
-        sel = self.selection
-        if sel and sel.selection != self:
+        sel = self.selection 
+        if sel and sel.selection != self and sel.size.y > 0:
             sel.size.y = sel.size.y - 1
             sel.startSize.y = sel.startSize.y - 1
-            sel.resizeCtrl()
-            sel.setSelection()
+            self.sizeUpdate(sel)
+
+    def OnSnapToGrid(self, event):
+        for sel in self.getSelAsList():
+            if sel.selection != self:
+                sel.position.x = SelectionTags.granularise(sel.position.x)
+                sel.position.y = SelectionTags.granularise(sel.position.y)
+                sel.startPos.x = sel.position.x
+                sel.startPos.y = sel.position.y
+                self.moveUpdate(sel)
+
 
