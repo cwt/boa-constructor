@@ -172,7 +172,9 @@ class ModulePage:
         self.updatePageName()
 
         self.windowId = wxNewId()
-        self.editor.winMenu.Append(self.windowId, self.model.filename,
+        menuFilename = '%s (%s)'%(os.path.basename(self.model.filename), 
+                                  self.model.filename)
+        self.editor.winMenu.Append(self.windowId, menuFilename,
               'Switch to highlighted file')
         EVT_MENU(self.editor, self.windowId, self.editor.OnGotoModulePage)
 
