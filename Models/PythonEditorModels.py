@@ -91,6 +91,7 @@ class ModuleModel(SourceModel):
 
         self.notify()
 
+    _module = None
     def getModule(self):
         if self._module is None:
             wx.wxBeginBusyCursor()
@@ -121,7 +122,7 @@ class ModuleModel(SourceModel):
 
     def runInThread(self, filename, args, app, interpreterPath):
         cwd = os.path.abspath(os.getcwd())
-        newCwd = os.path.dirname(filename)
+        newCwd = os.path.dirname(os.path.abspath(filename))
         os.chdir(newCwd)
         try:
             cmd = '"%s" %s %s'%(interpreterPath,
@@ -663,6 +664,7 @@ class BaseAppModel(ClassModel, ImportRelationshipMix):
         self.textInfos = {}
         self.unsavedTextInfos = []
         self.modules = {}
+        self.app = self
         ClassModel.__init__(self, data, name, main, editor, saved, self)
         if data:
             self.update()
@@ -670,9 +672,12 @@ class BaseAppModel(ClassModel, ImportRelationshipMix):
 
         # Connect all open modules to this app obj if they are defined in
         # the app's modules
+        import Controllers
         abspaths = self.absModulesPaths()
         for modPage in openModules.values():
-            if hasattr(modPage.model, 'app') and modPage.model.filename in abspaths:
+            if modPage.model.modelIdentifier not in Controllers.appModelIdReg \
+                  and hasattr(modPage.model, 'app') and \
+                  modPage.model.filename in abspaths:
                 modPage.model.app = self
 
     def absModulesPaths(self):
