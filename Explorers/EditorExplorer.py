@@ -59,13 +59,9 @@ class EditorController(ExplorerNodes.Controller):
     def moveModel(self, node, idx, direc):
         page = self.editor.tabs.GetPage(idx)
         text = self.editor.tabs.GetPageText(idx)
-        if wx.wxPlatform == '__WXMSW__':
-            imgIdx = self.editor.tabs.GetPageImage(idx)
+        imgIdx = self.editor.tabs.GetPageImage(idx)
         self.editor.tabs.RemovePage(idx)
-        if wx.wxPlatform == '__WXMSW__':
-            self.editor.tabs.InsertPage(idx+direc, page, text, false, imgIdx)
-        else:
-            self.editor.tabs.InsertPage(idx+direc, page, text, false)
+        self.editor.tabs.InsertPage(idx+direc, page, text, false, imgIdx)
 
         # swap the two tIdx's
         for modPage in self.editor.modules.values():
