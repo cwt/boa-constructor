@@ -6,6 +6,7 @@ __version__ = __version__.ver
 from wxPython.wx   import *
 from wxPython.html import *
 import wxPython.lib.wxpTag
+import Preferences
 
 #"#AC76DE"
 about_text = '''
@@ -15,7 +16,7 @@ about_text = '''
 <table bgcolor="#FFFFFF" width="100%%">
   <tr>
     <td align="center"><h2><br>
-    <img src="Images/Shared/Boa.jpg"><br>
+    <img src="%s"><br>
     <font color="#006600">Constructor v%s</font></h2></td>
   </tr>
 </table>
@@ -82,7 +83,8 @@ class AboutBox(wxDialog):
 
 	self.SetBackgroundColour(wxBLACK)
 	self.html = wxHtmlWindow(self, -1 )
-	self.html.SetPage(about_text % (__version__, wxPlatform, wxMAJOR_VERSION, wxMINOR_VERSION, wxRELEASE_NUMBER))
+	self.html.SetPage(about_text % (Preferences.toPyPath('Images/Shared/Boa.jpg'),
+	  __version__, wxPlatform, wxMAJOR_VERSION, wxMINOR_VERSION, wxRELEASE_NUMBER))
 	self.SetAutoLayout(true)
 	lc = wxLayoutConstraints()
 	lc.top.SameAs(self, wxTop, 5)
@@ -98,9 +100,7 @@ class AboutBox(wxDialog):
         self.SetAcceleratorTable(wxAcceleratorTable([(0, WXK_ESCAPE, wxID_OK),]))
     
     def OnNews(self, event):
-#        self.html.LoadPage('http://idoru')
-        self.html.LoadPage('http://ra')#/Projects/BoaConstructor/Web/News')
-#        self.html.LoadPage('http://boa-constructor.sourceforge.net/News.html')
+        self.html.LoadPage('http://boa-constructor.sourceforge.net/News.html')
 
 ##    def OnCloseWindow(self, event):
 ##        self.Destroy()
