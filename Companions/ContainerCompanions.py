@@ -170,7 +170,7 @@ class ScrolledWindowDTC(WindowConstr, ContainerDTC):
         return ContainerDTC.dependentProps(self) + ['TargetWindow']
 
     def events(self):
-        return ContainerDTC.events(self) + ['ScrollEvent']
+        return ContainerDTC.events(self) + ['ScrollWinEvent']
 
     def notification(self, compn, action):
         ContainerDTC.notification(self, compn, action)
