@@ -974,7 +974,7 @@ class DesignerView(wxFrame, InspectableObjectView, Utils.FrameRestorerMixin):
                 self.selectParent(self.selection.selection)
 
             pasted = self.pasteCtrls(self.selection.name,
-                  string.split(Utils.readTextFromClipboard(), os.linesep))
+                  string.split(str(Utils.readTextFromClipboard()), os.linesep))
 
             if len(pasted):
                 self.refreshContainment()
