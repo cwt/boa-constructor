@@ -81,9 +81,8 @@ def addPluginImgs(imgPath):
  imgOpenEditorModels, imgPrefsFolder, imgPrefsSTCStyles, imgRecentFiles,
  imgShell, imgExplorer, imgHelpBook,
 
- imgTextModel, imgBitmapFileModel, imgZipFileModel,
- imgUnknownFileModel, imgInternalFileModel,
-) = imgIdxRange(26)
+ imgTextModel, imgBitmapFileModel, imgUnknownFileModel, imgInternalFileModel,
+) = imgIdxRange(25)
 
 # List of name, func tuples that will be installed under the Tools menu.
 editorToolsReg = []
@@ -95,6 +94,8 @@ modelReg = {}
 extMap = {}
 # List of image file extensions
 imageExtReg = []
+# Dict of ext: ModelType entries. For types where not all files of that ext are images
+imageSubTypeExtReg = {}
 # List of extensions for internal filetypes created by Boa
 internalFilesReg = []
 # List of files which can be further identified by reading a header from the source
