@@ -176,8 +176,8 @@ class BreakViewCtrl(wxListCtrl):
         bps = bplist.getBreakpointList()
         # Sort by filename and lineno.
         bps.sort(lambda a, b:
-                 cmp('%s~%06d' % (a['filename'], a['lineno']),
-                     '%s~%06d' % (b['filename'], b['lineno'])))
+                 cmp((a['filename'], a['lineno']),
+                     (b['filename'], b['lineno'])))
         self.bps = bps
         for p in range(len(bps)):
             bp = bps[p]
