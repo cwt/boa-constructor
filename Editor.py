@@ -1012,20 +1012,24 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
         # Open previously opened files
         if Preferences.rememberOpenFiles:
             conf = Utils.createAndReadConfig('Explorer')
-            files = eval(conf.get('editor', 'openfiles'))
-            for file in files:
-                try:
-                    print 'Opening in Editor: %s' % string.split(
-                          os.path.basename(file), '::')[0]
-                    self.openOrGotoModule(file)
-
-                except Exception, error:
-                    # Swallow exceptions
-                    wxLogError(str(error))
-
-            try: self.tabs.SetSelection(conf.getint('editor', 'activepage'))
-            except: pass
-
+            if conf.has_section('editor'): 
+                files = eval(conf.get('editor', 'openfiles'))
+                for file in files:
+                    try:
+                        print 'Opening in Editor: %s' % string.split(
+                              os.path.basename(file), '::')[0]
+                        self.openOrGotoModule(file)
+    
+                    except Exception, error:
+                        # Swallow exceptions
+                        wxLogError(str(error))
+    
+                try: 
+                    actPage = conf.getint('editor', 'activepage')
+                    if actPage < self.tabs.GetPageCount():
+                        self.tabs.SetSelection(actPage)
+                except: 
+                    pass
 
     def persistEditorState(self, ):
         # Save list of open files to config
@@ -1045,6 +1049,7 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
 
             try:
                 conf = Utils.createAndReadConfig('Explorer')
+                if not conf.has_section('editor'): conf.add_section('editor')
                 conf.set('editor', 'openfiles', pprint.pformat(mods))
                 conf.set('editor', 'activepage', self.tabs.GetSelection())
                 conf.write(open(conf.confFile, 'w'))
@@ -1139,3 +1144,4 @@ class Listener(threading.Thread):
             self.queue.put(name)
             conn.close()
 
+ 
