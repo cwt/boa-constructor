@@ -323,7 +323,7 @@ class TransportCategoryError(TransportError):
 class ExplorerNode:
     """ Base class for items in the explorer. """
     # Protocol identifier, used to associate with controller
-    protocol = 'none'
+    protocol = ''
     images = None
     viewMode = 'list'
     pathSep = '/'
@@ -418,6 +418,12 @@ class ExplorerNode:
 #---Standard attrs, read-only, mod date, create date, etc.----------------------
     def updateStdAttrs(self): pass
     def setStdAttr(self, attr, value): pass
+
+
+#class NoneExplorerNode(ExplorerNode):
+#    """ Represents an undefined transport. """
+#    protocol = 'none'
+
 
 class CachedNodeMixin:
     """ Only read from datasource when uninitialised or invalidated
@@ -551,14 +557,22 @@ class CategoryNode(ExplorerNode):
         self.config.set(self.resourcepath[cat_section],
                   self.resourcepath[cat_option], pprint.pformat(self.entries))
         Utils.writeConfig(self.config)
+    
+    def copyCatFrom(self, node):
+        name = Utils.getValidName(self.entries.keys(), node.name or node.treename)
+        self.entries[name] = copy.copy(node.properties)
+        self.updateConfig()
 
-(wxID_CATNEW, wxID_CATINSPECT, wxID_CATDELETE, wxID_CATRENAME, wxID_CATRELOAD) \
- = Utils.wxNewIds(5)
+
+(wxID_CATNEW, wxID_CATINSPECT, wxID_CATCOPY, wxID_CATDELETE, wxID_CATRENAME, 
+ wxID_CATRELOAD) = Utils.wxNewIds(6)
 
 class CategoryController(Controller):
     newBmp = 'Images/Shared/NewItem.png'
     inspectBmp = 'Images/Shared/Inspector.png'
     deleteBmp = 'Images/Shared/Delete.png'
+
+    copyBmp = 'Images/Shared/Copy.png'
 
     def __init__(self, editor, list, inspector, controllers, menuDefs = []):
         Controller.__init__(self, editor)
@@ -569,6 +583,8 @@ class CategoryController(Controller):
         self.catMenuDef = [ (wxID_CATNEW, 'New', self.OnNewItem, self.newBmp),
                             (wxID_CATINSPECT, 'Inspect', self.OnInspectItem, self.inspectBmp),
                             (wxID_CATRELOAD, 'Reload', self.OnReloadItems, '-'),
+                            (-1, '-', None, ''),
+                            (wxID_CATCOPY, 'Create copy', self.OnCreateCopy, self.copyBmp),
                             (-1, '-', None, ''),
                             (wxID_CATDELETE, 'Delete', self.OnDeleteItems, self.deleteBmp),
                             (wxID_CATRENAME, 'Rename', self.OnRenameItem, '-') ]
@@ -614,6 +630,14 @@ class CategoryController(Controller):
         if self.list.node:
             self.list.refreshCurrent()
 
+    def OnCreateCopy(self, event):
+        if self.list.node:
+            nodes = self.getNodesForSelection(self.list.getMultiSelection())
+            for node in nodes:
+                self.list.node.copyCatFrom(node)
+
+            self.list.refreshCurrent()
+    
 class BookmarksCatNode(CategoryNode):
     """ Stores folderish references to any transport protocol """
     #protocol = 'config.bookmark'
@@ -686,6 +710,11 @@ class BookmarksCatNode(CategoryNode):
 
     def createCatCompanion(self, catNode):
         return BookmarkCategoryStringCompanion(catNode.treename, self)
+
+    def copyCatFrom(self, node):
+        name = Utils.getValidName(self.entries.keys(), node.name or node.treename)
+        self.entries[name] = node.resourcepath
+        self.updateConfig()
 
 class SubBookmarksCatNode(BookmarksCatNode):
     def __init__(self, parent, name, bookmarks):
@@ -828,18 +857,6 @@ class MRUCatController(Controller):
     def OnMRUMenuItemSelect(self, event):
         wid = event.GetId()
         self.recentItemsMenuIds[wid]
-
-
-# Bookmarks clipboard should copy entries between bookmark dicts and
-# paste as a bookmark the uri to items copied to clipboard in other transports
-
-class BookmarksClipboard(ExplorerClipboard):
-    def clipPaste_BookmarksClipboard(self, node, nodes, mode):
-        for clipnode in nodes:
-            if mode == 'cut':
-                node.entries[clipnode.name] = None # XXX
-                self.clipNodes = []
-            elif mode == 'copy': pass
 
 
 #---Companions------------------------------------------------------------------
@@ -994,6 +1011,8 @@ class BookmarkCategoryStringCompanion(CategoryStringCompanion):
         if value == '{}': value = {}
         CategoryStringCompanion.setPropHook(self, name, value, oldProp)
 
+def uriSplitNone(filename, filepath):
+    return 'none', '', filepath, filename
 
 #-Registry for explorer nodes-------------------------------------------------
 # Successfully loaded modules from the 
@@ -1009,7 +1028,7 @@ langStyleInfoReg = []
 # Registry for extra protocols available in the file open dialog
 fileOpenDlgProtReg = []
 # Registry for splitting uris
-uriSplitReg = {}
+uriSplitReg = {('none', 2): uriSplitNone}
 # Registry for functions to locate connections
 transportFindReg = {}
 
@@ -1023,6 +1042,7 @@ nodeRegByProt = {}
 # List of protocols that don't have Category nodes, and must be created
 # at the top level of the tree 
 explorerRootNodesReg = []
+
 
 def register(Node, clipboard=None, confdef=('', ''), controller=None, 
              category=None, root=False):
