@@ -185,6 +185,7 @@ def bitmapForComponent(wxClass, wxBase = 'None', gray = false):
 #print 'PaletteMapping:', len(locals()
 
 def evalCtrl(expr):
+    wxNullBitmap = IS.load('Images/Inspector/wxNullBitmap.bmp')
     try:
         return eval(expr)
     except Exception, err:
