@@ -1,3 +1,5 @@
+import sys
+
 import Boa
 
-Boa.main()
+Boa.main(sys.argv[1:])
