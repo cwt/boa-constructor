@@ -27,8 +27,9 @@ import SelectionTags
 [wxID_CTRLPARENT, wxID_EDITCUT, wxID_EDITCOPY, wxID_EDITPASTE, wxID_EDITDELETE,
  wxID_SHOWINSP, wxID_SHOWEDTR, wxID_CTRLHELP, wxID_EDITALIGN, wxID_EDITSIZE,
  wxID_EDITRECREATE, wxID_EDITSNAPGRID, wxID_EDITRELAYOUT, wxID_EDITRELAYOUTSEL,
- wxID_EDITRELAYOUTDESGN, wxID_EDITCREATEORDER,
-] = Utils.wxNewIds(16)
+ wxID_EDITRELAYOUTDESGN, wxID_EDITCREATEORDER, wxID_EDITFITINSIDESIZER,
+ wxID_EDITFITSIZER,
+] = Utils.wxNewIds(18)
 
 [wxID_EDITMOVELEFT, wxID_EDITMOVERIGHT, wxID_EDITMOVEUP, wxID_EDITMOVEDOWN,
  wxID_EDITWIDTHINC, wxID_EDITWIDTHDEC, wxID_EDITHEIGHTINC, wxID_EDITHEIGHTDEC,
@@ -93,7 +94,8 @@ class DesignerView(wxFrame, InspectableObjectView, Utils.FrameRestorerMixin):
 
         return args
 
-    def __init__(self, parent, inspector, model, compPal, companionClass, dataView):
+    def __init__(self, parent, inspector, model, compPal, companionClass, 
+          dataView):
         args = self.setupArgs(model.main, model.mainConstr.params,
           ['parent', 'id'], parent, companionClass, model.specialAttrs)
         if model.modelIdentifier == 'Dialog':
@@ -117,6 +119,7 @@ class DesignerView(wxFrame, InspectableObjectView, Utils.FrameRestorerMixin):
         self.pageIdx = -1
         self.dataView = dataView
         self.dataView.controllerView = self
+        self.sizersView = None
         self.controllerView = self
         self.saveOnClose = true
         self.confirmCancel = false
@@ -149,6 +152,7 @@ class DesignerView(wxFrame, InspectableObjectView, Utils.FrameRestorerMixin):
         self.vetoResize = false
         self.forceResize = false
         self.deletingCtrl = false
+        self.objectNamespace = DesignerNamespace(self)
         # XXX Move this definition into actions
 
         self.menu = wxMenu()
@@ -163,6 +167,9 @@ class DesignerView(wxFrame, InspectableObjectView, Utils.FrameRestorerMixin):
         self.menu.Append(wxID_EDITRECREATE, 'Recreate')
         self.menu.Append(wxID_EDITRELAYOUTSEL, 'Relayout selection')
         self.menu.Append(wxID_EDITRELAYOUTDESGN, 'Relayout Designer')
+        self.menu.Append(-1, '-')
+        self.menu.Append(wxID_EDITFITSIZER, 'Fit sizer')
+        #self.menu.Append(wxID_EDITFITINSIDESIZER, 'Fit sizer')
         self.menu.Append(-1, '-')
         self.menu.Append(wxID_EDITSNAPGRID, 'Snap to grid')
         self.menu.Append(wxID_EDITALIGN, 'Align...')
@@ -186,6 +193,9 @@ class DesignerView(wxFrame, InspectableObjectView, Utils.FrameRestorerMixin):
         EVT_MENU(self, wxID_EDITRELAYOUTDESGN, self.OnRelayoutDesigner)
         EVT_MENU(self, wxID_EDITSNAPGRID, self.OnSnapToGrid)
         EVT_MENU(self, wxID_EDITCREATEORDER, self.OnCreationOrder)
+        EVT_MENU(self, wxID_EDITFITSIZER, self.OnFitSizer)
+        #EVT_MENU(self, wxID_EDITFITINSIDESIZER, self.OnFitInsideSizer)
+        
 
         EVT_MENU(self, wxID_EDITMOVELEFT, self.OnMoveLeft)
         EVT_MENU(self, wxID_EDITMOVERIGHT, self.OnMoveRight)
@@ -249,8 +259,14 @@ class DesignerView(wxFrame, InspectableObjectView, Utils.FrameRestorerMixin):
         for compn, ctrl, prnt in self.objects.values():
             compn.updatePosAndSize()
 
+        if self.sizersView and self.sizersView.objects:
+            collDeps = ['%sself.%s()'%(sourceconst.bodyIndent, 
+                                       sourceconst.init_sizers)]
+        else:
+            collDeps = None
+
         # Generate code
-        InspectableObjectView.saveCtrls(self, definedCtrls, module)
+        InspectableObjectView.saveCtrls(self, definedCtrls, module, collDeps)
 
         # Regenerate window ids
         companions = map(lambda i: i[0], self.objects.values())
@@ -278,6 +294,9 @@ class DesignerView(wxFrame, InspectableObjectView, Utils.FrameRestorerMixin):
         self.renameCtrlAndParentRefs(oldName, newName, children)
 
         InspectableObjectView.renameCtrl(self, oldName, newName)
+        
+        if self.sizersView:
+            self.sizersView.designerRenameNotify(oldName, newName)
         selName = self.inspector.containment.selectedName()
         if selName == oldName: selName = newName
 
@@ -294,9 +313,16 @@ class DesignerView(wxFrame, InspectableObjectView, Utils.FrameRestorerMixin):
         # update window ids in designer and data
         InspectableObjectView.renameFrame(self, oldName, newName)
         self.dataView.renameFrame(oldName, newName)
+        if self.sizersView:
+            self.sizersView.renameFrame(oldName, newName)
 
         # update window ids in collection items
-        for collEditor in self.collEditors.values() + self.dataView.collEditors.values():
+        collEditors = self.collEditors.values() + \
+                      self.dataView.collEditors.values()
+        if self.sizersView:
+            collEditors.extend(self.sizersView.collEditors.values())
+                
+        for collEditor in collEditors:
             collEditor.renameFrame(oldName, newName)
 
         # propagate rename to inspector
@@ -353,6 +379,8 @@ class DesignerView(wxFrame, InspectableObjectView, Utils.FrameRestorerMixin):
                     self.model.editor.statusBar.progress.SetValue(int(stepsDone))
 
                 self.finaliseDepLinks(depLnks)
+                
+                self.OnRelayoutDesigner(None)
 
                 if len(depLnks):
                     wxLogWarning(pprint.pformat(depLnks))
@@ -381,12 +409,19 @@ class DesignerView(wxFrame, InspectableObjectView, Utils.FrameRestorerMixin):
 
             module = self.model.getModule()
             # Stream out everything to Module & update model
-            self.saveCtrls(self.dataView.objectOrder[:], module)
+            otherRefs = self.dataView.objectOrder[:]
+            if self.sizersView:
+                otherRefs.extend(self.sizersView.objectOrder[:])
+            self.saveCtrls(otherRefs, module)
             self.dataView.saveCtrls([], module)
+            if self.sizersView:
+                self.sizersView.saveCtrls([], module)
             self.model.refreshFromModule()
 
             # Close data view before updates
             self.dataView.deleteFromNotebook('Source', 'Data')
+            if self.sizersView:
+                self.sizersView.deleteFromNotebook('Source', 'Sizers')
 
             # Update state (if changed)
             newData = self.model.data
@@ -405,6 +440,8 @@ class DesignerView(wxFrame, InspectableObjectView, Utils.FrameRestorerMixin):
             self.model.editor.setStatus('Designer session Posted.')
         else:
             self.dataView.deleteFromNotebook('Source', 'Data')
+            if self.sizersView:
+                self.sizersView.deleteFromNotebook('Source', 'Sizers')
 
             self.model.editor.setStatus('Designer session Cancelled.', 'Warning')
 
@@ -464,6 +501,10 @@ class DesignerView(wxFrame, InspectableObjectView, Utils.FrameRestorerMixin):
             constrPrs.class_name = self.dataView.objects[factoryObj][0].factory(factoryMeth)
         InspectableObjectView.initObjCreator(self, constrPrs)
 
+    def initSizers(self, sizersView):
+        self.sizersView = sizersView
+        self.sizersView.controllerView = self
+
     def getParentNames(self, parent):
         if parent.GetName() != self.GetName():
             return parent.GetName(), 'self.'+parent.GetName()
@@ -475,21 +516,29 @@ class DesignerView(wxFrame, InspectableObjectView, Utils.FrameRestorerMixin):
         self.inspector.eventUpdate(name, true)
 
     def getObjectsOfClass(self, theClass):
-        """ Overridden to also add objects from the DataView """
+        """ Overridden to also add objects from the other views """
         results = InspectableObjectView.getObjectsOfClass(self, theClass)
-        dataResults = {}
+        otherResults = {}
         for objName in self.dataView.objects.keys():
             if isinstance(self.dataView.objects[objName][1], theClass):
-                dataResults['self.'+objName] = self.dataView.objects[objName][1]
-        results.update(dataResults)
+                otherResults['self.'+objName] = self.dataView.objects[objName][1]
+        if self.sizersView:
+            for objName in self.sizersView.objects.keys():
+                if isinstance(self.sizersView.objects[objName][1], theClass):
+                    otherResults['self.'+objName] = self.sizersView.objects[objName][1]
+        results.update(otherResults)
         return results
 
     def getAllObjects(self):
-        """ Overridden to also add objects from the DataView """
+        """ Overridden to also add objects from other views """
         results = InspectableObjectView.getAllObjects(self)
         for objName in self.dataView.objects.keys():
             results[Utils.srcRefFromCtrlName(objName)] = \
                   self.dataView.objects[objName][1]
+        if self.sizersView:
+            for objName in self.sizersView.objects.keys():
+                results[Utils.srcRefFromCtrlName(objName)] = \
+                      self.sizersView.objects[objName][1]
         return results
 
     def selectParent(self, ctrl):
@@ -550,9 +599,20 @@ class DesignerView(wxFrame, InspectableObjectView, Utils.FrameRestorerMixin):
     def notifyAction(self, compn, action):
         InspectableObjectView.notifyAction(self, compn, action)
         self.dataView.notifyAction(compn, action)
+        if self.sizersView:
+            self.sizersView.notifyAction(compn, action)
 
     def close(self):
         self.Close()
+    
+    def focus(self):
+        self.restore()
+
+    def getSizerConnectList(self):
+        if self.sizersView:
+            return self.sizersView.sizerConnectList
+        else:
+            return None
 
     ignoreWindows = [wxToolBar, wxStatusBar]
 
@@ -619,8 +679,8 @@ class DesignerView(wxFrame, InspectableObjectView, Utils.FrameRestorerMixin):
                 # Compensate for BlankWindowPages's offset
                 if realParent.this[:8] != \
                       self.objects[officialParent][1].this[:8]:
-                    offset[0] = offset[0] + realParent.GetPosition().x
-                    offset[1] = offset[1] + realParent.GetPosition().y
+                    offset[0] += realParent.GetPosition().x
+                    offset[1] += realParent.GetPosition().y
 
                 # Check for intersection
                 if childCtrl.IsShown() and realParent.IsShown() and \
@@ -636,7 +696,10 @@ class DesignerView(wxFrame, InspectableObjectView, Utils.FrameRestorerMixin):
                     selPos = wxPoint(clickPos.x - offset[0] - pos.x,
                           clickPos.y - offset[1] - pos.y)
                     break
-
+        #else:
+        #    selPos.x -= offset[0]
+        #    selPos.y -= offset[1]
+            
         return selCtrl, selCompn, selPos
 
     def clearMultiSelection(self):
@@ -831,6 +894,7 @@ class DesignerView(wxFrame, InspectableObjectView, Utils.FrameRestorerMixin):
         if self.IsIconized():
             self.Iconize(false)
 
+        # XXX Should handle errors more gracefully here
         self.destroying = true
         self.vetoResize = true
         try:
@@ -1186,9 +1250,11 @@ class DesignerView(wxFrame, InspectableObjectView, Utils.FrameRestorerMixin):
 
     def relayoutCtrl(self, ctrl):
         self.forceResize = true # cleared by the event
-        evt = wxSizeEvent(ctrl.GetSize())
-        evt.SetId(ctrl.GetId())
-        wxPostEvent(ctrl, evt)
+        sizer = ctrl.GetSizer()
+        if sizer:
+            sizer.Layout()
+        wxPostEvent(ctrl, wxSizeEvent(ctrl.GetSize(), ctrl.GetId()))
+        wxCallAfter(ctrl.Refresh)
 
     def OnRelayoutSelection(self, event):
         # for ctrl in [sel.selection for sel in self.getSelAsList()]:
@@ -1197,6 +1263,12 @@ class DesignerView(wxFrame, InspectableObjectView, Utils.FrameRestorerMixin):
 
     def OnRelayoutDesigner(self, event):
         self.relayoutCtrl(self)
+
+    def OnFitSizer(self, event):
+        for sel in self.getSelAsList():
+            sizer = sel.selection.GetSizer()
+            if sizer:
+                sizer.Fit(sel.selection)
 
     def OnCreationOrder(self, event):
         sel = self.selection
@@ -1215,6 +1287,25 @@ class DesignerView(wxFrame, InspectableObjectView, Utils.FrameRestorerMixin):
         self.saveOnClose = false
         self.confirmCancel = true
         self.Close()
+
+
+class DesignerNamespace:
+    def __init__(self, designer):
+        self._designer = designer
+        
+    def __getattr__(self, name):
+        designer = self.__dict__['_designer']
+        if designer.objects.has_key(name):
+            return designer.objects[name][1]
+        elif designer.dataView.objects.has_key(name):
+            return designer.dataView.objects[name][1]
+        elif designer.sizersView and \
+              designer.sizersView.objects.has_key(name):
+            return designer.sizerView.objects[name][1]
+        else:
+            raise AttributeError, name
+        
+        
 
 class DesignerControlsEvtHandler(wxEvtHandler):
     def __init__(self, designer):
@@ -1252,6 +1343,7 @@ class DesignerControlsEvtHandler(wxEvtHandler):
             dsgn = self.designer
             pos = event.GetPosition()
             ctrl = event.GetEventObject()
+            self.designer.model.editor.setStatus(`ctrl`+':'+`pos`)
 
             if dsgn.selection:
                 dsgn.selection.moving(ctrl, pos)
@@ -1435,6 +1527,34 @@ class DesignerControlsEvtHandler(wxEvtHandler):
         """
         pass
 
+    def updateDCProps(self, dc, sizer, validCol):
+        if sizer.__class__.__name__ == 'BlankSizer':
+            pen = wxPen(wxRED)
+            brush = wxBrush(wxRED, wxFDIAGONAL_HATCH)
+        else:
+            pen = wxPen(validCol, 3, wxSOLID)
+            brush = wxTRANSPARENT_BRUSH
+        dc.SetPen(pen)
+        dc.SetBrush(brush)
+        
+    def drawSizerInfo(self, dc, sizer):
+        self.updateDCProps(dc, sizer, Preferences.dsHasSizerCol)
+
+        sp = sizer.GetPosition()
+        ss = sizer.GetSize()
+        dc.DrawRectangle(sp.x, sp.y, ss.width, ss.height)
+        
+        c = sizer.GetChildren()
+        for sc in c:
+            if sc.IsSizer():
+                self.drawSizerInfo(dc, sc.GetSizer())
+            else:
+                self.updateDCProps(dc, sizer, Preferences.dsInSizerCol)
+                sp = sc.GetPosition()
+                ss = sc.GetSize()
+                dc.DrawRectangle(sp.x, sp.y, ss.width, ss.height)
+
+
     def OnPaint(self, event):
         # XXX Paint event fired after destruction, should remove EVT ?
         ctrl = event.GetEventObject()
@@ -1449,7 +1569,13 @@ class DesignerControlsEvtHandler(wxEvtHandler):
             dc.BeginDrawing()
             try:
                 drawGrid(dc, sze, sg)
+
+                sizer = ctrl.GetSizer()
+                if sizer:
+                    self.drawSizerInfo(dc, sizer)
+
             finally:
                 dc.EndDrawing()
+
 
         event.Skip()
