@@ -165,6 +165,9 @@ class PanelDTC(WindowConstr, ContainerDTC):
     def events(self):
         return ContainerDTC.events(self) + ['PanelEvent']
 
+    def dependentProps(self):
+        return ContainerDTC.dependentProps(self) + ['DefaultItem']
+
 EventCategories['SashEvent'] = (EVT_SASH_DRAGGED, )
 commandCategories.append('SashEvent')
 class SashWindowDTC(WindowConstr, ContainerDTC):
@@ -571,7 +574,6 @@ class BlankWindowPage(wxWindow):
         self.PopupMenu(self.menu, event.GetPosition())
 
     def linkToNewestControl(self):
-        print 'Linking'
         self.ctrl = self.designer.objects[self.designer.objectOrder[-1:][0]][1]
         self.params[self.nameKey] = Utils.srcRefFromCtrlName(self.ctrl.GetName())
         self.OnControlResize(None)
