@@ -94,13 +94,15 @@ class EditorStatusBar(wxStatusBar):
         self._histcnt = 0
 
     def destroy(self):
-        del self.images
+        self.images = None
 
     def setHint(self, hint, msgType='Info', ringBell=false):
         """ Show a status message in the statusbar, optionally rings a bell.
 
         msgType can be 'Info', 'Warning' or 'Error'
         """
+        if not self.images:
+            return
         self._histcnt = self._histcnt - 1
         self.history.append( (msgType, time.strftime('%H:%M:%S',
               time.gmtime(time.time())), hint, ringBell) )
