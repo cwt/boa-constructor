@@ -1,13 +1,9 @@
 Bugs & Issues 
 -------------
 
-Path's to bitmaps are currently stored as absolute paths. This is
-not ideal and I'm looking for alternatives. The problem with relative
-paths is that programs can then be only run from the directory in
-which they are stored.
-Ideally there should be a library function to convert relative paths
-to absolute paths based on the path of the main Python module.
+Find in App does not search app
 
+---
 Current Designer behaviour may seem weird where a
 single control is dropped on a frame; At first the control keeps its
 default size, but when the frame is resized, it fills the frame.
@@ -26,17 +22,11 @@ sections, I might change this to rather be delimited by comments
 (but I don't want to have meaningfull comments either :( )
 Anyway don't mess with the whitespace and expect this to change.
 
-Another biggish gotcha is that changes to most (there are exceptions) 
+Another biggish gotcha is that changes to many (there are exceptions) 
 constructor properties and collection item constructor properties 
-will only take effect after the frame has been opened and closed.
+will only take effect after the frame has been opened and closed
+or the property refreshed.
 This is partially due to constructors only being called once ;)
-I expect this limitation to be addressed when cut/copy/paste is
-implemented. After changes to these properties the controls (and
-all their children) will be recreated (cut and paste :)
-
-Speed is still a problem, but has improved since 0.0.4 thanks to
-Kevin Gill. Boa still gets slower with a lot of modules open. 
-Help with these issues will be greatly appreciated.
 
 Cyclops and wxGenButtons don't mix for some strange reason. Disable
 any wxGenButtons code before running Cyclops.
@@ -44,9 +34,6 @@ To run Boa in Cyclops, turn the cyclopsing flag on in Palette.py
 
 Other bugs
 ----------
-
-The profiler only works for Python scripts and Boa itself, not for
-other wxPython applications.
 
 Recreate controls not implemented for the Data View.
 
@@ -65,55 +52,18 @@ The moral of the story is to not have controls directly on a frame for
 now, rather put them in a panel, this is the recommended procedure
 in any case.
 
-OGL divided shapes (used in UML view and Import views) do not display
-their text until the divider is resized, wxWindows bug.
-Kevin implemented a workaround.
-
-The infamous 'After a file dialog the cursor keys don't work' bug.
-This is a MAJOR pain in the neck for Boa/NT users (including myself)
-Using Boa's own file dialog now.
-
 Debugger causes core dump if Boa is closed while still debugging.
-
-Module being debugged cannot be closed before stopping the debugger.
-Either block closing the module, also close the debugger or
-remove debugger's dependency on the module's model object.
-
-Help select search result triggers loadpage event 3 times
 
 Parser must be fixed sometime to correctly parse
 - methods within methods
 - multiline docstrings
-- method definitions continued over more than 1 line
-
-Setting linked property to None should clear the source
-
-Some help links break when found text is highlighted in html
-
-App find does not find correctly when module is open.
-Reimplement find in source using Scintilla's find, find again.
-
-Display warning when frame closes with Notebook with empty
-pages
-
-Browsing does not work from the first character of the source.
-
-Cannot save (like in zope) dtml with errors, don't know how
-to get a zope error msg from ftp.
-
-On closing the Designer, refreshCtrl is called many times why?
-
-Explorers have many circular references 
 
 GTK
 ---
 
-With the accelerator table wxACCEL_ALT binds to shift key
-This does not happen with a test case, must still track down the 
-difference
+Still some problems with accelerator keys.
 
-Toolbars don't work correctly in the designer
+GTK Critical warnings are produced in the following cases:
+- When there is a 'New' submenu connected under 'File'. Off by default on wxGTK.
+- When controls are reparented from the Notebook to another control. 
 
-Designer:
-Grid is drawn in the wrong colour (GTK's SetBackgroundColour also 
-does not work correctly)

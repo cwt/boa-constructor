@@ -1,30 +1,43 @@
 Sampled people and software 
+---------------------------
+
+Thanks to Guido van Rossum and Python Labs for Python.
 
 wxPython (Robin Dunn) & wxWindows (Julian Smart, Robert Roebling, Vadim Zeitlin, et al.) 
 
 Neil Hodgson for Scintilla
-Cliff Baeseman for sorting out initial wxGTK problems
 moduleparse.py borrows from pyclbrs.py - standard python library
 uses PythonInterpreter.py by Fredrik Lundh
-Debugger based on IDLE's debugger by Guido van Rossum
+Debugger GUI originally based on IDLE's debugger by Guido van Rossum
 Mozilla, Delphi, WinCVS for iconic inspirations
 Cyclops, ndiff by Tim Peters
 Client.py and the DateTime package from Digital Creations for Zope integration
-CVS, SSH, SCP
+PyChecker by Neal Norwitz & Eric C. Newton
+py2exe by Thomas Heller
+babeliser.py by Jonathan Feinberg and Babelfish for translation
+David Adams' Speller, an xml-rpc spellchecker server
 
-The Boa Team currently
+The authors of CVS, SSH, SCP, PSCP
 
-Riaan Booysen <riaan@e.co.za>
-Shane Hathaway <shane@digicool.com>
+People who have helped out or contributed:
+
+Shane Hathaway <shane@zope.com>
 * Bug fixes and obtimizations
-* Busy with an (amazing) out of process debugger (NewDebugger branch in CVS)
-Kevin Gill <kevin@telcotek.com>
+* Out of process debugger
+Kevin Gill <kevin@focussed.com>
 * Many bug fixes
 * Huge wxStyledTextCtrl speedups on wxGTK
 * Feature additions
   * Multiple inheritance in Hierarchy view
-  * UMLView
-Robert Boulanger
-* Zope integration (BOAZOA branch in CVS)
+  * UMLView popup menu for navigation
+Robert Boulanger <robert@bluedynamics.com>
+* Initial Zope/xmlrpc integration 
+Tim Hochberg <tim.hochberg@ieee.org>
+* Find/replace
+* Socket server mode
+Mike C Fletcher <mcfletch@home.com>
+* MakePy dialog
+* Much improved UML layout
 
-Also thanks to Kevin Light for bug fixes
+Also thanks to Roman Yakovenko, Patrick 'O Brien, Kevin Light, 
+Cliff Baeseman, Larry Poorman and anyone else I've forgotten!

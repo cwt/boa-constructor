@@ -1,6 +1,56 @@
 Changes
 -------
 
+-- 0.1.1- alpha (CVS) --
+
+02-02-02 - 02-03-31
+
+* Python 2.2 compatibility issues fixed
+* Feature rich out of process Debugger capable of debugging most Python.
+  * Tested with Python, wxPython, Tkinter, Zope
+  * Special Zope support allowing you to step and break in Python scripts
+     Also support for step and break in PageTemplates but for Zope 2.6
+* Many internal refactorings which includes moving the models and controllers 
+  into the Models package and making wxPython module support optional.
+  This implements many of the requirements from the wxIDLE discussuions.
+  Also all Zope support moved to the ZopeLib package.
+
+-- 0.1.0 - alpha --
+
+01-05-01 - 02-01-28
+
+* Compatible with and now requires 2.3.2. 
+* Files can now be opened ,edited and saved over any supported transport
+* Explorer improvements
+  * Clipboard improved, can copy/paste between any transports
+  * DAV transport added.
+  * Preferences are now be maintained in the Explorer tree as items in the Inspector.
+     * Many new preferences
+     * Key definitions editable
+     * Style editor for user defined source code styles, colours and fonts.
+* Pluggable components and transports
+  * New components , filetypes and transports can be added by putting the
+    module in the Plug-ins directory. Examples provided.
+* Support for opening html, xml, and c++ files
+* Extensive Zope support added
+* Complete integrated help for Boa, Python, wxPython and CVS.
+* The Help Tips have been expanded a lot, please work thru it as 
+   soon as possible as it contains essential information.
+* Much better support for using preferences stored in your home directory.
+* All image transparency issues resolved (using PNGs for everything)
+* Improved code completion, call tips and code browsing.
+* Syntax checking for Python source
+* New controls available from the Palette.
+* More properties added for standard controls
+* Resource usage under Win9x improved
+* Stability and speed improvements
+* Code generation is safer with rollback on errors and warnings for unexpected/incomplete code.
+* Improved integration between your code and generated code
+  * Special object attributes can be linked to properties
+  * The Designer can generate source for controls not directly supported from the Palette
+     if you define it's name and equivalent class in a _custom_classes class attribute.
+
+
 -- 0.0.5 --
 
 00-09-01 - 01-03-18
