@@ -103,6 +103,8 @@ class StdErrErrorParser(StackErrorParser):
     def parse(self):
         if len(self.lines) >= 2:
             self.error = list(string.split(self.lines.pop(), ': '))
+            if len(self.error) == 1:
+                self.error.insert(0, 'String exception')
             self.error[1] = string.strip(self.error[1])
 #            print self.lines
 #            self.error.append(string.find(self.lines.pop(), '^'))
@@ -114,8 +116,8 @@ class StdErrErrorParser(StackErrorParser):
 
 # Limit stack size / processing time
 # Zero to ignore limit
-max_stack_depth = 0
-max_lines_to_process = 0
+max_stack_depth = 100
+max_lines_to_process = 10000
 
 class CrashTraceLogParser(StackErrorParser):
     """ Build a stack from a trace file built with option -T """
@@ -203,31 +205,12 @@ def test():
           '  File "EditorModels.py", line 513, in checkError\n',
           '    err.parse()\n',
           'AttributeError: parse\n']
-    tb_answ = '''[['AttributeError', 'parse']
-[File "Views\\AppViews.py", line 172
-    self.model.run()
-,
- File "EditorModels.py", line 548
-    self.checkError(c, 'Ran'),
- File "EditorModels.py", line 513
-    err.parse()
-], ['AttributeError', 'parse']
-[File "Views\\AppViews.py", line 172
-    self.model.run()
-,
- File "EditorModels.py", line 548
-    self.checkError(c, 'Ran'),
- File "EditorModels.py", line 513
-    err.parse()
-]]'''
+    tb_answ = '''[['AttributeError', 'parse'][File "Views\\AppViews.py", line 172    self.model.run(), File "EditorModels.py", line 548    self.checkError(c, 'Ran'), File "EditorModels.py", line 513    err.parse()], ['AttributeError', 'parse'][File "Views\\AppViews.py", line 172    self.model.run(), File "EditorModels.py", line 548    self.checkError(c, 'Ran'), File "EditorModels.py", line 513    err.parse()]]'''
     tb2 = ['  File "Views\\SelectionTags.py", line 23\012', 
             '    :\012', 
             '    ^\012', 
             'SyntaxError: invalid syntax\012']
-    tb2_answ = '''[['SyntaxError', 'invalid syntax']
-[File "Views\\SelectionTags.py", line 23
-    :
-]]'''
+    tb2_answ = '''[['SyntaxError', 'invalid syntax'][File "Views\\SelectionTags.py", line 23    :]]'''
     long_traceback = str(buildErrorList(tb))
     print 'long traceback test', resp[long_traceback == tb_answ]
     
