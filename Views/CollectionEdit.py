@@ -16,7 +16,7 @@ from Views import Designer
 import os
 #from EditorModels import init_coll
 
-wxNullBitmap = wxBitmap('Images\\Inspector\\wxNullBitmap.bmp', wxBITMAP_TYPE_BMP)
+wxNullBitmap = Preferences.IS.load('Images\\Inspector\\wxNullBitmap.bmp')
 
 def create(parent):
     return CollectionEditor(parent)

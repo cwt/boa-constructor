@@ -106,8 +106,11 @@ class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView):
         self.model.data = self.GetText()
         self.EmptyUndoBuffer()
         EditorViews.EditorView.refreshModel(self) 
+        
+        # Remove from modified views list
         if self.model.viewsModified.count(self.viewName):
              self.model.viewsModified.remove(self.viewName)
+        
         self.updateEditor()
 
     def gotoLine(self, lineno, offset = -1):
@@ -343,8 +346,9 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix, BrowseStyl
         self.active = true
 
     def refreshCtrl(self):
-        self.setInitialBreakpoints()
+        print 'Source refresh ctrl'
         EditorStyledTextCtrl.refreshCtrl(self)    
+        self.setInitialBreakpoints()
         
     def processComment(self, textLst):
         return map(lambda l: '##%s'%l, textLst)
@@ -364,6 +368,34 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix, BrowseStyl
               textLst[idx][:indentLevel] == indentLevel*' ':
                 textLst[idx] = textLst[idx][indentLevel:]
         return textLst
+
+    def getAttribs(self, cls, partial):
+        loopCls = cls
+        list = []
+        while loopCls:
+            list.extend(loopCls.methods.keys() + loopCls.attributes.keys())
+            if len(loopCls.super):
+                prnt = loopCls.super[0]
+                if type(prnt) == type(self): # :)
+                    loopCls = prnt
+                else:
+                    loopCls = None
+            else:
+                loopCls = None
+
+        sel = ''
+        if partial:
+            for key in list:
+##                print key[:len(partial)], partial
+                if key[:len(partial)] == partial:
+                    sel = key
+                    break
+
+        uniqueDct = {}
+        for attr in list:
+            uniqueDct[attr] = None
+        
+        return uniqueDct.keys(), sel
     
     def checkCallTipHighlight(self):
         if self.CallTipActive():
@@ -382,6 +414,7 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix, BrowseStyl
 ##            self.CallTipSetHighlight(0, len(sigLst[1])
 
     def checkCallTip(self):
+        print 'checkCallTip'
         pos = self.GetCurrentPos()
         lnNo = self.GetCurrentLine()
         lnStPs = self.GetLineStartPos(lnNo)
@@ -390,14 +423,14 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix, BrowseStyl
         start, length = idWord(line, piv, lnStPs)
         startLine = start-lnStPs
         word = line[startLine:startLine+length]
-##        print word, line[piv-1]
+        print word, line[piv-1]
         cls = self.model.module.getClassForLineNo(lnNo)
         if cls and line[piv-1] == '(':
-##            print 'got ('
+            print 'got ('
             dot = string.rfind(line, '.', 0, piv)
             if dot != -1 and line[dot-4:dot] == 'self':
                 meth = line[dot+1:piv-1]
-##                print 'self', meth
+                print 'self', meth
                 if cls.methods.has_key(meth):
 ##                    print 'has meth', `cls.methods[meth].signature`
                     sigLst = methodparse.safesplitfields(cls.methods[meth].signature, ',')
@@ -424,22 +457,12 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix, BrowseStyl
             if line[dot-4:dot] == 'self':
                 partial = line[dot+1:piv-1]
 ##                print partial
-                list = cls.methods.keys() + cls.attributes.keys()
-                sel = ''
-                if partial:
-                    for key in list:
-##                        print key[:len(partial)], partial
-                        
-                        if key[:len(partial)] == partial:
-                            sel = key
-                            break
+                list, sel = self.getAttribs(cls, partial)
 
                 self.AutoCompShow(string.join(list, ' '))
                 if sel:
                     print 'auto selecting', partial, sel
 #                    self.AutoCompSelect(sel)
-                        
-        
 
 #-------Browsing----------------------------------------------------------------
     def StyleVeto(self, style):
@@ -505,6 +528,7 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix, BrowseStyl
 #-------Debugger----------------------------------------------------------------
     def setInitialBreakpoints(self):
         for bp in self.breaks.values():
+            print 'adding break point', bp
             self.MarkerAdd(bp.line -1, brkPtMrk)
 
     def deleteBreakPoint(self, lineNo):
@@ -614,7 +638,8 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix, BrowseStyl
         stats = self.model.profile()
         resName = 'Profile stats'
         if not self.model.views.has_key(resName):
-            resultView = self.model.editor.addNewView(resName, ProfileView.ProfileStatsView)
+            resultView = self.model.editor.addNewView(resName, 
+              ProfileView.ProfileStatsView)
         else:
             resultView = self.model.views[resName]
         resultView.tabName = resName
@@ -853,5 +878,3 @@ class TstPythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix, BrowseS
                     return
         event.Skip()            
         BrowseStyledTextCtrlMix.OnKeyDown(self, event)
-        
-        

@@ -110,6 +110,7 @@ class ViewBrowser:
 
 class EditorView:
     def __init__(self, model, actions = [], dclickActionIdx = -1, editorIsWindow = true):
+        self.actions = actions
         self.active = false
         self.model = model
         self.modified = false
@@ -127,7 +128,6 @@ class EditorView:
         self.editorMenu = wxMenu()
         self.popx = self.popy = 0
 
-        self.actions = actions
         self.defaultActionIdx = dclickActionIdx
         self.ids = []
         self.accelLst = []
@@ -480,6 +480,18 @@ class ListCtrlView(wxListCtrl, EditorView):
 
     def refreshCtrl(self):
         self.DeleteAllItems()
+    
+    def addReportItems(self, index, *list):
+        if list:
+            self.InsertStringItem(index, list[0])
+            col = 1
+            if len(list) > 1:
+                for text in list[1:]:
+                    self.SetStringItem(index, col, text)
+                    col = col + 1
+        return index + 1
+            
+        
     
     def OnKeyPressed(self, event):
         key = event.KeyCode()

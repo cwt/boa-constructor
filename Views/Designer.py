@@ -298,6 +298,7 @@ class InspectableObjectCollectionView(EditorViews.EditorView):
 
 ##        print 'Save:', self.objectOrder
         for ctrlName in self.objectOrder:
+            print 'Saving', ctrlName
             compn = self.objects[ctrlName][0]
             try:
                 # Add constructor
@@ -335,6 +336,7 @@ class InspectableObjectCollectionView(EditorViews.EditorView):
         
         if self.model.module.classes[self.model.main].methods.has_key(\
           self.collectionMethod):
+            print 'Method exists', self.collectionMethod
             # Add doc string
             docs = self.model.module.getClassMethDoc(self.model.main, 
               self.collectionMethod)
@@ -346,6 +348,9 @@ class InspectableObjectCollectionView(EditorViews.EditorView):
                 self.model.module.replaceMethodBody(self.model.main, 
                   self.collectionMethod, newBody)
 ##                for i in self.model.module.source: print i[:60]
+            else:
+                self.model.module.replaceMethodBody(self.model.main, 
+                  self.collectionMethod, [bodyIndent+'pass', ''])
         else:
             if len(newBody):
 ##                print 'DESIGNER adding new method!!!'
@@ -449,6 +454,11 @@ class InspectableObjectCollectionView(EditorViews.EditorView):
             if ctrlName == name:
 #                self.collEditors[(ctrlName, propName)].close()
                 del self.collEditors[(ctrlName, propName)]
+
+        print 'Deleted ctrl',
+        for ctrlName in self.objectOrder:
+            print ctrlName,
+        print
 
     def cleanup(self):
         if self == self.inspector.prevDesigner:
@@ -651,7 +661,7 @@ class DesignerView(wxFrame, InspectableObjectCollectionView):
 ##        print 'refreshed constainment'
 
     def refreshCtrl(self):
-##        print 'Designer refreshCtrl'
+        print 'Designer refreshCtrl 1'
         if self.destroying: return
 
         # XXX delete previous
@@ -685,9 +695,11 @@ class DesignerView(wxFrame, InspectableObjectCollectionView):
         self.companion.setConstr(self.model.mainConstr)
         ctrlCompn = self.companion
         deps = {}
+
         self.initObjProps(objCol.propertiesByName, '', objCol.creators[0], deps)
 ##        print 'FRAME_INIT', objCol.eventsByName
         self.initObjEvts(objCol.eventsByName, '', objCol.creators[0])
+
          
         if len(objCol.creators) > 1:
             step = (90 - stepsDone) / len(objCol.creators)
@@ -705,6 +717,8 @@ class DesignerView(wxFrame, InspectableObjectCollectionView):
 ##        for i in self.collEditors.values():
 ##            print id(i.companion.textConstrLst),
 ##            print id(self.model.objectCollections[i.companion.collectionMethod].creators)
+
+        print 'Designer refreshCtrl 2'
                 
     def initSelection(self):
         self.selection = SelectionGroup(self, self.senderMapper, self.inspector, self)
@@ -729,10 +743,6 @@ class DesignerView(wxFrame, InspectableObjectCollectionView):
         self.addObject(ctrlName, companion, 
           companion.designTimeControl(None, None, args), parent)
 
-##        self.objects[ctrlName] = [companion, 
-##         companion.designTimeControl(None, None, args), parent]
-##        self.objectOrder.append(ctrlName)
-        
         return ctrlName
 
     def newControl(self, parent, ctrlClass, ctrlCompanion, position = None, size = None):
@@ -754,9 +764,6 @@ class DesignerView(wxFrame, InspectableObjectCollectionView):
         else:
             parentName = ''
             params[companion.windowParentName] = 'self'
-
-##        self.objects[ctrlName] = [companion, companion.designTimeControl(position, size), parentName]
-##        self.objectOrder.append(ctrlName)
 
         self.addObject(ctrlName, companion, 
           companion.designTimeControl(position, size), parentName)
@@ -931,6 +938,7 @@ class DesignerView(wxFrame, InspectableObjectCollectionView):
     
     ignoreWindows = [wxToolBar, wxStatusBar]
     def OnControlResize(self, event):
+        print 'Resize'
         try:
             if event.GetId() == self.GetId():
                 self.selection.selectCtrl(self, self.companion)

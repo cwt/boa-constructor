@@ -117,7 +117,7 @@ class SelectionGroup:
         map(lambda tag, newparent = parent: tag.Reparent(newparent), self.tags)
 
     def moveRelease(self):
-##        print 'move release'
+        print 'move release', self.selection
         if self.dragTag:
             # XXX nasty passing a None event
             self.OnSizeEnd(None)
@@ -126,10 +126,13 @@ class SelectionGroup:
             # XXX Have to hide and show to clean up artifacts, refreshing
             # XXX is not sufficient. Show/hiding seems to screw up Z order
 	    self.dragCtrl.Show(false)
-##	    print 'move release, calling resize'
-	    self.resizeCtrl()
-##            self.dragCtrl.SetDimensions(self.position.x, self.position.y, self.size.x, self.size.y)
+
+            self.dragCtrl.SetDimensions( \
+              granularise(self.position.x), granularise(self.position.y), 
+              granularise(self.size.x), granularise(self.size.y))
+
             self.dragCtrl.Show(true)
+
 ##            self.dragCtrl.Refresh()
 	    self.dragCtrl = None
 	    self.showTags()
@@ -143,7 +146,7 @@ class SelectionGroup:
         self.lastDragPos.y = pos.y
 
         # Begin a drag
-        # XXX hardcoded to frame
+        # don't drag frame
         if ctrl != self.designer:
             self.dragCtrl = ctrl
 	    self.dragOffset = pos

@@ -2,10 +2,10 @@ from wxPython.wx import *
 
 from EditorViews import ListCtrlView, ModuleDocView, wxwAppModuleTemplate, CyclopsView
 from ProfileView import ProfileStatsView
-
 import Search
 from os import path
 from time import time, gmtime, strftime
+import cmp
 
 class AppFindResults(ListCtrlView):
     gotoLineBmp = 'Images/Editor/GotoLine.bmp'
@@ -15,7 +15,7 @@ class AppFindResults(ListCtrlView):
     def __init__(self, parent, model):
         ListCtrlView.__init__(self, parent, model, wxLC_REPORT, 
           (('Goto match', self.OnGoto, self.gotoLineBmp, ()),
-           ('Close results', self.OnClose, self.closeBmp, ())))
+           ('Close results', self.OnClose, self.closeBmp, ())), 0)
            
         self.InsertColumn(0, 'Module', width = 100)
         self.InsertColumn(1, 'Line no', wxLIST_FORMAT_CENTRE, 40)
@@ -125,7 +125,12 @@ class AppView(ListCtrlView):
         for mod in modSort:
             # XXX Determine if file exists and if so the model type
             imgIdx = -1
-            if self.model.moduleModels.has_key(mod): imgIdx = self.model.moduleModels[mod].imgIdx
+            if self.model.moduleModels.has_key(mod):
+                imgIdx = self.model.moduleModels[mod].imgIdx
+            else:
+                self.model.idModel(mod)
+                if self.model.moduleModels.has_key(mod):
+                    imgIdx = self.model.moduleModels[mod].imgIdx
 
             self.InsertImageStringItem(i, mod, imgIdx)
             self.SetStringItem(i, 1, `self.model.modules[mod][0]`)
@@ -277,6 +282,87 @@ class AppModuleDocView(ModuleDocView):
 
         return self.genClassesSect(page + modBody, classNames)
       
+class AppCompareView(ListCtrlView):
+    gotoLineBmp = 'Images/Editor/GotoLine.bmp'
+    closeBmp = 'Images/Editor/Close.bmp'
+
+    viewName = 'Application Compare'
+    def __init__(self, parent, model):
+        ListCtrlView.__init__(self, parent, model, wxLC_REPORT, 
+          (('Do diff', self.OnGoto, self.gotoLineBmp, ()),
+           ('Close results', self.OnClose, self.closeBmp, ())), 0)
+           
+        self.InsertColumn(0, 'Module', width = 100)
+        self.InsertColumn(1, 'Differs from', width = 450)
+        self.InsertColumn(2, 'Result', width = 75)
+
+#        self.SetImageList(model.editor.modelImageList, wxIMAGE_LIST_SMALL)
+
+        self.results = {}
+        self.listResultIdxs = []
+        self.tabName = 'Application Compare'  
+        self.active = true
+        self.model = model
+        self.compareTo = ''
+
+    def refreshCtrl(self):
+        ListCtrlView.refreshCtrl(self)
+        from EditorModels import AppModel
+        otherApp = AppModel('', self.compareTo, '', self.model.editor, true)
+        otherApp.load()
+        
+        otherApp.readModules()
+        
+        i = 0
+
+        # Compare apps
+        if not cmp.cmp(self.model.filename, otherApp.filename):
+            i = self.addReportItems(i, 
+              path.splitext(path.basename(self.model.filename))[0], 
+              otherApp.filename, 'changed')
+##            self.InsertStringItem(i, self.model.filename)
+##            self.SetStringItem(i, 1, otherApp.filename)
+##            self.SetStringItem(i, 2, 'changed')
+##            i = i+1
+        # Find changed modules and modules not occuring in other module
+        for module in self.model.modules.keys():
+            if otherApp.modules.has_key(module):
+                otherFile = otherApp.moduleFilename(module)
+                if not cmp.cmp(self.model.moduleFilename(module), otherFile):
+                    i = self.addReportItems(i, module, otherFile, 'changed')
+##                    self.InsertStringItem(i, module)
+##                    self.SetStringItem(i, 1, otherFile)
+##                    self.SetStringItem(i, 2, 'changed')
+##                    i = i+1
+            else:
+                self.InsertStringItem(i, module)
+                self.SetStringItem(i, 1, '')
+                self.SetStringItem(i, 2, 'deleted')
+                i = i+1
+        
+        # Find modules only occuring in other module
+        for module in otherApp.modules.keys():
+            if not self.model.modules.has_key(module):
+                otherFile = otherApp.moduleFilename(module)
+                self.InsertStringItem(i, module)
+                self.SetStringItem(i, 1, '')
+                self.SetStringItem(i, 2, 'added')
+                i = i+1
+
+        self.pastelise()
+
+    def OnGoto(self, event):
+        if self.selected >= 0:
+            module = self.GetItemText(self.selected)
+            model = self.model.openModule(module)
+            otherModule = self.GetItem(self.selected, 1).GetText()
+            if otherModule:
+                model.diff(otherModule)
+
+    def OnClose(self, event):
+        self.deleteFromNotebook('Source')
+        self.model.views[self.tabName].destroy()
+        del self.model.views[self.tabName]
       
       
       
