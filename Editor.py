@@ -144,6 +144,7 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
         self.debugger = None
         self.browser = Browse.HistoryBrowser()
         self.controllers = {}
+        self.shellPageIdx = self.explorerPageIdx = -1
 
         self.toolAccels = []
         self.tools = {}
@@ -1129,9 +1130,16 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
             
             if event: event.Skip()
             # focus the active page
-            if sel > 1:
-                wxCallAfter(self.focusView, sel)
+            if self._created:
+                if sel > max(self.shellPageIdx, self.explorerPageIdx, -1):
+                    wxCallAfter(self.focusView, sel)
+                else:
+                    wxCallAfter(self.focusPage, sel)
 
+    def focusPage(self, sel):
+        page = self.tabs.GetPage(sel)
+        page.SetFocus()
+                
     def focusView(self, sel):
         page = self.tabs.GetPage(sel)
         if page.__class__.__name__ != 'Notebook':
