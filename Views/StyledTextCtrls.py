@@ -45,7 +45,8 @@ if new_stc:
 
 # GetCharAt, GetStyleAt now returns int instead of char
 
-delim  = string.letters + string.digits + '_'
+word_delim  = string.letters + string.digits + '_'
+object_delim = word_delim + '.'
 
 class FoldingStyledTextCtrlMix:
     def __init__(self, wId, margin):
@@ -267,7 +268,7 @@ class PythonStyledTextCtrlMix:
             self.BraceHighlight(braceAtCaret, braceOpposite)
             # self.Refresh(false)
 
-def idWord(line, piv, lineStart):
+def idWord(line, piv, lineStart, delim = word_delim):
     if piv >= len(line):
         return 0, 0
     pivL = pivR = piv
@@ -334,6 +335,9 @@ class BrowseStyledTextCtrlMix:
         self.Refresh(false)
         return 0, 0
 
+    def getBrowsableText(self, line, piv, lnStPs):
+        return idWord(line, piv, lnStPs)
+
     def OnBrowseMotion(self, event):
         try:
             #check if words should be underlined
@@ -356,7 +360,7 @@ class BrowseStyledTextCtrlMix:
                 lnStPs = self.GetLineStartPos(lnNo)
                 line = self.GetLine(lnNo)
                 piv = pos - lnStPs
-                start, length = idWord(line, piv, lnStPs)
+                start, length = self.getBrowsableText(line, piv, lnStPs)
                 #mark new
                 if length > 0 and self.styleStart != start:
                     if self.styleLength > 0:
