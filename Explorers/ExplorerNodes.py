@@ -11,7 +11,7 @@
 #-----------------------------------------------------------------------------
 print 'importing Explorers.ExplorerNodes'
 
-import string, sys, os, time, stat, copy, pprint
+import sys, os, time, stat, copy, pprint
 
 from wxPython import wx
 
@@ -30,11 +30,14 @@ sensitive_properties = ('passwd', 'scp_pass')
 
 # XXX define a filtering interface
 
+# XXX remove 'parent' refs
+
 # Guidelines
 #  Creation of a node should be cheap and not significant resources
 #  Opening/getting the contents/sublists should start connections/resources
 
 # Accelerator shortcuts
+
 
 class GlobalClipper:
     def __init__(self):
@@ -81,14 +84,23 @@ class ExplorerClipboard:
 
 class Controller:
     Node = None
+    
+    plugins = ()
     def __init__(self, editor):
         self.editor = editor
+        
+        self.plugins = [Plugin(self, editor) for Plugin in self.plugins]
 
     def editorUpdateNotify(self, info=''):
         pass
 
-    def setupMenu(self, menu, win, menus):
-        for wId, help, method, bmp in menus:
+    def setupMenu(self, menu, win, menus, addPlugins=true):
+        pluginMenuDefs = []
+        if addPlugins:
+            for plugin in self.plugins:
+                pluginMenuDefs.extend(plugin.menuDefs())
+            
+        for wId, help, method, bmp in menus + pluginMenuDefs:
             if help != '-':
                 if help[0] == '+':
                     canCheck = true
@@ -96,7 +108,7 @@ class Controller:
                 else:
                     canCheck = false
 
-                if type(method) == type(()):
+                if type(method) in (type(()), type([])):
                     subMenu = wx.wxMenu()
                     self.setupMenu(subMenu, win, method)
                     menu.AppendMenu(wId, help, subMenu)
@@ -147,7 +159,7 @@ class Controller:
 
 (wxID_CLIPCUT, wxID_CLIPCOPY, wxID_CLIPPASTE, wxID_CLIPDELETE, wxID_CLIPRENAME,
  wxID_CLIPNEWFOLDER, wxID_CLIPNEWBLANKDOC, wxID_CLIPRELOAD, wxID_CLIPBOOKMARK,
- wxID_CLIPCOPYPATH) = Utils.wxNewIds(10)
+ wxID_CLIPCOPYPATH, wxID_CLIPNEWMENU) = Utils.wxNewIds(11)
 
 # XXX Maybe needs to be called StandardControllerMixin ??
 class ClipboardControllerMix:
@@ -157,7 +169,11 @@ class ClipboardControllerMix:
     deleteBmp = 'Images/Shared/Delete.png'
     bookmarkBmp = 'Images/Shared/Bookmark.png'
     def __init__(self):
-        self.clipMenuDef = ( (wxID_CLIPRELOAD, 'Reload', self.OnReloadItems, '-'),
+        self.newMenuDef = [
+         (wxID_CLIPNEWFOLDER, 'Folder', self.OnNewFolder, '-'),
+         (wxID_CLIPNEWBLANKDOC, 'Blank document', self.OnNewBlankDoc, '-'),
+        ]
+        self.clipMenuDef = [ (wxID_CLIPRELOAD, 'Reload', self.OnReloadItems, '-'),
          (-1, '-', None, '-'),
          (wxID_CLIPCUT, 'Cut', self.OnCutItems, self.cutBmp),
          (wxID_CLIPCOPY, 'Copy', self.OnCopyItems, self.copyBmp),
@@ -166,16 +182,13 @@ class ClipboardControllerMix:
          (wxID_CLIPDELETE, 'Delete', self.OnDeleteItems, self.deleteBmp),
          (wxID_CLIPRENAME, 'Rename', self.OnRenameItems, '-'),
          (-1, '-', None, ''),
-         (wx.wxNewId(), 'New', (
-           (wxID_CLIPNEWFOLDER, 'Folder', self.OnNewFolder, '-'),
-           (wxID_CLIPNEWBLANKDOC, 'Blank document', self.OnNewBlankDoc, '-'),
-         ), '-'),
+         (wxID_CLIPNEWMENU, 'New', self.newMenuDef, '-'),
          (-1, '-', None, '-'),
          (wxID_CLIPBOOKMARK, 'Bookmark', self.OnBookmarkItems, self.bookmarkBmp),
          (wxID_CLIPCOPYPATH, 'Copy path(s) to clipboard', self.OnCopyPath, '-'),
-        )
+        ]
     def destroy(self):
-        self.clipMenuDef = ()
+        self.clipMenuDef = []
 
     def OnCutItems(self, event):
         if self.list.node:
@@ -218,8 +231,9 @@ class ClipboardControllerMix:
             for node in nodes:
                 if not node.isFolderish():
                     self.list.openNodeInEditor(node, self.editor,
-                          self.editor.explorer.tree.recentFiles)
-                    #node.open(self.editor)
+                          self.editor.explorerStore.recentFiles)
+                          #explorer.tree.recentFiles)
+
 
     def selectNewItem(self, name):
 ##        # XXX This is broken, select and rename somehow fires before internal
@@ -277,7 +291,7 @@ class ClipboardControllerMix:
             paths = []
             for node in nodes:
                 paths.append(node.getURI())
-            Utils.writeTextToClipboard(string.join(paths, os.linesep))
+            Utils.writeTextToClipboard(os.linesep.join(paths))
 
             self.editor.setStatus('Path(s) copied to clipboard')
 
@@ -318,7 +332,7 @@ class ExplorerNode:
     filter = ''
     # Should the node keep a reference to it's possible tree item
     refTree = false
-    def __init__(self, name, resourcepath, clipboard, imgIdx, parent = None, properties = None):
+    def __init__(self, name, resourcepath, clipboard, imgIdx, parent=None, properties=None):
         self.name = name
         self.resourcepath = resourcepath
         self.imgIdx = imgIdx
@@ -339,6 +353,7 @@ class ExplorerNode:
         self.stdAttrs = {'size': 0,
                          'creation-date': 0.0,
                          'modify-date': 0.0,
+                         'access-date': 0.0,
                          'read-only': 0}
 ##    def __del__(self): pass
 ##        print '__del__', self.__class__.__name__
@@ -515,7 +530,7 @@ class CategoryNode(ExplorerNode):
     illegal_substrs = ('://', '::', '/', '\\')
     def renameItem(self, name, newName):
         for ill_substr in self.illegal_substrs:
-            if string.find(newName, ill_substr) != -1:
+            if newName.find(ill_substr) != -1:
                 raise Exception('Contains invalid string sequence or char: "%s"'%ill_substr)
         if self.entries.has_key(newName):
             raise Exception, 'Name exists'
@@ -545,18 +560,18 @@ class CategoryController(Controller):
     inspectBmp = 'Images/Shared/Inspector.png'
     deleteBmp = 'Images/Shared/Delete.png'
 
-    def __init__(self, editor, list, inspector, controllers, menuDefs = ()):
+    def __init__(self, editor, list, inspector, controllers, menuDefs = []):
         Controller.__init__(self, editor)
         self.list = list
         self.menu = wx.wxMenu()
         self.inspector = inspector
 
-        self.catMenuDef = ( (wxID_CATNEW, 'New', self.OnNewItem, self.newBmp),
+        self.catMenuDef = [ (wxID_CATNEW, 'New', self.OnNewItem, self.newBmp),
                             (wxID_CATINSPECT, 'Inspect', self.OnInspectItem, self.inspectBmp),
                             (wxID_CATRELOAD, 'Reload', self.OnReloadItems, '-'),
                             (-1, '-', None, ''),
                             (wxID_CATDELETE, 'Delete', self.OnDeleteItems, self.deleteBmp),
-                            (wxID_CATRENAME, 'Rename', self.OnRenameItem, '-') )
+                            (wxID_CATRENAME, 'Rename', self.OnRenameItem, '-') ]
 
         self.setupMenu(self.menu, self.list, self.catMenuDef + menuDefs)
         self.toolbarMenus = [self.catMenuDef + menuDefs]
@@ -659,13 +674,15 @@ class BookmarksCatNode(CategoryNode):
         self.refreshTree()
 
     def refreshTree(self):
+        return
         # XXX if under bookmarks when adding bookmarks, tree is rebuilt and
         # XXX position in tree is lost
         # XXX At least update list when Bookmarks node is selected.
-        if self.tree and self.treeitem and self.treeitem.IsOk():
-            if self.tree.IsExpanded(self.treeitem):
-                self.tree.CollapseAndReset(self.treeitem)
-                self.tree.Expand(self.treeitem)
+        
+        #if self.tree and self.treeitem and self.treeitem.IsOk():
+        #    if self.tree.IsExpanded(self.treeitem):
+        #        self.tree.CollapseAndReset(self.treeitem)
+        #        self.tree.Expand(self.treeitem)
 
     def createCatCompanion(self, catNode):
         return BookmarkCategoryStringCompanion(catNode.treename, self)
@@ -747,17 +764,19 @@ class MRUCatNode(BookmarksCatNode):
 class MRUCatController(Controller):
     deleteBmp = 'Images/Shared/Delete.png'
 
-    def __init__(self, editor, list, inspector, controllers, menuDefs = ()):
+    def __init__(self, editor, list, inspector, controllers, menuDefs = []):
         Controller.__init__(self, editor)
         self.list = list
         self.menu = wx.wxMenu()
         self.inspector = inspector
 
-        self.mruMenuDef = ( (wxID_MRUOPEN, 'Open', self.OnOpenItems, '-'),
-                            (-1, '-', None, '-'),
-                            (wxID_MRURELOAD, 'Reload', self.OnReloadItems, '-'),
-                            (-1, '-', None, ''),
-                            (wxID_MRUREMOVE, 'Remove', self.OnRemoveItems, self.deleteBmp))
+        self.mruMenuDef = [ 
+            (wxID_MRUOPEN, 'Open', self.OnOpenItems, '-'),
+            (-1, '-', None, '-'),
+            (wxID_MRURELOAD, 'Reload', self.OnReloadItems, '-'),
+            (-1, '-', None, ''),
+            (wxID_MRUREMOVE, 'Remove', self.OnRemoveItems, self.deleteBmp)
+        ]
 
         self.setupMenu(self.menu, self.list, self.mruMenuDef + menuDefs)
         self.toolbarMenus = [self.mruMenuDef + menuDefs]
@@ -840,7 +859,7 @@ class SysPathNode(ExplorerNode):
 
     def createChildNode(self, shpth, pth):
         import FileExplorer
-        return FileExplorer.PyFileNode(shpth, pth, self.clipboard,
+        return FileExplorer.FileSysNode(shpth, pth, self.clipboard,
               EditorHelper.imgPathFolder, self, self.bookmarks)
 
     def refresh(self):
@@ -1017,7 +1036,6 @@ class BookmarkCategoryStringCompanion(CategoryStringCompanion):
 
 
 #-Registry for explorer nodes-------------------------------------------------
-
 explorerNodeReg = {}
 nodeRegByProt = {}
 # successfully loaded modules
@@ -1032,22 +1050,31 @@ fileOpenDlgProtReg = []
 uriSplitReg = {}
 # Registry for functions to locate connections
 transportFindReg = {}
+# List of protocols that don't have Category nodes, and must be created
+# at the top level of the tree 
+explorerRootNodesReg = []
+
 # Global reference to container for all transport protocols
 # The first Explorer Tree created will define this
 all_transports = None
 
-def register(Node, clipboard=None, confdef=('', ''), controller=None, category=None):
+def register(Node, clipboard=None, confdef=('', ''), controller=None, 
+             category=None, root=False):
     """ Register a new explorer Node.
 
     clipboard  : Clipboard class or protocol name (string) of existing clipboard
     confdef    : (section, option) tuple for the config file
     controller : Controller class or protocol name (string) of existing controller
     category   : Category node class for node when added as a transport to the tree
+    root       : Non category/transport nodes can be installed in the tree root
     """
 
     explorerNodeReg[Node] = {'clipboard': clipboard, 'confdef': confdef,
                              'controller': controller, 'category': category}
     nodeRegByProt[Node.protocol] = Node
+    
+    if root:
+        explorerRootNodesReg.append(Node.protocol)
 
 def isTransportAvailable(conf, section, prot):
     return conf.has_option(section, prot) and nodeRegByProt.has_key(prot)
@@ -1057,4 +1084,4 @@ def isTransportAvailable(conf, section, prot):
 
 register(CategoryNode, controller=CategoryController)
 register(MRUCatNode, controller=MRUCatController)
-register(SysPathNode, clipboard='file', controller='file')
+register(SysPathNode, clipboard='file', controller='file', root=True)
