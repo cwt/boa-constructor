@@ -52,6 +52,7 @@ class ErrorStackMF(wxFrame, Utils.FrameRestorerMixin):
         self.outputTC = wxTextCtrl(size = wxSize(326, 384), value = '', pos = wxPoint(0, 0), parent = self.notebook1, name = 'outputTC', style = wxTE_MULTILINE | wxTE_RICH, id = wxID_ERRORSTACKMFOUTPUTTC)
 
         self.errorTC = wxTextCtrl(size = wxSize(326, 384), value = '', pos = wxPoint(0, 0), parent = self.notebook1, name = 'errorTC', style = wxTE_MULTILINE | wxTE_RICH, id = wxID_ERRORSTACKMFERRORTC)
+        self.errorTC.SetForegroundColour(wxColour(64, 0, 0))
 
         #--
         # Special case to fix GTK redraw problem
@@ -199,9 +200,9 @@ class ErrorStackMF(wxFrame, Utils.FrameRestorerMixin):
             self.diffPage.SetLexer(wxSTC_LEX_DIFF)
             self.diffPage.StyleClearAll()
             for num, style in (
-                  (2, 'bold'), #diff
-                  (3, 'bold,back:#FFFFCC'), #"--- ","+++ ",
-                  (4, 'back:#CCCCFF'),#'@'
+                  (2, 'fore:#FFFFCC,back:#000000,bold'), #diff
+                  (3, 'back:#FFFFCC'), #"--- ","+++ ",
+                  (4, 'back:#CCCCFF,bold'),#'@'
                   (5, 'back:#FFCCCC'),#'-'
                   (6, 'back:#CCFFCC') ): #'+'
                 self.diffPage.StyleSetSpec(num, style)
