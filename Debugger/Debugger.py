@@ -176,7 +176,7 @@ class BreakViewCtrl(wxListCtrl):
         self.menu.Append(-1, '-')
         self.menu.Append(wxID_BREAKENABLED, 'Enabled', checkable = true)
         self.menu.Check(wxID_BREAKENABLED, true)
-        EVT_MENU(self, wxID_BREAKSOURCE, self.OnGotoSource)
+        EVT_MENU(self, wxID_BREAKSOURCE, self.OnGotoSourceRight)
         EVT_MENU(self, wxID_BREAKREFRESH, self.OnRefresh)
         EVT_MENU(self, wxID_BREAKEDIT, self.OnEdit)
         EVT_MENU(self, wxID_BREAKDELETE, self.OnDelete)
@@ -188,11 +188,25 @@ class BreakViewCtrl(wxListCtrl):
         self.rightsel = -1
         self.debugger = debugger
         self.bps = []
-        self.stats = {}
+        self.stats_map = {}
 
     def destroy(self):
         self.menu.Destroy()
         self.brkImgLst = None
+
+    def updateBreakpointStats(self, stats):
+        """Received from debugger.
+
+        stats is a list of mappings."""
+        stats_map = {}
+        for item in stats:
+            fn = item['client_filename']
+            lineno = item['lineno']
+            stats_map[(fn, lineno)] = item
+            if not bplist.hasBreakpoint(fn, lineno):
+                # A hard breakpoint was hit and a new breakpoint was created.
+                bplist.addBreakpoint(fn, lineno)
+        self.stats_map = stats_map
 
     def refreshList(self):
         self.rightsel = -1
@@ -217,13 +231,11 @@ class BreakViewCtrl(wxListCtrl):
 
             hits = ''
             ignore = ''
-            if self.stats:
-                for item in self.stats:
-                    if (bp['filename'] == item['client_filename'] and
-                        bp['lineno'] == item['lineno']):
-                        hits = str(item['hits'])
-                        ignore = str(item['ignore'])
-                        break
+            if self.stats_map:
+                item = self.stats_map.get((bp['filename'], bp['lineno']), None)
+                if item is not None:
+                    hits = str(item['hits'])
+                    ignore = str(item['ignore'])
             self.SetStringItem(p, 2, ignore)
             self.SetStringItem(p, 3, hits)
             self.SetStringItem(p, 4, bp['cond'] or '')
@@ -238,20 +250,27 @@ class BreakViewCtrl(wxListCtrl):
 ##        self.selection = -1
 
     def OnGotoSource(self, event):
+        sel = self.HitTest(event.GetPosition())[0]
+        if sel != -1:
+            self.gotoSourceForItem(sel)
+
+    def OnGotoSourceRight(self, event):
         sel = self.rightsel
         if sel != -1:
-            bp = self.bps[sel]
-            filename = bp['filename']
-            if not filename:
-                return
+            self.gotoSourceForItem(sel)
 
-            editor = self.debugger.editor
-            editor.SetFocus()
-            editor.openOrGotoModule(filename)
-            model = editor.getActiveModulePage().model
-            model.views['Source'].focus()
-            model.views['Source'].SetFocus()
-            model.views['Source'].selectLine(bp['lineno'] - 1)
+    def gotoSourceForItem(self, sel):
+        bp = self.bps[sel]
+        filename = bp['filename']
+        if not filename:
+            return
+        editor = self.debugger.editor
+        editor.SetFocus()
+        editor.openOrGotoModule(filename)
+        model = editor.getActiveModulePage().model
+        model.views['Source'].focus()
+        model.views['Source'].SetFocus()
+        model.views['Source'].selectLine(bp['lineno'] - 1)
 
     def OnEdit(self, event):
         pass
@@ -1007,11 +1026,6 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
             if not self.stream_timer.IsRunning():
                 self.stream_timer.Start(100)  # One-shot mode.
             self.updateOutputWindow()
-##            # A non polling stream can block a process
-##            ## The user is looking at the output page.
-##            ## if (force_timer or self.nbTop.GetSelection() == 2) \
-##            if not self.stream_timer.IsRunning():
-##                self.stream_timer.Start(100, 1)  # One-shot mode.
 
 ##    def appendToOutputWindow(self, t):
 ##        # Before appending to the output, remove old data.
@@ -1221,10 +1235,11 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
             bplist.clearTemporaryBreakpoints(filename, lineno)
             self.sb.updateState('Breakpoint.', 'break')
         # Update breakpoints view with stats.
-        self.breakpts.stats = info['breaks']
-        for item in self.breakpts.stats:
+        breaks = info['breaks']
+        for item in breaks:
             item['client_filename'] = self.serverFNToClientFN(
                 item['filename'])
+        self.breakpts.updateBreakpointStats(breaks)
         self.breakpts.refreshList()
 
         self.selectSourceLine(filename, lineno)
