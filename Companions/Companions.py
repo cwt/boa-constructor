@@ -299,7 +299,8 @@ class NotebookDTC(WindowConstr, ContainerDTC):
     def OnPageChanged(self, event):
         try:
             self.collections['Pages'].updateSelection(event.GetSelection())
-        except:
+        except Exception, err:
+            print 'OnPageChanged exception', str(err)
             print self.collections
         event.Skip()
 
@@ -314,7 +315,7 @@ class NotebookDTC(WindowConstr, ContainerDTC):
         
 ##        self.designer.inspector.propertyUpdate('Selection')
 
-class NotebookPagesCDTC(NotebookPageConstr, CollectionDTC):        
+class NotebookPagesCDTC(NotebookPageConstr, CollectionDTC):
     wxDocs = HelpCompanions.wxNotebookDocs
     propName = 'Pages'
     displayProp = 'strText'
@@ -329,7 +330,7 @@ class NotebookPagesCDTC(NotebookPageConstr, CollectionDTC):
                         'Selected' : BoolConstrPropEdit,
                         'ImageId': IntConstrPropEdit}
 
-#        self.tempPlaceHolders = []
+        self.tempPlaceHolders = []
     
     def properties(self):
         props = CollectionDTC.properties(self)
@@ -361,17 +362,42 @@ class NotebookPagesCDTC(NotebookPageConstr, CollectionDTC):
     def applyDesignTimeDefaults(self, params):
         prms = copy.copy(params)
         insMeth = RTTI.getFunction(self.control, self.insertionMethod)
-        if params['pPage'] == 'None':
-            print 'BlankWindowPage', self.control
-            page = BlankWindowPage(self.control, self.designer, params, 'pPage')
-        else:
-            page = self.designer.objects[prms['pPage'][5:]][1]
+
+        page = BlankWindowPage(self.control, self.designer, params, 'pPage')
+        self.tempPlaceHolders.append(page)
+        if params['pPage'] != 'None':
+            ctrl = self.designer.objects[prms['pPage'][5:]][1]
+            ctrl.Reparent(page)
+            page.ctrl = ctrl
 
         del prms['pPage']
         params = self.designTimeDefaults(prms)
         params['pPage'] = page
         
         apply(insMeth, [self.control], params)# , idx, page, text
+        
+    def deleteItem(self, idx):
+        activePageDeleted = self.control.GetSelection() == idx
+        
+        CollectionDTC.deleteItem(self, idx)
+        
+        # Delete BlankWindow
+        self.tempPlaceHolders[idx].Destroy()
+        del self.tempPlaceHolders[idx]
+
+        # Set new active page if necesary
+        if activePageDeleted:
+            newIdx = idx
+            if idx == len(self.textConstrLst):
+                newIdx = newIdx - 1
+            elif len(self.textConstrLst) == 0:
+                newIdx = None
+
+            if newIdx is not None:
+                self.updateSelection(newIdx)
+                self.control.SetSelection(newIdx)
+                self.control.Refresh()
+        
     
     def updateSelection(self, newSelection):
         idx = 0
@@ -384,26 +410,36 @@ class NotebookPagesCDTC(NotebookPageConstr, CollectionDTC):
         #print 'CDTC', self.textConstrLst[self.index]
     
     def GetPageSelected(self, compn):
-        print 'GetPageSelected'
+        pass
+##        print 'GetPageSelected'
 
     def SetPageSelected(self, value):
         if value:
             self.control.SetSelection(self.index)
 ##        self.textConstrLst[self.index].
-        print 'SetPageSelected', value
+##        print 'SetPageSelected', value
     
-    
-##    def finaliser(self):
-##        return CollectionDTC.finaliser(self) + ['        parent.test("blah")']
 
     def notification(self, compn, action):
+##        print 'notification', compn, action
         if action == 'delete':
-            print 'Notebook page delete'
-            # StatusBar
-##            sb = self.control.GetStatusBar()
-##            if sb and sb.GetId() == compn.control.GetId():
-##                self.propRevertToDefault('StatusBar', 'SetStatusBar')
-##                self.control.SetStatusBar(None)
+            if compn == self:
+                # Notebook page being deleted
+                # XXX Consider overwriting deleteItem for this
+                constr = self.textConstrLst[compn.index]
+                if constr.params['pPage'] != 'None':
+##                    print 'NPD deleting', self.textConstrLst[compn.index].params['pPage']
+                    self.designer.deleteCtrl(Utils.ctrlNameFromSrcRef(constr.params['pPage']))
+            else:
+                for constr in self.textConstrLst:
+                    if Utils.srcRefFromCtrlName(compn.name) == constr.params['pPage']:
+##                        print 'Notebook page ref clear', compn.name
+                        constr.params['pPage'] == 'None'
+    
+                for tph in self.tempPlaceHolders:
+                    if tph.ctrl == compn.control:
+##                        print 'Notebook page delete', compn.control
+                        tph.clearCtrl()
 
 
 class BlankWindowPage(wxWindow):
@@ -424,23 +460,29 @@ class BlankWindowPage(wxWindow):
         EVT_LEFT_UP(self, ctrlEvtHandler.OnControlRelease)
         EVT_LEFT_DCLICK(self, ctrlEvtHandler.OnControlDClick)
         EVT_SIZE(self, self.OnControlResize)
+        EVT_MOVE(self, self.OnControlMove)
+        EVT_PAINT(self, self.OnPaint)
  
         self.SetName(parent.GetName())
-        self.SetBackgroundColour(Preferences.undefinedWindowCol)
         self.designer.senderMapper.addObject(self)
         self.ctrl = None
         self.nameKey = nameKey
+    
+    def clearCtrl(self):
+        self.ctrl = None
+        self.params[self.nameKey] = 'None'
         
     def OnControlSelect(self, event):
-        new = self.designer.compPal.selection
-        self.designer.ctrlEvtHandler.OnControlSelect(event)
+        dsgn = self.designer
+        new = dsgn.compPal.selection
+        if self.ctrl:
+            dsgn.selectControlByPos(self.ctrl, event.GetPosition(), event.ShiftDown())
+        else:
+            dsgn.ctrlEvtHandler.OnControlSelect(event)
+
         if new:
-            pbc = self.GetParent().GetBackgroundColour()
-            self.SetBackgroundColour(pbc)
-            self.ctrl = self.designer.objects[self.designer.objectOrder[-1:][0]][1]
-            self.ctrl.SetBackgroundColour(pbc)
-            # XXX Special case for frame
-            self.params[self.nameKey] = 'self.'+self.ctrl.GetName()
+            self.ctrl = dsgn.objects[dsgn.objectOrder[-1:][0]][1]
+            self.params[self.nameKey] = Utils.srcRefFromCtrlName(self.ctrl.GetName())
             self.OnControlResize(None)
 
     def OnControlResize(self, event):
@@ -450,6 +492,27 @@ class BlankWindowPage(wxWindow):
             self.ctrl.SetDimensions(0, 0, s.x, s.y)
         else:
             self.designer.ctrlEvtHandler.OnControlResize(event)
+
+    dashSize = 8
+    def OnPaint(self, event):
+        try:
+            if self.ctrl is None:
+                dc = wxPaintDC(self)
+                sze = self.GetClientSize()
+        
+                dc.SetPen(wxRED_PEN)
+                dc.BeginDrawing()
+                try:
+                    for i in range((sze.x + sze.y) / self.dashSize):
+                        dc.DrawLine(0, i*self.dashSize, i*self.dashSize, 0)
+                finally:
+                    dc.EndDrawing()
+        finally:
+            event.Skip()
+
+    def OnControlMove(self, event):
+        parent = self.GetParent()
+        wxPostEvent(parent, wxSizeEvent( parent.GetSize() ))
 
                     
 EventCategories['SplitterWindowEvent'] = (EVT_SPLITTER_SASH_POS_CHANGING, 
