@@ -10,6 +10,12 @@
 # Copyright:   (c) 2001 - 2002 Riaan Booysen
 # Licence:     GPL
 #-----------------------------------------------------------------------------
+
+import string
+import Preferences, Utils
+
+idnt = Utils.getIndentBlock()
+
 boaIdent = '#Boa'
 boaClass = 'BoaApp'
 
@@ -21,85 +27,62 @@ init_events = '_init_events'
 defEnvPython = '#!/usr/bin/env python\n'
 defImport = 'from wxPython.wx import *\n\n'
 defSig = boaIdent+':%s:%s\n\n'
+code_gen_warning = "generated method, don't edit"
 
-defCreateClass = '''def create(parent):
-    return %s(parent)
-\n'''
+defCreateClass = string.replace('''def create(parent):
+\treturn %s(parent)
+
+''', '\t', idnt)
+
 wid = '[A-Za-z0-9_, ]*'
 srchWindowIds = '\[(?P<winids>[A-Za-z0-9_, ]*)\] = '+\
 'map\(lambda %s: [wx]*NewId\(\), range\((?P<count>\d+)\)\)'
 defWindowIds = '''[%s] = map(lambda %s: wxNewId(), range(%d))\n'''
 
-defClass = '''
+defClass = string.replace('''
 class %s(%s):
-    def '''+init_utils+'''(self):
-        pass
+\tdef '''+init_utils+'''(self):
+\t\tpass
 
-    def '''+init_ctrls+'''(self, prnt):
-        %s.__init__(%s)
-        self.'''+init_utils+'''()
+\tdef '''+init_ctrls+'''(self, prnt):
+\t\t%s.__init__(%s)
+\t\tself.'''+init_utils+'''()
 
-    def __init__(self, parent):
-        self.'''+init_ctrls+'''(parent)
-'''
+\tdef __init__(self, parent):
+\t\tself.'''+init_ctrls+'''(parent)
+''', '\t', idnt)
 
-# This the closest I get to destroying partially created
-# frames without mucking up my indentation.
-# This doesn't not handle the case where the constructor itself fails
-# Replace defClass with this in line 412 if you feel the need
-
-defSafeClass = '''
-class %s(%s):
-    def '''+init_utils+'''(self):
-        pass
-
-    def '''+init_ctrls+'''(self, prnt):
-        %s.__init__(%s)
-
-    def __init__(self, parent):
-        self.'''+init_utils+'''()
-        try:
-            self.'''+init_ctrls+'''(parent)
-
-            # Your code
-        except:
-            self.Destroy()
-            import traceback
-            traceback.print_exc()
-            raise
-'''
-
-defApp = '''import %s
+defApp = string.replace('''import %s
 
 modules = {'%s' : [1, 'Main frame of Application', '%s.py']}
 
 class BoaApp(wxApp):
-    def OnInit(self):
-        wxInitAllImageHandlers()
-        self.main = %s.create(None)
-        #workaround for running in wxProcess
-        self.main.Show();self.main.Hide();self.main.Show() 
-        self.SetTopWindow(self.main)
-        return true
+\tdef OnInit(self):
+\t\twxInitAllImageHandlers()
+\t\tself.main = %s.create(None)
+\t\t#workaround for running in wxProcess
+\t\tself.main.Show();self.main.Hide();self.main.Show()
+\t\tself.SetTopWindow(self.main)
+\t\treturn true
 
 def main():
-    application = BoaApp(0)
-    application.MainLoop()
+\tapplication = BoaApp(0)
+\tapplication.MainLoop()
 
 if __name__ == '__main__':
-    main()
-'''
+\tmain()
+''', '\t', idnt)
 
 defInfoBlock = '''#-----------------------------------------------------------------------------
-# Name:        %s
-# Purpose:     %s
+# Name:        %(Name)s
+# Purpose:     %(Purpose)s
 #
-# Author:      %s
+# Author:      %(Author)s
 #
-# Created:     %s
-# RCS-ID:      %s
-# Copyright:   %s
-# Licence:     %s
+# Created:     %(Created)s
+# RCS-ID:      %(RCS-ID)s
+# Copyright:   %(Copyright)s
+# Licence:     %(Licence)s
 #-----------------------------------------------------------------------------
 '''
 
@@ -115,52 +98,52 @@ setup(name = '%s',
 defPackageSrc = '''# Package initialisation
 '''
 
-defPyApp = '''modules = {}
+defPyApp = string.replace('''modules = {}
 
 def main():
-    pass
+\tpass
 
 if __name__ == '__main__':
-    main()
-'''
+\tmain()
+''', '\t', idnt)
 
-simpleModuleRunSrc = '''
-
-if __name__ == '__main__':
-    pass # add a call to run your script here
-'''
-
-simpleAppFrameRunSrc = '''
+simpleModuleRunSrc = string.replace('''
 
 if __name__ == '__main__':
-    app = wxPySimpleApp()
-    wxInitAllImageHandlers()
-    frame = create(None)
-    frame.Show();frame.Hide();frame.Show() #workaround for running in wxProcess
-    app.MainLoop()
-'''
+\tpass # add a call to run your script here
+''', '\t', idnt)
 
-simpleAppDialogRunSrc = '''
+simpleAppFrameRunSrc = string.replace('''
 
 if __name__ == '__main__':
-    app = wxPySimpleApp()
-    wxInitAllImageHandlers()
-    dlg = create(None)
-    try:
-        dlg.ShowModal()
-    finally:
-        dlg.Destroy()
-'''
+\tapp = wxPySimpleApp()
+\twxInitAllImageHandlers()
+\tframe = create(None)
+\tframe.Show();frame.Hide();frame.Show() #workaround for running in wxProcess
+\tapp.MainLoop()
+''', '\t', idnt)
 
-simpleAppPopupRunSrc = '''
+simpleAppDialogRunSrc = string.replace('''
 
 if __name__ == '__main__':
-    app = wxPySimpleApp()
-    wxInitAllImageHandlers()
-    frame = wxFrame(None, -1, 'Parent')
-    frame.SetAutoLayout(true)
-    frame.Show();frame.Hide();frame.Show() #workaround for running in wxProcess
-    popup = create(frame)
-    popup.Show(true)
-    app.MainLoop()
-'''
+\tapp = wxPySimpleApp()
+\twxInitAllImageHandlers()
+\tdlg = create(None)
+\ttry:
+\t\tdlg.ShowModal()
+\tfinally:
+\t\tdlg.Destroy()
+''', '\t', idnt)
+
+simpleAppPopupRunSrc = string.replace('''
+
+if __name__ == '__main__':
+\tapp = wxPySimpleApp()
+\twxInitAllImageHandlers()
+\tframe = wxFrame(None, -1, 'Parent')
+\tframe.SetAutoLayout(true)
+\tframe.Show();frame.Hide();frame.Show() #workaround for running in wxProcess
+\tpopup = create(frame)
+\tpopup.Show(true)
+\tapp.MainLoop()
+''', '\t', idnt)
