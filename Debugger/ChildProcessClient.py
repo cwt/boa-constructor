@@ -12,6 +12,8 @@ class TransportWithAuth (xmlrpclib.Transport):
 
     def request(self, host, handler, request_body):
 	# issue XML-RPC request
+        if host == 'localhost':
+            host = ''  # Trigger "special" name
 
 	import httplib
 	h = httplib.HTTP(host)
