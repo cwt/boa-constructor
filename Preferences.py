@@ -12,7 +12,6 @@
 import os, sys
 from os import path
 
-print 'importing wxPython...'
 from wxPython import wx
 
 from ImageStore import ImageStore, ZippedImageStore
@@ -136,6 +135,16 @@ inspPageNames = {'Constr': 'Constr',
                  'Evts': 'Evts',
                  'Objs': 'Objs'}
 
+# Shell prompt (must be 3 chars with trailing space)'
+ps1 = '>>> '
+# Shell prompt, continued line (must be 3 chars with trailing space)'
+ps2 = '... '
+# Shell debug prompt (must be 3 chars with trailing space)'
+#ps3 = '>-> '
+
+# Try to update the wxPython.libs directory with the newest run time libs (Component files)
+installBCRTL = 1
+
 #---Other-----------------------------------------------------------------------
 
 pyPath = path.abspath(path.join(os.getcwd(), sys.path[0]))
@@ -162,4 +171,4 @@ exportedProperties = ['flatTools', 'pastels', 'pastelMedium', 'pastelLight',
   'useImageArchive',  'handleSpecialEuropeanKeys', 'autoReindent', 'logStdStreams',
   'recordModuleCallPoint', 'blockCOM', 'checkSyntax', 'onlyCheckIfLineModified',
   'pythonInterpreterPath', 'rememberOpenFiles', 'showModifiedProps',
-  'oiLineHeight', 'oiNamesWidth', 'inspNotebookFlags' ]
+  'oiLineHeight', 'oiNamesWidth', 'inspNotebookFlags', 'ps1', 'ps2' ]
