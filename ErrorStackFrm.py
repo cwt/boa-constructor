@@ -6,13 +6,13 @@
 #
 # Created:     2001
 # RCS-ID:      $Id$
-# Copyright:   (c) 2001 - 2002 Riaan Booysen
+# Copyright:   (c) 2001 - 2003 Riaan Booysen
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 ##Boa:Frame:ErrorStackMF
 # remove between #-- comments before editing visually
 
-import os, string
+import os
 
 from wxPython.wx import *
 from wxPython.stc import *
@@ -62,10 +62,11 @@ class ErrorStackMF(wxFrame, Utils.FrameRestorerMixin):
             self._init_coll_notebook1_Pages(self.notebook1)
             self.errorStackTC = errorStackTC
         else:
-            self.errorStackTC = wxTreeCtrl(size = wxSize(312, 390), id = wxID_ERRORSTACKMFERRORSTACKTC, parent = self.notebook1, name = 'errorStackTC', validator = wxDefaultValidator, pos = wxPoint(4, 22))
+            self.errorStackTC = wxTreeCtrl(size = wxSize(312, 390), id = wxID_ERRORSTACKMFERRORSTACKTC, parent = self.notebook1, name = 'errorStackTC', validator = wxDefaultValidator, pos = wxPoint(4, 22), style = wxTR_HAS_BUTTONS | wxSUNKEN_BORDER)
             self._init_coll_notebook1_Pages(self.notebook1)
         #--
 
+    historySize = 50
     def __init__(self, parent, editor):
         self.notebookStyle = 0
         self.tracebackImgIdx = 0
@@ -78,6 +79,12 @@ class ErrorStackMF(wxFrame, Utils.FrameRestorerMixin):
         self.diffPage = None
         self.diffImgIdx = 3
 
+        self.inputPage = None
+        self.inputImgIdx = 4
+        
+        self.history = []
+        self.historyIdx = None
+
         #Preferences.childFrameStyle
         if Preferences.eoErrOutNotebookStyle == 'side':
             self.notebookStyle = wxNB_LEFT
@@ -87,7 +94,7 @@ class ErrorStackMF(wxFrame, Utils.FrameRestorerMixin):
 
         if Preferences.eoErrOutNotebookStyle == 'text':
             self.tracebackImgIdx = self.outputImgIdx = self.errorsImgIdx = \
-                  self.diffImgIdx = -1
+                  self.diffImgIdx = self.inputImgIdx = -1
 
         self._init_ctrls(parent)
 
@@ -98,7 +105,8 @@ class ErrorStackMF(wxFrame, Utils.FrameRestorerMixin):
             for img in ('Images/Shared/Traceback.png',
                         'Images/Shared/Info.png',
                         'Images/Shared/Error.png',
-                        'Images/CvsPics/Diff.png'):
+                        'Images/CvsPics/Diff.png',
+                        'Images/Shared/Input.png',):
                 self.images.Add(Preferences.IS.load(img))
             self.notebook1.AssignImageList(self.images)
 
@@ -123,8 +131,31 @@ class ErrorStackMF(wxFrame, Utils.FrameRestorerMixin):
           Preferences.inspWidth,
           Preferences.bottomHeight)
 
+    def addTracebackNode(self, err, parsedTracebacks):
+        tree = self.errorStackTC
+        root = tree.GetRootItem()
+        if err.error and err.stack:
+            errTI = tree.AppendItem(root, ' : '.join(err.error).strip())
+            for si in err.stack:
+                siTI = tree.AppendItem(errTI, '%d: %s: %s' % (si.lineNo,
+                      os.path.basename(si.file), si.line.strip()))
+                tree.SetPyData(siTI, si)
+            if err.stack:
+                tree.SetItemHasChildren(errTI, true)
+                tree.SetPyData(errTI, err.stack[-1])
+                parsedTracebacks += 1
+        return parsedTracebacks
+        
+
     def updateCtrls(self, errorList, outputList=None, rootName='Error',
-          runningDir='', errRaw=None):
+          runningDir='', errRaw=None, addToHistory=true):
+        
+        if addToHistory:
+            self.history.append( (errorList, outputList, rootName, runningDir, errRaw) )
+            while len(self.history) > self.historySize:
+                del self.history[0]
+            self.historyIdx = None
+            
         self.runningDir = runningDir
         self.tracebackType = rootName
         tree = self.errorStackTC
@@ -132,16 +163,7 @@ class ErrorStackMF(wxFrame, Utils.FrameRestorerMixin):
         rtTI = tree.AddRoot(rootName+'s')
         parsedTracebacks = 0
         for err in errorList:
-            if err.error and err.stack:
-                errTI = tree.AppendItem(rtTI, string.strip(string.join(err.error, ' : ')))
-                for si in err.stack:
-                    siTI = tree.AppendItem(errTI, '%d: %s: %s' % (si.lineNo,
-                          os.path.basename(si.file), string.strip(si.line)))
-                    tree.SetPyData(siTI, si)
-                if err.stack:
-                    tree.SetItemHasChildren(errTI, true)
-                    tree.SetPyData(errTI, err.stack[-1])
-                    parsedTracebacks = parsedTracebacks + 1
+            parsedTracebacks += self.addTracebackNode(err, parsedTracebacks)
 
         tree.SetItemHasChildren(rtTI, true)
         tree.Expand(rtTI)
@@ -150,12 +172,12 @@ class ErrorStackMF(wxFrame, Utils.FrameRestorerMixin):
             tree.Expand(firstErr)
 
         if outputList:
-            self.outputTC.SetValue(string.join(outputList, ''))
+            self.outputTC.SetValue(''.join(outputList))
         else:
             self.outputTC.SetValue('')
 
         if errRaw:
-            self.errorTC.SetValue(string.join(errRaw, ''))
+            self.errorTC.SetValue(''.join(errRaw))
         else:
             self.errorTC.SetValue('')
 
@@ -254,16 +276,49 @@ class ErrorStackMF(wxFrame, Utils.FrameRestorerMixin):
             self.notebook1.AddPage(text='Diffs', select=not not diffResult,
                 page=self.diffPage, imageId=self.diffImgIdx)
         else:
+            if self.notebook1.GetPageText(3) == 'Diffs':
+                pageIdx = 3
+            else:
+                pageIdx = 4
             self.diffPage.SetText(diffResult)
             if diffResult:
-                self.notebook1.SetSelection(3)
+                self.notebook1.SetSelection(pageIdx)
+        self.display()
 
+    def displayInput(self, display=true):
+        if not self.inputPage:
+            self.inputPage = wxTextCtrl(self.notebook1, -1, value='',
+                style=wxTE_MULTILINE|wxTE_RICH|wxSUNKEN_BORDER|wxCLIP_CHILDREN)
+            EVT_LEFT_DCLICK(self.inputPage, self.OnInputDoubleClick)
+            self.notebook1.InsertPage(index=3, text='Input', select=true,
+                page=self.inputPage, imageId=self.inputImgIdx)
+        else:
+            self.notebook1.SetSelection(3)
+        self.display()
+    
+    def stepBackInHistory(self):
+        if len(self.history) > 1:
+            if self.historyIdx is None:
+                self.historyIdx = max(len(self.history)-2, 0)
+            else:
+                self.historyIdx = max(self.historyIdx - 1, 0)
+
+            self.updateCtrls(
+                  *(self.history[self.historyIdx]+(false,)))
+
+    def stepFwdInHistory(self):
+        if len(self.history) > 1 and self.historyIdx is not None:
+            self.historyIdx = min(self.historyIdx + 1, len(self.history)-1)
+
+            self.updateCtrls(
+                  *(self.history[self.historyIdx]+(false,)))
+                
     def OnErrorstacktcTreeItemActivated(self, event):
         try:
             data = self.errorStackTC.GetPyData(event.GetItem())
             if data is None:
                 return
-            if string.find(data.file, '://') != -1:
+            if data.file.find('://') != -1:
                 fn = data.file
             elif self.app:
                 fn = os.path.join(os.path.dirname(self.app.filename), data.file)
@@ -276,8 +331,7 @@ class ErrorStackMF(wxFrame, Utils.FrameRestorerMixin):
             srcView.focus()
             srcView.gotoLine(data.lineNo - 1)
             srcView.setLinePtr(data.lineNo - 1)
-            self.editor.setStatus(string.join(data.error, ' : '),
-                self.tracebackType)
+            self.editor.setStatus(' : '.join(data.error), self.tracebackType)
 #            self.Lower()
 #            self.editor.Raise()
 #            self.editor.Focus()
@@ -301,6 +355,12 @@ class ErrorStackMF(wxFrame, Utils.FrameRestorerMixin):
     def OnErrorstacktcLeftDown(self, event):
         self.lastClick = event.GetPosition().asTuple()
         event.Skip()
+
+    def OnInputDoubleClick(self, event):
+        filename = self.editor.openFileDlg()
+        if filename:
+            from Explorers import Explorer
+            self.inputPage.SetValue(Explorer.openEx(filename).load())
 
 
 if __name__ == '__main__':
