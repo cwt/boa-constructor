@@ -30,6 +30,25 @@ from ExplorerNodes import TransportCategoryError
 
 #---Explorer utility functions--------------------------------------------------
 
+def makeCategoryEx(protocol, name='', struct=None):
+    """ """
+    for cat in ExplorerNodes.all_transports.entries:
+        if hasattr(cat, 'itemProtocol') and cat.itemProtocol == protocol:
+            catName = cat.newItem()
+            if name:
+                cat.renameItem(catName, name)
+            else:
+                name = catName    
+
+            if struct:
+                cat.entries[name].clear()
+                cat.entries[name].update(struct)
+                cat.updateConfig()
+            
+            return name
+                
+    raise TransportCategoryError, 'No category found for protocol %s'%protocol
+
 def openEx(filename, transports=None):
     """ Returns a transport node for the given uri """
     prot, category, respath, filename = splitURI(filename)
@@ -85,6 +104,7 @@ def findCatExplorerNode(prot, category, respath, transports):
                     return itm.getNodeFromPath(respath)
     raise TransportError('Catalog transport could not be found: %s || %s'%(category, respath))
 
+#-------------------------------------------------------------------------------
 
 (wxID_PFE, wxID_PFT, wxID_PFL) = Utils.wxNewIds(3)
 
@@ -175,6 +195,8 @@ def importTransport(moduleName):
     try:
         __import__(moduleName, globals())
     except ImportError, error:
+        if Preferences.pluginErrorHandling == 'raise':
+            raise
         wxLogWarning('%s not installed: %s' %(moduleName, str(error)))
         ExplorerNodes.failedModules[moduleName] = str(error)
         return true
@@ -350,15 +372,10 @@ class BaseExplorerList(wxListCtrl, Utils.ListCtrlSelectionManagerMix):
 
         self.setLocalFilter()
 
-        #Utils.ListCtrlLabelEditFixEH(self)
-
-    def destroy(self, dont_pop=0):
+    def destroy(self):
         if self._destr: return
 
         self.DeleteAllItems()
-        # XXX workaround for a crash, (better to leak than to crash ;)
-        #if not dont_pop:
-        #    self.PopEventHandler(true)
 
         if self.node:
             self.node.destroy()
@@ -367,11 +384,11 @@ class BaseExplorerList(wxListCtrl, Utils.ListCtrlSelectionManagerMix):
         self.node = None
         self._destr = true
 
-    def EditLabel(self, index):
-        wxYield()
-
-        try: return wxListCtrl.EditLabel(self, index)
-        except AttributeError: return 0
+#    def EditLabel(self, index):
+#        wxYield()
+#
+#        try: return wxListCtrl.EditLabel(self, index)
+#        except AttributeError: return 0
 
     def getPopupMenu(self):
         return self.menuFunc()
