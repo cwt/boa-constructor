@@ -27,8 +27,7 @@ from PrefsKeys import keyDefs
 from Debugger import Debugger
 #from thread import start_new_thread
 
-wxwHeaderTemplate ='''<html>
-<head>
+wxwHeaderTemplate ='''<html> <head>
    <title>%(Title)s</title>
 </head>
 <body bgcolor="#FFFFFF">'''
@@ -192,7 +191,9 @@ class EditorView:
     def deleteFromNotebook(self, focusView, tabName):
         # set selection to source view
         self.model.reorderFollowingViewIdxs(self.pageIdx)
-        self.model.views[focusView].focus()
+        # XXX If the last view closes should the model close ??
+        if self.model.views.has_key(focusView):
+            self.model.views[focusView].focus()
         del self.model.views[tabName]
         self.destroy()
         self.notebook.DeletePage(self.pageIdx)
@@ -302,25 +303,6 @@ class HTMLFileView(HTMLView):
     viewName = 'View'
     def generatePage(self):
         return self.model.data
-
-# XXX This is expensive and will really need to delay generatePage until View
-# XXX is focused (like ExploreView)
-# XXX The HTML control does not interact well with Zope.
-
-class ZopeHTMLView(HTMLView):
-    viewName = 'View'
-    def generatePage(self):
-##        if hasattr(self, 'lastpage'):
-##            if len(self.model.viewsModified):
-##                return self.lastpage
-        import urllib
-        url = 'http://%s:%d/%s'%(self.model.zopeConn.host,
-              self.model.zopeConn.http_port, self.model.zopeObj.whole_name())
-        f = urllib.urlopen(url)
-        s = f.read()
-        print url, s
-        return s#f.read()
-
 
 # XXX Add structured text/wiki option for doc strings
 # XXX Option to only list documented methods
@@ -527,6 +509,7 @@ class ListCtrlView(wxListCtrl, EditorView):
         self.sortData = {}
         self.active = true
         self.flipDir = false
+        self._columnCount = 0
 
     def pastelPicker(self, idx):
         return idx % 2
@@ -547,7 +530,7 @@ class ListCtrlView(wxListCtrl, EditorView):
             finally:
                 # XXX Hack to reduce flicker on windows
                 if vis and wxPlatform == '__WXMSW__': self.Show(true)
-                
+
 
     def refreshCtrl(self):
         self.DeleteAllItems()
@@ -567,7 +550,18 @@ class ListCtrlView(wxListCtrl, EditorView):
                     self.SetStringItem(index, col, text)
                     col = col + 1
         return index + 1
-    
+
+    def addReportColumns(self, columns):
+        for col in range(self._columnCount):
+            self.DeleteColumn(0)
+
+        self._columnCount = 0
+
+        for name, width in columns:
+            self.InsertColumn(self._columnCount, name)
+            self.SetColumnWidth(self._columnCount, width)
+            self._columnCount = self._columnCount + 1
+
     def getSelectedIndex(self):
         if self.selected == -1:
             return -1
@@ -624,7 +618,7 @@ class ToDoView(ListCtrlView):
           (('Goto line', self.OnGoto, self.gotoLineBmp, ()),), 0)
 
         self.sortOnColumns = [0, 1]
-          
+
         self.InsertColumn(0, 'Line#')
         self.InsertColumn(1, 'Urgency')
         self.InsertColumn(2, 'Entry')
@@ -649,10 +643,10 @@ class ToDoView(ListCtrlView):
         for todo in module.todos:
             todoStr = string.rstrip(todo[1])
             idx = -1
-            while todoStr[idx] == '!':
+            while todoStr and todoStr[idx] == '!':
                 idx = idx -1
             urgency = `idx * -1 -1`
-            
+
             if todo[0] - 1 != lastLine:
                 todoCnt = todoCnt + 1
             lineNo = `todo[0]`
@@ -762,6 +756,8 @@ class InfoView(wxTextCtrl, EditorView):
     def OnAddInfo(self, event):
         self.model.addInfoBlock()
 
+# XXX Add filter option to show only occurences of a method and it's overrides
+# XXX Could also expand all containers with bold items
 class ExploreView(wxTreeCtrl, EditorView):
     viewName = 'Explore'
     gotoLineBmp = 'Images/Editor/GotoLine.bmp'
@@ -777,6 +773,7 @@ class ExploreView(wxTreeCtrl, EditorView):
         self.tokenImgLst.Add(IS.load('Images/Views/Explore/function.bmp'))
         self.tokenImgLst.Add(IS.load('Images/Views/Explore/attribute.bmp'))
         self.tokenImgLst.Add(IS.load('Images/Modules/'+self.model.bitmap))
+        self.tokenImgLst.Add(IS.load('Images/Views/Explore/global.bmp'))
         self.SetImageList(self.tokenImgLst)
 
         self.active = true
@@ -824,6 +821,10 @@ class ExploreView(wxTreeCtrl, EditorView):
         for func in functionList:
             funcItem = self.AppendItem(rootItem, func, 3, -1,
               wxTreeItemData(module.functions[func]))
+
+        for globalName in module.global_order:
+            globalItem = self.AppendItem(rootItem, globalName, 6, -1,
+              wxTreeItemData(module.globals[globalName]))
 
         self.Expand(rootItem)
 
