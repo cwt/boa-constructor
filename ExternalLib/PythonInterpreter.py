@@ -61,7 +61,7 @@ class PythonInterpreter:
 
             #
             # execute
-                
+
             try:
                 exec code in self.locals
             except:
@@ -108,6 +108,6 @@ if __name__ == "__main__":
                 sys.stdout.write(sys.ps2)
             else:
                 sys.stdout.write(sys.ps1)
-                
+
     except EOFError:
         pass
