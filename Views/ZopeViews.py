@@ -16,6 +16,9 @@ from wxPython import wx
 ##sys.path.append('..')
 
 from EditorViews import HTMLView, ListCtrlView
+from SourceViews import EditorStyledTextCtrl
+from StyledTextCtrls import BaseHTMLStyledTextCtrlMix
+from Preferences import keyDefs
 import Utils
 
 from ExternalLib import xmlrpclib
@@ -25,6 +28,38 @@ true=1; false=0
 # XXX This is expensive and will really need to delay generatePage until View
 # XXX is focused (like ExploreView)
 # XXX The HTML control does not interact well with Zope.
+
+class ZopeHTMLStyledTextCtrlMix(BaseHTMLStyledTextCtrlMix):
+    def __init__(self, wId):
+        BaseHTMLStyledTextCtrlMix.__init__(self, wId)
+
+        zope_elements = 'dtml-var dtml-in dtml-if dtml-elif dtml-else dtml-unless '\
+        'dtml-with dtml-let dtml-call dtml-comment dtml-tree dtml-try dtml-except '
+
+        zope_attributes=\
+        'sequence-key sequence-item sequence-start sequence-end sequence-odd '
+
+        zope_pt_attributes=\
+        'z tal tal:content tal:replace tal:condition tal:attributes tal:define '\
+        'tal:repeat tales metal '
+
+        self.keywords = self.keywords + ' public !doctype '+\
+              zope_elements + zope_attributes + zope_pt_attributes
+
+        self.setStyles()
+
+class ZopeHTMLSourceView(EditorStyledTextCtrl, ZopeHTMLStyledTextCtrlMix):
+    viewName = 'ZopeHTML'
+    def __init__(self, parent, model):
+        wxID_ZOPEHTMLSOURCEVIEW = wx.wxNewId()
+        EditorStyledTextCtrl.__init__(self, parent, wxID_ZOPEHTMLSOURCEVIEW,
+          model, (('Refresh', self.OnRefresh, '-', keyDefs['Refresh']),), -1)
+        ZopeHTMLStyledTextCtrlMix.__init__(self, wxID_ZOPEHTMLSOURCEVIEW)
+        self.active = true
+
+    def OnUpdateUI(self, event):
+        if hasattr(self, 'pageIdx'):
+            self.updateViewState()
 
 class ZopeHTMLView(HTMLView):
     viewName = 'View'
@@ -58,6 +93,7 @@ class ZopeUndoView(ListCtrlView):
         ListCtrlView.refreshCtrl(self)
 
         try:
+            #print 'ZOPEOBJ '+repr(self.model.zopeObj)
             undos = self.model.zopeObj.getUndoableTransactions()
         except xmlrpclib.Fault, error:
             wx.wxLogError(Utils.html2txt(error.faultString))
