@@ -21,12 +21,12 @@ if __name__ == '__main__':
     conn = IsolatedDebugger.DebuggerConnection(dc, id)
     conn.run('test()', globals(), locals())
     for n in range(3):
-        print conn.getExtendedFrameInfo()
+        print conn.getInteractionUpdate()
         conn.set_step_over()
     for n in range(6):
-        print conn.getExtendedFrameInfo()
+        print conn.getInteractionUpdate()
         conn.set_step()
-    print conn.getExtendedFrameInfo()
+    print conn.getInteractionUpdate()
     conn.set_continue()
-    print conn.getExtendedFrameInfo()
+    print conn.getInteractionUpdate()
 

@@ -84,7 +84,7 @@ class StackViewCtrl(wxListCtrl):
 
         stacklen = len(self.stack)
         if 0 <= self.selection < stacklen:
-            self.debugger.debug_conn.setQueryFrame(
+            self.debugger.debug_conn.setWatchQueryFrame(
                 stacklen - self.selection)
             self.debugger.show_variables()
             #self.debugger.show_frame(self.stack[self.selection])
@@ -195,7 +195,7 @@ class BreakViewCtrl(wxListCtrl):
             #self.SetStringItem(p, 3, `bp.hits`)
             self.SetStringItem(p, 2, '')
             self.SetStringItem(p, 3, '')
-            self.SetStringItem(p, 4, bp['cond'])
+            self.SetStringItem(p, 4, bp['cond'] or '')
     
     def addBreakpoint(self, filename, lineno):
         self.refreshList()
@@ -691,6 +691,7 @@ class DebuggerFrame(wxFrame):
         #os.chdir(path.dirname(filename))
 
         self.running = 1
+        self.debug_conn.setAllBreakpoints(bplist.getBreakpointList())
         self.debug_conn.runFile(filename, params)
         self.queryDebuggerStatus()
 
@@ -748,6 +749,7 @@ class DebuggerFrame(wxFrame):
     def queryDebuggerStatus(self):
         info = self.debug_conn.getInteractionUpdate()
         # TODO: Use info['stdout'] and info['stderr'].
+        self.running = info['running']
         stack = info['stack']
         if stack:
             bottom = stack[-1]
@@ -818,11 +820,13 @@ class DebuggerFrame(wxFrame):
                     return ''
         return fn
 
-    def selectSourceLine(self, filename, lineno):
+    def clearStepPos(self):
         if self.lastStepView is not None:
             self.lastStepView.clearStepPos(self.lastStepLineno)
             self.lastStepView = None
 
+    def selectSourceLine(self, filename, lineno):
+        self.clearStepPos()
         if filename and filename[:1] != '<' and filename[-1:] != '>':
             filename = self.resolvePath(filename)
             if not filename: return
@@ -848,24 +852,33 @@ class DebuggerFrame(wxFrame):
         self.queryDebuggerStatus()
 
     def OnStep(self, event):
-        self.debug_conn.set_step()
-        # self.stopMainLoop()
+        if not self.running:
+            self.debug_file(self.filename)
+        else:
+            self.debug_conn.set_step()
+            # self.stopMainLoop()
         self.queryDebuggerStatus()
 
     def OnOver(self, event):
-        self.debug_conn.set_step_over()
-        # self.stopMainLoop()
+        if not self.running:
+            self.debug_file(self.filename)
+        else:
+            self.debug_conn.set_step_over()
+            # self.stopMainLoop()
         self.queryDebuggerStatus()
 
     def OnOut(self, event):
-        self.debug_conn.set_step_out()
-        # self.stopMainLoop()
+        if not self.running:
+            self.debug_file(self.filename)
+        else:
+            self.debug_conn.set_step_out()
+            # self.stopMainLoop()
         self.queryDebuggerStatus()
 
     def OnStop(self, event):
         #wxPhonyApp.inMainLoop = false
         self.debug_conn.set_quit()
-        self.model.editor.clearAllStepPoints()
+        self.clearStepPos()
         self.stackView.load_stack([])
         # self.stopMainLoop()
         # self.queryDebuggerStatus()
@@ -874,16 +887,15 @@ class DebuggerFrame(wxFrame):
         pass
 
     def OnCloseWindow(self, event):
-        # There is a possibility for segfaults here.
         try:
             if self.running:
-                # XXX mmm
                 self.OnStop(None)
-            self.locs.destroy()
-            self.globs.destroy()
-            self.breakpts.destroy()
-            self.watches.destroy()
-            self.model.editor.debugger = None        
+##            self.locs.destroy()
+##            self.globs.destroy()
+##            self.breakpts.destroy()
+##            self.watches.destroy()
+            self.model.editor.debugger = None
         finally:
-            self.Destroy()
+##            self.Destroy()
+            self.Show(0)
             event.Skip()
