@@ -44,6 +44,7 @@ class ControlAlignmentFrame(wxDialog):
         self._init_ctrls(parent)
         self.choices = ('No change', 'No change')
         self.selection = selection
+        self.Centre(wxBOTH)
 
     def OnOkbtnButton(self, event):
         hor = 0; ver = 1
