@@ -156,39 +156,39 @@ class FindReplaceDlg(wxDialog):
         self.chkRecursiveSearch.SetValue(false)
 
         self.findBtn = wxButton(id=wxID_FINDREPLACEDLGFINDBTN, label='Find',
-              name='findBtn', parent=self, pos=wxPoint(281, 106),
-              size=wxSize(75, 23), style=0)
+              name='findBtn', parent=self, pos=wxPoint(274, 106),
+              size=wxSize(82, 23), style=0)
         EVT_BUTTON(self.findBtn, wxID_FINDREPLACEDLGFINDBTN,
               self.OnFindbtnButton)
         EVT_KEY_UP(self.findBtn, self.OnFindtxtChar)
 
         self.findAllBtn = wxButton(id=wxID_FINDREPLACEDLGFINDALLBTN,
-              label='Find all', name='findAllBtn', parent=self, pos=wxPoint(281,
-              133), size=wxSize(75, 23), style=0)
+              label='Find all', name='findAllBtn', parent=self, pos=wxPoint(274,
+              133), size=wxSize(82, 23), style=0)
         EVT_BUTTON(self.findAllBtn, wxID_FINDREPLACEDLGFINDALLBTN,
               self.OnFindallbtnButton)
 
         self.btnFindInFiles = wxButton(id=wxID_FINDREPLACEDLGBTNFINDINFILES,
               label='Find in files', name='btnFindInFiles', parent=self,
-              pos=wxPoint(281, 160), size=wxSize(75, 23), style=0)
+              pos=wxPoint(274, 160), size=wxSize(82, 23), style=0)
         EVT_BUTTON(self.btnFindInFiles, wxID_FINDREPLACEDLGBTNFINDINFILES,
               self.OnFindInFiles)
 
         self.replaceBtn = wxButton(id=wxID_FINDREPLACEDLGREPLACEBTN,
-              label='Replace', name='replaceBtn', parent=self, pos=wxPoint(281,
-              187), size=wxSize(75, 23), style=0)
+              label='Replace', name='replaceBtn', parent=self, pos=wxPoint(274,
+              187), size=wxSize(82, 23), style=0)
         EVT_BUTTON(self.replaceBtn, wxID_FINDREPLACEDLGREPLACEBTN,
               self.OnReplacebtnButton)
 
         self.replaceAllBtn = wxButton(id=wxID_FINDREPLACEDLGREPLACEALLBTN,
               label='Replace all', name='replaceAllBtn', parent=self,
-              pos=wxPoint(281, 214), size=wxSize(75, 23), style=0)
+              pos=wxPoint(274, 214), size=wxSize(82, 23), style=0)
         EVT_BUTTON(self.replaceAllBtn, wxID_FINDREPLACEDLGREPLACEALLBTN,
               self.OnReplaceallbtnButton)
 
         self.cancelBtn = wxButton(id=wxID_FINDREPLACEDLGCANCELBTN,
-              label='Cancel', name='cancelBtn', parent=self, pos=wxPoint(281,
-              242), size=wxSize(75, 23), style=0)
+              label='Cancel', name='cancelBtn', parent=self, pos=wxPoint(274,
+              242), size=wxSize(82, 23), style=0)
         EVT_BUTTON(self.cancelBtn, wxID_FINDREPLACEDLGCANCELBTN,
               self.OnCancelbtnButton)
 
@@ -206,18 +206,18 @@ class FindReplaceDlg(wxDialog):
 
         self.staticText4 = wxStaticText(id=wxID_FINDREPLACEDLGSTATICTEXT4,
               label='File filter', name='staticText4', parent=self,
-              pos=wxPoint(8, 80), size=wxSize(80, 11), style=0)
+              pos=wxPoint(8, 80), size=wxSize(80, 15), style=0)
 
         self.btnBuildInFind = wxButton(id=wxID_FINDREPLACEDLGBTNBUILDINFIND,
-              label='...', name='btnBuildInFind', parent=self, pos=wxPoint(336,
-              4), size=wxSize(21, 21), style=0)
+              label='...', name='btnBuildInFind', parent=self, pos=wxPoint(339,
+              4), size=wxSize(19, 21), style=0)
         self.btnBuildInFind.SetToolTipString('Build-in ready to run searches')
         EVT_BUTTON(self.btnBuildInFind, wxID_FINDREPLACEDLGBTNBUILDINFIND,
               self.OnBuildInFind)
 
         self.btnBrowse = wxButton(id=wxID_FINDREPLACEDLGBTNBROWSE, label='...',
-              name='btnBrowse', parent=self, pos=wxPoint(336, 51),
-              size=wxSize(21, 21), style=0)
+              name='btnBrowse', parent=self, pos=wxPoint(339, 51),
+              size=wxSize(19, 21), style=0)
         self.btnBrowse.SetToolTipString('Folders tree')
         EVT_BUTTON(self.btnBrowse, wxID_FINDREPLACEDLGBTNBROWSE, self.OnBrowse)
 
