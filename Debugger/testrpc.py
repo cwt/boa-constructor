@@ -4,6 +4,7 @@ sys.path[0:0] = [os.pardir]
 
 from ChildProcessClient import spawnChild
 from wxPython.wx import wxProcess
+from time import sleep
 
 class Monitor: pass
 
@@ -34,6 +35,7 @@ pollStreams()
 print v
 print 'running...'
 v = s.proceedAndRequestStatus('set_continue')
+sleep(0.5)
 pollStreams()
 print v
 
