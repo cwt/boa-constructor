@@ -130,13 +130,13 @@ class ModulePage:
             stepsDone = 50.0
             editor.statusBar.progress.SetValue(int(stepsDone))
             step = (100 - stepsDone) / tot
-            for view in defViews:
-                self.addView(view)
+            for View in defViews:
+                view = self.addView(View)
                 stepsDone = stepsDone + step
                 editor.statusBar.progress.SetValue(int(stepsDone))
 
-            for view in editor.defaultAdtViews.get(Class, []):
-                self.addView(view)
+            for View in editor.defaultAdtViews.get(Class, []):
+                self.addView(View)
                 stepsDone = stepsDone + step
                 editor.statusBar.progress.SetValue(int(stepsDone))
 
