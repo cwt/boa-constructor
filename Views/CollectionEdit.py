@@ -256,6 +256,28 @@ class CollectionEditorView(Designer.InspectableObjectCollectionView):
 
         self.model.removeWindowIds(self.srcCollectionMethod)
         self.model.writeWindowIds(self.collectionMethod, [self.companion])
+
+
+    def copyCtrls(self, output):
+        def hasCode(lst):
+            lsts = Utils.split_seq(lst, '')
+#            return lsts[1] and reduce(lambda a, b: a or b, lsts[1]) != '' or false
+            if lsts[1]:
+                return reduce(lambda a, b: a or b, lsts[1]) != ''
+            else:
+                return false
+
+#        objColl = self.model.objectCollections[self.collectionMethod]
+        
+        self.companion.writeCollectionInitialiser(output)
+        self.companion.writeCollectionItems(output)
+        self.companion.writeEvents(output, addModuleMethod = false)
+        self.companion.writeCollectionFinaliser(output)
+
+        if hasCode(output):
+            output.insert(0, '    def %s(%s):'% (self.collectionMethod, self.collectionParams))
+        else:
+            output = []
                   
     def refreshCtrl(self, keepSelected = false):
         self.deselectObject()
