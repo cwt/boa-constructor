@@ -104,32 +104,14 @@ class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView):
             self.EmptyUndoBuffer()
 
     def refreshCtrl(self):
-##        if wxPlatform == '__WXGTK__':
-##            self.NoUpdateUI = 1  ## disable event handler
-
-        # set whole document to current EOL style fixing mixed CRLF/LF code that
-        # can be introduced by pasting from the clipboard
-###       doesn't work in the wxSTC yet
-##        print 'converting', self.GetEOLMode()
-##        self.ConvertEOLs()
         self.pos = self.GetCurrentPos()
-
-        ## This code prevents circular updates on GTK
-        ## It is not important under windows as the windows refresh
-        ## code is more efficient.
-##        try:
-##            if self.noredraw == 1: redraw = 0
-##            else: redraw = 1
-##        except:
-##            redraw=1
-##        if redraw == 1:
         prevVsblLn = self.GetFirstVisibleLine()
         self._blockUpdate = true
         try:
             newData = self.getModelData()
             curData = self.GetText()
             if newData != curData:
-                resetUndo = not self.CanUndo()
+                resetUndo = not self.CanUndo() and not curData
                 ro = self.GetReadOnly()
                 self.SetReadOnly(false)
                 self.SetText(newData)
@@ -145,7 +127,6 @@ class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView):
         self.SetSavePoint()
         self.nonUserModification = false
         self.updatePageName()
-##        self.NoUpdateUI = 0  ## Enable event handler
 
         self.updateFromAttrs()
 
