@@ -23,17 +23,17 @@ except ImportError:
 
 from wxPython.wx import *
 
-from EditorViews import ListCtrlView, ModuleDocView, wxwAppModuleTemplate, ClosableViewMix
+from EditorViews import ListCtrlView, ModuleDocView, wxwAppModuleTemplate, CloseableViewMix
 import ProfileView
 import PySourceView
 import Search, Utils
 
-class AppFindResults(ListCtrlView, ClosableViewMix):
+class AppFindResults(ListCtrlView, CloseableViewMix):
     gotoLineBmp = 'Images/Editor/GotoLine.png'
 
     viewName = 'Application Find Results'
     def __init__(self, parent, model):
-        ClosableViewMix.__init__(self, 'find results')
+        CloseableViewMix.__init__(self, 'find results')
         ListCtrlView.__init__(self, parent, model, wxLC_REPORT,
           ( ('Goto match', self.OnGoto, self.gotoLineBmp, ''),
             ('Rerun query', self.OnRerun, '-', ''),
@@ -309,12 +309,12 @@ class AppModuleDocView(ModuleDocView):
 
 #        return self.genClassesSect(page + modBody, classNames)
 
-class AppCompareView(ListCtrlView, ClosableViewMix):
+class AppCompareView(ListCtrlView, CloseableViewMix):
     gotoLineBmp = 'Images/Editor/GotoLine.png'
 
     viewName = 'App. Compare'
     def __init__(self, parent, model):
-        ClosableViewMix.__init__(self, 'compare results')
+        CloseableViewMix.__init__(self, 'compare results')
         ListCtrlView.__init__(self, parent, model, wxLC_REPORT,
           ( ('Do diff', self.OnGoto, self.gotoLineBmp, ''), ) +\
            self.closingActionItems, 0)
@@ -413,4 +413,3 @@ class AppBUGS_TIFView(TextInfoFileView):
 
 class AppCHANGES_TIFView(TextInfoFileView):
     viewName = 'Changes.txt'
-
