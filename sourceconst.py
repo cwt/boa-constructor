@@ -108,3 +108,27 @@ setup(name = '%s',
       scripts = [%s],
 )
 '''
+
+simpleModuleRunSrc = '''
+
+if __name__ == '__main__':
+    pass # add a call to run your script here
+'''
+
+simpleAppFrameRunSrc = '''
+
+if __name__ == '__main__':
+    app = wxPySimpleApp()
+    frame = create(None)
+    frame.Show(true)
+    app.MainLoop()'''
+
+simpleAppDialogRunSrc = '''
+
+if __name__ == '__main__':
+    app = wxPySimpleApp()
+    dlg = create(None)
+    try:
+        dlg.ShowModal()
+    finally:
+        dlg.Destroy()'''
