@@ -77,7 +77,6 @@ class ZopeEClip(ExplorerNodes.ExplorerClipboard):
 ##                node.uploadFromFS(file, newNodepath)
 
     def clipPaste_FileSysExpClipboard(self, node, nodes, mode):
-        #nodepath = node.resourcepath+'/'+node.name
         for file in nodes:
             if file.isDir():
                 node.newFolder(file.name)
@@ -85,7 +84,7 @@ class ZopeEClip(ExplorerNodes.ExplorerClipboard):
                 self.clipPaste_FileSysExpClipboard(folderNode,
                                                    file.openList(), mode)
             else:
-                node.uploadFromFS(file)#, nodepath)
+                node.uploadFromFS(file)
 
 class ZopeCatNode(ExplorerNodes.CategoryNode):
     protocol = 'config.zope'
@@ -101,17 +100,15 @@ class ZopeCatNode(ExplorerNodes.CategoryNode):
                      'username': '',
                      'servicename': ''}
     def __init__(self, config, parent, globClip):
-        ExplorerNodes.CategoryNode.__init__(self, 'Zope', ('explorer', 'zope'), None, config,
-              None)#parent)
+        ExplorerNodes.CategoryNode.__init__(self, 'Zope', ('explorer', 'zope'), 
+              None, config, None)
         self.globClip = globClip
 
     def createChildNode(self, name, props):
         # Zope clipboards should be global but unique on site / user
         clipboard = ZopeEClip(self.globClip, props)
-        #return ZopeConnectionNode(name, props, clipboard, self)
         zin = ZopeItemNode('', props['path'], clipboard,
             EditorHelper.imgZopeConnection, self, None, None, props, 'Folder')
-#        zin.root = zin
         zin.treename = name
         return zin
 
@@ -132,7 +129,7 @@ class ZopeItemNode(ExplorerNodes.ExplorerNode):
               imgIdx, None, properties)
         self.metatype = metatype
         self.image = imgIdx
-        self.root = None#root
+        self.root = None
         self.cache = {}
         self.server = xmlrpcsvr
         self.entries = None
@@ -143,28 +140,7 @@ class ZopeItemNode(ExplorerNodes.ExplorerNode):
     def buildUrl(self):
         return ('%(host)s:%(httpport)d/') % self.properties +urllib.quote(self.resourcepath)
 
-##        root = self.root
-##        tmp = self
-##        if tmp == root:
-##            return self.properties['host'] + ':' + str(self.properties['httpport']) +'/'
-##        url = ''
-##        while tmp != root:
-##            url = string.strip(tmp.name) + '/' + url
-##            tmp = tmp.parent
-##        url = self.properties['host'] + ':' + str(self.properties['httpport']) + '/' + urllib.quote(url)
-##        tmp = string.split(url, '/')
-##
-##        if len(tmp) >=6 :
-##            if tmp[0] + '/' + tmp[1] + '/' + tmp[2] + '/' == self.properties['host'] + ':' + str(self.properties['httpport']) + '/Control_Panel/Products/':
-##                #tmp.insert(6,"propertysheets/methods")
-##                tmp[4]=tmp[4] + '/propertysheets/methods'
-##                url=string.join(tmp, '/')#[:-2]+"/"
-##
-##        return url
-
-
     def destroy(self):
-        #print 'Item destroyed'
         self.cache = {}
         self.root = None
         self.parent = None
@@ -205,16 +181,10 @@ class ZopeItemNode(ExplorerNodes.ExplorerNode):
             self.entries, self.entryIds = self.server.ZOA('items')
         except xmlrpclib.Fault, error:
             raise Utils.html2txt(error.faultString)
-##            frm = HTMLResponse.create(None, error.faultString)
-##            frm.Show(true)
-##            # XXX Add Errorhandler here
-##            raise 'Zope Error: '+str(error.faultCode)
 
         self.cache = {}
         result = []
         if self.entryIds:
-#            if not root: root = self.root
-
             for i in range(len(self.entries)):
                 z = self.createChildNode(self.entries[i], self.entryIds[i] )
                 if z:
@@ -431,7 +401,6 @@ class ZopeCatController(ExplorerNodes.CategoryController):
     def OnRestart(self, event):
         for node in self.getNodesForSelection(self.list.getMultiSelection()):
             try:
-#                self.getControlPanel(node.properties).manage_restart()
                 self.callControlPanelMethod(node.properties, 'manage_restart')
                 self.checkAvailability(node.properties, 10)
             except Exception, error:
@@ -440,7 +409,6 @@ class ZopeCatController(ExplorerNodes.CategoryController):
     def OnShutdown(self, event):
         for node in self.getNodesForSelection(self.list.getMultiSelection()):
             self.callControlPanelMethod(node.properties, 'manage_shutdown')
-            #self.getControlPanel(node.properties).manage_shutdown()
 
     def OnTest(self, event):
         for node in self.getNodesForSelection(self.list.getMultiSelection()):
@@ -536,13 +504,12 @@ class ZopeController(ExplorerNodes.Controller, ExplorerNodes.ClipboardController
             zopeItem = self.list.getSelection()
             if not zopeItem: zopeItem = self.list.node
             props = zopeItem.properties
-            #print 'zopeItem.name', zopeItem.name, zopeItem.resourcepath
             try:
                 ZComp = PaletteStore.compInfo[zopeItem.metatype][1]
             except KeyError:
                 ZComp = ZopeCompanion
 
-            zc = ZComp(zopeItem.name, zopeItem.resourcepath)#+'/'+zopeItem.name)
+            zc = ZComp(zopeItem.name, zopeItem.resourcepath)
             zc.connect(props['host'], props['httpport'],
                        props['username'], props['passwd'])
             zc.updateZopeProps()
@@ -605,7 +572,6 @@ class ZopeController(ExplorerNodes.Controller, ExplorerNodes.ClipboardController
             try:
                 import webbrowser
                 webbrowser.open('http://%s'%zopeItem.buildUrl())
-                #print zopeItem.resourcepath
             except ImportError:
                 raise 'Python 2.0 or higher required'
 
@@ -613,12 +579,6 @@ class ZopeController(ExplorerNodes.Controller, ExplorerNodes.ClipboardController
 def getServer(url, user, password):
     return xmlrpclib.Server('http://' + url,
               BasicAuthTransport.BasicAuthTransport(user, password) )
-    #print user, password
-##    try:
-##        return xmlrpclib.Server('http://' + host,
-##                  BasicAuthTransport.BasicAuthTransport(user, password) )
-##    except:
-##        return 'error'
 
 class ZopeNode(ZopeItemNode):
     def isFolderish(self):
