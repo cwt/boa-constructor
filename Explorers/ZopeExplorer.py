@@ -308,8 +308,11 @@ class ZopeItemNode(ExplorerNodes.ExplorerNode):
 
     def getUndoableTransactions(self):
         from ZopeLib.DateTime import DateTime
-        return eval(self.server.__getattr__(self.name).ZOA('undo'))
-
+        if self.server._Server__handler == "/": 
+            return eval(self.server.__getattr__(self.name).ZOA('undoR/%s' % (self.name) ))
+        else:
+            return eval(self.server.__getattr__(self.name).ZOA('undo'))
+        
     def undoTransaction(self, transactionIds):
         print self.server.__getattr__(self.name).manage_undo_transactions(transactionIds)
     
@@ -570,7 +573,7 @@ class ZSQLNode(ZopeNode):
 class PythonNode(ZopeNode):
     Model = EditorModels.ZopePythonScriptModel
     defaultViews = (Views.PySourceView.PythonSourceView,)
-    additionalViews = (Views.EditorViews.ZopeSecurityView, Views.EditorViews.ToDoView,)
+    additionalViews = (Views.EditorViews.ZopeSecurityView, Views.EditorViews.ToDoView,Views.EditorViews.ZopeUndoView,)
 
       #manage_edit("newschas","self,p","return 'hello'"
     def getParams(self):
@@ -587,9 +590,24 @@ class PythonNode(ZopeNode):
         self.data = data
         eatandforget=self.server.__getattr__(self.name).manage_edit(self.name,self.getParams(),self.getBody())
     
+    def getUndoableTransactions(self):
+        from ZopeLib.DateTime import DateTime
+        #print self.server._Server__handler
+        if self.server._Server__handler == "/": 
+            all= eval(self.server.ZOA('undoR/%s' % (self.name) ))
+        else:
+            all= eval(self.server.ZOA('undo'))
+        tmp=[]
+        for u in all:
+            if self.name==string.split(u['description'],"/")[-2]:
+                tmp.append(u)
+        return tmp
+    def undoTransaction(self, transactionIds):
+        print self.server.manage_undo_transactions(transactionIds)
+
 class PythonScriptNode(PythonNode):
     additionalViews = (Views.EditorViews.ZopeSecurityView, 
-          Views.EditorViews.ZopeUndoView, Views.EditorViews.ToDoView,)
+          Views.EditorViews.ZopeUndoView, Views.EditorViews.ToDoView,Views.EditorViews.ZopeUndoView)
    
     def preparedata(self):
         tmp=string.split(self.rawdata,"\n")
