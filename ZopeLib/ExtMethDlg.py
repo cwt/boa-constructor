@@ -1,12 +1,56 @@
 #Boa:Dialog:ExtMethDlg
 
 from wxPython.wx import *
+##import sys
+##sys.path.append('..')
 import moduleparse
 import os
 from os import path
 
-##def create(parent):
-##    return ExtMethDlg(parent, 'd:\\program files\\zope\\armalyte1')
+def create(parent):
+    return ExtMethDlg(parent, 'd:\\program files\\zope\\2-3-1')
+
+class ExternalMethodFinder:
+    def __init__(self, zopeDir):
+        self.zopeDir = zopeDir
+        if self.zopeDir:
+            self.prodsDir = path.join(zopeDir, 'lib','python','Products')
+        else:
+            self.prodsDir = ''
+
+    def getModules(self):
+        mods = self._addPyMods(path.join(self.zopeDir, 'Extensions'))
+
+        if self.prodsDir:
+            prods = os.listdir(self.prodsDir)
+            for p in prods:
+                if path.exists(path.join(self.prodsDir, p)) and \
+                      path.exists(path.join(self.prodsDir, p, 'Extensions')):
+                    mods.extend(self._addPyMods(path.join(self.prodsDir, p,
+                          'Extensions'), p))
+        return mods
+
+    def _addPyMods(self, pypath, prod = ''):
+        mods = []
+        fls = filter(lambda f: path.splitext(f)[1] == '.py', os.listdir(pypath))
+        for file in fls:
+            mods.append(prod +(prod and '.')+path.splitext(file)[0])
+        return mods
+
+    def getExtPath(self, module):
+        modLst = string.split(module, '.')
+        if len(modLst) == 1:
+            return path.join(self.zopeDir, 'Extensions', modLst[0] + '.py')
+        else:
+            return path.join(self.prodsDir, modLst[0], 'Extensions', modLst[1]+'.py')
+
+    def getFunctions(self, module):
+        extPath = self.getExtPath(module)
+
+        module = moduleparse.Module('test', open(extPath).readlines())
+
+        return module.functions.keys()
+
 
 [wxID_EXTMETHDLGSTATICTEXT1, wxID_EXTMETHDLGSTATICTEXT2, wxID_EXTMETHDLGCHFUNCTION, wxID_EXTMETHDLGPANEL1, wxID_EXTMETHDLGBTOK, wxID_EXTMETHDLGBTCANCEL, wxID_EXTMETHDLGCBMODULE, wxID_EXTMETHDLG] = map(lambda _init_ctrls: wxNewId(), range(8))
 
@@ -39,24 +83,10 @@ class ExtMethDlg(wxDialog):
     def __init__(self, parent, zopeDir):
         self._init_ctrls(parent)
 
-        self.zopeDir = zopeDir#'d:\\program files\\zope\\armalyte1'
-        if zopeDir:
-            self.prodsDir = path.join(zopeDir, 'lib','python','Products')
+        self.emf = ExternalMethodFinder(zopeDir)
 
-            self.addPyMods(path.join(zopeDir, 'extensions'))
-
-            prods = os.listdir(self.prodsDir)
-            for p in prods:
-                if path.exists(path.join(self.prodsDir, p)) and \
-                      path.exists(path.join(self.prodsDir, p, 'extensions')):
-                    self.addPyMods(path.join(self.prodsDir, p, 'extensions'), p)
-        else:
-            self.prodsDir = ''
-
-    def addPyMods(self, pypath, prod = ''):
-        fls = filter(lambda f: path.splitext(f)[1] == '.py', os.listdir(pypath))
-        for file in fls:
-            self.cbModule.Append(prod +(prod and '.')+path.splitext(file)[0])
+        for mod in self.emf.getModules():
+            self.cbModule.Append(mod)
 
     def OnBtokButton(self, event):
         self.EndModal(wxID_OK)
@@ -65,19 +95,23 @@ class ExtMethDlg(wxDialog):
         self.EndModal(wxID_CANCEL)
 
     def OnCbmoduleCombobox(self, event):
-        if self.zopeDir:
+        if self.emf.zopeDir:
             self.chFunction.Clear()
             mod = self.cbModule.GetStringSelection()
-            modLst = string.split(mod, '.')
-            if len(modLst) == 1:
-                pypath = path.join(self.zopeDir, 'extensions', modLst[0] + '.py')
-            else:
-                pypath = path.join(self.prodsDir, modLst[0], 'extensions', modLst[1]+'.py')
 
-            module = moduleparse.Module('test', open(pypath).readlines())
+            functions = self.emf.getFunctions(mod)
 
-            for func in module.functions.keys():
+            for func in functions:
                 self.chFunction.Append(func)
 
     def OnChfunctionCombobox(self, event):
         pass
+
+
+if __name__ == '__main__':
+    app = wxPySimpleApp()
+    dlg = create(None)
+    try:
+        dlg.ShowModal()
+    finally:
+        dlg.Destroy()
