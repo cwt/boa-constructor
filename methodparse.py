@@ -71,7 +71,7 @@ def decLevel(level, pos):
     return max(level - 1, 0), pos + 1
 
 def safesplitfields(params, delim):
-    """ Returns a list of parameters split on delim but not if commas are
+    """ Returns a list of parameters split on delim but not if delim are
         within containers (), {}, [], '', ""
         Also skip '', "" content
     """
@@ -82,6 +82,9 @@ def safesplitfields(params, delim):
     nestlevel = 0
     singlequotelevel = 0
     doublequotelevel = 0
+
+    if not params:
+        return ['']
 
     while i < len(locparams):
         curchar = locparams[i]
