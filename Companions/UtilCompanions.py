@@ -6,7 +6,7 @@
 #
 # Created:     2000
 # RCS-ID:      $Id$
-# Copyright:   (c) 2000 - 2002 2001 Riaan Booysen
+# Copyright:   (c) 2000 - 2002 Riaan Booysen
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 print 'importing Companions.UtilCompanions'
@@ -18,7 +18,6 @@ import Preferences, Utils
 
 from BaseCompanions import UtilityDTC, CollectionDTC, CollectionIddDTC, wxNullBitmap, NYIDTC
 from Constructors import *
-#ImageListConstr, EmptyConstr, MenuConstr, MenuBarConstr, ImageListImagesConstr, LayoutConstraintsConstr, ChoicesConstr, AcceleratorTableEntriesConstr
 from PropEdit.PropertyEditors import IntConstrPropEdit, StrConstrPropEdit, CollectionPropEdit, BitmapConstrPropEdit, EnumConstrPropEdit, LCCEdgeConstrPropEdit, WinEnumConstrPropEdit, BoolConstrPropEdit, MenuEnumConstrPropEdit, BoolPropEdit
 from PropEdit import Enumerations
 import EventCollections, RTTI, methodparse
@@ -228,9 +227,6 @@ class MenuDTC(MenuConstr, UtilityDTC):
         return ['NextHandler', 'PreviousHandler', 'EventHandler', 'Id',
                 'Parent', 'InvokingWindow']
 
-    def updateWindowIds(self):
-        pass
-
     def defaultAction(self):
         nv = self.designer.inspector.props.getNameValue('Items')
         if nv:
@@ -238,8 +234,12 @@ class MenuDTC(MenuConstr, UtilityDTC):
 
 class MenuItemsConstr(PropertyKeywordConstructor):
     def constructor(self):
-        return {'Label': 'item', 'HelpString': 'helpString',
-                'Checkable': 'checkable', 'ItemId': 'id'}
+        if wxVERSION > (2, 3, 2):
+            return {'Label': 'item', 'HelpString': 'helpString',
+                    'Kind': 'kind', 'ItemId': 'id'}
+        else:
+            return {'Label': 'item', 'HelpString': 'helpString',
+                    'Checkable': 'checkable', 'ItemId': 'id'}
 
 class MenuItemsSepConstr(PropertyKeywordConstructor):
     def constructor(self):
@@ -265,15 +265,7 @@ class BaseMenuItemsCIDTC(CollectionIddDTC):
     def deleteItem(self, idx):
         menuItm = self.control.GetMenuItems()[idx]
         self.control.RemoveItem(menuItm)
-
-        # remove event references
         self.deleteItemEvents(idx)
-##        wIdStr = self.textConstrLst[idx].params['id']
-##        for evt in self.textEventList[:]:
-##            if evt.windowid == wIdStr:
-##                self.textEventList.remove(evt)
-
-        # remove menu reference
         del self.textConstrLst[idx]
 
         self.updateWindowIds()
@@ -289,21 +281,46 @@ class MenuItemsCIDTC(MenuItemsConstr, BaseMenuItemsCIDTC):
 
     def __init__(self, name, designer, parentCompanion, ctrl):
         BaseMenuItemsCIDTC.__init__(self, name, designer, parentCompanion, ctrl)
-        self.editors.update({'Checkable': BoolConstrPropEdit,
-                            })
+        if wxVERSION > (2, 3, 2):
+            self.editors['Kind'] = EnumConstrPropEdit
+            self.names['Kind'] = ['wxITEM_NORMAL', 'wxITEM_CHECK', 'wxITEM_RADIO']
+        else:
+            self.editors['Checkable'] = BoolConstrPropEdit
 
     def properties(self):
         props = BaseMenuItemsCIDTC.properties(self)
         props['Label'] = ('IndexRoute', wxMenu.GetLabel, wxMenu.SetLabel)
         return props
 
+    def applyDesignTimeDefaults(self, params):
+        # XXX Overridden only to warn users of API changes
+        try:
+            BaseMenuItemsCIDTC.applyDesignTimeDefaults(self, params)
+        except TypeError, err:
+            errStr = "'%s' is an invalid keyword argument for this function"
+            if wxVERSION > (2, 3, 2):
+                if str(err) == errStr%'checkable':
+                    wxLogWarning("For wxPython 2.3.3 replace the 'checkable = false' with 'kind = wxITEM_NORMAL'")
+                raise
+        except NameError, err:
+            _1, name, _2 = string.split(str(err), "'")
+            if name in ['wxITEM_NORMAL', 'wxITEM_CHECK', 'wxITEM_RADIO']:
+                wxLogWarning("To downgrade your wxPython 2.3.3 code to earlier versions, change 'kind = wxITEM_NORMAL' to 'checkable = false'")
+            raise
+
     def designTimeSource(self, wId):
         newItemName, winId = self.newUnusedItemNames(wId)
 
-        return {'id': winId,
-                'item': `newItemName`,
-                'helpString': `''`,
-                'checkable': 'false'}
+        if wxVERSION > (2, 3, 2):
+            return {'id': winId,
+                    'item': `newItemName`,
+                    'helpString': `''`,
+                    'kind': 'wxITEM_NORMAL'}
+        else:
+            return {'id': winId,
+                    'item': `newItemName`,
+                    'helpString': `''`,
+                    'checkable': 'false'}
 
     def events(self):
         return ['MenuEvent']
