@@ -11,7 +11,7 @@
 #-----------------------------------------------------------------------------
 
 import string, os, sys
-import keyword, types
+import keyword, types, getopt
 
 from wxPython.wx import *
 from wxPython.stc import *
@@ -52,18 +52,6 @@ class ShellEditor(StyledTextCtrls.wxStyledTextCtrl,
         except NameError:
             pass
         else:
-            def my_raw_input(prompt = ''):
-                """ This function replaces the builtin raw_input which reads
-                from the console """
-                dlg = wxTextEntryDialog(None, prompt, 'raw_input', '')
-                try:
-                    if dlg.ShowModal() == wxID_OK:
-                        return dlg.GetValue()
-                finally:
-                    dlg.Destroy()
-
-                return ''
-
             class MyLicensePrinter:
                 """ This class replaces the standard license printer obj
                 that causes a freeze because it blocks reading from
@@ -79,6 +67,18 @@ class ShellEditor(StyledTextCtrls.wxStyledTextCtrl,
                     return repr(self._license)
 
             self.interp.locals['license'] = MyLicensePrinter(license)
+
+        def my_raw_input(prompt = ''):
+            """ This function replaces the builtin raw_input which reads
+            from the console """
+            dlg = wxTextEntryDialog(None, prompt, 'raw_input', '')
+            try:
+                if dlg.ShowModal() == wxID_OK:
+                    return dlg.GetValue()
+            finally:
+                dlg.Destroy()
+
+            return ''
         self.interp.locals['raw_input'] = my_raw_input
     
         if sys.hexversion < 0x01060000:
@@ -86,12 +86,6 @@ class ShellEditor(StyledTextCtrls.wxStyledTextCtrl,
         else:
             copyright = p2c
         self.CallTipSetBackground(wxColour(255, 255, 232))
-        self.SetText('# Python %s (Boa)\n# %s\n%s'%(sys.version, copyright, 
-              Preferences.ps1))
-        self.SetCurrentPosition(self.GetTextLength())
-        self.SetSelectionStart(self.GetCurrentPosition())
-        self.SetSavePoint()
-
         EVT_KEY_UP(self, self.OnKeyUp)
 
         EVT_MENU(self, wxID_SHELL_HISTORYUP, self.OnHistoryUp)
@@ -115,7 +109,11 @@ class ShellEditor(StyledTextCtrls.wxStyledTextCtrl,
 
         self.stdout = PseudoFileOut(self)
         self.stderr = PseudoFileErr(self)
-        
+
+        self.AddText('# Python %s (Boa)\n# %s'%(sys.version, copyright))
+        self.LineScroll(-10, 0)
+        self.SetSavePoint()
+       
     def setDebugNamespace(self, ns):
         pass
 
@@ -123,6 +121,13 @@ class ShellEditor(StyledTextCtrls.wxStyledTextCtrl,
         del self.lines
         del self.stdout
         del self.stderr
+
+    def execStartupScript(self, startupfile):
+        if startupfile:
+            startuptext = '## Startup script: ' + startupfile
+            self.pushLine('print %s;execfile(%s)'%(`startuptext`, `startupfile`))
+        else:
+            self.pushLine('')
 
     def OnUpdateUI(self, event):
         if Preferences.braceHighLight:
@@ -287,6 +292,9 @@ class ShellEditor(StyledTextCtrls.wxStyledTextCtrl,
             self.SetAnchor(lnStPs)
 
     def OnKeyUp(self, event):
+        kk = event.KeyCode()
+        if kk == 13:
+            return
         if self.CallTipActive():
             self.callTipCheck()
         event.Skip()
@@ -310,7 +318,6 @@ class PseudoFileOut(PseudoFile):
     def write(self, s):
         #self.output.SetLexer(wxSTC_LEX_NULL)
         self.output.AddText(s)
-        self.output.EnsureCaretVisible()
         self.output.lastResult = self.tags
         #self.output.SetLexer(wxSTC_LEX_PYTHON)
         #self.output.Refresh(false)
