@@ -1,4 +1,4 @@
-import os, time, threading, string, socket
+import os, time, threading, socket
 
 from wxPython.wx import *
 import Preferences, Utils
@@ -69,24 +69,37 @@ class MyToolBar(wxToolBar):
 class EditorToolBar(MyToolBar):
     pass
 
+
+# fields
+sbfIcon, sbfBrwsBtns, sbfStatus, sbfCrsInfo, sbfProgress = range(5)
+
 class EditorStatusBar(wxStatusBar):
     """ Displays information about the current view. Also global stats/
         progress bar etc. """
-    maxHistorySize = 50
+    maxHistorySize = 250
     def __init__(self, *_args, **_kwargs):
         wxStatusBar.__init__(self, _kwargs['parent'], _kwargs['id'], style=wxST_SIZEGRIP)
-        self.SetFieldsCount(5)
+        self.SetFieldsCount(6)
         if wxPlatform == '__WXGTK__':
             imgWidth = 21
         else:
             imgWidth = 16
 
-        self.SetStatusWidths([imgWidth, 400, 25, 150, -1])
+        self.SetStatusWidths([imgWidth, 36, 400, 25, 150, -1])
 
-        rect = self.GetFieldRect(0)
-        self.img = wxStaticBitmap(self, -1, Preferences.IS.load('Images/Shared/BoaLogo.png'),
+        rect = self.GetFieldRect(sbfIcon)
+        self.img = wxStaticBitmap(self, -1,
+            Preferences.IS.load('Images/Shared/BoaLogo.png'),
             (rect.x+1, rect.y+1), (16, 16))
         EVT_LEFT_DCLICK(self.img, self.OnShowHistory)
+
+        rect = self.GetFieldRect(sbfBrwsBtns)
+        self.historyBtns = wxSpinButton(self, -1, (rect.x+1, rect.y+1),
+                                                  (rect.width-2, rect.height-2))
+        self.historyBtns.SetToolTipString('Browse the Traceback/Error/Output window history.')
+        EVT_SPIN_DOWN(self.historyBtns, self.historyBtns.GetId(), self.OnErrOutHistoryBack)
+        EVT_SPIN_UP(self.historyBtns, self.historyBtns.GetId(), self.OnErrOutHistoryFwd)
+        self.erroutFrm = None
 
         self.progress = wxGauge(self, -1, 100)
         self.linkProgressToStatusBar()
@@ -108,12 +121,13 @@ class EditorStatusBar(wxStatusBar):
         if not self.images:
             return
         self._histcnt = self._histcnt - 1
-        self.history.append( (msgType, time.strftime('%H:%M:%S',
+        if hint.strip():
+            self.history.append( (msgType, time.strftime('%H:%M:%S',
               time.gmtime(time.time())), hint, ringBell) )
         if len(self.history) > self.maxHistorySize:
             del self.history[0]
 
-        self.SetStatusText(hint, 1)
+        self.SetStatusText(hint, sbfStatus)
         self.img.SetToolTipString(hint)
         self.img.SetBitmap(self.images[msgType])
         if ringBell: wxBell()
@@ -129,11 +143,19 @@ class EditorStatusBar(wxStatusBar):
         hp = HistoryPopup(self.GetParent(), hist, self.images)
 
     def linkProgressToStatusBar(self):
-        rect = self.GetFieldRect(3)
+        rect = self.GetFieldRect(sbfProgress)
         self.progress.SetDimensions(rect.x+1, rect.y+1, rect.width -2, rect.height -2)
 
     def setColumnPos(self, value):
-        self.SetStatusText(str(value), 2)
+        self.SetStatusText(str(value), sbfCrsInfo)
+
+    def OnErrOutHistoryBack(self, event):
+        if self.erroutFrm:
+             self.erroutFrm.stepBackInHistory()
+
+    def OnErrOutHistoryFwd(self, event):
+        if self.erroutFrm:
+            self.erroutFrm.stepFwdInHistory()
 
 
 def HistoryPopup(parent, hist, imgs):
@@ -298,18 +320,20 @@ class ModulePage:
         for view, wId in self.adtViews:
             self.viewMenu.Check(wId, view in viewClss)
 
-    def addView(self, view, viewName=''):
+    def addView(self, View, viewName=''):
         """ Add a view to the model and display it as a page in the notebook
             of view instances."""
-        if not viewName: viewName = view.viewName
+        if not viewName: viewName = View.viewName
         if wxPlatform == '__WXGTK__':
-            panel, self.model.views[viewName] = Utils.wxProxyPanel(self.notebook, view, self.model)
-            if view.docked:
+            panel, view = Utils.wxProxyPanel(self.notebook, View, self.model)
+            self.model.views[viewName] = view
+            if View.docked:
                 self.model.views[viewName].addToNotebook(self.notebook, viewName,
                         panel=panel)
         else:
-            self.model.views[viewName] = apply(view, (self.notebook, self.model))
-            if view.docked:
+            view = View(self.notebook, self.model)
+            self.model.views[viewName] = view
+            if View.docked:
                 self.model.views[viewName].addToNotebook(self.notebook, viewName)
 
         return self.model.views[viewName]
@@ -469,7 +493,7 @@ class Listener(threading.Thread):
                 if not data: break
                 l.append(data)
             name = ''.join(l)
-            if string.strip(name):
+            if name.strip():
                 Utils.wxCallAfter(self.editor.openOrGotoModule, name)
             conn.close()
 
