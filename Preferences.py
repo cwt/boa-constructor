@@ -93,7 +93,7 @@ handleSpecialEuropeanKeys = 0
 
 # Auto correct indentation and EOL characters on load, save and refresh
 # This only works for Python 2.0 and up
-autoReindent = 1
+autoReindent = 0
 
 #-Inspector---------------------------------------------------------------------
 
