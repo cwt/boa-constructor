@@ -73,7 +73,7 @@ class DebugClient:
     def invokeOnServer(self, m_name, m_args=(), r_name=None, r_args=()):
         pass
 
-    def stop(self):
+    def kill(self):
         pass
 
     def createEvent(self, typ):

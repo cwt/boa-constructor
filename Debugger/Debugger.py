@@ -847,8 +847,8 @@ class DebuggerFrame(wxFrame):
         '''
         self.debug_client.invokeOnServer(m_name, m_args, r_name, r_args)
 
-    def stopDebugger(self):
-        self.debug_client.stop()
+    def killDebugger(self):
+        self.debug_client.kill()
 
     def OnStreamTimer(self, event=None, force_timer=0):
         self.updateOutputWindow()
@@ -903,7 +903,7 @@ class DebuggerFrame(wxFrame):
             wxCENTRE).ShowModal() == wxID_YES):
             # TODO: make sure the debugger doesn't pop up another
             # exception.
-            self.stopDebugger()
+            self.killDebugger()
             self.clearViews()
 
     def runProcess(self, autocont=0):
@@ -1159,16 +1159,17 @@ class DebuggerFrame(wxFrame):
 
     def OnCloseWindow(self, event):
         try:
-            if self.running:
-                #self.OnStop(event)
-                self.stopDebugger()
+            self.killDebugger()
             self.clearViews()
 ##            self.locs.destroy()
 ##            self.globs.destroy()
 ##            self.breakpts.destroy()
 ##            self.watches.destroy()
-            self.model.editor.debugger = None
         finally:
 ##            self.Destroy()
+            self.debug_client = None
+            try: self.model.editor.debugger = None
+            except: pass
+            self.model = None
             self.Show(0)
             event.Skip()

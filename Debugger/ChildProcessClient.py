@@ -121,11 +121,14 @@ class ChildProcessClient (MultiThreadedDebugClient):
         result = apply(m, m_args)
         return result
 
-    def __del__(self):
+    def kill(self):
         if self.alive:
             self.alive = 0
             self.process.Detach()
             self.process.CloseOutput()
+
+    def __del__(self):
+        self.kill()
 
     def pollStreams(self):
         stdin_text = ''
