@@ -43,8 +43,18 @@ def AddToolButtonBmpObject(frame, toolbar, thebitmap, hint, triggermeth, theTogg
     EVT_TOOL(frame, nId, triggermeth)
     return nId
 
+def AddColMaskToolButtonBmpObject(frame, toolbar, thebitmap, hint, triggermeth, 
+      theToggleBitmap=wxNullBitmap, theMaskColour=None):
+    nId = wxNewId()
+    doToggle = theToggleBitmap != wxNullBitmap
+    if theMaskColour:
+        thebitmap.SetMask(wxMaskColour(thebitmap, theMaskColour))
+    toolbar.AddTool(nId, thebitmap, theToggleBitmap, shortHelpString = hint)
+    EVT_TOOL(frame, nId, triggermeth)
+    return nId
+
 def AddToolButtonBmpFile(frame, toolbar, filename, hint, triggermeth):
-    return AddToolButtonBmpObject(frame, toolbar, wxBitmap(filename, wxBITMAP_TYPE_BMP),
+    return AddToolButtonBmpObject(frame, toolbar, IS.load(filename),
       hint, triggermeth)
 
 def AddToolButtonBmpIS(frame, toolbar, name, hint, triggermeth, toggleBmp = ''):
@@ -55,11 +65,7 @@ def AddToolButtonBmpIS(frame, toolbar, name, hint, triggermeth, toggleBmp = ''):
 
 def AddToggleToolButtonBmpObject(frame, toolbar, thebitmap, hint, triggermeth):
     nId = wxNewId()
-    from Views.StyledTextCtrls import new_stc
-    if new_stc:
-        toolbar.AddTool(nId, thebitmap, thebitmap, shortHelpString = hint, isToggle = true)
-    else:
-        toolbar.AddTool(nId, thebitmap, thebitmap, shortHelpString = hint, toggle = true)
+    toolbar.AddTool(nId, thebitmap, thebitmap, shortHelpString = hint, isToggle = true)
     EVT_TOOL(frame, nId, triggermeth)
     return nId
 
@@ -294,7 +300,7 @@ def writeTextToClipboard(text):
 def createAndReadConfig(name, forPlatform = 1):
     """ Return an initialised ConfigFile object """
     conf = ConfigParser()
-    confFile = '%s/%s%s.cfg' % (Preferences.pyPath, name,
+    confFile = '%s/%s%s.cfg' % (Preferences.rcPath, name,
         forPlatform and wx.wxPlatform == '__WXMSW__' and '.msw' \
         or forPlatform and '.gtk' or '')
     conf.read(confFile)
@@ -463,3 +469,13 @@ def html2txt(htmlblock):
     p = htmllib.HTMLParser(f)
     p.feed(htmlblock)
     return string.strip(s.getvalue())
+
+def getEntireWxNamespace():
+    """ Return a dictionary containing the entire wxPython namespace """
+    from wxPython import wx, html, htmlhelp, grid, calendar, utils, stc, ogl
+    namespace = {}
+    map(namespace.update, [wx.__dict__, html.__dict__, htmlhelp.__dict__, 
+                           grid.__dict__, calendar.__dict__, utils.__dict__, 
+                           stc.__dict__, ogl.__dict__])
+    return namespace
+     
