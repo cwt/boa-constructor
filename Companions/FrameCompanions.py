@@ -1,6 +1,6 @@
 #-----------------------------------------------------------------------------
 # Name:        FrameCompanions.py
-# Purpose:     
+# Purpose:
 #
 # Author:      Riaan Booysen
 #
@@ -273,4 +273,3 @@ try:
 except NameError:
     # wxMAC
     pass
-    

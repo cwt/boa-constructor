@@ -456,9 +456,9 @@ class DesignTimeCompanion(Companion):
                         line = indent+' '*Preferences.cgContinuedLineIndent+seg
                     else:
                         line = newLine
-                        
+
         output.append(line)
-        
+
 
     def writeConstructor(self, output, collectionMethod, stripFrmId=''):
         """ Writes out constructor and parameters for control
@@ -466,7 +466,7 @@ class DesignTimeCompanion(Companion):
         # Add constructor
         if self.textConstr:
             self.addContinuedLine(
-                sourceconst.bodyIndent+self.textConstr.asText(stripFrmId), 
+                sourceconst.bodyIndent+self.textConstr.asText(stripFrmId),
                 output, sourceconst.bodyIndent)
 
             # XXX HACK attack
@@ -524,7 +524,7 @@ class DesignTimeCompanion(Companion):
                       sourceconst.bodyIndent + collInit.asText(stripFrmId),
                       output, sourceconst.bodyIndent)
 
-    def writeDependencies(self, output, ctrlName, depLinks, definedCtrls, 
+    def writeDependencies(self, output, ctrlName, depLinks, definedCtrls,
           stripFrmId=''):
         """ Write out dependent properties if all the ctrls they reference
             have been created.
@@ -571,7 +571,7 @@ class ControlDTC(DesignTimeCompanion):
         if args:
             self.control = apply(self.ctrlClass, (), args)
         else:
-            self.control = apply(self.ctrlClass, (), 
+            self.control = apply(self.ctrlClass, (),
                   self.designTimeDefaults(position, size))
 
         self.initDesignTimeControl()
@@ -850,7 +850,7 @@ class WindowDTC(WindowConstr, ControlDTC):
         return ['Show', 'Enable']
 
     def hideDesignTime(self):
-        return ['NextHandler', 'PreviousHandler', 'EventHandler', 'EvtHandlerEnabled', 
+        return ['NextHandler', 'PreviousHandler', 'EventHandler', 'EvtHandlerEnabled',
                 'Id', 'Caret', 'WindowStyleFlag', 'ToolTip', 'Title', 'Rect',
                 'DragTarget', 'DropTarget','Cursor', 'VirtualSize',
                 'Sizer', 'ContainingSizer', 'Constraints']

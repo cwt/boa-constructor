@@ -1,6 +1,6 @@
 #-----------------------------------------------------------------------------
 # Name:        ButtonCompanions.py
-# Purpose:     
+# Purpose:
 #
 # Author:      Riaan Booysen
 #
@@ -161,7 +161,7 @@ class SpinCtrlDTC(SpinButtonDTC):
         self.editors['Max'] = IntConstrPropEdit
         self.editors['Initial'] = IntConstrPropEdit
         self.compositeCtrl = true
-        
+
     def constructor(self):
         return {'Min': 'min', 'Max': 'max',
                 'Position': 'pos', 'Size': 'size', 'Style': 'style',
@@ -179,7 +179,7 @@ class SpinCtrlDTC(SpinButtonDTC):
 
     def events(self):
         return SpinButtonDTC.events(self) + ['SpinCtrlEvent']
-    
+
     def hideDesignTime(self):
         return SpinButtonDTC.hideDesignTime(self) + ['Label']
 
@@ -301,10 +301,10 @@ class ContextHelpButtonDTC(ContextHelpButtonConstr, WindowDTC):
 import PaletteStore
 
 PaletteStore.paletteLists['Buttons'] = []
-PaletteStore.palette.append(['Buttons', 'Editor/Tabs/Basic', 
+PaletteStore.palette.append(['Buttons', 'Editor/Tabs/Basic',
                              PaletteStore.paletteLists['Buttons']])
 PaletteStore.paletteLists['Buttons'].extend([wxButton, wxBitmapButton,
-      wxSpinButton, wxSpinCtrl, 
+      wxSpinButton, wxSpinCtrl,
       wxGenButton, wxGenBitmapButton, wxGenBitmapTextButton,
       wxGenToggleButton, wxGenBitmapToggleButton, wxGenBitmapTextToggleButton,
       wxContextHelpButton])

@@ -1,6 +1,6 @@
 #-----------------------------------------------------------------------------
 # Name:        ListCompanions.py
-# Purpose:     
+# Purpose:
 #
 # Author:      Riaan Booysen
 #
@@ -308,7 +308,7 @@ class GridDTC(WindowConstr, WindowDTC):
 import PaletteStore
 
 PaletteStore.paletteLists['ListControls'] = []
-PaletteStore.palette.append(['List Controls', 'Editor/Tabs/Lists', 
+PaletteStore.palette.append(['List Controls', 'Editor/Tabs/Lists',
                             PaletteStore.paletteLists['ListControls']])
 PaletteStore.paletteLists['ListControls'].extend([wxRadioBox, wxListBox,
       wxCheckListBox, wxGrid, wxListCtrl, wxTreeCtrl])

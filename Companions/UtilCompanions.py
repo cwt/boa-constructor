@@ -568,11 +568,11 @@ class IndividualLayoutConstraintOCDTC(LayoutConstraintsConstr, OwnedCollectionDT
                 'margin':    '0'}
 
     def initialiser(self):
-        return ['%s%s = wxLayoutConstraints()'%(sourceconst.bodyIndent, 
+        return ['%s%s = wxLayoutConstraints()'%(sourceconst.bodyIndent,
                 self.__class__.sourceObjName), '']
 
     def finaliser(self):
-        return ['', '%sreturn %s' %(sourceconst.bodyIndent, 
+        return ['', '%sreturn %s' %(sourceconst.bodyIndent,
                 self.__class__.sourceObjName)]
 
     def availableItems(self):

@@ -1,6 +1,6 @@
 #-----------------------------------------------------------------------------
 # Name:        ContainerCompanions.py
-# Purpose:     
+# Purpose:
 #
 # Author:      Riaan Booysen
 #
@@ -652,7 +652,7 @@ class SplitterWindowDTC(SplitterWindowConstr, ContainerDTC):
             splitMeth = ctrl.SplitHorizontally
         else:
             return
-        
+
         if window1 and window2:
             splitMeth(window1, window2, sp)
         elif window1 or window2:
@@ -869,7 +869,7 @@ class StatusBarFieldsCDTC(StatusBarFieldsConstr, CollectionDTC):
 #-------------------------------------------------------------------------------
 
 PaletteStore.paletteLists['ContainersLayout'] = []
-PaletteStore.palette.append(['Containers/Layout', 'Editor/Tabs/Containers', 
+PaletteStore.palette.append(['Containers/Layout', 'Editor/Tabs/Containers',
                              PaletteStore.paletteLists['ContainersLayout']])
 PaletteStore.paletteLists['ContainersLayout'].extend([wxPanel, wxScrolledWindow,
       wxNotebook, wxSplitterWindow, wxSashWindow, wxSashLayoutWindow,
