@@ -243,7 +243,7 @@ class FindReplaceDlg(wxDialog):
         self.directionRB.SetSelection(engine.reverse)
         self.scopeRB.SetSelection(self.engine.selection)
         # Check if the view is a package
-        try:
+        if hasattr(view, 'viewName'):
             if view.viewName in ("Package", "Application"):
                 self.replaceTxt.Enable(false)
                 self.findBtn.Enable(false)
@@ -261,8 +261,7 @@ class FindReplaceDlg(wxDialog):
                 # Use this region for future search replaces over selected.
                 engine.setRegion(view, view.GetSelection())
                 self.findBtn.SetDefault()
-        except:
-            pass
+
         # Give the find entry focus
         self.findTxt.SetFocus()
 
@@ -286,14 +285,15 @@ class FindReplaceDlg(wxDialog):
             EVT_KEY_UP(ctrl, self.OnFindtxtChar)
 
         if not bModeFindReplace:
-            self.findAllBtn.Enable(0)
-            self.findBtn.Enable(0)
-            self.replaceBtn.Enable(0)
-            self.replaceAllBtn.Enable(0)
-            self.engine.closeOnFound = 1
+            self.findAllBtn.Enable(false)
+            self.findBtn.Enable(false)
+            self.replaceBtn.Enable(false)
+            self.replaceAllBtn.Enable(false)
+            self.engine.closeOnFound = true
             self.closeOnFoundCB.SetValue(engine.closeOnFound)
-            self.directionRB.Enable(0)
-            self.scopeRB.Enable(0)
+            self.directionRB.Enable(false)
+            self.scopeRB.Enable(false)
+            self.btnFindInFiles.SetDefault()
 
         self.Center()
 
@@ -304,8 +304,8 @@ class FindReplaceDlg(wxDialog):
             'Class member':'(\s|[^a-zA-Z0-9_])self\.+XXXX(\s|[^a-zA-Z0-9_])'
         }
 
-    def SetWorkingFolder(self, sFolder):
-        self.cmbFolder.SetValue( sFolder )
+    def SetWorkingFolder(self, folder):
+        self.cmbFolder.SetValue(folder)
 
     def setComboBoxes(self, setWhat):
         # We discard the empty item at the start of the history unless
