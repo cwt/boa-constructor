@@ -1278,6 +1278,12 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
 
     def ensureRunning(self, cont_if_running=0, cont_always=0,
                       temp_breakpoint=None):
+        """Starts the debugger if it is not currently running.
+
+        If cont_always or if the debugger is already running and
+        cont_if_running is set, the debugger is put in set_continue
+        mode.
+        """
         if self.isRunning():
             if cont_if_running or cont_always:
                 self.doDebugStep('set_continue', temp_breakpoint)
