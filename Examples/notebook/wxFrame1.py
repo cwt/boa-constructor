@@ -110,4 +110,3 @@ class wxFrame1(wxFrame):
             dlg.ShowModal()
         finally:
             dlg.Destroy()  
-
