@@ -20,10 +20,14 @@ Plugins.registerPreference('wxPythonDemo', 'wpShowWxPythonDemoTemplate', 'False'
                             'be available on the Palette.'])
 
 
-demoDir = os.path.join(os.path.dirname(wx.__file__), 'demo')
+if Preferences.wpWxPythonDemoFolder:
+    demoDir = Preferences.wpWxPythonDemoFolder
+else:
+    demoDir = os.path.join(os.path.dirname(wx.__file__), 'demo')
+
 if not os.path.exists(demoDir):
     raise Plugins.SkipPlugin('wxPython demo directory not found.\n'
-          'Please define the a path under Preferences->Plug-ins')
+          'Please define the path under Preferences->Plug-ins')
 
 true = 1
 false = 0
