@@ -188,7 +188,9 @@ class Module:
         imports = []
         self.lineno = 0
         self.source = modulesrc
+        self.loc = 0
         while self.lineno < len(self.source):
+            self.loc = self.loc + 1
             line = string.rstrip(self.readline())
 
             res = is_todo.match(line)
@@ -198,6 +200,7 @@ class Module:
 
             if blank_line.match(line):
                 # ignore blank (and comment only) lines
+                self.loc = self.loc - 1
                 continue
 
             res = is_class.match(line)
@@ -328,14 +331,19 @@ class Module:
         # Add a method code block
         if to_bottom:
             ins_point = a_class.extent
+            pre_blank = ['']
+            post_blank = []
         else:
             ins_point = a_class.block.start
+            pre_blank = []
+            post_blank = ['']
         a_class.add_method(method_name, method_params, ins_point, ins_point + \
           new_length, to_bottom)
         
         # Add in source
         self.source[ins_point : ins_point] = \
-          [''] + ['    def %s(%s):' % (method_name, method_params)] + method_body 
+          pre_blank + ['    def %s(%s):' % (method_name, method_params)] + \
+          method_body + post_blank
           
         # renumber code blocks
         self.renumber(new_length, ins_point)
