@@ -11,21 +11,22 @@
 #----------------------------------------------------------------------
 #Boa:Frame:BoaFrame
 
+import os
+
+from wxPython.wx import *
+
 print 'importing PaletteMapping'
 import PaletteMapping
-print 'importing Editor'
-import Editor
-print 'importing Inspector'
-import Inspector
 print 'importing sender'
 import sender
 print 'importing ClassBrowser'
-import ClassBrowser, Help, Preferences
-from wxPython.wx import *
+import ClassBrowser
+print 'importing Help'
+import Help, Preferences, Utils
+
 from Preferences import IS, toPyPath, flatTools
+
 from ExternalLib.buttons import wxGenButton, wxGenBitmapButton, wxGenToggleButton, wxGenBitmapToggleButton, wxGenButtonEvent
-import Utils
-import os
 
 currentMouseOverTip = ''
 cyclopsing = 0
@@ -65,12 +66,13 @@ class BoaFrame(wxFrame):
         wxFrame.__init__(self, id = wxID_BOAFRAME, name = '', parent = prnt, pos = wxPoint(116, 275), size = wxSize(645, 74), style = wxDEFAULT_FRAME_STYLE, title = 'Boa Constructor - Python IDE & wxPython GUI Builder')
         self._init_utils()
         EVT_CLOSE(self, self.OnCloseWindow)
+        EVT_ICONIZE(self, self.OnBoaframeIconize)
 
         self.toolBar = wxToolBar(id = wxID_BOAFRAMETOOLBAR, name = 'toolBar', parent = self, pos = wxPoint(0, -28), size = wxSize(637, 28), style = wxTB_HORIZONTAL | wxNO_BORDER | Preferences.flatTools)
         self._init_coll_toolBar_Tools(self.toolBar)
         self.SetToolBar(self.toolBar)
 
-        self.palette = wxNotebook(id = wxID_BOAFRAMEPALETTE, name = 'palette', parent = self, pos = wxPoint(0, 0), size = wxSize(637, 0), style = 0)
+        self.palette = wxNotebook(id = wxID_BOAFRAMEPALETTE, name = 'palette', parent = self, pos = wxPoint(0, 0), size = wxSize(637, 19), style = 0)
 
         self.contextHelpSearch = wxTextCtrl(id = wxID_BOAFRAMECONTEXTHELPSEARCH, name = 'contextHelpSearch', parent = self.toolBar, pos = wxPoint(232, 0), size = wxSize(100, 21), style = 0, value = '')
         EVT_TEXT_ENTER(self.contextHelpSearch, wxID_BOAFRAMECONTEXTHELPSEARCH, self.OnSearchEnter)
@@ -79,7 +81,9 @@ class BoaFrame(wxFrame):
     def __init__(self, parent, id, app):
         self._init_ctrls(parent)
 
-        self.SetDimensions(0, 0, Preferences.screenWidth - Preferences.windowManagerSide * 2, Preferences.paletteHeight)
+        self.SetDimensions(0, 0, 
+            Preferences.screenWidth - Preferences.windowManagerSide * 2, 
+            Preferences.paletteHeight)
 
         if Preferences.paletteStyle == 'menu':
             self.menuBar = wxMenuBar()
@@ -99,22 +103,26 @@ class BoaFrame(wxFrame):
 ##        self.addTool('Images/Shared/Editor', 'Editor', 'Brings the Editor to the front', self.OnEditorToolClick)
 ##        self.addTool('Images/Shared/ClassBrowser', 'ClassExplorer', 'Opens the Class explorer for wxPython', self.OnExplorerToolClick)
         self.toolBar.AddSeparator()
-        self.addTool('Images/Shared/Preferences', 'Preferences', 'Set preferences (not implemented)', self.OnPrefsToolClick)
-        self.toolBar.AddSeparator()
 
         self.componentSB = ComponentSelection(self)
 
         self.toolBar.AddSeparator()
-        self.addTool('Images/Shared/Help', 'Test', 'Test', self.OnTest)
+        self.addTool('Images/Shared/CustomHelp', 'Test', 'Test', self.OnTest)
+
+        # Add main helpbuttons defined in the config file
+        conf = Utils.createAndReadConfig('Explorer')
+        self.paletteHelpItems = eval(conf.get('help', 'palettehelp'))
 
         self.toolBar.AddSeparator()
-        self.addTool('Images/Shared/Help', 'Help', 'Show help', self.OnHelpToolClick)
-        self.addTool('Images/Shared/wxWinHelp', 'wxWindows help', 'Show help', self.OnWxWinHelpToolClick)
-        self.addTool('Images/Shared/PythonHelp', 'Python help', 'Show help', self.OnPythonHelpToolClick)
+        self.addTool('Images/Shared/Help', 'Boa or selected component help', 
+              'Show help', self.OnHelpToolClick)
+        self.addTool('Images/Shared/wxWinHelp', 'wxPython help', 
+              'Show help', self.OnWxWinHelpToolClick)
+        self.addTool('Images/Shared/PythonHelp', 'Python help', 
+              'Show help', self.OnPythonHelpToolClick)
 
         # Add additional helpbuttons if defined in the config file
-        conf = Utils.createAndReadConfig('Explorer')
-        customHelpItems = eval(conf.get('preferences', 'customhelp'))
+        customHelpItems = eval(conf.get('help', 'customhelp'))
         self.customHelpItems = {}
         for caption, helpFile in customHelpItems.items():
             mID = wxNewId()
@@ -133,26 +141,12 @@ class BoaFrame(wxFrame):
 
         self.palettePages = []
         self.senders = sender.SenderMapper()
-
-        print 'creating Inspector'
-        self.inspector = Inspector.InspectorFrame(self)
-
-        print 'creating Editor'
-        if cyclopsing:
-            self.editor = Editor.EditorFrame(self, -1, self.inspector,
-              wxMenu(), self.componentSB, app)
-        else:
-            self.editor = Editor.EditorFrame(self, -1, self.inspector,
-              wxMenu(), self.componentSB, app)#palettePage.menu
-
-        self.buildPalette()
-        self.editor.setupToolBar()
-
-        self.contextHelpSearch.SetFocus()
-
+        
         EVT_CREATE_NEW(self, self.OnCreateNew)
 
-    def buildPalette(self):
+    def initPalette(self, inspector, editor):
+        self.inspector = inspector
+        self.editor = editor
 
 ##        if Preferences.transparentPaletteBitmaps:
 ##            transpSF = ''
@@ -228,7 +222,7 @@ class BoaFrame(wxFrame):
 
     def addTool(self, filename, text, help, func, toggle = false):
         mID = wxNewId()
-        self.toolBar.AddTool(mID, IS.load(filename+'.bmp'), #wxBitmap(filename+'.bmp', wxBITMAP_TYPE_BMP),
+        self.toolBar.AddTool(mID, IS.load(filename+'.bmp'),
           shortHelpString = text, isToggle = toggle)
         EVT_TOOL(self, mID, func)
         return mID
@@ -241,26 +235,19 @@ class BoaFrame(wxFrame):
 
     def OnHelpToolClick(self, event):
         if self.componentSB.selection:
-            Help.showHelp(self, Help.wxWinHelpFrame,
-              self.componentSB.selection[2].wxDocs, self.toolBar)
+            Help.showCtrlHelp(self.componentSB.selection[1].__name__)
         else:
-            Help.showHelp(self, Help.BoaHelpFrame, '', self.toolBar)
+            Help.showMainHelp(self.paletteHelpItems['boa'])
 
     def OnWxWinHelpToolClick(self, event):
-        Help.showHelp(self, Help.wxWinHelpFrame, '', self.toolBar)
+        Help.showMainHelp(self.paletteHelpItems['wx'])
 
     def OnPythonHelpToolClick(self, event):
-        Help.showHelp(self, Help.PythonHelpFrame, '', self.toolBar)
+        Help.showMainHelp(self.paletteHelpItems['python'])
 
     def OnCustomHelpToolClick(self, event):
         caption, helpFile = self.customHelpItems[event.GetId()]
-        help = Help.CustomHelpFrame(self, os.path.dirname(helpFile),
-            os.path.basename(helpFile), self.toolBar)
-        help.loadPage(helpFile)
-        help.Show(true)
-
-    def OnPrefsToolClick(self, event):
-        self.editor.openOrGotoModule(toPyPath('Preferences.py'))
+        Help.showHelp(helpFile)
 
     def OnFileExit(self, event):
         self.Close()
@@ -314,6 +301,11 @@ class BoaFrame(wxFrame):
                     self.app.quit = true
                     self.app = None
 
+            f = Help._hc.GetFrame()
+            if f: 
+                f.Hide()
+                f.Close()
+
             for page in self.palettePages:
                 page.destroy()
 
@@ -345,6 +337,16 @@ class BoaFrame(wxFrame):
 
     def OnCreateNew(self, event):
         self.editor.addNewPage(event.name, event.controller)
+
+    def OnBoaframeIconize(self, event):
+##        self._iconized = not self._iconized
+##        self.editor.Iconize(self._iconized)
+##        self.inspector.Iconize(self._iconized)
+        self.SetFocus()
+        frm = Help._hc.GetFrame()
+        if frm:
+            frm.Iconize(true)
+        event.Skip()
 
 class ComponentSelection:
     """ Controls the selection of the palette and access to associated
@@ -461,7 +463,11 @@ class PanelPalettePage(wxPanel, BasePalettePage):
     def destroy(self):
         del self.senders
         del self.widgets
+        for btn in self.buttons.values():
+            btn.destroy()
         del self.buttons
+        if Preferences.paletteStyle == 'tabs':
+            self.menu.Destroy()
 
     def addButton(self, widgetName, wxClass, constrClass, clickEvt, hintFunc, hintLeaveFunc, btnType):
         mID = wxNewId()
@@ -576,4 +582,5 @@ class ZopePalettePage(PalettePage):
 
     def getButtonBmp(self, name, wxClass):
         return IS.load('%s%s.bmp' %(self.bitmapPath, name))
-  
+
+           

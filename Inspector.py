@@ -27,11 +27,12 @@ from Companions.EventCollections import *
 import Preferences, RTTI, Utils
 from Preferences import IS, oiLineHeight, oiNamesWidth, inspPageNames, flatTools
 from ZopeLib import PropDlg
+from Preferences import keyDefs
 
 scrollBarWidth = 0
 IECWidthFudge = 3
 
-[wxID_ENTER, wxID_UNDOEDIT, wxID_CRSUP, wxID_CRSDOWN] = map(lambda _init_keys: NewId(), range(4))
+[wxID_ENTER, wxID_UNDOEDIT, wxID_CRSUP, wxID_CRSDOWN, wxID_CONTEXTHELP] = map(lambda _init_keys: NewId(), range(5))
 
 [wxID_INSPECTORFRAME, wxID_INSPECTORFRAMECONSTR, wxID_INSPECTORFRAMEEVENTS, wxID_INSPECTORFRAMEPAGES, wxID_INSPECTORFRAMEPROPS, wxID_INSPECTORFRAMESTATUSBAR, wxID_INSPECTORFRAMETOOLBAR] = map(lambda _init_ctrls: wxNewId(), range(7))
 
@@ -306,22 +307,14 @@ class InspectorFrame(wxFrame):
         if self.selDesgn:
             self.selDesgn.controllerView.saveOnClose = true
             self.selDesgn.controllerView.Close()
-##        else:
-##            wxLogError('Please use Post in the Editor or from the Designer.')
 
     def OnCancel(self, event):
         if self.selDesgn:
             self.selDesgn.controllerView.saveOnClose = false
             self.selDesgn.controllerView.Close()
-##        else:
-##            wxLogError('Please use Cancel in the Editor.')
 
     def OnHelp(self, event):
-        if self.selDesgn:
-            url = self.pages.extendHelpUrl(self.selectedCtrlHelpFile())
-            Help.showHelp(self, Help.wxWinHelpFrame, url)
-        else:
-            Help.showHelp(self, Help.BoaHelpFrame, 'Inspector.html')
+        Help.showHelp('Inspector.html')
 
     def refreshZopeProps(self):
         cmpn = self.selCmp
@@ -355,6 +348,7 @@ class InspectorFrame(wxFrame):
     def OnCloseWindow(self, event):
         self.Show(false)
         if self.destroying:
+            self.paletteImages = None
             self.cleanup()
             self.pages.destroy()
             self.constr.destroy()
@@ -414,8 +408,8 @@ class ParentTree(wxTreeCtrl):
     def selectItemGUIOnly(self, name):
         self.SelectItem(self.treeItems[name])
 
-    def extendHelpUrl(self, url):
-        return url
+    def extendHelpUrl(self, wxClass, url):
+        return wxClass, url
 
     def OnSelect(self, event):
         """ Event triggered when the selection changes in the tree """
@@ -455,6 +449,12 @@ class NameValue:
         self.nameBevelBottom = None
         self.valueBevelTop = None
         self.valueBevelBottom = None
+        
+##        try:
+##            self.helpStr = (propWrapper.setter.im_class.__name__ , 
+##                            propWrapper.getSetterName())
+##        except Exception, error:
+##            self.helpStr = (str(error), '')
         
         lockEditor, attrName = self.checkLockedProperty(name, 
               propWrapper.getSetterName(), companion)
@@ -553,6 +553,21 @@ class NameValue:
         self.separatorV.Destroy()
         if self.expander:
             self.expander.Destroy()
+    
+    def createHelpUrl(self):
+        if self.propEditor:
+            pw = self.propEditor.propWrapper
+            # custom help
+            if pw.routeType == 'CompnRoute':
+                return '', ''
+            # wxWin help
+            if pw.routeType == 'CtrlRoute':
+                mthName = pw.getSetterName()
+                mthObj = getattr(self.propEditor.companion.control, mthName)
+                cls = mthObj.im_class.__name__
+                if cls[-3:] == 'Ptr': cls = cls[:-3]
+                return cls, cls + mthName
+        return '', ''
 
     def updatePropValue(self):
         self.propValue = self.propEditor.getValue()
@@ -806,8 +821,8 @@ class EventsWindow(wxSplitterWindow):
             evtName = evtName + string.capitalize(fld)
         return evtName
 
-    def extendHelpUrl(self, url):
-        return url
+    def extendHelpUrl(self, wxClass, url):
+        return wxClass, url
 
     def OnCatClassSelect(self, event):
         self.selCatClass = event.m_itemIndex
@@ -987,10 +1002,12 @@ class InspectorScrollWin(NameValueEditorScrollWin):
         EVT_MENU(self, wxID_UNDOEDIT, self.OnUndo)
         EVT_MENU(self, wxID_CRSUP, self.OnCrsUp)
         EVT_MENU(self, wxID_CRSDOWN, self.OnCrsDown)
+        EVT_MENU(self, wxID_CONTEXTHELP, self.OnContextHelp)
 
         self.SetAcceleratorTable(wxAcceleratorTable([\
           (0, WXK_RETURN, wxID_ENTER),
           (0, WXK_ESCAPE, wxID_UNDOEDIT),
+          (keyDefs['ContextHelp'][0], keyDefs['ContextHelp'][1], wxID_CONTEXTHELP),
           (0, WXK_UP, wxID_CRSUP),
           (0, WXK_DOWN, wxID_CRSDOWN)]))
     
@@ -1027,8 +1044,8 @@ class InspectorScrollWin(NameValueEditorScrollWin):
             for idx in range(idx, len(self.nameValues)):
                 self.nameValues[idx].setPos(idx)
 
-    def extendHelpUrl(self, url):
-        return url
+    def extendHelpUrl(self, wxClass, url):
+        return wxClass, url
 
     def collapse(self, nameValue):
         # delete all NameValues until the same indent, count them
@@ -1088,6 +1105,12 @@ class InspectorScrollWin(NameValueEditorScrollWin):
             if y <= idx + 1 - cs.y / dy:
                 self.Scroll(x, y+1)
 
+    def OnContextHelp(self, event):
+        if self.inspector.selCmp:
+            wxClass, url = self.extendHelpUrl(self.inspector.selCmp.GetClass(), '')
+            if wxClass:
+                Help.showCtrlHelp(wxClass, url)
+
 class InspectorPropScrollWin(InspectorScrollWin):
     """ Specialised InspectorScrollWin that understands properties """
     def setNameValues(self, compn, rootCompn, nameValues, insIdx, indent, ownerPropEdit = None):
@@ -1107,10 +1130,10 @@ class InspectorPropScrollWin(InspectorScrollWin):
 
         self.refreshSplitter()
 
-    def extendHelpUrl(self, url):
+    def extendHelpUrl(self, wxClass, url):
         if self.prevSel:
-            suburl = 'get'+string.lower(self.prevSel.name)
-        return url + '#' + suburl
+            return self.prevSel.createHelpUrl()
+        return wxClass, url
 
     # read in the root object
     def readObject(self, propList):
@@ -1143,6 +1166,8 @@ class InspectorPropScrollWin(InspectorScrollWin):
 
 class InspectorConstrScrollWin(InspectorScrollWin):
     """ Specialised InspectorScrollWin that understands contructor parameters """
+    def extendHelpUrl(self, wxClass, url):
+        return wxClass, wxClass + url + 'constr'
     # read in the root object
     def readObject(self, constrList):
         params = self.inspector.selCmp.constructor()
@@ -1271,8 +1296,8 @@ class InspectorNotebook(wxNotebook):
         wxNotebook.AddPage(self, pPage, strText)
         self.pages[strText] = pPage
 
-    def extendHelpUrl(self, name):
-        return self.pages[name].extendHelpUrl(url)
+    def extendHelpUrl(self, cls):
+        return self.pages[self.GetPageText(self.GetSelection())].extendHelpUrl(cls, '')
 
 
 if __name__ == '__main__':
@@ -1280,3 +1305,4 @@ if __name__ == '__main__':
     frame = InspectorFrame(None)
     frame.Show(true)
     app.MainLoop()
+ 
