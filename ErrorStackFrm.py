@@ -40,7 +40,6 @@ class ErrorStackMF(wxFrame):
         EVT_CLOSE(self, self.OnErrorstackmfClose)
 
         self.notebook1 = wxNotebook(size = wxSize(330, 418), id = wxID_ERRORSTACKMFNOTEBOOK1, parent = self, name = 'notebook1', style = 0, pos = wxPoint(0, 0))
-        self.notebook1.SetClientSize(wxSize(328, 443))
 
         self.statusBar = wxStatusBar(size = wxSize(330, 25), id = wxID_ERRORSTACKMFSTATUSBAR, pos = wxPoint(0, 418), parent = self, name = 'statusBar', style = 0)
         self._init_coll_statusBar_Fields(self.statusBar)
@@ -56,7 +55,7 @@ class ErrorStackMF(wxFrame):
             self._init_coll_notebook1_Pages(self.notebook1)
             self.errorStackTC = errorStackTC
         else:
-            prxy = self.errorStackTC = wxTreeCtrl(size = wxSize(312, 390), id = wxID_ERRORSTACKMFERRORSTACKTC, parent = self.notebook1, name = 'errorStackTC', validator = wxDefaultValidator, pos = wxPoint(4, 22))
+            self.errorStackTC = wxTreeCtrl(size = wxSize(312, 390), id = wxID_ERRORSTACKMFERRORSTACKTC, parent = self.notebook1, name = 'errorStackTC', validator = wxDefaultValidator, pos = wxPoint(4, 22))
             self._init_coll_notebook1_Pages(self.notebook1)
         #--
 
@@ -64,6 +63,7 @@ class ErrorStackMF(wxFrame):
         self._init_ctrls(parent)
         self.app = None
         self.editor = editor
+        self.vetoEvents = false
         EVT_TREE_ITEM_ACTIVATED(self.errorStackTC, wxID_ERRORSTACKMFERRORSTACKTC, self.OnErrorstacktcTreeItemActivated)
         EVT_TREE_SEL_CHANGED(self.errorStackTC, wxID_ERRORSTACKMFERRORSTACKTC, self.OnErrorstacktcTreeSelChanged)
         EVT_LEFT_DOWN(self.errorStackTC, self.OnErrorstacktcLeftDown)
@@ -76,19 +76,21 @@ class ErrorStackMF(wxFrame):
 
         self.lastClick = (0, 0)
 
-    def updateCtrls(self, errorList, outputList = None):
+    def updateCtrls(self, errorList, outputList = None, rootName = 'Errors', runningDir = ''):
+        self.runningDir = runningDir
         tree = self.errorStackTC
         tree.DeleteAllItems()
-        rtTI = tree.AddRoot('Errors')
+        rtTI = tree.AddRoot(rootName)
         for err in errorList:
-            errTI = tree.AppendItem(rtTI, string.strip(string.join(err.error, ' : ')))
-            for si in err.stack:
-                siTI = tree.AppendItem(errTI, '%d: %s: %s' % (si.lineNo,
-                      os.path.basename(si.file), string.strip(si.line)))
-                tree.SetPyData(siTI, si)
-            if len(err.stack):
-                tree.SetItemHasChildren(errTI, true)
-                tree.SetPyData(errTI, err.stack[-1])
+            if err.error and err.stack:
+                errTI = tree.AppendItem(rtTI, string.strip(string.join(err.error, ' : ')))
+                for si in err.stack:
+                    siTI = tree.AppendItem(errTI, '%d: %s: %s' % (si.lineNo,
+                          os.path.basename(si.file), string.strip(si.line)))
+                    tree.SetPyData(siTI, si)
+                if err.stack:
+                    tree.SetItemHasChildren(errTI, true)
+                    tree.SetPyData(errTI, err.stack[-1])
         tree.SetItemHasChildren(rtTI, true)
         tree.Expand(rtTI)
         cookie = 0; firstErr, cookie = tree.GetFirstChild(rtTI, cookie)
@@ -101,6 +103,10 @@ class ErrorStackMF(wxFrame):
             if not errorList:
                 self.notebook1.SetSelection(1)
 
+    def Destroy(self):
+        self.vetoEvents = true
+        wxFrame.Destroy(self)
+
     def OnErrorstacktcTreeItemActivated(self, event):
         try:
             data = self.errorStackTC.GetPyData(event.GetItem())
@@ -108,6 +114,8 @@ class ErrorStackMF(wxFrame):
                 return
             if self.app:
                 fn = os.path.join(os.path.dirname(self.app.filename), data.file)
+            elif self.runningDir:
+                fn = os.path.join(self.runningDir, data.file)
             else:
                 fn = os.path.abspath(data.file)
             model = self.editor.openOrGotoModule(fn, self.app)
@@ -115,8 +123,12 @@ class ErrorStackMF(wxFrame):
             model.views['Source'].SetFocus()
             model.views['Source'].gotoLine(data.lineNo - 1)
             model.views['Source'].setStepPos(data.lineNo - 1)
+#            self.Lower()
+#            self.editor.Raise()
+#            self.editor.Focus()
 #                self.editor.statusBar.setHint('%s: %s'% (err[-1].error[0], err[-1].error[0])
         finally:
+#            pass
             event.Skip()
 
     def OnErrorstackmfClose(self, event):
@@ -124,10 +136,12 @@ class ErrorStackMF(wxFrame):
         self.Show(false)
 
     def OnErrorstacktcTreeSelChanged(self, event):
+        if self.vetoEvents: return
         selLine = self.errorStackTC.GetItemText(event.GetItem())
         if wxPlatform == '__WXGTK__':
             self.errorStackTC.SetToolTipString(selLine)
         self.statusBar.SetStatusText(selLine)
+
 
     def OnErrorstacktcLeftDown(self, event):
         self.lastClick = event.GetPosition().asTuple()
