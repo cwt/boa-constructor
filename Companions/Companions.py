@@ -27,6 +27,7 @@ class BaseFrameDTC(ContainerDTC):
         self.editors.update({'StatusBar': StatusBarClassLinkPropEdit, 
         		     'MenuBar': MenuBarClassLinkPropEdit,
         		     'ToolBar': ToolBarClassLinkPropEdit })
+        self.triggers.update({'ToolBar': self.ChangeToolBar})
         
     def generateWindowId(self):
         if self.designer: 
@@ -40,6 +41,13 @@ class BaseFrameDTC(ContainerDTC):
 ##        print 'setting frame name from', oldValue, 'to', newValue
         self.name = newValue
         self.designer.renameFrame(oldValue, newValue)
+    
+    def ChangeToolBar(self, oldValue, newValue):
+        print 'ChangeToolBar', oldValue, newValue
+        if newValue:
+            self.designer.connectToolBar(newValue)
+        else:
+            self.designer.disconnectToolBar(oldValue)
 
     def designTimeSource(self):
         return {'title': `self.name`,
