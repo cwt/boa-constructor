@@ -155,6 +155,8 @@ class DataView(wxListCtrl, InspectableObjectView):
         self.refreshCtrl()
 
     def renameCtrl(self, oldName, newName):
+        self.controllerView.renameCtrlAndParentRefs(oldName, newName)
+
         InspectableObjectView.renameCtrl(self, oldName, newName)
         self.refreshCtrl()
         self.selectCtrls( (newName,) )
