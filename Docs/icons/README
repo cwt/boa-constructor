@@ -1,0 +1,8 @@
+icons
+-----
+
+This directory contains ICONS which are part of the standard 
+Python documentation set. If you do not extract the getting started
+file into the standard Python documentation directory, you will need
+these files.
+
