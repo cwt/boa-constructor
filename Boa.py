@@ -192,8 +192,14 @@ wxRegisterId(15999)
 
 # Use package version string as it is the only one containing bugfix version number
 import wxPython
-wxVersion = tuple(map(lambda v: int(v), 
-                      (string.split(wxPython.__version__, '.')+['0'])[:4]))
+# Remove non number/dot characters
+wxVersion = wxPython.__version__
+for c in wxVersion:
+    if c not in string.digits+'.':
+        wxVersion = string.replace(wxVersion, c, '')
+
+wxVersion = tuple(map(lambda v: int(v),
+                      (string.split(wxVersion, '.')+['0'])[:4]))
 
 if wxVersion < __version__.wx_version:
     wxPySimpleApp()
