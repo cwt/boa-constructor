@@ -58,6 +58,7 @@ class ZopeHTMLStyledTextCtrlMix(BaseHTMLStyledTextCtrlMix):
 class ZopeHTMLSourceView(EditorStyledTextCtrl, ZopeHTMLStyledTextCtrlMix):
     viewName = 'ZopeHTML'
     breakBmp = 'Images/Debug/Breakpoints.png'
+    defaultEOL = '\n'
     def __init__(self, parent, model, actions=()):
         wxID_ZOPEHTMLSOURCEVIEW = wx.wxNewId()
         EditorStyledTextCtrl.__init__(self, parent, wxID_ZOPEHTMLSOURCEVIEW,
@@ -67,6 +68,7 @@ class ZopeHTMLSourceView(EditorStyledTextCtrl, ZopeHTMLStyledTextCtrlMix):
 
 class ZopeDebugHTMLSourceView(ZopeHTMLSourceView, DebuggingViewSTCMix):
     breakBmp = 'Images/Debug/Breakpoints.png'
+    defaultEOL = '\n'
     def __init__(self, parent, model, actions=()):
         ZopeHTMLSourceView.__init__(self, parent, model,
       (('Toggle breakpoint', self.OnSetBreakPoint, self.breakBmp, 'ToggleBrk'),)
@@ -189,34 +191,34 @@ class ZopeSiteErrorLogParser(ErrorStack.StackErrorParser):
         lines = self.lines[:]
         while lines:
             line = lines.pop()
-            if Utils.startswith(line, '  Module '):
+            if line.startswith('  Module '):
                 modPath, lineNo, funcName = line[9:].split(', ')
                 lineNo = int(lineNo[5:])
                 modPath = modPath.strip()
                 if modPath == 'Script (Python)':
                     path = lines.pop()
                     lines.pop()
-                    if Utils.startswith(path, '   - <PythonScript at '):
+                    if path.startswith('   - <PythonScript at '):
                         path = path[22:].strip()[:-1]
                         debugUrl = self.baseUrl+path+'/Script (Python)'
                         self.stack.append(
                               ErrorStack.StackEntry(debugUrl, lineNo+1, funcName))
-                elif Utils.startswith(modPath, 'Python expression'):
+                elif modPath.startswith('Python expression'):
                     continue
                 else:
                     modPath = self.libPath+'/'+modPath.replace('.', '/')+'.py'
                     self.stack.append(ErrorStack.StackEntry(modPath, lineNo, funcName))
-            elif Utils.startswith(line, '   - <PythonScript at '):
+            elif line.startswith('   - <PythonScript at '):
                 path = line[22:].strip()[:-1]
                 debugUrl = self.baseUrl+path+'/Script (Python)'
                 self.stack.append(
                       ErrorStack.StackEntry(debugUrl, 0, os.path.basename(path)))
-            elif Utils.startswith(line, '   - <ZopePageTemplate at '):
+            elif line.startswith('   - <ZopePageTemplate at '):
                 path = line[26:].strip()[:-1]
                 debugUrl = self.baseUrl+path+'/Page Template'
                 self.stack.append(ErrorStack.StackEntry(debugUrl, 0,
                       os.path.basename(path)))
-            elif Utils.startswith(line, '   - URL: '):
+            elif line.startswith('   - URL: '):
                 path = line[10:].strip()
                 lineNo, colNo = lines.pop().split(', ')
                 lineNo = int(lineNo.split()[-1])
