@@ -1,0 +1,31 @@
+#----------------------------------------------------------------------
+# Name:        sender.py
+# Purpose:     
+#
+# Author:      Riaan Booysen
+#
+# Created:     1999
+# RCS-ID:      $Id$
+# Copyright:   (c) 1999, 2000 Riaan Booysen
+# Licence:     GPL
+#----------------------------------------------------------------------
+from wxPython.wx import *
+import string
+
+class SenderMapper:
+    def __init__(self):
+        self.objectDict = {}
+    
+    def stripThis(self, eventObject):
+        return eventObject[1:string.find(eventObject, '_', 1)]
+        
+    def addObject(self, obj):
+        self.objectDict[self.stripThis(obj.this)] = obj
+    
+    def getObject(self, eventObject):
+        return self.objectDict[self.stripThis(eventObject.GetEventObject())]
+
+    def getBtnObject(self, eventObject):
+        return eventObject.theButton
+
+#textCtrl = wxPyTypeCast(window, "wxTextCtrl")
