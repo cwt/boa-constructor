@@ -140,21 +140,21 @@ if not pythonInterpreterPath:
 # thnx Mike Fletcher
 screenWidth =  wx.wxSystemSettings_GetSystemMetric(wx.wxSYS_SCREEN_X)
 screenHeight = wx.wxSystemSettings_GetSystemMetric(wx.wxSYS_SCREEN_Y)
-if wx.wxPlatform == '__WXGTK__':
+if wx.wxPlatform == '__WXMSW__':
+    _startx, _starty, screenWidth, screenHeight = wxGetClientDisplayRect()
+else:
     # handle dual monitors on Linux
     if screenWidth / screenHeight >= 2:
         screenWidth = screenWidth / 2
 
     screenWidth = int(screenWidth - verticalTaskbarWidth)
     screenHeight = int(screenHeight - horizontalTaskbarHeight)
-elif wx.wxPlatform == '__WXMSW__':
-    _startx, _starty, screenWidth, screenHeight = wxGetClientDisplayRect()
 
 
 if wx.wxPlatform == '__WXMSW__':
     wxDefaultFramePos = wx.wxDefaultPosition
     wxDefaultFrameSize = wx.wxDefaultSize
-elif wx.wxPlatform == '__WXGTK__':
+else:
     wxDefaultFramePos = (screenWidth / 4, screenHeight / 4)
     wxDefaultFrameSize = (int(round(screenWidth / 1.5)), int(round(screenHeight / 1.5)))
 
@@ -164,12 +164,12 @@ paletteHeight = paletteHeights[paletteStyle]
 bottomHeight = screenHeight - paletteHeight
 paletteTitle = 'Boa Constructor'
 
-if wxPlatform == '__WXGTK__':
-    oglBoldFont = wxFont(12, wxDEFAULT, wxNORMAL, wxBOLD, false)
-    oglStdFont = wxFont(10, wxDEFAULT, wxNORMAL, wxNORMAL, false)
-else:
+if wxPlatform == '__WXMSW__':
     oglBoldFont = wxFont(7, wxDEFAULT, wxNORMAL, wxBOLD, false)
     oglStdFont = wxFont(7, wxDEFAULT, wxNORMAL, wxNORMAL, false)
+else:
+    oglBoldFont = wxFont(12, wxDEFAULT, wxNORMAL, wxBOLD, false)
+    oglStdFont = wxFont(10, wxDEFAULT, wxNORMAL, wxNORMAL, false)
 
 #-------------------------------------------------------------------------------
 # Delays wxApp_Cleanup
