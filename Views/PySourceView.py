@@ -723,6 +723,9 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
     def setStepPos(self, lineNo):
         if lineNo < 0:
             lineNo = 0
+        if self.breaks.hasBreakpoint(lineNo + 1):
+            # Be sure all the breakpoints for this file are displayed.
+            self.setInitialBreakpoints()
         self.MarkerAdd(lineNo, stepPosMrk)
         self.MarkerDelete(lineNo, tmpBrkPtMrk)
 
