@@ -12,7 +12,7 @@
 
 print 'importing PythonEditorModels'
 
-import os, string, sys, pprint, imp, stat
+import os, string, sys, pprint, imp, stat, types
 from thread import start_new_thread
 from time import time, gmtime, strftime
 
@@ -21,7 +21,7 @@ from wxPython import wx
 import Preferences, Utils
 
 import EditorHelper, ErrorStack
-from EditorModels import SourceModel, EditorModel
+from EditorModels import PersistentModel, SourceModel, EditorModel
 
 import relpath
 
@@ -142,7 +142,7 @@ class ModuleModel(SourceModel):
 
             self.editor.statusBar.setHint('Running %s...' % filename)
             if Preferences.minimizeOnRun:
-                self.editor.getMainFrame().Iconize(true)
+                self.editor.minimizeBoa()
             start_new_thread(self.runInThread, (filename, args,
                   self.app, Preferences.pythonInterpreterPath))
 
@@ -179,7 +179,7 @@ class ModuleModel(SourceModel):
 
                 # excecute Cyclops in Python with module as parameter
                 command = '"%s" "%s" "%s"'%(Preferences.pythonInterpreterPath,
-                      Preferences.toPyPath('RunCyclops.py'), name)
+                      Utils.toPyPath('RunCyclops.py'), name)
                 wx.wxExecute(command, true)
 
                 # read report that Cyclops generated
@@ -361,6 +361,10 @@ class ModuleModel(SourceModel):
             elif tpe == imp.PY_SOURCE:
                 # handle from [package.]module import name
                 return path, 'name'
+            if tpe == imp.PY_COMPILED:
+                self.editor.setStatus('Compiled file found, check sys.path!',
+                      'Warning', true)
+                raise ImportError('Compiled file found')
             else:
                 raise ImportError('Unhandled import type')
         # handle from package import module
@@ -419,6 +423,31 @@ class ModuleModel(SourceModel):
             return 'Reload of %s successfull'%modName, 'Info'
         else:
             return 'Reload of %s failed'%modName, 'Error'
+
+    def findGlobalDict(self, name):
+        s = name+' ='
+        pos = string.find(self.data, s)
+        if pos == -1:
+            raise 'Global dict %s not found in the module, please add it.'%name
+        end = string.find(self.data, '}\n', pos + len(s) +1) + 1
+        if not end:
+            end = string.find(self.data, '}\r\n', pos + len(s) +1) + 1
+            if not end:
+                raise 'Global dict %s not terminated properly, please fix it.'%name
+        return pos + len(s), end
+
+    def readGlobalDict(self, name):
+        start, end = self.findGlobalDict(name)
+        try:
+            return eval(string.replace(self.data[start:end], '\r\n', '\n'),
+                        wx.__dict__)
+        except Exception, err:
+            raise '"%s" must be a valid dictionary global dict.\nError: %s'%(name, str(err))
+
+    def writeGlobalDict(self, name, dct):
+        start, end = self.findGlobalDict(name)
+        self.data = self.data[:start]+pprint.pformat(dct)+self.data[end:]
+
 
 class ClassModel(ModuleModel):
     """ Represents access to 1 maintained main class in the module.
@@ -544,12 +573,89 @@ class PackageModel(ModuleModel, ImportRelationshipMix):
 
         return ImportRelationshipMix.buildImportRelationshipDict(self, mods)
 
-class PythonBinaryFileModel(EditorModel):
+class PythonBinaryFileModel(PersistentModel):
     modelIdentifier = 'PythonBinary'
     defaultName = ''
     bitmap = 'PythonBinary_s.png'
     imgIdx = imgPythonBinaryFileModel
     ext = '.pybin'
+
+SimpleTypes = [types.StringType, types.IntType, types.FloatType, types.NoneType,
+               types.DictionaryType, types.ListType, types.TupleType]
+try: SimpleTypes.append(types.UnicodeType)
+except AttributeError: pass
+
+FunctionTypes = [types.FunctionType, types.BuiltinFunctionType]
+
+MethodTypes = [types.MethodType, types.BuiltinMethodType]
+PrivMethodTypeNames = ['method_descriptor', 'method-wrapper']
+
+class PyExtTypeData:
+    def __init__(self, Type):
+        self.methods = []
+        self.attrs = {}
+        for name in dir(Type):
+            attr = getattr(Type, name)
+            AttrType = type(attr)
+            if AttrType in MethodTypes or \
+                  AttrType.__name__ in PrivMethodTypeNames:
+                self.methods.append(name)
+            else:
+                self.attrs[name] = attr
+
+class PyExtModuleData:
+    def __init__(self, module):
+        self.classes = {}
+        self.functions = {}
+        self.attrs = {}
+        self.modules = {}
+        for name in dir(module):
+            attr = getattr(module, name)
+            AttrType = type(attr)
+            if AttrType in SimpleTypes:
+                self.attrs[name] = attr
+            elif AttrType is types.ClassType:
+                self.classes[name] = PyExtTypeData(attr)
+            elif AttrType in FunctionTypes:
+                self.functions[name] = attr
+            elif AttrType is types.ModuleType:
+                self.modules[name] = PyExtModuleData(attr)
+            elif hasattr(attr, '__class__'):
+                self.classes[name] = PyExtTypeData(attr)
+            else:
+                # fallback attributes
+                self.attrs[name] = attr
+
+
+class PythonExtensionFileModel(PythonBinaryFileModel):
+    modelIdentifier = 'PythonExtension'
+    defaultName = ''
+    bitmap = 'PythonBinary_s.png'
+    imgIdx = imgPythonBinaryFileModel
+    ext = '.pyd'
+
+    def __init__(self, data, name, editor, saved):
+        # XXX data not read as binary anyway
+        PythonBinaryFileModel.__init__(self, '', name, editor, true)
+
+        filename = self.checkLocalFile()
+        dirName, pydName = os.path.split(filename)
+        modName = os.path.splitext(pydName)[0]
+        sys.path.insert(0, dirName)
+        try:
+            self.module = __import__(modName)
+        finally:
+            del sys.path[0]
+
+        self.moduleData = PyExtModuleData(self.module)
+
+class PythonCompiledFileModel(PythonBinaryFileModel):
+    modelIdentifier = 'PythonCompiled'
+    defaultName = ''
+    bitmap = 'PythonBinary_s.png'
+    imgIdx = imgPythonBinaryFileModel
+    ext = '.pyc'
+
 
 class BaseAppModel(ClassModel, ImportRelationshipMix):
     def __init__(self, data, name, main, editor, saved, openModules):
@@ -589,8 +695,12 @@ class BaseAppModel(ClassModel, ImportRelationshipMix):
             fn = os.path.join(os.path.dirname(self.filename), tin)
             data = self.textInfos[tin]
             if data:
-                # XXX Reference by transport, not by file
-                open(fn, 'w').write(data)
+                from Explorers.Explorer import openEx, TransportError
+                try:
+                    f = openEx(fn)
+                    f.save(f.currentFilename(), data)
+                except TransportError, err:
+                    pass
         self.unsavedTextInfos = []
 
     def saveAs(self, filename):
@@ -615,18 +725,6 @@ class BaseAppModel(ClassModel, ImportRelationshipMix):
         if impEnd == -1: raise 'Module import list not terminated'
         return impPos + len('import'), impEnd
 
-    def findModules(self):
-        modStr = 'modules ='
-        modPos = string.find(self.data, modStr)
-        if modPos == -1:
-            raise 'Module list not found in application'
-        modEnd = string.find(self.data, '}\n', modPos + len(modStr) +1) + 1
-        if not modEnd:
-            modEnd = string.find(self.data, '}\r\n', modPos + len(modStr) +1) + 1
-            if not modEnd:
-                raise 'Module list not terminated properly'
-        return modPos + len(modStr), modEnd
-
     def idModel(self, name, src=None):
         # XXX This should be cached until rename or delete
         absPath = self.normaliseModuleRelativeToApp(self.modules[name][2])
@@ -650,18 +748,13 @@ class BaseAppModel(ClassModel, ImportRelationshipMix):
             self.moduleModels[name], main = identifySource(src)
 
     def readModules(self):
-        modS, modE = self.findModules()
-        try:
-            self.modules = eval(string.replace(self.data[modS:modE], '\r\n', '\n'))
-        except:
-            raise 'The "modules" attribute is not a valid dictionary'
+        self.modules = self.readGlobalDict('modules')
 
         for mod in self.modules.keys():
             self.idModel(mod)
 
     def writeModules(self, notify=true):
-        modS, modE = self.findModules()
-        self.data = self.data[:modS]+pprint.pformat(self.modules)+self.data[modE:]
+        self.writeGlobalDict('modules', self.modules)
 
         self.modified = true
         self.editor.updateTitle()
@@ -853,7 +946,7 @@ class BaseAppModel(ClassModel, ImportRelationshipMix):
     def normaliseModuleRelativeToApp(self, relFilename):
         """ Normalise relative paths to absolute paths """
         if not self.savedAs:
-            return relFilename#os.path.normpath(os.path.join(Preferences.pyPath, relFilename))
+            return relFilename
         else:
             protsplit = string.split(self.filename, '://')
             if len(protsplit) == 1:
@@ -879,12 +972,14 @@ class BaseAppModel(ClassModel, ImportRelationshipMix):
         self.readModules()
 
     def loadTextInfo(self, viewName):
-        # XXX rewrite for transport
+        from Explorers.Explorer import openEx, TransportError
         fn = os.path.join(os.path.dirname(self.filename), viewName)
-        if os.path.exists(fn):
-            self.textInfos[viewName] = open(fn).read()
-        else:
-            self.textInfos[viewName] = ''
+        ti = openEx(fn)
+        try:
+            data = ti.load()
+        except TransportError, err:
+            data = ''
+        self.textInfos[viewName] = data
 
 class PyAppModel(BaseAppModel):
     modelIdentifier = 'PyApp'
@@ -892,12 +987,10 @@ class PyAppModel(BaseAppModel):
     bitmap = 'PythonApplication_s.png'
     imgIdx = imgPyAppModel
 
-##    def renameMain(self, oldName, newName):
-##        BaseAppModel.renameMain(self, oldName, newName)
-
     def getDefaultData(self):
         return (sourceconst.defEnvPython + sourceconst.defSig + \
-                sourceconst.defPyApp) %(self.modelIdentifier, 'main')
+                sourceconst.defPyApp) %{'modelIdent': self.modelIdentifier,
+                                        'main': 'main'}
 
 class SetupModuleModel(ModuleModel):
     modelIdentifier = 'setup'
@@ -911,7 +1004,8 @@ class SetupModuleModel(ModuleModel):
             self.notify()
 
     def getDefaultData(self):
-        return (sourceconst.defSetup_py) % ('default', '0.1', '')
+        return (sourceconst.defSetup_py) % {'name': 'default', 'version': '0.1',
+                                            'scripts': ''}
 
     def getPageName(self):
         return 'setup (%s)' % os.path.basename(os.path.dirname(self.filename))
@@ -949,6 +1043,7 @@ EditorHelper.modelReg.update({
             SetupModuleModel.modelIdentifier: SetupModuleModel,
             PackageModel.modelIdentifier: PackageModel,
             PythonBinaryFileModel.modelIdentifier: PythonBinaryFileModel,
+            PythonExtensionFileModel.modelIdentifier: PythonExtensionFileModel,
             })
 
 EditorHelper.inspectableFilesReg.extend(['.py'])
