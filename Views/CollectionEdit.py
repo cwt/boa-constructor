@@ -9,6 +9,7 @@
 # Copyright:   (c) 1999 - 2001 Riaan Booysen
 # Licence:     GPL
 #-----------------------------------------------------------------------------
+#Boa:Frame:CollectionEditor
 print 'importing Views.CollectionEdit'
 
 import os
@@ -360,7 +361,8 @@ class CollectionEditorView(InspectableViews.InspectableObjectView):
         self.companion.writeCollectionFinaliser(output, stripFrmId=frmName)
 
         if hasCode(output):
-            output.insert(0, '    def %s(%s):'% (self.collectionMethod, self.collectionParams))
+            output.insert(0, '%sdef %s(%s):'% (sourceconst.methodIndent, 
+                self.collectionMethod, self.collectionParams))
         else:
             output = []
 
