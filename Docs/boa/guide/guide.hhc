@@ -1,0 +1,88 @@
+<UL> 
+  <LI> <OBJECT type="text/sitemap">
+    <param name="Local" value="index.html">
+    <param name="Name" value="A tour of the Boa Constructor Development Environment">
+  </OBJECT>
+  <UL> 
+    <LI> <OBJECT type="text/sitemap">
+      <param name="Local" value="node1.html">
+      <param name="Name" value="Installing and starting Boa Constructor">
+    </OBJECT>
+    <LI> <OBJECT type="text/sitemap">
+      <param name="Local" value="node2.html">
+      <param name="Name" value="The Palette window">
+    </OBJECT>
+    <LI> <OBJECT type="text/sitemap">
+      <param name="Local" value="node3.html">
+      <param name="Name" value="The Editor window">
+    </OBJECT>
+    <LI> <OBJECT type="text/sitemap">
+      <param name="Local" value="node4.html">
+      <param name="Name" value="The Designer window">
+    </OBJECT>
+    <LI> <OBJECT type="text/sitemap">
+      <param name="Local" value="node5.html">
+      <param name="Name" value="The Inspector window">
+    </OBJECT>
+    <LI> <OBJECT type="text/sitemap">
+      <param name="Local" value="node6.html">
+      <param name="Name" value="Managing the Application">
+    </OBJECT>
+    <LI> <OBJECT type="text/sitemap">
+      <param name="Local" value="node7.html">
+      <param name="Name" value="Getting around using Explorer">
+    </OBJECT>
+    <LI> <OBJECT type="text/sitemap">
+      <param name="Local" value="node8.html">
+      <param name="Name" value="Using Help">
+    </OBJECT>
+  </UL>
+</UL>
+<UL>
+  <LI> <OBJECT type="text/sitemap">
+    <param name="Local" value="index.html">
+    <param name="Name" value="Tutorial - Building your first application">
+  </OBJECT>
+  <UL>
+    <LI> <OBJECT type="text/sitemap">
+      <param name="Local" value="node21.html">
+      <param name="Name" value="Creating a new App">
+    </OBJECT>
+    <LI> <OBJECT type="text/sitemap">
+      <param name="Local" value="node22.html">
+      <param name="Name" value="Using the Designer to set the Title">
+    </OBJECT>
+    <LI> <OBJECT type="text/sitemap">
+      <param name="Local" value="node23.html">
+      <param name="Name" value="Add a Status Bar">
+    </OBJECT>
+    <LI> <OBJECT type="text/sitemap">
+      <param name="Local" value="node24.html">
+      <param name="Name" value="Add a Menu Bar">
+    </OBJECT>
+    <LI> <OBJECT type="text/sitemap">
+      <param name="Local" value="node25.html">
+      <param name="Name" value="Adding the Text Control">
+    </OBJECT>
+    <LI> <OBJECT type="text/sitemap">
+      <param name="Local" value="node26.html">
+      <param name="Name" value="Adding the File Menu Functionality">
+    </OBJECT>
+    <LI> <OBJECT type="text/sitemap">
+      <param name="Local" value="node27.html">
+      <param name="Name" value="Creating a Dialog Window">
+    </OBJECT>
+  </UL>
+</UL>
+<UL>
+  <LI> <OBJECT type="text/sitemap">
+    <param name="Local" value="index.html">
+    <param name="Name" value="Other Useful Items">
+  </OBJECT>
+  <UL>
+    <LI> <OBJECT type="text/sitemap">
+      <param name="Local" value="node31.html">
+      <param name="Name" value="Setting Preferences">
+    </OBJECT>
+  </UL>
+</UL> 

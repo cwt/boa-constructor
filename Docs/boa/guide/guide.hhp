@@ -1,0 +1,31 @@
+[OPTIONS]
+Compatibility=1.1
+Full-text search=Yes
+Contents file=guide.hhc
+Compiled file=guide.chm
+Default Window=wxHelp
+Default topic=index.html
+Index file=guide.hhk
+Title=Boa Constructor Getting Started Guide
+
+[WINDOWS]
+wxHelp=,"guide.hhc","guide.hhk","index.html",,,,,,0x2420,,0x380e,,,,,0,,,
+
+[FILES]
+index.html
+node1.html
+node2.html
+node21.html
+node22.html
+node23.html
+node24.html
+node25.html
+node26.html
+node27.html
+node3.html
+node31.html
+node4.html
+node5.html
+node6.html
+node7.html
+node8.html
