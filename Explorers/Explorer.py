@@ -66,6 +66,28 @@ def splitURI(filename):
                 raise TransportCategoryError('Category not found', filepath)
             category = segs[0]+'|'+segs[1][1:-1]
             return prot, category, string.join(segs[2:], '/'), filename
+        elif prot == 'zopedebug':
+            segs = string.split(filepath, '/')
+            if len(segs) < 3:
+                raise TransportCategoryError('Zope debug path invalid', filepath)
+            host, filepath, meta = segs[0], segs[1:-1], segs[-1]
+            try:               host, port = string.split(host, ':')
+            except ValueError: port = 80
+            else:              port = int(port)
+            # try to find category that can open this url
+            lw = string.lower
+            for cat in all_transports.entries:
+                if cat.itemProtocol == 'zope':
+                    itms = cat.openList()
+                    for itm in itms:
+                        props = itm.properties
+                        if lw(props['host']) == lw(host) and \
+                              props['httpport'] == port:
+                            return 'zope', '%s|%s' %(itm.name or itm.treename,
+                             meta), string.join(filepath, '/'), filename
+            raise TransportCategoryError(\
+                  'Could not map Zope debug path to defined Zope Category item', 
+                  filepath)
 
         # Other transports [prot]://[category]/[path] format
         elif prot == 'reg':
