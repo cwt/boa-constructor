@@ -209,7 +209,10 @@ class FindReplaceEngine:
             for i in range(len(names)):
                 filename = self._getValidFilename(names[i])
                 if not filename: continue
-                results[names[i]] = self._findAllInSource(open(filename).read(), pattern, 0)
+                try:
+                    results[names[i]] = self._findAllInSource(open(filename).read(), pattern, 0)
+                except IOError:
+                    continue
                 if not dlg.Update(i, "Searching in file '%s'"%filename):
                     try:
                         view.model.editor.statusBar.setHint("Search aborted")
