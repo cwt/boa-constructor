@@ -24,7 +24,6 @@ import Search, Preferences, Utils
 from moduleparse import CodeBlock
 from Preferences import IS, staticInfoPrefs
 from PrefsKeys import keyDefs
-from Debugger import Debugger
 #from thread import start_new_thread
 
 wxwHeaderTemplate ='''<html> <head>
@@ -37,6 +36,8 @@ wxwModuleTemplate = '''
 %(ModuleSynopsis)s
 <p><b><font color="#FF0000">Classes</font></b><br>
 <p>%(ClassList)s
+<p><b><font color="#FF0000">Functions</font></b><br>
+<p>%(FunctionList)s
 <hr>
 '''
 
@@ -45,9 +46,10 @@ wxwAppModuleTemplate = '''
 %(ModuleSynopsis)s
 <p><b><font color="#FF0000">Modules</font></b><br>
 <p>%(ModuleList)s
-<br>
 <p><b><font color="#FF0000">Classes</font></b><br>
 <p>%(ClassList)s
+<p><b><font color="#FF0000">Functions</font></b><br>
+<p>%(FunctionList)s
 <hr>
 '''
 
@@ -73,6 +75,15 @@ wxwMethodTemplate = '''
 %(Class)s.%(Method)s</h3>
 <b>%(Method)s</b>(<i>%(Params)s</i>)
 <p>&nbsp;%(MethodSynopsis)s
+<p>
+'''
+
+wxwFunctionTemplate = '''
+<hr><a NAME="%(Function)s"></a>
+<h3>
+%(Function)s</h3>
+<b>%(Function)s</b>(<i>%(Params)s</i>)
+<p>&nbsp;%(FunctionSynopsis)s
 <p>
 '''
 
@@ -285,7 +296,7 @@ class HTMLView(wxHtmlWindow, EditorView):
         EditorView.__init__(self, model, (('Back', self.OnPrev, self.prevBmp, ()),
                       ('Forward', self.OnNext, self.nextBmp, ()) )+ actions, -1)
         self.SetRelatedFrame(model.editor, 'Editor')
-        self.SetRelatedStatusBar(2)
+        self.SetRelatedStatusBar(1)
 
         model.editor.statusBar.setHint('')
 
@@ -342,23 +353,31 @@ class ModuleDocView(HTMLDocView):
 
     def genModuleSect(self, page):
         classList, classNames = self.genClassListSect()
+        funcList, funcNames = self.genFuncListSect()
         module = self.model.getModule()
         modBody = wxwModuleTemplate % { \
           'ModuleSynopsis': module.getModuleDoc(),
           'Module': self.model.moduleName,
           'ClassList': classList,
+          'FunctionList': funcList,
         }
 
-        return self.genClassesSect(page + modBody, classNames)
+        return self.genFunctionsSect(\
+            self.genClassesSect(page + modBody, classNames), funcNames)
+
+    def genListSect(self, names):
+        lst = []
+        for name in names:
+            lst.append('<a href="#%s">%s</a>' %(name, name))
+        return string.join(lst, '<BR>')
 
     def genClassListSect(self):
-        clssLst = []
-        classNames = self.model.getModule().classes.keys()
-        classNames.sort()
-        for aclass in classNames:
-            clssLst.append('<a href="#%s">%s</a>' %(aclass, aclass))
+        classNames = self.model.getModule().class_order
+        return self.genListSect(classNames), classNames
 
-        return string.join(clssLst, '<BR>'), classNames
+    def genFuncListSect(self):
+        funcNames = self.model.getModule().function_order
+        return self.genListSect(funcNames), funcNames
 
     def genClassesSect(self, page, classNames):
         clsBody = ''
@@ -408,6 +427,20 @@ class ModuleDocView(HTMLDocView):
             meths.append(methBody)
 
         return string.join(methlist), string.join(meths)
+
+    def genFunctionsSect(self, page, funcNames):
+        funcBody = ''
+        functions = []
+        module = self.model.getModule()
+        for func in funcNames:
+            funcBody = wxwFunctionTemplate % { \
+              'Function': func,
+              'Params': module.functions[func].signature,
+              'FunctionSynopsis': module.getFunctionDoc(func),
+            }
+            functions.append(funcBody)
+
+        return page + string.join(functions)
 
 class ClosableViewMix:
     closeBmp = 'Images/Editor/Close.bmp'
