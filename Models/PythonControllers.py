@@ -22,7 +22,7 @@ from Preferences import keyDefs
 import PaletteStore
 
 import Controllers
-from Controllers import SourceController, addTool
+from Controllers import SourceController, EditorController, addTool
 import EditorHelper, EditorModels, PythonEditorModels
 
 from Views import EditorViews, AppViews, SourceViews, PySourceView, OGLViews, ProfileView
@@ -58,7 +58,7 @@ class ModuleController(SourceController):
     DefaultViews    = [PySourceView.PythonSourceView, EditorViews.ExploreView]
     AdditionalViews = [EditorViews.HierarchyView, EditorViews.ModuleDocView,
                        EditorViews.ToDoView, OGLViews.UMLView,
-                       SourceViews.PythonDisView] + SourceController.AdditionalViews
+                       PySourceView.PythonDisView] + SourceController.AdditionalViews
 
     def addEvts(self):
         SourceController.addEvts(self)
@@ -132,9 +132,9 @@ class ModuleController(SourceController):
 
     def createNewModel(self, modelParent=None):
         if modelParent:
-            name = self.editor.getValidName(PythonEditorModels.ModuleModel, modelParent.absModulesPaths())
+            name = self.editor.getValidName(self.Model, modelParent.absModulesPaths())
         else:
-            name = self.editor.getValidName(PythonEditorModels.ModuleModel)
+            name = self.editor.getValidName(self.Model)
 
         model = self.createModel('', name, '', false, modelParent)
         model.transport = self.newFileTransport('', name)
@@ -568,6 +568,21 @@ class PackageController(ModuleController):
     def afterAddModulePage(self, model):
         pass
 
+class PythonExtensionController(EditorController):
+    Model = PythonEditorModels.PythonExtensionFileModel
+    DefaultViews = [EditorViews.ExplorePythonExtensionView]
+    AdditionalViews = []
+
+    def createModel(self, source, filename, main, saved, modelParent=None):
+        return self.Model(source, filename, self.editor, saved)
+
+    def createNewModel(self, modelParent=None):
+        raise 'Cannot create a new Python Extension, use distutils to build it'
+
+    def new(self):
+        pass
+
+
 (wxID_SETUPINSTALL, wxID_SETUPCLEAN, wxID_SETUPBUILD,
  wxID_SETUPSDIST, wxID_SETUPBDIST, wxID_SETUPBDIST_WININST, wxID_SETUPBDIST_RPM,
  wxID_SETUPPY2EXE, wxID_SETUPPARAMS,
@@ -686,7 +701,17 @@ Controllers.modelControllerReg.update({
       PythonEditorModels.ModuleModel: ModuleController,
       PythonEditorModels.PackageModel: PackageController,
       PythonEditorModels.SetupModuleModel: SetupController,
+      PythonEditorModels.PythonExtensionFileModel: PythonExtensionController,
      })
+
+Controllers.DefaultController = ModuleController
+Controllers.DefaultModel = PythonEditorModels.ModuleModel
+Controllers.defaultExt = PythonEditorModels.ModuleModel.ext
+
+Controllers.fullnameTypes.update({
+    '__init__.py': (PythonEditorModels.PackageModel, '', '.py'),
+    'setup.py':    (PythonEditorModels.SetupModuleModel, '', '.py'),
+})
 
 PaletteStore.newControllers.update({'PythonApp': PyAppController,
                                     'Module': ModuleController,
@@ -696,3 +721,13 @@ PaletteStore.newControllers.update({'PythonApp': PyAppController,
 
 PaletteStore.paletteLists['New'].extend(['PythonApp', 'Module', 'Package',
   'Setup'])
+
+# Register Packages as a File Explorer sub type
+from Explorers import FileExplorer
+
+def isPackage(filename):
+    return os.path.exists(os.path.join(filename, PythonEditorModels.PackageModel.pckgIdnt))
+
+FileExplorer.PyFileNode.subExplorerReg['folder'].append(
+      (FileExplorer.PyFileNode, isPackage, PythonEditorModels.PackageModel.imgIdx),
+)
