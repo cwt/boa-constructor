@@ -1161,10 +1161,26 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
         set breakpoints when running the client in a different environment
         from the server, you'll need to expand this.
         """
-        if filename.startswith('file://'):
-            return filename[7:]
-        else:
-            return filename
+        from Explorers.Explorer import splitURI, getTransport, all_transports
+        
+        prot, category, filepath, filename = splitURI(filename)
+        if prot == 'file':
+            return filepath
+        elif prot == 'zope':
+            node = getTransport(prot, category, filepath, all_transports)
+            if node:
+                props = node.properties
+                return 'zopedebug://%s:%s/%s/%s'%(props['host'], 
+                      props['httpport'], filepath, node.metatype)
+            else:
+                raise Exception('No Zope connection for: %s'%filename)
+        elif prot == 'zopedebug':
+            raise Exception('"zopedebug" is a server filename protocol')
+        
+##        if filename.startswith('file://'):
+##            return filename[7:]
+##        else:
+##            return filename
 
     def serverFNToClientFN(self, filename):
         """Converts a filename on the server to a filename on the client.
@@ -1173,10 +1189,13 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
         set breakpoints when running the client in a different environment
         from the server, you'll need to expand this.
         """
-        if filename.find('://') < 0:
-            return 'file://' + filename
-        else:
-            return filename
+        from Explorers.Explorer import splitURI
+        return splitURI(filename)[3]
+                
+##        if filename.find('://') < 0:
+##            return 'file://' + filename
+##        else:
+##            return filename
 
     def deleteBreakpoints(self, filename, lineno):
         fn = self.clientFNToServerFN(filename)
@@ -1219,14 +1238,14 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
         stack = info['stack']
         # Translate server filenames to client filenames.
         for frame in stack:
-            frame['client_filename'] = self.serverFNToClientFN(
-                frame['filename'])
+            frame['client_filename'] = \
+                  self.serverFNToClientFN(frame['filename'])
 
         # Determine the current lineno, filename, and
         # funcname from the stack.
         if stack:
             bottom = stack[-1]
-            filename = bottom['filename']
+            filename = bottom['client_filename']
             funcname = bottom['funcname']
             lineno = bottom['lineno']
             base = os.path.basename(filename)
