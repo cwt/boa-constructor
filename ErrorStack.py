@@ -21,10 +21,11 @@ else:
 fileLine = re.compile('  File "(?P<filename>.+)", line (?P<lineno>[0-9]+)')
 
 class StackEntry:
-    def __init__(self, file = '', lineNo = 0, line = ''):
+    def __init__(self, file = '', lineNo = 0, line = '', error = ()):
         self.file = file
         self.line = line
         self.lineNo = lineNo
+        self.error = error
 
     def __repr__(self):
         return 'File "%s", line %d\n%s' % (self.file, self.lineNo, self.line)
@@ -42,7 +43,7 @@ class StackErrorParser:
     def __init__(self, lines):
         self.lines = lines
         self.stack = []
-        self.error = ()
+        self.error = []
         self.parse()
 
     def printError(self):
@@ -61,7 +62,7 @@ class StdErrErrorParser(StackErrorParser):
     def parse(self):
         if len(self.lines):
             line1 = self.lines.pop()
-            self.error = list(string.split(line1, ': '))
+            self.error[:] = list(string.split(line1, ': '))
 
             if len(self.error) == 1:
                 self.error.insert(0, 'String exception')
@@ -70,7 +71,7 @@ class StdErrErrorParser(StackErrorParser):
                 mo = fileLine.match(string.rstrip(self.lines[idx]))
                 if mo:
                     self.stack.append(StackEntry(mo.group('filename'),
-                          int(mo.group('lineno')), self.lines[idx + 1]))
+                      int(mo.group('lineno')), self.lines[idx + 1], self.error))
 
 class PyCheckerErrorParser(StackErrorParser):
     def parse(self):
@@ -82,14 +83,14 @@ class PyCheckerErrorParser(StackErrorParser):
             except:
                 pass
             else:
-                self.error = [warng]
+                self.error[:] = [warng]
                 self.stack.append(StackEntry(os.path.abspath(filename), lineNo,
-                      linecache.getline(filename, lineNo)))
+                      linecache.getline(filename, lineNo), self.error))
 
 # Limit stack size / processing time
 # Zero to ignore limit
 max_stack_depth = 100
-max_lines_to_process = 100000
+max_lines_to_process = 10000
 
 # XXX Look into speeding this up a bit :) !
 class CrashTraceLogParser(StackErrorParser):
@@ -98,7 +99,7 @@ class CrashTraceLogParser(StackErrorParser):
         lines = self.lines
         stack = self.stack = []
         fileSize = len(lines)
-        self.error = ('Core dump stack', 'trace file size: '+`fileSize`)
+        self.error[:] = ['Core dump stack', 'trace file size: '+`fileSize`]
 
         baseDir = string.strip(lines[0])
         del lines[0]
@@ -148,7 +149,7 @@ class CrashTraceLogParser(StackErrorParser):
         if len(stack):
             stack.reverse()
         else:
-            self.error = ('Empty (resolved) stack', 'trace file size: '+`fileSize`)
+            self.error[:] = ['Empty (resolved) stack', 'trace file size: '+`fileSize`]
 
 def buildErrorList(lines, Parser = StdErrErrorParser):
     errs = []
