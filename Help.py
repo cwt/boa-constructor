@@ -9,39 +9,53 @@
 # Copyright:   (c) 1999, 2000 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
+#Boa:Frame:HelpFrame
+
 from wxPython.wx import *
 from wxPython.html import *
-#from Preferences import 
+from Preferences import IS, flatTools
 import Preferences, Search
 import os
 from os import path
 from Utils import AddToolButtonBmpFile
 
-def showHelp(parent, helpClass, filename):
-    help = helpClass(parent)
+def showHelp(parent, helpClass, filename, toolbar = None):
+    help = helpClass(parent, toolbar)
     help.loadPage(filename)
     help.Show(true)
+
+[wxID_HELPFRAME] = map(lambda _init_ctrls: NewId(), range(1))
     
 class HelpFrame(wxFrame):
     """ Base class for help defining a home page and search facilities. """
-    def __init__(self, parent, home, index, icon):
-        wxFrame.__init__(self, parent, -1, 'Help',
-                         wxPoint(120, 75), Preferences.wxDefaultFrameSize)#wxSize(560, 400))
+    def _init_utils(self): 
+        pass
+
+    def _init_ctrls(self, prnt): 
+        wxFrame.__init__(self, size = (-1, -1), id = wxID_HELPFRAME, title = 'Help', parent = prnt, name = 'HelpFrame', style = wxDEFAULT_FRAME_STYLE, pos = (-1, -1))
+
+    def __init__(self, parent, home, index, icon, paletteToolbar = None):
+        self._init_ctrls(parent)
+        self._init_utils()
+        self.SetDimensions(120, 75, Preferences.wxDefaultFrameSize.x,
+          Preferences.wxDefaultFrameSize.y)
+
 	if wxPlatform == '__WXMSW__':
-	    self.icon = wxIcon(Preferences.toPyPath('Images\\Icons\\'+icon), wxBITMAP_TYPE_ICO)
-	    self.SetIcon(self.icon)
+	    self.SetIcon(wxIcon(Preferences.toPyPath('Images\\Icons\\'+icon), 
+	      wxBITMAP_TYPE_ICO))
 
         self.html = wxHtmlWindow(self)
         self.home = home 
         self.index = index
+
+        self.paletteToolbar = paletteToolbar
 
         self.statusBar = self.CreateStatusBar()
         
         self.html.SetRelatedFrame(self, 'Help - %s')
         self.html.SetRelatedStatusBar(0)
 
-        self.toolBar = self.CreateToolBar(wxTB_HORIZONTAL|wxNO_BORDER)#|wxTB_FLAT
-#        self.toolBar.SetToolBitmapSize((18, 20))        
+        self.toolBar = self.CreateToolBar(style = wxTB_HORIZONTAL|wxNO_BORDER|flatTools)
         
         AddToolButtonBmpFile(self, self.toolBar, 
           path.join(Preferences.pyPath, 'Images','Shared', 'Previous.bmp'), 
@@ -54,7 +68,7 @@ class HelpFrame(wxFrame):
           'home', self.OnHome)
 
         self.toolBar.AddSeparator()
-        wxID_SEARCHCTRL = NewId()
+        wxID_SEARCHCTRL = wxNewId()
         self.searchCtrl = wxTextCtrl(self.toolBar, wxID_SEARCHCTRL, "",
           size=(150, -1))#self.toolBar.GetSize().y))# - Preferences.srchCtrlOffset))
         self.toolBar.AddControl(self.searchCtrl)
@@ -63,7 +77,7 @@ class HelpFrame(wxFrame):
           path.join(Preferences.pyPath, 'Images','Shared', 'Find.bmp'), 
           'Search', self.OnSearchEnter)
         self.toolBar.AddSeparator()
-        wxID_RESULTSCTRL = NewId()
+        wxID_RESULTSCTRL = wxNewId()
         self.resultsCtrl = wxComboBox(self.toolBar, wxID_RESULTSCTRL, "", 
           choices=['', '(Results)', '1', '2', '3', '4'], size=(300,-1), 
           style=wxCB_DROPDOWN | wxCB_READONLY)
@@ -74,13 +88,37 @@ class HelpFrame(wxFrame):
         
         self.toolBar.Realize()
 
-    def loadPage(self, filename = ''):
+        if paletteToolbar:
+            self.toolIdx = wxNewId()
+            paletteToolbar.AddTool(self.toolIdx, IS.load(self.toolBmp), 
+              shortHelpString = self.helpStr)
+            EVT_TOOL(paletteToolbar.GetParent(), self.toolIdx, self.OnSelect)
+            paletteToolbar.Realize()
+        else: 
+            self.toolIdx = None
+
+	EVT_CLOSE(self, self.OnCloseWindow)
+
+    def loadPage(self, filename = '', highlight = ''):
         if filename:
-            self.html.LoadPage(self.home+'/'+filename)
+            fn = path.normpath(path.join(self.home, filename))
         else:
-            self.html.LoadPage(self.home+'/'+self.index)
+            fn = path.normpath(path.join(self.home, self.index))
+
+        if highlight:
+            page = open(fn).read()
+    
+            page = string.replace(page, highlight, 
+              '<font size="+2" color="#00AA00">%s</font>'%highlight)
+            
+            self.html.SetPage(page)
+        else:
+            self.html.LoadPage(fn)
 
     def OnCloseWindow(self, event):
+        if self.paletteToolbar:
+            self.paletteToolbar.DeleteTool(self.toolIdx)
+
         self.Destroy()
 
     def OnPrevious(self, event):
@@ -115,25 +153,42 @@ class HelpFrame(wxFrame):
     
     def OnResultSelect(self, event):
         pge = string.split(self.resultsCtrl.GetValue(), ' :: ')[1]
-        self.loadPage(pge)
+        self.loadPage(pge, self.searchCtrl.GetValue())
         event.Skip()
 
     def OnHome(self, event):
         self.loadPage()
 
+    def OnSelect(self, event):
+        print 'select' 
+        self.Show(true)
+        if self.IsIconized():
+            self.Iconize(false)
+        self.Raise()
         
 class BoaHelpFrame(HelpFrame):
-    def __init__(self, parent):
+    toolBmp = 'Images/Shared/Help.bmp'
+    helpStr = 'Boa help'
+    def __init__(self, parent, paletteToolbar = None):
         HelpFrame.__init__(self, parent, Preferences.toPyPath('Docs'), 'Boa.html',
-          'Help.ico')
+          'Help.ico', paletteToolbar)
 
 class wxWinHelpFrame(HelpFrame):
-    def __init__(self, parent):
+    toolBmp = 'Images/Shared/wxWinHelp.bmp'
+    helpStr = 'wxWindows help'
+    def __init__(self, parent, paletteToolbar = None):
         HelpFrame.__init__(self, parent, Preferences.wxWinDocsPath, 'wx.htm',
-          'wxWinHelp.ico')
+          'wxWinHelp.ico', paletteToolbar)
 
 class PythonHelpFrame(HelpFrame):
-    def __init__(self, parent):
+    toolBmp = 'Images/Shared/PythonHelp.bmp'
+    helpStr = 'Python help'
+    def __init__(self, parent, paletteToolbar = None):
         HelpFrame.__init__(self, parent, Preferences.pythonDocsPath, 'index.html',
-          'PythonHelp.ico')
+          'PythonHelp.ico', paletteToolbar)
         
+
+
+
+
+
