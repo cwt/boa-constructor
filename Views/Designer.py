@@ -1428,8 +1428,14 @@ class DesignerControlsEvtHandler(wxEvtHandler):
                         ctrl.SetDimensions(0, 0, s.x, s.y)
 
             if dsgn.selection:
+                s, p = dsgn.selection.size, dsgn.selection.position
                 dsgn.selection.sizeFromCtrl()
                 dsgn.selection.setSelection()
+
+                if (s, p) != (dsgn.selection.size, dsgn.selection.position):
+                    dsgn.selection.sizeUpdate()
+                    dsgn.selection.positionUpdate()
+
         finally:
             dsgn.forceResize = false
             event.Skip()
@@ -1459,7 +1465,9 @@ class DesignerControlsEvtHandler(wxEvtHandler):
 
     def OnControlMove(self, event):
         ctrl = event.GetEventObject()
-        if ctrl:
+        # Prevent infinite event loop by not sending siz events to statusbar
+        # Only applies to sizered statusbars
+        if ctrl and not isinstance(ctrl, wxStatusBar):
             parent = ctrl.GetParent()
             if parent:
                 wxPostEvent(parent, wxSizeEvent( parent.GetSize() ))
