@@ -39,10 +39,10 @@ PaletteStore.paletteLists.update({'ContainersLayout': [],
     'ListControls': []})
 
 PaletteStore.palette.extend([
-  ['Containers/Layout', 'Editor/Tabs/Containers', PaletteStore.paletteLists['ContainersLayout']], 
-  ['Basic Controls', 'Editor/Tabs/Basic', PaletteStore.paletteLists['BasicControls']], 
+  ['Containers/Layout', 'Editor/Tabs/Containers', PaletteStore.paletteLists['ContainersLayout']],
+  ['Basic Controls', 'Editor/Tabs/Basic', PaletteStore.paletteLists['BasicControls']],
   ['Buttons', 'Editor/Tabs/Basic', PaletteStore.paletteLists['Buttons']],
-  ['List Controls', 'Editor/Tabs/Lists', PaletteStore.paletteLists['ListControls']],  
+  ['List Controls', 'Editor/Tabs/Lists', PaletteStore.paletteLists['ListControls']],
 ])
 
 class BaseFrameDTC(ContainerDTC):
@@ -322,11 +322,11 @@ class NotebookDTC(WindowConstr, ContainerDTC):
 
     def OnPageChanged(self, event):
         try:
-            self.collections['Pages'].updateSelection(event.GetSelection())
-            wxPostEvent(self.control, wxSizeEvent( self.control.GetSize() ))
+            if self.collections.has_key('Pages'):
+                self.collections['Pages'].updateSelection(event.GetSelection())
+                wxPostEvent(self.control, wxSizeEvent( self.control.GetSize() ))
         except Exception, err:
             print 'OnPageChanged exception', str(err)
-            print self.collections
         event.Skip()
 
     def notification(self, compn, action):
@@ -1309,7 +1309,7 @@ class GridDTC(WindowConstr, WindowDTC):
 
     def writeImports(self):
         return 'from wxPython.grid import *'
-    
+
     def vetoedMethods(self):
         # XXX This vetoes all methods introduced by the grid !!!
         # XXX Somehow calling the getters of the grid object causes it to
@@ -1318,42 +1318,42 @@ class GridDTC(WindowConstr, WindowDTC):
         return dir(self.control.__class__.__bases__[0])
 
 # Getters
-##    'GetBatchCount', 
-##    'GetCellAlignment', 'GetCellBackgroundColour', 'GetCellEditor', 
-##    'GetCellFont', 'GetCellHighlightColour', 'GetCellRenderer', 
-##    'GetCellTextColour', 'GetCellValue', 'GetColLabelAlignment', 
-##    'GetColLabelSize', 'GetColLabelValue', 'GetColSize', 
-##    'GetDefaultCellAlignment', 'GetDefaultCellBackgroundColour', 
-##    'GetDefaultCellFont', 'GetDefaultCellTextColour', 
-##    'GetDefaultColLabelSize', 'GetDefaultColSize', 'GetDefaultEditor', 
-##    'GetDefaultEditorForCell', 'GetDefaultEditorForType', 
-##    'GetDefaultRenderer', 'GetDefaultRendererForCell', 
-##    'GetDefaultRendererForType', 'GetDefaultRowLabelSize', 
-##    'GetDefaultRowSize', 'GetGridCursorCol', 'GetGridCursorRow', 
-##    'GetGridLineColour', 'GetLabelBackgroundColour', 'GetLabelFont', 
-##    'GetLabelTextColour', 'GetNumberCols', 'GetNumberRows', 
-##    'GetRowLabelAlignment', 'GetRowLabelSize', 'GetRowLabelValue', 
-##    'GetRowSize', 'GetSelectionBackground', 'GetSelectionForeground', 
-##    'GetTable', 'GetTextBoxSize', 
+##    'GetBatchCount',
+##    'GetCellAlignment', 'GetCellBackgroundColour', 'GetCellEditor',
+##    'GetCellFont', 'GetCellHighlightColour', 'GetCellRenderer',
+##    'GetCellTextColour', 'GetCellValue', 'GetColLabelAlignment',
+##    'GetColLabelSize', 'GetColLabelValue', 'GetColSize',
+##    'GetDefaultCellAlignment', 'GetDefaultCellBackgroundColour',
+##    'GetDefaultCellFont', 'GetDefaultCellTextColour',
+##    'GetDefaultColLabelSize', 'GetDefaultColSize', 'GetDefaultEditor',
+##    'GetDefaultEditorForCell', 'GetDefaultEditorForType',
+##    'GetDefaultRenderer', 'GetDefaultRendererForCell',
+##    'GetDefaultRendererForType', 'GetDefaultRowLabelSize',
+##    'GetDefaultRowSize', 'GetGridCursorCol', 'GetGridCursorRow',
+##    'GetGridLineColour', 'GetLabelBackgroundColour', 'GetLabelFont',
+##    'GetLabelTextColour', 'GetNumberCols', 'GetNumberRows',
+##    'GetRowLabelAlignment', 'GetRowLabelSize', 'GetRowLabelValue',
+##    'GetRowSize', 'GetSelectionBackground', 'GetSelectionForeground',
+##    'GetTable', 'GetTextBoxSize',
 # Setters
-##    'SetCellAlignment', 
-##    'SetCellBackgroundColour', 'SetCellEditor', 'SetCellFont', 
-##    'SetCellHighlightColour', 'SetCellRenderer', 'SetCellTextColour', 
-##    'SetCellValue', 'SetColAttr', 'SetColFormatBool', 
-##    'SetColFormatCustom', 'SetColFormatFloat', 'SetColFormatNumber', 
-##    'SetColLabelAlignment', 'SetColLabelSize', 'SetColLabelValue', 
-##    'SetColMinimalWidth', 'SetColSize', 'SetDefaultCellAlignment', 
-##    'SetDefaultCellBackgroundColour', 'SetDefaultCellFont', 
-##    'SetDefaultCellTextColour', 'SetDefaultColSize', 
-##    'SetDefaultEditor', 'SetDefaultRenderer', 'SetDefaultRowSize', 
-##    'SetGridCursor', 'SetGridLineColour', 'SetLabelBackgroundColour', 
-##    'SetLabelFont', 'SetLabelTextColour', 'SetMargins', 
-##    'SetReadOnly', 'SetRowAttr', 'SetRowLabelAlignment', 
-##    'SetRowLabelSize', 'SetRowLabelValue', 
-##    'SetRowMinimalHeight', 'SetRowSize', 'SetSelectionBackground', 
-##    'SetSelectionForeground', 'SetSelectionMode', 
-##    'SetTable', 
-        
+##    'SetCellAlignment',
+##    'SetCellBackgroundColour', 'SetCellEditor', 'SetCellFont',
+##    'SetCellHighlightColour', 'SetCellRenderer', 'SetCellTextColour',
+##    'SetCellValue', 'SetColAttr', 'SetColFormatBool',
+##    'SetColFormatCustom', 'SetColFormatFloat', 'SetColFormatNumber',
+##    'SetColLabelAlignment', 'SetColLabelSize', 'SetColLabelValue',
+##    'SetColMinimalWidth', 'SetColSize', 'SetDefaultCellAlignment',
+##    'SetDefaultCellBackgroundColour', 'SetDefaultCellFont',
+##    'SetDefaultCellTextColour', 'SetDefaultColSize',
+##    'SetDefaultEditor', 'SetDefaultRenderer', 'SetDefaultRowSize',
+##    'SetGridCursor', 'SetGridLineColour', 'SetLabelBackgroundColour',
+##    'SetLabelFont', 'SetLabelTextColour', 'SetMargins',
+##    'SetReadOnly', 'SetRowAttr', 'SetRowLabelAlignment',
+##    'SetRowLabelSize', 'SetRowLabelValue',
+##    'SetRowMinimalHeight', 'SetRowSize', 'SetSelectionBackground',
+##    'SetSelectionForeground', 'SetSelectionMode',
+##    'SetTable',
+
 
 class HtmlWindowDTC(HtmlWindowConstr, WindowDTC):
     def __init__(self, name, designer, parent, ctrlClass):
@@ -1530,7 +1530,7 @@ class StatusBarFieldsCDTC(StatusBarFieldsConstr, CollectionDTC):
     def SetText(self, value):
 ##        print 'StatusBarFieldsCDTC SetText'
         self.control.SetStatusText(value)
-        
+
 #---Helpers---------------------------------------------------------------------
 
 class FontDTC(HelperDTC):
@@ -1691,6 +1691,8 @@ class WindowStyleDTC(HelperDTC):
         for flag in self.ownerCompn.windowStyles:
             self.editors[flag] = BoolPropEdit
 
+    # XXX One of these 2 methods is redundant !
+
     def properties(self):
         props = {}
         prop = ('NameRoute', self.GetStyle, self.SetStyle)
@@ -1723,15 +1725,15 @@ class WindowStyleDTC(HelperDTC):
         self.ownerCompn.textConstr.params['style'] = string.join(flags, ' | ')
         self.designer.inspector.constructorUpdate('Style')
 
-PaletteStore.paletteLists['ContainersLayout'].extend([wxPanel, wxScrolledWindow, 
-      wxNotebook, wxSplitterWindow, wxSashWindow, wxSashLayoutWindow, wxToolBar, 
+PaletteStore.paletteLists['ContainersLayout'].extend([wxPanel, wxScrolledWindow,
+      wxNotebook, wxSplitterWindow, wxSashWindow, wxSashLayoutWindow, wxToolBar,
       wxStatusBar, wxWindow])
-PaletteStore.paletteLists['BasicControls'].extend([wxStaticText, wxTextCtrl, 
-      wxComboBox, wxChoice, wxCheckBox, wxRadioButton, wxSlider, wxGauge, 
+PaletteStore.paletteLists['BasicControls'].extend([wxStaticText, wxTextCtrl,
+      wxComboBox, wxChoice, wxCheckBox, wxRadioButton, wxSlider, wxGauge,
       wxScrollBar, wxStaticBitmap, wxStaticLine, wxStaticBox, wxHtmlWindow])
-PaletteStore.paletteLists['Buttons'].extend([wxButton, wxBitmapButton, 
+PaletteStore.paletteLists['Buttons'].extend([wxButton, wxBitmapButton,
       wxSpinButton, wxGenButton, wxGenBitmapButton])
-PaletteStore.paletteLists['ListControls'].extend([wxRadioBox, wxListBox, 
+PaletteStore.paletteLists['ListControls'].extend([wxRadioBox, wxListBox,
       wxCheckListBox, wxGrid, wxListCtrl, wxTreeCtrl])
 
 PaletteStore.compInfo.update({wxApp: ['wxApp', None],
