@@ -1442,14 +1442,18 @@ class ClassLinkPropEdit(OptionedPropEdit):
     def getStyle(self):
         return []
     def valueToIECValue(self):
+        return self.getNameForValue(self.value, self.linkClass)
+    
+    def getNameForValue(self, value, LinkClass):
         for k, v in self.defaults.items():
-            if self.value == v:
+            if value == v:
                 return k
-        objs = self.companion.designer.getObjectsOfClass(self.linkClass)
+        objs = self.companion.designer.getObjectsOfClass(LinkClass)
         for objName in objs.keys():
-            if objs[objName] and self.value and objs[objName].this == self.value.this:
+            if objs[objName] and value and objs[objName].this == value.this:
                 return objName
         return `None`
+    
     def inspectorEdit(self):
         self.editorCtrl = ChoiceIEC(self, self.value)
         self.editorCtrl.createControl(self.parent, self.idx, self.width)
@@ -1582,7 +1586,7 @@ def getValidSizers(parent, designer, value):
 class SizerEnumConstrPropEdit(ObjEnumConstrPropEdit):
     def getObjects(self):
         return getValidSizers(self.companion.parentCompanion.control, 
-                              self.companion.designer, value)
+                              self.companion.designer, self.value)
 
     def getCtrlValue(self):
         return self.companion.GetSizer()
@@ -1595,7 +1599,7 @@ class SizerClassLinkPropEdit(ClassLinkPropEdit):
         if self.value is None:
             value = 'None'
         else:
-            value = sizer.GetName()
+            value = self.getNameForValue(self.value, self.linkClass)
             
         return getValidSizers(self.companion.control, 
                               self.companion.designer, value)
