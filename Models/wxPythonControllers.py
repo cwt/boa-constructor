@@ -1,6 +1,6 @@
 #-----------------------------------------------------------------------------
 # Name:        wxPythonControllers.py
-# Purpose:     
+# Purpose:
 #
 # Author:      Riaan Booysen
 #
@@ -25,9 +25,7 @@ from PythonControllers import BaseAppController, ModuleController
 import EditorHelper, wxPythonEditorModels
 from Views import EditorViews, AppViews, DataView, Designer
 
-from sourceconst import *
-
-true=1;false=0
+true,false=1,0
 
 class AppController(BaseAppController):
     Model = wxPythonEditorModels.AppModel
@@ -51,11 +49,13 @@ class BaseFrameController(ModuleController):
     def addTools(self, toolbar, model):
         ModuleController.addTools(self, toolbar, model)
         toolbar.AddSeparator()
-        addTool(self.editor, toolbar, self.designerBmp, 'Frame Designer', self.OnDesigner)
+        addTool(self.editor, toolbar, self.designerBmp, 'Frame Designer',
+                self.OnDesigner)
 
     def addMenus(self, menu, model):
         accls = ModuleController.addMenus(self, menu, model)
-        self.addMenu(menu, EditorHelper.wxID_EDITORDESIGNER, 'Frame Designer', accls, (keyDefs['Designer']))
+        self.addMenu(menu, EditorHelper.wxID_EDITORDESIGNER, 'Frame Designer',
+              accls, (keyDefs['Designer']))
         return accls
 
     def createModel(self, source, filename, main, saved, modelParent=None):
@@ -92,7 +92,6 @@ class BaseFrameController(ModuleController):
         import time
         t = time.time()
         self.showDesigner()
-        #print 'Designer:', time.time() -t
 
     def showDesigner(self):
         # Just show if already opened
@@ -141,11 +140,11 @@ class BaseFrameController(ModuleController):
                     # add or focus frame designer
                     if not model.views.has_key('Designer'):
                         designer = Designer.DesignerView(self.editor,
-                              self.editor.inspector, model, self.editor.compPalette,
-                              model.companion, dataView)
+                              self.editor.inspector, model,
+                              self.editor.compPalette, model.companion, dataView)
                         model.views['Designer'] = designer
                         designer.refreshCtrl()
-                    model.views['Designer'].Show(true)
+                    model.views['Designer'].Show()
                 except:
                     if model.views.has_key('Designer'):
                         model.views['Designer'].saveOnClose = false
@@ -196,6 +195,8 @@ class PopupTransientWindowController(BaseFrameController):
 
 #-------------------------------------------------------------------------------
 
+Preferences.paletteTitle = Preferences.paletteTitle +' - wxPython GUI Builder'
+
 Controllers.modelControllerReg.update({
       wxPythonEditorModels.AppModel: AppController,
       wxPythonEditorModels.FrameModel: FrameController,
@@ -207,15 +208,16 @@ Controllers.modelControllerReg.update({
       wxPythonEditorModels.PopupTransientWindowModel: PopupTransientWindowController,
      })
 
-PaletteStore.newControllers.update({'wxApp': AppController,
-                                    'wxFrame': FrameController,
-                                    'wxDialog': DialogController,
-                                    'wxMiniFrame': MiniFrameController,
-                                    'wxMDIParentFrame': MDIParentController,
-                                    'wxMDIChildFrame': MDIChildController,
-                                    'wxPopupWindow': PopupWindowController,
-                                    'wxPopupTransientWindow': PopupTransientWindowController,
-                                   })
+PaletteStore.newControllers.update({
+      'wxApp': AppController,
+      'wxFrame': FrameController,
+      'wxDialog': DialogController,
+      'wxMiniFrame': MiniFrameController,
+      'wxMDIParentFrame': MDIParentController,
+      'wxMDIChildFrame': MDIChildController,
+      'wxPopupWindow': PopupWindowController,
+      'wxPopupTransientWindow': PopupTransientWindowController,
+     })
 
 
 # Register controllers on the New palette
