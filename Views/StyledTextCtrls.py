@@ -42,31 +42,6 @@ _is_block_closer = re.compile(r'''
 def ver_tot(ma, mi, re):
     return ma*10000+mi*100+re
 
-old_ver = ver_tot(2,2,1)
-cur_ver = ver_tot(wxMAJOR_VERSION, wxMINOR_VERSION, wxRELEASE_NUMBER)
-new_stc = cur_ver > old_ver
-old_stc = not new_stc
-
-if new_stc:
-    try:
-        wxStyledTextCtrl.SetKeywords        = wxStyledTextCtrl.SetKeyWords
-        wxStyledTextCtrl.SetCurrentPosition = wxStyledTextCtrl.SetCurrentPos
-        wxStyledTextCtrl.GetCurrentPosition = wxStyledTextCtrl.GetCurrentPos
-        wxStyledTextCtrl.IndicatorSetColour = wxStyledTextCtrl.IndicatorSetForeground
-        wxStyledTextCtrl.IndicatorGetColour = wxStyledTextCtrl.IndicatorGetForeground
-        wxStyledTextCtrl.GetModified        = wxStyledTextCtrl.GetModify
-        wxStyledTextCtrl.GetLineFromPos     = wxStyledTextCtrl.LineFromPosition
-        wxStyledTextCtrl.GetLineStartPos    = wxStyledTextCtrl.PositionFromLine
-        wxStyledTextCtrl.ScrollBy           = wxStyledTextCtrl.LineScroll
-        wxStyledTextCtrl.GetCurrentLineText = wxStyledTextCtrl.GetCurLine
-        wxStyledTextCtrl.BraceBadlight      = wxStyledTextCtrl.BraceBadLight
-        wxStyledTextCtrl.SetStyleFor        = wxStyledTextCtrl.SetStyling
-        wxStyledTextCtrl.MarkerGetNextLine  = wxStyledTextCtrl.MarkerNext
-        wxStyledTextCtrl.MarkerGetPrevLine  = wxStyledTextCtrl.MarkerPrevious
-    except:
-        new_stc = 0
-        old_stc = 1
-
 # GetCharAt, GetStyleAt now returns int instead of char
 
 word_delim  = string.letters + string.digits + '_'
@@ -94,7 +69,7 @@ class FoldingStyledTextCtrlMix:
             if evt.GetShift() and evt.GetControl():
                 self.FoldAll()
             else:
-                lineClicked = self.GetLineFromPos(evt.GetPosition())
+                lineClicked = self.LineFromPosition(evt.GetPosition())
                 if self.GetFoldLevel(lineClicked) & wxSTC_FOLDLEVELHEADERFLAG:
                     if evt.GetShift():
                         self.SetFoldExpanded(lineClicked, true)
@@ -195,10 +170,10 @@ class BrowseStyledTextCtrlMix:
         functionality for browsing the code.
     """
     def __init__(self):
-        self.handCrs = wxStockCursor(wxCURSOR_HAND)
-        self.stndCrs = wxStockCursor(wxCURSOR_ARROW)
+##        self.handCrs = wxStockCursor(wxCURSOR_HAND)
+##        self.stndCrs = wxStockCursor(wxCURSOR_ARROW)
         self.IndicatorSetStyle(0, wxSTC_INDIC_PLAIN)
-        self.IndicatorSetColour(0, wxBLUE)
+        self.IndicatorSetForeground(0, wxBLUE)
         self.styleStart = 0
         self.styleLength = 0
         self.ctrlDown = false
@@ -220,20 +195,19 @@ class BrowseStyledTextCtrlMix:
         return false
 
     def underlineWord(self, start, length):
-        self.SetCursor(self.handCrs)
+        #self.SetCursor(self.handCrs)
         self.SetLexer(wxSTC_LEX_NULL)
 
         self.StartStyling(start, wxSTC_INDICS_MASK)
-        self.SetStyleFor(length, wxSTC_INDIC0_MASK)
+        self.SetStyling(length, wxSTC_INDIC0_MASK)
 #        self.Refresh(false)
         return start, length
 
     def clearUnderline(self, start, length):
-##        wxSetCursor(self.stndCrs)
-        self.SetCursor(self.stndCrs)
+        #self.SetCursor(self.stndCrs)
 
         self.StartStyling(start, wxSTC_INDICS_MASK)
-        self.SetStyleFor(length, 0)
+        self.SetStyling(length, 0)
         self.SetLexer(wxSTC_LEX_PYTHON)
         self.Refresh(false)
         return 0, 0
@@ -248,10 +222,7 @@ class BrowseStyledTextCtrlMix:
                 mp = event.GetPosition()
                 pos = self.PositionFromPoint(wxPoint(mp.x, mp.y))
 
-                if old_stc:
-                    stl = ord(self.GetStyleAt(pos)) & 31
-                else:
-                    stl = self.GetStyleAt(pos) & 31
+                stl = self.GetStyleAt(pos) & 31
 
                 if self.StyleVeto(stl):
                     if self.styleLength > 0:
@@ -259,8 +230,8 @@ class BrowseStyledTextCtrlMix:
                           self.clearUnderline(self.styleStart, self.styleLength)
                     return
 
-                lnNo = self.GetLineFromPos(pos)
-                lnStPs = self.GetLineStartPos(lnNo)
+                lnNo = self.LineFromPosition(pos)
+                lnStPs = self.PositionFromLine(lnNo)
                 line = self.GetLine(lnNo)
                 piv = pos - lnStPs
                 start, length = self.getBrowsableText(line, piv, lnStPs)
@@ -286,8 +257,8 @@ class BrowseStyledTextCtrlMix:
 
     def getStyledWordElems(self, styleStart, styleLength):
         if styleLength > 0:
-            lnNo = self.GetLineFromPos(styleStart)
-            lnStPs = self.GetLineStartPos(lnNo)
+            lnNo = self.LineFromPosition(styleStart)
+            lnStPs = self.PositionFromLine(lnNo)
             line = self.GetLine(lnNo)
             start = styleStart - lnStPs
             word = line[start:start+styleLength]
@@ -298,10 +269,7 @@ class BrowseStyledTextCtrlMix:
     def OnBrowseClick(self, event):
         word, line, lnNo, start = self.getStyledWordElems(self.styleStart, self.styleLength)
         if word:
-            if old_stc:
-                style = ord(self.GetStyleAt(self.styleStart)) & 31
-            else:
-                style = self.GetStyleAt(self.styleStart) & 31
+            style = self.GetStyleAt(self.styleStart) & 31
             if self.BrowseClick(word, line, lnNo, start, style):
                 return
         event.Skip()
@@ -322,9 +290,9 @@ class CodeHelpStyledTextCtrlMix:
     def getCurrLineInfo(self):
         pos = self.GetCurrentPos()
         lnNo = self.GetCurrentLine()
-        lnStPs = self.GetLineStartPos(lnNo)
+        lnStPs = self.PositionFromLine(lnNo)
         return (pos, lnNo, lnStPs, 
-                self.GetCurrentLineText()[0], pos - lnStPs - 1)
+                self.GetCurLine()[0], pos - lnStPs - 1)
 
     def getFirstContinousBlock(self, docs):
         res = []
@@ -514,15 +482,11 @@ class PythonStyledTextCtrlMix:
         charBefore = None
         caretPos = self.GetCurrentPos()
         if caretPos > 0:
-            if old_stc:
-                charBefore = self.GetCharAt(caretPos - 1)
-                styleBefore = ord(self.GetStyleAt(caretPos - 1))
-            else:
-                try:
-                    charBefore = chr(self.GetCharAt(caretPos - 1))
-                except ValueError:
-                    charBefore = ''
-                styleBefore = self.GetStyleAt(caretPos - 1)
+            try:
+                charBefore = chr(self.GetCharAt(caretPos - 1))
+            except ValueError:
+                charBefore = ''
+            styleBefore = self.GetStyleAt(caretPos - 1)
 
         # check before
         if charBefore and charBefore in "[]{}()" and styleBefore == 10:
@@ -530,15 +494,11 @@ class PythonStyledTextCtrlMix:
 
         # check after
         if braceAtCaret < 0:
-            if old_stc:
-                charAfter = self.GetCharAt(caretPos)
-                styleAfter = ord(self.GetStyleAt(caretPos))
-            else:
-                try:
-                    charAfter = chr(self.GetCharAt(caretPos))
-                except ValueError:
-                    charAfter = ''
-                styleAfter = self.GetStyleAt(caretPos)
+            try:
+                charAfter = chr(self.GetCharAt(caretPos))
+            except ValueError:
+                charAfter = ''
+            styleAfter = self.GetStyleAt(caretPos)
 
             if charAfter and charAfter in "[]{}()" and styleAfter == 10:
                 braceAtCaret = caretPos
@@ -547,7 +507,7 @@ class PythonStyledTextCtrlMix:
             braceOpposite = self.BraceMatch(braceAtCaret)
 
         if braceAtCaret != -1 and braceOpposite == -1:
-            self.BraceBadlight(braceAtCaret)
+            self.BraceBadLight(braceAtCaret)
         else:
             self.BraceHighlight(braceAtCaret, braceOpposite)
             # self.Refresh(false)
@@ -639,11 +599,7 @@ class HTMLStyledTextCtrlMix:
         'sequence-key sequence-item sequence-start sequence-end sequence-odd '
 
         self.SetLexer(wxSTC_LEX_HTML)
-        if old_stc:
-            self.SetKeywords(0, hypertext_elements + hypertext_attributes + \
-              ' public !doctype '+zope_elements + zope_attributes)
-        else:
-            self.SetKeyWords(0, hypertext_elements + hypertext_attributes + \
+        self.SetKeyWords(0, hypertext_elements + hypertext_attributes + \
               ' public !doctype '+zope_elements + zope_attributes)
 
         self.SetMargins(1, 1)
@@ -737,11 +693,7 @@ class XMLStyledTextCtrlMix:
         'file hidden image '
 
         self.SetLexer(wxSTC_LEX_XML)
-        if old_stc:
-            self.SetKeywords(0, hypertext_elements + hypertext_attributes + \
-              ' public !doctype ')
-        else:
-            self.SetKeyWords(0, hypertext_elements + hypertext_attributes + \
+        self.SetKeyWords(0, hypertext_elements + hypertext_attributes + \
               ' public !doctype ')
 
         self.SetMargins(1, 1)
@@ -805,10 +757,7 @@ class CPPStyledTextCtrlMix:
             'union unsigned using virtual void volatile wchar_t while'
 
         self.SetLexer(wxSTC_LEX_CPP)
-        if old_stc:
-            self.SetKeywords(0, keyWds)
-        else:
-            self.SetKeyWords(0, keyWds)
+        self.SetKeyWords(0, keyWds)
 
         self.SetMargins(1, 1)
         # line numbers in the margin
@@ -856,6 +805,9 @@ from types import IntType, SliceType, StringType
 class STCLinesList:
     def __init__(self, STC):
         self.__STC = STC
+    
+    def _rememberPos(self):
+        self.__pos = self.GetCurrentPos()
 
     def __getitem__(self, key):
         if type(key) is IntType:
@@ -900,6 +852,23 @@ class STCLinesList:
             stc.ReplaceSelection('')
         else:
             raise TypeError, '%s not supported' % `type(key)`
+    
+    def __getattr__(self, name):
+        if name == 'current':
+            return self.__STC.GetCurrentLine()
+        if name == 'count':
+            return self.__STC.GetLineCount()
+        if name == 'size':
+            return self.__STC.GetTextLength()
+        # dubious
+        if name == 'line':
+            return self.__STC.GetCurLine()[0]
+        # dubious
+        if name == 'pos':
+            return self.__STC.GetCurrentPos()
+        
+        raise AttributeError, name
 
     def __len__(self):
         return self.__STC.GetLineCount()
+ 

@@ -13,9 +13,8 @@
 from ExternalLib import ndiff
 from EditorViews import EditorView, ClosableViewMix
 from wxPython.stc import *
-from ShellEditor import PseudoFile
 from StyledTextCtrls import PythonStyledTextCtrlMix
-from PrefsKeys import keyDefs
+from Preferences import keyDefs
 from wxPython import wx
 import Preferences, Utils
 import sys, linecache, traceback, shutil
@@ -25,7 +24,7 @@ uniqueFile2Mrk = 2
 newToBothMrk = 3
 maskMarkSet = 1 << uniqueFile1Mrk | 1 << uniqueFile2Mrk | 1 << newToBothMrk
 
-class DiffPSOut(PseudoFile):
+class DiffPSOut(Utils.PseudoFile):
     def write(self, s):
 ##        cp = self.output.GetCurrentPos()
 ##        cl = self.output.GetLineFromPos(cp)
@@ -106,8 +105,8 @@ class PythonSourceDiffView(wxStyledTextCtrl, EditorView, PythonStyledTextCtrlMix
     def gotoLine(self, lineno, offset = -1):
         self.GotoLine(lineno)
         vl = self.GetFirstVisibleLine()
-        self.ScrollBy(0, lineno -  vl)
-        if offset != -1: self.SetCurrentPosition(self.GetCurrentPos()+offset+1)
+        self.LineScroll(0, lineno -  vl)
+        if offset != -1: self.SetCurrentPos(self.GetCurrentPos()+offset+1)
 
     def OnUpdateUI(self, event):
         if Preferences.braceHighLight:
@@ -118,19 +117,19 @@ class PythonSourceDiffView(wxStyledTextCtrl, EditorView, PythonStyledTextCtrlMix
 
     def OnMarginClick(self, event):
         if event.GetMargin() == 1:
-            ln = self.GetLineFromPos(event.GetPosition())
+            ln = self.LineFromPosition(event.GetPosition())
 #            ln = event.GetLine()
             print ln, self.MarkerGet(ln)
 
     def OnPrev(self, event):
-        self.currSearchLine = self.MarkerGetPrevLine(self.currSearchLine,
+        self.currSearchLine = self.MarkerPrevious(self.currSearchLine,
           maskMarkSet) - 1
 #        self.SetFocus()
 #        self.EnsureVisible(self.currSearchLine)
         self.gotoLine(self.currSearchLine + 1)
 
     def OnNext(self, event):
-        self.currSearchLine = self.MarkerGetNextLine(self.currSearchLine,
+        self.currSearchLine = self.MarkerNext(self.currSearchLine,
           maskMarkSet) + 1
 #        self.SetFocus()
         self.gotoLine(self.currSearchLine - 1)
