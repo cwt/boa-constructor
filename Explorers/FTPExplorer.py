@@ -1,4 +1,4 @@
-import ExplorerNodes, EditorModels
+import ExplorerNodes, EditorModels, Utils
 import string, os
 from wxPython.wx import wxMenu, EVT_MENU, wxMessageBox, wxPlatform
 from ZopeLib.ZopeFTP import ZopeFTP
@@ -50,7 +50,10 @@ class FTPItemNode(ExplorerNodes.ExplorerNode):
         self.ftpConn = ftpConn
         self.ftpObj = ftpObj
         self.root = root
-        self.cache = []
+        self.cache = {}
+
+    def destroy(self):
+        self.cache = {}
 
     def isFolderish(self):
         return self.ftpObj.isFolder()
@@ -68,7 +71,7 @@ class FTPItemNode(ExplorerNodes.ExplorerNode):
         try:
             items = self.ftpConn.dir(self.ftpObj.whole_name())
         except ftplib.error_perm, resp:
-            Utils.ShowMessage(None, 'FTP Error', resp)
+            Utils.ShowMessage(None, 'FTP Error', str(resp))
             raise
         
         if not root: root = self.root
@@ -106,7 +109,8 @@ class FTPConnectionNode(FTPItemNode):
             try:
                 props = self.properties
                 self.ftpConn.connect(props['username'], props['passwd'], 
-                                     props['host'], props['port'])
+                                     props['host'], props['port'], 
+                                     props['passive'])
             except Exception, message:
                 wxMessageBox(`message.args`, 'Error on connect')
                 raise
