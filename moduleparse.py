@@ -25,6 +25,8 @@ the hell out of the parser, but it usually works.
 Continuation lines are now handled for class, method and function defs
 """
 
+# XXX Dedented block (0 indent) should trigger end of class/func
+
 import os, sys
 import imp
 import re
@@ -54,6 +56,7 @@ is_doc_quote = re.compile("'''")
 id_doc_quote_dbl = re.compile('"""')
 is_todo = re.compile('^[ \t]*# XXX')
 is_wid = re.compile('^\[(?P<wids>.*)\][ \t]*[=][ \t]*wxNewId[(](?P<count>\d+)[)]$')
+is_break_line = re.compile('^#-+(?P<descr>.*%s)-+$'%obj_def)
 
 sq3string = r"(\b[rR])?'''([^'\\]|\\.|'(?!''))*(''')?"
 dq3string = r'(\b[rR])?"""([^"\\]|\\.|"(?!""))*(""")?'
@@ -275,6 +278,7 @@ class Module:
         self.name = module
         self.globals = {}
         self.global_order = []
+        self.break_lines = {}
 
         cur_class = None
         cur_meth = ''
@@ -320,6 +324,11 @@ class Module:
         if blank_line.match(line):
             # ignore blank (and comment only) lines
             self.loc = self.loc - 1
+            if len(line) == 80:
+                res = is_break_line.match(line)
+                if res:
+                    self.break_lines[lineno] = res.group('descr')
+                
             return 0, cur_class, cur_meth, cur_func
 
 ##            if dedent.match(line):
