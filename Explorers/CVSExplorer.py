@@ -122,6 +122,13 @@ class CVSController(ExplorerNodes.Controller):
         self.fileCVSMenu.Destroy()
         self.cvsEnvMenu.Destroy()
 
+    def getName(self, item):
+        name = ExplorerNodes.Controller.getName(self, item)
+        if ' ' in name:
+            return '"%s"' % name
+        else:
+            return name
+
     def setupListCtrl(self):
         self.list.SetWindowStyleFlag(wxLC_REPORT)
         self.list.InsertColumn(0, 'Name', wxLIST_FORMAT_LEFT, 150)
