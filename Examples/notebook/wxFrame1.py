@@ -45,10 +45,10 @@ class wxFrame1(wxFrame):
         parent.SetStatusWidths([-1])
 
     def _init_utils(self):
-        self.File = wxMenu(title = 'File')
+        self.File = wxMenu(title = '')
         self._init_coll_File_Items(self.File)
 
-        self.Help = wxMenu(title = 'Help')
+        self.Help = wxMenu(title = '')
         self._init_coll_Help_Items(self.Help)
 
         self.menuBar1 = wxMenuBar()
@@ -59,9 +59,8 @@ class wxFrame1(wxFrame):
         wxFrame.__init__(self, size = wxSize(480, 347), id = wxID_WXFRAME1, title = 'Notebook', parent = prnt, name = '', style = wxDEFAULT_FRAME_STYLE, pos = wxPoint(384, 346))
         self._init_utils()
         self.SetMenuBar(self.menuBar1)
-        self.Show(true)
 
-        self.statusBar1 = wxStatusBar(size = wxDefaultSize, parent = self, pos = wxPoint(56, 104), name = 'statusBar1', style = 0, id = wxID_WXFRAME1STATUSBAR1)
+        self.statusBar1 = wxStatusBar(parent = self, name = 'statusBar1', style = 0, id = wxID_WXFRAME1STATUSBAR1)
         self._init_coll_statusBar1_Fields(self.statusBar1)
         self.SetStatusBar(self.statusBar1)
 
