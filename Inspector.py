@@ -25,7 +25,7 @@ from Companions.EventCollections import *
 from Utils import AddToolButtonBmpIS
 import Preferences, RTTI
 from Preferences import IS, oiLineHeight, oiNamesWidth, inspPageNames, flatTools
-from Zope import PropDlg
+from ZopeLib import PropDlg
 
 scrollBarWidth = 0
 IECWidthFudge = 3
@@ -161,7 +161,6 @@ class InspectorFrame(wxFrame):
         if sb: sb.SetValue(10)
         
         c_p = compn.getPropList()
-#        c_p = RTTI.getPropList(self.selObj, compn)
         if sb: sb.SetValue(30)
         self.constr.readObject(c_p['constructor'])
         if sb: sb.SetValue(50)
@@ -183,8 +182,6 @@ class InspectorFrame(wxFrame):
             self.containment.EnsureVisible(treeId)
 
         if sb: sb.SetValue(0)
-
-#        self.pages.ResizeChildren()
 
     # These methods update property pages.
     # Call when changes in the selected control is detected 
@@ -280,6 +277,7 @@ class InspectorFrame(wxFrame):
             self.refreshZopeProps()
             
     def OnCloseWindow(self, event):
+        self.Show(false)
         if self.destroying:
             self.cleanup()
             self.pages.destroy()
@@ -288,8 +286,6 @@ class InspectorFrame(wxFrame):
             self.events.destroy()
             self.Destroy()
             event.Skip()
-        else:
-            self.Show(false)
 
 wxID_PARENTTREE = NewId()
 wxID_PARENTTREESELECTED = NewId()
