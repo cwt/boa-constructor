@@ -92,7 +92,7 @@ class KeyDefsDialog(wxDialog):
 
         shortcut = self.shortcutTc.GetValue()
         if not shortcut:
-            raise InvalidValueError('Shortcut may not be blank, enter a concise description, e.g. Ctrl-Shft-S')
+            raise InvalidValueError('Shortcut may not be blank, enter a concise description, e.g. Ctrl-Shift-S')
 
         return "(%s, %s, '%s')," % (flags, keyCode, shortcut)
 
@@ -134,7 +134,7 @@ def printableKeyCode(keyCode):
 
 flagValNames = {wxACCEL_CTRL:  ('wxACCEL_CTRL', 'Ctrl'),
                 wxACCEL_ALT:   ('wxACCEL_ALT', 'Alt'),
-                wxACCEL_SHIFT: ('wxACCEL_SHIFT', 'Shft')}
+                wxACCEL_SHIFT: ('wxACCEL_SHIFT', 'Shift')}
 
 specialKeys = {'WXK_BACK': 8, 'WXK_TAB': 9, 'WXK_RETURN': 13, 'WXK_ESCAPE': 27,
                'WXK_SPACE': 32, 'WXK_DELETE': 127}

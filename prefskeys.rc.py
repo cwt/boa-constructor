@@ -1,4 +1,4 @@
-## rc-version: 3 ##
+## rc-version: 4 ##
 # RCS-ID:      $Id$
 
 from wxPython.wx import *
@@ -16,7 +16,7 @@ keyDefs = {
   'DashLine'    : (wxACCEL_CTRL, ord('B'), 'Ctrl-B'),
   'MarkPlace'   : (wxACCEL_CTRL, ord('M'), 'Ctrl-M'),
   'CodeComplete': (wxACCEL_CTRL, WXK_SPACE, 'Ctrl-Space'),
-  'CallTips'    : (wxACCEL_SHIFT|wxACCEL_CTRL, WXK_SPACE, 'Ctrl-Shft-Space'),
+  'CallTips'    : (wxACCEL_SHIFT|wxACCEL_CTRL, WXK_SPACE, 'Ctrl-Shift-Space'),
 #-Modules-----------------------------------------------------------------------
   'RunApp'      : (wxACCEL_NORMAL, WXK_F9, 'F9'),
   'RunMod'      : (wxACCEL_NORMAL, WXK_F10, 'F10'),
@@ -35,9 +35,6 @@ keyDefs = {
   'Escape'      : (wxACCEL_NORMAL, WXK_ESCAPE, 'Esc'),
   'NextPage'    : (wxACCEL_CTRL, ord('K'), 'Ctrl-K'),
   'PrevPage'    : (wxACCEL_CTRL, ord('J'), 'Ctrl-J'),
-  'Cut'         : (wxACCEL_SHIFT, WXK_DELETE, 'Shft-Del'),
-  'Copy'        : (wxACCEL_CTRL, WXK_INSERT, 'Ctrl-Ins'),
-  'Paste'       : (wxACCEL_SHIFT, WXK_INSERT, 'Shft-Ins'),
   'Inspector'   : (wxACCEL_NORMAL, WXK_F11, 'F11'),
   'Designer'    : (wxACCEL_NORMAL, WXK_F12, 'F12'),
   'Editor'      : (wxACCEL_NORMAL, WXK_F12, 'F12'),
@@ -46,15 +43,21 @@ keyDefs = {
   'GotoExplorer': (wxACCEL_CTRL, ord('E'), 'Ctrl-E'),
   'GotoShell'   : (wxACCEL_CTRL, ord('P'), 'Ctrl-P'),
   'CloseView'   : (wxACCEL_CTRL, ord('W'), 'Ctrl-W'),
+#--Clipboard--------------------------------------------------------------------
+  'Cut'         : (wxACCEL_SHIFT, WXK_DELETE, 'Shift-Del'),
+  'Copy'        : (wxACCEL_CTRL, WXK_INSERT, 'Ctrl-Ins'),
+  'Paste'       : (wxACCEL_SHIFT, WXK_INSERT, 'Shift-Ins'),
+  'CopyPlus'    : (wxACCEL_CTRL|wxACCEL_SHIFT, ord('C') , 'Ctrl-Shift-C'),
+  'PastePlus'   : (wxACCEL_CTRL|wxACCEL_SHIFT, ord('V'), 'Ctrl-Shift-V'),
 #--Designer---------------------------------------------------------------------
   'MoveLeft'    : (wxACCEL_CTRL, WXK_LEFT, 'Ctrl-Left'),
   'MoveRight'   : (wxACCEL_CTRL, WXK_RIGHT, 'Ctrl-Right'),
   'MoveUp'      : (wxACCEL_CTRL, WXK_UP, 'Ctrl-Up'),
   'MoveDown'    : (wxACCEL_CTRL, WXK_DOWN, 'Ctrl-Down'),
-  'WidthDec'    : (wxACCEL_SHIFT, WXK_LEFT, 'Shft-Left'),
-  'WidthInc'    : (wxACCEL_SHIFT, WXK_RIGHT, 'Shft-Right'),
-  'HeightInc'   : (wxACCEL_SHIFT, WXK_DOWN, 'Shft-Down'),
-  'HeightDec'   : (wxACCEL_SHIFT, WXK_UP, 'Shft-Up'),
+  'WidthDec'    : (wxACCEL_SHIFT, WXK_LEFT, 'Shift-Left'),
+  'WidthInc'    : (wxACCEL_SHIFT, WXK_RIGHT, 'Shift-Right'),
+  'HeightInc'   : (wxACCEL_SHIFT, WXK_DOWN, 'Shift-Down'),
+  'HeightDec'   : (wxACCEL_SHIFT, WXK_UP, 'Shift-Up'),
   'SelectLeft'  : (wxACCEL_NORMAL, WXK_LEFT, 'Left'),
   'SelectRight' : (wxACCEL_NORMAL, WXK_RIGHT, 'Right'),
   'SelectDown'  : (wxACCEL_NORMAL, WXK_DOWN, 'Down'),
@@ -65,11 +68,11 @@ keyDefs = {
 }
 
 # Delphi's indent
-##  'Indent'      : (wxACCEL_SHIFT|wxACCEL_CTRL, ord('I'), 'Ctrl-Shft-I'),
-##  'Dedent'      : (wxACCEL_SHIFT|wxACCEL_CTRL, ord('U'), 'Ctrl-Shft-U'),
+##  'Indent'      : (wxACCEL_SHIFT|wxACCEL_CTRL, ord('I'), 'Ctrl-Shift-I'),
+##  'Dedent'      : (wxACCEL_SHIFT|wxACCEL_CTRL, ord('U'), 'Ctrl-Shift-U'),
 # VS's indent
 ##  'Indent'      : (wxACCEL_NORMAL, WXK_TAB, 'Tab'),
-##  'Dedent'      : (wxACCEL_SHIFT, WXK_TAB, 'Shft-Tab'),
+##  'Dedent'      : (wxACCEL_SHIFT, WXK_TAB, 'Shift-Tab'),
 
 if wxPlatform == '__WXMSW__':
     keyDefs.update({'SaveAs'      : (wxACCEL_ALT, ord('S'), 'Alt-S'),
@@ -87,9 +90,9 @@ elif wxPlatform == '__WXGTK__':
                   })
 
 # Not used yet, defined for completeness
-stcDefs = {'Cut'        : 'Shft-Del',
+stcDefs = {'Cut'        : 'Shift-Del',
            'Copy'       : 'Ctrl-Ins',
-           'Paste'      : 'Shft-Ins',
+           'Paste'      : 'Shift-Ins',
            'SelectAll'  : 'Ctrl-A',
            'Undo'       : 'Ctrl-Z',
            'Redo'       : 'Ctrl-Y',
