@@ -5,7 +5,8 @@ from cStringIO import StringIO
 
 from wxPython.wx import *
 from wxPython.lib.anchors import LayoutAnchors
-from wxPython.tools import img2py
+
+from wx.tools import img2py
 
 import Utils, Plugins
 
