@@ -9,8 +9,8 @@ from Models import EditorHelper
 
 true=1;false=0
 
-[wxID_EDTGOTO, wxID_EDTRELOAD, wxID_EDTCLOSE, wxID_EDTMOVEUP, wxID_EDTMOVEDOWN,
- wxID_EDTCOPYPATH] = Utils.wxNewIds(6)
+[wxID_EDTGOTO, wxID_EDTRELOAD, wxID_EDTCLOSE, wxID_EDTCLOSEALL, wxID_EDTMOVEUP, 
+ wxID_EDTMOVEDOWN, wxID_EDTCOPYPATH] = Utils.wxNewIds(7)
 
 class EditorController(ExplorerNodes.Controller):
     closeBmp = 'Images/Editor/Close.png'
@@ -27,6 +27,7 @@ class EditorController(ExplorerNodes.Controller):
                                (wxID_EDTRELOAD, 'Refresh', self.OnReloadItems, '-'),
                                (-1, '-', None, '-'),
                                (wxID_EDTCLOSE, 'Close', self.OnCloseModels, self.closeBmp),
+                               (wxID_EDTCLOSEALL, 'Close all', self.OnCloseAllModels, '-'),
                                (-1, '-', None, ''),
                                (wxID_EDTMOVEUP, 'Move up', self.OnMoveModelUp, self.moveUpBmp),
                                (wxID_EDTMOVEDOWN, 'Move down', self.OnMoveModelDown, self.moveDownBmp),
@@ -118,6 +119,11 @@ class EditorController(ExplorerNodes.Controller):
             for node in nodes:
                 paths.append(node.resourcepath)
             Utils.writeTextToClipboard(string.join(paths, os.linesep))
+
+    def OnCloseAllModels(self, event):
+        if self.list.node:
+            for node in self.list.items:
+                self.editor.closeModulePage(node.modulePage)
 
 class OpenModelsNode(ExplorerNodes.ExplorerNode):
     protocol = 'boa.open-models'
