@@ -199,7 +199,7 @@ class DAVItemNode(ExplorerNodes.ExplorerNode):
         else:
             if not fn:
                 fn = os.path.basename(fsNode.resourcepath)
-            newNode = self.createChildNode(self.resourcepath+fn, 0, self.properties)
+            newNode = self.createChildNode(self.resourcepath+fn, self.properties)
             self.checkResp(newNode.resource.put(fsNode.load()))
 
     def copyToFS(self, fsFolderNode, fn=''):
@@ -363,3 +363,4 @@ class DAVSubCompanion(DAVPropReaderMixin, HelperDTC):
 #-------------------------------------------------------------------------------
 ExplorerNodes.register(DAVItemNode, clipboard=DAVExpClipboard,
       confdef=('explorer', 'dav'), controller=DAVController, category=DAVCatNode)
+ExplorerNodes.fileOpenDlgProtReg.append('dav')
