@@ -22,7 +22,7 @@ import ClassBrowser, Help, Preferences
 from wxPython.wx import *
 from Preferences import logFontSize, IS, toPyPath, flatTools
 from wxPython.lib.buttons import wxGenButton, wxGenBitmapButton, wxGenToggleButton, wxGenBitmapToggleButton
-from ExternalLib.ConfigParser import ConfigParser
+import Utils
 import os
 
 currentMouseOverTip = ''
@@ -63,7 +63,7 @@ class BoaFrame(wxFrame):
                 
         self.widgetSet = {}
         if wxPlatform == '__WXMSW__':
-            self.SetIcon(wxIcon(toPyPath('Images/Icons/Boa.ico'), wxBITMAP_TYPE_ICO))
+            self.SetIcon(IS.load('Images/Icons/Boa.ico'))
 
         # Setup toolbar
         self.browser = None
@@ -85,10 +85,8 @@ class BoaFrame(wxFrame):
         self.addTool('Images/Shared/PythonHelp', 'Python help', 'Show help', self.OnPythonHelpToolClick)
         
         # Add additional helpbuttons if defined in the config file
-        conf = ConfigParser()
-        if wxPlatform == '__WXMSW__': plat = 'msw'
-        else: plat = 'gtk'
-        conf.read(Preferences.pyPath+'/Explorer.'+plat+'.cfg')
+        conf = Utils.createAndReadConfig('Explorer')
+
         customHelpItems = eval(conf.get('preferences', 'customhelp'))
         self.customHelpItems = {}
         for caption, helpFile in customHelpItems.items():
@@ -131,6 +129,7 @@ class BoaFrame(wxFrame):
             palettePage.addButton('wxMDIChildFrame', None, None, self.OnNewMDIChildFrame, self.OnHint, self.OnHintLeave, wxGenBitmapButton)
             palettePage.addButton('Module', None, None, self.OnNewModule, self.OnHint, self.OnHintLeave, wxGenBitmapButton)
             palettePage.addButton('Package', None, None, self.OnNewPackagePost, self.OnHint, self.OnHintLeave, wxGenBitmapButton)
+            palettePage.addButton('Setup', None, None, self.OnNewSetup, self.OnHint, self.OnHintLeave, wxGenBitmapButton)
             palettePage.addButton('Text', None, None, self.OnNewText, self.OnHint, self.OnHintLeave, wxGenBitmapButton)
             self.palettePages.append(palettePage)
             # Normal control pages
@@ -146,10 +145,10 @@ class BoaFrame(wxFrame):
                   self.OnDialogPaletteClick, self.OnHint, self.OnHintLeave, wxGenBitmapButton)
             self.palettePages.append(self.dialogPalettePage)
             # Zope page
-            self.zopePalettePage = ZopePalettePage(self.palette, PaletteMapping.zopePalette[0], 'Images/Palette/'+transpSF, self, self.widgetSet, self.senders, self.componentSB)
-            self.zopePalettePage.addToggleBitmaps(PaletteMapping.zopePalette[2], None, None)
-            self.palettePages.append(self.zopePalettePage)
-            
+            if conf.has_option('explorer', 'zope'):
+                self.zopePalettePage = ZopePalettePage(self.palette, PaletteMapping.zopePalette[0], 'Images/Palette/'+transpSF, self, self.widgetSet, self.senders, self.componentSB)
+                self.zopePalettePage.addToggleBitmaps(PaletteMapping.zopePalette[2], None, None)
+                self.palettePages.append(self.zopePalettePage)
         else:
             palettePage = None
     
@@ -202,11 +201,12 @@ class BoaFrame(wxFrame):
         EVT_NEW_PACKAGE(self, self.OnNewPackage)
         EVT_CLOSE(self, self.OnCloseWindow)
 
-    def addTool(self, filename, text, help, func):
+    def addTool(self, filename, text, help, func, toggle = false):
         mID = wxNewId()
         self.toolBar.AddTool(mID, IS.load(filename+'.bmp'), #wxBitmap(filename+'.bmp', wxBITMAP_TYPE_BMP),
-          shortHelpString = text)
+          shortHelpString = text, isToggle = toggle)
         EVT_TOOL(self, mID, func)
+        return mID
     
 ##    def OnClick(self, event):
 ##        self.componentSB.SetStatusText('Palette Click'+`event.GetId()`)
@@ -281,6 +281,9 @@ class BoaFrame(wxFrame):
     def OnNewText(self, event):
         self.editor.addNewTextPage()
 
+    def OnNewSetup(self, event):
+        self.editor.addNewSetupPage()
+
 ##    def OnNewWidget(self, event):
 ##        pass
 
@@ -314,6 +317,11 @@ class BoaFrame(wxFrame):
             self.browser = ClassBrowser.ClassBrowserFrame(self, -1, "Class explorer")
         self.browser.Show(true)
         self.browser.Raise()
+    
+    def OnComposeClick(self, event):
+        pass
+    def OnInheritClick(self, event):
+        pass
     
     def OnCloseClick(self, event):
         self.Close()
@@ -358,8 +366,10 @@ class ComponentSelection:
         EVT_CHECKBOX(self.selComp, wID, palette.OnUncheckComponent)
         palette.toolBar.AddControl(self.selComp)
 
-        palette.addTool('Images/Shared/Compose', 'Compose', ' ', palette.OnHelpToolClick)
-        palette.addTool('Images/Shared/Inherit', 'Inherit', ' ', palette.OnHelpToolClick)
+        cId = palette.addTool('Images/Shared/Compose', 'Compose', ' ', palette.OnComposeClick, toggle = true)
+        iId = palette.addTool('Images/Shared/Inherit', 'Inherit', ' ', palette.OnInheritClick, toggle = true)
+        palette.toolBar.ToggleTool(cId, true)
+        palette.toolBar.EnableTool(iId, false)
 
         self.selection = None
         self.prevPage = None
@@ -451,8 +461,8 @@ class PanelPalettePage(wxPanel, BasePalettePage):
         parent.AddPage(self, name)
         self.eventOwner = eventOwner
     
-    def __del__(self):
-        print '__del__', self.__class__.__name__        
+##    def __del__(self):
+##        print '__del__', self.__class__.__name__        
     
     def destroy(self):
         del self.senders
@@ -476,7 +486,7 @@ class PanelPalettePage(wxPanel, BasePalettePage):
         bmp.SetMask(mask)
         newButton.SetBitmapLabel(bmp)
 
-        EVT_BUTTON(self,mID,clickEvt)
+        EVT_BUTTON(self, mID, clickEvt)
 
         self.senders.addObject(newButton)
         self.widgets[`mID`] = (widgetName, wxClass, constrClass)
