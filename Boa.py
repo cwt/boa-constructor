@@ -175,6 +175,7 @@ if __name__ == '__main__' and len(sys.argv) > 1:
 
         # startupModules contain everything from the first filename and on
         sys.argv = startupModules
+        sys.path.insert(0, os.path.abspath(os.path.dirname(sys.argv[0])))
         execfile(sys.argv[0], {'__name__': '__main__',
                                '__builtins__': __builtins__})
 
@@ -351,8 +352,10 @@ modules ={'About': [0, 'About box and Splash screen', 'About.py'],
  'InspectorEditorControls': [0, '', 'PropEdit/InspectorEditorControls.py'],
  'IsolatedDebugger': [0, '', 'Debugger/IsolatedDebugger.py'],
  'JavaSupport.plug-in': [0, '', 'Plug-ins/JavaSupport.plug-in.py'],
+ 'LibCompanions': [0, '', 'Companions/LibCompanions.py'],
  'ListCompanions': [0, '', 'Companions/ListCompanions.py'],
  'LoginDialog': [0, '', 'ZopeLib/LoginDialog.py'],
+ 'MaskedEditFmtCodeDlg': [0, '', 'Companions/MaskedEditFmtCodeDlg.py'],
  'ModRunner': [0,
                'Module that runs processes in a variety of ways',
                'ModRunner.py'],
@@ -367,6 +370,8 @@ modules ={'About': [0, 'About box and Splash screen', 'About.py'],
                   'Storage for variables defining the palette organisation',
                   'PaletteStore.py'],
  'PascalSupport.plug-in': [0, '', 'Plug-ins/PascalSupport.plug-in.py'],
+ 'PathMappingDlg': [0, '', 'Debugger/PathMappingDlg.py'],
+ 'PathsPanel': [0, '', 'Debugger/PathsPanel.py'],
  'Plugins': [0, '', 'Plugins.py'],
  'Preferences': [0,
                  'Central store of customiseable properties',
@@ -387,6 +392,7 @@ modules ={'About': [0, 'About box and Splash screen', 'About.py'],
  'RegexEditor.plug-in': [0, '', 'Plug-ins/RegexEditor.plug-in.py'],
  'RemoteClient': [0, '', 'Debugger/RemoteClient.py'],
  'RemoteDialog': [0, '', 'Debugger/RemoteDialog.py'],
+ 'RemoteServer': [0, '', 'Debugger/RemoteServer.py'],
  'ResourceSupport': [0, '', 'Models/ResourceSupport.py'],
  'RunCyclops': [0, '', 'RunCyclops.py'],
  'SSHExplorer': [0, '', 'Explorers/SSHExplorer.py'],
@@ -408,6 +414,7 @@ modules ={'About': [0, 'About box and Splash screen', 'About.py'],
  'UserCompanions.plug-in': [0, '', 'Plug-ins/UserCompanions.plug-in.py'],
  'UtilCompanions': [0, '', 'Companions/UtilCompanions.py'],
  'Utils': [0, 'General utility routines and classes', 'Utils.py'],
+ 'WizardCompanions': [0, '', 'Companions/WizardCompanions.py'],
  'XMLSupport': [0, '', 'Models/XMLSupport.py'],
  'XMLView': [0, '', 'Views/XMLView.py'],
  'ZipExplorer': [0, '', 'Explorers/ZipExplorer.py'],
@@ -434,6 +441,7 @@ modules ={'About': [0, 'About box and Splash screen', 'About.py'],
  'relpath': [0, '', 'relpath.py'],
  'sourceconst': [0, 'Source generation constants', 'sourceconst.py'],
  'wxNamespace': [0, '', 'wxNamespace.py'],
+ 'wxPopen': [0, '', 'wxPopen.py'],
  'wxPythonControllers': [0, '', 'Models/wxPythonControllers.py'],
  'wxPythonEditorModels': [0, '', 'Models/wxPythonEditorModels.py'],
  'xmlrpclib': [0, '', 'ExternalLib/xmlrpclib.py']}
@@ -507,12 +515,8 @@ class BoaApp(wxApp):
     
             print 'showing main frames <<100/100>>'
             if constricted:
-                #pos = self.main.GetPosition()
-                #self.main.Center()
                 editor.CenterOnScreen()
                 inspector.CenterOnScreen()
-                #self.main.SetPosition(pos)
-                #editor.SetIcon(self.main.GetIcon())
                 inspector.initSashes()
             else:
                 self.main.Show()
@@ -536,10 +540,9 @@ class BoaApp(wxApp):
             abt.Destroy()
             del abt
 
-
         # Apply command line switches
         if doDebug and startupModules:
-            mod = editor.openOrGotoModule(startupModules[0])
+            mod = editor.openOrGotoModule(startupModules[0])[0]
             mod.debug()
         elif startupModules:
             for mod in startupModules:
@@ -613,9 +616,6 @@ def main(argv=None):
             # Install/update run time libs if necessary
             Utils.updateDir(join(Preferences.pyPath, 'bcrtl'),
                   join(wxPythonLibPath, 'bcrtl'))
-            ## Install debugger hard breakpoint hook
-            ##Utils.updateFile(join(Preferences.pyPath, 'Debugger', 'bcdb.lib.py'),
-            ##                 join(pythonLibPath, 'bcdb.py'))
         except Exception, error:
             startupErrors.extend(['Error while installing Run Time Libs:',
             '    '+str(error),
