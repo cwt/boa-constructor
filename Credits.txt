@@ -1,0 +1,11 @@
+Sampled people and software 
+
+wxPython (Robin Dunn) & wxWindows (Julian Smart, Robert Roebling, 
+Vadim Zeitlin, et al.) 
+Cliff Baeseman for sorting out initial wxGTK problems
+moduleparse.py borrows from pyclbrs.py - standard python library
+uses PythonInterpreter.py by Fredrik Lundh
+Debugger based on IDLE's debugger by Guido van Rossum
+Mozilla & Delphi for iconic inspirations
+Neil Hodgson for Scintilla
+Cyclops, ndiff by Tim Peters
