@@ -36,7 +36,6 @@ class wxBasePhonyApp:
     def Dispatch(self, *_args, **_kwargs):
         pass
     def ExitMainLoop(self, *_args, **_kwargs):
-        print 'PhonyApp exit mainloop'
         pass
     def Initialized(self, *_args, **_kwargs):
         pass
@@ -54,7 +53,6 @@ class wxBasePhonyApp:
     def SetClassName(self, *_args, **_kwargs):
         pass
     def SetExitOnFrameDelete(self, *_args, **_kwargs):
-##      print 'PhonyApp: SetExitOnFrameDelete'
         pass
     def SetPrintMode(self, *_args, **_kwargs):
         pass
@@ -70,10 +68,8 @@ class wxBasePhonyApp:
 class wxPhonyApp(wxBasePhonyApp):
     def MainLoop(self, *_args, **_kwargs):
         import sys
-        print sys.path
         while self.inMainLoop:
             self.Dispatch()
-##          print 'phony app: MainLoop'
             self.debugger.startMainLoop()
             self.debugger.stopMainLoop()
 
