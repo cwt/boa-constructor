@@ -23,7 +23,8 @@ except ImportError:
 
 from wxPython.wx import *
 
-from EditorViews import ListCtrlView, ModuleDocView, wxwAppModuleTemplate, CloseableViewMix
+from EditorViews import ListCtrlView, ModuleDocView, wxwAppModuleTemplate, \
+                        CloseableViewMix, FindResultsAdderMixin
 import SourceViews
 import Search, Utils
 
@@ -86,7 +87,7 @@ class AppFindResults(ListCtrlView, CloseableViewMix):
         self.rerun(None)
 
 # XXX Add 'Get description from module info' option
-class AppView(ListCtrlView):
+class AppView(ListCtrlView, FindResultsAdderMixin):
     openBmp = 'Images/Editor/OpenFromApp.png'
     addModBmp = 'Images/Editor/AddToApp.png'
     remModBmp = 'Images/Editor/RemoveFromApp.png'
@@ -211,23 +212,6 @@ class AppView(ListCtrlView):
                 self.model.editor.openOrGotoModule(\
                   self.model.modules[mod][2])
             except: pass
-
-    def addFindResults(self, pattern, mapResults):
-        """ mapResult is map of tuples where
-            Key - 'Module', file name
-            Value - ('Line no', 'Col', 'Text')
-        """
-        from FindResults import FindResults
-        name = 'Results: ' + pattern
-        if not self.model.views.has_key(name):
-            resultView = self.model.editor.addNewView(name, FindResults)
-        else:
-            resultView = self.model.views[name]
-        resultView.tabName = name
-        resultView.results = mapResults
-        resultView.findPattern = pattern
-        resultView.refresh()
-        resultView.focus()
 
     def OnFind(self, event):
         import FindReplaceDlg
