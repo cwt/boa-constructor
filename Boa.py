@@ -16,94 +16,109 @@
 # the story starts
 # in a few files far away
 
+""" The __main__ file for Boa.
+
+Handles creation/initialisation of main objects and commandline arguments """
 
 import sys, os, string
+
+# should Boa run as a 'server' and receive and open modules from other Boas 
+# started with module command line arguments
+server_mode = 1
 
 def trace_func(frame, event, arg):
     """ Callback function when Boa runs in tracing mode"""
     if frame:
-        info = '%s|%d|%d|%s|%s\n' % (frame.f_code.co_filename, frame.f_lineno, id(frame), event, `arg`)
+        info = '%s|%d|%d|%s|%s\n' % (frame.f_code.co_filename, frame.f_lineno, 
+              id(frame), event, `arg`)
         tracefile.write(info)
         tracefile.flush()
     return trace_func
 
 def get_current_frame():
-    try:
-        1 + ''  # raise an exception
-    except:
-        return sys.exc_info()[2].tb_frame
+    try: 1 + ''  # raise an exception
+    except: return sys.exc_info()[2].tb_frame
 
+def sendToRunningBoa(names, host='127.0.0.1', port=50007):
+    import socket
+    try:
+        for name in names:
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            s.connect((host, port))
+            # do not change files of form [prot]://[path]
+            if string.find(name, '://') == -1:
+                name = os.path.abspath(name)
+            s.send(name)
+            s.close()    
+    except socket.error: return 0
+    else: return 1
+        
 startupErrors = []
 
 # Command line options
-doDebug = 0
+doDebug = constricted = 0
 startupfile = ''
 startupModules = ()
-if len(sys.argv) > 1:
+
+def processArgs(argv):
+    _doDebug = _constricted = 0
+    _startupfile = ''
+    _startupModules = ()
     import getopt
-    optlist, args = getopt.getopt(sys.argv[1:], 'DTs')
-    if ('-D', '') in optlist and len(args):
-        doDebug = 1
-    elif ('-T', '') in optlist:
+    optlist, args = getopt.getopt(argv, 'CDTs', ['Constricted', 'Debug', 'Trace', 
+          'startupscript'])
+    if (('-D', '') in optlist or ('--Debug', '') in optlist) and len(args):
+        # XXX should be able to 'debug in running Boa'
+        _doDebug = 1
+    elif ('-T', '') in optlist or ('--Trace', '') in optlist:
+        global tracefile
         tracefile = open('Boa.trace', 'wt')
         tracefile.write(os.getcwd()+'\n')
         trace_func(get_current_frame(), 'call', None)
         sys.setprofile(trace_func)
-    elif ('-s', '') in optlist:
-        pass
-    elif len(args):
+
+    if len(args):
         # XXX Only the first file appears in the list when multiple files
         # XXX are drag/dropped on a Boa shortcut, why?
-        startupModules = args
+        _startupModules = args
 
-    if ('-s', '') in optlist:
-        startupfile = os.environ.get('BOASTARTUP') or \
-                      os.environ.get('PYTHONSTARTUP')
+    if ('-s', '') in optlist or ('--startupfile', '') in optlist:
+        _startupfile = os.environ.get('BOASTARTUP') or \
+                       os.environ.get('PYTHONSTARTUP')
 
-# Custom installations
+    if ('-C', '') in optlist or ('--Constricted', '') in optlist:
+        _constricted = 1
 
-# Only install if it's not a 'binary' distribution
-import wxPython
-if hasattr(wxPython, '__file__'):
-    boaPath = os.path.abspath(os.path.join(os.getcwd(), sys.path[0]))
-    wxPythonLibPath = os.path.join(os.path.dirname(wxPython.__file__), 'lib')
-    # Install anchors if necessary
-    try:
-        import wxPython.lib.anchors
-    except ImportError:
-        print 'installing Anchors'
-        import shutil
-        shutil.copy(os.path.join(boaPath, 'anchors.py'), wxPythonLibPath)
-        import wxPython.lib.anchors
+    return _doDebug, _startupfile, _startupModules, _constricted
 
-import Preferences
+# This happens as early as possible (before wxPython loads) to make filename
+# transfer to a running Boa as quick as possible
+if __name__ == '__main__' and len(sys.argv) > 1:
+    doDebug, startupfile, startupModules, constricted = processArgs(sys.argv[1:])
+    # Try connect to running Boa using sockets, tnx to Tim Hochberg
+    if startupModules and server_mode:
+        if sendToRunningBoa(startupModules):
+            print 'Transfered arguments to running Boa, exiting.'
+            sys.exit()
+
+from __version__ import ver
+print 'Starting Boa Constructor v%s'%ver
+
 from wxPython.wx import *
-import About
-import Utils
 
-if Preferences.installBCRTL and hasattr(wxPython, '__file__'):
-    try:
-        # Install/update run time libs if necessary
-        Utils.updateDir(os.path.join(boaPath, 'bcrtl'),
-             os.path.join(wxPythonLibPath, 'bcrtl'))
-    except Exception, error:
-        startupErrors.extend(['Error while installing Run Time Libs:',
-        '    '+str(error), 
-        'Make sure you have sufficient rights to copy these files, and that ',
-        'the files are not read only. You may turn off this attempted ',
-        'installation in Preferences.py'])
+if (wxMAJOR_VERSION, wxMINOR_VERSION, wxRELEASE_NUMBER) != (2, 3, 0):
+    wxPySimpleApp()
+    wxMessageBox('Sorry! This version of Boa requires wxPython 2.3.0', 
+          'Version error', wxOK | wxICON_ERROR)
+    raise 'wxPython 2.3.0 required'
 
-# XXX Remaining milestones before alpha
+import Preferences, About, Utils
+
 # XXX auto created frames (main frame handled currently)
 # XXX More property editors!
 # XXX More companion classes! $
-# XXX Controllers for the Editor MVC
-# XXX Debugger merged (but optional)
-# XXX New Docs framework
 
 # XXX Find: Exceptions should not cancel the search
-# XXX Editor should store file names internally in lowercase so that opening
-# XXX from differing filepaths open the same file (M$~1 etc not handled)
 
 # XXX Mechanism to detect file date changes external of boa
 # XXX Possibly on Explorer level, checking before saving on systems where
@@ -113,18 +128,16 @@ if Preferences.installBCRTL and hasattr(wxPython, '__file__'):
 
 # XXX Support IDLE extensions
 
-# XXX Fix transport layer
-# XXX     Rename updates (both ways)
-
 # XXX Code completion
 # XXX     self.qwerty = qwerty
 # XXX     wipes '= qwerty' when qwerty is selected
 
 # XXX Renaming Boa.jpg in root fails
 
-# XXX STC: The Python demo is fast!, look for speedups
-
 # XXX Save as after app is closed
+
+# XXX Add wxImageBitmap, delete (prints class link error)
+
 
 modules ={'About': [0, 'About box and Splash screen', 'About.py'],
  'AppViews': [0, 'Views for the AppModel', 'Views/AppViews.py'],
@@ -152,6 +165,7 @@ modules ={'About': [0, 'About box and Splash screen', 'About.py'],
  'Controllers': [0, 'Controllers for the Models and Views', 'Controllers.py'],
  'CtrlAlign': [0, 'Aligns a group of controls', 'CtrlAlign.py'],
  'CtrlSize': [0, 'Sizes a group of controls', 'CtrlSize.py'],
+ 'Cyclops': [0, '', 'ExternalLib/Cyclops.py'],
  'DAVExplorer': [0, '', 'Explorers/DAVExplorer.py'],
  'DataView': [0,
               'View to manage non visual frame objects',
@@ -187,6 +201,9 @@ modules ={'About': [0, 'About box and Splash screen', 'About.py'],
  'FTPExplorer': [0, '', 'Explorers/FTPExplorer.py'],
  'FileDlg': [0, 'Replacement for the standard file dialog. ', 'FileDlg.py'],
  'FileExplorer': [0, '', 'Explorers/FileExplorer.py'],
+ 'FindReplaceDlg': [0, '', 'FindReplaceDlg.py'],
+ 'FindReplaceEngine': [0, '', 'FindReplaceEngine.py'],
+ 'FindResults': [0, '', 'FindResults.py'],
  'GCFrame': [0, '', 'GCFrame.py'],
  'HTMLCyclops': [0, '', 'HTMLCyclops.py'],
  'HTMLResponse': [0, '', 'HTMLResponse.py'],
@@ -235,11 +252,13 @@ modules ={'About': [0, 'About box and Splash screen', 'About.py'],
  'RemoteDialog': [0, '', 'Debugger/RemoteDialog.py'],
  'RunCyclops': [0, '', 'RunCyclops.py'],
  'SSHExplorer': [0, '', 'Explorers/SSHExplorer.py'],
+ 'STCStyleEditor': [0, '', 'Views/STCStyleEditor.py'],
  'Search': [0, '', 'Search.py'],
  'SelectionTags': [0,
                    'Controls and objects that manage the visual selection in the Designer',
                    'Views/SelectionTags.py'],
  'ShellEditor': [0, 'Python Interpreter Shell window', 'ShellEditor.py'],
+ 'Signature': [0, '', 'ExternalLib/Signature.py'],
  'SourceViews': [0, '', 'Views/SourceViews.py'],
  'StyledTextCtrls': [0,
                      'Mixin classes to use features of Scintilla',
@@ -258,6 +277,7 @@ modules ={'About': [0, 'About box and Splash screen', 'About.py'],
  'ZopeExplorer': [0, '', 'Explorers/ZopeExplorer.py'],
  'ZopeFTP': [0, '', 'ZopeLib/ZopeFTP.py'],
  'ZopeViews': [0, '', 'Views/ZopeViews.py'],
+ 'babeliser': [0, '', 'ExternalLib/babeliser.py'],
  'methodparse': [0,
                  'Module responsible for parsing code inside generated methods',
                  'methodparse.py'],
@@ -266,16 +286,18 @@ modules ={'About': [0, 'About box and Splash screen', 'About.py'],
                  'moduleparse.py'],
  'ndiff': [0, '', 'ExternalLib/ndiff.py'],
  'popen2import': [0, '', 'popen2import.py'],
+ 'reindent': [0, '', 'ExternalLib/reindent.py'],
  'relpath': [0, '', 'relpath.py'],
  'sender': [0, '', 'sender.py'],
- 'sourceconst': [0, 'Source generation constants', 'sourceconst.py']}
+ 'sourceconst': [0, 'Source generation constants', 'sourceconst.py'],
+ 'xmlrpclib': [0, '', 'ExternalLib/xmlrpclib.py']}
 
 class BoaApp(wxApp):
-    """ Application object, responsible for the Splash screen, command line
-        switches, optional logging and creation of the main frames. """
+    """ Application object, responsible for the Splash screen, applying command 
+        line switches, optional logging and creation of the main frames. """
 
-    def __init__(self, redirect=false):
-        wxApp.__init__(self, redirect)
+    def __init__(self):
+        wxApp.__init__(self, false)
 
     def OnInit(self):
         wxInitAllImageHandlers()
@@ -286,7 +308,7 @@ class BoaApp(wxApp):
         abt.Show(true)
         try:
             # Let the splash screen repaint
-            wxYield()
+            #wxYield()
 
             print 'creating Palette'
             import Palette
@@ -305,18 +327,27 @@ class BoaApp(wxApp):
             
             editor.setupToolBar()
 
-            print 'initialising Help'
             import Help
-            Help.initHelp()
+            print 'attaching wxPython doc strings'
+            Help.initWxPyDocStrs()
+            if not Preferences.delayInitHelp:
+                print 'initialising Help'
+                Help.initHelp()
 
-            self.main.contextHelpSearch.SetFocus()
-            
-            self.main.Show(true)
+            print 'showing main frames'
+            if constricted:
+                pos = self.main.GetPosition()
+                self.main.Center()
+                editor.Center()
+                self.main.SetPosition(pos)
+                #editor.SetIcon(self.main.GetIcon())
+            else:
+                self.main.Show(true)
+                inspector.Show(true)
+                # For some reason the splitters have to be visible on GTK before they
+                # can be sized.
+                inspector.initSashes()
 
-            inspector.Show(true)
-            # For some reason the splitters have to be visible on GTK before they
-            # can be sized.
-            inspector.initSashes()
             editor.Show(true)
             self.SetTopWindow(editor)
 
@@ -336,12 +367,13 @@ class BoaApp(wxApp):
                 print 'Could not load intro text files'
 
         # Apply command line switches
-        if doDebug:
-            mod = editor.openModule(args[0])
+        if doDebug and startupModules:
+            mod = editor.openModule(startupModules[0])
             mod.debug()
         elif startupModules:
             for mod in startupModules:
-                editor.openModule(mod)
+                editor.openOrGotoModule(mod)
+            editor.setupToolBar()
 
         Utils.showTip(self.main.editor)
 
@@ -352,22 +384,75 @@ class BoaApp(wxApp):
         if startupErrors:
             for error in startupErrors:
                 wxLogError(error)
-            wxLogError('There were errors during startup, click "Details" for more...')
+            wxLogError('There were errors during startup, please click "Details"')
+
+        if wxPlatform == '__WXMSW__':
+            self.tbicon = wxTaskBarIcon()
+            self.tbicon.SetIcon(self.main.GetIcon(), 'Boa Constructor')
+            EVT_TASKBAR_LEFT_DCLICK(self.tbicon, self.OnTaskBarActivate)
+            EVT_TASKBAR_RIGHT_UP(self.tbicon, self.OnTaskBarMenu)
+            EVT_MENU(self.tbicon, self.TBMENU_RESTORE, self.OnTaskBarActivate)
+            EVT_MENU(self.tbicon, self.TBMENU_CLOSE, self.OnTaskBarClose)
+            EVT_MENU(self.tbicon, self.TBMENU_ABOUT, self.OnTaskBarAbout)
 
         return true
 
+    [TBMENU_RESTORE, TBMENU_CLOSE, TBMENU_ABOUT] = Utils.wxNewIds(3)
 
-def main():
+    def OnTaskBarMenu(self, event):
+        menu = wxMenu()
+        menu.Append(self.TBMENU_RESTORE, 'Restore Boa Constructor')
+        menu.Append(self.TBMENU_CLOSE,   'Exit')
+        menu.Append(-1, '')
+        menu.Append(self.TBMENU_ABOUT,   'About')
+        self.tbicon.PopupMenu(menu)
+        menu.Destroy()
+
+    def OnTaskBarActivate(self, event):
+        if self.main.IsIconized():
+            self.main.Iconize(false)
+        if not self.main.IsShown():
+            self.main.Show(true)
+        self.main.Raise()
+
+    def OnTaskBarClose(self, event):
+        self.main.Close()
+        self.ProcessIdle()
+    
+    def OnTaskBarAbout(self, event):
+        self.main.editor.OnHelpAbout(event)
+
+def main(argv=None):
+    # Custom installations
+    # Only install if it's not a 'binary' distribution
+    if Preferences.installBCRTL and hasattr(wx, '__file__'):
+        wxPythonLibPath = os.path.join(os.path.dirname(wx.__file__), 'lib')
+        try:
+            # Install/update run time libs if necessary
+            Utils.updateDir(os.path.join(Preferences.pyPath, 'bcrtl'),
+                 os.path.join(wxPythonLibPath, 'bcrtl'))
+        except Exception, error:
+            startupErrors.extend(['Error while installing Run Time Libs:',
+            '    '+str(error), 
+            'Make sure you have sufficient rights to copy these files, and that ',
+            'the files are not read only. You may turn off this attempted ',
+            'installation in prefs.rc.py : installBCRTL'])
+
+    if argv is not None:
+        global doDebug, startupfile, startupModules
+        doDebug, startupfile, startupModules, constricted = processArgs(argv)
     try:
-        app = BoaApp(0)
+        app = BoaApp()
     except Exception, error:
-        # XXX Add version warning here
         wxMessageBox(str(error), 'Error on startup')
         raise
+    # This looping over the MainLoop is needed by the old debugger
     app.quit = false
     while not app.quit:
         app.MainLoop()
     # Clean up (less warnings)
+    if hasattr(app, 'tbicon'):
+        del app.tbicon
     if Preferences.logStdStreams:
         sys.stderr = sys.__stderr__
         sys.stdout = sys.__stdout__
@@ -375,4 +460,3 @@ def main():
 
 if __name__ == '__main__' or hasattr(wxApp, 'debugger'):
     main()
-    
