@@ -50,7 +50,7 @@ def get_current_frame():
 def sendToRunningBoa(names, host='127.0.0.1', port=50007):
     import socket
     try:
-        if names: 
+        if names:
             print 'Sent',
         for name in names:
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -70,22 +70,24 @@ startupErrors = []
 import __version__
 
 # Command line options
-doDebug = constricted = 0
+doDebug = constricted = emptyEditor = 0
 startupfile = ''
 startupModules = ()
 startupEnv = os.environ.get('BOASTARTUP') or os.environ.get('PYTHONSTARTUP')
 
 def processArgs(argv):
-    _doDebug = _constricted = 0
+    _doDebug = _doRemoteDebugSvr = _constricted = _emptyEditor = 0
     _startupfile = ''
     _startupModules = ()
     import getopt
-    optlist, args = getopt.getopt(argv, 'CDTSBO:hv', ['Constricted', 'Debug', 
-          'Trace', 'StartupFile', 'BlockHomePrefs', 'OverridePrefsDirName', 
-          'help', 'version'])
+    optlist, args = getopt.getopt(argv, 'CDTSBO:ERhv', ['Constricted', 'Debug',
+          'Trace', 'StartupFile', 'BlockHomePrefs', 'OverridePrefsDirName',
+          'EmptyEditor', 'RemoteDebugServer', 'help', 'version'])
     if (('-D', '') in optlist or ('--Debug', '') in optlist) and len(args):
         # XXX should be able to 'debug in running Boa'
         _doDebug = 1
+    elif (('-R', '') in optlist or ('--RemoteDebugServer', '') in optlist) and len(args):
+        _doRemoteDebugSvr = 1
     elif ('-T', '') in optlist or ('--Trace', '') in optlist:
         print 'Running in trace mode.'
         global tracefile
@@ -109,6 +111,9 @@ def processArgs(argv):
     if ('-C', '') in optlist or ('--Constricted', '') in optlist:
         _constricted = 1
 
+    if ('-E', '') in optlist or ('--EmptyEditor', '') in optlist:
+        _emptyEditor = 1
+
     if ('-h', '') in optlist or ('--help', '') in optlist:
         print 'Version: %s'%__version__.version
         print 'Command-line usage: Boa.py [options] [file1] [file2] ...'
@@ -131,19 +136,37 @@ def processArgs(argv):
         print '-O dirname, --OverridePrefsDirName dirname:'
         print '\tSpecify a different directory to load Preferences from.'
         print '\tDefault is .boa and is used if it exists'
+        print '-E, --EmptyEditor:'
+        print "\tDon't open the files that were open last time Boa was closed."
+        print '-R, --RemoteDebugServer:'
+        print "\tRuns the first filename passed on the command-line in a "
+        print "\tRemote Debugger Server that can be connected to over a socket.'"
 
         sys.exit()
     if ('-v', '') in optlist or ('--version', '') in optlist:
         print 'Version: %s'%__version__.version
         sys.exit()
 
-    return _doDebug, _startupfile, _startupModules, _constricted, optlist, args
+    return (_doDebug, _startupfile, _startupModules, _constricted, _emptyEditor,
+            _doRemoteDebugSvr, optlist, args)
 
 # This happens as early as possible (before wxPython loads) to make filename
-# transfer to a running Boa as quick as possible
+# transfer to a running Boa as quick as possible and little NS pollution
 if __name__ == '__main__' and len(sys.argv) > 1:
-    doDebug, startupfile, startupModules, constricted, opts, args = \
-          processArgs(sys.argv[1:])
+    (doDebug, startupfile, startupModules, constricted, emptyEditor, doDebugSvr,
+     opts, args) = processArgs(sys.argv[1:])
+    if doDebugSvr and startupModules:
+        print 'Running as a Remote Debug Server'
+        from Debugger.RemoteServer import start
+        # XXX username, password optionally should be on the command-line
+        start(username='', password='')
+
+        # startupModules contain everything from the first filename and on
+        sys.argv = startupModules
+        execfile(sys.argv[0], {'__name__': '__main__',
+                               '__builtins__': __builtins__})
+
+        sys.exit()
     # Try connect to running Boa using sockets, tnx to Tim Hochberg
     if startupModules and server_mode:
         if sendToRunningBoa(startupModules):
@@ -155,9 +178,10 @@ print 'importing wxPython'
 from wxPython.wx import *
 wxRegisterId(15999)
 
-if (wxMAJOR_VERSION, wxMINOR_VERSION, wxRELEASE_NUMBER) < __version__.wx_version:
+if wxVERSION < __version__.wx_version:
     wxPySimpleApp()
-    wxMessageBox('Sorry! This version of Boa requires at least wxPython %d.%d.%d'%ver_required,
+    wxMessageBox('Sorry! This version of Boa requires at least '\
+                 'wxPython %d.%d.%d'%__version__.ver_required,
           'Version error', wxOK | wxICON_ERROR)
     raise 'wxPython >= %d.%d.%d required'%ver_required
 
@@ -223,8 +247,9 @@ modules ={'About': [0, 'About box and Splash screen', 'About.py'],
               'Views/DataView.py'],
  'DebugClient': [0, '', 'Debugger/DebugClient.py'],
  'Debugger': [0,
-              'Module for in-process debugging of wxPython and Python apps',
+              'Module for out-of-process debugging of Python apps',
               'Debugger/Debugger.py'],
+ 'DebuggerControls': [0, '', 'Debugger/DebuggerControls.py'],
  'Designer': [0, 'View to visually design frames', 'Views/Designer.py'],
  'DialogCompanions': [0, '', 'Companions/DialogCompanions.py'],
  'DiffView': [0, '', 'Views/DiffView.py'],
@@ -247,9 +272,6 @@ modules ={'About': [0, 'About box and Splash screen', 'About.py'],
               'Explorers/Explorer.py'],
  'ExplorerNodes': [0, '', 'Explorers/ExplorerNodes.py'],
  'ExtMethDlg': [0, 'Dialog for ExternalMethods', 'ZopeLib/ExtMethDlg.py'],
- 'ExtraZopeCompanions.plug-in': [0,
-                                 '',
-                                 'Plug-ins/ExtraZopeCompanions.plug-in.py'],
  'FTPExplorer': [0, '', 'Explorers/FTPExplorer.py'],
  'FileDlg': [0, 'Replacement for the standard file dialog. ', 'FileDlg.py'],
  'FileExplorer': [0, '', 'Explorers/FileExplorer.py'],
@@ -287,14 +309,11 @@ modules ={'About': [0, 'About box and Splash screen', 'About.py'],
  'PaletteStore': [0,
                   'Storage for variables defining the palette organisation',
                   'PaletteStore.py'],
- 'PascalSupport.plug-in': [0, '', 'Plug-ins/PascalSupport.plug-in.py'],
  'Preferences': [0,
                  'Central store of customiseable properties',
                  'Preferences.py'],
  'PrefsExplorer': [0, '', 'Explorers/PrefsExplorer.py'],
  'ProcessProgressDlg': [0, '', 'ProcessProgressDlg.py'],
- 'ProdFormulator.plug-in': [0, '', 'Plug-ins/ProdFormulator.plug-in.py'],
- 'ProdPageTemplates.plug-in': [0, '', 'Plug-ins/ProdPageTemplates.plug-in.py'],
  'ProfileView': [0, '', 'Views/ProfileView.py'],
  'PropDlg': [0, '', 'ZopeLib/PropDlg.py'],
  'PropertyEditors': [0,
@@ -322,7 +341,6 @@ modules ={'About': [0, 'About box and Splash screen', 'About.py'],
                      'Views/StyledTextCtrls.py'],
  'Tasks': [0, '', 'Debugger/Tasks.py'],
  'Tests': [0, '', 'Tests.py'],
- 'UserCompanions.plug-in': [0, '', 'Plug-ins/UserCompanions.plug-in.py'],
  'UtilCompanions': [0, '', 'Companions/UtilCompanions.py'],
  'Utils': [0, 'General utility routines and classes', 'Utils.py'],
  'XMLSupport': [0, '', 'Models/XMLSupport.py'],
@@ -386,13 +404,17 @@ class BoaApp(wxApp):
             editor = Editor.EditorFrame(self.main, -1, inspector, wxMenu(),
                 self.main.componentSB, self, self.main)
 
+            inspector.editor = editor
+
             conf.set('splash', 'modulecount', `len(sys.modules)`)
             try:
                 Utils.writeConfig(conf)
             except IOError, err:
                 startupErrors.append('Error writing config file: %s\nPlease '
               'ensure that the Explorer.*.cfg file is not read only.'% str(err))
-            editor.restoreEditorState()
+
+            if not emptyEditor:
+                editor.restoreEditorState()
 
             self.main.initPalette(inspector, editor)
 
@@ -513,7 +535,7 @@ def main(argv=None):
             Utils.updateDir(join(Preferences.pyPath, 'bcrtl'),
                   join(wxPythonLibPath, 'bcrtl'))
             ## Install debugger hard breakpoint hook
-            ##Utils.updateFile(join(Preferences.pyPath, 'Debugger', 'bcdb.lib.py'), 
+            ##Utils.updateFile(join(Preferences.pyPath, 'Debugger', 'bcdb.lib.py'),
             ##                 join(pythonLibPath, 'bcdb.py'))
         except Exception, error:
             startupErrors.extend(['Error while installing Run Time Libs:',
