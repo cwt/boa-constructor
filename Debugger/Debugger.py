@@ -26,58 +26,9 @@ import Utils
 from Preferences import pyPath, IS, flatTools
 #from PhonyApp import wxPhonyApp
 from Breakpoint import bplist
-#import threading
-#from Queue import Queue
+from DebugClient import EVT_DEBUGGER_OK, EVT_DEBUGGER_EXC, \
+     InProcessDebugClient
 
-from IsolatedDebugger import DebuggerConnection, DebuggerController
-
-# Specific to in-process debugging:
-debugger_controller = DebuggerController()
-
-
-wxEVT_DEBUGGER_OK = NewId()
-wxEVT_DEBUGGER_EXC = NewId()
-
-def EVT_DEBUGGER_OK(win, id, func):
-    win.Connect(id, -1, wxEVT_DEBUGGER_OK, func)
-
-def EVT_DEBUGGER_EXC(win, id, func):
-    win.Connect(id, -1, wxEVT_DEBUGGER_EXC, func)
-
-class DebuggerCommEvent(wxPyCommandEvent):
-    receiver_name = None
-    receiver_args = ()
-    result = None
-    t = None
-    v = None
-
-    def __init__(self, evtType, id):
-        wxPyCommandEvent.__init__(self, evtType, id)
-
-    def SetResult(self, result):
-        self.result = result
-
-    def GetResult(self):
-        return self.result
-
-    def SetReceiverName(self, name):
-        self.receiver_name = name
-
-    def GetReceiverName(self):
-        return self.receiver_name
-
-    def SetReceiverArgs(self, args):
-        self.receiver_args = args
-
-    def GetReceiverArgs(self):
-        return self.receiver_args
-
-    def SetExc(self, t, v):
-        self.t, self.v = t, v
-
-    def GetExc(self):
-        return self.t, self.v
-    
 
 wxID_STACKVIEW = NewId()
 class StackViewCtrl(wxListCtrl):
@@ -309,7 +260,7 @@ class BreakViewCtrl(wxListCtrl):
             bp = self.bps[sel]
             bplist.deleteBreakpoints(bp['filename'], bp['lineno'])
             self.debugger.invokeInDebugger(
-                'clear_breaks', (bp['filename'], bp['lineno']))
+                'clearBreakpoints', (bp['filename'], bp['lineno']))
             # TODO: Unmark the breakpoint in the editor.
             self.refreshList()
 
@@ -596,9 +547,7 @@ class DebuggerFrame(wxFrame):
             wxPoint(0, Preferences.paletteHeight), 
             wxSize(Preferences.inspWidth, Preferences.bottomHeight))
 
-        conn_id = debugger_controller.createServer()
-        self.debug_conn = DebuggerConnection(debugger_controller,
-                                             conn_id)
+        self.debug_client = InProcessDebugClient(self)
 
         if wxPlatform == '__WXMSW__':
 	    self.icon = wxIcon(Preferences.toPyPath(
@@ -893,24 +842,26 @@ class DebuggerFrame(wxFrame):
         possibly expecting a debugger event to be generated
         when finished.
         '''
-        evt = None
-        try:
-            m = getattr(self.debug_conn, m_name)
-            result = apply(m, m_args)
-        except:
-            t, v = sys.exc_info()[:2]
-            evt = DebuggerCommEvent(wxEVT_DEBUGGER_EXC,
-                                    self.GetId())
-            evt.SetExc(t, v)
-        else:
-            if r_name:
-                evt = DebuggerCommEvent(wxEVT_DEBUGGER_OK,
-                                        self.GetId())
-                evt.SetReceiverName(r_name)
-                evt.SetReceiverArgs(r_args)
-                evt.SetResult(result)
-        if evt:
-            self.GetEventHandler().AddPendingEvent(evt)
+        self.debug_client.invokeOnServer(m_name, m_args, r_name, r_args)
+        
+##        evt = None
+##        try:
+##            m = getattr(self.debug_conn, m_name)
+##            result = apply(m, m_args)
+##        except:
+##            t, v = sys.exc_info()[:2]
+##            evt = DebuggerCommEvent(wxEVT_DEBUGGER_EXC,
+##                                    self.GetId())
+##            evt.SetExc(t, v)
+##        else:
+##            if r_name:
+##                evt = DebuggerCommEvent(wxEVT_DEBUGGER_OK,
+##                                        self.GetId())
+##                evt.SetReceiverName(r_name)
+##                evt.SetReceiverArgs(r_args)
+##                evt.SetResult(result)
+##        if evt:
+##            self.GetEventHandler().AddPendingEvent(evt)
 
 ##        q = self._command_queue
 ##        q.put((m_name, args))
@@ -944,9 +895,10 @@ class DebuggerFrame(wxFrame):
     def runProcess(self):
         self.running = 1
         self.sb.writeError('Running...', 0)
+        brks = bplist.getBreakpointList()
         self.invokeInDebugger(
             'runFileAndRequestStatus',
-            (self.filename, self.params or [], bplist.getBreakpointList()),
+            (self.filename, self.params or [], brks),
             'receiveDebuggerStatus')
 
 ##        self.debug_conn.setAllBreakpoints(bplist.getBreakpointList())
@@ -995,11 +947,11 @@ class DebuggerFrame(wxFrame):
                               'receiveDebuggerStatus')
 
     def deleteBreakpoints(self, filename, lineno):
-        self.invokeInDebugger('clear_breaks', (filename, lineno))
+        self.invokeInDebugger('clearBreakpoints', (filename, lineno))
         self.breakpts.refreshList()
 
     def setBreakpoint(self, filename, lineno, tmp):
-        self.invokeInDebugger('set_break', (filename, lineno, tmp))
+        self.invokeInDebugger('addBreakpoint', (filename, lineno, tmp))
 ##        self.nbTop.SetSelection(1)
 ##        filename = self.canonic(filename)
 ##        brpt = self.set_break(filename, lineno, tmp)

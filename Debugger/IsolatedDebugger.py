@@ -5,6 +5,8 @@ from os.path import normcase, abspath
 import bdb
 from bdb import Bdb, BdbQuit
 from repr import Repr
+from Tasks import ThreadedTaskHandler
+
 
 class DebugError(Exception):
     '''Incorrect operation of the debugger'''
@@ -23,43 +25,32 @@ class DebuggerConnection:
 
     def _getMessageTimeout(self):
         return self._controller.getMessageTimeout()
-    
+
     def _callNoWait(self, func_name, do_return, *args, **kw):
-        ds = self._ds
         sm = MethodCall(func_name, args, kw, do_return)
         sm.setWait(0)
-        ds.queueServerMessage(sm)
-        return sm
+        self._ds.queueServerMessage(sm)
 
     def _callMethod(self, func_name, do_return, *args, **kw):
-        ds = self._ds
         sm = MethodCall(func_name, args, kw, do_return)
         sm.setupEvent()
-        ds.queueServerMessage(sm)
-        sm.wait(self._getMessageTimeout())
-        if hasattr(sm, 'exc'):
-            try:
-                raise sm.exc[0], sm.exc[1], sm.exc[2]
-            finally:
-                # Circ ref
-                del sm.exc
-        if not hasattr(sm, 'result'):
-            raise DebugError, 'Timed out while waiting for debug server.'
-        return sm.result
+        self._ds.queueServerMessage(sm)
+        # Block.
+        return sm.getResult(self._getMessageTimeout())
 
-    def _return(self):
-        ds = self._ds
-        sm = MethodReturn()
-        sm.setupEvent()
-        ds.queueServerMessage(sm)
-        sm.wait(self._getMessageTimeout())
+##    def _return(self):
+##        ds = self._ds
+##        sm = MethodReturn()
+##        sm.setupEvent()
+##        ds.queueServerMessage(sm)
+##        sm.wait(self._getMessageTimeout())
 
-    def _exit(self):
-        ds = self._ds
-        sm = ThreadExit()
-        sm.setupEvent()
-        ds.queueServerMessage(sm)
-        sm.wait(self._getMessageTimeout())
+##    def _exit(self):
+##        ds = self._ds
+##        sm = ThreadExit()
+##        sm.setupEvent()
+##        ds.queueServerMessage(sm)
+##        sm.wait(self._getMessageTimeout())
 
     ### Low-level calls.
 
@@ -116,10 +107,12 @@ class DebuggerConnection:
         Non-blocking.'''
         ds = self._ds
         ds.clear_all_breaks()
-        for brk in brks:
-            apply(self.set_break, (), brk)
+        if brks:
+            for brk in brks:
+                apply(self.set_break, (), brk)
         
-    def set_break(self, filename, lineno, temporary=0, cond=None, enabled=1):
+    def addBreakpoint(self, filename, lineno, temporary=0,
+                      cond=None, enabled=1):
         '''Sets a breakpoint.  Non-blocking.
         '''
         ds = self._ds
@@ -140,7 +133,7 @@ class DebuggerConnection:
                 if enabled: bp.enable()
                 else: bp.disable()
 
-    def clear_breaks(self, filename, lineno):
+    def clearBreakpoints(self, filename, lineno):
         '''Clears all breakpoints on a line.  Non-blocking.
         '''
         ds = self._ds
@@ -177,7 +170,9 @@ class DebuggerConnection:
 ##        '''
 ##        return self._callMethod('getVariablesAndWatches', 0, exprs, frameno)
 
-    def pprintVarValue(self, name, frameno=-1):
+    ### Blocking methods.
+
+    def pprintVarValue(self, name, frameno):
         '''Pretty-prints the value of name.'''
         return self._callMethod('pprintVarValue', 0, name, frameno)
 
@@ -192,16 +187,7 @@ class DebuggerConnection:
         The most recent stack entry will be at the last
         of the list.  Blocking.
         '''
-        rval = self._callMethod('getInteractionUpdate', 0)
-        return rval
-
-    def closeConnection(self):
-        '''Terminates the connection to the DebugServer.'''
-        self.set_quit()
-        self._controller._deleteServer(self._id)
-
-    ### High-level calls (perform one or more of the above functions
-    ### and return a standardized mapping)
+        return self._callMethod('getInteractionUpdate', 0)
 
     def proceedAndRequestStatus(self, command):
         '''Executes one non-blocking command then returns
@@ -209,34 +195,59 @@ class DebuggerConnection:
         if command not in ('set_continue', 'set_step', 'set_step_over',
                            'set_step_out', 'set_quit'):
             raise DebugError('Illegal command')
-        getattr(self, command)()
+        self._callNoWait(command, 1)
         return self.getInteractionUpdate()
 
-    def runFileAndRequestStatus(self, filename, params=(), breaks=None):
+    def runFileAndRequestStatus(self, filename, params, breaks):
         '''Calls setAllBreakpoints(), runFile(), and
         getInteractionUpdate().'''
-        if breaks:
-            self.setAllBreakpoints(breaks)
-        self.runFile(filename, params)
+        self.setAllBreakpoints(breaks)
+        self._callNoWait('runFile', 1, filename, params)
         return self.getInteractionUpdate()
 
-    def getSafeDict(self, locals=0, frameno=-1):
+    def getSafeDict(self, locals, frameno):
         '''Returns the repr-fied mappings of locals and globals in a
         tuple. Blocking.'''
         return self._callMethod('getSafeDict', 0, locals, frameno)
 
-    def evaluateWatches(self, exprs, frameno=-1):
+    def evaluateWatches(self, exprs, frameno):
         '''Evalutes the watches listed in exprs and returns the
         results. Input is a tuple of mappings with keys name and
         local, output is a mapping of name -> svalue.  Blocking.
         '''
         return self._callMethod('evaluateWatches', 0, exprs, frameno)
 
-    def getWatchSubobjects(self, expr, frameno=-1):
+    def getWatchSubobjects(self, expr, frameno):
         '''Returns a tuple containing the names of subobjects
         available through the given watch expression.'''
         return self._callMethod('getWatchSubobjects', 0, expr, frameno)
 
+
+class NonBlockingDebuggerConnection (DebuggerConnection):
+    # Note that a new NonBlockingDebuggerConnection object has to be
+    # created for each call.
+
+    callback = None
+
+    def setCallback(self, callback):
+        self.callback = callback
+
+    def _callMethod(self, func_name, do_return, *args, **kw):
+        sm = MethodCall(func_name, args, kw, do_return)
+        if self.callback:
+            sm.setCallback(self.callback)
+        self._ds.queueServerMessage(sm)
+        return None
+
+##    def _return(self):
+##        sm = MethodReturn()
+##        sm.setCallback(self.callback)
+##        self._ds.queueServerMessage(sm)
+
+##    def _exit(self):
+##        sm = ThreadExit()
+##        sm.setCallback(self.callback)
+##        self._ds.queueServerMessage(sm)
 
 class DebuggerController:
     '''Interfaces between DebuggerConnections and DebugServers.'''
@@ -263,6 +274,14 @@ class DebuggerController:
         id = self._newServerId()
         self._debug_servers[id] = ds
         return id
+
+    def deleteServer(self, id):
+        '''Terminates the connection to the DebugServer.'''
+        try:
+            ds = self._debug_servers[id]
+            ds.set_quit()
+            self._deleteServer(id)
+        except: pass
 
     def _deleteServer(self, id):
         del self._debug_servers[id]
@@ -303,69 +322,96 @@ class MethodCall (ServerMessage):
 
     def execute(self, ob):
         try:
-            self.result = apply(getattr(ob, self.func_name), self.args,
-                                self.kw)
+            result = apply(getattr(ob, self.func_name), self.args,
+                           self.kw)
         except SystemExit, BdbQuit:
             raise
         except:
-            if self.waiting:
-                self.exc = sys.exc_info()
+            if hasattr(self, 'callback'):
+                self.callback.notifyException()
             else:
-                # No one will see this message otherwise.
-                import traceback
-                traceback.print_exc()
+                if self.waiting:
+                    self.exc = sys.exc_info()
+                else:
+                    # No one will see this message otherwise.
+                    import traceback
+                    traceback.print_exc()
+        else:
+            if hasattr(self, 'callback'):
+                self.callback.notifyReturn(result)
+            else:
+                self.result = result
         if hasattr(self, 'event'):
             self.event.set()
 
     def doReturn(self):
         return self.do_return
 
-class MethodReturn (ServerMessage):
-    def doReturn(self):
-        if hasattr(self, 'event'):
-            self.event.set()
-        return 1
+    def setCallback(self, callback):
+        self.callback = callback
+
+    def getResult(self, timeout=None):
+        self.wait(timeout)
+        if hasattr(self, 'exc'):
+            try:
+                raise self.exc[0], self.exc[1], self.exc[2]
+            finally:
+                # Circ ref
+                del self.exc
+        if not hasattr(self, 'result'):
+            raise DebugError, 'Timed out while waiting for debug server.'
+        return self.result
+
+##class MethodReturn (ServerMessage):
+##    def doReturn(self):
+##        if hasattr(self, 'event'):
+##            self.event.set()
+##        return 1
     
-class ThreadExit (ServerMessage):
-    def doExit(self):
-        if hasattr(self, 'event'):
-            self.event.set()
-        return 1
+##class ThreadExit (ServerMessage):
+##    def doExit(self):
+##        if hasattr(self, 'event'):
+##            self.event.set()
+##        return 1
 
 
-serversQueue = Queue.Queue(0)
-free_threads = 0
-server_threads_lock = threading.Lock()
+##serversQueue = Queue.Queue(0)
+##free_threads = 0
+##server_threads_lock = threading.Lock()
 
-# Set keep_threads_alive to 1 when thread-bound variables are
-# used in a long-running process (such as Zope.)
-# It may be better to leave on anyway.
-keep_threads_alive = 1
+### Set keep_threads_alive to 1 when thread-bound variables are
+### used in a long-running process (such as Zope.)
+### It may be better to leave on anyway.
+##keep_threads_alive = 1
 
-def serverThread():
-    global free_threads
-    while 1:
-        ds = serversQueue.get()  # Blocks.
-        try:
-            ds.topServerLoop(1)
-        except SystemExit, BdbQuit:
-            # A request to exit thread.
-            # Ignore: Exit only if do_exit is set.
-            pass
-        except:
-            # Expected to never happen.
-            import traceback
-            traceback.print_exc()
-        server_threads_lock.acquire()
-        try:
-            ds = None
-            if keep_threads_alive:
-                # loop and wait to service another DebugServer.
-                free_threads = free_threads + 1
-            else:
-                break
-        finally:
-            server_threads_lock.release()
+##def serverThread():
+##    global free_threads
+##    while 1:
+##        ds = serversQueue.get()  # Blocks.
+##        try:
+##            ds.topServerLoop(1)
+##        except SystemExit, BdbQuit:
+##            # A request to exit thread.
+##            # Ignore: Exit only if do_exit is set.
+##            pass
+##        except:
+##            # Expected to never happen.
+##            import traceback
+##            traceback.print_exc()
+##        server_threads_lock.acquire()
+##        try:
+##            ds = None
+##            if keep_threads_alive:
+##                # loop and wait to service another DebugServer.
+##                free_threads = free_threads + 1
+##            else:
+##                break
+##        finally:
+##            server_threads_lock.release()
+
+
+debugger_tasks = ThreadedTaskHandler()
+servicer_running_lock = threading.Lock()
 
 
 class DebugServer (Bdb):
@@ -378,7 +424,8 @@ class DebugServer (Bdb):
     def __init__(self):
         Bdb.__init__(self)
         self.__queue = Queue.Queue(0)
-        self._queue_servicer_running = 0
+##        self._queue_servicer_running = 0
+        self.servicer_running = 0
 
         self.repr = repr = Repr()
         repr.maxstring = 60
@@ -391,33 +438,49 @@ class DebugServer (Bdb):
         self.stdinbuf = ''
 
     def queueServerMessage(self, sm):
-        global free_threads
-        server_threads_lock.acquire()
+        servicer_running_lock.acquire()
         try:
             self.__queue.put(sm)
-            if not self._queue_servicer_running:
-                self._queue_servicer_running = 1
-                if free_threads < 1:
-                    t = threading.Thread(target=serverThread)
-                    t.setDaemon(1)
-                    t.start()
-                else:
-                    free_threads = free_threads - 1
-                serversQueue.put(self)
+            if not self.servicer_running:
+                self.servicer_running = 1
+                debugger_tasks.addTask(self.topServerLoop)
         finally:
-            server_threads_lock.release()
+            servicer_running_lock.release()
+##        global free_threads
+##        server_threads_lock.acquire()
+##        try:
+##            self.__queue.put(sm)
+##            if not self._queue_servicer_running:
+##                self._queue_servicer_running = 1
+##                if free_threads < 1:
+##                    t = threading.Thread(target=serverThread)
+##                    t.setDaemon(1)
+##                    t.start()
+##                else:
+##                    free_threads = free_threads - 1
+##                serversQueue.put(self)
+##        finally:
+##            server_threads_lock.release()
 
     def executeMessageInPlace(self, sm):
         # Lets the debugger work in an existing thread.
         started = 0
-        server_threads_lock.acquire()
+##        server_threads_lock.acquire()
+##        try:
+##            self.__queue.put(sm)
+##            if not self._queue_servicer_running:
+##                self._queue_servicer_running = 1
+##                started = 1
+##        finally:
+##            server_threads_lock.release()
+        servicer_running_lock.acquire()
         try:
             self.__queue.put(sm)
-            if not self._queue_servicer_running:
-                self._queue_servicer_running = 1
+            if not self.servicer_running:
+                self.servicer_running = 1
                 started = 1
         finally:
-            server_threads_lock.release()
+            servicer_running_lock.release()
         self.topServerLoop(started)
 
     def cleanupServer(self):
@@ -425,12 +488,12 @@ class DebugServer (Bdb):
         self.frame = None
         self.exc_info = None
 
-    def topServerLoop(self, started=0):
+    def topServerLoop(self, started=1):
         try:
             self.serverLoop()
         finally:
             if started:
-                server_threads_lock.acquire()
+                servicer_running_lock.acquire()
                 try:
                     # Make sure all queued messages get processed.
                     while not self.__queue.empty():
@@ -439,9 +502,21 @@ class DebugServer (Bdb):
                         except:
                             # ??
                             pass
-                    self._queue_servicer_running = 0
+                    self.servicer_running = 0
                 finally:
-                    server_threads_lock.release()
+                    servicer_running_lock.release()
+##                server_threads_lock.acquire()
+##                try:
+##                    # Make sure all queued messages get processed.
+##                    while not self.__queue.empty():
+##                        try:
+##                            self.oneServerLoop()
+##                        except:
+##                            # ??
+##                            pass
+##                    self._queue_servicer_running = 0
+##                finally:
+##                    server_threads_lock.release()
             self.cleanupServer()
 
     def serverLoop(self):
@@ -572,7 +647,6 @@ class DebugServer (Bdb):
         self.run("execfile(fn, d)", {'fn':filename, 'd':d})
 
     def run(self, cmd, globals=None, locals=None):
-        exc = None
         try:
             self._running = 1
             try:
