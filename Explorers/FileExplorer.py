@@ -11,7 +11,7 @@
 #-----------------------------------------------------------------------------
 print 'importing Explorers.FileExplorer'
 
-import string, os, time, stat
+import os, time, stat
 
 from wxPython.wx import *
 
@@ -19,6 +19,7 @@ import Preferences, Utils
 
 import ExplorerNodes
 from Models import Controllers, EditorHelper
+from PropEdit import PropertyEditors, InspectorEditorControls
 
 class FileSysCatNode(ExplorerNodes.CategoryNode):
 #    protocol = 'config.file'
@@ -49,14 +50,14 @@ class FileSysCatNode(ExplorerNodes.CategoryNode):
 
     def createChildNode(self, entry, value, forceFolder=true):
         if forceFolder: Node = NonCheckPyFolderNode
-        else: Node = PyFileNode
+        else: Node = FileSysNode
 
         node = Node(entry, value, self.clipboard, -1, self, self.bookmarks)
         if node.isFolderish():
             node.imgIdx = EditorHelper.imgFSDrive
         else:
-            node.imgIdx = Controllers.identifyFile(value,
-                localfs=node.filter == 'BoaFiles')[0].imgIdx
+            node.imgIdx = Controllers.identifyFile(value #localfs=node.filter == 'BoaFiles'
+                                                  )[0].imgIdx
         return node
 
 ##    def newItem(self):
@@ -79,8 +80,8 @@ class FileSysCatNode(ExplorerNodes.CategoryNode):
 
 (wxID_FSOPEN, wxID_FSTEST, wxID_FSNEW, wxID_FSNEWFOLDER, wxID_FSCVS,
  wxID_FSBOOKMARK, wxID_FSFINDINFILES, wxID_FSFINDFILES, wxID_FSFILTERIMAGES,
- wxID_FSSETASCWD,
-) = Utils.wxNewIds(10)
+ wxID_FSSETASCWD, wxID_FSNEWZIP, wxID_FSINSPECT,
+) = Utils.wxNewIds(12)
 
 (wxID_FSFILTER, wxID_FSFILTERBOAMODULES, wxID_FSFILTERSTDMODULES,
  wxID_FSFILTERINTMODULES, wxID_FSFILTERALLMODULES,
@@ -94,30 +95,41 @@ filterDescr = {'BoaFiles': ('Boa files', wxID_FSFILTERBOAMODULES),
                'ImageFiles': ('Image files', wxID_FSFILTERIMAGES),
                'AllFiles': ('All files', wxID_FSFILTERALLMODULES)}
 
+# XXX CVS and Zip support must also move to registering
 class FileSysController(ExplorerNodes.Controller, ExplorerNodes.ClipboardControllerMix):
     bookmarkBmp = 'Images/Shared/Bookmark.png'
     findBmp = 'Images/Shared/Find.png'
+    inspectBmp = 'Images/Shared/Inspector.png'
+    
     def __init__(self, editor, list, inspector, controllers):
         ExplorerNodes.Controller.__init__(self, editor)
         ExplorerNodes.ClipboardControllerMix.__init__(self)
         self.editor = editor
+        self.inspector = inspector
 
         self.list = list
-        if controllers.has_key('cvs'):
-            self.cvsController = controllers['cvs']
-        else:
-            self.cvsController = None
+##        if controllers.has_key('cvs'):
+##            self.cvsController = controllers['cvs']
+##        else:
+##            self.cvsController = None
 
         self.menu = wxMenu()
 
-        self.fileMenuDef = (
+        self.fileMenuDef = [
               (wxID_FSOPEN, 'Open', self.OnOpenItems, '-'),
-              (-1, '-', None, '') ) +\
-              self.clipMenuDef +\
-            ( (wxID_FSSETASCWD, 'Set as os.cwd', self.OnSetAsSysCwd, '-'),
+              (-1, '-', None, ''),
+              (wxID_FSINSPECT, 'Inspect', self.OnInspectItem, self.inspectBmp),
+              (-1, '-', None, ''), 
+        ] + self.clipMenuDef + [
+              (wxID_FSSETASCWD, 'Set as os.cwd', self.OnSetAsSysCwd, '-'),
               (-1, '-', None, ''),
               (wxID_FSFINDINFILES, 'Find', self.OnFindFSItem, self.findBmp),
-        )
+        ]
+        
+        if controllers.has_key('zip'):
+            self.newMenuDef.append(
+             (wxID_FSNEWZIP, 'Empty zip archive', self.OnEmptyZipArchive, '-') )
+
         self.setupMenu(self.menu, self.list, self.fileMenuDef)
 
         filters = []
@@ -125,9 +137,9 @@ class FileSysController(ExplorerNodes.Controller, ExplorerNodes.ClipboardControl
             descr, wid = filterDescr[filter]
             filters.append( (wid, '+'+descr, self.OnFilterFSItems , '-') )
 
-        self.fileFilterMenuDef = tuple(filters)
+        self.fileFilterMenuDef = filters
         self.fileFilterMenu = wxMenu()
-        self.setupMenu(self.fileFilterMenu, self.list, self.fileFilterMenuDef)
+        self.setupMenu(self.fileFilterMenu, self.list, self.fileFilterMenuDef, false)
 
         # Check default option
         self.fileFilterMenu.Check(wxID_FSFILTERBOAMODULES, true)
@@ -141,10 +153,9 @@ class FileSysController(ExplorerNodes.Controller, ExplorerNodes.ClipboardControl
 
     def destroy(self):
         ExplorerNodes.ClipboardControllerMix.destroy(self)
-        self.fileFilterMenuDef = ()
-        self.fileMenuDef = ()
-        self.toolbarMenus = ()
-        #print 'FileSysController', self.menu
+        self.fileFilterMenuDef = []
+        self.fileMenuDef = []
+        self.toolbarMenus = []
         self.menu.Destroy()
 
     def OnTest(self, event):
@@ -200,6 +211,67 @@ class FileSysController(ExplorerNodes.Controller, ExplorerNodes.ClipboardControl
 
         self.editor.setStatus('Updated os.cwd to %s'%path, ringBell=true)
 
+    def OnEmptyZipArchive(self, event):
+        # must move to zip
+        files = os.listdir(self.list.node.resourcepath)
+        newName = Utils.getValidName(files, 'archive', 'zip')
+        import zipfile
+        zipfile.ZipFile(os.path.join(self.list.node.resourcepath, newName), 'w', 
+              zipfile.ZIP_DEFLATED).close()
+
+        self.list.refreshCurrent()
+        self.list.selectItemNamed(newName)
+        self.list.EnsureVisible(self.list.selected)
+                
+    def OnInspectItem(self, event):
+        if self.list.node:
+            item = self.list.getSelection()
+            if item:
+                comp = FileSysCompanion(item.name, item)
+                comp.updateProps()
+                self.inspector.selectObject(comp, false, focusPage=1)        
+
+
+class FileSysAttrPropEdit(PropertyEditors.PropertyEditor):
+    def inspectorEdit(self):
+        self.editorCtrl = InspectorEditorControls.BeveledLabelIEC(self, 
+              self.getValue())
+        self.editorCtrl.createControl(self.parent, self.idx, self.width)
+        self.editorCtrl.setValue(self.getValue())
+
+    def getDisplayValue(self):
+        return self.value
+    
+
+class FileSysCompanion(ExplorerNodes.ExplorerCompanion):
+    def __init__(self, name, fsNode):
+        ExplorerNodes.ExplorerCompanion.__init__(self, name)
+        self.fsNode = fsNode
+
+    def getPropEditor(self, prop):
+        return FileSysAttrPropEdit
+
+    timeFmt = '%a, %d %b %Y %H:%M:%S'
+    def getPropertyItems(self):
+        res = []
+        attrs = self.fsNode.stdAttrs
+
+        for date in ('creation-date', 'modify-date', 'access-date'):
+            value = attrs[date]
+            if value:
+                res.append( (date, 
+                             time.strftime(self.timeFmt, time.gmtime(value))) )
+
+        value = attrs['read-only']
+        res.append( ('read-only', value and 'True' or 'False') )
+
+        value = attrs['size']
+        if value:
+            res.append( ('size', str(value)) )
+
+        return res
+
+
 class FileSysExpClipboard(ExplorerNodes.ExplorerClipboard):
     def clipPaste_FileSysExpClipboard(self, node, nodes, mode):
         # XXX Delayed cut (delete on paste or move) should clear the clipboard
@@ -232,7 +304,7 @@ class FileSysExpClipboard(ExplorerNodes.ExplorerClipboard):
     clipPaste_ZipExpClipboard = _genericFSPaste
     clipPaste_DAVExpClipboard = _genericFSPaste
 
-class PyFileNode(ExplorerNodes.ExplorerNode):
+class FileSysNode(ExplorerNodes.ExplorerNode):
     protocol = 'file'
     filter = 'BoaFiles'
     lastSearch = ''
@@ -244,9 +316,10 @@ class PyFileNode(ExplorerNodes.ExplorerNode):
         ExplorerNodes.ExplorerNode.__init__(self, name, resourcepath, clipboard,
               imgIdx, parent, properties or {})
         self.bookmarks = bookmarks
-        self.exts = EditorHelper.extMap.keys() + EditorHelper.inspectableFilesReg
+        self.exts = EditorHelper.extMap.keys() + EditorHelper.inspectableFilesReg.keys()
         self.entries = []
 
+        # XXX not used ?
         self.doCVS = true
         self.doZip = true
         self.allowedProtocols = ['*']
@@ -267,14 +340,14 @@ class PyFileNode(ExplorerNodes.ExplorerNode):
         parent = os.path.abspath(os.path.join(self.resourcepath, '..'))
         if parent[-2:] == '..':
             parent = parent[:-2]
-        return PyFileNode(os.path.basename(parent), parent, self.clipboard,
+        return FileSysNode(os.path.basename(parent), parent, self.clipboard,
                   EditorHelper.imgFolder, self, self.bookmarks)
 
     def createChildNode(self, file, filename = ''):
         if not filename:
             filename = os.path.join(self.resourcepath, file)
 
-        ext = string.lower(os.path.splitext(filename)[1])
+        ext = os.path.splitext(filename)[1].lower()
         exts = self.getFilterExts()
         # Files
         if ('.*' in exts or ext in exts) and os.path.isfile(filename):
@@ -284,9 +357,9 @@ class PyFileNode(ExplorerNodes.ExplorerNode):
                     if otherIdFunc(filename):
                         return 'fol', other(file, filename, self.clipboard,
                               imgIdx, self, self.bookmarks)
-            return 'mod', PyFileNode(file, filename, self.clipboard,
-              Controllers.identifyFile(filename,
-              localfs=self.filter == 'BoaFiles')[0].imgIdx, self, self.bookmarks,
+            return 'mod', FileSysNode(file, filename, self.clipboard,
+              Controllers.identifyFile(filename #localfs=self.filter == 'BoaFiles'
+                                      )[0].imgIdx, self, self.bookmarks,
               {'datetime': time.strftime('%a %b %d %H:%M:%S %Y',
                            time.gmtime(os.stat(filename)[stat.ST_MTIME]))})
         # Directories
@@ -298,7 +371,7 @@ class PyFileNode(ExplorerNodes.ExplorerNode):
                     if otherIdFunc(filename):
                         return 'fol', other(file, filename, self.clipboard,
                               imgIdx, self, self.bookmarks)
-            return 'fol', PyFileNode(file, filename, self.clipboard,
+            return 'fol', FileSysNode(file, filename, self.clipboard,
                   EditorHelper.imgFolder, self, self.bookmarks)
         else:
             return '', None
@@ -425,6 +498,12 @@ class PyFileNode(ExplorerNodes.ExplorerNode):
               not os.access(self.resourcepath, os.W_OK)
         self.stdAttrs['modify-date'] = exists and \
               os.stat(self.resourcepath)[stat.ST_MTIME] or 0.0
+        self.stdAttrs['creation-date'] = exists and \
+              os.stat(self.resourcepath)[stat.ST_CTIME] or 0.0
+        self.stdAttrs['access-date'] = exists and \
+              os.stat(self.resourcepath)[stat.ST_ATIME] or 0.0
+        self.stdAttrs['size'] = exists and \
+              os.stat(self.resourcepath)[stat.ST_SIZE] or 0
 
     def setStdAttr(self, attr, value=None):
         if attr == 'read-only':
@@ -437,7 +516,7 @@ class PyFileNode(ExplorerNodes.ExplorerNode):
             os.stat(self.resourcepath)[stat.ST_MTIME] or 0.0) > \
             self.stdAttrs['modify-date']
 
-class ResultsFolderNode(PyFileNode):
+class ResultsFolderNode(FileSysNode):
     results = []
     def openList(self):
         self.parentOpensChildren = true
@@ -469,15 +548,15 @@ class ResultsFolderNode(PyFileNode):
     def getTitle(self):
         return 'Find results for %s in %s' % (self.lastSearch, self.resourcepath)
 
-class NonCheckPyFolderNode(PyFileNode):
+class NonCheckPyFolderNode(FileSysNode):
     def isFolderish(self):
         return true
 
-class CurWorkDirNode(PyFileNode):
+class CurWorkDirNode(FileSysNode):
     protocol = 'os.cwd'
     def __init__(self, clipboard, parent, bookmarks):
         self.cwd = os.path.abspath(os.getcwd())
-        PyFileNode.__init__(self, 'os.cwd', self.cwd, clipboard,
+        FileSysNode.__init__(self, 'os.cwd', self.cwd, clipboard,
               EditorHelper.imgPathFolder, parent)
         self.bookmarks = bookmarks
         self.bold = true
@@ -485,7 +564,7 @@ class CurWorkDirNode(PyFileNode):
 
     def openList(self):
         self.cwd = self.resourcepath = os.path.abspath(os.getcwd())
-        return PyFileNode.openList(self)
+        return FileSysNode.openList(self)
 
     def getTitle(self):
         return 'os.cwd://%s'%self.cwd
@@ -503,10 +582,11 @@ def findFileExplorerNode(category, respath, transports):
           'FileSysCatNode not found in transports %s'%transports.entries)
 
 #-------------------------------------------------------------------------------
-ExplorerNodes.register(PyFileNode, clipboard=FileSysExpClipboard,
+ExplorerNodes.register(FileSysNode, clipboard=FileSysExpClipboard,
       confdef=('explorer', 'file'), controller=FileSysController,
       category=FileSysCatNode)
-ExplorerNodes.register(CurWorkDirNode, clipboard='file', controller='file')
+ExplorerNodes.register(CurWorkDirNode, clipboard='file', controller='file', 
+      root=True)
 ExplorerNodes.fileOpenDlgProtReg.append('file')
 ExplorerNodes.uriSplitReg[('file', 2)] = uriSplitFile
 ExplorerNodes.uriSplitReg[('os.cwd', 2)] = uriSplitFile
