@@ -53,6 +53,7 @@ class BaseFrameModel(ClassModel):
         self.defClass = sourceconst.defClass
         self.defImport = sourceconst.defImport
         self.defWindowIds = sourceconst.defWindowIds
+        self.defSrcVals = {}
 
 
     def renameMain(self, oldName, newName):
@@ -72,15 +73,21 @@ class BaseFrameModel(ClassModel):
         for param in params.keys():
             paramLst.append(Preferences.cgKeywordArgFormat %{'keyword': param,
                                                         'value': params[param]})
+        
+        # XXX Refactor line wrappers to Utils and wrap this
         paramStr = 'self, ' + ', '.join(paramLst)
 
+        srcValsDict = {'modelIdent': self.modelIdentifier, 
+                       'main': self.main, 
+                       'idNames': Utils.windowIdentifier(self.main, ''),
+                       'idIdent': sourceconst.init_ctrls, 
+                       'idCount': 1, 'defaultName': self.defaultName, 
+                       'params': paramStr}
+        srcValsDict.update(self.defSrcVals)
+                       
         self.data = (sourceconst.defSig + self.defImport + \
                      self.defCreateClass + self.defWindowIds + \
-                     self.defClass) % {
-                      'modelIdent': self.modelIdentifier, 'main': self.main,
-                      'idNames': Utils.windowIdentifier(self.main, ''),
-                      'idIdent': sourceconst.init_ctrls, 'idCount': 1,
-                      'defaultName': self.defaultName, 'params': paramStr}
+                     self.defClass) % srcValsDict
 
         self.savedAs = false
         self.modified = true
@@ -209,9 +216,16 @@ class BaseFrameModel(ClassModel):
             for attr, blocks in attributes.items():
                 for block in blocks:
                     if startline <= block.start <= endline and attr not in attrs:
-                        line = source[block.start-1]
+                        linePos = block.start-1
+                        line = source[linePos]
                         val = line[line.find('=')+1:].strip()
+                        # handle lines continued with ,
+                        while val.endswith(','):
+                            linePos += 1
+                            val += source[linePos].strip()
+
                         attrs.append( (attr, val) )
+                            
 
         if extAttrInitName:
             if not mod.from_imports_names.has_key(extAttrInitName):
