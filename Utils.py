@@ -62,7 +62,7 @@ def AddToggleToolButtonBmpObject(frame, toolbar, thebitmap, hint, triggermeth):
 
 #This format follows wxWindows conventions
 def windowIdentifier(frameName, ctrlName):
-    return 'wxID_' + string.upper(frameName) + string.upper(ctrlName)
+    return 'wxID_' + frameName.upper() + ctrlName.upper()
 
 
 class BoaFileDropTarget(wxFileDropTarget):
@@ -93,10 +93,10 @@ def split_seq(seq, pivot, transformFunc = None):
 
 allowed_width = 78
 def human_split(line):
-    indent = string.find(line, string.strip(line))
+    indent = line.find(line.strip())
 
     # XXX use safe split, commas in quotes will break
-    segments = string.split(line, ',')
+    segments = line.split(',')
     for idx in range(len(segments)-1):
         segments[idx] = segments[idx]+','
 
@@ -154,7 +154,7 @@ def startswith(str, substr):
 
 ws2s = string.maketrans(string.whitespace, ' '*len(string.whitespace))
 def whitespacetospace(str):
-    return string.translate(str, ws2s)
+    return str.translate(ws2s)
 
 ##tst_str = ' 1\t\n 3'
 ##print `whitespacetospace(tst_str)`
@@ -289,15 +289,19 @@ def writeTextToClipboard(text):
     finally:
         clip.Close()
 
+
 _sharedConfs = {}
 def createAndReadConfig(name, forPlatform=1):
     """ Return an initialised ConfigFile object """
     confFile = os.path.join(Preferences.rcPath, '%s%s.cfg' % (name,
-        forPlatform and wx.wxPlatform == '__WXMSW__' and '.msw' \
-        or forPlatform and '.gtk' or ''))
+        forPlatform and '.'+Preferences.thisPlatform or ''))
+
+    # paths are within quotes in config, simpler to use fwd slash
+    _confDefaults = {'BOAROOT': Preferences.pyPath.replace('\\', '/'),
+                     'RESOURCECONFIG': Preferences.rcPath.replace('\\', '/')}
 
     if not _sharedConfs.has_key(confFile):
-        conf = ConfigParser()
+        conf = ConfigParser(_confDefaults)
         conf.read(confFile)
         conf.confFile = confFile
         _sharedConfs[confFile] = conf
@@ -305,8 +309,6 @@ def createAndReadConfig(name, forPlatform=1):
     return _sharedConfs[confFile]
 
 def writeConfig(conf):
-    #f = get_current_frame()
-    #print 'writeConfig', f.f_back.f_back.f_code.co_filename
     conf.write(open(conf.confFile, 'w'))
 
 from wxPython import html
@@ -430,27 +432,27 @@ class PseudoFileOutStore(PseudoFile):
         self.output.append(s)
 
     def read(self):
-        return string.join(self.output, '')
+        return ''.join(self.output)
 
 
 class LoggerPF(PseudoFile):
     """ Base class for logging file like objects """
     def pad(self, s):
         padded = s + pad
-        return padded[:padWidth] + string.strip(padded[padWidth:])
+        return padded[:padWidth] + padded[padWidth:].strip()
 
 class OutputLoggerPF(LoggerPF):
     """ Logs stdout to wxLog functions"""
     def write(self, s):
-        if string.strip(s):
+        if s.strip():
             if Preferences.recordModuleCallPoint:
                 frame = get_current_frame()
-                ss = string.strip(s)+ ' : <<%s, %d>>' % (
+                ss = s.strip()+ ' : <<%s, %d>>' % (
                      frame.f_back.f_code.co_filename,
                      frame.f_back.f_lineno,)
             else:
                 ss = s
-            wxLogMessage(string.replace(self.pad(ss), '%', '%%'))
+            wxLogMessage(self.pad(ss).replace('%', '%%'))
 
         sys.__stdout__.write(s)
 
@@ -468,7 +470,7 @@ class ErrorLoggerPF(LoggerPF):
         elif s[-1] != '\n':
             self.buffer = self.buffer + s
         else:
-            wxLogError(string.replace(self.pad(self.buffer+s[:-1]), '%', '%%'))
+            wxLogError(self.pad(self.buffer+s[:-1]).replace('%', '%%'))
 
         sys.__stderr__.write(s)
 
@@ -494,24 +496,25 @@ def html2txt(htmlblock):
     f = formatter.AbstractFormatter(w)
     p = htmllib.HTMLParser(f)
     p.feed(htmlblock)
-    return string.strip(s.getvalue())
+    return s.getvalue().strip()
 
 def getEntireWxNamespace():
     """ Return a dictionary containing the entire (non filtered) wxPython
         namespace """
-    from wxPython import wx, html, htmlhelp, grid, calendar, utils, stc, ogl, gizmos, help
+    from wxPython import wx, html, htmlhelp, grid, calendar, utils, stc, ogl
+    from wxPython import help, gizmos, wizard
     namespace = {}
     map(namespace.update, [wx.__dict__, html.__dict__, htmlhelp.__dict__,
                            grid.__dict__, calendar.__dict__, utils.__dict__,
                            stc.__dict__, ogl.__dict__, gizmos.__dict__,
-                           help.__dict__])
+                           help.__dict__, wizard.__dict__])
     return namespace
 
 class FrameRestorerMixin:
     """ Used by top level windows to restore from gidden or iconised state
     and to load and persist window dimensions
 
-    Classes using the mixin mus define self.setDefaultDimensions()
+    Classes using the mixin must define self.setDefaultDimensions()
     """
     confFile = 'Explorer'
     confSection = 'windowdims'
@@ -782,114 +785,6 @@ def getIndentBlock():
     else:
         return Preferences.STCIndent*' '
 
-#---Plugin and transport utils--------------------------------------------------
-# Should move to own module at future stage
-
-class PluginError(Exception):
-    pass
-
-class SkipPlugin(PluginError):
-    """ Special error, used to abort importing plugins early if they depend
-    on modules not loaded
-
-    Warning indicating problem is displayed """
-
-class SkipPluginSilently(SkipPlugin):
-    """ Special error, used to abort importing plugins early if they depend
-    on modules not available.
-
-    Plugin is skipped silently.
-    Used when user can do nothing about the problem (like switching platforms ;)
-    """
-
-def importFromPlugins(name):
-    # find module
-    pluginsPath = Preferences.pyPath + '/Plug-ins'
-    paths = [pluginsPath]
-    if Preferences.extraPluginsPath:
-        paths.append(Preferences.extraPluginsPath)
-    pluginRcPath = Preferences.rcPath+ '/Plug-ins'
-    if Preferences.rcPath != Preferences.pyPath and os.path.isdir(pluginRcPath):
-        paths.append(pluginRcPath)
-
-    modname = string.replace(name, '.', '/') + '.py'
-    for pth in paths:
-        modpath = os.path.join(pth, modname)
-        if os.path.isfile(modpath):
-            break
-    else:
-        raise ImportError, 'Module %s could not be found in Plug-ins'
-
-    import new
-    mod = new.module(name)
-
-    execfile(modpath, mod.__dict__)
-
-    return mod
-
-def transportInstalled(transport):
-    return transport in eval(
-         createAndReadConfig('Explorer').get('explorer', 'installedtransports'),{})
-
-def readInitPluginGlobals(pluginPath):
-    initPlugin = os.path.join(pluginPath, '__init__.plug-in.py')
-    initPluginGlobals = {'__ordered__': [], '__disabled__': []}
-    if os.path.exists(initPlugin):
-        execfile(initPlugin, initPluginGlobals)
-    return initPluginGlobals
-
-def writeInitPluginGlobals(pluginPath, initPluginGlobals):
-    initPlugin = os.path.join(pluginPath, '__init__.plug-in.py')
-    f = open(initPlugin, 'w')
-    f.write('__ordered__ = %s\n'%pprint.pformat(
-          initPluginGlobals.get('__ordered__', [])))
-    f.write('__disabled__ = %s\n'%pprint.pformat(
-          initPluginGlobals.get('__disabled__', [])))
-    f.close()
-
-def buildPluginExecList():
-    if not Preferences.pluginPaths:
-        return []
-
-    pluginExecList = []
-    pluginPathGlobs = []
-    for ppth in Preferences.pluginPaths:
-        initPluginGlobals = readInitPluginGlobals(ppth)
-        pluginPathGlobs.append( (os.path.join(ppth, '*.plug-in.py'), initPluginGlobals) )
-
-    for globPath, initPluginGlobals in pluginPathGlobs:
-        ordered = initPluginGlobals['__ordered__']
-        disabled = initPluginGlobals['__disabled__']
-        globList = glob.glob(globPath)
-
-        insIdx = 0
-        orderedPlugins = []
-        for pluginName in ordered:
-            pluginFilename = os.path.join(os.path.dirname(globPath),
-                                          pluginName)+'.plug-in.py'
-            try:
-                idx = globList.index(pluginFilename)
-            except ValueError:
-                #wxLogWarning('Ordered plugin: %s not found: %'%pluginFilename)
-                pass
-            else:
-                del globList[idx]
-                globList.insert(insIdx, pluginFilename)
-                insIdx = insIdx + 1
-                orderedPlugins.append(pluginFilename)
-
-        disabledPlugins = []
-        for pluginName in disabled:
-            disabledPlugins.append(os.path.join(os.path.dirname(globPath),
-                                                pluginName)+'.plug-in.py')
-
-        for pluginFilename in globList:
-            pluginExecList.append( (pluginFilename,
-                                    pluginFilename in orderedPlugins,
-                                    pluginFilename not in disabledPlugins) )
-    return pluginExecList
-
-
 #-------------------------------------------------------------------------------
 
 def canReadStream(stream):
@@ -900,7 +795,7 @@ def canReadStream(stream):
 
 def find_dotted_module(name, path=None):
     import imp
-    segs = string.split(name, '.')
+    segs = name.split('.')
     while segs:
         file, filename, desc = imp.find_module(segs[0], path)
         del segs[0]
