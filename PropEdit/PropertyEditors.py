@@ -34,6 +34,10 @@ from InspectorEditorControls import *
 import Utils
 from Enumerations import reverseDict
 
+StringTypes = [StringType]
+try: StringTypes.append(UnicodeType)
+except: pass
+
 class EditorStyles:pass
 class esExpandable(EditorStyles):pass
 class esDialog(EditorStyles):pass
@@ -779,7 +783,7 @@ class StrConstrPropEdit(ConstrPropEdit):
         if self.editorCtrl:
             try:
                 aStr = self.editorCtrl.getValue()
-                if type(aStr) is StringType:
+                if type(aStr) in StringTypes:
                     self.value = `aStr`
                 else:
                     self.value = self.getCtrlValue()
@@ -795,7 +799,7 @@ class NameConstrPropEdit(StrConstrPropEdit):
     def getValue(self):
         if self.editorCtrl:
             value = self.editorCtrl.getValue()
-            if type(value) is StringType:
+            if type(value) in StringTypes:
                 value = `self.editorCtrl.getValue()`
             else:
                 value = self.getCtrlValue()
