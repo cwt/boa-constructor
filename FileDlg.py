@@ -216,6 +216,31 @@ class wxBoaFileDialog(wxDialog):
         self.ok()
 
     def ok(self):
+        uri = self.GetFilename()
+        pth, fn = os.path.split(uri)
+        
+        # handle absolute paths
+        if pth:
+            from Explorers import ExplorerNodes, Explorer
+            absNode = Explorer.openEx(uri)
+            if not absNode:
+                wxLogError('Not a valid absolute path')
+                return
+                
+            try:
+                if absNode.isFolderish():
+                    self.SetDirectory(uri)
+                    self.SetFilename('')
+                    return
+                else:
+                    self.SetDirectory(pth)
+                    self.SetFilename(fn)
+                    return
+            except ExplorerNodes.TransportError:
+                wxLogError('Not a valid directory')
+                self.SetFilename(uri)
+                return
+
         if self.lcFiles.selected == 0:
             node = self.lcFiles.node.createParentNode()
             if node: node.allowedProtocols = ['zip']
@@ -493,8 +518,19 @@ def createFileDlgFolderListClass():
     return FileDlgFolderList
 
 if __name__ == '__main__':
+    # simple testing harness
     app = wxPySimpleApp()
-    import PaletteMapping
+    import PaletteMapping, EditorHelper
+    from Explorers import ExplorerNodes, FileExplorer, FTPExplorer
+
+    conf = Utils.createAndReadConfig('Explorer')
+    transports = ExplorerNodes.ContainerNode('Transport', EditorHelper.imgFolder)
+    from Explorers import Explorer
+    Explorer.all_transports = transports
+    transports.entries.append(FileExplorer.FileSysCatNode(None, conf, None, None))
+    if conf.has_option('explorer', 'ftp'):
+        transports.entries.append(FTPExplorer.FTPCatNode(None, conf, None, None))
+
     wxBoaFileDialog.modImages = wxImageList(16, 16)
     dlg = wxBoaFileDialog(None, defaultDir='.')
     try:
@@ -502,4 +538,4 @@ if __name__ == '__main__':
             wxMessageBox(dlg.GetPath())
     finally:
         dlg.Destroy()
-    
+       
