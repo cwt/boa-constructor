@@ -42,9 +42,12 @@ def isCVS(filename):
 
 def cvsFileLocallyModified(filename, timestamp):
     """  cvsFileLocallyModified -> modified, conflict """
-    filets = time.strftime('%a %b %d %H:%M:%S %Y',
-          time.gmtime(os.stat(filename)[stat.ST_MTIME]))
-    return timestamp != filets, string.split(timestamp, '+')[0] == 'Result of merge'
+    filets = time.asctime(time.gmtime(os.stat(filename)[stat.ST_MTIME]))
+    filesegs, cvssegs = string.split(filets), string.split(timestamp)
+    # convert day to int to avoid zero padded differences
+    filesegs[2], cvssegs[2] = int(filesegs[2]), int(cvssegs[2])
+    return ( filesegs != cvssegs, 
+             string.split(timestamp, '+')[0] == 'Result of merge')
 
 
 class CVSController(ExplorerNodes.Controller):
