@@ -807,8 +807,12 @@ class PythonStyledTextCtrlMix(LanguageSTCMix):
         if stripprevline:
             indent = prevline[:prevline.find(stripprevline)]
         else:
-            # python 2.2.1 does not support the strip parameter.
-            indent = string.strip(prevline, '\r\n')
+            try:
+                indent = prevline.strip('\r\n', 1)
+            except TypeError:
+                indent = prevline
+                while indent and indent[-1] in ('\r', '\n'):
+                    indent = indent[:-1]
 
         if self.GetUseTabs():
             indtBlock = '\t'
