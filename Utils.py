@@ -6,7 +6,7 @@
 #
 # Created:     1999
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999 - 2001 Riaan Booysen
+# Copyright:   (c) 1999 - 2004 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
 import string, os, glob, pprint
@@ -60,7 +60,7 @@ def AddToggleToolButtonBmpObject(frame, toolbar, thebitmap, hint, triggermeth):
     EVT_TOOL(frame, nId, triggermeth)
     return nId
 
-#This format follows wxWindows conventions
+#This format follows wxWidgets conventions
 def windowIdentifier(frameName, ctrlName):
     return 'wxID_' + frameName.upper() + ctrlName.upper()
 
@@ -504,11 +504,11 @@ def html2txt(htmlblock):
 def getEntireWxNamespace():
     """ Return a dictionary containing the entire (non filtered) wxPython
         namespace """
-    from wxPython import wx, html, htmlhelp, grid, calendar, utils, stc, ogl
+    from wxPython import wx, html, htmlhelp, grid, calendar, stc, ogl
     from wxPython import help, gizmos, wizard
     namespace = {}
     map(namespace.update, [wx.__dict__, html.__dict__, htmlhelp.__dict__,
-                           grid.__dict__, calendar.__dict__, utils.__dict__,
+                           grid.__dict__, calendar.__dict__, 
                            stc.__dict__, ogl.__dict__, gizmos.__dict__,
                            help.__dict__, wizard.__dict__])
     return namespace
