@@ -1,6 +1,6 @@
 
 import sys, os, time
-import whrandom, sha, threading
+import random, sha, threading
 from time import sleep
 from SocketServer import TCPServer
 
@@ -88,7 +88,7 @@ def main(args=None):
     connection.allowEnvChanges()  # Allow changing of sys.path, etc.
 
     # Create an authentication string, always 40 characters.
-    auth_str = sha.new(str(whrandom.random())).hexdigest()
+    auth_str = sha.new(str(random.random())).hexdigest()
 
     # port is 0 to allocate any port.
     server = TaskingTCPServer(('', 0), DebugRequestHandler)
