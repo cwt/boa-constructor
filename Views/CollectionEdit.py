@@ -17,7 +17,7 @@ from PrefsKeys import keyDefs
 import os
 #from EditorModels import init_coll
 
-wxNullBitmap = Preferences.IS.load('Images\\Inspector\\wxNullBitmap.bmp')
+#wxNullBitmap = Preferences.IS.load('Images/Inspector/wxNullBitmap.bmp')
 
 def create(parent):
     return CollectionEditor(parent)
