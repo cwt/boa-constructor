@@ -21,7 +21,7 @@ class ZopeHTMLView(HTMLView):
               self.model.zopeObj.whole_name())
         f = urllib.urlopen(url)
         s = f.read()
-        print url, s
+#        print url, s
         return s#f.read()
 
 class ZopeUndoView(ListCtrlView):
@@ -81,8 +81,6 @@ class ZopeSecurityView(ListCtrlView):
           (('Edit', self.OnEdit, self.undoBmp, ()),), -1)
         self.active = true
 
-        #self.undoIds = []
-
     def refreshCtrl(self):
         ListCtrlView.refreshCtrl(self)
 
@@ -96,13 +94,11 @@ class ZopeSecurityView(ListCtrlView):
         self.addReportColumns( colls )
 
         i = 0
-        #self.undoIds = []
         for perm in perms:
             apply(self.addReportItems,
                   (i, ((perm['acquire'] == 'CHECKED' and '*' or '',
                   perm['name']) + tuple(map( lambda x: x['checked'] == 'CHECKED' and '*' or '',
                   perm['roles'])) )))
-            #self.undoIds.append(undo['id'])
             i = i + 1
 
         self.pastelise()
