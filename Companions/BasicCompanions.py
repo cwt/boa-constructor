@@ -6,7 +6,7 @@
 #
 # Created:     2002
 # RCS-ID:      $Id$
-# Copyright:   (c) 2002
+# Copyright:   (c) 2002-2003
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 print 'importing Companions.BasicCompanions'
@@ -14,6 +14,7 @@ print 'importing Companions.BasicCompanions'
 from wxPython.wx import *
 
 from wxPython.html import wxHtmlWindow
+from wxPython.stc import *
 
 from BaseCompanions import WindowDTC, ChoicedDTC
 
@@ -291,6 +292,114 @@ class HtmlWindowDTC(HtmlWindowConstr, WindowDTC):
     def writeImports(self):
         return 'from wxPython.html import *'
 
+stcEOLMode = [wxSTC_EOL_CRLF, wxSTC_EOL_CR, wxSTC_EOL_LF]
+stcEOLModeNames = {'wxSTC_EOL_CRLF': wxSTC_EOL_CRLF, 
+                   'wxSTC_EOL_CR': wxSTC_EOL_CR, 
+                   'wxSTC_EOL_LF': wxSTC_EOL_LF}
+
+stcEdgeMode = [wxSTC_EDGE_NONE, wxSTC_EDGE_LINE, wxSTC_EDGE_BACKGROUND]
+stcEdgeModeNames = {'wxSTC_EDGE_NONE': wxSTC_EDGE_NONE, 
+                    'wxSTC_EDGE_LINE': wxSTC_EDGE_LINE, 
+                    'wxSTC_EDGE_BACKGROUND': wxSTC_EDGE_BACKGROUND}
+
+stcLexer = [wxSTC_LEX_NULL, wxSTC_LEX_PYTHON, wxSTC_LEX_CONTAINER,
+            wxSTC_LEX_CPP , wxSTC_LEX_HTML , wxSTC_LEX_XML, wxSTC_LEX_PERL,
+            wxSTC_LEX_SQL, wxSTC_LEX_VB, wxSTC_LEX_PROPERTIES, 
+            wxSTC_LEX_ERRORLIST, wxSTC_LEX_MAKEFILE, wxSTC_LEX_BATCH, 
+            wxSTC_LEX_XCODE, wxSTC_LEX_LATEX, wxSTC_LEX_LUA, wxSTC_LEX_DIFF,
+            wxSTC_LEX_CONF, wxSTC_LEX_PASCAL, wxSTC_LEX_AVE, wxSTC_LEX_ADA,
+            wxSTC_LEX_LISP, wxSTC_LEX_RUBY, wxSTC_LEX_EIFFEL, wxSTC_LEX_EIFFELKW,
+            wxSTC_LEX_TCL, wxSTC_LEX_NNCRONTAB, wxSTC_LEX_BULLANT, 
+            wxSTC_LEX_VBSCRIPT, wxSTC_LEX_ASP, wxSTC_LEX_PHP, wxSTC_LEX_BAAN,
+            wxSTC_LEX_MATLAB, wxSTC_LEX_SCRIPTOL, wxSTC_LEX_AUTOMATIC]
+stcLexerNames = {'wxSTC_LEX_NULL': wxSTC_LEX_NULL,
+      'wxSTC_LEX_PYTHON': wxSTC_LEX_PYTHON, 
+      'wxSTC_LEX_CONTAINER': wxSTC_LEX_CONTAINER,
+      'wxSTC_LEX_CPP': wxSTC_LEX_CPP, 'wxSTC_LEX_HTML': wxSTC_LEX_HTML, 
+      'wxSTC_LEX_XML': wxSTC_LEX_XML, 'wxSTC_LEX_PERL': wxSTC_LEX_PERL,
+      'wxSTC_LEX_SQL': wxSTC_LEX_SQL, 'wxSTC_LEX_VB': wxSTC_LEX_VB,
+      'wxSTC_LEX_PROPERTIES': wxSTC_LEX_PROPERTIES, 
+      'wxSTC_LEX_ERRORLIST': wxSTC_LEX_ERRORLIST,
+      'wxSTC_LEX_MAKEFILE': wxSTC_LEX_MAKEFILE, 
+      'wxSTC_LEX_BATCH': wxSTC_LEX_BATCH, 
+      'wxSTC_LEX_XCODE': wxSTC_LEX_XCODE, 'wxSTC_LEX_LATEX': wxSTC_LEX_LATEX,
+      'wxSTC_LEX_LUA': wxSTC_LEX_LUA, 'wxSTC_LEX_DIFF': wxSTC_LEX_DIFF, 
+      'wxSTC_LEX_CONF': wxSTC_LEX_CONF, 'wxSTC_LEX_PASCAL': wxSTC_LEX_PASCAL,
+      'wxSTC_LEX_AVE': wxSTC_LEX_AVE, 'wxSTC_LEX_ADA': wxSTC_LEX_ADA,
+      'wxSTC_LEX_LISP': wxSTC_LEX_LISP, 'wxSTC_LEX_RUBY': wxSTC_LEX_RUBY,
+      'wxSTC_LEX_EIFFEL': wxSTC_LEX_EIFFEL, 
+      'wxSTC_LEX_EIFFELKW': wxSTC_LEX_EIFFELKW,
+      'wxSTC_LEX_TCL': wxSTC_LEX_TCL, 'wxSTC_LEX_NNCRONTAB': wxSTC_LEX_NNCRONTAB,
+      'wxSTC_LEX_BULLANT': wxSTC_LEX_BULLANT, 
+      'wxSTC_LEX_VBSCRIPT': wxSTC_LEX_VBSCRIPT, 'wxSTC_LEX_ASP': wxSTC_LEX_ASP,
+      'wxSTC_LEX_PHP': wxSTC_LEX_PHP, 'wxSTC_LEX_BAAN': wxSTC_LEX_BAAN,
+      'wxSTC_LEX_MATLAB': wxSTC_LEX_MATLAB, 
+      'wxSTC_LEX_SCRIPTOL': wxSTC_LEX_SCRIPTOL,
+      'wxSTC_LEX_AUTOMATIC': wxSTC_LEX_AUTOMATIC}
+
+stcPrintColourMode = [wxSTC_PRINT_NORMAL, wxSTC_PRINT_INVERTLIGHT, 
+      wxSTC_PRINT_BLACKONWHITE, wxSTC_PRINT_COLOURONWHITE, 
+      wxSTC_PRINT_COLOURONWHITEDEFAULTBG]
+stcPrintColourModeNames = {'wxSTC_PRINT_NORMAL': wxSTC_PRINT_NORMAL, 
+      'wxSTC_PRINT_INVERTLIGHT': wxSTC_PRINT_INVERTLIGHT, 
+      'wxSTC_PRINT_BLACKONWHITE': wxSTC_PRINT_BLACKONWHITE, 
+      'wxSTC_PRINT_COLOURONWHITE': wxSTC_PRINT_COLOURONWHITE, 
+      'wxSTC_PRINT_COLOURONWHITEDEFAULTBG': wxSTC_PRINT_COLOURONWHITEDEFAULTBG}
+
+stcWrapMode = [wxSTC_WRAP_NONE, wxSTC_WRAP_WORD]
+stcWrapModeNames = {'wxSTC_WRAP_NONE': wxSTC_WRAP_NONE, 
+                    'wxSTC_WRAP_WORD': wxSTC_WRAP_WORD}
+
+class StyledTextCtrlDTC(WindowConstr, WindowDTC):
+    def __init__(self, name, designer, parent, ctrlClass):
+        WindowDTC.__init__(self, name, designer, parent, ctrlClass)
+        self.editors.update(
+            {'BackSpaceUnIndents': BoolPropEdit,
+             'BufferedDraw': BoolPropEdit,
+             'CaretLineVisible': BoolPropEdit,
+             'EndAtLastLine': BoolPropEdit,
+             'IndentationGuides': BoolPropEdit,
+             'MouseDownCaptures': BoolPropEdit,
+             'Overtype': BoolPropEdit,
+             'ReadOnly': BoolPropEdit,
+             'UndoCollection': BoolPropEdit,
+             'UseHorizontalScrollBar': BoolPropEdit,
+             'UseTabs': BoolPropEdit,
+             'ViewEOL': BoolPropEdit,
+             'ViewWhiteSpace': BoolPropEdit,
+             'EOLMode': EnumPropEdit,
+             'EdgeMode': EnumPropEdit, 
+             'Lexer': EnumPropEdit, 
+             'PrintColourMode': EnumPropEdit,
+             'WrapMode': EnumPropEdit,
+            })
+             
+        self.options.update({'EOLMode'   : stcEOLMode,
+                             'EdgeMode' : stcEdgeMode,
+                             'Lexer': stcLexer,
+                             'PrintColourMode': stcPrintColourMode,
+                             'WrapMode': stcWrapMode,       
+                            })
+        self.names.update({'EOLMode'   : stcEOLModeNames,
+                           'EdgeMode' : stcEdgeModeNames,
+                           'Lexer': stcLexerNames,
+                           'PrintColourMode': stcPrintColourModeNames,
+                           'WrapMode': stcWrapModeNames,
+                          })
+             
+    def designTimeSource(self, position = 'wxDefaultPosition', size = 'wxDefaultSize'):
+        return {'pos': position,
+                'size': size,
+                'style': '0',
+                'name': `self.name`}
+
+    def hideDesignTime(self):
+        return WindowDTC.hideDesignTime(self) + ['Anchor', 'CodePage', 
+               'DocPointer', 'LastKeydownProcessed', 'ModEventMask',
+               'Status', 'STCFocus']
+
+    def writeImports(self):
+        return 'from wxPython.stc import *'
 
 #-------------------------------------------------------------------------------
 import PaletteStore
@@ -300,7 +409,8 @@ PaletteStore.palette.append(['Basic Controls', 'Editor/Tabs/Basic',
                              PaletteStore.paletteLists['BasicControls']])
 PaletteStore.paletteLists['BasicControls'].extend([wxStaticText, wxTextCtrl,
   wxComboBox, wxChoice, wxCheckBox, wxRadioButton, wxSlider, wxGauge,
-  wxScrollBar, wxStaticBitmap, wxStaticLine, wxStaticBox, wxHtmlWindow])
+  wxScrollBar, wxStaticBitmap, wxStaticLine, wxStaticBox, wxHtmlWindow,
+  wxStyledTextCtrl])
 
 
 PaletteStore.compInfo.update({
@@ -317,4 +427,5 @@ PaletteStore.compInfo.update({
     wxStaticBox: ['wxStaticBox', StaticBoxDTC],
     wxStaticLine: ['wxStaticLine', StaticLineDTC],
     wxHtmlWindow: ['wxHtmlWindow', HtmlWindowDTC],
+    wxStyledTextCtrl: ['wxStyledTextCtrl', StyledTextCtrlDTC],
 })
