@@ -288,10 +288,9 @@ class BreakViewCtrl(wxListCtrl):
             self.debugger.invokeInDebugger(
                 'clearBreakpoints', (server_fn, bp['lineno']))
             
-            # Unmark the breakpoint in the editor.
-            editor = self.debugger.editor
-            if editor.modules.has_key(filename):
-                sourceView = editor.modules[filename].model.views['Source']
+            # Unmark the breakpoint in the editor (if open)
+            sourceView = self.debugger.getEditorSourceView(filename)
+            if sourceView:
                 sourceView.deleteBreakMarkers(bp['lineno'])
 
             self.refreshList()
@@ -305,11 +304,16 @@ class BreakViewCtrl(wxListCtrl):
             bp = self.bps[sel]
             filename = bp['filename']
             lineno = bp['lineno']
-            enabled = not bp['enabled']
+            enabled = bp['enabled'] = not bp['enabled']
             bplist.enableBreakpoints(filename, lineno, enabled)
             self.debugger.invokeInDebugger(
                 'enableBreakpoints', (filename, lineno, enabled))
             self.refreshList()
+            
+            sourceView = self.debugger.getEditorSourceView(filename)
+            if sourceView:
+                sourceView.deleteBreakMarkers(bp['lineno'])
+                sourceView.setBreakMarker(bp)
 
     def OnRightDown(self, event):
         self.pos = event.GetPosition()
@@ -749,8 +753,6 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
         self.nbTop = wxNotebook(self.splitter, wxID_TOPPAGECHANGED)
         if use_images:
             self.nbTop.SetImageList(self.viewsImgLst)
-##        EVT_NOTEBOOK_PAGE_CHANGED(self.nbTop, wxID_TOPPAGECHANGED,
-##                                  self.OnUpperPageChange)
 
         self.stackView = StackViewCtrl(self.nbTop, None, self)
 
@@ -1276,6 +1278,12 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
         if self.lastStepView is not None:
             self.lastStepView.clearStepPos(self.lastStepLineno)
             self.lastStepView = None
+
+    def getEditorSourceView(self, filename):
+        if self.editor.modules.has_key(filename):
+            return self.editor.modules[filename].model.views['Source']
+        else:
+            return None
 
     def selectSourceLine(self, filename, lineno):
         if self.isSourceTracing():
