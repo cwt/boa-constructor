@@ -266,7 +266,7 @@ class GridDTC(WindowConstr, WindowDTC):
         WindowDTC.__init__(self, name, designer, parent, ctrlClass)
         self.editors['Editable'] = self.editors['GridLinesEnabled'] = BoolPropEdit
         self.editors['SelectionMode'] = EnumPropEdit
-        self.ctrlDisabled = true
+        self.compositeCtrl = true
 
         self.options['SelectionMode'] = [wxGrid.wxGridSelectCells,
                                          wxGrid.wxGridSelectRows,
