@@ -770,17 +770,20 @@ class DebugServer (Bdb):
         return self._running
 
     def set_step_out(self):
-        # Stop when returning from the current frame.
-        if self.frame is not None:
-            self.set_return(self.frame)
+        """Stop when returning from the topmost frame."""
+        frame = self.getFrameByNumber(-1)
+        if frame is not None:
+            self.set_return(frame)
         else:
             raise DebugError('No current frame')
 
     def set_step_over(self):
-        # Stop on the next line in the current frame or in one of its callers.
-        frame = self.frame
+        """Stop on the next line in the topmost frame or in one of its callers.
+        """
+        frame = self.getFrameByNumber(-1)
         if frame is not None:
-            self.ignore_stopline = frame.f_lineno
+            # ignore_stopline is brittle for scripts.
+            #self.ignore_stopline = frame.f_lineno
             self.set_next(frame)
         else:
             raise DebugError('No current frame')
