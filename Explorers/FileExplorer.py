@@ -129,6 +129,9 @@ class FileSysController(ExplorerNodes.Controller, ExplorerNodes.ClipboardControl
         if controllers.has_key('zip'):
             self.newMenuDef.append(
              (wxID_FSNEWZIP, 'Empty zip archive', self.OnEmptyZipArchive, '-') )
+        if controllers.has_key('tar.gz'):
+            self.newMenuDef.append(
+             (wxID_FSNEWZIP, 'Empty tar.gz archive', self.OnEmptyTarGzipArchive, '-') )
 
         self.setupMenu(self.menu, self.list, self.fileMenuDef)
 
@@ -222,6 +225,9 @@ class FileSysController(ExplorerNodes.Controller, ExplorerNodes.ClipboardControl
         self.list.refreshCurrent()
         self.list.selectItemNamed(newName)
         self.list.EnsureVisible(self.list.selected)
+
+    def OnEmptyTarGzipArchive(self, event):
+        pass
                 
     def OnInspectItem(self, event):
         if self.list.node:
@@ -230,6 +236,7 @@ class FileSysController(ExplorerNodes.Controller, ExplorerNodes.ClipboardControl
                 comp = FileSysCompanion(item.name, item)
                 comp.updateProps()
                 self.inspector.selectObject(comp, false, focusPage=1)        
+
 
 
 class FileSysAttrPropEdit(PropertyEditors.PropertyEditor):
@@ -348,20 +355,26 @@ class FileSysNode(ExplorerNodes.ExplorerNode):
             filename = os.path.join(self.resourcepath, file)
 
         ext = os.path.splitext(filename)[1].lower()
-        exts = self.getFilterExts()
+        exts, extSubTypes = self.getFilterExts()
         # Files
         if ('.*' in exts or ext in exts) and os.path.isfile(filename):
-            for other, otherIdFunc, imgIdx in self.subExplorerReg['file']:
+            for Other, otherIdFunc, imgIdx in self.subExplorerReg['file']:
                 if '*' in self.allowedProtocols or \
-                      other.protocol in self.allowedProtocols:
+                      Other.protocol in self.allowedProtocols:
                     if otherIdFunc(filename):
-                        return 'fol', other(file, filename, self.clipboard,
+                        return 'fol', Other(file, filename, self.clipboard,
                               imgIdx, self, self.bookmarks)
-            return 'mod', FileSysNode(file, filename, self.clipboard,
-              Controllers.identifyFile(filename #localfs=self.filter == 'BoaFiles'
-                                      )[0].imgIdx, self, self.bookmarks,
-              {'datetime': time.strftime('%a %b %d %H:%M:%S %Y',
-                           time.gmtime(os.stat(filename)[stat.ST_MTIME]))})
+            Model = Controllers.identifyFile(filename)[0]
+            if extSubTypes.has_key(ext):
+                for SubTypeModel in extSubTypes[ext]:
+                    if issubclass(Model, SubTypeModel):
+                        break
+                else:
+                    return '', None    
+            return 'mod', FileSysNode(file, filename, self.clipboard, 
+              Model.imgIdx, self, self.bookmarks, {})
+              #{'datetime': time.strftime('%a %b %d %H:%M:%S %Y',
+              #             time.gmtime(os.stat(filename)[stat.ST_MTIME]))})
         # Directories
         elif os.path.isdir(filename):
             for other, otherIdFunc, imgIdx in self.subExplorerReg['folder']:
@@ -460,11 +473,12 @@ class FileSysNode(ExplorerNodes.ExplorerNode):
         self.__class__.filter = filter
 
     def getFilterExts(self):
-        return {'BoaFiles': self.exts,
-                'StdFiles': self.exts,
-                'BoaIntFiles': EditorHelper.internalFilesReg,
-                'ImageFiles': EditorHelper.imageExtReg,
-                'AllFiles': ['.*']}[self.filter]
+        return {'BoaFiles': (self.exts, {}),
+                'StdFiles': (self.exts, {}), 
+                'BoaIntFiles': (EditorHelper.internalFilesReg, {}), 
+                'ImageFiles': (EditorHelper.imageExtReg, 
+                               EditorHelper.imageSubTypeExtReg),
+                'AllFiles': (['.*'], {})}[self.filter]
 
     def load(self, mode='rb'):
         try:
