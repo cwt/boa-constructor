@@ -567,8 +567,8 @@ class WindowDTC(ControlDTC):
                         'EvtHandlerEnabled': BoolPropEdit,
                         'Style': StyleConstrPropEdit,
                         'Constraints': CollectionPropEdit,
-                        'Name': NamePropEdit}
-        self.ToolTip = ''
+                        'Name': NamePropEdit,
+                        'Sizer': SizerClassLinkPropEdit}
         import UtilCompanions
         self.subCompanions['Constraints'] = UtilCompanions.IndividualLayoutConstraintOCDTC
         
@@ -697,10 +697,8 @@ class CollectionDTC(DesignTimeCompanion):
         f = RTTI.getFunction(self.control, self.insertionMethod)
         params = self.designTimeDefaults(params)
         apply(f, [self.control], params)
-##        print 'applied', self.control, params
 
     def SetName(self, oldValue, newValue):
-        'COLLDTC SteName' 
         self.name = newValue
         self.setCollectionMethod()
 
