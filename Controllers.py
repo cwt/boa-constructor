@@ -102,7 +102,8 @@ class PersistentController(EditorController):
         EVT_MENU(self.editor, EditorHelper.wxID_EDITORSAVE, self.OnSave)
         EVT_MENU(self.editor, EditorHelper.wxID_EDITORSAVEAS, self.OnSaveAs)
         EVT_MENU(self.editor, EditorHelper.wxID_EDITORRELOAD, self.OnReload)
-
+        EVT_MENU(self.editor, EditorHelper.wxID_EDITORTOGGLERO, self.OnToggleReadOnly)
+        
     def addTools(self, toolbar, model):
         EditorController.addTools(self, toolbar, model)
         addTool(self.editor, toolbar, self.saveBmp, 'Save', self.OnSave)
@@ -113,6 +114,8 @@ class PersistentController(EditorController):
         self.addMenu(menu, EditorHelper.wxID_EDITORRELOAD, 'Reload', accls, ())
         self.addMenu(menu, EditorHelper.wxID_EDITORSAVE, 'Save', accls, (keyDefs['Save']))
         self.addMenu(menu, EditorHelper.wxID_EDITORSAVEAS, 'Save as...', accls, (keyDefs['SaveAs']))
+        menu.Append(-1, '-')
+        self.addMenu(menu, EditorHelper.wxID_EDITORTOGGLERO, 'Toggle read-only', accls, ())
         return accls
 
     def createModel(self, source, filename, main, saved, modelParent=None):
@@ -154,6 +157,18 @@ class PersistentController(EditorController):
                 model.load()
             except ExplorerNodes.TransportLoadError, error:
                 wxLogError(str(error))
+
+    def OnToggleReadOnly(self, event):
+        model = self.getModel()
+        if model and model.transport and model.transport.stdAttrs.has_key('read-only'):
+            model.transport.updateStdAttrs()
+            ro = model.transport.stdAttrs['read-only']
+            model.transport.setStdAttr('read-only', not ro)
+            
+            self.editor.updateModulePage(model)
+            self.editor.updateTitle()
+        else:
+            wxLogError('Read-only not supported on this transport')
         
 class ModuleController(PersistentController):
     runAppBmp = 'Images/Debug/RunApp.bmp'
@@ -980,4 +995,4 @@ if Utils.IsComEnabled():
 
 
 
-    
+      
