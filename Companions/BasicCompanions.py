@@ -6,7 +6,7 @@
 #
 # Created:     2002
 # RCS-ID:      $Id$
-# Copyright:   (c) 2002 - 2003
+# Copyright:   (c) 2002 - 2004
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 print 'importing Companions.BasicCompanions'
@@ -128,6 +128,13 @@ class TextCtrlDTC(WindowDTC):
                              'wxTE_LEFT', 'wxTE_CENTER', 'wxTE_RIGHT', 
                              'wxTE_DONTWRAP', 'wxTE_LINEWRAP', 'wxTE_WORDWRAP',
                              ] + self.windowStyles
+        self._maxLength = 0
+        self.initPropsThruCompanion.append('MaxLength')
+
+    def properties(self):
+        props = WindowDTC.properties(self)
+        props.update({'MaxLength':  ('CompnRoute', self.GetMaxLength, self.SetMaxLength)})
+        return props
 
     def constructor(self):
         return {'Value': 'value', 'Position': 'pos', 'Size': 'size',
@@ -147,6 +154,14 @@ class TextCtrlDTC(WindowDTC):
 
     def events(self):
         return WindowDTC.events(self) + ['TextCtrlEvent']
+
+    def GetMaxLength(self, x):
+        return self._maxLength
+
+    def SetMaxLength(self, value):
+        self._maxLength = value
+        self.control.SetMaxLength(value)
+
 
 EventCategories['RadioButtonEvent'] = (EVT_RADIOBUTTON,)
 commandCategories.append('RadioButtonEvent')
@@ -298,8 +313,8 @@ class HtmlWindowDTC(WindowDTC):
     def __init__(self, name, designer, parent, ctrlClass):
         WindowDTC.__init__(self, name, designer, parent, ctrlClass)
         self.windowStyles = ['wxHW_SCROLLBAR_NEVER', 'wxHW_SCROLLBAR_AUTO'] + self.windowStyles
-        self.initPropsThruCompanion.append('Borders')
         self._borders = 10
+        self.initPropsThruCompanion.append('Borders')
 
     def constructor(self):
         return {'Position': 'pos', 'Size': 'size', 'Name': 'name', 'Style': 'style'}
