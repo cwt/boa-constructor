@@ -1,11 +1,13 @@
 import ExplorerNodes, EditorModels, Utils
 import string, os
-from wxPython.wx import wxMenu, EVT_MENU, wxMessageBox, wxPlatform
+from wxPython.wx import wxMenu, EVT_MENU, wxMessageBox, wxPlatform, wxNewId
 from ZopeLib.ZopeFTP import ZopeFTP
 import ftplib
 
 true = 1
 false = 0
+
+wxID_FTPOPEN = wxNewId()
 
 class FTPController(ExplorerNodes.Controller, ExplorerNodes.ClipboardControllerMix):
     def __init__(self, editor, list):
@@ -15,8 +17,27 @@ class FTPController(ExplorerNodes.Controller, ExplorerNodes.ClipboardControllerM
         self.list = list
         self.menu = wxMenu()
 
-        self.setupMenu(self.menu, self.list, self.clipMenuDef)
+        self.setupMenu(self.menu, self.list,
+              ( (wxID_FTPOPEN, 'Open', self.OnOpenItems, '-'),
+                (-1, '-', None, '') ) + self.clipMenuDef)
         self.toolbarMenus = [self.clipMenuDef]
+
+    def destroy(self):
+        ExplorerNodes.ClipboardControllerMix.destroy(self)
+        self.toolbarMenus = ()
+
+    def __del__(self):
+        self.menu.Destroy()
+
+##    def OnOpenFTPItems(self, event):
+##        if self.list.node:
+##            nodes = self.getNodesForSelection(self.list.getMultiSelection())
+##            for node in nodes:
+##                if not node.isFolderish():
+##                    print 'Opening ftp item', node
+##                    node.open(self.editor)
+##                    #self.editor.openOrGotoModule(node.resourcepath, transport = node)
+
 
 
 class FTPCatNode(ExplorerNodes.CategoryNode):
@@ -64,15 +85,16 @@ class FTPItemNode(ExplorerNodes.ExplorerNode):
         if item.isFolderish():
             item.imgIdx = EditorModels.FolderModel.imgIdx
         else:
-            item.imgIdx = EditorModels.TextModel.imgIdx
+            item.imgIdx = EditorModels.identifyFile(obj.name, localfs=false)[0].imgIdx
+            #item.imgIdx = EditorModels.TextModel.imgIdx
         return item
 
     def openList(self, root = None):
-        try:
-            items = self.ftpConn.dir(self.ftpObj.whole_name())
-        except ftplib.error_perm, resp:
-            Utils.ShowMessage(None, 'FTP Error', str(resp))
-            raise
+##        try:
+        items = self.ftpConn.dir(self.ftpObj.whole_name())
+##        except ftplib.error_perm, resp:
+##            Utils.ShowMessage(None, 'FTP Error', str(resp))
+##            raise
 
         if not root: root = self.root
         self.cache = {}
@@ -94,12 +116,25 @@ class FTPItemNode(ExplorerNodes.ExplorerNode):
     def renameItem(self, name, newName):
         self.ftpConn.rename(self.cache[name].ftpObj, newName)
 
+##    def getTitle(self):
+##        return 'ftp:/'+ExplorerNodes.ExplorerNode.getTitle(self)
+
+    def load(self):
+        return self.ftpConn.load(self.ftpObj)
+
+    def save(self, filename, data):
+        # XXX save under different filename not supported yet
+        #print 'FTPObj', filename, self.ftpObj.whole_name(), self.ftpObj.name, self.ftpObj.path
+        self.ftpConn.save(self.ftpObj, data)
+
+
 class FTPConnectionNode(FTPItemNode):
     def __init__(self, name, properties, clipboard, parent):
         ftpConn = ZopeFTP()
         ftpObj = ftpConn.folder_item(os.path.dirname(properties['path']),
                                      os.path.basename(properties['path']))
-        FTPItemNode.__init__(self, ftpObj.name, properties, ftpObj.path, clipboard, true,
+        #ftpObj.name
+        FTPItemNode.__init__(self, '', properties, ftpObj.path, clipboard, true,
             EditorModels.imgFSDrive, parent, ftpConn, ftpObj, self)
         self.connected = false
         self.treename = name
