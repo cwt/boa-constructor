@@ -22,9 +22,14 @@ windowManagerBottom = 7
 editorProgressFudgePosX = -8
 editorProgressFudgeSizeY = 2
 
+# Try to use transparent bitmaps for palette
 transparentPaletteBitmaps = 0
 
+# Match braces in code
 braceHighLight = 0
+
+# Minimize the IDE while running applications
+minimizeOnRun = 0
 
 # These settings may be specific to Red Hat, change them if the help
 # complains about missing files.

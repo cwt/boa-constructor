@@ -22,10 +22,14 @@ windowManagerBottom = 0
 editorProgressFudgePosX = 0
 editorProgressFudgeSizeY = 0
 
+# Try to use transparent bitmaps for palette
 transparentPaletteBitmaps = 1 
 
+# Match braces in code
 braceHighLight = 1
 
+# Minimize the IDE while running applications
+minimizeOnRun = 1
 
 
 
