@@ -40,17 +40,17 @@ def showHelp(parent, helpClass, filename, toolbar = None):
     help.Show(true)
 
 def showContextHelp(parent, toolbar, word):
-    print 'looking up help for', word
+#    print 'looking up help for', word
     from Companions import HelpCompanions
     helpStr = word+'Docs'
     if HelpCompanions.__dict__.has_key(helpStr):
-        print 'loading wxWin help', HelpCompanions.__dict__[helpStr]
+#        print 'loading wxWin help', HelpCompanions.__dict__[helpStr]
         showHelp(parent, wxWinHelpFrame, HelpCompanions.__dict__[helpStr], toolbar)
     elif HelpCompanions.libRefDocs.has_key(word):
-        print 'loading python lib ref help', HelpCompanions.libRefDocs[word]
+#        print 'loading python lib ref help', HelpCompanions.libRefDocs[word]
         showHelp(parent, PythonHelpFrame, HelpCompanions.libRefDocs[word], toolbar)
     elif HelpCompanions.modRefDocs.has_key(word):
-        print 'loading python mod idx help', HelpCompanions.modRefDocs[word]
+#        print 'loading python mod idx help', HelpCompanions.modRefDocs[word]
         showHelp(parent, PythonHelpFrame, HelpCompanions.modRefDocs[word], toolbar)
     else:
         print 'No help found'
@@ -69,8 +69,9 @@ class HelpFrame(wxFrame):
     def __init__(self, parent, home, index, icon, paletteToolbar = None):
         self._init_ctrls(parent)
         self._init_utils()
-        self.SetDimensions(120, 75, Preferences.wxDefaultFrameSize.x,
-          Preferences.wxDefaultFrameSize.y)
+
+        self.SetSize(Preferences.wxDefaultFrameSize)
+        self.CenterOnScreen(wxBOTH)
 
         if wxPlatform == '__WXMSW__':
             self.SetIcon(IS.load('Images/Icons/'+icon))
