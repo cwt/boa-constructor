@@ -19,7 +19,6 @@
     Different views can be connected to a model  """
 
 # XXX form inheritance
-# XXX Dynamically adding buttons to taskbar depending on the model and view
 
 import moduleparse, string, os, sys, re, py_compile
 from os import path
@@ -133,7 +132,7 @@ defInfoBlock = """#-------------------------------------------------------------
 #-----------------------------------------------------------------------------
 """ 
 
-itot = 12
+itot = 14
 [imgFolder, imgPathFolder, imgCVSFolder, imgZopeFolder, imgZopeControlPanel,
  imgZopeProductFolder, imgZopeInstalledProduct, imgZopeUserFolder, imgZopeDTMLDoc, 
  imgZopeImage, imgZopeSystemObj, imgZopeConnection, imgBoaLogo, imgFolderUp, 
@@ -242,6 +241,8 @@ class EditorModel:
         for view in self.viewsModified:
             self.views[view].refreshModel()
 
+    def getPageName(self):
+        return path.splitext(path.basename(self.filename))[0]
 
 class FolderModel(EditorModel):
     modelIdentifier = 'Folder'
@@ -306,6 +307,13 @@ class BitmapFileModel(EditorModel):
     imgIdx = 11
     ext = '.bmp'
 
+class ZipFileModel(EditorModel):
+    modelIdentifier = 'ZipFile'
+    defaultName = 'zip'
+    bitmap = 'ZipFile_s.bmp'
+    imgIdx = 12
+    ext = '.zip'
+
 class ZopeExportFileModel(EditorModel):
     modelIdentifier = 'ZopeExport'
     defaultName = 'zexp'
@@ -356,6 +364,7 @@ class ZopeDocumentModel(EditorModel):
     
     def save(self):
         """ Saves contents of data to file specified by self.filename. """
+        print self.filename
         if self.filename:
             self.zopeConn.save(self.zopeObj, self.data)
             self.modified = false
@@ -367,8 +376,13 @@ class ZopeDocumentModel(EditorModel):
             Override this to catch name changes. """
 
         raise 'Save as not supported'
-            
-            
+
+    def getPageName(self):
+        if self.zopeObj.name == 'index_html':
+            return '%s (%s)' % (self.zopeObj.name, string.split(self.zopeObj.path, '/')[-1])
+        else:
+            return self.zopeObj.name
+                        
 class PackageModel(EditorModel):
     """ Must be constructed in a valid path, name being filename, actual
         name will be derived from path """
@@ -423,8 +437,34 @@ class PackageModel(EditorModel):
                 packages.append((file, PackageModel))
         
         return packages + modules
+
+    def getPageName(self):
+        return self.packageName
+
+class SourceModel(EditorModel):
+    modelIdentifier = 'Source'
+    def getCVSConflicts(self):
+        lines = string.split(self.data, '\012')
+        # needless obscurity
+        # numedLines = apply(map, (None,) + (lines, range(len(lines))) )
+
+        # use model.module.source
+        conflictStart = -1
+        confCnt = 0
+        lineNo = 0
+        conflicts =[]
+        for line in lines:
+            if line[:8] == '<<<<<<< ' and \
+                  string.strip(line[8:]) == os.path.basename(self.filename):
+                conflictStart = lineNo
+            if line[:8] == '>>>>>>> ':
+                rev = line[8:]
+                conflicts.append( (rev, conflictStart, lineNo - conflictStart) )
+                confCnt = confCnt + 1
+            lineNo = lineNo + 1
+        return conflicts
                 
-class ModuleModel(EditorModel):
+class ModuleModel(SourceModel):
 
     modelIdentifier = 'Module'
     defaultName = 'module'
@@ -436,24 +476,24 @@ class ModuleModel(EditorModel):
     saveAsBmp = 'Images/Editor/SaveAs.bmp'
 
     def __init__(self, data, name, editor, saved, app = None):
-        EditorModel.__init__(self, name, data, editor, saved)
+        SourceModel.__init__(self, name, data, editor, saved)
         self.moduleName = path.split(self.filename)[1]
         self.app = app
         self.debugger = None
         if data: self.update()
 
     def destroy(self):
-        EditorModel.destroy(self)
+        SourceModel.destroy(self)
         del self.app
         del self.debugger
         
     def addTools(self, toolbar):
-        EditorModel.addTools(self, toolbar)
+        SourceModel.addTools(self, toolbar)
         AddToolButtonBmpIS(self.editor, toolbar, self.saveBmp, 'Save', self.editor.OnSave)
         AddToolButtonBmpIS(self.editor, toolbar, self.saveAsBmp, 'Save as...', self.editor.OnSaveAs)
         
     def addMenus(self, menu):
-        accls = EditorModel.addMenus(self, menu)
+        accls = SourceModel.addMenus(self, menu)
         self.addMenu(menu, Editor.wxID_EDITORSAVE, 'Save', accls, (keyDefs['Save']))
         self.addMenu(menu, Editor.wxID_EDITORSAVEAS, 'Save as...', accls, (keyDefs['SaveAs']))
         menu.Append(-1, '-')
@@ -469,7 +509,7 @@ class ModuleModel(EditorModel):
         self.notify()
 
     def load(self, notify = true):
-        EditorModel.load(self, false)
+        SourceModel.load(self, false)
         self.update()
         if notify: self.notify()
 
@@ -500,15 +540,13 @@ class ModuleModel(EditorModel):
         self.initModule()
 
     def checkError(self, err, str):    
-        err.parse()
-        if len(err.error):
-            model = self.editor.openOrGotoModule(err.stack[0].file, self.app)
-##            print 'erpos', err.error[2]
-            model.views['Source'].focus()
-            model.views['Source'].SetFocus()
-            model.views['Source'].gotoLine(err.stack[0].lineNo - 1, err.error[2])
-            model.views['Source'].setStepPos(err.stack[0].lineNo - 1)
-            self.editor.statusBar.setHint('%s: %s'% (err.error[0], err.error[1]))
+#        err.parse()
+        if len(err):
+            import ErrorStackFrm
+            esf = ErrorStackFrm.ErrorStackMF(self.editor, self.app, self.editor)
+            print 'checkError', err
+            esf.initTree(err)
+            esf.Show(true)
         else:
             self.editor.statusBar.setHint('%s %s successfully.' %\
               (str, path.basename(self.filename)))
@@ -519,16 +557,29 @@ class ModuleModel(EditorModel):
             cwd = path.abspath(os.getcwd())
             os.chdir(path.dirname(self.filename))
             oldErr = sys.stderr
-            sys.stderr = ErrorStack.ErrorParser()
+            oldSysPath = sys.path[:]
             try:
+                sys.path.append(Preferences.pyPath)
                 cmd = '"%s" %s %s'%(sys.executable, path.basename(self.filename), args)
                 print 'executing', cmd, args
                 try:
-                    wx.wxExecute(cmd, true)
+                    from popen2import import popen3
+                    #wx.wxExecute(cmd, true)
+                    inp, outp, errp = popen3(cmd)
+                    
+##                    while 1:
+##                        l = b.readline()
+##                        if not l: break
+                    print outp.read()
+                    serr = ErrorStack.errorList(errp)
+                    if len(serr):
+                        self.checkError(serr, 'Ran')
+                    else:
+                        print 'no errors'
                 except:
                     raise                    
-                self.checkError(sys.stderr, 'Ran')
             finally:
+                sys.path = oldSysPath
                 sys.stderr = oldErr
                 os.chdir(cwd)
 
@@ -539,13 +590,14 @@ class ModuleModel(EditorModel):
         if self.savedAs:
             try:
                 oldErr = sys.stderr
-                sys.stderr = ErrorStack.ErrorParser()
+                sys.stderr = ErrorStack.RecFile()
                 try:
                     py_compile.compile(self.filename)
                 except:
                     print 'Compile Exception!'
                     raise
-                self.checkError(sys.stderr, 'Compiled')
+                serr = ErrorStack.errorList(sys.stderr)
+                self.checkError(serr, 'Compiled')
             finally:
                 sys.stderr = oldErr
 
@@ -574,14 +626,15 @@ class ModuleModel(EditorModel):
             wxLogWarning('Save before running Cyclops')
             raise 'Not saved yet!' 
 
-    def debug(self):
+    def debug(self, params = None):
         if self.savedAs:
             if self.editor.debugger:
                 self.editor.debugger.Show(true)
             else:
                 self.editor.debugger = Debugger.DebuggerFrame(self)
-                self.editor.debugger.Show(true)  
-                self.editor.debugger.debug_file(self.editor.debugger.filename)
+                self.editor.debugger.Show(true)
+                if params is None: params = []
+                self.editor.debugger.debug_file(self.editor.debugger.filename, params)
     
     def profile(self):
         if self.savedAs:
@@ -593,10 +646,10 @@ class ModuleModel(EditorModel):
             wxPython.wx.wxApp = wxProfilerPhonyApp
             try:
                 prof = profile.Profile()
-	        try:
-		    prof = prof.run('execfile("%s")'% path.basename(self.filename))
-	        except SystemExit:
-		    pass
+                try:
+                    prof = prof.run('execfile("%s")'% path.basename(self.filename))
+                except SystemExit:
+                    pass
                 prof.create_stats()
                 return prof.stats     
 
@@ -677,6 +730,61 @@ class TextModel(EditorModel):
         EditorModel.load(self, false)
         self.update()
         if notify: self.notify()
+
+class CPPModel(EditorModel):
+
+    modelIdentifier = 'CPP'
+    defaultName = 'cpp'
+    bitmap = 'Cpp_s.bmp'
+    imgIdx = 13
+    ext = '.cxx'
+
+    saveBmp = 'Images/Editor/Save.bmp'
+    saveAsBmp = 'Images/Editor/SaveAs.bmp'
+
+    def __init__(self, data, name, editor, saved):
+        EditorModel.__init__(self, name, data, editor, saved)
+        if data: self.update()
+        self.loadHeader()
+        
+    def addTools(self, toolbar):
+        EditorModel.addTools(self, toolbar)
+        AddToolButtonBmpIS(self.editor, toolbar, self.saveBmp, 'Save', self.editor.OnSave)
+        AddToolButtonBmpIS(self.editor, toolbar, self.saveAsBmp, 'Save as...', self.editor.OnSaveAs)
+
+    def addMenus(self, menu):
+        accls = EditorModel.addMenus(self, menu)
+        self.addMenu(menu, Editor.wxID_EDITORSAVE, 'Save', accls, (keyDefs['Save']))
+        self.addMenu(menu, Editor.wxID_EDITORSAVEAS, 'Save as...', accls, (keyDefs['SaveAs']))
+        return accls
+
+    def new(self):
+        self.data = ''
+        self.savedAs = false
+        self.modified = true
+        self.update()
+        self.notify()
+
+    def loadHeader(self):
+        header = os.path.splitext(self.filename)[0]+'.h'
+        if os.path.exists(header):
+            self.headerData = open(header).read()
+        else:
+            self.headerData = ''
+
+    def load(self, notify = true):
+        print 'CPP load'
+        EditorModel.load(self, false)
+        self.loadHeader()
+        self.update()
+        if notify: self.notify()
+
+##class HPPModel(CPPModel):
+##    modelIdentifier = 'HPP'
+##    defaultName = 'hpp'
+##    bitmap = 'Cpp_s.bmp'
+##    imgIdx = 13
+##    ext = '.h'
                 
 class ConfigFileModel(TextModel):
     modelIdentifier = 'Config'
@@ -829,6 +937,12 @@ class ObjectCollection:
         self.eventsByName = self.setupList(self.events)
         self.collectionsByName = self.setupList(self.collections)
 
+def isInitCollMeth(meth):
+    return len(meth) > len(init_coll) and meth[:11] == init_coll
+
+def getCollName(collInitMethod, name):
+    return collInitMethod[len('_init_coll_'+name)+1:]
+    
 class BaseFrameModel(ClassModel):
     modelIdentifier = 'Frames'
     companion = Companions.DesignTimeCompanion
@@ -901,7 +1015,7 @@ class BaseFrameModel(ClassModel):
         """ Create a new ObjectCollection by parsing the given method body """
         import methodparse
         # Collection method
-        if len(meth) > len(init_coll) and meth[:11] == init_coll:
+        if isInitCollMeth(meth):
             try:
                 res = Utils.split_seq(codeBody, '')
                 inits, body, fins = res[:3]
@@ -993,7 +1107,7 @@ class BaseFrameModel(ClassModel):
             if winIdIdx == -1:
                 comp.updateWindowIds()
             comp.addIds(lst)
-	
+
         if winIdIdx == -1:
             if lst:
                 # No window id definitions could be found add one above class def
@@ -1006,7 +1120,7 @@ class BaseFrameModel(ClassModel):
 	    # Update window ids
 	    module.source[idx] = \
 	      string.strip(defWindowIds % (string.join(lst, ', '), colMeth, len(lst)))
-	    
+
     def update(self):
         ClassModel.update(self)
 #        self.readComponents()
@@ -1056,6 +1170,8 @@ class AppModel(ClassModel):
     imgIdx = 0
     def __init__(self, data, name, main, editor, saved):
         self.moduleModels = {}
+        self.textInfos = {}
+        self.unsavedTextInfos = []
         ClassModel.__init__(self, data, name, main, editor, saved, self)
         if data:
             self.update()
@@ -1072,6 +1188,15 @@ class AppModel(ClassModel):
             return filename
         else:
             return string.join(string.split(filename, '\\'), '/')
+
+    def save(self):
+        ClassModel.save(self)
+        for tin in self.unsavedTextInfos:
+            fn = os.path.join(os.path.dirname(self.filename), tin)
+            data = self.textInfos[tin]
+            if data:
+                open(fn, 'w').write(data)
+        self.unsavedTextInfos = []
 
     def saveAs(self, filename):
         for mod in self.modules.keys():
@@ -1141,7 +1266,7 @@ class AppModel(ClassModel):
                 print 'could not find unsaved module', absPath, self.editor.modules
 
     def readModules(self):
-	modS, modE = self.findModules()
+        modS, modE = self.findModules()
         try:
             self.modules = eval(self.data[modS:modE])
         except: raise 'Module list not a valid dictionary'
@@ -1150,13 +1275,13 @@ class AppModel(ClassModel):
             self.idModel(mod)
         
     def readImports(self):
-	impS, impE = self.findImports()
+        impS, impE = self.findImports()
         try:
             self.imports = string.split(self.data[impS:impE], ', ')
         except: raise 'Module import list not a comma delimited list'
 
     def writeModules(self, notify = true):
-	modS, modE = self.findModules()
+        modS, modE = self.findModules()
         self.data = self.data[:modS]+`self.modules`+self.data[modE:]
 
         self.modified = true
@@ -1166,7 +1291,7 @@ class AppModel(ClassModel):
         if notify: self.notify()
 
     def writeImports(self, notify = true):
-	impS, impE = self.findImports()
+        impS, impE = self.findImports()
         self.data = self.data[:impS]+string.join(self.imports, ', ')+ \
           self.data[impE:]
         if notify: self.notify()
@@ -1306,6 +1431,13 @@ class AppModel(ClassModel):
         self.readModules()
         self.readPaths()
 
+    def loadTextInfo(self, viewName):
+        fn = os.path.join(os.path.dirname(self.filename), viewName)
+        if os.path.exists(fn):
+            self.textInfos[viewName] = open(fn).read()
+        else:
+            self.textInfos[viewName] = ''
+
 # model registry: add to this dict to register a Model
 modelReg = {AppModel.modelIdentifier: AppModel, 
             FrameModel.modelIdentifier: FrameModel,
@@ -1318,13 +1450,18 @@ modelReg = {AppModel.modelIdentifier: AppModel,
             PackageModel.modelIdentifier: PackageModel,
             ConfigFileModel.modelIdentifier: ConfigFileModel,
             ZopeExportFileModel.modelIdentifier: ZopeExportFileModel,
-            BitmapFileModel.modelIdentifier: BitmapFileModel}
+            BitmapFileModel.modelIdentifier: BitmapFileModel,
+            ZipFileModel.modelIdentifier: ZipFileModel,
+            CPPModel.modelIdentifier: CPPModel}
 
 # All non python files recogniseable by extension
 extMap = {}
 for mod in modelReg.values():
     extMap[mod.ext] = mod
 del extMap['.py']
+extMap['.cpp'] = CPPModel
+extMap['.c'] = CPPModel
+extMap['.h'] = CPPModel
 
 def identifyHeader(headerStr):
     header = string.split(headerStr, ':')
@@ -1373,15 +1510,3 @@ def identifySource(source):
                 return headerInfo
         else:
             return ModuleModel, ''
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-       
