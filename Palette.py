@@ -49,7 +49,6 @@ class BoaFrame(wxFrame):
         
 #        self.splitter = wxSplitterWindow(self, -1, style = wxSP_NOBORDER)
                 
-        wxToolTip_Enable(TRUE) 
         self.widgetSet = {}
         if wxPlatform == '__WXMSW__':
             self.SetIcon(wxIcon(toPyPath('Images/Icons/Boa.ico'), wxBITMAP_TYPE_ICO))
@@ -94,8 +93,8 @@ class BoaFrame(wxFrame):
             transpSF = 'Gray/'
 
 
-	# XXX Set these from class
-	if not cyclopsing:
+        # XXX Set these from class
+        if not cyclopsing:
             # 'New' page
             palettePage = NewPalettePage(self.palette, 'New', 'Images/Palette/'+transpSF, self, self.widgetSet, self.senders, self.componentSB)       
             palettePage.addButton('wxApp', None, None, self.OnNewApp, self.OnHint, self.OnHintLeave, wxGenBitmapButton)
@@ -108,10 +107,10 @@ class BoaFrame(wxFrame):
             palettePage.addButton('Package', None, None, self.OnNewPackage, self.OnHint, self.OnHintLeave, wxGenBitmapButton)
             palettePage.addButton('Text', None, None, self.OnNewText, self.OnHint, self.OnHintLeave, wxGenBitmapButton)
             self.palettePages.append(palettePage)
-	    # Normal control pages
+            # Normal control pages
             for palette in PaletteMapping.palette:
                 palettePage = PalettePage(self.palette, palette[0], 'Images/Palette/'+transpSF, self, self.widgetSet, self.senders, self.componentSB)
-                palettePage.addToggleBitmaps(palette[2], self.OnPaletteClick, self.OnHint, self.OnHintLeave)
+                palettePage.addToggleBitmaps(palette[2], self.OnHint, self.OnHintLeave)
                 self.palettePages.append(palettePage)
             # Dialog page
             self.dialogPalettePage = PanelPalettePage(self.palette, PaletteMapping.dialogPalette[0], 'Images/Palette/'+transpSF, self, self.widgetSet, self.senders, self.componentSB)       
@@ -122,7 +121,7 @@ class BoaFrame(wxFrame):
             self.palettePages.append(self.dialogPalettePage)
             # Zope page
             self.zopePalettePage = ZopePalettePage(self.palette, PaletteMapping.zopePalette[0], 'Images/Palette/'+transpSF, self, self.widgetSet, self.senders, self.componentSB)
-            self.zopePalettePage.addToggleBitmaps(PaletteMapping.zopePalette[2], None, None, None)
+            self.zopePalettePage.addToggleBitmaps(PaletteMapping.zopePalette[2], None, None)
             self.palettePages.append(self.zopePalettePage)
             
         else:
@@ -174,7 +173,7 @@ class BoaFrame(wxFrame):
             self.editor = Editor.EditorFrame(self, -1, self.inspector, 
               wxMenu(), self.componentSB, app)#palettePage.menu
     
-	EVT_CLOSE(self, self.OnCloseWindow)
+        EVT_CLOSE(self, self.OnCloseWindow)
 
     def addTool(self, filename, text, help, func):
         mID = wxNewId()
@@ -183,7 +182,7 @@ class BoaFrame(wxFrame):
         EVT_TOOL(self, mID, func)
     
     def OnClick(self, event):
-    	self.componentSB.SetStatusText('Palette Click'+`event.GetId()`)
+        self.componentSB.SetStatusText('Palette Click'+`event.GetId()`)
 
     def OnOpenToolClick(self, event):
         dlg = wxFileDialog(self, "Choose a file", ".", "", "*.*", wxOPEN)
@@ -196,7 +195,7 @@ class BoaFrame(wxFrame):
         if self.inspector.IsIconized():
             self.inspector.Iconize(false)
         self.inspector.Raise()
-	
+
     def OnHelpToolClick(self, event):
         if self.componentSB.selection:
             Help.showHelp(self, Help.wxWinHelpFrame, 
@@ -209,14 +208,18 @@ class BoaFrame(wxFrame):
 
     def OnPythonHelpToolClick(self, event):
         Help.showHelp(self, Help.PythonHelpFrame, '', self.toolBar)
-	
+
     def OnPrefsToolClick(self, event):
 ##        print 'inspector', sys.getrefcount(self.inspector)
 ##        print 'editor', sys.getrefcount(self.editor)
         self.editor.openOrGotoModule(toPyPath('Preferences.py'))
-		    
+
     def OnLeave(self, event):
         self.componentSB.setHint('')
+    
+    def OnNewClick(self, event):
+        pass
+    
 
     def OnNewFrame(self, event):
         self.editor.addNewFramePage('Frame')
@@ -252,8 +255,8 @@ class BoaFrame(wxFrame):
         self.editor.addNewPackage()
         pass
     
-    def OnPaletteClick(self, event):
-        pass
+##    def OnPaletteClick(self, event):
+##        pass
 
     def OnDialogPaletteClick(self, event):
         cls, cmp = self.dialogPalettePage.widgets[`event.GetId()`][1:]
@@ -288,6 +291,7 @@ class BoaFrame(wxFrame):
         self.Close()
     
     def OnCloseWindow(self, event):
+        self.Show(false)
         self.destroying = true
         try:
             if hasattr(self, 'editor') and self.editor:
@@ -464,7 +468,6 @@ class NewPalettePage(PanelPalettePage):
         self.selection = None
 
     def destroy(self):
-        print 'NewPalettePage destroy'
         self.menu.Destroy()
         PanelPalettePage.destroy(self)
 
@@ -480,8 +483,8 @@ class PalettePage(PanelPalettePage):
         self.clickEvt = None
         self.selection = None
 
-    def addToggleBitmaps(self, classes, clickEvt, hintFunc, hintLeaveFunc):
-        self.clickEvt = clickEvt
+    def addToggleBitmaps(self, classes, hintFunc, hintLeaveFunc):
+#        self.clickEvt = clickEvt
         for wxClass in classes:
             ci = PaletteMapping.compInfo[wxClass]
             self.addButton(ci[0], wxClass, ci[1], self.OnClickTrap, hintFunc, hintLeaveFunc, wxGenBitmapToggleButton)
@@ -509,16 +512,4 @@ class ZopePalettePage(PalettePage):
     def getButtonBmp(self, name, wxClass):
         return IS.load('%s%s.bmp' %(self.bitmapPath, name)) 
 
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
   
