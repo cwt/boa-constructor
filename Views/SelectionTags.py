@@ -231,6 +231,7 @@ class SelectionGroup:
 
             self.positionUpdate()
             self.showTags()
+            #self.sizeFromCtrl()
 
     def initStartVals(self):
         self.startPos = wxPoint(self.position.x, self.position.y)
@@ -243,7 +244,6 @@ class SelectionGroup:
             self.selCompn = None
             self.inspSel = None
         else: 
-            # XXX fix!
             if ctrl.this == self.designer.this:
                 self.name = ''
                 self.parent = ctrl
@@ -279,8 +279,9 @@ class SelectionGroup:
         self.selCompn = None
 
     def resizeCtrl(self):
-        """ Set the selected control's dimensions by granulising
-            the current selection group's size & pos """
+        """ Set the selected control's dimensions from the current selection 
+            group's size & pos 
+        """
         if self.selCompn: self.selCompn.beforeResize()
 
         try:
@@ -291,8 +292,8 @@ class SelectionGroup:
 
     def sizeFromCtrl(self):
         """ Called from outside the module. Set the group's size & pos from
-            a control and notifies the Inspector. """
-        # XXX What about granularity?
+            a control and notifies the Inspector. 
+        """
         if self.selection:
             self.position = self.selection.GetPosition()
             self.size = self.selection.GetSize()
@@ -300,6 +301,11 @@ class SelectionGroup:
             self.positionUpdate()
         
     def setSelection(self, finishDragging=false):
+        """ Show selection based on granularised position and size.
+        
+            While dragging only lines are updated while tags stay with original
+            control position.
+        """
         position = self.position
         size = self.size
 
@@ -362,13 +368,6 @@ class SelectionGroup:
                 else:
                     self.anchorTags[idx].setAnchor(None)
         
-    def OnMouseOver(self, event):
-        if event.Dragging():
-            pos = event.GetPosition()
-            ctrl = self.senders.getObject(event)
-            self.moving(ctrl, pos)
-        event.Skip()
-
 class SingleSelectionGroup(SelectionGroup):
     def __init__(self, parent, senders, inspector, designer):
         SelectionGroup.__init__(self, parent, senders, inspector, designer, wxBLACK, 0)
@@ -392,10 +391,20 @@ class SingleSelectionGroup(SelectionGroup):
         self.initStartVals()
         
     def OnSizeEnd(self, event):
-        self.resizeCtrl()
-        self.showTags()
-        self.dragTag = None
-        self.setSelection()
+        if self.dragging:
+            self.moveRelease()
+        else:
+            self.resizeCtrl()
+            self.showTags()
+            self.dragTag = None
+            self.setSelection()
+
+    def OnMouseOver(self, event):
+        if event.Dragging():
+            pos = event.GetPosition()
+            ctrl = self.senders.getObject(event)
+            self.moving(ctrl, pos)
+        event.Skip()
 
 class MultiSelectionGroup(SelectionGroup): 
     def __init__(self, parent, senders, inspector, designer):
@@ -417,12 +426,26 @@ class MultiSelectionGroup(SelectionGroup):
         event.Skip()
 
     def OnSizeEnd(self, event):
+        if self.dragging:
+            dsgn = self.designer
+            for sel in dsgn.multiSelection:
+                sel.moveRelease()
+            dsgn.mainMultiDrag = None
         event.Skip()
 
     def OnSizeEnd2(self, event):
         self.resizeCtrl()
         self.showTags()
         self.dragTag = None
+
+    def OnMouseOver(self, event):
+        if event.Dragging():
+            pos = event.GetPosition()
+            ctrl = self.senders.getObject(event)
+            dsgn = self.designer
+            for sel in dsgn.multiSelection:
+                sel.moving(ctrl, pos, dsgn.mainMultiDrag)
+        event.Skip()
 
 class SelectionTag(wxPanel):
     toggleAnchors = (0, 0, 0, 0)
