@@ -6,6 +6,7 @@ import moduleparse
 import string
 from wxPython import wx
 from PropEdit.PropertyEditors import StrZopePropEdit, BoolZopePropEdit, EvalZopePropEdit
+import PaletteStore
 
 # XXX This creation logic should be in the model, the companions should only
 # XXX manage prperties
@@ -198,3 +199,21 @@ class ZCatalogZC(ZopeCompanion):
 class UserFolderZC(ZopeCompanion):
     def create(self):
         mime, res = self.call(self.objPath, 'manage_addUserFolder')
+
+PaletteStore.paletteLists['Zope'].extend(['DTML Document', 'DTML Method', 
+      'Folder', 'File', 'Image', 'External Method', 'Python Method', 
+      'Mail Host', 'ZCatalog', 'User Folder'] )#'SQL Method',
+
+PaletteStore.compInfo.update({'DTML Document': ['DTMLDocument', DTMLDocumentZC],
+    'DTML Method': ['DTMLMethod', DTMLMethodZC],
+    'Folder': ['Folder', FolderZC],
+    'File': ['File', FileZC],
+    'Image': ['Image', ImageZC],
+    'External Method': ['ExternalMethod', ExternalMethodZC],
+    'Python Method': ['PythonMethod', PythonMethodZC],
+    'Mail Host': ['MailHost', MailHostZC],
+    'ZCatalog': ['ZCatalog', ZCatalogZC],
+#    'SQL Method': ['SQLMethod', SQLMethodZC],
+    'User Folder': ['UserFolder', UserFolderZC],
+
+})
