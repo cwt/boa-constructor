@@ -6,12 +6,12 @@
 #
 # Created:     2002/02/09
 # RCS-ID:      $Id$
-# Copyright:   (c) 2002
+# Copyright:   (c) 2002 - 2003
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 print 'importing Models.wxPythonControllers'
 
-import os, string
+import os
 
 from wxPython.wx import *
 
@@ -201,6 +201,9 @@ class FramePanelController(BaseFrameController):
 #-------------------------------------------------------------------------------
 
 Preferences.paletteTitle = Preferences.paletteTitle +' - wxPython GUI Builder'
+
+# this registers the class browser under Tools
+import ClassBrowser
 
 Controllers.appModelIdReg.append(wxPythonEditorModels.AppModel.modelIdentifier)
 

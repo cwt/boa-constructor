@@ -6,7 +6,7 @@
 #
 # Created:     2002/02/09
 # RCS-ID:      $Id$
-# Copyright:   (c) 2002
+# Copyright:   (c) 2002 - 2003
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 
@@ -69,7 +69,7 @@ class BaseFrameModel(ClassModel):
         for param in params.keys():
             paramLst.append(Preferences.cgKeywordArgFormat %{'keyword': param,
                                                         'value': params[param]})
-        paramStr = 'self, ' + string.join(paramLst, ', ')
+        paramStr = 'self, ' + ', '.join(paramLst)
 
         self.data = (sourceconst.defSig + sourceconst.defImport + \
                      self.defCreateClass + sourceconst.defWindowIds + \
@@ -189,13 +189,13 @@ class BaseFrameModel(ClassModel):
         extAttrInitLine = -1
         extAttrInitName = ''
         for idx in range(startline, initMeth.end):
-            line = string.strip(mod.source[idx])
+            line = mod.source[idx].strip()
             if Utils.startswith(line, 'self._init_ctrls('):
                 endline = idx
                 break
-            elif string.find(line, '_AttrMixin.__init__(self') != -1:
+            elif line.find('_AttrMixin.__init__(self') != -1:
                 extAttrInitLine = idx
-                extAttrInitName = string.split(line, '.__init__')[0]
+                extAttrInitName = line.split('.__init__')[0]
         else:
             raise 'self._init_ctrls not found in __init__'
 
@@ -207,7 +207,7 @@ class BaseFrameModel(ClassModel):
                 for block in blocks:
                     if startline <= block.start <= endline and attr not in attrs:
                         line = source[block.start-1]
-                        val = string.strip(line[string.find(line, '=')+1:])
+                        val = line[line.find('=')+1:].strip()
                         attrs.append( (attr, val) )
 
         if extAttrInitName:
@@ -385,12 +385,12 @@ class BaseFrameModel(ClassModel):
                     else:
                         line = newLine
                 lines.append(line)
-                lines.append(string.strip(sourceconst.defWindowIdsCont %
-                      {'idIdent': colMeth, 'idCount': len(lst)}))
+                lines.append((sourceconst.defWindowIdsCont %
+                      {'idIdent': colMeth, 'idCount': len(lst)}).strip())
             else:
-                lines.append(string.strip(sourceconst.defWindowIds % {
-                    'idNames': string.join(lst, ', '), 'idIdent': colMeth,
-                    'idCount': len(lst)}))
+                lines.append((sourceconst.defWindowIds % {
+                    'idNames': ', '.join(lst), 'idIdent': colMeth,
+                    'idCount': len(lst)}).strip())
             lines.append('')
 
         if winIdIdx == -1:
@@ -508,7 +508,7 @@ class FramePanelModel(BaseFrameModel):
 
         self.defCreateClass = ''
         # can this be any uglier (or shorter ;) ?
-        self.defClass = string.replace(sourceconst.defClass, 'parent',
+        self.defClass = sourceconst.defClass.replace('parent',
               'parent, id, pos, size, style, name', 1)
 
     def getSimpleRunnerSrc(self):

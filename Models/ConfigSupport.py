@@ -6,7 +6,7 @@
 #
 # Created:     2002/12/03
 # RCS-ID:      $Id$
-# Copyright:   (c) 2002
+# Copyright:   (c) 2002 - 2003
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 print 'importing Models.ConfigSupport'
