@@ -1247,15 +1247,19 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
                 return
 
             #self.editor.SetFocus()
-            self.editor.openOrGotoModule(filename)
-            model = self.editor.getActiveModulePage().model
-            sourceView = model.views['Source']
-            sourceView.focus(false)
-            #sourceView.SetFocus()
-            sourceView.selectLine(lineno - 1)
-            sourceView.setStepPos(lineno - 1)
-            self.lastStepView = sourceView
-            self.lastStepLineno = lineno - 1
+            try:
+                self.editor.openOrGotoModule(filename)
+            except Exception, err:
+                print 'Counld not open: %s'%filename
+            else:
+                model = self.editor.getActiveModulePage().model
+                sourceView = model.views['Source']
+                sourceView.focus(false)
+                #sourceView.SetFocus()
+                sourceView.selectLine(lineno - 1)
+                sourceView.setStepPos(lineno - 1)
+                self.lastStepView = sourceView
+                self.lastStepLineno = lineno - 1
 
     def enableTools(self, enable = true):
         self.toolbar.EnableTool(self.runId, enable)
@@ -1295,13 +1299,13 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
         # TODO: enable the step buttons.
         self.stepping_enabled = 1
         for wid in (self.stepId, self.overId, self.outId):
-            self.toolbar.ToggleTool(wid, 1)
+            self.toolbar.EnableTool(wid, 1)
 
     def disableStepping(self):
         # TODO: disable the step buttons.
         self.stepping_enabled = 0
         for wid in (self.stepId, self.overId, self.outId):
-            self.toolbar.ToggleTool(wid, 0)
+            self.toolbar.EnableTool(wid, 0)
 
     def doDebugStep(self, method=None, temp_breakpoint=None, args=()):
         if self.stepping_enabled:
