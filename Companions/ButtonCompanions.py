@@ -381,7 +381,7 @@ PaletteStore.compInfo.update({
 })
 
 try:
-    PaletteStore.compInfo[wxToggleButton] = ['wxToggleButton', ToggleButtonDTC]
+    PaletteStore.compInfo[wxToggleButton] = ['wx.ToggleButton', ToggleButtonDTC]
 except NameError:
     # MacOS X
     pass
