@@ -12,19 +12,23 @@
 
 from os import path
 import sys, os, string
+
 from wxPython import wx
 
 class ImageStore:
-    def __init__(self, rootpath, images = None):
+    def __init__(self, rootpath, images = None, cache = 1):
         if not images: images = {}
         self.rootpath = rootpath
         self.images = images
+        self.useCache = cache
 
     def createImage(self, filename, ext):
         if ext == '.bmp':
-            return wx.wxBitmap(filename, wx.wxBITMAP_TYPE_BMP)
+#            return wx.wxBitmap(filename, wx.wxBITMAP_TYPE_BMP)
+            return wx.wxImage(filename, wx.wxBITMAP_TYPE_BMP).ConvertToBitmap()
         if ext == '.jpg':
-            return wx.wxBitmap(filename, wx.wxBITMAP_TYPE_JPG)
+#            return wx.wxBitmap(filename, wx.wxBITMAP_TYPE_JPG)
+            return wx.wxImage(filename, wx.wxBITMAP_TYPE_JPG).ConvertToBitmap()
         elif ext == '.ico':
             return wx.wxIcon(filename, wx.wxBITMAP_TYPE_ICO)
         else:
@@ -32,11 +36,15 @@ class ImageStore:
 
     def load(self, name):
         name = path.normpath(name)
-        if not self.images.has_key(name):
-            self.images[name] = self.createImage(path.join(self.rootpath, name),
-                path.splitext(name)[1])
+        if self.useCache:
+            if not self.images.has_key(name):
+                self.images[name] = self.createImage(path.join(self.rootpath,
+                    name), path.splitext(name)[1])
+            return self.images[name]
+        else:
+            return self.createImage(path.join(self.rootpath, name),
+                  path.splitext(name)[1])
 
-        return self.images[name]
 
 class ZippedImageStore(ImageStore):
     def __init__(self, rootpath, defaultArchive, images = None):
