@@ -474,7 +474,8 @@ class Listener(threading.Thread):
                 if not data: break
                 l.append(data)
             name = ''.join(l)
-            self.queue.put(name)
+            if string.strip(name):
+                self.queue.put(name)
             conn.close()
 
 
