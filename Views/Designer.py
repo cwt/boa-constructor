@@ -1,14 +1,16 @@
 #----------------------------------------------------------------------
 # Name:        Designer.py
-# Purpose:
+# Purpose:     Visual frame designer
 #
 # Author:      Riaan Booysen
 #
 # Created:     1999
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999, 2000 Riaan Booysen
+# Copyright:   (c) 1999 - 2001 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
+
+print 'importing Designer'
 
 import string, copy, os, pprint
 
@@ -25,15 +27,14 @@ import SelectionTags
 [wxID_CTRLPARENT, wxID_EDITCUT, wxID_EDITCOPY, wxID_EDITPASTE, wxID_EDITDELETE,
  wxID_SHOWINSP, wxID_SHOWEDTR, wxID_CTRLHELP, wxID_EDITALIGN, wxID_EDITSIZE,
  wxID_EDITRECREATE, wxID_EDITSNAPGRID,
-] = map(lambda _init_ctrls: wxNewId(), range(12))
+] = Utils.wxNewIds(12)
 
 [wxID_EDITMOVELEFT, wxID_EDITMOVERIGHT, wxID_EDITMOVEUP, wxID_EDITMOVEDOWN,
  wxID_EDITWIDTHINC, wxID_EDITWIDTHDEC, wxID_EDITHEIGHTINC, wxID_EDITHEIGHTDEC,
-] = map(lambda _keys_move_size: wxNewId(), range(8))
+] = Utils.wxNewIds(8)
 
 
-
-class DesignerView(wxFrame, InspectableObjectView):
+class DesignerView(wxFrame, InspectableObjectView, Utils.FrameRestorerMixin):
     """ Frame Designer for design-time creation/manipulation of visual controls
         on frames. """
     viewName = 'Designer'
@@ -42,12 +43,11 @@ class DesignerView(wxFrame, InspectableObjectView):
     handledProps = ['parent', 'id']
     supportsParentView = true
 
-    def setupArgs(self, ctrlName, params, dontEval, parent = None, compClass = None, evalDct = {}):
+    def setupArgs(self, ctrlName, params, dontEval, parent=None, compClass=None, evalDct={}):
         """ Create a dictionary of parameters for the constructor of the
             control from a dictionary of string/source parameters.
         """
-
-        args = InspectableObjectView.setupArgs(self, ctrlName, params, dontEval, evalDct = evalDct)
+        args = InspectableObjectView.setupArgs(self, ctrlName, params, dontEval, evalDct=evalDct)
 
         if compClass:
             prnt = compClass.windowParentName
@@ -90,8 +90,16 @@ class DesignerView(wxFrame, InspectableObjectView):
     def __init__(self, parent, inspector, model, compPal, companionClass, dataView):
         args = self.setupArgs(model.main, model.mainConstr.params,
           ['parent', 'id'], parent, companionClass, model.specialAttrs)
-        wxFrame.__init__(self, parent, -1, args['title'], args['pos'], args['size'])#, args['style'], args['name'])
+        if model.modelIdentifier == 'Dialog':
+            style = wxRESIZE_BORDER | wxCAPTION | wxSYSTEM_MENU
+        else:
+            style = wxDEFAULT_FRAME_STYLE
+        wxFrame.__init__(self, parent, -1, args['title'], args['pos'], 
+            args['size'], style=style)
         InspectableObjectView.__init__(self, inspector, model, compPal)
+        
+        if model.modelIdentifier == 'Dialog':
+            self.SetBackgroundColour(wxSystemSettings_GetSystemColour(wxSYS_COLOUR_BTNFACE))
 
         if wxPlatform == '__WXMSW__':
             self.SetIcon(IS.load('Images/Icons/Designer.ico'))
@@ -103,6 +111,7 @@ class DesignerView(wxFrame, InspectableObjectView):
         self.dataView.controllerView = self
         self.controllerView = self
         self.saveOnClose = true
+        self.confirmCancel = false
 
         self.ctrlEvtHandler = DesignerControlsEvtHandler(self)
 
@@ -129,6 +138,10 @@ class DesignerView(wxFrame, InspectableObjectView):
         self.selection = None
         self.multiSelection = []
         self.vetoResize = false
+
+        # XXX Move this definition into actions
+
+        self.menu = wxMenu()
 
         self.menu.Append(wxID_CTRLPARENT, 'Up')
         self.menu.Append(-1, '-')
@@ -189,6 +202,9 @@ class DesignerView(wxFrame, InspectableObjectView):
 
         self.SetAcceleratorTable(wxAcceleratorTable(accLst))
 
+    def generateMenu(self):
+        return Utils.duplicateMenu(self.menu)
+
     def saveCtrls(self, definedCtrls):
         """ Generate source code for Designer """
         # Remove all collection methods
@@ -239,7 +255,7 @@ class DesignerView(wxFrame, InspectableObjectView):
         """ Model View method that is called when the Designer should
             create itself from source
         """
-        if self.destroying: return
+        if self.destroying or self.opened: return
 
         # Delete previous
         comps = {}
@@ -252,45 +268,88 @@ class DesignerView(wxFrame, InspectableObjectView):
 
         self.model.editor.statusBar.setHint('Creating frame')
 
-        objCol = self.model.objectCollections[self.collectionMethod]
-        objCol.indexOnCtrlName()
-
-        self.model.editor.statusBar.progress.SetValue(20)
-
-        stepsDone = 20.0
-
-        # Initialise the design time controls and
-        # companion with default values
-        # initObjectsAndCompanions(creators, props, events)
-
-        self.inspector.vetoSelect = true
         try:
-            # init main construtor
-            self.companion.setConstr(self.model.mainConstr)
-            ctrlCompn = self.companion
-            deps = {}
-            depLnks = {}
+            objCol = self.model.objectCollections[self.collectionMethod]
+            objCol.indexOnCtrlName()
+    
+            self.model.editor.statusBar.progress.SetValue(20)
+    
+            stepsDone = 20.0
+    
+            # Initialise the design time controls and
+            # companion with default values
+            # initObjectsAndCompanions(creators, props, events)
+    
+            self.inspector.vetoSelect = true
+            try:
+                # init main construtor
+                self.companion.setConstr(self.model.mainConstr)
+                ctrlCompn = self.companion
+                deps = {}
+                depLnks = {}
+    
+                self.initObjProps(objCol.propertiesByName, '', objCol.creators[0], deps, depLnks)
+                self.initObjEvts(objCol.eventsByName, '', objCol.creators[0])
+    
+                if len(objCol.creators) > 1:
+                    self.initObjectsAndCompanions(objCol.creators[1:], objCol, deps, depLnks)
+    
+                    # Track progress
+                    step = (90 - stepsDone) / len(objCol.creators)
+                    stepsDone = stepsDone + step
+                    self.model.editor.statusBar.progress.SetValue(int(stepsDone))
+    
+                self.finaliseDepLinks(depLnks)
+    
+            finally:
+                self.inspector.vetoSelect = false
+    
+            self.model.editor.statusBar.progress.SetValue(80)
+            self.refreshContainment()
+            self.model.editor.statusBar.progress.SetValue(0)
+            self.model.editor.statusBar.setHint('Designer refreshed')
+            self.opened = true
+        except:
+            self.model.editor.statusBar.progress.SetValue(0)
+            #self.model.editor.statusBar.setHint('Error opening the Designer', 'Error')
+            raise    
 
-            self.initObjProps(objCol.propertiesByName, '', objCol.creators[0], deps, depLnks)
-            self.initObjEvts(objCol.eventsByName, '', objCol.creators[0])
+    def refreshModel(self):
+        """ Update model with streamed out controls """
+        # Make source r/w
+        self.model.views['Source'].disableSource(false)
 
-            if len(objCol.creators) > 1:
-                self.initObjectsAndCompanions(objCol.creators[1:], objCol, deps, depLnks)
+        if self.saveOnClose:
+            oldData = self.model.data
 
-                # Track progress
-                step = (90 - stepsDone) / len(objCol.creators)
-                stepsDone = stepsDone + step
-                self.model.editor.statusBar.progress.SetValue(int(stepsDone))
+            # Stream out everything to Module & update model
+            self.saveCtrls(self.dataView.objectOrder[:])
+            self.dataView.saveCtrls([])
+            self.model.refreshFromModule()
 
-            self.finaliseDepLinks(depLnks)
+            # Close data view before updates
+            self.dataView.deleteFromNotebook('Source', 'Data')
+            
+            # Update state (if changed)
+            newData = self.model.data
+            self.model.modified = self.model.modified or newData != oldData
+            self.model.editor.updateModulePage(self.model)
 
-        finally:
-            self.inspector.vetoSelect = false
+            # Update other views
+            InspectableObjectView.refreshModel(self)
 
-        self.model.editor.statusBar.progress.SetValue(80)
-        self.refreshContainment()
-        self.model.editor.statusBar.progress.SetValue(0)
-        self.model.editor.statusBar.setHint('Designer refreshed')
+            # Put the cursor somewhere (ideally at the first generated event)
+            module = self.model.getModule()
+            if module:
+                self.model.views['Source'].GotoLine(module.classes[\
+                  self.model.main].methods['__init__'].start)
+
+            self.model.editor.statusBar.setHint('Designer session Posted.')
+        else:
+            self.dataView.deleteFromNotebook('Source', 'Data')
+
+            self.model.editor.statusBar.setHint('Designer session Cancelled.', 
+                  'Warning')
 
     def initSelection(self):
         """ Create a selection group """
@@ -308,10 +367,6 @@ class DesignerView(wxFrame, InspectableObjectView):
               compClass=ctrlCompanion, evalDct=self.model.specialAttrs)
 
         parent = Utils.ctrlNameFromSrcRef(params[ctrlCompanion.windowParentName])
-##        if params[ctrlCompanion.windowParentName] == 'self':
-##            parent = ''
-##        else:
-##            parent = string.split(params[ctrlCompanion.windowParentName], '.')[1]
 
         # Create control and companion
         companion = ctrlCompanion(ctrlName, self, None, ctrlClass)
@@ -724,42 +779,37 @@ class DesignerView(wxFrame, InspectableObjectView):
 
     def OnCloseWindow(self, event):
         """ When the Designer closes, the code generation process is started.
-            General Inspector and Designer clean-up"""
+            General Inspector and Designer clean-up """
+        
+        if not self.saveOnClose and self.confirmCancel and wxMessageBox(
+            'Cancel Designer session?', 'Cancel', 
+            wxYES_NO | wxICON_WARNING) == wxID_YES: return
+            
+        if self.IsIconized():
+            self.Iconize(false)
+        
         self.destroying = true
         self.vetoResize = true
-        if self.selection:
-            self.selection.destroy()
-            self.selection = None
-        elif self.multiSelection:
-            for sel in self.multiSelection:
-                sel.destroy()
-            self.multiSelection = None
-
-        self.inspector.cleanup()
-        self.inspector.containment.cleanup()
-
-        # Make source r/w
-        self.model.views['Source'].disableSource(false)
-
-        if self.saveOnClose:
-            oldData = self.model.data
-
-            self.saveCtrls(self.dataView.objectOrder[:])
-            self.dataView.saveCtrls([])
-
-            newData = self.model.data
-
-            self.model.modified = self.model.modified or newData != oldData
-            self.model.editor.updateModulePage(self.model)
-
+        try:
+            if self.selection:
+                self.selection.destroy()
+                self.selection = None
+            if self.multiSelection:
+                for sel in self.multiSelection:
+                    sel.destroy()
+                self.multiSelection = None
+            
+            self.inspector.cleanup()
+            self.inspector.containment.cleanup()
+    
+            # generate source
             self.refreshModel()
-            self.model.editor.statusBar.setHint('Designer session Posted.')
-        else:
-            self.model.editor.statusBar.setHint('Designer session Cancelled.', 
-                  'Warning')
-
-        self.dataView.deleteFromNotebook('Source', 'Data')
-
+        except:
+            self.destroying = false
+            self.vetoResize = false
+            raise
+        
+        self.menu.Destroy()
         self.cleanup()
         self.Show(false)
         self.Destroy()
@@ -781,13 +831,14 @@ class DesignerView(wxFrame, InspectableObjectView):
 
     def OnEditor(self, event):
         """ Bring Editor to the front """
-        self.model.editor.Show(true)
-        self.model.editor.Raise()
+        self.model.editor.restore()
 
     def OnInspector(self, event):
         """ Bring Inspector to the front """
-        self.inspector.Show(true)
-        self.inspector.Raise()
+        self.inspector.restore()
+        if self.inspector.pages.GetSelection() > 3:
+            self.inspector.pages.SetSelection(0)
+            
 
     def OnControlDelete(self, event):
         """ Delete the currently selected controls """
@@ -1124,10 +1175,11 @@ class DesignerControlsEvtHandler(wxEvtHandler):
             dsgn.selection.moveRelease()
 
     def OnControlMove(self, event):
-        ctrl = self.designer.senderMapper.getObject(event)
-        parent = ctrl.GetParent()
-        if parent:
-            wxPostEvent(parent, wxSizeEvent( parent.GetSize() ))
+        if hasattr(self.designer, 'senderMapper'):
+            ctrl = self.designer.senderMapper.getObject(event)
+            parent = ctrl.GetParent()
+            if parent:
+                wxPostEvent(parent, wxSizeEvent( parent.GetSize() ))
         event.Skip()
 
 #---Grid drawing----------------------------------------------------------------
@@ -1187,7 +1239,8 @@ class DesignerControlsEvtHandler(wxEvtHandler):
             ctrl = self.designer.senderMapper.getObject(event)
 
             dc = wxPaintDC(ctrl)
-            sze = ctrl.GetClientSize()
+#            sze = ctrl.GetClientSize()
+            sze = ctrl.GetSize()
             sg = SelectionTags.screenGran
 
             drawGrid = self.drawGridMethods[Preferences.drawGridMethod]
@@ -1199,3 +1252,8 @@ class DesignerControlsEvtHandler(wxEvtHandler):
                 dc.EndDrawing()
 
         event.Skip()
+
+
+
+
+
