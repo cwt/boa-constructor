@@ -285,28 +285,30 @@ class InspectorFrame(wxFrame, Utils.FrameRestorerMixin):
 
         if sb: sb.SetValue(10)
 
-        c_p = compn.getPropList()
-        if sb: sb.SetValue(30)
-        self.constr.readObject(c_p['constructor'])
-        if sb: sb.SetValue(50)
-        self.props.readObject(c_p['properties'])
-        if sb: sb.SetValue(70)
-        self.events.readObject()
-        if sb: sb.SetValue(90)
-
-        if selectInContainment and self.containment.valid:
-            # XXX Ugly must change
-            try:
-                treeId = self.containment.treeItems[compn.name]
-            except:
-                treeId = self.containment.treeItems['']
-
-            self.containment.valid = false
-            self.containment.SelectItem(treeId)
-            self.containment.valid = true
-            self.containment.EnsureVisible(treeId)
-
-        if sb: sb.SetValue(0)
+        try:
+            c_p = compn.getPropList()
+            if sb: sb.SetValue(30)
+            self.constr.readObject(c_p['constructor'])
+            if sb: sb.SetValue(50)
+            self.props.readObject(c_p['properties'])
+            if sb: sb.SetValue(70)
+            self.events.readObject()
+            if sb: sb.SetValue(90)
+    
+            if selectInContainment and self.containment.valid:
+                # XXX Ugly must change
+                try:
+                    treeId = self.containment.treeItems[compn.name]
+                except:
+                    treeId = self.containment.treeItems['']
+    
+                self.containment.valid = false
+                self.containment.SelectItem(treeId)
+                self.containment.valid = true
+                self.containment.EnsureVisible(treeId)
+    
+        finally:
+            if sb: sb.SetValue(0)
 
         # set add item state
         self.updateToolBarState()
@@ -701,9 +703,11 @@ class NameValue:
 
     def updateDisplayValue(self):
         dispVal = self.propEditor.getDisplayValue()
-        self.value.SetLabel(dispVal)
-        self.value.SetToolTipString(dispVal)
-        self.showPropNameModified(self.isCat)
+        currVal = self.value.GetLabel()
+        if currVal != dispVal:
+            self.value.SetLabel(dispVal)
+            self.value.SetToolTipString(dispVal)
+            self.showPropNameModified(self.isCat)
 
     def setPos(self, idx):
         self.idx = idx
@@ -926,7 +930,8 @@ class EventsWindow(wxSplitterWindow):
     def macroNameToEvtName(self, macName):
         flds = macName.split('_')
         del flds[0] #remove 'EVT'
-        evtName = 'On'+self.inspector.selCmp.evtName().capitalize()
+        cmpName = self.inspector.selCmp.evtName()
+        evtName = 'On'+cmpName[0].upper()+cmpName[1:]
         for fld in flds:
             evtName = evtName + fld.capitalize()
         return evtName
