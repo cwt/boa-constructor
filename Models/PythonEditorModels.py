@@ -120,7 +120,8 @@ class ModuleModel(SourceModel):
         self.initModule()
         EditorModel.update(self)
 
-    def runInThread(self, filename, args, app, interpreterPath, inpLines=[]):
+    def runInThread(self, filename, args, interpreterPath, inpLines=[],
+                    execStart=None, execFinish=None):
         cwd = os.path.abspath(os.getcwd())
         newCwd = os.path.dirname(os.path.abspath(filename))
         os.chdir(newCwd)
@@ -128,15 +129,17 @@ class ModuleModel(SourceModel):
             cmd = '"%s" %s %s'%(interpreterPath,
                   os.path.basename(filename), args)
 
-            from ModRunner import PopenModuleRunner, ExecFinishEvent
+            from ModRunner import PopenModuleRunner#, ExecFinishEvent
 
-            runner = PopenModuleRunner(None, app, newCwd)
-            runner.run(cmd, inpLines)
-            wx.wxPostEvent(self.editor, ExecFinishEvent(runner))
+            runner = PopenModuleRunner(None, newCwd)
+            runner.run(cmd, inpLines, execStart)
+            #wx.wxPostEvent(self.editor, ExecFinishEvent(runner))
+            if execFinish:
+                wx.wxCallAfter(execFinish, runner)
         finally:
             if os: os.chdir(cwd)
 
-    def run(self, args = ''):
+    def run1(self, args = '', execStart=None, execFinish=None):
         """ Excecute the current saved image of the application. """
         if self.savedAs:
             filename = self.assertLocalFile()
@@ -150,7 +153,45 @@ class ModuleModel(SourceModel):
                       self.editor.erroutFrm.inputPage.GetValue()).readlines()
                 
             start_new_thread(self.runInThread, (filename, args,
-                  self.app, Preferences.getPythonInterpreterPath(), inpLines))
+                  Preferences.getPythonInterpreterPath(), inpLines,
+                  execStart, execFinish))
+
+            #self.runInThread(filename, args,
+            #      Preferences.getPythonInterpreterPath(), inpLines,
+            #      execStart, execFinish)
+
+    def run(self, args = '', execStart=None, execFinish=None):
+        """ Excecute the current saved image of the application. """
+        if self.savedAs:
+            filename = self.assertLocalFile()
+
+            self.editor.statusBar.setHint('Running %s...' % filename)
+            if Preferences.minimizeOnRun:
+                self.editor.minimizeBoa()
+
+            inpLines = []
+            if self.useInputStream and self.editor.erroutFrm.inputPage:
+                inpLines = StringIO(
+                      self.editor.erroutFrm.inputPage.GetValue()).readlines()
+                
+            cwd = os.path.abspath(os.getcwd())
+            newCwd = os.path.dirname(os.path.abspath(filename))
+            interp = Preferences.getPythonInterpreterPath()
+            basename = os.path.basename(filename)
+            
+            os.chdir(newCwd)
+            try:
+                cmd = '"%s" %s %s'%(interp, basename, args)
+    
+                from ModRunner import wxPopenModuleRunner
+    
+                runner = wxPopenModuleRunner(None, newCwd)
+                runner.run(cmd, inpLines, execFinish)
+                
+                execStart(runner.pid, os.path.basename(interp), basename)
+
+            finally:
+                if os: os.chdir(cwd)
 
     # XXX Not used!
     def runAsScript(self):
@@ -162,7 +203,7 @@ class ModuleModel(SourceModel):
         oldErr = sys.stderr
         sys.stderr = ErrorStack.RecFile()
         try:
-            cmr = ModRunner.CompileModuleRunner(self.editor.erroutFrm, self.app)
+            cmr = ModRunner.CompileModuleRunner(self.editor.erroutFrm)
             cmr.run(self.filename, self.data+'\n\n', self.modified)
 
             serr = ErrorStack.errorList(sys.stderr)
@@ -173,7 +214,7 @@ class ModuleModel(SourceModel):
 
         return len(serr)
 
-    def cyclops(self):
+    def cyclops(self, args='', execStart=None, execFinish=None):
         """ Run the saved application thru Cyclops """
         if self.savedAs:
             cwd = os.path.abspath(os.getcwd())
@@ -240,7 +281,7 @@ class ModuleModel(SourceModel):
             else: app = None
 
             from ModRunner import ExecuteModuleRunner
-            runner = ExecuteModuleRunner(None, app, profDir)
+            runner = ExecuteModuleRunner(None, profDir)
             self.editor.statusBar.setHint('Profiling %s...'%filename)
             runner.run(cmd)
             self.editor.statusBar.setHint('Finished profiling.')
@@ -456,6 +497,73 @@ class ModuleModel(SourceModel):
     def writeGlobalDict(self, name, dct):
         start, end = self.findGlobalDict(name)
         self.data = self.data[:start]+pprint.pformat(dct)+self.data[end:]
+
+    def buildResourceSearchList(self):
+        searchPath = [os.path.abspath(os.path.dirname(self.localFilename()))]
+        if self.app:
+            searchPath.append(os.path.abspath(os.path.dirname(self.app.localFilename())))
+        return searchPath
+
+    def loadResource(self, importName, searchPath):
+        d={}
+        syspath = sys.path[:]
+        sys.path[:] = searchPath
+        try:
+            try:
+                exec 'import %s'%importName in d
+                exec 'reload(%s)'%importName in d
+            finally:
+                sys.path[:] = syspath
+            imageMod = eval(importName, d)
+            del d['__builtins__']
+            rootModName, rootMod = d.items()[0]
+        finally:
+            #try: del sys.modules[importName]
+            #except KeyError: pass
+            del d
+
+        return imageMod, rootModName, rootMod
+
+    def assureResourceLoaded(self, importName, resources, searchPath=None,
+                             specialAttrs=None, report=false):
+        if searchPath is None:
+            searchPath = self.buildResourceSearchList()
+
+        try:
+            f, fn, desc = Utils.find_dotted_module(importName, searchPath)
+        except ImportError:
+            if report:
+                self.editor.setStatus('Could not find %s'%importName, 'Error')
+            return false
+        f.close()
+        
+        import Controllers
+        Model, main = Controllers.identifyFile(fn)
+        for ResourceClass in Controllers.resourceClasses:
+            if issubclass(Model, ResourceClass):
+                try:
+                    imageMod, rootName, rootMod = self.loadResource(importName, 
+                                                                    searchPath)
+                    resources[importName] = imageMod
+                    specialAttrs[rootName] = rootMod
+                    if report:
+                        self.editor.setStatus('Loaded resource: %s'%importName)
+                except ImportError:
+                    self.editor.setStatus('Could not load %s'%importName, 'Error')
+                    return false
+                return true
+
+        if report:
+            self.editor.setStatus('%s is not a valid Resource Module'%importName, 'Error')
+        return false
+    
+    def readResources(self, mod, cls, specialAttrs):
+        resources = {}
+        searchPath = self.buildResourceSearchList()
+        for impName in mod.imports.keys():
+            self.assureResourceLoaded(impName, resources, searchPath, specialAttrs)
+        return resources
+
 
 
 class ClassModel(ModuleModel):
@@ -729,7 +837,7 @@ class BaseAppModel(ClassModel, ImportRelationshipMix):
         self.notify()
 
     def findImports(self):
-        impPos = self.data.find(sourceconst.defImport)
+        impPos = self.data.find(sourceconst.defImport.strip())
         impPos = self.data.find('import', impPos + 1)
 
         # XXX Add if not found
@@ -827,10 +935,11 @@ class BaseAppModel(ClassModel, ImportRelationshipMix):
                 absPath = self.modules[name][2]
             else:
                 appProt, appFilename = self.splitProtFile(self.filename)
-                absPath = appProt+'://'+self.convertToUnixPath(os.path.normpath(os.path.join(\
-                      os.path.dirname(appFilename), modFilename)))
+                absPath = appProt+'://'+self.convertToUnixPath(os.path.normpath(
+                      os.path.join(os.path.dirname(appFilename), modFilename)))
         else:
-            absPath = name + ModuleModel.ext
+            #absPath = name + ModuleModel.ext
+            absPath = self.modules[name][2]
         return absPath
 
     def updateAutoCreateImports(self, oldName, newName):
@@ -956,11 +1065,22 @@ class BaseAppModel(ClassModel, ImportRelationshipMix):
             return None
 
     def openModule(self, name):
-        return self.editor.openOrGotoModule(self.moduleFilename(name), self)
+        from Explorers.Explorer import TransportError
+        try:
+            return self.editor.openOrGotoModule(self.moduleFilename(name), self)
+        except TransportError, err:
+            if str(err) == 'Unhandled transport' and err[1][0] == 'none':
+                if wx.wxMessageBox('Unsaved file no longer open in the Editor.\n'
+                      'Remove it from application modules ?', 'Missing file',
+                      wx.wxYES_NO | wx.wxICON_QUESTION) == wx.wxYES:
+                    self.removeModule(name)
+                return None, None
+            else:
+                raise
 
     def normaliseModuleRelativeToApp(self, relFilename):
         """ Normalise relative paths to absolute paths """
-        if not self.savedAs:
+        if not self.savedAs or relFilename.startswith('none://'):
             return relFilename
         else:
             protsplit = self.filename.split('://')
@@ -974,7 +1094,6 @@ class BaseAppModel(ClassModel, ImportRelationshipMix):
                 raise Exception, 'Unhandled protocol during normalisation:%s'%protsplit
 
             if prot == 'zip':
-                #return '%s://%s/%s/%s'%(prot, archive, appFilename
                 return relFilename
             
             normedpath = os.path.normpath(os.path.join(os.path.dirname(appFilename),
