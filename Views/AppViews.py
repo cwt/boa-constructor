@@ -360,7 +360,7 @@ class AppCompareView(ListCtrlView, ClosableViewMix):
     def refreshCtrl(self):
         ListCtrlView.refreshCtrl(self)
         from EditorModels import AppModel
-        otherApp = AppModel('', self.compareTo, '', self.model.editor, true)
+        otherApp = AppModel('', self.compareTo, '', self.model.editor, true, {})
         otherApp.load()
         
         otherApp.readModules()
@@ -377,8 +377,11 @@ class AppCompareView(ListCtrlView, ClosableViewMix):
         for module in self.model.modules.keys():
             if otherApp.modules.has_key(module):
                 otherFile = otherApp.moduleFilename(module)
-                if not cmp(self.model.moduleFilename(module), otherFile):
-                    i = self.addReportItems(i, module, otherFile, 'changed')
+                try:
+                    if not cmp(self.model.moduleFilename(module), otherFile):
+                        i = self.addReportItems(i, module, otherFile, 'changed')
+                except OSError:
+                    pass
             else:
                 i = self.addReportItems(i, module, '', 'deleted')
         
