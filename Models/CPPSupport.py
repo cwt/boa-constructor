@@ -6,7 +6,7 @@
 #
 # Created:     2002
 # RCS-ID:      $Id$
-# Copyright:   (c) 2002
+# Copyright:   (c) 2002 - 2003
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 print 'importing Models.CPPSupport'
@@ -53,7 +53,7 @@ EditorHelper.modelReg[CPPModel.modelIdentifier] = CPPModel
 from EditorHelper import extMap
 extMap['.cpp'] = extMap['.c'] = extMap['.h'] = CPPModel
 
-from Views.StyledTextCtrls import LanguageSTCMix, stcConfigPath
+from Views.StyledTextCtrls import LanguageSTCMix, FoldingStyledTextCtrlMix, stcConfigPath
 class CPPStyledTextCtrlMix(LanguageSTCMix):
     def __init__(self, wId):
         LanguageSTCMix.__init__(self, wId,
@@ -61,14 +61,19 @@ class CPPStyledTextCtrlMix(LanguageSTCMix):
         self.setStyles()
 
 wxID_CPPSOURCEVIEW = wx.wxNewId()
+symbolFolding = 1
 from Views.SourceViews import EditorStyledTextCtrl
-class CPPSourceView(EditorStyledTextCtrl, CPPStyledTextCtrlMix):
+class CPPSourceView(EditorStyledTextCtrl, CPPStyledTextCtrlMix, FoldingStyledTextCtrlMix):
     viewName = 'Source'
     def __init__(self, parent, model):
         EditorStyledTextCtrl.__init__(self, parent, wxID_CPPSOURCEVIEW,
           model, (), -1)
         CPPStyledTextCtrlMix.__init__(self, wxID_CPPSOURCEVIEW)
+        FoldingStyledTextCtrlMix.__init__(self, wxID_CPPSOURCEVIEW, symbolFolding)
         self.active = true
+
+    def OnMarginClick(self, event):
+        FoldingStyledTextCtrlMix.OnMarginClick(self, event)
 
 class HPPSourceView(CPPSourceView):
     viewName = 'Header'
