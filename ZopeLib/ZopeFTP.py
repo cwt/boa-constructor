@@ -110,6 +110,7 @@ class ZopeFTP:
         self.ftp = None
         self.connected = false
 
+    # XXX ren to doc_item
     def add_doc(self, name, path):
         return ZopeFTPItem(path, name, '-rw-rw----', 0, '')
 
@@ -151,10 +152,9 @@ class ZopeFTP:
                 self.ftp.storlines(item.cmd('STOR'), item)
 
 
-    def upload(self, filename, dest_path):
-        f = open(filename, 'rb')
-        data = f.read()
-        f.close()
+    def upload(self, filename, dest_path, data=None):
+        if data is None:
+            data = open(filename, 'rb').read()
         self.save(ZopeFTPItem(dest_path, os.path.basename(filename)), data)
 
     def delete(self, item):

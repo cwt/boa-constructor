@@ -5,40 +5,37 @@ from wxPython.wx import *
 def create(parent):
     return NewPropDlg(parent)
 
-[wxID_NEWPROPDLGPANEL1, wxID_NEWPROPDLGTCVALUE, wxID_NEWPROPDLGBUTTON1, wxID_NEWPROPDLGBUTTON2, wxID_NEWPROPDLGSTATICTEXT1, wxID_NEWPROPDLGSTATICTEXT3, wxID_NEWPROPDLGSTATICTEXT2, wxID_NEWPROPDLGTCPROPNAME, wxID_NEWPROPDLGCHTYPE, wxID_NEWPROPDLG] = map(lambda _init_ctrls: wxNewId(), range(10))
-
-[wxID_NEWPROPDLGPANEL1, wxID_NEWPROPDLGTCVALUE, wxID_NEWPROPDLGSTATICTEXT1, wxID_NEWPROPDLGSTATICTEXT3, wxID_NEWPROPDLGSTATICTEXT2, wxID_NEWPROPDLGTCPROPNAME, wxID_NEWPROPDLGBTCANCEL, wxID_NEWPROPDLGCHTYPE, wxID_NEWPROPDLGBTOK, wxID_NEWPROPDLG] = map(lambda _init_ctrls: wxNewId(), range(10))
-
-[wxID_NEWPROPDLGSTATICTEXT1, wxID_NEWPROPDLGSTATICTEXT3, wxID_NEWPROPDLGSTATICTEXT2, wxID_NEWPROPDLGTCPROPNAME, wxID_NEWPROPDLGPANEL1, wxID_NEWPROPDLGCHTYPE, wxID_NEWPROPDLGBTOK, wxID_NEWPROPDLGBTCANCEL, wxID_NEWPROPDLGTCVALUE, wxID_NEWPROPDLG] = map(lambda _init_ctrls: wxNewId(), range(10))
-
-[wxID_NEWPROPDLGSTATICTEXT1, wxID_NEWPROPDLGCHTYPE, wxID_NEWPROPDLGSTATICTEXT2, wxID_NEWPROPDLGTCPROPNAME, wxID_NEWPROPDLGPANEL1, wxID_NEWPROPDLGSTATICTEXT3, wxID_NEWPROPDLGBTOK, wxID_NEWPROPDLGBTCANCEL, wxID_NEWPROPDLGTCVALUE, wxID_NEWPROPDLG] = map(lambda _init_ctrls: wxNewId(), range(10))
+[wxID_NEWPROPDLG, wxID_NEWPROPDLGBTCANCEL, wxID_NEWPROPDLGBTOK, wxID_NEWPROPDLGCHTYPE, wxID_NEWPROPDLGPANEL1, wxID_NEWPROPDLGSTATICTEXT1, wxID_NEWPROPDLGSTATICTEXT2, wxID_NEWPROPDLGSTATICTEXT3, wxID_NEWPROPDLGTCPROPNAME, wxID_NEWPROPDLGTCVALUE] = map(lambda _init_ctrls: wxNewId(), range(10))
 
 class NewPropDlg(wxDialog):
     def _init_utils(self):
         pass
 
     def _init_ctrls(self, prnt):
-        wxDialog.__init__(self, size = wxSize(221, 169), id = wxID_NEWPROPDLG, title = 'New property', parent = prnt, name = 'NewPropDlg', style = wxDEFAULT_DIALOG_STYLE, pos = wxPoint(359, 240))
+        wxDialog.__init__(self, id = wxID_NEWPROPDLG, name = 'NewPropDlg', parent = prnt, pos = wxPoint(359, 240), size = wxSize(221, 169), style = wxDEFAULT_DIALOG_STYLE, title = 'New property')
         self._init_utils()
+        self.SetClientSize(wxSize(213, 142))
 
-        self.panel1 = wxPanel(size = wxSize(216, 144), parent = self, id = wxID_NEWPROPDLGPANEL1, name = 'panel1', style = wxTAB_TRAVERSAL, pos = wxPoint(0, 0))
+        self.panel1 = wxPanel(id = wxID_NEWPROPDLGPANEL1, name = 'panel1', parent = self, pos = wxPoint(0, 0), size = wxSize(213, 142), style = wxTAB_TRAVERSAL)
 
-        self.staticText1 = wxStaticText(label = 'Name:', id = wxID_NEWPROPDLGSTATICTEXT1, parent = self.panel1, name = 'staticText1', size = wxSize(32, 16), style = 0, pos = wxPoint(8, 16))
+        self.staticText1 = wxStaticText(id = wxID_NEWPROPDLGSTATICTEXT1, label = 'Name:', name = 'staticText1', parent = self.panel1, pos = wxPoint(8, 16), size = wxSize(32, 16), style = 0)
 
-        self.tcPropName = wxTextCtrl(size = wxSize(144, 24), value = '', pos = wxPoint(56, 8), parent = self.panel1, name = 'tcPropName', style = 0, id = wxID_NEWPROPDLGTCPROPNAME)
+        self.tcPropName = wxTextCtrl(id = wxID_NEWPROPDLGTCPROPNAME, name = 'tcPropName', parent = self.panel1, pos = wxPoint(56, 8), size = wxSize(144, 24), style = 0, value = '')
 
-        self.staticText3 = wxStaticText(label = 'Value:', id = wxID_NEWPROPDLGSTATICTEXT3, parent = self.panel1, name = 'staticText3', size = wxSize(30, 13), style = 0, pos = wxPoint(8, 48))
+        self.staticText3 = wxStaticText(id = wxID_NEWPROPDLGSTATICTEXT3, label = 'Value:', name = 'staticText3', parent = self.panel1, pos = wxPoint(8, 48), size = wxSize(30, 13), style = 0)
 
-        self.tcValue = wxTextCtrl(size = wxSize(144, 24), value = '', pos = wxPoint(56, 40), parent = self.panel1, name = 'tcValue', style = 0, id = wxID_NEWPROPDLGTCVALUE)
+        self.tcValue = wxTextCtrl(id = wxID_NEWPROPDLGTCVALUE, name = 'tcValue', parent = self.panel1, pos = wxPoint(56, 40), size = wxSize(144, 24), style = 0, value = '')
 
-        self.staticText2 = wxStaticText(label = 'Type:', id = wxID_NEWPROPDLGSTATICTEXT2, parent = self.panel1, name = 'staticText2', size = wxSize(27, 13), style = 0, pos = wxPoint(8, 80))
+        self.staticText2 = wxStaticText(id = wxID_NEWPROPDLGSTATICTEXT2, label = 'Type:', name = 'staticText2', parent = self.panel1, pos = wxPoint(8, 80), size = wxSize(27, 13), style = 0)
 
-        self.chType = wxChoice(size = wxSize(144, 21), id = wxID_NEWPROPDLGCHTYPE, choices = ['boolean', 'date', 'float', 'int', 'lines', 'long', 'string', 'text', 'tokens', 'selection', 'multiple selection'], parent = self.panel1, name = 'chType', validator = wxDefaultValidator, style = 0, pos = wxPoint(56, 72))
+        self.chType = wxChoice(choices = ['boolean', 'date', 'float', 'int', 'lines', 'long', 'string', 'text', 'tokens', 'selection', 'multiple selection'], id = wxID_NEWPROPDLGCHTYPE, name = 'chType', parent = self.panel1, pos = wxPoint(56, 72), size = wxSize(144, 21), style = 0, validator = wxDefaultValidator)
+        self.chType.SetSelection(6)
+        self.chType.SetToolTipString('Property type')
 
-        self.btOK = wxButton(label = 'OK', id = wxID_NEWPROPDLGBTOK, parent = self.panel1, name = 'btOK', size = wxSize(72, 24), style = 0, pos = wxPoint(48, 112))
+        self.btOK = wxButton(id = wxID_NEWPROPDLGBTOK, label = 'OK', name = 'btOK', parent = self.panel1, pos = wxPoint(48, 112), size = wxSize(72, 24), style = 0)
         EVT_BUTTON(self.btOK, wxID_NEWPROPDLGBTOK, self.OnBtokButton)
 
-        self.btCancel = wxButton(label = 'Cancel', id = wxID_NEWPROPDLGBTCANCEL, parent = self.panel1, name = 'btCancel', size = wxSize(72, 24), style = 0, pos = wxPoint(128, 112))
+        self.btCancel = wxButton(id = wxID_NEWPROPDLGBTCANCEL, label = 'Cancel', name = 'btCancel', parent = self.panel1, pos = wxPoint(128, 112), size = wxSize(72, 24), style = 0)
         EVT_BUTTON(self.btCancel, wxID_NEWPROPDLGBTCANCEL, self.OnBtcancelButton)
 
     def __init__(self, parent):
