@@ -1,6 +1,7 @@
 #----------------------------------------------------------------------
 # Name:        PaletteMapping.py
-# Purpose:
+# Purpose:     Module that initialises the Palette's data and provides
+#              the namespace in which design time code is evaluated
 #
 # Author:      Riaan Booysen
 #
@@ -14,138 +15,37 @@ import Preferences
 from Preferences import IS
 from os import path
 
-from wxPython.wx import *
-from wxPython.grid import wxGrid
-from wxPython.html import wxHtmlWindow
-from wxPython.lib.buttons import wxGenButton, wxGenBitmapButton #, wxGenToggleButton, wxGenBitmapToggleButton
-from wxPython.calendar import wxCalendarCtrl
-from wxPython.stc import wxStyledTextCtrl
-from wxPython.lib.anchors import LayoutAnchors
+import PaletteStore
 
-print 'Importing Companions'
+from wxPython.wx import *
+
+# This should be the first time the Companion classes are imported
+# As the modules are imported they add themselves to the PaletteStore
+print 'importing Companions.Companions'
 from Companions.Companions import *
+
+if Utils.IsComEnabled():
+    print 'importing Companions.ComCompanions'
+    from Companions.ComCompanions import *    
+
+print 'importing Companions.UserCompanions'
+from Companions.UserCompanions import *
+
+print 'importing Companions.UtilCompanions'
 from Companions.UtilCompanions import *
+
+print 'importing Companions.DialogCompanions'
 from Companions.DialogCompanions import *
-from Companions.Companions import *
-from Companions.UtilCompanions import *
-from Companions.DialogCompanions import *
+
+print 'importing Companions.ZopeCompanions'
 from Companions.ZopeCompanions import *
 
-utilities = [wxMenuBar, wxMenu, wxImageList]#, wxAcceleratorTable, wxTextDropTarget, wxFileDropTarget]
-
-palette = [
-##  ['Frame bars', 'Editor/Tabs/Singletons',
-##    [wxMenuBar, wxToolBar, wxStatusBar] ],
-  ['Containers/Layout', 'Editor/Tabs/Containers',
-    [wxPanel, wxScrolledWindow, wxNotebook, wxSplitterWindow,
-     wxSashWindow, wxSashLayoutWindow, wxToolBar, wxStatusBar] ], #, wxBoxSizer
-  ['Basic Controls', 'Editor/Tabs/Basic',
-    [wxStaticText, wxTextCtrl, wxComboBox, wxChoice, wxCheckBox, wxRadioButton,
-     wxSlider, wxGauge, wxScrollBar, wxStaticBitmap, wxStaticLine, wxStaticBox,
-     wxHtmlWindow] ], #, wxSpinCtrl, wxCalendarCtrl, wxStyledTextCtrl] ],
-  ['Buttons', 'Editor/Tabs/Basic',
-    [wxButton, wxBitmapButton, wxSpinButton, wxGenButton, wxGenBitmapButton] ],
-#     wxGenToggleButton, wxGenBitmapToggleButton] ],
-  ['List Controls', 'Editor/Tabs/Lists',
-    [wxRadioBox, wxListBox, wxCheckListBox, wxGrid, wxListCtrl, wxTreeCtrl] ],
-  ['Utilities', 'Editor/Tabs/Utilities',
-    utilities] ]
-
-newPalette = ['New', 'Editor/Tabs/New',
-    ['wxApp', 'wxFrame', 'wxDialog', 'wxMiniFrame', 'wxMDIParentFrame',
-     'wxMDIChildFrame', 'Module', 'Package', 'Setup', 'Text'],
-]
-
-helperClasses = {
-    'wxFontPtr': FontDTC,
-    'wxColourPtr': ColourDTC,
-    'Anchors': AnchorsDTC
-}
-
-dialogPalette =  ['Dialogs', 'Editor/Tabs/Dialogs',
-    [wxColourDialog, wxFontDialog, wxFileDialog, wxDirDialog,
-    wxPrintDialog, wxPageSetupDialog,
-    wxSingleChoiceDialog, wxTextEntryDialog, wxMessageDialog] ]
-
-zopePalette =  ['Zope', 'Editor/Tabs/Zope',
-    ['DTML Document', 'DTML Method', 'Folder', 'File', 'Image', 'External Method',
-     'Python Method', 'Mail Host', 'ZCatalog', 'User Folder'] ]#'SQL Method',
-
-compInfo = {
-    wxApp: ['wxApp', None],
-    wxFrame: ['wxFrame', FrameDTC],
-    wxDialog: ['wxDialog', DialogDTC],
-    wxMiniFrame: ['wxMiniFrame', MiniFrameDTC],
-    wxMDIParentFrame: ['wxMDIParentFrame', MDIParentFrameDTC],
-    wxMDIChildFrame: ['wxMDIChildFrame', MDIChildFrameDTC],
-    wxMenuBar: ['wxMenuBar', MenuBarDTC],
-    wxToolBar: ['wxToolBar', ToolBarDTC],
-    wxStatusBar: ['wxStatusBar', StatusBarDTC],
-    wxPanel: ['wxPanel', PanelDTC],
-    wxScrolledWindow: ['wxScrolledWindow', ScrolledWindowDTC],
-    wxNotebook: ['wxNotebook', NotebookDTC],
-    wxSplitterWindow: ['wxSplitterWindow', SplitterWindowDTC],
-    wxStaticText: ['wxStaticText', StaticTextDTC],
-    wxTextCtrl: ['wxTextCtrl', TextCtrlDTC],
-    wxChoice: ['wxChoice', ChoiceDTC],
-    wxComboBox: ['wxComboBox', ComboBoxDTC],
-    wxCheckBox: ['wxCheckBox', CheckBoxDTC],
-    wxButton: ['wxButton', ButtonDTC],
-    wxBitmapButton: ['wxBitmapButton', BitmapButtonDTC],
-    wxRadioButton: ['wxRadioButton', RadioButtonDTC],
-    wxSpinButton: ['wxSpinButton', SpinButtonDTC],
-    wxSlider: ['wxSlider', SliderDTC],
-    wxGauge: ['wxGauge', GaugeDTC],
-    wxStaticBitmap: ['wxStaticBitmap', StaticBitmapDTC],
-    wxListBox: ['wxListBox', ListBoxDTC],
-    wxCheckListBox: ['wxCheckListBox', CheckListBoxDTC],
-    wxGrid: ['wxGrid', NYIDTC],
-    wxListCtrl: ['wxListCtrl', ListCtrlDTC],
-    wxTreeCtrl: ['wxTreeCtrl', TreeCtrlDTC],
-    wxScrollBar: ['wxScrollBar', ScrollBarDTC],
-    wxStaticBox: ['wxStaticBox', StaticBoxDTC],
-    wxStaticLine: ['wxStaticLine', StaticLineDTC],
-    wxRadioBox: ['wxRadioBox', RadioBoxDTC],
-    wxHtmlWindow: ['wxHtmlWindow', HtmlWindowDTC],
-    wxColourDialog: ['wxColorDialog', ColourDialogCDC],
-    wxFontDialog: ['wxFontDialog', FontDialogCDC],
-    wxFileDialog: ['wxFileDialog', FileDialogCDC],
-    wxPrintDialog: ['wxPrintDialog', PrintDialogCDC],
-    wxPageSetupDialog: ['wxPageSetupDialog', PageSetupDialogCDC],
-    wxDirDialog: ['wxDirDialog', DirDialogCDC],
-    wxSingleChoiceDialog: ['wxSingleChoiceDialog', SingleChoiceDialogCDC],
-    wxTextEntryDialog: ['wxTextEntryDialog', TextEntryDialogCDC],
-    wxMessageDialog: ['wxMessageDialog', MessageDialogCDC],
-    wxImageList: ['wxImageList', ImageListDTC],
-    wxAcceleratorTable: ['wxAcceleratorTable', AcceleratorTableDTC],
-    wxMenu: ['wxMenu', MenuDTC],
-    wxTimer: ['wxTimer', TimerDTC],
-    wxStyledTextCtrl: ['wxStyledTextCtrl', NYIDTC],
-    wxCalendarCtrl: ['wxCalendarCtrl', NYIDTC],
-    wxSpinCtrl: ['wxSpinCtrl', NYIDTC],
-    wxGenButton: ['wxGenButton', GenButtonDTC],
-    wxGenBitmapButton: ['wxGenBitmapButton', GenBitmapButtonDTC],
-#    wxGenToggleButton: ['wxGenToggleButton', GenButtonDTC],
-#    wxGenBitmapToggleButton: ['wxGenBitmapToggleButton', GenBitmapButtonDTC],
-    wxTextDropTarget: ['wxTextDropTarget', NYIDTC],
-    wxFileDropTarget: ['wxFileDropTarget', NYIDTC],
-    wxSashWindow: ['wxSashWindow', SashWindowDTC],
-    wxSashLayoutWindow: ['wxSashLayoutWindow', SashLayoutWindowDTC],
-#    wxBoxSizer: ['wxBoxSizer', BoxSizerDTC],
-
-    'DTML Document': ['DTMLDocument', DTMLDocumentZC],
-    'DTML Method': ['DTMLMethod', DTMLMethodZC],
-    'Folder': ['Folder', FolderZC],
-    'File': ['File', FileZC],
-    'Image': ['Image', ImageZC],
-    'External Method': ['ExternalMethod', ExternalMethodZC],
-    'Python Method': ['PythonMethod', PythonMethodZC],
-    'Mail Host': ['MailHost', MailHostZC],
-    'ZCatalog': ['ZCatalog', ZCatalogZC],
-#    'SQL Method': ['SQLMethod', SQLMethodZC],
-    'User Folder': ['UserFolder', UserFolderZC],
-
-}
+palette = PaletteStore.palette
+newPalette = PaletteStore.newPalette
+dialogPalette = PaletteStore.dialogPalette
+zopePalette = PaletteStore.zopePalette
+helperClasses = PaletteStore.helperClasses
+compInfo = PaletteStore.compInfo
 
 def compInfoByName(name):
     for comp in compInfo.keys():
@@ -153,9 +53,10 @@ def compInfoByName(name):
     raise name+' not found'
 
 def loadBitmap(name, subfold = ''):
-    try:
+    filepath = Preferences.pyPath+ '/Images/Palette/' + subfold + name+'.bmp'
+    if path.exists(filepath):
         return IS.load('Images/Palette/' + subfold + name+'.bmp')
-    except:
+    else:
         return IS.load('Images/Palette/Component.bmp')
 
 
