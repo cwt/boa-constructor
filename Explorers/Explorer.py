@@ -15,7 +15,7 @@ print 'importing Explorers'
 from os import path
 import os, sys
 import string, time, glob, fnmatch
-from types import StringType, ClassType
+from types import ClassType
 
 from wxPython.wx import *
 

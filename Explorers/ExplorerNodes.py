@@ -276,7 +276,7 @@ class ClipboardControllerMix:
             nodes = self.getNodesForSelection(ms)
             paths = []
             for node in nodes:
-                paths.append(node.resourcepath)
+                paths.append(node.getURI())
             Utils.writeTextToClipboard(string.join(paths, os.linesep))
 
             self.editor.setStatus('Path(s) copied to clipboard')
@@ -939,6 +939,10 @@ class CategoryCompanion(ExplorerCompanion):
     propMapping = {type('') : StrConfPropEdit,
                    'password' : PasswdStrConfPropEdit,
                    'default': EvalConfPropEdit}
+    try:
+        propMapping[type(u'')] = StrConfPropEdit
+    except:
+        pass
     def __init__(self, name, catNode):
         ExplorerCompanion.__init__(self, name)
         self.catNode = catNode
@@ -956,21 +960,28 @@ class CategoryDictCompanion(CategoryCompanion):
 
     def setPropHook(self, name, value, oldProp = None):
         # scramble sensitive properties before saving
-        entry = self.catNode.entries[self.name]
-        entry[name] = value
+        try:
+            if not self.catNode.entries.has_key(self.name):
+                raise Exception('%s not found in the config, renaming config '\
+                            'entries while Inspecting is not allowed.'%self.name)
 
-        scrams = []
-        for entry in self.catNode.entries.values():
-            for key in entry.keys():
-                if key in sensitive_properties:
-                    val = entry[key]
-                    entry[key] = scrm.scramble(val)
-                    scrams.append((entry, key, val))
+            entry = self.catNode.entries[self.name]
+            entry[name] = value
 
-        self.catNode.updateConfig()
-        # unscramble sensitive properties
-        for entry, key, val in scrams:
-            entry[key] = val
+        finally:
+            scrams = []
+            for entry in self.catNode.entries.values():
+                for key in entry.keys():
+                    if key in sensitive_properties:
+                        val = entry[key]
+                        entry[key] = scrm.scramble(val)
+                        scrams.append((entry, key, val))
+
+            self.catNode.updateConfig()
+
+            # unscramble sensitive properties
+            for entry, key, val in scrams:
+                entry[key] = val
 
         return true
 
