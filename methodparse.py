@@ -6,7 +6,7 @@
 #
 # Created:     1999
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999, 2000 Riaan Booysen
+# Copyright:   (c) 1999 - 2001 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
 """
@@ -49,16 +49,16 @@ class frame1(wxFrame):
         pass
 
     def _init_ctrls(self):
-        pass
+        self._init_utils()
 
     def __init__(self):
-        self._init_utils()
         self._init_ctrls()
 """
 
 #from string import strip, split, join, find, rfind, upper, replace
 import re, string
-import Utils
+
+import Preferences, Utils
 
 containers = [('(', ')'), ('{', '}'), ('[', ']')]
 containBegin = map(lambda d: d[0], containers)
@@ -253,7 +253,7 @@ is_constr_frm = re.compile('^[ \t]*(?P<class>'+idc+\
   ')[.]__init__\(self,[ \t]*(?P<params>.*)\)$')
 
 class ConstructorParse(PerLineParser):
-    def __init__(self, line = None, comp_name = '', class_name = '', params = None):
+    def __init__(self, line=None, comp_name='', class_name='', params=None):
         self.comp_name = comp_name
         self.class_name = class_name
         if params is None: self.params = {}
@@ -299,7 +299,7 @@ coll_init = '_init_coll_'
 idp = '[A-Za-z_][A-Za-z0-9_.]*'
 is_prop = re.compile('^[ \t]*self[.](?P<name>'+idp+')[ \t]*\([ \t]*(?P<params>.*)[ \t]*\)$')
 class PropertyParse(PerLineParser):
-    def __init__(self, line = None, comp_name = '', prop_setter = '', params = None, prop_name = ''):
+    def __init__(self, line=None, comp_name='', prop_setter='', params=None, prop_name=''):
         self.comp_name = comp_name
         self.prop_setter = prop_setter
         if params is None: self.params = []
@@ -362,7 +362,7 @@ class PropertyParse(PerLineParser):
 is_coll_init = re.compile('^[ \t]*self[.](?P<method>'+coll_init+idp+')[ \t]*\((?P<comp_name>'+idp+')[ \t,]*(?P<params>.*)\)$')
 
 class CollectionInitParse(PerLineParser):
-    def __init__(self, line = None, comp_name = '', method = '', params = None, prop_name = ''):
+    def __init__(self, line=None, comp_name='', method='', params=None, prop_name=''):
         self.comp_name = comp_name
         self.method = method
         if params is None: self.params = []
@@ -400,7 +400,7 @@ def decorateCollItemInitsWithCtrl(collInits, ctrlname):
 #item_parent = 'parent'
 is_coll_item_init = re.compile('^[ \t]*(?P<ident>'+idp+')[.](?P<method>'+idc+')[ \t]*\([ \t,]*(?P<params>.*)\)$')
 class CollectionItemInitParse(PerLineParser):
-    def __init__(self, line = None, comp_name = '', method = '', params = None):
+    def __init__(self, line=None, comp_name='', method='', params=None):
         self.comp_name = comp_name
         self.ctrl_name = '&None&'
         self.method = method
@@ -434,7 +434,7 @@ is_event2p = re.compile('^[ \t]*EVT_(?P<evtname>'+idc+')[ \t]*\([ \t]*(?P<name>'
 is_event3p = re.compile('^[ \t]*EVT_(?P<evtname>'+idc+')[ \t]*\([ \t]*(?P<name>'+\
   idp+')[ \t]*\,(?P<wid>.*)[ \t]*\,[ \t]*self[.](?P<func>'+idp+')\)$')
 class EventParse(PerLineParser):
-    def __init__(self, line = None, comp_name = '', event_name = '',
+    def __init__(self, line=None, comp_name='', event_name='',
       trigger_meth = '', windowid = None):
         self.comp_name = comp_name
         self.event_name = event_name
