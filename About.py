@@ -10,7 +10,7 @@
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 
-import sys, time, re
+import sys, time, re, string
 from thread import start_new_thread
 
 from wxPython.wx   import *

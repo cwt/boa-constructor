@@ -1,5 +1,7 @@
 #Boa:Frame:HTMLResponseFrm
 
+import string
+
 from wxPython.wx import *
 from wxPython.html import *
 
