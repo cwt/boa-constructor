@@ -22,7 +22,10 @@ import Help, Preferences, Utils
 
 from Preferences import IS, flatTools
 
-from wxPython.lib.buttons import wxGenButton, wxGenBitmapButton, wxGenToggleButton, wxGenBitmapToggleButton, wxGenButtonEvent
+if sys.version_info[:2] == (2,2) and wxVERSION == (2,3,2):
+    from ExternalLib.buttons import wxGenButton, wxGenBitmapButton, wxGenToggleButton, wxGenBitmapToggleButton, wxGenButtonEvent
+else:
+    from wxPython.lib.buttons import wxGenButton, wxGenBitmapButton, wxGenToggleButton, wxGenBitmapToggleButton, wxGenButtonEvent
 
 currentMouseOverTip = ''
 
