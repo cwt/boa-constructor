@@ -72,6 +72,7 @@ class ZopeFTP:
         self.port = 21
         self.username = ''
         self.connected = false
+        self.http_port = 8080
     
     def __del__(self):
         self.disconnect()
@@ -122,7 +123,6 @@ class ZopeFTP:
         f = open(local_filename, 'wb')
         self.ftp.retrbinary('RETR %s' % server_filename, f.write)
         f.close()
-        print 'Downloaded', server_filename, local_filename
      
     def load(self, item):
         res = []
@@ -145,4 +145,10 @@ class ZopeFTP:
             return true
         else:
             self.ftp.delete(item.whole_name())
-            return f
+            return false
+    
+    def rename(self, item, new_name):
+        old_path = item.whole_name()
+        new_path = os.path.dirname(old_path)+'/'+new_name
+        self.ftp.rename(old_path, new_path)
+        
