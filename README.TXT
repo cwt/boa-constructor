@@ -29,19 +29,16 @@ Licence:
 GPL
 
 Version:
-0.2.0 - Alpha
-Requires at least wxPython 2.3.2.1.
-If you have problems using Boa with version later than 2.4.0, please
-please use 2.3.2, 2.3.4 or 2.4.0.
-
-0.2.0 will be the last version to support Python 1.5.2. Some parts like the
-Debugger already require Python 2.x, but file editing still work.
+0.2.3 - Alpha
+Requires at least wxPython 2.4.0.6
 
 Copyright:
 Riaan Booysen 1999 - 2003
 riaan@e.co.za
 
 Release history:
+
+2003-04-01 - Boa Constructor 0.2.3
 
 2003-01-13 - Boa Constructor 0.2.0
 

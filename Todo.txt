@@ -1,20 +1,27 @@
 To do
 -----
 
+Missing wxPython features
+-------------------------
+
+* wxSizers
+* wxAcceleratorTable
+* wxWizard
+* improved wxApp support (properties and events)
+* wxArtProvider
+* Alternate bitmap support (e.g. from img2* or ResourcePackage)
+
 High level features
 -------------------
 
-Better default property handling, possibly cutting some cruft from
-generated source by omitting unchanged defaults.
+* Better default property handling, possibly cutting some cruft from
+  generated source by omitting unchanged defaults.
 
-Native design time sizer support. I ran into a hitch while doing the
-collection editors. Currently only one type of collection insertion
-method is supported e.g. wxToolbar.AddTool().
-Sizers need various methods and will be done as soon as I overcome this
-limitation.
-Menus will then also support sub-menus and separators.
+Support for more than one method in Collections, this would allow
+* Sub-menus, separators
+* Adding controls to toolbars
+* Remove one of the barriers to Sizers
 
-*
 Detail
 ------
 

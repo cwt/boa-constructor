@@ -1,6 +1,14 @@
 Changes
 -------
 
+-- 0.2.3 --
+
+2003-04-01
+
+* Primarily a bugfix release
+* Some changes to improve handling of non-ASCII source, 
+  see Docs/boa/apphelp/NonASCII.html
+
 -- 0.2.0 (Release) --
 
 2003-01-13

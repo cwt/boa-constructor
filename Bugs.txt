@@ -61,8 +61,15 @@ in any case.
 Parser must be fixed sometime to correctly parse
 nested methods and nested classes
 
+Sometimes get a DeadObject assertion error when using the debugger by attaching
+to it.
+
 GTK
 ---
+
+Under RedHat 8, fonts are sometimes displayed incorrectly, the suggested 
+workaround is to have an environment variable like this defined:
+LANG=en_US
 
 Still some problems with accelerator keys.
 
