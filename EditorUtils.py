@@ -92,7 +92,7 @@ class EditorStatusBar(wxStatusBar):
                        'Error': Preferences.IS.load('Images/Shared/Error.png')}
         self.history = []
         self._histcnt = 0
-    
+
     def destroy(self):
         del self.images
 
@@ -102,7 +102,7 @@ class EditorStatusBar(wxStatusBar):
         msgType can be 'Info', 'Warning' or 'Error'
         """
         self._histcnt = self._histcnt - 1
-        self.history.append( (msgType, time.strftime('%H:%M:%S', 
+        self.history.append( (msgType, time.strftime('%H:%M:%S',
               time.gmtime(time.time())), hint, ringBell) )
         if len(self.history) > self.maxHistorySize:
             del self.history[0]
@@ -125,7 +125,7 @@ class EditorStatusBar(wxStatusBar):
     def linkProgressToStatusBar(self):
         rect = self.GetFieldRect(3)
         self.progress.SetDimensions(rect.x+1, rect.y+1, rect.width -2, rect.height -2)
-    
+
     def setColumnPos(self, value):
         self.SetStatusText(str(value), 2)
 
@@ -154,7 +154,7 @@ def HistoryPopup(parent, hist, imgs):
 #-----Model hoster--------------------------------------------------------------
 
 
-wxID_MODULEPAGEVIEWCHANGE = wxNewId()
+wxID_MODULEPAGEVIEWCHANGE, wx_MODULEPAGECLOSEVIEW = Utils.wxNewIds(2)
 
 class ModulePage:
     """ Represents a notebook on a page of the top level notebook hosting
@@ -172,11 +172,11 @@ class ModulePage:
         self.updatePageName()
 
         self.windowId = wxNewId()
-        menuFilename = '%s (%s)'%(os.path.basename(self.model.filename), 
-                                  self.model.filename)
-        self.editor.winMenu.Append(self.windowId, menuFilename,
+        self.editor.winMenu.Append(self.windowId, self.getMenuLabel(),
               'Switch to highlighted file')
         EVT_MENU(self.editor, self.windowId, self.editor.OnGotoModulePage)
+        EVT_MENU(self.notebook, wx_MODULEPAGECLOSEVIEW, self.OnDirectActionClose)
+        EVT_RIGHT_DOWN(self.notebook, self.OnRightDown)
 
         Class = model.__class__
 ##        if not editor.defaultAdtViews.has_key(cls):
@@ -268,11 +268,11 @@ class ModulePage:
 ### decl viewSelectionMenu(self) -> wxMenu
     def viewSelectionMenu(self):
         menu = wxMenu()
-        for view, wId in self.defViews:
-            menu.Append(wId, view.viewName)
+        for View, wId in self.defViews:
+            menu.Append(wId, View.viewName)
         menu.AppendSeparator()
-        for view, wId in self.adtViews:
-            menu.Append(wId, view.viewName, '', view not in self.adtViews)
+        for View, wId in self.adtViews:
+            menu.Append(wId, View.viewName, '', View not in self.adtViews)
 
         return menu
 
@@ -336,12 +336,7 @@ class ModulePage:
         if forceSaveAs or not model.savedAs:
             oldName = model.filename
             if self.saveAs(oldName) and (oldName != model.filename):
-                del editor.modules[oldName]
-                editor.modules[model.filename] = self
-
-                item = editor.winMenu.FindItemById(self.windowId)
-                item.SetText(model.filename)
-                editor.editorUpdateNotify()
+                self.rename(oldName, model.filename)
 
                 editor.statusBar.setHint('%s saved.'%\
                       os.path.basename(model.filename))
@@ -352,7 +347,7 @@ class ModulePage:
             except TransportModifiedSaveError, err:
                 choice = wxMessageBox(str(err)+'\nDo you want to overwrite these '
                   'changes (Yes), reload your file (No) or cancel this operation '
-                  '(Cancel)?', 'Overwrite newer file warning', 
+                  '(Cancel)?', 'Overwrite newer file warning',
                   wxYES_NO | wxCANCEL | wxICON_WARNING)
                 if choice == wxYES:
                     model.save(overwriteNewer=true)
@@ -360,7 +355,7 @@ class ModulePage:
                     raise TransportModifiedSaveError('Reload')
                 elif choice == wxCANCEL:
                     raise TransportModifiedSaveError('Cancel')
-                
+
             editor.updateModulePage(model)
             editor.updateTitle()
 
@@ -375,6 +370,54 @@ class ModulePage:
             if hasattr(view, 'OnPageActivated'):
                 view.OnPageActivated(event)
         event.Skip()
+
+    def OnRightDown(self, event):
+        actView = self.getActiveView()
+
+        doDirectMenuPopup = false
+        for View, wid in self.adtViews:
+            if isinstance(actView, View):
+                doDirectMenuPopup = true
+                break
+
+        if not doDirectMenuPopup:
+            from Views.EditorViews import CloseableViewMix
+            if isinstance(actView, CloseableViewMix):
+                doDirectMenuPopup = true
+
+        if doDirectMenuPopup:
+            directMenu = wxMenu()
+            directMenu.Append(wx_MODULEPAGECLOSEVIEW, 'Close active view')
+
+            self.notebook.PopupMenu(directMenu, event.GetPosition())
+            directMenu.Destroy()
+            return
+
+    def OnDirectActionClose(self, event):
+        actView = self.getActiveView()
+
+        for View, wid in self.adtViews:
+            if isinstance(actView, View):
+                actView.deleteFromNotebook(self.default, actView.viewName)
+
+                self.editor.mainMenu.Check(wid, false)
+                return
+
+        from Views.EditorViews import CloseableViewMix
+        if isinstance(actView, CloseableViewMix):
+            actView.OnClose(None)
+
+    def rename(self, oldName, newName):
+        del self.editor.modules[oldName]
+        self.editor.modules[newName] = self
+
+        item = self.editor.winMenu.FindItemById(self.windowId)
+        item.SetText(self.getMenuLabel())
+        self.editor.editorUpdateNotify()
+
+    def getMenuLabel(self):
+        return '%s (%s)'%(os.path.basename(self.model.filename),
+                          self.model.filename)
 
 
 
