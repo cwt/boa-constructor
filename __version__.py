@@ -1,3 +1,3 @@
-version = '0.3.1'
+version = '0.3.2'
 wx_version = (2, 4, 0, 7)
 wx_version_max = (2, 4, 2, 4) # set to None to have no upper version check
