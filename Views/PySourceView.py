@@ -674,9 +674,13 @@ class PythonSourceView (EditorStyledTextCtrl,
         #    os.remove(fn)
         
     def clearStepPos(self, lineNo):
+        if lineNo < 0:
+            lineNo = 0
         self.MarkerDelete(lineNo, stepPosMrk)
 
     def setStepPos(self, lineNo):
+        if lineNo < 0:
+            lineNo = 0
         self.MarkerAdd(lineNo, stepPosMrk)
             
             
