@@ -307,8 +307,7 @@ class BoaFrame(wxFrame, Utils.FrameRestorerMixin):
                 self.Destroy()
                 event.Skip()
 
-                # hack to force shutdown :(
-                wxGetApp().ExitMainLoop()
+                wxGetApp().tbicon.Destroy()
             
 
     def OnUncheckComponent(self, event):

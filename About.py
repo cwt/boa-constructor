@@ -51,6 +51,7 @@ progress_text = '''<p>
   <param name="label" value="  ">
   <param name="id"    value="%d">
   <param name="size"  value="(352, 20)">
+  <param name="style" value="wx.ALIGN_CENTER | wx.CLIP_CHILDREN | wx.ST_NO_AUTORESIZE">
 </wxp>
 <wxp module="wx" class="Window">
   <param name="id"    value="%d">
@@ -272,8 +273,6 @@ class AboutBoxSplash(AboutBoxMixin, wxFrame):
           __version__.version, progress_text % (self.progressId, self.gaugePId), ''))
 
         wxCallAfter(self.initCtrlNames)
-
-        #self.html.SetPage('About box')
 
 
     def initCtrlNames(self):

@@ -486,6 +486,7 @@ class BoaApp(wxApp):
         abt = About.createSplash(None, modTot, fileTot)
         try:
             abt.Show()
+            abt.Update()
             # Let the splash screen repaint
             wxYield()
     
@@ -625,6 +626,7 @@ def main(argv=None):
     # XXX Custom installations, should distutil libs be used for this ?
     # XXX Binary test is no longer valid, maybe type of __import__ function
     # Only install if it's not a 'binary' distribution
+    import wx
     if Preferences.installBCRTL and hasattr(wx, '__file__'):
         join, dirname = os.path.join, os.path.dirname
         wxPythonPath = dirname(wx.__file__)

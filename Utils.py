@@ -9,8 +9,7 @@
 # Copyright:   (c) 1999 - 2004 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
-import string, os, sys, glob, pprint
-from types import InstanceType
+import string, os, sys, glob, pprint, types
 
 from wxPython.wx import *
 
@@ -347,7 +346,7 @@ def wxProxyPanel(parent, Win, *args, **kwargs):
     """
     panel = wxPanel(parent, -1, style=wxTAB_TRAVERSAL | wxCLIP_CHILDREN)
 
-    if type(Win) is types.ClassType:
+    if type(Win) is types.ClassType or type(Win) is types.TypeType:
         win = apply(Win, (panel,) + args, kwargs)
     elif type(Win) is types.InstanceType:
         win = Win
