@@ -1,6 +1,6 @@
 #-----------------------------------------------------------------------------
 # Name:        PythonControllers.py
-# Purpose:     
+# Purpose:
 #
 # Author:      Riaan Booysen
 #
@@ -33,21 +33,21 @@ import ErrorStack
 import methodparse, sourceconst
 
 (wxID_MODULEPROFILE, wxID_MODULECHECKSOURCE, wxID_MODULERUNAPP, wxID_MODULERUN,
- wxID_MODULEDEBUGAPP, wxID_MODULEDEBUG, 
+ wxID_MODULEDEBUGAPP, wxID_MODULEDEBUG,
  wxID_MODULEDEBUGSTEPIN, wxID_MODULEDEBUGSTEPOVER, wxID_MODULEDEBUGSTEPOUT,
  wxID_MODULECYCLOPSE, wxID_MODULEREINDENT, wxID_MODULETABNANNY,
  wxID_MODULEIMPORTINSHELL, wxID_MODULERELOADINSHELL,
  wxID_MODULEPYCHECK, wxID_MODULECONFPYCHECK,
- wxID_MODULEDIFF, wxID_MODULESWITCHAPP, wxID_MODULEADDTOAPP, 
+ wxID_MODULEDIFF, wxID_MODULESWITCHAPP, wxID_MODULEADDTOAPP,
  wxID_MODULEATTACHTODEBUGGER, wxID_MODULEASSOSWITHAPP, wxID_MODULESETPARAMS,
 ) = Utils.wxNewIds(22)
 
-# TODO: Profile, Cyclops and other file runners should use the command-line 
+# TODO: Profile, Cyclops and other file runners should use the command-line
 # TODO: parameters whenever possible
 
 class ModuleController(SourceController):
     activeApp = None
-    
+
     runAppBmp = 'Images/Debug/RunApp.png'
     runBmp = 'Images/Debug/Run.png'
     compileBmp = 'Images/Debug/Compile.png'
@@ -56,8 +56,8 @@ class ModuleController(SourceController):
 
     Model = PythonEditorModels.ModuleModel
     DefaultViews    = [PySourceView.PythonSourceView, EditorViews.ExploreView]
-    AdditionalViews = [EditorViews.HierarchyView, EditorViews.ModuleDocView, 
-                       EditorViews.ToDoView, OGLViews.UMLView, 
+    AdditionalViews = [EditorViews.HierarchyView, EditorViews.ModuleDocView,
+                       EditorViews.ToDoView, OGLViews.UMLView,
                        SourceViews.PythonDisView] + SourceController.AdditionalViews
 
     def addEvts(self):
@@ -213,8 +213,8 @@ class ModuleController(SourceController):
                     else:
                         params = []
                     self.editor.debugger.setParams(params)
-                
-                
+
+
         finally:
             dlg.Destroy()
 
@@ -244,9 +244,9 @@ class ModuleController(SourceController):
         if debugModel is None:
             if model.app:
                 debugModel = model.app
-            else:   
+            else:
                 debugModel = model
-        
+
         if debugModel.lastRunParams:
             params = methodparse.safesplitfields(debugModel.lastRunParams, ' ')
         else:
@@ -461,7 +461,7 @@ class BaseAppController(ModuleController):
     DefaultViews    = [AppViews.AppView] + ModuleController.DefaultViews
     AdditionalViews = [AppViews.AppModuleDocView, EditorViews.ToDoView,
                        OGLViews.ImportsView, EditorViews.CVSConflictsView,
-                       AppViews.AppREADME_TIFView, AppViews.AppCHANGES_TIFView, 
+                       AppViews.AppREADME_TIFView, AppViews.AppCHANGES_TIFView,
                        AppViews.AppTODO_TIFView, AppViews.AppBUGS_TIFView]
 
     def addEvts(self):
@@ -576,6 +576,8 @@ class PackageController(ModuleController):
 class SetupController(ModuleController):
     Model = PythonEditorModels.SetupModuleModel
 
+    DefaultViews = ModuleController.DefaultViews + [EditorViews.DistUtilManifestView]
+
     def addEvts(self):
         ModuleController.addEvts(self)
         self.addEvt(wxID_SETUPPARAMS, self.OnSetupParams)
@@ -608,7 +610,7 @@ class SetupController(ModuleController):
             self.addMenu(menu, wxID_SETUPBDIST_RPM, 'setup.py bdist_rpm', accls, ())
         else:
             self.addMenu(menu, wxID_SETUPBDIST_WININST, 'setup.py bdist_wininst', accls, ())
-            
+
         if self._py2exe:
             menu.AppendSeparator()
             self.addMenu(menu, wxID_SETUPPY2EXE, 'setup.py py2exe', accls, ())
@@ -634,15 +636,15 @@ class SetupController(ModuleController):
         os.chdir(filedir)
         try:
             ProcessModuleRunner(self.editor.erroutFrm, model.app, filedir).run(\
-            '"%s" setup.py %s'%(`Preferences.pythonInterpreterPath`[1:-1], cmd), 
+            '"%s" setup.py %s'%(`Preferences.pythonInterpreterPath`[1:-1], cmd),
             caption='Running distutil command...')
 ##            PD = ProcessProgressDlg.ProcessProgressDlg(self.editor,
 ##              '"%s" setup.py %s'%(`Preferences.pythonInterpreterPath`[1:-1], cmd),
 ##              'Running distutil command...',
 ##              autoClose = false)
-##            try: 
+##            try:
 ##                if PD.ShowModal() == wxOK:
-##                    
+##
 ##            finally: PD.Destroy()
         finally:
             os.chdir(cwd)
@@ -674,7 +676,10 @@ class SetupController(ModuleController):
 
 #-------------------------------------------------------------------------------
 
-
+Preferences.paletteTitle = Preferences.paletteTitle +' - Python IDE'
+Controllers.headerStartChar['.py'] = '#'
+Controllers.identifyHeader['.py'] = PythonEditorModels.identifyHeader
+Controllers.identifySource['.py'] = PythonEditorModels.identifySource
 
 Controllers.modelControllerReg.update({
       PythonEditorModels.PyAppModel: PyAppController,
@@ -689,6 +694,5 @@ PaletteStore.newControllers.update({'PythonApp': PyAppController,
                                     'Setup': SetupController,
                                    })
 
-PaletteStore.paletteLists['New'].extend(['PythonApp', 'Module', 'Package', 
+PaletteStore.paletteLists['New'].extend(['PythonApp', 'Module', 'Package',
   'Setup'])
-
