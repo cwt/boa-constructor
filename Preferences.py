@@ -52,13 +52,15 @@ if '--OverridePrefsDirName' in sys.argv or '-O' in sys.argv:
 # To prevent using the HOME env variable run different versions of Boa this flag
 # forces Boa to use Preference settings either in the Boa root or in a .boa dir
 # in the Boa root
-if '--BlockHomePrefs' in sys.argv or '-B' in sys.argv:
+if os.path.isabs(prefsDirName):
+    rcPath = prefsDirName
+elif '--BlockHomePrefs' in sys.argv or '-B' in sys.argv:
     print 'ignoring $HOME (if set)'
     rcPath = os.path.join(pyPath, prefsDirName)
 else:
-    homedir = os.environ.get('HOME', None)
-    if homedir is not None and os.path.isdir(homedir):
-        rcPath = os.path.join(homedir, prefsDirName)
+    homeDir = os.environ.get('HOME', None)
+    if homeDir is not None and os.path.isdir(homeDir):
+        rcPath = os.path.join(homeDir, prefsDirName)
         if not os.path.isdir(rcPath):
             try:
                 os.mkdir(rcPath)
