@@ -276,8 +276,8 @@ class AboutBoxSplash(AboutBoxMixin, wxFrame):
 
 class StaticTextPF(Utils.PseudoFile):
     def write(self, s):
-        #if not wxThread_IsMain():
-        #    locker = wxMutexGuiLocker()
+        if not wxThread_IsMain():
+            locker = wxMutexGuiLocker()
 
         res = prog_update.search(s)
         if res:
