@@ -113,17 +113,29 @@ class DebuggerConnection:
         self._ds.setAllBreakpoints(brks)
 
     def addBreakpoint(self, filename, lineno, temporary=0,
-                      cond=None, enabled=1):
+                      cond='', enabled=1, ignore=0):
         """Sets a breakpoint.  Non-blocking and immediate.
         """
-        self._ds.addBreakpoint(filename, lineno, temporary, cond,
-                               enabled)
+        self._ds.addBreakpoint(filename, lineno, temporary, 
+                               cond, enabled, ignore)
 
     def enableBreakpoints(self, filename, lineno, enabled=1):
         """Sets the enabled flag for all breakpoints on a given line.
         Non-blocking and immediate.
         """
         self._ds.enableBreakpoints(filename, lineno, enabled)
+
+    def ignoreBreakpoints(self, filename, lineno, ignore=0):
+        """Sets the ignore flag for all breakpoints on a given line.
+        Non-blocking and immediate.
+        """
+        self._ds.ignoreBreakpoints(filename, lineno, ignore)
+            
+    def conditionalBreakpoints(self, filename, lineno, cond=''):
+        """Sets the break condition for all breakpoints on a given line.
+        Non-blocking.
+        """
+        self._ds.conditionalBreakpoints(filename, lineno, cond)
 
     def clearBreakpoints(self, filename, lineno):
         """Clears all breakpoints on a line.  Non-blocking and immediate.
@@ -372,9 +384,7 @@ class ThreadChoiceLock:
             self.release()
 
 
-
-_orig_syspath = sys.path[:]
-
+_orig_syspath = sys.path
 
 class DebugServer (Bdb):
 
@@ -745,7 +755,7 @@ class DebugServer (Bdb):
                 apply(self.addBreakpoint, (), brk)
 
     def addBreakpoint(self, filename, lineno, temporary=0,
-                      cond=None, enabled=1):
+                      cond='', enabled=1, ignore=0):
         """Sets a breakpoint.  Non-blocking.
         """
         bp = self.set_break(filename, lineno, temporary, cond)
@@ -754,6 +764,7 @@ class DebugServer (Bdb):
             raise DebugError(bp)
         elif bp is not None and not enabled:
             bp.disable()
+        bp.ignore = ignore
 
     def enableBreakpoints(self, filename, lineno, enabled=1):
         """Sets the enabled flag for all breakpoints on a given line.
@@ -764,6 +775,25 @@ class DebugServer (Bdb):
             for bp in bps:
                 if enabled: bp.enable()
                 else: bp.disable()
+
+    def ignoreBreakpoints(self, filename, lineno, ignore=0):
+        """Sets the ignore count for all breakpoints on a given line.
+        Non-blocking.
+        """
+        bps = self.get_breaks(filename, lineno)
+        print 'ignoreBreakpoints', filename, self.breaks.keys(), bps
+        if bps:
+            for bp in bps:
+                bp.ignore = ignore
+            
+    def conditionalBreakpoints(self, filename, lineno, cond=''):
+        """Sets the break condition for all breakpoints on a given line.
+        Non-blocking.
+        """
+        bps = self.get_breaks(filename, lineno)
+        if bps:
+            for bp in bps:
+                bp.cond = cond
 
     def clearBreakpoints(self, filename, lineno):
         """Clears all breakpoints on a line.  Non-blocking.
@@ -856,7 +886,7 @@ class DebugServer (Bdb):
                              'temporary':bp.temporary and 1 or 0,
                              'enabled':bp.enabled and 1 or 0,
                              'hits':bp.hits or 0,
-                             'ignore':bp.ignore and 1 or 0,
+                             'ignore':bp.ignore or 0,
                              })
         return rval
 
