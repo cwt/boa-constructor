@@ -15,6 +15,8 @@ import string, os, sys
 
 from wxPython.wx import wxMenu, EVT_MENU, wxMessageBox, wxPlatform, wxOK, wxNewId, true, false
 
+import Preferences, Utils
+
 import ExplorerNodes
 from Models import Controllers, EditorHelper
 from ProcessProgressDlg import ProcessProgressDlg
@@ -53,10 +55,10 @@ class SSHCatNode(ExplorerNodes.CategoryNode):
 
     def createChildNode(self, name, props):
         root = props['root']
-        if root and root[0] != '/':
-            root = '/'+root
+        #if root and root[0] != '/':
+        #    root = '/'+root
         itm = SSHItemNode(name, props, root, self.clipboard, true,
-              EditorHelper.imgNetDrive, self)
+              EditorHelper.imgNetDrive)
         itm.category = name
         itm.bookmarks = self.bookmarks
         return itm
@@ -68,23 +70,29 @@ class SSHCatNode(ExplorerNodes.CategoryNode):
 class SSHItemNode(ExplorerNodes.ExplorerNode):
     protocol = 'ssh'
     connection = false
-    def __init__(self, name, props, resourcepath, clipboard, isFolder, imgIdx, parent):
-        ExplorerNodes.ExplorerNode.__init__(self, name, resourcepath, clipboard, imgIdx,
-              parent, props)
+    def __init__(self, name, props, resourcepath, clipboard, isFolder, imgIdx):
+        ExplorerNodes.ExplorerNode.__init__(self, name, resourcepath, clipboard,
+              imgIdx, None, props)
         self.isFolder = isFolder
 
     def isFolderish(self):
         return self.isFolder
 
     def getURI(self):
-        return ExplorerNodes.ExplorerNode.getURI(self) + (self.isFolder and '/' or '')
+#        return ExplorerNodes.ExplorerNode.getURI(self) + (self.isFolder and '/' or '')
+        title = self.getTitle()
+        if title and title[0] != '/':
+            title = '/' + title
+        if self.isFolder:
+            title = title + '/'
+        return '%s://%s%s'%(self.protocol, self.category, title)
 
     def createChildNode(self, name, isFolder, props, respath=''):
         if not respath:
             respath = self.resourcepath+'/'+name
         item = SSHItemNode(name, props, respath, self.clipboard,
               isFolder, isFolder and EditorHelper.imgFolder or \
-              EditorHelper.imgTextModel, self)
+              EditorHelper.imgTextModel)
         if not isFolder:
             item.imgIdx = Controllers.identifyFile(name, localfs=false)[0].imgIdx
         item.category = self.category
@@ -134,7 +142,7 @@ class SSHItemNode(ExplorerNodes.ExplorerNode):
         cwd = os.getcwd()
         os.chdir(os.path.dirname(fsNode.resourcepath))
         try:
-            cmd = 'scp %s %s' % (os.path.basename(fsNode.resourcepath),
+            cmd = 'scp "%s" "%s"' % (os.path.basename(fsNode.resourcepath),
                                  self.remotePath(fn))
             self.execSCP(cmd)
         finally:
@@ -146,7 +154,7 @@ class SSHItemNode(ExplorerNodes.ExplorerNode):
         cwd = os.getcwd()
         os.chdir(fsFolderNode.resourcepath)
         try:
-            cmd = 'scp %s %s' % (self.remotePath(''), fn)
+            cmd = 'scp "%s" "%s"' % (self.remotePath(''), fn)
             self.execSCP(cmd)
         finally:
             os.chdir(cwd)
@@ -181,12 +189,18 @@ class SSHItemNode(ExplorerNodes.ExplorerNode):
         from FileExplorer import PyFileNode
         import tempfile
         fn = tempfile.mktemp()
+        p, n = os.path.split(fn)
+        fn = os.path.join(p, 'X'+n)
         try:
             self.copyToFS(PyFileNode('', os.path.dirname(fn), None, -1, None, None), os.path.basename(fn))
-            try:
-                return open(fn, mode).read()
-            finally:
-                os.remove(fn)
+            if os.path.exists(fn):
+                try:
+                    return open(fn, mode).read()
+                finally:
+                    os.remove(fn)
+            else:
+                raise ExplorerNodes.TransportLoadError(
+                      'File was not downloaded locally.', self.resourcepath)
         except Exception, error:
             raise ExplorerNodes.TransportLoadError(error, self.resourcepath)
 
@@ -195,28 +209,40 @@ class SSHItemNode(ExplorerNodes.ExplorerNode):
         import tempfile
         name = os.path.basename(self.resourcepath)
         fn = tempfile.mktemp()
+        p, n = os.path.split(fn)
+        fn = os.path.join(p, 'X'+n)
         try:
             open(fn, mode).write(data)
             try:
-                if self.parent:
-                    self.parent.copyFromFS(PyFileNode('', fn, None, -1, None, None),
-                          name)
-                else:
-                    raise 'No Parent!'
+                parentDir = os.path.dirname(self.resourcepath)
+                parentName = os.path.basename(parentDir)
+                parentSSHNode = self.createChildNode(parentName, 1,
+                      self.properties, parentDir)
+                parentSSHNode.copyFromFS(PyFileNode('', fn, None, -1), name)
             finally:
                 os.remove(fn)
         except Exception, error:
             raise ExplorerNodes.TransportSaveError(error, self.resourcepath)
 
+##    def getNodeFromPath(self, respath):
+##        if not respath: respath = '/'
+##
+##        isFolder = respath[-1] == '/'
+##        if isFolder:
+##            respath = respath[:-1]
+##        return self.createChildNode(os.path.basename(respath), isFolder,
+##              self.properties, '/'+respath)
+
     def getNodeFromPath(self, respath):
         if not respath: respath = '/'
 
+        if not Utils.startswith(respath, '~/'):
+            respath = '/' + respath
         isFolder = respath[-1] == '/'
         if isFolder:
             respath = respath[:-1]
         return self.createChildNode(os.path.basename(respath), isFolder,
-              self.properties, '/'+respath)
-
+              self.properties, respath)
 
 class SSHExpClipboard(ExplorerNodes.ExplorerClipboard):
     def clipPaste_FileSysExpClipboard(self, node, nodes, mode):
