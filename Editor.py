@@ -36,7 +36,7 @@ import About, Help, Browse
 from Explorers import Explorer
 from Explorers.ExplorerNodes import TransportError, TransportSaveError, TransportLoadError
 import ShellEditor
-from ModRunner import EVT_EXEC_FINISH
+#from ModRunner import EVT_EXEC_FINISH
 
 addTool = Utils.AddToolButtonBmpIS
 
@@ -303,13 +303,13 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
         self.erroutFrm = ErrorStackFrm.ErrorStackMF(self, self)
 
         if Preferences.eoErrOutDockWindow == 'editor':
-            self.erroutFrm.notebook1.Reparent(self.tabsSplitter)
-            self.tabsSplitter.SplitHorizontally(self.tabs, self.erroutFrm.notebook1,
+            self.erroutFrm.notebook.Reparent(self.tabsSplitter)
+            self.tabsSplitter.SplitHorizontally(self.tabs, self.erroutFrm.notebook,
               self.tabsSplitter.GetClientSize().y - self.tabsSplitter.GetSashSize())
         else:
             if Preferences.eoErrOutDockWindow == 'inspector':
                 panel, notebook = \
-                  Utils.wxProxyPanel(self.inspector.pages, self.erroutFrm.notebook1)
+                  Utils.wxProxyPanel(self.inspector.pages, self.erroutFrm.notebook)
                 self.inspector.pages.AddPage(panel, 'ErrOut')
             self.tabsSplitter.Initialize(self.tabs)
             wxPostEvent(self.tabsSplitter, wxSizeEvent(self.tabsSplitter.GetSize()))
@@ -318,7 +318,7 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
         import FileDlg
         FileDlg.wxBoaFileDialog.modImages = self.modelImageList
 
-        EVT_EXEC_FINISH(self, self.OnExecFinish)
+        #EVT_EXEC_FINISH(self, self.OnExecFinish)
         EVT_MENU_HIGHLIGHT_ALL(self, self.OnMenuHighlight)
 
         from FindReplaceEngine import FindReplaceEngine
@@ -575,12 +575,13 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
         if moreUsedNames is None:
             moreUsedNames = []
         def tryName(modelClass, n):
-            return '%s%d%s' %(modelClass.defaultName, n, modelClass.ext)
+            return 'none://%s%d%s' %(modelClass.defaultName, n, modelClass.ext)
         n = 1
         #Obfuscated one-liner to check if such a name exists as a basename
         #in a the dict keys of self.module
         while filter(lambda key, name=tryName(modelClass, n): \
-          os.path.basename(key) == name, self.modules.keys() + moreUsedNames):
+              os.path.basename(key) == os.path.basename(name), 
+              self.modules.keys() + moreUsedNames):
             n = n + 1
 
         return tryName(modelClass, n)
@@ -599,6 +600,7 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
                 modPge.addedPage(spIdx)
 
             if self.modules.has_key(moduleName):
+                # XXX raise here
                 print 'module %s exists'%moduleName
             self.modules[moduleName] = modulePage
             notebook.InsertPage(spIdx, modulePage.notebook, modulePage.pageName, true, imgIdx)
@@ -929,10 +931,11 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
             dlg.Destroy()
         return ''
 
-    def saveAsDlg(self, filename, filter = '*.py', dont_pop=0):
+    def saveAsDlg(self, filename, filter = '*.py'):#, dont_pop=0):
         if filter == '*.py': filter = Preferences.exDefaultFilter
 
-        dir, name = os.path.split(filename)
+        segs = Explorer.splitURI(filename)
+        dir, name = os.path.split(segs[2])
         if not dir:
             dir = '.'
         if dir[-1] == ':':
@@ -941,7 +944,7 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
         from FileDlg import wxFileDialog
         dlg = wxFileDialog(self, 'Save as...', dir, name, filter,
               wxSAVE | wxOVERWRITE_PROMPT)
-        dlg.dont_pop = dont_pop
+        #dlg.dont_pop = dont_pop
         try:
             if dlg.ShowModal() == wxID_OK:
                 return dlg.GetPath(), true
@@ -1168,8 +1171,22 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
                         #Should be added, but check that it doesn't exist
                         if viewCls not in modVwClss:
                             view = mod.addView(viewCls)
-                            view.refreshCtrl()
-                            view.focus()
+                            try:
+                                view.refreshCtrl()
+                            except:
+                                notebook = view.notebook
+                                view.deleteFromNotebook(mod.default, view.viewName)
+                                self.mainMenu.Check(evtId, false)
+                                
+                                # repaint over glitch on windows
+                                # Update(), Refresh() does not work
+                                if wxPlatform == '__WXMSW__':
+                                    notebook.Show(false)
+                                    notebook.Show(true)
+                                
+                                raise
+                            else:    
+                                view.focus()
                         else:
                             print 'Add: View already exists'
                     else:
@@ -1343,18 +1360,6 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
                 wxLogError('Could not save open file list: '+str(error))
 
 #---Misc events-----------------------------------------------------------------
-    def OnExecFinish(self, event):
-        if self.erroutFrm:
-            if self.palette.IsShown():
-                self.palette.restore()
-            self.restore()
-
-            event.runner.init(self.erroutFrm, event.runner.app)
-            errs = event.runner.recheck()
-            if errs:
-                self.statusBar.setHint('Finished execution, there were errors', 'Warning')
-            else:
-                self.statusBar.setHint('Finished execution.')
 
     def OnExitBoa(self, event):
         self.palette.Close()
@@ -1380,21 +1385,33 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
 
             if self.debugger:
                 if self.debugger.running:
-                    wxLogError('Please close the application running in the'
-                               ' debugger before continuing.')
+                    wxLogError('Please close the application running in the '
+                               'debugger before continuing.')
                     self.palette.destroying = false
                     return
                 else:
                     self.debugger.Close(true)
+                    
+            if not self.erroutFrm.checkProcessesAtExit():
+                self.palette.destroying = false
+                return 
 
             self.persistEditorState()
             self.finder.saveOptions()
 
             modPageList = []
+            modPageAppList = []
             for name, modPage in self.modules.items():
-                modPageList.append( (modPage.tIdx, name, modPage) )
+                if modPage.model.modelIdentifier in Controllers.appModelIdReg:
+                    # move application files to the end of the list because
+                    # other files could modify them on being saved
+                    modPageAppList.append( (modPage.tIdx, name, modPage) )
+                else:
+                    modPageList.append( (modPage.tIdx, name, modPage) )
             modPageList.sort()
-            for idx, name, modPage in modPageList:
+            modPageAppList.sort()
+
+            for idx, name, modPage in modPageList + modPageAppList:
                 try:
                     self.prepareForCloseModule(modPage, true)
                 except CancelClose:
