@@ -12,11 +12,14 @@
 
 import os, urllib, urlparse, string, time, socket
 
+##import sys
+##sys.path.append('..')
+
 from wxPython.wx import *
 
 import EditorHelper, ExplorerNodes, ZopeLib.LoginDialog, ZopeEditorModels
 from ExternalLib import xmlrpclib, BasicAuthTransport
-from ZopeLib import ImageViewer, Client, ExtMethDlg
+from ZopeLib import Client, ExtMethDlg
 from Companions.ZopeCompanions import ZopeConnection, ZopeCompanion, FolderZC
 from Preferences import IS, wxFileDialog
 import Utils
@@ -29,9 +32,6 @@ import PaletteStore, HTMLResponse
 # XXX Problem with opening objects with '.' in their name !!
 # XXX root attribute is no longer really necessary
 
-ctrl_pnl = 'Control_Panel'
-prods = 'Products'
-acl_usr = 'acl_users'
 class ZopeEClip(ExplorerNodes.ExplorerClipboard):
     def __init__(self, globClip, props):
         ExplorerNodes.ExplorerClipboard.__init__(self, globClip)
@@ -78,7 +78,7 @@ class ZopeEClip(ExplorerNodes.ExplorerClipboard):
 ##                node.uploadFromFS(file, newNodepath)
 
     def clipPaste_FileSysExpClipboard(self, node, nodes, mode):
-        nodepath = node.resourcepath+'/'+node.name
+        #nodepath = node.resourcepath+'/'+node.name
         for file in nodes:
             if file.isDir():
                 node.newFolder(file.name)
@@ -307,6 +307,12 @@ class ZopeItemNode(ExplorerNodes.ExplorerNode):
             filenode.name) % props, props['username'], props['passwd'])
         r.put(filenode.load())
 
+    def downloadToFS(self, filename):
+        props = self.properties
+        from ExternalLib.WebDAV.client import Resource
+        r = Resource(('http://%(host)s:%(httpport)s/'+self.resourcepath) % props, 
+            props['username'], props['passwd'])
+        open(filename, 'w').write(r.get().body)
 
 ##class ZopeConnectionNode(ZopeItemNode):
 ##    protocol = 'zope'
@@ -351,11 +357,10 @@ class ZopeItemNode(ExplorerNodes.ExplorerNode):
 ##            self.zopeConn.disconnect()
 ##        self.connected = false
 
-(wxID_ZOPEUP, wxID_ZOPECUT, wxID_ZOPECOPY, wxID_ZOPEPASTE, wxID_ZOPEDELETE,
- wxID_ZOPERENAME, wxID_ZOPEEXPORT, wxID_ZOPEIMPORT, wxID_ZOPEINSPECT,
- wxID_ZOPEUPLOAD, wxID_ZOPESECURITY, wxID_ZOPEUNDO,
+(wxID_ZOPEEXPORT, wxID_ZOPEIMPORT, wxID_ZOPEINSPECT,
+ wxID_ZOPEUPLOAD, wxID_ZOPESECURITY, wxID_ZOPEUNDO, wxID_ZOPEVIEWBROWSER,
  wxID_ZCCSTART, wxID_ZCCRESTART, wxID_ZCCSHUTDOWN, wxID_ZCCTEST,
-) = map(lambda x: wxNewId(), range(16))
+) = map(lambda x: wxNewId(), range(11))
 
 class ZopeCatController(ExplorerNodes.CategoryController):
     protocol = 'config.zope'
@@ -464,9 +469,11 @@ class ZopeController(ExplorerNodes.Controller, ExplorerNodes.ClipboardController
             (wxID_ZOPEUPLOAD, 'Upload', self.OnUploadZopeItem, self.uploadBmp),
             (wxID_ZOPEEXPORT, 'Export', self.OnExportZopeItem, self.exportBmp),
             (wxID_ZOPEIMPORT, 'Import', self.OnImportZopeItem, self.importBmp),
-            (-1, '-', None, ''),
+            (-1, '-', None, '-'),
             (wxID_ZOPESECURITY, 'Security', self.OnSecurityZopeItem, '-'),
             (wxID_ZOPEUNDO,     'Undo',     self.OnUndoZopeItem, '-'),
+            (-1, '-', None, '-'),
+            (wxID_ZOPEVIEWBROWSER,'View in browser', self.OnViewInBrowser, '-'),
           )
 
         self.setupMenu(self.menu, self.list, self.zopeMenuDef)
@@ -591,6 +598,16 @@ class ZopeController(ExplorerNodes.Controller, ExplorerNodes.ClipboardController
                     resultView = model.views[viewName]
                 resultView.refresh()
                 resultView.focus()
+
+    def OnViewInBrowser(self, event):
+        if self.list.node:
+            zopeItem = self.list.getSelection()
+            try:
+                import webbrowser
+                webbrowser.open('http://%s'%zopeItem.buildUrl())
+                #print zopeItem.resourcepath
+            except ImportError:
+                raise 'Python 2.0 or higher required'
 
 
 def getServer(url, user, password):
@@ -756,7 +773,6 @@ class ExtPythonNode(PythonNode):
         res = self.getResource(os.path.dirname(self.url)).ZOA('ExtMethod_Props', name)
         module = res['module']
 
-        from ZopeLib import ExtMethDlg
         emf = ExtMethDlg.ExternalMethodFinder(zopePath)
         extPath = emf.getExtPath(module)
 
