@@ -1,4 +1,4 @@
-## rc-version: 4 ##
+## rc-version: 5 ##
 # RCS-ID:      $Id$
 
 from wxPython.wx import *
@@ -16,7 +16,10 @@ keyDefs = {
   'DashLine'    : (wxACCEL_CTRL, ord('B'), 'Ctrl-B'),
   'MarkPlace'   : (wxACCEL_CTRL, ord('M'), 'Ctrl-M'),
   'CodeComplete': (wxACCEL_CTRL, WXK_SPACE, 'Ctrl-Space'),
-  'CallTips'    : (wxACCEL_SHIFT|wxACCEL_CTRL, WXK_SPACE, 'Ctrl-Shift-Space'),
+  'CallTips'    : (wxACCEL_SHIFT|wxACCEL_CTRL, WXK_SPACE, 'Ctrl-Shft-Space'),
+  'BrowseTo'    : (wxACCEL_CTRL, WXK_RETURN, 'Ctrl-Return'),
+  'BrowseFwd'   : (wxACCEL_SHIFT|wxACCEL_CTRL, ord('K'), 'Ctrl-K'),
+  'BrowseBack'  : (wxACCEL_SHIFT|wxACCEL_CTRL, ord('J'), 'Ctrl-J'),
 #-Modules-----------------------------------------------------------------------
   'RunApp'      : (wxACCEL_NORMAL, WXK_F9, 'F9'),
   'RunMod'      : (wxACCEL_NORMAL, WXK_F10, 'F10'),
@@ -54,10 +57,10 @@ keyDefs = {
   'MoveRight'   : (wxACCEL_CTRL, WXK_RIGHT, 'Ctrl-Right'),
   'MoveUp'      : (wxACCEL_CTRL, WXK_UP, 'Ctrl-Up'),
   'MoveDown'    : (wxACCEL_CTRL, WXK_DOWN, 'Ctrl-Down'),
-  'WidthDec'    : (wxACCEL_SHIFT, WXK_LEFT, 'Shift-Left'),
-  'WidthInc'    : (wxACCEL_SHIFT, WXK_RIGHT, 'Shift-Right'),
-  'HeightInc'   : (wxACCEL_SHIFT, WXK_DOWN, 'Shift-Down'),
-  'HeightDec'   : (wxACCEL_SHIFT, WXK_UP, 'Shift-Up'),
+  'WidthDec'    : (wxACCEL_SHIFT, WXK_LEFT, 'Shft-Left'),
+  'WidthInc'    : (wxACCEL_SHIFT, WXK_RIGHT, 'Shft-Right'),
+  'HeightInc'   : (wxACCEL_SHIFT, WXK_DOWN, 'Shft-Down'),
+  'HeightDec'   : (wxACCEL_SHIFT, WXK_UP, 'Shft-Up'),
   'SelectLeft'  : (wxACCEL_NORMAL, WXK_LEFT, 'Left'),
   'SelectRight' : (wxACCEL_NORMAL, WXK_RIGHT, 'Right'),
   'SelectDown'  : (wxACCEL_NORMAL, WXK_DOWN, 'Down'),
@@ -67,12 +70,8 @@ keyDefs = {
   'HistoryDown' : (wxACCEL_CTRL, WXK_DOWN, 'Ctrl-Down'),
 }
 
-# Delphi's indent
-##  'Indent'      : (wxACCEL_SHIFT|wxACCEL_CTRL, ord('I'), 'Ctrl-Shift-I'),
-##  'Dedent'      : (wxACCEL_SHIFT|wxACCEL_CTRL, ord('U'), 'Ctrl-Shift-U'),
-# VS's indent
-##  'Indent'      : (wxACCEL_NORMAL, WXK_TAB, 'Tab'),
-##  'Dedent'      : (wxACCEL_SHIFT, WXK_TAB, 'Shift-Tab'),
+##  'NextView'    : (wxACCEL_SHIFT|wxACCEL_CTRL, ord('T'), 'Ctrl-Shft-T'),
+##  'PrevView'    : (wxACCEL_SHIFT|wxACCEL_CTRL, ord('R'), 'Ctrl-Shft-R'),
 
 if wxPlatform == '__WXMSW__':
     keyDefs.update({'SaveAs'      : (wxACCEL_ALT, ord('S'), 'Alt-S'),
@@ -90,9 +89,9 @@ elif wxPlatform == '__WXGTK__':
                   })
 
 # Not used yet, defined for completeness
-stcDefs = {'Cut'        : 'Shift-Del',
+stcDefs = {'Cut'        : 'Shft-Del',
            'Copy'       : 'Ctrl-Ins',
-           'Paste'      : 'Shift-Ins',
+           'Paste'      : 'Shft-Ins',
            'SelectAll'  : 'Ctrl-A',
            'Undo'       : 'Ctrl-Z',
            'Redo'       : 'Ctrl-Y',
