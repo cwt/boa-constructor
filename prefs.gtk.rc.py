@@ -1,48 +1,112 @@
-## rc-version: 1 ##
+## rc-version: 3 ##
 # RCS-ID:      $Id$
+
+
+
+
+# Style of the Error/Output window's notebook. GTK is text only
+eoErrOutNotebookStyle = 'text'
+
+#-Editor------------------------------------------------------------------------
+# Should there be submenu with all the items from the New palete under the
+# Editor's File menu. Causes warnings under wxGTK.
+edShowFileNewMenu = false
+
+# Should a custom wxSTC paint handler he installed which minimizes refresing?
+edUseCustomSTCPaintEvtHandler = true
+# There is a problem with folding on GTK
+edSTCFolding = false
 
 #-Window settings---------------------------------------------------------------
 
 # Height of the Palette window. Adjust if you use big fonts
 paletteHeights = {'tabs': 100, 'menu': 56}
 
+# The amount of space Boa should leave on the right for a vertical OS Taskbar.
+verticalTaskbarWidth = 0
+# The amount of space Boa should leave from the bottom for a horizontal OS Taskbar.
+horizontalTaskbarHeight = 100
+# Percentage of the with that the Editor window should occupy
+editorScreenWidthPerc = 3.0/4.0
+
 # Window manager dependent values useful for mostly for GTK
 windowManagerTop = 16
 windowManagerBottom = 7
 windowManagerSide = 5
 
-# Try to use transparent bitmaps for palette
-transparentPaletteBitmaps = 0
-
-# Match braces in code
-braceHighLight = 0
-
-# Minimize the IDE while running applications
-minimizeOnRun = 0
-
 # Font size of the text in the Inspector's statusbar
 inspStatBarFontSize = 13
+
+# Match braces in code
+braceHighLight = false
+
+# Minimize the IDE while running applications
+minimizeOnRun = false
 
 explorerFileSysRootDefault = ('/', '/')
 
 #-Designer----------------------------------------------------------------------
 
 # Draw grid in designer
-drawDesignerGrid = 0
+drawDesignerGrid = false
 # Also draw grid for child container controls in the frame
-drawDesignerGridForSubWindows = 1
+drawDesignerGridForSubWindows = false
 # Grid draw method: 'lines', 'dots', 'grid', NYI: 'bitmap'
 ## options: 'lines', 'dots', 'grid'
 drawGridMethod = 'grid'
 
 # Grayout (blueout actually) source while designer is open
-grayoutSource = 0
+grayoutSource = false
 
-# Scintilla/wxStyledTextCtrl font definitions
-faces = { 'times'  : 'Times', 'mono'   : 'Courier', 'helv'   : 'Helvetica', 'other'  : 'new century schoolbook', 'size'   : 9, 'lnsize' : 8, 'backcol': '#FFFFFF',}
+#-Code completion---------------------------------------------------------------
+
+# With these flags you can set which wxPython libraries are available to code completion.
+
+# Import wxPython.utils for Code Completion
+ccImportWxPyUtils = true
+# Import wxPython.html for Code Completion
+ccImportWxPyHtml = true
+# Import wxPython.htmlhelp for Code Completion
+ccImportWxPyHtmlHelp = true
+# Import wxPython.help for Code Completion
+ccImportWxPyHelp = true
+# Import wxPython.calendar for Code Completion
+ccImportWxPyCalendar = true
+# Import wxPython.grid for Code Completion
+ccImportWxPyGrid = true
+# Import wxPython.ogl for Code Completion
+ccImportWxPyOgl = true
+# Import wxPython.stc for Code Completion
+ccImportWxPyStc = true
+# Import wxPython.gizmos for Code Completion
+ccImportWxPyGizmos = true
+
+# With these filters the names available to code completion can be narrowed down further.
+
+# Filter out all wxPython names
+ccFilterWxAll = false
+# Filter out all classes ending in Ptr
+ccFilterWxPtrNames = true
+# Filters out integer constant values
+ccFilterWxConstants = true
+# Filter out functions
+ccFilterWxFunctions = false
+# Filter out classes
+ccFilterWxClasses = false
+# Filter out instances
+ccFilterWxInstances = false
 
 # Editable preferences
-exportedProperties2 = ['windowManagerTop', 'windowManagerBottom', 'windowManagerSide',
+exportedProperties2 = ['edShowFileNewMenu', 'edUseCustomSTCPaintEvtHandler',
+ 'edSTCFolding', 'verticalTaskbarWidth', 'horizontalTaskbarHeight',
+ 'editorScreenWidthPerc',
+ 'windowManagerTop', 'windowManagerBottom', 'windowManagerSide',
  'braceHighLight', 'minimizeOnRun', 'inspStatBarFontSize',
  'drawDesignerGrid', 'drawDesignerGridForSubWindows', 'drawGridMethod',
- 'grayoutSource']
+ 'grayoutSource',
+ 'ccImportWxPyUtils', 'ccImportWxPyHtml', 'ccImportWxPyHtmlHelp',
+ 'ccImportWxPyHelp', 'ccImportWxPyCalendar', 'ccImportWxPyGrid',
+ 'ccImportWxPyOgl', 'ccImportWxPyStc', 'ccImportWxPyGizmos',
+ 'ccFilterWxAll', 'ccFilterWxPtrNames', 'ccFilterWxConstants',
+ 'ccFilterWxFunctions', 'ccFilterWxClasses', 'ccFilterWxInstances',
+]

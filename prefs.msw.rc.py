@@ -1,10 +1,33 @@
-## rc-version: 1 ##
+## rc-version: 3 ##
 # RCS-ID:      $Id$
+
+#-Miscellaneous-----------------------------------------------------------------
+
+# Style of the Error/Output window's notebook.
+## options: 'text', 'full', 'side'
+eoErrOutNotebookStyle = 'full'
+
+#-Editor------------------------------------------------------------------------
+# Should there be submenu with all the items from the New palete under the
+# Editor's File menu.
+edShowFileNewMenu = true
+
+# Should a custom wxSTC paint handler he installed which minimizes refresing?
+edUseCustomSTCPaintEvtHandler = false
+# There is a problem with folding on GTK
+edSTCFolding = true
 
 #-Window settings---------------------------------------------------------------
 
 # Height of the Palette window. Adjust if you use big fonts
 paletteHeights = {'tabs': 118, 'menu': 72}
+
+# The amount of space Boa should leave on the right for a vertical OS Taskbar.
+verticalTaskbarWidth = 0
+# The amount of space Boa should leave from the bottom for a horizontal OS Taskbar.
+horizontalTaskbarHeight = 50
+# Percentage of the with that the Editor window should occupy
+editorScreenWidthPerc = 3.0/4.0
 
 # Window manager dependent values useful for mostly for GTK
 windowManagerTop = 0
@@ -13,9 +36,6 @@ windowManagerSide = 0
 
 # Font size of the text in the Inspector's statusbar
 inspStatBarFontSize = 9
-
-# Try to use transparent bitmaps for palette
-#transparentPaletteBitmaps = 1
 
 # Match braces in code
 braceHighLight = true
@@ -38,8 +58,55 @@ drawGridMethod = 'grid'
 # Grayout (blueout actually) source while designer is open
 grayoutSource = true
 
+#-Code completion---------------------------------------------------------------
+
+# With these flags you can set which wxPython libraries are available to code completion.
+
+# Import wxPython.utils for Code Completion
+ccImportWxPyUtils = true
+# Import wxPython.html for Code Completion
+ccImportWxPyHtml = true
+# Import wxPython.htmlhelp for Code Completion
+ccImportWxPyHtmlHelp = true
+# Import wxPython.help for Code Completion
+ccImportWxPyHelp = true
+# Import wxPython.calendar for Code Completion
+ccImportWxPyCalendar = true
+# Import wxPython.grid for Code Completion
+ccImportWxPyGrid = true
+# Import wxPython.ogl for Code Completion
+ccImportWxPyOgl = true
+# Import wxPython.stc for Code Completion
+ccImportWxPyStc = true
+# Import wxPython.gizmos for Code Completion
+ccImportWxPyGizmos = true
+
+# With these filters the names available to code completion can be narrowed down further.
+
+# Filter out all wxPython names
+ccFilterWxAll = false
+# Filter out all classes ending in Ptr
+ccFilterWxPtrNames = true
+# Filters out integer constant values
+ccFilterWxConstants = true
+# Filter out functions
+ccFilterWxFunctions = false
+# Filter out classes
+ccFilterWxClasses = false
+# Filter out instances
+ccFilterWxInstances = false
+
 # Editable preferences
-exportedProperties2 = ['windowManagerTop', 'windowManagerBottom', 'windowManagerSide',
+exportedProperties2 = ['eoErrOutNotebookStyle', 'edShowFileNewMenu',
+ 'edSTCFolding', 'verticalTaskbarWidth', 'horizontalTaskbarHeight',
+ 'editorScreenWidthPerc',
+ 'windowManagerTop', 'windowManagerBottom', 'windowManagerSide',
  'braceHighLight', 'minimizeOnRun', 'inspStatBarFontSize',
  'drawDesignerGrid', 'drawDesignerGridForSubWindows', 'drawGridMethod',
- 'grayoutSource']
+ 'grayoutSource',
+ 'ccImportWxPyUtils', 'ccImportWxPyHtml', 'ccImportWxPyHtmlHelp',
+ 'ccImportWxPyHelp', 'ccImportWxPyCalendar', 'ccImportWxPyGrid',
+ 'ccImportWxPyOgl', 'ccImportWxPyStc', 'ccImportWxPyGizmos',
+ 'ccFilterWxAll', 'ccFilterWxPtrNames', 'ccFilterWxConstants',
+ 'ccFilterWxFunctions', 'ccFilterWxClasses', 'ccFilterWxInstances',
+]
