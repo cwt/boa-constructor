@@ -15,21 +15,20 @@
 # XXX debugging, reload sometimes work
 # XXX Going to source code on an error
 
-
 from   wxPython.wx import *
 import wxPython
 import ShellEditor, Preferences
 import string, sys, os
 from os import path
 from repr import Repr
-import bdb, traceback, linecache, imp
+import bdb, traceback, linecache, imp, pprint
 import Utils
 from Preferences import pyPath, IS, flatTools
 from PhonyApp import wxPhonyApp
     
 wxID_STACKVIEW = NewId()
 class StackViewCtrl(wxListCtrl):
-    def __init__(self, parent, flist, browser):
+    def __init__(self, parent, flist, debugger):
         wxListCtrl.__init__(self, parent, wxID_STACKVIEW, style = wxLC_REPORT | wxLC_SINGLE_SEL )
         self.InsertColumn(0, 'Frame', wxLIST_FORMAT_LEFT, 150) 
         self.InsertColumn(1, 'Line', wxLIST_FORMAT_LEFT, 35)
@@ -39,7 +38,7 @@ class StackViewCtrl(wxListCtrl):
         EVT_LEFT_DCLICK(self, self.OnGotoSource) 
 
         self.flist = flist
-        self.browser = browser
+        self.debugger = debugger
         self.stack = []
         self.selection = -1
 
@@ -77,7 +76,7 @@ class StackViewCtrl(wxListCtrl):
         self.selection = event.m_itemIndex
 
         if 0 <= self.selection < len(self.stack):
-            self.browser.show_frame(self.stack[self.selection])
+            self.debugger.show_frame(self.stack[self.selection])
         
     def OnStackItemDeselected(self, event):
         self.selection = -1
@@ -94,9 +93,12 @@ class StackViewCtrl(wxListCtrl):
             filename = code.co_filename
             
             if filename[0] != '<' and filename[-1] != '>':
-                self.browser.model.editor.SetFocus()
-                self.browser.model.editor.openOrGotoModule(filename)
-                model = self.browser.model.editor.getActiveModulePage().model
+                filename = self.debugger.resolvePath(filename)
+                if not filename: return
+
+                self.debugger.model.editor.SetFocus()
+                self.debugger.model.editor.openOrGotoModule(filename)
+                model = self.debugger.model.editor.getActiveModulePage().model
                 model.views['Source'].focus()
                 model.views['Source'].SetFocus()
                 model.views['Source'].selectLine(lineno - 1)
@@ -221,8 +223,12 @@ class BreakViewCtrl(wxListCtrl):
     def OnGotoSource(self, event):
         if self.selection != -1:
             bp = self.bpList()[self.selection]
+
+            filename = self.debugger.resolvePath(bp.file)
+            if not filename: return
+
             self.debugger.model.editor.SetFocus()
-            self.debugger.model.editor.openOrGotoModule(bp.file)
+            self.debugger.model.editor.openOrGotoModule(filename)
             model = self.debugger.model.editor.getActiveModulePage().model
             model.views['Source'].focus()
             model.views['Source'].SetFocus()
@@ -541,7 +547,7 @@ class DebuggerFrame(wxFrame, bdb.Bdb):
         self.toolbar.AddSeparator()
         Utils.AddToolButtonBmpIS(self, self.toolbar, 
           'Images/Debug/SourceTrace-Off.bmp',  'Trace in source',
-          self.OnSourceTrace)
+          self.OnSourceTrace, '1')
 #          true, 'Images/Debug/SourceTrace-Off.bmp')
 
         
@@ -651,25 +657,25 @@ class DebuggerFrame(wxFrame, bdb.Bdb):
     def show_frame(self, (frame, lineno)):
         self.frame = frame
         self.show_variables()
-
+    
+    def getVarValue(self, name):    
+        if self.frame:
+            l, g = self.frame.f_locals, self.frame.f_globals
+            if l.has_key(name): d = l
+            elif g.has_key(name): d = g
+            else: return ''    
+#            return self.repr.repr(d[name])
+            return pprint.pformat(d[name])
+        else:
+            return ''
 
     def startMainLoop(self):
-        print 'before debugger startMainLoop'   
-#        raw_input()
         self.model.editor.app.MainLoop()
-        print 'after debugger startMainLoop'   
         self.mlc = self.mlc + 1
         
-        print 'start', self.mlc
-        
     def stopMainLoop(self):
-        print 'before debugger stopMainLoop'   
-#        raw_input()
         self.model.editor.app.ExitMainLoop()
-        print 'after debugger stopMainLoop'   
         self.mlc = self.mlc - 1
-
-        print 'stop', self.mlc
     
 #---------------------------------------------------------------------------
 
@@ -680,26 +686,32 @@ class DebuggerFrame(wxFrame, bdb.Bdb):
     def do_clear(self, arg):
         self.clear_bpbynumber(arg)
 
-    def debug_file(self, filename):
+    def debug_file(self, filename, params = None):
         filename = path.join(pyPath, filename)
         saveout = sys.stdout
         saveerr = sys.stderr
+        if params is None: params = []
 
         owin = self.outp
+        editor = self.model.editor
         tmpApp = wxPython.wx.wxApp
+        tmpArgs = sys.argv[:]
         wxPhonyApp.debugger = self
         wxPython.wx.wxApp = wxPhonyApp
         
-        print 'debug_file'
-        
-        modpth = os.path.dirname(filename)
-        sys.path.append(modpth)
+        self.modpath = os.path.dirname(filename)
+        sys.argv = [filename] + params
+        tmpPaths = sys.path[:]
+        sys.path.append(self.modpath)
+        sys.path.append(Preferences.pyPath)
+        cwd = path.abspath(os.getcwd())
+        os.chdir(path.dirname(filename))
         try:
             sys.stderr = ShellEditor.PseudoFileErrTC(owin)
             try:
                 sys.stdout = ShellEditor.PseudoFileOutTC(owin)
                 try:
-                    self.model.editor.app.saveStdio = sys.stdout, sys.stderr
+                    editor.app.saveStdio = sys.stdout, sys.stderr
                     
                     modname, ext = os.path.splitext(os.path.basename(filename))
                     if sys.modules.has_key(modname):
@@ -710,7 +722,6 @@ class DebuggerFrame(wxFrame, bdb.Bdb):
                         
                     mod.__file__ = filename
 
-                    print 'debug_file run'
                     self.run("execfile(%s)" % `filename`, mod.__dict__)
                 except:
                     (sys.last_type, sys.last_value,
@@ -722,11 +733,36 @@ class DebuggerFrame(wxFrame, bdb.Bdb):
                 sys.stdout = saveout
         finally:
             sys.stderr = saveerr
-            self.model.editor.app.saveStdio = sys.stdout, sys.stderr
+            editor.app.saveStdio = sys.stdout, sys.stderr
             wxPython.wx.wxApp = tmpApp
-            sys.path.remove(modpth)
+            sys.path = tmpPaths
+            sys.argv = tmpArgs
+            os.chdir(cwd)
 
-        print 'debug_file end'
+    def set_breakpoint_here(self, filename, lineno, tmp):
+        self.nbTop.SetSelection(1)
+        filename = self.canonic(filename)
+        brpt = self.set_break(filename, lineno, tmp)
+        self.breakpts.refreshList()
+        return brpt
+
+    def set_internal_breakpoint(self, filename, lineno, temporary=0, cond = None):
+        if not self.breaks.has_key(filename):
+                self.breaks[filename] = []
+        list = self.breaks[filename]
+        if not lineno in list:
+                list.append(lineno)
+    # A literal copy of Bdb.set_break() without the print statement at the end, 
+    # returning the breakpoint
+    def set_break(self, filename, lineno, temporary=0, cond = None):
+        import linecache # Import as late as possible
+        line = linecache.getline(filename, lineno)
+        if not line:
+                return 'That line does not exist!'
+        self.set_internal_breakpoint(filename, lineno, temporary, cond)
+        return bdb.Breakpoint(filename, lineno, temporary, cond)
+
+
 
     def run(self, *args):
 #        print args
@@ -798,14 +834,23 @@ class DebuggerFrame(wxFrame, bdb.Bdb):
         self.breakpts.refreshList()
         self.selectSourceLine()
 
-        print 'debugger interaction, before startMainLoop'
         self.startMainLoop()
-        print 'debugger interaction, after startMainLoop'
 
         self.sb.status.SetLabel('')
         self.sb.writeError('')
 
         self.frame = None
+    
+    def resolvePath(self, filename):
+        # Try to find file in Main module directory, Boa directory and Current directory
+        fn = os.path.normpath(os.path.join(self.modpath, filename))
+        if not os.path.exists(fn):
+            fn = os.path.join(Preferences.pyPath, filename)
+            if not os.path.exists(fn):
+                fn = os.path.abspath(filename)
+                if not os.path.exists(fn):
+                    return ''
+        return fn
 
     def selectSourceLine(self):
         if self.stackView.stack:
@@ -822,6 +867,9 @@ class DebuggerFrame(wxFrame, bdb.Bdb):
     #            funcname = code.co_name
             
             if filename[0] != '<' and filename[-1] != '>':
+                filename = self.resolvePath(filename)
+                if not filename: return
+                
                 self.model.editor.SetFocus()
                 self.model.editor.openOrGotoModule(filename)
                 model = self.model.editor.getActiveModulePage().model
@@ -832,7 +880,6 @@ class DebuggerFrame(wxFrame, bdb.Bdb):
         
 
     def OnDebug(self, event):
-        print 'Evt: Debug'
         if self.interacting:
             self.set_continue()
             self.stopMainLoop()
@@ -841,52 +888,23 @@ class DebuggerFrame(wxFrame, bdb.Bdb):
             self.stopMainLoop()
 
     def OnStep(self, event):
-        print 'Evt: Step'
         self.set_step()
         self.stopMainLoop()
 
     def OnOver(self, event):
-        print 'Evt: Over'
         self.stopMainLoop()
 
     def OnOut(self, event):
-        print 'Evt: Out'
         self.set_return(self.frame)
         self.stopMainLoop()
 
     def OnStop(self, event):
-        print 'Evt: Stop'
         wxPhonyApp.inMainLoop = false
         self.set_quit()
         self.model.editor.clearAllStepPoints()
         self.stackView.load_stack([])
         self.stopMainLoop()
     
-    def set_breakpoint_here(self, filename, lineno, tmp):
-        self.nbTop.SetSelection(1)
-        print filename
-        filename = self.canonic(filename)
-        print filename
-        brpt = self.set_break(filename, lineno, tmp)
-        self.breakpts.refreshList()
-        return brpt
-
-    def set_internal_breakpoint(self, filename, lineno, temporary=0, cond = None):
-        if not self.breaks.has_key(filename):
-                self.breaks[filename] = []
-        list = self.breaks[filename]
-        if not lineno in list:
-                list.append(lineno)
-    # A literal copy of Bdb.set_break() without the print statement at the end, 
-    # returning the breakpoint
-    def set_break(self, filename, lineno, temporary=0, cond = None):
-        import linecache # Import as late as possible
-        line = linecache.getline(filename, lineno)
-        if not line:
-                return 'That line does not exist!'
-        self.set_internal_breakpoint(filename, lineno, temporary, cond)
-        return bdb.Breakpoint(filename, lineno, temporary, cond)
-
     def OnSourceTrace(self, event):
         pass
 
