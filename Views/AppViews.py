@@ -103,11 +103,12 @@ class AppView(ListCtrlView):
 #           ('Imports...', self.OnImports, self.importsBmp, ())
            
         self.InsertColumn(0, 'Module', width = 150)
-        self.InsertColumn(1, 'Autocreate', wxLIST_FORMAT_CENTRE, 50)
-        self.InsertColumn(2, 'Description', width = 150)
-        self.InsertColumn(3, 'Path', width = 220)
+        self.InsertColumn(1, 'Type', width = 50)
+        self.InsertColumn(2, 'Autocreate', wxLIST_FORMAT_CENTRE, 50)
+        self.InsertColumn(3, 'Description', width = 150)
+        self.InsertColumn(4, 'Relative path', width = 220)
 
-        self.sortOnColumns = [0, 3]
+        self.sortOnColumns = [0, 1, 4]
         
         EVT_LIST_BEGIN_DRAG(self, self.GetId(), self.OnDrag)
 
@@ -122,26 +123,33 @@ class AppView(ListCtrlView):
         print 'drag', dir(event.__class__.__bases__[0])
 
     def refreshCtrl(self):
+        # XXX Add 'type' sortable column
         ListCtrlView.refreshCtrl(self)
         i = 0
         modSort = self.model.modules.keys()
         modSort.sort()
         for mod in modSort:
-            # XXX Determine if file exists and if so the model type
+            # XXX Show a broken icon as default
             imgIdx = -1
+            modTpe = 'Unknown'
             if self.model.moduleModels.has_key(mod):
                 imgIdx = self.model.moduleModels[mod].imgIdx
+                modTpe = self.model.moduleModels[mod].modelIdentifier
             else:
                 self.model.idModel(mod)
                 if self.model.moduleModels.has_key(mod):
                     imgIdx = self.model.moduleModels[mod].imgIdx
-
+                    modTpe = self.model.moduleModels[mod].modelIdentifier
+                    
+            appMod = self.model.modules[mod]
             self.InsertImageStringItem(i, mod, imgIdx)
-            self.SetStringItem(i, 1, `self.model.modules[mod][0]`)
-            self.SetStringItem(i, 2, self.model.modules[mod][1])
-            self.SetStringItem(i, 3, self.model.modules[mod][2])
+            self.SetStringItem(i, 1, modTpe)
+            self.SetStringItem(i, 2, `appMod[0]`)
+            self.SetStringItem(i, 3, appMod[1])
+            self.SetStringItem(i, 4, appMod[2])
             self.SetItemData(i, i)
             i = i + 1
+        
         self.pastelise()
 
     def OnOpen(self, event):
@@ -278,6 +286,7 @@ class AppModuleDocView(ModuleDocView):
             self.base_OnLinkClicked(linkinfo)
         else:
             mod = path.splitext(url)[0]
+#            print mod
             newMod = self.model.openModule(mod)
             newMod.views['Documentation'].focus()
 
