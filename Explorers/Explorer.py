@@ -18,7 +18,6 @@ import string, time
 import Preferences, Utils
 from Preferences import IS, wxFileDialog
 from types import StringType
-from ExternalLib.ConfigParser import ConfigParser
 import EditorModels
 
 import ExplorerNodes, FileExplorer, ZopeExplorer, CVSExplorer, SSHExplorer, ZipExplorer, FTPExplorer
@@ -32,25 +31,17 @@ class PackageFolderTree(wxTreeCtrl):
         EVT_TREE_ITEM_EXPANDED(self, wxID_PFT, self.OnOpened)
         EVT_TREE_ITEM_COLLAPSED(self, wxID_PFT, self.OnClose)
         self.SetImageList(images)
-        
-        conf = ConfigParser()
-        if wxPlatform == '__WXMSW__': plat = 'msw'
-        else: plat = 'gtk'
-        
+                
         self.globClip = ExplorerNodes.GlobalClipper()
         self.fsclip = FileExplorer.FileSysExpClipboard(self.globClip)
         self.sshClip = SSHExplorer.SSHExpClipboard(self.globClip)
         self.ftpClip = FTPExplorer.FTPExpClipboard(self.globClip)
         
-        confFile = Preferences.pyPath+'/Explorer.'+plat+'.cfg'
-        conf.read(confFile)
-        conf.confFile = confFile
-
+        conf = Utils.createAndReadConfig('Explorer')
         self.boaRoot = ExplorerNodes.RootNode('Boa Constructor')
         rootItem = self.AddRoot('', EditorModels.imgBoaLogo, -1, 
               wxTreeItemData(self.boaRoot))
         bookCatNode = ExplorerNodes.BookmarksCatNode(self.fsclip, conf, None)
-        
         
         self.boaRoot.entries = [FileExplorer.FileSysCatNode(self.fsclip, conf, None, bookCatNode), 
                                 bookCatNode,
@@ -141,7 +132,7 @@ class PackageFolderList(wxListCtrl):
                 
         self.selected = -1
         
-        self.list = []
+        self.items = None
     
     def selectItemNamed(self, name):
         for idx in range(self.GetItemCount()):
@@ -171,6 +162,8 @@ class PackageFolderList(wxListCtrl):
     def refreshItems(self, images, explNode):
         """ Display ExplorerNode items """
         self.selected = -1
+
+#        if explNode: explNode.destroy()
         
         self.node = explNode
         self.DeleteAllItems()
