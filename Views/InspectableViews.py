@@ -6,7 +6,7 @@
 #
 # Created:     2001
 # RCS-ID:      $Id$
-# Copyright:   (c) 2001
+# Copyright:   (c) 2001 Riaan Booysen
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 
@@ -62,6 +62,7 @@ class InspectableObjectView(EditorViews.EditorView):
         self.objects = {}
         self.objectOrder = []
         self.collEditors = {}
+        self.opened = false
 
     def destroy(self):
 #        print 'DESTROY InspectableObjectCollectionView', self.__class__.__name__
@@ -149,7 +150,13 @@ class InspectableObjectView(EditorViews.EditorView):
                 # Check for custom evaluator
                 elif comp.customPropEvaluators.has_key(prop.prop_name):
                     args = comp.customPropEvaluators[prop.prop_name](prop.params, self.getAllObjects())
-                    apply(getattr(ctrl, prop.prop_setter), args)
+                    # XXX This is a hack !!!
+                    # XXX argument list with more than on prop value are
+                    # XXX initialised thru the companion instead of the control
+                    if prop.prop_name in comp.initPropsThruCompanion:
+                        apply(getattr(comp, prop.prop_setter), (args,))
+                    else:
+                        apply(getattr(ctrl, prop.prop_setter), args)
                 # Normal property, eval value and apply it
                 else:
                     try:
@@ -391,7 +398,7 @@ class InspectableObjectView(EditorViews.EditorView):
                 module.addMethod(self.model.main,
                   self.collectionMethod, self.collectionParams, newBody, 0)
 
-        self.model.refreshFromModule()
+        #self.model.refreshFromModule()
 
     def copyCtrls(self, selCtrls, definedCtrls, output):
         """ Replace current source of method in collectionMethod with values from
