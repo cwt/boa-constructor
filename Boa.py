@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 #----------------------------------------------------------------------
 # Name:        Boa.py
 # Purpose:     The main file for Boa.
@@ -31,8 +32,11 @@ def get_current_frame():
     except:
         return sys.exc_info()[2].tb_frame
 
+startupErrors = []
+
 # Command line options
 doDebug = 0
+startupfile = ''
 startupModules = ()
 if len(sys.argv) > 1:
     import getopt
@@ -45,19 +49,15 @@ if len(sys.argv) > 1:
         trace_func(get_current_frame(), 'call', None)
         sys.setprofile(trace_func)
     elif ('-s', '') in optlist:
-        startupfile = os.environ.get('PYTHONSTARTUP')
-        try:
-            execfile(startupfile)
-        except Exception, error:
-            print 'Unable to load startup script', startupfile, ':', str(error)
-        else:
-            print 'Executed PYTHONSTARTUP'
+        pass
     elif len(args):
         # XXX Only the first file appears in the list when multiple files
         # XXX are drag/dropped on a Boa shortcut, why?
         startupModules = args
 
-startupErrors = []
+    if ('-s', '') in optlist:
+        startupfile = os.environ.get('BOASTARTUP') or \
+                      os.environ.get('PYTHONSTARTUP')
 
 # Custom installations
 
@@ -251,10 +251,9 @@ class BoaApp(wxApp):
             # can be sized.
             self.main.inspector.initSashes()
             self.main.editor.Show(true)
-            
-            # Hook for shell and scripts
-            sys.boa_ide = self.main.editor
 
+            # Call startup files after complete editor initialisation
+            self.main.editor.shell.execStartupScript(startupfile)            
         finally:
             abt.Destroy()
             del abt
