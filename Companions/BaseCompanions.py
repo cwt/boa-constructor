@@ -373,8 +373,9 @@ class DesignTimeCompanion(Companion):
 
     def addIds(self, lst):
         if self.id is not None:
+            # generate default win id for list when reserved one is used by control
             if self.id in EventCollections.reservedWxIds:
-                name, wId = self.newUnusedItemNames(0)
+                wId = Utils.windowIdentifier(self.designer.GetName(), self.name)
             else:
                 wId = self.id
             lst.append(wId)
