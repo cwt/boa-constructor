@@ -22,8 +22,8 @@ from wxPython.wx import wxNewId
  wxID_MODULECYCLOPSE, wxID_MODULEREINDENT
 ] = map(lambda _editor_module: wxNewId(), range(12))
 
-[wxID_APPCMPAPPS, wxID_APPCRASHLOG,
-]= map(lambda _editor_app: wxNewId(), range(2))
+[wxID_APPSAVEALL, wxID_APPCMPAPPS, wxID_APPCRASHLOG,
+]= map(lambda _editor_app: wxNewId(), range(3))
 
 # Indexes for the imagelist
 imgCounter=27
