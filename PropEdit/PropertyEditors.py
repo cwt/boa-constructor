@@ -24,7 +24,7 @@ print 'importing PropertyEditors'
 # XXX Is still too fuzzy
 
 from types import *
-import os
+import os, string
 
 from wxPython.wx import *
 #from wxPython.utils import *
@@ -805,12 +805,13 @@ class NameConstrPropEdit(StrConstrPropEdit):
                 value = self.getCtrlValue()
 
             if value != self.value:
-                if not value[1:-1]:
+                strVal = eval(value)
+                if not strVal:
                     message = 'Invalid name for Python object'
                     wxLogError(message)
                     return self.value
 
-                for c in value[1:-1]:
+                for c in strVal:
                     if c not in string.letters+string.digits+'_':#"\'':
                         message = 'Invalid name for Python object'
                         wxLogError(message)
