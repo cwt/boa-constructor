@@ -1,4 +1,9 @@
 
+'''
+Provides a breakpoint registry that can be sent to another process (via
+getBreakpointList()).
+'''
+
 import os
 from os.path import normcase
 
@@ -45,7 +50,7 @@ class FileBreakpointList:
         except:
             pass
 
-    def addBreakpoint(self, lineno, temp=0, cond=None):
+    def addBreakpoint(self, lineno, temp=0, cond=''):
         newbrk = {'temporary':temp, 'cond':cond, 'enabled':1}
         if self.lines.has_key(lineno):
             linebreaks = self.lines[lineno]
@@ -98,7 +103,7 @@ class BreakpointList:
     def __init__(self):
         self.files = {}  # filename -> FileBreakpointList
 
-    def addBreakpoint(self, filename, lineno, temp=0, cond=None):
+    def addBreakpoint(self, filename, lineno, temp=0, cond=''):
         filelist = self.getFileBreakpoints(filename)
         filelist.addBreakpoint(lineno, temp, cond)
 
@@ -145,5 +150,5 @@ class BreakpointList:
         return rval
 
 
-# ??? Should this be a global variable?
+# ??? Should this really be a global variable?
 bplist = BreakpointList()
