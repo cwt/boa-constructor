@@ -1,4 +1,3 @@
-import string
 def scramble(str):
     """ Directly but unrecognisably translated from CVS' scramble.c ;) """
     shifts = (0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15,
@@ -18,8 +17,7 @@ def scramble(str):
               182,128,158,208,162,132,167,209,149,241,153,251,237,236,171,195,
               243,233,253,240,194,250,191,155,142,137,245,235,163,242,178,152 )
 
-    return 'A'+string.join(map(lambda c,shifts=shifts: chr(shifts[ord(c)]), 
-                           list(str)), '')
+    return 'A'+''.join(map(lambda c,shifts=shifts: chr(shifts[ord(c)]), list(str)))
 
 if __name__ == '__main__':
     import sys
