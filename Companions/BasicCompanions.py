@@ -159,6 +159,7 @@ class RadioButtonDTC(LabeledInputConstr, WindowDTC):
         insp.pages.SetSelection(2)
         insp.events.doAddEvent('RadioButtonEvent', 'EVT_RADIOBUTTON')
 
+
 EventCategories['CheckBoxEvent'] = (EVT_CHECKBOX,)
 commandCategories.append('CheckBoxEvent')
 class CheckBoxDTC(LabeledInputConstr, WindowDTC):
@@ -298,8 +299,8 @@ PaletteStore.paletteLists['BasicControls'] = []
 PaletteStore.palette.append(['Basic Controls', 'Editor/Tabs/Basic', 
                              PaletteStore.paletteLists['BasicControls']])
 PaletteStore.paletteLists['BasicControls'].extend([wxStaticText, wxTextCtrl,
-      wxComboBox, wxChoice, wxCheckBox, wxRadioButton, wxSlider, wxGauge,
-      wxScrollBar, wxStaticBitmap, wxStaticLine, wxStaticBox, wxHtmlWindow])
+  wxComboBox, wxChoice, wxCheckBox, wxRadioButton, wxSlider, wxGauge, 
+  wxScrollBar, wxStaticBitmap, wxStaticLine, wxStaticBox, wxHtmlWindow])
 
 
 PaletteStore.compInfo.update({
