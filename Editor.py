@@ -27,6 +27,8 @@ print 'importing Editor'
 # XXX   wxStatusUpdateEvent
 # XXX   wxRunURIEvent (ModRunner.EVT_EXEC_FINISH)
 
+# XXX Add a wxPython Class Browser entry to Windows menu
+
 import os, sys, string, pprint
 import threading, Queue
 
@@ -122,7 +124,6 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
         self.debugger = None
         self.browser = Browse.Browser()
         self.controllers = {}
-        #self.zopeControllers = {}
         
         self.initImages()
 
@@ -369,21 +370,22 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
             self._prevMod = actMod
             
             ModClass = actMod.model.__class__
-            ctrlr = None
-            if Controllers.modelControllerReg.has_key(ModClass):
-                Controller = Controllers.modelControllerReg[ModClass]
-                if self.controllers.has_key(Controller):
-                    ctrlr = self.controllers[Controller]
-                elif self.controllers.has_key(ModClass):
-                    ctrlr = self.controllers[ModClass]
+            ctrlr = self.getControllerFromModel(actMod.model)
+##            ctrlr = None
+##            if Controllers.modelControllerReg.has_key(ModClass):
+##                Controller = Controllers.modelControllerReg[ModClass]
+##                if self.controllers.has_key(Controller):
+##                    ctrlr = self.controllers[Controller]
+##                elif self.controllers.has_key(ModClass):
+##                    ctrlr = self.controllers[ModClass]
 
-                if ctrlr:
-                    self.toolBar.AddSeparator()
-                    ctrlr.addTools(self.toolBar, actMod.model)
-                    ctrlr.addEvts()
-                    self._prevContrl = ctrlr
-                    accls = ctrlr.addMenus(fileMenu, actMod.model)
-                    accLst.extend(accls)
+            if ctrlr:
+                self.toolBar.AddSeparator()
+                ctrlr.addTools(self.toolBar, actMod.model)
+                ctrlr.addEvts()
+                self._prevContrl = ctrlr
+                accls = ctrlr.addMenus(fileMenu, actMod.model)
+                accLst.extend(accls)
 
             fileMenu.AppendSeparator()
             fileMenu.Append(EditorHelper.wxID_EDITOREXITBOA, 'Exit Boa Constructor', 'Exit Boa Constructor')
@@ -603,6 +605,16 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
                 apps.append(modPage.model)
         return apps
 
+    def getControllerFromModel(self, model):
+        ModClass = model.__class__
+        if Controllers.modelControllerReg.has_key(ModClass):
+            Controller = Controllers.modelControllerReg[ModClass]
+            if self.controllers.has_key(Controller):
+                return self.controllers[Controller]
+            elif self.controllers.has_key(ModClass):
+                return self.controllers[ModClass]
+        return None
+                    
     def openOrGotoModule(self, name, app=None, transport=None):
         """ Main entrypoint to open a file in the editor.
 
@@ -625,6 +637,7 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
         if self.modules.has_key(name):
             self.modules[name].focus()
             model = self.modules[name].model
+            controller = self.getControllerFromModel(model)
         else:
             # Check non case sensitive (fix for breakpoints)
             lst = self.modules.keys()
@@ -636,6 +649,7 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
             if assos.has_key(a_name):
                 self.modules[assos[a_name]].focus()
                 model = self.modules[assos[a_name]].model
+                controller = self.getControllerFromModel(model)
             else:
                 model, controller = self.openModule(name, app, transport)
 
