@@ -15,8 +15,9 @@ from wxPython import wx
 
 #---Paths-----------------------------------------------------------------------
 
-pyPath = sys.path[0]
-if not pyPath: pyPath = os.path.abspath('')
+##pyPath = sys.path[0]
+##if not pyPath: pyPath = os.path.abspath('')
+pyPath = sys.path[0] = os.path.abspath(sys.path[0])
 
 def toPyPath(filename):
     return os.path.join(pyPath, filename)
@@ -38,10 +39,10 @@ if '--OverridePrefsDirName' in sys.argv or '-O' in sys.argv:
         except IndexError: raise 'OverridePrefsDirName must specify a directory'
         print 'using preference directory name', prefsDirName
 
-# To prevent using the HOME env variable run different versions of Boa this flag forces Boa to user Preference
-# settings either in the Boa root or in a .boa dir in the Boa root
+# To prevent using the HOME env variable run different versions of Boa this flag 
+# forces Boa to use Preference settings either in the Boa root or in a .boa dir 
+# in the Boa root
 if '--BlockHomePrefs' in sys.argv or '-B' in sys.argv:
-    ##del os.environ['HOME']
     print 'ignoring $HOME (if set)'
     rcPath = os.path.join(pyPath, prefsDirName)
 else:
@@ -51,7 +52,7 @@ else:
         if not os.path.isdir(rcPath):
             try:
                 os.mkdir(rcPath)
-                print "Created directory: %s" % rcPath
+                print 'Created directory: %s' % rcPath
             except OSError:
                 # Protected
                 pass
