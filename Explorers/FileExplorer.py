@@ -32,7 +32,7 @@ class FileSysCatNode(ExplorerNodes.CategoryNode):
 
         if not self.entries and wxPlatform == '__WXMSW__':
             drives = {}
-            for x in range(67, 90):
+            for x in range(ord('C'), ord('Z')+1):
                 driveName = '%s:\\'%(chr(x))
                 if os.path.exists(driveName):
                     drives[driveName] = driveName
