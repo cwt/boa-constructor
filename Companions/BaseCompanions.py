@@ -659,8 +659,9 @@ class UtilityDTC(DesignTimeCompanion):
         for param in dts.keys():
             try:
                 dts[param] = PaletteMapping.evalCtrl(dts[param])
-            except:
-                print 'could not eval 2', dts[param]
+            except Exception, error:
+                print 'Could not eval utility object', dts[param], str(error)
+                raise
 
         return dts
 
@@ -955,7 +956,9 @@ class CollectionDTC(DesignTimeCompanion):
             try:
                 dtd[param] = PaletteMapping.evalCtrl(vals[param])
             except Exception, message:
-                print 'could not eval 3', param, vals[param], message
+                print 'Could not eval collection parameter: name: %s, value: %s'\
+                      '\nError: %s'%(param, vals[param], str(message))
+                raise
 
         return dtd
 
