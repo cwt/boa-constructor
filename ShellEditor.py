@@ -57,7 +57,7 @@ class ShellEditor(StyledTextCtrls.wxStyledTextCtrl,
 
         EVT_MENU(self, wxID_SHELL_HISTORYUP, self.OnHistoryUp)
         EVT_MENU(self, wxID_SHELL_HISTORYDOWN, self.OnHistoryDown)
-        EVT_MENU(self, wxID_SHELL_ENTER, self.OnShellEnter)
+        #EVT_MENU(self, wxID_SHELL_ENTER, self.OnShellEnter)
         EVT_MENU(self, wxID_SHELL_HOME, self.OnShellHome)
         EVT_MENU(self, wxID_SHELL_CODECOMP, self.OnShellCodeComplete)
         EVT_MENU(self, wxID_SHELL_CALLTIPS, self.OnShellCallTips)
@@ -146,6 +146,7 @@ class ShellEditor(StyledTextCtrls.wxStyledTextCtrl,
             self.ReplaceSelection((self.history+[''])[self.historyIndex])
 
     def pushLine(self, line, addText=''):
+        """ Interprets a line """
         self.AddText(addText+'\n')
         prompt = ''
         try:
@@ -214,6 +215,7 @@ class ShellEditor(StyledTextCtrls.wxStyledTextCtrl,
                 self.ReplaceSelection(string.rstrip(ct))
         finally:
             self.EndUndoAction()
+            #event.Skip()
 
     def getCodeCompOptions(self, word, rootWord, matchWord, lnNo):
         if not rootWord:
@@ -253,8 +255,8 @@ class ShellEditor(StyledTextCtrls.wxStyledTextCtrl,
             self.SetAnchor(lnStPs)
 
     def OnKeyDown(self, event):
-        if Preferences.handleSpecialEuropeanKeys:
-            self.handleSpecialEuropeanKeys(event, Preferences.euroKeysCountry)
+        #if Preferences.handleSpecialEuropeanKeys:
+        #    self.handleSpecialEuropeanKeys(event, Preferences.euroKeysCountry)
 
         kk = event.KeyCode()
         if kk == 13 and not (event.ShiftDown() or event.HasModifiers()):
@@ -276,11 +278,12 @@ class ShellEditor(StyledTextCtrls.wxStyledTextCtrl,
 
 def recdir(obj):
     res = dir(obj)
-    if hasattr(obj, '__class__') and type(obj) != types.ModuleType:
-        res.extend(recdir(obj.__class__))
-    if hasattr(obj, '__bases__'):
-        for base in obj.__bases__:
-            res.extend(recdir(base))
+    if hasattr(obj, '__class__') and obj != obj.__class__:
+        if hasattr(obj, '__class__') and type(obj) != types.ModuleType:
+            res.extend(recdir(obj.__class__))
+        if hasattr(obj, '__bases__'):
+            for base in obj.__bases__:
+                res.extend(recdir(base))
 
     unq = {}
     for name in res: unq[name] = None
