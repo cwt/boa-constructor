@@ -39,33 +39,53 @@ class FileSysCatNode(ExplorerNodes.CategoryNode):
 
         
 (wxID_FSOPEN, wxID_FSTEST, wxID_FSNEW, wxID_FSNEWFOLDER, wxID_FSCVS,
- wxID_FSBOOKMARK ) \
- = map(lambda x: wxNewId(), range(6))
+ wxID_FSBOOKMARK, wxID_FSFILTERBOAMODULES, wxID_FSFILTERALLMODULES, 
+ wxID_FSFILTER, wxID_FSFILTERINTMODULES 
+) = map(lambda x: wxNewId(), range(10))
 
 class FileSysController(ExplorerNodes.Controller, ExplorerNodes.ClipboardControllerMix):
-    def __init__(self, list, cvsController = None):
+    bookmarkBmp = 'Images/Shared/Bookmark.bmp'
+    def __init__(self, editor, list, cvsController = None):
+        ExplorerNodes.Controller.__init__(self, editor)
         ExplorerNodes.ClipboardControllerMix.__init__(self)
 
         self.list = list
         self.cvsController = cvsController
         self.menu = wxMenu()
-
-        self.setupMenu(self.menu, self.list, (\
-              (wxID_FSOPEN, 'Open', self.OnOpenFSItems),
+        
+        self.fileMenuDef = (
+              (wxID_FSOPEN, 'Open', self.OnOpenFSItems, '-'),
 #              (wxID_FSTEST, 'Test', self.OnTest),
-              (-1, '-', None) ) +
-              self.clipMenuDef +
-            ( (-1, '-', None),
-              (wxID_FSBOOKMARK, 'Bookmark', self.OnBookmarkFSItem),
-        ))
+              (-1, '-', None, '') ) +\
+              self.clipMenuDef +\
+            ( (-1, '-', None, ''),
+              (wxID_FSBOOKMARK, 'Bookmark', self.OnBookmarkFSItem, self.bookmarkBmp),
+        )        
+        self.setupMenu(self.menu, self.list, self.fileMenuDef)
+
+        self.fileFilterMenuDef = (
+              (wxID_FSFILTERBOAMODULES, '+Boa files', self.OnFilterFSItemBoa, '-'),
+              (wxID_FSFILTERINTMODULES, '+Internal files', self.OnFilterFSItemInt, '-'),
+              (wxID_FSFILTERALLMODULES, '+All files', self.OnFilterFSItemAll, '-'),
+        )
+        self.fileFilterMenu = wxMenu()
+        self.setupMenu(self.fileFilterMenu, self.list, self.fileFilterMenuDef)
+
+        # Check default option
+        self.fileFilterMenu.Check(wxID_FSFILTERBOAMODULES, true)
+
+        self.menu.AppendMenu(wxID_FSFILTER, 'Filter', self.fileFilterMenu)
+        
         self.newMenu = wxMenu()
-        self.setupMenu(self.newMenu, self.list, (\
-              (wxID_FSNEWFOLDER, 'Folder', self.OnNewFolderFSItems),
+        self.setupMenu(self.newMenu, self.list, (
+              (wxID_FSNEWFOLDER, 'Folder', self.OnNewFolderFSItems, '-'),
         ))
         self.menu.AppendMenu(wxID_FSNEW, 'New', self.newMenu)
 
         if cvsController:
             self.menu.AppendMenu(wxID_FSCVS, 'CVS', cvsController.fileCVSMenu)
+
+        self.toolbarMenus = [self.fileMenuDef]
         
     def OnOpenFSItems(self, event): pass
 
@@ -77,18 +97,34 @@ class FileSysController(ExplorerNodes.Controller, ExplorerNodes.ClipboardControl
             self.list.EditLabel(self.list.selected)
     
     def OnBookmarkFSItem(self, event):
-        print 'OnBookmarkFSItem'
         if self.list.node:
             nodes = self.getNodesForSelection(self.list.getMultiSelection())
             for node in nodes:
                 if node.isFolderish():
                     print node.resourcepath
                     node.bookmarks.add(node.resourcepath)
-            
 
     def OnTest(self, event):
         print self.list.node.clipboard.globClip.currentClipboard                
 
+    def OnFilterFSItemBoa(self, event):
+        self.groupCheckMenu(self.fileFilterMenu, self.fileFilterMenuDef, 
+              wxID_FSFILTERBOAMODULES, true)
+        self.list.node.setFilter('BoaFiles')
+        self.list.refreshCurrent()
+
+    def OnFilterFSItemAll(self, event):
+        self.groupCheckMenu(self.fileFilterMenu, self.fileFilterMenuDef, 
+              wxID_FSFILTERALLMODULES, true)
+        self.list.node.setFilter('AllFiles')
+        self.list.refreshCurrent()
+
+    def OnFilterFSItemInt(self, event):
+        self.groupCheckMenu(self.fileFilterMenu, self.fileFilterMenuDef, 
+              wxID_FSFILTERINTMODULES, true)
+        self.list.node.setFilter('BoaInternalFiles')
+        self.list.refreshCurrent()
+        
 class FileSysExpClipboard(ExplorerNodes.ExplorerClipboard):
     def clipPaste_FileSysExpClipboard(self, node, nodes, mode): 
         for clipnode in nodes:
@@ -118,6 +154,7 @@ class FileSysExpClipboard(ExplorerNodes.ExplorerClipboard):
 
 class PyFileNode(ExplorerNodes.ExplorerNode):
     protocol = 'file'
+    filter = 'BoaFiles'
     def __init__(self, name, resourcepath, clipboard, imgIdx, parent, bookmarks, properties = {}):
         ExplorerNodes.ExplorerNode.__init__(self, name, resourcepath, clipboard, imgIdx, 
               parent, properties or {})
@@ -128,8 +165,11 @@ class PyFileNode(ExplorerNodes.ExplorerNode):
         self.doZip = true
         self.entries = []
 
+    def isDir(self):
+        return os.path.isdir(self.resourcepath)
+        
     def isFolderish(self): 
-        return os.path.isdir(self.resourcepath) or ZipExplorer.isZip(self.resourcepath)
+        return self.isDir() or ZipExplorer.isZip(self.resourcepath)
     
     def createParentNode(self):
         parent = os.path.abspath(os.path.join(self.resourcepath, '..'))
@@ -158,6 +198,9 @@ class PyFileNode(ExplorerNodes.ExplorerNode):
             else:
                 return 'fol', PyFileNode(file, filename, self.clipboard,
                       EditorModels.FolderModel.imgIdx, self, self.bookmarks)
+        elif self.filter == 'AllFiles':
+            return 'mod', PyFileNode(file, filename, self.clipboard,
+              EditorModels.UnknownFileModel.imgIdx, self, self.bookmarks)
         else:
             return '', None
 
@@ -198,7 +241,7 @@ class PyFileNode(ExplorerNodes.ExplorerNode):
 
     def copyFileFrom(self, node):
         import shutil
-        if not node.isFolderish():
+        if not node.isDir():
             shutil.copy(node.resourcepath, self.resourcepath)
         else:
             shutil.copytree(node.resourcepath, os.path.join(self.resourcepath, node.name))
@@ -216,6 +259,11 @@ class PyFileNode(ExplorerNodes.ExplorerNode):
         else:
             import shutil
             shutil.rmtree(node.resourcepath)
+        
+    def setFilter(self, filter):
+        self.__class__.filter = filter
+        
+            
             
 class NonCheckPyFolderNode(PyFileNode):
     def isFolderish(self): 
