@@ -212,54 +212,26 @@ class AppView(ListCtrlView):
                   self.model.modules[mod][2])
             except: pass
 
+    def addFindResults(self, pattern, mapResults):
+        """ mapResult is map of tuples where
+            Key - 'Module', file name
+            Value - ('Line no', 'Col', 'Text')
+        """
+        from FindResults import FindResults
+        name = 'Results: ' + pattern
+        if not self.model.views.has_key(name):
+            resultView = self.model.editor.addNewView(name, FindResults)
+        else:
+            resultView = self.model.views[name]
+        resultView.tabName = name
+        resultView.results = mapResults
+        resultView.findPattern = pattern
+        resultView.refresh()
+        resultView.focus()
+
     def OnFind(self, event):
         import FindReplaceDlg
         FindReplaceDlg.find(self, self.model.editor.finder, self)
-
-##        dlg = FindReplaceDlg(self, self.model.editor.finder, self)
-##        dlg.ShowModal()
-##        dlg.Destroy()
-
-##    def OnFind(self, event):
-##        dlg = wxTextEntryDialog(self.model.editor, 'Enter text:', 'Find in application', self.lastSearchPattern)
-##        try:
-##            te = Utils.getCtrlsFromDialog(dlg, 'wxTextCtrlPtr')[0]
-##            te.SetSelection(0, len(self.lastSearchPattern))
-##            if dlg.ShowModal() == wxID_OK:
-##                self.lastSearchPattern = dlg.GetValue()
-##                modules = self.model.modules.keys()
-##                modules.sort()
-##                applicationResults = {}
-##                for mod in modules:
-##                    filename = self.model.moduleFilename(mod)
-##                    if self.model.editor.modules.has_key(filename):
-##                        results = Search.findInText(string.split(\
-##                          self.model.editor.modules[filename].model.data, '\n'),
-##                          self.lastSearchPattern, false, true)
-##                    else:
-##                        prot, file = self.model.splitProtFile(filename)
-##                        if prot != 'file':
-##                            wxLogWarning('%s is on a remote transport, not searched'%filename)
-##                            results = []
-##                        else:
-##                            results = Search.findInFile(file,
-##                                  self.lastSearchPattern, false, true)
-##                    applicationResults[mod] = results
-##
-##                resName = 'Results: '+dlg.GetValue()
-##                if not self.model.views.has_key(resName):
-##                    resultView = self.model.editor.addNewView(resName, AppFindResults)
-##                    resultView.rerun = self.OnFind
-##                else:
-##                    resultView = self.model.views[resName]
-##                resultView.tabName = resName
-##                resultView.results = applicationResults
-##                resultView.findPattern = self.lastSearchPattern
-##                resultView.refresh()
-##                resultView.focus()
-##
-##        finally:
-##            dlg.Destroy()
 
     def OnMakeMain(self, event):
         if self.selected >= 0:
