@@ -16,9 +16,10 @@ from os import path
 import sender
 import EditorViews, PaletteMapping, Preferences, Utils, Help
 from SelectionTags import SingleSelectionGroup, MultiSelectionGroup, granularise
-from EditorModels import init_ctrls, init_utils, ObjectCollection
+from EditorModels import init_ctrls, init_utils, ObjectCollection, isInitCollMeth, getCollName
 import CtrlAlign, CtrlSize
 import RTTI, PrefsKeys, pprint
+import methodparse
 
 bodyIndent = ' '*8
 
@@ -91,22 +92,6 @@ class InspectableObjectCollectionView(EditorViews.EditorView):
                 parRef[ctrl] = parRef[ce[2]][ctrl]
 
         return  parRel, parRef
-
-##    def organiseCollection(self): # deprc
-##        """ Restructures an ObjectCollection into propery and event dicts       
-##            keyed on the control name.                                       """
-##
-##        props = {}
-##        events = {}
-##        objColl = ObjectCollection()
-##        if self.model.objectCollections.has_key(self.collectionMethod):
-##            objColl = self.model.objectCollections[self.collectionMethod]
-##            objColl.indexOnCtrlName()
-##            
-##            props = objColl.propertiesByName
-##            events = objColl.eventsByName
-##    
-##        return objColl, props, events
         
     def initObjectsAndCompanions(self, creators, objColl, dependents, depLinks):
         collDeps = {}
@@ -148,8 +133,8 @@ class InspectableObjectCollectionView(EditorViews.EditorView):
                     self.addDepLink(prop, name, dependents, depLinks)
                 # Collection initialisers
                 elif prop.params[0][:11] == 'self._init_':
-                    from methodparse import CollectionInitParse
-                    collItem = CollectionInitParse(prop.params[0])
+#                    from methodparse import CollectionInitParse
+                    collItem = methodparse.CollectionInitParse(prop.params[0])
                     self.addCollView(name, collItem.method, false)
                 # Normal property, eval value and apply it
                 else:                     
@@ -192,7 +177,7 @@ class InspectableObjectCollectionView(EditorViews.EditorView):
         import CollectionEdit
         
         comp, ctrl = self.objects[name][:2]
-        collName = collInitMethod[len('_init_coll_'+name)+1:]
+        collName = getCollName(collInitMethod, name)
         collCompClass = comp.subCompanions[collName]
         # decl collComp -> CollectionDTC
         collComp = collCompClass(name, self, comp, ctrl)
@@ -339,9 +324,16 @@ class InspectableObjectCollectionView(EditorViews.EditorView):
 
 #        for collView in self.collEditors.values():
 #            collView.saveCtrls()
-        
-        # XXX Move toolbar up to the 1st position after the frame
+        collMeths = []
+        for compName, collProp in self.collEditors.keys():
+            if compName in ctrlsAndContainedCtrls:
+                collView = self.collEditors[(compName, collProp)]
+                collMeth = []
+                collView.copyCtrls(collMeth)
+                collMeths.append(collMeth)
+#                ctrlsAndContainedCtrls.remove(compName)
 
+        output.insert(0, '    def %s(%s):'% (self.collectionMethod, self.collectionParams))
         for ctrlName in ctrlsAndContainedCtrls:
             definedCtrls.append(ctrlName)
             compn = self.objects[ctrlName][0]
@@ -357,6 +349,10 @@ class InspectableObjectCollectionView(EditorViews.EditorView):
 
         if collDeps:
             output.extend(collDeps + [''])
+        
+        collMeths.reverse()
+        for methBody in collMeths:
+            output[0:0] = methBody + ['']
 
     def cutCtrls(self, selCtrls, definedCtrls, output):
         # Copy to output
@@ -368,15 +364,46 @@ class InspectableObjectCollectionView(EditorViews.EditorView):
             self.deleteCtrl(ctrl)
         
     def pasteCtrls(self, destCtrlName, input):
+        # Split up into methods
+        methList = []
+        for line in input:
+            if line[:8] == '    def ':
+                meth = line[8:string.find(line, '(', 9)]
+                currMeth = [meth]
+                methList.append(currMeth)
+            else:
+                currMeth.append(line)
+        
+        print methList
+
+        collObjColls = []
+        pastedCtrls = []            
+        # find main method
+        idx = -1
+        for meth in methList[:]:
+            idx = idx + 1
+            if meth[0] == self.collectionMethod:
+                collMethod = meth[0]
+                methBody = meth[1:]
+#                del methList[idx]
+#                break
+            else:
+                # XXX not good :(
+                print 'coll init meth', meth[0]
+                ctrlName = string.join(string.split(meth[0], '_')[3:-1], '_')
+                newObjColl = self.model.readDesignerMethod(meth[0], meth[1:])
+                methodparse.decorateCollItemInitsWithCtrl(newObjColl.creators, ctrlName)
+                collObjColls.append( (meth[0], ctrlName, newObjColl) )
+
         # Parse input source
-        objCol = self.model.readDesignerMethod(self.collectionMethod, input)
+        objCol = self.model.readDesignerMethod(collMethod, methBody)
         
         if not len(objCol.creators):
             print 'Empty clipboard'
-            return
+            return []
+            #return 0
 
         # Rename possible name clashes
-        pastedCtrls = []            
         objCol.indexOnCtrlName()
         pns = objCol.getCtrlNames()
         for name, clss in pns:
@@ -384,13 +411,26 @@ class InspectableObjectCollectionView(EditorViews.EditorView):
                 newName = self.newObjName(clss)
                 objCol.renameCtrl(name, newName)
                 pastedCtrls.append(newName)
+                for idx in range(len(collObjColls)):
+                    meth, collCtrlName, collObjColl = collObjColls[idx]
+                    if collCtrlName == name:
+                        print 'renaming Coll Obj Coll'
+                        itms = string.split(meth, '_')
+                        itms[3:-1] = [newName]
+                        collObjColl.renameCtrl(name, newName)
+                        collObjColls[idx] = (string.join(itms, '_'), newName, collObjColl)
             else:
                 pastedCtrls.append(name)
+
+        # Update model's object collections
+        print 'Update models object collections'
+        for meth, collCtrlName, collObjColl in collObjColls:
+            print meth, collCtrlName
+            self.model.objectCollections[meth] = collObjColl
 
         # Get previous parent, 1st item in the group's parent will always be
         # the root parent
         copySource = objCol.creators[0].params['parent']
-
         objCol.reparent(copySource, Utils.srcRefFromCtrlName(destCtrlName))
 
         # create controls
@@ -401,7 +441,7 @@ class InspectableObjectCollectionView(EditorViews.EditorView):
             self.initObjectsAndCompanions(objCol.creators, objCol, deps, depLnks)
         finally:
             self.inspector.vetoSelect = false
-
+    
         return pastedCtrls
         
     def addObject(self, ctrlName, companion, designTimeCtrl, parentName = None):
@@ -642,7 +682,7 @@ class DesignerView(wxFrame, InspectableObjectCollectionView):
         self.menu.Append(wxID_EDITALIGN, 'Align...')
         self.menu.Append(wxID_EDITSIZE, 'Size...')
 
- 	EVT_CLOSE(self, self.OnCloseWindow)
+        EVT_CLOSE(self, self.OnCloseWindow)
         EVT_MENU(self, wxID_EDITDELETE, self.OnControlDelete)
         EVT_MENU(self, wxID_SHOWINSP, self.OnInspector)
         EVT_MENU(self, wxID_SHOWEDTR, self.OnEditor)
@@ -791,13 +831,13 @@ class DesignerView(wxFrame, InspectableObjectCollectionView):
         self.refreshContainment()
 
         return ctrlName
-	    
+
     def removeEvent(self, name):
         # XXX Remove event!
         self.inspector.eventUpdate(name, true)
            
     def CtrlAnchored(self, ctrl):
-	result = (ctrl == self)
+        result = (ctrl == self)
 
     def getObjectsOfClass(self, theClass):
         results = InspectableObjectCollectionView.getObjectsOfClass(self, theClass)
@@ -963,18 +1003,18 @@ class DesignerView(wxFrame, InspectableObjectCollectionView):
         return exp
 
     def OnMouseOver(self, event):
-    	if event.Dragging():
-     	    pos = event.GetPosition()
-     	    ctrl = self.senderMapper.getObject(event)
+        if event.Dragging():
+            pos = event.GetPosition()
+            ctrl = self.senderMapper.getObject(event)
 
-	    if self.selection: 
-	        self.selection.moving(ctrl, pos)
+            if self.selection: 
+                self.selection.moving(ctrl, pos)
             elif self.multiSelection:
                 for sel in self.multiSelection:
                     sel.moving(ctrl, pos, self.mainMultiDrag)
                     
-	event.Skip()
-	    	      	          
+        event.Skip()
+
     def OnControlSelect(self, event):
         """ Control is clicked. Either select it or add control from palette """
         
@@ -1122,15 +1162,15 @@ class DesignerView(wxFrame, InspectableObjectCollectionView):
                         s = self.GetClientSize()
                         ctrl.SetDimensions(0, 0, s.x, s.y)
                         
-	    if self.selection:
-     	        self.selection.sizeFromCtrl()
-    	        self.selection.setSelection()
-    	finally:
-    	    event.Skip()
-    	    self.Layout()
+            if self.selection:
+                self.selection.sizeFromCtrl()
+                self.selection.setSelection()
+        finally:
+            event.Skip()
+            self.Layout()
 
     def OnControlDClick(self, event):
-	pass
+        pass
 
     def OnFramePos(self, event):
         # Called when frame repositioned
@@ -1268,7 +1308,3 @@ class DesignerView(wxFrame, InspectableObjectCollectionView):
                 # XXX not selecting root component
                 self.selection.selectCtrl(self.objects[pasted[0]][1], 
                       self.objects[pasted[0]][0])        
-        
-        
-   
-   
