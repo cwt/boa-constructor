@@ -12,9 +12,13 @@
 from types import *
 from wxPython.wx import *
 
+def sort_proxy(self, other):
+    return self < other and -1 or self > other and 1 or 0
+    
 class PropertyWrapper:
     def __init__(self, name, rType, getter, setter):
-        """ Types: 'CtrlRoute', 'CompnRoute', 'EventRoute', 'NoneRoute', 'IndexRoute'
+        """ Types: 'CtrlRoute', 'CompnRoute', 'EventRoute', 'NoneRoute', 
+                   'IndexRoute', 'ZopeRoute'
         """
     
         self.name = name
@@ -26,6 +30,7 @@ class PropertyWrapper:
     
     def __cmp__(self, other):
         """ This is for sorting lists of PropertyWrappers """
+#        sort_proxy(self.name, other.name)
         if self.name < other.name:
             return -1
         if self.name > other.name:
@@ -51,6 +56,8 @@ class PropertyWrapper:
             return self.getter(params[0])
         elif self.routeType == 'IndexRoute' and self.compn and len(params):
             return self.getter(self.ctrl, params[0])
+        elif self.routeType == 'ZopeRoute':
+            return self.getter(self.name)
         else:
             return None
 
@@ -67,6 +74,8 @@ class PropertyWrapper:
             self.setter(self.ctrl, params[0], value)
         elif self.routeType == 'ReApplyRoute' and self.compn and len(params):
             apply(self.setter, [self.ctrl], params)
+        elif self.routeType == 'ZopeRoute':
+            return self.setter(self.name, value)
     
     def getSetterName(self):
         from types import FunctionType, MethodType
@@ -88,10 +97,9 @@ def getPropList(obj, cmp):
        the 'constructor' key
        Vetoes are dangerous methods that should not be inspected
        
-       Returns a structure that looks like this
-       
-       {'constructor': [ [name, (type, getter, setter)], ...],
-        'properties': [ [name, (type, getter, setter)], ...]}
+       Returns:
+       {'constructor': [ PropertyWrapper, ... ],
+        'properties': [ PropertyWrapper, ... ] }
             
     """
 
