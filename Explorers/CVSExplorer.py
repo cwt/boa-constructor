@@ -55,6 +55,9 @@ def cvsFileLocallyModified(filename, timestamp):
             filesegs, cvssegs = filets.split(), ismerge[1].split()
         else:
             filesegs, cvssegs = filets.split(), timestamp.split()
+        if cvssegs and cvssegs[0] == 'Initial' or len(cvssegs) < 3:
+            cvssegs.append('0')
+        # use day field of dates for comparison
         filesegs[2], cvssegs[2] = int(filesegs[2]), int(cvssegs[2])
 
     return (filesegs != cvssegs, conflict)
@@ -102,6 +105,7 @@ class CVSController(ExplorerNodes.Controller):
               (wxID_FSCVSCHECKOUT, 'Checkout', self.OnCheckoutCVSFSItems, '-'),
               (-1, '-', None, ''),
               (wxID_FSCVSLOGIN, 'Login', self.OnLoginCVS, '-'),
+              (wxID_FSCVSLOGIN, 'SF Login', self.OnSFLoginCVS, '-'),
               (wxID_FSCVSLOGOUT, 'Logout', self.OnLogoutCVS, '-'),
         ]
 
@@ -381,22 +385,24 @@ class CVSController(ExplorerNodes.Controller):
     def OnUnlockCVSItems(self, event):
         self.doCvsCmdOnSelection('admin', '-u[REV]')
 
-    def OnLoginCVS(self, event):
+    def OnLoginCVS(self, event, cvsroot=''):
         cvsDir = self.list.node.resourcepath
 
         # Login can be called from file system folders and cvs folders
         if isinstance(self.list.node, FSCVSFolderNode):
             cvsroot = self.list.node.root
         else:
-            if os.environ.has_key('CVSROOT'):
-                cvsroot = os.environ['CVSROOT']
-            else:
-                cvsroot = ''
+            if not cvsroot:
+                if os.environ.has_key('CVSROOT'):
+                    cvsroot = os.environ['CVSROOT']
+                else:
+                    cvsroot = ''
 
-        cvsroot = self.cvsCmdPrompt(cvsroot, cvsDir, help = 'Change the CVSROOT if necessary:')
+        cvsroot = self.cvsCmdPrompt(cvsroot, cvsDir, 
+              help='Change the CVSROOT if necessary:')
 
-        dlg = wxTextEntryDialog(self.list, 'Enter cvs password for '+cvsroot, 'CVS login', '',
-              style = wxOK | wxCANCEL | wxCENTRE | wxTE_PASSWORD)
+        dlg = wxTextEntryDialog(self.list, 'Enter cvs password for '+cvsroot, 
+              'CVS login', '', style=wxOK|wxCANCEL|wxCENTRE|wxTE_PASSWORD)
         try:
             if dlg.ShowModal() == wxID_OK:
                 password = scrm.scramble(dlg.GetValue())
@@ -412,6 +418,9 @@ class CVSController(ExplorerNodes.Controller):
         if passln not in passwds:
             passfile.write(passln)
         passfile.close()
+
+    def OnSFLoginCVS(self, event):
+        self.OnLoginCVS(event, ':pserver:anonymous@cvs.sourceforge.net:/cvsroot/[PROJECT]')
 
     def readCVSPass(self):
         if os.environ.has_key('HOME') and os.path.isdir(os.environ['HOME']):
@@ -534,7 +543,7 @@ class CVSFileNode(ExplorerNodes.ExplorerNode):
         if self.conflict:
             node = editor.explorer.list.getSelection()
 
-            if Utils.startswith(timestamp, 'Result of merge+'):
+            if timestamp.startswith('Result of merge+'):
                 model, controller = editor.openOrGotoModule(node.resourcepath,
                       transport=node)
 
