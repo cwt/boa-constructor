@@ -6,7 +6,7 @@
 #
 # Created:     2000/11/02
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999 - 2003 Riaan Booysen
+# Copyright:   (c) 1999 - 2004 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
 
@@ -147,7 +147,11 @@ class BaseExplorerTree(wxTreeCtrl):
 
     def getChildNamed(self, node, name):
         cookie = 0
-        child, cookie = self.GetFirstChild(node, cookie)
+        try:
+            child, cookie = self.GetFirstChild(node, cookie)
+        except TypeError: # >= 2.5
+            child, cookie = self.GetFirstChild(node)
+            
         while child.IsOk() and self.GetItemText(child) != name:
             child, cookie = self.GetNextChild(node, cookie)
         return child
