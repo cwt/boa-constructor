@@ -19,6 +19,8 @@ print 'importing Inspector'
 
 # XXX Disable clipboards buttons when non Designer item is selected !!
 
+# XXX senderMap needs to go, events are enough (OOR)
+
 import os
 from types import *
 
@@ -34,7 +36,7 @@ from Preferences import keyDefs
 scrollBarWidth = 0
 IECWidthFudge = 3
 
-[wxID_ENTER, wxID_UNDOEDIT, wxID_CRSUP, wxID_CRSDOWN, wxID_CONTEXTHELP] = map(lambda _init_keys: NewId(), range(5))
+[wxID_ENTER, wxID_UNDOEDIT, wxID_CRSUP, wxID_CRSDOWN, wxID_CONTEXTHELP, wxID_SWITCHDESIGNER, wxID_SWITCHEDITOR, wxID_OPENITEM, wxID_CLOSEITEM] = Utils.wxNewIds(9)
 
 [wxID_INSPECTORFRAME, wxID_INSPECTORFRAMECONSTR, wxID_INSPECTORFRAMEEVENTS, wxID_INSPECTORFRAMEPAGES, wxID_INSPECTORFRAMEPROPS, wxID_INSPECTORFRAMESTATUSBAR, wxID_INSPECTORFRAMETOOLBAR] = map(lambda _init_ctrls: wxNewId(), range(7))
 
@@ -83,7 +85,6 @@ class InspectorFrame(wxFrame, Utils.FrameRestorerMixin):
 
         self.statusBar = wxStatusBar(id = wxID_INSPECTORFRAMESTATUSBAR, name = 'statusBar', parent = self, style = wxST_SIZEGRIP)
         self.statusBar.SetFont(wxFont(Preferences.inspStatBarFontSize, wxDEFAULT, wxNORMAL, wxBOLD, false, ''))
-        self.statusBar.SetStatusText('Nothing selected')
         self._init_coll_statusBar_Fields(self.statusBar)
         self.SetStatusBar(self.statusBar)
 
@@ -105,7 +106,11 @@ class InspectorFrame(wxFrame, Utils.FrameRestorerMixin):
         self.up_bmp = IS.load('Images/Inspector/Up.png')
         self._init_ctrls(parent)
         del self.up_bmp
-        
+
+        # Inspector is created before the Editor so this must be set after
+        # creating the Editor
+        self.editor = None
+
         self.winConfOption = 'inspector'
         self.loadDims()
 
@@ -129,6 +134,7 @@ class InspectorFrame(wxFrame, Utils.FrameRestorerMixin):
         self.selDesgn = None
         self.prevDesigner = (None, None)
         self.prevCollDesgn = None
+        self.sessionHandler = None
 
         self.toolBar.AddSeparator()
         Utils.AddToolButtonBmpIS(self, self.toolBar,
@@ -143,9 +149,9 @@ class InspectorFrame(wxFrame, Utils.FrameRestorerMixin):
           'Images/Editor/Refresh.png', 'Recreate selection', self.OnRecreateSelection)
         self.toolBar.AddSeparator()
         self.wxID_POST = Utils.AddToolButtonBmpIS(self, self.toolBar,
-          'Images/Inspector/Post.png', 'Post the Designer session', self.OnPost)
+          'Images/Inspector/Post.png', 'Post the session', self.OnPost)
         self.wxID_CANCEL = Utils.AddToolButtonBmpIS(self, self.toolBar,
-          'Images/Inspector/Cancel.png', 'Cancel the Designer session', self.OnCancel)
+          'Images/Inspector/Cancel.png', 'Cancel the session', self.OnCancel)
         self.toolBar.AddSeparator()
 ##        Utils.AddToolButtonBmpIS(self, self.toolBar, 'Images/Shared/RevertItem.png',
 ##          'Revert item', self.OnRevertItem)
@@ -171,7 +177,22 @@ class InspectorFrame(wxFrame, Utils.FrameRestorerMixin):
 
         self.selection = None
 
-        self.updateAddDelState()
+        EVT_MENU(self, wxID_SWITCHEDITOR, self.OnSwitchEditor)
+        EVT_MENU(self, wxID_SWITCHDESIGNER, self.OnSwitchDesigner)
+        self.SetAcceleratorTable(wxAcceleratorTable([\
+          (keyDefs['Designer'][0], keyDefs['Designer'][1], wxID_SWITCHEDITOR),
+          (keyDefs['Inspector'][0], keyDefs['Inspector'][1], wxID_SWITCHDESIGNER)]
+        ))
+
+        self.updateToolBarState()
+
+    def OnSwitchEditor(self, event):
+        if self.editor:
+            self.editor.restore()
+
+    def OnSwitchDesigner(self, event):
+        if self.selDesgn:
+            self.selDesgn.restore()
 
     def setDefaultDimensions(self):
         self.SetDimensions(0,
@@ -181,10 +202,21 @@ class InspectorFrame(wxFrame, Utils.FrameRestorerMixin):
           Preferences.bottomHeight)
 
 #---Object selection------------------------------------------------------------
-    def selectObject(self, compn, selectInContainment=true, collDesgn=None):
+    def selectObject(self, compn, selectInContainment=true, collDesgn=None,
+          focusPage=None, restore=false, sessionHandler=None):
         """ Select an object in the inspector by populating the property
             pages. This method is called from the InspectableObjectView
             derived classes """
+        if restore:
+            self.restore()
+
+        if self.sessionHandler:
+            self.sessionHandler.promptPostOrCancel(self)
+
+        if focusPage is not None:
+            if self.pages.GetSelection() != focusPage:
+                self.pages.SetSelection(focusPage)
+
         if self.selCmp == compn or self.vetoSelect:
             return
 
@@ -193,7 +225,7 @@ class InspectorFrame(wxFrame, Utils.FrameRestorerMixin):
         self.props.cleanup()
         self.events.cleanup()
 
-        if self.prevDesigner[0] and compn.designer and not collDesgn and\
+        if self.prevDesigner[0] and compn.designer and not collDesgn and \
           (compn.designer != self.prevDesigner[0] or not collDesgn and self.prevDesigner[1]):
             if compn.designer.supportsParentView:
                 compn.designer.refreshContainment()
@@ -210,6 +242,7 @@ class InspectorFrame(wxFrame, Utils.FrameRestorerMixin):
         self.selCmp = compn
         self.selDesgn = compn.designer
         self.selObj = compn.control
+        self.sessionHandler = sessionHandler
 
         self.statusBar.SetStatusText(compn.name)
         self.statusBar.SetStatusText(compn.GetClass(), 1)
@@ -245,7 +278,7 @@ class InspectorFrame(wxFrame, Utils.FrameRestorerMixin):
         if sb: sb.SetValue(0)
 
         # set add item state
-        self.updateAddDelState()
+        self.updateToolBarState()
 
     def multiSelectObject(self, compn, designer):
         self.selCmp = compn
@@ -282,26 +315,36 @@ class InspectorFrame(wxFrame, Utils.FrameRestorerMixin):
 ##        else: return ''
 
     def cleanup(self):
+##        if self.sessionHandler is not None:
+##            self.sessionHandler.promptPostOrCancel()
+
         self.selCmp = None
         self.selObj = None
         self.selDesgn = None
+        self.sessionHandler = None
         self.constr.cleanup()
         self.props.cleanup()
         self.events.cleanup()
         self.statusBar.SetStatusText('')
         self.statusBar.SetStatusText('', 1)
 
+        self.updateToolBarState()
+
     def initSashes(self):
         self.constr.initSash()
         self.props.initSash()
         self.events.initSash()
 
-    def updateAddDelState(self):
+    def updateToolBarState(self):
         canAddDel = self.selCmp is not None and \
               hasattr(self.selCmp, 'propItems') and \
               hasattr(self.selCmp, 'updateZopeProps')
         self.toolBar.EnableTool(self.wxID_ADDITEM, canAddDel)
         self.toolBar.EnableTool(self.wxID_DELITEM, canAddDel)
+
+        hasSessionHandler = self.sessionHandler is not None
+        self.toolBar.EnableTool(self.wxID_POST, hasSessionHandler)
+        self.toolBar.EnableTool(self.wxID_CANCEL, hasSessionHandler)
 
     def OnSizing(self, event):
         event.Skip()
@@ -309,11 +352,13 @@ class InspectorFrame(wxFrame, Utils.FrameRestorerMixin):
     def OnDelete(self, event):
         if self.selDesgn:
             self.selDesgn.OnControlDelete(event)
+
     def OnUp(self, event):
-        if self.selDesgn:
-            self.selDesgn.OnSelectParent(event)
+        if self.sessionHandler:
+            self.sessionHandler.doUp(self)
         else:
             self.cleanup()
+
     def OnCut(self, event):
         if self.selDesgn:
             self.selDesgn.OnCutSelected(event)
@@ -328,15 +373,12 @@ class InspectorFrame(wxFrame, Utils.FrameRestorerMixin):
             self.selDesgn.OnRecreateSelected(event)
 
     def OnPost(self, event):
-        if self.selDesgn:
-            self.selDesgn.controllerView.saveOnClose = true
-            self.selDesgn.controllerView.Close()
+        if self.sessionHandler:
+            self.sessionHandler.doPost(self)
 
     def OnCancel(self, event):
-        if self.selDesgn:
-            self.selDesgn.controllerView.saveOnClose = false
-            self.selDesgn.controllerView.confirmCancel = true
-            self.selDesgn.controllerView.Close()
+        if self.sessionHandler:
+            self.sessionHandler.doCancel(self)
 
     def OnHelp(self, event):
         Help.showHelp('Inspector.html')
@@ -348,18 +390,12 @@ class InspectorFrame(wxFrame, Utils.FrameRestorerMixin):
                   propEdit.propWrapper.getSetterName())
             self.props.prevSel.showPropNameModified()
 
-    # XXX Zope special-casing, refactor
-    def updateAddDelState(self):
-        canAddDel = self.selCmp is not None and \
-              hasattr(self.selCmp, 'propItems') and \
-              hasattr(self.selCmp, 'updateZopeProps')
-        self.toolBar.EnableTool(self.wxID_ADDITEM, canAddDel)
-        self.toolBar.EnableTool(self.wxID_DELITEM, canAddDel)
     def refreshZopeProps(self):
         cmpn = self.selCmp
         cmpn.updateZopeProps()
         self.selCmp = None
         self.selectObject(cmpn)
+
     def OnNewItem(self, event):
         if self.selCmp and hasattr(self.selCmp, 'propItems'):
             from ZopeLib import PropDlg
@@ -393,7 +429,7 @@ wxID_PARENTTREESELECTED = NewId()
 class ParentTree(wxTreeCtrl):
     """ Specialised tree ctrl that displays parent child relationship of
         controls on the frame """
-    # XXX Rather associate data with tree item rather than going only on the name
+    # XXX Rather associate data with tree item than going only on the name
     def __init__(self, parent):
         wxTreeCtrl.__init__(self, parent, wxID_PARENTTREE, style = wxTR_HAS_BUTTONS | wxCLIP_CHILDREN | wxSUNKEN_BORDER)
         self.cleanup()
@@ -443,7 +479,7 @@ class ParentTree(wxTreeCtrl):
     def extendHelpUrl(self, wxClass, url):
         return wxClass, url
 
-    def OnSelect(self, event):
+    def OnSelect(self, event=None):
         """ Event triggered when the selection changes in the tree """
         if self.valid:
             idx = self.GetSelection()
@@ -542,8 +578,6 @@ class NameValue:
         if lockEditor and not isCat:
             self.enboldenCtrl(self.value)
 
-        #if isCat: sepCol = wxBLACK
-        #else:
         sepCol = wxColour(160, 160, 160)
 
         self.separatorN = wxPanel(nameParent, -1, wxPoint(0,
@@ -725,7 +759,7 @@ class NameValue:
 
         self.editing = false
 
-    def OnSelect(self, event):
+    def OnSelect(self, event=None):
         self.inspector.propertySelected(self)
 
     def OnExpand(self, event):
@@ -799,14 +833,6 @@ class EventsWindow(wxSplitterWindow):
         self.categories.SplitVertically(self.categoryClasses, self.categoryMacros)
         self.categories.SetSashPosition(80)
 
-##        tPopupIDAdd = 15
-##        tPopupIDDelete = 16
-##        self.menu = wxMenu()
-##        self.menu.Append(tPopupIDAdd, 'Add')
-##        self.menu.Append(tPopupIDDelete, 'Delete')
-##        EVT_MENU(self, tPopupIDAdd, self.OnAdd)
-##        EVT_MENU(self, tPopupIDDelete, self.OnDelete)
-
     def setInspector(self, inspector):
         self.inspector = inspector
         self.definitions.setInspector(inspector)
@@ -830,9 +856,7 @@ class EventsWindow(wxSplitterWindow):
 
     def destroy(self):
         self.definitions.destroy()
-##        self.menu.Destroy()
-        if hasattr(self, 'inspector'):
-            del self.inspector
+        self.inspector = None
 
     def findMacro(self, name):
         for macro in EventCollections.EventCategories[\
@@ -896,7 +920,7 @@ class EventsWindow(wxSplitterWindow):
         if nv:
             self.addEvent(macName[4:], methName, wid)
             nv.initFromComponent()
-            nv.OnSelect(None)
+            nv.OnSelect()
 
         else: self.addEvent(macName[4:], methName, wid)
 
@@ -999,6 +1023,18 @@ class NameValueEditorScrollWin(wxScrolledWindow):
     def initSash(self):
         self.splitter.SetSashPosition(self.GetSize().x / 2.25)
 
+    def getSubItems(self, nameValue):
+        idx = nameValue.idx + 1
+        idnt = nameValue.indent + 1
+        res = []
+        while 1:
+            if idx >= len(self.nameValues): break
+            nameValue = self.nameValues[idx]
+            if nameValue.indent < idnt: break
+            res.append(nameValue)
+            idx = idx + 1
+        return res
+
     def initFromComponent(self, name):
         """ Update a property and it's sub properies from the underlying
             control """
@@ -1006,16 +1042,10 @@ class NameValueEditorScrollWin(wxScrolledWindow):
         nv = self.getNameValue(name)
         if nv:
             nv.initFromComponent()
-            idx = nv.idx + 1
-            idnt = nv.indent + 1
-            while 1:
-                if idx >= len(self.nameValues): break
-                nv = self.nameValues[idx]
-                if nv.indent < idnt: break
+            for nv in self.getSubItems(nv):
                 nv.propEditor.companion.updateObjFromOwner()
                 nv.propEditor.propWrapper.connect(nv.propEditor.companion.obj, nv.propEditor.companion)
                 nv.initFromComponent()
-                idx = idx + 1
 
     def OnSize(self, event):
         self.refreshSplitter()
@@ -1046,13 +1076,18 @@ class InspectorScrollWin(NameValueEditorScrollWin):
         EVT_MENU(self, wxID_CRSUP, self.OnCrsUp)
         EVT_MENU(self, wxID_CRSDOWN, self.OnCrsDown)
         EVT_MENU(self, wxID_CONTEXTHELP, self.OnContextHelp)
+        EVT_MENU(self, wxID_OPENITEM, self.OnOpenItem)
+        EVT_MENU(self, wxID_CLOSEITEM, self.OnCloseItem)
 
         self.SetAcceleratorTable(wxAcceleratorTable([\
           (0, WXK_RETURN, wxID_ENTER),
           (0, WXK_ESCAPE, wxID_UNDOEDIT),
           (keyDefs['ContextHelp'][0], keyDefs['ContextHelp'][1], wxID_CONTEXTHELP),
           (0, WXK_UP, wxID_CRSUP),
-          (0, WXK_DOWN, wxID_CRSDOWN)]))
+          (0, WXK_DOWN, wxID_CRSDOWN),
+          (wxACCEL_CTRL, WXK_RIGHT, wxID_OPENITEM),
+          (wxACCEL_CTRL, WXK_LEFT, wxID_CLOSEITEM),
+          ]))
 
     def setInspector(self, inspector):
         self.inspector = inspector
@@ -1060,11 +1095,17 @@ class InspectorScrollWin(NameValueEditorScrollWin):
         self.selCmp = inspector.selCmp
 
     def destroy(self):
-        if hasattr(self, 'inspector'): del self.inspector
+        self.inspector = None
 
     def readObject(self, propList):
         """ Override this method in derived classes to implement the
             initialisation and construction of the name value list """
+
+    def findEditingNameValue(self):
+        for idx in range(len(self.nameValues)):
+            if self.nameValues[idx].editing:
+                return idx
+        return -1
 
     def deleteNameValues(self, idx, count, cancel = false):
         """ Removes a range of name values from the Inspector.
@@ -1145,6 +1186,22 @@ class InspectorScrollWin(NameValueEditorScrollWin):
             wxClass, url = self.extendHelpUrl(self.inspector.selCmp.GetClass(), '')
             if wxClass:
                 Help.showCtrlHelp(wxClass, url)
+
+    def OnOpenItem(self, event):
+        idx = self.findEditingNameValue()
+        if idx != -1:
+            nameValue = self.nameValues[idx]
+            if nameValue.expander and not nameValue.propEditor.expanded:
+                self.expand(nameValue)
+                nameValue.expander.SetValue(false)
+
+    def OnCloseItem(self, event):
+        idx = self.findEditingNameValue()
+        if idx != -1:
+            nameValue = self.nameValues[idx]
+            if nameValue.expander and nameValue.propEditor.expanded:
+                self.collapse(nameValue)
+                nameValue.expander.SetValue(true)
 
 class InspectorPropScrollWin(InspectorScrollWin):
     """ Specialised InspectorScrollWin that understands properties """
@@ -1321,8 +1378,8 @@ class InspectorNotebook(wxNotebook):
         self.inspector = _kwargs['parent']
 
     def destroy(self):
-        del self.pages
-        del self.inspector
+        self.pages = None
+        self.inspector = None
 
     def AddPage(self, pPage, strText, bSelect=false, imageId=-1):
         wxNotebook.AddPage(self, pPage, strText)
