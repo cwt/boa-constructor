@@ -185,5 +185,5 @@ class ZopeExportFileModel(EditorModels.EditorModel):
     imgIdx = EditorModels.imgZopeExportFileModel
     ext = '.zexp'
 
-EditorModels.modelReg[ZopeExportFileModel.modelIdentifier] = ZopeExportFileModel
-EditorModels.extMap[ZopeExportFileModel.ext] = ZopeExportFileModel
+EditorHelper.modelReg[ZopeExportFileModel.modelIdentifier] = ZopeExportFileModel
+EditorHelper.extMap[ZopeExportFileModel.ext] = ZopeExportFileModel
