@@ -97,10 +97,7 @@ class ProcessModuleRunner(ModuleRunner):
         try:
             dlg.ShowModal()
             serr = ErrorStack.buildErrorList(dlg.errors, Parser)
-            #if len(serr):
             return self.checkError(serr, 'Ran', dlg.output, root, dlg.errors)
-            #else:
-            #    return None
 
         finally:
             dlg.Destroy()
