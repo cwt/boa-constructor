@@ -23,7 +23,7 @@ from StyledTextCtrls import PythonStyledTextCtrlMix, BrowseStyledTextCtrlMix,\
      FoldingStyledTextCtrlMix, AutoCompleteCodeHelpSTCMix, \
      CallTipCodeHelpSTCMix, DebuggingViewSTCMix, idWord, word_delim, object_delim
 from Preferences import keyDefs
-import methodparse, sourceconst
+import methodparse, moduleparse, sourceconst
 import wxNamespace
 
 mrkCnt = SourceViews.markerCnt
@@ -194,6 +194,9 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
                 if module.functions.has_key(objPth[0]):
                     return self.prepareModSigTip(objPth[0],
                         module.functions[objPth[0]].signature)
+                elif __builtins__.has_key(objPth[0]):
+                    return self.getFirstContinousBlock(
+                          __builtins__[objPth[0]].__doc__)
 
         return self.checkShellTips(objPth)
 
@@ -202,17 +205,15 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
 
     def checkWxPyTips(self, module, name):
         if module.imports.has_key('wx'):
-            if wx.__dict__.has_key(name):
-                t = type(wx.__dict__[name])
-                if t is types.ClassType:
-                    return wx.__dict__[name].__init__.__doc__ or ''
+            obj = wxNamespace.getWxObjPath(name)
+            if obj:
+                return obj.__init__.__doc__ or ''
         return ''
 
     def checkWxPyMethodTips(self, module, cls, name):
         if module.imports.has_key('wx'):
-            if wx.__dict__.has_key(cls):
-                Cls = wx.__dict__[cls]
-                if hasattr(Cls, name):
+            Cls = wxNamespace.getWxObjPath(cls)
+            if Cls and hasattr(Cls, name):
                     meth = getattr(Cls, name)
                     return meth.__doc__ or ''
         return ''
@@ -247,6 +248,10 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
         #print 'getCodeCompOptions', word, rootWord, matchWord, lnNo
         """ Overwritten Mixin method, returns list of code completion names """
         objPth = rootWord.split('.')
+        
+        if objPth and objPth[0] == 'wx':
+            return wxNamespace.getWxNamespaceForObjPath(rootWord)
+        
         module = self.model.getModule()
         cls = module.getClassForLineNo(lnNo)
         if cls:
@@ -260,18 +265,19 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
                         wrds = self.GetLine(lnNo).strip().split()
                         # check for def *, add inherited methods
                         if wrds and wrds[0] == 'def':
-                            if type(cls.super[0]) is types.InstanceType:
+                            if isinstance(cls.super[0], moduleparse.Class):
                                 return self.getAttribs(cls.super[0], methsOnly=true)
                             elif type(cls.super[0]) is types.StringType:
                                 super = wxNamespace.getWxClass(cls.super[0])
-                                if super: return self.getWxAttribs(super)
+                                if super: 
+                                    return self.getWxAttribs(super)
                     methName, meth = cls.getMethodForLineNo(lnNo)
                     return self.getCodeNamespace(module, meth)
                 # attribs from base class
                 elif cls.super:
                     super = None
                     # check for parsed base classes in this module
-                    if type(cls.super[0]) is types.InstanceType and \
+                    if isinstance(cls.super[0], moduleparse.Class) and \
                           objPth[0] == cls.super[0].name:
                         return self.getAttribs(cls.super[0])
                     # check for wx base classes
@@ -366,7 +372,7 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
                     return self.getWxAttribs(klass)
         return []
 
-    def getCodeNamespace(self, module, block):
+    def getCodeNamespace(self, module, block=None):
         names = []
 
         names.extend(module.imports.keys())
@@ -380,20 +386,14 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
         if block:
             names.extend(block.localnames())
 
-        if 'wxPython.wx' in module.from_imports_star:
-            return wxNamespace.getWxNameSpace() + names
-        else:
-            return names
+        return names
 
     def getAllClasses(self, module):
         names = []
         names.extend(module.from_imports_names.keys())
         names.extend(module.class_order)
 
-        if 'wxPython.wx' in module.from_imports_star:
-            return wxNamespace.getNamesOfType(types.ClassType) + names
-        else:
-            return names
+        return names
 
 #-------Browsing----------------------------------------------------------------
 
@@ -978,6 +978,8 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
 
             self.damagedLine = lineNo-1
             self.checkChangesAndSyntax(lineNo-1)
+        elif char == 40 and Preferences.callTipsOnOpenParen:
+            self.callTipCheck()
 
     def OnKeyDown(self, event):
         if self.CallTipActive():
