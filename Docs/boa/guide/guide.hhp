@@ -1,17 +1,18 @@
 [OPTIONS]
-Language=0x809 English (United Kingdom)
-Default topic=index.html
-Title=Boa Constructor Getting Started Guide
+Compatibility=1.1 or later
 Compiled file=guide.chm
-Index file=guide.hhk
 Contents file=guide.hhc
 Default Window=wxHelp
-Full-text search=Yes
-Compatibility=1.1 or later
+Default topic=index.html
 Display compile progress=No
+Full-text search=Yes
+Index file=guide.hhk
+Language=0x809 English (United Kingdom)
+Title=Boa Constructor Getting Started Guide
 
 [WINDOWS]
-wxHelp=,"guide.hhc","guide.hhk","index.html",,,,,,0x2420,,0x380e,,,,,0,,,
+wxHelp=,"guide.hhc","guide.hhk","index.html",,,,,,0x2420,,0x380e,,,,,0,,,0
+
 
 [FILES]
 index.html
@@ -31,4 +32,7 @@ node5.html
 node6.html
 node7.html
 node8.html
+node28.html
+
 [INFOTYPES]
+

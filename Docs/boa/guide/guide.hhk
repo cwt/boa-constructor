@@ -1,59 +1,70 @@
-<META name="GENERATOR" content="Boa Constructor - HelpBook">
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<HTML>
+<HEAD>
+<meta name="GENERATOR" content="Microsoft&reg; HTML Help Workshop 4.1">
+<!-- Sitemap 1.0 -->
+</HEAD><BODY>
 <UL>
-<LI><OBJECT type="text/sitemap">
-<PARAM name="Local" value="node2.html">
-<PARAM name="Name" value="Palette">
-</OBJECT>
-<LI><OBJECT type="text/sitemap">
-<PARAM name="Local" value="node5.html">
-<PARAM name="Name" value="Inspector">
-</OBJECT>
-<LI><OBJECT type="text/sitemap">
-<PARAM name="Local" value="node7.html">
-<PARAM name="Name" value="Explorer">
-</OBJECT>
-<LI><OBJECT type="text/sitemap">
-<PARAM name="Local" value="node23.html">
-<PARAM name="Name" value="Status Bar">
-</OBJECT>
-<LI><OBJECT type="text/sitemap">
-<PARAM name="Local" value="node31.html">
-<PARAM name="Name" value="Preferences">
-</OBJECT>
-<LI><OBJECT type="text/sitemap">
-<PARAM name="Local" value="node27.html">
-<PARAM name="Name" value="Dialog">
-</OBJECT>
-<LI><OBJECT type="text/sitemap">
-<PARAM name="Local" value="node8.html">
-<PARAM name="Name" value="Using Boa Help">
-</OBJECT>
-<LI><OBJECT type="text/sitemap">
-<PARAM name="Local" value="node3.html">
-<PARAM name="Name" value="Editor">
-</OBJECT>
-<LI><OBJECT type="text/sitemap">
-<PARAM name="Local" value="node4.html">
-<PARAM name="Name" value="Frame Designer">
-</OBJECT>
-<LI><OBJECT type="text/sitemap">
-<PARAM name="Local" value="node24.html">
-<PARAM name="Name" value="Menu Bar">
-</OBJECT>
-<LI><OBJECT type="text/sitemap">
-<PARAM name="Local" value="node31.html">
-<PARAM name="Name" value="Help books">
-</OBJECT>
-<LI><OBJECT type="text/sitemap">
-<PARAM name="Local" value="node31.html">
-<PARAM name="Name" value="Bookmarks">
-</OBJECT>
-<LI><OBJECT type="text/sitemap">
-<PARAM name="Local" value="node31.html">
-<PARAM name="Name" value="Transport">
-</OBJECT>
-<LI><OBJECT type="text/sitemap">
-<PARAM name="Local" value="node31.html">
-<PARAM name="Name" value="Module Info">
-</OBJECT>
+	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="Palette">
+		<param name="Local" value="node2.html">
+		</OBJECT>
+	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="Inspector">
+		<param name="Local" value="node5.html">
+		</OBJECT>
+	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="Explorer">
+		<param name="Local" value="node7.html">
+		</OBJECT>
+	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="Status Bar">
+		<param name="Local" value="node23.html">
+		</OBJECT>
+	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="Preferences">
+		<param name="Local" value="node31.html">
+		</OBJECT>
+	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="Dialog">
+		<param name="Local" value="node27.html">
+		</OBJECT>
+	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="Using Boa Help">
+		<param name="Local" value="node8.html">
+		</OBJECT>
+	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="Editor">
+		<param name="Local" value="node3.html">
+		</OBJECT>
+	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="Frame Designer">
+		<param name="Local" value="node4.html">
+		</OBJECT>
+	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="Menu Bar">
+		<param name="Local" value="node24.html">
+		</OBJECT>
+	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="Help books">
+		<param name="Local" value="node31.html">
+		</OBJECT>
+	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="Bookmarks">
+		<param name="Local" value="node31.html">
+		</OBJECT>
+	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="Transport">
+		<param name="Local" value="node31.html">
+		</OBJECT>
+	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="Module Info">
+		<param name="Local" value="node31.html">
+		</OBJECT>
+	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="Sizers">
+		<param name="Name" value="2.8 Creating a Dialog Window - with sizers">
+		<param name="Local" value="node28.html">
+		</OBJECT>
 </UL>
+</BODY></HTML>
