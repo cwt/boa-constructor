@@ -100,8 +100,8 @@ class DAVCatNode(ExplorerNodes.CategoryNode):
     defName = 'DAV'
     defaultStruct = {'username': '',
                      'passwd': '',
-                     'host': '',
-                     'port': '',
+                     'host': 'localhost',
+                     'port': '80',
                      'path': ''}
     def __init__(self, clipboard, config, parent):
         ExplorerNodes.CategoryNode.__init__(self, 'DAV', ('explorer', 'dav'),
