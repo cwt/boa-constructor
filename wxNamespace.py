@@ -6,7 +6,7 @@
 #
 # Created:     2001
 # RCS-ID:      $Id$
-# Copyright:   (c) 2002
+# Copyright:   (c) 2001 - 2004
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 import Preferences; _Prefs = Preferences; del Preferences
@@ -14,13 +14,16 @@ import Preferences; _Prefs = Preferences; del Preferences
 from wxPython.wx import *
 
 if _Prefs.ccImportWxPyUtils:
-    from wxPython.utils import *
+    try: from wxPython.utils import *
+    except ImportError: pass # >=2.5
 if _Prefs.ccImportWxPyHtml:
     from wxPython.html import *
 if _Prefs.ccImportWxPyHtmlHelp:
-    from wxPython.htmlhelp import *
+    try: from wxPython.htmlhelp import *
+    except ImportError: pass # >=2.5
 if _Prefs.ccImportWxPyHelp:
-    from wxPython.help import *
+    try: from wxPython.help import *
+    except ImportError: pass # >=2.5
 if _Prefs.ccImportWxPyCalendar:
     from wxPython.calendar import *
 if _Prefs.ccImportWxPyGrid:
