@@ -497,6 +497,15 @@ class ControlDTC(DesignTimeCompanion):
         # for wxGTK
         EVT_RIGHT_UP(self.control, self.designer.OnRightClick)
 
+class MultipleSelectionDTC(DesignTimeCompanion):
+    """ Semi mythical class at the moment that will represent a group of
+        selected objects. It's properties should represent the common subset
+        of properties of the selection.
+        
+        Currently only used so the inspector has something to hold on to during
+        multiple selection        
+    """
+
 # sub properties (Font etc)
 class HelperDTC(DesignTimeCompanion):
     def __init__(self, name, designer, ctrl, obj):
@@ -733,6 +742,11 @@ class CollectionDTC(DesignTimeCompanion):
 
     def writeCollectionFinaliser(self, output):
         output.extend(self.finaliser())
+
+    def getPropList(self):
+        # XXX should use sub objects if available, but properties on collection
+        # XXX items aren't supported yet
+        return RTTI.getPropList(None, self)
 
 class CollectionIddDTC(CollectionDTC):
     windowIdName = 'id'
