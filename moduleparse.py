@@ -16,11 +16,14 @@ store the code spans and facilitate the manipulation of method bodies
 This module is heavly based on 'pyclbr.py' from the standard python lib
 
 BUGS
-Methods within methods not handled
+Nested methods and classes not handled
 
 <from pyclbr.py>
 Continuation lines are not dealt with at all and strings may confuse
-the hell out of the parser, but it usually works."""
+the hell out of the parser, but it usually works.
+
+Continuation lines are now handled for class and function defs
+"""
 
 import os, sys
 import imp
@@ -79,6 +82,9 @@ def wxNewIds(cnt):
 def wxNewIds(cnt):
     return map(lambda _init_ctrls: NewId(), range(cnt))
 
+##def wxNewIds(cnt):
+##    return [wxNewId() for x in range(cnt)]
+
 class CodeBlock:
     def __init__(self, sig, start, end):
         self.signature = sig
@@ -86,6 +92,9 @@ class CodeBlock:
         self.end = end
         # XXX renumber
         self.locals = {}
+    
+    def __repr__(self):
+        return '[%d - %d]'%(self.start, self.end)
 
     def renumber(self, from_line, increment):
         if self.start > from_line:
@@ -119,7 +128,7 @@ class Attrib:
 
 # each Python class is represented by an instance of this class
 class Class:
-    """Class to represent a Python class."""
+    """ Class to represent a Python class. """
     def __init__(self, module, name, super, file, lineno):
         self.module = module
         self.name = name
@@ -129,9 +138,13 @@ class Class:
         self.methods = {}
         self.method_order = []
         self.attributes = {}
+        self.class_attributes = {}
         self.file = file
         self.block = CodeBlock('', lineno, lineno)
         self.extent = lineno
+
+    def __repr__(self):
+        return self.name+`self.block`+'\n'+string.join(map(lambda meth, meths=self.methods: '    '+meth+`meths[meth]`, self.method_order), '\n')
 
     def extend_extent(self, lineno):
         if lineno > self.extent: self.extent = lineno
@@ -160,6 +173,12 @@ class Class:
             self.attributes[name].append(CodeBlock(thetype, lineno, lineno))
         else:
             self.attributes[name] = [CodeBlock(thetype, lineno, lineno)]
+
+    def add_class_attr(self, name, lineno, thetype = ''):
+        if self.class_attributes.has_key(name):
+            self.class_attributes[name].append(CodeBlock(thetype, lineno, lineno))
+        else:
+            self.class_attributes[name] = [CodeBlock(thetype, lineno, lineno)]
 
     def add_local(self, name, meth, lineno, thetype = ''):
         if self.methods.has_key(meth):
@@ -448,6 +467,9 @@ class Module:
                     # try to determine type
                     if cur_meth:
                         cur_class.add_local(res.group('name'), cur_meth, self.lineno)
+                    else:
+                        # must be class attr
+                        cur_class.add_class_attr(res.group('name'), self.lineno, line[res.end():])
                 # function
                 elif cur_func:
                     name = res.group('name')
@@ -494,17 +516,25 @@ class Module:
         new_length = len(method_body) + 2
         if not method_body: return
         a_class = self.classes[class_name]
+        if method_name in a_class.method_order:
+            raise 'Method exists'
 
         # Add a method code block
-        if to_bottom:
+        if to_bottom or not a_class.method_order:
             ins_point = a_class.extent
             pre_blank = ['']
             post_blank = []
         else:
-            ins_point = a_class.block.start
+            #print a_class.methods[a_class.method_order[0]].start, a_class.block.start
+            ins_point = a_class.methods[a_class.method_order[0]].start-1
+            #ins_point = a_class.block.start
             pre_blank = []
             post_blank = ['']
-        a_class.add_method(method_name, method_params, ins_point, ins_point + \
+
+        # renumber code blocks
+        self.renumber(new_length, ins_point)
+
+        a_class.add_method(method_name, method_params, ins_point+1, ins_point + \
           new_length, to_bottom)
 
         # Add in source
@@ -512,8 +542,6 @@ class Module:
           pre_blank + ['    def %s(%s):' % (method_name, method_params)] + \
           method_body + post_blank
 
-        # renumber code blocks
-        self.renumber(new_length, ins_point)
 
     def addLine(self, line, line_no):
         self.source.insert(line_no, line)
@@ -521,6 +549,10 @@ class Module:
 
     def extractMethodBody(self, class_name, method_name):
         block = self.classes[class_name].methods[method_name]
+        return self.source[block.start:block.end]
+
+    def extractFunctionBody(self, function_name):
+        block = self.functions[function_name]
         return self.source[block.start:block.end]
 
     def renumber(self, deltaLines, start):
@@ -570,25 +602,28 @@ class Module:
         """ Return doc string for module. Scan the area from the start of the
             file up to the first occurence of a doc string containing structure
             like func or class """
-        if len(self.class_order):
+        if self.class_order:
             classStart = self.classes[self.class_order[0]].block.start -1
         else:
             classStart = len(self.source)
 
-        if len(self.function_order):
+        if self.function_order:
             funcStart = self.functions[self.function_order[0]].start -1
         else:
             funcStart = len(self.source)
 
         modTop = self.source[:min(classStart, funcStart)]
+        return self.searchDoc(string.join(self.formatDocStr(modTop)))
+
+    def formatDocStr(self, lines):        
         l = []
-        for i in modTop:
-            if not string.strip(i):
+        for line in lines:
+            if not string.strip(line):
                 l.append('<P>')
             else:
-                l.append(i)
+                l.append(line)
+        return l
 
-        return self.searchDoc(string.join(l))#, '<BR>'))
 
     def getClassDoc(self, class_name):
         #delete all method bodies
@@ -603,15 +638,19 @@ class Module:
         else:
             methStart = cls.block.end
 
-        cb = string.join(self.source[cls.block.start: min(methStart,
-          cls.block.end)])
+        classDoc = self.source[cls.block.start: min(methStart,
+          cls.block.end)]
 
-        return self.searchDoc(cb)
+        return self.searchDoc(string.join(self.formatDocStr(classDoc)))
 
     def getClassMethDoc(self, class_name, meth_name):
         """ Extract the doc string for a method """
-        cb = string.join(self.extractMethodBody(class_name, meth_name))
-        return self.searchDoc(cb)
+        methDoc = self.extractMethodBody(class_name, meth_name)
+        return self.searchDoc(string.join(self.formatDocStr(methDoc)))
+    
+    def getFunctionDoc(self, function_name):
+        funcDoc = self.extractFunctionBody(function_name)
+        return self.searchDoc(string.join(self.formatDocStr(funcDoc)))
 
     def renameClass(self, old_class_name, new_class_name):
         cls = self.classes[old_class_name]
@@ -648,7 +687,7 @@ class Module:
         if not func_body: return
 
         # Add a func code block
-        ins_point = self.source
+        ins_point = len(self.source)
         self.functions[func_name] = CodeBlock(func_params,
           ins_point, ins_point+len(func_body))
         self.function_order.append(func_name)
