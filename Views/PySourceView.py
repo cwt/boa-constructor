@@ -37,34 +37,14 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
     viewName = 'Source'
     breakBmp = 'Images/Debug/Breakpoints.bmp'
     runCrsBmp = 'Images/Editor/RunToCursor.bmp'
-    runAppBmp = 'Images/Debug/RunApp.bmp'
-    runBmp = 'Images/Debug/Run.bmp'
-    compileBmp = 'Images/Debug/Compile.bmp'
-    debugBmp = 'Images/Debug/Debug.bmp'
     modInfoBmp = 'Images/Modules/InfoBlock.bmp'
-    profileBmp = 'Images/Debug/Profile.bmp'
     def __init__(self, parent, model):
-        if hasattr(model, 'app') and model.app:
-            a2 = (('Run application', self.OnRunApp, self.runAppBmp, keyDefs['RunApp']),)
-        else:
-            a2 = ()
         a1 = (('-', None, '', ()),
               ('Comment', self.OnComment, '-', keyDefs['Comment']),
               ('Uncomment', self.OnUnComment, '-', keyDefs['Uncomment']),
               ('Indent', self.OnIndent, '-', keyDefs['Indent']),
               ('Dedent', self.OnDedent, '-', keyDefs['Dedent']),
-              ('Reindent whole file', self.OnReindent, '-', ()),
               ('-', None, '-', ()),
-              ('Profile', self.OnProfile, self.profileBmp, ()),
-              ('Check source', self.OnCompile, self.compileBmp, keyDefs['CheckSource']))
-        a3 = (('Run module', self.OnRun, self.runBmp, keyDefs['RunMod']),
-              ('Run module with parameters', self.OnRunParams, '-', ()),
-              ('Debug', self.OnDebug, self.debugBmp, keyDefs['Debug']),
-              ('Debug with parameters', self.OnDebugParams, '-', ()),
-              ('Step in', self.OnDebugStepIn, '-', keyDefs['DebugStep']),
-              ('Step over', self.OnDebugStepOver, '-', keyDefs['DebugOver']),
-              ('Step out', self.OnDebugStepOut, '-', keyDefs['DebugOut']),
-              ('-', None, '', ()),
               ('Run to cursor', self.OnRunToCursor, self.runCrsBmp, ()),
               ('Toggle breakpoint', self.OnSetBreakPoint, self.breakBmp, keyDefs['ToggleBrk']),
               ('Load breakpoints', self.OnLoadBreakPoints, '-', ()),
@@ -82,11 +62,10 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
               ('-', None, '-', ()),
               ('Context help', self.OnContextHelp, '-', keyDefs['ContextHelp']))
 
-
         wxID_PYTHONSOURCEVIEW = wxNewId()
 
         EditorStyledTextCtrl.__init__(self, parent, wxID_PYTHONSOURCEVIEW,
-          model, a1 + a2 + a3, -1)
+          model, a1, -1)
         PythonStyledTextCtrlMix.__init__(self, wxID_PYTHONSOURCEVIEW, 0)
         BrowseStyledTextCtrlMix.__init__(self)
         FoldingStyledTextCtrlMix.__init__(self, wxID_PYTHONSOURCEVIEW, 2)
@@ -124,14 +103,10 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
 
         self.SetBufferedDraw(true)
 
-        # Don't use event, override method from Browser parent
-##        EVT_KEY_DOWN(self, self.OnKeyPressed)
-
         EVT_STC_CHARADDED(self, wxID_PYTHONSOURCEVIEW, self.OnAddChar)
 
-#        EVT_STC_MODIFIED(self, wxID_PYTHONSOURCEVIEW, self.OnModified)
+        EVT_STC_MODIFIED(self, wxID_PYTHONSOURCEVIEW, self.OnModified)
 
-##        EVT_STC_CMDKEY(self, wxID_PYTHONSOURCEVIEW, self.OnKeyPressed)
         self.active = true
 
     def refreshCtrl(self):
@@ -343,7 +318,6 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
 
 #-------Browsing----------------------------------------------------------------
     def StyleVeto(self, style):
-##        print 'STC: StyleVeto'
         return style != 11
 
     def BrowseClick(self, word, line, lineNo, start, style):
@@ -374,7 +348,7 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
                         else:
                             gotoLine = block.start-1
                 if gotoLine != -1:
-                    self.model.editor.addBrowseMarker(lineNo)#self.GetCurrentLine())
+                    self.model.editor.addBrowseMarker(lineNo)
                     self.GotoLine(gotoLine)
                 return true
         # Imports
@@ -526,6 +500,30 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
                 mrk = brkPtMrk
             hnd = self.MarkerAdd(lineNo - 1, mrk)
 
+    def moveBreakpoint(self, bpt, delta):
+        #print 'moving break', delta, bpt.bplist
+        # remove
+        index = (bpt.file, bpt.line)
+        
+        if index not in bpt.bplist.keys():
+            return
+
+        bpt.bplist[index].remove(bpt)
+        if not bpt.bplist[index]:
+            del bpt.bplist[index]
+
+        del self.breaks[bpt.line]
+
+        bpt.line = bpt.line + delta
+
+        # re-add
+        index = (bpt.file, bpt.line)
+        if bpt.bplist.has_key(index):
+            bpt.bplist[index].append(bpt)
+        else:
+            bpt.bplist[index] = [bpt]
+
+        self.breaks[bpt.line] = bpt
 
     def tryLoadBreakpoints(self):
         import pickle
@@ -590,11 +588,8 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
             slb, sle = ( self.GetStyleAt(self.PositionFromLine(lineNo)),
                          self.GetStyleAt(self.GetLineEndPosition(lineNo)-1) )
             line = self.GetLine(lineNo)[:-1]
-            ##import time
-            ##t1 = time.time()
             self.checkSyntax( (line,), lineNo +1, self.GetLine,
                 lineStartStyle = slb, lineEndStyle = sle)
-            ##print time.time()-t1, 'synchecked'#, slb, sle, line
 
     def indicateError(self, lineNo, errOffset, errorHint):
         """ Underline the point of error at the given line """
@@ -630,7 +625,7 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
     line_conts = ('(', '[', '{', '\\', ',')
     line_conts_ends = (')', ']', '}', ':', ',', '%')
 
-    # Multiline strings, ignored currently
+    # Multiline strings, ignored currently based on scintilla style info
     ignore_styles = {6 : "'''", 7 : '"""'}
 
     syntax_errors = ('invalid syntax', 'invalid token')
@@ -806,91 +801,6 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
             self.model.editor.debugger.debug_file(self.model.filename)
         elif self.model.app:
             self.model.editor.debugger.debug_file(self.model.app.filename)
-#        else return
-        # XXX Case where module is run, outside app
-
-    def OnRun(self, event):
-        if not self.model.savedAs: #modified or len(self.model.viewsModified):
-            wxMessageBox('Cannot run an unsaved module.')
-            return
-        self.model.run()
-
-    def OnRunParams(self, event):
-        if not self.model.savedAs: #modified or len(self.model.viewsModified):
-            wxMessageBox('Cannot run an unsaved module.')
-            return
-        dlg = wxTextEntryDialog(self.model.editor, 'Parameters:',
-          'Run with parameters', self.lastRunParams)
-        try:
-            if dlg.ShowModal() == wxID_OK:
-                self.lastRunParams = dlg.GetValue()
-                self.model.run(self.lastRunParams)
-        finally:
-            dlg.Destroy()
-
-    def OnRunApp(self, event):
-        if not self.model.app.savedAs: #modified or len(self.model.viewsModified):
-            wxMessageBox('Cannot run an unsaved application.')
-            return
-        wxBeginBusyCursor()
-        try:
-            self.model.app.run()
-        finally:
-            wxEndBusyCursor()
-
-    def OnDebug(self, event):
-        if not self.model.savedAs or self.model.modified or \
-          len(self.model.viewsModified):
-            wxMessageBox('Cannot debug an unsaved or modified module.')
-            return
-        self.model.debug()
-
-    def OnDebugParams(self, event):
-        if not self.model.savedAs or self.model.modified or \
-          len(self.model.viewsModified):
-            wxMessageBox('Cannot debug an unsaved or modified module.')
-            return
-        dlg = wxTextEntryDialog(self.model.editor, 'Parameters:',
-          'Debug with parameters', self.lastDebugParams)
-        try:
-            if dlg.ShowModal() == wxID_OK:
-                self.lastDebugParams = dlg.GetValue()
-                self.model.debug(methodparse.safesplitfields(self.lastDebugParams, ' '))
-        finally:
-            dlg.Destroy()
-
-    def OnDebugStepIn(self, event):
-        if self.model.editor.debugger:
-            self.model.editor.debugger.OnStep(event)
-
-    def OnDebugStepOver(self, event):
-        if self.model.editor.debugger:
-            self.model.editor.debugger.OnOver(event)
-
-    def OnDebugStepOut(self, event):
-        if self.model.editor.debugger:
-            self.model.editor.debugger.OnOut(event)
-
-    def OnCompile(self, event):
-        if not self.model.savedAs or self.model.modified or \
-          len(self.model.viewsModified):
-            wxMessageBox('Cannot compile an unsaved or modified module.')
-            return
-        self.model.compile()
-
-    def OnProfile(self, event):
-        stats, profDir = self.model.profile()
-        resName = 'Profile stats'
-        if not self.model.views.has_key(resName):
-            resultView = self.model.editor.addNewView(resName,
-              ProfileView.ProfileStatsView)
-        else:
-            resultView = self.model.views[resName]
-        resultView.tabName = resName
-        resultView.stats = stats
-        resultView.profDir = profDir
-        resultView.refresh()
-        resultView.focus()
 
     def OnContextHelp(self, event):
         pos = self.GetCurrentPos()
@@ -1096,12 +1006,6 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
                     self.model.modified = true
                     self.model.editor.updateModulePage(self.model)
 
-
-
-
-    def OnReindent(self, event):
-        self.model.reindent()
-
     def OnRefresh(self, event):
         if Preferences.autoReindent:
             self.model.reindent(false)
@@ -1110,13 +1014,32 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
     def OnModified(self, event):
         modType = event.GetModificationType()
         if modType == (wxSTC_MOD_CHANGEMARKER):
-            pass#print 'marker change'
+            pass
         linesAdded = event.GetLinesAdded()
+
+        # Repair pasting CR/LF from clipboard to LF source
+##        if linesAdded:
+##            lines = string.split(event.GetText(), '\r\n')
+##            if len(lines) == linesAdded:
+
+        # repair breakpoints
+##        update = false
+##        if linesAdded:
+##            line = self.LineFromPosition(event.GetPosition())
+##            for breakLine, breakPt in self.breaks.items()[:]:
+##                if breakLine >= line:
+##                    self.moveBreakpoint(breakPt, linesAdded)
+##                    update = true
+##
+##            if update and self.model.editor.debugger:
+##                self.model.editor.debugger.breakpts.refreshList()                
+
+        # Update module line numbers 
         # module has to have been parsed at least once
-        if linesAdded and self.model._module:
-            lineNo = self.LineFromPosition(event.GetPosition())
-            module = self.model.getModule()
-            module.renumber(linesAdded, lineNo)
+##        if linesAdded and self.model._module:
+##            lineNo = self.LineFromPosition(event.GetPosition())
+##            module = self.model.getModule()
+##            module.renumber(linesAdded, lineNo)
 
     def OnCompleteCode(self, event):
         self.codeCompCheck()
