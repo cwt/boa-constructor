@@ -36,7 +36,7 @@ class ProcessProgressDlg(wxDialog):
         self.cmdStxt = wxStaticText(label = 'staticText1', id = wxID_PROCESSPROGRESSDLGCMDSTXT, parent = self, name = 'cmdStxt', size = wxSize(360, 64), style = wxST_NO_AUTORESIZE, pos = wxPoint(8, 8))
         self.cmdStxt.SetConstraints(LayoutAnchors(self.cmdStxt, true, true, true, false))
 
-        self.splitterWindow1 = wxSplitterWindow(size = wxSize(360, 192), parent = self, id = wxID_PROCESSPROGRESSDLGSPLITTERWINDOW1, name = 'splitterWindow1', style = wxSP_3D, point = wxPoint(8, 80))
+        self.splitterWindow1 = wxSplitterWindow(size = wxSize(360, 192), parent = self, id = wxID_PROCESSPROGRESSDLGSPLITTERWINDOW1, name = 'splitterWindow1', style = wxSP_3DSASH | wxSP_FULLSASH, point = wxPoint(8, 80))
         self.splitterWindow1.SetConstraints(LayoutAnchors(self.splitterWindow1, true, true, true, true))
 
         self.errorTctrl = wxTextCtrl(size = wxSize(356, 78), value = '', pos = wxPoint(2, 2), parent = self.splitterWindow1, name = 'errorTctrl', style = wxTE_MULTILINE, id = wxID_PROCESSPROGRESSDLGERRORTCTRL)
@@ -74,7 +74,8 @@ class ProcessProgressDlg(wxDialog):
             self.cmdStxt.SetLabel(command)
         self.execute(command, modally)
         if not modally:
-            while not self.finished: wxYield()
+            while not self.finished:
+                wxYield()
 
     def execute(self, cmd, modally = true):
         self.cancelBtn.SetLabel('Cancel')
@@ -169,3 +170,4 @@ if __name__ == '__main__':
     print dlg.errors, dlg.output
     dlg.Destroy()
     app.MainLoop()
+   
