@@ -27,7 +27,18 @@ from Models import EditorHelper
 import ExplorerNodes
 from ExplorerNodes import TransportError, TransportLoadError, TransportSaveError
 
-class TransportCategoryError(TransportError): pass
+class TransportCategoryError(TransportError):
+
+    def __init__(self, msg='', filepath=None):
+        self.msg = msg
+        self.filepath = filepath
+
+    def __str__(self):
+        if self.filepath:
+            return '%s: %s' % (self.msg, self.filepath)
+        else:
+            return self.msg
+        
 
 #---Explorer utility functions--------------------------------------------------
 
