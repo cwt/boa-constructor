@@ -15,9 +15,12 @@
 from wxPython.wx import *
 from wxPython.lib.anchors import LayoutAnchors
 
-import string, os, time
+import string, os, time, sys
 
 # XXX Change to be non-modal, minimizable and run CVS operation in thread !!
+
+# XXX remove when 2.3.3 is minimum version
+from Utils import canReadStream
 
 class ProcessRunnerMix:
     def __init__(self):
@@ -44,7 +47,7 @@ class ProcessRunnerMix:
         self.errorStream = self.process.GetErrorStream()
         self.outputStream = self.process.GetInputStream()
 
-        self.OnIdle(None)
+        self.OnIdle()
 
     def detach(self):
         if self.process is not None:
@@ -53,7 +56,7 @@ class ProcessRunnerMix:
             self.process = None
 
     def updateStream(self, stream, data):
-        if stream and not stream.eof():
+        if stream and canReadStream(stream):
             if not self.responded:
                 self.responded = true
             text = stream.read()
@@ -127,7 +130,7 @@ class ProcessProgressDlg(wxDialog, ProcessRunnerMix):
         self.dlg_caption = 'Progress'
         self.dlg_caption = caption
         self._init_ctrls(parent)
-        
+
         self.splitterWindow1.SetMinimumPaneSize(20)
 
         ProcessRunnerMix.__init__(self)
@@ -227,7 +230,7 @@ class ProcessProgressDlg(wxDialog, ProcessRunnerMix):
 
 if __name__ == '__main__':
     app = wxPySimpleApp()
-    if 0:
+    if 1:
         modal = 1
         dlg = ProcessProgressDlg(None, 'cvs status Boa.py', 'Test', modal, autoClose=false)
         if modal:
