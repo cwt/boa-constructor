@@ -179,7 +179,7 @@ class DebuggerConnection:
         '''Pretty-prints the value of name.  Blocking.'''
         return self._callMethod('pprintVarValue', 0, name, frameno)
 
-    def getInteractionUpdate(self):
+    def getStatusSummary(self):
         '''Returns a mapping containing the keys:
           exc_type, exc_value, stack, frame_stack_len, running.
         Also returns and empties the stdout and stderr buffers.
@@ -190,11 +190,11 @@ class DebuggerConnection:
         The most recent stack entry will be at the last
         of the list.  Blocking.
         '''
-        return self._callMethod('getInteractionUpdate', 0)
+        return self._callMethod('getStatusSummary', 0)
 
     def proceedAndRequestStatus(self, command, temp_breakpoint=0):
         '''Executes one non-blocking command then returns
-        getInteractionUpdate().  Blocking.'''
+        getStatusSummary().  Blocking.'''
         if temp_breakpoint:
             self.addBreakpoint(temp_breakpoint[0], temp_breakpoint[1], 1)
         if command:
@@ -203,15 +203,15 @@ class DebuggerConnection:
             if command not in allowed:
                 raise DebugError('Illegal command')
             getattr(self, command)()
-        return self.getInteractionUpdate()
+        return self.getStatusSummary()
 
     def runFileAndRequestStatus(self, filename, params=(), autocont=0,
                                 add_paths=(), breaks=()):
         '''Calls setAllBreakpoints(), runFile(), and
-        getInteractionUpdate().  Blocking.'''
+        getStatusSummary().  Blocking.'''
         self.setAllBreakpoints(breaks)
         self._callNoWait('runFile', 1, filename, params, autocont, add_paths)
-        return self.getInteractionUpdate()
+        return self.getStatusSummary()
 
     def getSafeDict(self, locals, frameno):
         '''Returns the repr-fied mappings of locals and globals in a
@@ -814,7 +814,7 @@ class DebugServer (Bdb):
                              })
         return rval
 
-    def getInteractionUpdate(self):
+    def getStatusSummary(self):
         rval = {'stdout':self.stdoutbuf.getvalue(),
                 'stderr':self.stderrbuf.getvalue(),
                 }

@@ -26,8 +26,6 @@ import Utils
 from Preferences import pyPath, IS, flatTools
 from Breakpoint import bplist
 from DebugClient import EVT_DEBUGGER_OK, EVT_DEBUGGER_EXC
-#from InProcessClient import InProcessClient
-from ChildProcessClient import ChildProcessClient
 
 # When an output window surpasses these limits, it will be trimmed.
 TEXTCTRL_MAXLEN = 30000
@@ -127,7 +125,7 @@ class StackViewCtrl(wxListCtrl):
                 filename = self.debugger.resolvePath(filename)
                 if not filename: return
 
-                editor = self.debugger.model.editor
+                editor = self.debugger.editor
                 editor.SetFocus()
                 editor.openOrGotoModule(filename)
                 model = editor.getActiveModulePage().model
@@ -243,7 +241,7 @@ class BreakViewCtrl(wxListCtrl):
             filename = self.debugger.resolvePath(bp['filename'])
             if not filename: return
 
-            editor = self.debugger.model.editor
+            editor = self.debugger.editor
             editor.SetFocus()
             editor.openOrGotoModule(filename)
             model = editor.getActiveModulePage().model
@@ -581,15 +579,19 @@ def compareColors(c1, c2):
 wxID_PAGECHANGED = NewId()
 wxID_TOPPAGECHANGED = NewId()
 class DebuggerFrame(wxFrame):
-    def __init__(self, model, stack = None):
+    debug_client = None
+    
+    def __init__(self, editor, filename=None, slave_mode=1):
         wxFrame.__init__(
-            self, model.editor, -1, 'Debugger - %s - %s'
-            % (path.basename(model.filename), model.filename),
-            wxPoint(0, Preferences.paletteHeight), 
+            self, editor, -1, 'Debugger',
+            wxPoint(0, Preferences.paletteHeight),
             wxSize(Preferences.inspWidth, Preferences.bottomHeight))
 
-        self.debug_client = ChildProcessClient(self)
-        # self.debug_client = InProcessDebugClient(self)
+        self.editor = editor
+        self.running = 0
+        self.slave_mode = slave_mode
+        if filename:
+            self.setDebugFile(filename)
 
         if wxPlatform == '__WXMSW__':
 	    self.icon = wxIcon(Preferences.toPyPath(
@@ -605,16 +607,7 @@ class DebuggerFrame(wxFrame):
         self.viewsImgLst.Add(IS.load('Images/Debug/Globals.bmp'))
         self.viewsImgLst.Add(IS.load('Images/Debug/Output.bmp'))
 
-        self.running = 0
         self.invalidatePanes()
-
-        if model.defaultName != 'App' and model.app:
-            filename = model.app.filename
-        else:
-            filename = model.filename
-        self.setDebugFile(filename)
-#        self.app = app
-        self.model = model
 
         self.sb = DebugStatusBar(self)
         self.SetStatusBar(self.sb)
@@ -816,14 +809,14 @@ class DebuggerFrame(wxFrame):
 
     def receiveVarValue(self, val):
         if val:
-            self.model.editor.statusBar.setHint(val)
+            self.editor.statusBar.setHint(val)
 
     #def startMainLoop(self):
-    #    self.model.editor.app.MainLoop()
+    #    self.editor.app.MainLoop()
     #    self.mlc = self.mlc + 1
         
     #def stopMainLoop(self):
-    #    self.model.editor.app.ExitMainLoop()
+    #    self.editor.app.ExitMainLoop()
     #    self.mlc = self.mlc - 1
     
 #---------------------------------------------------------------------------
@@ -837,7 +830,21 @@ class DebuggerFrame(wxFrame):
 
     def setDebugFile(self, filename):
         self.filename = path.join(pyPath, filename)
+        title = 'Debugger - %s - %s' % (path.basename(filename), filename)
+        self.SetTitle(title)
         self.modpath = os.path.dirname(self.filename)
+
+    def setTitleInfo(self, info):
+        title = 'Debugger - %s' % info
+        self.SetTitle(title)
+
+    def setDebugClient(self, client=None):
+        if not client:
+            from ChildProcessClient import ChildProcessClient
+            client = ChildProcessClient(self)
+            # from InProcessClient import InProcessClient
+            # client_constructor = InProcessClient
+        self.debug_client = client
 
     def invokeInDebugger(self, m_name, m_args=(), r_name=None, r_args=()):
         '''
@@ -848,7 +855,8 @@ class DebuggerFrame(wxFrame):
         self.debug_client.invokeOnServer(m_name, m_args, r_name, r_args)
 
     def killDebugger(self):
-        self.debug_client.kill()
+        if self.debug_client:
+            self.debug_client.kill()
 
     def OnStreamTimer(self, event=None, force_timer=0):
         self.updateOutputWindow()
@@ -868,7 +876,7 @@ class DebuggerFrame(wxFrame):
         outp.AppendText(t)
 
     def updateOutputWindow(self):
-        while 1:
+        while self.debug_client:
             stdout_text, stderr_text = self.debug_client.pollStreams()
             if stdout_text:
                 self.appendToOutputWindow(stdout_text)
@@ -896,17 +904,24 @@ class DebuggerFrame(wxFrame):
         t, v = event.GetExc()
         if hasattr(t, '__name__'):
             t = t.__name__
-        if (wxMessageDialog(
-            self, '%s: %s.  Stop debugger?' % (t, v),
+        # TODO?: Use wxScrolledMessageDialog  (note that it lacks
+        # wxYES_NO support.)
+        msg = '%s: %s.' % (t, v)
+        if len(msg) > 100:
+            msg = msg[:100] + '...'
+        confirm = (wxMessageDialog(
+            self, msg + ' Stop debugger?',
             'Debugger Communication Exception',
             wxYES_NO | wxYES_DEFAULT | wxICON_EXCLAMATION |
-            wxCENTRE).ShowModal() == wxID_YES):
-            # TODO: make sure the debugger doesn't pop up another
-            # exception.
+            wxCENTRE).ShowModal() == wxID_YES))
+
+        if confirm:
             self.killDebugger()
             self.clearViews()
 
     def runProcess(self, autocont=0):
+        if not self.slave_mode:
+            return
         self.running = 1
         self.sb.writeError('Running...', 0)
         brks = bplist.getBreakpointList()
@@ -976,6 +991,11 @@ class DebuggerFrame(wxFrame):
         filename = path.normcase(path.abspath(filename))
         self.invokeInDebugger('addBreakpoint', (filename, lineno, tmp))
         self.breakpts.refreshList()
+
+    def requestDebuggerStatus(self):
+        self.sb.writeError('Waiting...', 0)
+        self.invokeInDebugger('getStatusSummary', (),
+                              'receiveDebuggerStatus')
 
     def receiveDebuggerStatus(self, info):
         # Get stdout and stderr if available.
@@ -1053,16 +1073,18 @@ class DebuggerFrame(wxFrame):
         self.updateOutputWindow()
 
     def resolvePath(self, filename):
-        # Try to find file in Main module directory,
-        # Boa directory and Current directory
-        fn = os.path.normpath(os.path.join(self.modpath, filename))
-        if not os.path.exists(fn):
-            fn = os.path.join(Preferences.pyPath, filename)
-            if not os.path.exists(fn):
-                fn = os.path.abspath(filename)
-                if not os.path.exists(fn):
-                    return ''
-        return fn
+        # already resolved.
+        return filename
+##        # Try to find file in Main module directory,
+##        # Boa directory and Current directory
+##        fn = os.path.normpath(os.path.join(self.modpath, filename))
+##        if not os.path.exists(fn):
+##            fn = os.path.join(Preferences.pyPath, filename)
+##            if not os.path.exists(fn):
+##                fn = os.path.abspath(filename)
+##                if not os.path.exists(fn):
+##                    return ''
+##        return fn
 
     def clearStepPos(self):
         if self.lastStepView is not None:
@@ -1075,9 +1097,9 @@ class DebuggerFrame(wxFrame):
             filename = self.resolvePath(filename)
             if not filename: return
                 
-            #self.model.editor.SetFocus()
-            self.model.editor.openOrGotoModule(filename)
-            model = self.model.editor.getActiveModulePage().model
+            #self.editor.SetFocus()
+            self.editor.openOrGotoModule(filename)
+            model = self.editor.getActiveModulePage().model
             sourceView = model.views['Source']
             #sourceView.focus(false)
             #sourceView.SetFocus()
@@ -1091,7 +1113,7 @@ class DebuggerFrame(wxFrame):
 
     def ensureRunning(self, cont_if_running=0, cont_always=0,
                       temp_breakpoint=None):
-        if self.isRunning():
+        if not self.slave_mode or self.isRunning():
             if cont_if_running or cont_always:
                 self.doDebugStep('set_continue', temp_breakpoint)
         else:
@@ -1112,7 +1134,7 @@ class DebuggerFrame(wxFrame):
             self.clearStepPos()
             self.invalidatePanes()
             self.updateSelectedPane(do_request=0)
-            if not self.running:
+            if self.slave_mode and not self.isRunning():
                 self.runProcess()
             elif method:
                 self.proceedAndRequestStatus(method, temp_breakpoint)
@@ -1156,6 +1178,7 @@ class DebuggerFrame(wxFrame):
         self.watches.load_dict({})
         self.locs.load_dict({})
         self.globs.load_dict({})
+        self.sb.writeError('', 0)
 
     def OnCloseWindow(self, event):
         try:
@@ -1168,8 +1191,8 @@ class DebuggerFrame(wxFrame):
         finally:
 ##            self.Destroy()
             self.debug_client = None
-            try: self.model.editor.debugger = None
+            try: self.editor.debugger = None
             except: pass
-            self.model = None
+            self.editor = None
             self.Show(0)
             event.Skip()

@@ -917,7 +917,8 @@ class EditorFrame(wxFrame):
     
     def OnAttachToDebugger(self, event):
         # Attach dialog code here
-        pass
+        from Debugger.RemoteDialog import create
+        create(self).ShowModal()
 
 #-----Toolbar-------------------------------------------------------------------
 

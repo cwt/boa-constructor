@@ -647,7 +647,12 @@ class ModuleModel(SourceModel):
             debugger = self.editor.debugger
             if not debugger:
                 from Debugger import Debugger
-                debugger = Debugger.DebuggerFrame(self)
+                if self.defaultName != 'App' and self.app:
+                    filename = self.app.filename
+                else:
+                    filename = self.filename
+                debugger = Debugger.DebuggerFrame(self.editor, filename)
+                debugger.setDebugClient()
                 self.editor.debugger = debugger
                 debugger.setParams(params)
             debugger.Show(true)
