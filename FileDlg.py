@@ -7,7 +7,7 @@
 #
 # Created:     2000/09/17
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999 - 2004 Riaan Booysen
+# Copyright:   (c) 1999 - 2005 Riaan Booysen
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 #Boa:Dialog:wxBoaFileDialog

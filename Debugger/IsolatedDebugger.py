@@ -7,7 +7,7 @@
 #
 # Created:      November 2000
 # RCS-ID:       $Id$
-# Copyright:    (c) 2000 - 2004 : Shane Hathaway, Riaan Booysen
+# Copyright:    (c) 2000 - 2005 : Shane Hathaway, Riaan Booysen
 # Licence:      GPL
 #----------------------------------------------------------------------------
 
