@@ -11,6 +11,17 @@
 # Licence:     GPL
 #----------------------------------------------------------------------
 
+""" Based on core support preferences this module initialises Companion, Model,
+View and Controller classes. It also executes all active Plug-ins.
+
+The namespace of this module is used to evalute code at Design-Time with evalCtrl.
+Hence the needed import * and execfile.
+
+"""
+
+# XXX This module should be renamed it's function has changed over time
+# XXX Maybe: BoaNamespace/DesignTimeNamespace
+
 import os, glob
 
 import Preferences, Utils
@@ -24,26 +35,32 @@ if Preferences.csWxPythonSupport:
     # As the modules are imported they add themselves to the PaletteStore
     from Companions.Companions import *
 
+    from Companions.FrameCompanions import *
+    from Companions.ContainerCompanions import *
+    from Companions.BasicCompanions import *
+    from Companions.ButtonCompanions import *
+    from Companions.ListCompanions import *
     from Companions.GizmoCompanions import *
-
     if Utils.IsComEnabled():
         from Companions.ComCompanions import *
-
     from Companions.UtilCompanions import *
-
     from Companions.DialogCompanions import *
 
+# Zope requires spesific support 
 if Utils.transportInstalled('ZopeLib.ZopeExplorer'):
     from ZopeLib.ZopeCompanions import *
 
 #-Controller imports which auto-regisers themselves on the Palette--------------
 
-from Models import PythonControllers, EditorHelper
+from Models import EditorHelper
+
+if Preferences.csPythonSupport:
+    from Models import PythonControllers
 
 if Preferences.csWxPythonSupport:
     from Models import wxPythonControllers
 
-if not Preferences.csWxPythonSupport:
+if Preferences.csPythonSupport and not Preferences.csWxPythonSupport:
     # useful hack to alias wxApp modules to PyApp modules when wxPython support
     # is not loaded
     EditorHelper.modelReg['App'] = PythonControllers.PythonEditorModels.PyAppModel
@@ -54,6 +71,7 @@ from Models import Controllers
 PaletteStore.newControllers['Text'] = Controllers.TextController
 PaletteStore.paletteLists['New'].append('Text')
 
+# XXX These could possibly be driven by config
 #-Registration of other built in support---------------------------------------
 if Preferences.csConfigSupport: from Models import ConfigSupport
 if Preferences.csCppSupport: from Models import CPPSupport
@@ -74,14 +92,19 @@ if Preferences.pluginPaths:
         pluginPathGlobs.append(ppth+'/*.plug-in.py')
 
     print 'executing plug-ins...'
+    fails = Preferences.failedPlugins
     for globpath in pluginPathGlobs:
         for pluginFilename in glob.glob(globpath):
             pluginBasename = os.path.basename(pluginFilename)
+            filename = string.lower(pluginFilename)
             try:
                 execfile(pluginFilename)
+                Preferences.installedPlugins.append(filename)
             except Utils.SkipPlugin, msg:
+                fails[filename] = ('Skipped', msg)
                 wxLogWarning('Plugin skipped: %s, %s'%(pluginBasename, msg))
             except Exception, error:
+                fails[filename] = ('Error', str(error))
                 if Preferences.pluginErrorHandling == 'raise':
                     raise
                 elif Preferences.pluginErrorHandling == 'report':
@@ -94,52 +117,13 @@ if Preferences.pluginPaths:
 EditorHelper.initExtMap()
 #-------------------------------------------------------------------------------
 
+# XXX legacy references
 palette = PaletteStore.palette
 newPalette = PaletteStore.newPalette
 dialogPalette = PaletteStore.dialogPalette
 zopePalette = PaletteStore.zopePalette
 helperClasses = PaletteStore.helperClasses
 compInfo = PaletteStore.compInfo
-
-def compInfoByName(name):
-    for comp in compInfo.keys():
-        if comp.__name__ == name: return comp
-    raise name+' not found'
-
-def loadBitmap(name):
-    """ Loads bitmap if it exists, else loads default bitmap """
-    imgPath = 'Images/Palette/' + name+'.png'
-    if IS.canLoad(imgPath):
-        return IS.load(imgPath)
-    else:
-        return IS.load('Images/Palette/Component.png')
-
-
-def bitmapForComponent(wxClass, wxBase='None'):
-    """ Returns a bitmap for given comonent class.
-
-    "Aquires" bitmap by traversing inheritance thru if necessary.
-    """
-    if wxBase != 'None': return loadBitmap(wxBase)
-    else:
-        cls = wxClass
-        try: bse = wxClass.__bases__[0]
-        except:
-            if compInfo.has_key(wxClass):
-                return loadBitmap(compInfo[wxClass][0])
-            else:
-                return loadBitmap('Component')
-        try:
-            while not compInfo.has_key(cls):
-                cls = bse
-                bse = cls.__bases__[0]
-
-            return loadBitmap(compInfo[cls][0])
-        except:
-            print 'not found!'
-            return loadBitmap('Component')
-
-def _(gtstr): return gtstr
 
 _NB = None
 def evalCtrl(expr, localsDct=None):
@@ -152,15 +136,9 @@ def evalCtrl(expr, localsDct=None):
     if not _NB:
         _NB = IS.load('Images/Inspector/wxNullBitmap.png')
     if not localsDct:
-        wxNullBitmap = _NB
-        localsDct = locals()
+        localsDct = {'wxNullBitmap': _NB}
     else:
         localsDct['wxNullBitmap'] = _NB
     localsDct['_'] = str
 
-    try:
-        return eval(expr, globals(), localsDct)
-    except:
-        ##e, v, t = sys.exc_info()
-        ##print str(e), str(v), str(t)
-        raise
+    return eval(expr, globals(), localsDct)
