@@ -750,7 +750,7 @@ if __name__ == '__main__':
 
     conf = Utils.createAndReadConfig('Explorer')
     transports = ExplorerNodes.ContainerNode('Transport', EditorHelper.imgFolder)
-    Explorer.all_transports = transports
+    ExplorerNodes.all_transports = transports
     transports.entries.append(FileExplorer.FileSysCatNode(None, conf, None, None))
     if conf.has_option('explorer', 'ftp'):
         transports.entries.append(FTPExplorer.FTPCatNode(None, conf, None, None))
