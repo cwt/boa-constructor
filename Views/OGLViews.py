@@ -455,7 +455,7 @@ class SortedUMLViewMix:
         rawHeight = height
         height = height * whiteSpaceFactor
         verticalWhiteSpace = (height-rawHeight)/(len(generations)-1.0 or 2.0)
-        self.setSize(wxSize(width+50, height+50)) # fudge factors to keep some extra space
+        self.setSize(wxSize(int(width+50), int(height+50))) # fudge factors to keep some extra space
         # distribute each generation across the width
         # and the generations across height
         y = 0
@@ -787,12 +787,12 @@ class ImportsView(PersistentOGLView):
         for rel in relations.keys():
             impLst = []
             for i in relations[rel].imports.keys():
-                if Utils.startswith(i, packageName+'.'):
+                if i.startswith(packageName+'.'):
                     i = i[len(packageName)+1:]
                 if relations.has_key(i):
                     impLst.append(i)
             for i in relations[rel].from_imports.keys():
-                if Utils.startswith(i, packageName+'.'):
+                if i.startswith(packageName+'.'):
                     i = i[len(packageName)+1:]
                 if relations.has_key(i):
                     impLst.append(i)
