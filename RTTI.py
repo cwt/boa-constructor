@@ -115,7 +115,14 @@ def getPropList(obj, cmp):
             return category, property name, getter, setter
         """
 
-        if _methodTypeCache.has_key( (method, obj) ):
+        try:
+            hash( (method, obj) )
+        except TypeError:
+            tryCache = false
+        else:
+            tryCache = true
+
+        if tryCache and _methodTypeCache.has_key( (method, obj) ):
             return _methodTypeCache[(method, obj)]
         else:
             if (type(dict[method]) == FunctionType):
