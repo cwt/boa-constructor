@@ -1,12 +1,11 @@
 import string, os
 
-##import sys
-##sys.path.append('..')
+##import sys;sys.path.append('..')
 
 from wxPython.wx import wxMenu, EVT_MENU, wxMessageBox, wxPlatform, wxNewId
 
-import ExplorerNodes, EditorModels, Utils
-from ZopeLib.ZopeFTP import ZopeFTP
+import ExplorerNodes, EditorModels, Utils, EditorHelper
+from ZopeLib import ZopeFTP
 import ftplib
 
 true = 1
@@ -33,18 +32,8 @@ class FTPController(ExplorerNodes.Controller, ExplorerNodes.ClipboardControllerM
         self.menu.Destroy()
 
 
-##    def OnOpenFTPItems(self, event):
-##        if self.list.node:
-##            nodes = self.getNodesForSelection(self.list.getMultiSelection())
-##            for node in nodes:
-##                if not node.isFolderish():
-##                    print 'Opening ftp item', node
-##                    node.open(self.editor)
-##                    #self.editor.openOrGotoModule(node.resourcepath, transport = node)
-
-
-
 class FTPCatNode(ExplorerNodes.CategoryNode):
+    itemProtocol = 'ftp'
     defName = 'FTP'
     defaultStruct = {'username': 'anonymous',
                      'passwd': '',
@@ -52,15 +41,18 @@ class FTPCatNode(ExplorerNodes.CategoryNode):
                      'port': 21,
                      'path': '/',
                      'passive': 0}
-    def __init__(self, clipboard, config, parent):
+    def __init__(self, clipboard, config, parent, bookmarks):
         ExplorerNodes.CategoryNode.__init__(self, 'FTP', ('explorer', 'ftp'),
               clipboard, config, parent)
+        self.bookmarks = bookmarks
 
     def createParentNode(self):
         return self
 
     def createChildNode(self, name, props):
-        return FTPConnectionNode(name, props, self.clipboard, self)
+        ftpcn = FTPConnectionNode(name, props, props['path'], self.clipboard, self)
+        ftpcn.bookmarks = self.bookmarks
+        return ftpcn
 
     def createCatCompanion(self, catNode):
         comp = ExplorerNodes.CategoryDictCompanion(catNode.treename, self)
@@ -68,6 +60,7 @@ class FTPCatNode(ExplorerNodes.CategoryNode):
 
 class FTPItemNode(ExplorerNodes.ExplorerNode):
     protocol = 'ftp'
+    connection = true
     def __init__(self, name, props, resourcepath, clipboard, isFolder, imgIdx, parent, ftpConn, ftpObj, root):
         ExplorerNodes.ExplorerNode.__init__(self, name, resourcepath, clipboard, imgIdx,
               parent, props)
@@ -83,22 +76,33 @@ class FTPItemNode(ExplorerNodes.ExplorerNode):
     def isFolderish(self):
         return self.ftpObj.isFolder()
 
-    def createChildNode(self, obj, root):
-        item = FTPItemNode(obj.name, self.properties, self.resourcepath+'/'+obj.name,
-              self.clipboard, false, -1 , self, self.ftpConn, obj, root)
+    def getURI(self):
+        return '%s://%s%s%s' %(self.protocol, self.category, 
+              self.ftpObj.whole_name(), self.isFolderish() and '/' or '')
+
+    def createChildNode(self, obj, root, respath=None, createConnection=false):
+        if respath is None:
+            respath=self.resourcepath+'/'+obj.name
+        elif respath[0] != '/':
+            respath = '/'+respath
+
+        if createConnection:
+            item = FTPConnectionNode(obj.name, self.properties, respath, 
+                self.clipboard, self)
+        else:
+            item = FTPItemNode(obj.name, self.properties, respath,
+                  self.clipboard, false, -1 , self, self.ftpConn, obj, root)
+            
         if item.isFolderish():
-            item.imgIdx = EditorModels.FolderModel.imgIdx
+            item.imgIdx = EditorHelper.imgFolder
         else:
             item.imgIdx = EditorModels.identifyFile(obj.name, localfs=false)[0].imgIdx
-            #item.imgIdx = EditorModels.TextModel.imgIdx
+        item.category = self.category
+        item.bookmarks = self.bookmarks
         return item
 
     def openList(self, root = None):
-##        try:
         items = self.ftpConn.dir(self.ftpObj.whole_name())
-##        except ftplib.error_perm, resp:
-##            Utils.ShowMessage(None, 'FTP Error', str(resp))
-##            raise
 
         if not root: root = self.root
         self.cache = {}
@@ -120,8 +124,11 @@ class FTPItemNode(ExplorerNodes.ExplorerNode):
     def renameItem(self, name, newName):
         self.ftpConn.rename(self.cache[name].ftpObj, newName)
 
-##    def getTitle(self):
-##        return 'ftp:/'+ExplorerNodes.ExplorerNode.getTitle(self)
+    def newFolder(self, name):
+        self.ftpConn.add_folder(name, self.resourcepath)
+        
+    def newBlankDocument(self, name):
+        self.ftpConn.upload(name, self.resourcepath, ' ')
 
     def load(self, mode='rb'):
         try:
@@ -130,25 +137,45 @@ class FTPItemNode(ExplorerNodes.ExplorerNode):
             raise ExplorerNodes.TransportLoadError(error, self.ftpObj.whole_name())
 
     def save(self, filename, data, mode='wb'):
-        # XXX save under different filename not supported yet
+        if filename != self.ftpObj.whole_name():
+            self.ftpObj.path = os.path.dirname(filename)
+            self.ftpObj.name = os.path.basename(filename)
         try:
             self.ftpConn.save(self.ftpObj, data)
         except Exception, error:
             raise ExplorerNodes.TransportSaveError(error, self.ftpObj.whole_name())
 
+    def getNodeFromPath(self, respath):
+        isFolder = respath[-1] == '/'
+        if isFolder:
+            if respath != '/':
+                respath = respath[:-1]
+            return self.createChildNode(self.ftpConn.folder_item(os.path.dirname(respath), 
+                os.path.basename(respath)), self.root, respath)
+        else:
+            return self.createChildNode(self.ftpConn.add_doc(os.path.dirname(respath), 
+                os.path.basename(respath)), self.root, respath)
+
 
 class FTPConnectionNode(FTPItemNode):
-    def __init__(self, name, properties, clipboard, parent):
-        ftpConn = ZopeFTP()
-        ftpObj = ftpConn.folder_item(os.path.dirname(properties['path']),
-                                     os.path.basename(properties['path']))
-        #ftpObj.name
+    def __init__(self, name, properties, respath, clipboard, parent):
+        ftpConn = ZopeFTP.ZopeFTP()
+        ftpObj = ftpConn.folder_item(os.path.basename(respath),
+                                     os.path.dirname(respath))
         FTPItemNode.__init__(self, '', properties, ftpObj.path, clipboard, true,
-            EditorModels.imgFSDrive, parent, ftpConn, ftpObj, self)
+            EditorHelper.imgNetDrive, parent, ftpConn, ftpObj, self)
         self.connected = false
         self.treename = name
+        self.category = name
 
     def openList(self):
+        self.testConnect()
+        return FTPItemNode.openList(self, self)
+
+    def createChildNode(self, obj, root, respath=None):
+        return FTPItemNode.createChildNode(self, obj, root, respath, not self.connected)
+
+    def testConnect(self):
         if not self.connected:
             try:
                 props = self.properties
@@ -158,7 +185,9 @@ class FTPConnectionNode(FTPItemNode):
             except Exception, message:
                 wxMessageBox(`message.args`, 'Error on connect')
                 raise
-        return FTPItemNode.openList(self, self)
+            else:
+                self.connected = true
+            
 
 class FTPExpClipboard(ExplorerNodes.ExplorerClipboard):
     def pasteFileSysFolder(self, folderpath, nodepath, ftpConn):
@@ -180,4 +209,3 @@ class FTPExpClipboard(ExplorerNodes.ExplorerClipboard):
                 self.pasteFileSysFolder(file.resourcepath, nodepath, node.ftpConn)
             else:
                 node.ftpConn.upload(file.resourcepath, nodepath)
- 
