@@ -1,5 +1,11 @@
 import string
 import re
+import sys
+
+if sys.version[:2] == '2.':
+    tb_id = 'Traceback (most recent call last):'
+else:
+    tb_id = 'Traceback (innermost last):'
 
 fileLine = re.compile('  File "(?P<filename>.+)", line (?P<lineno>[0-9]+)')
 
@@ -67,7 +73,7 @@ def errorList(stderr):
     print lines
     lines.reverse()
     for line in lines:
-        if string.strip(line) == 'Traceback (innermost last):':
+        if string.strip(line) == tb_id:
             errs.append(currerr)
             currerr = []
         else:
@@ -88,7 +94,7 @@ def test():
         def readlines(self):
             return self.data
             
-    tb = ['Traceback (innermost last):\n',
+    tb = [tb_id+'\n',
           '  File "Views\AppViews.py", line 172, in OnRun\n',
           '    self.model.run()\n',
           '  File "EditorModels.py", line 548, in run\n',
@@ -96,7 +102,7 @@ def test():
           '  File "EditorModels.py", line 513, in checkError\n',
           '    err.parse()\n',
           'AttributeError: parse\n',
-          'Traceback (innermost last):\n',
+          tb_id+'\n',
           '  File "Views\AppViews.py", line 172, in OnRun\n',
           '    self.model.run()\n',
           '  File "EditorModels.py", line 548, in run\n',
