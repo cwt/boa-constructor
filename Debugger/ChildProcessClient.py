@@ -90,7 +90,12 @@ def spawnChild(monitor, process, args=''):
                     try:
                         exctype, excvalue = errlines[-1].split(':')
                     except ValueError:
-                        raise UnknownError, errlines[-1]
+                        # XXX non standard output on stderr
+                        # XXX possibly warnings
+                        # XXX for now ignore it (it's non fatal)
+                        
+                        #raise UnknownError, errlines[-1]
+                        continue
                         
                     while errlines and errlines[-1][:7] != '  File ':
                         del errlines[-1]
