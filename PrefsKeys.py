@@ -59,12 +59,16 @@ if wxPlatform == '__WXMSW__':
     keyDefs.update({'SaveAs'      : (wxACCEL_ALT, ord('S'), 'Alt-S'),
                     'Comment'     : (wxACCEL_ALT, ord('3'), 'Alt-3'),
                     'Uncomment'   : (wxACCEL_ALT, ord('4'), 'Alt-4'),
-                    'SwitchToApp' : (wxACCEL_ALT, ord('A'), 'Alt-A')})
+                    'SwitchToApp' : (wxACCEL_ALT, ord('A'), 'Alt-A'),
+                    'CodeComplete': (wxACCEL_ALT, ord('C'), 'Alt-C'),
+                  })
 elif wxPlatform == '__WXGTK__':
     keyDefs.update({'SaveAs'      : (wxACCEL_CTRL, ord('1'), 'Ctrl-1'),
                     'Comment'     : (wxACCEL_CTRL, ord('3'), 'Ctrl-3'),
                     'Uncomment'   : (wxACCEL_CTRL, ord('4'), 'Ctrl-4'),
-                    'SwitchToApp' : (wxACCEL_CTRL, ord('5'), 'Ctrl-5')})
+                    'SwitchToApp' : (wxACCEL_CTRL, ord('5'), 'Ctrl-5'),
+                    'CodeComplete': (wxACCEL_CTRL, ord('E'), 'Ctrl-E'),
+                  })
 
 # Not used yet, defined for compleness
 stcDefs = {'Cut'        : 'Shft-Del',
