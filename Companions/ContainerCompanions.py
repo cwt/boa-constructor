@@ -24,6 +24,8 @@ from EventCollections import *
 from PropEdit.PropertyEditors import *
 from PropEdit.Enumerations import *
 
+import methodparse, sourceconst
+
 EventCategories['PanelEvent'] = (EVT_SYS_COLOUR_CHANGED,)
 
 class PanelDTC(WindowConstr, ContainerDTC):
@@ -645,9 +647,19 @@ class SplitterWindowDTC(SplitterWindowConstr, ContainerDTC):
             ctrl.Unsplit()
 
         if sm == wxSPLIT_VERTICAL:
-            ctrl.SplitVertically(window1, window2, sp)
+            splitMeth = ctrl.SplitVertically
         elif sm == wxSPLIT_HORIZONTAL:
-            ctrl.SplitHorizontally(window1, window2, sp)
+            splitMeth = ctrl.SplitHorizontally
+        else:
+            return
+        
+        if window1 and window2:
+            splitMeth(window1, window2, sp)
+        elif window1 or window2:
+            if window1:
+                ctrl.Initialize(window1)
+            else:
+                ctrl.Initialize(window2)
 
         if window1: window1.Show(true)
         if window2: window2.Show(true)
@@ -671,6 +683,7 @@ class SplitterWindowDTC(SplitterWindowConstr, ContainerDTC):
         return self.win1
 
     def SetWindow1(self, value):
+        # XXX check win1!=win2
         self.win1 = value
         w2 = self.GetWindow2(None)
         if value:
@@ -749,7 +762,7 @@ class ToolBarToolsCDTC(ToolBarToolsConstr, CollectionIddDTC):
                 'longHelpString': `''`}
 
     def finaliser(self):
-        return ['', '        parent.Realize()']
+        return ['', sourceconst.bodyIndent+'parent.Realize()']
 
     def appendItem(self):
         CollectionIddDTC.appendItem(self)
@@ -814,10 +827,11 @@ class StatusBarFieldsCDTC(StatusBarFieldsConstr, CollectionDTC):
                 'text': `'%s%d'%(self.propName, wId)`}
 
     def initialiser(self):
-        return ['        parent.SetFieldsCount(%d)'%self.getCount()]+CollectionDTC.initialiser(self)
+        return [sourceconst.bodyIndent+'parent.SetFieldsCount(%d)'%(
+                self.getCount())]+CollectionDTC.initialiser(self)
 
     def finaliser(self):
-        return ['', '        parent.SetStatusWidths(%s)'%`self.widths`]
+        return ['', sourceconst.bodyIndent+'parent.SetStatusWidths(%s)'%`self.widths`]
 
     def appendItem(self):
         self.widths.append(-1)
