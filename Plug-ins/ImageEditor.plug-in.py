@@ -198,7 +198,7 @@ class ImageEditorPanel(wxPanel):
         # Default back to png when opening data from source
         if ext == '.py':
             ext = '.png'
-        
+
         self.imgExt = ext
 
         self.editWindow.Refresh()
@@ -448,7 +448,7 @@ class ImageEditorPanel(wxPanel):
                     self.mDC.SetPen(self.fgpen)
                     self.mDC.SetUserScale(1.0, 1.0)
                     self.mDC.SetBrush(self.brush)
-                    self.mDC.DrawEllipse(int(x1-rad+0.5), int(y1-rad+0.5), 
+                    self.mDC.DrawEllipse(int(x1-rad+0.5), int(y1-rad+0.5),
                                          int(rad*2), int(rad*2))
 
                     x, y, rad = self.circle
@@ -768,7 +768,7 @@ class ImageEditorPanel(wxPanel):
 
         self.updateImageInfo()
         self.imageModified()
-        
+
     def OnClearTransparentMask(self, event):
         self.mDC.SelectObject(wxNullBitmap)
         self.bmp.SetMask(None)
@@ -923,7 +923,7 @@ class ImageEditorView(ImageEditorPanel, EditorViews.EditorView):
 
         self.active = true
         self.subImage = None
-    
+
     def refreshCtrl(self, subImage=None):
         if subImage is None and self.subImage is None:
             data = self.model.data
@@ -944,9 +944,9 @@ class ImageEditorView(ImageEditorPanel, EditorViews.EditorView):
         ext = os.path.splitext(self.model.filename)[-1]
         if ext == '.py':
             ext = '.png'
-        
+
         data = self.getImageData(ext)
-        
+
         if self.subImage:
             modelData = self.subImage['data']
         else:
@@ -1017,15 +1017,15 @@ def ConvertImgToPy(imgPath, editor):
     if ok:
         if pyResPath.find('://') != -1:
             pyResPath = pyResPath.split('://', 1)[1]
-    
+
         # snip script usage, leave only options
         docs = img2py.__doc__[img2py.__doc__.find('Options:')+11:]
-        
+
         cmdLine = zopt+'-n %s'%(os.path.basename(os.path.splitext(imgPath)[0]))
         if os.path.exists(pyResPath):
             cmdLine = '-a ' + cmdLine
 
-        dlg = wxTextEntryDialog(editor, 
+        dlg = wxTextEntryDialog(editor,
               'Options:\n\n%s\n\nEdit options string:'%docs, 'img2py', cmdLine)
         try:
             if dlg.ShowModal() != wxID_OK:
@@ -1036,14 +1036,14 @@ def ConvertImgToPy(imgPath, editor):
 
         opts = cmdLine.split()
         opts.extend([imgPath, pyResPath])
-        
+
         tmp = sys.argv[0]
         sys.argv[0] = 'Boa Constructor'
         try:
             img2py.main(opts)
         finally:
             sys.argv[0] = tmp
-            
+
         import sourceconst
         header = (sourceconst.defSig%{'modelIdent':'PyImgResource', 'main':''}).strip()
         src = open(pyResPath, 'r').readlines()
@@ -1062,7 +1062,7 @@ class CloseableImageEditorView(ImageEditorView, EditorViews.CloseableViewMix):
 
 
 from Models import ResourceSupport
-    
+
 class PyResourceImagesViewPlugin:
     editImgBmp = 'Images/EditBitmap.png'
 
@@ -1070,7 +1070,7 @@ class PyResourceImagesViewPlugin:
         self.model = model
         self.view = view
         actions.extend( (
-              ('Edit image', self.OnEditImage, self.editImgBmp, ''), 
+              ('Edit image', self.OnEditImage, self.editImgBmp, ''),
         ) )
 
     def OnEditImage(self, event):
@@ -1087,8 +1087,8 @@ class PyResourceImagesViewPlugin:
                 view.tabName = view.viewName = viewName
                 data = self.view.functions.imageFunctions['get%sData'%name]()
                 subImage = {'data': data, 'name': name, 'start': dataStartLn+1,
-                            'end': bmpStartLine-2, 'zip': zipped, 
-                            'icon': icon, 'cat': self.view.cataloged, 
+                            'end': bmpStartLine-2, 'zip': zipped,
+                            'icon': icon, 'cat': self.view.cataloged,
                             'eol': self.view.eol}
                 view.refreshCtrl(subImage)
             else:
@@ -1118,7 +1118,6 @@ def getEditBitmapData():
 \xf0\x97\xe0(\xb8\x97RR0\x18f\xe0\x8f\x13\xfe\xfb\x84\x11\xdewp\x9f\xe1\x9f\
 \x82\x0c\xfcU\x90\x85?\nV\xe07\xc1*<\t\xfa\xbfZ\x1e\x86\xe1\x0e$M\'\x9a\x81{\
 \xc1x\xdf\xee\x9e\x86{\x81\xa4pwZkip\x12\\\x99\'\xc3{a\x05\x01 \x1c\xda\x00\
-\x00\x00\x00IEND\xaeB`\x82' 
+\x00\x00\x00IEND\xaeB`\x82'
 
 Preferences.IS.registerImage('Images/EditBitmap.png', getEditBitmapData())
-

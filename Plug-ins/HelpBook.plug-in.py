@@ -6,7 +6,7 @@
 #
 # Created:     2003
 # RCS-ID:      $Id$
-# Copyright:   (c) 2003
+# Copyright:   (c) 2003 - 2004
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 #Boa:Dialog:HelpBookItemDlg
@@ -427,7 +427,12 @@ class HTBHelpBookModel(HelpBookModel):
     def save(self, overwriteNewer=False):
         pass
 
-##        if self.GetItemCount():##            itemFrom = self.GetTopItem()##            itemTo   = self.GetTopItem()+1 + self.GetCountPerPage()##            itemTo   = min(itemTo, self.GetItemCount()-1)##            self.RefreshItems(itemFrom, itemTo)
+##        if self.GetItemCount():
+##            itemFrom = self.GetTopItem()
+##            itemTo   = self.GetTopItem()+1 + self.GetCountPerPage()
+##            itemTo   = min(itemTo, self.GetItemCount()-1)
+##            self.RefreshItems(itemFrom, itemTo)
+
 
 class HelpBookFilesView(EditorViews.VirtualListCtrlView):
     viewName = 'Files'

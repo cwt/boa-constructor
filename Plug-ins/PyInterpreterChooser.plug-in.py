@@ -6,7 +6,7 @@
 #
 # Created:     2003/07/20
 # RCS-ID:      $Id$
-# Copyright:   (c) 2003
+# Copyright:   (c) 2003 - 2004
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 #Boa:Dialog:PyInterpreterChooserDlg
