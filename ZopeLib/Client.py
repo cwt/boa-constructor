@@ -109,7 +109,7 @@ import sys, re, socket, mimetools
 from httplib import HTTP
 from os import getpid
 from time import time
-from whrandom import random
+from random import random
 from base64 import encodestring
 from urllib import urlopen, quote
 from types import FileType, ListType, DictType, TupleType

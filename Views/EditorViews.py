@@ -6,12 +6,12 @@
 #
 # Created:     1999
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999 - 2004 Riaan Booysen
+# Copyright:   (c) 1999 - 2005 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
 print 'importing Views'
 
-import os
+import os, sys
 
 from wxPython.wx import *
 from wxPython.html import *
@@ -167,7 +167,10 @@ class EditorView:
     def generateMenu(self):
         menu = wxMenu()
         for wId, name, code, bmp, canCheck in self.menuDefn:
-            Utils.appendMenuItem(menu, wId, name, code, bmp)
+            if name != '-':
+                Utils.appendMenuItem(menu, wId, name, code, bmp)
+            else:
+                menu.AppendSeparator()
         return menu
 
     def addViewMenus(self):

@@ -6,7 +6,7 @@
 #
 # Created:     2001/29/08
 # RCS-ID:      $Id$
-# Copyright:   (c) 2001 - 2004 Tim Hochberg
+# Copyright:   (c) 2001 - 2005 Tim Hochberg
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 #Boa:Dialog:FindReplaceDlg
@@ -480,10 +480,10 @@ class FindReplaceDlg(wxDialog):
         self.engine.selection = self.scopeRB.GetSelection()
 
     def OnWrapcbCheckbox(self, event):
-        self.engine.wrap = self.wrapCB.GetValue()
+        self.engine.wrap = int(self.wrapCB.GetValue())
 
     def OnCloseonfoundcbCheckbox(self, event):
-        self.engine.closeOnFound = self.closeOnFoundCB.GetValue()
+        self.engine.closeOnFound = int(self.closeOnFoundCB.GetValue())
 
     _fudgeOffset = 6
     def _checkSelectionDlgOverlap(self):
@@ -496,8 +496,8 @@ class FindReplaceDlg(wxDialog):
                 selSize = wxSize(self.view.ClientToScreen(
                       self.view.PointFromPosition(selEnd)).x - selPos.x, chrHeight)
                 dlgPos, dlgSize = self.GetPosition(), self.GetSize()
-                r = wxIntersectRect((selPos.x, selPos.y, selSize.x, selSize.y),
-                                    (dlgPos.x, dlgPos.y, dlgSize.x, dlgSize.y))
+                r = wxIntersectRect(wxRect(selPos.x, selPos.y, selSize.x, selSize.y),
+                                    wxRect(dlgPos.x, dlgPos.y, dlgSize.x, dlgSize.y))
                 if r is not None:
                     # simply moves dialog above or below selection
                     # sometimes rather moving it to the sides would be more

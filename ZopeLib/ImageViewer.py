@@ -70,5 +70,5 @@ if __name__ == '__main__':
     wxInitAllImageHandlers()
     frame = create(None)
     frame.Show(true)
-    frame.showImage('../Images/Modules/wxFrame_s.png')
+    frame.showImage('../Images/Modules/wx.Frame.png')
     app.MainLoop()

@@ -6,7 +6,7 @@
 #
 # Created:     2002/02/09
 # RCS-ID:      $Id$
-# Copyright:   (c) 2002 - 2004
+# Copyright:   (c) 2002 - 2005
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 
@@ -131,7 +131,7 @@ class BaseFrameModel(ClassModel):
                 raise 'Collection body %s not in init, body, fin form' % meth
 
             allInitialisers, unmatched = methodparse.parseMixedBody(\
-             [methodparse.CollectionItemInitParse, methodparse.EventParse],body)
+             [methodparse.EventParse, methodparse.CollectionItemInitParse],body)
 
             creators = allInitialisers.get(methodparse.CollectionItemInitParse, [])
             collectionInits = []
@@ -435,15 +435,15 @@ class BaseFrameModel(ClassModel):
 
 class FrameModel(BaseFrameModel):
     modelIdentifier = 'Frame'
-    defaultName = 'wxFrame'
-    bitmap = 'wxFrame_s.png'
+    defaultName = 'wx.Frame'
+    bitmap = 'wx.Frame.png'
     imgIdx = imgFrameModel
     Companion = FrameCompanions.FrameDTC
 
 class DialogModel(BaseFrameModel):
     modelIdentifier = 'Dialog'
-    defaultName = 'wxDialog'
-    bitmap = 'wxDialog_s.png'
+    defaultName = 'wx.Dialog'
+    bitmap = 'wx.Dialog.png'
     imgIdx = imgDialogModel
     dialogLook = true
     Companion = FrameCompanions.DialogDTC
@@ -453,30 +453,30 @@ class DialogModel(BaseFrameModel):
 
 class MiniFrameModel(BaseFrameModel):
     modelIdentifier = 'MiniFrame'
-    defaultName = 'wxMiniFrame'
-    bitmap = 'wxMiniFrame_s.png'
+    defaultName = 'wx.MiniFrame'
+    bitmap = 'wx.MiniFrame.png'
     imgIdx = imgMiniFrameModel
     Companion = FrameCompanions.MiniFrameDTC
 
 class MDIParentModel(BaseFrameModel):
     modelIdentifier = 'MDIParent'
-    defaultName = 'wxMDIParentFrame'
-    bitmap = 'wxMDIParentFrame_s.png'
+    defaultName = 'wx.MDIParentFrame'
+    bitmap = 'wx.MDIParentFrame.png'
     imgIdx = imgMDIParentModel
     Companion = FrameCompanions.MDIParentFrameDTC
 
 class MDIChildModel(BaseFrameModel):
     modelIdentifier = 'MDIChild'
-    defaultName = 'wxMDIChildFrame'
-    bitmap = 'wxMDIChildFrame_s.png'
+    defaultName = 'wx.MDIChildFrame'
+    bitmap = 'wx.MDIChildFrame.png'
     imgIdx = imgMDIChildModel
     dialogLook = true
     Companion = FrameCompanions.MDIChildFrameDTC
 
 class PopupWindowModel(BaseFrameModel):
     modelIdentifier = 'PopupWindow'
-    defaultName = 'wxPopupWindow'
-    bitmap = 'wxPopupWindow_s.png'
+    defaultName = 'wx.PopupWindow'
+    bitmap = 'wx.PopupWindow.png'
     imgIdx = imgPopupWindowModel
     dialogLook = true
     Companion = FrameCompanions.PopupWindowDTC
@@ -486,8 +486,8 @@ class PopupWindowModel(BaseFrameModel):
 
 class PopupTransientWindowModel(BaseFrameModel):
     modelIdentifier = 'PopupTransientWindow'
-    defaultName = 'wxPopupTransientWindow'
-    bitmap = 'wxPopupTransientWindow_s.png'
+    defaultName = 'wx.PopupTransientWindow'
+    bitmap = 'wx.PopupTransientWindow.png'
     imgIdx = imgPopupTransientWindowModel
     dialogLook = true
     Companion = FrameCompanions.PopupWindowDTC
@@ -497,8 +497,8 @@ class PopupTransientWindowModel(BaseFrameModel):
 
 class AppModel(BaseAppModel):
     modelIdentifier = 'App'
-    defaultName = 'wxApp'
-    bitmap = 'wxApp_s.png'
+    defaultName = 'wx.App'
+    bitmap = 'wx.App.png'
     imgIdx = imgAppModel
 
     def renameMain(self, oldName, newName):
@@ -519,8 +519,8 @@ class AppModel(BaseAppModel):
 
 class FramePanelModel(BaseFrameModel):
     modelIdentifier = 'FramePanel'
-    defaultName = 'wxPanel'
-    bitmap = 'wxFramePanel_s.png'
+    defaultName = 'wx.Panel'
+    bitmap = 'wx.FramePanel.png'
     imgIdx = imgFramePanelModel
     dialogLook = true
     Companion = FrameCompanions.FramePanelDTC
@@ -536,12 +536,12 @@ class FramePanelModel(BaseFrameModel):
     def getSimpleRunnerSrc(self):
         return ''
 
-sourceconst.defWizardImport = sourceconst.wsfix('\nfrom wxPython.wizard import *\n')
+sourceconst.defWizardImport = sourceconst.wsfix('\nimport wx.wizard\n')
 
 class WizardModel(DialogModel):
     modelIdentifier = 'Wizard'
-    defaultName = 'wxWizard'
-    bitmap = 'wxWizard_s.png'
+    defaultName = 'wx.Wizard'
+    bitmap = 'wx.wizard.Wizard.png'
     imgIdx = imgWizardModel
     dialogLook = true
     Companion = WizardCompanions.WizardDTC
@@ -564,8 +564,8 @@ sourceconst.defPyWizPageClass = sourceconst.defClass+sourceconst.wsfix('''
 
 class PyWizardPageModel(FramePanelModel):
     modelIdentifier = 'PyWizardPage'
-    defaultName = 'wxPyWizardPage'
-    bitmap = 'wxPyWizardPage_s.png'
+    defaultName = 'wx.PyWizardPage'
+    bitmap = 'wx.wizard.PyWizardPage.png'
     imgIdx = imgPyWizardPageModel
     dialogLook = true
     Companion = WizardCompanions.PyWizardPageDTC
@@ -581,8 +581,8 @@ class PyWizardPageModel(FramePanelModel):
 
 class WizardPageSimpleModel(FramePanelModel):
     modelIdentifier = 'WizardPageSimple'
-    defaultName = 'wxWizardPageSimple'
-    bitmap = 'wxWizardPageSimple_s.png'
+    defaultName = 'wx.WizardPageSimple'
+    bitmap = 'wx.wizard.WizardPageSimple.png'
     imgIdx = imgWizardPageSimpleModel
     dialogLook = true
     Companion = WizardCompanions.WizardPageSimpleDTC

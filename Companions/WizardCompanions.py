@@ -6,7 +6,7 @@
 #
 # Created:     2003
 # RCS-ID:      $Id$
-# Copyright:   (c) 2003 - 2004
+# Copyright:   (c) 2003 - 2005
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 
@@ -29,8 +29,10 @@ wizardPageSize = (270, 300)
 wizardFrameStyle = wxMINIMIZE_BOX | wxSYSTEM_MENU | wxCAPTION #wxMAXIMIZE_BOX
 
 EventCollections.EventCategories['WizardEvent'] = (
-      EVT_WIZARD_PAGE_CHANGED, EVT_WIZARD_PAGE_CHANGING, EVT_WIZARD_CANCEL, 
-      EVT_WIZARD_HELP, EVT_WIZARD_FINISHED)
+      'wx.wizard.EVT_WIZARD_PAGE_CHANGED', 'wx.wizard.EVT_WIZARD_PAGE_CHANGING', 
+      'wx.wizard.EVT_WIZARD_CANCEL', 'wx.wizard.EVT_WIZARD_HELP', 
+      'wx.wizard.EVT_WIZARD_FINISHED')
+      
 EventCollections.commandCategories.append('WizardEvent')
 
 class WizardDTC(DialogDTC): 
@@ -48,7 +50,7 @@ class WizardDTC(DialogDTC):
     def designTimeSource(self):
         return {'title': `self.name`,
                 'pos':   `wxDefaultFramePos`,
-                'bitmap': 'wxNullBitmap'}
+                'bitmap': 'wx.NullBitmap'}
 
     def hideDesignTime(self):
         return DialogDTC.hideDesignTime(self) + ['Size', 'ClientSize']
@@ -71,7 +73,7 @@ class PyWizardPageDTC(FramePanelDTC):
         return {'Bitmap': 'bitmap', 'Resource': 'resource'}
 
     def designTimeSource(self):
-        return {'bitmap': 'wxNullBitmap', 'resource': "''"}
+        return {'bitmap': 'wx.NullBitmap', 'resource': "''"}
 
     def hideDesignTime(self):
         return FramePanelDTC.hideDesignTime(self) + ['Position', 'Size', 'ClientSize']
@@ -98,8 +100,8 @@ class WizardPageSimpleDTC(FramePanelDTC):
 import PaletteStore
 
 PaletteStore.compInfo.update({   
-    wxWizard: ['wxWizard', WizardDTC],
-    wxPyWizardPage: ['wxPyWizardPage', PyWizardPageDTC],
-    wxWizardPageSimple: ['wxWizardPageSimple', WizardPageSimpleDTC],
+    wxWizard: ['wx.wizard.Wizard', WizardDTC],
+    wxPyWizardPage: ['wx.wizard.PyWizardPage', PyWizardPageDTC],
+    wxWizardPageSimple: ['wx.wizard.WizardPageSimple', WizardPageSimpleDTC],
 })
 

@@ -6,7 +6,7 @@
 #
 # Created:     1999
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999 - 2004 Riaan Booysen
+# Copyright:   (c) 1999 - 2005 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
 """
@@ -70,6 +70,7 @@ class PropertyRegistry:
             print 'Error on accessing Getter for', name, ':', message
             value = None
 
+        #2.4
         if type(value) == InstanceType:
             if self.classRegistry.has_key(value.__class__.__name__):
                 return self.classRegistry[value.__class__.__name__](name,
@@ -77,6 +78,14 @@ class PropertyRegistry:
             else:
                 pass
 ##                print 'e:class', value, value.__class__.__name__, 'for', name, 'not supported'
+        #2.5
+        if self.typeRegistry.has_key(type(value)):
+            return self.typeRegistry[type(value)](name, parent, companion,
+              rootCompanion, propWrapper, idx, width)
+        elif isinstance(value, object):
+            if self.classRegistry.has_key(value.__class__.__name__):
+                return self.classRegistry[value.__class__.__name__](name,
+                  parent, companion, rootCompanion, propWrapper, idx, width)
         else:
             if type(value) == type(None):
                 return None
@@ -129,10 +138,10 @@ class PropertyEditor:
             self.obj.Refresh()
 
     def isValuesEqual(self, propVal, ctrlVal):
-        if isinstance(propVal, wxFontPtr) and isinstance(ctrlVal, wxFontPtr):
+        if isinstance(propVal, wxFont) and isinstance(ctrlVal, wxFont):
             return fontAsExpr(propVal) == fontAsExpr(ctrlVal)
-        elif isinstance(propVal, (types.StringType, types.UnicodeType)) and \
-             isinstance(ctrlVal, (types.StringType, types.UnicodeType)):
+        elif isinstance(propVal, (StringType, UnicodeType)) and \
+             isinstance(ctrlVal, (StringType, UnicodeType)):
             return propVal == ctrlVal
         else:
             return propVal == ctrlVal
@@ -355,7 +364,7 @@ class ColourConfPropEdit(ConfPropEdit):
             if dlg.ShowModal() == wxID_OK:
                 col = dlg.GetColourData().GetColour()
                 self.editorCtrl.value = \
-                      'wxColour(%d, %d, %d)'%(col.Red(),col.Green(),col.Blue())
+                      'wx.Colour(%d, %d, %d)'%(col.Red(),col.Green(),col.Blue())
                 self.inspectorPost(false)
         finally:
             dlg.Destroy()
@@ -488,7 +497,7 @@ class ColourConstrPropEdit(ConstrPropEdit):
         try:
             if dlg.ShowModal() == wxID_OK:
                 col = dlg.GetColourData().GetColour()
-                self.value = 'wxColour(%d, %d, %d)'%(col.Red(),col.Green(),col.Blue())
+                self.value = 'wx.Colour(%d, %d, %d)'%(col.Red(),col.Green(),col.Blue())
                 self.editorCtrl.setValue(self.value)
                 self.inspectorPost(false)
         finally:
@@ -560,15 +569,15 @@ class SBFWidthConstrPropEdit(IntConstrPropEdit):
 class ClassLinkConstrPropEdit(IntConstrPropEdit): pass
 
 class BitmapPropEditMix:
-    extTypeMap = {'.bmp': 'wxBITMAP_TYPE_BMP',
-                  '.gif': 'wxBITMAP_TYPE_GIF',
-                  '.jpg': 'wxBITMAP_TYPE_JPEG',
-                  '.png': 'wxBITMAP_TYPE_PNG',
+    extTypeMap = {'.bmp': 'wx.BITMAP_TYPE_BMP',
+                  '.gif': 'wx.BITMAP_TYPE_GIF',
+                  '.jpg': 'wx.BITMAP_TYPE_JPEG',
+                  '.png': 'wx.BITMAP_TYPE_PNG',
                   '.py':  'ResourceModule'}
 
-    srcClass = 'wxBitmap'
+    srcClass = 'wx.Bitmap'
     ctrlClass = wxBitmap
-    nullClass = 'wxNullBitmap'
+    nullClass = 'wx.NullBitmap'
 
     onlyIcons = false
 
@@ -635,11 +644,11 @@ class BitmapPropEditMix:
         if src:
             if src.startswith(self.nullClass):
                 return os.path.join('.', self.nullClass, 'Bitmap'), '.', '', 'Bitmap'
-            elif src.startswith('wxBitmap(') or src.startswith('wxIcon('):
-                if src.startswith('wxBitmap('):
-                    filename = src[len('wxBitmap(')+1:]
+            elif src.startswith('wx.Bitmap(') or src.startswith('wx.Icon('):
+                if src.startswith('wx.Bitmap('):
+                    filename = src[len('wx.Bitmap(')+1:]
                 else:
-                    filename = src[len('wxIcon(')+1:]
+                    filename = src[len('wx.Icon(')+1:]
                     
                 pth = filename[:filename.rfind(',')-1]
                 if not os.path.isabs(pth):
@@ -747,8 +756,8 @@ class BitmapConstrPropEdit(IntConstrPropEdit, BitmapPropEditMix):
         elif tpe == 'ResourceModule':
             self.value, ctrlVal, bmpPath = self.assureResourceLoaded(abspth, pth)
         elif abspth:
-            self.value = 'wxBitmap(%s, %s)'%(`pth`, tpe)
-            ctrlVal = wxBitmap(abspth, getattr(wx, tpe))
+            self.value = 'wx.Bitmap(%s, %s)'%(`pth`, tpe)
+            ctrlVal = wxBitmap(abspth, self.companion.eval(tpe))
 
         self.persistValue(self.value)
         self.propWrapper.setValue(ctrlVal, self.companion.index)
@@ -768,7 +777,7 @@ class BitmapPropEdit(PropertyEditor, BitmapPropEditMix):
 ##        return ClassPropEdit.getStyle(self) + [esDialog, esReadOnly]
 
     def getDisplayValue(self):
-        return '(%sPtr)'%self.srcClass
+        return '(%s)'%self.srcClass
 
     def inspectorEdit(self):
         self.editorCtrl = ButtonIEC(self, self.value)
@@ -797,7 +806,7 @@ class BitmapPropEdit(PropertyEditor, BitmapPropEditMix):
         if tpe == 'ResourceModule':
             self.value, self.bmpPath = self.assureResourceLoaded(abspth, pth)[1:]
         else:
-            self.value = self.ctrlClass(abspth, getattr(wx, tpe))
+            self.value = self.ctrlClass(abspth, self.companion.eval(tpe))
             self.bmpPath = os.path.join(pth, 'Bitmap')
         self.inspectorPost(false)
 
@@ -827,12 +836,12 @@ class BitmapPropEdit(PropertyEditor, BitmapPropEditMix):
             return self.nullClass
 
 class IconPropEdit(BitmapPropEdit):
-    srcClass = 'wxIcon'
+    srcClass = 'wx.Icon'
     ctrlClass = wxIcon
-    nullClass = 'wxNullIcon'
+    nullClass = 'wx.NullIcon'
     onlyIcons = true
 
-    extTypeMap = {'.ico': 'wxBITMAP_TYPE_ICO',
+    extTypeMap = {'.ico': 'wx.BITMAP_TYPE_ICO',
                   '.py':  'ResourceModule'}
 
 
@@ -884,8 +893,8 @@ class ClassConstrPropEdit(ConstrPropEdit):
         for name, Cls in custClss.items():
             if MyCls == Cls:
                 vals.append(name)
-        vals.remove(MyCls.__name__)
-        vals.insert(0, MyCls.__name__)
+        vals.remove(Utils.getWxPyNameForClass(MyCls))
+        vals.insert(0, Utils.getWxPyNameForClass(MyCls))
         return vals
 
 
@@ -968,7 +977,7 @@ class ObjEnumConstrPropEdit(EnumConstrPropEdit):
 class WinEnumConstrPropEdit(ObjEnumConstrPropEdit):
     def getObjects(self):
         return ['None'] + self.companion.designer.getObjectsOfClassWithParent(
-                                wxWindowPtr, self.companion.name).keys()
+                                wxWindow, self.companion.name).keys()
     def getCtrlValue(self):
         return self.companion.GetOtherWin()
     def setCtrlValue(self, oldValue, value):
@@ -976,7 +985,7 @@ class WinEnumConstrPropEdit(ObjEnumConstrPropEdit):
 
 class MenuEnumConstrPropEdit(ObjEnumConstrPropEdit):
     def getValues(self):
-        return ['wxMenu()'] + ObjEnumConstrPropEdit.getValues(self)
+        return ['wx.Menu()'] + ObjEnumConstrPropEdit.getValues(self)
     def getObjects(self):
         menus = self.companion.designer.getObjectsOfClass(wxMenu).keys()
         if isinstance(self.companion.control, wxMenu):
@@ -1067,6 +1076,24 @@ class StrConstrPropEdit(ConstrPropEdit):
         else:
             self.value = self.getCtrlValue()
         return self.value
+
+class SizeConstrPropEdit(ConstrPropEdit):
+    def inspectorEdit(self):
+        self.editorCtrl = TextCtrlIEC(self, self.value)
+        self.editorCtrl.createControl(self.parent, self.value, self.idx,
+          self.width)
+
+    def getValue(self):
+        if self.editorCtrl:
+            try:
+                self.value = self.editorCtrl.getValue()
+            except Exception, message:
+                self.value = self.getCtrlValue()
+                print 'invalid constr prop value', message
+        else:
+            self.value = self.getCtrlValue()
+        return self.value
+
 
 # XXX Check for name conflicts
 class NameConstrPropEdit(StrConstrPropEdit):
@@ -1450,7 +1477,7 @@ class ClassLinkPropEdit(OptionedPropEdit):
                 return k
         objs = self.companion.designer.getObjectsOfClass(LinkClass)
         for objName in objs.keys():
-            if objs[objName] and value and objs[objName].this == value.this:
+            if objs[objName] and value and objs[objName] == value:
                 return objName
         return `None`
     
@@ -1480,7 +1507,7 @@ class ClassLinkPropEdit(OptionedPropEdit):
         return self.value
 
 class WindowClassLinkPropEdit(ClassLinkPropEdit):
-    linkClass = wxWindowPtr
+    linkClass = wxWindow
 
 class WindowClassLinkWithParentPropEdit(WindowClassLinkPropEdit):
     def getValues(self):
@@ -1488,34 +1515,34 @@ class WindowClassLinkWithParentPropEdit(WindowClassLinkPropEdit):
                self.linkClass, self.companion.name).keys()
 
 class StatusBarClassLinkPropEdit(ClassLinkPropEdit):
-    linkClass = wxStatusBarPtr
+    linkClass = wxStatusBar
 
 class ToolBarClassLinkPropEdit(ClassLinkPropEdit):
-    linkClass = wxToolBarBasePtr
+    linkClass = wxToolBarBase
 
 class MenuBarClassLinkPropEdit(ClassLinkPropEdit):
-    linkClass = wxMenuBarPtr
+    linkClass = wxMenuBar
 
 class ImageListClassLinkPropEdit(ClassLinkPropEdit):
-    linkClass = wxImageListPtr
+    linkClass = wxImageList
 
 class ButtonClassLinkPropEdit(ClassLinkPropEdit):
-    linkClass = wxButtonPtr
+    linkClass = wxButton
 
 class CursorClassLinkPropEdit(ClassLinkPropEdit):
-    defaults = {'None': wxNullCursor, 'wxSTANDARD_CURSOR': wxSTANDARD_CURSOR,
-                'wxHOURGLASS_CURSOR': wxHOURGLASS_CURSOR,
-                'wxCROSS_CURSOR': wxCROSS_CURSOR}
-    linkClass = wxCursorPtr
+    defaults = {'None': wxNullCursor, 'wx.STANDARD_CURSOR': wxSTANDARD_CURSOR,
+                'wx.HOURGLASS_CURSOR': wxHOURGLASS_CURSOR,
+                'wx.CROSS_CURSOR': wxCROSS_CURSOR}
+    linkClass = wxCursor
 
 class ListCtrlImageListClassLinkPropEdit(ImageListClassLinkPropEdit):
-    listTypeMap = {wxIMAGE_LIST_SMALL : 'wxIMAGE_LIST_SMALL',
-                   wxIMAGE_LIST_NORMAL: 'wxIMAGE_LIST_NORMAL'}
+    listTypeMap = {wxIMAGE_LIST_SMALL : 'wx.IMAGE_LIST_SMALL',
+                   wxIMAGE_LIST_NORMAL: 'wx.IMAGE_LIST_NORMAL'}
     def valueToIECValue(self):
         if self.value[0] is None: return `None`
         objs = self.companion.designer.getObjectsOfClass(self.linkClass)
         for objName in objs.keys():
-            if objs[objName] and self.value[0] and objs[objName].this == self.value[0].this:
+            if objs[objName] and self.value[0] and objs[objName] == self.value[0]:
                 return objName
         return `None`
 
@@ -1566,7 +1593,7 @@ def getValidSizers(parent, designer, value):
         parent = parent._sub_sizer
         sizerParents.append(parent)
 
-    sizers = designer.getObjectsOfClass(wxSizerPtr)
+    sizers = designer.getObjectsOfClass(wxSizer)
     # remove invalid sizers from the list
     for n, s in sizers.items():
         if s in sizerParents or \
@@ -1594,7 +1621,7 @@ class SizerEnumConstrPropEdit(ObjEnumConstrPropEdit):
         self.companion.SetSizer(value)
 
 class SizerClassLinkPropEdit(ClassLinkPropEdit):
-    linkClass = wxSizerPtr
+    linkClass = wxSizer
     def getValues(self):
         if self.value is None:
             value = 'None'
@@ -1636,7 +1663,7 @@ class ColPropEdit(ClassPropEdit):
         return self.value#wxColour(self.value.Red(), self.value.Green(), self.value.Blue())
 
     def valueAsExpr(self):
-        return 'wxColour(%d, %d, %d)'%(self.value.Red(), self.value.Green(), self.value.Blue())
+        return 'wx.Colour(%d, %d, %d)'%(self.value.Red(), self.value.Green(), self.value.Blue())
 
 class SizePropEdit(ClassPropEdit):
     def getDisplayValue(self):
@@ -1656,7 +1683,7 @@ class SizePropEdit(ClassPropEdit):
             self.value = wxSize(tuplePos[0], tuplePos[1])
         return self.value
     def valueAsExpr(self):
-        return 'wxSize(%d, %d)'%(self.value.x, self.value.y)
+        return 'wx.Size(%d, %d)'%(self.value.x, self.value.y)
     def getSubCompanion(self):
         from Companions.Companions import SizeDTC
         return SizeDTC
@@ -1679,7 +1706,7 @@ class PosPropEdit(ClassPropEdit):
             self.value = wxPoint(tuplePos[0], tuplePos[1])
         return self.value
     def valueAsExpr(self):
-        return 'wxPoint(%d, %d)'%(self.value.x, self.value.y)
+        return 'wx.Point(%d, %d)'%(self.value.x, self.value.y)
     def getSubCompanion(self):
         from Companions.Companions import PosDTC
         return PosDTC
@@ -1726,7 +1753,7 @@ def fontAsExpr(fnt):
     style = fontStyle.get(fnt.GetStyle(), fnt.GetStyle())
     weight = fontWeight.get(fnt.GetWeight(), fnt.GetWeight())
 
-    return 'wxFont(%d, %s, %s, %s, %s, %s)'%(
+    return 'wx.Font(%d, %s, %s, %s, %s, %s)'%(
         fnt.GetPointSize(), family, style, weight, 
         fnt.GetUnderlined() and 'True' or 'False',
         `fnt.GetFaceName()`)
@@ -1793,8 +1820,8 @@ class AnchorPropEdit(OptionedPropEdit):
 
 
 class SashVisiblePropEdit(BoolPropEdit):
-    sashEdgeMap = {wxSASH_LEFT: 'wxSASH_LEFT', wxSASH_TOP: 'wxSASH_TOP',
-                   wxSASH_RIGHT: 'wxSASH_RIGHT', wxSASH_BOTTOM: 'wxSASH_BOTTOM'}
+    sashEdgeMap = {wxSASH_LEFT: 'wx.SASH_LEFT', wxSASH_TOP: 'wx.SASH_TOP',
+                   wxSASH_RIGHT: 'wx.SASH_RIGHT', wxSASH_BOTTOM: 'wx.SASH_BOTTOM'}
     def valueToIECValue(self):
         v = self.value[1]
         if type(v) == IntType:
@@ -1875,9 +1902,13 @@ registeredTypes = [
     ('Class', wxPoint, [PosPropEdit]),
     ('Class', wxPointPtr, [PosPropEdit]),
     ('Class', wxFontPtr, [FontPropEdit]),
+    ('Class', wxFont, [FontPropEdit]),
     ('Class', wxColourPtr, [ColPropEdit]),
+    ('Class', wxColour, [ColPropEdit]),
     ('Class', wxBitmapPtr, [BitmapPropEdit]),
+    ('Class', wxBitmap, [BitmapPropEdit]),
     ('Class', wxIconPtr, [IconPropEdit]),
+    ('Class', wxIcon, [IconPropEdit]),
     ('Class', wxValidator, [ClassLinkPropEdit]),
 ]
 

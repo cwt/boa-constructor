@@ -6,7 +6,7 @@
 #
 # Created:     2003/04/26
 # RCS-ID:      $Id$
-# Copyright:   (c) 2003 - 2004
+# Copyright:   (c) 2003 - 2005
 # Licence:     BSD
 #-----------------------------------------------------------------------------
 
@@ -29,7 +29,7 @@ from thread import start_new_thread
 
 import bike
 
-from wxPython import wx
+from wxPython.wx import *
 
 import Preferences, Utils, Plugins
 
@@ -129,7 +129,7 @@ class BRMViewPlugin:
                           model.editor.modules[uri], True,
                           'Save changes before Refactoring operation')
                 except Editor.CancelClose:
-                    wx.wxLogError('Operation aborted.')
+                    wxLogError('Operation aborted.')
                     return False
         return True
 
@@ -140,7 +140,7 @@ class BRMViewPlugin:
                   'No text selected. Highlight the region you want to extract.'
 
         filename = self.model.checkLocalFile()
-        name = wx.wxGetTextFromUser('New %s name:'%xtype, caption)
+        name = wxGetTextFromUser('New %s name:'%xtype, caption)
         if not name:
             raise CancelOperation, \
                   'Empty names are invalid.'
@@ -166,21 +166,21 @@ class BRMViewPlugin:
             matches = [ReferencesMatcher([ref])
               for ref in ctx.findReferencesByCoordinates(fname, lineno, column)]
         except CouldntFindDefinitionException:
-            wx.wxCallAfter(self.findReferencesFindDefinition)
+            wxCallAfter(self.findReferencesFindDefinition)
         except Exception, err:
-            wx.wxCallAfter(wx.wxLogError, 
+            wxCallAfter(wxLogError, 
                            ''.join(traceback.format_exception(*sys.exc_info())))
-            wx.wxCallAfter(self.model.editor.setStatus, 
+            wxCallAfter(self.model.editor.setStatus, 
                            'BRM - Error %s'%str(err), 'Error')
         else:
-            wx.wxCallAfter(self.findReferencesFinished, matches, sel)
+            wxCallAfter(self.findReferencesFinished, matches, sel)
         
             
     def findReferencesFindDefinition(self):
         self.model.editor.setStatus('BRM - Could not find definition')
 
-        if wx.wxMessageBox('Perform Find Definition?', 'Find References', 
-              wx.wxYES_NO | wx.wxICON_WARNING) == wx.wxYES:
+        if wxMessageBox('Perform Find Definition?', 'Find References', 
+              wxYES_NO | wxICON_WARNING) == wxYES:
             self.OnFindDefinition()
 
     def findReferencesFinished(self, matches, sel):
@@ -213,15 +213,15 @@ class BRMViewPlugin:
             try:
                 match = defs.next()
             except StopIteration:
-                wx.wxCallAfter(wx.wxLogError, "Couldn't find definition")
-                wx.wxCallAfter(self.model.editor.setStatus,
+                wxCallAfter(wxLogError, "Couldn't find definition")
+                wxCallAfter(self.model.editor.setStatus,
                                'BRM - Could not find definition', 'Error')
             else:
-                wx.wxCallAfter(self.findDefinitionFinished, match, sel, defs)
+                wxCallAfter(self.findDefinitionFinished, match, sel, defs)
         except Exception, err:
-            wx.wxCallAfter(wx.wxLogError, 
+            wxCallAfter(wxLogError, 
                            ''.join(traceback.format_exception(*sys.exc_info())))
-            wx.wxCallAfter(self.model.editor.setStatus, 
+            wxCallAfter(self.model.editor.setStatus, 
                            'BRM - Error %s'%str(err), 'Error')
 
     def findDefinitionFinished(self, match, sel, defs):
@@ -253,7 +253,7 @@ class BRMViewPlugin:
 
         ctx.setRenameMethodPromptCallback(self.renameCallback)
 
-        newname = wx.wxGetTextFromUser('Rename to:', 'Rename', sel)
+        newname = wxGetTextFromUser('Rename to:', 'Rename', sel)
         if not newname:
             return
 
@@ -268,9 +268,9 @@ class BRMViewPlugin:
         edge = view.PositionFromLine(lineno-1)
         view.SetSelection(edge+colbegin, edge+colend)
 
-        res = wx.wxMessageBox('Cannot deduce the type of highlighted object'
+        res = wxMessageBox('Cannot deduce the type of highlighted object'
                  ' reference.\nRename this declaration?', 'Rename?',
-                 wx.wxYES_NO | wx.wxICON_QUESTION) == wx.wxYES
+                 wxYES_NO | wxICON_QUESTION) == wxYES
         self.model.editor.openOrGotoModule(currfile)
         return res
 
@@ -291,7 +291,7 @@ class BRMViewPlugin:
         try:
             self.model.editor.brm_context.undo()
         except bike.UndoStackEmptyException, msg:
-            wx.wxLogWarning('Nothing to undo, the undo stack is empty.')
+            wxLogWarning('Nothing to undo, the undo stack is empty.')
         else:
             self.saveAndRefresh()
 
@@ -324,7 +324,7 @@ class BRMViewPlugin:
     def OnGetExprType(self, event):
         ctx, sel, filename, lineno, column = self.prepareForSelectOperation()
 
-        wx.wxLogMessage(
+        wxLogMessage(
            `ctx.getTypeOfExpression(filename, lineno, column, column+len(sel))`)
 
         

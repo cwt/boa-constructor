@@ -6,7 +6,7 @@
 #
 # Created:     2001
 # RCS-ID:      $Id$
-# Copyright:   (c) 2001 - 2004
+# Copyright:   (c) 2001 - 2005
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 
@@ -42,27 +42,27 @@ def imgIdxRange(cnt=0):
         imgCounter = imgCounter + 1
         return imgCounter - 1
 
-builtinImgs =('Images/Modules/FolderUp_s.png',
-              'Images/Modules/Folder_s.png',
-              'Images/Modules/Folder_green_s.png',
-              'Images/Modules/Folder_cyan_s.png',
+builtinImgs =('Images/Modules/FolderUp.png',
+              'Images/Modules/Folder.png',
+              'Images/Modules/Folder_green.png',
+              'Images/Modules/Folder_cyan.png',
               'Images/Shared/SystemObj.png',
               'Images/Shared/SystemObjOrdered.png',
               'Images/Shared/SystemObjBroken.png',
               'Images/Shared/SystemObjPending.png',
               'Images/Shared/SystemObjDisabled.png',
-              'Images/Modules/ZopeConn_s.png',
+              'Images/Modules/ZopeConn.png',
               'Images/Shared/BoaLogo.png',
-              'Images/Modules/Drive_s.png',
-              'Images/Modules/NetDrive_s.png',
-              'Images/Modules/FolderBookmark_s.png',
-              'Images/Modules/OpenEditorModels_s.png',
-              'Images/Modules/PrefsFolder_s.png',
+              'Images/Modules/Drive.png',
+              'Images/Modules/NetDrive.png',
+              'Images/Modules/FolderBookmark.png',
+              'Images/Modules/OpenEditorModels.png',
+              'Images/Modules/PrefsFolder.png',
               'Images/Shared/PrefsSTCStyles.png',
               'Images/Editor/RecentFiles.png',
               'Images/Editor/Shell.png',
               'Images/Editor/Explorer.png',
-              'Images/Modules/HelpBook_s.png',
+              'Images/Modules/HelpBook.png',
             )
 # Like builtinImgs, but stores list of tuples, (imgIdx, name)
 pluginImgs = []

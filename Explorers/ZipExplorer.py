@@ -6,7 +6,7 @@
 #
 # Created:     2001
 # RCS-ID:      $Id$
-# Copyright:   (c) 2001 - 2004
+# Copyright:   (c) 2001 - 2005
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 
@@ -378,11 +378,11 @@ class ZipFileNode(ZipItemNode):
 
 
 EditorHelper.imgZipFileModel = \
-      EditorHelper.addPluginImgs('Images/Modules/ZipFile_s.png')
+      EditorHelper.addPluginImgs('Images/Modules/ZipFile.png')
 class ZipFileModel(EditorModels.EditorModel):
     modelIdentifier = 'ZipFile'
     defaultName = 'zip'
-    bitmap = 'ZipFile_s.png'
+    bitmap = 'ZipFile.png'
     imgIdx = EditorHelper.imgZipFileModel
     ext = '.zip'
 
@@ -442,11 +442,11 @@ class TarGzipFileNode(TarGzipInfoMixin, ZipFileNode):
             return false
 
 EditorHelper.imgTarGzipFileModel = \
-      EditorHelper.addPluginImgs('Images/Modules/TarGzipFile_s.png')
+      EditorHelper.addPluginImgs('Images/Modules/TarGzipFile.png')
 class TarGzipFileModel(EditorModels.EditorModel):
     modelIdentifier = 'TarGzipFile'
     defaultName = 'tar'
-    bitmap = 'TarGzipFile_s.png'
+    bitmap = 'TarGzipFile.png'
     imgIdx = EditorHelper.imgTarGzipFileModel
     ext = '.gz'
 

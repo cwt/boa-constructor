@@ -1,10 +1,10 @@
 #Boa:Frame:ResourceModuleFrm
 
-from wxPython.wx import *
+import wx
 
 import Boa_img
 
-BoaSectionIcons = ('Palette', 'Editor', 'Designer', 'Inspector', 'Debugger', 
+BoaSectionIcons = ('Palette', 'Editor', 'Designer', 'Inspector', 'Debugger',
                    'Collection Editor', 'Class Browser', 'Output & Errors',
                    'Help', 'Shell', 'Explorer', 'Zope')
 
@@ -13,64 +13,64 @@ def create(parent):
 
 [wxID_RESOURCEMODULEFRM, wxID_RESOURCEMODULEFRMBITMAPBUTTON, 
  wxID_RESOURCEMODULEFRMLISTVIEW, 
-] = map(lambda _init_ctrls: wxNewId(), range(3))
+] = [wx.NewId() for _init_ctrls in range(3)]
 
-[wxID_RESOURCEMODULEFRMTOOLBAR1TOOLS0, wxID_RESOURCEMODULEFRMTOOLBAR1TOOLS1, 
- wxID_RESOURCEMODULEFRMTOOLBAR1TOOLS2, wxID_RESOURCEMODULEFRMTOOLBAR1TOOLS3, 
- wxID_RESOURCEMODULEFRMTOOLBAR1TOOLS4, wxID_RESOURCEMODULEFRMTOOLBAR1TOOLS5, 
- wxID_RESOURCEMODULEFRMTOOLBAR1TOOLS6, 
-] = map(lambda _init_coll_toolBar_Tools: wxNewId(), range(7))
+[wxID_RESOURCEMODULEFRMTOOLBAR1TOOLS0, wxID_RESOURCEMODULEFRMTOOLBAR1TOOLS1,
+ wxID_RESOURCEMODULEFRMTOOLBAR1TOOLS2, wxID_RESOURCEMODULEFRMTOOLBAR1TOOLS3,
+ wxID_RESOURCEMODULEFRMTOOLBAR1TOOLS4, wxID_RESOURCEMODULEFRMTOOLBAR1TOOLS5,
+ wxID_RESOURCEMODULEFRMTOOLBAR1TOOLS6,
+] = [wx.NewId() for _init_coll_toolBar_Tools in range(7)]
 
-class ResourceModuleFrm(wxFrame):
+class ResourceModuleFrm(wx.Frame):
     def _init_coll_images_Images(self, parent):
         # generated method, don't edit
 
-        parent.Add(bitmap=Boa_img.getPaletteBitmap(), mask=wxNullBitmap)
-        parent.Add(bitmap=Boa_img.getEditorBitmap(), mask=wxNullBitmap)
-        parent.Add(bitmap=Boa_img.getDesignerBitmap(), mask=wxNullBitmap)
-        parent.Add(bitmap=Boa_img.getInspectorBitmap(), mask=wxNullBitmap)
-        parent.Add(bitmap=Boa_img.getDebuggerBitmap(), mask=wxNullBitmap)
+        parent.Add(bitmap=Boa_img.getPaletteBitmap(), mask=wx.NullBitmap)
+        parent.Add(bitmap=Boa_img.getEditorBitmap(), mask=wx.NullBitmap)
+        parent.Add(bitmap=Boa_img.getDesignerBitmap(), mask=wx.NullBitmap)
+        parent.Add(bitmap=Boa_img.getInspectorBitmap(), mask=wx.NullBitmap)
+        parent.Add(bitmap=Boa_img.getDebuggerBitmap(), mask=wx.NullBitmap)
         parent.Add(bitmap=Boa_img.getCollectionEditorBitmap(),
-              mask=wxNullBitmap)
-        parent.Add(bitmap=Boa_img.getClassBrowserBitmap(), mask=wxNullBitmap)
-        parent.Add(bitmap=Boa_img.getOutputErrorBitmap(), mask=wxNullBitmap)
-        parent.Add(bitmap=Boa_img.getHelpBitmap(), mask=wxNullBitmap)
-        parent.Add(bitmap=Boa_img.getShellBitmap(), mask=wxNullBitmap)
-        parent.Add(bitmap=Boa_img.getExplorerBitmap(), mask=wxNullBitmap)
-        parent.Add(bitmap=Boa_img.getZopeBitmap(), mask=wxNullBitmap)
+              mask=wx.NullBitmap)
+        parent.Add(bitmap=Boa_img.getClassBrowserBitmap(), mask=wx.NullBitmap)
+        parent.Add(bitmap=Boa_img.getOutputErrorBitmap(), mask=wx.NullBitmap)
+        parent.Add(bitmap=Boa_img.getHelpBitmap(), mask=wx.NullBitmap)
+        parent.Add(bitmap=Boa_img.getShellBitmap(), mask=wx.NullBitmap)
+        parent.Add(bitmap=Boa_img.getExplorerBitmap(), mask=wx.NullBitmap)
+        parent.Add(bitmap=Boa_img.getZopeBitmap(), mask=wx.NullBitmap)
 
     def _init_utils(self):
         # generated method, don't edit
-        self.images = wxImageList(height=16, width=16)
+        self.images = wx.ImageList(height=16, width=16)
         self._init_coll_images_Images(self.images)
 
     def _init_ctrls(self, prnt):
         # generated method, don't edit
-        wxFrame.__init__(self, id=wxID_RESOURCEMODULEFRM,
-              name='ResourceModuleFrm', parent=prnt, pos=wxPoint(604, 403),
-              size=wxSize(419, 260), style=wxDEFAULT_FRAME_STYLE,
+        wx.Frame.__init__(self, id=wxID_RESOURCEMODULEFRM,
+              name='ResourceModuleFrm', parent=prnt, pos=wx.Point(604, 403),
+              size=wx.Size(419, 260), style=wx.DEFAULT_FRAME_STYLE,
               title='Images using a Resource Module built with img2py')
         self._init_utils()
-        self.SetClientSize(wxSize(411, 233))
-        self.SetBackgroundColour(wxColour(0, 128, 255))
+        self.SetClientSize(wx.Size(411, 233))
+        self.SetBackgroundColour(wx.Colour(0, 128, 255))
         self.SetSizeHints(419, 260, 419, 260)
-        self.Center(wxBOTH)
+        self.Center(wx.BOTH)
 
-        self.bitmapButton = wxBitmapButton(bitmap=Boa_img.getBoaButtonBitmap(),
+        self.bitmapButton = wx.BitmapButton(bitmap=Boa_img.getBoaButtonBitmap(),
               id=wxID_RESOURCEMODULEFRMBITMAPBUTTON, name='bitmapButton',
-              parent=self, pos=wxPoint(16, 67), size=wxSize(112, 88),
-              style=wxBU_AUTODRAW, validator=wxDefaultValidator)
-        EVT_BUTTON(self.bitmapButton, wxID_RESOURCEMODULEFRMBITMAPBUTTON,
-              self.OnBitmapbuttonButton)
+              parent=self, pos=wx.Point(16, 67), size=wx.Size(112, 88),
+              style=wx.BU_AUTODRAW)
+        self.bitmapButton.Bind(wx.EVT_BUTTON, self.OnBitmapbuttonButton,
+              id=wxID_RESOURCEMODULEFRMBITMAPBUTTON)
 
-        self.listView = wxListView(id=wxID_RESOURCEMODULEFRMLISTVIEW,
-              name='listView', parent=self, pos=wxPoint(148, 27),
-              size=wxSize(247, 176), style=wxLC_SINGLE_SEL | wxLC_ICON,
-              validator=wxDefaultValidator)
-        self.listView.SetImageList(self.images, wxIMAGE_LIST_NORMAL)
-        self.listView.SetBackgroundColour(wxColour(255, 255, 242))
-        EVT_LIST_ITEM_ACTIVATED(self.listView, wxID_RESOURCEMODULEFRMLISTVIEW,
-              self.OnListviewListItemActivated)
+        self.listView = wx.ListView(id=wxID_RESOURCEMODULEFRMLISTVIEW,
+              name='listView', parent=self, pos=wx.Point(148, 27),
+              size=wx.Size(247, 176), style=wx.LC_SINGLE_SEL|wx.LC_ICON)
+        self.listView.SetImageList(self.images, wx.IMAGE_LIST_NORMAL)
+        self.listView.SetBackgroundColour(wx.Colour(255, 255, 242))
+        self.listView.Bind(wx.EVT_LIST_ITEM_ACTIVATED,
+              self.OnListviewListItemActivated,
+              id=wxID_RESOURCEMODULEFRMLISTVIEW)
 
     def __init__(self, parent):
         self._init_ctrls(parent)
@@ -85,8 +85,8 @@ class ResourceModuleFrm(wxFrame):
 
 
 if __name__ == '__main__':
-    app = wxPySimpleApp()
-    wxInitAllImageHandlers()
+    app = wx.PySimpleApp()
+    wx.InitAllImageHandlers()
     frame = create(None)
     frame.Show()
 

@@ -7,7 +7,7 @@
 #
 # Created:      November 2000
 # RCS-ID:       $Id$
-# Copyright:    (c) 2000 - 2004 : Shane Hathaway, Riaan Booysen
+# Copyright:    (c) 2000 - 2005 : Shane Hathaway, Riaan Booysen
 # Licence:      GPL
 #----------------------------------------------------------------------------
 
@@ -527,6 +527,8 @@ class DebugServer (Bdb):
                 filename.find('://') >= 0):
                 # Don't change URLs or special filenames
                 canonic = filename
+            elif filename.startswith('Python expression'):
+                canonic = '<Python expression: %s>'%filename[:17]
             else:
                 canonic = path.abspath(filename)
 

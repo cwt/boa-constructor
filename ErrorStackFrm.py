@@ -6,7 +6,7 @@
 #
 # Created:     2001
 # RCS-ID:      $Id$
-# Copyright:   (c) 2001 - 2004 Riaan Booysen
+# Copyright:   (c) 2001 - 2005 Riaan Booysen
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 ##Boa:Frame:ErrorStackMF
@@ -235,7 +235,7 @@ class ErrorStackMF(wxFrame, Utils.FrameRestorerMixin):
 
         tree.SetItemHasChildren(rtTI, true)
         tree.Expand(rtTI)
-        cookie = 0; firstErr, cookie = tree.GetFirstChild(rtTI, cookie)
+        firstErr, cookie = tree.GetFirstChild(rtTI)
         if firstErr.IsOk():
             tree.Expand(firstErr)
 
@@ -283,7 +283,7 @@ class ErrorStackMF(wxFrame, Utils.FrameRestorerMixin):
         elif self.notebook.GetGrandParent() == self.editor:
             splitter = self.editor.tabsSplitter
             win2 = splitter.GetWindow2()
-            if win2 and not win2.GetSize().y:
+            if win2 and win2.GetSize().y == splitter.GetMinimumPaneSize():
                 splitter.openBottomWindow()
 
     def appendToTextCtrl(self, tc, txt,

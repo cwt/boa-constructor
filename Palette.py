@@ -6,7 +6,7 @@
 #
 # Created:     1999
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999 - 2004 Riaan Booysen
+# Copyright:   (c) 1999 - 2005 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
 #Boa:Frame:BoaFrame
@@ -60,7 +60,8 @@ class BoaFrame(wxFrame, Utils.FrameRestorerMixin):
         # generated method, don't edit
         wxFrame.__init__(self, id=wxID_BOAFRAME, name='', parent=prnt,
               pos=wxPoint(116, 275), size=wxSize(645, 74),
-              style=wxSYSTEM_MENU | wxRESIZE_BORDER | wxCAPTION | wxMINIMIZE_BOX,
+              style=wxDEFAULT_FRAME_STYLE & ~wxMAXIMIZE_BOX,
+              #style=wxSYSTEM_MENU | wxRESIZE_BORDER | wxCAPTION | wxMINIMIZE_BOX,
               title=self.frameTitle)
         self._init_utils()
         self.SetClientSize(wxSize(637, 47))
@@ -305,6 +306,11 @@ class BoaFrame(wxFrame, Utils.FrameRestorerMixin):
             else:
                 self.Destroy()
                 event.Skip()
+
+                app = wxGetApp()
+                if hasattr(app, 'tbicon'):
+                    app.tbicon.Destroy()
+            
 
     def OnUncheckComponent(self, event):
         self.componentSB.selectNone()

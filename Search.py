@@ -6,7 +6,7 @@
 #
 # Created:     2000/01/08
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999 - 2004 Riaan Booysen
+# Copyright:   (c) 1999 - 2005 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
 

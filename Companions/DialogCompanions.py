@@ -6,7 +6,7 @@
 #
 # Created:     2000/27/02
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999 - 2004 Riaan Booysen
+# Copyright:   (c) 1999 - 2005 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
 print 'importing Companions.DialogCompanions'
@@ -28,11 +28,11 @@ class DataCDC(CommonDialogCompanion):
 class ColourDialogCDC(DataCDC): #(parent, data = None)
     #wxDocs = HelpCompanions.wxColourDialogDocs
     def body(self):
-        return '''data = wxColourData()
+        return '''data = wx.ColourData()
 data.SetChooseFull(true)
-dlg = wxColourDialog(self, data)
+dlg = wx.ColourDialog(self, data)
 try:
-    if dlg.ShowModal() == wxID_OK:
+    if dlg.ShowModal() == wx.ID_OK:
         data = dlg.GetColourData()
         # Your code
 finally:
@@ -43,10 +43,10 @@ finally:
 class FontDialogCDC(DataCDC): #(parent, data = None)
     #wxDocs = HelpCompanions.wxFontDialogDocs
     def body(self):
-        return '''data = wxFontData()
-dlg = wxFontDialog(self, data)
+        return '''data = wx.FontData()
+dlg = wx.FontDialog(self, data)
 try:
-    if dlg.ShowModal() == wxID_OK:
+    if dlg.ShowModal() == wx.ID_OK:
         data = dlg.GetFontData()
         font = data.GetChosenFont()
         # Your code
@@ -58,13 +58,13 @@ finally:
 class PrintDialogCDC(DataCDC): #(parent, data = None)
     #wxDocs = HelpCompanions.wxPrintDialogDocs
     def body(self):
-        return '''data = wxPrintDialogData()
+        return '''data = wx.PrintDialogData()
 data.EnablePrintToFile(true)
 data.EnablePageNumbers(true)
 data.EnableSelection(true)
-dlg = wxPrintDialog(self, data)
+dlg = wx.PrintDialog(self, data)
 try:
-    if dlg.ShowModal() == wxID_OK:
+    if dlg.ShowModal() == wx.ID_OK:
         # Your code
 finally:
     dlg.Destroy()
@@ -74,12 +74,12 @@ finally:
 class PageSetupDialogCDC(DataCDC): #(parent, data = None)
     #wxDocs = HelpCompanions.wxPageSetupDialogDocs
     def body(self):
-        return '''data = wxPageSetupDialogData()
-data.SetMarginTopLeft(wxPoint(50,50))
-data.SetMarginBottomRight(wxPoint(50,50))
-dlg = wxPageSetupDialog(self, data)
+        return '''data = wx.PageSetupDialogData()
+data.SetMarginTopLeft(wx.Point(50,50))
+data.SetMarginBottomRight(wx.Point(50,50))
+dlg = wx.PageSetupDialog(self, data)
 try:
-    if dlg.ShowModal() == wxID_OK:
+    if dlg.ShowModal() == wx.ID_OK:
         data = dlg.GetPageSetupData()
         # Your code
 finally:
@@ -93,9 +93,9 @@ class MessagedCDC(CommonDialogCompanion):
 class DirDialogCDC(MessagedCDC): #(parent, message = 'Choose a directory', defaultPath = '', style = 0, pos = wxDefaultPosition)
     #wxDocs = HelpCompanions.wxDirDialogDocs
     def body(self):
-        return '''dlg = wxDirDialog(self)
+        return '''dlg = wx.DirDialog(self)
 try:
-    if dlg.ShowModal() == wxID_OK:
+    if dlg.ShowModal() == wx.ID_OK:
         dir = dlg.GetPath()
         # Your code
 finally:
@@ -105,9 +105,9 @@ finally:
 class FileDialogCDC(MessagedCDC): #(parent, message = 'Choose a file', defaultDir = '', defaultFile = '', wildcard ='*.*', style = 0, pos = wxDefaultPosition)
     #wxDocs = HelpCompanions.wxFileDialogDocs
     def body(self):
-        return '''dlg = wxFileDialog(self, "Choose a file", ".", "", "*.*", wxOPEN)
+        return '''dlg = wx.FileDialog(self, "Choose a file", ".", "", "*.*", wx.OPEN)
 try:
-    if dlg.ShowModal() == wxID_OK:
+    if dlg.ShowModal() == wx.ID_OK:
         filename = dlg.GetPath()
         # Your code
 finally:
@@ -117,9 +117,9 @@ finally:
 class SingleChoiceDialogCDC(MessagedCDC): #(parent, message, caption, choices, clientData = None, style = wxOK | wxCANCEL | wxCENTER, pos = wxDefaultPosition)
     #wxDocs = HelpCompanions.wxSingleChoiceDialogDocs
     def body(self):
-        return '''dlg = wxSingleChoiceDialog(self, 'Question', 'Caption', [])
+        return '''dlg = wx.SingleChoiceDialog(self, 'Question', 'Caption', [])
 try:
-    if dlg.ShowModal() == wxID_OK:
+    if dlg.ShowModal() == wx.ID_OK:
         selected = dlg.GetStringSelection()
         # Your code
 finally:
@@ -130,9 +130,9 @@ finally:
 class TextEntryDialogCDC(MessagedCDC): #(parent, message, caption = 'Please enter text', defaultValue = '', style = wxOK | wxCANCEL | wxCENTER, pos = wxDefaultPosition)
     #wxDocs = HelpCompanions.wxTextEntryDialogDocs
     def body(self):
-        return '''dlg = wxTextEntryDialog(self, 'Question', 'Caption', 'Default answer')
+        return '''dlg = wx.TextEntryDialog(self, 'Question', 'Caption', 'Default answer')
 try:
-    if dlg.ShowModal() == wxID_OK:
+    if dlg.ShowModal() == wx.ID_OK:
         answer = dlg.GetValue()
         # Your code
 finally:
@@ -143,8 +143,8 @@ finally:
 class MessageDialogCDC(MessagedCDC): #(parent, message, caption = 'Message box', style = wxOK | wxCANCEL | wxCENTER, pos = wxDefaultPosition)
     #wxDocs = HelpCompanions.wxMessageDialogDocs
     def body(self):
-        return '''dlg = wxMessageDialog(self, 'Message',
-  'Caption', wxOK | wxICON_INFORMATION)
+        return '''dlg = wx.MessageDialog(self, 'Message',
+  'Caption', wx.OK | wx.ICON_INFORMATION)
 try:
     dlg.ShowModal()
 finally:
@@ -156,13 +156,13 @@ PaletteStore.paletteLists['Dialogs'].extend([wxColourDialog, wxFontDialog,
       wxFileDialog, wxDirDialog, wxPrintDialog, wxPageSetupDialog,
       wxSingleChoiceDialog, wxTextEntryDialog, wxMessageDialog])
 
-PaletteStore.compInfo.update({wxColourDialog: ['wxColorDialog', ColourDialogCDC],
-    wxFontDialog: ['wxFontDialog', FontDialogCDC],
-    wxFileDialog: ['wxFileDialog', FileDialogCDC],
-    wxPrintDialog: ['wxPrintDialog', PrintDialogCDC],
-    wxPageSetupDialog: ['wxPageSetupDialog', PageSetupDialogCDC],
-    wxDirDialog: ['wxDirDialog', DirDialogCDC],
-    wxSingleChoiceDialog: ['wxSingleChoiceDialog', SingleChoiceDialogCDC],
-    wxTextEntryDialog: ['wxTextEntryDialog', TextEntryDialogCDC],
-    wxMessageDialog: ['wxMessageDialog', MessageDialogCDC],
+PaletteStore.compInfo.update({wxColourDialog: ['wx.ColorDialog', ColourDialogCDC],
+    wxFontDialog: ['wx.FontDialog', FontDialogCDC],
+    wxFileDialog: ['wx.FileDialog', FileDialogCDC],
+    wxPrintDialog: ['wx.PrintDialog', PrintDialogCDC],
+    wxPageSetupDialog: ['wx.PageSetupDialog', PageSetupDialogCDC],
+    wxDirDialog: ['wx.DirDialog', DirDialogCDC],
+    wxSingleChoiceDialog: ['wx.SingleChoiceDialog', SingleChoiceDialogCDC],
+    wxTextEntryDialog: ['wx.TextEntryDialog', TextEntryDialogCDC],
+    wxMessageDialog: ['wx.MessageDialog', MessageDialogCDC],
 })

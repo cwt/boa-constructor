@@ -15,13 +15,6 @@ and Tutorial.
 Look at Changes.txt for the latest improvements.
 Look at Bugs.txt for info about problems & bugs.
 
-
-If you have an environmental variable set named HOME and the directory
-it points to contains a directory named '.boa' (which you must create
-yourself on windows) all preferences and config files will be copied to and 
-used from this directory.
-
-
 P.S. The short name is Boa, *not* BOA. 
 Boa is not an acronymn, it's the name of a huge Python ;)
 
@@ -29,22 +22,34 @@ Licence:
 GPL
 
 Version:
-0.3.1 - Alpha
-Requires wxPython 2.4
+0.4.0 - Alpha
+Requires wxPython 2.5, Python 2.3/2.4
 
 NOTE: 
-wxPython 2.5 is *NOT* supported at this moment.
-Also, 0.3.1 will be the last version to support wxPython 2.4.
+wxPython 2.4 is no longer supported.
+Please use version 0.3.1 for wxPython 2.4 development.
 
-The next release of Boa will be 0.4.0 and will only support
-the wxPython 2.5 series.
+For upgrading code from wxPython 2.4 to wxPython 2.5 please
+see the upgrade guide at:
+http://wiki.wxpython.org/index.cgi/Boa040Upgrade
+
+Also the wxPython migration guide at:
+http://wxpython.org/migrationguide.php
+
+Under the Tools menu an upgrader script is provided. Note that it only
+upgrades common wx names and parameter changes, manual inspection and fixes
+will still be needed. Also the upgrader should be run *before* manually
+changing any of the code.
 
 
 Copyright:
-Riaan Booysen 1999 - 2004
+Riaan Booysen 1999 - 2005
 riaan@e.co.za
 
+
 Release history:
+
+2005-03-17 - Boa Constructor 0.4.0
 
 2004-08-25 - Boa Constructor 0.3.1
 

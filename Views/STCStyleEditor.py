@@ -6,7 +6,7 @@
 #
 # Created:     2001/08/20
 # RCS-ID:      $Id$
-# Copyright:   (c) 2001 - 2004 Riaan Booysen
+# Copyright:   (c) 2001 - 2005 Riaan Booysen
 # Licence:     wxWidgets license
 #-----------------------------------------------------------------------------
 #Boa:Dialog:STCStyleEditDlg
@@ -499,6 +499,9 @@ class STCStyleEditDlg(wxDialog):
         # called after a control edited self.names, self.values
         # Special case for saving common defs settings
         if self.styleNum == 'common':
+            #if not self.values:
+            #    return
+            
             strVal = self.style[2] = self.values.values()[0]
             if self.style[1] == 'size': self.style[2] = int(strVal)
 
@@ -657,7 +660,7 @@ class STCStyleEditDlg(wxDialog):
 
             currFace = self.faceCb.GetValue()
             self.faceCb.Clear()
-            for colCommonDef in ['']+fontNameList+commonDefs['face']:
+            for colCommonDef in fontNameList+commonDefs['face']:
                 self.faceCb.Append(colCommonDef)
             self.faceCb.SetValue(currFace)
 

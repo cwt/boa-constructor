@@ -1,6 +1,16 @@
 Changes
 -------
 
+-- 0.4.0 (Release) --
+
+2005-03-17
+
+* Updated the Designer to parse and generate wxPython 2.5 style code.
+* Updated code completion for wxPython 2.5 style code.
+* Core upgrader script under the Tools menu
+* PyPlot plug-in
+* Many bug fixes
+
 -- 0.3.1 (Release) --
 
 2004-08-25

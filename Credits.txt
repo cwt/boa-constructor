@@ -50,7 +50,12 @@ Roman Yakovenko
 Cedric Delfosse
 * Debian package
 * Bug fixes
+Werner Brunin
+* Mailing list help
+* Tutorial updates
+* Bug reports and fixes
+* Help with the 2.5 Upgrader
 
-Also thanks to Kevin Light, Werner Brunin, Oleg Deribas, Patrick 'O Brien, 
+Also thanks to Kevin Light, Paul Sorenson, Oleg Deribas, Patrick 'O Brien, 
 John Bell, Gerrit van Dyk, Cliff Baeseman, Larry Poorman and anyone else 
 I may have forgotten!

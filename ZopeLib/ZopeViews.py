@@ -6,7 +6,7 @@
 #
 # Created:     2001
 # RCS-ID:      $Id$
-# Copyright:   (c) 2001 - 2004
+# Copyright:   (c) 2001 - 2005
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 print 'importing ZopeLib.ZopeViews'

@@ -6,13 +6,14 @@
 #
 # Created:     1999
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999 - 2004 Riaan Booysen
+# Copyright:   (c) 1999 - 2005 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
-import string, os, glob, pprint
-from types import InstanceType
+import string, os, sys, glob, pprint, types
 
 from wxPython.wx import *
+
+import wx
 
 import Preferences
 from Preferences import IS
@@ -142,6 +143,11 @@ def srcRefFromCtrlName(ctrlName):
 def ctrlNameFromSrcRef(srcRef):
     return srcRef == 'self' and '' or srcRef[5:]
 
+def getWxPyNameForClass(Class):
+    """ Strips away _modules from the class identifier """
+    classPathSegs = Class.__module__.split('.') + [Class.__name__]
+    return '.'.join([pathSeg for pathSeg in classPathSegs if pathSeg[0] != '_'])
+
 def winIdRange(count):
     return map(lambda x: wxNewId(), range(count))
 wxNewIds = winIdRange
@@ -262,7 +268,7 @@ def showTip(frame, forceShow=0):
         showTip = wxShowTip(frame, tp, showTip)
         index = tp.GetCurrentTip()
         if conf:
-            conf.set('tips', 'showonstartup', showTip)
+            conf.set('tips', 'showonstartup', int(showTip))
             conf.set('tips', 'tipindex', index)
             try:
                 writeConfig(conf)
@@ -292,6 +298,8 @@ def writeTextToClipboard(text):
 
 _sharedConfs = {}
 def createAndReadConfig(name, forPlatform=1):
+    # XXX Switch to standard ConfigParser module !!
+    
     """ Return an initialised ConfigFile object """
     confFile = os.path.join(Preferences.rcPath, '%s%s.cfg' % (name,
         forPlatform and '.'+Preferences.thisPlatform or ''))
@@ -340,7 +348,7 @@ def wxProxyPanel(parent, Win, *args, **kwargs):
     """
     panel = wxPanel(parent, -1, style=wxTAB_TRAVERSAL | wxCLIP_CHILDREN)
 
-    if type(Win) is types.ClassType:
+    if type(Win) is types.ClassType or type(Win) is types.TypeType:
         win = apply(Win, (panel,) + args, kwargs)
     elif type(Win) is types.InstanceType:
         win = Win
@@ -504,12 +512,12 @@ def html2txt(htmlblock):
 def getEntireWxNamespace():
     """ Return a dictionary containing the entire (non filtered) wxPython
         namespace """
-    from wxPython import wx, html, htmlhelp, grid, calendar, stc, ogl
+    from wxPython import wx, html, htmlhelp, grid, calendar, stc
     from wxPython import help, gizmos, wizard
     namespace = {}
     map(namespace.update, [wx.__dict__, html.__dict__, htmlhelp.__dict__,
                            grid.__dict__, calendar.__dict__, 
-                           stc.__dict__, ogl.__dict__, gizmos.__dict__,
+                           stc.__dict__, gizmos.__dict__,
                            help.__dict__, wizard.__dict__])
     return namespace
 
@@ -541,8 +549,8 @@ class FrameRestorerMixin:
             self.SetDimensions(*dims)
 
     def getDimensions(self):
-        pos = self.GetPosition().asTuple()
-        size = self.GetSize().asTuple()
+        pos = self.GetPosition().Get()
+        size = self.GetSize().Get()
         return pos + size
 
     def loadDims(self):
@@ -553,7 +561,8 @@ class FrameRestorerMixin:
             dims = eval(conf.get(self.confSection , self.winConfOption), 
                         {'wxSize': wxSize, 'wxPoint': wxPoint,
                          'wxDefaultSize': wxDefaultSize, 
-                         'wxDefaultPosition': wxDefaultPosition})
+                         'wxDefaultPosition': wxDefaultPosition,
+                         'wx': wx})
 
         if dims:
             self.setDimensions(dims)
@@ -656,7 +665,7 @@ class BottomAligningSplitterWindow(wxSplitterWindow, BottomAligningSplitterMix):
 
 def traverseTreeCtrl(tree, treeItem, func):
     func(tree, treeItem)
-    item, cookie = tree.GetFirstChild(treeItem, 0)
+    item, cookie = tree.GetFirstChild(treeItem)
     while item.IsOk():
         traverseTreeCtrl(tree, item, func)
         item, cookie = tree.GetNextChild(item, cookie)

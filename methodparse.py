@@ -6,7 +6,7 @@
 #
 # Created:     1999
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999 - 2004 Riaan Booysen
+# Copyright:   (c) 1999 - 2005 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
 """
@@ -33,6 +33,8 @@ property
 Event connection
 (2 identified formats)
 EVT_<event>(<connect to>, [<windowid>], <eventmethod>)
+new formats
+<connect to>.Bind(<event>, <eventmethod>, [id=<windowid>])
 
 event
     eventname
@@ -253,7 +255,7 @@ class PerLineParser:
                 result[posArgs] = param.strip()
                 posArgs += 1
             else:
-                result[param[:sidx].strip()] = param[sidx+1:].strip()
+                result[str(param[:sidx].strip())] = param[sidx+1:].strip()
         return result
 
     def KVParamsAsText(self, params):
@@ -275,11 +277,12 @@ class PerLineParser:
 
 
 idc = '[A-Za-z_][A-Za-z0-9_]*'
+idc2 = '[A-Za-z_][A-Za-z0-9_/.]*'
 # self.name=class(params)
 is_constr = re.compile('^[ \t]*self[.](?P<name>'+idc+')[ \t]*=[ \t]*(?P<class>'+\
-  idc+')\(((?P<params>.*)(\)|,))?$')
+  idc2+')\(((?P<params>.*)(\)|,))?$')
 # class.__init__(self,params)
-is_constr_frm = re.compile('^[ \t]*(?P<class>'+idc+\
+is_constr_frm = re.compile('^[ \t]*(?P<class>'+idc2+\
   ')[.]__init__\(self,[ \t]*((?P<params>.*)(\)|,))?$')
 # self.name=self.factory.method(params)
 is_constr_factory = re.compile('^[ \t]*self[.](?P<name>'+idc+')[ \t]*=[ \t]*self[.](?P<factory>'+\
@@ -390,6 +393,9 @@ class PropertyParse(PerLineParser):
                     self.comp_name = compsetter[0]
                     self.prop_setter = compsetter[1]
                 else: raise 'Too many attribute levels'
+                
+                if self.prop_setter == 'Bind':
+                    self.m = None
 
     def renameCompName2(self, old_value, new_value):
         # XXX This is ugly but has to do until a better
@@ -534,7 +540,71 @@ class CollectionItemInitParse(PerLineParser):
 ##  idp+')[ \t]*\,(?P<wid>.*)[ \t]*\,[ \t]*self[.](?P<func>'+idp+')(\)|,)$')
 
 # EVT_evtname(params)
-is_event = re.compile('^[ \t]*EVT_(?P<evtname>'+idc+')[ \t]*\([ \t]*(?P<params>.*)(\)|,)$')
+#is_event = re.compile('^[ \t]*EVT_(?P<evtname>'+idc+')[ \t]*\([ \t]*(?P<params>.*)(\)|,)$')
+is_event = re.compile('^self(?P<compname>[.]'+idc2+')*\.Bind\([ \t]*(?P<evtname>'+idc2+'),[ \t]*(?P<otherparams>.*)(\)|,)$')
+
+##class EventParse(PerLineParser):
+##    def __init__(self, line=None, comp_name='', event_name='',
+##      trigger_meth = '', windowid = None):
+##        self.comp_name = comp_name
+##        self.ctrl_name = self.frame_name = '&None&'
+##        self.event_name = event_name
+##        self.trigger_meth = trigger_meth
+##        self.prev_trigger_meth = ''
+##        self.windowid = windowid
+##        self.show_scope = 'own' # can be 'all', 'own'
+##        if line:
+##            self.m = is_event.search(line)
+##            if self.m:
+##                self.checkContinued(line)
+##
+##                params = self.m.group('params').split(',')
+##                name = params[0].strip()
+##                if name != 'self':
+##                    self.comp_name = name[5:]
+##                if len(params) == 2:
+##                    self.trigger_meth = params[1].strip()[5:]
+##                elif len(params) == 3:
+##                    self.windowid = params[1].strip()
+##                    self.trigger_meth = params[2].strip()[5:]
+##
+##                self.event_name = self.m.group('evtname')
+##
+##    def renameFrameName(self, old_value, new_value):
+##        PerLineParser.renameFrameName(self, old_value, new_value)
+##        if self.windowid:
+##            self.windowid = self.renameWindowId(self.windowid,
+##                old_value, new_value, self.ctrl_name, self.ctrl_name)
+##
+##    def renameCompName2(self, old_value, new_value):
+##        if self.ctrl_name == old_value:
+##            self.ctrl_name = new_value
+##            if self.comp_name:
+##                self.comp_name = new_value
+##            # Check for command events
+##            if self.windowid:
+##                self.windowid = self.renameWindowId(self.windowid,
+##                      self.frame_name, self.frame_name, old_value, new_value)
+##
+##    def prependFrameWinId(self, frame):
+##        if self.windowid:
+##            idPrfx = self.getIdPrefix(frame)
+##            if self.windowid not in EventCollections.reservedWxNames:
+##                self.windowid = idPrfx + self.windowid
+##
+##    def asText(self, stripFrameWinIdPrefix=''):
+##        if self.windowid:
+##            windowid = self.windowid
+##            if stripFrameWinIdPrefix:
+##                idPrfx = self.getIdPrefix(stripFrameWinIdPrefix)
+##                if self.checkId(windowid, idPrfx):
+##                    windowid = windowid[len(idPrfx):]
+##
+##            return 'EVT_%s(%s, %s, self.%s)' %(self.event_name,
+##              Utils.srcRefFromCtrlName(self.comp_name), windowid, self.trigger_meth)
+##        else:
+##            return 'EVT_%s(%s, self.%s)' %(self.event_name,
+##              Utils.srcRefFromCtrlName(self.comp_name), self.trigger_meth)
 
 class EventParse(PerLineParser):
     def __init__(self, line=None, comp_name='', event_name='',
@@ -551,15 +621,15 @@ class EventParse(PerLineParser):
             if self.m:
                 self.checkContinued(line)
 
-                params = self.m.group('params').split(',')
-                name = params[0].strip()
-                if name != 'self':
-                    self.comp_name = name[5:]
-                if len(params) == 2:
-                    self.trigger_meth = params[1].strip()[5:]
-                elif len(params) == 3:
-                    self.windowid = params[1].strip()
-                    self.trigger_meth = params[2].strip()[5:]
+                params = self.m.group('otherparams').split(',')
+                name = self.m.group('compname')
+                if name is not None:
+                    self.comp_name = name[1:]
+                if len(params) == 1:
+                    self.trigger_meth = params[0].strip()[5:]
+                elif len(params) == 2:
+                    self.trigger_meth = params[0].strip()[5:]
+                    self.windowid = params[1].split('=')[-1].strip()
 
                 self.event_name = self.m.group('evtname')
 
@@ -593,30 +663,34 @@ class EventParse(PerLineParser):
                 if self.checkId(windowid, idPrfx):
                     windowid = windowid[len(idPrfx):]
 
-            return 'EVT_%s(%s, %s, self.%s)' %(self.event_name,
-              Utils.srcRefFromCtrlName(self.comp_name), windowid, self.trigger_meth)
+            return '%s.Bind(%s, self.%s, id=%s)' %(Utils.srcRefFromCtrlName(self.comp_name), 
+                self.event_name, self.trigger_meth, windowid)
         else:
-            return 'EVT_%s(%s, self.%s)' %(self.event_name,
-              Utils.srcRefFromCtrlName(self.comp_name), self.trigger_meth)
+            return '%s.Bind(%s, self.%s)' %(Utils.srcRefFromCtrlName(self.comp_name), 
+                self.event_name, self.trigger_meth)
 
 def testRename():
-    cp = ConstructorParse("self.menu1 = wxMenu(title = '')")
-    print cp.asText('wxFrame1')
-    cp = ConstructorParse("self.button1 = wxButton(id = wxID_WXFRAME1BUTTON1, label = 'button1', name = 'button1', parent = self, pos = wxPoint(232, 168), size = wxSize(75, 23), style = 0)")
-    print cp.asText('wxFrame1')
-    cp2 = ConstructorParse(cp.asText('wxFrame1'))
-    cp2.prependFrameWinId('wxFrame2')
+    cp = ConstructorParse("self.menu1 = wx.Menu(title = '')")
+    print cp.asText('wx.Frame1')
+    cp = ConstructorParse("self.button1 = wx.Button(id = wxID_WXFRAME1BUTTON1, label = 'button1', name = 'button1', parent = self, pos = wx.Point(232, 168), size = wx.Size(75, 23), style = 0)")
+    print cp.asText('wx.Frame1')
+    cp2 = ConstructorParse(cp.asText('wx.Frame1'))
+    cp2.prependFrameWinId('wx.Frame2')
     print cp2.asText()
     ciip = CollectionItemInitParse("parent.Append(checkable = false, helpString = '', id = wxID_WXFRAME1MENU1ITEMS0, item = 'Items0')")
-    print ciip.asText('wxFrame1')
-    ciip2 = CollectionItemInitParse(ciip.asText('wxFrame1'))
-    ciip2.prependFrameWinId('wxFrame2')
+    print ciip.asText('wx.Frame1')
+    ciip2 = CollectionItemInitParse(ciip.asText('wx.Frame1'))
+    ciip2.prependFrameWinId('wx.Frame2')
     print ciip2.asText()
-    ep = EventParse("EVT_MENU(self, wxID_WXFRAME1MENU1ITEMS0, self.OnMenu1items0Menu)")
-    print ep.asText('wxFrame1')
-    ep2 = EventParse(ep.asText('wxFrame1'))
-    ep2.prependFrameWinId('wxFrame2')
+    #ep = EventParse("EVT_MENU(self, wxID_WXFRAME1MENU1ITEMS0, self.OnMenu1items0Menu)")
+    #print ep.asText('wxFrame1')
+    #ep2 = EventParse(ep.asText('wxFrame1'))
+    #ep2.prependFrameWinId('wxFrame2')
     print ep2.asText()
+
+def testEvent():
+    pass
+    
 
 def test():
     cp = parseMixedBody([ConstructorParse], [

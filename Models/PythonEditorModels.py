@@ -6,7 +6,7 @@
 #
 # Created:     2002/02/09
 # RCS-ID:      $Id$
-# Copyright:   (c) 2002 - 2004
+# Copyright:   (c) 2002 - 2005
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 
@@ -39,7 +39,7 @@ class SourcePseudoFile(Utils.PseudoFileOutStore):
 class ModuleModel(SourceModel):
     modelIdentifier = 'Module'
     defaultName = 'module'
-    bitmap = 'Module_s.png'
+    bitmap = 'Module.png'
     imgIdx = imgModuleModel
     ext = '.py'
 
@@ -644,7 +644,7 @@ class PackageModel(ModuleModel, ImportRelationshipMix):
 
     modelIdentifier = 'Package'
     defaultName = 'package'
-    bitmap = 'Package_s.png'
+    bitmap = 'Package.png'
     imgIdx = imgPackageModel
     pckgIdnt = '__init__.py'
     ext = '.py'
@@ -699,7 +699,7 @@ class PackageModel(ModuleModel, ImportRelationshipMix):
 class PythonBinaryFileModel(PersistentModel):
     modelIdentifier = 'PythonBinary'
     defaultName = ''
-    bitmap = 'PythonBinary_s.png'
+    bitmap = 'PythonBinary.png'
     imgIdx = imgPythonBinaryFileModel
     ext = '.pybin'
 
@@ -753,7 +753,7 @@ class PyExtModuleData:
 class PythonExtensionFileModel(PythonBinaryFileModel):
     modelIdentifier = 'PythonExtension'
     defaultName = ''
-    bitmap = 'PythonBinary_s.png'
+    bitmap = 'PythonBinary.png'
     imgIdx = imgPythonBinaryFileModel
     ext = '.pyd'
 
@@ -775,7 +775,7 @@ class PythonExtensionFileModel(PythonBinaryFileModel):
 class PythonCompiledFileModel(PythonBinaryFileModel):
     modelIdentifier = 'PythonCompiled'
     defaultName = ''
-    bitmap = 'PythonBinary_s.png'
+    bitmap = 'PythonBinary.png'
     imgIdx = imgPythonBinaryFileModel
     ext = '.pyc'
 
@@ -1130,7 +1130,7 @@ class BaseAppModel(ClassModel, ImportRelationshipMix):
 class PyAppModel(BaseAppModel):
     modelIdentifier = 'PyApp'
     defaultName = 'PyApp'
-    bitmap = 'PythonApplication_s.png'
+    bitmap = 'PythonApplication.png'
     imgIdx = imgPyAppModel
 
     def getDefaultData(self):
@@ -1141,7 +1141,7 @@ class PyAppModel(BaseAppModel):
 class SetupModuleModel(ModuleModel):
     modelIdentifier = 'setup'
     defaultName = 'Setup'
-    bitmap = 'Setup_s.png'
+    bitmap = 'Setup.png'
     imgIdx = imgSetupModel
     def __init__(self, data, name, editor, saved, app=None):
         ModuleModel.__init__(self, data, name, editor, saved, app)
@@ -1203,6 +1203,7 @@ def identifySource(source):
                 return headerInfo
         else:
             return ModuleModel, ''
+    return ModuleModel, ''    
 
 
 #-------------------------------------------------------------------------------

@@ -6,15 +6,15 @@
 #
 # Created:     2000/17/07
 # RCS-ID:      $Id$
-# Copyright:   (c) 2000 - 2004 Riaan Booysen
+# Copyright:   (c) 2000 - 2005 Riaan Booysen
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 
 import sys, linecache, traceback, shutil
 from cStringIO import StringIO
 
-from wxPython import wx
 from wxPython.stc import *
+from wxPython import wx
 
 from ExternalLib import ndiff
 from EditorViews import EditorView, CloseableViewMix
@@ -69,7 +69,7 @@ class PythonSourceDiffView(wxStyledTextCtrl, EditorView, PythonStyledTextCtrlMix
     prevBmp = 'Images/Shared/Previous.png'
     nextBmp = 'Images/Shared/Next.png'
     def __init__(self, parent, model):
-        wxID_PYTHONSOURCEDIFFVIEW = wxNewId()
+        wxID_PYTHONSOURCEDIFFVIEW = wx.wxNewId()
 
         wxStyledTextCtrl.__init__(self, parent, wxID_PYTHONSOURCEDIFFVIEW,
           style = wx.wxCLIP_CHILDREN | wx.wxSUNKEN_BORDER)
@@ -92,7 +92,7 @@ class PythonSourceDiffView(wxStyledTextCtrl, EditorView, PythonStyledTextCtrlMix
         markIdnt, markBorder, markCenter = Preferences.STCDiffChangesMarker
         self.MarkerDefine(newToBothMrk, markIdnt, markBorder, markCenter)
 
-        self.SetMarginSensitive(1, wx.true)
+        self.SetMarginSensitive(1, True)
         EVT_STC_MARGINCLICK(self, wxID_PYTHONSOURCEDIFFVIEW, self.OnMarginClick)
 
         self.tabName = 'Diff'
@@ -103,13 +103,13 @@ class PythonSourceDiffView(wxStyledTextCtrl, EditorView, PythonStyledTextCtrlMix
         if wx.wxPlatform == '__WXGTK__' and Preferences.edUseCustomSTCPaintEvtHandler:
             self.paint_handler = Utils.PaintEventHandler(self)
 
-        self.active = wx.true
+        self.active = True
 
         self.lineIndex = []
 
     def refreshCtrl(self):
         from Explorers.Explorer import openEx
-        self.SetReadOnly(wx.false)
+        self.SetReadOnly(False)
         self.ClearAll()
         if self.diffWith:
             saveout = sys.stdout
@@ -128,7 +128,7 @@ class PythonSourceDiffView(wxStyledTextCtrl, EditorView, PythonStyledTextCtrlMix
                     traceback.print_exc()
             finally:
                 sys.stdout = saveout
-        self.SetReadOnly(wx.true)
+        self.SetReadOnly(True)
 
     def gotoLine(self, lineno, offset = -1):
         self.GotoLine(lineno)
@@ -158,10 +158,13 @@ class PythonSourceDiffView(wxStyledTextCtrl, EditorView, PythonStyledTextCtrlMix
         self.gotoLine(self.currSearchLine - 1)
 
     def OnApplyAllChanges(self, event):
-        filename = self.model.assertLocalFile()
-        if self.diffWith and Utils.yesNoDialog(self, 'Are you sure?',
-              'Replace %s with %s?'% (filename, self.diffWith)):
-            shutil.copyfile(self.diffWith, filename)
-            # reload
-            self.model.load()
-            self.deleteFromNotebook('Source', self.tabName)
+        # XXX Could be changed to work for all protocols
+        filename = self.model.checkLocalFile()
+        if self.diffWith:
+            diffWith = self.model.checkLocalFile(self.diffWith) 
+            if Utils.yesNoDialog(self, 'Are you sure?',
+                  'Replace %s with %s?'% (filename, diffWith)):
+                shutil.copyfile(diffWith, filename)
+                # reload
+                self.model.load()
+                self.deleteFromNotebook('Source', self.tabName)

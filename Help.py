@@ -6,7 +6,7 @@
 #
 # Created:     1999, rewritten 2001
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999 - 2004 Riaan Booysen
+# Copyright:   (c) 1999 - 2005 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
 #Boa:FramePanel:PyDocHelpPage
@@ -351,7 +351,7 @@ class _CloseEvtHandler(wxEvtHandler):
         self.frame = frameEx.frame
 
     def OnClose(self, event):
-        if self.frameEx.pydocPage:
+        if hasattr(self.frameEx, 'pydocPage') and self.frameEx.pydocPage:
             config = self.frameEx.controller.config
             config.WriteInt('pdRunServer', self.frameEx.pydocPage.runServer)
             config.Flush()
@@ -386,12 +386,9 @@ class wxHelpFrameEx:
               wxAcceleratorTable([(0, WXK_ESCAPE, wxID_QUITHELP),
                                   (wxACCEL_CTRL, ord('H'), wxID_FOCUSHTML),]))
 
-        if wxPlatform == '__WXMSW__':
-            _none, self.toolbar, self.splitter = self.frame.GetChildren()
-        else:
-            self.toolbar, self.splitter = self.frame.GetChildren()
+        _none, self.toolbar, self.splitter = self.frame.GetChildren()
+
         self.html, nav = self.splitter.GetChildren()
-        self.html = wxPyTypeCast(self.html, 'wxHtmlWindow')
 
         # handle 2.3.3 change
         if isinstance(nav, wxNotebookPtr):
@@ -419,7 +416,6 @@ class wxHelpFrameEx:
         self.contentsAddBookmark, self.contentsDelBookmark, \
               self.contentsChooseBookmark, self.contentsTree = \
               self.contentsPanel.GetChildren()
-        self.contentsTree = wxPyTypeCast(self.contentsTree, 'wxTreeCtrl')
 
         assert self.navPages.GetPageText(1) == 'Index'
         self.indexPanel = self.navPages.GetPage(1)
@@ -460,7 +456,7 @@ class wxHelpFrameEx:
     def ExpandBook(self, name):
         self.navPages.SetSelection(0)
         rn = self.contentsTree.GetRootItem()
-        ck = 0; nd, ck = self.contentsTree.GetFirstChild(rn, ck)
+        nd, ck = self.contentsTree.GetFirstChild(rn)
         while nd.IsOk():
             if self.contentsTree.GetItemText(nd) == name:
                 self.contentsTree.Expand(nd)

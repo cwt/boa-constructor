@@ -1,4 +1,4 @@
-from wxPython.wx import *
+import wx
 
-class wxExampleStaticText(wxStaticText):
+class ExampleStaticText(wx.StaticText):
     pass

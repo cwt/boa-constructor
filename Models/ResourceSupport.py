@@ -6,7 +6,7 @@
 #
 # Created:     2003/07/27
 # RCS-ID:      $Id$
-# Copyright:   (c) 2003 - 2004
+# Copyright:   (c) 2003 - 2005
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 #Boa:Dialog:ResourceSelectDlg
@@ -217,7 +217,7 @@ class PyResourceImagesSelectionView(PyResourceImagesView):
 
 class PyResourceBitmapModel(PythonEditorModels.ModuleModel):
     modelIdentifier = 'PyImgResource'
-    bitmap = 'PyResBitmap_s.png'
+    bitmap = 'PyResBitmap.png'
     imgIdx = EditorHelper.imgPyResBitmap = EditorHelper.imgIdxRange()
 
     def updateData(self, data, subImage):

@@ -6,7 +6,7 @@
 #
 # Created:     2000/06/19
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999 - 2004 Riaan Booysen
+# Copyright:   (c) 1999 - 2005 Riaan Booysen
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 
@@ -465,10 +465,7 @@ class PyCrustShellEditor(wxSplitterWindow):
     def __init__(self, parent, wId):
         wxSplitterWindow.__init__(self, parent, wId)
 
-        try:
-            from wxPython.py import shell, filling
-        except ImportError:
-            from wxPython.lib.PyCrust import shell, filling
+        from wx.py.crust import Shell, Filling
 
         # XXX argh! PyCrust records the About box pseudo file objs from 
         # XXX sys.in/err/out
@@ -476,11 +473,11 @@ class PyCrustShellEditor(wxSplitterWindow):
         sys.stdout, sys.stdin, sys.stderr = \
               sys.__stdout__, sys.__stdin__, sys.__stderr__
         try:
-            self.shellWin = shell.Shell(self, -1)
+            self.shellWin = Shell(self, -1)
         finally:
             sys.stdout, sys.stdin, sys.stderr = o, i, e
             
-        self.fillingWin = filling.Filling(self, -1, style=wxSP_3DSASH,
+        self.fillingWin = Filling(self, -1, style=wxSP_3DSASH,
               rootObject=self.shellWin.interp.locals, rootIsNamespace=True)
         
         height = Preferences.screenHeight / 2

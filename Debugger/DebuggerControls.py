@@ -192,11 +192,11 @@ class BreakViewCtrl(DebuggerListCtrl):
 
         self.menu.Append(wxID_BREAKSOURCE, 'Goto source')
         self.menu.Append(wxID_BREAKREFRESH, 'Refresh')
-        self.menu.Append(-1, '-')
+        self.menu.AppendSeparator()
         self.menu.Append(wxID_BREAKIGNORE, 'Edit ignore count')
         self.menu.Append(wxID_BREAKEDIT, 'Edit condition')
         self.menu.Append(wxID_BREAKDELETE, 'Delete')
-        self.menu.Append(-1, '-')
+        self.menu.AppendSeparator()
         self.menu.Append(wxID_BREAKENABLED, 'Enabled', '', true)
 
         self.menu.Check(wxID_BREAKENABLED, true)

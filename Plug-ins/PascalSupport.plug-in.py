@@ -6,7 +6,7 @@
 #
 # Created:     2002
 # RCS-ID:      $Id$
-# Copyright:   (c) 2002 - 2004
+# Copyright:   (c) 2002 - 2005
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 
@@ -32,7 +32,7 @@ Plugins.registerPreference('PascalSupport', 'psPascalCompilerPath', "''",
 class PascalModel(EditorModels.SourceModel):
     modelIdentifier = 'Pascal'
     defaultName = 'pascal'  # default name given to newly created files
-    bitmap = 'Pascal_s.png' # this image must exist in Images/Modules
+    bitmap = 'Pascal.png' # this image must exist in Images/Modules
     ext = '.pas'
     imgIdx = EditorHelper.imgPascalModel
 
@@ -204,6 +204,6 @@ ogg\xd8@D\xe8\x8aD\xd5\xbf\x88\x04\xbf\xd5\xf7\xfa\xcc\xabN|\x07`\xae\xeaW90\
 \xd7\xd8\tp=\x1f\xac\x170$\xfe\r\xf8\x00P\xd5U\xa2\xb4=\x18n\x00\x00\x00\x00\
 IEND\xaeB`\x82' 
 
-Preferences.IS.registerImage('Images/Modules/Pascal_s.png', getPascalModuleData())
+Preferences.IS.registerImage('Images/Modules/Pascal.png', getPascalModuleData())
 Preferences.IS.registerImage('Images/Palette/Pascal.png', getPascalPaletteData())
 

@@ -9,7 +9,7 @@ The mixin class name must end with the postfix _AttrMixin.
 
 """
 
-from wxPython.wx import *
+import wx
 
 # Note: The AttrMixin class must be imported in this form and it's module must
 #       be in the same directory as the frame module
@@ -18,26 +18,21 @@ from AttrMixins import Test_AttrMixin
 def create(parent):
     return AttrMixinFrame(parent)
 
-[wxID_ATTRMIXINFRAME, wxID_ATTRMIXINFRAMEBUTTON1,
-] = map(lambda _init_ctrls: wxNewId(), range(2))
+[wxID_ATTRMIXINFRAME, wxID_ATTRMIXINFRAMEBUTTON1, 
+] = [wx.NewId() for _init_ctrls in range(2)]
 
 # Note: Inherits from the AttrMixin class after wxFrame
-class AttrMixinFrame(wxFrame, Test_AttrMixin):
-    def _init_utils(self):
-        # generated method, don't edit
-        pass
-
+class AttrMixinFrame(wx.Frame, Test_AttrMixin):
     def _init_ctrls(self, prnt):
         # generated method, don't edit
-        wxFrame.__init__(self, id=wxID_ATTRMIXINFRAME, name='AttrMixinFrame',
-              parent=prnt, pos=wxPoint(352, 222), size=wxSize(201, 104),
-              style=wxDEFAULT_FRAME_STYLE, title=self.frameTitle)
-        self._init_utils()
-        self.SetClientSize(wxSize(193, 77))
+        wx.Frame.__init__(self, id=wxID_ATTRMIXINFRAME, name='AttrMixinFrame',
+              parent=prnt, pos=wx.Point(352, 222), size=wx.Size(201, 104),
+              style=wx.DEFAULT_FRAME_STYLE, title=self.frameTitle)
+        self.SetClientSize(wx.Size(193, 77))
 
-        self.button1 = wxButton(id=wxID_ATTRMIXINFRAMEBUTTON1,
+        self.button1 = wx.Button(id=wxID_ATTRMIXINFRAMEBUTTON1,
               label=self.buttonLabel, name='button1', parent=self,
-              pos=wxPoint(0, 0), size=wxSize(193, 77), style=0)
+              pos=wx.Point(0, 0), size=wx.Size(193, 77), style=0)
 
     def __init__(self, parent):
         # Note: Call inherited mixin constructor before _init_ctrls
@@ -47,8 +42,8 @@ class AttrMixinFrame(wxFrame, Test_AttrMixin):
 
 
 if __name__ == '__main__':
-    app = wxPySimpleApp()
-    wxInitAllImageHandlers()
+    app = wx.PySimpleApp()
+    wx.InitAllImageHandlers()
     frame = create(None)
-    frame.Show();frame.Hide();frame.Show() #workaround for running in wxProcess
+    frame.Show()
     app.MainLoop()

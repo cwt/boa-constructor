@@ -6,7 +6,7 @@
 #
 # Created:     2002
 # RCS-ID:      $Id$
-# Copyright:   (c) 2002 - 2004
+# Copyright:   (c) 2002 - 2005
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 print 'importing Models.XMLSupport'
@@ -24,7 +24,7 @@ from Models.EditorModels import PersistentModel
 class XMLFileModel(PersistentModel):
     modelIdentifier = 'XML'
     defaultName = 'xml'
-    bitmap = 'WebDocXML_s.png'
+    bitmap = 'WebDocXML.png'
     imgIdx = EditorHelper.imgXMLFileModel
     ext = '.xml'
 

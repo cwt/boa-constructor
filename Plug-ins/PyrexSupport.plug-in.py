@@ -6,7 +6,7 @@
 #
 # Created:     2002
 # RCS-ID:      $Id$
-# Copyright:   (c) 2002 - 2004
+# Copyright:   (c) 2002 - 2005
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 
@@ -33,7 +33,7 @@ EditorHelper.imgPyrexModel = EditorHelper.imgIdxRange()
 class PyrexModel(EditorModels.SourceModel):
     modelIdentifier = 'Pyrex'
     defaultName = 'pyrex'
-    bitmap = 'Pyrex_s.png'
+    bitmap = 'Pyrex.png'
     ext = '.pyx'
     imgIdx = EditorHelper.imgPyrexModel
 
@@ -191,7 +191,7 @@ def getPyrexPaletteData():
 \x871\xaez]\x8c>\x94\x08&\x99 \x9c`+\xc6\xf5s\x05\xfd1\xc1o\xc4\xdf\xffe\xde\
 \x9d\xe0\x1b_\xc7\xa9{G\x16\x95\x05\x00\x00\x00\x00IEND\xaeB`\x82' 
 
-Preferences.IS.registerImage('Images/Modules/Pyrex_s.png', getPyrexModuleData())
+Preferences.IS.registerImage('Images/Modules/Pyrex.png', getPyrexModuleData())
 Preferences.IS.registerImage('Images/Palette/Pyrex.png', getPyrexPaletteData())
 
 

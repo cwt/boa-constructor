@@ -1,4 +1,4 @@
-## rc-version: 11 ##
+## rc-version: 13 ##
 # RCS-ID:      $Id$
 
 # The main preference file.
@@ -22,8 +22,7 @@ paletteStyle = 'tabs'
 # Frame test button on the Palette toolbar
 showFrameTestButton = False
 # Style flags used by most splitters in the IDE
-splitterStyle = wxCLIP_CHILDREN | wxSP_LIVE_UPDATE | \
-                wxSP_3DSASH | wxNO_3D #wxSP_3D | wxSP_FULLSASH 
+splitterStyle = wxSP_LIVE_UPDATE | wxSP_3DSASH | wxNO_3D
 
 # Alternating background colours used in ListCtrls (pastel blue and yellow)
 pastels = True
@@ -121,6 +120,9 @@ checkSourceOnSave = True
 # This causes a delay but is more accurate.
 autoRefreshOnCodeComplete = True
 
+# Should call tips be invoked after typing an open paren
+callTipsOnOpenParen = False
+
 # Flag for turning on special checking for european keyboard characters by
 # checking for certain codes while ctrl alt is held.
 handleSpecialEuropeanKeys = False
@@ -147,7 +149,7 @@ showFilenameExtensions = False
 editorNotebookOpenPos = 'current'
 
 # Editor menu items can optionally display images in the menus
-editorMenuImages = False
+editorMenuImages = True
 
 # Should the Editor fill the available width when the Inspector is closed
 expandEditorOnCloseInspector = False
@@ -429,8 +431,9 @@ exportedProperties = ['flatTools', 'childFrameStyle', 'dataViewListStyle',
   'eoErrOutDockWindow', 'eoErrOutWindowHeightPerc',
 
   'checkSyntax', 'onlyCheckIfLineModified', 'checkSourceOnSave',
-  'autoRefreshOnCodeComplete', 'handleSpecialEuropeanKeys', 'euroKeysCountry',
-  'autoReindent', 'neverEmptyUndoBuffer',
+  'autoRefreshOnCodeComplete', 'callTipsOnOpenParen', 
+  'handleSpecialEuropeanKeys', 'euroKeysCountry', 'autoReindent', 
+  'neverEmptyUndoBuffer',
 
   'rememberOpenFiles', 'showFilenameExtensions', 'editorNotebookOpenPos',
   'editorMenuImages', 'expandEditorOnCloseInspector',

@@ -6,7 +6,7 @@
 #
 # Created:     1999
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999 - 2004 Riaan Booysen
+# Copyright:   (c) 1999 - 2005 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
 print 'importing Views.OGLViews'
@@ -14,7 +14,8 @@ print 'importing Views.OGLViews'
 import pickle, os
 
 from wxPython.wx import *
-from wxPython.ogl import *
+#from wxPython.ogl import *
+import wx.lib.ogl as ogl
 
 import Preferences, Utils
 
@@ -31,14 +32,14 @@ import EditorViews
 # * Is the topological layout applicable to import diagrams? (They can be cyclic)
 # * Optional hiding of classes in UMLView
 
-wxOGLInitialize()
+ogl.OGLInitialize()
 
-class RoundedRectangleShape(wxRectangleShape):
+class RoundedRectangleShape(ogl.RectangleShape):
     def __init__(self, w=0.0, h=0.0):
-        wxRectangleShape.__init__(self, w, h)
+        ogl.RectangleShape.__init__(self, w, h)
         self.SetCornerRadius(-0.3)
 
-class MyEvtHandler(wxShapeEvtHandler):
+class MyEvtHandler(ogl.ShapeEvtHandler):
     def OnLeftClick(self, x, y, keys = 0, attachment = 0):
         shape = self.GetShape()
         canvas = shape.GetCanvas()
@@ -70,7 +71,7 @@ class MyEvtHandler(wxShapeEvtHandler):
 
     def OnEndDragLeft(self, x, y, keys = 0, attachment = 0):
         shape = self.GetShape()
-        self.base_OnEndDragLeft(x, y, keys, attachment)
+        ogl.ShapeEvtHandler.OnEndDragLeft(self, x, y, keys, attachment)
         if not shape.Selected():
             self.OnLeftClick(x, y, keys, attachment)
 
@@ -92,10 +93,10 @@ class MyEvtHandler(wxShapeEvtHandler):
 
 incy = 45
 
-class PersistentShapeCanvas(wxShapeCanvas):
+class PersistentShapeCanvas(ogl.ShapeCanvas):
     ext = '.lay'
     def __init__(self, parent, shapes):
-        wxShapeCanvas.__init__(self, parent, style = 0)
+        ogl.ShapeCanvas.__init__(self, parent, style = 0)
         self.SetBackgroundColour(Preferences.vpOGLCanvasBackgroundColour)
         self.shapes = shapes
 
@@ -186,9 +187,9 @@ class PerstShape:
          before reading sizes into pickle."""
 
 
-class PerstDividedShape(wxDividedShape, PerstShape):
+class PerstDividedShape(ogl.DividedShape, PerstShape):
     def __init__(self, unqPclName, width, height):
-        wxDividedShape.__init__(self, width, height)
+        ogl.DividedShape.__init__(self, width, height)
         PerstShape.__init__(self, unqPclName)
 
     def setPos(self, pos):
@@ -248,7 +249,7 @@ class PersistentOGLView(ScrollingContainer, EditorViews.EditorView):
 
         EVT_RIGHT_UP(self.canvas, self.OnRightClick)
 
-        self.diagram = wxDiagram()
+        self.diagram = ogl.Diagram()
         self.canvas.SetDiagram(self.diagram)
         self.diagram.SetCanvas(self.canvas)
 
@@ -262,7 +263,7 @@ class PersistentOGLView(ScrollingContainer, EditorViews.EditorView):
 
     def destroy(self):
         self.destroyShapes()
-        self.diagram.Destroy()
+##        self.diagram.Destroy()
         EditorViews.EditorView.destroy(self)
 
     def destroyShapes(self):
@@ -279,12 +280,12 @@ class PersistentOGLView(ScrollingContainer, EditorViews.EditorView):
             self._loaded = false
 
     def newLine(self, dc, fromShape, toShape):
-        line = wxLineShape()
+        line = ogl.LineShape()
         line.SetCanvas(self.canvas)
         line.SetPen(Preferences.vpOGLLinePen)
         line.SetBrush(Preferences.vpOGLLineBrush)
 
-        line.AddArrow(ARROW_ARROW)
+        line.AddArrow(ogl.ARROW_ARROW)
         #pmf = wxPseudoMetaFile()
         #pmf.LoadFromMetaFile('Images/Views/UML/inherit.wmf', 10.0, 10.0)
         #line.AddArrow(ARROW_METAFILE, mf=pmf)
@@ -297,7 +298,7 @@ class PersistentOGLView(ScrollingContainer, EditorViews.EditorView):
         fromShape.Move(dc, fromShape.GetX(), fromShape.GetY())
 
     def newRegion(self, font, name, textLst, maxWidth, totHeight = 10):
-        region = wxShapeRegion()
+        region = ogl.ShapeRegion()
         dc = wxClientDC(self.canvas)
         dc.SetFont(font)
 
@@ -322,7 +323,7 @@ class PersistentOGLView(ScrollingContainer, EditorViews.EditorView):
         shape.SetBrush(brush)
 #        shape.SetFont(wxFont(6, wxMODERN, wxNORMAL, wxNORMAL, false))
         shape.AddText(text)
-        shape.SetShadowMode(SHADOW_RIGHT)
+        shape.SetShadowMode(ogl.SHADOW_RIGHT)
         self.diagram.AddShape(shape)
         shape.Show(true)
 
@@ -709,7 +710,7 @@ class UMLView(PersistentOGLView, SortedUMLViewMix):
         x, y = (event.m_x, event.m_y)
         hit = 0
         for (name, shape) in self.AllClasses.items():
-            (hit, attach_point, distance) = shape.HitTest(x, y)
+            hit = shape.HitTest(x, y)
             if hit: break
         x, y = self.CalcScrolledPosition(x, y)
         if not hit:
@@ -913,10 +914,11 @@ class AppPackageView(PersistentOGLView):
         self.relationships = None
         self.refreshCtrl()
 
-class __Cleanup:
-    cleanup = wxOGLCleanUp
-    def __del__(self):
-        self.cleanup()
-
-# when this module gets cleaned up then wxOGLCleanUp() will get called
-__cu = __Cleanup()
+##class __Cleanup:
+##    cleanup = ogl.OGLCleanUp
+####    def __del__(self):
+##    def __del__():
+##        self.cleanup()
+##
+### when this module gets cleaned up then wxOGLCleanUp() will get called
+##__cu = __Cleanup()

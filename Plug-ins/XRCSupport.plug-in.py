@@ -15,10 +15,10 @@ class XmlResourceDTC(BaseCompanions.UtilityDTC):
 ##        return ['Handle']
     def constructor(self):
         return {'FileMask': 'filemask', 'Name': 'name'}
-    def designTimeSource(self, position='wxDefaultPos', size='wxDefaultSize'):
+    def designTimeSource(self, position='wx.DefaultPos', size='wx.DefaultSize'):
         return {'filemask': "''"}
     def writeImports(self):
-        return 'from wxPython.xrc import *'
+        return 'import wx.xrc'
 
     factoryDict = {'LoadPanel'  : 'XrcPanel'}
     def factory(self, method):
@@ -47,7 +47,7 @@ class XrcPanelDTC(ContainerCompanions.PanelDTC):
                                  size = wxDefaultSize):
         xrcObjs = self.designer.getObjectsOfClass(wxXmlResource)
         if not xrcObjs:
-            raise 'No wxXmlResource objects found'
+            raise 'No wx.xrc.XmlResource objects found'
         # factory/LoadPage allows no positional info
         if not position: posx, posy = 0, 0
         else:            posx, posy = position.x, position.y
@@ -64,8 +64,8 @@ class XrcPanelDTC(ContainerCompanions.PanelDTC):
             xrcObjs = self.designer.getObjectsOfClass(wxXmlResource)
             names = xrcObjs.keys()
             if names:
-                dlg = wxSingleChoiceDialog(self.designer, 'Select wxXmlResource to LoadPanel from',
-                      'wxXmlResource.LoadPanel', names)
+                dlg = wxSingleChoiceDialog(self.designer, 'Select wx.xrc.XmlResource to LoadPanel from',
+                      'wx.xrc.XmlResource.LoadPanel', names)
                 try:
                     if dlg.ShowModal() == wxID_OK:
                         xrcObj = dlg.GetStringSelection()
@@ -75,7 +75,7 @@ class XrcPanelDTC(ContainerCompanions.PanelDTC):
                 finally:
                     dlg.Destroy()
             else:
-                raise 'No wxXmlResource objects found'
+                raise 'No wx.xrc.XmlResource objects found'
         else:
             self.xmlResource = self.textConstr.factory[0]
 
@@ -85,7 +85,7 @@ class XrcPanelDTC(ContainerCompanions.PanelDTC):
 
         self.designer.addCtrlToObjectCollection(self.textConstr)
 
-    def designTimeSource(self, position = 'wxDefaultPosition', size = 'wxDefaultSize'):
+    def designTimeSource(self, position = 'wx.DefaultPosition', size = 'wx.DefaultSize'):
         return {'name':  `self.name`}
 
 
@@ -94,6 +94,6 @@ class XrcPanel(wxPanel):
 
 import PaletteStore
 PaletteStore.paletteLists['Utilities (Data)'].append(wxXmlResource)
-PaletteStore.compInfo.update({wxXmlResource: ['wxXmlResource', XmlResourceDTC]})
+PaletteStore.compInfo.update({wxXmlResource: ['wx.xrc.XmlResource', XmlResourceDTC]})
 PaletteStore.paletteLists['ContainersLayout'].append(XrcPanel)
 PaletteStore.compInfo[XrcPanel] = ['XrcPanel', XrcPanelDTC]

@@ -6,7 +6,7 @@
 #
 # Created:     2002
 # RCS-ID:      $Id$
-# Copyright:   (c) 2002 - 2004
+# Copyright:   (c) 2002 - 2005
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 print 'importing Models.HTMLSupport'
@@ -25,7 +25,7 @@ from Models.EditorModels import PersistentModel
 class HTMLFileModel(PersistentModel):
     modelIdentifier = 'HTML'
     defaultName = 'html'
-    bitmap = 'WebDocHTML_s.png'
+    bitmap = 'WebDocHTML.png'
     imgIdx = EditorHelper.imgHTMLFileModel
     ext = '.html'
 

@@ -6,7 +6,7 @@
 #
 # Created:     2002
 # RCS-ID:      $Id$
-# Copyright:   (c) 2002 - 2004
+# Copyright:   (c) 2002 - 2005
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 print 'importing Models.CPPSupport'
@@ -26,7 +26,7 @@ from Models.EditorModels import SourceModel
 class CPPModel(SourceModel):
     modelIdentifier = 'CPP'
     defaultName = 'cpp'
-    bitmap = 'Cpp_s.png'
+    bitmap = 'Cpp.png'
     imgIdx = EditorHelper.imgCPPModel
     ext = '.cxx'
 

@@ -6,7 +6,7 @@
 #
 # Created:     2000/10/22
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999 - 2004 Riaan Booysen
+# Copyright:   (c) 1999 - 2005 Riaan Booysen
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 print 'importing Explorers.CVSExplorer'
@@ -129,7 +129,7 @@ class CVSController(ExplorerNodes.Controller):
                         'Images/CvsPics/MissingFile.png',
                         'Images/CvsPics/ConflictingFile.png',
                         'Images/CvsPics/Dir.png',
-                        'Images/Modules/FolderUp_s.png',
+                        'Images/Modules/FolderUp.png',
                         'Images/CvsPics/UnknownDir.png',
                         'Images/CvsPics/UnknownFile.png'):
             self.images.Add(IS.load(cvsImg))
@@ -187,7 +187,7 @@ class CVSController(ExplorerNodes.Controller):
               %(cvsroot, os.environ.get('CVS_RSH', '(not defined)'), inDir, help),
               'CVS command line', wholeCommand)
         if wxPlatform == '__WXMSW__':
-            te = Utils.getCtrlsFromDialog(dlg, 'wxTextCtrlPtr')[0]
+            te = Utils.getCtrlsFromDialog(dlg, 'TextCtrl')[0]
             try:
                 te.SetSelection(wholeCommand.index('['),
                                 wholeCommand.index(']')+1)

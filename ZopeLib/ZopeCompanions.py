@@ -6,7 +6,7 @@
 #
 # Created:     2001/02/04
 # RCS-ID:      $Id$
-# Copyright:   (c) 2001 - 2004
+# Copyright:   (c) 2001 - 2005
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 print 'importing ZopeLib.ZopeCompanions'
@@ -314,7 +314,7 @@ class PythonScriptZC(CustomZopePropsMixIn, ZopeCompanion):
             value = line[pvt+1:]
             props[name] = value
 
-        props['body'] = lines[cnt:].join('\n')
+        props['body'] = '/n'.join(lines[cnt:])
 
         return props
 

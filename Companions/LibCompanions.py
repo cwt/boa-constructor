@@ -6,7 +6,7 @@
 #
 # Created:     2003
 # RCS-ID:      $Id$
-# Copyright:   (c) 2003 - 2004
+# Copyright:   (c) 2003 - 2005
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 print 'importing Companions.LibCompanions'
@@ -51,7 +51,7 @@ class GenStaticTextDTC(StaticTextDTC):
     windowIdName = 'ID'
 
     def writeImports(self):
-        return 'from wxPython.lib.stattext import wxGenStaticText'
+        return 'import wx.lib.stattext.GenStaticText'
 
 #-------------------------------------------------------------------------------
 
@@ -155,7 +155,7 @@ class BaseMaskedTextCtrlDTC(TextCtrlDTC, MaskedDTCMixin):
         TextCtrlDTC.__init__(self, name, designer, parent, ctrlClass)
         MaskedDTCMixin.__init__(self)
 
-    def designTimeSource(self, position = 'wxDefaultPosition', size = 'wxDefaultSize'):
+    def designTimeSource(self, position = 'wx.DefaultPosition', size = 'wx.DefaultSize'):
         dts = TextCtrlDTC.designTimeSource(self, position, size)
         dts['value'] = "''"
         return dts
@@ -164,7 +164,7 @@ class BaseMaskedTextCtrlDTC(TextCtrlDTC, MaskedDTCMixin):
         return TextCtrlDTC.hideDesignTime(self) + MaskedDTCMixin.hideDesignTime(self)
 
     def writeImports(self):
-        return 'from wxPython.lib.maskededit import *'
+        return 'import wx.lib.masked.maskededit'
 
 class MaskedTextCtrlDTC(BaseMaskedTextCtrlDTC, AutoFormatPropMixin):
     def __init__(self, name, designer, parent, ctrlClass):
@@ -192,7 +192,7 @@ class MaskedComboBoxDTC(ComboBoxDTC, MaskedDTCMixin, AutoFormatPropMixin):
         MaskedDTCMixin.__init__(self)
         AutoFormatPropMixin.__init__(self)
 
-    def designTimeSource(self, position = 'wxDefaultPosition', size = 'wxDefaultSize'):
+    def designTimeSource(self, position = 'wx.DefaultPosition', size = 'wx.DefaultSize'):
         dts = ComboBoxDTC.designTimeSource(self, position, size)
         dts['value'] = "''"
         return dts
@@ -208,7 +208,7 @@ class MaskedComboBoxDTC(ComboBoxDTC, MaskedDTCMixin, AutoFormatPropMixin):
 ##               ['Mark', 'EmptyInvalid']
 
     def writeImports(self):
-        return 'from wxPython.lib.maskededit import *'
+        return 'import wx.lib.masked.maskededit'
 
 class MaskedNumCtrlDTC(TextCtrlDTC, MaskedDTCMixin):
     def __init__(self, name, designer, parent, ctrlClass):
@@ -221,7 +221,7 @@ class MaskedNumCtrlDTC(TextCtrlDTC, MaskedDTCMixin):
 
         self.mutualDepProps += ['Bounds', 'Min', 'Max']
 
-    def designTimeSource(self, position = 'wxDefaultPosition', size = 'wxDefaultSize'):
+    def designTimeSource(self, position = 'wx.DefaultPosition', size = 'wx.DefaultSize'):
         dts = TextCtrlDTC.designTimeSource(self, position, size)
         dts['value'] = '0'
         return dts
@@ -230,7 +230,7 @@ class MaskedNumCtrlDTC(TextCtrlDTC, MaskedDTCMixin):
         return TextCtrlDTC.events(self) + ['MaskedNumCtrlEvent']
 
     def writeImports(self):
-        return 'from wxPython.lib.maskednumctrl import *'
+        return 'import wx.lib.masked.numctrl'
 
     def hideDesignTime(self):
         return TextCtrlDTC.hideDesignTime(self) + \
@@ -245,7 +245,7 @@ class MaskedNumCtrlDTC(TextCtrlDTC, MaskedDTCMixin):
 class SpinButtonEnumConstrPropEdit(PropertyEditors.ObjEnumConstrPropEdit):
     def getObjects(self):
         designer = self.companion.designer#.controllerView
-        windows = designer.getObjectsOfClass(wxSpinButtonPtr)
+        windows = designer.getObjectsOfClass(wxSpinButton)
         windowNames = windows.keys()
         windowNames.sort()
         res = ['None'] + windowNames
@@ -262,7 +262,7 @@ class SpinButtonEnumConstrPropEdit(PropertyEditors.ObjEnumConstrPropEdit):
         self.companion.SetSpinButton(value)
 
 class SpinButtonClassLinkPropEdit(PropertyEditors.ClassLinkPropEdit):
-    linkClass = wxSpinButtonPtr
+    linkClass = wxSpinButton
     
 #EventCollections.EventCategories['TimeCtrlEvent'] = (EVT_TIMEUPDATE,)
 #EventCollections.commandCategories.append('TimeCtrlEvent')
@@ -301,12 +301,12 @@ class TimeCtrlDTC(MaskedTextCtrlDTC):
                       })
         return constr
 
-    def designTimeSource(self, position = 'wxDefaultPosition', size = 'wxDefaultSize'):
+    def designTimeSource(self, position = 'wx.DefaultPosition', size = 'wx.DefaultSize'):
         dts = MaskedTextCtrlDTC.designTimeSource(self, position, size)
         dts.update({'value': "'12:00:00 AM'",
                     'fmt24hr': 'False',
                     'display_seconds': 'True',
-                    'oob_color': "wxNamedColour('Yellow')",
+                    'oob_color': "wx.NamedColour('Yellow')",
                     'useFixedWidthFont': 'True',
                    })
         return dts
@@ -331,7 +331,7 @@ class TimeCtrlDTC(MaskedTextCtrlDTC):
         return MaskedTextCtrlDTC.events(self) + ['TimeCtrlEvent']
 
     def writeImports(self):
-        return 'from wxPython.lib.timectrl import *'
+        return 'import wx.lib.masked.timectrl'
 
 ##    def hideDesignTime(self):
 ##        return MaskedTextCtrlDTC.hideDesignTime(self) + ['Mask',
@@ -347,7 +347,7 @@ class TimeCtrlDTC(MaskedTextCtrlDTC):
     def BindSpinButton(self, value):
         self._spinbutton = value
         if value is not None:
-            spins = self.designer.getObjectsOfClass(wxSpinButtonPtr)
+            spins = self.designer.getObjectsOfClass(wxSpinButton)
             if value in spins:
                 self.control.BindSpinButton(spins[value])
 
@@ -383,7 +383,7 @@ class IntCtrlDTC(TextCtrlDTC):
             'DefaultColour': 'default_color', 'OutOfBoundsColour': 'oob_color'})
         return constr
 
-    def designTimeSource(self, position = 'wxDefaultPosition', size = 'wxDefaultSize'):
+    def designTimeSource(self, position = 'wx.DefaultPosition', size = 'wx.DefaultSize'):
         dts = TextCtrlDTC.designTimeSource(self, position, size)
         dts.update({'value': '0',
                     'min': 'None',
@@ -391,8 +391,8 @@ class IntCtrlDTC(TextCtrlDTC):
                     'limited': 'False',
                     'allow_none': 'False',
                     'allow_long': 'False',
-                    'default_color': 'wxBLACK',
-                    'oob_color': 'wxRED'})
+                    'default_color': 'wx.BLACK',
+                    'oob_color': 'wx.RED'})
         return dts
 
 ##    def hideDesignTime(self):
@@ -402,7 +402,7 @@ class IntCtrlDTC(TextCtrlDTC):
         return TextCtrlDTC.events(self) + ['IntCtrlEvent']
 
     def writeImports(self):
-        return 'from wxPython.lib.intctrl import *'
+        return 'import wx.lib.intctrl'
 
 
 #-------------------------------------------------------------------------------
@@ -416,7 +416,7 @@ PaletteStore.palette.append(['wxPython.lib', 'Editor/Tabs/Basic',
 # XXX clean up special casing when 2.4.1 is minimum!
 
 libPalette = [wxGenStaticText]
-libCompInfo = {wxGenStaticText:  ['wxGenStaticText',  GenStaticTextDTC]}
+libCompInfo = {wxGenStaticText:  ['wx.lib.stattext.GenStaticText',  GenStaticTextDTC]}
 
 try:
     from wxPython.lib.maskednumctrl import wxMaskedNumCtrl, EVT_MASKEDNUM
@@ -428,26 +428,26 @@ else:
     libPalette.extend([wxMaskedTextCtrl, wxIpAddrCtrl, wxMaskedComboBox, 
                        wxMaskedNumCtrl, wxTimeCtrl])
     libCompInfo.update({
-        wxMaskedTextCtrl: ['wxMaskedTextCtrl', MaskedTextCtrlDTC], 
-        wxIpAddrCtrl:     ['wxIpAddrCtrl',     IpAddrCtrlDTC],
-        wxMaskedComboBox: ['wxMaskedComboBox', MaskedComboBoxDTC], 
-        wxMaskedNumCtrl:  ['wxMaskedNumCtrl',  MaskedNumCtrlDTC],
-        wxTimeCtrl:       ['wxTimeCtrl',       TimeCtrlDTC],
+        wxMaskedTextCtrl: ['wx.lib.masked.textctrl.MaskedTextCtrl', MaskedTextCtrlDTC], 
+        wxIpAddrCtrl:     ['wx.lib.masked.ipaddrctrl.IpAddrCtrl',     IpAddrCtrlDTC],
+        wxMaskedComboBox: ['wx.lib.masked.combobox.MaskedComboBox', MaskedComboBoxDTC], 
+        wxMaskedNumCtrl:  ['wx.lib.masked.numctrl.MaskedNumCtrl',  MaskedNumCtrlDTC],
+        wxTimeCtrl:       ['wx.lib.masked.timectrl.TimeCtrl',       TimeCtrlDTC],
     })
 
-    EventCollections.EventCategories['MaskedNumCtrlEvent'] = (EVT_MASKEDNUM,)
+    EventCollections.EventCategories['MaskedNumCtrlEvent'] = ('wx.lib.masked.numctrl.EVT_MASKEDNUM',)
     EventCollections.commandCategories.append('MaskedNumCtrlEvent')    
 
-    EventCollections.EventCategories['TimeCtrlEvent'] = (EVT_TIMEUPDATE,)
+    EventCollections.EventCategories['TimeCtrlEvent'] = ('wx.lib.masked.timectrl.EVT_TIMEUPDATE',)
     EventCollections.commandCategories.append('TimeCtrlEvent')    
     
 from wxPython.lib.intctrl import wxIntCtrl, EVT_INT
 
-EventCollections.EventCategories['IntCtrlEvent'] = (EVT_INT,)
+EventCollections.EventCategories['IntCtrlEvent'] = ('wx.lib.intctrl.EVT_INT',)
 EventCollections.commandCategories.append('IntCtrlEvent')
 
 libPalette.append(wxIntCtrl)
-libCompInfo[wxIntCtrl] = ['wxIntCtrl', IntCtrlDTC]
+libCompInfo[wxIntCtrl] = ['wx.lib.intctrl.IntCtrl', IntCtrlDTC]
 
 PaletteStore.paletteLists['wxPython.lib'].extend(libPalette)
 PaletteStore.compInfo.update(libCompInfo)

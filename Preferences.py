@@ -6,7 +6,7 @@
 #
 # Created:     1999
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999 - 2004 Riaan Booysen
+# Copyright:   (c) 1999 - 2005 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
 
@@ -30,8 +30,9 @@ from wxPython import wx
 
 #---Paths-----------------------------------------------------------------------
 
-pyPath = sys.path[0] = os.path.abspath(sys.path[0])
-sys.path.insert(1, '')
+#pyPath = sys.path[0] = os.path.abspath(sys.path[0])
+#sys.path.insert(1, '')
+pyPath = os.path.abspath(os.path.dirname(__file__))
 
 #---Import preference namespace from resource .rc. files------------------------
 
@@ -59,7 +60,12 @@ elif '--BlockHomePrefs' in sys.argv or '-B' in sys.argv:
     print 'ignoring $HOME (if set)'
     rcPath = os.path.join(pyPath, prefsDirName)
 else:
-    homeDir = os.environ.get('HOME', None)
+    homeDir = os.environ.get('HOMEPATH', None)
+    if homeDir is not None:
+        homeDir = os.environ['HOMEDRIVE']+homeDir
+    else:
+        homeDir = os.environ.get('HOME', None)
+        
     if homeDir is not None and os.path.isdir(homeDir):
         rcPath = os.path.join(homeDir, prefsDirName)
         for fn in ('', 'docs-cache', 'Plug-ins'):
@@ -93,7 +99,7 @@ wxPlatforms = {'__WXMSW__': 'msw',
 thisPlatform = wxPlatforms[wx.wxPlatform]
 
 # upgrade if needed and exec in our namespace
-for prefsFile, version in (('prefs.rc.py', 11),
+for prefsFile, version in (('prefs.rc.py', 13),
                            ('prefs.%s.rc.py'%thisPlatform, 8),
                            ('prefs.keys.rc.py', 9),
                            ('prefs.plug-ins.rc.py', None)):

@@ -6,7 +6,7 @@
 #
 # Created:     2000
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999 - 2004 Riaan Booysen
+# Copyright:   (c) 1999 - 2005 Riaan Booysen
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 ##Boa:Frame:CollectionEditor
@@ -146,7 +146,7 @@ class CollectionEditor(wxFrame, Utils.FrameRestorerMixin):
         self.SetSize((self.GetSize().x +1, self.GetSize().y))
 
     def getDimensions(self):
-        size = self.GetSize().asTuple()
+        size = self.GetSize().Get()
         return (None,) + size
 
     def destroy(self):

@@ -7,7 +7,7 @@
 #
 # Created:     1999
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999 - 2004 Riaan Booysen
+# Copyright:   (c) 1999 - 2005 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
 
@@ -119,7 +119,7 @@ class EditorModel:
 class FolderModel(EditorModel):
     modelIdentifier = 'Folder'
     defaultName = 'folder'
-    bitmap = 'Folder_s.png'
+    bitmap = 'Folder.png'
     imgIdx = EditorHelper.imgFolder
 
     def __init__(self, data, name, editor, filepath):
@@ -135,7 +135,7 @@ class SysPathFolderModel(FolderModel):
 class CVSFolderModel(FolderModel):
     modelIdentifier = 'CVS Folder'
     defaultName = 'cvsfolder'
-    bitmap = 'Folder_cyan_s.png'
+    bitmap = 'Folder_cyan.png'
     imgIdx = EditorHelper.imgCVSFolder
 
     def __init__(self, data, name, editor, filepath):
@@ -285,7 +285,7 @@ class PersistentModel(BasePersistentModel):
 class BitmapFileModel(PersistentModel):
     modelIdentifier = 'Bitmap'
     defaultName = 'bitmap'
-    bitmap = 'Bitmap_s.png'
+    bitmap = 'Bitmap.png'
     imgIdx = EditorHelper.imgBitmapFileModel
     ext = '.bmp'
 
@@ -308,7 +308,9 @@ class BitmapFileModel(PersistentModel):
         updateViews = 0
         if newExt != oldExt:
             updateViews = 1
-            bmp = wx.wxBitmapFromImage(wx.wxImageFromStream(StringIO(self.data)))
+            import cStringIO
+            bmp = wx.wxBitmapFromImage(wx.wxImageFromStream(
+                  cStringIO.StringIO(self.data)))
             fn = tempfile.mktemp(newExt)
             try:
                 bmp.SaveFile(fn, self.extTypeMap[newExt])
@@ -374,21 +376,21 @@ class SourceModel(BasePersistentModel):
 class TextModel(PersistentModel):
     modelIdentifier = 'Text'
     defaultName = 'text'
-    bitmap = 'Text_s.png'
+    bitmap = 'Text.png'
     imgIdx = EditorHelper.imgTextModel
     ext = '.txt'
 
 class UnknownFileModel(TextModel):
     modelIdentifier = 'Unknown'
     defaultName = '*'
-    bitmap = 'Unknown_s.png'
+    bitmap = 'Unknown.png'
     imgIdx = EditorHelper.imgUnknownFileModel
     ext = '.*'
 
 class InternalFileModel(TextModel):
     modelIdentifier = 'Internal'
     defaultName = ''
-    bitmap = 'InternalFile_s.png'
+    bitmap = 'InternalFile.png'
     imgIdx = EditorHelper.imgInternalFileModel
     ext = '.intfile'
 

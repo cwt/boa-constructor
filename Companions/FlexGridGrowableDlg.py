@@ -6,7 +6,7 @@
 #
 # Created:     2003
 # RCS-ID:      $Id$
-# Copyright:   (c) 2003 - 2004
+# Copyright:   (c) 2003 - 2005
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 #Boa:Dialog:FlexGridGrowablesDlg
@@ -163,7 +163,7 @@ class FlexGridGrowablesDlg(wxDialog):
         dc.Clear()
         dc.SetPen(wxBLACK_PEN)
         
-        w, h = self.gridWin.GetSize().asTuple()
+        w, h = self.gridWin.GetSize().Get()
         x = 0
         for vl in range(len(self.colBtns)):
             dc.DrawLine(x-1, 0, x-1, h)
@@ -175,7 +175,7 @@ class FlexGridGrowablesDlg(wxDialog):
             y += self.rowBtns[hl].GetSize().height
 
     def setupFlexSizer(self):
-        self.boxSizer1.RemovePos(0)
+        self.boxSizer1.Remove(0)
         self.flex = wxFlexGridSizer(cols=self.numCols, hgap=0,
               rows=self.numRows, vgap=0)
         self.boxSizer1.Insert(0, self.flex, 1, border=0, flag=wxGROW | wxALL)

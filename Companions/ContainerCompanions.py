@@ -6,7 +6,7 @@
 #
 # Created:     2002
 # RCS-ID:      $Id$
-# Copyright:   (c) 2002 - 2004
+# Copyright:   (c) 2002 - 2005
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 print 'importing Companions.ContainerCompanions'
@@ -28,19 +28,19 @@ from PropEdit.Enumerations import *
 
 import methodparse, sourceconst
 
-EventCategories['PanelEvent'] = (EVT_SYS_COLOUR_CHANGED,)
+EventCategories['PanelEvent'] = ('wx.EVT_SYS_COLOUR_CHANGED',)
 
 class PanelDTC(Constructors.WindowConstr, ContainerDTC):
     #wxDocs = HelpCompanions.wxPanelDocs
     def __init__(self, name, designer, parent, ctrlClass):
         ContainerDTC.__init__(self, name, designer, parent, ctrlClass)
         self.editors['DefaultItem'] = ButtonClassLinkPropEdit
-        self.windowStyles.insert(0, 'wxTAB_TRAVERSAL')
+        self.windowStyles.insert(0, 'wx.TAB_TRAVERSAL')
 
-    def designTimeSource(self, position = 'wxDefaultPosition', size = 'wxDefaultSize'):
+    def designTimeSource(self, position = 'wx.DefaultPosition', size = 'wx.DefaultSize'):
         return {'pos':   position,
                 'size': self.getDefCtrlSize(),
-                'style': 'wxTAB_TRAVERSAL',
+                'style': 'wx.TAB_TRAVERSAL',
                 'name':  `self.name`}
 
     def events(self):
@@ -49,7 +49,7 @@ class PanelDTC(Constructors.WindowConstr, ContainerDTC):
     def dependentProps(self):
         return ContainerDTC.dependentProps(self) + ['DefaultItem']
 
-EventCategories['SashEvent'] = (EVT_SASH_DRAGGED, )
+EventCategories['SashEvent'] = ('wx.EVT_SASH_DRAGGED', )
 commandCategories.append('SashEvent')
 class SashWindowDTC(Constructors.WindowConstr, ContainerDTC):
     #wxDocs = HelpCompanions.wxSashWindowDocs
@@ -59,8 +59,8 @@ class SashWindowDTC(Constructors.WindowConstr, ContainerDTC):
                              'SashVisibleTop' : SashVisiblePropEdit,
                              'SashVisibleRight' : SashVisiblePropEdit,
                              'SashVisibleBottom' : SashVisiblePropEdit})
-        self.windowStyles = ['wxSW_3D', 'wxSW_3DSASH', 'wxSW_3DBORDER',
-                             'wxSW_BORDER'] + self.windowStyles
+        self.windowStyles = ['wx.SW_3D', 'wx.SW_3DSASH', 'wx.SW_3DBORDER',
+                             'wx.SW_BORDER'] + self.windowStyles
         self.edgeNameMap = {'SashVisibleLeft'  : wxSASH_LEFT,
                             'SashVisibleTop'   : wxSASH_TOP,
                             'SashVisibleRight' : wxSASH_RIGHT,
@@ -76,10 +76,10 @@ class SashWindowDTC(Constructors.WindowConstr, ContainerDTC):
             props[name] = prop
         return props
 
-    def designTimeSource(self, position = 'wxDefaultPosition', size = 'wxDefaultSize'):
+    def designTimeSource(self, position = 'wx.DefaultPosition', size = 'wx.DefaultSize'):
         return {'pos':   position,
                 'size': self.getDefCtrlSize(),
-                'style': 'wxCLIP_CHILDREN | wxSW_3D',
+                'style': 'wx.CLIP_CHILDREN | wx.SW_3D',
                 'name':  `self.name`}
 
     def events(self):
@@ -123,10 +123,10 @@ class SashLayoutWindowDTC(SashWindowDTC):
                            'Orientation' : sashLayoutOrientationNames
                           })
 
-    def designTimeSource(self, position = 'wxDefaultPosition', size = 'wxDefaultSize'):
+    def designTimeSource(self, position = 'wx.DefaultPosition', size = 'wx.DefaultSize'):
         return {'pos':   position,
                 'size': self.getDefCtrlSize(),
-                'style': 'wxCLIP_CHILDREN | wxSW_3D',
+                'style': 'wx.CLIP_CHILDREN | wx.SW_3D',
                 'name':  `self.name`}
 
     def properties(self):
@@ -162,10 +162,10 @@ class ScrolledWindowDTC(Constructors.WindowConstr, ContainerDTC):
         ContainerDTC.__init__(self, name, designer, parent, ctrlClass)
         self.editors['TargetWindow'] = WindowClassLinkPropEdit
 
-    def designTimeSource(self, position = 'wxDefaultPosition', size = 'wxDefaultSize'):
+    def designTimeSource(self, position = 'wx.DefaultPosition', size = 'wx.DefaultSize'):
         return {'pos':   position,
                 'size': self.getDefCtrlSize(),
-                'style': 'wxHSCROLL | wxVSCROLL',
+                'style': 'wx.HSCROLL | wx.VSCROLL',
                 'name':  `self.name`}
 
     def dependentProps(self):
@@ -181,8 +181,8 @@ class ScrolledWindowDTC(Constructors.WindowConstr, ContainerDTC):
                 self.propRevertToDefault('TargetWindow', 'SetTargetWindow')
                 self.control.SetTargetWindow(self.control)
 
-EventCategories['NotebookEvent'] = (EVT_NOTEBOOK_PAGE_CHANGED,
-                                    EVT_NOTEBOOK_PAGE_CHANGING)
+EventCategories['NotebookEvent'] = ('wx.EVT_NOTEBOOK_PAGE_CHANGED',
+                                    'wx.EVT_NOTEBOOK_PAGE_CHANGING')
 commandCategories.append('NotebookEvent')
 class NotebookDTC(Constructors.WindowConstr, ContainerDTC):
     #wxDocs = HelpCompanions.wxNotebookDocs
@@ -191,8 +191,8 @@ class NotebookDTC(Constructors.WindowConstr, ContainerDTC):
         self.editors.update({'Pages':     CollectionPropEdit,
                              'ImageList': ImageListClassLinkPropEdit})
         self.subCompanions['Pages'] = NotebookPagesCDTC
-        self.windowStyles = ['wxNB_FIXEDWIDTH', 'wxNB_LEFT', 'wxNB_RIGHT',
-                             'wxNB_BOTTOM', 'wxNB_MULTILINE'] + \
+        self.windowStyles = ['wx.NB_FIXEDWIDTH', 'wx.NB_LEFT', 'wx.NB_RIGHT',
+                             'wx.NB_BOTTOM', 'wx.NB_MULTILINE'] + \
                              self.windowStyles
         self.letClickThru = true
 
@@ -207,7 +207,7 @@ class NotebookDTC(Constructors.WindowConstr, ContainerDTC):
         EVT_NOTEBOOK_PAGE_CHANGED(ctrl, ctrl.GetId(), self.OnPageChanged)
         return ctrl
 
-    def designTimeSource(self, position = 'wxDefaultPosition', size = 'wxDefaultSize'):
+    def designTimeSource(self, position = 'wx.DefaultPosition', size = 'wx.DefaultSize'):
         return {'pos':   position,
                 'size':  self.getDefCtrlSize(),
                 'style': '0',
@@ -408,7 +408,7 @@ class BlankWindowPage(wxWindow):
         # XXX how/when can I delete this menu, it will leak !!
         self.menu = wxMenu()
         self.menu.Append(wxID_CTRLPARENT, 'Up')
-        self.menu.Append(-1, '-')
+        self.menu.AppendSeparator()
         self.menu.Append(wxID_EDITPASTE, 'Paste')
         self.menu.Append(wxID_EDITDELETE, 'Delete')
         EVT_MENU(self, wxID_CTRLPARENT, self.OnCtrlParent)
@@ -503,10 +503,10 @@ class BlankWindowPage(wxWindow):
         self.OnControlResize(None)
 
 
-EventCategories['SplitterWindowEvent'] = (EVT_SPLITTER_SASH_POS_CHANGING,
-                                          EVT_SPLITTER_SASH_POS_CHANGED,
-                                          EVT_SPLITTER_UNSPLIT,
-                                          EVT_SPLITTER_DOUBLECLICKED)
+EventCategories['SplitterWindowEvent'] = ('wx.EVT_SPLITTER_SASH_POS_CHANGING',
+                                          'wx.EVT_SPLITTER_SASH_POS_CHANGED',
+                                          'wx.EVT_SPLITTER_UNSPLIT',
+                                          'wx.EVT_SPLITTER_DOUBLECLICKED')
 commandCategories.append('SplitterWindowEvent')
 
 class SplitterWindowDTC(ContainerDTC):
@@ -518,9 +518,9 @@ class SplitterWindowDTC(ContainerDTC):
                              'Window2'  : SplitterWindow2LinkPropEdit})
         self.options['SplitMode'] = splitterWindowSplitMode
         self.names['SplitMode'] = splitterWindowSplitModeNames
-        self.windowStyles = ['wxSP_3D', 'wxSP_3DSASH', 'wxSP_3DBORDER',
-                             'wxSP_BORDER', 'wxSP_NOBORDER', #'wxSP_FULLSASH',
-                             'wxSP_PERMIT_UNSPLIT', 'wxSP_LIVE_UPDATE',
+        self.windowStyles = ['wx.SP_3D', 'wx.SP_3DSASH', 'wx.SP_3DBORDER',
+                             'wx.SP_BORDER', 'wx.SP_NOBORDER', #'wxSP_FULLSASH',
+                             'wx.SP_PERMIT_UNSPLIT', 'wx.SP_LIVE_UPDATE',
                              ] + self.windowStyles #'wxSP_3DSASH', 'wxSP_3DBORDER', 'wxSP_FULLSASH',
         self.win1 = None
         self.win2 = None
@@ -536,10 +536,10 @@ class SplitterWindowDTC(ContainerDTC):
                       'SplitMode': ('CompnRoute', self.GetSplitMode, self.SetSplitMode),})
         return props
 
-    def designTimeSource(self, position = 'wxDefaultPosition', size = 'wxDefaultSize'):
+    def designTimeSource(self, position = 'wx.DefaultPosition', size = 'wx.DefaultSize'):
         return {'point': position,
                 'size': self.getDefCtrlSize(),
-                'style': 'wxSP_3D',
+                'style': 'wx.SP_3D',
                 'name':  `self.name`}
 
     def hideDesignTime(self):
@@ -722,7 +722,7 @@ class SplitterWindowDTC(ContainerDTC):
         self.win2 = value
         self.splitWindow(self.control.GetWindow1(), value)
 
-EventCategories['ToolEvent'] = (EVT_TOOL, EVT_TOOL_RCLICKED)
+EventCategories['ToolEvent'] = ('wx.EVT_TOOL', 'wx.EVT_TOOL_RCLICKED')
 commandCategories.append('ToolEvent')
 class ToolBarDTC(Constructors.WindowConstr, ContainerDTC):
     #wxDocs = HelpCompanions.wxToolBarDocs
@@ -730,9 +730,9 @@ class ToolBarDTC(Constructors.WindowConstr, ContainerDTC):
         ContainerDTC.__init__(self, name, designer, parent, ctrlClass)
         self.editors.update({'Tools': CollectionPropEdit})
         self.subCompanions['Tools'] = ToolBarToolsCDTC
-        self.windowStyles = ['wxTB_FLAT', 'wxTB_DOCKABLE', 'wxTB_HORIZONTAL',
-                             'wxTB_VERTICAL', 'wxTB_3DBUTTONS', 'wxTB_TEXT',
-                             'wxTB_NOICONS', 'wxTB_NODIVIDER', 'wxTB_NOALIGN',
+        self.windowStyles = ['wx.TB_FLAT', 'wx.TB_DOCKABLE', 'wx.TB_HORIZONTAL',
+                             'wx.TB_VERTICAL', 'wx.TB_3DBUTTONS', 'wx.TB_TEXT',
+                             'wx.TB_NOICONS', 'wx.TB_NODIVIDER', 'wx.TB_NOALIGN',
                             ] + self.windowStyles
 
     def properties(self):
@@ -740,10 +740,10 @@ class ToolBarDTC(Constructors.WindowConstr, ContainerDTC):
         props.update({'Tools': ('NoneRoute', None, None)})
         return props
 
-    def designTimeSource(self, position = 'wxDefaultPosition', size = 'wxDefaultSize'):
+    def designTimeSource(self, position = 'wx.DefaultPosition', size = 'wx.DefaultSize'):
         return {'pos': position,
                 'size': size,
-                'style': 'wxTB_HORIZONTAL | wxNO_BORDER',
+                'style': 'wx.TB_HORIZONTAL | wx.NO_BORDER',
                 'name': `self.name`}
 
     def dependentProps(self):
@@ -783,7 +783,7 @@ class ToolBarToolsCDTC(CollectionIddDTC):
                              'LongHelp': StrConstrPropEdit,
                              'Kind': EnumConstrPropEdit,
                              'Control': WinEnumConstrPropEdit})
-        self.names['Kind'] = ['wxITEM_NORMAL', 'wxITEM_CHECK', 'wxITEM_RADIO']
+        self.names['Kind'] = ['wx.ITEM_NORMAL', 'wx.ITEM_CHECK', 'wx.ITEM_RADIO']
 
     def constructor(self):
         tcl = self.textConstrLst[self.index]
@@ -806,6 +806,15 @@ class ToolBarToolsCDTC(CollectionIddDTC):
         elif tcl.method == 'AddControl':
             return {'Control': 'control'}
 
+    def properties(self):
+        tcl = self.textConstrLst[self.index]
+        if tcl.method in ('DoAddTool', 'AddTool'):
+            return CollectionIddDTC.properties(self)
+        elif tcl.method == 'AddSeparator':
+            return {}
+        elif tcl.method == 'AddControl':
+            return {}
+
     def designTimeSource(self, wId, method=None):
         if method is None:
             method = self.insertionMethod
@@ -815,15 +824,15 @@ class ToolBarToolsCDTC(CollectionIddDTC):
         if method == 'DoAddTool':
             return {'id': winId,
                     'label': `''`,
-                    'bitmap': 'wxNullBitmap',
-                    'bmpDisabled': 'wxNullBitmap',
-                    'kind': 'wxITEM_NORMAL',
+                    'bitmap': 'wx.NullBitmap',
+                    'bmpDisabled': 'wx.NullBitmap',
+                    'kind': 'wx.ITEM_NORMAL',
                     'shortHelp': `newItemName`,
                     'longHelp': `''`}
         elif method == 'AddTool':
             return {'id': winId,
-                    'bitmap': 'wxNullBitmap',
-                    'pushedBitmap': 'wxNullBitmap',
+                    'bitmap': 'wx.NullBitmap',
+                    'pushedBitmap': 'wx.NullBitmap',
                     'isToggle': 'false',
                     'shortHelpString': `newItemName`,
                     'longHelpString': `''`}
@@ -884,7 +893,7 @@ class ToolBarToolsCDTC(CollectionIddDTC):
     def defaultAction(self):
         insp = self.designer.inspector
         insp.pages.SetSelection(2)
-        insp.events.doAddEvent('ToolEvent', 'EVT_TOOL')
+        insp.events.doAddEvent('ToolEvent', 'wx.EVT_TOOL')
 
     def notification(self, compn, action):
         if action == 'delete':
@@ -918,10 +927,10 @@ class ToolBarToolsCDTC(CollectionIddDTC):
         self.textConstrLst[self.index].params['control'] = value
 
 class ToolBarSimpleDTC(ToolBarDTC): 
-    def designTimeSource(self, position = 'wxDefaultPosition', size = 'wxDefaultSize'):
+    def designTimeSource(self, position = 'wx.DefaultPosition', size = 'wx.DefaultSize'):
         return {'pos': position,
                 'size': self.getDefCtrlSize(),
-                'style': 'wxTB_HORIZONTAL | wxNO_BORDER',
+                'style': 'wx.TB_HORIZONTAL | wx.NO_BORDER',
                 'name': `self.name`}
 
 class StatusBarDTC(ContainerDTC):
@@ -930,7 +939,7 @@ class StatusBarDTC(ContainerDTC):
         ContainerDTC.__init__(self, name, designer, parent, ctrlClass)
         self.editors['Fields'] = CollectionPropEdit
         self.subCompanions['Fields'] = StatusBarFieldsCDTC
-        self.windowStyles = ['wxST_SIZEGRIP'] + self.windowStyles
+        self.windowStyles = ['wx.ST_SIZEGRIP'] + self.windowStyles
 
     def constructor(self): 
         return {'Style': 'style', 'Name': 'name'}
@@ -940,7 +949,7 @@ class StatusBarDTC(ContainerDTC):
         props.update({'Fields': ('NoneRoute', None, None)})
         return props
 
-    def designTimeSource(self, position='wxDefaultPosition', size='wxDefaultSize'):
+    def designTimeSource(self, position='wx.DefaultPosition', size='wx.DefaultSize'):
         return {'style': '0',
                 'name': `self.name`}
 
@@ -951,29 +960,29 @@ class StatusBarFieldsCDTC(CollectionDTC):
     #wxDocs = HelpCompanions.wxStatusBarDocs
     propName = 'Fields'
     displayProp = 'text'
-    indexProp = 'i'
+    indexProp = 'number'
     insertionMethod = 'SetStatusText'
     deletionMethod = '(None)'
 
     def __init__(self, name, designer, parentCompanion, ctrl):
         CollectionDTC.__init__(self, name, designer, parentCompanion, ctrl)
-        self.editors = {'Index' : IntConstrPropEdit,
+        self.editors = {'Number' : IntConstrPropEdit,
                         'Text': StrConstrPropEdit,
                         'Width': SBFWidthConstrPropEdit}
         self.widths = []
 
     def constructor(self):
-        return {'Index': 'i', 'Text': 'text', 'Width': 'width'}
+        return {'Number': 'number', 'Text': 'text', 'Width': 'width'}
 
     def properties(self):
         props = CollectionDTC.properties(self)
-        props.update({'Index':  ('NoneRoute', None, None),
+        props.update({'Number':  ('NoneRoute', None, None),
                       'Text':  ('CompnRoute', self.GetText, self.SetText),
                       'Width': ('NoneRoute', None, None)})
         return props
 
     def designTimeSource(self, wId, method=None):
-        return {'i': `wId`,
+        return {'number': `wId`,
                 'text': `'%s%d'%(self.propName, wId)`}
 
     def initialiser(self):
@@ -1043,14 +1052,14 @@ PaletteStore.paletteLists['ContainersLayout'].extend([wxPanel, wxScrolledWindow,
       wxToolBar, wxStatusBar, wxWindow]) #wxToolBarSimple,
 
 PaletteStore.compInfo.update({
-    wxToolBar: ['wxToolBar', ToolBarDTC],
+    wxToolBar: ['wx.ToolBar', ToolBarDTC],
     #wxToolBarSimple: ['wxToolBarSimple', ToolBarSimpleDTC],
-    wxStatusBar: ['wxStatusBar', StatusBarDTC],
-    wxPanel: ['wxPanel', PanelDTC],
-    wxScrolledWindow: ['wxScrolledWindow', ScrolledWindowDTC],
-    wxNotebook: ['wxNotebook', NotebookDTC],
-    wxSplitterWindow: ['wxSplitterWindow', SplitterWindowDTC],
-    wxSashWindow: ['wxSashWindow', SashWindowDTC],
-    wxSashLayoutWindow: ['wxSashLayoutWindow', SashLayoutWindowDTC],
-    wxWindow: ['wxWindow', ContainerDTC],
+    wxStatusBar: ['wx.StatusBar', StatusBarDTC],
+    wxPanel: ['wx.Panel', PanelDTC],
+    wxScrolledWindow: ['wx.ScrolledWindow', ScrolledWindowDTC],
+    wxNotebook: ['wx.Notebook', NotebookDTC],
+    wxSplitterWindow: ['wx.SplitterWindow', SplitterWindowDTC],
+    wxSashWindow: ['wx.SashWindow', SashWindowDTC],
+    wxSashLayoutWindow: ['wx.SashLayoutWindow', SashLayoutWindowDTC],
+    wxWindow: ['wx.Window', ContainerDTC],
 })

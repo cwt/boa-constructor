@@ -7,7 +7,7 @@
 #
 # Created:     1999
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999 - 2004 Riaan Booysen
+# Copyright:   (c) 1999 - 2005 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
 
@@ -29,6 +29,8 @@ from Preferences import IS
 import PaletteStore
 
 from wxPython.wx import *
+
+import wx
 
 if Preferences.csWxPythonSupport:
     # This should be the first time the Companion classes are imported
@@ -129,6 +131,8 @@ zopePalette = PaletteStore.zopePalette
 helperClasses = PaletteStore.helperClasses
 compInfo = PaletteStore.compInfo
 
+import wx
+
 _NB = None
 def evalCtrl(expr, localsDct=None):
     """ Function usually used to evaluate source snippets.
@@ -139,10 +143,9 @@ def evalCtrl(expr, localsDct=None):
     global _NB
     if not _NB:
         _NB = IS.load('Images/Inspector/wxNullBitmap.png')
-    if not localsDct:
-        localsDct = {'wxNullBitmap': _NB}
-    else:
-        localsDct['wxNullBitmap'] = _NB
+    if localsDct is None:
+        localsDct = {}
     localsDct['_'] = str
+    wx.NullBitmap = _NB
 
     return eval(expr, globals(), localsDct)

@@ -6,7 +6,7 @@
 #
 # Created:     2003
 # RCS-ID:      $Id$
-# Copyright:   (c) 2003 - 2004 Riaan Booysen
+# Copyright:   (c) 2003 - 2005 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
 print 'importing Views.SizersView'
@@ -136,3 +136,6 @@ class SizersView(DataView):
         wxCallAfter(self.recreateSizers)
         wxCallAfter(self.controllerView.OnRelayoutDesigner, None)#Refresh()
         
+
+# to silence deprecation warings
+wxSizer.AddWindow = wxSizer.AddSizer = wxSizer.AddSpacer = wxSizer.Add

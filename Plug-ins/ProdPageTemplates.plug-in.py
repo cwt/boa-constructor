@@ -14,6 +14,7 @@ from Models import Controllers, EditorHelper
 from Models.HTMLSupport import HTMLFileModel, HTMLFileController, HTMLFileView
 
 addZOAImage('Page Template', 'Images/ZOA/ZopePageTemplate.png')
+addZOAImage('Filesystem Page Template', 'Images/ZOA/ZopePageTemplate.png')
 
 class ZopePageTemplateModel(ZopeDocumentModel):
     imgIdx = ZOAIcons['Page Template']

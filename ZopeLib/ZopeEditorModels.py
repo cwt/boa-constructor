@@ -6,7 +6,7 @@
 #
 # Created:     2001/06/04
 # RCS-ID:      $Id$
-# Copyright:   (c) 2001 - 2004 Riaan Booysen
+# Copyright:   (c) 2001 - 2005 Riaan Booysen
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 print 'importing ZopeLib.ZopeEditorModels'
@@ -69,6 +69,10 @@ ZOAImages = [\
  ('Browser Id Manager', 'Images/ZOA/idmgr.png'),
  ('Session Data Manager', 'Images/ZOA/datamgr.png'),
  ('Site Error Log', 'Images/ZOA/error.png'),
+ ('Temporary Folder', 'Images/ZOA/tempfolder.png'),
+ ('BoaDebugger', 'Images/ZOA/boa.png'),
+# ('CMF Site', 'Images/ZOA/portal.png'),
+# ('Plone Site', 'Images/ZOA/plone_icon.png'),
 ]
 
 EditorHelper.imgZopeExportFileModel = EditorHelper.imgCounter
@@ -120,7 +124,7 @@ class ZopeBlankEditorModel(ZopeEditorModel):
 class ZopeDocumentModel(ZopeEditorModel):
     modelIdentifier = 'ZopeDocument'
     defaultName = 'zopedoc'
-    bitmap = 'Package_s.png'
+    bitmap = 'Package.png'
 
     saveBmp = 'Images/Editor/Save.png'
 
@@ -167,13 +171,13 @@ class ZopePythonSourceModel(ZopeDocumentModel):
 class ZopePythonScriptModel(ZopePythonSourceModel):
     modelIdentifier = 'ZopePythonScript'
     defaultName = 'zopepythonscript'
-    bitmap = 'Package_s.png'
+    bitmap = 'Package.png'
     imgIdx = ZOAIcons['Script (Python)']
 
 class ZopeExternalMethodModel(ZopePythonSourceModel):
     modelIdentifier = 'ZopeExternalMethod'
     defaultName = 'zopeexternalmethod'
-    bitmap = 'Package_s.png'
+    bitmap = 'Package.png'
     imgIdx = ZOAIcons['External Method']
 
     def getModule(self):
@@ -197,7 +201,7 @@ class ZopeHelpTopicModel(ZopeBlankEditorModel):
 class ZopeExportFileModel(EditorModels.BasePersistentModel):
     modelIdentifier = 'ZopeExport'
     defaultName = 'zexp'
-    bitmap = 'ZopeExport_s.png'
+    bitmap = 'ZopeExport.png'
     imgIdx = EditorHelper.imgZopeExportFileModel
     ext = '.zexp'
     fileModes = ('rb', 'wb')

@@ -7,7 +7,7 @@
 #
 # Created:     2001/19/02
 # RCS-ID:      $Id$
-# Copyright:   (c) 2001 - 2004 Riaan Booysen
+# Copyright:   (c) 2001 - 2005 Riaan Booysen
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 
@@ -37,7 +37,7 @@ code_gen_warning = "generated method, don't edit"
 
 defEnvPython = wsfix('#!/usr/bin/env python\n')
 # XXX Frame Companion could return this source in writeImports?
-defImport = wsfix('from wxPython.wx import *\n\n')
+defImport = wsfix('import wx\n\n')
 defSig = boaIdent+wsfix(':%(modelIdent)s:%(main)s\n\n')
 
 defCreateClass = wsfix('''def create(parent):
@@ -45,11 +45,14 @@ defCreateClass = wsfix('''def create(parent):
 
 ''')
 
-srchWindowIds = '\[(?P<winids>[A-Za-z0-9_, ]*)\] = '+\
-'map\(lambda %s: (wx)*NewId\(\), range\((?P<count>\d+)\)\)'
-srchWindowIdsCont = '(?P<any>.*)\] = map\(lambda %s: (wx)*NewId\(\), range\((?P<count>\d+)\)\)'
-defWindowIds = wsfix('''[%(idNames)s] = map(lambda %(idIdent)s: wxNewId(), range(%(idCount)d))\n''')
-defWindowIdsCont = wsfix('''] = map(lambda %(idIdent)s: wxNewId(), range(%(idCount)d))\n''')
+srchWindowIdsLC = '\[wx.NewId\(\) for %s in range\((?P<count>\d+)\)\]'
+srchWindowIds = '\[(?P<winids>[A-Za-z0-9_, ]*)\] = ' + srchWindowIdsLC
+srchWindowIdsCont = '(?P<any>.*)\] = ' + srchWindowIdsLC
+defWindowIdsCont = wsfix('] = [wx.NewId() for %(idIdent)s in range(%(idCount)d)]\n')
+defWindowIds = wsfix('[%(idNames)s')+defWindowIdsCont
+
+#[wx.NewId() for _init_ctrls in range(1)]
+#map(lambda _init_ctrls: wxNewId(), range(1))
 
 defClass = wsfix('''
 class %(main)s(%(defaultName)s):
@@ -64,9 +67,9 @@ defApp = wsfix('''import %(mainModule)s
 
 modules = {'%(mainModule)s' : [1, 'Main frame of Application', 'none://%(mainModule)s.py']}
 
-class BoaApp(wxApp):
+class BoaApp(wx.App):
 \tdef OnInit(self):
-\t\twxInitAllImageHandlers()
+\t\twx.InitAllImageHandlers()
 \t\tself.main = %(mainModule)s.create(None)
 \t\tself.main.Show()
 \t\tself.SetTopWindow(self.main)
@@ -123,8 +126,8 @@ if __name__ == '__main__':
 simpleAppFrameRunSrc = wsfix('''
 
 if __name__ == '__main__':
-\tapp = wxPySimpleApp()
-\twxInitAllImageHandlers()
+\tapp = wx.PySimpleApp()
+\twx.InitAllImageHandlers()
 \tframe = create(None)
 \tframe.Show()
 
@@ -134,8 +137,8 @@ if __name__ == '__main__':
 simpleAppDialogRunSrc = wsfix('''
 
 if __name__ == '__main__':
-\tapp = wxPySimpleApp()
-\twxInitAllImageHandlers()
+\tapp = wx.PySimpleApp()
+\twx.InitAllImageHandlers()
 \tdlg = create(None)
 \ttry:
 \t\tdlg.ShowModal()
@@ -147,9 +150,9 @@ if __name__ == '__main__':
 simpleAppPopupRunSrc = wsfix('''
 
 if __name__ == '__main__':
-\tapp = wxPySimpleApp()
-\twxInitAllImageHandlers()
-\tframe = wxFrame(None, -1, 'Parent')
+\tapp = wx.PySimpleApp()
+\twx.InitAllImageHandlers()
+\tframe = wx.Frame(None, -1, 'Parent')
 \tframe.SetAutoLayout(True)
 \tframe.Show()
 \tpopup = create(frame)

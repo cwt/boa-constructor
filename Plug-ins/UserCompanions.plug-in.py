@@ -15,7 +15,7 @@ from PropEdit import PropertyEditors
 import PaletteStore
 
 try:
-    import wxPython.lib.bcrtl
+    import wx.lib.bcrtl
 except ImportError:
     raise ImportError, 'The "bcrtl" package is not installed, turn on "installBCRTL" under Preferences'
 
@@ -23,26 +23,26 @@ except ImportError:
 
 # Objects which Boa will need at design-time needs to be imported into the
 # Companion module's namespace
-from wxPython.lib.bcrtl.user.ExampleST import *
+import wx.lib.bcrtl.user.ExampleST
 
 # Silly barebones example of a companion for a new component that is not
 # available in the wxPython distribution
 class ExampleSTDTC(BasicCompanions.StaticTextDTC):
     def writeImports(self):
-        return 'from wxPython.lib.bcrtl.user.ExampleST import *'
+        return 'import wx.lib.bcrtl.user.ExampleST'
 
 #-------------------------------------------------------------------------------
 # Example of a composite control, control itself, implemented in
 # wxPython.lib.bcrtl.user.StaticTextCtrl
 
-from wxPython.lib.bcrtl.user.StaticTextCtrl import wxStaticTextCtrl
+import wx.lib.bcrtl.user.StaticTextCtrl
 
 class StaticTextCtrlDTC(BasicCompanions.TextCtrlDTC):
     def __init__(self, name, designer, parent, ctrlClass):
         BasicCompanions.TextCtrlDTC.__init__(self, name, designer, parent, ctrlClass)
         self.editors['CaptionAlignment'] = PropertyEditors.EnumPropEdit
-        self.options['CaptionAlignment'] = [wx.wxTOP, wx.wxLEFT]
-        self.names['CaptionAlignment'] = {'wxTOP': wx.wxTOP, 'wxLEFT': wx.wxLEFT}
+        self.options['CaptionAlignment'] = [wxTOP, wxLEFT]
+        self.names['CaptionAlignment'] = {'wx.TOP': wxTOP, 'wx.LEFT': wxLEFT}
 
     def constructor(self):
         return {'Value': 'value', 'Position': 'pos', 'Size': 'size',
@@ -50,21 +50,26 @@ class StaticTextCtrlDTC(BasicCompanions.TextCtrlDTC):
                 'Caption': 'caption'}
 
     def writeImports(self):
-        return 'from wxPython.lib.bcrtl.user.StaticTextCtrl import *'
+        return 'import wx.lib.bcrtl.user.StaticTextCtrl'
 
-    def designTimeSource(self, position = 'wxDefaultPosition', size = 'wxDefaultSize'):
+    def designTimeSource(self, position = 'wx.DefaultPosition', size = 'wx.DefaultSize'):
         dts = BasicCompanions.TextCtrlDTC.designTimeSource(self, position, size)
         dts['caption'] = `self.name`
         return dts
 
 
 # Add the component's class to this list
-PaletteStore.paletteLists['User'].extend([wxExampleStaticText, wxStaticTextCtrl])
+PaletteStore.paletteLists['User'].extend([
+    wx.lib.bcrtl.user.ExampleST.ExampleStaticText, 
+    wx.lib.bcrtl.user.StaticTextCtrl.StaticTextCtrl])
 
 # Add an entry to this dict with the following structure:
 # <component class>: ['Palette tip name and bitmap file', <companion>]
-PaletteStore.compInfo.update({wxExampleStaticText: ['wxExampleStaticText', ExampleSTDTC],
-                              wxStaticTextCtrl: ['wxStaticTextCtrl', StaticTextCtrlDTC]})
+PaletteStore.compInfo.update({
+    wx.lib.bcrtl.user.ExampleST.ExampleStaticText: 
+        ['ExampleStaticText', ExampleSTDTC],
+    wx.lib.bcrtl.user.StaticTextCtrl.StaticTextCtrl: 
+        ['StaticTextCtrl', StaticTextCtrlDTC]})
 
 #-------------------------------------------------------------------------------
 
@@ -72,44 +77,43 @@ PaletteStore.compInfo.update({wxExampleStaticText: ['wxExampleStaticText', Examp
 # integrating controls
 
 from wxPython.calendar import *
-from wxPython.utils import *
 
 class CalendarConstr:
     def constructor(self):
         return {'Date': 'date', 'Position': 'pos', 'Size': 'size',
                 'Style': 'style', 'Name': 'name'}
 
-EventCollections.EventCategories['CalendarEvent'] = (EVT_CALENDAR,
-      EVT_CALENDAR_SEL_CHANGED, EVT_CALENDAR_DAY, EVT_CALENDAR_MONTH,
-      EVT_CALENDAR_YEAR, EVT_CALENDAR_WEEKDAY_CLICKED)
+EventCollections.EventCategories['CalendarEvent'] = ('wx.calendar.EVT_CALENDAR',
+      'wx.calendar.EVT_CALENDAR_SEL_CHANGED', 
+      'wx.calendar.EVT_CALENDAR_DAY, EVT_CALENDAR_MONTH',
+      'wx.calendar.EVT_CALENDAR_YEAR', 'wx.calendar.EVT_CALENDAR_WEEKDAY_CLICKED')
 EventCollections.commandCategories.append('CalendarEvent')
 
 class CalendarDTC(CalendarConstr, BaseCompanions.WindowDTC):
     #wxDocs = HelpCompanions.wxCalendarCtrlDocs
     def __init__(self, name, designer, parent, ctrlClass):
         BaseCompanions.WindowDTC.__init__(self, name, designer, parent, ctrlClass)
-        self.windowStyles = ['wxCAL_SUNDAY_FIRST', 'wxCAL_MONDAY_FIRST',
-              'wxCAL_SHOW_HOLIDAYS', 'wxCAL_NO_YEAR_CHANGE',
-              'wxCAL_NO_MONTH_CHANGE'] + self.windowStyles
+        self.windowStyles = ['wx.calendar.CAL_SUNDAY_FIRST', 'wx.calendar.CAL_MONDAY_FIRST',
+              'wx.calendar.CAL_SHOW_HOLIDAYS', 'wx.calendar.CAL_NO_YEAR_CHANGE',
+              'wx.calendar.CAL_NO_MONTH_CHANGE'] + self.windowStyles
 
         self.compositeCtrl = true
 
-    def designTimeSource(self, position = 'wxDefaultPosition', size = 'wxDefaultSize'):
-        return {'date': 'wxDateTime_Now()',
+    def designTimeSource(self, position = 'wx.DefaultPosition', size = 'wx.DefaultSize'):
+        return {'date': 'wx.calendar.DateTime_Now()',
                 'pos': position,
                 'size': size,
-                'style': 'wxCAL_SHOW_HOLIDAYS',
+                'style': 'wx.calendar.CAL_SHOW_HOLIDAYS',
                 'name': `self.name`}
 
     def events(self):
         return BaseCompanions.WindowDTC.events(self) + ['CalendarEvent']
 
     def writeImports(self):
-        return 'from wxPython.calendar import *\n'+\
-               'from wxPython.utils import *'
+        return 'import wx.calendar'
 
 PaletteStore.paletteLists['BasicControls'].append(wxCalendarCtrl)
-PaletteStore.compInfo[wxCalendarCtrl] = ['wxCalendarCtrl', CalendarDTC]
+PaletteStore.compInfo[wxCalendarCtrl] = ['wx.calendar.CalendarCtrl', CalendarDTC]
 
 class DateTimePropEditor(PropertyEditors.BITPropEditor):
     def getDisplayValue(self):
@@ -121,7 +125,7 @@ class DateTimePropEditor(PropertyEditors.BITPropEditor):
     def valueAsExpr(self):
         if self.value.IsValid():
             v = self.value
-            return 'wxDateTimeFromDMY(%d, %d, %d, %d, %d, %d)'%(
+            return 'wx.calendar.DateTimeFromDMY(%d, %d, %d, %d, %d, %d)'%(
                v.GetDay(), v.GetMonth(), v.GetYear(), 
                v.GetHour(), v.GetMinute(), v.GetSecond()) 
         else:
@@ -135,7 +139,9 @@ class DateTimePropEditor(PropertyEditors.BITPropEditor):
             PropertyEditors.BITPropEditor.inspectorEdit(self)
         
 
-PropertyEditors.registeredTypes.append( ('Class', wxDateTimePtr,
-                                         [DateTimePropEditor]) )
+PropertyEditors.registeredTypes.extend( [
+#    ('Class', wxDateTimePtr, [DateTimePropEditor]),
+    ('Class', wxDateTime, [DateTimePropEditor]),
+])
 
 #-------------------------------------------------------------------------------

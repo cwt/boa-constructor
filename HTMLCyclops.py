@@ -7,7 +7,7 @@
 #
 # Created:     2000/05/20
 # RCS-ID:      $Id$
-# Copyright:   of changes (c) 1999 - 2004 Riaan Booysen
+# Copyright:   of changes (c) 1999 - 2005 Riaan Booysen
 # Licence:     Dual GPL & Python
 #-----------------------------------------------------------------------------
 

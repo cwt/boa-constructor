@@ -6,7 +6,7 @@
 #
 # Created:     2001/29/08
 # RCS-ID:      $Id$
-# Copyright:   (c) 2001 - 2004 Tim Hochberg
+# Copyright:   (c) 2001 - 2005 Tim Hochberg
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 import os, re
@@ -90,6 +90,8 @@ class FindReplaceEngine:
             view.model.editor.setStatus('Search wrapped', 'Warning', ringBell=1)
 
         view.SetSelection(result[0], result[1])
+        
+        view.EnsureVisible(view.LineFromPosition(result[0]))
 
     def findNextInSource(self, view):
         self.findInSource(view, self.findHistory[-1])

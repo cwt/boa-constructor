@@ -6,7 +6,7 @@
 #
 # Created:     1999
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999 - 2004 Riaan Booysen
+# Copyright:   (c) 1999 - 2005 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
 
@@ -28,8 +28,8 @@ import SelectionTags
  wxID_SHOWINSP, wxID_SHOWEDTR, wxID_CTRLHELP, wxID_EDITALIGN, wxID_EDITSIZE,
  wxID_EDITRECREATE, wxID_EDITSNAPGRID, wxID_EDITRELAYOUT, wxID_EDITRELAYOUTSEL,
  wxID_EDITRELAYOUTDESGN, wxID_EDITCREATEORDER, wxID_EDITFITINSIDESIZER,
- wxID_EDITFITSIZER,
-] = Utils.wxNewIds(18)
+ wxID_FINDININDEX, wxID_EDITFITSIZER,
+] = Utils.wxNewIds(19)
 
 [wxID_EDITMOVELEFT, wxID_EDITMOVERIGHT, wxID_EDITMOVEUP, wxID_EDITMOVEDOWN,
  wxID_EDITWIDTHINC, wxID_EDITWIDTHDEC, wxID_EDITHEIGHTINC, wxID_EDITHEIGHTDEC,
@@ -98,6 +98,9 @@ class DesignerView(wxFrame, InspectableObjectView, Utils.FrameRestorerMixin):
 
     def __init__(self, parent, inspector, model, compPal, CompanionClass, 
           dataView):
+        self.controllerView = self
+        self.objectNamespace = DesignerNamespace(self)
+
         args = self.setupArgs(model.main, model.mainConstr.params,
           CompanionClass.handledConstrParams, parent, CompanionClass, 
           model.specialAttrs)
@@ -108,6 +111,7 @@ class DesignerView(wxFrame, InspectableObjectView, Utils.FrameRestorerMixin):
                                            args.get('size', CompanionClass.defFrameSize),
                                            style=CompanionClass.defFrameStyle)
         InspectableObjectView.__init__(self, inspector, model, compPal)
+        self.controllerView = self
 
         if model.dialogLook:
             self.SetBackgroundColour(
@@ -121,7 +125,7 @@ class DesignerView(wxFrame, InspectableObjectView, Utils.FrameRestorerMixin):
         self.dataView = dataView
         self.dataView.controllerView = self
         self.sizersView = None
-        self.controllerView = self
+        #self.controllerView = self
         self.saveOnClose = true
         self.confirmCancel = false
 
@@ -153,29 +157,33 @@ class DesignerView(wxFrame, InspectableObjectView, Utils.FrameRestorerMixin):
         self.vetoResize = false
         self.forceResize = false
         self.deletingCtrl = false
-        self.objectNamespace = DesignerNamespace(self)
+        #self.objectNamespace = DesignerNamespace(self)
         # XXX Move this definition into actions
 
         self.menu = wxMenu()
 
         self.menu.Append(wxID_CTRLPARENT, 'Up')
-        self.menu.Append(-1, '-')
+        self.menu.AppendSeparator()
         self.menu.Append(wxID_EDITCUT, 'Cut')
         self.menu.Append(wxID_EDITCOPY, 'Copy')
         self.menu.Append(wxID_EDITPASTE, 'Paste')
         self.menu.Append(wxID_EDITDELETE, 'Delete')
-        self.menu.Append(-1, '-')
+        self.menu.AppendSeparator()
         self.menu.Append(wxID_EDITRECREATE, 'Recreate')
         self.menu.Append(wxID_EDITRELAYOUTSEL, 'Relayout selection')
         self.menu.Append(wxID_EDITRELAYOUTDESGN, 'Relayout Designer')
-        self.menu.Append(-1, '-')
+        self.menu.AppendSeparator()
         self.menu.Append(wxID_EDITFITSIZER, 'Fit sizer')
         #self.menu.Append(wxID_EDITFITINSIDESIZER, 'Fit sizer')
-        self.menu.Append(-1, '-')
+        self.menu.AppendSeparator()
         self.menu.Append(wxID_EDITSNAPGRID, 'Snap to grid')
         self.menu.Append(wxID_EDITALIGN, 'Align...')
         self.menu.Append(wxID_EDITSIZE, 'Size...')
-        self.menu.Append(-1, '-')
+        self.menu.AppendSeparator()
+        Utils.appendMenuItem(self.menu, wxID_FINDININDEX,
+              'Find in index...', Preferences.keyDefs['HelpFind'], '',
+              'Pops up a text input for starting a search of the help indexes')
+        self.menu.AppendSeparator()
         self.menu.Append(wxID_EDITCREATEORDER, 'Creation/Tab order...')
 
         EVT_CLOSE(self, self.OnCloseWindow)
@@ -194,6 +202,7 @@ class DesignerView(wxFrame, InspectableObjectView, Utils.FrameRestorerMixin):
         EVT_MENU(self, wxID_EDITRELAYOUTDESGN, self.OnRelayoutDesigner)
         EVT_MENU(self, wxID_EDITSNAPGRID, self.OnSnapToGrid)
         EVT_MENU(self, wxID_EDITCREATEORDER, self.OnCreationOrder)
+        EVT_MENU(self, wxID_FINDININDEX, self.OnFindInIndex)
         EVT_MENU(self, wxID_EDITFITSIZER, self.OnFitSizer)
         #EVT_MENU(self, wxID_EDITFITINSIDESIZER, self.OnFitInsideSizer)
         
@@ -236,6 +245,8 @@ class DesignerView(wxFrame, InspectableObjectView, Utils.FrameRestorerMixin):
                           ('SelectRight', wxID_EDITSELECTRIGHT),
                           ('SelectUp', wxID_EDITSELECTUP),
                           ('SelectDown', wxID_EDITSELECTDOWN),
+                          
+                          ('HelpFind', wxID_FINDININDEX),
                         ):
             tpe, key, code = Preferences.keyDefs[name]
             accLst.append((tpe, key, wId))
@@ -481,7 +492,7 @@ class DesignerView(wxFrame, InspectableObjectView, Utils.FrameRestorerMixin):
 
         ctrlName = self.newObjName(CtrlClass.__name__)
         companion = CtrlCompanion(ctrlName, self, parent, CtrlClass)
-        params = companion.designTimeSource('wxPoint(%d, %d)' % (position.x, position.y))
+        params = companion.designTimeSource('wx.Point(%d, %d)' % (position.x, position.y))
         parentName, params[companion.windowParentName] = self.getParentNames(parent)
 
         self.addObject(ctrlName, companion,
@@ -490,7 +501,7 @@ class DesignerView(wxFrame, InspectableObjectView, Utils.FrameRestorerMixin):
         if not companion.suppressWindowId:
             params[companion.windowIdName] = companion.id
 
-        companion.persistConstr(CtrlClass.__name__, params)
+        companion.persistConstr(Utils.getWxPyNameForClass(CtrlClass), params)
 
         self.refreshContainment()
 
@@ -675,16 +686,15 @@ class DesignerView(wxFrame, InspectableObjectView, Utils.FrameRestorerMixin):
             sze = childCtrl.GetSize()
             realParent = childCtrl.GetParent()
             # Compensate for BlankWindowPages's offset
-            if realParent.this[:8] != \
-                  self.objects[officialParent][1].this[:8]:
+            if realParent != self.objects[officialParent][1]:
                 offset[0] += realParent.GetPosition().x
                 offset[1] += realParent.GetPosition().y
 
             # Check for intersection
             if childCtrl.IsShown() and realParent.IsShown() and \
-                  wxIntersectRect((clickPos.x - offset[0],
+                  wxIntersectRect(wxRect(clickPos.x - offset[0],
                                    clickPos.y - offset[1], 1, 1),
-                                  (pos.x, pos.y, max(sze.x, 1),
+                                  wxRect(pos.x, pos.y, max(sze.x, 1),
                                    max(sze.y, 1))) is not None:
 
                 #print clickPos, offset, pos, sze
@@ -1279,6 +1289,9 @@ class DesignerView(wxFrame, InspectableObjectView, Utils.FrameRestorerMixin):
                 selName = ''
             self.showCreationOrderDlg(selName)
 
+    def OnFindInIndex(self, event):
+        self.model.editor.OnHelpFindIndex(event)
+
 #---Inspector session-----------------------------------------------------------
     def doPost(self, inspector):
         self.saveOnClose = true
@@ -1401,9 +1414,9 @@ class DesignerControlsEvtHandler(wxEvtHandler):
             if dsgn.vetoResize:
                 return
             if event.GetId() == dsgn.GetId():
-                if event.GetSize().asTuple() == dsgn.lastSize and not dsgn.forceResize:
+                if event.GetSize().Get() == dsgn.lastSize and not dsgn.forceResize:
                     return
-                dsgn.lastSize = event.GetSize().asTuple()
+                dsgn.lastSize = event.GetSize().Get()
 
                 if dsgn.selection:
                     dsgn.selection.selectCtrl(dsgn, dsgn.companion)
@@ -1441,6 +1454,7 @@ class DesignerControlsEvtHandler(wxEvtHandler):
 
         finally:
             dsgn.forceResize = false
+            dsgn.Refresh()
             event.Skip()
 
     def OnControlDClick(self, event):

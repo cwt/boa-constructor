@@ -1,11 +1,8 @@
 Bugs & Issues 
 -------------
 
-A strange thing which sometimes happens is that Boa uses 100% CPU after startup
-on windows. Just minimizing and restoring the application makes the CPU return 
-to 0%. Bizarre!
-
-Sometimes (but rarely) Boa crashes at startup while opening files in the Editor.
+Sometimes (but rarely, not seen under wxPython 2.5 yet) Boa crashes at startup 
+while opening files in the Editor.
 I've added code to start Boa empty at the next startup attempt to work around 
 this issue.
 
@@ -77,11 +74,10 @@ Under RedHat 8, fonts are sometimes displayed incorrectly, the suggested
 workaround is to have an environment variable like this defined:
 LANG=en_US
 
-Still some problems with accelerator keys.
-
 GTK Critical warnings are produced in the following cases:
 - When there is a 'New' submenu connected under 'File'. Off by default on wxGTK.
 - When controls are reparented from the Notebook to another control. 
+  - This now causes a coredump :(
 
 ---
 

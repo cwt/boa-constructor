@@ -6,7 +6,7 @@
 #
 # Created:     2001
 # RCS-ID:      $Id$
-# Copyright:   (c) 2001 - 2004
+# Copyright:   (c) 2001 - 2005
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 #Boa:Dialog:ExtMethDlg
@@ -22,9 +22,14 @@ class ExternalMethodFinder:
     def __init__(self, zopeDir):
         self.zopeDir = zopeDir
         if self.zopeDir:
-            self.prodsDir = os.path.join(zopeDir, 'lib','python','Products')
+            prodsDir = os.path.join(zopeDir, 'lib','python','Products')
+            if not os.path.exists(prodsDir):
+                prodsDir = os.path.join(zopeDir, 'Products')
+                if not os.path.exists(prodsDir):
+                    prodsDir = ''
         else:
-            self.prodsDir = ''
+            prodsDir = ''
+        self.prodsDir = prodsDir
 
     def getModules(self):
         mods = self._addPyMods(os.path.join(self.zopeDir, 'Extensions'))

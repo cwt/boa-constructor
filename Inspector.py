@@ -6,7 +6,7 @@
 #
 # Created:     1999
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999 - 2004 Riaan Booysen
+# Copyright:   (c) 1999 - 2005 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
 #Boa:Frame:InspectorFrame
@@ -916,7 +916,7 @@ class EventsWindow(wxSplitterWindow):
     def findMacro(self, name):
         for macro in EventCollections.EventCategories[\
               self.categoryClasses.GetItemText(self.selCatClass)]:
-            if macro.func_name == name: return macro
+            if macro == name: return macro
         raise 'Macro: '+name+' not found.'
 
     def addEvent(self, name, value, wid = None):
@@ -951,7 +951,7 @@ class EventsWindow(wxSplitterWindow):
         catClass = EventCollections.EventCategories[\
               self.categoryClasses.GetItemText(self.selCatClass)]
         for catMac in catClass:
-            self.categoryMacros.InsertStringItem(0, catMac.func_name)
+            self.categoryMacros.InsertStringItem(0, catMac)
 
     def OnCatClassDeselect(self, event):
         self.selCatClass = -1
@@ -972,13 +972,13 @@ class EventsWindow(wxSplitterWindow):
             wid = companion.getWinId()
         else:
             wid = None
-        nv = self.getEvent(macName[4:])
+        nv = self.getEvent(macName)
         if nv:
-            self.addEvent(macName[4:], methName, wid)
+            self.addEvent(macName, methName, wid)
             nv.initFromComponent()
             nv.OnSelect()
 
-        else: self.addEvent(macName[4:], methName, wid)
+        else: self.addEvent(macName, methName, wid)
 
 
     def OnMacroSelect(self, event):

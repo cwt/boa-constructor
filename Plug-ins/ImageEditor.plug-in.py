@@ -5,7 +5,8 @@ from cStringIO import StringIO
 
 from wxPython.wx import *
 from wxPython.lib.anchors import LayoutAnchors
-from wxPython.tools import img2py
+
+from wx.tools import img2py
 
 import Utils, Plugins
 
@@ -43,7 +44,6 @@ class ImageEditorPanel(wxPanel):
               id=wxID_IMAGEEDITORPANELMODECHOICE, name='modeChoice',
               parent=self, pos=wxPoint(8, 7), size=wxSize(64, 21), style=0,
               validator=wxDefaultValidator)
-        self.modeChoice.SetColumns(2)
         self.modeChoice.SetToolTipString('Current drawing mode')
         EVT_CHOICE(self.modeChoice, wxID_IMAGEEDITORPANELMODECHOICE,
               self.OnModeChoiceChoice)
@@ -858,7 +858,7 @@ if __name__ == '__main__':
     frame = wxFrame(None, -1, 'Image Edit Test')
     panel = ImageEditorPanel(frame)
     frame.Show(true)
-    panel.initImageData('.png', open('Images/Modules/Pyrex_s.png', 'rb').read())
+    panel.initImageData('.png', open('Images/Modules/Pyrex.png', 'rb').read())
     app.MainLoop()
     import sys
     sys.exit()
@@ -984,7 +984,7 @@ class BitmapEditorFileController(Controllers.PersistentController):
     AdditionalViews = [ImageEditorView]
 
     editBmpBmp = 'Images/EditBitmap.png'
-    conv2ModBmp = 'Images/Modules/PyResBitmap_s.png'
+    conv2ModBmp = 'Images/Modules/PyResBitmap.png'
 
     def actions(self, model):
         return Controllers.PersistentController.actions(self, model) + [

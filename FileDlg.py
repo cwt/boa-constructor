@@ -7,7 +7,7 @@
 #
 # Created:     2000/09/17
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999 - 2004 Riaan Booysen
+# Copyright:   (c) 1999 - 2005 Riaan Booysen
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 #Boa:Dialog:wxBoaFileDialog
@@ -294,7 +294,7 @@ class wxBoaFileDialog(wxDialog, Utils.FrameRestorerMixin):
               htmlfilepath))
         self.htmlWindow1.SetBackgroundColour(self.htmlBackCol)
 
-        self.checkTextSize(self.textPath, self.htmlWindow1.GetSize().asTuple())
+        self.checkTextSize(self.textPath, self.htmlWindow1.GetSize().Get())
 
     def checkTextSize(self, text, size):
         dc = wxClientDC(self.htmlWindow1)
@@ -335,7 +335,7 @@ class wxBoaFileDialog(wxDialog, Utils.FrameRestorerMixin):
         event.Skip()
 
         if self.textPath:
-            self.checkTextSize(self.textPath, self.htmlWindow1.GetSize().asTuple())
+            self.checkTextSize(self.textPath, self.htmlWindow1.GetSize().Get())
 
         self.refreshCtrls()
 

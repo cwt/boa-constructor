@@ -6,7 +6,7 @@
 #
 # Created:     2001/06/08
 # RCS-ID:      $Id$
-# Copyright:   (c) 2001 - 2004
+# Copyright:   (c) 2001 - 2005
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 print 'importing Explorers.PrefsExplorer'
@@ -1012,8 +1012,17 @@ class HelpConfigBooksPGN(PreferenceGroupNode):
 
     def openList(self):
         bookPaths = self.readBooks()
-        return [HelpConfigBookNode(bookPath) 
-                for bookPath in bookPaths]
+        res = []
+        for bookPath in bookPaths:
+            try:
+                res.append(HelpConfigBookNode(bookPath))
+            except IOError, err:
+                # too disruptive to display an error
+                pass
+        return res
+            
+#        return [HelpConfigBookNode(bookPath) 
+#                for bookPath in bookPaths]
 
 
     def readBooks(self):

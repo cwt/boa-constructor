@@ -7,7 +7,7 @@
 #
 # Created:     1999
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999 - 2004 Riaan Booysen
+# Copyright:   (c) 1999 - 2005 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
 
@@ -238,6 +238,8 @@ class FlagsDTC(BaseFlagsDTC):
 
 PaletteStore.helperClasses.update({
     'wxFontPtr': FontDTC,
+    'wxFont': FontDTC,
     'wxColourPtr': ColourDTC,
+    'wxColour': ColourDTC,
     'Anchors': AnchorsDTC
 })

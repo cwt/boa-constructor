@@ -7,7 +7,7 @@
 #
 # Created:     1999
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999 - 2004 Riaan Booysen
+# Copyright:   (c) 1999 - 2005 Riaan Booysen
 # Licence:     GPL
 #-------------------------------------------------------------------------------
 
@@ -341,12 +341,16 @@ class DesignTimeCompanion(Companion):
         c = self.constructor()
         #constructor
         if c.has_key(name):
-            dts = self.designTimeSource()
-            if dts.has_key(c[name]):
-                defVal = self.designTimeSource()[c[name]]
-                return self.textConstr.params[c[name]] == defVal
-            else:
+            try:
+                dts = self.designTimeSource()
+            except TypeError:
                 return true
+            else:
+                if dts.has_key(c[name]):
+                    defVal = self.designTimeSource()[c[name]]
+                    return self.textConstr.params[c[name]] == defVal
+                else:
+                    return true
         #property
         elif name not in self.dontPersistProps():
             for prop in self.textPropList:
@@ -361,7 +365,7 @@ class DesignTimeCompanion(Companion):
             if evt.event_name == name:
                 evt.trigger_meth = value
                 return
-        if self.control == self.designer or not isinstance(self.control, wxEvtHandlerPtr): # or wId is not None:
+        if self.control == self.designer or not isinstance(self.control, wxEvtHandler): # or wId is not None:
             comp_name = ''
         else:
             comp_name = self.name
@@ -490,7 +494,7 @@ class DesignTimeCompanion(Companion):
                 sourceconst.bodyIndent+self.textConstr.asText(stripFrmId),
                 output, sourceconst.bodyIndent)
 
-    nullProps = ('None', 'wxNullBitmap', 'wxNullIcon')
+    nullProps = ('None', 'wx.NullBitmap', 'wx.NullIcon')
     def writeProperties(self, output, ctrlName, definedCtrls, deps, depLinks, stripFrmId=''):
         """ Write out property setters but postpone dependent properties.
         """
@@ -599,8 +603,8 @@ class ControlDTC(DesignTimeCompanion):
         if not position: position = wxDefaultPosition
         if not size: size = wxDefaultSize
 
-        dts = self.designTimeSource('wxPoint(%s, %s)'%(position.x, position.y),
-          'wxSize(%s, %s)'%(size.x, size.y))
+        dts = self.designTimeSource('wx.Point(%s, %s)'%(position.x, position.y),
+          'wx.Size(%s, %s)'%(size.x, size.y))
 
         for param in dts.keys():
             dts[param] = self.eval(dts[param])
@@ -612,7 +616,7 @@ class ControlDTC(DesignTimeCompanion):
 
         return dts
 
-    def designTimeSource(self, position = 'wxDefaultPosition', size = 'wxDefaultSize'):
+    def designTimeSource(self, position = 'wx.DefaultPosition', size = 'wx.DefaultSize'):
         """ Return a dictionary of parameters for the constructor of a wxPython
             control's source. 'parent' and 'id' handled automatically
         """
@@ -692,11 +696,11 @@ class ControlDTC(DesignTimeCompanion):
               and self.textConstr.params.has_key('size'):
             pos = self.control.GetPosition()
             size = self.control.GetSize()
-            self.textConstr.params['pos'] = 'wxPoint(%d, %d)' % (pos.x, pos.y)
-            self.textConstr.params['size'] = 'wxSize(%d, %d)' % (size.x, size.y)
+            self.textConstr.params['pos'] = 'wx.Point(%d, %d)' % (pos.x, pos.y)
+            self.textConstr.params['size'] = 'wx.Size(%d, %d)' % (size.x, size.y)
 
     def getDefCtrlSize(self):
-        return 'wxSize(%d, %d)'%(Preferences.dsDefaultControlSize.x,
+        return 'wx.Size(%d, %d)'%(Preferences.dsDefaultControlSize.x,
                                  Preferences.dsDefaultControlSize.y)
 
 
@@ -819,20 +823,20 @@ class WindowDTC(WindowConstr, ControlDTC):
                         'ThemeEnabled': BoolPropEdit,
                         })
         self.options['Centered'] = [None, wxHORIZONTAL, wxVERTICAL, wxBOTH]
-        self.names['Centered'] = {'None': None, 'wxHORIZONTAL': wxHORIZONTAL,
-                                  'wxVERTICAL': wxVERTICAL, 'wxBOTH': wxBOTH}
+        self.names['Centered'] = {'None': None, 'wx.HORIZONTAL': wxHORIZONTAL,
+                                  'wx.VERTICAL': wxVERTICAL, 'wx.BOTH': wxBOTH}
         self.triggers.update({'Size'     : self.SizeUpdate,
                               'Position' : self.PositionUpdate})
         self.customPropEvaluators.update({'Constraints': self.EvalConstraints,
                                           'SizeHints': self.EvalSizeHints,})
 
-        self.windowStyles = ['wxCAPTION', 'wxMINIMIZE_BOX', 'wxMAXIMIZE_BOX',
-                             'wxTHICK_FRAME', 'wxSIMPLE_BORDER', 'wxDOUBLE_BORDER',
-                             'wxSUNKEN_BORDER', 'wxRAISED_BORDER',
-                             'wxSTATIC_BORDER', 'wxTRANSPARENT_WINDOW', 'wxNO_3D',
-                             'wxTAB_TRAVERSAL', 'wxWANTS_CHARS',
-                             'wxNO_FULL_REPAINT_ON_RESIZE', 'wxVSCROLL', 'wxHSCROLL',
-                             'wxCLIP_CHILDREN', 'wxNO_BORDER']
+        self.windowStyles = ['wx.CAPTION', 'wx.MINIMIZE_BOX', 'wx.MAXIMIZE_BOX',
+                             'wx.THICK_FRAME', 'wx.SIMPLE_BORDER', 'wx.DOUBLE_BORDER',
+                             'wx.SUNKEN_BORDER', 'wx.RAISED_BORDER',
+                             'wx.STATIC_BORDER', 'wx.TRANSPARENT_WINDOW', 'wx.NO_3D',
+                             'wx.TAB_TRAVERSAL', 'wx.WANTS_CHARS',
+                             'wx.NO_FULL_REPAINT_ON_RESIZE', 'wx.VSCROLL', 'wx.HSCROLL',
+                             'wx.CLIP_CHILDREN', 'wx.NO_BORDER']
 
         self.mutualDepProps = ['Value', 'Title', 'Label']
 
@@ -944,7 +948,7 @@ class WindowDTC(WindowConstr, ControlDTC):
         imports = ControlDTC.writeImports(self)
         if self.anchorSettings:
             return '\n'.join( (imports, 
-                   'from wxPython.lib.anchors import LayoutAnchors') )
+                   'from wx.lib.anchors import LayoutAnchors') )
         else:
             return imports
 

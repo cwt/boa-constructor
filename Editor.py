@@ -7,7 +7,7 @@
 #
 # Created:     1999
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999 - 2004 Riaan Booysen
+# Copyright:   (c) 1999 - 2005 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
 #Boa:Frame:EditorFrame
@@ -64,7 +64,7 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
     explBmp = 'Images/Editor/Explorer.png'
     inspBmp = 'Images/Shared/Inspector.png'
     paletteBmp = 'Images/Shared/Palette.png'
-    prefsBmp = 'Images/Modules/PrefsFolder_s.png'
+    prefsBmp = 'Images/Modules/PrefsFolder.png'
 
     _custom_classes = {'wxToolBar': ['EditorToolBar'],
                        'wxStatusBar': ['EditorStatusBar'],
@@ -117,6 +117,7 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
               name='tabsSplitter', parent=self, #point=wxPoint(0, 0),
               size=wxSize(802, 421),
               style=wxCLIP_CHILDREN | wxSP_LIVE_UPDATE | wxSP_3DSASH)# | wxSP_FULLSASH)
+        self.tabsSplitter.SetMinimumPaneSize(1)
 
         self.tabs = wxNotebook(id=wxID_EDITORFRAMETABS, name='tabs',
               parent=self.tabsSplitter, pos=wxPoint(2, 2), size=wxSize(798,
@@ -143,6 +144,7 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
         self.debugger = None
         self.browser = Browse.HistoryBrowser()
         self.controllers = {}
+        self.shellPageIdx = self.explorerPageIdx = -1
 
         self.toolAccels = []
         self.tools = {}
@@ -218,7 +220,7 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
         Utils.appendMenuItem(self.winMenu, EditorHelper.wxID_EDITORSWITCHINSPECTOR,
               'Inspector', keyDefs['Inspector'], self.inspBmp,
               'Switch to the Inspector frame.')
-        self.winMenu.Append(-1, '-')
+        self.winMenu.AppendSeparator()
         if self.shell:
             Utils.appendMenuItem(self.winMenu, EditorHelper.wxID_EDITORSWITCHSHELL,
                   'Shell', keyDefs['GotoShell'], self.shellBmp,
@@ -231,7 +233,7 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
                   'Preferences', (), self.prefsBmp,
                   'Switch to the Preferences in the Explorer')
         if self.shell or self.explorer:
-            self.winMenu.Append(-1, '-')
+            self.winMenu.AppendSeparator()
         Utils.appendMenuItem(self.winMenu, EditorHelper.wxID_EDITORBROWSEBACK,
               'Browse back', (), self.backBmp, #\t%s'%keyDefs['BrowseBack'][2],
               'Go back in browsing history stack')
@@ -244,13 +246,13 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
         Utils.appendMenuItem(self.winMenu, EditorHelper.wxID_EDITORNEXTPAGE,
               'Next page', keyDefs['NextPage'], '-',
               'Switch to the next page of the main notebook')
-        self.winMenu.Append(-1, '-')
+        self.winMenu.AppendSeparator()
         self.winMenu.AppendMenu(EditorHelper.wxID_EDITORWINDIMS,
               'All window dimensions', self.winDimsMenu,
               'Load, save or restore IDE windows dimensions')
         self.winMenu.Append(EditorHelper.wxID_EDITORHIDEPALETTE,
               'Hide Palette', 'Hide the Palette frame')
-        self.winMenu.Append(-1, '-')
+        self.winMenu.AppendSeparator()
         self.mainMenu.Append(self.winMenu, 'Windows')
 
         # Help menu
@@ -572,19 +574,20 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
             return None, -1
 
     def getValidName(self, modelClass, moreUsedNames = None):
+        className = modelClass.defaultName.split('.')[-1] 
         if moreUsedNames is None:
             moreUsedNames = []
-        def tryName(modelClass, n):
-            return 'none://%s%d%s' %(modelClass.defaultName, n, modelClass.ext)
+        def tryName(className, fileExt, n):
+            return 'none://%s%d%s' %(className, n, fileExt)
         n = 1
         #Obfuscated one-liner to check if such a name exists as a basename
         #in a the dict keys of self.module
-        while filter(lambda key, name=tryName(modelClass, n): \
+        while filter(lambda key, name=tryName(className, modelClass.ext, n): \
               os.path.basename(key) == os.path.basename(name), 
               self.modules.keys() + moreUsedNames):
             n = n + 1
 
-        return tryName(modelClass, n)
+        return tryName(className, modelClass.ext, n)
 
     def addModulePage(self, model, moduleName, defViews, views, imgIdx, notebook=None):
         if notebook is None:
@@ -909,18 +912,23 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
                 compn = dlgCompanion('dlg', None)
                 view.insertCodeBlock(compn.body())
 
+    def getOpenFromHereDir(self):
+        curdir = '.'
+        actMod = self.getActiveModulePage()
+        if actMod:
+            filename = actMod.model.filename
+            if filename:
+                curdir = os.path.dirname(filename)
+                if not curdir or curdir == 'none:':
+                    curdir = '.'
+        return curdir
+        
     def openFileDlg(self, filter='*.py', curdir='.', curfile=''):
         if filter == '*.py': filter = Preferences.exDefaultFilter
 
         if curdir=='.' and getattr(Preferences, 'exOpenFromHere', 1):
             # Open relative to the file in the active module page.
-            actMod = self.getActiveModulePage()
-            if actMod:
-                filename = actMod.model.filename
-                if filename:
-                    curdir = os.path.dirname(filename)
-                    if not curdir or curdir == 'none:':
-                        curdir = '.'
+            curdir = self.getOpenFromHereDir()
 
         from FileDlg import wxFileDialog
         dlg = wxFileDialog(self, 'Choose a file', curdir, curfile, filter, wxOPEN)
@@ -1124,8 +1132,26 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
                 self.setupToolBar(sel)
                 if sel == 1:
                     self.editorUpdateNotify()
+            
+            if event: event.Skip()
+            # focus the active page
+            if self._created:
+                if sel > max(self.shellPageIdx, self.explorerPageIdx, -1):
+                    wxCallAfter(self.focusView, sel)
+                else:
+                    wxCallAfter(self.focusPage, sel)
 
-        if event: event.Skip()
+    def focusPage(self, sel):
+        page = self.tabs.GetPage(sel)
+        page.SetFocus()
+                
+    def focusView(self, sel):
+        page = self.tabs.GetPage(sel)
+        if page.__class__.__name__ != 'Notebook':
+            page = page.GetChildren()[0]
+        
+        view = page.GetPage(page.GetSelection())
+        view.SetFocus()
 
 #---Help events-----------------------------------------------------------------
     def OnHelp(self, event):
@@ -1222,8 +1248,7 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
     def OnSwitchExplorer(self, event):
         if self.tabs.GetSelection() == self.explorerPageIdx:
             tree = self.explorer.tree
-            cookie = 0
-            child, cookie = tree.GetFirstChild(tree.GetRootItem(), cookie)
+            child, cookie = tree.GetFirstChild(tree.GetRootItem())
             tree.SelectItem(child)
             self.explorer.list.SetFocus()
             STATE = wxLIST_STATE_FOCUSED|wxLIST_STATE_SELECTED

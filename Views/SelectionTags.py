@@ -8,7 +8,7 @@
 #
 # Created:     1999
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999 - 2004 Riaan Booysen
+# Copyright:   (c) 1999 - 2005 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
 
@@ -163,7 +163,7 @@ class SelectionGroup:
         # Put selection around control
 
         # Begin a drag, don't drag frame
-        if ctrl.this != self.designer.this:
+        if ctrl != self.designer:
             self.dragging = true
             self.dragOffset = pos
             self.showFramedTags(None)
@@ -228,7 +228,7 @@ class SelectionGroup:
             self.selCompn = None
             self.inspSel = None
         else:
-            if ctrl.this == self.designer.this:
+            if ctrl == self.designer:
                 self.name = ''
                 self.parent = ctrl
                 cp = (0, 0)
@@ -239,7 +239,7 @@ class SelectionGroup:
             else:
                 self.name = ctrl.GetName()
                 self.parent = ctrl.GetParent()
-                cp = ctrl.GetPosition().asTuple()
+                cp = ctrl.GetPosition().Get()
 
                 showTags = true
 

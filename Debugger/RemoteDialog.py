@@ -131,6 +131,8 @@ class AttachDlg(wxDialog):
         
         self.pathsPanel.init_paths(self.paths)
         
+        self.Center(wxBOTH)
+        
         try:
             from Preferences import IS
             self.SetIcon(IS.load('Images/Icons/Debug.ico'))

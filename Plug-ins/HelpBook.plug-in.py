@@ -6,7 +6,7 @@
 #
 # Created:     2003
 # RCS-ID:      $Id$
-# Copyright:   (c) 2003 - 2004
+# Copyright:   (c) 2003 - 2005
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 #Boa:Dialog:HelpBookItemDlg
@@ -325,7 +325,7 @@ Plugins.registerPreference('HelpBook', 'hbShowDocumentTitles', 'True',
 class HelpBookModel(EditorModels.SourceModel):
     modelIdentifier = 'HelpBook'
     defaultName = 'helpbook'
-    bitmap = 'HelpBook_s.png'
+    bitmap = 'HelpBook.png'
     ext = '.hhp'
     imgIdx = EditorHelper.imgHelpBook
 
@@ -687,7 +687,7 @@ class HelpBookIndexView(wxSplitterWindow, EditorViews.EditorView):
     delBmp = 'Images/Shared/DeleteItem.png'
     def __init__(self, parent, model):
         wxSplitterWindow.__init__(self, parent, -1,
-              style=wxCLIP_CHILDREN | wxNO_3D | wxSP_3DSASH)# | wxSP_FULLSASH)
+              style=wxCLIP_CHILDREN | wxNO_3D | wxSP_3DSASH)
 
         self.indexes = HelpBookIndexListView(self, model, self)
         self.files = HelpBookFilesView(self, model, False)
@@ -857,7 +857,7 @@ class HelpBookContentsView(wxSplitterWindow, EditorViews.EditorView):
     delBmp = 'Images/Shared/DeleteItem.png'
     def __init__(self, parent, model):
         wxSplitterWindow.__init__(self, parent, -1,
-              style=wxCLIP_CHILDREN|wxNO_3D|wxSP_3DSASH|wxSP_FULLSASH)
+              style=wxCLIP_CHILDREN|wxNO_3D|wxSP_3DSASH)
 
         self.contents = HelpBookContentsTreeView(self, model, self)
         self.files = HelpBookFilesView(self, model, False)

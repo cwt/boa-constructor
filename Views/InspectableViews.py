@@ -8,7 +8,7 @@
 #
 # Created:     2001
 # RCS-ID:      $Id$
-# Copyright:   (c) 2001 - 2004 Riaan Booysen
+# Copyright:   (c) 2001 - 2005 Riaan Booysen
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 print 'importing Views.InspectableViews'
@@ -686,7 +686,7 @@ class InspectableObjectView(EditorViews.EditorView, InspectorSessionMix):
         companion = ObjCompanionClass(objName, self, ObjClass)
         params = companion.designTimeSource()
         self.addObject(objName, companion, companion.designTimeObject(), '')
-        companion.persistConstr(ObjClass.__name__, params)
+        companion.persistConstr(Utils.getWxPyNameForClass(ObjClass), params)
         return objName
 
 

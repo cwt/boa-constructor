@@ -6,7 +6,7 @@
 #
 # Created:     2000/11/02
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999 - 2004 Riaan Booysen
+# Copyright:   (c) 1999 - 2005 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
 
@@ -110,7 +110,7 @@ def findCatExplorerNode(prot, category, respath, transports):
 
 class BaseExplorerTree(wxTreeCtrl):
     def __init__(self, parent, images):
-        wxTreeCtrl.__init__(self, parent, wxID_PFT, style=wxTR_HAS_BUTTONS|wxCLIP_CHILDREN|wxNO_BORDER)
+        wxTreeCtrl.__init__(self, parent, wxID_PFT, style=wxTR_HAS_BUTTONS|wxCLIP_CHILDREN)#|wxNO_BORDER)
         EVT_TREE_ITEM_EXPANDING(self, wxID_PFT, self.OnOpen)
         EVT_TREE_ITEM_EXPANDED(self, wxID_PFT, self.OnOpened)
         EVT_TREE_ITEM_COLLAPSED(self, wxID_PFT, self.OnClose)
@@ -133,9 +133,8 @@ class BaseExplorerTree(wxTreeCtrl):
 
     def getChildren(self):
         children = []
-        cookie = 0
         selection = self.GetSelection()
-        child, cookie = self.GetFirstChild(selection, cookie)
+        child, cookie = self.GetFirstChild(selection)
         while child.IsOk():
             children.append(child)
             child, cookie = self.GetNextChild(selection, cookie)
@@ -146,11 +145,7 @@ class BaseExplorerTree(wxTreeCtrl):
         return [self.GetItemText(id) for id in self.getChildren()]
 
     def getChildNamed(self, node, name):
-        cookie = 0
-        try:
-            child, cookie = self.GetFirstChild(node, cookie)
-        except TypeError: # >= 2.5
-            child, cookie = self.GetFirstChild(node)
+        child, cookie = self.GetFirstChild(node)
             
         while child.IsOk() and self.GetItemText(child) != name:
             child, cookie = self.GetNextChild(node, cookie)
@@ -530,7 +525,7 @@ class BaseExplorerSplitter(wxSplitterWindow):
     def __init__(self, parent, modimages, editor, store,
           XList=ExplorerList, XTree=ExplorerTree):
         wxSplitterWindow.__init__(self, parent, wxID_PFE,
-              style = wxCLIP_CHILDREN | wxNO_3D | wxSP_3D)
+              style = wxCLIP_CHILDREN | wxSP_LIVE_UPDATE)# | wxNO_3D | wxSP_3D)
 
         self.editor = editor
         self.store = store

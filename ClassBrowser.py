@@ -6,7 +6,7 @@
 #
 # Created:     1999
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999 - 2004 Riaan Booysen
+# Copyright:   (c) 1999 - 2005 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
 #Boa:Frame:ClassBrowserFrame
@@ -14,6 +14,8 @@
 import os, pyclbr
 
 from wxPython.wx import *
+
+import wx
 
 import Preferences, Utils
 from Preferences import IS
@@ -73,10 +75,8 @@ class ClassBrowserFrame(wxFrame, Utils.FrameRestorerMixin):
         self.SetIcon(IS.load('Images/Icons/ClassBrowser.ico'))
 
         self.classes = {}
-        for module in ('wxPython.wx', 'wxPython.utils', 'wxPython.html',
-                       'wxPython.htmlhelp', 'wxPython.help', 'wxPython.calendar',
-                       'wxPython.grid', 'wxPython.ogl', 'wxPython.stc',
-                       'wxPython.gizmos', 'wxPython.wizard'):
+        for module in ('wx', 'wx.html', 'wx.calendar', 'wx.grid', 'wx.stc',
+                       'wx.gizmos', 'wx.wizard'):
                 self.classes.update(pyclbr.readmodule(module))
         
 

@@ -6,7 +6,7 @@
 #
 # Created:     2002
 # RCS-ID:      $Id$
-# Copyright:   (c) 2002 - 2004
+# Copyright:   (c) 2002 - 2005
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 print 'importing Companions.ListCompanions'
@@ -32,13 +32,13 @@ class ListCtrlDTC(Constructors.MultiItemCtrlsConstr, WindowDTC):
         self.editors.update({'Columns':         ListColumnsColPropEdit,
                              'ImageListSmall':  ListCtrlImageListClassLinkPropEdit,
                              'ImageListNormal': ListCtrlImageListClassLinkPropEdit})
-        self.windowStyles = ['wxLC_LIST', 'wxLC_REPORT', 'wxLC_VIRTUAL', 'wxLC_ICON',
-                             'wxLC_SMALL_ICON', 'wxLC_ALIGN_TOP',
-                             'wxLC_ALIGN_LEFT', 'wxLC_AUTOARRANGE',
-                             'wxLC_USER_TEXT', 'wxLC_EDIT_LABELS',
-                             'wxLC_NO_HEADER', 'wxLC_SINGLE_SEL',
-                             'wxLC_SORT_ASCENDING', 'wxLC_SORT_DESCENDING',
-                             'wxLC_HRULES', 'wxLC_VRULES'] + self.windowStyles
+        self.windowStyles = ['wx.LC_LIST', 'wx.LC_REPORT', 'wx.LC_VIRTUAL', 'wx.LC_ICON',
+                             'wx.LC_SMALL_ICON', 'wx.LC_ALIGN_TOP',
+                             'wx.LC_ALIGN_LEFT', 'wx.LC_AUTOARRANGE',
+                             'wx.LC_USER_TEXT', 'wx.LC_EDIT_LABELS',
+                             'wx.LC_NO_HEADER', 'wx.LC_SINGLE_SEL',
+                             'wx.LC_SORT_ASCENDING', 'wx.LC_SORT_DESCENDING',
+                             'wx.LC_HRULES', 'wx.LC_VRULES'] + self.windowStyles
         self.subCompanions['Columns'] = ListCtrlColumnsCDTC
         self.listTypeNameMap = {'ImageListSmall'  : wxIMAGE_LIST_SMALL,
                                 'ImageListNormal' : wxIMAGE_LIST_NORMAL}
@@ -56,10 +56,10 @@ class ListCtrlDTC(Constructors.MultiItemCtrlsConstr, WindowDTC):
 
         return props
 
-    def designTimeSource(self, position='wxDefaultPosition', size='wxDefaultSize'):
+    def designTimeSource(self, position='wx.DefaultPosition', size='wx.DefaultSize'):
         return {'pos': position,
                 'size': self.getDefCtrlSize(),
-                'style': 'wxLC_ICON',
+                'style': 'wx.LC_ICON',
                 #'validator': 'wxDefaultValidator',
                 'name': `self.name`}
 
@@ -85,8 +85,8 @@ class ListCtrlDTC(Constructors.MultiItemCtrlsConstr, WindowDTC):
     def notification(self, compn, action):
         WindowDTC.notification(self, compn, action)
         if action == 'delete':
-            for propName, typeName in (('ImageListSmall', 'wxIMAGE_LIST_SMALL'),
-                                       ('ImageListNormal', 'wxIMAGE_LIST_NORMAL')):
+            for propName, typeName in (('ImageListSmall', 'wx.IMAGE_LIST_SMALL'),
+                                       ('ImageListNormal', 'wx.IMAGE_LIST_NORMAL')):
                 imgLst, imgLstType = self.GetImageList(propName)
                 if imgLst and `imgLst` == `compn.control`:
                     self.SetImageList(propName, (None,))
@@ -145,12 +145,12 @@ class ListCtrlColumnsCDTC(CollectionDTC):
     def designTimeSource(self, wId, method=None):
         return {'col': `wId`,
                 'heading': `'%s%d'%(self.propName, wId)`,
-                'format': 'wxLIST_FORMAT_LEFT',
+                'format': 'wx.LIST_FORMAT_LEFT',
                 'width': `-1`}
 
     def appendItem(self, method=None):
         if not (self.control.GetWindowStyleFlag() & wxLC_REPORT):
-            wxMessageBox('wxListCtrl must be created with the wxLC_REPORT flag.',
+            wxMessageBox('wx.ListCtrl must be created with the wx.LC_REPORT flag.',
                   'Error', wxICON_ERROR | wxOK, self.designer)
             return
         CollectionDTC.appendItem(self, method)
@@ -178,19 +178,19 @@ class TreeCtrlDTC(Constructors.MultiItemCtrlsConstr, WindowDTC):
         self.editors.update({'ImageList': ImageListClassLinkPropEdit,
                              #'StateImageList': ImageListClassLinkPropEdit
                              })
-        self.windowStyles = ['wxTR_NO_BUTTONS', 'wxTR_HAS_BUTTONS',
-                             'wxTR_EDIT_LABELS', 'wxTR_NO_LINES',
-                             'wxTR_LINES_AT_ROOT',
+        self.windowStyles = ['wx.TR_NO_BUTTONS', 'wx.TR_HAS_BUTTONS',
+                             'wx.TR_EDIT_LABELS', 'wx.TR_NO_LINES',
+                             'wx.TR_LINES_AT_ROOT',
                              #'wxTR_HIDE_ROOT',
-                             'wxTR_ROW_LINES',
+                             'wx.TR_ROW_LINES',
                              #'wxTR_HAS_VARIABLE_ROW_HEIGHT',
-                             'wxTR_SINGLE', 'wxTR_MULTIPLE', 'wxTR_EXTENDED',
-                             'wxTR_DEFAULT_STYLE'] + self.windowStyles
+                             'wx.TR_SINGLE', 'wx.TR_MULTIPLE', 'wx.TR_EXTENDED',
+                             'wx.TR_DEFAULT_STYLE'] + self.windowStyles
 
-    def designTimeSource(self, position = 'wxDefaultPosition', size = 'wxDefaultSize'):
+    def designTimeSource(self, position = 'wx.DefaultPosition', size = 'wx.DefaultSize'):
         return {'pos': position,
                 'size': size,
-                'style': 'wxTR_HAS_BUTTONS',
+                'style': 'wx.TR_HAS_BUTTONS',
                 #'validator': 'wxDefaultValidator',
                 'name': `self.name`}
 
@@ -214,16 +214,16 @@ class TreeCtrlDTC(Constructors.MultiItemCtrlsConstr, WindowDTC):
     def events(self):
         return WindowDTC.events(self) + ['TreeEvent']
 
-EventCategories['ListBoxEvent'] = (EVT_LISTBOX, EVT_LISTBOX_DCLICK)
+EventCategories['ListBoxEvent'] = ('wx.EVT_LISTBOX', 'wx.EVT_LISTBOX_DCLICK')
 commandCategories.append('ListBoxEvent')
 class ListBoxDTC(Constructors.ListConstr, ChoicedDTC):
     #wxDocs = HelpCompanions.wxListBoxDocs
     def __init__(self, name, designer, parent, ctrlClass):
         ChoicedDTC.__init__(self, name, designer, parent, ctrlClass)
         self.editors['Choices'] = ChoicesConstrPropEdit
-        self.windowStyles = ['wxLB_SINGLE', 'wxLB_MULTIPLE', 'wxLB_EXTENDED',
-                             'wxLB_HSCROLL', 'wxLB_ALWAYS_SB', 'wxLB_NEEDED_SB',
-                             'wxLB_SORT'] + self.windowStyles
+        self.windowStyles = ['wx.LB_SINGLE', 'wx.LB_MULTIPLE', 'wx.LB_EXTENDED',
+                             'wx.LB_HSCROLL', 'wx.LB_ALWAYS_SB', 'wx.LB_NEEDED_SB',
+                             'wx.LB_SORT'] + self.windowStyles
 
     def designTimeSource(self, position = 'wxDefaultPosition', size = 'wxDefaultSize'):
         return {'pos': position,
@@ -239,37 +239,37 @@ class ListBoxDTC(Constructors.ListConstr, ChoicedDTC):
     def defaultAction(self):
         insp = self.designer.inspector
         insp.pages.SetSelection(2)
-        insp.events.doAddEvent('ListBoxEvent', 'EVT_LISTBOX')
+        insp.events.doAddEvent('ListBoxEvent', 'wx.EVT_LISTBOX')
 
 
-EventCategories['CheckListBoxEvent'] = (EVT_CHECKLISTBOX,)
+EventCategories['CheckListBoxEvent'] = ('wx.EVT_CHECKLISTBOX',)
 commandCategories.append('CheckListBoxEvent')
 class CheckListBoxDTC(ListBoxDTC):
     #wxDocs = HelpCompanions.wxCheckListBoxDocs
     def events(self):
         return ListBoxDTC.events(self) + ['CheckListBoxEvent']
 
-EventCategories['RadioBoxEvent'] = (EVT_RADIOBOX,)
+EventCategories['RadioBoxEvent'] = ('wx.EVT_RADIOBOX',)
 commandCategories.append('RadioBoxEvent')
 class RadioBoxDTC(ChoicedDTC):
     #wxDocs = HelpCompanions.wxRadioBoxDocs
     def __init__(self, name, designer, parent, ctrlClass):
         ChoicedDTC.__init__(self, name, designer, parent, ctrlClass)
         self.editors['MajorDimension'] = MajorDimensionConstrPropEdit
-        self.windowStyles = ['wxRA_SPECIFY_ROWS', 'wxRA_SPECIFY_COLS'] + self.windowStyles
+        self.windowStyles = ['wx.RA_SPECIFY_ROWS', 'wx.RA_SPECIFY_COLS'] + self.windowStyles
 
     def constructor(self):
         return {'Label': 'label', 'Position': 'point', 'Size': 'size',
                 'Choices': 'choices', 'MajorDimension': 'majorDimension',
                 'Style': 'style', 'Name': 'name'} #'Validator': 'validator',
 
-    def designTimeSource(self, position = 'wxDefaultPosition', size = 'wxDefaultSize'):
+    def designTimeSource(self, position = 'wx.DefaultPosition', size = 'wx.DefaultSize'):
         return {'label': `self.name`,
                 'point': position,
                 'size': size,
                 'choices': `['asd']`,
                 'majorDimension': '1',
-                'style': 'wxRA_SPECIFY_COLS',
+                'style': 'wx.RA_SPECIFY_COLS',
                 #'validator': 'wxDefaultValidator',
                 'name': `self.name`}
 
@@ -279,15 +279,15 @@ class RadioBoxDTC(ChoicedDTC):
     def defaultAction(self):
         insp = self.designer.inspector
         insp.pages.SetSelection(2)
-        insp.events.doAddEvent('RadioBoxEvent', 'EVT_RADIOBOX')
+        insp.events.doAddEvent('RadioBoxEvent', 'wx.EVT_RADIOBOX')
 
 class GenericDirCtrlDTC(WindowDTC):
     def __init__(self, name, designer, parent, ctrlClass):
         WindowDTC.__init__(self, name, designer, parent, ctrlClass)
         self.editors['DefaultFilter'] = IntConstrPropEdit
-        self.windowStyles = ['wxDIRCTRL_DIR_ONLY', 'wxDIRCTRL_SELECT_FIRST',
-              'wxDIRCTRL_SHOW_FILTERS', 'wxDIRCTRL_3D_INTERNAL',
-              'wxDIRCTRL_EDIT_LABELS'] + self.windowStyles
+        self.windowStyles = ['wx.DIRCTRL_DIR_ONLY', 'wx.DIRCTRL_SELECT_FIRST',
+              'wx.DIRCTRL_SHOW_FILTERS', 'wx.DIRCTRL_3D_INTERNAL',
+              'wx.DIRCTRL_EDIT_LABELS'] + self.windowStyles
         self.compositeCtrl = true
 
     def constructor(self):
@@ -295,23 +295,26 @@ class GenericDirCtrlDTC(WindowDTC):
                 'DefaultPath': 'dir', 'Style': 'style', 'Filter': 'filter',
                 'DefaultFilter': 'defaultFilter'}
 
-    def designTimeSource(self, position = 'wxDefaultPosition', size = 'wxDefaultSize'):
+    def designTimeSource(self, position = 'wx.DefaultPosition', size = 'wx.DefaultSize'):
         return {'pos': position,
                 'size': self.getDefCtrlSize(),
                 'dir': "'.'",
-                'style': 'wxDIRCTRL_3D_INTERNAL | wxSUNKEN_BORDER',
+                'style': 'wx.DIRCTRL_3D_INTERNAL | wx.SUNKEN_BORDER',
                 'filter': "''",
                 'defaultFilter': '0',
                 'name': `self.name`}
 
 
-EventCategories['GridEvent'] = (EVT_GRID_CELL_LEFT_CLICK,
-      EVT_GRID_CELL_RIGHT_CLICK, EVT_GRID_CELL_LEFT_DCLICK,
-      EVT_GRID_CELL_RIGHT_DCLICK, EVT_GRID_LABEL_LEFT_CLICK,
-      EVT_GRID_LABEL_RIGHT_CLICK, EVT_GRID_LABEL_LEFT_DCLICK,
-      EVT_GRID_LABEL_RIGHT_DCLICK, EVT_GRID_ROW_SIZE, EVT_GRID_COL_SIZE,
-      EVT_GRID_RANGE_SELECT, EVT_GRID_CELL_CHANGE, EVT_GRID_SELECT_CELL,
-      EVT_GRID_EDITOR_SHOWN, EVT_GRID_EDITOR_HIDDEN, EVT_GRID_EDITOR_CREATED,
+EventCategories['GridEvent'] = ('wx.grid.EVT_GRID_CELL_LEFT_CLICK',
+      'wx.grid.EVT_GRID_CELL_RIGHT_CLICK', 'wx.grid.EVT_GRID_CELL_LEFT_DCLICK',
+      'wx.grid.EVT_GRID_CELL_RIGHT_DCLICK', 'wx.grid.EVT_GRID_LABEL_LEFT_CLICK',
+      'wx.grid.EVT_GRID_LABEL_RIGHT_CLICK', 
+      'wx.grid.EVT_GRID_LABEL_LEFT_DCLICK',
+      'wx.grid.EVT_GRID_LABEL_RIGHT_DCLICK', 
+      'wx.grid.EVT_GRID_ROW_SIZE', 'wx.grid.EVT_GRID_COL_SIZE',
+      'wx.grid.EVT_GRID_RANGE_SELECT', 'wx.grid.EVT_GRID_CELL_CHANGE', 
+      'wx.grid.EVT_GRID_SELECT_CELL', 'wx.grid.EVT_GRID_EDITOR_SHOWN', 
+      'wx.grid.EVT_GRID_EDITOR_HIDDEN', 'wx.grid.EVT_GRID_EDITOR_CREATED',
 )
 
 class GridDTC(Constructors.WindowConstr, WindowDTC):
@@ -326,11 +329,11 @@ class GridDTC(Constructors.WindowConstr, WindowDTC):
                                          wxGrid.wxGridSelectRows,
                                          wxGrid.wxGridSelectColumns]
         self.names['SelectionMode'] = \
-              {'wxGrid.wxGridSelectCells': wxGrid.wxGridSelectCells,
-               'wxGrid.wxGridSelectRows': wxGrid.wxGridSelectRows,
-               'wxGrid.wxGridSelectColumns': wxGrid.wxGridSelectColumns}
+              {'wx.grid.Grid.wxGridSelectCells': wxGrid.wxGridSelectCells,
+               'wx.grid.Grid.wxGridSelectRows': wxGrid.wxGridSelectRows,
+               'wx.grid.Grid.wxGridSelectColumns': wxGrid.wxGridSelectColumns}
 
-    def designTimeSource(self, position = 'wxDefaultPosition', size = 'wxDefaultSize'):
+    def designTimeSource(self, position = 'wx.DefaultPosition', size = 'wx.DefaultSize'):
         return {'pos': position,
                 'size': self.getDefCtrlSize(),
                 'style': '0',
@@ -339,9 +342,9 @@ class GridDTC(Constructors.WindowConstr, WindowDTC):
     def properties(self):
         props = WindowDTC.properties(self)
         props.update({'Editable': ('CtrlRoute',
-                      wxGridPtr.IsEditable, wxGridPtr.EnableEditing),
+                      wxGrid.IsEditable, wxGrid.EnableEditing),
                       'GridLinesEnabled': ('CtrlRoute',
-                      wxGridPtr.GridLinesEnabled, wxGridPtr.EnableGridLines)})
+                      wxGrid.GridLinesEnabled, wxGrid.EnableGridLines)})
         return props
 
     def designTimeControl(self, position, size, args = None):
@@ -354,7 +357,7 @@ class GridDTC(Constructors.WindowConstr, WindowDTC):
 
     def writeImports(self):
         return '\n'.join( (WindowDTC.writeImports(self), 
-                           'from wxPython.grid import *') )
+                           'import wx.grid') )
 
     def hideDesignTime(self):
         return WindowDTC.hideDesignTime(self) + \
@@ -373,13 +376,13 @@ try:   PaletteStore.paletteLists['ListControls'].append(wxGenericDirCtrl)
 except NameError: pass
 
 PaletteStore.compInfo.update({
-    wxListBox: ['wxListBox', ListBoxDTC],
-    wxCheckListBox: ['wxCheckListBox', CheckListBoxDTC],
-    wxGrid: ['wxGrid', GridDTC],
-    wxListCtrl: ['wxListCtrl', ListCtrlDTC],
-    wxListView: ['wxListView', ListViewDTC],
-    wxTreeCtrl: ['wxTreeCtrl', TreeCtrlDTC],
-    wxRadioBox: ['wxRadioBox', RadioBoxDTC],
+    wxListBox: ['wx.ListBox', ListBoxDTC],
+    wxCheckListBox: ['wx.CheckListBox', CheckListBoxDTC],
+    wxGrid: ['wx.grid.Grid', GridDTC],
+    wxListCtrl: ['wx.ListCtrl', ListCtrlDTC],
+    wxListView: ['wx.ListView', ListViewDTC],
+    wxTreeCtrl: ['wx.TreeCtrl', TreeCtrlDTC],
+    wxRadioBox: ['wx.RadioBox', RadioBoxDTC],
 })
-try: PaletteStore.compInfo[wxGenericDirCtrl] = ['wxGenericDirCtrl', GenericDirCtrlDTC]
+try: PaletteStore.compInfo[wxGenericDirCtrl] = ['wx.GenericDirCtrl', GenericDirCtrlDTC]
 except NameError: pass

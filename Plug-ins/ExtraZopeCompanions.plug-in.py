@@ -19,7 +19,7 @@ ZopeEditorModels.addZOAImage('Python Method', 'Images/ZOA/pymethod.png')
 class ZopePythonMethodModel(ZopeEditorModels.ZopePythonSourceModel):
     modelIdentifier = 'ZopePythonMethod'
     defaultName = 'zopepythonmethod'
-    bitmap = 'Module_s.png'
+    bitmap = 'Module.png'
     imgIdx = ZopeEditorModels.ZOAIcons['Python Method']
 
 Controllers.modelControllerReg[ZopePythonMethodModel] = ZopeEditorModels.ZopeController

@@ -6,7 +6,7 @@
 #
 # Created:     2000
 # RCS-ID:      $Id$
-# Copyright:   (c) 2000 - 2004
+# Copyright:   (c) 2000 - 2005
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 print 'importing Companions.UtilCompanions'
@@ -104,11 +104,11 @@ class ImageListImagesCDTC(CollectionDTC):
             method = self.insertionMethod
         
         if method == 'Add':
-            return {'bitmap': 'wxNullBitmap',
-                    'mask':   'wxNullBitmap'}
+            return {'bitmap': 'wx.NullBitmap',
+                    'mask':   'wx.NullBitmap'}
         elif method == 'AddWithColourMask':
-            return {'bitmap': 'wxNullBitmap',
-                    'maskColour': 'wxColour(255, 0, 255)'}
+            return {'bitmap': 'wx.NullBitmap',
+                    'maskColour': 'wx.Colour(255, 0, 255)'}
 #        elif method == 'AddIcon':
 #            return {'icon': 'wxNullIcon'}
 
@@ -125,8 +125,8 @@ class ImageListImagesCDTC(CollectionDTC):
         tcl = self.textConstrLst[self.index]
         if tcl.params.has_key(self.displayProp):
             value = tcl.params[self.displayProp]
-            if value != 'wxNullBitmap':
-                if value.startswith('wxBitmap'):
+            if value != 'wx.NullBitmap':
+                if value.startswith('wx.Bitmap'):
                     value = os.path.basename(value[10:-21])
                 else:
                     m = moduleparse.is_resource_bitmap.search(value)
@@ -150,7 +150,7 @@ class ImageListImagesCDTC(CollectionDTC):
         # resize wxNullBitmap if different size than the imagelist
         ix, iy = self.parentCompanion.control.GetSize(0)
         for param in vals.keys():
-            if vals[param] == 'wxNullBitmap' and (\
+            if vals[param] == 'wx.NullBitmap' and (\
                   dtd[param].GetWidth() != ix or\
                   dtd[param].GetHeight() != iy):
                 newbmp = wxEmptyBitmap(ix, iy)
@@ -164,13 +164,13 @@ class ImageListImagesCDTC(CollectionDTC):
 
     def applyDesignTimeDefaults(self, params, method=None):
         dtparams = {}; dtparams.update(params)
-        if dtparams.has_key('mask') and dtparams['mask'] == 'wxNullBitmap':
+        if dtparams.has_key('mask') and dtparams['mask'] == 'wx.NullBitmap':
             del dtparams['mask']
         CollectionDTC.applyDesignTimeDefaults(self, dtparams, method)
 
 # This class handles window id magic which should be done by a base class
 # UtilityIddDTC or maybe an IddDTCMix for everyone
-EventCollections.EventCategories['TimerEvent'] = (EVT_TIMER,)
+EventCollections.EventCategories['TimerEvent'] = ('wx.EVT_TIMER',)
 EventCollections.commandCategories.append('TimerEvent')
 class TimerDTC(UtilityDTC):
     handledConstrParams = ('id',)
@@ -179,19 +179,19 @@ class TimerDTC(UtilityDTC):
         UtilityDTC.__init__(self, name, designer, objClass)
         self.id = self.getWinId()
     def constructor(self):
-        return {'EventHandler': 'evtHandler', 'Id': 'id'}
+        return {'Owner': 'owner', 'Id': 'id'}
     def designTimeSource(self):
-        return {'evtHandler': 'self', 'id': self.id}
+        return {'owner': 'self', 'id': self.id}
     def designTimeObject(self, args=None):
         return UtilityDTC.designTimeObject(self, self.designTimeDefaults())
     def designTimeDefaults(self):
-        return {'evtHandler': self.designer, 'id': wxNewId()}
+        return {'owner': self.designer, 'id': wxNewId()}
     def events(self):
         return ['TimerEvent']
     def defaultAction(self):
         insp = self.designer.inspector
         insp.pages.SetSelection(2)
-        insp.events.doAddEvent('TimerEvent', 'EVT_TIMER')
+        insp.events.doAddEvent('TimerEvent', 'wx.EVT_TIMER')
 #-------------------------------------------------------------------------------
     def getWinId(self):
         return Utils.windowIdentifier(self.designer.model.main, self.name)
@@ -268,7 +268,7 @@ class AcceleratorTableEntriesCDTC(CollectionDTC):
 #    def SetName(self, oldName, newName):
 #        CollectionDTC.SetName(self, oldName, newName)
 
-    def designTimeSource(self, idx, method):
+    def designTimeSource(self, idx, method=None):
         return {0: '(0, 0, -1)'}
 
     def getDisplayProp(self):
@@ -283,7 +283,7 @@ class AcceleratorTableEntriesCDTC(CollectionDTC):
     def applyDesignTimeDefaults(self, params, method):
         return
 
-EventCollections.EventCategories['MenuEvent'] = (EVT_MENU,)
+EventCollections.EventCategories['MenuEvent'] = ('wx.EVT_MENU',)
 EventCollections.commandCategories.append('MenuEvent')
 
 class MenuDTC(UtilityDTC):
@@ -321,44 +321,48 @@ class MenuDTC(UtilityDTC):
 class MenuItemsCIDTC(CollectionIddDTC):
     #wxDocs = HelpCompanions.wxMenuDocs
     propName = 'Items'
-    displayProp = 'item'
+    displayProp = 'text'
     indexProp = '(None)'
     insertionMethod = 'Append'
     insertionDesc = 'Append item'
     deletionMethod = 'Remove'
     idProp = 'id'
-    idPropNameFrom = 'item'
+    idPropNameFrom = 'text'
 
     additionalMethods = { 'AppendSeparator': ('Append separator', '', '(None)'),
-                          'AppendMenu'     : ('Append sub menu', 'item', '(None)') }
+                          'AppendMenu'     : ('Append sub menu', 'text', '(None)') }
 
     def __init__(self, name, designer, parentCompanion, ctrl):
         CollectionIddDTC.__init__(self, name, designer, parentCompanion, ctrl)
-        self.editors.update({'Label': StrConstrPropEdit,
-                             'HelpString': StrConstrPropEdit,
+        self.editors.update({'Text': StrConstrPropEdit,
+                             'Help': StrConstrPropEdit,
                              'Kind': EnumConstrPropEdit,
                              'Menu': MenuEnumConstrPropEdit,
                             })
 
-        self.names['Kind'] = ['wxITEM_NORMAL', 'wxITEM_CHECK', 'wxITEM_RADIO']
+        self.names['Kind'] = ['wx.ITEM_NORMAL', 'wx.ITEM_CHECK', 'wx.ITEM_RADIO']
 
     def constructor(self):
         tcl = self.textConstrLst[self.index]
         if tcl.method == 'Append':
-            return {'Label': 'item', 'HelpString': 'helpString',
+            return {'Text': 'text', 'Help': 'help',
                     'Kind': 'kind', 'ItemId': 'id'}
         elif tcl.method == 'AppendSeparator':
             return {}
         elif tcl.method == 'AppendMenu':
-            return {'Label': 'item', 'HelpString': 'helpString',
-                    'Menu': 'subMenu', 'ItemId': 'id'}
+            return {'Text': 'text', 'Help': 'help',
+                    'Menu': 'submenu', 'ItemId': 'id'}
 
     def properties(self):
-        props = CollectionIddDTC.properties(self)
-        props.update(
-            {'Label': ('IdRoute', wxMenu.GetLabel, wxMenu.SetLabel),
-             'HelpString': ('IdRoute', wxMenu.GetHelpString, wxMenu.SetHelpString),
-             'Menu': ('IdRoute', wxMenu.GetHelpString, wxMenu.SetHelpString)})
+        tcl = self.textConstrLst[self.index]
+        if tcl.method in ('Append', 'AppendMenu'):
+            props = CollectionIddDTC.properties(self)
+            props.update(
+                {'Text': ('IdRoute', wxMenu.GetLabel, wxMenu.SetLabel),
+                 'Help': ('IdRoute', wxMenu.GetHelpString, wxMenu.SetHelpString)})
+        elif tcl.method == 'AppendSeparator':
+            props = {}
+
         return props
 
     def designTimeSource(self, wId, method=None):
@@ -369,16 +373,16 @@ class MenuItemsCIDTC(CollectionIddDTC):
 
         if method == 'Append':
             return {'id': winId,
-                    'item': `newItemName`,
-                    'helpString': `''`,
-                    'kind': 'wxITEM_NORMAL'}
+                    'text': `newItemName`,
+                    'help': `''`,
+                    'kind': 'wx.ITEM_NORMAL'}
         elif method == 'AppendSeparator':
             return {}
         elif method == 'AppendMenu':
             return {'id': winId,
-                    'item': `newItemName`,
-                    'subMenu': 'wxMenu()',
-                    'helpString': `''`}
+                    'text': `newItemName`,
+                    'submenu': 'wx.Menu()',
+                    'help': `''`}
 
     def designTimeDefaults(self, vals, method=None):
         if method is None:
@@ -386,11 +390,11 @@ class MenuItemsCIDTC(CollectionIddDTC):
 
         dtd = {}
         for param in vals.keys():
-            if param == 'subMenu':
+            if param == 'submenu':
                 name = vals[param]
                 if name[:4] == 'self':
                     dtd[param] = self.designer.objects[name[5:]][1]
-                elif name == 'wxMenu()':
+                elif name == 'wx.Menu()':
                     dtd[param] = wxMenu()
                 else:
                     raise Exception, 'Invalid menu reference'
@@ -407,7 +411,7 @@ class MenuItemsCIDTC(CollectionIddDTC):
     def defaultAction(self):
         insp = self.designer.inspector
         insp.pages.SetSelection(2)
-        insp.events.doAddEvent('MenuEvent', 'EVT_MENU')
+        insp.events.doAddEvent('MenuEvent', 'wx.EVT_MENU')
 
     def moveItem(self, idx, dir):
         newIdx = CollectionIddDTC.moveItem(self, idx, dir)
@@ -430,15 +434,15 @@ class MenuItemsCIDTC(CollectionIddDTC):
             if compn != self:
                 compnSrcRef = Utils.srcRefFromCtrlName(compn.name)
                 for constr in self.textConstrLst:
-                    if constr.params.has_key('subMenu'):
-                        if compnSrcRef == constr.params['subMenu']:
-                            constr.params['subMenu'] = 'wxMenu()'
+                    if constr.params.has_key('submenu'):
+                        if compnSrcRef == constr.params['submenu']:
+                            constr.params['submenu'] = 'wx.Menu()'
 
     def GetMenu(self):
-        return self.textConstrLst[self.index].params['subMenu']
+        return self.textConstrLst[self.index].params['submenu']
 
     def SetMenu(self, value):
-        self.textConstrLst[self.index].params['subMenu'] = value
+        self.textConstrLst[self.index].params['submenu'] = value
 
 
 class MenuBarDTC(UtilityDTC):
@@ -460,7 +464,7 @@ class MenuBarDTC(UtilityDTC):
     def dependentProps(self):
         return UtilityDTC.dependentProps(self) + ['Menus']
 
-    def designTimeSource(self, position = 'wxDefaultPos', size = 'wxDefaultSize'):
+    def designTimeSource(self, position = 'wx.DefaultPosition', size = 'wx.DefaultSize'):
         return {}
 
     def initDesignTimeControl(self):
@@ -496,7 +500,7 @@ class MenuBarMenusCDTC(CollectionDTC):
         return {'Menu': 'menu', 'Title': 'title'}
 
     def designTimeSource(self, wId, method=None):
-        return {'menu': 'wxMenu()',
+        return {'menu': 'wx.Menu()',
                 'title': `'%s%d'%(self.propName, wId)`}
 
     def designTimeDefaults(self, vals, method=None):
@@ -506,7 +510,7 @@ class MenuBarMenusCDTC(CollectionDTC):
                 name = vals[param]
                 if name[:4] == 'self':
                     dtd[param] = self.designer.objects[name[5:]][1]
-                elif name == 'wxMenu()':
+                elif name == 'wx.Menu()':
                     dtd[param] = wxMenu()
                 else:
                     raise 'Invalid menu reference'
@@ -545,8 +549,8 @@ class LayoutConstraintsDTC(Constructors.EmptyConstr, UtilityDTC):
         props.update({'Constraints': ('NoneRoute', None, None)})
         return props
 
-cursorIconTypes = ['wxBITMAP_TYPE_XBM', 'wxBITMAP_TYPE_CUR',
-                   'wxBITMAP_TYPE_CUR_RESOURCE', 'wxBITMAP_TYPE_ICO']
+cursorIconTypes = ['wx.BITMAP_TYPE_XBM', 'wx.BITMAP_TYPE_CUR',
+                   'wx.BITMAP_TYPE_CUR_RESOURCE', 'wx.BITMAP_TYPE_ICO']
 
 class CursorDTC(UtilityDTC):
     def __init__(self, name, designer, objClass):
@@ -561,20 +565,20 @@ class CursorDTC(UtilityDTC):
     def constructor(self):
         return {'CursorName': 'cursorName', 'Flags': 'flags',
                 'HotSpotX': 'hotSpotX', 'HotSpotY': 'hotSpotY'}
-    def designTimeSource(self, position='wxDefaultPos', size='wxDefaultSize'):
+    def designTimeSource(self, position='wx.DefaultPosition', size='wx.DefaultSize'):
         return {'cursorName': "''",
-                'flags': 'wxBITMAP_TYPE_CUR',
+                'flags': 'wx.BITMAP_TYPE_CUR',
                 'hotSpotX': '0',
                 'hotSpotY': '0'}
 
-stockCursorIds = ['wxCURSOR_ARROW', 'wxCURSOR_BULLSEYE', 'wxCURSOR_CHAR',
-      'wxCURSOR_CROSS', 'wxCURSOR_HAND', 'wxCURSOR_IBEAM', 'wxCURSOR_LEFT_BUTTON',
-      'wxCURSOR_MAGNIFIER', 'wxCURSOR_MIDDLE_BUTTON', 'wxCURSOR_NO_ENTRY',
-      'wxCURSOR_PAINT_BRUSH', 'wxCURSOR_PENCIL', 'wxCURSOR_POINT_LEFT',
-      'wxCURSOR_POINT_RIGHT', 'wxCURSOR_QUESTION_ARROW', 'wxCURSOR_RIGHT_BUTTON',
-      'wxCURSOR_SIZENESW', 'wxCURSOR_SIZENS', 'wxCURSOR_SIZENWSE', 'wxCURSOR_SIZEWE',
-      'wxCURSOR_SIZING', 'wxCURSOR_SPRAYCAN', 'wxCURSOR_WAIT', 'wxCURSOR_WATCH',
-      'wxCURSOR_ARROWWAIT']
+stockCursorIds = ['wx.CURSOR_ARROW', 'wx.CURSOR_BULLSEYE', 'wx.CURSOR_CHAR',
+      'wx.CURSOR_CROSS', 'wx.CURSOR_HAND', 'wx.CURSOR_IBEAM', 'wx.CURSOR_LEFT_BUTTON',
+      'wx.CURSOR_MAGNIFIER', 'wx.CURSOR_MIDDLE_BUTTON', 'wx.CURSOR_NO_ENTRY',
+      'wx.CURSOR_PAINT_BRUSH', 'wx.CURSOR_PENCIL', 'wx.CURSOR_POINT_LEFT',
+      'wx.CURSOR_POINT_RIGHT', 'wx.CURSOR_QUESTION_ARROW', 'wx.CURSOR_RIGHT_BUTTON',
+      'wx.CURSOR_SIZENESW', 'wx.CURSOR_SIZENS', 'wx.CURSOR_SIZENWSE', 'wx.CURSOR_SIZEWE',
+      'wx.CURSOR_SIZING', 'wx.CURSOR_SPRAYCAN', 'wx.CURSOR_WAIT', 'wx.CURSOR_WATCH',
+      'wx.CURSOR_ARROWWAIT']
 
 class StockCursorDTC(UtilityDTC):
     handledConstrParams = ()
@@ -588,23 +592,23 @@ class StockCursorDTC(UtilityDTC):
         return ['Handle']
     def constructor(self):
         return {'CursorId': 'id'}
-    def designTimeSource(self, position='wxDefaultPos', size='wxDefaultSize'):
-        return {'id': 'wxCURSOR_ARROW'}
+    def designTimeSource(self, position='wx.DefaultPosition', size='wx.DefaultSize'):
+        return {'id': 'wx.CURSOR_ARROW'}
 
 
 PaletteStore.paletteLists['Utilities (Data)'].extend([wxMenuBar, wxMenu, #wxAcceleratorTable, 
     wxImageList, wxTimer, wxStockCursor]) 
     #wxCursor, causes problems on wxGTK
 
-PaletteStore.compInfo.update({wxMenuBar: ['wxMenuBar', MenuBarDTC],
-    wxImageList: ['wxImageList', ImageListDTC],
+PaletteStore.compInfo.update({wxMenuBar: ['wx.MenuBar', MenuBarDTC],
+    wxImageList: ['wx.ImageList', ImageListDTC],
     #wxAcceleratorTable: ['wxAcceleratorTable', AcceleratorTableDTC],
-    wxMenu: ['wxMenu', MenuDTC],
-    wxCursor: ['wxCursor', CursorDTC],
-    wxStockCursor: ['wxStockCursor', StockCursorDTC],
+    wxMenu: ['wx.Menu', MenuDTC],
+    wxCursor: ['wx.Cursor', CursorDTC],
+    wxStockCursor: ['wx.StockCursor', StockCursorDTC],
 
     # these objects need design time inheritance
-    wxTimer: ['wxTimer', TimerDTC],
-    wxTextDropTarget: ['wxTextDropTarget', NYIDTC],
-    wxFileDropTarget: ['wxFileDropTarget', NYIDTC],
+    wxTimer: ['wx.Timer', TimerDTC],
+    wxTextDropTarget: ['wx.TextDropTarget', NYIDTC],
+    wxFileDropTarget: ['wx.FileDropTarget', NYIDTC],
 })

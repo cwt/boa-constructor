@@ -6,7 +6,7 @@
 #
 # Created:     2000/05/05
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999 - 2004 Riaan Booysen
+# Copyright:   (c) 1999 - 2005 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
 print 'importing Views.SourceViews'
@@ -219,6 +219,7 @@ class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView,
         vl = self.GetFirstVisibleLine()
         self.LineScroll(0, lineno -  vl)
         if offset != -1: self.SetCurrentPos(self.GetCurrentPos()+offset+1)
+        self.EnsureVisible(lineno)
 
     def selectSection(self, lineno, start, word):
         self.gotoLine(lineno)
@@ -226,8 +227,8 @@ class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView,
         startPos = self.PositionFromLine(lineno) + start
         endPos = startPos + length
         self.SetSelection(startPos, endPos)
-
         self.SetFocus()
+        self.EnsureVisible(lineno)
 
     def selectLine(self, lineno):
         self.GotoLine(lineno)
@@ -235,6 +236,7 @@ class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView,
         # Dont do whole screen selection
         ep = max(0, self.PositionFromLine(lineno+1)-1)
         self.SetSelection(sp, ep)
+        self.EnsureVisible(lineno)
 
     def insertCodeBlock(self, text):
         cp = self.GetCurrentPos()

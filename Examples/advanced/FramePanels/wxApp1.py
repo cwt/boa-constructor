@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 #Boa:App:BoaApp
 
-from wxPython.wx import *
+import wx
 
 import wxFrame1
 
@@ -10,14 +10,13 @@ modules ={'wxFrame1': [1, 'Main frame of Application', 'wxFrame1.py'],
  'wxPanel2': [0, '', 'wxPanel2.py'],
  'wxPanel3': [0, '', 'wxPanel3.py']}
 
-class BoaApp(wxApp):
+class BoaApp(wx.App):
     def OnInit(self):
-        wxInitAllImageHandlers()
+        wx.InitAllImageHandlers()
         self.main = wxFrame1.create(None)
-        #workaround for running in wxProcess
-        self.main.Show();self.main.Hide();self.main.Show()
+        self.main.Show()
         self.SetTopWindow(self.main)
-        return true
+        return True
 
 def main():
     application = BoaApp(0)

@@ -6,7 +6,7 @@
 #
 # Created:     2002/02/09
 # RCS-ID:      $Id$
-# Copyright:   (c) 2002 - 2004
+# Copyright:   (c) 2002 - 2005
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 print 'importing Models.wxPythonControllers'
@@ -271,23 +271,23 @@ Controllers.modelControllerReg.update({
      })
 
 PaletteStore.newControllers.update({
-      'wxApp': AppController,
-      'wxFrame': FrameController,
-      'wxDialog': DialogController,
-      'wxMiniFrame': MiniFrameController,
-      'wxMDIParentFrame': MDIParentController,
-      'wxMDIChildFrame': MDIChildController,
-      'wxPopupWindow': PopupWindowController,
-      'wxPopupTransientWindow': PopupTransientWindowController,
-      'wxFramePanel': FramePanelController,
-      'wxWizard': WizardController,
-      'wxPyWizardPage': PyWizardPageController,
-      'wxWizardPageSimple': WizardPageSimpleController,
+      'wx.App': AppController,
+      'wx.Frame': FrameController,
+      'wx.Dialog': DialogController,
+      'wx.MiniFrame': MiniFrameController,
+      'wx.MDIParentFrame': MDIParentController,
+      'wx.MDIChildFrame': MDIChildController,
+      'wx.PopupWindow': PopupWindowController,
+      'wx.PopupTransientWindow': PopupTransientWindowController,
+      'wx.FramePanel': FramePanelController,
+      'wx.wizard.Wizard': WizardController,
+      'wx.wizard.PyWizardPage': PyWizardPageController,
+      'wx.wizard.WizardPageSimple': WizardPageSimpleController,
      })
 
 
 # Register controllers on the New palette
-PaletteStore.paletteLists['New'].extend(['wxApp', 'wxFrame', 'wxDialog',
-  'wxMiniFrame', 'wxMDIParentFrame', 'wxMDIChildFrame',
-  'wxPopupWindow', 'wxPopupTransientWindow', 'wxFramePanel',
-  'wxWizard', 'wxPyWizardPage', 'wxWizardPageSimple'])
+PaletteStore.paletteLists['New'].extend(['wx.App', 'wx.Frame', 'wx.Dialog',
+  'wx.MiniFrame', 'wx.MDIParentFrame', 'wx.MDIChildFrame',
+  'wx.PopupWindow', 'wx.PopupTransientWindow', 'wx.FramePanel',
+  'wx.wizard.Wizard', 'wx.wizard.PyWizardPage', 'wx.wizard.WizardPageSimple'])

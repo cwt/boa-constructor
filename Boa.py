@@ -7,7 +7,7 @@
 #
 # Created:     1999
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999 - 2004 Riaan Booysen
+# Copyright:   (c) 1999 - 2005 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
 #Boa:App:BoaApp
@@ -81,10 +81,16 @@ def processArgs(argv):
     _startupfile = ''
     _startupModules = ()
     import getopt
-    optlist, args = getopt.getopt(argv, 'CDTSBO:ERNHVhv', 
+    try:
+        optlist, args = getopt.getopt(argv, 'CDTSBO:ERNHVhv', 
          ['Constricted', 'Debug', 'Trace', 'StartupFile', 'BlockHomePrefs', 
           'OverridePrefsDirName', 'EmptyEditor', 'RemoteDebugServer', 
           'NoCmdLineTransfer', 'Help', 'Version', 'help', 'version'])
+    except getopt.GetoptError, err:
+        print 'Error: %s'%str(err)
+        print 'For options: Boa.py --help'
+        sys.exit()
+        
     if (('-D', '') in optlist or ('--Debug', '') in optlist) and len(args):
         # XXX should be able to 'debug in running Boa'
         _doDebug = 1
@@ -146,11 +152,13 @@ def processArgs(argv):
         print '-E, --EmptyEditor:'
         print "\tDon't open the files that were open last time Boa was closed."
         print '-R, --RemoteDebugServer:'
-        print "\tRuns the first filename passed on the command-line in a "
-        print "\tRemote Debugger Server that can be connected to over a socket."
+        print '\tRuns the first filename passed on the command-line in a '
+        print '\tRemote Debugger Server that can be connected to over a socket.'
         print '-N, --NoCmdLineTransfer:'
         print "\tDon't transfer command line options to a running Boa, start a "
-        print "\tnew instance."
+        print '\tnew instance.'
+        print '-H, --Help, --help:'
+        print '\tThis page.'
 
         sys.exit()
 
@@ -190,20 +198,29 @@ if __name__ == '__main__' and len(sys.argv) > 1:
 print 'Starting Boa Constructor v%s'%__version__.version
 print 'importing wxPython'
 
-# silence wxPython's bool deprecations
-from wxPython import wx
 try:
-    # wxPy 2.4.0.4 and Py 2.2 and 2.3
-    wx.true = True
-    wx.false = False
-except NameError:
-    try:
-        # wxPy 2.4.0.4 and Py 2.1
-        wx.true = wx.True
-        wx.false = wx.False
-    except AttributeError:
-        # earlier wxPys
-        pass
+    # See if there is a multi-version install of wxPython
+    import wxversion
+    wxversion.select('2.5')
+except ImportError:
+    # Otherwise assume a normal 2.4 install, if it isn't 2.4 it will
+    # be caught below
+    pass
+
+### silence wxPython's bool deprecations
+##from wxPython import wx
+##try:
+##    # wxPy 2.4.0.4 and Py 2.2 and 2.3
+##    wx.true = True
+##    wx.false = False
+##except NameError:
+##    try:
+##        # wxPy 2.4.0.4 and Py 2.1
+##        wx.true = wx.True
+##        wx.false = wx.False
+##    except AttributeError:
+##        # earlier wxPys
+##        pass
 
 from wxPython.wx import *
 wxRegisterId(15999)
@@ -236,7 +253,8 @@ if __version__.wx_version_max and wxVersion > __version__.wx_version_max:
                  'Version error', wxOK | wxICON_ERROR)
     raise 'wxPython %d.%d.%d.%d not supported'%wxVersion
 
-import Preferences, Utils, About
+import Preferences, Utils
+import About
 print 'running main...'
 # XXX auto created frames (main frame handled currently)
 # XXX More property editors!
@@ -476,6 +494,7 @@ class BoaApp(wxApp):
         abt = About.createSplash(None, modTot, fileTot)
         try:
             abt.Show()
+            abt.Update()
             # Let the splash screen repaint
             wxYield()
     
@@ -510,8 +529,8 @@ class BoaApp(wxApp):
     ##            editor.setupToolBar()
     
             import Help
-            print 'attaching wxPython doc strings'
-            Help.initWxPyDocStrs()
+            #print 'attaching wxPython doc strings'
+            #Help.initWxPyDocStrs()
             if not Preferences.delayInitHelp:
                 print 'initialising Help'
                 Help.initHelp()
@@ -543,6 +562,7 @@ class BoaApp(wxApp):
                 editor.shell.execStartupScript(startupfile)
         
         finally:
+            #time.sleep(1000)
             abt.Destroy()
             #del abt
             pass
@@ -565,6 +585,14 @@ class BoaApp(wxApp):
             sys.stderr = Utils.ErrorLoggerPF()
             sys.stdout = Utils.OutputLoggerPF()
 
+        if Preferences.exWorkingDirectory:
+            try:
+                os.chdir(Preferences.exWorkingDirectory)
+            except OSError, err:
+                startupErrors.append('Could not set working directory from '\
+                      'Preferences.exWorkingDirectory :')
+                startupErrors.append(str(err))
+
         if startupErrors:
             for error in startupErrors:
                 wxLogError(error)
@@ -579,9 +607,6 @@ class BoaApp(wxApp):
             EVT_MENU(self.tbicon, self.TBMENU_CLOSE, self.OnTaskBarClose)
             EVT_MENU(self.tbicon, self.TBMENU_ABOUT, self.OnTaskBarAbout)
 
-        if Preferences.exWorkingDirectory:
-            os.chdir(Preferences.exWorkingDirectory)
-
         editor.assureRefreshed()
 
         return true
@@ -592,7 +617,7 @@ class BoaApp(wxApp):
         menu = wxMenu()
         menu.Append(self.TBMENU_RESTORE, 'Restore Boa Constructor')
         menu.Append(self.TBMENU_CLOSE,   'Exit')
-        menu.Append(-1, '')
+        menu.AppendSeparator()
         menu.Append(self.TBMENU_ABOUT,   'About')
         self.tbicon.PopupMenu(menu)
         menu.Destroy()
@@ -605,7 +630,7 @@ class BoaApp(wxApp):
 
     def OnTaskBarClose(self, event):
         self.main.Close()
-        self.ProcessIdle()
+        #self.ProcessIdle()
 
     def OnTaskBarAbout(self, event):
         self.main.editor.OnHelpAbout(event)
@@ -614,6 +639,7 @@ def main(argv=None):
     # XXX Custom installations, should distutil libs be used for this ?
     # XXX Binary test is no longer valid, maybe type of __import__ function
     # Only install if it's not a 'binary' distribution
+    import wx
     if Preferences.installBCRTL and hasattr(wx, '__file__'):
         join, dirname = os.path.join, os.path.dirname
         wxPythonPath = dirname(wx.__file__)

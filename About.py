@@ -6,7 +6,7 @@
 #
 # Created:     2000
 # RCS-ID:      $Id$
-# Copyright:   (c) 2000 - 2004
+# Copyright:   (c) 2000 - 2005
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 
@@ -20,6 +20,8 @@ import wxPython.lib.wxpTag
 
 import __version__
 import Preferences, Utils
+
+import wx, wx.lib.wxpTag
 
 # XXX Replace img tags with wxpTags/wxStaticBitmap controls and load from
 # XXX ImageStore
@@ -41,16 +43,19 @@ about_html = '''
 </body>
 </html>
 '''
+
+#  <param name="style" value="ALIGN_CENTER | CLIP_CHILDREN | ST_NO_AUTORESIZE">
+
 progress_text = '''<p>
-<wxp module="wxPython.wx" class="wxStaticText">
+<wxp module="wx" class="StaticText">
   <param name="label" value="  ">
   <param name="id"    value="%d">
-  <param name="style" value="wxALIGN_CENTER | wxCLIP_CHILDREN | wxST_NO_AUTORESIZE">
-  <param name="size"  value="wxSize(352, 20)">
+  <param name="size"  value="(352, 20)">
+  <param name="style" value="wx.ALIGN_CENTER | wx.CLIP_CHILDREN | wx.ST_NO_AUTORESIZE">
 </wxp>
-<wxp module="wxPython.wx" class="wxWindow">
+<wxp module="wx" class="Window">
   <param name="id"    value="%d">
-  <param name="size"  value="wxSize(352, 16)">
+  <param name="size"  value="(352, 16)">
 </wxp>'''
 
 
@@ -71,6 +76,8 @@ Robert Boulanger (robert@boulanger.de)<br>
 Tim Hochberg (tim.hochberg@ieee.org)<br>
 Kevin Light (klight@walkertechnical.com)<br>
 Marius van Wyk (marius@e.co.za)<br>
+Werner F. Bruhin (werner.bruhin@free.fr)<br>
+
 <p>
 <b>Many thanks to</b><br>
 <br>
@@ -122,15 +129,15 @@ about_text = '''
 <p>A <b>Python</b> IDE and <b>wxPython</b> GUI builder
 </p>
 <p><a href="Boa">http://boa-constructor.sourceforge.net</a><br></u>
-&copy;1999-2004 <b>Riaan Booysen</b>. <a href="MailMe">riaan@e.co.za</a><br>
+&copy;1999-2005 <b>Riaan Booysen</b>. <a href="MailMe">riaan@e.co.za</a><br>
 <a href="Credits">Credits</a>
 </p>
 <p><font size=-1 color="#000077">Python %s</font><br>
 <font size=-1 color="#000077">wxPlatform: %s %s</font></p>
 <hr>
-<wxp module="wxPython.wx" class="wxButton">
+<wxp module="wx" class="Button">
   <param name="label" value="Okay">
-  <param name="id"    value="wxID_OK">
+  <param name="id"    value="ID_OK">
 </wxp>
 </center>
 <br><br>
@@ -256,7 +263,7 @@ class AboutBoxSplash(AboutBoxMixin, wxFrame):
     progressBorder = 1
     fileOpeningFactor = 10
     def _init_ctrls(self, prnt):
-        wxFrame.__init__(self, size=wxSize(410, 320), pos=(-1, -1),
+        wxFrame.__init__(self, size=wxSize(418, 320), pos=(-1, -1),
               id=wxID_ABOUTBOX, title='Boa Constructor', parent=prnt,
               name='AboutBoxSplash', style=wxSIMPLE_BORDER)
         self.progressId = wxNewId()
@@ -267,6 +274,10 @@ class AboutBoxSplash(AboutBoxMixin, wxFrame):
         self.html.SetPage(about_html % ('memory:Boa.jpg',
           __version__.version, progress_text % (self.progressId, self.gaugePId), ''))
 
+        wxCallAfter(self.initCtrlNames)
+
+
+    def initCtrlNames(self):
         self.label = self.FindWindowById(self.progressId)
         self.label.SetBackgroundColour(wxWHITE)
         parentWidth = self.label.GetParent().GetClientSize().x
@@ -320,6 +331,7 @@ class AboutBoxSplash(AboutBoxMixin, wxFrame):
             if event.tpe == 'opening':
                 cnt = cnt * self.fileOpeningFactor + self.moduleTotal
             self.gauge.SetValue(min(self.gauge.GetRange(), cnt))
+        self.Update()
 
     def OnGaugeDClick(self, event):
         if event.GetPosition().x <10:
@@ -362,8 +374,23 @@ class ModCntUpdateEvent(wxPyEvent):
         self.tpe = tpe
 
 if __name__ == '__main__':
+
     app = wxPySimpleApp()
     wxInitAllImageHandlers()
-    frame = createNormal(None)
-    frame.ShowModal()
+
+    #dialog
+    #frame = createNormal(None)
+    #frame.ShowModal()
+
+    #frame
+    def updlbl(frame):
+        frame.label.SetLabel('Testing')
+        frame.label.SetLabel('Testing 1')
+        frame.label.SetLabel('Testing 2')
+        frame.label.SetLabel('Testing 3')
+        
+    frame = createSplash(None, 0, 0)
+    frame.Show()
+    wxCallAfter(updlbl, frame)
+
     app.MainLoop()

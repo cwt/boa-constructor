@@ -6,9 +6,12 @@
 #
 # Created:     1999
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999 - 2004 Riaan Booysen
+# Copyright:   (c) 1999 - 2005 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
+
+import sys
+
 from types import *
 from wxPython.wx import *
 
@@ -115,17 +118,18 @@ def getPropList(obj, cmp):
         else:
             propLst.append(PropertyWrapper(name, methType, meths[0], meths[1]))
 
-    #getPropList(obj, cmp):
+    #getPropList(obj, cmp):-
     props = {}
-    props['Properties']= {}
-    props['Methods']= {}
-    props['Built-ins']= {}
+    props['Properties'] = {}
+    props['Methods'] = {}
+    props['Built-ins'] = {}
 
     # traverse inheritance hierarchy
     # populate property list
     propLst = []
     constrLst = []
-    if obj and type(obj) is InstanceType:
+    #           2.4                          2.5
+    if obj and (type(obj) is InstanceType or isinstance(obj, wxObject)):
         traverseAndBuildProps(props, cmp.vetoedMethods(), obj, obj.__class__)
 
         # populate property list
@@ -160,17 +164,19 @@ def getPropList(obj, cmp):
 
         propLst.sort()
         constrLst.sort()
-    else :
+    else:
         if cmp:
+            constrNames = cmp.constructor()
             xtraProps = cmp.properties()
             propNames = xtraProps.keys()
             propNames.sort()
             for propName in propNames:
                 propMeths = xtraProps[propName]
-                try:
-                    catalogProperty(propName, propMeths[0], propMeths[1:],
-                      constrNames, propLst, constrLst)
-                except: pass
+                #try:
+                catalogProperty(propName, propMeths[0], propMeths[1:],
+                  constrNames, propLst, constrLst)
+                #except:
+                #    print 'prop error', sys.exc_info()
         else:
             pass #print 'Empty object', obj, cmp
 

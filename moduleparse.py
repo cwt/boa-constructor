@@ -6,7 +6,7 @@
 #
 # Created:     1999
 # RCS-ID:      $Id$
-# Copyright:   Changes (c) 1999 - 2004 Riaan Booysen
+# Copyright:   Changes (c) 1999 - 2005 Riaan Booysen
 # Licence:     Python
 #----------------------------------------------------------------------
 
@@ -913,8 +913,8 @@ class Module:
 
         if impLine:
             # Add it beneath from wxPython.wx import *
-            if self.from_imports.has_key('wxPython.wx'):
-                insLine = self.from_imports['wxPython.wx'][0]
+            if self.imports.has_key('wx'):
+                insLine = self.imports['wx'][0]
                 # Component imports are in a block with the wxPython.wx import
                 if not resourceImport:
                     self.source.insert(insLine, impLine)
@@ -934,7 +934,7 @@ class Module:
                     prevLn = start = end = -1
                     while idx < len(allImports):
                         ln, md = allImports[idx]
-                        if start == -1 and ln == insLine and md == 'wxPython.wx':
+                        if start == -1 and ln == insLine and md == 'wx':
                             start = ln
                         elif start != -1 and ln > prevLn+1:
                             end = prevLn+1

@@ -1,159 +1,206 @@
-<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<!DOCTYPE html PUBLIC "-//w3c//dtd html 4.0 transitional//en">
 <html>
 <head>
-   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-   <meta name="GENERATOR" content="Mozilla/4.5 [en] (WinNT; I) [Netscape]">
-   <title>1.1 Installing and Starting Boa Constructor</title>
+  <meta http-equiv="Content-Type"
+ content="text/html; charset=iso-8859-1">
+  <meta name="GENERATOR"
+ content="Mozilla/4.5 [en] (WinNT; I) [Netscape]">
+  <title>1.1 Installing and Starting Boa Constructor</title>
 </head>
-<body text="#000000" bgcolor="#FFFFFF" link="#0000BB" vlink="#551A8B" alink="#FF0000">
-
-<div CLASS="navigation">&nbsp;
-<table CELLSPACING=2 CELLPADDING=0 WIDTH="100%" >
-<tr>
-<td WIDTH="32" HEIGHT="32"><a href="node2.html"><img SRC="../icons/next.gif" ALT="Next Page" BORDER=0 height=32 width=32></a></td>
-
-<td WIDTH="32" HEIGHT="32"><a href="index.html"><img SRC="../icons/up.gif" ALT="Up One Level" BORDER=0 height=32 width=32></a></td>
-
-<td WIDTH="32" HEIGHT="32"><a href="index.html"><img SRC="../icons/previous.gif" ALT="Previous Page" BORDER=0 height=32 width=32></a></td>
-
-<td ALIGN=CENTER WIDTH="100%" BGCOLOR="#99CCFF"><b>Getting Started Guide
+<body alink="#ff0000" bgcolor="#ffffff" link="#0000bb" text="#000000"
+ vlink="#551a8b">
+<div class="navigation">&nbsp;
+<table cellpadding="0" cellspacing="2" width="100%">
+  <tbody>
+    <tr>
+      <td height="32" width="32"><a href="node2.html"><img
+ src="../icons/next.gif" alt="Next Page" border="0" height="32"
+ width="32"></a></td>
+      <td height="32" width="32"><a href="index.html"><img
+ src="../icons/up.gif" alt="Up One Level" border="0" height="32"
+ width="32"></a></td>
+      <td height="32" width="32"><a href="index.html"><img
+ src="../icons/previous.gif" alt="Previous Page" border="0" height="32"
+ width="32"></a></td>
+      <td align="center" bgcolor="#99ccff" width="100%"><b>Getting
+Started Guide
 for Boa Constructor</b></td>
-
-<td WIDTH="32" HEIGHT="32"><a href="index.html"><img SRC="../icons/contents.gif" ALT="Contents" BORDER=0 height=32 width=32></a></td>
-
-<td WIDTH="32" HEIGHT="32"><img SRC="../icons/blank.gif" BORDER=0 height=32 width=32></td>
-
-<td WIDTH="32" HEIGHT="32"><img SRC="../icons/blank.gif" BORDER=0 height=32 width=32></td>
-</tr>
+      <td height="32" width="32"><a href="index.html"><img
+ src="../icons/contents.gif" alt="Contents" border="0" height="32"
+ width="32"></a></td>
+      <td height="32" width="32"><img src="../icons/blank.gif"
+ border="0" height="32" width="32"></td>
+      <td height="32" width="32"><img src="../icons/blank.gif"
+ border="0" height="32" width="32"></td>
+    </tr>
+  </tbody>
 </table>
-<b>Next:<span class='sectref'></b><a href="node2.html">The Palette Window</span></a>
-<b>Up:<span class='sectref'></b><a href="index.html">Getting Started Guide
-for Boa Constructor</span></a> <b>Previous:<span class='sectref'></b><a href="index.html">Getting
-Started Guide for Boa Constructor</a></span>
+<b>Next:<span class="sectref"></span></b><a href="node2.html">The
+Palette Window</a>
+<b>Up:<span class="sectref"></span></b><a href="index.html">Getting
+Started Guide
+for Boa Constructor</a> <b>Previous:<span class="sectref"></span></b><a
+ href="index.html">Getting
+Started Guide for Boa Constructor</a>
 <br>
 <hr></div>
 <!--End of Navigation Panel-->
-<h1>
-1.1 Installing and Starting Boa Constructor</h1>
-Boa Constructor can be run on any 32bit windows platform, and on any UNIX
+<h1>1.1 Installing and Starting Boa Constructor</h1>
+Boa Constructor can be run on any 32bit windows platform, and on any
+UNIX
 platform which is supported by the <a href="http://www.gtk.org">GTK+</a>
 windows toolkit.
-<h3>
-Windows Installation</h3>
-
+<h3>Windows Installation</h3>
 <ul>
-<li>
-Detailed instructions from wxPython.org</li>
-
-<li>
-Install a recent version of <a href="http://www.python.org">Python</a>.
-You must use version must be 1.52 or later.</li>
-
-<li>
-Install the <a href="http://www.wxpython.org">wxPython</a> extensions.
-The standard installer will install both the wxWindows libraries and the
-wxPython wrappers. Ensure that the version of wxPython matches your installed
+  <li>Detailed instructions from wxPython.org</li>
+  <li>Install a recent version of <a href="http://www.python.org">Python</a>.
+As of Boa 0.4.0 you must use version 2.2 or later.</li>
+  <li>Install the <a href="http://www.wxpython.org">wxPython</a>
+extensions.
+The standard installer will install both the wxWidgets libraries and
+the
+wxPython wrappers. Ensure that the version of wxPython matches your
+installed
 Python version.</li>
-
-<li>
-Create a directory for the Boa Constructor software, e.g. c:\boa</li>
-
-<li>
-Extract the Boa Constructor .zip file to this directory. You may need to
-install a utility such as <a href="http://www.winzip.com">winzip</a> extract
+  <li>Boa 0.4.0 or higher requires to use at least wxPython 2.5.4.1<br>
+  </li>
+  <li>Use the installer for Boa (files ending in "win32.exe"</li>
+  <ul>
+    <li>Or alternatively create a directory for the Boa Constructor
+software, e.g.
+under ..\site-packages\boa</li>
+  </ul>
+  <ul>
+    <li>Extract the Boa Constructor .zip file to this directory. You
+may
+need
+to
+install a utility such as <a href="http://www.winzip.com">winzip</a>
+to extract
 the zip file.</li>
-
-<li>
-Create a shortcut to the file boa.py on your desktop.</li>
-
-<li>
-Select the new shortcut to run the Boa Constructor Development Environment.</li>
+  </ul>
+  <ul>
+    <li>Create a shortcut to the file boa.py on your desktop.</li>
+  </ul>
+  <li>Select the new shortcut to run the Boa Constructor Development
+Environment.</li>
 </ul>
-
 <h3>
 UNIX Installation</h3>
-
 <ul>
-<li>
-Detailed instructions from wxPython.org</li>
-
-<li>
-These components can also be installed from binary RPMs.</li>
-
-<li>
-Install a recent version of <a href="http://www.python.org">Python</a>.
-You must use version 1.52 or later.</li>
-
-<li>
-If <a href="http://www.gtk.org">GTK+</a> is not installed, then build and
+  <li>Detailed instructions from wxPython.org</li>
+  <li>These components can also be installed from binary RPMs.</li>
+  <li>Install a recent version of <a href="http://www.python.org">Python</a>.
+As of Boa 0.4.0 you must use version 2.2 or later.</li>
+  <li>If <a href="http://www.gtk.org">GTK+</a> is not installed, then
+build
+and
 install it. You must use version 1.2 or later.</li>
-
-<li>
-If <a href="http://www.wxwindows.org">wxWindows</a> is not installed, then
-build and install it. Use the version of wxWindows for GTK+ (there are
-several versions, e.g. the Microsoft Windows version). You must use version
-2.1 or later.</li>
-
-<li>
-If <a href="http://www.wxpython.org">wxPython</a> is not installed, then
+  <li>If <a href="http://www.wxwidgets.org">wxWidgets</a> is not
+installed,
+then
+build and install it. Use the version of wxWidgets for GTK+ (there are
+several versions, e.g. the Microsoft Windows version). You must use
+version
+2.5 or later.</li>
+  <li>If <a href="http://www.wxpython.org">wxPython</a> is not
+installed,
+then
 build and install it. The version of wxPython must match the version of
-wxWindows, i.e. 2.1.x for wxWindows 2.1.x.</li>
-
-<li>
-Boa constructor requires that the <a href="http://www.scintilla.org">Scintilla
-editor</a> (stc) and the open GL (ogl) components for wxWindows are installed.
-These components are distributed in both the wxPython and the wxWindows
+wxWidgets, i.e. 2.5.x for wxWidgets 2.5.x.</li>
+  <li>Boa 0.4.0 or higher requires to use at least wxPython 2.5.4.1</li>
+  <li>Boa constructor requires that the <a
+ href="http://www.scintilla.org">Scintilla
+editor</a> (stc) and the open GL (ogl) components for wxWidgets are
+installed.
+These components are distributed in both the wxPython and the wxWidgets
 contrib directories. If in doubt, build and install the versions in the
 wxPython release.</li>
-
-<li>
-Create a directory for the Boa Constructor software, e.g. /usr/local/boa.
-Extract the Boa Constructor package to this directory. The gunzip program
+  <li>Create a directory for the Boa Constructor software, e.g.
+/usr/local/boa.
+Extract the Boa Constructor package to this directory. The gunzip
+program
 may be required to extract the archive</li>
-
-<li>
-Create a symbolic link to boa.py on your path, e.g. <tt>ln -s /usr/local/boa/boa.py
+  <li>Create a symbolic link to boa.py on your path, e.g. <tt>ln -s
+/usr/local/boa/boa.py
 /usr/bin</tt></li>
-
-<li>
-In your shell execute boa using the command 'boa.py'</li>
+  <li>In your shell execute boa using the command 'boa.py'</li>
 </ul>
-
 <h4>
-You will now see the tools of the Boa Constructor development environment</h4>
-<img SRC="image/Boa1.png" height=700 width=820>
+You will now see the tools of the Boa Constructor development
+environment</h4>
+<img alt="Initial screen" title="Initial screen" src="image/Boa1.png"
+ style="width: 717px; height: 518px;"><br>
+<br>
+This is divided into three sections/areas:<br>
 <ul>
-<li>
-The Editor window contains two panes by default. The 'Shell' pane provides
-access to the python interpreter. If you are new to Python you can go through
-the Python tutorials using this shell. The screenshot above shows the simple
-script to create two variables and print the result of adding the variables.</li>
+  <li><a href="node2.html">Palette</a> window on top</li>
+  <ul>
+    <li>A tool bar to open/close application windows</li>
+    <li>Multiple tabs</li>
+    <ul>
+      <li>New - create new modules, applications etc.</li>
+      <li>Containers/Layout, Basic Controls etc give you access to
+different components<br>
+      </li>
+    </ul>
+  </ul>
+  <li><a href="node5.html">Inspector</a> window on the bottom left</li>
+  <ul>
+    <li>This section is also used to display e.g. the Debugger or Class
+Browser</li>
+    <li>It is used to change properties of components and to define
+events.<br>
+    </li>
+  </ul>
+  <li><a href="node3.html">Editor/Explorer</a> window on the bottom
+right</li>
+  <ul>
+    <li>This section has multiple tabs</li>
+    <ul>
+      <li>Shell - provides access to a Python interpreter, this makes
+it very easy/confortable to test out small code sections.</li>
+      <li>Explorer - allows to navigate the file system, gives access
+to the wxPython demo (via a Plug-in), allows to change your preferences
+for Boa, and it will have additional tabs, one for each file you are
+working on<br>
+      </li>
+    </ul>
+  </ul>
 </ul>
-<!--Start of Navigation Panel-->
-<div CLASS="navigation">
-<hr>
-<table CELLSPACING=2 CELLPADDING=0 WIDTH="100%" >
-<tr>
-<td WIDTH="32" HEIGHT="32"><a href="node2.html"><img SRC="../icons/next.gif" ALT="Next Page" BORDER=0 height=32 width=32></a></td>
-
-<td WIDTH="32" HEIGHT="32"><a href="index.html"><img SRC="../icons/up.gif" ALT="Up One Level" BORDER=0 height=32 width=32></a></td>
-
-<td WIDTH="32" HEIGHT="32"><a href="index.html"><img SRC="../icons/previous.gif" ALT="Previous Page" BORDER=0 height=32 width=32></a></td>
-
-<td ALIGN=CENTER WIDTH="100%" BGCOLOR="#99CCFF"><b>Getting Started Guide
+<div class="navigation">
+<table cellpadding="0" cellspacing="2" width="100%">
+  <tbody>
+    <tr>
+      <td height="32" width="32"><a href="node2.html"><img
+ src="../icons/next.gif" alt="Next Page" border="0" height="32"
+ width="32"></a></td>
+      <td height="32" width="32"><a href="index.html"><img
+ src="../icons/up.gif" alt="Up One Level" border="0" height="32"
+ width="32"></a></td>
+      <td height="32" width="32"><a href="index.html"><img
+ src="../icons/previous.gif" alt="Previous Page" border="0" height="32"
+ width="32"></a></td>
+      <td align="center" bgcolor="#99ccff" width="100%"><b>Getting
+Started Guide
 for Boa Constructor</b></td>
-
-<td WIDTH="32" HEIGHT="32"><a href="index.html"><img SRC="../icons/contents.gif" ALT="Contents" BORDER=0 height=32 width=32></a></td>
-
-<td WIDTH="32" HEIGHT="32"><img SRC="../icons/blank.gif" BORDER=0 height=32 width=32></td>
-
-<td WIDTH="32" HEIGHT="32"><img SRC="../icons/blank.gif" BORDER=0 height=32 width=32></td>
-</tr>
+      <td height="32" width="32"><a href="index.html"><img
+ src="../icons/contents.gif" alt="Contents" border="0" height="32"
+ width="32"></a></td>
+      <td height="32" width="32"><img src="../icons/blank.gif"
+ border="0" height="32" width="32"></td>
+      <td height="32" width="32"><img src="../icons/blank.gif"
+ border="0" height="32" width="32"></td>
+    </tr>
+  </tbody>
 </table>
-<b>Next:<span class='sectref'></b><a href="node2.html">The Palette Window</span></a>
-<b>Up:<span class='sectref'></b><a href="index.html">Getting Started Guide
-for Boa Constructor</span></a> <b>Previous:<span class='sectref'></b><a href="index.html">Getting
-Started Guide for Boa Constructor</a></span></div>
+<b>Next:<span class="sectref"></span></b><a href="node2.html">The
+Palette Window</a>
+<b>Up:<span class="sectref"></span></b><a href="index.html">Getting
+Started Guide
+for Boa Constructor</a> <b>Previous:<span class="sectref"></span></b><a
+ href="index.html">Getting
+Started Guide for Boa Constructor</a></div>
 <!--End of Navigation Panel-->
 </body>
 </html>
