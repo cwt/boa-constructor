@@ -22,8 +22,6 @@ import sys, string, time
 import Preferences, About, Help
 from os import path
 import Utils, Browse
-#import Zope.LoginDialog
-#from Zope import ZopeFTP
 
 from Views.EditorViews import *
 from Views.AppViews import AppView, AppFindResults, AppModuleDocView
@@ -41,14 +39,15 @@ import ShellEditor
 from Preferences import IS, wxFileDialog, flatTools
 
 defAppModelViews = (AppView, PythonSourceView)
-adtAppModelViews = (AppModuleDocView, ToDoView, ImportsView, CVSConflictsView, AppREADME_TIFView, AppTODO_TIFView, AppBUGS_TIFView)
+adtAppModelViews = (AppModuleDocView, ToDoView, ImportsView, CVSConflictsView, 
+                    AppREADME_TIFView, AppREADME_TIFView, AppTODO_TIFView, 
+                    AppBUGS_TIFView)
 
-#PythonSourceView, 
 defModModelViews = (PythonSourceView, ExploreView)
-adtModModelViews = (HierarchyView, ModuleDocView, ToDoView, UMLView, CVSConflictsView) #PyDEView, InfoView, CodeBrowseView, 
+adtModModelViews = (HierarchyView, ModuleDocView, ToDoView, UMLView, CVSConflictsView)
 
 defBaseFrameModelViews = (PythonSourceView, ExploreView)
-adtBaseFrameModelViews = (HierarchyView, ModuleDocView, ToDoView, UMLView, CVSConflictsView)#, UMLView) ExploreView, CodeBrowseView, 
+adtBaseFrameModelViews = (HierarchyView, ModuleDocView, ToDoView, UMLView, CVSConflictsView)
 
 defPackageModelViews = (PackageView, PythonSourceView)
 adtPackageModelViews = (CVSConflictsView,)
@@ -96,8 +95,6 @@ class EditorFrame(wxFrame):
 
         if wxPlatform == '__WXMSW__':
             self.SetIcon(wxIcon(Preferences.toPyPath('Images/Icons/Editor.ico'), wxBITMAP_TYPE_ICO))
-
-#        self.zftp = ZopeFTP.ZopeFTP()
         
         self.app = app
         self.palette = parent
@@ -393,7 +390,6 @@ class EditorFrame(wxFrame):
         self.updateTitle()
 
     def addNewPackage(self):
-        print 'addNewPackage'
         filename, success = self.saveAsDlg('__init__.py')
         if success:
             model = PackageModel('# Package initialisation', filename, self, false)
@@ -719,16 +715,6 @@ class EditorFrame(wxFrame):
         fn = self.openFileDlg()
         if fn: self.openOrGotoModule(fn)
 
-##    def OnNewConnection(self, event):
-##        ld = Zope.LoginDialog.create(self)
-##        if ld.ShowModal() == wxOK:
-##            res = self.zftp.connect(ld.textCtrl3.GetValue(), ld.textCtrl4.GetValue(),
-##              ld.textCtrl1.GetValue(), int(ld.textCtrl2.GetValue()))
-##            
-##            zftpi = self.zftp.add_doc('index_html', '/Projects/BoaConstructor/Web')
-##            
-##            self.openZopeDocument(zftpi, self.zftp)
-            
     def saveOrSaveAs(self):
         modulePage = self.getActiveModulePage()
         if modulePage:
@@ -928,9 +914,7 @@ class MyToolBar(wxToolBar):
         self.toolLst = []
         self.toolCount = 0
 
-#    def AddTool(self, id, bitmap, toggleBitmap = wxNullBitmap, shortHelpString = '', isToggle = false):
     def AddTool(self, id, bitmap, toggleBitmap = wxNullBitmap, shortHelpString = '', isToggle = false):
-#        wxToolBar.AddTool(self, id, bitmap, toggleBitmap, isToggle = isToggle, 
         from Views.StyledTextCtrls import new_stc
         if new_stc:
             wxToolBar.AddTool(self, id, bitmap, toggleBitmap, isToggle = isToggle, 
