@@ -17,7 +17,7 @@ from Explorers.ExplorerNodes import ExplorerCompanion
 from ZopeLib import Client, ExtMethDlg
 from ZopeLib.DateTime import DateTime
 import RTTI
-import moduleparse
+import moduleparse, methodparse
 from PropEdit.PropertyEditors import PropertyEditor
 #StrZopePropEdit, BoolZopePropEdit, EvalZopePropEdit
 import PaletteStore
