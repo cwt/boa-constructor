@@ -19,6 +19,7 @@ import Preferences, Utils
 from Preferences import keyDefs
 from Views import StyledTextCtrls
 from ExternalLib.PythonInterpreter import PythonInterpreter
+from ExternalLib import Signature
 from Models import EditorHelper
 
 import wxNamespace
@@ -66,10 +67,6 @@ class ShellEditor(StyledTextCtrls.wxStyledTextCtrl,
         self.interp = PythonInterpreter()
         self.lastResult = ''
 
-        if sys.hexversion < 0x01060000:
-            copyright = sys.copyright
-        else:
-            copyright = p2c
         self.CallTipSetBackground(wxColour(255, 255, 232))
         try: self.SetWrapMode(1)
         except AttributeError: pass
@@ -97,7 +94,14 @@ class ShellEditor(StyledTextCtrls.wxStyledTextCtrl,
 
         self._debugger = None
 
-        self.AddText('# Python %s (Boa)\n# %s'%(sys.version, copyright))
+        if sys.hexversion < 0x01060000:
+            copyright = sys.copyright
+        else:
+            copyright = p2c
+        import wxPython
+        import __version__
+        self.AddText('# Python %s\n# wxPython %s, Boa Constructor %s\n# %s'%(
+              sys.version, wxPython.__version__, __version__.version, copyright))
         self.LineScroll(-10, 0)
         self.SetSavePoint()
 
@@ -346,7 +350,6 @@ def tipforobj(obj, ccstc):
             try: docs = obj.__doc__
             except AttributeError: docs = ''
         else:
-            from ExternalLib import Signature
             try:
                 sig = str(Signature.Signature(obj))
                 docs = sig.replace('(self, ', '(')
