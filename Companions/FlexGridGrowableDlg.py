@@ -12,11 +12,19 @@
 #Boa:Dialog:FlexGridGrowablesDlg
 
 from wxPython.wx import *
+from wxPython.lib.buttons import *
 
 [wxID_FLEXGRIDGROWABLESDLG, wxID_FLEXGRIDGROWABLESDLGBUTTON1, 
  wxID_FLEXGRIDGROWABLESDLGBUTTON2, wxID_FLEXGRIDGROWABLESDLGBUTTON3, 
  wxID_FLEXGRIDGROWABLESDLGGRIDWIN, 
 ] = map(lambda _init_ctrls: wxNewId(), range(5))
+
+if wxPlatform == '__WXMAC__':
+    ToggleButton = wxGenToggleButton
+    EVT_TOGGLE = EVT_BUTTON
+else:
+    ToggleButton = wxToggleButton
+    EVT_TOGGLE = EVT_TOGGLEBUTTON
 
 class FlexGridGrowablesDlg(wxDialog):
     def _init_coll_boxSizer2_Items(self, parent):
@@ -91,23 +99,26 @@ class FlexGridGrowablesDlg(wxDialog):
         self.colBtns = []
         for idx, col in zip(range(len(cols)), cols):
             wid = wxNewId()
-            tb = wxToggleButton(self, wid, str(idx))
+            tb = ToggleButton(self, wid, str(idx))
             if col: tb.SetValue(1)
             self.colIds[wid] = (idx, col)
             self.colBtns.append(tb)
-            EVT_TOGGLEBUTTON(tb, wid, self.OnToggleCol)
+            EVT_TOGGLE(tb, wid, self.OnToggleCol)
             
         self.rowIds = {}
         self.rowBtns = []
         for idx, row in zip(range(len(rows)), rows):
             wid = wxNewId()
-            tb = wxToggleButton(self, wid, str(idx))
+            tb = ToggleButton(self, wid, str(idx))
             if row: tb.SetValue(1)
             self.rowIds[wid] = (idx, row)
             self.rowBtns.append(tb)
-            EVT_TOGGLEBUTTON(tb, wid, self.OnToggleRow)
+            EVT_TOGGLE(tb, wid, self.OnToggleRow)
 
         self.setupFlexSizer()
+        
+        if not rows or not cols:
+            self.gridWin.Show(false)
 
         self.boxSizer1.Fit(self)
 
@@ -139,7 +150,7 @@ class FlexGridGrowablesDlg(wxDialog):
             blPos = self.rowBtns[-1].GetPosition()
             blSize = self.rowBtns[-1].GetSize()
             self.gridWin.SetDimensions(tlPos.x, tlPos.y + tlSize.height, 
-                  trPos.x + blSize.width - blSize.width, 
+                  trPos.x + trSize.width - tlPos.x, 
                   blPos.y + blSize.height - tlSize.height)
 
         # let sizers update
@@ -178,7 +189,7 @@ class FlexGridGrowablesDlg(wxDialog):
 
         for idx, row in zip(range(len(rows)), rows):
             self.flex.Add(self.rowBtns[idx], 0, wxGROW)
-            for s in range(len(rows)):
+            for s in range(len(cols)):
                 self.flex.Add(10, 10)
             if row:
                 self.flex.AddGrowableRow(idx+1)
@@ -190,8 +201,7 @@ class FlexGridGrowablesDlg(wxDialog):
 if __name__ == '__main__':
     app = wxPySimpleApp()
     wxInitAllImageHandlers()
-    dlg = FlexGridGrowablesDlg(None, [0, 0, 0, 0, 0], [1, 0, 1, 0, 0])
-    #dlg = FlexGridGrowablesDlg(None, [], [])
+    dlg = FlexGridGrowablesDlg(None, [1, 0], [1, 0, 0])
     try:
         dlg.ShowModal()
     finally:
