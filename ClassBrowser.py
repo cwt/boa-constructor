@@ -1,6 +1,6 @@
 #----------------------------------------------------------------------
 # Name:        ClassBrowser.py
-# Purpose:     
+# Purpose:
 #
 # Author:      Riaan Booysen
 #
@@ -20,10 +20,10 @@ from os import path
 [wxID_CLASSBROWSERFRAME] = map(lambda _init_ctrls: NewId(), range(1))
 
 class ClassBrowserFrame(wxFrame):
-    def _init_utils(self): 
+    def _init_utils(self):
         pass
 
-    def _init_ctrls(self, prnt): 
+    def _init_ctrls(self, prnt):
         wxFrame.__init__(self, size = (-1, -1), id = wxID_CLASSBROWSERFRAME, title = 'wxPython Class Browser', parent = prnt, name = '', style = wxDEFAULT_FRAME_STYLE, pos = (-1, -1))
 
     def __init__(self, parent, id, title):
@@ -32,7 +32,7 @@ class ClassBrowserFrame(wxFrame):
         self.SetDimensions(0,
           Preferences.paletteHeight + Preferences.windowManagerTop + \
           Preferences.windowManagerBottom,
-          Preferences.inspWidth, 
+          Preferences.inspWidth,
           Preferences.bottomHeight)
         EVT_CLOSE(self, self.OnCloseWindow)
 
@@ -47,7 +47,7 @@ class ClassBrowserFrame(wxFrame):
         tID = NewId()
         self.hierarchy = wxTreeCtrl(self.pages, tID)
         self.pages.AddPage(self.hierarchy, 'Hierarchy')
-        wxYield() 
+        wxYield()
         root = self.hierarchy.AddRoot('wxObject')
 
         clsDict = {}
@@ -62,8 +62,8 @@ class ClassBrowserFrame(wxFrame):
 
         self.tree = wxTreeCtrl(self.pages, tID)
         self.pages.AddPage(self.tree, 'Modules')
-        wxYield() 
-        
+        wxYield()
+
         root = self.tree.AddRoot('Modules')
         modules = {}
         moduleName = ''
@@ -110,7 +110,7 @@ class ClassBrowserFrame(wxFrame):
                 suprItem = self.tree.AppendItem(aClass, 'Super')
                 for supers in self.classes[classes].super:
                     superItem = self.tree.AppendItem(suprItem, supers.name)
-                
+
 #                supers = self.tree.AppendItem(roots, 'Super')
 #                for super in self.classes[className].super:
 #                    aMethod = self.tree.AppendItem(supers, super.name)
@@ -128,7 +128,7 @@ def findInsertModules(name, tree):
         if tree.GetItemText(item) == name:
             found = true
             return item
-    
+
     return tree.AddRoot(name)
 
 def travTilBase(name, classes, root):

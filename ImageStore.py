@@ -1,13 +1,13 @@
 #----------------------------------------------------------------------
-# Name:        ImageStore.py                                           
-# Purpose:     Cache images used in a central place.                   
-#                                                                      
-# Author:      Riaan Booysen                                           
-#                                                                      
-# Created:     2000/03/15                                              
-# RCS-ID:      $Id$                                     
-# Copyright:   (c) 1999, 2000 Riaan Booysen                            
-# Licence:     GPL                                                     
+# Name:        ImageStore.py
+# Purpose:     Cache images used in a central place.
+#
+# Author:      Riaan Booysen
+#
+# Created:     2000/03/15
+# RCS-ID:      $Id$
+# Copyright:   (c) 1999, 2000 Riaan Booysen
+# Licence:     GPL
 #----------------------------------------------------------------------
 
 from os import path
@@ -19,7 +19,7 @@ class ImageStore:
         if not images: images = {}
         self.rootpath = rootpath
         self.images = images
-    
+
     def createImage(self, filename, ext):
         if ext == '.bmp':
             return wx.wxBitmap(filename, wx.wxBITMAP_TYPE_BMP)
@@ -33,21 +33,21 @@ class ImageStore:
     def load(self, name):
         name = path.normpath(name)
         if not self.images.has_key(name):
-            self.images[name] = self.createImage(path.join(self.rootpath, name), 
-                path.splitext(name)[1]) 
+            self.images[name] = self.createImage(path.join(self.rootpath, name),
+                path.splitext(name)[1])
 
         return self.images[name]
-        
+
 class ZippedImageStore(ImageStore):
     def __init__(self, rootpath, defaultArchive, images = None):
         print 'ZippedImageStore'
         ImageStore.__init__(self, rootpath, images)
         self.archives = {}
         self.addArchive(defaultArchive)
-    
+
     def addArchive(self, defaultArchive):
         import zipfile, tempfile
-        zf = zipfile.ZipFile(path.join(self.rootpath, defaultArchive))        
+        zf = zipfile.ZipFile(path.join(self.rootpath, defaultArchive))
         self.archives[defaultArchive] = map(lambda fl: fl.filename, zf.filelist)
 
         for img in self.archives[defaultArchive]:
@@ -57,7 +57,7 @@ class ZippedImageStore(ImageStore):
             open(tmpname, 'w').write(zf.read(img))
 
             imgExt = path.splitext(img)[1]
-            bmpPath = path.join(path.splitext(defaultArchive)[0], 
+            bmpPath = path.join(path.splitext(defaultArchive)[0],
                   os.path.normpath(img))
             try:
                 if not self.images.has_key(bmpPath):
@@ -67,19 +67,13 @@ class ZippedImageStore(ImageStore):
                         print 'Ext not handled', bmpPath
             finally:
                 os.remove(tmpname)
-            
+
         zf.close()
 
     def load(self, name):
         name = path.normpath(name)
-	try:
+        try:
             return self.images[name]
         except:
             print name, 'not found by zipped image store'#self.images.keys()
             return wx.wxNullBitmap
-        
-        
-        
-        
-        
-       

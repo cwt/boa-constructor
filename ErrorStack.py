@@ -1,9 +1,9 @@
 #-----------------------------------------------------------------------------
 # Name:        ErrorStack.py
-# Purpose:     
-#                
+# Purpose:
+#
 # Author:      Riaan Booysen
-#                
+#
 # Created:     2000/05/29
 # RCS-ID:      $Id$
 # Copyright:   (c) 1999, 2000 Riaan Booysen
@@ -24,7 +24,7 @@ class StackEntry:
         self.file = file
         self.line = line
         self.lineNo = lineNo
-    
+
     def __repr__(self):
         return 'File "%s", line %d\n%s' % (self.file, self.lineNo, self.line)
 
@@ -36,7 +36,7 @@ class StackEntry:
 ##
 ##    def writelines(self, l):
 ##        map(self.write, l)
-##    
+##
 ##    def write(s):
 ##        pass
 ##
@@ -46,11 +46,11 @@ class StackEntry:
 class RecFile(PseudoFile):
     def write(self, s):
         self.output.append(s)
-    
+
     def readlines(self):
         return self.output
 
-                
+
 class StackErrorParser:
     def __init__(self, lines):
         self.lines = lines
@@ -62,11 +62,11 @@ class StackErrorParser:
         print self.error
         for se in self.stack:
             print se
-            
+
     def __repr__(self):
         return `self.error`+'\n'+pprint.pformat(self.stack)
 
-        
+
 #    def write(self, s):
 #        self.lines.append(s)
 
@@ -74,7 +74,7 @@ def buildErrorList(lines):
 #    print 'buildErrorList', lines
     errs = []
     currerr = []
-    
+
     lines.reverse()
     for line in lines:
         if string.strip(line) == tb_id:
@@ -99,7 +99,7 @@ def errorList(stderr):
     return buildErrorList(stderr.readlines())
 
 
-class StdErrErrorParser(StackErrorParser):    
+class StdErrErrorParser(StackErrorParser):
     def parse(self):
         if len(self.lines) >= 2:
             self.error = list(string.split(self.lines.pop(), ': '))
@@ -108,10 +108,10 @@ class StdErrErrorParser(StackErrorParser):
             self.error[1] = string.strip(self.error[1])
 #            print self.lines
 #            self.error.append(string.find(self.lines.pop(), '^'))
-            for idx in range(len(self.lines)):
+            for idx in range(len(self.lines)-1):
                 mo = fileLine.match(string.rstrip(self.lines[idx]))
                 if mo:
-                    self.stack.append(StackEntry(mo.group('filename'), 
+                    self.stack.append(StackEntry(mo.group('filename'),
                           int(mo.group('lineno')), self.lines[idx + 1]))
 
 # Limit stack size / processing time
@@ -129,7 +129,7 @@ class CrashTraceLogParser(StackErrorParser):
 
         baseDir = string.strip(lines[0])
         del lines[0]
-        
+
         lines.reverse()
 
         cnt = 0
@@ -176,7 +176,7 @@ class CrashTraceLogParser(StackErrorParser):
             stack.reverse()
         else:
             self.error = ('Empty (resolved) stack', 'trace file size: '+`fileSize`)
-        
+
 
 def crashError(file):
     try:
@@ -206,14 +206,14 @@ def test():
           '    err.parse()\n',
           'AttributeError: parse\n']
     tb_answ = '''[['AttributeError', 'parse'][File "Views\\AppViews.py", line 172    self.model.run(), File "EditorModels.py", line 548    self.checkError(c, 'Ran'), File "EditorModels.py", line 513    err.parse()], ['AttributeError', 'parse'][File "Views\\AppViews.py", line 172    self.model.run(), File "EditorModels.py", line 548    self.checkError(c, 'Ran'), File "EditorModels.py", line 513    err.parse()]]'''
-    tb2 = ['  File "Views\\SelectionTags.py", line 23\012', 
-            '    :\012', 
-            '    ^\012', 
+    tb2 = ['  File "Views\\SelectionTags.py", line 23\012',
+            '    :\012',
+            '    ^\012',
             'SyntaxError: invalid syntax\012']
     tb2_answ = '''[['SyntaxError', 'invalid syntax'][File "Views\\SelectionTags.py", line 23    :]]'''
     long_traceback = str(buildErrorList(tb))
     print 'long traceback test', resp[long_traceback == tb_answ]
-    
+
     short_traceback = str(buildErrorList(tb2))
     print 'short traceback test', resp[short_traceback == tb2_answ]
     print short_traceback, tb2_answ

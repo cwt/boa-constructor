@@ -1,14 +1,14 @@
 #-----------------------------------------------------------------------------
-# Name:        HTMLCyclops.py                                                 
-# Purpose:     Displays a Cyclops report in HTML format.                      
-#              Pretty much a copy of code from Cyclops                        
-#                                                                             
-# Author:      of changes, Riaan Booysen                                      
-#                                                                             
-# Created:     2000/05/20                                                     
-# RCS-ID:      $Id$                                           
-# Copyright:   of changes (c) 1999, 2000 Riaan Booysen                        
-# Licence:     GPL                                                            
+# Name:        HTMLCyclops.py
+# Purpose:     Displays a Cyclops report in HTML format.
+#              Pretty much a copy of code from Cyclops
+#
+# Author:      of changes, Riaan Booysen
+#
+# Created:     2000/05/20
+# RCS-ID:      $Id$
+# Copyright:   of changes (c) 1999, 2000 Riaan Booysen
+# Licence:     GPL
 #-----------------------------------------------------------------------------
 
 from ExternalLib import Cyclops
@@ -20,7 +20,7 @@ clRed = '#882222'
 
 def replaceLT(str):
     return '<font color="#000060" size="-1"><b>'+string.replace(str, '<', '&lt;')+'</b></font>'
-    
+
 import repr
 _repr = repr
 del repr
@@ -80,7 +80,7 @@ _quickrepr = _CyclopsHTMLRepr().repr
 
 def find_declarer(cls, attr, found = 0):
 #    print 'find_declarer', cls, attr, found
-    if found: 
+    if found:
         return found, cls
     else:
         for base in cls.__bases__:
@@ -88,7 +88,7 @@ def find_declarer(cls, attr, found = 0):
                 return 1, base
             else:
                 found, basecls = find_declarer(base, attr, 0)
-    return found, cls      
+    return found, cls
 
 ##print 'test find_declarer'
 ##print find_declarer(_CyclopsHTMLRepr, 'repr1')
@@ -103,13 +103,13 @@ def find_declarer(cls, attr, found = 0):
 ##print find_declarer(b.__class__, 'a')
 ##
 indent = '&nbsp;&nbsp;&nbsp;&nbsp;'
-        
+
 class CycleFinderHTML(Cyclops.CycleFinder):
     def __init__(self):
         Cyclops.CycleFinder.__init__(self)
         self.report = []
         self.header = ['<h1>Cyclops report</h1>']#<h3> %s</h3><br>'%path.basename(self.model.filename)]
-            
+
     def _add_section(self, name, text, docs = ''):
         if docs is None:
             docs = ''
@@ -118,7 +118,7 @@ class CycleFinderHTML(Cyclops.CycleFinder):
         self.header.append('<a href="#%s">%s</a><br>'%(name, text))
         self.report.append('<a NAME="%s"><h3>%s:</h3></a>'%(name, text))
         self.report.append(docs)
-    
+
     def _print_separator(self):
         self.report.append('<hr>')
 
@@ -148,7 +148,7 @@ class CycleFinderHTML(Cyclops.CycleFinder):
                     else:
                         self.report.append(indent+'this' + \
                           attrib+ '-><br>')
-        
+
     def show_obj(self, obj):
         """obj -> print short description of obj to sdtout.
 
@@ -196,7 +196,7 @@ class CycleFinderHTML(Cyclops.CycleFinder):
             self.report.append('<tr><td>%s</td>%s</tr>'%(desc, string.join(lns)))
         else:
             self.report.append('<tr><td>%s</td><td><b>%s</b></td></tr>' % (desc, str(value)))
-        
+
     def stats_list(self):
         if len(self.cycles):
             cf = '<font size="+1" color="#FF0000">%d</font>' % len(self.cycles)
@@ -218,9 +218,9 @@ class CycleFinderHTML(Cyclops.CycleFinder):
         for desc, value in stats_list:
             self.add_stat_line(desc, value)
         self.report.append('</table>')
-    
+
 #    def show_iterated_stats(self):
-        
+
 
     def show_cycles(self):
         self._print_separator()
@@ -304,7 +304,7 @@ class CycleFinderHTML(Cyclops.CycleFinder):
         else:
             self.header.append('<li>None</li>')
         self.header.append('</ul>')
-            
+
     def iterate_til_steady_state(self, show_objs = 0, summary = 1):
         self._print_separator()
         self._add_section('CycleCycles', 'Purge root set')
@@ -341,7 +341,7 @@ class CycleFinderHTML(Cyclops.CycleFinder):
                                     class_count[cn][id(x)] = 0
                                 else:
                                     class_count[cn] = {id(x):0}
-                                        
+
                 x = None
                 desc = '<br><b><font color="%s">%d</font> dead; <font color="%s">%d</font> non-cycle & alive</b><br>' % (clGreen, numdead, clRed, numsurvivors)
                 self.report.append(desc)
@@ -353,7 +353,7 @@ class CycleFinderHTML(Cyclops.CycleFinder):
                 for cls in clss:
                     desc = '%s: %d<br>' % (cls, len(class_count[cls]))
                     self.report.append(desc)
-                    
+
                 sts = self.stats_list()+[('Dead', numdead), ('Non-cycle & alive', numsurvivors)]
                 for idx in range(len(sts)):
                     if len(stats) < idx + 1:
@@ -366,29 +366,12 @@ class CycleFinderHTML(Cyclops.CycleFinder):
                 self.find_cycles(1)
 
                 cc = cc + 1
-                    
+
         finally:
-            self.report.append('</ul>') 
-            self.header.append('</ul>') 
+            self.report.append('</ul>')
+            self.header.append('</ul>')
             self.show_stats(stats, 'StatsFin', 'Purge root set statistics')
-    
+
     def get_page(self):
         self.show_chased_types()
         return string.join(self.header, '\n')+string.join(self.report, '\n')
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-  

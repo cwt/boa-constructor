@@ -1,6 +1,6 @@
 #----------------------------------------------------------------------
 # Name:        Help.py
-# Purpose:     
+# Purpose:
 #
 # Author:      Riaan Booysen
 #
@@ -54,16 +54,16 @@ def showContextHelp(parent, toolbar, word):
         showHelp(parent, PythonHelpFrame, HelpCompanions.modRefDocs[word], toolbar)
     else:
         print 'No help found'
-    
+
 [wxID_HELPFRAME] = map(lambda _init_ctrls: wxNewId(), range(1))
 [wxID_HELPFIND, wxID_HELPCLOSE] = map(lambda help: wxNewId(), range(2))
-    
+
 class HelpFrame(wxFrame):
     """ Base class for help defining a home page and search facilities. """
-    def _init_utils(self): 
+    def _init_utils(self):
         pass
 
-    def _init_ctrls(self, prnt): 
+    def _init_ctrls(self, prnt):
         wxFrame.__init__(self, size = (-1, -1), id = wxID_HELPFRAME, title = 'Help', parent = prnt, name = 'HelpFrame', style = wxDEFAULT_FRAME_STYLE | wxTAB_TRAVERSAL, pos = (-1, -1))
 
     def __init__(self, parent, home, index, icon, paletteToolbar = None):
@@ -76,30 +76,30 @@ class HelpFrame(wxFrame):
             self.SetIcon(IS.load('Images/Icons/'+icon))
 
         self.html = wxHtmlWindow(self)
-        self.home = home 
+        self.home = home
         self.index = index
 
         # This is disabled until wxPython bug is fixed or a workaround is implemented
         paletteToolbar = None
-        
+
         self.paletteToolbar = paletteToolbar
 
         self.statusBar = self.CreateStatusBar()
-        
+
         self.html.SetRelatedFrame(self, 'Help - %s')
         self.html.SetRelatedStatusBar(0)
 
         self.toolBar = self.CreateToolBar(style = \
               wxTB_HORIZONTAL|wxNO_BORDER|wxTAB_TRAVERSAL|flatTools)
-        
-        AddToolButtonBmpFile(self, self.toolBar, 
-          path.join(Preferences.pyPath, 'Images','Shared', 'Previous.bmp'), 
+
+        AddToolButtonBmpFile(self, self.toolBar,
+          path.join(Preferences.pyPath, 'Images','Shared', 'Previous.bmp'),
           'Previous', self.OnPrevious)
-        AddToolButtonBmpFile(self, self.toolBar, 
-          path.join(Preferences.pyPath, 'Images','Shared', 'Next.bmp'), 
+        AddToolButtonBmpFile(self, self.toolBar,
+          path.join(Preferences.pyPath, 'Images','Shared', 'Next.bmp'),
           'Next', self.OnNext)
-        AddToolButtonBmpFile(self, self.toolBar, 
-          path.join(Preferences.pyPath, 'Images','Shared', 'Home.bmp'), 
+        AddToolButtonBmpFile(self, self.toolBar,
+          path.join(Preferences.pyPath, 'Images','Shared', 'Home.bmp'),
           'home', self.OnHome)
 
         self.toolBar.AddSeparator()
@@ -109,38 +109,38 @@ class HelpFrame(wxFrame):
         self.searchCtrl.SetToolTipString('Enter text to search')
         self.toolBar.AddControl(self.searchCtrl)
         EVT_TEXT_ENTER(self, wxID_SEARCHCTRL, self.OnSearchEnter)
-        AddToolButtonBmpFile(self, self.toolBar, 
-          path.join(Preferences.pyPath, 'Images','Shared', 'Find.bmp'), 
+        AddToolButtonBmpFile(self, self.toolBar,
+          path.join(Preferences.pyPath, 'Images','Shared', 'Find.bmp'),
           'Search', self.OnSearchEnter)
         self.toolBar.AddSeparator()
         wxID_RESULTSCTRL = wxNewId()
-        self.resultsCtrl = wxComboBox(self.toolBar, wxID_RESULTSCTRL, "", 
-          choices=['', '(Results)', '1', '2', '3', '4'], size=(175,-1), 
+        self.resultsCtrl = wxComboBox(self.toolBar, wxID_RESULTSCTRL, "",
+          choices=['', '(Results)', '1', '2', '3', '4'], size=(175,-1),
           style=wxCB_DROPDOWN | wxCB_READONLY)
         self.resultsCtrl.SetToolTipString('Matched files\nNumber of matches :: Filename')
-        self.resultsCtrl.Clear()  
+        self.resultsCtrl.Clear()
         self.toolBar.AddControl(self.resultsCtrl)
         EVT_COMBOBOX(self, wxID_RESULTSCTRL, self.OnResultSelect)
 #        EVT_TEXT_ENTER(self, wxID_RESULTSCTRL, self.OnSearchEnter)
 
         wxID_SUBRESULTSCTRL = wxNewId()
-        self.subResultsCtrl = wxComboBox(self.toolBar, wxID_SUBRESULTSCTRL, "", 
-          choices=['', '(Results)', '1', '2', '3', '4'], size=(275,-1), 
+        self.subResultsCtrl = wxComboBox(self.toolBar, wxID_SUBRESULTSCTRL, "",
+          choices=['', '(Results)', '1', '2', '3', '4'], size=(275,-1),
           style=wxCB_DROPDOWN | wxCB_READONLY)
         self.subResultsCtrl.SetToolTipString('Matches in file')
-        self.subResultsCtrl.Clear()  
+        self.subResultsCtrl.Clear()
         self.toolBar.AddControl(self.subResultsCtrl)
         EVT_COMBOBOX(self, wxID_SUBRESULTSCTRL, self.OnSubResultSelect)
-        
+
         self.toolBar.Realize()
 
         if paletteToolbar:
             self.toolIdx = wxNewId()
-            paletteToolbar.AddTool(self.toolIdx, IS.load(self.toolBmp), 
+            paletteToolbar.AddTool(self.toolIdx, IS.load(self.toolBmp),
               shortHelpString = self.helpStr)
             EVT_TOOL(paletteToolbar.GetParent(), self.toolIdx, self.OnSelect)
             paletteToolbar.Realize()
-        else: 
+        else:
             self.toolIdx = None
 
         EVT_MENU(self, wxID_HELPFIND, self.OnFindFocus)
@@ -149,7 +149,7 @@ class HelpFrame(wxFrame):
         for (ctrlKey, key, code), wId in \
                 ( (keyDefs['Find'], wxID_HELPFIND),
                   (keyDefs['Escape'], wxID_HELPCLOSE) ):
-            accLst.append( (ctrlKey, key, wId) ) 
+            accLst.append( (ctrlKey, key, wId) )
 
         self.SetAcceleratorTable(wxAcceleratorTable(accLst))
         EVT_CLOSE(self, self.OnCloseWindow)
@@ -164,7 +164,7 @@ class HelpFrame(wxFrame):
         self.subResults = []
         if highlight:
             page = open(fn).read()
-            
+
             lst = string.split(page, highlight)
             np = ''
             for s in lst[:-1]:
@@ -187,10 +187,10 @@ class HelpFrame(wxFrame):
                 np = '%s%s<font size="+2" color="#00AA00">%s</font>' % (np, anchStr, highlight)
                 mn = mn + 1
             np = np + lst[-1]
-    
-##            page = string.replace(page, highlight, 
+
+##            page = string.replace(page, highlight,
 ##              '<font size="+2" color="#00AA00">%s</font>'%highlight)
-            
+
             self.html.SetPage(np)
         else:
             self.html.LoadPage(fn)
@@ -215,11 +215,11 @@ class HelpFrame(wxFrame):
 
     def progressCallback(self, dlg, count, file, msg):
         dlg.Update(count, msg +' '+ file)
-        
+
     def OnSearchEnter(self, event):
-        results =  Search.findInFiles(self, self.home, 
+        results =  Search.findInFiles(self, self.home,
           self.searchCtrl.GetValue(), self.progressCallback)
-                    
+
         self.resultsCtrl.Clear()
         self.subResultsCtrl.Clear()
         results.sort()
@@ -228,7 +228,7 @@ class HelpFrame(wxFrame):
             self.resultsCtrl.Append('%d :: %s' %(ocs, result))
         self.Raise()
         self.resultsCtrl.SetFocus()
-    
+
     def OnResultSelect(self, event):
         pge = string.split(self.resultsCtrl.GetValue(), ' :: ')[1]
         self.loadPage(pge, self.searchCtrl.GetValue())
@@ -241,7 +241,7 @@ class HelpFrame(wxFrame):
     def OnSubResultSelect(self, event):
         self.html.LoadPage('#result_match_%d'%self.subResultsCtrl.GetSelection())
         #self.html.Scroll(0, -1)
-        
+
         event.Skip()
 
     def OnHome(self, event):
@@ -255,7 +255,7 @@ class HelpFrame(wxFrame):
 
     def OnFindFocus(self, event):
         self.searchCtrl.SetFocus()
-    
+
     def OnCloseHelp(self, event):
         self.Close()
 
@@ -286,9 +286,3 @@ class CustomHelpFrame(HelpFrame):
     def __init__(self, parent, helpRoot, indexDoc, paletteToolbar = None):
         HelpFrame.__init__(self, parent, helpRoot, indexDoc,
           'CustomHelp.ico', paletteToolbar)
-        
-
-
-
-
-

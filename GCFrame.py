@@ -16,10 +16,10 @@ class wxFrame1(wxFrame):
         parent.AddPage(strText = 'Collect', bSelect = false, pPage = self.panel3, imageId = -1)
         parent.AddPage(strText = 'gc.garbage', bSelect = false, pPage = self.panel4, imageId = -1)
 
-    def _init_utils(self): 
+    def _init_utils(self):
         pass
 
-    def _init_ctrls(self, prnt): 
+    def _init_ctrls(self, prnt):
         wxFrame.__init__(self, size = wxSize(368, 339), id = wxID_WXFRAME1, title = 'Garbage Collection Interface', parent = prnt, name = '', style = wxDEFAULT_FRAME_STYLE, pos = wxPoint(400, 284))
         self._init_utils()
 
@@ -104,7 +104,7 @@ class wxFrame1(wxFrame):
 
         self._init_coll_notebook1_Pages(self.notebook1)
 
-    def __init__(self, parent): 
+    def __init__(self, parent):
         self._init_ctrls(parent)
 
         self.treeCtrl1 = wxTreeCtrl(size = wxSize(320, 192), id = wxID_WXFRAME1TREECTRL1, parent = self.panel4, name = 'treeCtrl1', validator = wxDefaultValidator, style = wxTR_HAS_BUTTONS, pos = wxPoint(8, 8))

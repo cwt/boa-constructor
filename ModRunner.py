@@ -1,9 +1,9 @@
 #-----------------------------------------------------------------------------
 # Name:        ModRunner.py
 # Purpose:     Different process executers.
-#                
+#
 # Author:      Riaan Booysen
-#                
+#
 # Created:     2001/12/02
 # RCS-ID:      $Id$
 # Copyright:   (c) 1999, 2000 Riaan Booysen
@@ -13,33 +13,28 @@ from wxPython.wx import *
 from os import path
 
 class ModuleRunner:
-    def __init__(self, editor, app):
-        self.editor = editor
-        self.app = app
-        self.esf = None
-    
+    def __init__(self, esf, app):
+        self.esf = esf
+        self.esf.app = app
+
     def run(self, cmd):
         pass
-        
-    def checkError(self, err, caption, out = None):    
+
+    def checkError(self, err, caption, out = None):
         if err or out:
-            import ErrorStackFrm
-            self.esf = ErrorStackFrm.ErrorStackMF(self.editor, self.app, self.editor)
             self.esf.updateCtrls(err, out)
             self.esf.Show(true)
+            print 'MR shown'
             return self.esf
         else:
             return None
-##        else:
-##            self.editor.statusBar.setHint('%s %s successfully.' %\
-##              (caption, path.basename(self.filename)))
 
 class CompileModuleRunner(ModuleRunner):
     """ Uses compiles a module to show errors in frame"""
     def run(self, filename):
         import py_compile
         py_compile.compile(filename)
-        
+
 class ExecuteModuleRunner(ModuleRunner):
     """ Uses wxPython's wxExecute, no redirection """
     def run(self, cmd):
@@ -59,7 +54,7 @@ class ProcessModuleRunner(ModuleRunner):
                 return self.checkError(serr, 'Ran', dlg.output)
             else:
                 return None
-            
+
         finally:
             dlg.Destroy()
 
@@ -84,6 +79,5 @@ class PopenModuleRunner(ModuleRunner):
             return self.checkError(serr, 'Ran', out)
         else:
             return None
-
 
 PreferredRunner = PopenModuleRunner

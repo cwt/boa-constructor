@@ -1,9 +1,9 @@
 #-----------------------------------------------------------------------------
 # Name:        CtrlAlign.py
-# Purpose:     
-#                
+# Purpose:
+#
 # Author:      Riaan Booysen
-#                
+#
 # Created:     2000/09/11
 # RCS-ID:      $Id$
 # Copyright:   (c) 1999, 2000 Riaan Booysen
@@ -21,10 +21,10 @@ def create(parent):
 [wxID_CONTROLALIGNMENTFRAMERADIOBOX2, wxID_CONTROLALIGNMENTFRAMERADIOBOX1, wxID_CONTROLALIGNMENTFRAMEPANEL1, wxID_CONTROLALIGNMENTFRAMEOKBTN, wxID_CONTROLALIGNMENTFRAMECANCELBTN, wxID_CONTROLALIGNMENTFRAME] = map(lambda _init_ctrls: wxNewId(), range(6))
 
 class ControlAlignmentFrame(wxDialog):
-    def _init_utils(self): 
+    def _init_utils(self):
         pass
 
-    def _init_ctrls(self, prnt): 
+    def _init_ctrls(self, prnt):
         wxDialog.__init__(self, size = wxSize(328, 219), id = wxID_CONTROLALIGNMENTFRAME, title = 'Alignment', parent = prnt, name = 'ControlAlignmentFrame', style = wxDEFAULT_DIALOG_STYLE, pos = wxPoint(341, 140))
         self._init_utils()
 
@@ -40,7 +40,7 @@ class ControlAlignmentFrame(wxDialog):
 
         self.radioBox2 = wxRadioBox(label = 'Vertical', id = wxID_CONTROLALIGNMENTFRAMERADIOBOX2, choices = ['No change', 'Tops', 'Centers', 'Bottoms', 'Space equally'], validator = wxDefaultValidator, majorDimension = 1, point = wxPoint(160, 8), parent = self.panel1, name = 'radioBox2', size = wxSize(152, 144), style = wxRA_SPECIFY_COLS)
 
-    def __init__(self, parent, selection): 
+    def __init__(self, parent, selection):
         self._init_ctrls(parent)
         self.choices = ('No change', 'No change')
         self.selection = selection
@@ -49,7 +49,7 @@ class ControlAlignmentFrame(wxDialog):
     def OnOkbtnButton(self, event):
         hor = 0; ver = 1
         self.choices = (self.radioBox1.GetStringSelection(), self.radioBox2.GetStringSelection())
-        
+
         selIdx = 0
         if len(self.selection):
             firstSel = self.selection[0]
@@ -73,7 +73,7 @@ class ControlAlignmentFrame(wxDialog):
                 if sel != firstSel:
                     domove = true
                     newX = firstSelPos.x + firstSel.size.x - sel.size.x
-            elif self.choices[hor] == 'Space equally': 
+            elif self.choices[hor] == 'Space equally':
                 if sel != firstSel and sel != lastSel:
                     domove = true
                     newX = (lastSelPos.x - firstSelPos.x) / (selSize-1) * selIdx \
@@ -84,27 +84,27 @@ class ControlAlignmentFrame(wxDialog):
                 if sel != firstSel:
                     domove = true
                     newY = firstSelPos.y
-            elif self.choices[ver] == 'Centers': 
+            elif self.choices[ver] == 'Centers':
                 if sel != firstSel:
                     domove = true
                     newY = firstSelPos.y + firstSel.size.y / 2 - sel.size.y / 2
-            elif self.choices[ver] == 'Bottoms': 
+            elif self.choices[ver] == 'Bottoms':
                 if sel != firstSel:
                     domove = true
                     newY = firstSelPos.y + firstSel.size.y - sel.size.y
-            elif self.choices[ver] == 'Space equally': 
+            elif self.choices[ver] == 'Space equally':
                 if sel != firstSel and sel != lastSel:
                     domove = true
                     newY = (lastSelPos.y - firstSelPos.y) / (selSize-1) * selIdx \
                            + firstSelPos.y
 #            elif self.choices[ver] == 'Center in window': pass
-            
+
             if domove:
                 sel.position  = wxPoint(newX, newY)
                 sel.dragging = true
                 sel.moveRelease()
                 sel.positionUpdate()
-            
+
             selIdx = selIdx + 1
 
         self.EndModal(wxOK)

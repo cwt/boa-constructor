@@ -1,17 +1,26 @@
 Sampled people and software 
 
 wxPython (Robin Dunn) & wxWindows (Julian Smart, Robert Roebling, Vadim Zeitlin, et al.) 
+
+Neil Hodgson for Scintilla
 Cliff Baeseman for sorting out initial wxGTK problems
 moduleparse.py borrows from pyclbrs.py - standard python library
 uses PythonInterpreter.py by Fredrik Lundh
 Debugger based on IDLE's debugger by Guido van Rossum
 Mozilla, Delphi, WinCVS for iconic inspirations
-Neil Hodgson for Scintilla
 Cyclops, ndiff by Tim Peters
 Client.py and the DateTime package from Digital Creations for Zope integration
+CVS, SSH, SCP
 
 The Boa Team currently
 
 Riaan Booysen <riaan@e.co.za>
 Shane Hathaway <shane@digicool.com>
+* Bug fixes and obtimizations
+* Busy with an (amazing) out of process debugger (NewDebugger branch in CVS)
 Kevin Gill <kevin@telcotek.com>
+* Many bug fixes
+* Huge wxStyledTextCtrl speedups on wxGTK
+* Feature additions
+  * Multiple inheritance in Hierarchy view
+  * UMLView

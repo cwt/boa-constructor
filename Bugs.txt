@@ -1,10 +1,6 @@
 Bugs & Issues 
 -------------
 
-I am not satisfied with the way in which the Designer's selection
-forces the granularity and this will probably change in the near
-future.
-
 Path's to bitmaps are currently stored as absolute paths. This is
 not ideal and I'm looking for alternatives. The problem with relative
 paths is that programs can then be only run from the directory in
@@ -38,11 +34,9 @@ I expect this limitation to be addressed when cut/copy/paste is
 implemented. After changes to these properties the controls (and
 all their children) will be recreated (cut and paste :)
 
-Speed is still a problem. I have spent a lot of time trying to
-address this issue and Boa have certainly improved because of
-that (no more growing leaks or circular references) but it still
-gets quite slow with a lot of modules open. Help with these 
-issues will be greatly appreciated.
+Speed is still a problem, but has improved since 0.0.4 thanks to
+Kevin Gill. Boa still gets slower with a lot of modules open. 
+Help with these issues will be greatly appreciated.
 
 Cyclops and wxGenButtons don't mix for some strange reason. Disable
 any wxGenButtons code before running Cyclops.
@@ -102,8 +96,6 @@ Browsing does not work from the first character of the source.
 Cannot save (like in zope) dtml with errors, don't know how
 to get a zope error msg from ftp.
 
-Opening binary objects in the editor corrupts them.
-
 On closing the Designer, refreshCtrl is called many times why?
 
 Explorers have many circular references 
@@ -116,10 +108,6 @@ This does not happen with a test case, must still track down the
 difference
 
 Toolbars don't work correctly in the designer
-
-Pastelise (appview) not working correctly when sorting.
-
-Explorers lose their imagelists when filtering
 
 CVS explorers do not pick up their selection correctly and 
 always report '.'

@@ -1,9 +1,9 @@
 #-----------------------------------------------------------------------------
 # Name:        FileDlg.py
-# Purpose:     
-#                
+# Purpose:
+#
 # Author:      Riaan Booysen
-#                
+#
 # Created:     2000/09/17
 # RCS-ID:      $Id$
 # Copyright:   (c) 1999, 2000 Riaan Booysen
@@ -23,10 +23,10 @@ saveStr = 'Save'
 
 class wxBoaFileDialog(wxDialog):
     currentDir = '.'
-    def _init_utils(self): 
+    def _init_utils(self):
         pass
 
-    def _init_ctrls(self, prnt): 
+    def _init_ctrls(self, prnt):
         wxDialog.__init__(self, size = wxSize(408, 283), id = wxID_WXBOAFILEDIALOG, title = 'File Dialog', parent = prnt, name = 'wxBoaFileDialog', style = wxRESIZE_BORDER | wxDEFAULT_DIALOG_STYLE, pos = wxPoint(174, 117))
         self._init_utils()
         self.SetAutoLayout(true)
@@ -43,17 +43,17 @@ class wxBoaFileDialog(wxDialog):
         self.btCancel.SetConstraints(LayoutAnchors(self.btCancel, false, false, true, true))
         EVT_BUTTON(self.btCancel, wxID_WXBOAFILEDIALOGBTCANCEL, self.OnBtcancelButton)
 
-        self.staticText1 = wxStaticText(label = 'File name:', id = wxID_WXBOAFILEDIALOGSTATICTEXT1, parent = self.panel1, name = 'staticText1', size = wxSize(48, 16), style = 0, pos = wxPoint(8, 192))
+        self.staticText1 = wxStaticText(label = 'File name:', id = wxID_WXBOAFILEDIALOGSTATICTEXT1, parent = self.panel1, name = 'staticText1', size = wxSize(70, 16), style = 0, pos = wxPoint(8, 192))
         self.staticText1.SetConstraints(LayoutAnchors(self.staticText1, true, false, false, true))
 
-        self.staticText2 = wxStaticText(label = 'Files of type:', id = wxID_WXBOAFILEDIALOGSTATICTEXT2, parent = self.panel1, name = 'staticText2', size = wxSize(64, 16), style = 0, pos = wxPoint(8, 224))
+        self.staticText2 = wxStaticText(label = 'Files of type:', id = wxID_WXBOAFILEDIALOGSTATICTEXT2, parent = self.panel1, name = 'staticText2', size = wxSize(70, 16), style = 0, pos = wxPoint(8, 224))
         self.staticText2.SetConstraints(LayoutAnchors(self.staticText2, true, false, false, true))
 
-        self.tcFilename = wxTextCtrl(size = wxSize(224, 24), value = '', pos = wxPoint(80, 184), parent = self.panel1, name = 'tcFilename', style = 0, id = wxID_WXBOAFILEDIALOGTCFILENAME)
+        self.tcFilename = wxTextCtrl(size = wxSize(214, 24), value = '', pos = wxPoint(90, 184), parent = self.panel1, name = 'tcFilename', style = 0, id = wxID_WXBOAFILEDIALOGTCFILENAME)
         self.tcFilename.SetConstraints(LayoutAnchors(self.tcFilename, true, false, true, true))
         EVT_TEXT_ENTER(self.tcFilename, wxID_WXBOAFILEDIALOGTCFILENAME, self.OnTcfilenameTextEnter)
 
-        self.chTypes = wxChoice(size = wxSize(224, 21), id = wxID_WXBOAFILEDIALOGCHTYPES, choices = ['Boa files', 'Internal files', 'All files'], parent = self.panel1, name = 'chTypes', validator = wxDefaultValidator, style = 0, pos = wxPoint(80, 216))
+        self.chTypes = wxChoice(size = wxSize(214, 21), id = wxID_WXBOAFILEDIALOGCHTYPES, choices = ['Boa files', 'Internal files', 'All files'], parent = self.panel1, name = 'chTypes', validator = wxDefaultValidator, style = 0, pos = wxPoint(90, 216))
         self.chTypes.SetConstraints(LayoutAnchors(self.chTypes, true, false, true, true))
         EVT_CHOICE(self.chTypes, wxID_WXBOAFILEDIALOGCHTYPES, self.OnChtypesChoice)
 
@@ -61,16 +61,16 @@ class wxBoaFileDialog(wxDialog):
 
     def OnSize(self, event):
         self.panel1.Layout()
-        
-    def __init__(self, parent, message = 'Choose a file', defaultDir = '.', defaultFile = '', wildcard = '*.py; *.txt', style = wxOPEN, pos = wxDefaultPosition): 
+
+    def __init__(self, parent, message = 'Choose a file', defaultDir = '.', defaultFile = '', wildcard = '*.py; *.txt', style = wxOPEN, pos = wxDefaultPosition):
         self._init_ctrls(parent)
         self.SetStyle(style)
         self.SetWildcard(wildcard)
-        
+
         EVT_SIZE(self.panel1, self.OnSize)
-        
+
         # XXX This is a bit convoluted ;)
-        # XXX The late importing is the only way to avoid import problems because 
+        # XXX The late importing is the only way to avoid import problems because
         # XXX the dialog swapping code is initialised so early on
 
         from Explorers import Explorer
@@ -78,7 +78,7 @@ class wxBoaFileDialog(wxDialog):
         class FileDlgFolderList(Explorer.PackageFolderList):
             def __init__(self, parent, dlg, filepath, pos = wxDefaultPosition, size = wxDefaultSize):
                 from Explorers import Explorer
-                Explorer.PackageFolderList.__init__(self, parent, filepath, pos, size)
+                Explorer.PackageFolderList.__init__(self, parent, filepath, pos, size, style = wxSUNKEN_BORDER)
                 self.dlg = dlg
                 EVT_LIST_ITEM_SELECTED(self, self.GetId(), self.OnItemSelect)
                 EVT_LIST_ITEM_DESELECTED(self, self.GetId(), self.OnItemDeselect)
@@ -89,8 +89,8 @@ class wxBoaFileDialog(wxDialog):
                 EVT_MENU(self, menuId, self.OnNewFolder)
                 EVT_LIST_BEGIN_LABEL_EDIT(self, self.GetId(), self.OnBeginLabelEdit)
                 EVT_LIST_END_LABEL_EDIT(self, self.GetId(), self.OnEndLabelEdit)
-                
-                
+
+
             def OnItemSelect(self, event):
                 from Explorers import Explorer
                 Explorer.PackageFolderList.OnItemSelect(self, event)
@@ -109,7 +109,7 @@ class wxBoaFileDialog(wxDialog):
 
             def OnListRightUp(self, event):
                 self.PopupMenu(self.menu, wxPoint(event.GetX(), event.GetY()))
-                
+
             def OnNewFolder(self, event):
                 name = self.node.newFolder()
                 self.refreshCurrent()
@@ -118,27 +118,27 @@ class wxBoaFileDialog(wxDialog):
 
             def OnBeginLabelEdit(self, event):
                 self.oldLabelVal = event.GetText()
-        
+
             def OnEndLabelEdit(self, event):
                 newText = event.GetText()
                 if newText != self.oldLabelVal:# and isinstance(self.list.node, ZopeItemNode):
                     event.Skip()
                     self.node.renameItem(self.oldLabelVal, newText)
                     self.refreshCurrent()
-                
+
 
         if defaultDir == '.':
             defaultDir = path.abspath(self.currentDir)
         else:
             defaultDir = defaultDir and path.abspath(defaultDir) or path.abspath(self.currentDir)
-        self.lcFiles = FileDlgFolderList(self.panel1, self, 
+        self.lcFiles = FileDlgFolderList(self.panel1, self,
               defaultDir, pos = wxPoint(8, 21), size = wxSize(384, 152))
         self.lcFiles.SetConstraints(LayoutAnchors(self.lcFiles, true, true, true, true))
 
         EVT_LEFT_DCLICK(self.lcFiles, self.OnOpen)
-        
+
         self.btOK.SetDefault()
-        
+
         self.SetDirectory(defaultDir)
         self.SetFilename(defaultFile)
 
@@ -154,7 +154,7 @@ class wxBoaFileDialog(wxDialog):
 
     def newFileNode(self, defaultDir):
         from Explorers import FileExplorer, Explorer
-        return FileExplorer.PyFileNode(path.basename(defaultDir), defaultDir, None, 
+        return FileExplorer.PyFileNode(path.basename(defaultDir), defaultDir, None,
               Explorer.EditorModels.FolderModel.imgIdx, None, None)
 
     def updatePathLabel(self):
@@ -169,11 +169,11 @@ class wxBoaFileDialog(wxDialog):
                 else: btn = openStr
                 self.btOK.SetLabel(btn)
                 return
-        if self.tcFilename.GetValue():           
+        if self.tcFilename.GetValue():
             self.editorFilterNode.setFilter(self.editorFilter)
             wxBoaFileDialog.currentDir = self.GetDirectory()
             self.EndModal(wxID_OK)
-                    
+
     def OnOpen(self, event):
         self.ok()
 
@@ -202,7 +202,7 @@ class wxBoaFileDialog(wxDialog):
         if (node and not node.isFolderish() or not node) and self.style & wxOVERWRITE_PROMPT:
             if path.exists(self.GetPath()):
                 dlg = wxMessageDialog(self, 'This file already exists.'+os.linesep+\
-                      'Do you want to overwrite the file?', 'Overwrite file?', 
+                      'Do you want to overwrite the file?', 'Overwrite file?',
                       wxYES_NO | wxICON_WARNING)
                 try:
                     if dlg.ShowModal() == wxID_NO:
@@ -213,20 +213,20 @@ class wxBoaFileDialog(wxDialog):
 
     def OnBtokButton(self, event):
         self.ok()
-        
+
     def OnBtcancelButton(self, event):
         self.editorFilterNode.setFilter(self.editorFilter)
         self.EndModal(wxID_CANCEL)
-        
+
     def OnTcfilenameTextEnter(self, event):
         self.ok()
 
 #---wxFileDialog lookalike meths------------------------------------------------
 
 #class wxBoaFileDialog(BoaFileDialog):
-#    def __init__(self, parent, message = 'Choose a file', defaultDir = '', defaultFile = '', wildcard = '*.*', style = wxOPEN, wildcard = '*.py; *.txt', pos = wxDefaultPosition): 
+#    def __init__(self, parent, message = 'Choose a file', defaultDir = '', defaultFile = '', wildcard = '*.*', style = wxOPEN, wildcard = '*.py; *.txt', pos = wxDefaultPosition):
 #        BoaFileDialog.__init__(self, FileDlgFolderList, parent, message = 'Choose a file', defaultDir = '', defaultFile = '', style = wxOPEN, wildcard = '*.py; *.txt', pos = wxDefaultPosition)
-    
+
     def SelectItem(self, name):
         # deselect
         if not name:
@@ -281,7 +281,7 @@ class wxBoaFileDialog(wxDialog):
         if style & wxSAVE:
             title = 'Save As'
             btn = saveStr
-            
+
         self.SetTitle(title)
         self.btOK.SetLabel(btn)
         self.style = style
@@ -308,4 +308,3 @@ class wxBoaFileDialog(wxDialog):
         elif fType == 'All files':
             self.lcFiles.node.setFilter('AllFiles')
         self.lcFiles.refreshCurrent()
-    

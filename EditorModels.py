@@ -1,14 +1,14 @@
 #----------------------------------------------------------------------
-# Name:        EditorModels.py                                         
-# Purpose:     Model classes usually representing different types of   
-#              source code                                             
-#                                                                      
-# Author:      Riaan Booysen                                           
-#                                                                      
-# Created:     1999                                                    
-# RCS-ID:      $Id$                                   
-# Copyright:   (c) 1999, 2000 Riaan Booysen                            
-# Licence:     GPL                                                     
+# Name:        EditorModels.py
+# Purpose:     Model classes usually representing different types of
+#              source code
+#
+# Author:      Riaan Booysen
+#
+# Created:     1999
+# RCS-ID:      $Id$
+# Copyright:   (c) 1999, 2000 Riaan Booysen
+# Licence:     GPL
 #----------------------------------------------------------------------
 
 # Behind the screen
@@ -30,7 +30,7 @@ from Companions import Companions
 from Views.DiffView import PythonSourceDiffView
 from Views.AppViews import AppCompareView
 from Views import ObjCollection
-from wxPython import wx 
+from wxPython import wx
 from Utils import AddToolButtonBmpIS
 from PrefsKeys import keyDefs
 from Debugger import Debugger
@@ -40,20 +40,19 @@ from sourceconst import *
 import wxPython
 from PhonyApp import wxProfilerPhonyApp
 
-
 true = 1
 false = 0
 
 # Indexes for the imagelist
-[imgAppModel, imgFrameModel, imgDialogModel, imgMiniFrameModel, 
+[imgAppModel, imgFrameModel, imgDialogModel, imgMiniFrameModel,
  imgMDIParentModel, imgMDIChildModel, imgModuleModel, imgPackageModel,
  imgTextModel, imgConfigFileModel, imgZopeExportFileModel, imgBitmapFileModel,
- imgZipFileModel, imgCPPModel, imgUnknownFileModel, imgHTMLFileModel, 
+ imgZipFileModel, imgCPPModel, imgUnknownFileModel, imgHTMLFileModel,
  imgSetupModel,
- 
+
  imgFolder, imgPathFolder, imgCVSFolder, imgZopeFolder, imgZopeControlPanel,
- imgZopeProductFolder, imgZopeInstalledProduct, imgZopeUserFolder, imgZopeDTMLDoc, 
- imgZopeImage, imgZopeSystemObj, imgZopeConnection, imgBoaLogo, imgFolderUp, 
+ imgZopeProductFolder, imgZopeInstalledProduct, imgZopeUserFolder, imgZopeDTMLDoc,
+ imgZopeImage, imgZopeSystemObj, imgZopeConnection, imgBoaLogo, imgFolderUp,
  imgFSDrive, imgFolderBookmark] = range(33)
 
 class EditorModel:
@@ -68,13 +67,13 @@ class EditorModel:
         self.savedAs = saved
         self.filename = name
         self.editor = editor
-        
+
         self.views = {}
         self.modified = not saved
         self.viewsModified = []
-        
+
 ##        self.objCnt = self.objCnt + 1
-    
+
 ##    def __del__(self):
 ##        self.objCnt = self.objCnt - 1
 ##        print '__del__', self.__class__.__name__
@@ -83,10 +82,10 @@ class EditorModel:
 #        print 'destroy', self.__class__.__name__
 #        for i in self.views.values():
 #            print sys.getrefcount(i)
-        
+
         del self.views
         del self.viewsModified
-        del self.editor        
+        del self.editor
 
     def addTools(self, toolbar):
         AddToolButtonBmpIS(self.editor, toolbar, self.closeBmp, 'Close', self.editor.OnClosePage)
@@ -95,20 +94,23 @@ class EditorModel:
         menu.Append(wId, label + (code and '     <'+code[2]+'>' or ''))
         if code:
             accls.append((code[0], code[1], wId),)
-    
+
     def addMenus(self, menu):
         self.addMenu(menu, Editor.wxID_EDITORCLOSEPAGE, 'Close', (keyDefs['Close']))
         return []
 
     def reorderFollowingViewIdxs(self, idx):
-##        print 'reorder', self.views.values 
         for view in self.views.values():
-##            print view.viewName
             if view.pageIdx > idx:
                 view.pageIdx = view.pageIdx - 1
 
+    def getDataAsLines(self):
+        return string.split(self.data, '\012')
+    def setDataFromLines(self, lines):
+        self.data = string.join(lines, '\012')
+
     def load(self, notify = true):
-        """ Loads contents of data from file specified by self.filename. 
+        """ Loads contents of data from file specified by self.filename.
             Note: Load not really used currently objects are constructed
                   with their data as parameter """
         f = open(self.filename, 'r')
@@ -118,7 +120,7 @@ class EditorModel:
         self.saved = false
         self.update()
         if notify: self.notify()
-    
+
     def save(self):
         """ Saves contents of data to file specified by self.filename. """
         if self.filename:
@@ -138,14 +140,14 @@ class EditorModel:
                 self.modified = false
         else:
             raise 'No filename'
-    
+
     def saveAs(self, filename):
         """ Saves contents of data to file specified by filename.
             Override this to catch name changes. """
         self.filename = filename
         self.save()
         self.savedAs = true
-            
+
     def notify(self):
         """ Update all views connected to this model.
             This method must be called after changes were made to the model """
@@ -183,7 +185,7 @@ class CVSFolderModel(FolderModel):
     defaultName = 'cvsfolder'
     bitmap = 'Folder_cyan_s.bmp'
     imgIdx = imgCVSFolder
-    
+
     def __init__(self, data, name, editor, filepath):
         FolderModel.__init__(self, data, name, editor, filepath)
         self.readFiles()
@@ -199,7 +201,7 @@ class CVSFolderModel(FolderModel):
         self.entries = []
 
         f = open(os.path.join(self.filepath, 'Entries'), 'r')
-        dirpos = 0 
+        dirpos = 0
         try:
             txtEntries = f.readlines()
             for txtEntry in txtEntries:
@@ -207,13 +209,13 @@ class CVSFolderModel(FolderModel):
                 if txtEntry:
                     if txtEntry == 'D':
                         pass
-                        # maybe add all dirs?   
+                        # maybe add all dirs?
                     elif txtEntry[0] == 'D':
-                        self.entries.insert(dirpos, CVSDir(txtEntry))  
+                        self.entries.insert(dirpos, CVSDir(txtEntry))
                         dirpos = dirpos + 1
                     else:
                         try:
-                            self.entries.append(CVSFile(txtEntry, self.filepath))  
+                            self.entries.append(CVSFile(txtEntry, self.filepath))
                         except IOError: pass
         finally:
             f.close()
@@ -246,11 +248,11 @@ class ZopeExportFileModel(EditorModel):
     bitmap = 'ZopeExport_s.bmp'
     imgIdx = imgZopeExportFileModel
     ext = '.zexp'
-                        
+
 class PackageModel(EditorModel):
     """ Must be constructed in a valid path, name being filename, actual
         name will be derived from path """
-        
+
     modelIdentifier = 'Package'
     defaultName = 'package'
     bitmap = 'Package_s.bmp'
@@ -267,7 +269,7 @@ class PackageModel(EditorModel):
         dummy, self.packageName = os.path.split(self.packagePath)
         self.savedAs = true
         self.modified = false
-    
+
     def addTools(self, toolbar):
         EditorModel.addTools(self, toolbar)
         AddToolButtonBmpIS(self.editor, toolbar, self.saveBmp, 'Save', self.editor.OnSave)
@@ -281,10 +283,10 @@ class PackageModel(EditorModel):
 
     def openPackage(self, name):
         self.editor.openModule(os.path.join(self.packagePath, name, self.pckgIdnt))
-    
+
     def openFile(self, name):
         self.editor.openModule(os.path.join(self.packagePath, name + self.ext))
-    
+
     def generateFileList(self):
         """ Generate a list of modules and packages in the package path """
         files = os.listdir(self.packagePath)
@@ -299,7 +301,7 @@ class PackageModel(EditorModel):
             elif os.path.isdir(filename) and \
               os.path.exists(os.path.join(filename, self.pckgIdnt)):
                 packages.append((file, PackageModel))
-        
+
         return packages + modules
 
     def getPageName(self):
@@ -308,7 +310,6 @@ class PackageModel(EditorModel):
 class SourceModel(EditorModel):
     modelIdentifier = 'Source'
     def getCVSConflicts(self):
-        lines = string.split(self.data, '\012')
         # needless obscurity
         # numedLines = apply(map, (None,) + (lines, range(len(lines))) )
 
@@ -317,7 +318,7 @@ class SourceModel(EditorModel):
         confCnt = 0
         lineNo = 0
         conflicts =[]
-        for line in lines:
+        for line in self.getDataAsLines():
             if line[:8] == '<<<<<<< ' and \
                   string.strip(line[8:]) == os.path.basename(self.filename):
                 conflictStart = lineNo
@@ -330,18 +331,18 @@ class SourceModel(EditorModel):
 
     def applyChangeBlock(self, conflict, blockIdx):
         rev, start, size = conflict
-        lines = string.split(self.data, '\012')
-        
+        lines = self.getDataAsLines()
+
         blocks = Utils.split_seq(lines[start+1 : start+size], '=======')
         lines[start:start+size+1] = blocks[blockIdx]
-        self.data = string.join(lines, '\012')
+        self.data = self.setDataFromLines(lines)
 
         self.update()
         self.notify()
 
     def acceptConflictChange(self, conflict):
         self.applyChangeBlock(conflict, 1)
-        
+
     def rejectConflictChange(self, conflict):
         self.applyChangeBlock(conflict, 0)
 
@@ -361,18 +362,23 @@ class ModuleModel(SourceModel):
         self.moduleName = os.path.split(self.filename)[1]
         self.app = app
         self.debugger = None
-        if data: self.update()
+        if data:
+            if Preferences.autoReindent:
+                if not self.reindent(false):
+                    self.update()
+            else:
+                self.update()
 
     def destroy(self):
         SourceModel.destroy(self)
         del self.app
         del self.debugger
-        
+
     def addTools(self, toolbar):
         SourceModel.addTools(self, toolbar)
         AddToolButtonBmpIS(self.editor, toolbar, self.saveBmp, 'Save', self.editor.OnSave)
         AddToolButtonBmpIS(self.editor, toolbar, self.saveAsBmp, 'Save as...', self.editor.OnSaveAs)
-        
+
     def addMenus(self, menu):
         accls = SourceModel.addMenus(self, menu)
         self.addMenu(menu, Editor.wxID_EDITORSAVE, 'Save', accls, (keyDefs['Save']))
@@ -391,35 +397,41 @@ class ModuleModel(SourceModel):
 
     def load(self, notify = true):
         SourceModel.load(self, false)
-        self.update()
+        if Preferences.autoReindent:
+            if not self.reindent():
+                self.update()
+        else:
+            self.update()
         if notify: self.notify()
+
+    def save(self):
+        if Preferences.autoReindent:
+            self.reindent(false)
+        SourceModel.save(self)
 
     def getModule(self):
         if self._module is None:
-#            t1 = time()
             wx.wxBeginBusyCursor()
             try:
                 self._module = moduleparse.Module(
-                    self.moduleName, string.split(self.data, '\012'))
+                    self.moduleName, self.getDataAsLines())
             finally:
                 wx.wxEndBusyCursor()
-#            t2 = time()
-#            print 'parse module', t2 - t1
         return self._module
-        
+
     def initModule(self):
         # Don't parse the module until it's needed.
         self._module = None
-        
+
     def refreshFromModule(self):
         """ Must call this method to apply changes made
         to the module object. """
         self.data = string.join(self.getModule().source, '\012')#os.linesep)
         self.notify()
-    
+
     def renameClass(self, oldname, newname):
         pass
-    
+
     def update(self):
         EditorModel.update(self)
         self.initModule()
@@ -433,26 +445,22 @@ class ModuleModel(SourceModel):
             oldSysPath = sys.path[:]
             try:
                 sys.path.append(Preferences.pyPath)
-                cmd = '"%s" %s %s'%(sys.executable, os.path.basename(self.filename), args)
+                cmd = '"%s" %s %s'%(sys.executable,
+                      os.path.basename(self.filename), args)
                 print 'executing', cmd, args
-                
+
                 from ModRunner import PreferredRunner
                 if Preferences.minimizeOnRun:
                     self.editor.palette.Iconize(true)
                 try:
-                    if self.editor.erroutFrm:
-                        self.editor.erroutFrm.Destroy()
-                    self.editor.erroutFrm = PreferredRunner(self.editor, self.app).run(cmd)
+                    PreferredRunner(self.editor.erroutFrm, self.app).run(cmd)
                 finally:
+                    pass
                     if Preferences.minimizeOnRun:
                         self.editor.palette.Iconize(false)
                         if self.editor.erroutFrm:
                             self.editor.erroutFrm.Raise()
-##                        self.editor.palette.Raise()
-##                        self.editor.inspector.Raise()
-##                        self.editor.Raise()
-        
-                    
+
             finally:
                 sys.path = oldSysPath
                 sys.stderr = oldErr
@@ -460,7 +468,7 @@ class ModuleModel(SourceModel):
 
     def runAsScript(self):
         execfile(self.filename)
-    
+
     def compile(self):
         if self.savedAs:
             import ModRunner
@@ -468,7 +476,7 @@ class ModuleModel(SourceModel):
             sys.stderr = ErrorStack.RecFile()
             try:
                 try:
-                    cmr = ModRunner.CompileModuleRunner(self.editor, self.app)
+                    cmr = ModRunner.CompileModuleRunner(self.editor.erroutFrm, self.app)
                     cmr.run(self.filename)
                 except:
                     print 'Compile Exception!'
@@ -476,12 +484,13 @@ class ModuleModel(SourceModel):
                 else:
                     print 'Compiled Successfully'
                 serr = ErrorStack.errorList(sys.stderr)
+
                 cmr.checkError(serr, 'Compiled')
             finally:
                 sys.stderr = oldErr
 
     def cyclops(self):
-        """ Excecute the current saved image of the application. """
+        """ Run the saved application thru Cyclops """
         if self.savedAs:
             cwd = os.path.abspath(os.getcwd())
             os.chdir(os.path.dirname(self.filename))
@@ -490,7 +499,7 @@ class ModuleModel(SourceModel):
                 name = os.path.basename(self.filename)
 
                 # excecute Cyclops in Python with module as parameter
-                command = '"%s" "%s" "%s"'%(sys.executable, 
+                command = '"%s" "%s" "%s"'%(sys.executable,
                   Preferences.toPyPath('RunCyclops.py'), name)
                 wx.wxExecute(command, true)
 
@@ -503,7 +512,7 @@ class ModuleModel(SourceModel):
                 return page
         else:
             wxLogWarning('Save before running Cyclops')
-            raise 'Not saved yet!' 
+            raise 'Not saved yet!'
 
     def debug(self, params = None):
         if self.savedAs:
@@ -514,7 +523,7 @@ class ModuleModel(SourceModel):
                 self.editor.debugger.Show(true)
                 if params is None: params = []
                 self.editor.debugger.debug_file(self.editor.debugger.filename, params)
-    
+
     def profile(self):
         # XXX Should change to the profile file directory
         if self.savedAs:
@@ -525,15 +534,17 @@ class ModuleModel(SourceModel):
             wxProfilerPhonyApp.realApp = self.editor.app
             wxPython.wx.wxApp = wxProfilerPhonyApp
             try:
+                sys.path.insert(0, os.path.dirname(self.filename))
                 prof = profile.Profile()
                 try:
                     prof = prof.run('execfile("%s")'% os.path.basename(self.filename))
-                except SystemExit:
-                    pass
+                except SystemExit, error:
+                    wxLogError('Error: '+str(error))
                 prof.create_stats()
-                return prof.stats     
+                return prof.stats, os.path.dirname(self.filename)
 
             finally:
+                del sys.path[0]
                 wxPython.wx.wxApp = tmpApp
                 del wxProfilerPhonyApp.realApp
                 os.chdir(cwd)
@@ -553,9 +564,9 @@ class ModuleModel(SourceModel):
         self.notify()
 
     def saveAs(self, filename):
-        oldFilename = self.filename  
+        oldFilename = self.filename
         EditorModel.saveAs(self, filename)
-        if self.app: 
+        if self.app:
             self.app.moduleSaveAsNotify(self, oldFilename, filename)
         self.moduleName = os.path.basename(filename)
         self.notify()
@@ -566,11 +577,46 @@ class ModuleModel(SourceModel):
             resultView = self.editor.addNewView(tbName, PythonSourceDiffView)
         else:
             resultView = self.views[tbName]
-            
+
         resultView.tabName = tbName
         resultView.diffWith = filename
         resultView.refresh()
         resultView.focus()
+
+    def reindent(self, updateModulePage = true):
+        from ExternalLib import reindent
+        self.refreshFromViews()
+        file = SourcePseudoFile(self.getDataAsLines())
+        ri = reindent.Reindenter(file)
+        try:
+            if ri.run():
+                file.output = []
+                ri.write(file)
+
+                newData = string.join(file.output, '')
+                modified = self.data != newData
+                self.modified = self.modified or modified
+
+                if modified:
+                    self.data = newData
+                    if updateModulePage:
+                        self.editor.updateModulePage(self)
+                    self.update()
+                    self.notify()
+
+                    self.editor.statusBar.setHint(\
+                          'Code reformatted (indents and or EOL characters fixed)')
+                    return true
+        except Exception, error:
+            self.editor.statusBar.setHint(\
+                  'Reindent failed - %s : %s' % (error.__class__, str(error)) )
+
+        return false
+
+import ShellEditor
+class SourcePseudoFile(ShellEditor.PseudoFileOutStore):
+    def readlines(self):
+        return self.output
 
 class ZopeDocumentModel(EditorModel):
     modelIdentifier = 'ZopeDocument'
@@ -589,7 +635,7 @@ class ZopeDocumentModel(EditorModel):
     def addTools(self, toolbar):
         EditorModel.addTools(self, toolbar)
         AddToolButtonBmpIS(self.editor, toolbar, self.saveBmp, 'Save', self.editor.OnSave)
-        
+
     def addMenus(self, menu):
         accls = EditorModel.addMenus(self, menu)
         self.addMenu(menu, Editor.wxID_EDITORSAVE, 'Save', accls, (keyDefs['Save']))
@@ -601,7 +647,7 @@ class ZopeDocumentModel(EditorModel):
         self.saved = false
         self.update()
         if notify: self.notify()
-    
+
     def save(self):
         """ Saves contents of data to file specified by self.filename. """
         if self.filename:
@@ -609,7 +655,7 @@ class ZopeDocumentModel(EditorModel):
             self.modified = false
         else:
             raise 'No filename'
-    
+
     def saveAs(self, filename):
         """ Saves contents of data to file specified by filename.
             Override this to catch name changes. """
@@ -623,14 +669,14 @@ class ZopeDocumentModel(EditorModel):
             return self.zopeObj.name
 
 class BasicFileModel(EditorModel):
-    
+
     saveBmp = 'Images/Editor/Save.bmp'
     saveAsBmp = 'Images/Editor/SaveAs.bmp'
 
     def __init__(self, data, name, editor, saved):
         EditorModel.__init__(self, name, data, editor, saved)
         if data: self.update()
-        
+
     def addTools(self, toolbar):
         EditorModel.addTools(self, toolbar)
         AddToolButtonBmpIS(self.editor, toolbar, self.saveBmp, 'Save', self.editor.OnSave)
@@ -674,7 +720,7 @@ class CPPModel(BasicFileModel):
     def __init__(self, data, name, editor, saved):
         BasicFileModel.__init__(self, data, name, editor, saved)
         self.loadHeader()
-        
+
     def loadHeader(self):
         header = os.path.splitext(self.filename)[0]+'.h'
         if os.path.exists(header):
@@ -694,7 +740,7 @@ class CPPModel(BasicFileModel):
 ##    bitmap = 'Cpp_s.bmp'
 ##    imgIdx = 13
 ##    ext = '.h'
-                
+
 class ConfigFileModel(BasicFileModel):
     modelIdentifier = 'Config'
     defaultName = 'config'
@@ -708,7 +754,7 @@ class HTMLFileModel(BasicFileModel):
     bitmap = 'Text_s.bmp'
     imgIdx = imgHTMLFileModel
     ext = '.html'
-    
+
 class ClassModel(ModuleModel):
     """ Represents access to 1 maintained main class in the module.
         This class is identified by the 3rd header entry  #Boa:Model:Class """
@@ -716,7 +762,7 @@ class ClassModel(ModuleModel):
         self.main = main
         self.mainConstr = None
         ModuleModel.__init__(self, data, name, editor, saved, app)
-    
+
     def renameMain(self, oldName, newName):
         self.getModule().renameClass(oldName, newName)
         self.main = newName
@@ -725,7 +771,7 @@ class ClassModel(ModuleModel):
         for line in self.getModule().source:
             if line:
                 if line[0] != '#': break
-                
+
                 header = string.split(string.strip(line), ':')
                 if (len(header) == 3) and (header[0] == boaIdent):
                     self.getModule().source[idx] = string.join((header[0], header[1], newName), ':')
@@ -736,7 +782,7 @@ class ClassModel(ModuleModel):
 ##        header = string.split(string.strip(self.getModule().source[0]), ':')
 ##        if (len(header) == 3) and (header[0] == '#Boa'):
 ##            self.getModule().source[0] = string.join((header[0], header[1], newName), ':')
-    
+
 class BaseFrameModel(ClassModel):
     modelIdentifier = 'Frames'
     companion = Companions.DesignTimeCompanion
@@ -758,30 +804,30 @@ class BaseFrameModel(ClassModel):
     def renameMain(self, oldName, newName):
         ClassModel.renameMain(self, oldName, newName)
         if self.getModule().functions.has_key('create'):
-            self.getModule().replaceFunctionBody('create', 
+            self.getModule().replaceFunctionBody('create',
                   ['    return %s(parent)'%newName, ''])
 
     def renameCtrl(self, oldName, newName):
         # Currently DesignerView maintains ctrls
         pass
-        
+
     def new(self, params):
         paramLst = []
         for param in params.keys():
             paramLst.append('%s = %s'%(param, params[param]))
         paramStr = 'self, ' + string.join(paramLst, ', ')
-        
+
         self.data = (defSig + defImport + defCreateClass + defWindowIds + \
-          defClass) % (self.modelIdentifier, self.main, self.main, 
-          Utils.windowIdentifier(self.main, ''), init_ctrls, 1, self.main, 
+          defClass) % (self.modelIdentifier, self.main, self.main,
+          Utils.windowIdentifier(self.main, ''), init_ctrls, 1, self.main,
           self.defaultName, self.defaultName, paramStr)
-        
+
         self.savedAs = false
         self.modified = true
         self.initModule()
 #        self.readComponents()
         self.notify()
-    
+
     def identifyCollectionMethods(self):
         results = []
         module = self.getModule()
@@ -791,19 +837,19 @@ class BaseFrameModel(ClassModel):
                 if len(meth) > len('_init_') and meth[:6] == '_init_':
                     results.append(meth)
         return results
-    
+
     def allObjects(self):
         views = ['Data', 'Designer']
-        
+
         order = []
         objs = {}
-        
+
         for view in views:
             order.extend(self.views[view].objectOrder)
             objs.update(self.views[view].objects)
-        
+
         return order, objs
-    
+
     def readDesignerMethod(self, meth, codeBody):
         """ Create a new ObjectCollection by parsing the given method body """
         import methodparse
@@ -814,9 +860,9 @@ class BaseFrameModel(ClassModel):
                 inits, body, fins = res[:3]
             except ValueError:
                 raise 'Collection body %s not in init, body, fin form' % meth
-            
+
             allInitialisers = methodparse.parseMixedBody(\
-              [methodparse.CollectionItemInitParse, methodparse.EventParse], 
+              [methodparse.CollectionItemInitParse, methodparse.EventParse],
                body)
 
             creators = allInitialisers.get(methodparse.CollectionItemInitParse, [])
@@ -827,12 +873,12 @@ class BaseFrameModel(ClassModel):
         else:
             inits = []
             fins = []
-                
+
             allInitialisers = methodparse.parseMixedBody(\
-              [methodparse.ConstructorParse, methodparse.EventParse, 
-               methodparse.CollectionInitParse, methodparse.PropertyParse], 
+              [methodparse.ConstructorParse, methodparse.EventParse,
+               methodparse.CollectionInitParse, methodparse.PropertyParse],
                codeBody)
-            
+
             creators = allInitialisers.get(methodparse.ConstructorParse, [])
             collectionInits = allInitialisers.get(methodparse.CollectionInitParse, [])
             properties = allInitialisers.get(methodparse.PropertyParse, [])
@@ -840,7 +886,7 @@ class BaseFrameModel(ClassModel):
 
         newObjColl = ObjCollection.ObjectCollection()
         newObjColl.setup(creators, properties, events, collectionInits, inits, fins)
-        
+
         return newObjColl
 
     def readComponents(self):
@@ -849,7 +895,7 @@ class BaseFrameModel(ClassModel):
         module = self.getModule()
         if module.classes.has_key(self.main):
             main = module.classes[self.main]
-            for oc in self.identifyCollectionMethods(): 
+            for oc in self.identifyCollectionMethods():
                 codeSpan = main.methods[oc]
                 codeBody = module.source[codeSpan.start : codeSpan.end]
 
@@ -881,7 +927,7 @@ class BaseFrameModel(ClassModel):
     def writeWindowIds(self, colMeth, companions):
         # To integrate efficiently with Designer.SaveCtrls this method
         # modifies module.source but doesn't refresh anything
-        
+
         # find windowids in source
         winIdIdx = -1
         reWinIds = re.compile(srchWindowIds % colMeth)
@@ -891,7 +937,7 @@ class BaseFrameModel(ClassModel):
             if match:
                 winIdIdx = idx
                 break
-        
+
         # build window id list
         lst = []
         for comp in companions:
@@ -904,7 +950,7 @@ class BaseFrameModel(ClassModel):
                 # No window id definitions could be found add one above class def
                 insPt = module.classes[self.main].block.start - 1
                 module.source[insPt:insPt] = \
-                  [string.strip(defWindowIds % (string.join(lst, ', '), colMeth, 
+                  [string.strip(defWindowIds % (string.join(lst, ', '), colMeth,
                   len(lst))), '']
                 module.renumber(2, insPt)
         else:
@@ -915,7 +961,7 @@ class BaseFrameModel(ClassModel):
     def update(self):
         ClassModel.update(self)
 #        self.readComponents()
-            
+
 class FrameModel(BaseFrameModel):
     modelIdentifier = 'Frame'
     defaultName = 'wxFrame'
@@ -950,7 +996,7 @@ class MDIChildModel(BaseFrameModel):
     bitmap = 'wxMDIChildFrame_s.bmp'
     imgIdx = imgMDIChildModel
     companion = Companions.MDIChildFrameDTC
-    
+
 # XXX Autocreated frames w/ corresponding imports
 # XXX module references to app mut be cleared on closure
 
@@ -978,7 +1024,7 @@ class AppModel(ClassModel):
         for modPage in openModules.values():
             if hasattr(modPage.model, 'app') and modPage.model.filename in abspaths:
                 modPage.model.app = self
-    
+
     def absModulesPaths(self):
         modules = self.modules.keys()
         abspaths = []
@@ -990,7 +1036,7 @@ class AppModel(ClassModel):
         accls = ClassModel.addMenus(self, menu)
         self.addMenu(menu, Editor.wxID_EDITORCMPAPPS, 'Compare apps...', accls, ())
         return accls
-        
+
     def convertToUnixPath(self, filename):
         # Don't convert absolute windows paths, will stay illegal until saved
         if os.path.splitdrive(filename)[0] != '':
@@ -1010,25 +1056,25 @@ class AppModel(ClassModel):
     def saveAs(self, filename):
         for mod in self.modules.keys():
             self.modules[mod][2] = self.convertToUnixPath(\
-              relpath.relpath(path.dirname(filename), 
+              relpath.relpath(os.path.dirname(filename),
               self.normaliseModuleRelativeToApp(self.modules[mod][2])))
 
-        self.writeModules()    
-        
+        self.writeModules()
+
         ClassModel.saveAs(self, filename)
-        
+
         self.notify()
-    
+
 ##    def modulePathChange(self, oldFilename, newFilename):
 ##        # self.modules have already been renamed, use newFilename
 ##        key = path.splitext(path.basename(newFilename))[0]
 ##        self.modules[key][2] = relpath.relpath(path.dirname(self.filename), newFilename)
 ##
-##        self.writeModules()    
+##        self.writeModules()
 
     def renameMain(self, oldName, newName):
         ClassModel.renameMain(self, oldName, newName)
-        self.getModule().replaceFunctionBody('main', 
+        self.getModule().replaceFunctionBody('main',
           ['    application = %s(0)'%newName, '    application.MainLoop()', ''])
 
     def new(self, mainModule):
@@ -1039,16 +1085,16 @@ class AppModel(ClassModel):
         self.modified = true
         self.update()
         self.notify()
-    
+
     def findImports(self):
         impPos = string.find(self.data, defImport)
         impPos = string.find(self.data, 'import', impPos + 1)
-        
+
         # XXX Add if not found
         if impPos == -1: raise 'Module import list not found in application'
         impEnd = string.find(self.data, '\012', impPos + len('import') +1) + 1
         if impEnd == -1: raise 'Module import list not terminated'
-        return impPos + len('import'), impEnd        
+        return impPos + len('import'), impEnd
 
     def findModules(self):
         modStr = 'modules ='
@@ -1058,7 +1104,7 @@ class AppModel(ClassModel):
         modEnd = string.find(self.data, '}', modPos + len(modStr) +1) + 1
         if modEnd == -1: raise 'Module list not terminated properly'
         return modPos + len(modStr), modEnd
-            
+
     def idModel(self, name):
         absPath = self.normaliseModuleRelativeToApp(self.modules[name][2])
         if os.path.exists(absPath):
@@ -1069,8 +1115,8 @@ class AppModel(ClassModel):
                     self.editor.modules[absPath].model.getModule().source)
             elif self.editor.modules.has_key(os.path.basename(absPath)):
                 self.moduleModels[name], main = identifySource(
-                    self.editor.modules[os.path.basename(absPath)
-                                        ].model.getModule().source)
+                    self.editor.modules[os.path.basename(absPath)\
+                                       ].model.getModule().source)
             else:
                 print 'could not find unsaved module', absPath, self.editor.modules
 
@@ -1079,15 +1125,15 @@ class AppModel(ClassModel):
         try:
             self.modules = eval(self.data[modS:modE])
         except: raise 'Module list not a valid dictionary'
-        
+
         for mod in self.modules.keys():
             self.idModel(mod)
-        
-    def readImports(self):
-        impS, impE = self.findImports()
-        try:
-            self.imports = string.split(self.data[impS:impE], ', ')
-        except: raise 'Module import list not a comma delimited list'
+
+##    def readImports(self):
+##        impS, impE = self.findImports()
+##        try:
+##            self.imports = string.split(self.data[impS:impE], ', ')
+##        except: raise 'Module import list not a comma delimited list'
 
     def writeModules(self, notify = true):
         modS, modE = self.findModules()
@@ -1096,23 +1142,22 @@ class AppModel(ClassModel):
         self.modified = true
         self.editor.updateTitle()
         self.editor.updateModulePage(self)
-        
+
         if notify: self.notify()
 
-    def writeImports(self, notify = true):
-        impS, impE = self.findImports()
-        self.data = self.data[:impS]+string.join(self.imports, ', ')+ \
-          self.data[impE:]
-        if notify: self.notify()
+##    def writeImports(self, notify = true):
+##        impS, impE = self.findImports()
+##        self.data = self.data[:impS]+string.join(self.imports, ', ')+ \
+##          self.data[impE:]
+##        if notify: self.notify()
 
     def viewAddModule(self):
-        # XXX Don't really want to access editor
         fn = self.editor.openFileDlg()
         if fn:
             self.addModule(fn, '')
-        
+
     def addModule(self, filename, descr):
-        name, ext = os.path.splitext(path.basename(filename))
+        name, ext = os.path.splitext(os.path.basename(filename))
         if self.modules.has_key(name): raise 'Module exists in application'
         if self.savedAs:
             relative = relpath.relpath(os.path.dirname(self.filename), filename)
@@ -1126,10 +1171,10 @@ class AppModel(ClassModel):
 
     def removeModule(self, name):
         if not self.modules.has_key(name): raise 'No such module in application'
-        
+
         del self.modules[name]
         self.writeModules()
-    
+
     def editModule(self, oldname, newname, main, descr):
         if oldname != newname:
             del self.modules[oldname]
@@ -1137,22 +1182,92 @@ class AppModel(ClassModel):
         self.writeModules()
 
     def moduleFilename(self, name):
+        """ Return absolute filename of the given module """
         if not self.modules.has_key(name): raise 'No such module in application: '+name
         if self.savedAs:
             if os.path.isabs(self.modules[name][2]):
                 absPath = self.modules[name][2]
             else:
-                absPath = os.path.normpath(os.path.join(os.path.dirname(self.filename), 
+                absPath = os.path.normpath(os.path.join(os.path.dirname(self.filename),
                   self.modules[name][2]))
         else:
             absPath = name + ModuleModel.ext
         return absPath
 
+    def updateAutoCreateImports(self, oldName, newName):
+        """ Rename module in import list.
+
+            Only autocreated modules should be on this list.
+            The module is modified and the model is not updated"""
+        module = self.getModule()
+        if module.imports.has_key(oldName):
+            impLine = module.imports[oldName][0]-1
+            # read in the import line
+            line = module.source[impLine]
+            impIndent = string.find(line, 'import')
+            imports = string.split(line[7+impIndent:], ', ')
+            impIdx = imports.index(oldName)
+            imports[impIdx] = newName
+            module.imports[newName] = module.imports[oldName]
+            del module.imports[oldName]
+            module.source[impLine] = 'import '+string.join(imports, ', ')
+            return impIdx
+        return None
+
+    def updateMainFrameModuleRefs(self, oldName, newName):
+        """ Replace references to old main module with new main module """
+        module = self.getModule()
+        block = module.classes[boaClass].methods['OnInit']
+        mainDef = 'self.main = %s.'
+        fndOldStr = mainDef % oldName
+        repNewStr = mainDef % newName
+
+        for idx in range(block.start, block.end):
+            line = module.source[idx]
+            newLine = string.replace(line, fndOldStr, repNewStr)
+            if newLine != line:
+                module.source[idx] = newLine
+
+    def changeMainFrameModule(self, newMainFrameModule):
+        """ Select a new main frame module """
+        if len(self.viewsModified):
+            self.refreshFromViews()
+
+        # determine which module is the main module
+        module = self.getModule()
+        for mod, props in filter(lambda v: v[1][0], self.modules.items()):
+            impLine = module.imports[mod][0]-1
+            line = module.source[impLine]
+            impIndent = string.find(line, 'import')
+            imports = string.split(line[7+impIndent:], ', ')
+            if len(imports) and imports[0] == mod:
+                try:
+                    impIdx = imports.index(newMainFrameModule)
+                except ValueError:
+                    impIdx = 0
+                del imports[impIdx]
+
+                imports.insert(0, newMainFrameModule)
+                module.source[impLine] = impIndent*' '+'import '+string.join(imports, ', ')
+
+                self.updateMainFrameModuleRefs(mod, newMainFrameModule)
+                self.refreshFromModule()
+
+                # Update autocreation status
+                props[0] = 0
+                self.modules[newMainFrameModule][0] = 1
+                self.writeModules(false)
+
+                self.update()
+                break
+        else:
+            raise 'No main frame module found in application'
+
     def moduleSaveAsNotify(self, module, oldFilename, newFilename):
         if module != self:
             newName, ext = os.path.splitext(os.path.basename(newFilename))
             oldName = os.path.splitext(os.path.basename(oldFilename))[0]
- 
+
             if not self.modules.has_key(oldName): raise 'Module does not exists in application'
 
             if self.savedAs:
@@ -1169,36 +1284,23 @@ class AppModel(ClassModel):
             if self.modules[newName][0]:
                 if len(self.viewsModified):
                     self.refreshFromViews()
-                module = self.getModule()
-                if module.imports.has_key(oldName):
-                    impLine = module.imports[oldName][0]-1
-                    # read in the import line
-                    line = module.source[impLine]
-                    imports = string.split(line[7:], ', ')
-                    impIdx = imports.index(oldName)
-                    imports[impIdx] = newName
-                    module.imports[newName] = module.imports[oldName]
-                    del module.imports[oldName]
-                    module.source[impLine] = 'import '+string.join(imports, ', ')
-                    
-                    # check if it's the main module, first in the import list is 
+
+                impIdx = self.updateAutoCreateImports(oldName, newName)
+
+                if impIdx is not None:
+                    # check if it's the main module, first in the import list is
                     # always the main module
                     if not impIdx:
-                        block = module.classes[boaClass].methods['OnInit']
-                        mainDef = 'self.main = %s.'
-                        fndOldStr = mainDef % oldName
-                        repNewStr = mainDef % newName
-                        
-                        for idx in range(block.start, block.end):
-                            line = module.source[idx]
-                            newLine = string.replace(line, fndOldStr, repNewStr)
-                            if newLine != line:
-                                module.source[idx] = newLine
+                        self.updateMainFrameModuleRefs(oldName, newName)
 
+                    # preserve modified modules
+                    mods = self.modules
                     self.refreshFromModule()
+                    self.modules = mods
 
             self.writeModules()
-    
+            self.update()
+
     def crashLog(self):
         err = ErrorStack.crashError(os.path.splitext(self.filename)[0]+'.trace')
         if err:
@@ -1209,32 +1311,31 @@ class AppModel(ClassModel):
             return esf
         else:
             wx.wxLogError('Trace file not found. Run with command line param -T')
-            return NOne
-                
-            
+            return None
 
     def openModule(self, name):
         absPath = self.moduleFilename(name)
-        
+
         module = self.editor.openOrGotoModule(absPath, self)
-        
+
         return module
-        
+
     def readPaths(self):
         pass
 
     def normaliseModuleRelativeToApp(self, relFilename):
+        """ Normalise relative paths to absolute paths """
         if not self.savedAs:
             return os.path.normpath(os.path.join(Preferences.pyPath, relFilename))
         else:
             return os.path.normpath(os.path.join(os.path.dirname(self.filename), relFilename))
-        
+
     def buildImportRelationshipDict(self, modules = None):
         relationships = {}
-        
+
         if modules is None:
             modules = self.modules.keys()
-            
+
         tot = len(modules)
         self.editor.statusBar.progress.SetRange(tot)
         prog = 0
@@ -1246,7 +1347,7 @@ class AppModel(ClassModel):
             self.editor.statusBar.setHint('Parsing '+moduleName+'...')
             module = self.modules[moduleName]
             try: f = open(self.normaliseModuleRelativeToApp(module[2]))
-            except IOError: 
+            except IOError:
                 print "couldn't load", module[2]
                 continue
             else:
@@ -1254,34 +1355,34 @@ class AppModel(ClassModel):
                 f.close()
                 model = ModuleModel(data, module[2], self.editor, 1)
                 relationships[moduleName] = model.getModule() #.imports
-            
+
             totLOC = totLOC + model.getModule().loc
             classCnt = classCnt + len(model.getModule().classes)
-        
+
         print 'Project LOC', totLOC
         print 'Class count', classCnt
         print 'in', len(modules), 'modules'
-        
+
         self.editor.statusBar.progress.SetValue(0)
         self.editor.statusBar.setHint('')
         return relationships
-    
+
     def showImportsView(self):
         # XXX Should be more generic
         self.editor.showImportsView()
-    
+
     def compareApp(self, filename):
         tbName = 'App. Compare : '+filename
         if not self.views.has_key(tbName):
             resultView = self.editor.addNewView(tbName, AppCompareView)
         else:
             resultView = self.views[tbName]
-            
+
         resultView.tabName = tbName
         resultView.compareTo = filename
         resultView.refresh()
         resultView.focus()
-                    
+
     def update(self):
         ClassModel.update(self)
         self.readModules()
@@ -1317,7 +1418,7 @@ class SetupModuleModel(ModuleModel):
         menu.AppendSeparator()
         self.addMenu(menu, Editor.wxID_SETUPPY2EXE, 'py2exe', accls, ())
         return accls
-    
+
     def new(self):
         self.data = (defSetup_py) % ('default', '0.1', '')
         self.saved = false
@@ -1329,7 +1430,7 @@ class SetupModuleModel(ModuleModel):
         return 'setup (%s)' % os.path.basename(os.path.dirname(self.filename))
 
 # model registry: add to this dict to register a Model
-modelReg = {AppModel.modelIdentifier: AppModel, 
+modelReg = {AppModel.modelIdentifier: AppModel,
             FrameModel.modelIdentifier: FrameModel,
             DialogModel.modelIdentifier: DialogModel,
             MiniFrameModel.modelIdentifier: MiniFrameModel,
@@ -1364,7 +1465,7 @@ def identifyHeader(headerStr):
     if len(header) and (header[0] == boaIdent) and modelReg.has_key(header[1]):
         return modelReg[header[1]], header[2]
     return ModuleModel, ''
-    
+
 def identifyFile(filename):
     """ Return appropriate model for given source file.
         Assumes header will be part of the first continious comment block """
@@ -1401,12 +1502,10 @@ def identifySource(source):
         if line:
             if line[0] != '#':
                 return ModuleModel, ''
-            
+
             headerInfo = identifyHeader(string.strip(line))
-            
+
             if headerInfo[0] != ModuleModel:
                 return headerInfo
         else:
             return ModuleModel, ''
-
-
