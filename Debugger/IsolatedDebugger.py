@@ -660,6 +660,7 @@ class DebugServer (Bdb):
                 self.quitting = 0
                 self.eventLoop()
         finally:
+            sys.settrace(None)
             self.quitting = 1
             self._running = 0
             self.cleanupServer()
@@ -912,8 +913,8 @@ class DebugServer (Bdb):
         Bdb.reset(self)
         #self.frame = None
     
-    def dispatch_return(self, frame, arg):
-        Bdb.dispatch_return(self, frame, arg)
+    #def dispatch_return(self, frame, arg):
+    #    Bdb.dispatch_return(self, frame, arg)
         # XXX this can be used as a hook to detect when a debugging session is
         # XXX about to stop. frame.f_back will be None
         # XXX For the main thread this means the end of the program, but
