@@ -9,7 +9,7 @@
 # Copyright:   (c) 1999 - 2001
 # Licence:     GPL
 #-----------------------------------------------------------------------------
-import os, string, bdb, sys
+import os, string, bdb, sys, types
 
 #sys.path.insert(0, '..')
 
@@ -262,15 +262,18 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
                 if objPth[0] == '':
                     meth = cls.getMethodForLineNo(lnNo)
                     return self.getCodeNamespace(module, meth)
+                elif cls.super and type(cls.super[0]) is types.InstanceType:
+                    if objPth[0] == cls.super[0].name:
+                        return self.getAttribs(cls.super[0])
+                return []
+
+            elif len(objPth) == 2:
+                if objPth[0] == 'self':
+                    attrib = objPth[1]
+                    return self.getAttribAttribs(module, cls, attrib)
                 else:
                     return []
-
-            elif len(objPth) == 2 and objPth[0] == 'self':
-                attrib = objPth[1]
-                return self.getAttribAttribs(module, cls, attrib)
-
-            else:
-                return []
+            return []
         else:
             func = module.getFunctionForLineNo(lnNo)
             return self.getCodeNamespace(module, func)
@@ -296,9 +299,9 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
                     loopCls = prnt
                 # Possible wxPython ancestor
                 else:
-                    klass = wxNamespace.getWxClass(prnt)
-                    if klass:
-                        lst.extend(self.getWxAttribs(klass))
+                    WxClass = wxNamespace.getWxClass(prnt)
+                    if WxClass:
+                        lst.extend(self.getWxAttribs(WxClass))
                     loopCls = None
             else:
                 loopCls = None
@@ -406,6 +409,11 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
         elif module.functions.has_key(word):
             self.doClearBrwsLn()
             self.GotoLine(module.functions[word].start-1)
+            return true
+        # Global attrs
+        elif module.globals.has_key(word):
+            self.doClearBrwsLn()
+            self.GotoLine(module.globals[word].start-1)
             return true
         else:
             # Local names and parameters in methods and functions
@@ -971,7 +979,7 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
 
         # thx to Robert Boulanger
         if Preferences.handleSpecialEuropeanKeys:
-            self.handleSpecialEuropeanKeys(event)
+            self.handleSpecialEuropeanKeys(event, Preferences.euroKeysCountry)
 
         if key in (WXK_UP, WXK_DOWN):
             self.checkChangesAndSyntax()
