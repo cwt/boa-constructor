@@ -39,7 +39,6 @@ currentMouseOverTip = ''
 # XXX Invisible components
 # XXX Cut, Copy, Paste
 # XXX Multiple component selection
-# XXX Composites
 # XXX Templates
 # XXX Comment/Licence block creation & maintenance
 
