@@ -1,3 +1,16 @@
+#----------------------------------------------------------------------------
+# Name:         IsolatedDebugger.py
+# Purpose:      A Bdb-based debugger (tracer) that can be operated by
+#               another process
+#
+# Authors:      Shane Hathaway, Riaan Booysen
+#
+# Created:      November 2000
+# RCS-ID:       $Id$
+# Copyright:    (c) Shane Hathaway, Riaan Booysen
+# Licence:      GPL
+#----------------------------------------------------------------------------
+
 import sys, thread, threading, Queue
 import pprint
 from os import chdir
@@ -6,13 +19,11 @@ import bdb
 from bdb import Bdb, BdbQuit, Breakpoint
 from repr import Repr
 
-try: from cStringIO import StringIO
-except: from StringIO import StringIO
 
 
 class DebugError(Exception):
     """Incorrect operation of the debugger"""
-    pass
+
 
 
 class DebuggerConnection:
@@ -36,13 +47,7 @@ class DebuggerConnection:
         res = sm.getResult()
         return res
 
-    def _getStdoutBuf(self):
-        return self._ds.stdoutbuf
-
-    def _getStderrBuf(self):
-        return self._ds.stderrbuf
-
-    ### Low-level calls.
+    ### Non-blocking calls.
 
     def allowEnvChanges(self, allow=1):
         """Allows the debugger to set sys.path, sys.argv, and
@@ -337,14 +342,29 @@ _orig_syspath = sys.path[:]
 
 class DebugServer (Bdb):
 
+    # frame is set only while paused.
     frame = None
+
+    # exc_info is set only while paused and an exception occurred.
     exc_info = None
-    max_string_len = 250
-    ignore_stopline = -1  # The line number we should *not* stop on.
+
+    # ignore_stopline is the line number we should *not* stop on.
+    ignore_stopline = -1
+
+    # autocont is set by runFile() if the debugger should enter set_continue
+    # mode right after starting.
     autocont = 0
+
+    # _allow_env_changes governs whether sys.path, etc. can be modified.
     _allow_env_changes = 0
-    stop_in_botframe = 0
+
+    # quitting is set to true when the user clicks the stop button.
     quitting = 0
+
+    # stopframe can hold several values:
+    #   None: Stop anywhere
+    #   frame object: Stop in that frame
+    #   (): Stop nowhere
 
     def __init__(self):
         Bdb.__init__(self)
@@ -352,23 +372,21 @@ class DebugServer (Bdb):
 
         self.__queue = Queue.Queue(0)
 
+        # self._lock is a reentrant lock that governs which thread
+        # the debugger will stop in.
+        self._lock = threading.RLock()
+
         self.repr = repr = Repr()
         repr.maxstring = 100
         repr.maxother = 100
         self.maxdict2 = 1000
 
         self._running = 0
-        self.stdoutbuf = StringIO()
-        self.stderrbuf = StringIO()
-        
+
         sys.boa_debugger = self
 
     def queueServerMessage(self, sm):
         self.__queue.put(sm)
-        # global waiting_debug_server
-        # only 1 thread at a time can use the debugger
-        #
-        # XXX Moved to set_continue fullspeed=1 
 
     def cleanupServer(self):
         self.reset()
@@ -379,21 +397,22 @@ class DebugServer (Bdb):
         self.fncache.clear()
 
     def servicerThread(self):
+        """Bootstraps the debugger server loop."""
         while 1:
             try:
-                self.serverLoop()
+                self.eventLoop()
             except:
                 # ??
                 import traceback
                 traceback.print_exc()
             self.quitting = 0
 
-    def serverLoop(self):
+    def eventLoop(self):
         while not self.quitting:
-            if not self.oneServerLoop():
-                break
+            if not self.executeOneEvent():
+                break  # event requested a return
 
-    def oneServerLoop(self):
+    def executeOneEvent(self):
         # The heart of this whole mess.  Fetches a message and executes
         # it in the current frame.
         # Should not catch exceptions.
@@ -420,12 +439,8 @@ class DebugServer (Bdb):
 
     def stop_here(self, frame):
         # Redefine stopping.
-        # Note that stopframe is now a very odd variable:
-        #   None: Stop anywhere
-        #   frame object: Stop in that frame
-        #   (): Stop nowhere
-        if not self.stop_in_botframe and frame is self.botframe:
-            # Don't stop in botframe.
+        if frame is self.botframe:
+            # Don't stop in the bottom frame.
             return 0
         sf = self.stopframe
         if sf is None:
@@ -434,6 +449,7 @@ class DebugServer (Bdb):
         elif sf is ():
             # Stop nowhere.
             return 0
+        # else stop in a specific frame.
         if (frame is sf and frame.f_lineno != self.ignore_stopline):
             # Stop in the current frame unless we're on
             # ignore_stopline.
@@ -453,13 +469,12 @@ class DebugServer (Bdb):
         return 1
 
     def set_continue(self, full_speed=0):
-        # Only stop except at breakpoints, exceptions or when finished
-        #self.stopframe = self.botframe
+        # Only stop at breakpoints, exceptions or when finished
         self.stopframe = ()
         self.returnframe = None
         self.quitting = 0
 
-        if full_speed:# and not self.get_all_breaks(): # no breakpoints; 
+        if full_speed:
             # run without debugger overhead
             sys.settrace(None)
 
@@ -477,6 +492,10 @@ class DebugServer (Bdb):
                     frame.f_trace = None
                     frame = frame.f_back
 
+        if self._lock.acquire(0):
+            # Allow a stop in any thread.
+            self._lock.release()
+
     def runcall(self, func, *args, **kw):
         self.reset()
         sys.settrace(self.trace_dispatch)
@@ -492,9 +511,10 @@ class DebugServer (Bdb):
         return res
 
     def set_trace(self, call_depth=1):
-        # Start debugging from the caller frame
-        # Called by hardbreakpoints
-        
+        """Start debugging from the caller frame.
+
+        Called by hard breakpoints.
+        """
         self._running = 1
         # Note: we can't use Bdb.set_trace() because the
         # exception trickery below would have to change [2] to [3].
@@ -569,22 +589,21 @@ class DebugServer (Bdb):
 
     def user_line(self, frame):
         # This method is called when we stop or break at a line
+        if not self._lock.acquire(0):
+            # Already working in another thread.
+            return
         if self.autocont:
             self.autocont = 0
             self.set_continue()
             return
-##        elif self.ignore_first_frame:
-##            self.ignore_first_frame = 0
-##            self.ignore_frame = frame
-##            self.set_step()
-##            return
+        self.stopframe = ()  # Don't stop.
         self.ignore_stopline = -1
         self.frame = frame
         self.exc_info = None
         filename = frame.f_code.co_filename
         lineno = frame.f_lineno
         self.clearTemporaryBreakpoints(filename, lineno)
-        self.serverLoop()
+        self.eventLoop()
 
     def user_return(self, frame, return_value):
         # This method is called when a return trap is set here
@@ -598,7 +617,7 @@ class DebugServer (Bdb):
         #self.ignore_stopline = -1
         #self.frame = frame
         #self.exc_info = exc_info
-        #self.serverLoop()
+        #self.eventLoop()
         pass
 
     ### Utility methods.
@@ -622,7 +641,6 @@ class DebugServer (Bdb):
             chdir(dn)
 
         self.autocont = autocont
-##        self.ignore_first_frame = 1
 
         self.run("execfile(fn, d)", {'fn':fn, 'd':d})
 
@@ -640,7 +658,7 @@ class DebugServer (Bdb):
                 self.exc_info = sys.exc_info()
                 self.frame = self.exc_info[2].tb_frame
                 self.quitting = 0
-                self.serverLoop()
+                self.eventLoop()
         finally:
             self.quitting = 1
             self._running = 0
@@ -658,7 +676,7 @@ class DebugServer (Bdb):
                 self.exc_info = sys.exc_info()
                 self.frame = self.exc_info[2].tb_frame
                 self.quitting = 0
-                self.serverLoop()
+                self.eventLoop()
         finally:
             self.quitting = 1
             self._running = 0
@@ -808,15 +826,7 @@ class DebugServer (Bdb):
         return rval
 
     def getStatusSummary(self):
-        rval = {'stdout':self.stdoutbuf.getvalue(),
-                'stderr':self.stderrbuf.getvalue(),
-                }
-        self.stdoutbuf.seek(0)
-        self.stdoutbuf.truncate()
-        self.stderrbuf.seek(0)
-        self.stderrbuf.truncate()
-        info = self.getExtendedFrameInfo()
-        rval.update(info)
+        rval = self.getExtendedFrameInfo()
         rval['breaks'] = self.getBreakpointStats()
         return rval
 
