@@ -165,9 +165,11 @@ class wxHelpFrameEx:
 
         assert self.navPages.GetPageText(0) == 'Contents'
         self.contentsPanel = self.navPages.GetPage(0)
+
         self.contentsAddBookmark, self.contentsDelBookmark, \
               self.contentsChooseBookmark, self.contentsTree = \
               self.contentsPanel.GetChildren()
+        self.contentsTree = wxPyTypeCast(self.contentsTree, 'wxTreeCtrl')
 
         assert self.navPages.GetPageText(1) == 'Index'
         self.indexPanel = self.navPages.GetPage(1)
