@@ -28,8 +28,8 @@ import SelectionTags
  wxID_SHOWINSP, wxID_SHOWEDTR, wxID_CTRLHELP, wxID_EDITALIGN, wxID_EDITSIZE,
  wxID_EDITRECREATE, wxID_EDITSNAPGRID, wxID_EDITRELAYOUT, wxID_EDITRELAYOUTSEL,
  wxID_EDITRELAYOUTDESGN, wxID_EDITCREATEORDER, wxID_EDITFITINSIDESIZER,
- wxID_EDITFITSIZER,
-] = Utils.wxNewIds(18)
+ wxID_FINDININDEX, wxID_EDITFITSIZER,
+] = Utils.wxNewIds(19)
 
 [wxID_EDITMOVELEFT, wxID_EDITMOVERIGHT, wxID_EDITMOVEUP, wxID_EDITMOVEDOWN,
  wxID_EDITWIDTHINC, wxID_EDITWIDTHDEC, wxID_EDITHEIGHTINC, wxID_EDITHEIGHTDEC,
@@ -180,6 +180,10 @@ class DesignerView(wxFrame, InspectableObjectView, Utils.FrameRestorerMixin):
         self.menu.Append(wxID_EDITALIGN, 'Align...')
         self.menu.Append(wxID_EDITSIZE, 'Size...')
         self.menu.AppendSeparator()
+        Utils.appendMenuItem(self.menu, wxID_FINDININDEX,
+              'Find in index...', Preferences.keyDefs['HelpFind'], '',
+              'Pops up a text input for starting a search of the help indexes')
+        self.menu.AppendSeparator()
         self.menu.Append(wxID_EDITCREATEORDER, 'Creation/Tab order...')
 
         EVT_CLOSE(self, self.OnCloseWindow)
@@ -198,6 +202,7 @@ class DesignerView(wxFrame, InspectableObjectView, Utils.FrameRestorerMixin):
         EVT_MENU(self, wxID_EDITRELAYOUTDESGN, self.OnRelayoutDesigner)
         EVT_MENU(self, wxID_EDITSNAPGRID, self.OnSnapToGrid)
         EVT_MENU(self, wxID_EDITCREATEORDER, self.OnCreationOrder)
+        EVT_MENU(self, wxID_FINDININDEX, self.OnFindInIndex)
         EVT_MENU(self, wxID_EDITFITSIZER, self.OnFitSizer)
         #EVT_MENU(self, wxID_EDITFITINSIDESIZER, self.OnFitInsideSizer)
         
@@ -240,6 +245,8 @@ class DesignerView(wxFrame, InspectableObjectView, Utils.FrameRestorerMixin):
                           ('SelectRight', wxID_EDITSELECTRIGHT),
                           ('SelectUp', wxID_EDITSELECTUP),
                           ('SelectDown', wxID_EDITSELECTDOWN),
+                          
+                          ('HelpFind', wxID_FINDININDEX),
                         ):
             tpe, key, code = Preferences.keyDefs[name]
             accLst.append((tpe, key, wId))
@@ -1281,6 +1288,9 @@ class DesignerView(wxFrame, InspectableObjectView, Utils.FrameRestorerMixin):
             if selName == self.GetName():
                 selName = ''
             self.showCreationOrderDlg(selName)
+
+    def OnFindInIndex(self, event):
+        self.model.editor.OnHelpFindIndex(event)
 
 #---Inspector session-----------------------------------------------------------
     def doPost(self, inspector):
