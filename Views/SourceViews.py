@@ -125,12 +125,12 @@ class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView):
         self._blockUpdate = true
         try:
             newData = self.getModelData()
-            curData = self.GetText()
+            curData = Utils.stringFromControl(self.GetText())
             if newData != curData:
                 resetUndo = not self.CanUndo() and not curData
                 ro = self.GetReadOnly()
                 self.SetReadOnly(false)
-                self.SetText(newData)
+                self.SetText(Utils.stringToControl(newData))
                 self.SetReadOnly(ro)
                 if resetUndo:
                     self.EmptyUndoBuffer()
