@@ -73,16 +73,16 @@ ConfigParser -- responsible for for parsing a list of
         1, only)
 
     remove_section(section)
-	remove the given file section and all its options
+        remove the given file section and all its options
 
     remove_option(section, option)
-	remove the given option from the given section
+        remove the given option from the given section
 
     set(section, option, value)
         set the given option
 
     write(fp)
-	write the configuration state in .ini format
+        write the configuration state in .ini format
 """
 
 # Removed unicode check for 1.5.2 compatibility
@@ -202,7 +202,7 @@ class ConfigParser:
 
     def read(self, filenames):
         """Read and parse a filename or a list of filenames.
-        
+
         Files that cannot be opened are silently ignored; this is
         designed so that you can specify a list of potential
         configuration file locations (e.g. current directory, user's
@@ -269,7 +269,7 @@ class ConfigParser:
             return rawval
 
         value = rawval                  # Make it a pretty variable name
-        depth = 0                       
+        depth = 0
         while depth < 10:               # Loop through this until it's done
             depth = depth + 1
             if string.find(value, "%(") >= 0:
@@ -279,7 +279,7 @@ class ConfigParser:
                     raise InterpolationError(key, option, section, rawval)
             else:
                 return value
-    
+
     def __get(self, section, conv, option):
         return conv(self.get(section, option))
 

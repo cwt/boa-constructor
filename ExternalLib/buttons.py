@@ -430,5 +430,3 @@ class wxGenBitmapToggleButton(__ToggleMixin, wxGenBitmapButton):
     pass
 
 #----------------------------------------------------------------------
-
-
