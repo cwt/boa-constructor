@@ -22,39 +22,45 @@ import sys, string, time
 import Preferences, About, Help
 from os import path
 import Utils, Browse
-import Zope.LoginDialog
-from Zope import ZopeFTP
+#import Zope.LoginDialog
+#from Zope import ZopeFTP
 
 from Views.EditorViews import *
 from Views.AppViews import AppView, AppFindResults, AppModuleDocView
+from Views.AppViews import AppREADME_TIFView, AppTODO_TIFView, AppBUGS_TIFView
 from Views.Designer import DesignerView
 from Views.OGLViews import UMLView, ImportsView
 from Views.DataView import DataView
-from Views.PySourceView import PythonSourceView, HTMLSourceView, TextView
+from Views.PySourceView import PythonSourceView, HTMLSourceView, TextView, CPPSourceView, HPPSourceView
+from Explorers.CVSExplorer import CVSConflictsView
+from Explorers import Explorer
 
 from EditorModels import *
 from PrefsKeys import keyDefs
-import Explorer, ShellEditor
+import ShellEditor
 from Preferences import IS, wxFileDialog, flatTools
 
 defAppModelViews = (AppView, PythonSourceView)
-adtAppModelViews = (AppModuleDocView, ToDoView, ImportsView)
+adtAppModelViews = (AppModuleDocView, ToDoView, ImportsView, CVSConflictsView, AppREADME_TIFView, AppTODO_TIFView, AppBUGS_TIFView)
 
 #PythonSourceView, 
 defModModelViews = (PythonSourceView, ExploreView)
-adtModModelViews = (HierarchyView, ModuleDocView, ToDoView, UMLView) #PyDEView, InfoView, CodeBrowseView, 
+adtModModelViews = (HierarchyView, ModuleDocView, ToDoView, UMLView, CVSConflictsView) #PyDEView, InfoView, CodeBrowseView, 
 
 defBaseFrameModelViews = (PythonSourceView, ExploreView)
-adtBaseFrameModelViews = (HierarchyView, ModuleDocView, ToDoView, UMLView)#, UMLView) ExploreView, CodeBrowseView, 
+adtBaseFrameModelViews = (HierarchyView, ModuleDocView, ToDoView, UMLView, CVSConflictsView)#, UMLView) ExploreView, CodeBrowseView, 
 
 defPackageModelViews = (PackageView, PythonSourceView)
-adtPackageModelViews = ()
+adtPackageModelViews = (CVSConflictsView,)
 
 defTextModelViews = (TextView,)
 adtTextModelViews = ()
 
 defZopeDocModelViews = (HTMLSourceView,)
 adtZopeDocModelViews = ()
+
+defCPPModelViews = (CPPSourceView, HPPSourceView)
+adtCPPModelViews = (CVSConflictsView,)
 
 (mmFile, mmEdit, mmViews, mmWindows, mmHelp) = range(5)
 
@@ -86,12 +92,12 @@ class EditorFrame(wxFrame):
         self._init_utils()
         self.SetDimensions(Preferences.inspWidth, Preferences.paletteHeight + Preferences.windowManagerTop + Preferences.windowManagerBottom, 
           Preferences.edWidth, Preferences.bottomHeight)
-	EVT_CLOSE(self, self.OnCloseWindow)
+        EVT_CLOSE(self, self.OnCloseWindow)
 
         if wxPlatform == '__WXMSW__':
             self.SetIcon(wxIcon(Preferences.toPyPath('Images/Icons/Editor.ico'), wxBITMAP_TYPE_ICO))
 
-        self.zftp = ZopeFTP.ZopeFTP()
+#        self.zftp = ZopeFTP.ZopeFTP()
         
         self.app = app
         self.palette = parent
@@ -141,7 +147,7 @@ class EditorFrame(wxFrame):
         self.addShellPage()
 
         # Explorer
-        self.explorer = Explorer.PackageFolderExplorer(self.tabs, 
+        self.explorer = Explorer.ExplorerSplitter (self.tabs, 
           self.modelImageList, '', self)
         self.tabs.AddPage(self.explorer, 'Explorer')
         self.tabs.SetSelection(1)
@@ -214,7 +220,7 @@ class EditorFrame(wxFrame):
         
         self.defaultAdtViews = {AppModel: [], BaseFrameModel: [], 
                                 ModuleModel: [], PackageModel: [], TextModel: [],
-                                ZopeDocumentModel: []}
+                                ZopeDocumentModel: [], CPPModel: []}
 
         # Toolbar
         self.toolBar = EditorToolBar(self, -1)#, style = wxTB_HORIZONTAL|wxNO_BORDER|wxTB_FLAT)#|wxTB_FLAT
@@ -384,7 +390,6 @@ class EditorFrame(wxFrame):
         model.new()
 
         self.tabs.Refresh()
-
         self.updateTitle()
 
     def addNewPackage(self):
@@ -398,7 +403,6 @@ class EditorFrame(wxFrame):
             model.notify()
 
             self.tabs.Refresh()
-
             self.updateTitle()
 
     def addNewAppPage(self):
@@ -414,7 +418,6 @@ class EditorFrame(wxFrame):
         appmodel.new(frmNme)
 
         self.tabs.Refresh()
-
         self.updateTitle()
 
     def addNewModulePage(self):
@@ -429,7 +432,6 @@ class EditorFrame(wxFrame):
         if activeApp: activeApp.addModule(model.filename, '')
 
         self.tabs.Refresh()
-
         self.updateTitle()
 
     def addNewFramePage(self, modId, app = None):
@@ -457,7 +459,6 @@ class EditorFrame(wxFrame):
         if activeApp: activeApp.model.addModule(model.filename, '')
 
         self.tabs.Refresh()
-
         self.updateTitle()
         
         return model
@@ -520,6 +521,11 @@ class EditorFrame(wxFrame):
                 model = TextModel(source, filename, self, true)
                 defViews = defTextModelViews
                 views = adtTextModelViews
+            elif modCls is CPPModel:
+                print 'Identified CPP'
+                model = CPPModel(source, filename, self, true)
+                defViews = defCPPModelViews
+                views = adtCPPModelViews
             else:
                 model = ModuleModel(source, filename, self, true, app)
                 defViews = defModModelViews
@@ -649,9 +655,15 @@ class EditorFrame(wxFrame):
                 modulePage.model.views['Designer'].close()
             modulePage.model.refreshFromViews()
             if modulePage.model.modified:
+                vis = self.IsShown()
+                if not vis:
+                    self.Show(true)
                 if Utils.yesNoDialog(self, 'Close module', 'There are changes, do you want to save?'):
                     self.saveOrSaveAs()
                     name = modulePage.model.filename
+                if not vis:
+                    self.Show(false)
+
             self.tabs.RemovePage(idx)
             del self.modules[name]
             modulePage.destroy()
@@ -692,7 +704,7 @@ class EditorFrame(wxFrame):
         else:
             modPge = self.modules[model.filename]
         self.tabs.SetPageText(modPge.tIdx, modPge.updatePageName())
-	self.tabs.Refresh()
+        self.tabs.Refresh()
     
     def updateStatusRowCol(self, row, col):
         self.statusBar.row.SetLabel(`row`)
@@ -760,7 +772,7 @@ class EditorFrame(wxFrame):
             modulePage.model.views['Source'].refreshModel()
             self.updateModulePage(modulePage.model)
             self.updateTitle()
-		
+
     def OnPageChange(self, event):
         sel = event.GetSelection()
         if sel > -1:
@@ -775,6 +787,7 @@ class EditorFrame(wxFrame):
         print self.modules
     
     def OnCloseWindow(self, event):
+        self.Show(false) 
         if self.palette.destroying:
             # hack to avoid core dump, first setting the notebook to anything but
             # the last page before setting it to the last page allows us to close
@@ -795,8 +808,8 @@ class EditorFrame(wxFrame):
             self.mainMenu = None
             self.Destroy()
             event.Skip()
-        else:
-            self.Show(false) 
+##        else:
+##            self.Show(false) 
 
     def OnHelp(self, event):
         Help.showHelp(self, Help.BoaHelpFrame, 'Editor.html')
@@ -915,9 +928,17 @@ class MyToolBar(wxToolBar):
         self.toolLst = []
         self.toolCount = 0
 
-    def AddTool(self, id, bitmap, toggleBitmap = wxNullBitmap, shortHelpString = ''):
-        wxToolBar.AddTool(self, id, bitmap, toggleBitmap, toggle = toggleBitmap != wxNullBitmap, 
-         shortHelpString = shortHelpString)
+#    def AddTool(self, id, bitmap, toggleBitmap = wxNullBitmap, shortHelpString = '', isToggle = false):
+    def AddTool(self, id, bitmap, toggleBitmap = wxNullBitmap, shortHelpString = '', isToggle = false):
+#        wxToolBar.AddTool(self, id, bitmap, toggleBitmap, isToggle = isToggle, 
+        from Views.StyledTextCtrls import new_stc
+        if new_stc:
+            wxToolBar.AddTool(self, id, bitmap, toggleBitmap, isToggle = isToggle, 
+                shortHelpString = shortHelpString)
+        else:
+            wxToolBar.AddTool(self, id, bitmap, toggleBitmap, toggle = isToggle, 
+                shortHelpString = shortHelpString)
+   
         self.toolLst.append(id)
         self.toolCount = self.toolCount + 1
 
@@ -961,7 +982,8 @@ class EditorStatusBar(wxStatusBar):
 
         self.col = wxStaticText(self, -1, '0   ', wxPoint(3, 4))
         self.row = wxStaticText(self, -1, '0   ', wxPoint(37, 4))
-        self.hint = wxStaticText(self, -1, ' ', wxPoint(72, 4), wxSize(290, self.h -8))
+        self.hint = wxStaticText(self, -1, ' ', wxPoint(72, 4), 
+          wxSize(290, self.h -8), style = wxST_NO_AUTORESIZE | wxALIGN_LEFT)
         self.progress = wxGauge(self, -1, 100, 
           pos = wxPoint(368+Preferences.editorProgressFudgePosX, 2), 
           size = wxSize(150, self.h -5 + Preferences.editorProgressFudgeSizeY))
@@ -969,6 +991,7 @@ class EditorStatusBar(wxStatusBar):
     def setHint(self, hint):
         self.hint.SetLabel(hint)
         self.hint.SetSize(wxSize(290, self.h -8))
+        self.hint.SetToolTipString(hint)
 
 #-----Model hoster--------------------------------------------------------------
 
@@ -1048,12 +1071,8 @@ class ModulePage:
         """ Return a name that is decorated with () meaning never been saved
             and/or * meaning model modified ~ meaning view modified. """
     
-        # XXX Nasty special checking package!!!
-        if self.model.__class__ == PackageModel:
-            self.pageName = self.model.packageName
-        else:
-            self.pageName, dummy = path.splitext(path.basename(self.model.filename))
-        
+        self.pageName = self.model.getPageName()
+
         if not self.model.savedAs:
             sa1 = '('
             sa2 = ')'
@@ -1067,7 +1086,15 @@ class ModulePage:
         else: m = ''
 
         self.pageName = '%s%s%s%s%s%s%s' % (m, vm, sa1, self.pageName, sa2, vm, m)
-        
+
+##        self.pageName = '%s%s%s%s%s%s%s' % (self.model.modified and '*' or '', 
+##                                            len(self.model.viewsModified) and '~' or '', 
+##                                            self.model.savedAs and '(' or '', 
+##                                            self.model.getPageName(), 
+##                                            self.model.savedAs and ')' or '', 
+##                                            len(self.model.viewsModified) and '~' or '',
+##                                            self.model.modified and '*' or '')
+
         return self.pageName
 
 ### decl getActiveView(self, idx : int) -> EditorView
