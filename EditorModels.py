@@ -447,7 +447,6 @@ class ModuleModel(SourceModel):
                 sys.path.append(Preferences.pyPath)
                 cmd = '"%s" %s %s'%(sys.executable,
                       os.path.basename(self.filename), args)
-                print 'executing', cmd, args
 
                 from ModRunner import PreferredRunner
                 if Preferences.minimizeOnRun:
@@ -612,6 +611,9 @@ class ModuleModel(SourceModel):
                   'Reindent failed - %s : %s' % (error.__class__, str(error)) )
 
         return false
+    
+    def getSimpleRunnerSrc(self):
+        return simpleModuleRunSrc
 
 import ShellEditor
 class SourcePseudoFile(ShellEditor.PseudoFileOutStore):
@@ -899,7 +901,7 @@ class BaseFrameModel(ClassModel):
                 codeSpan = main.methods[oc]
                 codeBody = module.source[codeSpan.start : codeSpan.end]
 
-                # XXX This should not be necessary
+                # XXX Hack: This should not be necessary !!
                 if len(oc) >= 11 and oc[:11] == init_ctrls and \
                   string.strip(codeBody[1]) == 'self._init_utils()':
                     del codeBody[1]
@@ -962,6 +964,9 @@ class BaseFrameModel(ClassModel):
         ClassModel.update(self)
 #        self.readComponents()
 
+    def getSimpleRunnerSrc(self):
+        return simpleAppFrameRunSrc
+
 class FrameModel(BaseFrameModel):
     modelIdentifier = 'Frame'
     defaultName = 'wxFrame'
@@ -975,6 +980,9 @@ class DialogModel(BaseFrameModel):
     bitmap = 'wxDialog_s.bmp'
     imgIdx = imgDialogModel
     companion = Companions.DialogDTC
+
+    def getSimpleRunnerSrc(self):
+        return simpleAppDialogRunSrc
 
 class MiniFrameModel(BaseFrameModel):
     modelIdentifier = 'MiniFrame'
@@ -1304,11 +1312,18 @@ class AppModel(ClassModel):
     def crashLog(self):
         err = ErrorStack.crashError(os.path.splitext(self.filename)[0]+'.trace')
         if err:
-            import ErrorStackFrm
-            esf = ErrorStackFrm.ErrorStackMF(self.editor, self.app, self.editor)
-            esf.updateCtrls(err)
-            esf.Show(true)
-            return esf
+            frm = self.editor.erroutFrm
+            if frm:
+                frm.updateCtrls(err)
+                if not frm.IsShown():
+                    frm.Show(true)
+##                
+##                self.editor.erroutFrm. return self.checkError(serr, 'Ran', dlg.output)
+##                            import ErrorStackFrm
+##            esf = ErrorStackFrm.ErrorStackMF(self.editor, self.app)
+##            esf.updateCtrls(err)
+##            esf.Show(true)
+                return frm
         else:
             wx.wxLogError('Trace file not found. Run with command line param -T')
             return None
