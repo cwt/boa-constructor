@@ -16,13 +16,14 @@ from wxPython.wx import *
 import os, string
 import Preferences, Utils
 
-[wxID_ERRORSTACKMFSTATUSBAR, wxID_ERRORSTACKMFERRORSTACKTC, wxID_ERRORSTACKMF, wxID_ERRORSTACKMFNOTEBOOK1, wxID_ERRORSTACKMFOUTPUTTC] = map(lambda _init_ctrls: wxNewId(), range(5))
+[wxID_ERRORSTACKMFSTATUSBAR, wxID_ERRORSTACKMFERRORSTACKTC, wxID_ERRORSTACKMF, wxID_ERRORSTACKMFNOTEBOOK1, wxID_ERRORSTACKMFOUTPUTTC, wxID_ERRORSTACKMFERRORTC] = map(lambda _init_ctrls: wxNewId(), range(6))
 
 class ErrorStackMF(wxFrame):
     def _init_coll_notebook1_Pages(self, parent):
 
-        parent.AddPage(strText = 'Errors', bSelect = true, pPage = self.errorStackTC, imageId = -1)
+        parent.AddPage(strText = 'Tracebacks', bSelect = true, pPage = self.errorStackTC, imageId = -1)
         parent.AddPage(strText = 'Output', bSelect = false, pPage = self.outputTC, imageId = -1)
+        parent.AddPage(strText = 'Errors', bSelect = false, pPage = self.errorTC, imageId = -1)
 
     def _init_coll_statusBar_Fields(self, parent):
         parent.SetFieldsCount(1)
@@ -46,6 +47,8 @@ class ErrorStackMF(wxFrame):
         self.SetStatusBar(self.statusBar)
 
         self.outputTC = wxTextCtrl(size = wxSize(326, 384), value = '', pos = wxPoint(0, 0), parent = self.notebook1, name = 'outputTC', style = wxTE_MULTILINE, id = wxID_ERRORSTACKMFOUTPUTTC)
+
+        self.errorTC = wxTextCtrl(size = wxSize(326, 384), value = '', pos = wxPoint(0, 0), parent = self.notebook1, name = 'errorTC', style = wxTE_MULTILINE, id = wxID_ERRORSTACKMFERRORTC)
 
         #--
         # Special case to fix GTK redraw problem
@@ -133,7 +136,7 @@ class ErrorStackMF(wxFrame):
                 fn = os.path.join(self.runningDir, data.file)
             else:
                 fn = os.path.abspath(data.file)
-            model = self.editor.openOrGotoModule(fn, self.app)
+            model, controller = self.editor.openOrGotoModule(fn, self.app)
             model.views['Source'].focus()
             model.views['Source'].SetFocus()
             model.views['Source'].gotoLine(data.lineNo - 1)
