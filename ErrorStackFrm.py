@@ -189,6 +189,31 @@ class ErrorStackMF(wxFrame, Utils.FrameRestorerMixin):
             if win2 and not win2.GetSize().y:
                 splitter.openBottomWindow()
 
+    def appendToTextCtrl(self, tc, txt, 
+                         TEXTCTRL_MAXLEN=30000, TEXTCTRL_GOODLEN=20000):
+        # Before appending to the output, remove old data.
+        cursz = tc.GetLastPosition()
+        newsz = cursz + len(txt)
+        if newsz >= TEXTCTRL_MAXLEN:
+            olddata = tc.GetValue()[newsz - TEXTCTRL_GOODLEN:]
+            outp.SetValue(olddata)
+        tc.AppendText(txt)
+        
+        # XXX just make editor err out visible for now, the others would be
+        # XXX too jarring
+        if self.notebook1.GetGrandParent() == self.editor:
+            splitter = self.editor.tabsSplitter
+            win2 = splitter.GetWindow2()
+            if win2 and not win2.GetSize().y:
+                splitter.openBottomWindow()    
+                
+    def appendToOutput(self, txt):
+        self.appendToTextCtrl(self.outputTC, txt)
+
+    def appendToErrors(self, txt):
+        self.appendToTextCtrl(self.errorTC, txt)
+
+
     def Destroy(self):
         self.vetoEvents = true
         wxFrame.Destroy(self)
