@@ -10,7 +10,7 @@
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 
-import string
+import string, socket
 import ftplib, os
 
 true = 1
@@ -30,12 +30,17 @@ class ZopeFTPItem:
         return '<%s %s, %s>' % (`self.__class__`, self.whole_name(), self.date)
 
     def read(self, line):
+        items = filter(None, string.split(line))
         try:
-            self.perms = line[:10]
-            entries = filter(None, string.split(line[10:42], ' '))
-            self.size = int(entries[3])
-            self.date = line[43:55]
-            self.name = string.strip(line[55:])
+            self.perms, dunno, owner, group, self.size = items[:5]
+            self.date = string.join(items[5:8], ' ')
+            #self.perms = line[:10]
+            #entries = filter(None, string.split(line[10:42], ' '))
+            #self.size = int(entries[3])
+            #self.date = line[43:55]
+            self.name = string.join(items[8:], ' ')
+            #print self.perms, self.size, self.name
+
         except Exception, message:
             print 'Could not read:', line, message
 #        print line
@@ -71,6 +76,7 @@ class ZopeFTP:
         self.host = ''
         self.port = 21
         self.username = ''
+        self.password = ''
         self.connected = false
         self.http_port = 8080
 
@@ -83,6 +89,8 @@ class ZopeFTP:
         self.host = host
         self.port = port
         self.username = username
+        self.password = password
+        self.passive = passive
 
         res = []
         res.append(self.ftp.connect(host, port))
@@ -115,7 +123,7 @@ class ZopeFTP:
         res = []
         lst = []
         self.ftp.dir(path, lst.append)
-        for line in lst:
+        for line in lst[1:]:
             zftpi = ZopeFTPItem()
             zftpi.read(line)
             zftpi.path = path
@@ -134,7 +142,14 @@ class ZopeFTP:
 
     def save(self, item, data):
         item.prepareAsFile(data)
-        self.ftp.storlines(item.cmd('STOR'), item)
+        try:
+            self.ftp.storlines(item.cmd('STOR'), item)
+        except socket.error, err:
+            # reconnect and retry if connection has failed
+            if err[0] == 10054:
+                self.connect(self.username, self.password, self.host, self.port, self.passive)
+                self.ftp.storlines(item.cmd('STOR'), item)
+
 
     def upload(self, filename, dest_path):
         f = open(filename, 'rb')
