@@ -253,9 +253,9 @@ class CachedNodeMixin:
             self.valid = true
             return self.cache
 
-class RootNode(ExplorerNode):
-    def __init__(self, name):
-        ExplorerNode.__init__(self, name, '', None, EditorHelper.imgBoaLogo, None)
+class ContainerNode(ExplorerNode):
+    def __init__(self, name, imgIdx):
+        ExplorerNode.__init__(self, name, '', None, imgIdx, None)
         self.entries = []
         self.vetoRequery = true
     def destroy(self): pass
@@ -263,10 +263,14 @@ class RootNode(ExplorerNode):
     def createParentNode(self): return self
     def createChildNode(self, value): return value
     def openList(self): return self.entries
-    def getTitle(self): return 'Boa Constructor'
+    def getTitle(self): return self.name
     def notifyBeginLabelEdit(self, event):
         event.Veto()
 
+class RootNode(ContainerNode):
+    def __init__(self, name):
+        ContainerNode.__init__(self, name, EditorHelper.imgBoaLogo)
+        
 cat_section = 0
 cat_option = 1
 class CategoryNode(ExplorerNode):
