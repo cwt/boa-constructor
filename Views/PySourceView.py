@@ -905,6 +905,7 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
         if selStartPos != selEndPos:
             self.processSelectionBlock(self.processComment)
         else:
+            self.GotoPos(self.PositionFromLine(self.LineFromPosition(selStartPos)))
             self.AddText('##')
             self.SetSelection(selStartPos, selStartPos)
 
