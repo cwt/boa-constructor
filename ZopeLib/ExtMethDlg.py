@@ -69,33 +69,60 @@ class ExternalMethodFinder:
         return module.functions.keys()
 
 
-[wxID_EXTMETHDLGSTATICTEXT1, wxID_EXTMETHDLGSTATICTEXT2, wxID_EXTMETHDLGCHFUNCTION, wxID_EXTMETHDLGPANEL1, wxID_EXTMETHDLGBTOK, wxID_EXTMETHDLGBTCANCEL, wxID_EXTMETHDLGCBMODULE, wxID_EXTMETHDLG] = map(lambda _init_ctrls: wxNewId(), range(8))
+[wxID_EXTMETHDLG, wxID_EXTMETHDLGBTCANCEL, wxID_EXTMETHDLGBTOK, 
+ wxID_EXTMETHDLGCBMODULE, wxID_EXTMETHDLGCHFUNCTION, wxID_EXTMETHDLGPANEL1, 
+ wxID_EXTMETHDLGSTATICTEXT1, wxID_EXTMETHDLGSTATICTEXT2, 
+] = map(lambda _init_ctrls: wxNewId(), range(8))
 
 class ExtMethDlg(wxDialog):
     def _init_utils(self):
+        # generated method, don't edit
         pass
 
     def _init_ctrls(self, prnt):
-        wxDialog.__init__(self, size = wxSize(267, 141), id = wxID_EXTMETHDLG, title = 'Add External Method', parent = prnt, name = 'ExtMethDlg', style = wxDEFAULT_DIALOG_STYLE, pos = wxPoint(363, 248))
+        # generated method, don't edit
+        wxDialog.__init__(self, id=wxID_EXTMETHDLG, name='ExtMethDlg',
+              parent=prnt, pos=wxPoint(363, 248), size=wxSize(267, 141),
+              style=wxDEFAULT_DIALOG_STYLE, title='Add External Method')
         self._init_utils()
+        self.SetClientSize(wxSize(259, 114))
 
-        self.panel1 = wxPanel(size = wxSize(248, 112), parent = self, id = wxID_EXTMETHDLGPANEL1, name = 'panel1', style = wxTAB_TRAVERSAL, pos = wxPoint(0, 0))
+        self.panel1 = wxPanel(id=wxID_EXTMETHDLGPANEL1, name='panel1',
+              parent=self, pos=wxPoint(0, 0), size=wxSize(259, 114),
+              style=wxTAB_TRAVERSAL)
 
-        self.staticText1 = wxStaticText(label = 'Module:', id = wxID_EXTMETHDLGSTATICTEXT1, parent = self.panel1, name = 'staticText1', size = wxSize(38, 13), style = 0, pos = wxPoint(8, 16))
+        self.staticText1 = wxStaticText(id=wxID_EXTMETHDLGSTATICTEXT1,
+              label='Module:', name='staticText1', parent=self.panel1,
+              pos=wxPoint(8, 16), size=wxSize(56, 13), style=0)
 
-        self.staticText2 = wxStaticText(label = 'Function:', id = wxID_EXTMETHDLGSTATICTEXT2, parent = self.panel1, name = 'staticText2', size = wxSize(44, 13), style = 0, pos = wxPoint(8, 48))
+        self.staticText2 = wxStaticText(id=wxID_EXTMETHDLGSTATICTEXT2,
+              label='Function:', name='staticText2', parent=self.panel1,
+              pos=wxPoint(8, 48), size=wxSize(56, 13), style=0)
 
-        self.cbModule = wxComboBox(size = wxSize(184, 21), value = '', pos = wxPoint(64, 8), choices = [], parent = self.panel1, name = 'cbModule', validator = wxDefaultValidator, style = 0, id = wxID_EXTMETHDLGCBMODULE)
-        EVT_COMBOBOX(self.cbModule, wxID_EXTMETHDLGCBMODULE, self.OnCbmoduleCombobox)
+        self.cbModule = wxComboBox(choices=[], id=wxID_EXTMETHDLGCBMODULE,
+              name='cbModule', parent=self.panel1, pos=wxPoint(72, 8),
+              size=wxSize(176, 21), style=0, validator=wxDefaultValidator,
+              value='')
+        EVT_COMBOBOX(self.cbModule, wxID_EXTMETHDLGCBMODULE,
+              self.OnCbmoduleCombobox)
 
-        self.chFunction = wxComboBox(size = wxSize(184, 21), value = '', pos = wxPoint(64, 40), choices = [], parent = self.panel1, name = 'chFunction', validator = wxDefaultValidator, style = 0, id = wxID_EXTMETHDLGCHFUNCTION)
-        EVT_COMBOBOX(self.chFunction, wxID_EXTMETHDLGCHFUNCTION, self.OnChfunctionCombobox)
+        self.chFunction = wxComboBox(choices=[], id=wxID_EXTMETHDLGCHFUNCTION,
+              name='chFunction', parent=self.panel1, pos=wxPoint(72, 40),
+              size=wxSize(176, 21), style=0, validator=wxDefaultValidator,
+              value='')
+        EVT_COMBOBOX(self.chFunction, wxID_EXTMETHDLGCHFUNCTION,
+              self.OnChfunctionCombobox)
 
-        self.btOK = wxButton(label = 'OK', id = wxID_EXTMETHDLGBTOK, parent = self.panel1, name = 'btOK', size = wxSize(72, 24), style = 0, pos = wxPoint(96, 80))
+        self.btOK = wxButton(id=wxID_EXTMETHDLGBTOK, label='OK', name='btOK',
+              parent=self.panel1, pos=wxPoint(96, 80), size=wxSize(72, 24),
+              style=0)
         EVT_BUTTON(self.btOK, wxID_EXTMETHDLGBTOK, self.OnBtokButton)
 
-        self.btCancel = wxButton(label = 'Cancel', id = wxID_EXTMETHDLGBTCANCEL, parent = self.panel1, name = 'btCancel', size = wxSize(72, 24), style = 0, pos = wxPoint(176, 80))
-        EVT_BUTTON(self.btCancel, wxID_EXTMETHDLGBTCANCEL, self.OnBtcancelButton)
+        self.btCancel = wxButton(id=wxID_EXTMETHDLGBTCANCEL, label='Cancel',
+              name='btCancel', parent=self.panel1, pos=wxPoint(176, 80),
+              size=wxSize(72, 24), style=0)
+        EVT_BUTTON(self.btCancel, wxID_EXTMETHDLGBTCANCEL,
+              self.OnBtcancelButton)
 
     def __init__(self, parent, zopeDir):
         self._init_ctrls(parent)
@@ -132,3 +159,4 @@ if __name__ == '__main__':
         dlg.ShowModal()
     finally:
         dlg.Destroy()
+    app.MainLoop()

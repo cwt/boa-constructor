@@ -30,11 +30,14 @@ class ImageViewer(wxMiniFrame):
 
         self.staticBitmap1 = wxStaticBitmap(bitmap = wxNullBitmap, id = wxID_IMAGEVIEWERSTATICBITMAP1, name = 'staticBitmap1', parent = self.sashWindow1, pos = wxPoint(9, 9), size = wxSize(203, 167), style = 0)
 
-    def __init__(self, parent):
+    def __init__(self, parent, doubleClickCallback=None):
         self.borderSize = 9
         self._init_utils()
         self._init_ctrls(parent)
         self.Centre(wxBOTH)
+        
+        if doubleClickCallback:
+            EVT_LEFT_DCLICK(self.staticBitmap1, doubleClickCallback)
 
     def showImage(self, filename, node = None):
         if node is not None:
