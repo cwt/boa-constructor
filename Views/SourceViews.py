@@ -11,7 +11,8 @@
 #----------------------------------------------------------------------
 print 'importing Views.SourceViews'
 
-import time
+import time, os
+from cStringIO import StringIO
 
 from wxPython.wx import *
 from wxPython.stc import *
@@ -23,7 +24,6 @@ import EditorViews, Search, Help, Preferences, Utils
 from StyledTextCtrls import TextSTCMix, idWord, object_delim
 
 from Explorers import ExplorerNodes
-from ClipboardPlus import ClipboardPlus
 
 endOfLines = {  wxSTC_EOL_CRLF : '\r\n',
                 wxSTC_EOL_CR : '\r',
@@ -46,8 +46,8 @@ class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView):
     findBmp = 'Images/Shared/Find.png'
     findAgainBmp = 'Images/Shared/FindAgain.png'
     printBmp = 'Images/Shared/Print.png'
-
-    clipboardPlus = ClipboardPlus()
+    
+    defaultEOL = os.linesep
 
     def __init__(self, parent, wId, model, actions, defaultAction = -1):
         wxStyledTextCtrl.__init__(self, parent, wId, style = wxCLIP_CHILDREN | wxSUNKEN_BORDER)
@@ -59,8 +59,6 @@ class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView):
               ('Cut', self.OnEditCut, self.cutBmp, ''),
               ('Copy', self.OnEditCopy, self.copyBmp, ''),
               ('Paste', self.OnEditPaste, self.pasteBmp, ''),
-              ('Copy+', self.OnEditCopyPlus, '-', 'CopyPlus'),
-              ('Paste+', self.OnEditPastePlus, '-', 'PastePlus'),
               ('-', None, '', ''),
               ('Find \ Replace', self.OnFind, self.findBmp, 'Find'),
               ('Find again', self.OnFindAgain, self.findAgainBmp, 'FindAgain'),
@@ -75,10 +73,9 @@ class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView):
               ##('Spellcheck selection (via HTTP)', self.OnSpellCheck, '-', ''),
               )
 
-        EditorViews.EditorView.__init__(self, model, a + actions, -1)#defaultAction)
+        EditorViews.EditorView.__init__(self, model, a + actions, defaultAction)
 
-        self.SetEOLMode(wxSTC_EOL_LF)
-        self.eol = endOfLines[self.GetEOLMode()]
+        self.eol = None
 
         self.pos = 0
         self.stepPos = 0
@@ -146,6 +143,13 @@ class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView):
             self.SetSelection(*selection)
         finally:
             self._blockUpdate = false
+
+        if self.eol is None:
+            self.eol = Utils.getEOLMode(newData, self.defaultEOL)
+
+            self.SetEOLMode({'\r\n': wxSTC_EOL_CRLF,
+                             '\r':   wxSTC_EOL_CR,
+                             '\n':   wxSTC_EOL_LF}[self.eol])
 
         self.SetSavePoint()
         self.nonUserModification = false
@@ -228,16 +232,15 @@ class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView):
     def isModified(self):
         return self.GetModify() or self.nonUserModification
 
-#---Block commands----------------------------------------------------------
+#---Block commands--------------------------------------------------------------
 
     def reselectSelectionAsBlock(self):
         selStartPos, selEndPos = self.GetSelection()
         selStartLine = self.LineFromPosition(selStartPos)
         startPos = self.PositionFromLine(selStartLine)
-        selEndLine = self.LineFromPosition(selEndPos)
-        if selEndPos != self.PositionFromLine(selEndLine):
-            selEndLine = selEndLine + 1
-        endPos = self.PositionFromLine(selEndLine)
+        selEndLine = self.LineFromPosition(selEndPos-1)#to handle cursor under sel
+        endPos = self.GetLineEndPosition(selEndLine)
+        startPos = self.PositionFromLine(selStartLine)
         self.SetSelection(startPos, endPos)
         return selStartLine, selEndLine
 
@@ -250,11 +253,11 @@ class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView):
         self.BeginUndoAction()
         try:
             sls, sle = self.reselectSelectionAsBlock()
-            textLst = func(self.GetSelectedText().split(self.eol), indtBlock)[:-1]
-            self.ReplaceSelection(self.eol.join(textLst)+self.eol)
-            if sle > sls:
-                self.SetSelection(self.PositionFromLine(sls),
-                  self.PositionFromLine(sle)-1)
+            lines = StringIO(self.GetSelectedText()).readlines()
+            text = ''.join(func(lines, indtBlock))
+            self.ReplaceSelection(text)
+            self.SetSelection(self.PositionFromLine(sls), 
+                              self.GetLineEndPosition(sle))
         finally:
             self.EndUndoAction()
 
@@ -419,21 +422,6 @@ class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView):
     def OnMarginClick(self, event):
         pass
 
-    def OnEditCopyPlus(self, event):
-        self.clipboardPlus.updateClipboard(self.GetSelectedText())
-
-    def OnEditPastePlus(self, event):
-        buffer = self.clipboardPlus.getClipboardList()
-        if len(buffer) == 1:
-            self.Paste()
-        else:
-            dlg = wxSingleChoiceDialog(self, 'Context', 'Smart clipboard', buffer)
-            try:
-                if dlg.ShowModal() == wxID_OK:
-                    self.clipboardPlus.updateClipboard( dlg.GetStringSelection() )
-                    self.Paste()
-            finally:
-                dlg.Destroy()
 
 #---STC Settings----------------------------------------------------------------
 
