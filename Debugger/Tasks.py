@@ -3,23 +3,30 @@ import threading
 
 class ThreadedTaskHandler:
 
-    thread_timeout = 10
-
-    def __init__(self, limit_threads=3):
+    def __init__(self, target_threads=1, limit_threads=0):
         self.queue = []
         self.cond = threading.Condition()
         self.running_threads = 0
         self.idle_threads = 0
+        self.target_threads = target_threads
         self.limit_threads = limit_threads
 
-    def addTask(self, task):
+    def addTask(self, task, args=(), kw=None):
         '''
         task is a callable object which will be executed in another
         thread.
         '''
-        self.cond.acquire()
+        if 0:
+            if kw is None: kw = {}
+            t = threading.Thread(target=task, args=args, kwargs=kw)
+            t.setDaemon(1)
+            t.start()
+            return
+        
+        cond = self.cond
+        cond.acquire()
         try:
-            self.queue.append(task)
+            self.queue.append((task, args, kw))
             if self.idle_threads < 1:
                 if self.limit_threads < 1 or (self.running_threads
                                               < self.limit_threads):
@@ -27,44 +34,53 @@ class ThreadedTaskHandler:
                     t.setDaemon(1)
                     self.running_threads = self.running_threads + 1
                     t.start()
-            self.cond.notify()
+            else:
+                self.idle_threads = self.idle_threads - 1
+            cond.notify()
         finally:
-            self.cond.release()
+            cond.release()
+
+    def cleanup(self):
+        """If there is a need to make sure the number of threads is
+        kept under control, call this periodically."""
+        if self.running_threads > self.target_threads:
+            self.cond.notifyAll()
 
     def clientThread(self):
-        try:
-            exitLoop = 0
-            while not exitLoop:
-                self.cond.acquire()
-                try:
-                    if len(self.queue) < 1:
-                        self.idle_threads = self.idle_threads + 1
-                        self.cond.wait(self.thread_timeout)
-                        # XXX Can't tell whether actually timed out
-                        # our not, therefore idle_threads is managed
-                        # is a less than ideal way.
-                        self.idle_threads = self.idle_threads - 1
-                        if len(self.queue) < 1:
-                            # Timed out.
-                            exitLoop = 1
-                    if not exitLoop:
-                        task = self.queue[0]
-                        del self.queue[0]
-                finally:
-                    self.cond.release()
+        exit_loop = 0
+        while not exit_loop:
+            task = args = kw = None
+            cond = self.cond
+            cond.acquire()
+            try:
+                queue = self.queue
+                if len(queue) < 1:
+                    self.idle_threads = self.idle_threads + 1
+                    cond.wait()
+                if len(queue) > 0:
+                    task, args, kw = queue[0]
+                    del queue[0]
+                if self.running_threads > self.target_threads:
+                    exit_loop = 1
+                    self.running_threads = self.running_threads - 1
+            finally:
+                cond.release()
 
-                if not exitLoop:
-                    try:
-                        task()
-                    except SystemExit:
-                        exitLoop = 1
-                    except:
-                        # task ought to do its own error handling,
-                        # but sometimes it won't.
-                        import traceback
-                        traceback.print_exc()
-        finally:
-            self.running_threads = self.running_threads - 1
+            if task is not None:
+                try:
+                    if kw is not None:
+                        apply(task, args, kw)
+                    else:
+                        apply(task, args)
+                except SystemExit:
+                    exit_loop = 1
+                    self.running_threads = self.running_threads - 1
+                except:
+                    # The task ought to do its own error handling,
+                    # but sometimes it won't.
+                    import traceback
+                    traceback.print_exc()
+
 
 if __name__ == '__main__':
     # Self-test.
@@ -75,6 +91,8 @@ if __name__ == '__main__':
         def __call__(self):
             print self.s
     tth = ThreadedTaskHandler()
-    for n in range(20):
+    for n in range(10):
+        print 'starting', n
         tth.addTask(PrintTask(n))
-    time.sleep(1)
+        time.sleep(1)
+    time.sleep(2)

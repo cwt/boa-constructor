@@ -8,7 +8,7 @@ def test1():
 def test():
     print 'Hello'
     print 'World!'
-    for n in range(10000):
+    for n in range(1000):
         pass
     print 'Message:'
     test1()
@@ -17,8 +17,9 @@ def test():
     print 'yeah.'
     
 if __name__ == '__main__':
-  test()
   if 1:
+    test()
+  else:
     import IsolatedDebugger
     dc = IsolatedDebugger.DebuggerController()
     id = dc.createServer()

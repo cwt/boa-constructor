@@ -1,7 +1,8 @@
 
-import sys
+import string, sys
+from string import rfind
 from Tasks import ThreadedTaskHandler
-from wxPython.wx import NewId, wxPyCommandEvent
+from wxPython.wx import NewId, wxPyCommandEvent, wxYield
 
 '''
     The client starts and connects to the debug server.  The process
@@ -60,45 +61,8 @@ class DebugClient:
     def invokeOnServer(self, m_name, m_args=(), r_name=None, r_args=()):
         pass
 
-
-class DebuggerTask:
-    def __init__(self, client, m_name, m_args, r_name, r_args):
-        self.client = client
-        self.m_name = m_name
-        self.m_args = m_args
-        self.r_name = r_name
-        self.r_args = r_args
-
-    def __call__(self):
-        evt = None
-        try:
-            result = self.client.invoke(self.m_name, self.m_args)
-        except:
-            t, v = sys.exc_info()[:2]
-            evt = DebuggerCommEvent(wxEVT_DEBUGGER_EXC,
-                                    self.client.win_id)
-            evt.SetExc(t, v)
-        else:
-            if self.r_name:
-                evt = DebuggerCommEvent(wxEVT_DEBUGGER_OK,
-                                        self.client.win_id)
-                evt.SetReceiverName(self.r_name)
-                evt.SetReceiverArgs(self.r_args)
-                evt.SetResult(result)
-        if evt:
-            self.client.event_handler.AddPendingEvent(evt)
-        
-
-class MultiThreadedDebugClient (DebugClient):
-
-    taskHandler = ThreadedTaskHandler()
-
-    def invoke(self, m_name, m_args):
+    def stop(self):
         pass
-
-    def invokeOnServer(self, m_name, m_args=(), r_name=None, r_args=()):
-        task = DebuggerTask(self, m_name, m_args, r_name, r_args)
-        self.taskHandler.addTask(task)
 
 
 from IsolatedDebugger import NonBlockingDebuggerConnection, \
@@ -147,3 +111,101 @@ class InProcessCallback:
         evt = DebuggerCommEvent(wxEVT_DEBUGGER_EXC, self.win_id)
         evt.SetExc(t, v)
         self.event_handler.AddPendingEvent(evt)
+
+
+
+
+class DebuggerTask:
+    def __init__(self, client, m_name, m_args, r_name, r_args):
+        self.client = client
+        self.m_name = m_name
+        self.m_args = m_args
+        self.r_name = r_name
+        self.r_args = r_args
+
+    def __call__(self):
+        evt = None
+        try:
+            result = self.client.invoke(self.m_name, self.m_args)
+        except:
+            t, v = sys.exc_info()[:2]
+            evt = DebuggerCommEvent(wxEVT_DEBUGGER_EXC,
+                                    self.client.win_id)
+            evt.SetExc(t, v)
+        else:
+            if self.r_name:
+                evt = DebuggerCommEvent(wxEVT_DEBUGGER_OK,
+                                        self.client.win_id)
+                evt.SetReceiverName(self.r_name)
+                evt.SetReceiverArgs(self.r_args)
+                evt.SetResult(result)
+        if evt:
+            self.client.event_handler.AddPendingEvent(evt)
+        
+
+class MultiThreadedDebugClient (DebugClient):
+
+    taskHandler = ThreadedTaskHandler()
+
+    def invoke(self, m_name, m_args):
+        pass
+
+    def invokeOnServer(self, m_name, m_args=(), r_name=None, r_args=()):
+        task = DebuggerTask(self, m_name, m_args, r_name, r_args)
+        self.taskHandler.addTask(task)
+
+
+
+from wxPython.wx import wxExecute, wxProcess, wxYield
+from xmlrpc import xmlrpclib
+import os
+
+def package_home(globals_dict):
+    __name__=globals_dict['__name__']
+    m=sys.modules[__name__]
+    if hasattr(m,'__path__'):
+        r=m.__path__[0]
+    elif "." in __name__:
+        r=sys.modules[__name__[:rfind(__name__,'.')]].__path__[0]
+    else:
+        r=__name__
+    if __name__ == '__main__':
+        return os.getcwd()
+    else:
+        return os.path.join(os.getcwd(), r)
+
+
+class SpawningDebugClient (MultiThreadedDebugClient):
+
+    server = None
+
+    def invokeOnServer(self, m_name, m_args=(), r_name=None, r_args=()):
+        if self.server is None:
+            self.spawnServer()
+        print 'comm started'
+        MultiThreadedDebugClient.invokeOnServer(
+            self, m_name, m_args, r_name, r_args)
+
+    def invoke(self, m_name, m_args):
+        m = getattr(self.server, m_name)
+        result = apply(m, m_args)
+        print 'comm ended'
+        return result
+
+    def spawnServer(self):
+        dsp = os.path.join(package_home(globals()), 'DebugServerProcess.py')
+        process = wxProcess()
+        process.Redirect()
+        wxExecute('%s "%s"' % (sys.executable, dsp), 0, process)
+
+        line = ''
+        while string.find(line, '\n') < 0:
+            stream = process.GetInputStream()
+            if not stream.eof():
+                text = stream.read()
+                line = line + text
+            else:
+                wxYield()
+ 
+        port, auth = string.split(string.strip(line))
+        self.server = xmlrpclib.Server('http://localhost:%s' % port)

@@ -27,7 +27,7 @@ from Preferences import pyPath, IS, flatTools
 #from PhonyApp import wxPhonyApp
 from Breakpoint import bplist
 from DebugClient import EVT_DEBUGGER_OK, EVT_DEBUGGER_EXC, \
-     InProcessDebugClient
+     InProcessDebugClient, SpawningDebugClient
 
 
 wxID_STACKVIEW = NewId()
@@ -336,9 +336,13 @@ class NamespaceViewCtrl(wxListCtrl):
 
     dict = -1
 
+    def showLoading(self):
+        self.DeleteAllItems()
+        self.InsertStringItem(0, '...')
+
     def load_dict(self, dict, force=0):
-        if dict == self.dict and not force:
-            return
+        #if dict == self.dict and not force:
+        #    return
 
         self.DeleteAllItems()
         self.dict = None
@@ -447,21 +451,35 @@ class WatchViewCtrl(wxListCtrl):
             finally:
                 dlg.Destroy()         
 
-    def load_dict(self, svalues, force=0):
-        self.DeleteAllItems()
+    def showLoading(self):
+        self.load_dict(None, loading=1)
+
+    def load_dict(self, svalues, force=0, loading=0):
+        count = self.GetItemCount()
         row = 0
         for name, local in self.watches:
             if svalues:
                 svalue = svalues.get(name, '???')
+            elif loading:
+                svalue = '...'
             else:
                 svalue = '???'
             if local:
                 idx = 3
             else:
                 idx = 4
-            self.InsertImageStringItem(row, name, idx)
+            if row >= count:
+                # Insert.
+                self.InsertImageStringItem(row, name, idx)
+                count = count + 1
+            else:
+                # Update.
+                self.SetStringItem(row, 0, name, idx)
             self.SetStringItem(row, 1, svalue, idx)
             row = row + 1
+        while row < count:
+            self.DeleteItem(count - 1)
+            count = count - 1
 
     def OnDelete(self, event):
         sel = self.rightsel
@@ -547,7 +565,8 @@ class DebuggerFrame(wxFrame):
             wxPoint(0, Preferences.paletteHeight), 
             wxSize(Preferences.inspWidth, Preferences.bottomHeight))
 
-        self.debug_client = InProcessDebugClient(self)
+        self.debug_client = SpawningDebugClient(self)
+        # self.debug_client = InProcessDebugClient(self)
 
         if wxPlatform == '__WXMSW__':
 	    self.icon = wxIcon(Preferences.toPyPath(
@@ -606,14 +625,6 @@ class DebuggerFrame(wxFrame):
             self.nbTop.SetImageList(self.viewsImgLst)
         
         self.stackView = StackViewCtrl(self.nbTop, None, self)
-        #if stack is None:
-        #    try:
-        #        stack = get_stack()
-        #        self.stackView.load_stack(stack)
-        #    except:
-        #        pass
-        #else:
-        #    self.stackView.load_stack(stack)
 
         if wxPlatform == '__WXMSW__':
             self.nbTop.AddPage(self.stackView, 'Stack', imageId = 0)
@@ -674,8 +685,8 @@ class DebuggerFrame(wxFrame):
         self.lastStepView = None
         self.lastStepLineno = -1
 
-##        self._command_queue = Queue()
-##        self._client_thread_running = 0
+        self.stepping_enabled = 1
+
         EVT_DEBUGGER_OK(self, self.GetId(), self.OnDebuggerOk)
         EVT_DEBUGGER_EXC(self, self.GetId(), self.OnDebuggerException)
         
@@ -699,15 +710,20 @@ class DebuggerFrame(wxFrame):
         # TODO: We may also want to clear the panes here
         # to show to the user that the data is not loaded yet.
 
-    def updateSelectedPane(self, pageno=-1):
+    def updateSelectedPane(self, pageno=-1, do_request=1):
         if pageno < 0:
             pageno = self.nbBottom.GetSelection()
         if not self.updated_panes[pageno]:
             frameno = self.stackView.selection
             if pageno == 0:
-                self.requestWatches(frameno)
+                self.watches.showLoading()
+                if do_request:
+                    self.requestWatches(frameno)
             else:
-                self.requestDict((pageno==1), frameno)
+                if pageno==1: self.locs.showLoading()
+                else: self.globs.showLoading()
+                if do_request:
+                    self.requestDict((pageno==1), frameno)
 
     def requestWatches(self, frameno):
         ws = self.watches.watches
@@ -770,10 +786,6 @@ class DebuggerFrame(wxFrame):
         if val:
             self.model.editor.statusBar.setHint(val)
 
-##    def getVarValue(self, name):
-##        return self.debug_conn.pprintVarValue(
-##            name, frameno=self.stackView.selection)
-
     #def startMainLoop(self):
     #    self.model.editor.app.MainLoop()
     #    self.mlc = self.mlc + 1
@@ -813,29 +825,6 @@ class DebuggerFrame(wxFrame):
         #cwd = path.abspath(os.getcwd())
         #os.chdir(path.dirname(filename))
 
-##    def clientThread(self):
-##        try:
-##            while 1:
-##                m_name, args = self._command_queue.get()
-##                if m_name:
-##                    try:
-##                        m = getattr(self.debug_conn, m_name)
-##                        status = apply(m, args)
-##                    except:
-##                        t, v = sys.exc_info()[:2]
-##                        evt = DebuggerCommEvent(wxEVT_DEBUGGER_EXC,
-##                                                self.GetId())
-##                        evt.SetExc(t, v)
-##                    else:
-##                        evt = DebuggerCommEvent(wxEVT_DEBUGGER_OK,
-##                                                self.GetId())
-##                        evt.SetStatus(status)
-##                    self.GetEventHandler().AddPendingEvent(evt)
-##                if not self._client_thread_running:
-##                    break
-##        finally:
-##            self._client_thread_running = 0
-
     def invokeInDebugger(self, m_name, m_args=(), r_name=None, r_args=()):
         '''
         Invokes a method asynchronously in the debugger,
@@ -843,54 +832,27 @@ class DebuggerFrame(wxFrame):
         when finished.
         '''
         self.debug_client.invokeOnServer(m_name, m_args, r_name, r_args)
+
+    def stopDebugger(self):
+        self.debug_client.stop()
         
-##        evt = None
-##        try:
-##            m = getattr(self.debug_conn, m_name)
-##            result = apply(m, m_args)
-##        except:
-##            t, v = sys.exc_info()[:2]
-##            evt = DebuggerCommEvent(wxEVT_DEBUGGER_EXC,
-##                                    self.GetId())
-##            evt.SetExc(t, v)
-##        else:
-##            if r_name:
-##                evt = DebuggerCommEvent(wxEVT_DEBUGGER_OK,
-##                                        self.GetId())
-##                evt.SetReceiverName(r_name)
-##                evt.SetReceiverArgs(r_args)
-##                evt.SetResult(result)
-##        if evt:
-##            self.GetEventHandler().AddPendingEvent(evt)
-
-##        q = self._command_queue
-##        q.put((m_name, args))
-##        if not getattr(self, '_client_thread_running', 0):
-##            self._client_thread_running = 1
-##            t = threading.Thread(target=self.clientThread)
-##            t.setDaemon(1)
-##            t.start()
-
-##    def stopClientThread(self):
-##        self._client_thread_running = 0
-##        while not self._command_queue.empty():
-##            self._command_queue.get_nowait()
-##        self._command_queue.put((None, None))
-
     def OnDebuggerOk(self, event):
+        self.enableStepping()
         receiver_name = event.GetReceiverName()
         if receiver_name is not None:
             rcv = getattr(self, receiver_name)
             apply(rcv, (event.GetResult(),) + event.GetReceiverArgs())
 
     def OnDebuggerException(self, event):
+        self.enableStepping()
         t, v = event.GetExc()
         if (wxMessageDialog(
             self, '%s: %s.  Stop debugger?' % (t, v),
             'Debugger Communication Exception',
             wxYES_NO | wxYES_DEFAULT | wxICON_EXCLAMATION |
             wxCENTRE).ShowModal() == wxID_YES):
-            self.disconnect()
+            self.stopDebugger()
+            self.clearViews()
 
     def runProcess(self):
         self.running = 1
@@ -900,10 +862,6 @@ class DebuggerFrame(wxFrame):
             'runFileAndRequestStatus',
             (self.filename, self.params or [], brks),
             'receiveDebuggerStatus')
-
-##        self.debug_conn.setAllBreakpoints(bplist.getBreakpointList())
-##        self.debug_conn.runFile(self.filename, self.params or [])
-##        self.queryDebuggerStatus()
 
 ##        try:
 ##            #sys.stderr = ShellEditor.PseudoFileErrTC(owin)
@@ -952,21 +910,7 @@ class DebuggerFrame(wxFrame):
 
     def setBreakpoint(self, filename, lineno, tmp):
         self.invokeInDebugger('addBreakpoint', (filename, lineno, tmp))
-##        self.nbTop.SetSelection(1)
-##        filename = self.canonic(filename)
-##        brpt = self.set_break(filename, lineno, tmp)
         self.breakpts.refreshList()
-##        return brpt
-
-##    def run(self, *args):
-###        print args
-##        try:
-##            self.sb.status.SetLabel('Running.')
-##            self.running = 1
-##            return apply(bdb.Bdb.run, (self,) + args)
-##        finally:
-##            self.running = 0
-##            self.sb.status.SetLabel('Finished.')
 
     def receiveDebuggerStatus(self, info):
         # TODO: Use info['stdout'] and info['stderr'].
@@ -980,15 +924,18 @@ class DebuggerFrame(wxFrame):
             base = os.path.basename(filename)
         else:
             filename = funcname = lineno = base = ''
-            
-        message = "%s:%s" % (base, lineno)
-        if funcname != "?":
-            message = "%s: %s()" % (message, funcname)
+
+        if self.running:
+            message = "%s:%s" % (base, lineno)
+            if funcname != "?":
+                message = "%s: %s()" % (message, funcname)
+        else:
+            message = 'Finished.'
 
         self.sb.status.SetLabel(message)
 
-        exc_type = info['exc_type']
-        exc_value = info['exc_value']
+        exc_type = info.get('exc_type', None)
+        exc_value = info.get('exc_value', None)
         if exc_type is not None:
             m1 = exc_type
             if exc_value is not None:
@@ -1027,11 +974,6 @@ class DebuggerFrame(wxFrame):
         self.invalidatePanes()
         # Update the currently selected pane.
         self.updateSelectedPane()
-
-        #self.startMainLoop()
-        #self.sb.status.SetLabel('')
-        #self.sb.writeError('')
-        #self.frame = None
     
     def resolvePath(self, filename):
         # Try to find file in Main module directory,
@@ -1074,58 +1016,66 @@ class DebuggerFrame(wxFrame):
         if not self.running:
             self.runProcess()
 
+    def enableStepping(self):
+        self.stepping_enabled = 1
+
+    def disableStepping(self):
+        self.stepping_enabled = 0
+
+    def doDebugStep(self, method=None):
+        if self.stepping_enabled:
+            self.stepping_enabled = 0
+            self.invalidatePanes()
+            self.updateSelectedPane(do_request=0)
+            if not self.running:
+                self.runProcess()
+            elif method:
+                self.proceedAndRequestStatus(method)
+            return 1
+        else:
+            return 0
+
     def setContinue(self):
-        if not self.running:
-            self.runProcess()
-        self.proceedAndRequestStatus('set_continue')
+        if self.doDebugStep():
+            # Always continue.
+            self.proceedAndRequestStatus('set_continue')
 
     def OnDebug(self, event):
-        if not self.running:
-            self.runProcess()
-        else:
-            self.proceedAndRequestStatus('set_continue')
-            # self.stopMainLoop()
+        # Continue only if not running.
+        self.doDebugStep('set_continue')
 
     def OnStep(self, event):
-        if not self.running:
-            self.runProcess()
-        else:
-            self.proceedAndRequestStatus('set_step')
-            # self.stopMainLoop()
+        self.doDebugStep('set_step')
 
     def OnOver(self, event):
-        if not self.running:
-            self.runProcess()
-        else:
-            self.proceedAndRequestStatus('set_step_over')
-            # self.stopMainLoop()
+        self.doDebugStep('set_step_over')
 
     def OnOut(self, event):
-        if not self.running:
-            self.runProcess()
-        else:
-            self.proceedAndRequestStatus('set_step_out')
-            # self.stopMainLoop()
-
-    def disconnect(self):
-        self.clearStepPos()
-        self.stackView.load_stack([])
-##        self.stopClientThread()
+        self.doDebugStep('set_step_out')
 
     def OnStop(self, event):
+        self.enableStepping()
         #wxPhonyApp.inMainLoop = false
-        self.invokeInDebugger('set_quit')
-        self.disconnect()
-        # self.stopMainLoop()
-        # self.queryDebuggerStatus()
+        self.invalidatePanes()
+        self.updateSelectedPane(do_request=0)
+        self.proceedAndRequestStatus('set_quit')
     
     def OnSourceTrace(self, event):
         pass
 
+    def clearViews(self):
+        self.clearStepPos()
+        self.stackView.load_stack([])
+        self.watches.load_dict({})
+        self.locs.load_dict({})
+        self.globs.load_dict({})
+
     def OnCloseWindow(self, event):
         try:
             if self.running:
-                self.OnStop(event)
+                #self.OnStop(event)
+                self.stopDebugger()
+            self.clearViews()
 ##            self.locs.destroy()
 ##            self.globs.destroy()
 ##            self.breakpts.destroy()
