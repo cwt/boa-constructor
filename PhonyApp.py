@@ -80,4 +80,5 @@ class wxPhonyApp(wxBasePhonyApp):
 
 class wxProfilerPhonyApp(wxBasePhonyApp):
     def MainLoop(self, *_args, **_kwargs):
+#        while self.inMainLoop:
         self.realApp.Dispatch()
