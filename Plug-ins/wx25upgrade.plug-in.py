@@ -20,9 +20,6 @@ import string
 from ExternalLib import wx25upgrade, reindent
 import Utils
 
-def createWx25CodeUpgradeDlg(parent):
-    return Wx25CodeUpgradeDlg(parent)
-
 [wxID_WX25CODEUPGRADEDLG, wxID_WX25CODEUPGRADEDLGSETFILE, 
  wxID_WX25CODEUPGRADEDLGSETSOURCE, wxID_WX25CODEUPGRADEDLGSETTARGET, 
  wxID_WX25CODEUPGRADEDLGSOURCEFILE, wxID_WX25CODEUPGRADEDLGSOURCEFOLDER, 
@@ -34,6 +31,19 @@ def createWx25CodeUpgradeDlg(parent):
 ] = [wx.NewId() for _init_ctrls in range(15)]
 
 class Wx25CodeUpgradeDlg(wx.Dialog):
+    def _init_coll_flexGridSizer1_Items(self, parent):
+        # generated method, don't edit
+
+        parent.AddWindow(self.stSourceFolder, 1, border=2,
+              flag=wx.ALIGN_CENTER_VERTICAL | wx.ALL)
+        parent.AddWindow(self.sourceFolder, 1, border=2, flag=wx.ALL)
+        parent.AddWindow(self.stTargetFolder, 1, border=2,
+              flag=wx.ALIGN_CENTER_VERTICAL | wx.ALL)
+        parent.AddWindow(self.targetFolder, 1, border=2, flag=wx.ALL)
+        parent.AddWindow(self.stFile, 1, border=2,
+              flag=wx.ALIGN_CENTER_VERTICAL | wx.ALL)
+        parent.AddWindow(self.sourceFile, 1, border=2, flag=wx.ALL)
+
     def _init_coll_bsDialog_Items(self, parent):
         # generated method, don't edit
 
@@ -56,19 +66,6 @@ class Wx25CodeUpgradeDlg(wx.Dialog):
         parent.AddSpacer(wx.Size(8, 8), border=0, flag=0)
         parent.AddWindow(self.upgradeGuide, 1, border=2, flag=wx.ALL)
 
-    def _init_coll_flexGridSizer1_Items(self, parent):
-        # generated method, don't edit
-
-        parent.AddWindow(self.stSourceFolder, 1, border=2,
-              flag=wx.ALIGN_CENTER_VERTICAL | wx.ALL)
-        parent.AddWindow(self.sourceFolder, 1, border=2, flag=wx.ALL)
-        parent.AddWindow(self.stTargetFolder, 1, border=2,
-              flag=wx.ALIGN_CENTER_VERTICAL | wx.ALL)
-        parent.AddWindow(self.targetFolder, 1, border=2, flag=wx.ALL)
-        parent.AddWindow(self.stFile, 1, border=2,
-              flag=wx.ALIGN_CENTER_VERTICAL | wx.ALL)
-        parent.AddWindow(self.sourceFile, 1, border=2, flag=wx.ALL)
-
     def _init_sizers(self):
         # generated method, don't edit
         self.flexGridSizer1 = wx.FlexGridSizer(cols=2, hgap=0, rows=0, vgap=0)
@@ -86,10 +83,11 @@ class Wx25CodeUpgradeDlg(wx.Dialog):
     def _init_ctrls(self, prnt):
         # generated method, don't edit
         wx.Dialog.__init__(self, id=wxID_WX25CODEUPGRADEDLG,
-              name='Wx25CodeUpgradeDlg', parent=prnt, pos=wx.Point(324, 272),
-              size=wx.Size(573, 227), style=wx.DEFAULT_DIALOG_STYLE,
+              name='Wx25CodeUpgradeDlg', parent=prnt, pos=wx.Point(527, 423),
+              size=wx.Size(573, 220), style=wx.DEFAULT_DIALOG_STYLE,
               title='Upgrade Boa code to 0.4 style')
         self.SetClientSize(wx.Size(565, 193))
+        self.Center(wx.BOTH)
 
         self.stSourceFolder = wx.StaticText(id=wxID_WX25CODEUPGRADEDLGSTSOURCEFOLDER,
               label='Source Folder:', name='stSourceFolder', parent=self,
@@ -164,9 +162,14 @@ class Wx25CodeUpgradeDlg(wx.Dialog):
 
         self._init_sizers()
 
-    def __init__(self, parent):
+    def __init__(self, parent, defaultDir):
         self._init_ctrls(parent)
-        self.sourceFolderName = os.getcwd()
+        if '://' in defaultDir:
+            if defaultDir.startswith('file://'):
+                defaultDir = defaultDir[7:]
+            else:
+                defaultDir = '.'
+        self.defaultDir = self.sourceFolderName = os.path.abspath(defaultDir)
         self.targetFolderName = self.sourceFolderName + 'Upgraded'
         self.sourceFolder.SetValue(self.sourceFolderName)
         self.targetFolder.SetValue(self.targetFolderName)
@@ -195,7 +198,7 @@ class Wx25CodeUpgradeDlg(wx.Dialog):
             dlg.Destroy()
 
     def OnSetFileButton(self, event):
-        dlg = wx.FileDialog(self, "Choose a file to convert", ".", "", "*.py", wx.OPEN)
+        dlg = wx.FileDialog(self, "Choose a file to convert", self.defaultDir, "", "*.py", wx.OPEN)
         try:
             if dlg.ShowModal() == wx.ID_OK:
                 filename = dlg.GetPath()
@@ -308,7 +311,7 @@ class SourcePseudoFile(Utils.PseudoFileOutStore):
 
 
 def showWx25CodeUpgradeDlg(editor):
-    dlg = createWx25CodeUpgradeDlg(None)
+    dlg = Wx25CodeUpgradeDlg(editor, editor.getOpenFromHereDir())
     try:
         dlg.ShowModal()
     finally:
