@@ -210,7 +210,7 @@ class wxBoaFileDialog(wxDialog, Utils.FrameRestorerMixin):
         event.Skip()
 
     def newFileNode(self, defaultDir):
-        return FileExplorer.PyFileNode(os.path.basename(defaultDir), defaultDir,
+        return FileExplorer.FileSysNode(os.path.basename(defaultDir), defaultDir,
               None, EditorHelper.imgFolder, None, None)
 
 #---URL path label management and window layout---------------------------------
@@ -476,7 +476,10 @@ class wxBoaFileDialog(wxDialog, Utils.FrameRestorerMixin):
 
     def openAndHandleCategoryErrors(self, uri, catFile=''):
         if catFile:
-            openuri = os.path.join(uri, catFile)
+            if uri.startswith('zip://') and uri.endswith('.zip'):
+                openuri = uri +'://'+ catFile
+            else:
+                openuri = os.path.join(uri, catFile)
         else:
             openuri = uri
 
@@ -746,7 +749,8 @@ if __name__ == '__main__':
     # simple testing harness
     app = wxPySimpleApp()
     import PaletteMapping
-    from Explorers import FTPExplorer
+    from Explorers import FTPExplorer, ZipExplorer
+    ExplorerNodes.fileOpenDlgProtReg.append('zip')
 
     conf = Utils.createAndReadConfig('Explorer')
     transports = ExplorerNodes.ContainerNode('Transport', EditorHelper.imgFolder)
@@ -756,7 +760,7 @@ if __name__ == '__main__':
         transports.entries.append(FTPExplorer.FTPCatNode(None, conf, None, None))
 
     wxBoaFileDialog.modImages = wxImageList(16, 16)
-    dlg = wxBoaFileDialog(None, defaultDir='recent.files://', wildcard='BoaFiles')
+    dlg = wxBoaFileDialog(None, defaultDir='zip://k:\\dev\\cvsfiles\\boa\\var\\archive2.zip', wildcard='BoaFiles')
     try:
         if dlg.ShowModal() == wxID_OK:
             wxMessageBox(dlg.GetPath())
