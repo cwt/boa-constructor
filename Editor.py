@@ -64,7 +64,7 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
     explBmp = 'Images/Editor/Explorer.png'
     inspBmp = 'Images/Shared/Inspector.png'
     paletteBmp = 'Images/Shared/Palette.png'
-    prefsBmp = 'Images/Modules/PrefsFolder_s.png'
+    prefsBmp = 'Images/Modules/PrefsFolder.png'
 
     _custom_classes = {'wxToolBar': ['EditorToolBar'],
                        'wxStatusBar': ['EditorStatusBar'],

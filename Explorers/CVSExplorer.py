@@ -129,7 +129,7 @@ class CVSController(ExplorerNodes.Controller):
                         'Images/CvsPics/MissingFile.png',
                         'Images/CvsPics/ConflictingFile.png',
                         'Images/CvsPics/Dir.png',
-                        'Images/Modules/FolderUp_s.png',
+                        'Images/Modules/FolderUp.png',
                         'Images/CvsPics/UnknownDir.png',
                         'Images/CvsPics/UnknownFile.png'):
             self.images.Add(IS.load(cvsImg))

@@ -436,14 +436,14 @@ class BaseFrameModel(ClassModel):
 class FrameModel(BaseFrameModel):
     modelIdentifier = 'Frame'
     defaultName = 'wx.Frame'
-    bitmap = 'wxFrame_s.png'
+    bitmap = 'wx.Frame.png'
     imgIdx = imgFrameModel
     Companion = FrameCompanions.FrameDTC
 
 class DialogModel(BaseFrameModel):
     modelIdentifier = 'Dialog'
     defaultName = 'wx.Dialog'
-    bitmap = 'wxDialog_s.png'
+    bitmap = 'wx.Dialog.png'
     imgIdx = imgDialogModel
     dialogLook = true
     Companion = FrameCompanions.DialogDTC
@@ -454,21 +454,21 @@ class DialogModel(BaseFrameModel):
 class MiniFrameModel(BaseFrameModel):
     modelIdentifier = 'MiniFrame'
     defaultName = 'wx.MiniFrame'
-    bitmap = 'wxMiniFrame_s.png'
+    bitmap = 'wx.MiniFrame.png'
     imgIdx = imgMiniFrameModel
     Companion = FrameCompanions.MiniFrameDTC
 
 class MDIParentModel(BaseFrameModel):
     modelIdentifier = 'MDIParent'
     defaultName = 'wx.MDIParentFrame'
-    bitmap = 'wxMDIParentFrame_s.png'
+    bitmap = 'wx.MDIParentFrame.png'
     imgIdx = imgMDIParentModel
     Companion = FrameCompanions.MDIParentFrameDTC
 
 class MDIChildModel(BaseFrameModel):
     modelIdentifier = 'MDIChild'
     defaultName = 'wx.MDIChildFrame'
-    bitmap = 'wxMDIChildFrame_s.png'
+    bitmap = 'wx.MDIChildFrame.png'
     imgIdx = imgMDIChildModel
     dialogLook = true
     Companion = FrameCompanions.MDIChildFrameDTC
@@ -476,7 +476,7 @@ class MDIChildModel(BaseFrameModel):
 class PopupWindowModel(BaseFrameModel):
     modelIdentifier = 'PopupWindow'
     defaultName = 'wx.PopupWindow'
-    bitmap = 'wxPopupWindow_s.png'
+    bitmap = 'wx.PopupWindow.png'
     imgIdx = imgPopupWindowModel
     dialogLook = true
     Companion = FrameCompanions.PopupWindowDTC
@@ -487,7 +487,7 @@ class PopupWindowModel(BaseFrameModel):
 class PopupTransientWindowModel(BaseFrameModel):
     modelIdentifier = 'PopupTransientWindow'
     defaultName = 'wx.PopupTransientWindow'
-    bitmap = 'wxPopupTransientWindow_s.png'
+    bitmap = 'wx.PopupTransientWindow.png'
     imgIdx = imgPopupTransientWindowModel
     dialogLook = true
     Companion = FrameCompanions.PopupWindowDTC
@@ -498,7 +498,7 @@ class PopupTransientWindowModel(BaseFrameModel):
 class AppModel(BaseAppModel):
     modelIdentifier = 'App'
     defaultName = 'wx.App'
-    bitmap = 'wxApp_s.png'
+    bitmap = 'wx.App.png'
     imgIdx = imgAppModel
 
     def renameMain(self, oldName, newName):
@@ -520,7 +520,7 @@ class AppModel(BaseAppModel):
 class FramePanelModel(BaseFrameModel):
     modelIdentifier = 'FramePanel'
     defaultName = 'wx.Panel'
-    bitmap = 'wxFramePanel_s.png'
+    bitmap = 'wx.FramePanel.png'
     imgIdx = imgFramePanelModel
     dialogLook = true
     Companion = FrameCompanions.FramePanelDTC
@@ -541,7 +541,7 @@ sourceconst.defWizardImport = sourceconst.wsfix('\nimport wx.wizard\n')
 class WizardModel(DialogModel):
     modelIdentifier = 'Wizard'
     defaultName = 'wx.Wizard'
-    bitmap = 'wxWizard_s.png'
+    bitmap = 'wx.wizard.Wizard.png'
     imgIdx = imgWizardModel
     dialogLook = true
     Companion = WizardCompanions.WizardDTC
@@ -565,7 +565,7 @@ sourceconst.defPyWizPageClass = sourceconst.defClass+sourceconst.wsfix('''
 class PyWizardPageModel(FramePanelModel):
     modelIdentifier = 'PyWizardPage'
     defaultName = 'wx.PyWizardPage'
-    bitmap = 'wxPyWizardPage_s.png'
+    bitmap = 'wx.wizard.PyWizardPage.png'
     imgIdx = imgPyWizardPageModel
     dialogLook = true
     Companion = WizardCompanions.PyWizardPageDTC
@@ -582,7 +582,7 @@ class PyWizardPageModel(FramePanelModel):
 class WizardPageSimpleModel(FramePanelModel):
     modelIdentifier = 'WizardPageSimple'
     defaultName = 'wx.WizardPageSimple'
-    bitmap = 'wxWizardPageSimple_s.png'
+    bitmap = 'wx.wizard.WizardPageSimple.png'
     imgIdx = imgWizardPageSimpleModel
     dialogLook = true
     Companion = WizardCompanions.WizardPageSimpleDTC

@@ -124,7 +124,7 @@ class ZopeBlankEditorModel(ZopeEditorModel):
 class ZopeDocumentModel(ZopeEditorModel):
     modelIdentifier = 'ZopeDocument'
     defaultName = 'zopedoc'
-    bitmap = 'Package_s.png'
+    bitmap = 'Package.png'
 
     saveBmp = 'Images/Editor/Save.png'
 
@@ -171,13 +171,13 @@ class ZopePythonSourceModel(ZopeDocumentModel):
 class ZopePythonScriptModel(ZopePythonSourceModel):
     modelIdentifier = 'ZopePythonScript'
     defaultName = 'zopepythonscript'
-    bitmap = 'Package_s.png'
+    bitmap = 'Package.png'
     imgIdx = ZOAIcons['Script (Python)']
 
 class ZopeExternalMethodModel(ZopePythonSourceModel):
     modelIdentifier = 'ZopeExternalMethod'
     defaultName = 'zopeexternalmethod'
-    bitmap = 'Package_s.png'
+    bitmap = 'Package.png'
     imgIdx = ZOAIcons['External Method']
 
     def getModule(self):
@@ -201,7 +201,7 @@ class ZopeHelpTopicModel(ZopeBlankEditorModel):
 class ZopeExportFileModel(EditorModels.BasePersistentModel):
     modelIdentifier = 'ZopeExport'
     defaultName = 'zexp'
-    bitmap = 'ZopeExport_s.png'
+    bitmap = 'ZopeExport.png'
     imgIdx = EditorHelper.imgZopeExportFileModel
     ext = '.zexp'
     fileModes = ('rb', 'wb')
