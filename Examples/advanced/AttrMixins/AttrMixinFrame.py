@@ -18,7 +18,8 @@ from AttrMixins import Test_AttrMixin
 def create(parent):
     return AttrMixinFrame(parent)
 
-[wxID_ATTRMIXINFRAME, wxID_ATTRMIXINFRAMEBUTTON1] = map(lambda _init_ctrls: wxNewId(), range(2))
+[wxID_ATTRMIXINFRAME, wxID_ATTRMIXINFRAMEBUTTON1, 
+] = map(lambda _init_ctrls: wxNewId(), range(2))
 
 # Note: Inherits from the AttrMixin class after wxFrame
 class AttrMixinFrame(wxFrame, Test_AttrMixin):
@@ -28,11 +29,15 @@ class AttrMixinFrame(wxFrame, Test_AttrMixin):
 
     def _init_ctrls(self, prnt):
         # generated method, don't edit
-        wxFrame.__init__(self, id = wxID_ATTRMIXINFRAME, name = 'AttrMixinFrame', parent = prnt, pos = wxPoint(352, 222), size = wxSize(201, 104), style = wxDEFAULT_FRAME_STYLE, title = self.frameTitle)
+        wxFrame.__init__(self, id=wxID_ATTRMIXINFRAME, name='AttrMixinFrame',
+              parent=prnt, pos=wxPoint(352, 222), size=wxSize(201, 104),
+              style=wxDEFAULT_FRAME_STYLE, title=self.frameTitle)
         self._init_utils()
         self.SetClientSize(wxSize(193, 77))
 
-        self.button1 = wxButton(id = wxID_ATTRMIXINFRAMEBUTTON1, label = self.buttonLabel, name = 'button1', parent = self, pos = wxPoint(0, 0), size = wxSize(193, 77), style = 0)
+        self.button1 = wxButton(id=wxID_ATTRMIXINFRAMEBUTTON1,
+              label=self.buttonLabel, name='button1', parent=self,
+              pos=wxPoint(0, 0), size=wxSize(193, 77), style=0)
 
     def __init__(self, parent):
         # Note: Call inherited mixin constructor before _init_ctrls
