@@ -122,7 +122,7 @@ class DebuggerConnection:
                       cond='', enabled=1, ignore=0):
         """Sets a breakpoint.  Non-blocking and immediate.
         """
-        self._ds.addBreakpoint(filename, lineno, temporary, 
+        self._ds.addBreakpoint(filename, lineno, temporary,
                                cond, enabled, ignore)
 
     def enableBreakpoints(self, filename, lineno, enabled=1):
@@ -136,7 +136,7 @@ class DebuggerConnection:
         Non-blocking and immediate.
         """
         self._ds.ignoreBreakpoints(filename, lineno, ignore)
-            
+
     def conditionalBreakpoints(self, filename, lineno, cond=''):
         """Sets the break condition for all breakpoints on a given line.
         Non-blocking.
@@ -144,14 +144,14 @@ class DebuggerConnection:
         self._ds.conditionalBreakpoints(filename, lineno, cond)
 
     def clearBreakpoints(self, filename, lineno):
-        """Clears all breakpoints on a line.  
+        """Clears all breakpoints on a line.
         Non-blocking and immediate.
         """
         self._ds.clearBreakpoints(filename, lineno)
 
     def adjustBreakpoints(self, filename, lineno, delta):
-        """Moves all applicable breakpoints when delta lines are added or 
-        deleted.  
+        """Moves all applicable breakpoints when delta lines are added or
+        deleted.
         Non-blocking and immediate.
         """
         self._ds.adjustBreakpoints(filename, lineno, delta)
@@ -514,7 +514,7 @@ class DebugServer (Bdb):
                 canonic = filename
             else:
                 canonic = path.abspath(filename)
-                    
+
             self.fncache[filename] = canonic
         return canonic
 
@@ -637,7 +637,7 @@ class DebugServer (Bdb):
         self.set_continue(1)
         raise BdbQuit, 'Client disconnected'
 
-    def set_traceable(self, enable):
+    def set_traceable(self, enable=1):
         """Allows user code to enable/disable tracing without changing the
         stepping mode.
         """
@@ -883,7 +883,7 @@ class DebugServer (Bdb):
         if bps:
             for bp in bps:
                 bp.ignore = ignore
-            
+
     def conditionalBreakpoints(self, filename, lineno, cond=''):
         """Sets the break condition for all breakpoints on a given line.
         Non-blocking.
@@ -902,8 +902,8 @@ class DebugServer (Bdb):
             raise BreakpointError(msg)
 
     def adjustBreakpoints(self, filename, lineno, delta):
-        """Moves all applicable breakpoints when delta lines are added or 
-        deleted. 
+        """Moves all applicable breakpoints when delta lines are added or
+        deleted.
         Non-blocking.
         """
         # This can be more efficient, but for now sticking to the bdb interface
@@ -942,7 +942,7 @@ class DebugServer (Bdb):
                     exc_type = "%s" % str(exc_type)
                 if exc_value is not None:
                     exc_value = str(exc_value)
-                    
+
                 stack, frame_stack_len = self.get_stack(
                     exc_tb.tb_frame, exc_tb)
             else:
@@ -1083,6 +1083,16 @@ class DebugServer (Bdb):
         except: clss_items = []
         return inst_items + clss_items
 
+    def pythonShell(self, code, globalsDict, localsDict, name='<debug>'):
+        from StringIO import StringIO
+
+        _ts, sys.stdout = sys.stdout, StringIO('')
+        try:
+            exec compile(code, name, 'single') in globalsDict, localsDict
+            return sys.stdout.getvalue()
+        finally:
+            sys.stdout = _ts
+
     def pprintVarValue(self, expr, frameno):
         frame = self.getFrameByNumber(frameno)
         if frame is None:
@@ -1090,8 +1100,7 @@ class DebugServer (Bdb):
         else:
             try:
                 globalsDict, localsDict = self.getFrameNamespaces(frame)
-                v = eval(expr, globalsDict, localsDict)
-                return pprint.pformat(v)
+                return self.pythonShell(expr, globalsDict, localsDict)
             except:
                 t, v = sys.exc_info()[:2]
                 import traceback
@@ -1108,4 +1117,3 @@ class DebugServer (Bdb):
         for key, value in l:
             rval[str(key)] = self.safeRepr(value)
         return rval
-
