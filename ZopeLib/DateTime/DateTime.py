@@ -96,7 +96,7 @@ from types import InstanceType,IntType,FloatType,StringType
 
 # 1.5.2 compat hack
 try: from types import UnicodeType
-except ImportError: UnicodeType = StringType 
+except ImportError: UnicodeType = StringType
 
 try: from time import tzname
 except: tzname=('UNKNOWN','UNKNOWN')
