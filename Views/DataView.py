@@ -62,6 +62,8 @@ class DataView(wxListCtrl, InspectableObjectView):
         self.initObjectsAndCompanions(objCol.creators, objCol, deps, depLinks)
 
     def refreshCtrl(self):
+        #if self.opened: return
+
         self.DeleteAllItems()
 
         objCol = self.model.objectCollections[self.collectionMethod]
@@ -86,6 +88,7 @@ class DataView(wxListCtrl, InspectableObjectView):
                         idx1 = self.il.Add(PaletteMapping.bitmapForComponent(className, 'Component'))
 
                 self.InsertImageStringItem(self.GetItemCount(), '%s : %s' % (ctrl.comp_name, className), idx1)
+        self.opened = true
 
     def loadControl(self, ctrlClass, ctrlCompanion, ctrlName, params):
         """ Create and register given control and companion.
@@ -191,6 +194,7 @@ class DataView(wxListCtrl, InspectableObjectView):
     def OnCancel(self, event):
         """ Close all designers and discard all changes """
         self.controllerView.saveOnClose = false
+        self.controllerView.confirmCancel = true
         self.close()
 
     def OnCutSelected(self, event):
