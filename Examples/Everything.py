@@ -2,6 +2,9 @@
 
 """ Frame containing all controls available on the Palette. """
 
+import wxversion
+wxversion.select('2.5')
+
 import wx
 from wx.lib.anchors import LayoutAnchors
 import wx.grid
