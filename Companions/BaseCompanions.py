@@ -27,11 +27,8 @@ import Preferences, Utils
 from PropEdit.PropertyEditors import *
 from Constructors import WindowConstr
 import RTTI, EventCollections
-import methodparse
 
-bodyIndent = Utils.getIndentBlock()*2
-
-# XXX parent passed in constr not used
+import methodparse, sourceconst
 
 """ Design time classes
         These are companion classes to wxPython classes that capture
@@ -109,6 +106,7 @@ class DesignTimeCompanion(Companion):
         self.mutualDepProps = []
         # Flag for controls which do not process mouse events correctly
         self.ctrlDisabled = false
+        self.compositeCtrl = false
 
 #        SetterOverrides = {}
 
@@ -255,7 +253,9 @@ class DesignTimeCompanion(Companion):
         for param in params.keys():
             paramStrs.append('%s = %s'%(param, params[param]))
 
-        self.textConstr = methodparse.ConstructorParse('self.%s = %s(%s)' %(self.name, className, string.join(paramStrs, ', ')))
+        # XXX Is frame name initialised ???
+        self.textConstr = methodparse.ConstructorParse('self.%s = %s(%s)' %(
+              self.name, className, string.join(paramStrs, ', ')))
 
         self.designer.addCtrlToObjectCollection(self.textConstr)
 
@@ -419,7 +419,11 @@ class DesignTimeCompanion(Companion):
 
     def eval(self, expr):
         import PaletteMapping
-        return PaletteMapping.evalCtrl(expr, self.designer.model.specialAttrs)
+        try:
+            return PaletteMapping.evalCtrl(expr, self.designer.model.specialAttrs)
+        except Exception, err:
+            print 'Illegal expression: %s'%expr
+            raise
 
     def defaultAction(self):
         """ Invoke the default property editor for this component,
@@ -440,17 +444,36 @@ class DesignTimeCompanion(Companion):
         return None
 
 #---Source writing methods------------------------------------------------------
+    def addContinuedLine(self, line, output, indent):
+        if Preferences.cgWrapLines:
+            if len(line) > Preferences.cgLineWrapWidth:
+                segs = methodparse.safesplitfields(line, ',', true, (), ())
+                line = sourceconst.bodyIndent+string.lstrip(segs[0])
+                for seg in segs[1:]:
+                    newLine = line +', '+ seg
+                    if len(newLine) >= Preferences.cgLineWrapWidth:
+                        output.append(line+',')
+                        line = indent+' '*Preferences.cgContinuedLineIndent+seg
+                    else:
+                        line = newLine
+                        
+        output.append(line)
+        
+
     def writeConstructor(self, output, collectionMethod, stripFrmId=''):
         """ Writes out constructor and parameters for control
         """
         # Add constructor
         if self.textConstr:
-            output.append(bodyIndent + self.textConstr.asText(stripFrmId))
+            self.addContinuedLine(
+                sourceconst.bodyIndent+self.textConstr.asText(stripFrmId), 
+                output, sourceconst.bodyIndent)
+
             # XXX HACK attack
             # Add call to init utils after frame constructor
             if self.textConstr.comp_name == '' and \
               collectionMethod == '_init_ctrls':
-                output.append(bodyIndent + 'self._init_utils()')
+                output.append(sourceconst.bodyIndent + 'self._init_utils()')
 
     nullProps = ('None',)
     def writeProperties(self, output, ctrlName, definedCtrls, deps, depLinks, stripFrmId=''):
@@ -465,7 +488,8 @@ class DesignTimeCompanion(Companion):
             if self.designer.checkAndAddDepLink(ctrlName, prop,
                   self.dependentProps(), deps, depLinks, definedCtrls):
                 continue
-            output.append(bodyIndent + prop.asText(stripFrmId))
+            self.addContinuedLine(sourceconst.bodyIndent+prop.asText(stripFrmId),
+                  output, sourceconst.bodyIndent)
 
     def writeEvents(self, output, module=None, stripFrmId=''):
         """ Write out EVT_* calls for all events. Optionally For every event
@@ -473,9 +497,10 @@ class DesignTimeCompanion(Companion):
             the bottom of the class """
         for evt in self.textEventList:
             if evt.trigger_meth != '(delete)':
-                output.append(bodyIndent + evt.asText(stripFrmId))
+                self.addContinuedLine(
+                      sourceconst.bodyIndent + evt.asText(stripFrmId),
+                      output, sourceconst.bodyIndent)
                 model = self.designer.model
-                ##module = model.getModule()
                 # Either rename the event or add if a new one
                 # The first streamed occurrence will do the rename or add
                 if evt.prev_trigger_meth and module and module.classes[
@@ -485,17 +510,22 @@ class DesignTimeCompanion(Companion):
                 elif module and not module.classes[
                       model.main].methods.has_key(evt.trigger_meth):
                     module.addMethod(model.main, evt.trigger_meth,
-                          'self, event', [bodyIndent + 'event.Skip()'])
+                       'self, event', [sourceconst.bodyIndent + 'event.Skip()'])
 
     def writeCollections(self, output, collDeps, stripFrmId=''):
         # Add collection initialisers
         for collInit in self.textCollInitList:
             if collInit.getPropName() in self.dependentProps():
-                collDeps.append(bodyIndent + collInit.asText(stripFrmId))
+                self.addContinuedLine(
+                    sourceconst.bodyIndent + collInit.asText(stripFrmId),
+                    collDeps, sourceconst.bodyIndent)
             else:
-                output.append(bodyIndent + collInit.asText(stripFrmId))
+                self.addContinuedLine(
+                      sourceconst.bodyIndent + collInit.asText(stripFrmId),
+                      output, sourceconst.bodyIndent)
 
-    def writeDependencies(self, output, ctrlName, depLinks, definedCtrls, stripFrmId=''):
+    def writeDependencies(self, output, ctrlName, depLinks, definedCtrls, 
+          stripFrmId=''):
         """ Write out dependent properties if all the ctrls they reference
             have been created.
         """
@@ -504,11 +534,13 @@ class DesignTimeCompanion(Companion):
                 for oRf in otherRefs:
                     if oRf not in definedCtrls:
                         # special attrs are not 'reference dependencies'
-                        if not hasattr(self.designer.model.specialAttrs['self'], oRf):
+                        if not hasattr(
+                              self.designer.model.specialAttrs['self'], oRf):
                             break
                 else:
-                    output.append(bodyIndent + prop.asText(stripFrmId))
-
+                    self.addContinuedLine(
+                          sourceconst.bodyIndent + prop.asText(stripFrmId),
+                          output, sourceconst.bodyIndent)
 
 
 class NYIDTC(DesignTimeCompanion):
@@ -539,7 +571,8 @@ class ControlDTC(DesignTimeCompanion):
         if args:
             self.control = apply(self.ctrlClass, (), args)
         else:
-            self.control = apply(self.ctrlClass, (), self.designTimeDefaults(position, size))
+            self.control = apply(self.ctrlClass, (), 
+                  self.designTimeDefaults(position, size))
 
         self.initDesignTimeControl()
         return self.control
@@ -578,6 +611,9 @@ class ControlDTC(DesignTimeCompanion):
     def SetName(self, oldValue, newValue):
         DesignTimeCompanion.SetName(self, oldValue, newValue)
         self.updateWindowIds()
+        if self.compositeCtrl:
+            for ctrl in self.control.GetChildren():
+                ctrl.SetName(newValue)
 
     def extraConstrProps(self):
         return {'Class': 'class'}
@@ -601,12 +637,16 @@ class ControlDTC(DesignTimeCompanion):
         # that hook to the Mouse events will still cause
         # mouse event to fire (theoretically)
         # ctrl.PushEventHandler(self.designer.ctrlEvtHandler)
-        self.designer.ctrlEvtHandler.connectEvts(ctrl)
+        self.designer.ctrlEvtHandler.connectEvts(ctrl, self.compositeCtrl)
 
     def initDesignTimeControl(self):
         #try to set the name
         try:
             self.control.SetName(self.name)
+            if self.compositeCtrl:
+                for ctrl in self.control.GetChildren():
+                    ctrl.SetName(self.name)
+                    ctrl._composite_child = 1
             self.control.SetToolTipString(self.name)
             # Disabled controls do not pass thru mouse clicks to their parents on GTK :(
             if wxPlatform != '__WXGTK__' and self.ctrlDisabled:
@@ -751,7 +791,7 @@ class WindowDTC(WindowConstr, ControlDTC):
                         'Enabled': BoolPropEdit,
                         #'EvtHandlerEnabled': BoolPropEdit,
                         'Style': StyleConstrPropEdit,
-                        'Constraints': CollectionPropEdit,
+                        #'Constraints': CollectionPropEdit,
                         'Name': NamePropEdit,
                         'Anchors': AnchorPropEdit,
                         #'Sizer': SizerClassLinkPropEdit,
@@ -778,7 +818,7 @@ class WindowDTC(WindowConstr, ControlDTC):
         self.mutualDepProps = ['Value', 'Title', 'Label']
 
         import UtilCompanions
-        self.subCompanions['Constraints'] = UtilCompanions.IndividualLayoutConstraintOCDTC
+        #self.subCompanions['Constraints'] = UtilCompanions.IndividualLayoutConstraintOCDTC
         #self.subCompanions['SizeHints'] = UtilCompanions.SizeHintsDTC
         self.anchorSettings = []
         self._applyConstraints = false
@@ -813,7 +853,7 @@ class WindowDTC(WindowConstr, ControlDTC):
         return ['NextHandler', 'PreviousHandler', 'EventHandler', 'EvtHandlerEnabled', 
                 'Id', 'Caret', 'WindowStyleFlag', 'ToolTip', 'Title', 'Rect',
                 'DragTarget', 'DropTarget','Cursor', 'VirtualSize',
-                'Sizer', 'ContainingSizer']
+                'Sizer', 'ContainingSizer', 'Constraints']
 
     def dontPersistProps(self):
         return ControlDTC.dontPersistProps(self) + ['ClientSize']
@@ -1116,7 +1156,9 @@ class CollectionDTC(DesignTimeCompanion):
 
     def writeCollectionItems(self, output, stripFrmId=''):
         for creator in self.textConstrLst:
-            output.append(bodyIndent + creator.asText(stripFrmId))
+            self.addContinuedLine(
+                  sourceconst.bodyIndent + creator.asText(stripFrmId),
+                  output, sourceconst.bodyIndent)
 
     def writeCollectionFinaliser(self, output, stripFrmId=''):
         output.extend(self.finaliser())
@@ -1221,15 +1263,7 @@ class CollectionIddDTC(CollectionDTC):
               self.name + itemName)
 
     def generateWindowId(self, idx):
-        if self.designer:
-            oldId = self.textConstrLst[idx].params[self.idProp]
-            newId = self.newWinId('%s%d' % (self.propName, idx))
-
-            if oldId != newId and oldId not in EventCollections.reservedWxIds:
-                self.textConstrLst[idx].params[self.idProp] = newId
-                for evt in self.textEventList:
-                    if evt.windowid == oldId:
-                        evt.windowid = newId
+        return
 
     def SetName(self, oldValue, newValue):
         CollectionDTC.SetName(self, oldValue, newValue)
