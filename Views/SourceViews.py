@@ -36,7 +36,8 @@ wxID_TEXTVIEW = wxNewId()
 
 [wxID_STC_WS, wxID_STC_EOL, wxID_STC_BUF, wxID_STC_IDNT] = Utils.wxNewIds(4)
 
-class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView):
+class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView, 
+                           EditorViews.FindResultsAdderMixin):
     refreshBmp = 'Images/Editor/Refresh.png'
     undoBmp = 'Images/Shared/Undo.png'
     redoBmp = 'Images/Shared/Redo.png'
@@ -337,23 +338,6 @@ class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView):
             dlg.Destroy()
             self.lastMatchPosition = None
 
-    def addFindResults(self, pattern, mapResults):
-        """ mapResult is map of tuples where
-            Key - 'Module', file name
-            Value - ('Line no', 'Col', 'Text')
-        """
-        from FindResults import FindResults
-        name = 'Results: ' + pattern
-        if not self.model.views.has_key(name):
-            resultView = self.model.editor.addNewView(name, FindResults)
-        else:
-            resultView = self.model.views[name]
-        resultView.tabName = name
-        resultView.results = mapResults
-        resultView.findPattern = pattern
-        resultView.refresh()
-        resultView.focus()
-
     def OnFind(self, event):
         import FindReplaceDlg
         FindReplaceDlg.find(self, self.model.editor.finder, self)
@@ -497,8 +481,9 @@ class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView):
 
 class TextView(EditorStyledTextCtrl, TextSTCMix):
     viewName = 'Text'
-    def __init__(self, parent, model):
-        EditorStyledTextCtrl.__init__(self, parent, wxID_TEXTVIEW, model, (), -1)
+    def __init__(self, parent, model, actions=()):
+        EditorStyledTextCtrl.__init__(self, parent, wxID_TEXTVIEW, model, 
+              actions, -1)
         TextSTCMix.__init__(self, wxID_TEXTVIEW)
         self.active = true
 
