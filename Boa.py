@@ -18,7 +18,7 @@ Handles creation/initialisation of main objects and commandline arguments """
 
 import sys, os, string, time
 
-#try: import psyco; psyco.log(); psyco.full()
+#try: import psyco; psyco.background()
 #except ImportError: pass
 
 t1 = time.time()
@@ -54,7 +54,7 @@ def sendToRunningBoa(names, host='127.0.0.1', port=50007):
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             s.connect((host, port))
             # do not change files of form [prot]://[path]
-            if string.find(name, '://') == -1:
+            if name.find('://') == -1:
                 name = os.path.abspath(name)
             s.send(name)
             print name,
@@ -199,10 +199,10 @@ import wxPython
 wxVersion = wxPython.__version__
 for c in wxVersion:
     if c not in string.digits+'.':
-        wxVersion = string.replace(wxVersion, c, '')
+        wxVersion = wxVersion.replace(c, '')
 
 wxVersion = tuple(map(lambda v: int(v),
-                      (string.split(wxVersion, '.')+['0'])[:4]))
+                      (wxVersion.split('.')+['0'])[:4]))
 
 if wxVersion < __version__.wx_version:
     wxPySimpleApp()
@@ -211,7 +211,7 @@ if wxVersion < __version__.wx_version:
           'Version error', wxOK | wxICON_ERROR)
     raise 'wxPython >= %d.%d.%d.%d required'%__version__.wx_version
 
-import Preferences, About, Utils
+import Preferences, Utils, About
 print 'running main...'
 # XXX auto created frames (main frame handled currently)
 # XXX More property editors!
@@ -314,6 +314,7 @@ modules ={'About': [0, 'About box and Splash screen', 'About.py'],
  'HTMLResponse': [0, '', 'HTMLResponse.py'],
  'HTMLSupport': [0, '', 'Models/HTMLSupport.py'],
  'Help': [0, 'Interactive help frame', 'Help.py'],
+ 'HelpBook.plug-in': [0, '', 'Plug-ins/HelpBook.plug-in.py'],
  'ImageStore': [0,
                 'Centralised point to load images (cached/zipped/etc)',
                 'ImageStore.py'],
@@ -326,6 +327,7 @@ modules ={'About': [0, 'About box and Splash screen', 'About.py'],
                'Inspector.py'],
  'InspectorEditorControls': [0, '', 'PropEdit/InspectorEditorControls.py'],
  'IsolatedDebugger': [0, '', 'Debugger/IsolatedDebugger.py'],
+ 'JavaSupport.plug-in': [0, '', 'Plug-ins/JavaSupport.plug-in.py'],
  'ListCompanions': [0, '', 'Companions/ListCompanions.py'],
  'LoginDialog': [0, '', 'ZopeLib/LoginDialog.py'],
  'ModRunner': [0,
@@ -340,6 +342,8 @@ modules ={'About': [0, 'About box and Splash screen', 'About.py'],
  'PaletteStore': [0,
                   'Storage for variables defining the palette organisation',
                   'PaletteStore.py'],
+ 'PascalSupport.plug-in': [0, '', 'Plug-ins/PascalSupport.plug-in.py'],
+ 'Plugins': [0, '', 'Plugins.py'],
  'Preferences': [0,
                  'Central store of customiseable properties',
                  'Preferences.py'],
@@ -391,6 +395,7 @@ modules ={'About': [0, 'About box and Splash screen', 'About.py'],
                  'moduleparse.py'],
  'ndiff': [0, '', 'ExternalLib/ndiff.py'],
  'popen2import': [0, '', 'popen2import.py'],
+ 'prefs.rc': [0, '', 'Config/prefs.rc.py'],
  'reindent': [0, '', 'ExternalLib/reindent.py'],
  'relpath': [0, '', 'relpath.py'],
  'sender': [0, '', 'sender.py'],
@@ -485,7 +490,8 @@ class BoaApp(wxApp):
         if Preferences.suExecPythonStartup and startupEnv:
             startupfile = startupEnv
 
-        editor.shell.execStartupScript(startupfile)
+        if editor.shell:
+            editor.shell.execStartupScript(startupfile)
 
         abt.Destroy()
         del abt
@@ -562,7 +568,7 @@ def main(argv=None):
         join, dirname = os.path.join, os.path.dirname
         wxPythonPath = dirname(wx.__file__)
         wxPythonLibPath = join(dirname(wx.__file__), 'lib')
-        pythonLibPath = dirname(wxPythonPath)
+        ##pythonLibPath = dirname(wxPythonPath)
         try:
             # Install/update run time libs if necessary
             Utils.updateDir(join(Preferences.pyPath, 'bcrtl'),
@@ -578,9 +584,10 @@ def main(argv=None):
             'installation in prefs.rc.py : installBCRTL'])
 
     if argv is not None:
-        global doDebug, startupfile, startupModules
-        doDebug, startupfile, startupModules, constricted, opts, args = \
-              processArgs(argv)
+        global doDebug, startupfile, startupModules, constricted, emptyEditor, \
+              doDebugSvr
+        doDebug, startupfile, startupModules, constricted, emptyEditor, \
+              doDebugSvr, opts, args = processArgs(argv)
     try:
         app = BoaApp()
     except Exception, error:
