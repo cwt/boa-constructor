@@ -6,7 +6,7 @@
 #
 # Created:     2001/02/04
 # RCS-ID:      $Id$
-# Copyright:   (c) 2001 - 2002
+# Copyright:   (c) 2001 - 2003
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 print 'importing ZopeLib.ZopeExplorer'
@@ -120,9 +120,7 @@ class ZopeItemNode(ExplorerNodes.ExplorerNode):
         self.server = xmlrpcsvr
         self.entries = None
         self.entryIds = None
-        self.url = self.buildUrl()
         self.typ = None
-#        self.bookmarks = None
 
     def getURI(self):
         return '%s://%s/<%s>%s'%(self.protocol, self.category, self.metatype, self.getTitle())
@@ -173,16 +171,16 @@ class ZopeItemNode(ExplorerNodes.ExplorerNode):
 
     def getResource(self, url=''):
         if not url:
-            url = self.url
+            url = self.buildUrl()
         return getServer(url, self.properties['username'],
                self.properties['passwd'])
 
     def getParentResource(self):
         path, name = os.path.split(self.name)
-        return self.getResource(os.path.dirname(self.url)), name
+        return self.getResource(os.path.dirname(self.buildUrl())), name
 
     def openList(self, root = None):
-        url = self.url+self.itemsSubPath
+        url = self.buildUrl()+self.itemsSubPath
         if url[-1] == '/':
             url = url[:-1]
         self.server = self.getResource(url)
@@ -726,8 +724,6 @@ class ZopeController(ExplorerNodes.Controller, ExplorerNodes.ClipboardController
                 dlg.Destroy()
 
 
-
-
 def getServer(url, user, password):
     return xmlrpclib.Server('http://' + url,
               BasicAuthTransport.BasicAuthTransport(user, password) )
@@ -844,21 +840,6 @@ class PythonNode(ZopeNode):
     def save(self, filename, data, mode='wb'):
         self.getResource().manage_edit(self.name, self.getParams(data),
               self.getBody(data))
-
-##    def getUndoableTransactions(self):
-##        from ZopeLib.DateTime import DateTime
-##        if self.server._Server__handler == '/':
-##            all = eval(self.server.ZOA('undoR/%s' % (self.name) ))
-##        else:
-##            all = eval(self.server.ZOA('undo'))
-##        undos = []
-##        for u in all:
-##            if self.name == string.split(u['description'], '/')[-2]:
-##                undos.append(u)
-##        return undos
-
-##    def undoTransaction(self, transactionIds):
-##        print self.server.manage_undo_transactions(transactionIds)
 
 class PythonScriptNode(PythonNode):
     additionalViews = (ZopeViews.ZopeSecurityView,
@@ -1013,8 +994,6 @@ class ZopeError(Exception):
     def __str__(self):
         return self.ErrorType and ('%s:%s' % (self.ErrorType, self.ErrorValue)) or self.textFault
 
-#        return self.textFault
-
 
 def zopeHtmlErr2Strs(faultStr):
     sFaultStr = str(faultStr)
@@ -1027,6 +1006,55 @@ def zopeHtmlErr2Strs(faultStr):
             traceBk = '\nTraceback:\n'+sFaultStr[idx + 5: idx2]
     txt = Utils.html2txt(sFaultStr)
     return txt+traceBk
+
+def uriSplitZope(filename, filepath):
+    # zope://[category]/<[meta type]>/[path] format
+    segs = string.split(filepath, '/')
+    if len(segs) < 2:
+        raise ExplorerNodes.TransportCategoryError(
+              'Category not found', filepath)
+    category = segs[0]+'|'+segs[1][1:-1]
+    return 'zope', category, string.join(segs[2:], '/'), filename
+
+def uriSplitZopeDebug(filename, filepath):
+    # zopedebug://[host[:port]]/[path]/[meta type]
+    # magically maps zopedebug urls to Boa zope uris
+    segs = string.split(filepath, '/')
+    if len(segs) < 3:
+        raise ExplorerNodes.TransportCategoryError(
+              'Zope debug path invalid', filepath)
+    host, filepath, meta = segs[0], segs[1:-1], segs[-1]
+    try:               host, port = string.split(host, ':')
+    except ValueError: port = 80
+    else:              port = int(port)
+    # try to find category that can open this url
+    lw = string.lower
+    for cat in ExplorerNodes.all_transports.entries:
+        if cat.itemProtocol == 'zope':
+            itms = cat.openList()
+            for itm in itms:
+                props = itm.properties
+                if lw(props['host']) == lw(host) and \
+                      props['httpport'] == port:
+                    filepath = string.join(filepath, '/')
+                    name = itm.name or itm.treename
+                    return 'zope', '%s|%s' %(name, meta), filepath, \
+                           'zope://%s/<%s>/%s'%(name, meta, filepath)
+
+    raise ExplorerNodes.TransportCategoryError(\
+          'Could not map Zope debug path to defined Zope Category item',
+          filepath)
+
+def findZopeExplorerNode(catandmeta, respath, transports):
+    category, metatype = string.split(catandmeta, '|')
+    for cat in transports.entries:
+        if hasattr(cat, 'itemProtocol') and cat.itemProtocol == 'zope':
+            itms = cat.openList()
+            for itm in itms:
+                if itm.name == category or itm.treename == category:
+                    return itm.getNodeFromPath('/'+respath, metatype)
+    raise ExplorerNodes.TransportError(
+          'Zope transport could not be found: %s || %s'%(category, respath))
 
 #-------------------------------------------------------------------------------
 # maps meta types to ExplorerNodes
@@ -1051,3 +1079,6 @@ zopeClassMap = { 'Folder': DirNode,
 ExplorerNodes.register(ZopeCatNode, controller=ZopeCatController)
 ExplorerNodes.register(ZopeItemNode, clipboard='global',
   confdef=('explorer', 'zope'), controller=ZopeController, category=ZopeCatNode)
+ExplorerNodes.uriSplitReg[('zope', 2)] = uriSplitZope
+ExplorerNodes.uriSplitReg[('zopedebug', 2)] = uriSplitZopeDebug
+ExplorerNodes.transportFindReg['zope'] = findZopeExplorerNode
