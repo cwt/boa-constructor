@@ -37,6 +37,7 @@ from EditorModels import *
 from PrefsKeys import keyDefs
 import ShellEditor
 from Preferences import IS, wxFileDialog, flatTools
+#from Filenames import normalize
 
 defAppModelViews = (AppView, PythonSourceView)
 adtAppModelViews = (AppModuleDocView, ToDoView, ImportsView, CVSConflictsView, 
@@ -474,6 +475,7 @@ class EditorFrame(wxFrame):
          
     
     def openOrGotoModule(self, name, app = None):
+#        name = normalize(name)
         if self.modules.has_key(name):
             self.modules[name].focus()
             return self.modules[name].model
@@ -484,13 +486,15 @@ class EditorFrame(wxFrame):
             for keyIdx in range(len(lst)):
                 assos[path.normcase(path.abspath(lst[keyIdx]))] = lst[keyIdx]
             
-            if assos.has_key(name):
-                self.modules[assos[name]].focus()
-                return self.modules[assos[name]].model
+            a_name = path.normcase(path.abspath(name))
+            if assos.has_key(a_name):
+                self.modules[assos[a_name]].focus()
+                return self.modules[assos[a_name]].model
             else:
                 return self.openModule(name, app)
         
     def openModule(self, filename, app = None):
+#        filename = normalize(filename)
         name = filename
         try:
             modCls, main = identifyFile(filename)
@@ -694,8 +698,9 @@ class EditorFrame(wxFrame):
         # XXX Do decorations here
         modulePage = self.getActiveModulePage(pageIdx)
         if modulePage:
-            self.SetTitle('Editor - %s - %s' %(modulePage.pageName, 
+            self.SetTitle('Editor - %s - %s' %(modulePage.pageName,
               modulePage.model.filename))
+              # modulePage.model.getDisplayName()))
         else:
             self.SetTitle('Editor')
 
