@@ -41,55 +41,50 @@ def findAgain(parent, finder, view):
             wxMessageBox(str(err), 'Find/Replace', wxOK | wxICON_INFORMATION, view)
 
 
-[wxID_FINDREPLACEDLG, wxID_FINDREPLACEDLGBTNBROWSE,
- wxID_FINDREPLACEDLGBTNBUILDINFIND, wxID_FINDREPLACEDLGBTNFINDINFILES,
- wxID_FINDREPLACEDLGCANCELBTN, wxID_FINDREPLACEDLGCASESENSITIVECB,
- wxID_FINDREPLACEDLGCHKRECURSIVESEARCH, wxID_FINDREPLACEDLGCLOSEONFOUNDCB,
- wxID_FINDREPLACEDLGCMBFILEFILTER, wxID_FINDREPLACEDLGCMBFOLDER,
- wxID_FINDREPLACEDLGDIRECTIONRB, wxID_FINDREPLACEDLGFINDALLBTN,
- wxID_FINDREPLACEDLGFINDBTN, wxID_FINDREPLACEDLGFINDTXT,
- wxID_FINDREPLACEDLGOPTIONSSB, wxID_FINDREPLACEDLGREGEXPRCB,
- wxID_FINDREPLACEDLGREPLACEALLBTN, wxID_FINDREPLACEDLGREPLACEBTN,
- wxID_FINDREPLACEDLGREPLACETXT, wxID_FINDREPLACEDLGSCOPERB,
- wxID_FINDREPLACEDLGSTATICTEXT1, wxID_FINDREPLACEDLGSTATICTEXT2,
- wxID_FINDREPLACEDLGSTATICTEXT3, wxID_FINDREPLACEDLGSTATICTEXT4,
- wxID_FINDREPLACEDLGWHOLEWORDSCB, wxID_FINDREPLACEDLGWILDCARDCB,
- wxID_FINDREPLACEDLGWRAPCB,
+[wxID_FINDREPLACEDLG, wxID_FINDREPLACEDLGBTNBROWSE, 
+ wxID_FINDREPLACEDLGBTNBUILDINFIND, wxID_FINDREPLACEDLGBTNFINDINFILES, 
+ wxID_FINDREPLACEDLGCANCELBTN, wxID_FINDREPLACEDLGCASESENSITIVECB, 
+ wxID_FINDREPLACEDLGCHKRECURSIVESEARCH, wxID_FINDREPLACEDLGCLOSEONFOUNDCB, 
+ wxID_FINDREPLACEDLGCMBFILEFILTER, wxID_FINDREPLACEDLGCMBFOLDER, 
+ wxID_FINDREPLACEDLGDIRECTIONRB, wxID_FINDREPLACEDLGFINDALLBTN, 
+ wxID_FINDREPLACEDLGFINDBTN, wxID_FINDREPLACEDLGFINDTXT, 
+ wxID_FINDREPLACEDLGOPTIONSSB, wxID_FINDREPLACEDLGREGEXPRCB, 
+ wxID_FINDREPLACEDLGREPLACEALLBTN, wxID_FINDREPLACEDLGREPLACEBTN, 
+ wxID_FINDREPLACEDLGREPLACETXT, wxID_FINDREPLACEDLGSCOPERB, 
+ wxID_FINDREPLACEDLGSTATICTEXT1, wxID_FINDREPLACEDLGSTATICTEXT2, 
+ wxID_FINDREPLACEDLGSTATICTEXT3, wxID_FINDREPLACEDLGSTATICTEXT4, 
+ wxID_FINDREPLACEDLGWHOLEWORDSCB, wxID_FINDREPLACEDLGWILDCARDCB, 
+ wxID_FINDREPLACEDLGWRAPCB, 
 ] = map(lambda _init_ctrls: wxNewId(), range(27))
 
 class FindReplaceDlg(wxDialog):
-    def _init_utils(self):
-        # generated method, don't edit
-        pass
-
     def _init_ctrls(self, prnt):
         # generated method, don't edit
         wxDialog.__init__(self, id=wxID_FINDREPLACEDLG, name='FindReplaceDlg',
-              parent=prnt, pos=wxPoint(399, 399), size=wxSize(372, 300),
+              parent=prnt, pos=wxPoint(323, 272), size=wxSize(364, 273),
               style=wxDEFAULT_DIALOG_STYLE, title='Find/Replace')
-        self._init_utils()
         self.SetAutoLayout(true)
         self.SetClientSize(wxSize(364, 273))
 
         self.findTxt = wxComboBox(choices=[], id=wxID_FINDREPLACEDLGFINDTXT,
-              name='findTxt', parent=self, pos=wxPoint(88, 4), size=wxSize(249,
-              21), style=0, value='')
+              name='findTxt', parent=self, pos=wxPoint(88, 4), size=wxSize(239,
+              23), style=0, value='')
 
         self.replaceTxt = wxComboBox(choices=[],
               id=wxID_FINDREPLACEDLGREPLACETXT, name='replaceTxt', parent=self,
-              pos=wxPoint(88, 28), size=wxSize(269, 21), style=0, value='')
+              pos=wxPoint(88, 28), size=wxSize(269, 23), style=0, value='')
         EVT_KEY_UP(self.replaceTxt, self.OnFindtxtChar)
 
         self.cmbFolder = wxComboBox(choices=[], id=wxID_FINDREPLACEDLGCMBFOLDER,
               name='cmbFolder', parent=self, pos=wxPoint(88, 51),
-              size=wxSize(249, 21), style=0, validator=wxDefaultValidator,
+              size=wxSize(239, 23), style=0, validator=wxDefaultValidator,
               value='')
         self.cmbFolder.SetLabel('')
         self.cmbFolder.SetToolTipString('Insert path to find in files')
 
         self.cmbFileFilter = wxComboBox(choices=[],
               id=wxID_FINDREPLACEDLGCMBFILEFILTER, name='cmbFileFilter',
-              parent=self, pos=wxPoint(88, 74), size=wxSize(269, 21), style=0,
+              parent=self, pos=wxPoint(88, 74), size=wxSize(269, 23), style=0,
               validator=wxDefaultValidator, value='*.py')
         self.cmbFileFilter.SetLabel('*.py')
         self.cmbFileFilter.SetToolTipString('Files that will be included in search')
@@ -97,7 +92,7 @@ class FindReplaceDlg(wxDialog):
         self.directionRB = wxRadioBox(choices=['Forward', 'Backward'],
               id=wxID_FINDREPLACEDLGDIRECTIONRB, label='Direction',
               majorDimension=1, name='directionRB', parent=self,
-              point=wxPoint(8, 103), size=wxSize(112, 64),
+              point=wxPoint(8, 103), size=wxSize(104, 64),
               style=wxRA_SPECIFY_COLS, validator=wxDefaultValidator)
         EVT_RADIOBOX(self.directionRB, wxID_FINDREPLACEDLGDIRECTIONRB,
               self.OnDirectionrbRadiobox)
@@ -105,90 +100,90 @@ class FindReplaceDlg(wxDialog):
         self.scopeRB = wxRadioBox(choices=['All', 'Selected'],
               id=wxID_FINDREPLACEDLGSCOPERB, label='Scope', majorDimension=1,
               name='scopeRB', parent=self, point=wxPoint(8, 195),
-              size=wxSize(112, 64), style=wxRA_SPECIFY_COLS,
+              size=wxSize(104, 64), style=wxRA_SPECIFY_COLS,
               validator=wxDefaultValidator)
         EVT_RADIOBOX(self.scopeRB, wxID_FINDREPLACEDLGSCOPERB,
               self.OnScoperbRadiobox)
 
         self.optionsSB = wxStaticBox(id=wxID_FINDREPLACEDLGOPTIONSSB,
-              label='Options', name='optionsSB', parent=self, pos=wxPoint(128,
-              103), size=wxSize(136, 158), style=0)
+              label='Options', name='optionsSB', parent=self, pos=wxPoint(120,
+              103), size=wxSize(144, 158), style=0)
 
         self.caseSensitiveCB = wxCheckBox(id=wxID_FINDREPLACEDLGCASESENSITIVECB,
               label='Case sensitive', name='caseSensitiveCB', parent=self,
-              pos=wxPoint(136, 120), size=wxSize(120, 19), style=0)
+              pos=wxPoint(125, 120), size=wxSize(120, 19), style=0)
         EVT_CHECKBOX(self.caseSensitiveCB, wxID_FINDREPLACEDLGCASESENSITIVECB,
               self.OnCasesensitivecbCheckbox)
 
         self.wholeWordsCB = wxCheckBox(id=wxID_FINDREPLACEDLGWHOLEWORDSCB,
               label='Whole words', name='wholeWordsCB', parent=self,
-              pos=wxPoint(136, 138), size=wxSize(120, 19), style=0)
+              pos=wxPoint(125, 138), size=wxSize(120, 19), style=0)
         EVT_CHECKBOX(self.wholeWordsCB, wxID_FINDREPLACEDLGWHOLEWORDSCB,
               self.OnWholewordscbCheckbox)
 
         self.wildcardCB = wxCheckBox(id=wxID_FINDREPLACEDLGWILDCARDCB,
               label='Wildcards', name='wildcardCB', parent=self,
-              pos=wxPoint(136, 156), size=wxSize(120, 19), style=0)
+              pos=wxPoint(125, 156), size=wxSize(120, 19), style=0)
         EVT_CHECKBOX(self.wildcardCB, wxID_FINDREPLACEDLGWILDCARDCB,
               self.OnWildcardcbCheckbox)
 
         self.regExprCB = wxCheckBox(id=wxID_FINDREPLACEDLGREGEXPRCB,
               label='Regular expressions', name='regExprCB', parent=self,
-              pos=wxPoint(136, 174), size=wxSize(120, 19), style=0)
+              pos=wxPoint(125, 174), size=wxSize(131, 19), style=0)
         EVT_CHECKBOX(self.regExprCB, wxID_FINDREPLACEDLGREGEXPRCB,
               self.OnRegexprcbCheckbox)
 
         self.wrapCB = wxCheckBox(id=wxID_FINDREPLACEDLGWRAPCB,
-              label='Wrap search', name='wrapCB', parent=self, pos=wxPoint(136,
+              label='Wrap search', name='wrapCB', parent=self, pos=wxPoint(125,
               191), size=wxSize(120, 21), style=0)
         EVT_CHECKBOX(self.wrapCB, wxID_FINDREPLACEDLGWRAPCB,
               self.OnWrapcbCheckbox)
 
         self.closeOnFoundCB = wxCheckBox(id=wxID_FINDREPLACEDLGCLOSEONFOUNDCB,
               label='Close on found', name='closeOnFoundCB', parent=self,
-              pos=wxPoint(136, 211), size=wxSize(120, 19), style=0)
+              pos=wxPoint(125, 211), size=wxSize(120, 19), style=0)
         EVT_CHECKBOX(self.closeOnFoundCB, wxID_FINDREPLACEDLGCLOSEONFOUNDCB,
               self.OnCloseonfoundcbCheckbox)
 
         self.chkRecursiveSearch = wxCheckBox(id=wxID_FINDREPLACEDLGCHKRECURSIVESEARCH,
               label='Recursive search', name='chkRecursiveSearch', parent=self,
-              pos=wxPoint(136, 233), size=wxSize(120, 13), style=0)
+              pos=wxPoint(125, 233), size=wxSize(120, 14), style=0)
         self.chkRecursiveSearch.SetValue(false)
 
         self.findBtn = wxButton(id=wxID_FINDREPLACEDLGFINDBTN, label='Find',
-              name='findBtn', parent=self, pos=wxPoint(274, 106),
-              size=wxSize(82, 23), style=0)
+              name='findBtn', parent=self, pos=wxPoint(270, 101),
+              size=wxSize(83, 23), style=0)
         EVT_BUTTON(self.findBtn, wxID_FINDREPLACEDLGFINDBTN,
               self.OnFindbtnButton)
         EVT_KEY_UP(self.findBtn, self.OnFindtxtChar)
 
         self.findAllBtn = wxButton(id=wxID_FINDREPLACEDLGFINDALLBTN,
-              label='Find all', name='findAllBtn', parent=self, pos=wxPoint(274,
-              133), size=wxSize(82, 23), style=0)
+              label='Find all', name='findAllBtn', parent=self, pos=wxPoint(270,
+              129), size=wxSize(84, 23), style=0)
         EVT_BUTTON(self.findAllBtn, wxID_FINDREPLACEDLGFINDALLBTN,
               self.OnFindallbtnButton)
 
         self.btnFindInFiles = wxButton(id=wxID_FINDREPLACEDLGBTNFINDINFILES,
               label='Find in files', name='btnFindInFiles', parent=self,
-              pos=wxPoint(274, 160), size=wxSize(82, 23), style=0)
+              pos=wxPoint(270, 156), size=wxSize(84, 23), style=0)
         EVT_BUTTON(self.btnFindInFiles, wxID_FINDREPLACEDLGBTNFINDINFILES,
               self.OnFindInFiles)
 
         self.replaceBtn = wxButton(id=wxID_FINDREPLACEDLGREPLACEBTN,
-              label='Replace', name='replaceBtn', parent=self, pos=wxPoint(274,
-              187), size=wxSize(82, 23), style=0)
+              label='Replace', name='replaceBtn', parent=self, pos=wxPoint(270,
+              183), size=wxSize(83, 23), style=0)
         EVT_BUTTON(self.replaceBtn, wxID_FINDREPLACEDLGREPLACEBTN,
               self.OnReplacebtnButton)
 
         self.replaceAllBtn = wxButton(id=wxID_FINDREPLACEDLGREPLACEALLBTN,
               label='Replace all', name='replaceAllBtn', parent=self,
-              pos=wxPoint(274, 214), size=wxSize(82, 23), style=0)
+              pos=wxPoint(270, 210), size=wxSize(83, 23), style=0)
         EVT_BUTTON(self.replaceAllBtn, wxID_FINDREPLACEDLGREPLACEALLBTN,
               self.OnReplaceallbtnButton)
 
         self.cancelBtn = wxButton(id=wxID_FINDREPLACEDLGCANCELBTN,
-              label='Cancel', name='cancelBtn', parent=self, pos=wxPoint(274,
-              242), size=wxSize(82, 23), style=0)
+              label='Cancel', name='cancelBtn', parent=self, pos=wxPoint(270,
+              238), size=wxSize(83, 23), style=0)
         EVT_BUTTON(self.cancelBtn, wxID_FINDREPLACEDLGCANCELBTN,
               self.OnCancelbtnButton)
 
@@ -209,15 +204,15 @@ class FindReplaceDlg(wxDialog):
               pos=wxPoint(8, 80), size=wxSize(80, 15), style=0)
 
         self.btnBuildInFind = wxButton(id=wxID_FINDREPLACEDLGBTNBUILDINFIND,
-              label='...', name='btnBuildInFind', parent=self, pos=wxPoint(339,
-              4), size=wxSize(19, 21), style=0)
+              label='...', name='btnBuildInFind', parent=self, pos=wxPoint(329,
+              4), size=wxSize(27, 21), style=0)
         self.btnBuildInFind.SetToolTipString('Build-in ready to run searches')
         EVT_BUTTON(self.btnBuildInFind, wxID_FINDREPLACEDLGBTNBUILDINFIND,
               self.OnBuildInFind)
 
         self.btnBrowse = wxButton(id=wxID_FINDREPLACEDLGBTNBROWSE, label='...',
-              name='btnBrowse', parent=self, pos=wxPoint(339, 51),
-              size=wxSize(19, 21), style=0)
+              name='btnBrowse', parent=self, pos=wxPoint(329, 51),
+              size=wxSize(27, 21), style=0)
         self.btnBrowse.SetToolTipString('Folders tree')
         EVT_BUTTON(self.btnBrowse, wxID_FINDREPLACEDLGBTNBROWSE, self.OnBrowse)
 
