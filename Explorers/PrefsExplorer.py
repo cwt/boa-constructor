@@ -520,7 +520,7 @@ class PluginFileExplNode(ExplorerNodes.ExplorerNode):
                     initPluginGlobals['__disabled__'].remove(self.name)
                 except ValueError:
                     pass
-            
+
             Utils.writeInitPluginGlobals(initPluginPath, initPluginGlobals)
 
             editor.explorer.list.refreshCurrent()
@@ -536,7 +536,7 @@ class PluginFileExplNode(ExplorerNodes.ExplorerNode):
 
     def notifyBeginLabelEdit(self, event):
         event.Veto()
-    
+
     def changeOrder(self, direction):
         initPluginPath = os.path.dirname(self.resourcepath)
         initPluginGlobals = Utils.readInitPluginGlobals(initPluginPath)
@@ -680,7 +680,7 @@ class PluginFilesGroupNodeController(ExplorerNodes.Controller):
                 node.changeOrder(1)
                 self.list.refreshCurrent()
                 self.list.selectItemNamed(name)
-        
+
 
 
 class TransportPluginExplNode(ExplorerNodes.ExplorerNode):

@@ -566,7 +566,7 @@ class CategoryController(Controller):
             self.list.selectItemNamed(name)
             self.OnInspectItem(event)
             #self.list.EditLabel(self.list.selected)
-            
+
 
     def OnDeleteItems(self, event):
         if self.list.node:
@@ -1005,7 +1005,7 @@ explorerNodeReg = {}
 nodeRegByProt = {}
 # successfully loaded modules
 installedModules = []
-# dict of modules that failed to load, name: error 
+# dict of modules that failed to load, name: error
 failedModules = {}
 # Registry for language styles which can be edited under Preferences.Source
 langStyleInfoReg = []

@@ -805,4 +805,3 @@ class ExplorerSplitter(BaseExplorerSplitter):
             controllers[protocol] = controllers[link]
 
         return controllers
-
