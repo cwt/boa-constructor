@@ -148,7 +148,7 @@ if not pythonInterpreterPath:
 # thnx Mike Fletcher
 screenWidth =  wx.wxSystemSettings_GetSystemMetric(wx.wxSYS_SCREEN_X)
 screenHeight = wx.wxSystemSettings_GetSystemMetric(wx.wxSYS_SCREEN_Y)
-if wx.wxPlatform == '__WXMSW__':
+if wx.wxPlatform != '__WXGTK__':
     _startx, _starty, screenWidth, screenHeight = wxGetClientDisplayRect()
 else:
     # handle dual monitors on Linux
