@@ -88,7 +88,7 @@ class DataView(wxListCtrl, InspectableObjectView):
     def loadControl(self, ctrlClass, ctrlCompanion, ctrlName, params):
         """ Create and register given control and companion.
             See also: newControl """
-        args = self.setupArgs(ctrlName, params, self.handledProps)
+        args = self.setupArgs(ctrlName, params, self.handledProps, evalDct = self.model.specialAttrs)
 
         # Create control and companion
         companion = ctrlCompanion(ctrlName, self, ctrlClass)

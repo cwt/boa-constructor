@@ -42,12 +42,12 @@ class DesignerView(wxFrame, InspectableObjectView):
     handledProps = ['parent', 'id']
     supportsParentView = true
 
-    def setupArgs(self, ctrlName, params, dontEval, parent = None, compClass = None):
+    def setupArgs(self, ctrlName, params, dontEval, parent = None, compClass = None, evalDct = {}):
         """ Create a dictionary of parameters for the constructor of the
             control from a dictionary of string/source parameters.
         """
 
-        args = InspectableObjectView.setupArgs(self, ctrlName, params, dontEval)
+        args = InspectableObjectView.setupArgs(self, ctrlName, params, dontEval, evalDct = evalDct)
 
         if compClass:
             prnt = compClass.windowParentName
@@ -89,7 +89,7 @@ class DesignerView(wxFrame, InspectableObjectView):
 
     def __init__(self, parent, inspector, model, compPal, companionClass, dataView):
         args = self.setupArgs(model.main, model.mainConstr.params,
-          ['parent', 'id'], parent, companionClass)
+          ['parent', 'id'], parent, companionClass, model.specialAttrs)
         wxFrame.__init__(self, parent, -1, args['title'], args['pos'], args['size'])#, args['style'], args['name'])
         InspectableObjectView.__init__(self, inspector, model, compPal)
 
@@ -304,7 +304,8 @@ class DesignerView(wxFrame, InspectableObjectView):
 
         dontEval = [ctrlCompanion.windowParentName, ctrlCompanion.windowIdName]
 
-        args = self.setupArgs(ctrlName, params, dontEval, compClass = ctrlCompanion)
+        args = self.setupArgs(ctrlName, params, dontEval, 
+              compClass=ctrlCompanion, evalDct=self.model.specialAttrs)
 
         parent = Utils.ctrlNameFromSrcRef(params[ctrlCompanion.windowParentName])
 ##        if params[ctrlCompanion.windowParentName] == 'self':
