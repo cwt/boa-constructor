@@ -41,7 +41,7 @@ from Models import EditorHelper, Controllers, PythonControllers
 from EditorUtils import EditorToolBar, EditorStatusBar, ModulePage
 
 import Preferences, Utils
-from Preferences import keyDefs, IS, wxFileDialog, flatTools
+from Preferences import keyDefs, IS, flatTools
 from Utils import BottomAligningSplitterWindow
 
 import About, Help, Browse
@@ -786,6 +786,7 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
     def openFileDlg(self, filter = '*.py'):
         if filter == '*.py': filter = Preferences.exDefaultFilter
 
+        from FileDlg import wxFileDialog
         dlg = wxFileDialog(self, 'Choose a file', '.', '', filter, wxOPEN)
         try:
             if dlg.ShowModal() == wxID_OK:
@@ -803,6 +804,7 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
         if dir[-1] == ':':
             dir = dir[:-1]
 
+        from FileDlg import wxFileDialog
         dlg = wxFileDialog(self, 'Save as...', dir, name, filter,
               wxSAVE | wxOVERWRITE_PROMPT)
         dlg.dont_pop = dont_pop
@@ -867,7 +869,7 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
               # modulePage.model.getDisplayName()))
         else:
             if pageIdx is None:
-                pIdx = self.tabs.GetSelection()
+                pageIdx = self.tabs.GetSelection()
             self.SetTitle('Editor - %s' % self.tabs.GetPageText(pageIdx))
 
     def updateModulePage(self, model, filename = ''):
@@ -876,6 +878,16 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
         else:
             modPge = self.modules[model.filename]
         self.tabs.SetPageText(modPge.tIdx, modPge.updatePageName())
+
+    def assureRefreshed(self):
+        sel = self.tabs.GetSelection()
+        page = self.tabs.GetPage(sel)
+        if page:
+            page.SetFocus()
+
+        self.updateTitle(sel)
+        self.setupToolBar(sel)
+    
 
     def clearAllStepPoints(self):
         for mod in self.modules.values():

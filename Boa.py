@@ -31,7 +31,7 @@ t1 = time.time()
 server_mode = 1
 
 trace_mode = 'functions' # 'lines'
-trace_save = 'lastline' # 'all'
+trace_save = 'all'#'lastline' # 'all'
 def trace_func(frame, event, arg):
     """ Callback function when Boa runs in tracing mode"""
     if frame:
@@ -396,7 +396,7 @@ class BoaApp(wxApp):
 
             self.main.initPalette(inspector, editor)
 
-            editor.setupToolBar()
+##            editor.setupToolBar()
 
             import Help
             print 'attaching wxPython doc strings'
@@ -470,6 +470,8 @@ class BoaApp(wxApp):
 
         if Preferences.exWorkingDirectory:
             os.chdir(Preferences.exWorkingDirectory)
+
+        editor.assureRefreshed()
 
         return true
 
