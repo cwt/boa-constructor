@@ -35,14 +35,6 @@ class wxBoaFileDialog(wxDialog):
         self.panel1.SetConstraints(LayoutAnchors(self.panel1, true, true, true, true))
         self.panel1.SetAutoLayout(true)
 
-        self.btOK = wxButton(label = 'OK', id = wxID_WXBOAFILEDIALOGBTOK, parent = self.panel1, name = 'btOK', size = wxSize(72, 24), style = 0, pos = wxPoint(320, 184))
-        self.btOK.SetConstraints(LayoutAnchors(self.btOK, false, false, true, true))
-        EVT_BUTTON(self.btOK, wxID_WXBOAFILEDIALOGBTOK, self.OnBtokButton)
-
-        self.btCancel = wxButton(label = 'Cancel', id = wxID_WXBOAFILEDIALOGBTCANCEL, parent = self.panel1, name = 'btCancel', size = wxSize(72, 24), style = 0, pos = wxPoint(320, 216))
-        self.btCancel.SetConstraints(LayoutAnchors(self.btCancel, false, false, true, true))
-        EVT_BUTTON(self.btCancel, wxID_WXBOAFILEDIALOGBTCANCEL, self.OnBtcancelButton)
-
         self.staticText1 = wxStaticText(label = 'File name:', id = wxID_WXBOAFILEDIALOGSTATICTEXT1, parent = self.panel1, name = 'staticText1', size = wxSize(70, 16), style = 0, pos = wxPoint(8, 192))
         self.staticText1.SetConstraints(LayoutAnchors(self.staticText1, true, false, false, true))
 
@@ -57,6 +49,14 @@ class wxBoaFileDialog(wxDialog):
         self.chTypes.SetConstraints(LayoutAnchors(self.chTypes, true, false, true, true))
         EVT_CHOICE(self.chTypes, wxID_WXBOAFILEDIALOGCHTYPES, self.OnChtypesChoice)
 
+        self.btOK = wxButton(label = 'OK', id = wxID_WXBOAFILEDIALOGBTOK, parent = self.panel1, name = 'btOK', size = wxSize(72, 24), style = 0, pos = wxPoint(320, 184))
+        self.btOK.SetConstraints(LayoutAnchors(self.btOK, false, false, true, true))
+        EVT_BUTTON(self.btOK, wxID_WXBOAFILEDIALOGBTOK, self.OnBtokButton)
+
+        self.btCancel = wxButton(label = 'Cancel', id = wxID_WXBOAFILEDIALOGBTCANCEL, parent = self.panel1, name = 'btCancel', size = wxSize(72, 24), style = 0, pos = wxPoint(320, 216))
+        self.btCancel.SetConstraints(LayoutAnchors(self.btCancel, false, false, true, true))
+        EVT_BUTTON(self.btCancel, wxID_WXBOAFILEDIALOGBTCANCEL, self.OnBtcancelButton)
+
         self.stPath = wxStaticText(label = ' ', id = wxID_WXBOAFILEDIALOGSTPATH, parent = self.panel1, name = 'stPath', size = wxSize(3, 13), style = 0, pos = wxPoint(8, 8))
 
     def OnSize(self, event):
@@ -68,6 +68,7 @@ class wxBoaFileDialog(wxDialog):
         self.SetWildcard(wildcard)
 
         EVT_SIZE(self.panel1, self.OnSize)
+        EVT_KILL_FOCUS(self.btCancel, self.OnBtcancelKillFocus)
 
         # XXX This is a bit convoluted ;)
         # XXX The late importing is the only way to avoid import problems because
@@ -90,6 +91,12 @@ class wxBoaFileDialog(wxDialog):
                 EVT_LIST_BEGIN_LABEL_EDIT(self, self.GetId(), self.OnBeginLabelEdit)
                 EVT_LIST_END_LABEL_EDIT(self, self.GetId(), self.OnEndLabelEdit)
 
+##            def refreshItems(self, images, explNode):
+##                from Explorers import Explorer
+##                Explorer.PackageFolderList.refreshItems(self, images, explNode)
+##                if self.selected == -1:
+##                    self.selectItemNamed('..')
+
 
             def OnItemSelect(self, event):
                 from Explorers import Explorer
@@ -109,11 +116,13 @@ class wxBoaFileDialog(wxDialog):
 
             def OnListRightUp(self, event):
                 self.PopupMenu(self.menu, wxPoint(event.GetX(), event.GetY()))
+                event.Skip()
 
             def OnNewFolder(self, event):
                 name = self.node.newFolder()
                 self.refreshCurrent()
                 self.selectItemNamed(name)
+                self.EnsureVisible(self.selected)
                 self.EditLabel(self.selected)
 
             def OnBeginLabelEdit(self, event):
@@ -152,10 +161,12 @@ class wxBoaFileDialog(wxDialog):
         if self.lcFiles.node.filter == 'AllFiles':
             self.chTypes.SetStringSelection('All files')
 
+        self.tcFilename.SetFocus()
+
     def newFileNode(self, defaultDir):
         from Explorers import FileExplorer, Explorer
         return FileExplorer.PyFileNode(path.basename(defaultDir), defaultDir, None,
-              Explorer.EditorModels.FolderModel.imgIdx, None, None)
+              Explorer.EditorHelper.imgFolder, None, None)
 
     def updatePathLabel(self):
         self.stPath.SetLabel(self.GetPath())
@@ -274,7 +285,6 @@ class wxBoaFileDialog(wxDialog):
     def SetStyle(self, style):
         title = 'File Dialog'
         btn = 'OK'
-        print style
         if style & wxOPEN:
             title = 'Open'
             btn = openStr
@@ -308,3 +318,8 @@ class wxBoaFileDialog(wxDialog):
         elif fType == 'All files':
             self.lcFiles.node.setFilter('AllFiles')
         self.lcFiles.refreshCurrent()
+
+    def OnBtcancelKillFocus(self, event):
+        self.btOK.SetDefault()
+        if self.lcFiles.selected == -1:
+            self.lcFiles.selectItemNamed('..')
