@@ -9,18 +9,28 @@
 # Copyright:   (c) 1999 - 2002 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
+
+""" The global preferences module shared by most Boa modules.
+
+This namespace is populated by *.rc.py files from the selected 
+resource configuration.
+
+The resource config files are version checked and updated from the 
+resource config files in the Boa root (so that a CVS updated schema will
+override old settings in external resource config directories.
+
+Application, Plug-ins and Image paths are initialised and the global ImageStore 
+is configured.
+
+"""
+
 import os, sys, shutil, string
 
 from wxPython import wx
 
 #---Paths-----------------------------------------------------------------------
 
-##pyPath = sys.path[0]
-##if not pyPath: pyPath = os.path.abspath('')
 pyPath = sys.path[0] = os.path.abspath(sys.path[0])
-
-def toPyPath(filename):
-    return os.path.join(pyPath, filename)
 
 #---Import preference namespace from resource .rc. files------------------------
 
@@ -65,9 +75,9 @@ if not os.path.isdir(rcPath):
 
 # upgrade if needed and exec in our namespace
 plat = wx.wxPlatform == '__WXMSW__' and 'msw' or 'gtk'
-for prefsFile, version in (('prefs.rc.py', 4),
-                           ('prefs.%s.rc.py'%plat, 4),
-                           ('prefskeys.rc.py', 4)):
+for prefsFile, version in (('prefs.rc.py', 5),
+                           ('prefs.%s.rc.py'%plat, 5),
+                           ('prefskeys.rc.py', 5)):
     file = os.path.join(rcPath, prefsFile)
 
     # first time, install to env dir
@@ -105,6 +115,8 @@ for file in ('Explorer.%s.cfg' % plat, 'stc-styles.rc.cfg'):
         shutil.copy2(os.path.join(pyPath, file), rcFile)
 
 pluginPaths = []
+installedPlugins = []
+failedPlugins = {}
 if pluginsEnabled:
     pluginPaths.append(pyPath+'/Plug-ins')
     # Library plugin path
@@ -120,16 +132,13 @@ if pluginsEnabled:
 imageStorePaths = [pyPath]
 for ppth in pluginPaths:
     imageStorePaths.append(ppth)
-##    if useImageArchive and os.path.exists(pyPath+'/Images/Images.archive'):
-##        imageStorePaths.append(ppth+'/Images')
-##    else:
-##    imageStorePaths.append(ppth)
 
 import ImageStore
-if useImageArchive and os.path.exists(pyPath+'/Images/Images.archive'):
-    IS = ImageStore.ZippedImageStore(pyPath+'/Images', 'Images.archive', useImageCache)
+if useImageArchive:
+    UseImageStore = ImageStore.ZippedImageStore
 else:
-    IS = ImageStore.ImageStore(imageStorePaths, cache=useImageCache)
+    UseImageStore = ImageStore.ImageStore
+IS = UseImageStore(imageStorePaths, cache=useImageCache)
 
 # If user does not override interpreter, use own interpreter path
 if not pythonInterpreterPath:
