@@ -780,7 +780,7 @@ class PythonStyledTextCtrlMix(LanguageSTCMix):
         if stripprevline:
             indent = prevline[:prevline.find(stripprevline)]
         else:
-            indent = prevline[:-1]
+            indent = prevline.strip('\r\n')
 
         if self.GetUseTabs():
             indtBlock = '\t'
