@@ -10,6 +10,14 @@
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 
+from os import path
+import time
+#from time import time, gmtime, strftime
+try:
+    from cmp import cmp
+except ImportError:
+    from filecmp import cmp
+
 from wxPython.wx import *
 
 from EditorViews import ListCtrlView, ModuleDocView, wxwAppModuleTemplate, CyclopsView, ClosableViewMix
@@ -17,12 +25,6 @@ import ProfileView
 import PySourceView
 from PrefsKeys import keyDefs
 import Search
-from os import path
-from time import time, gmtime, strftime
-try:
-    from cmp import cmp
-except ImportError:
-    from filecmp import cmp
 
 class AppFindResults(ListCtrlView, ClosableViewMix):
     gotoLineBmp = 'Images/Editor/GotoLine.bmp'
@@ -92,7 +94,6 @@ class AppView(ListCtrlView):
     def __init__(self, parent, model):
         ListCtrlView.__init__(self, parent, model, wxLC_REPORT,
           (('Open', self.OnOpen, self.openBmp, ()),
-#           ('Open all modules', self.OnOpenAll, self.openAllBmp, ()),
            ('Save all modules', self.OnSaveAll, self.saveAllBmp, ()),
            ('-', None, '', ()),
            ('Add', self.OnAdd, self.addModBmp, keyDefs['Insert']),
@@ -110,9 +111,6 @@ class AppView(ListCtrlView):
            ('Run application', self.OnRun, self.runBmp, keyDefs['RunApp']),
            ('Debugger', self.OnDebugger, self.debugBmp, keyDefs['Debug'])), 0)
 
-#           ('-', None, '', ()),
-#           ('Imports...', self.OnImports, self.importsBmp, ())
-
         self.InsertColumn(0, 'Module', width = 150)
         self.InsertColumn(1, 'Type', width = 50)
 #        self.InsertColumn(2, 'Autocreate', wxLIST_FORMAT_CENTRE, 50)
@@ -121,7 +119,7 @@ class AppView(ListCtrlView):
 
         self.sortOnColumns = [0, 1, 3]
 
-        EVT_LIST_BEGIN_DRAG(self, self.GetId(), self.OnDrag)
+#        EVT_LIST_BEGIN_DRAG(self, self.GetId(), self.OnDrag)
 
         self.SetImageList(model.editor.modelImageList, wxIMAGE_LIST_SMALL)
 
@@ -153,6 +151,9 @@ class AppView(ListCtrlView):
 
             appMod = self.model.modules[mod]
 
+            if appMod[0]:
+                modTpe = '*%s*'%modTpe
+
             i = self.addReportItems(i, (mod, modTpe, appMod[1], appMod[2]), imgIdx)
 
         self.pastelise()
@@ -165,14 +166,26 @@ class AppView(ListCtrlView):
         self.model.viewAddModule()
 
     def OnEdit(self, event):
-        pass
+        name = self.GetItemText(self.selected)
+        dlg = wxTextEntryDialog(self, 'Set the description of the module',
+            'Edit item', self.model.modules[name][1])
+        try:
+            if dlg.ShowModal() == wxID_OK:
+                answer = dlg.GetValue()
+                self.model.editModule(name, name, self.model.modules[name][0],
+                      answer)
+                self.model.update()
+                self.model.notify()
+        finally:
+            dlg.Destroy()
 
     def OnRemove(self, event):
         if self.selected >= 0:
             if not self.model.modules[self.GetItemText(self.selected)][0]:
                 self.model.removeModule(self.GetItemText(self.selected))
             else:
-                wxMessageBox('Cannot remove the main frame of an application', 'Module remove error')
+                wxMessageBox('Cannot remove the main frame of an application',
+                    'Module remove error')
 
     def OnRun(self, event):
         wxBeginBusyCursor()
@@ -186,7 +199,7 @@ class AppView(ListCtrlView):
 
     def OnProfile(self, event):
         stats, profDir = self.model.profile()
-        resName = 'Profile stats: %s'%strftime('%H:%M:%S', gmtime(time()))
+        resName = 'Profile stats: %s'%time.strftime('%H:%M:%S', time.gmtime(time.time()))
         if not self.model.views.has_key(resName):
             resultView = self.model.editor.addNewView(resName, ProfileView.ProfileStatsView)
         else:
@@ -211,7 +224,7 @@ class AppView(ListCtrlView):
         finally:
             wxEndBusyCursor()
 
-        resName = 'Cyclops report: %s'%strftime('%H:%M:%S', gmtime(time()))
+        resName = 'Cyclops report: %s'%time.strftime('%H:%M:%S', time.gmtime(time.time()))
         if not self.model.views.has_key(resName):
             resultView = self.model.editor.addNewView(resName, CyclopsView)
         else:
@@ -430,3 +443,101 @@ class AppBUGS_TIFView(TextInfoFileView):
 
 class AppCHANGES_TIFView(TextInfoFileView):
     viewName = 'Changes.txt'
+
+class AppTimeTrackView(ListCtrlView):
+    viewName = 'Time Tracking'
+    def __init__(self, parent, model):
+        ListCtrlView.__init__(self, parent, model, wxLC_REPORT,
+          (('Start', self.OnStart, '-', ()),
+           ('End', self.OnEnd, '-', ()),
+           ('Delete', self.OnDelete, '-', ()),
+          ), 1 )
+
+        self.InsertColumn(0, 'Start', width = 150)
+        self.InsertColumn(1, 'End', width = 150)
+        self.InsertColumn(2, 'Description', width = 350)
+
+        self.sortOnColumns = [0, 1]
+
+        self.times = []
+
+        self.active = true
+        self.model = model
+
+    def refreshCtrl(self):
+        ListCtrlView.refreshCtrl(self)
+        try:
+            self.times = self.readTimes()
+        except IOError:
+            self.times = []
+            #fn = self.getTTVFilename()
+            #if not path.exists(fn): open(fn, 'w')
+
+        i = 0
+        modSort = self.model.modules.keys()
+        modSort.sort()
+        for start, end, desc in self.times:
+            i = self.addReportItems(i,
+                  (self.getTimeStr(start),
+                   end and self.getTimeStr(end) or '',
+                   desc) )
+
+        self.pastelise()
+
+    def getTimeStr(self, thetime):
+        return time.strftime('%Y/%m/%d : %H:%M:%S', time.gmtime(thetime))
+
+    def getTTVFilename(self):
+        return path.splitext(self.model.filename)[0]+'.ttv'
+
+    def writeTimeEntry(self, file, start, end, desc):
+        file.write("(%s, %s, %s)\n" % (`start`, `end`, `desc`))
+
+    def readTimes(self):
+        return map(lambda line: eval(line), open(self.getTTVFilename()).readlines())
+
+    def writeTimes(self):
+        timesFile = open(self.getTTVFilename(), 'w')
+        for start, end, desc in self.times:
+            self.writeTimeEntry(timesFile, start, end, desc)
+
+    def OnStart(self, event):
+        self.writeTimeEntry(open(self.getTTVFilename(), 'a'), time.time(), 0, '')
+
+        self.refreshCtrl()
+
+    def OnEnd(self, event):
+        selIdx = self.getSelectedIndex()
+        start, end, desc = self.times[selIdx]
+
+        if not end:
+            end = time.time()
+
+        dlg = wxTextEntryDialog(self, 'Start time :%s\nEnd time :%s\n\n'\
+            'Enter a description for the time spent' % (self.getTimeStr(start),
+              self.getTimeStr(end)), 'Time tracking', desc)
+        try:
+            if dlg.ShowModal() == wxID_OK:
+                answer = dlg.GetValue()
+                self.times[selIdx] = (start, end, answer)
+                self.writeTimes()
+                self.refreshCtrl()
+        finally:
+            dlg.Destroy()
+
+    def OnDelete(self, event):
+        selIdx = self.getSelectedIndex()
+
+        if selIdx == -1:
+            return
+
+        dlg = wxMessageDialog(self, 'Are you sure?',
+          'Delete', wxOK | wxCANCEL | wxICON_QUESTION)
+        try:
+            if dlg.ShowModal() == wxID_OK:
+                del self.times[selIdx]
+                self.writeTimes()
+                self.refreshCtrl()
+
+        finally:
+            dlg.Destroy()
