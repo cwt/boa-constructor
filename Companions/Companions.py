@@ -299,6 +299,7 @@ class NotebookDTC(WindowConstr, ContainerDTC):
     def OnPageChanged(self, event):
         try:
             self.collections['Pages'].updateSelection(event.GetSelection())
+            wxPostEvent(self.control, wxSizeEvent( self.control.GetSize() ))
         except Exception, err:
             print 'OnPageChanged exception', str(err)
             print self.collections
@@ -492,7 +493,7 @@ class BlankWindowPage(wxWindow):
         if self.ctrl:
             dsgn.selectControlByPos(self.ctrl, event.GetPosition(), event.ShiftDown())
         else:
-            dsgn.ctrlEvtHandler.OnControlSelect(event, self.GetParent())
+            dsgn.ctrlEvtHandler.OnControlSelect(event)
 
         if new:
             self.linkToNewestControl()
