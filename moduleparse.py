@@ -6,14 +6,14 @@
 #
 # Created:     1999
 # RCS-ID:      $Id$
-# Copyright:   Changes (c) 1999 - 2002 Riaan Booysen
+# Copyright:   Changes (c) 1999 - 2003 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
 
 """Parse one Python file and retrieve classes, methods, functions,
 store the code spans and facilitate the manipulation of method bodies
 
-This module is heavly based on 'pyclbr.py' from the standard python lib
+This module is based on 'pyclbr.py' from the standard python lib
 
 BUGS
 Nested methods and classes not handled
@@ -70,6 +70,9 @@ is_todo = re.compile('^[ \t]*# XXX')
 is_todo2 = re.compile('^[ \t]*# TODO:')
 is_wid = re.compile('^\[(?P<wids>.*)\][ \t]*[=][ \t]*wxNewId[(](?P<count>\d+)[)]$')
 is_break_line = re.compile('^#-+(?P<descr>.*%s)-+$'%obj_def)
+is_resource = '(?P<imppath>%s)[.]get(?P<imgname>%s)%%s[(][)]'%(obj_def, id)
+is_resource_bitmap = re.compile(is_resource%'Bitmap')
+is_resource_icon = re.compile(is_resource%'Icon')
 
 sq3string = r"(\b[rR])?'''([^'\\]|\\.|'(?!''))*(''')?"
 dq3string = r'(\b[rR])?"""([^"\\]|\\.|"(?!""))*(""")?'
@@ -88,13 +91,14 @@ str_licence = '# Licence:[ \t]*(?P<licence>[^#]*#[-]+)'
 is_info = re.compile(sep_line + str_name + str_purpose + str_author + \
   str_created + str_rcs_id + str_copyright + str_licence, re.DOTALL)
 
+class ModuleParseError(Exception):
+    pass
 
 class CodeBlock:
     def __init__(self, sig, start, end):
         self.signature = sig
         self.start = start
         self.end = end
-        # XXX renumber
         self.locals = {}
 
     def __repr__(self):
@@ -106,6 +110,7 @@ class CodeBlock:
             self.end = self.end + increment
         elif self.end > from_line:
             self.end = self.end + increment
+
         for attr in self.locals.values():
             attr.renumber(from_line, increment)
 
@@ -117,9 +122,6 @@ class CodeBlock:
 
     def localnames(self):
         locls=self.locals.keys()
-        #return filter(lambda s, locls=self.locals.keys(): s not in locls,
-        #   map(lambda s: s.split('=')[0],
-        #   methodparse.safesplitfields(self.signature, ',')))+self.locals.keys()
         return [name for name in [fld.split('=')[0] 
                  for fld in methodparse.safesplitfields(self.signature, ',')]
                 if name not in locls] + self.locals.keys()
@@ -131,8 +133,12 @@ class Attrib:
         self.objtype = objtype
 
     def renumber(self, from_line, increment):
-        if self.lineno > from_line:
-            self.lineno = self.lineno + increment
+        self.lineno = renumber(self.lineno, increment, from_line)
+
+def renumber(lineno, increment, start):
+    if lineno > start:
+        return lineno + increment
+    return lineno
 
 # each Python class is represented by an instance of this class
 class Class:
@@ -256,9 +262,14 @@ class Module:
             line = self.decomment(self.source[lineno]).rstrip()
             if line:
                 if line[-1] in self.line_conts:
+                    while line and line[-1] == '\\':
+                        line = line[:-1]
                     contline = contline + line
                     lineno = lineno + 1
                     continue
+                elif not terminator:
+                    contline = contline + line
+                    return lineno, contline
                 elif line[-1] in string.digits+string.letters+'_':
                     contline = contline + line
                     lineno = lineno + 1
@@ -274,7 +285,7 @@ class Module:
 
         return -1, ''
 
-    def __init__(self, module, modulesrc):#, classes = {}, class_order = [], file = ''):
+    def __init__(self, module, modulesrc, eol=os.linesep):#, classes = {}, class_order = [], file = ''):
         self.classes = {}#classes
         self.class_order = []#class_order
         self.functions = {}
@@ -286,7 +297,8 @@ class Module:
         self.global_order = []
         self.break_lines = {}
 
-        self.imports = {}
+        # {name: [lineno], ...}
+        self.imports = {} 
         self.from_imports = {}
         self.from_imports_names = {}
         self.from_imports_star = []
@@ -298,6 +310,15 @@ class Module:
         file = ''
         self.lineno = 0
         self.source = modulesrc
+        self.eol = os.linesep
+        if self.source:
+            if self.source[0].endswith('\r\n'): #win
+                self.eol = '\r\n'
+            elif self.source[0].endswith('\n'): #unix
+                self.eol = '\n'
+            elif self.source[0].endswith('\r'): #mac
+                self.eol = '\r'
+
         self.loc = 0
         while self.lineno < len(self.source):
             self.loc = self.loc + 1
@@ -499,18 +520,32 @@ class Module:
 
         res = is_import.match(line)
         if res:
+            if line[-1] == '\\':
+                lno, contl = self.readcontinuedlines(lineno-1, '')
+                if lno == -1:
+                    return 0, cur_class, cur_meth, cur_func
+                res = is_import.match(contl)
+                if not res:
+                    return 0, cur_class, cur_meth, cur_func
+
             # import module
             for n in res.group('imp').split(','):
                 n = n.strip()
-                i = []
-                for s in n.split('.'):
-                    i.append(s)
-                    self.imports['.'.join(i)] = [lineno]
+                i = [s for s in n.split('.')]
+                self.imports['.'.join(i)] = [lineno]
             return 0, cur_class, cur_meth, cur_func
 
         res = is_from.match(line)
         if res:
             # from module import stuff
+            if line[-1] == '\\':
+                lno, contl = self.readcontinuedlines(lineno-1, '')
+                if lno == -1:
+                    return 0, cur_class, cur_meth, cur_func
+                res = is_from.match(contl)
+                if not res:
+                    return 0, cur_class, cur_meth, cur_func
+
             mod, names = res.group('module'), res.group('imp').split(',')
             self.from_imports[mod] = [lineno]
 
@@ -600,9 +635,7 @@ class Module:
             pre_blank = ['']
             post_blank = []
         else:
-            #print a_class.methods[a_class.method_order[0]].start, a_class.block.start
             ins_point = a_class.methods[a_class.method_order[0]].start-1
-            #ins_point = a_class.block.start
             pre_blank = []
             post_blank = ['']
 
@@ -638,7 +671,17 @@ class Module:
                 func.renumber(func.start, deltaLines)
             for glob in self.globals.values():
                 glob.renumber(glob.start, deltaLines)
-
+            for imptype in (self.imports, self.from_imports):
+                for imp, lns in imptype.items():
+                    #imptype[imp][0] = renumber(imptype[imp][0], deltaLines, start)
+                    lns[0] = renumber(lns[0], deltaLines, start)
+##                    l = []
+##                    for ln in lns:
+##                        if ln > start:
+##                            ln += deltaLines
+##                        l.append(ln)
+##                    imptype[imp] = l
+##                
     def replaceBody(self, name, code_block_dict, new_body):
         newLines = len(new_body)
         if not new_body: return
@@ -663,8 +706,6 @@ class Module:
         self.renumber(-totLines, code_block.start-1)
 
         self.classes[class_name].remove_method(name)
-##        del self.classes[class_name].methods[name]
-##        self.classes[class_name].method_order.remove(name)
 
     def searchDoc(self, body):
         try:
@@ -764,7 +805,6 @@ class Module:
 
 
     def addFunction(self, func_name, func_params, func_body):
-#        new_length = len(func_body) + 2
         if not func_body: return
 
         # Add a func code block
@@ -776,9 +816,6 @@ class Module:
         # Add in source
         self.source[ins_point : ins_point] = \
           ['def %s(%s):' % (func_name, func_params)] + func_body + ['']
-
-        # renumber code blocks
-#        self.renumber(new_length, ins_point)
 
     def replaceFunctionBody(self, func_name, new_body):
         self.replaceBody(func_name, self.functions, new_body)
@@ -849,38 +886,92 @@ class Module:
 
         return info_block
 
-    def addImportStatement(self, impStmt):
+    def addImportStatement(self, impStmt, resourceImport=0):
         """ Adds an import statement to the code and internal dict if it isn't
             added yet """
-        # XXX Split on newline
-        stmts = impStmt.split('\n')
-
-        m = is_import.match(impStmt)
         impLine = ''
+        isImportFrom = 0 
+        defLineNo = self.lineno
+        
+        m = is_import.match(impStmt)
         if m:
             for n in m.group('imp').split(','):
                 n = n.strip()
                 if not self.imports.has_key(n):
-                    self.imports[n] = [self.lineno]
+                    self.imports[n] = [defLineNo] 
                     impLine = impStmt
         else:
             m = is_from.match(impStmt)
             if m:
                 mod = m.group('module')
                 if not self.from_imports.has_key(mod):
-                    self.from_imports[mod] = [self.lineno]
+                    self.from_imports[mod] = [defLineNo]
                     impLine = impStmt
+                    isImportFrom = 1
             else:
-                raise 'Import statement invalid'
+                raise ModuleParseError, 'Import statement invalid: %s'%impStmt
 
         if impLine:
-            # XXX Decide on default position if module does not have
-            # XXX from wxPython.wx import *
             # Add it beneath from wxPython.wx import *
             if self.from_imports.has_key('wxPython.wx'):
                 insLine = self.from_imports['wxPython.wx'][0]
-                self.source.insert(insLine, impLine)
-                self.renumber(1, insLine) #len(stmts)
+                # Component imports are in a block with the wxPython.wx import
+                if not resourceImport:
+                    self.source.insert(insLine, impLine)
+                    self.renumber(1, insLine) 
+                # Resource import should create their own block under comps
+                else:
+                    allImports = []
+                    for md, lns in self.from_imports.items() + self.imports.items():
+                        for ln in lns:
+                            allImports.append( (ln, md) )
+                    allImports.sort()
+                    
+                    # find the first gap after import wxPy
+                    newInsLine = -1
+                    nextImpLn = -1
+                    idx = 0
+                    prevLn = start = end = -1
+                    while idx < len(allImports):
+                        ln, md = allImports[idx]
+                        if start == -1 and ln == insLine and md == 'wxPython.wx':
+                            start = ln
+                        elif start != -1 and ln > prevLn+1:
+                            end = prevLn+1
+                            nextImpLn = ln
+                            break
+                        
+                        prevLn = ln
+                        idx += 1
+
+                    # after all other imports
+                    lns = 0
+                    if end == -1:
+                        end = allImports[-1][0]
+                        self.source.insert(end, self.eol)
+                        lns += 1
+                        
+                    insLine = end+lns
+                    self.source.insert(insLine, impLine)
+                    lns += 1
+                    nextLine = self.source[end+lns].strip()
+                    if nextLine and nextImpLn != -1:
+                        # Add blank line if next line is not an import line
+                        if end+lns != nextImpLn:
+                            self.source.insert(end+lns, self.eol)
+                            lns += 1
+                    
+                    # correct the linenos added at start of func
+                    if isImportFrom:
+                        imports = self.from_imports
+                    else:
+                        imports = self.imports
+                    for name, lins in imports.items():
+                        if imports[name][0] == defLineNo:
+                            imports[name][0] = insLine
+
+                    self.renumber(lns, end) 
+                            
 
     def getClassForLineNo(self, line_no):
         for cls in self.classes.values():
@@ -893,6 +984,14 @@ class Module:
             if func.contains(line_no):
                 return func
         return None
+
+    def getEOLFixedLines(self):
+        res = []
+        for line in self.source:
+            if not (line.endswith('\r\n') or line.endswith('\n') or line.endswith('\r')):
+                line += self.eol
+            res.append(line)
+        return res
 
     def __repr__(self):
         return 'Module: %s\n' % self.name +\
@@ -911,15 +1010,6 @@ def moduleFile(module, path=[], inpackage=0):
 
     XXX Package code not tested
     """
-
-##    i = string.rfind(module, '.')
-##    if i >= 0:
-##        # Dotted module name
-##        package = string.strip(module[:i])
-##        submodule = string.strip(module[i+1:])
-##        parent = moduleFile(package, path, inpackage)
-##        return moduleFile(submodule, parent.classes['__path__'], 1)
-##    else:
     if module in sys.builtin_module_names:
         # this is a built-in module
         return Module(module, [])
@@ -946,7 +1036,8 @@ def moduleFile(module, path=[], inpackage=0):
     return mod
 
 if __name__ == '__main__':
-    lines = open('moduleparse.py').readlines()
-    m = Module('moduleparse', lines)
-    print m.classes['Module'].methods['__init__'].localnames()
+    lines = open('moduleparse.py', 'rb').readlines()
+    m = Module('', lines[:])
+    print m.from_imports_names
+    
     
