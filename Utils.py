@@ -16,9 +16,13 @@ import string
 # Why did I capitalise these ????
 
 def ShowErrorMessage(parent, caption, mess):
-    print mess, mess.__class__, mess.args[0]
     dlg = wxMessageDialog(parent, mess.__class__.__name__ +': '+mess.args[0],
                           caption, wxOK | wxICON_EXCLAMATION)
+    try: dlg.ShowModal()
+    finally: dlg.Destroy()
+
+def ShowMessage(parent, caption, message):
+    dlg = wxMessageDialog(parent, message, caption, wxOK | wxICON_INFORMATION)
     try: dlg.ShowModal()
     finally: dlg.Destroy()
 
@@ -28,22 +32,21 @@ def yesNoDialog(parent, title, question):
     finally: dlg.Destroy()
 
 def AddToolButtonBmpObject(frame, toolbar, thebitmap, hint, triggermeth, toggleBitmap = wxNullBitmap):
-    nId = NewId()
+    nId = wxNewId()
 #    t = toolbar.AddTool(nId, thebitmap, toggleBitmap, shortHelpString = hint, toggle = toggleBitmap != wxNullBitmap)
     toolbar.AddTool(nId, thebitmap, toggleBitmap, shortHelpString = hint)#, toggle = toggleBitmap != wxNullBitmap)
     EVT_TOOL(frame, nId, triggermeth)
-#    return t
+    return nId
 
 def AddToolButtonBmpFile(frame, toolbar, filename, hint, triggermeth):
-    AddToolButtonBmpObject(frame, toolbar, wxBitmap(filename, wxBITMAP_TYPE_BMP),
+    return AddToolButtonBmpObject(frame, toolbar, wxBitmap(filename, wxBITMAP_TYPE_BMP),
       hint, triggermeth)
 
 def AddToolButtonBmpIS(frame, toolbar, name, hint, triggermeth, toggleBmp = ''):
     if toggleBmp:
-        AddToolButtonBmpObject(frame, toolbar, IS.load(name), hint, triggermeth, IS.load(toggleBmp))
+        return AddToolButtonBmpObject(frame, toolbar, IS.load(name), hint, triggermeth, IS.load(toggleBmp))
     else:
-        AddToolButtonBmpObject(frame, toolbar, IS.load(name), hint, triggermeth)
-
+        return AddToolButtonBmpObject(frame, toolbar, IS.load(name), hint, triggermeth)
 
 #This format follows wxWindows conventions
 def windowIdentifier(frameName, ctrlName):
@@ -109,7 +112,7 @@ def duplicateMenu(source):
         else:
             dest.Append(menu.GetId(), menu.GetText(), menu.GetHelp(), menu.IsCheckable())
             mi = dest.FindItemById(menu.GetId())
-            if menu.IsChecked():
+            if menu.IsCheckable() and menu.IsChecked():
                 mi.Check(true)
     return dest            
                     
