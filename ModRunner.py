@@ -35,23 +35,27 @@ class ModuleRunner:
         if self.results:
             return apply(self.checkError, (), self.results)
 
-    def checkError(self, err, caption, out=None, root='Error'):
+    def checkError(self, err, caption, out=None, root='Error', errRaw=()):
         if self.esf:
             if err or out:
-                self.esf.updateCtrls(err, out, root, self.runningDir)
+                tbs = self.esf.updateCtrls(err, out, root, self.runningDir, errRaw)
                 self.esf.display(len(err))
-                return len(err)
+                return tbs
             else:
                 return None
         else:
-            self.results = {'err': err, 'caption': caption, 'out': out, 'root': root}
+            self.results = {'err': err,
+                            'caption': caption,
+                            'out': out,
+                            'root': root,
+                            'errRaw': errRaw}
 
 
 class CompileModuleRunner(ModuleRunner):
     """ Uses compiles a module to show syntax errors
-    
+
     If the model is not saved, the source in the model is compiled directly.
-    Saved models (on the filesystem) are compiled from their files. This is 
+    Saved models (on the filesystem) are compiled from their files. This is
     useful for generating the .pyc files """
     def run(self, filename, source, modified):
         protsplit = string.find(filename, '://')
@@ -59,7 +63,7 @@ class CompileModuleRunner(ModuleRunner):
             prot, filename = filename[:protsplit], filename[protsplit+3:]
         else:
             prot = 'file'
-        
+
         if modified or prot != 'file':
             try:
                 code = compile(source, filename, 'exec')
@@ -88,15 +92,15 @@ class ProcessModuleRunner(ModuleRunner):
     def run(self, cmd, Parser=ErrorStack.StdErrErrorParser,
             caption='Execute module', root='Error', autoClose=false):
         import ProcessProgressDlg
-        dlg = ProcessProgressDlg.ProcessProgressDlg(None, cmd, caption, 
+        dlg = ProcessProgressDlg.ProcessProgressDlg(None, cmd, caption,
               autoClose=autoClose)
         try:
             dlg.ShowModal()
             serr = ErrorStack.buildErrorList(dlg.errors, Parser)
-            if len(serr):
-                return self.checkError(serr, 'Ran', dlg.output, root)
-            else:
-                return None
+            #if len(serr):
+            return self.checkError(serr, 'Ran', dlg.output, root, dlg.errors)
+            #else:
+            #    return None
 
         finally:
             dlg.Destroy()
@@ -112,10 +116,11 @@ class PopenModuleRunner(ModuleRunner):
             if not l: break
             out.append(l)
 
-        serr = ErrorStack.errorList(errp)
+        errLines = errp.readlines()
+        serr = ErrorStack.buildErrorList(errLines)
 
         if serr or out:
-            return self.checkError(serr, 'Ran', out)
+            return self.checkError(serr, 'Ran', out, errRaw=errLines)
         else:
             return None
 
@@ -131,4 +136,3 @@ class ExecFinishEvent(wxPyEvent):
         wxPyEvent.__init__(self)
         self.SetEventType(wxEVT_EXEC_FINISH)
         self.runner = runner
- 

@@ -4,9 +4,9 @@
 #
 # Author:      Riaan Booysen
 #
-# Created:     1999
+# Created:     1999, rewritten 2001
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999 - 2001 Riaan Booysen
+# Copyright:   (c) 1999 - 2002 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
 
@@ -37,13 +37,13 @@ def showMainHelp(bookname):
 
 def showCtrlHelp(wxClass, method=''):
     getHelpController().Display(wxClass).ExpandCurrAsWxClass(method)
-    
+
 def showHelp(filename):
     getHelpController().Display(filename)
 
-def showContextHelp(parent, toolbar, word):
+def showContextHelp(word):
     if Utils.startswith(word, 'EVT_'):
-        word = 'wx%sEvent' % string.join(map(lambda s: string.capitalize(string.lower(s)), 
+        word = 'wx%sEvent' % string.join(map(lambda s: string.capitalize(string.lower(s)),
                                 string.split(word[4:], '_')), '')
     elif word in sys.builtin_module_names:
         word = '%s (built-in module)'%word
@@ -55,11 +55,14 @@ def showContextHelp(parent, toolbar, word):
         else:
             if os.path.isfile('%s/%s.py'%(libPath, word)):
                 word = '%s (standard module)'%word
-    getHelpController().Display(word).IndexFind(word)
+    if string.strip(word):
+        getHelpController().Display(word).IndexFind(word)
+    else:
+        getHelpController().DisplayContents()
 
 def decorateWxPythonWithDocStrs(dbfile):
     namespace = Utils.getEntireWxNamespace()
-    
+
     try:
         db = marshal.load(open(dbfile, 'rb'))
     except IOError:
@@ -69,12 +72,12 @@ def decorateWxPythonWithDocStrs(dbfile):
             try:
                 wxClass = namespace[name]
                 wxClass.__doc__ = doc
-    
+
                 wxClass = namespace[name+'Ptr']
                 wxClass.__doc__ = doc
             except:
                 pass
-    
+
         for name, doc in db['methods'].items():
             try:
                 cls, mth = string.split(name, '.')
@@ -100,7 +103,7 @@ class wxHtmlHelpControllerEx(wxHtmlHelpController):
         # Fix config file if stored as minimised
         if config.ReadInt('hcX') == -32000:
             map(config.DeleteEntry, ('hcX', 'hcY', 'hcW', 'hcH'))
-        
+
         wxHtmlHelpController.UseConfig(self, config)
         self.config = config
 
@@ -109,27 +112,31 @@ class _CloseEvtHandler(wxEvtHandler):
         wxEvtHandler.__init__(self)
         EVT_CLOSE(frame, self.OnClose)
         self.frame = frame
-        
+
     def OnClose(self, event):
         self.frame.Hide()
         event.Skip()
         self.frame.PopEventHandler().Destroy()
-        
+
+wxID_COPYTOCLIP = wxNewId()
+
 # Note, this works nicely because of OOR
 class wxHelpFrameEx:
     def __init__(self, helpctrlr):
         self.controller = helpctrlr
         self.frame = helpctrlr.GetFrame()
-        
-        wxID_QUITHELP = wxNewId()
+
+        wxID_QUITHELP, wxID_FOCUSHTML = wxNewId(), wxNewId()
         EVT_MENU(self.frame, wxID_QUITHELP, self.OnQuitHelp)
-        
+        EVT_MENU(self.frame, wxID_FOCUSHTML, self.OnFocusHtml)
+
         self.frame.PushEventHandler(_CloseEvtHandler(self.frame))
-        
+
         # helpfrm.cpp defines no accelerators so this is ok
         self.frame.SetAcceleratorTable(
-              wxAcceleratorTable([(0, WXK_ESCAPE, wxID_QUITHELP)]))
-        
+              wxAcceleratorTable([(0, WXK_ESCAPE, wxID_QUITHELP),
+                                  (wxACCEL_CTRL, ord('H'), wxID_FOCUSHTML),]))
+
         if wxPlatform == '__WXMSW__':
             _none, self.toolbar, self.splitter = self.frame.GetChildren()
         else:
@@ -141,29 +148,42 @@ class wxHelpFrameEx:
         self.contentsAddBookmark, self.contentsDelBookmark, \
               self.contentsChooseBookmark, self.contentsTree = \
               self.contentsPanel.GetChildren()
-        
+
         assert self.navPages.GetPageText(1) == 'Index'
         self.indexPanel = self.navPages.GetPage(1)
 
         self.indexTextCtrl, self.indexShowAllBtn, self.indexFindBtn = \
               self.indexPanel.GetChildren()[:3]
 
+        # Extend toolbar
+        if self.toolbar.GetToolShortHelp(wxID_COPYTOCLIP) != \
+              'Copy contents as text to clipboard':
+            self.toolbar.AddSeparator()
+            self.copyToClipId = wxID_COPYTOCLIP
+            self.toolbar.AddTool(id = self.copyToClipId, isToggle=0,
+                bitmap=Preferences.IS.load('Images/Shared/CopyHelp.png'),
+                pushedBitmap=wxNullBitmap,
+                shortHelpString='Copy contents as text to clipboard',
+                longHelpString='')
+            EVT_TOOL(self.frame, self.copyToClipId, self.OnCopyPage)
+            self.toolbar.Realize()
+
 ##    def restore(self):
 ##        Utils.FrameRestorerMixin.restore(self.frame)
-    
+
     def IndexFind(self, text):
         self.controller.DisplayIndex()
         self.indexTextCtrl.SetValue(text)
-        
-        wxPostEvent(self.frame, wxCommandEvent(wxEVT_COMMAND_BUTTON_CLICKED, 
+
+        wxPostEvent(self.frame, wxCommandEvent(wxEVT_COMMAND_BUTTON_CLICKED,
               self.indexFindBtn.GetId()))
-    
+
     def ShowNavPanel(self, show = true):
         if show:
             self.splitter.SplitVertically(self.navPages, self.html)
         else:
             self.splitter.Unsplit(self.navPages)
-    
+
     def ExpandBook(self, name):
         self.navPages.SetSelection(0)
         rn = self.contentsTree.GetRootItem()
@@ -183,8 +203,14 @@ class wxHelpFrameEx:
 
     def OnQuitHelp(self, event):
         self.frame.Close()
-    
-        
+
+    def OnFocusHtml(self, event):
+        self.html.SetFocus()
+
+    def OnCopyPage(self, event):
+        Utils.writeTextToClipboard( Utils.html2txt(
+                open(self.html.GetOpenedPage()).read()))
+
 wxHF_TOOLBAR                = 0x0001
 wxHF_CONTENTS               = 0x0002
 wxHF_INDEX                  = 0x0004
@@ -211,32 +237,28 @@ def initHelp(calledAtStartup=false):
     jn = os.path.join
     global _hc
     docsDir = jn(Preferences.pyPath, 'Docs')
-    
+
     _hc = wxHtmlHelpControllerEx(wxHF_ICONS_BOOK_CHAPTER | \
         wxHF_DEFAULT_STYLE | (Preferences.flatTools and wxHF_FLAT_TOOLBAR or 0))
-    cf = wxFileConfig(localFilename=os.path.normpath(jn(Preferences.rcPath, 
+    cf = wxFileConfig(localFilename=os.path.normpath(jn(Preferences.rcPath,
         'helpfrm.cfg')), style=wxCONFIG_USE_LOCAL_FILE)
     _hc.UseConfig(cf)
-        
-    docStrs = jn(docsDir, 'wxDocStrings.msh')
-    # Early abort if documentation not installed
-    if not os.path.isfile(docStrs):
-        wxLogWarning('Documentation not installed, please download from '
-                     'http://boa-constructor.sourceforge.net/Help/Docs.zip\n'
-                     'or http://boa-constructor.sourceforge.net/Help/Docs.tar.gz\n'
-                     'Unzip into the Boa root directory.')
-        return
-    
-    _hc.SetTempDir(jn(docsDir, 'cache'))
+
+    cacheDir = jn(Preferences.rcPath, 'docs-cache')
+    if not os.path.isdir(cacheDir):
+        cacheDir = jn(docsDir, 'cache')
+    _hc.SetTempDir(cacheDir)
 
     conf = Utils.createAndReadConfig('Explorer')
     books = eval(conf.get('help', 'books'), {})
     for book in books:
         if calledAtStartup:
             print 'Help: loading %s'% os.path.basename(book)
-        _hc.AddBook(os.path.normpath(jn(docsDir, book+'.hhp')), 
-         not os.path.exists(jn(docsDir, 'cache', 
-         os.path.basename(book)+'.hhp.cached')) or not calledAtStartup)
+        bookPath = os.path.normpath(jn(docsDir, book))
+        if os.path.exists(bookPath):
+            _hc.AddBook(bookPath,
+                  not os.path.exists(jn(cacheDir,
+                  os.path.basename(book)+'.cached')) or not calledAtStartup)
 
 def initWxPyDocStrs():
     docStrs = os.path.join(Preferences.pyPath, 'Docs', 'wxDocStrings.msh')
@@ -244,19 +266,27 @@ def initWxPyDocStrs():
 
 def delHelp():
     global _hc
-    if _hc: 
+    if _hc:
         _hc.config.Flush()
         f = _hc.GetFrame()
         if f:
             f.Close()
             del f
+        _hc.Destroy()
         _hc = None
 
-if __name__ == '__main__' or hasattr(wxApp, 'debugger'):
-    initWxPyDocStrs()
-##    app = wxPySimpleApp()
-##    wxInitAllImageHandlers()
-##    initHelp()
-##    ##_hc.Display('Boa').IndexFind('reduce')
-##    _hc.Display('Python Documentation').ExpandBook('Python Documentation')
-##    app.MainLoop()
+def main(args):
+    app = wxPySimpleApp()
+    wxInitAllImageHandlers()
+    initHelp()
+    if args:
+        showContextHelp(args[0])
+    else:
+        _hc.Display('')
+    app.MainLoop()
+    delHelp()
+    
+
+if __name__ == '__main__':
+    #initWxPyDocStrs()
+    main(sys.argv[1:])

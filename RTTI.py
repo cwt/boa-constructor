@@ -172,37 +172,53 @@ def getPropList(obj, cmp):
 
     return {'constructor': constrLst, 'properties': propLst}
 
-def getMethodType(method, obj, dict):
+def getMethodType(method, obj, Class):
     """ classify methods according to prefix
         return category, property name, getter, setter
     """
-    result = ('Methods', method, dict[method], dict[method])
-    if (type(dict[method]) == FunctionType):
+    result = ('Methods', method, None, None)
+    meth = getattr(obj, method)
+    if (type(meth) == MethodType):
+        func = meth.im_func
+        result = ('Methods', method, func, func)
         prefix = method[:3]
         property = method[3:]
+        getname = 'Get'+property
+        setname = 'Set'+property
 
         try:
             if (method[:2] == '__'):
-                result = ('Built-ins', method, dict[method], dict[method])
-            elif (prefix == 'Get') and dict.has_key('Set'+property) and property:
+                result = ('Built-ins', method, func, func)
+            elif (prefix == 'Get') and hasattr(obj, setname) and property:
                 #see if getter breaks
-                v = dict[method](obj)
-                result = ('Properties', property, dict[method], dict['Set'+property])
-            elif (prefix == 'Set') and dict.has_key('Get'+property) and property:
+                v = func(obj)
+                result = ('Properties', property, func, getattr(obj, setname).im_func)
+            elif (prefix == 'Set') and hasattr(obj, getname) and property:
                 #see if getter breaks
-                v = dict['Get'+property](obj)
-                result = ('Properties', property, dict['Get'+property], dict[method])
-        except:
+                getter = getattr(obj, getname).im_func
+                v = getter(obj)
+                result = ('Properties', property, getter, func)
+        except Exception, err:
             pass
     return result
 
 def traverseAndBuildProps(props, vetoes, obj, Class):
     for m in Class.__dict__.keys():
         if m not in vetoes:
-            cat, method, methGetter, methSetter = \
+            cat, name, methGetter, methSetter = \
               getMethodType(m, obj, Class.__dict__)
-            props[cat][method] = (methGetter, methSetter)
-    
+
+            if not props[cat].has_key(name):
+                props[cat][name] = (methGetter, methSetter)
+
     for Cls in Class.__bases__:
         traverseAndBuildProps(props, vetoes, obj, Cls)
-        
+
+if __name__ == '__main__':
+    wxPySimpleApp()
+    f = wxFrame(None, -1, 'asd')
+    c = wxComboBox(f, -1)
+    props = {'Properties': {}, 'Built-ins': {}, 'Methods': {}}
+    traverseAndBuildProps(props, [], c, c.__class__)
+    import pprint
+    pprint.pprint(props)

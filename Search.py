@@ -65,7 +65,7 @@ def findInFile(filename, pattern, caseSensitive, includeLine = 0):
         f.close()
 
 def defaultProgressCallback(dlg, count, file, msg):
-    dlg.Update(count, msg +' '+ file)
+    dlg.cont = dlg.Update(min(dlg.max-1, count), msg +' '+ file)
 
 def findInFiles(parent, srchPath, pattern, callback = defaultProgressCallback, deeperPath = '', filemask = ('.htm', '.html', '.txt'), progressMsg = 'Search help files...', dlg = None, joiner = '/'):
     results = []
@@ -73,31 +73,43 @@ def findInFiles(parent, srchPath, pattern, callback = defaultProgressCallback, d
     cnt = 0
 
     owndlg = false
-    max = len(names)
+    maxval = len(names)
     if not dlg:
-        dlg = wxProgressDialog(progressMsg,
-                           'Searching...',
-                           max,
-                           parent,
+        dlg = wxProgressDialog(progressMsg, 'Searching...', maxval, parent,
                            wxPD_CAN_ABORT | wxPD_APP_MODAL | wxPD_AUTO_HIDE)
+        dlg.max = maxval
+        dlg.cont = 1
         owndlg = true
     try:
         for file in names:
             filePath = path.join(srchPath, file)
-            ext = path.splitext(file)[1]
-            if ext in filemask or ('.*' in filemask and ext):
-                callback(dlg, cnt, file, 'Searching')
-                ocs = count(filePath, pattern, 0)
-                if ocs:
-                    results.append((ocs, deeperPath+file))
+
+            if path.isdir(filePath):
+                results.extend(findInFiles(parent, filePath, pattern,
+                  callback, deeperPath+file+joiner, filemask, dlg = dlg, joiner = joiner))
             else:
-                if path.isdir(filePath):
-                    results.extend(findInFiles(parent, filePath, pattern,
-                      callback, file+joiner, filemask, dlg = dlg, joiner = joiner))
+                ext = path.splitext(file)[1]
+                if ext in filemask or ('.*' in filemask and ext):
+                    callback(dlg, cnt, file, 'Searching')
+                    ocs = count(filePath, pattern, 0)
+                    if ocs:
+                        results.append((ocs, deeperPath+file))
                 else:
                     callback(dlg, cnt, file, 'Skipping')
-            cnt = cnt + 1
+
+            if cnt < maxval -1:
+                cnt = cnt + 1
+
+            if not dlg.cont:
+                break
+
         return results
     finally:
         if owndlg:
             dlg.Destroy()
+
+if __name__ == '__main__':
+    from wxPython.wx import *
+    wxPySimpleApp()
+    f = wxFrame(None, -1, 'results', size=(0, 0))
+    print findInFiles(f, os.path.abspath('ExternalLib'), 'riaan', filemask = ('.*',))
