@@ -644,7 +644,7 @@ class ListCtrlView(wxListView, EditorView, Utils.ListCtrlSelectionManagerMix):
             col = 1
             if len(list) > 1:
                 for text in list[1:]:
-                    self.SetStringItem(index, col, text)
+                    self.SetStringItem(index, col, str(text))
                     col = col + 1
         return index + 1
 
@@ -701,6 +701,61 @@ class ListCtrlView(wxListView, EditorView, Utils.ListCtrlSelectionManagerMix):
         if self.defaultActionIdx < len(self.actions) and self.defaultActionIdx > -1:
             self.actions[self.defaultActionIdx][1](event)
 #            EVT_LEFT_DCLICK(self, self.actions[self.dclickActionIdx][1])
+
+class VirtualListCtrlView(wxListCtrl, EditorView):
+    """ Simple virtual list ctrl
+    
+    Derived classes must implement 
+    def OnGetItemText(self, item, col):
+
+    and call self.SetItemCount(<size>)    
+
+    """
+    def __init__(self, parent, model, listStyle, actions, dclickActionIdx=-1,
+          overrideDClick=true):
+        wxListCtrl.__init__(self, parent, -1,
+           style=listStyle | wxLC_VIRTUAL | wxSUNKEN_BORDER)
+        EditorView.__init__(self, model, actions, dclickActionIdx,
+           overrideDClick=overrideDClick)
+
+        EVT_LIST_ITEM_SELECTED(self, -1, self.OnItemSelect)
+        EVT_LIST_ITEM_DESELECTED(self, -1, self.OnItemDeselect)
+
+        self.attrPM = wxListItemAttr()
+        self.attrPM.SetBackgroundColour(Preferences.pastelMedium)
+
+        self.attrPL = wxListItemAttr()
+        self.attrPL.SetBackgroundColour(Preferences.pastelLight)
+
+    selected = -1
+    def OnItemSelect(self, event):
+        self.selected = event.GetIndex()
+
+    def OnItemDeselect(self, event):
+        self.selected = -1
+
+    def GetSelections(self):
+        sel = []
+        selCnt = self.GetSelectedItemCount()
+        if selCnt:
+            idx = -1
+            while len(sel) < selCnt:
+                idx = self.GetNextItem(idx, state=wxLIST_STATE_SELECTED)
+                if idx != -1:
+                    sel.append(idx)
+                else:
+                    break
+        return sel
+
+    def OnGetItemImage(self, item):
+        return -1
+
+    def OnGetItemAttr(self, item):
+        if Preferences.pastels:
+            return item % 2 and self.attrPM or self.attrPL
+        else:
+            return None
+
 
 idGotoLine = wxNewId()
 class ToDoView(ListCtrlView):
