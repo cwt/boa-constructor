@@ -92,8 +92,8 @@ class ProcessRunnerMix:
             if o is not None and self.outputFunc is not None:
                 wxCallAfter(self.outputFunc, o)
 
-        wxWakeUpIdle()
-        time.sleep(0.001)
+            #wxWakeUpIdle()
+            #time.sleep(0.001)
 
     def OnProcessEnded(self, event):
         self.OnIdle()
