@@ -6,7 +6,7 @@
 #
 # Created:     1999
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999, 2000 Riaan Booysen
+# Copyright:   (c) 1999 - 2001 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
 """
@@ -15,8 +15,10 @@
 
     Some properties are live and also update the design time control,
     others only update the source and changes may only be seen when the
-    frame is reloaded.
+    frame is reloaded or the control is recreated.
 """
+
+print 'importing PropertyEditors'
 
 # XXX Value getting setting of value between internal and sometime control value
 # XXX Is still too fuzzy
@@ -225,16 +227,23 @@ class FactoryPropEdit(PropertyEditor):
 
 class LockedPropEdit(PropertyEditor):
     def getDisplayValue(self):
-        return self.value
-    
+        return str(self.value)
+
+#-------------------------------------------------------------------------------
 
 class ConfPropEdit(PropertyEditor):
     def __init__(self, name, parent, companion, rootCompanion, propWrapper, idx,
-      width, options, names):
+          width, options, names):
         PropertyEditor.__init__(self, name, parent, companion, rootCompanion,
           propWrapper, idx, width)
+        self.setValues(names)
+    
+    def getDisplayValue(self):
+        return str(self.value)
+    
     def initFromComponent(self):
         self.value = self.getCtrlValue()
+
     def persistValue(self, value):
         pass
 
@@ -290,6 +299,70 @@ class EvalConfPropEdit(ConfPropEdit):
         else:
             self.value = self.getCtrlValue()
         return self.value
+
+class EnumConfPropEdit(ConfPropEdit):
+    def inspectorEdit(self):
+        self.editorCtrl = ChoiceIEC(self, self.getValue())
+        self.editorCtrl.createControl(self.parent, self.idx, self.width)
+        self.editorCtrl.setValue(self.value)
+##    
+##    def getValues(self):
+##        return self.names
+
+class ColourConfPropEdit(ConfPropEdit):
+    def inspectorEdit(self):
+        self.editorCtrl = ButtonIEC(self, self.value)
+        self.editorCtrl.createControl(self.parent, self.idx, self.width, self.edit)
+
+    def edit(self, event):
+        data = wxColourData()
+        data.SetColour(self.companion.eval(self.value))
+        data.SetChooseFull(true)
+        dlg = wxColourDialog(self.parent, data)
+        try:
+            if dlg.ShowModal() == wxID_OK:
+                col = dlg.GetColourData().GetColour()
+                self.editorCtrl.value = \
+                      'wxColour(%d, %d, %d)'%(col.Red(),col.Green(),col.Blue())
+                self.inspectorPost(false)
+        finally:
+            dlg.Destroy()
+
+class FilepathConfPropEdit(ConfPropEdit):
+    def inspectorEdit(self):
+        self.editorCtrl = ButtonIEC(self, self.value)
+        self.editorCtrl.createControl(self.parent, self.idx, self.width, self.edit)
+
+    def edit(self, event):
+        from Preferences import wxFileDialog
+        dlg = wxFileDialog(self.parent, 'Choose the file', '.', '', 'All files', wxOPEN)
+        try:
+            if dlg.ShowModal() == wxID_OK:
+                self.editorCtrl.value = `dlg.GetFilePath()`
+                self.inspectorPost(false)
+            else:
+                if wxMessageBox('Clear the current property value?', 
+                      'Clear filepath?', style=wxICON_QUESTION | wxYES_NO) == wxYES:
+                    self.editorCtrl.value = "''"
+                    self.inspectorPost(false)
+                          
+        finally:
+            dlg.Destroy()
+        
+class BoolConfPropEdit(ConfPropEdit):
+    truths = ['on', 'true', '1']
+    def getDisplayValue(self):
+        return self.valueToIECValue()
+
+    def valueToIECValue(self):
+        return self.value in self.truths and 'true' or 'false'
+
+    def inspectorEdit(self):
+        self.editorCtrl = CheckBoxIEC(self, self.value in self.truths)
+        self.editorCtrl.createControl(self.parent, self.idx, self.width)
+        self.editorCtrl.setValue(self.value)
+
+#-------------------------------------------------------------------------------
 
 class OptionedPropEdit(PropertyEditor):
     """ Property editors initialised with options """
@@ -379,7 +452,7 @@ class BitmapConstrPropEdit(IntConstrPropEdit):
         try:
             if dlg.ShowModal() == wxID_OK:
                 try:
-                    self.value = 'wxBitmap(%s, wxBITMAP_TYPE_BMP)'%(`dlg.GetPath()`)
+                    self.value = 'wxBitmap(%s, wxBITMAP_TYPE_BMP)'%(`dlg.GetFilePath()`)
                     v = self.getValue()
                     cv = self.getCtrlValue()
                     self.setCtrlValue(cv, v)
@@ -801,7 +874,7 @@ class NamePropEdit(StrPropEdit):
             self.value = value
         return self.value
 
-class TuplPropEdit(BITPropEditor):
+class TuplePropEdit(BITPropEditor):
     pass
 
 class BoolPropEdit(OptionedPropEdit):
@@ -1183,7 +1256,7 @@ class BitmapPropEdit(PropertyEditor):
         dlg = wxFileDialog(self.parent, 'Choose an image', '.', '', 'Bitmaps (*.bmp)|*.bmp', wxOPEN)
         try:
             if dlg.ShowModal() == wxID_OK:
-                self.bmpPath = dlg.GetPath()
+                self.bmpPath = dlg.GetFilePath()
                 self.value = wxBitmap(self.bmpPath, wxBITMAP_TYPE_BMP)
                 self.inspectorPost(false)
         finally:
@@ -1275,7 +1348,7 @@ def registerEditors(reg):
 registeredTypes = [\
     ('Type', IntType, [IntPropEdit]),
     ('Type', StringType, [StrPropEdit]),
-    ('Type', TupleType, [TuplPropEdit]),
+    ('Type', TupleType, [TuplePropEdit]),
     ('Class', wxSize, [SizePropEdit]),
     ('Class', wxSizePtr, [SizePropEdit]),
     ('Class', wxPoint, [PosPropEdit]),
