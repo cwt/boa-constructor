@@ -9,7 +9,6 @@
 # Copyright:   (c) 1999, 2000 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
-from wxPython.wx import *
 import string
 
 class SenderMapper:
@@ -27,5 +26,6 @@ class SenderMapper:
 
     def getBtnObject(self, eventObject):
         return eventObject.theButton
-
-#textCtrl = wxPyTypeCast(window, "wxTextCtrl")
+    
+    def __repr__(self):
+        return `self.objectDict`
