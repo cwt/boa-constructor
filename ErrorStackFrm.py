@@ -1,20 +1,32 @@
-#Boa:MiniFrame:ErrorStackMF
+#Boa:Frame:ErrorStackMF
 
 from wxPython.wx import *
 import os, string
 import Preferences
 
-[wxID_ERRORSTACKMFERRORSTACKTC, wxID_ERRORSTACKMF] = map(lambda _init_ctrls: wxNewId(), range(2))
+[wxID_ERRORSTACKMFERRORSTACKTC, wxID_ERRORSTACKMF, wxID_ERRORSTACKMFNOTEBOOK1, wxID_ERRORSTACKMFOUTPUTTC] = map(lambda _init_ctrls: wxNewId(), range(4))
 
-class ErrorStackMF(wxMiniFrame):
+class ErrorStackMF(wxFrame):
+    def _init_coll_notebook1_Pages(self, parent):
+
+        parent.AddPage(strText = 'Errors', bSelect = true, pPage = self.errorStackTC, imageId = -1)
+        parent.AddPage(strText = 'Output', bSelect = false, pPage = self.outputTC, imageId = -1)
+
     def _init_utils(self): 
         pass
 
     def _init_ctrls(self, prnt): 
-        wxMiniFrame.__init__(self, size = wxSize(328, 443), id = wxID_ERRORSTACKMF, title = 'Traceback browser', parent = prnt, name = 'ErrorStackMF', style = wxDEFAULT_FRAME_STYLE, pos = wxPoint(66, 66))
+        wxFrame.__init__(self, size = wxSize(328, 443), id = wxID_ERRORSTACKMF, title = 'Traceback and Output browser', parent = prnt, name = 'ErrorStackMF', style = wxDEFAULT_FRAME_STYLE, pos = wxPoint(464, 228))
         self._init_utils()
+        EVT_CLOSE(self, self.OnErrorstackmfClose)
 
-        self.errorStackTC = wxTreeCtrl(size = wxSize(384, 352), id = wxID_ERRORSTACKMFERRORSTACKTC, parent = self, name = 'errorStackTC', validator = wxDefaultValidator, style = wxTR_HAS_BUTTONS, pos = wxPoint(0, 0))
+        self.notebook1 = wxNotebook(size = wxSize(320, 416), id = wxID_ERRORSTACKMFNOTEBOOK1, parent = self, name = 'notebook1', style = 0, pos = wxPoint(0, 0))
+
+        self.outputTC = wxTextCtrl(size = wxSize(312, 390), value = '', pos = wxPoint(4, 22), parent = self.notebook1, name = 'outputTC', style = wxTE_MULTILINE, id = wxID_ERRORSTACKMFOUTPUTTC)
+
+        self.errorStackTC = wxTreeCtrl(size = wxSize(312, 390), id = wxID_ERRORSTACKMFERRORSTACKTC, parent = self.notebook1, name = 'errorStackTC', validator = wxDefaultValidator, style = wxTR_HAS_BUTTONS, pos = wxPoint(4, 22))
+
+        self._init_coll_notebook1_Pages(self.notebook1)
 
     def __init__(self, parent, app, editor): 
         self._init_ctrls(parent)
@@ -28,7 +40,7 @@ class ErrorStackMF(wxMiniFrame):
           Preferences.inspWidth, 
           Preferences.bottomHeight)
     
-    def initTree(self, errorList):
+    def updateCtrls(self, errorList, outputList = None):
         tree = self.errorStackTC
         rtTI = tree.AddRoot('Errors')
         for err in errorList:
@@ -45,7 +57,13 @@ class ErrorStackMF(wxMiniFrame):
         cookie = 0; firstErr, cookie = tree.GetFirstChild(rtTI, cookie)
         if firstErr.IsOk():
             tree.Expand(firstErr)
-
+    
+        if outputList:
+            self.outputTC.SetValue(string.join(outputList, ''))
+            
+            if not errorList:
+                self.notebook1.SetSelection(1)
+            
     def OnErrorstacktcTreeItemActivated(self, event):
         try:
             data = self.errorStackTC.GetPyData(event.GetItem())
@@ -64,3 +82,8 @@ class ErrorStackMF(wxMiniFrame):
         finally:
             event.Skip()
             
+
+    def OnErrorstackmfClose(self, event):
+        self.editor.erroutFrm = None
+        self.Destroy()
+        event.Skip()
