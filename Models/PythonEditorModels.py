@@ -844,7 +844,7 @@ class BaseAppModel(ClassModel, ImportRelationshipMix):
             # read in the import line
             line = module.source[impLine]
             impIndent = line.find('import')
-            imports = line[7+impIndent:].split(', ')
+            imports = line[7+impIndent:].strip().split(', ')
             impIdx = imports.index(oldName)
             imports[impIdx] = newName
             module.imports[newName] = module.imports[oldName]
