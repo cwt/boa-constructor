@@ -59,7 +59,8 @@ def openModuleFinder(editor):
             except ImportError, err:
                 wxLogError('%s not found on sys.path.'%modName)
             else:
-                f.close()
+                if f is not None:
+                    f.close()
                 if filename:
                     if type == imp.PKG_DIRECTORY:
                         editor.openOrGotoModule(os.path.join(filename, '__init__.py'))

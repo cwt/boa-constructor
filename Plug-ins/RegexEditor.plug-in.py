@@ -194,7 +194,7 @@ class RegexEditorFrm(wxFrame, Utils.FrameRestorerMixin):
                 name = namedGrpVals.get(grp, '')
                 self.lcGroups.InsertStringItem(idx-1, str(idx))
                 self.lcGroups.SetStringItem(idx-1, 1, name)
-                self.lcGroups.SetStringItem(idx-1, 2, grp)
+                self.lcGroups.SetStringItem(idx-1, 2, str(grp))
         
     
     def setStatus(self, mo):
@@ -204,14 +204,6 @@ class RegexEditorFrm(wxFrame, Utils.FrameRestorerMixin):
         else:
             self.statusBar.SetStatusText('Failed to match', 1)
             self.sbImage.SetBitmap(self.statusImages[0])
-
-
-if __name__ == '__main__':
-    app = wxPySimpleApp()
-    wxInitAllImageHandlers()
-    frame = create(None)
-    frame.Show()
-    app.MainLoop()
 
 
 #-------------------------------------------------------------------------------
