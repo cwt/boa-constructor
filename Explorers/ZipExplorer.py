@@ -55,7 +55,6 @@ class ZipItemNode(ExplorerNodes.ExplorerNode):
 
         imgIdx = isFolder and EditorModels.FolderModel.imgIdx or \
               EditorModels.TextModel.imgIdx
-        print 'rp', resourcepath, 'base', resourcepath and resourcepath+'/'+name or name
         return ZipItemNode(name, resourcepath and resourcepath+'/'+name or name, self.clipboard,
               isFolder, imgIdx, self, self.zipFileNode)
 

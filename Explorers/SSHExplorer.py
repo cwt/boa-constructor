@@ -87,7 +87,6 @@ class SSHItemNode(ExplorerNodes.ExplorerNode):
                (filename and '/'+filename or '')
 
     def execSCP(self, cmd, dispCmd):
-        print 'execSCP', cmd
         dlg = ProcessProgressDlg(None, cmd, 'SCP copy', linesep = '\012', overrideDisplay = dispCmd)
         try:
             dlg.ShowModal()
