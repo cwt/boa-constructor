@@ -14,7 +14,7 @@ import string, os
 from wxPython import wx
 
 import EditorModels, Utils, EditorHelper
-from PrefsKeys import keyDefs
+from Preferences import keyDefs
 import moduleparse
 
 true = 1; false = 0
