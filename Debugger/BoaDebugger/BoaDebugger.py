@@ -8,7 +8,7 @@
 #
 # Created:     2003/13/02
 # RCS-ID:      $Id$
-# Copyright:   (c) 2002
+# Copyright:   (c) 2002 - 2004
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 
@@ -18,6 +18,8 @@ from AccessControl.Permissions import view_management_screens
 from OFS.PropertyManager import PropertyManager
 from OFS.SimpleItem import SimpleItem
 from Boa.RemoteServer import start, stop
+
+True, False = 1, 0
 
 def manage_addBoaDebugger(self, REQUEST=None):
     """
