@@ -6,7 +6,7 @@
 #
 # Created:     2001/12/02
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999, 2000 Riaan Booysen
+# Copyright:   (c) 2001 - 2003 Riaan Booysen
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 
@@ -68,22 +68,25 @@ class CompileModuleRunner(ModuleRunner):
         else:
             prot = 'file'
 
-        if modified or prot != 'file':
-            try:
-                code = compile(source, filename, 'exec')
-            except:
-                # Add filename to traceback object
-                etype, value, tb = sys.exc_info()
-                msg, (_filename, lineno, offset, line) = value.args
-                if not _filename:
-                    # XXX this is broken on too long lines
-                    value.args = msg, (filename, lineno, offset, line)
-                    value.filename = filename
-                import traceback
-                traceback.print_exc()
-        else:
-            import py_compile
-            py_compile.compile(filename)
+        try:
+            code = compile(source, filename, 'exec')
+        #except SyntaxError:
+        except:
+            # Add filename to traceback object
+            etype, value, tb = sys.exc_info()
+            msg, (_filename, lineno, offset, line) = value.args
+            if not _filename:
+                # XXX this is broken on too long lines
+                value.args = msg, (filename, lineno, offset, line)
+                value.filename = filename
+            import traceback
+            traceback.print_exc()
+
+        # auto generating pycs is sometimes a pain
+        ##        if modified or prot != 'file':
+        ##        else:
+        ##            import py_compile
+        ##            py_compile.compile(filename)
 
 class ExecuteModuleRunner(ModuleRunner):
     """ Uses wxPython's wxExecute, no redirection """
@@ -110,10 +113,13 @@ class ProcessModuleRunner(ModuleRunner):
 class PopenModuleRunner(ModuleRunner):
     """ Uses Python's popen2, output and errors are redirected and displayed
         in a frame. """
-    def run(self, cmd):
+    def run(self, cmd, inpLines=[]):
+        inpLines.reverse()
         inp, outp, errp = popen3(cmd)
         out = []
         while 1:
+            if inpLines:
+                inp.write(inpLines.pop())
             l = outp.readline()
             if not l: break
             out.append(l)
