@@ -1,6 +1,6 @@
 #-----------------------------------------------------------------------------
 # Name:        PythonEditorModels.py
-# Purpose:     
+# Purpose:
 #
 # Author:      Riaan Booysen
 #
@@ -24,12 +24,12 @@ import EditorHelper, ErrorStack
 from EditorModels import SourceModel, EditorModel
 
 import relpath
-    
-from sourceconst import *
 
-true=1;false=0
+import sourceconst
 
-(imgPyAppModel, imgModuleModel, imgPackageModel, imgSetupModel, 
+true,false=1,0
+
+(imgPyAppModel, imgModuleModel, imgPackageModel, imgSetupModel,
  imgPythonBinaryFileModel,
 ) = EditorHelper.imgIdxRange(5)
 
@@ -48,7 +48,6 @@ class ModuleModel(SourceModel):
         SourceModel.__init__(self, data, name, editor, saved)
         self.moduleName = os.path.split(self.filename)[1]
         self.app = app
-        #self.debugger = None
         self.lastRunParams = ''
         self.lastDebugParams = ''
 
@@ -62,14 +61,6 @@ class ModuleModel(SourceModel):
     def destroy(self):
         SourceModel.destroy(self)
         del self.app
-        #del self.debugger
-
-    def new(self):
-        self.data = ''
-        self.savedAs = false
-        self.modified = true
-        self.update()
-        self.notify()
 
     def load(self, notify = true):
         SourceModel.load(self, false)
@@ -80,10 +71,25 @@ class ModuleModel(SourceModel):
             self.update()
         if notify: self.notify()
 
-    def save(self):
+    def save(self, overwriteNewer=false):
         if Preferences.autoReindent:
             self.reindent(false)
-        SourceModel.save(self)
+        SourceModel.save(self, overwriteNewer)
+
+    def saveAs(self, filename):
+        oldFilename = self.filename
+        SourceModel.saveAs(self, filename)
+        if self.app:
+            self.app.moduleSaveAsNotify(self, oldFilename, filename)
+        self.moduleName = os.path.basename(filename)
+
+        # update breakpoints
+        from Debugger.Breakpoint import bplist
+        bplist.renameFileBreakpoints(oldFilename, self.filename)
+        if self.editor.debugger:
+            self.editor.debugger.breakpts.refreshList()
+
+        self.notify()
 
     def getModule(self):
         if self._module is None:
@@ -243,18 +249,9 @@ class ModuleModel(SourceModel):
         prefs['Created'] = strftime('%Y/%d/%m', gmtime(time()))
         prefs['RCS-ID'] = '%sId: %s %s' % (dollar, self.moduleName , dollar)
 
-        self.data = defInfoBlock % (prefs['Name'], prefs['Purpose'], prefs['Author'],
-          prefs['Created'], prefs['RCS-ID'], prefs['Copyright'], prefs['Licence']) + self.data
+        self.data = (sourceconst.defInfoBlock % prefs) + self.data
         self.modified = true
         self.update()
-        self.notify()
-
-    def saveAs(self, filename):
-        oldFilename = self.filename
-        SourceModel.saveAs(self, filename)
-        if self.app:
-            self.app.moduleSaveAsNotify(self, oldFilename, filename)
-        self.moduleName = os.path.basename(filename)
         self.notify()
 
     def reindent(self, updateModulePage=true):
@@ -288,7 +285,7 @@ class ModuleModel(SourceModel):
         return false
 
     def getSimpleRunnerSrc(self):
-        return simpleModuleRunSrc
+        return sourceconst.simpleModuleRunSrc
 
     def disassembleSource(self):
         import dis
@@ -441,8 +438,9 @@ class ClassModel(ModuleModel):
                 if line[0] != '#': break
 
                 header = string.split(string.strip(line), ':')
-                if (len(header) == 3) and (header[0] == boaIdent):
-                    self.getModule().source[idx] = string.join((header[0], header[1], newName), ':')
+                if (len(header) == 3) and (header[0] == sourceconst.boaIdent):
+                    self.getModule().source[idx] = \
+                    string.join((header[0], header[1], newName), ':')
                     break
             else: break
             idx = idx + 1
@@ -478,10 +476,10 @@ class ImportRelationshipMix:
                     name = os.path.splitext(os.path.basename(module))[0]
                     model = ModuleModel(data, name, self.editor, 1)
                     relationships[name] = model.getModule() #.imports
-    
+
                 totLOC = totLOC + model.getModule().loc
                 classCnt = classCnt + len(model.getModule().classes)
-    
+
             print 'Project LOC: %d,\n%d classes in %d modules.'%(totLOC, classCnt, len(modules))
         finally:
             self.editor.statusBar.progress.SetValue(0)
@@ -507,10 +505,20 @@ class PackageModel(ModuleModel, ImportRelationshipMix):
         self.modified = false
 
     def openPackage(self, name):
-        self.editor.openOrGotoModule(os.path.join(self.packagePath, name, self.pckgIdnt))
+        if self.views.has_key('Folder'):
+            notebook = self.views['Folder']
+        else:
+            notebook = None
+        self.editor.openOrGotoModule(os.path.join(self.packagePath, name,
+              self.pckgIdnt), notebook=notebook)
 
     def openFile(self, name):
-        self.editor.openOrGotoModule(os.path.join(self.packagePath, name + self.ext))
+        if self.views.has_key('Folder'):
+            notebook = self.views['Folder']
+        else:
+            notebook = None
+        self.editor.openOrGotoModule(os.path.join(self.packagePath,
+              name + self.ext), notebook=notebook)
 
     def generateFileList(self):
         """ Generate a list of modules and packages in the package path """
@@ -575,8 +583,8 @@ class BaseAppModel(ClassModel, ImportRelationshipMix):
         else:
             return string.replace(filename, '\\', '/')
 
-    def save(self):
-        ClassModel.save(self)
+    def save(self, overwriteNewer=false):
+        ClassModel.save(self, overwriteNewer)
         for tin in self.unsavedTextInfos:
             fn = os.path.join(os.path.dirname(self.filename), tin)
             data = self.textInfos[tin]
@@ -598,7 +606,7 @@ class BaseAppModel(ClassModel, ImportRelationshipMix):
         self.notify()
 
     def findImports(self):
-        impPos = string.find(self.data, defImport)
+        impPos = string.find(self.data, sourceconst.defImport)
         impPos = string.find(self.data, 'import', impPos + 1)
 
         # XXX Add if not found
@@ -629,17 +637,17 @@ class BaseAppModel(ClassModel, ImportRelationshipMix):
 
         if src is None:
             if self.editor.modules.has_key(name):
-                self.moduleModels[name], main = Controllers.identifySource(
+                self.moduleModels[name], main = identifySource(
                     self.editor.modules[name].model.getDataAsLines())
             if self.editor.modules.has_key(absPath):
-                self.moduleModels[name], main = Controllers.identifySource(
+                self.moduleModels[name], main = identifySource(
                     self.editor.modules[absPath].model.getDataAsLines())
             else:
                 try: self.moduleModels[name], main = \
                            Controllers.identifyFile(res, localfs=prot=='file')
                 except: pass
         else:
-            self.moduleModels[name], main = Controllers.identifySource(src)
+            self.moduleModels[name], main = identifySource(src)
 
     def readModules(self):
         modS, modE = self.findModules()
@@ -742,7 +750,7 @@ class BaseAppModel(ClassModel, ImportRelationshipMix):
     def updateMainFrameModuleRefs(self, oldName, newName):
         """ Replace references to old main module with new main module """
         module = self.getModule()
-        block = module.classes[boaClass].methods['OnInit']
+        block = module.classes[sourceconst.boaClass].methods['OnInit']
         mainDef = 'self.main = %s.'
         fndOldStr = mainDef % oldName
         repNewStr = mainDef % newName
@@ -887,13 +895,9 @@ class PyAppModel(BaseAppModel):
 ##    def renameMain(self, oldName, newName):
 ##        BaseAppModel.renameMain(self, oldName, newName)
 
-    def new(self):
-        self.data = (defEnvPython + defSig + defPyApp) \
-          %(self.modelIdentifier, 'main')
-        self.saved = false
-        self.modified = true
-        self.update()
-        self.notify()
+    def getDefaultData(self):
+        return (sourceconst.defEnvPython + sourceconst.defSig + \
+                sourceconst.defPyApp) %(self.modelIdentifier, 'main')
 
 class SetupModuleModel(ModuleModel):
     modelIdentifier = 'setup'
@@ -906,15 +910,36 @@ class SetupModuleModel(ModuleModel):
             self.update()
             self.notify()
 
-    def new(self):
-        self.data = (defSetup_py) % ('default', '0.1', '')
-        self.saved = false
-        self.modified = true
-        self.update()
-        self.notify()
+    def getDefaultData(self):
+        return (sourceconst.defSetup_py) % ('default', '0.1', '')
 
     def getPageName(self):
         return 'setup (%s)' % os.path.basename(os.path.dirname(self.filename))
+
+#-------------------------------------------------------------------------------
+
+def identifyHeader(headerStr):
+    header = string.split(headerStr, ':')
+    if len(header) and (header[0] == sourceconst.boaIdent) and \
+          EditorHelper.modelReg.has_key(header[1]):
+        return EditorHelper.modelReg[header[1]], header[2]
+    return ModuleModel, ''
+
+def identifySource(source):
+    """ Return appropriate model for given Python source.
+        The logic is a copy paste from above func """
+    for line in source:
+        if line:
+            if line[0] != '#':
+                return ModuleModel, ''
+
+            headerInfo = identifyHeader(string.strip(line))
+
+            if headerInfo[0] != ModuleModel:
+                return headerInfo
+        else:
+            return ModuleModel, ''
+
 
 #-------------------------------------------------------------------------------
 
