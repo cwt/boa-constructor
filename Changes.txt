@@ -3,7 +3,7 @@ Changes
 
 -- 0.3.0 (Release) -- 
 
-2004-08-16
+2004-08-17
 
 * Started with the conversion to wxPython 2.5 compatible code, but it's 
   currently impossible to support both 2.4 and 3.5 in the GUI Designer 
