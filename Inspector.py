@@ -36,7 +36,10 @@ IECWidthFudge = 3
 
 [wxID_ENTER, wxID_UNDOEDIT, wxID_CRSUP, wxID_CRSDOWN, wxID_CONTEXTHELP, wxID_SWITCHDESIGNER, wxID_SWITCHEDITOR, wxID_OPENITEM, wxID_CLOSEITEM] = Utils.wxNewIds(9)
 
-[wxID_INSPECTORFRAME, wxID_INSPECTORFRAMECONSTR, wxID_INSPECTORFRAMEEVENTS, wxID_INSPECTORFRAMEPAGES, wxID_INSPECTORFRAMEPROPS, wxID_INSPECTORFRAMESTATUSBAR, wxID_INSPECTORFRAMETOOLBAR] = map(lambda _init_ctrls: wxNewId(), range(7))
+[wxID_INSPECTORFRAME, wxID_INSPECTORFRAMECONSTR, wxID_INSPECTORFRAMEEVENTS, 
+ wxID_INSPECTORFRAMEPAGES, wxID_INSPECTORFRAMEPROPS, 
+ wxID_INSPECTORFRAMESTATUSBAR, wxID_INSPECTORFRAMETOOLBAR, 
+] = map(lambda _init_ctrls: wxNewId(), range(7))
 
 [wxID_INSPECTORFRAMETOOLBARTOOLS0] = map(lambda _init_coll_toolBar_Tools: wxNewId(), range(1))
 
@@ -48,51 +51,77 @@ class InspectorFrame(wxFrame, Utils.FrameRestorerMixin):
                                             'InspectorConstrScrollWin'],
                        'wxSplitterWindow': ['EventsWindow'] }
     def _init_coll_toolBar_Tools(self, parent):
+        # generated method, don't edit
 
-        parent.AddTool(bitmap = self.up_bmp, id = wxID_INSPECTORFRAMETOOLBARTOOLS0, isToggle = false, longHelpString = '', pushedBitmap = wxNullBitmap, shortHelpString = 'Select parent')
+        parent.AddTool(bitmap=self.up_bmp, id=wxID_INSPECTORFRAMETOOLBARTOOLS0,
+              isToggle=false, longHelpString='', pushedBitmap=wxNullBitmap,
+              shortHelpString='Select parent')
         EVT_TOOL(self, wxID_INSPECTORFRAMETOOLBARTOOLS0, self.OnUp)
 
         parent.Realize()
 
-    def _init_coll_pages_Pages(self, parent):
-
-        parent.AddPage(bSelect = true, imageId = -1, pPage = self.constr, strText = self.constr_name)
-        parent.AddPage(bSelect = false, imageId = -1, pPage = self.props, strText = self.props_name)
-        parent.AddPage(bSelect = false, imageId = -1, pPage = self.events, strText = self.events_name)
-
     def _init_coll_statusBar_Fields(self, parent):
+        # generated method, don't edit
         parent.SetFieldsCount(2)
 
-        parent.SetStatusText(i = 0, text = 'Nothing selected')
-        parent.SetStatusText(i = 1, text = '')
+        parent.SetStatusText(i=0, text='Nothing selected')
+        parent.SetStatusText(i=1, text='')
 
         parent.SetStatusWidths([-1, -1])
 
+    def _init_coll_pages_Pages(self, parent):
+        # generated method, don't edit
+
+        parent.AddPage(bSelect=true, imageId=-1, pPage=self.constr,
+              strText=self.constr_name)
+        parent.AddPage(bSelect=false, imageId=-1, pPage=self.props,
+              strText=self.props_name)
+        parent.AddPage(bSelect=false, imageId=-1, pPage=self.events,
+              strText=self.events_name)
+
     def _init_utils(self):
-        self.paletteImages = wxImageList(height = 24, width = 24)
+        # generated method, don't edit
+        self.paletteImages = wxImageList(height=24, width=24)
 
     def _init_ctrls(self, prnt):
-        wxFrame.__init__(self, id = wxID_INSPECTORFRAME, name = '', parent = prnt, pos = wxPoint(363, 272), size = wxSize(290, 505), style = wxDEFAULT_FRAME_STYLE | Preferences.childFrameStyle, title = 'Inspector')
+        # generated method, don't edit
+        wxFrame.__init__(self, id=wxID_INSPECTORFRAME, name='', parent=prnt,
+              pos=wxPoint(363, 272), size=wxSize(290, 505),
+              style=wxDEFAULT_FRAME_STYLE | Preferences.childFrameStyle,
+              title='Inspector')
         self._init_utils()
+        self.SetClientSize(wxSize(282, 478))
         EVT_SIZE(self, self.OnSizing)
         EVT_CLOSE(self, self.OnCloseWindow)
 
-        self.toolBar = wxToolBar(id = wxID_INSPECTORFRAMETOOLBAR, name = 'toolBar', parent = self, pos = wxPoint(0, -28), size = wxSize(282, 28), style = wxTB_HORIZONTAL | wxNO_BORDER | Preferences.flatTools | wxCLIP_CHILDREN)
+        self.toolBar = wxToolBar(id=wxID_INSPECTORFRAMETOOLBAR, name='toolBar',
+              parent=self, pos=wxPoint(0, 0), size=wxSize(282, 24),
+              style=wxTB_HORIZONTAL | wxNO_BORDER | Preferences.flatTools | wxCLIP_CHILDREN)
         self._init_coll_toolBar_Tools(self.toolBar)
         self.SetToolBar(self.toolBar)
 
-        self.statusBar = wxStatusBar(id = wxID_INSPECTORFRAMESTATUSBAR, name = 'statusBar', parent = self, style = wxST_SIZEGRIP)
-        self.statusBar.SetFont(wxFont(Preferences.inspStatBarFontSize, wxDEFAULT, wxNORMAL, wxBOLD, false, ''))
+        self.statusBar = wxStatusBar(id=wxID_INSPECTORFRAMESTATUSBAR,
+              name='statusBar', parent=self, style=wxST_SIZEGRIP)
+        self.statusBar.SetFont(wxFont(Preferences.inspStatBarFontSize,
+              wxDEFAULT, wxNORMAL, wxBOLD, false, ''))
         self._init_coll_statusBar_Fields(self.statusBar)
         self.SetStatusBar(self.statusBar)
 
-        self.pages = InspectorNotebook(id = wxID_INSPECTORFRAMEPAGES, name = 'pages', parent = self, pos = wxPoint(0, 0), size = wxSize(282, 430), style = 0)
+        self.pages = InspectorNotebook(id=wxID_INSPECTORFRAMEPAGES,
+              name='pages', parent=self, pos=wxPoint(0, 24), size=wxSize(282,
+              434), style=0)
 
-        self.constr = InspectorConstrScrollWin(id = wxID_INSPECTORFRAMECONSTR, name = 'constr', parent = self.pages, pos = wxPoint(0, 0), size = wxSize(274, 404), style = wxSUNKEN_BORDER)
+        self.constr = InspectorConstrScrollWin(id=wxID_INSPECTORFRAMECONSTR,
+              name='constr', parent=self.pages, pos=wxPoint(0, 0),
+              size=wxSize(274, 408), style=wxSUNKEN_BORDER)
 
-        self.props = InspectorPropScrollWin(id = wxID_INSPECTORFRAMEPROPS, name = 'props', parent = self.pages, pos = wxPoint(0, 0), size = wxSize(274, 404), style = wxSUNKEN_BORDER)
+        self.props = InspectorPropScrollWin(id=wxID_INSPECTORFRAMEPROPS,
+              name='props', parent=self.pages, pos=wxPoint(0, 0),
+              size=wxSize(274, 408), style=wxSUNKEN_BORDER)
 
-        self.events = EventsWindow(id = wxID_INSPECTORFRAMEEVENTS, name = 'events', parent = self.pages, point = wxPoint(0, 0), size = wxSize(274, 404), style = wxSP_3D)
+        self.events = EventsWindow(id=wxID_INSPECTORFRAMEEVENTS, name='events',
+              parent=self.pages, point=wxPoint(0, 0), size=wxSize(274, 404),
+              style=wxSP_3D)
 
         self._init_coll_pages_Pages(self.pages)
 
@@ -556,10 +585,11 @@ class NameValue:
             self.propValue = ''
             displayVal = ''
 
-        try:
+        if wxVERSION >= (2,3,3):
+            # statext uses wxPyControl only for 2.3.3+
             from wxPython.lib.stattext import wxGenStaticText
             StaticText = wxGenStaticText
-        except ImportError:
+        else:
             # pre 2.3.3 compat
             StaticText = wxStaticText
 
@@ -573,7 +603,7 @@ class NameValue:
 
         self.showPropNameModified(self.isCat)
 
-        self.value = StaticText(valueParent, -1, displayVal,
+        self.value = wxStaticText(valueParent, -1, displayVal,
           wxPoint(2, idx * oiLineHeight +2), wxSize(inspector.getValueWidth(),
           oiLineHeight -3), style = wxCLIP_CHILDREN | wxST_NO_AUTORESIZE)
         self.value.SetForegroundColour(Preferences.propValueColour)
