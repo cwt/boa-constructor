@@ -52,7 +52,7 @@ splitterWindowSplitModeNames = {'wxSPLIT_HORIZONTAL': 1,
                                 'wxSPLIT_VERTICAL': 2}
 
 constraintEdges = ['wxLeft', 'wxRight', 'wxTop', 'wxBottom', 'wxHeight',
-                   'wxWidht', 'wxCentreX', 'wxCentreY']
+                   'wxWidth', 'wxCentreX', 'wxCentreY']
 constraintRelationships = ['wxUnconstrained', 'wxAsIs', 'wxAbove', 'wxBelow',
                            'wxLeftOf', 'wxRightOf', 'wxSameAs', 'wxPercentOf',
                            'wxAbsolute']
