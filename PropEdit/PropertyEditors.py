@@ -24,6 +24,7 @@ print 'importing PropertyEditors'
 # XXX Is still too fuzzy
 
 from types import *
+import os
 
 from wxPython.wx import *
 from wxPython.utils import *
@@ -33,7 +34,6 @@ from InspectorEditorControls import *
 from Preferences import wxFileDialog
 import Utils
 from Enumerations import reverseDict
-#import PaletteMapping
 
 class EditorStyles:pass
 class esExpandable(EditorStyles):pass
@@ -104,17 +104,17 @@ class PropertyEditor:
         self.propWrapper.connect(self.obj, self.companion)
         self.rootCompanion = rootCompanion
         self.root = rootCompanion.control
-        self.initFromComponent()
         self.style = []
         self.ownerPropEdit = None
         self.expanded = false
+        self.initFromComponent()
 
     def initFromComponent(self):
-        try:
-            self.value = self.propWrapper.getValue()
-        except Exception, message:
-            print 'initFromComponent error', message
-            self.value = ''
+#        try:
+        self.value = self.propWrapper.getValue()
+#        except Exception, message:
+#            print 'initFromComponent error', message
+#            self.value = ''
         if self.editorCtrl:
             self.editorCtrl.setValue(self.valueToIECValue())
 
@@ -122,6 +122,7 @@ class PropertyEditor:
         pass
 
     def inspectorEdit(self):
+        """ Start a property editing operation and opens the inplace editor """
         pass
 
     def refreshCompCtrl(self):
@@ -132,6 +133,7 @@ class PropertyEditor:
         pass
 
     def inspectorPost(self, closeEditor = true):
+        """ Post inspector editor control, update ctrl and persist value """
         if self.editorCtrl:
             v = self.getValue()
             cv = self.getCtrlValue()
@@ -154,7 +156,7 @@ class PropertyEditor:
 
                     self.ownerPropEdit.persistValue(self.ownerPropEdit.valueAsExpr())
                     self.ownerPropEdit.refreshCompCtrl()
-                
+
                 if self.name in self.companion.mutualDepProps:
                     for prop in self.companion.mutualDepProps:
                         if prop != self.name:
@@ -165,9 +167,10 @@ class PropertyEditor:
             if closeEditor and self.editorCtrl:
                 self.editorCtrl.destroyControl()
                 self.editorCtrl = None
-            
+
 
     def inspectorCancel(self):
+        """ Cancel a property editor operation """
         if self.editorCtrl:
             self.editorCtrl.destroyControl()
             self.editorCtrl = None
@@ -176,19 +179,28 @@ class PropertyEditor:
         return self.style
 
     def getValue(self):
+        """ Returns and initialises value for prop editor.
+
+        If in edit mode, value should be read from the editor control
+
+        Override if needed.
+        """
         if self.editorCtrl:
             self.value = self.editorCtrl.getValue()
         return self.value
 
     def setValue(self, value):
+        """ Initialise the prop editor and if needed the editor control """
         self.value = value
         if self.editorCtrl:
             self.editorCtrl.SetValue(self.value)
 
     def getCtrlValue(self):
+        """ Read current prop value from designed object """
         return self.propWrapper.getValue()
 
     def setCtrlValue(self, oldValue, value):
+        """ Update designed object with current prop """
         # If overridden, rem to call check triggers if not calling parent method
         self.companion.checkTriggers(self.name, oldValue, value)
         self.propWrapper.setValue(value)
@@ -198,18 +210,22 @@ class PropertyEditor:
         self.companion.persistProp(self.name, funcName, value)
 
     def getDisplayValue(self):
+        """ Value that should display when the prop editor is not in edit mode """
         return `self.value`
 
     def valueAsExpr(self):
+        """ Return value as evaluatable source """
         return self.getDisplayValue()
 
     def getValues(self):
+        """ Return list of options """
         return self.values
 
     def setValues(self, values):
         self.values = values
 
     def valueToIECValue(self):
+        """ Return prop value in the form that the form that the editor control expects """
         return self.value
 
     def setWidth(self, width):
@@ -237,10 +253,10 @@ class ConfPropEdit(PropertyEditor):
         PropertyEditor.__init__(self, name, parent, companion, rootCompanion,
           propWrapper, idx, width)
         self.setValues(names)
-    
+
     def getDisplayValue(self):
         return str(self.value)
-    
+
     def initFromComponent(self):
         self.value = self.getCtrlValue()
 
@@ -250,6 +266,9 @@ class ConfPropEdit(PropertyEditor):
 class ContainerConfPropEdit(ConfPropEdit):
     def getStyle(self):
         return [esExpandable]
+    def inspectorEdit(self):
+        self.editorCtrl = BevelIEC(self, self.value)
+        self.editorCtrl.createControl(self.parent, self.idx, self.width)
 
 class StrConfPropEdit(ConfPropEdit):
     def valueToIECValue(self):
@@ -305,7 +324,7 @@ class EnumConfPropEdit(ConfPropEdit):
         self.editorCtrl = ChoiceIEC(self, self.getValue())
         self.editorCtrl.createControl(self.parent, self.idx, self.width)
         self.editorCtrl.setValue(self.value)
-##    
+##
 ##    def getValues(self):
 ##        return self.names
 
@@ -335,20 +354,38 @@ class FilepathConfPropEdit(ConfPropEdit):
 
     def edit(self, event):
         from Preferences import wxFileDialog
-        dlg = wxFileDialog(self.parent, 'Choose the file', '.', '', 'All files', wxOPEN)
+        dlg = wxFileDialog(self.parent, 'Choose the file', '.', '', 'AllFiles', wxSAVE)
         try:
             if dlg.ShowModal() == wxID_OK:
                 self.editorCtrl.value = `dlg.GetFilePath()`
                 self.inspectorPost(false)
             else:
-                if wxMessageBox('Clear the current property value?', 
+                if wxMessageBox('Clear the current property value?',
                       'Clear filepath?', style=wxICON_QUESTION | wxYES_NO) == wxYES:
                     self.editorCtrl.value = "''"
                     self.inspectorPost(false)
-                          
         finally:
             dlg.Destroy()
-        
+
+class DirpathConfPropEdit(ConfPropEdit):
+    def inspectorEdit(self):
+        self.editorCtrl = ButtonIEC(self, self.value)
+        self.editorCtrl.createControl(self.parent, self.idx, self.width, self.edit)
+
+    def edit(self, event):
+        dlg = wxDirDialog(self.parent, defaultPath=self.editorCtrl.value)
+        try:
+            if dlg.ShowModal() == wxID_OK:
+                self.editorCtrl.value = `dlg.GetPath()`
+                self.inspectorPost(false)
+            else:
+                if wxMessageBox('Clear the current property value?',
+                      'Clear dirpath?', style=wxICON_QUESTION | wxYES_NO) == wxYES:
+                    self.editorCtrl.value = "''"
+                    self.inspectorPost(false)
+        finally:
+            dlg.Destroy()
+
 class BoolConfPropEdit(ConfPropEdit):
     truths = ['on', 'true', '1']
     def getDisplayValue(self):
@@ -376,12 +413,10 @@ class OptionedPropEdit(PropertyEditor):
             self.revNames = None
 
 class ConstrPropEditFacade:
-##    def setCtrlValue(self, oldValue, value):
-##        self.companion.checkTriggers(self.name, oldValue, value)
     def initFromComponent(self):
         self.value = ''
     def getCtrlValue(self):
-        return ''#self.getter(self.obj)
+        return ''
     def getValue(self):
         return ''
     def setValue(self, value):
@@ -398,16 +433,53 @@ class ConstrPropEdit(ConstrPropEditFacade, PropertyEditor):
         return self.value
     def getDisplayValue(self):
         return self.getValue()
-    def setCtrlValue(self, oldValue, value):
-        self.companion.checkTriggers(self.name, oldValue, value)
-        if hasattr(self.companion, 'index'):
-            import PaletteMapping
-            self.propWrapper.setValue(PaletteMapping.evalCtrl(value), self.companion.index)
-        else:
-            self.propWrapper.setValue(value)
     def getCtrlValue(self):
         return self.companion.textConstr.params[ \
           self.companion.constructor()[self.name]]
+    def setCtrlValue(self, oldValue, value):
+        self.companion.checkTriggers(self.name, oldValue, value)
+        if hasattr(self.companion, 'index'):
+            self.propWrapper.setValue(self.companion.eval(value), self.companion.index)
+        else:
+            self.propWrapper.setValue(value)
+
+# Collection id name
+class ItemIdConstrPropEdit(ConstrPropEdit):
+    def inspectorEdit(self):
+        val = self.valueToIECValue()
+        self.editorCtrl = TextCtrlIEC(self, val)
+        self.editorCtrl.createControl(self.parent, val, self.idx, self.width)
+
+    def valueToIECValue(self):
+        return self.getDisplayValue()
+
+    def getDisplayValue(self):
+        base = self.companion.newWinId('')
+        return self.getValue()[len(base):]
+
+    def fixupName(self, name):
+        newname = []
+        for c in name:
+            if c == ' ': c = '_'
+            if c in string.digits + string.letters + '_':
+                newname.append(c)
+
+        return string.upper(string.join(newname, ''))
+
+    def getValue(self):
+        if self.editorCtrl and self.editorCtrl.getValue():
+            base = self.companion.newWinId('')
+            self.value = base + self.fixupName(self.editorCtrl.getValue())
+        else:
+            self.value = self.getCtrlValue()
+        return self.value
+
+    def valueAsExpr(self):
+        return self.getValue()
+
+    def setCtrlValue(self, oldValue, value):
+        self.companion.checkTriggers(self.name, oldValue, value)
+        self.propWrapper.setValue(value, self.companion.index)
 
 class IntConstrPropEdit(ConstrPropEdit):
     def inspectorEdit(self):
@@ -442,36 +514,69 @@ class SBFWidthConstrPropEdit(IntConstrPropEdit):
 
 class ClassLinkConstrPropEdit(IntConstrPropEdit): pass
 
-class BitmapConstrPropEdit(IntConstrPropEdit):
+class BitmapPropEditMix:
+    extTypeMap = {'.bmp': 'wxBITMAP_TYPE_BMP',
+                  '.gif': 'wxBITMAP_TYPE_GIF',
+                  '.jpg': 'wxBITMAP_TYPE_JPEG',
+                  '.png': 'wxBITMAP_TYPE_PNG'}
+    def showImgDlg(self, dir, name):
+        if not os.path.isdir(dir):
+            wxMessageBox('The given directory is invalid, using current directory.\n(%s)'%dir,
+                  'Warning', wxOK | wxICON_EXCLAMATION)
+            dir = '.'
+
+        dlg = wxFileDialog(self.parent, 'Choose an image', dir, name,
+              'ImageFiles', wxOPEN)
+        try:
+            if dlg.ShowModal() == wxID_OK:
+                pth = abspth = string.replace(dlg.GetFilePath(), '\\', '/')
+                if not Preferences.cgAbsoluteImagePaths:
+                    pth = Utils.pathRelativeToModel(pth, self.companion.designer.model)
+                return abspth, pth, self.extTypeMap[string.lower(os.path.splitext(pth)[-1])]
+            else:
+                return '', '', ''
+        finally:
+            dlg.Destroy()
+
+    def extractPathFromSrc(self, src):
+        if src and Utils.startswith(src, 'wxBitmap('):
+            filename = src[len('wxBitmap(')+1:]
+            pth = filename[:string.rfind(filename, ',')-1]
+            if not os.path.isabs(pth):
+                mbd = Utils.getModelBaseDir(self.companion.designer.model)
+                if mbd: mbd = mbd[7:]
+                pth = string.replace(os.path.normpath(os.path.join(mbd, pth)), '\\', '/')
+            dir, name = os.path.split(pth)
+            if not dir: dir = '.'
+            return pth, dir, name
+        return '', '.', ''
+
+
+class BitmapConstrPropEdit(IntConstrPropEdit, BitmapPropEditMix):
     def inspectorEdit(self):
         self.editorCtrl = ButtonIEC(self, self.value)
         self.editorCtrl.createControl(self.parent, self.idx, self.width, self.edit)
 
     def edit(self, event):
-        dlg = wxFileDialog(self.parent, 'Choose an image', '.', '', 'Bitmaps (*.bmp)|*.bmp', wxOPEN)
-        try:
-            if dlg.ShowModal() == wxID_OK:
-                try:
-                    self.value = 'wxBitmap(%s, wxBITMAP_TYPE_BMP)'%(`dlg.GetFilePath()`)
-                    v = self.getValue()
-                    cv = self.getCtrlValue()
-                    self.setCtrlValue(cv, v)
-#                self.inspectorPost(false)
-                # XXX Inspector post should handle this
-                    self.persistValue(self.value)
-                    self.propWrapper.setValue(eval(self.value), self.companion.index)
-                    self.refreshCompCtrl()
-                except Exception, err:
-                    print 'Edit except', str(err)
-        finally:
-            dlg.Destroy()
-        return ''
+        dummy, dir, name = self.extractPathFromSrc(self.value)
+        abspth, pth, tpe = self.showImgDlg(dir, name)
+        if abspth:
+            self.value = 'wxBitmap(%s, %s)'%(`pth`, tpe)
+            #v = self.getValue()
+            #cv = self.getCtrlValue()
+            #self.setCtrlValue(cv, v)
+            self.persistValue(self.value)
+            # manually update ctrl
+            self.propWrapper.setValue(wxBitmap(abspth, getattr(wx, tpe)),
+                  self.companion.index)
+            self.refreshCompCtrl()
 
     def getValue(self):
         if self.editorCtrl:
             return self.value
         else:
             return self.getCtrlValue()
+
 
 class EnumConstrPropEdit(IntConstrPropEdit):
     def __init__(self, name, parent, companion, rootCompanion, propWrapper, idx, width, options, names):
@@ -498,7 +603,7 @@ class ClassConstrPropEdit(ConstrPropEdit):
         else:
             self.editorCtrl = BeveledLabelIEC(self, val)
             self.editorCtrl.createControl(self.parent, self.idx, self.width)
-            
+
     def setCtrlValue(self, oldValue, value):
         #self.companion.checkTriggers(self.name, oldValue, value)
         self.propWrapper.setValue(value)
@@ -522,8 +627,8 @@ class ClassConstrPropEdit(ConstrPropEdit):
         vals.remove(MyCls.__name__)
         vals.insert(0, MyCls.__name__)
         return vals
-                
-            
+
+
 
 
 ##    def getDisplayValue(self):
@@ -629,23 +734,9 @@ class SizerEnumConstrPropEdit(ObjEnumConstrPropEdit):
 ##        return self.companion.GetMenu()
 
 
-class StyleConstrPropEdit(IntConstrPropEdit):
-#class AnchorPropEdit(OptionedPropEdit):
-##    def __init__(self, name, parent, companion, rootCompanion, propWrapper, idx,
-##      width, options, names):
-##        ClassPropEdit.__init__(self, name, parent, companion, rootCompanion,
-##          propWrapper, idx, width)
-
+class BaseFlagsConstrPropEdit(IntConstrPropEdit):
     def getStyle(self):
         return [esExpandable]
-
-    def getSubCompanion(self):
-        from Companions.Companions import WindowStyleDTC
-        return WindowStyleDTC
-
-#    def inspectorEdit(self):
-#        self.editorCtrl = ButtonIEC(self, self.value)
-#        self.editorCtrl.createControl(self.parent, self.idx, self.width, self.edit)
 
     def getValue(self):
         """ For efficiency override the entire getValue"""
@@ -664,11 +755,15 @@ class StyleConstrPropEdit(IntConstrPropEdit):
             self.value = self.getCtrlValue()
         return self.value
 
-##    def getDisplayValue(self):
+class StyleConstrPropEdit(BaseFlagsConstrPropEdit):
+    def getSubCompanion(self):
+        from Companions.Companions import WindowStyleDTC
+        return WindowStyleDTC
 
-##    def valueAsExpr(self):
-
-##    def edit(self, event):
+class FlagsConstrPropEdit(BaseFlagsConstrPropEdit):
+    def getSubCompanion(self):
+        from Companions.Companions import FlagsDTC
+        return FlagsDTC
 
 class StrConstrPropEdit(ConstrPropEdit):
     def valueToIECValue(self):
@@ -795,24 +890,103 @@ class EventPropEdit(OptionedPropEdit):
 
     def setCtrlValue(self, oldValue, value):
 ##        self.companion.checkTriggers(self.name, oldValue, value)
+
         self.propWrapper.setValue(value, self.name)
 
     def getDisplayValue(self):
         return self.valueToIECValue()
 
+    extraOpts = ['(delete)', '(rename)']
+    scopeOpts = {'(show all)': 'all',
+                 '(show same controls)': 'same',
+                 '(only this control)': 'this'}
     def getValues(self):
+        """ Build event list based on currently selected scope for the event """
         vals = []
+##        showScope = 'this'
         if self.companion:
             for evt in self.companion.textEventList:
-                if evt.trigger_meth <> '(delete)':
+##                if evt.event_name == self.name:
+##                    showScope = evt.show_scope
+
+                if evt.trigger_meth not in self.extraOpts:
                     try: vals.index(evt.trigger_meth)
-                    except: vals.append(evt.trigger_meth)
-        vals.append('(delete)')
+                    except ValueError: vals.append(evt.trigger_meth)
+
+##            if showScope != 'this':
+##                # Add evts from other scopes
+##                # XXX Collection items' events aren't handled correctly
+##                # XXX designer != CollEditorView
+##                for comp, ctrl, prnt in self.companion.designer.objects.values():
+##                    if comp != self.companion and (showScope == 'all' or \
+##                          showScope == 'same' and \
+##                          comp.__class__ == self.companion.__class__):
+##                        for evt in comp.textEventList:
+##                            if evt.trigger_meth not in self.extraOpts:
+##                                try: vals.index(evt.trigger_meth)
+##                                except ValueError: vals.append(evt.trigger_meth)
+##
+##        scopeChoices = self.scopeOpts.keys()
+##        del scopeChoices[self.scopeOpts.values().index(showScope)]
+
+        vals.extend(self.extraOpts)## + scopeChoices)
         return vals
 
+    def _repopulateChoice(self, value):
+        self.editorCtrl.repopulate()
+        self.editorCtrl.setValue(value)
+
     def getValue(self):
+        """ Return current value, or if a special (*) value is selected,
+            process it, and return previous 'current value' """
         if self.editorCtrl:
-            self.value = self.editorCtrl.getValue()
+            oldVal = defVal = self.value
+            value = self.editorCtrl.getValue()
+            # Event rename
+            if value == '(rename)':
+                if oldVal == '(delete)':
+                    for evt in self.companion.textEventList:
+                        if evt.trigger_meth == oldVal:
+                            defVal = evt.prev_trigger_meth
+                            break
+
+                ted = wxTextEntryDialog(self.parent, 'Enter a new method name:',
+                      'Rename event method', defVal)
+                try:
+                    if ted.ShowModal() == wxID_OK:
+                        self.value = ted.GetValue()
+
+                        # XXX All references should be renamed !!!!
+                        # XXX Add as method on designer
+                        for evt in self.companion.textEventList:
+                            if evt.trigger_meth == oldVal:
+                                if not evt.prev_trigger_meth:
+                                    evt.prev_trigger_meth = oldVal
+                                evt.trigger_meth = self.value
+                                break
+                        self._repopulateChoice(self.value)
+                finally:
+                    ted.Destroy()
+            # Event deletion
+            elif value == '(delete)':
+                for evt in self.companion.textEventList:
+                    if evt.trigger_meth == oldVal:
+                        if not evt.prev_trigger_meth:
+                            evt.prev_trigger_meth = oldVal
+                        break
+                self.value = self.editorCtrl.getValue()
+            # Event scope change
+            elif value in self.scopeOpts.keys():
+                self.value = oldVal
+                for evt in self.companion.textEventList:
+                    if evt.event_name == self.name:
+                        evt.show_scope = self.scopeOpts[value]
+                        self._repopulateChoice(oldVal)
+                        break
+            # Normal event selection
+            else:
+                self.value = self.editorCtrl.getValue()
+
         return self.value
 
     def persistValue(self, value):
@@ -948,11 +1122,15 @@ class ClassPropEdit(FactoryPropEdit):
         return [esExpandable]
 
 class ClassLinkPropEdit(OptionedPropEdit):
+    defaults = {'None': None}
     linkClass = None
     def getStyle(self):
         return []
     def valueToIECValue(self):
-        if self.value is None: return `None`
+        for k, v in self.defaults.items():
+            if self.value == v:
+                return k
+
         objs = self.companion.designer.getObjectsOfClass(self.linkClass)
         for objName in objs.keys():
             if `objs[objName]` == `self.value`:
@@ -962,7 +1140,7 @@ class ClassLinkPropEdit(OptionedPropEdit):
 ##            for objName in objs.keys():
 ##                if objs[objName].GetId() == self.value.GetId():
 ##                    return objName
-        print 'ClassLinkPropEdit: ', self.value, 'not found'
+        #print 'ClassLinkPropEdit: ', self.value, 'not found'
         return `None`
     def inspectorEdit(self):
         self.editorCtrl = ChoiceIEC(self, self.value)
@@ -971,7 +1149,9 @@ class ClassLinkPropEdit(OptionedPropEdit):
     def getDisplayValue(self):
         return self.valueToIECValue()
     def getValues(self):
-        return ['None'] + self.companion.designer.getObjectsOfClass(self.linkClass).keys()
+        defs = self.defaults.keys()
+        defs.sort()
+        return defs + self.companion.designer.getObjectsOfClass(self.linkClass).keys()
     def setValue(self, value):
         self.value = value
         if self.editorCtrl:
@@ -979,8 +1159,8 @@ class ClassLinkPropEdit(OptionedPropEdit):
     def getValue(self):
         if self.editorCtrl:
             strVal = self.editorCtrl.getValue()
-            if strVal == `None`:
-                self.value = None
+            if self.defaults.has_key(strVal):
+                self.value = self.defaults[strVal]
             else:
                 objs = self.companion.designer.getObjectsOfClass(self.linkClass)
                 self.value = objs[strVal]
@@ -1012,6 +1192,15 @@ class SizerClassLinkPropEdit(ClassLinkPropEdit):
 
 class ButtonClassLinkPropEdit(ClassLinkPropEdit):
     linkClass = wxButton
+
+class CursorClassLinkPropEdit(ClassLinkPropEdit):
+    defaults = {'None': wxNullCursor, 'wxSTANDARD_CURSOR': wxSTANDARD_CURSOR,
+                'wxHOURGLASS_CURSOR': wxHOURGLASS_CURSOR,
+                'wxCROSS_CURSOR': wxCROSS_CURSOR}
+    linkClass = wxCursorPtr
+##    def getValues(self):
+##        vals = ClassLinkPropEdit.getValues(self)
+##        return vals + ['wxSTANDARD_CURSOR', 'wxHOURGLASS_CURSOR', 'wxCROSS_CURSOR']
 
 class ListCtrlImageListClassLinkPropEdit(ImageListClassLinkPropEdit):
     listTypeMap = {wxIMAGE_LIST_SMALL : 'wxIMAGE_LIST_SMALL',
@@ -1223,7 +1412,7 @@ class AnchorPropEdit(OptionedPropEdit):
                 r and 'true' or 'false', b and 'true' or 'false')
 
 
-class BitmapPropEdit(PropertyEditor):
+class BitmapPropEdit(PropertyEditor, BitmapPropEditMix):
     def __init__(self, name, parent, companion, rootCompanion, propWrapper, idx, width, options = None, names = None):
         PropertyEditor.__init__(self, name, parent, companion, rootCompanion, propWrapper, idx, width)
 
@@ -1242,33 +1431,27 @@ class BitmapPropEdit(PropertyEditor):
         else:
             constr = self.companion.persistedPropVal(self.name, self.propWrapper.getSetterName())
 
-        if constr:
-            idx1 = string.find(constr, "'")
-            idx2 = string.rfind(constr, "'")
-            if idx1 != -1 and idx2 != -1:
-                self.bmpPath = eval(constr[idx1:idx2+1])
-            else:
-                self.bmpPath = ''
-        else:
-            self.bmpPath = ''
+        self.bmpPath, dir, name = self.extractPathFromSrc(constr)
 
     def edit(self, event):
-        dlg = wxFileDialog(self.parent, 'Choose an image', '.', '', 'Bitmaps (*.bmp)|*.bmp', wxOPEN)
-        try:
-            if dlg.ShowModal() == wxID_OK:
-                self.bmpPath = dlg.GetFilePath()
-                self.value = wxBitmap(self.bmpPath, wxBITMAP_TYPE_BMP)
-                self.inspectorPost(false)
-        finally:
-            dlg.Destroy()
-        return ''
+        if self.bmpPath:
+            dir, name = os.path.split(self.bmpPath)
+        else:
+            dir, name = '.', ''
+
+        abspth, pth, tpe = self.showImgDlg(dir, name)
+        if abspth:
+            self.value = wxBitmap(abspth, getattr(wx, tpe))
+            self.bmpPath = pth
+            self.inspectorPost(false)
 
     def getValue(self):
         return self.value
 
     def valueAsExpr(self):
         if self.bmpPath:
-            return "wxBitmap(%s, wxBITMAP_TYPE_BMP)"%`self.bmpPath`
+            return 'wxBitmap(%s, %s)'%(`self.bmpPath`,
+                    self.extTypeMap[string.lower(os.path.splitext(self.bmpPath)[-1])])
         else:
             return 'wxNullBitmap'
 

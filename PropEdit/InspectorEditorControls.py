@@ -95,7 +95,7 @@ class BevelIEC(InspectorEditorControl):
 class BeveledLabelIEC(BevelIEC):
     def createControl(self, parent, idx, sizeX):
         BevelIEC.createControl(self, parent, idx, sizeX)
-        self.editorCtrl = wxStaticText(parent, -1, self.value, 
+        self.editorCtrl = wxStaticText(parent, -1, self.value,
             (2, idx*Preferences.oiLineHeight+2),
             (sizeX, Preferences.oiLineHeight-3))
         self.editorCtrl.SetForegroundColour(Preferences.propValueColour)
@@ -138,6 +138,10 @@ class ChoiceIEC(InspectorEditorControl):
     def setValue(self, value):
         if self.editorCtrl:
             self.editorCtrl.SetStringSelection(value)
+    def repopulate(self):
+        self.editorCtrl.Clear()
+        for val in self.propEditor.getValues():
+            self.editorCtrl.Append(val)
 
 
 class ComboIEC(InspectorEditorControl):
@@ -156,8 +160,8 @@ class ComboIEC(InspectorEditorControl):
 class ButtonIEC(BevelIEC):
     def createControl(self, parent, idx, sizeX, editMeth):
        # XXX use image store
-        bmp = Preferences.IS.load('Images/Shared/ellipsis.bmp')
-#        wxBitmap(path.join(Preferences.pyPath, 'Images', 'Shared', 'ellipsis.bmp'), wxBITMAP_TYPE_BMP)
+        bmp = Preferences.IS.load('Images/Shared/ellipsis.png')
+#        wxBitmap(path.join(Preferences.pyPath, 'Images', 'Shared', 'ellipsis.png'), wxBITMAP_TYPE_BMP)
         self.editorCtrl = wxBitmapButton(parent, self.wID, bmp,
           wxPoint(sizeX -18 - 3, idx*Preferences.oiLineHeight +1),
           wxSize(18, Preferences.oiLineHeight-2))
