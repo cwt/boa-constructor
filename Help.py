@@ -72,9 +72,8 @@ class HelpFrame(wxFrame):
         self.SetDimensions(120, 75, Preferences.wxDefaultFrameSize.x,
           Preferences.wxDefaultFrameSize.y)
 
-	if wxPlatform == '__WXMSW__':
-	    self.SetIcon(wxIcon(Preferences.toPyPath('Images\\Icons\\'+icon), 
-	      wxBITMAP_TYPE_ICO))
+        if wxPlatform == '__WXMSW__':
+            self.SetIcon(IS.load('Images/Icons/'+icon))
 
         self.html = wxHtmlWindow(self)
         self.home = home 
@@ -147,13 +146,13 @@ class HelpFrame(wxFrame):
         EVT_MENU(self, wxID_HELPFIND, self.OnFindFocus)
         EVT_MENU(self, wxID_HELPCLOSE, self.OnCloseHelp)
         accLst = []
-        for (ctrlKey, key), wId in \
+        for (ctrlKey, key, code), wId in \
                 ( (keyDefs['Find'], wxID_HELPFIND),
                   (keyDefs['Escape'], wxID_HELPCLOSE) ):
             accLst.append( (ctrlKey, key, wId) ) 
 
         self.SetAcceleratorTable(wxAcceleratorTable(accLst))
-	EVT_CLOSE(self, self.OnCloseWindow)
+        EVT_CLOSE(self, self.OnCloseWindow)
 
     def loadPage(self, filename = '', highlight = ''):
         if filename:
