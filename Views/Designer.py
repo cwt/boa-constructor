@@ -89,7 +89,7 @@ class DesignerView(wxFrame, InspectableObjectView, Utils.FrameRestorerMixin):
                 args[prnt] = self.objects[srcPrnt][1]
 
 
-        if doId: args[wId] = NewId()
+        if doId: args[wId] = wxNewId()
 
         return args
 

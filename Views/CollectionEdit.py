@@ -30,7 +30,7 @@ import InspectableViews
 def create(parent):
     return CollectionEditor(parent, None)
 
-[wxID_COLLECTIONEDITOR, wxID_COLLECTIONEDITORTOOLBAR, wxID_COLLECTIONEDITORITEMLIST] = map(lambda _init_ctrls: NewId(), range(3))
+[wxID_COLLECTIONEDITOR, wxID_COLLECTIONEDITORTOOLBAR, wxID_COLLECTIONEDITORITEMLIST] = map(lambda _init_ctrls: wxNewId(), range(3))
 
 class CollectionEditor(wxFrame, Utils.FrameRestorerMixin):
     def _init_ctrls(self, prnt):
