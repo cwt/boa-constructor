@@ -1,15 +1,14 @@
-<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
-<HTML>
-<HEAD>
-<meta name="GENERATOR" content="tex2rtf">
-<!-- Sitemap 1.0 -->
-</HEAD><BODY>
-<OBJECT type="text/site properties">
- <param name="ImageType" value="Folder">
-</OBJECT>
 <UL>
- <LI> <OBJECT type="text/sitemap">
-  <param name="Local" value="Designer.html">
-  <param name="Name" value="Designer">
-  </OBJECT>
+<LI><OBJECT type="text/sitemap">
+<PARAM name="Local" value="node26.html">
+<PARAM name="Name" value="Menus">
+</OBJECT>
+<LI><OBJECT type="text/sitemap">
+<PARAM name="Local" value="node22.html">
+<PARAM name="Name" value="Designer">
+</OBJECT>
+<LI><OBJECT type="text/sitemap">
+<PARAM name="Local" value="node3.html">
+<PARAM name="Name" value="Editor">
+</OBJECT>
 </UL>

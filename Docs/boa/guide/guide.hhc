@@ -37,8 +37,6 @@
       <param name="Name" value="Using Help">
     </OBJECT>
   </UL>
-</UL>
-<UL>
   <LI> <OBJECT type="text/sitemap">
     <param name="Local" value="index.html">
     <param name="Name" value="Tutorial - Building your first application">
@@ -73,8 +71,6 @@
       <param name="Name" value="Creating a Dialog Window">
     </OBJECT>
   </UL>
-</UL>
-<UL>
   <LI> <OBJECT type="text/sitemap">
     <param name="Local" value="index.html">
     <param name="Name" value="Other Useful Items">
