@@ -1,6 +1,6 @@
 #----------------------------------------------------------------------
 # Name:        relpath.py
-# Purpose:     
+# Purpose:
 #
 # Author:      Riaan Booysen
 #
@@ -26,7 +26,7 @@ def splitpath(apath):
         path_list.insert(0, tail)
         head, tail = path.split(head)
     return path_list
-        
+
 
 def relpath(base, comp):
     """ Return a path to file comp relative to path base. """
@@ -37,11 +37,11 @@ def relpath(base, comp):
 
     if base_drive != comp_drive:
         return comp
-    
+
     # relative path defaults to the list of files with
     # a greater index then the entire base
     rel_path = comp_path_list[len(base_path_list):]
-    # find the first directory for which the 2 paths differ 
+    # find the first directory for which the 2 paths differ
     found = -1
     for idx in range(len(base_path_list)):
         if base_path_list[idx] != comp_path_list[idx]:
@@ -49,10 +49,10 @@ def relpath(base, comp):
             found = 0
             break
     for cnt in range(max(len(base_path_list) - idx + found, 0)):
-        rel_path.insert(0, os.pardir) 
+        rel_path.insert(0, os.pardir)
 #    for cnt in range(max(1 + len(base_path_list) - len(comp_path_list), 0)):
 #        rel_path.insert(0, os.pardir)
-            
+
     return apply(path.join, rel_path)
-        
-#print relpath(b, d)        
+
+#print relpath(b, d)

@@ -45,7 +45,7 @@ class MakePyDialog(wxDialog):
 
     def __init__(self, parent):
         self._init_ctrls(parent)
-        
+
         self.generatedFilename =''
 
     def OnTypelibrarylistLeftDclick(self, event):

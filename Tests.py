@@ -6,18 +6,18 @@ def postCommandEvent(ctrl, evtType, evtId = None):
         evtId = ctrl.GetId()
     wxPostEvent(ctrl, wxCommandEvent(evtType, evtId))
     wxYield()
-    
+
 
 def test_wxFrame(palette):
     # New frame
-    postCommandEvent(palette.palettePages[0].buttons['wxFrame'], 
+    postCommandEvent(palette.palettePages[0].buttons['wxFrame'],
                      wxEVT_COMMAND_BUTTON_CLICKED)
-    
+
     # Open designer
     import Editor
     postCommandEvent(palette.editor, wxEVT_COMMAND_MENU_SELECTED,
                      Editor.wxID_EDITORDESIGNER)
-    
+
     # Select static text
     btn = palette.palettePages[2].buttons['wxStaticText']
     btn.up = false
@@ -26,7 +26,7 @@ def test_wxFrame(palette):
     evt.SetIsDown(true)
     wxPostEvent(btn, evt)
     wxYield()
-    
+
     # Drop component on Designer
     model = palette.editor.getActiveModulePage().model
     evt = wxMouseEvent(wxEVT_LEFT_DOWN)
@@ -35,17 +35,17 @@ def test_wxFrame(palette):
     evt.m_y = 10
     wxPostEvent(model.views['Designer'], evt)
     wxYield()
-    
+
     model.views['Designer'].SetDimensions(10, 10, 200, 200)
     wxYield()
-    
+
     model.views['Designer'].Close()
 
     if model.data == frame_answer:
         wxMessageBox('Test succeeded')
     else:
         wxMessageBox('Test failed\n'+model.data)
-        
+
 frame_answer = '''#Boa:Frame:wxFrame1
 
 from wxPython.wx import *

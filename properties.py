@@ -1,20 +1,18 @@
-
-
 class propertyRedirector:
     """ Class that implements properties or getter/setter attributes.
-    
+
          Attributes starting with '_' can be accessed by declaring
          getter and setter functions for it.
          e.g. for attr _test:
-             
+
          def get_test(self):
              return self._test
-         
+
          def set_test(self, val):
-             self._test = val 
-         
+             self._test = val
+
     """
- 
+
     getter = 'get'
     setter = 'set'
 
@@ -28,7 +26,7 @@ class propertyRedirector:
             return self
         else:
             raise AttributeError, attr
-    
+
     def __setattr__(self, attr, val):
         priv_attr = '_'+attr
         if self.__class__.__dict__.has_key(self.setter+priv_attr):
@@ -45,7 +43,7 @@ class propTst(propertyRedirector):
         return self._size
     def set_size(self, val):
         self._size = val
-    
+
 class simplePropTst(propertyRedirector):
     def __init__(self):
         self._size = 10
@@ -63,4 +61,4 @@ def test():
     p2.size = p2.size + 10
     print p2.size
 
-#test()
+test()
