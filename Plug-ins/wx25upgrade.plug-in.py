@@ -17,7 +17,8 @@ import os
 import sys
 import string
 
-from ExternalLib import wx25upgrade
+from ExternalLib import wx25upgrade, reindent
+import Utils
 
 def createWx25CodeUpgradeDlg(parent):
     return Wx25CodeUpgradeDlg(parent)
@@ -228,17 +229,18 @@ class Wx25CodeUpgradeDlg(wx.Dialog):
                     temp = 'Converting: %s' % name
                     keepGoing = dlg.Update(count, temp)
                     
-                    fInput = file(os.path.join(self.sourceFolder.GetValue(), name), 'r')
+                    fInputName = os.path.join(self.sourceFolder.GetValue(), name)
+                    fInputLines = file(fInputName, 'r').readlines()
+                    fInputData = self.reindentSource(fInputLines, fInputName)
                     fOutput = file(os.path.join(self.targetFolder.GetValue(), name), 'w')
                     try:
                         frag = []
-                        for non, rep in self.u.scanner(fInput.read()):
+                        for non, rep in self.u.scanner(fInputData):
                             frag.append(non)
                             frag.append(rep)
                         newtext = string.join(frag, '')
                         fOutput.write(newtext)
                     finally:
-                        fInput.close()
                         fOutput.close()
                         temp = 'Done converting: %s' % name
                         keepGoing = dlg.Update(count, temp)
@@ -261,7 +263,10 @@ class Wx25CodeUpgradeDlg(wx.Dialog):
         outName = newName+'Upg'+ext
         root2, newFileName = os.path.split(outName)
                 
-        fInput = file(self.sourceFile.GetValue(), 'r')
+        fInputName = self.sourceFile.GetValue()
+        fInputLines = file(fInputName, 'r').readlines()
+        fInputData = self.reindentSource(fInputLines, fInputName)
+
         fOutput = file(outName, 'w')
 
         temp = 'Converting: %s,\n\nto: %s' % (fileName, newFileName)
@@ -269,13 +274,12 @@ class Wx25CodeUpgradeDlg(wx.Dialog):
         
         try:
             frag = []
-            for non, rep in self.u.scanner(fInput.read()):
+            for non, rep in self.u.scanner(fInputData):
                 frag.append(non)
                 frag.append(rep)
             newtext = string.join(frag, '')
             fOutput.write(newtext)
         finally:
-            fInput.close()
             fOutput.close()
             
             count = count +1
@@ -290,7 +294,26 @@ class Wx25CodeUpgradeDlg(wx.Dialog):
         import webbrowser
         webbrowser.open('http://wiki.wxpython.org/index.cgi/Boa040Upgrade')
 
+    def reindentSource(self, srcLines, filename):
+        data = ''.join(srcLines)
+        eol = Utils.getEOLMode(data)
+        file = SourcePseudoFile(srcLines)
+        ri = reindent.Reindenter(file, eol=eol)
+        try:
+            if ri.run():
+                file.output = []
+                ri.write(file)
 
+                return ''.join(file.output)
+        except Exception, error:
+            print 'Error on reindenting %s : %s'%(filename, str(error))
+
+        return data
+
+class SourcePseudoFile(Utils.PseudoFileOutStore):
+    def readlines(self):
+        return self.output
+    
 #-------------------------------------------------------------------------------
 
 
