@@ -6,8 +6,8 @@
 #
 # Created:     2002
 # RCS-ID:      $Id$
-# Copyright:   (c) 2002
-# Licence:     <your licence>
+# Copyright:   (c) 2002 - 2003
+# Licence:     GPL
 #-----------------------------------------------------------------------------
 import os, string
 
@@ -76,5 +76,5 @@ def installList(info, dirname, names):
         if ext == '.py':
             installZopeScript(info, name, open(os.path.join(dirname, item)).read())
         else:
-            if item != 'CVS':
+            if item != 'CVS' and os.path.isdir(os.path.join(dirname, item)):
                 installZopeFolder(info, item)
