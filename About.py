@@ -75,7 +75,7 @@ sponsoring my time on this project.<br>
 about_text = '''
 <p>A RAD GUI building IDE for <b>wxPython</b>
 </p>
-<p><u>http://boa-constructor.sourceforge.net<br></u>
+<p><a href="Boa">http://boa-constructor.sourceforge.net</a><br></u>
 &copy;1999-2001 <b>Riaan Booysen</b>. riaan@e.co.za<br>
 <a href="Credits">Credits</a>
 </p>
@@ -150,6 +150,8 @@ class AboutBoxMixin:
             self.gotoInternetUrl('http://wxpython.org')
         elif clicked == 'wxWindows':
             self.gotoInternetUrl('http://www.wxwindows.org')
+        elif clicked == 'Boa':
+            self.gotoInternetUrl('http://boa-constructor.sourceforge.net')
         elif clicked == 'TBS':
             self.gotoInternetUrl('http://www.tbs.co.za')
 
