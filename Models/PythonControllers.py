@@ -6,13 +6,12 @@
 #
 # Created:     2002/02/09
 # RCS-ID:      $Id$
-# Copyright:   (c) 2002
+# Copyright:   (c) 2002 - 2003
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 print 'importing Models.PythonControllers'
 
-import os, string, sys, time, imp
-import marshal, stat
+import os, sys, time, imp, marshal, stat
 
 from wxPython.wx import *
 
@@ -57,11 +56,11 @@ class ModuleController(SourceController):
               ('Reload module in Shell', self.OnReloadInShell, '-', ''),
               ('-', None, '', ''),
               ('Set command-line parameters', self.OnSetRunParams, '-', ''),
+              ('Toggle use input stream', self.OnToggleUseInputStream, '-', ''),
               ('Run application', self.OnRunApp, self.runAppBmp, 'RunApp'),
               ('Run module', self.OnRun, self.runBmp, 'RunMod'),
               ('Debug application', self.OnDebugApp, self.debugBmp, 'Debug'),
               ('Debug module', self.OnDebug, '-', ''),
-              ('Attach to debugger', self.OnAttachToDebugger, '-', ''),
               ('Step in', self.OnDebugStepIn, '-', 'DebugStep'),
               ('Step over', self.OnDebugStepOver, '-', 'DebugOver'),
               ('Step out', self.OnDebugStepOut, '-', 'DebugOut'),
@@ -80,11 +79,15 @@ class ModuleController(SourceController):
              [('Add to an open application', self.OnAddToOpenApp, '-', ''),
               ('Associate with an open application', self.OnAssosiateWithOpenApp, '-', '')])
 
-        actions.extend([
-              ('NDiff modules...', self.OnDiffModules, '-', ''),
-              ('Run PyChecker', self.OnRunPyChecker, '-', ''),
-              ('Configure PyChecker', self.OnConfigPyChecker, '-', '')])
-
+        try:
+            imp.find_module('pychecker')
+        except ImportError:
+            pass
+        else:
+            actions.extend([
+                  ('Run PyChecker', self.OnRunPyChecker, '-', ''),
+                  ('Configure PyChecker', self.OnConfigPyChecker, '-', '')])
+    
         return SourceController.actions(self, model) + actions
 
     def createModel(self, source, filename, main, saved, modelParent=None):
@@ -117,16 +120,15 @@ class ModuleController(SourceController):
         if modtime is not None:
             curmodtime = os.stat(statFile)[stat.ST_MTIME]
             if curmodtime == modtime:
-                wxMessageBox('Stats file date unchanged!')
+                wxLogError('Stats file date unchanged, check for errors in script.')
                 return
         elif not os.path.exists(statFile):
-            wxMessageBox('Stats file not found')
+            wxLogError('Stats file not found, check for errors in script.')
             return
 
         self.editor.setStatus('Loading stats...')
         stats = marshal.load(open(statFile, 'rb'))
 
-        #stats, profDir = model.profile()
         resName = 'Profile stats: %s'%time.strftime('%H:%M:%S', time.gmtime(time.time()))
         if not model.views.has_key(resName):
             resultView = self.editor.addNewView(resName,
@@ -173,8 +175,6 @@ class ModuleController(SourceController):
                     else:
                         params = []
                     self.editor.debugger.setParams(params)
-
-
         finally:
             dlg.Destroy()
 
@@ -237,26 +237,6 @@ class ModuleController(SourceController):
             else:
                 appmodel.views['Application'].focus()
 
-    def OnDiffModules(self, event=None, filename=''):
-        model = self.getModel()
-        if model:
-            if self.checkUnsaved(model): return
-            if not filename:
-                filename = self.editor.openFileDlg()
-            if filename:
-                filename = model.assertLocalFile(filename)
-                tbName = 'Diff with : '+filename
-                if not model.views.has_key(tbName):
-                    from Views.DiffView import PythonSourceDiffView
-                    resultView = self.editor.addNewView(tbName, PythonSourceDiffView)
-                else:
-                    resultView = model.views[tbName]
-
-                resultView.tabName = tbName
-                resultView.diffWith = filename
-                resultView.refresh()
-                resultView.focus()
-
     def OnRunPyChecker(self, event):
         model = self.getModel()
         if model:
@@ -298,9 +278,8 @@ class ModuleController(SourceController):
                   'Config file not found', wxYES_NO | wxICON_QUESTION)
                 try:
                     if dlg.ShowModal() == wxID_YES:
-                        import shutil
-                        shutil.copyfile(os.path.join(Preferences.pyPath,
-                            'ExternalLib', 'PyChecker', 'pycheckrc'), appConfig)
+                        from pychecker import Config
+                        open(appConfig, 'w').write(Config.outputRc(Config.Config()))
                     else:
                         return
                 finally:
@@ -339,13 +318,6 @@ class ModuleController(SourceController):
         model = self.getModel()
         if model:
             model.tabnanny()
-
-    def OnAttachToDebugger(self, event):
-        # Attach dialog code here
-        from Debugger.RemoteDialog import create
-        rmtDlg = create(self.editor)
-        rmtDlg.ShowModal()
-        rmtDlg.Destroy()
 
     def chooseOpenApp(self, model, msg, capt):
         openApps = self.editor.getAppModules()
@@ -413,6 +385,21 @@ class ModuleController(SourceController):
             msg, status  = model.reloadInShell()
             self.editor.setStatus(msg, status)
 
+    def OnToggleUseInputStream(self, event):
+        model = self.getModel()
+        if model:
+            model.useInputStream = not model.useInputStream
+            if model.useInputStream:
+                self.editor.erroutFrm.displayInput(true)
+                wxLogMessage('Using input stream for running')
+            else:
+                wxLogMessage('Not using input stream for running')
+
+def ToolsOnAttachToDebugger(editor):
+    from Debugger.RemoteDialog import create
+    rmtDlg = create(editor)
+    rmtDlg.ShowModal()
+    rmtDlg.Destroy()
 
 class BaseAppController(ModuleController):
     DefaultViews    = [AppViews.AppView] + ModuleController.DefaultViews
@@ -580,14 +567,6 @@ class SetupController(ModuleController):
             ProcessModuleRunner(self.editor.erroutFrm, model.app, filedir).run(\
             '"%s" setup.py %s'%(`Preferences.pythonInterpreterPath`[1:-1], cmd),
             caption='Running distutil command...')
-##            PD = ProcessProgressDlg.ProcessProgressDlg(self.editor,
-##              '"%s" setup.py %s'%(`Preferences.pythonInterpreterPath`[1:-1], cmd),
-##              'Running distutil command...',
-##              autoClose = false)
-##            try:
-##                if PD.ShowModal() == wxOK:
-##
-##            finally: PD.Destroy()
         finally:
             os.chdir(cwd)
 
@@ -633,10 +612,6 @@ Controllers.modelControllerReg.update({
       PythonEditorModels.PythonExtensionFileModel: PythonExtensionController,
      })
 
-Controllers.DefaultController = ModuleController
-Controllers.DefaultModel = PythonEditorModels.ModuleModel
-Controllers.defaultExt = PythonEditorModels.ModuleModel.ext
-
 Controllers.fullnameTypes.update({
     '__init__.py': (PythonEditorModels.PackageModel, '', '.py'),
     'setup.py':    (PythonEditorModels.SetupModuleModel, '', '.py'),
@@ -656,6 +631,8 @@ from Explorers import FileExplorer
 def isPackage(filename):
     return os.path.exists(os.path.join(filename, PythonEditorModels.PackageModel.pckgIdnt))
 
-FileExplorer.PyFileNode.subExplorerReg['folder'].append(
-      (FileExplorer.PyFileNode, isPackage, PythonEditorModels.PackageModel.imgIdx),
+FileExplorer.FileSysNode.subExplorerReg['folder'].append(
+  (FileExplorer.FileSysNode, isPackage, PythonEditorModels.PackageModel.imgIdx),
 )
+
+EditorHelper.editorToolsReg.append( ('Attach to debugger', ToolsOnAttachToDebugger) )
