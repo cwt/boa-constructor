@@ -103,36 +103,36 @@ class ZopeItemNode(ExplorerNodes.ExplorerNode):
         self.user=self.properties['username']
         self.pwd=self.properties['passwd']
         self.parent=parent
-        #self.item=item
+        #self.item=item
         self.server=zftpi
         self.entries=None
-        self.entryIds=None
+        self.entryIds=None
         self.url=self.buildUrl()
         self.typ = None
         
-
 
-    def buildUrl(self):
-        root = self.root
-        tmp=self
-        if tmp==root:
-            return self.properties['host'] + ":" + str(self.properties['httpport']) +"/"
-        url=""
-        while tmp!=root:
-            url = string.strip(tmp.name) + "/" + url
-            tmp = tmp.parent
-        url=self.properties['host'] + ":" + str(self.properties['httpport']) + "/" + url
+
+    def buildUrl(self):
+        root = self.root
+        tmp=self
+        if tmp==root:
+            return self.properties['host'] + ":" + str(self.properties['httpport']) +"/"
+        url=""
+        while tmp!=root:
+            url = string.strip(tmp.name) + "/" + url
+            tmp = tmp.parent
+        url=self.properties['host'] + ":" + str(self.properties['httpport']) + "/" + url
         tmp=url.split("/")
-        
-        if len(tmp) >=6 :
-            if tmp[0] + "/" + tmp[1] + "/" + tmp[2] + "/" == self.properties['host'] + ":" + str(self.properties['httpport']) + "/Control_Panel/Products/":
-                #tmp.insert(6,"propertysheets/methods")
-                # XXX Check out from the fucking trailing blanks are coming
-                tmp[4]=tmp[4] + "/propertysheets/methods"
-                #tmp[:-2]=string.strip(tmp[:-2])
-                url=string.join(tmp,"/")#[:-2]+"/"
-#        wxLogMessage("request " +string.join(tmp,"/"))    
-#        wxLogMessage(url)
+        
+        if len(tmp) >=6 :
+            if tmp[0] + "/" + tmp[1] + "/" + tmp[2] + "/" == self.properties['host'] + ":" + str(self.properties['httpport']) + "/Control_Panel/Products/":
+                #tmp.insert(6,"propertysheets/methods")
+                # XXX Check out from the fucking trailing blanks are coming
+                tmp[4]=tmp[4] + "/propertysheets/methods"
+                #tmp[:-2]=string.strip(tmp[:-2])
+                url=string.join(tmp,"/")#[:-2]+"/"
+#        wxLogMessage("request " +string.join(tmp,"/"))    
+#        wxLogMessage(url)
         ## tmp=urlparse.urlparse("http://" + url)
         ## if tmp[2] == "" : url=url +  "/"
         
@@ -156,35 +156,35 @@ class ZopeItemNode(ExplorerNodes.ExplorerNode):
         
         itm.typ=typ
         
-        if EditorModels.ZOAIcons.has_key(typ):
+        if EditorModels.ZOAIcons.has_key(typ):
             itm.imgIdx=EditorModels.ZOAIcons[typ]
-        else:
+        else:
             itm.imgIdx=EditorModels.ZOAIcons["unknown"]
         return itm
         
-    def checkentry(self,id,entry,path):
-        if  entry == 'Folder'  or entry == 'Product Help':
-            childnode=DirNode(id, path, self.clipboard, -1,self, self.zopeConn, self.server, self.root, self.properties)
-        elif entry == 'User Folder':
-            childnode=UserFolderNode(id, path, self.clipboard, -1,self, self.zopeConn, self.server, self.root, self.properties)
-        elif entry == 'Control Panel':
-            childnode=ControlNode(id, path, self.clipboard, -1,self, self.zopeConn, self.server, self.root, self.properties)
-        elif entry == 'Local File System' or entry == 'Local Directory' or entry == 'directory':
-            childnode=LFSNode(id, path, self.clipboard, -1,self, self.zopeConn, self.server, self.root, self.properties)
-        elif entry == 'Z SQL Method':
-            childnode=ZSQLNode(id, path, self.clipboard, -1,self, self.zopeConn, self.server, self.root, self.properties)
-        elif entry == 'DTML Document':
-            childnode=DTMLDocNode(id, path, self.clipboard, -1,self, self.zopeConn, self.server, self.root, self.properties)
-        elif entry == 'DTML Method':
-            childnode=DTMLMethodNode(id, path, self.clipboard, -1,self, self.zopeConn, self.server, self.root, self.properties)
-        elif entry == 'Python Method':
-            childnode=PythonNode(id, path, self.clipboard, -1,self, self.zopeConn, self.server, self.root, self.properties)
-        elif entry == 'External Method':
-            childnode=ExtPythonNode(id, path, self.clipboard, -1,self, self.zopeConn, self.server, self.root, self.properties)    
-        elif entry == 'Script (Python)':
-            childnode=PythonScriptNode(id, path, self.clipboard, -1,self, self.zopeConn, self.server, self.root, self.properties)    
-        else:
-            childnode=ZopeItemNode(id, path, self.clipboard, -1,self, self.zopeConn, self.server, self.root, self.properties)
+    def checkentry(self,id,entry,path):
+        if  entry == 'Folder'  or entry == 'Product Help':
+            childnode=DirNode(id, path, self.clipboard, -1,self, self.zopeConn, self.server, self.root, self.properties)
+        elif entry == 'User Folder':
+            childnode=UserFolderNode(id, path, self.clipboard, -1,self, self.zopeConn, self.server, self.root, self.properties)
+        elif entry == 'Control Panel':
+            childnode=ControlNode(id, path, self.clipboard, -1,self, self.zopeConn, self.server, self.root, self.properties)
+        elif entry == 'Local File System' or entry == 'Local Directory' or entry == 'directory':
+            childnode=LFSNode(id, path, self.clipboard, -1,self, self.zopeConn, self.server, self.root, self.properties)
+        elif entry == 'Z SQL Method':
+            childnode=ZSQLNode(id, path, self.clipboard, -1,self, self.zopeConn, self.server, self.root, self.properties)
+        elif entry == 'DTML Document':
+            childnode=DTMLDocNode(id, path, self.clipboard, -1,self, self.zopeConn, self.server, self.root, self.properties)
+        elif entry == 'DTML Method':
+            childnode=DTMLMethodNode(id, path, self.clipboard, -1,self, self.zopeConn, self.server, self.root, self.properties)
+        elif entry == 'Python Method':
+            childnode=PythonNode(id, path, self.clipboard, -1,self, self.zopeConn, self.server, self.root, self.properties)
+        elif entry == 'External Method':
+            childnode=ExtPythonNode(id, path, self.clipboard, -1,self, self.zopeConn, self.server, self.root, self.properties)    
+        elif entry == 'Script (Python)':
+            childnode=PythonScriptNode(id, path, self.clipboard, -1,self, self.zopeConn, self.server, self.root, self.properties)    
+        else:
+            childnode=ZopeItemNode(id, path, self.clipboard, -1,self, self.zopeConn, self.server, self.root, self.properties)
         return childnode
 
     def whole_name(self):
@@ -198,19 +198,19 @@ class ZopeItemNode(ExplorerNodes.ExplorerNode):
         
         tmp=urlparse.urlparse("http://" + self.url)
         self.path=tmp[2]
-        self.server=getServer(self.url,"",self.user,self.pwd)
-        try:
-            self.entries = self.server.ZOA("getvalues")
-            self.entryIds= self.server.ZOA("objectids")
-        except xmlrpclib.Fault,f:
+        self.server=getServer(self.url,"",self.user,self.pwd)
+        try:
+            self.entries = self.server.ZOA("getvalues")
+            self.entryIds= self.server.ZOA("objectids")
+        except xmlrpclib.Fault,f:
             # XXX Add Errorhandler here
-            pass
+            pass
         self.cache = {}
         result = []
-        if self.entryIds:
+        if self.entryIds:
             if not root: root = self.root
             
-            for i in range(len(self.entries)):
+            for i in range(len(self.entries)):
                 z = self.createChildNode(self.entries[i],self.entryIds[i])
                 if z:
                     result.append(z)
@@ -446,71 +446,71 @@ class ZopeController(ExplorerNodes.Controller, ExplorerNodes.ClipboardController
                         dlg.Destroy()
                         
 
-def getServer(host,Url,User,Password):
-    try:
-        if Url != "":
-            s=xmlrpclib.Server("http://" + host + "/" + Url,BasicAuthTransport.BasicAuthTransport(User,Password) )
-        else:
-            s=xmlrpclib.Server("http://" + host ,BasicAuthTransport.BasicAuthTransport(User,Password) )
-        return s 
-    except:
-        return "error"
+def getServer(host,Url,User,Password):
+    try:
+        if Url != "":
+            s=xmlrpclib.Server("http://" + host + "/" + Url,BasicAuthTransport.BasicAuthTransport(User,Password) )
+        else:
+            s=xmlrpclib.Server("http://" + host ,BasicAuthTransport.BasicAuthTransport(User,Password) )
+        return s 
+    except:
+        return "error"
 
 class ZopeNode(ZopeItemNode):        
     def isFolderish(self): 
         return false
 
        
-class DirNode(ZopeNode):
+class DirNode(ZopeNode):
 
     def isFolderish(self): 
         return true
-    
-
-class UserFolderNode(ZopeNode):
-    pass
-
-class ControlNode(DirNode):
-    
-    def checkentry(self,id,entry,path):
-
-        if entry == 'Product Management':
-            childnode=PMNode(id, path, self.clipboard, -1,self, self.zopeConn, self.server, self.root, self.properties)
-        
-        else:
-            childnode=DirNode.checkentry(self,id,entry,path)
-        return childnode
-    
-class PMNode(ControlNode):
-    
-    def checkentry(self,id,entry,path):
-
-        if entry == 'Product' :
-            childnode=ProductNode(id, path, self.clipboard, -1,self, self.zopeConn, self.server, self.root, self.properties)
-        else:
-            childnode=ControlNode.checkentry(self,id,entry,path)
-        return childnode
-    
-class ProductNode(DirNode):
-    
-    def checkentry(self,id,entry,path):
-
-        if entry == 'Z Class' :
-            childnode=ZClassNode(id, path, self.clipboard, -1,self, self.zopeConn, self.server, self.root, self.properties)
-        else:
-            childnode=DirNode.checkentry(self,id,entry,path)
-        return childnode
-    
-class ZClassNode(DirNode):
-    
-    pass        
-
-
-    
-class ZSQLNode(ZopeNode):
-    pass
-
-class PythonNode(ZopeNode):
+    
+
+class UserFolderNode(ZopeNode):
+    pass
+
+class ControlNode(DirNode):
+    
+    def checkentry(self,id,entry,path):
+
+        if entry == 'Product Management':
+            childnode=PMNode(id, path, self.clipboard, -1,self, self.zopeConn, self.server, self.root, self.properties)
+        
+        else:
+            childnode=DirNode.checkentry(self,id,entry,path)
+        return childnode
+    
+class PMNode(ControlNode):
+    
+    def checkentry(self,id,entry,path):
+
+        if entry == 'Product' :
+            childnode=ProductNode(id, path, self.clipboard, -1,self, self.zopeConn, self.server, self.root, self.properties)
+        else:
+            childnode=ControlNode.checkentry(self,id,entry,path)
+        return childnode
+    
+class ProductNode(DirNode):
+    
+    def checkentry(self,id,entry,path):
+
+        if entry == 'Z Class' :
+            childnode=ZClassNode(id, path, self.clipboard, -1,self, self.zopeConn, self.server, self.root, self.properties)
+        else:
+            childnode=DirNode.checkentry(self,id,entry,path)
+        return childnode
+    
+class ZClassNode(DirNode):
+    
+    pass        
+
+
+    
+class ZSQLNode(ZopeNode):
+    pass
+
+class PythonNode(ZopeNode):
       #manage_edit("newschas","self,p","return 'hello'"
     def getParams(self):
         return self.data[string.find(self.data,"(")+1:string.find(self.data,")")]    
@@ -526,7 +526,7 @@ class PythonNode(ZopeNode):
         self.data = data
         eatandforget=self.server.__getattr__(self.name).manage_edit(self.name,self.getParams(),self.getBody())
     
-class PythonScriptNode(PythonNode):
+class PythonScriptNode(PythonNode):
     def preparedata(self):
         tmp=string.split(self.rawdata,"\n")
         tmp2=[]
@@ -544,38 +544,38 @@ class PythonScriptNode(PythonNode):
     def saveDocument(self,data):
         self.data = data
         # I wonder why the write function doesn't work :(
-        self.server.__getattr__(self.name).ZPythonScript_edit(self.getParams(),self.getBody())
+        eatandforget=self.server.__getattr__(self.name).ZPythonScriptHTML_editAction("fake",self.name,self.getParams(),self.getBody())
     
     def getDocument(self):
         #self.data = self.zopeConn.load(self)
         self.rawdata = self.server.__getattr__(self.name).document_src()
         self.data = self.preparedata()
-        return self.data    
-class ExtPythonNode(ZopeNode):
-    pass
+        return self.data    
+class ExtPythonNode(ZopeNode):
+    pass
 
-class DTMLDocNode(ZopeNode):
-    pass    
-
-class DTMLMethodNode(ZopeNode):
-    pass    
-
-            
-class LFSNode(DirNode):
-    
-    def checkentry(self,id,entry,path):
-        print entry
-        if entry == 'directory' or entry == 'Local Directory':
-            childnode=LFDirNode(id, path, self.clipboard, -1,self, self.zopeConn, self.server, self.root, self.properties)
-        else:
-            childnode=LFNode(id, path, self.clipboard, -1,self, self.zopeConn, self.server, self.root, self.properties)
-        return childnode
-            
-class LFNode(LFSNode):
+class DTMLDocNode(ZopeNode):
+    pass    
+
+class DTMLMethodNode(ZopeNode):
+    pass    
+
+            
+class LFSNode(DirNode):
+    
+    def checkentry(self,id,entry,path):
+        print entry
+        if entry == 'directory' or entry == 'Local Directory':
+            childnode=LFDirNode(id, path, self.clipboard, -1,self, self.zopeConn, self.server, self.root, self.properties)
+        else:
+            childnode=LFNode(id, path, self.clipboard, -1,self, self.zopeConn, self.server, self.root, self.properties)
+        return childnode
+            
+class LFNode(LFSNode):
     def isFolderish(self): 
-        return false
-    
-class LFDirNode(LFSNode):
+        return false
+    
+class LFDirNode(LFSNode):
     def isFolderish(self): 
-        return true   
+        return true   
     
