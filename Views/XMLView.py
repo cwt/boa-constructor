@@ -24,7 +24,7 @@ class XMLTreeView(wxTreeCtrl, EditorView):
     gotoLineBmp = 'Images/Editor/GotoLine.png'
 
     def __init__(self, parent, model):
-        id = NewId()
+        id = wxNewId()
         wxTreeCtrl.__init__(self, parent, id)#, style = wxTR_HAS_BUTTONS | wxSUNKEN_BORDER)
         EditorView.__init__(self, model,
           (('Goto line', self.OnGoto, self.gotoLineBmp, ''),), 0)
