@@ -83,6 +83,10 @@ drawDesignerGrid = 1
 # Grid draw method: 'lines', 'dots', 'bitmap', 'grid'
 drawGridMethod = 'grid'
 
+# Flag for turning on special checking for european keyboard characters by
+# checking for certain codes while ctrl alt is held. 
+handleSpecialEuropeanKeys = 0
+
 #-Inspector---------------------------------------------------------------------
 
 # Display properties for which source will be generated in Bold
