@@ -25,8 +25,6 @@ from Preferences import IS, staticInfoPrefs, keyDefs, wxFileDialog
 
 import Search
 from Models import EditorHelper
-from moduleparse import CodeBlock
-
 
 wxwHeaderTemplate ='''<html> <head>
    <title>%(Title)s</title>
@@ -872,6 +870,9 @@ class ExploreView(wxTreeCtrl, EditorView):
             self._populated_tree = 0
             return
         self.AddRoot('Loading...')
+
+        from moduleparse import CodeBlock
+
         module = self.model.getModule()
 
         breaks = module.break_lines
@@ -952,6 +953,9 @@ class ExploreEventsView(ExploreView):
             self._populated_tree = 0
             return
         self.AddRoot('Loading...')
+        
+        from moduleparse import CodeBlock
+        
         module = model.getModule()
         self.DeleteAllItems()
         rootItem = self.AddRoot(model.main, 5, -1,
