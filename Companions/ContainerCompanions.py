@@ -514,12 +514,12 @@ class SplitterWindowDTC(ContainerDTC):
     def __init__(self, name, designer, parent, ctrlClass):
         ContainerDTC.__init__(self, name, designer, parent, ctrlClass)
         self.editors.update({'SplitMode': EnumPropEdit,
-                             'Window1'  : WindowClassLinkWithParentPropEdit,
-                             'Window2'  : WindowClassLinkWithParentPropEdit})
+                             'Window1'  : SplitterWindow1LinkPropEdit,
+                             'Window2'  : SplitterWindow2LinkPropEdit})
         self.options['SplitMode'] = splitterWindowSplitMode
         self.names['SplitMode'] = splitterWindowSplitModeNames
         self.windowStyles = ['wxSP_3D', 'wxSP_3DSASH', 'wxSP_3DBORDER',
-                             'wxSP_FULLSASH', 'wxSP_BORDER', 'wxSP_NOBORDER',
+                             'wxSP_BORDER', 'wxSP_NOBORDER', #'wxSP_FULLSASH',
                              'wxSP_PERMIT_UNSPLIT', 'wxSP_LIVE_UPDATE',
                              ] + self.windowStyles #'wxSP_3DSASH', 'wxSP_3DBORDER', 'wxSP_FULLSASH',
         self.win1 = None
