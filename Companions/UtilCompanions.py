@@ -19,6 +19,11 @@ import HelpCompanions, methodparse
 from PropEdit import Enumerations
 import EventCollections, RTTI
 import os, copy
+import PaletteStore
+
+PaletteStore.paletteLists['Utilities'] = []
+PaletteStore.palette.append(['Utilities', 'Editor/Tabs/Utilities', 
+                             PaletteStore.paletteLists['Utilities']])
 
 class ImageListDTC(ImageListConstr, UtilityDTC):
     wxDocs = HelpCompanions.wxImageListDocs
@@ -547,3 +552,53 @@ class SizerControlsCDTC(SizerControlsConstr, CollectionDTC):
                 'option': '0',
                 'flag':   '0',
                 'border': '0'}
+
+class wxComModule:
+    def __init__(self, GUID = '{00000000-0000-0000-0000-000000000000}', LCID = 0x0, Major = 0, Minor = 0):
+        self._ComModule = None
+        self._GUID = GUID
+        self._LCID = LCID
+        self._Major = Major
+        self._Minor = Minor
+        
+    def GetGUID(self):
+        return self._GUID
+    def SetGUID(self, GUID):
+        self._GUID = GUID
+    
+    def GetLCID(self):
+        return self._LCID
+    def SetLCID(self, LCID):
+        self._LCID = LCID
+
+    def GetMajor(self):
+        return self._Major
+    def SetMajor(self, Major):
+        self._Major = Major
+
+    def GetMinor(self):
+        return self._Minor
+    def SetMinor(self, Minor):
+        self._Minor = Minor
+    
+    def GetComModule(self):
+        if self._ComModule:
+            return self._ComModule
+
+    def EnsureModule(self):
+        self._ComModule = win32com.client.gencache.EnsureModule(self._GUID, self._LCID, self._Major, self._Minor)
+    
+    
+class ComModuleDTC(EmptyConstr, UtilityDTC):
+    pass
+    
+PaletteStore.paletteLists['Utilities'].extend([wxMenuBar, wxMenu, wxImageList])
+
+PaletteStore.compInfo.update({wxMenuBar: ['wxMenuBar', MenuBarDTC],
+    wxImageList: ['wxImageList', ImageListDTC],
+    wxAcceleratorTable: ['wxAcceleratorTable', AcceleratorTableDTC],
+    wxMenu: ['wxMenu', MenuDTC],
+    wxTimer: ['wxTimer', TimerDTC],
+    wxTextDropTarget: ['wxTextDropTarget', NYIDTC],
+    wxFileDropTarget: ['wxFileDropTarget', NYIDTC],
+})
