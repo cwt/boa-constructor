@@ -395,9 +395,11 @@ class MultiSelectionGroup(SelectionGroup):
         SelectionGroup.__init__(self, parent, senders, inspector, designer, wxColour(160, 160, 160), wxSIMPLE_BORDER)#wxLIGHT_GREY)
 
     def selectCtrl(self, ctrl, compn):
+        print 'MultiSelectionGroup.selectCtrl'
         SelectionGroup.selectCtrl(self, ctrl, compn)
         self.inspSel = None
         self.inspector.cleanup()    
+        self.inspector.multiSelectObject(None, self.designer)
 
     def setSelection(self):
         position = self.position
