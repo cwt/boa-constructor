@@ -475,7 +475,8 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
         # XXX should we .fncache this? Files changing names are undefined
         # XXX during the lifetime of the debugger
 
-        from Explorers.Explorer import splitURI, getTransport, all_transports
+        from Explorers.Explorer import splitURI, getTransport
+        from Explorers.ExplorerNodes import all_transports
 
         prot, category, filepath, filename = splitURI(filename)
         if prot == 'file':
