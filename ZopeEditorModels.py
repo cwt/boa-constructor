@@ -186,3 +186,4 @@ class ZopeExportFileModel(EditorModels.EditorModel):
     ext = '.zexp'
 
 EditorModels.modelReg[ZopeExportFileModel.modelIdentifier] = ZopeExportFileModel
+EditorModels.extMap[ZopeExportFileModel.ext] = ZopeExportFileModel
