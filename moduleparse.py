@@ -301,6 +301,17 @@ class Module:
         cur_class, cur_meth, cur_func = self.finaliseEntry(cur_class, cur_meth,
           cur_func, self.lineno +1)
 
+    def getObjType(self, rem):
+        if rem:
+            if rem[0] in ('"', "'"): return 'string'
+            elif rem[0] in string.digits+'+-': return 'number'
+            elif rem[0] == '{': return 'dict'
+            elif rem[0] == '[': return 'list'
+            elif rem[0] == '(': return 'tuple'
+            elif rem[0] in string.letters+'_': return 'ref'
+            #else: print 'Unhandled objtype', rem
+        return ''
+
     def parseLineIsolated(self, line, lineno):
         cls = self.getClassForLineNo(lineno)
         if cls:
@@ -469,17 +480,8 @@ class Module:
             # found a attribute binding with possible object type
             if cur_class:
                 # and we know the class it belongs to
-                # try to determine type
                 rem = line[res.end():]
-                objtype = ''
-                if rem:
-                    if rem[0] in ('"', "'"): objtype = 'string'
-                    elif rem[0] in string.digits: objtype = 'number'
-                    elif rem[0] == '{': objtype = 'dict'
-                    elif rem[0] == '[': objtype = 'list'
-                    elif rem[0] == '(': objtype = 'tuple'
-                    elif rem[0] in string.letters+'_': objtype = 'ref'
-
+                objtype = self.getObjType(rem)
                 cur_class.add_attr(res.group('name'), lineno, objtype)
 
             return 0, cur_class, cur_meth, cur_func
@@ -519,15 +521,22 @@ class Module:
             cur_class, cur_meth, cur_func = self.finaliseEntry(cur_class,
               cur_meth, cur_func, lineno)
 
+        objtype = None
+        res = is_name_from_call.match(line)
+        if res:
+            objtype = res.group('classpath')
+
         res = is_name.match(line)
         if res:
+            rem = line[res.end():]
+            if objtype is None:
+                objtype = self.getObjType(rem)
             # found a name binding
             # class attribute
             if cur_class:
                 # and we know the class it belongs to
-                # try to determine type
                 if cur_meth:
-                    cur_class.add_local(res.group('name'), cur_meth, lineno)
+                    cur_class.add_local(res.group('name'), cur_meth, lineno, objtype)
                 else:
                     # must be class attr
                     cur_class.add_class_attr(res.group('name'), lineno, line[res.end():])
@@ -535,7 +544,7 @@ class Module:
             elif cur_func:
                 name = res.group('name')
                 if name not in cur_func.locals.keys():
-                    cur_func.locals[name] = Attrib(name, lineno)
+                    cur_func.locals[name] = Attrib(name, lineno, objtype)
 ##                if self.functions.has_key(cur_func):
 ##                    if name not in self.functions[cur_func].locals.keys():
 ##                        self.functions[cur_func].locals[name] = Attrib(name, lineno)
@@ -543,7 +552,7 @@ class Module:
             else:
                 name = res.group('name')
                 if not self.globals.has_key(name):
-                    self.globals[name] = CodeBlock(name, self.lineno, lineno)
+                    self.globals[name] = CodeBlock(objtype, self.lineno, lineno)
                     self.global_order.append(name)
 
             return 0, cur_class, cur_meth, cur_func
@@ -929,6 +938,3 @@ def moduleFile(module, path=[], inpackage=0):
     mod = Module(module, f.readlines())
     f.close()
     return mod
-
-##d = open('companions/basecompanions.py').readlines()
-##m = Module('asdf', d)
