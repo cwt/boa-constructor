@@ -6,12 +6,10 @@
 #
 # Created:     2002
 # RCS-ID:      $Id$
-# Copyright:   (c) 2002
+# Copyright:   (c) 2002 - 2003
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 print 'importing Companions.ListCompanions'
-
-import string
 
 from wxPython.wx import *
 
@@ -37,7 +35,7 @@ class ListCtrlDTC(MultiItemCtrlsConstr, WindowDTC):
                              'wxLC_ALIGN_LEFT', 'wxLC_AUTOARRANGE',
                              'wxLC_USER_TEXT', 'wxLC_EDIT_LABELS',
                              'wxLC_NO_HEADER', 'wxLC_SINGLE_SEL',
-                             'wxLC_SORT_ASCENDING', 'wxLC_SORT_DECENDING',
+                             'wxLC_SORT_ASCENDING', 'wxLC_SORT_DESCENDING',
                              'wxLC_HRULES', 'wxLC_VRULES'] + self.windowStyles
         self.subCompanions['Columns'] = ListCtrlColumnsCDTC
         self.listTypeNameMap = {'ImageListSmall'  : wxIMAGE_LIST_SMALL,
@@ -97,8 +95,8 @@ class ListCtrlDTC(MultiItemCtrlsConstr, WindowDTC):
 
     def persistProp(self, name, setterName, value):
         if setterName == 'SetImageList':
-            imgList, listType = string.split(value, ',')
-            imgList, listType = string.strip(imgList), string.strip(listType)
+            imgList, listType = value.split(',')
+            imgList, listType = imgList.strip(), listType.strip()
             for prop in self.textPropList:
                 if prop.prop_setter == setterName and prop.params[1] == listType:
                     prop.params = [imgList, listType]
@@ -219,6 +217,7 @@ class ListBoxDTC(ListConstr, ChoicedDTC):
 
 
 EventCategories['CheckListBoxEvent'] = (EVT_CHECKLISTBOX,)
+commandCategories.append('CheckListBoxEvent')
 class CheckListBoxDTC(ListBoxDTC):
     #wxDocs = HelpCompanions.wxCheckListBoxDocs
     def events(self):

@@ -7,13 +7,11 @@
 #
 # Created:     1999
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999 - 2002 Riaan Booysen
+# Copyright:   (c) 1999 - 2003 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
 
 """ Classes defining and implementing the design time behaviour of controls """
-
-import string
 
 from wxPython.wx import *
 
@@ -202,10 +200,10 @@ class BaseFlagsDTC(HelperDTC):
         return {'constructor':[], 'properties': propLst}
 
     def GetStyle(self, name):
-        return name in string.split(self.ownerCompn.textConstr.params[self.paramName], ' | ')
+        return name in self.ownerCompn.textConstr.params[self.paramName].split(' | ')
 
     def SetStyle(self, name, value):
-        flags = string.split(self.ownerCompn.textConstr.params[self.paramName], ' | ')
+        flags = self.ownerCompn.textConstr.params[self.paramName].split(' | ')
         if value:
             if name not in flags:
                 if '0' in flags:
@@ -216,7 +214,7 @@ class BaseFlagsDTC(HelperDTC):
                 flags.remove(name)
                 if not flags:
                     flags.append('0')
-        flagsSrc = string.join(flags, ' | ')
+        flagsSrc = ' | '.join(flags)
         self.ownerCompn.textConstr.params[self.paramName] = flagsSrc
         self.designer.inspector.constructorUpdate(self.propName)
         flagsVal = self.eval(flagsSrc)

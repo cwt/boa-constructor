@@ -6,11 +6,11 @@
 #
 # Created:     2000
 # RCS-ID:      $Id$
-# Copyright:   (c) 2000 - 2002 Riaan Booysen
+# Copyright:   (c) 2000 - 2003 Riaan Booysen
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 print 'importing Companions.UtilCompanions'
-import os, copy, string
+import os, copy
 
 from wxPython.wx import *
 
@@ -304,7 +304,7 @@ class MenuItemsCIDTC(MenuItemsConstr, BaseMenuItemsCIDTC):
                     wxLogWarning("For wxPython 2.3.3 replace the 'checkable = false' with 'kind = wxITEM_NORMAL'")
                 raise
         except NameError, err:
-            _1, name, _2 = string.split(str(err), "'")
+            _1, name, _2 = str(err).split("'")
             if name in ['wxITEM_NORMAL', 'wxITEM_CHECK', 'wxITEM_RADIO']:
                 wxLogWarning("To downgrade your wxPython 2.3.3 code to earlier versions, change 'kind = wxITEM_NORMAL' to 'checkable = false'")
             raise
@@ -555,7 +555,7 @@ class IndividualLayoutConstraintOCDTC(LayoutConstraintsConstr, OwnedCollectionDT
                             params['otherWin'] = self.designer.objects[otherWin][1]
 
                     attr = getattr(constraints,
-                      string.split(constrt.comp_name, '.')[1])
+                      constrt.comp_name.split('.')[1])
                     apply(attr.Set, [], params)
 
                 self.parentCompanion.control.SetConstraints(constraints)
@@ -578,7 +578,7 @@ class IndividualLayoutConstraintOCDTC(LayoutConstraintsConstr, OwnedCollectionDT
     def availableItems(self):
         result = ['left', 'right', 'top', 'bottom', 'width', 'height', 'centreX', 'centreY']
         for item in self.textConstrLst:
-            try: result.remove(string.split(item.comp_name, '.')[1])
+            try: result.remove(item.comp_name.split('.')[1])
             except: pass
         return result
 
@@ -608,7 +608,7 @@ class IndividualLayoutConstraintOCDTC(LayoutConstraintsConstr, OwnedCollectionDT
     def applyDesignTimeDefaults(self, params):
         return
         attr = getattr(self.constraints,
-          string.split(self.textConstrLst[self.index].comp_name, '.')[1])
+          self.textConstrLst[self.index].comp_name.split('.')[1])
 
         params = copy.copy(params)
         otherWin = params['otherWin'][5:]
@@ -627,7 +627,7 @@ class IndividualLayoutConstraintOCDTC(LayoutConstraintsConstr, OwnedCollectionDT
         self.applyConstraints()
 
     def getDisplayProp(self):
-        return string.split(self.textConstrLst[self.index].comp_name, '.')[1]
+        return self.textConstrLst[self.index].comp_name.split('.')[1]
 
 #    def SetName(self, oldName, newName):
 #        OwnedCollectionDTC.SetName(self, oldName, newName)

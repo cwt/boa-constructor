@@ -6,12 +6,12 @@
 #
 # Created:     2002
 # RCS-ID:      $Id$
-# Copyright:   (c) 2002
+# Copyright:   (c) 2002 - 2003
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 print 'importing Companions.ContainerCompanions'
 
-import copy, string
+import copy
 
 from wxPython.wx import *
 
@@ -97,13 +97,13 @@ class SashWindowDTC(WindowConstr, ContainerDTC):
 
     def persistProp(self, name, setterName, value):
         if setterName == 'SetSashVisible':
-            edge, visbl = string.split(value, ',')
+            edge, visbl = value.split(',')
             for prop in self.textPropList:
                 if prop.prop_setter == setterName and prop.params[0] == edge:
-                    prop.params = [string.strip(edge), string.strip(visbl)]
+                    prop.params = [edge.strip(), visbl.strip()]
                     return
             self.textPropList.append(methodparse.PropertyParse( None, self.name,
-                setterName, [string.strip(edge), string.strip(visbl)], 'SetSashVisible'))
+                setterName, [edge.strip(), visbl.strip()], 'SetSashVisible'))
         else:
             ContainerDTC.persistProp(self, name, setterName, value)
 
@@ -609,7 +609,7 @@ class SplitterWindowDTC(SplitterWindowConstr, ContainerDTC):
                 return
             # Win 1
             # If Window1 is None, splitter can only be unsplit
-            if compn.control == self.GetWindow1(None):
+            if compn.control == self.win1:#self.GetWindow1(None):
                 self.control.Unsplit()
                 if self.win2: self.win2.Show(true)
                 self.win1 = self.win2 = None
@@ -619,7 +619,7 @@ class SplitterWindowDTC(SplitterWindowConstr, ContainerDTC):
                 self.designer.inspector.propertyUpdate('Window1')
                 self.designer.inspector.propertyUpdate('Window2')
                 return
-            if compn.control == self.GetWindow2(None):
+            if compn.control == self.win2:#self.GetWindow2(None):
                 self.SetWindow2(None)
                 setterName = self.modeMethMap[self.control.GetSplitMode()]
                 self.persistProp('Window2', setterName, None)
@@ -851,7 +851,7 @@ class StatusBarFieldsCDTC(StatusBarFieldsConstr, CollectionDTC):
         CollectionDTC.setConstrs(self, constrLst, inits, fins)
         if len(fins):
             self.widths = self.eval(fins[0]\
-              [string.find(fins[0], '(')+1 : string.rfind(fins[0], ')')])
+              [fins[0].find('(')+1 : fins[0].rfind(')')])
             self.control.SetFieldsCount(len(self.widths))
 
     def GetWidth(self):

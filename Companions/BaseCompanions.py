@@ -7,7 +7,7 @@
 #
 # Created:     1999
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999 - 2002 Riaan Booysen
+# Copyright:   (c) 1999 - 2003 Riaan Booysen
 # Licence:     GPL
 #-------------------------------------------------------------------------------
 
@@ -18,7 +18,7 @@ objects """
 
 print 'importing Companions'
 
-import string, copy
+import copy
 
 from wxPython.wx import *
 
@@ -255,7 +255,7 @@ class DesignTimeCompanion(Companion):
 
         # XXX Is frame name initialised ???
         self.textConstr = methodparse.ConstructorParse('self.%s = %s(%s)' %(
-              self.name, className, string.join(paramStrs, ', ')))
+              self.name, className, ', '.join(paramStrs)))
 
         self.designer.addCtrlToObjectCollection(self.textConstr)
 
@@ -452,7 +452,7 @@ class DesignTimeCompanion(Companion):
         if Preferences.cgWrapLines:
             if len(line) > Preferences.cgLineWrapWidth:
                 segs = methodparse.safesplitfields(line, ',', true, (), ())
-                line = sourceconst.bodyIndent+string.lstrip(segs[0])
+                line = sourceconst.bodyIndent+segs[0].lstrip()
                 for seg in segs[1:]:
                     newLine = line +', '+ seg
                     if len(newLine) >= Preferences.cgLineWrapWidth:
@@ -1015,14 +1015,14 @@ class WindowDTC(WindowConstr, ControlDTC):
     def GetShown(self, x):
         for prop in self.textPropList:
             if prop.prop_setter == 'Show':
-                return string.lower(prop.params[0]) == 'true'
+                return prop.params[0].lower() == 'true'
         return true
     def Show(self, value):
         pass
     def GetEnabled(self, x):
         for prop in self.textPropList:
             if prop.prop_setter == 'Enable':
-                return string.lower(prop.params[0]) == 'true'
+                return prop.params[0].lower() == 'true'
         return true
     def Enable(self, value):
         pass
