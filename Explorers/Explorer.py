@@ -29,7 +29,6 @@ try:
 except ImportError:
     DAVExplorer = None
 
-
 # XXX The Tree should actually look like this:
 # XXX
 # XXX Boa
@@ -43,7 +42,6 @@ except ImportError:
 # XXX   sys.path
 # XXX   Preferences
 # XXX
-
 
 (wxID_PFE, wxID_PFT, wxID_PFL) = map(lambda x: wxNewId(), range(3))
 
@@ -68,31 +66,44 @@ class PackageFolderTree(wxTreeCtrl):
               wxTreeItemData(self.boaRoot))
         bookmarkCatNode = ExplorerNodes.BookmarksCatNode(self.fsclip, conf, None)
 
+        self.transports = ExplorerNodes.ContainerNode('Transport', EditorHelper.imgFolder)
+        self.transports.bold = true
+
         self.boaRoot.entries = [
-            FileExplorer.FileSysCatNode(self.fsclip, conf, None, bookmarkCatNode),
             bookmarkCatNode,
             ExplorerNodes.SysPathNode(self.fsclip, None, bookmarkCatNode),
-            PrefsExplorer.BoaPrefGroupNode(self.boaRoot)]
+            PrefsExplorer.BoaPrefGroupNode(self.boaRoot),
+            self.transports]
+        
+        self.transports.entries.append(FileExplorer.FileSysCatNode(self.fsclip, 
+              conf, None, bookmarkCatNode))
         if conf.has_option('explorer', 'zope'):
-            self.boaRoot.entries.append(ZopeExplorer.ZopeCatNode(conf, None,
+            self.transports.entries.append(ZopeExplorer.ZopeCatNode(conf, None,
             self.globClip))
         if conf.has_option('explorer', 'ssh'):
-            self.boaRoot.entries.append(SSHExplorer.SSHCatNode(self.sshClip,
+            self.transports.entries.append(SSHExplorer.SSHCatNode(self.sshClip,
             conf, None))
         if conf.has_option('explorer', 'ftp'):
-            self.boaRoot.entries.append(FTPExplorer.FTPCatNode(self.ftpClip,
+            self.transports.entries.append(FTPExplorer.FTPCatNode(self.ftpClip,
             conf, None))
         if DAVExplorer and conf.has_option('explorer', 'dav'):
-            self.boaRoot.entries.append(DAVExplorer.DAVCatNode(self.davClip,
+            self.transports.entries.append(DAVExplorer.DAVCatNode(self.davClip,
             conf, None))
 
+
+    def openDefaultNodes(self):
+        rootItem = self.GetRootItem()
         self.SetItemHasChildren(rootItem, true)
         self.Expand(rootItem)
 
         ws = self.getChildNamed(rootItem, 'Bookmarks')
         self.Expand(ws)
 
+        ws = self.getChildNamed(rootItem, 'Transport')
+        self.Expand(ws)
+
 #        ws = self.getChildNamed(ws, 'Bookmarks')
+
         self.defaultBookmarkItem = self.getChildNamed(ws,
               self.boaRoot.entries[1].getDefault())
 
