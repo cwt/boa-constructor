@@ -61,10 +61,11 @@ class ProcessModuleRunner(ModuleRunner):
     """ Uses wxPython's wxProcess, output and errors are redirected and displayed
         in a frame. A cancelable dialog displays while the process executes
         This currently only works for non GUI processes """
-    def run(self, cmd, Parser = ErrorStack.StdErrErrorParser,
-            caption='Execute module', root='Error', autoClose = false):
+    def run(self, cmd, Parser=ErrorStack.StdErrErrorParser,
+            caption='Execute module', root='Error', autoClose=false):
         import ProcessProgressDlg
-        dlg = ProcessProgressDlg.ProcessProgressDlg(None, cmd, caption, autoClose)
+        dlg = ProcessProgressDlg.ProcessProgressDlg(None, cmd, caption, 
+              autoClose=autoClose)
         try:
             dlg.ShowModal()
             serr = ErrorStack.buildErrorList(dlg.errors, Parser)
@@ -108,3 +109,4 @@ class ExecFinishEvent(wxPyEvent):
         wxPyEvent.__init__(self)
         self.SetEventType(wxEVT_EXEC_FINISH)
         self.runner = runner
+ 
