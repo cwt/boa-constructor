@@ -208,23 +208,7 @@ def parseMixedBody(parseClasses, lines):
 
     return cat, unmatched
 
-
-##def parseBody(parseClass, lines):
-##    # XXX unused?
-##    list = []
-##    for line in lines:
-##        ln = string.strip(line)
-##        if ln == 'pass': return []
-##        if ln == '':
-##            continue
-##        list.append(parseClass(ln))
-##    return list
-
-param_splitter = ' = '
-
 class IncompleteLineError(Exception): pass
-
-#_used_names = {}
 
 class PerLineParser:
     """ Class which parses 1 line of source code """
@@ -237,7 +221,7 @@ class PerLineParser:
     def getIdPrefix(self, name):
         return 'wxID_%s'%name.upper()
     def checkId(self, id, idPrfx):
-        return id not in EventCollections.reservedWxNames and Utils.startswith(id, idPrfx)
+        return id not in EventCollections.reservedWxNames and id.startswith(idPrfx)
     def prependFrameWinId(self, frame):
         pass
 
@@ -261,11 +245,13 @@ class PerLineParser:
     def extractKVParams(self, paramsStr):
         params = safesplitfields(paramsStr, ',')
         result = {}
+        posArgs = 0
         for param in params:
             try:
                 sidx = param.index('=')
             except ValueError:
-                pass
+                result[posArgs] = param.strip()
+                posArgs += 1
             else:
                 result[param[:sidx].strip()] = param[sidx+1:].strip()
         return result
@@ -275,9 +261,11 @@ class PerLineParser:
         sortedkeys = params.keys()
         sortedkeys.sort()
         for key in sortedkeys:
-            #_used_names[key] = 1
-            kvlist.append(Preferences.cgKeywordArgFormat%{'keyword': key,
-                                                          'value': params[key]})
+            if type(key) is type(0):
+                kvlist.append(params[key])
+            else:    
+                kvlist.append(Preferences.cgKeywordArgFormat%{'keyword': key,
+                                                         'value': params[key]})
         return ', '.join(kvlist)
 
     def checkContinued(self, line):
@@ -428,7 +416,7 @@ class PropertyParse(PerLineParser):
 
             # Handle case where _init_coll_* methods are used as parameters
             param = self.params[idx]
-            if Utils.startswith(param, 'self.'+coll_init):
+            if param.startswith('self.'+coll_init):
                 nameEnd = param.rfind('_')
                 name = param[16:nameEnd]
                 if name == old_value:
@@ -636,9 +624,9 @@ def test():
      "              parent = prnt, title = 'wxFrame2', id = wxID_WXFRAME2, ",
      "              pos = (-1, -1), size = (-1, -1))  ",
      "        self._init_utils()",
-    ])[0][ConstructorParse]
+    ])#[0][ConstructorParse]
 
-    print cp[0].params
+    print cp#[0].params
 
 if __name__ == '__main__':
     test()
