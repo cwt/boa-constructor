@@ -14,17 +14,10 @@
 
 from wxPython.wx import *
 
-import Preferences
+import Preferences, Utils
 
 defPos = (0, 0)
 defSze = (0, 0)
-
-# XXX These values should be defined and maintained in the preferences file
-#frmWid = 2 # line width
-#tagSize = 7
-#screenGran = 8
-#anchorEnabledCol = wxBLUE
-#anchorDisabledCol = wxColour(40, 100, 110)
 
 def granularise(val, oldVal = None):
     """ Snap value to grid points, including original value as grid point.
@@ -167,8 +160,7 @@ class SelectionGroup:
     def moveCapture(self, ctrl, compn, pos):
         # Put selection around control
 
-        # Begin a drag
-        # don't drag frame
+        # Begin a drag, don't drag frame
         if ctrl.this != self.designer.this:
             self.dragging = true
             self.dragOffset = pos
@@ -186,10 +178,6 @@ class SelectionGroup:
         parentPos = self.parent.ScreenToClient(screenPos)
         # Sizing
         if self.dragTag:
-            if ctrl.this == self.designer.this:
-                tb = self.designer.GetToolBar()
-                if tb:
-                    parentPos.y = parentPos.y - tb.GetSize().y
             self.dragTag.setPos(parentPos)
         # Moving
         elif self.dragging:
@@ -202,19 +190,12 @@ class SelectionGroup:
             offsetX = dccs.x - dcs.x
             offsetY = dccs.y - dcs.y
 
-            # Check if toolbar is connected to frame
-            if ctrl == self.designer:
-                tb = self.designer.GetToolBar()
-                if tb:
-                    offsetY = offsetY + tb.GetSize().y
-
             self.position = wxPoint(parentPos.x - self.dragOffset.x - offsetX,
                                     parentPos.y - self.dragOffset.y - offsetY)
             self.setSelection()
 
     def moveRelease(self):
         if self.dragTag:
-            # XXX nasty passing a None event
             self.OnSizeEnd()
             self.showTags()
 
@@ -239,6 +220,7 @@ class SelectionGroup:
 
     def selectCtrl(self, ctrl, compn, selectInInspector = true):
         self.hideTags()
+        showTags = false
         if not ctrl:
             self.selection = None
             self.selCompn = None
@@ -257,7 +239,7 @@ class SelectionGroup:
                 self.parent = ctrl.GetParent()
                 cp = ctrl.GetPosition().asTuple()
 
-                self.showTags()
+                showTags = true
 
             if hasattr(ctrl, 'proxyContainer'):
                 self.reparentTags(ctrl)
@@ -275,6 +257,11 @@ class SelectionGroup:
 
             self.updateAnchors()
             self.setSelection()
+            
+            if showTags:
+                self.showTags()
+                # callafter ruins dragging
+                #wxCallAfter(self.showTags)
 
     def selectNone(self):
         self.hideTags()
@@ -380,7 +367,8 @@ class SelectionGroup:
                 if self.selCompn.anchorSettings:
                     self.anchorTags[idx].setAnchor(self.selCompn.anchorSettings[idx])
                 else:
-                    self.anchorTags[idx].setAnchor(None)
+                    if not self.anchorTags[idx].setHasSizer(self.selCompn):
+                        self.anchorTags[idx].setAnchor(None)
 
     def isProxySelection(self):
         if self.selection:
@@ -484,9 +472,14 @@ class SelectionTag(wxPanel):
         self.selection = None
         self.position = wxSize(0, 0)
         self.setAnchor(None)
+        self.hasSizer = false
+        self.inSizer = false
 
         self.wxID_ANCHORED = wxNewId()
         EVT_MENU(self, self.wxID_ANCHORED, self.OnAnchorToggle)
+
+        self.wxID_SIZERED = wxNewId()
+        EVT_MENU(self, self.wxID_SIZERED, self.OnSelectSizer)
 
         EVT_LEFT_DOWN(self, group.OnSizeBegin)
         EVT_LEFT_UP(self, group.OnSizeEnd)
@@ -545,6 +538,24 @@ class SelectionTag(wxPanel):
         self.SetBackgroundColour(col)
         self.Refresh()
 
+    def setHasSizer(self, compn):
+        sizer = compn.GetSizer(None)
+        self.hasSizer = sizer is not None
+        self.inSizer = hasattr(compn.control, '_in_sizer')
+        if sizer is None:
+            if self.inSizer:
+                col = Preferences.dsInSizerCol
+                self.inSizer = true
+            else:
+                col = self.group.colour
+        else:
+            col = Preferences.dsHasSizerCol
+
+        self.SetBackgroundColour(col)
+        self.Refresh()
+        
+        return self.hasSizer or self.inSizer
+
     def updateCtrlAnchors(self, anchor):
         self.group.selCompn.updateAnchors(self.toggleAnchors, anchor)
         self.group.selCompn.applyConstraints()
@@ -557,6 +568,9 @@ class SelectionTag(wxPanel):
     def OnAnchorToggle(self, event):
         pass
 
+    def OnSelectSizer(self, event):
+        pass
+
 class CornerSelTag(SelectionTag):
     pass
 
@@ -564,11 +578,15 @@ class SideSelTag(SelectionTag):
     def OnRightClick(self, event):
         menu = wxMenu()
         try:
-            menu.Append(self.wxID_ANCHORED, 'Anchored', '', true)
-            menu.Check(self.wxID_ANCHORED, self.anchored)
+            if self.hasSizer or self.inSizer:
+                menu.Append(self.wxID_SIZERED, 'Select sizer')
+            else:
+                menu.Append(self.wxID_ANCHORED, 'Anchored', '', true)
+                menu.Check(self.wxID_ANCHORED, self.anchored)
             self.PopupMenu(menu, event.GetPosition())
         finally:
             menu.Destroy()
+        #self.group.showTags()
 
     def OnAnchorToggle(self, event):
         anchor = not event.Checked()
@@ -577,6 +595,50 @@ class SideSelTag(SelectionTag):
         if wxPlatform == '__WXGTK__':
             anchor = not anchor
         self.updateCtrlAnchors(anchor)
+
+    def OnSelectSizer(self, event):
+        # XXX maybe move hasSizer/isSizer logic to WindowDTC ?
+        if self.hasSizer:
+            inspector = self.group.inspector
+            companion = self.group.selCompn
+            designer = companion.designer
+            if designer.sizersView:
+                s = companion.GetSizer(None)
+                for objInfo in designer.sizersView.objects.values():
+                    if objInfo[1] == s:
+                        compn = objInfo[0]
+                        designer.sizersView.focus()
+                        inspector.selectObject(compn)
+                        designer.sizersView.selectCtrls([compn.name])
+                        return
+                        
+        elif self.inSizer:
+            inspector = self.group.inspector
+            companion = self.group.selCompn
+            designer = companion.designer
+            if designer.sizersView:
+                s = companion.control._in_sizer
+                for objName, objInfo in designer.sizersView.objects.items():
+                    if objInfo[1] == s:
+                        compn = objInfo[0]
+                        inspector.selectObject(compn)
+                        designer.sizersView.focus()
+                        nv = inspector.props.getNameValue('Items')
+                        if nv: 
+                            nv.propEditor.edit(None)
+                            collEditor = designer.sizersView.collEditors[(objName, 'Items')]
+                            for idx, crt in zip(
+                                 range(len(collEditor.companion.textConstrLst)), 
+                                 collEditor.companion.textConstrLst):
+                                if crt.method == 'AddWindow' and \
+                                      crt.params[0] != 'None':
+                                    itemWin=Utils.ctrlNameFromSrcRef(crt.params[0])
+                                    if itemWin == companion.name:
+                                        collEditor.selectObject(idx)
+                                        collEditor.frame.selectObject(idx)
+                                        return
+        else:
+            wxLogWarning('Not part of a sizer')
 
 class TLSelTag(CornerSelTag):
     name = 'top left'
@@ -587,7 +649,7 @@ class TLSelTag(CornerSelTag):
         oldSize = grp.size
         grp.position = wxPoint(position.x, position.y)
         grp.size = wxSize((oldPos.x - position.x) + grp.size.x,
-          (oldPos.y - position.y) + grp.size.y)
+                          (oldPos.y - position.y) + grp.size.y)
 
         SelectionTag.setPos(self, position, grp.stTR, grp.stBL, grp.stBR, oldPos, oldSize)
 
