@@ -19,8 +19,8 @@ from wxPython.stc import *
 from Views import StyledTextCtrls
 from ExternalLib.PythonInterpreter import PythonInterpreter
 import Preferences
-from PrefsKeys import keyDefs
-from Utils import PseudoFile
+from Preferences import keyDefs
+import Utils
 from methodparse import safesplitfields, matchbracket
 echo = true
 
@@ -170,9 +170,9 @@ class ShellEditor(StyledTextCtrls.wxStyledTextCtrl,
                 
             lc = self.GetLineCount()
             cl = self.GetCurrentLine()
-            ct = self.GetCurrentLineText()[0]
+            ct = self.GetCurLine()[0]
             line = string.rstrip(ct[4:])
-            self.SetCurrentPosition(self.GetTextLength())
+            self.SetCurrentPos(self.GetTextLength())
             ll = self.GetCurrentLine()
 
             # bottom line, process the line
@@ -191,8 +191,8 @@ class ShellEditor(StyledTextCtrls.wxStyledTextCtrl,
                     self.historyIndex = len(self.history)
             # Other lines, copy the line to the bottom line
             else:
-                self.SetSelection(self.GetLineStartPos(self.GetCurrentLine()), self.GetTextLength())
-                #print `ct`
+                self.SetSelection(self.PositionFromLine(self.GetCurrentLine()), self.GetTextLength())
+                #self.lines.select(self.lines.current)
                 self.ReplaceSelection(string.rstrip(ct))
         finally:
             self.EndUndoAction()
@@ -225,14 +225,15 @@ class ShellEditor(StyledTextCtrls.wxStyledTextCtrl,
             # if they are defined
             docs = ''
             if hasattr(obj, '__doc__') and obj.__doc__:
+                wxNS = Utils.getEntireWxNamespace()
                 if type(obj) is types.ClassType:
-                    if wx.__dict__.has_key(obj.__name__):
+                    if wxNS.has_key(obj.__name__):
                         docs = obj.__init__.__doc__
                 elif type(obj) is types.InstanceType:
-                    if wx.__dict__.has_key(obj.__class__.__name__):
+                    if wxNS.has_key(obj.__class__.__name__):
                         docs = obj.__doc__
                 elif type(obj) is types.MethodType:
-                    if wx.__dict__.has_key(obj.im_class.__name__):
+                    if wxNS.has_key(obj.im_class.__name__):
                         docs = obj.__doc__
             # Get docs from builtin's docstrings or from Signature module
             if not docs:
@@ -245,7 +246,7 @@ class ShellEditor(StyledTextCtrls.wxStyledTextCtrl,
                         sig = str(Signature.Signature(obj))
                         docs = string.replace(sig, '(self, ', '(')
                         docs = string.replace(docs, '(self)', '()')
-                    except ValueError:
+                    except ValueError, TypeError:
                         try: docs = obj.__doc__
                         except AttributeError: docs = ''
 
@@ -265,8 +266,8 @@ class ShellEditor(StyledTextCtrls.wxStyledTextCtrl,
     def OnShellHome(self, event):
         pos = self.GetCurrentPos()
         lnNo = self.GetCurrentLine()
-        lnStPs = self.GetLineStartPos(lnNo)
-        line = self.GetCurrentLineText()[0]
+        lnStPs = self.PositionFromLine(lnNo)
+        line = self.GetCurLine()[0]
         
         if len(line) >=4 and line[:4] in (Preferences.ps1, Preferences.ps2):
             self.SetCurrentPos(lnStPs+4)
@@ -276,6 +277,9 @@ class ShellEditor(StyledTextCtrls.wxStyledTextCtrl,
             self.SetAnchor(lnStPs)
 
     def OnKeyDown(self, event):
+        if Preferences.handleSpecialEuropeanKeys:
+            self.handleSpecialEuropeanKeys(event, Preferences.euroKeysCountry)
+
         kk = event.KeyCode()
         if kk == 13 and not (event.ShiftDown() or event.HasModifiers()):
             if self.AutoCompActive():
@@ -283,7 +287,14 @@ class ShellEditor(StyledTextCtrls.wxStyledTextCtrl,
                 return
             self.OnShellEnter(event)
             return
-        elif self.CallTipActive():
+        else:
+            if kk == 8:
+                # don't delete the prompt
+                if self.lines.current == self.lines.count -1 and \
+                  self.lines.pos - self.PositionFromLine(self.lines.current) < 5:
+                    return
+
+        if self.CallTipActive():
             self.callTipCheck()
         event.Skip()
 
@@ -333,10 +344,10 @@ class PseudoFileIn:
         finally:
             self._reading = false
 
-class QuoterPseudoFile(PseudoFile):
+class QuoterPseudoFile(Utils.PseudoFile):
     quotes = '```'
     def __init__(self, output = None, quote=false):
-        PseudoFile.__init__(self, output)
+        Utils.PseudoFile.__init__(self, output)
         self._dirty = false
         self._quote = quote
     
@@ -371,13 +382,13 @@ class PseudoFileErr(QuoterPseudoFile):
         self.output.EnsureCaretVisible()
         self.output.lastResult = self.tags
 
-class PseudoFileOutTC(PseudoFile):
+class PseudoFileOutTC(Utils.PseudoFile):
     tags = 'stderr'
     def write(self, s):
         self.output.AppendText(s)
         if echo: sys.__stdout__.write(s)
 
-class PseudoFileErrTC(PseudoFile):
+class PseudoFileErrTC(Utils.PseudoFile):
     tags = 'stdout'
     def write(self, s):
         self.output.AppendText(s)
