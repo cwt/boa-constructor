@@ -12,6 +12,7 @@
 #Boa:Dialog:wxBoaFileDialog
 
 from wxPython.wx import *
+from wxPython.lib.anchors import LayoutAnchors
 from os import path
 import os
 
@@ -26,41 +27,54 @@ class wxBoaFileDialog(wxDialog):
         pass
 
     def _init_ctrls(self, prnt): 
-        wxDialog.__init__(self, size = wxSize(408, 283), id = wxID_WXBOAFILEDIALOG, title = 'File Dialog', parent = prnt, name = 'wxBoaFileDialog', style = wxDEFAULT_DIALOG_STYLE, pos = wxPoint(174, 117))
+        wxDialog.__init__(self, size = wxSize(408, 283), id = wxID_WXBOAFILEDIALOG, title = 'File Dialog', parent = prnt, name = 'wxBoaFileDialog', style = wxRESIZE_BORDER | wxDEFAULT_DIALOG_STYLE, pos = wxPoint(174, 117))
         self._init_utils()
+        self.SetAutoLayout(true)
 
-        self.panel1 = wxPanel(size = wxSize(400, 256), parent = self, id = wxID_WXBOAFILEDIALOGPANEL1, name = 'panel1', style = wxTAB_TRAVERSAL, pos = wxPoint(0, 0))
+        self.panel1 = wxPanel(size = wxSize(400, 256), id = wxID_WXBOAFILEDIALOGPANEL1, parent = self, name = 'panel1', style = wxTAB_TRAVERSAL, pos = wxPoint(0, 0))
+        self.panel1.SetConstraints(LayoutAnchors(self.panel1, true, true, true, true))
+        self.panel1.SetAutoLayout(true)
 
         self.btOK = wxButton(label = 'OK', id = wxID_WXBOAFILEDIALOGBTOK, parent = self.panel1, name = 'btOK', size = wxSize(72, 24), style = 0, pos = wxPoint(320, 184))
+        self.btOK.SetConstraints(LayoutAnchors(self.btOK, false, false, true, true))
         EVT_BUTTON(self.btOK, wxID_WXBOAFILEDIALOGBTOK, self.OnBtokButton)
 
         self.btCancel = wxButton(label = 'Cancel', id = wxID_WXBOAFILEDIALOGBTCANCEL, parent = self.panel1, name = 'btCancel', size = wxSize(72, 24), style = 0, pos = wxPoint(320, 216))
+        self.btCancel.SetConstraints(LayoutAnchors(self.btCancel, false, false, true, true))
         EVT_BUTTON(self.btCancel, wxID_WXBOAFILEDIALOGBTCANCEL, self.OnBtcancelButton)
 
         self.staticText1 = wxStaticText(label = 'File name:', id = wxID_WXBOAFILEDIALOGSTATICTEXT1, parent = self.panel1, name = 'staticText1', size = wxSize(48, 16), style = 0, pos = wxPoint(8, 192))
+        self.staticText1.SetConstraints(LayoutAnchors(self.staticText1, true, false, false, true))
 
-        self.staticText2 = wxStaticText(label = 'Files of type:', id = wxID_WXBOAFILEDIALOGSTATICTEXT2, parent = self.panel1, name = 'staticText2', size = wxSize(72, 16), style = 0, pos = wxPoint(8, 224))
-        self.staticText2.Enable(true)
+        self.staticText2 = wxStaticText(label = 'Files of type:', id = wxID_WXBOAFILEDIALOGSTATICTEXT2, parent = self.panel1, name = 'staticText2', size = wxSize(64, 16), style = 0, pos = wxPoint(8, 224))
+        self.staticText2.SetConstraints(LayoutAnchors(self.staticText2, true, false, false, true))
 
         self.tcFilename = wxTextCtrl(size = wxSize(224, 24), value = '', pos = wxPoint(80, 184), parent = self.panel1, name = 'tcFilename', style = 0, id = wxID_WXBOAFILEDIALOGTCFILENAME)
+        self.tcFilename.SetConstraints(LayoutAnchors(self.tcFilename, true, false, true, true))
         EVT_TEXT_ENTER(self.tcFilename, wxID_WXBOAFILEDIALOGTCFILENAME, self.OnTcfilenameTextEnter)
 
         self.chTypes = wxChoice(size = wxSize(224, 21), id = wxID_WXBOAFILEDIALOGCHTYPES, choices = ['Boa files', 'Internal files', 'All files'], parent = self.panel1, name = 'chTypes', validator = wxDefaultValidator, style = 0, pos = wxPoint(80, 216))
-        self.chTypes.Enable(true)
+        self.chTypes.SetConstraints(LayoutAnchors(self.chTypes, true, false, true, true))
         EVT_CHOICE(self.chTypes, wxID_WXBOAFILEDIALOGCHTYPES, self.OnChtypesChoice)
 
         self.stPath = wxStaticText(label = ' ', id = wxID_WXBOAFILEDIALOGSTPATH, parent = self.panel1, name = 'stPath', size = wxSize(3, 13), style = 0, pos = wxPoint(8, 8))
 
+    def OnSize(self, event):
+        self.panel1.Layout()
+        
     def __init__(self, parent, message = 'Choose a file', defaultDir = '.', defaultFile = '', wildcard = '*.py; *.txt', style = wxOPEN, pos = wxDefaultPosition): 
         self._init_ctrls(parent)
         self.SetStyle(style)
         self.SetWildcard(wildcard)
+        
+        EVT_SIZE(self.panel1, self.OnSize)
         
         # XXX This is a bit convoluted ;)
         # XXX The late importing is the only way to avoid import problems because 
         # XXX the dialog swapping code is initialised so early on
 
         from Explorers import Explorer
+
         class FileDlgFolderList(Explorer.PackageFolderList):
             def __init__(self, parent, dlg, filepath, pos = wxDefaultPosition, size = wxDefaultSize):
                 from Explorers import Explorer
@@ -90,6 +104,7 @@ class wxBoaFileDialog(wxDialog):
             defaultDir = defaultDir and path.abspath(defaultDir) or path.abspath(self.currentDir)
         self.lcFiles = FileDlgFolderList(self.panel1, self, 
               defaultDir, pos = wxPoint(8, 21), size = wxSize(384, 152))
+        self.lcFiles.SetConstraints(LayoutAnchors(self.lcFiles, true, true, true, true))
 
         EVT_LEFT_DCLICK(self.lcFiles, self.OnOpen)
         
@@ -264,3 +279,4 @@ class wxBoaFileDialog(wxDialog):
         elif fType == 'All files':
             self.lcFiles.node.setFilter('AllFiles')
         self.lcFiles.refreshCurrent()
+    
