@@ -25,6 +25,7 @@ from Companions.EventCollections import *
 from Utils import AddToolButtonBmpIS
 import Preferences, RTTI
 from Preferences import IS, oiLineHeight, oiNamesWidth, inspPageNames, flatTools
+from Zope import PropDlg
 
 scrollBarWidth = 0
 IECWidthFudge = 3
@@ -89,6 +90,11 @@ class InspectorFrame(wxFrame):
         AddToolButtonBmpIS(self, self.toolBar, 'Images/Shared/Paste.bmp', 
           'Paste (not implemented)', self.OnPaste)
         self.toolBar.AddSeparator()
+        AddToolButtonBmpIS(self, self.toolBar, 'Images/Shared/NewItem.bmp', 
+          'New item', self.OnNewItem)
+        AddToolButtonBmpIS(self, self.toolBar, 'Images/Shared/DeleteItem.bmp', 
+          'Delete item', self.OnDelItem)
+        self.toolBar.AddSeparator()
         AddToolButtonBmpIS(self, self.toolBar, 'Images/Inspector/Post.bmp', 
           'Post', self.OnPost)
         AddToolButtonBmpIS(self, self.toolBar, 'Images/Inspector/Cancel.bmp', 
@@ -117,14 +123,16 @@ class InspectorFrame(wxFrame):
 
 	EVT_CLOSE(self, self.OnCloseWindow)
         
-    def selectObject(self, obj, compn, selectInContainment = true):
+    def selectObject(self, compn, selectInContainment = true):
         """ Select an object in the inspector by populating the property
             pages. This method is called from the InspectableObjectCollection
             derived classes """
-        if (self.selObj == obj and self.selCmp == compn) or self.vetoSelect:
+#        if (self.selObj == obj and self.selCmp == compn) or self.vetoSelect:
+        if (self.selCmp == compn) or self.vetoSelect:
             return
 
         # Clear inspector selection
+##        self.cleanup()
         self.constr.cleanup()
         self.props.cleanup()
         self.events.cleanup()
@@ -140,22 +148,27 @@ class InspectorFrame(wxFrame):
 
         self.prevDesigner = compn.designer
 
-        self.selObj = obj
         self.selCmp = compn
+        self.selObj = compn.control
 
         self.statusBar.SetStatusText(compn.name)
         # Update progress inbetween building of property pages
         # Is this convoluted or what :)
-        sb = self.selCmp.designer.model.editor.statusBar.progress
-        sb.SetValue(10)
-        c_p = RTTI.getPropList(obj, compn)
-        sb.SetValue(30)
+        if self.selCmp.designer:
+            sb = self.selCmp.designer.model.editor.statusBar.progress
+        else: sb = None
+        
+        if sb: sb.SetValue(10)
+        
+        c_p = compn.getPropList()
+#        c_p = RTTI.getPropList(self.selObj, compn)
+        if sb: sb.SetValue(30)
         self.constr.readObject(c_p['constructor'])
-        sb.SetValue(50)
+        if sb: sb.SetValue(50)
         self.props.readObject(c_p['properties'])
-        sb.SetValue(70)
+        if sb: sb.SetValue(70)
         self.events.readObject()
-        sb.SetValue(90)
+        if sb: sb.SetValue(90)
         
         if selectInContainment and self.containment.valid: 
             # XXX Ugly must change
@@ -169,9 +182,9 @@ class InspectorFrame(wxFrame):
             self.containment.valid = true
             self.containment.EnsureVisible(treeId)
 
-        sb.SetValue(0)
+        if sb: sb.SetValue(0)
 
-        self.pages.ResizeChildren()
+#        self.pages.ResizeChildren()
 
     # These methods update property pages.
     # Call when changes in the selected control is detected 
@@ -211,13 +224,13 @@ class InspectorFrame(wxFrame):
         event.Skip()
     
     def OnDelete(self, event):
-        if self.selCmp:
+        if self.selCmp and self.selCmp.designer:
             self.selCmp.designer.deleteCtrl(self.selCmp.name)
 ##            if self.pages.GetPageText(self.pages.GetSelection()) == 'Parents':
 ##                self.containment.SetFocus()
     
     def OnUp(self, event):
-        if self.selCmp:
+        if self.selCmp and self.selCmp.designer:
             self.selCmp.designer.selectParent(self.selObj)
 
     def OnCut(self, event):
@@ -228,22 +241,44 @@ class InspectorFrame(wxFrame):
         pass
     
     def OnPost(self, event):
-        if self.selCmp:
+        if self.selCmp and self.selCmp.designer:
             self.selCmp.designer.saveOnClose = true
             self.selCmp.designer.Close()
     
     def OnCancel(self, event):
-        if self.selCmp:
+        if self.selCmp and self.selCmp.designer:
             self.selCmp.designer.saveOnClose = false
             self.selCmp.designer.Close()
 
     def OnHelp(self, event):
-        if self.selCmp:
+        if self.selCmp and self.selCmp.designer:
             url = self.pages.extendHelpUrl(self.selectedCtrlHelpFile())
             Help.showHelp(self, Help.wxWinHelpFrame, url)
         else:
             Help.showHelp(self, Help.BoaHelpFrame, 'Inspector.html')
 
+    def refreshZopeProps(self):
+        c = self.selCmp
+        self.selCmp.updateZopeProps()
+        self.selCmp = None
+        self.selectObject(c)
+    
+    def OnNewItem(self, event):
+        if self.selCmp and hasattr(self.selCmp, 'propItems'):
+            dlg = PropDlg.create(self)
+            try:
+                if dlg.ShowModal() == wxID_OK:
+                    self.selCmp.addProperty(dlg.tcPropName.GetValue(), 
+                          dlg.tcValue.GetValue(), dlg.chType.GetStringSelection())
+                    self.refreshZopeProps()
+            finally:
+                dlg.Destroy()
+        
+    def OnDelItem(self, event):
+        if self.selCmp and self.props.prevSel and hasattr(self.selCmp, 'propItems'):
+            self.selCmp.delProperty(self.props.prevSel.propName)
+            self.refreshZopeProps()
+            
     def OnCloseWindow(self, event):
         if self.destroying:
             self.cleanup()
@@ -524,6 +559,17 @@ class EventNameValue(NameValue):
             self.propEditor.initFromComponent()
             if not self.propEditor.editorCtrl:
                 self.value.SetLabel(self.propEditor.getDisplayValue())
+
+class ZopePropNameValue(NameValue):
+    """ Name value for properties, usually Get/Set methods, but can also be
+        routed to Companion methods """
+    def initFromComponent(self):
+        pass
+##        if self.propEditor: 
+##            self.propEditor.initFromComponent()
+##            if not self.propEditor.editorCtrl:
+##                self.value.SetLabel(self.propEditor.getDisplayValue())
+##            self.propEditor.persistValue(self.propEditor.valueAsExpr())
 
 class EventsWindow(wxSplitterWindow):
     """ Window that hosts event name values and event category selection """
