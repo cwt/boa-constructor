@@ -6,28 +6,32 @@ from wxPython.html import *
 def create(parent, data):
     return HTMLResponseFrm(parent, data)
 
-[wxID_HTMLRESPONSEFRMHTMLWINDOW, wxID_HTMLRESPONSEFRMTEXTCTRL, wxID_HTMLRESPONSEFRMNOTEBOOK1, wxID_HTMLRESPONSEFRM] = map(lambda _init_ctrls: wxNewId(), range(4))
+[wxID_HTMLRESPONSEFRM, wxID_HTMLRESPONSEFRMHTMLWINDOW, wxID_HTMLRESPONSEFRMNOTEBOOK1, wxID_HTMLRESPONSEFRMTEXTCTRL] = map(lambda _init_ctrls: wxNewId(), range(4))
 
 class HTMLResponseFrm(wxFrame):
     def _init_coll_notebook1_Pages(self, parent):
+        # generated method, don't edit
 
-        parent.AddPage(strText = 'Response', bSelect = true, pPage = self.htmlWindow, imageId = -1)
-        parent.AddPage(strText = 'Source', bSelect = false, pPage = self.textCtrl, imageId = -1)
+        parent.AddPage(bSelect = true, imageId = -1, pPage = self.htmlWindow, strText = 'Response')
+        parent.AddPage(bSelect = false, imageId = -1, pPage = self.textCtrl, strText = 'Source')
 
     def _init_utils(self):
+        # generated method, don't edit
         pass
 
     def _init_ctrls(self, prnt):
-        wxFrame.__init__(self, size = wxSize(429, 286), id = wxID_HTMLRESPONSEFRM, title = 'HTML Response', parent = prnt, name = 'HTMLResponseFrm', style = wxSTAY_ON_TOP | wxDEFAULT_FRAME_STYLE, pos = wxPoint(311, 225))
+        # generated method, don't edit
+        wxFrame.__init__(self, id = wxID_HTMLRESPONSEFRM, name = 'HTMLResponseFrm', parent = prnt, pos = wxPoint(311, 225), size = wxSize(429, 286), style = wxSTAY_ON_TOP | wxDEFAULT_FRAME_STYLE, title = 'HTML Response')
         self._init_utils()
+        self.SetClientSize(wxSize(421, 259))
 
-        self.notebook1 = wxNotebook(size = wxSize(421, 259), id = wxID_HTMLRESPONSEFRMNOTEBOOK1, parent = self, name = 'notebook1', style = 0, pos = wxPoint(0, 0))
+        self.notebook1 = wxNotebook(id = wxID_HTMLRESPONSEFRMNOTEBOOK1, name = 'notebook1', parent = self, pos = wxPoint(0, 0), size = wxSize(421, 259), style = 0)
 
-        self.htmlWindow = wxHtmlWindow(size = wxSize(413, 233), parent = self.notebook1, pos = wxPoint(0, 0), name = 'htmlWindow', id = wxID_HTMLRESPONSEFRMHTMLWINDOW)
+        self.htmlWindow = wxHtmlWindow(id = wxID_HTMLRESPONSEFRMHTMLWINDOW, name = 'htmlWindow', parent = self.notebook1, pos = wxPoint(0, 0), size = wxSize(413, 233))
 
-        self.textCtrl = wxTextCtrl(size = wxSize(413, 233), value = '', pos = wxPoint(0, 0), parent = self.notebook1, name = 'textCtrl', style = wxTE_MULTILINE, id = wxID_HTMLRESPONSEFRMTEXTCTRL)
+        self.textCtrl = wxTextCtrl(id = wxID_HTMLRESPONSEFRMTEXTCTRL, name = 'textCtrl', parent = self.notebook1, pos = wxPoint(0, 0), size = wxSize(413, 233), style = wxTE_MULTILINE, value = '')
 
-        self._init_coll_notebook1_Pages(self.notebook1, )
+        self._init_coll_notebook1_Pages(self.notebook1)
 
     def __init__(self, parent, data):
         self._init_ctrls(parent)
