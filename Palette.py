@@ -148,6 +148,7 @@ class BoaFrame(wxFrame):
 ##
 
         self.inspector = Inspector.InspectorFrame(self)
+        
         if cyclopsing:
             self.editor = Editor.EditorFrame(self, -1, self.inspector, 
               wxMenu(), self.componentSB, app)
@@ -296,9 +297,9 @@ class ComponentStatusBar(wxStatusBar):
         self.selComp = wxCheckBox(self, wID, '', wxPoint(157, 4), wxSize(140, 15))
         self.selComp.Enable(false)
         EVT_CHECKBOX(self.selComp, wID, self.OnUncheck)
-        self.selCompose = wxRadioButton(self, -1, 'Compose', wxPoint(310, 4), wxSize(65, 15))
+        self.selCompose = wxRadioButton(self, -1, 'Compose', wxPoint(320, 4))#, wxSize(70, 15))
         self.selCompose.SetValue(true)
-        self.selInherit = wxRadioButton(self, -1, 'Inherit', wxPoint(400, 4), wxSize(55, 15))
+        self.selInherit = wxRadioButton(self, -1, 'Inherit', wxPoint(400, 4))#, wxSize(55, 15))
         self.selInherit.Enable(false)
 
         self.selection = None
@@ -355,8 +356,6 @@ class PanelPalettePage(wxPanel, BasePalettePage):
         self.widgets = widgets
         parent.AddPage(self, name)
         self.eventOwner = eventOwner
-        EVT_MOTION(self, self.OnHintDesc)
-        EVT_LEAVE_WINDOW(self, self.OnHintLeave)
     
     def __del__(self):
         print '__del__', self.__class__.__name__        
@@ -394,19 +393,32 @@ class PanelPalettePage(wxPanel, BasePalettePage):
     def getButtonBmp(self, name, wxClass):
         return IS.load('%s%s.bmp' %(self.bitmapPath, name)) 
 #        return wxBitmap('%s%s.bmp' %(self.bitmapPath, name), wxBITMAP_TYPE_BMP)
-                
-    def OnHintDesc(self, event):
-        pass
-
-    def OnHintLeave(self, event):
-        pass
-
     
 class NewPalettePage(PanelPalettePage):
     def __init__(self, parent, name, bitmapPath, eventOwner, widgets, senders, statusbar):
         PanelPalettePage.__init__(self, parent, name, bitmapPath, eventOwner, widgets, senders, statusbar)
         self.menu = wxMenu()
         self.selection = None
+
+    def destroy(self):
+        print 'NewPalettePage destroy'
+        self.menu.Destroy()
+        PanelPalettePage.destroy(self)
+
+    def addButton(self, widgetName, wxClass, constrClass, clickEvt, hintFunc, hintLeaveFunc, btnType):
+        mID = PanelPalettePage.addButton(self, widgetName, wxClass, constrClass, clickEvt, hintFunc, hintLeaveFunc, btnType)
+        self.menu.Append(mID, widgetName)
+        EVT_MENU(self, mID, clickEvt)
+        return mID
+
+class ZopePalettePage(PanelPalettePage):
+    def __init__(self, parent, name, bitmapPath, eventOwner, widgets, senders, statusbar):
+        PanelPalettePage.__init__(self, parent, name, bitmapPath, eventOwner, widgets, senders, statusbar)
+        self.menu = wxMenu()
+        self.selection = None
+
+    def __del__(self):
+        self.menu.Destroy()
 
     def addButton(self, widgetName, wxClass, constrClass, clickEvt, hintFunc, hintLeaveFunc, btnType):
         mID = PanelPalettePage.addButton(self, widgetName, wxClass, constrClass, clickEvt, hintFunc, hintLeaveFunc, btnType)

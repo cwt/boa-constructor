@@ -127,15 +127,9 @@ def compInfoByName(name):
     
 def loadBitmap(name, subfold = ''):
     try:
-        filename = Preferences.toPyPath('Images/Palette/' + subfold + name+'.bmp')
-        f = open(filename)
-        f.close()
-#        if path.exists(filename):
         return IS.load('Images/Palette/' + subfold + name+'.bmp')
-#        return wxBitmap(filename, wxBITMAP_TYPE_BMP)
     except:
         return IS.load('Images/Palette/Component.bmp')
-#        return wxBitmap(Preferences.toPyPath('Images/Palette/Component.bmp'), wxBITMAP_TYPE_BMP)
         
     
 def bitmapForComponent(wxClass, wxBase = 'None', gray = false):

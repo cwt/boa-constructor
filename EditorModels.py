@@ -26,6 +26,8 @@ from os import path
 import relpath, pprint
 from Companions import Companions
 import Editor, Debugger, ErrorStack
+from Views.DiffView import PythonSourceDiffView
+from Views.AppViews import AppCompareView
 import Preferences, Utils
 from wxPython import wx 
 from Utils import AddToolButtonBmpIS
@@ -475,7 +477,9 @@ class ModuleModel(EditorModel):
         accls = EditorModel.addMenus(self, menu)
         self.addMenu(menu, Editor.wxID_EDITORSAVE, 'Save', accls, (keyDefs['Save']))
         self.addMenu(menu, Editor.wxID_EDITORSAVEAS, 'Save as...', accls, (keyDefs['SaveAs']))
+        menu.Append(-1, '-')
         self.addMenu(menu, Editor.wxID_EDITORSWITCHAPP, 'Switch to app', accls, (keyDefs['SwitchToApp']))
+        self.addMenu(menu, Editor.wxID_EDITORDIFF, 'Diff modules...', accls, ())
         return accls
 
     def new(self):
@@ -577,6 +581,7 @@ class ModuleModel(EditorModel):
                 os.chdir(cwd)
                 return page
         else:
+            wxLogWarning('Save before running Cyclops')
             raise 'Not saved yet!' 
 
     def debug(self):
@@ -614,9 +619,10 @@ class ModuleModel(EditorModel):
     def addModuleInfo(self, prefs):
         # XXX Check that module doesn't already have an info block
 
+        dollar = '$' # has to be obscured from CVS :)
         prefs['Name'] = self.moduleName
         prefs['Created'] = strftime('%Y/%d/%m', gmtime(time()))
-        prefs['RCS-ID'] = '$Id$' % self.moduleName 
+        prefs['RCS-ID'] = '%sId: %s %s' % (dollar, self.moduleName , dollar)
 
         self.data = defInfoBlock % (prefs['Name'], prefs['Purpose'], prefs['Author'],
           prefs['Created'], prefs['RCS-ID'], prefs['Copyright'], prefs['Licence']) + self.data
@@ -625,11 +631,24 @@ class ModuleModel(EditorModel):
         self.notify()
 
     def saveAs(self, filename):
-        if self.app: self.app.moduleSaveAsNotify(self, filename)
+        oldFilename = self.filename  
         EditorModel.saveAs(self, filename)
+        if self.app: 
+            self.app.moduleSaveAsNotify(self, oldFilename, filename)
         self.moduleName = path.basename(filename)
         self.notify()
 
+    def diff(self, filename):
+        if not self.views.has_key(PythonSourceDiffView.viewName):
+            resultView = self.editor.addNewView(PythonSourceDiffView.viewName, 
+              PythonSourceDiffView)
+        else:
+            resultView = self.views[PythonSourceDiffView.viewName]
+            
+        resultView.diffWith = filename
+        resultView.refresh()
+        resultView.focus()
+                
 class TextModel(EditorModel):
 
     modelIdentifier = 'Text'
@@ -797,7 +816,6 @@ class BaseFrameModel(ClassModel):
 
     def addMenus(self, menu):
         accls = ClassModel.addMenus(self, menu)
-        menu.Append(-1, '-')
         self.addMenu(menu, Editor.wxID_EDITORDESIGNER, 'Frame Designer', accls, (keyDefs['Designer']))
 ##        self.addMenu(menu, 'Add simple app', self.editor.OnAddSimpleApp, accls, ())
         return accls
@@ -810,11 +828,11 @@ class BaseFrameModel(ClassModel):
         # Currently DesignerView maintains ctrls
         pass
         
-    def saveAs(self, filename):
-        oldFilename = self.filename  
-        ClassModel.saveAs(self, filename)
-        if self.app:
-            self.app.modulePathChange(oldFilename, filename)       
+##    def saveAs(self, filename):
+##        oldFilename = self.filename  
+##        ClassModel.saveAs(self, filename)
+##        if self.app:
+##            pass#self.app.modulePathChange(oldFilename, filename)       
     
     def new(self, params):
         paramLst = []
@@ -1008,12 +1026,23 @@ class AppModel(ClassModel):
             self.update()
             self.notify()
 
+    def addMenus(self, menu):
+        accls = ClassModel.addMenus(self, menu)
+        self.addMenu(menu, Editor.wxID_EDITORCMPAPPS, 'Compare apps...', accls, ())
+        return accls
+        
+    def convertToUnixPath(self, filename):
+        # Don't convert absolute windows paths, will stay illegal until saved
+        if path.splitdrive(filename)[0] != '':
+            return filename
+        else:
+            return string.join(string.split(filename, '\\'), '/')
+
     def saveAs(self, filename):
         for mod in self.modules.keys():
-            self.modules[mod][2] = self.normaliseModuleRelativeToApp(self.modules[mod][2])
-
-        for mod in self.modules.keys():
-            self.modules[mod][2] = relpath.relpath(path.dirname(filename), self.modules[mod][2])
+            self.modules[mod][2] = self.convertToUnixPath(\
+              relpath.relpath(path.dirname(filename), 
+              self.normaliseModuleRelativeToApp(self.modules[mod][2])))
 
         self.writeModules()    
         
@@ -1021,11 +1050,12 @@ class AppModel(ClassModel):
         
         self.notify()
     
-    def modulePathChange(self, oldFilename, newFilename):
-        key = path.splitext(path.basename(oldFilename))[0]
-        self.modules[key][2] = relpath.relpath(path.dirname(self.filename), newFilename)
-
-        self.writeModules()    
+##    def modulePathChange(self, oldFilename, newFilename):
+##        # self.modules have already been renamed, use newFilename
+##        key = path.splitext(path.basename(newFilename))[0]
+##        self.modules[key][2] = relpath.relpath(path.dirname(self.filename), newFilename)
+##
+##        self.writeModules()    
 
     def renameMain(self, oldName, newName):
         ClassModel.renameMain(self, oldName, newName)
@@ -1118,7 +1148,7 @@ class AppModel(ClassModel):
             relative = relpath.relpath(path.dirname(self.filename), filename)
         else:
             relative = filename
-        self.modules[name] = [0, descr, relative]
+        self.modules[name] = [0, descr, self.convertToUnixPath(relative)]
 
         self.idModel(name)
 
@@ -1141,15 +1171,16 @@ class AppModel(ClassModel):
             if path.isabs(self.modules[name][2]):
                 absPath = self.modules[name][2]
             else:
-                absPath = path.join(path.dirname(self.filename), self.modules[name][2])
+                absPath = path.normpath(path.join(path.dirname(self.filename), 
+                  self.modules[name][2]))
         else:
             absPath = name + ModuleModel.ext
         return absPath
 
-    def moduleSaveAsNotify(self, module, newFilename):
+    def moduleSaveAsNotify(self, module, oldFilename, newFilename):
         if module != self:
             newName, ext = path.splitext(path.basename(newFilename))
-            oldName = path.splitext(path.basename(module.filename))[0]
+            oldName = path.splitext(path.basename(oldFilename))[0]
  
             if not self.modules.has_key(oldName): raise 'Module does not exists in application'
 
@@ -1161,7 +1192,7 @@ class AppModel(ClassModel):
             if newName != oldName:
                 self.modules[newName] = self.modules[oldName]
                 del self.modules[oldName]
-            self.modules[newName][2] = relative
+            self.modules[newName][2] = self.convertToUnixPath(relative)
 
             self.writeModules()
         
@@ -1210,13 +1241,22 @@ class AppModel(ClassModel):
     
     def showImportsView(self):
         self.editor.showImportsView()
+    
+    def compareApp(self, filename):
+        if not self.views.has_key(AppCompareView.viewName):
+            resultView = self.editor.addNewView(AppCompareView.viewName, 
+              AppCompareView)
+        else:
+            resultView = self.views[AppCompareView.viewName]
+            
+        resultView.compareTo = filename
+        resultView.refresh()
+        resultView.focus()
                     
     def update(self):
         ClassModel.update(self)
         self.readModules()
         self.readPaths()
-                
-        
 
 # model registry: add to this dict to register a Model
 modelReg = {AppModel.modelIdentifier: AppModel, 

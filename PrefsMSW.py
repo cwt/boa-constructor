@@ -19,7 +19,12 @@ paletteHeight = 140
 windowManagerTop = 0
 windowManagerBottom = 0
 
+editorProgressFudgePosX = 0
+editorProgressFudgeSizeY = 0
+
 transparentPaletteBitmaps = 1 
+
+braceHighLight = 1
 
 pythonDocsPath = path.join(path.dirname(sys.executable), 'Doc')
 

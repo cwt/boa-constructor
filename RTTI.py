@@ -80,7 +80,7 @@ class PropertyWrapper:
         else:
             return ''
 
-def getPropList(obj, cmp, vetoes = []):
+def getPropList(obj, cmp):
     """
        Function to extract sorted list of properties and getter/setter methods
        from a given object and companion.
@@ -142,6 +142,7 @@ def getPropList(obj, cmp, vetoes = []):
     # populate property list
     propLst = []
     constrLst = []
+    vetoes = cmp.vetoedMethods()
     if obj and type(obj) is InstanceType:
         cls = obj.__class__
         notDone = true

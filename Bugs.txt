@@ -28,8 +28,6 @@ $ resize the panel if it was the only control.
 $ This behaviour has to be emulated. Will be possible by looking at the child count of
 $ the frame in the parents tree
 
-Changing sub-properties in inspector does not update ctrl
-
 $ Module does not open
 
 $ Old problem of InspectorScrollWindows' scrollbar getting confused and not being able
@@ -60,18 +58,9 @@ $Saved as modules should notify application of path change
 
 $Module paths are reletivised wrong when App is saved somewhere else
 
-Font property misbehaves: value of font after selected != default font
-
 $ Frame loses events
 
-$If the last window is closed notebook does not switch to shell
-
-Help select search result triggers loadpage event 3 times
-
-Attributes aren't updated in moduleparse.Class.attributes after working in the Designer
-The undelying problem is that the frame designers maintain the source code
-and the module is not reparsed when the designers are closed, only their changes
-are applied. Attributes get picked up on parsing.
+$ If the last window is closed notebook does not switch to shell
 
 $Module name not changing after rename, only after reload
 
@@ -80,40 +69,89 @@ $Find out why Debugger.py loads so slowly
 Can't handle zero length module modules
  $ no infinite loops anymore but still problems
 
-$Inspector does not behave correctly when switching between 2 frame designers
+$ Inspector does not behave correctly when switching between 2 frame designers
 
-$Frame not updating position when moved
+$ Frame not updating position when moved
 
-$Add saving btns to text models
+$ Add saving btns to text models
 
-$Parent view not behaving correctly to selection of different designers
+$ Parent view not behaving correctly to selection of different designers
+
+$ Views must update model if they are modified
+
+$ Not prompted when overwriting a file
+
+$ Property order is random
+
+$ OGLViews crash on closing (fixed by 2.2.0)
+
+$ After renaming with name property selected changing components cores
+
+$ Doesn't check if name exists before renaming
+
+$ Deleting all utilities from DataView leaves old code in _init_utils
+
+The infamous 'After a file dialog by cursor keys don't work' bug.
+This is a MAJOR pain in the neck for NT users (including myself)
+
+Debugger causes core dump if Boa is closed while still debugging
+Pressing Stop before closing prevents this. I'm trying to do this
+programmatically but failing miserably
+
+Font property misbehaves: value of font after selected != default font
+Problem in general for default values
+
+Changing sub-properties in inspector does not update ctrl
+
+Help select search result triggers loadpage event 3 times
+
+Attributes aren't updated in moduleparse.Class.attributes after working in the Designer
+The undelying problem is that the frame designers maintain the source code
+and the module is not reparsed when the designers are closed, only their changes
+are applied. Attributes get picked up on parsing.
 
 Utility control must be selected after being added
-
-$Views must update model if they are modified
 
 Parser must be fixed sometime to correctly parse
 - methods within methods
 - multiline docstrings
 - method definitions continued over more than 1 line
 
-$ Not prompted when overwriting a file
-
-$ Property order is random
-
-When there are only a few componentes the linked properties 
+When there are only a few components the linked properties 
 (MenuBar/FrameBar/ToolBar) does not show in prop editor on
 startup. If another control is selected and the frame is selected
 they show correctly, please someone help!
 
+Having only a menubar on a frame does not link design time controls
+
+Setting linked property to None should clear the source
+
+Deleting utils
+
 ToolBars confuse the Designer (and the author).
 Components are offset by the height of the toolbar
 
-OGLViews crash on closing
+Some help links break when found text is highlighted in html
+
+Diff views crash on closing
 
 GTK
 ---
 
-AppView.modules: the path is invalid because of M$ \\'s
-Preferences.wxDefaultFrameSize: wxSize expected, tuple found
+Many coredumps, especially on closing modules
+
+STC is slow/sluggish, especially painful on key repeats
+
+$ Menus can't be swapped around by wxMenuBar.Replace(), cores
+$ Temp patch: ModelPage/View still maintains its own menu but it is cloned
+$ before connecting to the menubar
+
+With the accelerator table wxACCEL_ALT binds to shift key
+
+$ AppView.modules: the path is invalid because of M$ \\'s
+
 wxStyledTextCtrl crashes with Brace Highlighting enabled
+
+STC being refreshed many times causes flickering.
+I don't know if GTK refreshes more or that MSW just doesn't flash
+that much

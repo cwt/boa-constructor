@@ -126,10 +126,6 @@ class InspectorFrame(wxFrame):
  	
         self.selection = None
 
-        self.constr.initSash()
-        self.props.initSash()
-        self.events.definitions.initSash()
-
 	EVT_CLOSE(self, self.OnCloseWindow)
         
 ##        itmId = NewId()
@@ -147,8 +143,15 @@ class InspectorFrame(wxFrame):
 ##    
             
     def selectObject(self, obj, compn, selectInContainment = true):
+        print 'select object'
         if self.selObj == obj and self.selCmp == compn:
             return
+        print 'selecting object'
+
+        # Clear inspector selection
+        self.constr.cleanup()
+        self.props.cleanup()
+        self.events.cleanup()
 
         if self.prevDesigner and compn.designer and \
           compn.designer != self.prevDesigner:
@@ -170,7 +173,7 @@ class InspectorFrame(wxFrame):
         # Is this convoluted or what :)
         sb = self.selCmp.designer.model.editor.statusBar.progress
         sb.SetValue(10)
-        c_p = RTTI.getPropList(obj, compn, compn.vetoedMethods())
+        c_p = RTTI.getPropList(obj, compn)
         sb.SetValue(30)
         self.constr.readObject(c_p['constructor'])
         sb.SetValue(50)
@@ -223,7 +226,12 @@ class InspectorFrame(wxFrame):
 
 ##    def OnCloseWindow(self, event):
 ##    	self.Show(false)
-    	
+
+    def initSashes(self):
+        self.constr.initSash()
+        self.props.initSash()
+        self.events.definitions.initSash()
+
     def OnSizing(self, event):
 #        self.debugger.log(`self.GetSize()`)
         event.Skip()
@@ -497,6 +505,12 @@ class NameValue:
         self.editing = true
 
     def hideEditor(self, cancel = false):
+        if (not cancel) and self.propEditor:# and (not self.destr):
+            self.propEditor.inspectorPost()
+	    self.value.SetLabel(self.propEditor.getDisplayValue())            
+    	    self.value.SetSize(wxSize(self.separatorV.GetSize().x, 
+              self.value.GetSize().y))
+
         if self.nameBevelTop:
             self.nameBevelTop.Destroy()
             self.nameBevelTop = None
@@ -509,11 +523,6 @@ class NameValue:
             self.valueBevelBottom.Destroy()
             self.valueBevelBottom = None
        
-        if (not cancel) and self.propEditor:# and (not self.destr):
-            self.propEditor.inspectorPost()
-	    self.value.SetLabel(self.propEditor.getDisplayValue())            
-    	    self.value.SetSize(wxSize(self.separatorV.GetSize().x, 
-              self.value.GetSize().y))
         self.editing = false
 	    
     def OnSelect(self, event):
@@ -861,7 +870,7 @@ class InspectorPropScrollWin(InspectorScrollWin):
 
     # read in the root object
     def readObject(self, propList):
-        self.cleanup()
+#        self.cleanup()
 
 	# create root list
 	self.setNameValues(self.inspector.selCmp, self.inspector.selCmp, 
@@ -918,7 +927,7 @@ class InspectorConstrScrollWin(InspectorScrollWin):
                     return constr
             return None
             
-        self.cleanup()
+#        self.cleanup()
         
         params = self.inspector.selCmp.constructor()
         paramNames = params.keys()
@@ -965,7 +974,7 @@ class InspectorConstrScrollWin(InspectorScrollWin):
     
 class InspectorEventScrollWin(InspectorScrollWin):
     def readObject(self):
-        self.cleanup()
+#        self.cleanup()
         
         for evt in self.inspector.selCmp.getEvents():
             self.addEvent(evt.event_name)

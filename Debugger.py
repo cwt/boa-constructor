@@ -1,14 +1,14 @@
 #----------------------------------------------------------------------------
-# Name:         Debugger.py
-# Purpose:      wxPython debugger, currently a port of IDLE's debugger
-#               written by Guido van Rossum
-#
-# Author:       Riaan Booysen 
-#
-# Created:      2000/01/11
-# RCS-ID:       $Id$
-# Copyright:    (c) Riaan Booysen
-# Licence:      GPL
+# Name:         Debugger.py                                                  
+# Purpose:      wxPython debugger, currently a port of IDLE's debugger       
+#               written by Guido van Rossum                                  
+#                                                                            
+# Author:       Riaan Booysen                                                
+#                                                                            
+# Created:      2000/01/11                                                   
+# RCS-ID:       $Id$       
+# Copyright:    (c) Riaan Booysen                                            
+# Licence:      GPL                                                          
 #----------------------------------------------------------------------------
 
 # XXX I must still try to see if it's not possible the change code while
@@ -891,16 +891,18 @@ class DebuggerFrame(wxFrame, bdb.Bdb):
         pass
 
     def OnCloseWindow(self, event):
-        if self.interacting:
-            # XXX mmm
-            self.OnStop(None)
-        self.locs.destroy()
-        self.globs.destroy()
-        self.breakpts.destroy()
-        self.watches.destroy()
-        self.Destroy()
-        self.model.editor.debugger = None        
-        event.Skip()
+        try:
+            if self.interacting:
+                # XXX mmm
+                self.OnStop(None)
+            self.locs.destroy()
+            self.globs.destroy()
+            self.breakpts.destroy()
+            self.watches.destroy()
+            self.model.editor.debugger = None        
+        finally:
+            self.Destroy()
+            event.Skip()
         
         
         

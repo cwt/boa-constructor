@@ -61,6 +61,7 @@ Changes
   Still to be implemented:
   * wxAcceleratorTable.Entries (broken, doesn't fit yet)
   * wxBoxSizers, wxStaticBoxSizer
+* Directory compare (lib's cmp) and diff facilities (Tim Peter's ndiff)
 
 -- 0.0.3 --
 

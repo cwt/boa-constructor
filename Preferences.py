@@ -1,6 +1,6 @@
 #----------------------------------------------------------------------
 # Name:        Preferences.py                                          
-# Purpose:     Global settings                                                        
+# Purpose:     Global settings                                         
 #                                                                      
 # Author:      Riaan Booysen                                           
 #                                                                      
@@ -12,7 +12,7 @@
 import os, sys
 from os import path
 from wxPython.wx import wxSystemSettings_GetSystemMetric, wxSYS_SCREEN_X, wxSYS_SCREEN_Y, wxTB_FLAT
-from wxPython.wx import wxPlatform, wxDefaultSize, wxDefaultPosition
+from wxPython.wx import wxPlatform, wxDefaultSize, wxDefaultPosition, wxSize
 from ImageStore import ImageStore
 
 try:
@@ -20,7 +20,7 @@ try:
 except ImportError:
     # thnx Mike Fletcher
     screenWidth = int(wxSystemSettings_GetSystemMetric(wxSYS_SCREEN_X) * 1.0)
-    screenHeight = int(wxSystemSettings_GetSystemMetric(wxSYS_SCREEN_Y) * 0.94)
+    screenHeight = int(wxSystemSettings_GetSystemMetric(wxSYS_SCREEN_Y) * 0.89)
 else:
     screenWidth = win32api.GetSystemMetrics(win32con.SM_CXFULLSCREEN)
     screenHeight = win32api.GetSystemMetrics(win32con.SM_CYFULLSCREEN) + 20
@@ -34,16 +34,14 @@ if wxPlatform == '__WXMSW__':
     wxDefaultFrameSize = wxDefaultSize
 elif wxPlatform == '__WXGTK__':
     from PrefsGTK import *
-    wxDefaultFramePos = (screenWidth / 4, screenHeight / 4)
-    wxDefaultFrameSize = (screenWidth / 2, screenHeight / 2)
+    wxDefaultFramePos = wxSize(screenWidth / 4, screenHeight / 4)
+    wxDefaultFrameSize = wxSize(screenWidth / 2, screenHeight / 2)
 
 bottomHeight = screenHeight - paletteHeight
 
 flatTools = wxTB_FLAT # 0
 
 pastels = 1
-
-braceHighLight = 0
 
 oiLineHeight = 18
 oiNamesWidth = 100

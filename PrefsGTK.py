@@ -13,6 +13,11 @@ logFontSize = 10
 srchCtrlOffset = 0
 paletteHeight = 125
 
+braceHighLight = 0
+
+editorProgressFudgePosX = -8
+editorProgressFudgeSizeY = 2
+
 windowManagerTop = 16
 windowManagerBottom = 7
 

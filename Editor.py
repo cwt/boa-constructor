@@ -1,13 +1,13 @@
 #----------------------------------------------------------------------
-# Name:        Editor.py
-# Purpose:     
-#
-# Author:      Riaan Booysen
-#
-# Created:     1999
-# RCS-ID:      $Id$
-# Copyright:   (c) 1999, 2000 Riaan Booysen
-# Licence:     GPL
+# Name:        Editor.py                                               
+# Purpose:                                                             
+#                                                                      
+# Author:      Riaan Booysen                                           
+#                                                                      
+# Created:     1999                                                    
+# RCS-ID:      $Id$    
+# Copyright:   (c) 1999, 2000 Riaan Booysen                            
+# Licence:     GPL                                                     
 #----------------------------------------------------------------------
 #Boa:Frame:EditorFrame
 
@@ -16,7 +16,7 @@
 # Alchemy
 
 import sys, string, time
-import Preferences, About
+import Preferences, About, Help
 from Preferences import IS, flatTools
 from os import path
 from Utils import AddToolButtonBmpObject, BoaFileDropTarget
@@ -62,8 +62,9 @@ adtZopeDocModelViews = ()
  wxID_EDITORREFRESH, wxID_EDITORDESIGNER, wxID_EDITORDEBUG, wxID_EDITORHELP,
  wxID_EDITORSWITCHAPP, wxID_DEFAULTVIEWS, wxID_EDITORSWITCHTO, 
  wxID_EDITORTOGGLEVIEW, wxID_EDITORSWITCHEXPLORER, wxID_EDITORSWITCHSHELL,
- wxID_EDITORSWITCHPALETTE, wxID_EDITORSWITCHINSPECTOR] = \
- map(lambda _editor_menus: wxNewId(), range(16))
+ wxID_EDITORSWITCHPALETTE, wxID_EDITORSWITCHINSPECTOR, wxID_EDITORDIFF,
+ wxID_EDITORCMPAPPS, wxID_EDITORHELPABOUT] = \
+ map(lambda _editor_menus: wxNewId(), range(19))
                
 [wxID_EDITORFRAME, wxID_PAGECHANGED] = map(lambda _init_ctrls: wxNewId(), range(2))
                     
@@ -147,11 +148,12 @@ class EditorFrame(wxFrame):
         self.blankEditMenu = wxMenu()
         self.blankViewMenu = wxMenu()
         self.helpMenu = wxMenu()
-        self.helpMenu.Append(wxNewId(), 'Help')
+        self.helpMenu.Append(wxID_EDITORHELP, 'Help')
         self.helpMenu.AppendSeparator()
-        self.helpMenu.Append(wxID_EDITORHELP, 'About')
+        self.helpMenu.Append(wxID_EDITORHELPABOUT, 'About')
 
-        EVT_MENU(self, wxID_EDITORHELP, self.OnHelpAbout)
+        EVT_MENU(self, wxID_EDITORHELP, self.OnHelp)
+        EVT_MENU(self, wxID_EDITORHELPABOUT, self.OnHelpAbout)
         EVT_MENU(self, wxID_EDITOROPEN, self.OnOpen)
         EVT_MENU(self, wxID_EDITORSAVE, self.OnSave)
         EVT_MENU(self, wxID_EDITORSAVEAS, self.OnSaveAs)
@@ -164,11 +166,14 @@ class EditorFrame(wxFrame):
         EVT_MENU(self, wxID_EDITORSWITCHEXPLORER, self.OnSwitchExplorer)
         EVT_MENU(self, wxID_EDITORSWITCHPALETTE, self.OnSwitchPalette)
         EVT_MENU(self, wxID_EDITORSWITCHINSPECTOR, self.OnSwitchInspector)
+        EVT_MENU(self, wxID_EDITORDIFF, self.OnDiff)
+        EVT_MENU(self, wxID_EDITORCMPAPPS, self.OnCmpApps)
         
         self.mainMenu = wxMenuBar()
         self.SetMenuBar(self.mainMenu)
         self.mainMenu.Append(wxMenu(), 'File')
-        self.mainMenu.Append(self.blankEditMenu, 'Edit')
+#        self.mainMenu.Append(self.blankEditMenu, 'Edit')
+        self.mainMenu.Append(wxMenu(), 'Edit')
 
         # Views menu
         self.viewDefaultIds = {}
@@ -186,7 +191,8 @@ class EditorFrame(wxFrame):
         
         self.blankViewMenu.AppendMenu(wxID_DEFAULTVIEWS, 'Defaults', self.viewDefaults)
 
-        self.mainMenu.Append(self.blankViewMenu, 'Views')
+        self.mainMenu.Append(wxMenu(), 'Views')
+#        self.mainMenu.Append(self.blankViewMenu, 'Views')
 
         # Windows menu
         self.winMenu = wxMenu()
@@ -233,9 +239,12 @@ class EditorFrame(wxFrame):
         return menu
 
     def setupToolBar(self, modelIdx = None, viewIdx = None):
+        #return
         if self.palette.destroying:
             return
-            
+        
+#        print 'start setup toolbar',
+        
         accLst = [keyDefs['Inspector']] 
         self.toolBar.ClearTools()
             
@@ -258,7 +267,8 @@ class EditorFrame(wxFrame):
                 activeView = actMod.getActiveView(viewIdx)
                 activeView.addViewTools(self.toolBar)
                 menu, accls = activeView.editorMenu, activeView.accelLst
-                self.mainMenu.Replace(mmEdit, menu, 'Edit')
+                menu = Utils.duplicateMenu(menu)
+                self.mainMenu.Replace(mmEdit, menu, 'Edit').Destroy()
                 accLst.extend(accls)
     
                 # Views menu
@@ -271,14 +281,19 @@ class EditorFrame(wxFrame):
 ##                if m.GetMenuItemCount() > 0:
 ##                    m.RemoveItem(m.FindItemById(wxID_DEFAULTVIEWS))
 
-                self.mainMenu.Replace(mmViews, actMod.viewMenu, 'Views')
+                menu = Utils.duplicateMenu(actMod.viewMenu)
+                self.mainMenu.Replace(mmViews, menu, 'Views').Destroy()
+#                self.mainMenu.Replace(mmViews, actMod.viewMenu, 'Views')
         else:
             self.mainMenu.Replace(mmFile, fileMenu, 'File').Destroy()
-            self.mainMenu.Replace(mmEdit, self.blankEditMenu, 'Edit')
+            self.mainMenu.Replace(mmEdit, Utils.duplicateMenu(self.blankEditMenu), 'Edit').Destroy()
+#            self.mainMenu.Replace(mmEdit, self.blankEditMenu, 'Edit')
+
 ##            m = self.mainMenu.GetMenu(mmViews)
 ##            if m.GetMenuItemCount() > 0:
 ##                m.RemoveItem(m.FindItemById(wxID_DEFAULTVIEWS))
-            self.mainMenu.Replace(mmViews, self.blankViewMenu, 'Views')
+
+            self.mainMenu.Replace(mmViews, Utils.duplicateMenu(self.blankViewMenu), 'Views').Destroy()
 
         # Help button  
         self.toolBar.AddSeparator() 
@@ -287,6 +302,7 @@ class EditorFrame(wxFrame):
         self.toolBar.Realize()
 
         if accLst: self.SetAcceleratorTable(wxAcceleratorTable(accLst))
+#        print 'end setup toolbar',
     
     def addShellPage(self):
         """ Adds the interactive interpreter to the editor """
@@ -525,6 +541,14 @@ class EditorFrame(wxFrame):
         modulePage = self.getActiveModulePage()
         if modulePage:
             model = modulePage.model
+
+            # Just show if already opened
+            if model.views.has_key('Designer'):
+                model.views['Data'].focus()
+                model.views['Designer'].Show(true)
+                model.views['Designer'].Raise()
+                return
+
             # update any view modifications
             model.refreshFromViews()
 
@@ -548,14 +572,16 @@ class EditorFrame(wxFrame):
 
             # add or focus frame designer
             if not model.views.has_key('Designer'):
-                model.views['Designer'] = DesignerView(self, self.inspector, 
+                designer = DesignerView(self, self.inspector, 
                   model, self.compPalette, model.companion, dataView)
-                model.views['Designer'].refreshCtrl()
+                model.views['Designer'] = designer
+                designer.refreshCtrl()
             model.views['Designer'].Show(true)
 
-            designer = model.views['Designer']
-            if designer.selection:
-                designer.selection.selectCtrl(designer, designer.companion)
+##            designer = model.views['Designer']
+##            if designer.selection:
+##                designer.selCmp = None
+##                designer.selection.selectCtrl(designer, designer.companion)
                 
     def showImportsView(self):
         self.addNewView('Imports', ImportsView) 
@@ -706,7 +732,8 @@ class EditorFrame(wxFrame):
     def OnClosePage(self, event):
         # Replace view's edit menu with editor managed blankEditMenu
         # so editor can free it without fear of mainMenu freeing it
-        self.mainMenu.Replace(mmEdit, self.blankEditMenu, 'Edit')
+#        self.mainMenu.Replace(mmEdit, self.blankEditMenu, 'Edit')
+        self.mainMenu.Replace(mmEdit, wxMenu(), 'Edit').Destroy()
 
         modulePage = self.getActiveModulePage()
         actPge = self.tabs.GetSelection()
@@ -724,7 +751,6 @@ class EditorFrame(wxFrame):
             modulePage.model.views['Source'].refreshModel()
             self.updateModulePage(modulePage.model)
             self.updateTitle()
-
 		
     def OnPageChange(self, event):
         sel = event.GetSelection()
@@ -735,25 +761,6 @@ class EditorFrame(wxFrame):
 
     def OnDesigner(self, event):
         self.showDesigner()
-
-    def OnShellEnter(self, event):
-        if event.KeyCode() == 13:
-            try:
-                tmpstdout = sys.stdout
-                tmpstderr = sys.stderr
-                line = string.strip(self.shell.GetLine(self.shell.GetLineCount() -2)[3:])
-##                print 'shell line', line
-                sys.stdout = PseudoFileOut(self.shell)
-                sys.stderr = PseudoFileErr(self.shell)
-
-                if self.shell.interp.push(line):
-                    self.shell.AddText(nl + ps2)
-                else:
-                    self.shell.AddText(ps1)
-            finally:                
-                sys.stdout = tmpstdout
-                sys.stderr = tmpstderr
-	else: event.Skip()
 
     def OnDebug(self, event):
         print self.modules
@@ -773,8 +780,10 @@ class EditorFrame(wxFrame):
             self.inspector = None
             self.explorer.destroy()
             self.newMenu.Destroy()#
-            self.mainMenu.Replace(1, self.blankEditMenu, 'Edit')
-            self.mainMenu.Replace(2, self.blankViewMenu, 'View')
+##            self.mainMenu.Replace(1, self.blankEditMenu, 'Edit')
+##            self.mainMenu.Replace(2, self.blankViewMenu, 'View')
+            self.mainMenu.Replace(1, wxMenu(), 'Edit').Destroy()
+            self.mainMenu.Replace(2, wxMenu(), 'View').Destroy()
             self.mainMenu = None
             self.Destroy()
             event.Skip()
@@ -782,7 +791,7 @@ class EditorFrame(wxFrame):
             self.Show(false) 
 
     def OnHelp(self, event):
-       pass
+        Help.showHelp(self, Help.BoaHelpFrame, 'Editor.html')
 
     def OnToggleView(self, event):
         # This is triggered twice, I'd love to know why
@@ -867,6 +876,20 @@ class EditorFrame(wxFrame):
             self.inspector.Iconize(false)
         self.inspector.Raise()
 
+    def OnDiff(self, event):
+        actMod = self.getActiveModulePage() 
+        if actMod:
+            fn = self.openFileDlg()
+            if fn:
+                actMod.model.diff(fn)
+
+    def OnCmpApps(self, event):
+        actMod = self.getActiveModulePage() 
+        if actMod:
+            fn = self.openFileDlg()
+            if fn:
+                actMod.model.compareApp(fn)
+
 #-----Toolbar-------------------------------------------------------------------
 
 class MyToolBar(wxToolBar):
@@ -923,7 +946,9 @@ class EditorStatusBar(wxStatusBar):
         self.col = wxStaticText(self, -1, '0   ', wxPoint(3, 4))
         self.row = wxStaticText(self, -1, '0   ', wxPoint(37, 4))
         self.hint = wxStaticText(self, -1, ' ', wxPoint(72, 4), wxSize(290, self.h -8))
-        self.progress = wxGauge(self, -1, 100, pos = wxPoint(368, 2), size = wxSize(150, self.h -5))
+        self.progress = wxGauge(self, -1, 100, 
+          pos = wxPoint(368+Preferences.editorProgressFudgePosX, 2), 
+          size = wxSize(150, self.h -5 + Preferences.editorProgressFudgeSizeY))
     
     def setHint(self, hint):
         self.hint.SetLabel(hint)
