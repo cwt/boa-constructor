@@ -130,12 +130,15 @@ class BaseFrameDTC(ContainerDTC):
             # MenuBar
             # XXX MenuBar's have to be handled with care
             # XXX and can only be connected to a frame once
+            # XXX Actually not even once!
             mb = self.control.GetMenuBar()
             if mb and `mb` == `compn.control`:
+                if wxPlatform == '__WXGTK__':
+                    raise 'May not delete a wxMenuBar, it would cause a segfault on wxGTK'
                 self.propRevertToDefault('MenuBar', 'SetMenuBar')
                 self.control.SetMenuBar(None)
-                if wxPlatform == '__WXGTK__':
-                    wxLogWarning('GTK only allows connecting the wxMenuBar once to the wxFrame')
+                #if wxPlatform == '__WXGTK__':
+                #    wxLogWarning('GTK only allows connecting the wxMenuBar once to the wxFrame')
 
             # ToolBar
             tb = self.control.GetToolBar()
@@ -149,7 +152,8 @@ class BaseFrameDTC(ContainerDTC):
         # XXX Delete links to frame bars so client size is accurate
         self.control.SetToolBar(None)
         self.control.SetStatusBar(None)
-        self.control.SetMenuBar(None)
+        if wxPlatform != '__WXGTK__':
+            self.control.SetMenuBar(None)
         if self.textPropList:
             for prop in self.textPropList:
                 if prop.prop_name == 'ClientSize':
@@ -332,6 +336,9 @@ class SashLayoutWindowDTC(SashWindowDTC):
           self.SetDefaultSize)})
         return props
 
+    def getSizeDependentProps(self):
+        return SashWindowDTC.getSizeDependentProps(self)+[('prop', 'DefaultSize')]
+
 ##    def events(self):
 ##        return ContainerDTC.events(self) + ['SashEvent']
 
@@ -344,7 +351,11 @@ class SashLayoutWindowDTC(SashWindowDTC):
     def SetDefaultSize(self, size):
         if self.control:
             self.control.SetSize(size)
-            wxLayoutAlgorithm().LayoutWindow(self.control)
+
+    def defaultAction(self):
+        # should be called from 'Relayout' command
+        self.control.SetDefaultSize(self.control.GetSize())
+        wxLayoutAlgorithm().LayoutWindow(self.control.GetParent())
 
 class ScrolledWindowDTC(WindowConstr, ContainerDTC):
     #wxDocs = HelpCompanions.wxScrolledWindowDocs
@@ -367,7 +378,7 @@ class ScrolledWindowDTC(WindowConstr, ContainerDTC):
     def notification(self, compn, action):
         ContainerDTC.notification(self, compn, action)
         if action == 'delete':
-            if `self.control.GetTargetWindow()` == `compn.control`:
+            if self.control.GetTargetWindow() == compn.control:
                 self.propRevertToDefault('TargetWindow', 'SetTargetWindow')
                 self.control.SetTargetWindow(self.control)
 
@@ -425,7 +436,7 @@ class NotebookDTC(WindowConstr, ContainerDTC):
     def notification(self, compn, action):
         ContainerDTC.notification(self, compn, action)
         if action == 'delete':
-            if `self.control.GetImageList()` == `compn.control`:
+            if self.control.GetImageList() == compn.control:
                 self.propRevertToDefault('ImageList', 'SetImageList')
                 self.control.SetImageList(None)
 
@@ -545,8 +556,8 @@ class NotebookPagesCDTC(NotebookPageConstr, CollectionDTC):
                     if tph.ctrl == compn.control:
                         tph.clearCtrl()
 
-    def writeCollectionItems(self, output):
-        CollectionDTC.writeCollectionItems(self, output)
+    def writeCollectionItems(self, output, stripFrmId=''):
+        CollectionDTC.writeCollectionItems(self, output, stripFrmId)
         warn = 0
         for constr in self.textConstrLst:
             if constr.params['pPage'] == 'None':
@@ -748,7 +759,8 @@ class SplitterWindowDTC(SplitterWindowConstr, ContainerDTC):
             propSN = setterName
             setterName = self.modeMethMap[self.control.GetSplitMode()]
 
-            win1, win2, sashPos = self.GetWindow1(None), self.GetWindow2(None), `self.control.GetSashPosition()`
+            win1, win2 = self.GetWindow1(None), self.GetWindow2(None)
+            sashPos = `self.control.GetSashPosition()`
 
             if win1: win1 = 'self.'+win1.GetName()
             else: win1 = 'None'
@@ -779,9 +791,25 @@ class SplitterWindowDTC(SplitterWindowConstr, ContainerDTC):
         else:
             ContainerDTC.persistProp(self, name, setterName, value)
 
+    def persistedPropVal(self, name, setterName):
+        # Unlike usual properties, SashPosition is persisted as a Split* method
+        # Therefore it needs to check the Split* method for the source value
+        if setterName == 'SetSashPosition':
+            for prop in self.textPropList:
+                if prop.prop_setter in ('SplitVertically', 'SplitHorizontally'):
+                    return prop.params[2]
+        return ContainerDTC.persistedPropVal(self, name, setterName)
+
     def notification(self, compn, action):
         ContainerDTC.notification(self, compn, action)
         if action == 'delete':
+            # If the splitter itself is deleted it should unsplit so that
+            # deletion notifications from it's children won't cause
+            # access to deleted controls
+            if compn.control == self.control:
+                self.win1 = self.win2 = None
+                self.splitWindow(None, None)
+                return
             # Win 1
             # If Window1 is None, splitter can only be unsplit
             if compn.control == self.GetWindow1(None):
@@ -1529,9 +1557,11 @@ class ListBoxDTC(ListConstr, ChoicedDTC):
         insp.events.doAddEvent('ListBoxEvent', 'EVT_LISTBOX')
 
 
+EventCategories['CheckListBoxEvent'] = (EVT_CHECKLISTBOX,)
 class CheckListBoxDTC(ListBoxDTC):
     #wxDocs = HelpCompanions.wxCheckListBoxDocs
-    pass
+    def events(self):
+        return ListBoxDTC.events(self) + ['CheckListBoxEvent']
 
 
 class StaticBitmapDTC(StaticBitmapConstr, WindowDTC):
@@ -1745,7 +1775,7 @@ class StatusBarDTC(StatusBarConstr, ContainerDTC):
         ContainerDTC.__init__(self, name, designer, parent, ctrlClass)
         self.editors['Fields'] = CollectionPropEdit
         self.subCompanions['Fields'] = StatusBarFieldsCDTC
-        self.windowStyles = ['wxSB_SIZEGRIP'] + self.windowStyles
+        self.windowStyles = ['wxST_SIZEGRIP'] + self.windowStyles
 
     def properties(self):
         props = ContainerDTC.properties(self)
