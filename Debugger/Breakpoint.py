@@ -3,7 +3,7 @@ Provides a breakpoint registry that can be sent to another process (via
 getBreakpointList()).
 """
 
-import os
+import os, string
 from os import path
 
 try: from cPickle import Pickler, Unpickler
@@ -138,7 +138,7 @@ class BreakpointList:
         self.files = {}  # filename -> FileBreakpointList
 
     def normalize(self, filename):
-        if filename.find('://') < 0:
+        if string.find(filename, '://') < 0:
             filename = 'file://' + filename
         #return path.normcase(path.abspath(filename))
         return filename
