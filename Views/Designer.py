@@ -225,6 +225,7 @@ class InspectableObjectCollectionView(EditorViews.EditorView):
                     else:
                         continue
                 RTTI.getFunction(ctrl, prop.prop_setter)(ctrl, value)
+            del depLinks[ctrlName]
 
     def addDepLink(self, prop, name, dependents, depLinks):
         if not dependents.has_key(name):
@@ -236,6 +237,10 @@ class InspectableObjectCollectionView(EditorViews.EditorView):
         if not depLinks.has_key(link):
             depLinks[link] = []
         depLinks[link].append(prop)
+    
+    def finaliseDepLinks(self, depLinks):
+        for ctrlName in depLinks.keys()[:]:
+            self.applyDepsForCtrl(ctrlName, depLinks)
 
     def renameCtrl(self, oldName, newName):
         """ Rename a control and update all its properties and events."""
@@ -775,8 +780,9 @@ class DesignerView(wxFrame, InspectableObjectCollectionView):
                 step = (90 - stepsDone) / len(objCol.creators)
                 stepsDone = stepsDone + step
                 self.model.editor.statusBar.progress.SetValue(int(stepsDone))
+            
+            self.finaliseDepLinks(depLnks)
 
-#            self.initObjDeps(frmDeps)
         finally:
             self.inspector.vetoSelect = false
             
@@ -898,6 +904,9 @@ class DesignerView(wxFrame, InspectableObjectCollectionView):
 
     def deleteCtrl(self, name, parentRef = None):
         ctrlInfo = self.objects[name]
+        if ctrlInfo[1] == self:
+            wxMessageBox("Can't delete frame")
+            return
         parRel = None
         # build relationship, this will only happen for the first call
         if not parentRef:
@@ -1202,7 +1211,7 @@ class DesignerView(wxFrame, InspectableObjectCollectionView):
         self.inspector.containment.cleanup()
             
         # Make source r/w
-        self.model.views['Source'].SetReadOnly(false)
+        self.model.views['Source'].disableSource(false)
 
         if self.saveOnClose:
             self.saveCtrls(self.dataView.objectOrder[:])
@@ -1238,7 +1247,6 @@ class DesignerView(wxFrame, InspectableObjectCollectionView):
         self.inspector.Raise()
         
     def OnControlDelete(self, event):
-        print 'OnControlDelete'
         ctrls = []
         if self.selection:
             ctrls = [self.selection.name]
