@@ -26,6 +26,10 @@ from ExternalLib import xmlrpclib
 
 true=1; false=0
 
+# Can be extended by plug-ins, used by syntax highlighted styles
+zope_additional_attributes = ''
+
+
 # XXX This is expensive and will really need to delay generatePage until View
 # XXX is focused (like ExploreView)
 # XXX The HTML control does not interact well with Zope.
@@ -43,15 +47,8 @@ class ZopeHTMLStyledTextCtrlMix(BaseHTMLStyledTextCtrlMix):
         zope_attributes=\
         'sequence-key sequence-item sequence-start sequence-end sequence-odd '
 
-        zope_pt_attributes=\
-        'tal tal:block tal:content tal:replace tal:condition tal:attributes '\
-        'tal:define tal:repeat tal:omit-tag tal:on-error '\
-        'tales '\
-        'metal metal:block metal:use-macro metal:define-macro metal:fill-slot '\
-        'metal:define-slot '
-
         self.keywords = self.keywords + ' public !doctype '+ zope_dtml_elements +\
-              zope_zsql_tags + zope_attributes + zope_pt_attributes
+              zope_zsql_tags + zope_attributes + zope_additional_attributes
 
         self.setStyles()
 
