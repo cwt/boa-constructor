@@ -240,7 +240,7 @@ class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView,
         cp = self.GetCurrentPos()
         ln = self.LineFromPosition(cp)
         indent = cp - self.PositionFromLine(ln)
-        lns = text.split(self.eol)
+        lns = text.split('\n')
         # XXX adapt for tab mode
         text = (self.eol+indent*' ').join(lns)
 
