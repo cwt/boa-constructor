@@ -10,25 +10,26 @@
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 import string, os, sys
+import types
 
 from wxPython import wx
 true=1;false=0
 
 #sys.path.append('..')
 import EditorHelper, ExplorerNodes, Preferences
+from Views import StyledTextCtrls, STCStyleEditor
+import methodparse
 
 class PreferenceGroupNode(ExplorerNodes.ExplorerNode):
     """ Represents a group of preference collections """
+    protocol = 'prefs.group'
     defName = 'PrefsGroup'
     def __init__(self, name, parent):
         ExplorerNodes.ExplorerNode.__init__(self, name, name, None,
-              EditorHelper.imgFolder, None)#parent)
+              EditorHelper.imgPrefsFolder, None)
 
+        self.vetoSort = true
         self.preferences = []
-
-##    def destroy(self):
-##        self.parent = None
-##        self.preferences = ()
 
     def isFolderish(self):
         return true
@@ -46,13 +47,26 @@ class BoaPrefGroupNode(PreferenceGroupNode):
         self.bold = true
 
         prefImgIdx = EditorHelper.imgZopeSystemObj
+        stcPrefImgIdx = EditorHelper.imgPrefsSTCStyles
 
         self.source_pref = PreferenceGroupNode('Source', self)
+        stylesFile = os.path.join(Preferences.rcPath, 'stc-styles.rc.cfg')
         self.source_pref.preferences = [
-            PreferenceCollectionNode('Python', {}, '', prefImgIdx, self),
-            PreferenceCollectionNode('HTML', {}, '', prefImgIdx, self),
-            PreferenceCollectionNode('XML', {}, '', prefImgIdx, self),
-            PreferenceCollectionNode('CPP', {}, '', prefImgIdx, self),]
+            UsedModuleSrcBsdPrefColNode('Default settings',
+                Preferences.exportedSTCProps, os.path.join(Preferences.rcPath, 
+                'prefs.rc.py'), prefImgIdx, self, Preferences, false),
+            STCStyleEditPrefsCollNode('Python', 'python', 
+                StyledTextCtrls.PythonStyledTextCtrlMix, stylesFile, stcPrefImgIdx, self),
+            STCStyleEditPrefsCollNode('HTML', 'html', 
+                StyledTextCtrls.BaseHTMLStyledTextCtrlMix, stylesFile, stcPrefImgIdx, self),
+            STCStyleEditPrefsCollNode('XML', 'xml', 
+                StyledTextCtrls.XMLStyledTextCtrlMix, stylesFile, stcPrefImgIdx, self),
+            STCStyleEditPrefsCollNode('CPP', 'cpp', 
+                StyledTextCtrls.CPPStyledTextCtrlMix, stylesFile, stcPrefImgIdx, self),
+            STCStyleEditPrefsCollNode('Config', 'prop', 
+                StyledTextCtrls.ConfigSTCMix, stylesFile, stcPrefImgIdx, self),
+            STCStyleEditPrefsCollNode('Text', 'text', 
+                StyledTextCtrls.TextSTCMix, stylesFile, stcPrefImgIdx, self),]
         self.preferences.append(self.source_pref)
 
         self.general_pref = UsedModuleSrcBsdPrefColNode('General',
@@ -60,16 +74,21 @@ class BoaPrefGroupNode(PreferenceGroupNode):
             'prefs.rc.py'), prefImgIdx, self, Preferences)
         self.preferences.append(self.general_pref)
 
-        self.platform_pref = UsedModuleSrcBsdPrefColNode('Platform',
+        self.platform_pref = UsedModuleSrcBsdPrefColNode('Platform spesific',
             Preferences.exportedProperties2, os.path.join(Preferences.rcPath,
             'prefs.%s.rc.py' % (wx.wxPlatform == '__WXMSW__' and 'msw' or 'gtk')),
             prefImgIdx, self, Preferences)
         self.preferences.append(self.platform_pref)
+        
+        self.keys_pref = KeyDefsSrcPrefColNode('Key bindings (not finished)', ('*',), 
+            os.path.join(Preferences.rcPath, 'prefskeys.rc.py'), prefImgIdx, 
+            self, Preferences.keyDefs)
+        self.preferences.append(self.keys_pref)
+        
 
 ##        self.pychecker_pref = SourceBasedPrefColNode('PyChecker',
 ##            ('*',), Preferences.pyPath+'/.pycheckrc', prefImgIdx, self)
 ##        self.preferences.append(self.pychecker_pref)
-
 
 
 class PreferenceCollectionNode(ExplorerNodes.ExplorerNode):
@@ -77,7 +96,7 @@ class PreferenceCollectionNode(ExplorerNodes.ExplorerNode):
     protocol = 'prefs'
     def __init__(self, name, props, resourcepath, imgIdx, parent):
         ExplorerNodes.ExplorerNode.__init__(self, name, resourcepath, None,
-              imgIdx, None, props)#parent, props)
+              imgIdx, None, props)
 
     def open(self, editor):
         """ Populate inspector with preference items """
@@ -85,7 +104,7 @@ class PreferenceCollectionNode(ExplorerNodes.ExplorerNode):
         comp.updateProps()
 
         # Select in inspector
-        editor.inspector.Raise()
+        editor.inspector.restore()
         if editor.inspector.pages.GetSelection() != 1:
             editor.inspector.pages.SetSelection(1)
         editor.inspector.selectObject(comp, false)
@@ -102,6 +121,32 @@ class PreferenceCollectionNode(ExplorerNodes.ExplorerNode):
     def notifyBeginLabelEdit(self, event):
         event.Veto()
 
+class STCStyleEditPrefsCollNode(PreferenceCollectionNode):
+    protocol = 'stc.prefs'
+    def __init__(self, name, lang, STCclass, resourcepath, imgIdx, parent):
+        PreferenceCollectionNode.__init__(self, name, {}, resourcepath, imgIdx, parent)
+        self.language = lang
+        self.STCclass = STCclass
+
+    def open(self, editor):
+        # build list of all open STC's in the Editor
+        openSTCViews = []
+        for modPge in editor.modules.values():
+            for view in modPge.model.views.values():
+                if isinstance(view, self.STCclass):
+                    openSTCViews.append(view)
+        # also check the shell
+        if isinstance(editor.shell, self.STCclass):
+            openSTCViews.append(editor.shell)                    
+        dlg = STCStyleEditor.STCStyleEditDlg(editor, self.name, self.language, 
+              self.resourcepath, openSTCViews)
+        try: dlg.ShowModal()
+        finally: dlg.Destroy()
+    
+    def getURI(self):
+        return '%s://%s' %(PreferenceCollectionNode.getURI(self), self.language)
+        
+                
 import moduleparse
 
 class SourceBasedPrefColNode(PreferenceCollectionNode):
@@ -113,18 +158,19 @@ class SourceBasedPrefColNode(PreferenceCollectionNode):
     This only applies to names assigned to values ( x = 123 ) not to global
     names defined by classes functions and imports.
     """
-    def __init__(self, name, props, resourcepath, imgIdx, parent):
+    def __init__(self, name, props, resourcepath, imgIdx, parent, showBreaks=true):
         PreferenceCollectionNode.__init__(self, name, props, resourcepath,
               imgIdx, parent)
+        self.showBreakLines = showBreaks
 
     def load(self):
-        # XXX Fix when there is a generic factory to create nodes based on
-        # XXX filename protocol
+        # All preferences are local
         module = moduleparse.Module(self.name,
               open(self.resourcepath).readlines())
 
         values = []
         comments = []
+        options = []
         # keep only names defined in the property list
         for name in module.global_order[:]:
             if self.properties != ('*',) and name[0] != '_' and \
@@ -144,20 +190,32 @@ class SourceBasedPrefColNode(PreferenceCollectionNode):
                 else:
                     values.append('')
 
-                # Read possible comment/help
+                # Read possible comment/help or options
                 comment = []
+                option = ''
                 idx = module.globals[name].start-2
                 while idx >= 0:
                     line = string.strip(module.source[idx])
-                    if line and line[0] == '#':
+                    if len(line) > 11 and line[:11] == '## options:':
+                        option = string.strip(line[11:])
+                        idx = idx - 1
+                    elif len(line) > 8 and line[:8] == '## type:':
+                        option = string.strip('##'+line[8:])
+                        idx = idx - 1
+                    elif line and line[0] == '#':
                         comment.append(string.lstrip(line[1:]))
                         idx = idx - 1
                     else:
                         break
                 comment.reverse()
                 comments.append(string.join(comment, '\n'))
+                options.append(option)
 
-        return module.global_order, values, module.globals, comments
+        if self.showBreakLines: breaks = module.break_lines
+        else: breaks = {}
+
+        return (module.global_order, values, module.globals, comments, options,
+                breaks)
 
     def save(self, filename, data):
         """ Updates one property """
@@ -167,37 +225,117 @@ class SourceBasedPrefColNode(PreferenceCollectionNode):
 
 class UsedModuleSrcBsdPrefColNode(SourceBasedPrefColNode):
     """ Also update the value of a global attribute of an imported module """
-    def __init__(self, name, props, resourcepath, imgIdx, parent, module):
+    def __init__(self, name, props, resourcepath, imgIdx, parent, module, showBreaks=true):
         SourceBasedPrefColNode.__init__(self, name, props, resourcepath, imgIdx,
-              parent)
+              parent, showBreaks)
         self.module = module
 
     def save(self, filename, data):
         SourceBasedPrefColNode.save(self, filename, data)
         if hasattr(self.module, data[0]):
-            setattr(self.module, data[0], eval(data[1]))
+            setattr(self.module, data[0], eval(data[1], vars(Preferences)))
+
+class KeyDefsSrcPrefColNode(PreferenceCollectionNode):
+    """ Preference collection representing the key bindings
+    """
+    def __init__(self, name, props, resourcepath, imgIdx, parent, keyDefs):
+        PreferenceCollectionNode.__init__(self, name, props, resourcepath,
+              imgIdx, parent)
+        #self.showBreakLines = showBreaks
+
+    def load(self):
+        src = open(self.resourcepath).readlines()
+        
+        # find keydefs
+        keydefs = {}
+        start = end = idx = -1
+        for line in src:
+            idx = idx + 1
+            line = string.strip(line)
+            if line == 'keyDefs = {':
+                start = idx
+            elif start != -1 and line:
+                if line[-1] == '}':
+                    end = idx
+                    break
+                else:
+                    colon = string.find(line, ':')
+                    if colon == -1: raise Exception('Invalid keyDef: %s'%line)
+                    keydefs[string.rstrip(line[:colon])[1:-1]] = \
+                          string.lstrip(line[colon+1:])
+
+        names = keydefs.keys()
+        names.sort()
+        return (names, keydefs.values(), keydefs, ['']*len(keydefs), 
+              ['## keydef']*len(keydefs), {})
+
+    def save(self, filename, data):
+        """ Updates one property """
+##        src = open(self.resourcepath).readlines()
+##        src[data[2].start-1] = '%s = %s\n' % (data[0], data[1])
+##        open(self.resourcepath, 'w').writelines(src)
+
 
 class ConfigBasedPrefsColNode(PreferenceCollectionNode):
     """ Preferences driven by config files """
     pass
 
-class STCPrefsColNode(PreferenceCollectionNode):
-    """ StyledTextControl preferences """
-    pass
 
 #---Companions------------------------------------------------------------------
 
-from PropEdit import PropertyEditors
-from wxPython import wx
+from PropEdit import PropertyEditors, InspectorEditorControls
+
+class KeyDefConfPropEdit(PropertyEditors.ConfPropEdit):
+    def inspectorEdit(self):
+        self.editorCtrl = InspectorEditorControls.ButtonIEC(self, self.value)
+        self.editorCtrl.createControl(self.parent, self.idx, self.width, self.edit)
+
+    def edit(self, event):
+        import KeyDefsDlg
+        dlg = KeyDefsDlg.create(self.parent)
+        try:
+            if dlg.ShowModal() == wx.wxID_OK: pass
+            #self.inspectorCancel()
+                          
+        finally:
+            dlg.Destroy()
 
 class PreferenceCompanion(ExplorerNodes.ExplorerCompanion):
     def __init__(self, name, prefNode):
         ExplorerNodes.ExplorerCompanion.__init__(self, name)
         self.prefNode = prefNode
+        
+        self._breaks = {}
 
+    typeMap = {}
+    customTypeMap = {'filepath': PropertyEditors.FilepathConfPropEdit,
+                     'keydef': KeyDefConfPropEdit}
     def getPropEditor(self, prop):
-        return PropertyEditors.StrConfPropEdit
+        for aProp in self.propItems:
+            if aProp[0] == prop: break
+        else:
+            raise Exception('Property "%s" not found'%prop)
 
+        srcVal = aProp[1]
+        opts = aProp[4]
+        
+        if prop in self._breaks.values():
+            return None
+
+        if opts:
+            if opts[:2] == '##':
+                return self.customTypeMap.get(string.strip(opts[2:]), None)
+            else:
+                return PropertyEditors.EnumConfPropEdit
+
+        if srcVal in ('true', 'false'):
+            return PropertyEditors.BoolConfPropEdit
+
+        val = eval(srcVal, vars(Preferences))
+        if isinstance(val, wx.wxColour):
+            return PropertyEditors.ColourConfPropEdit
+        return self.typeMap.get(type(val), PropertyEditors.StrConfPropEdit)
+        
     def getPropertyHelp(self, propName):
         for prop in self.propItems:
             if prop[0] == propName: return prop[3]
@@ -205,17 +343,36 @@ class PreferenceCompanion(ExplorerNodes.ExplorerCompanion):
             return propName
 
     def getPropertyItems(self):
-        order, vals, props, comments = self.prefNode.load()
+        order, vals, props, comments, options, self._breaks = self.prefNode.load()
 
+        # remove empty break lines (separators)
+        for lineNo in self._breaks.keys():
+            if not self._breaks[lineNo]:
+                del self._breaks[lineNo]
+
+        breakLinenos = self._breaks.keys()
+        breakLinenos.sort()
+        if len(breakLinenos):
+            breaksIdx = 0
+        else:
+            breaksIdx = None
+    
         res = []
-        for name, value, comment in map(None, order, vals, comments):
-            res.append( (name, value, props[name], comment) )
+        for name, value, comment, option in map(None, order, vals, comments, options):
+            if breaksIdx is not None and \
+                  props[name].start > breakLinenos[breaksIdx]:
+                res.append( (self._breaks[breakLinenos[breaksIdx]], '', None, '', '') )
+                if breaksIdx == len(self._breaks) -1:
+                    breaksIdx = None
+                else:
+                    breaksIdx = breaksIdx + 1
+            res.append( (name, value, props[name], comment, option) )
         return res
 
     def setPropHook(self, name, value, oldProp):
         # XXX validate etc.
         try:
-            eval(value)
+            eval(value, vars(Preferences))
         except Exception, error:
             wx.wxLogError('Error: '+str(error))
             return false
@@ -223,3 +380,39 @@ class PreferenceCompanion(ExplorerNodes.ExplorerCompanion):
             newProp = (name, value) + oldProp[2:]
             self.prefNode.save(name, newProp)
             return true
+
+    def persistedPropVal(self, name, setterName):
+        if name in self._breaks.values():
+            return 'PROP_CATEGORY'
+        else:
+            return None
+
+    def getPropOptions(self, name):
+        for prop in self.propItems:
+            if prop[0] == name: 
+                strOpts = prop[4]
+                if strOpts and strOpts[:2] != '##': 
+                    return self.eval(strOpts)
+                else: 
+                    return ()
+        else:
+            return ()
+        
+    def getPropNames(self, name):
+        for prop in self.propItems:
+            if prop[0] == name: 
+                strOpts = prop[4]
+                if strOpts and strOpts[:2] != '##':
+                    return methodparse.safesplitfields(strOpts, ',')
+                else: return ()
+        else:
+            return ()
+
+    def eval(self, expr):
+        import PaletteMapping
+        return PaletteMapping.evalCtrl(expr, vars(Preferences))
+
+##    def GetProp(self, name):
+##        ExplorerNodes.ExplorerCompanion.GetProp(self, name)
+##        return self.findProp(name)[0][1]
+        
