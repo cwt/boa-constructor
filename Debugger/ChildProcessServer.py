@@ -15,11 +15,6 @@ if boa_root not in sys.path:
 from ExternalLib.xmlrpcserver import RequestHandler
 
 
-try:
-    from cStringIO import StringIO
-except ImportError:
-    from StringIO import StringIO
-
 
 serving = 1
 
