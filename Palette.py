@@ -6,14 +6,14 @@
 #
 # Created:     1999
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999 - 2003 Riaan Booysen
+# Copyright:   (c) 1999 - 2004 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
 #Boa:Frame:BoaFrame
 
 print 'importing Palette'
 
-import os
+import os, sys
 
 from wxPython.wx import *
 
@@ -397,16 +397,17 @@ class PanelPalettePage(wxPanel, BasePalettePage):
         self.menusCheckable = false
 
     def destroy(self):
-        del self.widgets
-        self.DestroyChildren()
-        for btn in self.buttons.values():
-            btn.faceDnClr = None
-            btn.shadowPen = None
-            btn.highlightPen = None
-            btn.focusIndPen = None
-            btn.bmpLabel = None
-        if self.palette.paletteStyle == 'tabs':
-            self.menu.Destroy()
+        if hasattr(self, 'widgets'):
+            del self.widgets
+            self.DestroyChildren()
+            for btn in self.buttons.values():
+                btn.faceDnClr = None
+                btn.shadowPen = None
+                btn.highlightPen = None
+                btn.focusIndPen = None
+                btn.bmpLabel = None
+            if self.palette.paletteStyle == 'tabs':
+                self.menu.Destroy()
 
     def addButton(self, widgetName, wxClass, constrClass, clickEvt, hintFunc, hintLeaveFunc, btnType):
         mID = wxNewId()
