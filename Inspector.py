@@ -367,8 +367,8 @@ class ParentTree(wxTreeCtrl):
         if self.valid: 
             idx = self.GetSelection()
             if self.designer:
-#                if idx == self.root:
-#                if self.GetRootItem() == idx:
+##                if idx == self.root:
+##                if self.GetRootItem() == idx:
                 # Ugly but nothing else works
                 try:
                     ctrlInfo = self.designer.objects[self.GetItemText(idx)]
@@ -376,13 +376,7 @@ class ParentTree(wxTreeCtrl):
                     ctrlInfo = self.designer.objects['']
             
                 if hasattr(self.designer, 'selection') and self.designer.selection:
-                    print 'Insp select:', ctrlInfo[1]
-                    td = self.designer.selection.dragging
-                    self.designer.selection.dragging = false
-                    self.designer.selection.startSize = ctrlInfo[1].GetSize()
-                    self.designer.selection.startPos = ctrlInfo[1].GetPosition()
                     self.designer.selection.selectCtrl(ctrlInfo[1], ctrlInfo[0])
-                    self.designer.selection.dragging = td
     
         
 class NameValue:
