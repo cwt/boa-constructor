@@ -26,6 +26,12 @@ from Preferences import wxDefaultFrameSize, wxDefaultFramePos
 import sourceconst
 
 class BaseFrameDTC(ContainerDTC):
+    defFramePos = wxPyDefaultPosition
+    defFrameSize = wxPyDefaultSize
+    defFrameStyle = wxDEFAULT_FRAME_STYLE
+    
+    dialogLayout = false
+    
     def __init__(self, name, designer, frameCtrl):
         ContainerDTC.__init__(self, name, designer, None, None)
         self.control = frameCtrl
@@ -96,8 +102,7 @@ class FrameDTC(FramesConstr, BaseFrameDTC):
         self.editors.update({'StatusBar': StatusBarClassLinkPropEdit,
                              'MenuBar': MenuBarClassLinkPropEdit,
                              'ToolBar': ToolBarClassLinkPropEdit })
-        self.triggers.update({'ToolBar': self.ChangeToolBar,
-                              'StatusBar': self.ChangeStatusBar})
+        self.triggers.update({'ToolBar': self.ChangeToolBar})
         self.windowStyles = ['wxDEFAULT_FRAME_STYLE', 'wxICONIZE',
               'wxMINIMIZE', 'wxMAXIMIZE', 'wxSTAY_ON_TOP', 'wxSYSTEM_MENU',
               'wxRESIZE_BORDER', 'wxTHICK_FRAME', 'wxFRAME_FLOAT_ON_PARENT',
@@ -113,6 +118,14 @@ class FrameDTC(FramesConstr, BaseFrameDTC):
     def dependentProps(self):
         return BaseFrameDTC.dependentProps(self) + \
           ['ToolBar', 'MenuBar', 'StatusBar']
+
+    def hideDesignTime(self):
+        return BaseFrameDTC.hideDesignTime(self) + ['StatusBar']
+
+    def properties(self):
+        props = BaseFrameDTC.properties(self)
+        props['StatusBar'] = ('CompnRoute', self.GetStatusBar, self.SetStatusBar)
+        return props
 
     def notification(self, compn, action):
         BaseFrameDTC.notification(self, compn, action)
@@ -146,8 +159,7 @@ class FrameDTC(FramesConstr, BaseFrameDTC):
         # XXX Delete links to frame bars so client size is accurate
         self.control.SetToolBar(None)
         self.control.SetStatusBar(None)
-        if wxPlatform != '__WXGTK__':
-            self.control.SetMenuBar(None)
+        self.control.SetMenuBar(None)
 
         BaseFrameDTC.updatePosAndSize(self)
 
@@ -157,13 +169,20 @@ class FrameDTC(FramesConstr, BaseFrameDTC):
         else:
             self.designer.disconnectToolBar(oldValue)
 
-    def ChangeStatusBar(self, oldValue, newValue):
-        pass
-        # XXX Cannot refresh designer because statusbar not yet connected
+    def GetStatusBar(self, x):
+        return self.control.GetStatusBar()
+
+    def SetStatusBar(self, value):
+        self.control.SetStatusBar(value)
+        # force a resize event so that statusbar can layout
+        if value: 
+            self.control.SendSizeEvent()
 
 
 EventCategories['DialogEvent'] = (EVT_INIT_DIALOG,)
 class DialogDTC(FramesConstr, BaseFrameDTC):
+    dialogLayout = true
+    
     #wxDocs = HelpCompanions.wxDialogDocs
     def __init__(self, name, designer, frameCtrl):
         BaseFrameDTC.__init__(self, name, designer, frameCtrl)
@@ -177,7 +196,7 @@ class DialogDTC(FramesConstr, BaseFrameDTC):
         # wxDialog, introspection will pick up wxFrame spesific properties
         # which must be supressed
         return BaseFrameDTC.hideDesignTime(self) + ['ToolBar', 'MenuBar',
-              'StatusBar', 'Icon']
+              'StatusBar', 'StatusBarPane']
 
     def designTimeSource(self):
         return {'title': `self.name`,
@@ -207,7 +226,13 @@ class MDIChildFrameDTC(FramesConstr, FrameDTC):
     pass
 
 class PopupWindowDTC(ContainerDTC):
+    defFramePos = wxPyDefaultPosition
+    defFrameSize = wxPyDefaultSize
+    defFrameStyle = wxDEFAULT_FRAME_STYLE
+    
+    dialogLayout = false
     suppressWindowId = true
+
     def __init__(self, name, designer, frameCtrl):
         ContainerDTC.__init__(self, name, designer, None, None)
         self.control = frameCtrl
@@ -238,8 +263,9 @@ class PopupWindowDTC(ContainerDTC):
 EventCategories['PanelEvent'] = (EVT_SYS_COLOUR_CHANGED,)
 
 class FramePanelDTC(Constructors.WindowConstr, BaseFrameDTC):
-    #wxDocs = HelpCompanions.wxPanelDocs
+    dialogLayout = true
     suppressWindowId = false
+
     def __init__(self, name, designer, frameCtrl):
         BaseFrameDTC.__init__(self, name, designer, frameCtrl)
 
@@ -248,7 +274,7 @@ class FramePanelDTC(Constructors.WindowConstr, BaseFrameDTC):
 
     def hideDesignTime(self):
         return BaseFrameDTC.hideDesignTime(self) + ['ToolBar', 'MenuBar',
-              'StatusBar', 'Icon', 'Title', 'Anchors']
+              'StatusBar', 'StatusBarPane', 'Icon', 'Title', 'Anchors']
 
     def designTimeSource(self, position = 'wxDefaultPosition', size = 'wxDefaultSize'):
         return {'pos':   position,
