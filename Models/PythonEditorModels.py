@@ -537,6 +537,10 @@ class ModuleModel(SourceModel):
             if report:
                 self.editor.setStatus('Could not find %s'%importName, 'Error')
             return false
+        
+        if f is None:
+            return false
+        
         f.close()
         
         import Controllers
