@@ -22,20 +22,34 @@ import Help, Preferences, Utils
 
 from Preferences import IS, flatTools
 
-from ExternalLib.buttons import wxGenButton, wxGenBitmapButton, wxGenToggleButton, wxGenBitmapToggleButton, wxGenButtonEvent
+from wxPython.lib.buttons import wxGenButton, wxGenBitmapButton, wxGenToggleButton, wxGenBitmapToggleButton, wxGenButtonEvent
 
 currentMouseOverTip = ''
 
-[wxID_BOAFRAME, wxID_BOAFRAMECONTEXTHELPSEARCH, wxID_BOAFRAMEPALETTE, wxID_BOAFRAMETOOLBAR] = map(lambda _init_ctrls: wxNewId(), range(4))
+[wxID_BOAFRAME, wxID_BOAFRAMECONTEXTHELPSEARCH, wxID_BOAFRAMEPALETTE, 
+ wxID_BOAFRAMETOOLBAR, 
+] = map(lambda _init_ctrls: wxNewId(), range(4))
 
-[wxID_BOAFRAMETOOLBARTOOLS0, wxID_BOAFRAMETOOLBARTOOLS1, wxID_BOAFRAMETOOLBARTOOLS2] = map(lambda _init_coll_toolBar_Tools: wxNewId(), range(3))
+[wxID_BOAFRAMETOOLBARTOOLS0, wxID_BOAFRAMETOOLBARTOOLS1, 
+ wxID_BOAFRAMETOOLBARTOOLS2, 
+] = map(lambda _init_coll_toolBar_Tools: wxNewId(), range(3))
 
 class BoaFrame(wxFrame, Utils.FrameRestorerMixin):
     def _init_coll_toolBar_Tools(self, parent):
+        # generated method, don't edit
 
-        parent.AddTool(bitmap = IS.load('Images/Shared/Inspector.png'), id = wxID_BOAFRAMETOOLBARTOOLS0, isToggle = false, longHelpString = '', pushedBitmap = wxNullBitmap, shortHelpString = 'Brings the Inspector to the front')
-        parent.AddTool(bitmap = IS.load('Images/Shared/Editor.png'), id = wxID_BOAFRAMETOOLBARTOOLS1, isToggle = false, longHelpString = '', pushedBitmap = wxNullBitmap, shortHelpString = 'Brings the Editor to the front')
-        parent.AddTool(bitmap = IS.load('Images/Shared/ClassBrowser.png'), id = wxID_BOAFRAMETOOLBARTOOLS2, isToggle = false, longHelpString = '', pushedBitmap = wxNullBitmap, shortHelpString = 'Opens the Class explorer for wxPython')
+        parent.AddTool(bitmap=IS.load('Images/Shared/Inspector.png'),
+              id=wxID_BOAFRAMETOOLBARTOOLS0, isToggle=false, longHelpString='',
+              pushedBitmap=wxNullBitmap,
+              shortHelpString='Brings the Inspector to the front')
+        parent.AddTool(bitmap=IS.load('Images/Shared/Editor.png'),
+              id=wxID_BOAFRAMETOOLBARTOOLS1, isToggle=false, longHelpString='',
+              pushedBitmap=wxNullBitmap,
+              shortHelpString='Brings the Editor to the front')
+        parent.AddTool(bitmap=IS.load('Images/Shared/ClassBrowser.png'),
+              id=wxID_BOAFRAMETOOLBARTOOLS2, isToggle=false, longHelpString='',
+              pushedBitmap=wxNullBitmap,
+              shortHelpString='Opens the Class explorer for wxPython')
         EVT_TOOL(self, wxID_BOAFRAMETOOLBARTOOLS0, self.OnInspectorToolClick)
         EVT_TOOL(self, wxID_BOAFRAMETOOLBARTOOLS1, self.OnEditorToolClick)
         EVT_TOOL(self, wxID_BOAFRAMETOOLBARTOOLS2, self.OnExplorerToolClick)
@@ -43,23 +57,34 @@ class BoaFrame(wxFrame, Utils.FrameRestorerMixin):
         parent.Realize()
 
     def _init_utils(self):
+        # generated method, don't edit
         pass
 
     def _init_ctrls(self, prnt):
-        wxFrame.__init__(self, id = wxID_BOAFRAME, name = '', parent = prnt, pos = wxPoint(116, 275), size = wxSize(645, 74), style = wxSYSTEM_MENU | wxRESIZE_BORDER | wxCAPTION | wxMINIMIZE_BOX, title = self.frameTitle)
+        # generated method, don't edit
+        wxFrame.__init__(self, id=wxID_BOAFRAME, name='', parent=prnt,
+              pos=wxPoint(116, 275), size=wxSize(645, 74),
+              style=wxSYSTEM_MENU | wxRESIZE_BORDER | wxCAPTION | wxMINIMIZE_BOX,
+              title=self.frameTitle)
         self._init_utils()
         self.SetClientSize(wxSize(637, 47))
         EVT_CLOSE(self, self.OnCloseWindow)
         EVT_ICONIZE(self, self.OnBoaframeIconize)
 
-        self.toolBar = wxToolBar(id = wxID_BOAFRAMETOOLBAR, name = 'toolBar', parent = self, pos = wxPoint(0, -28), size = wxSize(637, 28), style = wxTB_HORIZONTAL | wxNO_BORDER | Preferences.flatTools)
+        self.toolBar = wxToolBar(id=wxID_BOAFRAMETOOLBAR, name='toolBar',
+              parent=self, pos=wxPoint(0, 0), size=wxSize(637, 24),
+              style=wxTB_HORIZONTAL | wxNO_BORDER | Preferences.flatTools)
         self._init_coll_toolBar_Tools(self.toolBar)
         self.SetToolBar(self.toolBar)
 
-        self.palette = wxNotebook(id = wxID_BOAFRAMEPALETTE, name = 'palette', parent = self, pos = wxPoint(0, 0), size = wxSize(637, 19), style = 0)
+        self.palette = wxNotebook(id=wxID_BOAFRAMEPALETTE, name='palette',
+              parent=self, pos=wxPoint(0, 24), size=wxSize(637, 23), style=0)
 
-        self.contextHelpSearch = wxTextCtrl(id = wxID_BOAFRAMECONTEXTHELPSEARCH, name = 'contextHelpSearch', parent = self.toolBar, pos = wxPoint(232, 0), size = wxSize(100, 21), style = 0, value = '')
-        EVT_TEXT_ENTER(self.contextHelpSearch, wxID_BOAFRAMECONTEXTHELPSEARCH, self.OnSearchEnter)
+        self.contextHelpSearch = wxTextCtrl(id=wxID_BOAFRAMECONTEXTHELPSEARCH,
+              name='contextHelpSearch', parent=self.toolBar, pos=wxPoint(232,
+              0), size=wxSize(100, 21), style=0, value='')
+        EVT_TEXT_ENTER(self.contextHelpSearch, wxID_BOAFRAMECONTEXTHELPSEARCH,
+              self.OnSearchEnter)
         EVT_SET_FOCUS(self.contextHelpSearch, self.OnHelpSearchFocus)
 
     def __init__(self, parent, id, app):
@@ -431,7 +456,7 @@ class PanelPalettePage(wxPanel, BasePalettePage):
         newButton.SetBezelWidth(1)
         newButton.SetUseFocusIndicator(0)
         newButton.SetToolTipString(widgetName)
-        newButton.SetBitmapLabel(bmp)
+        newButton.SetBitmapLabel(bmp, false)
 
         EVT_BUTTON(self, mID, clickEvt)
 
