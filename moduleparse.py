@@ -652,7 +652,13 @@ class Module:
 ##        self.classes[class_name].method_order.remove(name)
 
     def searchDoc(self, body):
-        m = is_doc.search(body)
+        try:
+            m = is_doc.search(body)
+        except RuntimeError, err:
+            if str(err) != 'maximum recursion limit exceeded':
+                raise
+            else:
+                return '<i>Doc string too big for sre</i>'
         if m:
             s, e = m.span()
             return string.strip(body[s+3:e-3])
