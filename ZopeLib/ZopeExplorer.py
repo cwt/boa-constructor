@@ -612,6 +612,7 @@ class ZopeController(ExplorerNodes.Controller, ExplorerNodes.ClipboardController
             for idx in idxs:
                 item = self.list.items[idx]
                 if item:
+                    from FileDlg import wxFileDialog
                     dlg = wxFileDialog(self.list, 'Upload '+item.name, currPath,
                           item.name, '', wxOPEN)
                     try:
