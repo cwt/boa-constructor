@@ -17,14 +17,13 @@ import string, copy, os, pprint
 
 from wxPython.wx import *
 
-import PaletteMapping, Preferences, Utils
+import Preferences, Utils
 
+import PaletteMapping, EditorViews
 from ObjCollection import ObjectCollection, getCollName
+
 import methodparse, sourceconst
 
-import EditorViews
-
-bodyIndent = bodyIndent = Utils.getIndentBlock()*2
 
 class InspectorSessionMix:
     def doPost(self, inspector):
@@ -232,8 +231,6 @@ class InspectableObjectView(EditorViews.EditorView, InspectorSessionMix):
                         self.objects[name][0].setEvents([evt])
 
     def addCollView(self, name, collInitMethod, create):
-        #import CollectionEdit#from Views
-
         comp, ctrl = self.objects[name][:2]
         collName = getCollName(collInitMethod, name)
         collCompClass = comp.subCompanions[collName]
@@ -433,7 +430,8 @@ class InspectableObjectView(EditorViews.EditorView, InspectorSessionMix):
         emptyCodeBlock = newBody == ['']
 
         if Preferences.cgAddInitMethodWarning:
-            newBody.insert(0, '%s# %s'%(bodyIndent, sourceconst.code_gen_warning))
+            newBody.insert(0, '%s# %s'%(sourceconst.bodyIndent, 
+                                        sourceconst.code_gen_warning))
 
         if module.classes[self.model.main].methods.has_key(\
           self.collectionMethod):
@@ -441,11 +439,11 @@ class InspectableObjectView(EditorViews.EditorView, InspectorSessionMix):
             docs = module.getClassMethDoc(self.model.main,
               self.collectionMethod)
             if (len(docs) > 0) and docs[0]:
-                newBody.insert(0, '%s""" %s """'%(bodyIndent, docs))
+                newBody.insert(0, '%s""" %s """'%(sourceconst.bodyIndent, docs))
                 emptyCodeBlock = false
 
             if emptyCodeBlock:
-                newBody[-1:-1] = [bodyIndent+'pass']
+                newBody[-1:-1] = [sourceconst.bodyIndent+'pass']
 
             module.replaceMethodBody(self.model.main,
                   self.collectionMethod, newBody)
@@ -471,7 +469,8 @@ class InspectableObjectView(EditorViews.EditorView, InspectorSessionMix):
                 collView.copyCtrls(collMeth)
                 collMeths.append(collMeth)
 
-        output.insert(0, '    def %s(%s):'% (self.collectionMethod, self.collectionParams))
+        output.insert(0, '%sdef %s(%s):'% (sourceconst.methodIndent, 
+              self.collectionMethod, self.collectionParams))
         for ctrlName in ctrlsAndContainedCtrls:
             definedCtrls.append(ctrlName)
             compn = self.objects[ctrlName][0]
@@ -510,6 +509,10 @@ class InspectableObjectView(EditorViews.EditorView, InspectorSessionMix):
         for line in input:
             if line[:8] == '    def ':
                 meth = line[8:string.find(line, '(', 9)]
+                currMeth = [meth]
+                methList.append(currMeth)
+            elif line[:5] == '\tdef ':
+                meth = line[5:string.find(line, '(', 6)]
                 currMeth = [meth]
                 methList.append(currMeth)
             else:
