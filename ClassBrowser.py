@@ -19,31 +19,49 @@ from wxPython.wx import *
 import Preferences, Utils
 from Preferences import IS
 
-[wxID_CLASSBROWSERFRAME, wxID_CLASSBROWSERFRAMEHIERARCHY, wxID_CLASSBROWSERFRAMEPAGES, wxID_CLASSBROWSERFRAMESTATUSBAR, wxID_CLASSBROWSERFRAMETREE] = map(lambda _init_ctrls: wxNewId(), range(5))
+[wxID_CLASSBROWSERFRAME, wxID_CLASSBROWSERFRAMEHIERARCHY, 
+ wxID_CLASSBROWSERFRAMEPAGES, wxID_CLASSBROWSERFRAMESTATUSBAR, 
+ wxID_CLASSBROWSERFRAMETREE, 
+] = map(lambda _init_ctrls: wxNewId(), range(5))
 
 class ClassBrowserFrame(wxFrame, Utils.FrameRestorerMixin):
     def _init_coll_pages_Pages(self, parent):
+        # generated method, don't edit
 
-        parent.AddPage(bSelect = true, imageId = -1, pPage = self.hierarchy, strText = 'Hierarchy')
-        parent.AddPage(bSelect = false, imageId = -1, pPage = self.tree, strText = 'Modules')
+        parent.AddPage(bSelect=true, imageId=-1, pPage=self.hierarchy,
+              strText='Hierarchy')
+        parent.AddPage(bSelect=false, imageId=-1, pPage=self.tree,
+              strText='Modules')
 
     def _init_utils(self):
+        # generated method, don't edit
         pass
 
     def _init_ctrls(self, prnt):
-        wxFrame.__init__(self, id = wxID_CLASSBROWSERFRAME, name = '', parent = prnt, pos = wxPoint(475, 238), size = wxSize(299, 497), style = wxDEFAULT_FRAME_STYLE | Preferences.childFrameStyle, title = 'wxPython Class Browser')
+        # generated method, don't edit
+        wxFrame.__init__(self, id=wxID_CLASSBROWSERFRAME, name='', parent=prnt,
+              pos=wxPoint(475, 238), size=wxSize(299, 497),
+              style=wxDEFAULT_FRAME_STYLE | Preferences.childFrameStyle,
+              title='wxPython Class Browser')
         self._init_utils()
         self.SetClientSize(wxSize(291, 470))
         EVT_CLOSE(self, self.OnCloseWindow)
 
-        self.statusBar = wxStatusBar(id = wxID_CLASSBROWSERFRAMESTATUSBAR, name = 'statusBar', parent = self, style = wxST_SIZEGRIP)
+        self.statusBar = wxStatusBar(id=wxID_CLASSBROWSERFRAMESTATUSBAR,
+              name='statusBar', parent=self, style=wxST_SIZEGRIP)
         self.SetStatusBar(self.statusBar)
 
-        self.pages = wxNotebook(id = wxID_CLASSBROWSERFRAMEPAGES, name = 'pages', parent = self, pos = wxPoint(0, 0), size = wxSize(291, 450), style = 0)
+        self.pages = wxNotebook(id=wxID_CLASSBROWSERFRAMEPAGES, name='pages',
+              parent=self, pos=wxPoint(0, 0), size=wxSize(291, 450), style=0)
 
-        self.hierarchy = wxTreeCtrl(id = wxID_CLASSBROWSERFRAMEHIERARCHY, name = 'hierarchy', parent = self.pages, pos = wxPoint(0, 0), size = wxSize(283, 424), style = wxTR_HAS_BUTTONS, validator = wxDefaultValidator)
+        self.hierarchy = wxTreeCtrl(id=wxID_CLASSBROWSERFRAMEHIERARCHY,
+              name='hierarchy', parent=self.pages, pos=wxPoint(0, 0),
+              size=wxSize(283, 424), style=wxTR_HAS_BUTTONS,
+              validator=wxDefaultValidator)
 
-        self.tree = wxTreeCtrl(id = wxID_CLASSBROWSERFRAMETREE, name = 'tree', parent = self.pages, pos = wxPoint(0, 0), size = wxSize(283, 424), style = wxTR_HAS_BUTTONS, validator = wxDefaultValidator)
+        self.tree = wxTreeCtrl(id=wxID_CLASSBROWSERFRAMETREE, name='tree',
+              parent=self.pages, pos=wxPoint(0, 0), size=wxSize(283, 424),
+              style=wxTR_HAS_BUTTONS, validator=wxDefaultValidator)
 
         self._init_coll_pages_Pages(self.pages)
 
@@ -57,13 +75,7 @@ class ClassBrowserFrame(wxFrame, Utils.FrameRestorerMixin):
 
         self.classes = pyclbr.readmodule('wxPython.wx')
 
-#        self.pages = wxNotebook(self, -1)
-#        self.statusBar = self.CreateStatusBar()
-
         tID = wxNewId()
-#        self.hierarchy = wxTreeCtrl(self.pages, tID)
-#        self.pages.AddPage(self.hierarchy, 'Hierarchy')
-#        wxYield()
         root = self.hierarchy.AddRoot('wxObject')
 
         clsDict = {}
@@ -75,10 +87,6 @@ class ClassBrowserFrame(wxFrame, Utils.FrameRestorerMixin):
         self.hierarchy.Expand(root)
 
         tID = wxNewId()
-
-#        self.tree = wxTreeCtrl(self.pages, tID)
-#        self.pages.AddPage(self.tree, 'Modules')
-#        wxYield()
 
         root = self.tree.AddRoot('Modules')
         modules = {}
@@ -125,11 +133,11 @@ class ClassBrowserFrame(wxFrame, Utils.FrameRestorerMixin):
                     builtInItem = self.tree.AppendItem(bInItem, builtIns)
                 suprItem = self.tree.AppendItem(aClass, 'Super')
                 for supers in self.classes[classes].super:
-                    superItem = self.tree.AppendItem(suprItem, supers.name)
+                    try:
+                        superItem = self.tree.AppendItem(suprItem, supers.name)
+                    except AttributeError:
+                        superItem = self.tree.AppendItem(suprItem, supers)
 
-#                supers = self.tree.AppendItem(roots, 'Super')
-#                for super in self.classes[className].super:
-#                    aMethod = self.tree.AppendItem(supers, super.name)
         self.tree.Expand(root)
 
     def setDefaultDimensions(self):
@@ -159,12 +167,19 @@ def findInsertModules(name, tree):
     return tree.AddRoot(name)
 
 def travTilBase(name, classes, root):
-    if len(classes[name].super) == 0:
+    if not classes.has_key(name):
+        if not root.has_key(name):
+            root[name] = {}
+        return root[name]
+    elif len(classes[name].super) == 0:
         if not root.has_key(name):
             root[name] = {}
         return root[name]
     else:
-        c = travTilBase(classes[name].super[0].name, classes, root)
+        super1 = classes[name].super[0]
+        if type(super1) != type(''):
+            super1 = super1.name
+        c = travTilBase(super1, classes, root)
         if not c.has_key(name):
             c[name] = {}
         return c[name]
