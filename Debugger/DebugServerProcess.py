@@ -1,6 +1,9 @@
-
 import sys
-from xmlrpc.xmlrpcserver import RequestHandler
+
+if __name__ == '__main__':
+    sys.path.append('.')  # Fix later
+
+from ExternalLib.xmlrpcserver import RequestHandler
 from SocketServer import StreamRequestHandler
 from IsolatedDebugger import DebuggerController, DebuggerConnection
 
@@ -60,9 +63,9 @@ if __name__ == '__main__':
     DebugRequestHandler._authstr = auth
 
     # port is 0 to allocate any port.
-    server = TaskingTCPServer(('', 0), DebugRequestHandler)
+    server = TaskingTCPServer(('', 3243), DebugRequestHandler)
     port = server.socket.getsockname()[1]
-    sys.stdout.write('%d %s\n' % (port, auth))
-    sys.stdout.flush()
+    #sys.stdout.write('%d %s\n' % (port, auth))
+    #sys.stdout.flush()
     while not stop_server:
         server.handle_request()

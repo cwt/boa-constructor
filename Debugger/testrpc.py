@@ -1,6 +1,6 @@
 
 import string, sys
-from xmlrpc.xmlrpclib import Server, Transport
+from ExternalLib.xmlrpclib import Server, Transport
 
 class TransportWithAuth (Transport):
 

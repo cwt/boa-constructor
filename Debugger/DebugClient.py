@@ -157,7 +157,7 @@ class MultiThreadedDebugClient (DebugClient):
 
 
 from wxPython.wx import wxExecute, wxProcess, wxYield
-from xmlrpc import xmlrpclib
+from ExternalLib import xmlrpclib
 import os
 
 def package_home(globals_dict):
@@ -182,30 +182,33 @@ class SpawningDebugClient (MultiThreadedDebugClient):
     def invokeOnServer(self, m_name, m_args=(), r_name=None, r_args=()):
         if self.server is None:
             self.spawnServer()
-        print 'comm started'
         MultiThreadedDebugClient.invokeOnServer(
             self, m_name, m_args, r_name, r_args)
 
     def invoke(self, m_name, m_args):
         m = getattr(self.server, m_name)
         result = apply(m, m_args)
-        print 'comm ended'
         return result
 
     def spawnServer(self):
         dsp = os.path.join(package_home(globals()), 'DebugServerProcess.py')
         process = wxProcess()
-        process.Redirect()
+        if 0:
+            process.Redirect()
         wxExecute('%s "%s"' % (sys.executable, dsp), 0, process)
 
-        line = ''
-        while string.find(line, '\n') < 0:
-            stream = process.GetInputStream()
-            if not stream.eof():
-                text = stream.read()
-                line = line + text
-            else:
-                wxYield()
+        if 0:
+            line = ''
+            while string.find(line, '\n') < 0:
+                stream = process.GetInputStream()
+                if not stream.eof():
+                    text = stream.read()
+                    line = line + text
+                else:
+                    wxYield()
  
-        port, auth = string.split(string.strip(line))
+            port, auth = string.split(string.strip(line))
+        else:
+            port = 3243
         self.server = xmlrpclib.Server('http://localhost:%s' % port)
+
