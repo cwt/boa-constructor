@@ -919,7 +919,7 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
                 filename = actMod.model.filename
                 if filename:
                     curdir = os.path.dirname(filename)
-                    if not curdir:
+                    if not curdir or curdir == 'none:':
                         curdir = '.'
 
         from FileDlg import wxFileDialog
