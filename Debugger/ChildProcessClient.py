@@ -99,9 +99,9 @@ from DebugClient import DebugClient, MultiThreadedDebugClient, \
 
 class ChildProcessClient(MultiThreadedDebugClient):
 
-    server = None
-    serverId = 0
-    process = None
+    server = None       # An xmlrpclib.Server instance
+    processId = 0
+    process = None      # A wxProcess
     input_stream = None
     error_stream = None
 
@@ -160,6 +160,11 @@ class ChildProcessClient(MultiThreadedDebugClient):
             stderr_text = stream.read()
         return (stdin_text, stderr_text)
 
+    def getProcessId(self):
+        """Returns the process ID if this client is connected to another
+        process."""
+        return self.processId
+
     def OnDebuggerStart(self, evt):
         try:
             wx.wxBeginBusyCursor()
@@ -172,7 +177,7 @@ class ChildProcessClient(MultiThreadedDebugClient):
                     wx.EVT_END_PROCESS(self.event_handler, self.win_id,
                                        self.OnProcessEnded)
                     self.server, self.input_stream, self.error_stream, \
-                          self.serverId = spawnChild(self, process)
+                          self.processId = spawnChild(self, process)
                 self.taskHandler.addTask(evt.GetTask())
             except:
                 t, v, tb = sys.exc_info()#[:2]
@@ -187,6 +192,7 @@ class ChildProcessClient(MultiThreadedDebugClient):
         self.kill()
         evt = self.createEvent(wxEVT_DEBUGGER_STOPPED)
         self.postEvent(evt)
+
 
 if __name__ == '__main__':
     a = wx.wxPySimpleApp()

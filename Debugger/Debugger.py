@@ -955,11 +955,12 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
         self.setTitleInfo(title)
 
     def setTitleInfo(self, info):
-        if self.debug_client and self.debug_client.serverId:
-            pid = '(%s) '%self.debug_client.serverId
-        else:
-            pid = ''
-        title = 'Debugger %s- %s' % (pid, info)
+        pidinfo = ''
+        if self.debug_client:
+            pid = self.debug_client.getProcessId()
+            if pid:
+                pidinfo = '(%s) ' % pid
+        title = 'Debugger %s- %s' % (pidinfo, info)
         self.SetTitle(title)
 
     def setDebugClient(self, client=None):

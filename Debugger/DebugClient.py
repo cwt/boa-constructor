@@ -85,6 +85,11 @@ class DebugClient:
         """Terminates the debugger."""
         raise NotImplementedError
 
+    def getProcessId(self):
+        """Returns the process ID if this client is connected to another
+        process."""
+        return 0
+
     def createEvent(self, typ):
         """Creates an event."""
         return DebuggerCommEvent(typ, self.win_id)
