@@ -64,11 +64,11 @@ class DesignTimeCompanion(Companion):
         self.parentCompanion = None
         self.designer = designer
         # Design time window id
-        self.dId = NewId()
+        self.dId = wxNewId()
         self.id = None
 
         # Property editors for properties whose types cannot be deduced
-        self.editors = {}
+        self.editors = {'Class': ClassConstrPropEdit}
         # Enumerated values for the options of a property editor
         self.options = {}
         # Enumerated display values for the options of a property editor
@@ -89,6 +89,10 @@ class DesignTimeCompanion(Companion):
         self.collections = {}
         # Can't work, remove
         self.letClickThru = false
+        # Mutualy depentent props
+        # These props will all be refeshed in the inspector when any one of
+        # them is updated
+        self.mutualDepProps = []
 
 #        SetterOverrides = {}
 
@@ -108,12 +112,24 @@ class DesignTimeCompanion(Companion):
             having the same constructor to be created."""
 
         return {}
+    
+    def extraConstrProps(self):
+        return {}
 
 #    def defaults(self):
 #        return {}
 
     def getPropList(self):
-        return RTTI.getPropList(self.control, self)
+        propList = RTTI.getPropList(self.control, self)
+        pw = RTTI.PropertyWrapper('Class', 'CompnRoute', self.GetClass, self.SetClass)
+        propList['constructor'].append(pw)
+        return propList
+    
+    def GetClass(self, dummy):
+        return self.textConstr.class_name
+        
+    def SetClass(self, value):
+        self.textConstr.class_name = value
 
     def properties(self):
         """ Properties additional to those gleened thru reflection.
@@ -154,7 +170,7 @@ class DesignTimeCompanion(Companion):
             changes won't be applied to source. This is for cascading type
             properties like Size vs ClientSize. Updating one will automatically
             update the other so only one of them has to be stored."""
-        return []
+        return ['Class']
 
     def events(self):
         return []
@@ -379,6 +395,10 @@ class DesignTimeCompanion(Companion):
         if setter[:3] == 'Set': return setter[3:]
         else: return setter
 
+    def eval(self, expr):
+        import PaletteMapping
+        return PaletteMapping.evalCtrl(expr, self.designer.model.specialAttrs)
+
     def defaultAction(self):
         """ Invoke the default property editor for this component,
             This can be anything from a custom editor to an event.
@@ -499,12 +519,8 @@ class ControlDTC(DesignTimeCompanion):
         dts = self.designTimeSource('wxPoint(%s, %s)'%(position.x, position.y),
           'wxSize(%s, %s)'%(size.x, size.y))
 
-        import PaletteMapping
         for param in dts.keys():
-            try:
-                dts[param] = PaletteMapping.evalCtrl(dts[param])
-            except:
-                print 'could not eval design time default param', dts[param]
+            dts[param] = self.eval(dts[param])
 
         dts.update({self.windowParentName: self.parent, self.windowIdName: self.dId})
         return dts
@@ -523,6 +539,15 @@ class ControlDTC(DesignTimeCompanion):
     def SetName(self, oldValue, newValue):
         DesignTimeCompanion.SetName(self, oldValue, newValue)
         self.updateWindowIds()
+
+    def extraConstrProps(self):
+        return {'Class': 'class'}
+
+##    def GetClass(self, dummy):
+##        return self.control.__class__.__name__
+##        
+##    def SetClass(self, value):
+##        raise 'Cannot change'
 
     def updateWindowIds(self):
         self.generateWindowId()
@@ -655,14 +680,8 @@ class UtilityDTC(DesignTimeCompanion):
 
         dts = self.designTimeSource()
 
-        import PaletteMapping
         for param in dts.keys():
-            try:
-                dts[param] = PaletteMapping.evalCtrl(dts[param])
-            except Exception, error:
-                print 'Could not eval utility object', dts[param], str(error)
-                raise
-
+            dts[param] = self.eval(dts[param])
         return dts
 
     def updateWindowIds(self):
@@ -691,15 +710,15 @@ class WindowDTC(WindowConstr, ControlDTC):
         property editors. """
     def __init__(self, name, designer, parent, ctrlClass):
         ControlDTC.__init__(self, name, designer, parent, ctrlClass)
-        self.editors = {'AutoLayout': BoolPropEdit,
+        self.editors.update({'AutoLayout': BoolPropEdit,
                         'Shown': BoolPropEdit,
                         'Enabled': BoolPropEdit,
                         'EvtHandlerEnabled': BoolPropEdit,
                         'Style': StyleConstrPropEdit,
                         'Constraints': CollectionPropEdit,
                         'Name': NamePropEdit,
+                        'Anchors': AnchorPropEdit})
 #                        'Sizer': SizerClassLinkPropEdit,
-                        'Anchors': AnchorPropEdit}
         self.triggers.update({'Size'     : self.SizeUpdate,
                               'Position' : self.PositionUpdate})
         self.customPropEvaluators.update({'Constraints': self.EvalConstraints})
@@ -711,6 +730,8 @@ class WindowDTC(WindowConstr, ControlDTC):
                              'wxTAB_TRAVERSAL', 'wxWANTS_CHARS',
                              'wxNO_FULL_REPAINT_ON_RESIZE', 'wxVSCROLL', 'wxHSCROLL',
                              'wxCLIP_CHILDREN']
+
+        self.mutualDepProps = ['Value', 'Title', 'Label']
 
         import UtilCompanions
         self.subCompanions['Constraints'] = UtilCompanions.IndividualLayoutConstraintOCDTC
@@ -734,7 +755,7 @@ class WindowDTC(WindowConstr, ControlDTC):
                 'WindowStyleFlag', 'ToolTip', 'Title', 'Sizer', 'Rect']
 
     def dontPersistProps(self):
-        return ['ClientSize']
+        return ControlDTC.dontPersistProps(self) + ['ClientSize']
     def applyRunTime(self):
         return ['Shown', 'Enabled', 'EvtHandlerEnabled']
     def events(self):
@@ -896,7 +917,8 @@ class CollectionDTC(DesignTimeCompanion):
         return len(self.textConstrLst)
 
     def getDisplayProp(self):
-        return eval(self.textConstrLst[self.index].params[self.displayProp])
+        return eval(self.textConstrLst[self.index].params[self.displayProp], 
+                    self.designer.model.specialAttrs)
 
     def initialiser(self):
         """ When overriding, append this after derived initialiser """
@@ -922,8 +944,7 @@ class CollectionDTC(DesignTimeCompanion):
     def deleteItem(self, idx):
         # remove from ctrl
         if self.deletionMethod != '(None)':
-            f = RTTI.getFunction(self.control, self.deletionMethod)
-            apply(f, [self.control, idx])
+            getattr(self.control, self.deletionMethod)(idx)
 
         del self.textConstrLst[idx]
         # renumber items following deleted one
@@ -932,9 +953,8 @@ class CollectionDTC(DesignTimeCompanion):
                 constr.params[self.indexProp] = `int(constr.params[self.indexProp]) -1`
 
     def applyDesignTimeDefaults(self, params):
-        f = RTTI.getFunction(self.control, self.insertionMethod)
-        params = self.designTimeDefaults(params)
-        apply(f, [self.control], params)
+        apply(getattr(self.control, self.insertionMethod), (), 
+              self.designTimeDefaults(params))
 
     def SetName(self, oldValue, newValue):
         self.name = newValue
@@ -951,15 +971,8 @@ class CollectionDTC(DesignTimeCompanion):
         """ Return a dictionary of parameters for the constructor of a wxPython
             control. e.g. {'name': 'button1', etc) """
         dtd = {}
-        import PaletteMapping
         for param in vals.keys():
-            try:
-                dtd[param] = PaletteMapping.evalCtrl(vals[param])
-            except Exception, message:
-                print 'Could not eval collection parameter: name: %s, value: %s'\
-                      '\nError: %s'%(param, vals[param], str(message))
-                raise
-
+            dtd[param] = self.eval(vals[param])
         return dtd
 
     def initCollection(self):
