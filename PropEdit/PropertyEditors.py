@@ -215,6 +215,7 @@ class ZopePropEdit(PropertyEditor):
 ##    def setValue(self, value):
 ##        self.value = value
 
+
 class EvalZopePropEdit(ZopePropEdit):
     def valueToIECValue(self):
         return `self.value`
@@ -278,6 +279,58 @@ class BoolZopePropEdit(ZopePropEdit):
             self.value = self.boolKeyMap[self.editorCtrl.getValue()]
 ##            if v == 'true'
 ##            self.value = self.getValues().index(self.editorCtrl.getValue())
+        return self.value
+
+class ConfPropEdit(PropertyEditor):
+    def __init__(self, name, parent, companion, rootCompanion, propWrapper, idx, 
+      width, options, names):
+        PropertyEditor.__init__(self, name, parent, companion, rootCompanion, 
+          propWrapper, idx, width)
+    def initFromComponent(self):
+        self.value = self.getCtrlValue()
+    def persistValue(self, value):
+        print 'persist conf prop'
+        pass
+
+class StrConfPropEdit(ConfPropEdit):
+    def valueToIECValue(self):
+        return self.value
+#        return eval(self.value)
+
+    def inspectorEdit(self):
+        self.editorCtrl = TextCtrlIEC(self, self.value)
+        self.editorCtrl.createControl(self.parent, self.value, self.idx, 
+          self.width)
+    
+    def getValue(self):
+        if self.editorCtrl:
+            try:
+                self.value = self.editorCtrl.getValue()
+            except Exception, message:
+                self.value = self.getCtrlValue()
+                print 'invalid constr prop value', message
+        else:
+            self.value = self.getCtrlValue()
+        return self.value
+
+class EvalConfPropEdit(ConfPropEdit):
+    def valueToIECValue(self):
+        return `self.value`
+
+    def inspectorEdit(self):
+        self.editorCtrl = TextCtrlIEC(self, `self.value`)
+        self.editorCtrl.createControl(self.parent, self.value, self.idx, 
+          self.width)
+    
+    def getValue(self):
+        if self.editorCtrl:
+            try:
+                self.value = eval(self.editorCtrl.getValue())
+            except Exception, message:
+                self.value = self.getCtrlValue()
+                print 'invalid constr prop value', message
+        else:
+            self.value = self.getCtrlValue()
         return self.value
         
 class OptionedPropEdit(PropertyEditor):
@@ -473,6 +526,17 @@ class MenuEnumConstrPropEdit(ObjEnumConstrPropEdit):
         self.companion.SetMenu(value)
     def getCtrlValue(self):
         return self.companion.GetMenu()
+
+class SizerEnumConstrPropEdit(ObjEnumConstrPropEdit):
+##    def getValues(self):
+##        return ['wxMenu()'] + ObjEnumConstrPropEdit.getValues(self)
+    def getObjects(self):
+        return self.companion.designer.getObjectsOfClass(wxBoxSizer).keys()
+##    def setCtrlValue(self, oldValue, value):
+##        self.companion.SetMenu(value)
+##    def getCtrlValue(self):
+##        return self.companion.GetMenu()
+
 
 class StyleConstrPropEdit(IntConstrPropEdit):
     pass
@@ -785,6 +849,9 @@ class MenuBarClassLinkPropEdit(ClassLinkPropEdit):
 
 class ImageListClassLinkPropEdit(ClassLinkPropEdit):
     linkClass = wxImageList
+
+class SizerClassLinkPropEdit(ClassLinkPropEdit):
+    linkClass = wxBoxSizer
     
 class ColPropEdit(ClassPropEdit):
     def getStyle(self):
