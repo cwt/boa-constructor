@@ -6,7 +6,7 @@
 #
 # Created:     2001
 # RCS-ID:      $Id$
-# Copyright:   (c) 2001 - 2002 Riaan Booysen
+# Copyright:   (c) 2001 - 2003 Riaan Booysen
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 print 'importing Explorers.ExplorerNodes'
@@ -292,6 +292,20 @@ class TransportSaveError(TransportError):
 class TransportModifiedSaveError(TransportSaveError):
     pass
 
+class TransportCategoryError(TransportError):
+    def __init__(self, msg='', filepath=None):
+        TransportError.__init__(self, msg, filepath)
+        self.msg = msg
+        self.filepath = filepath
+
+
+    def __str__(self):
+        if self.filepath:
+            return '%s: %s' % (self.msg, self.filepath)
+        else:
+            return self.msg
+
+
 class ExplorerNode:
     """ Base class for items in the explorer. """
     # Protocol identifier, used to associate with controller
@@ -437,11 +451,14 @@ class CategoryNode(ExplorerNode):
     defaultStruct = {}
     itemProtocol = ''
     entries = {}
+    sharedEntries = {}
     def __init__(self, name, resourcepath, clipboard, config, parent, imgIdx=EditorHelper.imgFolder):
         ExplorerNode.__init__(self, name, resourcepath, clipboard, imgIdx, parent)
         self.config = config
         self.bold = true
-        self.entries = copy.copy(self.entries)
+        if not self.sharedEntries.has_key(self.protocol):
+            self.sharedEntries[self.itemProtocol] = copy.copy(self.entries)
+        self.entries = self.sharedEntries[self.itemProtocol]
         self.refresh()
 
     def destroy(self):
@@ -1011,6 +1028,13 @@ failedModules = {}
 langStyleInfoReg = []
 # Registry for extra protocols available in the file open dialog
 fileOpenDlgProtReg = []
+# Registry for splitting uris
+uriSplitReg = {}
+# Registry for functions to locate connections
+transportFindReg = {}
+# Global reference to container for all transport protocols
+# The first Explorer Tree created will define this
+all_transports = None
 
 def register(Node, clipboard=None, confdef=('', ''), controller=None, category=None):
     """ Register a new explorer Node.
