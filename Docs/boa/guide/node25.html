@@ -1,0 +1,173 @@
+<!DOCTYPE html PUBLIC "-//w3c//dtd html 4.0 transitional//en">
+<html>
+<head>
+  <meta http-equiv="Content-Type"
+ content="text/html; charset=iso-8859-1">
+  <meta name="GENERATOR"
+ content="Mozilla/4.5 [en] (WinNT; I) [Netscape]">
+  <title>2.5 Adding the Text Control</title>
+</head>
+<body alink="#ff0000" bgcolor="#ffffff" link="#0000bb" text="#000000"
+ vlink="#551a8b">
+<div class="navigation">&nbsp;
+<table cellpadding="0" cellspacing="2" width="100%">
+  <tbody>
+    <tr>
+      <td height="32" width="32"><a href="node26.html"><img
+ src="../icons/next.gif" alt="Next Page" border="0" height="32"
+ width="32"></a></td>
+      <td height="32" width="32"><a href="index.html"><img
+ src="../icons/up.gif" alt="Up One Level" border="0" height="32"
+ width="32"></a></td>
+      <td height="32" width="32"><a href="node24.html"><img
+ src="../icons/previous.gif" alt="Previous Page" border="0" height="32"
+ width="32"></a></td>
+      <td align="center" bgcolor="#99ccff" width="100%"><b>Getting
+Started Guide
+for Boa Constructor</b></td>
+      <td height="32" width="32"><a href="index.html"><img
+ src="../icons/contents.gif" alt="Contents" border="0" height="32"
+ width="32"></a></td>
+      <td height="32" width="32"><img src="../icons/blank.gif" alt=""
+ border="0" height="32" width="32"></td>
+      <td height="32" width="32"><img src="../icons/blank.gif" alt=""
+ border="0" height="32" width="32"></td>
+    </tr>
+  </tbody>
+</table>
+<b>Next:<span class="sectref"></span></b><a href="node26.html">Adding
+the File
+Menu Functionality</a> <b>Up:<span class="sectref"></span></b><a
+ href="index.html">Getting
+Started Guide for Boa Constructor</a> <b>Previous:<span class="sectref"></span></b><a
+ href="node24.html">Add
+a Menu Bar</a>
+<br>
+<hr></div>
+<!--End of Navigation Panel-->
+<h1>2.5 Adding the Text Control</h1>
+The next task is to add the main text editing control to our frame.
+This
+control is called wx.TextCtrl.
+<ul>
+  <li>Open the Designer again to edit the frame, Frame1.py.</li>
+  <li>On the palette, select the 'Basic Controls' pane. Select the
+wx.TextControl. <br>
+  </li>
+  <ul>
+    <li>Hint: You can hold the mouse pointer over each control to find
+out its
+name.</li>
+  </ul>
+  <li>Move your mouse pointer to the Designer window, ensure that a
+Baloon
+help shows 'Frame1', then click the left mouse button. A new text
+control will be drawn.
+We do not have to size the control. By default it will fill all the
+available
+area, i.e. between the status bar and the menu bar.</li>
+  <li>The default wx.TextControl is a single line entry. We must
+indicate to
+the
+control, that we want this to be a multi-line data entry control. To do
+this we edit the 'style' property in the Inspector. This is on the
+Constructor
+pane.</li>
+  <li>Edit the style and set the style to wx.TE_MULTILINE. You can type
+this
+into the value field for style or you can click on the check box to the
+left of style and Boa will show you all the available styles.&nbsp; Set
+the styles you want to use to 'True' by clicking on them. <br>
+  </li>
+  <ul>
+    <li>The style field contains valid
+python code. To set two logical styles you would separate them with a
+'|'.
+You can see all the available styles for the wx.TextControl in the
+wxPython
+online help for the class wx.TextControl.</li>
+    <li>Hint: Use Ctrl-H and enter 'textctrl' to get to the
+documentation and find descriptions for the different styles, note that
+some of them might not be shown for wx.TextCtrl as they are inherited
+from e.g. wx.Window.&nbsp; Currently Ctrl-H does NOT work in the
+Designer window, but just about anywhere else within Boa.</li>
+  </ul>
+</ul>
+<p><br>
+</p>
+<img alt="Inspector - TextCtrl" title="Inspector - TextCtrl"
+ src="image/Boa25.png" style="width: 819px; height: 494px;"><br>
+<p><br>
+</p>
+<ul>
+  <li>Rename the text field. The default name is 'textCtrl1'. Set the
+name to
+'textEditor'.</li>
+  <li>In the Constructor pane there is a field called 'Value'. This
+field
+contains
+the default value of the control. Blank out this field.</li>
+  <li>Update the source code with your new control using either Post
+button</li>
+  <li>Save your source code changes.</li>
+  <li>Run your application.</li>
+</ul>
+<p><br>
+</p>
+<img alt="TextEditor" title="TextEditor" src="image/Boa25a.png"
+ style="width: 409px; height: 265px;"><br>
+<p><br>
+</p>
+<ul>
+  <li><>The textEditor field is automatically sized to the available
+space.</></li>
+  <li><>If
+you
+resize the frame, the control resizes. </></li>
+  <li><>Notice that wxWidgets provides you
+with a scrollbar. The field will automatically, scroll if you go beyond
+the bottom. If you type line longer than the width of the edit window,
+they will wrap.</></li>
+  <li><>You also have cut and paste functionality, and block
+marking
+by default. </></li>
+</ul>
+<!--Start of Navigation Panel-->
+<div class="navigation">&nbsp;
+<table cellpadding="0" cellspacing="2" width="100%">
+  <tbody>
+    <tr>
+      <td height="32" width="32"><a href="node26.html"><img
+ src="../icons/next.gif" alt="Next Page" border="0" height="32"
+ width="32"></a></td>
+      <td height="32" width="32"><a href="index.html"><img
+ src="../icons/up.gif" alt="Up One Level" border="0" height="32"
+ width="32"></a></td>
+      <td height="32" width="32"><a href="node24.html"><img
+ src="../icons/previous.gif" alt="Previous Page" border="0" height="32"
+ width="32"></a></td>
+      <td align="center" bgcolor="#99ccff" width="100%"><b>Getting
+Started Guide
+for Boa Constructor</b></td>
+      <td height="32" width="32"><a href="index.html"><img
+ src="../icons/contents.gif" alt="Contents" border="0" height="32"
+ width="32"></a></td>
+      <td height="32" width="32"><img src="../icons/blank.gif" alt=""
+ border="0" height="32" width="32"></td>
+      <td height="32" width="32"><img src="../icons/blank.gif" alt=""
+ border="0" height="32" width="32"></td>
+    </tr>
+  </tbody>
+</table>
+<b>Next:<span class="sectref"></span></b><a href="node26.html">Adding
+the File
+Menu Functionality</a> <b>Up:<span class="sectref"></span></b><a
+ href="index.html">Getting
+Started Guide for Boa Constructor</a> <b>Previous:<span class="sectref"></span></b><a
+ href="node24.html">Add
+a Menu Bar</a>
+<br>
+<hr></div>
+<!--End of Navigation Panel-->
+</body>
+</html>

@@ -1,0 +1,279 @@
+<!DOCTYPE html PUBLIC "-//w3c//dtd html 4.0 transitional//en">
+<html>
+<head>
+  <meta http-equiv="Content-Type"
+ content="text/html; charset=iso-8859-1">
+  <meta name="GENERATOR"
+ content="Mozilla/4.5 [en] (WinNT; I) [Netscape]">
+  <title>3.1 Setting Preferences</title>
+</head>
+<body alink="#ff0000" bgcolor="#ffffff" link="#0000bb" text="#000000"
+ vlink="#551a8b">
+<div class="navigation">&nbsp;
+<table cellpadding="0" cellspacing="2" width="100%">
+  <tbody>
+    <tr>
+      <td height="32" width="32"><a href="index.html"><img
+ src="../icons/next.gif" alt="Next Page" border="0" height="32"
+ width="32"></a></td>
+      <td height="32" width="32"><a href="index.html"><img
+ src="../icons/up.gif" alt="Up One Level" border="0" height="32"
+ width="32"></a></td>
+      <td height="32" width="32"><a href="index.html"><img
+ src="../icons/previous.gif" alt="Previous Page" border="0" height="32"
+ width="32"></a></td>
+      <td align="center" bgcolor="#99ccff" width="100%"><b>Getting
+Started Guide
+for Boa Constructor</b></td>
+      <td height="32" width="32"><a href="index.html"><img
+ src="../icons/contents.gif" alt="Contents" border="0" height="32"
+ width="32"></a></td>
+      <td height="32" width="32"><img src="../icons/blank.gif" alt=""
+ border="0" height="32" width="32"></td>
+      <td height="32" width="32"><img src="../icons/blank.gif" alt=""
+ border="0" height="32" width="32"></td>
+    </tr>
+  </tbody>
+</table>
+<b>Next:<span class="sectref"></span></b><a href="index.html">Getting
+Started
+Guide for Boa Constructor</a> <b>Up:<span class="sectref"></span></b><a
+ href="index.html">Getting
+Started Guide for Boa Constructor</a> <b>Previous:<span class="sectref"></span></b><a
+ href="index.html">Getting
+Started Guide for Boa Constructor</a>
+<br>
+<hr></div>
+<!--End of Navigation Panel-->
+<h1>3.1 Setting Preferences</h1>
+The Boa Constructor tool provides a number of features which can be
+customised
+by you.<br>
+<br>
+Most of the customization settings can be set by using the Editor
+Explorer View.&nbsp; Click on Preferences and it shows you something
+similar to the image below.<br>
+<p><br>
+</p>
+<br>
+<img alt="Preferences" title="Preferences" src="image/Boa31.png"
+ style="width: 598px; height: 494px;"><br>
+<p><br>
+</p>
+<br>
+To change settings double click on either 'General', 'Platform
+specific' or 'Key bindings' and the properties of each will be shown in
+the Inspector as shown below:<br>
+<p><br>
+</p>
+<br>
+<table style="width: 100%; text-align: left;" border="1" cellpadding="2"
+ cellspacing="2">
+  <tbody>
+    <tr>
+      <td style="vertical-align: top;"><img alt="General"
+ title="General" src="image/Boa31b.png"
+ style="width: 222px; height: 494px;"><br>
+      </td>
+      <td style="vertical-align: top;"><img alt="Platform"
+ title="Platform" src="image/Boa31c.png"
+ style="width: 220px; height: 494px;"><br>
+      </td>
+      <td style="vertical-align: top;"><img alt="Key bindings"
+ title="Key bindings" src="image/Boa31d.png"
+ style="width: 223px; height: 493px;"><br>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<p><br>
+</p>
+<h3><span style="font-weight: bold;">Help books</span></h3>
+Boa by default includs its help books and the ones for wxPython and
+Python.<br>
+<br>
+However if you like to add others you can do so by selecting
+Preferences/Help Books and right mouse click in the right pane of the
+Explorer.&nbsp; Select 'Add new Item' and browse to find the '.hpp'
+file.<br>
+<p><br>
+</p>
+<br>
+<img alt="Help book" title="Help book" src="image/Boa31e.png"
+ style="width: 519px; height: 293px;"><br>
+<p><br>
+</p>
+<h3>Bookmarks</h3>
+If you like to add additional bookmarks just right mouse click on the
+folder you like to add within the Explorer.<br>
+<h3><span style="font-weight: bold;">Transport</span></h3>
+Adding additional transports works similar to the bookmarks, select the
+transport type on the left hand side of the Explorer view, e.g. 'Zope'
+and then right mouse click in the right hand side and select 'New' and
+then complete the information in the Inspector.<br>
+<p><br>
+</p>
+<br>
+<img alt="Transport" title="Transport" src="image/Boa31f.png"
+ style="width: 819px; height: 494px;"><br>
+<p><br>
+</p>
+<h3>Module Info</h3>
+You might want to change the following section in the file 'prefs.rc'
+stored in your user preference directory (on my system this is in
+'C:\Documents and Settings\wbruhin\.boa-constructor-0.4.0', note by
+default it would be in 'C:\Documents and
+Settings\wbruhin\.boa-constructor' on a Windows system.<br>
+<p><br>
+</p>
+<br>
+<table
+ style="margin-left: auto; margin-right: auto; width: 50%; text-align: left;"
+ border="1" cellpadding="2" cellspacing="2">
+  <tbody>
+    <tr>
+      <td style="vertical-align: top;"># Info that will be filled into
+the
+comment block. (Edit-&gt;Add module info)<br>
+# Also used by setup.py<br>
+staticInfoPrefs = { 'Purpose':&nbsp;&nbsp; '',<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+'Author':&nbsp;&nbsp;&nbsp; '&lt;your name&gt;',<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+'Copyright': '(c) 2004',<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+'Licence':&nbsp;&nbsp; '&lt;your licence&gt;',<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+'Email':&nbsp;&nbsp;&nbsp;&nbsp; '&lt;your email&gt;',<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+}<br>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<p><br>
+</p>
+<ul>
+  <li><>Replace '&lt;your name&gt;' with guess what your name.</></li>
+  <li><>Change the '(c) 2004'</></li>
+  <li>Replace '&lt;your license&gt;' with something along these lines
+'Shareware - see license.txt for details'</li>
+  <li>Replace '&lt;your email&gt;' with the email you want to use<><></></></li>
+</ul>
+<p><><>Edit the 'CustomModuleInfo.plug-in' file by right mouse clicking
+the
+corresponding entry in 'Preferences/Plug-ins/Plug-in files' and select
+'Open Plug-in file'.</></></p>
+<p><><></></></p>
+<ul>
+</ul>
+I changed it as follows:<br>
+<p><br>
+</p>
+<table
+ style="margin-left: auto; margin-right: auto; width: 50%; text-align: left;"
+ border="1" cellpadding="2" cellspacing="2">
+  <tbody>
+    <tr>
+      <td style="vertical-align: top;">""" Demonstrates how to change
+system
+constants as a plug-in """<br>
+      <br>
+import sourceconst<br>
+# The order of (Name)s may change and lines may also be removed<br>
+sourceconst.defInfoBlock = '''# -*- coding: iso-8859-1 -*-#<br>
+#-----------------------------------------------------------------------------<br>
+# Name:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; %(Name)s<br>
+# Purpose:&nbsp;&nbsp;&nbsp;&nbsp; %(Purpose)s<br>
+#<br>
+# Author:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; %(Author)s<br>
+#<br>
+# Created:&nbsp;&nbsp;&nbsp;&nbsp; %(Created)s<br>
+# RCS-ID:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; %(RCS-ID)s<br>
+# Copyright:&nbsp;&nbsp; %(Copyright)s<br>
+# Licence:&nbsp;&nbsp;&nbsp;&nbsp; %(Licence)s<br>
+#-----------------------------------------------------------------------------<br>
+'''<br>
+      <br>
+import Preferences<br>
+# (Name)s not in the original dictionary needs to be added<br>
+# New field:&nbsp;&nbsp; %(NewField)s<br>
+#Preferences.staticInfoPrefs['NewField'] = 'Whatever'<br>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<p><br>
+</p>
+<ul>
+  <li>Added the '# -*- coding: iso-8859-1 -*-#'</li>
+  <li>Moved the 'New field:'</li>
+  <li>Commented the 'Preferences.staticInfoPrefs' line as I don't need
+it<br>
+  </li>
+</ul>
+After restarting Boa and clicking on the button <img alt="Module Info"
+ title="Module Info" src="image/EditorToolBarAddModulInfo.png"
+ style="width: 23px; height: 23px;" align="middle"> Boa will insert the
+following into the selected file (in this case Frame1.py).<br>
+<p><br>
+</p>
+<table
+ style="margin-left: auto; margin-right: auto; width: 50%; text-align: left;"
+ border="1" cellpadding="2" cellspacing="2">
+  <tbody>
+    <tr>
+      <td style="vertical-align: top;"># -*- coding: iso-8859-1 -*-#<br>
+#-----------------------------------------------------------------------------<br>
+# Name:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Frame1.py<br>
+# Purpose:&nbsp;&nbsp;&nbsp;&nbsp; <br>
+#<br>
+# Author:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Werner F. Bruhin<br>
+#<br>
+# Created:&nbsp;&nbsp;&nbsp;&nbsp; 2005/12/03<br>
+# RCS-ID:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; $Id$<br>
+# Copyright:&nbsp;&nbsp; (c) 2004 - 2005<br>
+# Licence:&nbsp;&nbsp;&nbsp;&nbsp; Shareware, see license.txt for
+details<br>
+#-----------------------------------------------------------------------------</td>
+    </tr>
+  </tbody>
+</table>
+<p><br>
+</p>
+<div class="navigation">
+<table cellpadding="0" cellspacing="2" width="100%">
+  <tbody>
+    <tr>
+      <td height="32" width="32"><a href="index.html"><img
+ src="../icons/next.gif" alt="Next Page" border="0" height="32"
+ width="32"></a></td>
+      <td height="32" width="32"><a href="index.html"><img
+ src="../icons/up.gif" alt="Up One Level" border="0" height="32"
+ width="32"></a></td>
+      <td height="32" width="32"><a href="index.html"><img
+ src="../icons/previous.gif" alt="Previous Page" border="0" height="32"
+ width="32"></a></td>
+      <td align="center" bgcolor="#99ccff" width="100%"><b>Getting
+Started Guide
+for Boa Constructor</b></td>
+      <td height="32" width="32"><a href="index.html"><img
+ src="../icons/contents.gif" alt="Contents" border="0" height="32"
+ width="32"></a></td>
+      <td height="32" width="32"><img src="../icons/blank.gif" alt=""
+ border="0" height="32" width="32"></td>
+      <td height="32" width="32"><img src="../icons/blank.gif" alt=""
+ border="0" height="32" width="32"></td>
+    </tr>
+  </tbody>
+</table>
+<b>Next:<span class="sectref"></span></b><a href="index.html">Getting
+Started
+Guide for Boa Constructor</a> <b>Up:<span class="sectref"></span></b><a
+ href="index.html">Getting
+Started Guide for Boa Constructor</a> <b>Previous:<span class="sectref"></span></b><a
+ href="index.html">Getting
+Started Guide for Boa Constructor</a></div>
+<!--End of Navigation Panel-->
+</body>
+</html>

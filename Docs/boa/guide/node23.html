@@ -1,0 +1,201 @@
+<!DOCTYPE html PUBLIC "-//w3c//dtd html 4.0 transitional//en">
+<html>
+<head>
+  <meta http-equiv="Content-Type"
+ content="text/html; charset=iso-8859-1">
+  <meta name="GENERATOR"
+ content="Mozilla/4.5 [en] (WinNT; I) [Netscape]">
+  <title>2.3 Add a Status Bar</title>
+</head>
+<body alink="#ff0000" bgcolor="#ffffff" link="#0000bb" text="#000000"
+ vlink="#551a8b">
+<div class="navigation">&nbsp;
+<table cellpadding="0" cellspacing="2" width="100%">
+  <tbody>
+    <tr>
+      <td height="32" width="32"><a href="node24.html"><img
+ src="../icons/next.gif" alt="Next Page" border="0" height="32"
+ width="32"></a></td>
+      <td height="32" width="32"><a href="index.html"><img
+ src="../icons/up.gif" alt="Up One Level" border="0" height="32"
+ width="32"></a></td>
+      <td height="32" width="32"><a href="node22.html"><img
+ src="../icons/previous.gif" alt="Previous Page" border="0" height="32"
+ width="32"></a></td>
+      <td align="center" bgcolor="#99ccff" width="100%"><b>Getting
+Started Guide
+for Boa Constructor</b></td>
+      <td height="32" width="32"><a href="index.html"><img
+ src="../icons/contents.gif" alt="Contents" border="0" height="32"
+ width="32"></a></td>
+      <td height="32" width="32"><img src="../icons/blank.gif" alt=""
+ border="0" height="32" width="32"></td>
+      <td><img src="../icons/blank.gif" alt="" border="0" height="32"
+ width="32"></td>
+    </tr>
+  </tbody>
+</table>
+<b>Next:<span class="sectref"></span></b><a href="node24.html">Add a
+Menu Bar</a>
+<b>Up:<span class="sectref"></span></b><a href="index.html">Getting
+Started Guide
+for Boa Constructor</a> <b>Previous:<span class="sectref"></span></b><a
+ href="node22.html">Using
+the Designer to Set the Title</a>
+<br>
+<hr></div>
+<!--End of Navigation Panel-->
+<h1>2.3 Add a Status Bar</h1>
+The first component we will add to the application will be a status
+bar.
+A status bar is used to give information about a program when it runs.
+We will use the status bar to indicate to the user what is happening
+when
+slow actions occur, to give simple help messages or other information
+you might want to show.<br>
+<ul>
+  <li>Select the Frame1 tab in the Editor to ensure that we are editing
+the
+Frame.</li>
+  <li>Start the Designer, by clicking the designer button from the
+Editor
+toolbar.&nbsp;<img src="image/Designer.jpg"></li>
+  <li>The Frame will be displayed as a drawing area.</li>
+  <li>On the Palette select the tab called 'Containers/Layout'. This
+tab
+contains entries
+for components which are used with frames, the status bar is one
+of these.</li>
+  <li>Move the mouse over the buttons. Balloon help should show, one of
+these
+buttons represents the wx.StatusBar control. This is the control we
+want.
+Select this button using the mouse.</li>
+  <li>The button should change shading to indicate that it is pressed.
+The
+Palette
+contains a checkbox to show the currently selected component type. This
+should reflect wx.StatusBar.</li>
+</ul>
+<p><br>
+</p>
+<img alt="Palette - Containers" title="Palette - Containers"
+ src="image/Boa23.png" style="width: 819px; height: 95px;"><br>
+<p><br>
+</p>
+<ul>
+  <li>Now move the mouse cursor over the drawing frame. Press the mouse
+left
+button in the drawing area. This will create a status bar in the frame.</li>
+  <li>The status line within the Inspector will display on the left
+the name of the current widget 'statusBar1', and on the right it
+shows which wxWidget class it is derived from, in this case
+'wx.StatusBar' .</li>
+  <li>In the Inspector select the 'Properties' pane. This pane is used
+to
+configure
+the properties of our status bar. <br>
+  </li>
+  <ul>
+    <li>Click to edit the value of 'Fields'.
+The field will show a button with '+++'. Click the button. This opens
+the 'Collection Editor'.</li>
+  </ul>
+</ul>
+<p><br>
+</p>
+<img alt="Inspector - statusbar" title="Inspector - statusbar"
+ src="image/Boa23b.png" style="width: 819px; height: 495px;"><br>
+<p><br>
+</p>
+<ul>
+  <li>The Collection Editor is a tool, which is used to add multiple
+sub-components
+to components where required. We will add one field to the
+status bar, however you could add multiple fields.<br>
+  </li>
+  <li>Press the 'New' button <img alt="Collection Toolbar - New"
+ title="Collection Toolbar - New" src="image/CollectionToolbarNew.png"
+ style="width: 20px; height: 22px;" align="middle">on the Collection
+Editor. This creates a new field
+within the status bar. This becomes the current field in the Inspector.</li>
+  <li>Edit the field Text. Set the name from 'Fields0' to 'status'.</li>
+  <li>The Collection Editor toolbar contains a 'Refresh' button <img
+ alt="Collection toolbar - Refresh" title="Collection toolbar - Refresh"
+ src="image/CollectionToolBarRefresh.png"
+ style="width: 20px; height: 22px;" align="middle">. Press this button
+to see the Inspector change in the Collection Editor window.</li>
+</ul>
+<p><br>
+</p>
+<img alt="Collection - statusbar" title="Collection - statusbar"
+ src="image/Boa23c.png" style="width: 819px; height: 495px;"><br>
+<p><br>
+</p>
+<ul>
+  <li>Close the Collection Editor window. Select the Designer window.
+Click the
+mouse anywhere in the drawing area to make the frame (Frame1) the
+current
+component.</li>
+  <li>Select the properties pane in the Inspector.</li>
+  <li>Edit the property 'StatusBar'. The drop down menu will show our
+new
+status
+bar. Select the status bar, this is necessary so that the frame can
+manage the status bar, i.e. it's possition at the bottom of the screen
+and it's size.</li>
+</ul>
+<p><br>
+</p>
+<img alt="Inspector - Frame" title="Inspector - Frame"
+ src="image/Boa23d.png" style="width: 818px; height: 495px;"><br>
+<p><br>
+</p>
+<ul>
+  <li><>Update the source code with the changes using either Post
+button <img alt="Post" title="Post" src="image/Post.jpg"
+ style="width: 16px; height: 16px;" align="middle">.</></li>
+  <li><>Save the source code changes using the Save button on the
+Editor
+toolbar.</></li>
+</ul>
+<!--Start of Navigation Panel-->
+<div class="navigation">&nbsp;
+<table cellpadding="0" cellspacing="2" width="100%">
+  <tbody>
+    <tr>
+      <td height="32" width="32"><a href="node24.html"><img
+ src="../icons/next.gif" alt="Next Page" border="0" height="32"
+ width="32"></a></td>
+      <td height="32" width="32"><a href="index.html"><img
+ src="../icons/up.gif" alt="Up One Level" border="0" height="32"
+ width="32"></a></td>
+      <td height="32" width="32"><a href="node22.html"><img
+ src="../icons/previous.gif" alt="Previous Page" border="0" height="32"
+ width="32"></a></td>
+      <td align="center" bgcolor="#99ccff" width="100%"><b>Getting
+Started Guide
+for Boa Constructor</b></td>
+      <td height="32" width="32"><a href="index.html"><img
+ src="../icons/contents.gif" alt="Contents" border="0" height="32"
+ width="32"></a></td>
+      <td height="32" width="32"><img src="../icons/blank.gif" alt=""
+ border="0" height="32" width="32"></td>
+      <td height="32" width="32"><img src="../icons/blank.gif" alt=""
+ border="0" height="32" width="32"></td>
+    </tr>
+  </tbody>
+</table>
+<b>Next:<span class="sectref"></span></b><a href="node24.html">Add a
+Menu Bar</a>
+<b>Up:<span class="sectref"></span></b><a href="index.html">Getting
+Started Guide
+for Boa Constructor</a> <b>Previous:<span class="sectref"></span></b><a
+ href="node22.html">Using
+the Designer to Set the Title</a>
+<br>
+<hr></div>
+<!--End of Navigation Panel-->
+</body>
+</html>
