@@ -84,7 +84,7 @@ def getTransport(prot, category, respath, transports):
     if prot == 'file':
         for tp in transports.entries:
             if tp.itemProtocol == 'file':
-                return tp.getNodeFromPath(respath)
+                return tp.getNodeFromPath(respath, forceFolder=false)
         raise 'FileSysCatNode not found in transports'
     elif prot == 'zip':
         from ZipExplorer import ZipFileNode
@@ -593,4 +593,4 @@ class ExplorerSplitter(wxSplitterWindow):
         else:
             event.Skip()
 
- 
+  
