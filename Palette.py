@@ -30,15 +30,17 @@ import os
 currentMouseOverTip = ''
 cyclopsing = 0
 
-wxEVT_NEW_PACKAGE = wxNewId()
+wxEVT_CREATE_NEW = wxNewId()
 
-def EVT_NEW_PACKAGE(win, func):
-    win.Connect(-1, -1, wxEVT_NEW_PACKAGE, func)
+def EVT_CREATE_NEW(win, func):
+    win.Connect(-1, -1, wxEVT_CREATE_NEW, func)
 
-class NewPackageEvent(wxPyEvent):
-    def __init__(self):
+class CreateNewEvent(wxPyEvent):
+    def __init__(self, name, controller):
         wxPyEvent.__init__(self)
-        self.SetEventType(wxEVT_NEW_PACKAGE)
+        self.SetEventType(wxEVT_CREATE_NEW)
+        self.name = name
+        self.controller = controller
 
 [wxID_BOAFRAME, wxID_BOAFRAMECONTEXTHELPSEARCH, wxID_BOAFRAMEPALETTE, wxID_BOAFRAMETOOLBAR] = map(lambda _init_ctrls: wxNewId(), range(4))
 
@@ -60,7 +62,7 @@ class BoaFrame(wxFrame):
         pass
 
     def _init_ctrls(self, prnt):
-        wxFrame.__init__(self, id = wxID_BOAFRAME, name = '', parent = prnt, pos = wxPoint(116, 275), size = wxSize(645, 130), style = wxDEFAULT_FRAME_STYLE, title = 'Boa Constructor - Python IDE & wxPython GUI Builder')
+        wxFrame.__init__(self, id = wxID_BOAFRAME, name = '', parent = prnt, pos = wxPoint(116, 275), size = wxSize(645, 74), style = wxDEFAULT_FRAME_STYLE, title = 'Boa Constructor - Python IDE & wxPython GUI Builder')
         self._init_utils()
         EVT_CLOSE(self, self.OnCloseWindow)
 
@@ -68,7 +70,7 @@ class BoaFrame(wxFrame):
         self._init_coll_toolBar_Tools(self.toolBar)
         self.SetToolBar(self.toolBar)
 
-        self.palette = wxNotebook(id = wxID_BOAFRAMEPALETTE, name = 'palette', parent = self, pos = wxPoint(0, 0), size = wxSize(637, 75), style = 0)
+        self.palette = wxNotebook(id = wxID_BOAFRAMEPALETTE, name = 'palette', parent = self, pos = wxPoint(0, 0), size = wxSize(637, 0), style = 0)
 
         self.contextHelpSearch = wxTextCtrl(id = wxID_BOAFRAMECONTEXTHELPSEARCH, name = 'contextHelpSearch', parent = self.toolBar, pos = wxPoint(232, 0), size = wxSize(100, 21), style = 0, value = '')
         EVT_TEXT_ENTER(self.contextHelpSearch, wxID_BOAFRAMECONTEXTHELPSEARCH, self.OnSearchEnter)
@@ -78,6 +80,11 @@ class BoaFrame(wxFrame):
         self._init_ctrls(parent)
 
         self.SetDimensions(0, 0, Preferences.screenWidth - Preferences.windowManagerSide * 2, Preferences.paletteHeight)
+
+        if Preferences.paletteStyle == 'menu':
+            self.menuBar = wxMenuBar()
+            self.SetMenuBar(self.menuBar)
+            self.palette.Show(false)
 
         self.app = app
         self.destroying = false
@@ -127,8 +134,6 @@ class BoaFrame(wxFrame):
         self.palettePages = []
         self.senders = sender.SenderMapper()
 
-        self.buildPalette()
-
         print 'creating Inspector'
         self.inspector = Inspector.InspectorFrame(self)
 
@@ -140,52 +145,57 @@ class BoaFrame(wxFrame):
             self.editor = Editor.EditorFrame(self, -1, self.inspector,
               wxMenu(), self.componentSB, app)#palettePage.menu
 
+        self.buildPalette()
+        self.editor.setupToolBar()
+
         self.contextHelpSearch.SetFocus()
 
-        EVT_NEW_PACKAGE(self, self.OnNewPackage)
+        EVT_CREATE_NEW(self, self.OnCreateNew)
 
     def buildPalette(self):
 
-        if Preferences.transparentPaletteBitmaps:
-            transpSF = ''
+##        if Preferences.transparentPaletteBitmaps:
+##            transpSF = ''
+##        else:
+##            transpSF = 'Gray/'
+        transpSF = 'Gray/'
+        if Preferences.paletteStyle == 'menu':
+            mb = self.menuBar
         else:
-            transpSF = 'Gray/'
+            mb = None
 
         # XXX Set these from class
         if not cyclopsing:
             # 'New' page
-            palettePage = NewPalettePage(self.palette, 'New', 'Images/Palette/'+transpSF, self, self.widgetSet, self.senders, self.componentSB)
-            palettePage.addButton('wxApp', None, None, self.OnNewApp, self.OnHint, self.OnHintLeave, wxGenBitmapButton)
-            palettePage.addButton('wxFrame', None, None, self.OnNewFrame, self.OnHint, self.OnHintLeave, wxGenBitmapButton)
-            palettePage.addButton('wxDialog', None, None, self.OnNewDialog, self.OnHint, self.OnHintLeave, wxGenBitmapButton)
-            palettePage.addButton('wxMiniFrame', None, None, self.OnNewMiniFrame, self.OnHint, self.OnHintLeave, wxGenBitmapButton)
-            palettePage.addButton('wxMDIParentFrame', None, None, self.OnNewMDIMainFrame, self.OnHint, self.OnHintLeave, wxGenBitmapButton)
-            palettePage.addButton('wxMDIChildFrame', None, None, self.OnNewMDIChildFrame, self.OnHint, self.OnHintLeave, wxGenBitmapButton)
-            palettePage.addButton('Module', None, None, self.OnNewModule, self.OnHint, self.OnHintLeave, wxGenBitmapButton)
-            palettePage.addButton('Package', None, None, self.OnNewPackagePost, self.OnHint, self.OnHintLeave, wxGenBitmapButton)
-            palettePage.addButton('Setup', None, None, self.OnNewSetup, self.OnHint, self.OnHintLeave, wxGenBitmapButton)
-            palettePage.addButton('Text', None, None, self.OnNewText, self.OnHint, self.OnHintLeave, wxGenBitmapButton)
-            if Utils.IsComEnabled():
-                palettePage.addButton('MakePy Dialog', None, None, self.OnMakePyDlg, self.OnHint, self.OnHintLeave, wxGenBitmapButton)
+            palettePage = NewPalettePage(self.palette, 'New', 'Images/Palette/'+transpSF, self, self.widgetSet, self.senders, self)
+            
+            for modelName in PaletteMapping.PaletteStore.paletteLists['New']:
+                palettePage.addButton2(modelName, 
+                    PaletteMapping.PaletteStore.newControllers[modelName],
+                    wxGenBitmapButton)
+            if mb: mb.Append(menu = palettePage.menu, title = 'New')
             self.palettePages.append(palettePage)
             # Normal control pages
             for palette in PaletteMapping.palette:
-                palettePage = PalettePage(self.palette, palette[0], 'Images/Palette/'+transpSF, self, self.widgetSet, self.senders, self.componentSB)
-                palettePage.addToggleBitmaps(palette[2], self.OnHint, self.OnHintLeave)
+                palettePage = PalettePage(self.palette, palette[0], 'Images/Palette/'+transpSF, self, self.widgetSet, self.senders, self.componentSB, self)
+                palettePage.addToggleBitmaps(palette[2], None, None)
                 self.palettePages.append(palettePage)
+                if mb: mb.Append(menu = palettePage.menu, title = palette[0])
             # Dialog page
-            self.dialogPalettePage = PanelPalettePage(self.palette, PaletteMapping.dialogPalette[0], 'Images/Palette/'+transpSF, self, self.widgetSet, self.senders, self.componentSB)
+            self.dialogPalettePage = PanelPalettePage(self.palette, PaletteMapping.dialogPalette[0], 'Images/Palette/'+transpSF, self, self.widgetSet, self.senders, self.componentSB, self)
             for dialog in PaletteMapping.dialogPalette[2]:
                 self.dialogPalettePage.addButton(PaletteMapping.compInfo[dialog][0],
                   dialog, PaletteMapping.compInfo[dialog][1],
-                  self.OnDialogPaletteClick, self.OnHint, self.OnHintLeave, wxGenBitmapButton)
+                  self.OnDialogPaletteClick, None, None, wxGenBitmapButton)
             self.palettePages.append(self.dialogPalettePage)
+            if mb: mb.Append(menu = self.dialogPalettePage.menu, title = 'Dialogs')
             # Zope page
             conf = Utils.createAndReadConfig('Explorer')
             if conf.has_option('explorer', 'zope'):
-                self.zopePalettePage = ZopePalettePage(self.palette, PaletteMapping.zopePalette[0], 'Images/Palette/'+transpSF, self, self.widgetSet, self.senders, self.componentSB)
+                self.zopePalettePage = ZopePalettePage(self.palette, PaletteMapping.zopePalette[0], 'Images/Palette/'+transpSF, self, self.widgetSet, self.senders, self.componentSB, self)
                 self.zopePalettePage.addToggleBitmaps(PaletteMapping.zopePalette[2], None, None)
                 self.palettePages.append(self.zopePalettePage)
+                if mb: mb.Append(menu = self.zopePalettePage.menu, title = 'Zope')
         else:
             palettePage = None
 
@@ -223,12 +233,6 @@ class BoaFrame(wxFrame):
         EVT_TOOL(self, mID, func)
         return mID
 
-    def OnOpenToolClick(self, event):
-        dlg = wxFileDialog(self, "Choose a file", ".", "", "*.*", wxOPEN)
-        if dlg.ShowModal() == wxID_OK:
-            self.editor.addFile(dlg.GetFilename())
-        dlg.Destroy()
-
     def OnInspectorToolClick(self, event):
         self.inspector.Show(true)
         if self.inspector.IsIconized():
@@ -258,56 +262,8 @@ class BoaFrame(wxFrame):
     def OnPrefsToolClick(self, event):
         self.editor.openOrGotoModule(toPyPath('Preferences.py'))
 
-    def OnLeave(self, event):
-        self.componentSB.setHint('')
-
-    def OnNewClick(self, event):
-        pass
-
-    def OnNewFrame(self, event):
-        self.editor.addNewFramePage('Frame')
-
-    def OnNewDialog(self, event):
-        self.editor.addNewFramePage('Dialog')
-
-    def OnNewMiniFrame(self, event):
-        self.editor.addNewFramePage('MiniFrame')
-
-    def OnNewMDIMainFrame(self, event):
-        self.editor.addNewFramePage('MDIParent')
-
-    def OnNewMDIChildFrame(self, event):
-        self.editor.addNewFramePage('MDIChild')
-
     def OnFileExit(self, event):
         self.Close()
-
-    def OnNewApp(self, event):
-        self.editor.addNewAppPage()
-
-    def OnNewModule(self, event):
-        self.editor.addNewModulePage()
-
-    def OnNewText(self, event):
-        self.editor.addNewTextPage()
-
-    def OnNewSetup(self, event):
-        self.editor.addNewSetupPage()
-
-    def OnMakePyDlg(self, event):
-        import makepydialog
-        dlg = makepydialog.create(self)
-        try:
-            if dlg.ShowModal() == wxID_OK and dlg.generatedFilename:
-                self.editor.openOrGotoModule(dlg.generatedFilename)
-        finally:
-            dlg.Destroy()
-
-    def OnNewPackagePost(self, event):
-        wxPostEvent(self, NewPackageEvent())
-
-    def OnNewPackage(self, event):
-        self.editor.addNewPackage()
 
     def OnDialogPaletteClick(self, event):
         cls, cmp = self.dialogPalettePage.widgets[`event.GetId()`][1:]
@@ -315,12 +271,6 @@ class BoaFrame(wxFrame):
 
     def OnZopePaletteClick(self, event):
         cls, cmp = self.zopePalettePage.widgets[`event.GetId()`][1:]
-
-    def OnHint(self, event):
-        pass
-
-    def OnHintLeave(self, event):
-        self.componentSB.setHint('')
 
     def OnEditorToolClick(self, event):
         self.editor.Show(true)
@@ -393,6 +343,9 @@ class BoaFrame(wxFrame):
               len(self.contextHelpSearch.GetValue()))
         event.Skip()
 
+    def OnCreateNew(self, event):
+        self.editor.addNewPage(event.name, event.controller)
+
 class ComponentSelection:
     """ Controls the selection of the palette and access to associated
         palette mapping structures. Accessed by the Designer """
@@ -426,52 +379,52 @@ class ComponentSelection:
         self.selComp.SetLabel('  (Nothing selected)')
         self.selComp.SetValue(false)
 
-class ComponentStatusBar(wxStatusBar):
-    """ Controls the selection of the palette and access to associated
-        palette mapping structures. Accessed by the Designer """
-    def __init__(self, parent):
-        wxStatusBar.__init__(self, parent, -1, style = wxST_SIZEGRIP)
-        self.SetFieldsCount(4)
-        self.SetStatusWidths([150, 150, 170, -1])
-        wID = NewId()
-        self.hint = wxStaticText(self, -1, '', wxPoint(7, 4))
-        self.selComp = wxCheckBox(self, wID, '', wxPoint(157, 4), wxSize(140, 15))
-        self.selComp.Enable(false)
-        EVT_CHECKBOX(self.selComp, wID, self.OnUncheck)
-        self.selCompose = wxRadioButton(self, -1, 'Compose', wxPoint(320, 3), wxSize(70, 15))
-        self.selCompose.SetValue(true)
-        self.selInherit = wxRadioButton(self, -1, 'Inherit', wxPoint(400, 3), wxSize(55, 15))
-        self.selInherit.Enable(false)
-
-        self.selection = None
-        self.prevPage = None
-
-        dc = wxClientDC(self)
-        dc.SetFont(self.GetFont())
-        (w,h) = dc.GetTextExtent('X')
-        h = int(h * 1.8)
-        self.SetSize(wxSize(100, h-1))
-
-    def selectComponent(self, page, detail):
-        if self.prevPage: self.prevPage.selectNone()
-        self.selection = detail
-        self.prevPage = page
-        self.selComp.Enable(true)
-        self.selComp.SetLabel(detail[0])
-        self.selComp.SetValue(true)
-
-    def selectNone(self):
-        if self.prevPage: self.prevPage.selectNone()
-        self.selection = None
-        self.selComp.Enable(false)
-        self.selComp.SetLabel('')
-        self.selComp.SetValue(false)
-
-    def setHint(self, text):
-        self.hint.SetLabel(text)
-
-    def OnUncheck(self, event):
-        self.selectNone()
+##class ComponentStatusBar(wxStatusBar):
+##    """ Controls the selection of the palette and access to associated
+##        palette mapping structures. Accessed by the Designer """
+##    def __init__(self, parent):
+##        wxStatusBar.__init__(self, parent, -1, style = wxST_SIZEGRIP)
+##        self.SetFieldsCount(4)
+##        self.SetStatusWidths([150, 150, 170, -1])
+##        wID = NewId()
+##        self.hint = wxStaticText(self, -1, '', wxPoint(7, 4))
+##        self.selComp = wxCheckBox(self, wID, '', wxPoint(157, 4), wxSize(140, 15))
+##        self.selComp.Enable(false)
+##        EVT_CHECKBOX(self.selComp, wID, self.OnUncheck)
+##        self.selCompose = wxRadioButton(self, -1, 'Compose', wxPoint(320, 3), wxSize(70, 15))
+##        self.selCompose.SetValue(true)
+##        self.selInherit = wxRadioButton(self, -1, 'Inherit', wxPoint(400, 3), wxSize(55, 15))
+##        self.selInherit.Enable(false)
+##
+##        self.selection = None
+##        self.prevPage = None
+##
+##        dc = wxClientDC(self)
+##        dc.SetFont(self.GetFont())
+##        (w,h) = dc.GetTextExtent('X')
+##        h = int(h * 1.8)
+##        self.SetSize(wxSize(100, h-1))
+##
+##    def selectComponent(self, page, detail):
+##        if self.prevPage: self.prevPage.selectNone()
+##        self.selection = detail
+##        self.prevPage = page
+##        self.selComp.Enable(true)
+##        self.selComp.SetLabel(detail[0])
+##        self.selComp.SetValue(true)
+##
+##    def selectNone(self):
+##        if self.prevPage: self.prevPage.selectNone()
+##        self.selection = None
+##        self.selComp.Enable(false)
+##        self.selComp.SetLabel('')
+##        self.selComp.SetValue(false)
+##
+##    def setHint(self, text):
+##        self.hint.SetLabel(text)
+##
+##    def OnUncheck(self, event):
+##        self.selectNone()
 
 class BasePalettePage:
     pass
@@ -485,10 +438,11 @@ class TemplateListCtrlPalPage(ListCtrlPalettePage):
 class PanelPalettePage(wxPanel, BasePalettePage):
     defX = 5
     defY = 3
-    def __init__(self, parent, name, bitmapPath, eventOwner, widgets, senders, statusbar):
+    def __init__(self, parent, name, bitmapPath, eventOwner, widgets, senders, components, palette):
         wxPanel.__init__(self, parent, -1)
 
-        self.statusbar = statusbar
+        self.palette = palette
+        self.components = components
         self.senders = senders
         self.name = name
         self.bitmapPath = bitmapPath
@@ -498,6 +452,8 @@ class PanelPalettePage(wxPanel, BasePalettePage):
         self.buttons = {}
         parent.AddPage(self, name)
         self.eventOwner = eventOwner
+        self.menu = wxMenu()
+        self.menusCheckable = false
 
 ##    def __del__(self):
 ##        print '__del__', self.__class__.__name__
@@ -506,14 +462,21 @@ class PanelPalettePage(wxPanel, BasePalettePage):
         del self.senders
         del self.widgets
         del self.buttons
-#        pass
 
     def addButton(self, widgetName, wxClass, constrClass, clickEvt, hintFunc, hintLeaveFunc, btnType):
+        mID = wxNewId()
+
+        self.menu.Append(mID, widgetName, checkable=self.menusCheckable)
+        EVT_MENU(self.palette, mID, clickEvt)
+
+        self.widgets[`mID`] = (widgetName, wxClass, constrClass)
+
+        if Preferences.paletteStyle == 'menu':
+            return mID
+        
         bmp = self.getButtonBmp(widgetName, wxClass)
         width = bmp.GetWidth() + 7
         height = bmp.GetHeight() + 7
-
-        mID = wxNewId()
 
         newButton = btnType(self, mID, None, wxPoint(self.posX, self.posY),
                            wxSize(width, height))
@@ -521,72 +484,96 @@ class PanelPalettePage(wxPanel, BasePalettePage):
         newButton.SetBezelWidth(1)
         newButton.SetUseFocusIndicator(0)
         newButton.SetToolTipString(widgetName)
-        mask = wxMaskColour(bmp, wxColour(255, 0, 255))
-        bmp.SetMask(mask)
+        #mask = wxMaskColour(bmp, wxColour(255, 0, 255))
+        #bmp.SetMask(mask)
         newButton.SetBitmapLabel(bmp)
 
         EVT_BUTTON(self, mID, clickEvt)
 
         self.senders.addObject(newButton)
-        self.widgets[`mID`] = (widgetName, wxClass, constrClass)
         self.buttons[widgetName] = newButton
         self.posX = self.posX + bmp.GetWidth() + 11
 
         return mID
 
     def getButtonBmp(self, name, wxClass):
-        return PaletteMapping.bitmapForComponent(wxClass)
-#        return IS.load('%s%s.bmp' %(self.bitmapPath, name))
+        return PaletteMapping.bitmapForComponent(wxClass, gray=true)
 
 class NewPalettePage(PanelPalettePage):
-    def __init__(self, parent, name, bitmapPath, eventOwner, widgets, senders, statusbar):
-        PanelPalettePage.__init__(self, parent, name, bitmapPath, eventOwner, widgets, senders, statusbar)
-        self.menu = wxMenu()
+    def __init__(self, parent, name, bitmapPath, eventOwner, widgets, senders, palette):
+        PanelPalettePage.__init__(self, parent, name, bitmapPath, eventOwner, widgets, senders, palette, palette)
         self.selection = None
 
     def destroy(self):
-        self.menu.Destroy()
         PanelPalettePage.destroy(self)
 
     def addButton(self, widgetName, wxClass, constrClass, clickEvt, hintFunc, hintLeaveFunc, btnType):
         mID = PanelPalettePage.addButton(self, widgetName, wxClass, constrClass, clickEvt, hintFunc, hintLeaveFunc, btnType)
-        self.menu.Append(mID, widgetName)
-        EVT_MENU(self, mID, clickEvt)
+        return mID
+
+    def addButton2(self, name, Controller, btnType):
+        mID = PanelPalettePage.addButton(self, name, Controller, None, self.OnClickTrap, None, None, btnType)
+        EVT_MENU(self.palette.editor, mID, self.OnClickTrap)
+
         return mID
 
     def getButtonBmp(self, name, wxClass):
         return IS.load('%s%s.bmp' %(self.bitmapPath, name))
 
+    def OnClickTrap(self, event):
+        modPageInfo = self.widgets[`event.GetId()`]
+        wxPostEvent(self.palette, CreateNewEvent(modPageInfo[0], modPageInfo[1]))
+
 class PalettePage(PanelPalettePage):
-    def __init__(self, parent, name, bitmapPath, eventOwner, widgets, senders, statusbar):
-        PanelPalettePage.__init__(self, parent, name, bitmapPath, eventOwner, widgets, senders, statusbar)
+    def __init__(self, parent, name, bitmapPath, eventOwner, widgets, senders, components, palette):
+        PanelPalettePage.__init__(self, parent, name, bitmapPath, eventOwner, widgets, senders, components, palette)
         self.clickEvt = None
         self.selection = None
+        self.menusCheckable = true
 
     def addToggleBitmaps(self, classes, hintFunc, hintLeaveFunc):
-#        self.clickEvt = clickEvt
         for wxClass in classes:
             ci = PaletteMapping.compInfo[wxClass]
             self.addButton(ci[0], wxClass, ci[1], self.OnClickTrap, hintFunc, hintLeaveFunc, wxGenBitmapToggleButton)
 
     def OnClickTrap(self, event):
-        obj = self.senders.getBtnObject(event)
-        if obj.up:
-            self.selectNone()
-            self.statusbar.selectNone()
-        else:
-            self.statusbar.selectComponent(self, self.widgets[`event.GetId()`])
-            self.selection = obj
+        wId = event.GetId()
+        if Preferences.paletteStyle == 'tabs':
+            obj = self.senders.getBtnObject(event)
+            if obj.up:
+                self.selectNone()
+                self.components.selectNone()
+            else:
+                self.components.selectComponent(self, self.widgets[`wId`])
+                self.selection = obj
+        elif Preferences.paletteStyle == 'menu':
+            sel = self.menu.FindItemById(wId)
+            if not sel.IsChecked():
+                self.selectNone()
+                self.components.selectNone()
+            else:
+                self.components.selectComponent(self, self.widgets[`wId`])
+                sel.Check(true)
+                self.selection = sel
+            event.Skip()
+            
 
     def selectNone(self):
         if self.selection:
-            self.selection.SetToggle(false)
-            self.selection.Refresh()
-            self.selection = None
+            if Preferences.paletteStyle == 'tabs':
+                self.selection.SetToggle(false)
+                self.selection.Refresh()
+                self.selection = None
+            elif Preferences.paletteStyle == 'menu':
+                self.selection.Check(false)
+                self.selection = None
+                
+    
 
 class ZopePalettePage(PalettePage):
-    def __init__(self, parent, name, bitmapPath, eventOwner, widgets, senders, statusbar):
-        PalettePage.__init__(self, parent, name, bitmapPath, eventOwner, widgets, senders, statusbar)
+    def __init__(self, parent, name, bitmapPath, eventOwner, widgets, senders, components, palette):
+        PalettePage.__init__(self, parent, name, bitmapPath, eventOwner, widgets, senders, components, palette)
 
     def getButtonBmp(self, name, wxClass):
         return IS.load('%s%s.bmp' %(self.bitmapPath, name))
+  
