@@ -15,7 +15,6 @@
 # XXX debugging, reload sometimes works
 # XXX Going to source code on an error
 
-# XXX Renaming/saving modules do not update filenames
 import string, sys, os
 
 from wxPython.wx import *
@@ -43,8 +42,8 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
     _closing = 0
 
     def __init__(self, editor, filename=None, slave_mode=1):
-        wxFrame.__init__(self, editor, -1, 'Debugger', 
-              style=wxDEFAULT_FRAME_STYLE|wxCLIP_CHILDREN)
+        wxFrame.__init__(self, editor, -1, 'Debugger',
+         style=wxDEFAULT_FRAME_STYLE|wxCLIP_CHILDREN|Preferences.childFrameStyle)
 
         self.winConfOption = 'debugger'
         self.loadDims()
@@ -72,7 +71,7 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
         self.sb = DebugStatusBar(self)
         self.SetStatusBar(self.sb)
 
-        self.toolbar = wxToolBar(self, -1, 
+        self.toolbar = wxToolBar(self, -1,
               style=wxTB_HORIZONTAL|wxNO_BORDER|flatTools)
         self.SetToolBar(self.toolbar)
 
@@ -83,10 +82,10 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
           'Images/Debug/DebugFullSpeed.png', 'Debug/Continue full speed\nStops '
           'only at hard (code) breaks and exceptions', self.OnDebugFullSpeed)
         self.stepId = Utils.AddToolButtonBmpIS(self, self.toolbar,
-          'Images/Debug/Step.png', 'Step - %s'%keyDefs['DebugStep'][2], 
+          'Images/Debug/Step.png', 'Step - %s'%keyDefs['DebugStep'][2],
           self.OnStep)
         self.overId = Utils.AddToolButtonBmpIS(self, self.toolbar,
-          'Images/Debug/Over.png', 'Over - %s'%keyDefs['DebugOver'][2], 
+          'Images/Debug/Over.png', 'Over - %s'%keyDefs['DebugOver'][2],
           self.OnOver)
         self.outId = Utils.AddToolButtonBmpIS(self, self.toolbar,
           'Images/Debug/Out.png', 'Out - %s'%keyDefs['DebugOut'][2],
@@ -117,25 +116,20 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
           (keyDefs['DebugOut'][0], keyDefs['DebugOut'][1], self.outId) ] ))
 
         self.toolbar.Realize()
-        
+
         self.toolbar.ToggleTool(self.sourceTraceId, true)
         self.toolbar.ToggleTool(self.debugBrowseId, false)
-        
-        self.splitter = wxSplitterWindow(self, -1, 
+
+        self.splitter = wxSplitterWindow(self, -1,
                style=wxSP_NOBORDER|wxSP_3DSASH|wxSP_FULLSASH|\
                      wxSP_LIVE_UPDATE|wxCLIP_CHILDREN)
 
-        use_images = (1 or wxPlatform == '__WXMSW__')
-        if use_images:
-            (stackImgIdx, breaksImgIdx, watchesImgIdx, localsImgIdx,
+        (stackImgIdx, breaksImgIdx, watchesImgIdx, localsImgIdx,
                   globalsImgIdx) = range(5)
-        else:
-            stackImgIdx=breaksImgIdx=watchesImgIdx=localsImgIdx=globalsImgIdx=-1
 
         # Create a Notebook
         self.nbTop = wxNotebook(self.splitter, wxID_TOPPAGECHANGED)
-        if use_images:
-            self.nbTop.SetImageList(self.viewsImgLst)
+        self.nbTop.SetImageList(self.viewsImgLst)
 
         self.stackView = StackViewCtrl(self.nbTop, None, self)
         self.nbTop.AddPage(self.stackView, 'Stack', imageId=stackImgIdx)
@@ -148,8 +142,7 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
               style=wxCLIP_CHILDREN)
         EVT_NOTEBOOK_PAGE_CHANGED(self.nbBottom, wxID_PAGECHANGED,
                                   self.OnPageChange)
-        if use_images:
-            self.nbBottom.SetImageList(self.viewsImgLst)
+        self.nbBottom.SetImageList(self.viewsImgLst)
 
         self.watches = WatchViewCtrl(self.nbBottom, self.viewsImgLst, self)
         self.nbBottom.AddPage(self.watches, 'Watches', imageId=watchesImgIdx)
@@ -163,7 +156,7 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
         self.nbBottom.AddPage(self.globs, 'Globals', imageId=globalsImgIdx)
 
         self.splitter.SetMinimumPaneSize(40)
-                
+
         self.splitter.SplitHorizontally(self.nbTop, self.nbBottom)
         self.splitter.SetSashPosition(175)
         self.splitter.SetSplitMode(wxSPLIT_HORIZONTAL)
@@ -175,7 +168,7 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
         self.lastStepLineno = -1
 
         self.stepping_enabled = 1
-        
+
         self.setParams([])
 
         EVT_DEBUGGER_OK(self, self.GetId(), self.OnDebuggerOk)
@@ -191,7 +184,7 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
         if self._destroyed:
             return
         self._destroyed = 1
-        
+
         self.breakpts.destroy()
         self.watches.destroy()
         self.locs.destroy()
@@ -215,7 +208,7 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
             else:
                 mode = wxSPLIT_VERTICAL
             self.splitter.SetSplitMode(mode)
-            self.OnToggleSplitOrient(None)
+            self.OnToggleSplitOrient()
             self._sashes_inited = 1
 
     def add_watch(self, name, local):
@@ -429,7 +422,7 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
         if hasattr(t, '__name__'):
             t = t.__name__
         msg = '%s: %s.' % (t, v)
-        
+
         confirm = wxMessageBox(msg + '\n\nStop debugger?',
                   'Debugger Communication Exception',
                   wxYES_NO | wxYES_DEFAULT | wxICON_EXCLAMATION |
@@ -479,11 +472,11 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
         set breakpoints when running the client in a different environment
         from the server, you'll need to expand this.
         """
-        # XXX should we .fncache this? Files changing names are undefined 
+        # XXX should we .fncache this? Files changing names are undefined
         # XXX during the lifetime of the debugger
-        
+
         from Explorers.Explorer import splitURI, getTransport, all_transports
-        
+
         prot, category, filepath, filename = splitURI(filename)
         if prot == 'file':
             return filepath
@@ -491,7 +484,7 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
             node = getTransport(prot, category, filepath, all_transports)
             if node:
                 props = node.properties
-                return 'zopedebug://%s:%s/%s/%s'%(props['host'], 
+                return 'zopedebug://%s:%s/%s/%s'%(props['host'],
                       props['httpport'], filepath, node.metatype)
             else:
                 raise Exception('No Zope connection for: %s'%filename)
@@ -506,10 +499,10 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
         from the server, you'll need to expand this.
         """
         # XXX should we .fncache this?
-        
+
         from Explorers.Explorer import splitURI
         return splitURI(filename)[3]
-                
+
     def deleteBreakpoints(self, filename, lineno):
         fn = self.clientFNToServerFN(filename)
         self.invokeInDebugger('clearBreakpoints', (fn, lineno))
@@ -619,10 +612,10 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
         self.updateSelectedPane()
         # Receive stream data even if the user isn't looking.
         self.updateOutputWindow()
-        
+
         self.restoreDebugger()
         self.refreshTools()
-        
+
     def restoreDebugger(self):
         if self.editor:
             if self.editor.palette.IsShown():
@@ -698,13 +691,13 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
             self.runProcess(cont_always)
 
     def enableTools(self, stepping, running):
-        for wid, enabled in ((self.runId, stepping), 
-                             (self.runFullSpdId, stepping), 
-                             (self.stepId, stepping), 
-                             (self.overId, stepping), 
-                             (self.outId, stepping), 
+        for wid, enabled in ((self.runId, stepping),
+                             (self.runFullSpdId, stepping),
+                             (self.stepId, stepping),
+                             (self.overId, stepping),
+                             (self.outId, stepping),
                              (self.pauseId, not stepping),
-                             (self.stopId, running), 
+                             (self.stopId, running),
                              (self.debugBrowseId, running),
                              (self.shellNamespaceId, running)):
             self.toolbar.EnableTool(wid, enabled)
@@ -805,10 +798,10 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
         return self.toolbar.GetToolState(self.shellNamespaceId)
 
     def OnDebugNamespace(self, event):
-        self.editor.OnSwitchShell(None)
+        self.editor.OnSwitchShell()
         self.editor.shell.debugShell(self.isInShellNamepace(), self)
 
-    def OnToggleSplitOrient(self, event):
+    def OnToggleSplitOrient(self, event=None):
         if self.splitter.GetSplitMode() == wxSPLIT_HORIZONTAL:
             self.splitter.SetSplitMode(wxSPLIT_VERTICAL)
             self.splitter.SplitVertically(self.nbTop, self.nbBottom)
@@ -835,4 +828,3 @@ def simplifyPathList(data,
         return ()
     else:
         return list(string.split(str(data), os.pathsep))
-
