@@ -10,15 +10,28 @@
 # Licence:     GPL
 #----------------------------------------------------------------------
 
-from wxPython.wx import *
-from Companions import *
-from UtilCompanions import *
-from DialogCompanions import *
-import Preferences
-from os import path
-from wxPython.html import wxHtmlWindow
+# XXX Think about the following
+# XXX Letting users edit this file directly and reload it
 
-utilities = [wxMenu, wxImageList, wxAcceleratorTable]
+import Preferences
+from Preferences import IS
+from os import path
+
+from wxPython.wx import *
+from wxPython.grid import wxGrid
+from wxPython.html import wxHtmlWindow
+from wxPython.lib.buttons import wxGenButton, wxGenBitmapButton, wxGenToggleButton, wxGenBitmapToggleButton
+from wxPython.calendar import wxCalendarCtrl
+from wxPython.stc import wxStyledTextCtrl
+
+from Companions.Companions import *
+from Companions.UtilCompanions import *
+from Companions.DialogCompanions import *
+from Companions.Companions import *
+from Companions.UtilCompanions import *
+from Companions.DialogCompanions import *
+
+utilities = [wxMenu, wxImageList, wxAcceleratorTable, wxTextDropTarget, wxFileDropTarget]
 
 palette = [
   ['Frame bars', 'Editor/Tabs/Singletons', 
@@ -26,9 +39,12 @@ palette = [
   ['Containers/Layout', 'Editor/Tabs/Containers', 
     [wxPanel, wxScrolledWindow, wxNotebook, wxSplitterWindow]], 
   ['Basic Controls', 'Editor/Tabs/Basic', 
-    [wxStaticText, wxTextCtrl, wxComboBox, wxChoice, wxButton, wxBitmapButton,
-     wxCheckBox, wxRadioButton, wxSpinButton, wxSlider, wxGauge, wxStaticBox, 
-     wxScrollBar, wxStaticBitmap, wxStaticLine, wxHtmlWindow]],
+    [wxStaticText, wxTextCtrl, wxComboBox, wxChoice, wxCheckBox, wxRadioButton, 
+     wxSlider, wxGauge, wxStaticBox, wxScrollBar, wxStaticBitmap, wxStaticLine, 
+     wxHtmlWindow, wxSpinCtrl, wxCalendarCtrl, wxStyledTextCtrl]],
+  ['Buttons', 'Editor/Tabs/Basic',
+    [wxButton, wxBitmapButton, wxSpinButton, wxGenButton, wxGenBitmapButton, 
+     wxGenToggleButton, wxGenBitmapToggleButton]],
   ['List Controls', 'Editor/Tabs/Lists', 
     [wxRadioBox, wxListBox, wxCheckListBox, wxGrid, wxListCtrl, wxTreeCtrl]],
   ['Utilities', 'Editor/Tabs/Utilities', 
@@ -51,13 +67,13 @@ compInfo = {
     wxMiniFrame: ['wxMiniFrame', MiniFrameDTC],
     wxMDIParentFrame: ['wxMDIParentFrame', MDIParentFrameDTC],
     wxMDIChildFrame: ['wxMDIChildFrame', MDIChildFrameDTC],
-    wxMenuBar: ['wxMenuBar', DesignTimeCompanion],
-    wxToolBar: ['wxToolBar', DesignTimeCompanion],
-    wxStatusBar: ['wxStatusBar', DesignTimeCompanion],
+    wxMenuBar: ['wxMenuBar', MenuBarDTC],
+    wxToolBar: ['wxToolBar', ToolBarDTC],
+    wxStatusBar: ['wxStatusBar', StatusBarDTC],
     wxPanel: ['wxPanel', PanelDTC], 
     wxScrolledWindow: ['wxScrolledWindow', ScrolledWindowDTC], 
     wxNotebook: ['wxNotebook', NotebookDTC],
-    wxSplitterWindow: ['wxSplitterWindow', DesignTimeCompanion],
+    wxSplitterWindow: ['wxSplitterWindow', SplitterWindowDTC],
     wxStaticText: ['wxStaticText', StaticTextDTC], 
     wxTextCtrl: ['wxTextCtrl', TextCtrlDTC], 
     wxChoice: ['wxChoice', ChoiceDTC],
@@ -92,7 +108,16 @@ compInfo = {
     wxImageList: ['wxImageList', ImageListDTC],
     wxAcceleratorTable: ['wxAcceleratorTable', AcceleratorTableDTC],
     wxMenu: ['wxMenu', MenuDTC],
-    wxTimer: ['wxTimer', TimerDTC]
+    wxTimer: ['wxTimer', TimerDTC],
+    wxStyledTextCtrl: ['wxStyledTextCtrl', NYIDTC],
+    wxCalendarCtrl: ['wxCalendarCtrl', NYIDTC],
+    wxSpinCtrl: ['wxSpinCtrl', NYIDTC],
+    wxGenButton: ['wxGenButton', GenButtonDTC],
+    wxGenBitmapButton: ['wxGenBitmapButton', GenBitmapButtonDTC],
+    wxGenToggleButton: ['wxGenToggleButton', GenButtonDTC],
+    wxGenBitmapToggleButton: ['wxGenBitmapToggleButton', GenBitmapButtonDTC],
+    wxTextDropTarget: ['wxTextDropTarget', NYIDTC],
+    wxFileDropTarget: ['wxFileDropTarget', NYIDTC],
 }
 
 def compInfoByName(name):
@@ -106,10 +131,11 @@ def loadBitmap(name, subfold = ''):
         f = open(filename)
         f.close()
 #        if path.exists(filename):
-        return wxBitmap(filename, wxBITMAP_TYPE_BMP)
+        return IS.load('Images/Palette/' + subfold + name+'.bmp')
+#        return wxBitmap(filename, wxBITMAP_TYPE_BMP)
     except:
-        return wxBitmap(Preferences.toPyPath('Images/Palette/Component.bmp'), 
-          wxBITMAP_TYPE_BMP)
+        return IS.load('Images/Palette/Component.bmp')
+#        return wxBitmap(Preferences.toPyPath('Images/Palette/Component.bmp'), wxBITMAP_TYPE_BMP)
         
     
 def bitmapForComponent(wxClass, wxBase = 'None', gray = false):
@@ -135,4 +161,7 @@ def bitmapForComponent(wxClass, wxBase = 'None', gray = false):
             print 'not found!'
             return loadBitmap('Component')
 
-#print 'PaletteMapping:', len(locals())
+#print 'PaletteMapping:', len(locals()
+
+def evalCtrl(expr):
+    return eval(expr)

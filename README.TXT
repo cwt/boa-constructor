@@ -8,6 +8,9 @@ code generator, not a library/framework. This is the principle behind storing
 object data as source code code as opposed to some pickled datastructure or
 fileformat or something.
 
+Look at Changes.txt for the latest improvements.
+
+NB: Please unzip Boa to an empty directory
 
 Licence:
 GPL
@@ -17,10 +20,12 @@ Riaan Booysen 1999, 2000
 
 -
 
+CVS Release 0.0.3.5
+
+-
+
 Second release: Boa Constructor 0.0.3 - Yet Another Preview Version
 Built with wxPython 2.1.13
-
-Please unzip this to an empty directory
 
 This is definately still a pre alpha version. Anything may change and
 a lot of things are missing or incomplete.
@@ -33,7 +38,7 @@ Changes of note:
 * Explorer
 * Framework for utility objects (wxImageList)
   Not useful yet, but it's a start
-* Funky dynamic toolbar
+`* Funky dynamic toolbar
 * Searchable help
 * Find in module
   I've been avoiding all work on the source editor until there is a better 

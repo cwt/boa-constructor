@@ -9,6 +9,7 @@
 # Copyright:   (c) 1999, 2000 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
+#Boa:Frame:InspectorFrame
 
 """ Inspects and edits design-time components, manages property editors 
     and interacts with the designer and companions
@@ -16,12 +17,10 @@
     XXX Todo XXX
     
     * write/wrap many more classes
-    * consider either 
-      * splitting pygasm structure from inspector gui
-      * having InspectorScrollWin base class
     * Update speed
       * draw inspead of having panels for thin line
       * just in time show/hiding instead of recreating editor controls
+      * New grids
 
 """
 
@@ -33,23 +32,254 @@
 # XXX Expanding ???
 
 from wxPython.wx import *
-import PaletteMapping, PropertyEditors, sender, Preferences, Help
-#import Debug
-#import types
+import PaletteMapping, sender, Preferences, Help
+from PropEdit import PropertyEditors
 from types import *
-from RTTI import *
-from EventCollections import *
-from Utils import AddToolButtonBmpFile
+from Companions.EventCollections import *
+from Utils import AddToolButtonBmpIS
+import Preferences, RTTI
+from Preferences import IS, oiLineHeight, oiNamesWidth, inspPageNames, flatTools
 
-oiLineHeight = 18
-oiNamesWidth = 100
+scrollBarWidth = 0
+IECWidthFudge = 3
+
+[wxID_INSPECTORFRAME, wxID_ENTER, wxID_UNDO, wxID_CRSUP, wxID_CRSDOWN] = map(lambda _init_ctrls: NewId(), range(5))
+
+class InspectorFrame(wxFrame):
+    def _init_utils(self): 
+        pass
+
+    def _init_ctrls(self, prnt): 
+        wxFrame.__init__(self, size = (-1, -1), id = wxID_INSPECTORFRAME, title = 'Inspector', parent = prnt, name = '', style = wxDEFAULT_FRAME_STYLE | wxWANTS_CHARS | wxCLIP_CHILDREN, pos = (-1, -1))
+
+    def __init__(self, parent):
+        self._init_ctrls(parent)
+        self._init_utils()
+
+        self.SetDimensions(0,
+          Preferences.paletteHeight + Preferences.windowManagerTop + \
+          Preferences.windowManagerBottom,
+          Preferences.inspWidth, 
+          Preferences.bottomHeight)
+
+        self.propertyRegistry = PropertyEditors.PropertyRegistry()
+        PropertyEditors.registerTypes(self.propertyRegistry)
+
+        self.paletteImages = wxImageList(24, 24)
+        self.destroying = false  
+
+        for cmpInf in PaletteMapping.compInfo.values():
+            cmpInf.append(self.paletteImages.Add(IS.load('Images/Palette/Gray/'+\
+              cmpInf[0]+'.bmp')))
+        
+        self.statusBar = self.CreateStatusBar()
+        self.statusBar.SetFont(wxFont(Preferences.inspStatBarFontSize, 
+          wxDEFAULT, wxNORMAL, wxBOLD, false))
+
+        if wxPlatform == '__WXMSW__':
+            self.SetIcon(wxIcon(Preferences.toPyPath('Images/Icons/Inspector.ico'), 
+              wxBITMAP_TYPE_ICO))
+	
+        EVT_SIZE(self, self.OnSizing)
+
+        self.selObj = None
+        self.selCmp = None
+        self.prevDesigner = None 
+        
+        self.toolBar = self.CreateToolBar(wxTB_HORIZONTAL|wxNO_BORDER|flatTools|wxCLIP_CHILDREN)#|wxTB_FLAT
+
+        AddToolButtonBmpIS(self, self.toolBar, 'Images/Inspector/Up.bmp', 
+          'Select parent', self.OnUp)
+        self.toolBar.AddSeparator()
+        AddToolButtonBmpIS(self, self.toolBar, 'Images/Shared/Delete.bmp', 
+          'Delete selection', self.OnDelete)
+        AddToolButtonBmpIS(self, self.toolBar, 'Images/Shared/Cut.bmp', 
+          'Cut (not implemented)', self.OnCut)
+        AddToolButtonBmpIS(self, self.toolBar, 'Images/Shared/Copy.bmp', 
+          'Copy (not implemented)', self.OnCopy)
+        AddToolButtonBmpIS(self, self.toolBar, 'Images/Shared/Paste.bmp', 
+          'Paste (not implemented)', self.OnPaste)
+        self.toolBar.AddSeparator()
+        AddToolButtonBmpIS(self, self.toolBar, 'Images/Inspector/Post.bmp', 
+          'Post', self.OnPost)
+        AddToolButtonBmpIS(self, self.toolBar, 'Images/Inspector/Cancel.bmp', 
+          'Cancel', self.OnCancel)
+        self.toolBar.AddSeparator()
+        AddToolButtonBmpIS(self, self.toolBar, 'Images/Shared/Help.bmp', 
+          'Show help', self.OnHelp)
+        self.toolBar.Realize()
+
+        self.pages = InspectorNotebook(self)
+
+        self.constr = InspectorConstrScrollWin(self.pages, self)
+        self.pages.AddPage(self.constr, inspPageNames['Constr'])
+	
+        self.props = InspectorPropScrollWin(self.pages, self)
+        self.pages.AddPage(self.props, inspPageNames['Props'])
+
+        self.events = EventsWindow(self.pages, self)
+        self.pages.AddPage(self.events, inspPageNames['Evts'])
+
+        self.containment = ParentTree(self.pages)
+        self.containment.SetImageList(self.paletteImages)
+        self.pages.AddPage(self.containment, inspPageNames['Objs'])
+ 	
+        self.selection = None
+
+        self.constr.initSash()
+        self.props.initSash()
+        self.events.definitions.initSash()
+
+	EVT_CLOSE(self, self.OnCloseWindow)
+        
+##        itmId = NewId()
+##        self.inspMenu = wxMenu()
+##        self.inspMenu.Append(itmId, 'Post item')
+##        EVT_MENU(self, itmId, OnEnter)
+###        self.inspMenu.Append(NewId(), 'Inspector')
+##
+##        self.mainMenu = wxMenuBar()
+##        self.mainMenu.Append(wxMenu(), 'Edit')
+##        self.mainMenu.Append(wxMenu(), 'Inspector')
+##        self.mainMenu.Append(wxMenu(), 'Designer')
+##        self.mainMenu.Append(wxMenu(), 'Help')
+##        self.SetMenuBar(self.mainMenu)
+##    
+            
+    def selectObject(self, obj, compn, selectInContainment = true):
+        if self.selObj == obj and self.selCmp == compn:
+            return
+
+        if self.prevDesigner and compn.designer and \
+          compn.designer != self.prevDesigner:
+##               and \
+##          hasattr(self.prevDesigner, 'selection'):
+            if compn.designer.supportsParentView:  
+                compn.designer.refreshContainment()
+            else: pass
+        else: pass
+##            print 'No refresh', self.prevDesigner, compn.designer, hasattr(self.prevDesigner, 'selection')
+
+        self.prevDesigner = compn.designer
+
+        self.selObj = obj
+        self.selCmp = compn
+
+        self.statusBar.SetStatusText(compn.name)
+        # Update progress inbetween building of property pages
+        # Is this convoluted or what :)
+        sb = self.selCmp.designer.model.editor.statusBar.progress
+        sb.SetValue(10)
+        c_p = RTTI.getPropList(obj, compn, compn.vetoedMethods())
+        sb.SetValue(30)
+        self.constr.readObject(c_p['constructor'])
+        sb.SetValue(50)
+        self.props.readObject(c_p['properties'])
+        sb.SetValue(70)
+        self.events.readObject()
+        sb.SetValue(90)
+        
+        if selectInContainment and self.containment.valid: 
+            # XXX Ugly must change
+            try:
+	         treeId = self.containment.treeItems[compn.name]
+            except:
+	         treeId = self.containment.treeItems['']
+		
+            self.containment.valid = false
+            self.containment.SelectItem(treeId)
+            self.containment.valid = true
+            self.containment.EnsureVisible(treeId)
+
+        sb.SetValue(0)
+
+        self.pages.ResizeChildren()
+    
+    def pageUpdate(self, page, name):
+	nv = page.getNameValue(name)
+        if nv: nv.initFromComponent()
+    def propertyUpdate(self, name):
+        self.pageUpdate(self.props, name)
+    def constructorUpdate(self, name):
+        self.pageUpdate(self.constr, name)
+    def eventUpdate(self, name, delete = false):
+        if delete:
+            self.events.definitions.removeEvent(name)
+        else:
+            self.pageUpdate(self.events, name)
+
+    def selectedCtrlHelpFile(self):
+        if self.selCmp: return self.selCmp.wxDocs
+        else: return ''
+            
+    def cleanup(self):
+        self.selCmp = None
+        self.selObj = None
+        self.constr.cleanup()
+        self.props.cleanup()
+        self.events.cleanup()
+#        self.containment.cleanup()
+        self.statusBar.SetStatusText('')
+
+##    def OnCloseWindow(self, event):
+##    	self.Show(false)
+    	
+    def OnSizing(self, event):
+#        self.debugger.log(`self.GetSize()`)
+        event.Skip()
+    
+    def OnDelete(self, event):
+        if self.selCmp:
+            self.selCmp.designer.deleteCtrl(self.selCmp.name)
+##            if self.pages.GetPageText(self.pages.GetSelection()) == 'Parents':
+##                self.containment.SetFocus()
+    
+    def OnUp(self, event):
+        if self.selCmp:
+            self.selCmp.designer.selectParent(self.selObj)
+
+    def OnCut(self, event):
+        pass
+    def OnCopy(self, event):
+        pass
+    def OnPaste(self, event):
+        pass
+    
+    def OnPost(self, event):
+        if self.selCmp:
+            self.selCmp.designer.saveOnClose = true
+            self.selCmp.designer.Close()
+    
+    def OnCancel(self, event):
+        if self.selCmp:
+            self.selCmp.designer.saveOnClose = false
+            self.selCmp.designer.Close()
+
+    def OnHelp(self, event):
+        if self.selCmp:
+            url = self.pages.extendHelpUrl(self.selectedCtrlHelpFile())
+            Help.showHelp(self, Help.wxWinHelpFrame, url)
+        else:
+            Help.showHelp(self, Help.BoaHelpFrame, 'Inspector.html')
+
+    def OnCloseWindow(self, event):
+        if self.destroying:
+            self.cleanup()
+            self.pages.destroy()
+            self.constr.destroy()
+            self.props.destroy()
+            self.events.destroy()
+            self.Destroy()
+            event.Skip()
+        else:
+            self.Show(false)
 
 wxID_PARENTTREE = NewId()
 wxID_PARENTTREESELECTED = NewId()
 class ParentTree(wxTreeCtrl):
     # XXX Rather associate data with tree item rather than going only on the name
     def __init__(self, parent):
-        wxTreeCtrl.__init__(self, parent, wxID_PARENTTREE)
+        wxTreeCtrl.__init__(self, parent, wxID_PARENTTREE, style = wxTR_HAS_BUTTONS | wxCLIP_CHILDREN)
         self.cleanup()
         EVT_TREE_SEL_CHANGED(self, wxID_PARENTTREE, self.OnSelect)
             
@@ -106,20 +336,22 @@ class ParentTree(wxTreeCtrl):
                 except KeyError:
                     ctrlInfo = self.designer.objects['']
             
-                if self.designer.selection:
+                if hasattr(self.designer, 'selection') and self.designer.selection:
                     self.designer.selection.selectCtrl(ctrlInfo[1], ctrlInfo[0])
     
         
 class NameValue:
     def __init__(self, inspector, nameParent, valueParent, companion, 
-      rootCompanion, name, getsetters, idx, indent, 
+      rootCompanion, name, propWrapper, idx, indent, 
       editor = None, options = None, names = None):
+
 	self.destr = false
         self.lastSizeN = 0
         self.lastSizeV = 0
         self.indent = indent
         self.inspector = inspector
         self.propName = name
+        self.editing = false
 #        self.obj = obj
 #        self.root = root
 	
@@ -132,17 +364,20 @@ class NameValue:
         self.valueBevelBottom = None
         
         if editor:
-            self.propEditor = editor(name, valueParent, companion, rootCompanion, getsetters, 
-              idx, valueParent.GetSize().y - 20, options, names)
+            self.propEditor = editor(name, valueParent, companion, rootCompanion, 
+              propWrapper, idx, valueParent.GetSize().x+IECWidthFudge, options, 
+              names)
         else:    
-            self.propEditor = PropertyEditors.propertyRegistry.factory(name, 
-              valueParent, companion, rootCompanion, getsetters, idx, 
-              valueParent.GetSize().y - 20)
-	
+            self.propEditor = self.inspector.inspector.propertyRegistry.factory(name, 
+              valueParent, companion, rootCompanion, propWrapper, idx, 
+              valueParent.GetSize().x+IECWidthFudge)
+        	
 	self.expander = None
 	if self.propEditor: 
 	    self.propValue = self.propEditor.getValue()
 	    displayVal = self.propEditor.getDisplayValue()
+	    
+##	    print name, self.propValue, displayVal
 
 	    # check if it's expandable
 	    if self.propEditor.getStyle().count(PropertyEditors.esExpandable):
@@ -156,21 +391,35 @@ class NameValue:
 	    self.propValue = ''
 	    displayVal = ''
 	
-        self.name = wxStaticText(nameParent, -1, name, wxPoint(8 * self.indent + 16, idx * oiLineHeight +2), wxSize(inspector.panelNames.GetSize().x, oiLineHeight -3), style = wxCLIP_CHILDREN)
-        EVT_LEFT_DOWN(self.name, self.OnSelect)
-        self.value = wxStaticText(valueParent, -1, displayVal, wxPoint(2, idx * oiLineHeight +2), wxSize(inspector.getValueWidth(), oiLineHeight -3), style = wxCLIP_CHILDREN)
+        self.nameCtrl = wxStaticText(nameParent, -1, name, 
+          wxPoint(8 * self.indent + 16, idx * oiLineHeight +2), 
+          wxSize(inspector.panelNames.GetSize().x, oiLineHeight -3), 
+          style = wxCLIP_CHILDREN)
+        EVT_LEFT_DOWN(self.nameCtrl, self.OnSelect)
+
+        self.value = wxStaticText(valueParent, -1, displayVal, 
+          wxPoint(2, idx * oiLineHeight +2), wxSize(inspector.getValueWidth(), 
+          oiLineHeight -3), style = wxCLIP_CHILDREN)
         self.value.SetForegroundColour(wxColour(0, 0, 100))
         EVT_LEFT_DOWN(self.value, self.OnSelect)
 
-        self.separatorN = wxPanel(nameParent, -1, wxPoint(0, (idx +1) * oiLineHeight), wxSize(inspector.panelNames.GetSize().x, 1), style = wxCLIP_CHILDREN)
+        self.separatorN = wxPanel(nameParent, -1, wxPoint(0, 
+          (idx +1) * oiLineHeight), wxSize(inspector.panelNames.GetSize().x, 1),
+          style = wxCLIP_CHILDREN)
         self.separatorN.SetBackgroundColour(wxColour(160, 160, 160))
-        self.separatorV = wxPanel(valueParent, -1, wxPoint(0, (idx +1) * oiLineHeight), wxSize(inspector.getValueWidth(), 1), style = wxCLIP_CHILDREN)
+
+        self.separatorV = wxPanel(valueParent, -1, wxPoint(0, 
+          (idx +1) * oiLineHeight), wxSize(inspector.getValueWidth(), 1), 
+          style = wxCLIP_CHILDREN)
         self.separatorV.SetBackgroundColour(wxColour(160, 160, 160))
+    
+##    def __del__(self):
+##        print 'deleting NameValue'
         
     def destroy(self, cancel = false):
         self.hideEditor(cancel)
 	self.destr = true
-        self.name.Destroy()
+        self.nameCtrl.Destroy()
         self.value.Destroy()
         self.separatorN.Destroy()
         self.separatorV.Destroy()
@@ -180,8 +429,9 @@ class NameValue:
     def setPos(self, idx):
         self.idx = idx
         if self.expander:
-            self.expander.SetPosition(wxPoint(8 * self.indent, self.idx * oiLineHeight))
-        self.name.SetPosition(wxPoint(8 * self.indent + 16, idx * oiLineHeight +2))
+            self.expander.SetPosition(wxPoint(8 * self.indent, 
+            self.idx * oiLineHeight))
+        self.nameCtrl.SetPosition(wxPoint(8 * self.indent + 16, idx * oiLineHeight +2))
         self.value.SetPosition(wxPoint(2, idx * oiLineHeight +2))
         self.separatorN.SetPosition(wxPoint(0, (idx +1) * oiLineHeight))
         self.separatorV.SetPosition(wxPoint(0, (idx +1) * oiLineHeight))
@@ -201,9 +451,9 @@ class NameValue:
                 self.nameBevelBottom.SetSize(wxSize(nameWidth, 1))
                 
             if nameWidth > 100:
-                self.name.SetSize(wxSize(nameWidth, self.name.GetSize().y))
+                self.nameCtrl.SetSize(wxSize(nameWidth, self.nameCtrl.GetSize().y))
             else:
-                self.name.SetSize(wxSize(100, self.name.GetSize().y))
+                self.nameCtrl.SetSize(wxSize(100, self.nameCtrl.GetSize().y))
                 
             self.separatorN.SetSize(wxSize(nameWidth, 1))        
 
@@ -223,18 +473,28 @@ class NameValue:
         self.lastSizeV = valueWidth
             
     def showEdit(self):
-        self.nameBevelTop = wxPanel(self.nameParent, -1, wxPoint(0, self.idx*oiLineHeight -1), wxSize(self.inspector.panelNames.GetSize().x, 1))
+        self.nameBevelTop = wxPanel(self.nameParent, -1, 
+          wxPoint(0, self.idx*oiLineHeight -1), 
+          wxSize(self.inspector.panelNames.GetSize().x, 1))
         self.nameBevelTop.SetBackgroundColour(wxBLACK)
-        self.nameBevelBottom = wxPanel(self.nameParent, -1, wxPoint(0, (self.idx + 1)*oiLineHeight -1), wxSize(self.inspector.panelNames.GetSize().x, 1))
+        self.nameBevelBottom = wxPanel(self.nameParent, -1, 
+          wxPoint(0, (self.idx + 1)*oiLineHeight -1), 
+          wxSize(self.inspector.panelNames.GetSize().x, 1))
         self.nameBevelBottom.SetBackgroundColour(wxWHITE)
         if self.propEditor:
             self.value.SetLabel('')
+            self.value.SetSize((0, 0))
 	    self.propEditor.inspectorEdit()	            
   	else:
-            self.valueBevelTop = wxPanel(self.valueParent, -1, wxPoint(0, self.idx*oiLineHeight -1), wxSize(self.inspector.getValueWidth(), 1))
+            self.valueBevelTop = wxPanel(self.valueParent, -1, 
+              wxPoint(0, self.idx*oiLineHeight -1), 
+              wxSize(self.inspector.getValueWidth(), 1))
             self.valueBevelTop.SetBackgroundColour(wxBLACK)
-            self.valueBevelBottom = wxPanel(self.valueParent, -1, wxPoint(0, (self.idx + 1)*oiLineHeight -1), wxSize(self.inspector.getValueWidth(), 1))
+            self.valueBevelBottom = wxPanel(self.valueParent, -1, 
+              wxPoint(0, (self.idx + 1)*oiLineHeight -1), 
+              wxSize(self.inspector.getValueWidth(), 1))
             self.valueBevelBottom.SetBackgroundColour(wxWHITE)
+        self.editing = true
 
     def hideEditor(self, cancel = false):
         if self.nameBevelTop:
@@ -252,7 +512,9 @@ class NameValue:
         if (not cancel) and self.propEditor:# and (not self.destr):
             self.propEditor.inspectorPost()
 	    self.value.SetLabel(self.propEditor.getDisplayValue())            
-    	    self.value.SetSize(wxSize(self.separatorV.GetSize().x, self.value.GetSize().y))
+    	    self.value.SetSize(wxSize(self.separatorV.GetSize().x, 
+              self.value.GetSize().y))
+        self.editing = false
 	    
     def OnSelect(self, event):
         self.inspector.propertySelected(self)
@@ -281,10 +543,12 @@ class EventNameValue(NameValue):
 
 class EventsWindow(wxSplitterWindow):
     def __init__(self, parent, inspector):
-        wxSplitterWindow.__init__(self, parent, -1)
-	self.inspector = inspector
+        wxSplitterWindow.__init__(self, parent, -1, 
+          style = wxSP_NOBORDER|wxSP_LIVE_UPDATE)#wxNO_3D|wxSP_3D)
+        self.inspector = inspector
         
-        self.categories = wxSplitterWindow(self, -1, style = wxSP_NOBORDER)
+        self.categories = wxSplitterWindow(self, -1, 
+          style = wxNO_3D|wxSP_3D|wxSP_LIVE_UPDATE)#style = wxSP_NOBORDER)
         self.definitions = InspectorEventScrollWin(self, inspector)
         
         self.SetMinimumPaneSize(20)
@@ -319,6 +583,7 @@ class EventsWindow(wxSplitterWindow):
         EVT_MENU(self, tPopupIDDelete, self.OnDelete)
 
     def readObject(self):
+##        print 'EVENT WINDOW READ OBJECT', self.inspector.selCmp.events()
         #clean up all previous items
         self.cleanup()
         
@@ -326,28 +591,32 @@ class EventsWindow(wxSplitterWindow):
         for catCls in self.inspector.selCmp.events():
             self.categoryClasses.InsertStringItem(0, catCls)
         
-        vs = self.definitions.GetVirtualSize()
-        self.definitions.panelNames.SetSize(wxSize(oiNamesWidth, vs[1]))
-        self.definitions.panelValues.SetSize(wxSize(vs[0] - oiNamesWidth, vs[1]))
+##        vs = self.definitions.GetVirtualSize()
+##        self.definitions.panelNames.SetSize(wxSize(oiNamesWidth, vs[1]))
+##        self.definitions.panelValues.SetSize(wxSize(vs[0] - oiNamesWidth, vs[1]))
 
         self.definitions.readObject()
         
         self.definitions.refreshSplitter()
 
-#	self.definitions.splitter.SetSize(wxSize(self.definitions.GetSize().x, len(self.definitions.nameValues) *18 + 1))
+##	self.definitions.splitter.SetSize(wxSize(self.definitions.GetSize().x, len(self.definitions.nameValues) *18 + 1))
     def cleanup(self):
         self.definitions.cleanup()
         self.categoryClasses.DeleteAllItems()
         self.categoryMacros.DeleteAllItems()
-        
     
+    def destroy(self):
+        self.definitions.destroy()
+        self.menu.Destroy()
+        del self.inspector
+        
     def findMacro(self, name):
         for macro in EventCategories[self.categoryClasses.GetItemText(self.selCatClass)]:
             if macro.func_name == name: return macro
         raise 'Macro: '+name+' not found.'
 
-    def addEvent(self, name, value, id = None):
-        self.inspector.selCmp.persistEvt(name, value, id)
+    def addEvent(self, name, value, wid = None):
+        self.inspector.selCmp.persistEvt(name, value, wid)
         self.inspector.selCmp.evtSetter(name, value)
         
         self.definitions.addEvent(name)
@@ -359,7 +628,7 @@ class EventsWindow(wxSplitterWindow):
     def macroNameToEvtName(self, macName):
         flds = string.splitfields(macName, '_')
         del flds[0] #remove 'EVT'
-        evtName = 'On'+string.capitalize(self.inspector.selObj.GetName())
+        evtName = 'On'+string.capitalize(self.inspector.selCmp.evtName())
         for fld in flds:
             evtName = evtName + string.capitalize(fld)
         return evtName
@@ -392,16 +661,18 @@ class EventsWindow(wxSplitterWindow):
             catClassName = self.categoryClasses.GetItemText(self.selCatClass)
             frameName = companion.designer.GetName()
             if catClassName in commandCategories:
-                id = companion.id
+##                print 'in cmd cat', companion.getWinId()
+                wid = companion.getWinId()
             else:
-                id = None
+##                print 'not in cmd cat'
+                wid = None
             nv = self.getEvent(macName[4:])
             if nv:
-                self.addEvent(macName[4:], methName, id)
+                self.addEvent(macName[4:], methName, wid)
                 nv.initFromComponent()
                 nv.OnSelect(None)
 
-            else: self.addEvent(macName[4:], methName, id)
+            else: self.addEvent(macName[4:], methName, wid)
 
     def OnAdd(self, event):
         self.OnMacroSelect(event)
@@ -409,7 +680,6 @@ class EventsWindow(wxSplitterWindow):
     def OnDelete(self, event):
         if self.selMacClass > -1:
             macName = self.categoryMacros.GetItemText(self.selMacClass)
-            print 'mac delete', macName
             self.addEvent(macName[4:], methName)
         
     
@@ -421,12 +691,15 @@ class EventsWindow(wxSplitterWindow):
 class NameValueEditorScrollWin(wxScrolledWindow):
     def __init__(self, parent):
         wxScrolledWindow.__init__(self, parent, -1, wxPoint(0, 0), wxPyDefaultSize, wxSUNKEN_BORDER)
-        self.SetBackgroundColour(wxColour(160, 160, 160))
-	self.nameValues = []
+#        self.SetBackgroundColour(wxColour(160, 160, 160))
+        self.nameValues = []
         self.prevSel = None
-        self.splitter = wxSplitterWindow(self, -1, wxPoint(0, 0), parent.GetSize(), wxSP_NOBORDER)#wxSP_3D)#
+        self.splitter = wxSplitterWindow(self, -1, wxPoint(0, 0), 
+          parent.GetSize(), 
+          style = wxNO_3D|wxSP_3D|wxSP_NOBORDER|wxSP_LIVE_UPDATE)#wxNO_3D|#wxSP_NOBORDER)#wxSP_3D)#
 
-        self.panelNames = wxPanel(self.splitter, -1, wxDefaultPosition, wxSize(100, 1))
+        self.panelNames = wxPanel(self.splitter, -1, 
+          wxDefaultPosition, wxSize(100, 1))
         EVT_SIZE(self.panelNames, self.OnNameSize)   
         self.panelValues = wxPanel(self.splitter, -1)
         EVT_SIZE(self.panelValues, self.OnNameSize)   
@@ -434,6 +707,7 @@ class NameValueEditorScrollWin(wxScrolledWindow):
         self.splitter.SplitVertically(self.panelNames, self.panelValues)
         self.splitter.SetSashPosition(100)
         self.splitter.SetMinimumPaneSize(20)
+        self.splitter.SetSashSize(4)
         
         EVT_SIZE(self, self.OnSize)   
 	
@@ -444,6 +718,7 @@ class NameValueEditorScrollWin(wxScrolledWindow):
         for i in self.nameValues:
             i.destroy()
         self.nameValues = []
+        self.refreshSplitter()
 
     def getNameValue(self, name):
         for nv in self.nameValues:
@@ -455,15 +730,16 @@ class NameValueEditorScrollWin(wxScrolledWindow):
         return self.GetSize().x
 
     def getHeight(self):
-        return len(self.nameValues) *20
+        return len(self.nameValues) *oiLineHeight + 5
     
     def getValueWidth(self):
-        return self.GetSize().x - 24 - self.panelNames.GetSize().x
+        return self.panelValues.GetClientSize().x + IECWidthFudge
         
     def refreshSplitter(self):
-	self.splitter.SetSize(wxSize(self.GetSize().x - 24, len(self.nameValues) *oiLineHeight + 1))
-        height = len(self.nameValues)
-
+#	self.splitter.SetSize(wxSize(self.GetClientSize().x, self.getHeight()))
+        s = wxSize(self.GetClientSize().x, self.getHeight())
+	self.splitter.SetDimensions(0, 0, s.x, s.y)
+	
     def propertySelected(self, nameValue):
         """ Called when a new name value is selected """
         if self.prevSel:
@@ -483,7 +759,9 @@ class NameValueEditorScrollWin(wxScrolledWindow):
         self.resizeNames()
         event.Skip()
         
-    
+    def initSash(self):
+        self.splitter.SetSashPosition(self.GetSize().x / 2.25)    
+        
 class InspectorScrollWin(NameValueEditorScrollWin):
     def __init__(self, parent, inspector):
         NameValueEditorScrollWin.__init__(self, parent)
@@ -497,6 +775,46 @@ class InspectorScrollWin(NameValueEditorScrollWin):
         self.selCmp = inspector.selCmp
         
         self.prevSel = None
+
+        EVT_MENU(self, wxID_ENTER, self.OnEnter)
+        EVT_MENU(self, wxID_UNDO, self.OnUndo)
+        EVT_MENU(self, wxID_CRSUP, self.OnCrsUp)
+        EVT_MENU(self, wxID_CRSDOWN, self.OnCrsDown)
+        
+        self.SetAcceleratorTable(wxAcceleratorTable([\
+          (0, WXK_RETURN, wxID_ENTER),
+          (0, WXK_ESCAPE, wxID_UNDO),
+          (0, WXK_UP, wxID_CRSUP),
+          (0, WXK_DOWN, wxID_CRSDOWN)]))
+
+    def destroy(self):
+        del self.inspector
+
+    def OnEnter(self, event):
+        for nv in self.nameValues:
+            if nv.editing:
+                nv.propEditor.inspectorPost(false)
+
+    def OnUndo(self, event):
+        print 'UNDO', self.__class__
+        
+    def OnCrsUp(self, event):
+        if len(self.nameValues) > 1:
+            for idx in range(1, len(self.nameValues)):
+                if self.nameValues[idx].editing:
+                    self.propertySelected(self.nameValues[idx-1])
+                    break
+            else:
+                self.propertySelected(self.nameValues[0])
+            
+    def OnCrsDown(self, event):
+        if len(self.nameValues) > 1:
+            for idx in range(len(self.nameValues)-1):
+                if self.nameValues[idx].editing:
+                    self.propertySelected(self.nameValues[idx+1])
+                    break
+            else:
+                self.propertySelected(self.nameValues[0])
 
     def deleteNameValues(self, idx, count, cancel = false):
         # delete sub properties
@@ -525,10 +843,11 @@ class InspectorPropScrollWin(InspectorScrollWin):
     	    # Check if there is an associated companion	
             if compn: 
                 self.nameValues.insert(top, PropNameValue(self, self.panelNames, 
-                  self.panelValues, compn, rootCompn, nameValue[0], nameValue[1], top, indent, 
-                  compn.getPropEditor(nameValue[0]), 
-                  compn.getPropOptions(nameValue[0]), 
-                  compn.getPropNames(nameValue[0])))
+                  self.panelValues, compn, rootCompn, nameValue.name, 
+                  nameValue, top, indent, 
+                  compn.getPropEditor(nameValue.name), 
+                  compn.getPropOptions(nameValue.name), 
+                  compn.getPropNames(nameValue.name)))
 	    top = top + 1
 
 	self.refreshSplitter()
@@ -550,22 +869,18 @@ class InspectorPropScrollWin(InspectorScrollWin):
         
         height = len(self.nameValues)
         self.SetScrollbars(oiLineHeight, oiLineHeight, 0, height + 1)
-# temp remark
-#        vs = self.GetVirtualSize()
-#        self.panelNames.SetSize(wxSize(oiNamesWidth, vs[1]))
-#        self.panelValues.SetSize(wxSize(vs[0] - oiNamesWidth, vs[1]))
 
     def expand(self, nameValue):
-#        self.readObject(self.nameValues[nameValue.idx].propValue)
+##        self.readObject(self.nameValues[nameValue.idx].propValue)
                 
         obj = self.nameValues[nameValue.idx].propValue
         
         if PaletteMapping.helperClasses.has_key(obj.__class__.__name__):
             # XXX passing a None designer
-            compn = PaletteMapping.helperClasses[obj.__class__.__name__](nameValue.propName, 
-              None, self.inspector.selObj, obj)
+            compn = PaletteMapping.helperClasses[obj.__class__.__name__]\
+             (nameValue.propName, None, self.inspector.selObj, obj)
         
-            propLst = getPropList(obj, compn)['properties']
+            propLst = RTTI.getPropList(obj, compn)['properties']
             sze = len(propLst)
            
             indt = self.nameValues[nameValue.idx].indent + 1
@@ -583,7 +898,7 @@ class InspectorPropScrollWin(InspectorScrollWin):
         startIndent = nameValue.indent
         idx = nameValue.idx + 1
                 
-#        Move deletion into method and use in removeEvent of EventWindow
+        # Move deletion into method and use in removeEvent of EventWindow
         i = idx
         if i < len(self.nameValues):
             while (i < len(self.nameValues)) and \
@@ -597,9 +912,10 @@ class InspectorConstrScrollWin(InspectorScrollWin):
     # read in the root object
     def readObject(self, constrList):
         def findInConstrLst(name, constrList):
+##            print 'finding ', name, 'in', constrList
             for constr in constrList:
-                if constr[0] == name:
-                    return constr[1]
+                if constr.name == name:
+                    return constr
             return None
             
         self.cleanup()
@@ -608,33 +924,41 @@ class InspectorConstrScrollWin(InspectorScrollWin):
         paramNames = params.keys()
         paramNames.sort()
         
+##        print 'ICSW: readObject', 
         for param in paramNames:
-            propmeths = findInConstrLst(param, constrList)
-            if propmeths: self.addProp(param, propmeths)
-            else: self.addConstr(param)
+            propWrap = findInConstrLst(param, constrList)
+            if propWrap:
+                self.addProp(param, propWrap)
+##                print '(prop: %s)'% param,
+            else:
+##                print '(constr: %s)'% param,
+                self.addConstr(param)
             
 	self.refreshSplitter()
 
 
     def addConstr(self, name):
         compn = self.inspector.selCmp
+        props = compn.properties()
+        if props.has_key(name):
+            rType, getter, setter = props[name]
+            propWrap = RTTI.PropertyWrapper(name, rType, getter, setter)
+        else:
+            propWrap = RTTI.PropertyWrapper(name, 'NoneRoute', None, None)            
+            
         self.nameValues.insert(len(self.nameValues), 
           ConstrNameValue(self, self.panelNames, 
           self.panelValues, self.inspector.selCmp, self.inspector.selCmp, name, 
-          (None, None),
-          len(self.nameValues), 0, 
-          compn.getPropEditor(name), 
-          compn.getPropOptions(name), 
+          propWrap, len(self.nameValues), 0, 
+          compn.getPropEditor(name), compn.getPropOptions(name), 
           compn.getPropNames(name)))
-#          PropertyEditors.ConstrPropEdit))
 
-
-    def addProp(self, name, getSets):
+    def addProp(self, name, propWrap):
         compn = self.inspector.selCmp
         self.nameValues.insert(len(self.nameValues), 
           PropNameValue(self, self.panelNames, self.panelValues, 
           compn, compn, 
-          name, getSets, len(self.nameValues), 0, 
+          name, propWrap, len(self.nameValues), 0, 
           compn.getPropEditor(name), 
           compn.getPropOptions(name), 
           compn.getPropNames(name)))
@@ -643,7 +967,7 @@ class InspectorEventScrollWin(InspectorScrollWin):
     def readObject(self):
         self.cleanup()
         
-        for evt in self.inspector.selCmp.textEventList:
+        for evt in self.inspector.selCmp.getEvents():
             self.addEvent(evt.event_name)
 
         height = len(self.nameValues)
@@ -657,8 +981,9 @@ class InspectorEventScrollWin(InspectorScrollWin):
         else:
             self.nameValues.insert(len(self.nameValues), 
               EventNameValue(self, self.panelNames, 
-              self.panelValues, self.inspector.selCmp, self.inspector.selCmp, name, 
-              (self.inspector.selCmp.evtGetter, self.inspector.selCmp.evtSetter),
+              self.panelValues, self.inspector.selCmp, self.inspector.selCmp, 
+              name, RTTI.PropertyWrapper(name, 'EventRoute', 
+              self.inspector.selCmp.evtGetter, self.inspector.selCmp.evtSetter), 
               len(self.nameValues), -2, PropertyEditors.EventPropEdit))
 
         self.refreshSplitter()
@@ -670,201 +995,29 @@ class InspectorEventScrollWin(InspectorScrollWin):
         self.deleteNameValues(nv.idx, 1, true)
         self.prevSel = None
         
-#def addToolButton(frame, toolbar, filename, hint, triggermeth):
-#    nId = NewId()
-#    toolbar.AddTool(nId, wxBitmap(filename, wxBITMAP_TYPE_BMP), 
-#      shortHelpString = hint)
-#    EVT_TOOL(frame, nId, triggermeth)
-
 class InspectorNotebook(wxNotebook):
     def __init__(self, parent):
-        wxNotebook.__init__(self, parent, -1)
+        wxNotebook.__init__(self, parent, -1, style = Preferences.inspNotebookFlags)
         self.pages = {}
+        self.inspector = parent
+    
+    def destroy(self):
+        del self.pages
+        del self.inspector
 
     def AddPage(self, window, name):
         wxNotebook.AddPage(self, window, name)
         self.pages[name] = window
 
     def extendHelpUrl(self, name):
-	 return self.pages[name].extendHelpUrl(url)   
-
-class InspectorFrame(wxFrame):
-    def __init__(self, parent, id, title):
-        wxFrame.__init__(self, parent, -1, title, 
-          wxPoint(0, Preferences.paletteHeight + Preferences.windowManagerTop + \
-          Preferences.windowManagerBottom), wxSize(Preferences.inspWidth, 
-          Preferences.bottomHeight))
-
-        self.paletteImages = wxImageList(24, 24)
-
-        for cmpInf in PaletteMapping.compInfo.values():
-            cmpInf.append(self.paletteImages.Add(wxBitmap('Images/Palette/Gray/'+\
-              cmpInf[0]+'.bmp', wxBITMAP_TYPE_BMP)))
-        
-        self.statusBar = self.CreateStatusBar()
-        self.statusBar.SetFont(wxFont(Preferences.inspStatBarFontSize, wxDEFAULT, wxNORMAL, wxBOLD, false))
-
-        if wxPlatform == '__WXMSW__':
-            self.icon = wxIcon('Images/Icons/Inspector.ico', wxBITMAP_TYPE_ICO)
-            self.SetIcon(self.icon)
-	
-        EVT_SIZE(self, self.OnSizing)
-
-        self.selObj = None
-        self.selCmp = None
-        self.prevDesigner = None 
-        
-        self.toolBar = self.CreateToolBar(wxTB_HORIZONTAL|wxNO_BORDER)#|wxTB_FLAT
-
-        AddToolButtonBmpFile(self, self.toolBar, 'Images/Inspector/Up.bmp', 'Select parent', self.OnUp)
-        self.toolBar.AddSeparator()
-        AddToolButtonBmpFile(self, self.toolBar, 'Images/Shared/Delete.bmp', 'Delete selection', self.OnDelete)
-        AddToolButtonBmpFile(self, self.toolBar, 'Images/Shared/Cut.bmp', 'Cut (not implemented)', self.OnCut)
-        AddToolButtonBmpFile(self, self.toolBar, 'Images/Shared/Copy.bmp', 'Copy (not implemented)', self.OnCopy)
-        AddToolButtonBmpFile(self, self.toolBar, 'Images/Shared/Paste.bmp', 'Paste (not implemented)', self.OnPaste)
-        self.toolBar.AddSeparator()
-        AddToolButtonBmpFile(self, self.toolBar, 'Images/Inspector/Post.bmp', 'Post', self.OnPost)
-        AddToolButtonBmpFile(self, self.toolBar, 'Images/Inspector/Cancel.bmp', 'Cancel', self.OnCancel)
-        self.toolBar.AddSeparator()
-        AddToolButtonBmpFile(self, self.toolBar, 'Images/Shared/Help.bmp', 'Show help', self.OnHelp)
-        self.toolBar.Realize()
-
-        self.pages = InspectorNotebook(self)
-
-        self.constr = InspectorConstrScrollWin(self.pages, self)
-        self.pages.AddPage(self.constr, 'Constructor')
-	
-        self.props = InspectorPropScrollWin(self.pages, self)
-        self.pages.AddPage(self.props, 'Properties')
-
-        self.events = EventsWindow(self.pages, self)
-        self.pages.AddPage(self.events, 'Events')
-
-        self.containment = ParentTree(self.pages)
-        self.containment.SetImageList(self.paletteImages)
-        self.pages.AddPage(self.containment, 'Parents')
- 	
- 	self.selection = None
-        self.pages.ResizeChildren()
-            
-    def selectObject(self, obj, compn, selectInContainment = true):
-        if self.selObj == obj and self.selCmp == compn:
-            return
-
-        if self.prevDesigner and compn.designer and compn.designer != self.prevDesigner \
-          and hasattr(self.prevDesigner, 'selection'):
-            if compn.designer.supportsParentView:  
-                compn.designer.refreshContainment()
-
-        self.prevDesigner = compn.designer
-
-        self.selObj = obj
-        self.selCmp = compn
-
-        self.statusBar.SetStatusText(compn.name)
-        # Update progress inbetween building of property pages
-        # Is this convoluted or what :)
-        sb = self.selCmp.designer.model.editor.statusBar.progress
-        sb.SetValue(10)
-        c_p = getPropList(obj, compn)
-        sb.SetValue(30)
-        self.constr.readObject(c_p['constructor'])
-        sb.SetValue(50)
-        self.props.readObject(c_p['properties'])
-        sb.SetValue(70)
-        self.events.readObject()
-        sb.SetValue(90)
-        
-        if selectInContainment and self.containment.valid: 
-            # XXX Ugly must change
-            try:
-	         treeId = self.containment.treeItems[compn.name]
-            except:
-	         treeId = self.containment.treeItems['']
-		
-##            if obj == compn.designer: treeId = self.containment.treeItems['']
-##            else: treeId = self.containment.treeItems[compn.name]
-            
-            self.containment.valid = false
-            self.containment.SelectItem(treeId)
-            self.containment.valid = true
-            self.containment.EnsureVisible(treeId)
-
-        sb.SetValue(0)
-
-        self.pages.ResizeChildren()
-    
-    def pageUpdate(self, page, name):
-	nv = page.getNameValue(name)
-        if nv: nv.initFromComponent()
-    def propertyUpdate(self, name):
-        self.pageUpdate(self.props, name)
-    def constructorUpdate(self, name):
-        self.pageUpdate(self.constr, name)
-    def eventUpdate(self, name, delete = false):
-        if delete:
-            self.events.definitions.removeEvent(name)
-        else:
-            self.pageUpdate(self.events, name)
-
-    def selectedCtrlHelpFile(self):
-        if self.selCmp: return self.selCmp.wxDocs
-        else: return ''
-            
-    def cleanup(self):
-        self.selCmp = None
-        self.selObj = None
-        self.constr.cleanup()
-        self.props.cleanup()
-        self.events.cleanup()
-#        self.containment.cleanup()
-        self.statusBar.SetStatusText('')
-
-    def OnCloseWindow(self, event):
-    	self.Show(false)
-    	
-    def OnSizing(self, event):
-#        self.debugger.log(`self.GetSize()`)
-        event.Skip()
-    
-    def OnDelete(self, event):
-        if self.selCmp:
-            self.selCmp.designer.deleteCtrl(self.selCmp.name)
-##            if self.pages.GetPageText(self.pages.GetSelection()) == 'Parents':
-##                self.containment.SetFocus()
-    
-    def OnUp(self, event):
-        if self.selCmp:
-            self.selCmp.designer.selectParent(self.selObj)
-
-    def OnCut(self, event):
-        pass
-    def OnCopy(self, event):
-        pass
-    def OnPaste(self, event):
-        pass
-    
-    def OnPost(self, event):
-        if self.selCmp:
-            self.selCmp.designer.saveOnClose = true
-            self.selCmp.designer.Close()
-    
-    def OnCancel(self, event):
-        if self.selCmp:
-            self.selCmp.designer.saveOnClose = false
-            self.selCmp.designer.Close()
-
-    def OnHelp(self, event):
-        if self.selCmp:
-            url = self.pages.extendHelpUrl(self.selectedCtrlHelpFile())
-            Help.showHelp(self, Help.wxWinHelpFrame, url)
-#            Preferences.toWxDocsPath(self.selectedCtrlHelpFile()), 'wxWinHelp.ico')
-        else:
-            Help.showHelp(self, Help.BoaHelpFrame, 'Inspector.html')
-#            Help.showHelp(self, Preferences.toPyPath('Docs/Inspector.html'), 'Help.ico')
-
-    def OnCloseWindow(self, event):
-        self.cleanup()
-        event.Skip()
-
-
+	 return self.pages[name].extendHelpUrl(url)
+	 
+	 
+	 
+	 
+	 
+	 
+	 
+	 
+	 
+	 
