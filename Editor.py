@@ -26,6 +26,7 @@ print 'importing Editor'
 # XXX   wxOpenURIEvent
 # XXX   wxStatusUpdateEvent
 # XXX   wxRunURIEvent (ModRunner.EVT_EXEC_FINISH)
+# XXX   wxAddBrowseMarker
 
 # XXX Add a wxPython Class Browser entry to Windows menu
 
@@ -747,7 +748,7 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
 
     # XXX Unify with the rest of the explorers
     def openZopeDocument(self, zopeObj, wholename):
-        if zopeObj.Model:
+        if zopeObj and zopeObj.Model:
             controller = self.getZopeController(zopeObj.Model)
             
             model = controller.createModel('', wholename, '', false, zopeObj)
