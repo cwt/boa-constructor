@@ -826,9 +826,9 @@ class PythonNode(ZopeNode):
         return data[data.find('(')+1 : data.find('):')]
 
     def getBody(self, data):
-        tmp = data[data.find(':')+2:], '\n'.split()
+        tmp = data[data.find(':')+2:].split('\n')
         tmp2 = []
-        for  l in tmp:
+        for l in tmp:
             # Handle comments which may be indented less
             if l[:4].strip():
                 l = l.lstrip()
