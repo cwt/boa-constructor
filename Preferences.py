@@ -168,7 +168,7 @@ else:
     wxDefaultFramePos = (screenWidth / 4, screenHeight / 4)
     wxDefaultFrameSize = (int(round(screenWidth / 1.5)), int(round(screenHeight / 1.5)))
 
-edWidth = screenWidth * editorScreenWidthPerc - windowManagerSide * 2
+edWidth = int(screenWidth * editorScreenWidthPerc - windowManagerSide * 2)
 inspWidth = screenWidth - edWidth + 1 - windowManagerSide * 4
 paletteHeight = paletteHeights[paletteStyle]
 bottomHeight = screenHeight - paletteHeight

@@ -1056,7 +1056,7 @@ class NameValueEditorScrollWin(wxScrolledWindow):
             nv.resize(self.panelNames.GetSize().x, self.getValueWidth())
 
     def initSash(self):
-        self.splitter.SetSashPosition(self.GetSize().x / 2.25)
+        self.splitter.SetSashPosition(int(self.GetSize().x / 2.25))
 
     def getSubItems(self, nameValue):
         idx = nameValue.idx + 1
