@@ -11,7 +11,6 @@
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 
-import string
 import Preferences, Utils
 
 idnt = Utils.getIndentBlock()
@@ -34,7 +33,7 @@ methodIndent = idnt
 bodyIndent = idnt*2
 
 def tabfix(s):
-    return string.replace(s, '\t', idnt)
+    return s.replace('\t', idnt)
 
 defCreateClass = tabfix('''def create(parent):
 \treturn %(main)s(parent)
