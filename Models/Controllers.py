@@ -16,7 +16,7 @@ import os
 from wxPython.wx import *
 
 import Preferences, Utils
-from Preferences import keyDefs
+from Preferences import keyDefs, IS
 
 import EditorHelper, PaletteStore, EditorModels
 
@@ -69,37 +69,49 @@ class BaseEditorController:
             self.editor.Disconnect(wId)
         self.evts = []
 
-    def addMenu(self, menu, wId, label, accls, code = ()):
-        menu.Append(wId, label + (code and '\t'+code[2] or ''))
+    def addMenu(self, menu, wId, label, accls, code=(), bmp=''):
+        Utils.appendMenuItem(menu, wId, label, code, bmp)
         if code:
-            accls.append((code[0], code[1], wId),)
+            accls.append( (code[0], code[1], wId) )
 
 #-------------------------------------------------------------------------------
-    def addEvts(self):
-        """ Override and connect events with addEvt """
-
-    def addMenus(self, menu, model):
-        """ Override and define File->Menus with addMenu """
+    def actions(self, model):
+        """ Override to define Controller/Model actions
+        
+        Should return a list of tuples in this form:
+        [('Name', self.OnEvent, 'BmpPath', 'KeyDef'), ...]
+        """
         return []
-
-    def addTools(self, toolbar, model):
-        """ Override and define ToolBar buttons with function addTool """
-        pass
+    
+    def addActions(self, toolbar, menu, model):
+        actions = self.actions(model)
+        accls = []
+        
+        for name, event, bmp, key in actions:
+            if name != '-':
+                wId = wxNewId()
+                self.addEvt(wId, event)
+                if key: code = keyDefs[key]
+                else:   code = ()
+                self.addMenu(menu, wId, name, accls, code, bmp)
+            else:
+                menu.AppendSeparator()
+            
+            if bmp:
+                if bmp != '-':
+                    addTool(self.editor, toolbar, bmp, name, event)
+                elif name == '-' and bmp == '-':
+                    toolbar.AddSeparator()
+        
+        return accls
 
 
 class EditorController(BaseEditorController):
     closeBmp = 'Images/Editor/Close.png'
 
-    def addEvts(self):
-        self.addEvt(EditorHelper.wxID_EDITORCLOSEPAGE, self.OnClose)
-
-    def addTools(self, toolbar, model):
-        addTool(self.editor, toolbar, self.closeBmp, 'Close', self.OnClose)
-
-    def addMenus(self, menu, model):
-        accls = []
-        self.addMenu(menu, EditorHelper.wxID_EDITORCLOSEPAGE, 'Close', accls, (keyDefs['Close']))
-        return accls
+    def actions(self, model):
+        return BaseEditorController.actions(self, model) + \
+               [('Close', self.OnClose, self.closeBmp, 'Close')]
 
     def OnClose(self, event):
         self.editor.closeModulePage(self.editor.getActiveModulePage())
@@ -108,26 +120,13 @@ class PersistentController(EditorController):
     saveBmp = 'Images/Editor/Save.png'
     saveAsBmp = 'Images/Editor/SaveAs.png'
 
-    def addEvts(self):
-        EditorController.addEvts(self)
-        self.addEvt(EditorHelper.wxID_EDITORSAVE, self.OnSave)
-        self.addEvt(EditorHelper.wxID_EDITORSAVEAS, self.OnSaveAs)
-        self.addEvt(EditorHelper.wxID_EDITORRELOAD, self.OnReload)
-        self.addEvt(EditorHelper.wxID_EDITORTOGGLERO, self.OnToggleReadOnly)
-
-    def addTools(self, toolbar, model):
-        EditorController.addTools(self, toolbar, model)
-        addTool(self.editor, toolbar, self.saveBmp, 'Save', self.OnSave)
-        addTool(self.editor, toolbar, self.saveAsBmp, 'Save as...', self.OnSaveAs)
-
-    def addMenus(self, menu, model):
-        accls = EditorController.addMenus(self, menu, model)
-        self.addMenu(menu, EditorHelper.wxID_EDITORRELOAD, 'Reload', accls, ())
-        self.addMenu(menu, EditorHelper.wxID_EDITORSAVE, 'Save', accls, (keyDefs['Save']))
-        self.addMenu(menu, EditorHelper.wxID_EDITORSAVEAS, 'Save as...', accls, (keyDefs['SaveAs']))
-        menu.Append(-1, '-')
-        self.addMenu(menu, EditorHelper.wxID_EDITORTOGGLERO, 'Toggle read-only', accls, ())
-        return accls
+    def actions(self, model):
+        return EditorController.actions(self, model) + \
+               [('Reload', self.OnReload, '-', ''),
+                ('Save', self.OnSave, self.saveBmp, 'Save'),
+                ('Save as...', self.OnSaveAs, self.saveAsBmp, 'SaveAs'),
+                ('-', None, '', ''),
+                ('Toggle read-only', self.OnToggleReadOnly, '-', '')]
 
     def createModel(self, source, filename, main, saved, modelParent=None):
         return self.Model(source, filename, self.editor, saved)
@@ -199,7 +198,8 @@ class PersistentController(EditorController):
             ro = model.transport.stdAttrs['read-only']
             model.transport.setStdAttr('read-only', not ro)
 
-            model.views['Source'].updateFromAttrs()
+            if model.views.has_key('Source'):
+                model.views['Source'].updateFromAttrs()
 
             self.editor.updateModuleState(model)
         else:
@@ -207,16 +207,6 @@ class PersistentController(EditorController):
 
 class SourceController(PersistentController):
     AdditionalViews = [EditorViews.CVSConflictsView]
-    def addEvts(self):
-        PersistentController.addEvts(self)
-        self.addEvt(EditorHelper.wxID_EDITORDIFF, self.OnDiffFile)
-        self.addEvt(EditorHelper.wxID_EDITORPATCH, self.OnPatchFile)
-
-    def addMenus(self, menu, model):
-        accls = PersistentController.addMenus(self, menu, model)
-        #self.addMenu(menu, EditorHelper.wxID_EDITORDIFF, 'Create file diff', accls, ())
-        #self.addMenu(menu, EditorHelper.wxID_EDITORPATCH, 'Patch file', accls, ())
-        return accls
 
     def OnDiffFile(self, event, diffWithFilename=''):
         model = self.getModel()
@@ -290,8 +280,6 @@ def identifyFilename(filename):
         return EditorHelper.extMap[lext], '', lext
     if lext in EditorHelper.internalFilesReg:
         return EditorModels.InternalFileModel, '', lext
-    #if lext in EditorHelper.pythonBinaryFilesReg:
-    #    return PythonEditorModels.PythonBinaryFileModel, '', lext
     return None, '', lext
 
 def identifyFile(filename, source=None, localfs=true):
@@ -340,6 +328,9 @@ modelControllerReg = {EditorModels.TextModel: TextController,
 DefaultController = TextController
 DefaultModel = EditorModels.TextModel
 defaultExt = EditorModels.TextModel.ext
+
+# Model identifiers for application type files
+appModelIdReg = []
 
 # Dictionaries of functions keyed on file extension
 headerStartChar = {}

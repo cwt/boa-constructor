@@ -38,26 +38,14 @@ class AppController(BaseAppController):
 
 
 class BaseFrameController(ModuleController):
-    designerBmp = 'Images/Shared/Designer.png'
-
     DefaultViews = ModuleController.DefaultViews + [EditorViews.ExploreEventsView]
 
-    def addEvts(self):
-        ModuleController.addEvts(self)
-        self.addEvt(EditorHelper.wxID_EDITORDESIGNER, self.OnDesigner)
+    designerBmp = 'Images/Shared/Designer.png'
 
-    def addTools(self, toolbar, model):
-        ModuleController.addTools(self, toolbar, model)
-        toolbar.AddSeparator()
-        addTool(self.editor, toolbar, self.designerBmp, 'Frame Designer',
-                self.OnDesigner)
-
-    def addMenus(self, menu, model):
-        accls = ModuleController.addMenus(self, menu, model)
-        self.addMenu(menu, EditorHelper.wxID_EDITORDESIGNER, 'Frame Designer',
-              accls, (keyDefs['Designer']))
-        return accls
-
+    def actions(self, model):
+        return ModuleController.actions(self, model) + [
+              ('Frame Designer', self.OnDesigner, self.designerBmp, 'Designer')]
+        
     def createModel(self, source, filename, main, saved, modelParent=None):
         return self.Model(source, filename, main, self.editor, saved, modelParent)
 
@@ -213,6 +201,8 @@ class FramePanelController(BaseFrameController):
 #-------------------------------------------------------------------------------
 
 Preferences.paletteTitle = Preferences.paletteTitle +' - wxPython GUI Builder'
+
+Controllers.appModelIdReg.append(wxPythonEditorModels.AppModel.modelIdentifier)
 
 Controllers.modelControllerReg.update({
       wxPythonEditorModels.AppModel: AppController,

@@ -11,7 +11,7 @@
 #-----------------------------------------------------------------------------
 print 'importing Models.PythonControllers'
 
-import os, string, sys, time
+import os, string, sys, time, imp
 import marshal, stat
 
 from wxPython.wx import *
@@ -32,20 +32,16 @@ import ErrorStack
 
 import methodparse, sourceconst
 
-(wxID_MODULEPROFILE, wxID_MODULECHECKSOURCE, wxID_MODULERUNAPP, wxID_MODULERUN,
- wxID_MODULEDEBUGAPP, wxID_MODULEDEBUG,
- wxID_MODULEDEBUGSTEPIN, wxID_MODULEDEBUGSTEPOVER, wxID_MODULEDEBUGSTEPOUT,
- wxID_MODULECYCLOPSE, wxID_MODULEREINDENT, wxID_MODULETABNANNY,
- wxID_MODULEIMPORTINSHELL, wxID_MODULERELOADINSHELL,
- wxID_MODULEPYCHECK, wxID_MODULECONFPYCHECK,
- wxID_MODULEDIFF, wxID_MODULESWITCHAPP, wxID_MODULEADDTOAPP,
- wxID_MODULEATTACHTODEBUGGER, wxID_MODULEASSOSWITHAPP, wxID_MODULESETPARAMS,
-) = Utils.wxNewIds(22)
-
 # TODO: Profile, Cyclops and other file runners should use the command-line
 # TODO: parameters whenever possible
 
 class ModuleController(SourceController):
+    Model = PythonEditorModels.ModuleModel
+    DefaultViews    = [PySourceView.PythonSourceView, EditorViews.ExploreView]
+    AdditionalViews = [EditorViews.HierarchyView, EditorViews.ModuleDocView,
+                       EditorViews.ToDoView, OGLViews.UMLView,
+                       PySourceView.PythonDisView] + SourceController.AdditionalViews
+
     activeApp = None
 
     runAppBmp = 'Images/Debug/RunApp.png'
@@ -54,79 +50,43 @@ class ModuleController(SourceController):
     debugBmp = 'Images/Debug/Debug.png'
     profileBmp = 'Images/Debug/Profile.png'
 
-    Model = PythonEditorModels.ModuleModel
-    DefaultViews    = [PySourceView.PythonSourceView, EditorViews.ExploreView]
-    AdditionalViews = [EditorViews.HierarchyView, EditorViews.ModuleDocView,
-                       EditorViews.ToDoView, OGLViews.UMLView,
-                       PySourceView.PythonDisView] + SourceController.AdditionalViews
-
-    def addEvts(self):
-        SourceController.addEvts(self)
-        self.addEvt(wxID_MODULEPROFILE, self.OnProfile)
-        self.addEvt(wxID_MODULECYCLOPSE, self.OnCyclops)
-        self.addEvt(wxID_MODULECHECKSOURCE, self.OnCheckSource)
-        self.addEvt(wxID_MODULESETPARAMS, self.OnSetRunParams)
-        self.addEvt(wxID_MODULERUNAPP, self.OnRunApp)
-        self.addEvt(wxID_MODULERUN, self.OnRun)
-        self.addEvt(wxID_MODULEDEBUGAPP, self.OnDebugApp)
-        self.addEvt(wxID_MODULEDEBUG, self.OnDebug)
-        self.addEvt(wxID_MODULEDEBUGSTEPIN, self.OnDebugStepIn)
-        self.addEvt(wxID_MODULEDEBUGSTEPOVER, self.OnDebugStepOver)
-        self.addEvt(wxID_MODULEDEBUGSTEPOUT, self.OnDebugStepOut)
-        self.addEvt(wxID_MODULEATTACHTODEBUGGER, self.OnAttachToDebugger)
-        self.addEvt(wxID_MODULESWITCHAPP, self.OnSwitchApp)
-        self.addEvt(wxID_MODULEADDTOAPP, self.OnAddToOpenApp)
-        self.addEvt(wxID_MODULEASSOSWITHAPP, self.OnAssosiateWithOpenApp)
-        self.addEvt(wxID_MODULEDIFF, self.OnDiffModules)
-        self.addEvt(wxID_MODULEPYCHECK, self.OnRunPyChecker)
-        self.addEvt(wxID_MODULECONFPYCHECK, self.OnConfigPyChecker)
-        self.addEvt(wxID_MODULEREINDENT, self.OnReindent)
-        self.addEvt(wxID_MODULETABNANNY, self.OnTabNanny)
-        self.addEvt(wxID_MODULEIMPORTINSHELL, self.OnImportInShell)
-        self.addEvt(wxID_MODULERELOADINSHELL, self.OnReloadInShell)
-
-    def addTools(self, toolbar, model):
-        SourceController.addTools(self, toolbar, model)
-        toolbar.AddSeparator()
-        addTool(self.editor, toolbar, self.profileBmp, 'Profile', self.OnProfile)
-        addTool(self.editor, toolbar, self.compileBmp, 'Check source', self.OnCheckSource)
+    def actions(self, model):
+        actions = [
+              ('-', None, '', ''),
+              ('Import module into Shell', self.OnImportInShell, '-', ''),
+              ('Reload module in Shell', self.OnReloadInShell, '-', ''),
+              ('-', None, '', ''),
+              ('Set command-line parameters', self.OnSetRunParams, '-', ''),
+              ('Run application', self.OnRunApp, self.runAppBmp, 'RunApp'),
+              ('Run module', self.OnRun, self.runBmp, 'RunMod'),
+              ('Debug application', self.OnDebugApp, self.debugBmp, 'Debug'),
+              ('Debug module', self.OnDebug, '-', ''),
+              ('Attach to debugger', self.OnAttachToDebugger, '-', ''),
+              ('Step in', self.OnDebugStepIn, '-', 'DebugStep'),
+              ('Step over', self.OnDebugStepOver, '-', 'DebugOver'),
+              ('Step out', self.OnDebugStepOut, '-', 'DebugOut'),
+              ('-', None, '-', ''),
+              ('Profile', self.OnProfile, self.profileBmp, ''),
+              ('Check source', self.OnCheckSource, self.compileBmp, 'CheckSource'),
+              ('Cyclops', self.OnCyclops, '-', ''),
+              ('-', None, '', ''),
+              ('Reindent whole file', self.OnReindent, '-', ''),
+              ('-', None, '', '')]
+            
         if hasattr(model, 'app') and model.app:
-            addTool(self.editor, toolbar, self.runAppBmp, 'Run application', self.OnRunApp)
-        addTool(self.editor, toolbar, self.runBmp, 'Run module', self.OnRun)
-        addTool(self.editor, toolbar, self.debugBmp, 'Debug application', self.OnDebugApp)
-
-    def addMenus(self, menu, model):
-        accls = SourceController.addMenus(self, menu, model)
-        menu.Append(-1, '-')
-        self.addMenu(menu, wxID_MODULEIMPORTINSHELL, 'Import module into Shell', accls, ())
-        self.addMenu(menu, wxID_MODULERELOADINSHELL, 'Reload module in Shell', accls, ())
-        menu.Append(-1, '-')
-        self.addMenu(menu, wxID_MODULESETPARAMS, 'Set command-line parameters', accls, ())
-        self.addMenu(menu, wxID_MODULERUNAPP, 'Run application', accls, (keyDefs['RunApp']))
-        self.addMenu(menu, wxID_MODULERUN, 'Run module', accls, (keyDefs['RunMod']))
-        self.addMenu(menu, wxID_MODULEDEBUGAPP, 'Debug application', accls, (keyDefs['Debug']))
-        self.addMenu(menu, wxID_MODULEDEBUG, 'Debug module', accls, ())
-        self.addMenu(menu, wxID_MODULEATTACHTODEBUGGER, 'Attach to debugger', accls, ())
-        self.addMenu(menu, wxID_MODULEDEBUGSTEPIN, 'Step in', accls, (keyDefs['DebugStep']))
-        self.addMenu(menu, wxID_MODULEDEBUGSTEPOVER, 'Step over', accls, (keyDefs['DebugOver']))
-        self.addMenu(menu, wxID_MODULEDEBUGSTEPOUT, 'Step out', accls, (keyDefs['DebugOut']))
-        menu.Append(-1, '-')
-        self.addMenu(menu, wxID_MODULEPROFILE, 'Profile', accls, ())
-        self.addMenu(menu, wxID_MODULECHECKSOURCE, 'Check source', accls, (keyDefs['CheckSource']))
-        self.addMenu(menu, wxID_MODULECYCLOPSE, 'Cyclops', accls, ())
-        menu.Append(-1, '-')
-        self.addMenu(menu, wxID_MODULEREINDENT, 'Reindent whole file', accls, ())
-        menu.Append(-1, '-')
-        if hasattr(model, 'app') and model.app:
-            self.addMenu(menu, wxID_MODULESWITCHAPP, 'Switch to app', accls, (keyDefs['SwitchToApp']))
+            actions.append(('Switch to app', self.OnSwitchApp, '-', 'SwitchToApp'))
         else:
-            self.addMenu(menu, wxID_MODULEADDTOAPP, 'Add to an open application', accls, ())
-            self.addMenu(menu, wxID_MODULEASSOSWITHAPP, 'Associate with an open application', accls, ())
-        self.addMenu(menu, wxID_MODULEDIFF, 'NDiff modules...', accls, ())
-        self.addMenu(menu, wxID_MODULEPYCHECK, 'Run PyChecker', accls, ())
-        self.addMenu(menu, wxID_MODULECONFPYCHECK, 'Configure PyChecker', accls, ())
-        return accls
-
+            actions.extend(
+             [('Add to an open application', self.OnAddToOpenApp, '-', ''),
+              ('Associate with an open application', self.OnAssosiateWithOpenApp, '-', '')])
+               
+        actions.extend([
+              ('NDiff modules...', self.OnDiffModules, '-', ''),
+              ('Run PyChecker', self.OnRunPyChecker, '-', ''),
+              ('Configure PyChecker', self.OnConfigPyChecker, '-', '')])
+              
+        return SourceController.actions(self, model) + actions
+        
     def createModel(self, source, filename, main, saved, modelParent=None):
         return self.Model(source, filename, self.editor, saved, modelParent)
 
@@ -311,8 +271,7 @@ class ModuleController(SourceController):
                 sys.path.append(Preferences.pyPath)
                 cmd = '"%s" "%s" %s'%(sys.executable,
                       os.path.join(Preferences.pyPath, 'ExternalLib',
-                      'PyChecker', 'checker_custom.py'),
-                      os.path.basename(filename))
+                      'pychecker_custom.py'), os.path.basename(filename))
 
                 ProcessModuleRunner(self.editor.erroutFrm, model.app,
                       newCwd).run(cmd, ErrorStack.PyCheckerErrorParser,
@@ -412,12 +371,13 @@ class ModuleController(SourceController):
                   'Select application to add the current file to',
                   'Add to Application')
 
-            if model.savedAs: src = None
-            else: src = model.getDataAsLines()
-
-            app.addModule(model.filename, '', src)
-            model.app = app
-            self.editor.setupToolBar()
+            if app:
+                if model.savedAs: src = None
+                else: src = model.getDataAsLines()
+    
+                app.addModule(model.filename, '', src)
+                model.app = app
+                self.editor.setupToolBar()
 
     def OnAssosiateWithOpenApp(self, event):
         model = self.getModel()
@@ -426,8 +386,9 @@ class ModuleController(SourceController):
                   'Select application to associate the current file with',
                   'Associate with Application')
 
-            model.app = app
-            self.editor.setupToolBar()
+            if app:
+                model.app = app
+                self.editor.setupToolBar()
 
 
     def OnSave(self, event):
@@ -453,35 +414,20 @@ class ModuleController(SourceController):
             self.editor.setStatus(msg, status)
 
 
-(wxID_APPSAVEALL, wxID_APPCMPAPPS, wxID_APPCRASHLOG) = Utils.wxNewIds(3)
-
 class BaseAppController(ModuleController):
-    saveAllBmp = 'Images/Editor/SaveAll.png'
-
     DefaultViews    = [AppViews.AppView] + ModuleController.DefaultViews
     AdditionalViews = [AppViews.AppModuleDocView, EditorViews.ToDoView,
                        OGLViews.ImportsView, EditorViews.CVSConflictsView,
                        AppViews.AppREADME_TIFView, AppViews.AppCHANGES_TIFView,
                        AppViews.AppTODO_TIFView, AppViews.AppBUGS_TIFView]
 
-    def addEvts(self):
-        ModuleController.addEvts(self)
-        self.addEvt(wxID_APPSAVEALL, self.OnSaveAll)
-        self.addEvt(wxID_APPCMPAPPS, self.OnCmpApps)
-        self.addEvt(wxID_APPCRASHLOG, self.OnCrashLog)
+    saveAllBmp = 'Images/Editor/SaveAll.png'
 
-    def addTools(self, toolbar, model):
-        ModuleController.addTools(self, toolbar, model)
-        toolbar.AddSeparator()
-        addTool(self.editor, toolbar, self.saveAllBmp, 'Save modified modules', self.OnSaveAll)
-
-    def addMenus(self, menu, model):
-        accls = ModuleController.addMenus(self, menu, model)
-        menu.Append(-1, '-')
-        self.addMenu(menu, wxID_APPSAVEALL, 'Save modified modules', accls, ())
-        self.addMenu(menu, wxID_APPCMPAPPS, 'Compare apps', accls, ())
-        self.addMenu(menu, wxID_APPCRASHLOG, 'View crash log as traceback', accls, ())
-        return accls
+    def actions(self, model):
+        return ModuleController.actions(self, model) + [
+              ('Save modified modules', self.OnSaveAll, self.saveAllBmp, ''),
+              ('Compare apps', self.OnCmpApps, '-', ''),
+              ('View crash log as traceback', self.OnCrashLog, '-', '')]
 
     def createModel(self, source, filename, main, saved, modelParent=None):
         return self.Model(source, filename, main, self.editor, saved,
@@ -583,53 +529,34 @@ class PythonExtensionController(EditorController):
         pass
 
 
-(wxID_SETUPINSTALL, wxID_SETUPCLEAN, wxID_SETUPBUILD,
- wxID_SETUPSDIST, wxID_SETUPBDIST, wxID_SETUPBDIST_WININST, wxID_SETUPBDIST_RPM,
- wxID_SETUPPY2EXE, wxID_SETUPPARAMS,
-) = Utils.wxNewIds(9)
-
 class SetupController(ModuleController):
     Model = PythonEditorModels.SetupModuleModel
 
     DefaultViews = ModuleController.DefaultViews + [EditorViews.DistUtilManifestView]
 
-    def addEvts(self):
-        ModuleController.addEvts(self)
-        self.addEvt(wxID_SETUPPARAMS, self.OnSetupParams)
-        self.addEvt(wxID_SETUPBUILD, self.OnSetupBuild)
-        self.addEvt(wxID_SETUPCLEAN, self.OnSetupClean)
-        self.addEvt(wxID_SETUPINSTALL, self.OnSetupInstall)
-        self.addEvt(wxID_SETUPSDIST, self.OnSetupSDist)
-        self.addEvt(wxID_SETUPBDIST, self.OnSetupBDist)
-        self.addEvt(wxID_SETUPBDIST_WININST, self.OnSetupBDist_WinInst)
-        self.addEvt(wxID_SETUPBDIST_RPM, self.OnSetupBDist_RPM)
+    def actions(self, model):
+        actions = [
+              ('-', None, '', ''),
+              ('setup.py with parameters', self.OnSetupParams, '-', ''),
+              ('setup.py build', self.OnSetupBuild, '-', ''),
+              ('setup.py clean', self.OnSetupClean, '-', ''),
+              ('setup.py install', self.OnSetupInstall, '-', ''),
+              ('setup.py sdist', self.OnSetupSDist, '-', ''),
+              ('setup.py bdist', self.OnSetupBDist, '-', '')]
 
-        # detect py2exe
-        import imp
-        try: imp.find_module('py2exe')
-        except ImportError: self._py2exe = false
-        else:
-            self._py2exe = true
-            self.addEvt(wxID_SETUPPY2EXE, self.OnSetupPy2Exe)
-
-    def addMenus(self, menu, model):
-        accls = ModuleController.addMenus(self, menu, model)
-        menu.AppendSeparator()
-        self.addMenu(menu, wxID_SETUPPARAMS, 'setup.py with parameters', accls, ())
-        self.addMenu(menu, wxID_SETUPBUILD, 'setup.py build', accls, ())
-        self.addMenu(menu, wxID_SETUPCLEAN, 'setup.py clean', accls, ())
-        self.addMenu(menu, wxID_SETUPINSTALL, 'setup.py install', accls, ())
-        self.addMenu(menu, wxID_SETUPSDIST, 'setup.py sdist', accls, ())
-        self.addMenu(menu, wxID_SETUPBDIST, 'setup.py bdist', accls, ())
         if wxPlatform == '__WXGTK__':
-            self.addMenu(menu, wxID_SETUPBDIST_RPM, 'setup.py bdist_rpm', accls, ())
+            actions.append(('setup.py bdist_rpm', self.OnSetupBDist_RPM, '-', ''))
         else:
-            self.addMenu(menu, wxID_SETUPBDIST_WININST, 'setup.py bdist_wininst', accls, ())
+            actions.append(('setup.py bdist_wininst', self.OnSetupBDist_WinInst, '-', ''))
 
-        if self._py2exe:
-            menu.AppendSeparator()
-            self.addMenu(menu, wxID_SETUPPY2EXE, 'setup.py py2exe', accls, ())
-        return accls
+        try: 
+            imp.find_module('py2exe')
+        except ImportError: 
+            pass
+        else: 
+            actions.append(('setup.py py2exe', self.OnSetupPy2Exe, '-', ''))
+
+        return ModuleController.actions(self, model) + actions
 
     def createNewModel(self, modelParent=None):
         name = 'setup.py'
@@ -696,6 +623,8 @@ Controllers.headerStartChar['.py'] = '#'
 Controllers.identifyHeader['.py'] = PythonEditorModels.identifyHeader
 Controllers.identifySource['.py'] = PythonEditorModels.identifySource
 
+Controllers.appModelIdReg.append(PythonEditorModels.PyAppModel.modelIdentifier)
+
 Controllers.modelControllerReg.update({
       PythonEditorModels.PyAppModel: PyAppController,
       PythonEditorModels.ModuleModel: ModuleController,
@@ -719,8 +648,7 @@ PaletteStore.newControllers.update({'PythonApp': PyAppController,
                                     'Setup': SetupController,
                                    })
 
-PaletteStore.paletteLists['New'].extend(['PythonApp', 'Module', 'Package',
-  'Setup'])
+PaletteStore.paletteLists['New'].extend(['PythonApp', 'Module', 'Package', 'Setup'])
 
 # Register Packages as a File Explorer sub type
 from Explorers import FileExplorer
