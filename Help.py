@@ -66,11 +66,12 @@ class HelpFrame(wxFrame):
         pass
 
     def _init_ctrls(self, prnt):
-        wxFrame.__init__(self, size = (-1, -1), id = wxID_HELPFRAME, title = 'Help', parent = prnt, name = 'HelpFrame', style = wxDEFAULT_FRAME_STYLE | wxTAB_TRAVERSAL, pos = (-1, -1))
+        wxFrame.__init__(self, size = (-1, -1), id = wxID_HELPFRAME, title = 'Help', parent = prnt, name = 'HelpFrame', style = wxDEFAULT_FRAME_STYLE | wxTAB_TRAVERSAL | Preferences.childFrameStyle, pos = (-1, -1))
+        self._init_utils()
 
     def __init__(self, parent, home, index, icon, paletteToolbar = None):
         self._init_ctrls(parent)
-        self._init_utils()
+
         self.SetSize( (round(Preferences.screenWidth / 1.5),
                       round(Preferences.screenHeight / 1.5)) )
         self.CenterOnScreen(wxBOTH)

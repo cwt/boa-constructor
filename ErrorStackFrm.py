@@ -35,7 +35,7 @@ class ErrorStackMF(wxFrame):
         pass
 
     def _init_ctrls(self, prnt):
-        wxFrame.__init__(self, size = wxSize(330, 443), id = wxID_ERRORSTACKMF, title = 'Traceback and Output browser', parent = prnt, name = 'ErrorStackMF', style = wxDEFAULT_FRAME_STYLE, pos = wxPoint(464, 228))
+        wxFrame.__init__(self, size = wxSize(330, 443), id = wxID_ERRORSTACKMF, title = 'Traceback and Output browser', parent = prnt, name = 'ErrorStackMF', style = wxDEFAULT_FRAME_STYLE | Preferences.childFrameStyle, pos = wxPoint(464, 228))
         self._init_utils()
         EVT_CLOSE(self, self.OnErrorstackmfClose)
 
