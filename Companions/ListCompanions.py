@@ -195,7 +195,7 @@ commandCategories.append('ListBoxEvent')
 class ListBoxDTC(ListConstr, ChoicedDTC):
     #wxDocs = HelpCompanions.wxListBoxDocs
     def __init__(self, name, designer, parent, ctrlClass):
-        WindowDTC.__init__(self, name, designer, parent, ctrlClass)
+        ChoicedDTC.__init__(self, name, designer, parent, ctrlClass)
         self.editors['Choices'] = ChoicesConstrPropEdit
         self.windowStyles = ['wxLB_SINGLE', 'wxLB_MULTIPLE', 'wxLB_EXTENDED',
                              'wxLB_HSCROLL', 'wxLB_ALWAYS_SB', 'wxLB_NEEDED_SB',
@@ -250,6 +250,30 @@ class RadioBoxDTC(RadioBoxConstr, ChoicedDTC):
         insp = self.designer.inspector
         insp.pages.SetSelection(2)
         insp.events.doAddEvent('RadioBoxEvent', 'EVT_RADIOBOX')
+
+class GenericDirCtrlDTC(WindowDTC):
+    def __init__(self, name, designer, parent, ctrlClass):
+        WindowDTC.__init__(self, name, designer, parent, ctrlClass)
+        self.editors['DefaultFilter'] = IntConstrPropEdit
+        self.windowStyles = ['wxDIRCTRL_DIR_ONLY', 'wxDIRCTRL_SELECT_FIRST',
+              'wxDIRCTRL_SHOW_FILTERS', 'wxDIRCTRL_3D_INTERNAL',
+              'wxDIRCTRL_EDIT_LABELS'] + self.windowStyles
+        self.compositeCtrl = true
+
+    def designTimeSource(self, position = 'wxDefaultPosition', size = 'wxDefaultSize'):
+        return {'pos': position,
+                'size': self.getDefCtrlSize(),
+                'dir': "'.'",
+                'style': 'wxDIRCTRL_3D_INTERNAL | wxSUNKEN_BORDER',
+                'filter': "''",
+                'defaultFilter': '0',
+                'name': `self.name`}
+
+    def constructor(self):
+        return {'Name': 'name', 'Position': 'pos', 'Size': 'size',
+                'DefaultPath': 'dir', 'Style': 'style', 'Filter': 'filter',
+                'DefaultFilter': 'defaultFilter'}
+
 
 EventCategories['GridEvent'] = (EVT_GRID_CELL_LEFT_CLICK,
       EVT_GRID_CELL_RIGHT_CLICK, EVT_GRID_CELL_LEFT_DCLICK,
@@ -312,6 +336,9 @@ PaletteStore.palette.append(['List Controls', 'Editor/Tabs/Lists',
                             PaletteStore.paletteLists['ListControls']])
 PaletteStore.paletteLists['ListControls'].extend([wxRadioBox, wxListBox,
       wxCheckListBox, wxGrid, wxListCtrl, wxTreeCtrl])
+try:   PaletteStore.paletteLists['ListControls'].append(wxGenericDirCtrl)
+except NameError: pass
+
 PaletteStore.compInfo.update({
     wxListBox: ['wxListBox', ListBoxDTC],
     wxCheckListBox: ['wxCheckListBox', CheckListBoxDTC],
@@ -320,3 +347,5 @@ PaletteStore.compInfo.update({
     wxTreeCtrl: ['wxTreeCtrl', TreeCtrlDTC],
     wxRadioBox: ['wxRadioBox', RadioBoxDTC],
 })
+try: PaletteStore.compInfo[wxGenericDirCtrl] = ['wxGenericDirCtrl', GenericDirCtrlDTC]
+except NameError: pass
