@@ -415,7 +415,6 @@ class DesignTimeCompanion(Companion):
             # Postpone dependent props
             if self.designer.checkAndAddDepLink(ctrlName, prop, 
                   self.dependentProps(), deps, depLinks, definedCtrls):
-                print 'added dep prop', prop
                 continue
             output.append(bodyIndent + prop.asText())
 
@@ -449,7 +448,7 @@ class DesignTimeCompanion(Companion):
             for prop, otherRefs in depLinks[ctrlName]:
                 for oRf in otherRefs:
                     if oRf not in definedCtrls:
-                        print 'not added dep prop', oRf
+##                        print 'not added dep prop', oRf
                         break 
                 else:
                     output.append(bodyIndent + prop.asText())
@@ -499,7 +498,7 @@ class ControlDTC(DesignTimeCompanion):
 
         for param in dts.keys():
             try:
-                dts[param] = eval(dts[param])
+                dts[param] = PaletteMapping.evalCtrl(dts[param])
             except:
                 print 'could not eval design time default param', dts[param]
         
@@ -558,10 +557,12 @@ class ControlDTC(DesignTimeCompanion):
         EVT_RIGHT_UP(self.control, self.designer.OnRightClick)
     
     def beforeResize(self):
-        print 'beforeResize'
+        pass
+        #print 'beforeResize'
 
     def afterResize(self):
-        print 'afterResize'
+        pass
+        #print 'afterResize'
     
     def updatePosAndSize(self):
         if self.textConstr and self.textConstr.params.has_key('pos') \
@@ -652,7 +653,7 @@ class UtilityDTC(DesignTimeCompanion):
 
         for param in dts.keys():
             try:
-                dts[param] = eval(dts[param])
+                dts[param] = PaletteMapping.evalCtrl(dts[param])
             except:
                 print 'could not eval 2', dts[param]
 
@@ -848,7 +849,6 @@ class CollectionDTC(DesignTimeCompanion):
     
     def __init__(self, name, designer, parentCompanion, ctrl):
         DesignTimeCompanion.__init__(self, name, designer)
-        print 'CollectionDesigner', ctrl
         from Views.CollectionEdit import CollectionEditor
         self.CollEditorFrame = CollectionEditor
         self.control = ctrl
@@ -940,7 +940,7 @@ class CollectionDTC(DesignTimeCompanion):
         dtd = {}
         for param in vals.keys():
             try:
-                dtd[param] = eval(vals[param])
+                dtd[param] = PaletteMapping.evalCtrl(vals[param])
             except Exception, message:
                 print 'could not eval 3', param, vals[param], message
         
@@ -960,16 +960,29 @@ class CollectionDTC(DesignTimeCompanion):
         output.extend(self.finaliser())
 
     def getPropList(self):
+        """ Returns a dictionary of methods suported by the control
+        
+            The dict has 'properties' and 'methods' keys which contain the
+            getters/setters and undefined methods.
+         """
         # XXX should use sub objects if available, but properties on collection
         # XXX items aren't supported yet
         return RTTI.getPropList(None, self)
 
     def defaultAction(self):
+        """ Called when a component is double clicked in a designer
+        """
         pass
-        print 'CDTC', self.textConstrLst[self.index]
+##        print 'CDTC', self.textConstrLst[self.index]
     
     def notification(self, compn, action):
-        print 'CollectionDTC.notification', compn, action
+        """ Called when other components are deleted.
+        
+            Use it to clear references to components which are being deleted.
+        """
+        # XXX Should use this mechanism to trap renames as well
+        pass
+##        print 'CollectionDTC.notification', compn, action
         
 class CollectionIddDTC(CollectionDTC):
     windowIdName = 'id'
