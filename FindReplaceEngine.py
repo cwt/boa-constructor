@@ -30,7 +30,6 @@ def _fix(match, offset, length, selectionStart):
     return tuple(r)
 
 class FindReplaceEngine:
-
     def __init__(self, case=0, word=0, regex=0, wrap=1, reverse=0):
         self.case = 0
         self.word = 0
@@ -41,22 +40,29 @@ class FindReplaceEngine:
         self.selection = 0
         self.findHistory = ['']
         self.replaceHistory = ['']
+        self.folderHistory = ['']
+        self.suffixHistory = ['*.py']
         self.suffixes = [".py"]
         self.regions = {}
-
         self.loadOptions()
 
-    def addFind(self, pattern):
+    def _addHistory(self, pattern, history):
         if pattern:
-            if pattern in self.findHistory:
-                self.findHistory.remove(pattern)
-            self.findHistory.append(pattern)
+            if pattern in history:
+                history.remove(pattern)
+            history.append(pattern)
+
+    def addFind(self, pattern):
+        self._addHistory(pattern, self.findHistory)
 
     def addReplace(self, pattern):
-        if pattern:
-            if pattern in self.replaceHistory:
-                self.replaceHistory.remove(pattern)
-            self.replaceHistory.append(pattern)
+        self._addHistory(pattern, self.replaceHistory)
+
+    def addFolder(self, pattern):
+        self._addHistory(pattern, self.folderHistory)
+
+    def addSuffix(self, pattern):
+        self._addHistory(pattern, self.suffixHistory)
 
     def setRegion(self, view, region):
         self.regions[view] = region
@@ -193,46 +199,35 @@ class FindReplaceEngine:
         self.addFind(pattern)
         results = {}
         # Setup progress dialog
-        dlg = wxProgressDialog("Finding all in package '%s'" % os.path.dirname(view.model.filename),
-                               'Searching...',
-                                len(names),
-                                view,
-                                wxPD_CAN_ABORT | wxPD_APP_MODAL | wxPD_AUTO_HIDE)
+        dlg = wxProgressDialog("Finding '%s' in files" % pattern,
+                           'Searching...',
+                            len(names),
+                            view,
+                            wxPD_CAN_ABORT | wxPD_APP_MODAL | wxPD_AUTO_HIDE)
         try:
+
             for i in range(len(names)):
                 filename = self._getValidFilename(names[i])
                 if not filename: continue
                 results[names[i]] = self._findAllInSource(open(filename).read(), pattern, 0)
-                if not dlg.Update(i):
-                    view.model.editor.statusBar.setHint("Search aborted")
-                    break
-            name = 'Results: ' + pattern
-            if not view.model.views.has_key(name):
-                resultView = view.model.editor.addNewView(name, FindResults)
-            else:
-                resultView = view.model.views[name]
-            resultView.tabName = name
-            resultView.results = results
-            resultView.findPattern = pattern
-            resultView.refresh()
-            resultView.focus()
+                if not dlg.Update(i, "Searching in file '%s'"%filename):
+                    try:
+                        view.model.editor.statusBar.setHint("Search aborted")
+                    except:
+                        pass
 
-            resultView.rerunCallback = self.findAllInFiles
-            resultView.rerunParams = (names, view, pattern)
+            view.rerunCallback = self.findAllInFiles
+            view.rerunParams = (names, view, pattern)
+
+            view.addFindResults(pattern, results)
         finally:
             dlg.Destroy()
-        name = 'Results: ' + pattern
-        if not view.model.views.has_key(name):
-            resultView = view.model.editor.addNewView(name, FindResults)
-        else:
-            resultView = view.model.views[name]
 
     def findAllInPackage(self, view, pattern):
         self.findAllInFiles(self.findNamesInPackage(view), view, pattern)
 
     def findAllInApp(self, view, pattern):
         names = map(view.model.moduleFilename, view.model.modules.keys())
-        #names = [view.model.moduleFilename(m) for m in modules]
         names.sort()
         self.findAllInFiles(names, view, pattern)
 
