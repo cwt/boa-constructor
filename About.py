@@ -20,7 +20,7 @@ import wxPython.lib.wxpTag
 import __version__
 import Preferences, Utils
 
-# XXX Replace img tags with wxpTags/wxStaticBitmap controls and load from 
+# XXX Replace img tags with wxpTags/wxStaticBitmap controls and load from
 # XXX ImageStore
 
 prog_update = re.compile('<<(?P<cnt>[0-9]+)/(?P<tot>[0-9]+)>>')

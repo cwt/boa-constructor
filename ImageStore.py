@@ -23,7 +23,7 @@ class ImageStore:
         self.rootpaths = []
         self.images = images
         self.useCache = cache
-        
+
         for rootpath in rootpaths:
             self.addRootPath(rootpath)
 
@@ -104,11 +104,11 @@ class ZippedImageStore(ImageStore):
             import zipfile
             zf = zipfile.ZipFile(archive)
             self.archives[archive] = map(lambda fl: fl.filename, zf.filelist)
-    
+
             for img in self.archives[archive]:
                 if img[-1] == '/':
                     continue
-    
+
                 imgData = zf.read(img)
                 imgExt = path.splitext(img)[1]
                 bmpPath = img#self.canonizePath(path.join(path.splitext(archive)[0], img))

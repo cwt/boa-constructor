@@ -46,7 +46,7 @@ if Preferences.csWxPythonSupport:
     from Companions.UtilCompanions import *
     from Companions.DialogCompanions import *
 
-# Zope requires spesific support 
+# Zope requires spesific support
 if Utils.transportInstalled('ZopeLib.ZopeExplorer'):
     from ZopeLib.ZopeCompanions import *
 
@@ -94,7 +94,7 @@ if Preferences.pluginPaths:
     for pluginFilename, ordered, enabled in Utils.buildPluginExecList():
         if not enabled:
             continue
-        
+
         pluginBasename = os.path.basename(pluginFilename)
         filename = string.lower(pluginFilename)
         try:

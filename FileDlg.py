@@ -37,10 +37,10 @@ htmlPath = '''<body bgcolor="#%x%x%x"><font size=-1><a href="ROOT">top</a> |
 htmlLnk = '''<a href="%s">%s</a>'''
 htmlCurrItem = '''<b><font color="#0000BB">%s</font></b>'''
 
-[wxID_WXBOAFILEDIALOG, wxID_WXBOAFILEDIALOGBTCANCEL, wxID_WXBOAFILEDIALOGBTOK, 
- wxID_WXBOAFILEDIALOGCHTYPES, wxID_WXBOAFILEDIALOGHTMLWINDOW1, 
- wxID_WXBOAFILEDIALOGSTATICTEXT1, wxID_WXBOAFILEDIALOGSTATICTEXT2, 
- wxID_WXBOAFILEDIALOGTCFILENAME, 
+[wxID_WXBOAFILEDIALOG, wxID_WXBOAFILEDIALOGBTCANCEL, wxID_WXBOAFILEDIALOGBTOK,
+ wxID_WXBOAFILEDIALOGCHTYPES, wxID_WXBOAFILEDIALOGHTMLWINDOW1,
+ wxID_WXBOAFILEDIALOGSTATICTEXT1, wxID_WXBOAFILEDIALOGSTATICTEXT2,
+ wxID_WXBOAFILEDIALOGTCFILENAME,
 ] = map(lambda _init_ctrls: wxNewId(), range(8))
 
 class wxBoaFileDialog(wxDialog, Utils.FrameRestorerMixin):
@@ -483,10 +483,10 @@ class wxBoaFileDialog(wxDialog, Utils.FrameRestorerMixin):
 
         try:
             prot, cat, res, _uri = Explorer.splitURI(openuri)
-            
+
             if prot not in ExplorerNodes.fileOpenDlgProtReg:
                 return None
-                
+
             if catFile:
                 res = os.path.dirname(res)
             return Explorer.getTransport(prot, cat, res, self.transports)
@@ -507,7 +507,7 @@ class wxBoaFileDialog(wxDialog, Utils.FrameRestorerMixin):
                 raise
         except Explorer.TransportError, err:
             FileOpenDlg
-            
+
 
 #---wxFileDialog lookalike meths------------------------------------------------
 

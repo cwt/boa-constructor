@@ -55,8 +55,8 @@ addTool = Utils.AddToolButtonBmpIS
 
 (mmFile, mmEdit, mmViews, mmWindows, mmHelp) = range(5)
 
-[wxID_EDITORFRAME, wxID_EDITORFRAMESTATUSBAR, wxID_EDITORFRAMETABS, 
- wxID_EDITORFRAMETABSSPLITTER, wxID_EDITORFRAMETOOLBAR, 
+[wxID_EDITORFRAME, wxID_EDITORFRAMESTATUSBAR, wxID_EDITORFRAMETABS,
+ wxID_EDITORFRAMETABSSPLITTER, wxID_EDITORFRAMETOOLBAR,
 ] = map(lambda _init_ctrls: wxNewId(), range(5))
 
 class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
@@ -71,7 +71,7 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
     explBmp = 'Images/Editor/Explorer.png'
     inspBmp = 'Images/Shared/Inspector.png'
     prefsBmp = 'Images/Modules/PrefsFolder_s.png'
-    
+
     _custom_classes = {'wxToolBar': ['EditorToolBar'],
                        'wxStatusBar': ['EditorStatusBar'],
                        'wxSplitterWindow': ['BottomAligningSplitterWindow']}
@@ -204,18 +204,18 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
         self.winMenu = wxMenu()
         self.winMenu.Append(EditorHelper.wxID_EDITORSWITCHPALETTE, 'Palette',
               'Switch to the Palette frame.')
-        Utils.appendMenuItem(self.winMenu, EditorHelper.wxID_EDITORSWITCHINSPECTOR, 
-              'Inspector', keyDefs['Inspector'], self.inspBmp, 
+        Utils.appendMenuItem(self.winMenu, EditorHelper.wxID_EDITORSWITCHINSPECTOR,
+              'Inspector', keyDefs['Inspector'], self.inspBmp,
               'Switch to the Inspector frame.')
         self.winMenu.Append(-1, '-')
         Utils.appendMenuItem(self.winMenu, EditorHelper.wxID_EDITORSWITCHSHELL,
-              'Shell', keyDefs['GotoShell'], self.shellBmp, 
+              'Shell', keyDefs['GotoShell'], self.shellBmp,
               'Switch to the Shell page')
         Utils.appendMenuItem(self.winMenu, EditorHelper.wxID_EDITORSWITCHEXPLORER,
-              'Explorer', keyDefs['GotoExplorer'], self.explBmp, 
+              'Explorer', keyDefs['GotoExplorer'], self.explBmp,
               'Switch to the Explorer page')
         Utils.appendMenuItem(self.winMenu, EditorHelper.wxID_EDITORSWITCHPREFS,
-              'Preferences', (), self.prefsBmp, 
+              'Preferences', (), self.prefsBmp,
               'Switch to the Preferences in the Explorer')
         self.winMenu.Append(-1, '-')
         Utils.appendMenuItem(self.winMenu, EditorHelper.wxID_EDITORBROWSEBACK,
@@ -333,7 +333,7 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
         self.toolBar.Destroy()
         self.toolBar = EditorToolBar(parent=self, id=wxID_EDITORFRAMETOOLBAR)
         self.SetToolBar(self.toolBar)
-        
+
         if self._prevView:
             self._prevView.disconnectEvts()
             self._prevView = None
@@ -421,7 +421,7 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
                 accLst.extend(accls)
 
             fileMenu.AppendSeparator()
-            fileMenu.Append(EditorHelper.wxID_EDITOREXITBOA, 
+            fileMenu.Append(EditorHelper.wxID_EDITOREXITBOA,
                   'Exit Boa Constructor', 'Exit Boa Constructor')
             self.mainMenu.Replace(mmFile, fileMenu, 'File').Destroy()
             # Edit menu
@@ -730,7 +730,7 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
         """
         # Get transport based on filename
         prot, category, respath, filename = Explorer.splitURI(filename)
-        
+
         assert not self.modules.has_key(filename), 'File already open.'
 
         if prot == 'zope':
@@ -935,7 +935,7 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
 
     def closeModule(self, modulePage):
         idx, name = self.prepareForCloseModule(modulePage)
-        
+
         if idx != -1:
             self.browser.checkRemoval(modulePage)
             self.tabs.RemovePage(idx)

@@ -392,15 +392,15 @@ class BoaApp(wxApp):
         abt.Show()
         # Let the splash screen repaint
         wxYield()
-        
+
         print 'creating Palette'
         import Palette
         self.main = Palette.BoaFrame(None, -1, self)
-        
+
         print 'creating Inspector'
         import Inspector
         inspector = Inspector.InspectorFrame(self.main)
-        
+
         print 'creating Editor'
         import Editor
         editor = Editor.EditorFrame(self.main, -1, inspector, wxMenu(),
@@ -572,4 +572,3 @@ def main(argv=None):
 
 if __name__ == '__main__':
     main()
-

@@ -6,11 +6,13 @@
 #
 # Created:     2000/05/29
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999, 2000 Riaan Booysen
+# Copyright:   (c) 1999, 2002 Riaan Booysen
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 import string, re, os, sys, pprint
 import Utils
+
+# XXX Make this more generic for pluggable parsers
 
 if sys.version[:2] == '2.':
     tb_id = 'Traceback (most recent call last):'
