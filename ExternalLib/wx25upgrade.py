@@ -83,6 +83,11 @@
 #   - wxEndBusyCursor to wx.EndBusyCursor
 #   - wxMessageBox to wx.MessageBox
 #   - wxTreeList to wx.gizmos.TreeList
+#   - wxEmptyBitmap to wx.EmptyBitmap
+#   - wxCOPY to wx.COPY
+#   - wxImage to Image
+#   - wxWave to wx.Sound
+#   - wxUsleep to wx.Usleep
 #
 # - wxFont(8,wxSWISS,wxNORMAL,wxNORMAL to wx.Font(8,wx.SWISS,wx.NORMAL,wx.NORMAL
 # - _custom_classes are changed
@@ -173,6 +178,12 @@ class Upgrade:
                               "wxEndBusyCursor": "wx.EndBusyCursor",
                               "wxMessageBox": "wx.MessageBox",
                               "wxTreeList": "wx.gizmos.TreeList",
+                              "wxPD_": "wx.PD_",
+                              "wxEmptyBitmap": "wx.EmptyBitmap",
+                              "wxCOPY": "wx.COPY",
+                              "wxImage": "wx.Image",
+                              "wxWave": "wx.Sound",
+                              "wxUsleep": "wx.Usleep",
                               }
 
         self.importNames = {"wx": "import wx",
