@@ -212,5 +212,5 @@ dR\xa3\xc8\xe3\xa1\xa1\xf1<J\x8eY\x86\xc3a\xb1n0\xfbv\x9a\xde\xf0u\xfc558\
 +g\xa6gx\xfe\xf4%\xf7\x87\x1f\xac\x17\xd5\x9f<-\xbf}\xfd\x8e\xd3e\xc7\x91\
 \xe3N\xd9\x83\xdf\xc7*\xd3\xf0\xe4\xd9j@\x00\x00\x00\x00IEND\xaeB`\x82' 
 
-Preferences.IS.registerImage('Images/Modules/JavaModule.png', getJavaModuleData())
-Preferences.IS.registerImage('Images/Palette/JavaPalette.png', getJavaPaletteData())
+Preferences.IS.registerImage('Images/Modules/Java_s.png', getJavaModuleData())
+Preferences.IS.registerImage('Images/Palette/Java.png', getJavaPaletteData())
