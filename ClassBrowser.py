@@ -11,8 +11,7 @@
 #----------------------------------------------------------------------
 #Boa:Frame:ClassBrowserFrame
 
-from os import path
-import pyclbr, string
+import os, pyclbr
 
 from wxPython.wx import *
 
@@ -98,7 +97,7 @@ class ClassBrowserFrame(wxFrame, Utils.FrameRestorerMixin):
         modules = {}
         moduleName = ''
         for className in self.classes.keys():
-            moduleName = path.basename(self.classes[className].file)
+            moduleName = os.path.basename(self.classes[className].file)
             if not modules.has_key(moduleName):
                 modules[moduleName] = {}
             modules[moduleName][className] = {}
@@ -147,9 +146,7 @@ class ClassBrowserFrame(wxFrame, Utils.FrameRestorerMixin):
         self.tree.Expand(root)
 
     def setDefaultDimensions(self):
-        self.SetDimensions(0,
-          Preferences.paletteHeight + Preferences.windowManagerTop + \
-          Preferences.windowManagerBottom,
+        self.SetDimensions(0, Preferences.underPalette,
           Preferences.inspWidth,
           Preferences.bottomHeight)
 
@@ -198,7 +195,21 @@ def buildTree(tree, parent, dict):
         if len(dict[item].keys()):
             buildTree(tree, child, dict[item])
 
+def openClassBrowser(editor):
+    palette = editor.palette
+    if not palette.browser:
 
+        wxBeginBusyCursor()
+        try:
+            palette.browser = ClassBrowserFrame(palette)
+        finally:
+            wxEndBusyCursor()
+    palette.browser.restore()
+
+    
+from Models import EditorHelper
+EditorHelper.editorToolsReg.append( ('wxPython class browser', openClassBrowser) )
+        
 if __name__ == '__main__':
     app = wxPySimpleApp()
     frame = ClassBrowserFrame(None)
