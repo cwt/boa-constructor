@@ -182,7 +182,7 @@ class PerLineParser:
         cnt = 0
         for param in params:
             try:
-                sidx = string.find(param, '=')
+                sidx = string.index(param, '=')
             except ValueError:
                 result[`cnt`] = string.strip(param[sidx+1:])
             else:
