@@ -485,7 +485,6 @@ class EditorFrame(wxFrame):
 
     def addNewPackage(self):
         filename, success = self.saveAsDlg('__init__.py')
-        print filename
         if success:
             model = PackageModel('# Package initialisation', filename, self, false)
             self.addModulePage(model, model.packageName, defPackageModelViews,
