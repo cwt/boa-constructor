@@ -110,7 +110,8 @@ class BreakpointList:
         self.files = {}  # filename -> FileBreakpointList
 
     def normalize(self, filename):
-        return path.normcase(path.abspath(filename))
+        #return path.normcase(path.abspath(filename))
+        return filename
 
     def addBreakpoint(self, filename, lineno, temp=0, cond=''):
         filename = self.normalize(filename)
@@ -158,7 +159,10 @@ class BreakpointList:
 
     def getBreakpointList(self, fn=None):
         '''Returns a list designed to pass to the setAllBreakpoints()
-        debugger method.'''
+        debugger method.
+
+        The optional fn constrains the return value to breakpoints in
+        a specified file.'''
         rval = []
         if fn is not None:
             fn = self.normalize(fn)

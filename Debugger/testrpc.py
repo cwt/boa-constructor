@@ -6,7 +6,9 @@ from wxPython.wx import wxProcess
 from time import sleep
 import threading
 
-class Monitor: pass
+class Monitor:
+    def isAlive(self):
+        return 1
 monitor = Monitor()
 
 
@@ -29,7 +31,7 @@ def streamPollThread():
         sleep(0.15)
 
 print 'spawning...'
-s = spawnChild(monitor, process)
+s, input, output = spawnChild(monitor, process)
 
 t = threading.Thread(target=streamPollThread)
 t.setDaemon(1)
