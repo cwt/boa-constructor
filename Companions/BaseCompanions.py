@@ -29,7 +29,7 @@ from Constructors import WindowConstr
 import RTTI, EventCollections
 import methodparse
 
-bodyIndent = ' '*8
+bodyIndent = Utils.getIndentBlock()*2
 
 # XXX parent passed in constr not used
 
@@ -66,6 +66,7 @@ class DesignTimeCompanion(Companion):
     """ Base class for all companions participating in the design-time process.
     """
     handledConstrParams = ()
+    suppressWindowId = false
     def __init__(self, name, designer):
         Companion.__init__(self, name)
         self.parentCompanion = None
@@ -502,7 +503,9 @@ class DesignTimeCompanion(Companion):
             for prop, otherRefs in depLinks[ctrlName]:
                 for oRf in otherRefs:
                     if oRf not in definedCtrls:
-                        break
+                        # special attrs are not 'reference dependencies'
+                        if not hasattr(self.designer.model.specialAttrs['self'], oRf):
+                            break
                 else:
                     output.append(bodyIndent + prop.asText(stripFrmId))
 
@@ -522,7 +525,6 @@ class ControlDTC(DesignTimeCompanion):
     handledConstrParams = ('id', 'parent')
     windowIdName = 'id'
     windowParentName = 'parent'
-    suppressWindowId = false
     host = 'Designer'
     def __init__(self, name, designer, parent, ctrlClass):
         DesignTimeCompanion.__init__(self, name, designer)
@@ -644,6 +646,12 @@ class ControlDTC(DesignTimeCompanion):
         return 'wxSize(%d, %d)'%(Preferences.dsDefaultControlSize.x,
                                  Preferences.dsDefaultControlSize.y)
 
+
+    def getPositionDependentProps(self):
+        return [('constr', 'Position'), ('prop', 'Position')]
+
+    def getSizeDependentProps(self):
+        return [('constr', 'Size'), ('prop', 'Size'), ('prop', 'ClientSize')]
 
 class MultipleSelectionDTC(DesignTimeCompanion):
     """ Semi mythical class at the moment that will represent a group of
@@ -1038,8 +1046,7 @@ class CollectionDTC(DesignTimeCompanion):
         return len(self.textConstrLst)
 
     def getDisplayProp(self):
-        return eval(self.textConstrLst[self.index].params[self.displayProp],
-                    self.designer.model.specialAttrs)
+        return self.eval(self.textConstrLst[self.index].params[self.displayProp])
 
     def initialiser(self):
         """ When overriding, append this after derived initialiser """
