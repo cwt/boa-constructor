@@ -125,22 +125,70 @@ import ListCompanions
 class TreeListCtrlDTC(GizmoDTCMix, ListCompanions.TreeCtrlDTC):
     def __init__(self, name, designer, parent, ctrlClass):
         ListCompanions.TreeCtrlDTC.__init__(self, name, designer, parent, ctrlClass)
+        ImgLstPropEdit = PropertyEditors.ImageListClassLinkPropEdit
+        self.editors.update({'Columns':           TreeListColumnsColPropEdit,
+                             'ButtonsImageList':  ImgLstPropEdit,
+                             'StateImageList':    ImgLstPropEdit,
+                            })
+        self.subCompanions['Columns'] = TreeListCtrlColumnsCDTC
         self.ctrlDisabled = true
         self.compositeCtrl = true
 
-    def writeImports(self):
-        return '\n'.join( (ListCompanions.TreeCtrlDTC.writeImports(self), 
-                           GizmoDTCMix.writeImports(self)) )
+    def properties(self):
+        props = ListCompanions.TreeCtrlDTC.properties(self)
+        props['Columns'] =  ('NoneRoute', None, None)
+        return props
 
-##    def constructor(self):
-##        return {'Position': 'pos', 'Size': 'size', 'Style': 'style', 
-##                'Name': 'name'}
-##
-##    def designTimeSource(self, position = 'wxDefaultPosition', size = 'wxDefaultSize'):
-##        return {'pos':   position,
-##                'size':  self.getDefCtrlSize(),
-##                'name': `self.name`,
-##                'style': 'wxTR_DEFAULT_STYLE',}
+    def hideDesignTime(self):
+        hdt = ListCompanions.TreeCtrlDTC.hideDesignTime(self)
+        hdt.remove('StateImageList')
+        return hdt
+
+    def dependentProps(self):
+        return ListCompanions.TreeCtrlDTC.dependentProps(self) + ['ButtonsImageList']
+
+    def writeImports(self):
+        return ListCompanions.TreeCtrlDTC.writeImports(self) + '\n' +\
+               GizmoDTCMix.writeImports(self)
+
+    def designTimeSource(self, position='wxDefaultPosition', size='wxDefaultSize'):
+        return ListCompanions.TreeCtrlDTC.designTimeSource(self, position, 
+                                                           self.getDefCtrlSize())
+    def defaultAction(self):
+        self.designer.inspector.props.getNameValue('Columns').propEditor.edit(None)
+
+class TreeListColumnsColPropEdit(PropertyEditors.CollectionPropEdit): pass
+
+class TreeListCtrlColumnsCDTC(BaseCompanions.CollectionDTC):
+    propName = 'Columns'
+    displayProp = 'text'
+    indexProp = '(None)'
+    insertionMethod = 'AddColumn'
+    deletionMethod = 'RemoveColumn'
+
+    def __init__(self, name, designer, parentCompanion, ctrl):
+        BaseCompanions.CollectionDTC.__init__(self, name, designer, parentCompanion, ctrl)
+        self.editors = {'Text': PropertyEditors.StrConstrPropEdit}
+
+    def constructor(self):
+        return {'Text': 'text'}
+
+    def properties(self):
+        props = BaseCompanions.CollectionDTC.properties(self)
+        props.update({'Text':  ('IndexRoute', wxTreeListCtrl.GetColumnText, 
+                                              wxTreeListCtrl.SetColumnText)})
+        return props
+
+    def designTimeSource(self, wId, method=None):
+        return {'text': `'%s%d'%(self.propName, wId)`}
+
+    def moveItem(self, idx, dir):
+        newIdx = BaseCompanions.CollectionDTC.moveItem(self, idx, dir)
+        if newIdx != idx:
+            txt = self.control.GetColumnText(idx)
+            self.control.RemoveColumn(idx)
+            self.control.InsertColumn(newIdx, txt)
+        return newIdx
 
 try:
     PaletteStore.paletteLists['ListControls'].append(wxTreeListCtrl)
