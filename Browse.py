@@ -10,7 +10,7 @@
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 
-class BrowsePage:
+class HistoryBrowsePage:
     def __init__(self, modulepage, view, marker):
         self.modulePage = modulepage
         self.view = view
@@ -19,19 +19,21 @@ class BrowsePage:
     def goto(self):
         # XXX What if page has been closed, notification
         self.modulePage.focus()
-        self.modulePage.model.views[self.view].goto(self.marker)
-        self.modulePage.model.views[self.view].focus()
+        self.modulePage.model.views[self.view].gotoBrowseMarker(self.marker)
+
 
     def __repr__(self):
         return 'BrowsePage(%s, %s, %s)' % (`self.modulePage`, `self.view`,
                `self.marker`)
 
-class Browser:
+
+class HistoryBrowser:
     def __init__(self):
         self.pages = []
         self.idx = -1
 
-    def add(self, page):
+    def add(self, modulepage, view, marker):
+        page = HistoryBrowsePage(modulepage, view, marker)
         if self.idx == len(self.pages)-1:
             self.pages.append(page)
         else:
