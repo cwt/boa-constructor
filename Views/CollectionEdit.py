@@ -195,7 +195,7 @@ class CollectionEditorView(Designer.InspectableObjectCollectionView):
         'COLLVIEW initialise', self.collectionMethod
         objCol = self.model.objectCollections[self.collectionMethod]
         objCol.indexOnCtrlName()
-        self.initObjectsAndCompanions(objCol.creators, objCol)
+        self.initObjectsAndCompanions(objCol.creators, objCol, {}, {})
 
     def initObjEvts(self, events, name, creator):
 ##        print 'COLLVIEW', self.companion, events

@@ -1,28 +1,26 @@
 from wxPython.wx import *
 
-from EditorViews import ListCtrlView, ModuleDocView, wxwAppModuleTemplate, CyclopsView
+from EditorViews import ListCtrlView, ModuleDocView, wxwAppModuleTemplate, CyclopsView, ClosableViewMix
 from ProfileView import ProfileStatsView
 import Search
 from os import path
 from time import time, gmtime, strftime
 import cmp
-
-class AppFindResults(ListCtrlView):
+    
+class AppFindResults(ListCtrlView, ClosableViewMix):
     gotoLineBmp = 'Images/Editor/GotoLine.bmp'
-    closeBmp = 'Images/Editor/Close.bmp'
 
     viewName = 'Application Find Results'
     def __init__(self, parent, model):
+        ClosableViewMix.__init__(self, 'find results')
         ListCtrlView.__init__(self, parent, model, wxLC_REPORT, 
-          (('Goto match', self.OnGoto, self.gotoLineBmp, ()),
-           ('Close results', self.OnClose, self.closeBmp, ())), 0)
+          ( ('Goto match', self.OnGoto, self.gotoLineBmp, ()), ) +
+            self.closingActionItems, 0)
            
         self.InsertColumn(0, 'Module', width = 100)
         self.InsertColumn(1, 'Line no', wxLIST_FORMAT_CENTRE, 40)
         self.InsertColumn(2, 'Col', wxLIST_FORMAT_CENTRE, 40)
         self.InsertColumn(3, 'Text', width = 550)
-
-#        self.SetImageList(model.editor.modelImageList, wxIMAGE_LIST_SMALL)
 
         self.results = {}
         self.listResultIdxs = []
@@ -62,14 +60,10 @@ class AppFindResults(ListCtrlView):
 
             srcView.selectSection(foundInfo[0], foundInfo[1], self.findPattern)
 
-    def OnClose(self, event):
-        self.deleteFromNotebook('Source')
-        self.model.views[self.tabName].destroy()
-        del self.model.views[self.tabName]
-
 class AppView(ListCtrlView):
-    openBmp = 'Images/Editor/Open.bmp'
+    openBmp = 'Images/Editor/OpenFromApp.bmp'
     openAllBmp = 'Images/Editor/OpenAll.bmp'
+    saveAllBmp = 'Images/Editor/SaveAll.bmp'
     addModBmp = 'Images/Editor/AddToApp.bmp'
     remModBmp = 'Images/Editor/RemoveFromApp.bmp'
     findBmp = 'Images/Shared/Find.bmp'
@@ -84,6 +78,7 @@ class AppView(ListCtrlView):
         ListCtrlView.__init__(self, parent, model, wxLC_REPORT, 
           (('Open', self.OnOpen, self.openBmp, ()),
            ('Open all modules', self.OnOpenAll, self.openAllBmp, ()), 
+           ('Save all modules', self.OnSaveAll, self.saveAllBmp, ()), 
            ('-', None, '', ()),
            ('Add', self.OnAdd, self.addModBmp, (0, WXK_INSERT)),
            ('Edit', self.OnEdit, '-', ()),
@@ -104,6 +99,8 @@ class AppView(ListCtrlView):
         self.InsertColumn(1, 'Autocreate', wxLIST_FORMAT_CENTRE, 50)
         self.InsertColumn(2, 'Description', width = 150)
         self.InsertColumn(3, 'Path', width = 220)
+
+        self.sortOnColumns = [0, 3]
         
         EVT_LIST_BEGIN_DRAG(self, self.GetId(), self.OnDrag)
 
@@ -136,6 +133,7 @@ class AppView(ListCtrlView):
             self.SetStringItem(i, 1, `self.model.modules[mod][0]`)
             self.SetStringItem(i, 2, self.model.modules[mod][1])
             self.SetStringItem(i, 3, self.model.modules[mod][2])
+            self.SetItemData(i, i)
             i = i + 1
         self.pastelise()
 
@@ -217,6 +215,21 @@ class AppView(ListCtrlView):
                   self.model.modules[mod][2])
             except: pass
 
+    def OnSaveAll(self, event):
+        for modulePage in self.model.editor.modules.values():
+            mod = modulePage.model
+            if mod != self.model:
+                if hasattr(mod, 'app') and mod.app == self.model and \
+                  (mod.modified or len(mod.viewsModified)):
+                    print 'saving', mod.filename  
+                    if len(mod.viewsModified):
+                        mod.refreshFromViews()
+                    modulePage.saveOrSaveAs()
+            else:
+                appModPage = modulePage
+        appModPage.saveOrSaveAs()
+        
+
     def OnFind(self, event):
         dlg = wxTextEntryDialog(self.model.editor, 'Enter text:', 'Find in application', self.lastSearchPattern)
         try:
@@ -282,25 +295,23 @@ class AppModuleDocView(ModuleDocView):
 
         return self.genClassesSect(page + modBody, classNames)
       
-class AppCompareView(ListCtrlView):
+class AppCompareView(ListCtrlView, ClosableViewMix):
     gotoLineBmp = 'Images/Editor/GotoLine.bmp'
-    closeBmp = 'Images/Editor/Close.bmp'
 
-    viewName = 'Application Compare'
+    viewName = 'App. Compare'
     def __init__(self, parent, model):
+        ClosableViewMix.__init__(self, 'compare results')
         ListCtrlView.__init__(self, parent, model, wxLC_REPORT, 
-          (('Do diff', self.OnGoto, self.gotoLineBmp, ()),
-           ('Close results', self.OnClose, self.closeBmp, ())), 0)
+          ( ('Do diff', self.OnGoto, self.gotoLineBmp, ()), ) +
+           self.closingActionItems, 0)
            
         self.InsertColumn(0, 'Module', width = 100)
         self.InsertColumn(1, 'Differs from', width = 450)
         self.InsertColumn(2, 'Result', width = 75)
 
-#        self.SetImageList(model.editor.modelImageList, wxIMAGE_LIST_SMALL)
-
         self.results = {}
         self.listResultIdxs = []
-        self.tabName = 'Application Compare'  
+        self.tabName = 'App. Compare'  
         self.active = true
         self.model = model
         self.compareTo = ''
@@ -359,10 +370,4 @@ class AppCompareView(ListCtrlView):
             if otherModule:
                 model.diff(otherModule)
 
-    def OnClose(self, event):
-        self.deleteFromNotebook('Source')
-        self.model.views[self.tabName].destroy()
-        del self.model.views[self.tabName]
-      
-      
       

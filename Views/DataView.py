@@ -23,7 +23,7 @@ class DataView(wxListCtrl, InspectableObjectCollectionView):
     postBmp = 'Images/Inspector/Post.bmp'
     cancelBmp = 'Images/Inspector/Cancel.bmp'
     def __init__(self, parent, inspector, model, compPal):
-        [self.wxID_DATAVIEW] = map(lambda _init_ctrls: NewId(), range(1))    
+        [self.wxID_DATAVIEW] = map(lambda _init_ctrls: wxNewId(), range(1))    
         wxListCtrl.__init__(self, parent, self.wxID_DATAVIEW, style = wxLC_SMALL_ICON)#wxLC_LIST)
 
         InspectableObjectCollectionView.__init__(self, inspector, model, compPal,
@@ -42,16 +42,15 @@ class DataView(wxListCtrl, InspectableObjectCollectionView):
         self.active = true
 
     def initialize(self):
-##        print 'DATAVIEW initialize' 
+        print 'DATAVIEW initialize' 
         objCol = self.model.objectCollections[self.collectionMethod]
         objCol.indexOnCtrlName()
-##        , props, events = self.organiseCollection()
-        self.initObjectsAndCompanions(objCol.creators, objCol)
-##        .propertiesByName,
-##          objCol.eventsByName)#props, events)
+
+        deps, depLinks = {}, {}
+        self.initObjectsAndCompanions(objCol.creators, objCol, deps, depLinks)
 
     def refreshCtrl(self):
-##        print 'DATAVIEW refreshCtrl'
+        print 'DATAVIEW refreshCtrl'
         self.DeleteAllItems()
 
         objCol = self.model.objectCollections[self.collectionMethod]
