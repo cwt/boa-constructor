@@ -1,3 +1,8 @@
+## rc-version: 1 ##
+# RCS-ID:      $Id$
+
+#-Window settings---------------------------------------------------------------
+
 # Height of the Palette window. Adjust if you use big fonts
 paletteHeights = {'tabs': 118, 'menu': 72}
 
@@ -6,50 +11,35 @@ windowManagerTop = 0
 windowManagerBottom = 0
 windowManagerSide = 0
 
-# Fudge values for placing the progressbar in the editor
-editorProgressFudgePosX = 0
-# Fudge values for placing the progressbar in the editor
-editorProgressFudgeSizeY = 0
-
-# Try to use transparent bitmaps for palette
-transparentPaletteBitmaps = 1
-
-# Match braces in code
-braceHighLight = 1
-
-# Minimize the IDE while running applications
-minimizeOnRun = 1
-
-# Draw grid in designer
-drawDesignerGrid = 1
-# Also draw grid for child container controls in the frame
-drawDesignerGridForSubWindows = 1
-# Grid draw method: 'lines', 'dots', 'grid', NYI: 'bitmap'
-drawGridMethod = 'grid'
-
-# Grayout (blueout actually) source while designer is open
-grayoutSource = 1
-
 # Font size of the text in the Inspector's statusbar
 inspStatBarFontSize = 9
 
+# Try to use transparent bitmaps for palette
+#transparentPaletteBitmaps = 1
+
+# Match braces in code
+braceHighLight = true
+
+# Minimize the IDE while running applications
+minimizeOnRun = false
+
 explorerFileSysRootDefault = ('DRIVE:\\', 'C:\\')
 
-# Scintilla/wxStyledTextCtrl font definitions
+#-Designer----------------------------------------------------------------------
 
-faces = { 'times'  : 'Times New Roman',
-          'mono'   : 'Courier New',
-          'helv'   : 'Lucida Console',
-          'lucd'   : 'Lucida Console',
-          'other'  : 'Comic Sans MS',
-          'size'   : 8,
-          'lnsize' : 6,
-          'backcol': '#FFFFFF',}
+# Draw grid in designer
+drawDesignerGrid = true
+# Also draw grid for child container controls in the frame
+drawDesignerGridForSubWindows = true
+# Grid drawing method
+## options: 'lines', 'dots', 'grid'
+drawGridMethod = 'grid'
 
-#----Editable preferences-------------------------------------------------------
-exportedProperties2 = ['logFontSize', 'srchCtrlOffset', 'paletteHeights',
- 'windowManagerTop', 'windowManagerBottom', 'windowManagerSide',
- 'editorProgressFudgePosX', 'editorProgressFudgeSizeY',
- 'transparentPaletteBitmaps', 'braceHighLight', 'minimizeOnRun',
+# Grayout (blueout actually) source while designer is open
+grayoutSource = true
+
+# Editable preferences
+exportedProperties2 = ['windowManagerTop', 'windowManagerBottom', 'windowManagerSide',
+ 'braceHighLight', 'minimizeOnRun', 'inspStatBarFontSize',
  'drawDesignerGrid', 'drawDesignerGridForSubWindows', 'drawGridMethod',
- 'grayoutSource', 'inspStatBarFontSize']
+ 'grayoutSource']

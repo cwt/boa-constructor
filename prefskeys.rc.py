@@ -1,18 +1,9 @@
-#-----------------------------------------------------------------------------
-# Name:        prefskeys.rc.py
-# Purpose:     Keyboard definitions
-#
-# Author:      Riaan Booysen
-#
-# Created:     2000/05/12
+## rc-version: 1 ##
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999 - 2001 Riaan Booysen
-# Licence:     GPL
-#-----------------------------------------------------------------------------
 
 from wxPython.wx import *
 
-# Keycodes (press F1 ;)
+# Keycodes <- press F1 ;)
 
 keyDefs = {
   'ContextHelp' : (wxACCEL_NORMAL, WXK_F1, 'F1'),
@@ -61,6 +52,7 @@ keyDefs = {
   'HelpFind'    : (wxACCEL_CTRL, ord('H'), 'Ctrl-H'),
   'GotoExplorer': (wxACCEL_CTRL, ord('E'), 'Ctrl-E'),
   'GotoShell'   : (wxACCEL_CTRL, ord('P'), 'Ctrl-P'),
+  'CloseView'   : (wxACCEL_CTRL, ord('W'), 'Ctrl-W'),
 }
 
 # Delphi's indent
@@ -85,7 +77,7 @@ elif wxPlatform == '__WXGTK__':
                     'CodeXform'   : (wxACCEL_CTRL, ord('E'), 'Ctrl-E'),
                   })
 
-# Not used yet, defined for compleness
+# Not used yet, defined for completeness
 stcDefs = {'Cut'        : 'Shft-Del',
            'Copy'       : 'Ctrl-Ins',
            'Paste'      : 'Shft-Ins',
