@@ -112,16 +112,16 @@ class CVSController(ExplorerNodes.Controller):
         self.fileCVSMenu.AppendMenu(wxID_FSCVSENV, 'CVS shell environment vars', self.cvsEnvMenu)
 
         self.images = wxImageList(16, 16)
-        self.images.Add(IS.load('Images/CVSPics/File.bmp'))
-        self.images.Add(IS.load('Images/CVSPics/BinaryFile.bmp'))
-        self.images.Add(IS.load('Images/CVSPics/ModifiedFile.bmp'))
-        self.images.Add(IS.load('Images/CVSPics/ModifiedBinaryFile.bmp'))
-        self.images.Add(IS.load('Images/CVSPics/MissingFile.bmp'))
-        self.images.Add(IS.load('Images/CVSPics/ConflictingFile.bmp'))
-        self.images.Add(IS.load('Images/CVSPics/Dir.bmp'))
+        self.images.Add(IS.load('Images/CvsPics/File.bmp'))
+        self.images.Add(IS.load('Images/CvsPics/BinaryFile.bmp'))
+        self.images.Add(IS.load('Images/CvsPics/ModifiedFile.bmp'))
+        self.images.Add(IS.load('Images/CvsPics/ModifiedBinaryFile.bmp'))
+        self.images.Add(IS.load('Images/CvsPics/MissingFile.bmp'))
+        self.images.Add(IS.load('Images/CvsPics/ConflictingFile.bmp'))
+        self.images.Add(IS.load('Images/CvsPics/Dir.bmp'))
         self.images.Add(IS.load('Images/Modules/FolderUp_s.bmp'))
-        self.images.Add(IS.load('Images/CVSPics/UnknownDir.bmp'))
-        self.images.Add(IS.load('Images/CVSPics/UnknownFile.bmp'))
+        self.images.Add(IS.load('Images/CvsPics/UnknownDir.bmp'))
+        self.images.Add(IS.load('Images/CvsPics/UnknownFile.bmp'))
 
         self.toolbarMenus = [self.cvsMenuDef]
         
