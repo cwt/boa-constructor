@@ -1,6 +1,7 @@
 import ExplorerNodes, EditorModels
 import string, os
-from wxPython.wx import wxMenu, EVT_MENU, wxMessageBox, wxPlatform
+from wxPython.wx import wxMenu, EVT_MENU, wxMessageBox, wxPlatform, wxOK
+from ProcessProgressDlg import ProcessProgressDlg
 
 true = 1
 false = 0
@@ -20,7 +21,8 @@ class SSHController(ExplorerNodes.Controller, ExplorerNodes.ClipboardControllerM
         self.setupMenu(self.menu, self.list, self.clipMenuDef)
         self.toolbarMenus = [self.clipMenuDef]
         
-        
+
+ExplorerNodes.passwordNames.append('scp_pass')
 class SSHCatNode(ExplorerNodes.CategoryNode):
     defName = 'SSH'
     defaultStruct = {'username': '',
@@ -59,46 +61,95 @@ class SSHItemNode(ExplorerNodes.ExplorerNode):
               EditorModels.TextModel.imgIdx, self)
         
     def openList(self):
-        from popen2import import popen3
+##        from popen2import import popen3
+##
+##        res = []
+##        inp, outp, errp = popen3(self.sshCmd('ls %s -la' % self.resourcepath))
+##        
+##        print 'STDERR:', errp.read()
+##            
+##        ls = outp.readlines()[1:]
+##        for line in ls:
+##            name = string.strip(string.split(line, ' ')[-1])
+##            if name not in ('.', '..'):
+##                res.append(self.createChildNode(name, line[0] == 'd', self.properties))
+##        return res
 
         res = []
-        inp, outp, errp = popen3(self.sshCmd('ls %s -la' % self.resourcepath))
-        
-        print 'STDERR:', errp.read()
-            
-        ls = outp.readlines()[1:]
+        ls = self.execCmd('ls %s -la' % self.resourcepath)[1:]
         for line in ls:
+            print 'XX', line
             name = string.strip(string.split(line, ' ')[-1])
             if name not in ('.', '..'):
                 res.append(self.createChildNode(name, line[0] == 'd', self.properties))
         return res
+
+    def execCmd(self, cmd):
+        dlg = ProcessProgressDlg(None, 
+            self.sshCmd(cmd), 'SSH listing', linesep = '\012')
+        try:
+            if dlg.ShowModal() == wxOK:
+                return dlg.output
+        finally:
+            dlg.Destroy()
+
+        return []
     
     def sshCmd(self, command):
-        return 'ssh -l %(username)s -c %(cipher)s %(host)s '% self.properties + command
+        return 'ssh -v -l %(username)s -c %(cipher)s %(host)s '% self.properties + command
     
     def remotePath(self, filename):
         return '%(username)s@%(host)s:'%self.properties + self.resourcepath+\
                (filename and '/'+filename or '')
     
     def execSCP(self, cmd):
-        from popen2import import popen3
-
-        res = []
-        inp, outp, errp = popen3(cmd)
-        ls = outp.read()
-        print ls
+##        from popen2import import popen3
+##
+##        res = []
+##        inp, outp, errp = popen3(cmd)
+##        ls = outp.read()
+##        print ls
+        print cmd
+        dlg = ProcessProgressDlg(None, cmd, 'SCP copy', linesep = '\012')
+        try:
+            dlg.ShowModal()
+        finally:
+            dlg.Destroy()
     
     def copyFromFS(self, fsNode):
         fn = os.path.basename(fsNode.resourcepath)
         cmd = 'pscp -pw %s %s %s' %(self.properties['scp_pass'], 
               fsNode.resourcepath,  self.remotePath(fn))
+#        cmd = 'scp %s %s' %(fsNode.resourcepath,  self.remotePath(fn))
         self.execSCP(cmd)
 
     def copyToFS(self, fsFolderNode):
         fn = os.path.basename(self.resourcepath)
         cmd = 'pscp -pw %s %s %s' %(self.properties['scp_pass'], 
               self.remotePath(''), os.path.join(fsFolderNode.resourcepath, fn))
+#        cmd = 'scp %s %s' %(self.remotePath(''), 
+#              os.path.join(fsFolderNode.resourcepath, fn))
         self.execSCP(cmd)
+    
+    def moveFileFrom(self, other):
+        fn = os.path.basename(other.resourcepath)
+        self.execCmd('mv %s %s' % (other.resourcepath, 
+                                   self.resourcepath + '/' + fn))
+
+    def copyFileFrom(self, other):
+        fn = os.path.basename(other.resourcepath)
+        self.execCmd('cp %s %s' % (other.resourcepath, 
+                                   self.resourcepath + '/' + fn))
+    
+    def deleteItems(self, names):
+        absNames = []
+        for name in names:
+            absNames.append(self.resourcepath + '/' +name)
+        self.execCmd('rm '+string.join(absNames, ' '))
+        
+    def renameItem(self, name, newName):
+        self.execCmd('mv %s %s' % (self.resourcepath + '/' + name, 
+                                   self.resourcepath + '/' + newName))
 
 class SSHExpClipboard(ExplorerNodes.ExplorerClipboard):
     def clipPaste_FileSysExpClipboard(self, node, nodes, mode): 
@@ -112,13 +163,12 @@ class SSHExpClipboard(ExplorerNodes.ExplorerClipboard):
 #                node.copyFileFrom(clipnode)
 
     def clipPaste_SSHExpClipboard(self, node, nodes, mode):
-        pass
-##        for sshNode in nodes:
-##            if mode == 'cut':
-##                node.moveFileFrom(clipnode)
-##                self.clipNodes = []
-##            elif mode == 'copy':
-##                node.copyFileFrom(clipnode)
+        for sshNode in nodes:
+            if mode == 'cut':
+                node.moveFileFrom(sshNode)
+                self.clipNodes = []
+            elif mode == 'copy':
+                node.copyFileFrom(sshNode)
 
 
     
