@@ -3,7 +3,7 @@ Credits
 
 Thanks to Guido van Rossum and Python Labs for Python.
 
-wxPython (Robin Dunn) & wxWindows (Julian Smart, Robert Roebling, Vadim Zeitlin, et al.) 
+wxPython (Robin Dunn) & wxWidgets (Julian Smart, Robert Roebling, Vadim Zeitlin, et al.) 
 
 Neil Hodgson for Scintilla
 moduleparse.py borrows from pyclbrs.py - standard python library
@@ -51,5 +51,6 @@ Cedric Delfosse
 * Debian package
 * Bug fixes
 
-Also thanks to Kevin Light, Werner Brunin, Patrick 'O Brien, John Bell, 
-Gerrit van Dyk, Cliff Baeseman, Larry Poorman and anyone else I may have forgotten!
+Also thanks to Kevin Light, Werner Brunin, Oleg Deribas, Patrick 'O Brien, 
+John Bell, Gerrit van Dyk, Cliff Baeseman, Larry Poorman and anyone else 
+I may have forgotten!
