@@ -780,7 +780,7 @@ class StrConstrPropEdit(ConstrPropEdit):
             try:
                 aStr = self.editorCtrl.getValue()
                 if type(aStr) is StringType:
-                    self.value = `self.editorCtrl.getValue()`
+                    self.value = `aStr`
                 else:
                     self.value = self.getCtrlValue()
             except Exception, message:

@@ -100,7 +100,7 @@ class BeveledLabelIEC(BevelIEC):
         self.editorCtrl.SetForegroundColour(Preferences.propValueColour)
 
 class TextCtrlIEC(InspectorEditorControl):
-    def createControl(self, parent, value, idx, sizeX, style = 0):
+    def createControl(self, parent, value, idx, sizeX, style=wxTE_PROCESS_ENTER):
         value = self.propEditor.valueToIECValue()
         self.editorCtrl = wxTextCtrl(parent, self.wID, value,
               (-2, idx*Preferences.oiLineHeight -2),
