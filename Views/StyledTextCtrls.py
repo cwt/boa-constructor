@@ -723,9 +723,9 @@ class PythonStyledTextCtrlMix(LanguageSTCMix):
     def __init__(self, wId, margin):
         LanguageSTCMix.__init__(self, wId, margin, 'python', stcConfigPath)
 
-        self.keywords = self.keywords + ' yield true false None'
+        self.keywords = self.keywords + ' yield None'
         try: True
-        except NameError: pass
+        except NameError: self.keywords = self.keywords + ' true false'
         else: self.keywords = self.keywords + ' True False'
 
         self.setStyles()
