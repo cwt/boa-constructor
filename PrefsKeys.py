@@ -6,7 +6,7 @@
 #
 # Created:     2000/05/12
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999, 2000 Riaan Booysen
+# Copyright:   (c) 1999 - 2001 Riaan Booysen
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 
@@ -35,11 +35,11 @@ keyDefs = {
   'Indent'      : (wxACCEL_CTRL, ord('I'), 'Ctrl-I'), # ctrl ] doesn't work
   'Dedent'      : (wxACCEL_CTRL, ord('U'), 'Ctrl-U'), # ctrl [ doesn't work
 # Delphi's indent
-##  'Indent'      : (wxACCEL_SHIFT|wxACCEL_CTRL, ord('I'), 'Ctrl-Shft-I'), 
-##  'Dedent'      : (wxACCEL_SHIFT|wxACCEL_CTRL, ord('U'), 'Ctrl-Shft-U'), 
+##  'Indent'      : (wxACCEL_SHIFT|wxACCEL_CTRL, ord('I'), 'Ctrl-Shft-I'),
+##  'Dedent'      : (wxACCEL_SHIFT|wxACCEL_CTRL, ord('U'), 'Ctrl-Shft-U'),
 # VS's indent
-##  'Indent'      : (wxACCEL_NORMAL, WXK_TAB, 'Tab'), 
-##  'Dedent'      : (wxACCEL_SHIFT, WXK_TAB, 'Shft-Tab'), 
+##  'Indent'      : (wxACCEL_NORMAL, WXK_TAB, 'Tab'),
+##  'Dedent'      : (wxACCEL_SHIFT, WXK_TAB, 'Shft-Tab'),
   'DashLine'    : (wxACCEL_CTRL, ord('B'), 'Ctrl-B'),
   'Refresh'     : (wxACCEL_CTRL, ord('R'), 'Ctrl-R'),
   'Insert'      : (wxACCEL_NORMAL, WXK_INSERT, 'Ins'),
@@ -59,6 +59,10 @@ keyDefs = {
   'HeightInc'   : (wxACCEL_SHIFT, WXK_DOWN, 'Shft-Down'),
   'HeightDec'   : (wxACCEL_SHIFT, WXK_UP, 'Shft-Up'),
   'MarkPlace'   : (wxACCEL_CTRL, ord('M'), 'Ctrl-M'),
+  'HistoryUp'   : (wxACCEL_CTRL, WXK_UP, 'Ctrl-Up'),
+  'HistoryDown' : (wxACCEL_CTRL, WXK_DOWN, 'Ctrl-Down'),
+  'CodeComplete': (wxACCEL_CTRL, WXK_SPACE, 'Ctrl-Space'),
+  'CallTips'    : (wxACCEL_SHIFT|wxACCEL_CTRL, WXK_SPACE, 'Ctrl-Shft-Space'),
 }
 
 if wxPlatform == '__WXMSW__':
@@ -66,14 +70,14 @@ if wxPlatform == '__WXMSW__':
                     'Comment'     : (wxACCEL_ALT, ord('3'), 'Alt-3'),
                     'Uncomment'   : (wxACCEL_ALT, ord('4'), 'Alt-4'),
                     'SwitchToApp' : (wxACCEL_ALT, ord('A'), 'Alt-A'),
-                    'CodeComplete': (wxACCEL_ALT, ord('C'), 'Alt-C'),
+                    'CodeXform'   : (wxACCEL_ALT, ord('C'), 'Alt-C'),
                   })
 elif wxPlatform == '__WXGTK__':
     keyDefs.update({'SaveAs'      : (wxACCEL_CTRL, ord('1'), 'Ctrl-1'),
                     'Comment'     : (wxACCEL_CTRL, ord('3'), 'Ctrl-3'),
                     'Uncomment'   : (wxACCEL_CTRL, ord('4'), 'Ctrl-4'),
                     'SwitchToApp' : (wxACCEL_CTRL, ord('5'), 'Ctrl-5'),
-                    'CodeComplete': (wxACCEL_CTRL, ord('E'), 'Ctrl-E'),
+                    'CodeXform'   : (wxACCEL_CTRL, ord('E'), 'Ctrl-E'),
                   })
 
 # Not used yet, defined for compleness
@@ -84,3 +88,10 @@ stcDefs = {'Cut'        : 'Shft-Del',
            'Undo'       : 'Ctrl-Z',
            'Redo'       : 'Ctrl-Y',
            'DeleteLine' : 'Ctrl-L'}
+
+try:
+    from CustomPrefsKeys import overrideKeyDefs
+except ImportError:
+    pass
+else:
+    keyDefs.update(overrideKeyDefs)
