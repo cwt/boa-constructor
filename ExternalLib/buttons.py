@@ -119,7 +119,9 @@ class wxGenButton(wxControl):
         size.height = size.height + self.bezelWidth - 1
 
         self.SetSize(size)
-
+    
+    def destroy(self):
+        self.faceDnClr = self.shadowPen = self.highlightPen = self.focusIndPen = None
 
     def SetBezelWidth(self, width):
         """Set the width of the 3D effect"""
@@ -342,6 +344,13 @@ class wxGenBitmapButton(wxGenButton):
         self.bmpSelected = None
         wxGenButton.__init__(self, parent, ID, "", pos, size, style, validator, name)
 
+    def destroy(self):
+        wxGenButton.destroy(self)
+        self.bmpLabel = None
+        self.bmpDisabled = None
+        self.bmpFocus = None
+        self.bmpSelected = None
+
 
     def GetBitmapLabel(self):
         return self.bmpLabel
@@ -443,3 +452,4 @@ class wxGenBitmapToggleButton(__ToggleMixin, wxGenBitmapButton):
 #----------------------------------------------------------------------
 
 
+   
