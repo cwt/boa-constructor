@@ -208,7 +208,8 @@ def openClassBrowser(editor):
 
     
 from Models import EditorHelper
-EditorHelper.editorToolsReg.append( ('wxPython class browser', openClassBrowser) )
+EditorHelper.editorToolsReg.append( ('wxPython class browser', openClassBrowser,
+      'Images/Shared/ClassBrowser.png') )
         
 if __name__ == '__main__':
     app = wxPySimpleApp()
