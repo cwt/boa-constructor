@@ -280,7 +280,7 @@ class BoolZopePropEdit(ZopePropEdit):
         else:
             return self.getValues()[0]
     def inspectorEdit(self):
-        self.editorCtrl = ChoiceIEC(self, self.valueToIECValue())
+        self.editorCtrl = CheckBoxIEC(self, self.valueToIECValue())
         self.editorCtrl.createControl(self.parent, self.idx, self.width)
         self.editorCtrl.setValue(self.valueToIECValue())
     def getDisplayValue(self):
@@ -824,7 +824,7 @@ class BoolPropEdit(OptionedPropEdit):
             return self.getValues()[v]
         else: return `v`
     def inspectorEdit(self):
-        self.editorCtrl = ChoiceIEC(self, self.value)
+        self.editorCtrl = CheckBoxIEC(self, self.value)
         self.editorCtrl.createControl(self.parent, self.idx, self.width)
         self.editorCtrl.setValue(self.getValues()[self.value])
     def getDisplayValue(self):
