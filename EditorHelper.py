@@ -16,13 +16,16 @@ from wxPython.wx import wxNewId
 
 # Indexes for the imagelist
 imgCounter=27
-[imgAppModel, imgFrameModel, imgDialogModel, imgMiniFrameModel,
+[imgFolder, imgPathFolder, imgCVSFolder, imgZopeSystemObj, imgZopeConnection,
+ imgBoaLogo, imgFolderUp, imgFSDrive, imgFolderBookmark,
+
+ imgAppModel, imgFrameModel, imgDialogModel, imgMiniFrameModel,
  imgMDIParentModel, imgMDIChildModel, imgModuleModel, imgPackageModel,
  imgTextModel, imgConfigFileModel, imgZopeExportFileModel, imgBitmapFileModel,
  imgZipFileModel, imgCPPModel, imgUnknownFileModel, imgHTMLFileModel,
  imgXMLFileModel, imgSetupModel,
- imgFolder, imgPathFolder, imgCVSFolder, imgZopeSystemObj, imgZopeConnection,
- imgBoaLogo, imgFolderUp, imgFSDrive, imgFolderBookmark] = range(imgCounter)
+ 
+] = range(imgCounter)
 
 # Registry of all modules {modelIdentifier : Model} (populated by EditorModels)
 modelReg = {}
