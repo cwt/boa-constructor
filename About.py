@@ -108,6 +108,7 @@ sponsoring my time on this project.<br>
 <b>Boa Constructor is packaged for:</b><br>
 <a href="Debian"><img src="%s"></a>&nbsp;
 <a href="Gentoo"><img src="%s"></a>&nbsp;
+<a href="FreeBSD"><img src="%s"></a>&nbsp;
 <p>
 <a href="Back">Back</a><br>
     </td>
@@ -151,7 +152,9 @@ def addImagesToFS():
         ('wxPyButton.png', 'Images/Shared/wxPyButton.png', wxBITMAP_TYPE_PNG),
         ('wxWinButton.png', 'Images/Shared/wxWinButton.png', wxBITMAP_TYPE_PNG),
         ('Debian.png', 'Images/Shared/Debian.png', wxBITMAP_TYPE_PNG),
-        ('Gentoo.png', 'Images/Shared/Gentoo.png', wxBITMAP_TYPE_PNG)]:
+        ('Gentoo.png', 'Images/Shared/Gentoo.png', wxBITMAP_TYPE_PNG),
+        ('FreeBSD.png', 'Images/Shared/FreeBSD.png', wxBITMAP_TYPE_PNG),
+        ]:
         if name not in addImagesToFS.addedImages:
             wxMemoryFSHandler_AddFile(name, Preferences.IS.load(path), type)
             addImagesToFS.addedImages.append(name)
@@ -208,7 +211,9 @@ class AboutBoxMixin:
                                               'memory:wxPyButton.png', 
                                               'memory:wxWinButton.png',
                                               'memory:Debian.png',
-                                              'memory:Gentoo.png',))
+                                              'memory:Gentoo.png',
+                                              'memory:FreeBSD.png',
+                                             ))
         elif clicked == 'Back':
             self.setPage()
             #self.html.HistoryBack()
@@ -224,6 +229,9 @@ class AboutBoxMixin:
         elif clicked == 'Gentoo':
             self.gotoInternetUrl(
                'http://www.gentoo.org/dyn/pkgs/dev-util/boa-constructor.xml')
+        elif clicked == 'FreeBSD':
+            self.gotoInternetUrl(
+               'http://www.freebsd.org/ports/python.html#boaconstructor-0.2.3')
         elif clicked == 'Boa':
             self.gotoInternetUrl('http://boa-constructor.sourceforge.net')
         elif clicked == 'TBS':
@@ -274,6 +282,10 @@ class AboutBoxSplash(AboutBoxMixin, wxFrame):
               size=(gaugeSze.x - 2 * self.progressBorder,
                     gaugeSze.y - 2 * self.progressBorder))
         self.gauge.SetBackgroundColour(wxColour(0xff, 0x33, 0x00))
+        # secret early quit option
+        EVT_LEFT_DOWN(self.gauge, self.OnGaugeDClick)
+        self._gaugeClicks = 0
+        
         # route all printing thru the text on the splash screen
         sys.stdout = StaticTextPF(self.label)
         start_new_thread(self.monitorModuleCount, ())
@@ -309,6 +321,14 @@ class AboutBoxSplash(AboutBoxMixin, wxFrame):
                 cnt = cnt * self.fileOpeningFactor + self.moduleTotal
             self.gauge.SetValue(min(self.gauge.GetRange(), cnt))
 
+    def OnGaugeDClick(self, event):
+        if event.GetPosition().x <10:
+            self._gaugeClicks += 1
+            if self._gaugeClicks >= 5:
+                print 
+                print 'Received early abort...'
+                sys.exit()
+
 class StaticTextPF(Utils.PseudoFile):
     def write(self, s):
         if not wxThread_IsMain():
@@ -326,7 +346,7 @@ class StaticTextPF(Utils.PseudoFile):
             self.output.SetLabel(ss)
 
         if sys:
-            sys.__stdout__.write(s)
+            sys.__stdout__.write(s)#+':'+sys.path[-1])
         wxYield()
 
 wxEVT_MOD_CNT_UPD = wxNewId()
