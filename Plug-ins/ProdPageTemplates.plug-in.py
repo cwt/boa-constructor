@@ -9,12 +9,40 @@ if not Utils.transportInstalled('ZopeLib.ZopeExplorer'):
 
 # Define new zope image and a Model for opening in the Editor
 from ZopeLib.ZopeEditorModels import addZOAImage, ZOAIcons, ZopeDocumentModel, ZopeController
-from Models import Controllers
+import Models
+from Models import Controllers, EditorHelper
+from Models.HTMLSupport import HTMLFileModel, HTMLFileController, HTMLFileView
 
 addZOAImage('Page Template', 'Images/ZOA/ZopePageTemplate.png')
 
 class ZopePageTemplateModel(ZopeDocumentModel):
     imgIdx = ZOAIcons['Page Template']
+
+EditorHelper.imgZopePTFSModel = EditorHelper.imgIdxRange()
+
+class ZopePageTemplateFSModel(HTMLFileModel):
+    modelIdentifier = 'PageTemplateHTML'
+    defaultName = 'pagetemplate'
+    bitmap = 'ZopePageTemplate_s.png'
+    imgIdx = EditorHelper.imgZopePTFSModel
+    ext = '.pt'
+
+EditorHelper.modelReg[ZopePageTemplateFSModel.modelIdentifier] = ZopePageTemplateFSModel
+EditorHelper.extMap['.pt'] = ZopePageTemplateFSModel
+
+#---Views-----------------------------------------------------------------------
+
+from ZopeLib import ZopeViews
+class ZopePTHTMLView(ZopeViews.ZopeHTMLView):
+    viewName = 'Source.html'
+    def generatePage(self):
+        props = self.model.transport.properties
+        url = 'http://%s:%s@%s:%d/%s/source.html'%(props['username'],
+              props['passwd'], props['host'], props['httpport'],
+              self.model.transport.whole_name())
+        import urllib
+        f = urllib.urlopen(url)
+        return f.read()
 
 #---Controller------------------------------------------------------------------
 class PageTemplateZopeController(ZopeController):
@@ -24,22 +52,14 @@ class PageTemplateZopeController(ZopeController):
         # source are displayed
         self.OnReload(event)
 
+class PageTemplateFSController(HTMLFileController):
+    Model           = ZopePageTemplateFSModel
+    DefaultViews    = [ZopeViews.ZopeHTMLSourceView]
+    AdditionalViews = [HTMLFileView]
+
 # Connect controller to the model
 Controllers.modelControllerReg[ZopePageTemplateModel] = PageTemplateZopeController
-
-#---Views-----------------------------------------------------------------------
-
-from ZopeLib import ZopeViews
-class ZopePTHTMLView(ZopeViews.ZopeHTMLView):
-    viewName = 'Source.html'
-    def generatePage(self):
-        props = self.model.zopeObj.properties
-        url = 'http://%s:%s@%s:%d/%s/source.html'%(props['username'],
-              props['passwd'], props['host'], props['httpport'],
-              self.model.zopeObj.whole_name())
-        import urllib
-        f = urllib.urlopen(url)
-        return f.read()
+Controllers.modelControllerReg[ZopePageTemplateFSModel] = PageTemplateFSController
 
 #---Explorer--------------------------------------------------------------------
 
@@ -48,8 +68,8 @@ from ZopeLib.ZopeExplorer import ZopeNode, zopeClassMap
 class PageTemplateNode(ZopeNode):
     Model = ZopePageTemplateModel
     defaultViews = (ZopeViews.ZopeDebugHTMLSourceView,)
-    additionalViews = (ZopeViews.ZopeUndoView,
-          ZopeViews.ZopeSecurityView, ZopePTHTMLView, ZopeViews.ZopeHTMLView)
+    additionalViews = (ZopeViews.ZopeUndoView, ZopeViews.ZopeSecurityView, 
+                       ZopePTHTMLView, ZopeViews.ZopeHTMLView)
     def save(self, filename, data, mode='wb'):
         self.getResource().pt_upload('', data)
 
