@@ -26,21 +26,7 @@ import methodparse, sourceconst
 
 class DesignerError(Exception): pass
 
-class InspectorSessionMix:
-    def doPost(self, inspector):
-        pass
-
-    def doCancel(self, inspector):
-        pass
-
-    def promptPostOrCancel(self, inspector):
-        pass
-
-    # Up is included because it can exit a session
-    def doUp(self, inspector):
-        pass
-
-class InspectableObjectView(EditorViews.EditorView, InspectorSessionMix):
+class InspectableObjectView(EditorViews.EditorView, Utils.InspectorSessionMix):
     """ Base class for Designers
 
     A designer visually maintains one _init_* method in the source.
