@@ -1,4 +1,4 @@
-## rc-version: 8 ##
+## rc-version: 9 ##
 # RCS-ID:      $Id$
 
 # The main preference file.
@@ -38,7 +38,7 @@ undefinedWindowCol = wxColour(128, 0, 0)
 # Also used by setup.py
 staticInfoPrefs = { 'Purpose':   '',
                     'Author':    '<your name>',
-                    'Copyright': '(c) 2002',
+                    'Copyright': '(c) 2003',
                     'Licence':   '<your licence>',
                     'Email':     '<your email>',
                   }
@@ -73,6 +73,10 @@ usePydocHelp = True
 # (Component files and example components)
 # Turn this off if you don't have permissions to write to the wxPython/lib directory
 installBCRTL = False
+
+# Determines how Boa reacts to errors when running
+## options: 'release', 'development'
+debugMode = 'release'
 
 # If the environment variable PYTHONSTARTUP is set to a python file
 # this file can be executed at startup in the Shell's namespace
@@ -224,12 +228,19 @@ dsSelectionTagSize = 8
 # Width of the lines of frame around the selection.
 dsSelectionFrameWidth = 2
 
+# Default control size if control itself has no sensible default
+dsDefaultControlSize = wxSize(200, 100)
+
 # Colours for the selection tags when they represent Anchors
 dsAnchorEnabledCol = wxColour(0, 0, 255)
 dsAnchorDisabledCol = wxColour(40, 100, 110)
 
-# Default control size if control itself has no sensible default
-dsDefaultControlSize = wxSize(200, 100)
+# Should sizers be unabled in the Designer
+dsUseSizers = true
+
+# Colour for the selection tags and boxes when control is layed out by a sizer
+dsInSizerCol = wxColour(128, 255, 0)
+dsHasSizerCol = wxColour(255, 255, 0)
 
 #-Code generation---------------------------------------------------------------
 
@@ -408,7 +419,7 @@ exportedProperties = ['flatTools', 'childFrameStyle', 'dataViewListStyle',
   'pastels', 'pastelMedium', 'pastelLight', 'undefinedWindowCol',
   'useImageArchive', 'pythonInterpreterPath', 'delayInitHelp', 'usePydocHelp',
   'logStdStreams', 'recordModuleCallPoint', 'autoAddToApplication',
-  'installBCRTL',
+  'installBCRTL', 'debugMode',
   'suExecPythonStartup', 'suBoaConstricted',
   'suSocketFileOpenServer',
   'eoErrOutDockWindow', 'eoErrOutWindowHeightPerc',
@@ -432,7 +443,9 @@ exportedProperties = ['flatTools', 'childFrameStyle', 'dataViewListStyle',
   'cgContinuedLineIndent',
 
   'dsGridSize', 'dsSelectionTagSize', 'dsSelectionFrameWidth',
-  'dsAnchorEnabledCol', 'dsAnchorDisabledCol', 'dsDefaultControlSize',
+  'dsDefaultControlSize', 'dsAnchorEnabledCol', 'dsAnchorDisabledCol', 
+  'dsUseSizers', 'dsInSizerCol', 'dsHasSizerCol',
+
   'vpOGLCanvasBackgroundColour', 'vpOGLLinePen', 'vpOGLLineBrush',
   'vpOGLClassShapePen', 'vpOGLClassShapeBrush', 'vpOGLExternalClassShapePen',
   'vpOGLClassShapeBrush', 'vpOGLExternalModuleShapePen',
