@@ -15,6 +15,14 @@
 # requires: pyparsing
 # usage: python wx25upgrade myFrame.py > myNewFrame.py
 #
+# There are three dictionaries which allow for easy conversion for addtional
+# converstions, update the key section with the 2.4 name and the value with the
+# 2.5 name.
+#
+# self.importNames, for import statements
+# self.specialNames, for classes, e.g. 'GenButton': 'wx.lib.buttons.GenButton'
+# self.specialNames2, for other names, e.g. 'wxGrid.wxGrid': 'wx.grid.Grid.wxGrid'
+# 
 # This file currently munges the 
 # - EVT_xxx change from wxPython 2.4 style to 2.5 style
 # - changes the 'helpString' to 'help' for .Append
@@ -39,6 +47,14 @@
 # - wxSize( to wx.Size(
 # - wxNullBitmap to wx.NullBitmap
 # - wxPoint( to wx.Point(
+# - wxNewID to wx.NewID (if used in user code)
+# - wxColour to wx.Colour
+# - wxOPEN to wx.OPEN
+# - wxID_OK to wx.ID_OK
+# - wxRED to wx.RED
+# - wxGREEN to wx.GREEN
+# - wxBLUE to wx.BLUE
+# - wxGrid.wxGrid to wx.grid.Grid.wxGrid
 #
 #
 # A lot is converted however manual inspection and correction of code
@@ -47,7 +63,12 @@
 from pyparsing import *
 import string
 
-def orLit(a, b): return a ^ b
+def lit(text):
+    '''For when you want to return a literal value independent of the input'''
+    def _lit(s, l, t):
+        return text
+    return _lit
+
 
 class Upgrade:
     def __init__(self):
@@ -63,10 +84,26 @@ class Upgrade:
                              'MaskedNumCtrl': 'wx.lib.masked.numctrl.NumCtrl',
                              'TimeCtrl': 'wx.lib.masked.timectrl.TimeCtrl',
                              'IntCtrl': 'wx.lib.intctrl.IntCtrl',
-                             'Grid': 'wx.grid.Grid',
+                             'Grid': 'wx.grid.Grid',                             
                              'EditableListBox': 'wx.gizmos.EditableListBox',
-                             'TreeListCtrl': 'wx.gizmos.TreeListCtrl',
+                             'TreeListCtrl': 'wx.gizmos.TreeListCtrl'
                              }
+        self.specialNames2 = {'wxInitAllImageHandlers(' : 'wx.InitAllImageHandlers',
+                              'wxIcon' : 'wx.Icon',
+                              'wxBITMAP' : 'wx.BITMAP',
+                              'wxBitmap' : 'wx.Bitmap',
+                              'wxSize' : 'wx.Size',
+                              'wxNullBitmap': 'wx.NullBitmap',
+                              'wxPoint': 'wx.Point',
+                              'wxNewId': 'wx.NewId',
+                              'wxColour': 'wx.Colour',
+                              'wxOPEN': 'wx.OPEN',
+                              'wxID_OK': 'wx.ID_OK',
+                              'wxRED': 'wx.RED',
+                              'wxBLUE': 'wx.BLUE',
+                              'wxGREEN': 'wx.GREEN',
+                              'wxGrid.wxGrid': 'wx.grid.Grid.wxGrid'
+                              }
         self.importNames = {'.wx import *': 'import wx',
                             '.stc import *': 'import wx.stc',
                             '.gizmos import *': 'import wx.gizmos',
@@ -138,21 +175,9 @@ class Upgrade:
             + LPAREN + intOnly + COMMA + intOnly
         addSpacer.setParseAction(self.addSpacerAction)
 
-        # Flag
-        flag = Literal("flag=")  + flags
-        flag.setParseAction(self.flagsAction)
-
-        # Style
-        style = Literal("style=") + flags
-        style.setParseAction(self.flagsAction)
-
-        # Orient
-        orient = Literal("orient=") + flags
-        orient.setParseAction(self.flagsAction)
-
-        # kind
-        kind = Literal("kind=") + flags
-        kind.setParseAction(self.flagsAction)
+        # Flags
+        flags = Or(map(Literal, ["flag=", "style=", "orient=", "kind=",])) + flags
+        flags.setParseAction(self.flagsAction)
 
         # wxNewId() to wx.NewId()
         repId1 = Literal("map(lambda _init_ctrls: wxNewId()") +\
@@ -167,6 +192,10 @@ class Upgrade:
         imp = Literal("from wxPython") + qualIdent3
         imp.setParseAction(self.impAction)
 
+        # Specific name space changes
+        repWXSpec = Or(map(Literal, self.specialNames2.keys()))
+        repWXSpec.setParseAction(self.repNamespace)
+
         # wx to wx. e.g. wxFrame1(wxFrame)to wxFrame1(wx.Frame)
         repWX = Literal("(wx") + ident + ")"
         repWX.setParseAction(self.repWXAction)
@@ -179,47 +208,18 @@ class Upgrade:
         repWX3 = Literal("wx") + ident + ".__"
         repWX3.setParseAction(self.repWX3Action)
 
-        # init wxInitAllImageHandlers( to wx.InitAllImageHandlers(
-        repWX4 = Literal("wxInitAllImageHandlers(")
-        repWX4.setParseAction(self.repWX4Action)
-
-        # init wxIcon( to wx.Icon(
-        repWX5 = Literal("wxIcon(")
-        repWX5.setParseAction(self.repWX5Action)
-
-        # init wxBITMAP to wx.BITMAP
-        repWX6 = Literal("wxBITMAP")
-        repWX6.setParseAction(self.repWX6Action)
-
-        # init wxBitmap( to wx.Bitmap(
-        repWX7 = Literal("wxBitmap(")
-        repWX7.setParseAction(self.repWX7Action)
-
-        # init wxSize( to wx.Size(
-        repWX8 = Literal("wxSize(")
-        repWX8.setParseAction(self.repWX8Action)
-
-        # init wxNullBitmap to wx.NullBitmap
-        repWX9 = Literal("wxNullBitmap")
-        repWX9.setParseAction(self.repWX9Action)
-
-        # init wxPoint( to wx.Point(
-        repWX10 = Literal("wxPoint(")
-        repWX10.setParseAction(self.repWX10Action)
-
         # true to True
         repTrue = Literal("true")
-        repTrue.setParseAction(self.trueAction)
+        repTrue.setParseAction(lit('True'))
 
         # false to False
         repFalse = Literal("false")
-        repFalse.setParseAction(self.falseAction)
+        repFalse.setParseAction(lit('False'))
 
         self.grammar = evt_P2 ^ evt_P3 ^ append ^ repId1 ^ repId2 ^ imp\
-            ^ repWX ^ repWX2 ^ repWX3 ^ repWX4 ^ repWX5 ^ repWX6 ^ repWX7\
-            ^ repWX8 ^ repWX9 ^ repWX10\
+            ^ repWXSpec ^ repWX ^ repWX2 ^ repWX3\
             ^ repTrue ^ repFalse ^ setStatusText\
-            ^ addSpacer ^ flag ^ style  ^ orient ^ kind 
+            ^ addSpacer ^ flags
         if specialEventCode:
             self.grammar ^= evt_P3a 
 
@@ -251,8 +251,7 @@ class Upgrade:
             if kw == 'kind':
                 arg = arg.replace('wx', 'wx.')
             arglist.append("%s=%s" % (kw, arg))
-        result = '.Append(' + string.join(arglist, ', ') + ')'
-        return result
+        return '.Append(' + string.join(arglist, ', ') + ')'
 
     def setStatusTextAction(self, s, l, t):
         a, b = t
@@ -280,7 +279,10 @@ class Upgrade:
             return newImport
         except KeyError:
             return a+b
-    
+
+    def repNamespace(self, s, l, t):
+        return self.specialNames2[t[0]]
+
     def repWXAction(self, s, l, t):
         if len(t) == 1:
             return
@@ -300,33 +302,6 @@ class Upgrade:
         a, b, c = t
         return "wx."+b+c
 
-    def repWX4Action(self, s, l, t):
-        return "wx.InitAllImageHandlers("
-
-    def repWX5Action(self, s, l, t):
-        return "wx.Icon("
-
-    def repWX6Action(self, s, l, t):
-        return "wx.BITMAP"
-
-    def repWX7Action(self, s, l, t):
-        return "wx.Bitmap("
-
-    def repWX8Action(self, s, l, t):
-        return "wx.Size("
-
-    def repWX9Action(self, s, l, t):
-        return "wx.NullBitmap"
-
-    def repWX10Action(self, s, l, t):
-        return "wx.Point("
-
-    def trueAction(self, s, l, t):
-        return "True"
-
-    def falseAction(self, s, l, t):
-        return "False"
-
     def scanner(self, text):
         '''
         Scan text, replacing grammar as we go.
@@ -337,6 +312,14 @@ class Upgrade:
             pos = e
         if pos < len(text):
             yield text[pos:], ''
+
+    def upgrade(self, intext):
+        '''Upgrade the text from wx2.4 style to wx2.5'''
+        frag = []
+        for non, replacement in self.scanner(intext):
+            frag.append(non)
+            frag.append(replacement)
+        return string.join(frag, '')
 
 if __name__ == "__main__":
     import sys
