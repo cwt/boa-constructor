@@ -138,7 +138,7 @@ class StackViewCtrl(wxListCtrl):
 
 
 [wxID_BREAKVIEW, wxID_BREAKSOURCE, wxID_BREAKEDIT, wxID_BREAKDELETE,
-  wxID_BREAKENABLED, wxID_BREAKREFRESH] = map(lambda x: NewId(), range(6))
+ wxID_BREAKENABLED, wxID_BREAKREFRESH, wxID_BREAKIGNORE] = Utils.wxNewIds(7)
 
 class BreakViewCtrl(wxListCtrl):
     def __init__(self, parent, debugger):#, flist, browser):
@@ -171,14 +171,18 @@ class BreakViewCtrl(wxListCtrl):
         self.menu.Append(wxID_BREAKSOURCE, 'Goto source')
         self.menu.Append(wxID_BREAKREFRESH, 'Refresh')
         self.menu.Append(-1, '-')
-        self.menu.Append(wxID_BREAKEDIT, 'Edit')
+        self.menu.Append(wxID_BREAKIGNORE, 'Edit ignore count')
+        self.menu.Append(wxID_BREAKEDIT, 'Edit condition')
         self.menu.Append(wxID_BREAKDELETE, 'Delete')
         self.menu.Append(-1, '-')
         self.menu.Append(wxID_BREAKENABLED, 'Enabled', checkable = true)
+        
         self.menu.Check(wxID_BREAKENABLED, true)
+
         EVT_MENU(self, wxID_BREAKSOURCE, self.OnGotoSourceRight)
         EVT_MENU(self, wxID_BREAKREFRESH, self.OnRefresh)
-        EVT_MENU(self, wxID_BREAKEDIT, self.OnEdit)
+        EVT_MENU(self, wxID_BREAKIGNORE, self.OnEditIgnore)
+        EVT_MENU(self, wxID_BREAKEDIT, self.OnEditCondition)
         EVT_MENU(self, wxID_BREAKDELETE, self.OnDelete)
         EVT_MENU(self, wxID_BREAKENABLED, self.OnToggleEnabled)
         self.pos = None
@@ -219,26 +223,33 @@ class BreakViewCtrl(wxListCtrl):
         self.bps = bps
         for p in range(len(bps)):
             bp = bps[p]
+            # setup prelim image
             imgIdx = 0
-            if not bp['enabled']:
-                imgIdx = 2
+            if not bp['enabled']: imgIdx = 2
             elif bp['temporary']: imgIdx = 3
 
             self.InsertImageStringItem(
                 p, os.path.basename(bp['filename']), imgIdx)
             self.SetStringItem(p, 1, str(bp['lineno']))
-            if bp['enabled']: self.SetStringItem(p, 3, '*')
+            #if bp['enabled']: self.SetStringItem(p, 3, '*')
 
             hits = ''
             ignore = ''
+            cond = ''
             if self.stats_map:
                 item = self.stats_map.get((bp['filename'], bp['lineno']), None)
                 if item is not None:
                     hits = str(item['hits'])
                     ignore = str(item['ignore'])
+                    cond = item['cond'] or ''
+                    #imgIdx = 0
+                    #if not item['enabled']: imgIdx = 2
+                    #elif item['temporary']: imgIdx = 3
+                    
             self.SetStringItem(p, 2, ignore)
             self.SetStringItem(p, 3, hits)
-            self.SetStringItem(p, 4, bp['cond'] or '')
+            self.SetStringItem(p, 4, cond)
+            #self.SetItemImage(p, imgIdx, -1)
 
     def addBreakpoint(self, filename, lineno):
         self.refreshList()
@@ -266,15 +277,12 @@ class BreakViewCtrl(wxListCtrl):
             return
         editor = self.debugger.editor
         editor.SetFocus()
-        editor.openOrGotoModule(filename)
-        sourceView = editor.getActiveModulePage().model.views['Source']
+        model, ctrlr = editor.openOrGotoModule(filename)
+        sourceView = model.views['Source']
         sourceView.focus()
         #sourceView.SetFocus()
         #sourceView.selectLine(bp['lineno'] - 1)
         sourceView.GotoLine(bp['lineno'] - 1)
-
-    def OnEdit(self, event):
-        pass
 
     def OnDelete(self, event):
         sel = self.rightsel
@@ -293,6 +301,7 @@ class BreakViewCtrl(wxListCtrl):
             if sourceView:
                 sourceView.deleteBreakMarkers(bp['lineno'])
 
+            #self.debugger.requestDebuggerStatus()
             self.refreshList()
 
     def OnRefresh(self, event):
@@ -306,8 +315,9 @@ class BreakViewCtrl(wxListCtrl):
             lineno = bp['lineno']
             enabled = bp['enabled'] = not bp['enabled']
             bplist.enableBreakpoints(filename, lineno, enabled)
+            server_fn = self.debugger.clientFNToServerFN(filename)
             self.debugger.invokeInDebugger(
-                'enableBreakpoints', (filename, lineno, enabled))
+                'enableBreakpoints', (server_fn, lineno, enabled))
             self.refreshList()
             
             sourceView = self.debugger.getEditorSourceView(filename)
@@ -328,8 +338,57 @@ class BreakViewCtrl(wxListCtrl):
             self.menu.Check(wxID_BREAKENABLED, bp['enabled'])
             self.PopupMenu(self.menu, self.pos)
 
+    def OnEditCondition(self, event):
+        sel = self.rightsel
+        if sel != -1:
+            bp = self.bps[sel]
+            filename = bp['filename']
+            lineno = bp['lineno']
+            cond = bp['cond']
+
+            dlg = wxTextEntryDialog(self, 'Condition to break on:', 
+                  'Change condition', cond)
+            try:
+                if dlg.ShowModal() == wxID_OK:
+                    cond = string.strip(dlg.GetValue())
+
+                    bplist.conditionalBreakpoints(filename, lineno, cond)
+                    # Update debug server
+                    server_fn = self.debugger.clientFNToServerFN(filename)
+                    self.debugger.invokeInDebugger(
+                        'conditionalBreakpoints', (server_fn, lineno, cond))
+                    
+                    self.debugger.requestDebuggerStatus()
+                    #self.refreshList()
+            finally:
+                dlg.Destroy()
+
+    def OnEditIgnore(self, event):
+        sel = self.rightsel
+        if sel != -1:
+            bp = self.bps[sel]
+            filename = bp['filename']
+            lineno = bp['lineno']
+            ignore = bp['ignore']
+
+            dlg = wxTextEntryDialog(self, 'Number of hits to ignore:', 
+                  'Change ignore count', `ignore`)
+            try:
+                if dlg.ShowModal() == wxID_OK:
+                    ignore = int(dlg.GetValue())
+                    # Update debugger list and debug server
+                    bplist.ignoreBreakpoints(filename, lineno, ignore)
+                    server_fn = self.debugger.clientFNToServerFN(filename)
+                    self.debugger.invokeInDebugger(
+                        'ignoreBreakpoints', (server_fn, lineno, ignore))
+                    
+                    self.debugger.requestDebuggerStatus()
+                    #self.refreshList()
+            finally:
+                dlg.Destroy()
 
 # XXX Expose classes' dicts as indented items
+
 wxID_NSVIEW = NewId()
 class NamespaceViewCtrl(wxListCtrl):
     def __init__(self, parent, add_watch, is_local, name):  # , dict=None):
@@ -658,11 +717,6 @@ def simplifyPathList(data,
     else:
         return list(string.split(str(data), os.pathsep))
 
-def compareColors(c1, c2):
-    return (c1.Red() == c2.Red() and
-            c1.Green() == c2.Green() and
-            c1.Blue() == c2.Blue())
-
 
 wxID_PAGECHANGED = NewId()
 wxID_TOPPAGECHANGED = NewId()
@@ -745,70 +799,45 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
         self.toolbar.ToggleTool(self.sourceTraceId, true)
         self.toolbar.ToggleTool(self.debugBrowseId, false)
         
-        self.splitter = wxSplitterWindow(self, -1, style=wxSP_NOBORDER | wxSP_3DSASH | wxSP_FULLSASH)
+        self.splitter = wxSplitterWindow(self, -1, 
+              style=wxSP_NOBORDER | wxSP_3DSASH | wxSP_FULLSASH)
+
+        use_images = (1 or wxPlatform == '__WXMSW__')
+        if use_images:
+            (stackImgIdx, breaksImgIdx, watchesImgIdx, localsImgIdx,
+                  globalsImgIdx) = range(5)
+        else:
+            stackImgIdx=breaksImgIdx=watchesImgIdx=localsImgIdx=globalsImgIdx=-1
 
         # Create a Notebook
-        use_images = (1 or wxPlatform == '__WXMSW__')
-        
         self.nbTop = wxNotebook(self.splitter, wxID_TOPPAGECHANGED)
         if use_images:
             self.nbTop.SetImageList(self.viewsImgLst)
 
         self.stackView = StackViewCtrl(self.nbTop, None, self)
-
-        if use_images:
-            self.nbTop.AddPage(self.stackView, 'Stack', imageId = 0)
-        else:
-            self.nbTop.AddPage(self.stackView, 'Stack')
+        self.nbTop.AddPage(self.stackView, 'Stack', imageId=stackImgIdx)
 
         self.breakpts = BreakViewCtrl(self.nbTop, self)
-        if use_images:
-            self.nbTop.AddPage(self.breakpts, 'Breakpoints', imageId = 1)
-        else:
-            self.nbTop.AddPage(self.breakpts, 'Breakpoints')
+        self.nbTop.AddPage(self.breakpts, 'Breakpoints', imageId=breaksImgIdx)
 
-##        self.outp = wxTextCtrl(self.nbTop, -1, '',
-##                               style = wxTE_MULTILINE)# | wxTE_READONLY)
-##        self.outp.SetBackgroundColour(wxBLACK)
-##        self.outp.SetForegroundColour(wxWHITE)
-##        if (not compareColors(self.outp.GetBackgroundColour(), wxBLACK) or
-##            not compareColors(self.outp.GetForegroundColour(), wxWHITE)):
-##            # The color setting was ignored.  Use standard colors instead.
-##            self.outp.SetBackgroundColour(wxWHITE)
-##            self.outp.SetForegroundColour(wxBLACK)
-##        self.outp.SetFont(wxFont(9, wxDEFAULT, wxNORMAL, wxNORMAL, false))
-##        if use_images:
-##            self.nbTop.AddPage(self.outp, 'Output', imageId = 5)
-##        else:
-##            self.nbTop.AddPage(self.outp, 'Output')
 
         # Create a Notebook
         self.nbBottom = wxNotebook(self.splitter, wxID_PAGECHANGED)
         EVT_NOTEBOOK_PAGE_CHANGED(self.nbBottom, wxID_PAGECHANGED,
                                   self.OnPageChange)
-
         if use_images:
             self.nbBottom.SetImageList(self.viewsImgLst)
 
         self.watches = WatchViewCtrl(self.nbBottom, self.viewsImgLst, self)
-        if use_images:
-            self.nbBottom.AddPage(self.watches, 'Watches', imageId = 2)
-        else:
-            self.nbBottom.AddPage(self.watches, 'Watches')
+        self.nbBottom.AddPage(self.watches, 'Watches', imageId=watchesImgIdx)
 
         self.locs = NamespaceViewCtrl(self.nbBottom, self.add_watch, 1, 'local')
-        if use_images:
-            self.nbBottom.AddPage(self.locs, 'Locals', imageId = 3)
-        else:
-            self.nbBottom.AddPage(self.locs, 'Locals')
+        self.nbBottom.AddPage(self.locs, 'Locals', imageId=localsImgIdx)
 
         self.globs = NamespaceViewCtrl(
             self.nbBottom, self.add_watch, 0, 'global')
 
-        if use_images:
-            self.nbBottom.AddPage(self.globs, 'Globals', imageId = 4)
-        else:
-            self.nbBottom.AddPage(self.globs, 'Globals')
+        self.nbBottom.AddPage(self.globs, 'Globals', imageId=globalsImgIdx)
 
         self.splitter.SetMinimumPaneSize(40)
                 
@@ -963,6 +992,7 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
         self.invokeInDebugger(
             'pprintVarValue', (name, self.stackView.selection),
             'receiveVarValue2')
+        # XXX I'm not comfortable with this...
         try:
             while not self._hasReceivedVal:
                 wxYield()
@@ -1039,16 +1069,6 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
                 self.stream_timer.Start(100)  # One-shot mode.
             self.updateOutputWindow()
 
-##    def appendToOutputWindow(self, t):
-##        # Before appending to the output, remove old data.
-##        outp = self.outp
-##        cursz = outp.GetLastPosition()
-##        newsz = cursz + len(t)
-##        if newsz >= TEXTCTRL_MAXLEN:
-##            olddata = outp.GetValue()[newsz - TEXTCTRL_GOODLEN:]
-##            outp.SetValue(olddata)
-##        outp.AppendText(t)
-
     def updateOutputWindow(self):
         while self.debug_client:
             info = self.debug_client.pollStreams()
@@ -1065,13 +1085,6 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
                     break
             else:
                 break
-
-##    def OnUpperPageChange(self, event):
-##        sel = event.GetSelection()
-##        if sel == 2:
-##            # Selected the output window.
-##            self.OnStreamTimer(None, 1)
-##        event.Skip()
 
     def OnDebuggerOk(self, event):
         if self._destroyed: return
@@ -1242,16 +1255,18 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
             sv.load_stack(stack, i)
             sv.selectCurrentEntry()
 
-        # If at a breakpoint, display status.
-        if bplist.hasBreakpoint(filename, lineno):
-            bplist.clearTemporaryBreakpoints(filename, lineno)
-            self.sb.updateState('Breakpoint.', 'break')
         # Update breakpoints view with stats.
         breaks = info['breaks']
         for item in breaks:
             item['client_filename'] = self.serverFNToClientFN(
                 item['filename'])
         self.breakpts.updateBreakpointStats(breaks)
+
+        # If at a breakpoint, display status.
+        if bplist.hasBreakpoint(filename, lineno):
+            bplist.clearTemporaryBreakpoints(filename, lineno)
+            self.sb.updateState('Breakpoint.', 'break')
+
         self.breakpts.refreshList()
 
         self.selectSourceLine(filename, lineno)
