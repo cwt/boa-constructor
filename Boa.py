@@ -80,19 +80,25 @@ from wxPython.wx import *
 import About
 import Utils
 
-if hasattr(wxPython, '__file__'):
+if Preferences.installBCRTL and hasattr(wxPython, '__file__'):
     try:
         # Install/update run time libs if necessary
         Utils.updateDir(os.path.join(boaPath, 'bcrtl'),
              os.path.join(wxPythonLibPath, 'bcrtl'))
     except Exception, error:
         startupErrors.extend(['Error while installing Run Time Libs:',
-                              '    '+str(error)])
+        '    '+str(error), 
+        'Make sure you have sufficient rights to copy these files, and that ',
+        'the files are not read only. You may turn off this attempted ',
+        'installation in Preferences.py'])
 
 # XXX Remaining milestones before alpha
 # XXX auto created frames (main frame handled currently)
 # XXX More property editors!
 # XXX More companion classes! $
+# XXX Controllers for the Editor MVC
+# XXX Debugger merged (but optional)
+# XXX New Docs framework
 
 # XXX Find: Exceptions should not cancel the search
 # XXX Editor should store file names internally in lowercase so that opening
@@ -117,11 +123,13 @@ if hasattr(wxPython, '__file__'):
 
 # XXX STC: The Python demo is fast!, look for speedups
 
+# XXX Save as after app is closed
+
 modules ={'About': [0, '', 'About.py'],
  'AppModuleProps': [0, '', 'AppModuleProps.py'],
  'AppViews': [0, '', 'Views/AppViews.py'],
  'BaseCompanions': [0, '', 'Companions/BaseCompanions.py'],
- 'Browse': [0, '', 'Browse.py'],
+ 'Browse': [0, 'History for navigation through the IDE', 'Browse.py'],
  'CVSExplorer': [0, '', 'Explorers/CVSExplorer.py'],
  'CVSResults': [0, '', 'Explorers/CVSResults.py'],
  'ClassBrowser': [0, '', 'ClassBrowser.py'],
@@ -133,13 +141,17 @@ modules ={'About': [0, '', 'About.py'],
  'CtrlSize': [0, 'Sizes a group of controls', 'CtrlSize.py'],
  'DAVExplorer': [0, '', 'Explorers/DAVExplorer.py'],
  'DataView': [0, '', 'Views/DataView.py'],
- 'Debugger': [0, '', 'Debugger/Debugger.py'],
+ 'Debugger': [0,
+              'Module for in-process debugging of wxPython and Python apps',
+              'Debugger/Debugger.py'],
  'Designer': [0, '', 'Views/Designer.py'],
  'DialogCompanions': [0, '', 'Companions/DialogCompanions.py'],
  'DiffView': [0, '', 'Views/DiffView.py'],
  'Editor': [0, 'Source code editor hosting models and views', 'Editor.py'],
+ 'EditorExplorer': [0, '', 'Explorers/EditorExplorer.py'],
  'EditorHelper': [0, '', 'EditorHelper.py'],
  'EditorModels': [0, '', 'EditorModels.py'],
+ 'EditorUtils': [0, '', 'EditorUtils.py'],
  'EditorViews': [0, '', 'Views/EditorViews.py'],
  'Enumerations': [0, '', 'PropEdit/Enumerations.py'],
  'ErrorStack': [0, '', 'ErrorStack.py'],
@@ -239,6 +251,9 @@ class BoaApp(wxApp):
             # can be sized.
             self.main.inspector.initSashes()
             self.main.editor.Show(true)
+            
+            # Hook for shell and scripts
+            sys.boa_ide = self.main.editor
 
         finally:
             abt.Destroy()
@@ -270,6 +285,7 @@ class BoaApp(wxApp):
         if startupErrors:
             for error in startupErrors:
                 wxLogError(error)
+            wxLogError('There were errors during startup, click "Details" for more...')
 
         return true
 
