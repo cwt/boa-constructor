@@ -20,7 +20,7 @@ from types import StringType, ClassType
 from wxPython.wx import *
 
 import Preferences, Utils
-from Preferences import IS, wxFileDialog
+from Preferences import IS
 
 from Models import EditorHelper
 
@@ -58,6 +58,8 @@ def listdirEx(filepath, extfilter = ''):
           not extfilter or string.lower(os.path.splitext(f)[1]) == extfilter,
           map(lambda n: n.treename, openEx(filepath).openList()))
 
+# XXX Handle compound URIs by splitting on the first 2 :// and calling
+# XXX splitURI again recursively ??
 def splitURI(filename):
     protsplit = string.split(filename, '://')
     # check FS (No prot defaults to 'file')

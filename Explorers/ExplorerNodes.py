@@ -101,7 +101,7 @@ class Controller:
                     self.setupMenu(subMenu, win, method)
                     menu.AppendMenu(wId, help, subMenu)
                 else:
-                    menu.Append(wId, help, checkable = canCheck)
+                    menu.Append(wId, help, '', canCheck)
                     wx.EVT_MENU(win, wId, method)
                     wx.EVT_MENU(self.editor, wId, method)
             else:
