@@ -143,6 +143,7 @@ class ExplorerNode:
         self.bold = false
         self.vetoRequery = false
         self.upImgIdx = EditorModels.imgFolderUp
+        self.parentOpensChildren = false
                 
     def createParentNode(self): pass
     def createChildNode(self, value): pass
@@ -180,6 +181,7 @@ class RootNode(ExplorerNode):
         self.entries = []
         self.vetoRequery = true
     def isFolderish(self): return true
+    def createParentNode(self): return self
     def createChildNode(self, value): return value    
     def openList(self): return self.entries
     def getTitle(self): return 'Boa Constructor'
