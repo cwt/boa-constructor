@@ -129,9 +129,13 @@ if Preferences.installBCRTL and hasattr(wxPython, '__file__'):
 modules ={'About': [0, 'About box and Splash screen', 'About.py'],
  'AppViews': [0, 'Views for the AppModel', 'Views/AppViews.py'],
  'BaseCompanions': [0, '', 'Companions/BaseCompanions.py'],
+ 'Breakpoint': [0, '', 'Debugger/Breakpoint.py'],
  'Browse': [0, 'History for navigation through the IDE', 'Browse.py'],
  'CVSExplorer': [0, '', 'Explorers/CVSExplorer.py'],
  'CVSResults': [0, '', 'Explorers/CVSResults.py'],
+ 'ChildProcessClient': [0, '', 'Debugger/ChildProcessClient.py'],
+ 'ChildProcessServer': [0, '', 'Debugger/ChildProcessServer.py'],
+ 'ChildProcessServerStart': [0, '', 'Debugger/ChildProcessServerStart.py'],
  'ClassBrowser': [0,
                   'Frame that displays the wxPython object hierarchy by Class and Module',
                   'ClassBrowser.py'],
@@ -152,6 +156,7 @@ modules ={'About': [0, 'About box and Splash screen', 'About.py'],
  'DataView': [0,
               'View to manage non visual frame objects',
               'Views/DataView.py'],
+ 'DebugClient': [0, '', 'Debugger/DebugClient.py'],
  'Debugger': [0,
               'Module for in-process debugging of wxPython and Python apps',
               'Debugger/Debugger.py'],
@@ -186,23 +191,25 @@ modules ={'About': [0, 'About box and Splash screen', 'About.py'],
  'HTMLCyclops': [0, '', 'HTMLCyclops.py'],
  'HTMLResponse': [0, '', 'HTMLResponse.py'],
  'Help': [0, 'Interactive help frame', 'Help.py'],
- 'HelpCompanions': [0, '', 'Companions/HelpCompanions.py'],
  'ImageStore': [0,
                 'Centralised point to load images (cached/zipped/etc)',
                 'ImageStore.py'],
  'ImageViewer': [0, '', 'ZopeLib/ImageViewer.py'],
+ 'InProcessClient': [0, '', 'Debugger/InProcessClient.py'],
  'Infofields': [0, '', 'Infofields.py'],
  'InspectableViews': [0, '', 'Views/InspectableViews.py'],
  'Inspector': [0,
                "Inspects object's constructor/properties/events/parents",
                'Inspector.py'],
  'InspectorEditorControls': [0, '', 'PropEdit/InspectorEditorControls.py'],
+ 'IsolatedDebugger': [0, '', 'Debugger/IsolatedDebugger.py'],
  'LoginDialog': [0, '', 'ZopeLib/LoginDialog.py'],
  'ModRunner': [0,
                'Module that runs processes in a variety of ways',
                'ModRunner.py'],
  'OGLViews': [0, '', 'Views/OGLViews.py'],
  'ObjCollection': [0, '', 'Views/ObjCollection.py'],
+ 'OldDebugger': [0, '', 'Debugger/OldDebugger.py'],
  'Palette': [1,
              'Top frame which hosts the component palette and help options',
              'Palette.py'],
@@ -215,9 +222,6 @@ modules ={'About': [0, 'About box and Splash screen', 'About.py'],
                  'Central store of customiseable properties',
                  'Preferences.py'],
  'PrefsExplorer': [0, '', 'Explorers/PrefsExplorer.py'],
- 'PrefsGTK': [0, 'Unix specific preference settings', 'PrefsGTK.py'],
- 'PrefsKeys': [0, 'Keyboard bindings', 'PrefsKeys.py'],
- 'PrefsMSW': [0, 'Windows specific preference settings', 'PrefsMSW.py'],
  'ProcessProgressDlg': [0, '', 'ProcessProgressDlg.py'],
  'ProfileView': [0, '', 'Views/ProfileView.py'],
  'PropDlg': [0, '', 'ZopeLib/PropDlg.py'],
@@ -227,6 +231,8 @@ modules ={'About': [0, 'About box and Splash screen', 'About.py'],
  'PySourceView': [0, '', 'Views/PySourceView.py'],
  'PythonInterpreter': [0, '', 'ExternalLib/PythonInterpreter.py'],
  'RTTI': [0, 'Introspection code. Run time type info', 'RTTI.py'],
+ 'RemoteClient': [0, '', 'Debugger/RemoteClient.py'],
+ 'RemoteDialog': [0, '', 'Debugger/RemoteDialog.py'],
  'RunCyclops': [0, '', 'RunCyclops.py'],
  'SSHExplorer': [0, '', 'Explorers/SSHExplorer.py'],
  'Search': [0, '', 'Search.py'],
@@ -238,6 +244,7 @@ modules ={'About': [0, 'About box and Splash screen', 'About.py'],
  'StyledTextCtrls': [0,
                      'Mixin classes to use features of Scintilla',
                      'Views/StyledTextCtrls.py'],
+ 'Tasks': [0, '', 'Debugger/Tasks.py'],
  'Tests': [0, '', 'Tests.py'],
  'UserCompanions': [0, '', 'Companions/UserCompanions.py'],
  'UtilCompanions': [0, '', 'Companions/UtilCompanions.py'],
@@ -280,22 +287,41 @@ class BoaApp(wxApp):
         try:
             # Let the splash screen repaint
             wxYield()
-            import Palette
 
             print 'creating Palette'
+            import Palette
             self.main = Palette.BoaFrame(None, -1, self)
 
-            self.main.Show(true)
-            self.SetTopWindow(self.main)
+            print 'creating Inspector'
+            import Inspector
+            inspector = Inspector.InspectorFrame(self.main)
+    
+            print 'creating Editor'
+            import Editor
+            editor = Editor.EditorFrame(self.main, -1, inspector, wxMenu(), 
+                self.main.componentSB, self, self.main)
 
-            self.main.inspector.Show(true)
+            self.main.initPalette(inspector, editor)
+            
+            editor.setupToolBar()
+
+            print 'initialising Help'
+            import Help
+            Help.initHelp()
+
+            self.main.contextHelpSearch.SetFocus()
+            
+            self.main.Show(true)
+
+            inspector.Show(true)
             # For some reason the splitters have to be visible on GTK before they
             # can be sized.
-            self.main.inspector.initSashes()
-            self.main.editor.Show(true)
+            inspector.initSashes()
+            editor.Show(true)
+            self.SetTopWindow(editor)
 
             # Call startup files after complete editor initialisation
-            self.main.editor.shell.execStartupScript(startupfile)            
+            editor.shell.execStartupScript(startupfile)            
         finally:
             abt.Destroy()
             del abt
@@ -303,19 +329,19 @@ class BoaApp(wxApp):
         # Open info text files if run for the first time
         if os.path.exists('1stTime'):
             try:
-                self.main.editor.openOrGotoModule('README.txt')
-                self.main.editor.openOrGotoModule('Changes.txt')
+                editor.openOrGotoModule('README.txt')
+                editor.openOrGotoModule('Changes.txt')
                 os.remove('1stTime')
             except:
                 print 'Could not load intro text files'
 
         # Apply command line switches
         if doDebug:
-            mod = self.main.editor.openModule(args[0])
+            mod = editor.openModule(args[0])
             mod.debug()
         elif startupModules:
             for mod in startupModules:
-                self.main.editor.openModule(mod)
+                editor.openModule(mod)
 
         Utils.showTip(self.main.editor)
 
@@ -332,11 +358,21 @@ class BoaApp(wxApp):
 
 
 def main():
-    app = BoaApp(0)
+    try:
+        app = BoaApp(0)
+    except Exception, error:
+        # XXX Add version warning here
+        wxMessageBox(str(error), 'Error on startup')
+        raise
     app.quit = false
     while not app.quit:
         app.MainLoop()
+    # Clean up (less warnings)
+    if Preferences.logStdStreams:
+        sys.stderr = sys.__stderr__
+        sys.stdout = sys.__stdout__
+    Preferences.IS.cleanup()
 
 if __name__ == '__main__' or hasattr(wxApp, 'debugger'):
     main()
- 
+    
