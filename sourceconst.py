@@ -7,13 +7,22 @@
 #
 # Created:     2001/19/02
 # RCS-ID:      $Id$
-# Copyright:   (c) 2001 - 2002 Riaan Booysen
+# Copyright:   (c) 2001 - 2003 Riaan Booysen
 # Licence:     GPL
 #-----------------------------------------------------------------------------
+
+import os
 
 import Preferences, Utils
 
 idnt = Utils.getIndentBlock()
+
+methodIndent = idnt
+bodyIndent = idnt*2
+
+def wsfix(s):
+    return s.replace('\t', idnt).replace('\n', os.linesep)
+
 
 boaIdent = '#Boa'
 boaClass = 'BoaApp'
@@ -23,19 +32,14 @@ init_coll = '_init_coll_'
 init_utils = '_init_utils'
 init_props = '_init_props'
 init_events = '_init_events'
+init_sizers = '_init_sizers'
 code_gen_warning = "generated method, don't edit"
 
-defEnvPython = '#!/usr/bin/env python\n'
-defImport = 'from wxPython.wx import *\n\n'
-defSig = boaIdent+':%(modelIdent)s:%(main)s\n\n'
+defEnvPython = wsfix('#!/usr/bin/env python\n')
+defImport = wsfix('from wxPython.wx import *\n\n')
+defSig = boaIdent+wsfix(':%(modelIdent)s:%(main)s\n\n')
 
-methodIndent = idnt
-bodyIndent = idnt*2
-
-def tabfix(s):
-    return s.replace('\t', idnt)
-
-defCreateClass = tabfix('''def create(parent):
+defCreateClass = wsfix('''def create(parent):
 \treturn %(main)s(parent)
 
 ''')
@@ -43,10 +47,10 @@ defCreateClass = tabfix('''def create(parent):
 srchWindowIds = '\[(?P<winids>[A-Za-z0-9_, ]*)\] = '+\
 'map\(lambda %s: (wx)*NewId\(\), range\((?P<count>\d+)\)\)'
 srchWindowIdsCont = '(?P<any>.*)\] = map\(lambda %s: (wx)*NewId\(\), range\((?P<count>\d+)\)\)'
-defWindowIds = '''[%(idNames)s] = map(lambda %(idIdent)s: wxNewId(), range(%(idCount)d))\n'''
-defWindowIdsCont = '''] = map(lambda %(idIdent)s: wxNewId(), range(%(idCount)d))\n'''
+defWindowIds = wsfix('''[%(idNames)s] = map(lambda %(idIdent)s: wxNewId(), range(%(idCount)d))\n''')
+defWindowIdsCont = wsfix('''] = map(lambda %(idIdent)s: wxNewId(), range(%(idCount)d))\n''')
 
-defClass = tabfix('''
+defClass = wsfix('''
 class %(main)s(%(defaultName)s):
 \tdef '''+init_utils+'''(self):
 \t\tpass
@@ -59,7 +63,7 @@ class %(main)s(%(defaultName)s):
 \t\tself.'''+init_ctrls+'''(parent)
 ''')
 
-defApp = tabfix('''import %(mainModule)s
+defApp = wsfix('''import %(mainModule)s
 
 modules = {'%(mainModule)s' : [1, 'Main frame of Application', '%(mainModule)s.py']}
 
@@ -80,7 +84,7 @@ if __name__ == '__main__':
 \tmain()
 ''')
 
-defInfoBlock = '''#-----------------------------------------------------------------------------
+defInfoBlock = wsfix('''#-----------------------------------------------------------------------------
 # Name:        %(Name)s
 # Purpose:     %(Purpose)s
 #
@@ -91,21 +95,21 @@ defInfoBlock = '''#-------------------------------------------------------------
 # Copyright:   %(Copyright)s
 # Licence:     %(Licence)s
 #-----------------------------------------------------------------------------
-'''
+''')
 
-defSetup_py = '''
+defSetup_py = wsfix('''
 from distutils.core import setup
 
 setup(name = '%(name)s',
       version = '%(version)s',
       scripts = [%(scripts)s],
 )
-'''
+''')
 
-defPackageSrc = '''# Package initialisation
-'''
+defPackageSrc = wsfix('''# Package initialisation
+''')
 
-defPyApp = tabfix('''modules = {}
+defPyApp = wsfix('''modules = {}
 
 def main():
 \tpass
@@ -114,13 +118,13 @@ if __name__ == '__main__':
 \tmain()
 ''')
 
-simpleModuleRunSrc = tabfix('''
+simpleModuleRunSrc = wsfix('''
 
 if __name__ == '__main__':
 \tpass # add a call to run your script here
 ''')
 
-simpleAppFrameRunSrc = tabfix('''
+simpleAppFrameRunSrc = wsfix('''
 
 if __name__ == '__main__':
 \tapp = wxPySimpleApp()
@@ -132,7 +136,7 @@ if __name__ == '__main__':
 \tapp.MainLoop()
 ''')
 
-simpleAppDialogRunSrc = tabfix('''
+simpleAppDialogRunSrc = wsfix('''
 
 if __name__ == '__main__':
 \tapp = wxPySimpleApp()
@@ -145,7 +149,7 @@ if __name__ == '__main__':
 \tapp.MainLoop()
 ''')
 
-simpleAppPopupRunSrc = tabfix('''
+simpleAppPopupRunSrc = wsfix('''
 
 if __name__ == '__main__':
 \tapp = wxPySimpleApp()
