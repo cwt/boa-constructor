@@ -17,7 +17,9 @@ from wxPython.wx import *
 import Preferences
 from Preferences import IS
 from ExternalLib.ConfigParser import ConfigParser
-# Why did I capitalise these ????
+
+def toPyPath(filename):
+    return os.path.join(Preferences.pyPath, filename)
 
 def ShowErrorMessage(parent, caption, mess):
     dlg = wxMessageDialog(parent, mess.__class__.__name__ +': '+`mess`,
@@ -25,17 +27,17 @@ def ShowErrorMessage(parent, caption, mess):
     try: dlg.ShowModal()
     finally: dlg.Destroy()
 
-def ShowMessage(parent, caption, message, msgTpe = wxICON_INFORMATION):
+def ShowMessage(parent, caption, message, msgTpe=wxICON_INFORMATION):
     dlg = wxMessageDialog(parent, message, caption, wxOK | msgTpe)
     try: dlg.ShowModal()
     finally: dlg.Destroy()
 
 def yesNoDialog(parent, title, question):
-    dlg = wxMessageDialog(parent, question, title , wxYES_NO | wxICON_QUESTION)
+    dlg = wxMessageDialog(parent, question, title, wxYES_NO | wxICON_QUESTION)
     try: return (dlg.ShowModal() == wxID_YES)
     finally: dlg.Destroy()
 
-def AddToolButtonBmpObject(frame, toolbar, thebitmap, hint, triggermeth, theToggleBitmap = wxNullBitmap):
+def AddToolButtonBmpObject(frame, toolbar, thebitmap, hint, triggermeth, theToggleBitmap=wxNullBitmap):
     nId = wxNewId()
     doToggle = theToggleBitmap != wxNullBitmap
 #    t = toolbar.AddTool(nId, thebitmap, toggleBitmap, shortHelpString = hint, toggle = toggleBitmap != wxNullBitmap)
@@ -267,7 +269,7 @@ def showTip(frame, forceShow = 0):
         index = conf.getint('tips', 'tipindex')
 
     if showTip or forceShow:
-        tp = wxCreateFileTipProvider(Preferences.toPyPath('Docs/tips.txt'), index)
+        tp = wxCreateFileTipProvider(toPyPath('Docs/tips.txt'), index)
         showTip = wxShowTip(frame, tp, showTip)
         index = tp.GetCurrentTip()
         if conf:
@@ -478,6 +480,14 @@ class ErrorLoggerPF(LoggerPF):
 
         sys.__stderr__.write(s)
 
+def installErrOutLoggers():
+    sys.stdout = OutputLoggerPF()
+    sys.stderr = ErrorLoggerPF()
+
+def uninstallErrOutLoggers():
+    sys.stdout = sys.__stdout__
+    sys.stderr = sys.__stderr__
+
 def getCtrlsFromDialog(dlg, className):
     """ Returns children of given class from dialog.
 
@@ -649,26 +659,19 @@ class ListCtrlLabelEditFixEH(wxEvtHandler):
 
         self.listCtrl = listCtrl
         EVT_LIST_BEGIN_LABEL_EDIT(listCtrl, listCtrl.GetId(), self.OnBeginLabelEdit)
-        self.Connect(-1, -1, self.wxEVT_CTRLEDIT, self.OnCtrlLabelEdit)
         listCtrl.PushEventHandler(self)
 
     def OnBeginLabelEdit(self, event):
         if not self._blockMouseEdit and wxPlatform == '__WXMSW__':
             event.Veto()
-
-            ctrlEditEvt = wxPyEvent()
-            ctrlEditEvt.SetEventType(self.wxEVT_CTRLEDIT)
-            ctrlEditEvt.idx = event.GetIndex()
-
-            wxPostEvent(self, ctrlEditEvt)
+            wxCallAfter(self.ctrlLabelEdit, event.GetIndex())
         else:
             self._blockMouseEdit = false
         event.Skip()
 
-    def OnCtrlLabelEdit(self, event):
+    def ctrlLabelEdit(self, idx):
         self._blockMouseEdit = true
-        self.listCtrl.EditLabel(event.idx)
-        event.Skip()
+        self.listCtrl.EditLabel(idx)
 
 SEL_FOC = wxLIST_STATE_SELECTED | wxLIST_STATE_FOCUSED
 def selectBeforePopup(event):
@@ -741,7 +744,7 @@ class ListCtrlSelectionManagerMix:
             self.PopupMenu(menu, event.GetPosition())
             self.afterPopupMenu(menu)
             return
-            
+
             evt = wxPyEvent()
             evt.SetEventType(self.wxEVT_DOPOPUPMENU)
             evt.menu = menu
@@ -822,3 +825,20 @@ def importFromPlugins(name):
 def transportInstalled(transport):
     return transport in eval(
          createAndReadConfig('Explorer').get('explorer', 'installedtransports'))
+
+def canReadStream(stream):
+    try:
+        return stream.CanRead()
+    except AttributeError:
+        return not stream.eof()
+
+def find_dotted_module(name, path=None):
+    import imp
+    segs = string.split(name, '.')
+    while segs:
+        file, filename, desc = imp.find_module(segs[0], path)
+        del segs[0]
+        path = [filename]
+    return file, filename, desc
+    
+    
