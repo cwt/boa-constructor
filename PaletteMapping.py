@@ -1,17 +1,14 @@
 #----------------------------------------------------------------------
-# Name:        PaletteMapping.py
-# Purpose:     
-#
-# Author:      Riaan Booysen
-#
-# Created:     1999
+# Name:        PaletteMapping.py                                       
+# Purpose:                                                             
+#                                                                      
+# Author:      Riaan Booysen                                           
+#                                                                      
+# Created:     1999                                                    
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999, 2000 Riaan Booysen
-# Licence:     GPL
+# Copyright:   (c) 1999, 2000 Riaan Booysen                            
+# Licence:     GPL                                                     
 #----------------------------------------------------------------------
-
-# XXX Think about the following
-# XXX Letting users edit this file directly and reload it
 
 import Preferences
 from Preferences import IS
@@ -20,10 +17,12 @@ from os import path
 from wxPython.wx import *
 from wxPython.grid import wxGrid
 from wxPython.html import wxHtmlWindow
-from wxPython.lib.buttons import wxGenButton, wxGenBitmapButton, wxGenToggleButton, wxGenBitmapToggleButton
+from wxPython.lib.buttons import wxGenButton, wxGenBitmapButton #, wxGenToggleButton, wxGenBitmapToggleButton
 from wxPython.calendar import wxCalendarCtrl
 from wxPython.stc import wxStyledTextCtrl
+from wxPython.lib.anchors import LayoutAnchors
 
+print 'Importing Companions'
 from Companions.Companions import *
 from Companions.UtilCompanions import *
 from Companions.DialogCompanions import *
@@ -32,29 +31,35 @@ from Companions.UtilCompanions import *
 from Companions.DialogCompanions import *
 from Companions.ZopeCompanions import *
 
-utilities = [wxMenu, wxImageList, wxAcceleratorTable, wxTextDropTarget, wxFileDropTarget]
+utilities = [wxMenuBar, wxMenu, wxImageList]#, wxAcceleratorTable, wxTextDropTarget, wxFileDropTarget]
 
 palette = [
-  ['Frame bars', 'Editor/Tabs/Singletons', 
-    [wxMenuBar, wxToolBar, wxStatusBar] ],
+##  ['Frame bars', 'Editor/Tabs/Singletons', 
+##    [wxMenuBar, wxToolBar, wxStatusBar] ],
   ['Containers/Layout', 'Editor/Tabs/Containers', 
-    [wxPanel, wxScrolledWindow, wxNotebook, wxSplitterWindow, wxSashWindow,
-     wxSashLayoutWindow] ], 
+    [wxPanel, wxScrolledWindow, wxNotebook, wxSplitterWindow, 
+     wxSashWindow, wxSashLayoutWindow, wxToolBar, wxStatusBar] ], #, wxBoxSizer
   ['Basic Controls', 'Editor/Tabs/Basic', 
     [wxStaticText, wxTextCtrl, wxComboBox, wxChoice, wxCheckBox, wxRadioButton, 
-     wxSlider, wxGauge, wxStaticBox, wxScrollBar, wxStaticBitmap, wxStaticLine, 
-     wxHtmlWindow, wxSpinCtrl, wxCalendarCtrl, wxStyledTextCtrl] ],
+     wxSlider, wxGauge, wxScrollBar, wxStaticBitmap, wxStaticLine, wxStaticBox, 
+     wxHtmlWindow] ], #, wxSpinCtrl, wxCalendarCtrl, wxStyledTextCtrl] ],
   ['Buttons', 'Editor/Tabs/Basic',
-    [wxButton, wxBitmapButton, wxSpinButton, wxGenButton, wxGenBitmapButton, 
-     wxGenToggleButton, wxGenBitmapToggleButton] ],
+    [wxButton, wxBitmapButton, wxSpinButton, wxGenButton, wxGenBitmapButton] ], 
+#     wxGenToggleButton, wxGenBitmapToggleButton] ],
   ['List Controls', 'Editor/Tabs/Lists', 
     [wxRadioBox, wxListBox, wxCheckListBox, wxGrid, wxListCtrl, wxTreeCtrl] ],
   ['Utilities', 'Editor/Tabs/Utilities', 
     utilities] ]
 
+newPalette = ['New', 'Editor/Tabs/New',
+    ['wxApp', 'wxFrame', 'wxDialog', 'wxMiniFrame', 'wxMDIParentFrame',
+     'wxMDIChildFrame', 'Module', 'Package', 'Setup', 'Text'],
+]
+
 helperClasses = {
     'wxFontPtr': FontDTC,
-    'wxColourPtr': ColourDTC
+    'wxColourPtr': ColourDTC,
+    'Anchors': AnchorsDTC
 }    
 
 dialogPalette =  ['Dialogs', 'Editor/Tabs/Dialogs', 
@@ -120,12 +125,13 @@ compInfo = {
     wxSpinCtrl: ['wxSpinCtrl', NYIDTC],
     wxGenButton: ['wxGenButton', GenButtonDTC],
     wxGenBitmapButton: ['wxGenBitmapButton', GenBitmapButtonDTC],
-    wxGenToggleButton: ['wxGenToggleButton', GenButtonDTC],
-    wxGenBitmapToggleButton: ['wxGenBitmapToggleButton', GenBitmapButtonDTC],
+#    wxGenToggleButton: ['wxGenToggleButton', GenButtonDTC],
+#    wxGenBitmapToggleButton: ['wxGenBitmapToggleButton', GenBitmapButtonDTC],
     wxTextDropTarget: ['wxTextDropTarget', NYIDTC],
     wxFileDropTarget: ['wxFileDropTarget', NYIDTC],
     wxSashWindow: ['wxSashWindow', SashWindowDTC],
     wxSashLayoutWindow: ['wxSashLayoutWindow', SashLayoutWindowDTC],
+#    wxBoxSizer: ['wxBoxSizer', BoxSizerDTC],
     
     'DTML Document': ['DTMLDocument', DTMLDocumentZC], 
     'DTML Method': ['DTMLMethod', DTMLMethodZC], 
@@ -179,4 +185,8 @@ def bitmapForComponent(wxClass, wxBase = 'None', gray = false):
 #print 'PaletteMapping:', len(locals()
 
 def evalCtrl(expr):
-    return eval(expr)
+    try:
+        return eval(expr)
+    except Exception, err:
+        print 'Exception in evalCtrl', expr, err
+        raise
