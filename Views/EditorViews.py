@@ -120,6 +120,8 @@ class EditorView:
         self.menu = wxMenu()
         self.editorMenu = wxMenu()
         self.popx = self.popy = 0
+        
+        self.canExplore = false
 
         self.defaultActionIdx = dclickActionIdx
         self.ids = []
@@ -190,13 +192,15 @@ class EditorView:
 
     def deleteFromNotebook(self, focusView, tabName):
         # set selection to source view
-        self.model.reorderFollowingViewIdxs(self.pageIdx)
-        # XXX If the last view closes should the model close ??
-        if self.model.views.has_key(focusView):
-            self.model.views[focusView].focus()
-        del self.model.views[tabName]
-        self.destroy()
-        self.notebook.DeletePage(self.pageIdx)
+        # check that not already destroyed
+        if hasattr(self, 'model'):
+            self.model.reorderFollowingViewIdxs(self.pageIdx)
+            # XXX If the last view closes should the model close ??
+            if self.model.views.has_key(focusView):
+                self.model.views[focusView].focus()
+            del self.model.views[tabName]
+            self.destroy()
+            self.notebook.DeletePage(self.pageIdx)
 
     def activate(self):
         self.active = true
@@ -248,14 +252,17 @@ class EditorView:
 
     def isModified(self):
         return self.modified
-
+    
+    def explore(self):
+        """ Return items for Explorer """
+        return []
 
     def OnRightDown(self, event):
         self.popx = event.GetX()
         self.popy = event.GetY()
 
     def OnRightClick(self, event):
-        self.PopupMenu(self.menu, wxPoint(self.popx, self.popy))
+        self.PopupMenu(self.menu, wxPoint(event.GetX(), event.GetY()))
 
 class TestView(wxTextCtrl, EditorView):
     viewName = 'Test'
@@ -777,6 +784,7 @@ class ExploreView(wxTreeCtrl, EditorView):
         self.SetImageList(self.tokenImgLst)
 
         self.active = true
+        self.canExplore = true
 
         EVT_KEY_UP(self, self.OnKeyPressed)
 
@@ -867,6 +875,7 @@ class HierarchyView(wxTreeCtrl, EditorView):
 
         EVT_KEY_UP(self, self.OnKeyPressed)
 
+        self.canExplore = true
         self.active = true
 
     def buildTree(self, parent, dict):
