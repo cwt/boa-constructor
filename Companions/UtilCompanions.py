@@ -10,7 +10,7 @@
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 print 'importing Companions.UtilCompanions'
-import os, copy
+import os, copy, string
 
 from wxPython.wx import *
 

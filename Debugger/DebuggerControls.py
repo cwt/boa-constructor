@@ -1,4 +1,4 @@
-import os
+import os, string
 from repr import Repr
 
 from wxPython.wx import *
