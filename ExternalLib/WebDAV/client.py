@@ -13,7 +13,7 @@ from whrandom import random
 from urllib import quote
 
 
-    
+
 
 class HTTP(httplib.HTTP):
     # A revised version of the HTTP class that can do basic
@@ -37,11 +37,11 @@ class HTTP(httplib.HTTP):
         try:
             [ver, code, msg] = string.split(line, None, 2)
         except ValueError:
-          try:
-              [ver, code] = string.split(line, None, 1)
-              msg = ""
-          except ValueError:
-              return -1, line, None
+            try:
+                [ver, code] = string.split(line, None, 1)
+                msg = ""
+            except ValueError:
+                return -1, line, None
         if ver[:5] != 'HTTP/':
             return -1, line, None
         code=string.atoi(code)
@@ -59,7 +59,7 @@ class Resource:
         self.url=url
 
         mo = urlreg.match(url)
-        if mo: 
+        if mo:
             host,port,uri=mo.group(1,2,3)
             self.host=host
             self.port=port and string.atoi(port[1:]) or 80
@@ -92,7 +92,7 @@ class Resource:
         if atype=='Basic':
             headers['Authorization']=(
                 "Basic %s" % string.replace(encodestring('%s:%s' % (self.username,self.password)),
-					    '\012',''))
+                                            '\012',''))
             return headers
         raise ValueError, 'Unknown authentication scheme: %s' % atype
 
@@ -126,7 +126,7 @@ class Resource:
         except:
             raise 'NotAvailable', sys.exc_value
         return http_response(ver, code, msg, hdrs, data)
-    
+
     # HTTP methods
 
     def get(self, **kw):
@@ -374,8 +374,8 @@ set_xml="""<?xml version="1.0" encoding="utf-8"?>
 """
 
 funny="""<?xml version="1.0" encoding="utf-8"?>
- <d:propertyupdate xmlns:d="DAV:" 
-    xmlns:z="http://www.zope.org/propsets/default" 
+ <d:propertyupdate xmlns:d="DAV:"
+    xmlns:z="http://www.zope.org/propsets/default"
     xmlns:q="http://www.something.com/foo/bar">
  <d:set>
  <d:prop>
@@ -449,7 +449,7 @@ def marshal_list(name, seq, tname='list', lt=type([]), tt=type(())):
         tp=type(v)
         if tp in (lt, tt):
             raise TypeError, 'Invalid recursion in data to be marshaled.'
-        result.append(marshal_var("%s:%s" % (name, tname), v))    
+        result.append(marshal_var("%s:%s" % (name, tname), v))
     return string.join(result, '&')
 
 def marshal_tuple(name, seq):
@@ -611,4 +611,3 @@ dav =Resource('http://tarzan.digicool.com/dev/dav/',
               username='brian',
               password='123')
 adav=Resource('http://tarzan.digicool.com/dev/dav/')
-
