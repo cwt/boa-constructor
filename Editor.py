@@ -51,7 +51,7 @@ from ZopeLib import ImageViewer
 
 print 'importing Models'
 from EditorModels import *
-from PrefsKeys import keyDefs
+from Preferences import keyDefs
 import ShellEditor, PaletteStore, ErrorStack
 from Preferences import IS, wxFileDialog, flatTools
 from EditorHelper import *
@@ -125,7 +125,7 @@ class EditorFrame(wxFrame):
         self.toolBar = EditorToolBar(id = wxID_EDITORFRAMETOOLBAR, name = 'toolBar', parent = self, pos = wxPoint(0, -28), size = wxSize(802, 28), style = wxTB_HORIZONTAL | wxNO_BORDER)
         self.SetToolBar(self.toolBar)
 
-    def __init__(self, parent, id, inspector, newMenu, componentPalette, app):
+    def __init__(self, parent, id, inspector, newMenu, componentPalette, app, palette):
 	self._created = false
         self._init_ctrls(parent)
         self.SetDimensions(Preferences.inspWidth + Preferences.windowManagerSide*2,
@@ -137,7 +137,7 @@ class EditorFrame(wxFrame):
             self.SetIcon(IS.load('Images/Icons/Editor.ico'))
 
         self.app = app
-        self.palette = parent
+        self.palette = palette
         self.modules = {}
         self.inspector = inspector
         self.compPalette = componentPalette
@@ -150,7 +150,6 @@ class EditorFrame(wxFrame):
         # IS (ImageStore) is in the Boa evaluation namespace
 
         # Build imagelist of all models
-        print 'Editor (loading images)'
         orderedModList = []
         for mod in modelReg.values(): orderedModList.append((mod.imgIdx, mod))
         orderedModList.sort()
@@ -201,8 +200,10 @@ class EditorFrame(wxFrame):
         self.winMenu.Append(EditorHelper.wxID_EDITORSWITCHINSPECTOR, 
               'Inspector\t%s'%keyDefs['Inspector'][2])
         self.winMenu.Append(-1, '-')
-        self.winMenu.Append(EditorHelper.wxID_EDITORSWITCHSHELL, 'Shell')
-        self.winMenu.Append(EditorHelper.wxID_EDITORSWITCHEXPLORER, 'Explorer')
+        self.winMenu.Append(EditorHelper.wxID_EDITORSWITCHSHELL, 
+              'Shell\t%s'%keyDefs['GotoShell'][2])
+        self.winMenu.Append(EditorHelper.wxID_EDITORSWITCHEXPLORER, 
+              'Explorer\t%s'%keyDefs['GotoExplorer'][2])
         self.winMenu.Append(-1, '-')
         self.winMenu.Append(EditorHelper.wxID_EDITORPREVPAGE, 
               'Previous window\t%s'%keyDefs['PrevPage'][2])
@@ -214,6 +215,8 @@ class EditorFrame(wxFrame):
         # Help menu
         self.helpMenu.Append(EditorHelper.wxID_EDITORHELP, 'Help')
         self.helpMenu.Append(EditorHelper.wxID_EDITORHELPGUIDE, 'Getting started guide')
+        self.helpMenu.AppendSeparator()
+        self.helpMenu.Append(EditorHelper.wxID_EDITORHELPFIND, 'Find in index...\t%s'%keyDefs['HelpFind'][2])
         self.helpMenu.Append(EditorHelper.wxID_EDITORHELPTIPS, 'Tips')
         self.helpMenu.AppendSeparator()
         self.helpMenu.Append(EditorHelper.wxID_EDITORHELPABOUT, 'About')
@@ -222,6 +225,7 @@ class EditorFrame(wxFrame):
         EVT_MENU(self, EditorHelper.wxID_EDITORHELPABOUT, self.OnHelpAbout)
         EVT_MENU(self, EditorHelper.wxID_EDITORHELPGUIDE, self.OnHelpGuide)
         EVT_MENU(self, EditorHelper.wxID_EDITORHELPTIPS, self.OnHelpTips)
+        EVT_MENU(self, EditorHelper.wxID_EDITORHELPFIND, self.OnHelpFindIndex)
 
         self.mainMenu.Append(self.helpMenu, 'Help')
 
@@ -292,6 +296,9 @@ class EditorFrame(wxFrame):
         for (ctrlKey, key, code), wId in \
                 ( (keyDefs['Inspector'], wxID_EDITORSWITCHINSPECTOR),
                   (keyDefs['Open'], wxID_EDITOROPEN),
+                  (keyDefs['HelpFind'], wxID_EDITORHELPFIND),
+                  (keyDefs['GotoShell'], wxID_EDITORSWITCHSHELL),
+                  (keyDefs['GotoExplorer'], wxID_EDITORSWITCHEXPLORER),
                   (keyDefs['PrevPage'], wxID_EDITORPREVPAGE),
                   (keyDefs['NextPage'], wxID_EDITORNEXTPAGE) ):
             accLst.append( (ctrlKey, key, wId) )
@@ -518,10 +525,11 @@ class EditorFrame(wxFrame):
             assos = {}
             for keyIdx in range(len(lst)):
                 assos[path.normcase(path.abspath(lst[keyIdx]))] = lst[keyIdx]
-
-            if assos.has_key(name):
-                self.modules[assos[name]].focus()
-                return self.modules[assos[name]].model
+            
+            a_name = path.normcase(path.abspath(name))
+            if assos.has_key(a_name):
+                self.modules[assos[a_name]].focus()
+                return self.modules[assos[a_name]].model
             else:
                 return self.openModule(name, app, transport)
 
@@ -535,8 +543,9 @@ class EditorFrame(wxFrame):
 
         source = transport.load('r')
         modCls, main = identifyFile(filename, source, true)
-
-        imgIdx = modCls.imgIdx
+        #print modCls, main
+        
+        #imgIdx = modCls.imgIdx
         
         controller = self.getController(Controllers.modelControllerReg.get(
               modCls, Controllers.ModuleController))
@@ -675,6 +684,7 @@ class EditorFrame(wxFrame):
         if modulePage:
             self.SetTitle('Editor - %s - %s' %(modulePage.pageName,
               modulePage.model.filename))
+              # modulePage.model.getDisplayName()))
         else:
             self.SetTitle('Editor')
 
@@ -738,25 +748,26 @@ class EditorFrame(wxFrame):
             self.inspector = None
             self.explorer.destroy()
             self.newMenu.Destroy()
-##            self.mainMenu.Replace(1, self.blankEditMenu, 'Edit')
-##            self.mainMenu.Replace(2, self.blankViewMenu, 'View')
-            self.mainMenu.Replace(1, wxMenu(), 'Edit').Destroy()
-            self.mainMenu.Replace(2, wxMenu(), 'View').Destroy()
-            self.mainMenu = None
+            self.blankEditMenu.Destroy()
+            self.blankViewMenu.Destroy()
 
             self.erroutFrm.Destroy()
             self.erroutFrm = None
 
             self.shell.destroy()
 
+            self.modelImageList = None
+            import FileDlg
+            FileDlg.wxBoaFileDialog.modImages = None
+            
             self.Destroy()
             event.Skip()
 
     def OnHelp(self, event):
-        Help.showHelp(self, Help.BoaHelpFrame, 'Editor.html')
+        Help.showHelp('Editor.html')
 
     def OnHelpGuide(self, event):
-        Help.showHelp(self, Help.BoaHelpFrame, 'Guide/index.html')
+        Help.showMainHelp('Boa Constructor Getting Started Guide')
 
     def OnHelpTips(self, event):
         Utils.showTip(self, true)
@@ -945,4 +956,15 @@ class EditorFrame(wxFrame):
             self.statusBar.setHint('Finished execution, there were errors', 'Warning')
         else:
             self.statusBar.setHint('Finished execution.')
-                    
+
+    def OnHelpFindIndex(self, event):
+        dlg = wxTextEntryDialog(self, 'Enter term to search for in the index', 
+              'Help - Find in index', '')
+        try:
+            if dlg.ShowModal() == wxID_OK:
+                Help.showContextHelp(None, None, dlg.GetValue())
+        finally:
+            dlg.Destroy()
+        
+        pass
+                        
