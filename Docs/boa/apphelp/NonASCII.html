@@ -1,0 +1,56 @@
+<html><head><title>Support for Non-ASCII systems</title></head>
+<body text="#000000" bgcolor="#FFFFFF" link="#0000FF" vlink="#000099" alink="#FF0000">
+
+<center><a href="index.html"><img SRC="contents.gif" ALT="Home" BORDER=0></a></center>
+
+<table BORDER=0 CELLSPACING=0 CELLPADDING=2 WIDTH="100%" BGCOLOR="#000000" >
+  <tr><td>
+  <table BORDER=0 CELLSPACING=0 WIDTH="100%" BGCOLOR="#FFFFFF" >
+    <tr><td BGCOLOR="#ddeeff">
+    <center><img SRC="dot.gif" height=1 width=1></center>
+    </td></tr>
+  </table>
+  </td></tr>
+</table>
+
+
+
+<h2>
+<img SRC="Boa.jpg" height=32 width=32>&nbsp;Support for Non-ASCII systems</h2>
+
+Boa doesn't work out-of-the-box with non-ASCII characters in source code.
+<p>
+To edit source on non-ASCII systems you'll need the following:
+<ul>
+<li>Unicode build of wxPython
+<li>A sitecustomize.py module on the python path (e.g. in site-packages if it
+should be used for all Python modules or in the Boa root directory if it
+should only be used by Boa)<br>
+This module should set the global default encoding with
+e.g. sys.setdefaultencoding('utf-8')
+<li>For non-ascii Zope support, in xmlrpclib the parser is initialised
+with the defaultencoding, so only choose one of the following encodings
+in sizecustomize.py if you also intend to use non-ascii source with Zope
+because they are the only ones that expat supports:<br>
+<b>ascii</b>, <b>utf-8</b>, <b>utf-16</b> or <b>iso-8859-1</b> (latin-1).
+</ul>
+<p>
+<br>
+<table BORDER=0 CELLSPACING=0 CELLPADDING=2 WIDTH="100%" BGCOLOR="#000000" >
+  <tr><td>
+  <table BORDER=0 CELLSPACING=0 WIDTH="100%" BGCOLOR="#FFFFFF" >
+    <tr><td BGCOLOR="#ddeeff">
+    <center><img SRC="dot.gif" height=1 width=1></center>
+    </td></tr>
+  </table>
+  </td></tr>
+</table>
+
+
+<div align=right><font size="-1">Boa Constructor - Application Help - <b>Support for Non-ASCII systems</b></font></div>
+<p>
+</body></html>
+
+
+
+
