@@ -1,7 +1,7 @@
 import ExplorerNodes, EditorModels
 from ExternalLib import zipfile
 import string, os
-from wxPython.wx import wxMenu, EVT_MENU, wxMessageBox, wxPlatform
+from wxPython.wx import wxMenu, EVT_MENU, wxMessageBox, wxPlatform, wxNewId
 
 true = 1
 false = 0
@@ -11,6 +11,8 @@ def isZip(file):
 ##(wxID_FSOPEN, wxID_FSTEST, wxID_FSNEW, wxID_FSNEWFOLDER, wxID_FSCVS ) \
 ## = map(lambda x: wxNewId(), range(5))
 
+wxID_ZIPOPEN = wxNewId()
+
 class ZipController(ExplorerNodes.Controller, ExplorerNodes.ClipboardControllerMix):
     def __init__(self, editor, list):
         ExplorerNodes.ClipboardControllerMix.__init__(self)
@@ -19,7 +21,10 @@ class ZipController(ExplorerNodes.Controller, ExplorerNodes.ClipboardControllerM
         self.list = list
         self.menu = wxMenu()
 
-        self.setupMenu(self.menu, self.list, self.clipMenuDef)
+        self.setupMenu(self.menu, self.list,
+              ( (wxID_ZIPOPEN, 'Open', self.OnOpenItems, '-'),
+#                (wxID_DAVINSPECT, 'Inspect', self.OnInspectItem, '-'),
+                (-1, '-', None, '') ) + self.clipMenuDef)
 
         mi = self.menu.GetMenuItems()
         for m in mi:
@@ -27,6 +32,12 @@ class ZipController(ExplorerNodes.Controller, ExplorerNodes.ClipboardControllerM
                 m.Enable(false)
         self.toolbarMenus = [self.clipMenuDef]
 
+    def destroy(self):
+        ExplorerNodes.ClipboardControllerMix.destroy(self)
+        self.toolbarMenus = ()
+
+    def __del__(self):
+        pass#self.menu.Destroy()
 
 class ZipExpClipboard(ExplorerNodes.ExplorerClipboard): pass
 ##    def clipPaste_FileSysExpClipboard(self, node, nodes, mode):
@@ -55,6 +66,8 @@ class ZipItemNode(ExplorerNodes.ExplorerNode):
 
         imgIdx = isFolder and EditorModels.FolderModel.imgIdx or \
               EditorModels.TextModel.imgIdx
+        if not isFolder:
+            imgIdx = EditorModels.identifyFile(name, localfs=false)[0].imgIdx
         return ZipItemNode(name, resourcepath and resourcepath+'/'+name or name, self.clipboard,
               isFolder, imgIdx, self, self.zipFileNode)
 
@@ -91,6 +104,14 @@ class ZipItemNode(ExplorerNodes.ExplorerNode):
         else:
             open(fn, 'w').write(zf.read(self.resourcepath))
         zf.close()
+
+    def load(self):
+        zf = zipfile.ZipFile(self.zipFileNode.resourcepath)
+        return zf.read(self.resourcepath)
+
+    def save(self, filename, data):
+        pass
+
 
 class ZipFileNode(ZipItemNode):
     protocol = 'zip'

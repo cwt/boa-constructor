@@ -1,14 +1,12 @@
+import string, os, sys
+
+from wxPython.wx import wxMenu, EVT_MENU, wxMessageBox, wxPlatform, wxOK, wxNewId, true, false
+
+#sys.path.append('..')
 import ExplorerNodes, EditorModels
-import string, os
-from wxPython.wx import wxMenu, EVT_MENU, wxMessageBox, wxPlatform, wxOK
 from ProcessProgressDlg import ProcessProgressDlg
 
-true = 1
-false = 0
-
-
-##(wxID_FSOPEN, wxID_FSTEST, wxID_FSNEW, wxID_FSNEWFOLDER, wxID_FSCVS ) \
-## = map(lambda x: wxNewId(), range(5))
+wxID_SSHOPEN = wxNewId()
 
 class SSHController(ExplorerNodes.Controller, ExplorerNodes.ClipboardControllerMix):
     def __init__(self, editor, list):
@@ -18,8 +16,17 @@ class SSHController(ExplorerNodes.Controller, ExplorerNodes.ClipboardControllerM
         self.list = list
         self.menu = wxMenu()
 
-        self.setupMenu(self.menu, self.list, self.clipMenuDef)
+        self.setupMenu(self.menu, self.list,
+              ( (wxID_SSHOPEN, 'Open', self.OnOpenItems, '-'),
+                (-1, '-', None, '') ) + self.clipMenuDef)
         self.toolbarMenus = [self.clipMenuDef]
+
+    def destroy(self):
+        ExplorerNodes.ClipboardControllerMix.destroy(self)
+        self.toolbarMenus = ()
+
+    def __del__(self):
+        pass#self.menu.Destroy()
 
 
 class SSHCatNode(ExplorerNodes.CategoryNode):
@@ -55,9 +62,12 @@ class SSHItemNode(ExplorerNodes.ExplorerNode):
         return self.isFolder
 
     def createChildNode(self, name, isFolder, props):
-        return SSHItemNode(name, props, self.resourcepath+'/'+name, self.clipboard,
+        item = SSHItemNode(name, props, self.resourcepath+'/'+name, self.clipboard,
               isFolder, isFolder and EditorModels.FolderModel.imgIdx or \
               EditorModels.TextModel.imgIdx, self)
+        if not isFolder:
+            item.imgIdx = EditorModels.identifyFile(name, localfs=false)[0].imgIdx
+        return item
 
     def openList(self):
         res = []
@@ -87,7 +97,8 @@ class SSHItemNode(ExplorerNodes.ExplorerNode):
                (filename and '/'+filename or '')
 
     def execSCP(self, cmd, dispCmd):
-        dlg = ProcessProgressDlg(None, cmd, 'SCP copy', linesep = '\012', overrideDisplay = dispCmd)
+        dlg = ProcessProgressDlg(None, cmd, 'SCP copy', linesep = '\012',
+              overrideDisplay = dispCmd)
         try:
             dlg.ShowModal()
         finally:
@@ -95,15 +106,17 @@ class SSHItemNode(ExplorerNodes.ExplorerNode):
 
     def buildSCPStrs(self, source, dest):
         return 'pscp -pw %s %s %s' % (self.properties['scp_pass'], source, dest), \
-            'pscp -pw %s %s %s' %(len(self.properties['scp_pass'])*'*', source, dest)
+        'pscp -pw %s %s %s' %(len(self.properties['scp_pass'])*'*', source, dest)
 
-    def copyFromFS(self, fsNode):
-        fn = os.path.basename(fsNode.resourcepath)
-        cmd, dispCmd = self.buildSCPStrs(fsNode.resourcepath,  self.remotePath(fn))
+    def copyFromFS(self, fsNode, fn=''):
+        if not fn:
+            fn = os.path.basename(fsNode.resourcepath)
+        cmd, dispCmd = self.buildSCPStrs(fsNode.resourcepath, self.remotePath(fn))
         self.execSCP(cmd, dispCmd)
 
-    def copyToFS(self, fsFolderNode):
-        fn = os.path.basename(self.resourcepath)
+    def copyToFS(self, fsFolderNode, fn=''):
+        if not fn:
+            fn = os.path.basename(self.resourcepath)
         cmd, dispCmd = self.buildSCPStrs(self.remotePath(''),
              os.path.join(fsFolderNode.resourcepath, fn))
         self.execSCP(cmd, dispCmd)
@@ -127,6 +140,32 @@ class SSHItemNode(ExplorerNodes.ExplorerNode):
     def renameItem(self, name, newName):
         self.execCmd('mv %s %s' % (self.resourcepath + '/' + name,
                                    self.resourcepath + '/' + newName))
+
+    def load(self):
+        from FileExplorer import PyFileNode
+        import tempfile
+        fn = tempfile.mktemp()
+        self.copyToFS(PyFileNode('', os.path.dirname(fn), None, -1, None, None), os.path.basename(fn))
+        try:
+            return open(fn).read()
+        finally:
+            os.remove(fn)
+
+    def save(self, filename, data):
+        from FileExplorer import PyFileNode
+        import tempfile
+        name = os.path.basename(self.resourcepath)
+        fn = tempfile.mktemp()
+        open(fn, 'w').write(data)
+        try:
+            if self.parent:
+                self.parent.copyFromFS(PyFileNode('', fn, None, -1, None, None),
+                      name)
+            else:
+                raise 'No Parent!'
+        finally:
+            os.remove(fn)
+
 
 class SSHExpClipboard(ExplorerNodes.ExplorerClipboard):
     def clipPaste_FileSysExpClipboard(self, node, nodes, mode):
