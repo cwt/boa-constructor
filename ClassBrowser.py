@@ -73,7 +73,13 @@ class ClassBrowserFrame(wxFrame, Utils.FrameRestorerMixin):
 
         self.SetIcon(IS.load('Images/Icons/ClassBrowser.ico'))
 
-        self.classes = pyclbr.readmodule('wxPython.wx')
+        self.classes = {}
+        for module in ('wxPython.wx', 'wxPython.utils', 'wxPython.html',
+                       'wxPython.htmlhelp', 'wxPython.help', 'wxPython.calendar',
+                       'wxPython.grid', 'wxPython.ogl', 'wxPython.stc',
+                       'wxPython.gizmos', 'wxPython.wizard'):
+                self.classes.update(pyclbr.readmodule(module))
+        
 
         tID = wxNewId()
         root = self.hierarchy.AddRoot('wxObject')
