@@ -7,7 +7,7 @@ It is an IDE for Python development including visual wxPython frame
 design, object browsers, documentation generation, debugging,
 source control (CVS) and much more.
 The Boa IDE also integrates with other Python technologies like 
-Distutils, Zope, PyChecker.
+Distutils, Zope, PyChecker, BicycleRepairMain.
 
 If you are new to Boa and wxPython, work through the Getting Started Guide
 and Tutorial.
@@ -15,12 +15,12 @@ and Tutorial.
 Look at Changes.txt for the latest improvements.
 Look at Bugs.txt for info about problems & bugs.
 
+
 If you have an environmental variable set named HOME and the directory
 it points to contains a directory named '.boa' (which you must create
 yourself on windows) all preferences and config files will be copied to and 
 used from this directory.
 
-NB: Please unzip Boa to an empty directory
 
 P.S. The short name is Boa, *not* BOA. 
 Boa is not an acronymn, it's the name of a huge Python ;)
@@ -29,14 +29,24 @@ Licence:
 GPL
 
 Version:
-0.2.3 - Alpha
-Requires at least wxPython 2.4.0.6
+0.3.0 - Alpha
+Requires wxPython 2.4
+
+NOTE: 
+wxPython 2.5 is *NOT* supported at this moment.
+Also, 0.3.0 will be the last version to support wxPython 2.4.
+
+The next release of Boa will be 0.4.0 and will only support
+the wxPython 2.5 series.
+
 
 Copyright:
-Riaan Booysen 1999 - 2003
+Riaan Booysen 1999 - 2004
 riaan@e.co.za
 
 Release history:
+
+2004-07-23 - Boa Constructor 0.3.0
 
 2003-04-01 - Boa Constructor 0.2.3
 
