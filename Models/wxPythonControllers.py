@@ -74,23 +74,21 @@ class BaseFrameController(ModuleController):
 
         return model, name
 
-    def afterAddModulePage(self, model):
-        tempComp = self.Model.companion('', None, None)
+    def getModelParams(self, model):
+        tempComp = self.Model.Companion('', None, None)
         params = tempComp.designTimeSource()
         params['parent'] = 'prnt'
-        # Special case for PopupWindow, has no id or title
-        if params.has_key('title'):
-            params['id'] = Utils.windowIdentifier(model.main, '')
-            params['title'] = `model.main`
+        params['id'] = Utils.windowIdentifier(model.main, '')
+        params['title'] = `model.main`
+        return params
 
-        model.new(params)
+    def afterAddModulePage(self, model):
+        model.new(self.getModelParams(model))
 
         if self.activeApp and self.activeApp.data and Preferences.autoAddToApplication:
             self.activeApp.addModule(model.filename, '')
 
     def OnDesigner(self, event):
-        import time
-        t = time.time()
         self.showDesigner()
 
     def showDesigner(self):
@@ -141,7 +139,7 @@ class BaseFrameController(ModuleController):
                     if not model.views.has_key('Designer'):
                         designer = Designer.DesignerView(self.editor,
                               self.editor.inspector, model,
-                              self.editor.compPalette, model.companion, dataView)
+                              self.editor.compPalette, model.Companion, dataView)
                         model.views['Designer'] = designer
                         designer.refreshCtrl()
                     model.views['Designer'].Show()
@@ -189,9 +187,28 @@ class MDIChildController(BaseFrameController):
 
 class PopupWindowController(BaseFrameController):
     Model = wxPythonEditorModels.PopupWindowModel
+    def getModelParams(self, model):
+        tempComp = self.Model.Companion('', None, None)
+        params = tempComp.designTimeSource()
+        params['parent'] = 'prnt'
+        return params
 
 class PopupTransientWindowController(BaseFrameController):
     Model = wxPythonEditorModels.PopupTransientWindowModel
+    def getModelParams(self, model):
+        tempComp = self.Model.Companion('', None, None)
+        params = tempComp.designTimeSource()
+        params['parent'] = 'prnt'
+        return params
+
+class FramePanelController(BaseFrameController):
+    Model = wxPythonEditorModels.FramePanelModel
+    def getModelParams(self, model):
+        tempComp = self.Model.Companion('', None, None)
+        params = tempComp.designTimeSource()
+        params['parent'] = 'prnt'
+        params['id'] = Utils.windowIdentifier(model.main, '')
+        return params
 
 #-------------------------------------------------------------------------------
 
@@ -206,6 +223,7 @@ Controllers.modelControllerReg.update({
       wxPythonEditorModels.MDIChildModel: MDIChildController,
       wxPythonEditorModels.PopupWindowModel: PopupWindowController,
       wxPythonEditorModels.PopupTransientWindowModel: PopupTransientWindowController,
+      wxPythonEditorModels.FramePanelModel: FramePanelController,
      })
 
 PaletteStore.newControllers.update({
@@ -217,10 +235,11 @@ PaletteStore.newControllers.update({
       'wxMDIChildFrame': MDIChildController,
       'wxPopupWindow': PopupWindowController,
       'wxPopupTransientWindow': PopupTransientWindowController,
+      'wxFramePanel': FramePanelController,
      })
 
 
 # Register controllers on the New palette
 PaletteStore.paletteLists['New'].extend(['wxApp', 'wxFrame', 'wxDialog',
   'wxMiniFrame', 'wxMDIParentFrame', 'wxMDIChildFrame',
-  'wxPopupWindow', 'wxPopupTransientWindow'])
+  'wxPopupWindow', 'wxPopupTransientWindow', 'wxFramePanel'])

@@ -20,7 +20,7 @@ import Preferences, Utils
 
 import EditorHelper
 from PythonEditorModels import ClassModel, BaseAppModel, ModuleModel
-from Companions import Companions
+from Companions import BaseCompanions, FrameCompanions
 
 import sourceconst
 
@@ -28,8 +28,8 @@ true,false=1,0
 
 (imgAppModel, imgFrameModel, imgDialogModel, imgMiniFrameModel,
  imgMDIParentModel, imgMDIChildModel, imgPopupWindowModel,
- imgPopupTransientWindowModel,
-) = EditorHelper.imgIdxRange(8)
+ imgPopupTransientWindowModel, imgFramePanelModel,
+) = EditorHelper.imgIdxRange(9)
 
 class _your_frame_attrs_: pass
 #    def __repr__(self):return `self.__dict__`
@@ -41,11 +41,16 @@ class BaseFrameModel(ClassModel):
     Designer and maintaining other special values like window id declarations
     """
     modelIdentifier = 'Frames'
-    companion = Companions.DesignTimeCompanion
-    def __init__(self, data, name, main, editor, saved, app = None):
+    dialogLook = false
+    Companion = BaseCompanions.DesignTimeCompanion
+    def __init__(self, data, name, main, editor, saved, app=None):
         ClassModel.__init__(self, data, name, main, editor, saved, app)
         self.designerTool = None
         self.specialAttrs = {}
+
+        self.defCreateClass = sourceconst.defCreateClass
+        self.defClass = sourceconst.defClass
+
 
     def renameMain(self, oldName, newName):
         """ Rename the main class of the module """
@@ -67,12 +72,12 @@ class BaseFrameModel(ClassModel):
         paramStr = 'self, ' + string.join(paramLst, ', ')
 
         self.data = (sourceconst.defSig + sourceconst.defImport + \
-                     sourceconst.defCreateClass + sourceconst.defWindowIds + \
-                     sourceconst.defClass) % (
-                       self.modelIdentifier, self.main, self.main,
-                       Utils.windowIdentifier(self.main, ''),
-                       sourceconst.init_ctrls, 1, self.main, self.defaultName,
-                       self.defaultName, paramStr)
+                     self.defCreateClass + sourceconst.defWindowIds + \
+                     self.defClass) % {
+                      'modelIdent': self.modelIdentifier, 'main': self.main,
+                      'idNames': Utils.windowIdentifier(self.main, ''),
+                      'idIdent': sourceconst.init_ctrls, 'idCount': 1,
+                      'defaultName': self.defaultName, 'params': paramStr}
 
         self.savedAs = false
         self.modified = true
@@ -271,7 +276,7 @@ class BaseFrameModel(ClassModel):
                 # multiline parser ;)
                 while 1:
                     try:
-                        custClasses = eval(attr_val)
+                        custClasses = PaletteMapping.evalCtrl(attr_val)
                         assert type(custClasses) == type({})
                         break
                     except SyntaxError, err:
@@ -363,14 +368,16 @@ class BaseFrameModel(ClassModel):
                 # No window id definitions could be found add one above class def
                 insPt = module.classes[self.main].block.start - 1
                 module.source[insPt:insPt] = \
-                  [string.strip(sourceconst.defWindowIds % (
-                  string.join(lst, ', '), colMeth, len(lst))), '']
+                  [string.strip(sourceconst.defWindowIds % {
+                  'idNames': string.join(lst, ', '), 'idIdent': colMeth,
+                  'idCount': len(lst)}), '']
                 module.renumber(2, insPt)
         else:
             # Update window ids
             module.source[idx] = \
-              string.strip(sourceconst.defWindowIds % (string.join(lst, ', '),
-              colMeth, len(lst)))
+              string.strip(sourceconst.defWindowIds % {
+                    'idNames': string.join(lst, ', '), 'idIdent': colMeth,
+                    'idCount': len(lst)})
 
     def update(self):
         ClassModel.update(self)
@@ -385,14 +392,15 @@ class FrameModel(BaseFrameModel):
     defaultName = 'wxFrame'
     bitmap = 'wxFrame_s.png'
     imgIdx = imgFrameModel
-    companion = Companions.FrameDTC
+    Companion = FrameCompanions.FrameDTC
 
 class DialogModel(BaseFrameModel):
     modelIdentifier = 'Dialog'
     defaultName = 'wxDialog'
     bitmap = 'wxDialog_s.png'
     imgIdx = imgDialogModel
-    companion = Companions.DialogDTC
+    dialogLook = true
+    Companion = FrameCompanions.DialogDTC
 
     def getSimpleRunnerSrc(self):
         return sourceconst.simpleAppDialogRunSrc
@@ -402,28 +410,29 @@ class MiniFrameModel(BaseFrameModel):
     defaultName = 'wxMiniFrame'
     bitmap = 'wxMiniFrame_s.png'
     imgIdx = imgMiniFrameModel
-    companion = Companions.MiniFrameDTC
+    Companion = FrameCompanions.MiniFrameDTC
 
 class MDIParentModel(BaseFrameModel):
     modelIdentifier = 'MDIParent'
     defaultName = 'wxMDIParentFrame'
     bitmap = 'wxMDIParentFrame_s.png'
     imgIdx = imgMDIParentModel
-    companion = Companions.MDIParentFrameDTC
+    Companion = FrameCompanions.MDIParentFrameDTC
 
 class MDIChildModel(BaseFrameModel):
     modelIdentifier = 'MDIChild'
     defaultName = 'wxMDIChildFrame'
     bitmap = 'wxMDIChildFrame_s.png'
     imgIdx = imgMDIChildModel
-    companion = Companions.MDIChildFrameDTC
+    Companion = FrameCompanions.MDIChildFrameDTC
 
 class PopupWindowModel(BaseFrameModel):
     modelIdentifier = 'PopupWindow'
     defaultName = 'wxPopupWindow'
     bitmap = 'wxPopupWindow_s.png'
     imgIdx = imgPopupWindowModel
-    companion = Companions.PopupWindowDTC
+    dialogLook = true
+    Companion = FrameCompanions.PopupWindowDTC
 
     def getSimpleRunnerSrc(self):
         return sourceconst.simpleAppPopupRunSrc
@@ -433,7 +442,8 @@ class PopupTransientWindowModel(BaseFrameModel):
     defaultName = 'wxPopupTransientWindow'
     bitmap = 'wxPopupTransientWindow_s.png'
     imgIdx = imgPopupTransientWindowModel
-    companion = Companions.PopupWindowDTC
+    dialogLook = true
+    Companion = FrameCompanions.PopupWindowDTC
 
     def getSimpleRunnerSrc(self):
         return sourceconst.simpleAppPopupRunSrc
@@ -451,13 +461,33 @@ class AppModel(BaseAppModel):
 
     def new(self, mainModule):
         self.data = (sourceconst.defEnvPython + sourceconst.defSig + \
-              sourceconst.defImport + sourceconst.defApp)%(
-                self.modelIdentifier, sourceconst.boaClass, mainModule,
-                mainModule, mainModule, mainModule)
+              sourceconst.defImport + sourceconst.defApp) % {
+                'modelIdent': self.modelIdentifier,
+                'main': sourceconst.boaClass,
+                'mainModule': mainModule}
         self.saved = false
         self.modified = true
         self.update()
         self.notify()
+
+class FramePanelModel(BaseFrameModel):
+    modelIdentifier = 'FramePanel'
+    defaultName = 'wxPanel'
+    bitmap = 'wxFramePanel_s.png'
+    imgIdx = imgFramePanelModel
+    dialogLook = true
+    Companion = FrameCompanions.FramePanelDTC
+
+    def __init__(self, data, name, main, editor, saved, app=None):
+        BaseFrameModel.__init__(self, data, name, main, editor, saved, app)
+
+        self.defCreateClass = ''
+        # can this be any uglier (or shorter ;) ?
+        self.defClass = string.replace(sourceconst.defClass, 'parent',
+              'parent, id, pos, size, style, name', 1)
+
+    def getSimpleRunnerSrc(self):
+        return ''
 
 #-------------------------------------------------------------------------------
 # model registry: add to this dict to register a Model (needed for explorer images)
@@ -469,4 +499,5 @@ EditorHelper.modelReg.update({AppModel.modelIdentifier: AppModel,
             MDIChildModel.modelIdentifier: MDIChildModel,
             PopupWindowModel.modelIdentifier: PopupWindowModel,
             PopupTransientWindowModel.modelIdentifier: PopupTransientWindowModel,
+            FramePanelModel.modelIdentifier: FramePanelModel,
             })
