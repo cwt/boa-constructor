@@ -171,22 +171,36 @@ if __name__ == '__main__' and len(sys.argv) > 1:
 
 print 'Starting Boa Constructor v%s'%__version__.version
 print 'importing wxPython'
+
+# silence wxPython's bool deprecations
+from wxPython import wx
+try:
+    # wxPy 2.4.0.4 and Py 2.2 and 2.3
+    wx.true = True
+    wx.false = False
+except NameError:
+    try:
+        # wxPy 2.4.0.4 and Py 2.1
+        wx.true = wx.True
+        wx.false = wx.False
+    except AttributeError:
+        # earlier wxPys
+        pass
+
 from wxPython.wx import *
 wxRegisterId(15999)
 
-import wxPython.__version__
-if wxPython.__version__ == '2.4.0.4':
-    wxPySimpleApp()
-    versionError = 'wxPython 2.4.0.4 not supported yet'
-    wxMessageBox(versionError, 'Version not supported', wxOK | wxICON_ERROR)
-    raise versionError
+# Use package version string as it is the only one containing bugfix version number
+import wxPython
+wxVersion = tuple(map(lambda v: int(v), 
+                      (string.split(wxPython.__version__, '.')+['0'])[:4]))
 
-if wxVERSION < __version__.wx_version:
+if wxVersion < __version__.wx_version:
     wxPySimpleApp()
     wxMessageBox('Sorry! This version of Boa requires at least '\
-                 'wxPython %d.%d.%d'%__version__.ver_required,
+                 'wxPython %d.%d.%d.%d'%__version__.wx_version,
           'Version error', wxOK | wxICON_ERROR)
-    raise 'wxPython >= %d.%d.%d required'%ver_required
+    raise 'wxPython >= %d.%d.%d.%d required'%__version__.wx_version
 
 import Preferences, About, Utils
 print 'running main...'
