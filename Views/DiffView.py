@@ -16,7 +16,7 @@ from wxPython import wx
 from wxPython.stc import *
 
 from ExternalLib import ndiff
-from EditorViews import EditorView, ClosableViewMix
+from EditorViews import EditorView, CloseableViewMix
 from StyledTextCtrls import PythonStyledTextCtrlMix
 import Preferences, Utils
 
@@ -43,7 +43,7 @@ class DiffView(EditorView):
     def genCustomPage(self, page):
         return self.report
 
-class PythonSourceDiffView(wxStyledTextCtrl, EditorView, PythonStyledTextCtrlMix, ClosableViewMix):
+class PythonSourceDiffView(wxStyledTextCtrl, EditorView, PythonStyledTextCtrlMix, CloseableViewMix):
     viewName = 'Diff'
     refreshBmp = 'Images/Editor/Refresh.png'
     prevBmp = 'Images/Shared/Previous.png'
@@ -54,7 +54,7 @@ class PythonSourceDiffView(wxStyledTextCtrl, EditorView, PythonStyledTextCtrlMix
         wxStyledTextCtrl.__init__(self, parent, wxID_PYTHONSOURCEDIFFVIEW,
           style = wx.wxCLIP_CHILDREN)
         PythonStyledTextCtrlMix.__init__(self, wxID_PYTHONSOURCEDIFFVIEW, 0)
-        ClosableViewMix.__init__(self, 'diffs')
+        CloseableViewMix.__init__(self, 'diffs')
         EditorView.__init__(self, model,
           ( ('Refresh', self.OnRefresh, self.refreshBmp, 'Refresh'), ) +
             self.closingActionItems +
