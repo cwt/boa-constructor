@@ -55,16 +55,12 @@ class FoldingStyledTextCtrlMix:
         self.SetMarginSensitive(margin, true)
         self.SetMarginWidth(margin, Preferences.STCFoldingMarginWidth)
 
-#wxSTC_MARKNUM_FOLDEREND,wxSTC_MARKNUM_FOLDEROPENMID,wxSTC_MARKNUM_FOLDERMIDTAIL,wxSTC_MARKNUM_FOLDERTAIL,wxSTC_MARKNUM_FOLDERSUB,wxSTC_MARKNUM_FOLDER,wxSTC_MARKNUM_FOLDEROPEN
-
         markIdnt, markBorder, markCenter = Preferences.STCFoldingClose
         self.MarkerDefine(wxSTC_MARKNUM_FOLDER, markIdnt, markBorder, markCenter)
-        #self.MarkerDefine(wxSTC_MARKNUM_FOLDEREND, markIdnt, markBorder, markCenter)
         self.MarkerDefine(wxSTC_MARKNUM_FOLDEREND, wxSTC_MARK_EMPTY, markBorder, markCenter)
 
         markIdnt, markBorder, markCenter = Preferences.STCFoldingOpen
         self.MarkerDefine(wxSTC_MARKNUM_FOLDEROPEN, markIdnt, markBorder, markCenter)
-        #self.MarkerDefine(wxSTC_MARKNUM_FOLDEROPENMID, markIdnt, markBorder, markCenter)
         self.MarkerDefine(wxSTC_MARKNUM_FOLDEROPENMID, wxSTC_MARK_EMPTY, markBorder, markCenter)
 
         try: wxSTC_MARK_BACKGROUND
@@ -446,20 +442,17 @@ class CallTipCodeHelpSTCMix(CodeHelpStyledTextCtrlMix):
 
 class DebuggingViewSTCMix:
     def __init__(self, debugMarkers):
-        
-        (self.brkPtMrk, self.tmpBrkPtMrk, self.disabledBrkPtMrk, 
+
+        (self.brkPtMrk, self.tmpBrkPtMrk, self.disabledBrkPtMrk,
          self.stepPosMrk) = debugMarkers
 
         # XXX properly allocate the marker
         self.stepPosBackMrk = self.stepPosMrk + 1
-        
+
         # Initialize breakpoints from file and running debugger
         # XXX Remote breakpoints should be stored in a local pickle
-        try: 
-            filename = self.model.assertLocalFile() 
-        except AssertionError: 
-            filename = self.model.filename
-        
+        filename = self.model.filename
+
         from Debugger.Breakpoint import bplist
         self.breaks = bplist.getFileBreakpoints(filename)
         self.tryLoadBreakpoints()
@@ -480,19 +473,21 @@ class DebuggingViewSTCMix:
 
         markIdnt, markBorder, markCenter = Preferences.STCDisabledBreakpointMarker
         self.MarkerDefine(self.disabledBrkPtMrk, markIdnt, markBorder, markCenter)
-        
+
         try:
             wxSTC_MARK_BACKGROUND
         except:
-            self.MarkerDefine(self.stepPosBackMrk, wxSTC_MARK_EMPTY, 
+            self.MarkerDefine(self.stepPosBackMrk, wxSTC_MARK_EMPTY,
                               wxColour(255, 255, 255), wxColour(128, 128, 255))
         else:
-            self.MarkerDefine(self.stepPosBackMrk, wxSTC_MARK_BACKGROUND, 
+            self.MarkerDefine(self.stepPosBackMrk, wxSTC_MARK_BACKGROUND,
                               wxColour(255, 255, 255), wxColour(220, 220, 255))
-            
-    
+
+
     def setInitialBreakpoints(self):
         # Adds markers where the breakpoints are located.
+        for mrk in (self.tmpBrkPtMrk, self.disabledBrkPtMrk, self.brkPtMrk):
+            self.MarkerDeleteAll(mrk)
         for brk in self.breaks.listBreakpoints():
             self.setBreakMarker(brk)
 
@@ -518,7 +513,7 @@ class DebuggingViewSTCMix:
             # Try to apply to the running debugger.
             debugger.deleteBreakpoints(self.model.filename, lineNo)
         self.deleteBreakMarkers(lineNo)
-        
+
     def addBreakPoint(self, lineNo, temp=0, notify_debugger=1):
         filename = self.model.filename
 
@@ -573,7 +568,7 @@ class DebuggingViewSTCMix:
         # should it be ?
         fn = self.getBreakpointFilename()
         if fn:
-            self.breaks.saveBreakpoints()
+            self.breaks.saveBreakpoints(fn)
 
     def clearStepPos(self, lineNo):
         if lineNo < 0:
@@ -588,7 +583,7 @@ class DebuggingViewSTCMix:
         self.MarkerAdd(lineNo, self.stepPosMrk)
         self.MarkerDeleteAll(self.stepPosBackMrk)
         self.MarkerAdd(lineNo, self.stepPosBackMrk)
-        
+
         if self.breaks.hasBreakpoint(lineNo + 1):
             # Be sure all the breakpoints for this file are displayed.
             self.setInitialBreakpoints()
@@ -602,12 +597,14 @@ class DebuggingViewSTCMix:
 
     def adjustBreakpoints(self, linesAdded, modType, evtPos):
         line = self.LineFromPosition(evtPos)#event.GetPosition())
-        
-        debugger = self.model.editor.debugger
-        if debugger:
-            endline = self.GetLineCount()
-            if self.breaks.hasBreakpoint(
-                  min(line, endline), max(line, endline)):
+
+        endline = self.GetLineCount()
+        if self.breaks.hasBreakpoint(
+              min(line, endline), max(line, endline)):
+
+            changed = self.breaks.adjustBreakpoints(line, linesAdded)
+            debugger = self.model.editor.debugger
+            if debugger:
                 # XXX also check that module has been imported
                 # XXX this should apply; with or without breakpoint
                 if debugger.running and \
@@ -616,11 +613,32 @@ class DebuggingViewSTCMix:
                                  'debugger will cause the source and the '
                                  'debugger to be out of sync.'
                                  '\nPlease undo this action.')
-                
-                changed = self.breaks.adjustBreakpoints(line, linesAdded)
-                
-                debugger.adjustBreakpoints(self.model.filename, line, 
+
+                debugger.adjustBreakpoints(self.model.filename, line,
                       linesAdded)
+            else:
+                # bdb must still be updated
+                import bdb
+
+                bpList = bdb.Breakpoint.bplist
+                filename = self.model.filename #canonic form, same as url form I think
+                setBreaks = []
+
+                # store reference and remove from (fn, ln) refed dict.
+                for bpFile, bpLine in bpList.keys():
+                    if bpFile == filename and bpLine > line:
+                        setBreaks.append(bpList[bpFile, bpLine])
+                        del bpList[bpFile, bpLine]
+
+                # put old break at new place and renumber
+                for brks in setBreaks:
+                    for brk in brks:
+                        brk.line = brk.line + linesAdded
+                        # merge in moved breaks
+                        if bpList.has_key((filename, brk.line)):
+                            bpList[filename, brk.line].append(brk)
+                        else:
+                            bplist[filename, brk.line] = [brk]
 
     def OnSaveBreakPoints(self, event):
         self.saveBreakpoints()
@@ -641,7 +659,7 @@ class DebuggingViewSTCMix:
             self.deleteBreakPoint(lineClicked)
         else:
             self.addBreakPoint(lineClicked)
-    
+
 
 #---Language mixins-------------------------------------------------------------
 class LanguageSTCMix:
@@ -773,7 +791,7 @@ class TextSTCMix(LanguageSTCMix):
     def __init__(self, wId):
         LanguageSTCMix.__init__(self, wId, (), 'text', stcConfigPath)
         self.setStyles()
-        
+
 ## 1 :
 ## 2 : diff
 ## 3 : +++/---
