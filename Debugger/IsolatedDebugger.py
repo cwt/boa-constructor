@@ -552,7 +552,7 @@ class DebugServer (Bdb):
             self._running = 1
             try:
                 try:
-                    self.run("execfile('%s', d)" % filename, {'d':d})
+                    self.run("execfile(fn, d)", {'d':d, 'fn':filename})
                 except:
                     exc = sys.exc_info()
             finally:
@@ -673,7 +673,7 @@ class DebugServer (Bdb):
                 primaryDict = localsDict
             else:
                 primaryDict = globalsDict
-            if has_key(primaryDict, name):
+            if primaryDict.has_key(name):
                 value = primaryDict[name]
             else:
                 try:
