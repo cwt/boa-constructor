@@ -22,7 +22,11 @@ class SenderMapper:
         self.objectDict[self.stripThis(obj.this)] = obj
 
     def getObject(self, eventObject):
-        return self.objectDict[self.stripThis(eventObject.GetEventObject())]
+        evtObj = eventObject.GetEventObject()
+        if evtObj:
+            return self.objectDict[self.stripThis(eventObject.GetEventObject())]
+        else:
+            print 'no evt obj'
 
     def getBtnObject(self, eventObject):
         return eventObject.theButton
