@@ -11,7 +11,7 @@
 #----------------------------------------------------------------------
 print 'importing Views'
 
-import os
+import os, sys
 
 from wxPython.wx import *
 from wxPython.html import *
