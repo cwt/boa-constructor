@@ -23,40 +23,36 @@ import Preferences
 
 from wxPopen import ProcessRunnerMix
 
-[wxID_PROCESSPROGRESSDLG, wxID_PROCESSPROGRESSDLGCANCELBTN,
- wxID_PROCESSPROGRESSDLGCMDSTXT, wxID_PROCESSPROGRESSDLGERRORTCTRL,
- wxID_PROCESSPROGRESSDLGOUTPUTTCTRL, wxID_PROCESSPROGRESSDLGSPLITTERWINDOW,
- wxID_PROCESSPROGRESSDLGSTATUSGGE, wxID_PROCESSPROGRESSDLGSTATUSSTXT,
-] = map(lambda _init_ctrls: wxNewId(), range(8))
+[wxID_PROCESSPROGRESSDLG, wxID_PROCESSPROGRESSDLGCANCELBTN, 
+ wxID_PROCESSPROGRESSDLGCMDSTXT, wxID_PROCESSPROGRESSDLGERRORTCTRL, 
+ wxID_PROCESSPROGRESSDLGKILLBTN, wxID_PROCESSPROGRESSDLGOUTPUTTCTRL, 
+ wxID_PROCESSPROGRESSDLGSPLITTERWINDOW, wxID_PROCESSPROGRESSDLGSTATUSGGE, 
+ wxID_PROCESSPROGRESSDLGSTATUSSTXT, 
+] = map(lambda _init_ctrls: wxNewId(), range(9))
 
 class ProcessProgressDlg(wxDialog, ProcessRunnerMix):
-    def _init_utils(self):
-        # generated method, don't edit
-        pass
-
     def _init_ctrls(self, prnt):
         # generated method, don't edit
         wxDialog.__init__(self, id=wxID_PROCESSPROGRESSDLG,
               name='ProcessProgressDlg', parent=prnt, pos=wxPoint(313, 215),
-              size=wxSize(384, 363),
+              size=wxSize(428, 363),
               style=wxRESIZE_BORDER | wxDEFAULT_DIALOG_STYLE,
               title=self.dlg_caption)
-        self._init_utils()
         self.SetAutoLayout(true)
-        self.SetClientSize(wxSize(376, 336))
+        self.SetClientSize(wxSize(420, 336))
         EVT_CLOSE(self, self.OnProcessprogressdlgClose)
 
         self.cancelBtn = wxButton(id=wxID_PROCESSPROGRESSDLGCANCELBTN,
-              label='Cancel', name='cancelBtn', parent=self, pos=wxPoint(288,
+              label='Cancel', name='cancelBtn', parent=self, pos=wxPoint(332,
               304), size=wxSize(80, 24), style=0)
-        self.cancelBtn.SetConstraints(LayoutAnchors(self.cancelBtn, false,
-              false, true, true))
+        self.cancelBtn.SetConstraints(LayoutAnchors(self.cancelBtn, False,
+              False, True, True))
         EVT_BUTTON(self.cancelBtn, wxID_PROCESSPROGRESSDLGCANCELBTN,
               self.OnCancelbtnButton)
 
         self.cmdStxt = wxStaticText(id=wxID_PROCESSPROGRESSDLGCMDSTXT,
               label='staticText1', name='cmdStxt', parent=self, pos=wxPoint(8,
-              8), size=wxSize(360, 64), style=wxST_NO_AUTORESIZE)
+              8), size=wxSize(404, 64), style=wxST_NO_AUTORESIZE)
         self.cmdStxt.SetConstraints(LayoutAnchors(self.cmdStxt, true, true,
               true, false))
 
@@ -75,21 +71,30 @@ class ProcessProgressDlg(wxDialog, ProcessRunnerMix):
               name='outputTctrl', parent=self.splitterWindow, pos=wxPoint(0,
               87), size=wxSize(360, 105), style=wxTE_MULTILINE | wxTE_RICH,
               value='')
-        self.splitterWindow.SplitHorizontally(self.errorTctrl,
-              self.outputTctrl, 80)
+        self.splitterWindow.SplitHorizontally(self.errorTctrl, self.outputTctrl,
+              80)
 
         self.statusStxt = wxStaticText(id=wxID_PROCESSPROGRESSDLGSTATUSSTXT,
               label='staticText1', name='statusStxt', parent=self,
-              pos=wxPoint(8, 288), size=wxSize(248, 16), style=0)
+              pos=wxPoint(8, 288), size=wxSize(292, 16), style=0)
         self.statusStxt.SetConstraints(LayoutAnchors(self.statusStxt, true,
               false, true, true))
 
         self.statusGge = wxGauge(id=wxID_PROCESSPROGRESSDLGSTATUSGGE,
               name='statusGge', parent=self, pos=wxPoint(8, 312), range=100,
-              size=wxSize(184, 16), style=wxGA_HORIZONTAL,
+              size=wxSize(208, 16), style=wxGA_HORIZONTAL,
               validator=wxDefaultValidator)
-        self.statusGge.SetConstraints(LayoutAnchors(self.statusGge, true, false,
-              true, true))
+        self.statusGge.SetConstraints(LayoutAnchors(self.statusGge, True, False,
+              True, True))
+
+        self.killBtn = wxButton(id=wxID_PROCESSPROGRESSDLGKILLBTN, label='Kill',
+              name='killBtn', parent=self, pos=wxPoint(242, 304),
+              size=wxSize(81, 24), style=0)
+        self.killBtn.SetConstraints(LayoutAnchors(self.killBtn, False, False,
+              True, True))
+        self.killBtn.Enable(False)
+        EVT_BUTTON(self.killBtn, wxID_PROCESSPROGRESSDLGKILLBTN,
+              self.OnKillbtnButton)
 
     def __init__(self, parent, command, caption, modally=true, 
           linesep=os.linesep, autoClose=true, overrideDisplay=''):
@@ -121,6 +126,7 @@ class ProcessProgressDlg(wxDialog, ProcessRunnerMix):
                 wxYield()
 
     def execute(self, cmd, modally = true):
+        self.killBtn.Enable(True)
         self.cancelBtn.SetLabel('Cancel')
         self.statusStxt.SetLabel('Waiting for response...')
         self.responded = false
@@ -168,6 +174,7 @@ class ProcessProgressDlg(wxDialog, ProcessRunnerMix):
         self.prepareResult()
         self.statusGge.SetValue(0)
 
+        self.killBtn.Enable(False)
         self.cancelBtn.SetLabel('OK')
 
         if self.modally and self.autoClose:
@@ -196,11 +203,23 @@ class ProcessProgressDlg(wxDialog, ProcessRunnerMix):
         else:
             self.EndModal(wxOK)
 
+    def OnKillbtnButton(self, event):
+        if not self.finished:
+            self.prepareResult()
+            self.kill()
+            if self.modally:
+                self.EndModal(wxCANCEL)
+        else:
+            self.EndModal(wxOK)
+
 if __name__ == '__main__':
     app = wxPySimpleApp()
+    #cmd = '''python.exe -c "for i in range(2049):print '*',"'''
+    cmd = '''python.exe -c "print '*'*5000"'''
+    #cmd = '''python.exe -c "import time; time.sleep(10)"'''
     if 1:
         modal = 1
-        dlg = ProcessProgressDlg(None, 'cvs -H status', 'Test', modal, autoClose=false)
+        dlg = ProcessProgressDlg(None, cmd, 'Test', modal, autoClose=false)
         if modal:
             dlg.ShowModal()
         #print dlg.errors, dlg.output
@@ -222,5 +241,6 @@ if __name__ == '__main__':
                 app.ExitMainLoop()
 
         tpr = TestProcessRunner()
-        tpr.execute('cvs -H status')
+        #cmd = 'cvs -H status'
+        tpr.execute(cmd)
         app.MainLoop()
