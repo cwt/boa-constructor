@@ -521,8 +521,8 @@ class BoaApp(wxApp):
     ##            editor.setupToolBar()
     
             import Help
-            print 'attaching wxPython doc strings'
-            Help.initWxPyDocStrs()
+            #print 'attaching wxPython doc strings'
+            #Help.initWxPyDocStrs()
             if not Preferences.delayInitHelp:
                 print 'initialising Help'
                 Help.initHelp()
