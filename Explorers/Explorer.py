@@ -110,7 +110,7 @@ def findCatExplorerNode(prot, category, respath, transports):
 
 class BaseExplorerTree(wxTreeCtrl):
     def __init__(self, parent, images):
-        wxTreeCtrl.__init__(self, parent, wxID_PFT, style=wxTR_HAS_BUTTONS|wxCLIP_CHILDREN|wxNO_BORDER)
+        wxTreeCtrl.__init__(self, parent, wxID_PFT, style=wxTR_HAS_BUTTONS|wxCLIP_CHILDREN)#|wxNO_BORDER)
         EVT_TREE_ITEM_EXPANDING(self, wxID_PFT, self.OnOpen)
         EVT_TREE_ITEM_EXPANDED(self, wxID_PFT, self.OnOpened)
         EVT_TREE_ITEM_COLLAPSED(self, wxID_PFT, self.OnClose)
@@ -525,7 +525,7 @@ class BaseExplorerSplitter(wxSplitterWindow):
     def __init__(self, parent, modimages, editor, store,
           XList=ExplorerList, XTree=ExplorerTree):
         wxSplitterWindow.__init__(self, parent, wxID_PFE,
-              style = wxCLIP_CHILDREN | wxNO_3D | wxSP_3D)
+              style = wxCLIP_CHILDREN | wxSP_LIVE_UPDATE)# | wxNO_3D | wxSP_3D)
 
         self.editor = editor
         self.store = store
