@@ -25,7 +25,7 @@ class InspectorEditorControl:
     def __init__(self, propEditor, value):
         self.propEditor = propEditor
         self.editorCtrl = None
-        self.wID = NewId()
+        self.wID = wxNewId()
         self.value = value
 
     def createControl(self):
@@ -34,6 +34,7 @@ class InspectorEditorControl:
     def destroyControl(self):
         """ Close an open editor control """
         if self.editorCtrl:
+            self.editorCtrl.GetParent().SetFocus()
             self.editorCtrl.Destroy()
             self.editorCtrl = None
 
