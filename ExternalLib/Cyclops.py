@@ -764,8 +764,8 @@ class CycleFinder:
                     self.register(frame.f_locals[locals[0]])
         except:
             print `event`, frame, frame.f_code, frame.f_code.co_name
-                    
-    
+
+
     def __reset(self):
         # Clear out everything except:
         #       the root set
@@ -1010,10 +1010,3 @@ def _test():
 
 if __name__ == "__main__":
     _test()
-
-
-
-
-
-
-
