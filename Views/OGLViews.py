@@ -362,6 +362,10 @@ class UMLView(PersistentOGLView):
         
         self.shapeMenu = self.menuStdClass
 
+    def destroy(self):
+        PersistentOGLView.destroy(self)
+        self.menuStdClass.Destroy()
+
     def newClass(self, size, pos, className, classMeths, classAttrs):
         shape = PerstDividedShape(className, size[0], size[1])
 
@@ -692,3 +696,4 @@ class __Cleanup:
 
 # when this module gets cleaned up then wxOGLCleanUp() will get called
 __cu = __Cleanup()
+  

@@ -23,7 +23,7 @@ from wxPython.html import *
 import Search, Preferences, Utils
 from moduleparse import CodeBlock
 from Preferences import IS, staticInfoPrefs
-from PrefsKeys import keyDefs
+from Preferences import keyDefs
 #from thread import start_new_thread
 
 wxwHeaderTemplate ='''<html> <head>
@@ -252,6 +252,9 @@ class EditorView:
 
     def setReadOnly(self, val):
         self.readOnly = val
+
+    def saveNotification(self):
+        pass
 
     def close(self):
 ##        print 'EditorView close'
@@ -830,6 +833,10 @@ class ExploreView(wxTreeCtrl, EditorView):
 
         EVT_KEY_UP(self, self.OnKeyPressed)
 
+    def destroy(self):
+        EditorView.destroy(self)
+        self.tokenImgLst = None
+
     _populated_tree = 0
 
     def OnPageActivated(self, event):
@@ -920,6 +927,10 @@ class HierarchyView(wxTreeCtrl, EditorView):
         self.canExplore = true
         self.active = true
 
+    def destroy(self):
+        EditorView.destroy(self)
+        self.tokenImgLst = None
+
     def buildTree(self, parent, dict):
         for item in dict.keys():
             child = self.AppendItem(parent, item, 0)
@@ -983,3 +994,4 @@ class DistUtilView(wxPanel, EditorView):
 #      parent/child relationship tree hosted in inspector
 
 #class XMLView(wxTextCtrl, EditorView) -> FrameM
+   
