@@ -11,10 +11,6 @@
 # Licence:     GPL
 #----------------------------------------------------------------------
 
-# Behind the screen
-# beyond interpretation
-# essence
-
 """ The model classes represent different types of source code files,
     Different views can be connected to a model  """
 
@@ -39,7 +35,7 @@ class EditorModel:
     imgIdx = -1
     closeBmp = 'Images/Editor/Close.png'
     objCnt = 0
-    def __init__(self, name, data, editor, saved):
+    def __init__(self, data, name, editor, saved):
         self.active = false
         self.data = data
         self.savedAs = saved
@@ -128,7 +124,7 @@ class FolderModel(EditorModel):
     imgIdx = EditorHelper.imgFolder
 
     def __init__(self, data, name, editor, filepath):
-        EditorModel.__init__(self, name, data, editor, true)
+        EditorModel.__init__(self, data, name, editor, true)
         self.filepath = filepath
 
 class SysPathFolderModel(FolderModel):
@@ -261,11 +257,24 @@ class BasePersistentModel(EditorModel):
         return splitURI(filename)[2]
 
     def assertLocalFile(self, filename=None):
+        # XXX depreciated (and silly!)
+
         if filename is None:
             filename = self.filename
         from Explorers.Explorer import splitURI
         prot, cat, filename, uri = splitURI(filename)
         assert prot=='file', 'Operation only supported on the filesystem.'
+        return filename
+
+    def checkLocalFile(self, filename=None):
+        """ Either return the model's uri as a local filepath or raise an error """
+
+        if filename is None:
+            filename = self.filename
+        from Explorers.Explorer import splitURI, TransportError
+        prot, cat, filename, uri = splitURI(filename)
+        if prot != 'file':
+            raise TransportError, 'Operation only supported on the filesystem.'
         return filename
 
     def getDefaultData(self):
@@ -280,7 +289,7 @@ class BasePersistentModel(EditorModel):
 
 class PersistentModel(BasePersistentModel):
     def __init__(self, data, name, editor, saved):
-        BasePersistentModel.__init__(self, name, data, editor, saved)
+        BasePersistentModel.__init__(self, data, name, editor, saved)
         if data: self.update()
 
     def load(self, notify=true):
@@ -291,7 +300,7 @@ class PersistentModel(BasePersistentModel):
 class SourceModel(BasePersistentModel):
     modelIdentifier = 'Source'
     def __init__(self, data, name, editor, saved):
-        BasePersistentModel.__init__(self, name, data, editor, saved)
+        BasePersistentModel.__init__(self, data, name, editor, saved)
 
     def getCVSConflicts(self):
         # needless obscurity
@@ -379,5 +388,4 @@ extMap['.jpg'] = extMap['.gif'] = extMap['.png'] = BitmapFileModel
 
 EditorHelper.imageExtReg.extend(['.bmp', '.jpg', '.gif', '.png'])
 EditorHelper.internalFilesReg.extend(['.umllay', '.implay', '.brk', '.trace', '.stack', '.cycles', '.prof', '.cached'])
-EditorHelper.pythonBinaryFilesReg.extend(['.pyc', '.pyo', '.pyd'])
 EditorHelper.binaryFilesReg.extend(['.zip', '.zexp', '.prof'])
