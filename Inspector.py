@@ -6,7 +6,7 @@
 #
 # Created:     1999
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999, 2000 Riaan Booysen
+# Copyright:   (c) 1999 - 2001 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
 #Boa:Frame:InspectorFrame
@@ -15,19 +15,22 @@
     and interacts with the designer and companions
 """
 
+print 'importing Inspector'
+
+# XXX Disable clipboards buttons when non Designer item is selected !!
+
 import os
 from types import *
 
 from wxPython.wx import *
 
 import PaletteMapping, PaletteStore, sender, Preferences, Help
-print 'importing PropertyEditors'
 from PropEdit import PropertyEditors
-from Companions.EventCollections import *
+from Companions import EventCollections
 import Preferences, RTTI, Utils
-from Preferences import IS, oiLineHeight, oiNamesWidth, inspPageNames, flatTools
-from ZopeLib import PropDlg
+from Preferences import IS, oiLineHeight, inspPageNames, flatTools
 from Preferences import keyDefs
+from ZopeLib import PropDlg
 
 scrollBarWidth = 0
 IECWidthFudge = 3
@@ -38,7 +41,7 @@ IECWidthFudge = 3
 
 [wxID_INSPECTORFRAMETOOLBARTOOLS0] = map(lambda _init_coll_toolBar_Tools: wxNewId(), range(1))
 
-class InspectorFrame(wxFrame):
+class InspectorFrame(wxFrame, Utils.FrameRestorerMixin):
     """ Main Inspector frame, mainly does frame initialisation and handles
         events from the toolbar """
     _custom_classes = {'wxNotebook': ['InspectorNotebook'],
@@ -133,31 +136,31 @@ class InspectorFrame(wxFrame):
 ##        Utils.AddToolButtonBmpIS(self, self.toolBar, 'Images/Inspector/Up.bmp',
 ##          'Select parent', self.OnUp)
         self.toolBar.AddSeparator()
-        Utils.AddToolButtonBmpIS(self, self.toolBar, 'Images/Shared/Delete.bmp',
-          'Delete selection', self.OnDelete)
-        Utils.AddToolButtonBmpIS(self, self.toolBar, 'Images/Shared/Cut.bmp',
-          'Cut selection', self.OnCut)
-        Utils.AddToolButtonBmpIS(self, self.toolBar, 'Images/Shared/Copy.bmp',
-          'Copy selection', self.OnCopy)
-        Utils.AddToolButtonBmpIS(self, self.toolBar, 'Images/Shared/Paste.bmp',
-          'Paste selection', self.OnPaste)
-        Utils.AddToolButtonBmpIS(self, self.toolBar, 'Images/Editor/Refresh.bmp',
-          'Recreate selection', self.OnRecreateSelection)
+        Utils.AddToolButtonBmpIS(self, self.toolBar, 
+          'Images/Shared/Delete.bmp', 'Delete selection', self.OnDelete)
+        Utils.AddToolButtonBmpIS(self, self.toolBar, 
+          'Images/Shared/Cut.bmp', 'Cut selection', self.OnCut)
+        Utils.AddToolButtonBmpIS(self, self.toolBar, 
+          'Images/Shared/Copy.bmp', 'Copy selection', self.OnCopy)
+        Utils.AddToolButtonBmpIS(self, self.toolBar, 
+          'Images/Shared/Paste.bmp', 'Paste selection', self.OnPaste)
+        Utils.AddToolButtonBmpIS(self, self.toolBar, 
+          'Images/Editor/Refresh.bmp', 'Recreate selection', self.OnRecreateSelection)
         self.toolBar.AddSeparator()
-        Utils.AddToolButtonBmpIS(self, self.toolBar, 'Images/Inspector/Post.bmp',
-          'Post the Designer session', self.OnPost)
-        Utils.AddToolButtonBmpIS(self, self.toolBar, 'Images/Inspector/Cancel.bmp',
-          'Cancel the Designer session', self.OnCancel)
+        self.wxID_POST = Utils.AddToolButtonBmpIS(self, self.toolBar, 
+          'Images/Inspector/Post.bmp', 'Post the Designer session', self.OnPost)
+        self.wxID_CANCEL = Utils.AddToolButtonBmpIS(self, self.toolBar, 
+          'Images/Inspector/Cancel.bmp', 'Cancel the Designer session', self.OnCancel)
         self.toolBar.AddSeparator()
 ##        Utils.AddToolButtonBmpIS(self, self.toolBar, 'Images/Shared/RevertItem.bmp',
 ##          'Revert item', self.OnRevertItem)
-        Utils.AddToolButtonBmpIS(self, self.toolBar, 'Images/Shared/NewItem.bmp',
-          'New item', self.OnNewItem)
-        Utils.AddToolButtonBmpIS(self, self.toolBar, 'Images/Shared/DeleteItem.bmp',
-          'Delete item', self.OnDelItem)
+        self.wxID_ADDITEM = Utils.AddToolButtonBmpIS(self, self.toolBar, 
+              'Images/Shared/NewItem.bmp', 'New item', self.OnNewItem)
+        self.wxID_DELITEM = Utils.AddToolButtonBmpIS(self, self.toolBar, 
+          'Images/Shared/DeleteItem.bmp', 'Delete item', self.OnDelItem)
         self.toolBar.AddSeparator()
-        Utils.AddToolButtonBmpIS(self, self.toolBar, 'Images/Shared/Help.bmp',
-          'Show help', self.OnHelp)
+        Utils.AddToolButtonBmpIS(self, self.toolBar, 
+          'Images/Shared/Help.bmp', 'Show help', self.OnHelp)
         self.toolBar.Realize()
 
         self.constr.setInspector(self)
@@ -172,6 +175,8 @@ class InspectorFrame(wxFrame):
         self.pages.AddPage(prxy, inspPageNames['Objs'])
 
         self.selection = None
+        
+        self.updateAddDelState()
 
 
     def multiSelectObject(self, compn, designer):
@@ -237,6 +242,9 @@ class InspectorFrame(wxFrame):
 
         if sb: sb.SetValue(0)
 
+        # set add item state 
+        self.updateAddDelState()
+
     # These methods update property pages.
     # Call when changes in the selected control is detected
     def pageUpdate(self, page, name):
@@ -247,7 +255,7 @@ class InspectorFrame(wxFrame):
         self.pageUpdate(self.props, name)
     def constructorUpdate(self, name):
         self.pageUpdate(self.constr, name)
-    def eventUpdate(self, name, delete = false):
+    def eventUpdate(self, name, delete=false):
         if delete:
             self.events.definitions.removeEvent(name)
         else:
@@ -261,10 +269,10 @@ class InspectorFrame(wxFrame):
     def directSizeUpdate(self, comp):
         comp.persistProp('Size', 'SetSize', `comp.control.GetSize()`)
 
-    def selectedCtrlHelpFile(self):
-        """ Return the help file/link associated with the selected control """
-        if self.selCmp: return self.selCmp.wxDocs
-        else: return ''
+##    def selectedCtrlHelpFile(self):
+##        """ Return the help file/link associated with the selected control """
+##        if self.selCmp: return self.selCmp.wxDocs
+##        else: return ''
 
     def cleanup(self):
         self.selCmp = None
@@ -275,11 +283,18 @@ class InspectorFrame(wxFrame):
         self.events.cleanup()
         self.statusBar.SetStatusText('')
         self.statusBar.SetStatusText('', 1)
-
+    
     def initSashes(self):
         self.constr.initSash()
         self.props.initSash()
         self.events.definitions.initSash()
+
+    def updateAddDelState(self):
+        canAddDel = self.selCmp is not None and \
+              hasattr(self.selCmp, 'propItems') and \
+              hasattr(self.selCmp, 'updateZopeProps')
+        self.toolBar.EnableTool(self.wxID_ADDITEM, canAddDel)
+        self.toolBar.EnableTool(self.wxID_DELITEM, canAddDel)
 
     def OnSizing(self, event):
         event.Skip()
@@ -311,16 +326,11 @@ class InspectorFrame(wxFrame):
     def OnCancel(self, event):
         if self.selDesgn:
             self.selDesgn.controllerView.saveOnClose = false
+            self.selDesgn.controllerView.confirmCancel = true
             self.selDesgn.controllerView.Close()
 
     def OnHelp(self, event):
         Help.showHelp('Inspector.html')
-
-    def refreshZopeProps(self):
-        cmpn = self.selCmp
-        cmpn.updateZopeProps()
-        self.selCmp = None
-        self.selectObject(cmpn)
 
     def OnRevertItem(self, event):
         if self.selCmp and self.props.prevSel and self.props.prevSel.propEditor:
@@ -329,6 +339,18 @@ class InspectorFrame(wxFrame):
                   propEdit.propWrapper.getSetterName())
             self.props.prevSel.showPropNameModified()
 
+    # XXX Zope special-casing, refactor
+    def updateAddDelState(self):
+        canAddDel = self.selCmp is not None and \
+              hasattr(self.selCmp, 'propItems') and \
+              hasattr(self.selCmp, 'updateZopeProps')
+        self.toolBar.EnableTool(self.wxID_ADDITEM, canAddDel)
+        self.toolBar.EnableTool(self.wxID_DELITEM, canAddDel)
+    def refreshZopeProps(self):
+        cmpn = self.selCmp
+        cmpn.updateZopeProps()
+        self.selCmp = None
+        self.selectObject(cmpn)
     def OnNewItem(self, event):
         if self.selCmp and hasattr(self.selCmp, 'propItems'):
             dlg = PropDlg.create(self)
@@ -339,7 +361,6 @@ class InspectorFrame(wxFrame):
                     self.refreshZopeProps()
             finally:
                 dlg.Destroy()
-
     def OnDelItem(self, event):
         if self.selCmp and self.props.prevSel and hasattr(self.selCmp, 'propItems'):
             self.selCmp.delProperty(self.props.prevSel.propName)
@@ -347,7 +368,7 @@ class InspectorFrame(wxFrame):
 
     def OnCloseWindow(self, event):
         self.Show(false)
-        if self.destroying:
+        if self.destroying or __name__ == '__main__':
             self.paletteImages = None
             self.cleanup()
             self.pages.destroy()
@@ -357,9 +378,6 @@ class InspectorFrame(wxFrame):
             self.Destroy()
             event.Skip()
 
-
-    def OnToolbartools0Tool(self, event):
-        pass
 wxID_PARENTTREE = NewId()
 wxID_PARENTTREESELECTED = NewId()
 class ParentTree(wxTreeCtrl):
@@ -431,8 +449,8 @@ class ParentTree(wxTreeCtrl):
 class NameValue:
     """ Base class for all name value pairs that appear in the Inspector """
     def __init__(self, inspector, nameParent, valueParent, companion,
-      rootCompanion, name, propWrapper, idx, indent,
-      editor = None, options = None, names = None, ownerPropEdit = None):
+          rootCompanion, name, propWrapper, idx, indent,
+          editor=None, options=None, names=None, ownerPropEdit=None):
 
         self.destr = false
         self.lastSizeN = 0
@@ -450,13 +468,7 @@ class NameValue:
         self.valueBevelTop = None
         self.valueBevelBottom = None
         
-##        try:
-##            self.helpStr = (propWrapper.setter.im_class.__name__ , 
-##                            propWrapper.getSetterName())
-##        except Exception, error:
-##            self.helpStr = (str(error), '')
-        
-        lockEditor, attrName = self.checkLockedProperty(name, 
+        lockEditor, attrName, isCat = self.checkLockedProperty(name, 
               propWrapper.getSetterName(), companion)
 
         if lockEditor:
@@ -504,7 +516,7 @@ class NameValue:
         self.nameCtrl.SetToolTipString(companion.getPropertyHelp(name))
         EVT_LEFT_DOWN(self.nameCtrl, self.OnSelect)
 
-        self.showPropNameModified()
+        self.showPropNameModified(isCat)
 
         self.value = wxStaticText(valueParent, -1, displayVal,
           wxPoint(2, idx * oiLineHeight +2), wxSize(inspector.getValueWidth(),
@@ -513,26 +525,35 @@ class NameValue:
         self.value.SetToolTipString(displayVal)
         EVT_LEFT_DOWN(self.value, self.OnSelect)
 
-        if lockEditor: self.enboldenCtrl(self.value)
+        if lockEditor and not isCat: 
+            self.enboldenCtrl(self.value)
 
+        #if isCat: sepCol = wxBLACK
+        #else: 
+        sepCol = wxColour(160, 160, 160)
+        
         self.separatorN = wxPanel(nameParent, -1, wxPoint(0,
           (idx +1) * oiLineHeight), wxSize(inspector.panelNames.GetSize().x, 1),
           style = wxCLIP_CHILDREN)
-        self.separatorN.SetBackgroundColour(wxColour(160, 160, 160))
+        self.separatorN.SetBackgroundColour(sepCol)
 
         self.separatorV = wxPanel(valueParent, -1, wxPoint(0,
           (idx +1) * oiLineHeight), wxSize(inspector.getValueWidth(), 1),
           style = wxCLIP_CHILDREN)
-        self.separatorV.SetBackgroundColour(wxColour(160, 160, 160))
+        self.separatorV.SetBackgroundColour(sepCol)
 
     def checkLockedProperty(self, name, setterName, companion):
-        # Determine if the property is locked
+        """ Determine if the property is locked """
+        # XXX refactor, this is currently ugly
         try:
             srcVal = companion.persistedPropVal(name, setterName)
         except KeyError:
             pass
         else:
             if srcVal is not None:
+                if srcVal == 'PROP_CATEGORY':
+                    return PropertyEditors.LockedPropEdit, '', true
+
                 if type(srcVal) is type([]):
                     if len(srcVal):
                         srcVal = srcVal[0]
@@ -540,9 +561,8 @@ class NameValue:
                         srcVal = ''
                 if Utils.startswith(srcVal, 'self.') and \
                  hasattr(companion.designer.model.specialAttrs['self'], srcVal[5:]):
-                    return PropertyEditors.LockedPropEdit, srcVal
-        return None, ''
-        
+                    return PropertyEditors.LockedPropEdit, srcVal, false
+        return None, '', false
 
     def destroy(self, cancel = false):
         self.hideEditor(cancel)
@@ -572,12 +592,15 @@ class NameValue:
     def updatePropValue(self):
         self.propValue = self.propEditor.getValue()
 
-    def showPropNameModified(self):
+    def showPropNameModified(self, displayAsCat=false):
         if self.propEditor and Preferences.showModifiedProps:
             propEdit = self.propEditor
             propSetter = propEdit.propWrapper.getSetterName()
             mod = not propEdit.companion.propIsDefault(propEdit.name, propSetter)
-            self.enboldenCtrl(self.nameCtrl, mod)
+            self.enboldenCtrl(self.nameCtrl, mod or displayAsCat)
+            if displayAsCat:
+                self.nameCtrl.SetForegroundColour(Preferences.propValueColour)
+
 
     def enboldenCtrl(self, ctrl, bold = true):
         fnt = ctrl.GetFont()
@@ -714,8 +737,7 @@ class ConstrNameValue(NameValue):
             self.propEditor.initFromComponent()
             if not self.propEditor.editorCtrl:
                 self.updateDisplayValue()
-            #self.propEditor.persistValue(self.propEditor.valueAsExpr())
-    def showPropNameModified(self):
+    def showPropNameModified(self, isCat=false):
         pass
 
 class EventNameValue(NameValue):
@@ -799,7 +821,8 @@ class EventsWindow(wxSplitterWindow):
             del self.inspector
 
     def findMacro(self, name):
-        for macro in EventCategories[self.categoryClasses.GetItemText(self.selCatClass)]:
+        for macro in EventCollections.EventCategories[\
+              self.categoryClasses.GetItemText(self.selCatClass)]:
             if macro.func_name == name: return macro
         raise 'Macro: '+name+' not found.'
 
@@ -826,7 +849,8 @@ class EventsWindow(wxSplitterWindow):
 
     def OnCatClassSelect(self, event):
         self.selCatClass = event.m_itemIndex
-        catClass = EventCategories[self.categoryClasses.GetItemText(self.selCatClass)]
+        catClass = EventCollections.EventCategories[\
+              self.categoryClasses.GetItemText(self.selCatClass)]
         for catMac in catClass:
             self.categoryMacros.InsertStringItem(0, catMac.func_name)
 
@@ -845,7 +869,7 @@ class EventsWindow(wxSplitterWindow):
         companion = self.inspector.selCmp
         methName = self.macroNameToEvtName(macName)
         frameName = companion.designer.GetName()
-        if catClassName in commandCategories:
+        if catClassName in EventCollections.commandCategories:
             wid = companion.getWinId()
         else:
             wid = None
@@ -1018,10 +1042,6 @@ class InspectorScrollWin(NameValueEditorScrollWin):
 
     def destroy(self):
         if hasattr(self, 'inspector'): del self.inspector
-
-##    def cleanup(self):
-##        self.inspector.pages.SetFocus()
-##        NameValueEditorScrollWin.cleanup(self)
         
     def readObject(self, propList):
         """ Override this method in derived classes to implement the
@@ -1063,10 +1083,6 @@ class InspectorScrollWin(NameValueEditorScrollWin):
         self.deleteNameValues(idx, count)
         self.refreshSplitter()
         nameValue.propEditor.expanded = false
-
-##    def refreshSplitter(self):
-##        NameValueEditorScrollWin.refreshSplitter(self):
-##        self.updateScrollbars()
 
     def OnEnter(self, event):
         for nv in self.nameValues:
@@ -1250,14 +1266,11 @@ class InspectorConstrScrollWin(InspectorScrollWin):
 class InspectorEventScrollWin(InspectorScrollWin):
     """ Specialised InspectorScrollWin that understands events """
     def readObject(self):
-#        self.cleanup()
 
         for evt in self.inspector.selCmp.getEvents():
             self.addEvent(evt.event_name)
 
         height = len(self.nameValues)
-#        self.SetScrollbars(oiLineHeight, oiLineHeight, 0, height + 1)
-
         self.refreshSplitter()
 
     def addEvent(self, name):
