@@ -1,3 +1,15 @@
+#-----------------------------------------------------------------------------
+# Name:        AppViews.py
+# Purpose:     
+#                
+# Author:      Riaan Booysen
+#                
+# Created:     
+# RCS-ID:      $Id$
+# Copyright:   (c) 1999, 2000 Riaan Booysen
+# Licence:     GPL
+#-----------------------------------------------------------------------------
+
 from wxPython.wx import *
 
 from EditorViews import ListCtrlView, ModuleDocView, wxwAppModuleTemplate, CyclopsView, ClosableViewMix
@@ -70,7 +82,7 @@ class AppFindResults(ListCtrlView, ClosableViewMix):
 
 class AppView(ListCtrlView):
     openBmp = 'Images/Editor/OpenFromApp.bmp'
-    openAllBmp = 'Images/Editor/OpenAll.bmp'
+#    openAllBmp = 'Images/Editor/OpenAll.bmp'
     saveAllBmp = 'Images/Editor/SaveAll.bmp'
     addModBmp = 'Images/Editor/AddToApp.bmp'
     remModBmp = 'Images/Editor/RemoveFromApp.bmp'
@@ -85,7 +97,7 @@ class AppView(ListCtrlView):
     def __init__(self, parent, model):
         ListCtrlView.__init__(self, parent, model, wxLC_REPORT, 
           (('Open', self.OnOpen, self.openBmp, ()),
-           ('Open all modules', self.OnOpenAll, self.openAllBmp, ()), 
+#           ('Open all modules', self.OnOpenAll, self.openAllBmp, ()), 
            ('Save all modules', self.OnSaveAll, self.saveAllBmp, ()), 
            ('-', None, '', ()),
            ('Add', self.OnAdd, self.addModBmp, keyDefs['Insert']),
@@ -262,11 +274,14 @@ class AppView(ListCtrlView):
                 modules.sort()
                 applicationResults = {}
                 for mod in modules:
-                    filename = self.model.moduleFilename(mod)#self.model.modules[mod][2])
+                    filename = self.model.moduleFilename(mod)
                     if self.model.editor.modules.has_key(filename):
-                        results = Search.findInText(self.model.editor.modules[filename].model.data, self.lastSearchPattern, false, true)
+                        results = Search.findInText(string.split(\
+                          self.model.editor.modules[filename].model.data, '\n'), 
+                          self.lastSearchPattern, false, true)
                     else:
-                        results = Search.findInFile(filename, self.lastSearchPattern, false, true)
+                        results = Search.findInFile(filename, 
+                          self.lastSearchPattern, false, true)
                     applicationResults[mod] = results
 
                 resName = 'Results: '+dlg.GetValue()
@@ -294,8 +309,8 @@ class AppModuleDocView(ModuleDocView):
             self.base_OnLinkClicked(linkinfo)
         else:
             mod = path.splitext(url)[0]
-#            print mod
             newMod = self.model.openModule(mod)
+            # XXX Should open documentation page first
             newMod.views['Documentation'].focus()
 
     def genModuleListSect(self):
