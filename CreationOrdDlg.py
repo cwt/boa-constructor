@@ -8,10 +8,10 @@ def create(parent):
 [wxID_CREATIONORDERDLGBBUP, wxID_CREATIONORDERDLGBBDOWN, wxID_CREATIONORDERDLGSTATICBOX1, wxID_CREATIONORDERDLGPANEL1, wxID_CREATIONORDERDLGLISTBOX1, wxID_CREATIONORDERDLGBTOK, wxID_CREATIONORDERDLGBTCANCEL, wxID_CREATIONORDERDLG] = map(lambda _init_ctrls: wxNewId(), range(8))
 
 class CreationOrderDlg(wxDialog):
-    def _init_utils(self): 
+    def _init_utils(self):
         pass
 
-    def _init_ctrls(self, prnt): 
+    def _init_ctrls(self, prnt):
         wxDialog.__init__(self, size = wxSize(280, 281), id = wxID_CREATIONORDERDLG, title = 'Change creation order', parent = prnt, name = 'CreationOrderDlg', style = wxDEFAULT_DIALOG_STYLE, pos = wxPoint(230, 132))
         self._init_utils()
 
@@ -33,7 +33,7 @@ class CreationOrderDlg(wxDialog):
         self.btCancel = wxButton(label = 'Cancel', id = wxID_CREATIONORDERDLGBTCANCEL, parent = self.panel1, name = 'btCancel', size = wxSize(72, 24), style = 0, pos = wxPoint(192, 224))
         EVT_BUTTON(self.btCancel, wxID_CREATIONORDERDLGBTCANCEL, self.OnBtcancelButton)
 
-    def __init__(self, parent): 
+    def __init__(self, parent):
         self._init_ctrls(parent)
 
     def OnBbupButton(self, event):
