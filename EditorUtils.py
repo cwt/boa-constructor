@@ -341,7 +341,21 @@ class ModulePage:
                 editor.statusBar.setHint('%s saved.'%\
                       os.path.basename(model.filename))
         else:
-            model.save()
+            from Explorers.ExplorerNodes import TransportModifiedSaveError
+            try:
+                model.save()
+            except TransportModifiedSaveError, err:
+                choice = wxMessageBox(str(err)+'\nDo you want to overwrite these '
+                  'changes (Yes), reload your file (No) or cancel this operation '
+                  '(Cancel)?', 'Overwrite newer file warning', 
+                  wxYES_NO | wxCANCEL | wxICON_WARNING)
+                if choice == wxYES:
+                    model.save(overwriteNewer=true)
+                elif choice == wxNO:
+                    raise TransportModifiedSaveError('Reload')
+                elif choice == wxCANCEL:
+                    raise TransportModifiedSaveError('Cancel')
+                
             editor.updateModulePage(model)
             editor.updateTitle()
 
