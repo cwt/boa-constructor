@@ -6,9 +6,10 @@
 #
 # Created:
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999, 2000 Riaan Booysen
+# Copyright:   (c) 1999 - 2002 Riaan Booysen
 # Licence:     GPL
 #-----------------------------------------------------------------------------
+print 'importing Views.AppViews'
 
 """ View classes for the AppModel """
 
@@ -22,21 +23,20 @@ except ImportError:
 
 from wxPython.wx import *
 
-from EditorViews import ListCtrlView, ModuleDocView, wxwAppModuleTemplate, CyclopsView, ClosableViewMix
+from EditorViews import ListCtrlView, ModuleDocView, wxwAppModuleTemplate, ClosableViewMix
 import ProfileView
 import PySourceView
-from Preferences import keyDefs
 import Search, Utils
-   
+
 class AppFindResults(ListCtrlView, ClosableViewMix):
-    gotoLineBmp = 'Images/Editor/GotoLine.bmp'
+    gotoLineBmp = 'Images/Editor/GotoLine.png'
 
     viewName = 'Application Find Results'
     def __init__(self, parent, model):
         ClosableViewMix.__init__(self, 'find results')
         ListCtrlView.__init__(self, parent, model, wxLC_REPORT,
-          ( ('Goto match', self.OnGoto, self.gotoLineBmp, ()), 
-            ('Rerun query', self.OnRerun, '-', ()),
+          ( ('Goto match', self.OnGoto, self.gotoLineBmp, ''),
+            ('Rerun query', self.OnRerun, '-', ''),
           ) +
             self.closingActionItems, 0)
 
@@ -88,23 +88,23 @@ class AppFindResults(ListCtrlView, ClosableViewMix):
 
 # XXX Add 'Get description from module info' option
 class AppView(ListCtrlView):
-    openBmp = 'Images/Editor/OpenFromApp.bmp'
-    addModBmp = 'Images/Editor/AddToApp.bmp'
-    remModBmp = 'Images/Editor/RemoveFromApp.bmp'
-    findBmp = 'Images/Shared/Find.bmp'
+    openBmp = 'Images/Editor/OpenFromApp.png'
+    addModBmp = 'Images/Editor/AddToApp.png'
+    remModBmp = 'Images/Editor/RemoveFromApp.png'
+    findBmp = 'Images/Shared/Find.png'
 
     viewName = 'Application'
     def __init__(self, parent, model):
         ListCtrlView.__init__(self, parent, model, wxLC_REPORT,
-          (('Open', self.OnOpen, self.openBmp, ()),
-           ('-', None, '', ()),
-           ('Add', self.OnAdd, self.addModBmp, keyDefs['Insert']),
-           ('Edit', self.OnEdit, '-', ()),
-           ('Remove', self.OnRemove, self.remModBmp, keyDefs['Delete']),
-           ('-', None, '', ()),
-           ('Find', self.OnFind, self.findBmp, keyDefs['Find']),
-           ('-', None, '-', ()),
-           ('Make module main module', self.OnMakeMain, '-', ()),
+          (('Open', self.OnOpen, self.openBmp, ''),
+           ('-', None, '', ''),
+           ('Add', self.OnAdd, self.addModBmp, 'Insert'),
+           ('Edit', self.OnEdit, '-', ''),
+           ('Remove', self.OnRemove, self.remModBmp, 'Delete'),
+           ('-', None, '', ''),
+           ('Find', self.OnFind, self.findBmp, 'Find'),
+           ('-', None, '-', ''),
+           ('Make module main module', self.OnMakeMain, '-', ''),
            ), 0)
 
         self.InsertColumn(0, 'Module', width = 150)
@@ -162,7 +162,10 @@ class AppView(ListCtrlView):
 
     def OnOpen(self, event):
         if self.selected >= 0:
+            # XXX maybe this should be done in the browsing framework
             self.model.openModule(self.GetItemText(self.selected))
+            self.model.prevSwitch = self
+
 
     def OnAdd(self, event):
         self.model.viewAddModule()
@@ -217,7 +220,7 @@ class AppView(ListCtrlView):
 ##        dlg = FindReplaceDlg(self, self.model.editor.finder, self)
 ##        dlg.ShowModal()
 ##        dlg.Destroy()
-        
+
 ##    def OnFind(self, event):
 ##        dlg = wxTextEntryDialog(self.model.editor, 'Enter text:', 'Find in application', self.lastSearchPattern)
 ##        try:
@@ -307,13 +310,13 @@ class AppModuleDocView(ModuleDocView):
 #        return self.genClassesSect(page + modBody, classNames)
 
 class AppCompareView(ListCtrlView, ClosableViewMix):
-    gotoLineBmp = 'Images/Editor/GotoLine.bmp'
+    gotoLineBmp = 'Images/Editor/GotoLine.png'
 
     viewName = 'App. Compare'
     def __init__(self, parent, model):
         ClosableViewMix.__init__(self, 'compare results')
         ListCtrlView.__init__(self, parent, model, wxLC_REPORT,
-          ( ('Do diff', self.OnGoto, self.gotoLineBmp, ()), ) +
+          ( ('Do diff', self.OnGoto, self.gotoLineBmp, ''), ) +\
            self.closingActionItems, 0)
 
         self.InsertColumn(0, 'Module', width = 100)
@@ -334,7 +337,7 @@ class AppCompareView(ListCtrlView, ClosableViewMix):
         otherApp = AppModel('', self.compareTo, '', self.model.editor, true, {})
 
         from Explorers.Explorer import openEx
-        otherApp.transport = openEx(self.compareTo)      
+        otherApp.transport = openEx(self.compareTo)
 
         otherApp.load()
         otherApp.readModules()
@@ -345,7 +348,7 @@ class AppCompareView(ListCtrlView, ClosableViewMix):
         # Compare apps
         if not cmp(filename, otherFilename):
             i = self.addReportItems(i,
-                  (path.splitext(path.basename(filename))[0], otherFilename, 
+                  (path.splitext(path.basename(filename))[0], otherFilename,
                    'changed'))
 
         # Find changed modules and modules not occuring in other module
@@ -411,100 +414,3 @@ class AppBUGS_TIFView(TextInfoFileView):
 class AppCHANGES_TIFView(TextInfoFileView):
     viewName = 'Changes.txt'
 
-class AppTimeTrackView(ListCtrlView):
-    viewName = 'Time Tracking'
-    def __init__(self, parent, model):
-        ListCtrlView.__init__(self, parent, model, wxLC_REPORT,
-          (('Start', self.OnStart, '-', ()),
-           ('End', self.OnEnd, '-', ()),
-           ('Delete', self.OnDelete, '-', ()),
-          ), 1 )
-
-        self.InsertColumn(0, 'Start', width = 150)
-        self.InsertColumn(1, 'End', width = 150)
-        self.InsertColumn(2, 'Description', width = 350)
-
-        self.sortOnColumns = [0, 1]
-
-        self.times = []
-
-        self.active = true
-        self.model = model
-
-    def refreshCtrl(self):
-        ListCtrlView.refreshCtrl(self)
-        try:
-            self.times = self.readTimes()
-        except IOError:
-            self.times = []
-            #fn = self.getTTVFilename()
-            #if not path.exists(fn): open(fn, 'w')
-
-        i = 0
-        modSort = self.model.modules.keys()
-        modSort.sort()
-        for start, end, desc in self.times:
-            i = self.addReportItems(i,
-                  (self.getTimeStr(start),
-                   end and self.getTimeStr(end) or '',
-                   desc) )
-
-        self.pastelise()
-
-    def getTimeStr(self, thetime):
-        return time.strftime('%Y/%m/%d : %H:%M:%S', time.gmtime(thetime))
-
-    def getTTVFilename(self):
-        return path.splitext(self.model.filename)[0]+'.ttv'
-
-    def writeTimeEntry(self, file, start, end, desc):
-        file.write("(%s, %s, %s)\n" % (`start`, `end`, `desc`))
-
-    def readTimes(self):
-        return map(lambda line: eval(line), open(self.getTTVFilename()).readlines())
-
-    def writeTimes(self):
-        timesFile = open(self.getTTVFilename(), 'w')
-        for start, end, desc in self.times:
-            self.writeTimeEntry(timesFile, start, end, desc)
-
-    def OnStart(self, event):
-        self.writeTimeEntry(open(self.getTTVFilename(), 'a'), time.time(), 0, '')
-
-        self.refreshCtrl()
-
-    def OnEnd(self, event):
-        selIdx = self.getSelectedIndex()
-        start, end, desc = self.times[selIdx]
-
-        if not end:
-            end = time.time()
-
-        dlg = wxTextEntryDialog(self, 'Start time :%s\nEnd time :%s\n\n'\
-            'Enter a description for the time spent' % (self.getTimeStr(start),
-              self.getTimeStr(end)), 'Time tracking', desc)
-        try:
-            if dlg.ShowModal() == wxID_OK:
-                answer = dlg.GetValue()
-                self.times[selIdx] = (start, end, answer)
-                self.writeTimes()
-                self.refreshCtrl()
-        finally:
-            dlg.Destroy()
-
-    def OnDelete(self, event):
-        selIdx = self.getSelectedIndex()
-
-        if selIdx == -1:
-            return
-
-        dlg = wxMessageDialog(self, 'Are you sure?',
-          'Delete', wxOK | wxCANCEL | wxICON_QUESTION)
-        try:
-            if dlg.ShowModal() == wxID_OK:
-                del self.times[selIdx]
-                self.writeTimes()
-                self.refreshCtrl()
-
-        finally:
-            dlg.Destroy()

@@ -18,7 +18,6 @@ from wxPython.stc import *
 from ExternalLib import ndiff
 from EditorViews import EditorView, ClosableViewMix
 from StyledTextCtrls import PythonStyledTextCtrlMix
-from Preferences import keyDefs
 import Preferences, Utils
 
 uniqueFile1Mrk = 1
@@ -46,9 +45,9 @@ class DiffView(EditorView):
 
 class PythonSourceDiffView(wxStyledTextCtrl, EditorView, PythonStyledTextCtrlMix, ClosableViewMix):
     viewName = 'Diff'
-    refreshBmp = 'Images/Editor/Refresh.bmp'
-    prevBmp = 'Images/Shared/Previous.bmp'
-    nextBmp = 'Images/Shared/Next.bmp'
+    refreshBmp = 'Images/Editor/Refresh.png'
+    prevBmp = 'Images/Shared/Previous.png'
+    nextBmp = 'Images/Shared/Next.png'
     def __init__(self, parent, model):
         wxID_PYTHONSOURCEDIFFVIEW = wxNewId()
 
@@ -57,12 +56,12 @@ class PythonSourceDiffView(wxStyledTextCtrl, EditorView, PythonStyledTextCtrlMix
         PythonStyledTextCtrlMix.__init__(self, wxID_PYTHONSOURCEDIFFVIEW, 0)
         ClosableViewMix.__init__(self, 'diffs')
         EditorView.__init__(self, model,
-          ( ('Refresh', self.OnRefresh, self.refreshBmp, keyDefs['Refresh']), ) +
+          ( ('Refresh', self.OnRefresh, self.refreshBmp, 'Refresh'), ) +
             self.closingActionItems +
-          ( ('-', None, '', ()),
-            ('Previous difference', self.OnPrev, self.prevBmp, ()),
-            ('Next difference', self.OnNext, self.nextBmp, ()),
-            ('Apply all changes', self.OnApplyAllChanges, '-', ()) ), -1)
+          ( ('-', None, '', ''),
+            ('Previous difference', self.OnPrev, self.prevBmp, ''),
+            ('Next difference', self.OnNext, self.nextBmp, ''),
+            ('Apply all changes', self.OnApplyAllChanges, '-', '') ), -1)
 
         self.SetMarginType(1, wxSTC_MARGIN_SYMBOL)
         self.SetMarginWidth(1, 16)
@@ -139,6 +138,6 @@ class PythonSourceDiffView(wxStyledTextCtrl, EditorView, PythonStyledTextCtrlMix
         if self.diffWith and Utils.yesNoDialog(self, 'Are you sure?',
               'Replace %s with %s?'% (filename, self.diffWith)):
             shutil.copyfile(self.diffWith, filename)
-            # reload 
+            # reload
             self.model.load()
             self.deleteFromNotebook('Source', self.tabName)

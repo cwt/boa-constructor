@@ -1,26 +1,37 @@
 #----------------------------------------------------------------------
 # Name:        OGLViews.py
-# Purpose:
+# Purpose:     Diagrammatic views on the source using the OGL lib.
 #
 # Author:      Riaan Booysen
 #
 # Created:     1999
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999 - 2001 Riaan Booysen
+# Copyright:   (c) 1999 - 2002 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
+print 'importing Views.OGLViews'
 
-import pickle
-from os import path
+import pickle, os
 
 #import sys; sys.path.append('..')
 
 from wxPython.wx import *
 from wxPython.ogl import *
 
+import Preferences, Utils
+
 from Preferences import IS
 
 import EditorViews
+
+# XXX It would be better to not apply persistent positions after creating shapes,
+# XXX but to use positions when shape is created
+
+# XXX Bug on right click in background
+
+# Wishlist
+# * Is the topological layout applicable to import diagrams? (They can be cyclic)
+# * Optional hiding of classes in UMLView
 
 wxOGLInitialize()
 
@@ -87,7 +98,7 @@ class PersistentShapeCanvas(wxShapeCanvas):
     ext = '.lay'
     def __init__(self, parent, shapes):
         wxShapeCanvas.__init__(self, parent, style = 0)
-        self.SetBackgroundColour(wxWHITE)
+        self.SetBackgroundColour(Preferences.vpOGLCanvasBackgroundColour)
         self.shapes = shapes
 
     def saveSizes(self, filename):
@@ -104,14 +115,24 @@ class PersistentShapeCanvas(wxShapeCanvas):
 
         from Explorers.Explorer import openEx
         t = openEx(filename)
-        t.save(t.resourcepath, pickle.dumps(persProps))
+        t.save(t.currentFilename(), pickle.dumps(persProps))
 
     def loadSizes(self, filename):
-        # construct list of non matching
-
-        from Explorers.Explorer import openEx
+        from Explorers.Explorer import openEx, TransportError
         t = openEx(filename)
-        persProps = pickle.loads(t.load())
+        try:
+            persProps = pickle.loads(t.load())
+        except SyntaxError:
+            if wxMessageBox('%s is possibly corrupt (cannot be unpickled), delete it?'\
+                            'Default layout will be used.'%filename,
+                  'Corrupt file', style = wxYES_NO | wxICON_EXCLAMATION) == wxYES:
+                # XXX Just lazy, must fix to use transport !!
+                if filename[:7] != 'file://':
+                    wxLogMessage('Sorry, only supported on the filesystem')
+                else:
+                    os.remove(filename[7:])
+
+            raise TransportError('Corrupt layout file')
 
         unmatchedPcls = persProps.keys()
         matchedShapes = []
@@ -127,6 +148,9 @@ class PersistentShapeCanvas(wxShapeCanvas):
                 pos = persProps[shape.unqPclName]
                 shape.setPos(pos)
 
+        self.redraw()
+
+    def redraw(self):
         diagram = self.GetDiagram()
         canvas = diagram.GetCanvas()
         dc = wxClientDC(canvas)
@@ -187,41 +211,45 @@ class ScrollingContainer(wxScrolledWindow):
     scrollStepY = 10
     def __init__(self, parent, size):
         wxScrolledWindow.__init__(self, parent, -1, style = wxSUNKEN_BORDER)
-        self.SetScrollbars(self.scrollStepX, self.scrollStepY, 
+        self.SetScrollbars(self.scrollStepX, self.scrollStepY,
                            size.x / self.scrollStepX, size.y / self.scrollStepY)
 
 class PersistentOGLView(ScrollingContainer, EditorViews.EditorView):
     viewName = 'OGL'
-    loadBmp = 'Images/Editor/Open.bmp'
-    saveBmp = 'Images/Editor/Save.bmp'
+    loadBmp = 'Images/Editor/Open.png'
+    saveBmp = 'Images/Editor/Save.png'
     defSize = 2000
 
     def __init__(self, parent, model, actions = ()):
         ScrollingContainer.__init__(self, parent, wxSize(self.defSize, self.defSize))
         EditorViews.EditorView.__init__(self, model,
-          (('(Re)load diagram', self.OnLoad, self.loadBmp, ()),
-           ('Save diagram', self.OnSave, self.saveBmp, ()),
-           ('-', None, '-', ()),
-           ('Change size', self.OnSetSize, '-', ()))+actions)
+          (('(Re)load diagram', self.OnLoad, self.loadBmp, ''),
+           ('Save diagram', self.OnSave, self.saveBmp, ''),
+           ('-', None, '-', ''),
+           ('Change size', self.OnSetSize, '-', ''),
+           )+actions)
 
         self.shapes = []
         self.canvas = PersistentShapeCanvas(self, self.shapes)
         self.canvas.SetSize(self.GetVirtualSize())
-        
+
         EVT_RIGHT_UP(self.canvas, self.OnRightClick)
 
         self.diagram = wxDiagram()
         self.canvas.SetDiagram(self.diagram)
         self.diagram.SetCanvas(self.canvas)
-        
+
         self.shapeMenu = None
-        
+
         self.size = self.defSize
+
+        self._loaded = false
 
         self.active = true
 
     def destroy(self):
         self.destroyShapes()
+        self.diagram.Destroy()
         EditorViews.EditorView.destroy(self)
 
     def destroyShapes(self):
@@ -229,20 +257,24 @@ class PersistentOGLView(ScrollingContainer, EditorViews.EditorView):
         self.diagram.DeleteAllShapes()
 
     def refreshCtrl(self):
-        layoutFile = path.splitext(self.model.filename)[0]+self.ext
-        from Explorers.Explorer import TransportLoadError
+        layoutFile = os.path.splitext(self.model.filename)[0]+self.ext
+        from Explorers.Explorer import TransportError
         try:
             self.canvas.loadSizes(layoutFile)
-        except TransportLoadError:
-            pass
-
+            self._loaded = true
+        except TransportError:
+            self._loaded = false
 
     def newLine(self, dc, fromShape, toShape):
         line = wxLineShape()
         line.SetCanvas(self.canvas)
-        line.SetPen(wxBLACK_PEN)
-        line.SetBrush(wxBLACK_BRUSH)
+        line.SetPen(Preferences.vpOGLLinePen)
+        line.SetBrush(Preferences.vpOGLLineBrush)
+
         line.AddArrow(ARROW_ARROW)
+        #pmf = wxPseudoMetaFile()
+        #pmf.LoadFromMetaFile('Images/Views/UML/inherit.wmf', 10.0, 10.0)
+        #line.AddArrow(ARROW_METAFILE, mf=pmf)
         line.MakeLineControlPoints(2)
         fromShape.AddLine(line, toShape)
         self.diagram.AddShape(line)
@@ -290,27 +322,22 @@ class PersistentOGLView(ScrollingContainer, EditorViews.EditorView):
         self.shapes.append(shape)
 
         return len(self.shapes) -1
-    
+
     def setSize(self, size):
         nvsx, nvsy = size.x / self.scrollStepX, size.y / self.scrollStepY
         self.Scroll(0, 0)
         self.SetScrollbars(self.scrollStepX, self.scrollStepY, nvsx, nvsy)
         self.canvas.SetSize(self.GetVirtualSize())
-        
+
 
     def OnLoad(self, event):
-        self.canvas.loadSizes(path.splitext(self.model.filename)[0]+self.ext)
+        self.canvas.loadSizes(os.path.splitext(self.model.filename)[0]+self.ext)
 
     def OnSave(self, event):
-        self.canvas.saveSizes(path.splitext(self.model.filename)[0]+self.ext)
-
-    def OnTst(self, event):
-        pass
-##        dc = wxClientDC(self)
-##        self.diagram.RecentreAll(dc)
+        self.canvas.saveSizes(os.path.splitext(self.model.filename)[0]+self.ext)
 
     def OnSetSize(self, event):
-        dlg = wxTextEntryDialog(self, 'Enter new canvas size (width==height)', 
+        dlg = wxTextEntryDialog(self, 'Enter new canvas size (width==height)',
             'Size', `self.size`)
         try:
             if dlg.ShowModal() == wxID_OK:
@@ -322,38 +349,28 @@ class PersistentOGLView(ScrollingContainer, EditorViews.EditorView):
     def OnRightClick1(self, event):
         print self.canvas.HitTest(event.GetX(), event.GetX())
         event.Skip()
-        
+
 
 class SortedUMLViewMix:
     """ Currently uses topological sort to make the UML diagram
     more readily readable on load.  Also resizes the diagram
     to the space taken by the actual diagram elements so that
-    very large diagrams can be accomodated.
+    very large diagrams can be accommodated.
 
     The resulting diagrams are far more white-space-intensive
     than the original jumbles.  A more appropriate algorithm
     may be found by someone else.
     """
-##    def refreshCtrl(self):
-##        """Re-written to call buildShapes instead of the processLevel method"""
-##        dc = wxClientDC(self.canvas)
-##        self.canvas.PrepareDC(dc)
-##
-##        self.destroyShapes()
-##        self.AllClasses = {}
-##
-##        self.buildShapes(dc)
-##        PersistentOGLView.refreshCtrl(self)
     def getShapeSize( self, shape ):
         """Return the size of a shape's representation, an abstraction point"""
         return shape.GetBoundingBoxMax()
     def getCurrentShape( self, className ):
         """Attempt to retrieve an already-existing class model object, another abstraction point"""
         return self.AllClasses.get( className )
-    
+
     def buildShapes( self, dc ):
         """Retrieve the current module and build the graph elements
-        
+
         Where possible, re-use the already-built class shapes.
         Uses toposort to attempt to arrange the shapes after
         they have been built.
@@ -400,6 +417,7 @@ class SortedUMLViewMix:
             self.newLine(dc, self.getCurrentShape(child), self.getCurrentShape(parent), )
         # now make it look nice...
         self.arrangeShapes( dc, nodes, routes)
+
     def arrangeShapes( self, dc, nodes, routes, whiteSpaceFactor = 1.1 ):
         """Given the nodes and routes (values are names only), arrange the shapes
 
@@ -438,7 +456,7 @@ class SortedUMLViewMix:
         rawHeight = height
         height = height * whiteSpaceFactor
         verticalWhiteSpace = (height-rawHeight)/(len(generations)-1.0 or 2.0)
-        self.setSize( wxSize(width+50, height+50)) # fudge factors to keep some extra space
+        self.setSize(wxSize(width+50, height+50)) # fudge factors to keep some extra space
         # distribute each generation across the width
         # and the generations across height
         y = 0
@@ -449,12 +467,10 @@ class SortedUMLViewMix:
             for className in generation:
                 classShape = self.getCurrentShape(className)
                 shapeX, shapeY = self.getShapeSize(classShape)
-                classShape.Move(
-                    dc,
-                    (shapeX/2)+x,
-                    (shapeY/2)+y,
-                    FALSE, # don't display until finished
-                )
+                # snap to diagram grid coords
+                csX, csY = self.diagram.Snap((shapeX/2.0)+x, (shapeY/2.0)+y)
+                # don't display until finished
+                classShape.Move(dc, csX, csY, false)
                 x = x + shapeX + whiteSpace
             y = y + currentHeight + verticalWhiteSpace
 
@@ -462,7 +478,7 @@ class SortedUMLViewMix:
 class RecursionError( OverflowError, ValueError ):
     """ Unable to calculate result because of recursive structure """
 
-def sort(nodes, routes, noRecursion=1):
+def sort(nodes, routes, noRecursion=0):
     """ Passed a list of node IDs and a list of source,dest ID routes
     attempt to create a list of stages where each sub list
     is one stage in a process.
@@ -533,26 +549,23 @@ def _buildChildrenLists (routes):
         parentTable[destinationID] = currentParents
     return childrenTable, parentTable
 
-if wxPlatform == '__WXGTK__':
-    boldFont = wxFont(12, wxDEFAULT, wxNORMAL, wxBOLD, false)
-    font = wxFont(10, wxDEFAULT, wxNORMAL, wxNORMAL, false)
-else:
-    boldFont = wxFont(7, wxDEFAULT, wxNORMAL, wxBOLD, false)
-    font = wxFont(7, wxDEFAULT, wxNORMAL, wxNORMAL, false)
-
 class UMLView(PersistentOGLView, SortedUMLViewMix):
     ext = '.umllay'
     viewName = 'UML'
     showAttributes = 1
     showMethods = 1
     AllClasses = {}
-    toggleAttrBmp = 'Images/Views/UML/attribute.bmp'
-    toggleMethBmp = 'Images/Views/UML/method.bmp'
+    toggleAttrBmp = 'Images/Views/UML/attribute.png'
+    toggleMethBmp = 'Images/Views/UML/method.png'
 
     def __init__(self, parent, model):
         PersistentOGLView.__init__(self, parent, model, (
-            ('Toggle Attributes', self.OnToggleAttributes, self.toggleAttrBmp, ()),
-            ('Toggle Methods', self.OnToggleMethods, self.toggleMethBmp, ())))
+            ('-', None, '-', ''),
+            ('Toggle Attributes', self.OnToggleAttributes, self.toggleAttrBmp, ''),
+            ('Toggle Methods', self.OnToggleMethods, self.toggleMethBmp, ''),
+            ('-', None, '-', ''),
+            ('Force layout', self.OnForceLayout, '-', ''),
+        ))
         self.menuStdClass = wxMenu()
         id = wxNewId()
         self.menuStdClass.Append(id, "Goto Source", checkable = 0)
@@ -560,7 +573,7 @@ class UMLView(PersistentOGLView, SortedUMLViewMix):
         id = wxNewId()
         self.menuStdClass.Append(id, "Goto Documentation", checkable = 0)
         EVT_MENU(self, id, self.OnGotoDoc)
-        
+
         self.shapeMenu = self.menuStdClass
 
     def destroy(self):
@@ -574,9 +587,12 @@ class UMLView(PersistentOGLView, SortedUMLViewMix):
         if not self.showAttributes: classAttrs = [' ']
         if not self.showMethods: classMeths = [' ']
 
-        regionName, maxWidth, nameHeight = self.newRegion(boldFont, 'class_name', [className], maxWidth)
-        regionAttribs, maxWidth, attribsHeight = self.newRegion(font, 'attributes', classAttrs, maxWidth)
-        regionMeths, maxWidth, methsHeight = self.newRegion(font, 'methods', classMeths, maxWidth)
+        regionName, maxWidth, nameHeight = self.newRegion(
+              Preferences.oglBoldFont, 'class_name', [className], maxWidth)
+        regionAttribs, maxWidth, attribsHeight = self.newRegion(
+              Preferences.oglStdFont, 'attributes', classAttrs, maxWidth)
+        regionMeths, maxWidth, methsHeight = self.newRegion(
+              Preferences.oglStdFont, 'methods', classMeths, maxWidth)
 
         totHeight = nameHeight + attribsHeight + methsHeight
 
@@ -592,8 +608,8 @@ class UMLView(PersistentOGLView, SortedUMLViewMix):
 
         shape.SetRegionSizes()
 
-        idx = self.addShape(shape, pos[0], pos[1], wxBLACK_PEN,
-          wxLIGHT_GREY_BRUSH, '')
+        idx = self.addShape(shape, pos[0], pos[1], Preferences.vpOGLClassShapePen,
+          Preferences.vpOGLClassShapeBrush, '')
 
         shape.FlushText()
 
@@ -603,56 +619,21 @@ class UMLView(PersistentOGLView, SortedUMLViewMix):
         shape = PerstDividedShape(className, size[0], size[1])
 
         maxWidth = 10 #padding
-        regionName, maxWidth, nameHeight = self.newRegion(boldFont, 'class_name', [className], maxWidth)
+        regionName, maxWidth, nameHeight = self.newRegion(
+              Preferences.oglBoldFont, 'class_name', [className], maxWidth)
         totHeight = nameHeight
         regionName.SetProportions(0.0, 1.0*(nameHeight/float(totHeight)))
         shape.AddRegion(regionName)
         shape.SetSize(maxWidth + 10, totHeight + 10)
         shape.SetRegionSizes()
 
-        idx = self.addShape(shape, pos[0], pos[1], wxBLACK_PEN,
-          wxGREY_BRUSH, '')
+        idx = self.addShape(shape, pos[0], pos[1],
+            Preferences.vpOGLExternalClassShapePen,
+            Preferences.vpOGLExternalClassShapeBrush, '')
 
         shape.FlushText()
 
         return self.shapes[idx]
-
-##    def processLevel(self, dc, hierc, pos, incx, fromShape = None):
-##        module = self.model.getModule()
-##        for clss in hierc.keys():
-##            if self.AllClasses.has_key(clss):
-##                toShape = self.AllClasses[clss]
-##                px, py = pos[0], pos[1]
-##            else:
-##                if module.classes.has_key(clss):
-##                    toShape = self.newClass((20, 30), (pos[0], pos[1]),
-##                      clss, module.classes[clss].methods.keys(),
-##                       module.classes[clss].attributes.keys())
-##                    self.AllClasses[clss] = toShape
-##                else:
-##                    toShape = self.newExternalClass((20, 30), (pos[0], pos[1]), clss)
-##                    self.AllClasses[clss] = toShape
-##                toShape.SetId(1000 + len(self.AllClasses))
-##                k = hierc[clss].keys()
-##                if len(k):
-##                    px, py, incx = self.processLevel(dc, hierc[clss],
-##                        [pos[0], pos[1]+incy], incx, toShape)
-##                else: px, py = pos[0], pos[1]
-##            if fromShape:
-##                self.newLine(dc, toShape, fromShape)
-##
-##            pos[0] = px + incx
-##            if pos[0] > 700:
-##                pos[1] = py + incy
-##                pos[0] = 40
-##                incx = incx *-1
-##            elif pos[0] < 40:
-##                pos[1] = py + incy
-##                pos[0] = 700
-##                incx = incx *-1
-##
-##        return pos[0], pos[1], incx
-
 
     def refreshCtrl(self):
         dc = wxClientDC(self.canvas)
@@ -661,17 +642,9 @@ class UMLView(PersistentOGLView, SortedUMLViewMix):
         self.destroyShapes()
         self.AllClasses = {}
 
-        # Sort shapes, mixin method
+        # Do initial layout
         self.buildShapes(dc)
-
-##        module = self.model.getModule()
-##        hierc = module.createHierarchy()
-##
-##        pos = [40, 40]
-##
-##        incx = 40
-##        self.processLevel(dc, hierc, pos, incx)
-
+        # Try to load layout from a pickle
         PersistentOGLView.refreshCtrl(self)
 
     def OnToggleMethods(self, event):
@@ -717,12 +690,15 @@ class UMLView(PersistentOGLView, SortedUMLViewMix):
     def OnRightClick(self, event):
         """If the event occurs on one of our shapes, I want to pop-up a shape"""
         x, y = (event.m_x, event.m_y)
+        hit = 0
         for (name, shape) in self.AllClasses.items():
             (hit, attach_point, distance) = shape.HitTest(x, y)
             if hit: break
         x, y = self.CalcScrolledPosition(x, y)
         if not hit:
-            self.PopupMenu(self.menu, wxPoint(x, y))
+            menu = self.generateMenu()
+            self.PopupMenuXY(menu, x, y)
+            menu.Destroy()
             return
         # If we reach this point, then we have a selected shape.
         # However, it may be a class or external
@@ -731,33 +707,46 @@ class UMLView(PersistentOGLView, SortedUMLViewMix):
             self.PopupMenu(self.menuStdClass, wxPoint(x, y))
             (self.menuShape, self.menuClass) = (None, None)
 
+    def OnForceLayout(self, event):
+        dc = wxClientDC(self.canvas)
+        self.canvas.PrepareDC(dc)
+
+        self.destroyShapes()
+        self.AllClasses = {}
+
+        self.buildShapes(dc)
+
+        self.canvas.redraw()
+
 #-------------------------------------------------------------------------------
 
 class ImportsView(PersistentOGLView):
     ext = '.implay'
-    refreshBmp = 'Images/Editor/Refresh.bmp'
+    refreshBmp = 'Images/Editor/Refresh.png'
     viewName = 'Imports'
 
     def __init__(self, parent, model):
         PersistentOGLView.__init__(self, parent, model,
-          (('-', None, '', ()),
-           ('Refresh', self.OnRefresh, self.refreshBmp, ()))
+          (('-', None, '', ''),
+           ('Refresh', self.OnRefresh, self.refreshBmp, ''))
         )
         self.relationships = None
         self.showImports = 1
 
     def newModule(self, size, pos, moduleName, importList):
         idx = self.addShape(PerstDividedShape(moduleName, size[0], size[1]),
-          pos[0], pos[1], wxBLACK_PEN, wxLIGHT_GREY_BRUSH, '')
+          pos[0], pos[1],
+          Preferences.vpOGLModuleShapePen,
+          Preferences.vpOGLModuleShapeBrush, '')
 
         if not self.showImports: importList = [' ']
 
         maxWidth = 10 #padding
 
-        regionName, maxWidth, nameHeight = self.newRegion(boldFont,
-          'module_name', [moduleName], maxWidth)
-        regionClss, maxWidth, clssHeight = self.newRegion(font,
-          'methods', importList, maxWidth)
+        regionName, maxWidth, nameHeight = self.newRegion(
+              Preferences.oglBoldFont, 'module_name', [moduleName], maxWidth)
+        regionClss, maxWidth, clssHeight = self.newRegion(
+              Preferences.oglStdFont, 'methods', importList, maxWidth)
 
         totHeight = nameHeight + clssHeight
 
@@ -791,11 +780,23 @@ class ImportsView(PersistentOGLView):
         shapes = {}
         p = 10
         y = 20
+        if hasattr(self.model, 'packageName'):
+            packageName = self.model.packageName
+        else:
+            packageName = ''
         # Add shapes
         for rel in relations.keys():
             impLst = []
             for i in relations[rel].imports.keys():
-                if relations.has_key(i): impLst.append(i)
+                if Utils.startswith(i, packageName+'.'):
+                    i = i[len(packageName)+1:]
+                if relations.has_key(i):
+                    impLst.append(i)
+            for i in relations[rel].from_imports.keys():
+                if Utils.startswith(i, packageName+'.'):
+                    i = i[len(packageName)+1:]
+                if relations.has_key(i):
+                    impLst.append(i)
 
             shape, width = self.newModule((20, 30), (p, y), rel, relations[rel].classes.keys())
             shapes[rel] = (shape, impLst)
@@ -818,13 +819,13 @@ class ImportsView(PersistentOGLView):
 
 class AppPackageView(PersistentOGLView):
     ext = '.apklay'
-    refreshBmp = 'Images/Editor/Refresh.bmp'
+    refreshBmp = 'Images/Editor/Refresh.png'
     viewName = 'Application packages'
 
     def __init__(self, parent, model):
         PersistentOGLView.__init__(self, parent, model,
-          (('-', None, '', ()),
-           ('Refresh', self.OnRefresh, self.refreshBmp, ()))
+          (('-', None, '', ''),
+           ('Refresh', self.OnRefresh, self.refreshBmp, ''))
         )
         self.relationships = None
 
@@ -834,10 +835,10 @@ class AppPackageView(PersistentOGLView):
 
         maxWidth = 10 #padding
 
-        regionName, maxWidth, nameHeight = self.newRegion(boldFont,
-          'module_name', [moduleName], maxWidth)
-        regionClss, maxWidth, clssHeight = self.newRegion(font,
-          'methods', importList, maxWidth)
+        regionName, maxWidth, nameHeight = self.newRegion(
+              Preferences.oglBoldFont, 'module_name', [moduleName], maxWidth)
+        regionClss, maxWidth, clssHeight = self.newRegion(
+              Preferences.oglStdFont, 'methods', importList, maxWidth)
 
         totHeight = nameHeight + clssHeight
 
@@ -902,4 +903,3 @@ class __Cleanup:
 
 # when this module gets cleaned up then wxOGLCleanUp() will get called
 __cu = __Cleanup()
-    

@@ -94,11 +94,19 @@ class ObjectCollection:
             dict[new_name] = dict[name]
             del dict[name]
 
+    def renameFrameList(self, lst, name, new_name):
+        for item in lst:
+            item.renameFrameName(name, new_name)
+
     def renameCtrl(self, name, new_name):
         self.renameList(self.creators, self.creatorByName, name, new_name)
         self.renameList(self.properties, self.propertiesByName, name, new_name)
         self.renameList(self.events, self.eventsByName, name, new_name)
         self.renameList(self.collections, self.collectionsByName, name, new_name)
+
+    def renameFrame(self, name, new_name):
+        self.renameFrameList(self.creators, name, new_name)
+        self.renameFrameList(self.events, name, new_name)
 
     def deleteCtrl(self, name):
         for list in (self.creators, self.properties, self.events):
@@ -132,8 +140,9 @@ class ObjectCollection:
         self.eventsByName = self.setupList(self.events)
         self.collectionsByName = self.setupList(self.collections)
 
+import Utils
 def isInitCollMeth(meth):
-    return len(meth) > len(sourceconst.init_coll) and meth[:11] == sourceconst.init_coll
+    return Utils.startswith(meth, sourceconst.init_coll)
 
 def getCollName(collInitMethod, name):
     return collInitMethod[len(sourceconst.init_coll+name)+1:]

@@ -6,13 +6,13 @@
 #
 # Created:     1999
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999 - 2001 Riaan Booysen
+# Copyright:   (c) 1999 - 2002 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
 
-print 'importing Designer'
+print 'importing Views.Designer'
 
-import string, copy, os, pprint
+import string, copy, os, pprint, math
 
 from wxPython.wx import *
 
@@ -26,13 +26,16 @@ import SelectionTags
 
 [wxID_CTRLPARENT, wxID_EDITCUT, wxID_EDITCOPY, wxID_EDITPASTE, wxID_EDITDELETE,
  wxID_SHOWINSP, wxID_SHOWEDTR, wxID_CTRLHELP, wxID_EDITALIGN, wxID_EDITSIZE,
- wxID_EDITRECREATE, wxID_EDITSNAPGRID,
-] = Utils.wxNewIds(12)
+ wxID_EDITRECREATE, wxID_EDITSNAPGRID, wxID_EDITRELAYOUT, wxID_EDITRELAYOUTSEL,
+ wxID_EDITRELAYOUTDESGN, wxID_EDITCREATEORDER,
+] = Utils.wxNewIds(16)
 
 [wxID_EDITMOVELEFT, wxID_EDITMOVERIGHT, wxID_EDITMOVEUP, wxID_EDITMOVEDOWN,
  wxID_EDITWIDTHINC, wxID_EDITWIDTHDEC, wxID_EDITHEIGHTINC, wxID_EDITHEIGHTDEC,
 ] = Utils.wxNewIds(8)
 
+[wxID_EDITSELECTLEFT, wxID_EDITSELECTRIGHT, wxID_EDITSELECTUP, wxID_EDITSELECTDOWN,
+] = Utils.wxNewIds(4)
 
 class DesignerView(wxFrame, InspectableObjectView, Utils.FrameRestorerMixin):
     """ Frame Designer for design-time creation/manipulation of visual controls
@@ -40,21 +43,24 @@ class DesignerView(wxFrame, InspectableObjectView, Utils.FrameRestorerMixin):
     viewName = 'Designer'
     docked = false
     collectionMethod = sourceconst.init_ctrls
-    handledProps = ['parent', 'id']
+##    handledProps = ['parent', 'id']
     supportsParentView = true
 
-    def setupArgs(self, ctrlName, params, dontEval, parent=None, compClass=None, evalDct={}):
+    def setupArgs(self, ctrlName, params, dontEval, parent=None, compClass=None, evalDct={}, doId=true):
         """ Create a dictionary of parameters for the constructor of the
             control from a dictionary of string/source parameters.
         """
+        #print 'setupArgs', dontEval
         args = InspectableObjectView.setupArgs(self, ctrlName, params, dontEval, evalDct=evalDct)
 
         if compClass:
             prnt = compClass.windowParentName
             wId = compClass.windowIdName
+            doId = not compClass.suppressWindowId
         else:
             prnt = 'parent'
             wId = 'id'
+            doId = true
 
         # Determine parent
         if parent:
@@ -82,27 +88,28 @@ class DesignerView(wxFrame, InspectableObjectView, Utils.FrameRestorerMixin):
                 args[prnt] = self.objects[srcPrnt][1]
 
 
-        args[wId] = NewId()
-        args['name'] = ctrlName
+        if doId: args[wId] = NewId()
 
         return args
 
     def __init__(self, parent, inspector, model, compPal, companionClass, dataView):
+        #doId = model.modelIdentifier not in ('PopupWindow', 'PopupTransientWindow')
         args = self.setupArgs(model.main, model.mainConstr.params,
-          ['parent', 'id'], parent, companionClass, model.specialAttrs)
+          ['parent', 'id'], parent, companionClass, model.specialAttrs)#, doId)
         if model.modelIdentifier == 'Dialog':
             style = wxRESIZE_BORDER | wxCAPTION | wxSYSTEM_MENU
         else:
             style = wxDEFAULT_FRAME_STYLE
-        wxFrame.__init__(self, parent, -1, args['title'], args['pos'], 
-            args['size'], style=style)
+        wxFrame.__init__(self, parent, -1, args.get('title', ''),
+                                           args.get('pos', wxPyDefaultPosition),
+                                           args.get('size', wxPyDefaultSize),
+                                           style=style)
         InspectableObjectView.__init__(self, inspector, model, compPal)
-        
-        if model.modelIdentifier == 'Dialog':
+
+        if model.modelIdentifier in ('Dialog', 'PopupWindow', 'PopupTransientWindow'):
             self.SetBackgroundColour(wxSystemSettings_GetSystemColour(wxSYS_COLOUR_BTNFACE))
 
-        if wxPlatform == '__WXMSW__':
-            self.SetIcon(IS.load('Images/Icons/Designer.ico'))
+        self.SetIcon(IS.load('Images/Icons/Designer.ico'))
 
         EVT_MOVE(self, self.OnFramePos)
 
@@ -137,8 +144,10 @@ class DesignerView(wxFrame, InspectableObjectView, Utils.FrameRestorerMixin):
         self.destroying = false
         self.selection = None
         self.multiSelection = []
+        # flags controlling behaviour in resize event
         self.vetoResize = false
-
+        self.forceResize = false
+        self.deletingCtrl = false
         # XXX Move this definition into actions
 
         self.menu = wxMenu()
@@ -151,10 +160,14 @@ class DesignerView(wxFrame, InspectableObjectView, Utils.FrameRestorerMixin):
         self.menu.Append(wxID_EDITDELETE, 'Delete')
         self.menu.Append(-1, '-')
         self.menu.Append(wxID_EDITRECREATE, 'Recreate')
+        self.menu.Append(wxID_EDITRELAYOUTSEL, 'Relayout selection')
+        self.menu.Append(wxID_EDITRELAYOUTDESGN, 'Relayout Designer')
         self.menu.Append(-1, '-')
         self.menu.Append(wxID_EDITSNAPGRID, 'Snap to grid')
         self.menu.Append(wxID_EDITALIGN, 'Align...')
         self.menu.Append(wxID_EDITSIZE, 'Size...')
+        self.menu.Append(-1, '-')
+        self.menu.Append(wxID_EDITCREATEORDER, 'Creation/Tab order...')
 
         EVT_CLOSE(self, self.OnCloseWindow)
         EVT_MENU(self, wxID_EDITDELETE, self.OnControlDelete)
@@ -168,7 +181,10 @@ class DesignerView(wxFrame, InspectableObjectView, Utils.FrameRestorerMixin):
         EVT_MENU(self, wxID_EDITCOPY, self.OnCopySelected)
         EVT_MENU(self, wxID_EDITPASTE, self.OnPasteSelected)
         EVT_MENU(self, wxID_EDITRECREATE, self.OnRecreateSelected)
+        EVT_MENU(self, wxID_EDITRELAYOUTSEL, self.OnRelayoutSelection)
+        EVT_MENU(self, wxID_EDITRELAYOUTDESGN, self.OnRelayoutDesigner)
         EVT_MENU(self, wxID_EDITSNAPGRID, self.OnSnapToGrid)
+        EVT_MENU(self, wxID_EDITCREATEORDER, self.OnCreationOrder)
 
         EVT_MENU(self, wxID_EDITMOVELEFT, self.OnMoveLeft)
         EVT_MENU(self, wxID_EDITMOVERIGHT, self.OnMoveRight)
@@ -179,6 +195,11 @@ class DesignerView(wxFrame, InspectableObjectView, Utils.FrameRestorerMixin):
         EVT_MENU(self, wxID_EDITHEIGHTINC, self.OnHeightInc)
         EVT_MENU(self, wxID_EDITHEIGHTDEC, self.OnHeightDec)
 
+        EVT_MENU(self, wxID_EDITSELECTLEFT, self.OnSelectLeft)
+        EVT_MENU(self, wxID_EDITSELECTRIGHT, self.OnSelectRight)
+        EVT_MENU(self, wxID_EDITSELECTUP, self.OnSelectUp)
+        EVT_MENU(self, wxID_EDITSELECTDOWN, self.OnSelectDown)
+
         # Key bindings
         accLst = []
         for name, wId in (('Delete', wxID_EDITDELETE),
@@ -188,14 +209,21 @@ class DesignerView(wxFrame, InspectableObjectView, Utils.FrameRestorerMixin):
                           ('Escape', wxID_CTRLPARENT),
                           ('Copy', wxID_EDITCOPY),
                           ('Paste', wxID_EDITPASTE),
+
                           ('MoveLeft', wxID_EDITMOVELEFT),
                           ('MoveRight', wxID_EDITMOVERIGHT),
                           ('MoveUp', wxID_EDITMOVEUP),
                           ('MoveDown', wxID_EDITMOVEDOWN),
+
                           ('WidthInc', wxID_EDITWIDTHINC),
                           ('WidthDec', wxID_EDITWIDTHDEC),
                           ('HeightInc', wxID_EDITHEIGHTINC),
                           ('HeightDec', wxID_EDITHEIGHTDEC),
+
+                          ('SelectLeft', wxID_EDITSELECTLEFT),
+                          ('SelectRight', wxID_EDITSELECTRIGHT),
+                          ('SelectUp', wxID_EDITSELECTUP),
+                          ('SelectDown', wxID_EDITSELECTDOWN),
                         ):
             tpe, key, code = Preferences.keyDefs[name]
             accLst.append((tpe, key, wId))
@@ -205,12 +233,15 @@ class DesignerView(wxFrame, InspectableObjectView, Utils.FrameRestorerMixin):
     def generateMenu(self):
         return Utils.duplicateMenu(self.menu)
 
-    def saveCtrls(self, definedCtrls):
+    def saveCtrls(self, definedCtrls, module=None):
         """ Generate source code for Designer """
+
+        if not module:
+            module = self.model.getModule()
         # Remove all collection methods
         for oc in self.model.identifyCollectionMethods():
             if len(oc) > len('_init_coll_') and oc[:11] == '_init_coll_':
-                module = self.model.getModule()
+##                module = self.model.getModule()
                 module.removeMethod(self.model.main, oc)
 
         # Update all size and pos parameters possibly updated externally
@@ -218,24 +249,20 @@ class DesignerView(wxFrame, InspectableObjectView, Utils.FrameRestorerMixin):
             compn.updatePosAndSize()
 
         # Generate code
-        InspectableObjectView.saveCtrls(self, definedCtrls)
+        InspectableObjectView.saveCtrls(self, definedCtrls, module)
 
         # Regenerate window ids
         companions = map(lambda i: i[0], self.objects.values())
         self.model.writeWindowIds(self.collectionMethod, companions)
 
     def renameCtrl(self, oldName, newName):
-        """ Rename control, references to control and update
-            parent tree """
+        """ Rename control, references to control and update parent tree """
 
         prel, pref = self.buildParentRelationship()
-        # rename other ctrl references like parent
-#        for ctrl in pref[oldName].keys():
-        # XXX Not adequate to only notify the children
 
+        # rename other ctrl references like parent
         children = pref[oldName].keys()
         for ctrl in self.objectOrder:
-##            print 'notifying', ctrl
             # Notify
             self.objects[ctrl][0].renameCtrlRefs(oldName, newName)
             # Rename childrens' parents
@@ -248,6 +275,28 @@ class DesignerView(wxFrame, InspectableObjectView, Utils.FrameRestorerMixin):
         InspectableObjectView.renameCtrl(self, oldName, newName)
         selName = self.inspector.containment.selectedName()
         if selName == oldName: selName = newName
+
+        self.refreshContainment(selName)
+
+    def renameFrame(self, oldName, newName):
+        """ Hook that also updates the Model and window ids of the
+            Frame when it's name changes """
+        self.SetName(newName)
+
+        # propagate rename to model
+        self.model.renameMain(oldName, newName)
+
+        # update window ids in designer and data
+        InspectableObjectView.renameFrame(self, oldName, newName)
+        self.dataView.renameFrame(oldName, newName)
+
+        # update window ids in collection items
+        for collEditor in self.collEditors.values() + self.dataView.collEditors.values():
+            collEditor.renameFrame(oldName, newName)
+
+        # propagate rename to inspector
+        selName = self.inspector.containment.selectedName()
+        if selName == oldName: selName = ''
 
         self.refreshContainment(selName)
 
@@ -271,15 +320,15 @@ class DesignerView(wxFrame, InspectableObjectView, Utils.FrameRestorerMixin):
         try:
             objCol = self.model.objectCollections[self.collectionMethod]
             objCol.indexOnCtrlName()
-    
+
             self.model.editor.statusBar.progress.SetValue(20)
-    
+
             stepsDone = 20.0
-    
+
             # Initialise the design time controls and
             # companion with default values
             # initObjectsAndCompanions(creators, props, events)
-    
+
             self.inspector.vetoSelect = true
             try:
                 # init main construtor
@@ -287,23 +336,27 @@ class DesignerView(wxFrame, InspectableObjectView, Utils.FrameRestorerMixin):
                 ctrlCompn = self.companion
                 deps = {}
                 depLnks = {}
-    
+
                 self.initObjProps(objCol.propertiesByName, '', objCol.creators[0], deps, depLnks)
                 self.initObjEvts(objCol.eventsByName, '', objCol.creators[0])
-    
+
                 if len(objCol.creators) > 1:
                     self.initObjectsAndCompanions(objCol.creators[1:], objCol, deps, depLnks)
-    
+
                     # Track progress
                     step = (90 - stepsDone) / len(objCol.creators)
                     stepsDone = stepsDone + step
                     self.model.editor.statusBar.progress.SetValue(int(stepsDone))
-    
+
                 self.finaliseDepLinks(depLnks)
-    
+
+                if len(depLnks):
+                    wxLogWarning(pprint.pformat(depLnks))
+                    wxLogWarning('These links were not resolved (Details...)')
+
             finally:
                 self.inspector.vetoSelect = false
-    
+
             self.model.editor.statusBar.progress.SetValue(80)
             self.refreshContainment()
             self.model.editor.statusBar.progress.SetValue(0)
@@ -312,7 +365,7 @@ class DesignerView(wxFrame, InspectableObjectView, Utils.FrameRestorerMixin):
         except:
             self.model.editor.statusBar.progress.SetValue(0)
             #self.model.editor.statusBar.setHint('Error opening the Designer', 'Error')
-            raise    
+            raise
 
     def refreshModel(self):
         """ Update model with streamed out controls """
@@ -322,14 +375,15 @@ class DesignerView(wxFrame, InspectableObjectView, Utils.FrameRestorerMixin):
         if self.saveOnClose:
             oldData = self.model.data
 
+            module = self.model.getModule()
             # Stream out everything to Module & update model
-            self.saveCtrls(self.dataView.objectOrder[:])
-            self.dataView.saveCtrls([])
+            self.saveCtrls(self.dataView.objectOrder[:], module)
+            self.dataView.saveCtrls([], module)
             self.model.refreshFromModule()
 
             # Close data view before updates
             self.dataView.deleteFromNotebook('Source', 'Data')
-            
+
             # Update state (if changed)
             newData = self.model.data
             self.model.modified = self.model.modified or newData != oldData
@@ -344,32 +398,29 @@ class DesignerView(wxFrame, InspectableObjectView, Utils.FrameRestorerMixin):
                 self.model.views['Source'].GotoLine(module.classes[\
                   self.model.main].methods['__init__'].start)
 
-            self.model.editor.statusBar.setHint('Designer session Posted.')
+            self.model.editor.setStatus('Designer session Posted.')
         else:
             self.dataView.deleteFromNotebook('Source', 'Data')
 
-            self.model.editor.statusBar.setHint('Designer session Cancelled.', 
-                  'Warning')
+            self.model.editor.setStatus('Designer session Cancelled.', 'Warning')
 
     def initSelection(self):
         """ Create a selection group """
         self.selection = SelectionTags.SingleSelectionGroup(self,
               self.senderMapper, self.inspector, self)
 
-    def loadControl(self, ctrlClass, ctrlCompanion, ctrlName, params):
+    def loadControl(self, CtrlClass, CtrlCompanion, ctrlName, params):
         """ Create and register given control and companion.
             See also: newControl
         """
 
-        dontEval = [ctrlCompanion.windowParentName, ctrlCompanion.windowIdName]
+        args = self.setupArgs(ctrlName, params, CtrlCompanion.handledConstrParams,
+              compClass=CtrlCompanion, evalDct=self.model.specialAttrs)
 
-        args = self.setupArgs(ctrlName, params, dontEval, 
-              compClass=ctrlCompanion, evalDct=self.model.specialAttrs)
-
-        parent = Utils.ctrlNameFromSrcRef(params[ctrlCompanion.windowParentName])
+        parent = Utils.ctrlNameFromSrcRef(params[CtrlCompanion.windowParentName])
 
         # Create control and companion
-        companion = ctrlCompanion(ctrlName, self, None, ctrlClass)
+        companion = CtrlCompanion(ctrlName, self, None, CtrlClass)
 
         self.addObject(ctrlName, companion,
           companion.designTimeControl(None, None, args), parent)
@@ -389,22 +440,25 @@ class DesignerView(wxFrame, InspectableObjectView, Utils.FrameRestorerMixin):
 
         params = companion.designTimeSource('wxPoint(%d, %d)' % (position.x, position.y))
 
-        if parent.GetName() != self.GetName():
-            parentName = parent.GetName()
-            params[companion.windowParentName] = 'self.'+parentName
-        else:
-            parentName = ''
-            params[companion.windowParentName] = 'self'
+        parentName, params[companion.windowParentName] = self.getParentNames(parent)
 
         self.addObject(ctrlName, companion,
           companion.designTimeControl(position, size), parentName)
 
-        params[companion.windowIdName] = companion.id
+        if not companion.suppressWindowId:
+            params[companion.windowIdName] = companion.id
+
         companion.persistConstr(ctrlClass.__name__, params)
 
         self.refreshContainment()
 
         return ctrlName
+
+    def getParentNames(self, parent):
+        if parent.GetName() != self.GetName():
+            return parent.GetName(), 'self.'+parent.GetName()
+        else:
+            return '', 'self'
 
     def removeEvent(self, name):
         # XXX Remove event!
@@ -415,7 +469,7 @@ class DesignerView(wxFrame, InspectableObjectView, Utils.FrameRestorerMixin):
         results = InspectableObjectView.getObjectsOfClass(self, theClass)
         dataResults = {}
         for objName in self.dataView.objects.keys():
-            if self.dataView.objects[objName][1].__class__ is theClass:
+            if isinstance(self.dataView.objects[objName][1], theClass):
                 dataResults['self.'+objName] = self.dataView.objects[objName][1]
         results.update(dataResults)
         return results
@@ -436,43 +490,22 @@ class DesignerView(wxFrame, InspectableObjectView, Utils.FrameRestorerMixin):
                 self.assureSingleSelection()
 
             if ctrl != self:
-                parent = ctrl.GetParent()
-                parentName = parent.GetName()
-                if parentName == self.GetName():
-                    parentName = ''
+                parentName, dummy = self.getParentNames(ctrl.GetParent())
                 self.inspector.containment.selectName(parentName)
 
-    def renameFrame(self, oldName, newName):
-        """ Hook that also updates the Model and window ids of the
-            Frame when it's name changes """
-        self.SetName(newName)
-
-        # update windowids & ctrls
-        for comp, ctrl, dummy in self.objects.values():
-            comp.updateWindowIds()
-
-        # propagate rename to model
-        self.model.renameMain(oldName, newName)
-
-        # propagate rename to inspector
-        selName = self.inspector.containment.selectedName()
-        if selName == oldName: selName = ''
-
-        self.refreshContainment(selName)
 
     def deleteCtrl(self, name, parentRef = None):
         """ Delete a control, update selection and parent tree """
         ctrlInfo = self.objects[name]
         if ctrlInfo[1] == self:
-            wxMessageBox("Can't delete frame")
+            wxMessageBox("Can't delete frame", style=wxOK|wxICON_ERROR, parent=self)
             return
         parRel = None
         # build relationship, this will only happen for the first call
         if not parentRef:
             # select parent so long, pretty soon won't be able to ask who
             # the parent is
-            parentName = ctrlInfo[1].GetParent().GetName()
-            if parentName == self.GetName(): parentName = ''
+            parentName, dummy = self.getParentNames(ctrlInfo[1].GetParent())
 
             self.selectParent(ctrlInfo[1])
             parRel, parRef = self.buildParentRelationship()
@@ -503,6 +536,10 @@ class DesignerView(wxFrame, InspectableObjectView, Utils.FrameRestorerMixin):
                 sel.destroy()
             self.multiSelection = []
             self.assureSingleSelection()
+
+    def notifyAction(self, compn, action):
+        InspectableObjectView.notifyAction(self, compn, action)
+        self.dataView.notifyAction(compn, action)
 
     def close(self):
         self.Close()
@@ -565,12 +602,6 @@ class DesignerView(wxFrame, InspectableObjectView, Utils.FrameRestorerMixin):
             try:
                 pos = childCtrl.GetPosition()
                 sze = childCtrl.GetSize()
-
-##                realParent = childCtrl.GetParent()
-##                if realParent.this[:8] != \
-##                      self.objects[officialParent][1].this[:8]:
-##                    print 'adjusting pos', pos, realParent.GetPosition()
-##                    pos = realParent.GetPosition()
             except:
                 print 'could not get child ctrl size', childCtrl
             else:
@@ -585,7 +616,10 @@ class DesignerView(wxFrame, InspectableObjectView, Utils.FrameRestorerMixin):
                 if childCtrl.IsShown() and realParent.IsShown() and \
                       wxIntersectRect((clickPos.x - offset[0],
                                        clickPos.y - offset[1], 1, 1),
-                                      (pos.x, pos.y, sze.x, sze.y)) is not None:
+                                      (pos.x, pos.y, max(sze.x, 1),
+                                       max(sze.y, 1))) is not None:
+
+                    #print clickPos, offset, pos, sze
 
                     selCtrl = childCtrl
                     selCompn = childCompn
@@ -662,6 +696,8 @@ class DesignerView(wxFrame, InspectableObjectView, Utils.FrameRestorerMixin):
             selCtrl, selCompn, selPos = \
                   self.checkChildCtrlClick(ctrlName, ctrl, companion, pos)
 
+            #print ctrlName, ctrl, companion, pos, '---'
+            #print selCtrl, selCompn, selPos
             # Component on palette selected, create it
             if self.compPal.selection:
                 if selCompn.container:
@@ -692,21 +728,15 @@ class DesignerView(wxFrame, InspectableObjectView, Utils.FrameRestorerMixin):
             # Select ctrl
             else:
                 if self.selection or self.multiSelection:
-                    #evtPos = event.GetPosition()
-    ##                ctrlName = companion.name
-    ##
-    ##                selCtrl, selCompn, selPos = \
-    ##                      self.checkChildCtrlClick(ctrlName, ctrl, companion, pos)
-
                     # Multi selection
                     if multiSelect:
                         # Verify that it's a legal multi selection
                         # They must have the same parent
                         if self.selection:
-                            if selCtrl.GetParent().this != self.selection.selection.GetParent().this:
+                            if selCtrl.GetParent() != self.selection.selection.GetParent():
                                 return
                         elif self.multiSelection:
-                            if selCtrl.GetParent().this != self.multiSelection[0].selection.GetParent().this:
+                            if selCtrl.GetParent() != self.multiSelection[0].selection.GetParent():
                                 return
 
                         if not self.multiSelection:
@@ -775,22 +805,23 @@ class DesignerView(wxFrame, InspectableObjectView, Utils.FrameRestorerMixin):
 #        self.selection.selectCtrl(self, self.companion)
         if self.selection and self.selection.selection == self:
             self.inspector.constructorUpdate('Position')
+            self.inspector.propertyUpdate('Position')
         event.Skip()
 
     def OnCloseWindow(self, event):
         """ When the Designer closes, the code generation process is started.
             General Inspector and Designer clean-up """
-        
+
         if not self.saveOnClose and self.confirmCancel and wxMessageBox(
-              'Cancel Designer session?', 'Cancel', 
-              wxYES_NO | wxICON_WARNING, parent=self) == wxNO:
+              'Cancel Designer session?', 'Cancel',
+              wxYES_NO | wxICON_WARNING, parent=None) == wxNO:
             self.saveOnClose = true
             self.confirmCancel = false
             return
-            
+
         if self.IsIconized():
             self.Iconize(false)
-        
+
         self.destroying = true
         self.vetoResize = true
         try:
@@ -801,17 +832,17 @@ class DesignerView(wxFrame, InspectableObjectView, Utils.FrameRestorerMixin):
                 for sel in self.multiSelection:
                     sel.destroy()
                 self.multiSelection = None
-            
+
             self.inspector.cleanup()
             self.inspector.containment.cleanup()
-    
+
             # generate source
             self.refreshModel()
         except:
             self.destroying = false
             self.vetoResize = false
             raise
-        
+
         self.menu.Destroy()
         self.cleanup()
         self.Show(false)
@@ -841,22 +872,27 @@ class DesignerView(wxFrame, InspectableObjectView, Utils.FrameRestorerMixin):
         self.inspector.restore()
         if self.inspector.pages.GetSelection() > 3:
             self.inspector.pages.SetSelection(0)
-            
+
 
     def OnControlDelete(self, event):
         """ Delete the currently selected controls """
-        ctrls = []
-        if self.selection:
-            if self.selection.isProxySelection():
-                wxLogError('Nothing to delete')
-                return
-            ctrls = [self.selection.name]
-        elif self.multiSelection:
-            ctrls = map(lambda sel: sel.name, self.multiSelection)
+        if self.deletingCtrl: return
+        self.deletingCtrl = true
+        try:
+            ctrls = []
+            if self.selection:
+                if self.selection.isProxySelection():
+                    wxLogError('Nothing to delete')
+                    return
+                ctrls = [self.selection.name]
+            elif self.multiSelection:
+                ctrls = map(lambda sel: sel.name, self.multiSelection)
 
-        #map(self.deleteCtrl, ctrls)
-        for ctrlName in ctrls:
-            self.deleteCtrl(ctrlName)
+            #map(self.deleteCtrl, ctrls)
+            for ctrlName in ctrls:
+                self.deleteCtrl(ctrlName)
+        finally:
+            self.deletingCtrl = false
 
     def OnCtrlHelp(self, event):
         """ Show help for the selected control """
@@ -970,10 +1006,11 @@ class DesignerView(wxFrame, InspectableObjectView, Utils.FrameRestorerMixin):
             ctrlName = self.selection.name
             # XXX Boa should be able to tell me this
             parent = self.selection.selection.GetParent()
-            if parent.GetId() == self.GetId():
-                parentName = ''
-            else:
-                parentName = parent.GetName()
+            parentName, dummy = self.getParentNames(parent)
+##            if parent.GetId() == self.GetId():
+##                parentName = ''
+##            else:
+##                parentName = parent.GetName()
 
             self.cutCtrls([ctrlName], [], output)
             self.pasteCtrls(parentName, output)
@@ -1041,6 +1078,94 @@ class DesignerView(wxFrame, InspectableObjectView, Utils.FrameRestorerMixin):
             sel.size.y = sel.size.y - 1
             self.sizeUpdate(sel)
 
+#---Cursor selection------------------------------------------------------------
+    def selectInDimentionDirection(self, selctrl, dim, dir):
+        def compSides(selctrl, ctrl, dim, dir):
+            selpos, selsize = selctrl.GetPosition(), selctrl.GetSize()
+            pos, size = ctrl.GetPosition(), ctrl.GetSize()
+            selMidPoint = wxPoint(selpos.x + selsize.x/2, selpos.y + selsize.y/2)
+            ctrlMidPoint = wxPoint(pos.x + size.x/2, pos.y + size.y/2)
+            if (dim, dir) == ('x', 1):
+                return (wxPoint(selpos.x + selsize.x, selpos.y), selMidPoint,
+                        wxPoint(selpos.x + selsize.x, selpos.y + selsize.y),
+                        wxPoint(pos.x, pos.y), ctrlMidPoint,
+                        wxPoint(pos.x, pos.y + size.y) )
+            if (dim, dir) == ('x', -1):
+                return (wxPoint(selpos.x, selpos.y), selMidPoint,
+                        wxPoint(selpos.x, selpos.y + selsize.y),
+                        wxPoint(pos.x + size.x, pos.y), ctrlMidPoint,
+                        wxPoint(pos.x + size.x, pos.y + size.y) )
+            if (dim, dir) == ('y', 1):
+                return (wxPoint(selpos.x, selpos.y + selsize.y), selMidPoint,
+                        wxPoint(selpos.x + selsize.x, selpos.y + selsize.y),
+                        wxPoint(pos.x, pos.y), ctrlMidPoint,
+                        wxPoint(pos.x + size.x, pos.y) )
+            if (dim, dir) == ('y', -1):
+                return (wxPoint(selpos.x, selpos.y), selMidPoint,
+                        wxPoint(selpos.x + selsize.x, selpos.y),
+                        wxPoint(pos.x, pos.y + size.y), ctrlMidPoint,
+                        wxPoint(pos.x + size.x, pos.y + size.y) )
+
+        dims = ['x', 'y']
+        otherdim = dims[not dims.index(dim)]
+        parentName, dummy = self.getParentNames(selctrl.GetParent())
+        selName = selctrl.GetName()
+
+        distLo = -1
+        nearestCtrl = None
+        for objName in self.objects.keys():
+            ctrl, parent = self.objects[objName][1:3]
+            if parent == parentName and objName != selName:
+
+                pos1p, pos0p, pos2p, cpos1p, cpos0p, cpos2p = compSides(selctrl, ctrl, dim, dir)
+                pos, otherpos1, otherpos2  = getattr(pos1p, dim), \
+                      getattr(pos1p, otherdim), getattr(pos2p, otherdim)
+                pos0, otherpos0 = getattr(pos0p, dim), getattr(pos0p, otherdim)
+                cpos, cotherpos1, cotherpos2 = getattr(cpos1p, dim), \
+                      getattr(cpos1p, otherdim), getattr(cpos2p, otherdim)
+                cpos0, cotherpos0 = getattr(cpos0p, dim), getattr(cpos0p, otherdim)
+
+                dpos, dotherpos1, dotherpos2 = cpos - pos, \
+                      cotherpos1 - otherpos1, cotherpos2 - otherpos2
+                dpos0, dotherpos0 = cpos0 - pos0, cotherpos0 - otherpos0
+
+                if (abs(dpos) >= min(abs(dotherpos1), abs(dotherpos2)) and \
+                    (not dpos or dpos/abs(dpos) == dir)) or \
+                   (abs(dpos0) >= abs(dotherpos0) and \
+                    (not dpos0 or dpos0/abs(dpos0) == dir)):
+                    dist = min(math.sqrt(dpos*dpos+dotherpos1*dotherpos1),
+                               math.sqrt(dpos0*dpos0+dotherpos0*dotherpos0),
+                               math.sqrt(dpos*dpos+dotherpos2*dotherpos2))
+
+                    if distLo == -1 or dist < distLo:
+                        distLo = dist
+                        nearestCtrl = ctrl
+
+        if nearestCtrl:
+            self.inspector.containment.selectName(nearestCtrl.GetName())
+
+    def OnSelectLeft(self, event):
+        sel = self.selection
+        if sel and sel.selection != self:
+            self.selectInDimentionDirection(sel.selection, 'x', -1)
+
+    def OnSelectRight(self, event):
+        sel = self.selection
+        if sel and sel.selection != self:
+            self.selectInDimentionDirection(sel.selection, 'x', 1)
+
+    def OnSelectUp(self, event):
+        sel = self.selection
+        if sel and sel.selection != self:
+            self.selectInDimentionDirection(sel.selection, 'y', -1)
+
+    def OnSelectDown(self, event):
+        sel = self.selection
+        if sel and sel.selection != self:
+            self.selectInDimentionDirection(sel.selection, 'y', 1)
+
+#-------------------------------------------------------------------------------
+
     def OnSnapToGrid(self, event):
         for sel in self.getSelAsList():
             if sel.selection != self:
@@ -1049,6 +1174,28 @@ class DesignerView(wxFrame, InspectableObjectView, Utils.FrameRestorerMixin):
                 sel.startPos.x = sel.position.x
                 sel.startPos.y = sel.position.y
                 self.moveUpdate(sel)
+
+    def relayoutCtrl(self, ctrl):
+        self.forceResize = true # cleared by the event
+        evt = wxSizeEvent(ctrl.GetSize())
+        evt.SetId(ctrl.GetId())
+        wxPostEvent(ctrl, evt)
+
+    def OnRelayoutSelection(self, event):
+        # for ctrl in [sel.selection for sel in self.getSelAsList()]:
+        for sel in self.getSelAsList():
+            self.relayoutCtrl(sel.selection)
+
+    def OnRelayoutDesigner(self, event):
+        self.relayoutCtrl(self)
+
+    def OnCreationOrder(self, event):
+        sel = self.selection
+        if sel:
+            selName = sel.selection.GetName()
+            if selName == self.GetName():
+                selName = ''
+            self.showCreationOrderDlg(selName)
 
 
 class DesignerControlsEvtHandler(wxEvtHandler):
@@ -1060,6 +1207,7 @@ class DesignerControlsEvtHandler(wxEvtHandler):
                                 'dots'  : self.drawGrid_dots,
                                 'bitmap': self.drawGrid_bitmap,
                                 'grid'  : self.drawGrid_grid}
+        self._points = (0, 0), []
 
     def connectEvts(self, ctrl):
         EVT_MOTION(ctrl, self.OnMouseOver)
@@ -1120,7 +1268,7 @@ class DesignerControlsEvtHandler(wxEvtHandler):
             if dsgn.vetoResize:
                 return
             if event.GetId() == dsgn.GetId():
-                if event.GetSize().asTuple() == dsgn.lastSize:
+                if event.GetSize().asTuple() == dsgn.lastSize and not dsgn.forceResize:
                     return
                 dsgn.lastSize = event.GetSize().asTuple()
 
@@ -1153,6 +1301,7 @@ class DesignerControlsEvtHandler(wxEvtHandler):
                 dsgn.selection.sizeFromCtrl()
                 dsgn.selection.setSelection()
         finally:
+            dsgn.forceResize = false
             event.Skip()
 
     def OnControlDClick(self, event):
@@ -1193,11 +1342,14 @@ class DesignerControlsEvtHandler(wxEvtHandler):
         pen1 = wxPen(col)
         dc.SetPen(pen1)
         dc.SetLogicalFunction(loglFunc)
+        lines = []
         for y in range(sze.y / sg + 1):
-            dc.DrawLine(0, y * sg, sze.x, y * sg)
+            lines.append( (0, y * sg, sze.x, y * sg) )
 
         for x in range(sze.x / sg + 1):
-            dc.DrawLine(x * sg, 0, x * sg, sze.y)
+            lines.append( (x * sg, 0, x * sg, sze.y) )
+
+        dc.DrawLineList(lines)
 
     def drawGrid_intersectingLines(self, dc, sze, sg):
         """ Cute hack to draw dots by intersecting lines
@@ -1206,7 +1358,7 @@ class DesignerControlsEvtHandler(wxEvtHandler):
         xorBgCol = wxColour(255^bgCol.Red(), 255^bgCol.Green(), 255^bgCol.Blue())
 
         self._drawLines(dc, xorBgCol, wxCOPY, sze, sg)
-        self._drawLines(dc, wxNamedColour('WHITE'), wxXOR, sze, sg)
+        self._drawLines(dc, wxWHITE, wxXOR, sze, sg)
 
     darken = 15
     def drawGrid_grid(self, dc, sze, sg):
@@ -1222,11 +1374,16 @@ class DesignerControlsEvtHandler(wxEvtHandler):
     def drawGrid_dots(self, dc, sze, sg):
         """ The slowest method, drawing each dot of the grid individually
         """
-        pen1 = wxPen(wxNamedColour('BLACK'))
+        pen1 = wxPen(wxBLACK)
         dc.SetPen(pen1)
-        for y in range(sze.y / sg + 1):
-            for x in range(sze.x / sg + 1):
-                dc.DrawPoint(x * sg, y * sg)
+        (szex, szey), points = self._points
+        if (szex, szey) != (sze.x, sze.y):
+            points = []
+            for y in range(sze.y / sg + 1):
+                for x in range(sze.x / sg + 1):
+                    points.append( (x * sg, y * sg) )
+            self._points = (szex, szey), points
+        dc.DrawPointList(points)
 
     def drawGrid_bitmap(self, dc, sze, sg):
         """ This should be the most efficient method, when the granularity is
@@ -1244,7 +1401,7 @@ class DesignerControlsEvtHandler(wxEvtHandler):
             dc = wxPaintDC(ctrl)
 #            sze = ctrl.GetClientSize()
             sze = ctrl.GetSize()
-            sg = SelectionTags.screenGran
+            sg = Preferences.dsGridSize
 
             drawGrid = self.drawGridMethods[Preferences.drawGridMethod]
 
@@ -1255,9 +1412,3 @@ class DesignerControlsEvtHandler(wxEvtHandler):
                 dc.EndDrawing()
 
         event.Skip()
-
-
-
-
-
- 

@@ -7,16 +7,12 @@
 #
 # Created:     2001/01/06
 # RCS-ID:      $Id$
-# Copyright:   (c) 2001
+# Copyright:   (c) 2001 - 2002
 # Licence:
 #-----------------------------------------------------------------------------
 
-# XXX Only make available for python 2 !!!
-
 import string, sys
 from EditorViews import EditorView
-
-#py2 = sys.version[0] == '2'
 
 from wxPython.wx import *
 
@@ -25,13 +21,13 @@ parsermodule = expat
 
 class XMLTreeView(wxTreeCtrl, EditorView):
     viewName = 'XMLTree'
-    gotoLineBmp = 'Images/Editor/GotoLine.bmp'
+    gotoLineBmp = 'Images/Editor/GotoLine.png'
 
     def __init__(self, parent, model):
         id = NewId()
         wxTreeCtrl.__init__(self, parent, id)#, style = wxTR_HAS_BUTTONS | wxSUNKEN_BORDER)
         EditorView.__init__(self, model,
-          (('Goto line', self.OnGoto, self.gotoLineBmp, ()),), 0)
+          (('Goto line', self.OnGoto, self.gotoLineBmp, ''),), 0)
 
         self.nodeStack = []
 
@@ -47,7 +43,7 @@ class XMLTreeView(wxTreeCtrl, EditorView):
             self.Expand(child)
 
     def refreshCtrl(self):
-        self.nodeStack = [self.AddRoot("Root")]
+        self.nodeStack = [self.AddRoot('Root')]
         self.loadTree(self.model.filename)
         self.Expand(self.nodeStack[0])
         return
@@ -55,6 +51,12 @@ class XMLTreeView(wxTreeCtrl, EditorView):
     # Define a handler for start element events
     def startElement(self, name, attrs ):
         name = name.encode()
+        if attrs:
+            if attrs.has_key('class'):
+                if attrs.has_key('name'):
+                    name = '%s (%s:%s)' % (name, attrs['name'], attrs['class'])
+                else:
+                    name = '%s (%s)' % (name, attrs['class'])
         id = self.AppendItem(self.nodeStack[-1], name)
         self.nodeStack.append(id)
 
@@ -99,7 +101,7 @@ class XMLTreeView(wxTreeCtrl, EditorView):
 class XMLTree(wxTreeCtrl):
     def __init__(self, parent, ID):
         wxTreeCtrl.__init__(self, parent, ID)
-        self.nodeStack = [self.AddRoot("Root")]
+        self.nodeStack = [self.AddRoot(Root)]
 
     # Define a handler for start element events
     def StartElement(self, name, attrs ):
@@ -129,4 +131,3 @@ class XMLTree(wxTreeCtrl):
 
         # Parse the XML File
         ParserStatus = Parser.Parse(open(filename,'r').read(), 1)
- 

@@ -6,9 +6,10 @@
 #
 # Created:     2000/05/17
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999, 2000 Riaan Booysen
+# Copyright:   (c) 1999 - 2002 Riaan Booysen
 # Licence:     GPL
 #-----------------------------------------------------------------------------
+print 'importing Views.ProfileView'
 
 import marshal, string
 from os import path
@@ -17,21 +18,21 @@ from wxPython.wx import *
 
 class ProfileStatsView(ListCtrlView, ClosableViewMix):
     viewName = 'Profile stats'
-    gotoLineBmp = 'Images/Editor/GotoLine.bmp'
-    calleesBmp = 'Images/Editor/Callees.bmp'
-    callersBmp = 'Images/Editor/Callers.bmp'
-    saveAsBmp = 'Images/Editor/SaveAs.bmp'
+    gotoLineBmp = 'Images/Editor/GotoLine.png'
+    calleesBmp = 'Images/Editor/Callees.png'
+    callersBmp = 'Images/Editor/Callers.png'
+    saveAsBmp = 'Images/Editor/SaveAs.png'
 
     def __init__(self, parent, model):
         ClosableViewMix.__init__(self, 'stats')
         ListCtrlView.__init__(self, parent, model, wxLC_REPORT | wxLC_SINGLE_SEL,
-          ( ('Goto line', self.OnGoto, self.gotoLineBmp, ()),
-            ('-', None, '', ()),
-            ('Callers (called this function)', self.OnCallers, self.callersBmp, ()),
-            ('Callees (are called by this function)', self.OnCallees, self.calleesBmp, ()),
-            ('-', None, '', ()) ) +
+          ( ('Goto line', self.OnGoto, self.gotoLineBmp, ''),
+            ('-', None, '', ''),
+            ('Callers (called this function)', self.OnCallers, self.callersBmp, ''),
+            ('Callees (are called by this function)', self.OnCallees, self.calleesBmp, ''),
+            ('-', None, '', '') ) +
             self.closingActionItems +
-          ( ('Save stats', self.OnSaveStats, self.saveAsBmp, ()),
+          ( ('Save stats', self.OnSaveStats, self.saveAsBmp, ''),
             ), 0)
 
         self.InsertColumn(0, 'module')
@@ -135,24 +136,12 @@ class ProfileStatsView(ListCtrlView, ClosableViewMix):
             i = 0
             for filename, lineno, funcname in self.statKeyList:
                 stats = self.stats[(filename, lineno, funcname)]
-#                i = self.addReportItems(i, (filename, str(lineno),
                 i = self.addReportItems(i, (path.basename(filename), str(lineno),
                       funcname, '%d' % stats[0], '%f' % stats[2],
                       stats[0] and '%f' % (stats[2]/stats[0]) or '',
                       '%f' % stats[3],
                       stats[0] and '%f' % (stats[3]/stats[0]) or ''))
                 self.SetItemData(i, i)
-##                self.InsertStringItem(i, path.basename(filename))
-##                self.SetItemData(i, i)
-##                self.SetStringItem(i, 1, str(lineno))
-##                self.SetStringItem(i, 2, funcname)
-##                stats = self.stats[(filename, lineno, funcname)]
-##                self.SetStringItem(i, 3, '%d' % stats[0])
-##                self.SetStringItem(i, 4, '%f' % stats[2])
-##                if stats[0]: self.SetStringItem(i, 5, '%f' % (stats[2]/stats[0]))
-##                self.SetStringItem(i, 6, '%f' % stats[3])
-##                if stats[0]: self.SetStringItem(i, 7, '%f' % (stats[3]/stats[0]))
-#                if len(stats) > 4: self.SetStringItem(i, 4, '%s' % `stats[4]`)
         self.pastelise()
 
     def getStatIdx(self):
@@ -234,10 +223,6 @@ class ProfileStatsView(ListCtrlView, ClosableViewMix):
                     dlg.Destroy()
 
     def OnColClick(self, event):
-#        print event.m_col
-#        from time import time
-
-#        t1 = time()
         if self.sortCol != event.m_col:
             self.sortAscend = false
         else:
@@ -258,13 +243,10 @@ class ProfileStatsView(ListCtrlView, ClosableViewMix):
         elif event.m_col == 7:
             self.SortItems(self.sortCumPerCall)
 
-#        t2 = time()
-#        print 'sort', t2 - t1
-
     def OnSaveStats(self, event):
         fn, suc = self.model.editor.saveAsDlg(\
-          path.splitext(self.model.filename)[0]+'.prof', '*.prof')
+          path.splitext(self.model.filename)[0]+'.prof', 'BoaIntFiles')
         if suc and self.stats:
             from Explorers.Explorer import openEx
             transport = openEx(fn)
-            transport.save(transport.resourcepath, marshal.dumps(self.stats), 'w')
+            transport.save(transport.currentFilename(), marshal.dumps(self.stats), 'wb')

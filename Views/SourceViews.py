@@ -6,57 +6,61 @@
 #
 # Created:     2000/05/05
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999 - 2001 Riaan Booysen
+# Copyright:   (c) 1999 - 2002 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
+print 'importing Views.SourceViews'
 
 import os, string, time
 
 from wxPython.wx import *
 from wxPython.stc import *
 
-import EditorViews, ProfileView, Search, Help, Preferences, Utils
-from StyledTextCtrls import PythonStyledTextCtrlMix, BrowseStyledTextCtrlMix, \
-      HTMLStyledTextCtrlMix, XMLStyledTextCtrlMix, FoldingStyledTextCtrlMix, \
-      CPPStyledTextCtrlMix, TextSTCMix, ConfigSTCMix, idWord, object_delim
 from Preferences import keyDefs
 import Utils
+
+import EditorViews, ProfileView, Search, Help, Preferences, Utils
+from StyledTextCtrls import PythonStyledTextCtrlMix, TextSTCMix, idWord, object_delim
+
+from Explorers import ExplorerNodes
 
 endOfLines = {  wxSTC_EOL_CRLF : '\r\n',
                 wxSTC_EOL_CR : '\r',
                 wxSTC_EOL_LF : '\n'}
 
-brkPtMrk, stepPosMrk, tmpBrkPtMrk, markPlaceMrk = range(1, 5)
+brkPtMrk, stepPosMrk, tmpBrkPtMrk, markPlaceMrk, linePtrMrk = range(1, 6)
 
-[wxID_CPPSOURCEVIEW, wxID_HTMLSOURCEVIEW, wxID_XMLSOURCEVIEW, wxID_TEXTVIEW,
- wxID_CONFIGVIEW, wxID_SOURCECUT, wxID_SOURCECOPY, wxID_SOURCEPASTE, 
+[wxID_TEXTVIEW, wxID_SOURCECUT, wxID_SOURCECOPY, wxID_SOURCEPASTE,
  wxID_SOURCEUNDO, wxID_SOURCEREDO] \
- = Utils.wxNewIds(10)
+ = Utils.wxNewIds(6)
 
 class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView):
-    refreshBmp = 'Images/Editor/Refresh.bmp'
-    undoBmp = 'Images/Shared/Undo.bmp'
-    redoBmp = 'Images/Shared/Redo.bmp'
-    cutBmp = 'Images/Shared/Cut.bmp'
-    copyBmp = 'Images/Shared/Copy.bmp'
-    pasteBmp = 'Images/Shared/Paste.bmp'
-    findBmp = 'Images/Shared/Find.bmp'
-    findAgainBmp = 'Images/Shared/FindAgain.bmp'
+    refreshBmp = 'Images/Editor/Refresh.png'
+    undoBmp = 'Images/Shared/Undo.png'
+    redoBmp = 'Images/Shared/Redo.png'
+    cutBmp = 'Images/Shared/Cut.png'
+    copyBmp = 'Images/Shared/Copy.png'
+    pasteBmp = 'Images/Shared/Paste.png'
+    findBmp = 'Images/Shared/Find.png'
+    findAgainBmp = 'Images/Shared/FindAgain.png'
     def __init__(self, parent, wId, model, actions, defaultAction = -1):
         wxStyledTextCtrl.__init__(self, parent, wId, style = wxCLIP_CHILDREN | wxSUNKEN_BORDER)
-        a =  (('Refresh', self.OnRefresh, self.refreshBmp, keyDefs['Refresh']),
-              ('-', None, '', ()),
-              ('Undo', self.OnEditUndo, self.undoBmp, ()),
-              ('Redo', self.OnEditRedo, self.redoBmp, ()),
-              ('-', None, '', ()),
-              ('Cut', self.OnEditCut, self.cutBmp, ()),
-              ('Copy', self.OnEditCopy, self.copyBmp, ()),
-              ('Paste', self.OnEditPaste, self.pasteBmp, ()),
-              ('-', None, '', ()),
-              ('Find', self.OnFind, self.findBmp, keyDefs['Find']),
-              ('Find again', self.OnFindAgain, self.findAgainBmp, keyDefs['FindAgain']),
-              ('Mark place', self.OnMarkPlace, '-', keyDefs['MarkPlace']),
-              ('Goto line', self.OnGotoLine, '-', keyDefs['GotoLine']),
+        a =  (('Refresh', self.OnRefresh, self.refreshBmp, 'Refresh'),
+              ('-', None, '', ''),
+              ('Undo', self.OnEditUndo, self.undoBmp, ''),
+              ('Redo', self.OnEditRedo, self.redoBmp, ''),
+              ('-', None, '', ''),
+              ('Cut', self.OnEditCut, self.cutBmp, ''),
+              ('Copy', self.OnEditCopy, self.copyBmp, ''),
+              ('Paste', self.OnEditPaste, self.pasteBmp, ''),
+              ('-', None, '', ''),
+              ('Find \ Replace', self.OnFind, self.findBmp, 'Find'),
+              ('Find again', self.OnFindAgain, self.findAgainBmp, 'FindAgain'),
+              ('Mark place', self.OnMarkPlace, '-', 'MarkPlace'),
+              ('Goto line', self.OnGotoLine, '-', 'GotoLine'),
+              ('-', None, '-', ''),
+              ('Translate selection (via HTTP)', self.OnTranslate, '-', ''),
+              ('Spellcheck selection (via HTTP)', self.OnSpellCheck, '-', ''),
               )
 
         EditorViews.EditorView.__init__(self, model, a + actions, defaultAction)
@@ -73,32 +77,33 @@ class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView):
         self.lastMatchPosition = None
 
         ## Install the handler for refreshs.
-        if wxPlatform == '__WXGTK__':
+        if wxPlatform == '__WXGTK__' and Preferences.edUseCustomSTCPaintEvtHandler:
             self.paint_handler = Utils.PaintEventHandler(self)
 
         self.lastStart = 0
         self._blockUpdate = false
         self._marking = false
-        
-        #self.findReplacer = FindReplace.STCFindReplacer(self)
 
         markIdnt, markBorder, markCenter = Preferences.STCMarkPlaceMarker
         self.MarkerDefine(markPlaceMrk, markIdnt, markBorder, markCenter)
+        markIdnt, markBorder, markCenter = Preferences.STCLinePointer
+        self.MarkerDefine(linePtrMrk, markIdnt, markBorder, markCenter)
+        self._linePtrHdl = None
 
     def getModelData(self):
         return self.model.data
 
     def setModelData(self, data):
         self.model.data = data
-    
+
     def saveNotification(self):
         if not Preferences.neverEmptyUndoBuffer:
             self.EmptyUndoBuffer()
 
     def refreshCtrl(self):
-        #print 'refreshCtrl'
-        if wxPlatform == '__WXGTK__':
-            self.NoUpdateUI = 1  ## disable event handler
+##        if wxPlatform == '__WXGTK__':
+##            self.NoUpdateUI = 1  ## disable event handler
+
         # set whole document to current EOL style fixing mixed CRLF/LF code that
         # can be introduced by pasting from the clipboard
 ###       doesn't work in the wxSTC yet
@@ -109,35 +114,39 @@ class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView):
         ## This code prevents circular updates on GTK
         ## It is not important under windows as the windows refresh
         ## code is more efficient.
+##        try:
+##            if self.noredraw == 1: redraw = 0
+##            else: redraw = 1
+##        except:
+##            redraw=1
+##        if redraw == 1:
+        prevVsblLn = self.GetFirstVisibleLine()
+        self._blockUpdate = true
         try:
-            if self.noredraw == 1: redraw = 0
-            else: redraw = 1
-        except:
-            redraw=1
-        if redraw == 1:
-            prevVsblLn = self.GetFirstVisibleLine()
-            self._blockUpdate = true
-            try:
-                newData = self.getModelData()
-                txtLen = self.GetTextLength()
-                if txtLen and newData[:-1] != self.GetText() or not txtLen:
-                    self.SetText(newData)
-                    # prevent blank editor in undo history
-                    if not txtLen:
-                        self.EmptyUndoBuffer()
-                self.GotoPos(self.pos)
-                curVsblLn = self.GetFirstVisibleLine()
-                self.LineScroll(0, prevVsblLn - curVsblLn)
-            finally:
-                self._blockUpdate = false
-
-            #self.EmptyUndoBuffer()
+            newData = self.getModelData()
+            curData = self.GetText()
+            if newData != curData:
+                resetUndo = not self.CanUndo()
+                ro = self.GetReadOnly()
+                self.SetReadOnly(false)
+                self.SetText(newData)
+                self.SetReadOnly(ro)
+                if resetUndo:
+                    self.EmptyUndoBuffer()
+            self.GotoPos(self.pos)
+            curVsblLn = self.GetFirstVisibleLine()
+            self.LineScroll(0, prevVsblLn - curVsblLn)
+        finally:
+            self._blockUpdate = false
 
         self.SetSavePoint()
         self.nonUserModification = false
         self.updatePageName()
-        self.NoUpdateUI = 0  ## Enable event handler
+##        self.NoUpdateUI = 0  ## Enable event handler
 
+        self.updateFromAttrs()
+
+    def updateFromAttrs(self):
         if self.model.transport:
             self.SetReadOnly(self.model.transport.stdAttrs['read-only'])
 
@@ -145,19 +154,16 @@ class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView):
         if self.isModified():
             self.model.modified = true
         self.nonUserModification = false
-    
+
         pos = self.GetCurrentPos()
         prevVsblLn = self.GetFirstVisibleLine()
 
-        # hack to stop wxSTC from eating the last character
-        self.InsertText(self.GetTextLength(), ' ')
         self.setModelData(self.GetText())
-        self.Undo()
-        
+
         self.GotoPos(pos)
         curVsblLn = self.GetFirstVisibleLine()
         self.LineScroll(0, prevVsblLn - curVsblLn)
-        
+
         self.SetSavePoint()
         if wxPlatform == '__WXGTK__':
             # We are updating the model from the editor view.
@@ -190,16 +196,17 @@ class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView):
     def selectLine(self, lineno):
         self.GotoLine(lineno)
         sp = self.PositionFromLine(lineno)
-        ep = self.PositionFromLine(lineno+1)-1
+        # Dont do whole screen selection
+        ep = max(0, self.PositionFromLine(lineno+1)-1)
         self.SetSelection(sp, ep)
 
     def updatePageName(self):
         if hasattr(self, 'notebook'):
             currName = self.notebook.GetPageText(self.pageIdx)
-            
+
             if self.isModified(): newName = '~%s~' % self.viewName
             else: newName = self.viewName
-    
+
             if currName != newName:
                 if newName == self.viewName:
                     if self.model.viewsModified.count(self.viewName):
@@ -261,7 +268,7 @@ class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView):
             indtBlock = '\t'
         else:
             indtBlock = self.GetTabWidth()*' '
-            
+
         self.BeginUndoAction()
         try:
             sls, sle = self.reselectSelectionAsBlock()
@@ -277,10 +284,20 @@ class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView):
         selStartPos, selEndPos = self.GetSelection()
         selStartLine = self.LineFromPosition(selStartPos)
         selEndLine = self.LineFromPosition(selEndPos)
-        
-        return range(self.LineFromPosition(selStartPos), 
+
+        return range(self.LineFromPosition(selStartPos),
               self.LineFromPosition(selEndPos))
-        
+
+    def setLinePtr(self, lineNo):
+        if self._linePtrHdl:
+            self.MarkerDeleteHandle(self._linePtrHdl)
+            self._linePtrHdl = None
+        if lineNo >= 0:
+            # XXX temp while handle returns None
+            self.MarkerDeleteAll(linePtrMrk)
+
+            self._linePtrHdl = self.MarkerAdd(lineNo, linePtrMrk)
+
 #-------Canned events-----------------------------------------------------------
 
     def OnRefresh(self, event):
@@ -331,7 +348,7 @@ class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView):
     def OnFindAgain(self, event):
         import FindReplaceDlg
         FindReplaceDlg.findAgain(self, self.model.editor.finder, self)
-        
+
 ##        if self.model.editor.finder.lastFind == "":
 ##            self.OnFind(event)
 ##        else:
@@ -360,7 +377,7 @@ class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView):
             self.MarkerDelete(lineno, markPlaceMrk)
         finally:
             self._marking = false
-            
+
 
     def OnGotoLine(self, event):
         dlg = wxTextEntryDialog(self, 'Enter line number:', 'Goto line', '')
@@ -375,17 +392,35 @@ class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView):
         if hasattr(self, 'pageIdx'):
             self.updateViewState()
 
+    def OnTranslate(self, event):
+        import TranslateDlg
+        dlg = TranslateDlg.create(None, self.GetSelectedText())
+        try:
+            if dlg.ShowModal() == wxOK and len(dlg.translated) > 1:
+                self.ReplaceSelection(dlg.translated[1])
+        finally:
+            dlg.Destroy()
+
+    def OnSpellCheck(self, event):
+        import TranslateDlg
+        self.model.editor.setStatus('Spell checking...', 'Warning')
+        wxBeginBusyCursor()
+        try:
+            self.ReplaceSelection(TranslateDlg.spellCheck(self.GetSelectedText()))
+        finally:
+            wxEndBusyCursor()
+        self.model.editor.setStatus('Spelling checked', 'Info')
+
 class PythonDisView(EditorStyledTextCtrl, PythonStyledTextCtrlMix):
     viewName = 'Disassemble'
-    breakBmp = 'Images/Debug/Breakpoints.bmp'
+    breakBmp = 'Images/Debug/Breakpoints.png'
     def __init__(self, parent, model):
         wxID_PYTHONDISVIEW = wxNewId()
 
         EditorStyledTextCtrl.__init__(self, parent, wxID_PYTHONDISVIEW,
           model, (), -1)
-        PythonStyledTextCtrlMix.__init__(self, wxID_PYTHONDISVIEW, -1)
+        PythonStyledTextCtrlMix.__init__(self, wxID_PYTHONDISVIEW, ())
 
-        self.SetReadOnly(true)
         self.active = true
 
     def refreshModel(self):
@@ -398,48 +433,8 @@ class PythonDisView(EditorStyledTextCtrl, PythonStyledTextCtrlMix):
     def setModelData(self, data):
         pass
 
-class HTMLSourceView(EditorStyledTextCtrl, HTMLStyledTextCtrlMix):
-    viewName = 'HTML'
-    def __init__(self, parent, model):
-        EditorStyledTextCtrl.__init__(self, parent, wxID_HTMLSOURCEVIEW,
-          model, (), -1)
-        HTMLStyledTextCtrlMix.__init__(self, wxID_HTMLSOURCEVIEW)
-        self.active = true
-
-class XMLSourceView(EditorStyledTextCtrl, XMLStyledTextCtrlMix):
-    viewName = 'XML'
-    def __init__(self, parent, model):
-        EditorStyledTextCtrl.__init__(self, parent, wxID_XMLSOURCEVIEW,
-          model, (), -1)
-        XMLStyledTextCtrlMix.__init__(self, wxID_XMLSOURCEVIEW)
-        self.active = true
-
-class CPPSourceView(EditorStyledTextCtrl, CPPStyledTextCtrlMix):
-    viewName = 'Source'
-    def __init__(self, parent, model):
-        EditorStyledTextCtrl.__init__(self, parent, wxID_CPPSOURCEVIEW,
-          model, (), -1)
-        CPPStyledTextCtrlMix.__init__(self, wxID_CPPSOURCEVIEW)
-        self.active = true
-
-class HPPSourceView(CPPSourceView):
-    viewName = 'Header'
-    def __init__(self, parent, model):
-        CPPSourceView.__init__(self, parent, model)
-
-    def refreshCtrl(self):
-        self.pos = self.GetCurrentPos()
-        prevVsblLn = self.GetFirstVisibleLine()
-
-        self.SetText(self.model.headerData)
-        self.EmptyUndoBuffer()
-        self.GotoPos(self.pos)
-        curVsblLn = self.GetFirstVisibleLine()
-        self.LineScroll(0, prevVsblLn - curVsblLn)
-
-        self.nonUserModification = false
-        self.updatePageName()
-
+    def updateFromAttrs(self):
+        self.SetReadOnly(true)
 
 class TextView(EditorStyledTextCtrl, TextSTCMix):
     viewName = 'Text'
@@ -448,9 +443,6 @@ class TextView(EditorStyledTextCtrl, TextSTCMix):
         TextSTCMix.__init__(self, wxID_TEXTVIEW)
         self.active = true
 
-class ConfigView(EditorStyledTextCtrl, ConfigSTCMix):
-    viewName = 'Config'
-    def __init__(self, parent, model):
-        EditorStyledTextCtrl.__init__(self, parent, wxID_CONFIGVIEW, model, (), -1)
-        ConfigSTCMix.__init__(self, wxID_CONFIGVIEW)
-        self.active = true
+ExplorerNodes.langStyleInfoReg.append( ('Text', 'text', TextSTCMix, 
+      'stc-styles.rc.cfg') )
+

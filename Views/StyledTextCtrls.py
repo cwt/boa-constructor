@@ -6,7 +6,7 @@
 #
 # Created:     2000/04/26
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999 - 2001 Riaan Booysen
+# Copyright:   (c) 1999 - 2002 Riaan Booysen
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 
@@ -48,7 +48,8 @@ object_delim = word_delim + '.'
 class FoldingStyledTextCtrlMix:
     def __init__(self, wId, margin):
         self.__fold_margin = margin
-        self.SetProperty('fold', '1')
+        if Preferences.edSTCFolding:
+            self.SetProperty('fold', '1')
         self.SetMarginType(margin, wxSTC_MARGIN_SYMBOL)
         self.SetMarginMask(margin, wxSTC_MASK_FOLDERS)
         self.SetMarginSensitive(margin, true)
@@ -168,8 +169,9 @@ class BrowseStyledTextCtrlMix:
         functionality for browsing the code.
     """
     def __init__(self, indicator=0):
-##        self.handCrs = wxStockCursor(wxCURSOR_HAND)
-##        self.stndCrs = wxStockCursor(wxCURSOR_ARROW)
+        self.handCrs = 1
+        self.stndCrs = 0
+
         self.IndicatorSetStyle(indicator, wxSTC_INDIC_PLAIN)
         self.IndicatorSetForeground(indicator, wxBLUE)
         self._indicator = indicator
@@ -193,13 +195,13 @@ class BrowseStyledTextCtrlMix:
     def StyleVeto(self, style):
         return false
 
+    # XXX Setting the cursor irrevocably changes the cursor for the whole STC
     def underlineWord(self, start, length):
         #self.SetCursor(self.handCrs)
         self.SetLexer(wxSTC_LEX_NULL)
 
         self.StartStyling(start, wxSTC_INDICS_MASK)
         self.SetStyling(length, wxSTC_INDIC0_MASK)
-#        self.Refresh(false)
         return start, length
 
     def clearUnderline(self, start, length):
@@ -290,7 +292,7 @@ class CodeHelpStyledTextCtrlMix:
         pos = self.GetCurrentPos()
         lnNo = self.GetCurrentLine()
         lnStPs = self.PositionFromLine(lnNo)
-        return (pos, lnNo, lnStPs, 
+        return (pos, lnNo, lnStPs,
                 self.GetCurLine()[0], pos - lnStPs - 1)
 
     def getFirstContinousBlock(self, docs):
@@ -301,9 +303,12 @@ class CodeHelpStyledTextCtrlMix:
             else:
                 break
         return string.join(res, '\n')
-        
+
 
 class AutoCompleteCodeHelpSTCMix(CodeHelpStyledTextCtrlMix):
+    def __init__(self):
+        self.AutoCompSetIgnoreCase(true)
+        self.AutoCompSetCancelAtStart(false)
 
 ##    def getCodeCompOptions(self, word, rootWord, matchWord, lnNo):
 ##        return []
@@ -315,7 +320,7 @@ class AutoCompleteCodeHelpSTCMix(CodeHelpStyledTextCtrlMix):
         startLine = start-lnStPs
         word = line[startLine:startLine+length]
         pivword = piv - startLine
-        
+
         dot = string.rfind(word, '.', 0, pivword+1)
         matchWord = word
         if dot != -1:
@@ -324,7 +329,7 @@ class AutoCompleteCodeHelpSTCMix(CodeHelpStyledTextCtrlMix):
                 matchWord = word[dot+1:rdot]
             else:
                 matchWord = word[dot+1:]
-                
+
             offset = pivword - dot
             rootWord = word[:dot]
         else:
@@ -335,23 +340,40 @@ class AutoCompleteCodeHelpSTCMix(CodeHelpStyledTextCtrlMix):
             offset = 0
 
         names = self.getCodeCompOptions(word, rootWord, matchWord, lnNo)
-        
-        # remove duplicates
+
+        # remove duplicates and sort
         unqNms = {}
         for name in names: unqNms[name] = None
         names = unqNms.keys()
 
+        sortnames = map(None, map(string.lower, names), names)
+        sortnames.sort()
+        names = map(lambda n: n[1], sortnames)
+
+        # move _* names to the end of the list
+        cnt = 0
+        maxmoves = len(names)
+        while cnt < maxmoves:
+            if names[0] and names[0][0] == '_':
+                names.append(names[0])
+                del names[0]
+                cnt = cnt + 1
+            else:
+                break
+
         self.AutoCompShow(offset, string.join(names, ' '))
-        self.AutoCompSelect(matchWord)
-        
+        #self.AutoCompSelect(matchWord)
+
 class CallTipCodeHelpSTCMix(CodeHelpStyledTextCtrlMix):
     def __init__(self):
         self.lastCallTip = ''
         self.lastTipHilite = (0, 0)
 
+        self.CallTipSetBackground(Preferences.STCCallTipBackColour)
+
     def getTipValue(self, word, lnNo):
         return ''
-        
+
     def callTipCheck(self):
         pos, lnNo, lnStPs, line, piv = self.getCurrLineInfo()
 
@@ -359,9 +381,9 @@ class CallTipCodeHelpSTCMix(CodeHelpStyledTextCtrlMix):
         if bracket == -1 and self.CallTipActive():
             self.CallTipCancel()
             return
-        
+
         cursBrktOffset = piv - bracket
-        
+
         start, length = idWord(line, bracket-1, lnStPs, object_delim, object_delim)
         startLine = start-lnStPs
         word = line[startLine:startLine+length]
@@ -374,24 +396,24 @@ class CallTipCodeHelpSTCMix(CodeHelpStyledTextCtrlMix):
                     pos = pos - tipBrkt - 1
                 else:
                     tipBrkt = 0
-                    
+
                 # get the current parameter from source
                 paramNo = len(methodparse.safesplitfields(\
                       line[bracket+1:piv+1]+'X', ','))
                 if paramNo:
                     paramNo = paramNo - 1
-                
+
                 # get hilight & corresponding parameter from tip
                 tipBrktEnd = string.rfind(tip, ')')
                 tip_param_str = tip[tipBrkt+1:tipBrktEnd]
                 tip_params = methodparse.safesplitfields(\
                     tip_param_str, ',', ('(', '{'), (')', '}') )
-                try: 
+                try:
                     hiliteStart = tipBrkt+1 + string.find(tip_param_str, tip_params[paramNo])
-                except IndexError: 
+                except IndexError:
                     hilite = (0, 0)
                 else:
-                    hilite = (hiliteStart, 
+                    hilite = (hiliteStart,
                               hiliteStart+len(tip_params[paramNo]))
 
                 # don't update if active and unchanged
@@ -416,7 +438,7 @@ class LanguageSTCMix:
         self.language = language
         (cfg, self.commonDefs, self.styleIdNames, self.styles, psgn, psg, olsgn,
               olsg, ds, self.lexer, self.keywords, bi) = \
-              STCStyleEditor.initFromConfig(config, language)
+              self.getSTCStyles(config, language)
 
         self.SetEOLMode(wxSTC_EOL_LF)
         self.eol = '\n'
@@ -425,18 +447,18 @@ class LanguageSTCMix:
 
         self.SetViewWhiteSpace(Preferences.STCViewWhiteSpace)
         self.SetViewEOL(Preferences.STCViewEOL)
-        
+
         self.SetIndent(Preferences.STCIndent)
         self.SetUseTabs(Preferences.STCUseTabs)
         self.SetTabWidth(Preferences.STCTabWidth)
         self.SetCaretPeriod(Preferences.STCCaretPeriod)
         if Preferences.STCCaretPolicy:
-            self.SetCaretPolicy(Preferences.STCCaretPolicy, 
+            self.SetCaretPolicy(Preferences.STCCaretPolicy,
                                 Preferences.STCCaretPolicySlop)
 
         self.SetEdgeMode(Preferences.STCEdgeMode)
         self.SetEdgeColumn(Preferences.STCEdgeColumnWidth)
-        
+
         if marginNumWidth:
             self.SetMargins(1, 1)
             self.SetMarginType(marginNumWidth[0], wxSTC_MARGIN_NUMBER)
@@ -449,30 +471,14 @@ class LanguageSTCMix:
         commonDefs.update(self.commonDefs)
         if commonOverride is not None:
             commonDefs.update(commonOverride)
-            
-        STCStyleEditor.setSTCStyles(self, self.styles, self.styleIdNames, 
+
+        STCStyleEditor.setSTCStyles(self, self.styles, self.styleIdNames,
               commonDefs, self.language, self.lexer, self.keywords)
 
-    def OnUpdateUI(self, event):
-        pass
+    def getSTCStyles(self, config, language):
+        """ Override to set values directly """
+        return STCStyleEditor.initFromConfig(config, language)
 
-    keymap={'euro': {219: '\\', 57: ']', 56: '[', 55: '{', 337: '~', 226: '|', 
-                     81: '@', 48: '}',69: '€',77: 'µ',50: '²',51: '³'}, 
-            'france': {51: '#', 219: ']', 56: '\\', 55: '`', 54: '|', 53: '[', 
-                       52: '{', 226: '6', 50: '~', 337: '}', 48: '@'}, 
-            'swiss-german': {223: '}', 221: '~', 220: '{', 219: '`', 186: '[', 
-                             55: '|', 226: '\\', 51: '#', 50: '@', 192: ']'},
-            'italian': {192: '@', 222: '#', 186: '[', 337: ']', 219: '{', 221: '}' },
-           }
-
-    def handleSpecialEuropeanKeys(self, event, countryKeymap='euro'):
-        key = event.KeyCode()
-        keymap = self.keymap[countryKeymap]
-        if event.AltDown() and event.ControlDown() and keymap.has_key(key):
-            currPos = self.GetCurrentPos()
-            self.InsertText(currPos, keymap[key])
-            self.SetCurrentPos(self.GetCurrentPos()+1)
-            self.SetSelectionStart(self.GetCurrentPos())
 
 stcConfigPath = os.path.join(Preferences.rcPath, 'stc-styles.rc.cfg')
 
@@ -480,8 +486,8 @@ class PythonStyledTextCtrlMix(LanguageSTCMix):
     def __init__(self, wId, margin):
         LanguageSTCMix.__init__(self, wId, margin, 'python', stcConfigPath)
 
-        self.keywords = self.keywords + ' yield true false None'    
-        
+        self.keywords = self.keywords + ' yield true false None'
+
         self.setStyles()
 
     def grayout(self, do):
@@ -526,7 +532,7 @@ class PythonStyledTextCtrlMix(LanguageSTCMix):
         else:
             self.BraceHighlight(braceAtCaret, braceOpposite)
             # self.Refresh(false)
-    
+
     def doAutoIndent(self, prevline, pos):
         stripprevline = string.strip(prevline)
         if stripprevline:
@@ -537,57 +543,42 @@ class PythonStyledTextCtrlMix(LanguageSTCMix):
         if self.GetUseTabs():
             indtBlock = '\t'
         else:
+            # XXX Why did I do this?
             indtBlock = self.GetTabWidth()*' '
 
         if _is_block_opener(prevline):
             indent = indent + indtBlock
         elif _is_block_closer(prevline):
             indent = indent[:-1*len(indtBlock)]
-            
+
         self.BeginUndoAction()
         try:
             self.InsertText(pos, indent)
             self.GotoPos(pos + len(indent))
         finally:
-            self.EndUndoAction()    
-
-class BaseHTMLStyledTextCtrlMix(LanguageSTCMix):
-    def __init__(self, wId):
-        LanguageSTCMix.__init__(self, wId, 
-              (0, Preferences.STCLineNumMarginWidth), 'html', stcConfigPath)
-
-class HTMLStyledTextCtrlMix(BaseHTMLStyledTextCtrlMix):
-    def __init__(self, wId):
-        BaseHTMLStyledTextCtrlMix.__init__(self, wId)
-        self.setStyles()
-
-class XMLStyledTextCtrlMix(LanguageSTCMix):
-    def __init__(self, wId):
-        LanguageSTCMix.__init__(self, wId, 
-              (0, Preferences.STCLineNumMarginWidth), 'xml', stcConfigPath)
-        self.setStyles()
-
-class CPPStyledTextCtrlMix(LanguageSTCMix):
-    def __init__(self, wId):
-        LanguageSTCMix.__init__(self, wId, 
-              (0, Preferences.STCLineNumMarginWidth), 'cpp', stcConfigPath)
-        self.setStyles()
+            self.EndUndoAction()
 
 class TextSTCMix(LanguageSTCMix):
     def __init__(self, wId):
         LanguageSTCMix.__init__(self, wId, (), 'text', stcConfigPath)
         self.setStyles()
         
-class ConfigSTCMix(LanguageSTCMix):
+## 1 :
+## 2 : diff
+## 3 : +++/---
+## 4 : @
+## 5 : -
+## 6 : +
+class DiffSTCMix(LanguageSTCMix):
     def __init__(self, wId):
-        LanguageSTCMix.__init__(self, wId, (), 'prop', stcConfigPath)
+        LanguageSTCMix.__init__(self, wId, (), 'diff', stcConfigPath)
         self.setStyles()
 
 from types import IntType, SliceType, StringType
 class STCLinesList:
     def __init__(self, STC):
         self.__STC = STC
-    
+
     def _rememberPos(self):
         self.__pos = self.GetCurrentPos()
 
@@ -595,7 +586,7 @@ class STCLinesList:
         if type(key) is IntType:
             # XXX last char is garbage
             if key < len(self):
-                return self.__STC.GetLine(key)[:-1]
+                return self.__STC.GetLine(key)
             else:
                 raise IndexError
         elif type(key) is SliceType:
@@ -634,7 +625,7 @@ class STCLinesList:
             stc.ReplaceSelection('')
         else:
             raise TypeError, '%s not supported' % `type(key)`
-    
+
     def __getattr__(self, name):
         if name == 'current':
             return self.__STC.GetCurrentLine()
@@ -648,10 +639,8 @@ class STCLinesList:
         # dubious
         if name == 'pos':
             return self.__STC.GetCurrentPos()
-        
+
         raise AttributeError, name
 
     def __len__(self):
         return self.__STC.GetLineCount()
-
-  

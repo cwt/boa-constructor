@@ -8,29 +8,36 @@
 #
 # Created:     1999
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999, 2000 Riaan Booysen
+# Copyright:   (c) 1999 - 2001 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
 
+import string, sys
+
 from wxPython.wx import *
-import string, sys, time
+
+import Preferences
+
 defPos = (0, 0)
 defSze = (0, 0)
-tagSize = 7
-frmWid = 2
-screenGran = 8
-anchorEnabledCol = wxBLUE
-anchorDisabledCol = wxColour(40, 100, 110)
+
+# XXX These values should be defined and maintained in the preferences file
+#frmWid = 2 # line width
+#tagSize = 7
+#screenGran = 8
+#anchorEnabledCol = wxBLUE
+#anchorDisabledCol = wxColour(40, 100, 110)
 
 def granularise(val, oldVal = None):
     """ Snap value to grid points, including original value as grid point.
 
         Used by sizing
     """
+    gran = Preferences.dsGridSize
     if oldVal is not None:
         # get prior and next grid points
-        prior = (oldVal /screenGran)*screenGran
-        next = prior + screenGran
+        prior = (oldVal /gran)*gran
+        next = prior + gran
         if val >= prior and val < next:
             # Delta values
             dvPrev = abs(val-prior)
@@ -39,14 +46,15 @@ def granularise(val, oldVal = None):
             if dvOld <= dvPrev <= dvNext or dvOld <= dvNext <= dvPrev:
                 return oldVal
 
-    return ((val + screenGran / 2) /screenGran)*screenGran
+    return ((val + gran / 2) /gran)*gran
 
 def granulariseMove(val, oldVal = None):
     """ Snap value to screen gran multiples of oldVal.
 
         Used by moving
     """
-    return oldVal % screenGran + (val /screenGran)*screenGran
+    gran = Preferences.dsGridSize
+    return oldVal % gran + (val /gran)*gran
 
 class SelectionGroup:
     """ Group of tags and lines used to show selection, moving and sizing.
@@ -75,6 +83,8 @@ class SelectionGroup:
         self.startSize = None
         self.colour = colour
         self.name = ''
+
+        tagSize = Preferences.dsSelectionTagSize
 
         self.position = wxPoint(defPos[0], defPos[1])
         self.size = wxSize(defSze[0], defSze[1])
@@ -139,25 +149,25 @@ class SelectionGroup:
         self.showTags()
 
     def showTags(self):
-        self.stTL.Show(true); self.stTR.Show(true)
-        self.stBR.Show(true); self.stBL.Show(true)
+        self.stTL.Show(); self.stTR.Show()
+        self.stBR.Show(); self.stBL.Show()
 
-        self.stT.Show(true); self.stB.Show(true)
-        self.stL.Show(true); self.stR.Show(true)
+        self.stT.Show(); self.stB.Show()
+        self.stL.Show(); self.stR.Show()
 
-        self.slL.Show(false); self.slR.Show(false)
-        self.slB.Show(false); self.slT.Show(false)
+        self.slL.Hide(); self.slR.Hide()
+        self.slB.Hide(); self.slT.Hide()
 
         for tag in self.tags:
             tag.Refresh()
 
     def hideTags(self):
         for tag in self.tags:
-            tag.Show(false)
+            tag.Hide()
 
     def showFramedTags(self, notHide):
         for tag in self.tags:
-            tag.Show(true)
+            tag.Show()
 
     def reparentTags(self, parent):
         for tag in self.tags:
@@ -318,6 +328,13 @@ class SelectionGroup:
         sz = self.startSize
         ps = self.startPos
 
+        frmWid = Preferences.dsSelectionFrameWidth
+        tagSize = Preferences.dsSelectionTagSize
+
+        offset, extra = divmod(tagSize, 2)
+        offsetO = offset + extra
+        offsetI = offset
+
         if not self.dragging:
             # Sizing
             if sz is None and ps is None:
@@ -328,40 +345,40 @@ class SelectionGroup:
                 trSze = wxSize(granularise(size.x + position.x, sz.x + ps.x) - trPos.x,
                                granularise(size.y + position.y, sz.y + ps.y) - trPos.y)
 
-            self.stTL.SetDimensions(trPos.x -4, trPos.y -4, tagSize, tagSize)
-            self.stTR.SetDimensions(trPos.x -3 + trSze.x, trPos.y -4, tagSize, tagSize)
-            self.stBR.SetDimensions(trPos.x -3 + trSze.x, trPos.y -3 + trSze.y, tagSize, tagSize)
-            self.stBL.SetDimensions(trPos.x -4, trPos.y -3 + trSze.y, tagSize, tagSize)
+            self.stTL.SetDimensions(trPos.x -offsetO, trPos.y -offsetO, tagSize, tagSize)
+            self.stTR.SetDimensions(trPos.x -offsetI + trSze.x, trPos.y -offsetO, tagSize, tagSize)
+            self.stBR.SetDimensions(trPos.x -offsetI + trSze.x, trPos.y -offsetI + trSze.y, tagSize, tagSize)
+            self.stBL.SetDimensions(trPos.x -offsetO, trPos.y -offsetI + trSze.y, tagSize, tagSize)
 
-            self.stT.SetDimensions(trPos.x -4 + trSze.x/2, trPos.y -4, tagSize, tagSize)
-            self.stB.SetDimensions(trPos.x -4 + trSze.x/2, trPos.y -3 + trSze.y, tagSize, tagSize)
-            self.stL.SetDimensions(trPos.x -4, trPos.y -4 + trSze.y/2, tagSize, tagSize)
-            self.stR.SetDimensions(trPos.x -3 +trSze.x, trPos.y -4 + trSze.y/2, tagSize, tagSize)
+            self.stT.SetDimensions(trPos.x -offsetO + trSze.x/2, trPos.y -offsetO, tagSize, tagSize)
+            self.stB.SetDimensions(trPos.x -offsetO + trSze.x/2, trPos.y -offsetI + trSze.y, tagSize, tagSize)
+            self.stL.SetDimensions(trPos.x -offsetO, trPos.y -offsetO + trSze.y/2, tagSize, tagSize)
+            self.stR.SetDimensions(trPos.x -offsetI +trSze.x, trPos.y -offsetO + trSze.y/2, tagSize, tagSize)
 
         else:
             # Moving
             trPos = wxPoint(granulariseMove(position.x, ps.x), granulariseMove(position.y, ps.y))
             trSze = wxSize(sz.x, sz.y)
 
-        self.slT.SetDimensions(trPos.x -frmWid, trPos.y -2, trSze.x +frmWid, frmWid)
+        self.slT.SetDimensions(trPos.x -frmWid, trPos.y -frmWid, trSze.x +frmWid, frmWid)
         self.slR.SetDimensions(trPos.x + trSze.x, trPos.y -frmWid, frmWid, trSze.y+frmWid*2)
         self.slB.SetDimensions(trPos.x -frmWid, trPos.y + trSze.y, trSze.x +frmWid*2, frmWid)
-        self.slL.SetDimensions(trPos.x -2, trPos.y-frmWid, frmWid, trSze.y +frmWid)
+        self.slL.SetDimensions(trPos.x -frmWid, trPos.y-frmWid, frmWid, trSze.y +frmWid)
 
         if finishDragging:
             self.dragging = false
             self.startPos = trPos
             self.startSize = trSze
 
-            self.stTL.SetDimensions(trPos.x -4, trPos.y -4, tagSize, tagSize)
-            self.stTR.SetDimensions(trPos.x -3 + trSze.x, trPos.y -4, tagSize, tagSize)
-            self.stBR.SetDimensions(trPos.x -3 + trSze.x, trPos.y -3 + trSze.y, tagSize, tagSize)
-            self.stBL.SetDimensions(trPos.x -4, trPos.y -3 + trSze.y, tagSize, tagSize)
+            self.stTL.SetDimensions(trPos.x -offsetO, trPos.y -offsetO, tagSize, tagSize)
+            self.stTR.SetDimensions(trPos.x -offsetI + trSze.x, trPos.y -offsetO, tagSize, tagSize)
+            self.stBR.SetDimensions(trPos.x -offsetI + trSze.x, trPos.y -offsetI + trSze.y, tagSize, tagSize)
+            self.stBL.SetDimensions(trPos.x -offsetO, trPos.y -offsetI + trSze.y, tagSize, tagSize)
 
-            self.stT.SetDimensions(trPos.x -4 + trSze.x/2, trPos.y -4, tagSize, tagSize)
-            self.stB.SetDimensions(trPos.x -4 + trSze.x/2, trPos.y -3 + trSze.y, tagSize, tagSize)
-            self.stL.SetDimensions(trPos.x -4, trPos.y -4 + trSze.y/2, tagSize, tagSize)
-            self.stR.SetDimensions(trPos.x -3 +trSze.x, trPos.y -4 + trSze.y/2, tagSize, tagSize)
+            self.stT.SetDimensions(trPos.x -offsetO + trSze.x/2, trPos.y -offsetO, tagSize, tagSize)
+            self.stB.SetDimensions(trPos.x -offsetO + trSze.x/2, trPos.y -offsetI + trSze.y, tagSize, tagSize)
+            self.stL.SetDimensions(trPos.x -offsetO, trPos.y -offsetO + trSze.y/2, tagSize, tagSize)
+            self.stR.SetDimensions(trPos.x -offsetI +trSze.x, trPos.y -offsetO + trSze.y/2, tagSize, tagSize)
 
         self.position  = trPos
         self.size = trSze
@@ -392,8 +409,10 @@ class SingleSelectionGroup(SelectionGroup):
 
     def positionUpdate(self):
         self.inspector.constructorUpdate('Position')
+        self.inspector.propertyUpdate('Position')
     def sizeUpdate(self):
         self.inspector.constructorUpdate('Size')
+        self.inspector.propertyUpdate('Size')
         self.inspector.propertyUpdate('ClientSize')
 
     # Events
@@ -463,7 +482,7 @@ class SelectionTag(wxPanel):
     toggleAnchors = (0, 0, 0, 0)
     def __init__(self, parent, cursor, tagSize, group, pnlStyle):# = wxSIMPLE_BORDER):
         wxPanel.__init__(self, parent, -1, size = wxSize(tagSize, tagSize), style = pnlStyle)
-        self.Show(false)
+        self.Hide()
         self.group = group
         self.SetCursor(wxStockCursor(cursor))
         self.selection = None
@@ -523,9 +542,9 @@ class SelectionTag(wxPanel):
         if anchor is None:
             col = self.group.colour
         elif anchor:
-            col = anchorEnabledCol
+            col = Preferences.dsAnchorEnabledCol
         else:
-            col = anchorDisabledCol
+            col = Preferences.dsAnchorDisabledCol
 
         self.SetBackgroundColour(col)
         self.Refresh()

@@ -1,45 +1,49 @@
 #----------------------------------------------------------------------
 # Name:        DataView.py
-# Purpose:
+# Purpose:     Designer for Utility (non visual) objects
 #
 # Author:      Riaan Booysen
 #
 # Created:     2000/02/14
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999, 2000 Riaan Booysen
+# Copyright:   (c) 1999 - 2002 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
+print 'importing Views.DataView'
 
 import os
 
 from wxPython.wx import *
 
+import Preferences, Utils
+
 from sourceconst import init_utils
-import PaletteMapping, Utils, Help
-from Preferences import keyDefs
+import PaletteMapping, Help
 
 from InspectableViews import InspectableObjectView
 
 class DataView(wxListCtrl, InspectableObjectView):
     viewName = 'Data'
     collectionMethod = init_utils
-    postBmp = 'Images/Inspector/Post.bmp'
-    cancelBmp = 'Images/Inspector/Cancel.bmp'
+    postBmp = 'Images/Inspector/Post.png'
+    cancelBmp = 'Images/Inspector/Cancel.png'
     def __init__(self, parent, inspector, model, compPal):
         [self.wxID_DATAVIEW] = map(lambda _init_ctrls: wxNewId(), range(1))
-        wxListCtrl.__init__(self, parent, self.wxID_DATAVIEW, style = wxLC_SMALL_ICON | wxSUNKEN_BORDER)#wxLC_LIST)
+        wxListCtrl.__init__(self, parent, self.wxID_DATAVIEW, style = Preferences.dataViewListStyle | wxSUNKEN_BORDER)#wxLC_LIST)
 
         InspectableObjectView.__init__(self, inspector, model, compPal,
-          (('Default editor', self.OnDefaultEditor, '-', ()),
-           ('Post', self.OnPost, self.postBmp, ()),
-           ('Cancel', self.OnCancel, self.cancelBmp, ()),
-           ('-', None, '-', ()),
-           ('Cut', self.OnCutSelected, '-', ()),
-           ('Copy', self.OnCopySelected, '-', keyDefs['Copy']),
-           ('Paste', self.OnPasteSelected, '-', keyDefs['Paste']),
-           ('Delete', self.OnControlDelete, '-', keyDefs['Delete']),
-           ('-', None, '-', ()),
-           ('Context help', self.OnContextHelp, '-', keyDefs['ContextHelp']),
+          (('Default editor', self.OnDefaultEditor, '-', ''),
+           ('Post', self.OnPost, self.postBmp, ''),
+           ('Cancel', self.OnCancel, self.cancelBmp, ''),
+           ('-', None, '-', ''),
+           ('Cut', self.OnCutSelected, '-', ''),
+           ('Copy', self.OnCopySelected, '-', 'Copy'),
+           ('Paste', self.OnPasteSelected, '-', 'Paste'),
+           ('Delete', self.OnControlDelete, '-', 'Delete'),
+           ('-', None, '-', ''),
+           ('Creation/Tab order...', self.OnCreationOrder, '-', ''),
+           ('-', None, '-', ''),
+           ('Context help', self.OnContextHelp, '-', 'ContextHelp'),
            ), 0)
 
         self.il = wxImageList(24, 24)
@@ -61,6 +65,10 @@ class DataView(wxListCtrl, InspectableObjectView):
         deps, depLinks = {}, {}
         self.initObjectsAndCompanions(objCol.creators, objCol, deps, depLinks)
 
+    def initObjectsAndCompanions(self, creators, objColl, dependents, depLinks):
+        InspectableObjectView.initObjectsAndCompanions(self, creators, objColl, dependents, depLinks)
+        self.initIdOnlyObjEvts(objColl.events, creators)
+
     def refreshCtrl(self):
         #if self.opened: return
 
@@ -69,34 +77,49 @@ class DataView(wxListCtrl, InspectableObjectView):
         objCol = self.model.objectCollections[self.collectionMethod]
         objCol.indexOnCtrlName()
 
+        creators = {}
         for ctrl in objCol.creators:
             if ctrl.comp_name:
-                try:
-                    classObj = eval(ctrl.class_name)
-                    className = classObj.__name__
-                    idx1 = self.il.Add(PaletteMapping.bitmapForComponent(classObj, gray = true))
-                except:
-                    # XXX Check this !!
-                    className = ctrl.class_name
-                    module = self.model.getModule()
-                    if len(module.classes[className].super):
-                        base = module.classes[className].super[0]
-                        try: base = base.__class__.__name__
-                        except: pass #print 'ERROR', base
-                        idx1 = self.il.Add(PaletteMapping.bitmapForComponent(className, base, gray = true))
-                    else:
-                        idx1 = self.il.Add(PaletteMapping.bitmapForComponent(className, 'Component'))
+                creators[ctrl.comp_name] = ctrl
 
-                self.InsertImageStringItem(self.GetItemCount(), '%s : %s' % (ctrl.comp_name, className), idx1)
+        for name in self.objectOrder:
+            ctrl = creators[name]
+            try:
+                classObj = PaletteMapping.evalCtrl(ctrl.class_name)
+                className = classObj.__name__
+                idx1 = self.il.Add(PaletteMapping.bitmapForComponent(classObj))
+            except:
+                # XXX Check this !!
+                className = ctrl.class_name
+                module = self.model.getModule()
+                if len(module.classes[className].super):
+                    base = module.classes[className].super[0]
+                    try: base = base.__class__.__name__
+                    except: pass #print 'ERROR', base
+                    idx1 = self.il.Add(PaletteMapping.bitmapForComponent(className, base))
+                else:
+                    idx1 = self.il.Add(PaletteMapping.bitmapForComponent(className, 'Component'))
+
+            self.InsertImageStringItem(self.GetItemCount(), '%s : %s' % (ctrl.comp_name, className), idx1)
         self.opened = true
 
-    def loadControl(self, ctrlClass, ctrlCompanion, ctrlName, params):
+    def saveCtrls(self, definedCtrls, module=None):
+        InspectableObjectView.saveCtrls(self, definedCtrls, module)
+
+        compns = []
+        for objInf in self.objects.values():
+            compns.append(objInf[0])
+        self.model.removeWindowIds(self.collectionMethod)
+        self.model.writeWindowIds(self.collectionMethod, compns)
+
+    def loadControl(self, CtrlClass, CtrlCompanion, ctrlName, params):
         """ Create and register given control and companion.
             See also: newControl """
-        args = self.setupArgs(ctrlName, params, self.handledProps, evalDct = self.model.specialAttrs)
+        args = self.setupArgs(ctrlName, params,
+          CtrlCompanion.handledConstrParams, evalDct = self.model.specialAttrs)
 
         # Create control and companion
-        companion = ctrlCompanion(ctrlName, self, ctrlClass)
+        companion = CtrlCompanion(ctrlName, self, CtrlClass)
         self.objects[ctrlName] = [companion, companion.designTimeObject(args), None]
         self.objectOrder.append(ctrlName)
 
@@ -121,7 +144,7 @@ class DataView(wxListCtrl, InspectableObjectView):
         self.selectNone()
 
         # notify other components of deletion
-        self.notifyAction(self.objects[name][0], 'delete')
+        self.controllerView.notifyAction(self.objects[name][0], 'delete')
 
         InspectableObjectView.deleteCtrl(self, name, parentRef)
         self.refreshCtrl()
@@ -129,7 +152,8 @@ class DataView(wxListCtrl, InspectableObjectView):
     def renameCtrl(self, oldName, newName):
         InspectableObjectView.renameCtrl(self, oldName, newName)
         self.refreshCtrl()
-    
+        self.selectCtrls( (newName,) )
+
     def destroy(self):
         InspectableObjectView.destroy(self)
         self.il = None
@@ -139,7 +163,7 @@ class DataView(wxListCtrl, InspectableObjectView):
         InspectableObjectView.close(self)
 
     def getSelectedName(self):
-        return string.split(self.GetItemText(self.selection), ' : ')[0]
+        return string.split(self.GetItemText(self.selection[0]), ' : ')[0]
 
     def getSelectedNames(self):
         selected = []
@@ -242,4 +266,15 @@ class DataView(wxListCtrl, InspectableObjectView):
 
     def OnContextHelp(self, event):
         Help.showCtrlHelp(self.objects[self.selection[0][0]][0].GetClass())
-   
+
+    def OnRecreateSelected(self, event):
+        wxLogError('Recreating not supported in the Data view')
+
+    def OnCreationOrder(self, event):
+        #names = [name for name, idx in self.getSelectedNames()]
+        names = []
+        for name, idx in self.getSelectedNames():
+            names.append(name)
+        self.showCreationOrderDlg(None)
+        self.refreshCtrl()
+        self.selectCtrls(names)
