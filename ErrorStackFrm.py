@@ -6,7 +6,7 @@
 #
 # Created:     2001
 # RCS-ID:      $Id$
-# Copyright:   (c) 2001 - 2003 Riaan Booysen
+# Copyright:   (c) 2001 - 2004 Riaan Booysen
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 ##Boa:Frame:ErrorStackMF
@@ -39,7 +39,7 @@ class ErrorStackMF(wxFrame, Utils.FrameRestorerMixin):
     def _init_coll_statusBar_Fields(self, parent):
         parent.SetFieldsCount(1)
 
-        parent.SetStatusText(text = '', i = 0)
+        parent.SetStatusText('', 0)
 
         parent.SetStatusWidths([-1])
 
@@ -62,7 +62,6 @@ class ErrorStackMF(wxFrame, Utils.FrameRestorerMixin):
 
         self.statusBar = wxStatusBar(id = wxID_ERRORSTACKMFSTATUSBAR, 
               parent = self, name = 'statusBar', style = 0)
-        self._init_coll_statusBar_Fields(self.statusBar)
         self.SetStatusBar(self.statusBar)
 
         self.outputTC = wxTextCtrl(size = wxSize(326, 384), value = '', 
@@ -129,6 +128,8 @@ class ErrorStackMF(wxFrame, Utils.FrameRestorerMixin):
                   self.diffImgIdx = self.inputImgIdx = self.processesImgIdx = -1
 
         self._init_ctrls(parent)
+
+        self._init_coll_statusBar_Fields(self.statusBar)
         
         self.outputTC.SetFont(Preferences.eoErrOutFont)
         self.errorTC.SetFont(Preferences.eoErrOutFont)
@@ -435,10 +436,12 @@ class ErrorStackMF(wxFrame, Utils.FrameRestorerMixin):
                 pageIdx = self.findPage(self.processesText)
                 self.notebook.SetSelection(pageIdx)
                 
-                wxMessageBox('There are still running processes that were '
+                if wxMessageBox('There are still running processes that were '
                              'started from Boa, please close or kill them '
-                             'before quitting.', 'Child processes running',
-                             wxICON_WARNING | wxOK)
+                             'before quitting.\n\nClick Cancel to quit anyway.', 
+                             'Child processes running',
+                             wxICON_WARNING | wxOK | wxCANCEL) == wxCANCEL:
+                    return true
                 return false
         return true
     

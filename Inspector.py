@@ -6,7 +6,7 @@
 #
 # Created:     1999
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999 - 2003 Riaan Booysen
+# Copyright:   (c) 1999 - 2004 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
 #Boa:Frame:InspectorFrame
@@ -68,8 +68,8 @@ class InspectorFrame(wxFrame, Utils.FrameRestorerMixin):
         # generated method, don't edit
         parent.SetFieldsCount(2)
 
-        parent.SetStatusText(i=0, text='Nothing selected')
-        parent.SetStatusText(i=1, text='')
+        parent.SetStatusText('Nothing selected', 0)
+        parent.SetStatusText('', 1)
 
         parent.SetStatusWidths([-1, -1])
 
@@ -108,7 +108,6 @@ class InspectorFrame(wxFrame, Utils.FrameRestorerMixin):
               name='statusBar', parent=self, style=wxST_SIZEGRIP)
         self.statusBar.SetFont(wxFont(Preferences.inspStatBarFontSize,
               wxDEFAULT, wxNORMAL, wxBOLD, false, ''))
-        self._init_coll_statusBar_Fields(self.statusBar)
         self.SetStatusBar(self.statusBar)
 
         self.pages = InspectorNotebook(id=wxID_INSPECTORFRAMEPAGES,
@@ -138,6 +137,9 @@ class InspectorFrame(wxFrame, Utils.FrameRestorerMixin):
         self._init_ctrls(parent)
         del self.up_bmp
 
+        # moved generated code down for wxPython 2.5 compatibility.
+        self._init_coll_statusBar_Fields(self.statusBar)
+        
         # Inspector is created before the Editor so this must be set after
         # creating the Editor
         self.editor = None

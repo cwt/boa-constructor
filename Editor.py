@@ -7,7 +7,7 @@
 #
 # Created:     1999
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999 - 2003 Riaan Booysen
+# Copyright:   (c) 1999 - 2004 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
 #Boa:Frame:EditorFrame
@@ -114,7 +114,7 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
         self.SetToolBar(self.toolBar)
 
         self.tabsSplitter = BottomAligningSplitterWindow(id=wxID_EDITORFRAMETABSSPLITTER,
-              name='tabsSplitter', parent=self, point=wxPoint(0, 0),
+              name='tabsSplitter', parent=self, #point=wxPoint(0, 0),
               size=wxSize(802, 421),
               style=wxCLIP_CHILDREN | wxSP_LIVE_UPDATE | wxSP_3DSASH)# | wxSP_FULLSASH)
 
