@@ -21,6 +21,7 @@ from DebugClient import DebugClient, MultiThreadedDebugClient, \
 class RemoteClient (MultiThreadedDebugClient):
 
     server = None
+    pyIntpPath = ''
 
     def __init__(self, win, host, port, user, pw):
         DebugClient.__init__(self, win)
