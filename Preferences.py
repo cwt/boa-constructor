@@ -75,7 +75,7 @@ if not os.path.isdir(rcPath):
 
 # upgrade if needed and exec in our namespace
 plat = wx.wxPlatform == '__WXMSW__' and 'msw' or 'gtk'
-for prefsFile, version in (('prefs.rc.py', 5),
+for prefsFile, version in (('prefs.rc.py', 6),
                            ('prefs.%s.rc.py'%plat, 5),
                            ('prefskeys.rc.py', 5)):
     file = os.path.join(rcPath, prefsFile)
@@ -125,8 +125,6 @@ if pluginsEnabled:
     # User plugin path
     if rcPath != pyPath and os.path.isdir(os.path.join(rcPath, 'Plug-ins')):
         pluginPaths.append(os.path.join(rcPath, 'Plug-ins'))
-
-editorMenuImages = true
 
 #---Prefs dependent on user prefs-----------------------------------------------
 
