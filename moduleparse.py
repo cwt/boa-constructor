@@ -114,9 +114,10 @@ class Class:
         self.methods[name] = CodeBlock(sig, linestart, lineend)
         if to_bottom:
             self.method_order.append(name)
+            self.extend_extent(lineend)
         else:
             self.method_order.insert(0, name)
-        self.extend_extent(lineend)
+            self.extent = self.extent + (lineend - linestart)
 
     def _endmethod(self, name, lineend):
         self.methods[name].end = lineend
