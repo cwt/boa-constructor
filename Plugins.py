@@ -1,11 +1,20 @@
+#-----------------------------------------------------------------------------
+# Name:        Plugins.py
+# Purpose:     
+#
+# Author:      Riaan Booysen
+#
+# Created:     2003
+# RCS-ID:      $Id$
+# Copyright:   (c) 2003 - 2004
+# Licence:     GPL
+#-----------------------------------------------------------------------------
+
 import os, glob, new, pprint
 
 #from wxPython import wx
 
 import Preferences, Utils
-
-#---Plugin and transport utils--------------------------------------------------
-# Should move to own module at future stage
 
 class PluginError(Exception):
     pass

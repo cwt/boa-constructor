@@ -7,7 +7,7 @@
 #
 # Created:     2001/02/04
 # RCS-ID:      $Id$
-# Copyright:   (c) 2001 - 2003 Riaan Booysen
+# Copyright:   (c) 2001 - 2004 Riaan Booysen
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 #Boa:Dialog:ProcessProgressDlg
