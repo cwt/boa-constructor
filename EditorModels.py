@@ -1082,7 +1082,7 @@ class BaseFrameModel(ClassModel):
                 codeBody = module.source[codeSpan.start : codeSpan.end]
 
                 # XXX This should not be necessary
-                if oc[:11] == init_ctrls and \
+                if len(oc) >= 11 and oc[:11] == init_ctrls and \
                   string.strip(codeBody[1]) == 'self._init_utils()':
                     del codeBody[1]
 
@@ -1548,7 +1548,7 @@ for mod in modelReg.values():
 del extMap['.py']
 del extMap['.*']
 extMap['.cpp'] = extMap['.c'] = extMap['.h'] = CPPModel
-extMap['.jpg'] = extMap['.gif'] = extMap['png'] = BitmapFileModel
+extMap['.jpg'] = extMap['.gif'] = extMap['.png'] = BitmapFileModel
 
 internalFilesReg = ['.umllay', '.implay', '.brk', '.trace', '.stack']
 
