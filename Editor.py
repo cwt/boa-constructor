@@ -68,10 +68,11 @@ adtTextModelViews = ()
 defHTMLFileModelViews = (HTMLSourceView,)
 adtHTMLFileModelViews = (HTMLFileView,)
 
-defZopeDocModelViews = (HTMLSourceView,)
-adtZopeDocModelViews = (ZopeHTMLView,)
-##defZopeDocModelViews = (PythonSourceView,)
-##adtZopeDocModelViews = ()
+##defZopeDocModelViews = (HTMLSourceView,)
+##adtZopeDocModelViews = (ZopeHTMLView,)
+##
+##defZopePyScriptModelViews = (PythonSourceView,)
+##adtZopePyScriptModelViews = ()
 
 defCPPModelViews = (CPPSourceView, HPPSourceView)
 adtCPPModelViews = (CVSConflictsView,)
@@ -670,29 +671,28 @@ class EditorFrame(wxFrame):
 
         return model
     
-    def openOrGotoZopeDocument(self, zopeObj):  #self, zopeConn, zopeObj
-        # retrieve wholename once instead of 5 times
+    def openOrGotoZopeDocument(self, zopeObj):
         wholename=zopeObj.whole_name()
         if self.modules.has_key(wholename):
             self.modules[wholename].focus()
             return self.modules[wholename].model
         else:
             self.openZopeDocument(zopeObj,wholename)  #zopeConn, zopeObj
+    
             
-    def openZopeDocument(self, zopeObj,wholename):   #self, zopeConn, zopeObj
+    def openZopeDocument(self, zopeObj, wholename):
+        if zopeObj.Model:
+            model = zopeObj.Model(wholename, '', self, false, zopeObj) #zopeObj.whole_name(), '', self, false, zopeConn, zopeObj
+            model.load()
 
-        model = ZopeDocumentModel(wholename, '', self, false, zopeObj) #zopeObj.whole_name(), '', self, false, zopeConn, zopeObj
-        model.load()
-
-        self.addModulePage(
-            model, wholename, defZopeDocModelViews,
-            adtZopeDocModelViews, ZopeDocumentModel.imgIdx)
-        #why this save ???
-        #thats shit
-        #model.save()
-        model.notify()
-
-        self.updateTitle()
+            self.addModulePage(
+                model, wholename, zopeObj.defaultViews,
+                zopeObj.additionalViews, zopeObj.Model.imgIdx)
+            model.notify()
+    
+            self.updateTitle()
+        else:
+            wxLogWarning('Zope Object %s not supported' % `zopeObj`)
         
     def showDesigner(self):
         modulePage = self.getActiveModulePage()

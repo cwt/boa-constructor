@@ -762,6 +762,35 @@ class ZopeDocumentModel(EditorModel):
         else:
             return self.zopeObj.name
 
+class ZopePythonSourceModel(ZopeDocumentModel):
+    modelIdentifier = 'ZopePythonSource'
+
+    def __init__(self, name, data, editor, saved,  zopeObject):
+        ZopeDocumentModel.__init__(self, name, data, editor, saved,  zopeObject)
+        self._module = None
+
+    def getModule(self):
+        if self._module is None:
+            wx.wxBeginBusyCursor()
+            try:
+                self._module = moduleparse.Module(
+                    self.zopeObj.whole_name, string.split(self.data, '\012'))
+            finally:
+                wx.wxEndBusyCursor()
+        return self._module
+
+class ZopePythonScriptModel(ZopePythonSourceModel):
+    modelIdentifier = 'ZopePythonScript'
+    defaultName = 'zopepythonscript'
+    bitmap = 'Package_s.bmp'
+    imgIdx = ZOAIcons["Script (Python)"]
+
+class ZopePythonMethodModel(ZopePythonSourceModel):
+    modelIdentifier = 'ZopePythonMethod'
+    defaultName = 'zopepythonmethod'
+    bitmap = 'Package_s.bmp'
+    imgIdx = ZOAIcons["Python Method"]
+
 class BasicFileModel(EditorModel):
     
     saveBmp = 'Images/Editor/Save.bmp'
