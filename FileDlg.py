@@ -632,7 +632,7 @@ class FileDlgFolderList(Explorer.BaseExplorerList):
         transports.entries.insert(0, catnode)
         transportsByProtocol['config.bookmark'] = catnode
 
-        for protocol in ('ftp', 'dav', 'ssh'):
+        for protocol in ExplorerNodes.fileOpenDlgProtReg:
             if ExplorerNodes.isTransportAvailable(conf, 'explorer', protocol):
                 Cat = ExplorerNodes.explorerNodeReg[\
                       ExplorerNodes.nodeRegByProt[protocol]]['category']
