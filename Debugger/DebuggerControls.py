@@ -13,32 +13,28 @@ SEL_STATE = wxLIST_STATE_SELECTED | wxLIST_STATE_FOCUSED
 class DebuggerListCtrl(wxListCtrl, Utils.ListCtrlSelectionManagerMix):
     def __init__(self, parent, wId):
         wxListCtrl.__init__(self, parent, wId,
-              style = wxLC_REPORT|wxLC_SINGLE_SEL|wxLC_VRULES|wxCLIP_CHILDREN)
+              style=wxLC_REPORT|wxLC_SINGLE_SEL|wxLC_VRULES|wxCLIP_CHILDREN)
         Utils.ListCtrlSelectionManagerMix.__init__(self)
 
 wxID_STACKVIEW = wxNewId()
 class StackViewCtrl(DebuggerListCtrl):
     def __init__(self, parent, flist, debugger):
         DebuggerListCtrl.__init__(self, parent, wxID_STACKVIEW)
-        
+
         self.InsertColumn(0, 'Frame', wxLIST_FORMAT_LEFT, 150)
         self.InsertColumn(1, 'Line', wxLIST_FORMAT_LEFT, 35)
         self.InsertColumn(2, 'Code', wxLIST_FORMAT_LEFT, 300)
 
-##        EVT_LIST_ITEM_SELECTED(self, wxID_STACKVIEW,
-##                               self.OnStackItemSelected)
-##        EVT_LIST_ITEM_DESELECTED(self, wxID_STACKVIEW,
-##                                 self.OnStackItemDeselected)
+        EVT_LIST_ITEM_SELECTED(self, wxID_STACKVIEW, self.OnStackItemSelected)
         EVT_LEFT_DCLICK(self, self.OnGotoSource)
 
         self.flist = flist
         self.debugger = debugger
         self.stack = []
-##        self.selection = -1
 
     def load_stack(self, stack, index=None):
         import linecache
-        
+
         self.stack = stack
         data = []
 
@@ -76,18 +72,13 @@ class StackViewCtrl(DebuggerListCtrl):
         while pos < count:
             self.DeleteItem(count - 1)
             count = count - 1
-        #self.selection = -1
 
     def OnStackItemSelected(self, event):
-        self.selection = event.m_itemIndex
-
+        selection = self.getSelection()
         stacklen = len(self.stack)
-        if 0 <= self.selection < stacklen:
+        if 0 <= selection < stacklen:
             self.debugger.invalidatePanes()
             self.debugger.updateSelectedPane()
-
-    def OnStackItemDeselected(self, event):
-        self.selection = -1
 
     def selectCurrentEntry(self):
         selection = self.getSelection()
@@ -101,7 +92,6 @@ class StackViewCtrl(DebuggerListCtrl):
                 item = self.GetItem(newsel)
                 item.m_state = item.m_state | wxLIST_STATE_SELECTED
                 self.SetItem(item)
-            #self.selection = newsel
         if newsel >= 0:
             self.EnsureVisible(newsel)
 
@@ -145,15 +135,7 @@ class BreakViewCtrl(DebuggerListCtrl):
         self.brkImgLst.Add(IS.load('Images/Debug/Breakpoint-gray.png'))
         self.brkImgLst.Add(IS.load('Images/Debug/Breakpoint-blue.png'))
 
-##        EVT_LIST_ITEM_SELECTED(self, wxID_BREAKVIEW,
-##                               self.OnBreakpointSelected)
-##        EVT_LIST_ITEM_DESELECTED(self, wxID_BREAKVIEW,
-##                                 self.OnBreakpointDeselected)
         EVT_LEFT_DCLICK(self, self.OnGotoSource)
-
-##        EVT_RIGHT_DOWN(self, self.OnRightDown)
-##        EVT_COMMAND_RIGHT_CLICK(self, -1, self.OnRightClick)
-##        EVT_RIGHT_UP(self, self.OnRightClick)
 
         self.debugger = debugger
 
@@ -167,7 +149,7 @@ class BreakViewCtrl(DebuggerListCtrl):
         self.menu.Append(wxID_BREAKDELETE, 'Delete')
         self.menu.Append(-1, '-')
         self.menu.Append(wxID_BREAKENABLED, 'Enabled', '', true)
-        
+
         self.menu.Check(wxID_BREAKENABLED, true)
 
         EVT_MENU(self, wxID_BREAKSOURCE, self.OnGotoSourceRight)
@@ -182,8 +164,6 @@ class BreakViewCtrl(DebuggerListCtrl):
 
         self.AssignImageList(self.brkImgLst, wxIMAGE_LIST_SMALL)
 
-        #self.rightsel = -1
-        
         self.bps = []
         self.stats_map = {}
 
@@ -206,7 +186,6 @@ class BreakViewCtrl(DebuggerListCtrl):
         self.stats_map = stats_map
 
     def refreshList(self):
-        #self.rightsel = -1
         self.DeleteAllItems()
         bps = bplist.getBreakpointList()
         # Sort by filename and lineno.
@@ -224,7 +203,6 @@ class BreakViewCtrl(DebuggerListCtrl):
             self.InsertImageStringItem(
                 p, os.path.basename(bp['filename']), imgIdx)
             self.SetStringItem(p, 1, str(bp['lineno']))
-            #if bp['enabled']: self.SetStringItem(p, 3, '*')
 
             hits = ''
             ignore = ''
@@ -235,14 +213,10 @@ class BreakViewCtrl(DebuggerListCtrl):
                     hits = str(item['hits'])
                     ignore = str(item['ignore'])
                     cond = item['cond'] or ''
-                    #imgIdx = 0
-                    #if not item['enabled']: imgIdx = 2
-                    #elif item['temporary']: imgIdx = 3
-                    
+
             self.SetStringItem(p, 2, ignore)
             self.SetStringItem(p, 3, hits)
             self.SetStringItem(p, 4, cond)
-            #self.SetItemImage(p, imgIdx, -1)
 
     def addBreakpoint(self, filename, lineno):
         self.refreshList()
@@ -256,20 +230,12 @@ class BreakViewCtrl(DebuggerListCtrl):
                 return
             idx = idx + 1
 
-##    def OnBreakpointSelected(self, event):
-##        self.selection = event.m_itemIndex
-
-##    def OnBreakpointDeselected(self, event):
-##        self.selection = -1
-
     def OnGotoSource(self, event):
-#        sel = self.HitTest(event.GetPosition())[0]
         sel = self.getSelection()
         if sel != -1:
             self.gotoSourceForItem(sel)
 
     def OnGotoSourceRight(self, event):
-#        sel = self.rightsel
         sel = self.getSelection()
         if sel != -1:
             self.gotoSourceForItem(sel)
@@ -285,11 +251,9 @@ class BreakViewCtrl(DebuggerListCtrl):
         view = model.getSourceView()
         if view is not None:
             view.focus()
-            #view.selectLine(bp['lineno'] - 1)
             view.GotoLine(bp['lineno'] - 1)
 
     def OnDelete(self, event):
-        #sel = self.rightsel
         sel = self.getSelection()
         if sel != -1:
             bp = self.bps[sel]
@@ -300,7 +264,7 @@ class BreakViewCtrl(DebuggerListCtrl):
             server_fn = self.debugger.clientFNToServerFN(filename)
             self.debugger.invokeInDebugger(
                 'clearBreakpoints', (server_fn, bp['lineno']))
-            
+
             # Unmark the breakpoint in the editor (if open)
             sourceView = self.debugger.getEditorSourceView(filename)
             if sourceView:
@@ -313,7 +277,6 @@ class BreakViewCtrl(DebuggerListCtrl):
         self.refreshList()
 
     def OnToggleEnabled(self, event):
-        #sel = self.rightsel
         sel = self.getSelection()
         if sel != -1:
             bp = self.bps[sel]
@@ -325,26 +288,11 @@ class BreakViewCtrl(DebuggerListCtrl):
             self.debugger.invokeInDebugger(
                 'enableBreakpoints', (server_fn, lineno, enabled))
             self.refreshList()
-            
+
             sourceView = self.debugger.getEditorSourceView(filename)
             if sourceView:
                 sourceView.deleteBreakMarkers(bp['lineno'])
                 sourceView.setBreakMarker(bp)
-
-##    def OnRightDown(self, event):
-##        self.pos = event.GetPosition()
-##        event.Skip()
-##
-##    def OnRightClick(self, event):
-##        event.Skip()
-##        if not self.pos:
-##            return
-##        sel = self.HitTest(self.pos)[0]
-##        if sel != -1:
-##            self.rightsel = sel
-##            bp = self.bps[sel]
-##            self.menu.Check(wxID_BREAKENABLED, bp['enabled'])
-##            self.PopupMenu(self.menu, self.pos)
 
     def getPopupMenu(self):
         wxYield()
@@ -363,7 +311,6 @@ class BreakViewCtrl(DebuggerListCtrl):
         return DebuggerListCtrl.getPopupMenu(self)
 
     def OnEditCondition(self, event):
-        #sel = self.rightsel
         sel = self.getSelection()
         if sel != -1:
             bp = self.bps[sel]
@@ -371,7 +318,7 @@ class BreakViewCtrl(DebuggerListCtrl):
             lineno = bp['lineno']
             cond = bp['cond']
 
-            dlg = wxTextEntryDialog(self, 'Condition to break on:', 
+            dlg = wxTextEntryDialog(self, 'Condition to break on:',
                   'Change condition', cond)
             try:
                 if dlg.ShowModal() == wxID_OK:
@@ -382,7 +329,7 @@ class BreakViewCtrl(DebuggerListCtrl):
                     server_fn = self.debugger.clientFNToServerFN(filename)
                     self.debugger.invokeInDebugger(
                         'conditionalBreakpoints', (server_fn, lineno, cond))
-                    
+
                     self.debugger.requestDebuggerStatus()
                     #self.refreshList()
             finally:
@@ -390,14 +337,13 @@ class BreakViewCtrl(DebuggerListCtrl):
 
     def OnEditIgnore(self, event):
         sel = self.getSelection()
-        #sel = self.rightsel
         if sel != -1:
             bp = self.bps[sel]
             filename = bp['filename']
             lineno = bp['lineno']
             ignore = bp['ignore']
 
-            dlg = wxTextEntryDialog(self, 'Number of hits to ignore:', 
+            dlg = wxTextEntryDialog(self, 'Number of hits to ignore:',
                   'Change ignore count', `ignore`)
             try:
                 if dlg.ShowModal() == wxID_OK:
@@ -407,7 +353,7 @@ class BreakViewCtrl(DebuggerListCtrl):
                     server_fn = self.debugger.clientFNToServerFN(filename)
                     self.debugger.invokeInDebugger(
                         'ignoreBreakpoints', (server_fn, lineno, ignore))
-                    
+
                     self.debugger.requestDebuggerStatus()
                     #self.refreshList()
             finally:
@@ -423,14 +369,6 @@ class NamespaceViewCtrl(DebuggerListCtrl):
         self.InsertColumn(0, 'Attribute', wxLIST_FORMAT_LEFT, 125)
         self.InsertColumn(1, 'Value', wxLIST_FORMAT_LEFT, 200)
 
-##        EVT_LIST_ITEM_SELECTED(self, -1, self.OnItemSelect)
-##        EVT_LIST_ITEM_DESELECTED(self, -1, self.OnItemDeselect)
-##        self.selected = -1
-##
-##        EVT_RIGHT_DOWN(self, self.OnRightDown)
-##        EVT_COMMAND_RIGHT_CLICK(self, -1, self.OnRightClick)
-##        EVT_RIGHT_UP(self, self.OnRightClick)
-
         self.is_local = is_local
 
         self.menu = wxMenu()
@@ -443,7 +381,7 @@ class NamespaceViewCtrl(DebuggerListCtrl):
         EVT_LEFT_DCLICK(self, self.OnAddAsWatch)
         EVT_MENU(self, idA, self.OnAddAWatch)
         self.pos = None
-        
+
         self.setPopupMenu(self.menu)
 
         self.repr = Repr()
@@ -486,26 +424,6 @@ class NamespaceViewCtrl(DebuggerListCtrl):
     def OnAddAWatch(self, event):
         self.add_watch('', self.is_local)
 
-##    def OnItemSelect(self, event):
-##        self.selected = event.m_itemIndex
-##        event.Skip()
-##
-##    def OnItemDeselect(self, event):
-##        self.selected = -1
-##        event.Skip()
-##
-##    def OnRightDown(self, event):
-##        self.pos = event.GetPosition()
-##        event.Skip()
-##
-##    def OnRightClick(self, event):
-##        if not self.pos:
-##            return
-##        #sel = self.HitTest(self.pos)[0]
-##        if self.selected != -1:
-##            #self.rightsel = sel
-##            self.PopupMenu(self.menu, self.pos)
-
 
 wxID_WATCHVIEW = wxNewId()
 class WatchViewCtrl(DebuggerListCtrl):
@@ -523,16 +441,6 @@ class WatchViewCtrl(DebuggerListCtrl):
         self.watches = []
 
         self.AssignImageList(images, wxIMAGE_LIST_SMALL)
-
-##        self.rightsel = -1
-##        self.selected = -1
-##
-##        EVT_LIST_ITEM_SELECTED(self, -1, self.OnItemSelect)
-##        EVT_LIST_ITEM_DESELECTED(self, -1, self.OnItemDeselect)
-##
-##        EVT_RIGHT_DOWN(self, self.OnRightDown)
-##        EVT_COMMAND_RIGHT_CLICK(self, -1, self.OnRightClick)
-##        EVT_RIGHT_UP(self, self.OnRightClick)
 
         self.menu = wxMenu()
 
@@ -556,7 +464,7 @@ class WatchViewCtrl(DebuggerListCtrl):
         self.menu.Append(wid, 'Delete All')
         EVT_MENU(self, wid, self.OnDeleteAll)
         self.pos = None
-        
+
         self.setPopupMenu(self.menu)
 
     def destroy(self):
@@ -614,14 +522,12 @@ class WatchViewCtrl(DebuggerListCtrl):
     def OnAddLocal(self, event):
         self.add_watch('', true)
         self.debugger.updateSelectedPane(force=1)
-        
+
     def OnAddGlobal(self, event):
         self.add_watch('', false)
         self.debugger.updateSelectedPane(force=1)
 
     def OnEdit(self, event):
-##        sel = self.rightsel
-##        sel = self.selected
         selected = self.getSelection()
 
         if selected != -1:
@@ -634,11 +540,8 @@ class WatchViewCtrl(DebuggerListCtrl):
                     self.debugger.updateSelectedPane(force=1)
             finally:
                 dlg.Destroy()
-            
 
     def OnDelete(self, event):
-##        sel = self.selected
-##        sel = self.rightsel
         selected = self.getSelection()
         if selected != -1:
             del self.watches[selected]
@@ -650,37 +553,10 @@ class WatchViewCtrl(DebuggerListCtrl):
         self.DeleteAllItems()
 
     def OnExpand(self, event):
-##        sel = self.rightsel
-##        sel = self.selected
         selected = self.getSelection()
         if selected != -1:
             name, local = self.watches[selected]
             self.debugger.requestWatchSubobjects(name, local, selected + 1)
-
-##    def OnItemSelect(self, event):
-##        self.selected = event.m_itemIndex
-##        event.Skip()
-##
-##    def OnItemDeselect(self, event):
-##        self.selected = -1
-##        event.Skip()
-
-##    def OnRightDown(self, event):
-##        self.pos = event.GetPosition()
-##        event.Skip()
-##
-##    def OnRightClick(self, event):
-##        event.Skip()
-##        if not self.pos:
-##            return
-##
-##        sel = self.selected
-##
-##        self.menu.Enable(self.editId, sel != -1)
-##        self.menu.Enable(self.deleteId, sel != -1)
-##        self.menu.Enable(self.expandId, sel != -1)
-##
-##        self.PopupMenu(self.menu, self.pos)
 
     def getPopupMenu(self):
         sel = self.getSelection()
@@ -704,12 +580,12 @@ class DebugStatusBar(wxStatusBar):
                           'break':  wxColour(0xFF, 0x44, 0x44),#wxNamedColour('red'),
                           'busy':   wxColour(0xBB, 0xE0, 0xFF)}
 
-        self.instr_ptr = wxStaticText(self, -1, ' ', 
+        self.instr_ptr = wxStaticText(self, -1, ' ',
               style=wxALIGN_CENTER|wxST_NO_AUTORESIZE)
         self.instr_ptr.SetBackgroundColour(wxColour(0xEE, 0xEE, 0xEE))
         self._setCtrlDims(self.instr_ptr, self.GetFieldRect(0))
-        
-        self.state = wxStaticText(self, -1, 'Ready.', 
+
+        self.state = wxStaticText(self, -1, 'Ready.',
               style=wxALIGN_CENTER|wxST_NO_AUTORESIZE)
         self.state.SetBackgroundColour(self.stateCols['info'])
         self._setCtrlDims(self.state, self.GetFieldRect(1))
@@ -719,7 +595,7 @@ class DebugStatusBar(wxStatusBar):
         (w,h) = dc.GetTextExtent('X')
         h = int(h * 1.8)
         self.SetSize(wxSize(100, h))
-        
+
         EVT_SIZE(self, self.OnSize)
 
     def _setCtrlDims(self, ctrl, rect):
@@ -733,11 +609,11 @@ class DebugStatusBar(wxStatusBar):
         self.state.SetLabel(message)
 
         self._setCtrlDims(self.state, self.GetFieldRect(1))
-    
+
     def updateInstructionPtr(self, status):
         self.instr_ptr.SetLabel(status)
         self._setCtrlDims(self.instr_ptr, self.GetFieldRect(0))
-        
+
     def OnSize(self, event):
         self._setCtrlDims(self.instr_ptr, self.GetFieldRect(0))
         self._setCtrlDims(self.state, self.GetFieldRect(1))
