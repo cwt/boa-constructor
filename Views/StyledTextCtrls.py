@@ -689,9 +689,9 @@ class LanguageSTCMix:
         self.SetUseTabs(Preferences.STCUseTabs)
         self.SetTabWidth(Preferences.STCTabWidth)
         self.SetCaretPeriod(Preferences.STCCaretPeriod)
-        if Preferences.STCCaretPolicy:
-            self.SetCaretPolicy(Preferences.STCCaretPolicy,
-                                Preferences.STCCaretPolicySlop)
+        #if Preferences.STCCaretPolicy:
+        #    self.SetCaretPolicy(Preferences.STCCaretPolicy,
+        #                        Preferences.STCCaretPolicySlop)
 
         self.SetEdgeMode(Preferences.STCEdgeMode)
         self.SetEdgeColumn(Preferences.STCEdgeColumnWidth)
