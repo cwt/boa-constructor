@@ -40,7 +40,7 @@ class InspectorFrame(wxFrame):
         pass
 
     def _init_ctrls(self, prnt):
-        wxFrame.__init__(self, size = (-1, -1), id = wxID_INSPECTORFRAME, title = 'Inspector', parent = prnt, name = '', style = wxDEFAULT_FRAME_STYLE | wxCLIP_CHILDREN, pos = (-1, -1)) #wxWANTS_CHARS |
+        wxFrame.__init__(self, size = (-1, -1), id = wxID_INSPECTORFRAME, title = 'Inspector', parent = prnt, name = '', style = wxDEFAULT_FRAME_STYLE | wxCLIP_CHILDREN, pos = (-1, -1))
         self._init_utils()
 
     def __init__(self, parent):
@@ -53,7 +53,7 @@ class InspectorFrame(wxFrame):
           Preferences.bottomHeight)
 
         self.propertyRegistry = PropertyEditors.PropertyRegistry()
-        PropertyEditors.registerTypes(self.propertyRegistry)
+        PropertyEditors.registerEditors(self.propertyRegistry)
 
         self.paletteImages = wxImageList(24, 24)
         self.destroying = false
