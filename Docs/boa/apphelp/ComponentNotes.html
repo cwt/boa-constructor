@@ -1,0 +1,202 @@
+<html><head><title>Component Notes</title></head>
+<body text="#000000" bgcolor="#FFFFFF" link="#0000FF" vlink="#000099" alink="#FF0000">
+
+<center><a href="index.html"><img SRC="contents.gif" ALT="Home" BORDER=0></a></center>
+
+<table BORDER=0 CELLSPACING=0 CELLPADDING=2 WIDTH="100%" BGCOLOR="#000000" >
+  <tr><td>
+  <table BORDER=0 CELLSPACING=0 WIDTH="100%" BGCOLOR="#FFFFFF" >
+    <tr><td BGCOLOR="#ddeeff">
+    <center><img SRC="dot.gif" height=1 width=1></center>
+    </td></tr>
+  </table>
+  </td></tr>
+</table>
+
+
+
+<h2>
+<img SRC="Designer.jpg" height=32 width=32>&nbsp; Component Notes</h2>
+
+
+
+
+
+<h3>Designer Selections</h3>
+<p>
+Not all controls behave equally well to the mouse events that the Designer binds.<br>
+To select a control that does not respond to mouse clicks, go the the <b>Objs</b>
+page in the inspector and select the control from the tree.
+<p>
+<h3>Spesific component notes</h3>
+Here are some guidelines and gotchas of using certain components:
+<table CELLSPACING=0 CELLPADDING=0 BORDER=0 BGCOLOR="#000000"><tr><td>
+<table CELLSPACING=2 CELLPADDING=4>
+
+<tr>
+<td WIDTH="25%" VALIGN=TOP BGCOLOR="#ddeeff" >
+
+<b>wxSplitterWindow</b></td>
+<td VALIGN=TOP BGCOLOR="#ddeeff" >
+
+Drop the controls that you want to split inside the wxSplitterWindow.<br>
+Connect the <b>Window1</b> property to the first control and the <b>Window2</b> property to the second.<br>
+Change the <b>SplitMode</b> property if necessary.<br>
+To select a wxSplitterWindow that already have it's windows split, click on the splitter line.<br>
+Do not try to only set the second window, this is illegal in wxWindows.</td>
+</tr>
+
+<tr>
+<td WIDTH="25%" VALIGN=TOP BGCOLOR="#ddeeff" >
+
+<b>wxNotebook</b></td>
+<td VALIGN=TOP BGCOLOR="#ddeeff" >
+
+Double click on the wxNotebook to bring up the
+Collection Editor for the notebook. If there are already pages in the notebook,
+double click on the page tabs. Use the collection editor to add new pages.
+Double click on an item to make the page the active page in the notebook.<br>
+Areas indicated with a dashed red pattern indicate that they must be given a 
+control or they will generate invalid source code. Select a control as usual from
+the Palette and click on the red dashed area to create.</td>
+</tr>
+
+<tr>
+<td WIDTH="25%" VALIGN=TOP BGCOLOR="#ddeeff" >
+
+<b>wxStaticBox</b></td>
+<td VALIGN=TOP BGCOLOR="#ddeeff" >
+
+MSW: Repaint problems.<br>
+GTK: Does not respond correctly to designer mouse events, select from Objs page.</td>
+</tr>
+
+<tr>
+<td WIDTH="25%" VALIGN=TOP BGCOLOR="#ddeeff" >
+
+<b>wxGrid</b></td>
+<td VALIGN=TOP BGCOLOR="#ddeeff" >
+
+You have to manually add a call to either <b>CreateGrid</b>
+otr <b>SetTable</b> in your code after the call to <b>_init_ctrls</b>.
+<p>
+See <i>Examples/wxGrid.py</i></td>
+</tr>
+
+<tr>
+<td WIDTH="25%" VALIGN=TOP BGCOLOR="#ddeeff" >
+
+<b>wxSlider</b></td>
+<td VALIGN=TOP BGCOLOR="#ddeeff" >
+
+When used with the wxSL_LABELS style, the slider
+has conflicting GetPosition/SetPosition behaviour causing problems with selection
+in the Designer. Use not supported.</td>
+</tr>
+
+<tr>
+<td WIDTH="25%" VALIGN=TOP BGCOLOR="#ddeeff" >
+
+<b>wxListBox</b></td>
+<td VALIGN=TOP BGCOLOR="#ddeeff" >
+
+GTK: Does not respond correctly to designer mouse events, 
+select from Objs page.</td>
+</tr>
+
+<tr>
+<td WIDTH="25%" VALIGN=TOP BGCOLOR="#ddeeff" >
+
+<b>wxCheckListBox</b></td>
+<td VALIGN=TOP BGCOLOR="#ddeeff" >
+
+GTK: Does not respond correctly to designer mouse events, 
+select from Objs page.</td>
+</tr>
+
+<tr>
+<td WIDTH="25%" VALIGN=TOP BGCOLOR="#ddeeff" >
+
+<b>wxRadioBox</b></td>
+<td VALIGN=TOP BGCOLOR="#ddeeff" >
+
+GTK: Does not respond correctly to designer mouse events, 
+select from Objs page.</td>
+</tr>
+
+<tr>
+<td WIDTH="25%" VALIGN=TOP BGCOLOR="#ddeeff" >
+
+<b>wxStaticText</b></td>
+<td VALIGN=TOP BGCOLOR="#ddeeff" >
+
+GTK: Does not respond correctly to designer mouse events, 
+select from Objs page.</td>
+</tr>
+
+<tr>
+<td WIDTH="25%" VALIGN=TOP BGCOLOR="#ddeeff" >
+
+<b>wxDynamicSashWindow</b></td>
+<td VALIGN=TOP BGCOLOR="#ddeeff" >
+
+GTK: Does not respond correctly to designer mouse events, 
+select from Objs page.</td>
+</tr>
+
+<tr>
+<td WIDTH="25%" VALIGN=TOP BGCOLOR="#ddeeff" >
+
+<b>wxToolBar,<br> wxMenuBar,<br> wxStatusBar</b></td>
+<td VALIGN=TOP BGCOLOR="#ddeeff" >
+
+Remember to connect these components to your
+Frame object with it's <b>ToolBar</b>, <b>MenuBar</b> and <b>StatusBar</b> properties.
+<p>
+MSW: If a wxMenuBar is connected to the frame, the wxFrame is not selected when
+the Designer is opened (wxMenuBar sends a size event that interrupt the Designer)<br>
+Just select it manually.</td>
+</tr>
+
+
+
+</table>
+</td></tr></table>
+
+<p>
+Here are some guidelines and gotchas of certain properties:
+<table CELLSPACING=0 CELLPADDING=0 BORDER=0 BGCOLOR="#000000"><tr><td>
+<table CELLSPACING=2 CELLPADDING=4>
+
+<tr>
+<td WIDTH="25%" VALIGN=TOP BGCOLOR="#ddeeff" >
+
+<b>Bitmaps</b></td>
+<td VALIGN=TOP BGCOLOR="#ddeeff" >
+
+The path is stored in absolute form by default.
+You may change this under Preferences->General->Code generation->cgAbsoluteImagePaths</td>
+</tr>
+
+</table>
+</td></tr></table>
+<p>
+<br>
+<table BORDER=0 CELLSPACING=0 CELLPADDING=2 WIDTH="100%" BGCOLOR="#000000" >
+  <tr><td>
+  <table BORDER=0 CELLSPACING=0 WIDTH="100%" BGCOLOR="#FFFFFF" >
+    <tr><td BGCOLOR="#ddeeff">
+    <center><img SRC="dot.gif" height=1 width=1></center>
+    </td></tr>
+  </table>
+  </td></tr>
+</table>
+
+
+<div align=right><font size="-1">Boa Constructor - Application Help - <b>Component Notes</b></font></div>
+<p>
+</body></html>
+
+
+
+
