@@ -38,8 +38,8 @@ class ExplorerClipboard:
                 raise Exception('Pasting from %s not supported'% self.globClip.currentClipboard.__class__.__name__)
 
 class Controller:
-#    def __del__(self):
-#        print '__del__', self.__class__.__name__
+    def __del__(self):
+        print '__del__', self.__class__.__name__
     def __init__(self, editor):
         self.editor = editor
         
@@ -144,7 +144,9 @@ class ExplorerNode:
         self.vetoRequery = false
         self.upImgIdx = EditorModels.imgFolderUp
         self.parentOpensChildren = false
-                
+##    def __del__(self):
+##        print '__del__', self.__class__.__name__
+    def destroy(self):pass
     def createParentNode(self): pass
     def createChildNode(self, value): pass
     def openList(self): pass
@@ -180,6 +182,7 @@ class RootNode(ExplorerNode):
         ExplorerNode.__init__(self, name, '', None, EditorModels.imgBoaLogo, None)
         self.entries = []
         self.vetoRequery = true
+    def destroy(self): self.entries = []
     def isFolderish(self): return true
     def createParentNode(self): return self
     def createChildNode(self, value): return value    
@@ -198,6 +201,8 @@ class CategoryNode(ExplorerNode):
         self.config = config
         self.bold = true
         self.refresh()
+    def destroy(self): 
+        self.entries = {}
     
     def isFolderish(self):
         return true
@@ -301,13 +306,15 @@ class CategoryController(Controller):
         self.list.EditLabel(self.list.selected)
 
 from Companions.BaseCompanions import Companion
-from PropEdit.PropertyEditors import StrConfPropEdit, EvalConfPropEdit
+from PropEdit.PropertyEditors import StrConfPropEdit, EvalConfPropEdit, PasswdStrConfPropEdit
 import RTTI
 import types
 
+passwordNames = ['passwd']
 # XXX Refactor this and ZopeCompanion
 class CategoryCompanion(Companion):
     propMapping = {type('') : StrConfPropEdit,
+                   'password' : PasswdStrConfPropEdit, 
                    'default': EvalConfPropEdit}
     def __init__(self, name, catNode):
         Companion.__init__(self, name)
@@ -323,7 +330,10 @@ class CategoryCompanion(Companion):
     def getEvents(self):
         return []
     def getPropEditor(self, prop):
-        return self.propMapping.get(type(self.GetProp(prop)), self.propMapping['default'])
+        if prop in passwordNames:
+            return self.propMapping['password']
+        else:
+            return self.propMapping.get(type(self.GetProp(prop)), self.propMapping['default'])
 #        return StrConfPropEdit
     def getPropOptions(self, prop):
         return []
@@ -333,6 +343,8 @@ class CategoryCompanion(Companion):
         pass
     def persistProp(self, name, setterName, value):
         pass
+    def propIsDefault(self, name, setterName):
+        return true
 
     def updateProps(self):
         self.propItems = self.getPropertyItems()
