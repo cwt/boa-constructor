@@ -28,7 +28,7 @@ import Utils
 from Enumerations import reverseDict
 from InspectorEditorControls import *
 from Preferences import wxFileDialog
-import PaletteMapping
+#import PaletteMapping
 
 class EditorStyles:pass
 class esExpandable(EditorStyles):pass
@@ -212,87 +212,6 @@ class PropertyEditor:
 class FactoryPropEdit(PropertyEditor):
     pass
 
-class ZopePropEdit(PropertyEditor):
-    def __init__(self, name, parent, companion, rootCompanion, propWrapper, idx,
-      width, options, names):
-        PropertyEditor.__init__(self, name, parent, companion, rootCompanion,
-          propWrapper, idx, width)
-    def initFromComponent(self):
-        self.value = self.getCtrlValue()
-    def persistValue(self, value):
-        pass
-##    def getCtrlValue(self):
-##        return ''#self.getter(self.obj)
-##    def getValue(self):
-##        return ''
-##    def setValue(self, value):
-##        self.value = value
-
-
-class EvalZopePropEdit(ZopePropEdit):
-    def valueToIECValue(self):
-        return `self.value`
-
-    def inspectorEdit(self):
-        self.editorCtrl = TextCtrlIEC(self, `self.value`)
-        self.editorCtrl.createControl(self.parent, self.value, self.idx,
-          self.width)
-
-    def getValue(self):
-        if self.editorCtrl:
-            try:
-                self.value = eval(self.editorCtrl.getValue())
-            except Exception, message:
-                self.value = self.getCtrlValue()
-                print 'invalid constr prop value', message
-        else:
-            self.value = self.getCtrlValue()
-        return self.value
-
-class StrZopePropEdit(ZopePropEdit):
-    def valueToIECValue(self):
-        return self.value
-#        return eval(self.value)
-
-    def inspectorEdit(self):
-        self.editorCtrl = TextCtrlIEC(self, self.value)
-        self.editorCtrl.createControl(self.parent, self.value, self.idx,
-          self.width)
-
-    def getValue(self):
-        if self.editorCtrl:
-            try:
-                self.value = self.editorCtrl.getValue()
-            except Exception, message:
-                self.value = self.getCtrlValue()
-                print 'invalid constr prop value', message
-        else:
-            self.value = self.getCtrlValue()
-        return self.value
-
-class BoolZopePropEdit(ZopePropEdit):
-    boolValMap = {'on': 'true', '': 'false'}
-    boolKeyMap = {'true': 'on', 'false': ''}
-    def valueToIECValue(self):
-##        return self.boolValMap[self.value]
-        if self.value:
-            return self.value and self.getValues()[1] or self.getValues()[0]
-        else:
-            return self.getValues()[0]
-    def inspectorEdit(self):
-        self.editorCtrl = CheckBoxIEC(self, self.valueToIECValue())
-        self.editorCtrl.createControl(self.parent, self.idx, self.width)
-        self.editorCtrl.setValue(self.valueToIECValue())
-    def getDisplayValue(self):
-        return self.valueToIECValue()
-    def getValues(self):
-        return ['false', 'true']
-    def getValue(self):
-        if self.editorCtrl:
-            self.value = self.boolKeyMap[self.editorCtrl.getValue()]
-##            if v == 'true'
-##            self.value = self.getValues().index(self.editorCtrl.getValue())
-        return self.value
 
 class ConfPropEdit(PropertyEditor):
     def __init__(self, name, parent, companion, rootCompanion, propWrapper, idx,
@@ -303,6 +222,10 @@ class ConfPropEdit(PropertyEditor):
         self.value = self.getCtrlValue()
     def persistValue(self, value):
         pass
+
+class ContainerConfPropEdit(ConfPropEdit):
+    def getStyle(self):
+        return [esExpandable]
 
 class StrConfPropEdit(ConfPropEdit):
     def valueToIECValue(self):
@@ -390,6 +313,7 @@ class ConstrPropEdit(ConstrPropEditFacade, PropertyEditor):
     def setCtrlValue(self, oldValue, value):
         self.companion.checkTriggers(self.name, oldValue, value)
         if hasattr(self.companion, 'index'):
+            import PaletteMapping
             self.propWrapper.setValue(PaletteMapping.evalCtrl(value), self.companion.index)
         else:
             self.propWrapper.setValue(value)
@@ -777,7 +701,7 @@ class BITPropEditor(FactoryPropEdit):
 
 class IntPropEdit(BITPropEditor):
     pass
-    
+
 class StrPropEdit(BITPropEditor):
     def valueToIECValue(self):
         return self.value
@@ -1275,7 +1199,7 @@ class MenuBarColPropEdit(CollectionPropEdit): pass
 class MenuColPropEdit(CollectionPropEdit): pass
 class ImagesColPropEdit(CollectionPropEdit): pass
 class NotebookPagesColPropEdit(CollectionPropEdit): pass
-    
+
 # Property editor registration
 
 def registerEditors(reg):
@@ -1284,7 +1208,7 @@ def registerEditors(reg):
             reg.registerTypes(theClass, editors)
         elif theType == 'Class':
             reg.registerClasses(theClass, editors)
-        
+
 registeredTypes = [\
     ('Type', IntType, [IntPropEdit]),
     ('Type', StringType, [StrPropEdit]),
