@@ -272,7 +272,7 @@ class MenuBarDTC(MenuBarConstr, UtilityDTC):#DesignTimeCompanion):
         pass
         
     def vetoedMethods(self):
-        return UtilityDTC.vetoedMethods(self)+['GetPosition', 'SetPosition']
+        return UtilityDTC.vetoedMethods(self)+['GetPosition', 'SetPosition', 'GetSize', 'SetSize']
 
     def hideDesignTime(self):
         return []
