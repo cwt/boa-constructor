@@ -24,9 +24,9 @@ import Preferences, Utils
 class ErrorStackMF(wxFrame, Utils.FrameRestorerMixin):
     def _init_coll_notebook1_Pages(self, parent):
 
-        parent.AddPage(strText = self.tracebackText, bSelect = true, pPage = self.errorStackTC, imageId = self.tracebackImgIdx)
-        parent.AddPage(strText = self.outputText, bSelect = false, pPage = self.outputTC, imageId = self.outputImgIdx)
-        parent.AddPage(strText = self.errorsText, bSelect = false, pPage = self.errorTC, imageId = self.errorsImgIdx)
+        parent.AddPage(select = true, imageId = self.tracebackImgIdx, page = self.errorStackTC, text = self.tracebackText)
+        parent.AddPage(select = false, imageId = self.outputImgIdx, page = self.outputTC, text = self.outputText)
+        parent.AddPage(select = false, imageId = self.errorsImgIdx, page = self.errorTC, text = self.errorsText)
 
     def _init_coll_statusBar_Fields(self, parent):
         parent.SetFieldsCount(1)
@@ -251,8 +251,8 @@ class ErrorStackMF(wxFrame, Utils.FrameRestorerMixin):
                   (6, 'back:#CCFFCC') ): #'+'
                 self.diffPage.StyleSetSpec(num, style)
             self.diffPage.SetText(diffResult)
-            self.notebook1.AddPage(strText='Diffs', bSelect=not not diffResult,
-                pPage=self.diffPage, imageId=self.diffImgIdx)
+            self.notebook1.AddPage(text='Diffs', select=not not diffResult,
+                page=self.diffPage, imageId=self.diffImgIdx)
         else:
             self.diffPage.SetText(diffResult)
             if diffResult:

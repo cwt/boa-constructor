@@ -28,10 +28,10 @@ class ClassBrowserFrame(wxFrame, Utils.FrameRestorerMixin):
     def _init_coll_pages_Pages(self, parent):
         # generated method, don't edit
 
-        parent.AddPage(bSelect=true, imageId=-1, pPage=self.hierarchy,
-              strText='Hierarchy')
-        parent.AddPage(bSelect=false, imageId=-1, pPage=self.tree,
-              strText='Modules')
+        parent.AddPage(select=true, imageId=-1, page=self.hierarchy,
+              text='Hierarchy')
+        parent.AddPage(select=false, imageId=-1, page=self.tree,
+              text='Modules')
 
     def _init_utils(self):
         # generated method, don't edit
