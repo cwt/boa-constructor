@@ -65,10 +65,10 @@ for m_type, file in ZOAImages:
     imgCounter = imgCounter + 1
 
 
-class ZopeEditorModel(EditorModels.EditorModel):
+class ZopeEditorModel(EditorModels.BasePersistentModel):
     modelIdentifier = 'Zope'
     def __init__(self, name, data, editor, saved, zopeObject):
-        EditorModels.EditorModel.__init__(self, name, data, editor, saved)
+        EditorModels.BasePersistentModel.__init__(self, name, data, editor, saved)
         self.zopeObj = zopeObject  #this is the instance of our node now
 
     def save(self):
@@ -78,7 +78,7 @@ class ZopeEditorModel(EditorModels.EditorModel):
         """
         from ExternalLib.xmlrpclib import Fault
         try:
-            EditorModels.EditorModel.save(self)
+            EditorModels.BasePersistentModel.save(self)
         except Fault, err:
             from Explorers import ExplorerNodes
             raise ExplorerNodes.TransportSaveError(Utils.html2txt(err.faultString),
@@ -109,18 +109,18 @@ class ZopeDocumentModel(ZopeEditorModel):
         ZopeEditorModel.__init__(self, name, data, editor, saved, zopeObject)
         self.savedAs = true
 
-    def addTools(self, toolbar):
-        ZopeEditorModel.addTools(self, toolbar)
-        Utils.AddToolButtonBmpIS(self.editor, toolbar, self.saveBmp, 'Save',
-              self.editor.OnSave)
+##    def addTools(self, toolbar):
+##        ZopeEditorModel.addTools(self, toolbar)
+##        Utils.AddToolButtonBmpIS(self.editor, toolbar, self.saveBmp, 'Save',
+##              self.editor.OnSave)
 
-    def addMenus(self, menu):
-        accls = ZopeEditorModel.addMenus(self, menu)
-        self.addMenu(menu, EditorHelper.wxID_EDITORSAVE, 'Save', accls,
-              (keyDefs['Save']))
-        self.addMenu(menu, EditorHelper.wxID_EDITORCLOSEPAGE, 'Close', accls,
-              (keyDefs['Close']))
-        return accls
+##    def addMenus(self, menu):
+##        accls = ZopeEditorModel.addMenus(self, menu)
+##        self.addMenu(menu, EditorHelper.wxID_EDITORSAVE, 'Save', accls,
+##              (keyDefs['Save']))
+##        self.addMenu(menu, EditorHelper.wxID_EDITORCLOSEPAGE, 'Close', accls,
+##              (keyDefs['Close']))
+##        return accls
 
     def saveAs(self, filename):
         """ Saves contents of data to file specified by filename.
