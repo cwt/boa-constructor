@@ -257,7 +257,7 @@ def showTip(frame, forceShow = 0):
             except IOError:
                 wxLogError('Could not edit tips settings, please make '
                       'sure that the Explorer.*.cfg file is not read only and you '
-                      'have sufficient privaledges to write to this file.')
+                      'have sufficient priviledges to write to this file.')
 
 def readTextFromClipboard():
     clip = wxTheClipboard
