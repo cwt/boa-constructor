@@ -11,6 +11,13 @@
 # Licence:     GPL
 #-------------------------------------------------------------------------------
 
+""" Classes that 'shadow' controls. 
+
+They implement design time behaviour and interfaces. Also used for inspectable
+objects """
+
+print 'importing Companions'
+
 from wxPython.wx import *
 from PropEdit.PropertyEditors import *
 from Constructors import WindowConstr
@@ -84,6 +91,10 @@ class DesignTimeCompanion(Companion):
         # as customPropEvaluators are also used to initialise multi parameter
         # properties
         self.customPropEvaluators = {}
+        # Properties that should be initialised thru the companion instead of
+        # directly on the control. Usually this applies to 'write-only'
+        # properties whose values cannot otherwise be determined
+        self.initPropsThruCompanion = []
         # Run time dict of created collection companions
         self.collections = {}
         # Can't work, remove
@@ -260,6 +271,12 @@ class DesignTimeCompanion(Companion):
         if self.triggers.has_key(name):
             self.triggers[name](oldValue, newValue)
 
+    def getCompName(self):
+        if id(self.control) == id(self.designer):
+            return ''
+        else:
+            return self.name
+
     def persistProp(self, name, setterName, value):
         c = self.constructor()
         #constructor
@@ -272,12 +289,8 @@ class DesignTimeCompanion(Companion):
                     prop.params = [value]
                     return
 
-            if id(self.control) == id(self.designer):
-                comp_name = ''
-            else:
-                comp_name = self.name
             self.textPropList.append(methodparse.PropertyParse( \
-                None, comp_name, setterName, [value], name))
+                None, self.getCompName(), setterName, [value], name))
 
     def persistedPropVal(self, name, setterName):
         c = self.constructor()
@@ -429,11 +442,15 @@ class DesignTimeCompanion(Companion):
               collectionMethod == '_init_ctrls':
                 output.append(bodyIndent + 'self._init_utils()')
 
+    nullProps = ('None',)
     def writeProperties(self, output, ctrlName, definedCtrls, deps, depLinks):
         """ Write out property setters but postpone dependent properties.
         """
         # Add properties
         for prop in self.textPropList:
+            # Skip blanked out props
+            if len(prop.params) == 1 and prop.params[0] in self.nullProps:
+                continue
             # Postpone dependent props
             if self.designer.checkAndAddDepLink(ctrlName, prop,
                   self.dependentProps(), deps, depLinks, definedCtrls):
@@ -452,7 +469,7 @@ class DesignTimeCompanion(Companion):
                 if addModuleMethod and not module.classes[
                     model.main].methods.has_key(evt.trigger_meth):
                     module.addMethod(model.main, evt.trigger_meth,
-                          'self, event', ['        pass'])
+                          'self, event', [bodyIndent + 'pass'])
 
     def writeCollections(self, output, collDeps):
         # Add collection initialisers
@@ -599,6 +616,7 @@ class ControlDTC(DesignTimeCompanion):
             size = self.control.GetSize()
             self.textConstr.params['pos'] = 'wxPoint(%d, %d)' % (pos.x, pos.y)
             self.textConstr.params['size'] = 'wxSize(%d, %d)' % (size.x, size.y)
+                    
 
 class MultipleSelectionDTC(DesignTimeCompanion):
     """ Semi mythical class at the moment that will represent a group of
@@ -716,11 +734,13 @@ class WindowDTC(WindowConstr, ControlDTC):
                         'Style': StyleConstrPropEdit,
                         'Constraints': CollectionPropEdit,
                         'Name': NamePropEdit,
-                        'Anchors': AnchorPropEdit})
+                        'Anchors': AnchorPropEdit,
+                        'SizeHints': TuplePropEdit})
 #                        'Sizer': SizerClassLinkPropEdit,
         self.triggers.update({'Size'     : self.SizeUpdate,
                               'Position' : self.PositionUpdate})
-        self.customPropEvaluators.update({'Constraints': self.EvalConstraints})
+        self.customPropEvaluators.update({'Constraints': self.EvalConstraints,
+                                          'SizeHints': self.EvalSizeHints,})
 
         self.windowStyles = ['wxCAPTION', 'wxMINIMIZE_BOX', 'wxMAXIMIZE_BOX',
                              'wxTHICK_FRAME', 'wxSIMPLE_BORDER', 'wxDOUBLE_BORDER',
@@ -734,14 +754,19 @@ class WindowDTC(WindowConstr, ControlDTC):
 
         import UtilCompanions
         self.subCompanions['Constraints'] = UtilCompanions.IndividualLayoutConstraintOCDTC
-        self.anchorSettings = []#true, true, false, false]
+        #self.subCompanions['SizeHints'] = UtilCompanions.SizeHintsDTC
+        self.anchorSettings = []
         self._applyConstraints = false
+        self.initPropsThruCompanion = ['SizeHints']
+        self._sizeHints = (-1, -1, -1, -1)
 
     def properties(self):
         return {'Shown': ('CtrlRoute', wxWindow.IsShown.im_func, wxWindow.Show.im_func),
                 'Enabled': ('CtrlRoute', wxWindowPtr.IsEnabled.im_func, wxWindowPtr.Enable.im_func),
                 'ToolTipString': ('CompnRoute', self.GetToolTipString, self.SetToolTipString),
-                'Anchors': ('CompnRoute', self.GetAnchors, self.SetConstraints),}
+                'Anchors': ('CompnRoute', self.GetAnchors, self.SetConstraints),
+                'SizeHints': ('CompnRoute', self.GetSizeHints, self.SetSizeHints),
+                }
 
     def designTimeSource(self, position = 'wxDefaultPosition', size = 'wxDefaultSize'):
         return {'pos':  position,
@@ -765,7 +790,6 @@ class WindowDTC(WindowConstr, ControlDTC):
             return 'from wxPython.lib.anchors import LayoutAnchors'
         else:
             return None
-
 
 #---ToolTips--------------------------------------------------------------------
     def GetToolTipString(self, blah):
@@ -854,6 +878,35 @@ class WindowDTC(WindowConstr, ControlDTC):
         if self.designer.selection:
             self.designer.selection.selectCtrl(self.control, self)
             self.designer.selection.moveCapture(self.control, self, wxPoint(0, 0))
+
+#---Size hints------------------------------------------------------------------
+    def GetSizeHints(self, dummy):
+        return self._sizeHints
+
+    def SetSizeHints(self, value):
+        self._sizeHints = value
+        self.control.SetSizeHints(value[0], value[1], value[2], value[3])
+
+    def EvalSizeHints(self, exprs, objects):
+        res = []
+        for expr in exprs:
+            res.append(self.eval(expr))
+        return tuple(res)
+
+    def persistProp(self, name, setterName, value):
+        if setterName == 'SetSizeHints':
+            minW, minH, maxW, maxH = self.eval(value)
+            newParams = [`minW`, `minH`, `maxW`, `maxH`]
+            # edit if exists
+            for prop in self.textPropList:
+                if prop.prop_setter == setterName:
+                    prop.params = newParams
+                    return
+            # add if not defined
+            self.textPropList.append(methodparse.PropertyParse( None, 
+                self.getCompName(), setterName, newParams, 'SetSizeHints'))
+        else:
+            ControlDTC.persistProp(self, name, setterName, value)
 
 class ChoicedDTC(WindowDTC):
     def __init__(self, name, designer, parent, ctrlClass):
