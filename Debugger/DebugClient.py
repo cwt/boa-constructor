@@ -100,7 +100,8 @@ class DebugClient:
 
     def postEvent(self, evt):
         """Adds an event to the event queue."""
-        self.event_handler.AddPendingEvent(evt)
+        if self.event_handler:
+            self.event_handler.AddPendingEvent(evt)
 
     def pollStreams(self):
         """Returns the data sent to stdout and stderr."""
