@@ -13,7 +13,7 @@ print 'importing Views.AppViews'
 
 """ View classes for the AppModel """
 
-from os import path
+import os
 import time
 
 try:
@@ -24,7 +24,7 @@ except ImportError:
 from wxPython.wx import *
 
 from EditorViews import ListCtrlView, ModuleDocView, wxwAppModuleTemplate, \
-                        CloseableViewMix, FindResultsAdderMixin
+                        ToDoView, CloseableViewMix, FindResultsAdderMixin
 import SourceViews
 import Search, Utils
 
@@ -59,7 +59,7 @@ class AppFindResults(ListCtrlView, CloseableViewMix):
         for mod in self.results.keys():
             for result in self.results[mod]:
                 self.listResultIdxs.append((mod, result))
-                i = self.addReportItems(i, (path.basename(mod), `result[0]`,
+                i = self.addReportItems(i, (os.path.basename(mod), `result[0]`,
                   `result[1]`, result[2].strip()) )
 
         self.model.editor.statusBar.setHint('%d matches of "%s".'%(i, self.findPattern))
@@ -115,8 +115,6 @@ class AppView(ListCtrlView, FindResultsAdderMixin):
 
         self.sortOnColumns = [0, 1, 3]
 
-#        EVT_LIST_BEGIN_DRAG(self, self.GetId(), self.OnDrag)
-
         self.SetImageList(model.editor.modelImageList, wxIMAGE_LIST_SMALL)
 
         self.lastSearchPattern = ''
@@ -124,9 +122,11 @@ class AppView(ListCtrlView, FindResultsAdderMixin):
         self.canExplore = true
         self.model = model
 
-    def OnDrag(self, event):
-        print 'drag', event.GetString()
-        print 'drag', dir(event.__class__.__bases__[0])
+#        EVT_LIST_BEGIN_DRAG(self, self.GetId(), self.OnDrag)
+
+#    def OnDrag(self, event):
+#        print 'drag', event.GetString()
+#        print 'drag', dir(event.__class__.__bases__[0])
 
     def explore(self):
         modSort = self.model.modules.keys()
@@ -231,7 +231,7 @@ class AppModuleDocView(ModuleDocView):
         if url[0] == '#':
             self.base_OnLinkClicked(linkinfo)
         else:
-            mod = path.splitext(url)[0]
+            mod = os.path.splitext(url)[0]
             newMod, cntrl = self.model.openModule(mod)
             view  = newMod.editor.addNewView(ModuleDocView.viewName, ModuleDocView)
             view.refreshCtrl()
@@ -303,7 +303,7 @@ class AppCompareView(ListCtrlView, CloseableViewMix):
         # Compare apps
         if not cmp(filename, otherFilename):
             i = self.addReportItems(i,
-                  (path.splitext(path.basename(filename))[0], otherFilename,
+                  (os.path.splitext(os.path.basename(filename))[0], otherFilename,
                    'changed'))
 
         # Find changed modules and modules not occuring in other module
@@ -334,6 +334,92 @@ class AppCompareView(ListCtrlView, CloseableViewMix):
             otherModule = self.GetItem(self.selected, 1).GetText()
             if otherModule:
                 controller.OnDiffModules(filename=otherModule)
+
+class AppToDoView(ListCtrlView):
+    viewName = 'Application Todo'
+    viewName = 'Application Todo'
+    gotoLineBmp = 'Images/Editor/GotoLine.png'
+
+    def __init__(self, parent, model):
+        ListCtrlView.__init__(self, parent, model, wxLC_REPORT,
+          (('Goto file', self.OnGoto, self.gotoLineBmp, ''),), 0)
+
+        self.sortOnColumns = [0, 1]
+
+        self.InsertColumn(0, 'Name')
+        self.InsertColumn(1, '#Todos')
+        self.InsertColumn(2, 'Filepath')
+        self.SetColumnWidth(0, 75)
+        self.SetColumnWidth(1, 25)
+        self.SetColumnWidth(2, 350)
+
+        self.todos = []
+        self.active = true
+
+    def refreshCtrl(self):
+        ListCtrlView.refreshCtrl(self)
+
+        todos = []
+        prog = 0
+        from Models.PythonEditorModels import ModuleModel
+        absModPaths = self.model.absModulesPaths()
+        progStep = 100.0/len(absModPaths)
+        for module in absModPaths:
+            #module = 'file://'+absModPath
+            self.model.editor.statusBar.progress.SetValue(int(prog*progStep))
+            prog += 1
+            self.model.editor.setStatus('Parsing '+module+'...')
+            #module = self.modules[moduleName]
+            #filename = self.normaliseModuleRelativeToApp(module[2])
+            if module[:7] != 'file://':
+                print '%s skipped, only local files supported for Imports View'
+                continue
+            else:
+                fn = module[7:]
+            try: f = open(fn)
+            except IOError:
+                print "couldn't load %s" % module
+                continue
+            else:
+                data = f.read()
+                f.close()
+                name = os.path.splitext(os.path.basename(module))[0]
+                model = ModuleModel(data, name, self.model.editor, 1)
+                
+                m = model.getModule()
+                if m.todos:
+                    todos.append( (name, len(m.todos), module) )
+        
+        self.model.editor.statusBar.progress.SetValue(0)
+        self.model.editor.setStatus('Finished parsing')
+            
+        i = 0
+        for name, numTodos, path in todos:
+            self.addReportItems(i, (name, numTodos, path))
+            i += 1
+
+        self.pastelise()
+        
+        self.todos = todos
+
+
+    def OnGoto(self, event):
+        if self.selected >= 0:
+            name, numTodos, path = self.todos[self.selected]
+            mod, ctrlr = self.model.editor.openOrGotoModule(path)
+            if mod.views.has_key('Todo'):
+                view = mod.views['Todo']
+            else:
+                view  = mod.editor.addNewView(ToDoView.viewName, ToDoView)
+            view.refreshCtrl()
+            view.focus()
+            
+##            srcView = self.model.views['Source']
+##            # XXX Implement an interface for views to talk
+##            srcView.focus()
+##            module = self.model.getModule()
+##            srcView.gotoLine(int(module.todos[self.selected][0]) -1)
+
 
 class TextInfoFileView(SourceViews.EditorStyledTextCtrl):
     viewName = 'TextInfo'
