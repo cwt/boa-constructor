@@ -379,6 +379,7 @@ class DirpathConfPropEdit(ConfPropEdit):
     def edit(self, event):
         dlg = wxDirDialog(self.parent, defaultPath=self.editorCtrl.value)
         try:
+            dlg.SetPath(self.editorCtrl.value)
             if dlg.ShowModal() == wxID_OK:
                 self.editorCtrl.value = `dlg.GetPath()`
                 self.inspectorPost(false)
@@ -396,7 +397,7 @@ class BoolConfPropEdit(ConfPropEdit):
         return self.valueToIECValue()
 
     def valueToIECValue(self):
-        return self.value in self.truths and 'true' or 'false'
+        return string.lower(self.value) in self.truths and 'True' or 'False'
 
     def inspectorEdit(self):
         self.editorCtrl = CheckBoxIEC(self, self.value in self.truths)
@@ -642,8 +643,10 @@ class ClassConstrPropEdit(ConstrPropEdit):
 ##        return dv
 
 class BoolConstrPropEdit(EnumConstrPropEdit):
-    def __init__(self, name, parent, companion, rootCompanion, propWrapper, idx, width, options, names):
-        EnumConstrPropEdit.__init__(self, name, parent, companion, rootCompanion, propWrapper, idx, width, options, ['true', 'false'])
+    def __init__(self, name, parent, companion, rootCompanion, propWrapper, idx, 
+                 width, options, names):
+        EnumConstrPropEdit.__init__(self, name, parent, companion, rootCompanion, 
+                 propWrapper, idx, width, options, ['True', 'False'])
 
     def inspectorEdit(self):
         self.editorCtrl = CheckBoxIEC(self, self.value)
@@ -1090,7 +1093,7 @@ class BoolPropEdit(OptionedPropEdit):
     def getDisplayValue(self):
         return self.valueToIECValue()
     def getValues(self):
-        return ['false', 'true']
+        return ['False', 'True']
     def getValue(self):
         if self.editorCtrl:
             # trick to convert boolean string to integer
@@ -1377,7 +1380,7 @@ class FontPropEdit(ClassPropEdit):
             self.fontFamily[fnt.GetFamily()],
             self.fontStyle[fnt.GetStyle()],
             self.fontWeight[fnt.GetWeight()],
-            fnt.GetUnderlined() and 'true' or 'false',
+            fnt.GetUnderlined() and 'True' or 'False',
             `fnt.GetFaceName()`)
 
 class AnchorPropEdit(OptionedPropEdit):
@@ -1434,8 +1437,8 @@ class AnchorPropEdit(OptionedPropEdit):
         if self.companion.anchorSettings:
             l, t, r, b = self.companion.anchorSettings
             return 'LayoutAnchors(self.%s, %s, %s, %s, %s)'%(self.companion.name,
-                l and 'true' or 'false', t and 'true' or 'false',
-                r and 'true' or 'false', b and 'true' or 'false')
+                l and 'True' or 'False', t and 'True' or 'False',
+                r and 'True' or 'False', b and 'True' or 'False')
 
 
 class BitmapPropEdit(PropertyEditor, BitmapPropEditMix):
@@ -1505,7 +1508,7 @@ class SashVisiblePropEdit(BoolPropEdit):
         return self.value
     def valueAsExpr(self):
         return '%s, %s'%(self.sashEdgeMap[self.value[0]],
-                         self.value[1] and 'true' or 'false')
+                         self.value[1] and 'True' or 'False')
 
 class CollectionPropEdit(PropertyEditor):
     """ Class associated with a design time identified type,

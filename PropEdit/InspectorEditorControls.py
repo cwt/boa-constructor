@@ -245,7 +245,7 @@ class CheckBoxIEC2(InspectorEditorControl):
         self.editorCtrl.SetDimensions(-2, idx*Preferences.oiLineHeight-2,
          sizeX, Preferences.oiLineHeight+3)
 
-        self.checkBox = wxCheckBox(self.editorCtrl, self.wID, 'false', (2, 1))
+        self.checkBox = wxCheckBox(self.editorCtrl, self.wID, 'False', (2, 1))
         EVT_CHECKBOX(self.editorCtrl, self.wID, self.OnSelect)
         def OnWinSize(evt, win=self.checkBox):
             win.SetSize(evt.GetSize())
@@ -253,7 +253,7 @@ class CheckBoxIEC2(InspectorEditorControl):
 
         InspectorEditorControl.createControl(self)
 
-    truefalseMap = {true: 'true', false: 'false'}
+    truefalseMap = {true: 'True', false: 'False'}
     def getValue(self):
         if self.editorCtrl:
             return self.truefalseMap[self.editorCtrl.GetValue()]
@@ -270,14 +270,14 @@ class CheckBoxIEC2(InspectorEditorControl):
 
 class CheckBoxIEC(BevelIEC):
     def createControl(self, parent, idx, sizeX):
-        self.editorCtrl = wxCheckBox(parent, self.wID, 'false',
+        self.editorCtrl = wxCheckBox(parent, self.wID, 'False',
             (2, idx*Preferences.oiLineHeight+1),
             (sizeX, Preferences.oiLineHeight-2) )
         EVT_CHECKBOX(self.editorCtrl, self.wID, self.OnSelect)
 
         BevelIEC.createControl(self, parent, idx, sizeX)
 
-    truefalseMap = {true: 'true', false: 'false'}
+    truefalseMap = {true: 'True', false: 'False'}
     def getValue(self):
         if self.editorCtrl:
             return self.truefalseMap[self.editorCtrl.GetValue()]
