@@ -103,6 +103,15 @@ class EditorModel:
     def getPageName(self):
         return os.path.splitext(os.path.basename(self.filename))[0]
 
+    def getSourceView(self):
+        views = self.views
+        if views.has_key('Source'):
+            return views['Source']
+        elif views.has_key('HTML'):
+            return views['HTML']
+        return None
+
+
 class FolderModel(EditorModel):
     modelIdentifier = 'Folder'
     defaultName = 'folder'
