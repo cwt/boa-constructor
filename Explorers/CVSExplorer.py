@@ -118,9 +118,15 @@ class CVSController(ExplorerNodes.Controller):
         FSCVSFolderNode.images = self.images
 
     def __del__(self):
-        self.menu.Destroy()
-        self.fileCVSMenu.Destroy()
-        self.cvsEnvMenu.Destroy()
+        pass
+##        self.menu.Destroy()
+##        self.fileCVSMenu.Destroy()
+##        self.cvsEnvMenu.Destroy()
+
+    def destroy(self):
+        self.cvsMenuDef = ()
+        self.fileCVSMenuDef = ()
+        self.toolbarMenus = ()
 
     def getName(self, item):
         name = ExplorerNodes.Controller.getName(self, item)
@@ -470,7 +476,9 @@ class CVSFileNode(ExplorerNodes.ExplorerNode):
         tree.SelectItem(tree.GetItemParent(tree.GetSelection()))
         editor.explorer.list.selectItemNamed(self.name)
         if self.conflict:
-            model = editor.openOrGotoModule(editor.explorer.list.getSelection().resourcepath)
+            node = editor.explorer.list.getSelection()
+            # XXX app is not connected to module
+            model = editor.openOrGotoModule(node.resourcepath, transport = node)
             if not model.views.has_key(CVSConflictsView.viewName):
                 resultView = editor.addNewView(CVSConflictsView.viewName, CVSConflictsView)
             else:
@@ -579,6 +587,7 @@ class FSCVSFolderNode(ExplorerNodes.ExplorerNode):
         return lst
 
     def open(self, editor):
+        print 'FSCVSFolderNode.open'
         editor.openOrGotoModule(self.resourcepath)
 
     def openParent(self, editor):
