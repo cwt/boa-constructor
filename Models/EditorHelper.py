@@ -6,7 +6,7 @@
 #
 # Created:     2001
 # RCS-ID:      $Id$
-# Copyright:   (c) 2001, 2002
+# Copyright:   (c) 2001 - 2003
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 
@@ -21,13 +21,26 @@ import Preferences, Utils
  wxID_EDITORSWITCHPALETTE, wxID_EDITORSWITCHINSPECTOR,
  wxID_EDITORTOGGLERO, wxID_EDITORHELPFIND, wxID_EDITORRELOAD,
  wxID_EDITORHELPABOUT, wxID_EDITORHELPGUIDE, wxID_EDITORHELPTIPS,
+ wxID_EDITORHELPOPENEX,
  wxID_EDITORPREVPAGE, wxID_EDITORNEXTPAGE,
  wxID_EDITORBROWSEFWD, wxID_EDITORBROWSEBACK,
  wxID_EDITOREXITBOA, wxID_EDITOROPENRECENT,
  wxID_EDITORHIDEPALETTE, wxID_EDITORWINDIMS, wxID_EDITORWINDIMSLOAD,
  wxID_EDITORWINDIMSSAVE, wxID_EDITORWINDIMSRESDEFS,
  wxID_EDITORSWITCHPREFS,
-) = Utils.wxNewIds(35)
+) = Utils.wxNewIds(36)
+
+imgCounter=0
+def imgIdxRange(cnt=0):
+    """ Allocates either a range of image indexes or a single one """
+    global imgCounter
+    if cnt:
+        rng = range(imgCounter, imgCounter + cnt)
+        imgCounter = imgCounter + cnt
+        return rng
+    else:
+        imgCounter = imgCounter + 1
+        return imgCounter - 1
 
 builtinImgs =('Images/Modules/FolderUp_s.png',
               'Images/Modules/Folder_s.png',
@@ -49,30 +62,31 @@ builtinImgs =('Images/Modules/FolderUp_s.png',
               'Images/Editor/RecentFiles.png',
               'Images/Editor/Shell.png',
               'Images/Editor/Explorer.png',
-              )
+              'Images/Modules/HelpBook_s.png',
+            )
+# Like builtinImgs, but stores list of tuples, (imgIdx, name)
+pluginImgs = []
 
-imgCounter=0
-def imgIdxRange(cnt=0):
-    """ Allocates either a range of image indexes or a single one """
-    global imgCounter
-    if cnt:
-        rng = range(imgCounter, imgCounter + cnt)
-        imgCounter = imgCounter + cnt
-        return rng
-    else:
-        imgCounter = imgCounter + 1
-        return imgCounter - 1
+def addPluginImgs(imgPath):
+    imgIdx = imgIdxRange()
+    pluginImgs.append( (imgIdx, imgPath) )
+    
+    return imgIdx
+
 
 # Indexes for the imagelist
 (imgFolderUp, imgFolder, imgPathFolder, imgCVSFolder, imgSystemObj,
  imgSystemObjOrdered, imgSystemObjBroken, imgSystemObjPending, imgSystemObjDisabled,
  imgZopeConnection, imgBoaLogo, imgFSDrive, imgNetDrive, imgFolderBookmark,
  imgOpenEditorModels, imgPrefsFolder, imgPrefsSTCStyles, imgRecentFiles,
- imgShell, imgExplorer,
+ imgShell, imgExplorer, imgHelpBook,
 
  imgTextModel, imgBitmapFileModel, imgZipFileModel,
  imgUnknownFileModel, imgInternalFileModel,
-) = imgIdxRange(25)
+) = imgIdxRange(26)
+
+# List of name, func tuples that will be installed under the Tools menu.
+editorToolsReg = []
 
 # Registry of all modules {modelIdentifier : Model} (populated by EditorModels)
 # Used for images and header identifier
@@ -84,7 +98,7 @@ imageExtReg = []
 # List of extensions for internal filetypes created by Boa
 internalFilesReg = []
 # List of files which can be further identified by reading a header from the source
-inspectableFilesReg = []
+inspectableFilesReg = {}
 # List of extensions for additional binary files (will not be searched)
 binaryFilesReg = []
 def getBinaryFiles():
@@ -93,5 +107,5 @@ def getBinaryFiles():
 def initExtMap():
     # All non python files identified by extension
     for mod in modelReg.values():
-        if mod.ext not in inspectableFilesReg + ['.*', '.intfile', '.pybin']:
+        if mod.ext not in ['.*', '.intfile', '.pybin'] +inspectableFilesReg.keys():
             extMap[mod.ext] = mod
