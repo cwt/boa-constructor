@@ -33,14 +33,14 @@ if '--OverridePrefsDirName' in sys.argv or '-O' in sys.argv:
     except ValueError:
         try: idx = sys.argv.index('-O')
         except ValueError: idx = -1
-            
+
     if idx != -1:
         try: prefsDirName = sys.argv[idx + 1]
         except IndexError: raise 'OverridePrefsDirName must specify a directory'
         print 'using preference directory name', prefsDirName
 
-# To prevent using the HOME env variable run different versions of Boa this flag 
-# forces Boa to use Preference settings either in the Boa root or in a .boa dir 
+# To prevent using the HOME env variable run different versions of Boa this flag
+# forces Boa to use Preference settings either in the Boa root or in a .boa dir
 # in the Boa root
 if '--BlockHomePrefs' in sys.argv or '-B' in sys.argv:
     print 'ignoring $HOME (if set)'
@@ -125,7 +125,7 @@ for ppth in pluginPaths:
 ##    else:
 ##    imageStorePaths.append(ppth)
 
-import ImageStore 
+import ImageStore
 if useImageArchive and os.path.exists(pyPath+'/Images/Images.archive'):
     IS = ImageStore.ZippedImageStore(pyPath+'/Images', 'Images.archive', useImageCache)
 else:
@@ -137,20 +137,19 @@ if not pythonInterpreterPath:
 
 #-Window size calculations------------------------------------------------------
 
-try:
-    import win32api, win32con
-except ImportError:
-    # thnx Mike Fletcher
-    screenWidth =  wx.wxSystemSettings_GetSystemMetric(wx.wxSYS_SCREEN_X)
-    screenHeight = wx.wxSystemSettings_GetSystemMetric(wx.wxSYS_SCREEN_Y)
+# thnx Mike Fletcher
+screenWidth =  wx.wxSystemSettings_GetSystemMetric(wx.wxSYS_SCREEN_X)
+screenHeight = wx.wxSystemSettings_GetSystemMetric(wx.wxSYS_SCREEN_Y)
+if wx.wxPlatform == '__WXGTK__':
     # handle dual monitors on Linux
-    if wx.wxPlatform == '__WXGTK__' and screenWidth / screenHeight >= 2:
+    if screenWidth / screenHeight >= 2:
         screenWidth = screenWidth / 2
+
     screenWidth = int(screenWidth - verticalTaskbarWidth)
     screenHeight = int(screenHeight - horizontalTaskbarHeight)
-else:
-    screenWidth = win32api.GetSystemMetrics(win32con.SM_CXFULLSCREEN)
-    screenHeight = win32api.GetSystemMetrics(win32con.SM_CYFULLSCREEN) + 20
+elif wx.wxPlatform == '__WXMSW__':
+    _startx, _starty, screenWidth, screenHeight = wxGetClientDisplayRect()
+
 
 if wx.wxPlatform == '__WXMSW__':
     wxDefaultFramePos = wx.wxDefaultPosition
@@ -163,6 +162,7 @@ edWidth = screenWidth * editorScreenWidthPerc - windowManagerSide * 2
 inspWidth = screenWidth - edWidth + 1 - windowManagerSide * 4
 paletteHeight = paletteHeights[paletteStyle]
 bottomHeight = screenHeight - paletteHeight
+paletteTitle = 'Boa Constructor'
 
 if wxPlatform == '__WXGTK__':
     oglBoldFont = wxFont(12, wxDEFAULT, wxNORMAL, wxBOLD, false)
