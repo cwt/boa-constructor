@@ -402,6 +402,7 @@ class ModuleController(PersistentController):
 
 
 class AppController(ModuleController):
+    saveAllBmp = 'Images/Editor/SaveAll.bmp'
     def __init__(self, editor):
         ModuleController.__init__(self, editor)
         self.Model = EditorModels.AppModel, 
@@ -415,11 +416,14 @@ class AppController(ModuleController):
                                 AppViews.AppTODO_TIFView, 
                                 AppViews.AppBUGS_TIFView)
 
+        EVT_MENU(self.editor, EditorHelper.wxID_APPSAVEALL, self.OnSaveAll)
         EVT_MENU(self.editor, EditorHelper.wxID_APPCMPAPPS, self.OnCmpApps)
         EVT_MENU(self.editor, EditorHelper.wxID_APPCRASHLOG, self.OnCrashLog)
 
     def addTools(self, toolbar, model):
         ModuleController.addTools(self, toolbar, model)
+        toolbar.AddSeparator()
+        addTool(self.editor, toolbar, self.saveAllBmp, 'Save modified modules', self.OnSaveAll)
 
     def addMenus(self, menu, model):
         accls = ModuleController.addMenus(self, menu, model)
@@ -446,17 +450,19 @@ class AppController(ModuleController):
         model.new(frmNme)
 
     def OnSaveAll(self, event):
-        for modulePage in self.editor.modules.values():
-            mod = modulePage.model
-            if mod != self.model:
-                if hasattr(mod, 'app') and mod.app == self.model and \
-                  (mod.modified or len(mod.viewsModified)):
-                    if len(mod.viewsModified):
-                        mod.refreshFromViews()
-                    modulePage.saveOrSaveAs()
-            else:
-                appModPage = modulePage
-        appModPage.saveOrSaveAs()
+        model = self.getModel()
+        if model:
+            for modulePage in self.editor.modules.values():
+                mod = modulePage.model
+                if mod != model:
+                    if hasattr(mod, 'app') and mod.app == model and \
+                      (mod.modified or len(mod.viewsModified)):
+                        if len(mod.viewsModified):
+                            mod.refreshFromViews()
+                        modulePage.saveOrSaveAs()
+                else:
+                    appModPage = modulePage
+            appModPage.saveOrSaveAs()
 
 
     def OnCmpApps(self, event):
