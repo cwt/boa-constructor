@@ -1,4 +1,4 @@
-## rc-version: 3 ##
+## rc-version: 4 ##
 # RCS-ID:      $Id$
 
 # The main preference file.
@@ -68,16 +68,7 @@ delayInitHelp = true
 # Try to update the wxPython.libs directory with the newest run time libs
 # (Component files and example components)
 # Turn this off if you don't have permissions to write to the wxPython/lib directory
-installBCRTL = false
-
-# Any module in the Plug-ins directory is automatically executed at startup
-# While developing or debugging new plugins it is sometimes useful to
-# turn off plugins if some plugin problem prevents Boa from starting up.
-# Note: you may also create the Plug-ins directory : $HOME/.boa/Plug-ins
-pluginsEnabled = false
-# Path to an additional Plug-ins directory
-## type: dirpath
-extraPluginsPath = ''
+installBCRTL = true
 
 # If the environment variable PYTHONSTARTUP is set to a python file
 # this file can be executed at startup in the Shell's namespace
@@ -89,9 +80,6 @@ suExecPythonStartup = true
 # This will be the Python Editor mode.
 # The command-line flag -C can override this setting.
 suBoaConstricted = false
-
-# Should wxPython Companions, Models and Views be loaded at startup
-suWxPythonSupport = true
 
 # This flag determines if Boa should create and listen on the socket for
 # filenames sent by other instances of Boa. This way when you start another
@@ -106,6 +94,33 @@ eoErrOutDockWindow = 'editor'
 # When docked in the Editor, percentage wise, how high should the default
 # Error/Output window be?
 eoErrOutWindowHeightPerc = 0.2
+
+#-Plug-ins----------------------------------------------------------------------
+
+# Any module in the Plug-ins directory is automatically executed at startup
+# While developing or debugging new plugins it is sometimes useful to
+# turn off plugins if some plugin problem prevents Boa from starting up.
+# Note: you may also create the Plug-ins directory : $HOME/.boa/Plug-ins
+pluginsEnabled = true
+# Path to an additional Plug-ins directory
+## type: dirpath
+extraPluginsPath = ''
+# How should errors from plugins be handled
+## options: 'raise', 'report'
+pluginErrorHandling = 'report'
+
+#-Core support------------------------------------------------------------------
+
+# Should wxPython Companions, Models and Views be loaded at startup
+csWxPythonSupport = true
+# Handle config files
+csConfigSupport = true
+# Handle C++ files
+csCppSupport = true
+# Handle html files
+csHtmlSupport = true
+# Handle xml files
+csXmlSupport = true
 
 #-Editor------------------------------------------------------------------------
 
@@ -148,9 +163,6 @@ showFilenameExtensions = false
 
 #-Explorer----------------------------------------------------------------------
 
-# Should sorting in the explorer be case insensitive
-exCaseInsensitiveSorting = true
-
 # Default filter for the Explorer and the File Dialog.
 # BoaFiles - The most detailed and slowest, showing Packages and the different
 # types of Python modules.
@@ -172,6 +184,9 @@ exInspectInspectableFiles = true
 
 # Start the open file dialog relative to the file in the active module page
 exOpenFromHere = true
+
+# Maximum Recent files list size
+exRecentFilesListSize = 25
 
 #-Shell prompts-----------------------------------------------------------------
 
@@ -238,6 +253,9 @@ cgEmptyLineBetweenObjects = true
 
 # Format string used to generate keyword argument parameter
 cgKeywordArgFormat = '%(keyword)s = %(value)s'
+
+# Adds a warning to generated _init_* methods that users should not edit them
+cgAddInitMethodWarning = true
 
 #-Views-------------------------------------------------------------------------
 
@@ -358,20 +376,33 @@ exportedProperties = ['flatTools', 'childFrameStyle', 'dataViewListStyle',
   'pastels', 'pastelMedium', 'pastelLight', 'undefinedWindowCol',
   'useImageArchive', 'pythonInterpreterPath', 'delayInitHelp',
   'logStdStreams', 'recordModuleCallPoint', 'autoAddToApplication',
-  'installBCRTL', 'blockCOM', 'pluginsEnabled', 'extraPluginsPath',
-  'suExecPythonStartup', 'suBoaConstricted', 'suWxPythonSupport', 
+  'installBCRTL', 'blockCOM',
+  'suExecPythonStartup', 'suBoaConstricted',
   'suSocketFileOpenServer',
   'eoErrOutDockWindow', 'eoErrOutWindowHeightPerc',
+
+  'pluginsEnabled', 'extraPluginsPath', 'pluginErrorHandling',
+
+  'csWxPythonSupport', 'csConfigSupport', 'csCppSupport', 'csHtmlSupport',
+  'csXmlSupport',
+
   'checkSyntax', 'onlyCheckIfLineModified', 'checkSourceOnSave',
   'autoRefreshOnCodeComplete', 'autoReindent',
-  'exCaseInsensitiveSorting', 'exDefaultFilter', 'exWorkingDirectory',
-  'exDefaultTreeWidth', 'exInspectInspectableFiles', 'exOpenFromHere',
+
   'handleSpecialEuropeanKeys', 'euroKeysCountry', 'rememberOpenFiles',
   'showFilenameExtensions',
+
+  'exDefaultFilter', 'exWorkingDirectory', 'exDefaultTreeWidth',
+  'exInspectInspectableFiles', 'exOpenFromHere', 'exRecentFilesListSize',
+
   'ps1', 'ps2', 'ps3', 'ps4',
+
   'showModifiedProps', 'propValueColour',
   'oiLineHeight', 'oiEventSelectionHeight', 'inspNotebookFlags',
+
   'cgAbsoluteImagePaths', 'cgEmptyLineBetweenObjects', 'cgKeywordArgFormat',
+  'cgAddInitMethodWarning',
+
   'dsGridSize', 'dsSelectionTagSize', 'dsSelectionFrameWidth',
   'dsAnchorEnabledCol', 'dsAnchorDisabledCol', 'dsDefaultControlSize',
   'vpOGLCanvasBackgroundColour', 'vpOGLLinePen', 'vpOGLLineBrush',
