@@ -1055,7 +1055,6 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
         self.restoreDebugger()
         self.enableStepping()
         t, v = event.GetExc()
-        #fl, ln = event.GetTb()
         if hasattr(t, '__name__'):
             t = t.__name__
         msg = '%s: %s.' % (t, v)

@@ -69,11 +69,6 @@ class DebuggerCommEvent(wxPyCommandEvent):
     def GetExc(self):
         return self.t, self.v
 
-    def SetTb(self, tb):
-        self.tb = tb
-
-    def GetTb(self):
-        return self.tb
 
 class DebugClient:
     """The base class expected to be used by all DebugClients.

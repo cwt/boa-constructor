@@ -178,7 +178,6 @@ class ChildProcessClient(MultiThreadedDebugClient):
                 t, v, tb = sys.exc_info()#[:2]
                 evt = self.createEvent(wxEVT_DEBUGGER_EXC)
                 evt.SetExc(t, v)
-                #evt.SetTb( (tb.tb_frame.f_code.co_filename, tb.tb_frame.f_lineno) )
                 self.postEvent(evt)
         finally:
             wx.wxEndBusyCursor()
