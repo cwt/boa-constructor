@@ -14,8 +14,8 @@ class HTMLResponseFrm(wxFrame):
     def _init_coll_notebook1_Pages(self, parent):
         # generated method, don't edit
 
-        parent.AddPage(bSelect = true, imageId = -1, pPage = self.htmlWindow, strText = 'Response')
-        parent.AddPage(bSelect = false, imageId = -1, pPage = self.textCtrl, strText = 'Source')
+        parent.AddPage(select = true, imageId = -1, page = self.htmlWindow, text = 'Response')
+        parent.AddPage(select = false, imageId = -1, page = self.textCtrl, text = 'Source')
 
     def _init_utils(self):
         # generated method, don't edit
