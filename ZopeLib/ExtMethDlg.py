@@ -1,14 +1,23 @@
+#-----------------------------------------------------------------------------
+# Name:        ExtMethDlg.py
+# Purpose:     
+#
+# Author:      Riaan Booysen
+#
+# Created:     2001
+# RCS-ID:      $Id$
+# Copyright:   (c) 2001 - 2002
+# Licence:     GPL
+#-----------------------------------------------------------------------------
 #Boa:Dialog:ExtMethDlg
 
 from wxPython.wx import *
-##import sys
-##sys.path.append('..')
 import moduleparse
 import os
 from os import path
 
-def create(parent):
-    return ExtMethDlg(parent, 'd:\\program files\\zope\\2-3-1')
+def create(parent, zopepath):
+    return ExtMethDlg(parent, zopepath)
 
 class ExternalMethodFinder:
     def __init__(self, zopeDir):
@@ -30,9 +39,11 @@ class ExternalMethodFinder:
                           'Extensions'), p))
         return mods
 
-    def _addPyMods(self, pypath, prod = ''):
+    def _addPyMods(self, pypath, prod=''):
+        from Explorers import Explorer
+        Explorer.listdirEx(pypath, '.zexp')
         mods = []
-        fls = filter(lambda f: path.splitext(f)[1] == '.py', os.listdir(pypath))
+        fls = Explorer.listdirEx(pypath, '.py')
         for file in fls:
             mods.append(prod +(prod and '.')+path.splitext(file)[0])
         return mods
@@ -40,14 +51,20 @@ class ExternalMethodFinder:
     def getExtPath(self, module):
         modLst = string.split(module, '.')
         if len(modLst) == 1:
-            return path.join(self.zopeDir, 'Extensions', modLst[0] + '.py')
+            modpath = path.join(self.zopeDir, 'Extensions', modLst[0] + '.py')
         else:
-            return path.join(self.prodsDir, modLst[0], 'Extensions', modLst[1]+'.py')
+            modpath = path.join(self.prodsDir, modLst[0], 'Extensions', modLst[1]+'.py')
+        return string.replace(modpath, '<LocalFS::directory>', '<LocalFS::file>')
 
     def getFunctions(self, module):
+        from Explorers import Explorer
         extPath = self.getExtPath(module)
 
-        module = moduleparse.Module('test', open(extPath).readlines())
+        src = Explorer.openEx(extPath).load()
+        sep = string.count(src, '\r\n') < string.count(src, '\n') and '\n' or '\r\n'
+        srclines = string.split(src, sep)
+
+        module = moduleparse.Module('test', srclines)
 
         return module.functions.keys()
 

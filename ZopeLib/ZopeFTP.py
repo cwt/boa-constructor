@@ -6,7 +6,7 @@
 #
 # Created:     2000/05/08
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999, 2000 Riaan Booysen
+# Copyright:   (c) 1999 - 2001 Riaan Booysen
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 
@@ -30,19 +30,37 @@ class ZopeFTPItem:
         return '<%s %s, %s>' % (`self.__class__`, self.whole_name(), self.date)
 
     def read(self, line):
+        # dos:
+        # 08-15-01  09:20AM                  255 __init__.pyc
+        # [date  ]  [time ]                  [size] [name]
         items = filter(None, string.split(line))
-        try:
-            self.perms, dunno, owner, group, self.size = items[:5]
-            self.date = string.join(items[5:8], ' ')
-            #self.perms = line[:10]
-            #entries = filter(None, string.split(line[10:42], ' '))
-            #self.size = int(entries[3])
-            #self.date = line[43:55]
-            self.name = string.join(items[8:], ' ')
-            #print self.perms, self.size, self.name
+        # DOS format
+        if len(items) == 4:
+            try:
+                self.date = string.join((items[0], items[1]))
+                if items[2] == '<DIR>':
+                    self.size = '0'
+                    self.perms = 'd'+self.perms[1:]
+                else:
+                    self.size = items[2]
+                self.name = items[3]
 
-        except Exception, message:
-            print 'Could not read:', line, message
+            except Exception, message:
+                print 'Could not read:', line, message
+        # UNIX format
+        else:
+            try:
+                self.perms, dunno, owner, group, self.size = items[:5]
+                self.date = string.join(items[5:8], ' ')
+                #self.perms = line[:10]
+                #entries = filter(None, string.split(line[10:42], ' '))
+                #self.size = int(entries[3])
+                #self.date = line[43:55]
+                self.name = string.join(items[8:], ' ')
+                #print self.perms, self.size, self.name
+
+            except Exception, message:
+                print 'Could not read:', line, message
 #        print line
 #        print self
 
