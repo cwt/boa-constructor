@@ -570,9 +570,7 @@ class DebuggerFrame(wxFrame, bdb.Bdb):
           wxSize(Preferences.inspWidth, Preferences.bottomHeight))
 
         if wxPlatform == '__WXMSW__':
-	    self.icon = wxIcon(Preferences.toPyPath('Images\\Icons\\Debug.ico'), 
-	      wxBITMAP_TYPE_ICO)
-	    self.SetIcon(self.icon)
+	    self.SetIcon(IS.load('Images/Icons/Debug.ico'))
 
         self.viewsImgLst = wxImageList(16, 16)
         self.viewsImgLst.Add(IS.load('Images/Debug/Stack.bmp'))
@@ -787,7 +785,10 @@ class DebuggerFrame(wxFrame, bdb.Bdb):
                         mod = imp.new_module(modname)
                         sys.modules[modname] = mod
                         
-                    mod.__file__ = filename
+                    try:
+                        mod.__file__ = filename
+                    except AttributeError:
+                        print "I''m frozen!"
 
                     self.run("execfile(%s)" % `filename`, mod.__dict__)
                 except:
