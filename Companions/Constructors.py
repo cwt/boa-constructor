@@ -50,7 +50,7 @@ class WindowConstr(PropertyKeywordConstructor):
 class LabeledInputConstr(PropertyKeywordConstructor):
     def constructor(self):
         return {'Position': 'pos', 'Size': 'size', 'Label': 'label',
-                'Style': 'style', 'Validator': 'validator', 'Name': 'name'}
+                'Style': 'style', 'Name': 'name'} #'Validator': 'validator', 
 ##wxButton(wxWindow* parent, wxWindowID id, const wxString& label, const wxPoint& pos, const wxSize& size
 ##= wxDefaultSize, long style = 0, const wxValidator& validator, const wxString& name = "button")
 
@@ -63,10 +63,10 @@ class LabeledInputConstr(PropertyKeywordConstructor):
 ##wxDefaultValidator, const wxString& name = "radioButton")
 
 
-class LabeledNonInputConstr(PropertyKeywordConstructor):
-    def constructor(self):
-        return {'Position': 'pos', 'Size': 'size', 'Label': 'label',
-                'Style': 'style', 'Name': 'name'}
+##class LabeledNonInputConstr(PropertyKeywordConstructor):
+##    def constructor(self):
+##        return {'Position': 'pos', 'Size': 'size', 'Label': 'label',
+##                'Style': 'style', 'Name': 'name'}
 ##wxStaticBox(wxWindow* parent, wxWindowID id, const wxString& label, const wxPoint& pos =
 ##wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = 0, const wxString& name = "staticBox")
 
@@ -77,7 +77,7 @@ class LabeledNonInputConstr(PropertyKeywordConstructor):
 class ListConstr(PropertyKeywordConstructor):
     def constructor(self):
         return {'Position': 'pos', 'Size': 'size',
-                'Choices': 'choices', 'Style': 'style', 'Validator': 'validator',
+                'Choices': 'choices', 'Style': 'style', #'Validator': 'validator',
                 'Name': 'name'}
 ##wxChoice(wxWindow *parent, wxWindowID id, const wxPoint& pos, const wxSize& size, int n, const wxString
 ##choices[], long style = 0, const wxValidator& validator = wxDefaultValidator, const wxString& name =
@@ -97,7 +97,7 @@ class ListConstr(PropertyKeywordConstructor):
 class MultiItemCtrlsConstr(PropertyKeywordConstructor):
     def constructor(self):
         return {'Position': 'pos', 'Size': 'size', 'Style': 'style',
-                'Validator': 'validator', 'Name': 'name'}
+                'Name': 'name'} #'Validator': 'validator', 
 ##wxListCtrl(wxWindow* parent, wxWindowID id, const wxPoint& pos = wxDefaultPosition, const wxSize& size
 ##= wxDefaultSize, long style = wxLC_ICON, const wxValidator& validator = wxDefaultValidator, const
 ##wxString& name = "listCtrl")
