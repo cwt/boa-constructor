@@ -40,7 +40,7 @@ currentMouseOverTip = ''
 # XXX Templates
 # XXX Comment/Licence block creation & maintenance
 
-modules ={'EditorViews': [0, '', 'Views/EditorViews.py'], 'Inspector': [0, "Inspects object's constructor/properties/events/parents", 'Inspector.py'], 'Infofields': [0, '', 'Infofields.py'], 'AppModuleProps': [0, '', 'AppModuleProps.py'], 'UtilCompanions': [0, '', 'Companions/UtilCompanions.py'], 'HTMLCyclops': [0, '', 'HTMLCyclops.py'], 'ZopeFTP': [0, '', 'Zope/ZopeFTP.py'], 'CtrlAlign': [0, '', 'CtrlAlign.py'], 'FileDlg': [0, '', 'FileDlg.py'], 'Constructors': [0, '', 'Companions/Constructors.py'], 'Utils': [0, '', 'Utils.py'], 'ExtMethDlg': [0, '', 'Zope/ExtMethDlg.py'], 'CollectionEdit': [0, '', 'Views/CollectionEdit.py'], 'sender': [0, '', 'sender.py'], 'PrefsKeys': [0, '', 'PrefsKeys.py'], 'RunCyclops': [0, '', 'RunCyclops.py'], 'PrefsMSW': [0, '', 'PrefsMSW.py'], 'ClassBrowser': [0, '', 'ClassBrowser.py'], 'RTTI': [0, '', 'RTTI.py'], 'PySourceView': [0, '', 'Views/PySourceView.py'], 'EventCollections': [0, '', 'Companions/EventCollections.py'], 'Browse': [0, '', 'Browse.py'], 'PythonInterpreter': [0, '', 'ExternalLib/PythonInterpreter.py'], 'ZopeCompanions': [0, '', 'Companions/ZopeCompanions.py'], 'SelectionTags': [0, '', 'Views/SelectionTags.py'], 'DiffView': [0, '', 'Views/DiffView.py'], 'PrefsGTK': [0, '', 'PrefsGTK.py'], 'About': [0, '', 'About.py'], 'PropDlg': [0, '', 'Zope/PropDlg.py'], 'InspectorEditorControls': [0, '', 'PropEdit/InspectorEditorControls.py'], 'methodparse': [0, '', 'methodparse.py'], 'Search': [0, '', 'Search.py'], 'StyledTextCtrls': [0, '', 'Views/StyledTextCtrls.py'], 'relpath': [0, '', 'relpath.py'], 'Debugger': [0, '', 'Debugger/Debugger.py'], 'OGLViews': [0, '', 'Views/OGLViews.py'], 'EditorModels': [0, '', 'EditorModels.py'], 'PropertyEditors': [0, '', 'PropEdit/PropertyEditors.py'], 'HelpCompanions': [0, '', 'Companions/HelpCompanions.py'], 'DataView': [0, '', 'Views/DataView.py'], 'moduleparse': [0, '', 'moduleparse.py'], 'Explorer': [0, '', 'Explorer.py'], 'CtrlSize': [0, '', 'CtrlSize.py'], 'Designer': [0, '', 'Views/Designer.py'], 'LoginDialog': [0, '', 'Zope/LoginDialog.py'], 'PaletteMapping': [0, '', 'PaletteMapping.py'], 'ShellEditor': [0, '', 'ShellEditor.py'], 'PhonyApp': [0, '', 'PhonyApp.py'], 'BaseCompanions': [0, '', 'Companions/BaseCompanions.py'], 'AppViews': [0, '', 'Views/AppViews.py'], 'Help': [0, '', 'Help.py'], 'ProfileView': [0, '', 'Views/ProfileView.py'], 'ndiff': [0, '', 'ExternalLib/ndiff.py'], 'Companions': [0, '', 'Companions/Companions.py'], 'Enumerations': [0, '', 'PropEdit/Enumerations.py'], 'Editor': [0, 'Source code editor hosting models and views', 'Editor.py'], 'Preferences': [0, '', 'Preferences.py'], 'Palette': [0, '', 'Palette.py'], 'DialogCompanions': [0, '', 'Companions/DialogCompanions.py']}
+modules ={'EditorViews': [0, '', 'Views/EditorViews.py'], 'Editor': [0, 'Source code editor hosting models and views', 'Editor.py'], 'Inspector': [0, "Inspects object's constructor/properties/events/parents", 'Inspector.py'], 'Infofields': [0, '', 'Infofields.py'], 'ErrorStack': [0, '', 'ErrorStack.py'], 'AppModuleProps': [0, '', 'AppModuleProps.py'], 'UtilCompanions': [0, '', 'Companions/UtilCompanions.py'], 'HTMLCyclops': [0, '', 'HTMLCyclops.py'], 'ZopeFTP': [0, '', 'ZopeLib/ZopeFTP.py'], 'CtrlAlign': [0, '', 'CtrlAlign.py'], 'FileDlg': [0, '', 'FileDlg.py'], 'Constructors': [0, '', 'Companions/Constructors.py'], 'Utils': [0, '', 'Utils.py'], 'ExtMethDlg': [0, '', 'ZopeLib/ExtMethDlg.py'], 'CollectionEdit': [0, '', 'Views/CollectionEdit.py'], 'sender': [0, '', 'sender.py'], 'PrefsKeys': [0, '', 'PrefsKeys.py'], 'RunCyclops': [0, '', 'RunCyclops.py'], 'popen2import': [0, '', 'popen2import.py'], 'ClassBrowser': [0, '', 'ClassBrowser.py'], 'RTTI': [0, '', 'RTTI.py'], 'PySourceView': [0, '', 'Views/PySourceView.py'], 'EventCollections': [0, '', 'Companions/EventCollections.py'], 'PythonInterpreter': [0, '', 'ExternalLib/PythonInterpreter.py'], 'PhonyApp': [0, '', 'PhonyApp.py'], 'SSHExplorer': [0, '', 'Explorers/SSHExplorer.py'], 'SelectionTags': [0, '', 'Views/SelectionTags.py'], 'DiffView': [0, '', 'Views/DiffView.py'], 'PrefsGTK': [0, '', 'PrefsGTK.py'], 'About': [0, '', 'About.py'], 'PropDlg': [0, '', 'ZopeLib/PropDlg.py'], 'InspectorEditorControls': [0, '', 'PropEdit/InspectorEditorControls.py'], 'methodparse': [0, '', 'methodparse.py'], 'Search': [0, '', 'Search.py'], 'StyledTextCtrls': [0, '', 'Views/StyledTextCtrls.py'], 'relpath': [0, '', 'relpath.py'], 'Debugger': [0, '', 'Debugger/Debugger.py'], 'OGLViews': [0, '', 'Views/OGLViews.py'], 'EditorModels': [0, '', 'EditorModels.py'], 'PropertyEditors': [0, '', 'PropEdit/PropertyEditors.py'], 'ndiff': [0, '', 'ExternalLib/ndiff.py'], 'HelpCompanions': [0, '', 'Companions/HelpCompanions.py'], 'ZopeCompanions': [0, '', 'Companions/ZopeCompanions.py'], 'DataView': [0, '', 'Views/DataView.py'], 'moduleparse': [0, '', 'moduleparse.py'], 'Explorer': [0, '', 'Explorers/Explorer.py'], 'CtrlSize': [0, '', 'CtrlSize.py'], 'Designer': [0, '', 'Views/Designer.py'], 'ErrorStackFrm': [0, '', 'ErrorStackFrm.py'], 'ZipExplorer': [0, '', 'Explorers/ZipExplorer.py'], 'LoginDialog': [0, '', 'ZopeLib/LoginDialog.py'], 'PaletteMapping': [0, '', 'PaletteMapping.py'], 'ZopeExplorer': [0, '', 'Explorers/ZopeExplorer.py'], 'ShellEditor': [0, '', 'ShellEditor.py'], 'ExplorerNodes': [0, '', 'Explorers/ExplorerNodes.py'], 'BaseCompanions': [0, '', 'Companions/BaseCompanions.py'], 'AppViews': [0, '', 'Views/AppViews.py'], 'Help': [0, '', 'Help.py'], 'ProfileView': [0, '', 'Views/ProfileView.py'], 'FileExplorer': [0, '', 'Explorers/FileExplorer.py'], 'CVSExplorer': [0, '', 'Explorers/CVSExplorer.py'], 'Companions': [0, '', 'Companions/Companions.py'], 'Enumerations': [0, '', 'PropEdit/Enumerations.py'], 'Browse': [0, '', 'Browse.py'], 'PrefsMSW': [0, '', 'PrefsMSW.py'], 'Preferences': [0, '', 'Preferences.py'], 'Palette': [0, '', 'Palette.py'], 'DialogCompanions': [0, '', 'Companions/DialogCompanions.py']}
         
 class BoaApp(wxApp):
     def __init__(self, redirect=false):
@@ -52,6 +52,7 @@ class BoaApp(wxApp):
         wxImage_AddHandler(wxGIFHandler())
         
 #        EVT_ACTIVATE_APP(self, self.OnActivate)
+        wxToolTip_Enable(TRUE) 
 
         self.main = Palette.BoaFrame(None, -1, self)
         
@@ -76,7 +77,15 @@ class BoaApp(wxApp):
                 print 'Could not load intro text files'
         
         if len(sys.argv) > 1:
-            self.main.editor.openModule(sys.argv[1])
+            import getopt
+            #import methodparse
+            optlist, args = getopt.getopt(sys.argv[1:], 'D')
+            if len(args):
+                if ('-D', '') in optlist:
+                    mod = self.main.editor.openModule(args[0])
+                    mod.debug()
+                else:
+                    self.main.editor.openModule(args[0])
 
         self.ShowTip(self.main.editor)
 
@@ -112,6 +121,5 @@ def main():
     while not app.quit:
         app.MainLoop()
 
-
-#if __name__ == '__main__':
-main()
+if __name__ == '__main__' or hasattr(wxApp, 'debugger'):
+    main()
