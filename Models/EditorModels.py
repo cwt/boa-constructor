@@ -7,7 +7,7 @@
 #
 # Created:     1999
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999 - 2002 Riaan Booysen
+# Copyright:   (c) 1999 - 2003 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
 
@@ -16,7 +16,7 @@
 
 print 'importing Models.EditorModels'
 
-import string, os, sys, tempfile
+import os, sys, tempfile
 from StringIO import StringIO
 
 from wxPython import wx
@@ -34,6 +34,7 @@ class EditorModel:
     imgIdx = -1
     closeBmp = 'Images/Editor/Close.png'
     objCnt = 0
+    plugins = ()
     def __init__(self, data, name, editor, saved):
         self.active = false
         self.data = data
@@ -46,20 +47,17 @@ class EditorModel:
         self.views = {}
         self.modified = not saved
         self.viewsModified = []
-
-##        self.objCnt = self.objCnt + 1
-
-##    def __del__(self):
-##        self.objCnt = self.objCnt - 1
-##        print '__del__', self.__class__.__name__
+        
+        plugins = {}
+        for Plugin in self.plugins:
+            plugins[Plugin.name] = Plugin(self)
+        self.plugins = plugins
 
     def destroy(self):
-#        print 'destroy', self.__class__.__name__
-#        for i in self.views.values():
-#            print sys.getrefcount(i)
-
+        #print 'destroyed %s'%self.__class__.__name__
         del self.views
         del self.viewsModified
+        del self.plugins
         #del self.editor
 
     def updateNameFromTransport(self):
@@ -72,14 +70,14 @@ class EditorModel:
                 view.pageIdx = view.pageIdx - 1
 
     def getDataAsLines(self):
-        return string.split(self.data, '\012')
+        return self.data.split('\012')
 
     def setDataFromLines(self, lines):
         data = self.data
         strlines = []
         for line in lines:
             strlines.append(str(line))
-        self.data = string.join(strlines, '\012')
+        self.data = '\012'.join(strlines)
         self.modified = self.modified or self.data != data
 
     def hasUnsavedChanges(self):
@@ -93,6 +91,8 @@ class EditorModel:
 
     def update(self):
         """ Rebuild additional derived structure, called when data is changed """
+        for plugin in self.plugins:
+            self.plugins[plugin].update()
 
     def refreshFromViews(self):
         for view in self.viewsModified:
@@ -144,7 +144,7 @@ class CVSFolderModel(FolderModel):
 
     def readFile(self, filename):
         f = open(filename, 'r')
-        try: return string.strip(f.read())
+        try: return f.read().strip()
         finally: f.close()
 
     def readFiles(self):
@@ -157,7 +157,7 @@ class CVSFolderModel(FolderModel):
         try:
             txtEntries = f.readlines()
             for txtEntry in txtEntries:
-                txtEntry = string.strip(txtEntry)
+                txtEntry = txtEntry.strip()
                 if txtEntry:
                     if txtEntry == 'D':
                         pass
@@ -231,7 +231,7 @@ class BasePersistentModel(EditorModel):
 
         if protO != protN:
             self.transport = getTransport(protN, catN, resN,
-                  self.editor.explorer.tree.transports)
+                  self.editor.explorerStore.transports)#explorer.tree.transports)
 
         # Rename and save
         oldname = self.filename
@@ -302,7 +302,7 @@ class BitmapFileModel(PersistentModel):
                   '.jpg': wx.wxBITMAP_TYPE_JPEG, '.png': wx.wxBITMAP_TYPE_PNG}
 
     def save(self, overwriteNewer=false):
-        ext = string.lower(os.path.splitext(self.filename)[1])
+        ext = os.path.splitext(self.filename)[1].lower()
         if ext == '.gif':
             raise Exception, 'Saving .gif format not supported'
 
@@ -310,8 +310,8 @@ class BitmapFileModel(PersistentModel):
 
     def saveAs(self, filename):
         # catch image type changes
-        newExt = string.lower(os.path.splitext(filename)[1])
-        oldExt = string.lower(os.path.splitext(self.filename)[1])
+        newExt = os.path.splitext(filename)[1].lower()
+        oldExt = os.path.splitext(self.filename)[1].lower()
         updateViews = 0
         if newExt != oldExt:
             updateViews = 1
@@ -350,7 +350,7 @@ class SourceModel(BasePersistentModel):
         conflicts =[]
         for line in self.getDataAsLines():
             if line[:8] == '<<<<<<< ' and \
-                  string.strip(line[8:]) == os.path.basename(self.filename):
+                  line[8:].strip() == os.path.basename(self.filename):
                 conflictStart = lineNo
             if line[:8] == '>>>>>>> ':
                 rev = line[8:]
