@@ -4,26 +4,26 @@ exec python $0 ${1+"$@"}
 """
 #"
 ##############################################################################
-# 
+#
 # Zope Public License (ZPL) Version 1.0
 # -------------------------------------
-# 
+#
 # Copyright (c) Digital Creations.  All rights reserved.
-# 
+#
 # This license has been certified as Open Source(tm).
-# 
+#
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are
 # met:
-# 
+#
 # 1. Redistributions in source code must retain the above copyright
 #    notice, this list of conditions, and the following disclaimer.
-# 
+#
 # 2. Redistributions in binary form must reproduce the above copyright
 #    notice, this list of conditions, and the following disclaimer in
 #    the documentation and/or other materials provided with the
 #    distribution.
-# 
+#
 # 3. Digital Creations requests that attribution be given to Zope
 #    in any manner possible. Zope includes a "Powered by Zope"
 #    button that is installed by default. While it is not a license
@@ -31,43 +31,43 @@ exec python $0 ${1+"$@"}
 #    attribution remain. A significant investment has been put
 #    into Zope, and this effort will continue if the Zope community
 #    continues to grow. This is one way to assure that growth.
-# 
+#
 # 4. All advertising materials and documentation mentioning
 #    features derived from or use of this software must display
 #    the following acknowledgement:
-# 
+#
 #      "This product includes software developed by Digital Creations
 #      for use in the Z Object Publishing Environment
 #      (http://www.zope.org/)."
-# 
+#
 #    In the event that the product being advertised includes an
 #    intact Zope distribution (with copyright and license included)
 #    then this clause is waived.
-# 
+#
 # 5. Names associated with Zope or Digital Creations must not be used to
 #    endorse or promote products derived from this software without
 #    prior written permission from Digital Creations.
-# 
+#
 # 6. Modified redistributions of any form whatsoever must retain
 #    the following acknowledgment:
-# 
+#
 #      "This product includes software developed by Digital Creations
 #      for use in the Z Object Publishing Environment
 #      (http://www.zope.org/)."
-# 
+#
 #    Intact (re-)distributions of any official Zope release do not
 #    require an external acknowledgement.
-# 
+#
 # 7. Modifications are encouraged but must be packaged separately as
 #    patches to official Zope releases.  Distributions that do not
 #    clearly separate the patches from the original work must be clearly
 #    labeled as unofficial distributions.  Modifications which do not
 #    carry the name Zope may be packaged in any form, as long as they
 #    conform to all of the clauses above.
-# 
-# 
+#
+#
 # Disclaimer
-# 
+#
 #   THIS SOFTWARE IS PROVIDED BY DIGITAL CREATIONS ``AS IS'' AND ANY
 #   EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 #   IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
@@ -80,17 +80,17 @@ exec python $0 ${1+"$@"}
 #   OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
 #   OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 #   SUCH DAMAGE.
-# 
-# 
+#
+#
 # This software consists of contributions made by Digital Creations and
 # many individuals on behalf of Digital Creations.  Specific
 # attributions are listed in the accompanying credits file.
-# 
+#
 ##############################################################################
 """Bobo call interface
 
-This module provides tools for accessing web objects as if they were 
-functions or objects with methods.  It also provides a simple call function 
+This module provides tools for accessing web objects as if they were
+functions or objects with methods.  It also provides a simple call function
 that allows one to simply make a single web request.
 
   Function -- Function-like objects that return both header and body
@@ -134,7 +134,7 @@ class Function:
         self.func_name=url[rfind(url,'/')+1:]
         self.__dict__['__name__']=self.func_name
         self.func_defaults=()
-        
+
         self.args=arguments
 
         if method is not None: self.method=method
@@ -179,7 +179,7 @@ class Function:
             if not method or method=='POST':
                 for v in kw.values():
                     if hasattr(v,'read'): return self._mp_call(kw)
-                
+
         can_marshal=type2marshal.has_key
         for k,v in kw.items():
             t=type(v)
@@ -206,8 +206,8 @@ class Function:
             headers['Authorization']=(
                 "Basic %s" %
                 replace(encodestring('%s:%s' % (self.username,self.password)),
-				     '\012',''))
-	    
+                                     '\012',''))
+
         try:
             h=HTTP()
             h.connect(self.host, self.port)
@@ -239,9 +239,9 @@ class Function:
             elif ec == 503:              t=NotAvailable
             else:                        t=ServerError
         raise t, RemoteException(t,v,f,l,self.url,query,ec,em,response)
-        
 
-    
+
+
 
     def _mp_call(self,kw,
                 type2suffix={
@@ -271,7 +271,7 @@ class Function:
             c=replace(encodestring('%s:%s' % (self.username,self.password)),'\012','')
             rq.append('Authorization: Basic %s' % c)
         rq.append(MultiPart(d).render())
-        rq=join(rq,'\r\n')   
+        rq=join(rq,'\r\n')
 
         try:
             sock=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
@@ -293,11 +293,11 @@ class Function:
             headers=mimetools.Message(reply,0)
             response=reply.read()
         finally:
-          if 0:
-            raise NotAvailable, (
-                RemoteException(NotAvailable,sys.exc_info()[1],
-                                self.url,'<MultiPart Form>'))
-                
+            if 0:
+                raise NotAvailable, (
+                    RemoteException(NotAvailable,sys.exc_info()[1],
+                                    self.url,'<MultiPart Form>'))
+
         if ec==200: return (headers,response)
         self.handleError('', ec, em, headers, response)
 
@@ -366,12 +366,12 @@ def marshal_list(n,l,tname='list', lt=type([]), tt=type(())):
         if t is lt or t is tt:
             raise TypeError, 'Invalid recursion in data to be marshaled.'
         r.append(marshal_whatever("%s:%s" % (n,tname) ,v))
-    
+
     return join(r,'&')
 
 def marshal_tuple(n,l):
     return marshal_list(n,l,'tuple')
-    
+
 type2marshal={
     type(1.0):                  marshal_float,
     type(1):                    marshal_int,
@@ -621,7 +621,7 @@ def main():
     except:
         print usage
         sys.exit(1)
-        
+
     # The "main" program for this module
     f=Function(url)
     if user: f.username, f.password = user, pw
