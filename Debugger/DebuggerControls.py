@@ -6,14 +6,15 @@ from wxPython.lib.stattext import wxGenStaticText
 
 import Preferences, Utils
 from Preferences import IS
+from Explorers import Explorer
 
 from Breakpoint import bplist
 
 SEL_STATE = wxLIST_STATE_SELECTED | wxLIST_STATE_FOCUSED
 
-class DebuggerListCtrl(wxListCtrl, Utils.ListCtrlSelectionManagerMix):
+class DebuggerListCtrl(wxListView, Utils.ListCtrlSelectionManagerMix):
     def __init__(self, parent, wId):
-        wxListCtrl.__init__(self, parent, wId,
+        wxListView.__init__(self, parent, wId,
               style=wxLC_REPORT|wxLC_SINGLE_SEL|wxLC_VRULES|wxCLIP_CHILDREN)
         Utils.ListCtrlSelectionManagerMix.__init__(self)
 
@@ -96,7 +97,7 @@ class StackViewCtrl(DebuggerListCtrl):
         if newsel >= 0:
             self.EnsureVisible(newsel)
 
-    def OnGotoSource(self, event):
+    def OnGotoSource(self, event=None):
         selection = self.getSelection()
         if selection != -1:
             entry = self.stack[selection]
@@ -108,13 +109,60 @@ class StackViewCtrl(DebuggerListCtrl):
 
             editor = self.debugger.editor
             editor.SetFocus()
-            editor.openOrGotoModule(filename)
+            try:
+                editor.openOrGotoModule(filename)
+            except Explorer.TransportLoadError, err:
+                serverPath = entry['filename']
+                if serverPath[0] == '<' and serverPath[-1] == '>':
+                    wxLogError('Not a source file: %s, probably an executed '
+                               'string.'%serverPath)
+                    return
+                
+                res = wxMessageBox('Could not open file: %s.\n\nIf This is a '
+                      'server path for which you\nhave not defined a mapping '
+                      'click "Yes" to browse to the file to the mapping can '
+                      'be computed.\nPress "No" to open the path dialog.'%filename,
+                      'File Open Error, try to compute path?', 
+                      wxICON_WARNING | wxYES_NO | wxCANCEL)
+                if res == wxYES:
+                    clientPath = editor.openFileDlg(curfile=os.path.basename(filename))
+                    if clientPath:
+                        clientPath = prevClientPath = Explorer.splitURI(clientPath)[2]
+                        prevServerPath = serverPath
+                        while 1:
+                            serverPath, serverBase = os.path.split(serverPath)
+                            clientPath, clientBase = os.path.split(clientPath)
+                            
+                            if serverBase != clientBase:
+                                paths = self.debugger.serverClientPaths[:]
+                                paths.append( (prevServerPath, prevClientPath) )
+                                if self.debugger.OnPathMappings(paths=paths):
+                                    self.refreshClientFilenames()
+                                break
+                            
+                            if not serverPath or not clientPath:
+                                wxLogError('Paths are identical')
+                                break
+                            
+                            prevClientPath = clientPath
+                            prevServerPath = serverPath
+                            
+                elif res == wxNO:
+                    if self.debugger.OnPathMappings():
+                        self.refreshClientFilenames()
+                return
+                
             model = editor.getActiveModulePage().model
             view = model.getSourceView()
             if view is not None:
                 view.focus()
                 view.SetFocus()
                 view.selectLine(lineno - 1)
+
+    def refreshClientFilenames(self):
+        for entry in self.stack:
+            entry['client_filename'] = \
+                  self.debugger.serverFNToClientFN(entry['filename'])
 
 
 [wxID_BREAKVIEW, wxID_BREAKSOURCE, wxID_BREAKEDIT, wxID_BREAKDELETE,
@@ -231,7 +279,7 @@ class BreakViewCtrl(DebuggerListCtrl):
                 return
             idx = idx + 1
 
-    def OnGotoSource(self, event):
+    def OnGotoSource(self, event=None):
         sel = self.getSelection()
         if sel != -1:
             self.gotoSourceForItem(sel)
