@@ -12,6 +12,7 @@
 print 'importing ZopeLib.ZopeExplorer'
 
 import os, urllib, urlparse, string, time, socket
+from thread import start_new_thread
 
 from wxPython.wx import *
 
@@ -29,6 +30,7 @@ from ZopeCompanions import ZopeConnection, ZopeCompanion, FolderZC
 # XXX Add owner property
 
 # XXX root attribute is no longer really necessary
+# XXX Improve '/' management ;)
 
 class ZopeEClip(ExplorerNodes.ExplorerClipboard):
     def __init__(self, globClip, props):
@@ -127,8 +129,14 @@ class ZopeItemNode(ExplorerNodes.ExplorerNode):
 
     def buildUrl(self):
         path = urllib.quote(self.resourcepath)
-        if path and path[0] != '/': path = '/'+path
-        return '%(host)s:%(httpport)d/' % self.properties + path
+        if path:
+            if path == '/':
+                path = '//'
+            if path[0] != '/': 
+                path = '/'+path
+        else:
+            path = '//'
+        return '%(host)s:%(httpport)d' % self.properties + path
 
     def destroy(self):
         self.cache = {}
@@ -244,12 +252,9 @@ class ZopeItemNode(ExplorerNodes.ExplorerNode):
         return res
 
     def listImportFiles(self):
-        if self.properties.has_key('localpath'):
+        if self.properties.has_key('localpath') and self.properties['localpath']:
             from Explorers import Explorer
             return Explorer.listdirEx(self.properties['localpath']+'/import', '.zexp')
-##        filter(lambda f: string.lower(os.path.splitext(f)[1]) == '.zexp',
-##                          map(lambda n: n.treename, Explorer.openEx(\
-##                          self.properties['localpath']+'/import').openList()))
         else:
             return []
 
@@ -330,8 +335,9 @@ class ZopeItemNode(ExplorerNodes.ExplorerNode):
 (wxID_ZOPEEXPORT, wxID_ZOPEIMPORT, wxID_ZOPEINSPECT, wxID_ZOPEOPENINEDITOR,
  wxID_ZOPEUPLOAD, wxID_ZOPESECURITY, wxID_ZOPEUNDO, wxID_ZOPEVIEWBROWSER,
  wxID_ZCCSTART, wxID_ZCCRESTART, wxID_ZCCSHUTDOWN, wxID_ZCCTEST, wxID_ZCCOPENLOG,
- wxID_ZACONFZ2, wxID_ZOPEMANAGEBROWSER, wxID_ZOPEFIND,
-) = Utils.wxNewIds(16)
+ wxID_ZACONFZ2, wxID_ZOPEMANAGEBROWSER, wxID_ZOPEFIND, 
+ wxID_ZCOPENZ2, wxID_ZCBREAKINTO, 
+) = Utils.wxNewIds(18)
 
 class ZopeCatController(ExplorerNodes.CategoryController):
     protocol = 'config.zope'
@@ -347,7 +353,10 @@ class ZopeCatController(ExplorerNodes.CategoryController):
                        (wxID_ZCCTEST, 'Test', self.OnTest, '-'),
                        (-1, '-', None, '-'),
                        (wxID_ZCCOPENLOG, 'Open Zope log', self.OnOpenZopeLog, '-'),
-                       (wxID_ZACONFZ2, 'Configure z2.py', self.OnConfigureZ2py, '-'),
+#                       (wxID_ZACONFZ2, 'Configure z2.py', self.OnConfigureZ2py, '-'),
+                       (-1, '-', None, '-'),
+                       (wxID_ZCOPENZ2, 'Open z2.py', self.OnOpenZ2, '-'),
+                       (wxID_ZCBREAKINTO, 'Break into', self.OnBreakInto, '-'),
                      )
         ExplorerNodes.CategoryController.__init__(self, editor, list, inspector,
               controllers, menuDefs = menuDefs + zccMenuDef)
@@ -396,7 +405,7 @@ class ZopeCatController(ExplorerNodes.CategoryController):
     def callControlPanelMethod(self, props, meth):
         zc = ZopeConnection()
         zc.connect(props['host'], props['httpport'],
-                            props['username'], props['passwd'])
+                   props['username'], props['passwd'])
         zc.call('/Control_Panel', meth)
 
     def OnStart(self, event):
@@ -451,6 +460,8 @@ class ZopeCatController(ExplorerNodes.CategoryController):
                 wxLogError(self.err_localpathBlank)
 
     def OnConfigureZ2py(self, event):
+        # XXX Disabled for now until only useful values are displayed
+        # XXX Or until someone complains :)
         node = self.getNodesForSelection(self.list.getMultiSelection())
         if len(node):
             node = node[0]
@@ -465,13 +476,34 @@ class ZopeCatController(ExplorerNodes.CategoryController):
         else:
             wxLogError(self.err_localpathBlank)
 
+    def OnOpenZ2(self, event):
+        for node in self.getNodesForSelection(self.list.getMultiSelection()):
+            localpath = node.properties['localpath']
+            if localpath:
+                self.editor.openOrGotoModule(localpath+'/z2.py')
+            else:
+                wxLogError(self.err_localpathBlank)
+
+    def breakpointInBackground(self, zc):
+        zc.call('zoa', 'breakpoint')
+        
+    def OnBreakInto(self, event):
+        for node in self.getNodesForSelection(self.list.getMultiSelection()):
+            props = node.properties
+            zc = ZopeConnection()
+            zc.connect(props['host'], props['httpport'],
+                       props['username'], props['passwd'])
+            start_new_thread(self.breakpointInBackground, (zc,))
+
 
 # XXX Better field validation and hints as to when path props shound end in / or not !!
+
 class ZopeController(ExplorerNodes.Controller, ExplorerNodes.ClipboardControllerMix):
     inspectBmp = 'Images/Shared/Inspector.png'
     importBmp = 'Images/Shared/ZopeImport.png'
     exportBmp = 'Images/Shared/ZopeExport.png'
     uploadBmp = 'Images/ZOA/upload_doc.png'
+    viewInBrowserBmp = 'Images/ZOA/ViewInBrowser.png'
     findBmp = 'Images/Shared/Find.png'
     def __init__(self, editor, list, inspector, controllers):
         ExplorerNodes.ClipboardControllerMix.__init__(self)
@@ -495,8 +527,8 @@ class ZopeController(ExplorerNodes.Controller, ExplorerNodes.ClipboardController
             (wxID_ZOPEOPENINEDITOR, 'Open in Editor', self.OnOpenInEditorZopeItem, '-'),
             (wxID_ZOPESECURITY, 'Security', self.OnSecurityZopeItem, '-'),
             (wxID_ZOPEUNDO,     'Undo',     self.OnUndoZopeItem, '-'),
-            (-1, '-', None, '-'),
-            (wxID_ZOPEVIEWBROWSER,'View in browser', self.OnViewInBrowser, '-'),
+            (-1, '-', None, ''),
+            (wxID_ZOPEVIEWBROWSER,'View in browser', self.OnViewInBrowser, self.viewInBrowserBmp),
             (wxID_ZOPEMANAGEBROWSER,'Manage in browser', self.OnManageInBrowser, '-'),
           )
 
@@ -623,9 +655,13 @@ class ZopeController(ExplorerNodes.Controller, ExplorerNodes.ClipboardController
                 resultView.refresh()
                 resultView.focus()
 
-    def openSelItemInBrowser(self, addToUrl=''):
+    def openSelItemInBrowser(self, addToUrl='', zopeItem=None):
         if self.list.node:
-            zopeItem = self.list.getSelection()
+            if not zopeItem:
+                zopeItem = self.list.getSelection()
+
+            if not zopeItem:
+                raise 'No item selected'
             try:
                 import webbrowser
                 webbrowser.open('http://%s%s'%(zopeItem.buildUrl(), addToUrl))
@@ -894,6 +930,21 @@ class DTMLMethodNode(ZopeNode):
     additionalViews = (ZopeViews.ZopeUndoView,
           ZopeViews.ZopeSecurityView, ZopeViews.ZopeHTMLView)
 
+class SiteErrorLogNode(ZopeItemNode):
+    Model = ZopeEditorModels.ZopeSiteErrorLogModel
+    defaultViews = (ZopeViews.ZopeSiteErrorLogView,)
+    additionalViews = (ZopeViews.ZopeUndoView,
+                       ZopeViews.ZopeSecurityView)
+    def isFolderish(self):
+        return false
+
+class HelpTopicNode(ZopeItemNode):
+    Model = ZopeEditorModels.ZopeHelpTopicModel
+    defaultViews = (ZopeViews.ZopeHTMLView,)
+    additionalViews = ()
+    def isFolderish(self):
+        return false
+
 from Explorers.PrefsExplorer import SourceBasedPrefColNode
 class ZopeZ2pySourceBasedPrefColNode(SourceBasedPrefColNode):
     pass
@@ -993,6 +1044,8 @@ zopeClassMap = { 'Folder': DirNode,
         'Image': ZopeImageNode,
         'File': ZopeNode,
         'User': ZopeUserNode,
+        'Site Error Log': SiteErrorLogNode,
+        'Help Topic': HelpTopicNode,
        }
 
 ExplorerNodes.register(ZopeCatNode, controller=ZopeCatController)

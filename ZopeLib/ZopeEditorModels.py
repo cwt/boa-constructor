@@ -47,6 +47,7 @@ ZOAImages = [\
  ('Version Management', 'Images/ZOA/VersionManagement_icon.png'),
  ('Database Management', 'Images/ZOA/DatabaseManagement_icon.png'),
  ('Product Help', 'Images/ZOA/ProductHelp_icon.png'),
+ ('Help Topic', 'Images/ZOA/HelpTopic_icon.png'),
  ('Product Management', 'Images/ZOA/ProductFolder_icon.png'),
  ('Product', 'Images/ZOA/InstalledProduct_icon.png'),
  ('Z Class', 'Images/ZOA/ZClass_Icon.png'),
@@ -67,6 +68,7 @@ ZOAImages = [\
  ('WebDAV Lock Manager', 'Images/ZOA/davlocked.png'),
  ('Browser Id Manager', 'Images/ZOA/idmgr.png'),
  ('Session Data Manager', 'Images/ZOA/datamgr.png'),
+ ('Site Error Log', 'Images/ZOA/error.png'),
 ]
 
 EditorHelper.imgZopeExportFileModel = EditorHelper.imgCounter
@@ -102,7 +104,7 @@ class ZopeEditorModel(EditorModels.BasePersistentModel):
                 self.transport.resourcepath)
 
 class ZopeBlankEditorModel(ZopeEditorModel):
-    """ Objects which are's loaded and saved and does not have a 'Main' view,
+    """ Objects which are not loaded and saved and does not have a 'Main' view,
         but which should still be able to host views """
     def load(self, notify = true):
         self.modified = false
@@ -181,6 +183,16 @@ class ZopeExternalMethodModel(ZopePythonSourceModel):
 
 #class ZopeLocalFSFileModel(ZopeEditorModel):
 
+class ZopeSiteErrorLogModel(ZopeBlankEditorModel):
+    modelIdentifier = 'ZopeSiteErrorLog'
+    defaultName = 'zopesiteerrorlog'
+    imgIdx = ZOAIcons['Site Error Log']
+
+class ZopeHelpTopicModel(ZopeBlankEditorModel):
+    modelIdentifier = 'ZopeHelpTopic'
+    defaultName = 'zopehelptopic'
+    imgIdx = ZOAIcons['Help Topic']
+
 
 class ZopeExportFileModel(EditorModels.BasePersistentModel):
     modelIdentifier = 'ZopeExport'
@@ -242,29 +254,41 @@ class ZopeExportFileController(Controllers.UndockedController):
 # XXX Zope Controllers should create from the palette, Zope Companions should
 # XXX manage only inspection
 
-wxID_ZOPEINSPECT = wx.wxNewId()
+wxID_ZOPEINSPECT, wxID_ZOPEVIEWBRWS = Utils.wxNewIds(2)
 
 class ZopeController(Controllers.PersistentController):
-    inspectBmp = 'Images/Shared/Inspector.png'
     DefaultViews = []
     AdditionalViews = []
+
+    inspectBmp = 'Images/Shared/Inspector.png'
+    viewInBrowserBmp = 'Images/ZOA/ViewInBrowser.png'
+
     def __init__(self, editor, Model):
         Controllers.PersistentController.__init__(self, editor)
         self.Model = Model
 
-    def addEvts(self):
-        Controllers.PersistentController.addEvts(self)
-        self.addEvt(wxID_ZOPEINSPECT, self.OnInspect)
-
-    def addTools(self, toolbar, model):
-        Controllers.PersistentController.addTools(self, toolbar, model)
-        Controllers.addTool(self.editor, toolbar, self.inspectBmp, 'Inspect', self.OnInspect)
-
-    def addMenus(self, menu, model):
-        accls = Controllers.PersistentController.addMenus(self, menu, model)
-        menu.Append(-1, '-')
-        self.addMenu(menu, wxID_ZOPEINSPECT, 'Inspect', accls, ())
-        return accls
+    def actions(self, model):
+        return Controllers.PersistentController.actions(self, model) + [
+          ('Inspect', self.OnInspect, self.inspectBmp, ''), # F11?
+          ('View in browser', self.OnViewInBrowser, self.viewInBrowserBmp, '')]
+              
+##    def addEvts(self):
+##        Controllers.PersistentController.addEvts(self)
+##        self.addEvt(wxID_ZOPEINSPECT, self.OnInspect)
+##        self.addEvt(wxID_ZOPEVIEWBRWS, self.OnViewInBrowser)
+##
+##    def addTools(self, toolbar, model):
+##        Controllers.PersistentController.addTools(self, toolbar, model)
+##        toolbar.AddSeparator()
+##        Controllers.addTool(self.editor, toolbar, self.inspectBmp, 'Inspect', self.OnInspect)
+##        Controllers.addTool(self.editor, toolbar, self.viewInBrowserBmp, 'View in browser', self.OnViewInBrowser)
+##
+##    def addMenus(self, menu, model):
+##        accls = Controllers.PersistentController.addMenus(self, menu, model)
+##        menu.Append(-1, '-')
+##        self.addMenu(menu, wxID_ZOPEINSPECT, 'Inspect', accls, ())
+##        self.addMenu(menu, wxID_ZOPEVIEWBRWS, 'View in browser', accls, ())
+##        return accls
 
     def createModel(self, source, filename, main, saved, transport):
         return self.Model(source, filename, self.editor, saved, transport)
@@ -274,13 +298,20 @@ class ZopeController(Controllers.PersistentController):
 
     def OnInspect(self, event):
         model = self.getModel()
-        model.editor.explorer.controllers['zope'].doInspectZopeItem(model.transport)
+        model.editor.explorer.controllers['zope'].doInspectZopeItem(
+              model.transport)
+
+    def OnViewInBrowser(self, event):
+        model = self.getModel()
+        model.editor.explorer.controllers['zope'].openSelItemInBrowser(
+              zopeItem=model.transport)
 
 #-------------------------------------------------------------------------------
 
 Preferences.paletteTitle = Preferences.paletteTitle +' - Zope Editor'
 
-Controllers.modelControllerReg.update( {ZopeExportFileModel: ZopeExportFileController,
+Controllers.modelControllerReg.update( {
+    ZopeExportFileModel: ZopeExportFileController,
     ZopeBlankEditorModel: ZopeController,
     ZopeDocumentModel: ZopeController,
     ZopeDTMLDocumentModel: ZopeController,
@@ -289,4 +320,7 @@ Controllers.modelControllerReg.update( {ZopeExportFileModel: ZopeExportFileContr
     ZopePythonSourceModel: ZopeController,
     ZopePythonScriptModel: ZopeController,
     ZopeExternalMethodModel: ZopeController,
-    ZopeEditorModel: ZopeController})
+    ZopeEditorModel: ZopeController,
+    ZopeSiteErrorLogModel: ZopeController,
+    ZopeHelpTopicModel: ZopeController,
+})

@@ -11,17 +11,16 @@
 #-----------------------------------------------------------------------------
 print 'importing ZopeLib.ZopeViews'
 
-from wxPython import wx
+import os, string, time
 
-##import sys
-##sys.path.append('..')
+from wxPython import wx
 
 from Views.EditorViews import HTMLView, ListCtrlView
 from Views.SourceViews import EditorStyledTextCtrl
 from Views.StyledTextCtrls import DebuggingViewSTCMix
 from Models.HTMLSupport import BaseHTMLStyledTextCtrlMix
 
-import Utils
+import Utils, ErrorStack
 
 from ExternalLib import xmlrpclib
 
@@ -91,17 +90,13 @@ class ZopeDebugHTMLSourceView(ZopeHTMLSourceView, DebuggingViewSTCMix):
 class ZopeHTMLView(HTMLView):
     viewName = 'View'
     def generatePage(self):
-##        if hasattr(self, 'lastpage'):
-##            if len(self.model.viewsModified):
-##                return self.lastpage
         import urllib
         url = 'http://%s:%d/%s'%(self.model.transport.properties['host'],
               self.model.transport.properties['httpport'],
               self.model.transport.whole_name())
         f = urllib.urlopen(url)
         s = f.read()
-#        print url, s
-        return s#f.read()
+        return s
 
 class ZopeUndoView(ListCtrlView):
     viewName = 'Undo'
@@ -182,3 +177,134 @@ class ZopeSecurityView(ListCtrlView):
     def OnEdit(self, event):
         if self.selected != -1:
             pass
+
+class ZopeSiteErrorLogParser(ErrorStack.StackErrorParser):
+    def __init__(self, lines, libPath, baseUrl):
+        self.libPath = libPath
+        self.baseUrl = baseUrl
+        ErrorStack.StackErrorParser.__init__(self, lines)
+
+    def parse(self):
+        error = None
+        lines = self.lines[:]
+        while lines:
+            line = lines.pop()
+            if Utils.startswith(line, '  Module '):
+                modPath, lineNo, funcName = string.split(line[9:], ', ')
+                lineNo = int(lineNo[5:])
+                modPath = string.strip(modPath)
+                if modPath == 'Script (Python)':
+                    path = lines.pop()
+                    lines.pop()
+                    if Utils.startswith(path, '   - <PythonScript at '):
+                        path = string.strip(path[22:])[:-1]
+                        debugUrl = self.baseUrl+path+'/Script (Python)'
+                        self.stack.append(
+                              ErrorStack.StackEntry(debugUrl, lineNo+1, funcName))
+                elif Utils.startswith(modPath, 'Python expression'):
+                    continue
+                else:
+                    modPath = self.libPath+'/'+string.replace(modPath, '.', '/')+'.py'
+                    self.stack.append(ErrorStack.StackEntry(modPath, lineNo, funcName))
+            elif Utils.startswith(line, '   - <PythonScript at '):
+                path = string.strip(line[22:])[:-1]
+                debugUrl = self.baseUrl+path+'/Script (Python)'
+                self.stack.append(
+                      ErrorStack.StackEntry(debugUrl, 0, os.path.basename(path)))
+            elif Utils.startswith(line, '   - <ZopePageTemplate at '):
+                path = string.strip(line[26:])[:-1]
+                debugUrl = self.baseUrl+path+'/Page Template'
+                self.stack.append(ErrorStack.StackEntry(debugUrl, 0,
+                      os.path.basename(path)))
+            elif Utils.startswith(line, '   - URL: '):
+                path = string.strip(line[10:])
+                lineNo, colNo = string.split(lines.pop(), ', ')
+                lineNo = int(string.split(lineNo)[-1])
+                debugUrl = self.baseUrl+path+'/Page Template'
+                self.stack.append(ErrorStack.StackEntry(debugUrl, lineNo,
+                      os.path.basename(path)))
+            elif line and line[0] != ' ':
+                errType, errValue = string.split(line, ': ', 1)
+                lines.reverse()
+                errValue = string.strip(errValue + string.join(lines))
+                if errValue and errValue[0] == '<':
+                    errValue = string.replace(Utils.html2txt(errValue), '\n', ' ')
+
+                error = [errType, errValue]
+                break
+
+        assert error
+        self.error = error
+        for entry in self.stack:
+            entry.error = error
+
+
+class ZopeSiteErrorLogView(ListCtrlView):
+    viewName = 'Site Error Log'
+    gotoTracebackBmp = 'Images/Shared/Traceback.png'
+    refreshBmp = 'Images/Editor/Refresh.png'
+
+    def __init__(self, parent, model):
+        ListCtrlView.__init__(self, parent, model, wx.wxLC_REPORT,
+          (('Open traceback', self.OnOpen, self.gotoTracebackBmp, ''),
+           ('Refresh', self.OnRefresh, self.refreshBmp, 'Refresh')), 0)
+        self.active = true
+
+    logEntryIds = []
+    def refreshCtrl(self):
+        ListCtrlView.refreshCtrl(self)
+
+        errLogNode = self.model.transport
+
+        try:
+            entries = errLogNode.getResource().getLogEntries()
+        except xmlrpclib.Fault, error:
+            wx.wxLogError(Utils.html2txt(error.faultString))
+        else:
+
+            cols = [('Time', 150), ('User', 100), ('Type', 80),
+                    ('Value', 200), ('Request URL', 350)]
+            self.addReportColumns(cols)
+
+            i = 0
+            self.logEntryIds = []
+            for entry in entries:
+                value = entry['value']
+                # pretty print html errors
+                if value and value[0] == '<':
+                    value = string.strip(string.replace(
+                          Utils.html2txt(value), '\n', ' '))
+                self.addReportItems(i, (time.ctime(entry['time']),
+                      entry['username'], entry['type'], value, entry['url']) )
+                self.logEntryIds.append(entry['id'])
+                i = i + 1
+
+            self.pastelise()
+
+    def OnOpen(self, event):
+        if self.selected != -1:
+            logId = self.logEntryIds[self.selected]
+            errLogNode = self.model.transport
+            try:
+                textEntry = errLogNode.getResource().getLogEntryAsText(logId)
+            except xmlrpclib.Fault, error:
+                wx.wxLogError(Utils.html2txt(error.faultString))
+            else:
+                lines = string.split(textEntry, '\n')
+                lines.reverse()
+                top = string.strip(lines.pop())
+                assert top == 'Traceback (innermost last):'
+
+                props = errLogNode.properties
+                libPath = props['localpath'] +'/lib/python'
+                # zopedebug urls are transparently looked up in the zope
+                # connections list when the transport is opened.
+                baseUrl = 'zopedebug://%s:%s/'%(props['host'], props['httpport'])
+                errStack = ZopeSiteErrorLogParser(lines, libPath, baseUrl)
+
+                erroutFrm = self.model.editor.erroutFrm
+                erroutFrm.updateCtrls([errStack], '', 'Error', libPath, textEntry)
+                erroutFrm.display()
+
+    def OnRefresh(self, event):
+        self.refreshCtrl()

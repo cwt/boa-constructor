@@ -530,6 +530,28 @@ class UserFolderZC(ZopeCompanion):
     def create(self):
         mime, res = self.call(self.objPath, 'manage_addUserFolder')
 
+class SiteErrorLogZC(CustomZopePropsMixIn, ZopeCompanion):
+    def getProps(self):
+        mime, res = self.call(self.objPath, 'zoa/props/SiteErrorLog')
+        return eval(res)
+
+    def SetProp(self, name, value):
+        props = self.getProps()
+        if props[name] != value:
+            props[name] = value
+        else:
+            return
+
+        mime, res = self.call(self.objPath, 'setProperties',
+              keep_entries=props['keep_entries'],
+              copy_to_zlog=props['copy_to_zlog'],
+              ignored_exceptions=props['ignored_exceptions'])
+
+    propOrder = ('keep_entries', 'copy_to_zlog', 'ignored_exceptions')
+    propTypeMap = {'keep_entries': ('int', 'keep_entries'),
+                   'copy_to_zlog': ('boolean', 'copy_to_zlog'),
+                   'ignored_exceptions': ('default', 'ignored_exceptions')}
+
 #---Palette registration--------------------------------------------------------
 
 PaletteStore.paletteLists['Zope'].extend(['Folder', 'DTML Document', 'DTML Method',
@@ -550,4 +572,6 @@ PaletteStore.compInfo.update({'DTML Document': ['DTMLDocument', DTMLDocumentZC],
     'User Folder': ['UserFolder', UserFolderZC],
     'Version': ['Version', VersionZC],
     'Z Gadfly Database Connection': ['GadflyDA', GadflyDAZC],
-    'User' : ['User', UserZC], })
+    'User' : ['User', UserZC], 
+    'Site Error Log':['SiteErrorLog', SiteErrorLogZC],
+})
