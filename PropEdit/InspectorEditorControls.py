@@ -10,10 +10,11 @@
 # Licence:     GPL
 #----------------------------------------------------------------------
 
+import string
+
 from wxPython.wx import *
-import Preferences
-from os import path
-import Utils
+
+import Preferences, Utils
 
 # XXX Refactor all the position offsets into class attribs and move logic
 # XXX to the base class
@@ -154,28 +155,51 @@ class ComboIEC(InspectorEditorControl):
             self.editorCtrl.SetSelection(self.editorCtrl.FindString(value))
 
 class ButtonIEC(BevelIEC):
+    btnSize = 18
     def createControl(self, parent, idx, sizeX, editMeth):
-       # XXX use image store
         bmp = Preferences.IS.load('Images/Shared/ellipsis.png')
-#        wxBitmap(path.join(Preferences.pyPath, 'Images', 'Shared', 'ellipsis.png'), wxBITMAP_TYPE_BMP)
         self.editorCtrl = wxBitmapButton(parent, self.wID, bmp,
-          wxPoint(sizeX -18 - 3, idx*Preferences.oiLineHeight +1),
-          wxSize(18, Preferences.oiLineHeight-2))
+          wxPoint(sizeX - self.btnSize - 3, idx*Preferences.oiLineHeight +1),
+          wxSize(self.btnSize, Preferences.oiLineHeight-2))
+        self.propValLabel = wxStaticText(parent, -1, str(self.getValue()),
+          wxPoint(2, idx*Preferences.oiLineHeight+2), 
+          wxSize(sizeX - self.btnSize - 6, Preferences.oiLineHeight-3),
+          style=wxST_NO_AUTORESIZE)
         EVT_BUTTON(self.editorCtrl, self.wID, editMeth)
         BevelIEC.createControl(self, parent, idx, sizeX)
 
     def setWidth(self, width):
         if self.editorCtrl:
-            self.editorCtrl.SetDimensions(width - 18 - 3, self.editorCtrl.GetPosition().y,
-              18, Preferences.oiLineHeight-2)
+            self.editorCtrl.SetDimensions(width - self.btnSize - 3, 
+              self.editorCtrl.GetPosition().y, self.btnSize, 
+              Preferences.oiLineHeight-2)
+            self.propValLabel.SetDimensions(2, 
+              self.propValLabel.GetPosition().y, width - self.btnSize - 6, 
+              Preferences.oiLineHeight-3)
 
         BevelIEC.setWidth(self, width)
 
     def setIdx(self, idx):
         if self.editorCtrl:
             self.editorCtrl.SetDimensions(self.editorCtrl.GetPosition().x,
-              idx*Preferences.oiLineHeight +1, 18, Preferences.oiLineHeight-2)
+              idx*Preferences.oiLineHeight +2, self.btnSize, 
+              Preferences.oiLineHeight-2)
+            self.propValLabel.SetDimensions(
+              self.propValLabel.GetPosition().x, 
+              idx*Preferences.oiLineHeight +1, self.propValueLabel.GetSize().x,
+              Preferences.oiLineHeight-3)
+
         BevelIEC.setIdx(self, idx)
+
+    def setValue(self, value):
+        BevelIEC.setValue(self, value)
+        self.propValLabel.SetLabel(str(value))
+
+    def destroyControl(self):
+        if self.editorCtrl:
+            self.propValLabel.Destroy()
+            self.propValLabel = None
+        BevelIEC.destroyControl(self)
 
 class TextCtrlButtonIEC(BevelIEC):
 
@@ -286,7 +310,8 @@ class CheckBoxIEC(BevelIEC):
     def setValue(self, value):
         if self.editorCtrl:
             self.editorCtrl.SetLabel(value)
-            self.editorCtrl.SetValue(self.truefalseMap[true] == value)
+            self.editorCtrl.SetValue(
+                string.lower(self.truefalseMap[true]) == string.lower(value))
 
     def setIdx(self, idx):
         if self.editorCtrl:
