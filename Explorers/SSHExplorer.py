@@ -52,7 +52,10 @@ class SSHCatNode(ExplorerNodes.CategoryNode):
         self.bookmarks = bookmarks
 
     def createChildNode(self, name, props):
-        itm = SSHItemNode(name, props, props['root'], self.clipboard, true,
+        root = props['root']
+        if root and root[0] != '/':
+            root = '/'+root
+        itm = SSHItemNode(name, props, root, self.clipboard, true,
               EditorHelper.imgNetDrive, self)
         itm.category = name
         itm.bookmarks = self.bookmarks
@@ -235,4 +238,4 @@ class SSHExpClipboard(ExplorerNodes.ExplorerClipboard):
 #-------------------------------------------------------------------------------
 ExplorerNodes.register(SSHItemNode, clipboard=SSHExpClipboard,
       confdef=('explorer', 'ssh'), controller=SSHController, category=SSHCatNode)
-#ExplorerNodes.fileOpenDlgProtReg.append('ssh')
+ExplorerNodes.fileOpenDlgProtReg.append('ssh')

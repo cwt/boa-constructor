@@ -245,3 +245,4 @@ class FTPExpClipboard(ExplorerNodes.ExplorerClipboard):
 #-------------------------------------------------------------------------------
 ExplorerNodes.register(FTPItemNode, clipboard=FTPExpClipboard,
       confdef=('explorer', 'ftp'), controller=FTPController, category=FTPCatNode)
+ExplorerNodes.fileOpenDlgProtReg.append('ftp')
