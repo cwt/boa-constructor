@@ -1131,7 +1131,7 @@ class CVSConflictsView(ListCtrlView):
     rejectBmp = 'Images/Inspector/Cancel.png'
 
     def __init__(self, parent, model):
-        Views.EditorViews.ListCtrlView.__init__(self, parent, model, wxLC_REPORT,
+        ListCtrlView.__init__(self, parent, model, wxLC_REPORT,
           (('Goto line', self.OnGoto, self.gotoLineBmp, ()),
            ('Accept changes', self.OnAcceptChanges, self.acceptBmp, ()),
            ('Reject changes', self.OnRejectChanges, self.rejectBmp, ()) ), 0)
@@ -1145,7 +1145,7 @@ class CVSConflictsView(ListCtrlView):
         self.conflicts = []
 
     def refreshCtrl(self):
-        Views.EditorViews.ListCtrlView.refreshCtrl(self)
+        ListCtrlView.refreshCtrl(self)
 
         self.conflicts = self.model.getCVSConflicts()
 
