@@ -7,7 +7,7 @@
 #
 # Created:     1999
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999 - 2002 Riaan Booysen
+# Copyright:   (c) 1999 - 2003 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
 
@@ -22,9 +22,9 @@ Hence the needed import * and execfile.
 # XXX This module should be renamed it's function has changed over time
 # XXX Maybe: BoaNamespace/DesignTimeNamespace
 
-import os, string
+import os
 
-import Preferences, Utils
+import Preferences, Utils, Plugins
 from Preferences import IS
 import PaletteStore
 
@@ -43,14 +43,18 @@ if Preferences.csWxPythonSupport:
     from Companions.GizmoCompanions import *
     if Utils.IsComEnabled():
         from Companions.ComCompanions import *
+    from Companions.LibCompanions import *
+    # Define and add a User page to the palette
+    PaletteStore.paletteLists['User'] = upl = []
+    PaletteStore.palette.append(['User', 'Editor/Tabs/User', upl])
     from Companions.UtilCompanions import *
     from Companions.DialogCompanions import *
 
 # Zope requires spesific support
-if Utils.transportInstalled('ZopeLib.ZopeExplorer'):
+if Plugins.transportInstalled('ZopeLib.ZopeExplorer'):
     from ZopeLib.ZopeCompanions import *
 
-#-Controller imports which auto-regisers themselves on the Palette--------------
+#-Controller imports which auto-registers themselves on the Palette-------------
 
 from Models import EditorHelper
 
@@ -72,13 +76,13 @@ from Models import Controllers
 PaletteStore.newControllers['Text'] = Controllers.TextController
 PaletteStore.paletteLists['New'].append('Text')
 
-#-Registration of other built in support---------------------------------------
+#-Registration of other built in support----------------------------------------
 if Preferences.csConfigSupport: from Models import ConfigSupport
 if Preferences.csCppSupport: from Models import CPPSupport
 if Preferences.csHtmlSupport: from Models import HTMLSupport
 if Preferences.csXmlSupport: from Models import XMLSupport
 
-if Utils.transportInstalled('ZopeLib.ZopeExplorer'):
+if Plugins.transportInstalled('ZopeLib.ZopeExplorer'):
     import ZopeLib.ZopeEditorModels
 
 if Utils.IsComEnabled():
@@ -91,18 +95,18 @@ if Preferences.pluginPaths:
     fails = Preferences.failedPlugins
     succeeded = Preferences.installedPlugins
 
-    for pluginFilename, ordered, enabled in Utils.buildPluginExecList():
+    for pluginFilename, ordered, enabled in Plugins.buildPluginExecList():
         if not enabled:
             continue
 
         pluginBasename = os.path.basename(pluginFilename)
-        filename = string.lower(pluginFilename)
+        filename = pluginFilename.lower()
         try:
             execfile(pluginFilename)
             succeeded.append(filename)
-        except Utils.SkipPluginSilently, msg:
+        except Plugins.SkipPluginSilently, msg:
             fails[filename] = ('Skipped', msg)
-        except Utils.SkipPlugin, msg:
+        except Plugins.SkipPlugin, msg:
             fails[filename] = ('Skipped', msg)
             wxLogWarning('Plugin skipped: %s, %s'%(pluginBasename, msg))
         except Exception, error:
