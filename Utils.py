@@ -37,7 +37,7 @@ def yesNoDialog(parent, title, question):
     try: return (dlg.ShowModal() == wxID_YES)
     finally: dlg.Destroy()
 
-def AddToolButtonBmpObject(frame, toolbar, thebitmap, hint, triggermeth, 
+def AddToolButtonBmpObject(frame, toolbar, thebitmap, hint, triggermeth,
       theToggleBitmap=wxNullBitmap):
     nId = wxNewId()
     toolbar.AddTool(nId, thebitmap, theToggleBitmap, shortHelpString = hint)
@@ -243,7 +243,7 @@ class PaintEventHandler(wxEvtHandler):
         rv = wxRect(x, y, width, height)
         return rv
 
-def showTip(frame, forceShow = 0):
+def showTip(frame, forceShow=0):
     """ Displays tip of the day.
 
     Driven from and updates config file
@@ -290,11 +290,11 @@ def writeTextToClipboard(text):
         clip.Close()
 
 _sharedConfs = {}
-def createAndReadConfig(name, forPlatform = 1):
+def createAndReadConfig(name, forPlatform=1):
     """ Return an initialised ConfigFile object """
-    confFile = '%s/%s%s.cfg' % (Preferences.rcPath, name,
+    confFile = os.path.join(Preferences.rcPath, '%s%s.cfg' % (name,
         forPlatform and wx.wxPlatform == '__WXMSW__' and '.msw' \
-        or forPlatform and '.gtk' or '')
+        or forPlatform and '.gtk' or ''))
 
     if not _sharedConfs.has_key(confFile):
         conf = ConfigParser()
@@ -789,14 +789,14 @@ class PluginError(Exception):
 class SkipPlugin(PluginError):
     """ Special error, used to abort importing plugins early if they depend
     on modules not loaded
-    
+
     Warning indicating problem is displayed """
 
 class SkipPluginSilently(SkipPlugin):
     """ Special error, used to abort importing plugins early if they depend
     on modules not available.
-    
-    Plugin is skipped silently. 
+
+    Plugin is skipped silently.
     Used when user can do nothing about the problem (like switching platforms ;)
     """
 
@@ -848,7 +848,7 @@ def writeInitPluginGlobals(pluginPath, initPluginGlobals):
 def buildPluginExecList():
     if not Preferences.pluginPaths:
         return []
-    
+
     pluginExecList = []
     pluginPathGlobs = []
     for ppth in Preferences.pluginPaths:
@@ -859,11 +859,11 @@ def buildPluginExecList():
         ordered = initPluginGlobals['__ordered__']
         disabled = initPluginGlobals['__disabled__']
         globList = glob.glob(globPath)
-        
+
         insIdx = 0
         orderedPlugins = []
         for pluginName in ordered:
-            pluginFilename = os.path.join(os.path.dirname(globPath), 
+            pluginFilename = os.path.join(os.path.dirname(globPath),
                                           pluginName)+'.plug-in.py'
             try:
                 idx = globList.index(pluginFilename)
@@ -878,16 +878,16 @@ def buildPluginExecList():
 
         disabledPlugins = []
         for pluginName in disabled:
-            disabledPlugins.append(os.path.join(os.path.dirname(globPath), 
+            disabledPlugins.append(os.path.join(os.path.dirname(globPath),
                                                 pluginName)+'.plug-in.py')
 
         for pluginFilename in globList:
-            pluginExecList.append( (pluginFilename, 
+            pluginExecList.append( (pluginFilename,
                                     pluginFilename in orderedPlugins,
                                     pluginFilename not in disabledPlugins) )
     return pluginExecList
-                
-         
+
+
 #-------------------------------------------------------------------------------
 
 def canReadStream(stream):
@@ -904,7 +904,7 @@ def find_dotted_module(name, path=None):
         del segs[0]
         path = [filename]
     return file, filename, desc
-    
+
 def appendMenuItem(menu, wId, label, code=(), bmp='', help=''):
     # XXX Add kind=wxITEM_NORMAL when 2.3.3 is minimum.
     text = label + (code and ' \t'+code[2] or '')
@@ -914,4 +914,3 @@ def appendMenuItem(menu, wId, label, code=(), bmp='', help=''):
               wxPlatform == '__WXMSW__':
             menuItem.SetBitmap(Preferences.IS.load(bmp))
     menu.AppendItem(menuItem)
-    
