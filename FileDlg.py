@@ -62,6 +62,9 @@ class wxBoaFileDialog(wxDialog):
     def OnSize(self, event):
         self.panel1.Layout()
 
+    def OnCloseWindow(self, event):
+        self.lcFiles.destroy()
+
     def __init__(self, parent, message = 'Choose a file', defaultDir = '.', defaultFile = '', wildcard = '*.py; *.txt', style = wxOPEN, pos = wxDefaultPosition):
         self._init_ctrls(parent)
         self.SetStyle(style)
@@ -69,6 +72,7 @@ class wxBoaFileDialog(wxDialog):
 
         EVT_SIZE(self.panel1, self.OnSize)
         EVT_KILL_FOCUS(self.btCancel, self.OnBtcancelKillFocus)
+        EVT_CLOSE(self, self.OnCloseWindow)
 
         # XXX This is a bit convoluted ;)
         # XXX The late importing is the only way to avoid import problems because
@@ -90,6 +94,11 @@ class wxBoaFileDialog(wxDialog):
                 EVT_MENU(self, menuId, self.OnNewFolder)
                 EVT_LIST_BEGIN_LABEL_EDIT(self, self.GetId(), self.OnBeginLabelEdit)
                 EVT_LIST_END_LABEL_EDIT(self, self.GetId(), self.OnEndLabelEdit)
+            
+            def destroy(self):
+                self.menu.Destroy()
+                from Explorers import Explorer
+                Explorer.PackageFolderList.Destroy()
 
 ##            def refreshItems(self, images, explNode):
 ##                from Explorers import Explorer
@@ -324,3 +333,4 @@ class wxBoaFileDialog(wxDialog):
         self.btOK.SetDefault()
         if self.lcFiles.selected == -1:
             self.lcFiles.selectItemNamed('..')
+  
