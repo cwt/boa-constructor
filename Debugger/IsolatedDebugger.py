@@ -421,8 +421,7 @@ class DebugServer (Bdb):
     ignore_stopline = -1
     autocont = 0
     _enable_process_modification = 0
-    ignore_frame = None
-    ignore_first_frame = 0
+    stop_in_botframe = 1
 ##    _enable_auto_servicer = 0
 
     def __init__(self):
@@ -472,8 +471,6 @@ class DebugServer (Bdb):
     def cleanupServer(self):
         self.reset()
         self.ignore_stopline = -1
-        self.ignore_first_frame = 0
-        self.ignore_frame = None
         self.autocont = 0
         self.frame = None
         self.exc_info = None
@@ -544,8 +541,8 @@ class DebugServer (Bdb):
         #   None: Stop anywhere
         #   frame object: Stop in that frame
         #   (): Stop nowhere
-        if self.ignore_frame and frame is self.ignore_frame:
-            # Don't stop in ignore_frame.
+        if self.stop_in_botframe and frame is self.botframe:
+            # Don't stop in botframe.
             return 0
         sf = self.stopframe
         if sf is None:
@@ -677,11 +674,11 @@ class DebugServer (Bdb):
             self.autocont = 0
             self.set_continue()
             return
-        elif self.ignore_first_frame:
-            self.ignore_first_frame = 0
-            self.ignore_frame = frame
-            self.set_step()
-            return
+##        elif self.ignore_first_frame:
+##            self.ignore_first_frame = 0
+##            self.ignore_frame = frame
+##            self.set_step()
+##            return
         self.ignore_stopline = -1
         self.frame = frame
         self.exc_info = None
@@ -726,7 +723,7 @@ class DebugServer (Bdb):
             chdir(dn)
 
         self.autocont = autocont
-        self.ignore_first_frame = 1
+##        self.ignore_first_frame = 1
         
         self.run("execfile(fn, d)", {'fn':fn, 'd':d})
 
