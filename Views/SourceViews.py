@@ -362,7 +362,12 @@ class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView):
         try:
             if dlg.ShowModal() == wxID_OK:
                 if dlg.GetValue():
-                    self.GotoLine(int(dlg.GetValue()))
+                    try:
+                        lineNo = int(dlg.GetValue())
+                    except ValueError:
+                        wxLogError('Integer line number required')
+                    else:
+                        self.GotoLine(lineNo)
         finally:
             dlg.Destroy()
 
