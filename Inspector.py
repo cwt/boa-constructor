@@ -19,14 +19,12 @@ print 'importing Inspector'
 
 # XXX Disable clipboards buttons when non Designer item is selected !!
 
-# XXX senderMap needs to go, events are enough (OOR)
-
 import os
 from types import *
 
 from wxPython.wx import *
 
-import PaletteMapping, PaletteStore, sender, Preferences, Help
+import PaletteMapping, PaletteStore, Preferences, Help
 from PropEdit import PropertyEditors
 from Companions import EventCollections
 import Preferences, RTTI, Utils
@@ -90,9 +88,9 @@ class InspectorFrame(wxFrame, Utils.FrameRestorerMixin):
 
         self.pages = InspectorNotebook(id = wxID_INSPECTORFRAMEPAGES, name = 'pages', parent = self, pos = wxPoint(0, 0), size = wxSize(282, 430), style = 0)
 
-        self.constr = InspectorConstrScrollWin(id = wxID_INSPECTORFRAMECONSTR, name = 'constr', parent = self.pages, pos = wxPoint(0, 0), size = wxSize(274, 404), style = wxSUNKEN_BORDER | wxTAB_TRAVERSAL)
+        self.constr = InspectorConstrScrollWin(id = wxID_INSPECTORFRAMECONSTR, name = 'constr', parent = self.pages, pos = wxPoint(0, 0), size = wxSize(274, 404), style = wxSUNKEN_BORDER)
 
-        self.props = InspectorPropScrollWin(id = wxID_INSPECTORFRAMEPROPS, name = 'props', parent = self.pages, pos = wxPoint(0, 0), size = wxSize(274, 404), style = wxSUNKEN_BORDER | wxTAB_TRAVERSAL)
+        self.props = InspectorPropScrollWin(id = wxID_INSPECTORFRAMEPROPS, name = 'props', parent = self.pages, pos = wxPoint(0, 0), size = wxSize(274, 404), style = wxSUNKEN_BORDER)
 
         self.events = EventsWindow(id = wxID_INSPECTORFRAMEEVENTS, name = 'events', parent = self.pages, point = wxPoint(0, 0), size = wxSize(274, 404), style = wxSP_3D)
 
@@ -518,7 +516,7 @@ class NameValue:
         self.valueBevelTop = None
         self.valueBevelBottom = None
 
-        lockEditor, attrName, isCat = self.checkLockedProperty(name,
+        lockEditor, attrName, self.isCat = self.checkLockedProperty(name,
               propWrapper.getSetterName(), companion)
 
         if lockEditor:
@@ -558,34 +556,41 @@ class NameValue:
             self.propValue = ''
             displayVal = ''
 
+        try:
+            from wxPython.lib.stattext import wxGenStaticText
+            StaticText = wxGenStaticText
+        except ImportError:
+            # pre 2.3.3 compat
+            StaticText = wxStaticText
+
         # Create name and value controls and separators
-        self.nameCtrl = wxStaticText(nameParent, -1, name,
+        self.nameCtrl = StaticText(nameParent, -1, name,
           wxPoint(8 * self.indent + 16, idx * oiLineHeight +2),
           wxSize(inspector.panelNames.GetSize().x, oiLineHeight -3),
           style = wxCLIP_CHILDREN | wxST_NO_AUTORESIZE)
         self.nameCtrl.SetToolTipString(companion.getPropertyHelp(name))
         EVT_LEFT_DOWN(self.nameCtrl, self.OnSelect)
 
-        self.showPropNameModified(isCat)
+        self.showPropNameModified(self.isCat)
 
-        self.value = wxStaticText(valueParent, -1, displayVal,
+        self.value = StaticText(valueParent, -1, displayVal,
           wxPoint(2, idx * oiLineHeight +2), wxSize(inspector.getValueWidth(),
           oiLineHeight -3), style = wxCLIP_CHILDREN | wxST_NO_AUTORESIZE)
         self.value.SetForegroundColour(Preferences.propValueColour)
         self.value.SetToolTipString(displayVal)
         EVT_LEFT_DOWN(self.value, self.OnSelect)
 
-        if lockEditor and not isCat:
+        if lockEditor and not self.isCat:
             self.enboldenCtrl(self.value)
 
         sepCol = wxColour(160, 160, 160)
 
-        self.separatorN = wxPanel(nameParent, -1, wxPoint(0,
+        self.separatorN = wxWindow(nameParent, -1, wxPoint(0,
           (idx +1) * oiLineHeight), wxSize(inspector.panelNames.GetSize().x, 1),
           style = wxCLIP_CHILDREN)
         self.separatorN.SetBackgroundColour(sepCol)
 
-        self.separatorV = wxPanel(valueParent, -1, wxPoint(0,
+        self.separatorV = wxWindow(valueParent, -1, wxPoint(0,
           (idx +1) * oiLineHeight), wxSize(inspector.getValueWidth(), 1),
           style = wxCLIP_CHILDREN)
         self.separatorV.SetBackgroundColour(sepCol)
@@ -662,7 +667,7 @@ class NameValue:
         # XXX if not too expensive, only set Tip if caption does not
         # XXX fit in window
         self.value.SetToolTipString(dispVal)
-        self.showPropNameModified()
+        self.showPropNameModified(self.isCat)
 
     def setPos(self, idx):
         self.idx = idx
@@ -711,11 +716,11 @@ class NameValue:
         self.lastSizeV = valueWidth
 
     def showEdit(self):
-        self.nameBevelTop = wxPanel(self.nameParent, -1,
+        self.nameBevelTop = wxWindow(self.nameParent, -1,
           wxPoint(0, self.idx*oiLineHeight -1),
           wxSize(self.inspector.panelNames.GetSize().x, 1))
         self.nameBevelTop.SetBackgroundColour(wxBLACK)
-        self.nameBevelBottom = wxPanel(self.nameParent, -1,
+        self.nameBevelBottom = wxWindow(self.nameParent, -1,
           wxPoint(0, (self.idx + 1)*oiLineHeight -1),
           wxSize(self.inspector.panelNames.GetSize().x, 1))
         self.nameBevelBottom.SetBackgroundColour(wxWHITE)
@@ -725,11 +730,11 @@ class NameValue:
             self.value.SetSize((0, 0))
             self.propEditor.inspectorEdit()
         else:
-            self.valueBevelTop = wxPanel(self.valueParent, -1,
+            self.valueBevelTop = wxWindow(self.valueParent, -1,
               wxPoint(0, self.idx*oiLineHeight -1),
               wxSize(self.inspector.getValueWidth(), 1))
             self.valueBevelTop.SetBackgroundColour(wxBLACK)
-            self.valueBevelBottom = wxPanel(self.valueParent, -1,
+            self.valueBevelBottom = wxWindow(self.valueParent, -1,
               wxPoint(0, (self.idx + 1)*oiLineHeight -1),
               wxSize(self.inspector.getValueWidth(), 1))
             self.valueBevelBottom.SetBackgroundColour(wxWHITE)
@@ -951,7 +956,7 @@ class NameValueEditorScrollWin(wxScrolledWindow):
     def __init__(self, parent, id=-1, pos=wxDefaultPosition, size=wxDefaultSize,
                 style=wxHSCROLL | wxVSCROLL, name='scrolledWindow'):
         wxScrolledWindow.__init__(self, parent, id,
-                style=style | wxTAB_TRAVERSAL)
+                style=style)# | wxTAB_TRAVERSAL)
         self.nameValues = []
         self.prevSel = None
         self.splitter = wxSplitterWindow(self, -1, wxPoint(0, 0),
@@ -959,9 +964,9 @@ class NameValueEditorScrollWin(wxScrolledWindow):
           style = wxNO_3D|wxSP_3D|wxSP_NOBORDER|wxSP_LIVE_UPDATE)
 
         self.panelNames = wxPanel(self.splitter, -1,
-          wxDefaultPosition, wxSize(100, 1), style = wxTAB_TRAVERSAL)
+          wxDefaultPosition, wxSize(100, 1), style=0)#wxTAB_TRAVERSAL)
         EVT_SIZE(self.panelNames, self.OnNameSize)
-        self.panelValues = wxPanel(self.splitter, -1, style = wxTAB_TRAVERSAL)
+        self.panelValues = wxPanel(self.splitter, -1, style=0)
         EVT_SIZE(self.panelValues, self.OnNameSize)
 
         self.splitter.SplitVertically(self.panelNames, self.panelValues)
@@ -1063,8 +1068,6 @@ class InspectorScrollWin(NameValueEditorScrollWin):
         NameValueEditorScrollWin.__init__(self, parent, id, pos, size, style, name)
 
         self.EnableScrolling(false, true)
-        # ?
-        self.expanders = sender.SenderMapper()
 
         self.selObj = None
         self.selCmp = None
