@@ -198,6 +198,14 @@ class InspectorFrame(wxFrame):
         else:
             self.pageUpdate(self.events, name)
 
+    # Direct companion source update of position and size when multiselected
+    # While multiple components are selected the inspector does not persist
+    # selected control value changes
+    def directPositionUpdate(self, comp):
+        comp.persistProp(comp.name, 'SetPosition', comp.control.GetPosition())
+    def directSizeUpdate(self, comp):
+        comp.persistProp(comp.name, 'SetSize', comp.control.GetSize())
+
     def selectedCtrlHelpFile(self):
         """ Return the help file/link associated with the selected control """
         if self.selCmp: return self.selCmp.wxDocs
