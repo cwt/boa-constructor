@@ -166,11 +166,14 @@ class ProfileStatsView(ListCtrlView, ClosableViewMix):
         if self.selected > -1:
             idx = self.getStatIdx()
             key = self.statKeyList[idx]
+            if key[0] == '<string>':
+                wxLogMessage("Eval'd or exec'd code, no module.")
+                return
             if path.isabs(key[0]):
-                model = self.model.editor.openOrGotoModule(key[0])
+                model, controller = self.model.editor.openOrGotoModule(key[0])
             else:
-                print self.profDir, key[0]
-                model = self.model.editor.openOrGotoModule(path.join(self.profDir, key[0]))
+                model, controller = self.model.editor.openOrGotoModule(
+                      path.join(self.profDir, key[0]))
 
             model.views['Source'].focus()
             model.views['Source'].SetFocus()
@@ -262,6 +265,6 @@ class ProfileStatsView(ListCtrlView, ClosableViewMix):
         fn, suc = self.model.editor.saveAsDlg(\
           path.splitext(self.model.filename)[0]+'.prof', '*.prof')
         if suc and self.stats:
-            f = open(fn, 'wb')
-            marshal.dump(self.stats, f)
-            f.close()
+            from Explorers.Explorer import openEx
+            transport = openEx(fn)
+            transport.save(transport.resourcepath, marshal.dumps(self.stats), 'w')
