@@ -34,9 +34,9 @@
 
 <p>
 Keys are usually available in the view they apply to.
-These are the current key definitions:
-<table>
+These are the current key definitions:<br>
 
+<table>
 <tr>
 <td VALIGN=TOP BGCOLOR="#99ccff" >
 
@@ -48,7 +48,7 @@ These are the current key definitions:
 </td>
 <td WIDTH="25%" VALIGN=TOP BGCOLOR="#99ccff" >
 
-<b>Key<b>
+<b>Key</b>
 </td>
 </tr>
 
@@ -70,6 +70,36 @@ F1
 <tr>
 <td VALIGN=TOP BGCOLOR="#99ccff" >
 
+Check source code <br>(Currently compiles the module, will include lint like checker later)
+</td>
+<td WIDTH="25%" VALIGN=TOP BGCOLOR="#99ccff" >
+
+Source view
+</td>
+<td WIDTH="25%" VALIGN=TOP BGCOLOR="#99ccff" >
+
+F2
+</td>
+</tr>
+
+<tr>
+<td VALIGN=TOP BGCOLOR="#99ccff" >
+
+Debug
+</td>
+<td WIDTH="25%" VALIGN=TOP BGCOLOR="#99ccff" >
+
+Source view, Application view
+</td>
+<td WIDTH="25%" VALIGN=TOP BGCOLOR="#99ccff" >
+
+F4
+</td>
+</tr>
+
+<tr>
+<td VALIGN=TOP BGCOLOR="#99ccff" >
+
 Toggle breakpoint
 </td>
 <td WIDTH="25%" VALIGN=TOP BGCOLOR="#99ccff" >
@@ -85,11 +115,26 @@ F5
 <tr>
 <td VALIGN=TOP BGCOLOR="#99ccff" >
 
-Compile module to pyc
+Debug - Step out
 </td>
 <td WIDTH="25%" VALIGN=TOP BGCOLOR="#99ccff" >
 
-Source view
+Debugger, Source view, Application view
+</td>
+<td WIDTH="25%" VALIGN=TOP BGCOLOR="#99ccff" >
+
+F6
+</td>
+</tr>
+
+<tr>
+<td VALIGN=TOP BGCOLOR="#99ccff" >
+
+Debug - Step in
+</td>
+<td WIDTH="25%" VALIGN=TOP BGCOLOR="#99ccff" >
+
+Debugger, Source view, Application view
 </td>
 <td WIDTH="25%" VALIGN=TOP BGCOLOR="#99ccff" >
 
@@ -100,11 +145,11 @@ F7
 <tr>
 <td VALIGN=TOP BGCOLOR="#99ccff" >
 
-Debug
+Debug - Step over
 </td>
 <td WIDTH="25%" VALIGN=TOP BGCOLOR="#99ccff" >
 
-Source view, Application view
+Debugger, Source view, Application view
 </td>
 <td WIDTH="25%" VALIGN=TOP BGCOLOR="#99ccff" >
 
@@ -325,6 +370,36 @@ Alt - A
 <tr>
 <td VALIGN=TOP BGCOLOR="#99ccff" >
 
+Switch to next Module
+</td>
+<td WIDTH="25%" VALIGN=TOP BGCOLOR="#99ccff" >
+
+Any module page
+</td>
+<td WIDTH="25%" VALIGN=TOP BGCOLOR="#99ccff" >
+
+Ctrl - K
+</td>
+</tr>
+
+<tr>
+<td VALIGN=TOP BGCOLOR="#99ccff" >
+
+Switch to previous Module
+</td>
+<td WIDTH="25%" VALIGN=TOP BGCOLOR="#99ccff" >
+
+Any module page
+</td>
+<td WIDTH="25%" VALIGN=TOP BGCOLOR="#99ccff" >
+
+Ctrl - J
+</td>
+</tr>
+
+<tr>
+<td VALIGN=TOP BGCOLOR="#99ccff" >
+
 Add item
 </td>
 <td WIDTH="25%" VALIGN=TOP BGCOLOR="#99ccff" >
@@ -382,10 +457,149 @@ Cursor keys and Enter
 </td>
 </tr>
 
+<tr>
+<td VALIGN=TOP BGCOLOR="#99ccff" >
+
+Move control(s) around in 1 pixel steps
+</td>
+<td WIDTH="25%" VALIGN=TOP BGCOLOR="#99ccff" >
+
+Designer
+</td>
+<td WIDTH="25%" VALIGN=TOP BGCOLOR="#99ccff" >
+
+Ctrl and Cursor keys
+</td>
+</tr>
+
+<tr>
+<td VALIGN=TOP BGCOLOR="#99ccff" >
+
+Size a control by 1 pixel steps
+</td>
+<td WIDTH="25%" VALIGN=TOP BGCOLOR="#99ccff" >
+
+Designer
+</td>
+<td WIDTH="25%" VALIGN=TOP BGCOLOR="#99ccff" >
+
+Shift and Cursor keys
+</td>
+</tr>
+
 </table>
 <p>
 The default action of a view, usually activated by double clicking is similarly 
 triggered on the keyboard by pressing Enter.
+<p>
+Ctrl - Insert and Shift - Insert can be used to copy and paste controls in the Designer.
+<p>
+Holding down Alt while selecting text with the mouse causes a block select as opposed 
+to the normal continueous selection.
+<p>
+The following keys and actions are built into Scintilla/wxStyledTextCtrl:
+<table>
+<tr>
+<td VALIGN=TOP BGCOLOR="#99ccff" >
+
+<b>Function</b>
+</td>
+<td WIDTH="25%" VALIGN=TOP BGCOLOR="#99ccff" >
+
+<b>Key</b>
+</td>
+</tr>
+
+<tr>
+<td VALIGN=TOP BGCOLOR="#99ccff" >
+
+Undo
+</td>
+<td WIDTH="25%" VALIGN=TOP BGCOLOR="#99ccff" >
+
+Ctrl-Z
+</td>
+</tr>
+
+<tr>
+<td VALIGN=TOP BGCOLOR="#99ccff" >
+
+Redo
+</td>
+<td WIDTH="25%" VALIGN=TOP BGCOLOR="#99ccff" >
+
+Ctrl-Y
+</td>
+</tr>
+
+<tr>
+<td VALIGN=TOP BGCOLOR="#99ccff" >
+
+Uppercase
+</td>
+<td WIDTH="25%" VALIGN=TOP BGCOLOR="#99ccff" >
+
+Ctrl-Shift-U
+</td>
+</tr>
+
+<tr>
+<td VALIGN=TOP BGCOLOR="#99ccff" >
+
+Delete line
+</td>
+<td WIDTH="25%" VALIGN=TOP BGCOLOR="#99ccff" >
+
+Ctrl-L
+</td>
+</tr>
+
+<tr>
+<td VALIGN=TOP BGCOLOR="#99ccff" >
+
+Select all
+</td>
+<td WIDTH="25%" VALIGN=TOP BGCOLOR="#99ccff" >
+
+Ctrl-A
+</td>
+</tr>
+
+<tr>
+<td VALIGN=TOP BGCOLOR="#99ccff" >
+
+Copy to clipboard
+</td>
+<td WIDTH="25%" VALIGN=TOP BGCOLOR="#99ccff" >
+
+Ctrl-Insert / Ctrl-C 
+</td>
+</tr>
+
+<tr>
+<td VALIGN=TOP BGCOLOR="#99ccff" >
+
+Cut to clipboard
+</td>
+<td WIDTH="25%" VALIGN=TOP BGCOLOR="#99ccff" >
+
+Shift-Delete / Ctrl-X
+</td>
+</tr>
+
+<tr>
+<td VALIGN=TOP BGCOLOR="#99ccff" >
+
+Paste from clipboard
+</td>
+<td WIDTH="25%" VALIGN=TOP BGCOLOR="#99ccff" >
+
+Shift-Insert / Ctrl-V
+</td>
+</tr>
+
+</table>
+
 <p>
 <br>
 <table BORDER=0 CELLSPACING=0 CELLPADDING=2 WIDTH="100%" BGCOLOR="#000000" >

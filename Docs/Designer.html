@@ -32,24 +32,48 @@
 
 
 
-Designers are visual design time editors for creating and manipulating components and properties.<br>
+Designers are visual design time editors for creating and manipulating 
+components and properties.<br>
+Each designer maintains it's own method in the generated source.<br>
+Clicking on an item in a Designer will select display that item's 
+properties and events in the Inspector.<br>
+Double clicking will open the default editor (like a collection editor) 
+or define the default event for the control.<br>
+<p>
 The following designers are currently available:
 <ul>
 <li>Designer</li>
 <li>DataView</li>
 <li>Collection Editors</li>
 </ul>
-
-The Frame Designer is a GUI building view on wxFrame type modules that cooperates closely with
-the Inspector.<br>
-When a designer is opened a transaction is started. When you end the
-transaction either by posting or cancelling all your changes will be applied
-to the source.
-<br><i>While the designer is open for a module, the source code will be read-only.</i>
-<p>A DataView will also be opened with the Designer and closed on posting
-/ cancelling, this will usually be the last view of the module in the Editor..
 <p>
-Collection Editors maintain list like properties.
+The <b>Frame Designer</b> is a GUI building view on wxFrame type modules 
+that cooperates closely with the Inspector. It is used to select, size and position controls. <br>
+It maintains the <i>_init_ctrls</i> method.<br>
+Multiple selection is supported by holding down shift while 
+selecting controls. Only sibling controls can be in a multiple selection.<br>
+Selections can be cut, copied and pasted to and from the clipboard in the Frame Designer
+and the DataView. When a selection is copied, the equivalent code is put on the clipboard and
+can also be pasted directly into your source code.<br>
+<a href="LayoutAnchors.html">Layout Anchors</a> have been integrated with the Frame Designer. 
+If a control has any anchors set, it will show the selection tags as a shade of blue instead of black.<br>
+Right click on a top, bottom, left or right selection tag to set or unset the
+anchor.<br>
+<p>
+When a designer is opened a session is started. When you end the
+session, either by posting or cancelling, all your changes will be applied
+to the source.<br>
+Closing the Designer frame also ends the session and posts the changes.
+<br><i>While the designer is open for a module, the source code will be read-only.</i>
+<p>
+A <b>DataView</b> will also be opened inside the Editor associated with the Designer 
+and closed on posting / cancelling, this will usually be the last view of the module in the Editor.<br>
+It maintains the <i>_init_utils</i> method.<br>
+Invisible controls located on the Utilities page of the Palette must be created/inspected in this view.
+<p>
+<b>Collection Editors</b> maintain list like properties.<br> 
+Selecting an item will display it's properties and events in the Inspector.<br>
+Each maintain a <i>_init_coll_*</i> method.<br>
 <p>
 &nbsp;
 <br>

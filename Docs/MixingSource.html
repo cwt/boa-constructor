@@ -1,0 +1,109 @@
+<html><head><title>Working with generated source code</title></head>
+<body text="#000000" bgcolor="#FFFFFF" link="#0000FF" vlink="#000099" alink="#FF0000">
+
+<center><a href="index.html"><img SRC="contents.gif" ALT="Home" BORDER=0></a></center>
+
+<table BORDER=0 CELLSPACING=0 CELLPADDING=2 WIDTH="100%" BGCOLOR="#000000" >
+  <tr><td>
+  <table BORDER=0 CELLSPACING=0 WIDTH="100%" BGCOLOR="#FFFFFF" >
+    <tr><td BGCOLOR="#99ccff">
+    <center><img SRC="dot.gif" height=1 width=1></center>
+    </td></tr>
+  </table>
+  </td></tr>
+</table>
+
+
+
+<h2>
+<img SRC="Editor.jpg" height=32 width=32>&nbsp; Working with generated source code</h2>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+As a simple rule; Don't modify the code in generated <b>_init_*</b> methods.
+<p>
+Boa currently generates / maintains the source code for:
+<ul>
+ <li>The wxApp class / modules</li>
+ <ul>
+  <li>The modules dictionary</li>
+  <li>References, importing and the creation of the main frame</li>
+ </ul>
+ <li>Frame classes / modules (Frames, Dialogs and MDI frames)</li>
+ <ul>
+  <li>Importing of needed wxPython modules</li>
+  <li>Window identifiers: <b>wxID_*</b> Each method has it's own window id list</li>
+  <li>Special methods: <b>_init_*</b></li>
+  <ul>
+   <li><b>_init_ctrls</b>: Create and setup visual controls</li>
+   <li><b>_init_utils</b>: Create and setup non visible objects</li>
+   <li><b>_init_coll_*</b>: Create and setup of collections</li>
+  </ul>
+  <li>Event method declarations: <b>On*</b><br>Note: Boa only defines the methods, 
+it does not maintain their code bodies, this is your responsibility</li>
+ </ul>
+</ul>
+
+<h3>Unsupported controls</h3>
+If you want to add controls or objects not available on the Palette, simply 
+add your code to the <b>__init__</b> method below the call to _init_ctrls(). 
+Don't add it in the Special methods listed above. Your code will be lost.
+Also, don't add your own window identifier to the list Boa maintains. 
+Define your own window ids in a seperate list.
+
+<h3>Generated code policy</h3>
+Although is is possible to change the generated code by hand, it is not advised,
+and under normal circumstances, not necessary.
+<p>
+If you really need to modify generated code, keep the following in mind:
+<ul>
+ <li>Only controls defined on the Palette may be used.</li>
+ <li>Constructors need all parameters passed, and in keyword argument form</li>
+ <li>Only methods defined or idenfified as property setter methods may be used</li>
+ <li>Whitespace (blank lines) is significant for collection methods.<br>
+They are in the form:<br>
+ Initialiser (optional)<br>
+ blank line<br>
+ Item definitions (1 or more lines)<br>
+ blank line<br>
+ Finaliser (optional)<br>
+</li>
+</ul>
+In summary, if Boa can't generate the code, it will also not be able to parse it.
+<p>
+<h3>Renaming event methods (On*)</h3>
+One thing that Boa does not support yet is to rename event methods. You have to 
+do this by hand. Remember to also change the EVT_* binding to the method in the 
+<b>_init_*</b> methods when you rename the method. Mind your spelling, Boa is not
+forgiving ;) This will be automated in the future.
+<p>
+<br>
+<table BORDER=0 CELLSPACING=0 CELLPADDING=2 WIDTH="100%" BGCOLOR="#000000" >
+  <tr><td>
+  <table BORDER=0 CELLSPACING=0 WIDTH="100%" BGCOLOR="#FFFFFF" >
+    <tr><td BGCOLOR="#99ccff">
+    <center><img SRC="dot.gif" height=1 width=1></center>
+    </td></tr>
+  </table>
+  </td></tr>
+</table>
+
+
+<p>
+</body></html>
+
+
+
+

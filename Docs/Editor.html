@@ -88,7 +88,7 @@ Plain text file</td>
 The module that hosts the wxApp object. A module list is
 maintained in this module. The App module controls which is the main frame
 of an application and currently maintains relative paths for the module
-list.</td>
+list. It has a specialised <a href="#AppView">Application View</a></td>
 </tr>
 
 <tr>
@@ -122,7 +122,7 @@ Simple python shell.</td>
 <tr>
 <td WIDTH="25%" VALIGN=TOP BGCOLOR="#99ccff" >
 
-<b>Explorer</b></td>
+<b><a href="Explorer.html">Explorer</a></b></td>
 <td VALIGN=TOP BGCOLOR="#99ccff" >
 
 An Explorer for your filesystem / workspace and sys.path. It shows
@@ -132,14 +132,6 @@ CVS folders (cyan) will display their entries file with icons showing if the fil
 has been modified since the last check in. CVS update facilities are planned.<br>
 Zope browsing / document editing is also supported.
 <p>
-The explorer configuration can not be edited in the GUI (yet), edit the file
-Explorer.msw.cfg or Explorer.gtk.cfg depending on your platform.
-Under the Explorer section, the following key/values are defined:<br>
-<b>Filesystem</b>: List of root drives or network shares<br>
-<b>Workspaces</b>: Dictionary {name: path} of frequently used source direcories<br>
-<b>DefaultWorkspace</b>: Name of workspace in which Boa will open up.<br>
-<b>Zope</b>: Structure {name: {'host': [host], 'httpport': [httpport], 'ftpport': [ftpport], 'username': [username], 'passwd': [passwd], 'path': [path to object], 'name': [name of object]}}
-
 </td>
 </tr>
 </table>
@@ -153,8 +145,9 @@ Under the Explorer section, the following key/values are defined:<br>
 <b>Source</b></td>
 <td VALIGN=TOP BGCOLOR="#99ccff" >
 
-Syntax highlighting source code editor. It is based on the fantastic Scintilla
-editor by Neil Hodgson and wrapped for wxWindows by Robin.<br>
+Syntax highlighting source code editor. It is based on the fantastic 
+<b>Scintilla</b> editor by <i>Neil Hodgson</i> and wrapped for wxWindows as wxStyledTextCtrl by 
+<i>Robin Dunn</i>.<br>
 Basic supported functionality:
 <ul>
  <li>Auto indent/dedent</li>
@@ -165,7 +158,18 @@ Basic supported functionality:
  <li>Folding</li>
  <li>Limited code browsing, hold down ctrl and move mouse cursor over source code</li>
 </ul>
-
+To run a Frame module without an extra derived wxApp module, select <b>Edit->Add simple app...</b> 
+while on the Source View.<br>
+This adds the following snippet to the end of the module:
+<pre>
+if __name__ == '__main__':
+    app = wxPySimpleApp()
+    frame = create(None)
+    frame.Show(true)
+    app.MainLoop()
+</pre>
+If the module contains a Boa created frame and it's default <b>create</b> function,
+this code will let the module run on it's own.
 </td>
 </tr>
 
@@ -274,12 +278,19 @@ Displays a list of all comments in your code started with # XXX
 <tr>
 <td WIDTH="25%" VALIGN=TOP BGCOLOR="#99ccff" >
 
-<b>Application</b></td>
+<a NAME="AppView"></a><b>Application</b></td>
 <td VALIGN=TOP BGCOLOR="#99ccff" >
 
 View on wxApp files for maintenance of an application. Add edit and
-remove modules of the application thru this view.
+remove modules of the application thru this view. Click on the columns to sort by name, type or relative path.<br>
+Find will search all the modules defined in the App and return an <a href="#AppFindResults">Application find results view</a>.
 <p>The Imports view can only be accessed from this view.
+<p>When Boa was run with the -T option (trace execution) this option will
+built a traceback from the log file. If the stack balances out, 
+i.e. uninterrupted execution, the stack will be empty. As the trace file
+may be quite big, please be patient while it is constructed. If you are not,
+see ErrorStack.CrashTraceLogParser to limit the max depth or max number of 
+lines to parse.
 <br>&nbsp;</td>
 </tr>
 
@@ -314,7 +325,7 @@ The following are defined:
 <tr ALIGN=LEFT>
 <td WIDTH="25%" VALIGN=TOP BGCOLOR="#99ccff" >
 
-<b>Application find results</b></td>
+<a NAME="AppFindResults"></a><b>Application find results</b></td>
 <td VALIGN=TOP BGCOLOR="#99ccff" >
 
 List of modules in which the search text was found.</td>
@@ -327,7 +338,7 @@ List of modules in which the search text was found.</td>
 <td VALIGN=TOP BGCOLOR="#99ccff" >
 
 An HTML report of all circular references and related info.<br>
-Based on module by Tim Peters</td>
+Based on module by <i>Tim Peters</i></td>
 </tr>
 
 <tr>
@@ -350,7 +361,7 @@ selected module (2) is used. <br>
 Differences are noted in the margin. Plus means that a line was 
 added in (2) and minus means that a line from (1) is no longer in (2)<br>
 A block specifies an informational line that underlines the lines in the source with +'s and -'s<br>
-Uses ndiff written by Tim Peters
+Uses ndiff written by <i>Tim Peters</i>.
 </td>
 </tr>
 
