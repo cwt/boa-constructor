@@ -550,8 +550,9 @@ class EditorFrame(wxFrame):
           self, false, zopeConn, zopeObj)
         model.load()
 
-        self.addModulePage(model, zopeObj.whole_name(), defZopeDocModelViews, 
-              adtZopeDocModelViews, ZopeDocumentModel.imgIdx)
+        self.addModulePage(
+            model, zopeObj.whole_name(), defZopeDocModelViews,
+            adtZopeDocModelViews, ZopeDocumentModel.imgIdx)
 
         model.save()
         model.notify()
@@ -651,9 +652,9 @@ class EditorFrame(wxFrame):
                 if Utils.yesNoDialog(self, 'Close module', 'There are changes, do you want to save?'):
                     self.saveOrSaveAs()
                     name = modulePage.model.filename
-            modulePage.destroy()
             self.tabs.RemovePage(idx)
             del self.modules[name]
+            modulePage.destroy()
             # notify pages for idx adjustments
             for modPge in self.modules.values():
                 modPge.removedPage(idx)
@@ -1110,7 +1111,7 @@ class ModulePage:
         
     def refresh(self):
         pass
-        self.notebook.Refresh()
+        # self.notebook.Refresh()
     
     def focus(self):
         """ Make this model page the currently selected page. """
@@ -1135,31 +1136,10 @@ class ModulePage:
             model.editor.updateTitle()
     
     def OnPageChange(self, event):
-        if event.GetOldSelection() != event.GetSelection():
-            self.editor.setupToolBar(viewIdx = event.GetSelection())
+        viewIdx = event.GetSelection()
+        if event.GetOldSelection() != viewIdx:
+            self.editor.setupToolBar(viewIdx=viewIdx)
+            view = self.getActiveView(viewIdx)
+            if hasattr(view, 'OnPageActivated'):
+                view.OnPageActivated(event)
         event.Skip()
-
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
