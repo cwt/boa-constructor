@@ -18,11 +18,9 @@ import string, copy, os, pprint
 from wxPython.wx import *
 
 import PaletteMapping, Preferences, Utils
-from Preferences import IS
-import SelectionTags
+
 from ObjCollection import ObjectCollection, getCollName
-import RTTI
-import methodparse, sender, sourceconst
+import methodparse, sourceconst
 
 import EditorViews
 
@@ -77,7 +75,6 @@ class InspectableObjectView(EditorViews.EditorView, InspectorSessionMix):
         self.compPal = compPal
         EditorViews.EditorView.__init__(self, model, actions, dclickActionIdx, editorIsWindow)
         self.selection = None
-        self.senderMapper = sender.SenderMapper()
         self.inspector = inspector
         self.controllerView = None
         self.objects = {}
@@ -95,7 +92,6 @@ class InspectableObjectView(EditorViews.EditorView, InspectorSessionMix):
             coll.destroy()
         del self.collEditors
         del self.objects
-        del self.senderMapper
         EditorViews.EditorView.destroy(self)
 
     def doUp(self, inspector):
