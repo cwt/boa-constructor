@@ -2,14 +2,10 @@ from wxPython.wx import *
 import ExplorerNodes, ZopeLib.LoginDialog, EditorModels
 import ftplib, os
 from ZopeLib.ZopeFTP import ZopeFTP
-from ZopeLib import ImageViewer
+from ZopeLib import ImageViewer, Client
 from Companions.ZopeCompanions import ZopeConnection, ZopeCompanion
 from Preferences import IS, wxFileDialog
 import Utils
-
-(wxID_ZOPEUP, wxID_ZOPECUT, wxID_ZOPECOPY, wxID_ZOPEPASTE, wxID_ZOPEDELETE, 
- wxID_ZOPERENAME, wxID_ZOPEEXPORT, wxID_ZOPEIMPORT, wxID_ZOPEINSPECT) \
- = map(lambda x: wxNewId(), range(9))
 
 ctrl_pnl = 'Control_Panel'
 prods = 'Products'
@@ -173,6 +169,11 @@ class ZopeItemNode(ExplorerNodes.ExplorerNode):
               'manage_exportObject', download = 1)
         return res
 
+    def uploadObj(self, content):
+        mime, res = self.clipboard.zc.call(self.zopeObj.whole_name(), 
+              'manage_upload', file = content)
+        return res
+
     def listImportFiles(self):
         if self.properties.has_key('localpath'):
             return filter(lambda f: os.path.splitext(f)[1] == '.zexp', os.listdir(\
@@ -232,10 +233,15 @@ class ZopeConnectionNode(ZopeItemNode):
             self.zopeConn.disconnect
         self.connected = false
 
+(wxID_ZOPEUP, wxID_ZOPECUT, wxID_ZOPECOPY, wxID_ZOPEPASTE, wxID_ZOPEDELETE, 
+ wxID_ZOPERENAME, wxID_ZOPEEXPORT, wxID_ZOPEIMPORT, wxID_ZOPEINSPECT,
+ wxID_ZOPEUPLOAD) = map(lambda x: wxNewId(), range(10))
+
 class ZopeController(ExplorerNodes.Controller, ExplorerNodes.ClipboardControllerMix):
     inspectBmp = 'Images/Shared/Inspector.bmp'
     importBmp = 'Images/Shared/ZopeImport.bmp'
     exportBmp = 'Images/Shared/ZopeExport.bmp'
+    uploadBmp = 'Images/Zope/upload_doc.bmp'
     def __init__(self, editor, list, inspector):
         ExplorerNodes.ClipboardControllerMix.__init__(self)
         ExplorerNodes.Controller.__init__(self, editor)
@@ -249,6 +255,7 @@ class ZopeController(ExplorerNodes.Controller, ExplorerNodes.ClipboardController
             (-1, '-', None, '') ) +\
             self.clipMenuDef +\
           ( (-1, '-', None, ''),
+            (wxID_ZOPEUPLOAD, 'Upload', self.OnUploadZopeItem, self.uploadBmp),
             (wxID_ZOPEEXPORT, 'Export', self.OnExportZopeItem, self.exportBmp),
             (wxID_ZOPEIMPORT, 'Import', self.OnImportZopeItem, self.importBmp) )
 
@@ -313,3 +320,23 @@ class ZopeController(ExplorerNodes.Controller, ExplorerNodes.ClipboardController
             if self.inspector.pages.GetSelection() != 1:
                 self.inspector.pages.SetSelection(1)
             self.inspector.selectObject(zc, false)
+    
+    def OnUploadZopeItem(self, event):
+        if self.list.node:
+            idxs = self.list.getMultiSelection()
+            currPath = '.'
+            for idx in idxs:
+                item = self.list.items[idx]
+                if item:
+                    dlg = wxFileDialog(self.list, 'Upload '+item.name, currPath, 
+                          item.name, '', wxOPEN)
+                    try:
+                        if dlg.ShowModal() == wxID_OK:
+                            try:
+                                item.uploadObj(open(dlg.GetPath(), 'rb'))#.read())
+                            except Client.NotFound:
+                                wxMessageBox('Object does not support uploading', 'Error on upload')
+                            currPath = dlg.GetDirectory()
+                    finally: 
+                        dlg.Destroy()
+        
