@@ -224,7 +224,7 @@ class SelectionGroup:
     def moveRelease(self):
         if self.dragTag:
             # XXX nasty passing a None event
-            self.OnSizeEnd(None)
+            self.OnSizeEnd()
             self.showTags()
 
         if self.dragging:
@@ -405,15 +405,20 @@ class SingleSelectionGroup(SelectionGroup):
         SelectionGroup.selectCtrl(self, ctrl, compn)
         if self.selection:
             self.inspSel = ctrl
-            self.inspector.selectObject(compn)
+            self.inspector.selectObject(compn, sessionHandler=self.designer)
+
+    def updateInspectorPageProps(self, props):
+        for page, prop in props:
+            if page == 'constr':
+                self.inspector.constructorUpdate(prop)
+            elif page == 'prop':
+                self.inspector.propertyUpdate(prop)
 
     def positionUpdate(self):
-        self.inspector.constructorUpdate('Position')
-        self.inspector.propertyUpdate('Position')
+        self.updateInspectorPageProps(self.selCompn.getPositionDependentProps())
+
     def sizeUpdate(self):
-        self.inspector.constructorUpdate('Size')
-        self.inspector.propertyUpdate('Size')
-        self.inspector.propertyUpdate('ClientSize')
+        self.updateInspectorPageProps(self.selCompn.getSizeDependentProps())
 
     # Events
     def OnSizeBegin(self, event):
@@ -421,7 +426,7 @@ class SingleSelectionGroup(SelectionGroup):
         self.showFramedTags(self.dragTag)
         self.initStartVals()
 
-    def OnSizeEnd(self, event):
+    def OnSizeEnd(self, event=None):
         if self.dragging and not self.dragTag:
             self.moveRelease()
         else:
@@ -456,15 +461,15 @@ class MultiSelectionGroup(SelectionGroup):
     def OnSizeBegin(self, event):
         event.Skip()
 
-    def OnSizeEnd(self, event):
+    def OnSizeEnd(self, event=None):
         if self.dragging:
             dsgn = self.designer
             for sel in dsgn.multiSelection:
                 sel.moveRelease()
             dsgn.mainMultiDrag = None
-        event.Skip()
+        if event: event.Skip()
 
-    def OnSizeEnd2(self, event):
+    def OnSizeEnd2(self, event=None):
         self.resizeCtrl()
         self.showTags()
         self.dragTag = None
