@@ -1,7 +1,8 @@
-import os, string
+import os
 from repr import Repr
 
 from wxPython.wx import *
+from wxPython.lib.stattext import wxGenStaticText
 
 import Preferences, Utils
 from Preferences import IS
@@ -46,7 +47,7 @@ class StackViewCtrl(DebuggerListCtrl):
             filename = entry['client_filename']
             funcname = entry['funcname']
             sourceline = linecache.getline(filename, lineno)
-            sourceline = string.strip(sourceline)
+            sourceline = sourceline.strip()
             if funcname in ("?", "", None):
                 #item = "%s, line %d: %s" % (modname, lineno, sourceline)
                 attrib = modname
@@ -322,7 +323,7 @@ class BreakViewCtrl(DebuggerListCtrl):
                   'Change condition', cond)
             try:
                 if dlg.ShowModal() == wxID_OK:
-                    cond = string.strip(dlg.GetValue())
+                    cond = dlg.GetValue().strip()
 
                     bplist.conditionalBreakpoints(filename, lineno, cond)
                     # Update debug server
@@ -580,12 +581,12 @@ class DebugStatusBar(wxStatusBar):
                           'break':  wxColour(0xFF, 0x44, 0x44),#wxNamedColour('red'),
                           'busy':   wxColour(0xBB, 0xE0, 0xFF)}
 
-        self.instr_ptr = wxStaticText(self, -1, ' ',
+        self.instr_ptr = wxGenStaticText(self, -1, ' ',
               style=wxALIGN_CENTER|wxST_NO_AUTORESIZE)
         self.instr_ptr.SetBackgroundColour(wxColour(0xEE, 0xEE, 0xEE))
         self._setCtrlDims(self.instr_ptr, self.GetFieldRect(0))
 
-        self.state = wxStaticText(self, -1, 'Ready.',
+        self.state = wxGenStaticText(self, -1, 'Ready.',
               style=wxALIGN_CENTER|wxST_NO_AUTORESIZE)
         self.state.SetBackgroundColour(self.stateCols['info'])
         self._setCtrlDims(self.state, self.GetFieldRect(1))
