@@ -97,10 +97,7 @@ class DAVController(ExplorerNodes.Controller, ExplorerNodes.ClipboardControllerM
             davComp.updateProps()
 
             # Select in inspector
-            self.inspector.restore()
-            if self.inspector.pages.GetSelection() != 1:
-                self.inspector.pages.SetSelection(1)
-            self.inspector.selectObject(davComp, false)
+            self.inspector.selectObject(davComp, false, focusPage=1)
 
 
 class DAVCatNode(ExplorerNodes.CategoryNode):
@@ -235,7 +232,7 @@ class DAVItemNode(ExplorerNodes.ExplorerNode):
 
     def load(self, mode='rb'):
         try:
-            return self.checkResp(self.resource.get()).body
+            return self.checkResp(self.resource.document_src.get()).body
         except Exception, error:
             raise ExplorerNodes.TransportLoadError(error, self.resourcepath)
 
@@ -294,6 +291,10 @@ class DAVContConfPropEdit(PropertyEditors.ContainerConfPropEdit):
     def getSubCompanion(self):
         return DAVSubCompanion
 
+StringTypes = [types.StringType]
+try: StringTypes.append(types.UnicodeType)
+except: pass
+
 class DAVPropReaderMixin:
     propMapping = {type(()) : DAVContConfPropEdit,
                    type([]) : DAVContConfPropEdit,
@@ -308,8 +309,8 @@ class DAVPropReaderMixin:
         #print propList
         for name, value in propList:
             if not value: value = ''
-            elif types.StringType is type(value[0]):
-                value = value[0]
+            elif type(value[0]) in StringTypes:
+                value = str(value[0])
 
             items.append( (string.split(name, ':')[1], value) )
         return items
