@@ -704,6 +704,10 @@ class ExplorerSplitter(wxSplitterWindow):
 
     def OnListRightUp(self, event):
         if self.list.node and self.controllers.has_key(self.list.node.protocol):
+##            sel = self.list.HitTest(self.listPopPt)[0]
+##            SEL_STATE = wxLIST_STATE_SELECTED | wxLIST_STATE_FOCUSED
+##            if not self.list.GetItemState(sel, SEL_STATE):
+##                self.list.SetItemState(sel, SEL_STATE, SEL_STATE)
             self.list.PopupMenu(self.controllers[self.list.node.protocol].menu,
                   self.listPopPt)
 
