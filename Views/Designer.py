@@ -610,7 +610,7 @@ class DesignerView(wxFrame, InspectableObjectCollectionView):
                 
         self.menu.Append(tPopupIDUp, 'Up')
         self.menu.Append(-1, "-")
-        self.menu.Append(tPopupIDCut, 'Cuts')
+        self.menu.Append(tPopupIDCut, 'Cut')
         self.menu.Append(tPopupIDCopy, 'Copy')
         self.menu.Append(tPopupIDPaste, 'Paste')
         self.menu.Append(tPopupIDDelete, 'Delete')
