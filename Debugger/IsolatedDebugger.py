@@ -18,6 +18,11 @@ from os import path
 import bdb
 from bdb import Bdb, BdbQuit, Breakpoint
 from repr import Repr
+from types import TupleType
+
+
+__traceable__ = 0      # Never trace the tracer.
+bdb.__traceable__ = 0
 
 
 class DebugError(Exception):
@@ -468,6 +473,9 @@ class DebugServer (Bdb):
             self.fncache[filename] = canonic
         return canonic
 
+    def isTraceable(self, frame):
+        return frame.f_globals.get('__traceable__', 1)
+
     def stop_here(self, frame):
         # Redefine stopping.
         if frame is self.botframe:
@@ -476,7 +484,7 @@ class DebugServer (Bdb):
         sf = self.stopframe
         if sf is None:
             # Stop anywhere.
-            return 1
+            return self.isTraceable(frame)
         elif sf is ():
             # Stop nowhere.
             return 0
@@ -484,12 +492,12 @@ class DebugServer (Bdb):
         if (frame is sf and frame.f_lineno != self.ignore_stopline):
             # Stop in the current frame unless we're on
             # ignore_stopline.
-            return 1
+            return self.isTraceable(frame)
         # Stop at any frame that called stopframe.
         f = sf
         while f:
             if frame is f:
-                return 1
+                return self.isTraceable(frame)
             f = f.f_back
         return 0
 
@@ -524,32 +532,60 @@ class DebugServer (Bdb):
         # Allow a stop in any thread.
         self._lock.releaseIfOwned()
 
+    def hard_break_here(self, frame):
+        """Indicates whether the debugger should stop at a hard breakpoint.
+
+        Returns a (filename, lineno) tuple if the debugger should also
+        set a soft breakpoint.
+        """
+        filename = self.canonic(frame.f_code.co_filename)
+        brks = self.breaks.get(filename, None)
+        lineno = frame.f_lineno
+        if brks is None or lineno not in brks:
+            # No soft breakpoint has been set, so plan to add the soft
+            # breakpoint and stop.
+            return (filename, lineno)
+        # Let the soft breakpoint control whether the hard breakpoint
+        # takes effect.
+        return self.break_here(frame)
+
     def set_trace(self):
         """Start debugging from the caller's frame.
 
         Called by hard breakpoints.
         """
-        if not self._lock.acquire(0):
-            # The debugger is busy.
-            return
-        self._running = 1
-        root_frame = None
         try:
             raise 'gen_exc_info'
         except:
             frame = sys.exc_info()[2].tb_frame.f_back
-        while frame:
-            frame.f_trace = self.trace_dispatch
-            root_frame = frame
-            frame = frame.f_back
-            if frame is self.botframe:
+        stop = self.hard_break_here(frame)
+        if not stop:
+            # The user has disabled this breakpoint.
+            return
+        if not self._lock.acquire(0):
+            # The debugger is busy in another thread.
+            return
+
+        if isinstance(stop, TupleType):
+            # Add a soft breakpoint here so the user can manage the breakpoint.
+            filename, lineno = stop
+            self.set_break(filename, lineno)
+        self._running = 1
+        root_frame = None
+        f = frame
+        while f:
+            f.f_trace = self.trace_dispatch
+            root_frame = f
+            f = f.f_back
+            if f is self.botframe:
                 break
         if self.botframe is None:
             # Make the entire stack visible.
             self.botframe = root_frame
+        # Set a default stepping mode
         self.set_step()
-        # Careful--don't put any code after the next line!
-        sys.settrace(self.trace_dispatch)
+        # Pause in the frame
+        self.user_line(frame)
 
     def set_internal_breakpoint(self, filename, lineno, temporary=0,
                                 cond=None):
