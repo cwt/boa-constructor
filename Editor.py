@@ -6,10 +6,13 @@
 #
 # Created:     1999
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999, 2000 Riaan Booysen
+# Copyright:   (c) 1999 - 2001 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
 #Boa:Frame:EditorFrame
+
+""" The main IDE frame containing the Shell, Explorer and the ability to host 
+Models and their Views """
 
 # The focus of change
 # the center of creation
@@ -103,8 +106,7 @@ adtSetupModelViews = ()
 
 (mmFile, mmEdit, mmViews, mmWindows, mmHelp) = range(5)
 
-[wxID_EDITORFRAME, wxID_PAGECHANGED,
-] = map(lambda _init_ctrls: wxNewId(), range(2))
+[wxID_EDITORFRAME, wxID_EDITORFRAMESTATUSBAR, wxID_EDITORFRAMETABS, wxID_EDITORFRAMETOOLBAR] = map(lambda _init_ctrls: wxNewId(), range(4))
 
 class EditorFrame(wxFrame):
     """ Source code editor and Mode/View controller"""
@@ -113,21 +115,64 @@ class EditorFrame(wxFrame):
     backBmp = 'Images/Shared/Previous.bmp'
     forwBmp = 'Images/Shared/Next.bmp'
     helpBmp = 'Images/Shared/Help.bmp'
+    
+    _custom_classes = {'wxToolBar': ['EditorToolBar'],
+                       'wxStatusBar': ['EditorStatusBar']}  
+
+    def _init_coll_mainMenu_Menus(self, parent):
+
+        parent.Append(menu = wxMenu(), title = 'File')
+        parent.Append(menu = wxMenu(), title = 'Edit')
+        parent.Append(menu = wxMenu(), title = 'View')
+
+    def _init_coll_modelImageList_Images(self, parent):
+
+        parent.Add(bitmap = IS.load('Images/Modules/Folder_s.bmp'), mask = wxNullBitmap)
+        parent.Add(bitmap = IS.load('Images/Modules/FolderUp_s.bmp'), mask = wxNullBitmap)
+        parent.Add(bitmap = IS.load('Images/Modules/Folder_green_s.bmp'), mask = wxNullBitmap)
+        parent.Add(bitmap = IS.load('Images/Modules/Folder_cyan_s.bmp'), mask = wxNullBitmap)
+        parent.Add(bitmap = IS.load('Images/Zope/System_obj.bmp'), mask = wxNullBitmap)
+        parent.Add(bitmap = IS.load('Images/Zope/Zope_connection.bmp'), mask = wxNullBitmap)
+        parent.Add(bitmap = IS.load('Images/Shared/BoaLogo.bmp'), mask = wxNullBitmap)
+        parent.Add(bitmap = IS.load('Images/Modules/Drive_s.bmp'), mask = wxNullBitmap)
+        parent.Add(bitmap = IS.load('Images/Modules/FolderBookmark_s.bmp'), mask = wxNullBitmap)
 
     def _init_utils(self):
-        pass
+        self.modelImageList = wxImageList(height = 16, width = 16)
+        self._init_coll_modelImageList_Images(self.modelImageList)
+
+        self.mainMenu = wxMenuBar()
+
+        self.blankEditMenu = wxMenu(title = '')
+
+        self.blankViewMenu = wxMenu(title = '')
+
+        self.helpMenu = wxMenu(title = '')
+
+        self._init_coll_mainMenu_Menus(self.mainMenu)
 
     def _init_ctrls(self, prnt):
-        wxFrame.__init__(self, size = (-1, -1), id = wxID_EDITORFRAME, title = 'Editor', parent = prnt, name = '', style = wxDEFAULT_FRAME_STYLE | Preferences.childFrameStyle, pos = (-1, -1))
+        wxFrame.__init__(self, id = wxID_EDITORFRAME, name = '', parent = prnt, pos = wxPoint(182, 189), size = wxSize(810, 513), style = wxDEFAULT_FRAME_STYLE | Preferences.childFrameStyle, title = 'Editor')
+        self._init_utils()
+        self.SetMenuBar(self.mainMenu)
+        EVT_CLOSE(self, self.OnCloseWindow)
+
+        self.statusBar = EditorStatusBar(id = wxID_EDITORFRAMESTATUSBAR, name = 'statusBar', parent = self, pos = wxPoint(0, 419), size = wxSize(802, 20), style = 0)
+        self.SetStatusBar(self.statusBar)
+
+        self.tabs = wxNotebook(id = wxID_EDITORFRAMETABS, name = 'tabs', parent = self, pos = wxPoint(0, 0), size = wxSize(802, 419), style = wxCLIP_CHILDREN)
+        EVT_NOTEBOOK_PAGE_CHANGED(self.tabs, wxID_EDITORFRAMETABS, self.OnTabsNotebookPageChanged)
+
+        self.toolBar = EditorToolBar(id = wxID_EDITORFRAMETOOLBAR, name = 'toolBar', parent = self, pos = wxPoint(0, -28), size = wxSize(802, 28), style = wxTB_HORIZONTAL | wxNO_BORDER)
+        self.SetToolBar(self.toolBar)
 
     def __init__(self, parent, id, inspector, newMenu, componentPalette, app):
+	self._created = false
         self._init_ctrls(parent)
-        self._init_utils()
         self.SetDimensions(Preferences.inspWidth + Preferences.windowManagerSide*2,
               Preferences.paletteHeight + Preferences.windowManagerTop + \
               Preferences.windowManagerBottom, Preferences.edWidth,
               Preferences.bottomHeight)
-        EVT_CLOSE(self, self.OnCloseWindow)
 
         if wxPlatform == '__WXMSW__':
             self.SetIcon(IS.load('Images/Icons/Editor.ico'))
@@ -140,25 +185,9 @@ class EditorFrame(wxFrame):
         self.debugger = None
         self.browser = Browse.Browser()
 
-        self.statusBar = EditorStatusBar(self)
-        self.SetStatusBar(self.statusBar)
-
-        # 16 (FxdWdth), 32 (lft), 64 (rght), 128 (btm)
-        self.tabs = wxNotebook(self, wxID_PAGECHANGED, style = wxCLIP_CHILDREN)#, style = wxTC_MULTILINE)
-        EVT_NOTEBOOK_PAGE_CHANGED(self.tabs, wxID_PAGECHANGED, self.OnPageChange)
-
-        self.modelImageList = wxImageList(16, 16)
-
-        # System images
-        self.modelImageList.Add(IS.load('Images/Modules/Folder_s.bmp'))
-        self.modelImageList.Add(IS.load('Images/Modules/Folder_green_s.bmp'))
-        self.modelImageList.Add(IS.load('Images/Modules/Folder_cyan_s.bmp'))
-        self.modelImageList.Add(IS.load('Images/Zope/System_obj.bmp'))
-        self.modelImageList.Add(IS.load('Images/Zope/Zope_connection.bmp'))
-        self.modelImageList.Add(IS.load('Images/Shared/BoaLogo.bmp'))
-        self.modelImageList.Add(IS.load('Images/Modules/FolderUp_s.bmp'))
-        self.modelImageList.Add(IS.load('Images/Modules/Drive_s.bmp'))
-        self.modelImageList.Add(IS.load('Images/Modules/FolderBookmark_s.bmp'))
+        # System images are defined in the designer,
+        # Note that it's a slight cheat as it takes advantage of the fact that
+        # IS (ImageStore) is in the Boa evaluation namespace
 
         # Build imagelist of all models
         print 'Editor (loading images)'
@@ -198,9 +227,9 @@ class EditorFrame(wxFrame):
         # Menus
         self.newMenu = newMenu
 
-        self.blankEditMenu = wxMenu()
-        self.blankViewMenu = wxMenu()
-        self.helpMenu = wxMenu()
+##        self.blankEditMenu = wxMenu()
+##        self.blankViewMenu = wxMenu()
+##        self.helpMenu = wxMenu()
         self.helpMenu.Append(wxID_EDITORHELP, 'Help')
         self.helpMenu.Append(wxID_EDITORHELPGUIDE, 'Getting started guide')
         self.helpMenu.Append(wxID_EDITORHELPTIPS, 'Tips')
@@ -248,11 +277,11 @@ class EditorFrame(wxFrame):
         EVT_MENU(self, wxID_SETUPBDIST_WININST, self.OnSetupBDist_WinInst)
         EVT_MENU(self, wxID_SETUPPY2EXE, self.OnSetupPy2Exe)
 
-        self.mainMenu = wxMenuBar()
-        self.SetMenuBar(self.mainMenu)
-        self.mainMenu.Append(wxMenu(), 'File')
+##        self.mainMenu = wxMenuBar()
+##        self.SetMenuBar(self.mainMenu)
+##        self.mainMenu.Append(wxMenu(), 'File')
 #        self.mainMenu.Append(self.blankEditMenu, 'Edit')
-        self.mainMenu.Append(wxMenu(), 'Edit')
+##        self.mainMenu.Append(wxMenu(), 'Edit')
 
         # Views menu
         self.viewDefaultIds = {}
@@ -270,7 +299,7 @@ class EditorFrame(wxFrame):
 
         self.blankViewMenu.AppendMenu(wxID_DEFAULTVIEWS, 'Defaults', self.viewDefaults)
 
-        self.mainMenu.Append(wxMenu(), 'Views')
+##        self.mainMenu.Append(wxMenu(), 'Views')
 #        self.mainMenu.Append(self.blankViewMenu, 'Views')
 
         # Windows menu
@@ -292,8 +321,10 @@ class EditorFrame(wxFrame):
 ##                                HTMLFileModel: []}
 
         # Toolbar
-        self.toolBar = EditorToolBar(self, -1)#, style = wxTB_HORIZONTAL|wxNO_BORDER|wxTB_FLAT)#|wxTB_FLAT
-        self.SetToolBar(self.toolBar)
+##        self.toolBar = EditorToolBar(parent = self, id=-1)#, style = wxTB_HORIZONTAL|wxNO_BORDER|wxTB_FLAT)#|wxTB_FLAT
+##        self.SetToolBar(self.toolBar)
+
+        self._created = true
         self.setupToolBar(viewIdx = 0)
 
 
@@ -322,6 +353,12 @@ class EditorFrame(wxFrame):
 
         import ErrorStackFrm
         self.erroutFrm = ErrorStackFrm.ErrorStackMF(self, self)
+        
+        if Preferences.showErrOutInInspector:
+            panel, notebook = \
+              Utils.wxProxyPanel(self.inspector.pages, self.erroutFrm.notebook1)
+            self.inspector.pages.AddPage(panel, 'ErrOut')
+        
 
         # Hack to feed BoaFileDialog images
         import FileDlg
@@ -349,7 +386,7 @@ class EditorFrame(wxFrame):
         return menu
 
     def setupToolBar(self, modelIdx = None, viewIdx = None):
-        if not hasattr(self, 'toolBar') or self.palette.destroying:
+        if not self._created or self.palette.destroying:
             return
 
         self.toolBar.ClearTools()
@@ -660,7 +697,7 @@ class EditorFrame(wxFrame):
             transport = PyFileNode(name, filename, None, -1, None, None,
                   properties = {})
 
-        source = string.join(string.split(transport.load(), os.linesep), '\n')
+        source = transport.load('r')
         modCls, main = identifyFile(filename, source, true)
 
         imgIdx = modCls.imgIdx
@@ -830,7 +867,7 @@ class EditorFrame(wxFrame):
                 return module.addView(viewClass, name)
             else:
                 return module.model.views[name]
-            module.model.views[name].Show(true)
+            #module.model.views[name].Show(true)
 
     def openFileDlg(self):
 #        return wxFileSelector('Choose a file', '.', '', 'Modules (*.py)|*.py|Text files (*.txt)|*.txt', '.py', wxOPEN)
@@ -995,7 +1032,7 @@ class EditorFrame(wxFrame):
             self.updateModulePage(modulePage.model)
             self.updateTitle()
 
-    def OnPageChange(self, event):
+    def OnTabsNotebookPageChanged(self, event):
         sel = event.GetSelection()
         if sel > -1:
             self.updateTitle(sel)
@@ -1308,6 +1345,8 @@ class EditorFrame(wxFrame):
                 wxLogError('Could not save open file list: '+str(error))
 
     def OnExecFinish(self, event):
+        if Preferences.minimizeOnRun and self.palette.IsIconized():
+            self.palette.Iconize(false)
         event.runner.init(self.erroutFrm, event.runner.app)
         errs = event.runner.recheck()
         if errs:
