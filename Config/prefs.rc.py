@@ -1,4 +1,4 @@
-## rc-version: 10 ##
+## rc-version: 11 ##
 # RCS-ID:      $Id$
 
 # The main preference file.
@@ -23,7 +23,7 @@ paletteStyle = 'tabs'
 showFrameTestButton = False
 # Style flags used by most splitters in the IDE
 splitterStyle = wxCLIP_CHILDREN | wxSP_LIVE_UPDATE | \
-                wxSP_3DSASH | wxSP_FULLSASH | wxNO_3D#wxSP_3D |
+                wxSP_3DSASH | wxNO_3D #wxSP_3D | wxSP_FULLSASH 
 
 # Alternating background colours used in ListCtrls (pastel blue and yellow)
 pastels = True
@@ -38,7 +38,7 @@ undefinedWindowCol = wxColour(128, 0, 0)
 # Also used by setup.py
 staticInfoPrefs = { 'Purpose':   '',
                     'Author':    '<your name>',
-                    'Copyright': '(c) 2003',
+                    'Copyright': '(c) 2004',
                     'Licence':   '<your licence>',
                     'Email':     '<your email>',
                   }
@@ -352,6 +352,8 @@ STCBufferedDraw = True
 # line up especially when they extend over multiple pages.
 STCIndentationGuides = False
 # Set the code page used to interpret the bytes of the document as characters. 
+from wxPython.stc import wxSTC_CP_UTF8, wxSTC_CP_DBCS
+## options: 0, wxSTC_CP_UTF8, wxSTC_CP_DBCS
 STCCodePage = 0
 
 from wxPython.stc import wxSTC_WS_INVISIBLE, wxSTC_WS_VISIBLEALWAYS, wxSTC_WS_VISIBLEAFTERINDENT
