@@ -6,7 +6,7 @@
 #
 # Created:     2001/02/04
 # RCS-ID:      $Id$
-# Copyright:   (c) 2001 - 2003
+# Copyright:   (c) 2001 - 2004
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 print 'importing ZopeLib.ZopeExplorer'
@@ -1034,8 +1034,12 @@ def uriSplitZopeDebug(filename, filepath):
             itms = cat.openList()
             for itm in itms:
                 props = itm.properties
-                if props['host'].lower() == host.lower() and \
-                      props['httpport'] == port:
+                # @@@ Gogo.
+                if socket.gethostbyname(props['host']) == socket.gethostbyname(host) and \
+                       props['httpport'] == port:
+                # @@@ original code follows:
+                # if props['host'].lower() == host.lower() and \
+                #       props['httpport'] == port:
                     path = '/'.join(filepaths)
                     name = itm.name or itm.treename
                     return 'zope', '%s|%s' %(name, meta), path, \
