@@ -491,6 +491,11 @@ class Module:
 
             return 0, cur_class, cur_meth, cur_func
 
+        if dedent.match(line):
+            # end of class definition
+            cur_class, cur_meth, cur_func = self.finaliseEntry(cur_class,
+              cur_meth, cur_func, lineno)
+
         res = is_import.match(line)
         if res:
             # import module
@@ -520,11 +525,6 @@ class Module:
         res = is_wid.match(line)
         if res:
             self.wids.append((lineno, res))
-
-        if dedent.match(line):
-            # end of class definition
-            cur_class, cur_meth, cur_func = self.finaliseEntry(cur_class,
-              cur_meth, cur_func, lineno)
 
         objtype = None
         res = is_name_from_call.match(line)
