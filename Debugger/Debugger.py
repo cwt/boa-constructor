@@ -16,15 +16,15 @@
 # XXX Going to source code on an error
 
 # XXX Renaming/saving modules do not update filenames
-
 import string, sys, os
-from repr import Repr
-import traceback, imp, pprint, time
 
 from wxPython.wx import *
 
 import Preferences, Utils
 from Preferences import pyPath, IS, flatTools, keyDefs
+
+from DebuggerControls import StackViewCtrl, BreakViewCtrl, NamespaceViewCtrl,\
+                             WatchViewCtrl, DebugStatusBar
 from Breakpoint import bplist
 from DebugClient import EVT_DEBUGGER_OK, EVT_DEBUGGER_EXC, \
      EVT_DEBUGGER_STOPPED, EmptyResponseError
@@ -35,721 +35,8 @@ TEXTCTRL_GOODLEN = 20000
 
 STOP_GENTLY = 0
 
-SEL_STATE = wxLIST_STATE_SELECTED | wxLIST_STATE_FOCUSED
-
-wxID_STACKVIEW = NewId()
-class StackViewCtrl(wxListCtrl):
-    def __init__(self, parent, flist, debugger):
-        wxListCtrl.__init__(self, parent, wxID_STACKVIEW,
-              style = wxLC_REPORT|wxLC_SINGLE_SEL|wxLC_VRULES|wxCLIP_CHILDREN)
-        self.InsertColumn(0, 'Frame', wxLIST_FORMAT_LEFT, 150)
-        self.InsertColumn(1, 'Line', wxLIST_FORMAT_LEFT, 35)
-        self.InsertColumn(2, 'Code', wxLIST_FORMAT_LEFT, 300)
-        EVT_LIST_ITEM_SELECTED(self, wxID_STACKVIEW,
-                               self.OnStackItemSelected)
-        EVT_LIST_ITEM_DESELECTED(self, wxID_STACKVIEW,
-                                 self.OnStackItemDeselected)
-        EVT_LEFT_DCLICK(self, self.OnGotoSource)
-
-        self.flist = flist
-        self.debugger = debugger
-        self.stack = []
-        self.selection = -1
-
-    def load_stack(self, stack, index=None):
-        import linecache
-        
-        self.stack = stack
-        data = []
-
-        pos = 0
-        count = self.GetItemCount()
-        for entry in stack:
-            lineno = entry['lineno']
-            modname = entry['modname']
-            filename = entry['client_filename']
-            funcname = entry['funcname']
-            sourceline = linecache.getline(filename, lineno)
-            sourceline = string.strip(sourceline)
-            if funcname in ("?", "", None):
-                #item = "%s, line %d: %s" % (modname, lineno, sourceline)
-                attrib = modname
-            else:
-                #item = "%s.%s(), line %d: %s" % (modname, funcname,
-                #                                 lineno, sourceline)
-                # XXX methods will be shown as "module.function"
-                # when maybe they ought to be shown as "module.class.method".
-                attrib = modname + '.' + funcname
-            #if pos == index:
-            #    item = "> " + item
-            if pos >= count:
-                # Insert.
-                self.InsertStringItem(pos, attrib)
-                count = count + 1
-            else:
-                # Update.
-                self.SetStringItem(pos, 0, attrib, -1)
-            self.SetStringItem(pos, 1, `lineno`, -1)
-            self.SetStringItem(pos, 2, sourceline, -1)
-            pos = pos + 1
-
-        while pos < count:
-            self.DeleteItem(count - 1)
-            count = count - 1
-        self.selection = -1
-
-    def OnStackItemSelected(self, event):
-        self.selection = event.m_itemIndex
-
-        stacklen = len(self.stack)
-        if 0 <= self.selection < stacklen:
-            self.debugger.invalidatePanes()
-            self.debugger.updateSelectedPane()
-
-    def OnStackItemDeselected(self, event):
-        self.selection = -1
-
-    def selectCurrentEntry(self):
-        newsel = self.GetItemCount() - 1
-        if newsel != self.selection:
-            if self.selection >= 0:
-                item = self.GetItem(self.selection)
-                item.m_state = item.m_state & ~wxLIST_STATE_SELECTED
-                self.SetItem(item)
-            if newsel >= 0:
-                item = self.GetItem(newsel)
-                item.m_state = item.m_state | wxLIST_STATE_SELECTED
-                self.SetItem(item)
-            self.selection = newsel
-        if newsel >= 0:
-            self.EnsureVisible(newsel)
-
-    def OnGotoSource(self, event):
-        if self.selection != -1:
-            entry = self.stack[self.selection]
-            lineno = entry['lineno']
-            modname = entry['modname']
-            filename = entry['client_filename']
-            if not filename:
-                return
-
-            editor = self.debugger.editor
-            editor.SetFocus()
-            editor.openOrGotoModule(filename)
-            model = editor.getActiveModulePage().model
-            view = model.getSourceView()
-            if view is not None:
-                view.focus()
-                view.SetFocus()
-                view.selectLine(lineno - 1)
-
-
-[wxID_BREAKVIEW, wxID_BREAKSOURCE, wxID_BREAKEDIT, wxID_BREAKDELETE,
- wxID_BREAKENABLED, wxID_BREAKREFRESH, wxID_BREAKIGNORE] = Utils.wxNewIds(7)
-
-class BreakViewCtrl(wxListCtrl):
-    def __init__(self, parent, debugger):#, flist, browser):
-        wxListCtrl.__init__(self, parent, wxID_BREAKVIEW,
-          style = wxLC_REPORT|wxLC_SINGLE_SEL|wxLC_VRULES|wxCLIP_CHILDREN)
-        self.InsertColumn(0, 'Module', wxLIST_FORMAT_LEFT, 90)
-        self.InsertColumn(1, 'Line', wxLIST_FORMAT_CENTER, 40)
-        self.InsertColumn(2, 'Ignore', wxLIST_FORMAT_CENTER, 45)
-        self.InsertColumn(3, 'Hits', wxLIST_FORMAT_CENTER, 45)
-        self.InsertColumn(4, 'Condition', wxLIST_FORMAT_LEFT, 250)
-
-        self.brkImgLst = wxImageList(16, 16)
-        self.brkImgLst.Add(IS.load('Images/Debug/Breakpoint-red.png'))
-        self.brkImgLst.Add(IS.load('Images/Debug/Breakpoint-yellow.png'))
-        self.brkImgLst.Add(IS.load('Images/Debug/Breakpoint-gray.png'))
-        self.brkImgLst.Add(IS.load('Images/Debug/Breakpoint-blue.png'))
-
-##        EVT_LIST_ITEM_SELECTED(self, wxID_BREAKVIEW,
-##                               self.OnBreakpointSelected)
-##        EVT_LIST_ITEM_DESELECTED(self, wxID_BREAKVIEW,
-##                                 self.OnBreakpointDeselected)
-        EVT_LEFT_DCLICK(self, self.OnGotoSource)
-
-        EVT_RIGHT_DOWN(self, self.OnRightDown)
-        EVT_COMMAND_RIGHT_CLICK(self, -1, self.OnRightClick)
-        EVT_RIGHT_UP(self, self.OnRightClick)
-
-        self.menu = wxMenu()
-
-        self.menu.Append(wxID_BREAKSOURCE, 'Goto source')
-        self.menu.Append(wxID_BREAKREFRESH, 'Refresh')
-        self.menu.Append(-1, '-')
-        self.menu.Append(wxID_BREAKIGNORE, 'Edit ignore count')
-        self.menu.Append(wxID_BREAKEDIT, 'Edit condition')
-        self.menu.Append(wxID_BREAKDELETE, 'Delete')
-        self.menu.Append(-1, '-')
-        self.menu.Append(wxID_BREAKENABLED, 'Enabled', '', true)
-        
-        self.menu.Check(wxID_BREAKENABLED, true)
-
-        EVT_MENU(self, wxID_BREAKSOURCE, self.OnGotoSourceRight)
-        EVT_MENU(self, wxID_BREAKREFRESH, self.OnRefresh)
-        EVT_MENU(self, wxID_BREAKIGNORE, self.OnEditIgnore)
-        EVT_MENU(self, wxID_BREAKEDIT, self.OnEditCondition)
-        EVT_MENU(self, wxID_BREAKDELETE, self.OnDelete)
-        EVT_MENU(self, wxID_BREAKENABLED, self.OnToggleEnabled)
-        self.pos = None
-
-        self.AssignImageList(self.brkImgLst, wxIMAGE_LIST_SMALL)
-
-        self.rightsel = -1
-        self.debugger = debugger
-        self.bps = []
-        self.stats_map = {}
-
-    def destroy(self):
-        self.menu.Destroy()
-        self.brkImgLst = None
-
-    def updateBreakpointStats(self, stats):
-        """Received from debugger.
-
-        stats is a list of mappings."""
-        stats_map = {}
-        for item in stats:
-            fn = item['client_filename']
-            lineno = item['lineno']
-            stats_map[(fn, lineno)] = item
-            if not bplist.hasBreakpoint(fn, lineno):
-                # A hard breakpoint was hit and a new breakpoint was created.
-                bplist.addBreakpoint(fn, lineno)
-        self.stats_map = stats_map
-
-    def refreshList(self):
-        self.rightsel = -1
-        self.DeleteAllItems()
-        bps = bplist.getBreakpointList()
-        # Sort by filename and lineno.
-        bps.sort(lambda a, b:
-                 cmp((a['filename'], a['lineno']),
-                     (b['filename'], b['lineno'])))
-        self.bps = bps
-        for p in range(len(bps)):
-            bp = bps[p]
-            # setup prelim image
-            imgIdx = 0
-            if not bp['enabled']: imgIdx = 2
-            elif bp['temporary']: imgIdx = 3
-
-            self.InsertImageStringItem(
-                p, os.path.basename(bp['filename']), imgIdx)
-            self.SetStringItem(p, 1, str(bp['lineno']))
-            #if bp['enabled']: self.SetStringItem(p, 3, '*')
-
-            hits = ''
-            ignore = ''
-            cond = ''
-            if self.stats_map:
-                item = self.stats_map.get((bp['filename'], bp['lineno']), None)
-                if item is not None:
-                    hits = str(item['hits'])
-                    ignore = str(item['ignore'])
-                    cond = item['cond'] or ''
-                    #imgIdx = 0
-                    #if not item['enabled']: imgIdx = 2
-                    #elif item['temporary']: imgIdx = 3
-                    
-            self.SetStringItem(p, 2, ignore)
-            self.SetStringItem(p, 3, hits)
-            self.SetStringItem(p, 4, cond)
-            #self.SetItemImage(p, imgIdx, -1)
-
-    def addBreakpoint(self, filename, lineno):
-        self.refreshList()
-
-    def selectBreakpoint(self, filename, lineno):
-        idx = 0
-        for bp in self.bps:
-            if bp['filename']==filename and bp['lineno']==lineno:
-                self.SetItemState(idx, SEL_STATE, SEL_STATE)
-                self.EnsureVisible(idx)
-                return
-            idx = idx + 1
-
-##    def OnBreakpointSelected(self, event):
-##        self.selection = event.m_itemIndex
-
-##    def OnBreakpointDeselected(self, event):
-##        self.selection = -1
-
-    def OnGotoSource(self, event):
-        sel = self.HitTest(event.GetPosition())[0]
-        if sel != -1:
-            self.gotoSourceForItem(sel)
-
-    def OnGotoSourceRight(self, event):
-        sel = self.rightsel
-        if sel != -1:
-            self.gotoSourceForItem(sel)
-
-    def gotoSourceForItem(self, sel):
-        bp = self.bps[sel]
-        filename = bp['filename']
-        if not filename:
-            return
-        editor = self.debugger.editor
-        editor.SetFocus()
-        model, ctrlr = editor.openOrGotoModule(filename)
-        view = model.getSourceView()
-        if view is not None:
-            view.focus()
-            #view.SetFocus()
-            #view.selectLine(bp['lineno'] - 1)
-            view.GotoLine(bp['lineno'] - 1)
-
-    def OnDelete(self, event):
-        sel = self.rightsel
-        if sel != -1:
-            bp = self.bps[sel]
-            filename = bp['filename']
-            bplist.deleteBreakpoints(filename, bp['lineno'])
-
-            # Delete in debug server
-            server_fn = self.debugger.clientFNToServerFN(filename)
-            self.debugger.invokeInDebugger(
-                'clearBreakpoints', (server_fn, bp['lineno']))
-            
-            # Unmark the breakpoint in the editor (if open)
-            sourceView = self.debugger.getEditorSourceView(filename)
-            if sourceView:
-                sourceView.deleteBreakMarkers(bp['lineno'])
-
-            #self.debugger.requestDebuggerStatus()
-            self.refreshList()
-
-    def OnRefresh(self, event):
-        self.refreshList()
-
-    def OnToggleEnabled(self, event):
-        sel = self.rightsel
-        if sel != -1:
-            bp = self.bps[sel]
-            filename = bp['filename']
-            lineno = bp['lineno']
-            enabled = bp['enabled'] = not bp['enabled']
-            bplist.enableBreakpoints(filename, lineno, enabled)
-            server_fn = self.debugger.clientFNToServerFN(filename)
-            self.debugger.invokeInDebugger(
-                'enableBreakpoints', (server_fn, lineno, enabled))
-            self.refreshList()
-            
-            sourceView = self.debugger.getEditorSourceView(filename)
-            if sourceView:
-                sourceView.deleteBreakMarkers(bp['lineno'])
-                sourceView.setBreakMarker(bp)
-
-    def OnRightDown(self, event):
-        self.pos = event.GetPosition()
-        event.Skip()
-
-    def OnRightClick(self, event):
-        event.Skip()
-        if not self.pos:
-            return
-        sel = self.HitTest(self.pos)[0]
-        if sel != -1:
-            self.rightsel = sel
-            bp = self.bps[sel]
-            self.menu.Check(wxID_BREAKENABLED, bp['enabled'])
-            self.PopupMenu(self.menu, self.pos)
-
-    def OnEditCondition(self, event):
-        sel = self.rightsel
-        if sel != -1:
-            bp = self.bps[sel]
-            filename = bp['filename']
-            lineno = bp['lineno']
-            cond = bp['cond']
-
-            dlg = wxTextEntryDialog(self, 'Condition to break on:', 
-                  'Change condition', cond)
-            try:
-                if dlg.ShowModal() == wxID_OK:
-                    cond = string.strip(dlg.GetValue())
-
-                    bplist.conditionalBreakpoints(filename, lineno, cond)
-                    # Update debug server
-                    server_fn = self.debugger.clientFNToServerFN(filename)
-                    self.debugger.invokeInDebugger(
-                        'conditionalBreakpoints', (server_fn, lineno, cond))
-                    
-                    self.debugger.requestDebuggerStatus()
-                    #self.refreshList()
-            finally:
-                dlg.Destroy()
-
-    def OnEditIgnore(self, event):
-        sel = self.rightsel
-        if sel != -1:
-            bp = self.bps[sel]
-            filename = bp['filename']
-            lineno = bp['lineno']
-            ignore = bp['ignore']
-
-            dlg = wxTextEntryDialog(self, 'Number of hits to ignore:', 
-                  'Change ignore count', `ignore`)
-            try:
-                if dlg.ShowModal() == wxID_OK:
-                    ignore = int(dlg.GetValue())
-                    # Update debugger list and debug server
-                    bplist.ignoreBreakpoints(filename, lineno, ignore)
-                    server_fn = self.debugger.clientFNToServerFN(filename)
-                    self.debugger.invokeInDebugger(
-                        'ignoreBreakpoints', (server_fn, lineno, ignore))
-                    
-                    self.debugger.requestDebuggerStatus()
-                    #self.refreshList()
-            finally:
-                dlg.Destroy()
-
-# XXX Expose classes' dicts as indented items
-
-wxID_NSVIEW = NewId()
-class NamespaceViewCtrl(wxListCtrl):
-    def __init__(self, parent, add_watch, is_local, name):  # , dict=None):
-        wxListCtrl.__init__(self, parent, wxID_NSVIEW,
-          style=wxLC_REPORT|wxLC_SINGLE_SEL|wxLC_VRULES|wxCLIP_CHILDREN)
-        self.InsertColumn(0, 'Attribute', wxLIST_FORMAT_LEFT, 125)
-        self.InsertColumn(1, 'Value', wxLIST_FORMAT_LEFT, 200)
-
-        EVT_LIST_ITEM_SELECTED(self, -1, self.OnItemSelect)
-        EVT_LIST_ITEM_DESELECTED(self, -1, self.OnItemDeselect)
-        self.selected = -1
-
-        EVT_RIGHT_DOWN(self, self.OnRightDown)
-        EVT_COMMAND_RIGHT_CLICK(self, -1, self.OnRightClick)
-        EVT_RIGHT_UP(self, self.OnRightClick)
-
-        self.is_local = is_local
-
-        self.menu = wxMenu()
-
-        idAs = NewId()
-        idA = NewId()
-        self.menu.Append(idAs, 'Add as watch')
-        self.menu.Append(idA, 'Add a %s watch' % name)
-        EVT_MENU(self, idAs, self.OnAddAsWatch)
-        EVT_LEFT_DCLICK(self, self.OnAddAsWatch)
-        EVT_MENU(self, idA, self.OnAddAWatch)
-        self.pos = None
-
-        self.repr = Repr()
-        self.repr.maxstring = 100
-        self.repr.maxother = 100
-        self.names = []
-
-        self.add_watch = add_watch
-
-        # self.load_dict(dict)
-
-    def destroy(self):
-        self.menu.Destroy()
-
-    #dict = -1
-
-    def showLoading(self):
-        self.DeleteAllItems()
-        self.InsertStringItem(0, '...')
-
-    def load_dict(self, nsdict, force=0):
-        #if dict == self.dict and not force:
-        #    return
-
-        self.DeleteAllItems()
-        #self.dict = None
-
-        if not nsdict:
-            pass
-        else:
-            self.names = nsdict.keys()
-            self.names.sort()
-            row = 0
-            for name in self.names:
-                svalue = nsdict[name]
-                #svalue = self.repr.repr(value) # repr(value)
-
-                self.InsertStringItem(row, name)
-                self.SetStringItem(row, 1, svalue, -1)
-
-                row = row + 1
-
-        #self.dict = dict
-
-    def OnAddAsWatch(self, event):
-        if self.selected != -1:
-            name = self.names[self.selected]
-            self.add_watch(name, self.is_local)
-
-    def OnAddAWatch(self, event):
-        self.add_watch('', self.is_local)
-
-    def OnItemSelect(self, event):
-        self.selected = event.m_itemIndex
-        event.Skip()
-
-    def OnItemDeselect(self, event):
-        self.selected = -1
-        event.Skip()
-
-    def OnRightDown(self, event):
-        self.pos = event.GetPosition()
-        event.Skip()
-
-    def OnRightClick(self, event):
-        if not self.pos:
-            return
-        #sel = self.HitTest(self.pos)[0]
-        if self.selected != -1:
-            #self.rightsel = sel
-            self.PopupMenu(self.menu, self.pos)
-
-##    def close(self):
-##        self.frame.destroy()
-
-wxID_WATCHVIEW = NewId()
-class WatchViewCtrl(wxListCtrl):
-
-    def __init__(self, parent, images, debugger):
-        wxListCtrl.__init__(self, parent, wxID_WATCHVIEW,
-          style=wxLC_REPORT|wxLC_SINGLE_SEL|wxLC_VRULES|wxCLIP_CHILDREN)
-        self.InsertColumn(0, 'Attribute', wxLIST_FORMAT_LEFT, 125)
-        self.InsertColumn(1, 'Value', wxLIST_FORMAT_LEFT, 200)
-
-        self.repr = Repr()
-        self.repr.maxstring = 60
-        self.repr.maxother = 60
-        self.debugger = debugger
-
-        self.watches = []
-
-        self.AssignImageList(images, wxIMAGE_LIST_SMALL)
-
-        self.rightsel = -1
-        self.selected = -1
-
-        EVT_LIST_ITEM_SELECTED(self, -1, self.OnItemSelect)
-        EVT_LIST_ITEM_DESELECTED(self, -1, self.OnItemDeselect)
-
-        EVT_RIGHT_DOWN(self, self.OnRightDown)
-        EVT_COMMAND_RIGHT_CLICK(self, -1, self.OnRightClick)
-        EVT_RIGHT_UP(self, self.OnRightClick)
-
-        self.menu = wxMenu()
-
-        wid = wxNewId()
-        self.menu.Append(wid, 'Add local watch')
-        EVT_MENU(self, wid, self.OnAddLocal)
-        wid = wxNewId()
-        self.menu.Append(wid, 'Add global watch')
-        EVT_MENU(self, wid, self.OnAddGlobal)
-        self.editId = wxNewId()
-        self.menu.Append(self.editId, 'Edit watch')
-        EVT_MENU(self, self.editId, self.OnEdit)
-        EVT_LEFT_DCLICK(self, self.OnEdit)
-        self.deleteId = wxNewId()
-        self.menu.Append(self.deleteId, 'Delete')
-        EVT_MENU(self, self.deleteId, self.OnDelete)
-        self.expandId = wxNewId()
-        self.menu.Append(self.expandId, 'Expand')
-        EVT_MENU(self, self.expandId, self.OnExpand)
-        wid = wxNewId()
-        self.menu.Append(wid, 'Delete All')
-        EVT_MENU(self, wid, self.OnDeleteAll)
-        self.pos = None
-
-    def destroy(self):
-        self.menu.Destroy()
-
-    def add_watch(self, name, local, pos=-1):
-        if name:
-            if pos < 0 or pos >= len(self.watches):
-                self.watches.append((name, local))
-                pos = len(self.watches)-1
-            else:
-                self.watches.insert(pos, (name, local))
-        else:
-            dlg = wxTextEntryDialog(
-                self, 'Expression:', 'Add a watch:', '')
-            try:
-                if dlg.ShowModal() == wxID_OK:
-                    self.watches.append((dlg.GetValue(), local))
-                    pos = len(self.watches)-1
-            finally:
-                dlg.Destroy()
-        self.SetItemState(pos, SEL_STATE, SEL_STATE)
-        self.EnsureVisible(pos)
-
-    def showLoading(self):
-        self.load_dict(None, loading=1)
-
-    def load_dict(self, svalues, force=0, loading=0):
-        count = self.GetItemCount()
-        row = 0
-        for name, local in self.watches:
-            if svalues:
-                svalue = svalues.get(name, '???')
-            elif loading:
-                svalue = '...'
-            else:
-                svalue = '???'
-            if local:
-                idx = 3
-            else:
-                idx = 4
-            if row >= count:
-                # Insert.
-                self.InsertImageStringItem(row, name, idx)
-                count = count + 1
-            else:
-                # Update.
-                self.SetStringItem(row, 0, name, idx)
-            self.SetStringItem(row, 1, svalue, idx)
-            row = row + 1
-        while row < count:
-            self.DeleteItem(count - 1)
-            count = count - 1
-
-    def OnAddLocal(self, event):
-        self.add_watch('', true)
-        self.debugger.updateSelectedPane(force=1)
-        
-    def OnAddGlobal(self, event):
-        self.add_watch('', false)
-        self.debugger.updateSelectedPane(force=1)
-
-    def OnEdit(self, event):
-##        sel = self.rightsel
-        sel = self.selected
-        if sel != -1:
-            name, local = self.watches[sel]
-            dlg = wxTextEntryDialog(
-                self, 'Expression:', 'Edit watch:', name)
-            try:
-                if dlg.ShowModal() == wxID_OK:
-                    self.watches[sel] = (dlg.GetValue(), local)
-                    self.debugger.updateSelectedPane(force=1)
-            finally:
-                dlg.Destroy()
-            
-
-    def OnDelete(self, event):
-        sel = self.selected
-##        sel = self.rightsel
-        if sel != -1:
-            del self.watches[sel]
-            self.DeleteItem(sel)
-            self.debugger.updateSelectedPane(force=1)
-
-    def OnDeleteAll(self, event):
-        del self.watches[:]
-        self.DeleteAllItems()
-
-    def OnExpand(self, event):
-##        sel = self.rightsel
-        sel = self.selected
-        if sel != -1:
-            name, local = self.watches[sel]
-            self.debugger.requestWatchSubobjects(name, local, sel + 1)
-
-    def OnItemSelect(self, event):
-        self.selected = event.m_itemIndex
-        event.Skip()
-
-    def OnItemDeselect(self, event):
-        self.selected = -1
-        event.Skip()
-
-    def OnRightDown(self, event):
-        self.pos = event.GetPosition()
-        event.Skip()
-
-    def OnRightClick(self, event):
-        event.Skip()
-        if not self.pos:
-            return
-
-        sel = self.selected
-
-        self.menu.Enable(self.editId, sel != -1)
-        self.menu.Enable(self.deleteId, sel != -1)
-        self.menu.Enable(self.expandId, sel != -1)
-
-        self.PopupMenu(self.menu, self.pos)
-
-class DebugStatusBar(wxStatusBar):
-    def __init__(self, parent):
-        wxStatusBar.__init__(self, parent, -1, style=0)
-        self.SetFieldsCount(2)
-        self.SetMinHeight(30)
-        #self.SetStatusWidths([-1, -1, 16])
-
-        self.stateCols = {'except': wxColour(0xFF, 0xFF, 0x44),#wxNamedColour('yellow'),
-                          'info':   wxNamedColour('white'),
-                          'break':  wxColour(0xFF, 0x44, 0x44),#wxNamedColour('red'),
-                          'busy':   wxColour(0xBB, 0xE0, 0xFF)}
-
-        self.instr_ptr = wxStaticText(self, -1, ' ', 
-              style=wxALIGN_CENTER|wxST_NO_AUTORESIZE)
-        self.instr_ptr.SetBackgroundColour(wxColour(0xEE, 0xEE, 0xEE))
-        self._setCtrlDims(self.instr_ptr, self.GetFieldRect(0))
-        
-        self.state = wxStaticText(self, -1, 'Ready.', 
-              style=wxALIGN_CENTER|wxST_NO_AUTORESIZE)
-        self.state.SetBackgroundColour(self.stateCols['info'])
-        self._setCtrlDims(self.state, self.GetFieldRect(1))
-
-        dc = wxClientDC(self)
-        dc.SetFont(self.GetFont())
-        (w,h) = dc.GetTextExtent('X')
-        h = int(h * 1.8)
-        self.SetSize(wxSize(100, h))
-        
-        EVT_SIZE(self, self.OnSize)
-
-    def _setCtrlDims(self, ctrl, rect):
-        ctrl.SetDimensions(rect.x+2, rect.y+2, rect.width-4, rect.height-4)
-
-    def updateState(self, message, sts_type='except'):
-        if message:
-            self.state.SetBackgroundColour(self.stateCols[sts_type])
-        else:
-            self.state.SetBackgroundColour(self.stateCols['info'])
-        self.state.SetLabel(message)
-
-        self._setCtrlDims(self.state, self.GetFieldRect(1))
-    
-    def updateInstructionPtr(self, status):
-        self.instr_ptr.SetLabel(status)
-        self._setCtrlDims(self.instr_ptr, self.GetFieldRect(0))
-        
-    def OnSize(self, event):
-        self._setCtrlDims(self.instr_ptr, self.GetFieldRect(0))
-        self._setCtrlDims(self.state, self.GetFieldRect(1))
-
-
-def simplifyPathList(data,
-                     SequenceTypes=(type(()), type([])),
-                     ExcludeTypes=(type(None),) ):
-    # Takes a possibly nested structure and turns it into a flat tuple.
-    if type(data) in SequenceTypes:
-        newdata = []
-        for d in data:
-            nd = simplifyPathList(d)
-            if nd:
-                newdata.extend(nd)
-        return newdata
-    elif type(data) in ExcludeTypes:
-        return ()
-    else:
-        return list(string.split(str(data), os.pathsep))
-
-
-wxID_PAGECHANGED = NewId()
-wxID_TOPPAGECHANGED = NewId()
+wxID_PAGECHANGED = wxNewId()
+wxID_TOPPAGECHANGED = wxNewId()
 class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
     debug_client = None
     _destroyed = 0
@@ -783,8 +70,8 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
         self.sb = DebugStatusBar(self)
         self.SetStatusBar(self.sb)
 
-        self.toolbar = wxToolBar(
-            self, -1, style = wxTB_HORIZONTAL|wxNO_BORDER|flatTools)
+        self.toolbar = wxToolBar(self, -1, 
+              style=wxTB_HORIZONTAL|wxNO_BORDER|flatTools)
         self.SetToolBar(self.toolbar)
 
         self.runId = Utils.AddToolButtonBmpIS(self, self.toolbar,
@@ -948,7 +235,7 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
         if pageno < 0:
             pageno = self.nbBottom.GetSelection()
         if not self.updated_panes[pageno] or force:
-            frameno = self.stackView.selection
+            frameno = self.stackView.getSelection()
             if pageno == 0:
                 self.watches.showLoading()
                 if do_request:
@@ -974,7 +261,7 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
 
     def receiveWatches(self, status):
         frameno = status['frameno']
-        if frameno == self.stackView.selection:
+        if frameno == self.stackView.getSelection():
             self.updated_panes[0] = 1
             self.watches.load_dict(status['watches'])
         else:
@@ -987,7 +274,7 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
 
     def receiveDict(self, status):
         frameno = status['frameno']
-        if frameno == self.stackView.selection:
+        if frameno == self.stackView.getSelection():
             if status.has_key('locals'):
                 self.updated_panes[1] = 1
                 self.locs.load_dict(status['locals'])
@@ -1000,7 +287,7 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
 
     def requestWatchSubobjects(self, name, local, pos):
         self.invokeInDebugger(
-            'getWatchSubobjects', (name, self.stackView.selection),
+            'getWatchSubobjects', (name, self.stackView.getSelection()),
             'receiveWatchSubobjects', (name, local, pos))
 
     def receiveWatchSubobjects(self, subnames, name, local, pos):
@@ -1013,7 +300,7 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
 
     def requestVarValue(self, name):
         self.invokeInDebugger(
-            'pprintVarValue', (name, self.stackView.selection),
+            'pprintVarValue', (name, self.stackView.getSelection()),
             'receiveVarValue')
 
     def receiveVarValue(self, val):
@@ -1026,7 +313,7 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
         self._hasReceivedVal = 0
         self._receivedVal = None
         self.invokeInDebugger(
-            'pprintVarValue', (name, self.stackView.selection),
+            'pprintVarValue', (name, self.stackView.getSelection()),
             'receiveVarValue2')
         # XXX I'm not comfortable with this...
         try:
@@ -1505,7 +792,6 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
                 except:
                     pass
                     #cls, err = sys.exc_info()[:2]
-                    #print 'close shell debug failed', cls, str(err)
                 self.editor.debugger = None
                 self.editor = None
             if not was_alive:
@@ -1530,3 +816,21 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
             self.splitter.SplitHorizontally(self.nbTop, self.nbBottom)
             sashpos = self.splitter.GetClientSize().y / 2
         self.splitter.SetSashPosition(sashpos)
+
+
+def simplifyPathList(data,
+                     SequenceTypes=(type(()), type([])),
+                     ExcludeTypes=(type(None),) ):
+    # Takes a possibly nested structure and turns it into a flat tuple.
+    if type(data) in SequenceTypes:
+        newdata = []
+        for d in data:
+            nd = simplifyPathList(d)
+            if nd:
+                newdata.extend(nd)
+        return newdata
+    elif type(data) in ExcludeTypes:
+        return ()
+    else:
+        return list(string.split(str(data), os.pathsep))
+
