@@ -37,20 +37,38 @@ class FindResults(ListCtrlView, ClosableViewMix):
         self.findPattern = ''
         self.active = true
         self.model = model
+        
+        EVT_IDLE(self, self.OnIdle)
+        self.doRefresh = 0
+
+    def _refresh(self):
+        self.refreshCtrl()
+        self.modified = false    
 
     def refreshCtrl(self):
-        ListCtrlView.refreshCtrl(self)
-        i = 0
-        self.listResultIdxs = []
-        for mod in self.results.keys():
-            for result in self.results[mod]:
-                self.listResultIdxs.append((mod, result))
-                i = self.addReportItems(i, (path.basename(mod), `result[0]`,
-                  `result[1]`, string.strip(result[2])) )
-
-        self.model.editor.statusBar.setHint('%d matches of "%s".'%(i, self.findPattern))
-
-        self.pastelise()
+        wxBeginBusyCursor()
+        try:
+            ListCtrlView.refreshCtrl(self)
+            i = 0
+            self.listResultIdxs = []
+            for mod in self.results.keys():
+                for result in self.results[mod]:
+                    self.listResultIdxs.append((mod, result))
+                    i = self.addReportItems(i, (path.basename(mod), `result[0]`,
+                      `result[1]`, string.strip(result[2])) )
+    
+            self.model.editor.statusBar.setHint('%d matches of "%s".'%(i, self.findPattern))
+            self.pastelise()
+        finally:
+            wxEndBusyCursor()
+        
+    def refresh(self):
+        self.doRefresh = 1
+        
+    def OnIdle(self, event):
+        if self.doRefresh:
+            self.doRefresh = 0
+            self._refresh()
 
     def OnGoto(self, event):
         if self.selected >= 0:
@@ -74,4 +92,3 @@ class FindResults(ListCtrlView, ClosableViewMix):
     def OnRerun(self, event):
         pass
     
-   
