@@ -1,7 +1,7 @@
 import os
 
 from wxPython.wx import *
-import Preferences
+import Preferences, Utils
 
 #-----Toolbar-------------------------------------------------------------------
 
