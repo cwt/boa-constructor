@@ -255,7 +255,7 @@ class PerLineParser:
                 result[posArgs] = param.strip()
                 posArgs += 1
             else:
-                result[param[:sidx].strip()] = param[sidx+1:].strip()
+                result[str(param[:sidx].strip())] = param[sidx+1:].strip()
         return result
 
     def KVParamsAsText(self, params):
