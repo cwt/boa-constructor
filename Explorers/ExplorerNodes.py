@@ -1014,3 +1014,4 @@ def isTransportAvailable(conf, section, prot):
 register(CategoryNode, controller=CategoryController)
 register(MRUCatNode, controller=MRUCatController)
 register(SysPathNode, clipboard='file', controller='file')
+
