@@ -163,7 +163,7 @@ class SelectionGroup:
         # Put selection around control
 
         # Begin a drag, don't drag frame
-        if ctrl.this != self.designer.this:
+        if ctrl != self.designer:
             self.dragging = true
             self.dragOffset = pos
             self.showFramedTags(None)
@@ -228,7 +228,7 @@ class SelectionGroup:
             self.selCompn = None
             self.inspSel = None
         else:
-            if ctrl.this == self.designer.this:
+            if ctrl == self.designer:
                 self.name = ''
                 self.parent = ctrl
                 cp = (0, 0)

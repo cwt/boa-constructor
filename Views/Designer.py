@@ -679,8 +679,7 @@ class DesignerView(wxFrame, InspectableObjectView, Utils.FrameRestorerMixin):
             sze = childCtrl.GetSize()
             realParent = childCtrl.GetParent()
             # Compensate for BlankWindowPages's offset
-            if realParent.this[:8] != \
-                  self.objects[officialParent][1].this[:8]:
+            if realParent != self.objects[officialParent][1]:
                 offset[0] += realParent.GetPosition().x
                 offset[1] += realParent.GetPosition().y
 
