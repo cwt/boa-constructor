@@ -21,7 +21,7 @@ from wxPython.wx import *
 from wxPython.html import *
 
 import Preferences, Utils
-from Preferences import IS, staticInfoPrefs, keyDefs, wxFileDialog
+from Preferences import IS, staticInfoPrefs, keyDefs
 
 import Search
 from Models import EditorHelper
@@ -176,7 +176,7 @@ class EditorView:
     def generateMenu(self):
         menu = wxMenu()
         for wId, name, canCheck in self.menuDefn:
-            menu.Append(wId, name, checkable = canCheck)
+            menu.Append(wId, name, '', canCheck)
         return menu
 
     def addViewMenus(self):
@@ -373,6 +373,7 @@ class HTMLDocView(HTMLView):
         return page
 
     def OnSaveHTML(self, event):
+        from FileDlg import wxFileDialog
         dlg = wxFileDialog(self, 'Save as...', '', '', '*.html',
           wxSAVE | wxOVERWRITE_PROMPT)
         try:

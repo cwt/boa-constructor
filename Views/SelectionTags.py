@@ -568,7 +568,7 @@ class SideSelTag(SelectionTag):
     def OnRightClick(self, event):
         menu = wxMenu()
         try:
-            menu.Append(self.wxID_ANCHORED, 'Anchored', checkable = true)
+            menu.Append(self.wxID_ANCHORED, 'Anchored', '', true)
             menu.Check(self.wxID_ANCHORED, self.anchored)
             self.PopupMenu(menu, event.GetPosition())
         finally:

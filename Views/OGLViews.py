@@ -568,10 +568,10 @@ class UMLView(PersistentOGLView, SortedUMLViewMix):
         ))
         self.menuStdClass = wxMenu()
         id = wxNewId()
-        self.menuStdClass.Append(id, "Goto Source", checkable = 0)
+        self.menuStdClass.Append(id, "Goto Source")
         EVT_MENU(self, id, self.OnGotoSource)
         id = wxNewId()
-        self.menuStdClass.Append(id, "Goto Documentation", checkable = 0)
+        self.menuStdClass.Append(id, "Goto Documentation",)
         EVT_MENU(self, id, self.OnGotoDoc)
 
         self.shapeMenu = self.menuStdClass
