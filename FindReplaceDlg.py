@@ -407,7 +407,7 @@ class FindReplaceDlg(wxDialog):
             for sFile in iterDirFiles:
                 names.append(sFile)
                 if iStep < 100 and not dlg.Update(iStep):
-                    self.view.model.editor.setStatus('Search aborted')
+                    #self.view.model.editor.setStatus('Search aborted')
                     break
                 iStep = iStep + 1
         finally:
