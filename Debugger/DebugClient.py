@@ -116,9 +116,9 @@ class DebuggerTask:
         self.m_args = m_args
         self.r_name = r_name
         self.r_args = r_args
-    
+
     def __repr__(self):
-        return '<DebuggerTask: %s:%s:%s:%s>'%(self.m_name, self.m_args, 
+        return '<DebuggerTask: %s:%s:%s:%s>'%(self.m_name, self.m_args,
                                               self.r_name, self.r_args)
 
     def __call__(self):

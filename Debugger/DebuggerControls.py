@@ -486,8 +486,8 @@ class WatchViewCtrl(DebuggerListCtrl):
                     pos = len(self.watches)-1
             finally:
                 dlg.Destroy()
-        self.SetItemState(pos, SEL_STATE, SEL_STATE)
-        self.EnsureVisible(pos)
+        #self.SetItemState(pos, SEL_STATE, SEL_STATE)
+        #self.EnsureVisible(pos)
 
     def showLoading(self):
         self.load_dict(None, loading=1)

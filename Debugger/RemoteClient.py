@@ -1,4 +1,3 @@
-
 import os, string, sys, base64
 from ExternalLib import xmlrpclib
 
@@ -52,4 +51,3 @@ class RemoteClient (MultiThreadedDebugClient):
 
     def isAlive(self):
         return self.server is not None
-
