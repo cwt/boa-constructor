@@ -61,9 +61,11 @@ class InspectableObjectView(EditorViews.EditorView, InspectorSessionMix):
         # Build dictionary of params
         for paramKey in params.keys():
             value = params[paramKey]
-            if len(value) >= 11 and value[:11] == 'self._init_':
-                collItem = methodparse.CollectionInitParse(value)
-                self.addCollView(paramKey, collItem.method, false)
+            ## function references in the constructor
+            #if len(value) >= 11 and value[:11] == 'self._init_':
+            #    continue
+            #    collItem = methodparse.CollectionInitParse(value)
+            #    self.addCollView(paramKey, collItem.method, false)
             if paramKey in dontEval:
                 args[paramKey] = params[paramKey]
             else:
@@ -201,10 +203,8 @@ class InspectableObjectView(EditorViews.EditorView, InspectorSessionMix):
                         value = PaletteMapping.evalCtrl(prop.params[0], 
                                                         self.model.specialAttrs)
                     except AttributeError, name:
-                        if self.objects.has_key(name):
-                            value = self.objects[name][1]
-                        else:
-                            raise
+                        value = PaletteMapping.evalCtrl(prop.params[0], 
+                          {'self': self.controllerView.objectNamespace})
                     except:
                         print 'Problem with: %s' % prop.asText()
                         raise
@@ -543,12 +543,9 @@ class InspectableObjectView(EditorViews.EditorView, InspectorSessionMix):
         # Split up into methods
         methList = []
         for line in input:
-            if line[:8] == '    def ':
-                meth = line[8:line.find('(', 9)]
-                currMeth = [meth]
-                methList.append(currMeth)
-            elif line[:5] == '\tdef ':
-                meth = line[5:line.find('(', 6)]
+            splitLine = line.split()
+            if len(splitLine) >= 2 and splitLine[0] == 'def':
+                meth = splitLine[1][:splitLine[1].find('(')]
                 currMeth = [meth]
                 methList.append(currMeth)
             else:
@@ -676,20 +673,19 @@ class InspectableObjectView(EditorViews.EditorView, InspectorSessionMix):
 
         return Utils.getValidName(self.objects.keys() + additionalNames, newName)
 
-    def newObject(self, objClass, objCompanionClass):
+    def newObject(self, ObjClass, ObjCompanionClass):
         """ At design time, when adding a new ctrl from the palette, create and
             register given control and companion.
         """
+        self.checkHost(ObjCompanionClass)
 
         # XXX Only DataView uses this, refc
-        objName = self.newObjName(objClass.__name__)
+        objName = self.newObjName(ObjClass.__name__)
 
-        self.checkHost(objCompanionClass)
-
-        companion = objCompanionClass(objName, self, objClass)
+        companion = ObjCompanionClass(objName, self, ObjClass)
         params = companion.designTimeSource()
         self.addObject(objName, companion, companion.designTimeObject(), '')
-        companion.persistConstr(objClass.__name__, params)
+        companion.persistConstr(ObjClass.__name__, params)
         return objName
 
 
@@ -796,17 +792,17 @@ class InspectableObjectView(EditorViews.EditorView, InspectorSessionMix):
         else:
             return collEditor
 
-    def checkHost(self, ctrlCompanion):
+    def checkHost(self, CtrlCompanion):
         """ Checks that the companion may be hosted in this designer """
-        if ctrlCompanion.host == 'Not Implemented':
+        if CtrlCompanion.host == 'Not Implemented':
             dlg = wxMessageDialog(self, 'This component is not yet implemented',
                               'Not Implemented', wxOK | wxICON_ERROR)
             try: dlg.ShowModal()
             finally: dlg.Destroy()
             raise DesignerError, 'Not Implemented'
-        if ctrlCompanion.host != self.viewName:
+        if CtrlCompanion.host != self.viewName:
             dlg = wxMessageDialog(self,
-              'This component must be created in the '+ctrlCompanion.host+' view',
+              'This component must be created in the '+CtrlCompanion.host+' view',
               'Wrong Designer', wxOK | wxICON_ERROR)
             try: dlg.ShowModal()
             finally: dlg.Destroy()
