@@ -160,7 +160,7 @@ class Progress(wxProgressDialog):
     def Finished(self):
         pass
     def SetDescription(self, desc, maxticks = None):
-        self.Update( newmsg = desc )
+        self.Update(-1,  newmsg = desc )
     def Tick(self, desc = None):
         pass
     def VerboseProgress(self, desc, verboseLevel = 2):
