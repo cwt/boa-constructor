@@ -114,7 +114,6 @@ class EditorModel:
             raise 'No transport for loading'
 
         rd = string.split(self.transport.load(), os.linesep)
-        print 'load', len(rd)
         self.data = string.join(string.split(self.transport.load(), os.linesep), '\n')
         self.modified = false
         self.saved = false
