@@ -355,7 +355,7 @@ class FindReplaceDlg(wxDialog):
             pattern = self.findTxt.GetValue()
             self.engine.findInSource(self.view, pattern)
             self.setComboBoxes('find')
-            if self.engine.closeOnFound:
+            if self.engine.closeOnFound and not self.replaceTxt.GetValue():
                 self.EndModal(wxID_OK)
             else:
                 self._checkSelectionDlgOverlap()
