@@ -448,6 +448,33 @@ class ConstrPropEdit(ConstrPropEditFacade, PropertyEditor):
         else:
             self.propWrapper.setValue(value)
 
+class ColourConstrPropEdit(ConstrPropEdit):
+    def getValue(self):
+        if self.editorCtrl:
+            self.value = self.editorCtrl.getValue()
+        else:
+            self.value = self.getCtrlValue()
+        return self.value
+
+    def inspectorEdit(self):
+        self.editorCtrl = ButtonIEC(self, self.value)
+        self.editorCtrl.createControl(self.parent, self.idx, self.width, self.edit)
+
+    def edit(self, event):
+        data = wxColourData()
+        data.SetColour(self.companion.eval(self.value))
+        data.SetChooseFull(true)
+        dlg = wxColourDialog(self.parent, data)
+        try:
+            if dlg.ShowModal() == wxID_OK:
+                col = dlg.GetColourData().GetColour()
+                self.value = 'wxColour(%d, %d, %d)'%(col.Red(),col.Green(),col.Blue())
+                self.editorCtrl.setValue(self.value)
+                self.inspectorPost(false)
+        finally:
+            dlg.Destroy()
+
+
 # Collection id name
 class ItemIdConstrPropEdit(ConstrPropEdit):
     def inspectorEdit(self):
@@ -488,21 +515,14 @@ class ItemIdConstrPropEdit(ConstrPropEdit):
 
 class IntConstrPropEdit(ConstrPropEdit):
     def inspectorEdit(self):
-        self.editorCtrl = TextCtrlIEC(self, self.value)
+        self.editorCtrl = SpinCtrlIEC(self, self.value)
         self.editorCtrl.createControl(self.parent, self.value, self.idx,
           self.width)
 
     def getValue(self):
-        if self.editorCtrl and self.editorCtrl.getValue():
-            try:
-                anInt = self.companion.eval(self.editorCtrl.getValue())
-                if type(anInt) is IntType:
-                    self.value = self.editorCtrl.getValue()
-                else:
-                    self.value = self.getCtrlValue()
-            except Exception, message:
-                self.value = self.getCtrlValue()
-                #print 'invalid constr prop value', message, self.editorCtrl.getValue()
+        if self.editorCtrl:
+#             and self.editorCtrl.getValue():
+            self.value = str(self.editorCtrl.getValue())
         else:
             self.value = self.getCtrlValue()
         return self.value
@@ -523,39 +543,152 @@ class BitmapPropEditMix:
     extTypeMap = {'.bmp': 'wxBITMAP_TYPE_BMP',
                   '.gif': 'wxBITMAP_TYPE_GIF',
                   '.jpg': 'wxBITMAP_TYPE_JPEG',
-                  '.png': 'wxBITMAP_TYPE_PNG'}
-    def showImgDlg(self, dir, name):
-        if not os.path.isdir(dir):
-            wxMessageBox('The given directory is invalid, using current directory.\n(%s)'%dir,
-                  'Warning', wxOK | wxICON_EXCLAMATION)
-            dir = '.'
+                  '.png': 'wxBITMAP_TYPE_PNG',
+                  '.py':  'ResourceModule'}
 
+    def showImgDlg(self, dir, name, tpe='Bitmap'):
+        model = self.companion.designer.model
+        selImg = ''
+        if tpe == 'Bitmap' and not os.path.isdir(dir):
+            wxMessageBox('The given directory is invalid, using current '
+                         'directory.\n(%s)'%dir, 'Warning', 
+                         wxOK | wxICON_EXCLAMATION)
+            dir = '.'
+        elif tpe == 'ResourceModule':
+            selImg = name
+            
         from FileDlg import wxFileDialog
-        dlg = wxFileDialog(self.parent, 'Choose an image', dir, name,
-              'ImageFiles', wxOPEN)
-        try:
-            if dlg.ShowModal() == wxID_OK:
-                pth = abspth = dlg.GetFilePath().replace('\\', '/')
-                if not Preferences.cgAbsoluteImagePaths:
-                    pth = Utils.pathRelativeToModel(pth, self.companion.designer.model)
-                return abspth, pth, self.extTypeMap[os.path.splitext(pth)[-1].lower()]
+        
+        keepShowing = true
+        while keepShowing:
+            keepShowing = false
+            if tpe == 'ResourceModule':
+                mod = model.resources[dir]
+                ext = '.py'
+                pth = abspth = os.path.splitext(mod.__file__)[0]+ext
             else:
-                return '', '', ''
-        finally:
-            dlg.Destroy()
+                dlg = wxFileDialog(self.parent, 'Choose an image', dir, name,
+                      'ImageFiles', wxOPEN)
+                try:
+                    if dlg.ShowModal() != wxID_OK:
+                        return '', '', ''
+                    pth = abspth = dlg.GetFilePath().replace('\\', '/')
+                finally:
+                    dlg.Destroy()
+    
+                if not Preferences.cgAbsoluteImagePaths:
+                    pth = Utils.pathRelativeToModel(pth, model)
+            
+                ext = os.path.splitext(pth)[-1].lower()    
+
+            if ext == '.py':
+                if os.path.isabs(pth):
+                    pth = Utils.pathRelativeToModel(pth, model)
+
+                resInfo = self.handleResourceFiles(abspth, pth, selImg)
+                if resInfo:
+                    if resInfo == -1:
+                        return '', '', ''
+                    if resInfo == 'FileDlg':
+                        dir, name = os.path.split(abspth)
+                        keepShowing = true
+                        tpe = 'Bitmap'
+                        continue
+                    return resInfo[0], resInfo[1], 'ResourceModule'
+            return abspth, pth, self.extTypeMap[ext]
 
     def extractPathFromSrc(self, src):
-        if src and Utils.startswith(src, 'wxBitmap('):
-            filename = src[len('wxBitmap(')+1:]
-            pth = filename[:filename.rfind(',')-1]
-            if not os.path.isabs(pth):
-                mbd = Utils.getModelBaseDir(self.companion.designer.model)
-                if mbd: mbd = mbd[7:]
-                pth = os.path.normpath(os.path.join(mbd, pth)).replace('\\', '/')
-            dir, name = os.path.split(pth)
-            if not dir: dir = '.'
-            return pth, dir, name
-        return '', '.', ''
+        if src:
+            if src.startswith('wxBitmap('):
+                filename = src[len('wxBitmap(')+1:]
+                pth = filename[:filename.rfind(',')-1]
+                if not os.path.isabs(pth):
+                    mbd = Utils.getModelBaseDir(self.companion.designer.model)
+                    if mbd: mbd = mbd[7:]
+                    pth = os.path.normpath(os.path.join(mbd, pth)).replace('\\', 
+                          '/')
+                dir, name = os.path.split(pth)
+                if not dir: dir = '.'
+                return os.path.join(pth, 'Bitmap'), dir, name, 'Bitmap'
+            else:
+                import moduleparse
+                m = moduleparse.is_resource_bitmap.search(src)
+                if m:
+                    importName, imageName = m.group('imppath'), m.group('imgname')
+                    src = os.path.join(importName, imageName, 'ResourceModule')
+                    return (src, importName, imageName, 'ResourceModule')
+
+        return '', '.', '', 'Unknown'
+
+    def handleResourceFiles(self, resourceFilename, relResourceFilename, image=''):
+        from Models import Controllers
+
+        Model, main = Controllers.identifyFile(resourceFilename)
+        for ResourceClass in Controllers.resourceClasses:
+            if issubclass(Model, ResourceClass):
+                break
+        else:
+            return # not a resource module
+                
+        idx, imageName = self.showResourceDlg(resourceFilename, image)
+        if idx is None: return 'FileDlg'
+        if idx == -1:   return -1
+
+        importName = os.path.splitext(relResourceFilename)[0].replace('\\', 
+              '/').replace('/', '.')
+        if os.path.isabs(relResourceFilename):
+            importName = os.path.splitdrive(importName)[1][1:]
+            impNameDlg = wxTextEntryDialog(self.parent, 'Correct the module '
+                  'name that must be imported', 'Resource module', importName)
+            try:
+                if impNameDlg.ShowModal() != wxID_OK:
+                    return
+                importName = impNameDlg.GetValue()
+                # XXX test with imp?
+            finally:
+                impNameDlg.Destroy()
+        else:
+            if relResourceFilename.startswith('../'):
+                while importName.startswith('../'):
+                    importName = importName[3:]
+            importName = importName.replace('/', '.')
+        
+        #return '%s.get%sBitmap()'%(importName, imageName)
+        return importName, imageName
+
+    def getSrcForResPath(self, importName, imageName):
+        return '%s.get%sBitmap()'%(importName, imageName)
+
+    def showResourceDlg(self, filename, image=''):
+        from Models import ResourceSupport
+        resDlg = ResourceSupport.ResourceSelectDlg(self.parent, 
+            self.companion.designer.model.editor, filename, image)
+        try:
+            result = resDlg.ShowModal()
+            if result == wxID_CANCEL:
+                return -1, ''
+            if result == wxID_YES:
+                return None, None
+            if result == wxID_OK:
+                idx = resDlg.resources.selected
+                return idx, resDlg.resources.imageSrcInfo[idx][0]
+            return -1, ''
+        finally:
+            resDlg.Destroy()
+
+    def assureResourceLoaded(self, importName, imageName):
+        model = self.companion.designer.model
+        if model.assureResourceLoaded(importName, model.resources,
+              specialAttrs=model.specialAttrs):
+            src = self.getSrcForResPath(importName, imageName)
+            value = self.companion.eval(src)
+            bmpPath = os.path.join(importName, imageName, 'ResourceModule')
+            self.companion.registerResourceModule(importName)
+            
+            return src, value, bmpPath
+        else:
+            wxLogError('%s could not be loaded as a Resource Module'%importName)
+            return '', None, ''
 
 
 class BitmapConstrPropEdit(IntConstrPropEdit, BitmapPropEditMix):
@@ -564,24 +697,82 @@ class BitmapConstrPropEdit(IntConstrPropEdit, BitmapPropEditMix):
         self.editorCtrl.createControl(self.parent, self.idx, self.width, self.edit)
 
     def edit(self, event):
-        dummy, dir, name = self.extractPathFromSrc(self.value)
-        abspth, pth, tpe = self.showImgDlg(dir, name)
-        if abspth:
+        model = self.companion.designer.model
+        dummy, dir, name, tpe = self.extractPathFromSrc(self.value)
+        abspth, pth, tpe = self.showImgDlg(dir, name, tpe)
+        if not tpe:
+            return
+        elif tpe == 'ResourceModule':
+            self.value, ctrlVal, bmpPath = self.assureResourceLoaded(abspth, pth)
+        elif abspth:
             self.value = 'wxBitmap(%s, %s)'%(`pth`, tpe)
-            #v = self.getValue()
-            #cv = self.getCtrlValue()
-            #self.setCtrlValue(cv, v)
-            self.persistValue(self.value)
-            # manually update ctrl
-            self.propWrapper.setValue(wxBitmap(abspth, getattr(wx, tpe)),
-                  self.companion.index)
-            self.refreshCompCtrl()
+            ctrlVal = wxBitmap(abspth, getattr(wx, tpe))
+
+        self.persistValue(self.value)
+        self.propWrapper.setValue(ctrlVal, self.companion.index)
+        self.refreshCompCtrl()
 
     def getValue(self):
         if self.editorCtrl:
             return self.value
         else:
             return self.getCtrlValue()
+
+class BitmapPropEdit(PropertyEditor, BitmapPropEditMix):
+    def __init__(self, name, parent, companion, rootCompanion, propWrapper, idx, width, options = None, names = None):
+        PropertyEditor.__init__(self, name, parent, companion, rootCompanion, propWrapper, idx, width)
+
+##    def getStyle(self):
+##        return ClassPropEdit.getStyle(self) + [esDialog, esReadOnly]
+
+    def getDisplayValue(self):
+        return '(wxBitmapPtr)'
+
+    def inspectorEdit(self):
+        self.editorCtrl = ButtonIEC(self, self.value)
+        self.editorCtrl.createControl(self.parent, self.idx, self.width, self.edit)
+        constrs = self.companion.constructor()
+        if constrs.has_key(self.name):
+            constr = self.companion.textConstr.params[constrs[self.name]]
+        else:
+            constr = self.companion.persistedPropVal(self.name, 
+                  self.propWrapper.getSetterName())
+
+        self.bmpPath = self.extractPathFromSrc(constr)[0]
+
+    def edit(self, event):
+        if self.bmpPath:
+            path, tpe = os.path.split(self.bmpPath)
+            dir, name = os.path.split(path)
+        else:
+            dir, name, tpe = '.', '', 'Bitmap'
+
+        abspth, pth, tpe = self.showImgDlg(dir, name, tpe)
+        if not tpe or not abspth:
+            return
+        if tpe == 'ResourceModule':
+            self.value, self.bmpPath = self.assureResourceLoaded(abspth, pth)[1:]
+        else:
+            self.value = wxBitmap(abspth, getattr(wx, tpe))
+            self.bmpPath = os.path.join(pth, 'Bitmap')
+        self.inspectorPost(false)
+
+    def getValue(self):
+        return self.value
+
+    def valueAsExpr(self):
+        if self.bmpPath:
+            path, tpe = os.path.split(self.bmpPath)
+            dir, name = os.path.split(path)
+            if tpe == 'Bitmap':
+                return 'wxBitmap(%s, %s)'%(`self.bmpPath`,
+                    self.extTypeMap[os.path.splitext(self.bmpPath)[-1].lower()])
+            elif tpe == 'ResourceModule':
+                return self.getSrcForResPath(dir, name)
+            else:
+                raise Exception, 'Unhandled image handling type: %s'%tpe
+        else:
+            return 'wxNullBitmap'
 
 
 class EnumConstrPropEdit(IntConstrPropEdit):
@@ -714,22 +905,36 @@ class ObjEnumConstrPropEdit(EnumConstrPropEdit):
         return vals
 
 class WinEnumConstrPropEdit(ObjEnumConstrPropEdit):
-    def setCtrlValue(self, oldValue, value):
-        self.companion.SetOtherWin(value)
+    def getObjects(self):
+        return ['None'] + self.companion.designer.getObjectsOfClassWithParent(
+                                wxWindowPtr, self.companion.name).keys()
     def getCtrlValue(self):
         return self.companion.GetOtherWin()
-    def getValues(self):
-        return ['None'] + ObjEnumConstrPropEdit.getValues(self)
+    def setCtrlValue(self, oldValue, value):
+        self.companion.SetOtherWin(value)
 
 class MenuEnumConstrPropEdit(ObjEnumConstrPropEdit):
     def getValues(self):
         return ['wxMenu()'] + ObjEnumConstrPropEdit.getValues(self)
     def getObjects(self):
-        return self.companion.designer.getObjectsOfClass(wxMenu).keys()
+        menus = self.companion.designer.getObjectsOfClass(wxMenu).keys()
+        if isinstance(self.companion.control, wxMenu):
+            menus.remove(Utils.srcRefFromCtrlName(self.companion.name))
+        return menus
     def setCtrlValue(self, oldValue, value):
         self.companion.SetMenu(value)
     def getCtrlValue(self):
         return self.companion.GetMenu()
+
+##class ControlEnumConstrPropEdit(ObjEnumConstrPropEdit):
+####    def getValues(self):
+####        return ['wxMenu()'] + ObjEnumConstrPropEdit.getValues(self)
+##    def getObjects(self):
+##        return self.companion.designer.getObjectsOfClass(wxControl).keys()
+##    def setCtrlValue(self, oldValue, value):
+##        self.companion.SetControl(value)
+##    def getCtrlValue(self):
+##        return self.companion.GetControl()
 
 class SizerEnumConstrPropEdit(ObjEnumConstrPropEdit):
 ##    def getValues(self):
@@ -742,7 +947,12 @@ class SizerEnumConstrPropEdit(ObjEnumConstrPropEdit):
 ##        return self.companion.GetMenu()
 
 
-class BaseFlagsConstrPropEdit(IntConstrPropEdit):
+class BaseFlagsConstrPropEdit(ConstrPropEdit):
+    def inspectorEdit(self):
+        self.editorCtrl = TextCtrlIEC(self, self.value)
+        self.editorCtrl.createControl(self.parent, self.value, self.idx,
+          self.width)
+
     def getStyle(self):
         return [esExpandable]
 
@@ -899,8 +1109,6 @@ class EventPropEdit(OptionedPropEdit):
         self.editorCtrl.setValue(self.value)
 
     def setCtrlValue(self, oldValue, value):
-##        self.companion.checkTriggers(self.name, oldValue, value)
-
         self.propWrapper.setValue(value, self.name)
 
     def getDisplayValue(self):
@@ -1021,7 +1229,14 @@ class BITPropEditor(FactoryPropEdit):
         return self.value
 
 class IntPropEdit(BITPropEditor):
-    pass
+    def inspectorEdit(self):
+        self.editorCtrl = SpinCtrlIEC(self, self.value)
+        self.editorCtrl.createControl(self.parent, self.value, self.idx, self.width)
+
+    def getValue(self):
+        if self.editorCtrl:
+            self.value = self.editorCtrl.getValue()
+        return self.value
 
 class StrPropEdit(BITPropEditor):
     def valueToIECValue(self):
@@ -1160,17 +1375,10 @@ class ClassLinkPropEdit(OptionedPropEdit):
         for k, v in self.defaults.items():
             if self.value == v:
                 return k
-
         objs = self.companion.designer.getObjectsOfClass(self.linkClass)
         for objName in objs.keys():
-            if `objs[objName]` == `self.value`:
+            if objs[objName] and self.value and objs[objName].this == self.value.this:
                 return objName
-        # Ok lets try again ;\
-##        if hasattr(self.value, 'GetId'):
-##            for objName in objs.keys():
-##                if objs[objName].GetId() == self.value.GetId():
-##                    return objName
-        #print 'ClassLinkPropEdit: ', self.value, 'not found'
         return `None`
     def inspectorEdit(self):
         self.editorCtrl = ChoiceIEC(self, self.value)
@@ -1201,36 +1409,32 @@ class WindowClassLinkPropEdit(ClassLinkPropEdit):
     linkClass = wxWindowPtr
 
 class WindowClassLinkWithParentPropEdit(WindowClassLinkPropEdit):
-    linkClass = wxWindowPtr
     def getValues(self):
         return ['None'] + self.companion.designer.getObjectsOfClassWithParent(self.linkClass, self.companion.name).keys()
 
 class StatusBarClassLinkPropEdit(ClassLinkPropEdit):
-    linkClass = wxStatusBar
+    linkClass = wxStatusBarPtr
 
 class ToolBarClassLinkPropEdit(ClassLinkPropEdit):
-    linkClass = wxToolBar
+    linkClass = wxToolBarBasePtr
 
 class MenuBarClassLinkPropEdit(ClassLinkPropEdit):
-    linkClass = wxMenuBar
+    linkClass = wxMenuBarPtr
 
 class ImageListClassLinkPropEdit(ClassLinkPropEdit):
-    linkClass = wxImageList
+    linkClass = wxImageListPtr
 
 class SizerClassLinkPropEdit(ClassLinkPropEdit):
-    linkClass = wxBoxSizer
+    linkClass = wxSizerPtr
 
 class ButtonClassLinkPropEdit(ClassLinkPropEdit):
-    linkClass = wxButton
+    linkClass = wxButtonPtr
 
 class CursorClassLinkPropEdit(ClassLinkPropEdit):
     defaults = {'None': wxNullCursor, 'wxSTANDARD_CURSOR': wxSTANDARD_CURSOR,
                 'wxHOURGLASS_CURSOR': wxHOURGLASS_CURSOR,
                 'wxCROSS_CURSOR': wxCROSS_CURSOR}
     linkClass = wxCursorPtr
-##    def getValues(self):
-##        vals = ClassLinkPropEdit.getValues(self)
-##        return vals + ['wxSTANDARD_CURSOR', 'wxHOURGLASS_CURSOR', 'wxCROSS_CURSOR']
 
 class ListCtrlImageListClassLinkPropEdit(ImageListClassLinkPropEdit):
     listTypeMap = {wxIMAGE_LIST_SMALL : 'wxIMAGE_LIST_SMALL',
@@ -1239,9 +1443,8 @@ class ListCtrlImageListClassLinkPropEdit(ImageListClassLinkPropEdit):
         if self.value[0] is None: return `None`
         objs = self.companion.designer.getObjectsOfClass(self.linkClass)
         for objName in objs.keys():
-            if `objs[objName]` == `self.value[0]`:
+            if objs[objName] and self.value[0] and objs[objName].this == self.value[0].this:
                 return objName
-        print 'ClassLinkPropEdit: ', self.value[0], 'not found'
         return `None`
 
     def inspectorEdit(self):
@@ -1441,50 +1644,9 @@ class AnchorPropEdit(OptionedPropEdit):
             return 'LayoutAnchors(self.%s, %s, %s, %s, %s)'%(self.companion.name,
                 l and 'True' or 'False', t and 'True' or 'False',
                 r and 'True' or 'False', b and 'True' or 'False')
-
-
-class BitmapPropEdit(PropertyEditor, BitmapPropEditMix):
-    def __init__(self, name, parent, companion, rootCompanion, propWrapper, idx, width, options = None, names = None):
-        PropertyEditor.__init__(self, name, parent, companion, rootCompanion, propWrapper, idx, width)
-
-##    def getStyle(self):
-##        return ClassPropEdit.getStyle(self) + [esDialog, esReadOnly]
-
-    def getDisplayValue(self):
-        return '(wxBitmapPtr)'
-
-    def inspectorEdit(self):
-        self.editorCtrl = ButtonIEC(self, self.value)
-        self.editorCtrl.createControl(self.parent, self.idx, self.width, self.edit)
-        constrs = self.companion.constructor()
-        if constrs.has_key(self.name):
-            constr = self.companion.textConstr.params[constrs[self.name]]
         else:
-            constr = self.companion.persistedPropVal(self.name, self.propWrapper.getSetterName())
+            return 'None'
 
-        self.bmpPath, dir, name = self.extractPathFromSrc(constr)
-
-    def edit(self, event):
-        if self.bmpPath:
-            dir, name = os.path.split(self.bmpPath)
-        else:
-            dir, name = '.', ''
-
-        abspth, pth, tpe = self.showImgDlg(dir, name)
-        if abspth:
-            self.value = wxBitmap(abspth, getattr(wx, tpe))
-            self.bmpPath = pth
-            self.inspectorPost(false)
-
-    def getValue(self):
-        return self.value
-
-    def valueAsExpr(self):
-        if self.bmpPath:
-            return 'wxBitmap(%s, %s)'%(`self.bmpPath`,
-                    self.extTypeMap[os.path.splitext(self.bmpPath)[-1].lower()])
-        else:
-            return 'wxNullBitmap'
 
 class SashVisiblePropEdit(BoolPropEdit):
     sashEdgeMap = {wxSASH_LEFT: 'wxSASH_LEFT', wxSASH_TOP: 'wxSASH_TOP',
@@ -1559,7 +1721,7 @@ def registerEditors(reg):
         elif theType == 'Class':
             reg.registerClasses(theClass, editors)
 
-registeredTypes = [\
+registeredTypes = [
     ('Type', IntType, [IntPropEdit]),
     ('Type', StringType, [StrPropEdit]),
     ('Type', TupleType, [TuplePropEdit]),
