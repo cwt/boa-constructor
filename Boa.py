@@ -539,6 +539,7 @@ class BoaApp(wxApp):
         finally:
             abt.Destroy()
             del abt
+            #pass
 
         # Apply command line switches
         if doDebug and startupModules:
