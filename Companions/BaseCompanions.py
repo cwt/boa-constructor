@@ -369,7 +369,11 @@ class DesignTimeCompanion(Companion):
 
     def addIds(self, lst):
         if self.id is not None:
-            lst.append(self.id)
+            if self.id in EventCollections.reservedWxIds:
+                name, wId = self.newUnusedItemNames(0)
+            else:
+                wId = self.id
+            lst.append(wId)
 
     def renameEventListIds(self, wId):
         for evt in self.textEventList:
@@ -1226,7 +1230,10 @@ class CollectionIddDTC(CollectionDTC):
 
     def addIds(self, lst):
         for constr in self.textConstrLst:
-            lst.append(constr.params[self.idProp])
+            wId = constr.params[self.idProp]
+            if wId in EventCollections.reservedWxIds:
+                name, wId = self.newUnusedItemNames(0)
+            lst.append(wId)
 
     def appendItem(self):
         CollectionDTC.appendItem(self)
