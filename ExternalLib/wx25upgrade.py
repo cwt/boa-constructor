@@ -1,6 +1,7 @@
 # Boa file upgrade helper.
 # paul sorenson Feb 2005
-# WARNING - changes files, take care.
+# WARNING - changes files, take care!
+
 # requires: pyparsing
 # usage: python wx25upgrade myFrame.py > myNewFrame.py
 # Current status: concept demonstrator
@@ -15,8 +16,12 @@
 # - changes the classes from wxName to wx.Name
 #   check "self.specialNames" to see which special cases are handled
 # - changes the 'init' from wxName.__init to wx.Name.__init
-# - changes 'from wxPython.wx import *' to new format
 #   check "self.importNames" to see which imports are handled
+# - true and false to True and False
+# - SetStatusText "(i=" keyword to "(number="
+# - AddSpacer "n, n" to wx.Size(n, n)
+# - flag= i.e. flag=wxALL
+# - style= i.e. style=wxDEFAULT_DIALOG_STYLE
 #
 #
 # A lot is converted however manual inspection and correction of code
@@ -29,7 +34,9 @@ def orLit(a, b): return a ^ b
 
 class Upgrade:
     def __init__(self):
-        specialEventCode = True # see below
+        # Set to True if you want to convert non Boa generated events
+        # which contain "control.GetId()"
+        specialEventCode = True
         self.specialNames = {'GenButton': 'wx.lib.buttons.GenButton',
                              'StyledTextCtrl': 'wx.stc.StyledTextCtrl',
                              'GenStaticText': 'wx.lib.stattext.GenStaticText',
@@ -66,6 +73,12 @@ class Upgrade:
         qualIdent = Word(alphanums+"_.")
         qualIdent2 = Word(alphanums+"_.()")
         qualIdent3 = Word(alphanums+"_. *")
+        intOnly = Word(nums)
+        uident2 = Word(string.ascii_uppercase+"_123456789")
+        wxExp = Literal("wx").suppress()
+        flagExp = (wxExp+uident2)
+        flags = delimitedList(flagExp, delim='|')
+        
         # 2 Parameter evt macros.
         evt_P2 = Literal("EVT_") + uident + LPAREN +\
             qualIdent + COMMA +\
@@ -98,6 +111,26 @@ class Upgrade:
             + karg + COMMA + karg + RPAREN
         append.setParseAction(self.appendAction)
 
+        # SetStatusText keyword args
+        setStatusText = Literal(".SetStatusText").suppress() \
+            + LPAREN + ident + EQ + intOnly
+        setStatusText.setParseAction(self.setStatusTextAction)
+
+        # AddSpacer keyword args
+        addSpacer = Literal(".AddSpacer").suppress() \
+            + LPAREN + intOnly + COMMA + intOnly
+        addSpacer.setParseAction(self.addSpacerAction)
+
+        # Flag
+        flag = Literal("flag=").suppress() \
+            + flags
+        flag.setParseAction(self.flagAction)
+
+        # Style
+        style = Literal("style=").suppress() \
+            + flags
+        style.setParseAction(self.styleAction)
+
         # wxNewId() to wx.NewId()
         repId1 = Literal("map(lambda _init_ctrls: wxNewId()") +\
                 COMMA + "range(" + ident + RPAREN + RPAREN
@@ -112,7 +145,7 @@ class Upgrade:
         imp.setParseAction(self.impAction)
 
         # wx to wx. e.g. wxFrame1(wxFrame)to wxFrame1(wx.Frame)
-        repWX = Literal("wx") + ident + ")"
+        repWX = Literal("(wx") + ident + ")"
         repWX.setParseAction(self.repWXAction)
         
         # wx to wx. e.g. self.panel1 = wxPanel to self.Panel1 = wx.Panel
@@ -123,12 +156,25 @@ class Upgrade:
         repWX3 = Literal("wx") + ident + ".__"
         repWX3.setParseAction(self.repWX3Action)
 
+        # true to True
+        repTrue = Literal("true")
+        repTrue.setParseAction(self.trueAction)
+
+        # false to False
+        repFalse = Literal("false")
+        repFalse.setParseAction(self.falseAction)
+
+        # changed from ^ to ^, i.e. instead of doing OR match it does MatchFirst
+        # as the things we are looking to convert are unique that should do
+        # maybe a bit faster, but I did not notice a difference 
         if specialEventCode == False:
             self.grammar = evt_P2 ^ evt_P3 ^ append ^ repId1 ^ repId2 ^ imp\
-                ^ repWX ^ repWX2 ^ repWX3
+                ^ repWX ^ repWX2 ^ repWX3 ^ repTrue ^ repFalse ^ setStatusText\
+                ^ addSpacer ^ flag ^ style
         else:
             self.grammar = evt_P2 ^ evt_P3 ^ append ^ repId1 ^ repId2 ^ imp\
-                ^ repWX ^ repWX2 ^ repWX3 ^ evt_P3a 
+                ^ repWX ^ repWX2 ^ repWX3 ^ evt_P3a ^ repTrue ^ repFalse\
+                ^ setStatusText ^ addSpacer ^ flag ^ style
 
     def evt_P2Action(self, s, l, t):
         ev, evname, win, fn = t
@@ -159,6 +205,34 @@ class Upgrade:
         result = '.Append(' + string.join(arglist, ', ') + ')'
         return result
 
+    def setStatusTextAction(self, s, l, t):
+        a, b = t
+        return '.SetStatusText(' + "number" + "=" + b
+
+    def addSpacerAction(self, s, l, t):
+        a, b = t
+        return ".AddSpacer(wx.Size("+a+","+b+")"
+    
+    def flagAction(self, s, l, t):
+        first = False
+        temp = ""
+        for flag in t:
+            if first == True:
+                temp = temp + "|"
+            first = True
+            temp = temp + "wx." +flag
+        return "flag="+temp
+    
+    def styleAction(self, s, l, t):
+        first = False
+        temp = ""
+        for flag in t:
+            if first == True:
+                temp = temp + "|"
+            first = True
+            temp = temp + "wx." +flag
+        return "style="+temp
+
     def repId1Action(self, s, l, t):
         a, b, c = t
         return "[wx.NewId() for _init_ctrls in range("+c+")]"
@@ -173,14 +247,14 @@ class Upgrade:
             newImport = self.importNames[b]
             return newImport
         except KeyError:
-            pass
+            return a+b
     
     def repWXAction(self, s, l, t):
         if len(t) == 1:
             return
         else:
             a, b, c = t
-            return "wx."+b+c
+            return "(wx."+b+c
 
     def repWX2Action(self, s, l, t):
         a, b, c = t
@@ -193,6 +267,12 @@ class Upgrade:
     def repWX3Action(self, s, l, t):
         a, b, c = t
         return "wx."+b+c
+
+    def trueAction(self, s, l, t):
+        return "True"
+
+    def falseAction(self, s, l, t):
+        return "False"
 
     def scanner(self, text):
         '''
