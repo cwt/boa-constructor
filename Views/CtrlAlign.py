@@ -18,28 +18,54 @@ from wxPython.wx import *
 def create(parent):
     return ControlAlignmentFrame(parent)
 
-[wxID_CONTROLALIGNMENTFRAME, wxID_CONTROLALIGNMENTFRAMECANCELBTN, wxID_CONTROLALIGNMENTFRAMEOKBTN, wxID_CONTROLALIGNMENTFRAMEPANEL1, wxID_CONTROLALIGNMENTFRAMERADIOBOX1, wxID_CONTROLALIGNMENTFRAMERADIOBOX2] = map(lambda _init_ctrls: wxNewId(), range(6))
+[wxID_CONTROLALIGNMENTFRAME, wxID_CONTROLALIGNMENTFRAMECANCELBTN, 
+ wxID_CONTROLALIGNMENTFRAMEOKBTN, wxID_CONTROLALIGNMENTFRAMEPANEL1, 
+ wxID_CONTROLALIGNMENTFRAMERADIOBOX1, wxID_CONTROLALIGNMENTFRAMERADIOBOX2, 
+] = map(lambda _init_ctrls: wxNewId(), range(6))
 
 class ControlAlignmentFrame(wxDialog):
     def _init_utils(self):
+        # generated method, don't edit
         pass
 
     def _init_ctrls(self, prnt):
-        wxDialog.__init__(self, id = wxID_CONTROLALIGNMENTFRAME, name = 'ControlAlignmentFrame', parent = prnt, pos = wxPoint(341, 140), size = wxSize(328, 219), style = wxDEFAULT_DIALOG_STYLE, title = 'Alignment')
+        # generated method, don't edit
+        wxDialog.__init__(self, id=wxID_CONTROLALIGNMENTFRAME,
+              name='ControlAlignmentFrame', parent=prnt, pos=wxPoint(341, 140),
+              size=wxSize(328, 219), style=wxDEFAULT_DIALOG_STYLE,
+              title='Alignment')
         self._init_utils()
         self.SetClientSize(wxSize(320, 192))
 
-        self.panel1 = wxPanel(id = wxID_CONTROLALIGNMENTFRAMEPANEL1, name = 'panel1', parent = self, pos = wxPoint(0, 0), size = wxSize(320, 192), style = wxTAB_TRAVERSAL)
+        self.panel1 = wxPanel(id=wxID_CONTROLALIGNMENTFRAMEPANEL1,
+              name='panel1', parent=self, pos=wxPoint(0, 0), size=wxSize(320,
+              192), style=wxTAB_TRAVERSAL)
 
-        self.radioBox1 = wxRadioBox(choices = ['No change', 'Left sides', 'Centers', 'Right sides', 'Space equally'], id = wxID_CONTROLALIGNMENTFRAMERADIOBOX1, label = 'Horizontal', majorDimension = 1, name = 'radioBox1', parent = self.panel1, point = wxPoint(8, 8), size = wxSize(144, 144), style = wxRA_SPECIFY_COLS, validator = wxDefaultValidator)
+        self.radioBox1 = wxRadioBox(choices=['No change', 'Left sides',
+              'Centers', 'Right sides', 'Space equally'],
+              id=wxID_CONTROLALIGNMENTFRAMERADIOBOX1, label='Horizontal',
+              majorDimension=1, name='radioBox1', parent=self.panel1,
+              point=wxPoint(8, 8), size=wxSize(144, 144),
+              style=wxRA_SPECIFY_COLS, validator=wxDefaultValidator)
 
-        self.okBtn = wxButton(id = wxID_CONTROLALIGNMENTFRAMEOKBTN, label = 'OK', name = 'okBtn', parent = self.panel1, pos = wxPoint(160, 160), size = wxSize(72, 24), style = 0)
-        EVT_BUTTON(self.okBtn, wxID_CONTROLALIGNMENTFRAMEOKBTN, self.OnOkbtnButton)
+        self.okBtn = wxButton(id=wxID_CONTROLALIGNMENTFRAMEOKBTN, label='OK',
+              name='okBtn', parent=self.panel1, pos=wxPoint(160, 160),
+              size=wxSize(72, 24), style=0)
+        EVT_BUTTON(self.okBtn, wxID_CONTROLALIGNMENTFRAMEOKBTN,
+              self.OnOkbtnButton)
 
-        self.cancelBtn = wxButton(id = wxID_CONTROLALIGNMENTFRAMECANCELBTN, label = 'Cancel', name = 'cancelBtn', parent = self.panel1, pos = wxPoint(240, 160), size = wxSize(72, 24), style = 0)
-        EVT_BUTTON(self.cancelBtn, wxID_CONTROLALIGNMENTFRAMECANCELBTN, self.OnCancelbtnButton)
+        self.cancelBtn = wxButton(id=wxID_CONTROLALIGNMENTFRAMECANCELBTN,
+              label='Cancel', name='cancelBtn', parent=self.panel1,
+              pos=wxPoint(240, 160), size=wxSize(72, 24), style=0)
+        EVT_BUTTON(self.cancelBtn, wxID_CONTROLALIGNMENTFRAMECANCELBTN,
+              self.OnCancelbtnButton)
 
-        self.radioBox2 = wxRadioBox(choices = ['No change', 'Tops', 'Centers', 'Bottoms', 'Space equally'], id = wxID_CONTROLALIGNMENTFRAMERADIOBOX2, label = 'Vertical', majorDimension = 1, name = 'radioBox2', parent = self.panel1, point = wxPoint(160, 8), size = wxSize(152, 144), style = wxRA_SPECIFY_COLS, validator = wxDefaultValidator)
+        self.radioBox2 = wxRadioBox(choices=['No change', 'Tops', 'Centers',
+              'Bottoms', 'Space equally'],
+              id=wxID_CONTROLALIGNMENTFRAMERADIOBOX2, label='Vertical',
+              majorDimension=1, name='radioBox2', parent=self.panel1,
+              point=wxPoint(160, 8), size=wxSize(152, 144),
+              style=wxRA_SPECIFY_COLS, validator=wxDefaultValidator)
 
     def __init__(self, parent, selection):
         self._init_ctrls(parent)
@@ -112,3 +138,14 @@ class ControlAlignmentFrame(wxDialog):
 
     def OnCancelbtnButton(self, event):
         self.EndModal(wxCANCEL)
+
+
+if __name__ == '__main__':
+    app = wxPySimpleApp()
+    wxInitAllImageHandlers()
+    dlg = ControlAlignmentFrame(None, [])
+    try:
+        dlg.ShowModal()
+    finally:
+        dlg.Destroy()
+    app.MainLoop()
