@@ -138,6 +138,4 @@ class SizersView(DataView):
         
 
 # to silence deprecation warings
-wxSizer.AddWindow = wxSizer.Add
-wxSizer.AddSizer = wxSizer.Add
-wxSizer.AddSpacer = wxSizer.Add
+wxSizer.AddWindow = wxSizer.AddSizer = wxSizer.AddSpacer = wxSizer.Add
