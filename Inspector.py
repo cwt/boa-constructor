@@ -19,12 +19,14 @@
 
 from wxPython.wx import *
 import PaletteMapping, sender, Preferences, Help
+print 'importing PropertyEditors'
 from PropEdit import PropertyEditors
 from types import *
 from Companions.EventCollections import *
 from Utils import AddToolButtonBmpIS
 import Preferences, RTTI
 from Preferences import IS, oiLineHeight, oiNamesWidth, inspPageNames, flatTools
+print 'zpd'
 from ZopeLib import PropDlg
 
 scrollBarWidth = 0
@@ -74,6 +76,7 @@ class InspectorFrame(wxFrame):
         self.vetoSelect = false
         self.selObj = None
         self.selCmp = None
+        self.selDesgn = None
         self.prevDesigner = None 
         
         self.toolBar = self.CreateToolBar(wxTB_HORIZONTAL|wxNO_BORDER|flatTools|wxCLIP_CHILDREN)#|wxTB_FLAT
@@ -84,11 +87,13 @@ class InspectorFrame(wxFrame):
         AddToolButtonBmpIS(self, self.toolBar, 'Images/Shared/Delete.bmp', 
           'Delete selection', self.OnDelete)
         AddToolButtonBmpIS(self, self.toolBar, 'Images/Shared/Cut.bmp', 
-          'Cut (not implemented)', self.OnCut)
+          'Cut selection', self.OnCut)
         AddToolButtonBmpIS(self, self.toolBar, 'Images/Shared/Copy.bmp', 
-          'Copy (not implemented)', self.OnCopy)
+          'Copy selection', self.OnCopy)
         AddToolButtonBmpIS(self, self.toolBar, 'Images/Shared/Paste.bmp', 
-          'Paste (not implemented)', self.OnPaste)
+          'Paste selection', self.OnPaste)
+        AddToolButtonBmpIS(self, self.toolBar, 'Images/Editor/Refresh.bmp', 
+          'Recreate selection', self.OnRecreateSelection)
         self.toolBar.AddSeparator()
         AddToolButtonBmpIS(self, self.toolBar, 'Images/Shared/NewItem.bmp', 
           'New item', self.OnNewItem)
@@ -123,6 +128,11 @@ class InspectorFrame(wxFrame):
 
 	EVT_CLOSE(self, self.OnCloseWindow)
         
+    def multiSelectObject(self, compn, designer):
+        self.selCmp = compn
+        self.selDesgn = designer
+        self.selObj = None
+
     def selectObject(self, compn, selectInContainment = true):
         """ Select an object in the inspector by populating the property
             pages. This method is called from the InspectableObjectCollection
@@ -149,13 +159,14 @@ class InspectorFrame(wxFrame):
         self.prevDesigner = compn.designer
 
         self.selCmp = compn
+        self.selDesgn = compn.designer
         self.selObj = compn.control
 
         self.statusBar.SetStatusText(compn.name)
         # Update progress inbetween building of property pages
         # Is this convoluted or what :)
-        if self.selCmp.designer:
-            sb = self.selCmp.designer.model.editor.statusBar.progress
+        if self.selDesgn:
+            sb = self.selDesgn.model.editor.statusBar.progress
         else: sb = None
         
         if sb: sb.SetValue(10)
@@ -202,9 +213,10 @@ class InspectorFrame(wxFrame):
     # While multiple components are selected the inspector does not persist
     # selected control value changes
     def directPositionUpdate(self, comp):
-        comp.persistProp(comp.name, 'SetPosition', comp.control.GetPosition())
+        print 'directPositionUpdate', comp.name
+        comp.persistProp('Position', 'SetPosition', `comp.control.GetPosition()`)
     def directSizeUpdate(self, comp):
-        comp.persistProp(comp.name, 'SetSize', comp.control.GetSize())
+        comp.persistProp('Size', 'SetSize', `comp.control.GetSize()`)
 
     def selectedCtrlHelpFile(self):
         """ Return the help file/link associated with the selected control """
@@ -214,6 +226,7 @@ class InspectorFrame(wxFrame):
     def cleanup(self):
         self.selCmp = None
         self.selObj = None
+        self.selDesgn = None
         self.constr.cleanup()
         self.props.cleanup()
         self.events.cleanup()
@@ -229,34 +242,37 @@ class InspectorFrame(wxFrame):
         event.Skip()
     
     def OnDelete(self, event):
-        if self.selCmp and self.selCmp.designer:
-            self.selCmp.designer.deleteCtrl(self.selCmp.name)
-##            if self.pages.GetPageText(self.pages.GetSelection()) == 'Parents':
-##                self.containment.SetFocus()
-    
+        if self.selDesgn:
+            self.selDesgn.OnControlDelete(event)
+#            self.selCmp.designer.deleteCtrl(self.selCmp.name)
     def OnUp(self, event):
-        if self.selCmp and self.selCmp.designer:
-            self.selCmp.designer.selectParent(self.selObj)
-
+        if self.selDesgn:
+            self.selDesgn.OnSelectParent(event)#selectParent(self.selObj)
     def OnCut(self, event):
-        pass
+        if self.selDesgn:
+            self.selDesgn.OnCutSelected(event)
     def OnCopy(self, event):
-        pass
+        if self.selDesgn:
+            self.selDesgn.OnCopySelected(event)
     def OnPaste(self, event):
-        pass
+        if self.selDesgn:
+            self.selDesgn.OnPasteSelected(event)
+    def OnRecreateSelection(self, event):
+        if self.selDesgn:
+            self.selDesgn.OnRecreateSelected(event)
     
     def OnPost(self, event):
-        if self.selCmp and self.selCmp.designer:
-            self.selCmp.designer.saveOnClose = true
-            self.selCmp.designer.Close()
+        if self.selDesgn:
+            self.selDesgn.saveOnClose = true
+            self.selDesgn.Close()
     
     def OnCancel(self, event):
-        if self.selCmp and self.selCmp.designer:
-            self.selCmp.designer.saveOnClose = false
-            self.selCmp.designer.Close()
+        if self.selDesgn:
+            self.selDesgn.saveOnClose = false
+            self.selDesgn.Close()
 
     def OnHelp(self, event):
-        if self.selCmp and self.selCmp.designer:
+        if self.selDesgn:
             url = self.pages.extendHelpUrl(self.selectedCtrlHelpFile())
             Help.showHelp(self, Help.wxWinHelpFrame, url)
         else:
@@ -546,6 +562,7 @@ class PropNameValue(NameValue):
     """ Name value for properties, usually Get/Set methods, but can also be
         routed to Companion methods """
     def initFromComponent(self):
+        """ Update Inspector after possible change to underlying control """
         if self.propEditor: 
             self.propEditor.initFromComponent()
             if not self.propEditor.editorCtrl:
