@@ -25,9 +25,6 @@ from types import StringType
 from Zope.ZopeFTP import ZopeFTP
 from Zope import ImageViewer
 from Companions.ZopeCompanions import ZopeConnection, ZopeCompanion
-#import FileDlg
-
-# Zope explorer
 
 ctrl_pnl = 'Control_Panel'
 prods = 'Products'
