@@ -68,7 +68,6 @@ class BoaApp(wxApp):
 \tdef OnInit(self):
 \t\twxInitAllImageHandlers()
 \t\tself.main = %(mainModule)s.create(None)
-\t\t# needed when running from Boa under Windows 9X
 \t\tself.main.Show()
 \t\tself.SetTopWindow(self.main)
 \t\treturn True
