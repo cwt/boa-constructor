@@ -6,19 +6,17 @@
 #
 # Created:     1999
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999, 2000 Riaan Booysen
+# Copyright:   (c) 1999 - 2001 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
 
 import os, marshal
-from os import path
 
 from wxPython.wx import *
 from wxPython.html import *
 from wxPython.htmlhelp import *
 
 import Preferences, Utils
-from Preferences import IS, flatTools, keyDefs
 
 def tagEater(strg):
     res = ''
@@ -35,16 +33,19 @@ def tagEater(strg):
     return res
 
 def showMainHelp(bookname):
-    _hc.Display(bookname).ExpandBook(bookname)
+    getHelpController().Display(bookname).ExpandBook(bookname)
 
 def showCtrlHelp(wxClass, method=''):
-    _hc.Display(wxClass).ExpandCurrAsWxClass(method)
+    getHelpController().Display(wxClass).ExpandCurrAsWxClass(method)
     
 def showHelp(filename):
-    _hc.Display(filename)
+    getHelpController().Display(filename)
 
 def showContextHelp(parent, toolbar, word):
-    if word in sys.builtin_module_names:
+    if Utils.startswith(word, 'EVT_'):
+        word = 'wx%sEvent' % string.join(map(lambda s: string.capitalize(string.lower(s)), 
+                                string.split(word[4:], '_')), '')
+    elif word in sys.builtin_module_names:
         word = '%s (built-in module)'%word
     else:
         try:
@@ -54,7 +55,7 @@ def showContextHelp(parent, toolbar, word):
         else:
             if os.path.isfile('%s/%s.py'%(libPath, word)):
                 word = '%s (standard module)'%word
-    _hc.Display(word).IndexFind(word)
+    getHelpController().Display(word).IndexFind(word)
 
 def decorateWxPythonWithDocStrs(dbfile):
     namespace = Utils.getEntireWxNamespace()
@@ -62,25 +63,25 @@ def decorateWxPythonWithDocStrs(dbfile):
     try:
         db = marshal.load(open(dbfile, 'rb'))
     except IOError:
-        pass
+        print 'wxPython Doc strings: %s failed to load'%dbfile
     else:
         for name, doc in db['classes'].items():
             try:
-                wxClass = eval(name, namespace)
+                wxClass = namespace[name]
                 wxClass.__doc__ = doc
     
-                wxClass = eval(name+'Ptr', namespace)
+                wxClass = namespace[name+'Ptr']
                 wxClass.__doc__ = doc
             except:
                 pass
     
         for name, doc in db['methods'].items():
             try:
-                wxMeth = eval(name, namespace)
-                wxMeth.im_func.__doc__ = doc
-    
                 cls, mth = string.split(name, '.')
-                wxMeth = eval(string.join((cls+'Ptr', mth), '.'), namespace)
+                wxMeth = getattr(namespace[cls], mth)
+                wxMeth.im_func.__doc__ = doc
+
+                wxMeth = getattr(namespace[cls+'Ptr'], mth)
                 wxMeth.im_func.__doc__ = doc
             except:
                 pass
@@ -89,6 +90,7 @@ class wxHtmlHelpControllerEx(wxHtmlHelpController):
     def Display(self, text):
         wxHtmlHelpController.Display(self, text)
         frameX = wxHelpFrameEx(self)
+        #frameX.restore()
         if frameX.frame.IsIconized():
             frameX.frame.Iconize(false)
         frameX.frame.Raise()
@@ -98,7 +100,7 @@ class wxHtmlHelpControllerEx(wxHtmlHelpController):
         # Fix config file if stored as minimised
         if config.ReadInt('hcX') == -32000:
             map(config.DeleteEntry, ('hcX', 'hcY', 'hcW', 'hcH'))
-
+        
         wxHtmlHelpController.UseConfig(self, config)
         self.config = config
 
@@ -113,7 +115,7 @@ class _CloseEvtHandler(wxEvtHandler):
         event.Skip()
         self.frame.PopEventHandler().Destroy()
         
-# Note, I think this works nicely because of OOR
+# Note, this works nicely because of OOR
 class wxHelpFrameEx:
     def __init__(self, helpctrlr):
         self.controller = helpctrlr
@@ -145,6 +147,9 @@ class wxHelpFrameEx:
 
         self.indexTextCtrl, self.indexShowAllBtn, self.indexFindBtn = \
               self.indexPanel.GetChildren()[:3]
+
+##    def restore(self):
+##        Utils.FrameRestorerMixin.restore(self.frame)
     
     def IndexFind(self, text):
         self.controller.DisplayIndex()
@@ -197,7 +202,12 @@ wxHF_DEFAULT_STYLE          = (wxHF_TOOLBAR | wxHF_CONTENTS | wxHF_INDEX | \
 
 _hc = None
 
-def initHelp():
+def getHelpController():
+    if not _hc:
+        initHelp()
+    return _hc
+
+def initHelp(calledAtStartup=false):
     jn = os.path.join
     global _hc
     docsDir = jn(Preferences.pyPath, 'Docs')
@@ -222,20 +232,31 @@ def initHelp():
     conf = Utils.createAndReadConfig('Explorer')
     books = eval(conf.get('help', 'books'), {})
     for book in books:
-        print 'Help: loading %s'% os.path.basename(book)
+        if calledAtStartup:
+            print 'Help: loading %s'% os.path.basename(book)
         _hc.AddBook(os.path.normpath(jn(docsDir, book+'.hhp')), 
          not os.path.exists(jn(docsDir, 'cache', 
-         os.path.basename(book)+'.hhp.cached')))
+         os.path.basename(book)+'.hhp.cached')) or not calledAtStartup)
 
+def initWxPyDocStrs():
+    docStrs = os.path.join(Preferences.pyPath, 'Docs', 'wxDocStrings.msh')
     decorateWxPythonWithDocStrs(docStrs)
-    
 
-if __name__ == '__main__':
-    app = wxPySimpleApp()
-    wxInitAllImageHandlers()
-    initHelp()
-    ##_hc.Display('Boa').IndexFind('reduce')
-    _hc.Display('Python Documentation').ExpandBook('Python Documentation')
-    app.MainLoop()
-    _hc.config.Flush()
- 
+def delHelp():
+    global _hc
+    if _hc: 
+        _hc.config.Flush()
+        f = _hc.GetFrame()
+        if f:
+            f.Close()
+            del f
+        _hc = None
+
+if __name__ == '__main__' or hasattr(wxApp, 'debugger'):
+    initWxPyDocStrs()
+##    app = wxPySimpleApp()
+##    wxInitAllImageHandlers()
+##    initHelp()
+##    ##_hc.Display('Boa').IndexFind('reduce')
+##    _hc.Display('Python Documentation').ExpandBook('Python Documentation')
+##    app.MainLoop()
