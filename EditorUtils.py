@@ -1,4 +1,4 @@
-import os, time, threading, Queue, socket
+import os, time, threading, string, socket
 
 from wxPython.wx import *
 import Preferences, Utils
@@ -433,13 +433,13 @@ class ModulePage:
 socketPort = 50007
 selectTimeout = 0.25
 class Listener(threading.Thread):
-    def __init__(self, queue, closed):
-        self.queue = queue
+    def __init__(self, editor, closed):
+        #self.queue = queue
+        self.editor = editor
         self.closed = closed
         threading.Thread.__init__(self)
 
     def run(self, host='127.0.0.1', port=socketPort):
-        #print 'running listner thread %d'%id(self)
         import socket
         from select import select
         # Open a socket and listen.
@@ -447,14 +447,9 @@ class Listener(threading.Thread):
         try:
             s.bind((host, port))
         except socket.error, err:
-            ##print 'Socket error', str(err)
-            # printing from thread not useful because it's async
-            ##if err[0] == 10048: # Address already in use
-            ##    print 'Already a Boa running as a server'
-            ##else:
-            ##    print 'Server mode not started:', err
             self.closed.set()
             return
+
         s.listen(5)
         while 1:
             while 1:
@@ -462,10 +457,10 @@ class Listener(threading.Thread):
                 # end thread by returning.
                 ready, dummy, dummy = select([s],[],[], selectTimeout)
                 if self.closed.isSet():
-                    #print 'closing listner thread %d'%id(self)
                     return
                 if ready:
                     break
+
             # Accept a connection, read the data and put it into the queue.
             conn, addr = s.accept()
             l = []
@@ -475,13 +470,13 @@ class Listener(threading.Thread):
                 l.append(data)
             name = ''.join(l)
             if string.strip(name):
-                self.queue.put(name)
+                Utils.wxCallAfter(self.editor.openOrGotoModule, name)
             conn.close()
 
 
-def socketFileOpenServerListen():
-    queue, closed = Queue.Queue(0), threading.Event()
-    return queue, closed, Listener(queue, closed).start()
+def socketFileOpenServerListen(editor):
+    closed = threading.Event()
+    return closed, Listener(editor, closed).start()
 
 
 if __name__ == '__main__':

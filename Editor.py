@@ -21,13 +21,6 @@ Models and their Views on ModulePages"""
 
 print 'importing Editor'
 
-# XXX The Editor should support the following event API
-# XXX It is event based to allow threads to access the Editor
-# XXX   wxOpenURIEvent
-# XXX   wxStatusUpdateEvent
-# XXX   wxRunURIEvent (ModRunner.EVT_EXEC_FINISH)
-# XXX   wxAddBrowseMarker
-
 # XXX Add a wxPython Class Browser entry to Windows menu
 
 import os, sys, string, pprint
@@ -263,9 +256,9 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
         self.mainMenu.Append(self.helpMenu, 'Help')
 
         if Preferences.suSocketFileOpenServer:
-            # Start listening for requests to open files. Listener will run, putting
-            # files to open into open_queue, until closed is set.
-            self.open_queue, self.closed, self.listener = socketFileOpenServerListen()
+            # Start listening for requests to open files. Listener will run, 
+            # passing filenames to openOrGotoModule, until closed is set.
+            self.closed, self.listener = socketFileOpenServerListen(self)
         else:
             self.closed = None
 
@@ -313,8 +306,6 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
         if self.closed:
             if self.closed.isSet():
                 print 'Not running in server mode'
-            elif self.closed:
-                EVT_IDLE(self, self.pollForOpen)
 
     def __repr__(self):
         return '<EditorFrame (Boa IDE) instance at %d>'%id(self)
@@ -727,6 +718,11 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
             # XXX This path broken for Zope because of Model keys
             controller = self.getController(Controllers.modelControllerReg.get(
                   model.__class__, Controllers.DefaultController))
+
+        if self.palette.IsShown():
+            self.palette.restore()
+        else:
+            self.restore()
 
         return model, controller
 
@@ -1430,23 +1426,6 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
     def OnWinDimsRestoreDefs(self, event):
         self.callOnIDEWindows(Utils.FrameRestorerMixin.restoreDefDims)
         self.setStatus('Window dimensions restored to defaults')
-
-#---Server idle polling method--------------------------------------------------
-    def pollForOpen(self, event=None):
-        opened = 0
-        while 1:
-            try:
-                name = self.open_queue.get(0)
-                self.openOrGotoModule(name)
-                opened = 1
-            except Queue.Empty:
-                break
-        if opened:
-            if self.palette.IsShown():
-                self.palette.restore()
-            else:
-                self.restore()
-
 
 
 if __name__ == '__main__':
