@@ -16,31 +16,31 @@ from wxPython.wx import *
 def create(parent):
     return ControlSizeFrame(parent)
 
-[wxID_CONTROLSIZEFRAMERADIOBOX2, wxID_CONTROLSIZEFRAMEWIDTHTC, wxID_CONTROLSIZEFRAMERADIOBOX1, wxID_CONTROLSIZEFRAMEPANEL1, wxID_CONTROLSIZEFRAMEOKBTN, wxID_CONTROLSIZEFRAMEHEIGHTTC, wxID_CONTROLSIZEFRAMECANCELBTN, wxID_CONTROLSIZEFRAME] = map(lambda _init_ctrls: wxNewId(), range(8))
+[wxID_CONTROLSIZEFRAME, wxID_CONTROLSIZEFRAMECANCELBTN, wxID_CONTROLSIZEFRAMEHEIGHTTC, wxID_CONTROLSIZEFRAMEOKBTN, wxID_CONTROLSIZEFRAMEPANEL1, wxID_CONTROLSIZEFRAMERADIOBOX1, wxID_CONTROLSIZEFRAMERADIOBOX2, wxID_CONTROLSIZEFRAMEWIDTHTC] = map(lambda _init_ctrls: wxNewId(), range(8))
 
 class ControlSizeFrame(wxDialog):
     def _init_utils(self):
         pass
 
     def _init_ctrls(self, prnt):
-        wxDialog.__init__(self, size = wxSize(328, 195), id = wxID_CONTROLSIZEFRAME, title = 'Size', parent = prnt, name = 'ControlSizeFrame', style = wxDEFAULT_DIALOG_STYLE, pos = wxPoint(341, 140))
+        wxDialog.__init__(self, id = wxID_CONTROLSIZEFRAME, name = 'ControlSizeFrame', parent = prnt, pos = wxPoint(341, 140), size = wxSize(328, 195), style = wxDEFAULT_DIALOG_STYLE, title = 'Size')
         self._init_utils()
 
-        self.panel1 = wxPanel(size = wxSize(320, 168), parent = self, id = wxID_CONTROLSIZEFRAMEPANEL1, name = 'panel1', style = wxTAB_TRAVERSAL, pos = wxPoint(0, 0))
+        self.panel1 = wxPanel(id = wxID_CONTROLSIZEFRAMEPANEL1, name = 'panel1', parent = self, pos = wxPoint(0, 0), size = wxSize(320, 168), style = wxTAB_TRAVERSAL)
 
-        self.radioBox1 = wxRadioBox(label = 'Width', id = wxID_CONTROLSIZEFRAMERADIOBOX1, choices = ['No change', 'Shrink to smallest', 'Grow to largest', 'Width:'], majorDimension = 1, point = wxPoint(8, 8), parent = self.panel1, name = 'radioBox1', size = wxSize(144, 120), validator = wxDefaultValidator, style = wxRA_SPECIFY_COLS)
+        self.radioBox1 = wxRadioBox(choices = ['No change', 'Shrink to smallest', 'Grow to largest', 'Width:'], id = wxID_CONTROLSIZEFRAMERADIOBOX1, label = 'Width', majorDimension = 1, name = 'radioBox1', parent = self.panel1, point = wxPoint(8, 8), size = wxSize(144, 120), style = wxRA_SPECIFY_COLS, validator = wxDefaultValidator)
 
-        self.radioBox2 = wxRadioBox(label = 'Height', id = wxID_CONTROLSIZEFRAMERADIOBOX2, choices = ['No change', 'Shrink to smallest', 'Grow to largest', 'Height:'], majorDimension = 1, point = wxPoint(160, 8), parent = self.panel1, name = 'radioBox2', size = wxSize(152, 120), validator = wxDefaultValidator, style = wxRA_SPECIFY_COLS)
+        self.radioBox2 = wxRadioBox(choices = ['No change', 'Shrink to smallest', 'Grow to largest', 'Height:'], id = wxID_CONTROLSIZEFRAMERADIOBOX2, label = 'Height', majorDimension = 1, name = 'radioBox2', parent = self.panel1, point = wxPoint(160, 8), size = wxSize(152, 120), style = wxRA_SPECIFY_COLS, validator = wxDefaultValidator)
 
-        self.okBtn = wxButton(label = 'OK', id = wxID_CONTROLSIZEFRAMEOKBTN, parent = self.panel1, name = 'okBtn', size = wxSize(72, 24), style = 0, pos = wxPoint(160, 136))
+        self.okBtn = wxButton(id = wxID_CONTROLSIZEFRAMEOKBTN, label = 'OK', name = 'okBtn', parent = self.panel1, pos = wxPoint(160, 136), size = wxSize(72, 24), style = 0)
         EVT_BUTTON(self.okBtn, wxID_CONTROLSIZEFRAMEOKBTN, self.OnOkbtnButton)
 
-        self.cancelBtn = wxButton(label = 'Cancel', id = wxID_CONTROLSIZEFRAMECANCELBTN, parent = self.panel1, name = 'cancelBtn', size = wxSize(72, 24), style = 0, pos = wxPoint(240, 136))
+        self.cancelBtn = wxButton(id = wxID_CONTROLSIZEFRAMECANCELBTN, label = 'Cancel', name = 'cancelBtn', parent = self.panel1, pos = wxPoint(240, 136), size = wxSize(72, 24), style = 0)
         EVT_BUTTON(self.cancelBtn, wxID_CONTROLSIZEFRAMECANCELBTN, self.OnCancelbtnButton)
 
-        self.widthTC = wxTextCtrl(size = wxSize(112, 24), value = '42', pos = wxPoint(16, 88), parent = self.radioBox1, name = 'widthTC', style = 0, id = wxID_CONTROLSIZEFRAMEWIDTHTC)
+        self.widthTC = wxTextCtrl(id = wxID_CONTROLSIZEFRAMEWIDTHTC, name = 'widthTC', parent = self.radioBox1, pos = wxPoint(16, 88), size = wxSize(112, 24), style = 0, value = '42')
 
-        self.heightTC = wxTextCtrl(size = wxSize(120, 24), value = '42', pos = wxPoint(16, 88), parent = self.radioBox2, name = 'heightTC', style = 0, id = wxID_CONTROLSIZEFRAMEHEIGHTTC)
+        self.heightTC = wxTextCtrl(id = wxID_CONTROLSIZEFRAMEHEIGHTTC, name = 'heightTC', parent = self.radioBox2, pos = wxPoint(16, 88), size = wxSize(120, 24), style = 0, value = '42')
 
     def __init__(self, parent, selection):
         self._init_ctrls(parent)
