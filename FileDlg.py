@@ -188,7 +188,7 @@ class wxBoaFileDialog(wxDialog, Utils.FrameRestorerMixin):
         segs = relpath.splitpath(dir)
         
         # handle unix root segment
-        if dir and dir[0] == '/':
+        if segs and dir and dir[0] == '/':
             segs[0] = '/'+segs[0]
 
         if prot == 'zip':
