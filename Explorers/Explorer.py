@@ -258,6 +258,17 @@ class BaseExplorerTree(wxTreeCtrl):
         data = self.GetPyData(item)
         data.closeList()
 
+def importTransport(moduleName):
+    try:
+        __import__(moduleName, globals())
+    except ImportError, error:
+        wxLogWarning('%s not installed: %s' %(moduleName, str(error)))
+        ExplorerNodes.failedModules[moduleName] = str(error)
+        return true
+    else:
+        ExplorerNodes.installedModules.append(moduleName)
+        return false
+
 class ExplorerTree(BaseExplorerTree):
     def __init__(self, parent, images):
         BaseExplorerTree.__init__(self, parent, images)
@@ -340,23 +351,16 @@ class ExplorerTree(BaseExplorerTree):
 
     def importExplorers(self, conf):
         """ Import names defined in the config files to register them """
-        installedTransports = ['Explorers.PrefsExplorer'] + \
+        installTransports = ['Explorers.PrefsExplorer'] + \
               eval(conf.get('explorer', 'installedtransports'))
 
         warned = false
-        for moduleName in installedTransports:
-            #moduleName = 'Explorers.%s'%moduleName
-            try:
-                __import__(moduleName, globals())
-            except ImportError, error:
-                wxLogWarning('%s not installed: %s' %(moduleName, str(error)))
-                warned = true
-            else:
-                ExplorerNodes.installedModules.append(moduleName)
+        for moduleName in installTransports:
+            warned = importTransport(moduleName)
         if warned:
             wxLogWarning('One or more transports could not be loaded, if the problem '
-                         'is not rectifiable,\nconsider removing the transport from the '
-                         '"installedtransports" list in the Explorer config. Click "Details"')
+                         'is not rectifiable,\nconsider removing the transport under '
+                         'Preferences->Plug-ins->Transports. Click "Details"')
 
     def destroy(self):
         if self._ref_all_transp:
@@ -421,6 +425,8 @@ class BaseExplorerList(wxListCtrl, Utils.ListCtrlSelectionManagerMix):
         self._destr = true
 
     def EditLabel(self, index):
+        wxYield()
+
         try: return wxListCtrl.EditLabel(self, index)
         except AttributeError: return 0
 
@@ -752,10 +758,13 @@ class BaseExplorerSplitter(wxSplitterWindow):
             event.Skip()
             self.list.node.renameItem(self.oldLabelVal, newText)
             self.list.refreshCurrent()
+            # XXX Renames on files with unsaved changes should have opt out
+            # XXX Maybe load renamedNode from openEx
             self.list.selectItemNamed(newText)
-            renameNode = self.list.getSelection()
-            assert renameNode, 'No selection after rename'
-            self.editor.explorerRenameNotify(oldURI, renameNode)
+            renamedNode = self.list.getSelection()
+            # XXX Type changes and unknown types are not handled!
+            if renamedNode:
+                self.editor.explorerRenameNotify(oldURI, renamedNode)
         else:
             event.Skip()
 
@@ -794,3 +803,4 @@ class ExplorerSplitter(BaseExplorerSplitter):
             controllers[protocol] = controllers[link]
 
         return controllers
+
