@@ -1,0 +1,261 @@
+<html><head><title>Debugger</title></head>
+<body text="#000000" bgcolor="#FFFFFF" link="#0000FF" vlink="#000099" alink="#FF0000">
+
+<center><a href="index.html"><img SRC="contents.gif" ALT="Home" BORDER=0></a></center>
+
+<table BORDER=0 CELLSPACING=0 CELLPADDING=2 WIDTH="100%" BGCOLOR="#000000" >
+  <tr><td>
+  <table BORDER=0 CELLSPACING=0 WIDTH="100%" BGCOLOR="#FFFFFF" >
+    <tr><td BGCOLOR="#ddeeff">
+    <center><img SRC="dot.gif" height=1 width=1></center>
+    </td></tr>
+  </table>
+  </td></tr>
+</table>
+
+
+
+<h2>
+<img SRC="Debugger.jpg" height=32 width=32>&nbsp; Debugger</h2>
+
+
+
+
+
+<p>Boa now has a stable out of process debugger that can debug almost any Python 
+application. This includes threads, most popular Python GUI toolkits, Zope Python 
+debugging and even specialised support for debugging Zope Python Scripts.
+
+<p>To debug an application, save any unsaved changes and click the red play 
+button&nbsp;<img src="Debug.jpg" height=16 width=16> on the toolbar or choose
+<i>File->Debug</i> application. This applies to application modules and any modules
+part of an application. To debug an individual module that is part of an 
+application, choose <i>File->Debug module</i>.<br>
+The Debugger window should appear at the same place as the Inspector and
+debugging will trace until the very first line of source.<br>
+<p>
+<b>Important:</b> When debugging wxPython applications on wxPython versions
+lower than 2.3.3 on windows, there is a bug in wxProcess/wxExecute which prevents
+the main frame of the application from being displayed.<br>
+To work around this the main frame must be shown, hidden and shown again. e.g.
+<font color="#101090"><pre>
+frame.Show();frame.Hide();frame.Show()
+</pre></font>
+<p>The standard debugging pages:
+<table CELLSPACING=0 CELLPADDING=0 BORDER=0 BGCOLOR="#000000"><tr><td>
+<table CELLSPACING=2 CELLPADDING=4>
+<tr>
+<td WIDTH="25%" VALIGN=TOP BGCOLOR="#ddeeff" >
+
+<b>Stack</b></td>
+<td VALIGN=TOP BGCOLOR="#ddeeff" >
+
+List of items, each representing a level of the execution stack.
+<br>The selected item represents the current frame for the watch and namespace windows.
+<br>Double-click on an item to jump to the corresponding line in the source.</td>
+</tr>
+
+<tr>
+<td WIDTH="25%" VALIGN=TOP BGCOLOR="#ddeeff" >
+
+<a name="Breakpoints"></a><b>Breakpoints</b></td>
+<td VALIGN=TOP BGCOLOR="#ddeeff" >
+
+List of breakpoints defined for the debugger.
+<p>
+Breakpoints can be edited, disabled or deleted by selecting them and
+right clicking in this view.
+<br>Double-clicking on a breakpoint will take you to where it is defined in the 
+source.
+<br>Add a breakpoint by clicking on the left side of the target line in the code
+next to the line number or by putting your caret at the desired line in the 
+source and choosing Edit->Toggle breakpoint.
+<p><b>Hard breakpoints</b> are breakpoints defined in your source code like this:
+<font color="#101090"><pre>
+if hasattr(sys, 'breakpoint'): sys.breakpoint()
+</pre></font>
+When the debugger encounters a hard breakpoint it will be added to the breakpoint 
+list. You may also mark a hard breakpoint with a soft one before it is triggered 
+by the debugger. This allows you disable hardpoints. Right-click on a breakpoint 
+in the breakpoint list for options.
+<p>
+Hard breakpoints are primarily useful for <a href="#DebuggingThreads">debugging 
+threads</a>.<br> They can also be used to speed up startup time of an application 
+being debugged. There is an inevitable slowdown because of the overhead of 
+tracing the executing code. When the <img SRC="DebugFullSpeed.png" height=16 width=16> 
+<b>Debug / Continue full speed</b> button is clicked, the execution continues 
+without the overhead of the tracer. The only way to break into the execution now 
+is with a hard breakpoint.
+</td>
+</tr>
+
+
+<tr>
+<td WIDTH="25%" VALIGN=TOP BGCOLOR="#ddeeff" >
+
+<b>Watches</b></td>
+<td VALIGN=TOP BGCOLOR="#ddeeff" >
+
+Shows a list of user defined watches, evaluated in 
+the scope of the selected stack level.
+<p>
+Select/right-click for menu.
+<p>
+New watches can be added from the Locals and Globals pages or from the right-click
+menu of the Watches page. Double-click an existing watch to edit it. Note
+that watches does not need to be only variable names, any valid Python expression
+is allowed.
+<p>
+Another way to watch a variable is to put the Debugger in <b>Debug Browsing</b>
+mode. On the Toolbar, toggle the <img SRC="DebugBrowse.png" height=16 width=16> 
+button. Like <a href="Editor.html">Code Browsing</a> you have to hold down the 
+Ctrl key and move your mouse over variables in the source code. The name in the
+source should be underlined in red and it's current value is displayed in the
+Editor status bar. Clicking on an underlined variable adds it as a watch.<br>
+<p>
+The last way to inspect variables is to use the <b>Shell Debug</b> mode. 
+On the Toolbar, toggle the <img SRC="ShellDebug.png" height=16 width=16> 
+button. The Editor should switch to the Shell and display a debugging prompt.
+Here you may also type any valid Python expression. Toggle the button again to 
+return to a normal shell prompt.
+</td>
+</tr>
+
+<tr>
+<td WIDTH="25%" VALIGN=TOP BGCOLOR="#ddeeff" >
+
+<b>Locals</b></td>
+<td VALIGN=TOP BGCOLOR="#ddeeff" >
+
+List of all objects in local scope of the selected stack level.
+<br>Select/right-click to add as a watch or add your own locals watch
+<p>
+Note that this view is only updated when it is active, when there are many 
+objects in scope this can degrade performance so only keep it active when you 
+need it.</td>
+</tr>
+
+<tr>
+<td WIDTH="25%" VALIGN=TOP BGCOLOR="#ddeeff" >
+
+<b>Globals</b></td>
+<td VALIGN=TOP BGCOLOR="#ddeeff" >
+
+List of all objects in global scope of the selected stack level.
+<br>Select/right-click to add as a watch or add your own globals watch.
+<p>
+Note that this view is only updated when it is active, when there are many 
+objects in scope this can degrade performance so only keep it active when you 
+need it.</td>
+</tr>
+</table>
+</td></tr></table>
+
+<a name="DebuggingThreads"></a>
+<h3>Debugging Threads</h3>
+
+The biggest difficulty in debugging Python threads is that the Python debug 
+tracing hook must be set per thread. Therefor a normal breakpoint in a
+other thread than the main thread (the one the debugger started up with)
+will never be hit by the main thread's tracer.<br>
+<a href="#Breakpoints">Hard breakpoints</a> to the rescue! When a hard breakpoint 
+is triggered from within a non-main-thread the debugger has access to the thread 
+and can set the tracer for it, allowing us to step further.
+
+<h3>Remote Debugging</h3>
+
+Because the debugger server runs out of process anyway (controlled via xmlrpc)
+it is a small step to debugging a process on a different machine.
+<p>
+The first step is to start up the process that you want to debug on the remote
+machine, create a RemoteServer and install the tracer.
+<p>
+There are a few ways to do this.
+
+One way is to create a script called e.g. <i>bcrdb</i> which looks like this:
+<font color="#101090"><pre>
+#!/usr/bin/python
+
+import sys
+sys.path.append('/path/to/boa')
+
+from Debugger.RemoteServer import start
+start('username', 'password')
+
+del sys.argv[0:1]
+execfile(sys.argv[0], {'__name__': '__main__',
+                       '__builtins__': __builtins__})
+</pre></font>
+
+You can now use this script (bcrdb script) instead of Python (python script) to 
+debug remote scripts.
+<p>
+You have to add the following snippet to your program to turn on the tracer:
+<font color="#101090"><pre>
+if hasattr(sys, 'debugger_control'):
+    sys.debugger_control.set_traceable()
+</pre></font>
+Breakpoints encountered in code after the tracer was installed will be caught
+by the Debug Server.
+<p>
+If Boa is installed normally on the remote machine, <i>Boa.py -R script</i> 
+can be used instead of <i>bcrdb script</i>. (Boa.py imports almost nothing
+on this code path so no 'pollution' to worry about)
+<p>
+The second step is to connect to the Remote Debugger from the Boa IDE. From an 
+open python module, select File->Attach to debugger, and fill in the dialog.
+You should now be attached to the remote debugger.
+<p>
+It is your responsibility to assure that the file paths to the source files are 
+identical on both machines.
+<p>
+
+<a name="ZopeDebugging"></a>
+<h3>Zope Debugging</h3>
+
+Two forms of Zope debugging is provided.<br>
+<p>
+Firstly you may debug Zope as a normal Python application.<br>
+Open up <b>z2.py</b> in the Editor, set it's command-line parameter to <b>-D</b> 
+(File->Set command-line parameters). Now debug it like any other module.<br>
+Set a hard breakpoint in your Product code to break into your code.
+<p>
+Secondly you may directly debug and step through Zope Python Scripts. 
+You should have a working Zope Connection defined in the Explorer. Open the
+Python Script you want to debug.<br>
+Now run Zope as described in the first step. The easiest way to break into a 
+Python Script (remember that they execute in a different thread than <b>z2.py</b>) is to
+install the extremely small Zope Product found in Debugger/ZopeBreakpoint.zip.
+All this product does is to allow Scripts to access <b>sys.breakpoint</b>.
+Then using the normal sys.breakpoint() call in your Python Script will break 
+at that line. From now on, normal soft breakpoints will work for the Script.<br>
+If you don't want to install the Product you can still step through 
+Python Scripts by setting a hard break somewhere in the Zope code that runs in
+the same thread as the Script. After hitting the hard break, normal breakpoints 
+in your Script should work.
+
+<p> There is already support provided for also debugging Page Templates, but unless you
+are quite adventurous, your will have to wait for Zope 2.6 before this will work.
+
+<br>
+<br>
+<table BORDER=0 CELLSPACING=0 CELLPADDING=2 WIDTH="100%" BGCOLOR="#000000" >
+  <tr><td>
+  <table BORDER=0 CELLSPACING=0 WIDTH="100%" BGCOLOR="#FFFFFF" >
+    <tr><td BGCOLOR="#ddeeff">
+    <center><img SRC="dot.gif" height=1 width=1></center>
+    </td></tr>
+  </table>
+  </td></tr>
+</table>
+
+
+<div align=right><font size="-1">Boa Constructor - Application Help - <b>Debugger</b></font></div>
+<p>
+</body></html>
+
+
+
+
+
+
