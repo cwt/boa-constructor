@@ -125,11 +125,17 @@ class AppView(ListCtrlView):
 
         self.lastSearchPattern = ''
         self.active = true
+        self.canExplore = true
         self.model = model
 
     def OnDrag(self, event):
         print 'drag', event.GetString()
         print 'drag', dir(event.__class__.__bases__[0])
+
+    def explore(self):
+        modSort = self.model.modules.keys()
+        modSort.sort()
+        return modSort
 
     def refreshCtrl(self):
         ListCtrlView.refreshCtrl(self)
