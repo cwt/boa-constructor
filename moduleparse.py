@@ -62,6 +62,7 @@ indent = re.compile('^[^ \t]*')
 is_doc_quote = re.compile("'''")
 id_doc_quote_dbl = re.compile('"""')
 is_todo = re.compile('^[ \t]*# XXX')
+is_todo2 = re.compile('^[ \t]*# TODO:')
 is_wid = re.compile('^\[(?P<wids>.*)\][ \t]*[=][ \t]*wxNewId[(](?P<count>\d+)[)]$')
 is_break_line = re.compile('^#-+(?P<descr>.*%s)-+$'%obj_def)
 
@@ -314,7 +315,7 @@ class Module:
 
 
     def parseLine(self, module, file, line, lineno, cur_class, cur_meth, cur_func):
-        res = is_todo.match(line)
+        res = is_todo.match(line) or is_todo2.match(line)
         if res:
             self.todos.append((lineno,
                   string.strip(line[res.span()[1]:])))
