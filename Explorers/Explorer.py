@@ -407,15 +407,15 @@ class BaseExplorerList(wxListCtrl, Utils.ListCtrlSelectionManagerMix):
 
         self.setLocalFilter()
 
-        Utils.ListCtrlLabelEditFixEH(self)
+        #Utils.ListCtrlLabelEditFixEH(self)
 
     def destroy(self, dont_pop=0):
         if self._destr: return
 
         self.DeleteAllItems()
         # XXX workaround for a crash, (better to leak than to crash ;)
-        if not dont_pop:
-            self.PopEventHandler(true)
+        #if not dont_pop:
+        #    self.PopEventHandler(true)
 
         if self.node:
             self.node.destroy()
@@ -627,6 +627,8 @@ class BaseExplorerSplitter(wxSplitterWindow):
             return None
 
     def destroy(self):
+        if not self.editor:
+            return
         self.modimages = None
         self.list.Enable(false)
         self.list.destroy()
@@ -637,9 +639,9 @@ class BaseExplorerSplitter(wxSplitterWindow):
             unqDct[contr] = None
         for contr in unqDct.keys():
             contr.destroy()
-        del self.controllers
-        del self.list
-        del self.editor
+        self.controllers = None
+        self.list = None
+        self.editor = None
 
     def editorUpdateNotify(self):
         if self.list.node and self.controllers.has_key(self.list.node.protocol):
