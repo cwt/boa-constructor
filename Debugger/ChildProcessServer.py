@@ -21,13 +21,12 @@ except ImportError:
     from StringIO import StringIO
 
 
-serving = 0
+serving = 1
 
-debug_server = DebugServer()
-connection = DebuggerConnection(debug_server)
-connection.allowEnvChanges()  # Allow changing of sys.path, etc.
-task_handler = ThreadedTaskHandler()
+debug_server = None
+connection = None
 auth_str = ''
+task_handler = ThreadedTaskHandler()
 
 
 class DebugRequestHandler (RequestHandler):
@@ -74,14 +73,27 @@ def streamFlushThread():
         sleep(0.15)  # 150 ms
 
 
-def main():
+def main(args=None):
+    global auth_str, debug_server, connection, serving
+
+    # Create the debug server.
+    if args is None:
+        args = sys.argv[1:]
+    if args and '--zope' in args:
+        from ZopeScriptDebugServer import ZopeScriptDebugServer
+        debug_server = ZopeScriptDebugServer()
+    else:
+        debug_server = DebugServer()
+    connection = DebuggerConnection(debug_server)
+    connection.allowEnvChanges()  # Allow changing of sys.path, etc.
+
     # Create an authentication string, always 40 characters.
-    global auth_str
     auth_str = sha.new(str(whrandom.random())).hexdigest()
 
     # port is 0 to allocate any port.
     server = TaskingTCPServer(('', 0), DebugRequestHandler)
     port = int(server.socket.getsockname()[1])
+
     # Tell the client what port to connect to and the auth string to send.
     sys.stdout.write('%010d %s%s' % (port, auth_str, os.linesep))
     sys.stdout.flush()
@@ -89,6 +101,7 @@ def main():
     # Provide a hard breakpoint hook.  Use it like this:
     # if hasattr(sys, 'breakpoint'): sys.breakpoint()
     sys.breakpoint = debug_server.set_trace
+    sys.boa_debugger = debug_server  # XXX should not depend on the name "Boa"
 
     def serve_forever(server):
         while 1:
@@ -103,13 +116,11 @@ def main():
     startDaemon(streamFlushThread)
     startDaemon(debug_server.servicerThread)
 
-
     # Serve until the stdin pipe closes.
     #print 'serving until stdin returns EOF'
     #sys.stdin.read()
 
-    global serving; serving = 1
-    while serving: 
+    while serving:
         time.sleep(0.1)
 
     sys.exit(0)
