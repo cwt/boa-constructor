@@ -268,35 +268,26 @@ class TestView(wxTextCtrl, EditorView):
     def refreshCtrl(self):
         self.SetValue('')
                 
-# XXX Add structured text/wiki option for doc strings
-# XXX Option to only list documented methods
 class HTMLView(wxHtmlWindow, EditorView):
     prevBmp = 'Images/Shared/Previous.bmp'
     nextBmp = 'Images/Shared/Next.bmp'
 
-    viewName = 'Documentation'
+    viewName = 'HTML'
     def __init__(self, parent, model, actions = ()):
         wxHtmlWindow.__init__(self, parent)
         EditorView.__init__(self, model, (('Back', self.OnPrev, self.prevBmp, ()),
-                                   ('Forward', self.OnNext, self.nextBmp, ()),
-                                   ('Save HTML', self.OnSaveHTML, '-', ()) )+ actions, -1)
+                                   ('Forward', self.OnNext, self.nextBmp, ()) )+ actions, -1)
         self.SetRelatedFrame(model.editor, 'Editor')
         self.SetRelatedStatusBar(2)
 
         model.editor.statusBar.setHint('')
 
-        self.title = 'Boa docs'
+        self.title = 'HTML'
         self.data = ''
         self.active = true
 
     def generatePage(self):
-        page = wxwHeaderTemplate % {'Title': self.title}
-        page = self.genCustomPage(page) + wxwFooterTemplate
-        return page
-
-    def genCustomPage(self, page):
-        """ Override to make the page a little more interesting """
-        return page
+        return ''
 
     def refreshCtrl(self):
         self.data = self.generatePage()
@@ -307,14 +298,56 @@ class HTMLView(wxHtmlWindow, EditorView):
 
     def OnNext(self, event):
         self.HistoryForward()
-    
+
+class HTMLFileView(HTMLView):
+    viewName = 'View'    
+    def generatePage(self):
+        return self.model.data
+
+# XXX This is expensive and will really need to delay generatePage until View
+# XXX is focused (like ExploreView)
+# XXX The HTML control does not interact well with Zope.
+
+class ZopeHTMLView(HTMLView):
+    viewName = 'View'    
+    def generatePage(self):
+##        if hasattr(self, 'lastpage'):
+##            if len(self.model.viewsModified):
+##                return self.lastpage
+        import urllib
+        url = 'http://%s:%d/%s'%(self.model.zopeConn.host, 
+              self.model.zopeConn.http_port, self.model.zopeObj.whole_name())
+        f = urllib.urlopen(url)
+        s = f.read()
+        print url, s
+        return s#f.read()
+
+
+# XXX Add structured text/wiki option for doc strings
+# XXX Option to only list documented methods
+class HTMLDocView(HTMLView):
+    viewName = 'Documentation'
+    def __init__(self, parent, model, actions = ()):
+        HTMLView.__init__(self, parent, model, ( ('Save HTML', self.OnSaveHTML, '-', ()), )+ actions)
+        self.title = 'Boa docs'
+
+    def generatePage(self):
+        page = wxwHeaderTemplate % {'Title': self.title}
+        page = self.genCustomPage(page) + wxwFooterTemplate
+        return page
+
+    def genCustomPage(self, page):
+        """ Override to make the page a little more interesting """
+        return page
+
     def OnSaveHTML(self, event):
+        # XXX Replace with Boa file selector
         filename = wxFileSelector('Choose a file', '.', '', 
           'HTML files (*.html)|*.html', '.html', wxSAVE)
         if filename:
             open(filename, 'w').write(self.data)
 
-class ModuleDocView(HTMLView):
+class ModuleDocView(HTMLDocView):
 
     def genCustomPage(self, page):
         return self.genModuleSect(page)
