@@ -16,12 +16,12 @@ import pyclbr, string
 
 from wxPython.wx import *
 
-import Preferences
+import Preferences, Utils
 from Preferences import IS
 
 [wxID_CLASSBROWSERFRAME, wxID_CLASSBROWSERFRAMEHIERARCHY, wxID_CLASSBROWSERFRAMEPAGES, wxID_CLASSBROWSERFRAMESTATUSBAR, wxID_CLASSBROWSERFRAMETREE] = map(lambda _init_ctrls: wxNewId(), range(5))
 
-class ClassBrowserFrame(wxFrame):
+class ClassBrowserFrame(wxFrame, Utils.FrameRestorerMixin):
     def _init_coll_pages_Pages(self, parent):
 
         parent.AddPage(bSelect = true, imageId = -1, pPage = self.hierarchy, strText = 'Hierarchy')
@@ -31,8 +31,9 @@ class ClassBrowserFrame(wxFrame):
         pass
 
     def _init_ctrls(self, prnt):
-        wxFrame.__init__(self, id = wxID_CLASSBROWSERFRAME, name = '', parent = prnt, pos = wxPoint(269, 254), size = wxSize(299, 497), style = wxDEFAULT_FRAME_STYLE | Preferences.childFrameStyle, title = 'wxPython Class Browser')
+        wxFrame.__init__(self, id = wxID_CLASSBROWSERFRAME, name = '', parent = prnt, pos = wxPoint(475, 238), size = wxSize(299, 497), style = wxDEFAULT_FRAME_STYLE | Preferences.childFrameStyle, title = 'wxPython Class Browser')
         self._init_utils()
+        self.SetClientSize(wxSize(291, 470))
         EVT_CLOSE(self, self.OnCloseWindow)
 
         self.statusBar = wxStatusBar(id = wxID_CLASSBROWSERFRAMESTATUSBAR, name = 'statusBar', parent = self, pos = wxPoint(0, 450), size = wxSize(291, 20), style = wxST_SIZEGRIP)
@@ -137,6 +138,9 @@ class ClassBrowserFrame(wxFrame):
     def OnCloseWindow(self, event):
         self.Show(true)
         self.Show(false)
+        if __name__ == '__main__':
+            self.Destroy()
+        
 
 def findInsertModules(name, tree):
     ri = tree.GetRootItem()
