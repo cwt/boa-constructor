@@ -425,6 +425,9 @@ class PseudoFile:
 
     def flush(self):
         pass
+    
+    def isatty(self):
+        return false
 
 class PseudoFileOutStore(PseudoFile):
     """ File like obj with list storage """
@@ -843,7 +846,7 @@ def stringFromControl(u):
         try: 
             return str(u)
         except UnicodeError, err:
-            raise Exception, 'Unable to decode unicode string, please change '\
+            raise Exception, 'Unable to encode unicode string, please change '\
                   'the defaultencoding in sitecustomize.py to handle this '\
                   'encoding.\nError message %s'%str(err)
     else:
@@ -857,7 +860,7 @@ def stringToControl(s):
         try: 
             return unicode(s)
         except UnicodeError, err:
-            raise Exception, 'Unable to encode unicode string, please change '\
+            raise Exception, 'Unable to decode unicode string, please change '\
                   'the defaultencoding in sitecustomize.py to handle this '\
                   'encoding.\n Error message %s'%str(err)
     else:
