@@ -648,6 +648,7 @@ class PackageController(ModuleController):
 class SetupController(ModuleController):
     def __init__(self, editor):
         ModuleController.__init__(self, editor)
+        self.Model = EditorModels.SetupModuleModel
 
         EVT_MENU(self.editor, EditorHelper.wxID_SETUPBUILD, self.OnSetupBuild)
         EVT_MENU(self.editor, EditorHelper.wxID_SETUPCLEAN, self.OnSetupClean)
@@ -660,14 +661,14 @@ class SetupController(ModuleController):
     def addMenus(self, menu, model):
         accls = ModuleController.addMenus(self, menu, model)
         menu.AppendSeparator()
-        self.addMenu(menu, EditorHelper.wxID_SETUPBUILD, 'build', accls, ())
-        self.addMenu(menu, EditorHelper.wxID_SETUPCLEAN, 'clean', accls, ())
-        self.addMenu(menu, EditorHelper.wxID_SETUPINSTALL, 'install', accls, ())
-        self.addMenu(menu, EditorHelper.wxID_SETUPSDIST, 'sdist', accls, ())
-        self.addMenu(menu, EditorHelper.wxID_SETUPBDIST, 'bdist', accls, ())
-        self.addMenu(menu, EditorHelper.wxID_SETUPBDIST_WININST, 'bdist_wininst', accls, ())
+        self.addMenu(menu, EditorHelper.wxID_SETUPBUILD, 'setup.py build', accls, ())
+        self.addMenu(menu, EditorHelper.wxID_SETUPCLEAN, 'setup.py clean', accls, ())
+        self.addMenu(menu, EditorHelper.wxID_SETUPINSTALL, 'setup.py install', accls, ())
+        self.addMenu(menu, EditorHelper.wxID_SETUPSDIST, 'setup.py sdist', accls, ())
+        self.addMenu(menu, EditorHelper.wxID_SETUPBDIST, 'setup.py bdist', accls, ())
+        self.addMenu(menu, EditorHelper.wxID_SETUPBDIST_WININST, 'setup.py bdist_wininst', accls, ())
         menu.AppendSeparator()
-        self.addMenu(menu, EditorHelper.wxID_SETUPPY2EXE, 'py2exe', accls, ())
+        self.addMenu(menu, EditorHelper.wxID_SETUPPY2EXE, 'setup.py py2exe', accls, ())
         return accls
 
     def createNewModel(self, modelParent=None):
