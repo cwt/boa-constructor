@@ -234,12 +234,7 @@ class Wx25CodeUpgradeDlg(wx.Dialog):
                     fInputData = self.reindentSource(fInputLines, fInputName)
                     fOutput = file(os.path.join(self.targetFolder.GetValue(), name), 'w')
                     try:
-                        frag = []
-                        for non, rep in self.u.scanner(fInputData):
-                            frag.append(non)
-                            frag.append(rep)
-                        newtext = string.join(frag, '')
-                        fOutput.write(newtext)
+                        fOutput.write(self.u.upgrade(fInputData))
                     finally:
                         fOutput.close()
                         temp = 'Done converting: %s' % name
@@ -273,12 +268,7 @@ class Wx25CodeUpgradeDlg(wx.Dialog):
         keepGoing = dlg.Update(count, temp)
         
         try:
-            frag = []
-            for non, rep in self.u.scanner(fInputData):
-                frag.append(non)
-                frag.append(rep)
-            newtext = string.join(frag, '')
-            fOutput.write(newtext)
+            fOutput.write(self.u.upgrade(fInputData))
         finally:
             fOutput.close()
             
