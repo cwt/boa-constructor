@@ -8,10 +8,10 @@ def create(parent):
 [wxID_WXDIALOG1STATICTEXT1, wxID_WXDIALOG1STATICTEXT2, wxID_WXDIALOG1BUTTON1, wxID_WXDIALOG1STATICBITMAP1, wxID_WXDIALOG1] = map(lambda _init_ctrls: wxNewId(), range(5))
 
 class wxDialog1(wxDialog):
-    def _init_utils(self): 
+    def _init_utils(self):
         pass
 
-    def _init_ctrls(self, prnt): 
+    def _init_ctrls(self, prnt):
         wxDialog.__init__(self, size = wxSize(328, 379), id = wxID_WXDIALOG1, title = 'About Notebook', parent = prnt, name = '', style = wxDEFAULT_DIALOG_STYLE, pos = wxPoint(472, 330))
         self._init_utils()
         self.SetBackgroundColour(wxColour(255, 255, 255))
@@ -29,7 +29,7 @@ class wxDialog1(wxDialog):
         self.button1.SetTitle('Close')
         EVT_BUTTON(self.button1, wxID_WXDIALOG1BUTTON1, self.OnButton1Button)
 
-    def __init__(self, parent): 
+    def __init__(self, parent):
         self._init_ctrls(parent)
         bmp = wxBitmap('Boa.bmp',  wxBITMAP_TYPE_BMP)
         self.staticBitmap1.SetBitmap(bmp)

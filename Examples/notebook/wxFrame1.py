@@ -44,7 +44,7 @@ class wxFrame1(wxFrame):
 
         parent.SetStatusWidths([-1])
 
-    def _init_utils(self): 
+    def _init_utils(self):
         self.File = wxMenu(title = 'File')
         self._init_coll_File_Items(self.File)
 
@@ -55,7 +55,7 @@ class wxFrame1(wxFrame):
 
         self._init_coll_menuBar1_Menus(self.menuBar1)
 
-    def _init_ctrls(self, prnt): 
+    def _init_ctrls(self, prnt):
         wxFrame.__init__(self, size = wxSize(480, 347), id = wxID_WXFRAME1, title = 'Notebook', parent = prnt, name = '', style = wxDEFAULT_FRAME_STYLE, pos = wxPoint(384, 346))
         self._init_utils()
         self.SetMenuBar(self.menuBar1)
@@ -67,7 +67,7 @@ class wxFrame1(wxFrame):
 
         self.txtEditor = wxTextCtrl(size = wxSize(472, 280), value = '', pos = wxPoint(0, 0), parent = self, name = 'txtEditor', style = wxTE_MULTILINE, id = wxID_WXFRAME1TXTEDITOR)
 
-    def __init__(self, parent): 
+    def __init__(self, parent):
         self._init_ctrls(parent)
         self.FileName=None
 
@@ -79,10 +79,10 @@ class wxFrame1(wxFrame):
         try:
             if dlg.ShowModal() == wxID_OK:
                 filename = dlg.GetPath()
-                self.txtEditor.LoadFile(filename) 
-                self.FileName=filename                   
+                self.txtEditor.LoadFile(filename)
+                self.FileName=filename
         finally:
-            dlg.Destroy()        
+            dlg.Destroy()
 
     def OnFileitems1Menu(self, event):
         if self.FileName == None:
@@ -95,8 +95,8 @@ class wxFrame1(wxFrame):
         try:
             if dlg.ShowModal() == wxID_OK:
                 filename = dlg.GetPath()
-                self.txtEditor.SaveFile(filename) 
-                self.FileName=filename         
+                self.txtEditor.SaveFile(filename)
+                self.FileName=filename
         finally:
             dlg.Destroy()
 
@@ -109,4 +109,4 @@ class wxFrame1(wxFrame):
         try:
             dlg.ShowModal()
         finally:
-            dlg.Destroy()  
+            dlg.Destroy()
