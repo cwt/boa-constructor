@@ -2,7 +2,8 @@
 
 import sourceconst
 # The order of (Name)s may change and lines may also be removed
-sourceconst.defInfoBlock = '''#-----------------------------------------------------------------------------
+sourceconst.defInfoBlock = sourceconst.wsfix(
+'''#-----------------------------------------------------------------------------
 # Name:        %(Name)s
 # Purpose:     %(Purpose)s
 #
@@ -14,7 +15,7 @@ sourceconst.defInfoBlock = '''#-------------------------------------------------
 # Licence:     %(Licence)s
 # New field:   %(NewField)s
 #-----------------------------------------------------------------------------
-'''
+''')
 
 import Preferences
 # (Name)s not in the original dictionary needs to be added
