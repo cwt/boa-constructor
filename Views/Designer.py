@@ -14,7 +14,7 @@ import string, copy, os, pprint
 
 from wxPython.wx import *
 
-import Preferences, PrefsKeys, Utils, Help
+import Preferences, Utils, Help
 from Preferences import IS
 import CtrlAlign, CtrlSize
 import sourceconst, sender
@@ -184,7 +184,7 @@ class DesignerView(wxFrame, InspectableObjectView):
                           ('HeightInc', wxID_EDITHEIGHTINC),
                           ('HeightDec', wxID_EDITHEIGHTDEC),
                         ):
-            tpe, key, code = PrefsKeys.keyDefs[name]
+            tpe, key, code = Preferences.keyDefs[name]
             accLst.append((tpe, key, wId))
 
         self.SetAcceleratorTable(wxAcceleratorTable(accLst))
@@ -807,8 +807,7 @@ class DesignerView(wxFrame, InspectableObjectView):
     def OnCtrlHelp(self, event):
         """ Show help for the selected control """
         if self.inspector.selCmp:
-            Help.showHelp(self, Help.wxWinHelpFrame,
-              self.inspector.selCmp.wxDocs, None)
+            Help.showCtrlHelp(self.inspector.selCmp.GetClass())
 
     def OnAlignSelected(self, event):
         """ Show alignment dialog for multi selections"""

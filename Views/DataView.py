@@ -15,8 +15,8 @@ import os
 from wxPython.wx import *
 
 from sourceconst import init_utils
-import PaletteMapping, Utils
-from PrefsKeys import keyDefs
+import PaletteMapping, Utils, Help
+from Preferences import keyDefs
 
 from InspectableViews import InspectableObjectView
 
@@ -38,6 +38,8 @@ class DataView(wxListCtrl, InspectableObjectView):
            ('Copy', self.OnCopySelected, '-', keyDefs['Copy']),
            ('Paste', self.OnPasteSelected, '-', keyDefs['Paste']),
            ('Delete', self.OnControlDelete, '-', keyDefs['Delete']),
+           ('-', None, '-', ()),
+           ('Context help', self.OnContextHelp, '-', keyDefs['ContextHelp']),
            ), 0)
 
         self.il = wxImageList(24, 24)
@@ -124,6 +126,10 @@ class DataView(wxListCtrl, InspectableObjectView):
     def renameCtrl(self, oldName, newName):
         InspectableObjectView.renameCtrl(self, oldName, newName)
         self.refreshCtrl()
+    
+    def destroy(self):
+        InspectableObjectView.destroy(self)
+        self.il = None
 
     def close(self):
         self.cleanup()
@@ -229,3 +235,7 @@ class DataView(wxListCtrl, InspectableObjectView):
     def OnDefaultEditor(self, event):
         if len(self.selection) == 1:
             self.objects[self.selection[0][0]][0].defaultAction()
+
+    def OnContextHelp(self, event):
+        Help.showCtrlHelp(self.objects[self.selection[0][0]][0].GetClass())
+   
