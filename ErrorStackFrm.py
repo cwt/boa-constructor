@@ -189,15 +189,16 @@ class ErrorStackMF(wxFrame, Utils.FrameRestorerMixin):
             if win2 and not win2.GetSize().y:
                 splitter.openBottomWindow()
 
-    def appendToTextCtrl(self, tc, txt, 
+    def appendToTextCtrl(self, tc, txt,
                          TEXTCTRL_MAXLEN=30000, TEXTCTRL_GOODLEN=20000):
         # Before appending to the output, remove old data.
         cursz = tc.GetLastPosition()
         newsz = cursz + len(txt)
         if newsz >= TEXTCTRL_MAXLEN:
             olddata = tc.GetValue()[newsz - TEXTCTRL_GOODLEN:]
-            outp.SetValue(olddata)
+            tc.SetValue(olddata)
         tc.AppendText(txt)
+        tc.ShowPosition(tc.GetLastPosition())
         
         # XXX just make editor err out visible for now, the others would be
         # XXX too jarring
@@ -205,7 +206,12 @@ class ErrorStackMF(wxFrame, Utils.FrameRestorerMixin):
             splitter = self.editor.tabsSplitter
             win2 = splitter.GetWindow2()
             if win2 and not win2.GetSize().y:
-                splitter.openBottomWindow()    
+                for i in range(self.notebook1.GetPageCount()):
+                    # Try to show the tab where the text was just added.
+                    if self.notebook1.GetPage(i) == tc:
+                        self.notebook1.SetSelection(i)
+                        break
+                splitter.openBottomWindow()
                 
     def appendToOutput(self, txt):
         self.appendToTextCtrl(self.outputTC, txt)
