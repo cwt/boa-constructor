@@ -2,9 +2,7 @@
 
 import os, sys, time
 
-from StringIO import StringIO
-
-from wxPython import wx
+import wx
 
 import Preferences, Utils
 from Models import PythonControllers
@@ -16,7 +14,7 @@ from Views.AppViews import TextInfoFileView
 class AppTimeTrackView(ListCtrlView):
     viewName = 'Time Tracking'
     def __init__(self, parent, model):
-        ListCtrlView.__init__(self, parent, model, wx.wxLC_REPORT,
+        ListCtrlView.__init__(self, parent, model, wx.LC_REPORT,
           (('Start', self.OnStart, '-', ''),
            ('End', self.OnEnd, '-', ''),
            ('Delete', self.OnDelete, '-', ''),
@@ -63,12 +61,14 @@ class AppTimeTrackView(ListCtrlView):
         file.write("(%s, %s, %s)\n" % (`start`, `end`, `desc`))
 
     def readTimes(self):
+        from StringIO import StringIO
         transp = Explorer.openEx(self.getTTVFilename())
         data = StringIO(transp.load())
 
         return map(lambda line: eval(line), data.readlines())
 
     def writeTimes(self):
+        from StringIO import StringIO
         timesFile = StringIO('')#open(self.getTTVFilename(), 'w')
         for start, end, desc in self.times:
             self.writeTimeEntry(timesFile, start, end, desc)
@@ -92,11 +92,11 @@ class AppTimeTrackView(ListCtrlView):
         if not end:
             end = time.time()
 
-        dlg = wx.wxTextEntryDialog(self, 'Start time :%s\nEnd time :%s\n\n'\
+        dlg = wx.TextEntryDialog(self, 'Start time :%s\nEnd time :%s\n\n'\
             'Enter a description for the time spent' % (self.getTimeStr(start),
               self.getTimeStr(end)), 'Time tracking', desc)
         try:
-            if dlg.ShowModal() == wx.wxID_OK:
+            if dlg.ShowModal() == wx.ID_OK:
                 answer = dlg.GetValue()
                 self.times[selIdx] = (start, end, answer)
                 self.writeTimes()
@@ -110,10 +110,10 @@ class AppTimeTrackView(ListCtrlView):
         if selIdx == -1:
             return
 
-        dlg = wx.wxMessageDialog(self, 'Are you sure?',
-          'Delete', wx.wxOK | wx.wxCANCEL | wx.wxICON_QUESTION)
+        dlg = wx.MessageDialog(self, 'Are you sure?',
+          'Delete', wx.OK | wx.CANCEL | wx.ICON_QUESTION)
         try:
-            if dlg.ShowModal() == wx.wxID_OK:
+            if dlg.ShowModal() == wx.ID_OK:
                 del self.times[selIdx]
                 self.writeTimes()
                 self.refreshCtrl()
