@@ -147,6 +147,7 @@
 
 
 from wxPython.wx import *
+from wxPython.help import *
 
 class wxMiscEvent :
     pass
