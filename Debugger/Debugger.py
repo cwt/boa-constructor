@@ -504,7 +504,12 @@ class DebuggerFrame(wxFrame):
         self.viewsImgLst.Add(IS.load('Images/Debug/Output.bmp'))
 
         self.running = 0
-        self.filename = model.filename
+
+        if model.defaultName != 'App' and model.app:
+            filename = model.app.filename
+        else:
+            filename = model.filename
+        self.setDebugFile(filename)
 #        self.app = app
         self.model = model
 
@@ -667,22 +672,24 @@ class DebuggerFrame(wxFrame):
     #def do_clear(self, arg):
     #    self.clear_bpbynumber(arg)
 
-    def debug_file(self, filename, params = None):
+    def setParams(self, params):
+        self.params = params
+
+    def setDebugFile(self, filename):
         # IsolatedDebugger TODO: setup the execution environment
         # the way it used to be done.
-        filename = path.join(pyPath, filename)
+        self.filename = path.join(pyPath, filename)
         #saveout = sys.stdout
         #saveerr = sys.stderr
-        if params is None: params = []
 
         #owin = self.outp
-        editor = self.model.editor
+        #editor = self.model.editor
         #tmpApp = wxPython.wx.wxApp
         #tmpArgs = sys.argv[:]
         #wxPhonyApp.debugger = self
         #wxPython.wx.wxApp = wxPhonyApp
         
-        self.modpath = os.path.dirname(filename)
+        self.modpath = os.path.dirname(self.filename)
         #sys.argv = [filename] + params
         #tmpPaths = sys.path[:]
         #sys.path.append(self.modpath)
@@ -690,9 +697,10 @@ class DebuggerFrame(wxFrame):
         #cwd = path.abspath(os.getcwd())
         #os.chdir(path.dirname(filename))
 
+    def runProcess(self):
         self.running = 1
         self.debug_conn.setAllBreakpoints(bplist.getBreakpointList())
-        self.debug_conn.runFile(filename, params)
+        self.debug_conn.runFile(self.filename, self.params or [])
         self.queryDebuggerStatus()
 
 ##        try:
@@ -729,12 +737,17 @@ class DebuggerFrame(wxFrame):
 ##            #sys.argv = tmpArgs
 ##            #os.chdir(cwd)
 
-    def set_breakpoint_here(self, filename, lineno, tmp):
-        self.nbTop.SetSelection(1)
-        filename = self.canonic(filename)
-        brpt = self.set_break(filename, lineno, tmp)
+    def deleteBreakpoints(self, filename, lineno):
+        self.debug_conn.clear_breaks(filename, lineno)
         self.breakpts.refreshList()
-        return brpt
+
+    def setBreakpoint(self, filename, lineno, tmp):
+        self.debug_conn.set_break(filename, lineno, tmp)
+##        self.nbTop.SetSelection(1)
+##        filename = self.canonic(filename)
+##        brpt = self.set_break(filename, lineno, tmp)
+        self.breakpts.refreshList()
+##        return brpt
 
 ##    def run(self, *args):
 ###        print args
@@ -842,38 +855,50 @@ class DebuggerFrame(wxFrame):
             self.lastStepView = sourceView
             self.lastStepLineno = lineno - 1
 
-    def OnDebug(self, event):
-        if self.running:
-            self.debug_conn.set_continue()
-            # self.stopMainLoop()
-        else:
-            self.debug_file(self.filename)
-            # self.stopMainLoop()
+    def isRunning(self):
+        return self.running
+
+    def ensureRunning(self):
+        if not self.running:
+            self.runProcess()
+
+    def setContinue(self):
+        if not self.running:
+            self.runProcess()
+        self.debug_conn.set_continue()
         self.queryDebuggerStatus()
+
+    def OnDebug(self, event):
+        if not self.running:
+            self.runProcess()
+        else:
+            self.debug_conn.set_continue()
+            self.queryDebuggerStatus()
+            # self.stopMainLoop()
 
     def OnStep(self, event):
         if not self.running:
-            self.debug_file(self.filename)
+            self.runProcess()
         else:
             self.debug_conn.set_step()
+            self.queryDebuggerStatus()
             # self.stopMainLoop()
-        self.queryDebuggerStatus()
 
     def OnOver(self, event):
         if not self.running:
-            self.debug_file(self.filename)
+            self.runProcess()
         else:
             self.debug_conn.set_step_over()
+            self.queryDebuggerStatus()
             # self.stopMainLoop()
-        self.queryDebuggerStatus()
 
     def OnOut(self, event):
         if not self.running:
-            self.debug_file(self.filename)
+            self.runProcess()
         else:
             self.debug_conn.set_step_out()
+            self.queryDebuggerStatus()
             # self.stopMainLoop()
-        self.queryDebuggerStatus()
 
     def OnStop(self, event):
         #wxPhonyApp.inMainLoop = false

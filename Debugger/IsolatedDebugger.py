@@ -2,6 +2,7 @@
 import sys, threading, Queue
 import pprint
 from os.path import normcase, abspath
+import bdb
 from bdb import Bdb, BdbQuit
 from repr import Repr
 
@@ -16,7 +17,7 @@ class DebuggerConnection:
         self._ds = controller._getDebugServer(id)
 
     def _getMessageTimeout(self):
-        return self._controller._getMessageTimeout()
+        return self._controller.getMessageTimeout()
     
     def _callNoWait(self, func_name, do_return, *args, **kw):
         ds = self._ds
@@ -116,7 +117,7 @@ class DebuggerConnection:
         ds = self._ds
         bp = ds.set_break(filename, lineno, temporary, cond)
         if type(bp) == type(''):
-            # This is strange...
+            # Note that checking for string type is strange. Argh.
             raise DebugError(bp)
         elif bp is not None and not enabled:
             bp.disable()
@@ -234,7 +235,7 @@ class DebuggerController:
     def _getDebugServer(self, id):
         return self._debug_servers[id]
 
-    def _getMessageTimeout(self):
+    def getMessageTimeout(self):
         return self._message_timeout
 
 
@@ -481,6 +482,7 @@ class DebugServer (Bdb):
     # A literal copy of Bdb.set_break() without the print statement
     # at the end, returning the Breakpoint object.
     def set_break(self, filename, lineno, temporary=0, cond=None):
+        filename = self.canonic(filename)
         import linecache # Import as late as possible
         line = linecache.getline(filename, lineno)
         if not line:

@@ -597,7 +597,7 @@ class PythonSourceView (EditorStyledTextCtrl,
         if debugger:
             # Try to apply to the running debugger.
             filename = self.model.filename #string.lower(self.model.filename)
-            debugger.deleteBreakPoints(filename, lineNo)
+            debugger.deleteBreakpoints(filename, lineNo)
         self.MarkerDelete(lineNo - 1, brkPtMrk)
         self.MarkerDelete(lineNo - 1, tmpBrkPtMrk)
 
@@ -706,10 +706,7 @@ class PythonSourceView (EditorStyledTextCtrl,
         line = self.GetLineFromPos(self.GetCurrentPos()) + 1
         if not self.breaks.hasBreakpoint(line):
             self.addBreakPoint(line, 1)
-        if self.model.defaultName == 'App':
-            self.model.editor.debugger.debug_file(self.model.filename)
-        elif self.model.app:
-            self.model.editor.debugger.debug_file(self.model.app.filename)
+        self.OnDebug(event, autocont=1)
 #        else return  
         # XXX Case where module is run, outside app
 
@@ -742,12 +739,15 @@ class PythonSourceView (EditorStyledTextCtrl,
         finally:
             wxEndBusyCursor()
 
-    def OnDebug(self, event):
+    def OnDebug(self, event, autocont=0):
         if not self.model.savedAs or self.model.modified or \
           len(self.model.viewsModified):
             wxMessageBox('Cannot debug an unsaved or modified module.')
             return
-        self.model.debug()
+        was_running = self.model.debug()
+        if autocont or was_running:
+            debugger = self.model.editor.debugger
+            debugger.setContinue()
 
     def OnDebugParams(self, event):
         if not self.model.savedAs or self.model.modified or \
@@ -759,7 +759,8 @@ class PythonSourceView (EditorStyledTextCtrl,
         try:
             if dlg.ShowModal() == wxID_OK:
                 self.lastDebugParams = dlg.GetValue()
-                self.model.debug(methodparse.safesplitfields(self.lastDebugParams, ' '))
+                self.model.debug(methodparse.safesplitfields(
+                    self.lastDebugParams, ' '))
         finally:
             dlg.Destroy()
 
