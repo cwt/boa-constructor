@@ -977,8 +977,8 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
         key = event.KeyCode()
 
         # thx to Robert Boulanger
-        #if Preferences.handleSpecialEuropeanKeys:
-        #    self.handleSpecialEuropeanKeys(event, Preferences.euroKeysCountry)
+        if Preferences.handleSpecialEuropeanKeys:
+            self.handleSpecialEuropeanKeys(event, Preferences.euroKeysCountry)
 
         if key in (WXK_UP, WXK_DOWN):
             self.checkChangesAndSyntax()
