@@ -211,7 +211,7 @@ class ModuleController(SourceController):
                     if model.lastRunParams:
                         params = methodparse.safesplitfields(model.lastRunParams, ' ')
                     else:
-                        params = None
+                        params = []
                     self.editor.debugger.setParams(params)
                 
                 
@@ -407,7 +407,9 @@ class ModuleController(SourceController):
     def OnAttachToDebugger(self, event):
         # Attach dialog code here
         from Debugger.RemoteDialog import create
-        create(self.editor).ShowModal()
+        rmtDlg = create(self.editor)
+        rmtDlg.ShowModal()
+        rmtDlg.Destroy()
 
     def chooseOpenApp(self, model, msg, capt):
         openApps = self.editor.getAppModules()
