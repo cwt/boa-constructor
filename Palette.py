@@ -21,7 +21,7 @@ import sender
 import ClassBrowser, Help, Preferences
 from wxPython.wx import *
 from Preferences import logFontSize, IS, toPyPath, flatTools
-from wxPython.lib.buttons import wxGenButton, wxGenBitmapButton, wxGenToggleButton, wxGenBitmapToggleButton
+from ExternalLib.buttons import wxGenButton, wxGenBitmapButton, wxGenToggleButton, wxGenBitmapToggleButton
 import Utils
 import os
 
@@ -474,7 +474,7 @@ class PanelPalettePage(wxPanel, BasePalettePage):
         width = bmp.GetWidth() + 7
         height = bmp.GetHeight() + 7
         
-        mID = NewId()
+        mID = wxNewId()
         
         newButton = btnType(self, mID, None, wxPoint(self.posX, self.posY),
                            wxSize(width, height))
@@ -527,7 +527,6 @@ class PalettePage(PanelPalettePage):
             self.addButton(ci[0], wxClass, ci[1], self.OnClickTrap, hintFunc, hintLeaveFunc, wxGenBitmapToggleButton)
 
     def OnClickTrap(self, event):
-        print 'onclicktrap'
         obj = self.senders.getBtnObject(event)
         if obj.up:
             self.selectNone()
