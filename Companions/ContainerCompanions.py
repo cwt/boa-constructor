@@ -190,7 +190,8 @@ class NotebookDTC(WindowConstr, ContainerDTC):
                              'ImageList': ImageListClassLinkPropEdit})
         self.subCompanions['Pages'] = NotebookPagesCDTC
         self.windowStyles = ['wxNB_FIXEDWIDTH', 'wxNB_LEFT', 'wxNB_RIGHT',
-                             'wxNB_BOTTOM'] + self.windowStyles
+                             'wxNB_BOTTOM', 'wxNB_MULTILINE'] + \
+                             self.windowStyles
         self.letClickThru = true
 
     def properties(self):
