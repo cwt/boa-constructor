@@ -12,14 +12,14 @@
 #Boa:Frame:CollectionEditor
 print 'importing Views.CollectionEdit'
 
-import os
-
-if __name__ == '__main__':
-    import sys
-    sys.path.append('..')
+import os, sys
 
 from wxPython.wx import *
-from wxPython.lib.buttons import wxGenBitmapButton
+
+if sys.version[:3] == '2.2' and wxVERSION == (2,3,2):
+    from ExternalLib.buttons import wxGenBitmapButton
+else:
+    from wxPython.lib.buttons import wxGenBitmapButton
 
 import Preferences, Utils
 from Preferences import IS, keyDefs
@@ -52,7 +52,7 @@ class CollectionEditor(wxFrame, Utils.FrameRestorerMixin):
         self.collEditView = collEditView
         self.selected = -1
 
-        self.additAdders = 0#additAdders
+        self.additAdders = additAdders = 0
         self.additIds = {}
 
         self.toolLst = []
