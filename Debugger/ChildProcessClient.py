@@ -87,7 +87,11 @@ def spawnChild(monitor, process, args=''):
                         open(fn, 'a').write(err)
                     errlines = err.split('\n')
                     while not errlines[-1].strip(): del errlines[-1]
-                    exctype, excvalue = errlines[-1].split(':')
+                    try:
+                        exctype, excvalue = errlines[-1].split(':')
+                    except ValueError:
+                        raise UnknownError, errlines[-1]
+                        
                     while errlines and errlines[-1][:7] != '  File ':
                         del errlines[-1]
                     if errlines:
