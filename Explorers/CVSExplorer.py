@@ -250,7 +250,11 @@ class CVSController(ExplorerNodes.Controller):
     def selPreCmd_remove(self, list):
         dir = os.path.dirname(self.list.node.resourcepath)
         for name in list:
-            os.remove(os.path.join(dir, name))
+            try:
+                os.remove(os.path.join(dir, name))
+            except OSError, err:
+                # Skip files already removed
+                print err
 
     def OnRemoveCVSItems(self, event):
         self.doCvsCmdOnSelection('remove', '', self.selPreCmd_remove)
