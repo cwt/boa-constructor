@@ -498,7 +498,7 @@ class BlankWindowPage(wxWindow):
         try:
             if self.ctrl is None:
                 dc = wxPaintDC(self)
-                    sze = self.GetClientSize()
+                sze = self.GetClientSize()
 
                 dc.SetPen(wxRED_PEN)
                 dc.BeginDrawing()
