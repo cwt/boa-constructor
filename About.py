@@ -296,13 +296,13 @@ class AboutBoxSplash(AboutBoxMixin, wxFrame):
         self._live = true
         lastCnt = 0
         if self and sys and len(sys.modules) >= self.moduleTotal:
-            wx.wxPostEvent(self, ModCntUpdateEvent(self.moduleTotal, 'importing'))
+            wxPostEvent(self, ModCntUpdateEvent(self.moduleTotal, 'importing'))
         else:
             while self and self._live and sys and len(sys.modules) < self.moduleTotal:
                 mc = len(sys.modules)
                 if mc > lastCnt:
                     lastCnt = mc
-                    wx.wxPostEvent(self, ModCntUpdateEvent(mc, 'importing'))
+                    wxPostEvent(self, ModCntUpdateEvent(mc, 'importing'))
                 time.sleep(0.125)
 
     def Destroy(self):
@@ -337,7 +337,7 @@ class StaticTextPF(Utils.PseudoFile):
         res = prog_update.search(s)
         if res:
             cnt = int(res.group('cnt'))
-            wx.wxPostEvent(self.output.GetGrandParent().GetParent(),
+            wxPostEvent(self.output.GetGrandParent().GetParent(),
                   ModCntUpdateEvent(cnt, 'opening'))
             s = s[:res.start()]
 
