@@ -28,7 +28,7 @@ def create(parent):
 
 [wxID_COLLECTIONEDITOR, wxID_COLLECTIONEDITORTOOLBAR, wxID_COLLECTIONEDITORITEMLIST] = map(lambda _init_ctrls: NewId(), range(3))
 
-class CollectionEditor(wxFrame):
+class CollectionEditor(wxFrame, Utils.FrameRestorerMixin):
     def _init_ctrls(self, prnt):
         wxFrame.__init__(self, size = wxSize(200, 247), id = wxID_COLLECTIONEDITOR, title = 'Collection Editor', parent = prnt, name = 'CollectionEditor', style = wxDEFAULT_FRAME_STYLE, pos = wxPoint(341, 139))
 
@@ -328,5 +328,4 @@ class CollectionEditorView(InspectableViews.InspectableObjectView):
             self.frame = self.companion.CollEditorFrame(self.parent, self)
             self.updateFrameTitle()
             self.refreshCtrl()
-        self.frame.Show(true)
-        self.frame.Raise()
+        self.frame.restore()
