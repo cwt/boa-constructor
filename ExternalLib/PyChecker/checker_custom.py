@@ -1,12 +1,12 @@
-from pychecker import warn
+from pychecker import Warning
 
 warnings = []
-class WarningWx(warn.Warning) :
+class WarningWx(Warning.Warning) :
     """ Warning redirector """
     def output(self) :
         warnings.append(`(self.file, self.line, self.err)`)
 
-warn.Warning = WarningWx
+Warning.Warning = WarningWx
 
 
 import sys

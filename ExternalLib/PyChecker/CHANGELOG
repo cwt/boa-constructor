@@ -1,12 +1,51 @@
 
-Version 0.5.1	- xx June 2001
+Version 0.7	- 16 July 2001
+  * Improve import warning messages, add from checks
+  * checker.py -h prints defaults after processing .pycheckrc file
+  * Add config option -k/--pkgimport to disable unused imports from __init__.py
+  * Add warning for variable used before being set
+  * Improve format string checks/warnings
+  * Check arguments to constructors
+  * Check that self is first arg to base constructor
+  * Add -e/--errors option to only warn about likely errors
+  * Make 'self' configurable as the first argument to methods
+  * Add check that there is a c'tor when instantiating an object and 
+	passing arguments
+  * Add config option (-N/--initreturn) to turn off warnings 
+	when returning None from __init__()
+  * Fix internal error with python 2.1 which defines a new op: LOAD_DEREF
+  * Check in lambda functions for module/variable use
+  * Fix inability to evaluate { 1: 'a' } inline,
+	led to incorrect __init__() not called warnings
+  * Fix exception when class overrides __special__() methods & raise exception
+  * Fix check in format strings when using '%*g %*.*g', etc
+  * Add check for static class attributes
+  * Fix checking of module attributes
+  * Fix wrong filename in 'Base class (xxx) __init__() not called'
+  	when doing a from X import *
+  * Fix 'No attribute found' for very dynamic classes
+  	(may also work for classes that use __getattr__)
+
+Version 0.6.1	- 27 June 2001
+  * Fix bug which caused an exception from some import code
+  * Fix bug in determining if there is an implicit return
+
+Version 0.6	- 25 June 2001
+  * Check format strings: "%s %s %s" % (v1, v2, v3, v4) for arg counts
+  * Warn when format strings do: '%(var) %(var2)'
+  * Fix Local variable (xxx) not used, when have:  "%(xxx)s" % locals()
+  * Warn when local variable (xxx) doesn't exist and have: "%(xxx)s" % locals()
+  * Install script in /usr/local/bin to invoke PyChecker
   * Don't produce unused global warnings when using a module in parameters
   * Don't produce unused global warnings when using a module in class variables
+  * Add check when using method as an attribute (if self.method and x == y:)
   * Add check for right # of args to object construction
   * Add check for right # of args to function calls in other modules
   * Check for returning a value from __init__
-  * Support for checking consistent return values - not complete and probably
-  	will produce false positives, although I don't have any test cases
+  * Fix using from XX import YY ; from XX import ZZ causing re-import warning
+  * Fix UNABLE TO IMPORT errors for files that don't end with a newline
+  * Support for checking consistent return values -- not complete 
+  	produces too many false positives
 
 Version 0.5	- 29 May 2001
   * Catch internal errors "gracefully" and turn into a warning

@@ -11,6 +11,7 @@ import dis
 def LINE_NUM(op):              return dis.opname[op] == 'SET_LINENO'
 def LOAD_GLOBAL(op):           return dis.opname[op] == 'LOAD_GLOBAL'
 def LOAD_CONST(op):            return dis.opname[op] == 'LOAD_CONST'
+def LOAD_DEREF(op):            return dis.opname[op] == 'LOAD_DEREF'
 def LOAD_NAME(op):             return dis.opname[op] == 'LOAD_NAME'
 def LOAD_FAST(op):             return dis.opname[op] == 'LOAD_FAST'
 def LOAD_ATTR(op):             return dis.opname[op] == 'LOAD_ATTR'
@@ -18,8 +19,11 @@ def STORE_ATTR(op):            return dis.opname[op] == 'STORE_ATTR'
 def STORE_FAST(op):            return dis.opname[op] == 'STORE_FAST'
 def STORE_NAME(op):            return dis.opname[op] == 'STORE_NAME'
 def STORE_GLOBAL(op):          return dis.opname[op] == 'STORE_GLOBAL'
+def STORE_SUBSCR(op):          return dis.opname[op] == 'STORE_SUBSCR'
 def CALL_FUNCTION(op):         return dis.opname[op] == 'CALL_FUNCTION'
 def IMPORT_NAME(op):           return dis.opname[op] == 'IMPORT_NAME'
+def IMPORT_FROM(op):           return dis.opname[op] == 'IMPORT_FROM'
+def IMPORT_STAR(op):           return dis.opname[op] == 'IMPORT_STAR'
 def BINARY_SUBSCR(op):         return dis.opname[op] == 'BINARY_SUBSCR'
 def BINARY_ADD(op):            return dis.opname[op] == 'BINARY_ADD'
 def BUILD_LIST(op):            return dis.opname[op] == 'BUILD_LIST'
@@ -31,6 +35,7 @@ def POP_TOP(op):               return dis.opname[op] == 'POP_TOP'
 def DUP_TOP(op):               return dis.opname[op] == 'DUP_TOP'
 def FOR_LOOP(op):              return dis.opname[op] == 'FOR_LOOP'
 def JUMP_FORWARD(op):          return dis.opname[op] == 'JUMP_FORWARD'
+def RAISE_VARARGS(op):         return dis.opname[op] == 'RAISE_VARARGS'
 
 def UNPACK_SEQUENCE(op) :
     "Deal w/Python 1.5.2 (UNPACK_[LIST|TUPLE]) or 2.0 (UNPACK_SEQUENCE)"
@@ -82,7 +87,7 @@ def getInfo(code, index, extended_arg) :
         index = index + 2
         extended_arg = 0
         if op == EXTENDED_ARG :
-            extended_arg = oparg * 65536L
+        	extended_arg = oparg * 65536L
     else :
         oparg, extended_arg = 0, 0
     return op, oparg, index, extended_arg
@@ -94,3 +99,5 @@ def initFuncCode(func) :
     func_code = func.func_code
     code = func_code.co_code
     return func_code, code, 0, len(code), 0
+
+    

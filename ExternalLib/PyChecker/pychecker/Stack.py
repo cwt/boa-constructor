@@ -10,8 +10,10 @@ import types
 
 
 DATA_UNKNOWN = "-unknown-"
+LOCALS = 'locals'
 
 # These should really be defined by subclasses
+TYPE_UNKNOWN = "-unknown-"
 TYPE_FUNC_RETURN = "-return-value-"
 TYPE_ATTRIBUTE = "-attribute-"
 TYPE_COMPARISON = "-comparison-"
@@ -32,21 +34,27 @@ class Item :
     def isNone(self) :
         return self.data is None or (self.data == 'None' and not self.const)
 
-    def isMethodCall(self, c) :
+    def isMethodCall(self, c, methodArgName) :
         return self.type == TYPE_ATTRIBUTE and c != None and \
-               len(self.data) == 2 and self.data[0] == 'self'
+               len(self.data) == 2 and self.data[0] == methodArgName
+
+    def isLocals(self):
+        return self.type == TYPE_FUNC_RETURN and self.data == LOCALS
 
     def getName(self, module) :
         if self.type == TYPE_ATTRIBUTE and \
            type(self.data) != types.StringType :
             strValue, data = "", self.data
-            # handle:  from XXX import YYY to munge the name
+            # handle:  from XXX import YYY to munge the name 
             # into looking like: XXX.YYY
-            if hasattr(module.module, self.data[0]) :
+            if type(self.data[0]) == types.StringType and \
+               hasattr(module.module, self.data[0]) :
                 globalObject = getattr(module.module, self.data[0])
+                data = self.data[1:]
                 if type(globalObject) != types.ModuleType :
                     strValue = "." + str(globalObject)
-                    data = self.data[1:]
+                else :
+                    strValue = "." + globalObject.__name__
 
             # convert the tuple into a string ('self', 'data') -> self.data
             for item in data :
@@ -71,8 +79,12 @@ def makeTuple(values = (), const = 1) :
 def makeList(values = [], const = 1) :
     return Item(values, types.ListType, const, len(values))
 
-def makeFuncReturnValue() :
-    return Item(DATA_UNKNOWN, TYPE_FUNC_RETURN)
+def makeFuncReturnValue(stackValue) :
+    data = DATA_UNKNOWN
+    if stackValue.type == TYPE_GLOBAL and stackValue.data == LOCALS :
+        data = LOCALS
+    return Item(data, TYPE_FUNC_RETURN)
 
 def makeComparison(stackItems, comparison) :
     return Item((stackItems[0], comparison, stackItems[1]), TYPE_COMPARISON)
+
