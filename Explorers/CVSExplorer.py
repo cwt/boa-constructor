@@ -1,3 +1,15 @@
+#-----------------------------------------------------------------------------
+# Name:        CVSExplorer.py
+# Purpose:     
+#                
+# Author:      Riaan Booysen
+#                
+# Created:     2000/10/22
+# RCS-ID:      $Id$
+# Copyright:   (c) 1999, 2000 Riaan Booysen
+# Licence:     GPL
+#-----------------------------------------------------------------------------
+
 from wxPython.lib.dialogs import wxScrolledMessageDialog
 from wxPython.wx import *
 import string, time, stat, os
@@ -139,7 +151,7 @@ class CVSController(ExplorerNodes.Controller):
         self.list.InsertColumn(2, 'Date', wxLIST_FORMAT_LEFT, 150)
         self.list.InsertColumn(3, 'Status', wxLIST_FORMAT_LEFT, 150)
         self.list.InsertColumn(4, 'Options', wxLIST_FORMAT_LEFT, 50)
-    
+
     def cleanupListCtrl(self):
         cols = range(5)
         cols.reverse()
@@ -547,7 +559,13 @@ class FSCVSFolderNode(ExplorerNodes.ExplorerNode):
         
         lst = []         
         for entry in fileEntries:
-            node = res.get(entry.name, CVSUnAddedItem(entry.name, entry.resourcepath, self, entry.isFolderish()))    
+            testCVSDir = os.path.join(entry.resourcepath, 'CVS')
+            if os.path.isdir(entry.resourcepath) and \
+                  os.path.exists(testCVSDir) and isCVS(testCVSDir):
+                node = CVSFolderNode('D/%s////'%entry.name, self.resourcepath, 
+                  self.dirpos, self)
+            else:
+                node = res.get(entry.name, CVSUnAddedItem(entry.name, entry.resourcepath, self, entry.isFolderish()))    
             if node:
                 lst.append(node)
         
@@ -571,9 +589,7 @@ class FSCVSFolderNode(ExplorerNodes.ExplorerNode):
         else:
             return false
 
-
 #---------------------------------------------------------------------------
-
 class CVSConflictsView(Views.EditorViews.ListCtrlView):
     viewName = 'CVS conflicts'
     gotoLineBmp = 'Images/Editor/GotoLine.bmp'
@@ -614,7 +630,6 @@ class CVSConflictsView(Views.EditorViews.ListCtrlView):
             srcView = self.model.views['Source']
             srcView.focus()
             lineNo = int(self.conflicts[self.selected][1]) -1
-            print 'Going to line', lineNo
             srcView.gotoLine(lineNo)
 
     # XXX I've still to decide on this, operations should usually be applied
