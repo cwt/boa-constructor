@@ -22,7 +22,7 @@ import Help, Preferences, Utils
 
 from Preferences import IS, flatTools
 
-if sys.version[:2] == '2.2' and wxVERSION == (2,3,2):
+if sys.version[:3] == '2.2' and wxVERSION == (2,3,2):
     from ExternalLib.buttons import wxGenButton, wxGenBitmapButton, wxGenToggleButton, wxGenBitmapToggleButton, wxGenButtonEvent
 else:
     from wxPython.lib.buttons import wxGenButton, wxGenBitmapButton, wxGenToggleButton, wxGenBitmapToggleButton, wxGenButtonEvent
