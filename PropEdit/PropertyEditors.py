@@ -22,6 +22,7 @@
 # XXX Is still too fuzzy
 
 from wxPython.wx import *
+from wxPython.utils import *
 from types import *
 import Utils
 from Enumerations import reverseDict
@@ -764,21 +765,24 @@ class BITPropEditor(FactoryPropEdit):
     def inspectorEdit(self):
         self.editorCtrl = TextCtrlIEC(self, self.value)
         self.editorCtrl.createControl(self.parent, self.value, self.idx, self.width)
-
-class IntPropEdit(BITPropEditor):
     def getValue(self):
         if self.editorCtrl:
             try:
                 value = eval(self.editorCtrl.getValue())
             except Exception, mess:
-                Utils.ShowErrorMessage(self.parent, 'Invalid value', mess)
+                wxLogError('Invalid value: %s' % str(mess))
                 raise
             self.value = value
         return self.value
 
+class IntPropEdit(BITPropEditor):
+    pass
+    
 class StrPropEdit(BITPropEditor):
     def valueToIECValue(self):
         return self.value
+    def getValue(self):
+        return FactoryPropEdit.getValue(self)
 
 class NamePropEdit(StrPropEdit):
     def __init__(self, name, parent, companion, rootCompanion, propWrapper, idx, width, options, names):
@@ -995,11 +999,11 @@ class ColPropEdit(ClassPropEdit):
     def edit(self, event):
         data = wxColourData()
         data.SetColour(self.value)
+        data.SetChooseFull(true)
         dlg = wxColourDialog(self.parent, data)
         try:
             if dlg.ShowModal() == wxID_OK:
                 self.value = dlg.GetColourData().GetColour()
-                print 'ColPropEdit.edit', self.value
                 self.inspectorPost(false)
                 #self.propWrapper.setValue(self.value)
                 #self.obj.Refresh()
@@ -1271,18 +1275,26 @@ class MenuBarColPropEdit(CollectionPropEdit): pass
 class MenuColPropEdit(CollectionPropEdit): pass
 class ImagesColPropEdit(CollectionPropEdit): pass
 class NotebookPagesColPropEdit(CollectionPropEdit): pass
-
+    
 # Property editor registration
 
-def registerTypes(reg):
-    reg.registerTypes(IntType, [IntPropEdit])
-    reg.registerTypes(StringType, [StrPropEdit])
-    reg.registerTypes(TupleType, [TuplPropEdit])
-    reg.registerClasses(wxSize, [SizePropEdit])
-    reg.registerClasses(wxSizePtr, [SizePropEdit])
-    reg.registerClasses(wxPoint, [PosPropEdit])
-    reg.registerClasses(wxPointPtr, [PosPropEdit])
-    reg.registerClasses(wxFontPtr, [FontPropEdit])
-    reg.registerClasses(wxColourPtr, [ColPropEdit])
-    reg.registerClasses(wxBitmapPtr, [BitmapPropEdit])
-    reg.registerClasses(wxValidator, [ClassLinkPropEdit])
+def registerEditors(reg):
+    for theType, theClass, editors in registeredTypes:
+        if theType == 'Type':
+            reg.registerTypes(theClass, editors)
+        elif theType == 'Class':
+            reg.registerClasses(theClass, editors)
+        
+registeredTypes = [\
+    ('Type', IntType, [IntPropEdit]),
+    ('Type', StringType, [StrPropEdit]),
+    ('Type', TupleType, [TuplPropEdit]),
+    ('Class', wxSize, [SizePropEdit]),
+    ('Class', wxSizePtr, [SizePropEdit]),
+    ('Class', wxPoint, [PosPropEdit]),
+    ('Class', wxPointPtr, [PosPropEdit]),
+    ('Class', wxFontPtr, [FontPropEdit]),
+    ('Class', wxColourPtr, [ColPropEdit]),
+    ('Class', wxBitmapPtr, [BitmapPropEdit]),
+    ('Class', wxValidator, [ClassLinkPropEdit]),
+]
