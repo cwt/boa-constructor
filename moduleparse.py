@@ -13,7 +13,7 @@
 '''Parse one Python file and retrieve classes and methods,
 store the code spans and facilitate the manipulation of method bodies
 
-This file is heavly based on 'pyclbr.py' from the standard python lib
+This module is heavly based on 'pyclbr.py' from the standard python lib
 
 BUGS
 Methods within methods not handled
@@ -109,7 +109,7 @@ class Class:
     def extend_extent(self, lineno):
         if lineno > self.extent: self.extent = lineno                
 
-    def _addmethod(self, name, sig, linestart, lineend = None, to_bottom = 1):
+    def add_method(self, name, sig, linestart, lineend = None, to_bottom = 1):
         if not lineend: lineend = linestart
         self.methods[name] = CodeBlock(sig, linestart, lineend)
         if to_bottom:
@@ -119,15 +119,15 @@ class Class:
             self.method_order.insert(0, name)
             self.extent = self.extent + (lineend - linestart)
 
-    def _endmethod(self, name, lineend):
+    def end_method(self, name, lineend):
         self.methods[name].end = lineend
         self.extend_extent(lineend)
 
     def remove_method(self, name):
-#        self.block.end = self.block.end - self.methods[name].size() - 1
-
+        self.extent = self.extent - self.methods[name].size()
         del self.methods[name]
         self.method_order.remove(name)
+        
         
     def add_attr(self, name, lineno):
         if self.attributes.has_key(name):
@@ -144,17 +144,23 @@ class Module:
         Parses and maintains dictionaries of the classes and 
         functions defined in a module. """
         
-        
     def finaliseEntry(self, cur_class, cur_meth, cur_func, lineno):
         """ When a new structure is encountered, finalise the current
-            structure, whatever it is. """ 
+            structure, whatever it is. """
         if cur_class:
+            # Gobble up blank lines 
+            lineno = lineno - 1
+            while not string.strip(self.source[lineno - 1]):
+                lineno = lineno - 1
+
             if cur_meth:
-                cur_class._endmethod(cur_meth, lineno -1)
+                cur_class.end_method(cur_meth, lineno)
                 cur_meth = ''
-            cur_class.block.end = lineno -1
+            cur_class.block.end = lineno
+            
             cur_class = None
             cur_func = ''
+            
         elif cur_func:
             self.functions[cur_func].end = lineno -1
             cur_func = ''
@@ -244,9 +250,9 @@ class Module:
                 if cur_class:
                     # and we know the class it belongs to
                     if cur_meth:
-                        cur_class._endmethod(cur_meth, self.lineno -1)
+                        cur_class.end_method(cur_meth, self.lineno -1)
                     meth_name = res.group('id')
-                    cur_class._addmethod(meth_name, res.group('sig'), self.lineno)
+                    cur_class.add_method(meth_name, res.group('sig'), self.lineno)
                     cur_meth = meth_name
                 continue
 
@@ -295,7 +301,6 @@ class Module:
           cur_func, self.lineno +1)
 
     def find_declarer(self, cls, attr, value, found = 0):
-    #    print 'find_declarer', cls, attr, found
         if found: 
             return found, cls, value
         else:
@@ -325,7 +330,7 @@ class Module:
             ins_point = a_class.extent
         else:
             ins_point = a_class.block.start
-        a_class._addmethod(method_name, method_params, ins_point, ins_point + \
+        a_class.add_method(method_name, method_params, ins_point, ins_point + \
           new_length, to_bottom)
         
         # Add in source
@@ -468,7 +473,7 @@ class Module:
 
         # Add a func code block
         ins_point = self.source
-        a_class._addmethod(method_name, method_params, ins_point, ins_point + \
+        a_class.add_method(method_name, method_params, ins_point, ins_point + \
           new_length)
         self.functions[func_name] = CodeBlock(func_params, 
           ins_point, ins_point+len(func_body))
