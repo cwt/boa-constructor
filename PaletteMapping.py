@@ -29,7 +29,10 @@ if Utils.IsComEnabled():
     from Companions.ComCompanions import *    
 
 print 'importing Companions.UserCompanions'
-from Companions.UserCompanions import *
+try:
+    from Companions.UserCompanions import *
+except Exception, error:
+    wxLogError('Problem importing User companions')
 
 print 'importing Companions.UtilCompanions'
 from Companions.UtilCompanions import *
