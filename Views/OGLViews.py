@@ -53,7 +53,6 @@ class MyEvtHandler(wxShapeEvtHandler):
                     s.Select(false, dc)
                 canvas.Redraw(dc)
 
-
     def OnEndDragLeft(self, x, y, keys = 0, attachment = 0):
         shape = self.GetShape()
         self.base_OnEndDragLeft(x, y, keys, attachment)
@@ -67,6 +66,8 @@ class MyEvtHandler(wxShapeEvtHandler):
         print 'rightclick', x, y, a, b
 #        self.PopupMenu(self.menu, wxPoint(self.x, self.y))
 
+    def OnRightDown(self, event):
+        print "OnRightDown", event
 
 #----------------------------------------------------------------------
 
@@ -175,7 +176,6 @@ class PerstDividedShape(wxDividedShape, PerstShape):
             self.FormatText(dc, region.GetText(), count)
             count = count + 1
 
-
 class PersistentOGLView(PersistentShapeCanvas, EditorViews.EditorView):
     viewName = 'OGL'
     loadBmp = 'Images/Editor/Open.bmp'
@@ -282,18 +282,28 @@ else:
 class UMLView(PersistentOGLView):
     ext = '.umllay'
     viewName = 'UML'
-    # XXX Get this from preferences file
     showAttributes = 1
+    showMethods = 1
     AllClasses = {}
 
     def __init__(self, parent, model):
-        PersistentOGLView.__init__(self, parent, model)
-     
+        PersistentOGLView.__init__(self, parent, model,
+            (('Toggle Attributes', self.OnToggleAttributes, self.loadBmp, ()),
+            ('Toggle Methods', self.OnToggleMethods, self.loadBmp, ())))
+        self.menuStdClass = wxMenu()
+        id = wxNewId()
+        self.menuStdClass.Append(id, "Goto Source", checkable = 0)
+        EVT_MENU(self, id, self.OnGotoSource)
+        id = wxNewId()
+        self.menuStdClass.Append(id, "Goto Documentation", checkable = 0)
+        EVT_MENU(self, id, self.OnGotoDoc)
+
     def newClass(self, size, pos, className, classMeths, classAttrs):
         shape = PerstDividedShape(className, size[0], size[1])
 
         maxWidth = 10 #padding
         if not self.showAttributes: classAttrs = [' ']
+        if not self.showMethods: classMeths = [' ']
 
         regionName, maxWidth, nameHeight = self.newRegion(boldFont, 'class_name', [className], maxWidth)
         regionAttribs, maxWidth, attribsHeight = self.newRegion(font, 'attributes', classAttrs, maxWidth)
@@ -359,6 +369,7 @@ class UMLView(PersistentOGLView):
                 else:
                     toShape = self.newExternalClass((20, 30), (pos[0], pos[1]), clss)
                     self.AllClasses[clss] = toShape
+                toShape.SetId(1000 + len(self.AllClasses))
                 k = hierc[clss].keys()
                 if len(k):
                     px, py, incx = self.processLevel(dc, hierc[clss], 
@@ -397,6 +408,61 @@ class UMLView(PersistentOGLView):
         
         PersistentOGLView.refreshCtrl(self)
 
+    def OnToggleMethods(self, event):
+        if self.showMethods == 1: self.showMethods = 0
+        else: self.showMethods = 1
+        return self.refreshCtrl()
+
+    def OnToggleAttributes(self, event):
+        if self.showAttributes == 1: self.showAttributes = 0
+        else: self.showAttributes = 1
+        return self.refreshCtrl()
+
+    def OnGotoDoc(self, event):
+        if self.menuClass:
+            name = self.menuClass
+            if self.model.views.has_key('Documentation') and \
+              self.model.getModule().classes.has_key(name):
+                srcView = self.model.views['Documentation']
+                srcView.focus()
+                module = self.model.getModule()
+                #srcView.gotoLine(int(module.classes[name].block.start) -1)
+            else:
+                print "Documentation View is not open"
+        else:
+            print "No shape selected"
+
+    def OnGotoSource(self, event):
+        if self.menuClass:
+            name = self.menuClass
+            if self.model.views.has_key('Source') and \
+              self.model.getModule().classes.has_key(name):
+                srcView = self.model.views['Source']
+                srcView.focus()
+                module = self.model.getModule()
+                srcView.gotoLine(int(module.classes[name].block.start) -1)
+            else:
+                print "No source for selection"
+        else:
+            print "No shape selected"
+
+    ## This allows me to pop-up a menu for the shape. However it loses the 
+    ## main menu position (x, y) go to 0,0 after the skip
+    def OnRightDown(self, event):
+        """If the event occurs on one of our shapes, I want to pop-up a shape"""
+        (x, y) = (event.m_x, event.m_y)
+        for (name, shape) in self.AllClasses.items():
+            (hit, attach_point, distance) = shape.HitTest(x, y)
+            if hit: break
+        if not hit: 
+            self.PopupMenu(self.menu, wxPoint(x, y))
+            return
+        # If we reach this point, then we have a selected shape. 
+        # However, it may be a class or external
+        if self.model.getModule().classes.has_key(name):
+            (self.menuShape, self.menuClass) = (shape, name)
+            self.PopupMenu(self.menuStdClass, wxPoint(x, y))
+            (self.menuShape, self.menuClass) = (None, None)
 
 class ImportsView(PersistentOGLView):
     ext = '.implay'
