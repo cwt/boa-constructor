@@ -890,7 +890,8 @@ class BaseFrameModel(ClassModel):
         and the _init_ctrls() method call will be available to the Designer
         as valid names bound to properties.
 
-        For an attribute to qualify, it has to have a simple deduceable type.
+        For an attribute to qualify, it has to have a simple deduceable type;
+        Python builtin or wxPython objects.
         If for example the attribute is bound to a variable passed in as a
         parameter, you have to first initialise it to a literal of the same
         type. This value will be used at design time.
@@ -899,9 +900,12 @@ class BaseFrameModel(ClassModel):
                     self.frameCaption = 'Design time frame caption'
                     self.frameCaption = myFrameCaption
                     self._init_ctrls(parent)
-        
-        
-        In the Inspector 
+
+        No by hand you may add this attribute as a parameter or property value
+        in the source.
+
+        In the Inspector property values recognised as special attributes
+        will display as bold values and cannot be edited (yet).
         """
         initMeth = cls.methods['__init__']
         startline = initMeth.start
@@ -944,7 +948,12 @@ class BaseFrameModel(ClassModel):
         _custom_classes = {'wxTreeCtrl': ['MyTreeCtrl', 'AdvancedTreeCtrl']}
         
         These custom classes will then be available to the Designer
-        and will act as equivalent to the corresponding wxPython class
+        and will act as equivalent to the corresponding wxPython class,
+        but will generate source for the custom definition.
+
+        One implication is that you loose the constructor. Because Boa
+        will generate the creation code for the object the constructor
+        signature has to be the same as the wxPython class.
         """
         res = {}
         if cls.class_attributes.has_key('_custom_classes'):
