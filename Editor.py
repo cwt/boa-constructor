@@ -116,11 +116,11 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
         self.tabsSplitter = BottomAligningSplitterWindow(id=wxID_EDITORFRAMETABSSPLITTER,
               name='tabsSplitter', parent=self, point=wxPoint(0, 0),
               size=wxSize(802, 421),
-              style=wxCLIP_CHILDREN | wxSP_LIVE_UPDATE | wxSP_3DSASH | wxSP_FULLSASH)
+              style=wxCLIP_CHILDREN | wxSP_LIVE_UPDATE | wxSP_3DSASH)# | wxSP_FULLSASH)
 
         self.tabs = wxNotebook(id=wxID_EDITORFRAMETABS, name='tabs',
               parent=self.tabsSplitter, pos=wxPoint(2, 2), size=wxSize(798,
-              417), style=wxCLIP_CHILDREN)
+              417), style=wxCLIP_CHILDREN)# | wxNB_MULTILINE)
         EVT_NOTEBOOK_PAGE_CHANGED(self.tabs, wxID_EDITORFRAMETABS,
               self.OnTabsNotebookPageChanged)
 
