@@ -409,7 +409,7 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
             wxMessageBox('The debugger process stopped prematurely.',
                   'Debugger stopped', wxOK | wxICON_EXCLAMATION | wxCENTRE)
         
-        if self._pid is not None:
+        if self._pid:
             self._erroutFrm.processFinished(self._pid)
             self._pid = None
 
@@ -435,7 +435,8 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
             self._pid = self.debug_client.getProcessId()
             script = os.path.basename(self.filename)
             intp = os.path.basename(self.debug_client.pyIntpPath)
-            self._erroutFrm.processStarted(intp, self._pid, script, 'Debug') 
+            if intp:
+                self._erroutFrm.processStarted(intp, self._pid, script, 'Debug') 
 
         self.restoreDebugger()
         self.enableStepping()
