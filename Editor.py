@@ -34,7 +34,7 @@ from Views.DataView import DataView
 print 'importing Views.UMLViews'
 from Views.OGLViews import UMLView, ImportsView
 print 'importing Views.SourceViews'
-from Views.PySourceView import PythonSourceView, HTMLSourceView, TextView, CPPSourceView, HPPSourceView
+from Views.PySourceView import PythonSourceView, HTMLSourceView, TextView, CPPSourceView, HPPSourceView, PythonDisView
 print 'importing Explorers'
 from Explorers.CVSExplorer import CVSConflictsView
 from Explorers import Explorer
@@ -52,10 +52,12 @@ adtAppModelViews = (AppModuleDocView, ToDoView, ImportsView, CVSConflictsView,
                     AppBUGS_TIFView)
 
 defModModelViews = (PythonSourceView, ExploreView)
-adtModModelViews = (HierarchyView, ModuleDocView, ToDoView, UMLView, CVSConflictsView)
+adtModModelViews = (HierarchyView, ModuleDocView, ToDoView, UMLView, 
+                    CVSConflictsView, PythonDisView)
 
 defBaseFrameModelViews = (PythonSourceView, ExploreView)
-adtBaseFrameModelViews = (HierarchyView, ModuleDocView, ToDoView, UMLView, CVSConflictsView)
+adtBaseFrameModelViews = (HierarchyView, ModuleDocView, ToDoView, UMLView, 
+                          CVSConflictsView, PythonDisView)
 
 defPackageModelViews = (PackageView, PythonSourceView)
 adtPackageModelViews = (CVSConflictsView,)
@@ -68,9 +70,14 @@ adtHTMLFileModelViews = (HTMLFileView,)
 
 defZopeDocModelViews = (HTMLSourceView,)
 adtZopeDocModelViews = (ZopeHTMLView,)
+##defZopeDocModelViews = (PythonSourceView,)
+##adtZopeDocModelViews = ()
 
 defCPPModelViews = (CPPSourceView, HPPSourceView)
 adtCPPModelViews = (CVSConflictsView,)
+
+defSetupModelViews = (PythonSourceView, )
+adtSetupModelViews = ()
 
 (mmFile, mmEdit, mmViews, mmWindows, mmHelp) = range(5)
 
@@ -81,8 +88,10 @@ adtCPPModelViews = (CVSConflictsView,)
  wxID_EDITORSWITCHPALETTE, wxID_EDITORSWITCHINSPECTOR, wxID_EDITORDIFF,
  wxID_EDITORCMPAPPS, wxID_EDITORHELPABOUT, wxID_EDITORPREVPAGE, 
  wxID_EDITORNEXTPAGE, wxID_EDITORBROWSEFORW, wxID_EDITORBROWSEBACK,
- wxID_EDITORHELPGUIDE, wxID_EDITORHELPTIPS
- ] = map(lambda _editor_menus: wxNewId(), range(25))
+ wxID_EDITORHELPGUIDE, wxID_EDITORHELPTIPS,
+ wxID_SETUPINSTALL, wxID_SETUPCLEAN, wxID_SETUPBUILD, 
+ wxID_SETUPSDIST, wxID_SETUPBDIST, wxID_SETUPBDIST_WININST, wxID_SETUPPY2EXE, 
+ ] = map(lambda _editor_menus: wxNewId(), range(32))
                
 [wxID_EDITORFRAME, wxID_PAGECHANGED] = map(lambda _init_ctrls: wxNewId(), range(2))
 
@@ -109,7 +118,7 @@ class EditorFrame(wxFrame):
         EVT_CLOSE(self, self.OnCloseWindow)
 
         if wxPlatform == '__WXMSW__':
-            self.SetIcon(wxIcon(Preferences.toPyPath('Images/Icons/Editor.ico'), wxBITMAP_TYPE_ICO))
+            self.SetIcon(IS.load('Images/Icons/Editor.ico'))
         
         self.app = app
         self.palette = parent
@@ -118,7 +127,8 @@ class EditorFrame(wxFrame):
         self.compPalette = componentPalette
         self.debugger = None
         self.browser = Browse.Browser()
-
+        self.erroutFrm = None
+        
         self.statusBar = EditorStatusBar(self)
         self.SetStatusBar(self.statusBar)
         
@@ -180,22 +190,39 @@ class EditorFrame(wxFrame):
         EVT_MENU(self, wxID_EDITORHELPABOUT, self.OnHelpAbout)
         EVT_MENU(self, wxID_EDITORHELPGUIDE, self.OnHelpGuide)
         EVT_MENU(self, wxID_EDITORHELPTIPS, self.OnHelpTips)
+
         EVT_MENU(self, wxID_EDITOROPEN, self.OnOpen)
+
+        # XXX These methods and events should be refactored into controllers
+        # XXX that can link to certain models
+
         EVT_MENU(self, wxID_EDITORSAVE, self.OnSave)
         EVT_MENU(self, wxID_EDITORSAVEAS, self.OnSaveAs)
         EVT_MENU(self, wxID_EDITORCLOSEPAGE, self.OnClosePage)
+
         EVT_MENU(self, wxID_EDITORREFRESH, self.OnRefresh)
         EVT_MENU(self, wxID_EDITORDESIGNER, self.OnDesigner)
         EVT_MENU(self, wxID_EDITORDEBUG, self.OnDebug)
+
         EVT_MENU(self, wxID_EDITORSWITCHAPP, self.OnSwitchApp)
         EVT_MENU(self, wxID_EDITORSWITCHSHELL, self.OnSwitchShell)
         EVT_MENU(self, wxID_EDITORSWITCHEXPLORER, self.OnSwitchExplorer)
         EVT_MENU(self, wxID_EDITORSWITCHPALETTE, self.OnSwitchPalette)
         EVT_MENU(self, wxID_EDITORSWITCHINSPECTOR, self.OnSwitchInspector)
+
         EVT_MENU(self, wxID_EDITORDIFF, self.OnDiff)
         EVT_MENU(self, wxID_EDITORCMPAPPS, self.OnCmpApps)
+
         EVT_MENU(self, wxID_EDITORPREVPAGE, self.OnPrevPage)
         EVT_MENU(self, wxID_EDITORNEXTPAGE, self.OnNextPage)
+
+        EVT_MENU(self, wxID_SETUPBUILD, self.OnSetupBuild)
+        EVT_MENU(self, wxID_SETUPCLEAN, self.OnSetupClean)
+        EVT_MENU(self, wxID_SETUPINSTALL, self.OnSetupInstall)
+        EVT_MENU(self, wxID_SETUPSDIST, self.OnSetupSDist)
+        EVT_MENU(self, wxID_SETUPBDIST, self.OnSetupBDist)
+        EVT_MENU(self, wxID_SETUPBDIST_WININST, self.OnSetupBDist_WinInst)
+        EVT_MENU(self, wxID_SETUPPY2EXE, self.OnSetupPy2Exe)
         
         self.mainMenu = wxMenuBar()
         self.SetMenuBar(self.mainMenu)
@@ -251,7 +278,7 @@ class EditorFrame(wxFrame):
 #        self.defaultBookmarkItem = self.getChildNamed(ws, self.boaRoot.entries[1].getDefault())
 #            self.getChildNamed(ws, tree.boaRoot.entries[1].getDefault())
             tree.SelectItem(tree.getChildNamed(ws, tree.boaRoot.entries[1].getDefault()))
-#            self.explorer.tree.defaultBookmarkItem)		
+#            self.explorer.tree.defaultBookmarkItem)
             
 #            print 'Setting default', self.explorer.tree.defaultBookmarkItem
 #            self.explorer.tree.SelectItem(self.explorer.tree.defaultBookmarkItem)		
@@ -292,7 +319,7 @@ class EditorFrame(wxFrame):
         self.toolBar.ClearTools()
         
         accLst = []
-        for (ctrlKey, key), wId in \
+        for (ctrlKey, key, code), wId in \
                 ( (keyDefs['Inspector'], wxID_EDITORSWITCHINSPECTOR),
                   (keyDefs['Open'], wxID_EDITOROPEN),
                   (keyDefs['PrevPage'], wxID_EDITORPREVPAGE),
@@ -425,6 +452,15 @@ class EditorFrame(wxFrame):
 
         self.updateTitle()
 
+    def addNewSetupPage(self):
+        name = 'setup.py'
+        model = SetupModuleModel(defSetup_py, name, self, false)
+        self.addModulePage(model, name, defSetupModelViews, adtSetupModelViews, 
+          SetupModuleModel.imgIdx)
+        model.new()
+
+        self.updateTitle()
+
     def addNewPackage(self):
         filename, success = self.saveAsDlg('__init__.py')
         print filename
@@ -460,7 +496,8 @@ class EditorFrame(wxFrame):
         self.addModulePage(model, name, defModModelViews, adtModModelViews, 
           ModuleModel.imgIdx)
         model.new()
-        if activeApp: activeApp.addModule(model.filename, '')
+        if activeApp and Preferences.autoAddToApplication: 
+            activeApp.addModule(model.filename, '')
 
         self.updateTitle()
 
@@ -484,9 +521,11 @@ class EditorFrame(wxFrame):
         params = tempComp.designTimeSource()
         params['parent'] = 'prnt'
         params['id'] = Utils.windowIdentifier(model.main, '')
+        params['title'] = `model.main`
 
         model.new(params)
-        if activeApp: activeApp.model.addModule(model.filename, '')
+        if activeApp and Preferences.autoAddToApplication: 
+            activeApp.model.addModule(model.filename, '')
 
         self.updateTitle()
         
@@ -574,6 +613,10 @@ class EditorFrame(wxFrame):
                 return model
 ##                defViews = defTextModelViews
 ##                views = adtTextModelViews
+            elif modCls is SetupModuleModel:
+                model = SetupModuleModel(source, filename, self, true)
+                defViews = defSetupModelViews
+                views = adtSetupModelViews
             else:
                 model = ModuleModel(source, filename, self, true, app)
                 defViews = defModModelViews
@@ -909,9 +952,9 @@ class EditorFrame(wxFrame):
             model.views['Application'].focus()
     
     def OnHelpAbout(self, event):
-        a = About.AboutBox(None)
-        a.ShowModal()
-        a.Destroy()
+        abt = About.AboutBox(None)
+        try:     abt.ShowModal()
+        finally: abt.Destroy()
     
     def OnGotoModulePage(self, event):
         wId = event.GetId()
@@ -961,10 +1004,13 @@ class EditorFrame(wxFrame):
         if idx < 0: idx = pc - 1
         self.tabs.SetSelection(idx)
 
+#---Code Browsing---------------------------------------------------------------
     def addBrowseMarker(self, marker):
+        """ Add marker to browse stack associated with the currently open module
+            and view
+        """
         modulePage = self.getActiveModulePage()
         if modulePage:
-            print 'addBrowseMarker', marker
             activeView = modulePage.getActiveView()
             page = Browse.BrowsePage(modulePage, activeView.viewName, marker)
             self.browser.add(page)
@@ -977,6 +1023,37 @@ class EditorFrame(wxFrame):
     def OnBrowseForward(self, event):
         self.browser.forward()
         self.updateBrowserBtns()
+
+#---DistUtils-------------------------------------------------------------------
+    def runDistUtilsCmd(self, cmd):
+        import ProcessProgressDlg
+        cwd = path.abspath(os.getcwd())
+        modulePage = self.getActiveModulePage()
+        os.chdir(path.dirname(modulePage.model.filename))
+        try:
+            PD = ProcessProgressDlg.ProcessProgressDlg(self, 
+              'python setup.py %s'%cmd, 'Running distutil command...', autoClose = false)
+            try:
+                PD.ShowModal()
+            finally:
+                PD.Destroy()
+        finally:
+            os.chdir(cwd)
+        
+    def OnSetupBuild(self, event):
+        self.runDistUtilsCmd('build')
+    def OnSetupClean(self, event):
+        self.runDistUtilsCmd('clean')
+    def OnSetupInstall(self, event):
+        self.runDistUtilsCmd('install')
+    def OnSetupSDist(self, event):
+        self.runDistUtilsCmd('sdist')
+    def OnSetupBDist(self, event):
+        self.runDistUtilsCmd('bdist')
+    def OnSetupBDist_WinInst(self, event):
+        self.runDistUtilsCmd('bdist_wininst')
+    def OnSetupPy2Exe(self, event):
+        self.runDistUtilsCmd('py2exe')
 
 #-----Toolbar-------------------------------------------------------------------
 
@@ -1142,8 +1219,8 @@ class ModulePage:
         self.model.destroy()    
         self.notebook.Destroy()
     
-    def __del__(self):
-        print '__del__', self.__class__.__name__        
+##    def __del__(self):
+##        print '__del__', self.__class__.__name__        
 
     def __repr__(self):
         return '<%s: %s, %d>' %(self.__class__.__name__, self.model.defaultName, self.tIdx)
@@ -1212,7 +1289,7 @@ class ModulePage:
             of view instances."""
         if not viewName: viewName = view.viewName
         if wxPlatform == '__WXGTK__':
-	    panel = wxPanel(self.notebook, -1, style=wxTAB_TRAVERSAL | wxCLIP_CHILDREN)
+            panel = wxPanel(self.notebook, -1, style=wxTAB_TRAVERSAL | wxCLIP_CHILDREN)
             self.model.views[viewName] = apply(view, (panel, self.model))
             def OnWinSize(evt, win=self.model.views[viewName]):
                 win.SetSize(evt.GetSize())
