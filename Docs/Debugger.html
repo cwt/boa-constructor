@@ -1,59 +1,70 @@
-<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
-<html>
-<head>
-   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-   <meta name="GENERATOR" content="Mozilla/4.61 [en] (WinNT; I) [Netscape]">
-   <meta name="Author" content="Riaan Booysen">
-   <title>Debugger</title>
-</head>
-<body text="#000000" bgcolor="#FFFFFF" link="#0000EE" vlink="#551A8B" alink="#FF0000">
+<html><head><title>Debugger</title></head>
+<body text="#000000" bgcolor="#FFFFFF" link="#0000FF" vlink="#000099" alink="#FF0000">
 
-<center><a href="Boa.html"><img SRC="contents.gif" ALT="Contents" BORDER=0 height=24 width=65></a>
-<br>&nbsp;</center>
+<center><a href="index.html"><img SRC="contents.gif" ALT="Home" BORDER=0></a></center>
 
 <table BORDER=0 CELLSPACING=0 CELLPADDING=2 WIDTH="100%" BGCOLOR="#000000" >
-<tr>
-<td>
-<table BORDER=0 CELLSPACING=0 WIDTH="100%" BGCOLOR="#FFFFFF" >
-<tr>
-<td BGCOLOR="#33CCFF">
-<center><img SRC="1x1.GIF" height=1 width=1></center>
-</td>
-</tr>
+  <tr><td>
+  <table BORDER=0 CELLSPACING=0 WIDTH="100%" BGCOLOR="#FFFFFF" >
+    <tr><td BGCOLOR="#99ccff">
+    <center><img SRC="dot.gif" height=1 width=1></center>
+    </td></tr>
+  </table>
+  </td></tr>
 </table>
-</td>
-</tr>
-</table>
+
+
 
 <h2>
 <img SRC="Debugger.jpg" height=32 width=32>&nbsp; Debugger</h2>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 First a warning; <i>The debugger is still quite buggy and not nearly done</i>.
 <br>It can debug plain python and if you're careful, simple wxPython apps,
 but there are currently still serious issues around detecting when the
 main window closes and processing&nbsp; the mainloop of a GUI app.
 <p>To open the debugger for a module, open a module or save any unsaved
-changes and click the red play button&nbsp;<img SRC="Debug.JPG" height=16 width=16>
+changes and click the red play button&nbsp;<img SRC="Debug.jpg" height=16 width=16>
 on the 'Source' view.
 <br>To open the debugger for an application, open it or save any unsaved
-changes and click the red play button&nbsp;<img SRC="Debug.JPG" height=16 width=16>
+changes and click the red play button&nbsp;<img SRC="Debug.jpg" height=16 width=16>
 on the 'Application'/'Source' view.
 <p>When you want to debug an application be sure to remove code which checks
 that <tt>__name__ == '__main__'</tt>.
 <br>Otherwise, while debugging, this test will fail and there will usually
 not be much to debug :)
 <p>The standard debugging pages:
-<table WIDTH="100%" BGCOLOR="#33CCFF" >
+<table>
 <tr>
-<td VALIGN=TOP WIDTH="15%"><b><font color="#000000">Stack</font></b></td>
+<td VALIGN=TOP BGCOLOR="#99ccff" >
 
-<td>List of items, each representing a level of the stack.
+<b>Stack</b></td>
+<td VALIGN=TOP BGCOLOR="#99ccff" >
+
+List of items, each representing a level of the stack.
 <br>Click on an item to inspect that level in the watch windows.</td>
 </tr>
 
 <tr>
-<td VALIGN=TOP><b><font color="#000000">Breakpoints</font></b></td>
+<td VALIGN=TOP BGCOLOR="#99ccff" >
 
-<td>List of breakpoints defined for the debugger.&nbsp;
+<b>Breakpoints</b></td>
+<td VALIGN=TOP BGCOLOR="#99ccff" >
+
+List of breakpoints defined for the debugger.&nbsp;
 <br>Breakpoints can be disabled or deleted&nbsp; by selecting them and
 right clicking in this view.
 <br>Add a breakpoint by putting your caret at the desired position in the
@@ -61,50 +72,64 @@ source and choosing 'Set breakpoint'</td>
 </tr>
 
 <tr>
-<td VALIGN=TOP><b><font color="#000000">Output</font></b></td>
+<td VALIGN=TOP BGCOLOR="#99ccff" >
 
-<td VALIGN=TOP>Theoretically this view should show any output generated
+<b>Output</b></td>
+<td VALIGN=TOP BGCOLOR="#99ccff" >
+
+Theoretically this view should show any output generated
 by the module being debugged.</td>
 </tr>
 
 <tr>
-<td VALIGN=TOP><b>Watches</b></td>
+<td VALIGN=TOP BGCOLOR="#99ccff" >
 
-<td>Shows a list of user defined watches, evaluated in the selected scope.
+<b>Watches</b></td>
+<td VALIGN=TOP BGCOLOR="#99ccff" >
+
+Shows a list of user defined watches, evaluated in the selected scope.
 <br>Select/right-click to delete.</td>
 </tr>
 
 <tr>
-<td VALIGN=TOP><b>Locals</b></td>
+<td VALIGN=TOP BGCOLOR="#99ccff" >
 
-<td>List of all objects in local scope of the selected level.
+<b>Locals</b></td>
+<td VALIGN=TOP BGCOLOR="#99ccff" >
+
+List of all objects in local scope of the selected level.
 <br>Select/right-click to add as a watch or add your own locals watch</td>
 </tr>
 
 <tr>
-<td VALIGN=TOP><b>Globals</b></td>
+<td VALIGN=TOP BGCOLOR="#99ccff" >
 
-<td>List of all objects in global scope of the selected level.
+<b>Globals</b></td>
+<td VALIGN=TOP BGCOLOR="#99ccff" >
+
+List of all objects in global scope of the selected level.
 <br>Select/right-click to add as a watch or add your own globals watch</td>
 </tr>
 </table>
 
 <br>&nbsp;
+<br>
 <table BORDER=0 CELLSPACING=0 CELLPADDING=2 WIDTH="100%" BGCOLOR="#000000" >
-<tr>
-<td>
-<table BORDER=0 CELLSPACING=0 WIDTH="100%" BGCOLOR="#FFFFFF" >
-<tr>
-<td BGCOLOR="#33CCFF">
-<center><img SRC="1x1.GIF" height=1 width=1></center>
-</td>
-</tr>
-</table>
-</td>
-</tr>
+  <tr><td>
+  <table BORDER=0 CELLSPACING=0 WIDTH="100%" BGCOLOR="#FFFFFF" >
+    <tr><td BGCOLOR="#99ccff">
+    <center><img SRC="dot.gif" height=1 width=1></center>
+    </td></tr>
+  </table>
+  </td></tr>
 </table>
 
-<center><img SRC="spot-small.GIF" height=9 width=9></center>
 
-</body>
-</html>
+<p>
+</body></html>
+
+
+
+
+
+
