@@ -73,7 +73,7 @@ class PythonInterpreter:
 
         self.lines = []
 
-        print 'sys.exc_value', sys.exc_value
+#        print 'sys.exc_value', sys.exc_value
         exc_type, exc_value, exc_traceback = sys.exc_info()
         if exc_type == SyntaxError:# and len(sys.exc_value) == 2:
 #            print dir(exc_value)
