@@ -18,14 +18,14 @@ from wxPython import wx
 class InvalidImgPathError(Exception): pass
 
 class ImageStore:
-    def __init__(self, rootpaths, images = None, cache = 1):
+    def __init__(self, rootpaths, images=None, cache=1):
         if not images: images = {}
-        if type(rootpaths) == type(''):
-            self.rootpaths = [rootpaths]
-        else:
-            self.rootpaths = rootpaths
+        self.rootpaths = []
         self.images = images
         self.useCache = cache
+        
+        for rootpath in rootpaths:
+            self.addRootPath(rootpath)
 
     def cleanup(self):
         self.images = {}
@@ -45,7 +45,7 @@ class ImageStore:
             raise 'Extension not handled '+ext
 
     def pathExtFromName(self, root, name):
-        imgPath = string.replace(path.normpath(path.join(root, name)), '\\', '/')
+        imgPath = self.canonizePath(path.join(root, name))
         ext = path.splitext(name)[1]
         self.checkPath(imgPath)
         return imgPath, ext
@@ -77,60 +77,65 @@ class ImageStore:
 ##        name, ext = self.pathExtFromName(name)
 ##        return os.path.isfile(name)
 
+    def canonizePath(self, imgPath):
+        return string.replace(path.normpath(imgPath), '\\', '/')
+
     def checkPath(self, imgPath):
         if not path.isfile(imgPath):
             raise InvalidImgPathError, '%s not valid' %imgPath
 
+    def addRootPath(self, rootPath):
+        self.rootpaths.append(rootPath)
+
 class ZippedImageStore(ImageStore):
-    def __init__(self, rootpaths, defaultArchive, images = None):
-        ImageStore.__init__(self, rootpaths, images)
+    def __init__(self, rootpaths, images=None, cache=1):
         self.archives = {}
-        self.addArchive(defaultArchive)
-        # XXX do not erase tempfiles until app exits, but then crashes will leak
-        #self.tempfiles = {}
+        ImageStore.__init__(self, rootpaths, images, cache)
 
     def cleanup(self):
-        #ImageStore.cleanup(self)
-        self.zipfile.close()
+        ImageStore.cleanup(self)
 
-    def addArchive(self, defaultArchive):
-        import zipfile
-        zf = zipfile.ZipFile(path.join(self.rootpath, defaultArchive))
-        self.archives[defaultArchive] = map(lambda fl: fl.filename, zf.filelist)
+    def addRootPath(self, rootPath):
+        ImageStore.addRootPath(self, rootPath)
 
-        for img in self.archives[defaultArchive]:
-            if img[-1] == '/':
-                continue
-
-            imgExt = path.splitext(img)[1]
-            bmpPath = string.replace(path.join(path.splitext(defaultArchive)[0],
-                  os.path.normpath(img)), '\\', '/')
-
-            self.images[bmpPath] = (img, imgExt)
-
-        self.zipfile = zf
+        archive = os.path.join(rootPath, 'Images.archive.zip')
+        if os.path.exists(archive):
+            print 'reading Image archive...'
+            import zipfile
+            zf = zipfile.ZipFile(archive)
+            self.archives[archive] = map(lambda fl: fl.filename, zf.filelist)
+    
+            for img in self.archives[archive]:
+                if img[-1] == '/':
+                    continue
+    
+                imgData = zf.read(img)
+                imgExt = path.splitext(img)[1]
+                bmpPath = img#self.canonizePath(path.join(path.splitext(archive)[0], img))
+                self.images[bmpPath] = (imgData, imgExt)
+            zf.close()
 
     def load(self, name):
         import tempfile
-        name = string.replace(path.normpath(name), '\\', '/')
+        name = self.canonizePath(name)
         try:
-            img, imgExt = self.images[name]
+            imgData, imgExt = self.images[name]
         except KeyError:
-            print name, 'not found by zipped image store'
-            return wx.wxNullBitmap
+            #print name, 'not found by zipped image store'
+            return ImageStore.load(self, name)
         else:
             tmpname = tempfile.mktemp()
-            open(tmpname, 'wb').write(self.zipfile.read(img))
+            open(tmpname, 'wb').write(imgData)
             try:
                 try:
                     return self.createImage(tmpname, imgExt)
                 except Exception, error:
-                    print 'Image creation failed', name, str(error)
-                    return wx.wxNullBitmap
+                    #print 'Image creation failed', name, str(error)
+                    return ImageStore.load(self, name)
             finally:
                 os.remove(tmpname)
 
     def canLoad(self, name):
-        name = string.replace(path.normpath(name), '\\', '/')
-        return self.images.has_key(name)
-
+        name = self.canonizePath(name)
+        if not self.images.has_key(name):
+            return ImageStore.canLoad(self, name)
