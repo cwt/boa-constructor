@@ -321,16 +321,16 @@ class MenuDTC(UtilityDTC):
 class MenuItemsCIDTC(CollectionIddDTC):
     #wxDocs = HelpCompanions.wxMenuDocs
     propName = 'Items'
-    displayProp = 'item'
+    displayProp = 'text'
     indexProp = '(None)'
     insertionMethod = 'Append'
     insertionDesc = 'Append item'
     deletionMethod = 'Remove'
     idProp = 'id'
-    idPropNameFrom = 'item'
+    idPropNameFrom = 'text'
 
     additionalMethods = { 'AppendSeparator': ('Append separator', '', '(None)'),
-                          'AppendMenu'     : ('Append sub menu', 'item', '(None)') }
+                          'AppendMenu'     : ('Append sub menu', 'text', '(None)') }
 
     def __init__(self, name, designer, parentCompanion, ctrl):
         CollectionIddDTC.__init__(self, name, designer, parentCompanion, ctrl)
@@ -354,11 +354,15 @@ class MenuItemsCIDTC(CollectionIddDTC):
                     'Menu': 'submenu', 'ItemId': 'id'}
 
     def properties(self):
-        props = CollectionIddDTC.properties(self)
-        props.update(
-            {'Text': ('IdRoute', wxMenu.GetLabel, wxMenu.SetLabel),
-             'Help': ('IdRoute', wxMenu.GetHelpString, wxMenu.SetHelpString)})
-             #'Menu': ('IdRoute', wxMenu.GetHelpString, wxMenu.SetHelpString)})
+        tcl = self.textConstrLst[self.index]
+        if tcl.method in ('Append', 'AppendMenu'):
+            props = CollectionIddDTC.properties(self)
+            props.update(
+                {'Text': ('IdRoute', wxMenu.GetLabel, wxMenu.SetLabel),
+                 'Help': ('IdRoute', wxMenu.GetHelpString, wxMenu.SetHelpString)})
+        elif tcl.method == 'AppendSeparator':
+            props = {}
+
         return props
 
     def designTimeSource(self, wId, method=None):

@@ -806,6 +806,15 @@ class ToolBarToolsCDTC(CollectionIddDTC):
         elif tcl.method == 'AddControl':
             return {'Control': 'control'}
 
+    def properties(self):
+        tcl = self.textConstrLst[self.index]
+        if tcl.method in ('DoAddTool', 'AddTool'):
+            return CollectionIddDTC.properties(self)
+        elif tcl.method == 'AddSeparator':
+            return {}
+        elif tcl.method == 'AddControl':
+            return {}
+
     def designTimeSource(self, wId, method=None):
         if method is None:
             method = self.insertionMethod
