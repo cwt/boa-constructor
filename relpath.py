@@ -6,7 +6,7 @@
 #
 # Created:     1999
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999 - 2002 Riaan Booysen
+# Copyright:   (c) 1999 - 2003 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
 
@@ -15,18 +15,17 @@
 ##d = 'c:\\a\\b\\h\\i\\j.txt'
 ##e = 'd:\\z\\x\\y\\j\\k.txt'
 
-import os, string
-from os import path
+import os
 
 def splitpath(apath):
     """ Splits a path into a list of directory names """
     path_list = []
-    drive, apath = path.splitdrive(apath)
-    head, tail = path.split(apath)
+    drive, apath = os.path.splitdrive(apath)
+    head, tail = os.path.split(apath)
     while 1:
         if tail:
             path_list.insert(0, tail)
-        newhead, tail = path.split(head)
+        newhead, tail = os.path.split(head)
         if newhead == head:
             break
         else:
@@ -38,7 +37,7 @@ def splitpath(apath):
 
 def relpath(base, comp):
     """ Return a path to file comp relative to path base. """
-    protsplitbase = string.split(base, '://')
+    protsplitbase = base.split('://')
     if len(protsplitbase) == 1:
         baseprot, nbase = 'file', protsplitbase[0]
     elif len(protsplitbase) == 2:
@@ -48,7 +47,7 @@ def relpath(base, comp):
     else:
         raise 'Unhandled path %s'%`protsplitbase`
 
-    protsplitcomp = string.split(comp, '://')
+    protsplitcomp = comp.split('://')
     if len(protsplitcomp) == 1:
         compprot, ncomp  = 'file', protsplitcomp[0]
     elif len(protsplitcomp) == 2:
@@ -61,8 +60,8 @@ def relpath(base, comp):
     if baseprot != compprot:
         return comp
 
-    base_drive, base_path = path.splitdrive(nbase)
-    comp_drive, comp_path = path.splitdrive(ncomp)
+    base_drive, base_path = os.path.splitdrive(nbase)
+    comp_drive, comp_path = os.path.splitdrive(ncomp)
     base_path_list = splitpath(base_path)
     comp_path_list = splitpath(comp_path)
 
@@ -75,13 +74,13 @@ def relpath(base, comp):
     # find the first directory for which the 2 paths differ
     found = -1
     for idx in range(len(base_path_list)):
-        if string.lower(base_path_list[idx]) != string.lower(comp_path_list[idx]):
+        if base_path_list[idx].lower() != comp_path_list[idx].lower():
             rel_path = comp_path_list[idx:]
             found = 0
             break
     for cnt in range(max(len(base_path_list) - idx + found, 0)):
         rel_path.insert(0, os.pardir)
 
-    return apply(path.join, rel_path)
+    return apply(os.path.join, rel_path)
 
 #print relpath(b, d)
