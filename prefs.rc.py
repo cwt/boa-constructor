@@ -142,6 +142,9 @@ autoReindent = false
 # Should the files open when closing Boa be reloaded at next startup?
 rememberOpenFiles = true
 
+# Show filename extensions on the page tabs
+showFilenameExtensions = false
+
 
 #-Explorer----------------------------------------------------------------------
 
@@ -166,6 +169,9 @@ exDefaultTreeWidth = 230
 # Should filetypes which are known to optionally contain a header be opened
 # and read when listing items
 exInspectInspectableFiles = true
+
+# Start the open file dialog relative to the file in the active module page
+exOpenFromHere = true
 
 #-Shell prompts-----------------------------------------------------------------
 
@@ -359,8 +365,9 @@ exportedProperties = ['flatTools', 'childFrameStyle', 'dataViewListStyle',
   'checkSyntax', 'onlyCheckIfLineModified', 'checkSourceOnSave',
   'autoRefreshOnCodeComplete', 'autoReindent',
   'exCaseInsensitiveSorting', 'exDefaultFilter', 'exWorkingDirectory',
-  'exDefaultTreeWidth', 'exInspectInspectableFiles',
+  'exDefaultTreeWidth', 'exInspectInspectableFiles', 'exOpenFromHere',
   'handleSpecialEuropeanKeys', 'euroKeysCountry', 'rememberOpenFiles',
+  'showFilenameExtensions',
   'ps1', 'ps2', 'ps3', 'ps4',
   'showModifiedProps', 'propValueColour',
   'oiLineHeight', 'oiEventSelectionHeight', 'inspNotebookFlags',
