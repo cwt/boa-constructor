@@ -6,13 +6,14 @@ from SocketServer import TCPServer
 from IsolatedDebugger import DebugServer, DebuggerConnection
 from Tasks import ThreadedTaskHandler
 
+# The process uses the Debugger dir as the main script dir
+# here we add the boa root so that Boa modules can be imported.
+boa_root = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
+if boa_root not in sys.path:
+    sys.path.insert(0, boa_root)
 
-try:
-    from ExternalLib.xmlrpcserver import RequestHandler
-except:
-    # Add parent directory to the path search.
-    sys.path[0:0] = [os.pardir]
-    from ExternalLib.xmlrpcserver import RequestHandler
+from ExternalLib.xmlrpcserver import RequestHandler
+
 
 try:
     from cStringIO import StringIO
