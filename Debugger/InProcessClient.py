@@ -1,9 +1,6 @@
-
 from DebugClient import DebugClient, DebuggerCommEvent, \
      wxEVT_DEBUGGER_OK, wxEVT_DEBUGGER_EXC
-from IsolatedDebugger import NonBlockingDebuggerConnection, \
-     DebuggerController
-from PhonyApp import wxPhonyApp
+from IsolatedDebugger import NonBlockingDebuggerConnection, DebuggerController
 
 
 class InProcessCallback:
@@ -12,7 +9,7 @@ class InProcessCallback:
         self.win_id = win_id
         self.r_name = r_name
         self.r_args = r_args
-    
+
     def notifyReturn(self, result):
         if self.r_name:
             evt = DebuggerCommEvent(wxEVT_DEBUGGER_OK, self.win_id)
@@ -22,7 +19,7 @@ class InProcessCallback:
             self.event_handler.AddPendingEvent(evt)
 
     def notifyException(self):
-        t, v = sys.exc_info()[:2]
+        t, v = sys.exc_info()
         evt = DebuggerCommEvent(wxEVT_DEBUGGER_EXC, self.win_id)
         evt.SetExc(t, v)
         self.event_handler.AddPendingEvent(evt)

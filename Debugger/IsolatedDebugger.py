@@ -1,5 +1,4 @@
-
-import sys, threading, Queue
+import sys, thread, threading, Queue
 import pprint
 from os import chdir
 from os import path
@@ -15,14 +14,14 @@ except: from StringIO import StringIO
 
 
 class DebugError(Exception):
-    '''Incorrect operation of the debugger'''
+    """Incorrect operation of the debugger"""
     pass
 
 
 class DebuggerConnection:
-    '''
+    """
     A debugging connection that can be operated via RPC.
-    '''
+    """
 
     def __init__(self, ds): #, controller, id):
 ##        self._controller = controller
@@ -43,7 +42,8 @@ class DebuggerConnection:
         sm.setupEvent()
         self._ds.queueServerMessage(sm)
         # Block.
-        return sm.getResult() #self._getMessageTimeout())
+        res = sm.getResult() #self._getMessageTimeout())
+        return res
 
     def _getStdoutBuf(self):
         return self._ds.stdoutbuf
@@ -68,54 +68,56 @@ class DebuggerConnection:
     ### Low-level calls.
 
     def _enableProcessModification(self, enable=1):
-        '''Allows the debugger to set sys.path, sys.argv, and
+        """Allows the debugger to set sys.path, sys.argv, and
         use os.chdir().
-        '''
+        """
         self._ds._enable_process_modification = enable
 
     def run(self, cmd, globals=None, locals=None):
-        '''Starts debugging.  Stops the process at the
+        """Starts debugging.  Stops the process at the
         first source line.  Non-blocking.
-        '''
+        """
         self._callNoWait('run', 1, cmd, globals, locals)
 
     def runFile(self, filename, params=(), autocont=0, add_paths=()):
-        '''Starts debugging.  Stops the process at the
+        """Starts debugging.  Stops the process at the
         first source line.  Use the autocont parameter to proceed immediately
         rather than stop.  Non-blocking.
-        '''
+        """
         self._callNoWait('runFile', 1, filename, params, autocont, add_paths)
 
     def set_continue(self, full_speed=0):
-        '''Proceeds until a breakpoint or program stop.
+        """Proceeds until a breakpoint or program stop.
         Non-blocking.
-        '''
+        """
         self._callNoWait('set_continue', 1, full_speed)
 
     def set_step(self):
-        '''Steps to the next instruction.  Non-blocking.
-        '''
+        """Steps to the next instruction.  Non-blocking.
+        """
         self._callNoWait('set_step', 1)
 
     def set_step_out(self):
-        '''Proceeds until the process returns from the current
-        stack frame.  Non-blocking.'''
+        """Proceeds until the process returns from the current
+        stack frame.  Non-blocking.
+        """
         self._callNoWait('set_step_out', 1)
 
     def set_step_over(self):
-        '''Proceeds to the next source line in the current frame
-        or above.  Non-blocking.'''
+        """Proceeds to the next source line in the current frame
+        or above.  Non-blocking.
+        """
         self._callNoWait('set_step_over', 1)
 
     def set_pause(self):
-        '''Stops as soon as possible.  Non-blocking.
-        '''
+        """Stops as soon as possible.  Non-blocking.
+        """
         self._ds.stopAnywhere()
 
     def set_quit(self):
-        '''Quits debugging, executing only the try/finally handlers.
+        """Quits debugging, executing only the try/finally handlers.
         Non-blocking.
-        '''
+        """
         self._ds.stopAnywhere()
         if self._ds.isRunning():
             self._callNoWait('set_quit', 1)
@@ -123,34 +125,35 @@ class DebuggerConnection:
     # Control breakpoints directly--don't wait for the queue.
     # This allows us to set a breakpoint at any moment.
     def setAllBreakpoints(self, brks):
-        '''brks is a list of mappings containing the keys:
+        """brks is a list of mappings containing the keys:
         filename, lineno, temporary, enabled, and cond.
-        Non-blocking.'''
+        Non-blocking.
+        """
         self._ds.setAllBreakpoints(brks)
-        
+
     def addBreakpoint(self, filename, lineno, temporary=0,
                       cond=None, enabled=1):
-        '''Sets a breakpoint.  Non-blocking.
-        '''
+        """Sets a breakpoint.  Non-blocking.
+        """
         self._ds.addBreakpoint(filename, lineno, temporary, cond,
                                enabled)
 
     def enableBreakpoints(self, filename, lineno, enabled=1):
-        '''Sets the enabled flag for all breakpoints on a given line.
-        '''
+        """Sets the enabled flag for all breakpoints on a given line.
+        """
         self._ds.enableBreakpoints(filename, lineno, enabled)
 
     def clearBreakpoints(self, filename, lineno):
-        '''Clears all breakpoints on a line.  Non-blocking.
-        '''
+        """Clears all breakpoints on a line.  Non-blocking.
+        """
         self._ds.clearBreakpoints(filename, lineno)
-    
+
 ##    def clear_all_breaks(self):
 ##        '''Clears all breakpoints.  Non-blocking.
 ##        '''
 ##        ds = self._ds
 ##        ds.clear_all_breaks()
-    
+
 ##    def getFrameInfo(self):
 ##        '''Returns a mapping containing the keys:
 ##          filename, lineno, funcname, is_exception.
@@ -177,11 +180,12 @@ class DebuggerConnection:
     ### Blocking methods.
 
     def pprintVarValue(self, name, frameno):
-        '''Pretty-prints the value of name.  Blocking.'''
+        """Pretty-prints the value of name.  Blocking.
+        """
         return self._callMethod('pprintVarValue', 0, name, frameno)
 
     def getStatusSummary(self):
-        '''Returns a mapping containing the keys:
+        """Returns a mapping containing the keys:
           exc_type, exc_value, stack, frame_stack_len, running.
         Also returns and empties the stdout and stderr buffers.
         stack is a list of mappings containing the keys:
@@ -190,12 +194,13 @@ class DebuggerConnection:
           for all current breakpoints.
         The most recent stack entry will be at the last
         of the list.  Blocking.
-        '''
+        """
         return self._callMethod('getStatusSummary', 0)
 
-    def proceedAndRequestStatus(self, command, temp_breakpoint=0):
-        '''Executes one non-blocking command then returns
-        getStatusSummary().  Blocking.'''
+    def proceedAndRequestStatus(self, command, temp_breakpoint=0, args=()):
+        """Executes one non-blocking command then returns
+        getStatusSummary().  Blocking.
+        """
         if temp_breakpoint:
             self.addBreakpoint(temp_breakpoint[0], temp_breakpoint[1], 1)
         if command:
@@ -203,40 +208,44 @@ class DebuggerConnection:
                        'set_step_out', 'set_pause', 'set_quit')
             if command not in allowed:
                 raise DebugError('Illegal command')
-            getattr(self, command)()
+            apply(getattr(self, command), args)
         return self.getStatusSummary()
 
     def runFileAndRequestStatus(self, filename, params=(), autocont=0,
                                 add_paths=(), breaks=()):
-        '''Calls setAllBreakpoints(), runFile(), and
-        getStatusSummary().  Blocking.'''
+        """Calls setAllBreakpoints(), runFile(), and
+        getStatusSummary().  Blocking.
+        """
         self.setAllBreakpoints(breaks)
         self._callNoWait('runFile', 1, filename, params, autocont, add_paths)
         return self.getStatusSummary()
 
     def setupAndRequestStatus(self, autocont=0, breaks=()):
-        '''Calls setAllBreakpoints() and
-        getStatusSummary().  Blocking.'''
+        """Calls setAllBreakpoints() and
+        getStatusSummary().  Blocking.
+        """
         self.setAllBreakpoints(breaks)
         if autocont:
             self.set_continue()
         return self.getStatusSummary()
 
     def getSafeDict(self, locals, frameno):
-        '''Returns the repr-fied mappings of locals and globals in a
-        tuple.  Blocking.'''
+        """Returns the repr-fied mappings of locals and globals in a
+        tuple.  Blocking.
+        """
         return self._callMethod('getSafeDict', 0, locals, frameno)
 
     def evaluateWatches(self, exprs, frameno):
-        '''Evalutes the watches listed in exprs and returns the
+        """Evalutes the watches listed in exprs and returns the
         results. Input is a tuple of mappings with keys name and
         local, output is a mapping of name -> svalue.  Blocking.
-        '''
+        """
         return self._callMethod('evaluateWatches', 0, exprs, frameno)
 
     def getWatchSubobjects(self, expr, frameno):
-        '''Returns a tuple containing the names of subobjects
-        available through the given watch expression.  Blocking.'''
+        """Returns a tuple containing the names of subobjects
+        available through the given watch expression.  Blocking.
+        """
         return self._callMethod('getWatchSubobjects', 0, expr, frameno)
 
 
@@ -277,7 +286,7 @@ exclusive_mode = 1
 
 
 class DebuggerController:
-    '''Interfaces between DebuggerConnections and DebugServers.'''
+    """Interfaces between DebuggerConnections and DebugServers."""
 
     def __init__(self):
         self._debug_servers = {}
@@ -292,11 +301,11 @@ class DebuggerController:
             self._next_server_id = self._next_server_id + 1
         finally:
             self._server_id_lock.release()
-        return id        
+        return id
 
     def createServer(self):
-        '''Returns a string which identifies a new DebugServer.
-        '''
+        """Returns a string which identifies a new DebugServer.
+        """
         global exclusive_mode
         if exclusive_mode:
             # Kill existing servers.
@@ -308,7 +317,8 @@ class DebuggerController:
         return id
 
     def deleteServer(self, id):
-        '''Terminates the connection to the DebugServer.'''
+        """Terminates the connection to the DebugServer.
+        """
         try:
             ds = self._debug_servers[id]
             ds.set_quit()
@@ -354,9 +364,8 @@ class MethodCall (ServerMessage):
 
     def execute(self, ob):
         try:
-            result = apply(getattr(ob, self.func_name), self.args,
-                           self.kw)
-        except SystemExit, BdbQuit:
+            result = apply(getattr(ob, self.func_name), self.args, self.kw)
+        except (SystemExit, BdbQuit):
             raise
         except:
             if hasattr(self, 'callback'):
@@ -373,6 +382,7 @@ class MethodCall (ServerMessage):
                 self.callback.notifyReturn(result)
             else:
                 self.result = result
+
         if hasattr(self, 'event'):
             self.event.set()
 
@@ -399,7 +409,7 @@ class MethodCall (ServerMessage):
 ##        if hasattr(self, 'event'):
 ##            self.event.set()
 ##        return 1
-    
+
 ##class ThreadExit (ServerMessage):
 ##    def doExit(self):
 ##        if hasattr(self, 'event'):
@@ -407,10 +417,7 @@ class MethodCall (ServerMessage):
 ##        return 1
 
 
-##debugger_tasks = ThreadedTaskHandler()
-##servicer_running_lock = threading.Lock()
-
-_orig_syspath = sys.path
+_orig_syspath = sys.path[:]
 
 
 class DebugServer (Bdb):
@@ -422,78 +429,38 @@ class DebugServer (Bdb):
     autocont = 0
     _enable_process_modification = 0
     stop_in_botframe = 0
-##    _enable_auto_servicer = 0
 
     def __init__(self):
         Bdb.__init__(self)
         self.fncache = {}
 
         self.__queue = Queue.Queue(0)
-##        self.servicer_running = 0
 
         self.repr = repr = Repr()
-        repr.maxstring = 60
-        repr.maxother = 60
+        repr.maxstring = 100
+        repr.maxother = 100
         self.maxdict2 = 1000
 
         self._running = 0
         self.stdoutbuf = StringIO()
         self.stderrbuf = StringIO()
+        
+        sys.boa_debugger = self
 
     def queueServerMessage(self, sm):
-##        servicer_running_lock.acquire()
-##        try:
-            self.__queue.put(sm)
-##            if not self.servicer_running:
-##                if self._enable_auto_servicer:
-##                    self.servicer_running = 1
-##                    debugger_tasks.addTask(self.topServerLoop)
-##                else:
-            global waiting_debug_server
-            waiting_debug_server = self
-##        finally:
-##            servicer_running_lock.release()
-
-##    def executeInPlace(self, sm=None):
-##        # Lets the debugger work in an existing thread.
-##        started = 0
-##        servicer_running_lock.acquire()
-##        try:
-##            if sm:
-##                self.__queue.put(sm)
-##            if not self.servicer_running:
-##                self.servicer_running = 1
-##                started = 1
-##        finally:
-##            servicer_running_lock.release()
-##        self.topServerLoop(started)
+        self.__queue.put(sm)
+        # global waiting_debug_server
+        # only 1 thread at a time can use the debugger
+        #
+        # XXX Moved to set_continue fullspeed=1 
 
     def cleanupServer(self):
         self.reset()
+        self.frame = None
         self.ignore_stopline = -1
         self.autocont = 0
-        self.frame = None
         self.exc_info = None
         self.fncache.clear()
-
-##    def topServerLoop(self, started=1):
-##        try:
-##            self.serverLoop()
-##        finally:
-##            if started:
-##                servicer_running_lock.acquire()
-##                try:
-##                    # Make sure all queued messages get processed.
-##                    while not self.__queue.empty():
-##                        try:
-##                            self.oneServerLoop()
-##                        except:
-##                            # ??
-##                            pass
-##                    self.servicer_running = 0
-##                finally:
-##                    servicer_running_lock.release()
-##            self.cleanupServer()
 
     def servicerThread(self):
         while 1:
@@ -551,8 +518,7 @@ class DebugServer (Bdb):
         elif sf is ():
             # Stop nowhere.
             return 0
-        if (frame is sf and
-            frame.f_lineno != self.ignore_stopline):
+        if (frame is sf and frame.f_lineno != self.ignore_stopline):
             # Stop in the current frame unless we're on
             # ignore_stopline.
             return 1
@@ -571,23 +537,28 @@ class DebugServer (Bdb):
         return 1
 
     def set_continue(self, full_speed=0):
-        # Don't stop except at breakpoints or when finished
+        # Only stop except at breakpoints, exceptions or when finished
         #self.stopframe = self.botframe
         self.stopframe = ()
         self.returnframe = None
         self.quitting = 0
-        if full_speed:
-            # no breakpoints; run without debugger overhead
+
+        if full_speed:# and not self.get_all_breaks(): # no breakpoints; 
+            # run without debugger overhead
             sys.settrace(None)
+
+            import bcdb
+            bcdb.waiting_debug_server = self
+
             try:
-                1 + ''	# raise an exception
+                raise 'gen_exc_info'
             except:
                 frame = sys.exc_info()[2].tb_frame.f_back
                 while frame and frame is not self.botframe:
-                    # Remove all the f_trace attributes
+                    # Clear all the f_trace attributes
                     # that were created while processing with a
                     # settrace callback enabled.
-                    del frame.f_trace
+                    frame.f_trace = None
                     frame = frame.f_back
 
     def runcall(self, func, *args, **kw):
@@ -604,22 +575,35 @@ class DebugServer (Bdb):
             sys.settrace(None)
         return res
 
-    def set_trace(self):
-        # Start debugging from here
+    def set_trace(self, call_depth=1):
+        # Start debugging from the caller frame
+        # Called by hardbreakpoints
+        
         self._running = 1
         # Note: we can't use Bdb.set_trace() because the
         # exception trickery below would have to change [2] to [3].
         try:
-            1 + ''
+            raise 'gen_exc_info'
         except:
-            frame = sys.exc_info()[2].tb_frame.f_back
-        self.reset()
+            frame = sys.exc_info()[2].tb_frame
+            while call_depth:
+                frame = frame.f_back
+                call_depth = call_depth - 1
+        break_frame = frame
+        #self.reset()
         while frame:
             frame.f_trace = self.trace_dispatch
-            self.botframe = frame
+            #self.botframe = frame # XXX shouldn't botframe stay frame (bdb.run...)
             frame = frame.f_back
-        self.set_step()
+        #self.set_step()
+        # Semantics have been redefined for this debugger's version of set_trace
+        # The current bottom frame is kept (for a proper stack), 
+        # and the debugger to the next line of the calling frame instead of the 
+        # next instruction
+        self.set_next(break_frame)
+        
         sys.settrace(self.trace_dispatch)
+        return self.trace_dispatch
 
     def set_internal_breakpoint(self, filename, lineno, temporary=0,
                                 cond=None):
@@ -637,7 +621,8 @@ class DebugServer (Bdb):
         import linecache # Import as late as possible
         line = linecache.getline(filename, lineno)
         if not line:
-                return 'That line does not exist!'
+            # XXX maybe should call linecache.checkcache() here?
+            return 'Invalid line: %s(%s)'%(filename, lineno)
         self.set_internal_breakpoint(filename, lineno, temporary, cond)
         bp = bdb.Breakpoint(filename, lineno, temporary, cond)
         # Save the original filename for passing back the stats.
@@ -668,6 +653,9 @@ class DebugServer (Bdb):
     # Note that ignore_stopline probably should be set by the
     # dispatch methods, not the user methods.  Someday bdb might be
     # redone.
+    ##def dispatch_line(self, frame):
+    ##    return Bdb.dispatch_line(self, frame)
+
     def user_line(self, frame):
         # This method is called when we stop or break at a line
         if self.autocont:
@@ -686,13 +674,13 @@ class DebugServer (Bdb):
         lineno = frame.f_lineno
         self.clearTemporaryBreakpoints(filename, lineno)
         self.serverLoop()
-	
+
     def user_return(self, frame, return_value):
         # This method is called when a return trap is set here
         # frame.f_locals['__return__'] = return_value
         # self.interaction(frame, None)
         pass
-	
+
     def user_exception(self, frame, exc_info):
         # This method should be used to automatically stop
         # when specific exception types occur.
@@ -711,7 +699,7 @@ class DebugServer (Bdb):
         d = {'__name__': '__main__',
              '__doc__': 'Debugging',
              '__builtins__': __builtins__,}
-        
+
         fn = path.normcase(path.abspath(filename))
         if self._enable_process_modification:
             bn = path.basename(fn)
@@ -724,7 +712,7 @@ class DebugServer (Bdb):
 
         self.autocont = autocont
 ##        self.ignore_first_frame = 1
-        
+
         self.run("execfile(fn, d)", {'fn':fn, 'd':d})
 
     def run(self, cmd, globals=None, locals=None):
@@ -782,18 +770,18 @@ class DebugServer (Bdb):
 
     ### Breakpoint control.
     def setAllBreakpoints(self, brks):
-        '''brks is a list of mappings containing the keys:
+        """brks is a list of mappings containing the keys:
         filename, lineno, temporary, enabled, and cond.
-        Non-blocking.'''
+        Non-blocking."""
         self.clear_all_breaks()
         if brks:
             for brk in brks:
                 apply(self.addBreakpoint, (), brk)
-        
+
     def addBreakpoint(self, filename, lineno, temporary=0,
                       cond=None, enabled=1):
-        '''Sets a breakpoint.  Non-blocking.
-        '''
+        """Sets a breakpoint.  Non-blocking.
+        """
         bp = self.set_break(filename, lineno, temporary, cond)
         if type(bp) == type(''):
             # Note that checking for string type is strange. Argh.
@@ -802,8 +790,8 @@ class DebugServer (Bdb):
             bp.disable()
 
     def enableBreakpoints(self, filename, lineno, enabled=1):
-        '''Sets the enabled flag for all breakpoints on a given line.
-        '''
+        """Sets the enabled flag for all breakpoints on a given line.
+        """
         bps = self.get_breaks(filename, lineno)
         if bps:
             for bp in bps:
@@ -811,8 +799,8 @@ class DebugServer (Bdb):
                 else: bp.disable()
 
     def clearBreakpoints(self, filename, lineno):
-        '''Clears all breakpoints on a line.  Non-blocking.
-        '''
+        """Clears all breakpoints on a line.  Non-blocking.
+        """
         msg = self.clear_break(filename, lineno)
         if msg is not None:
             raise DebugError(msg)
@@ -839,12 +827,13 @@ class DebugServer (Bdb):
                     exc_type = "%s" % str(exc_type)
                 if exc_value is not None:
                     exc_value = str(exc_value)
+                    
                 stack, frame_stack_len = self.get_stack(
                     exc_tb.tb_frame, exc_tb)
-                if 0:
-                    # Remove the part before the exception handler.
-                    stack = stack[frame_stack_len + 1:]
-                    frame_stack_len = len(stack)
+
+                # Remove debugger's own stack
+                stack = stack[frame_stack_len + 2:]
+                frame_stack_len = len(stack)
             else:
                 exc_type = None
                 exc_value = None
@@ -852,6 +841,8 @@ class DebugServer (Bdb):
                     self.frame, None)
             # Ignore the first stack entry.
             #stack = stack[1:]
+            ##for frm, fln in stack: 
+            ##    print descrframe(frm)
             return exc_type, exc_value, stack, frame_stack_len
         finally:
             exc_tb = None
@@ -981,8 +972,8 @@ class DebugServer (Bdb):
 ##        return result
 
     def getWatchSubobjects(self, expr, frameno):
-        '''Returns a tuple containing the names of subobjects
-        available through the given watch expression.'''
+        """Returns a tuple containing the names of subobjects
+        available through the given watch expression."""
         query_frame = self.getQueryFrame(frameno)
         if query_frame is None:
             return []
@@ -995,18 +986,14 @@ class DebugServer (Bdb):
         except: clss_items = []
         return inst_items + clss_items
 
-    def pprintVarValue(self, name, frameno):
+    def pprintVarValue(self, expr, frameno):
         query_frame = self.getQueryFrame(frameno)
         if query_frame is None:
             return ''
         else:
             try:
-                l = query_frame.f_locals
-                g = query_frame.f_globals
-                if l.has_key(name): d = l
-                elif g.has_key(name): d = g
-                else: return ''
-                return pprint.pformat(d[name])
+                v = eval(expr, query_frame.f_globals, query_frame.f_locals)
+                return pprint.pformat(v)
             except:
                 t, v = sys.exc_info()[:2]
                 return str(v)
@@ -1023,12 +1010,39 @@ class DebugServer (Bdb):
             rval[str(key)] = self.safeRepr(value)
         return rval
 
+    def reset(self):
+        Bdb.reset(self)
+        #self.frame = None
+    
+    def dispatch_return(self, frame, arg):
+        Bdb.dispatch_return(self, frame, arg)
+        # XXX this can be used as a hook to detect when a debugging session is
+        # XXX about to stop. frame.f_back will be None
+        # XXX For the main thread this means the end of the program, but
+        # XXX for threads I want to transfer control (tracing) back to the 
+        # XXX main thread
 
-waiting_debug_server = None
+##waiting_debug_server = None
+##
+##def set_trace():
+##    global waiting_debug_server
+##    ds = waiting_debug_server
+##    if ds:
+##        waiting_debug_server = None
+##        if hasattr(sys, 'boa_debugger'): 
+##            del sys.boa_debugger
+##
+##        ds.set_trace(call_depth=2)
 
-def set_trace():
-    global waiting_debug_server
-    ds = waiting_debug_server
-    if ds:
-        waiting_debug_server = None
-        ds.set_trace()
+def descrframe(frame):
+    if frame: return ('<frame:%s(%s)%s [%s]>'%(path.basename(frame.f_code.co_filename), 
+          frame.f_lineno, frame.f_code.co_name, id(frame)) )
+    else: return 'None'
+
+# for debugging debugging
+# to track who sets the sys trace function
+_settrace = sys.settrace
+def settrace_prx(func):
+    print 'TRACE: %s set by %s'%(func, threading.currentThread())
+    _settrace(func)
+#sys.settrace = settrace_prx

@@ -1,29 +1,32 @@
 #----------------------------------------------------------------------------
-# Name:         Debugger.py                                                  
-# Purpose:      wxPython debugger, started as a port of IDLE's debugger      
-#               written by Guido van Rossum                                  
-#                                                                            
-# Authors:      Riaan Booysen, Shane Hathaway                                
-#                                                                            
-# Created:      2000/01/11                                                   
+# Name:         Debugger.py
+# Purpose:      wxPython debugger, started as a port of IDLE's debugger
+#               written by Guido van Rossum
+#
+# Authors:      Riaan Booysen, Shane Hathaway
+#
+# Created:      2000/01/11
 # RCS-ID:       $Id$
-# Copyright:    (c) Riaan Booysen, Shane Hathaway                            
-# Licence:      GPL                                                          
+# Copyright:    (c) Riaan Booysen, Shane Hathaway
+# Licence:      GPL
 #----------------------------------------------------------------------------
 
 # XXX I must still try to see if it's not possible the change code while
 # XXX debugging, reload sometimes works
 # XXX Going to source code on an error
 
-from   wxPython.wx import *
-import wxPython
-import ShellEditor, Preferences
+# XXX Renaming/saving modules do not update filenames
+
 import string, sys, os
 from os import path
 from repr import Repr
-import traceback, linecache, imp, pprint
-import Utils
-from Preferences import pyPath, IS, flatTools
+import traceback, imp, pprint, time
+
+from wxPython.wx import *
+import wxPython
+
+import Preferences, Utils
+from Preferences import pyPath, IS, flatTools, keyDefs
 from Breakpoint import bplist
 from DebugClient import EVT_DEBUGGER_OK, EVT_DEBUGGER_EXC
 
@@ -36,14 +39,14 @@ class StackViewCtrl(wxListCtrl):
     def __init__(self, parent, flist, debugger):
         wxListCtrl.__init__(self, parent, wxID_STACKVIEW,
                             style = wxLC_REPORT | wxLC_SINGLE_SEL )
-        self.InsertColumn(0, 'Frame', wxLIST_FORMAT_LEFT, 150) 
+        self.InsertColumn(0, 'Frame', wxLIST_FORMAT_LEFT, 150)
         self.InsertColumn(1, 'Line', wxLIST_FORMAT_LEFT, 35)
         self.InsertColumn(2, 'Code', wxLIST_FORMAT_LEFT, 300)
         EVT_LIST_ITEM_SELECTED(self, wxID_STACKVIEW,
                                self.OnStackItemSelected)
         EVT_LIST_ITEM_DESELECTED(self, wxID_STACKVIEW,
                                  self.OnStackItemDeselected)
-        EVT_LEFT_DCLICK(self, self.OnGotoSource) 
+        EVT_LEFT_DCLICK(self, self.OnGotoSource)
 
         self.flist = flist
         self.debugger = debugger
@@ -51,6 +54,8 @@ class StackViewCtrl(wxListCtrl):
         self.selection = -1
 
     def load_stack(self, stack, index=None):
+        import linecache
+        
         self.stack = stack
         data = []
 
@@ -95,7 +100,7 @@ class StackViewCtrl(wxListCtrl):
         if 0 <= self.selection < stacklen:
             self.debugger.invalidatePanes()
             self.debugger.updateSelectedPane()
-        
+
     def OnStackItemDeselected(self, event):
         self.selection = -1
 
@@ -113,14 +118,14 @@ class StackViewCtrl(wxListCtrl):
             self.selection = newsel
         if newsel >= 0:
             self.EnsureVisible(newsel)
-            
+
     def OnGotoSource(self, event):
         if self.selection != -1:
             entry = self.stack[self.selection]
             lineno = entry['lineno']
             modname = entry['modname']
             filename = entry['filename']
-            
+
             if filename[0] != '<' and filename[-1] != '>':
                 filename = self.debugger.resolvePath(filename)
                 if not filename: return
@@ -134,35 +139,35 @@ class StackViewCtrl(wxListCtrl):
                 model.views['Source'].selectLine(lineno - 1)
 
 
-[wxID_BREAKVIEW, wxID_BREAKSOURCE, wxID_BREAKEDIT, wxID_BREAKDELETE, 
+[wxID_BREAKVIEW, wxID_BREAKSOURCE, wxID_BREAKEDIT, wxID_BREAKDELETE,
   wxID_BREAKENABLED, wxID_BREAKREFRESH] = map(lambda x: NewId(), range(6))
 
 class BreakViewCtrl(wxListCtrl):
     def __init__(self, parent, debugger):#, flist, browser):
-        wxListCtrl.__init__(self, parent, wxID_BREAKVIEW, 
+        wxListCtrl.__init__(self, parent, wxID_BREAKVIEW,
           style = wxLC_REPORT | wxLC_SINGLE_SEL )
-        self.InsertColumn(0, 'Module', wxLIST_FORMAT_LEFT, 90) 
+        self.InsertColumn(0, 'Module', wxLIST_FORMAT_LEFT, 90)
         self.InsertColumn(1, 'Line', wxLIST_FORMAT_CENTER, 40)
         self.InsertColumn(2, 'Ignore', wxLIST_FORMAT_CENTER, 45)
         self.InsertColumn(3, 'Hits', wxLIST_FORMAT_CENTER, 45)
         self.InsertColumn(4, 'Condition', wxLIST_FORMAT_LEFT, 250)
 
         self.brkImgLst = wxImageList(16, 16)
-        self.brkImgLst.Add(IS.load('Images/Debug/Breakpoint-red.bmp'))
-        self.brkImgLst.Add(IS.load('Images/Debug/Breakpoint-yellow.bmp'))
-        self.brkImgLst.Add(IS.load('Images/Debug/Breakpoint-gray.bmp'))
-        self.brkImgLst.Add(IS.load('Images/Debug/Breakpoint-blue.bmp'))
+        self.brkImgLst.Add(IS.load('Images/Debug/Breakpoint-red.png'))
+        self.brkImgLst.Add(IS.load('Images/Debug/Breakpoint-yellow.png'))
+        self.brkImgLst.Add(IS.load('Images/Debug/Breakpoint-gray.png'))
+        self.brkImgLst.Add(IS.load('Images/Debug/Breakpoint-blue.png'))
 
 ##        EVT_LIST_ITEM_SELECTED(self, wxID_BREAKVIEW,
 ##                               self.OnBreakpointSelected)
 ##        EVT_LIST_ITEM_DESELECTED(self, wxID_BREAKVIEW,
 ##                                 self.OnBreakpointDeselected)
-        EVT_LEFT_DCLICK(self, self.OnGotoSource) 
+        EVT_LEFT_DCLICK(self, self.OnGotoSource)
 
         EVT_RIGHT_DOWN(self, self.OnRightDown)
         EVT_COMMAND_RIGHT_CLICK(self, -1, self.OnRightClick)
         EVT_RIGHT_UP(self, self.OnRightClick)
-        
+
         self.menu = wxMenu()
 
         self.menu.Append(wxID_BREAKSOURCE, 'Goto source')
@@ -180,7 +185,7 @@ class BreakViewCtrl(wxListCtrl):
         EVT_MENU(self, wxID_BREAKENABLED, self.OnToggleEnabled)
         self.pos = None
 
-        self.SetImageList(self.brkImgLst, wxIMAGE_LIST_SMALL)
+        self.AssignImageList(self.brkImgLst, wxIMAGE_LIST_SMALL)
 
         self.rightsel = -1
         self.debugger = debugger
@@ -190,7 +195,7 @@ class BreakViewCtrl(wxListCtrl):
     def destroy(self):
         self.menu.Destroy()
         self.brkImgLst = None
-            
+
     def refreshList(self):
         self.rightsel = -1
         self.DeleteAllItems()
@@ -224,22 +229,23 @@ class BreakViewCtrl(wxListCtrl):
             self.SetStringItem(p, 2, ignore)
             self.SetStringItem(p, 3, hits)
             self.SetStringItem(p, 4, bp['cond'] or '')
-    
+
     def addBreakpoint(self, filename, lineno):
         self.refreshList()
 
 ##    def OnBreakpointSelected(self, event):
 ##        self.selection = event.m_itemIndex
-        
+
 ##    def OnBreakpointDeselected(self, event):
 ##        self.selection = -1
-    
+
     def OnGotoSource(self, event):
         sel = self.rightsel
         if sel != -1:
             bp = self.bps[sel]
 
             filename = self.debugger.resolvePath(bp['filename'])
+            #print bp['filename'], filename
             if not filename: return
 
             editor = self.debugger.editor
@@ -277,7 +283,7 @@ class BreakViewCtrl(wxListCtrl):
             self.debugger.invokeInDebugger(
                 'enableBreakpoints', (filename, lineno, enabled))
             self.refreshList()
-         
+
     def OnRightDown(self, event):
         self.pos = event.GetPosition()
 
@@ -296,9 +302,9 @@ class BreakViewCtrl(wxListCtrl):
 wxID_NSVIEW = NewId()
 class NamespaceViewCtrl(wxListCtrl):
     def __init__(self, parent, add_watch, is_local, name):  # , dict=None):
-        wxListCtrl.__init__(self, parent, wxID_NSVIEW, 
+        wxListCtrl.__init__(self, parent, wxID_NSVIEW,
           style = wxLC_REPORT | wxLC_SINGLE_SEL )
-        self.InsertColumn(0, 'Attribute', wxLIST_FORMAT_LEFT, 125) 
+        self.InsertColumn(0, 'Attribute', wxLIST_FORMAT_LEFT, 125)
         self.InsertColumn(1, 'Value', wxLIST_FORMAT_LEFT, 200)
 
         EVT_LIST_ITEM_SELECTED(self, -1, self.OnItemSelect)
@@ -308,9 +314,9 @@ class NamespaceViewCtrl(wxListCtrl):
         EVT_RIGHT_DOWN(self, self.OnRightDown)
         EVT_COMMAND_RIGHT_CLICK(self, -1, self.OnRightClick)
         EVT_RIGHT_UP(self, self.OnRightClick)
-        
+
         self.is_local = is_local
-            
+
         self.menu = wxMenu()
 
         idAs = NewId()
@@ -320,12 +326,12 @@ class NamespaceViewCtrl(wxListCtrl):
         EVT_MENU(self, idAs, self.OnAddAsWatch)
         EVT_MENU(self, idA, self.OnAddAWatch)
         self.pos = None
- 
+
         self.repr = Repr()
-        self.repr.maxstring = 60
-        self.repr.maxother = 60
+        self.repr.maxstring = 100
+        self.repr.maxother = 100
         self.names = []
-        
+
         self.add_watch = add_watch
 
         # self.load_dict(dict)
@@ -333,35 +339,35 @@ class NamespaceViewCtrl(wxListCtrl):
     def destroy(self):
         self.menu.Destroy()
 
-    dict = -1
+    #dict = -1
 
     def showLoading(self):
         self.DeleteAllItems()
         self.InsertStringItem(0, '...')
 
-    def load_dict(self, dict, force=0):
+    def load_dict(self, nsdict, force=0):
         #if dict == self.dict and not force:
         #    return
 
         self.DeleteAllItems()
-        self.dict = None
-                
-        if not dict:
+        #self.dict = None
+
+        if not nsdict:
             pass
         else:
-            self.names = dict.keys()
+            self.names = nsdict.keys()
             self.names.sort()
             row = 0
             for name in self.names:
-                svalue = dict[name]
+                svalue = nsdict[name]
                 #svalue = self.repr.repr(value) # repr(value)
 
                 self.InsertStringItem(row, name)
                 self.SetStringItem(row, 1, svalue, -1)
-                
+
                 row = row + 1
 
-        self.dict = dict
+        #self.dict = dict
 
     def OnAddAsWatch(self, event):
         if self.rightsel != -1:
@@ -395,60 +401,70 @@ wxID_WATCHVIEW = NewId()
 class WatchViewCtrl(wxListCtrl):
 
     def __init__(self, parent, images, debugger):
-        wxListCtrl.__init__(self, parent, wxID_WATCHVIEW, 
+        wxListCtrl.__init__(self, parent, wxID_WATCHVIEW,
           style = wxLC_REPORT | wxLC_SINGLE_SEL )
-        self.InsertColumn(0, 'Attribute', wxLIST_FORMAT_LEFT, 125) 
+        self.InsertColumn(0, 'Attribute', wxLIST_FORMAT_LEFT, 125)
         self.InsertColumn(1, 'Value', wxLIST_FORMAT_LEFT, 200)
- 
+
         self.repr = Repr()
         self.repr.maxstring = 60
         self.repr.maxother = 60
         self.debugger = debugger
-        
+
         self.watches = []
 
-        self.SetImageList(images, wxIMAGE_LIST_SMALL)
+        self.AssignImageList(images, wxIMAGE_LIST_SMALL)
 
-##        EVT_LIST_ITEM_SELECTED(self, -1, self.OnItemSelect)
-##        EVT_LIST_ITEM_DESELECTED(self, -1, self.OnItemDeselect)
         self.rightsel = -1
+        self.selected = -1
+
+        EVT_LIST_ITEM_SELECTED(self, -1, self.OnItemSelect)
+        EVT_LIST_ITEM_DESELECTED(self, -1, self.OnItemDeselect)
 
         EVT_RIGHT_DOWN(self, self.OnRightDown)
-        EVT_COMMAND_RIGHT_CLICK(self, -1, self.OnRightClick)
+        #EVT_COMMAND_RIGHT_CLICK(self, -1, self.OnRightClick)
         EVT_RIGHT_UP(self, self.OnRightClick)
 
         self.menu = wxMenu()
 
-        id = NewId()
-        self.menu.Append(id, 'Delete')
-        EVT_MENU(self, id, self.OnDelete)
-        id = NewId()
-        self.menu.Append(id, 'Expand')
-        EVT_MENU(self, id, self.OnExpand)
-        id = NewId()
-        self.menu.Append(id, 'Delete All')
-        EVT_MENU(self, id, self.OnDeleteAll)
+        wid = wxNewId()
+        self.menu.Append(wid, 'Add local watch')
+        EVT_MENU(self, wid, self.OnAddLocal)
+        wid = wxNewId()
+        self.menu.Append(wid, 'Add global watch')
+        EVT_MENU(self, wid, self.OnAddGlobal)
+        self.editId = wxNewId()
+        self.menu.Append(self.editId, 'Edit watch')
+        EVT_MENU(self, self.editId, self.OnEdit)
+        EVT_LEFT_DCLICK(self, self.OnEdit)
+        self.deleteId = wxNewId()
+        self.menu.Append(self.deleteId, 'Delete')
+        EVT_MENU(self, self.deleteId, self.OnDelete)
+        self.expandId = wxNewId()
+        self.menu.Append(self.expandId, 'Expand')
+        EVT_MENU(self, self.expandId, self.OnExpand)
+        wid = wxNewId()
+        self.menu.Append(wid, 'Delete All')
+        EVT_MENU(self, wid, self.OnDeleteAll)
         self.pos = None
-    
+
     def destroy(self):
         self.menu.Destroy()
 
-    dict = -1
-    
     def add_watch(self, name, local, pos=-1):
         if name:
             if pos < 0 or pos >= len(self.watches):
                 self.watches.append((name, local))
             else:
                 self.watches.insert(pos, (name, local))
-        else:  
+        else:
             dlg = wxTextEntryDialog(
-                self, 'Enter name:', 'Add a watch:', '')
+                self, 'Expression:', 'Add a watch:', '')
             try:
                 if dlg.ShowModal() == wxID_OK:
                     self.watches.append((dlg.GetValue(), local))
             finally:
-                dlg.Destroy()         
+                dlg.Destroy()
 
     def showLoading(self):
         self.load_dict(None, loading=1)
@@ -480,27 +496,53 @@ class WatchViewCtrl(wxListCtrl):
             self.DeleteItem(count - 1)
             count = count - 1
 
+    def OnAddLocal(self, event):
+        self.add_watch('', true)
+        self.debugger.updateSelectedPane(force=1)
+        
+    def OnAddGlobal(self, event):
+        self.add_watch('', false)
+        self.debugger.updateSelectedPane(force=1)
+
+    def OnEdit(self, event):
+##        sel = self.rightsel
+        sel = self.selected
+        if sel != -1:
+            name, local = self.watches[sel]
+            dlg = wxTextEntryDialog(
+                self, 'Expression:', 'Edit watch:', name)
+            try:
+                if dlg.ShowModal() == wxID_OK:
+                    self.watches[sel] = (dlg.GetValue(), local)
+                    self.debugger.updateSelectedPane(force=1)
+            finally:
+                dlg.Destroy()
+            
+
     def OnDelete(self, event):
-        sel = self.rightsel
+        sel = self.selected
+##        sel = self.rightsel
         if sel != -1:
             del self.watches[sel]
             self.DeleteItem(sel)
+            self.debugger.updateSelectedPane(force=1)
 
     def OnDeleteAll(self, event):
         del self.watches[:]
         self.DeleteAllItems()
 
     def OnExpand(self, event):
-        sel = self.rightsel
+##        sel = self.rightsel
+        sel = self.selected
         if sel != -1:
             name, local = self.watches[sel]
             self.debugger.requestWatchSubobjects(name, local, sel + 1)
 
-##    def OnItemSelect(self, event):
-##        self.selected = event.m_itemIndex
+    def OnItemSelect(self, event):
+        self.selected = event.m_itemIndex
 
-##    def OnItemDeselect(self, event):
-##        self.selected = -1
+    def OnItemDeselect(self, event):
+        self.selected = -1
 
     def OnRightDown(self, event):
         self.pos = event.GetPosition()
@@ -508,51 +550,65 @@ class WatchViewCtrl(wxListCtrl):
     def OnRightClick(self, event):
         if not self.pos:
             return
-        sel = self.HitTest(self.pos)[0]
-        if sel != -1:
-            self.rightsel = sel
-            self.PopupMenu(self.menu, self.pos)
+##        sel = self.HitTest(self.pos)[0]
+##        self.rightsel = sel
+        sel = self.selected
+
+        self.menu.Enable(self.editId, sel != -1)
+        self.menu.Enable(self.deleteId, sel != -1)
+        self.menu.Enable(self.expandId, sel != -1)
+
+        self.PopupMenu(self.menu, self.pos)
 
 class DebugStatusBar(wxStatusBar):
     def __init__(self, parent):
-        wxStatusBar.__init__(self, parent, -1)
+        wxStatusBar.__init__(self, parent, -1, style=0)
         self.SetFieldsCount(2)
+        self.SetMinHeight(30)
+        #self.SetStatusWidths([-1, -1, 16])
 
-        rect = self.GetFieldRect(0)
-        self.status = wxStaticText(self, 1001, 'Ready')
-        self.status.SetDimensions(rect.x+2, rect.y+2, 
-                                  rect.width-4, rect.height-4)
+        self.stateCols = {'except': wxNamedColour('yellow'),
+                          'info':   wxNamedColour('white'),
+                          'break':  wxNamedColour('red'),
+                          'busy':   wxColour(0xBB, 0xE0, 0xFF)}
 
-        rect = self.GetFieldRect(1)
-        self.error = wxStaticText(self, 1002, ' ')
-        self.error.SetBackgroundColour(wxNamedColour('white'))
-        self.error.SetDimensions(rect.x+2, rect.y+2, 
-                                 rect.width-4, rect.height-4)
+        self.instr_ptr = wxStaticText(self, -1, ' ', 
+              style=wxALIGN_CENTER|wxST_NO_AUTORESIZE)
+        self.instr_ptr.SetBackgroundColour(wxColour(0xEE, 0xEE, 0xEE))
+        self._setCtrlDims(self.instr_ptr, self.GetFieldRect(0))
+        
+        self.state = wxStaticText(self, -1, 'Ready.', 
+              style=wxALIGN_CENTER|wxST_NO_AUTORESIZE)
+        self.state.SetBackgroundColour(self.stateCols['info'])
+        self._setCtrlDims(self.state, self.GetFieldRect(1))
 
         dc = wxClientDC(self)
         dc.SetFont(self.GetFont())
         (w,h) = dc.GetTextExtent('X')
         h = int(h * 1.8)
         self.SetSize(wxSize(100, h))
+        
+        EVT_SIZE(self, self.OnSize)
 
-    def writeError(self, message, is_error=1):
-        if message and is_error:
-            self.error.SetBackgroundColour(wxNamedColour('yellow'))
+    def _setCtrlDims(self, ctrl, rect):
+        ctrl.SetDimensions(rect.x+2, rect.y+2, rect.width-4, rect.height-4)
+
+    def updateState(self, message, sts_type='except'):
+        if message:
+            self.state.SetBackgroundColour(self.stateCols[sts_type])
         else:
-            self.error.SetBackgroundColour(wxNamedColour('white'))
-        self.error.SetLabel(message)
+            self.state.SetBackgroundColour(self.stateCols['info'])
+        self.state.SetLabel(message)
 
-        rect = self.GetFieldRect(1)
-        self.error.SetDimensions(
-            rect.x+2, rect.y+2, rect.width-4, rect.height-4)
-
+        self._setCtrlDims(self.state, self.GetFieldRect(1))
+    
+    def updateInstructionPtr(self, status):
+        self.instr_ptr.SetLabel(status)
+        self._setCtrlDims(self.instr_ptr, self.GetFieldRect(0))
+        
     def OnSize(self, event):
-        rect = self.GetFieldRect(0)
-        self.status.SetDimensions(rect.x+2, rect.y+2,
-                                  rect.width-4, rect.height-4)
-        rect = self.GetFieldRect(1)
-        self.error.SetDimensions(rect.x+2, rect.y+2,
-                                 rect.width-4, rect.height-4)
+        self._setCtrlDims(self.instr_ptr, self.GetFieldRect(0))
+        self._setCtrlDims(self.state, self.GetFieldRect(1))
 
 
 def simplifyPathList(data,
@@ -579,14 +635,14 @@ def compareColors(c1, c2):
 
 wxID_PAGECHANGED = NewId()
 wxID_TOPPAGECHANGED = NewId()
-class DebuggerFrame(wxFrame):
+class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
     debug_client = None
-    
+
     def __init__(self, editor, filename=None, slave_mode=1):
-        wxFrame.__init__(
-            self, editor, -1, 'Debugger',
-            wxPoint(0, Preferences.paletteHeight),
-            wxSize(Preferences.inspWidth, Preferences.bottomHeight))
+        wxFrame.__init__(self, editor, -1, 'Debugger')
+
+        self.winConfOption = 'debugger'
+        self.loadDims()
 
         self.editor = editor
         self.running = 0
@@ -594,19 +650,15 @@ class DebuggerFrame(wxFrame):
         if filename:
             self.setDebugFile(filename)
 
-        if wxPlatform == '__WXMSW__':
-	    self.icon = wxIcon(Preferences.toPyPath(
-                'Images\\Icons\\Debug.ico'), 
-	      wxBITMAP_TYPE_ICO)
-	    self.SetIcon(self.icon)
+        self.SetIcon(IS.load('Images/Icons/Debug.ico'))
 
         self.viewsImgLst = wxImageList(16, 16)
-        self.viewsImgLst.Add(IS.load('Images/Debug/Stack.bmp'))
-        self.viewsImgLst.Add(IS.load('Images/Debug/Breakpoints.bmp'))
-        self.viewsImgLst.Add(IS.load('Images/Debug/Watches.bmp'))
-        self.viewsImgLst.Add(IS.load('Images/Debug/Locals.bmp'))
-        self.viewsImgLst.Add(IS.load('Images/Debug/Globals.bmp'))
-        self.viewsImgLst.Add(IS.load('Images/Debug/Output.bmp'))
+        self.viewsImgLst.Add(IS.load('Images/Debug/Stack.png'))
+        self.viewsImgLst.Add(IS.load('Images/Debug/Breakpoints.png'))
+        self.viewsImgLst.Add(IS.load('Images/Debug/Watches.png'))
+        self.viewsImgLst.Add(IS.load('Images/Debug/Locals.png'))
+        self.viewsImgLst.Add(IS.load('Images/Debug/Globals.png'))
+        self.viewsImgLst.Add(IS.load('Images/Debug/Output.png'))
 
         self.invalidatePanes()
 
@@ -616,32 +668,52 @@ class DebuggerFrame(wxFrame):
         self.toolbar = wxToolBar(
             self, -1, style = wxTB_HORIZONTAL|wxNO_BORDER|flatTools)
         self.SetToolBar(self.toolbar)
-        
-        Utils.AddToolButtonBmpIS(self, self.toolbar, 
-          'Images/Debug/Debug.bmp', 'Debug', self.OnDebug)
-        Utils.AddToolButtonBmpIS(self, self.toolbar, 
-          'Images/Debug/Step.bmp', 'Step', self.OnStep)
-        Utils.AddToolButtonBmpIS(self, self.toolbar, 
-          'Images/Debug/Over.bmp', 'Over', self.OnOver)
-        Utils.AddToolButtonBmpIS(self, self.toolbar, 
-          'Images/Debug/Out.bmp', 'Out', self.OnOut)
-        Utils.AddToolButtonBmpIS(self, self.toolbar, 
-          'Images/Debug/Pause.bmp',  'Pause', self.OnPause)
-        Utils.AddToolButtonBmpIS(self, self.toolbar, 
-          'Images/Debug/Stop.bmp',  'Stop', self.OnStop)
+
+        self.runId = Utils.AddToolButtonBmpIS(self, self.toolbar,
+          'Images/Debug/Debug.png', 'Debug/Continue - %s\nRuns in debugger, '
+          'stops at breaks and exceptions'%keyDefs['Debug'][2], self.OnDebug)
+        self.runFullSpdId = Utils.AddToolButtonBmpIS(self, self.toolbar,
+          'Images/Debug/DebugFullSpeed.png', 'Debug/Continue full speed\nStops '
+          'only at hard (code) breaks and exceptions', self.OnDebugFullSpeed)
+        self.stepId = Utils.AddToolButtonBmpIS(self, self.toolbar,
+          'Images/Debug/Step.png', 'Step - %s'%keyDefs['DebugStep'][2], 
+          self.OnStep)
+        self.overId = Utils.AddToolButtonBmpIS(self, self.toolbar,
+          'Images/Debug/Over.png', 'Over - %s'%keyDefs['DebugOver'][2], 
+          self.OnOver)
+        self.outId = Utils.AddToolButtonBmpIS(self, self.toolbar,
+          'Images/Debug/Out.png', 'Out - %s'%keyDefs['DebugOut'][2],
+          self.OnOut)
+        self.pauseId = Utils.AddToolButtonBmpIS(self, self.toolbar,
+          'Images/Debug/Pause.png',  'Pause', self.OnPause)
+        self.stopId = Utils.AddToolButtonBmpIS(self, self.toolbar,
+          'Images/Debug/Stop.png',  'Stop', self.OnStop)
         self.toolbar.AddSeparator()
         self.sourceTraceId = Utils.AddToolButtonBmpIS(self, self.toolbar,
-          'Images/Debug/SourceTrace-Off.bmp',  'Trace in source',
+          'Images/Debug/SourceTrace-Off.png',  'Trace in source',
           self.OnSourceTrace, '1')
         self.debugBrowseId = Utils.AddToolButtonBmpIS(self, self.toolbar,
-          'Images/Debug/DebugBrowse.bmp',  'Debug browsing',
+          'Images/Debug/DebugBrowse.png',  'Debug browsing',
           self.OnDebugBrowse, '1')
         self.shellNamespaceId = Utils.AddToolButtonBmpIS(self, self.toolbar,
-          'Images/Debug/DebugBrowse.bmp',  'Namespace in shell',
+          'Images/Debug/ShellDebug.png',  'Eval in shell',
           self.OnDebugNamespace, '1')
-#          true, 'Images/Debug/SourceTrace-Off.bmp')
+        self.toolbar.AddSeparator()
+        self.splitOrientId = Utils.AddToolButtonBmpIS(self, self.toolbar,
+          'Images/Debug/SplitOrient.png',  'Toggle split orientation',
+          self.OnToggleSplitOrient)
+
+        self.SetAcceleratorTable(wxAcceleratorTable( [
+          (keyDefs['Debug'][0], keyDefs['Debug'][1], self.runId),
+          (keyDefs['DebugStep'][0], keyDefs['DebugStep'][1], self.stepId),
+          (keyDefs['DebugOver'][0], keyDefs['DebugOver'][1], self.overId),
+          (keyDefs['DebugOut'][0], keyDefs['DebugOut'][1], self.outId) ] ))
 
         self.toolbar.Realize()
+        
+        self.toolbar.ToggleTool(self.sourceTraceId, true)
+        self.toolbar.ToggleTool(self.debugBrowseId, false)
+        
         self.splitter = wxSplitterWindow(self, -1, style=wxSP_NOBORDER | wxSP_3DSASH | wxSP_FULLSASH)
 
         # Create a Notebook
@@ -650,7 +722,7 @@ class DebuggerFrame(wxFrame):
             self.nbTop.SetImageList(self.viewsImgLst)
         EVT_NOTEBOOK_PAGE_CHANGED(self.nbTop, wxID_TOPPAGECHANGED,
                                   self.OnUpperPageChange)
-        
+
         self.stackView = StackViewCtrl(self.nbTop, None, self)
 
         if wxPlatform == '__WXMSW__':
@@ -665,7 +737,7 @@ class DebuggerFrame(wxFrame):
             self.nbTop.AddPage(self.breakpts, 'Breakpoints')
 
         self.outp = wxTextCtrl(self.nbTop, -1, '',
-                               style = wxTE_MULTILINE | wxTE_READONLY)
+                               style = wxTE_MULTILINE)# | wxTE_READONLY)
         self.outp.SetBackgroundColour(wxBLACK)
         self.outp.SetForegroundColour(wxWHITE)
         if (not compareColors(self.outp.GetBackgroundColour(), wxBLACK) or
@@ -686,15 +758,14 @@ class DebuggerFrame(wxFrame):
 
         if wxPlatform == '__WXMSW__':
             self.nbBottom.SetImageList(self.viewsImgLst)
-            
+
         self.watches = WatchViewCtrl(self.nbBottom, self.viewsImgLst, self)
         if wxPlatform == '__WXMSW__':
             self.nbBottom.AddPage(self.watches, 'Watches', imageId = 2)
         elif wxPlatform == '__WXGTK__':
             self.nbBottom.AddPage(self.watches, 'Watches')
 
-        self.locs = NamespaceViewCtrl(self.nbBottom, self.add_watch, 1,
-                                      'local')
+        self.locs = NamespaceViewCtrl(self.nbBottom, self.add_watch, 1, 'local')
         if wxPlatform == '__WXMSW__':
             self.nbBottom.AddPage(self.locs, 'Locals', imageId = 3)
         elif wxPlatform == '__WXGTK__':
@@ -702,16 +773,18 @@ class DebuggerFrame(wxFrame):
 
         self.globs = NamespaceViewCtrl(
             self.nbBottom, self.add_watch, 0, 'global')
-        
+
         if wxPlatform == '__WXMSW__':
             self.nbBottom.AddPage(self.globs, 'Globals', imageId = 4)
         elif wxPlatform == '__WXGTK__':
             self.nbBottom.AddPage(self.globs, 'Globals')
-        
+
         self.splitter.SetMinimumPaneSize(40)
+                
         self.splitter.SplitHorizontally(self.nbTop, self.nbBottom)
         self.splitter.SetSashPosition(175)
-        
+        self.splitter.SetSplitMode(wxSPLIT_HORIZONTAL)
+
         self.mlc = 0
         self.frame = None
 
@@ -725,13 +798,34 @@ class DebuggerFrame(wxFrame):
 
         self.stream_timer = wxPyTimer(self.OnStreamTimer)
 
-	EVT_CLOSE(self, self.OnCloseWindow)
+        self._destroyed = 0
+        EVT_CLOSE(self, self.OnCloseWindow)
 
     def destroy(self):
-        self.viewsImgLst = None
+        #self.viewsImgLst = None
+        self.breakpts.destroy()
+        self.watches.destroy()
         self.locs.destroy()
         self.globs.destroy()
+        self.sb.stateCols = None
+        self.stream_timer = None
 
+    def setDefaultDimensions(self):
+        self.SetDimensions(0, Preferences.paletteHeight + \
+              Preferences.windowManagerTop + Preferences.windowManagerBottom,
+              Preferences.inspWidth, Preferences.bottomHeight)
+
+    _sashes_inited = 0
+    def initSashes(self):
+        if not self._sashes_inited:
+            s = self.GetSize()
+            if s.x /float(s.y) > 1:
+                mode = wxSPLIT_HORIZONTAL
+            else:
+                mode = wxSPLIT_VERTICAL
+            self.splitter.SetSplitMode(mode)
+            self.OnToggleSplitOrient(None)
+            self._sashes_inited = 1
 
     def add_watch(self, name, local):
         self.watches.add_watch(name, local)
@@ -744,14 +838,14 @@ class DebuggerFrame(wxFrame):
         if sel >= 0:
             self.updateSelectedPane(sel)
         event.Skip()
-        
+
     def invalidatePanes(self):
         self.updated_panes = [0, 0, 0]
 
-    def updateSelectedPane(self, pageno=-1, do_request=1):
+    def updateSelectedPane(self, pageno=-1, do_request=1, force=0):
         if pageno < 0:
             pageno = self.nbBottom.GetSelection()
-        if not self.updated_panes[pageno]:
+        if not self.updated_panes[pageno] or force:
             frameno = self.stackView.selection
             if pageno == 0:
                 self.watches.showLoading()
@@ -824,14 +918,27 @@ class DebuggerFrame(wxFrame):
         if val:
             self.editor.statusBar.setHint(val)
 
-    #def startMainLoop(self):
-    #    self.editor.app.MainLoop()
-    #    self.mlc = self.mlc + 1
-        
-    #def stopMainLoop(self):
-    #    self.editor.app.ExitMainLoop()
-    #    self.mlc = self.mlc - 1
-    
+    def getVarValue(self, name):
+        if not string.strip(name):
+            return None
+        self._hasReceivedVal = 0
+        self._receivedVal = None
+        self.invokeInDebugger(
+            'pprintVarValue', (name, self.stackView.selection),
+            'receiveVarValue2')
+        try:
+            while not self._hasReceivedVal:
+                wxYield()
+            return self._receivedVal
+        finally:
+            del self._hasReceivedVal
+            del self._receivedVal
+
+    def receiveVarValue2(self, val):
+        self._receivedVal = val
+        self._hasReceivedVal = 1
+
+
 #---------------------------------------------------------------------------
 
 ##    def canonic(self, filename):
@@ -843,12 +950,15 @@ class DebuggerFrame(wxFrame):
 
     def setDebugFile(self, filename):
         self.filename = path.join(pyPath, filename)
-        title = 'Debugger - %s - %s' % (path.basename(filename), filename)
-        self.SetTitle(title)
+        self.setTitleInfo('%s - %s' % (path.basename(filename), filename))
         self.modpath = os.path.dirname(self.filename)
 
     def setTitleInfo(self, info):
-        title = 'Debugger - %s' % info
+        if self.debug_client and self.debug_client.serverId:
+            pid = '(%s) '%self.debug_client.serverId
+        else:
+            pid = ''
+        title = 'Debugger %s- %s' % (pid, info)
         self.SetTitle(title)
 
     def setDebugClient(self, client=None):
@@ -869,13 +979,19 @@ class DebuggerFrame(wxFrame):
 
     def killDebugger(self):
         if self.debug_client:
-            self.debug_client.kill()
+            try:
+                self.debug_client.kill()
+            except:
+                print 'Error on killing debugger: %s: %s'%sys.exc_info()[:2]
 
     def OnStreamTimer(self, event=None, force_timer=0):
-        self.updateOutputWindow()
-        if force_timer or self.nbTop.GetSelection() == 2:
-            # The user is looking at the output page.
-            self.stream_timer.Start(300, 1)  # One-shot mode.
+        if self.stream_timer:
+            self.updateOutputWindow()
+            # A non polling stream can block a process
+            ## The user is looking at the output page.
+            ## if (force_timer or self.nbTop.GetSelection() == 2) \
+            if not self.stream_timer.IsRunning():
+                self.stream_timer.Start(100, 1)  # One-shot mode.
 
     def appendToOutputWindow(self, t):
         # Before appending to the output, remove old data.
@@ -901,15 +1017,18 @@ class DebuggerFrame(wxFrame):
                     break
             else:
                 break
-        
+
     def OnUpperPageChange(self, event):
         sel = event.GetSelection()
         if sel == 2:
             # Selected the output window.
             self.OnStreamTimer(None, 1)
         event.Skip()
-        
+
     def OnDebuggerOk(self, event):
+        if self._destroyed: return
+
+        self.restoreDebugger()
         self.enableStepping()
         receiver_name = event.GetReceiverName()
         if receiver_name is not None:
@@ -917,20 +1036,22 @@ class DebuggerFrame(wxFrame):
             apply(rcv, (event.GetResult(),) + event.GetReceiverArgs())
 
     def OnDebuggerException(self, event):
+        if self._destroyed: return
+
+        self.restoreDebugger()
         self.enableStepping()
         t, v = event.GetExc()
+        #fl, ln = event.GetTb()
         if hasattr(t, '__name__'):
             t = t.__name__
-        # TODO?: Use wxScrolledMessageDialog  (note that it lacks
-        # wxYES_NO support.)
         msg = '%s: %s.' % (t, v)
-        if len(msg) > 100:
-            msg = msg[:100] + '...'
-        confirm = (wxMessageDialog(
-            self, msg + ' Stop debugger?',
-            'Debugger Communication Exception',
-            wxYES_NO | wxYES_DEFAULT | wxICON_EXCLAMATION |
-            wxCENTRE).ShowModal() == wxID_YES)
+        #if len(msg) > 100:
+        #    msg = msg[:100] + '...'
+        
+        confirm = wxMessageBox(msg + '\n\nStop debugger?',
+                  'Debugger Communication Exception',
+                  wxYES_NO | wxYES_DEFAULT | wxICON_EXCLAMATION |
+                  wxCENTRE) == wxYES
 
         if confirm:
             self.killDebugger()
@@ -938,7 +1059,7 @@ class DebuggerFrame(wxFrame):
 
     def runProcess(self, autocont=0):
         self.running = 1
-        self.sb.writeError('Waiting...', 0)
+        self.sb.updateState('Waiting...', 'busy')
         brks = bplist.getBreakpointList()
         if self.slave_mode:
             # Work with a child process.
@@ -958,51 +1079,13 @@ class DebuggerFrame(wxFrame):
         # InProcessClient TODO: setup the execution environment
         # the way it used to be done.
 
-        #tmpApp = wxPython.wx.wxApp
-        #wxPhonyApp.debugger = self
-        #wxPython.wx.wxApp = wxPhonyApp
-
-##        try:
-##            #sys.stderr = ShellEditor.PseudoFileErrTC(owin)
-##            try:
-##                #sys.stdout = ShellEditor.PseudoFileOutTC(owin)
-##                try:
-##                    #editor.app.saveStdio = sys.stdout, sys.stderr
-
-##                    modname, ext = os.path.splitext(
-##                        os.path.basename(filename))
-##                    if sys.modules.has_key(modname):
-##                        mod = sys.modules[modname]
-##                    else:
-##                        mod = imp.new_module(modname)
-##                        sys.modules[modname] = mod
-                        
-##                    mod.__file__ = filename
-
-##                    self.run("execfile(%s)" % `filename`, mod.__dict__)
-##                except:
-##                    (sys.last_type, sys.last_value,
-##                     sys.last_traceback) = sys.exc_info()
-##                    linecache.checkcache()
-##                    traceback.print_exc()
-##            finally:
-##                pass
-##                #sys.stdout = saveout
-##        finally:
-##            #sys.stderr = saveerr
-##            #editor.app.saveStdio = sys.stdout, sys.stderr
-##            #wxPython.wx.wxApp = tmpApp
-##            #sys.path = tmpPaths
-##            #sys.argv = tmpArgs
-##            #os.chdir(cwd)
-
-    def proceedAndRequestStatus(self, command, temp_breakpoint=None):
+    def proceedAndRequestStatus(self, command, temp_breakpoint=None, args=()):
         # Non-blocking.
-        self.sb.writeError('Running...', 0)
+        self.sb.updateState('Running...', 'busy')
         if not temp_breakpoint:
             temp_breakpoint = 0
         self.invokeInDebugger('proceedAndRequestStatus',
-                              (command, temp_breakpoint),
+                              (command, temp_breakpoint, args),
                               'receiveDebuggerStatus')
 
     def deleteBreakpoints(self, filename, lineno):
@@ -1016,7 +1099,7 @@ class DebuggerFrame(wxFrame):
         self.breakpts.refreshList()
 
     def requestDebuggerStatus(self):
-        self.sb.writeError('Waiting...', 0)
+        self.sb.updateState('Waiting...', 'busy')
         self.invokeInDebugger('getStatusSummary', (),
                               'receiveDebuggerStatus')
 
@@ -1029,9 +1112,12 @@ class DebuggerFrame(wxFrame):
         if data:
             self.appendToOutputWindow(data)
 
+        self.setDebugFile(self.filename)
+
         # Determine the current lineno, filename, and
         # funcname from the stack.
-        self.running = info['running']
+
+        # Update call stack
         stack = info['stack']
         if stack:
             bottom = stack[-1]
@@ -1043,13 +1129,14 @@ class DebuggerFrame(wxFrame):
             filename = funcname = lineno = base = ''
 
         # Show running status.
+        self.running = info['running']
         if self.running:
             message = "%s:%s" % (base, lineno)
             if funcname != "?":
                 message = "%s: %s()" % (message, funcname)
         else:
             message = 'Finished.'
-        self.sb.status.SetLabel(message)
+        self.sb.updateInstructionPtr(message)
 
         # Show exception information.
         exc_type = info.get('exc_type', None)
@@ -1058,15 +1145,13 @@ class DebuggerFrame(wxFrame):
             m1 = exc_type
             if exc_value is not None:
                 try:
-                    m1 = "%s: %s" % (m1, exc_value)
+                    m1 = "%s: %s" % (m1, str(exc_value))
                 except:
-                    pass
-            bg = wxNamedColour('yellow')
+                    m1 = 'internal error'
+            self.sb.updateState(m1)
         else:
-            m1 = ''
-            bg = wxNamedColour('white')#self.errorbg
-        self.sb.writeError(m1)
-        
+            self.sb.updateState('Ready.', 'info')
+
         # Load the stack view.
         sv = self.stackView
         if sv:
@@ -1077,12 +1162,7 @@ class DebuggerFrame(wxFrame):
         # If at a breakpoint, display status.
         if bplist.hasBreakpoint(filename, lineno):
             bplist.clearTemporaryBreakpoints(filename, lineno)
-            self.sb.error.SetBackgroundColour(wxNamedColour('red'))
-            self.sb.error.SetLabel('Breakpoint.')
-            rect = self.sb.GetFieldRect(1)
-            self.sb.error.SetDimensions(rect.x+2, rect.y+2, 
-                                        rect.width-4, rect.height-4)
-
+            self.sb.updateState('Breakpoint.', 'break')
         # Update breakpoints view with stats.
         self.breakpts.stats = info['breaks']
         self.breakpts.refreshList()
@@ -1094,20 +1174,20 @@ class DebuggerFrame(wxFrame):
         self.updateSelectedPane()
         # Receive stream data even if the user isn't looking.
         self.updateOutputWindow()
+        
+        self.restoreDebugger()
+
+    def restoreDebugger(self):
+        if self.editor.palette.IsShown():
+            if self.editor.palette.IsIconized():
+                self.editor.palette.restore()
+                self.editor.restore()
+        elif self.editor.IsIconized():
+            self.editor.restore()
 
     def resolvePath(self, filename):
         # already resolved.
         return filename
-##        # Try to find file in Main module directory,
-##        # Boa directory and Current directory
-##        fn = os.path.normpath(os.path.join(self.modpath, filename))
-##        if not os.path.exists(fn):
-##            fn = os.path.join(Preferences.pyPath, filename)
-##            if not os.path.exists(fn):
-##                fn = os.path.abspath(filename)
-##                if not os.path.exists(fn):
-##                    return ''
-##        return fn
 
     def clearStepPos(self):
         if self.lastStepView is not None:
@@ -1115,27 +1195,38 @@ class DebuggerFrame(wxFrame):
             self.lastStepView = None
 
     def selectSourceLine(self, filename, lineno):
-        self.clearStepPos()
-        if filename and filename[:1] != '<' and filename[-1:] != '>':
-            filename = self.resolvePath(filename)
-            if not filename: return
-                
-            #self.editor.SetFocus()
-            self.editor.openOrGotoModule(filename)
-            model = self.editor.getActiveModulePage().model
-            sourceView = model.views['Source']
-            #sourceView.focus(false)
-            #sourceView.SetFocus()
-            sourceView.selectLine(lineno - 1)
-            sourceView.setStepPos(lineno - 1)
-            self.lastStepView = sourceView
-            self.lastStepLineno = lineno - 1
+        if self.isSourceTracing():
+            self.clearStepPos()
+            if filename and filename[:1] != '<' and filename[-1:] != '>':
+                filename = self.resolvePath(filename)
+                if not filename: return
+    
+                #self.editor.SetFocus()
+                self.editor.openOrGotoModule(filename)
+                model = self.editor.getActiveModulePage().model
+                sourceView = model.views['Source']
+                sourceView.focus(false)
+                #sourceView.SetFocus()
+                sourceView.selectLine(lineno - 1)
+                sourceView.setStepPos(lineno - 1)
+                self.lastStepView = sourceView
+                self.lastStepLineno = lineno - 1
+
+    def enableTools(self, enable = true):
+        self.toolbar.EnableTool(self.runId, enable)
+        self.toolbar.EnableTool(self.stepId, enable)
+        self.toolbar.EnableTool(self.overId, enable)
+        self.toolbar.EnableTool(self.outId, enable)
+        self.toolbar.EnableTool(self.stopId, enable)
 
     def isSourceTracing(self):
         return self.toolbar.GetToolState(self.sourceTraceId)
 
     def isDebugBrowsing(self):
         return self.toolbar.GetToolState(self.debugBrowseId)
+
+    def isInShellNamepace(self):
+        return self.toolbar.GetToolState(self.shellNamespaceId)
 
     def isRunning(self):
         return self.running
@@ -1152,12 +1243,16 @@ class DebuggerFrame(wxFrame):
     def enableStepping(self):
         # FUTURE: enable the step buttons.
         self.stepping_enabled = 1
+        for wid in (self.stepId, self.overId, self.outId):
+            self.toolbar.ToggleTool(wid, 1)
 
     def disableStepping(self):
         # FUTURE: disable the step buttons.
         self.stepping_enabled = 0
+        for wid in (self.stepId, self.overId, self.outId):
+            self.toolbar.ToggleTool(wid, 0)
 
-    def doDebugStep(self, method=None, temp_breakpoint=None):
+    def doDebugStep(self, method=None, temp_breakpoint=None, args=()):
         if self.stepping_enabled:
             self.disableStepping()
             self.clearStepPos()
@@ -1166,7 +1261,7 @@ class DebuggerFrame(wxFrame):
             if not self.isRunning():
                 self.runProcess()
             elif method:
-                self.proceedAndRequestStatus(method, temp_breakpoint)
+                self.proceedAndRequestStatus(method, temp_breakpoint, args)
             return 1
         else:
             if temp_breakpoint:
@@ -1176,6 +1271,9 @@ class DebuggerFrame(wxFrame):
 
     def OnDebug(self, event):
         self.doDebugStep('set_continue')
+
+    def OnDebugFullSpeed(self, event):
+        self.doDebugStep('set_continue', args=(1,))
 
     def OnStep(self, event):
         self.doDebugStep('set_step')
@@ -1193,11 +1291,10 @@ class DebuggerFrame(wxFrame):
 
     def OnStop(self, event):
         self.enableStepping()
-        #wxPhonyApp.inMainLoop = false
         self.invalidatePanes()
         self.updateSelectedPane(do_request=0)
         self.proceedAndRequestStatus('set_quit')
-    
+
     def OnSourceTrace(self, event):
         pass
 
@@ -1210,25 +1307,37 @@ class DebuggerFrame(wxFrame):
         self.watches.load_dict({})
         self.locs.load_dict({})
         self.globs.load_dict({})
-        self.sb.writeError('', 0)
+        self.sb.updateState('Ready', 'info')
 
     def OnCloseWindow(self, event):
         try:
             self.killDebugger()
             self.clearViews()
-##            self.locs.destroy()
-##            self.globs.destroy()
-##            self.breakpts.destroy()
-##            self.watches.destroy()
         finally:
-##            self.Destroy()
             self.debug_client = None
+            self.destroy()
+            self._destroyed = 1
             try: self.editor.debugger = None
             except: pass
             self.editor = None
-            self.Show(0)
-            event.Skip()
+            #event.Skip()
+            self.Destroy()
+
+    def isInShellNamepace(self):
+        return self.toolbar.GetToolState(self.shellNamespaceId)
 
     def OnDebugNamespace(self, event):
-        print 'OnDebugNamespace', self.isInShellNamepace()
- 
+        self.editor.OnSwitchShell(None)
+        self.editor.shell.debugShell(self.isInShellNamepace(), self)
+
+    def OnToggleSplitOrient(self, event):
+        if self.splitter.GetSplitMode() == wxSPLIT_HORIZONTAL:
+            self.splitter.SetSplitMode(wxSPLIT_VERTICAL)
+            self.splitter.SplitVertically(self.nbTop, self.nbBottom)
+            sashpos = self.splitter.GetClientSize().x / 2
+        else:
+            self.splitter.SetSplitMode(wxSPLIT_HORIZONTAL)
+            self.splitter.SplitHorizontally(self.nbTop, self.nbBottom)
+            sashpos = self.splitter.GetClientSize().y / 2
+        self.splitter.SetSashPosition(sashpos)
+

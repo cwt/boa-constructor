@@ -1,4 +1,3 @@
-
 import threading
 
 class ThreadedTaskHandler:
@@ -25,7 +24,7 @@ class ThreadedTaskHandler:
             t.setDaemon(1)
             t.start()
             return
-        
+
         cond = self.cond
         cond.acquire()
         try:
@@ -68,6 +67,7 @@ class ThreadedTaskHandler:
                 cond.release()
 
             if task is not None:
+                #print 'performing task: %s(%s, %s)'%(task, args, kw)
                 try:
                     if kw is not None:
                         apply(task, args, kw)

@@ -19,10 +19,10 @@ def create(parent):
  wxID_ATTACHDLG] = map(lambda _init_ctrls: wxNewId(), range(12))
 
 class AttachDlg(wxDialog):
-    def _init_utils(self): 
+    def _init_utils(self):
         pass
 
-    def _init_ctrls(self, prnt): 
+    def _init_ctrls(self, prnt):
         wxDialog.__init__(self, size = wxSize(288, 227), id = wxID_ATTACHDLG, title = 'Attach to debugger', parent = prnt, name = 'AttachDlg', style = wxDEFAULT_DIALOG_STYLE, pos = wxPoint(344, 237))
         self._init_utils()
         EVT_CLOSE(self, self.OnCloseWindow)
@@ -52,7 +52,7 @@ class AttachDlg(wxDialog):
         self.help_button = wxButton(label = 'Help', id = wxID_ATTACHDLGHELP_BUTTON, parent = self, name = 'help_button', size = wxSize(72, 24), style = 0, pos = wxPoint(184, 160))
         EVT_BUTTON(self.help_button, wxID_ATTACHDLGHELP_BUTTON, self.OnHelpButton)
 
-    def __init__(self, editor): 
+    def __init__(self, editor):
         self._init_ctrls(editor)
         self.editor = editor
 
@@ -72,7 +72,7 @@ class AttachDlg(wxDialog):
             debugger.setTitleInfo('%s@%s:%s' % (user, host, port))
         else:
             debugger.setTitleInfo('%s:%s' % (host, port))
-            
+
         self.editor.debugger = debugger
         debugger.Show(true)
         debugger.requestDebuggerStatus()

@@ -1,4 +1,3 @@
-
 import os, string, sys, base64
 from ExternalLib import xmlrpclib
 
@@ -13,37 +12,37 @@ class TransportWithAuth (xmlrpclib.Transport):
                 base64.encodestring('%s:%s' % (user, pw)))
 
     def request(self, host, handler, request_body):
-	# issue XML-RPC request
+        # issue XML-RPC request
 
-	import httplib
-	h = httplib.HTTP(host)
-	h.putrequest("POST", handler)
+        import httplib
+        h = httplib.HTTP(host)
+        h.putrequest("POST", handler)
 
-	# required by HTTP/1.1
-	h.putheader("Host", host)
+        # required by HTTP/1.1
+        h.putheader("Host", host)
 
-	# required by XML-RPC
-	h.putheader("User-Agent", self.user_agent)
-	h.putheader("Content-Type", "text/xml")
-	h.putheader("Content-Length", str(len(request_body)))
+        # required by XML-RPC
+        h.putheader("User-Agent", self.user_agent)
+        h.putheader("Content-Type", "text/xml")
+        h.putheader("Content-Length", str(len(request_body)))
         if self._auth:
             h.putheader('Authorization', 'Basic %s' % self._auth)
 
-	h.endheaders()
+        h.endheaders()
 
-	if request_body:
-	    h.send(request_body)
+        if request_body:
+            h.send(request_body)
 
-	errcode, errmsg, headers = h.getreply()
+        errcode, errmsg, headers = h.getreply()
 
-	if errcode != 200:
-	    raise xmlrpclib.ProtocolError(
-		host + handler,
-		errcode, errmsg,
-		headers
-		)
+        if errcode != 200:
+            raise xmlrpclib.ProtocolError(
+                host + handler,
+                errcode, errmsg,
+                headers
+                )
 
-	return self.parse_response(h.getfile())
+        return self.parse_response(h.getfile())
 
 
 from DebugClient import DebugClient, MultiThreadedDebugClient, \

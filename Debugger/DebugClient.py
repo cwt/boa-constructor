@@ -1,17 +1,16 @@
-
 import string, sys
 from string import rfind
 from Tasks import ThreadedTaskHandler
-from wxPython.wx import NewId, wxPyCommandEvent
+from wxPython.wx import wxNewId, wxPyCommandEvent
 
 '''
     The debug client connects to the debug server.  The debug server
     does the dirty work.
 '''
 
-wxEVT_DEBUGGER_OK = NewId()
-wxEVT_DEBUGGER_EXC = NewId()
-wxEVT_DEBUGGER_START = NewId()
+wxEVT_DEBUGGER_OK = wxNewId()
+wxEVT_DEBUGGER_EXC = wxNewId()
+wxEVT_DEBUGGER_START = wxNewId()
 
 def EVT_DEBUGGER_OK(win, id, func):
     win.Connect(id, -1, wxEVT_DEBUGGER_OK, func)
@@ -30,6 +29,7 @@ class DebuggerCommEvent(wxPyCommandEvent):
     task = None
     t = None
     v = None
+    tb = ('', 0)
 
     def __init__(self, evtType, id):
         wxPyCommandEvent.__init__(self, evtType, id)
@@ -63,7 +63,12 @@ class DebuggerCommEvent(wxPyCommandEvent):
 
     def GetExc(self):
         return self.t, self.v
-    
+
+    def SetTb(self, tb):
+        self.tb = tb
+
+    def GetTb(self):
+        return self.tb
 
 class DebugClient:
     def __init__(self, win):
@@ -93,6 +98,10 @@ class DebuggerTask:
         self.m_args = m_args
         self.r_name = r_name
         self.r_args = r_args
+    
+    def __repr__(self):
+        return '<DebuggerTask: %s:%s:%s:%s>'%(self.m_name, self.m_args, 
+                                              self.r_name, self.r_args)
 
     def __call__(self):
         evt = None
@@ -110,7 +119,7 @@ class DebuggerTask:
                 evt.SetResult(result)
         if evt:
             self.client.postEvent(evt)
-        
+
 
 class MultiThreadedDebugClient (DebugClient):
 
@@ -122,4 +131,3 @@ class MultiThreadedDebugClient (DebugClient):
     def invokeOnServer(self, m_name, m_args=(), r_name=None, r_args=()):
         task = DebuggerTask(self, m_name, m_args, r_name, r_args)
         self.taskHandler.addTask(task)
-

@@ -1,6 +1,4 @@
-from wxPython import wx
-
-import sys, os
+import sys, os, time
 import whrandom, sha, threading
 from time import sleep
 from SocketServer import TCPServer
@@ -17,6 +15,8 @@ except:
 try: from cStringIO import StringIO
 except ImportError: from StringIO import StringIO
 
+serving = 0
+
 class DebugRequestHandler (RequestHandler):
 
     _authstr = None
@@ -24,18 +24,38 @@ class DebugRequestHandler (RequestHandler):
     _conn = DebuggerConnection(_ds)
     _conn._enableProcessModification()
 
-    def call(self, method, params):
-        print 'DebugRequestHandler.call(%s, %s)' % (method, params)
+    def _authenticate(self):
         h = self.headers
-        if self._authstr and (not h.has_key('x-auth') or h['x-auth']
-            != self._authstr):
+        if self._authstr and (not h.has_key('x-auth') or h['x-auth'] != self._authstr):
             raise 'Unauthorized', 'x-auth missing or incorrect'
-        m = getattr(self._conn, method)
-        result = apply(m, params)
-        if result is None:
-            result = 0
-        print 'DebugRequestHandler.call() result =', result
-        return result
+        
+    def call(self, method, params):
+        #print 'DebugRequestHandler.call(%s, %s)' % (method, params)
+        #raise 'Fuckup', 'Big'
+        self._authenticate()
+        if method == 'exit_debugger':
+            global serving
+            serving = 0
+            #print 'DebugRequestHandler exit triggered'
+            return 1
+        else:
+            m = getattr(self._conn, method)
+            result = apply(m, params)
+            if result is None:
+                result = 0
+            #print 'DebugRequestHandler.call() result =', result
+            return result
+
+    def log_message(self, format, *args):
+        pass # don't print http requests
+    
+##    def exit(self):
+##        #print 'DebugRequestHandler.exit()'
+##        self._authenticate()
+##        global serving
+##        serving = 0
+##        return 1
+        
 
     #def log_message(self, format, *args):
     #    pass
@@ -61,7 +81,6 @@ def streamFlushThread():
 
 
 def main():
-
     auth = sha.new(str(whrandom.random())).hexdigest()  # Always 40 chars.
     DebugRequestHandler._authstr = auth
 
@@ -73,11 +92,11 @@ def main():
 
     def serve_forever(server):
         while 1:
-            print 'serve_forever waiting for request...'
+            #print 'serve_forever waiting for request...'
             server.handle_request()
 
     def startDaemon(target, args=()):
-        print 'starting daemon', target
+        #print 'starting daemon', target
         t = threading.Thread(target=target, args=args)
         t.setDaemon(1)
         t.start()
@@ -87,8 +106,14 @@ def main():
     startDaemon(DebugRequestHandler._ds.servicerThread)
 
     # Serve until the stdin pipe closes.
-    sys.stdin.read()
-    print 'exiting ChildProcessServer'
+    #print 'serving until stdin returns EOF'
+    #sys.stdin.read()
+
+    global serving; serving = 1
+    while serving: 
+        time.sleep(0.01)
+
+    #print 'exiting ChildProcessServer'
     sys.exit(0)
 
 

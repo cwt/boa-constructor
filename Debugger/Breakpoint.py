@@ -1,4 +1,3 @@
-
 '''
 Provides a breakpoint registry that can be sent to another process (via
 getBreakpointList()).
@@ -65,13 +64,13 @@ class FileBreakpointList:
     def deleteBreakpoints(self, lineno):
         if self.lines.has_key(lineno):
             del self.lines[lineno]
-    
+
     def moveBreakpoint(self, lineno, newlineno):
         if lineno != newlineno and self.lines.has_key(lineno):
             bp = self.lines[lineno]
             del self.lines[lineno]
             self.lines[lineno] = bp
-        
+
 
     def enableBreakpoints(self, lineno, enable=1):
         if self.lines.has_key(lineno):
