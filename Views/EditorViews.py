@@ -176,10 +176,13 @@ class EditorView:
                 AddToolButtonBmpObject(self.model.editor, toolbar, IS.load(bmp), name, meth)
 
     docked = true
-    def addToNotebook(self, notebook, viewName = ''):
+    def addToNotebook(self, notebook, viewName = '', panel=None):
         self.notebook = notebook
         if not viewName: viewName = self.viewName
-        notebook.AddPage(self, viewName)
+        if panel:
+            notebook.AddPage(panel, viewName)
+        else:
+            notebook.AddPage(self, viewName)
         wxYield()
         self.pageIdx = notebook.GetPageCount() -1
         self.modified =  false
