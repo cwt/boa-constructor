@@ -98,7 +98,7 @@ class wxBoaFileDialog(wxDialog):
             def destroy(self):
                 self.menu.Destroy()
                 from Explorers import Explorer
-                Explorer.PackageFolderList.Destroy()
+                Explorer.PackageFolderList.destroy(self)
 
 ##            def refreshItems(self, images, explNode):
 ##                from Explorers import Explorer
@@ -333,4 +333,4 @@ class wxBoaFileDialog(wxDialog):
         self.btOK.SetDefault()
         if self.lcFiles.selected == -1:
             self.lcFiles.selectItemNamed('..')
-  
+ 
