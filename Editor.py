@@ -719,9 +719,9 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
             controller = self.getController(Controllers.modelControllerReg.get(
                   model.__class__, Controllers.DefaultController))
 
-        if self.palette.IsShown():
+        if self.palette.IsShown() and self.palette.IsIconized():
             self.palette.restore()
-        else:
+        elif self.IsIconized():
             self.restore()
 
         return model, controller
