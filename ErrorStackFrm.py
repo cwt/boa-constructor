@@ -11,7 +11,7 @@ class ErrorStackMF(wxMiniFrame):
         pass
 
     def _init_ctrls(self, prnt): 
-        wxMiniFrame.__init__(self, size = wxSize(328, 443), id = wxID_ERRORSTACKMF, title = 'Errors stack browser', parent = prnt, name = 'ErrorStackMF', style = wxDEFAULT_FRAME_STYLE, pos = wxPoint(66, 66))
+        wxMiniFrame.__init__(self, size = wxSize(328, 443), id = wxID_ERRORSTACKMF, title = 'Traceback browser', parent = prnt, name = 'ErrorStackMF', style = wxDEFAULT_FRAME_STYLE, pos = wxPoint(66, 66))
         self._init_utils()
 
         self.errorStackTC = wxTreeCtrl(size = wxSize(384, 352), id = wxID_ERRORSTACKMFERRORSTACKTC, parent = self, name = 'errorStackTC', validator = wxDefaultValidator, style = wxTR_HAS_BUTTONS, pos = wxPoint(0, 0))
@@ -42,6 +42,9 @@ class ErrorStackMF(wxMiniFrame):
                 tree.SetPyData(errTI, err.stack[-1])
         tree.SetItemHasChildren(rtTI, true)
         tree.Expand(rtTI)
+        cookie = 0; firstErr, cookie = tree.GetFirstChild(rtTI, cookie)
+        if firstErr.IsOk():
+            tree.Expand(firstErr)
 
     def OnErrorstacktcTreeItemActivated(self, event):
         try:
