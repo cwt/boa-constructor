@@ -22,12 +22,14 @@ import Constructors
 from PropEdit.PropertyEditors import IntConstrPropEdit, StrConstrPropEdit, \
       CollectionPropEdit, BitmapConstrPropEdit, EnumConstrPropEdit, \
       LCCEdgeConstrPropEdit, WinEnumConstrPropEdit, BoolConstrPropEdit, \
-      MenuEnumConstrPropEdit, BoolPropEdit, ColourConstrPropEdit
-from PropEdit import Enumerations
+      MenuEnumConstrPropEdit, BoolPropEdit, ColourConstrPropEdit, \
+      ConstrPropEdit
+      
+from PropEdit import Enumerations, InspectorEditorControls
 import EventCollections, RTTI, methodparse
 import PaletteStore
 
-import moduleparse
+import moduleparse, sourceconst
 
 PaletteStore.paletteLists['Utilities (Data)'] = []
 PaletteStore.palette.append(['Utilities (Data)', 'Editor/Tabs/Utilities',
@@ -201,64 +203,84 @@ class TimerDTC(UtilityDTC):
         self.textConstr.params['id'] = self.id
         self.renameEventListIds(self.id)
 
-class AcceleratorTableDTC(NYIDTC):
-#class AcceleratorTableDTC(ChoicesConstr, UtilityDTC):
-    #wxDocs = HelpCompanions.wxAcceleratorTableDocs
+#class AcceleratorTableDTC(NYIDTC):
+class AcceleratorTableDTC(UtilityDTC):
     def __init__(self, name, designer, objClass):
         UtilityDTC.__init__(self, name, designer, objClass)
         self.editors.update({'Entries': CollectionPropEdit})
         self.subCompanions['Entries'] = AcceleratorTableEntriesCDTC
 
     def constructor(self):
-        return {'Name': 'name', 'Entries': 'choices'}
+        return {'Entries': 'choices'}
 
     def designTimeSource(self):
         return {'choices':'[]'}
 
+
+class AcceleratorEntryPropEdit(ConstrPropEdit):
+#    def valueToIECValue(self):
+#        return self.companion.eval(self.value)
+
+    def inspectorEdit(self):
+        self.editorCtrl = InspectorEditorControls.ButtonIEC(self, self.value)
+        self.editorCtrl.createControl(self.parent, self.idx, self.width, self.edit)
+
+    def edit(self, event):
+        dlg = wxTextEntryDialog(self.parent, 'Question', 'Caption', 'Default answer')
+        try:
+            if dlg.ShowModal() != wxID_OK:
+                return
+            self.value = dlg.GetValue()
+            # Your code
+        finally:
+            self.inspectorPost(false)
+            dlg.Destroy()
+
+
 class AcceleratorTableEntriesCDTC(CollectionDTC):
-    #wxDocs = HelpCompanions.wxIndividualLayoutConstraintDocs
     propName = 'Entries'
-    displayProp = 'flags'
+    displayProp = 0
     indexProp = '(None)'
     insertionMethod = 'append'
     deletionMethod = '(None)'
-    sourceObjName = 'list'
+    #sourceObjName = ''
 
     def __init__(self, name, designer, parentCompanion, ctrl):
         CollectionDTC.__init__(self, name, designer, parentCompanion, ctrl)
 
-        self.editors.update({'Flags':   IntConstrPropEdit,
-                             'KeyCode': IntConstrPropEdit,
-                             'Command': IntConstrPropEdit})
+        self.editors['Entry'] = AcceleratorEntryPropEdit
+        
+#        self.editors.update({'Flags':   IntConstrPropEdit,
+#                             'KeyCode': IntConstrPropEdit,
+#                             'Command': IntConstrPropEdit})
 
     def constructor(self):
-        return {'Name': 'name', 'Flags': 'flags', 'KeyCode': 'keyCode',
-                'Command': 'cmd'}
+        return {'Entry': 0}
+#        return {'Flags': 'flags', 'KeyCode': 'keyCode', 'Command': 'cmd'}
 
     def persistCollInit(self, method, ctrlName, propName, params = {}):
-        collInitParse = methodparse.CollectionInitParse(None, ctrlName, method,
+        collInitParse = methodparse.CollectionInitParse(None, '[]', method,
           [], propName)
 
         self.parentCompanion.textConstr.params = {'choices': collInitParse.asText()}
-
         self.designer.addCollToObjectCollection(collInitParse)
 
-    def SetName(self, oldName, newName):
-        CollectionDTC.SetName(self, oldName, newName)
+#    def SetName(self, oldName, newName):
+#        CollectionDTC.SetName(self, oldName, newName)
 
-    def designTimeSource(self, idx):
-        return {'flags': '0', 'keyCode': '0', 'cmd': '0'}
+    def designTimeSource(self, idx, method):
+        return {0: '(0, 0, -1)'}
 
     def getDisplayProp(self):
         return `self.textConstrLst[self.index].params.values()`
 
-    def initialiser(self):
-        return ['%s%s = []'%(sourceconst.bodyIndent, self.__class__.sourceObjName), '']
+#    def initialiser(self):
+#        return ['%s%s = []'%(sourceconst.bodyIndent, self.__class__.sourceObjName), '']
 
     def finaliser(self):
-        return ['', '%sreturn %s' %(sourceconst.bodyIndent, self.__class__.sourceObjName)]
+        return ['', '%sreturn parent' %sourceconst.bodyIndent]#, self.__class__.sourceObjName)]
 
-    def applyDesignTimeDefaults(self, params):
+    def applyDesignTimeDefaults(self, params, method):
         return
 
 EventCollections.EventCategories['MenuEvent'] = (EVT_MENU,)
@@ -570,12 +592,13 @@ class StockCursorDTC(UtilityDTC):
         return {'id': 'wxCURSOR_ARROW'}
 
 
-PaletteStore.paletteLists['Utilities (Data)'].extend([wxMenuBar, wxMenu, wxImageList,
-    wxTimer, wxStockCursor]) #wxCursor, causes problems on wxGTK
+PaletteStore.paletteLists['Utilities (Data)'].extend([wxMenuBar, wxMenu, #wxAcceleratorTable, 
+    wxImageList, wxTimer, wxStockCursor]) 
+    #wxCursor, causes problems on wxGTK
 
 PaletteStore.compInfo.update({wxMenuBar: ['wxMenuBar', MenuBarDTC],
     wxImageList: ['wxImageList', ImageListDTC],
-    wxAcceleratorTable: ['wxAcceleratorTable', AcceleratorTableDTC],
+    #wxAcceleratorTable: ['wxAcceleratorTable', AcceleratorTableDTC],
     wxMenu: ['wxMenu', MenuDTC],
     wxCursor: ['wxCursor', CursorDTC],
     wxStockCursor: ['wxStockCursor', StockCursorDTC],
