@@ -489,7 +489,7 @@ class DesignTimeCompanion(Companion):
                 sourceconst.bodyIndent+self.textConstr.asText(stripFrmId),
                 output, sourceconst.bodyIndent)
 
-    nullProps = ('None',)
+    nullProps = ('None', 'wxNullBitmap', 'wxNullIcon')
     def writeProperties(self, output, ctrlName, definedCtrls, deps, depLinks, stripFrmId=''):
         """ Write out property setters but postpone dependent properties.
         """
@@ -763,11 +763,11 @@ class UtilityDTC(DesignTimeCompanion):
     def __init__(self, name, designer, objClass):
         DesignTimeCompanion.__init__(self, name, designer)
         self.objClass = objClass
-        self.editors = {'Name': NameConstrPropEdit}
+        self.editors['Name'] = NameConstrPropEdit
 
     def properties(self):
         props = DesignTimeCompanion.properties(self)
-        props.update({'Name':  ('NoneRoute', None, None)})
+        props['Name'] = ('NoneRoute', None, None)
         return props
 
     def designTimeObject(self, args = None):
@@ -787,6 +787,9 @@ class UtilityDTC(DesignTimeCompanion):
         for param in dts.keys():
             dts[param] = self.eval(dts[param])
         return dts
+
+    def extraConstrProps(self):
+        return {'Class': 'class'}
 
     def updateWindowIds(self):
         pass
@@ -839,7 +842,7 @@ class WindowDTC(WindowConstr, ControlDTC):
         self._applyConstraints = false
         self.initPropsThruCompanion = ['SizeHints', 'Cursor', 'Center', 'Sizer']
         self._sizeHints = (-1, -1, -1, -1)
-        self._cursor = None
+        self._cursor = wxNullCursor
         self._centered = None
         
     def properties(self):
@@ -869,7 +872,7 @@ class WindowDTC(WindowConstr, ControlDTC):
         return ['NextHandler', 'PreviousHandler', 'EventHandler', 'EvtHandlerEnabled',
                 'Id', 'Caret', 'WindowStyleFlag', 'ToolTip', 'Title', 'Rect',
                 'DragTarget', 'DropTarget', 'Cursor', 'VirtualSize', 'Sizer',
-                'ContainingSizer', 'Constraints', 'DefaultItem']
+                'ContainingSizer', 'Constraints', 'DefaultItem', 'Validator']
 
     def dontPersistProps(self):
         return ControlDTC.dontPersistProps(self) + ['ClientSize']
@@ -920,9 +923,9 @@ class WindowDTC(WindowConstr, ControlDTC):
             scl = self.designer.getSizerConnectList()
             if scl:
                 for connProp in self.designer.getSizerConnectList():
-                    if connProp.comp_name == self.name:
-                        return true
-            return false
+                    if connProp.comp_name == self.getCompName():
+                        return false
+            return true
         else:
             return ControlDTC.propIsDefault(self, propName, setterName)
         
@@ -1066,14 +1069,22 @@ class WindowDTC(WindowConstr, ControlDTC):
     def GetSizer(self, x):
         return self.control.GetSizer()
     def SetSizer(self, value):
-        self.control.SetSizer(value)
         if value is not None:
             self.control._has_sizer = value
-            value.Layout()
-            self.designer.relayoutCtrl(self.control)
+            value._has_control = self.control
         else:
             if hasattr(self.control, '_has_sizer'):
+                szr = self.control._has_sizer
+                if szr:
+                    if hasattr(szr, '_has_control'):
+                        del szr._has_control
                 del self.control._has_sizer
+
+        self.control.SetSizer(value)
+
+        if value is not None:
+            value.Layout()
+            self.designer.relayoutCtrl(self.control)
 
 #-------------------------------------------------------------------------------
 
@@ -1087,16 +1098,18 @@ class WindowDTC(WindowConstr, ControlDTC):
     def GetShown(self, x):
         for prop in self.textPropList:
             if prop.prop_setter == 'Show':
-                return prop.params[0].lower() == 'true'
-        return true
+                return int(prop.params[0].lower() == 'true')
+        return 1
+    
     def Show(self, value):
         pass
 
     def GetEnabled(self, x):
         for prop in self.textPropList:
             if prop.prop_setter == 'Enable':
-                return prop.params[0].lower() == 'true'
-        return true
+                return int(prop.params[0].lower() == 'true')
+        return 1
+    
     def Enable(self, value):
         pass
 
