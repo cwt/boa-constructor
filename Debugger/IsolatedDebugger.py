@@ -497,13 +497,53 @@ class DebugServer (Bdb):
             if filename[:1] == '<' and filename[-1:] == '>':
                 canonic = filename
             else:
-                # Should we deal with URL's here?
-                canonic = path.abspath(filename)
+                # Should we deal with URL's here? (we are...)
+                if filename[:12] == 'zopedebug://':
+                    canonic = filename
+                else:
+                    canonic = path.abspath(filename)
+                    
             self.fncache[filename] = canonic
         return canonic
 
     def isTraceable(self, frame):
         return frame.f_globals.get('__traceable__', 1)
+
+    def break_here(self, frame):
+        # Redefine breaking :(
+        filename = frame.f_code.co_filename
+        if filename == 'Script (Python)':
+            # XXX
+            filename, lineno = self.adjustedFrameInfo(frame)[:-2]
+        else:
+            filename = self.canonic(filename)
+            lineno = frame.f_lineno
+        
+        if not self.breaks.has_key(filename):
+            return 0
+        
+        if not lineno in self.breaks[filename]:
+            return 0
+        # flag says ok to delete temp. bp
+        (bp, flag) = bdb.effective(filename, lineno, frame)
+        if bp:
+            self.currentbp = bp.number
+            if (flag and bp.temporary):
+                self.do_clear(str(bp.number))
+            return 1
+        else:
+            return 0
+
+    def break_anywhere(self, frame):
+        # Redefine breaking :(
+        filename = frame.f_code.co_filename
+        if filename == 'Script (Python)':
+            # XXX
+            filename = self.adjustedFrameInfo(frame)[2]
+        else:
+            filename = self.canonic(filename)
+            
+        return self.breaks.has_key(filename)
 
     def stop_here(self, frame):
         # Redefine stopping.
@@ -568,9 +608,10 @@ class DebugServer (Bdb):
         Returns a (filename, lineno) tuple if the debugger should also
         set a soft breakpoint.
         """
-        filename = self.canonic(frame.f_code.co_filename)
+        modname, funcname, filename, lineno = self.adjustedFrameInfo(frame)
+        #filename = self.canonic(frame.f_code.co_filename)
         brks = self.breaks.get(filename, None)
-        lineno = frame.f_lineno
+        #lineno = frame.f_lineno
         if brks is None or lineno not in brks:
             # No soft breakpoint has been set, so plan to add the soft
             # breakpoint and stop.
@@ -632,11 +673,12 @@ class DebugServer (Bdb):
     def set_break(self, filename, lineno, temporary=0, cond=None):
         #orig_filename = filename
         filename = self.canonic(filename)
-        import linecache # Import as late as possible
-        line = linecache.getline(filename, lineno)
-        if not line:
-            # XXX maybe should call linecache.checkcache() here?
-            return 'Invalid line: %s(%s)' % (filename, lineno)
+        # XXX zopedebug uris are now stored in bdb
+        ##import linecache # Import as late as possible
+        ##line = linecache.getline(filename, lineno)
+        ##if not line:
+        ##    # XXX maybe should call linecache.checkcache() here?
+        ##    return 'Invalid line: %s(%s)' % (filename, lineno)
         self.set_internal_breakpoint(filename, lineno, temporary, cond)
         bp = bdb.Breakpoint(filename, lineno, temporary, cond)
         # Save the original filename for passing back the stats.
@@ -677,8 +719,10 @@ class DebugServer (Bdb):
         self.ignore_stopline = -1
         self.frame = frame
         self.exc_info = None
-        filename = frame.f_code.co_filename
-        lineno = frame.f_lineno
+        # XXX Review please
+        modname, funcname, filename, lineno = self.adjustedFrameInfo(frame)
+        # filename = frame.f_code.co_filename
+        # lineno = frame.f_lineno
         self.clearTemporaryBreakpoints(filename, lineno)
         self.eventLoop()
 
@@ -769,7 +813,6 @@ class DebugServer (Bdb):
         filename, lineno, temporary, enabled, and cond.
         Non-blocking."""
         self.clear_all_breaks()
-        #print 'setting breakpoints:', brks
         if brks:
             for brk in brks:
                 apply(self.addBreakpoint, (), brk)
@@ -895,6 +938,31 @@ class DebugServer (Bdb):
                 return None
         finally:
             stack = None
+    
+    def adjustedFrameInfo(self, frame):
+        code = frame.f_code
+        filename = code.co_filename
+        funcname = code.co_name
+        lineno = frame.f_lineno
+        try:
+            modname = frame.f_globals['__name__']
+        except:
+            modname = ''
+        # Special case to package Python Scripts
+        if filename == 'Script (Python)':
+            try: 
+                # adjust for Boa's added def <name>(): line
+                lineno = lineno+1
+                # rewrite filename to special lookup url that will
+                # try to find a existing zope category that can open 
+                # the script
+                return (modname, funcname, 'zopedebug://'+\
+                    frame.f_globals['script'].absolute_url()[7:]+'/'+filename, 
+                    lineno)
+            except: 
+                return modname, funcname, filename, lineno
+        else:
+            return modname, funcname, self.canonic(filename), lineno
 
     def getExtendedFrameInfo(self):
         try:
@@ -902,30 +970,12 @@ class DebugServer (Bdb):
              frame_stack_len) = self.getStackInfo()
             stack_summary = []
             for frame, lineno in stack:
-                try:
-                    modname = frame.f_globals['__name__']
-                except:
-                    modname = ''
-                code = frame.f_code
-                filename = code.co_filename
-                # Special case to package Python Scripts
-                if filename == 'Script (Python)':
-                    try: 
-                        # adjust for Boa's added def <name>(): line
-                        lineno = lineno+1
-                        # rewite filename to special lookup url that will
-                        # try to find a existing zope category that can open 
-                        # the script
-                        filename = 'zopedebug://'+\
-                            frame.f_globals['script'].absolute_url()[7:]+\
-                            '/'+filename
-                    except: pass
-                else:
-                    filename = self.canonic(code.co_filename)
-                co_name = code.co_name
+                modname, funcname, filename, lineno = \
+                      self.adjustedFrameInfo(frame)
+                
                 stack_summary.append(
                     {'filename':filename, 'lineno':lineno,
-                     'funcname':co_name, 'modname':modname})
+                     'funcname':funcname, 'modname':modname})
             result = {'stack':stack_summary,
                       'frame_stack_len':frame_stack_len,
                       'running':self._running and 1 or 0}
