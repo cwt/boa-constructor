@@ -417,15 +417,24 @@ class ScrollBarDTC(MultiItemCtrlsConstr, WindowDTC):
     def events(self):
         return WindowDTC.events(self) + ['ScrollEvent']
     
-
+EventCategories['ComboEvent'] = (EVT_COMBOBOX, EVT_TEXT)
+commandCategories.append('ComboEvent')
 class ComboBoxDTC(ComboConstr, ChoicedDTC):
     wxDocs = HelpCompanions.wxComboBoxDocs
     def designTimeSource(self, position, size = 'wxDefaultSize'):
         return {'value': `self.name`,
                 'pos': position,
         	'size': size,
+        	'choices': `[]`,
+        	'style': '0',
+        	'validator': 'wxDefaultValidator',
         	'name': `self.name`}
-    
+
+    def events(self):
+        return ChoicedDTC.events(self) + ['ComboEvent']
+
+EventCategories['ChoiceEvent'] = (EVT_CHOICE,)
+commandCategories.append('ChoiceEvent')
 class ChoiceDTC(ListConstr, ChoicedDTC):
     wxDocs = HelpCompanions.wxChoiceDocs = 'wx41.htm'
     def designTimeSource(self, position, size = 'wxDefaultSize'):
@@ -435,6 +444,9 @@ class ChoiceDTC(ListConstr, ChoicedDTC):
         	'style': '0',
         	'validator': 'wxDefaultValidator',
         	'name': `self.name`}
+
+    def events(self):
+        return ChoicedDTC.events(self) + ['ChoiceEvent']
 
 class StaticTextDTC(LabeledNonInputConstr, WindowDTC):
     wxDocs = HelpCompanions.wxStaticTextDocs

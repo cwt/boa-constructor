@@ -529,7 +529,7 @@ class WindowDTC(ControlDTC):
     def applyRunTime(self):
 	return ['Shown', 'Enabled', 'EvtHandlerEnabled']
     def events(self):
-        return ['MiscEvent', 'MouseEvent']
+        return ['MiscEvent', 'MouseEvent', 'FocusEvent', 'KeyEvent']
     
 ##    def getToolTip(self):
 ##        return self.ToolTip
