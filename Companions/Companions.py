@@ -12,14 +12,38 @@
 #----------------------------------------------------------------------
 
 from wxPython.wx import *
+
+# XXX Fix these to not import * !
 from PropEdit.PropertyEditors import *
 from PropEdit.Enumerations import *
 from EventCollections import *
 from BaseCompanions import *
 from Constructors import *
 from Preferences import wxDefaultFrameSize, wxDefaultFramePos
-import HelpCompanions
+import HelpCompanions, PaletteStore
 import copy
+
+print 'importing extra wxPython libraries'
+from wxPython.grid import wxGrid
+from wxPython.html import wxHtmlWindow
+from wxPython.lib.buttons import wxGenButton, wxGenBitmapButton #, wxGenToggleButton, wxGenBitmapToggleButton
+from wxPython.stc import wxStyledTextCtrl
+from wxPython.lib.anchors import LayoutAnchors
+from wxPython.calendar import *
+from wxPython.utils import *
+#wxCalendarCtrl
+
+PaletteStore.paletteLists.update({'ContainersLayout': [],
+    'BasicControls': [],
+    'Buttons': [],
+    'ListControls': []})
+
+PaletteStore.palette.extend([
+  ['Containers/Layout', 'Editor/Tabs/Containers', PaletteStore.paletteLists['ContainersLayout']], 
+  ['Basic Controls', 'Editor/Tabs/Basic', PaletteStore.paletteLists['BasicControls']], 
+  ['Buttons', 'Editor/Tabs/Basic', PaletteStore.paletteLists['Buttons']],
+  ['List Controls', 'Editor/Tabs/Lists', PaletteStore.paletteLists['ListControls']],  
+])
 
 class BaseFrameDTC(ContainerDTC):
     def __init__(self, name, designer, frameCtrl):
@@ -1057,6 +1081,7 @@ class TextCtrlDTC(TextCtrlConstr, WindowDTC):
         return WindowDTC.events(self) + ['TextCtrlEvent']
 
 EventCategories['RadioButtonEvent'] = (EVT_RADIOBUTTON,)
+commandCategories.append('RadioButtonEvent')
 class RadioButtonDTC(LabeledInputConstr, WindowDTC):
     wxDocs = HelpCompanions.wxRadioButtonDocs
     def __init__(self, name, designer, parent, ctrlClass):
@@ -1219,8 +1244,10 @@ class ListBoxDTC(ListConstr, ChoicedDTC):
         insp.pages.SetSelection(2)
         insp.events.doAddEvent('ListBoxEvent', 'EVT_LISTBOX')
 
+
 class CheckListBoxDTC(ListBoxDTC):
     wxDocs = HelpCompanions.wxCheckListBoxDocs
+
 
 class StaticBitmapDTC(StaticBitmapConstr, WindowDTC):
     wxDocs = HelpCompanions.wxStaticBitmapDocs
@@ -1262,6 +1289,7 @@ class RadioBoxDTC(RadioBoxConstr, ChoicedDTC):
         insp.pages.SetSelection(2)
         insp.events.doAddEvent('RadioBoxEvent', 'EVT_RADIOBOX')
 
+
 class GridDTC(WindowConstr, WindowDTC):
 #    wxDocs = HelpCompanions.wxGridDocs
     def __init__(self, name, designer, parent, ctrlClass):
@@ -1273,6 +1301,59 @@ class GridDTC(WindowConstr, WindowDTC):
                 'size': size,
                 'style': '0',
                 'name': `self.name`}
+
+    def designTimeControl(self, position, size, args = None):
+        dtc = WindowDTC.designTimeControl(self, position, size, args)
+        dtc.Enable(false)
+        return dtc
+
+    def writeImports(self):
+        return 'from wxPython.grid import *'
+    
+    def vetoedMethods(self):
+        # XXX This vetoes all methods introduced by the grid !!!
+        # XXX Somehow calling the getters of the grid object causes it to
+        # XXX crash later on
+        # XXX It will take some time to probe which Getter are guilty
+        return dir(self.control.__class__.__bases__[0])
+
+# Getters
+##    'GetBatchCount', 
+##    'GetCellAlignment', 'GetCellBackgroundColour', 'GetCellEditor', 
+##    'GetCellFont', 'GetCellHighlightColour', 'GetCellRenderer', 
+##    'GetCellTextColour', 'GetCellValue', 'GetColLabelAlignment', 
+##    'GetColLabelSize', 'GetColLabelValue', 'GetColSize', 
+##    'GetDefaultCellAlignment', 'GetDefaultCellBackgroundColour', 
+##    'GetDefaultCellFont', 'GetDefaultCellTextColour', 
+##    'GetDefaultColLabelSize', 'GetDefaultColSize', 'GetDefaultEditor', 
+##    'GetDefaultEditorForCell', 'GetDefaultEditorForType', 
+##    'GetDefaultRenderer', 'GetDefaultRendererForCell', 
+##    'GetDefaultRendererForType', 'GetDefaultRowLabelSize', 
+##    'GetDefaultRowSize', 'GetGridCursorCol', 'GetGridCursorRow', 
+##    'GetGridLineColour', 'GetLabelBackgroundColour', 'GetLabelFont', 
+##    'GetLabelTextColour', 'GetNumberCols', 'GetNumberRows', 
+##    'GetRowLabelAlignment', 'GetRowLabelSize', 'GetRowLabelValue', 
+##    'GetRowSize', 'GetSelectionBackground', 'GetSelectionForeground', 
+##    'GetTable', 'GetTextBoxSize', 
+# Setters
+##    'SetCellAlignment', 
+##    'SetCellBackgroundColour', 'SetCellEditor', 'SetCellFont', 
+##    'SetCellHighlightColour', 'SetCellRenderer', 'SetCellTextColour', 
+##    'SetCellValue', 'SetColAttr', 'SetColFormatBool', 
+##    'SetColFormatCustom', 'SetColFormatFloat', 'SetColFormatNumber', 
+##    'SetColLabelAlignment', 'SetColLabelSize', 'SetColLabelValue', 
+##    'SetColMinimalWidth', 'SetColSize', 'SetDefaultCellAlignment', 
+##    'SetDefaultCellBackgroundColour', 'SetDefaultCellFont', 
+##    'SetDefaultCellTextColour', 'SetDefaultColSize', 
+##    'SetDefaultEditor', 'SetDefaultRenderer', 'SetDefaultRowSize', 
+##    'SetGridCursor', 'SetGridLineColour', 'SetLabelBackgroundColour', 
+##    'SetLabelFont', 'SetLabelTextColour', 'SetMargins', 
+##    'SetReadOnly', 'SetRowAttr', 'SetRowLabelAlignment', 
+##    'SetRowLabelSize', 'SetRowLabelValue', 
+##    'SetRowMinimalHeight', 'SetRowSize', 'SetSelectionBackground', 
+##    'SetSelectionForeground', 'SetSelectionMode', 
+##    'SetTable', 
+        
 
 class HtmlWindowDTC(HtmlWindowConstr, WindowDTC):
     def __init__(self, name, designer, parent, ctrlClass):
@@ -1290,6 +1371,7 @@ class HtmlWindowDTC(HtmlWindowConstr, WindowDTC):
 
     def writeImports(self):
         return 'from wxPython.html import *'
+
 
 EventCategories['ToolEvent'] = (EVT_TOOL, EVT_TOOL_RCLICKED)
 commandCategories.append('ToolEvent')
@@ -1360,6 +1442,7 @@ class ToolBarToolsCDTC(ToolBarToolsConstr, CollectionIddDTC):
         insp = self.designer.inspector
         insp.pages.SetSelection(2)
         insp.events.doAddEvent('ToolEvent', 'EVT_TOOL')
+
 
 class StatusBarDTC(WindowConstr, ContainerDTC):
     wxDocs = HelpCompanions.wxStatusBarDocs
@@ -1447,6 +1530,8 @@ class StatusBarFieldsCDTC(StatusBarFieldsConstr, CollectionDTC):
     def SetText(self, value):
 ##        print 'StatusBarFieldsCDTC SetText'
         self.control.SetStatusText(value)
+        
+#---Helpers---------------------------------------------------------------------
 
 class FontDTC(HelperDTC):
     def __init__(self, name, designer, cmpn, obj, ownerPW):
@@ -1637,3 +1722,67 @@ class WindowStyleDTC(HelperDTC):
                     flags.append('0')
         self.ownerCompn.textConstr.params['style'] = string.join(flags, ' | ')
         self.designer.inspector.constructorUpdate('Style')
+
+PaletteStore.paletteLists['ContainersLayout'].extend([wxPanel, wxScrolledWindow, 
+      wxNotebook, wxSplitterWindow, wxSashWindow, wxSashLayoutWindow, wxToolBar, 
+      wxStatusBar, wxWindow])
+PaletteStore.paletteLists['BasicControls'].extend([wxStaticText, wxTextCtrl, 
+      wxComboBox, wxChoice, wxCheckBox, wxRadioButton, wxSlider, wxGauge, 
+      wxScrollBar, wxStaticBitmap, wxStaticLine, wxStaticBox, wxHtmlWindow])
+PaletteStore.paletteLists['Buttons'].extend([wxButton, wxBitmapButton, 
+      wxSpinButton, wxGenButton, wxGenBitmapButton])
+PaletteStore.paletteLists['ListControls'].extend([wxRadioBox, wxListBox, 
+      wxCheckListBox, wxGrid, wxListCtrl, wxTreeCtrl])
+
+PaletteStore.compInfo.update({wxApp: ['wxApp', None],
+    wxFrame: ['wxFrame', FrameDTC],
+    wxDialog: ['wxDialog', DialogDTC],
+    wxMiniFrame: ['wxMiniFrame', MiniFrameDTC],
+    wxMDIParentFrame: ['wxMDIParentFrame', MDIParentFrameDTC],
+    wxMDIChildFrame: ['wxMDIChildFrame', MDIChildFrameDTC],
+    wxToolBar: ['wxToolBar', ToolBarDTC],
+    wxStatusBar: ['wxStatusBar', StatusBarDTC],
+    wxPanel: ['wxPanel', PanelDTC],
+    wxScrolledWindow: ['wxScrolledWindow', ScrolledWindowDTC],
+    wxNotebook: ['wxNotebook', NotebookDTC],
+    wxSplitterWindow: ['wxSplitterWindow', SplitterWindowDTC],
+    wxStaticText: ['wxStaticText', StaticTextDTC],
+    wxTextCtrl: ['wxTextCtrl', TextCtrlDTC],
+    wxChoice: ['wxChoice', ChoiceDTC],
+    wxComboBox: ['wxComboBox', ComboBoxDTC],
+    wxCheckBox: ['wxCheckBox', CheckBoxDTC],
+    wxButton: ['wxButton', ButtonDTC],
+    wxBitmapButton: ['wxBitmapButton', BitmapButtonDTC],
+    wxRadioButton: ['wxRadioButton', RadioButtonDTC],
+    wxSpinButton: ['wxSpinButton', SpinButtonDTC],
+    wxSlider: ['wxSlider', SliderDTC],
+    wxGauge: ['wxGauge', GaugeDTC],
+    wxStaticBitmap: ['wxStaticBitmap', StaticBitmapDTC],
+    wxListBox: ['wxListBox', ListBoxDTC],
+    wxCheckListBox: ['wxCheckListBox', CheckListBoxDTC],
+    wxGrid: ['wxGrid', GridDTC],
+    wxListCtrl: ['wxListCtrl', ListCtrlDTC],
+    wxTreeCtrl: ['wxTreeCtrl', TreeCtrlDTC],
+    wxScrollBar: ['wxScrollBar', ScrollBarDTC],
+    wxStaticBox: ['wxStaticBox', StaticBoxDTC],
+    wxStaticLine: ['wxStaticLine', StaticLineDTC],
+    wxRadioBox: ['wxRadioBox', RadioBoxDTC],
+    wxHtmlWindow: ['wxHtmlWindow', HtmlWindowDTC],
+    wxSashWindow: ['wxSashWindow', SashWindowDTC],
+    wxSashLayoutWindow: ['wxSashLayoutWindow', SashLayoutWindowDTC],
+#    wxBoxSizer: ['wxBoxSizer', BoxSizerDTC],
+    wxStyledTextCtrl: ['wxStyledTextCtrl', NYIDTC],
+    wxCalendarCtrl: ['wxCalendarCtrl', NYIDTC],
+    wxSpinCtrl: ['wxSpinCtrl', NYIDTC],
+    wxGenButton: ['wxGenButton', GenButtonDTC],
+    wxGenBitmapButton: ['wxGenBitmapButton', GenBitmapButtonDTC],
+#    wxGenToggleButton: ['wxGenToggleButton', GenButtonDTC],
+#    wxGenBitmapToggleButton: ['wxGenBitmapToggleButton', GenBitmapButtonDTC],
+
+    wxWindow: ['wxWindow', ContainerDTC],
+})
+
+PaletteStore.helperClasses.update({'wxFontPtr': FontDTC,
+    'wxColourPtr': ColourDTC,
+    'Anchors': AnchorsDTC
+})
