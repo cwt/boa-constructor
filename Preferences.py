@@ -94,7 +94,7 @@ wxPlatforms = {'__WXMSW__': 'msw',
 thisPlatform = wxPlatforms[wx.wxPlatform]
 
 # upgrade if needed and exec in our namespace
-for prefsFile, version in (('prefs.rc.py', 11),
+for prefsFile, version in (('prefs.rc.py', 12),
                            ('prefs.%s.rc.py'%thisPlatform, 8),
                            ('prefs.keys.rc.py', 9),
                            ('prefs.plug-ins.rc.py', None)):
