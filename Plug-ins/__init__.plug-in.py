@@ -4,9 +4,9 @@ __disabled__ = ['CustomModuleInfo',
  'UserCompanions',
  'ExtraZopeCompanions',
  'ProdFormulator',
- 'ProdPageTemplates',
  'AppTimeTrack',
  'PyrexSupport',
  'LinkAppSupport',
  'PascalSupport',
- 'ImageEditor']
+ 'ImageEditor',
+ 'XRCSupport']
