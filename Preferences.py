@@ -97,7 +97,7 @@ useImageCache = 1
 # Flag for turning on special checking for european keyboard characters by
 # checking for certain codes while ctrl alt is held.
 handleSpecialEuropeanKeys = 0
-# Country code for keyboards, options: 'euro', 'france'
+# Country code for keyboards, options: 'euro', 'france', 'swiss-german' 
 euroKeysCountry = 'euro'
 
 # Auto correct indentation and EOL characters on load, save and refresh
