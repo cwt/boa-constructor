@@ -658,7 +658,10 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
         if brk['temporary']: mrk = tmpBrkPtMrk
         elif not brk['enabled']: mrk = disabledBrkPtMrk
         else: mrk = brkPtMrk
-        self.MarkerAdd(brk['lineno'] - 1, mrk)
+        lineno = brk['lineno'] - 1
+        currMrk = self.MarkerGet(lineno) & (1 << mrk)
+        if not currMrk:
+            self.MarkerAdd(lineno, mrk)
 
     def deleteBreakMarkers(self, lineNo):
         self.MarkerDelete(lineNo - 1, brkPtMrk)
