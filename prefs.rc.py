@@ -1,4 +1,4 @@
-## rc-version: 4 ##
+## rc-version: 5 ##
 # RCS-ID:      $Id$
 
 # The main preference file.
@@ -53,10 +53,6 @@ logStdStreams = true
 # Add module and line number where 'print' was called from
 recordModuleCallPoint = false
 
-# Safety net so COM support has to be explicitly turned on
-# Will stay here until the win9x crashes has been sorted out
-blockCOM = true
-
 # Path to an alternative Python Interpreter. By default (blank string) Boa
 # will use the same interpreter it is running on
 ## type: filepath
@@ -95,32 +91,6 @@ eoErrOutDockWindow = 'editor'
 # Error/Output window be?
 eoErrOutWindowHeightPerc = 0.2
 
-#-Plug-ins----------------------------------------------------------------------
-
-# Any module in the Plug-ins directory is automatically executed at startup
-# While developing or debugging new plugins it is sometimes useful to
-# turn off plugins if some plugin problem prevents Boa from starting up.
-# Note: you may also create the Plug-ins directory : $HOME/.boa/Plug-ins
-pluginsEnabled = true
-# Path to an additional Plug-ins directory
-## type: dirpath
-extraPluginsPath = ''
-# How should errors from plugins be handled
-## options: 'raise', 'report'
-pluginErrorHandling = 'report'
-
-#-Core support------------------------------------------------------------------
-
-# Should wxPython Companions, Models and Views be loaded at startup
-csWxPythonSupport = true
-# Handle config files
-csConfigSupport = true
-# Handle C++ files
-csCppSupport = true
-# Handle html files
-csHtmlSupport = true
-# Handle xml files
-csXmlSupport = true
 
 #-Editor------------------------------------------------------------------------
 
@@ -133,18 +103,18 @@ onlyCheckIfLineModified = true
 # Also run pylint (very spurious!) on 'Check source'
 runPyLintOnCheckSource = false
 # Check Source (e.g. compile) when saving
-checkSourceOnSave = false
+checkSourceOnSave = true
 
 # Should the model be refresh before invoking code completion or call tips.
 # This causes a delay but is more accurate.
-autoRefreshOnCodeComplete = false
+autoRefreshOnCodeComplete = true
 
 # Flag for turning on special checking for european keyboard characters by
 # checking for certain codes while ctrl alt is held.
-handleSpecialEuropeanKeys = false
+# handleSpecialEuropeanKeys = false
 # Country code for keyboards,
 ## options: 'euro', 'france', 'swiss-german', 'italian'
-euroKeysCountry = 'euro'
+#euroKeysCountry = 'euro'
 
 # The undo buffer can be cleared after saving, turning this on will
 # never clear it and preserve the editing history but take extra memory
@@ -160,6 +130,9 @@ rememberOpenFiles = true
 # Show filename extensions on the page tabs
 showFilenameExtensions = false
 
+# Should new pages be added to the end of the Editor notebook or current pos
+## options: 'current', 'append'
+editorNotebookOpenPos = 'current'
 
 #-Explorer----------------------------------------------------------------------
 
@@ -277,6 +250,39 @@ vpOGLModuleShapePen = wxBLACK_PEN
 # Brush used to draw Modules
 vpOGLModuleShapeBrush = wxLIGHT_GREY_BRUSH
 
+#-Plug-ins----------------------------------------------------------------------
+
+# Any module in the Plug-ins directory is automatically executed at startup
+# While developing or debugging new plugins it is sometimes useful to
+# turn off plugins if some plugin problem prevents Boa from starting up.
+# Note: you may also create the Plug-ins directory : $HOME/.boa/Plug-ins
+pluginsEnabled = true
+# Path to an additional Plug-ins directory
+## type: dirpath
+extraPluginsPath = ''
+# How should errors from plugins be handled
+## options: 'raise', 'report'
+pluginErrorHandling = 'report'
+# Safety net so COM support has to be explicitly turned on
+# Will stay here until the win9x crashes has been sorted out
+blockCOM = false
+
+#-Core support------------------------------------------------------------------
+
+# Should Python Companions, Models and Views be loaded at startup
+csPythonSupport = true
+# Should wxPython Companions, Models and Views be loaded at startup
+# Depends on csPythonSupport
+csWxPythonSupport = true
+# Handle config files
+csConfigSupport = true
+# Handle C++ files
+csCppSupport = true
+# Handle html files
+csHtmlSupport = true
+# Handle xml files
+csXmlSupport = true
+
 #-------------------------------------------------------------------------------
 # wxStyledTextCtrl default settings, edited on a seperate config node.
 # Docs from the Scintilla web page
@@ -314,17 +320,14 @@ from wxPython.stc import wxSTC_WS_INVISIBLE, wxSTC_WS_VISIBLEALWAYS, wxSTC_WS_VI
 ## options: wxSTC_WS_INVISIBLE, wxSTC_WS_VISIBLEALWAYS, wxSTC_WS_VISIBLEAFTERINDENT
 STCViewWhiteSpace = wxSTC_WS_INVISIBLE
 
-from wxPython.stc import wxSTC_CARET_SLOP, wxSTC_CARET_CENTER, wxSTC_CARET_STRICT
-wxSTC_CARET_SLOP_CENTER = wxSTC_CARET_SLOP | wxSTC_CARET_CENTER
+from wxPython.stc import wxSTC_CARET_SLOP, wxSTC_CARET_STRICT
 wxSTC_CARET_SLOP_STRICT = wxSTC_CARET_SLOP | wxSTC_CARET_STRICT
-wxSTC_CARET_SLOP_CENTER_STRICT = wxSTC_CARET_SLOP | wxSTC_CARET_CENTER | wxSTC_CARET_STRICT
-wxSTC_CARET_CENTER_STRICT = wxSTC_CARET_CENTER | wxSTC_CARET_STRICT
 # Can be set to a combination of the flags CARET_SLOP and CARET_STRICT to change
 # the automatic vertical positioning of the view when ensuring a position is visible.
 # If CARET_SLOP is off then the caret is centred within the view.
 # When CARET_STRICT is set then caret policy is rechecked even if the caret is completely visible.
 # Setting this value to 0 will leave the policy at startup default
-## options: 0, wxSTC_CARET_SLOP, wxSTC_CARET_CENTER, wxSTC_CARET_STRICT, wxSTC_CARET_SLOP_CENTER, wxSTC_CARET_SLOP_STRICT, wxSTC_CARET_SLOP_CENTER_STRICT, wxSTC_CARET_CENTER_STRICT
+## options: 0, wxSTC_CARET_SLOP, wxSTC_CARET_STRICT, wxSTC_CARET_SLOP_STRICT
 STCCaretPolicy = 0
 # If CARET_SLOP is on then the slop value determines the number of lines at top
 # and bottom of the view where the caret should not go.
@@ -376,25 +379,19 @@ exportedProperties = ['flatTools', 'childFrameStyle', 'dataViewListStyle',
   'pastels', 'pastelMedium', 'pastelLight', 'undefinedWindowCol',
   'useImageArchive', 'pythonInterpreterPath', 'delayInitHelp',
   'logStdStreams', 'recordModuleCallPoint', 'autoAddToApplication',
-  'installBCRTL', 'blockCOM',
-  'suExecPythonStartup', 'suBoaConstricted',
+  'installBCRTL', 
+  'suExecPythonStartup', 'suBoaConstricted', 
   'suSocketFileOpenServer',
   'eoErrOutDockWindow', 'eoErrOutWindowHeightPerc',
-
-  'pluginsEnabled', 'extraPluginsPath', 'pluginErrorHandling',
-
-  'csWxPythonSupport', 'csConfigSupport', 'csCppSupport', 'csHtmlSupport',
-  'csXmlSupport',
 
   'checkSyntax', 'onlyCheckIfLineModified', 'checkSourceOnSave',
   'autoRefreshOnCodeComplete', 'autoReindent',
 
-  'handleSpecialEuropeanKeys', 'euroKeysCountry', 'rememberOpenFiles',
-  'showFilenameExtensions',
+  'rememberOpenFiles', 'showFilenameExtensions', 'editorNotebookOpenPos',
 
-  'exDefaultFilter', 'exWorkingDirectory', 'exDefaultTreeWidth',
+  'exDefaultFilter', 'exWorkingDirectory', 'exDefaultTreeWidth', 
   'exInspectInspectableFiles', 'exOpenFromHere', 'exRecentFilesListSize',
-
+  
   'ps1', 'ps2', 'ps3', 'ps4',
 
   'showModifiedProps', 'propValueColour',
@@ -417,4 +414,11 @@ exportedSTCProps = ['STCViewEOL', 'STCUseTabs', 'STCTabWidth', 'STCIndent',
   'STCIndentationGuides', 'STCViewWhiteSpace', 'STCCaretPolicy', 'STCCaretPeriod',
   'STCEdgeMode', 'STCEdgeColumnWidth',
   'STCCallTipBackColour', 'STCSyntaxErrorColour', 'STCCodeBrowseColour',
-  'STCDebugBrowseColour']
+  'STCDebugBrowseColour',
+]
+
+exportedPluginProps = ['pluginsEnabled', 'extraPluginsPath', 'pluginErrorHandling',
+  'blockCOM', 
+  'csPythonSupport', 'csWxPythonSupport', 'csConfigSupport', 'csCppSupport', 
+  'csHtmlSupport', 'csXmlSupport', 
+]
