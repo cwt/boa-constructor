@@ -112,8 +112,7 @@ class ImageEditorPanel(wxPanel):
 
         self.editWindow = wxScrolledWindow(id=wxID_IMAGEEDITORPANELEDITWINDOW,
               name='editWindow', parent=self, pos=wxPoint(8, 34),
-              size=wxSize(561, 288),
-              style=wxTRANSPARENT_WINDOW | wxCLIP_CHILDREN | wxSUNKEN_BORDER)
+              size=wxSize(561, 288), style=wxSUNKEN_BORDER)
         self.editWindow.SetBackgroundColour(wxColour(255, 255, 255))
         self.editWindow.SetConstraints(LayoutAnchors(self.editWindow, true,
               true, true, true))
@@ -121,7 +120,7 @@ class ImageEditorPanel(wxPanel):
         EVT_LEFT_DOWN(self.editWindow, self.OnEditWindowLeftDown)
         EVT_LEFT_UP(self.editWindow, self.OnEditWindowLeftUp)
         EVT_MOTION(self.editWindow, self.OnEditWindowMotion)
-        EVT_SCROLL(self.editWindow, self.OnEditWindowScroll)
+        EVT_SCROLLWIN(self.editWindow, self.OnEditWindowScroll)
 
         self.staticText1 = wxStaticText(id=wxID_IMAGEEDITORPANELSTATICTEXT1,
               label='Image info', name='staticText1', parent=self,
@@ -687,6 +686,7 @@ class ImageEditorPanel(wxPanel):
         self.editWindow.Refresh()
 
     def OnEditWindowScroll(self, event):
+        event.Skip()
         self.editWindow.Refresh()
 
     def OnSpinbutton1CommandScroll(self, event):
