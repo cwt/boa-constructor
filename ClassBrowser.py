@@ -19,37 +19,53 @@ from wxPython.wx import *
 import Preferences
 from Preferences import IS
 
-[wxID_CLASSBROWSERFRAME] = map(lambda _init_ctrls: NewId(), range(1))
+[wxID_CLASSBROWSERFRAME, wxID_CLASSBROWSERFRAMEHIERARCHY, wxID_CLASSBROWSERFRAMEPAGES, wxID_CLASSBROWSERFRAMESTATUSBAR, wxID_CLASSBROWSERFRAMETREE] = map(lambda _init_ctrls: wxNewId(), range(5))
 
 class ClassBrowserFrame(wxFrame):
+    def _init_coll_pages_Pages(self, parent):
+
+        parent.AddPage(bSelect = true, imageId = -1, pPage = self.hierarchy, strText = 'Hierarchy')
+        parent.AddPage(bSelect = false, imageId = -1, pPage = self.tree, strText = 'Modules')
+
     def _init_utils(self):
         pass
 
     def _init_ctrls(self, prnt):
-        wxFrame.__init__(self, size = (-1, -1), id = wxID_CLASSBROWSERFRAME, title = 'wxPython Class Browser', parent = prnt, name = '', style = wxDEFAULT_FRAME_STYLE | Preferences.childFrameStyle, pos = (-1, -1))
+        wxFrame.__init__(self, id = wxID_CLASSBROWSERFRAME, name = '', parent = prnt, pos = wxPoint(269, 254), size = wxSize(299, 497), style = wxDEFAULT_FRAME_STYLE | Preferences.childFrameStyle, title = 'wxPython Class Browser')
         self._init_utils()
+        EVT_CLOSE(self, self.OnCloseWindow)
 
-    def __init__(self, parent, id, title):
+        self.statusBar = wxStatusBar(id = wxID_CLASSBROWSERFRAMESTATUSBAR, name = 'statusBar', parent = self, pos = wxPoint(0, 450), size = wxSize(291, 20), style = wxST_SIZEGRIP)
+        self.SetStatusBar(self.statusBar)
+
+        self.pages = wxNotebook(id = wxID_CLASSBROWSERFRAMEPAGES, name = 'pages', parent = self, pos = wxPoint(0, 0), size = wxSize(291, 450), style = 0)
+
+        self.hierarchy = wxTreeCtrl(id = wxID_CLASSBROWSERFRAMEHIERARCHY, name = 'hierarchy', parent = self.pages, pos = wxPoint(0, 0), size = wxSize(283, 424), style = wxTR_HAS_BUTTONS, validator = wxDefaultValidator)
+
+        self.tree = wxTreeCtrl(id = wxID_CLASSBROWSERFRAMETREE, name = 'tree', parent = self.pages, pos = wxPoint(0, 0), size = wxSize(283, 424), style = wxTR_HAS_BUTTONS, validator = wxDefaultValidator)
+
+        self._init_coll_pages_Pages(self.pages)
+
+    def __init__(self, parent):
         self._init_ctrls(parent)
         self.SetDimensions(0,
           Preferences.paletteHeight + Preferences.windowManagerTop + \
           Preferences.windowManagerBottom,
           Preferences.inspWidth,
           Preferences.bottomHeight)
-        EVT_CLOSE(self, self.OnCloseWindow)
 
         if wxPlatform == '__WXMSW__':
             self.SetIcon(IS.load('Images/Icons/ClassBrowser.ico'))
 
         self.classes = pyclbr.readmodule('wxPython.wx')
 
-        self.pages = wxNotebook(self, -1)
-        self.statusBar = self.CreateStatusBar()
+#        self.pages = wxNotebook(self, -1)
+#        self.statusBar = self.CreateStatusBar()
 
         tID = NewId()
-        self.hierarchy = wxTreeCtrl(self.pages, tID)
-        self.pages.AddPage(self.hierarchy, 'Hierarchy')
-        wxYield()
+#        self.hierarchy = wxTreeCtrl(self.pages, tID)
+#        self.pages.AddPage(self.hierarchy, 'Hierarchy')
+#        wxYield()
         root = self.hierarchy.AddRoot('wxObject')
 
         clsDict = {}
@@ -62,9 +78,9 @@ class ClassBrowserFrame(wxFrame):
 
         tID = NewId()
 
-        self.tree = wxTreeCtrl(self.pages, tID)
-        self.pages.AddPage(self.tree, 'Modules')
-        wxYield()
+#        self.tree = wxTreeCtrl(self.pages, tID)
+#        self.pages.AddPage(self.tree, 'Modules')
+#        wxYield()
 
         root = self.tree.AddRoot('Modules')
         modules = {}
@@ -119,6 +135,7 @@ class ClassBrowserFrame(wxFrame):
         self.tree.Expand(root)
 
     def OnCloseWindow(self, event):
+        self.Show(true)
         self.Show(false)
 
 def findInsertModules(name, tree):
@@ -149,3 +166,10 @@ def buildTree(tree, parent, dict):
         child = tree.AppendItem(parent, item)
         if len(dict[item].keys()):
             buildTree(tree, child, dict[item])
+
+
+if __name__ == '__main__':
+    app = wxPySimpleApp()
+    frame = ClassBrowserFrame(None)
+    frame.Show(true)
+    app.MainLoop()
