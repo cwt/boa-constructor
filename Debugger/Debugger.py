@@ -913,7 +913,7 @@ class DebuggerFrame(wxFrame):
             self, msg + ' Stop debugger?',
             'Debugger Communication Exception',
             wxYES_NO | wxYES_DEFAULT | wxICON_EXCLAMATION |
-            wxCENTRE).ShowModal() == wxID_YES))
+            wxCENTRE).ShowModal() == wxID_YES)
 
         if confirm:
             self.killDebugger()
