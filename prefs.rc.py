@@ -135,7 +135,7 @@ showFilenameExtensions = false
 editorNotebookOpenPos = 'current'
 
 # Editor menu items can optionally display images in the menus
-editorMenuImages = true
+editorMenuImages = false
 
 #-Explorer----------------------------------------------------------------------
 
@@ -237,7 +237,7 @@ cgAddInitMethodWarning = true
 cgWrapLines = true
 # Width at which generated source code wraps
 cgLineWrapWidth = 80
-# Number of spaces the continued line is indented additional to the start 
+# Number of spaces the continued line is indented additional to the start
 # line's indent
 cgContinuedLineIndent = 6
 
@@ -390,8 +390,8 @@ exportedProperties = ['flatTools', 'childFrameStyle', 'dataViewListStyle',
   'pastels', 'pastelMedium', 'pastelLight', 'undefinedWindowCol',
   'useImageArchive', 'pythonInterpreterPath', 'delayInitHelp',
   'logStdStreams', 'recordModuleCallPoint', 'autoAddToApplication',
-  'installBCRTL', 
-  'suExecPythonStartup', 'suBoaConstricted', 
+  'installBCRTL',
+  'suExecPythonStartup', 'suBoaConstricted',
   'suSocketFileOpenServer',
   'eoErrOutDockWindow', 'eoErrOutWindowHeightPerc',
 
@@ -399,18 +399,18 @@ exportedProperties = ['flatTools', 'childFrameStyle', 'dataViewListStyle',
   'autoRefreshOnCodeComplete', 'autoReindent',
 
   'rememberOpenFiles', 'showFilenameExtensions', 'editorNotebookOpenPos',
-  'editorMenuImages', 
+  'editorMenuImages',
 
-  'exDefaultFilter', 'exWorkingDirectory', 'exDefaultTreeWidth', 
+  'exDefaultFilter', 'exWorkingDirectory', 'exDefaultTreeWidth',
   'exInspectInspectableFiles', 'exOpenFromHere', 'exRecentFilesListSize',
-  
+
   'ps1', 'ps2', 'ps3', 'ps4',
 
   'showModifiedProps', 'propValueColour',
   'oiLineHeight', 'oiEventSelectionHeight', 'inspNotebookFlags',
 
   'cgAbsoluteImagePaths', 'cgEmptyLineBetweenObjects', 'cgKeywordArgFormat',
-  'cgAddInitMethodWarning', 'cgWrapLines', 'cgLineWrapWidth', 
+  'cgAddInitMethodWarning', 'cgWrapLines', 'cgLineWrapWidth',
   'cgContinuedLineIndent',
 
   'dsGridSize', 'dsSelectionTagSize', 'dsSelectionFrameWidth',
@@ -431,7 +431,7 @@ exportedSTCProps = ['STCViewEOL', 'STCUseTabs', 'STCTabWidth', 'STCIndent',
 ]
 
 exportedPluginProps = ['pluginsEnabled', 'extraPluginsPath', 'pluginErrorHandling',
-  'blockCOM', 
-  'csPythonSupport', 'csWxPythonSupport', 'csConfigSupport', 'csCppSupport', 
-  'csHtmlSupport', 'csXmlSupport', 
+  'blockCOM',
+  'csPythonSupport', 'csWxPythonSupport', 'csConfigSupport', 'csCppSupport',
+  'csHtmlSupport', 'csXmlSupport',
 ]
