@@ -782,8 +782,11 @@ class DesignerView(wxFrame, InspectableObjectView, Utils.FrameRestorerMixin):
             General Inspector and Designer clean-up """
         
         if not self.saveOnClose and self.confirmCancel and wxMessageBox(
-            'Cancel Designer session?', 'Cancel', 
-            wxYES_NO | wxICON_WARNING) == wxID_YES: return
+              'Cancel Designer session?', 'Cancel', 
+              wxYES_NO | wxICON_WARNING, parent=self) == wxNO:
+            self.saveOnClose = true
+            self.confirmCancel = false
+            return
             
         if self.IsIconized():
             self.Iconize(false)
@@ -1257,3 +1260,4 @@ class DesignerControlsEvtHandler(wxEvtHandler):
 
 
 
+ 
