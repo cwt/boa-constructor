@@ -312,6 +312,8 @@ from Models import Controllers, EditorHelper, EditorModels
 from Views import EditorViews, SourceViews, StyledTextCtrls
 from Explorers import Explorer, ExplorerNodes
 
+import ProcessProgressDlg
+
 import glob, zipfile
 from cStringIO import StringIO
 
@@ -848,6 +850,9 @@ class HelpBookContentsDropTarget(FileListDropTarget):
         for filename in files:
             title, page = doContentsDlg(None, filename, docsDir)
 
+            if (title, page) == (None, None):
+                continue
+            
             entry = (title, page, None)
 
             if children is None:
@@ -1067,10 +1072,14 @@ class HelpBookController(Controllers.SourceController):
     DefaultViews = [HelpBookFilesView, HelpBookContentsView, HelpBookIndexView]
 
     def actions(self, model):
-        return Controllers.SourceController.actions(self, model) + [
+        actions = [
               ('-', None, '', ''),
               ('Make HTB', self.OnMakeHTB, '', ''),
               ]
+        if wxPlatform == '__WXMSW__':
+            actions.append( ('Make CHM', self.OnMakeCHM, '', '') )
+
+        return Controllers.SourceController.actions(self, model) + actions
 
     def OnMakeHTB(self, event):
         model = self.getModel()
@@ -1105,8 +1114,29 @@ class HelpBookController(Controllers.SourceController):
 
         wxLogMessage('Written %s.'%zipfilename)
             
+    def OnMakeCHM(self, event):
+        modelFile = model.localFilename()
+        dir, name = os.path.split(modelFile)
+        cmd = 'hhc %s'%name
+        cwd = os.getcwd()
+        try:
+            os.chdir(runDir)
+            dlg = ProcessProgressDlg.ProcessProgressDlg(self.editor, cmd, 'Make CHM')
+            try:
+                if dlg.ShowModal() == wxOK:
+                    outls = dlg.output
+                    errls = dlg.errors
+                else:
+                    return
+            finally:
+                dlg.Destroy()
+        finally:
+            os.chdir(cwd)
+
+        #err = ''.join(errls).strip()
             
 #-------------------------------------------------------------------------------
+
 
 EditorHelper.modelReg[HelpBookModel.modelIdentifier] = HelpBookModel
 EditorHelper.extMap[HelpBookModel.ext] = HelpBookModel
