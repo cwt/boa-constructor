@@ -1,0 +1,46 @@
+BoaDebugger - Boa Constructor IDE interactive Zope Debugging
+
+   Description
+  
+     This Zope Instance is necessary to interact with the Boa Constructor
+     IDE to allow you to use this IDE to debug an active Zope server.
+
+     Boa expects to attach to your Zope server using XML-RPC and the
+     parameters required here allow you to control Zope's Boa socket 
+     listener.
+
+   Controls
+
+     'port'  -- the port upon which Zope will listen for Boa Constructor XML-RPC
+                debugging requests
+
+     'username'   -- username for optional XML-RPC Basic HTTP Authentication
+
+     'password' -- password for optional XML-RPC Basic HTTP Authentication
+
+
+   Tabs
+
+     'Start'  -- start Zope's Boa Debugger Listener
+
+     'Stop'   -- stop Zope's Boa Debugger Listener
+
+     'Breakpoint Mode' -- place a breakpoint in Zope's main thread - this 
+                          immediately suspends normal Zope operations and
+                          places Zope in debug mode.  Your browser will not
+                          return from this call.
+
+
+   Operation
+
+     Simply *Start* the BoaDebugger, then *Breakpoint Mode* when you are ready.
+
+     From Boa Constructor, using Explorer, bring up the translation unit from 
+     within your Product (or anything else on your Zope's Python Path).  In the
+     Editor, choose *File* and *Attach to Debugger*, assign the values specified
+     in your BoaDebugger instance and connect to the Zope server.
+
+     Set some breakpoints from Boa's Editor.
+
+     Using a browser, select a URL on your Zope server that exercise the
+     breakpointed code, and start debugging ...

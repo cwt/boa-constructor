@@ -1,0 +1,45 @@
+BoaDebugger
+===========
+
+ABOUT
+BoaDebugger is a Zope product that enables debugging
+of Zope applications with the Boa-Constructor 
+developing environment. It was put together by 
+phil@bluedynamics.com and robert@bluedynamics.com
+during a train travel to a plone-sprint in Bern, 
+Switzerland and tidied up by gogo@bluedynamics.com.
+
+INSTALLATION
+BoaDebugger is a zope Product. 
+Build a zip file (BoaDebugger.zip) containing the 
+product installation by running the BuildProduct.py 
+script inside the BoaDebugger directory.
+Unzip it in your Zopes Product Folder like a normal 
+product and it should be ready to use.
+
+USAGE
+1.) In the ZMI (Zope Management Interface) select 
+"BoaDebugger" and click "Add". You can provide a 
+username, password, ip-adress and port for the 
+debugger process.
+2.) In your Boa select "Attach to Debugger" from the 
+"File" Menu in the Editor. This Menu entry will only
+show up if you have some Python file open in the
+editor (.py). It is not there for Text files, for example.
+You have to use the same username, password, 
+ip-adress and port you were using before. It is okay to
+leave username and password blank if you don't want
+to restrict debugging to authenticated users only (for 
+example in a developement LAN).
+3.) If you want to test the BoaDebugger you can add a
+"BoaBreakpoint" in the ZMI. This should kick your Boa
+to a hardcoded sys.breakpoint(). Once the first 
+hardcoded breakpoint is reached you can use 
+soft-breakpoints without any restriction. Some users 
+experienced some trouble when they were using 
+soft-breakpoints; It just didn't work until any hardcoded 
+breakpoint was reached. Others had no problem with 
+that.
+
+AT THE MOMENT IT DOES NOT WORK WITH BOA >2.3.8 AND i
+ZOPE 2.7 :(

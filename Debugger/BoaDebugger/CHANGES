@@ -1,0 +1,23 @@
+Alan Milligan (alan.milligan@last-bastion.net) did the following:
+
+* completely removed the BoaDebugger and BoaBreakpoint products as these were
+  actually not products ...
+
+* Made BoaDebugger a singleton Product in the root folder - this happens automatically
+  upon product installation - look for the blue python icon ;)
+
+* the BoaDebugger has tabs to start, and stop the debugging listener, and another
+  tab to go into debug mode.  Apart from the obvious functionality, I found it very
+  confusing that my browser just 'spun' when hitting the old 'start' button.  
+  Explicitly separating these functions makes the process less surprising for me at 
+  least ...
+
+* the BoaDebugger has a volatile state variable determining it's active status to
+  internally sync it's various states
+
+* there's a help page explaining how it all works
+
+* All BoaDebugger functions are controlled by the Zope security machinery under the
+  'View Management Screens' permission
+
+Hope this helps ...
