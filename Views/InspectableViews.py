@@ -32,7 +32,7 @@ class InspectableObjectView(EditorViews.EditorView):
     handledProps = []
     supportsParentView = false
 
-    def setupArgs(self, ctrlName, params, dontEval):
+    def setupArgs(self, ctrlName, params, dontEval, evalDct):
         """ Create a dictionary of parameters for the constructor of the
             control from a dictionary of string/source parameters.
             Catches design time parameter overrides.
@@ -48,7 +48,7 @@ class InspectableObjectView(EditorViews.EditorView):
             if paramKey in dontEval:
                 args[paramKey] = params[paramKey]
             else:
-                args[paramKey] = PaletteMapping.evalCtrl(params[paramKey])
+                args[paramKey] = PaletteMapping.evalCtrl(params[paramKey], evalDct)
 
         return args
 
@@ -122,7 +122,7 @@ class InspectableObjectView(EditorViews.EditorView):
 
     def initObjCreator(self, constrPrs):
         # Assumes all design time ctrls are imported in global scope
-        ctrlClass = PaletteMapping.evalCtrl(constrPrs.class_name)
+        ctrlClass = PaletteMapping.evalCtrl(constrPrs.class_name, self.model.customClasses)
         ctrlCompnClass = PaletteMapping.compInfo[ctrlClass][1]
         ctrlName = self.loadControl(ctrlClass, ctrlCompnClass,
           constrPrs.comp_name, constrPrs.params)
@@ -149,11 +149,11 @@ class InspectableObjectView(EditorViews.EditorView):
                 # Check for custom evaluator
                 elif comp.customPropEvaluators.has_key(prop.prop_name):
                     args = comp.customPropEvaluators[prop.prop_name](prop.params, self.getAllObjects())
-                    apply(RTTI.getFunction(ctrl, prop.prop_setter), (ctrl, )+ args)
+                    apply(getattr(ctrl, prop.prop_setter), args)
                 # Normal property, eval value and apply it
                 else:
                     try:
-                        value = PaletteMapping.evalCtrl(prop.params[0])
+                        value = PaletteMapping.evalCtrl(prop.params[0], self.model.specialAttrs)
                     except AttributeError, name:
                         if self.objects.has_key(name):
                             value = self.objects[name][1]
@@ -162,7 +162,7 @@ class InspectableObjectView(EditorViews.EditorView):
                     except:
                         print 'Problem with: %s' % prop.asText()
                         raise
-                    RTTI.getFunction(ctrl, prop.prop_setter)(ctrl, value)
+                    getattr(ctrl, prop.prop_setter)(value)
 
             # store default prop vals
             comp.setProps(props[name])
@@ -263,7 +263,7 @@ class InspectableObjectView(EditorViews.EditorView):
                                 value = objs[ctrlName][1]
                             else:
                                 continue
-                        RTTI.getFunction(ctrl, prop.prop_setter)(ctrl, value)
+                        getattr(ctrl, prop.prop_setter)(value)
                     else:
                         refs = []
                         # Build lst of ctrl references from property
@@ -273,7 +273,7 @@ class InspectableObjectView(EditorViews.EditorView):
                             else:
                                 refs.append(eval(param))
 
-                        apply(RTTI.getFunction(ctrl, prop.prop_setter), [ctrl,]+refs)
+                        apply(getattr(ctrl, prop.prop_setter), refs)
 
             del depLinks[ctrlName]
 
