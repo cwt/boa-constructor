@@ -73,7 +73,7 @@ class ButtonDTC(Constructors.LabeledInputConstr, WindowDTC):
                 prnt._default.persistProp('Default', 'SetDefault', 'False')
             prnt._default = self
             self.control.SetDefault()
-        else:
+        elif hasattr(prnt, '_default'):
             del prnt._default
 
     def EvalDefault(self, exprs, objects):
@@ -121,14 +121,15 @@ class BitmapButtonDTC(WindowDTC):
 
     def constructor(self):
         return {'Bitmap': 'bitmap', 'Position': 'pos', 'Size': 'size',
-                'Style': 'style', 'Validator': 'validator', 'Name': 'name'}
+                'Style': 'style', 'Name': 'name'}
+                #'Validator': 'validator', 
 
     def designTimeSource(self, position = 'wxDefaultPosition', size = 'wxDefaultSize'):
         return {'bitmap': 'wxNullBitmap',
                 'pos': position,
                 'size': size,
                 'style': 'wxBU_AUTODRAW',
-                'validator': 'wxDefaultValidator',
+                #'validator': 'wxDefaultValidator',
                 'name': `self.name`}
 
     def properties(self):
@@ -248,7 +249,9 @@ class GenButtonDTC(WindowDTC):
 
     def constructor(self):
         return {'Label': 'label', 'Position': 'pos', 'Size': 'size',
-                'Style': 'style', 'Validator': 'validator', 'Name': 'name'}
+                'Style': 'style', 'Name': 'name'}
+##                'Validator': 'validator', 
+                
 
     def designTimeSource(self, position = 'wxDefaultPosition', size = 'wxDefaultSize'):
         return {'label': `self.name`,
@@ -278,7 +281,8 @@ class GenBitmapButtonDTC(GenButtonDTC):
 
     def constructor(self):
         return {'BitmapLabel': 'bitmap', 'Position': 'pos', 'Size': 'size',
-                'Style': 'style', 'Validator': 'validator', 'Name': 'name'}
+                'Style': 'style', 'Name': 'name'}
+#                'Validator': 'validator', 
 
     def designTimeSource(self, position = 'wxDefaultPosition', size = 'wxDefaultSize'):
         return {'bitmap': 'wxNullBitmap',
@@ -296,7 +300,7 @@ class GenBitmapButtonDTC(GenButtonDTC):
 class GenBitmapTextButtonDTC(GenBitmapButtonDTC):
     def constructor(self):
         return {'BitmapLabel': 'bitmap', 'Position': 'pos', 'Size': 'size',
-                'Label': 'label', 'Style': 'style', 'Validator': 'validator',
+                'Label': 'label', 'Style': 'style', #'Validator': 'validator',
                 'Name': 'name'}
 
     def designTimeSource(self, position = 'wxDefaultPosition', size = 'wxDefaultSize'):
