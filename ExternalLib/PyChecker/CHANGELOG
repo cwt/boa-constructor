@@ -1,0 +1,69 @@
+
+Version 0.5.1	- xx June 2001
+  * Don't produce unused global warnings when using a module in parameters
+  * Don't produce unused global warnings when using a module in class variables
+  * Add check for right # of args to object construction
+  * Add check for right # of args to function calls in other modules
+  * Check for returning a value from __init__
+  * Support for checking consistent return values - not complete and probably
+  	will produce false positives, although I don't have any test cases
+
+Version 0.5	- 29 May 2001
+  * Catch internal errors "gracefully" and turn into a warning
+  * Add checking of most module scoped code
+  * Add pychecker subdir to imports to prevent filename conflicts
+  * Don't produce unused local variable warning if variable name == '_'
+  * Add -g/--allglobals option to report all global warnings, not just first
+  * Add -V/--varlist option to selectively ignore variable not used warnings
+  * Add test script and expected results
+  * Print all instructions when using debug (-d/--debug)
+  * Overhaul internal stack handling so we can look for more problems
+  * Fix glob'ing problems (all args after glob were ignored)
+  * Fix spurious Base class __init__ not called
+  * Fix exception on code like:  ['xxx'].index('xxx')
+  * Fix exception on code like:  func(kw=(a < b))
+  * Fix line numbers for import statements
+
+Version 0.4	- 23 April 2001
+  * Add .pycheckrc file processing to specify options (like on command line)
+  * Add new warning if module.Attribute doesn't exist
+  * Add new warning:  Module (%s) re-imported locally
+  * Add glob'ing support for windows
+  * Handle apply(BaseClass.__init__(self, args))
+  * Fix command line handling so you can pass module, package, or filename
+  * Fix **kwArgs warning if named parameter is not first
+  * Don't exit from checker when import checker from interpreter
+
+Version 0.3	- 17 April 2001
+  * Fix some checker crashes (oops)
+  * Add warnings for code complexity (lines/branches/returns per function)
+  * Add more configuration options
+  * Don't produce spurious warning for:  x(y, { 'a': 'b' })
+  * Fix warnings that indicate they are from a base class file,
+    rather than real file
+  * Fix warnings for **kwArgs not allowed, but using named args
+  * Add configuration option for warning when using attribute as a function
+  	(off by default, old behaviour was on)
+
+Version 0.2.5	- 12 April 2001
+  * Add back support for Python 1.5.2 (again)
+  	(I sure like 2.0 more with the [ for ] and string methods.)
+  * Add new warning for unused local variables
+  * Add command line switches
+
+Version 0.2	- 10 April 2001
+  * Move tests into a sub-directory so import test doesn't import pychecker/test
+  * Add more test files
+  * Add '.' to the python path so it doesn't need to be done in env't
+  * Print a warning at the end for each file that couldn't be import'ed
+  * Improve stack handling to improve error handling
+  * Try to get base class __init__ checking to work for both:
+  	import X.Y
+	from X import Y
+
+Version 0.1.1	- 8 April 2001
+  * Add support for Python 1.5.2
+
+Version 0.1	- 7 April 2001
+  * Initial release
+

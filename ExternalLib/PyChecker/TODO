@@ -1,0 +1,25 @@
+
+* Add script to /usr/local/bin to invoke PyChecker
+* Add check that private functions are used in module/class
+* Check format strings: "%s %d" % (strValue, intValue)
+* Fix deriving from class by alias name
+* Fix using from XXX import YYY ; from XXX import ZZZ causing re-import warning
+* Fix checking files in standard library before local file
+* Fix sys.exc_value, etc. generating No attribute warning in except clause
+* Fix Local variable (xxx) not used, when have:  "%(xxx)s" % locals()
+* Check function return values - partially complete
+* Finer grain control of warnings/config options (per module/class/method)
+* Allow import checker to catch errors, rather than starting checker.py
+* Find lines that end w/semi-colons (;)
+* Spell check doc strings
+
+Eric's code review:
+
+* Fix (for i in list: if i in other_list: continue) by using filter func
+	(need to fix warn.py:find()/blacklist)
+* would it be simpler to treat self.f() as f(self)?
+* warn.py: _addWarning can be removed by using list flattening?
+* checker.py:  use one list for warnings (remove importWarnings)?
+* Consider i18n for cfg strings, warnings, etc.
+* use %(name)s expansion for warnings
+

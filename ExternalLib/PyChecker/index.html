@@ -1,0 +1,137 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+<head>
+   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+   <title>PyChecker: a python source code checking tool</title>
+</head>
+
+<body bgcolor="#505050">
+
+<p>&nbsp;</p>
+
+<center>
+<table width="95%" bgcolor="#f0f0f0">
+
+<tr><td align="center">
+
+<table width="95%" bgcolor="#f0f0f0">
+
+<tr><td>
+
+<p>&nbsp;</p>
+
+<p>
+PyChecker is a tool for finding common bugs in
+<a href="http://www.python.org">python</a> source code.
+It finds problems that are typically caught by a compiler 
+for less dynamic languages, like C and C++.
+Because of the dynamic nature of python, some warnings
+may be incorrect; however, spurious warnings should be fairly infrequent.
+
+<p>
+PyChecker works in a combination of ways.  First, it imports each
+module.  If there is an import error, the module cannot be processed.
+The import provides some basic information about the module.  The code
+for each function, class, and method is checked for possible problems.
+
+<p>
+Types of problems that can be found include:
+
+<p>
+<ul>
+  <li> No doc strings in modules, classes, functions, and methods
+  <li> self not the first parameter to a method
+  <li> Wrong number of parameters passed to functions/methods
+  <li> No global found (e.g., using a module without importing it)
+  <li> Global not used (module or variable)
+  <li> Local variable not used
+</ul>
+
+<p>
+To use PyChecker, pass options and the python source files (or packages)
+you want to check on the command line:
+
+<p>
+<pre>
+	python $PY_CHECKER_HOME/checker.py file1.py file2.py ...
+</pre>
+
+<p>
+If there are import dependencies in your source files, you should
+import those files first on the command line in order to get as many
+files checked as possible.
+
+<p>
+In all further examples, $PY_CHECKER_HOME is assumed to be pychecker.
+
+<p>
+PyChecker works with Python 1.5.2, 2.0, and 2.1.
+
+<p>
+To look at a little example, you can use the test files included:
+
+<p>
+<pre>
+	python pychecker/checker.py test_input/*.py
+</pre>
+
+<p>
+If you want to change the default behaviour, you can pass command line options
+or define a .pycheckrc file.  For an example, look at pycheckrc.
+
+<p>
+<pre>
+	python pychecker/checker.py -h
+</pre>
+
+will show the available options.
+
+<p>
+If you find a bug in PyChecker, meaning you see something like:
+
+<pre>
+	python pychecker/checker.py myfile.py
+
+	myfile.py:13 INTERNAL ERROR -- STOPPED PROCESSING FUNCTION --
+        Traceback (most recent call last):
+          File "./pychecker/warn.py", line 364, in _checkFunction
+            stack, oparg, lastLineNum)
+          File "./pychecker/warn.py", line 195, in _handleFunctionCall
+            kwArgs.append(stack[i].data)
+        IndexError: list index out of range
+</pre>
+
+Please send mail indicating the version of PyChecker, the line of code
+<b>from your source file</b> which broke PyChecker
+(myfile.py:13 in the example above), and the traceback.
+
+<p>
+The <a href="VERSION">current version</a> of PyChecker can be found on 
+<a href="http://sourceforge.net/projects/pychecker">SourceForge</a>
+or <a href="http://pychecker.sourceforge.net/pychecker-current.tar.gz">
+downloaded here</a>.
+<br>Here are some quick links:  <a href="KNOWN_BUGS">known problems</a>, 
+<a href="TODO">TODO list</a>, and the <a href="CHANGELOG">CHANGELOG</a>.
+
+<p>
+The <a href="COPYRIGHT">COPYRIGHT</a> is based on BSD.
+
+<p>
+Good Luck!  As always, feedback is greatly appreciated.
+
+<p>
+Neal
+<address>
+<a href="mailto:pychecker@metaslash.com">pychecker@metaslash.com</a>
+</address>
+
+<p>&nbsp;</p>
+</td></tr>
+
+</table>
+</td></tr>
+</table>
+</center>
+
+</body>
+</html>
