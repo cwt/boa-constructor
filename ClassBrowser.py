@@ -11,11 +11,13 @@
 #----------------------------------------------------------------------
 #Boa:Frame:ClassBrowserFrame
 
-from wxPython.wx import *
-import pyclbr
-import string
-import Preferences
 from os import path
+import pyclbr, string
+
+from wxPython.wx import *
+
+import Preferences
+from Preferences import IS
 
 [wxID_CLASSBROWSERFRAME] = map(lambda _init_ctrls: NewId(), range(1))
 
