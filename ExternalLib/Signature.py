@@ -10,19 +10,19 @@ Here's some examples of its use:
     ...     return (x+y)**z
     ...
     >>> f = Signature(foo)
-    
+
     >>> print 'ordinary arglist:', f.ordinary_args()
     ordinary arglist: ('x', 'y', 'z')
-    
+
     >>> print 'special_args:', f.special_args()
     special_args: {'keyword': 'kw', 'positional': 'args'}
-    
+
     >>> print 'full_arglist:', f.full_arglist()
     full_arglist: ['x', 'y', 'z', 'args', 'kw']
-    
+
     >>> print 'defaults:', f.defaults()
     defaults: {'z': -1.0}
-    
+
     >>> print 'signature:', str(f)
     signature: foo(x, y, z=-1.0, *args, **kw)
 
@@ -87,7 +87,7 @@ o Signature.defaults()
 
   If there are no arguments with default values, then an empty dictionary
   is returned. The special arguments specified with the '*' and '**'
-  syntax are not considered. 
+  syntax are not considered.
 
 
 o Signature.__str__()
@@ -98,7 +98,7 @@ o Signature.__str__()
   Behavior:
 
   While it's impossible to exactly match the actual declaration, in most
-  cases this should look pretty close. 
+  cases this should look pretty close.
 """
 
 import types, string
@@ -106,7 +106,7 @@ import types, string
 class Signature:
     # Magic numbers: These are the bit masks in func_code.co_flags that
     # reveal whether or not the function has a *arg or **kw argument.
-    #    
+    #
     POS_LIST = 4
     KEY_DICT = 8
     def __init__(self, func):
@@ -119,15 +119,15 @@ class Signature:
         n = self.func.func_code.co_argcount
         x = {}
         #
-        # 
+        #
         #
         if self.func.func_code.co_flags & (self.POS_LIST|self.KEY_DICT):
-             x['positional'] = self.func.func_code.co_varnames[n]
-             try:
-                 x['keyword'] = self.func.func_code.co_varnames[n+1]
-             except IndexError:
-                 x['keyword'] = x['positional']
-                 del x['positional']
+            x['positional'] = self.func.func_code.co_varnames[n]
+            try:
+                x['keyword'] = self.func.func_code.co_varnames[n+1]
+            except IndexError:
+                x['keyword'] = x['positional']
+                del x['positional']
         elif self.func.func_code.co_flags & self.POS_LIST:
             x['positional'] = self.func.func_code.co_varnames[n]
         elif self.func.func_code.co_flags & self.KEY_DICT:
@@ -186,7 +186,7 @@ def _getcode(f):
         if hasattr(f, '__init__'):
             return f.__name__, f.__init__.im_func
         else:
-            return f.__name, lambda: None
+            return f.__name__, lambda: None
     codedict = { types.UnboundMethodType: method_get,
                  types.MethodType       : method_get,
                  types.FunctionType     : function_get,
@@ -210,4 +210,4 @@ if __name__ == '__main__':
     print "special_args:", f.special_args()
     print "full_arglist:", f.full_arglist()
     print "defaults:", f.defaults()
-    print "signature:", 
+    print "signature:",
