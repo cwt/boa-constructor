@@ -1,0 +1,136 @@
+#----------------------------------------------------------------------
+# Name:        ClassBrowser.py
+# Purpose:     
+#
+# Author:      Riaan Booysen
+#
+# Created:     1999
+# RCS-ID:      $Id$
+# Copyright:   (c) 1999, 2000 Riaan Booysen
+# Licence:     GPL
+#----------------------------------------------------------------------
+from wxPython.wx import *
+import pyclbr
+import string
+
+def findInsertModules(name, tree):
+    ri = tree.GetRootItem()
+    item = ri
+    found = false
+    while item:
+        item = tree.GetNextSibling(item)
+        if tree.GetItemText(item) == name:
+            found = true
+            return item
+    
+    return tree.AddRoot(name)
+
+
+def travTilBase(name, classes, root):
+    if len(classes[name].super) == 0:
+	if not root.has_key(name):
+	    root[name] = {}
+	return root[name]
+    else:
+	c = travTilBase(classes[name].super[0].name, classes, root)
+        if not c.has_key(name):
+	    c[name] = {}
+	return c[name]
+
+def buildTree(tree, parent, dict):
+    for item in dict.keys():
+        child = tree.AppendItem(parent, item)
+	if len(dict[item].keys()):
+	    buildTree(tree, child, dict[item])
+    
+def extractFilename(filename):
+    return filename[string.rfind(filename, '\\')+ 1: len(filename) -3]
+    
+class ClassBrowserFrame(wxFrame):
+    def __init__(self, parent, id, title):
+        wxFrame.__init__(self, parent, -1, title,
+                         wxPoint(100, 157), wxSize(200, 250))
+
+        if wxPlatform == '__WXMSW__':
+            self.icon = wxIcon('Images/Icons/ClassBrowser.ico', wxBITMAP_TYPE_ICO)
+            self.SetIcon(self.icon)
+
+	self.classes = pyclbr.readmodule('wxPython.wx')
+
+	self.pages = wxNotebook(self, -1)
+        self.statusBar = self.CreateStatusBar()
+#	self.panel = wxPanel(self, -1)
+
+        tID = NewId()
+        self.hierarchy = wxTreeCtrl(self.pages, tID)
+        self.pages.AddPage(self.hierarchy, 'Hierarchy')
+        wxYield() 
+        root = self.hierarchy.AddRoot("wxObject")
+
+	clsDict = {}
+
+	for i in self.classes.keys():
+	    travTilBase(i, self.classes, clsDict)
+
+	buildTree(self.hierarchy, root, clsDict)
+        self.hierarchy.Expand(root)
+
+        tID = NewId()
+
+        self.tree = wxTreeCtrl(self.pages, tID)
+        self.pages.AddPage(self.tree, 'Modules')
+        wxYield() 
+        
+        root = self.tree.AddRoot("Modules")
+        modules = {}
+        moduleName = ''
+        for className in self.classes.keys():
+            moduleName = extractFilename(self.classes[className].file)
+            if not modules.has_key(moduleName):
+ 	        modules[moduleName] = {}
+	    modules[moduleName][className] = {}
+	    modules[moduleName][className]['Properties'] = {}
+ 	    modules[moduleName][className]['Methods'] = {}
+ 	    modules[moduleName][className]['Built-in'] = {}
+	    for method in self.classes[className].methods.keys():
+                if (method[:2] == '__'):
+ 	            modules[moduleName][className]['Built-in'][method] = self.classes[className].lineno
+                elif (method[:3] == 'Get'):
+                    if self.classes[className].methods.has_key('Set'+method[3:]):
+ 	                modules[moduleName][className]['Properties'][method[3:]] = self.classes[className].lineno
+		    else:	
+ 	                modules[moduleName][className]['Methods'][method] = self.classes[className].lineno
+                elif (method[:3] == 'Set'):
+                    if self.classes[className].methods.has_key('Get'+method[3:]):
+ 	                modules[moduleName][className]['Properties'][method[3:]] = self.classes[className].lineno
+		    else:	
+ 	                modules[moduleName][className]['Methods'][method] = self.classes[className].lineno
+                else:
+ 	            modules[moduleName][className]['Methods'][method] = self.classes[className].lineno
+ 	
+ 	moduleLst = modules.keys()
+	moduleLst.sort() 	               
+	for module in moduleLst:
+            roots = self.tree.AppendItem(root, module)
+ 	    classLst = modules[module].keys()
+	    classLst.sort() 	               
+            for classes in classLst:
+                aClass = self.tree.AppendItem(roots, classes)
+                methItem = self.tree.AppendItem(aClass, 'Methods')
+                for methods in modules[module][classes]['Methods'].keys():
+                    methodsItem = self.tree.AppendItem(methItem, methods)
+                propItem = self.tree.AppendItem(aClass, 'Properties')
+                for properties in modules[module][classes]['Properties'].keys():
+                    propertyItem = self.tree.AppendItem(propItem, properties)
+                bInItem = self.tree.AppendItem(aClass, 'Built-in')
+                for builtIns in modules[module][classes]['Built-in'].keys():
+                    builtInItem = self.tree.AppendItem(bInItem, builtIns)
+                suprItem = self.tree.AppendItem(aClass, 'Super')
+                for supers in self.classes[classes].super:
+                    superItem = self.tree.AppendItem(suprItem, supers.name)
+                
+#                supers = self.tree.AppendItem(roots, 'Super')
+#                for super in self.classes[className].super:
+#                    aMethod = self.tree.AppendItem(supers, super.name)
+        self.tree.Expand(root)
+#	self.tree.Show(true)
