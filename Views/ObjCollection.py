@@ -151,9 +151,8 @@ class ObjectCollection:
         self.eventsByName = self.setupList(self.events)
         self.collectionsByName = self.setupList(self.collections)
 
-import Utils
 def isInitCollMeth(meth):
-    return Utils.startswith(meth, sourceconst.init_coll)
+    return meth.startswith(sourceconst.init_coll)
 
 def getCollName(collInitMethod, name):
     return collInitMethod[len(sourceconst.init_coll+name)+1:]
