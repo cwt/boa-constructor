@@ -745,8 +745,20 @@ class ZopeDocumentModel(EditorModel):
         if self.filename:
             
             #self.zopeObj.zopeConn.save(self.zopeObj,self.data)
-            self.zopeObj.saveDocument(self.data)
-            self.modified = false
+
+            # XXX don't want to import this :(
+            from ExternalLib import xmlrpclib
+
+            try:
+                self.zopeObj.saveDocument(self.data)
+            except xmlrpclib.Error, error:
+#                wxLogError('Error while attempting to save: %s' % str(error))
+                import HTMLResponse
+                frm = HTMLResponse.create(None, error.faultString)
+                frm.Show(true)
+                raise
+            else:                
+                self.modified = false
         else:
             raise 'No filename'
     
