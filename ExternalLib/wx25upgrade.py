@@ -385,7 +385,7 @@ class Upgrade:
         return ".AddSpacer(wx.Size("+a+","+b+")"
     
     def flagsAction(self, s, l, t):
-        return t[0] + t[1] + "wx." + string.join(t[2:], "|wx.")
+        return t[0] + t[1] + "wx." + string.join(t[2:], " | wx.")
 
     def repId1Action(self, s, l, t):
         a, b, c = t
