@@ -58,7 +58,7 @@ defCreateClass = '''def create(parent):
     return %s(parent)
 \n'''
 wid = '[A-Za-z0-9_, ]*'
-srchWindowIds = '\[(?P<winids>[A-Za-z0-9_, ]*)\] = '+\
+srchWindowIds = '\[(?P<winids>[A-Za-z0-9_, \n\r\t]*)\] = '+\
 'map\(lambda %s: [wx]*NewId\(\), range\((?P<count>\d+)\)\)'
 defWindowIds = '''[%s] = map(lambda %s: wxNewId(), range(%d))\n'''
 
@@ -1127,19 +1127,21 @@ class BaseFrameModel(ClassModel):
             if winIdIdx == -1:
                 comp.updateWindowIds()
             comp.addIds(lst)
+        lst.sort()
 
         if winIdIdx == -1:
             if lst:
                 # No window id definitions could be found add one above class def
                 insPt = module.classes[self.main].block.start - 1
                 module.source[insPt:insPt] = \
-                  [string.strip(defWindowIds % (string.join(lst, ', '), colMeth, 
-                  len(lst))), '']
+                  [string.strip(defWindowIds % (string.join(
+                  lst, ',\n '), colMeth, len(lst))), '']
                 module.renumber(2, insPt)
         else:
 	    # Update window ids
 	    module.source[idx] = \
-	      string.strip(defWindowIds % (string.join(lst, ', '), colMeth, len(lst)))
+	      string.strip(defWindowIds % (string.join(lst, ',\n '),
+	      colMeth, len(lst)))
 
     def update(self):
         ClassModel.update(self)
@@ -1302,7 +1304,13 @@ class AppModel(ClassModel):
 
     def writeModules(self, notify = true):
         modS, modE = self.findModules()
-        self.data = self.data[:modS]+`self.modules`+self.data[modE:]
+        newmods = []
+        items = self.modules.items()
+        items.sort()
+        for key, value in items:
+            newmods.append(`key` + ': ' + `value` + ',\n    ')
+        newmods_j = ' {\n    %s}' % string.join(newmods, '')
+        self.data = self.data[:modS] + newmods_j + self.data[modE:]
 
         self.modified = true
         self.editor.updateTitle()
