@@ -31,7 +31,6 @@ from wxPython.utils import *
 
 from InspectorEditorControls import *
 
-from Preferences import wxFileDialog
 import Utils
 from Enumerations import reverseDict
 
@@ -353,7 +352,7 @@ class FilepathConfPropEdit(ConfPropEdit):
         self.editorCtrl.createControl(self.parent, self.idx, self.width, self.edit)
 
     def edit(self, event):
-        from Preferences import wxFileDialog
+        from FileDlg import wxFileDialog
         dlg = wxFileDialog(self.parent, 'Choose the file', '.', '', 'AllFiles', wxSAVE)
         try:
             if dlg.ShowModal() == wxID_OK:
@@ -525,6 +524,7 @@ class BitmapPropEditMix:
                   'Warning', wxOK | wxICON_EXCLAMATION)
             dir = '.'
 
+        from FileDlg import wxFileDialog
         dlg = wxFileDialog(self.parent, 'Choose an image', dir, name,
               'ImageFiles', wxOPEN)
         try:
