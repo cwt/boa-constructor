@@ -93,7 +93,7 @@ class ModuleController(SourceController):
         if hasattr(model, 'app') and model.app:
             addTool(self.editor, toolbar, self.runAppBmp, 'Run application', self.OnRunApp)
         addTool(self.editor, toolbar, self.runBmp, 'Run module', self.OnRun)
-        addTool(self.editor, toolbar, self.debugBmp, 'Debug module', self.OnDebug)
+        addTool(self.editor, toolbar, self.debugBmp, 'Debug application', self.OnDebugApp)
 
     def addMenus(self, menu, model):
         accls = SourceController.addMenus(self, menu, model)
