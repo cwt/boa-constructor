@@ -1,13 +1,13 @@
 #-----------------------------------------------------------------------------
-# Name:        CollectionEdit.py                                              
-# Purpose:     Editor for collection properties                               
-#                                                                             
-# Author:      Riaan Booysen                                                  
-#                                                                             
-# Created:     2000                                                           
-# RCS-ID:      $Id$                                        
-# Copyright:   (c) 1999, 2000 Riaan Booysen                                   
-# Licence:     GPL                                                            
+# Name:        CollectionEdit.py
+# Purpose:     Editor for collection properties
+#
+# Author:      Riaan Booysen
+#
+# Created:     2000
+# RCS-ID:      $Id$
+# Copyright:   (c) 1999, 2000 Riaan Booysen
+# Licence:     GPL
 #-----------------------------------------------------------------------------
 
 import os
@@ -29,16 +29,16 @@ def create(parent):
 [wxID_COLLECTIONEDITOR, wxID_COLLECTIONEDITORTOOLBAR, wxID_COLLECTIONEDITORITEMLIST] = map(lambda _init_ctrls: NewId(), range(3))
 
 class CollectionEditor(wxFrame):
-    def _init_ctrls(self, prnt): 
+    def _init_ctrls(self, prnt):
         wxFrame.__init__(self, size = wxSize(200, 247), id = wxID_COLLECTIONEDITOR, title = 'Collection Editor', parent = prnt, name = 'CollectionEditor', style = wxDEFAULT_FRAME_STYLE, pos = wxPoint(341, 139))
 
         self.toolBar = wxToolBar(size = wxDefaultSize, id = wxID_COLLECTIONEDITORTOOLBAR, pos = wxPoint(32, 4), parent = self, name = 'toolBar1', style = wxTB_HORIZONTAL | wxNO_BORDER | Preferences.flatTools)
         self.SetToolBar(self.toolBar)
 
-    def __init__(self, parent, collEditView, lvStyle = wxLC_REPORT): 
+    def __init__(self, parent, collEditView, lvStyle = wxLC_REPORT):
         self._init_ctrls(parent)
 
-        self.itemList = wxListCtrl(size = wxPyDefaultSize, id = wxID_COLLECTIONEDITORITEMLIST, parent = self, name = 'itemList', validator = wxDefaultValidator, style = lvStyle | wxLC_SINGLE_SEL, pos = wxPyDefaultPosition)
+        self.itemList = wxListCtrl(size = wxPyDefaultSize, id = wxID_COLLECTIONEDITORITEMLIST, parent = self, name = 'itemList', validator = wxDefaultValidator, style = lvStyle | wxLC_SINGLE_SEL | wxSUNKEN_BORDER, pos = wxPyDefaultPosition)
         EVT_LIST_ITEM_SELECTED(self.itemList, wxID_COLLECTIONEDITORITEMLIST, self.OnObjectSelect)
         EVT_LIST_ITEM_DESELECTED(self.itemList, wxID_COLLECTIONEDITORITEMLIST, self.OnObjectDeselect)
         EVT_LEFT_DCLICK(self.itemList, self.OnObjectDClick)
@@ -50,27 +50,27 @@ class CollectionEditor(wxFrame):
         self.selected = -1
 
         acclst = []
-        wId = Utils.AddToolButtonBmpIS(self, self.toolBar, 'Images/Shared/NewItem.bmp', 
+        wId = Utils.AddToolButtonBmpIS(self, self.toolBar, 'Images/Shared/NewItem.bmp',
           'New', self.OnNewClick)
         EVT_MENU(self, wId, self.OnNewClick)
         acclst.append( (keyDefs['Insert'][0], keyDefs['Insert'][1], wId) )
-        wId = Utils.AddToolButtonBmpIS(self, self.toolBar, 'Images/Shared/DeleteItem.bmp',  
+        wId = Utils.AddToolButtonBmpIS(self, self.toolBar, 'Images/Shared/DeleteItem.bmp',
           'Delete', self.OnDeleteClick)
         EVT_MENU(self, wId, self.OnDeleteClick)
         acclst.append( (keyDefs['Delete'][0], keyDefs['Delete'][1], wId) )
         self.toolBar.AddSeparator()
-        Utils.AddToolButtonBmpIS(self, self.toolBar, 'Images/Shared/Up.bmp',
-          'Up (Not implemented)', self.OnUpClick)
-        Utils.AddToolButtonBmpIS(self, self.toolBar, 'Images/Shared/Down.bmp', 
-          'Down (Not implemented)', self.OnDownClick)
-        self.toolBar.AddSeparator()
+##        Utils.AddToolButtonBmpIS(self, self.toolBar, 'Images/Shared/Up.bmp',
+##          'Up (Not implemented)', self.OnUpClick)
+##        Utils.AddToolButtonBmpIS(self, self.toolBar, 'Images/Shared/Down.bmp',
+##          'Down (Not implemented)', self.OnDownClick)
+##        self.toolBar.AddSeparator()
         wId = Utils.AddToolButtonBmpIS(self, self.toolBar, 'Images/Editor/Refresh.bmp',
           'Refresh', self.OnRefresh)
         EVT_MENU(self, wId, self.OnRefresh)
         acclst.append( (keyDefs['Refresh'][0], keyDefs['Refresh'][1], wId) )
 
         self.SetAcceleratorTable(wxAcceleratorTable(acclst))
-        
+
         self.toolBar.Realize()
 
         if lvStyle == wxLC_REPORT:
@@ -84,7 +84,7 @@ class CollectionEditor(wxFrame):
     def destroy(self):
         self.collEditView.frame = None
         del self.collEditView
-    
+
     def clear(self):
         self.selected = -1
         self.itemList.DeleteAllItems()
@@ -99,7 +99,7 @@ class CollectionEditor(wxFrame):
 
     def OnRefresh(self, event):
         self.collEditView.refreshCtrl(1)
-            
+
     def OnObjectSelect(self, event):
         self.selected = event.m_itemIndex
         self.collEditView.selectObject(event.m_itemIndex)
@@ -118,7 +118,7 @@ class CollectionEditor(wxFrame):
         if self.selected >= 0:
             idx = self.selected
             self.collEditView.deleteCtrl()
-            
+
             if idx == self.itemList.GetItemCount():
                 idx = idx - 1
             self.selectObject(idx)
@@ -137,22 +137,22 @@ class CollectionEditor(wxFrame):
             name = self.itemList.GetItemText(idx)
             self.itemList.DeleteItem(idx)
             self.itemList.InsertStringItem(idx +1, name)
-            self.itemList.SetItemState(idx +1, wxLIST_STATE_SELECTED, 
+            self.itemList.SetItemState(idx +1, wxLIST_STATE_SELECTED,
               wxLIST_STATE_SELECTED)
-    
+
     def OnObjectDClick(self, event):
         if self.selected >= 0:
 ##            print 'OnObjectDClick', self.collEditView.companion.defaultAction
             self.collEditView.companion.defaultAction()
             self.Raise()
-            
+
     def OnSeledClick(self, event):
         result = []
         for itemIdx in range(self.itemList.GetItemCount()):
             if self.itemList.GetItemState(itemIdx, 0) & wxLIST_STATE_SELECTED:
                 result.append(itemIdx)
         wxMessageBox(`result`)
-    
+
     def OnCloseWindow(self, event):
         if self.selected != -1:
             self.collEditView.deselectObject()
@@ -161,20 +161,20 @@ class CollectionEditor(wxFrame):
         event.Skip()
 
 class ImageListCollectionEditor(CollectionEditor):
-    def __init__(self, parent, collEditView): 
+    def __init__(self, parent, collEditView):
         CollectionEditor.__init__(self, parent, collEditView, wxLC_LIST)
         self.itemList.SetImageList(collEditView.companion.control, wxIMAGE_LIST_SMALL)
 
     def addItem(self, idx, displayProp):
         self.itemList.InsertImageStringItem(idx, displayProp, idx)
-                
+
 class CollectionEditorView(InspectableViews.InspectableObjectView):
     viewName = 'CollectionEditor'
     collectionMethod = sourceconst.init_coll
     collectionParams = 'self, parent'
 
-    def __init__(self, parent, inspector, model, companion): 
-        InspectableViews.InspectableObjectView.__init__(self, inspector, 
+    def __init__(self, parent, inspector, model, companion):
+        InspectableViews.InspectableObjectView.__init__(self, inspector,
           model, None, (), -1, false)
 
         self.parent = parent
@@ -182,7 +182,7 @@ class CollectionEditorView(InspectableViews.InspectableObjectView):
         self.companion = companion
         self.collectionMethod = companion.collectionMethod
         self.srcCollectionMethod = companion.collectionMethod
-        
+
     def initialise(self):
         objCol = self.model.objectCollections[self.collectionMethod]
         objCol.indexOnCtrlName()
@@ -199,7 +199,7 @@ class CollectionEditorView(InspectableViews.InspectableObjectView):
         oldCollMeth = self.collectionMethod
         self.companion.SetName(oldName, newName)
         self.collectionMethod = self.companion.collectionMethod
-        
+
         objColl = self.model.objectCollections[oldCollMeth]
         del self.model.objectCollections[oldCollMeth]
         self.model.objectCollections[self.collectionMethod] = objColl
@@ -222,7 +222,7 @@ class CollectionEditorView(InspectableViews.InspectableObjectView):
         # XXX Use inherited!
         newBody = []
         objColl = self.model.objectCollections[self.collectionMethod]
-        
+
         self.companion.writeCollectionInitialiser(newBody)
         self.companion.writeCollectionItems(newBody)
         self.companion.writeEvents(newBody, addModuleMethod = true)
@@ -277,13 +277,13 @@ class CollectionEditorView(InspectableViews.InspectableObjectView):
             output.insert(0, '    def %s(%s):'% (self.collectionMethod, self.collectionParams))
         else:
             output = []
-                  
+
     def refreshCtrl(self, keepSelected = false):
         self.deselectObject()
         if self.frame:
             if keepSelected: sel = self.frame.selected
             self.frame.clear()
- 
+
             for idx in range(len(self.companion.textConstrLst)):
                 self.companion.setIndex(idx)
                 displayProp = self.companion.getDisplayProp()
@@ -305,7 +305,7 @@ class CollectionEditorView(InspectableViews.InspectableObjectView):
         # No props goto constructor page
         if self.inspector.pages.GetSelection() == 1:
             self.inspector.pages.SetSelection(0)
-        
+
         self.companion.setIndex(idx)
         self.inspector.selectObject(self.companion, false)
 
@@ -330,5 +330,3 @@ class CollectionEditorView(InspectableViews.InspectableObjectView):
             self.refreshCtrl()
         self.frame.Show(true)
         self.frame.Raise()
-
-

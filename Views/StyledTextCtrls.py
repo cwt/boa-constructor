@@ -1,19 +1,20 @@
 #-----------------------------------------------------------------------------
-# Name:        StyledTextCtrls.py                                             
-# Purpose:     Mixin classes to extend wxStyledTextCtrl                       
-#                                                                             
-# Author:      Riaan Booysen                                                  
-#                                                                             
-# Created:     2000/04/26                                                     
-# RCS-ID:      $Id$  
-# Copyright:   (c) 1999, 2000 Riaan Booysen                                   
-# Licence:     GPL                                                            
+# Name:        StyledTextCtrls.py
+# Purpose:     Mixin classes to extend wxStyledTextCtrl
+#
+# Author:      Riaan Booysen
+#
+# Created:     2000/04/26
+# RCS-ID:      $Id$
+# Copyright:   (c) 1999, 2000 Riaan Booysen
+# Licence:     GPL
 #-----------------------------------------------------------------------------
 
 from wxPython.wx import *
 from wxPython.stc import *
 
 from Preferences import faces
+import Preferences
 
 def ver_tot(ma, mi, re):
     return ma*10000+mi*100+re
@@ -24,24 +25,24 @@ new_stc = cur_ver > old_ver
 old_stc = not new_stc
 
 if new_stc:
-  try:
-    wxStyledTextCtrl.SetKeywords        = wxStyledTextCtrl.SetKeyWords
-    wxStyledTextCtrl.SetCurrentPosition = wxStyledTextCtrl.SetCurrentPos
-    wxStyledTextCtrl.GetCurrentPosition = wxStyledTextCtrl.GetCurrentPos
-    wxStyledTextCtrl.IndicatorSetColour = wxStyledTextCtrl.IndicatorSetForeground
-    wxStyledTextCtrl.IndicatorGetColour = wxStyledTextCtrl.IndicatorGetForeground
-    wxStyledTextCtrl.GetModified        = wxStyledTextCtrl.GetModify
-    wxStyledTextCtrl.GetLineFromPos     = wxStyledTextCtrl.LineFromPosition
-    wxStyledTextCtrl.GetLineStartPos    = wxStyledTextCtrl.PositionFromLine
-    wxStyledTextCtrl.ScrollBy           = wxStyledTextCtrl.LineScroll
-    wxStyledTextCtrl.GetCurrentLineText = wxStyledTextCtrl.GetCurLine
-    wxStyledTextCtrl.BraceBadlight      = wxStyledTextCtrl.BraceBadLight
-    wxStyledTextCtrl.SetStyleFor        = wxStyledTextCtrl.SetStyling
-    wxStyledTextCtrl.MarkerGetNextLine  = wxStyledTextCtrl.MarkerNext
-    wxStyledTextCtrl.MarkerGetPrevLine  = wxStyledTextCtrl.MarkerPrevious
-  except:
-    new_stc = 0
-    old_stc = 1
+    try:
+        wxStyledTextCtrl.SetKeywords        = wxStyledTextCtrl.SetKeyWords
+        wxStyledTextCtrl.SetCurrentPosition = wxStyledTextCtrl.SetCurrentPos
+        wxStyledTextCtrl.GetCurrentPosition = wxStyledTextCtrl.GetCurrentPos
+        wxStyledTextCtrl.IndicatorSetColour = wxStyledTextCtrl.IndicatorSetForeground
+        wxStyledTextCtrl.IndicatorGetColour = wxStyledTextCtrl.IndicatorGetForeground
+        wxStyledTextCtrl.GetModified        = wxStyledTextCtrl.GetModify
+        wxStyledTextCtrl.GetLineFromPos     = wxStyledTextCtrl.LineFromPosition
+        wxStyledTextCtrl.GetLineStartPos    = wxStyledTextCtrl.PositionFromLine
+        wxStyledTextCtrl.ScrollBy           = wxStyledTextCtrl.LineScroll
+        wxStyledTextCtrl.GetCurrentLineText = wxStyledTextCtrl.GetCurLine
+        wxStyledTextCtrl.BraceBadlight      = wxStyledTextCtrl.BraceBadLight
+        wxStyledTextCtrl.SetStyleFor        = wxStyledTextCtrl.SetStyling
+        wxStyledTextCtrl.MarkerGetNextLine  = wxStyledTextCtrl.MarkerNext
+        wxStyledTextCtrl.MarkerGetPrevLine  = wxStyledTextCtrl.MarkerPrevious
+    except:
+        new_stc = 0
+        old_stc = 1
 
 # GetCharAt, GetStyleAt now returns int instead of char
 
@@ -143,7 +144,7 @@ class FoldingStyledTextCtrlMix:
                 line = line + 1;
 
         return line
-    
+
 
 class PythonStyledTextCtrlMix:
     def __init__(self, wId, margin):
@@ -165,25 +166,24 @@ class PythonStyledTextCtrlMix:
               'not or pass print raise return try while true false')
 
             self.SetViewWhiteSpace(false)
- 
+
         self.SetProperty("fold", "1")
 
         # line numbers in the margin
         if margin != -1:
             self.SetMarginType(margin, wxSTC_MARGIN_NUMBER)
             self.SetMarginWidth(margin, 25)
-            self.StyleSetSpec(wxSTC_STYLE_LINENUMBER, 
+            self.StyleSetSpec(wxSTC_STYLE_LINENUMBER,
               "size:%(lnsize)d,face:%(helv)s,back:#707070" % faces)
 
         EVT_STC_UPDATEUI(self, wId, self.OnUpdateUI)
-        
+
         self.setStyles(faces)
 
     def setStyles(self, faces):
         # Global default styles for all languages
         # Default
         self.StyleSetSpec(wxSTC_STYLE_DEFAULT, "back:%(backcol)s,face:%(mono)s,size:%(size)d" % faces)
-
         self.StyleClearAll()
 
         # Line number
@@ -230,8 +230,10 @@ class PythonStyledTextCtrlMix:
 #        self.StyleSetSpec(35, "fore:#000000,back:#FF0000,bold")
         self.StyleSetSpec(34, "fore:#0000FF,back:#FFFF88,bold")
         self.StyleSetSpec(35, "fore:#FF0000,back:#FFFF88,bold")
-    
+
     def grayout(self, do):
+        if not Preferences.grayoutSource:
+            return
         if do:
             from copy import copy
             f = copy(faces)
@@ -239,7 +241,7 @@ class PythonStyledTextCtrlMix:
         else:
             f = faces
         self.setStyles(f)
-        
+
     def OnUpdateUI(self, evt):
 #        print 'OnUpdateUI', evt
         # check for matching braces
@@ -297,9 +299,9 @@ def idWord(line, piv, lineStart, leftDelim = word_delim, rightDelim = word_delim
             break
     # Look right
     for pivR in range(piv + 1, len(line)):
-        if not line[pivR] in rightDelim: 
+        if not line[pivR] in rightDelim:
             break
-    
+
     return pivL + lineStart, pivR - pivL
 
 class BrowseStyledTextCtrlMix:
@@ -326,29 +328,29 @@ class BrowseStyledTextCtrlMix:
     def doClearBrwsLn(self):
         self.styleStart, self.styleLength = \
             self.clearUnderline(self.styleStart, self.styleLength)
-    
+
     def BrowseClick(self, word, line, lineNo, start, style):
         """Called when a link is clicked.
            Override to use, return true if click is swallowed """
         return false
-    
+
     def StyleVeto(self, style):
         return false
-        
+
     def underlineWord(self, start, length):
 ##        wxSetCursor(self.handCrs)
         self.SetCursor(self.handCrs)
         self.SetLexer(wxSTC_LEX_NULL)
-        
+
         self.StartStyling(start, wxSTC_INDICS_MASK)
         self.SetStyleFor(length, wxSTC_INDIC0_MASK)
 #        self.Refresh(false)
         return start, length
-        
+
     def clearUnderline(self, start, length):
 ##        wxSetCursor(self.stndCrs)
         self.SetCursor(self.stndCrs)
-        
+
         self.StartStyling(start, wxSTC_INDICS_MASK)
         self.SetStyleFor(length, 0)
         self.SetLexer(wxSTC_LEX_PYTHON)
@@ -364,18 +366,18 @@ class BrowseStyledTextCtrlMix:
             if event.ControlDown():
                 mp = event.GetPosition()
                 pos = self.PositionFromPoint(wxPoint(mp.x, mp.y))
-    
+
                 if old_stc:
                     stl = ord(self.GetStyleAt(pos)) & 31
                 else:
                     stl = self.GetStyleAt(pos) & 31
-                    
+
                 if self.StyleVeto(stl):
                     if self.styleLength > 0:
                         self.styleStart, self.styleLength = \
                           self.clearUnderline(self.styleStart, self.styleLength)
                     return
-    
+
                 lnNo = self.GetLineFromPos(pos)
                 lnStPs = self.GetLineStartPos(lnNo)
                 line = self.GetLine(lnNo)
@@ -393,14 +395,14 @@ class BrowseStyledTextCtrlMix:
                 elif self.styleLength > 0:
                     self.styleStart, self.styleLength = \
                       self.clearUnderline(self.styleStart, self.styleLength)
-                        
+
             #clear any underlined words
             elif self.styleLength > 0:
                 self.styleStart, self.styleLength = \
                   self.clearUnderline(self.styleStart, self.styleLength)
         finally:
             event.Skip()
-    
+
     def getStyledWordElems(self, styleStart, styleLength):
         if styleLength > 0:
             lnNo = self.GetLineFromPos(styleStart)
@@ -409,24 +411,24 @@ class BrowseStyledTextCtrlMix:
             start = styleStart - lnStPs
             word = line[start:start+styleLength]
             return word, line, lnNo, start
-        else: 
+        else:
             return '', 0, 0, 0
-        
+
     def OnBrowseClick(self, event):
         word, line, lnNo, start = self.getStyledWordElems(self.styleStart, self.styleLength)
         if word:
             if old_stc:
                 style = ord(self.GetStyleAt(self.styleStart)) & 31
-            else:                
+            else:
                 style = self.GetStyleAt(self.styleStart) & 31
-            if self.BrowseClick(word, line, lnNo, start, style): 
+            if self.BrowseClick(word, line, lnNo, start, style):
                 return
         event.Skip()
 
     def OnKeyDown(self, event):
         if event.ControlDown(): self.ctrlDown = true
         event.Skip()
-        
+
     def OnKeyUp(self, event):
         if self.ctrlDown and (not event.ControlDown()):
             self.ctrlDown = false
@@ -434,13 +436,13 @@ class BrowseStyledTextCtrlMix:
                 self.styleStart, self.styleLength = \
                   self.clearUnderline(self.styleStart, self.styleLength)
         event.Skip()
-        
+
 
 class HTMLStyledTextCtrlMix:
     def __init__(self, wId):
         self.SetEOLMode(wxSTC_EOL_LF)
         self.eol = '\n'#wxSTC_EOL_LF #endOfLines[self.GetEOLMode()]
-        
+
 #        print self.GetSelectionBackground()
 #        wxColour(wxNamedColor("BLUE"))
 #        self.SetSelectionBackground(col)
@@ -458,7 +460,7 @@ class HTMLStyledTextCtrlMix:
         'script select small span strike strong style sub sup '\
         'table tbody td textarea tfoot th thead title tr tt u ul '\
         'var xmlns '
-        
+
         hypertext_attributes=\
         'abbr accept-charset accept accesskey action align alink '\
         'alt archive axis background bgcolor border '\
@@ -482,9 +484,9 @@ class HTMLStyledTextCtrlMix:
         'valign value valuetype version vlink vspace width '\
         'text password checkbox radio submit reset '\
         'file hidden image '
-        
+
         zope_elements = 'dtml-var dtml-in dtml-if dtml-with '
-        
+
         self.SetLexer(wxSTC_LEX_HTML)
         if old_stc:
             self.SetKeywords(0, hypertext_elements + hypertext_attributes + \
@@ -502,12 +504,12 @@ class HTMLStyledTextCtrlMix:
 
         # Default
 #        style.hypertext.0=fore:#000000,font:Times New Roman,size:11
-        self.StyleSetSpec(wxSTC_STYLE_DEFAULT, 
+        self.StyleSetSpec(wxSTC_STYLE_DEFAULT,
           'fore:#000000,font:%(mono)s,size:%(size)s' % faces)
 
         self.StyleClearAll()
 
-        self.StyleSetSpec(wxSTC_STYLE_LINENUMBER, 
+        self.StyleSetSpec(wxSTC_STYLE_LINENUMBER,
           'size:%(lnsize)d,face:%(helv)s' % faces)
 
         # Tags
@@ -537,7 +539,7 @@ class HTMLStyledTextCtrlMix:
         # Matched Operators
         self.StyleSetSpec(34, 'fore:#0000FF,back:#FFFF88,bold')
         self.StyleSetSpec(35, 'fore:#FF0000,back:#FFFF88,bold')
-            
+
     def OnUpdateUI(self, evt):
         # check for matching braces
         braceAtCaret = -1
@@ -564,7 +566,7 @@ class HTMLStyledTextCtrlMix:
             else:
                 charAfter = chr(self.GetCharAt(caretPos))
                 styleAfter = self.GetStyleAt(caretPos)
-                
+
             if charAfter and charAfter in "<>[]{}()" and styleAfter == 10:
                 braceAtCaret = caretPos
 
@@ -581,7 +583,7 @@ class CPPStyledTextCtrlMix:
     def __init__(self, wId):
         self.SetEOLMode(wxSTC_EOL_LF)
         self.eol = '\n'
-        
+
         keyWds = \
             'asm auto bool break case catch char class const const_cast continue '\
             'default delete do double dynamic_cast else enum explicit export '\
@@ -605,12 +607,12 @@ class CPPStyledTextCtrlMix:
         EVT_STC_UPDATEUI(self, wId, self.OnUpdateUI)
 
         # Default
-        self.StyleSetSpec(wxSTC_STYLE_DEFAULT, 
+        self.StyleSetSpec(wxSTC_STYLE_DEFAULT,
           'fore:#000000,font:%(mono)s,size:%(size)s' % faces)
 
         self.StyleClearAll()
 
-        self.StyleSetSpec(wxSTC_STYLE_LINENUMBER, 
+        self.StyleSetSpec(wxSTC_STYLE_LINENUMBER,
           'size:%(lnsize)d,face:%(helv)s' % faces)
 
         # Comment
@@ -627,7 +629,7 @@ class CPPStyledTextCtrlMix:
         self.StyleSetSpec(6, 'fore:#7F007F')
         # Single quoted strings
         self.StyleSetSpec(7, 'fore:#7F007F')
-        # Symbols 
+        # Symbols
         self.StyleSetSpec(8, 'fore:#007F7F')
         # Preprocessor
         self.StyleSetSpec(9, 'fore:#7F7F00')

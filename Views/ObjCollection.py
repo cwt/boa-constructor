@@ -8,16 +8,16 @@ class ObjectCollection:
         self.collections = []
         self.initialisers = []
         self.finalisers = []
-        
+
         self.creatorByName = {}
         self.propertiesByName = {}
         self.eventsByName = {}
         self.collectionsByName = {}
 
     def __repr__(self):
-        return '<ObjectCollection instance: %s,\n %s,\n %s,\n %s,\nBy name:\n %s,\n %s,\n %s,\n %s,>'% (`self.creators`, `self.properties`, 
-           `self.collections`, `self.events`, 
-           `self.creatorByName`, `self.propertiesByName`, 
+        return '<ObjectCollection instance: %s,\n %s,\n %s,\n %s,\nBy name:\n %s,\n %s,\n %s,\n %s,>'% (`self.creators`, `self.properties`,
+           `self.collections`, `self.events`,
+           `self.creatorByName`, `self.propertiesByName`,
            `self.collectionsByName`, `self.eventsByName`)
 
     def setup(self, creators, properties, events, collections, initialisers, finalisers):
@@ -27,26 +27,26 @@ class ObjectCollection:
         self.collections = collections
         self.initialisers = initialisers
         self.finalisers = finalisers
-    
+
     def merge(self, objColl):
         """ Merge another object collection with this one """
 
         def mergeList(myLst, newLst):
             for item in newLst:
                 myLst.append(item)
-        
+
         mergeList(self.creators, objColl.creators)
         mergeList(self.properties, objColl.properties)
         mergeList(self.events, objColl.events)
         mergeList(self.collections, objColl.collections)
         mergeList(self.initialisers, objColl.initialisers)
         mergeList(self.finalisers, objColl.finalisers)
-        
+
         self.indexOnCtrlName()
-    
+
     def getCtrlNames(self):
         """ Return a list of (name, class) tuples """
-        return map(lambda x, d=self.creatorByName: (d[x][0].comp_name, 
+        return map(lambda x, d=self.creatorByName: (d[x][0].comp_name,
               d[x][0].class_name), self.creatorByName.keys())
 
     def removeReference(self, name, method):
@@ -59,7 +59,7 @@ class ObjectCollection:
 
         if self.collectionsByName.has_key(name):
             namedColls = self.collectionsByName[name]
-            
+
             i = 0
             while i < len(namedColls):
                 if namedColls[i].method == method:
@@ -88,7 +88,7 @@ class ObjectCollection:
     def renameList(self, lst, dict, name, new_name):
         for item in lst:
             item.renameCompName2(name, new_name)
-        
+
         # keep named colls in sync
         if dict.has_key(name):
             dict[new_name] = dict[name]
@@ -99,7 +99,7 @@ class ObjectCollection:
         self.renameList(self.properties, self.propertiesByName, name, new_name)
         self.renameList(self.events, self.eventsByName, name, new_name)
         self.renameList(self.collections, self.collectionsByName, name, new_name)
-            
+
     def deleteCtrl(self, name):
         for list in (self.creators, self.properties, self.events):
             i = 0
@@ -108,11 +108,11 @@ class ObjectCollection:
                     del list[i]
                 else:
                     i = i + 1
-    
+
 ##    def findRootParent(self):
 ##        for crt in self.creators:
 ##            if crt.params.has_key('parent'):
-                
+
     def reparent(self, oldParent, newParent):
         for crt in self.creators:
             if crt.params.has_key('parent') and crt.params['parent'] == oldParent:
@@ -125,7 +125,7 @@ class ObjectCollection:
                 dict[item.comp_name] = []
             dict[item.comp_name].append(item)
         return dict
-        
+
     def indexOnCtrlName(self):
         self.creatorByName = self.setupList(self.creators)
         self.propertiesByName = self.setupList(self.properties)

@@ -1,6 +1,6 @@
 #----------------------------------------------------------------------
 # Name:        DataView.py
-# Purpose:     
+# Purpose:
 #
 # Author:      Riaan Booysen
 #
@@ -19,15 +19,15 @@ import PaletteMapping, Utils
 from PrefsKeys import keyDefs
 
 from InspectableViews import InspectableObjectView
-            
+
 class DataView(wxListCtrl, InspectableObjectView):
     viewName = 'Data'
     collectionMethod = init_utils
     postBmp = 'Images/Inspector/Post.bmp'
     cancelBmp = 'Images/Inspector/Cancel.bmp'
     def __init__(self, parent, inspector, model, compPal):
-        [self.wxID_DATAVIEW] = map(lambda _init_ctrls: wxNewId(), range(1))    
-        wxListCtrl.__init__(self, parent, self.wxID_DATAVIEW, style = wxLC_SMALL_ICON)#wxLC_LIST)
+        [self.wxID_DATAVIEW] = map(lambda _init_ctrls: wxNewId(), range(1))
+        wxListCtrl.__init__(self, parent, self.wxID_DATAVIEW, style = wxLC_SMALL_ICON | wxSUNKEN_BORDER)#wxLC_LIST)
 
         InspectableObjectView.__init__(self, inspector, model, compPal,
           (('Default editor', self.OnDefaultEditor, '-', ()),
@@ -81,19 +81,19 @@ class DataView(wxListCtrl, InspectableObjectView):
                         idx1 = self.il.Add(PaletteMapping.bitmapForComponent(aclass, base, gray = true))
                     else:
                         idx1 = self.il.Add(PaletteMapping.bitmapForComponent(aclass, 'Component'))
-                
+
                 self.InsertImageStringItem(self.GetItemCount(), '%s : %s' % (ctrl.comp_name, className), idx1)
 
     def loadControl(self, ctrlClass, ctrlCompanion, ctrlName, params):
         """ Create and register given control and companion.
             See also: newControl """
         args = self.setupArgs(ctrlName, params, self.handledProps)
-        
+
         # Create control and companion
         companion = ctrlCompanion(ctrlName, self, ctrlClass)
         self.objects[ctrlName] = [companion, companion.designTimeObject(args), None]
         self.objectOrder.append(ctrlName)
-        
+
         return ctrlName
 
     def selectNone(self):
@@ -113,16 +113,16 @@ class DataView(wxListCtrl, InspectableObjectView):
 
     def deleteCtrl(self, name, parentRef = None):
         self.selectNone()
-        
+
         # notify other components of deletion
         self.notifyAction(self.objects[name][0], 'delete')
-        
+
         InspectableObjectView.deleteCtrl(self, name, parentRef)
-        self.refreshCtrl()                
+        self.refreshCtrl()
 
     def renameCtrl(self, oldName, newName):
         InspectableObjectView.renameCtrl(self, oldName, newName)
-        self.refreshCtrl()                
+        self.refreshCtrl()
 
     def close(self):
         self.cleanup()
@@ -139,7 +139,7 @@ class DataView(wxListCtrl, InspectableObjectView):
             if state:
                 selected.append( (name, itemIdx) )
         return selected
-                
+
     def OnSelectOrAdd(self, event):
         """ Control is clicked. Either select it or add control from palette """
         if self.compPal.selection:
@@ -150,13 +150,13 @@ class DataView(wxListCtrl, InspectableObjectView):
         else:
             # Skip so that OnObjectSelect may be fired
             event.Skip()
-    
+
     def updateSelection(self):
         if len(self.selection) == 1:
             self.inspector.selectObject(self.objects[self.selection[0][0]][0], false)
         else:
             self.inspector.cleanup()
-    
+
     def OnObjectSelect(self, event):
         self.inspector.containment.cleanup()
         self.selection = self.getSelectedNames()
@@ -185,18 +185,18 @@ class DataView(wxListCtrl, InspectableObjectView):
         """ Close all designers and discard all changes """
         self.controllerView.saveOnClose = false
         self.close()
-    
+
     def OnCutSelected(self, event):
         """ Cut current selection to the clipboard """
         ctrls = map(lambda ni: ni[0], self.selection)
 
         output = []
         self.cutCtrls(ctrls, [], output)
-        
+
         Utils.writeTextToClipboard(string.join(output, os.linesep))
-        
+
         self.refreshCtrl()
-        
+
     def OnCopySelected(self, event):
         """ Copy current selection to the clipboard """
         ctrls = map(lambda ni: ni[0], self.selection)
@@ -208,12 +208,12 @@ class DataView(wxListCtrl, InspectableObjectView):
 
     def OnPasteSelected(self, event):
         """ Paste current clipboard contents into the current selection """
-        pasted = self.pasteCtrls('', string.split(Utils.readTextFromClipboard(), 
+        pasted = self.pasteCtrls('', string.split(Utils.readTextFromClipboard(),
                                                   os.linesep))
         if len(pasted):
             self.refreshCtrl()
             self.selectCtrls(pasted)
-    
+
     def OnControlDelete(self, event):
         self.vetoSelect = true
         try:
@@ -227,8 +227,4 @@ class DataView(wxListCtrl, InspectableObjectView):
 
     def OnDefaultEditor(self, event):
         if len(self.selection) == 1:
-            self.objects[self.selection[0][0]][0].defaultAction()        
-        
-        
-        
-    
+            self.objects[self.selection[0][0]][0].defaultAction()

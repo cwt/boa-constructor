@@ -1,9 +1,9 @@
 #-----------------------------------------------------------------------------
 # Name:        DiffView.py
-# Purpose:     
-#                
+# Purpose:
+#
 # Author:      Riaan Booysen
-#                
+#
 # Created:     2000/17/07
 # RCS-ID:      $Id$
 # Copyright:   (c) 1999, 2000 Riaan Booysen
@@ -42,7 +42,7 @@ class DiffPSOut(PseudoFile):
 class DiffView(EditorView):
     def genCustomPage(self, page):
         return self.report
-    
+
 class PythonSourceDiffView(wxStyledTextCtrl, EditorView, PythonStyledTextCtrlMix, ClosableViewMix):
     viewName = 'Diff'
     refreshBmp = 'Images/Editor/Refresh.bmp'
@@ -50,19 +50,19 @@ class PythonSourceDiffView(wxStyledTextCtrl, EditorView, PythonStyledTextCtrlMix
     nextBmp = 'Images/Shared/Next.bmp'
     def __init__(self, parent, model):
         wxID_PYTHONSOURCEDIFFVIEW = wxNewId()
-        
-        wxStyledTextCtrl.__init__(self, parent, wxID_PYTHONSOURCEDIFFVIEW, 
+
+        wxStyledTextCtrl.__init__(self, parent, wxID_PYTHONSOURCEDIFFVIEW,
           style = wx.wxCLIP_CHILDREN)
         PythonStyledTextCtrlMix.__init__(self, wxID_PYTHONSOURCEDIFFVIEW, 0)
         ClosableViewMix.__init__(self, 'diffs')
-        EditorView.__init__(self, model, 
+        EditorView.__init__(self, model,
           ( ('Refresh', self.OnRefresh, self.refreshBmp, keyDefs['Refresh']), ) +
-            self.closingActionItems +    
+            self.closingActionItems +
           ( ('-', None, '', ()),
             ('Previous difference', self.OnPrev, self.prevBmp, ()),
             ('Next difference', self.OnNext, self.nextBmp, ()),
             ('Apply all changes', self.OnApplyAllChanges, '-', ()) ), -1)
-        
+
         self.SetMarginType(1, wxSTC_MARGIN_SYMBOL)
         self.SetMarginWidth(1, 16)
         self.MarkerDefine(uniqueFile1Mrk, wxSTC_MARK_MINUS, 'BLACK', 'WHITE')
@@ -71,15 +71,15 @@ class PythonSourceDiffView(wxStyledTextCtrl, EditorView, PythonStyledTextCtrlMix
 
         self.SetMarginSensitive(1, wx.true)
         EVT_STC_MARGINCLICK(self, wxID_PYTHONSOURCEDIFFVIEW, self.OnMarginClick)
-                
-        self.tabName = 'Diff'  
+
+        self.tabName = 'Diff'
         self.diffWith = ''
         self.currSearchLine = 1
 
         ## Install the handler for refreshs.
         if wx.wxPlatform == '__WXGTK__':
             self.paint_handler = Utils.PaintEventHandler(self)
-        
+
         self.active = wx.true
 
     def refreshCtrl(self):
@@ -108,12 +108,12 @@ class PythonSourceDiffView(wxStyledTextCtrl, EditorView, PythonStyledTextCtrlMix
         if offset != -1: self.SetCurrentPosition(self.GetCurrentPos()+offset+1)
 
     def OnUpdateUI(self, event):
-	if Preferences.braceHighLight:
+        if Preferences.braceHighLight:
             PythonStyledTextCtrlMix.OnUpdateUI(self, event)
 
     def OnRefresh(self, event):
         self.refreshModel()
-    
+
     def OnMarginClick(self, event):
         if event.GetMargin() == 1:
             ln = self.GetLineFromPos(event.GetPosition())
@@ -122,7 +122,7 @@ class PythonSourceDiffView(wxStyledTextCtrl, EditorView, PythonStyledTextCtrlMix
 
     def OnPrev(self, event):
         print 'Prev'
-        self.currSearchLine = self.MarkerGetPrevLine(self.currSearchLine, 
+        self.currSearchLine = self.MarkerGetPrevLine(self.currSearchLine,
           maskMarkSet) - 1
 #        self.SetFocus()
 #        self.EnsureVisible(self.currSearchLine)
@@ -131,18 +131,16 @@ class PythonSourceDiffView(wxStyledTextCtrl, EditorView, PythonStyledTextCtrlMix
 
     def OnNext(self, event):
         print 'Next'
-        self.currSearchLine = self.MarkerGetNextLine(self.currSearchLine, 
+        self.currSearchLine = self.MarkerGetNextLine(self.currSearchLine,
           maskMarkSet) + 1
 #        self.SetFocus()
         self.gotoLine(self.currSearchLine - 1)
 #        self.EnsureVisible(self.currSearchLine)
         print 'Next', self.currSearchLine
-    
-    def OnApplyAllChanges(self, event):
-        if self.diffWith and Utils.yesNoDialog(self, 'Are you sure?', 
-          'Replace %s with %s?'% (self.model.filename, self.diffWith)):
-              shutil.copyfile(self.diffWith, self.model.filename)
-              self.model.load()
-              self.deleteFromNotebook('Source', self.tabName)
-              
 
+    def OnApplyAllChanges(self, event):
+        if self.diffWith and Utils.yesNoDialog(self, 'Are you sure?',
+          'Replace %s with %s?'% (self.model.filename, self.diffWith)):
+            shutil.copyfile(self.diffWith, self.model.filename)
+            self.model.load()
+            self.deleteFromNotebook('Source', self.tabName)

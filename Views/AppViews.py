@@ -1,10 +1,10 @@
 #-----------------------------------------------------------------------------
 # Name:        AppViews.py
-# Purpose:     
-#                
+# Purpose:
+#
 # Author:      Riaan Booysen
-#                
-# Created:     
+#
+# Created:
 # RCS-ID:      $Id$
 # Copyright:   (c) 1999, 2000 Riaan Booysen
 # Licence:     GPL
@@ -13,7 +13,7 @@
 from wxPython.wx import *
 
 from EditorViews import ListCtrlView, ModuleDocView, wxwAppModuleTemplate, CyclopsView, ClosableViewMix
-import ProfileView 
+import ProfileView
 import PySourceView
 from PrefsKeys import keyDefs
 import Search
@@ -23,17 +23,17 @@ try:
     from cmp import cmp
 except ImportError:
     from filecmp import cmp
-    
+
 class AppFindResults(ListCtrlView, ClosableViewMix):
     gotoLineBmp = 'Images/Editor/GotoLine.bmp'
 
     viewName = 'Application Find Results'
     def __init__(self, parent, model):
         ClosableViewMix.__init__(self, 'find results')
-        ListCtrlView.__init__(self, parent, model, wxLC_REPORT, 
+        ListCtrlView.__init__(self, parent, model, wxLC_REPORT,
           ( ('Goto match', self.OnGoto, self.gotoLineBmp, ()), ) +
             self.closingActionItems, 0)
-           
+
         self.InsertColumn(0, 'Module', width = 100)
         self.InsertColumn(1, 'Line no', wxLIST_FORMAT_CENTRE, 40)
         self.InsertColumn(2, 'Col', wxLIST_FORMAT_CENTRE, 40)
@@ -41,8 +41,8 @@ class AppFindResults(ListCtrlView, ClosableViewMix):
 
         self.results = {}
         self.listResultIdxs = []
-        self.tabName = 'Results'  
-        self.findPattern = ''  
+        self.tabName = 'Results'
+        self.findPattern = ''
         self.active = true
         self.model = model
 
@@ -51,16 +51,11 @@ class AppFindResults(ListCtrlView, ClosableViewMix):
         i = 0
         self.listResultIdxs = []
         for mod in self.results.keys():
-            for result in self.results[mod]:   
+            for result in self.results[mod]:
                 self.listResultIdxs.append((mod, result))
-                i = self.addReportItems(i, path.basename(mod), `result[0]`, 
-                  `result[1]`, string.strip(result[2]))
-                
-##                self.InsertStringItem(i, path.basename(mod))
-##                self.SetStringItem(i, 1, `result[1]`)
-##                self.SetStringItem(i, 2, `result[0]`)
-##                self.SetStringItem(i, 3, string.strip(result[2]))
-##                i = i + 1
+                i = self.addReportItems(i, (path.basename(mod), `result[0]`,
+                  `result[1]`, string.strip(result[2])) )
+
         self.pastelise()
 
     def OnGoto(self, event):
@@ -95,10 +90,10 @@ class AppView(ListCtrlView):
 
     viewName = 'Application'
     def __init__(self, parent, model):
-        ListCtrlView.__init__(self, parent, model, wxLC_REPORT, 
+        ListCtrlView.__init__(self, parent, model, wxLC_REPORT,
           (('Open', self.OnOpen, self.openBmp, ()),
-#           ('Open all modules', self.OnOpenAll, self.openAllBmp, ()), 
-           ('Save all modules', self.OnSaveAll, self.saveAllBmp, ()), 
+#           ('Open all modules', self.OnOpenAll, self.openAllBmp, ()),
+           ('Save all modules', self.OnSaveAll, self.saveAllBmp, ()),
            ('-', None, '', ()),
            ('Add', self.OnAdd, self.addModBmp, keyDefs['Insert']),
            ('Edit', self.OnEdit, '-', ()),
@@ -106,6 +101,8 @@ class AppView(ListCtrlView):
            ('-', None, '', ()),
            ('Find', self.OnFind, self.findBmp, keyDefs['Find']),
            ('-', None, '', ()),
+           ('Make module main module', self.OnMakeMain, '-', ()),
+           ('-', None, '-', ()),
            ('Cyclops', self.OnCyclops, self.cyclBmp, ()),
            ('-', None, '', ()),
            ('Profile', self.OnProfile, self.profileBmp, ()),
@@ -115,7 +112,7 @@ class AppView(ListCtrlView):
 
 #           ('-', None, '', ()),
 #           ('Imports...', self.OnImports, self.importsBmp, ())
-           
+
         self.InsertColumn(0, 'Module', width = 150)
         self.InsertColumn(1, 'Type', width = 50)
 #        self.InsertColumn(2, 'Autocreate', wxLIST_FORMAT_CENTRE, 50)
@@ -123,11 +120,11 @@ class AppView(ListCtrlView):
         self.InsertColumn(3, 'Relative path', width = 220)
 
         self.sortOnColumns = [0, 1, 3]
-        
+
         EVT_LIST_BEGIN_DRAG(self, self.GetId(), self.OnDrag)
 
         self.SetImageList(model.editor.modelImageList, wxIMAGE_LIST_SMALL)
-        
+
         self.lastSearchPattern = ''
         self.active = true
         self.model = model
@@ -137,7 +134,6 @@ class AppView(ListCtrlView):
         print 'drag', dir(event.__class__.__bases__[0])
 
     def refreshCtrl(self):
-        # XXX Add 'type' sortable column
         ListCtrlView.refreshCtrl(self)
         i = 0
         modSort = self.model.modules.keys()
@@ -154,22 +150,17 @@ class AppView(ListCtrlView):
                 if self.model.moduleModels.has_key(mod):
                     imgIdx = self.model.moduleModels[mod].imgIdx
                     modTpe = self.model.moduleModels[mod].modelIdentifier
-                    
+
             appMod = self.model.modules[mod]
-            self.InsertImageStringItem(i, mod, imgIdx)
-            self.SetStringItem(i, 1, modTpe)
-#            self.SetStringItem(i, 2, `appMod[0]`)
-            self.SetStringItem(i, 2, appMod[1])
-            self.SetStringItem(i, 3, appMod[2])
-            self.SetItemData(i, i)
-            i = i + 1
-        
+
+            i = self.addReportItems(i, (mod, modTpe, appMod[1], appMod[2]), imgIdx)
+
         self.pastelise()
 
     def OnOpen(self, event):
         if self.selected >= 0:
             self.model.openModule(self.GetItemText(self.selected))
-            
+
     def OnAdd(self, event):
         self.model.viewAddModule()
 
@@ -191,10 +182,10 @@ class AppView(ListCtrlView):
             wxEndBusyCursor()
 
     def OnDebugger(self, event):
-        self.model.debug()  
-    
+        self.model.debug()
+
     def OnProfile(self, event):
-        stats = self.model.profile()
+        stats, profDir = self.model.profile()
         resName = 'Profile stats: %s'%strftime('%H:%M:%S', gmtime(time()))
         if not self.model.views.has_key(resName):
             resultView = self.model.editor.addNewView(resName, ProfileView.ProfileStatsView)
@@ -202,6 +193,7 @@ class AppView(ListCtrlView):
             resultView = self.model.views[resName]
         resultView.tabName = resName
         resultView.stats = stats
+        resultView.profDir = profDir
         resultView.refresh()
         resultView.focus()
 
@@ -211,14 +203,14 @@ class AppView(ListCtrlView):
             self.model.crashLog()
         finally:
             wxEndBusyCursor()
-    
+
     def OnCyclops(self, event):
         wxBeginBusyCursor()
         try:
             report = self.model.cyclops()
         finally:
             wxEndBusyCursor()
-        
+
         resName = 'Cyclops report: %s'%strftime('%H:%M:%S', gmtime(time()))
         if not self.model.views.has_key(resName):
             resultView = self.model.editor.addNewView(resName, CyclopsView)
@@ -227,7 +219,7 @@ class AppView(ListCtrlView):
         resultView.tabName = resName
         resultView.report = report
         resultView.refresh()
-        resultView.focus()        
+        resultView.focus()
 
     def OnImports(self, events):
         wxBeginBusyCursor()
@@ -243,7 +235,7 @@ class AppView(ListCtrlView):
 
     def OnOpenAll(self, event):
         modules = self.model.modules.keys()
-        modules.sort() 
+        modules.sort()
         for mod in modules:
             try:
                 self.model.editor.openOrGotoModule(\
@@ -256,14 +248,14 @@ class AppView(ListCtrlView):
             if mod != self.model:
                 if hasattr(mod, 'app') and mod.app == self.model and \
                   (mod.modified or len(mod.viewsModified)):
-                    print 'saving', mod.filename  
+                    print 'saving', mod.filename
                     if len(mod.viewsModified):
                         mod.refreshFromViews()
                     modulePage.saveOrSaveAs()
             else:
                 appModPage = modulePage
         appModPage.saveOrSaveAs()
-        
+
 
     def OnFind(self, event):
         dlg = wxTextEntryDialog(self.model.editor, 'Enter text:', 'Find in application', self.lastSearchPattern)
@@ -277,10 +269,10 @@ class AppView(ListCtrlView):
                     filename = self.model.moduleFilename(mod)
                     if self.model.editor.modules.has_key(filename):
                         results = Search.findInText(string.split(\
-                          self.model.editor.modules[filename].model.data, '\n'), 
+                          self.model.editor.modules[filename].model.data, '\n'),
                           self.lastSearchPattern, false, true)
                     else:
-                        results = Search.findInFile(filename, 
+                        results = Search.findInFile(filename,
                           self.lastSearchPattern, false, true)
                     applicationResults[mod] = results
 
@@ -294,10 +286,14 @@ class AppView(ListCtrlView):
                 resultView.findPattern = self.lastSearchPattern
                 resultView.refresh()
                 resultView.focus()
-                        
+
         finally:
             dlg.Destroy()
             event.Skip()
+
+    def OnMakeMain(self, event):
+        if self.selected >= 0:
+            self.model.changeMainFrameModule(self.GetItemText(self.selected))
 
 
 class AppModuleDocView(ModuleDocView):
@@ -332,27 +328,27 @@ class AppModuleDocView(ModuleDocView):
           'Module': self.model.moduleName,
           'ModuleList': self.genModuleListSect()[0],
           'ClassList': classList,
-        }  
+        }
 
         return self.genClassesSect(page + modBody, classNames)
-      
+
 class AppCompareView(ListCtrlView, ClosableViewMix):
     gotoLineBmp = 'Images/Editor/GotoLine.bmp'
 
     viewName = 'App. Compare'
     def __init__(self, parent, model):
         ClosableViewMix.__init__(self, 'compare results')
-        ListCtrlView.__init__(self, parent, model, wxLC_REPORT, 
+        ListCtrlView.__init__(self, parent, model, wxLC_REPORT,
           ( ('Do diff', self.OnGoto, self.gotoLineBmp, ()), ) +
            self.closingActionItems, 0)
-           
+
         self.InsertColumn(0, 'Module', width = 100)
         self.InsertColumn(1, 'Differs from', width = 450)
         self.InsertColumn(2, 'Result', width = 75)
 
         self.results = {}
         self.listResultIdxs = []
-        self.tabName = 'App. Compare'  
+        self.tabName = 'App. Compare'
         self.active = true
         self.model = model
         self.compareTo = ''
@@ -362,16 +358,16 @@ class AppCompareView(ListCtrlView, ClosableViewMix):
         from EditorModels import AppModel
         otherApp = AppModel('', self.compareTo, '', self.model.editor, true, {})
         otherApp.load()
-        
+
         otherApp.readModules()
-        
+
         i = 0
 
         # Compare apps
         if not cmp(self.model.filename, otherApp.filename):
-            i = self.addReportItems(i, 
-              path.splitext(path.basename(self.model.filename))[0], 
-              otherApp.filename, 'changed')
+            i = self.addReportItems(i,
+              (path.splitext(path.basename(self.model.filename))[0],
+              otherApp.filename, 'changed'))
 
         # Find changed modules and modules not occuring in other module
         for module in self.model.modules.keys():
@@ -379,17 +375,17 @@ class AppCompareView(ListCtrlView, ClosableViewMix):
                 otherFile = otherApp.moduleFilename(module)
                 try:
                     if not cmp(self.model.moduleFilename(module), otherFile):
-                        i = self.addReportItems(i, module, otherFile, 'changed')
+                        i = self.addReportItems(i, (module, otherFile, 'changed') )
                 except OSError:
                     pass
             else:
-                i = self.addReportItems(i, module, '', 'deleted')
-        
+                i = self.addReportItems(i, (module, '', 'deleted') )
+
         # Find modules only occuring in other module
         for module in otherApp.modules.keys():
             if not self.model.modules.has_key(module):
                 otherFile = otherApp.moduleFilename(module)
-                i = self.addReportItems(i, module, '', 'added')
+                i = self.addReportItems(i, (module, '', 'added') )
 
         self.pastelise()
 
@@ -404,12 +400,12 @@ class AppCompareView(ListCtrlView, ClosableViewMix):
 class TextInfoFileView(PySourceView.EditorStyledTextCtrl):
     viewName = 'TextInfo'
     def __init__(self, parent, model):
-        PySourceView.EditorStyledTextCtrl.__init__(self, parent, -1, 
+        PySourceView.EditorStyledTextCtrl.__init__(self, parent, -1,
           model, (), 0)
         self.active = true
         PySourceView.EVT_STC_UPDATEUI(self, self.GetId(), self.OnUpdateUI)
         self.model.loadTextInfo(self.viewName)
-    
+
     def OnUpdateUI(self, event):
         # don't update if not fully initialised
         if hasattr(self, 'pageIdx'):
@@ -417,20 +413,20 @@ class TextInfoFileView(PySourceView.EditorStyledTextCtrl):
 
     def getModelData(self):
         return self.model.textInfos[self.viewName]
-        
+
     def setModelData(self, data):
         self.model.textInfos[self.viewName] = data
         if self.viewName not in self.model.unsavedTextInfos:
             self.model.unsavedTextInfos.append(self.viewName)
 
-class AppREADME_TIFView(TextInfoFileView): 
+class AppREADME_TIFView(TextInfoFileView):
     viewName = 'Readme.txt'
 
-class AppTODO_TIFView(TextInfoFileView): 
+class AppTODO_TIFView(TextInfoFileView):
     viewName = 'Todo.txt'
 
-class AppBUGS_TIFView(TextInfoFileView): 
+class AppBUGS_TIFView(TextInfoFileView):
     viewName = 'Bugs.txt'
 
-class AppCHANGES_TIFView(TextInfoFileView): 
+class AppCHANGES_TIFView(TextInfoFileView):
     viewName = 'Changes.txt'

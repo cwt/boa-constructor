@@ -1,6 +1,6 @@
 #----------------------------------------------------------------------
 # Name:        OGLViews.py
-# Purpose:     
+# Purpose:
 #
 # Author:      Riaan Booysen
 #
@@ -9,12 +9,16 @@
 # Copyright:   (c) 1999, 2000 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
-from wxPython.wx import *
-from wxPython.ogl import *
-import EditorViews
-from Preferences import IS
+
 import pickle
 from os import path
+
+from wxPython.wx import *
+from wxPython.ogl import *
+
+from Preferences import IS
+
+import EditorViews
 
 wxOGLInitialize()
 
@@ -74,22 +78,22 @@ class MyEvtHandler(wxShapeEvtHandler):
 incy = 45
 
 class PersistentShapeCanvas(wxShapeCanvas):
-    ext = '.lay' 
+    ext = '.lay'
     def __init__(self, parent):
         wxShapeCanvas.__init__(self, parent)
-        self.shapes = []   
+        self.shapes = []
 
     def saveSizes(self, filename):
         '''Build a picklable dictionary of sizes/positions and save.'''
         persProps = {}
-        
+
         for shape in self.shapes:
             try:
                 if hasattr(shape, 'unqPclName'):
                     persProps[shape.unqPclName] = shape.getPos()
             except:
                 print 'error:', shape
-                raise 
+                raise
 
 
         f = open(filename, 'w')
@@ -97,7 +101,7 @@ class PersistentShapeCanvas(wxShapeCanvas):
         f.close()
 
     def loadSizes(self, filename):
-        # construct list of non matching 
+        # construct list of non matching
 
         f = open(filename, 'r')
         persProps = pickle.load(f)
@@ -116,9 +120,9 @@ class PersistentShapeCanvas(wxShapeCanvas):
 #            if shape.unqPclName in matchedShapes:
             if persProps.has_key(shape.unqPclName):
 #                size, pos = persProps[shape.unqPclName]
-#                shape.setSize(size)  
+#                shape.setSize(size)
                 pos = persProps[shape.unqPclName]
-                shape.setPos(pos)  
+                shape.setPos(pos)
 
         diagram = self.GetDiagram()
         canvas = diagram.GetCanvas()
@@ -126,14 +130,14 @@ class PersistentShapeCanvas(wxShapeCanvas):
         canvas.PrepareDC(dc)
         for shape in self.shapes:
             shape.Move(dc, shape.GetX(), shape.GetY())
-#            shape.SetRegionSizes() 
+#            shape.SetRegionSizes()
         diagram.Clear(dc)
         diagram.Redraw(dc)
 
 
 class PerstShape:
     def __init__(self, unqPclName):
-       self.unqPclName = unqPclName
+        self.unqPclName = unqPclName
 
     def setPos(self, pos):
         """Must be implemented for any class deriving from it, called
@@ -142,7 +146,7 @@ class PerstShape:
     def getPos(self, pos):
         """Must be implemented for any class deriving from it, called
          before reading sizes into pickle."""
-         
+
 
 class PerstDividedShape(wxDividedShape, PerstShape):
     def __init__(self, unqPclName, width, height):
@@ -195,11 +199,11 @@ class PersistentOGLView(PersistentShapeCanvas, EditorViews.EditorView):
         self.shapes = []
 
         self.active = true
-    
+
     def destroy(self):
         self.destroyShapes()
         EditorViews.EditorView.destroy(self)
-        
+
     def destroyShapes(self):
         self.shapes = []
         self.diagram.DeleteAllShapes()
@@ -259,9 +263,9 @@ class PersistentOGLView(PersistentShapeCanvas, EditorViews.EditorView):
         shape.SetEventHandler(evthandler)
 
         self.shapes.append(shape)
-        
+
         return len(self.shapes) -1
-        
+
     def OnLoad(self, event):
         self.loadSizes(path.splitext(self.model.filename)[0]+self.ext)
 
@@ -273,10 +277,10 @@ class PersistentOGLView(PersistentShapeCanvas, EditorViews.EditorView):
         self.diagram.RecentreAll(dc)
 
 if wxPlatform == '__WXGTK__':
-    boldFont = wxFont(12, wxDEFAULT, wxNORMAL, wxBOLD, false)   
+    boldFont = wxFont(12, wxDEFAULT, wxNORMAL, wxBOLD, false)
     font = wxFont(10, wxDEFAULT, wxNORMAL, wxNORMAL, false)
 else:
-    boldFont = wxFont(7, wxDEFAULT, wxNORMAL, wxBOLD, false)   
+    boldFont = wxFont(7, wxDEFAULT, wxNORMAL, wxBOLD, false)
     font = wxFont(7, wxDEFAULT, wxNORMAL, wxNORMAL, false)
 
 class UMLView(PersistentOGLView):
@@ -310,27 +314,27 @@ class UMLView(PersistentOGLView):
         regionName, maxWidth, nameHeight = self.newRegion(boldFont, 'class_name', [className], maxWidth)
         regionAttribs, maxWidth, attribsHeight = self.newRegion(font, 'attributes', classAttrs, maxWidth)
         regionMeths, maxWidth, methsHeight = self.newRegion(font, 'methods', classMeths, maxWidth)
-        
+
         totHeight = nameHeight + attribsHeight + methsHeight
 
         regionName.SetProportions(0.0, 1.0*(nameHeight/float(totHeight)))
         regionAttribs.SetProportions(0.0, 1.0*(attribsHeight/float(totHeight)))
         regionMeths.SetProportions(0.0, 1.0*(methsHeight/float(totHeight)))
-       
+
         shape.AddRegion(regionName)
         shape.AddRegion(regionAttribs)
         shape.AddRegion(regionMeths)
 
         shape.SetSize(maxWidth + 10, totHeight + 10)
-        
+
         shape.SetRegionSizes()
-        
-        idx = self.addShape(shape, pos[0], pos[1], wxBLACK_PEN, 
+
+        idx = self.addShape(shape, pos[0], pos[1], wxBLACK_PEN,
           wxLIGHT_GREY_BRUSH, '')
 
         shape.FlushText()
 
-        return self.shapes[idx] 
+        return self.shapes[idx]
 
     def newExternalClass(self, size, pos, className):
         shape = PerstDividedShape(className, size[0], size[1])
@@ -338,33 +342,33 @@ class UMLView(PersistentOGLView):
         maxWidth = 10 #padding
 
         regionName, maxWidth, nameHeight = self.newRegion(boldFont, 'class_name', [className], maxWidth)
-        
+
         totHeight = nameHeight
 
         regionName.SetProportions(0.0, 1.0*(nameHeight/float(totHeight)))
-       
+
         shape.AddRegion(regionName)
 
         shape.SetSize(maxWidth + 10, totHeight + 10)
-        
+
         shape.SetRegionSizes()
-        
-        idx = self.addShape(shape, pos[0], pos[1], wxBLACK_PEN, 
+
+        idx = self.addShape(shape, pos[0], pos[1], wxBLACK_PEN,
           wxGREY_BRUSH, '')
 
         shape.FlushText()
 
-        return self.shapes[idx] 
+        return self.shapes[idx]
 
     def processLevel(self, dc, hierc, pos, incx, fromShape = None):
         module = self.model.getModule()
         for clss in hierc.keys():
             if self.AllClasses.has_key(clss):
                 toShape = self.AllClasses[clss]
-                px, py = pos[0], pos[1] 
+                px, py = pos[0], pos[1]
             else:
                 if module.classes.has_key(clss):
-                    toShape = self.newClass((20, 30), (pos[0], pos[1]), 
+                    toShape = self.newClass((20, 30), (pos[0], pos[1]),
                       clss, module.classes[clss].methods.keys(),
                        module.classes[clss].attributes.keys())
                     self.AllClasses[clss] = toShape
@@ -374,9 +378,9 @@ class UMLView(PersistentOGLView):
                 toShape.SetId(1000 + len(self.AllClasses))
                 k = hierc[clss].keys()
                 if len(k):
-                    px, py, incx = self.processLevel(dc, hierc[clss], 
+                    px, py, incx = self.processLevel(dc, hierc[clss],
                         [pos[0], pos[1]+incy], incx, toShape)
-                else: px, py = pos[0], pos[1] 
+                else: px, py = pos[0], pos[1]
             if fromShape:
                 self.newLine(dc, toShape, fromShape)
 
@@ -389,14 +393,14 @@ class UMLView(PersistentOGLView):
                 pos[1] = py + incy
                 pos[0] = 700
                 incx = incx *-1
-        
+
         return pos[0], pos[1], incx
-        
+
 
     def refreshCtrl(self):
         dc = wxClientDC(self)
         self.PrepareDC(dc)
-        
+
         self.destroyShapes()
         self.AllClasses = {}
 
@@ -404,10 +408,10 @@ class UMLView(PersistentOGLView):
         hierc = module.createHierarchy()
 
         pos = [40, 40]
-        
+
         incx = 40
         self.processLevel(dc, hierc, pos, incx)
-        
+
         PersistentOGLView.refreshCtrl(self)
 
     def OnToggleMethods(self, event):
@@ -448,7 +452,7 @@ class UMLView(PersistentOGLView):
         else:
             print "No shape selected"
 
-    ## This allows me to pop-up a menu for the shape. However it loses the 
+    ## This allows me to pop-up a menu for the shape. However it loses the
     ## main menu position (x, y) go to 0,0 after the skip
     def OnRightDown(self, event):
         """If the event occurs on one of our shapes, I want to pop-up a shape"""
@@ -456,10 +460,10 @@ class UMLView(PersistentOGLView):
         for (name, shape) in self.AllClasses.items():
             (hit, attach_point, distance) = shape.HitTest(x, y)
             if hit: break
-        if not hit: 
+        if not hit:
             self.PopupMenu(self.menu, wxPoint(x, y))
             return
-        # If we reach this point, then we have a selected shape. 
+        # If we reach this point, then we have a selected shape.
         # However, it may be a class or external
         if self.model.getModule().classes.has_key(name):
             (self.menuShape, self.menuClass) = (shape, name)
@@ -477,39 +481,42 @@ class ImportsView(PersistentOGLView):
            ('Refresh', self.OnRefresh, self.refreshBmp, ()))
         )
         self.relationships = None
-     
+        self.showImports = 1
+
     def newModule(self, size, pos, moduleName, importList):
-        idx = self.addShape(PerstDividedShape(moduleName, size[0], size[1]), 
+        idx = self.addShape(PerstDividedShape(moduleName, size[0], size[1]),
           pos[0], pos[1], wxBLACK_PEN, wxLIGHT_GREY_BRUSH, '')
+
+        if not self.showImports: importList = [' ']
 
         maxWidth = 10 #padding
 
-        regionName, maxWidth, nameHeight = self.newRegion(boldFont, 
+        regionName, maxWidth, nameHeight = self.newRegion(boldFont,
           'module_name', [moduleName], maxWidth)
-        regionClss, maxWidth, clssHeight = self.newRegion(font, 
+        regionClss, maxWidth, clssHeight = self.newRegion(font,
           'methods', importList, maxWidth)
-        
+
         totHeight = nameHeight + clssHeight
- 
+
         regionName.SetProportions(0.0, 1.0*(nameHeight/float(totHeight)))
         regionClss.SetProportions(0.0, 1.0*(clssHeight/float(totHeight)))
-       
+
         shape = self.shapes[idx]
         shape.AddRegion(regionName)
         shape.AddRegion(regionClss)
 
         shape.SetSize(maxWidth + 10, totHeight + 10)
-        
+
         shape.SetRegionSizes()
         shape.FlushText()
-        
+
         return shape, maxWidth + 10
 
     def refreshCtrl(self):
         dc = wxClientDC(self)
         self.PrepareDC(dc)
 
-        # Because of slow building process, cache after first time  
+        # Because of slow building process, cache after first time
         if not self.relationships:
             relations = self.model.buildImportRelationshipDict()
             self.relationships = relations
@@ -526,21 +533,21 @@ class ImportsView(PersistentOGLView):
             impLst = []
             for i in relations[rel].imports.keys():
                 if relations.has_key(i): impLst.append(i)
-            
+
             shape, width = self.newModule((20, 30), (p, y), rel, relations[rel].classes.keys())
             shapes[rel] = (shape, impLst)
             p = p + width + 10
             if p > self.GetSize().x:
                 p = 10
                 y = y + 120
-        
+
         # Add lines
         for module in shapes.keys():
             for line in shapes[module][1]:
                 self.newLine(dc, shapes[module][0], shapes[line][0])
 
         PersistentOGLView.refreshCtrl(self)
-    
+
     def OnRefresh(self, event):
         self.relationships = None
         self.refreshCtrl()
@@ -557,39 +564,39 @@ class AppPackageView(PersistentOGLView):
            ('Refresh', self.OnRefresh, self.refreshBmp, ()))
         )
         self.relationships = None
-     
+
     def newModule(self, size, pos, moduleName, importList):
-        idx = self.addShape(PerstDividedShape(moduleName, size[0], size[1]), 
+        idx = self.addShape(PerstDividedShape(moduleName, size[0], size[1]),
           pos[0], pos[1], wxBLACK_PEN, wxLIGHT_GREY_BRUSH, '')
 
         maxWidth = 10 #padding
 
-        regionName, maxWidth, nameHeight = self.newRegion(boldFont, 
+        regionName, maxWidth, nameHeight = self.newRegion(boldFont,
           'module_name', [moduleName], maxWidth)
-        regionClss, maxWidth, clssHeight = self.newRegion(font, 
+        regionClss, maxWidth, clssHeight = self.newRegion(font,
           'methods', importList, maxWidth)
-        
+
         totHeight = nameHeight + clssHeight
- 
+
         regionName.SetProportions(0.0, 1.0*(nameHeight/float(totHeight)))
         regionClss.SetProportions(0.0, 1.0*(clssHeight/float(totHeight)))
-       
+
         shape = self.shapes[idx]
         shape.AddRegion(regionName)
         shape.AddRegion(regionClss)
 
         shape.SetSize(maxWidth + 10, totHeight + 10)
-        
+
         shape.SetRegionSizes()
         shape.FlushText()
-        
+
         return shape, maxWidth + 10
 
     def refreshCtrl(self):
         dc = wxClientDC(self)
         self.PrepareDC(dc)
 
-        # Because of slow building process, cache after first time  
+        # Because of slow building process, cache after first time
         if not self.relationships:
             relations = self.model.buildImportRelationshipDict()
             self.relationships = relations
@@ -606,21 +613,21 @@ class AppPackageView(PersistentOGLView):
             impLst = []
             for i in relations[rel].imports.keys():
                 if relations.has_key(i): impLst.append(i)
-            
+
             shape, width = self.newModule((20, 30), (p, y), rel, relations[rel].classes.keys())
             shapes[rel] = (shape, impLst)
             p = p + width + 10
             if p > self.GetSize().x:
                 p = 10
                 y = y + 120
-        
+
         # Add lines
         for module in shapes.keys():
             for line in shapes[module][1]:
                 self.newLine(dc, shapes[module][0], shapes[line][0])
 
         PersistentOGLView.refreshCtrl(self)
-    
+
     def OnRefresh(self, event):
         self.relationships = None
         self.refreshCtrl()
@@ -632,8 +639,3 @@ class __Cleanup:
 
 # when this module gets cleaned up then wxOGLCleanUp() will get called
 __cu = __Cleanup()
-
-
-          
-        
-    
