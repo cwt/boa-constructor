@@ -6,9 +6,10 @@
 #
 # Created:     2000/27/02
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999, 2000 Riaan Booysen
+# Copyright:   (c) 1999 - 2002 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
+print 'importing Companions.DialogCompanions'
 
 from wxPython.wx import *
 

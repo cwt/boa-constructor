@@ -7,7 +7,7 @@
 #
 # Created:     1999
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999, 2000 Riaan Booysen
+# Copyright:   (c) 1999 - 2001 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
 
@@ -50,11 +50,6 @@ class WindowConstr(PropertyKeywordConstructor):
 
 ##wxScrolledWindow(wxWindow* parent, wxWindowID id = -1, const wxPoint& pos = wxDefaultPosition,
 ##const wxSize& size = wxDefaultSize long, style = wxHSCROLL | wxVSCROLL, const wxString& name = "scrolledWindow")
-
-class SplitterWindowConstr(PropertyKeywordConstructor):
-    def constructor(self):
-        return {'Position': 'point', 'Size': 'size', 'Style': 'style', 'Name': 'name'}
-
 
 class MenuBarConstr(PropertyKeywordConstructor):
     def constructor(self):
@@ -120,61 +115,6 @@ class ListConstr(PropertyKeywordConstructor):
 ##wxSpinButton(wxWindow* parent, wxWindowID id, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style =
 ##wxSP_HORIZONTAL, const wxValidator& validator = wxDefaultValidator, const wxString& name = "spinButton")
 
-class ComboConstr(PropertyKeywordConstructor):
-    def constructor(self):
-        return {'Value': 'value', 'Position': 'pos', 'Size': 'size',
-                'Choices': 'choices', 'Style': 'style', 'Validator': 'validator',
-                'Name': 'name'}
-##wxComboBox(wxWindow* parent, wxWindowID id, const wxString& value = "", const wxPoint& pos =
-##wxDefaultPosition, const wxSize& size = wxDefaultSize, int n, const wxString choices[], long style = 0, const
-##wxValidator& validator = wxDefaultValidator, const wxString& name = "comboBox")
-
-
-
-class FramesConstr(PropertyKeywordConstructor):
-    def constructor(self):
-        return {'Title': 'title', 'Position': 'pos', 'Size': 'size',
-                'Style': 'style', 'Name': 'name'}
-##wxFrame(wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos =
-##wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = wxDEFAULT_FRAME_STYLE, const
-##wxString& name = "frame")
-
-##wxDialog(wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos =
-##wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = wxDEFAULT_DIALOG_STYLE, const
-##wxString& name = "dialogBox")
-
-##wxMiniFrame(wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos =
-##wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = wxDEFAULT_FRAME_STYLE, const
-##wxString& name = "frame")
-
-##wxMDIChildFrame(wxMDIParentFrame* parent, wxWindowID id, const wxString& title, const wxPoint& pos
-##= wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = wxDEFAULT_FRAME_STYLE, const
-##wxString& name = "frame")
-
-##wxMDIParentFrame(wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos =
-##wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = wxDEFAULT_FRAME_STYLE |
-##wxVSCROLL | wxHSCROLL, const wxString& name = "frame")
-
-
-class GaugeConstr(PropertyKeywordConstructor):
-    def constructor(self):
-        return {'Range': 'range', 'Position': 'pos', 'Size': 'size',
-                'Style': 'style', 'Validator': 'validator', 'Name': 'name'}
-##wxGauge(wxWindow* parent, wxWindowID id, int range, const wxPoint& pos = wxDefaultPosition, const
-##wxSize& size = wxDefaultSize, long style = wxGA_HORIZONTAL, const wxValidator& validator =
-##wxDefaultValidator, const wxString& name = "gauge")
-
-
-class SliderConstr(PropertyKeywordConstructor):
-    def constructor(self):
-        return {'Value': 'value', 'MinValue': 'minValue', 'MaxValue': 'maxValue',
-                'Position': 'point', 'Size': 'size', 'Style': 'style',
-                'Validator': 'validator', 'Name': 'name'}
-##wxSlider(wxWindow* parent, wxWindowID id, int value , int minValue, int maxValue, const wxPoint& point =
-##wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = wxSL_HORIZONTAL, const wxValidator&
-##validator = wxDefaultValidator, const wxString& name = "slider")
-
-
 class MultiItemCtrlsConstr(PropertyKeywordConstructor):
     def constructor(self):
         return {'Position': 'pos', 'Size': 'size', 'Style': 'style',
@@ -234,11 +174,6 @@ class MenuConstr(PropertyKeywordConstructor):
     def constructor(self):
         return {'Name': 'name', 'Title': 'title'}
 
-class MenuItemsConstr(PropertyKeywordConstructor):
-    def constructor(self):
-        return {'Id': 'id', 'Label': 'item', 'HelpString': 'helpString',
-                'Checkable': 'checkable'}
-
 class ListCtrlColumnsConstr(PropertyKeywordConstructor):
     def constructor(self):
         return {'Column': 'col', 'Heading': 'heading', 'Format': 'format',
@@ -265,24 +200,6 @@ class LayoutConstraintsConstr(PropertyKeywordConstructor):
     def constructor(self):
         return {'Relationship': 'rel', 'Edge': 'edge', 'OtherEdge': 'otherEdge',
                 'OtherWindow' : 'otherWin', 'Value': 'value', 'Margin': 'margin'}
-
-class GenButtonConstr(PropertyKeywordConstructor):
-    def constructor(self):
-        return {'Label': 'label', 'Position': 'pos', 'Size': 'size',
-                'Style': 'style', 'Validator': 'validator', 'Name': 'name'}
-
-class GenBitmapButtonConstr(PropertyKeywordConstructor):
-    def constructor(self):
-        return {'BitmapLabel': 'bitmap', 'Position': 'pos', 'Size': 'size',
-                'Style': 'style', 'Validator': 'validator', 'Name': 'name'}
-
-class ToolBarToolsConstr(PropertyKeywordConstructor):
-    def constructor(self):
-        return {'Id': 'id', 'Bitmap': 'bitmap', 'PushedBitmap': 'pushedBitmap',
-                'IsToggle': 'isToggle',
-#                'XPos': 'xPos', 'YPos': 'yPos',
-                'ShortHelpString': 'shortHelpString',
-                'LongHelpString': 'longHelpString'}
 
 class SizerControlsConstr(PropertyKeywordConstructor):
     def constructor(self):

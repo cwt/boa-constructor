@@ -7,7 +7,7 @@
 #
 # Created:     1999
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999 - 2001 Riaan Booysen
+# Copyright:   (c) 1999 - 2002 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
 
@@ -20,12 +20,15 @@ from wxPython.wx import *
 print 'importing extra wxPython libraries'
 from wxPython.grid import wxGrid
 from wxPython.html import wxHtmlWindow
-from wxPython.lib.buttons import wxGenButton, wxGenBitmapButton , wxGenToggleButton, wxGenBitmapToggleButton
+from wxPython.lib.buttons import wxGenButton, wxGenBitmapButton, wxGenBitmapTextButton
+from wxPython.lib.buttons import wxGenToggleButton, wxGenBitmapToggleButton, wxGenBitmapTextToggleButton
 from wxPython.stc import wxStyledTextCtrl
 from wxPython.lib.anchors import LayoutAnchors
 from wxPython.calendar import *
 from wxPython.utils import *
 from wxPython.ogl import *
+from wxPython.gizmos  import *
+from wxPython.help import *
 
 # XXX Fix less of these to import * !
 from PropEdit.PropertyEditors import *
@@ -57,7 +60,8 @@ class BaseFrameDTC(ContainerDTC):
         self.editors.update({'StatusBar': StatusBarClassLinkPropEdit,
                              'MenuBar': MenuBarClassLinkPropEdit,
                              'ToolBar': ToolBarClassLinkPropEdit })
-        self.triggers.update({'ToolBar': self.ChangeToolBar})
+        self.triggers.update({'ToolBar': self.ChangeToolBar,
+                              'StatusBar': self.ChangeStatusBar})
         self.windowStyles = ['wxDEFAULT_FRAME_STYLE', 'wxICONIZE',
               'wxMINIMIZE', 'wxMAXIMIZE', 'wxSTAY_ON_TOP', 'wxSYSTEM_MENU',
               'wxRESIZE_BORDER', 'wxTHICK_FRAME', 'wxFRAME_FLOAT_ON_PARENT',
@@ -71,7 +75,7 @@ class BaseFrameDTC(ContainerDTC):
         # passed to the frame constructor is actually means ClientSize on wxGTK.
         # By having this property always set, this overrides the frame size
         # and uses the same size on Win and Lin
-        props = ContainerDTC.dontPersistProps(self) 
+        props = ContainerDTC.dontPersistProps(self)
         props.remove('ClientSize')
         return props
 
@@ -98,11 +102,15 @@ class BaseFrameDTC(ContainerDTC):
         else:
             self.designer.disconnectToolBar(oldValue)
 
+    def ChangeStatusBar(self, oldValue, newValue):
+        pass
+        # XXX Cannot refresh designer because statusbar not yet connected
+
     def designTimeSource(self):
         return {'title': `self.name`,
-                'pos':  `wxDefaultFramePos`,
-                'size': `wxDefaultFrameSize`,
-                'name': `self.name`,
+                'pos':   `wxDefaultFramePos`,
+                'size':  `wxDefaultFrameSize`,
+                'name':  `self.name`,
                 'style': 'wxDEFAULT_FRAME_STYLE'}
 
     def dependentProps(self):
@@ -110,10 +118,12 @@ class BaseFrameDTC(ContainerDTC):
           ['ToolBar', 'MenuBar', 'StatusBar']
 
     def notification(self, compn, action):
+        ContainerDTC.notification(self, compn, action)
         if action == 'delete':
             # StatusBar
             sb = self.control.GetStatusBar()
-            if sb and sb.GetId() == compn.control.GetId():
+##            if sb and sb.GetId() == compn.control.GetId():
+            if sb and `sb` == `compn.control`:
                 self.propRevertToDefault('StatusBar', 'SetStatusBar')
                 self.control.SetStatusBar(None)
 
@@ -121,7 +131,7 @@ class BaseFrameDTC(ContainerDTC):
             # XXX MenuBar's have to be handled with care
             # XXX and can only be connected to a frame once
             mb = self.control.GetMenuBar()
-            if mb and mb.GetId() == compn.control.GetId():
+            if mb and `mb` == `compn.control`:
                 self.propRevertToDefault('MenuBar', 'SetMenuBar')
                 self.control.SetMenuBar(None)
                 if wxPlatform == '__WXGTK__':
@@ -129,7 +139,7 @@ class BaseFrameDTC(ContainerDTC):
 
             # ToolBar
             tb = self.control.GetToolBar()
-            if tb and tb.GetId() == compn.control.GetId():
+            if tb and `tb` == `compn.control`:
                 self.propRevertToDefault('ToolBar', 'SetToolBar')
                 self.control.SetToolBar(None)
 
@@ -145,6 +155,12 @@ class BaseFrameDTC(ContainerDTC):
                 if prop.prop_name == 'ClientSize':
                     size = self.control.GetClientSize()
                     prop.params = ['wxSize(%d, %d)' % (size.x, size.y)]
+
+
+class FramesConstr(PropertyKeywordConstructor):
+    def constructor(self):
+        return {'Title': 'title', 'Position': 'pos', 'Size': 'size',
+                'Style': 'style', 'Name': 'name'}
 
 class FrameDTC(FramesConstr, BaseFrameDTC):
     #wxDocs = HelpCompanions.wxFrameDocs
@@ -181,6 +197,34 @@ class MDIChildFrameDTC(FramesConstr, BaseFrameDTC):
     #wxDocs = HelpCompanions.wxMDIChildFrameDocs
     pass
 
+class PopupWindowDTC(ContainerDTC):
+    suppressWindowId = true
+    def __init__(self, name, designer, frameCtrl):
+        ContainerDTC.__init__(self, name, designer, None, None)
+        self.control = frameCtrl
+        self.editors['Flags'] = FlagsConstrPropEdit
+        # XXX should rather be enumerated
+        self.windowStyles = ['wxSIMPLE_BORDER', 'wxDOUBLE_BORDER',
+                             'wxSUNKEN_BORDER', 'wxRAISED_BORDER',
+                             'wxSTATIC_BORDER', 'wxNO_BORDER']
+    def properties(self):
+        props = ContainerDTC.properties(self)
+        del props['Anchors']
+        return props
+
+    def constructor(self):
+        return {'Flags': 'flags'}
+
+    def designTimeSource(self):
+        return {'flags': 'wxSIMPLE_BORDER'}
+
+    def hideDesignTime(self):
+        return ContainerDTC.hideDesignTime(self) + ['ToolBar', 'MenuBar',
+              'StatusBar', 'Icon', 'Anchors', 'Constraints', 'Label']
+
+    def SetName(self, oldValue, newValue):
+        self.name = newValue
+        self.designer.renameFrame(oldValue, newValue)
 
 EventCategories['PanelEvent'] = (EVT_SYS_COLOUR_CHANGED,)
 class PanelDTC(WindowConstr, ContainerDTC):
@@ -192,7 +236,7 @@ class PanelDTC(WindowConstr, ContainerDTC):
 
     def designTimeSource(self, position = 'wxDefaultPosition', size = 'wxDefaultSize'):
         return {'pos':   position,
-                'size':  'wxSize(100, 100)',
+                'size': self.getDefCtrlSize(),
                 'style': 'wxTAB_TRAVERSAL',
                 'name':  `self.name`}
 
@@ -231,7 +275,7 @@ class SashWindowDTC(WindowConstr, ContainerDTC):
 
     def designTimeSource(self, position = 'wxDefaultPosition', size = 'wxDefaultSize'):
         return {'pos':   position,
-                'size':  size,
+                'size': self.getDefCtrlSize(),
                 'style': 'wxCLIP_CHILDREN | wxSW_3D',
                 'name':  `self.name`}
 
@@ -278,7 +322,7 @@ class SashLayoutWindowDTC(SashWindowDTC):
 
     def designTimeSource(self, position = 'wxDefaultPosition', size = 'wxDefaultSize'):
         return {'pos':   position,
-                'size':  size,
+                'size': self.getDefCtrlSize(),
                 'style': 'wxCLIP_CHILDREN | wxSW_3D',
                 'name':  `self.name`}
 
@@ -304,14 +348,28 @@ class SashLayoutWindowDTC(SashWindowDTC):
 
 class ScrolledWindowDTC(WindowConstr, ContainerDTC):
     #wxDocs = HelpCompanions.wxScrolledWindowDocs
+    def __init__(self, name, designer, parent, ctrlClass):
+        ContainerDTC.__init__(self, name, designer, parent, ctrlClass)
+        self.editors['TargetWindow'] = WindowClassLinkPropEdit
+
     def designTimeSource(self, position = 'wxDefaultPosition', size = 'wxDefaultSize'):
         return {'pos':   position,
-                'size':  size,
+                'size': self.getDefCtrlSize(),
                 'style': 'wxTAB_TRAVERSAL',
                 'name':  `self.name`}
 
+    def dependentProps(self):
+        return ContainerDTC.dependentProps(self) + ['TargetWindow']
+
     def events(self):
         return ContainerDTC.events(self) + ['ScrollEvent']
+
+    def notification(self, compn, action):
+        ContainerDTC.notification(self, compn, action)
+        if action == 'delete':
+            if `self.control.GetTargetWindow()` == `compn.control`:
+                self.propRevertToDefault('TargetWindow', 'SetTargetWindow')
+                self.control.SetTargetWindow(self.control)
 
 EventCategories['NotebookEvent'] = (EVT_NOTEBOOK_PAGE_CHANGED,
                                     EVT_NOTEBOOK_PAGE_CHANGING)
@@ -338,14 +396,13 @@ class NotebookDTC(WindowConstr, ContainerDTC):
         return ctrl
 
     def designTimeSource(self, position = 'wxDefaultPosition', size = 'wxDefaultSize'):
-        return {'pos':   'wxPoint(0, 0)',
+        return {'pos':   position,
                 'size':  size,
                 'style': '0',
                 'name':  `self.name`}
 
     def dependentProps(self):
-        return ContainerDTC.dependentProps(self) + \
-          ['ImageList', 'Pages']
+        return ContainerDTC.dependentProps(self) + ['ImageList', 'Pages']
 
     def dontPersistProps(self):
         return ContainerDTC.dontPersistProps(self) + ['Selection']
@@ -366,15 +423,11 @@ class NotebookDTC(WindowConstr, ContainerDTC):
         event.Skip()
 
     def notification(self, compn, action):
+        ContainerDTC.notification(self, compn, action)
         if action == 'delete':
-            pass
-            # StatusBar
-##            sb = self.control.GetStatusBar()
-##            if sb and sb.GetId() == compn.control.GetId():
-##                self.propRevertToDefault('StatusBar', 'SetStatusBar')
-##                self.control.SetStatusBar(None)
-
-##        self.designer.inspector.propertyUpdate('Selection')
+            if `self.control.GetImageList()` == `compn.control`:
+                self.propRevertToDefault('ImageList', 'SetImageList')
+                self.control.SetImageList(None)
 
 class NotebookPagesCDTC(NotebookPageConstr, CollectionDTC):
     #wxDocs = HelpCompanions.wxNotebookDocs
@@ -627,6 +680,12 @@ EventCategories['SplitterWindowEvent'] = (EVT_SPLITTER_SASH_POS_CHANGING,
                                           EVT_SPLITTER_UNSPLIT,
                                           EVT_SPLITTER_DOUBLECLICKED)
 commandCategories.append('SplitterWindowEvent')
+
+class SplitterWindowConstr(PropertyKeywordConstructor):
+    def constructor(self):
+        return {'Position': 'point', 'Size': 'size', 'Style': 'style',
+                'Name': 'name'}
+
 class SplitterWindowDTC(SplitterWindowConstr, ContainerDTC):
     #wxDocs = HelpCompanions.wxSplitterWindowDocs
     def __init__(self, name, designer, parent, ctrlClass):
@@ -636,9 +695,10 @@ class SplitterWindowDTC(SplitterWindowConstr, ContainerDTC):
                              'Window2'  : WindowClassLinkWithParentPropEdit})
         self.options['SplitMode'] = splitterWindowSplitMode
         self.names['SplitMode'] = splitterWindowSplitModeNames
-        self.windowStyles = ['wxSP_3D', 'wxSP_BORDER', 'wxSP_NOBORDER',
-                             'wxSP_PERMIT_UNSPLIT',
-                             'wxSP_LIVE_UPDATE'] + self.windowStyles #'wxSP_3DSASH', 'wxSP_3DBORDER', 'wxSP_FULLSASH',
+        self.windowStyles = ['wxSP_3D', 'wxSP_3DSASH', 'wxSP_3DBORDER',
+                             'wxSP_FULLSASH', 'wxSP_BORDER', 'wxSP_NOBORDER',
+                             'wxSP_PERMIT_UNSPLIT', 'wxSP_LIVE_UPDATE',
+                             ] + self.windowStyles #'wxSP_3DSASH', 'wxSP_3DBORDER', 'wxSP_FULLSASH',
         self.win1 = None
         self.win2 = None
 
@@ -651,7 +711,7 @@ class SplitterWindowDTC(SplitterWindowConstr, ContainerDTC):
 
     def designTimeSource(self, position = 'wxDefaultPosition', size = 'wxDefaultSize'):
         return {'point': position,
-                'size':  size,
+                'size': self.getDefCtrlSize(),
                 'style': 'wxSP_3D',
                 'name':  `self.name`}
 
@@ -720,6 +780,7 @@ class SplitterWindowDTC(SplitterWindowConstr, ContainerDTC):
             ContainerDTC.persistProp(self, name, setterName, value)
 
     def notification(self, compn, action):
+        ContainerDTC.notification(self, compn, action)
         if action == 'delete':
             # Win 1
             # If Window1 is None, splitter can only be unsplit
@@ -831,6 +892,18 @@ class ButtonDTC(LabeledInputConstr, WindowDTC):
         insp.pages.SetSelection(2)
         insp.events.doAddEvent('ButtonEvent', 'EVT_BUTTON')
 
+EventCategories['ToggleButtonEvent'] = (EVT_TOGGLEBUTTON,)
+commandCategories.append('ToggleButtonEvent')
+
+class ToggleButtonDTC(ButtonDTC):
+    def __init__(self, name, designer, parent, ctrlClass):
+        ButtonDTC.__init__(self, name, designer, parent, ctrlClass)
+        self.editors['Value'] = BoolPropEdit
+
+    def events(self):
+        return ButtonDTC.events(self) + ['ToggleButtonEvent']
+
+
 class BitmapButtonDTC(BitmapButtonConstr, WindowDTC):
     #wxDocs = HelpCompanions.wxBitmapButtonDocs
     def __init__(self, name, designer, parent, ctrlClass):
@@ -865,9 +938,20 @@ class BitmapButtonDTC(BitmapButtonConstr, WindowDTC):
         insp.pages.SetSelection(2)
         insp.events.doAddEvent('ButtonEvent', 'EVT_BUTTON')
 
+class GenButtonConstr(PropertyKeywordConstructor):
+    def constructor(self):
+        return {'Label': 'label', 'Position': 'pos', 'Size': 'size',
+                'Style': 'style', 'Validator': 'validator', 'Name': 'name'}
+
 class GenButtonDTC(GenButtonConstr, WindowDTC):
     #wxDocs = HelpCompanions.wxDefaultDocs
+    handledConstrParams = ('parent', 'ID')
     windowIdName = 'ID'
+    def __init__(self, name, designer, parent, ctrlClass):
+        WindowDTC.__init__(self, name, designer, parent, ctrlClass)
+        self.editors['UseFocusIndicator'] = BoolPropEdit
+        self.ctrlDisabled = true
+
     def designTimeSource(self, position = 'wxDefaultPosition', size = 'wxDefaultSize'):
         return {'label': `self.name`,
                 'pos': position,
@@ -881,25 +965,27 @@ class GenButtonDTC(GenButtonConstr, WindowDTC):
     def writeImports(self):
         return 'from wxPython.lib.buttons import *'
 
-class GenBitmapButtonDTC(GenBitmapButtonConstr, WindowDTC):
+class GenBitmapButtonConstr(PropertyKeywordConstructor):
+    def constructor(self):
+        return {'BitmapLabel': 'bitmap', 'Position': 'pos', 'Size': 'size',
+                'Style': 'style', 'Validator': 'validator', 'Name': 'name'}
+
+class GenBitmapButtonDTC(GenBitmapButtonConstr, GenButtonDTC):
     #wxDocs = HelpCompanions.wxDefaultDocs
     windowIdName = 'ID'
     def __init__(self, name, designer, parent, ctrlClass):
-        WindowDTC.__init__(self, name, designer, parent, ctrlClass)
+        GenButtonDTC.__init__(self, name, designer, parent, ctrlClass)
         self.editors.update({'Bitmap'         : BitmapConstrPropEdit,
                              'BitmapLabel'    : BitmapPropEdit,
                              'BitmapSelected' : BitmapPropEdit,
                              'BitmapFocus'    : BitmapPropEdit,
                              'BitmapDisabled' : BitmapPropEdit})
     def designTimeSource(self, position = 'wxDefaultPosition', size = 'wxDefaultSize'):
-        return {'bitmap': wxNullBitmap,
+        return {'bitmap': 'wxNullBitmap',
                 'pos': position,
                 'size': size,
                 'name': `self.name`,
                 'style': '0'}
-
-    def events(self):
-        return WindowDTC.events(self) + ['ButtonEvent']
 
     def defaultAction(self):
         insp = self.designer.inspector
@@ -907,8 +993,58 @@ class GenBitmapButtonDTC(GenBitmapButtonConstr, WindowDTC):
         insp.pages.SetSelection(2)
         insp.events.doAddEvent('ButtonEvent', 'EVT_BUTTON')
 
+class GenBitmapTextButtonConstr(PropertyKeywordConstructor):
+    def constructor(self):
+        return {'BitmapLabel': 'bitmap', 'Position': 'pos', 'Size': 'size',
+                'Label': 'label', 'Style': 'style', 'Validator': 'validator',
+                'Name': 'name'}
+
+class GenBitmapTextButtonDTC(GenBitmapTextButtonConstr, GenBitmapButtonDTC):
+    def designTimeSource(self, position = 'wxDefaultPosition', size = 'wxDefaultSize'):
+        return {'bitmap': 'wxNullBitmap',
+                'label': `self.name`,
+                'pos': position,
+                'size': size,
+                'name': `self.name`,
+                'style': '0'}
+
+class GenToggleButtonMix:
+    def __init__(self):
+        self.editors['Toggle'] = BoolPropEdit
+
+class GenToggleButtonDTC(GenButtonDTC, GenToggleButtonMix):
+    def __init__(self, name, designer, parent, ctrlClass):
+        GenButtonDTC.__init__(self, name, designer, parent, ctrlClass)
+        GenToggleButtonMix.__init__(self)
+class GenBitmapToggleButtonDTC(GenBitmapButtonDTC, GenToggleButtonMix):
+    def __init__(self, name, designer, parent, ctrlClass):
+        GenBitmapButtonDTC.__init__(self, name, designer, parent, ctrlClass)
+        GenToggleButtonMix.__init__(self)
+class GenBitmapTextToggleButtonDTC(GenBitmapTextButtonDTC, GenToggleButtonMix):
+    def __init__(self, name, designer, parent, ctrlClass):
+        GenBitmapTextButtonDTC.__init__(self, name, designer, parent, ctrlClass)
+        GenToggleButtonMix.__init__(self)
+
+
+class ContextHelpButtonConstr:
+    def constructor(self):
+        return {'Position': 'pos', 'Size': 'size', 'Style': 'style'}
+
+class ContextHelpButtonDTC(ContextHelpButtonConstr, WindowDTC):
+    suppressWindowId = true
+    def __init__(self, name, designer, parent, ctrlClass):
+        WindowDTC.__init__(self, name, designer, parent, ctrlClass)
+        self.windowStyles = ['wxBU_AUTODRAW', 'wxBU_LEFT', 'wxBU_TOP',
+                             'wxBU_RIGHT', 'wxBU_BOTTOM'] + self.windowStyles
+
+    def designTimeSource(self, position = 'wxDefaultPosition', size = 'wxDefaultSize'):
+        return {'pos':   position,
+                'size':  size,
+                'style': 'wxBU_AUTODRAW',}
+
     def writeImports(self):
-        return 'from wxPython.lib.buttons import *'
+        return 'from wxPython.help import *'
+
 
 class ListCtrlDTC(MultiItemCtrlsConstr, WindowDTC):
     #wxDocs = HelpCompanions.wxListCtrlDocs
@@ -917,13 +1053,13 @@ class ListCtrlDTC(MultiItemCtrlsConstr, WindowDTC):
         self.editors.update({'Columns':         ListColumnsColPropEdit,
                              'ImageListSmall':  ListCtrlImageListClassLinkPropEdit,
                              'ImageListNormal': ListCtrlImageListClassLinkPropEdit})
-        self.windowStyles = ['wxLC_LIST', 'wxLC_REPORT', 'wxLC_ICON',
+        self.windowStyles = ['wxLC_LIST', 'wxLC_REPORT', 'wxLC_VIRTUAL', 'wxLC_ICON',
                              'wxLC_SMALL_ICON', 'wxLC_ALIGN_TOP',
                              'wxLC_ALIGN_LEFT', 'wxLC_AUTOARRANGE',
                              'wxLC_USER_TEXT', 'wxLC_EDIT_LABELS',
                              'wxLC_NO_HEADER', 'wxLC_SINGLE_SEL',
-                             'wxLC_SORT_ASCENDING',
-                             'wxLC_SORT_DECENDING'] + self.windowStyles
+                             'wxLC_SORT_ASCENDING', 'wxLC_SORT_DECENDING',
+                             'wxLC_HRULES', 'wxLC_VRULES'] + self.windowStyles
         self.subCompanions['Columns'] = ListCtrlColumnsCDTC
         self.listTypeNameMap = {'ImageListSmall'  : wxIMAGE_LIST_SMALL,
                                 'ImageListNormal' : wxIMAGE_LIST_NORMAL}
@@ -963,6 +1099,23 @@ class ListCtrlDTC(MultiItemCtrlsConstr, WindowDTC):
         imgLst, lstTpe = exprs
         return objects[imgLst], eval(lstTpe)
 
+    def notification(self, compn, action):
+        WindowDTC.notification(self, compn, action)
+        if action == 'delete':
+            for propName, typeName in (('ImageListSmall', 'wxIMAGE_LIST_SMALL'),
+                                       ('ImageListNormal', 'wxIMAGE_LIST_NORMAL')):
+                imgLst, imgLstType = self.GetImageList(propName)
+                if imgLst and `imgLst` == `compn.control`:
+                    self.SetImageList(propName, (None,))
+                    idx = 0
+                    while idx < len(self.textPropList):
+                        prop = self.textPropList[idx]
+                        if prop.prop_setter == 'SetImageList' and \
+                              prop.params[1] == typeName:
+                            del self.textPropList[idx]
+                        else:
+                            idx = idx + 1
+
     def persistProp(self, name, setterName, value):
         if setterName == 'SetImageList':
             imgList, listType = string.split(value, ',')
@@ -974,7 +1127,7 @@ class ListCtrlDTC(MultiItemCtrlsConstr, WindowDTC):
             self.textPropList.append(methodparse.PropertyParse( None, self.name,
                 setterName, [imgList, listType], 'SetImageList'))
         else:
-            ContainerDTC.persistProp(self, name, setterName, value)
+            WindowDTC.persistProp(self, name, setterName, value)
 
 
 class ListCtrlColumnsCDTC(ListCtrlColumnsConstr, CollectionDTC):
@@ -1008,12 +1161,28 @@ class ListCtrlColumnsCDTC(ListCtrlColumnsConstr, CollectionDTC):
                 'format': 'wxLIST_FORMAT_LEFT',
                 'width': `-1`}
 
+    def appendItem(self):
+        if not (self.control.GetWindowStyleFlag() & wxLC_REPORT):
+            wxMessageBox('wxListCtrl must be created with the wxLC_REPORT flag.',
+                  'Error', wxICON_ERROR | wxOK, self.designer)
+            return
+        CollectionDTC.appendItem(self)
+
 class TreeCtrlDTC(MultiItemCtrlsConstr, WindowDTC):
     #wxDocs = HelpCompanions.wxTreeCtrlDocs
     def __init__(self, name, designer, parent, ctrlClass):
         WindowDTC.__init__(self, name, designer, parent, ctrlClass)
-        self.windowStyles = ['wxTR_HAS_BUTTONS', 'wxTR_EDIT_LABELS',
-                             'wxTR_MULTIPLE'] + self.windowStyles
+        self.editors.update({'ImageList': ImageListClassLinkPropEdit,
+                             #'StateImageList': ImageListClassLinkPropEdit
+                             })
+        self.windowStyles = ['wxTR_NO_BUTTONS', 'wxTR_HAS_BUTTONS',
+                             'wxTR_EDIT_LABELS', 'wxTR_NO_LINES',
+                             'wxTR_LINES_AT_ROOT',
+                             #'wxTR_HIDE_ROOT',
+                             'wxTR_ROW_LINES',
+                             #'wxTR_HAS_VARIABLE_ROW_HEIGHT',
+                             'wxTR_SINGLE', 'wxTR_MULTIPLE', 'wxTR_EXTENDED',
+                             'wxTR_DEFAULT_STYLE'] + self.windowStyles
 
     def designTimeSource(self, position = 'wxDefaultPosition', size = 'wxDefaultSize'):
         return {'pos': position,
@@ -1021,6 +1190,23 @@ class TreeCtrlDTC(MultiItemCtrlsConstr, WindowDTC):
                 'style': 'wxTR_HAS_BUTTONS',
                 'validator': 'wxDefaultValidator',
                 'name': `self.name`}
+
+    def hideDesignTime(self):
+        return WindowDTC.hideDesignTime(self) + ['StateImageList']
+
+    def dependentProps(self):
+        return WindowDTC.dependentProps(self) + ['ImageList', 'StateImageList']
+
+    def notification(self, compn, action):
+        WindowDTC.notification(self, compn, action)
+        if action == 'delete':
+            if `self.control.GetImageList()` == `compn.control`:
+                self.propRevertToDefault('ImageList', 'SetImageList')
+                self.control.SetImageList(None)
+
+##            if `self.control.GetStateImageList()` == `compn.control`:
+##                self.propRevertToDefault('StateImageList', 'SetStateImageList')
+##                self.control.SetStateImageList(None)
 
     def events(self):
         return WindowDTC.events(self) + ['TreeEvent']
@@ -1040,6 +1226,12 @@ class ScrollBarDTC(MultiItemCtrlsConstr, WindowDTC):
     def events(self):
         return WindowDTC.events(self) + ['ScrollEvent']
 
+class ComboConstr(PropertyKeywordConstructor):
+    def constructor(self):
+        return {'Value': 'value', 'Position': 'pos', 'Size': 'size',
+                'Choices': 'choices', 'Style': 'style',
+                'Validator': 'validator', 'Name': 'name'}
+
 EventCategories['ComboEvent'] = (EVT_COMBOBOX, EVT_TEXT)
 commandCategories.append('ComboEvent')
 class ComboBoxDTC(ComboConstr, ChoicedDTC):
@@ -1057,12 +1249,12 @@ class ComboBoxDTC(ComboConstr, ChoicedDTC):
                 'validator': 'wxDefaultValidator',
                 'name': `self.name`}
 
-    def vetoedMethods(self):
-        return ['GetColumns', 'SetColumns', 'GetSelection', 'SetSelection',
-                'GetStringSelection', 'SetStringSelection']
-
-    def hideDesignTime(self):
-        return ['Label']
+##    def vetoedMethods(self):
+##        return ['GetColumns', 'SetColumns', 'GetSelection', 'SetSelection',
+##                'GetStringSelection', 'SetStringSelection']
+##
+##    def hideDesignTime(self):
+##        return ['Label']
 
     def events(self):
         return ChoicedDTC.events(self) + ['ComboEvent']
@@ -1105,7 +1297,7 @@ class StaticTextDTC(LabeledNonInputConstr, WindowDTC):
                 'style': '0',
                 'name': `self.name`}
 
-EventCategories['TextCtrlEvent'] = (EVT_TEXT, EVT_TEXT_ENTER)
+EventCategories['TextCtrlEvent'] = (EVT_TEXT, EVT_TEXT_ENTER, EVT_TEXT_URL, EVT_TEXT_MAXLEN)
 commandCategories.append('TextCtrlEvent')
 class TextCtrlDTC(TextCtrlConstr, WindowDTC):
     #wxDocs = HelpCompanions.wxTextCtrlDocs
@@ -1113,7 +1305,9 @@ class TextCtrlDTC(TextCtrlConstr, WindowDTC):
         WindowDTC.__init__(self, name, designer, parent, ctrlClass)
         self.windowStyles = ['wxTE_PROCESS_ENTER', 'wxTE_PROCESS_TAB',
                              'wxTE_MULTILINE', 'wxTE_PASSWORD',
-                             'wxTE_READONLY'] + self.windowStyles
+                             'wxTE_READONLY', 'wxTE_RICH', 'wxTE_AUTO_URL',
+                             'wxTE_NOHIDESEL',
+                             ] + self.windowStyles
 
     def designTimeSource(self, position = 'wxDefaultPosition', size = 'wxDefaultSize'):
         return {'value': `self.name`,
@@ -1123,7 +1317,8 @@ class TextCtrlDTC(TextCtrlConstr, WindowDTC):
                 'name': `self.name`}
 
     def hideDesignTime(self):
-        return ['Selection', 'Title', 'Label']
+        return WindowDTC.hideDesignTime(self) + \
+              ['Selection', 'Title', 'Label', 'DefaultStyle']
 
     def events(self):
         return WindowDTC.events(self) + ['TextCtrlEvent']
@@ -1227,6 +1422,12 @@ class SpinButtonDTC(WindowConstr, WindowDTC):
         else:
             WindowDTC.persistProp(self, name, setterName, value)
 
+class SliderConstr(PropertyKeywordConstructor):
+    def constructor(self):
+        return {'Value': 'value', 'MinValue': 'minValue', 'MaxValue': 'maxValue',
+                'Position': 'point', 'Size': 'size', 'Style': 'style',
+                'Validator': 'validator', 'Name': 'name'}
+
 # XXX FreqTick handled wrong
 EventCategories['SliderEvent'] = (EVT_SLIDER,)
 commandCategories.append('SliderEvent')
@@ -1252,12 +1453,17 @@ class SliderDTC(SliderConstr, WindowDTC):
                 'name': `self.name`}
 
     def events(self):
-        return ContainerDTC.events(self) + ['ScrollEvent', 'SliderEvent']
+        return WindowDTC.events(self) + ['ScrollEvent', 'SliderEvent']
 
     def defaultAction(self):
         insp = self.designer.inspector
         insp.pages.SetSelection(2)
         insp.events.doAddEvent('SliderEvent', 'EVT_SLIDER')
+
+class GaugeConstr(PropertyKeywordConstructor):
+    def constructor(self):
+        return {'Range': 'range', 'Position': 'pos', 'Size': 'size',
+                'Style': 'style', 'Validator': 'validator', 'Name': 'name'}
 
 class GaugeDTC(GaugeConstr, WindowDTC):
     #wxDocs = HelpCompanions.wxGaugeDocs
@@ -1361,7 +1567,7 @@ class RadioBoxDTC(RadioBoxConstr, ChoicedDTC):
                 'name': `self.name`}
 
     def events(self):
-        return WindowDTC.events(self) + ['RadioBoxEvent']
+        return ChoicedDTC.events(self) + ['RadioBoxEvent']
 
     def defaultAction(self):
         insp = self.designer.inspector
@@ -1477,6 +1683,14 @@ class ToolBarDTC(WindowConstr, ContainerDTC):
     def defaultAction(self):
         self.designer.inspector.props.getNameValue('Tools').propEditor.edit(None)
 
+class ToolBarToolsConstr(PropertyKeywordConstructor):
+    def constructor(self):
+        return {'ItemId': 'id', 'Bitmap': 'bitmap', 'PushedBitmap': 'pushedBitmap',
+                'IsToggle': 'isToggle',
+#                'XPos': 'xPos', 'YPos': 'yPos',
+                'ShortHelpString': 'shortHelpString',
+                'LongHelpString': 'longHelpString'}
+
 class ToolBarToolsCDTC(ToolBarToolsConstr, CollectionIddDTC):
     #wxDocs = HelpCompanions.wxToolBarDocs
     propName = 'Tools'
@@ -1487,21 +1701,21 @@ class ToolBarToolsCDTC(ToolBarToolsConstr, CollectionIddDTC):
     idProp = 'id'
     idPropNameFrom = 'tools'
     def __init__(self, name, designer, parentCompanion, ctrl):
-        CollectionDTC.__init__(self, name, designer, parentCompanion, ctrl)
-        self.editors = {'Bitmap': BitmapConstrPropEdit,
-                        'BitmapOn': BitmapConstrPropEdit,
-                        'IsToggle': BoolConstrPropEdit,
-                        'ShortHelpString': StrConstrPropEdit,
-                        'LongHelpString': StrConstrPropEdit}
+        CollectionIddDTC.__init__(self, name, designer, parentCompanion, ctrl)
+        self.editors.update({'Bitmap': BitmapConstrPropEdit,
+                             'BitmapOn': BitmapConstrPropEdit,
+                             'IsToggle': BoolConstrPropEdit,
+                             'ShortHelpString': StrConstrPropEdit,
+                             'LongHelpString': StrConstrPropEdit})
 
     def designTimeSource(self, wId):
-        newItemName = '%s%d'%(self.propName, wId)
-        return {'id': self.newWinId(newItemName),
+        newItemName, winId = self.newUnusedItemNames(wId)
+        return {'id': winId,
                 'bitmap': 'wxNullBitmap',
                 'pushedBitmap': 'wxNullBitmap',
                 'isToggle': 'false',
                 'shortHelpString': `newItemName`,
-                'longHelpString': `newItemName`}
+                'longHelpString': `''`}
 
     def finaliser(self):
         return ['', '        parent.Realize()']
@@ -1522,8 +1736,10 @@ class ToolBarToolsCDTC(ToolBarToolsConstr, CollectionIddDTC):
         insp.pages.SetSelection(2)
         insp.events.doAddEvent('ToolEvent', 'EVT_TOOL')
 
+class StatusBarConstr(PropertyKeywordConstructor):
+    def constructor(self): return {'Style': 'style', 'Name': 'name'}
 
-class StatusBarDTC(WindowConstr, ContainerDTC):
+class StatusBarDTC(StatusBarConstr, ContainerDTC):
     #wxDocs = HelpCompanions.wxStatusBarDocs
     def __init__(self, name, designer, parent, ctrlClass):
         ContainerDTC.__init__(self, name, designer, parent, ctrlClass)
@@ -1537,9 +1753,7 @@ class StatusBarDTC(WindowConstr, ContainerDTC):
         return props
 
     def designTimeSource(self, position = 'wxDefaultPosition', size = 'wxDefaultSize'):
-        return {'pos': position,
-                'size': size,
-                'style': '0',
+        return {'style': '0',
                 'name': `self.name`}
 
 class StatusBarFieldsCDTC(StatusBarFieldsConstr, CollectionDTC):
@@ -1760,7 +1974,9 @@ class AnchorsDTC(HelperDTC):
         self.updateAnchors()
 
 
-class WindowStyleDTC(HelperDTC):
+class BaseFlagsDTC(HelperDTC):
+    paramName = 'param'
+    propName = 'Prop'
     def __init__(self, name, designer, cmpn, obj, ownerPW):
         HelperDTC.__init__(self, name, designer, cmpn, obj, ownerPW)
         self.editors = {}
@@ -1784,10 +2000,10 @@ class WindowStyleDTC(HelperDTC):
         return {'constructor':[], 'properties': propLst}
 
     def GetStyle(self, name):
-        return name in string.split(self.ownerCompn.textConstr.params['style'], ' | ')
+        return name in string.split(self.ownerCompn.textConstr.params[self.paramName], ' | ')
 
     def SetStyle(self, name, value):
-        flags = string.split(self.ownerCompn.textConstr.params['style'], ' | ')
+        flags = string.split(self.ownerCompn.textConstr.params[self.paramName], ' | ')
         if value:
             if name not in flags:
                 if '0' in flags:
@@ -1798,18 +2014,33 @@ class WindowStyleDTC(HelperDTC):
                 flags.remove(name)
                 if not flags:
                     flags.append('0')
-        self.ownerCompn.textConstr.params['style'] = string.join(flags, ' | ')
-        self.designer.inspector.constructorUpdate('Style')
+        flagsSrc = string.join(flags, ' | ')
+        self.ownerCompn.textConstr.params[self.paramName] = flagsSrc
+        self.designer.inspector.constructorUpdate(self.propName)
+        flagsVal = self.eval(flagsSrc)
+        ctrl = self.ownerCompn.control
+        if hasattr(ctrl, 'SetWindowStyleFlag'):
+            ctrl.SetWindowStyleFlag(flagsVal)
+
+class WindowStyleDTC(BaseFlagsDTC):
+    paramName = 'style'
+    propName = 'Style'
+
+class FlagsDTC(BaseFlagsDTC):
+    paramName = 'flags'
+    propName = 'Flags'
 
 PaletteStore.paletteLists['ContainersLayout'].extend([wxPanel, wxScrolledWindow,
-      wxNotebook, wxSplitterWindow, wxSashWindow, wxSashLayoutWindow, wxToolBar,
-      wxStatusBar, wxWindow])
+      wxNotebook, wxSplitterWindow, wxSashWindow, wxSashLayoutWindow,
+      wxToolBar, wxStatusBar, wxWindow])
 PaletteStore.paletteLists['BasicControls'].extend([wxStaticText, wxTextCtrl,
       wxComboBox, wxChoice, wxCheckBox, wxRadioButton, wxSlider, wxGauge,
       wxScrollBar, wxStaticBitmap, wxStaticLine, wxStaticBox, wxHtmlWindow])
 PaletteStore.paletteLists['Buttons'].extend([wxButton, wxBitmapButton,
-      wxSpinButton, wxGenButton, wxGenBitmapButton, wxGenToggleButton, 
-      wxGenBitmapToggleButton])
+      wxSpinButton, wxToggleButton,
+      wxGenButton, wxGenBitmapButton, wxGenBitmapTextButton,
+      wxGenToggleButton, wxGenBitmapToggleButton, wxGenBitmapTextToggleButton,
+      wxContextHelpButton])
 PaletteStore.paletteLists['ListControls'].extend([wxRadioBox, wxListBox,
       wxCheckListBox, wxGrid, wxListCtrl, wxTreeCtrl])
 
@@ -1819,6 +2050,8 @@ PaletteStore.compInfo.update({wxApp: ['wxApp', None],
     wxMiniFrame: ['wxMiniFrame', MiniFrameDTC],
     wxMDIParentFrame: ['wxMDIParentFrame', MDIParentFrameDTC],
     wxMDIChildFrame: ['wxMDIChildFrame', MDIChildFrameDTC],
+    wxPopupWindow: ['wxPopupWindow', PopupWindowDTC],
+    wxPopupTransientWindow: ['wxPopupTransientWindow', PopupWindowDTC],
     wxToolBar: ['wxToolBar', ToolBarDTC],
     wxStatusBar: ['wxStatusBar', StatusBarDTC],
     wxPanel: ['wxPanel', PanelDTC],
@@ -1851,18 +2084,19 @@ PaletteStore.compInfo.update({wxApp: ['wxApp', None],
     wxSashLayoutWindow: ['wxSashLayoutWindow', SashLayoutWindowDTC],
 #    wxBoxSizer: ['wxBoxSizer', BoxSizerDTC],
     wxStyledTextCtrl: ['wxStyledTextCtrl', NYIDTC],
-    wxCalendarCtrl: ['wxCalendarCtrl', NYIDTC],
     wxSpinCtrl: ['wxSpinCtrl', NYIDTC],
     wxGenButton: ['wxGenButton', GenButtonDTC],
     wxGenBitmapButton: ['wxGenBitmapButton', GenBitmapButtonDTC],
-    wxGenToggleButton: ['wxGenToggleButton', GenButtonDTC],
-    wxGenBitmapToggleButton: ['wxGenBitmapToggleButton', GenBitmapButtonDTC],
-
+    wxGenToggleButton: ['wxGenToggleButton', GenToggleButtonDTC],
+    wxGenBitmapToggleButton: ['wxGenBitmapToggleButton', GenBitmapToggleButtonDTC],
+    wxGenBitmapTextButton: ['wxGenBitmapTextButton', GenBitmapTextButtonDTC],
+    wxGenBitmapTextToggleButton: ['wxGenBitmapTextToggleButton', GenBitmapTextToggleButtonDTC],
     wxWindow: ['wxWindow', ContainerDTC],
+    wxToggleButton: ['wxToggleButton', ToggleButtonDTC],
+    wxContextHelpButton: ['wxContextHelpButton', ContextHelpButtonDTC],
 })
 
 PaletteStore.helperClasses.update({'wxFontPtr': FontDTC,
     'wxColourPtr': ColourDTC,
     'Anchors': AnchorsDTC
 })
- 

@@ -6,7 +6,7 @@
 #
 # Created:     1999
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999, 2000 Riaan Booysen
+# Copyright:   (c) 1999, 2002 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
 # XXX Add another type of event:
@@ -154,7 +154,6 @@ class wxMiscEvent :
 EventCategories = {'ActivateEvent': (EVT_ACTIVATE, EVT_ACTIVATE_APP),
 'MiscEvent':   (EVT_SIZE,
                 EVT_MOVE,
-                EVT_CLOSE,
                 EVT_PAINT,
                 EVT_ERASE_BACKGROUND),
 
@@ -171,12 +170,14 @@ EventCategories = {'ActivateEvent': (EVT_ACTIVATE, EVT_ACTIVATE_APP),
                 EVT_MIDDLE_DOWN,
                 EVT_MIDDLE_UP,
                 EVT_RIGHT_UP,
+                EVT_RIGHT_DOWN,
                 EVT_MOTION,
                 EVT_LEFT_DCLICK,
                 EVT_MIDDLE_DCLICK,
                 EVT_RIGHT_DCLICK,
                 EVT_LEAVE_WINDOW,
                 EVT_ENTER_WINDOW,
+                EVT_MOUSEWHEEL,
                 EVT_MOUSE_EVENTS),
 
 'ScrollEvent' :(EVT_SCROLL,
@@ -198,6 +199,7 @@ EventCategories = {'ActivateEvent': (EVT_ACTIVATE, EVT_ACTIVATE_APP),
                     EVT_COMMAND_SCROLL_THUMBTRACK),
 
 'FrameEvent' : (EVT_ACTIVATE,
+                EVT_CLOSE,
                 EVT_DROP_FILES,
                 EVT_MAXIMIZE,
                 EVT_ICONIZE,
@@ -209,16 +211,18 @@ EventCategories = {'ActivateEvent': (EVT_ACTIVATE, EVT_ACTIVATE_APP),
                 EVT_LIST_END_LABEL_EDIT,
                 EVT_LIST_DELETE_ITEM,
                 EVT_LIST_DELETE_ALL_ITEMS,
-                EVT_LIST_GET_INFO,
-                EVT_LIST_SET_INFO,
                 EVT_LIST_ITEM_SELECTED,
                 EVT_LIST_ITEM_ACTIVATED,
                 EVT_LIST_ITEM_DESELECTED,
                 EVT_LIST_KEY_DOWN,
                 EVT_LIST_INSERT_ITEM,
-                EVT_LIST_COL_CLICK,
                 EVT_LIST_ITEM_RIGHT_CLICK,
-                EVT_LIST_ITEM_MIDDLE_CLICK),
+                EVT_LIST_COL_CLICK,
+                EVT_LIST_COL_RIGHT_CLICK,
+                EVT_LIST_COL_BEGIN_DRAG,
+                EVT_LIST_COL_DRAGGING,
+                EVT_LIST_COL_END_DRAG,
+                EVT_LIST_CACHE_HINT,),
 
 'TreeEvent' : ( EVT_TREE_BEGIN_DRAG,
                 EVT_TREE_BEGIN_RDRAG,
@@ -230,6 +234,7 @@ EventCategories = {'ActivateEvent': (EVT_ACTIVATE, EVT_ACTIVATE_APP),
                 EVT_TREE_ITEM_EXPANDING,
                 EVT_TREE_ITEM_COLLAPSED,
                 EVT_TREE_ITEM_COLLAPSING,
+                EVT_TREE_ITEM_ACTIVATED,
                 EVT_TREE_SEL_CHANGED,
                 EVT_TREE_SEL_CHANGING,
                 EVT_TREE_KEY_DOWN,
@@ -245,20 +250,44 @@ EventCategories = {'ActivateEvent': (EVT_ACTIVATE, EVT_ACTIVATE_APP),
                 EVT_SPIN_DOWN,
                 EVT_SPIN),
 
-## This was from the docs, it does not seem to be wrapped, assuming
-## EVT_COMMAND_SCROLL connects to Spin buttons
-##'CmdSpinEvent' : (  EVT_COMMAND_TOP,
-##                    EVT_COMMAND_SCROLL,
-##                    EVT_COMMAND_TOP,
-##                    EVT_COMMAND_BOTTOM,
-##                    EVT_COMMAND_LINEUP,
-##                    EVT_COMMAND_LINEDOWN,
-##                    EVT_COMMAND_PAGEUP,
-##                    EVT_COMMAND_PAGEDOWN,
-##                    EVT_COMMAND_THUMBTRACK)
+'HelpEvent': (  EVT_HELP, ),
 
 }
 
 normalCategories = ['MiscEvent','FocusEvent','KeyEvent','MouseEvent','AppEvent',
 'FrameEvent', 'ScrollEvent']
-commandCategories = ['ListEvent', 'TreeEvent', 'CmdScrollEvent', 'SpinEvent']
+commandCategories = ['ListEvent', 'TreeEvent', 'CmdScrollEvent', 'SpinEvent',
+'HelpEvent']
+
+reservedWxIds = [
+ # std ids
+ 'wxID_SEPARATOR',
+ 'wxID_OK', 'wxID_CANCEL', 'wxID_APPLY', 'wxID_YES', 'wxID_NO', 'wxID_STATIC',
+ 'wxID_CUT', 'wxID_COPY', 'wxID_PASTE', 'wxID_CLEAR', 'wxID_FIND',
+ 'wxID_DUPLICATE', 'wxID_SELECTALL',
+ # help ids
+ 'wxID_CONTEXT_HELP', # this name is from wxPython.help
+ 'wxID_HELP_COMMANDS', 'wxID_HELP_CONTENTS', 'wxID_HELP_CONTEXT', 'wxID_HELP_PROCEDURES',
+ # doc view ids
+ 'wxID_OPEN', 'wxID_CLOSE', 'wxID_NEW', 'wxID_SAVE', 'wxID_SAVEAS',
+ 'wxID_REVERT', 'wxID_EXIT', 'wxID_UNDO', 'wxID_REDO', 'wxID_HELP', 'wxID_PRINT',
+ 'wxID_PRINT_SETUP', 'wxID_PREVIEW', 'wxID_ABOUT',
+ # misc ids
+ 'wxID_BACKWARD', 'wxID_FORWARD', 'wxID_SETUP', 'wxID_MORE',
+]
+
+# Other names that may clash in the 'id' namespace ;)
+## copy of UtilCompanions.stockCursorIds
+reservedWxNames = reservedWxIds + ['wxCURSOR_ARROW', 'wxCURSOR_BULLSEYE', 'wxCURSOR_CHAR',
+      'wxCURSOR_CROSS', 'wxCURSOR_HAND', 'wxCURSOR_IBEAM', 'wxCURSOR_LEFT_BUTTON',
+      'wxCURSOR_MAGNIFIER', 'wxCURSOR_MIDDLE_BUTTON', 'wxCURSOR_NO_ENTRY',
+      'wxCURSOR_PAINT_BRUSH', 'wxCURSOR_PENCIL', 'wxCURSOR_POINT_LEFT',
+      'wxCURSOR_POINT_RIGHT', 'wxCURSOR_QUESTION_ARROW', 'wxCURSOR_RIGHT_BUTTON',
+      'wxCURSOR_SIZENESW', 'wxCURSOR_SIZENS', 'wxCURSOR_SIZENWSE', 'wxCURSOR_SIZEWE',
+      'wxCURSOR_SIZING', 'wxCURSOR_SPRAYCAN', 'wxCURSOR_WAIT', 'wxCURSOR_WATCH',
+      'wxCURSOR_ARROWWAIT']
+
+def renameCmdIdInDict(dct, name, newId):
+    if dct[name] in reservedWxNames:
+        return
+    dct[name] = newId
