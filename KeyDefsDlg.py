@@ -6,43 +6,80 @@ import Preferences, Utils
 
 class InvalidValueError(Exception): pass
 
-[wxID_KEYDEFSDIALOG, wxID_KEYDEFSDIALOGALTFLAGCHB, wxID_KEYDEFSDIALOGCANCELBTN, wxID_KEYDEFSDIALOGCTRLFLAGCHB, wxID_KEYDEFSDIALOGKEYCODECBB, wxID_KEYDEFSDIALOGOKBTN, wxID_KEYDEFSDIALOGSHIFTFLAGCHB, wxID_KEYDEFSDIALOGSHORTCUTTC, wxID_KEYDEFSDIALOGSTATICBOX1, wxID_KEYDEFSDIALOGSTATICTEXT1, wxID_KEYDEFSDIALOGSTATICTEXT2] = map(lambda _init_ctrls: wxNewId(), range(11))
+[wxID_KEYDEFSDIALOG, wxID_KEYDEFSDIALOGALTFLAGCHB, 
+ wxID_KEYDEFSDIALOGCANCELBTN, wxID_KEYDEFSDIALOGCTRLFLAGCHB, 
+ wxID_KEYDEFSDIALOGKEYCODECBB, wxID_KEYDEFSDIALOGOKBTN, 
+ wxID_KEYDEFSDIALOGSHIFTFLAGCHB, wxID_KEYDEFSDIALOGSHORTCUTTC, 
+ wxID_KEYDEFSDIALOGSTATICBOX1, wxID_KEYDEFSDIALOGSTATICTEXT1, 
+ wxID_KEYDEFSDIALOGSTATICTEXT2, 
+] = map(lambda _init_ctrls: wxNewId(), range(11))
 
 class KeyDefsDialog(wxDialog):
     def _init_utils(self):
+        # generated method, don't edit
         pass
 
     def _init_ctrls(self, prnt):
-        wxDialog.__init__(self, id = wxID_KEYDEFSDIALOG, name = 'KeyDefsDialog', parent = prnt, pos = wxPoint(430, 271), size = wxSize(298, 184), style = wxDEFAULT_DIALOG_STYLE, title = self.entryTitle)
+        # generated method, don't edit
+        wxDialog.__init__(self, id=wxID_KEYDEFSDIALOG, name='KeyDefsDialog',
+              parent=prnt, pos=wxPoint(430, 271), size=wxSize(298, 184),
+              style=wxDEFAULT_DIALOG_STYLE, title=self.entryTitle)
         self._init_utils()
         self.SetClientSize(wxSize(290, 157))
 
-        self.staticBox1 = wxStaticBox(id = wxID_KEYDEFSDIALOGSTATICBOX1, label = 'Flags', name = 'staticBox1', parent = self, pos = wxPoint(8, 8), size = wxSize(136, 96), style = 0)
+        self.staticBox1 = wxStaticBox(id=wxID_KEYDEFSDIALOGSTATICBOX1,
+              label='Flags', name='staticBox1', parent=self, pos=wxPoint(8, 8),
+              size=wxSize(136, 96), style=0)
 
-        self.ctrlFlagChb = wxCheckBox(id = wxID_KEYDEFSDIALOGCTRLFLAGCHB, label = 'wxACCEL_CTRL', name = 'ctrlFlagChb', parent = self, pos = wxPoint(16, 24), size = wxSize(112, 19), style = 0)
-        EVT_CHECKBOX(self.ctrlFlagChb, wxID_KEYDEFSDIALOGCTRLFLAGCHB, self.OnUpdateShortcut)
+        self.ctrlFlagChb = wxCheckBox(id=wxID_KEYDEFSDIALOGCTRLFLAGCHB,
+              label='wxACCEL_CTRL', name='ctrlFlagChb', parent=self,
+              pos=wxPoint(16, 24), size=wxSize(120, 19), style=0)
+        EVT_CHECKBOX(self.ctrlFlagChb, wxID_KEYDEFSDIALOGCTRLFLAGCHB,
+              self.OnUpdateShortcut)
 
-        self.altFlagChb = wxCheckBox(id = wxID_KEYDEFSDIALOGALTFLAGCHB, label = 'wxACCEL_ALT', name = 'altFlagChb', parent = self, pos = wxPoint(16, 48), size = wxSize(112, 19), style = 0)
-        EVT_CHECKBOX(self.altFlagChb, wxID_KEYDEFSDIALOGALTFLAGCHB, self.OnUpdateShortcut)
+        self.altFlagChb = wxCheckBox(id=wxID_KEYDEFSDIALOGALTFLAGCHB,
+              label='wxACCEL_ALT', name='altFlagChb', parent=self,
+              pos=wxPoint(16, 48), size=wxSize(120, 19), style=0)
+        EVT_CHECKBOX(self.altFlagChb, wxID_KEYDEFSDIALOGALTFLAGCHB,
+              self.OnUpdateShortcut)
 
-        self.shiftFlagChb = wxCheckBox(id = wxID_KEYDEFSDIALOGSHIFTFLAGCHB, label = 'wxACCEL_SHIFT', name = 'shiftFlagChb', parent = self, pos = wxPoint(16, 72), size = wxSize(112, 19), style = 0)
-        EVT_CHECKBOX(self.shiftFlagChb, wxID_KEYDEFSDIALOGSHIFTFLAGCHB, self.OnUpdateShortcut)
+        self.shiftFlagChb = wxCheckBox(id=wxID_KEYDEFSDIALOGSHIFTFLAGCHB,
+              label='wxACCEL_SHIFT', name='shiftFlagChb', parent=self,
+              pos=wxPoint(16, 72), size=wxSize(120, 19), style=0)
+        EVT_CHECKBOX(self.shiftFlagChb, wxID_KEYDEFSDIALOGSHIFTFLAGCHB,
+              self.OnUpdateShortcut)
 
-        self.keyCodeCbb = wxComboBox(choices = self.preDefKeys, id = wxID_KEYDEFSDIALOGKEYCODECBB, name = 'keyCodeCbb', parent = self, pos = wxPoint(152, 32), size = wxSize(125, 21), style = 0, validator = wxDefaultValidator, value = '')
-        EVT_COMBOBOX(self.keyCodeCbb, wxID_KEYDEFSDIALOGKEYCODECBB, self.OnUpdateShortcutKeyCodeCbb)
-        EVT_TEXT(self.keyCodeCbb, wxID_KEYDEFSDIALOGKEYCODECBB, self.OnUpdateShortcutKeyCodeCbb)
+        self.keyCodeCbb = wxComboBox(choices=self.preDefKeys,
+              id=wxID_KEYDEFSDIALOGKEYCODECBB, name='keyCodeCbb', parent=self,
+              pos=wxPoint(152, 32), size=wxSize(125, 21), style=0,
+              validator=wxDefaultValidator, value='')
+        EVT_COMBOBOX(self.keyCodeCbb, wxID_KEYDEFSDIALOGKEYCODECBB,
+              self.OnUpdateShortcutKeyCodeCbb)
+        EVT_TEXT(self.keyCodeCbb, wxID_KEYDEFSDIALOGKEYCODECBB,
+              self.OnUpdateShortcutKeyCodeCbb)
 
-        self.staticText1 = wxStaticText(id = wxID_KEYDEFSDIALOGSTATICTEXT1, label = 'Key code:', name = 'staticText1', parent = self, pos = wxPoint(152, 16), size = wxSize(48, 13), style = 0)
+        self.staticText1 = wxStaticText(id=wxID_KEYDEFSDIALOGSTATICTEXT1,
+              label='Key code:', name='staticText1', parent=self,
+              pos=wxPoint(152, 16), size=wxSize(120, 13), style=0)
 
-        self.staticText2 = wxStaticText(id = wxID_KEYDEFSDIALOGSTATICTEXT2, label = 'Shortcut text:', name = 'staticText2', parent = self, pos = wxPoint(152, 64), size = wxSize(63, 13), style = 0)
+        self.staticText2 = wxStaticText(id=wxID_KEYDEFSDIALOGSTATICTEXT2,
+              label='Shortcut text:', name='staticText2', parent=self,
+              pos=wxPoint(152, 64), size=wxSize(120, 13), style=0)
 
-        self.shortcutTc = wxTextCtrl(id = wxID_KEYDEFSDIALOGSHORTCUTTC, name = 'shortcutTc', parent = self, pos = wxPoint(152, 80), size = wxSize(124, 21), style = 0, value = '')
+        self.shortcutTc = wxTextCtrl(id=wxID_KEYDEFSDIALOGSHORTCUTTC,
+              name='shortcutTc', parent=self, pos=wxPoint(152, 80),
+              size=wxSize(124, 21), style=0, value='')
 
-        self.okBtn = wxButton(id = wxID_KEYDEFSDIALOGOKBTN, label = 'OK', name = 'okBtn', parent = self, pos = wxPoint(120, 120), size = wxSize(75, 23), style = 0)
+        self.okBtn = wxButton(id=wxID_KEYDEFSDIALOGOKBTN, label='OK',
+              name='okBtn', parent=self, pos=wxPoint(120, 120), size=wxSize(75,
+              23), style=0)
         EVT_BUTTON(self.okBtn, wxID_KEYDEFSDIALOGOKBTN, self.OnOkbtnButton)
 
-        self.cancelBtn = wxButton(id = wxID_KEYDEFSDIALOGCANCELBTN, label = 'Cancel', name = 'cancelBtn', parent = self, pos = wxPoint(200, 120), size = wxSize(75, 23), style = 0)
-        EVT_BUTTON(self.cancelBtn, wxID_KEYDEFSDIALOGCANCELBTN, self.OnCancelbtnButton)
+        self.cancelBtn = wxButton(id=wxID_KEYDEFSDIALOGCANCELBTN,
+              label='Cancel', name='cancelBtn', parent=self, pos=wxPoint(200,
+              120), size=wxSize(75, 23), style=0)
+        EVT_BUTTON(self.cancelBtn, wxID_KEYDEFSDIALOGCANCELBTN,
+              self.OnCancelbtnButton)
 
     def __init__(self, parent, entryName, accelEntry):
         #possibly raise exception for invalid format before creating the dialog
@@ -177,3 +214,4 @@ if __name__ == '__main__':
             print dlg.result
     finally:
         dlg.Destroy()
+    app.MainLoop()
