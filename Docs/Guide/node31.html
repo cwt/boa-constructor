@@ -1,0 +1,136 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<html>
+<head>
+<title>3.1 Setting Preferences</title>
+</head>
+<body bgcolor="#ffffff" text="#000000" link="#0000bb"  vlink="#551a8b" alink="#ff0000">
+
+<DIV CLASS="navigation"><table align="center" width="100%" cellpadding="0" cellspacing="2">
+<tr>
+<td><A HREF="index.html"><img src="../icons/next.gif" border="0" height="32"
+  alt="Next Page" width="32"></A></td>
+<td><A HREF="index.html"><img src="../icons/up.gif" border="0" height="32"
+  alt="Up One Level" width="32"></A></td>
+<td><A HREF="index.html"><img src="../icons/previous.gif" border="0" height="32"
+  alt="Previous Page" width="32"></A></td>
+<td align="center" bgcolor="#99CCFF" width="100%">
+ <b class="title">Getting Started Guide for Boa Constructor</b></td>
+<td><A HREF="index.html"><img src="../icons/contents.gif" border="0" height="32"
+  alt="Contents" width="32"></A></td>
+<td><img src="../icons/blank.gif" border="0" height="32"
+  alt="" width="32"></td>
+<td><img src="../icons/blank.gif" border="0" height="32"
+  alt="" width="32"></td>
+</tr></table>
+<b class='navlabel'>Next:</b> <span class='sectref'><A HREF="index.html">Getting Started Guide for Boa Constructor</A></span>
+<b class='navlabel'>Up:</b> <span class='sectref'><A HREF="index.html">Getting Started Guide for Boa Constructor</A></span>
+<b class='navlabel'>Previous:</b> <span class='sectref'><A HREF="index.html">Getting Started Guide for Boa Constructor</A></span>
+<br><hr></DIV>
+<!--End of Navigation Panel-->
+
+<h1>3.1 Setting Preferences</h1>
+
+<p>The Boa Constructor tool provides a number of features which can be 
+customised by you. These are customised through files. The syntax of these
+files is either completely or partially in the Python language. Be careful
+when editing these files. If you
+put syntax errors into these files, Boa Constructor will not load. 
+The files are straight forward. The following are the files:</p>
+<ul>
+<li>Explorer.msw.cfg (windows)</li>
+<li>Explorer.gtk.cfg (unix)</li>
+<li>Preferences.py</li>
+<li>PrefsMSW.py (windows)</li>
+<li>PrefsGTK.py (unix)</li>
+</ul>
+
+<h3>Explorer Configuration</h3>
+<p>The files 'Explorer.msw.cfg' and 'Explorer.gtk.cfg' are used to configure
+the Editor Explorer window on Windows and Unix respectively. There are
+a number of items which can be configured in this file. </p>
+<p>The following is an example of an Explorer configuration file from
+a windows installation.</p>
+<pre>
+	[explorer]
+	filesystem : ['A:\\', 'C:\\', 'D:\\']
+	bookmarks : {'Root': 'C:\\', 'Development': 'D:\\dev'}
+	defaultbookmark : Root
+	zope : {'Localhost': 
+         {'host': '127.0.0.1', 
+          'httpport': 8080, 
+          'ftpport': 8021, 
+          'username': '', 
+          'passwd': '', 
+          'path': '/', 
+          'name': '',
+          'localpath': ''} }
+</pre>
+<ul>
+<li>The <b>Filesystems</b> are stored in a sequence. Note the list is interpreted
+by the python interpreter. The backslashes used for windows directories
+must therefore the escaped (i.e. preceded by a backslash). You can
+set up as many filesystems as you want. These appear in the Explorer screen under
+filesystems.</li>
+<li>The <b>Bookmarks</b> are stored as a python dictionary. Again there is no limit
+to the number of directories which can be named. Each directory is stored with 
+a logical name. The <b>defaultbookmark</b> selects the default bookmark. The 
+named bookmark must be defined in the previous 'bookmarks' line.</li>
+<li>The <b>Zope</b> information defines how to connect to Zope. If this information
+is correctly displayed, the Explorer will be able to located and display 
+files from your Zope development environment.</li>
+</ul>
+<h3>Preferences</h3>
+The preferences.py file contains general preferences. This file is accessible
+from the Palette toolbar with the following icon 
+<img src="image/Preferences.bmp" alt="">. The following are items which can
+be configured through this file.</p>
+<ul>
+<li>Help File Paths</li>
+<li>Whether to use the built in wxFileDialog or to use the Boa Constructor one</li>
+<li>Titles for Tabs on Inspector</li>
+<li>Your Name and details which will be automatically put in modules
+when you used the 'Module Info' Editor button.</li>
+</ul>
+
+<h3>Windowing System Preferences</h3>
+<p>The files PrefsMSW.py and PrefsGTK.py are the window system
+specific preference files. These files are provided as a convenience. 
+The values for some settings, 
+e.g. Paths, are significantly different between UNIX and Windows. These
+files are imported by Preferences.py depending on the platform.
+The following items are configured in these files:</p>
+<ul>
+<li>Help File Paths</li>
+<li>Enable Editor brace matching functionality</li>
+<li>Fonts and Pixel positions which differ between the two systems</li>
+</ul>
+
+
+<!--Start of Navigation Panel-->
+<DIV CLASS="navigation"><p><hr><table align="center" width="100%" cellpadding="0" cellspacing="2">
+<tr>
+<td><A HREF="index.html"><img src="../icons/next.gif" border="0" height="32"
+  alt="Next Page" width="32"></A></td>
+<td><A HREF="index.html"><img src="../icons/up.gif" border="0" height="32"
+  alt="Up One Level" width="32"></A></td>
+<td><A HREF="index.html"><img src="../icons/previous.gif" border="0" height="32"
+  alt="Previous Page" width="32"></A></td>
+<td align="center" bgcolor="#99CCFF" width="100%">
+ <b class="title">Getting Started Guide for Boa Constructor</b></td>
+<td><A HREF="index.html"><img src="../icons/contents.gif" border="0" height="32"
+  alt="Contents" width="32"></A></td>
+<td><img src="../icons/blank.gif" border="0" height="32"
+  alt="" width="32"></td>
+<td><img src="../icons/blank.gif" border="0" height="32"
+  alt="" width="32"></td>
+</tr></table>
+<b class='navlabel'>Next:</b> <span class='sectref'><A HREF="index.html">Getting Started Guide for Boa Constructor</A></span>
+<b class='navlabel'>Up:</b> <span class='sectref'><A HREF="index.html">Getting Started Guide for Boa Constructor</A></span>
+<b class='navlabel'>Previous:</b> <span class='sectref'><A HREF="index.html">Getting Started Guide for Boa Constructor</A></span>
+</DIV>
+<!--End of Navigation Panel-->
+
+ 
+</body>
+</html>
