@@ -1,0 +1,60 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML><HEAD><TITLE>Sizers</TITLE>
+<META http-equiv=Content-Type content="text/html; charset=windows-1252">
+<META content="MSHTML 6.00.2800.1106" name=GENERATOR></HEAD>
+<BODY text=#000000 vLink=#000099 aLink=#ff0000 link=#0000ff bgColor=#ffffff>
+<CENTER><A href="index.html"><IMG 
+alt=Home src="contents.gif" border=0></A></CENTER>
+<TABLE cellSpacing=0 cellPadding=2 width="100%" bgColor=#000000 border=0>
+  <TBODY>
+  <TR>
+    <TD>
+      <TABLE cellSpacing=0 width="100%" bgColor=#ffffff border=0>
+        <TBODY>
+        <TR>
+          <TD bgColor=#ddeeff>
+            <CENTER><IMG height=1 src="dot.gif" 
+        width=1></CENTER></TD></TR></TBODY></TABLE></TD></TR></TBODY></TABLE>
+<H2><IMG height=32 src="Designer.jpg" width=32>&nbsp; 
+Sizers</H2>Another supported layout mechanism is Sizers. <BR>Sizers work by 
+packing controls and other sizers either horizontally or vertically into boxes. 
+<P>It is expected that you have some knowledge of sizers before using them in 
+the Boa Designer. Please see the wxPython help and demo. 
+<P>Here is a very basic overview of Sizer support in Boa:<BR>
+<UL>
+  <LI>Create new sizers from the <B>Containers/Layout</B> page on the Palette. 
+  <LI>Sizer objects must be connected to container controls via the control's 
+  <B>Sizer</B> property. 
+  <LI>Non-container controls and other sizers that should be layed out within 
+  the container must first be created normally. 
+  <LI>A sizer item of the appropriate type should be created for all controls 
+  and sizers in the container. 
+  <LI>To create sizer items, use the sizer's <B>Items</B> property or double 
+  click on the sizer. 
+  <LI>Link up the controls/sizers to the sizer item via the sizer item's 
+  <B>Window</B> or <B>Sizer</B> property. 
+  <LI>To define the alignment and area filling properties of a sizer item, set 
+  the <B>Flag</B> and <B>Proportion</B> properties. </LI></UL>When the sizer is 
+connected to a container control, the container will be decorated with coloured 
+rectangles, Yellow indicating the area that the sizer manages and Green 
+indicating areas of sizer items. If a sizer item is not yet linked up to it's 
+appropriate type, it's area will contain a red-dashed box which means that it is 
+in an incomplete state. 
+<P>To navigate from a sizer item to the object that it is linked to, double 
+click the item in the collection editor.<BR>Navigating to a sizer item from a 
+control in the Designer can be done by right-clicking on the selection tag and 
+choosing <B>Select sizer</B> 
+<P><BR>
+<TABLE cellSpacing=0 cellPadding=2 width="100%" bgColor=#000000 border=0>
+  <TBODY>
+  <TR>
+    <TD>
+      <TABLE cellSpacing=0 width="100%" bgColor=#ffffff border=0>
+        <TBODY>
+        <TR>
+          <TD bgColor=#ddeeff>
+            <CENTER><IMG height=1 src="dot.gif" 
+        width=1></CENTER></TD></TR></TBODY></TABLE></TD></TR></TBODY></TABLE>
+<DIV align=right><FONT size=-1>Boa Constructor - Application Help - 
+<B>Sizers</B></FONT></DIV>
+<P></P></BODY></HTML>
