@@ -9,18 +9,10 @@
 # Copyright:   (c) 1999, 2000 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
-from os import path
+
 import os
 import string, time
 from wxPython.wx import wxProgressDialog, wxPD_CAN_ABORT, wxPD_APP_MODAL, wxPD_AUTO_HIDE, true, false
-
-##def visit(info, dirname, names):
-##    pattern = info[0]
-##    results = info[1]
-##
-##    for file in names:
-##        if find(path.join(dirname, file), pattern):
-##            results.append(file)
 
 def count(filename, pattern, caseSensitive):
     try: f = open(filename, 'r')
@@ -82,13 +74,13 @@ def findInFiles(parent, srchPath, pattern, callback = defaultProgressCallback, d
         owndlg = true
     try:
         for file in names:
-            filePath = path.join(srchPath, file)
+            filePath = os.path.join(srchPath, file)
 
-            if path.isdir(filePath):
+            if os.path.isdir(filePath):
                 results.extend(findInFiles(parent, filePath, pattern,
                   callback, deeperPath+file+joiner, filemask, dlg = dlg, joiner = joiner))
             else:
-                ext = path.splitext(file)[1]
+                ext = os.path.splitext(file)[1]
                 if ext in filemask or ('.*' in filemask and ext):
                     callback(dlg, cnt, file, 'Searching')
                     ocs = count(filePath, pattern, 0)
