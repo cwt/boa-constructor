@@ -948,7 +948,7 @@ class WindowDTC(WindowConstr, ControlDTC):
         imports = ControlDTC.writeImports(self)
         if self.anchorSettings:
             return '\n'.join( (imports, 
-                   'from wxPython.lib.anchors import LayoutAnchors') )
+                   'from wx.lib.anchors import LayoutAnchors') )
         else:
             return imports
 
