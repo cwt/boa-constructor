@@ -90,7 +90,7 @@ thisPlatform = wxPlatforms[wx.wxPlatform]
 # upgrade if needed and exec in our namespace
 for prefsFile, version in (('prefs.rc.py', 9),
                            ('prefs.%s.rc.py'%thisPlatform, 8),
-                           ('prefskeys.rc.py', 8),
+                           ('prefs.keys.rc.py', 8),
                            ('prefs.plug-ins.rc.py', None)):
     file = os.path.join(rcPath, prefsFile)
 
