@@ -107,8 +107,11 @@ class ZipFileNode(ZipItemNode):
     def isFolderish(self):
         return true
 
-    def isDir(self, path):
-        return path[-1] == '/'
+    def isDir(self, path = ''):
+        if path:
+            return path[-1] == '/'
+        else:
+            return false
 
     def openList(self):
         zf = zipfile.ZipFile(self.resourcepath)
