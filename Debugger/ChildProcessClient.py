@@ -164,7 +164,7 @@ class ChildProcessClient(MultiThreadedDebugClient):
             def call_exit(server=server):
                 try:
                     server.exit_debugger()
-                except socket.error:
+                except (EmptyResponseError, socket.error):
                     # Already stopped.
                     pass
             self.taskHandler.addTask(call_exit)
