@@ -82,6 +82,8 @@ class PythonSourceDiffView(wxStyledTextCtrl, EditorView, PythonStyledTextCtrlMix
 
         self.active = wx.true
 
+        self.lineIndex = []
+
     def refreshCtrl(self):
         self.SetReadOnly(wx.false)
         self.ClearAll()
@@ -121,22 +123,18 @@ class PythonSourceDiffView(wxStyledTextCtrl, EditorView, PythonStyledTextCtrlMix
             print ln, self.MarkerGet(ln)
 
     def OnPrev(self, event):
-        print 'Prev'
         self.currSearchLine = self.MarkerGetPrevLine(self.currSearchLine,
           maskMarkSet) - 1
 #        self.SetFocus()
 #        self.EnsureVisible(self.currSearchLine)
         self.gotoLine(self.currSearchLine + 1)
-        print 'Prev', self.currSearchLine
 
     def OnNext(self, event):
-        print 'Next'
         self.currSearchLine = self.MarkerGetNextLine(self.currSearchLine,
           maskMarkSet) + 1
 #        self.SetFocus()
         self.gotoLine(self.currSearchLine - 1)
 #        self.EnsureVisible(self.currSearchLine)
-        print 'Next', self.currSearchLine
 
     def OnApplyAllChanges(self, event):
         if self.diffWith and Utils.yesNoDialog(self, 'Are you sure?',

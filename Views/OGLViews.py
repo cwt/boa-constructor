@@ -180,6 +180,9 @@ class PerstDividedShape(wxDividedShape, PerstShape):
             self.FormatText(dc, region.GetText(), count)
             count = count + 1
 
+class ScrollingContainer(wxScrolledWindow):
+    pass
+
 class PersistentOGLView(PersistentShapeCanvas, EditorViews.EditorView):
     viewName = 'OGL'
     loadBmp = 'Images/Editor/Open.bmp'
@@ -340,17 +343,11 @@ class UMLView(PersistentOGLView):
         shape = PerstDividedShape(className, size[0], size[1])
 
         maxWidth = 10 #padding
-
         regionName, maxWidth, nameHeight = self.newRegion(boldFont, 'class_name', [className], maxWidth)
-
         totHeight = nameHeight
-
         regionName.SetProportions(0.0, 1.0*(nameHeight/float(totHeight)))
-
         shape.AddRegion(regionName)
-
         shape.SetSize(maxWidth + 10, totHeight + 10)
-
         shape.SetRegionSizes()
 
         idx = self.addShape(shape, pos[0], pos[1], wxBLACK_PEN,
