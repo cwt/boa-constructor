@@ -22,19 +22,10 @@ import Help, Preferences, Utils, Plugins
 
 from Preferences import IS, flatTools
 
-#if sys.version[:3] == '2.2' and wxVERSION == (2,3,2):
-#    from ExternalLib.buttons import wxGenButton, wxGenBitmapButton, wxGenToggleButton, wxGenBitmapToggleButton, wxGenButtonEvent
-#else:
 from wxPython.lib.buttons import wxGenButton, wxGenBitmapButton, wxGenToggleButton, wxGenBitmapToggleButton, wxGenButtonEvent
 
 currentMouseOverTip = ''
 
-##        self.contextHelpSearch = wxTextCtrl(id=wxID_BOAFRAMECONTEXTHELPSEARCH,
-##              name='contextHelpSearch', parent=self.toolBar, pos=wxPoint(232,
-##              0), size=wxSize(100, 21), style=0, value='')
-##        EVT_TEXT_ENTER(self.contextHelpSearch, wxID_BOAFRAMECONTEXTHELPSEARCH,
-##              self.OnSearchEnter)
-##        EVT_SET_FOCUS(self.contextHelpSearch, self.OnHelpSearchFocus)
 
 [wxID_BOAFRAME, wxID_BOAFRAMECONTEXTHELPSEARCH, wxID_BOAFRAMEPALETTE,
  wxID_BOAFRAMETOOLBAR,
@@ -139,12 +130,9 @@ class BoaFrame(wxFrame, Utils.FrameRestorerMixin):
             EVT_TOOL(self, mID, self.OnCustomHelpToolClick)
             self.customHelpItems[mID] = (caption, helpFile)
 
-        #self.toolBar.AddControl(self.contextHelpSearch)
-
         if wxPlatform == '__WXGTK__':
             self.toolBar.AddSeparator()
             self.addTool('Images/Shared/CloseWindow', 'Exit', '', self.OnCloseClick)
-        self.toolBar.AddSeparator()
         self.toolBar.Realize()
 
         self.palettePages = []
@@ -321,18 +309,9 @@ class BoaFrame(wxFrame, Utils.FrameRestorerMixin):
     def OnUncheckComponent(self, event):
         self.componentSB.selectNone()
 
-    #def OnSearchEnter(self, event):
-    #    Help.showContextHelp(self.contextHelpSearch.GetValue())
-    #    event.Skip()
-
     def OnTest(self, event):
         import Tests
         Tests.test_wxFrame(self)
-
-    #def OnHelpSearchFocus(self, event):
-    #    self.contextHelpSearch.SetSelection(0,
-    #          len(self.contextHelpSearch.GetValue()))
-    #    event.Skip()
 
     def OnCreateNew(self, name, controller):
         self.editor.addNewPage(name, controller)
@@ -355,13 +334,16 @@ class ComponentSelection:
         palette mapping structures. Accessed by the Designer """
     def __init__(self, palette):
         wID = wxNewId()
-        self.selComp = wxCheckBox(palette.toolBar, wID, '  (Nothing selected)', size = wxSize(160, 20))
+        self.selComp = wxCheckBox(palette.toolBar, wID, '  (Nothing selected)', 
+              size = wxSize(160, 20))
         self.selComp.Enable(false)
         EVT_CHECKBOX(self.selComp, wID, palette.OnUncheckComponent)
         palette.toolBar.AddControl(self.selComp)
 
-        cId = palette.addTool('Images/Shared/Compose', 'Compose', ' ', palette.OnComposeClick, toggle = true)
-        iId = palette.addTool('Images/Shared/Inherit', 'Inherit', ' ', palette.OnInheritClick, toggle = true)
+        cId = palette.addTool('Images/Shared/Compose', 'Compose', ' ', 
+              palette.OnComposeClick, toggle = true)
+        iId = palette.addTool('Images/Shared/Inherit', 'Inherit', ' ', 
+              palette.OnInheritClick, toggle = true)
         palette.toolBar.ToggleTool(cId, true)
         palette.toolBar.EnableTool(cId, false)
         palette.toolBar.EnableTool(iId, false)
@@ -532,8 +514,10 @@ class PalettePage(PanelPalettePage):
 
 
 class ZopePalettePage(PalettePage):
-    def __init__(self, parent, name, bitmapPath, eventOwner, widgets, components, palette):
-        PalettePage.__init__(self, parent, name, bitmapPath, eventOwner, widgets, components, palette)
+    def __init__(self, parent, name, bitmapPath, eventOwner, widgets, 
+          components, palette):
+        PalettePage.__init__(self, parent, name, bitmapPath, eventOwner, 
+              widgets, components, palette)
 
     def getButtonBmp(self, name, wxClass):
         return IS.load('%s%s.png' %(self.bitmapPath, name))
@@ -543,7 +527,6 @@ if __name__ == '__main__':
     app = wxPySimpleApp()
     wxInitAllImageHandlers()
     palette = BoaFrame(None, -1, app)
-    #palette.initPalette(inspector=None, editor=None)
     palette.Show()
 
     app.MainLoop()
