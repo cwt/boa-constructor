@@ -263,7 +263,7 @@ class AboutBoxSplash(AboutBoxMixin, wxFrame):
     progressBorder = 1
     fileOpeningFactor = 10
     def _init_ctrls(self, prnt):
-        wxFrame.__init__(self, size=wxSize(410, 320), pos=(-1, -1),
+        wxFrame.__init__(self, size=wxSize(418, 320), pos=(-1, -1),
               id=wxID_ABOUTBOX, title='Boa Constructor', parent=prnt,
               name='AboutBoxSplash', style=wxSIMPLE_BORDER)
         self.progressId = wxNewId()
