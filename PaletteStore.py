@@ -1,3 +1,4 @@
+
 paletteLists = {'New': [],
                 'Dialogs': [],
                 'Zope': [],
@@ -11,3 +12,39 @@ zopePalette =  ['Zope', 'Editor/Tabs/Zope', paletteLists['Zope']]
 helperClasses = {}
 compInfo = {}
 newControllers = {}
+
+#-------------------------------------------------------------------------------
+
+from Preferences import IS
+
+def loadBitmap(name):
+    """ Loads bitmap if it exists, else loads default bitmap """
+    imgPath = 'Images/Palette/' + name+'.png'
+    if IS.canLoad(imgPath):
+        return IS.load(imgPath)
+    else:
+        return IS.load('Images/Palette/Component.png')
+
+
+def bitmapForComponent(wxClass, wxBase='None'):
+    """ Returns a bitmap for given component class.
+
+    "Aquires" bitmap by traversing inheritance thru if necessary.
+    """
+    if wxBase != 'None': return loadBitmap(wxBase)
+    else:
+        cls = wxClass
+        try: bse = wxClass.__bases__[0]
+        except:
+            if compInfo.has_key(wxClass):
+                return loadBitmap(compInfo[wxClass][0])
+            else:
+                return loadBitmap('Component')
+        try:
+            while not compInfo.has_key(cls):
+                cls = bse
+                bse = cls.__bases__[0]
+
+            return loadBitmap(compInfo[cls][0])
+        except:
+            return loadBitmap('Component')
