@@ -16,7 +16,7 @@
 
 from wxPython.wx import *
 from wxPython.html import *
-import PaletteMapping, Debugger, Search
+import PaletteMapping, Search
 import string, os
 import Preferences
 from os import path
@@ -25,6 +25,7 @@ from moduleparse import CodeBlock
 from Preferences import IS, staticInfoPrefs
 from Utils import BoaFileDropTarget
 from PrefsKeys import keyDefs
+from Debugger import Debugger
 
 wxwHeaderTemplate ="""<html>
 <head>
@@ -468,15 +469,18 @@ class ListCtrlView(wxListCtrl, EditorView):
         self.sortOnColumns = []
         self.sortCol = -1
         self.active = true
+    
+    def pastelPicker(self, idx):
+        return idx % 2
 
     def pastelise(self):
         if Preferences.pastels:
             for idx in range(self.GetItemCount()):
                 item = self.GetItem(idx)
-                if idx % 2:
-                    item.SetBackgroundColour(wxColour(235, 246, 255))
+                if self.pastelPicker(idx):
+                    item.SetBackgroundColour(Preferences.pastelMedium)
                 else:
-                    item.SetBackgroundColour(wxColour(255, 255, 240))
+                    item.SetBackgroundColour(Preferences.pastelLight)
                 self.SetItem(item)
 
     def refreshCtrl(self):
@@ -537,17 +541,70 @@ class ToDoView(ListCtrlView):
         self.SetColumnWidth(2, 350)
 
         self.active = true
+        self.distinctTodos = []
+        self.blockReentrant = false
+    
+    def pastelPicker(self, idx):
+        return ListCtrlView.pastelPicker(self, self.distinctTodos[idx])
 
     def refreshCtrl(self):
         ListCtrlView.refreshCtrl(self)
         i = 0
+        lastLine = -1
+        todoCnt = 0
+        self.distinctTodos = []
         for todo in self.model.module.todos:
-            self.InsertStringItem(i, `todo[0]`)
-            self.SetStringItem(i, 1, 'Unknown')
+            if todo[0] - 1 == lastLine:
+                self.InsertStringItem(i, '')
+                self.SetStringItem(i, 1, '')
+            else:
+                self.InsertStringItem(i, `todo[0]`)
+                self.SetStringItem(i, 1, 'Unknown')
+                todoCnt = todoCnt + 1
+            lastLine = todo[0]
+            
+            self.distinctTodos.append(todoCnt)
             self.SetStringItem(i, 2, todo[1])
             i = i + 1
 
         self.pastelise()
+
+##    def OnItemSelect(self, event):
+##        ListCtrlView.OnItemSelect(self, event)
+##        if not self.blockReentrant:
+##            self.blockReentrant = true
+##            try:
+##                selectedIdx = self.distinctTodos[self.selected]
+##                for idx in range(self.GetItemCount()):
+##                    item = self.GetItem(idx)
+##                    focusState = item.GetState() & wxLIST_STATE_FOCUSED
+##                    if self.distinctTodos[idx] == selectedIdx:
+##                        selectState = wxLIST_STATE_SELECTED
+##                    else:
+##                        selectState = 0
+##                    item.SetState(selectState | focusState)
+##                    self.SetItem(item)
+##            finally:
+##                self.blockReentrant = false
+##
+##    def OnItemDeselect(self, event):
+##        return
+###        ListCtrlView.OnItemDeselect(self, event)
+##        if not self.blockReentrant:
+##            self.blockReentrant = true
+##            try:
+##                selectedIdx = self.distinctTodos[self.selected]
+##                for idx in range(self.GetItemCount()):
+##                    item = self.GetItem(idx)
+##                    focusState = item.GetState() & wxLIST_STATE_FOCUSED
+##                    if self.distinctTodos[idx] == selectedIdx:
+##                        selectState = wxLIST_STATE_SELECTED
+##                    else:
+##                        selectState = 0
+##                    item.SetState(selectState | focusState)
+##                    self.SetItem(item)
+##            finally:
+##                self.blockReentrant = false
 
     def OnGoto(self, event):
         if self.model.views.has_key('Source'):
