@@ -299,10 +299,7 @@ class MenuBarMenusCDTC(MenuBarMenusConstr, CollectionDTC):
                 else:
                     raise 'Invalid menu reference'
             else:
-                try:
-                    dtd[param] = eval(vals[param])
-                except Exception, message:
-                    print 'could not eval 4', vals[param], message
+                dtd[param] = self.eval(vals[param])
 
         return dtd
 
@@ -443,8 +440,7 @@ class IndividualLayoutConstraintOCDTC(LayoutConstraintsConstr, OwnedCollectionDT
     def deleteItem(self, idx):
         # remove from ctrl
         if self.deletionMethod != '(None)':
-            f = RTTI.getFunction(self.control, self.deletionMethod)
-            apply(f, [self.control, idx])
+            getattr(self.control, self.deletionMethod)(idx)
 
         del self.textConstrLst[idx]
         # renumber items following deleted one
