@@ -1010,12 +1010,13 @@ class CollectionIddDTC(CollectionDTC):
 
     def addIds(self, lst):
         for constr in self.textConstrLst:
-            lst.append(constr.params[self.windowIdName])
+            lst.append(constr.params[self.idProp])
 
     def appendItem(self):
         CollectionDTC.appendItem(self)
 
-        self.generateWindowId(self.index)
+#1        self.generateWindowId(self.index)
+        self.updateWindowIds()
 
     def deleteItemEvents(self, idx):
         wIdStr = self.textConstrLst[idx].params[self.idProp]
@@ -1026,6 +1027,8 @@ class CollectionIddDTC(CollectionDTC):
     def deleteItem(self, idx):
         self.deleteItemEvents(idx)
         CollectionDTC.deleteItem(self, idx)
+
+        self.updateWindowIds()
 
     def newWinId(self, itemName):
         return Utils.windowIdentifier(self.designer.controllerView.GetName(),

@@ -221,6 +221,8 @@ class MenuItemsCIDTC(MenuItemsConstr, CollectionIddDTC):
         # remove menu reference
         del self.textConstrLst[idx]
 
+        self.updateWindowIds()
+
     def events(self):
         return ['MenuEvent']
 
