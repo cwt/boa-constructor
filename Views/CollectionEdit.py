@@ -25,6 +25,28 @@ import InspectableViews
 # XXX 'Select Parent' from the Inspector should select the parent companion 
 # XXX of the collection property
 
+_lastDefPos = None
+def getNextDefaultPos():
+    startPosX = Preferences.inspWidth + Preferences.windowManagerSide*2
+    startPosY = Preferences.underPalette
+
+    global _lastDefPos
+    if _lastDefPos is not None:
+        pos = _lastDefPos
+        if pos[0]+400 < Preferences.screenWidth:
+            pos = pos[0]+200, pos[1]
+        elif pos[1]+500 < Preferences.screenHeight:
+            pos = startPosX, pos[1]+250
+        else:
+            _lastDefPos = None
+
+    if _lastDefPos is None:
+        pos = (startPosX, startPosY)
+
+    _lastDefPos = pos
+
+    return pos
+
 [wxID_COLLECTIONEDITOR, wxID_COLLECTIONEDITORTOOLBAR, 
  wxID_COLLECTIONEDITORITEMLIST] = map(lambda _init_ctrls: wxNewId(), range(3))
 
@@ -33,7 +55,7 @@ class CollectionEditor(wxFrame, Utils.FrameRestorerMixin):
         wxFrame.__init__(self, size = wxSize(200, 250), 
               id = wxID_COLLECTIONEDITOR, title = 'Collection Editor', 
               parent = prnt, name = 'CollectionEditor', 
-              style = wxDEFAULT_FRAME_STYLE, pos = wxPoint(-1, -1))
+              style = wxDEFAULT_FRAME_STYLE, pos = self.collEditPos)
 
         self.toolBar = wxToolBar(size = wxDefaultSize, 
               id = wxID_COLLECTIONEDITORTOOLBAR, pos = wxPoint(32, 4), 
@@ -43,6 +65,9 @@ class CollectionEditor(wxFrame, Utils.FrameRestorerMixin):
 
     def __init__(self, parent, collEditView, additAdders = (), 
           lvStyle = wxLC_REPORT):
+        self.collEditPos = (-1, -1)
+        self.collEditPos = getNextDefaultPos()
+        
         self._init_ctrls(parent)
 
         self.itemList = wxListCtrl(size = wxPyDefaultSize, 
@@ -164,13 +189,16 @@ class CollectionEditor(wxFrame, Utils.FrameRestorerMixin):
     def OnRefresh(self, event):
         self.collEditView.refreshCtrl(1)
 
+    _block_selected = false
     def OnObjectSelect(self, event):
-        self.selected = event.m_itemIndex
-        self.collEditView.selectObject(event.m_itemIndex)
+        if not self._block_selected:
+            self.selected = event.m_itemIndex
+            self.collEditView.selectObject(event.m_itemIndex)
 
     def OnObjectDeselect(self, event):
-        self.selected = -1
-        self.collEditView.deselectObject()
+        if not self._block_selected:
+            self.selected = -1
+            self.collEditView.deselectObject()
 
     def OnNewClick(self, event):
         ni = self.collEditView.companion.appendItem()
@@ -188,21 +216,30 @@ class CollectionEditor(wxFrame, Utils.FrameRestorerMixin):
             self.selectObject(idx)
 
     def OnUpClick(self, event):
-        if self.selected > 0:
+        if self.selected > 0 and not self._block_selected:
             newIdx = self.collEditView.companion.moveItem(self.selected, -1)
             self.collEditView.refreshCtrl(1)
             self.selectObject(newIdx)
             
     def OnDownClick(self, event):
-        if (self.selected >= 0) and (self.selected < self.itemList.GetItemCount() -1):
+        if (self.selected >= 0) and not self._block_selected \
+              and (self.selected < self.itemList.GetItemCount() -1):
             newIdx = self.collEditView.companion.moveItem(self.selected, 1)
             self.collEditView.refreshCtrl(1)
             self.selectObject(newIdx)
 
     def OnObjectDClick(self, event):
         if self.selected >= 0:
-            self.collEditView.companion.defaultAction()
+            if self.collEditView.companion.defaultAction():
+                # block events so that switching actions aren't tripped up
+                # by relselection of collection items
+                self._block_selected = true
+                event.Skip()
+                wxCallAfter(self._unblock)
             self.Raise()
+    
+    def _unblock(self):
+        self._block_selected = false
 
     def OnSeledClick(self, event):
         result = []
