@@ -435,8 +435,8 @@ class STCStyleEditDlg(wxDialog):
     def bindComboEvts(self, combo, returnEvtMeth, comboEvtMeth, rdclickEvtMeth):
         wId = wxNewId()
         EVT_MENU(self, wId, returnEvtMeth)
-        EVT_COMBOBOX(combo, combo.GetId(), comboEvtMeth)
         combo.SetAcceleratorTable(wxAcceleratorTable([(0, WXK_RETURN, wId)]))
+        EVT_COMBOBOX(combo, combo.GetId(), comboEvtMeth)
         EVT_RIGHT_DCLICK(combo, rdclickEvtMeth)
         combo.SetToolTipString('Select or press Enter to change, right double-click \n'\
             'the drop down button to select Common definition (if applicable)')
@@ -554,7 +554,7 @@ class STCStyleEditDlg(wxDialog):
         self.editColProp(self.bgColBtn, self.bgColCb, 'back')
 
     def editColTCProp(self, colCb, colBtn, prop, val=None):
-        if val is not None:
+        if val is None:
             colStr = colCb.GetValue()
         else:
             colStr = val
@@ -574,6 +574,7 @@ class STCStyleEditDlg(wxDialog):
         except AssertionError: wxLogError('Not a valid colour value')
 
     def OnfgColCombobox(self, event):
+        print event.GetString()
         try: self.editColTCProp(self.fgColCb, self.fgColBtn, 'fore', event.GetString())
         except AssertionError: wxLogError('Not a valid colour value')
 
@@ -1130,3 +1131,4 @@ if __name__ == '__main__':
             config)
         try: dlg.ShowModal()
         finally: dlg.Destroy()
+print 'asdf'
