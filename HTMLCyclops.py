@@ -7,19 +7,17 @@
 #
 # Created:     2000/05/20
 # RCS-ID:      $Id$
-# Copyright:   of changes (c) 1999 - 2002 Riaan Booysen
+# Copyright:   of changes (c) 1999 - 2003 Riaan Booysen
 # Licence:     Dual GPL & Python
 #-----------------------------------------------------------------------------
 
 from ExternalLib import Cyclops
-import string
-from os import path
 
 clGreen = '#228822'
 clRed = '#882222'
 
 def replaceLT(str):
-    return '<font color="#000060" size="-1"><b>'+string.replace(str, '<', '&lt;')+'</b></font>'
+    return '<font color="#000060" size="-1"><b>'+str.replace('<', '&lt;')+'</b></font>'
 
 import repr
 _repr = repr
@@ -193,7 +191,7 @@ class CycleFinderHTML(Cyclops.CycleFinder):
             lns = []
             for itm in value:
                 lns.append('<td><b>%s</b></td>'%str(itm))
-            self.report.append('<tr><td>%s</td>%s</tr>'%(desc, string.join(lns)))
+            self.report.append('<tr><td>%s</td>%s</tr>'%(desc, ' '.join(lns)))
         else:
             self.report.append('<tr><td>%s</td><td><b>%s</b></td></tr>' % (desc, str(value)))
 
@@ -374,4 +372,4 @@ class CycleFinderHTML(Cyclops.CycleFinder):
 
     def get_page(self):
         self.show_chased_types()
-        return string.join(self.header, '\n')+string.join(self.report, '\n')
+        return '\n'.join(self.header)+'\n'.join(self.report)

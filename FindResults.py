@@ -11,8 +11,8 @@
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 
-import string
-from os import path
+import os
+
 from wxPython.wx import *
 
 from Views.EditorViews import ListCtrlView, CloseableViewMix
@@ -59,8 +59,8 @@ class FindResults(ListCtrlView, CloseableViewMix):
             for mod in self.results.keys():
                 for result in self.results[mod]:
                     self.listResultIdxs.append((mod, result))
-                    i = self.addReportItems(i, (path.basename(mod), `result[0]`,
-                      `result[1]`, string.strip(result[2])) )
+                    i = self.addReportItems(i, (os.path.basename(mod), `result[0]`,
+                      `result[1]`, result[2].strip()) )
 
             self.model.editor.statusBar.setHint('%d matches of "%s".'%(i, self.findPattern))
             self.pastelise()

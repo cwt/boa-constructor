@@ -9,7 +9,7 @@
 # Copyright:   (c) 2001 Tim Hochberg
 # Licence:     GPL
 #-----------------------------------------------------------------------------
-import os, re, string
+import os, re
 
 from wxPython.wx import *
 
@@ -98,10 +98,10 @@ class FindReplaceEngine:
         viewResults = []
         for s, e in self._findAll(text, pattern, selectionStart, selectionStart):
             t = text[:s]
-            lineNo = string.count(t, '\n')
-            left = max(string.rfind(t, '\n'), 0) + 1
+            lineNo = t.count('\n')
+            left = max(t.rfind('\n'), 0) + 1
             index = s - left
-            line = string.split(text[left:], "\n", 1)[0]
+            line = text[left:].split('\n', 1)[0]
             viewResults.append((lineNo+1, index+1, line))
         return viewResults
 
@@ -300,7 +300,7 @@ class FindReplaceEngine:
             print 'Problem saving finder options: %s' % err
 
     def _getValidFilename(self, filename):
-        protsplit = string.split(filename, '://')
+        protsplit = filename.split('://')
         if len(protsplit) > 1:
             if protsplit[0] != 'file' or len(protsplit) > 2:
                 wxLogWarning('%s not searched, only local files allowed'%filename)

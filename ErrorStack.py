@@ -63,13 +63,13 @@ class StdErrErrorParser(StackErrorParser):
     def parse(self):
         if len(self.lines):
             line1 = self.lines.pop()
-            self.error[:] = list(string.split(line1, ': '))
+            self.error[:] = list(line1.split(': '))
 
             if len(self.error) == 1:
                 self.error.insert(0, 'String exception')
-            self.error[1] = string.strip(self.error[1])
+            self.error[1] = self.error[1].strip()
             for idx in range(len(self.lines)-1):
-                mo = fileLine.match(string.rstrip(self.lines[idx]))
+                mo = fileLine.match(self.lines[idx].rstrip())
                 if mo:
                     self.stack.append(StackEntry(mo.group('filename'),
                       int(mo.group('lineno')), self.lines[idx + 1], self.error))
@@ -80,7 +80,7 @@ class PyCheckerErrorParser(StackErrorParser):
         if self.lines:
             pyCheckWarn = self.lines.pop()
             try:
-                filename, lineNo, warng = eval(string.strip(pyCheckWarn), {})
+                filename, lineNo, warng = eval(pyCheckWarn.strip(), {})
             except:
                 pass
             else:
@@ -119,7 +119,7 @@ class CrashTraceLogParser(StackErrorParser):
         fileSize = len(lines)
         self.error[:] = ['Core dump stack', 'trace file size: '+`fileSize`]
 
-        baseDir = string.strip(lines[0])
+        baseDir = lines[0].strip()
         del lines[0]
 
         lines.reverse()
@@ -132,7 +132,7 @@ class CrashTraceLogParser(StackErrorParser):
             line = lines[0]
             del lines[0]
             try:
-                file, lineno, frameid, event, arg = string.split(line, '|', 4)
+                file, lineno, frameid, event, arg = line.split('|', 4)
             except:
                 print 'Error on line', cnt, line
                 break
@@ -148,7 +148,7 @@ class CrashTraceLogParser(StackErrorParser):
                 idx = 0
                 while 1:
                     try:
-                        _file, _lineno, _frameid, _event, _rest = string.split(lines[idx], '|', 4)
+                        _file, _lineno, _frameid, _event, _rest = lines[idx].split('|', 4)
                         #print _file, _lineno, _frameid, _event
                     except Exception, error:
                         print 'Error on find', cnt, idx, lines[idx], str(error)
@@ -175,7 +175,7 @@ def buildErrorList(lines, Parser = StdErrErrorParser):
     currerr = None
 
     for line in lines:
-        if string.strip(line) == tb_id:
+        if line.strip() == tb_id:
             currerr = []
             errs.append(currerr)
         elif line:

@@ -19,7 +19,7 @@ print 'importing Inspector'
 
 # XXX Disable clipboards buttons when non Designer item is selected !!
 
-import os, string
+import os
 from types import *
 
 from wxPython.wx import *
@@ -223,11 +223,8 @@ class InspectorFrame(wxFrame, Utils.FrameRestorerMixin):
             self.selDesgn.restore()
 
     def setDefaultDimensions(self):
-        self.SetDimensions(0,
-          Preferences.paletteHeight + Preferences.windowManagerTop + \
-          Preferences.windowManagerBottom,
-          Preferences.inspWidth,
-          Preferences.bottomHeight)
+        self.SetDimensions(0, Preferences.underPalette,
+                           Preferences.inspWidth, Preferences.bottomHeight)
 
 #---Object selection------------------------------------------------------------
     def selectObject(self, compn, selectInContainment=true, collDesgn=None,
@@ -606,7 +603,7 @@ class NameValue:
         self.nameCtrl = StaticText(nameParent, -1, name,
           wxPoint(8 * self.indent + 16, idx * oiLineHeight +2),
           wxSize(inspector.panelNames.GetSize().x, oiLineHeight -3),
-          style = wxCLIP_CHILDREN | wxST_NO_AUTORESIZE)
+          style = wxCLIP_CHILDREN | wxST_NO_AUTORESIZE | wxNO_BORDER)
         self.nameCtrl.SetToolTipString(companion.getPropertyHelp(name))
         EVT_LEFT_DOWN(self.nameCtrl, self.OnSelect)
 
@@ -850,7 +847,7 @@ class EventsWindow(wxSplitterWindow):
     """ Window that hosts event name values and event category selection """
     def __init__(self, *_args, **_kwargs):
         wxSplitterWindow.__init__(self, _kwargs['parent'], _kwargs['id'],
-          style = wxNO_3D|wxSP_FULLSASH|wxSP_3DSASH|wxSP_LIVE_UPDATE)
+          style = Preferences.splitterStyle)
 
         self.categories = wxSplitterWindow(self, -1,
               style=wxNO_3D|wxSP_3D|wxSP_LIVE_UPDATE)
@@ -919,11 +916,11 @@ class EventsWindow(wxSplitterWindow):
         return self.definitions.getNameValue(name)
 
     def macroNameToEvtName(self, macName):
-        flds = string.splitfields(macName, '_')
+        flds = macName.split('_')
         del flds[0] #remove 'EVT'
-        evtName = 'On'+string.capitalize(self.inspector.selCmp.evtName())
+        evtName = 'On'+self.inspector.selCmp.evtName().capitalize()
         for fld in flds:
-            evtName = evtName + string.capitalize(fld)
+            evtName = evtName + fld.capitalize()
         return evtName
 
     def extendHelpUrl(self, wxClass, url):
@@ -999,8 +996,7 @@ class NameValueEditorScrollWin(wxScrolledWindow):
         self.nameValues = []
         self.prevSel = None
         self.splitter = wxSplitterWindow(self, -1, wxPoint(0, 0),
-          parent.GetSize(),
-          style = wxNO_3D|wxSP_3D|wxSP_NOBORDER|wxSP_LIVE_UPDATE)
+          parent.GetSize(), style = Preferences.splitterStyle | wxSP_3D)
 
         self.panelNames = wxPanel(self.splitter, -1,
           wxDefaultPosition, wxSize(100, 1), style=0)#wxTAB_TRAVERSAL)

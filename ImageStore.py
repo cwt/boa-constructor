@@ -6,12 +6,11 @@
 #
 # Created:     2000/03/15
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999 - 2002 Riaan Booysen
+# Copyright:   (c) 1999 - 2003 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
 
-from os import path
-import sys, os, string, pprint
+import os
 
 from wxPython import wx
 
@@ -45,8 +44,8 @@ class ImageStore:
             raise 'Extension not handled '+ext
 
     def pathExtFromName(self, root, name):
-        imgPath = self.canonizePath(path.join(root, name))
-        ext = path.splitext(name)[1]
+        imgPath = self.canonizePath(os.path.join(root, name))
+        ext = os.path.splitext(name)[1]
         self.checkPath(imgPath)
         return imgPath, ext
 
@@ -54,7 +53,7 @@ class ImageStore:
         for rootpath in self.rootpaths:
             try:
                 imgpath, ext = self.pathExtFromName(rootpath, name)
-            except InvalidImgPathError, err:
+            except InvalidImgPathError:
                 continue
 
             if self.useCache:
@@ -69,19 +68,17 @@ class ImageStore:
         for rootpath in self.rootpaths:
             try:
                 imgpath, ext = self.pathExtFromName(rootpath, name)
-            except InvalidImgPathError, err:
+            except InvalidImgPathError:
                 continue
             else:
                 return 1
         return 0
-##        name, ext = self.pathExtFromName(name)
-##        return os.path.isfile(name)
 
     def canonizePath(self, imgPath):
-        return string.replace(path.normpath(imgPath), '\\', '/')
+        return os.path.normpath(imgPath).replace('\\', '/')
 
     def checkPath(self, imgPath):
-        if not path.isfile(imgPath):
+        if not os.path.isfile(imgPath):
             raise InvalidImgPathError, '%s not valid' %imgPath
 
     def addRootPath(self, rootPath):
@@ -103,14 +100,15 @@ class ZippedImageStore(ImageStore):
             print 'reading Image archive...'
             import zipfile
             zf = zipfile.ZipFile(archive)
-            self.archives[archive] = map(lambda fl: fl.filename, zf.filelist)
+            self.archives[archive] = [fl.filename for fl in zf.filelist]
+                                    #map(lambda fl: fl.filename, zf.filelist)
 
             for img in self.archives[archive]:
                 if img[-1] == '/':
                     continue
 
                 imgData = zf.read(img)
-                imgExt = path.splitext(img)[1]
+                imgExt = os.path.splitext(img)[1]
                 bmpPath = img#self.canonizePath(path.join(path.splitext(archive)[0], img))
                 self.images[bmpPath] = (imgData, imgExt)
             zf.close()
