@@ -10,13 +10,16 @@ false = 0
 ## = map(lambda x: wxNewId(), range(5))
 
 class SSHController(ExplorerNodes.Controller, ExplorerNodes.ClipboardControllerMix):
-    def __init__(self, list):
+    def __init__(self, editor, list):
         ExplorerNodes.ClipboardControllerMix.__init__(self)
+        ExplorerNodes.Controller.__init__(self, editor)
 
         self.list = list
         self.menu = wxMenu()
 
         self.setupMenu(self.menu, self.list, self.clipMenuDef)
+        self.toolbarMenus = [self.clipMenuDef]
+        
         
 class SSHCatNode(ExplorerNodes.CategoryNode):
     defName = 'SSH'

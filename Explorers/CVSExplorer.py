@@ -25,6 +25,13 @@ def isCVS(filename):
                       os.path.exists(os.path.join(filename, 'Repository')) and \
                       os.path.exists(os.path.join(filename, 'Root'))
 
+def cvsFileLocallyModified(filename, timestamp):
+    """  cvsFileLocallyModified -> modified, conflict """
+    filets = time.strftime('%a %b %d %H:%M:%S %Y', 
+          time.gmtime(os.stat(filename)[stat.ST_MTIME]))
+    return timestamp != filets, string.split(timestamp, '+')[0] == 'Result of merge'
+
+
 def scramble(str):
     """ Directly but unrecognisably translated from CVS' scramble.c ;) """
     shifts = (0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15,
@@ -47,44 +54,59 @@ def scramble(str):
     return 'A'+string.join(map(lambda c,shifts=shifts: chr(shifts[ord(c)]), list(str)), '')
 
 class CVSController(ExplorerNodes.Controller):
-    def __init__(self, list):
+    updateBmp = 'Images/CvsPics/Update.bmp'
+    commitBmp = 'Images/CvsPics/Commit.bmp'
+    addBmp = 'Images/CvsPics/Add.bmp'
+    addBinBmp = 'Images/CvsPics/AddBinary.bmp'
+    removeBmp = 'Images/CvsPics/Remove.bmp'
+    diffBmp = 'Images/CvsPics/Diff.bmp'
+    logBmp = 'Images/CvsPics/Log.bmp'
+    statusBmp = 'Images/CvsPics/Status.bmp'
+    tagBmp = 'Images/CvsPics/Tag.bmp'
+    branchBmp = 'Images/CvsPics/Branch.bmp'
+    def __init__(self, editor, list):
+        ExplorerNodes.Controller.__init__(self, editor)
         self.list = list
         self.menu = wxMenu()
         self.cvsOptions = '-z7'
 
-        self.setupMenu(self.menu, self.list, (\
-              (wxID_CVSUPDATE, 'Update', self.OnUpdateCVSItems),
-              (wxID_CVSCOMMIT, 'Commit', self.OnCommitCVSItems),
-              (-1, '-', None),
-              (wxID_CVSADD, 'Add', self.OnAddCVSItems),
-              (wxID_CVSADDBINARY, 'Add binary', self.OnAddBinaryCVSItems),
-              (wxID_CVSREMOVE, 'Remove', self.OnRemoveCVSItems),
-              (-1, '-', None),
-              (wxID_CVSDIFF, 'Diff', self.OnDiffCVSItems),
-              (wxID_CVSLOG, 'Log', self.OnLogCVSItems),
-              (wxID_CVSSTATUS, 'Status', self.OnStatusCVSItems),
-              (wxID_CVSTEST, 'TEST', self.OnTest),
-              (-1, '-', None),
-              (wxID_CVSTAG, 'Tag', self.OnTagCVSItems),
-              (wxID_CVSBRANCH, 'Branch', self.OnBranchCVSItems),
-              (wxID_CVSLOCK, 'Lock', self.OnLockCVSItems),
-              (wxID_CVSLOCK, 'Unlock', self.OnUnlockCVSItems) ))
+        self.cvsMenuDef = (\
+              (wxID_CVSUPDATE, 'Update', self.OnUpdateCVSItems, self.updateBmp),
+              (wxID_CVSCOMMIT, 'Commit', self.OnCommitCVSItems, self.commitBmp),
+              (-1, '-', None, ''),
+              (wxID_CVSADD, 'Add', self.OnAddCVSItems, self.addBmp),
+              (wxID_CVSADDBINARY, 'Add binary', self.OnAddBinaryCVSItems, self.addBinBmp),
+              (wxID_CVSREMOVE, 'Remove', self.OnRemoveCVSItems, self.removeBmp),
+              (-1, '-', None, ''),
+              (wxID_CVSDIFF, 'Diff', self.OnDiffCVSItems, self.diffBmp),
+              (wxID_CVSLOG, 'Log', self.OnLogCVSItems, self.logBmp),
+              (wxID_CVSSTATUS, 'Status', self.OnStatusCVSItems, self.statusBmp),
+#              (wxID_CVSTEST, 'TEST', self.OnTest),
+              (-1, '-', None, ''),
+              (wxID_CVSTAG, 'Tag', self.OnTagCVSItems, self.tagBmp),
+              (wxID_CVSBRANCH, 'Branch', self.OnBranchCVSItems, self.branchBmp),
+              (wxID_CVSLOCK, 'Lock', self.OnLockCVSItems, '-'),
+              (wxID_CVSLOCK, 'Unlock', self.OnUnlockCVSItems, '-') )
+
+        self.setupMenu(self.menu, self.list, self.cvsMenuDef)
+
+        self.fileCVSMenuDef = (\
+              (wxID_FSCVSIMPORT, 'Import', self.OnImportCVSFSItems, '-'),
+              (wxID_FSCVSCHECKOUT, 'Checkout', self.OnCheckoutCVSFSItems, '-'),
+              (-1, '-', None, ''),
+              (wxID_FSCVSLOGIN, 'Login', self.OnLoginCVS, '-'),
+              (wxID_FSCVSLOGOUT, 'Logout', self.OnLogoutCVS, '-'), 
+              (-1, '-', None, ''),
+        )
 
         self.fileCVSMenu = wxMenu()
-        self.setupMenu(self.fileCVSMenu, self.list, (\
-              (wxID_FSCVSIMPORT, 'Import', self.OnImportCVSFSItems),
-              (wxID_FSCVSCHECKOUT, 'Checkout', self.OnCheckoutCVSFSItems),
-              (-1, '-', None),
-              (wxID_FSCVSLOGIN, 'Login', self.OnLoginCVS),
-              (wxID_FSCVSLOGOUT, 'Logout', self.OnLogoutCVS), 
-              (-1, '-', None),
-        ))
+        self.setupMenu(self.fileCVSMenu, self.list, self.fileCVSMenuDef)
         
         self.cvsEnvMenu = wxMenu()
         menus = []
         for env, id in map(lambda x, v = cvs_environ_vars, i = cvs_environ_ids: \
             (v[x], i[x]), range(len(cvs_environ_vars))):
-              menus.append( (id, env, self.OnEditEnv) )  
+              menus.append( (id, env, self.OnEditEnv, '-') )  
         self.setupMenu(self.cvsEnvMenu, self.list, menus)
 
         self.fileCVSMenu.AppendMenu(wxID_FSCVSENV, 'CVS shell environment vars', self.cvsEnvMenu)
@@ -100,6 +122,8 @@ class CVSController(ExplorerNodes.Controller):
         self.images.Add(IS.load('Images/Modules/FolderUp_s.bmp'))
         self.images.Add(IS.load('Images/CVSPics/UnknownDir.bmp'))
         self.images.Add(IS.load('Images/CVSPics/UnknownFile.bmp'))
+
+        self.toolbarMenus = [self.cvsMenuDef]
         
         FSCVSFolderNode.images = self.images
 
@@ -151,6 +175,9 @@ class CVSController(ExplorerNodes.Controller):
         return string.join(errp.readlines()[:-1])
 
     def doCvsCmd(self, cmd, cvsDir, stdinput = ''):
+        # Repaint background
+        wxYield()
+        
         from popen2import import popen3
             
         cwd = os.getcwd()
@@ -411,11 +438,7 @@ class CVSFileNode(ExplorerNodes.ExplorerNode):
         if self.timestamp:
             filename = os.path.abspath(os.path.join(self.resourcepath, '..', name))
             if os.path.exists(filename):
-                filets = time.strftime('%a %b %d %H:%M:%S %Y', 
-                      time.gmtime(os.stat(filename)[stat.ST_MTIME]))
-                self.modified = self.timestamp != filets
-                self.conflict = string.split(self.timestamp, '+')[0] == 'Result of merge'
-                print name, self.modified
+                self.modified, self.conflict = cvsFileLocallyModified(filename, self.timestamp)
             else:
                 self.missing = true
         
@@ -439,7 +462,7 @@ class CVSFileNode(ExplorerNodes.ExplorerNode):
             if not model.views.has_key(CVSConflictsView.viewName):
                 resultView = editor.addNewView(CVSConflictsView.viewName, CVSConflictsView)
             else:
-                resultView = self.model.views[CVSConflictsView.viewName]
+                resultView = model.views[CVSConflictsView.viewName]
             resultView.refresh()
             resultView.focus()        
         
@@ -554,10 +577,14 @@ class FSCVSFolderNode(ExplorerNodes.ExplorerNode):
 class CVSConflictsView(Views.EditorViews.ListCtrlView):
     viewName = 'CVS conflicts'
     gotoLineBmp = 'Images/Editor/GotoLine.bmp'
-
+    acceptBmp = 'Images/Inspector/Post.bmp'
+    rejectBmp = 'Images/Inspector/Cancel.bmp'
+    
     def __init__(self, parent, model):
         Views.EditorViews.ListCtrlView.__init__(self, parent, model, wxLC_REPORT, 
-          (('Goto line', self.OnGoto, self.gotoLineBmp, ()),), 0)
+          (('Goto line', self.OnGoto, self.gotoLineBmp, ()),
+           ('Accept changes', self.OnAcceptChanges, self.acceptBmp, ()), 
+           ('Reject changes', self.OnRejectChanges, self.rejectBmp, ()) ), 0)
         self.InsertColumn(0, 'Rev')
         self.InsertColumn(1, 'Line#')
         self.InsertColumn(2, 'Size')
@@ -590,3 +617,13 @@ class CVSConflictsView(Views.EditorViews.ListCtrlView):
             print 'Going to line', lineNo
             srcView.gotoLine(lineNo)
 
+    # XXX I've still to decide on this, operations should usually be applied
+    # XXX thru the model, but by applying thru the STC you get it in the
+    # XXX undo history
+    def OnAcceptChanges(self, event):
+        if self.selected != -1:
+            self.model.acceptConflictChange(self.conflicts[self.selected])
+
+    def OnRejectChanges(self, event):
+        if self.selected != -1:
+            self.model.rejectConflictChange(self.conflicts[self.selected])

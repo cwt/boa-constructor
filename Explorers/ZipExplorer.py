@@ -12,8 +12,9 @@ def isZip(file):
 ## = map(lambda x: wxNewId(), range(5))
 
 class ZipController(ExplorerNodes.Controller, ExplorerNodes.ClipboardControllerMix):
-    def __init__(self, list):
+    def __init__(self, editor, list):
         ExplorerNodes.ClipboardControllerMix.__init__(self)
+        ExplorerNodes.Controller.__init__(self, editor)
 
         self.list = list
         self.menu = wxMenu()
@@ -24,6 +25,7 @@ class ZipController(ExplorerNodes.Controller, ExplorerNodes.ClipboardControllerM
         for m in mi:
             if m.GetId() != ExplorerNodes.wxID_CLIPCOPY:
                 m.Enable(false)
+        self.toolbarMenus = [self.clipMenuDef]
             
 
 class ZipExpClipboard(ExplorerNodes.ExplorerClipboard): pass

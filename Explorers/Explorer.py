@@ -50,11 +50,14 @@ class PackageFolderTree(wxTreeCtrl):
               wxTreeItemData(self.boaRoot))
         bookCatNode = ExplorerNodes.BookmarksCatNode(self.fsclip, conf, None)
         
+        
         self.boaRoot.entries = [FileExplorer.FileSysCatNode(self.fsclip, conf, None, bookCatNode), 
                                 bookCatNode,
-                                ZopeExplorer.ZopeCatNode(conf, None, self.globClip),
-                                SSHExplorer.SSHCatNode(self.sshClip, conf, None),
                                 ExplorerNodes.SysPathNode(self.fsclip, None, bookCatNode)]
+        if conf.has_option('explorer', 'zope'):
+            self.boaRoot.entries.append(ZopeExplorer.ZopeCatNode(conf, None, self.globClip))
+        if conf.has_option('explorer', 'ssh'):
+            self.boaRoot.entries.append(SSHExplorer.SSHCatNode(self.sshClip, conf, None))
 
         self.SetItemHasChildren(rootItem, true)
         self.Expand(rootItem)
@@ -128,6 +131,7 @@ class PackageFolderList(wxListCtrl):
 #        self.exts = map(lambda C: C.ext, modelReg.values())
         self.idxOffset = 0
         self.updateNotify = updateNotify
+        self.node = None
 
 ##        EVT_LIST_ITEM_SELECTED(self, wxID_PFL, self.OnItemSelect)
 ##        EVT_LIST_ITEM_DESELECTED(self, wxID_PFL, self.OnItemDeselect)
@@ -180,7 +184,7 @@ class PackageFolderList(wxListCtrl):
                   itm.treename or itm.name, itm.imgIdx)
 
         self.filepath = explNode.resourcepath
-        
+                
         if self.updateNotify:
             self.updateNotify()
 
@@ -212,19 +216,19 @@ class ExplorerSplitter(wxSplitterWindow):
         EVT_LIST_ITEM_SELECTED(self.list, wxID_PFL, self.OnItemSelect)
         EVT_LIST_ITEM_DESELECTED(self.list, wxID_PFL, self.OnItemDeselect)
         
-        cvsController = CVSExplorer.CVSController(self.list)
+        cvsController = CVSExplorer.CVSController(editor, self.list)
         self.controllers = { \
               FileExplorer.PyFileNode.protocol: \
-                FileExplorer.FileSysController(self.list, cvsController),
+                FileExplorer.FileSysController(editor, self.list, cvsController),
               ZopeExplorer.ZopeItemNode.protocol: \
-                ZopeExplorer.ZopeController(self.list, editor.inspector),
+                ZopeExplorer.ZopeController(editor, self.list, editor.inspector),
               CVSExplorer.FSCVSFolderNode.protocol: cvsController,
               SSHExplorer.SSHItemNode.protocol: \
-                SSHExplorer.SSHController(self.list),
+                SSHExplorer.SSHController(editor, self.list),
               ZipExplorer.ZipItemNode.protocol: \
-                ZipExplorer.ZipController(self.list),
+                ZipExplorer.ZipController(editor, self.list),
               ExplorerNodes.CategoryNode.protocol: \
-                ExplorerNodes.CategoryController(self.list, editor.inspector),
+                ExplorerNodes.CategoryController(editor, self.list, editor.inspector),
               }
         
         self.tree = PackageFolderTree(self, modimages, root)
@@ -236,6 +240,28 @@ class ExplorerSplitter(wxSplitterWindow):
         
         self.SplitVertically(self.tree, self.list, 200)
         self.list.SetFocus()
+    
+    def addTools(self, toolbar):
+        if self.list.node and self.controllers.has_key(self.list.node.protocol):
+            prot = self.list.node.protocol
+            tbMenus = []
+            for menuLst in self.controllers[prot].toolbarMenus:
+                tbMenus.extend(menuLst)
+            
+            for wID, name, meth, bmp in tbMenus:
+                if name == '-' and not bmp:
+                    toolbar.AddSeparator()
+                elif bmp != '-':
+                    if name[0] == '+':
+                        # XXX Add toggle button
+                        name = name [1:]
+                    Utils.AddToolButtonBmpObject(self.editor, toolbar, IS.load(bmp), name, meth)
+    
+    def getMenu(self):
+        if self.list.node and self.controllers.has_key(self.list.node.protocol):
+            return self.controllers[self.list.node.protocol].menu
+        else:
+            return None
     
     def destroy(self):
         del self.editor
@@ -258,6 +284,8 @@ class ExplorerSplitter(wxSplitterWindow):
         if not self.selecting and self.tree.IsExpanded(tItm):
             self.tree.Collapse(tItm)
             self.tree.Expand(tItm)
+#        self.addTools(self.editor.toolBar)
+        self.editor.setupToolBar(1)
 
     def OnSelecting(self, event):
         self.selecting = true
@@ -285,7 +313,7 @@ class ExplorerSplitter(wxSplitterWindow):
                     if not self.tree.IsExpanded(tItm):
                         self.tree.Expand(tItm)
                     chid = self.tree.getChildNamed(self.tree.GetSelection(), 
-                      item.name)
+                      name)
                     self.tree.SelectItem(chid)
                 else:
                     item.open(self.editor)

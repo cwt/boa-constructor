@@ -40,14 +40,34 @@ class ExplorerClipboard:
 class Controller:
 #    def __del__(self):
 #        print '__del__', self.__class__.__name__
+    def __init__(self, editor):
+        self.editor = editor
         
     def setupMenu(self, menu, win, menus):
-        for wId, help, method in menus:
+        for wId, help, method, bmp in menus:
             if help != '-':
-                menu.Append(wId, help)
+                if help[0] == '+':
+                    canCheck = true
+                    help = help[1:]
+                else:
+                    canCheck = false
+    
+                menu.Append(wId, help, checkable = canCheck)
                 EVT_MENU(win, wId, method)
+                EVT_MENU(self.editor, wId, method)
             else:
                 menu.AppendSeparator()
+
+    def groupToggleCheckMenu(self, menu, menuDef, wCheckId):
+        checked = not menu.IsChecked(wCheckId)
+        self.groupCheckMenu(menu, menuDef, wCheckId, checked)
+    
+    def groupCheckMenu(self, menu, menuDef, wCheckId, checked):
+        for wId, help, method, bmp in menuDef:
+            if wId == wCheckId:
+                menu.Check(wId, checked)
+            else:
+                menu.Check(wId, not checked)
 
     def getName(self, item):
         if item.name:
@@ -59,7 +79,7 @@ class Controller:
         res = []
         for idx in idxs:
             res.append(self.getName(self.list.items[idx]))
-        print res
+#        print res
         return res
 
     def getNodesForSelection(self, idxs):
@@ -72,13 +92,17 @@ class Controller:
  = Utils.winIdRange(5)
 
 class ClipboardControllerMix:
+    cutBmp = 'Images/Shared/Cut.bmp'
+    copyBmp = 'Images/Shared/Copy.bmp'
+    pasteBmp = 'Images/Shared/Paste.bmp'
+    deleteBmp = 'Images/Shared/Delete.bmp'
     def __init__(self):
-        self.clipMenuDef = ( (wxID_CLIPCUT, 'Cut', self.OnCutItems),
-                             (wxID_CLIPCOPY, 'Copy', self.OnCopyItems),
-                             (wxID_CLIPPASTE, 'Paste', self.OnPasteItems),
-                             (-1, '-', None),
-                             (wxID_CLIPDELETE, 'Delete', self.OnDeleteItems),
-                             (wxID_CLIPRENAME, 'Rename', self.OnRenameItems) )
+        self.clipMenuDef = ( (wxID_CLIPCUT, 'Cut', self.OnCutItems, self.cutBmp),
+                             (wxID_CLIPCOPY, 'Copy', self.OnCopyItems, self.copyBmp),
+                             (wxID_CLIPPASTE, 'Paste', self.OnPasteItems, self.pasteBmp),
+                             (-1, '-', None, ''),
+                             (wxID_CLIPDELETE, 'Delete', self.OnDeleteItems, self.deleteBmp),
+                             (wxID_CLIPRENAME, 'Rename', self.OnRenameItems, '-') )
                          
     def OnCutItems(self, event): 
         if self.list.node:
@@ -224,18 +248,24 @@ class CategoryNode(ExplorerNode):
  = Utils.winIdRange(4)
 
 class CategoryController(Controller):
-    def __init__(self, list, inspector):
+    newBmp = 'Images/Shared/NewItem.bmp'
+    inspectBmp = 'Images/Shared/Inspector.bmp'
+    deleteBmp = 'Images/Shared/Delete.bmp'
+    
+    def __init__(self, editor, list, inspector):
+        Controller.__init__(self, editor)
         self.list = list
         self.menu = wxMenu()
         self.inspector = inspector
 
-        self.catMenuDef = ( (wxID_CATNEW, 'New', self.OnNewItem),
-                            (wxID_CATINSPECT, 'Inspect', self.OnInspectItem),
-                            (-1, '-', None),
-                            (wxID_CATDELETE, 'Delete', self.OnDeleteItems),
-                            (wxID_CATRENAME, 'Rename', self.OnRenameItem) )
+        self.catMenuDef = ( (wxID_CATNEW, 'New', self.OnNewItem, self.newBmp),
+                            (wxID_CATINSPECT, 'Inspect', self.OnInspectItem, self.inspectBmp),
+                            (-1, '-', None, ''),
+                            (wxID_CATDELETE, 'Delete', self.OnDeleteItems, self.deleteBmp),
+                            (wxID_CATRENAME, 'Rename', self.OnRenameItem, '-') )
 
         self.setupMenu(self.menu, self.list, self.catMenuDef)
+        self.toolbarMenus = [self.catMenuDef]
     
     def OnInspectItem(self, event):
         if self.list.node:
@@ -261,7 +291,6 @@ class CategoryController(Controller):
     def OnDeleteItems(self, event):
         if self.list.node:
             ms = self.list.getMultiSelection()
-            print ms
             names = self.getNamesForSelection(ms)
             self.list.node.deleteItems(names)
             self.list.refreshCurrent()
