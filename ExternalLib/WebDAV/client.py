@@ -2,7 +2,7 @@
 
 __version__='$Revision$'[11:-2]
 
-import sys, os, string, regex, time, types
+import sys, os, string,  time, types,re
 import socket, httplib, mimetools
 from types import FileType
 from mimetypes import guess_type
@@ -13,6 +13,7 @@ from whrandom import random
 from urllib import quote
 
 
+    
 
 class HTTP(httplib.HTTP):
     # A revised version of the HTTP class that can do basic
@@ -36,11 +37,11 @@ class HTTP(httplib.HTTP):
         try:
             [ver, code, msg] = string.split(line, None, 2)
         except ValueError:
-            try:
-                [ver, code] = string.split(line, None, 1)
-                msg = ""
-            except ValueError:
-                return -1, line, None
+          try:
+              [ver, code] = string.split(line, None, 1)
+              msg = ""
+          except ValueError:
+              return -1, line, None
         if ver[:5] != 'HTTP/':
             return -1, line, None
         code=string.atoi(code)
@@ -56,8 +57,10 @@ class Resource:
         self.username=username
         self.password=password
         self.url=url
-        if urlregex.match(url) >= 0:
-            host,port,uri=urlregex.group(1,2,3)
+
+        mo = urlreg.match(url)
+        if mo: 
+            host,port,uri=mo.group(1,2,3)
             self.host=host
             self.port=port and string.atoi(port[1:]) or 80
             self.uri=uri or '/'
@@ -89,7 +92,7 @@ class Resource:
         if atype=='Basic':
             headers['Authorization']=(
                 "Basic %s" % string.replace(encodestring('%s:%s' % (self.username,self.password)),
-                                            '\012',''))
+					    '\012',''))
             return headers
         raise ValueError, 'Unknown authentication scheme: %s' % atype
 
@@ -123,7 +126,7 @@ class Resource:
         except:
             raise 'NotAvailable', sys.exc_value
         return http_response(ver, code, msg, hdrs, data)
-
+    
     # HTTP methods
 
     def get(self, **kw):
@@ -155,11 +158,11 @@ class Resource:
             return self.__snd_request('POST', self.uri, headers, body)
 
     def put(self, file='', content_type='', content_enc='',
-            isbin=regex.compile('[\0-\6\177-\277]').search,
+            isbin=re.compile(r'[\000-\006\177-\277]').search,
             **kw):
         headers=self.__get_headers(kw)
         filetype=type(file)
-        if filetype is type('') and (isbin(file) < 0) and \
+        if filetype is type('') and (isbin(file) is None) and \
            os.path.exists(file):
             ob=open(file, 'rb')
             body=ob.read()
@@ -244,10 +247,11 @@ class Resource:
              '<d:lockinfo xmlns:d="DAV:">\n' \
              '  <d:lockscope><d:%s/></d:lockscope>\n' \
              '  <d:locktype><d:%s/></d:locktype>\n' \
+             '  <d:depth>%s</d:depth>\n' \
              '  <d:owner>\n' \
              '  <d:href>%s</d:href>\n' \
              '  </d:owner>\n' \
-             '</d:lockinfo>' % (scope, type, owner)
+             '</d:lockinfo>' % (scope, type, depth, owner)
         headers['Content-Type']='text/xml; charset="utf-8"'
         headers['Content-Length']=str(len(body))
         headers['Timeout']=timeout
@@ -262,7 +266,7 @@ class Resource:
         headers=self.__get_headers(kw)
         token='<opaquelocktoken:%s>' % str(token)
         headers['Lock-Token']=token
-        return self.__snd_request('UNLOCK', self.uri, headers, body)
+        return self.__snd_request('UNLOCK', self.uri, headers)
 
     def allprops(self, depth=0):
         return self.propfind('', depth)
@@ -370,8 +374,8 @@ set_xml="""<?xml version="1.0" encoding="utf-8"?>
 """
 
 funny="""<?xml version="1.0" encoding="utf-8"?>
- <d:propertyupdate xmlns:d="DAV:"
-    xmlns:z="http://www.zope.org/propsets/default"
+ <d:propertyupdate xmlns:d="DAV:" 
+    xmlns:z="http://www.zope.org/propsets/default" 
     xmlns:q="http://www.something.com/foo/bar">
  <d:set>
  <d:prop>
@@ -421,7 +425,8 @@ find_xml="""<?xml version="1.0" encoding="utf-8" ?>
 ##############################################################################
 # Implementation details below here
 
-urlregex=regex.compile('http://\([^:/]+\)\(:[0-9]+\)?\(/.+\)?', regex.casefold)
+
+urlreg=re.compile(r'http://([^:/]+)(:[0-9]+)?(/.+)?', re.I)
 
 def marshal_string(name, val):
     return '%s=%s' % (name, quote(str(val)))
@@ -433,7 +438,10 @@ def marshal_int(name, val):
     return '%s:int=%s' % (name, val)
 
 def marshal_long(name, val):
-    return ('%s:long=%s' % (name, val))[:-1]
+    value = '%s:long=%s' % (name, val)
+    if value[-1] == 'L':
+        value = value[:-1]
+    return value
 
 def marshal_list(name, seq, tname='list', lt=type([]), tt=type(())):
     result=[]
@@ -441,7 +449,7 @@ def marshal_list(name, seq, tname='list', lt=type([]), tt=type(())):
         tp=type(v)
         if tp in (lt, tt):
             raise TypeError, 'Invalid recursion in data to be marshaled.'
-        result.append(marshal_var("%s:%s" % (name, tname), v))
+        result.append(marshal_var("%s:%s" % (name, tname), v))    
     return string.join(result, '&')
 
 def marshal_tuple(name, seq):
@@ -594,12 +602,13 @@ class MultiPart:
              }
 
 
-##bri =Resource('http://tarzan.digicool.com/dev/brian3/',
-##              username='brian',
-##              password='123')
-##abri=Resource('http://tarzan.digicool.com/dev/brian3/')
-##
-##dav =Resource('http://tarzan.digicool.com/dev/dav/',
-##              username='brian',
-##              password='123')
-##adav=Resource('http://tarzan.digicool.com/dev/dav/')
+bri =Resource('http://tarzan.digicool.com/dev/brian3/',
+              username='brian',
+              password='123')
+abri=Resource('http://tarzan.digicool.com/dev/brian3/')
+
+dav =Resource('http://tarzan.digicool.com/dev/dav/',
+              username='brian',
+              password='123')
+adav=Resource('http://tarzan.digicool.com/dev/dav/')
+
