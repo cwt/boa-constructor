@@ -63,17 +63,15 @@ class SelectionGroup:
         line = wxPanel(self.parent, -1)
         line.SetSize(wxSize(1, 1))
         line.SetBackgroundColour(wxBLACK)
-        self.senders.addObject(line)
         EVT_MOTION(line, self.OnMouseOver)
         EVT_LEFT_UP(line, self.OnSizeEnd)
         return line
 
-    def __init__(self, parent, senders, inspector, designer, colour, pnlStyle):
+    def __init__(self, parent, inspector, designer, colour, pnlStyle):
         self.designer = designer
         self.inspSel = None
         self.inspector = inspector
         self.parent = parent
-        self.senders = senders
         self.selection = None
         self.selCompn = None
         self.dragTag = None
@@ -108,9 +106,6 @@ class SelectionGroup:
                      self.stTL, self.stTR, self.stBR, self.stBL,
                      self.stT, self.stB, self.stR, self.stL]
         self.anchorTags = [self.stL, self.stT, self.stR, self.stB]
-
-        for tag in self.tags:
-            self.senders.addObject(tag)
 
     def destroy(self):
 #        print 'Destroy selection group', self._cno
@@ -398,8 +393,8 @@ class SelectionGroup:
             return false
 
 class SingleSelectionGroup(SelectionGroup):
-    def __init__(self, parent, senders, inspector, designer):
-        SelectionGroup.__init__(self, parent, senders, inspector, designer, wxBLACK, 0)
+    def __init__(self, parent, inspector, designer):
+        SelectionGroup.__init__(self, parent, inspector, designer, wxBLACK, 0)
 
     def selectCtrl(self, ctrl, compn):
         SelectionGroup.selectCtrl(self, ctrl, compn)
@@ -422,7 +417,7 @@ class SingleSelectionGroup(SelectionGroup):
 
     # Events
     def OnSizeBegin(self, event):
-        self.dragTag = self.senders.getObject(event)
+        self.dragTag = event.GetEventObject()
         self.showFramedTags(self.dragTag)
         self.initStartVals()
 
@@ -438,13 +433,13 @@ class SingleSelectionGroup(SelectionGroup):
     def OnMouseOver(self, event):
         if event.Dragging():
             pos = event.GetPosition()
-            ctrl = self.senders.getObject(event)
+            ctrl = event.GetEventObject()
             self.moving(ctrl, pos)
         event.Skip()
 
 class MultiSelectionGroup(SelectionGroup):
-    def __init__(self, parent, senders, inspector, designer):
-        SelectionGroup.__init__(self, parent, senders, inspector, designer, wxColour(160, 160, 160), wxSIMPLE_BORDER)#wxLIGHT_GREY)
+    def __init__(self, parent, inspector, designer):
+        SelectionGroup.__init__(self, parent, inspector, designer, wxColour(160, 160, 160), wxSIMPLE_BORDER)#wxLIGHT_GREY)
 
     def selectCtrl(self, ctrl, compn):
         SelectionGroup.selectCtrl(self, ctrl, compn)
@@ -477,7 +472,7 @@ class MultiSelectionGroup(SelectionGroup):
     def OnMouseOver(self, event):
         if event.Dragging():
             pos = event.GetPosition()
-            ctrl = self.senders.getObject(event)
+            ctrl = event.GetEventObject()            
             dsgn = self.designer
             for sel in dsgn.multiSelection:
                 sel.moving(ctrl, pos, dsgn.mainMultiDrag)
