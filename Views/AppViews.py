@@ -10,6 +10,8 @@
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 
+""" View classes for the AppModel """
+
 from os import path
 import time
 #from time import time, gmtime, strftime
@@ -24,7 +26,7 @@ from EditorViews import ListCtrlView, ModuleDocView, wxwAppModuleTemplate, Cyclo
 import ProfileView
 import PySourceView
 from PrefsKeys import keyDefs
-import Search
+import Search, Utils
 
 class AppFindResults(ListCtrlView, ClosableViewMix):
     gotoLineBmp = 'Images/Editor/GotoLine.bmp'
@@ -57,6 +59,8 @@ class AppFindResults(ListCtrlView, ClosableViewMix):
                 self.listResultIdxs.append((mod, result))
                 i = self.addReportItems(i, (path.basename(mod), `result[0]`,
                   `result[1]`, string.strip(result[2])) )
+
+        self.model.editor.statusBar.setHint('%d matches of "%s".'%(i, self.findPattern))
 
         self.pastelise()
 
@@ -275,10 +279,11 @@ class AppView(ListCtrlView):
                 appModPage = modulePage
         appModPage.saveOrSaveAs()
 
-
     def OnFind(self, event):
         dlg = wxTextEntryDialog(self.model.editor, 'Enter text:', 'Find in application', self.lastSearchPattern)
         try:
+            te = Utils.getCtrlsFromDialog(dlg, 'wxTextCtrlPtr')[0]
+            te.SetSelection(0, len(self.lastSearchPattern))
             if dlg.ShowModal() == wxID_OK:
                 self.lastSearchPattern = dlg.GetValue()
                 modules = self.model.modules.keys()
@@ -326,8 +331,9 @@ class AppModuleDocView(ModuleDocView):
         else:
             mod = path.splitext(url)[0]
             newMod = self.model.openModule(mod)
-            # XXX Should open documentation page first
-            newMod.views['Documentation'].focus()
+            view  = newMod.editor.addNewView(ModuleDocView.viewName, ModuleDocView)
+            view.refreshCtrl()
+            view.focus()
 
     def genModuleListSect(self):
         modLst = []
@@ -341,15 +347,20 @@ class AppModuleDocView(ModuleDocView):
 
     def genModuleSect(self, page):
         classList, classNames = self.genClassListSect()
+        funcList, funcNames = self.genFuncListSect()
         module = self.model.getModule()
         modBody = wxwAppModuleTemplate % { \
           'ModuleSynopsis': module.getModuleDoc(),
           'Module': self.model.moduleName,
           'ModuleList': self.genModuleListSect()[0],
           'ClassList': classList,
-        }
+          'FunctionList': funcList,
+       }
 
-        return self.genClassesSect(page + modBody, classNames)
+        return self.genFunctionsSect(\
+            self.genClassesSect(page + modBody, classNames), funcNames)
+
+#        return self.genClassesSect(page + modBody, classNames)
 
 class AppCompareView(ListCtrlView, ClosableViewMix):
     gotoLineBmp = 'Images/Editor/GotoLine.bmp'
