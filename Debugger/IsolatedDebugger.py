@@ -546,6 +546,8 @@ class DebugServer (Bdb):
             modname = frame.f_globals['__name__']
         except KeyError:
             modname = ''
+        if modname is None:
+            modname = ''
         funcname = frame.f_code.co_name
         return modname, funcname
 
