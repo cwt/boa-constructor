@@ -333,6 +333,7 @@ class wxBoaFileDialog(wxDialog):
 
     def OnBtcancelButton(self, event):
         self.editorFilterNode.setFilter(self.editorFilter)
+        wxBoaFileDialog._lastSize = self.GetClientSize()
         self.EndModal(wxID_CANCEL)
 
     def OnTcfilenameTextEnter(self, event):
@@ -391,7 +392,10 @@ class wxBoaFileDialog(wxDialog):
         prot, cat, res, uri = Explorer.splitURI(os.path.join(newDir,'dummy.tmp'))
         res = os.path.dirname(res)
         node = Explorer.getTransport(prot, cat, res, self.transports)
-        assert node, 'Sorry, transport could not be opened'
+        if not node:
+            wxMessageBox('Could not open %s' % newDir,
+                'Warning', wxOK | wxICON_EXCLAMATION | wxCENTRE)
+            node = self.transports
 
         node.allowedProtocols = ['file', 'zip']
         self.lcFiles.setLocalFilter(localfilter)
