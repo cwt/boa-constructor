@@ -32,7 +32,7 @@ print 'importing Companions.UserCompanions'
 try:
     from Companions.UserCompanions import *
 except Exception, error:
-    wxLogError('Problem importing User companions')
+    wxLogError('Problem importing User companions: '+str(error))
 
 print 'importing Companions.UtilCompanions'
 from Companions.UtilCompanions import *
@@ -56,6 +56,7 @@ def compInfoByName(name):
     raise name+' not found'
 
 def loadBitmap(name, subfold = ''):
+    """ Loads bitmap if it exists, else loads default bitmap """
     filepath = Preferences.pyPath+ '/Images/Palette/' + subfold + name+'.bmp'
     if path.exists(filepath):
         return IS.load('Images/Palette/' + subfold + name+'.bmp')
@@ -64,7 +65,10 @@ def loadBitmap(name, subfold = ''):
 
 
 def bitmapForComponent(wxClass, wxBase = 'None', gray = false):
-    # "Aquire" bitmap thru inheritance if necessary
+    """ Returns a bitmap for given comonent class.
+    
+    "Aquires" bitmap by traversing inheritance thru if necessary.
+    """
     if gray: sf = 'Gray/'
     else: sf = ''
     if wxBase != 'None': return loadBitmap(wxBase, sf)
@@ -86,12 +90,20 @@ def bitmapForComponent(wxClass, wxBase = 'None', gray = false):
             print 'not found!'
             return loadBitmap('Component')
 
-#print 'PaletteMapping:', len(locals()
+_NB = None
+def evalCtrl(expr, localsDct = None):
+    """ Function usually used to evaluate source snippets.
+    
+    Uses the namespace of this module which contain all the wxPython libs
+    and also adds param localDct.
+    """
+    global _NB
+    if not _NB:
+        _NB = IS.load('Images/Inspector/wxNullBitmap.bmp')
+    if not localsDct:
+        wxNullBitmap = _NB
+        localsDct = locals()
+    else:
+        localsDct['wxNullBitmap'] = _NB
 
-def evalCtrl(expr):
-    wxNullBitmap = IS.load('Images/Inspector/wxNullBitmap.bmp')
-    try:
-        return eval(expr)
-    except Exception, err:
-        print 'Exception in evalCtrl', expr, err
-        raise
+    return eval(expr, globals(), localsDct)
