@@ -26,22 +26,23 @@ from Preferences import IS, staticInfoPrefs
 from Utils import BoaFileDropTarget
 from PrefsKeys import keyDefs
 from Debugger import Debugger
+from thread import start_new_thread
 
-wxwHeaderTemplate ="""<html>
+wxwHeaderTemplate ='''<html>
 <head>
    <title>%(Title)s</title>
 </head>
-<body bgcolor="#FFFFFF">"""
+<body bgcolor="#FFFFFF">'''
 
-wxwModuleTemplate = """
+wxwModuleTemplate = '''
 <h1>%(Module)s</h1>
 %(ModuleSynopsis)s
 <p><b><font color="#FF0000">Classes</font></b><br>
 <p>%(ClassList)s
 <hr>
-"""
+'''
 
-wxwAppModuleTemplate = """
+wxwAppModuleTemplate = '''
 <h1>%(Module)s</h1>
 %(ModuleSynopsis)s
 <p><b><font color="#FF0000">Modules</font></b><br>
@@ -50,9 +51,9 @@ wxwAppModuleTemplate = """
 <p><b><font color="#FF0000">Classes</font></b><br>
 <p>%(ClassList)s
 <hr>
-"""
+'''
 
-wxwClassTemplate = """
+wxwClassTemplate = '''
 <a NAME="%(Class)s"></a>
 <h2>%(Class)s</h2>
 %(ClassSynopsis)s
@@ -66,20 +67,18 @@ wxwClassTemplate = """
 <hr>
 <center>
 *</center>
-"""
+'''
 
-wxwMethodTemplate = """
+wxwMethodTemplate = '''
 <hr><a NAME="%(Class)s%(Method)s"></a>
 <h3>
 %(Class)s.%(Method)s</h3>
 <b>%(Method)s</b>(<i>%(Params)s</i>)
 <p>&nbsp;%(MethodSynopsis)s
 <p>
-"""
+'''
 
-wxwFooterTemplate = """</body>
-</html>
-"""
+wxwFooterTemplate = '</body></html>'
 
 class ViewBrowser:
     def __init__(self, model, current):
@@ -304,8 +303,9 @@ class ModuleDocView(HTMLView):
 
     def genModuleSect(self, page):
         classList, classNames = self.genClassListSect()
+        module = self.model.getModule()
         modBody = wxwModuleTemplate % { \
-          'ModuleSynopsis': self.model.module.getModuleDoc(),
+          'ModuleSynopsis': module.getModuleDoc(),
           'Module': self.model.moduleName,
           'ClassList': classList,
         }
@@ -314,7 +314,7 @@ class ModuleDocView(HTMLView):
 
     def genClassListSect(self):
         clssLst = []
-        classNames = self.model.module.classes.keys()
+        classNames = self.model.getModule().classes.keys()
         classNames.sort()
         for aclass in classNames:
             clssLst.append('<a href="#%s">%s</a>' %(aclass, aclass))
@@ -324,9 +324,10 @@ class ModuleDocView(HTMLView):
     def genClassesSect(self, page, classNames):
         clsBody = ''
         classes = []
+        module = self.model.getModule()
         for aclass in classNames:
             supers = []
-            for super in self.model.module.classes[aclass].super:
+            for super in module.classes[aclass].super:
                 try:
                     supers.append('<a href="#%s">%s</a>'%(super.name, super.name))
                 except:
@@ -341,7 +342,7 @@ class ModuleDocView(HTMLView):
             clsBody = wxwClassTemplate % { \
               'Class': aclass,
               'ClassSuper': supers,
-              'ClassSynopsis': self.model.module.getClassDoc(aclass),
+              'ClassSynopsis': module.getClassDoc(aclass),
               'MethodList': methlist,
               'MethodDetails': meths,
             }
@@ -352,7 +353,8 @@ class ModuleDocView(HTMLView):
     def genMethodSect(self, aclass):
         methlist = []
         meths = []
-        methods = self.model.module.classes[aclass].methods.keys()
+        module = self.model.getModule()
+        methods = module.classes[aclass].methods.keys()
         methods.sort()
         for ameth in methods:
             methlist.append('<a href="#%(Class)s%(Method)s">%(Method)s</a><br>' % {\
@@ -361,8 +363,8 @@ class ModuleDocView(HTMLView):
             methBody = wxwMethodTemplate % { \
               'Class': aclass,
               'Method': ameth,
-              'MethodSynopsis': self.model.module.getClassMethDoc(aclass, ameth),
-              'Params': self.model.module.classes[aclass].methods[ameth].signature,
+              'MethodSynopsis': module.getClassMethDoc(aclass, ameth),
+              'Params': module.classes[aclass].methods[ameth].signature,
             }
             meths.append(methBody)
 
@@ -423,15 +425,16 @@ class CyclopsView(HTMLView, ClosableViewMix):
             else: return
             
             model = self.model.editor.openOrGotoModule(fullname)
+            module = model.getModule()
             if jumpType == 'classlink':
-                lineno = model.module.classes[clss].block.start
+                lineno = module.classes[clss].block.start
             elif jumpType == 'attrlink':
-                if model.module.classes[clss].attributes.has_key(attr):
-                    lineno = model.module.classes[clss].attributes[attr][0].start
-                elif model.module.classes[clss].methods.has_key(attr):
-                    lineno = model.module.classes[clss].methods[attr].start
+                if module.classes[clss].attributes.has_key(attr):
+                    lineno = module.classes[clss].attributes[attr][0].start
+                elif module.classes[clss].methods.has_key(attr):
+                    lineno = module.classes[clss].methods[attr].start
                 else:
-                    lineno = model.module.classes[clss].block.start
+                    lineno = module.classes[clss].block.start
 
                 mod, clss, attr = segs[-3:]
                 if len(segs) > 3:
@@ -553,7 +556,8 @@ class ToDoView(ListCtrlView):
         lastLine = -1
         todoCnt = 0
         self.distinctTodos = []
-        for todo in self.model.module.todos:
+        module = self.model.getModule()
+        for todo in module.todos:
             if todo[0] - 1 == lastLine:
                 self.InsertStringItem(i, '')
                 self.SetStringItem(i, 1, '')
@@ -611,7 +615,8 @@ class ToDoView(ListCtrlView):
             srcView = self.model.views['Source']
             # XXX Implement an interface for views to talk
             srcView.focus()
-            srcView.gotoLine(int(self.model.module.todos[self.selected][0]) -1)
+            module = self.model.getModule()
+            srcView.gotoLine(int(module.todos[self.selected][0]) -1)
             
 tPopupIDPackageOpen = 300
 
@@ -659,7 +664,8 @@ class InfoView(wxTextCtrl, EditorView):
     def refreshCtrl(self):
         pass
         self.SetValue('')
-        info = self.model.module.getInfoBlock()
+        module = self.model.getModule()
+        info = module.getInfoBlock()
         self.WriteText(`info`)
     
     def OnAddInfo(self, event):
@@ -686,29 +692,42 @@ class ExploreView(wxTreeCtrl, EditorView):
 
         EVT_KEY_UP(self, self.OnKeyPressed)
 
-    def refreshCtrl(self):
+    _populated_tree = 0
+
+    def OnPageActivated(self, evt):
+        if not self._populated_tree:
+            self._populated_tree = 1
+            start_new_thread(self.refreshCtrl, (1,))
+        
+    def refreshCtrl(self, load_now=0):
         self.DeleteAllItems()
+        if not load_now:
+            self._populated_tree = 0
+            return
+        self.AddRoot('Loading...')
         # XXX Add root node as module name
+        module = self.model.getModule()
+        self.DeleteAllItems()
         rootItem = self.AddRoot(self.model.moduleName, 5, -1, wxTreeItemData(CodeBlock('', 0, 0)))
-        for className in self.model.module.class_order:
-            classItem = self.AppendItem(rootItem, className, 0, -1, wxTreeItemData(self.model.module.classes[className].block))
-            for attrib in self.model.module.classes[className].attributes.keys():
+        for className in module.class_order:
+            classItem = self.AppendItem(rootItem, className, 0, -1, wxTreeItemData(module.classes[className].block))
+            for attrib in module.classes[className].attributes.keys():
                 attribItem = self.AppendItem(classItem, attrib, 4, -1, 
-                  wxTreeItemData(self.model.module.classes[className].attributes[attrib]))
-            for method in self.model.module.classes[className].method_order:
+                  wxTreeItemData(module.classes[className].attributes[attrib]))
+            for method in module.classes[className].method_order:
                 if (len(method) >= 3) and (method[:2] == 'On') and \
                   (method[2] in string.uppercase):
                     methodsItem = self.AppendItem(classItem, method, 2, -1, 
-                      wxTreeItemData(self.model.module.classes[className].methods[method]))
+                      wxTreeItemData(module.classes[className].methods[method]))
                 else:
                     methodsItem = self.AppendItem(classItem, method, 1, -1, 
-                      wxTreeItemData(self.model.module.classes[className].methods[method]))
+                      wxTreeItemData(module.classes[className].methods[method]))
 
-        functionList = self.model.module.functions.keys()
+        functionList = module.functions.keys()
         functionList.sort() 	               
         for func in functionList:
             funcItem = self.AppendItem(rootItem, func, 3, -1,
-              wxTreeItemData(self.model.module.functions[func]))
+              wxTreeItemData(module.functions[func]))
 
         self.Expand(rootItem)
 
@@ -761,11 +780,12 @@ class HierarchyView(wxTreeCtrl, EditorView):
 
     def refreshCtrl(self):
         self.DeleteAllItems()
-        hierc = self.model.module.createHierarchy()
+        module = self.model.getModule()
+        hierc = module.createHierarchy()
         
         root = self.AddRoot(self.model.moduleName, 3)#, 0, wxTreeItemData(CodeBlock('', 0, 0)))
         for top in hierc.keys():
-            if self.model.module.classes.has_key(top): imgIdx = 1
+            if module.classes.has_key(top): imgIdx = 1
             else: imgIdx = 2
             
             item = self.AppendItem(root, top, imgIdx)
@@ -780,10 +800,11 @@ class HierarchyView(wxTreeCtrl, EditorView):
         if idx.IsOk():
             name = self.GetItemText(idx)
             if self.model.views.has_key('Source') and \
-              self.model.module.classes.has_key(name):
+              self.model.getModule().classes.has_key(name):
                 srcView = self.model.views['Source']
                 srcView.focus()
-                srcView.gotoLine(int(self.model.module.classes[name].block.start) -1)
+                module = self.model.getModule()
+                srcView.gotoLine(int(module.classes[name].block.start) -1)
 
     def OnKeyPressed(self, event):
         key = event.KeyCode()

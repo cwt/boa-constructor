@@ -305,23 +305,24 @@ class InspectableObjectCollectionView(EditorViews.EditorView):
         if collDeps:
             newBody.extend(collDeps + [''])
         
-        if self.model.module.classes[self.model.main].methods.has_key(\
+        module = self.model.getModule()
+        if module.classes[self.model.main].methods.has_key(\
           self.collectionMethod):
             # Add doc string
-            docs = self.model.module.getClassMethDoc(self.model.main, 
+            docs = module.getClassMethDoc(self.model.main, 
               self.collectionMethod)
             if (len(docs) > 0) and docs[0]:
                 newBody.insert(0, '%s""" %s """'%(bodyIndent, docs))
         
             if len(newBody):
-                self.model.module.replaceMethodBody(self.model.main, 
+                module.replaceMethodBody(self.model.main, 
                   self.collectionMethod, newBody)
             else:
-                self.model.module.replaceMethodBody(self.model.main, 
+                module.replaceMethodBody(self.model.main, 
                   self.collectionMethod, [bodyIndent+'pass', ''])
         else:
             if len(newBody):
-                self.model.module.addMethod(self.model.main, 
+                module.addMethod(self.model.main, 
                   self.collectionMethod, self.collectionParams, newBody, 0)
 
         self.model.refreshFromModule()
@@ -668,7 +669,8 @@ class DesignerView(wxFrame, InspectableObjectCollectionView):
         # Remove all collection methods
         for oc in self.model.identifyCollectionMethods(): 
             if len(oc) > len('_init_coll_') and oc[:11] == '_init_coll_':
-                self.model.module.removeMethod(self.model.main, oc)
+                module = self.model.getModule()
+                module.removeMethod(self.model.main, oc)
 
         InspectableObjectCollectionView.saveCtrls(self, definedCtrls) 
 
