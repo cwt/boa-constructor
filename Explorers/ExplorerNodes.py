@@ -1,6 +1,6 @@
 from os import path
 import string, sys, os, time, stat, copy, pprint
-import EditorModels, Utils, Preferences
+import EditorHelper, Utils, Preferences
 import scrm
 false = 0
 true = 1
@@ -11,15 +11,37 @@ sensitive_properties = ('passwd', 'scp_pass')
 # Folderish objects are creators
 # Folderish objects are connected to a clipboard and maintain their children
 
+# XXX Active models open in the editors should be returned on list queries
+
+# XXX Add protocol on resourcename level; protocol://resourcename
+# XXX Open models should show their protocol in the title bar
+
+# XXX define a filtering interface
+
+# Guidelines
+#  Creation of a node should be cheap and not significant resources
+#  Opening/getting the contents/sublists should start connections/resources
+
 class GlobalClipper:
     def __init__(self):
         self.currentClipboard = None
+
+class ClipboardException(Exception):
+    def __init__(self, source, dest):
+        self.source = source
+        self.dest = dest
+
+class DirectPastingNotSupportedClipError(ClipboardException):
+    pass
 
 class ExplorerClipboard:
     # XXX Maybe the clipboard should only have to define a convertToCommon
     # XXX and convertToType method.
     # XXX This would add an extra possibly expensive intermediate step
     # XXX but would simplify creation of new clipboards
+
+    # XXX Base class should implement recursive traversal by using explorer intf
+
     def __init__(self, globClip):
         self.globClip = globClip
         self.clipNodes = []
@@ -36,13 +58,18 @@ class ExplorerClipboard:
         if self.globClip.currentClipboard:
             methName = 'clipPaste_'+self.globClip.currentClipboard.__class__.__name__
             try:
-                exec 'self.%s(node, self.globClip.currentClipboard.clipNodes, self.globClip.currentClipboard.clipMode)' % methName
-            except AttributeError:
-                raise Exception('Pasting from %s not supported'% self.globClip.currentClipboard.__class__.__name__)
+                clipMeth = eval('self.%s' % methName)
+            except AttributeError, message:
+                raise Exception('Pasting from %s not supported (%s)'% \
+                    (self.globClip.currentClipboard.__class__.__name__, message) )
+            else:
+                clipMeth(node, self.globClip.currentClipboard.clipNodes,
+                    self.globClip.currentClipboard.clipMode)
 
 class Controller:
     def __del__(self):
-        print '__del__', self.__class__.__name__
+        pass
+#        print '__del__', self.__class__.__name__
     def __init__(self, editor):
         self.editor = editor
 
@@ -60,6 +87,10 @@ class Controller:
                 EVT_MENU(self.editor, wId, method)
             else:
                 menu.AppendSeparator()
+
+    def destroy(self):
+        # break circular references here
+        pass
 
     def groupToggleCheckMenu(self, menu, menuDef, wCheckId):
         checked = not menu.IsChecked(wCheckId)
@@ -81,6 +112,7 @@ class Controller:
     def getNamesForSelection(self, idxs):
         res = []
         for idx in idxs:
+            #print 'names', self.list.items[idx], type(self.list.items[idx])
             res.append(self.getName(self.list.items[idx]))
 #        print res
         return res
@@ -106,6 +138,8 @@ class ClipboardControllerMix:
                              (-1, '-', None, ''),
                              (wxID_CLIPDELETE, 'Delete', self.OnDeleteItems, self.deleteBmp),
                              (wxID_CLIPRENAME, 'Rename', self.OnRenameItems, '-') )
+    def destroy(self):
+        self.clipMenuDef = ()
 
     def OnCutItems(self, event):
         if self.list.node:
@@ -113,6 +147,7 @@ class ClipboardControllerMix:
             self.list.node.clipCut(nodes)
 
     def OnCopyItems(self, event):
+        print 'Clip copy'
         if self.list.node:
             nodes = self.getNodesForSelection(self.list.getMultiSelection())
             self.list.node.clipCopy(nodes)
@@ -131,6 +166,17 @@ class ClipboardControllerMix:
     def OnRenameItems(self, event):
         self.list.EditLabel(self.list.selected)
 
+    def OnOpenItems(self, event):
+        if self.list.node:
+            nodes = self.getNodesForSelection(self.list.getMultiSelection())
+            for node in nodes:
+                if not node.isFolderish():
+                    print 'Opening item', node
+                    node.open(self.editor)
+
+##class Transport:
+
+
 class ExplorerNode:
     protocol = None
     images = None
@@ -145,10 +191,10 @@ class ExplorerNode:
         self.treename = name
         self.bold = false
         self.vetoRequery = false
-        self.upImgIdx = EditorModels.imgFolderUp
+        self.upImgIdx = EditorHelper.imgFolderUp
         self.parentOpensChildren = false
-##    def __del__(self):
-##        print '__del__', self.__class__.__name__
+    def __del__(self): pass
+        #print '__del__', self.__class__.__name__
     def destroy(self):pass
     def createParentNode(self): pass
     def createChildNode(self, value): pass
@@ -160,14 +206,17 @@ class ExplorerNode:
         else: return self.name
     def getDescription(self):
         return self.getTitle()
-
+    def notifyBeginLabelEdit(self, event):
+        pass
 #---Default item actions--------------------------------------------------------
-    def open(self, editor): pass
+    def open(self, editor):
+        return editor.openOrGotoModule(self.resourcepath, transport = self)
     def openParent(self, editor): return false
 
 #---Methods on sub items--------------------------------------------------------
     def deleteItems(self, names): pass
     def renameItem(self, name, newName): pass
+    def newFolder(self, name): pass
 
 #---Clipboard methods-----------------------------------------------------------
     def clipCut(self, nodes):
@@ -180,17 +229,45 @@ class ExplorerNode:
     def canAdd(self, paletteName):
         return false
 
+#---Persistance (loading and saving)--------------------------------------------
+    def load(self):
+        """ Return item data from appropriate transport """
+        return None
+    def save(self, filename, data):
+        """ Persist data on appropriate transport. Should handle renames """
+        pass
+
+class CachedNodeMixin:
+    """ Only read from datasource when uninitialised or invalidated
+        Not used yet
+    """
+    def __init__(self):
+        self.valid = false
+        self.cache = None
+
+    def openList(self):
+        if self.valid:
+            return self.cache
+        else:
+            # define this method
+            self.cache = self.openList_cache()
+
+            self.valid = true
+            return self.cache
+
 class RootNode(ExplorerNode):
     def __init__(self, name):
-        ExplorerNode.__init__(self, name, '', None, EditorModels.imgBoaLogo, None)
+        ExplorerNode.__init__(self, name, '', None, EditorHelper.imgBoaLogo, None)
         self.entries = []
         self.vetoRequery = true
-    def destroy(self): self.entries = []
+    def destroy(self): pass
     def isFolderish(self): return true
     def createParentNode(self): return self
     def createChildNode(self, value): return value
     def openList(self): return self.entries
     def getTitle(self): return 'Boa Constructor'
+    def notifyBeginLabelEdit(self, event):
+        event.Veto()
 
 cat_section = 0
 cat_option = 1
@@ -198,14 +275,15 @@ class CategoryNode(ExplorerNode):
     protocol = 'config'
     defName = 'config'
     defaultStruct = {}
-    def __init__(self, name, resourcepath, clipboard, config, parent, imgIdx = EditorModels.FolderModel.imgIdx):
+    def __init__(self, name, resourcepath, clipboard, config, parent, imgIdx = EditorHelper.imgFolder):
         ExplorerNode.__init__(self, name, resourcepath, clipboard,
               imgIdx, parent)
         self.config = config
         self.bold = true
         self.refresh()
+
     def destroy(self):
-        self.entries = {}
+        pass
 
     def isFolderish(self):
         return true
@@ -217,6 +295,12 @@ class CategoryNode(ExplorerNode):
         try:
             self.entries = eval(self.config.get(self.resourcepath[cat_section],
                   self.resourcepath[cat_option]))
+        except:
+            message = sys.exc_info()[1]
+            print 'invalid config entry for', \
+                  self.resourcepath[cat_option], message
+            self.entries = copy.copy(self.defaultStruct)
+        else:
             # unscramble sensitive properties
             if type(self.entries) == type({}):
                 for item in self.entries.keys():
@@ -225,11 +309,8 @@ class CategoryNode(ExplorerNode):
                         for name in dict.keys():
                             if name in sensitive_properties:
                                 dict[name] = scrm.scramble(dict[name])[2:]
-        except:
-            message = sys.exc_info()[1]
-            print 'invalid config entry for', \
-                  self.resourcepath[cat_option], message
-            self.entries = copy.copy(self.defaultStruct)
+#                                print 'unscrambled', name, dict[name]
+#        print self.entries
 
     def openList(self):
         res = []
@@ -270,7 +351,7 @@ class CategoryController(Controller):
     inspectBmp = 'Images/Shared/Inspector.bmp'
     deleteBmp = 'Images/Shared/Delete.bmp'
 
-    def __init__(self, editor, list, inspector):
+    def __init__(self, editor, list, inspector, menuDefs = ()):
         Controller.__init__(self, editor)
         self.list = list
         self.menu = wxMenu()
@@ -282,8 +363,15 @@ class CategoryController(Controller):
                             (wxID_CATDELETE, 'Delete', self.OnDeleteItems, self.deleteBmp),
                             (wxID_CATRENAME, 'Rename', self.OnRenameItem, '-') )
 
-        self.setupMenu(self.menu, self.list, self.catMenuDef)
-        self.toolbarMenus = [self.catMenuDef]
+        self.setupMenu(self.menu, self.list, self.catMenuDef + menuDefs)
+        self.toolbarMenus = [self.catMenuDef + menuDefs]
+
+    def __del__(self):
+        pass#self.menu.Destroy()
+
+    def destroy(self):
+        self.catMenuDef = ()
+        self.toolbarMenus = ()
 
     def OnInspectItem(self, event):
         if self.list.node:
@@ -321,18 +409,13 @@ from PropEdit.PropertyEditors import StrConfPropEdit, EvalConfPropEdit, PasswdSt
 import RTTI
 import types
 
-# XXX Refactor this and ZopeCompanion
-class CategoryCompanion(Companion):
-    propMapping = {type('') : StrConfPropEdit,
-                   'password' : PasswdStrConfPropEdit,
-                   'default': EvalConfPropEdit}
-    def __init__(self, name, catNode):
+class ExplorerCompanion(Companion):
+    def __init__(self, name):
         Companion.__init__(self, name)
-        self.catNode = catNode
+        # list of (name, value) tuples
         self.propItems = []
         self.designer = None
         self.control = None
-
     def constructor(self):
         return {}
     def events(self):
@@ -340,11 +423,7 @@ class CategoryCompanion(Companion):
     def getEvents(self):
         return []
     def getPropEditor(self, prop):
-        if prop in sensitive_properties:
-            return self.propMapping['password']
-        else:
-            return self.propMapping.get(type(self.GetProp(prop)), self.propMapping['default'])
-#        return StrConfPropEdit
+        return None
     def getPropOptions(self, prop):
         return []
     def getPropNames(self, prop):
@@ -355,10 +434,6 @@ class CategoryCompanion(Companion):
         pass
     def propIsDefault(self, name, setterName):
         return true
-
-    def updateProps(self):
-        self.propItems = self.getPropertyItems()
-
     def getPropList(self):
         propLst = []
         for prop in self.propItems:
@@ -366,42 +441,88 @@ class CategoryCompanion(Companion):
                   self.GetProp, self.SetProp))
         return {'constructor':[], 'properties': propLst}
 
+    def findProp(self, name):
+        for idx in range(len(self.propItems)):
+            if self.propItems[idx][0] == name:
+                return self.propItems[idx], idx
+        else:
+            return None, -1
+
+    def GetProp(self, name):
+        return self.findProp(name)[0][1]
+
+    def SetProp(self, name, value):
+        prop, idx = self.findProp(name)
+        if self.setPropHook(name, value, prop):
+            self.propItems[idx] = (name, value) + prop[2:]
+
+    def updateProps(self):
+        self.propItems = self.getPropertyItems()
+
     def addProperty(self, name, value, tpe):
         pass
 
     def delProperty(self, name):
         pass
 
-    def GetProp(self, name):
-        for prop in self.propItems:
-            if prop[0] == name: return prop[1]
+    def setPropHook(self, name, value, oldProp = None):
+        """ Override to do something before a property is set """
+        pass
 
-    def SetProp(self, name, value):
-        for idx in range(len(self.propItems)):
-            if self.propItems[idx][0] == name:
-                self.setCatProp(name, value)
-                self.propItems[idx] = (name, value)
-                break
+    def getPropertyItems(self):
+        """ Override this to read the properties of the object, and return it
+
+            Should return a list of tuples where the first two items are the
+            property name and value, the rest of the items may store other
+            propery information. """
+        return []
+
+class CategoryCompanion(ExplorerCompanion):
+    """ Inspectable objects, driven from config files """
+    propMapping = {type('') : StrConfPropEdit,
+                   'password' : PasswdStrConfPropEdit,
+                   'default': EvalConfPropEdit}
+    def __init__(self, name, catNode):
+        ExplorerCompanion.__init__(self, name)
+        self.catNode = catNode
+
+    def getPropEditor(self, prop):
+        if prop in sensitive_properties:
+            return self.propMapping['password']
+        else:
+            return self.propMapping.get(type(self.GetProp(prop)), self.propMapping['default'])
+
 
 class CategoryDictCompanion(CategoryCompanion):
-    scramble = ()
+#    scramble = ()
     def getPropertyItems(self):
         return self.catNode.entries[self.name].items()
 
-    def setCatProp(self, name, value):
-        self.catNode.entries[self.name][name] = value
-        # scramble sensitive properties
-        if name in sensitive_properties:
-            self.catNode.entries[self.name][name] = scrm.scramble(value)
-            self.catNode.updateConfig()
-            self.catNode.entries[self.name][name] = value
+    def setPropHook(self, name, value, oldProp = None):
+        # scramble sensitive properties before saving
+        entry = self.catNode.entries[self.name]
+        entry[name] = value
 
+        scrams = []
+        for entry in self.catNode.entries.values():
+            for key in entry.keys():
+                if key in sensitive_properties:
+                    val = entry[key]
+                    entry[key] = scrm.scramble(val)
+                    scrams.append((entry, key, val))
+
+        self.catNode.updateConfig()
+        # unscramble sensitive properties
+        for entry, key, val in scrams:
+            entry[key] = val
+
+        return true
 
 class CategoryStringCompanion(CategoryCompanion):
     def getPropertyItems(self):
         return [ ('Item', self.catNode.entries[self.name]) ]
 
-    def setCatProp(self, name, value):
+    def setPropHook(self, name, value, oldProp = None):
         self.catNode.entries[self.name] = value
         self.catNode.updateConfig()
 
@@ -417,7 +538,7 @@ class BookmarksCatNode(CategoryNode):
     def createChildNode(self, name, value):
         import FileExplorer
         return FileExplorer.PyFileNode(name, value, self.clipboard,
-              EditorModels.imgFolderBookmark, self, self)
+              EditorHelper.imgFolderBookmark, self, self)
 
     def getDefault(self):
         try:
@@ -442,7 +563,7 @@ class SysPathNode(ExplorerNode):
     protocol = 'syspath'
     def __init__(self, clipboard, parent, bookmarks):
         ExplorerNode.__init__(self, 'sys.path', '', clipboard,
-              EditorModels.FolderModel.imgIdx, parent)
+              EditorHelper.imgFolder, parent)
         self.bookmarks = bookmarks
         self.bold = true
         self.refresh()
@@ -453,7 +574,7 @@ class SysPathNode(ExplorerNode):
     def createChildNode(self, shpth, pth):
         import FileExplorer
         return FileExplorer.PyFileNode(shpth, pth, self.clipboard,
-              EditorModels.SysPathFolderModel.imgIdx, self, self.bookmarks)
+              EditorHelper.imgPathFolder, self, self.bookmarks)
 
     def refresh(self):
         self.entries = []
