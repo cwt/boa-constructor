@@ -480,10 +480,10 @@ class FindReplaceDlg(wxDialog):
         self.engine.selection = self.scopeRB.GetSelection()
 
     def OnWrapcbCheckbox(self, event):
-        self.engine.wrap = self.wrapCB.GetValue()
+        self.engine.wrap = int(self.wrapCB.GetValue())
 
     def OnCloseonfoundcbCheckbox(self, event):
-        self.engine.closeOnFound = self.closeOnFoundCB.GetValue()
+        self.engine.closeOnFound = int(self.closeOnFoundCB.GetValue())
 
     _fudgeOffset = 6
     def _checkSelectionDlgOverlap(self):

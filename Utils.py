@@ -268,7 +268,7 @@ def showTip(frame, forceShow=0):
         showTip = wxShowTip(frame, tp, showTip)
         index = tp.GetCurrentTip()
         if conf:
-            conf.set('tips', 'showonstartup', showTip)
+            conf.set('tips', 'showonstartup', int(showTip))
             conf.set('tips', 'tipindex', index)
             try:
                 writeConfig(conf)
@@ -298,6 +298,8 @@ def writeTextToClipboard(text):
 
 _sharedConfs = {}
 def createAndReadConfig(name, forPlatform=1):
+    # XXX Switch to standard ConfigParser module !!
+    
     """ Return an initialised ConfigFile object """
     confFile = os.path.join(Preferences.rcPath, '%s%s.cfg' % (name,
         forPlatform and '.'+Preferences.thisPlatform or ''))
