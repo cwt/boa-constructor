@@ -110,6 +110,8 @@ class BreakpointList:
         self.files = {}  # filename -> FileBreakpointList
 
     def normalize(self, filename):
+        if filename.find('://') < 0:
+            filename = 'file://' + filename
         #return path.normcase(path.abspath(filename))
         return filename
 
