@@ -60,7 +60,12 @@ elif '--BlockHomePrefs' in sys.argv or '-B' in sys.argv:
     print 'ignoring $HOME (if set)'
     rcPath = os.path.join(pyPath, prefsDirName)
 else:
-    homeDir = os.environ.get('HOME', None)
+    homeDir = os.environ.get('HOMEPATH', None)
+    if homeDir is not None:
+        homeDir = os.environ['HOMEDRIVE']+homeDir
+    else:
+        homeDir = os.environ.get('HOME', None)
+        
     if homeDir is not None and os.path.isdir(homeDir):
         rcPath = os.path.join(homeDir, prefsDirName)
         for fn in ('', 'docs-cache', 'Plug-ins'):
