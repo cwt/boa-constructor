@@ -10,7 +10,6 @@
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 
-from os import path
 import string, sys, os, time, stat, copy, pprint
 
 from wxPython import wx
@@ -353,6 +352,9 @@ class ExplorerNode:
     def save(self, filename, data, mode='w'):
         """ Persist data on appropriate transport. Should handle renames """
         pass
+#---Standard attrs, read-only, mod date, create date, etc.----------------------
+    def updateStdAttrs(self): pass
+    def setStdAttr(self, attr, value): pass
 
 class CachedNodeMixin:
     """ Only read from datasource when uninitialised or invalidated
@@ -581,9 +583,9 @@ class BookmarksCatNode(CategoryNode):
     def add(self, respath):
         respath=str(respath)
         if respath[-1] in ('/', '\\'):
-            name = path.splitext(path.basename(respath[:-1]))[0]
+            name = os.path.splitext(os.path.basename(respath[:-1]))[0]
         else:
-            name = path.splitext(path.basename(respath))[0]
+            name = os.path.splitext(os.path.basename(respath))[0]
         if self.entries.has_key(name):
             name = Utils.getValidName(self.entries.keys(), name)
         self.entries[name] = respath
@@ -619,7 +621,7 @@ class SysPathNode(ExplorerNode):
 
     def refresh(self):
         self.entries = []
-        pythonDir = path.dirname(sys.executable)
+        pythonDir = os.path.dirname(sys.executable)
         for pth in sys.path:
             pth = os.path.abspath(pth)
             shortPath = pth
@@ -772,3 +774,4 @@ class CategoryStringCompanion(CategoryCompanion):
     def setPropHook(self, name, value, oldProp = None):
         self.catNode.entries[self.name] = value
         self.catNode.updateConfig()
+  

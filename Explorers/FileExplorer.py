@@ -50,9 +50,12 @@ class FileSysCatNode(ExplorerNodes.CategoryNode):
         comp = ExplorerNodes.CategoryStringCompanion(catNode.treename, self)
         return comp
 
-    def createChildNode(self, entry, value):
-        return NonCheckPyFolderNode(entry, value, self.clipboard,
-              EditorHelper.imgFSDrive, self, self.bookmarks)
+    def createChildNode(self, entry, value, forceFolder=true):
+        if forceFolder: Node = NonCheckPyFolderNode
+        else: Node = PyFileNode
+
+        return Node(entry, value, self.clipboard, EditorHelper.imgFSDrive, self, 
+            self.bookmarks)
 
 ##    def newItem(self):
 ##        name = ExplorerNodes.CategoryNode.newItem()
@@ -67,8 +70,8 @@ class FileSysCatNode(ExplorerNodes.CategoryNode):
         del self.entries[name]
         self.updateConfig()
 
-    def getNodeFromPath(self, respath):
-        cn = self.createChildNode(os.path.basename(respath), respath)
+    def getNodeFromPath(self, respath, forceFolder=true):
+        cn = self.createChildNode(os.path.basename(respath), respath, forceFolder)
         return cn
 
 
@@ -271,7 +274,10 @@ class PyFileNode(ExplorerNodes.ExplorerNode):
             return '', None
 
     def openList(self):
-        files = os.listdir(self.resourcepath)
+        try:
+            files = os.listdir(self.resourcepath)
+        except Exception, err:
+            raise ExplorerNodes.TransportError(err)
         files.sort()
         entries = {'mod': [], 'fol': []}
 
@@ -381,6 +387,12 @@ class PyFileNode(ExplorerNodes.ExplorerNode):
     def updateStdAttrs(self):
         self.stdAttrs['read-only'] = os.path.exists(self.resourcepath) and \
               not os.access(self.resourcepath, os.W_OK)
+    
+    def setStdAttr(self, attr, value):
+        if attr == 'read-only':
+            os.chmod(self.resourcepath, value and 0444 or 0666)
+        
+        self.updateStdAttrs()
 
 FileSysController.Node = PyFileNode
 
@@ -444,3 +456,4 @@ class CurWorkDirNode(PyFileNode):
         return 'os.cwd://%s'%self.cwd
     def getURI(self):
         return self.getTitle()
+     
