@@ -52,7 +52,6 @@ class ZipItemNode(ExplorerNodes.ExplorerNode):
 #        return self.zipFileNode.isDir(self.resourcepath+'/'+self.name)
 
     def createChildNode(self, name, resourcepath, isFolder):
-        print isFolder, EditorModels.FolderModel.imgIdx, EditorModels.TextModel.imgIdx
         
         imgIdx = isFolder and EditorModels.FolderModel.imgIdx or \
               EditorModels.TextModel.imgIdx
@@ -65,7 +64,6 @@ class ZipItemNode(ExplorerNodes.ExplorerNode):
         res = []
         files = self.zipFileNode.getFiles(resourcepath)
         for file in files:
-#            print 'file:', file
             segs = string.split(file, '/')
             if segs[-1] == '': 
                 base = segs[-2]
@@ -74,8 +72,6 @@ class ZipItemNode(ExplorerNodes.ExplorerNode):
                 base = segs[-1]
                 dir = string.join(segs[:-1], '/')
                 
-#            print 'base, dir', base, dir                
-        
             res.append(self.createChildNode(base, dir, self.zipFileNode.isDir(file)) )
         return res
     
@@ -89,7 +85,6 @@ class ZipItemNode(ExplorerNodes.ExplorerNode):
         fn = os.path.join(fsFolderNode.resourcepath, self.name)
 
         zf = zipfile.ZipFile(self.zipFileNode.resourcepath)        
-        print 'read', self.resourcepath, fn
         if self.isFolderish():
             # XXX directories should be recursively copied or complete list 
             # XXX should be build by ZipClip
@@ -115,8 +110,6 @@ class ZipFileNode(ZipItemNode):
     
     def isDir(self, path):
         return path[-1] == '/'
-#        print 'isDir', path
-#        return path in self.allFileNames
 
     def openList(self):
         zf = zipfile.ZipFile(self.resourcepath)        
@@ -124,7 +117,6 @@ class ZipFileNode(ZipItemNode):
         zf.close()
         
         self.allFileNames = map(lambda fl: fl.filename, self.allFiles)
-#        print self.allFileNames
         return ZipItemNode.openList(self, '')
         
     def getFiles(self, base):
@@ -134,11 +126,8 @@ class ZipFileNode(ZipItemNode):
                 fn = file.filename[:-1]
             else:
                 fn = file.filename
-#            print 'getfiles', file.filename, base, os.path.dirname(fn)
             if os.path.dirname(fn) == base:
-#            if file.filename[:len(base)] == base:
                 files.append(file.filename)
-#                files.append(file.filename[len(base):])
         return files
     
 
