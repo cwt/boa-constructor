@@ -91,6 +91,8 @@ class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView):
         self.MarkerDefine(linePtrMrk , markIdnt, markBorder, markCenter)
         self._linePtrHdl = None
 
+        EVT_STC_MARGINCLICK(self, wId, self.OnMarginClick)
+
     def getModelData(self):
         return self.model.data
 
@@ -392,6 +394,8 @@ class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView):
     def OnUpdateUI(self, event):
         if hasattr(self, 'pageIdx'):
             self.updateViewState()
+            l, col = self.GetCurLine()
+            self.model.editor.statusBar.setColumnPos(col)
 
     def OnTranslate(self, event):
         import TranslateDlg
@@ -411,6 +415,9 @@ class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView):
         finally:
             wxEndBusyCursor()
         self.model.editor.setStatus('Spelling checked', 'Info')
+
+    def OnMarginClick(self, event):
+        pass
 
 class PythonDisView(EditorStyledTextCtrl, PythonStyledTextCtrlMix):
     viewName = 'Disassemble'

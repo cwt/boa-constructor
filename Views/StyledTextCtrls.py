@@ -74,9 +74,6 @@ class FoldingStyledTextCtrlMix:
             self.MarkerDefine(wxSTC_MARKNUM_FOLDERSUB, wxSTC_MARK_BACKGROUND, "white", "black")
             self.MarkerDefine(wxSTC_MARKNUM_FOLDERTAIL, wxSTC_MARK_BACKGROUND, "white", "black")
 
-
-        EVT_STC_MARGINCLICK(self, wId, self.OnMarginClick)
-
     def OnMarginClick(self, evt):
         # fold and unfold as needed
         if evt.GetMargin() == self.__fold_margin:
@@ -452,6 +449,9 @@ class DebuggingViewSTCMix:
         
         (self.brkPtMrk, self.tmpBrkPtMrk, self.disabledBrkPtMrk, 
          self.stepPosMrk) = debugMarkers
+
+        # XXX properly allocate the marker
+        self.stepPosBackMrk = self.stepPosMrk + 1
         
         # Initialize breakpoints from file and running debugger
         # XXX Remote breakpoints should be stored in a local pickle
@@ -480,6 +480,16 @@ class DebuggingViewSTCMix:
 
         markIdnt, markBorder, markCenter = Preferences.STCDisabledBreakpointMarker
         self.MarkerDefine(self.disabledBrkPtMrk, markIdnt, markBorder, markCenter)
+        
+        try:
+            wxSTC_MARK_BACKGROUND
+        except:
+            self.MarkerDefine(self.stepPosBackMrk, wxSTC_MARK_EMPTY, 
+                              wxColour(255, 255, 255), wxColour(128, 128, 255))
+        else:
+            self.MarkerDefine(self.stepPosBackMrk, wxSTC_MARK_BACKGROUND, 
+                              wxColour(255, 255, 255), wxColour(220, 220, 255))
+            
     
     def setInitialBreakpoints(self):
         # Adds markers where the breakpoints are located.
@@ -569,12 +579,16 @@ class DebuggingViewSTCMix:
         if lineNo < 0:
             lineNo = 0
         self.MarkerDelete(lineNo, self.stepPosMrk)
+        self.MarkerDelete(lineNo, self.stepPosBackMrk)
 
     def setStepPos(self, lineNo):
         if lineNo < 0:
             lineNo = 0
         self.MarkerDeleteAll(self.stepPosMrk)
         self.MarkerAdd(lineNo, self.stepPosMrk)
+        self.MarkerDeleteAll(self.stepPosBackMrk)
+        self.MarkerAdd(lineNo, self.stepPosBackMrk)
+        
         if self.breaks.hasBreakpoint(lineNo + 1):
             # Be sure all the breakpoints for this file are displayed.
             self.setInitialBreakpoints()
@@ -607,6 +621,26 @@ class DebuggingViewSTCMix:
                 
                 debugger.adjustBreakpoints(self.model.filename, line, 
                       linesAdded)
+
+    def OnSaveBreakPoints(self, event):
+        self.saveBreakpoints()
+
+    def OnLoadBreakPoints(self, event):
+        self.tryLoadBreakpoints()
+
+    def OnSetBreakPoint(self, event):
+        line = self.LineFromPosition(self.GetCurrentPos()) + 1
+        if self.breaks.hasBreakpoint(line):
+            self.deleteBreakPoint(line)
+        else:
+            self.addBreakPoint(line)
+
+    def OnMarginClick(self, event):
+        lineClicked = self.LineFromPosition(event.GetPosition()) + 1
+        if self.breaks.hasBreakpoint(lineClicked):
+            self.deleteBreakPoint(lineClicked)
+        else:
+            self.addBreakPoint(lineClicked)
     
 
 #---Language mixins-------------------------------------------------------------

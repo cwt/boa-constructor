@@ -61,7 +61,8 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
               ('Dedent', self.OnDedent, '-', 'Dedent'),
               ('-', None, '-', ''),
               ('Run to cursor', self.OnRunToCursor, self.runCrsBmp, ''),
-              ('Toggle breakpoint', self.OnSetBreakPoint, self.breakBmp, 'ToggleBrk'),
+              # evts defined in DebuggingViewSTCMix
+              ('Toggle breakpoint', self.OnSetBreakPoint, self.breakBmp, 'ToggleBrk'), 
               ('Load breakpoints', self.OnLoadBreakPoints, '-', ''),
               ('Save breakpoints', self.OnSaveBreakPoints, '-', ''),
               ('-', None, '', ''),
@@ -845,20 +846,9 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
 #-------Events------------------------------------------------------------------
     def OnMarginClick(self, event):
         if event.GetMargin() == symbolMrg:
-            lineClicked = self.LineFromPosition(event.GetPosition()) + 1
-            if self.breaks.hasBreakpoint(lineClicked):
-                self.deleteBreakPoint(lineClicked)
-            else:
-                self.addBreakPoint(lineClicked)
+            DebuggingViewSTCMix.OnMarginClick(self, event)
         else:
             FoldingStyledTextCtrlMix.OnMarginClick(self, event)
-
-    def OnSetBreakPoint(self, event):
-        line = self.LineFromPosition(self.GetCurrentPos()) + 1
-        if self.breaks.hasBreakpoint(line):
-            self.deleteBreakPoint(line)
-        else:
-            self.addBreakPoint(line)
 
     def OnRunToCursor(self, event):
         line = self.LineFromPosition(self.GetCurrentPos()) + 1
@@ -932,16 +922,7 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
         self.updateEditor()
 
     def OnUpdateUI(self, event):
-        ## This event handler may be disabled (execption handler allows
-        ## for the case where the flag is not defined.
-##        try:
-##            if self.NoUpdateUI == 1:
-##                return
-##        except:
-##            pass
-        # don't update if not fully initialised
-        if hasattr(self, 'pageIdx'):
-            self.updateViewState()
+        EditorStyledTextCtrl.OnUpdateUI(self, event)
 
         if Preferences.braceHighLight:
             PythonStyledTextCtrlMix.OnUpdateUI(self, event)
@@ -954,8 +935,7 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
         self.damagedLine = lineNo
         if char == 10:
             pos = self.GetCurrentPos()
-            # XXX GetLine returns garbage in the last char
-            prevline = self.GetLine(lineNo -1)#[:-1]
+            prevline = self.GetLine(lineNo -1)
 
             self.doAutoIndent(prevline, pos)
 
@@ -1030,12 +1010,6 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
         check = not self.menu.IsChecked(miid)
         self.menu.Check(miid, check)
         self.SetViewEOL(check)
-
-    def OnSaveBreakPoints(self, event):
-        self.saveBreakpoints()
-
-    def OnLoadBreakPoints(self, event):
-        self.tryLoadBreakpoints()
 
     # XXX 1st Xform, should maybe add beneath current method
     def OnCodeTransform(self, event):
