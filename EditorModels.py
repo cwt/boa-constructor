@@ -25,7 +25,7 @@ import moduleparse, string, os, sys, re, py_compile
 from os import path
 import relpath, pprint
 from Companions import Companions
-import Editor, Debugger, ErrorStack
+import Editor, ErrorStack
 from Views.DiffView import PythonSourceDiffView
 from Views.AppViews import AppCompareView
 import Preferences, Utils
@@ -34,8 +34,9 @@ from Utils import AddToolButtonBmpIS
 from time import time, gmtime, strftime
 from stat import *
 from PrefsKeys import keyDefs
+from Debugger import Debugger
 
-from wxPython.lib.dialogs import wxScrolledMessageDialog
+#from wxPython.lib.dialogs import wxScrolledMessageDialog
 import wxPython
 from PhonyApp import wxProfilerPhonyApp
 import profile
@@ -43,7 +44,8 @@ import profile
 true = 1
 false = 0
 
-nl = chr(13)+chr(10)
+boaIdent = '#Boa'
+#nl = chr(13)+chr(10)
 init_ctrls = '_init_ctrls'
 init_coll = '_init_coll_'
 init_utils = '_init_utils'
@@ -51,14 +53,14 @@ init_props = '_init_props'
 init_events = '_init_events'
 defEnvPython = '#!/bin/env python\n'
 defImport = 'from wxPython.wx import *\n\n'
-defSig = '#Boa:%s:%s\n\n'
+defSig = boaIdent+':%s:%s\n\n'
 
 defCreateClass = '''def create(parent):
     return %s(parent)
 \n'''
 wid = '[A-Za-z0-9_, ]*'
 srchWindowIds = '\[(?P<winids>[A-Za-z0-9_, ]*)\] = '+\
-'map\(lambda %s: [wx]*NewId\(\), range\((?P<count>\d)\)\)'
+'map\(lambda %s: [wx]*NewId\(\), range\((?P<count>\d+)\)\)'
 defWindowIds = '''[%s] = map(lambda %s: wxNewId(), range(%d))\n'''
 
 defClass = '''
@@ -130,6 +132,13 @@ defInfoBlock = """#-------------------------------------------------------------
 # Licence:     %s
 #-----------------------------------------------------------------------------
 """ 
+
+itot = 12
+[imgFolder, imgPathFolder, imgCVSFolder, imgZopeFolder, imgZopeControlPanel,
+ imgZopeProductFolder, imgZopeInstalledProduct, imgZopeUserFolder, imgZopeDTMLDoc, 
+ imgZopeImage, imgZopeSystemObj, imgZopeConnection, imgBoaLogo, imgFolderUp, 
+ imgFSDrive, imgFolderBookmark] = range(itot, itot + 16)
+
 class EditorModel:
     defaultName = 'abstract'
     bitmap = 'None'
@@ -204,6 +213,9 @@ class EditorModel:
                 try: dlg.ShowModal()
                 finally: dlg.Destroy()
             else:
+                # Strip off final spaces for every line
+#                f.writelines(map(lambda s: string.rstrip(s) + '\n', string.split(self.data, '\n')))
+
                 f.write(self.data)
                 f.close()
                 self.modified = false
@@ -230,11 +242,12 @@ class EditorModel:
         for view in self.viewsModified:
             self.views[view].refreshModel()
 
+
 class FolderModel(EditorModel):
     modelIdentifier = 'Folder'
     defaultName = 'folder'
     bitmap = 'Folder_s.bmp'
-    imgIdx = 9
+    imgIdx = imgFolder
 
     def __init__(self, data, name, editor, filepath):
         EditorModel.__init__(self, name, data, editor, true)
@@ -244,60 +257,13 @@ class SysPathFolderModel(FolderModel):
     modelIdentifier = 'SysPathFolder'
     defaultName = 'syspathfolder'
     bitmap = 'Folder_green.bmp'
-    imgIdx = 10
-
-class CVSEntry:
-    def text(self):
-        return 'cvs entry'
-    def __repr__(self):
-        return self.text()
-
-class CVSDir(CVSEntry):
-    def __init__(self, line = ''):
-        self.imgIdx = 5
-        if line:
-##            self.name, self.filler1, self.filler2, self.filler3, self.filler4 = \
-            self.name, self.revision, self.timestamp, self.options, self.tagdate = \
-              string.split(line[2:], '/')
-        else:
-            self.name, self.revision, self.timestamp, self.options, self.tagdate = '', '', '', '', ''
-##            self.name, self.filler1, self.filler2, self.filler3, self.filler4 = '', '', '', '', ''
-
-    def text(self):
-##        return string.join(('D', self.name, self.filler1, self.filler2, self.filler3, self.filler4), '/')
-        return string.join(('D', self.name, self.revision, self.timestamp, self.options, self.tagdate), '/')
-
-class CVSFile(CVSEntry):
-    def __init__(self, line = '', filepath = ''):
-        self.filepath = filepath
-        self.missing = false
-        if line:
-            self.name, self.revision, self.timestamp, self.options, self.tagdate = \
-              string.split(string.strip(line)[1:], '/')
-        else:
-            self.name, self.revision, self.timestamp, self.options, self.tagdate = '', '', '', '', ''
-        self.imgIdx = 0
-        if self.timestamp:
-            filename = path.abspath(path.join(self.filepath, '..', self.name))
-            if path.exists(filename):
-                filets = strftime('%a %b %d %H:%M:%S %Y', gmtime(os.stat(filename)[ST_MTIME]))
-                self.modified = self.timestamp != filets
-            else:
-                self.missing = true
-                self.modified = false
-        else:
-            self.modified = false
-        
-        self.imgIdx = self.options == '-kb' or self.modified << 1 or self.missing << 2
-
-    def text(self):
-        return string.join(('D', self.name, self.revision, self.timestamp, self.options, self.tagdate), '/')
+    imgIdx = imgPathFolder
 
 class CVSFolderModel(FolderModel):
     modelIdentifier = 'CVS Folder'
     defaultName = 'cvsfolder'
     bitmap = 'Folder_cyan_s.bmp'
-    imgIdx = 11
+    imgIdx = imgCVSFolder
     
     def __init__(self, data, name, editor, filepath):
         FolderModel.__init__(self, data, name, editor, filepath)
@@ -332,13 +298,27 @@ class CVSFolderModel(FolderModel):
                         except IOError: pass
         finally:
             f.close()
- 
+
+class BitmapFileModel(EditorModel):
+    modelIdentifier = 'Bitmap'
+    defaultName = 'bmp'
+    bitmap = 'Bitmap_s.bmp'
+    imgIdx = 11
+    ext = '.bmp'
+
+class ZopeExportFileModel(EditorModel):
+    modelIdentifier = 'ZopeExport'
+    defaultName = 'zexp'
+    bitmap = 'ZopeExport_s.bmp'
+    imgIdx = 10
+    ext = '.zexp'
+    
 
 class ZopeDocumentModel(EditorModel):
     modelIdentifier = 'ZopeDocument'
     defaultName = 'zopedoc'
     bitmap = 'Package_s.bmp'
-    imgIdx = 17
+    imgIdx = imgZopeDTMLDoc
 
     saveBmp = 'Images/Editor/Save.bmp'
 
@@ -472,7 +452,6 @@ class ModuleModel(EditorModel):
         AddToolButtonBmpIS(self.editor, toolbar, self.saveBmp, 'Save', self.editor.OnSave)
         AddToolButtonBmpIS(self.editor, toolbar, self.saveAsBmp, 'Save as...', self.editor.OnSaveAs)
         
-    # This is a comment
     def addMenus(self, menu):
         accls = EditorModel.addMenus(self, menu)
         self.addMenu(menu, Editor.wxID_EDITORSAVE, 'Save', accls, (keyDefs['Save']))
@@ -691,6 +670,12 @@ class TextModel(EditorModel):
         self.update()
         if notify: self.notify()
                 
+class ConfigFileModel(TextModel):
+    modelIdentifier = 'Config'
+    defaultName = 'config'
+    bitmap = 'Config_s.bmp'
+    imgIdx = 9
+    ext = '.cfg'
 
 class ClassModel(ModuleModel):
     """ Represents access to 1 maintained main class in the module.
@@ -704,13 +689,24 @@ class ClassModel(ModuleModel):
         self.module.renameClass(oldName, newName)
         self.main = newName
 
-        header = string.split(string.strip(self.module.source[0]), ':')
-        if (len(header) == 3) and (header[0] == '#Boa'):
-            self.module.source[0] = string.join((header[0], header[1], newName), ':')
+        idx = 0
+        for line in self.module.source:
+            if line:
+                if line[0] != '#': break
+                
+                header = string.split(string.strip(line), ':')
+                if (len(header) == 3) and (header[0] == boaIdent):
+                    self.module.source[idx] = string.join((header[0], header[1], newName), ':')
+                    break
+            else: break
+            idx = idx + 1
+
+##        header = string.split(string.strip(self.module.source[0]), ':')
+##        if (len(header) == 3) and (header[0] == '#Boa'):
+##            self.module.source[0] = string.join((header[0], header[1], newName), ':')
 
 class ObjectCollection:
     def __init__(self):#, creators = [], properties = [], events = [], collections = []):
-##        print 'ObjectCollection created' 
         self.creators = []
         self.properties = []
         self.events = []
@@ -723,14 +719,24 @@ class ObjectCollection:
         self.eventsByName = {}
         self.collectionsByName = {}
 
+    def __repr__(self):
+        return '<ObjectCollection instance: %s,\n %s,\n %s,\n %s,\nBy name:\n %s,\n %s,\n %s,\n %s,>'% (`self.creators`, `self.properties`, 
+           `self.collections`, `self.events`, 
+           `self.creatorByName`, `self.propertiesByName`, 
+           `self.collectionsByName`, `self.eventsByName`)
+
     def setup(self, creators, properties, events, collections, initialisers, finalisers):
-##        print 'ObjectCollection setup', id(self.creators), id(creators)
         self.creators = creators
         self.properties = properties
         self.events = events
         self.collections = collections
         self.initialisers = initialisers
         self.finalisers = finalisers
+    
+    def getCtrlNames(self):
+        """ Return a list of (name, class) tuples """
+        return map(lambda x, d=self.creatorByName: (d[x][0].comp_name, 
+              d[x][0].class_name), self.creatorByName.keys())
 
     def removeReference(self, name, method):
         i = 0
@@ -767,6 +773,21 @@ class ObjectCollection:
                     del props[i]
                 else:
                     i = i + 1
+
+    def renameList(self, lst, dict, name, new_name):
+        for item in lst:
+            item.renameCompName2(name, new_name)
+        
+        # keep named colls in sync
+        if dict.has_key(name):
+            dict[new_name] = dict[name]
+            del dict[name]
+
+    def renameCtrl(self, name, new_name):
+        self.renameList(self.creators, self.creatorByName, name, new_name)
+        self.renameList(self.properties, self.propertiesByName, name, new_name)
+        self.renameList(self.events, self.eventsByName, name, new_name)
+        self.renameList(self.collections, self.collectionsByName, name, new_name)
             
     def deleteCtrl(self, name):
         for list in (self.creators, self.properties, self.events):
@@ -776,6 +797,15 @@ class ObjectCollection:
                     del list[i]
                 else:
                     i = i + 1
+    
+##    def findRootParent(self):
+##        for crt in self.creators:
+##            if crt.params.has_key('parent'):
+                
+    def reparent(self, oldParent, newParent):
+        for crt in self.creators:
+            if crt.params.has_key('parent') and crt.params['parent'] == oldParent:
+                crt.params['parent'] = newParent
 
     def setupList(self, list):
         dict = {}
@@ -790,12 +820,6 @@ class ObjectCollection:
         self.propertiesByName = self.setupList(self.properties)
         self.eventsByName = self.setupList(self.events)
         self.collectionsByName = self.setupList(self.collections)
-
-    def __repr__(self):
-        return '<ObjectCollection instance: %s,\n %s,\n %s,\n %s,\n %s,\n %s,\n %s,\n %s,>'%\
-          (`self.creators`, `self.properties`, `self.collections`, `self.events`, 
-           `self.creatorByName`, `self.propertiesByName`, 
-           `self.collectionsByName`, `self.eventsByName`)
 
 class BaseFrameModel(ClassModel):
     modelIdentifier = 'Frames'
@@ -817,7 +841,9 @@ class BaseFrameModel(ClassModel):
 
     def renameMain(self, oldName, newName):
         ClassModel.renameMain(self, oldName, newName)
-        self.module.replaceFunctionBody('create', ['    return %s(parent)'%newName, ''])
+        if self.module.functions.has_key('create'):
+            self.module.replaceFunctionBody('create', 
+                  ['    return %s(parent)'%newName, ''])
 
     def renameCtrl(self, oldName, newName):
         # Currently DesignerView maintains ctrls
@@ -845,6 +871,7 @@ class BaseFrameModel(ClassModel):
         if self.module.classes.has_key(self.main):
             main = self.module.classes[self.main]
             for meth in main.methods.keys():
+                print meth, 
                 if len(meth) > len('_init_') and meth[:6] == '_init_':
                     results.append(meth)
         return results
@@ -860,55 +887,66 @@ class BaseFrameModel(ClassModel):
             objs.update(self.views[view].objects)
         
         return order, objs
+    
+    def readDesignerMethod(self, meth, codeBody):
+        """ Create a new ObjectCollection by parsing the given method body """
+        import methodparse
+        # Collection method
+        if len(meth) > len(init_coll) and meth[:11] == init_coll:
+            try:
+                res = Utils.split_seq(codeBody, '')
+                inits, body, fins = res[:3]
+            except ValueError:
+                raise 'Collection body %s not in init, body, fin form' % meth
+            
+            allInitialisers = methodparse.parseMixedBody(\
+              [methodparse.CollectionItemInitParse, methodparse.EventParse], 
+               body)
 
-    def getInitialiser(self, clss, coll):
-        if coll.has_key(clss):
-            return coll[clss]
+            creators = allInitialisers.get(methodparse.CollectionItemInitParse, [])
+            collectionInits = []
+            properties = []
+            events = allInitialisers.get(methodparse.EventParse, [])
+        # Normal method
         else:
-            return []
+            inits = []
+            fins = []
+                
+            allInitialisers = methodparse.parseMixedBody(\
+              [methodparse.ConstructorParse, methodparse.EventParse, 
+               methodparse.CollectionInitParse, methodparse.PropertyParse], 
+               codeBody)
+            
+            creators = allInitialisers.get(methodparse.ConstructorParse, [])
+            collectionInits = allInitialisers.get(methodparse.CollectionInitParse, [])
+            properties = allInitialisers.get(methodparse.PropertyParse, [])
+            events = allInitialisers.get(methodparse.EventParse, [])
+
+        newObjColl = ObjectCollection()
+        newObjColl.setup(creators, properties, events, collectionInits, inits, fins)
+        
+        return newObjColl
 
     def readComponents(self):
-        from methodparse import *
+        """ Setup object collection dict by parsing all designer controlled methods """
         self.objectCollections = {}
         if self.module.classes.has_key(self.main):
             main = self.module.classes[self.main]
             for oc in self.identifyCollectionMethods(): 
                 codeSpan = main.methods[oc]
                 codeBody = self.module.source[codeSpan.start : codeSpan.end]
-                if len(oc) > len('_init_coll_') and oc[:11] == '_init_coll_':
-                    try:
-                        res = Utils.split_seq(codeBody, '')
-                        inits, body, fins = res[:3]
-                    except ValueError:
-                        raise 'Collection body '+oc+' not in init, body, fin form'
-                    
-                    allInitialisers = parseMixedBody([CollectionItemInitParse, 
-                      EventParse], body)
-                    creators = self.getInitialiser(CollectionItemInitParse, allInitialisers)
-                    collectionInits = []
-                    properties = []
-                    events = self.getInitialiser(EventParse, allInitialisers)
-                else:
-                    inits = []
-                    fins = []
-                    
-                    if oc[:11] == '_init_ctrls' and \
-                      string.strip(codeBody[1]) == 'self._init_utils()':
-                        del codeBody[1]
-                        
-                    allInitialisers = parseMixedBody([ConstructorParse, 
-                      EventParse, CollectionInitParse, PropertyParse], codeBody)
-                    
-                    creators = self.getInitialiser(ConstructorParse, allInitialisers)
-                    if creators and oc == init_ctrls:
-                        self.mainConstr = creators[0]
-                    collectionInits = self.getInitialiser(CollectionInitParse, allInitialisers)
-                    properties = self.getInitialiser(PropertyParse, allInitialisers)
-                    events = self.getInitialiser(EventParse, allInitialisers)
-    
-                self.objectCollections[oc] = ObjectCollection()
-                self.objectCollections[oc].setup(creators, properties, events, 
-                  collectionInits, inits, fins)
+
+                # XXX This should not be necessary
+                if oc[:11] == init_ctrls and \
+                  string.strip(codeBody[1]) == 'self._init_utils()':
+                    del codeBody[1]
+
+                self.objectCollections[oc] = self.readDesignerMethod(oc, codeBody)
+
+            # Set the model's constructor
+            if self.objectCollections.has_key(init_ctrls):
+                self.mainConstr = self.objectCollections[init_ctrls].creators[0]
+
 
     def removeWindowIds(self, colMeth):
         # find windowids in source
@@ -934,6 +972,9 @@ class BaseFrameModel(ClassModel):
             if match:
                 winIdIdx = idx
                 break
+        
+        print 'writeWindowIds', winIdIdx
+        
         # build window id list
         lst = []
         for comp in companions:
@@ -994,7 +1035,6 @@ class MDIChildModel(BaseFrameModel):
     companion = Companions.MDIChildFrameDTC
     
 # XXX Autocreated frames w/ corresponding imports
-# XXX Paths
 # XXX module references to app mut be cleared on closure
 
 class AppModel(ClassModel):
@@ -1204,6 +1244,8 @@ class AppModel(ClassModel):
         tot = len(modules)
         self.editor.statusBar.progress.SetRange(tot)
         prog = 0
+        totLOC = 0
+        classCnt = 0
         for moduleName in modules:
             self.editor.statusBar.progress.SetValue(prog)
             prog = prog + 1
@@ -1218,6 +1260,14 @@ class AppModel(ClassModel):
                 f.close()
                 model = ModuleModel(data, module[2], self.editor, 1)
                 relationships[moduleName] = model.module#.imports
+            
+            totLOC = totLOC + model.module.loc
+            classCnt = classCnt + len(model.module.classes)
+        
+        print 'Project LOC', totLOC
+        print 'Class count', classCnt
+        print 'in', len(modules), 'modules'
+        
         self.editor.statusBar.progress.SetValue(0)
         self.editor.statusBar.setHint('')
         return relationships
@@ -1252,11 +1302,20 @@ modelReg = {AppModel.modelIdentifier: AppModel,
             MDIChildModel.modelIdentifier: MDIChildModel,
             ModuleModel.modelIdentifier: ModuleModel,
             TextModel.modelIdentifier: TextModel,
-            PackageModel.modelIdentifier: PackageModel}
+            PackageModel.modelIdentifier: PackageModel,
+            ConfigFileModel.modelIdentifier: ConfigFileModel,
+            ZopeExportFileModel.modelIdentifier: ZopeExportFileModel,
+            BitmapFileModel.modelIdentifier: BitmapFileModel}
+
+# All non python files recogniseable by extension
+extMap = {}
+for mod in modelReg.values():
+    extMap[mod.ext] = mod
+del extMap['.py']
 
 def identifyHeader(headerStr):
     header = string.split(headerStr, ':')
-    if len(header) and (header[0] == '#Boa') and modelReg.has_key(header[1]):
+    if len(header) and (header[0] == boaIdent) and modelReg.has_key(header[1]):
         return modelReg[header[1]], header[2]
     return ModuleModel, ''
     
@@ -1269,8 +1328,10 @@ def identifyFile(filename):
         if name == '__init__.py':
             return PackageModel, ''
         dummy, ext = path.splitext(filename)
-        if ext == '.txt':
-            return TextModel, ''
+        if extMap.has_key(ext):
+            return extMap[ext], ''
+##        if ext == '.txt':
+##            return TextModel, ''
         while 1:
             line = f.readline()
             if not line: break
@@ -1278,9 +1339,7 @@ def identifyFile(filename):
             if line:
                 if line[0] != '#':
                     return ModuleModel, ''
-                
                 headerInfo = identifyHeader(line)
-                
                 if headerInfo[0] != ModuleModel:
                     return headerInfo
         return ModuleModel, ''
