@@ -7,7 +7,7 @@
 #
 # Created:     2001/01/06
 # RCS-ID:      $Id$
-# Copyright:   (c) 2001 - 2003
+# Copyright:   (c) 2001 - 2004
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 
@@ -57,6 +57,10 @@ class XMLTreeView(wxTreeCtrl, EditorView):
                     name = '%s (%s:%s)' % (name, attrs['name'], attrs['class'])
                 else:
                     name = '%s (%s)' % (name, attrs['class'])
+            else:
+                if attrs.has_key('name'):
+                    name = '%s :%s' % (name, attrs['name'])
+
         id = self.AppendItem(self.nodeStack[-1], name)
         self.nodeStack.append(id)
 
