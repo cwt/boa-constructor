@@ -428,7 +428,7 @@ class PanelPalettePage(wxPanel, BasePalettePage):
     def addButton(self, widgetName, wxClass, constrClass, clickEvt, hintFunc, hintLeaveFunc, btnType):
         mID = wxNewId()
 
-        self.menu.Append(mID, widgetName, checkable=self.menusCheckable)
+        self.menu.Append(mID, widgetName, '', self.menusCheckable)
         EVT_MENU(self.palette, mID, clickEvt)
 
         self.widgets[`mID`] = (widgetName, wxClass, constrClass)
