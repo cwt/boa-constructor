@@ -914,3 +914,31 @@ def appendMenuItem(menu, wId, label, code=(), bmp='', help=''):
               wxPlatform == '__WXMSW__':
             menuItem.SetBitmap(Preferences.IS.load(bmp))
     menu.AppendItem(menuItem)
+
+def stringFromControl(u):
+    try: wxUSE_UNICODE, UnicodeError
+    except NameError: return u
+
+    if wxUSE_UNICODE:
+        try: 
+            return str(u)
+        except UnicodeError, err:
+            raise Exception, 'Unable to decode unicode string, please change '\
+                  'the defaultencoding in sitecustomize.py to handle this '\
+                  'encoding.\nError message %s'%str(err)
+    else:
+        return u
+        
+def stringToControl(s):
+    try: wxUSE_UNICODE, UnicodeError
+    except NameError: return s
+
+    if wxUSE_UNICODE:
+        try: 
+            return unicode(s)
+        except UnicodeError, err:
+            raise Exception, 'Unable to encode unicode string, please change '\
+                  'the defaultencoding in sitecustomize.py to handle this '\
+                  'encoding.\n Error message %s'%str(err)
+    else:
+        return s
