@@ -24,8 +24,7 @@ except ImportError:
 from wxPython.wx import *
 
 from EditorViews import ListCtrlView, ModuleDocView, wxwAppModuleTemplate, CloseableViewMix
-import ProfileView
-import PySourceView
+import SourceViews
 import Search, Utils
 
 class AppFindResults(ListCtrlView, CloseableViewMix):
@@ -380,13 +379,13 @@ class AppCompareView(ListCtrlView, CloseableViewMix):
             if otherModule:
                 controller.OnDiffModules(filename=otherModule)
 
-class TextInfoFileView(PySourceView.EditorStyledTextCtrl):
+class TextInfoFileView(SourceViews.EditorStyledTextCtrl):
     viewName = 'TextInfo'
     def __init__(self, parent, model):
-        PySourceView.EditorStyledTextCtrl.__init__(self, parent, -1,
+        SourceViews.EditorStyledTextCtrl.__init__(self, parent, -1,
           model, (), 0)
         self.active = true
-        PySourceView.EVT_STC_UPDATEUI(self, self.GetId(), self.OnUpdateUI)
+        SourceViews.EVT_STC_UPDATEUI(self, self.GetId(), self.OnUpdateUI)
         self.model.loadTextInfo(self.viewName)
 
     def OnUpdateUI(self, event):
