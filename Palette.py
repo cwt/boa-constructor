@@ -40,7 +40,7 @@ class NewPackageEvent(wxPyEvent):
         wxPyEvent.__init__(self)
         self.SetEventType(wxEVT_NEW_PACKAGE)
 
-[wxID_CONTEXTSEARCH] = map(lambda _init_ctrls: wxNewId(), range(1))
+[wxID_CONTEXTSEARCH] = map(lambda _init_actions: wxNewId(), range(1))
 
 [wxID_BOAFRAME] = map(lambda _init_ctrls: wxNewId(), range(1))
 
