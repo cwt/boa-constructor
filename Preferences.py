@@ -1,59 +1,99 @@
 #----------------------------------------------------------------------
 # Name:        Preferences.py
-# Purpose:     Global settings
+# Purpose:     Global settings. Populated by resource files *.rc.py
 #
 # Author:      Riaan Booysen
 #
 # Created:     1999
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999, 2000 Riaan Booysen
+# Copyright:   (c) 1999 - 2001 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
 import os, sys, shutil, string
 
 from wxPython import wx
 
-from ImageStore import ImageStore, ZippedImageStore
-
 #---Paths-----------------------------------------------------------------------
 
-pyPath = os.path.abspath(os.path.join(os.getcwd(), sys.path[0]))
+try:
+    pyPath = os.path.dirname(__file__)
+    # handle case where not a pyc and in current dir
+    if not pyPath: pyPath = os.path.abspath('')
+except AttributeError:
+    pyPath = os.path.abspath(os.path.join(os.getcwd(), sys.path[0]))
 
 def toPyPath(filename):
     return os.path.join(pyPath, filename)
 
 #---Import preference namespace from resource .rc. files------------------------
 
+print 'Setting user preferences'
+
 rcPath = os.path.join(os.environ.get('HOME', pyPath), '.boa')
 # fall back to defaults in Boa src if .boa does not exist
 if not os.path.isdir(rcPath):
     rcPath = pyPath
 
+# upgrade if needed and exec in our namespace
 plat = wx.wxPlatform == '__WXMSW__' and 'msw' or 'gtk'
-for prefsFile in ('prefs.rc.py', 'prefs.%s.rc.py' % plat, 'prefskeys.rc.py'):
+for prefsFile, version in (('prefs.rc.py', 1), 
+                           ('prefs.%s.rc.py'%plat, 1), 
+                           ('prefskeys.rc.py', 2)):
     file = os.path.join(rcPath, prefsFile)
+    
+    # first time, install to env dir
     if not os.path.exists(file):
         shutil.copy2(os.path.join(pyPath, prefsFile), file)
+    # check version
+    else:
+        verline = string.strip(open(file).readline())
+        
+        if len(verline) >= 14 and verline[:14] == '## rc-version:':
+            rcver = int(verline[14:-2])
+        else:
+            rcver = 0
+        if rcver < version:
+            # backup and copy newest
+            bkno=0;bkstr=''
+            while 1:
+                bkfile = os.path.splitext(file)[0]+'.py~'+bkstr
+                try:
+                    os.rename(file, bkfile)
+                except OSError, err:
+                    if err.errno != 17: raise
+                    bkno=bkno+1;bkstr=str(bkno)
+                else:
+                    break    
+            shutil.copy2(os.path.join(pyPath, prefsFile), file)
+            print 'Preference file %s replaced, previous version backed up to %s'%(
+                  file, bkfile)
 
-    exec string.strip(open(file).read())
+    data = open(file).read()
 
-file = os.path.join(rcPath, 'Explorer.%s.cfg' % plat)
-if not os.path.exists(file):
-    shutil.copy2(os.path.join(pyPath, 'Explorer.%s.cfg' % plat), file)
+    exec string.strip(data)
+
+for file in ('Explorer.%s.cfg' % plat, 'stc-styles.rc.cfg'):
+    rcFile = os.path.join(rcPath, file)
+    if not os.path.exists(rcFile):
+        shutil.copy2(os.path.join(pyPath, file), rcFile)
+
 
 #---Prefs dependent on user prefs-----------------------------------------------
+
+from ImageStore import ImageStore, ZippedImageStore
 
 if useImageArchive:
     IS = ZippedImageStore(pyPath, 'Images.archive', useImageCache)
 else:
     IS = ImageStore(pyPath, cache=useImageCache)
 
-if useBoaFileDlg:
-    import FileDlg
-    wxFileDialog = FileDlg.wxBoaFileDialog
-    del FileDlg
-else:
-    wxFileDialog = wx.wxFileDialog
+import FileDlg
+wxFileDialog = FileDlg.wxBoaFileDialog
+del FileDlg
+
+# If user does not override interpreter, use own interpreter path    
+if not pythonInterpreterPath:
+    pythonInterpreterPath = sys.executable
 
 # Ugly but temporary
 if useDebugger == 'old':
@@ -63,6 +103,7 @@ if useDebugger == 'old':
 elif useDebugger == 'new':
     from Debugger import Debugger
 
+ 
 #-Window sizes------------------------------------------------------------------
 
 wx_screenWidthPerc = 1.0
@@ -93,4 +134,3 @@ inspWidth = screenWidth * (1/3.75) - windowManagerSide * 2
 edWidth = screenWidth - inspWidth + 1 - windowManagerSide * 4
 paletteHeight = paletteHeights[paletteStyle]
 bottomHeight = screenHeight - paletteHeight
- 
