@@ -329,6 +329,7 @@ class AboutBoxSplash(AboutBoxMixin, wxFrame):
             if event.tpe == 'opening':
                 cnt = cnt * self.fileOpeningFactor + self.moduleTotal
             self.gauge.SetValue(min(self.gauge.GetRange(), cnt))
+        self.Update()
 
     def OnGaugeDClick(self, event):
         if event.GetPosition().x <10:
