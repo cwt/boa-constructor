@@ -924,16 +924,20 @@ class PythonSourceView (EditorStyledTextCtrl,
         self.SetViewEOL(check)
         
     def underlineWord(self, start, length):
-        start, length = BrowseStyledTextCtrlMix.underlineWord(self, start, length)
-        if self.model.editor.debugger:
-            word, line, lnNo, wordStart = self.getStyledWordElems(start, length)
+        start, length = BrowseStyledTextCtrlMix.underlineWord(
+            self, start, length)
+        debugger = self.model.editor.debugger
+        if debugger:
+            word, line, lnNo, wordStart = self.getStyledWordElems(
+                start, length)
             self.IndicatorSetColour(0, wxRED)
-            try:
-                val = self.model.editor.debugger.getVarValue(word)
-            except Exception, message:
-                val = str(message)
-            if val:
-                self.model.editor.statusBar.setHint(val)
+            debugger.requestVarValue(word)
+##            try:
+##                val = self.model.editor.debugger.getVarValue(word)
+##            except Exception, message:
+##                val = str(message)
+##            if val:
+##                self.model.editor.statusBar.setHint(val)
         else:
             self.IndicatorSetColour(0, wxBLUE)
                 
