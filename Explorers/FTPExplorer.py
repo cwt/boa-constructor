@@ -21,7 +21,6 @@ import Preferences, Utils
 
 import ExplorerNodes
 from Models import Controllers, EditorHelper
-from ZopeLib import ZopeFTP
 import ftplib
 
 true = 1
@@ -177,6 +176,8 @@ class FTPItemNode(ExplorerNodes.ExplorerNode):
 
 class FTPConnectionNode(FTPItemNode):
     def __init__(self, name, properties, respath, clipboard, parent):
+        from ZopeLib import ZopeFTP
+
         ftpConn = ZopeFTP.ZopeFTP()
         ftpObj = ftpConn.folder_item(os.path.basename(respath),
                                      os.path.dirname(respath))

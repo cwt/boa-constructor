@@ -20,7 +20,7 @@ true=1;false=0
 import ExplorerNodes, Preferences
 from Models import EditorHelper
 from Views import STCStyleEditor
-import moduleparse, methodparse
+import methodparse
 
 class PreferenceGroupNode(ExplorerNodes.ExplorerNode):
     """ Represents a group of preference collections """
@@ -144,8 +144,6 @@ class STCStyleEditPrefsCollNode(PreferenceCollectionNode):
         return '%s://%s' %(PreferenceCollectionNode.getURI(self), self.language)
 
 
-import moduleparse
-
 class SourceBasedPrefColNode(PreferenceCollectionNode):
     """ Preference collection represented by the global names in python module
 
@@ -162,6 +160,8 @@ class SourceBasedPrefColNode(PreferenceCollectionNode):
 
     def load(self):
         # All preferences are local
+        import moduleparse
+
         module = moduleparse.Module(self.name,
               open(self.resourcepath).readlines())
 
@@ -246,6 +246,8 @@ class KeyDefsSrcPrefColNode(PreferenceCollectionNode):
         self._editor = editor
 
     def load(self):
+        import moduleparse
+
         src = open(self.resourcepath).readlines()
         module = moduleparse.Module(self.name, src)
 
