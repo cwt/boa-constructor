@@ -415,7 +415,7 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix, BrowseStyl
 ##            startLine = start-lnStPs
 ##            word = line[startLine:startLine+length]
 ##            print word, line[piv-1]
-##            cls = self.model.module.getClassForLineNo(lnNo)
+##            cls = self.model.getModule().getClassForLineNo(lnNo)
 ##            
 ##            self.CallTipSetHighlight(0, len(sigLst[1])
 
@@ -430,7 +430,8 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix, BrowseStyl
         startLine = start-lnStPs
         word = line[startLine:startLine+length]
         print word, line[piv-1]
-        cls = self.model.module.getClassForLineNo(lnNo)
+        module = self.model.getModule()
+        cls = module.getClassForLineNo(lnNo)
         if cls and line[piv-1] == '(':
             print 'got ('
             dot = string.rfind(line, '.', 0, piv)
@@ -456,7 +457,8 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix, BrowseStyl
         startLine = start-lnStPs
         word = line[startLine:startLine+length]
 ##        print word
-        cls = self.model.module.getClassForLineNo(lnNo)
+        module = self.model.getModule()
+        cls = module.getClassForLineNo(lnNo)
         if not cls: return
         dot = string.rfind(line, '.', 0, piv)
         if dot != -1:
@@ -482,7 +484,7 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix, BrowseStyl
             Currently only the open module is inspected, classes declared 
             outside the scope of the active module are inaccessible.
         """
-        module = self.model.module
+        module = self.model.getModule()
         if line[start-5: start] == 'self.':
             cls = module.getClassForLineNo(lineNo)
             if cls:
@@ -500,21 +502,21 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix, BrowseStyl
                             self.GotoLine(block.start-1)
                 return true
         # Imports
-        elif self.model.module.imports.has_key(word):
+        elif module.imports.has_key(word):
             # XXX Should rather examine path to find module instead of implicit 
             # XXX path
             self.doClearBrwsLn()
             self.model.editor.openOrGotoModule(word+'.py')
             return true
         # Classes
-        elif self.model.module.classes.has_key(word):
+        elif module.classes.has_key(word):
             self.doClearBrwsLn()
-            self.GotoLine(self.model.module.classes[word].block.start-1)
+            self.GotoLine(module.classes[word].block.start-1)
             return true
         # Global functions
-        elif self.model.module.functions.has_key(word):
+        elif module.functions.has_key(word):
             self.doClearBrwsLn()
-            self.GotoLine(self.model.module.functions[word].start-1)
+            self.GotoLine(module.functions[word].start-1)
             return true
         # Global namespace including wxPython declarations
         elif globals().has_key(word):
@@ -861,7 +863,8 @@ class TstPythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix, BrowseS
                 self.CallTipShow(pos, 'param1, param2')
             # Code completion
             else:
-                self.AutoCompShow(string.join(self.model.module.classes.keys(), 
+                module = self.model.getModule()
+                self.AutoCompShow(string.join(module.classes.keys(),
                   ' '))
         elif key == 9:
             pos = self.GetCurrentPos()
