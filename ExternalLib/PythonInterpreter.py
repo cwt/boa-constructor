@@ -10,6 +10,7 @@
 # http://www.pythonware.com
 #
 
+
 import string, sys, traceback
 
 sys.ps1 = ">>> "
@@ -43,7 +44,12 @@ class PythonInterpreter:
         # compile what we've got this far
 
         try:
-            code = compile(line, self.name, "single")
+            if sys.version_info[:2] >= (2, 2):
+                import __future__
+                code = compile(line, self.name, "single", 
+                               __future__.generators.compiler_flag, 1)
+            else:
+                code = compile(line, self.name, "single")
             self.lines = []
 
         except SyntaxError, why:
