@@ -20,7 +20,7 @@
 
 # XXX form inheritance
 
-import string, os, sys, re, relpath, pprint
+import string, os, sys, re, pprint
 from time import time, gmtime, strftime
 from stat import *
 import profile
@@ -39,7 +39,7 @@ from Views import ObjCollection
 from PrefsKeys import keyDefs
 from Debugger import Debugger
 from Utils import AddToolButtonBmpIS
-import moduleparse
+import moduleparse, relpath
 from sourceconst import *
 
 # Special import for the profiler
@@ -294,7 +294,39 @@ class PackageModel(EditorModel):
     def getPageName(self):
         return self.packageName
 
-class SourceModel(EditorModel):
+class BasePersistentModel(EditorModel):
+    saveBmp = 'Images/Editor/Save.bmp'
+    saveAsBmp = 'Images/Editor/SaveAs.bmp'
+
+    def addTools(self, toolbar):
+        EditorModel.addTools(self, toolbar)
+        AddToolButtonBmpIS(self.editor, toolbar, self.saveBmp, 'Save', self.editor.OnSave)
+        AddToolButtonBmpIS(self.editor, toolbar, self.saveAsBmp, 'Save as...', self.editor.OnSaveAs)
+
+    def addMenus(self, menu):
+        accls = EditorModel.addMenus(self, menu)
+        self.addMenu(menu, EditorHelper.wxID_EDITORSAVE, 'Save', accls, (keyDefs['Save']))
+        self.addMenu(menu, EditorHelper.wxID_EDITORSAVEAS, 'Save as...', accls, (keyDefs['SaveAs']))
+        return accls
+
+    def new(self):
+        self.data = ''
+        self.savedAs = false
+        self.modified = true
+        self.update()
+        self.notify()
+
+class PersistentModel(BasePersistentModel):
+    def __init__(self, data, name, editor, saved):
+        BasePersistentModel.__init__(self, name, data, editor, saved)
+        if data: self.update()
+
+    def load(self, notify = true):
+        BasePersistentModel.load(self, false)
+        self.update()
+        if notify: self.notify()
+        
+class SourceModel(BasePersistentModel):
     modelIdentifier = 'Source'
     def getCVSConflicts(self):
         # needless obscurity
@@ -341,8 +373,8 @@ class ModuleModel(SourceModel):
     imgIdx = imgModuleModel
     ext = '.py'
 
-    saveBmp = 'Images/Editor/Save.bmp'
-    saveAsBmp = 'Images/Editor/SaveAs.bmp'
+##    saveBmp = 'Images/Editor/Save.bmp'
+##    saveAsBmp = 'Images/Editor/SaveAs.bmp'
 
     def __init__(self, data, name, editor, saved, app = None):
         SourceModel.__init__(self, name, data, editor, saved)
@@ -361,15 +393,15 @@ class ModuleModel(SourceModel):
         del self.app
         del self.debugger
 
-    def addTools(self, toolbar):
-        SourceModel.addTools(self, toolbar)
-        AddToolButtonBmpIS(self.editor, toolbar, self.saveBmp, 'Save', self.editor.OnSave)
-        AddToolButtonBmpIS(self.editor, toolbar, self.saveAsBmp, 'Save as...', self.editor.OnSaveAs)
+##    def addTools(self, toolbar):
+##        SourceModel.addTools(self, toolbar)
+##        AddToolButtonBmpIS(self.editor, toolbar, self.saveBmp, 'Save', self.editor.OnSave)
+##        AddToolButtonBmpIS(self.editor, toolbar, self.saveAsBmp, 'Save as...', self.editor.OnSaveAs)
 
     def addMenus(self, menu):
         accls = SourceModel.addMenus(self, menu)
-        self.addMenu(menu, EditorHelper.wxID_EDITORSAVE, 'Save', accls, (keyDefs['Save']))
-        self.addMenu(menu, EditorHelper.wxID_EDITORSAVEAS, 'Save as...', accls, (keyDefs['SaveAs']))
+##        self.addMenu(menu, EditorHelper.wxID_EDITORSAVE, 'Save', accls, (keyDefs['Save']))
+##        self.addMenu(menu, EditorHelper.wxID_EDITORSAVEAS, 'Save as...', accls, (keyDefs['SaveAs']))
         menu.Append(-1, '-')
         self.addMenu(menu, EditorHelper.wxID_EDITORSWITCHAPP, 'Switch to app', accls, (keyDefs['SwitchToApp']))
         self.addMenu(menu, EditorHelper.wxID_EDITORDIFF, 'Diff modules...', accls, ())
@@ -494,14 +526,9 @@ class ModuleModel(SourceModel):
             oldErr = sys.stderr
             sys.stderr = ErrorStack.RecFile()
             try:
-                try:
-                    cmr = ModRunner.CompileModuleRunner(self.editor.erroutFrm, self.app)
-                    cmr.run(self.filename)
-                except:
-                    print 'Compile Exception!'
-                    raise
-                else:
-                    print 'Compiled Successfully'
+                cmr = ModRunner.CompileModuleRunner(self.editor.erroutFrm, self.app)
+                cmr.run(self.filename)
+
                 serr = ErrorStack.errorList(sys.stderr)
 
                 cmr.checkError(serr, 'Compiled')
@@ -530,7 +557,7 @@ class ModuleModel(SourceModel):
                 os.chdir(cwd)
                 return page
         else:
-            wxLogWarning('Save before running Cyclops')
+            wx.wxLogWarning('Save before running Cyclops')
             raise 'Not saved yet!'
 
     def debug(self, params = None):
@@ -628,51 +655,18 @@ class ModuleModel(SourceModel):
                     return true
         except Exception, error:
             self.editor.statusBar.setHint(\
-                  'Reindent failed - %s : %s' % (error.__class__, str(error)) )
+                  'Reindent failed - %s : %s' % (error.__class__, str(error)) , 'Error')
 
         return false
 
     def getSimpleRunnerSrc(self):
         return simpleModuleRunSrc
 
-import ShellEditor
-class SourcePseudoFile(ShellEditor.PseudoFileOutStore):
+class SourcePseudoFile(Utils.PseudoFileOutStore):
     def readlines(self):
         return self.output
 
-class BasicFileModel(EditorModel):
-
-    saveBmp = 'Images/Editor/Save.bmp'
-    saveAsBmp = 'Images/Editor/SaveAs.bmp'
-
-    def __init__(self, data, name, editor, saved):
-        EditorModel.__init__(self, name, data, editor, saved)
-        if data: self.update()
-
-    def addTools(self, toolbar):
-        EditorModel.addTools(self, toolbar)
-        AddToolButtonBmpIS(self.editor, toolbar, self.saveBmp, 'Save', self.editor.OnSave)
-        AddToolButtonBmpIS(self.editor, toolbar, self.saveAsBmp, 'Save as...', self.editor.OnSaveAs)
-
-    def addMenus(self, menu):
-        accls = EditorModel.addMenus(self, menu)
-        self.addMenu(menu, EditorHelper.wxID_EDITORSAVE, 'Save', accls, (keyDefs['Save']))
-        self.addMenu(menu, EditorHelper.wxID_EDITORSAVEAS, 'Save as...', accls, (keyDefs['SaveAs']))
-        return accls
-
-    def new(self):
-        self.data = ''
-        self.savedAs = false
-        self.modified = true
-        self.update()
-        self.notify()
-
-    def load(self, notify = true):
-        EditorModel.load(self, false)
-        self.update()
-        if notify: self.notify()
-
-class TextModel(BasicFileModel):
+class TextModel(PersistentModel):
 
     modelIdentifier = 'Text'
     defaultName = 'text'
@@ -681,7 +675,7 @@ class TextModel(BasicFileModel):
     ext = '.txt'
 
 
-class CPPModel(BasicFileModel):
+class CPPModel(SourceModel):
 
     modelIdentifier = 'CPP'
     defaultName = 'cpp'
@@ -690,8 +684,9 @@ class CPPModel(BasicFileModel):
     ext = '.cxx'
 
     def __init__(self, data, name, editor, saved):
-        BasicFileModel.__init__(self, data, name, editor, saved)
+        SourceModel.__init__(self, name, data, editor, saved)
         self.loadHeader()
+        if data: self.update()
 
     def loadHeader(self):
         header = os.path.splitext(self.filename)[0]+'.h'
@@ -702,7 +697,7 @@ class CPPModel(BasicFileModel):
             self.headerData = ''
 
     def load(self, notify = true):
-        BasicFileModel.load(self, false)
+        SourceModel.load(self, false)
         self.loadHeader()
         self.update()
         if notify: self.notify()
@@ -714,21 +709,21 @@ class CPPModel(BasicFileModel):
 ##    imgIdx = 13
 ##    ext = '.h'
 
-class ConfigFileModel(BasicFileModel):
+class ConfigFileModel(PersistentModel):
     modelIdentifier = 'Config'
     defaultName = 'config'
     bitmap = 'Config_s.bmp'
     imgIdx = imgConfigFileModel
     ext = '.cfg'
 
-class HTMLFileModel(BasicFileModel):
+class HTMLFileModel(PersistentModel):
     modelIdentifier = 'HTML'
     defaultName = 'html'
     bitmap = 'Text_s.bmp'
     imgIdx = imgHTMLFileModel
     ext = '.html'
 
-class XMLFileModel(BasicFileModel):
+class XMLFileModel(PersistentModel):
     modelIdentifier = 'XML'
     defaultName = 'xml'
     bitmap = 'Text_s.bmp'
@@ -837,9 +832,8 @@ class BaseFrameModel(ClassModel):
             except ValueError:
                 raise 'Collection body %s not in init, body, fin form' % meth
 
-            allInitialisers = methodparse.parseMixedBody(\
-              [methodparse.CollectionItemInitParse, methodparse.EventParse],
-               body)
+            allInitialisers, unmatched = methodparse.parseMixedBody(\
+             [methodparse.CollectionItemInitParse, methodparse.EventParse],body)
 
             creators = allInitialisers.get(methodparse.CollectionItemInitParse, [])
             collectionInits = []
@@ -850,7 +844,7 @@ class BaseFrameModel(ClassModel):
             inits = []
             fins = []
 
-            allInitialisers = methodparse.parseMixedBody(\
+            allInitialisers, unmatched = methodparse.parseMixedBody(\
               [methodparse.ConstructorParse, methodparse.EventParse,
                methodparse.CollectionInitParse, methodparse.PropertyParse],
                codeBody)
@@ -862,6 +856,16 @@ class BaseFrameModel(ClassModel):
 
         newObjColl = ObjCollection.ObjectCollection()
         newObjColl.setup(creators, properties, events, collectionInits, inits, fins)
+    
+        if unmatched:
+            wx.wxLogWarning('The following lines were not used by the Designer '\
+                         'and will be lost:\n')
+            for line in unmatched:
+                wx.wxLogWarning(line)
+            wx.wxLogWarning('\nThere were unprocessed lines in the source code of '\
+                         'method: %s\nIf this was unexpected, it is advised '\
+                         'that you cancel this Designer session and correct '\
+                         'the problem before continuing.'%meth)
 
         return newObjColl
 
@@ -876,15 +880,22 @@ class BaseFrameModel(ClassModel):
                 codeBody = module.source[codeSpan.start : codeSpan.end]
 
                 # XXX Hack: This should not be necessary !!
-                if len(oc) >= 11 and oc[:11] == init_ctrls and \
-                  string.strip(codeBody[1]) == 'self._init_utils()':
-                    del codeBody[1]
+##                if len(oc) >= 11 and oc[:11] == init_ctrls and \
+##                  string.strip(codeBody[1]) == 'self._init_utils()':
+##                    del codeBody[1]
 
                 self.objectCollections[oc] = self.readDesignerMethod(oc, codeBody)
 
+                for prop in self.objectCollections[oc].properties[:]:
+                    if prop.asText() == 'self._init_utils()':
+                        self.objectCollections[oc].properties.remove(prop)
+
             # Set the model's constructor
             if self.objectCollections.has_key(init_ctrls):
-                self.mainConstr = self.objectCollections[init_ctrls].creators[0]
+                try:
+                    self.mainConstr = self.objectCollections[init_ctrls].creators[0]
+                except IndexError:
+                    raise 'Inherited __init__ method missing'
 
 
     def removeWindowIds(self, colMeth):
@@ -920,6 +931,7 @@ class BaseFrameModel(ClassModel):
             if winIdIdx == -1:
                 comp.updateWindowIds()
             comp.addIds(lst)
+        lst.sort()
 
         if winIdIdx == -1:
             if lst:
