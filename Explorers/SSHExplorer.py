@@ -11,7 +11,7 @@
 #-----------------------------------------------------------------------------
 print 'importing Explorers.SSHExplorer'
 
-import string, os, sys
+import os, sys
 
 from wxPython.wx import wxMenu, EVT_MENU, wxMessageBox, wxPlatform, wxOK, wxNewId, true, false
 
@@ -32,13 +32,13 @@ class SSHController(ExplorerNodes.Controller, ExplorerNodes.ClipboardControllerM
         self.menu = wxMenu()
 
         self.setupMenu(self.menu, self.list,
-              ( (wxID_SSHOPEN, 'Open', self.OnOpenItems, '-'),
-                (-1, '-', None, '') ) + self.clipMenuDef)
+              [ (wxID_SSHOPEN, 'Open', self.OnOpenItems, '-'),
+                (-1, '-', None, '') ] + self.clipMenuDef)
         self.toolbarMenus = [self.clipMenuDef]
 
     def destroy(self):
         ExplorerNodes.ClipboardControllerMix.destroy(self)
-        self.toolbarMenus = ()
+        self.toolbarMenus = []
         self.menu.Destroy()
 
 class SSHCatNode(ExplorerNodes.CategoryNode):
@@ -103,7 +103,7 @@ class SSHItemNode(ExplorerNodes.ExplorerNode):
         res = []
         ls = self.execCmd("ls -la '%s'" % self.resourcepath)[1:]
         for line in ls:
-            name = string.strip(string.split(line, ' ')[-1])
+            name = line.split(' ')[-1].strip()
             if name and name[-1] == '/':
                 name = name[:-1]
             if name not in ('.', '..'):
@@ -173,7 +173,7 @@ class SSHItemNode(ExplorerNodes.ExplorerNode):
         absNames = []
         for name in names:
             absNames.append(self.resourcepath + '/' +name)
-        self.execCmd("rm -rf '%s'" % string.join(absNames, ' '))
+        self.execCmd("rm -rf '%s'" % ' '.join(absNames))
 
     def renameItem(self, name, newName):
         self.execCmd("mv '%s' '%s'" % (self.resourcepath + '/' + name,
@@ -186,13 +186,13 @@ class SSHItemNode(ExplorerNodes.ExplorerNode):
         self.execCmd("echo \" \" > '%s'" % (self.resourcepath + '/' + name))
 
     def load(self, mode='rb'):
-        from FileExplorer import PyFileNode
+        from FileExplorer import FileSysNode
         import tempfile
         fn = tempfile.mktemp()
         p, n = os.path.split(fn)
         fn = os.path.join(p, 'X'+n)
         try:
-            self.copyToFS(PyFileNode('', os.path.dirname(fn), None, -1, None, None), os.path.basename(fn))
+            self.copyToFS(FileSysNode('', os.path.dirname(fn), None, -1, None, None), os.path.basename(fn))
             if os.path.exists(fn):
                 try:
                     return open(fn, mode).read()
@@ -205,7 +205,7 @@ class SSHItemNode(ExplorerNodes.ExplorerNode):
             raise ExplorerNodes.TransportLoadError(error, self.resourcepath)
 
     def save(self, filename, data, mode='wb', overwriteNewer=false):
-        from FileExplorer import PyFileNode
+        from FileExplorer import FileSysNode
         import tempfile
         name = os.path.basename(self.resourcepath)
         fn = tempfile.mktemp()
@@ -218,7 +218,7 @@ class SSHItemNode(ExplorerNodes.ExplorerNode):
                 parentName = os.path.basename(parentDir)
                 parentSSHNode = self.createChildNode(parentName, 1,
                       self.properties, parentDir)
-                parentSSHNode.copyFromFS(PyFileNode('', fn, None, -1), name)
+                parentSSHNode.copyFromFS(FileSysNode('', fn, None, -1), name)
             finally:
                 os.remove(fn)
         except Exception, error:

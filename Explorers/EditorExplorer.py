@@ -1,4 +1,15 @@
-import os, string
+#-----------------------------------------------------------------------------
+# Name:        EditorExplorer.py
+# Purpose:     
+#
+# Author:      Riaan Booysem
+#
+# Created:     2002
+# RCS-ID:      $Id$
+# Copyright:   (c) 2002 - 2003
+# Licence:     GPL
+#-----------------------------------------------------------------------------
+import os
 
 from wxPython import wx
 
@@ -17,23 +28,24 @@ class EditorController(ExplorerNodes.Controller):
     moveUpBmp = 'Images/Shared/up.png'
     moveDownBmp = 'Images/Shared/down.png'
 
-    def __init__(self, editor, list):
+    def __init__(self, editor, list, inspector, controllers):
         ExplorerNodes.Controller.__init__(self, editor)
         self.list = list
         self.menu = wx.wxMenu()
 
-        self.editorMenuDef = ( (wxID_EDTGOTO, 'Goto', self.OnGotoModel, '-'),
-                               (-1, '-', None, ''),
-                               (wxID_EDTRELOAD, 'Refresh', self.OnReloadItems, '-'),
-                               (-1, '-', None, '-'),
-                               (wxID_EDTCLOSE, 'Close', self.OnCloseModels, self.closeBmp),
-                               (wxID_EDTCLOSEALL, 'Close all', self.OnCloseAllModels, '-'),
-                               (-1, '-', None, ''),
-                               (wxID_EDTMOVEUP, 'Move up', self.OnMoveModelUp, self.moveUpBmp),
-                               (wxID_EDTMOVEDOWN, 'Move down', self.OnMoveModelDown, self.moveDownBmp),
-                               (-1, '-', None, '-'),
-                               (wxID_EDTCOPYPATH, 'Copy filepath(s) to clipboard', self.OnCopyPath, '-'),
-                               )
+        self.editorMenuDef = [ 
+           (wxID_EDTGOTO, 'Goto', self.OnGotoModel, '-'),
+           (-1, '-', None, ''),
+           (wxID_EDTRELOAD, 'Refresh', self.OnReloadItems, '-'),
+           (-1, '-', None, '-'),
+           (wxID_EDTCLOSE, 'Close', self.OnCloseModels, self.closeBmp),
+           (wxID_EDTCLOSEALL, 'Close all', self.OnCloseAllModels, '-'),
+           (-1, '-', None, ''),
+           (wxID_EDTMOVEUP, 'Move up', self.OnMoveModelUp, self.moveUpBmp),
+           (wxID_EDTMOVEDOWN, 'Move down', self.OnMoveModelDown, self.moveDownBmp),
+           (-1, '-', None, '-'),
+           (wxID_EDTCOPYPATH, 'Copy filepath(s) to clipboard', self.OnCopyPath, '-'),
+        ]
 
         self.setupMenu(self.menu, self.list, self.editorMenuDef)
         self.toolbarMenus = [self.editorMenuDef]
@@ -118,7 +130,7 @@ class EditorController(ExplorerNodes.Controller):
             paths = []
             for node in nodes:
                 paths.append(node.resourcepath)
-            Utils.writeTextToClipboard(string.join(paths, os.linesep))
+            Utils.writeTextToClipboard(os.linesep.join(paths))
 
     def OnCloseAllModels(self, event):
         if self.list.node:
@@ -170,17 +182,16 @@ class OpenModelItemNode(ExplorerNodes.ExplorerNode):
         return false
 
     def open(self, editor):
-        return editor.openOrGotoModule(self.resourcepath)
+        if not os.path.split(self.resourcepath)[0]:
+            # unsaved, manually get info and switch to page
+            modPage = editor.modules[self.resourcepath]
+            modPage.focus()
+            model = modPage.model
+            ctrlr = editor.getControllerFromModel(model)
+            return model, ctrlr
+        else:
+            return editor.openOrGotoModule(self.resourcepath)
 
-##    def openList(self):
-##        res = []
-##        for view in self.model.views.keys():
-##            if self.model.views[view].canExplore:
-##                res.append(self.createChildNode(view, self.model))
-##        return res
-##
-##    def createChildNode(self, name, model):
-##        return ModelViewItemNode(name, model, self)
 
 class ModelViewItemNode(ExplorerNodes.ExplorerNode):
     protocol = 'boa.view'
@@ -267,3 +278,6 @@ class NewPaletteItemNode(ExplorerNodes.ExplorerNode):
 
     def isFolderish(self):
         return false
+
+#-------------------------------------------------------------------------------
+ExplorerNodes.register(OpenModelsNode, controller=EditorController)

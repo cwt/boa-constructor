@@ -11,7 +11,7 @@
 #-----------------------------------------------------------------------------
 print 'importing Explorers.FTPExplorer'
 
-import string, os
+import os
 
 from wxPython.wx import wxMenu, EVT_MENU, wxMessageBox, wxPlatform, wxNewId
 
@@ -35,8 +35,8 @@ class FTPController(ExplorerNodes.Controller, ExplorerNodes.ClipboardControllerM
         self.menu = wxMenu()
 
         self.setupMenu(self.menu, self.list,
-              ( (wxID_FTPOPEN, 'Open', self.OnOpenItems, '-'),
-                (-1, '-', None, '') ) + self.clipMenuDef)
+              [ (wxID_FTPOPEN, 'Open', self.OnOpenItems, '-'),
+                (-1, '-', None, '') ] + self.clipMenuDef)
         self.toolbarMenus = [self.clipMenuDef]
 
     def destroy(self):

@@ -11,7 +11,7 @@
 #-----------------------------------------------------------------------------
 print 'importing Explorers.DAVExplorer'
 
-import string, os, sys
+import os, sys
 from xml.parsers import expat
 
 from wxPython import wx
@@ -40,10 +40,10 @@ class XMLListBuilder:
         parser.CharacterDataHandler = self.characterData
 
         try:
-            xmlStart = string.find(data, '<')
+            xmlStart = data.find('<')
             if xmlStart == -1:
                 raise 'Invalid XML response: %s' %str(data)
-            xmlEnd = string.rfind(data, '>')
+            xmlEnd = data.rfind('>')
             if xmlEnd == -1:
                 raise 'Invalid XML response: %s' %str(data)
             self.status = parser.Parse(data[xmlStart:xmlEnd+1], 1)
@@ -61,7 +61,7 @@ class XMLListBuilder:
         self.nodeStack = self.nodeStack[:-1]
 
     def characterData(self, data):
-        if string.strip(data):
+        if data.strip():
             #data = data.encode()
             self.nodeStack[-1].append(data)
 
@@ -79,9 +79,9 @@ class DAVController(ExplorerNodes.Controller, ExplorerNodes.ClipboardControllerM
         self.inspector = inspector
 
         self.setupMenu(self.menu, self.list,
-              ( (wxID_DAVOPEN, 'Open', self.OnOpenItems, '-'),
+              [ (wxID_DAVOPEN, 'Open', self.OnOpenItems, '-'),
                 (wxID_DAVINSPECT, 'Inspect', self.OnInspectItem, '-'),
-                (-1, '-', None, '') ) + self.clipMenuDef)
+                (-1, '-', None, '') ] + self.clipMenuDef)
         self.toolbarMenus = [self.clipMenuDef]
 
     def destroy(self):
@@ -181,9 +181,9 @@ class DAVItemNode(ExplorerNodes.ExplorerNode):
         responses = l[0][1]
         if len(responses) > 0:
             for resp in l[0][1]:
-                assert string.lower(string.strip(resp[1][0][0])) == 'd:href',\
+                assert resp[1][0][0].strip().lower() == 'd:href',\
                       'Unexpected xml format'
-                name = str(string.strip(resp[1][0][1][0]))
+                name = str(resp[1][0][1][0].strip())
                 if len(name) > 1:
                     name = name[1:]
                     if name == self.resourcepath:
@@ -312,7 +312,7 @@ class DAVPropReaderMixin:
             elif type(value[0]) in StringTypes:
                 value = str(value[0])
 
-            items.append( (string.split(name, ':')[1], value) )
+            items.append( (name.split(':')[1], value) )
         return items
 
 class DAVCompanion(DAVPropReaderMixin, ExplorerCompanion):
