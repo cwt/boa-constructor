@@ -36,12 +36,12 @@ import PaletteStore
 class SizerItemsColPropEdit(CollectionPropEdit): pass
 
 class BlankSizer(wxBoxSizer):
-    """ Used as a placeholder for initial sizer items which has None for 
+    """ Used as a placeholder for initial sizer items which has None for
         the window or sizer """
     def __init__(self):
         wxBoxSizer.__init__(self, wxVERTICAL)
         self.AddSpacer(24, 24)
-    
+
 class SizerDTC(UtilityDTC):
     host = 'Sizers'
     def __init__(self, name, designer, objClass):
@@ -66,26 +66,26 @@ class SizerDTC(UtilityDTC):
 
     def renameCtrl(self, oldName, newName):
         UtilityDTC.renameCtrl(self, oldName, newName)
-        
+
         self.designer.checkSizerConnectRename(oldName, newName)
 
     def renameCtrlRefs(self, oldName, newName):
         UtilityDTC.renameCtrlRefs(self, oldName, newName)
 
         self.designer.checkCollectionRename(oldName, newName, self)
-                
+
     def recreateSizer(self):
         args = self.designer.setupArgs(self.name, self.textConstr.params,
           self.handledConstrParams, evalDct = self.designer.model.specialAttrs)
         self.control = self.designTimeObject(args)
         self.designer.objects[self.name][1] = self.control
-        
+
     def recreateSizerItems(self):
         for collComp in self.collections.values():
             collComp.control = self.control
             for crt in collComp.textConstrLst:
                 collComp.applyDesignTimeDefaults(crt.params, crt.method)
-            
+
 
 class SizerFlagsDTC(Companions.FlagsDTC):
     paramName = 'flag'
@@ -108,7 +108,7 @@ class SizerWinEnumConstrPropEdit(ObjEnumConstrPropEdit):
         if self.value != 'None':
             res.insert(1, self.value)
         return res
-        
+
     def getCtrlValue(self):
         return self.companion.GetWindow()
     def setCtrlValue(self, oldValue, value):
@@ -122,14 +122,14 @@ class SizerEnumConstrPropEdit(ObjEnumConstrPropEdit):
         while hasattr(parent, '_sub_sizer'):
             parent = parent._sub_sizer
             sizerParents.append(parent)
-        
+
         sizers = self.companion.designer.getObjectsOfClass(wxSizerPtr)
         # remove invalid sizers from the list
         for n, s in sizers.items():
             if s in sizerParents or \
                   hasattr(s, '_sub_sizer') or hasattr(s, '_has_control'):
                 del sizers[n]
-           
+
         sizerNames = sizers.keys()
         sizerNames.sort()
 
@@ -137,14 +137,14 @@ class SizerEnumConstrPropEdit(ObjEnumConstrPropEdit):
         if self.value != 'None':
             res.insert(1, self.value)
         return res
-    
+
     def getCtrlValue(self):
         return self.companion.GetSizer()
     def setCtrlValue(self, oldValue, value):
         self.companion.SetSizer(value)
 
 # XXX Remove 'Insert' special casing, no longer used
-    
+
 class SizerItemsCDTC(CollectionDTC):
     propName = 'Items'
     displayProp = 0
@@ -153,7 +153,7 @@ class SizerItemsCDTC(CollectionDTC):
     deletionMethod = 'RemovePos'
 
     additionalMethods = { 'AddSizer': ('Add sizer', 0, '(None)'),
-                          'AddSpacer': ('Add spacer', '', '(None)') 
+                          'AddSpacer': ('Add spacer', '', '(None)')
                         }
 
     def __init__(self, name, designer, parentCompanion, ctrl):
@@ -166,12 +166,12 @@ class SizerItemsCDTC(CollectionDTC):
                         'Width': IntConstrPropEdit,
                         'Height': IntConstrPropEdit,
                        }
-        self.windowStyles = ['wxLEFT', 'wxRIGHT', 'wxTOP', 'wxBOTTOM', 'wxALL', 
-                             'wxSHRINK', 'wxGROW', 'wxEXPAND', 'wxSHAPED',  
-                             'wxALIGN_LEFT', 'wxALIGN_CENTER_HORIZONTAL', 
+        self.windowStyles = ['wxLEFT', 'wxRIGHT', 'wxTOP', 'wxBOTTOM', 'wxALL',
+                             'wxSHRINK', 'wxGROW', 'wxEXPAND', 'wxSHAPED',
+                             'wxALIGN_LEFT', 'wxALIGN_CENTER_HORIZONTAL',
                              'wxALIGN_RIGHT', 'wxALIGN_BOTTOM',
-                             'wxALIGN_CENTER_VERTICAL', 'wxALIGN_TOP', 
-                             'wxALIGN_CENTER', 'wxADJUST_MINSIZE']  
+                             'wxALIGN_CENTER_VERTICAL', 'wxALIGN_TOP',
+                             'wxALIGN_CENTER', 'wxADJUST_MINSIZE']
 
     def constructor(self):
         tcl = self.textConstrLst[self.index]
@@ -188,27 +188,28 @@ class SizerItemsCDTC(CollectionDTC):
     def designTimeSource(self, wId, method=None):
         if method is None:
             method = self.insertionMethod
-        
+
         if method == 'AddWindow':
-            return {0: 'None', 1: '0', 'flag':   '0', 'border': '0'}
+            return {0: 'None', 1: '0', 'flag': '0', 'border': '0'}
         elif method == 'AddSizer':
-            return {0: 'None', 1: '0', 'flag':   '0', 'border': '0'}
+            return {0: 'None', 1: '0', 'flag': '0', 'border': '0'}
         elif method == 'AddSpacer':
-            return {0:  '8',   1: '8', 'flag':   '0', 'border': '0'}
+            return {0:  '8',   1: '8', 'flag': '0', 'border': '0'}
 
     def notification(self, compn, action):
-        if action == 'delete' and compn != self:
-            compnSrcRef = Utils.srcRefFromCtrlName(compn.name)
-            for constr in self.textConstrLst:
-                if compnSrcRef == constr.params[0]:
-                    constr.params[0] = 'None'
-                    self.recreateSizers()
-                    return
+        if action == 'delete':
+            if not isinstance(compn, CollectionDTC):
+                compnSrcRef = Utils.srcRefFromCtrlName(compn.name)
+                for constr in self.textConstrLst:
+                    if compnSrcRef == constr.params[0]:
+                        constr.params[0] = 'None'
+                        self.recreateSizers()
+                        return
 
     def appendItem(self, method=None):
         CollectionDTC.appendItem(self, method)
         self.updateGUI()
-    
+
     def deleteItem(self, idx):
         CollectionDTC.deleteItem(self, idx)
         del self.textConstrLst[idx]
@@ -243,15 +244,15 @@ class SizerItemsCDTC(CollectionDTC):
 
                 wxCallAfter(self.designer.SetFocus)
                 return true
-                
+
     def designTimeDefaults(self, vals, method=None):
         if method is None:
             method = self.insertionMethod
 
-        if method in ('AddWindow', 'AddSizer', 'Insert'): 
+        if method in ('AddWindow', 'AddSizer', 'Insert'):
             if method in ('AddWindow', 'AddSizer'): ctrlIdx = 0
             elif method == 'Insert':                ctrlIdx = 1
-            
+
             if vals[ctrlIdx] != 'None':
                 srcRef = vals[ctrlIdx]
                 try:
@@ -267,7 +268,7 @@ class SizerItemsCDTC(CollectionDTC):
                     elif method == 'AddWindow':
                         dtd[ctrlIdx]._in_sizer = self.control
                     return dtd
-            
+
         return CollectionDTC.designTimeDefaults(self, vals, method)
 
     def applyDesignTimeDefaults(self, params, method=None):
@@ -277,12 +278,12 @@ class SizerItemsCDTC(CollectionDTC):
         if (method in ('AddWindow', 'AddSizer') and params[0] == 'None') or \
            (method == 'Insert' and params[1] == 'None'):
             defaults = self.designTimeDefaults(params, method)
-            if method == 'Insert': 
+            if method == 'Insert':
                 proportion = defaults[2]
                 import warnings; warnings.warn('Insert called with BlankSizer')
             else:
                 proportion = defaults[1]
-            self.control.AddSizer(BlankSizer(), proportion, defaults['flag'], 
+            self.control.AddSizer(BlankSizer(), proportion, defaults['flag'],
                                   defaults['border'])
         else:
             CollectionDTC.applyDesignTimeDefaults(self, params, method)
@@ -307,7 +308,7 @@ class SizerItemsCDTC(CollectionDTC):
         if collEditView.frame:
             collEditView.frame.selectObject(self.index)
 
-    
+
     GetSizer = GetWindow
     SetSizer = SetWindow
 
@@ -321,7 +322,7 @@ class SizerItemsCDTC(CollectionDTC):
             si = self.control.GetChildren()[self.index]
             getattr(si, 'Set'+name)(self.eval(value))
             self.updateGUI()
-        
+
     def writeCollectionItems(self, output, stripFrmId=''):
         CollectionDTC.writeCollectionItems(self, output, stripFrmId)
         warn = 0
@@ -343,11 +344,11 @@ class SizerItemsCDTC(CollectionDTC):
         self.control.Layout()
         wxCallAfter(self.designer.controllerView.Refresh)
 
-class BoxSizerDTC(SizerDTC): 
+class BoxSizerDTC(SizerDTC):
     def __init__(self, name, designer, objClass):
         SizerDTC.__init__(self, name, designer, objClass)
         self.editors['Orientation'] = EnumPropEdit
-        self.names['Orientation'] = {'wxVERTICAL': wxVERTICAL, 
+        self.names['Orientation'] = {'wxVERTICAL': wxVERTICAL,
                                      'wxHORIZONTAL': wxHORIZONTAL}
         self.options['Orientation'] = [wxVERTICAL, wxHORIZONTAL]
 
@@ -357,7 +358,7 @@ class BoxSizerDTC(SizerDTC):
     def designTimeSource(self):
         return {'orient': 'wxVERTICAL'}
 
-class GridSizerDTC(SizerDTC): 
+class GridSizerDTC(SizerDTC):
     def constructor(self):
         return {'Name': 'name', 'Rows': 'rows', 'Cols': 'cols',
                 'VGap': 'vgap', 'HGap': 'hgap'}
@@ -368,15 +369,15 @@ class GridSizerDTC(SizerDTC):
 
 class GrowablesColPropEdit(CollectionPropEdit):
     def edit(self, event):
-        ce = self.companion.designer.showCollectionEditor(self.companion.name, 
+        ce = self.companion.designer.showCollectionEditor(self.companion.name,
               self.name, false)
-        
+
         growableRows, growableCols = ce.companion.getGrowables()
-        
+
         fgsCompn = ce.companion.parentCompanion
         numRows = self.companion.eval(fgsCompn.textConstr.params['rows'])
         numCols = self.companion.eval(fgsCompn.textConstr.params['cols'])
-        
+
         if not numRows and not numCols:
             wxLogError('Rows and Cols may not both be 0')
             return
@@ -386,20 +387,20 @@ class GrowablesColPropEdit(CollectionPropEdit):
                 self.companion.name, 'Items', false).companion.textConstrLst)
         else:
             numItems = -1
-        
+
         rows, cols = [], []
         if not numRows:
             numRows = numItems/float(numCols)
             numRows = int(numRows)+(numRows > int(numRows))
         for row in range(numRows):
             rows.append(row in growableRows)
-            
+
         if not numCols:
             numCols = numItems/float(numRows)
             numCols = int(numCols)+(numCols > int(numCols))
         for col in range(numCols):
             cols.append(col in growableCols)
-        
+
         from FlexGridGrowableDlg import FlexGridGrowablesDlg
         dlg = FlexGridGrowablesDlg(self.parent, rows, cols)
         try:
@@ -409,12 +410,12 @@ class GrowablesColPropEdit(CollectionPropEdit):
             if res == wxID_YES:
                 ce.show()
                 return
-            
+
             rows = dlg.rows
             cols = dlg.cols
         finally:
             dlg.Destroy()
-        
+
         ce.companion.setGrowables(rows, cols)
         ce.companion.recreateSizers()
 
@@ -427,7 +428,7 @@ class GrowablesCDTC(CollectionDTC):
     deletionMethod = '(None)'
 
     additionalMethods = { 'AddGrowableRow': ('Add growable row', 0, '(None)'),
-                          'AddGrowableCol': ('Add growable column', 0, '(None)') 
+                          'AddGrowableCol': ('Add growable column', 0, '(None)')
                         }
 
     def __init__(self, name, designer, parentCompanion, ctrl):
@@ -475,9 +476,9 @@ class GrowablesCDTC(CollectionDTC):
     def updateGUI(self):
         self.control.Layout()
         wxCallAfter(self.designer.controllerView.Refresh)
-        
 
-class FlexGridSizerDTC(GridSizerDTC): 
+
+class FlexGridSizerDTC(GridSizerDTC):
     def __init__(self, name, designer, objClass):
         GridSizerDTC.__init__(self, name, designer, objClass)
         self.editors['Growables'] = GrowablesColPropEdit
@@ -493,9 +494,9 @@ class FlexGridSizerDTC(GridSizerDTC):
 
 class RowColSizerDTC(FlexGridSizerDTC):
     def writeImports(self):
-        return '\n'.join( (GridSizerDTC.writeImports(self), 
+        return '\n'.join( (GridSizerDTC.writeImports(self),
                            'from wxPython.lib.rcsizer import RowColSizer') )
-    
+
 class ControlLinkedSizerDTC(SizerDTC):
     LinkClass = None
     ctrlParam = ''
@@ -509,13 +510,13 @@ class ControlLinkedSizerDTC(SizerDTC):
             linkObjs = self.designer.controllerView.getObjectsOfClass(self.LinkClass).items()
             if not linkObjs:
                 raise Exception, 'No %s controls available'%linkClassName
-            
+
             linkObjs.sort()
             names, objs = [], []
             for name, obj in linkObjs:
                 names.append(name); objs.append(obj)
-                
-            dlg = wxSingleChoiceDialog(self.designer, 'Choose control', 
+
+            dlg = wxSingleChoiceDialog(self.designer, 'Choose control',
                   'Create sizer', names)
             try:
                 if dlg.ShowModal() != wxID_OK:
@@ -526,7 +527,7 @@ class ControlLinkedSizerDTC(SizerDTC):
 
             self._linkName = names[idx]
             dtd[self.ctrlParam] = objs[idx]
-            
+
             self.control = apply(self.objClass, (), dtd)
 
         return self.control
@@ -547,15 +548,15 @@ class ControlLinkedSizerDTC(SizerDTC):
             if self.textConstr.params.has_key(self.ctrlParam) and \
                   compnSrcRef == self.textConstr.params[self.ctrlParam]:
                 self.designer.deleteCtrl(self.name)
-                
 
-class StaticBoxSizerDTC(ControlLinkedSizerDTC): 
+
+class StaticBoxSizerDTC(ControlLinkedSizerDTC):
     LinkClass = wxStaticBoxPtr
     ctrlParam = 'box'
     def __init__(self, name, designer, objClass):
         ControlLinkedSizerDTC.__init__(self, name, designer, objClass)
         self.editors['Orientation'] = EnumPropEdit
-        self.names['Orientation'] = {'wxVERTICAL': wxVERTICAL, 
+        self.names['Orientation'] = {'wxVERTICAL': wxVERTICAL,
                                      'wxHORIZONTAL': wxHORIZONTAL}
         self.options['Orientation'] = [wxVERTICAL, wxHORIZONTAL]
         self.editors['StaticBox'] = ReadOnlyConstrPropEdit
@@ -591,14 +592,14 @@ class NotebookSizerDTC(ControlLinkedSizerDTC):
 
 
 PaletteStore.paletteLists['ContainersLayout'].extend([
-  wxBoxSizer, wxGridSizer, wxFlexGridSizer, wxStaticBoxSizer, wxNotebookSizer, # RowColSizer, 
+  wxBoxSizer, wxGridSizer, wxFlexGridSizer, wxStaticBoxSizer, wxNotebookSizer, # RowColSizer,
 ])
 
 PaletteStore.compInfo.update({
   wxBoxSizer: ['wxBoxSizer', BoxSizerDTC],
-  wxGridSizer: ['wxGridSizer', GridSizerDTC], 
-  wxFlexGridSizer: ['wxFlexGridSizer', FlexGridSizerDTC], 
-  wxStaticBoxSizer: ['wxStaticBoxSizer', StaticBoxSizerDTC], 
+  wxGridSizer: ['wxGridSizer', GridSizerDTC],
+  wxFlexGridSizer: ['wxFlexGridSizer', FlexGridSizerDTC],
+  wxStaticBoxSizer: ['wxStaticBoxSizer', StaticBoxSizerDTC],
   wxNotebookSizer: ['wxNotebookSizer', NotebookSizerDTC]
-  #RowColSizer: ['RowColSizer', RowColSizerDTC], 
+  #RowColSizer: ['RowColSizer', RowColSizerDTC],
 })
