@@ -16,7 +16,7 @@
 
 from wxPython.wx import *
 from PropEdit.PropertyEditors import *
-import HelpCompanions, RTTI
+import HelpCompanions, RTTI, Preferences
 import methodparse
 import string, copy
 
@@ -47,7 +47,8 @@ import string, copy
     
 """
 
-wxNullBitmap = wxBitmap('Images\\Inspector\\wxNullBitmap.bmp', wxBITMAP_TYPE_BMP)
+wxNullBitmap = Preferences.IS.load('Images\\Inspector\\wxNullBitmap.bmp')
+##wxNullBitmap = wxBitmap('Images\\Inspector\\wxNullBitmap.bmp', wxBITMAP_TYPE_BMP)
 
 class Companion:
     """ Default companion, entity with a name and default documentation """
@@ -300,9 +301,12 @@ class DesignTimeCompanion(Companion):
     def SetName(self, oldValue, newValue):
         """ Triggered when the 'Name' property is changed """
 ##        print self.__class__.__name__,'companion: setting name from', oldValue, 'to', newValue
-        self.name = newValue
-        self.designer.model.renameCtrl(oldValue, newValue)
-        self.designer.renameCtrl(oldValue, newValue)
+        if self.designer.objects.has_key(newValue):
+            wxLogError('There is already an object named '+newValue)
+        else:
+            self.name = newValue
+            self.designer.model.renameCtrl(oldValue, newValue)
+            self.designer.renameCtrl(oldValue, newValue)
     
     def evtName(self):
         return self.name
@@ -504,7 +508,8 @@ class WindowDTC(ControlDTC):
                         'Enabled': BoolPropEdit,
                         'EvtHandlerEnabled': BoolPropEdit,
                         'Style': StyleConstrPropEdit,
-                        'Constraints': CollectionPropEdit}
+                        'Constraints': CollectionPropEdit,
+                        'Name': NamePropEdit}
         self.ToolTip = ''
         import UtilCompanions
         self.subCompanions['Constraints'] = UtilCompanions.IndividualLayoutConstraintOCDTC
