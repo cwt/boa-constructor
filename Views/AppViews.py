@@ -97,6 +97,7 @@ class AppView(ListCtrlView):
            ('Cyclops', self.OnCyclops, self.cyclBmp, ()),
            ('-', None, '', ()),
            ('Profile', self.OnProfile, self.profileBmp, ()),
+           ('View trace log as Traceback', self.OnCrashLog, '-', ()),
            ('Run application', self.OnRun, self.runBmp, keyDefs['RunApp']),
            ('Debugger', self.OnDebugger, self.debugBmp, keyDefs['Debug'])), 0)
 
@@ -165,7 +166,10 @@ class AppView(ListCtrlView):
 
     def OnRemove(self, event):
         if self.selected >= 0:
-            self.model.removeModule(self.GetItemText(self.selected))
+            if not self.model.modules[self.GetItemText(self.selected)][0]:
+                self.model.removeModule(self.GetItemText(self.selected))
+            else:
+                wxMessageBox('Cannot remove the main frame of an application', 'Module remove error')
 
     def OnRun(self, event):
         wxBeginBusyCursor()
@@ -175,11 +179,7 @@ class AppView(ListCtrlView):
             wxEndBusyCursor()
 
     def OnDebugger(self, event):
-        wxBeginBusyCursor()
-        try:
-            self.model.debug()  
-        finally:
-            wxEndBusyCursor()
+        self.model.debug()  
     
     def OnProfile(self, event):
         stats = self.model.profile()
@@ -192,6 +192,13 @@ class AppView(ListCtrlView):
         resultView.stats = stats
         resultView.refresh()
         resultView.focus()
+
+    def OnCrashLog(self, event):
+        wxBeginBusyCursor()
+        try:
+            self.model.crashLog()
+        finally:
+            wxEndBusyCursor()
     
     def OnCyclops(self, event):
         wxBeginBusyCursor()
@@ -398,13 +405,13 @@ class TextInfoFileView(PySourceView.EditorStyledTextCtrl):
             self.model.unsavedTextInfos.append(self.viewName)
 
 class AppREADME_TIFView(TextInfoFileView): 
-    viewName = 'README.txt'
+    viewName = 'Readme.txt'
 
 class AppTODO_TIFView(TextInfoFileView): 
-    viewName = 'TO-DO.txt'
+    viewName = 'Todo.txt'
 
 class AppBUGS_TIFView(TextInfoFileView): 
-    viewName = 'BUGS.txt'
+    viewName = 'Bugs.txt'
 
 class AppCHANGES_TIFView(TextInfoFileView): 
-    viewName = 'CHANGES.txt'
+    viewName = 'Changes.txt'
