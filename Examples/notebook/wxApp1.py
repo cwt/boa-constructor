@@ -1,11 +1,10 @@
 #Boa:App:BoaApp
-
-#!/bin/env  python
 from wxPython.wx import *
 
 import wxFrame1
 
-modules ={'wxDialog1': [0, '', 'wxDialog1.py'], 'wxFrame1': [1, 'Main frame of Application', 'wxFrame1.py']}
+modules ={'wxDialog1': [0, '', 'wxDialog1.py'],
+ 'wxFrame1': [1, 'Main frame of Application', 'wxFrame1.py']}
 
 class BoaApp(wxApp):
     """Documentation String"""
@@ -20,5 +19,5 @@ def main():
     application.MainLoop()
 
 if __name__ == '__main__':
-    # XXX Test ToDo on line 23
+    # XXX Test ToDo on line 24
     main()
