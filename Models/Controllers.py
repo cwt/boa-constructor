@@ -11,7 +11,7 @@
 #-----------------------------------------------------------------------------
 print 'importing Models.Controllers'
 
-import os#, sys, time
+import os
 
 from wxPython.wx import *
 
@@ -20,19 +20,13 @@ from Preferences import keyDefs
 
 import EditorHelper, PaletteStore, EditorModels
 
-import PythonEditorModels
-if Preferences.csWxPythonSupport:
-    import wxPythonEditorModels
-
-from Views import EditorViews, SourceViews, OGLViews
+from Views import EditorViews, SourceViews
 
 from Explorers import ExplorerNodes
 
 addTool = Utils.AddToolButtonBmpIS
 
 true=1;false=0
-
-import sourceconst
 
 class BaseEditorController:
     """ Between user and model operations
@@ -262,6 +256,7 @@ class BitmapFileController(UndockedController):
         from ZopeLib import ImageViewer
         ImageViewer.create(self.editor).showImage(model.filename, model.transport)
 
+# XXX move to a new module PythonComControllers
 class MakePyController(BaseEditorController):
     docked          = false
     Model           = None
@@ -287,18 +282,16 @@ def identifyFilename(filename):
     base, ext = os.path.splitext(filename)
     lext = string.lower(ext)
 
-    if name == '__init__.py':
-        return PythonEditorModels.PackageModel, '', lext
-    if name == 'setup.py':
-        return PythonEditorModels.SetupModuleModel, '', lext
+    if fullnameTypes.has_key(name):
+        return fullnameTypes[name]
     if not ext and string.upper(base) == base:
         return EditorModels.TextModel, '', lext
     if EditorHelper.extMap.has_key(lext):
         return EditorHelper.extMap[lext], '', lext
     if lext in EditorHelper.internalFilesReg:
         return EditorModels.InternalFileModel, '', lext
-    if lext in EditorHelper.pythonBinaryFilesReg:
-        return PythonEditorModels.PythonBinaryFileModel, '', lext
+    #if lext in EditorHelper.pythonBinaryFilesReg:
+    #    return PythonEditorModels.PythonBinaryFileModel, '', lext
     return None, '', lext
 
 def identifyFile(filename, source=None, localfs=true):
@@ -308,8 +301,8 @@ def identifyFile(filename, source=None, localfs=true):
     if Model is not None:
         return Model, main
 
-    if lext == '.py':
-        BaseModel = PythonEditorModels.ModuleModel
+    if lext == defaultExt:
+        BaseModel = DefaultModel
     else:
         BaseModel = EditorModels.UnknownFileModel
 
@@ -326,11 +319,11 @@ def identifyFile(filename, source=None, localfs=true):
                 line = f.readline()
                 if not line: break
                 line = string.strip(line)
-                if line:
+                if line and headerStartChar.has_key(lext):
                     if line[0] != headerStartChar[lext]:
                         return BaseModel, ''
                     headerInfo = identifyHeader[lext](line)
-                    if headerInfo[0] != PythonEditorModels.ModuleModel:
+                    if headerInfo[0] != DefaultModel:
                         return headerInfo
             return BaseModel, ''
         finally:
@@ -343,7 +336,14 @@ def identifyFile(filename, source=None, localfs=true):
 modelControllerReg = {EditorModels.TextModel: TextController,
                       EditorModels.BitmapFileModel: BitmapFileController}
 
+# Default filetype
+DefaultController = TextController
+DefaultModel = EditorModels.TextModel
+defaultExt = EditorModels.TextModel.ext
+
 # Dictionaries of functions keyed on file extension
 headerStartChar = {}
 identifyHeader = {}
 identifySource = {}
+# dictionary of filetypes recognised by the whole name
+fullnameTypes = {}
