@@ -217,8 +217,8 @@ class ZopeExportFileController(Controllers.UndockedController):
         Controllers.UndockedController.__init__(self, editor)
 
     def display(self, model):
-        from Explorers import Explorer
-        transports = Explorer.all_transports
+        from Explorers import ExplorerNodes
+        transports = ExplorerNodes.all_transports
         for cat in transports.entries:
             if cat.itemProtocol == 'zope':
                 itms = cat.openList()
