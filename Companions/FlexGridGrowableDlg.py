@@ -175,7 +175,7 @@ class FlexGridGrowablesDlg(wxDialog):
             y += self.rowBtns[hl].GetSize().height
 
     def setupFlexSizer(self):
-        self.boxSizer1.RemovePos(0)
+        self.boxSizer1.Remove(0)
         self.flex = wxFlexGridSizer(cols=self.numCols, hgap=0,
               rows=self.numRows, vgap=0)
         self.boxSizer1.Insert(0, self.flex, 1, border=0, flag=wxGROW | wxALL)
