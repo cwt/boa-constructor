@@ -10,6 +10,9 @@
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 print 'importing Companions.SizerCompanions'
+
+# XXX _in_sizer is not necessary, use GetContainingSizer() instead
+
 import os, copy
 
 from wxPython.wx import *
@@ -24,7 +27,7 @@ import Companions
 from PropEdit.PropertyEditors import IntConstrPropEdit, StrConstrPropEdit, \
       CollectionPropEdit, ObjEnumConstrPropEdit, EnumConstrPropEdit, \
       FlagsConstrPropEdit, WinEnumConstrPropEdit, BoolConstrPropEdit, \
-      MenuEnumConstrPropEdit, BoolPropEdit, EnumPropEdit
+      BoolPropEdit, EnumPropEdit, ReadOnlyConstrPropEdit
 from PropEdit import Enumerations
 import EventCollections, RTTI, methodparse
 import PaletteStore
@@ -113,10 +116,20 @@ class SizerWinEnumConstrPropEdit(ObjEnumConstrPropEdit):
 
 class SizerEnumConstrPropEdit(ObjEnumConstrPropEdit):
     def getObjects(self):
+        # build a list of nested parent sizers
+        parent = self.companion.parentCompanion.control
+        sizerParents = [parent]
+        while hasattr(parent, '_sub_sizer'):
+            parent = parent._sub_sizer
+            sizerParents.append(parent)
+        
         sizers = self.companion.designer.getObjectsOfClass(wxSizerPtr)
+        # remove invalid sizers from the list
         for n, s in sizers.items():
-            if hasattr(s, '_sub_sizer'):
+            if s in sizerParents or \
+                  hasattr(s, '_sub_sizer') or hasattr(s, '_has_control'):
                 del sizers[n]
+           
         sizerNames = sizers.keys()
         sizerNames.sort()
 
@@ -151,7 +164,7 @@ class SizerItemsCDTC(CollectionDTC):
                         'Flag': SizerFlagsConstrPropEdit,
                         'Border': IntConstrPropEdit,
                         'Width': IntConstrPropEdit,
-                        'Height': IntConstrPropEdit
+                        'Height': IntConstrPropEdit,
                        }
         self.windowStyles = ['wxLEFT', 'wxRIGHT', 'wxTOP', 'wxBOTTOM', 'wxALL', 
                              'wxSHRINK', 'wxGROW', 'wxEXPAND', 'wxSHAPED',  
@@ -177,20 +190,11 @@ class SizerItemsCDTC(CollectionDTC):
             method = self.insertionMethod
         
         if method == 'AddWindow':
-            return {0: 'None',
-                    1: '0',
-                    'flag':   '0',
-                    'border': '0'}
+            return {0: 'None', 1: '0', 'flag':   '0', 'border': '0'}
         elif method == 'AddSizer':
-            return {0: 'None',
-                    1: '0',
-                    'flag':   '0',
-                    'border': '0'}
+            return {0: 'None', 1: '0', 'flag':   '0', 'border': '0'}
         elif method == 'AddSpacer':
-            return {0:  '8',
-                    1: '8',
-                    'flag':   '0',
-                    'border': '0'}
+            return {0:  '8',   1: '8', 'flag':   '0', 'border': '0'}
 
     def notification(self, compn, action):
         if action == 'delete' and compn != self:
@@ -216,11 +220,30 @@ class SizerItemsCDTC(CollectionDTC):
             self.recreateSizers()
         return newIdx
 
-##    def defaultAction(self):
-##        nv = self.designer.inspector.constr.getNameValue('Bitmap')
-##        if nv:
-##            nv.propEditor.edit(None)
+    def defaultAction(self):
+        constr = self.textConstrLst[self.index]
+        if constr.method == 'AddWindow':
+            if constr.params[0] != 'None':
+                name = Utils.ctrlNameFromSrcRef(constr.params[0])
+                designer = self.designer.controllerView
+                compn, ctrl = designer.objects[name][:2]
+                designer.inspector.selectObject(compn, true)
+                designer.Raise()
+                designer.selection.selectCtrl(ctrl, compn)
 
+                wxCallAfter(designer.SetFocus)
+                return true
+
+        elif constr.method == 'AddSizer':
+            if constr.params[0] != 'None':
+                name = Utils.ctrlNameFromSrcRef(constr.params[0])
+                compn = self.designer.objects[name][0]
+                self.designer.inspector.selectObject(compn, true)
+                self.designer.selectCtrls([name])
+
+                wxCallAfter(self.designer.SetFocus)
+                return true
+                
     def designTimeDefaults(self, vals, method=None):
         if method is None:
             method = self.insertionMethod
@@ -275,18 +298,29 @@ class SizerItemsCDTC(CollectionDTC):
         self.setParamAndUpdate(0, value)
         colEdKey = (self.parentCompanion.name, 'Items')
         if self.designer.collEditors.has_key(colEdKey):
-            wxCallAfter(self.designer.collEditors[colEdKey].refreshCtrl, 1)
+            collEditView = self.designer.collEditors[colEdKey]
+            wxCallAfter(self.setWindowRefresh, collEditView)
+
+    def setWindowRefresh(self, collEditView):
+        collEditView.refreshCtrl(1)
+        collEditView.selectObject(self.index)
+        if collEditView.frame:
+            collEditView.frame.selectObject(self.index)
+
     
     GetSizer = GetWindow
     SetSizer = SetWindow
 
-    def getSizerRefreshProps(self):
-        return ('Width', 'Height', 'Flag', 'Border', 'Proportion')
-
     def persistProp(self, name, setterName, value):
         CollectionDTC.persistProp(self, name, setterName, value)
-        if name in self.getSizerRefreshProps():
+        if name in ('Width', 'Height'):
             self.recreateSizers()
+        elif name in ('Flag', 'Border', 'Proportion'):
+            if name == 'Proportion':
+                name = 'Option'
+            si = self.control.GetChildren()[self.index]
+            getattr(si, 'Set'+name)(self.eval(value))
+            self.updateGUI()
         
     def writeCollectionItems(self, output, stripFrmId=''):
         CollectionDTC.writeCollectionItems(self, output, stripFrmId)
@@ -298,8 +332,8 @@ class SizerItemsCDTC(CollectionDTC):
                 warn = 1
         if warn:
             wxLogWarning('None values are only valid in the Designer.\n'
-                    'The generated source will be invalid outside the Designer'
-                    ' and should be fixed before executing.')
+                         'The generated source will be invalid outside the '
+                         'Designer and should be fixed before executing.')
 
     def recreateSizers(self):
         self.designer.recreateSizers()
@@ -329,7 +363,7 @@ class GridSizerDTC(SizerDTC):
                 'VGap': 'vgap', 'HGap': 'hgap'}
 
     def designTimeSource(self):
-        return {'rows': '0', 'cols': '0', 'vgap': '0', 'hgap': '0'}
+        return {'rows': '1', 'cols': '0', 'vgap': '0', 'hgap': '0'}
 
 
 class GrowablesColPropEdit(CollectionPropEdit):
@@ -342,10 +376,27 @@ class GrowablesColPropEdit(CollectionPropEdit):
         fgsCompn = ce.companion.parentCompanion
         numRows = self.companion.eval(fgsCompn.textConstr.params['rows'])
         numCols = self.companion.eval(fgsCompn.textConstr.params['cols'])
+        
+        if not numRows and not numCols:
+            wxLogError('Rows and Cols may not both be 0')
+            return
 
+        if not numRows or not numCols:
+            numItems = len(self.companion.designer.showCollectionEditor(
+                self.companion.name, 'Items', false).companion.textConstrLst)
+        else:
+            numItems = -1
+        
         rows, cols = [], []
+        if not numRows:
+            numRows = numItems/float(numCols)
+            numRows = int(numRows)+(numRows > int(numRows))
         for row in range(numRows):
             rows.append(row in growableRows)
+            
+        if not numCols:
+            numCols = numItems/float(numRows)
+            numCols = int(numCols)+(numCols > int(numCols))
         for col in range(numCols):
             cols.append(col in growableCols)
         
@@ -507,7 +558,7 @@ class StaticBoxSizerDTC(ControlLinkedSizerDTC):
         self.names['Orientation'] = {'wxVERTICAL': wxVERTICAL, 
                                      'wxHORIZONTAL': wxHORIZONTAL}
         self.options['Orientation'] = [wxVERTICAL, wxHORIZONTAL]
-        #self.editors['BoxSizer'] = WinEnumConstrPropEdit
+        self.editors['StaticBox'] = ReadOnlyConstrPropEdit
 
     def constructor(self):
         return {'Name': 'name', 'StaticBox': 'box', 'Orientation': 'orient'}
@@ -516,12 +567,13 @@ class StaticBoxSizerDTC(ControlLinkedSizerDTC):
         return {'box': 'None', 'orient': 'wxVERTICAL'}
 
 
+
 class NotebookSizerDTC(ControlLinkedSizerDTC):
     LinkClass = wxNotebookPtr
     ctrlParam = 'nb'
     def __init__(self, name, designer, objClass):
         ControlLinkedSizerDTC.__init__(self, name, designer, objClass)
-        #self.editors['Notebook'] = WinEnumConstrPropEdit
+        self.editors['Notebook'] = ReadOnlyConstrPropEdit
 
     def constructor(self):
         return {'Name': 'name', 'Notebook': 'nb'}
