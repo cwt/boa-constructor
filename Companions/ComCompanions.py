@@ -1,4 +1,5 @@
-from BaseCompanions import WindowDTC
+from BaseCompanions import WindowDTC, UtilityDTC
+from Constructors import EmptyConstr
 from EventCollections import *
 import PaletteStore
 
