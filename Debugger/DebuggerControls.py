@@ -1,4 +1,4 @@
-import os
+import os, pprint
 from repr import Repr
 
 from wxPython.wx import *
@@ -364,7 +364,7 @@ class BreakViewCtrl(DebuggerListCtrl):
 
 wxID_NSVIEW = wxNewId()
 class NamespaceViewCtrl(DebuggerListCtrl):
-    def __init__(self, parent, add_watch, is_local, name):
+    def __init__(self, parent, debugger, is_local, name):
         DebuggerListCtrl.__init__(self, parent, wxID_NSVIEW)
 
         self.InsertColumn(0, 'Attribute', wxLIST_FORMAT_LEFT, 125)
@@ -379,8 +379,13 @@ class NamespaceViewCtrl(DebuggerListCtrl):
         self.menu.Append(idAs, 'Add as watch')
         self.menu.Append(idA, 'Add a %s watch' % name)
         EVT_MENU(self, idAs, self.OnAddAsWatch)
-        EVT_LEFT_DCLICK(self, self.OnAddAsWatch)
         EVT_MENU(self, idA, self.OnAddAWatch)
+        outputId = wxNewId()
+        self.menu.Append(outputId, 'Write value to Output')
+        EVT_MENU(self, outputId, self.OnValueToOutput)
+
+        EVT_LEFT_DCLICK(self, self.OnDoubleClick)
+
         self.pos = None
 
         self.setPopupMenu(self.menu)
@@ -390,7 +395,7 @@ class NamespaceViewCtrl(DebuggerListCtrl):
         self.repr.maxother = 100
         self.names = []
 
-        self.add_watch = add_watch
+        self.debugger = debugger
 
     def destroy(self):
         self.menu.Destroy()
@@ -420,10 +425,22 @@ class NamespaceViewCtrl(DebuggerListCtrl):
         selected = self.getSelection()
         if selected != -1:
             name = self.names[selected]
-            self.add_watch(name, self.is_local)
+            self.debugger.add_watch(name, self.is_local)
 
     def OnAddAWatch(self, event):
-        self.add_watch('', self.is_local)
+        self.debugger.add_watch('', self.is_local)
+
+    def OnValueToOutput(self, event):
+        selected = self.getSelection()
+        if selected != -1:
+            name = self.names[selected]
+            self.debugger.valueToOutput(name)
+
+    def OnDoubleClick(self, event):
+        if event.ControlDown():
+            self.OnValueToOutput(event)
+        else:
+            self.OnAddAsWatch(event)
 
 
 wxID_WATCHVIEW = wxNewId()
@@ -454,7 +471,9 @@ class WatchViewCtrl(DebuggerListCtrl):
         self.editId = wxNewId()
         self.menu.Append(self.editId, 'Edit watch')
         EVT_MENU(self, self.editId, self.OnEdit)
-        EVT_LEFT_DCLICK(self, self.OnEdit)
+        self.outputId = wxNewId()
+        self.menu.Append(self.outputId, 'Write value to Output')
+        EVT_MENU(self, self.outputId, self.OnValueToOutput)
         self.deleteId = wxNewId()
         self.menu.Append(self.deleteId, 'Delete')
         EVT_MENU(self, self.deleteId, self.OnDelete)
@@ -464,6 +483,9 @@ class WatchViewCtrl(DebuggerListCtrl):
         wid = wxNewId()
         self.menu.Append(wid, 'Delete All')
         EVT_MENU(self, wid, self.OnDeleteAll)
+
+        EVT_LEFT_DCLICK(self, self.OnDoubleClick)
+
         self.pos = None
 
         self.setPopupMenu(self.menu)
@@ -568,6 +590,19 @@ class WatchViewCtrl(DebuggerListCtrl):
 
         return DebuggerListCtrl.getPopupMenu(self)
 
+    def OnValueToOutput(self, event):
+        selected = self.getSelection()
+
+        if selected != -1:
+            name = self.watches[selected][0]
+            self.debugger.valueToOutput(name)
+
+    def OnDoubleClick(self, event):
+        if event.ControlDown():
+            self.OnValueToOutput(event)
+        else:
+            self.OnEdit(event)
+
 
 class DebugStatusBar(wxStatusBar):
     def __init__(self, parent):
@@ -608,6 +643,7 @@ class DebugStatusBar(wxStatusBar):
         else:
             self.state.SetBackgroundColour(self.stateCols['info'])
         self.state.SetLabel(message)
+        self.state.SetToolTipString(message)
 
         self._setCtrlDims(self.state, self.GetFieldRect(1))
 
