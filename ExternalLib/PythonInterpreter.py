@@ -61,7 +61,6 @@ class PythonInterpreter:
 
             #
             # execute
-
             try:
                 exec code in self.locals
             except:
@@ -73,17 +72,15 @@ class PythonInterpreter:
 
         self.lines = []
 
-#        print 'sys.exc_value', sys.exc_value
         exc_type, exc_value, exc_traceback = sys.exc_info()
         if exc_type == SyntaxError:# and len(sys.exc_value) == 2:
-#            print dir(exc_value)
             # emulate interpreter behaviour
-#            print "  File \"%s\", line %d" % (self.name, sys.exc_value[1][1])
-#            print " " * (sys.exc_value[1][2] + 2) + "^"
-            print str(sys.exc_type) + ":", sys.exc_value[0]
+            # print "  File \"%s\", line %d" % (self.name, sys.exc_value[1][1])
+            sys.stderr.write(" " * (sys.exc_value[1][2] + 3) + "^\n")
+            sys.stderr.write(str(sys.exc_type) + " : " + str(sys.exc_value[0])+"\n")
         else:
             traceback.print_tb(sys.exc_traceback, None)
-            print str(sys.exc_type) + ":", sys.exc_value
+            sys.stderr.write(str(sys.exc_type) + " : " + str(sys.exc_value)+"\n")
 
 
 # --------------------------------------------------------------------
