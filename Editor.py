@@ -162,6 +162,12 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
 
         self.numFixedPages = 0
 
+        # Explorer store
+        self.explorerStore = Explorer.ExplorerStore(self)
+        # called after all models have been imported and plugins executed
+        EditorHelper.initExtMap()
+        self.initImages()
+
         # Shell
         shl = Preferences.psPythonShell
         self.shell, self.shellPageIdx = None, -1
@@ -171,15 +177,11 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
             self.shell, self.shellPageIdx = self.addShellPage(shl, Shell, imgIdx)
 
         # Explorer
-        self.explorerStore, self.explorer, self.explorerPageIdx = self.addExplorerPage()
-
-        # called after all models have been imported and plugins executed
-        EditorHelper.initExtMap()
+        self.explorer, self.explorerPageIdx = self.addExplorerPage()
 
         if self.explorer:
             self.explorer.tree.openDefaultNodes()
 
-        self.initImages()
 
         # Menus
         self.newMenu = newMenu
@@ -559,16 +561,15 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
 
 
     def addExplorerPage(self):
-        store = Explorer.ExplorerStore(self)
         if Preferences.exUseExplorer:
             explorer = Explorer.ExplorerSplitter(self.tabs, self.modelImageList,
-                                                 self, store)
+                                                 self, self.explorerStore)
 
             self.tabs.AddPage(explorer, 'Explorer', imageId=EditorHelper.imgExplorer)
             self.numFixedPages += 1
-            return store, explorer, self.tabs.GetPageCount()-1
+            return explorer, self.tabs.GetPageCount()-1
         else:
-            return store, None, -1
+            return None, -1
 
     def getValidName(self, modelClass, moreUsedNames = None):
         if moreUsedNames is None:
