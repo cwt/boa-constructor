@@ -12,8 +12,8 @@ class TransportWithAuth (xmlrpclib.Transport):
 
     def request(self, host, handler, request_body):
 	# issue XML-RPC request
-        if host == 'localhost':
-            host = ''  # Trigger "special" name
+        if host[:10] == 'localhost:':
+            host = host[9:]  # Trigger "special" name
 
 	import httplib
 	h = httplib.HTTP(host)
@@ -74,7 +74,7 @@ def spawnChild(monitor, process):
             port, auth = string.split(string.strip(line))
             trans = TransportWithAuth(auth)
             server = xmlrpclib.Server(
-                'http://localhost:%s' % port, trans)
+                'http://localhost:%d' % int(port), trans)
             return server
         else:
             raise 'DebugError', 'The debug server failed to start'

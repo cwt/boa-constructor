@@ -23,7 +23,7 @@ def pollStreams():
 print 'spawning...'
 s = spawnChild(Monitor(), process)
 
-print 'starting...'
+print 'starting... (via %s)' % s
 v = s.runFileAndRequestStatus('test.py', (), 0, (),
                                 ({'filename':'test.py',
                                   'lineno':15,
