@@ -159,6 +159,7 @@ class ErrorStackMF(wxFrame, Utils.FrameRestorerMixin):
         else:
             self.errorTC.SetValue('')
 
+        selIdx = -1
         if parsedTracebacks: 
             selIdx = 0
         elif errorList:
@@ -168,7 +169,8 @@ class ErrorStackMF(wxFrame, Utils.FrameRestorerMixin):
         elif errRaw:
             selIdx = 2
 
-        self.notebook1.SetSelection(selIdx)
+        if selIdx >= 0:
+            self.notebook1.SetSelection(selIdx)
         
         return parsedTracebacks
 
@@ -213,6 +215,7 @@ class ErrorStackMF(wxFrame, Utils.FrameRestorerMixin):
                     # Try to show the tab where the text was just added.
                     if self.notebook1.GetPage(i) == tc:
                         self.notebook1.SetSelection(i)
+                        tc.Refresh()
                         break
                 splitter.openBottomWindow()
                 
@@ -221,7 +224,6 @@ class ErrorStackMF(wxFrame, Utils.FrameRestorerMixin):
 
     def appendToErrors(self, txt):
         self.appendToTextCtrl(self.errorTC, txt)
-
 
     def Destroy(self):
         self.vetoEvents = true
@@ -241,11 +243,12 @@ class ErrorStackMF(wxFrame, Utils.FrameRestorerMixin):
                   (6, 'back:#CCFFCC') ): #'+'
                 self.diffPage.StyleSetSpec(num, style)
             self.diffPage.SetText(diffResult)
-            self.notebook1.AddPage(strText='Diffs', bSelect=true, 
+            self.notebook1.AddPage(strText='Diffs', bSelect=not not diffResult, 
                 pPage=self.diffPage, imageId=self.diffImgIdx)
         else:
             self.diffPage.SetText(diffResult)
-            self.notebook1.SetSelection(3)
+            if diffResult:
+                self.notebook1.SetSelection(3)
 
     def OnErrorstacktcTreeItemActivated(self, event):
         try:
