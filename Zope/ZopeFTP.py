@@ -86,7 +86,7 @@ class ZopeFTP:
         res = []
         res.append(self.ftp.connect(host, port))
 
-        # Zope returns 'Long successfull' even on wring passwords :(
+        # Zope returns 'Login successful' even on wrong passwords :(
         res.append(self.ftp.login(username, password))
             
         return string.join(res, '\n') 
