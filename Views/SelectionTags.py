@@ -170,7 +170,7 @@ class SelectionGroup:
             self.dragging = false
             self.setSelection()
 	    self.showTags()
-            self.inspector.constructorUpdate('Position')
+	    self.positionUpdate()
 
     def moveCapture(self, ctrl, compn, pos):
         # Put selection around control
@@ -275,9 +275,8 @@ class SelectionGroup:
         if self.selection:
             self.position = self.selection.GetPosition()
             self.size = self.selection.GetSize()
-            self.inspector.constructorUpdate('Size')
-            self.inspector.propertyUpdate('ClientSize')
-            self.inspector.constructorUpdate('Position')
+            self.sizeUpdate()
+            self.positionUpdate()
         
     def setSelection(self):
         position = self.position
@@ -374,6 +373,12 @@ class SingleSelectionGroup(SelectionGroup):
 	
         self.position  = trPos
         self.size = trSze
+    
+    def positionUpdate(self):    
+        self.inspector.constructorUpdate('Position')
+    def sizeUpdate(self):    
+        self.inspector.constructorUpdate('Size')
+        self.inspector.propertyUpdate('ClientSize')
 
     # Events
     def OnSizeBegin(self, event):
@@ -432,12 +437,22 @@ class MultiSelectionGroup(SelectionGroup):
         self.position  = trPos
         self.size = trSze
 
+    def positionUpdate(self):    
+        self.inspector.directPositionUpdate(self.selCompn)
+    def sizeUpdate(self):    
+        self.inspector.directSizeUpdate(self.selCompn)
+
     # Events
     def OnSizeBegin(self, event):
         event.Skip()
 
     def OnSizeEnd(self, event):
         event.Skip()
+
+    def OnSizeEnd2(self, event):
+        self.resizeCtrl()
+        self.showTags()
+        self.dragTag = None
 
 class SelectionTag(wxPanel):
     def __init__(self, parent, cursor, tagSize, group, pnlStyle):# = wxSIMPLE_BORDER):
