@@ -1,9 +1,8 @@
-import __version__
-__version__ = __version__.ver
-
 from wxPython.wx   import *
 from wxPython.html import *
 import wxPython.lib.wxpTag
+
+import __version__
 import Preferences, Utils
 
 #"#AC76DE"
@@ -15,7 +14,7 @@ about_html = '''
   <tr>
     <td align="center"><h2><br>
     <img src="%s"><br>
-    <font color="#006600">Constructor v%s</font></h2>%s</td>
+    <font color="#006600">Constructor</font> <font size="-1">v<i>%s</i></font></h2>%s</td>
   </tr>
 </table>
 %s
@@ -130,7 +129,7 @@ class AboutBoxMixin:
         self.Layout()
         self.Center(wxBOTH)
         EVT_BUTTON(self, wxID_YES, self.OnNews)
-        self.SetAcceleratorTable(wxAcceleratorTable([(0, WXK_ESCAPE, wxID_OK),]))
+        self.SetAcceleratorTable(wxAcceleratorTable([(0, WXK_ESCAPE, wxID_OK)]))
 
     def OnNews(self, event):
         self.html.LoadPage('http://boa-constructor.sourceforge.net/News.html')
@@ -170,7 +169,7 @@ class AboutBox(AboutBoxMixin, wxDialog):
 
     def setPage(self):
         self.html.SetPage((about_html % (Preferences.toPyPath('Images/Shared/Boa.jpg'),
-          __version__, '', about_text % (wxPlatform, wxMAJOR_VERSION, wxMINOR_VERSION, wxRELEASE_NUMBER))))
+          __version__.ver, '', about_text % (wxPlatform, wxMAJOR_VERSION, wxMINOR_VERSION, wxRELEASE_NUMBER))))
 
 class AboutBoxSplash(AboutBoxMixin, wxFrame):
     def _init_ctrls(self, prnt):
@@ -179,7 +178,7 @@ class AboutBoxSplash(AboutBoxMixin, wxFrame):
 
     def setPage(self):
         self.html.SetPage(about_html % (Preferences.toPyPath('Images/Shared/Boa.jpg'),
-          __version__, progress_text % self.progressId, ''))
+          __version__.ver, progress_text % self.progressId, ''))
 
         self.label = self.FindWindowById(self.progressId)
         self.label.SetBackgroundColour(wxWHITE)
@@ -190,7 +189,6 @@ class AboutBoxSplash(AboutBoxMixin, wxFrame):
             sys.stdout = sys.__stdout__
         wxFrame.Destroy(self)
 
-import Utils
 class StaticTextPF(Utils.PseudoFile):
     def write(self, s):
         ss = string.strip(s)
