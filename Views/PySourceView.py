@@ -5,7 +5,7 @@
 # Author:      Riaan Booysen                                           
 #                                                                      
 # Created:     2000/04/26                                              
-# RCS-ID:      $Id$                                   
+# RCS-ID:      $Id$ 
 # Copyright:   (c) 1999, 2000 Riaan Booysen                            
 # Licence:     GPL                                                     
 #----------------------------------------------------------------------
@@ -14,10 +14,11 @@ from wxPython.wx import *
 from wxPython.stc import *
 import os, string
 import EditorViews, ProfileView, Search, Help, Preferences
-from StyledTextCtrls import PythonStyledTextCtrlMix, BrowseStyledTextCtrlMix, HTMLStyledTextCtrlMix, FoldingStyledTextCtrlMix, idWord
+from StyledTextCtrls import PythonStyledTextCtrlMix, BrowseStyledTextCtrlMix, HTMLStyledTextCtrlMix, FoldingStyledTextCtrlMix, CPPStyledTextCtrlMix, idWord, new_stc, old_stc
 from PrefsKeys import keyDefs
 import methodparse
 import bdb, time
+import wxNamespace
 
 simpleAppText = '''
 
@@ -38,7 +39,9 @@ tmpBrkPtMrk = 3
 #brwsIndc = 0
 
 #wxID_PYTHONSOURCEVIEW, 
-[wxID_HTMLSOURCEVIEW, wxID_TEXTVIEW, wxID_SOURCECUT, wxID_SOURCECOPY, wxID_SOURCEPASTE, wxID_SOURCEUNDO, wxID_SOURCEREDO] = map(lambda x: wxNewId(), range(7))
+[wxID_CPPSOURCEVIEW, wxID_HTMLSOURCEVIEW, wxID_TEXTVIEW, wxID_SOURCECUT, 
+ wxID_SOURCECOPY, wxID_SOURCEPASTE, wxID_SOURCEUNDO, wxID_SOURCEREDO] \
+ = map(lambda x: wxNewId(), range(8))
 
 class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView):
     refreshBmp = 'Images/Editor/Refresh.bmp'
@@ -76,17 +79,25 @@ class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView):
         self.lastSearchPattern = ''
         self.lastMatchPosition = None
 
+        self.lastStart = 0
+
 
     def setReadOnly(self, val):
         EditorViews.EditorView.readOnly(self, val)
         self.SetEditable(val)
+
+    def getModelData(self):
+        return self.model.data
+    
+    def setModelData(self, data):
+        self.model.data = data
 
     def refreshCtrl(self):
         self.pos = self.GetCurrentPos() 
 #        line = self.GetCurrentLine()
         prevVsblLn = self.GetFirstVisibleLine()
         
-        self.SetText(self.model.data)
+        self.SetText(self.getModelData())
         self.EmptyUndoBuffer()
         self.GotoPos(self.pos)
         curVsblLn = self.GetFirstVisibleLine()
@@ -103,7 +114,7 @@ class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView):
         # hack to stop wxSTC from eating the last character
         self.InsertText(self.GetTextLength(), ' ')
         
-        self.model.data = self.GetText()
+        self.setModelData(self.GetText())
         self.EmptyUndoBuffer()
         EditorViews.EditorView.refreshModel(self) 
         
@@ -211,11 +222,11 @@ class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView):
 #-------Canned events-----------------------------------------------------------
 
     def OnRefresh(self, event):
-        t1 = time.time()
-        for i in range(1):
-            self.refreshModel()
-        t2 = time.time()
-##        print t2 - t1
+##        t1 = time.time()
+##        for i in range(1):
+        self.refreshModel()
+##        t2 = time.time()
+####        print t2 - t1
         
 
     def OnEditCut(self, event):
@@ -280,7 +291,6 @@ class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView):
                 self.lastMatchPosition = None
 
 class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix, BrowseStyledTextCtrlMix, FoldingStyledTextCtrlMix):
-#class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix):
     viewName = 'Source'
     breakBmp = 'Images/Debug/Breakpoints.bmp'
     runCrsBmp = 'Images/Editor/RunToCursor.bmp'
@@ -306,10 +316,16 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix, BrowseStyl
         a3 = (('Run module', self.OnRun, self.runBmp, keyDefs['RunMod']),
               ('Run module with parameters', self.OnRunParams, '-', ()),
               ('Debug', self.OnDebug, self.debugBmp, keyDefs['Debug']),
+              ('Debug with parameters', self.OnDebugParams, '-', ()),
               ('-', None, '', ()),
               ('Run to cursor', self.OnRunToCursor, self.runCrsBmp, ()),
               ('Toggle breakpoint', self.OnSetBreakPoint, self.breakBmp, keyDefs['ToggleBrk']),
+              ('Load breakpoints', self.OnLoadBreakPoints, '-', ()),
+              ('Save breakpoints', self.OnSaveBreakPoints, '-', ()),
               ('-', None, '', ()),
+              ('+View whitespace', self.OnViewWhitespace, '-', ()),
+              ('+View EOL characters', self.OnViewEOL, '-', ()),
+              ('-', None, '-', ()),
               ('Add module info', self.OnAddModuleInfo, self.modInfoBmp, ()),
               ('Add comment line', self.OnAddCommentLine, '-', keyDefs['DashLine']),
               ('Add simple app', self.OnAddSimpleApp, '-', ()),
@@ -325,24 +341,28 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix, BrowseStyl
         BrowseStyledTextCtrlMix.__init__(self)
         FoldingStyledTextCtrlMix.__init__(self, wxID_PYTHONSOURCEVIEW, 2)
         
-        # Initialise breakpts from bdb.Breakpoint
-        self.breaks = {}
+        # Initialise breakpts from file and bdb.Breakpoint
+        self.tryLoadBreakpoints()
         filename = string.lower(self.model.filename)
         for file, lineno in bdb.Breakpoint.bplist.keys():
             if file == filename:
                 for bp in bdb.Breakpoint.bplist[(file, lineno)]:
                     self.breaks[lineno] = bp
+        
 
         self.lsp = 0
-        self.CallTipSetBackground(wxColour(255, 255, 232))
         self.lastRunParams = ''
+        self.lastDebugParams = ''
         
         self.SetMarginType(1, wxSTC_MARGIN_SYMBOL)
-        self.SetMarginWidth(1, 13)
+        self.SetMarginWidth(1, 12)
         self.SetMarginSensitive(1, true)
         self.MarkerDefine(brkPtMrk, wxSTC_MARK_CIRCLE, 'BLACK', 'RED')
         self.MarkerDefine(stepPosMrk, wxSTC_MARK_SHORTARROW, 'NAVY', 'BLUE')
         self.MarkerDefine(tmpBrkPtMrk, wxSTC_MARK_CIRCLE, 'BLACK', 'BLUE')
+        self.CallTipSetBackground(wxColour(255, 255, 232))
+        if new_stc:
+            self.AutoCompSetIgnoreCase(true)
 
         # Don't use event, override method from Browser parent
 ##        EVT_KEY_DOWN(self, self.OnKeyPressed) 
@@ -463,14 +483,27 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix, BrowseStyl
         dot = string.rfind(line, '.', 0, piv)
         if dot != -1:
             if line[dot-4:dot] == 'self':
-                partial = line[dot+1:piv-1]
+                partial = line[dot+1:piv]
 ##                print partial
                 list, sel = self.getAttribs(cls, partial)
 
-                self.AutoCompShow(string.join(list, ' '))
+                if old_stc:
+                    self.AutoCompShow(string.join(list, ' '))
+                else:
+                    self.AutoCompShow(len(partial), string.join(list, ' '))
                 if sel:
-                    print 'auto selecting', partial, sel
-#                    self.AutoCompSelect(sel)
+                    if new_stc:
+                        print 'auto selecting', partial, sel
+                        self.AutoCompSelect(partial)
+        else:
+            blnk = string.rfind(line, ' ', 0, piv)
+            partial = line[blnk+1:piv]
+            list = wxNamespace.getWxNameSpace()
+            if old_stc:
+                self.AutoCompShow(string.join(list, ' '))
+            else:
+                self.AutoCompShow(len(partial), string.join(list, ' '))
+                self.AutoCompSelect(partial)
 
 #-------Browsing----------------------------------------------------------------
     def StyleVeto(self, style):
@@ -536,7 +569,10 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix, BrowseStyl
 #-------Debugger----------------------------------------------------------------
     def setInitialBreakpoints(self):
         for bp in self.breaks.values():
-            print 'adding break point', bp
+            self.MarkerAdd(bp.line -1, brkPtMrk)
+
+    def setBdbBreakpoints(self):
+        for bp in self.breaks.values():
             self.MarkerAdd(bp.line -1, brkPtMrk)
 
     def deleteBreakPoint(self, lineNo):
@@ -572,7 +608,34 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix, BrowseStyl
         else:
             self.breaks[lineNo] = \
               bdb.Breakpoint(filename, lineNo, temp)
-    
+
+    def tryLoadBreakpoints(self):    
+        import pickle
+        fn = self.getBreakpointFilename()
+        if os.path.exists(fn):
+            self.breaks = pickle.load(open(fn))
+            self.setInitialBreakpoints()
+            BrkPt = bdb.Breakpoint
+            for lineNo, brk in self.breaks.items():
+                BrkPt.bpbynumber.append(brk)
+                if BrkPt.bplist.has_key((brk.file, brk.line)):
+                    BrkPt.bplist[brk.file, brk.line].append(brk)
+                else:
+                    BrkPt.bplist[brk.file, brk.line] = [brk]
+            return true
+        else:
+            self.breaks = {}
+            return false
+
+    def saveBreakpoints(self):
+        # XXX This is not yet called automatically on saving a module, should it be ?
+        import pickle
+        fn = self.getBreakpointFilename()
+        if len(self.breaks):
+            pickle.dump(self.breaks, open(fn, 'w'))
+        elif os.path.exists(fn):
+            os.remove(fn)
+        
     def setStepPos(self, lineNo):
         if self.stepPos != lineNo:
             if self.stepPos:
@@ -648,6 +711,20 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix, BrowseStyl
             return
         self.model.debug()
 
+    def OnDebugParams(self, event):
+        if not self.model.savedAs or self.model.modified or \
+          len(self.model.viewsModified):
+            wxMessageBox('Cannot debug an unsaved or modified module.')
+            return
+        dlg = wxTextEntryDialog(self.model.editor, 'Parameters:', 
+          'Debug with parameters', self.lastDebugParams)
+        try:
+            if dlg.ShowModal() == wxID_OK:
+                self.lastDebugParams = dlg.GetValue()
+                self.model.debug(methodparse.safesplitfields(self.lastDebugParams, ' '))
+        finally:
+            dlg.Destroy()
+
     def OnCompile(self, event):
         if not self.model.savedAs or self.model.modified or \
           len(self.model.viewsModified):
@@ -711,7 +788,7 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix, BrowseStyl
         if hasattr(self, 'pageIdx'):
             self.updateViewState()
         
-	if Preferences.braceHighLight:
+        if Preferences.braceHighLight:
             PythonStyledTextCtrlMix.OnUpdateUI(self, event)
 
     def OnAddChar(self, event):
@@ -752,11 +829,16 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix, BrowseStyl
             # Code completion
             else:
                 self.checkCodeComp()
+        # Tabbed indent
         elif key == 9:
             pos = self.GetCurrentPos()
             self.InsertText(pos, indentLevel*' ')
-            self.SetCurrentPosition(pos + indentLevel)
+            if old_stc:
+                self.SetCurrentPosition(pos + indentLevel)
+            else:
+                self.SetSelectionStart(pos + indentLevel)
             if not self.AutoCompActive(): return
+        # Smart delete
         elif key == 8:
             line = self.GetCurrentLineText()
             if len(line): line = line[0]
@@ -783,7 +865,50 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix, BrowseStyl
         self.InsertText(ls, '#-------------------------------------------'
                                     '------------------------------------'+'\n')
         self.SetCurrentPosition(ls+4)
+    
+    def OnViewWhitespace(self, event):
+        miid = self.menu.FindItem('View whitespace')
+        if self.menu.IsChecked(miid):
+            mode = wxSTC_WS_INVISIBLE
+            self.menu.Check(miid, false)
+        else:
+            mode = wxSTC_WS_VISIBLEALWAYS
+            self.menu.Check(miid, true)
+        
+        self.SetViewWhiteSpace(mode)
+#        self.menu.Check(miid, not self.menu.IsChecked(miid))
 
+    def OnViewEOL(self, event):
+        miid = self.menu.FindItem('View EOL characters')
+        check = not self.menu.IsChecked(miid)
+        self.menu.Check(miid, check)
+        self.SetViewEOL(check)
+        
+    def underlineWord(self, start, length):
+        start, length = BrowseStyledTextCtrlMix.underlineWord(self, start, length)
+        if self.model.editor.debugger:
+            word, line, lnNo, wordStart = self.getStyledWordElems(start, length)
+            self.IndicatorSetColour(0, wxRED)
+            try:
+                val = self.model.editor.debugger.getVarValue(word)
+            except Exception, message:
+                val = str(message)
+            if val:
+                self.model.editor.statusBar.setHint(val)
+        else:
+            self.IndicatorSetColour(0, wxBLUE)
+                
+        return start, length
+    
+    def getBreakpointFilename(self):
+        return os.path.splitext(self.model.filename)[0]+'.brk'    
+
+    def OnSaveBreakPoints(self, event):
+        self.saveBreakpoints()
+        
+    def OnLoadBreakPoints(self, event):
+        self.tryLoadBreakpoints()
+        
 class HTMLSourceView(EditorStyledTextCtrl, HTMLStyledTextCtrlMix):
     viewName = 'HTML'
     def __init__(self, parent, model):
@@ -796,7 +921,43 @@ class HTMLSourceView(EditorStyledTextCtrl, HTMLStyledTextCtrlMix):
         # don't update if not fully initialised
         if hasattr(self, 'pageIdx'):
             self.updateViewState()
-        HTMLStyledTextCtrlMix.OnUpdateUI(self, event)
+
+        if Preferences.braceHighLight:
+            HTMLStyledTextCtrlMix.OnUpdateUI(self, event)
+
+class CPPSourceView(EditorStyledTextCtrl, CPPStyledTextCtrlMix):
+    viewName = 'Source'
+    def __init__(self, parent, model):
+        EditorStyledTextCtrl.__init__(self, parent, wxID_CPPSOURCEVIEW, 
+          model, (('Refresh', self.OnRefresh, '-', keyDefs['Refresh']),), -1)
+        CPPStyledTextCtrlMix.__init__(self, wxID_CPPSOURCEVIEW)
+        self.active = true
+
+    def OnUpdateUI(self, event):
+        # don't update if not fully initialised
+        if hasattr(self, 'pageIdx'):
+            self.updateViewState()
+##        CPPStyledTextCtrlMix.OnUpdateUI(self, event)
+
+class HPPSourceView(CPPSourceView):
+    viewName = 'Header'
+    def __init__(self, parent, model):
+        CPPSourceView.__init__(self, parent, model)
+
+    def refreshCtrl(self):
+        self.pos = self.GetCurrentPos() 
+#        line = self.GetCurrentLine()
+        prevVsblLn = self.GetFirstVisibleLine()
+        
+        self.SetText(self.model.headerData)
+        self.EmptyUndoBuffer()
+        self.GotoPos(self.pos)
+        curVsblLn = self.GetFirstVisibleLine()
+        self.ScrollBy(0, prevVsblLn - curVsblLn)
+        
+        self.nonUserModification = false 
+        self.updatePageName()
+        
 
 class TextView(EditorStyledTextCtrl):
     viewName = 'Text'
@@ -810,8 +971,7 @@ class TextView(EditorStyledTextCtrl):
         # don't update if not fully initialised
         if hasattr(self, 'pageIdx'):
             self.updateViewState()
-    
-    
+        
 class TstPythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix, BrowseStyledTextCtrlMix):
     viewName = 'Source'
     def __init__(self, parent, model):
