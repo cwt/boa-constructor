@@ -12,21 +12,39 @@
 from wxPython.wx import *
 from os import path
 
+import ErrorStack
+
 class ModuleRunner:
-    def __init__(self, esf, app):
-        self.esf = esf
-        self.esf.app = app
+    def __init__(self, esf, app, runningDir = ''):
+        self.init(esf, app)
+        self.runningDir = runningDir
+        self.results = {}
 
     def run(self, cmd):
         pass
 
-    def checkError(self, err, caption, out = None):
-        if err or out:
-            self.esf.updateCtrls(err, out)
-            self.esf.Show(true)
-            return self.esf
+    def init(self, esf, app):
+        self.esf = esf
+        if esf:
+            self.esf.app = app
         else:
-            return None
+            self.app = app
+
+    def recheck(self):
+        if self.results:
+            apply(self.checkError, (), self.results)
+
+    def checkError(self, err, caption, out = None, root = 'Errors'):
+        if self.esf:
+            if err or out:
+                self.esf.updateCtrls(err, out, root, self.runningDir)
+                self.esf.Show(true)
+                return self.esf
+            else:
+                return None
+        else:
+            self.results = {'err': err, 'caption': caption, 'out': out, 'root': root}
+
 
 class CompileModuleRunner(ModuleRunner):
     """ Uses compiles a module to show errors in frame"""
@@ -43,14 +61,15 @@ class ProcessModuleRunner(ModuleRunner):
     """ Uses wxPython's wxProcess, output and errors are redirected and displayed
         in a frame. A cancelable dialog displays while the process executes
         This currently only works for non GUI processes """
-    def run(self, cmd):
-        import ProcessProgressDlg, ErrorStack
-        dlg = ProcessProgressDlg.ProcessProgressDlg(None, cmd, 'Execute module')
+    def run(self, cmd, Parser = ErrorStack.StdErrErrorParser,
+            caption='Execute module', root='Errors', autoClose = false):
+        import ProcessProgressDlg
+        dlg = ProcessProgressDlg.ProcessProgressDlg(None, cmd, caption, autoClose)
         try:
             dlg.ShowModal()
-            serr = ErrorStack.buildErrorList(dlg.errors)
+            serr = ErrorStack.buildErrorList(dlg.errors, Parser)
             if len(serr):
-                return self.checkError(serr, 'Ran', dlg.output)
+                return self.checkError(serr, 'Ran', dlg.output, root)
             else:
                 return None
 
@@ -62,7 +81,6 @@ class PopenModuleRunner(ModuleRunner):
         in a frame. """
     def run(self, cmd):
         from popen2import import popen3
-        import ErrorStack
         inp, outp, errp = popen3(cmd)
 
         out = []
@@ -79,3 +97,14 @@ class PopenModuleRunner(ModuleRunner):
             return None
 
 PreferredRunner = PopenModuleRunner
+
+wxEVT_EXEC_FINISH = wxNewId()
+
+def EVT_EXEC_FINISH(win, func):
+    win.Connect(-1, -1, wxEVT_EXEC_FINISH, func)
+
+class ExecFinishEvent(wxPyEvent):
+    def __init__(self, runner):
+        wxPyEvent.__init__(self)
+        self.SetEventType(wxEVT_EXEC_FINISH)
+        self.runner = runner
