@@ -13,4 +13,10 @@ Please setup your Explorer.(msw|gtk).cfg file to point to commonly used location
 There are now keyboard shortcuts for most actions, see the help or PrefsKeys.py for a list.
 Double click on a component to open the default editor or define the default event.
 To multiple-select components, hold down shift while selecting components. Only controls on the same level can be multiple selected.
-Explore the different views on each module type under the Views menu
+Multiple selections can be aligned and sized in one go. Multiple-select, right click and choose Align... or Size...
+Toggle the different views for each module type under the Views menu.
+Anchors can be used to manage layout of windows.
+Right click on a selection tag in the Designer to get a menu to toggle it's anchors.
+To change the properties of items in the Explorer, select the item in the ListCtrl and choose Inspect.
+Blank pages in a wxNotebook (filled with diagonal red lines) must be given a control or they will generate illegal code.
+Components on the 'Utilities' page are non visual objects and must be created on the Data View (white page that opens in the Editor when the Designer is opened)
