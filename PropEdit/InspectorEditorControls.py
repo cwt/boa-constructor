@@ -220,6 +220,8 @@ class CheckBoxIEC(BevelIEC):
     def getValue(self):
         if self.editorCtrl:
             return self.truefalseMap[self.editorCtrl.GetValue()]
+        else:
+            return self.value
     def setValue(self, value):
         if self.editorCtrl:
             self.editorCtrl.SetLabel(value)
