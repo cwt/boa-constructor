@@ -1,6 +1,6 @@
 #-----------------------------------------------------------------------------
 # Name:        CPPSupport.py
-# Purpose:     
+# Purpose:
 #
 # Author:      Riaan Booysen
 #
@@ -90,7 +90,7 @@ class HPPSourceView(CPPSourceView):
         self.updatePageName()
 
 from Explorers import ExplorerNodes
-ExplorerNodes.langStyleInfoReg.append( ('CPP', 'cpp', CPPStyledTextCtrlMix, 
+ExplorerNodes.langStyleInfoReg.append( ('CPP', 'cpp', CPPStyledTextCtrlMix,
       'stc-styles.rc.cfg') )
 
 import Controllers

@@ -1,6 +1,6 @@
 #-----------------------------------------------------------------------------
 # Name:        HTMLSupport.py
-# Purpose:     
+# Purpose:
 #
 # Author:      Riaan Booysen
 #
@@ -29,7 +29,7 @@ class HTMLFileModel(PersistentModel):
     bitmap = 'WebDocHTML_s.png'
     imgIdx = EditorHelper.imgHTMLFileModel
     ext = '.html'
-    
+
 EditorHelper.modelReg[HTMLFileModel.modelIdentifier] = HTMLFileModel
 EditorHelper.extMap['.htm'] = HTMLFileModel
 
@@ -55,7 +55,7 @@ class HTMLSourceView(EditorStyledTextCtrl, HTMLStyledTextCtrlMix):
         self.active = true
 
 from Explorers import ExplorerNodes
-ExplorerNodes.langStyleInfoReg.append( ('HTML', 'html', 
+ExplorerNodes.langStyleInfoReg.append( ('HTML', 'html',
       BaseHTMLStyledTextCtrlMix, 'stc-styles.rc.cfg') )
 
 import Controllers
