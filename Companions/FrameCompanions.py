@@ -105,7 +105,7 @@ class FrameDTC(FramesConstr, BaseFrameDTC):
         self.triggers.update({'ToolBar': self.ChangeToolBar})
         self.windowStyles = ['wx.DEFAULT_FRAME_STYLE', 'wx.ICONIZE',
               'wx.MINIMIZE', 'wx.MAXIMIZE', 'wx.STAY_ON_TOP', 'wx.SYSTEM_MENU',
-              'wx.RESIZE_BORDER', 'wx.THICK_FRAME', 'wx.FRAME_FLOAT_ON_PARENT',
+              'wx.RESIZE_BORDER', 'wx.FRAME_FLOAT_ON_PARENT',
               'wx.FRAME_TOOL_WINDOW'] + self.windowStyles
 
     def designTimeSource(self):

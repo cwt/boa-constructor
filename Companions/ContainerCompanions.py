@@ -951,29 +951,29 @@ class StatusBarFieldsCDTC(CollectionDTC):
     #wxDocs = HelpCompanions.wxStatusBarDocs
     propName = 'Fields'
     displayProp = 'text'
-    indexProp = 'i'
+    indexProp = 'number'
     insertionMethod = 'SetStatusText'
     deletionMethod = '(None)'
 
     def __init__(self, name, designer, parentCompanion, ctrl):
         CollectionDTC.__init__(self, name, designer, parentCompanion, ctrl)
-        self.editors = {'Index' : IntConstrPropEdit,
+        self.editors = {'Number' : IntConstrPropEdit,
                         'Text': StrConstrPropEdit,
                         'Width': SBFWidthConstrPropEdit}
         self.widths = []
 
     def constructor(self):
-        return {'Index': 'i', 'Text': 'text', 'Width': 'width'}
+        return {'Number': 'number', 'Text': 'text', 'Width': 'width'}
 
     def properties(self):
         props = CollectionDTC.properties(self)
-        props.update({'Index':  ('NoneRoute', None, None),
+        props.update({'Number':  ('NoneRoute', None, None),
                       'Text':  ('CompnRoute', self.GetText, self.SetText),
                       'Width': ('NoneRoute', None, None)})
         return props
 
     def designTimeSource(self, wId, method=None):
-        return {'i': `wId`,
+        return {'number': `wId`,
                 'text': `'%s%d'%(self.propName, wId)`}
 
     def initialiser(self):
