@@ -1,6 +1,0 @@
-<dtml-var standard_html_header>
-<h2><dtml-var title_or_id></h2>
-<p>
-This is the <dtml-var id> Document.
-</p>
-<dtml-var standard_html_footer>
