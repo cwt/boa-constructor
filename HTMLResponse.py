@@ -18,7 +18,7 @@ class HTMLResponseFrm(wxFrame):
         pass
 
     def _init_ctrls(self, prnt): 
-        wxFrame.__init__(self, size = wxSize(459, 486), id = wxID_HTMLRESPONSEFRM, title = 'HTML Response', parent = prnt, name = 'HTMLResponseFrm', style = wxDEFAULT_FRAME_STYLE, pos = wxPoint(311, 225))
+        wxFrame.__init__(self, size = wxSize(459, 486), id = wxID_HTMLRESPONSEFRM, title = 'HTML Response', parent = prnt, name = 'HTMLResponseFrm', style = wxSTAY_ON_TOP | wxDEFAULT_FRAME_STYLE, pos = wxPoint(311, 225))
         self._init_utils()
 
         self.notebook1 = wxNotebook(size = wxSize(451, 459), id = wxID_HTMLRESPONSEFRMNOTEBOOK1, parent = self, name = 'notebook1', style = 0, pos = wxPoint(0, 0))
