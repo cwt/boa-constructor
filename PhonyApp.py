@@ -16,7 +16,7 @@ import time
 
 class wxBasePhonyApp:
     inMainLoop = false
-    def __init__(self, flag):
+    def __init__(self, flag = 0):
         self.inMainLoop = true
         self.OnInit()
     def GetAppName(self, *_args, **_kwargs):
@@ -78,6 +78,9 @@ class wxPhonyApp(wxBasePhonyApp):
             self.debugger.stopMainLoop()
 
         self.quit = true
+        
+    def OnInit(self):
+        pass
 
 class wxProfilerPhonyApp(wxBasePhonyApp):
     def MainLoop(self, *_args, **_kwargs):
