@@ -12,7 +12,6 @@
 #Boa:Dialog:ExtMethDlg
 
 from wxPython.wx import *
-import moduleparse
 import os
 from os import path
 
@@ -64,6 +63,7 @@ class ExternalMethodFinder:
         sep = string.count(src, '\r\n') < string.count(src, '\n') and '\n' or '\r\n'
         srclines = string.split(src, sep)
 
+        import moduleparse
         module = moduleparse.Module('test', srclines)
 
         return module.functions.keys()
