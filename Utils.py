@@ -705,10 +705,10 @@ def selectBeforePopup(event):
         n, flags = ctrl.HitTest(event.GetPosition())
         if n >= 0:
             if not ctrl.GetItemState(n, wxLIST_STATE_SELECTED):
-                for i in range(ctrl.GetItemCount()):
-                    ctrl.SetItemState(i, 0, SEL_FOC)
-                #for i in getListCtrlSelection(ctrl, SEL_FOC):
-                #    ctrl.SetItemState(i, 0, SEL_FOC)
+                if not (ctrl.GetWindowStyleFlag() & wxLC_SINGLE_SEL):
+                    # Clear selection if multi-select.
+                    for i in range(ctrl.GetItemCount()):
+                        ctrl.SetItemState(i, 0, SEL_FOC)
                 ctrl.SetItemState(n, SEL_FOC, SEL_FOC)
 
 def getListCtrlSelection(listctrl, state=wxLIST_STATE_SELECTED):
