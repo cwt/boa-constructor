@@ -515,9 +515,11 @@ class FrameRestorerMixin:
     and to load and persist window dimensions
 
     Classes using the mixin must define self.setDefaultDimensions()
+    To be able to save, a winConfOption attr must be defined.
     """
     confFile = 'Explorer'
     confSection = 'windowdims'
+    frameRestorerWindows = {}
 
     def restore(self):
         self.Show()
@@ -526,10 +528,19 @@ class FrameRestorerMixin:
         self.Raise()
 
     def setDimensions(self, dims):
-        apply(self.SetDimensions, dims)
+        if None in dims:
+            if dims[0] is None:
+                if dims[1] is not None:
+                    self.SetClientSize(tuple(dims[1:]))
+            else:
+                self.SetPosition(tuple(dims[:-1]))
+        else:
+            self.SetDimensions(*dims)
 
     def getDimensions(self):
-        return self.GetPosition().asTuple() + self.GetSize().asTuple()
+        pos = self.GetPosition().asTuple()
+        size = self.GetSize().asTuple()
+        return pos + size
 
     def loadDims(self):
         conf = createAndReadConfig(self.confFile)
@@ -537,13 +548,16 @@ class FrameRestorerMixin:
             dims = None
         else:
             dims = eval(conf.get(self.confSection , self.winConfOption), 
-                        {'wxSize': wxSize,
-                         'wxPoint': wxPoint})
+                        {'wxSize': wxSize, 'wxPoint': wxPoint,
+                         'wxDefaultSize': wxDefaultSize, 
+                         'wxDefaultPosition': wxDefaultPosition})
 
         if dims:
             self.setDimensions(dims)
         else:
             self.setDefaultDimensions()
+
+        self.frameRestorerWindows[self.winConfOption] = self
 
     def saveDims(self, dims=()):
         if dims == ():
@@ -555,6 +569,13 @@ class FrameRestorerMixin:
     def restoreDefDims(self):
         self.saveDims(None)
         self.loadDims()
+
+def callOnFrameRestorers(method):
+    for name, window in FrameRestorerMixin.frameRestorerWindows.items():
+        if not window:
+            del FrameRestorerMixin.frameRestorerWindows[name]
+        else:
+            method(window)
 
 
 def setupCloseWindowOnEscape(win):
@@ -796,7 +817,9 @@ def canReadStream(stream):
 def find_dotted_module(name, path=None):
     import imp
     segs = name.split('.')
+    file = None
     while segs:
+        if file: file.close()
         file, filename, desc = imp.find_module(segs[0], path)
         del segs[0]
         path = [filename]
@@ -839,3 +862,13 @@ def stringToControl(s):
                   'encoding.\n Error message %s'%str(err)
     else:
         return s
+
+
+def getEOLMode(text, default=os.linesep):
+    if text.find('\r\n') != -1: return '\r\n'
+    elif text.find('\r') != -1: return '\r'
+    elif text.find('\n') != -1: return '\n'
+    else: return default
+
+def toUnixEOLMode(text):
+    return text.replace('\r\n', '\n').replace('\r', '\n')
