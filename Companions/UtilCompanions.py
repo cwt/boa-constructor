@@ -9,16 +9,16 @@
 # Copyright:   (c) 2000, 2001 Riaan Booysen
 # Licence:     GPL
 #-----------------------------------------------------------------------------
+import os, copy
+
 from wxPython.wx import *
 
 from BaseCompanions import UtilityDTC, CollectionDTC, CollectionIddDTC, wxNullBitmap, NYIDTC
 from Constructors import *
 #ImageListConstr, EmptyConstr, MenuConstr, MenuBarConstr, ImageListImagesConstr, LayoutConstraintsConstr, ChoicesConstr, AcceleratorTableEntriesConstr
 from PropEdit.PropertyEditors import IntConstrPropEdit, StrConstrPropEdit, CollectionPropEdit, BitmapConstrPropEdit, EnumConstrPropEdit, LCCEdgeConstrPropEdit, WinEnumConstrPropEdit, BoolConstrPropEdit, MenuEnumConstrPropEdit
-#import HelpCompanions, methodparse
 from PropEdit import Enumerations
-import EventCollections, RTTI
-import os, copy
+import EventCollections, RTTI, methodparse
 import PaletteStore
 
 PaletteStore.paletteLists['Utilities'] = []
