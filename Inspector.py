@@ -57,6 +57,14 @@ class InspectorFrame(wxFrame):
         parent.AddPage(bSelect = false, imageId = -1, pPage = self.props, strText = self.props_name)
         parent.AddPage(bSelect = false, imageId = -1, pPage = self.events, strText = self.events_name)
 
+    def _init_coll_statusBar_Fields(self, parent):
+        parent.SetFieldsCount(2)
+
+        parent.SetStatusText(i = 0, text = 'Nothing selected')
+        parent.SetStatusText(i = 1, text = '')
+
+        parent.SetStatusWidths([-1, -1])
+
     def _init_utils(self):
         self.paletteImages = wxImageList(height = 24, width = 24)
 
@@ -73,13 +81,14 @@ class InspectorFrame(wxFrame):
         self.statusBar = wxStatusBar(id = wxID_INSPECTORFRAMESTATUSBAR, name = 'statusBar', parent = self, pos = wxPoint(0, 430), size = wxSize(282, 20), style = wxST_SIZEGRIP)
         self.statusBar.SetFont(wxFont(Preferences.inspStatBarFontSize, wxDEFAULT, wxNORMAL, wxBOLD, false, ''))
         self.statusBar.SetStatusText('Nothing selected')
+        self._init_coll_statusBar_Fields(self.statusBar)
         self.SetStatusBar(self.statusBar)
 
         self.pages = InspectorNotebook(id = wxID_INSPECTORFRAMEPAGES, name = 'pages', parent = self, pos = wxPoint(0, 0), size = wxSize(282, 430), style = 0)
 
-        self.constr = InspectorConstrScrollWin(id = wxID_INSPECTORFRAMECONSTR, name = 'constr', parent = self.pages, pos = wxPoint(0, 0), size = wxSize(274, 404), style = wxTAB_TRAVERSAL)
+        self.constr = InspectorConstrScrollWin(id = wxID_INSPECTORFRAMECONSTR, name = 'constr', parent = self.pages, pos = wxPoint(0, 0), size = wxSize(274, 404), style = wxSUNKEN_BORDER | wxTAB_TRAVERSAL)
 
-        self.props = InspectorPropScrollWin(id = wxID_INSPECTORFRAMEPROPS, name = 'props', parent = self.pages, pos = wxPoint(0, 0), size = wxSize(274, 404), style = wxTAB_TRAVERSAL)
+        self.props = InspectorPropScrollWin(id = wxID_INSPECTORFRAMEPROPS, name = 'props', parent = self.pages, pos = wxPoint(0, 0), size = wxSize(274, 404), style = wxSUNKEN_BORDER | wxTAB_TRAVERSAL)
 
         self.events = EventsWindow(id = wxID_INSPECTORFRAMEEVENTS, name = 'events', parent = self.pages, point = wxPoint(0, 0), size = wxSize(274, 404), style = wxSP_3D)
 
@@ -195,6 +204,7 @@ class InspectorFrame(wxFrame):
         self.selObj = compn.control
 
         self.statusBar.SetStatusText(compn.name)
+        self.statusBar.SetStatusText(compn.GetClass(), 1)
         # Update progress inbetween building of property pages
         # Is this convoluted or what :)
         if self.selDesgn:
@@ -263,6 +273,7 @@ class InspectorFrame(wxFrame):
         self.props.cleanup()
         self.events.cleanup()
         self.statusBar.SetStatusText('')
+        self.statusBar.SetStatusText('', 1)
 
     def initSashes(self):
         self.constr.initSash()
@@ -856,14 +867,14 @@ class NameValueEditorScrollWin(wxScrolledWindow):
     """ Window that hosts a list of name values. Also provides capability to
         scroll a line at a time, depending on the size of the list """
 
-    def __init__(self, *_args, **_kwargs):
-#        (self, parent, styleEx = wxSUNKEN_BORDER):
-        wxScrolledWindow.__init__(self, _kwargs['parent'], _kwargs['id'], 
-            style = wxTAB_TRAVERSAL | wxSUNKEN_BORDER)
+    def __init__(self, parent, id=-1, pos=wxDefaultPosition, size=wxDefaultSize, 
+                style=wxHSCROLL | wxVSCROLL, name='scrolledWindow'):
+        wxScrolledWindow.__init__(self, parent, id, 
+                style=style | wxTAB_TRAVERSAL)
         self.nameValues = []
         self.prevSel = None
         self.splitter = wxSplitterWindow(self, -1, wxPoint(0, 0),
-          _kwargs['parent'].GetSize(),
+          parent.GetSize(),
           style = wxNO_3D|wxSP_3D|wxSP_NOBORDER|wxSP_LIVE_UPDATE)
 
         self.panelNames = wxPanel(self.splitter, -1,
@@ -960,11 +971,10 @@ class NameValueEditorScrollWin(wxScrolledWindow):
 class InspectorScrollWin(NameValueEditorScrollWin):
     """ Derivative of NameValueEditorScrollWin that adds knowledge about the
         Inspector and implements keyboard events """
-    def __init__(self, *_args, **_kwargs):
-#    def __init__(self, parent, inspector, styleEx = wxSUNKEN_BORDER):
-        NameValueEditorScrollWin.__init__(self, *_args, **_kwargs)#parent, styleEx)
-##        self.inspector = inspector
-
+    def __init__(self, parent, id=-1, pos=wxDefaultPosition, size=wxDefaultSize, 
+                 style=wxHSCROLL | wxVSCROLL, name='scrolledWindow'):
+        NameValueEditorScrollWin.__init__(self, parent, id, pos, size, style, name)
+                
         self.EnableScrolling(false, true)
         # ?
         self.expanders = sender.SenderMapper()
