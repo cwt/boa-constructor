@@ -1,202 +1,222 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
 <html>
 <head>
-<title>2.6 Adding File Menu Functionality</title>
+   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+   <meta name="GENERATOR" content="Mozilla/4.5 [en] (WinNT; I) [Netscape]">
+   <title>2.6 Adding File Menu Functionality</title>
 </head>
-<body bgcolor="#ffffff" text="#000000" link="#0000bb"  vlink="#551a8b" alink="#ff0000">
+<body text="#000000" bgcolor="#FFFFFF" link="#0000BB" vlink="#551A8B" alink="#FF0000">
 
-<DIV CLASS="navigation"><table align="center" width="100%" cellpadding="0" cellspacing="2">
+<div CLASS="navigation">&nbsp;
+<table CELLSPACING=2 CELLPADDING=0 WIDTH="100%" >
 <tr>
-<td><A HREF="node27.html"><img src="../icons/next.gif" border="0" height="32"
-  alt="Next Page" width="32"></A></td>
-<td><A HREF="index.html"><img src="../icons/up.gif" border="0" height="32"
-  alt="Up One Level" width="32"></A></td>
-<td><A HREF="node25.html"><img src="../icons/previous.gif" border="0" height="32"
-  alt="Previous Page" width="32"></A></td>
-<td align="center" bgcolor="#99CCFF" width="100%">
- <b class="title">Getting Started Guide for Boa Constructor</b></td>
-<td><A HREF="index.html"><img src="../icons/contents.gif" border="0" height="32"
-  alt="Contents" width="32"></A></td>
-<td><img src="../icons/blank.gif" border="0" height="32"
-  alt="" width="32"></td>
-<td><img src="../icons/blank.gif" border="0" height="32"
-  alt="" width="32"></td>
-</tr></table>
-<b class='navlabel'>Next:</b> <span class='sectref'><A HREF="node27.html">Creating a Dialog Window</A></span>
-<b class='navlabel'>Up:</b> <span class='sectref'><A HREF="index.html">Getting Started Guide for Boa Constructor</A></span>
-<b class='navlabel'>Previous:</b> <span class='sectref'><A HREF="node25.html">Adding the Text Control</A></span>
-<br><hr></DIV>
+<td WIDTH="32" HEIGHT="32"><a href="node27.html"><img SRC="../icons/next.gif" ALT="Next Page" BORDER=0 height=32 width=32></a></td>
+
+<td WIDTH="32" HEIGHT="32"><a href="index.html"><img SRC="../icons/up.gif" ALT="Up One Level" BORDER=0 height=32 width=32></a></td>
+
+<td WIDTH="32" HEIGHT="32"><a href="node25.html"><img SRC="../icons/previous.gif" ALT="Previous Page" BORDER=0 height=32 width=32></a></td>
+
+<td ALIGN=CENTER WIDTH="100%" BGCOLOR="#99CCFF"><b>Getting Started Guide
+for Boa Constructor</b></td>
+
+<td WIDTH="32" HEIGHT="32"><a href="index.html"><img SRC="../icons/contents.gif" ALT="Contents" BORDER=0 height=32 width=32></a></td>
+
+<td WIDTH="32" HEIGHT="32"><img SRC="../icons/blank.gif" ALT="" BORDER=0 height=32 width=32></td>
+
+<td WIDTH="32" HEIGHT="32"><img SRC="../icons/blank.gif" ALT="" BORDER=0 height=32 width=32></td>
+</tr>
+</table>
+<b>Next:<span class='sectref'></b><a href="node27.html">Creating a Dialog
+Window</span></a> <b>Up:<span class='sectref'></b><a href="index.html">Getting
+Started Guide for Boa Constructor</span></a> <b>Previous:<span class='sectref'></b><a href="node25.html">Adding
+the Text Control</a></span>
+<br>
+<hr></div>
 <!--End of Navigation Panel-->
-
-<h1>2.6 Adding File Menu Functionality</h1>
-
-<p>The next task is to interact with the user to implement the menu 
-functionality. Dialogs are used to get immediate
-input from the user. Dialogs are application modal, i.e. you can not use any 
-other windows in the current application until the dialogue is closed. </p>
-
+<h1>
+2.6 Adding File Menu Functionality</h1>
+The next task is to interact with the user to implement the menu functionality.
+Dialogs are used to get immediate input from the user. Dialogs are application
+modal, i.e. you can not use any other windows in the current application
+until the dialogue is closed.
 <ul>
-<li>Dialogs are placed directly into the source code. The are not placed 
-by the Designer. They are placed with the editor. In the wxFrame1.py source code,
-go the the event handler for the open event. This method is called 
-OnFileitems0Menu. We are going to place the 'File Open' dialogue into this 
-method. Place the keyboard cursor directly before the word pass. 
-We are going to insert our new code here. </li>
+<li>
+Dialogs are placed directly into the source code. The are not placed by
+the Designer. They are placed with the editor. In the wxFrame1.py source
+code, go the the event handler for the open event. This method is called
+OnFileitems0Menu. We are going to place the 'File Open' dialogue into this
+method. Place the keyboard cursor directly before the word pass. We are
+going to insert our new code here.</li>
 
-<li>On the palette, select the 'Dialogs' pane. Select the
-'wxFileDialog' button. When you press on the wxFileDialog button
-Boa Constructor will paste skeleton code directly
-into your Event Handler method. The skeleton code is shown below.</li>
+<li>
+On the palette, select the 'Dialogs' pane. Select the 'wxFileDialog' button.
+When you press on the wxFileDialog button Boa Constructor will paste skeleton
+code directly into your Event Handler method. The skeleton code is shown
+below.</li>
 </ul>
 
 <pre>
-    def OnFileitems0Menu(self, event):
-        dlg = wxFileDialog(self, "Choose a file", ".", "", "*.*", wxOPEN)
-        try:
-            if dlg.ShowModal() == wxID_OK:
-                filename = dlg.GetPath()
-                <b># Your code</b>
-        finally:
-            dlg.Destroy()
-        <b>pass</b>
-</pre>
+&nbsp;&nbsp;&nbsp; def OnFileitems0Menu(self, event):
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; dlg = wxFileDialog(self, "Choose a file", ".", "", "*.*", wxOPEN)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; try:
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; if dlg.ShowModal() == wxID_OK:
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; filename = dlg.GetPath()
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <b># Your code
+</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; finally:
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; dlg.Destroy()
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <b>pass</b></pre>
+
+<pre><b></b></pre>
 
 <ul>
-<li>This skeleton code creates a dialog. It interact with the user. When
-the dialog is finished it is destroyed.</li>
+<li>
+This skeleton code creates a dialog. It interact with the user. When the
+dialog is finished it is destroyed.</li>
 
-<li>The words '# Your code' mark the position where we are to insert our
-own code. This code is triggered only when the user chooses or enters a filename.
-We will insert our code here. The wxTextCtrl has a method which we will use
-to load a file into the edit window. The method is 'LoadFile'.</li>
+<li>
+The words '# Your code' mark the position where we are to insert our own
+code. This code is triggered only when the user chooses or enters a filename.
+We will insert our code here. The wxTextCtrl has a method which we will
+use to load a file into the edit window. The method is 'LoadFile'.</li>
 
-<li>You can delete the trailing 'pass' here if you want. We no longer need it.
-It is needed when the code is generated because Python reports and error if 
-there is a method with no body.</li>
+<li>
+You can delete the trailing 'pass' here if you want. We no longer need
+it. It is needed when the code is generated because Python reports and
+error if there is a method with no body.</li>
 
-<li>As part of the functionality of our application we must save the file name 
-so that the 'Save' menu option can save to this file. The listing below shows
-our new code.</li>
+<li>
+As part of the functionality of our application we must save the file name
+so that the 'Save' menu option can save to this file. The listing below
+shows our new code.</li>
 </ul>
 
 <pre>
-    def OnFileitems0Menu(self, event):
-        dlg = wxFileDialog(self, "Choose a file", ".", "", "*.*", wxOPEN)
-        try:
-            if dlg.ShowModal() == wxID_OK:
-                filename = dlg.GetPath()<b>
-                self.txtEditor.LoadFile(filename) 
-                self.FileName=filename</b>         
-        finally:
-            dlg.Destroy()
+&nbsp;&nbsp;&nbsp; def OnFileitems0Menu(self, event):
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; dlg = wxFileDialog(self, "Choose a file", ".", "", "*.*", wxOPEN)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; try:
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; if dlg.ShowModal() == wxID_OK:
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; filename = dlg.GetPath()
+<b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; self.txtEditor.LoadFile(filename)&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; self.FileName=filename</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; finally:
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; dlg.Destroy()
 </pre>
 
 <ul>
-<li>We must repeat the exercise to provide the 'Save As' functionality. The
-save as menu item was item2. Insert a file dialog into the body of 
-OnFileitems2Menu.</li>
+<li>
+We must repeat the exercise to provide the 'Save As' functionality. The
+save as menu item was item2. Insert a file dialog into the body of OnFileitems2Menu.</li>
 
-<li>This is a File Save dialog. Change the prompt, parameter 2 to the
-wxFileDialog to "Save File As". Change the style, parameter 6 to wxSAVE.
-The method to save the file is called SaveFile.</li>
+<li>
+This is a File Save dialog. Change the prompt, parameter 2 to the wxFileDialog
+to "Save File As". Change the style, parameter 6 to wxSAVE. The method
+to save the file is called SaveFile.</li>
 
-<li>Again, we save the filename value for use by the 'Save' menu option. The 
+<li>
+Again, we save the filename value for use by the 'Save' menu option. The
 listing below shows the code.</li>
 </ul>
+
 <pre>
-    def OnFileitems2Menu(self, event):
-        dlg = wxFileDialog(self, <b>"Save File As"</b>, ".", "", "*.*", <b>wxSAVE</b>)
-        try:
-            if dlg.ShowModal() == wxID_OK:
-                filename = dlg.GetPath()
-                <b>self.txtEditor.SaveFile(filename) 
-                self.FileName=filename</b>         
-        finally:
-            dlg.Destroy()
+&nbsp;&nbsp;&nbsp; def OnFileitems2Menu(self, event):
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; dlg = wxFileDialog(self, <b>"Save File As"</b>, ".", "", "*.*", <b>wxSAVE</b>)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; try:
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; if dlg.ShowModal() == wxID_OK:
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; filename = dlg.GetPath()
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <b>self.txtEditor.SaveFile(filename)&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; self.FileName=filename</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; finally:
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; dlg.Destroy()
 </pre>
+
 <ul>
-<li>Next we will implement the 'Close' menu option. In this method, we simply clear
-the txtEditor screen field, and the FileName member variable.</li>
+<li>
+Next we will implement the 'Close' menu option. In this method, we simply
+clear the txtEditor screen field, and the FileName member variable.</li>
 </ul>
 
 <pre>
-    def OnFileitems3Menu(self, event):
-        <b>self.FileName = None
-        self.txtEditor.Clear()</b>
+&nbsp;&nbsp;&nbsp; def OnFileitems3Menu(self, event):
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <b>self.FileName = None
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; self.txtEditor.Clear()</b>
 </pre>
+
 <ul>
-<li>Next we will implement the 'Exit' menu option. In this method we need to 
-terminate the application. All wxPython applications are terminated by closing
-the toplevel window. In our case we only have the wxFrame1 window. To terminate
-the application we invoke the Close() method for wxFrame1.</li>
+<li>
+Next we will implement the 'Exit' menu option. In this method we need to
+terminate the application. All wxPython applications are terminated by
+closing the toplevel window. In our case we only have the wxFrame1 window.
+To terminate the application we invoke the Close() method for wxFrame1.</li>
 </ul>
 
 <pre>
-    def OnFileitems4Menu(self, event):
-        <b>self.Close()</b>
-</pre>
+&nbsp;&nbsp;&nbsp; def OnFileitems4Menu(self, event):
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <b>self.Close()</b></pre>
 
 <ul>
-<li>Next we will implement the 'Save' menu item. This menu item will 
-save the file using the current name, which is stored in the
-variable self.FileName.</li>
-<li>Where there is no current file, the 
-self.FileName variable is set to None. In this case the 'Save' menu option
-must act as the 'Save As' menu option.</li>
-<li>The variable FileName must be created when
-wxFrame is constructed. We must add it to the constructor. You can add your 
-application code to the end of the default constructor (__init__).</li>
+<li>
+Next we will implement the 'Save' menu item. This menu item will save the
+file using the current name, which is stored in the variable self.FileName.</li>
+
+<li>
+Where there is no current file, the self.FileName variable is set to None.
+In this case the 'Save' menu option must act as the 'Save As' menu option.</li>
+
+<li>
+The variable FileName must be created when wxFrame is constructed. We must
+add it to the constructor. You can add your application code to the end
+of the default constructor (__init__).</li>
 </ul>
 
 <pre>
-    def __init__(self, parent): 
-        self._init_ctrls(parent)
-        <b>self.FileName=None</b>
+&nbsp;&nbsp;&nbsp; def __init__(self, parent):&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; self._init_ctrls(parent)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <b>self.FileName=None</b>
 </pre>
 
 <ul>
-<li>Now, we are safe to implement the Save functionality. We check if there
+<li>
+Now, we are safe to implement the Save functionality. We check if there
 is a current filename. If there is we can save the contents to that filename.
 Otherwise, we must call the 'Save As' method.</li>
 </ul>
 
 <pre>
-    def OnFileitems1Menu(self, event):
-        <b>if self.FileName == None:
-            return self.OnFileitems2Menu(event)
-        else:
-            self.txtEditor.SaveFile(self.FileName)</b>
+&nbsp;&nbsp;&nbsp; def OnFileitems1Menu(self, event):
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <b>if self.FileName == None:
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; return self.OnFileitems2Menu(event)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; else:
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; self.txtEditor.SaveFile(self.FileName)</b>
 </pre>
-
-<p> We have now implemented the functionality of the editor. We can edit files,
-save them. Your editor should look like this:</p>
-
-<img src="image/Boa26.png">
-
-<!--Start of Navigation Panel-->
-<DIV CLASS="navigation"><table align="center" width="100%" cellpadding="0" cellspacing="2">
+We have now implemented the functionality of the editor. We can edit files,
+save them. Your editor should look like this:
+<br><img SRC="image/Boa26.png" ><!--Start of Navigation Panel-->
+<div CLASS="navigation">&nbsp;
+<table CELLSPACING=2 CELLPADDING=0 WIDTH="100%" >
 <tr>
-<td><A HREF="node27.html"><img src="../icons/next.gif" border="0" height="32"
-  alt="Next Page" width="32"></A></td>
-<td><A HREF="index.html"><img src="../icons/up.gif" border="0" height="32"
-  alt="Up One Level" width="32"></A></td>
-<td><A HREF="node25.html"><img src="../icons/previous.gif" border="0" height="32"
-  alt="Previous Page" width="32"></A></td>
-<td align="center" bgcolor="#99CCFF" width="100%">
- <b class="title">Getting Started Guide for Boa Constructor</b></td>
-<td><A HREF="index.html"><img src="../icons/contents.gif" border="0" height="32"
-  alt="Contents" width="32"></A></td>
-<td><img src="../icons/blank.gif" border="0" height="32"
-  alt="" width="32"></td>
-<td><img src="../icons/blank.gif" border="0" height="32"
-  alt="" width="32"></td>
-</tr></table>
-<b class='navlabel'>Next:</b> <span class='sectref'><A HREF="node27.html">Creating a Dialog Window</A></span>
-<b class='navlabel'>Up:</b> <span class='sectref'><A HREF="index.html">Getting Started Guide for Boa Constructor</A></span>
-<b class='navlabel'>Previous:</b> <span class='sectref'><A HREF="node25.html">Adding the Text Control</A></span>
-<br><hr></DIV>
-<!--End of Navigation Panel-->
+<td WIDTH="32" HEIGHT="32"><a href="node27.html"><img SRC="../icons/next.gif" ALT="Next Page" BORDER=0 height=32 width=32></a></td>
 
+<td WIDTH="32" HEIGHT="32"><a href="index.html"><img SRC="../icons/up.gif" ALT="Up One Level" BORDER=0 height=32 width=32></a></td>
+
+<td WIDTH="32" HEIGHT="32"><a href="node25.html"><img SRC="../icons/previous.gif" ALT="Previous Page" BORDER=0 height=32 width=32></a></td>
+
+<td ALIGN=CENTER WIDTH="100%" BGCOLOR="#99CCFF"><b>Getting Started Guide
+for Boa Constructor</b></td>
+
+<td WIDTH="32" HEIGHT="32"><a href="index.html"><img SRC="../icons/contents.gif" ALT="Contents" BORDER=0 height=32 width=32></a></td>
+
+<td WIDTH="32" HEIGHT="32"><img SRC="../icons/blank.gif" ALT="" BORDER=0 height=32 width=32></td>
+
+<td WIDTH="32" HEIGHT="32"><img SRC="../icons/blank.gif" ALT="" BORDER=0 height=32 width=32></td>
+</tr>
+</table>
+<b>Next:<span class='sectref'></b><a href="node27.html">Creating a Dialog
+Window</span></a> <b>Up:<span class='sectref'></b><a href="index.html">Getting
+Started Guide for Boa Constructor</span></a> <b>Previous:<span class='sectref'></b><a href="node25.html">Adding
+the Text Control</a></span>
+<br>
+<hr></div>
+<!--End of Navigation Panel-->
 </body>
 </html>
-
