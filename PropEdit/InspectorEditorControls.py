@@ -1,13 +1,13 @@
 #----------------------------------------------------------------------
-# Name:        InspectorEditorControls.py
-# Purpose:     
-#
-# Author:      Riaan Booysen
-#
-# Created:     1999
+# Name:        InspectorEditorControls.py                              
+# Purpose:     Controls that are hosted by the inspector to edit props 
+#                                                                      
+# Author:      Riaan Booysen                                           
+#                                                                      
+# Created:     1999                                                    
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999, 2000 Riaan Booysen
-# Licence:     GPL
+# Copyright:   (c) 1999, 2000 Riaan Booysen                            
+# Licence:     GPL                                                     
 #----------------------------------------------------------------------
 
 from wxPython.wx import *
@@ -28,24 +28,37 @@ class InspectorEditorControl:
         if self.editorCtrl: self.editorCtrl.SetFocus()
     
     def destroyControl(self):
+        """ Close an open editor control """
         if self.editorCtrl:
-     	    self.editorCtrl.Destroy()
-     	    self.editorCtrl = None
+            self.editorCtrl.Destroy()
+            self.editorCtrl = None
                     
     def getValue(self):
+        """ Read value from editor control """
         pass
     
     def setValue(self, value):
+        """ Write value to editor control """
         pass
 
     # default sizing for controls that span the entire value width
     def setWidth(self, width):
         if self.editorCtrl:
-	    height = self.editorCtrl.GetSize().y
-	    self.editorCtrl.SetSize(wxSize(width -1, height))
+            height = self.editorCtrl.GetSize().y
+            self.editorCtrl.SetSize(wxSize(width -1, height))
 
     def setIdx(self, idx):
+        """ Move the to the given index """
         if self.editorCtrl: self.editorCtrl.SetPosition(wxPoint(-2, idx*Preferences.oiLineHeight -2))
+
+    def OnSelect(self, event):
+        """ Post the value.
+        
+            Bind the event of the control that 'sets' the value to this method 
+        """
+        print 'InspectorEditorControl.OnSelect'
+        self.propEditor.inspectorPost(false)
+        event.Skip()
 
 class BevelIEC(InspectorEditorControl):
     def destroyControl(self):
@@ -73,10 +86,16 @@ class BevelIEC(InspectorEditorControl):
 #        InspectorEditorControl.setIdx(self, idx)        
         
 class TextCtrlIEC(InspectorEditorControl):
-    def createControl(self, parent, value, idx, sizeX):
-        self.editorCtrl = wxTextCtrl(parent, self.wID, self.propEditor.valueToIECValue(), #self.propEditor.getDisplayValue(), 
-         wxPoint(-2, idx*Preferences.oiLineHeight -2), wxSize(sizeX, Preferences.oiLineHeight+3))
+    def createControl(self, parent, value, idx, sizeX, style = 0):
+        self.editorCtrl = wxTextCtrl(parent, self.wID, 
+              self.propEditor.valueToIECValue(), 
+              wxPoint(-2, idx*Preferences.oiLineHeight -2), 
+              wxSize(sizeX, Preferences.oiLineHeight+3), style = style)
         InspectorEditorControl.createControl(self); 
+        # XXX Ideally the text ctrl should catch the 'enter' keystroke
+        # XXX and post the inspector, but I cant seem to catch it
+        # XXX This is currently handled by the Inspector with an
+        # XXX accelerator table binding on Enter
     def getValue(self):
         if self.editorCtrl:
             self.value = self.editorCtrl.GetValue()
@@ -92,6 +111,7 @@ class ChoiceIEC(InspectorEditorControl):
         self.editorCtrl = wxChoice(parent, self.wID, 
          wxPoint(-2, idx*Preferences.oiLineHeight -1), wxSize(sizeX, Preferences.oiLineHeight+3),
          self.propEditor.getValues())
+        EVT_CHOICE(self.editorCtrl, self.wID, self.OnSelect) 
         InspectorEditorControl.createControl(self); 
     def getValue(self):
         if self.editorCtrl:
@@ -99,6 +119,7 @@ class ChoiceIEC(InspectorEditorControl):
     def setValue(self, value):
         if self.editorCtrl:
             self.editorCtrl.SetStringSelection(value)
+        
 
 class ComboIEC(InspectorEditorControl):
     def createControl(self, parent, idx, sizeX):
@@ -116,32 +137,22 @@ class ComboIEC(InspectorEditorControl):
 class ButtonIEC(BevelIEC):
     def createControl(self, parent, idx, sizeX, editMeth):
        # XXX use image store
-	bmp = wxBitmap(path.join(Preferences.pyPath, 'Images', 'Shared', 'ellipsis.bmp'), wxBITMAP_TYPE_BMP)
+        bmp = wxBitmap(path.join(Preferences.pyPath, 'Images', 'Shared', 'ellipsis.bmp'), wxBITMAP_TYPE_BMP)
         self.editorCtrl = wxBitmapButton(parent, self.wID, bmp, 
           wxPoint(sizeX -18 - 3, idx*Preferences.oiLineHeight +1), 
           wxSize(18, Preferences.oiLineHeight-2))
-       	EVT_BUTTON(self.editorCtrl, self.wID, editMeth)
-       	BevelIEC.createControl(self, parent, idx, sizeX)
+        EVT_BUTTON(self.editorCtrl, self.wID, editMeth)
+        BevelIEC.createControl(self, parent, idx, sizeX)
 
     def setWidth(self, width):
         if self.editorCtrl:
             self.editorCtrl.SetDimensions(width - 18 - 3, self.editorCtrl.GetPosition().y, 
               18, Preferences.oiLineHeight-2)
 
-       	BevelIEC.setWidth(self, width)
+        BevelIEC.setWidth(self, width)
 
     def setIdx(self, idx):
         if self.editorCtrl:
             self.editorCtrl.SetDimensions(self.editorCtrl.GetPosition().x, 
               idx*Preferences.oiLineHeight +1, 18, Preferences.oiLineHeight-2)
-##            self.editorCtrl.SetPosition(wxPoint(self.editorCtrl.GetPosition().x, idx*Inspector.oiLineHeight +1))
-##	    ## XX why set width, fix
-##	    self.editorCtrl.SetSize(wxSize(18, Inspector.oiLineHeight-2))
-       	BevelIEC.setIdx(self, idx)
-          
-          
-          
-          
-          
-          
-      
+        BevelIEC.setIdx(self, idx)
