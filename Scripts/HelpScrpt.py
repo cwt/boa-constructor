@@ -22,7 +22,7 @@ header = '''#-------------------------------------------------------------------
 # Author:      Riaan Booysen & Boa Constructor
 #
 # Created:     %s
-# RCS-ID:      $Id$
+# RCS-ID:      %sId: HelpCompanions.py %s
 #----------------------------------------------------------------------
 
 '''
@@ -79,7 +79,7 @@ libModHtml = fileModRef.read()
 fileModRef.close()
 
 output = open('HelpCompanions.py', 'w')
-output.write(header % strftime('%Y/%d/%m', gmtime(time())))
+output.write(header % strftime('%Y/%d/%m', gmtime(time()), '$', '$'))
 
 clssHelpItems = clssHtmlLines[clssHtmlLines.index('<UL>')+1: clssHtmlLines.index('</UL>')]
 
