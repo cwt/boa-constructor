@@ -94,11 +94,24 @@ class EditorStatusBar(wxStatusBar):
         EVT_LEFT_DCLICK(self.img, self.OnShowHistory)
 
         rect = self.GetFieldRect(sbfBrwsBtns)
-        self.historyBtns = wxSpinButton(self, -1, (rect.x+1, rect.y+1),
-                                                  (rect.width-2, rect.height-2))
-        self.historyBtns.SetToolTipString('Browse the Traceback/Error/Output window history.')
-        EVT_SPIN_DOWN(self.historyBtns, self.historyBtns.GetId(), self.OnErrOutHistoryBack)
-        EVT_SPIN_UP(self.historyBtns, self.historyBtns.GetId(), self.OnErrOutHistoryFwd)
+        #self.historyBtns = wxSpinButton(self, -1, (rect.x+1, rect.y+1),
+#                                                  (rect.width-2, rect.height-2))
+        self.historyBtnBack = wxBitmapButton(self, -1, 
+              Preferences.IS.load('Images/Shared/PreviousSmall.png'),
+              (rect.x+1, rect.y+1), (rect.width/2-1, rect.height-2))
+        self.historyBtnFwd = wxBitmapButton(self, -1, 
+              Preferences.IS.load('Images/Shared/NextSmall.png'),
+              (rect.x+1+rect.width/2, rect.y+1), (rect.width/2-1, rect.height-2))
+
+        #self.historyBtns.SetToolTipString('Browse the Traceback/Error/Output window history.')
+        tip = 'Browse the Traceback/Error/Output window history.'
+        self.historyBtnBack.SetToolTipString(tip)
+        self.historyBtnFwd.SetToolTipString(tip)
+        #EVT_SPIN_DOWN(self.historyBtns, self.historyBtns.GetId(), self.OnErrOutHistoryBack)
+        #EVT_SPIN_UP(self.historyBtns, self.historyBtns.GetId(), self.OnErrOutHistoryFwd)
+        EVT_BUTTON(self.historyBtnBack, self.historyBtnBack.GetId(), self.OnErrOutHistoryBack)
+        EVT_BUTTON(self.historyBtnFwd, self.historyBtnFwd.GetId(), self.OnErrOutHistoryFwd)
+
         self.erroutFrm = None
 
         self.progress = wxGauge(self, -1, 100)
@@ -500,7 +513,9 @@ class Listener(threading.Thread):
 
 def socketFileOpenServerListen(editor):
     closed = threading.Event()
-    return closed, Listener(editor, closed).start()
+    listener = Listener(editor, closed)
+    listener.start()
+    return closed, listener
 
 
 if __name__ == '__main__':
