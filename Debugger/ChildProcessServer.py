@@ -1,11 +1,14 @@
 
 import sys, os
 import whrandom, sha, threading
+from time import sleep
 from SocketServer import TCPServer
 from ExternalLib.xmlrpcserver import RequestHandler
 from IsolatedDebugger import DebuggerController, DebuggerConnection
 from Tasks import ThreadedTaskHandler
 
+try: from cStringIO import StringIO
+except ImportError: from StringIO import StringIO
 
 class DebugRequestHandler (RequestHandler):
 
@@ -30,35 +33,26 @@ class DebugRequestHandler (RequestHandler):
         pass
 
 
-class FlushingStream:
+class TaskingMixIn:
+    """Mix-in class to handle each request in a task thread."""
+    __tasker = ThreadedTaskHandler()
 
-    def __init__(self, s):
-        self.s = s
+    def process_request(self, request, client_address):
+        """Start a task to process the request."""
+        self.__tasker.addTask(self.finish_request,
+                              args=(request, client_address))
 
-    def __getattr__(self, name):
-        return getattr(self.s, name)
+class TaskingTCPServer(TaskingMixIn, TCPServer): pass
 
-    def write(self, data):
-        self.s.write(data)
-        self.s.flush()
 
-    def writelines(self, data):
-        self.s.writelines(data)
-        self.s.flush()
+def streamFlushThread():
+    while 1:
+        sys.stdout.flush()
+        sys.stderr.flush()
+        sleep(0.15)  # 150 ms
 
 
 def main():
-
-    class TaskingMixIn:
-        """Mix-in class to handle each request in a task thread."""
-        __tasker = ThreadedTaskHandler()
-
-        def process_request(self, request, client_address):
-            """Start a task to process the request."""
-            self.__tasker.addTask(self.finish_request,
-                                  args=(request, client_address))
-
-    class TaskingTCPServer(TaskingMixIn, TCPServer): pass
 
     auth = sha.new(str(whrandom.random())).hexdigest()  # Always 40 chars.
     DebugRequestHandler._authstr = auth
@@ -69,17 +63,15 @@ def main():
     sys.stdout.write('%010d %s%s' % (port, auth, os.linesep))
     sys.stdout.flush()
 
-    sys.stdout = FlushingStream(sys.stdout)
-    sys.stderr = FlushingStream(sys.stderr)
-
-    #sys.stdout = DebugRequestHandler._conn._getStdoutBuf()
-    #sys.stderr = DebugRequestHandler._conn._getStderrBuf()
-
     def serve_forever(server):
         while 1:
             server.handle_request()
 
     t = threading.Thread(target=serve_forever, args=(server,))
+    t.setDaemon(1)
+    t.start()
+
+    t = threading.Thread(target=streamFlushThread)
     t.setDaemon(1)
     t.start()
 
