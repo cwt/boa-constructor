@@ -6,15 +6,14 @@
 #
 # Created:     1999
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999, 2000 Riaan Booysen
+# Copyright:   (c) 1999 - 2001 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
 
 import pickle
 from os import path
 
-#import sys
-#sys.path.append('..')
+#import sys; sys.path.append('..')
 
 from wxPython.wx import *
 from wxPython.ogl import *
@@ -73,11 +72,6 @@ class MyEvtHandler(wxShapeEvtHandler):
         shape = self.GetShape()
         if not shape.Selected():
             self.OnLeftClick(x, y, keys, attachment)
-#        print shape.GetId()
-
-#        if hasattr(self, 'view') and self.view:
-#            import pprint
-#            pprint.pprint(self.view.AllClasses)
 
         if hasattr(self, 'menu') and self.menu:
             shape.GetCanvas().PopupMenu(self.menu, wxPoint(x, y))
@@ -108,17 +102,16 @@ class PersistentShapeCanvas(wxShapeCanvas):
                 print 'error:', shape
                 raise
 
-
-        f = open(filename, 'w')
-        pickle.dump(persProps, f)
-        f.close()
+        from Explorers.Explorer import openEx
+        t = openEx(filename)
+        t.save(t.resourcepath, pickle.dumps(persProps))
 
     def loadSizes(self, filename):
         # construct list of non matching
 
-        f = open(filename, 'r')
-        persProps = pickle.load(f)
-        f.close()
+        from Explorers.Explorer import openEx
+        t = openEx(filename)
+        persProps = pickle.loads(t.load())
 
         unmatchedPcls = persProps.keys()
         matchedShapes = []
@@ -130,10 +123,7 @@ class PersistentShapeCanvas(wxShapeCanvas):
                 unmatchedPcls.append(shape.unqPclName)
 
         for shape in self.shapes:
-#            if shape.unqPclName in matchedShapes:
             if persProps.has_key(shape.unqPclName):
-#                size, pos = persProps[shape.unqPclName]
-#                shape.setSize(size)
                 pos = persProps[shape.unqPclName]
                 shape.setPos(pos)
 
@@ -240,8 +230,11 @@ class PersistentOGLView(ScrollingContainer, EditorViews.EditorView):
 
     def refreshCtrl(self):
         layoutFile = path.splitext(self.model.filename)[0]+self.ext
-        if path.exists(layoutFile):
+        from Explorers.Explorer import TransportLoadError
+        try:
             self.canvas.loadSizes(layoutFile)
+        except TransportLoadError:
+            pass
 
 
     def newLine(self, dc, fromShape, toShape):
@@ -696,4 +689,4 @@ class __Cleanup:
 
 # when this module gets cleaned up then wxOGLCleanUp() will get called
 __cu = __Cleanup()
-  
+   
