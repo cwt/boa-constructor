@@ -126,7 +126,9 @@ class ZopeItemNode(ExplorerNodes.ExplorerNode):
         return '%s://%s/<%s>%s'%(self.protocol, self.category, self.metatype, self.getTitle())
 
     def buildUrl(self):
-        return ('%(host)s:%(httpport)d/') % self.properties +urllib.quote(self.resourcepath)
+        path = urllib.quote(self.resourcepath)
+        if path and path[0] != '/': path = '/'+path
+        return '%(host)s:%(httpport)d/' % self.properties + path
 
     def destroy(self):
         self.cache = {}

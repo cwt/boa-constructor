@@ -143,6 +143,7 @@ class ZopeConnection:
         try:
             wx.wxBeginBusyCursor()
             try:
+                if objPath and objPath[0] != '/': objPath = '/'+objPath
                 url = 'http://%s:%d/%s/%s' % (self.host, self.port, objPath, method)
                 return apply(Client.call, (url, self.user, self.password), kw)
             finally:
@@ -154,6 +155,7 @@ class ZopeConnection:
         try:
             wx.wxBeginBusyCursor()
             try:
+                if objPath and objPath[0] != '/': objPath = '/'+objPath
                 url = 'http://%s:%d/%s/%s' % (self.host, self.port, objPath, method)
                 return apply(Client.call, (url, self.user, self.password), kw)
             finally:

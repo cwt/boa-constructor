@@ -142,7 +142,7 @@ class ZopeFTP:
         res = []
         lst = []
         self.ftp.dir(path, lst.append)
-        for line in lst[1:]:
+        for line in lst:
             zftpi = ZopeFTPItem()
             zftpi.read(line)
             zftpi.path = path
