@@ -176,13 +176,14 @@ class EditorView:
                 AddToolButtonBmpObject(self.model.editor, toolbar, IS.load(bmp), name, meth)
 
     docked = true
-    def addToNotebook(self, notebook, viewName = '', panel=None):
+    def addToNotebook(self, notebook, viewName = '', panel = None):
         self.notebook = notebook
         if not viewName: viewName = self.viewName
         if panel:
             notebook.AddPage(panel, viewName)
         else:
             notebook.AddPage(self, viewName)
+
         wxYield()
         self.pageIdx = notebook.GetPageCount() -1
         self.modified =  false
@@ -219,7 +220,9 @@ class EditorView:
     
     def focus(self, refresh = true):
         self.notebook.SetSelection(self.pageIdx)
-        if refresh: self.notebook.Refresh()
+        if refresh:
+##            self.notebook.Refresh()
+            self.SetFocus()
     
     def setReadOnly(self, val):
         self.readOnly = val
@@ -244,6 +247,9 @@ class EditorView:
 
     def isModified(self):
         return self.modified 
+    
+    def goto(self, marker):
+        print 'GOTO MARKER', marker
     
     def OnRightDown(self, event):
         self.popx = event.GetX()
@@ -709,6 +715,7 @@ class ExploreView(wxTreeCtrl, EditorView):
     def OnPageActivated(self, evt):
         if not self._populated_tree:
             self._populated_tree = 1
+            # XXX Threading should go...
             if wxPlatform == '__WXGTK__':
                 self.refreshCtrl(1)
             else:
@@ -720,14 +727,13 @@ class ExploreView(wxTreeCtrl, EditorView):
             self._populated_tree = 0
             return
         self.AddRoot('Loading...')
-        # XXX Add root node as module name
         module = self.model.getModule()
         self.DeleteAllItems()
         rootItem = self.AddRoot(self.model.moduleName, 5, -1, wxTreeItemData(CodeBlock('', 0, 0)))
         for className in module.class_order:
             classItem = self.AppendItem(rootItem, className, 0, -1, wxTreeItemData(module.classes[className].block))
             for attrib in module.classes[className].attributes.keys():
-                attribItem = self.AppendItem(classItem, attrib, 4, -1, 
+                attribItem = self.AppendItem(classItem, attrib, 4, -1, #+ ' '+module.classes[className].attributes[attrib][0].signature
                   wxTreeItemData(module.classes[className].attributes[attrib]))
             for method in module.classes[className].method_order:
                 if (len(method) >= 3) and (method[:2] == 'On') and \
@@ -752,6 +758,7 @@ class ExploreView(wxTreeCtrl, EditorView):
             idx = self.GetSelection()
             if idx.IsOk():
                 srcView.focus()
+                self.model.editor.addBrowseMarker(srcView.GetCurrentLine())
                 dat = self.GetPyData(idx)
                 if type(dat) == type([]):   
                     srcView.gotoLine(dat[0].start -1)
@@ -794,8 +801,9 @@ class HierarchyView(wxTreeCtrl, EditorView):
             self.Expand(child)
 
     def refreshCtrl(self):
-        self.DeleteAllItems()
+        self.AddRoot('Loading...')
         module = self.model.getModule()
+        self.DeleteAllItems()
         hierc = module.createHierarchy()
         
         root = self.AddRoot(self.model.moduleName, 3)#, 0, wxTreeItemData(CodeBlock('', 0, 0)))
