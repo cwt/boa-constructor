@@ -2,7 +2,7 @@
 
 from wxPython.wx import *
 from wxPython.lib.anchors import LayoutAnchors
-import pyTree, sys
+import sys
 
 def create(parent):
     return wxFrame1(parent)
@@ -12,9 +12,9 @@ def create(parent):
 class wxFrame1(wxFrame):
     def _init_coll_notebook1_Pages(self, parent):
 
-        parent.AddPage(strText = 'Options', bSelect = false, pPage = self.panel2, imageId = -1)
-        parent.AddPage(strText = 'Collect', bSelect = false, pPage = self.panel3, imageId = -1)
-        parent.AddPage(strText = 'gc.garbage', bSelect = false, pPage = self.panel4, imageId = -1)
+        parent.AddPage(text = 'Options', select = false, page = self.panel2, imageId = -1)
+        parent.AddPage(text = 'Collect', select = false, page = self.panel3, imageId = -1)
+        parent.AddPage(text = 'gc.garbage', select = false, page = self.panel4, imageId = -1)
 
     def _init_utils(self):
         pass
@@ -27,7 +27,6 @@ class wxFrame1(wxFrame):
         self.panel1.SetAutoLayout(true)
 
         self.notebook1 = wxNotebook(size = wxSize(344, 264), parent = self.panel1, id = wxID_WXFRAME1NOTEBOOK1, name = 'notebook1', style = 0, pos = wxPoint(8, 8))
-        self.notebook1.SetSelection(2)
         self.notebook1.SetConstraints(LayoutAnchors(self.notebook1, true, true, true, true))
 
         self.panel2 = wxPanel(size = wxSize(336, 240), parent = self.notebook1, id = wxID_WXFRAME1PANEL2, name = 'panel2', style = wxTAB_TRAVERSAL, pos = wxPoint(8, 24))
