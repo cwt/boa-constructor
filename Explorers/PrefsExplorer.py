@@ -381,7 +381,7 @@ class PreferenceCompanion(ExplorerNodes.ExplorerCompanion):
             else:
                 return PropertyEditors.EnumConfPropEdit
 
-        if srcVal in ('true', 'false'):
+        if string.lower(srcVal) in ('true', 'false'):
             return PropertyEditors.BoolConfPropEdit
 
         try:
