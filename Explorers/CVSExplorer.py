@@ -352,11 +352,10 @@ class CVSController(ExplorerNodes.Controller):
         res = self.doCvsCmdOnSelection('diff', '-u', cvsOutput='tuple')
         if res is not None and len(res)==2:
             outls, errls = res
-            out, err = string.join(outls, ''), string.join(errls, '')
             errout = self.editor.erroutFrm
-            tbs = errout.updateCtrls((), outls, 'CVS Result', '', err)
+            tbs = errout.updateCtrls((), outls, 'CVS Result', '', errls)
             errout.display(tbs)
-            errout.displayDiff(out)
+            errout.displayDiff(string.join(outls, ''))
             
     
     def OnLogCVSItems(self, event):
