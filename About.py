@@ -82,11 +82,13 @@ PythonInterpreter.py by Fredrik Lundh<br>
 Debugger based on IDLE's debugger by Guido van Rossum<br>
 Mozilla, Delphi, WinCVS for iconic inspirations<br>
 Cyclops, ndiff, reindent by Tim Peters<br>
-Client.py, WebDAV and DateTime package from Zope Corporation for Zope integration<br>
+Client.py, WebDAV, DateTime package and the Zope Book from Zope Corporation for Zope integration<br>
 PyChecker by Neal Norwitz & Eric C. Newton<br>
 py2exe by Thomas Heller<br>
 babeliser.py by Jonathan Feinberg and Babelfish for translation<br>
 David Adams' Speller, an xml-rpc spellchecker server<br>
+Jeff Sasmor for wxStyledTextCtrl docs<br>
+Hernan M. Foffani for ZopeShelf from which the Zope Book was converted<br>
 <p>
 Mike Fletcher for reports, ideas and patches (MakePy dialog and much improved UML layout)<br>
 <p>

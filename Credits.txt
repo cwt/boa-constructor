@@ -16,6 +16,8 @@ PyChecker by Neal Norwitz & Eric C. Newton
 py2exe by Thomas Heller
 babeliser.py by Jonathan Feinberg and Babelfish for translation
 David Adams' Speller, an xml-rpc spellchecker server
+Jeff Sasmor for wxStyledTextCtrl docs
+Hernan M. Foffani for ZopeShelf from which the Zope Book was converted
 
 The authors of CVS, SSH, SCP
 
