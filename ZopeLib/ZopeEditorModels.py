@@ -65,6 +65,8 @@ ZOAImages = [\
  ('ZCatalog', 'Images/ZOA/ZCatalog.png'),
  ('Vocabulary', 'Images/ZOA/Vocabulary.png'),
  ('WebDAV Lock Manager', 'Images/ZOA/davlocked.png'),
+ ('Browser Id Manager', 'Images/ZOA/idmgr.png'),
+ ('Session Data Manager', 'Images/ZOA/datamgr.png'),
 ]
 
 EditorHelper.imgZopeExportFileModel = EditorHelper.imgCounter
@@ -77,7 +79,7 @@ class ZopeEditorModel(EditorModels.BasePersistentModel):
     modelIdentifier = 'Zope'
     def __init__(self, name, data, editor, saved, zopeObject):
         EditorModels.BasePersistentModel.__init__(self, name, data, editor, saved)
-        self.zopeObj = zopeObject  #this is the instance of our node now
+        self.transport = zopeObject  #this is the instance of our node now
 
     def load(self, notify = true):
         EditorModels.BasePersistentModel.load(self, notify)
@@ -86,18 +88,18 @@ class ZopeEditorModel(EditorModels.BasePersistentModel):
         self.savedAs = true
         self.saved = true
 
-    def save(self):
+    def save(self, overwriteNewer=false):
         """ This is perhaps not the best style, but here all exceptions
             on saving are caught and transformed to TransportSaveErrors.
             To much maintenance for every Node type to add exceptions
         """
         from ExternalLib.xmlrpclib import Fault
         try:
-            EditorModels.BasePersistentModel.save(self)
+            EditorModels.BasePersistentModel.save(self, overwriteNewer)
         except Fault, err:
             from Explorers import ExplorerNodes
             raise ExplorerNodes.TransportSaveError(Utils.html2txt(err.faultString),
-                self.zopeObj.resourcepath)
+                self.transport.resourcepath)
 
 class ZopeBlankEditorModel(ZopeEditorModel):
     """ Objects which are's loaded and saved and does not have a 'Main' view,
@@ -128,11 +130,11 @@ class ZopeDocumentModel(ZopeEditorModel):
         raise 'Save as not supported'
 
     def getPageName(self):
-        if self.zopeObj.name == 'index_html':
-            return '%s (%s)' % (self.zopeObj.name,
-                  string.split(self.zopeObj.resourcepath, '/')[-2])
+        if self.transport.name == 'index_html':
+            return '%s (%s)' % (self.transport.name,
+                  string.split(self.transport.resourcepath, '/')[-2])
         else:
-            return self.zopeObj.name
+            return self.transport.name
 
 class ZopeDTMLDocumentModel(ZopeDocumentModel):
     imgIdx = ZOAIcons['DTML Document']
@@ -155,7 +157,7 @@ class ZopePythonSourceModel(ZopeDocumentModel):
             wx.wxBeginBusyCursor()
             try:
                 self._module = moduleparse.Module(
-                    self.zopeObj.whole_name, string.split(self.data, '\012'))
+                    self.transport.whole_name, string.split(self.data, '\012'))
             finally:
                 wx.wxEndBusyCursor()
         return self._module
@@ -273,6 +275,10 @@ class ZopeController(Controllers.PersistentController):
     def OnInspect(self, event):
         model = self.getModel()
         model.editor.explorer.controllers['zope'].doInspectZopeItem(model.transport)
+
+#-------------------------------------------------------------------------------
+
+Preferences.paletteTitle = Preferences.paletteTitle +' - Zope Editor'
 
 Controllers.modelControllerReg.update( {ZopeExportFileModel: ZopeExportFileController,
     ZopeBlankEditorModel: ZopeController,
