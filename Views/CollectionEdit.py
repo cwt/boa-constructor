@@ -222,12 +222,10 @@ class CollectionEditorView(Designer.InspectableObjectCollectionView):
         newBody = []
         objColl = self.model.objectCollections[self.collectionMethod]
         
-        newBody.extend(self.companion.initialiser())
-        for creator in self.companion.textConstrLst:
-            newBody.append('        '+creator.asText())
-        self.saveEvts(self.companion, newBody)
-
-        newBody.extend(self.companion.finaliser())
+        self.companion.writeCollectionInitialiser(newBody)
+        self.companion.writeCollectionItems(newBody)
+        self.companion.writeEvents(newBody, addModuleMethod = true)
+        self.companion.writeCollectionFinaliser(newBody)
 
         # add method to source
         if hasCode(newBody):
@@ -287,7 +285,7 @@ class CollectionEditorView(Designer.InspectableObjectCollectionView):
             self.inspector.pages.SetSelection(0)
         
         self.companion.setIndex(idx)
-        self.inspector.selectObject(None, self.companion, false)
+        self.inspector.selectObject(self.companion, false)
 
     def deselectObject(self):
         self.inspector.cleanup()
