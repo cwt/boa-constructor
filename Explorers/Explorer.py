@@ -135,7 +135,7 @@ def findZopeExplorerNode(catandmeta, respath, transports):
 
 class PackageFolderTree(wxTreeCtrl):
     def __init__(self, parent, images, root):
-        wxTreeCtrl.__init__(self, parent, wxID_PFT)
+        wxTreeCtrl.__init__(self, parent, wxID_PFT, style=wxTR_HAS_BUTTONS|wxCLIP_CHILDREN)
         EVT_TREE_ITEM_EXPANDING(self, wxID_PFT, self.OnOpen)
         EVT_TREE_ITEM_EXPANDED(self, wxID_PFT, self.OnOpened)
         EVT_TREE_ITEM_COLLAPSED(self, wxID_PFT, self.OnClose)
@@ -464,7 +464,8 @@ class PackageFolderList(wxListCtrl):
 
 class ExplorerSplitter(wxSplitterWindow):
     def __init__(self, parent, modimages, root, editor):
-        wxSplitterWindow.__init__(self, parent, wxID_PFE, style = wxNO_3D|wxSP_3D)
+        wxSplitterWindow.__init__(self, parent, wxID_PFE, 
+              style = wxCLIP_CHILDREN | wxNO_3D|wxSP_3D)
 
         self.editor = editor
         self.list = PackageFolderList(self, root, updateNotify = self.OnUpdateNotify)
@@ -653,7 +654,9 @@ class ExplorerSplitter(wxSplitterWindow):
         self.oldLabelVal = event.GetText()
         if self.list.node:
             self.list.node.notifyBeginLabelEdit(event)
-        event.Skip()
+        
+        if event.IsAllowed():
+            event.Skip()
 
     def OnEndLabelEdit(self, event):
         newText = event.GetText()

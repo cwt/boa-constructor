@@ -473,6 +473,9 @@ class CVSFolderNode(ExplorerNodes.ExplorerNode):
     def isFolderish(self):
         return false
 
+    def notifyBeginLabelEdit(self, event):
+        event.Veto()
+
     def createParentNode(self):
         parent = os.path.abspath(os.path.join(self.resourcepath, '..'))
         return PyFileNode(os.path.basename(parent), parent, self.clipboard,
@@ -516,6 +519,9 @@ class CVSFileNode(ExplorerNodes.ExplorerNode):
 
     def isFolderish(self):
         return false
+
+    def notifyBeginLabelEdit(self, event):
+        event.Veto()
 
     def getDescription(self):
         return '%s, (%s, %s)'%(self.name, self.revision, self.timestamp)#, self.options, self.tagdate), '/')
@@ -574,6 +580,9 @@ class FSCVSFolderNode(ExplorerNodes.ExplorerNode):
 
     def isFolderish(self):
         return true
+
+    def notifyBeginLabelEdit(self, event):
+        event.Veto()
 
     def createParentNode(self):
         if self.parent:
