@@ -6,13 +6,12 @@
 #
 # Created:     1999
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999 - 2002 Riaan Booysen
+# Copyright:   (c) 1999 - 2003 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
 print 'importing Views'
 
-import string, os
-from os import path
+import os
 
 from wxPython.wx import *
 from wxPython.html import *
@@ -22,6 +21,8 @@ from Preferences import IS, staticInfoPrefs, keyDefs
 
 import Search
 from Models import EditorHelper
+
+# XXX Python spesific views should probably move out to PythonViews
 
 wxwHeaderTemplate ='''<html> <head>
    <title>%(Title)s</title>
@@ -87,9 +88,9 @@ wxwFunctionTemplate = '''
 wxwFooterTemplate = '</body></html>'
 
 class EditorView:
-    def __init__(self, model, actions=[], dclickActionIdx=-1,
+    plugins = ()
+    def __init__(self, model, actions=(), dclickActionIdx=-1,
           editorIsWindow=true, overrideDClick=false):
-        self.actions = actions
         self.active = false
         self.model = model
         self.editorDisconnect = self.model.editor.Disconnect
@@ -104,6 +105,10 @@ class EditorView:
         self.popx = self.popy = 0
 
         self.canExplore = false
+
+        actions = list(actions)
+        self.plugins = [Plugin(model, self, actions) for Plugin in self.plugins]
+        self.actions = tuple(actions)
 
         self.defaultActionIdx = dclickActionIdx
         self.buildMethodIds()
@@ -320,7 +325,7 @@ class HTMLView(wxHtmlWindow, EditorView):
 
     viewName = 'HTML'
     def __init__(self, parent, model, actions = ()):
-        wxHtmlWindow.__init__(self, parent)
+        wxHtmlWindow.__init__(self, parent, style=wxSUNKEN_BORDER)
         EditorView.__init__(self, model, (('Back', self.OnPrev, self.prevBmp, ''),
                       ('Forward', self.OnNext, self.nextBmp, '') )+ actions, -1)
         self.SetRelatedFrame(model.editor, 'Editor')
@@ -354,11 +359,16 @@ class HTMLFileView(HTMLView):
 # XXX Option to only list documented methods
 class HTMLDocView(HTMLView):
     viewName = 'Documentation'
+    
+    printBmp = 'Images/Shared/Print.png'
     def __init__(self, parent, model, actions = ()):
         HTMLView.__init__(self, parent, model, (
               ('-', None, '', ''),
-              ('Save HTML', self.OnSaveHTML, '-', ''), )+ actions)
+              ('Save HTML', self.OnSaveHTML, '-', ''),
+              ('Print', self.OnPrintHTML, self.printBmp, ''), )+ actions)
         self.title = 'Boa docs'
+        
+        self.printer = wxHtmlEasyPrinting()
 
     def generatePage(self):
         page = wxwHeaderTemplate % {'Title': self.title}
@@ -380,6 +390,9 @@ class HTMLDocView(HTMLView):
                 trpt.save(trpt.currentFilename(), self.data)
         finally:
             dlg.Destroy()
+
+    def OnPrintHTML(self, event):
+        self.printer.PrintText(self.generatePage())
 
 class ModuleDocView(HTMLDocView):
 
@@ -404,7 +417,7 @@ class ModuleDocView(HTMLDocView):
         lst = []
         for name in names:
             lst.append('<a href="#%s">%s</a>' %(name, name))
-        return string.join(lst, '<BR>')
+        return '<BR>'.join(lst)
 
     def genClassListSect(self):
         classNames = self.model.getModule().class_order
@@ -426,7 +439,7 @@ class ModuleDocView(HTMLDocView):
                 except:
                     supers.append(super)
             if len(supers) > 0:
-                supers = string.join(supers, ', ')
+                supers = ', '.join(supers)
             else:
                 supers = ''
 
@@ -441,7 +454,7 @@ class ModuleDocView(HTMLDocView):
             }
             classes.append(clsBody)
 
-        return page + string.join(classes)
+        return page + ' '.join(classes)
 
     def genMethodSect(self, aclass):
         methlist = []
@@ -461,7 +474,7 @@ class ModuleDocView(HTMLDocView):
             }
             meths.append(methBody)
 
-        return string.join(methlist), string.join(meths)
+        return ' '.join(methlist), ' '.join(meths)
 
     def genFunctionsSect(self, page, funcNames):
         funcBody = ''
@@ -475,9 +488,12 @@ class ModuleDocView(HTMLDocView):
             }
             functions.append(funcBody)
 
-        return page + string.join(functions)
+        return page + ' '.join(functions)
 
 class CloseableViewMix:
+    """ Defines a closing action for views like results.
+        Deletes page named tabName
+    """
     closeViewBmp = 'Images/Editor/CloseView.png'
 
     def __init__(self, hint = 'results'):
@@ -502,8 +518,8 @@ class CyclopsView(HTMLView, CloseableViewMix):
         if url[0] == '#':
             self.base_OnLinkClicked(linkinfo)
         else:
-            jumpType, jumpPath = string.split(url, '://')
-            segs = string.split(jumpPath, '.')
+            jumpType, jumpPath = url.split('://')
+            segs = jumpPath.split('.')
             if jumpType == 'classlink':
                 mod, clss = segs[-2:]
                 if len(segs) > 2:
@@ -523,7 +539,7 @@ class CyclopsView(HTMLView, CloseableViewMix):
                     found = fullname
                     break
                 else:
-                    pckPth = string.join(pack, '/')
+                    pckPth = '/'.join(pack)
                     fullname = os.path.abspath(os.path.join(dirname, pckPth, mod+'.py'))
                     if os.path.exists(fullname):
                         found = fullname
@@ -709,7 +725,7 @@ class ToDoView(ListCtrlView):
         self.distinctTodos = []
         module = self.model.getModule()
         for todo in module.todos:
-            todoStr = string.rstrip(todo[1])
+            todoStr = todo[1].rstrip()
             idx = -1
             while todoStr and todoStr[idx] == '!':
                 idx = idx -1
@@ -1024,7 +1040,7 @@ class ExploreEventsView(ExploreView):
                 name = self.stdCollMeths[oc]
             else:
                 collName = oc[11:]
-                pv = string.rfind(collName, '_')
+                pv = collName.rfind('_')
                 obj, prop = collName[:pv], collName[pv+1:]
                 name = self.stdCollMeths.get(oc, 'Collection: %s.%s'%(obj, prop))
             collMethItem = self.AppendItem(rootItem, name, 1, -1,
@@ -1197,9 +1213,9 @@ class DistUtilManifestView(ListCtrlView):
         else:
             self.manifest = []
             idx = -1
-            for path in string.split(manifest, '\n'):
+            for path in manifest.split('\n'):
                 idx = idx + 1
-                path = string.strip(path)
+                path = path.strip()
                 if not path:
                     continue
                 self.manifest.append(path)
@@ -1286,3 +1302,9 @@ class FolderEditorView(wxNotebook, EditorView):
 
     def OnPageChange(self, event):
         pass
+
+#-------------------------------------------------------------------------------
+
+class EditorViewPlugin:
+    pass
+    
