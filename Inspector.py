@@ -720,14 +720,13 @@ class ZopePropNameValue(NameValue):
 class EventsWindow(wxSplitterWindow):
     """ Window that hosts event name values and event category selection """
     def __init__(self, *_args, **_kwargs):
-##    def __init__(self, parent, inspector):
         wxSplitterWindow.__init__(self, _kwargs['parent'], _kwargs['id'],
-          style = wxSP_NOBORDER|wxNO_3D|wxSP_LIVE_UPDATE)
-##        self.inspector = inspector
+          style = wxNO_3D|wxSP_FULLSASH|wxSP_3DSASH|wxSP_LIVE_UPDATE)
 
         self.categories = wxSplitterWindow(self, -1,
-          style = wxNO_3D|wxSP_3D|wxSP_LIVE_UPDATE)
-        self.definitions = InspectorEventScrollWin(parent=self, id=-1)
+              style=wxNO_3D|wxSP_3D|wxSP_LIVE_UPDATE)
+        self.definitions = InspectorEventScrollWin(self, -1, 
+              style=wxSUNKEN_BORDER|wxTAB_TRAVERSAL)
 
         self.SetMinimumPaneSize(20)
         self.SplitHorizontally(self.categories, self.definitions)
