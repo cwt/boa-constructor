@@ -162,25 +162,33 @@ class FileSysController(ExplorerNodes.Controller, ExplorerNodes.ClipboardControl
                 self.list.refreshCurrent()
                 break
 
-    def OnFindFSItem(self, event):
-        import Search
-        dlg = wxTextEntryDialog(self.list, 'Enter text:', 'Find in files', '')
-        try:
-            if dlg.ShowModal() == wxID_OK:
-                exts = self.list.node.getFilterExts()
-                for ext in EditorHelper.getBinaryFiles():
-                    try: exts.remove(ext)
-                    except ValueError: pass
+    def addFindResults(self, pattern, mapResults):
+        """ mapResult is map of tuples in this form
+            {'Module':  ('Line no', 'Col', 'Text'), ...}
+        """
+        nd = self.list.node
+        if not isinstance( self.list.node, ResultsFolderNode ):
+            self.list.node = ResultsFolderNode('Results', nd.resourcepath,
+                  nd.clipboard, -1, nd, nd.bookmarks)
 
-                res = Search.findInFiles(self.list, self.list.node.resourcepath,
-                      dlg.GetValue(), filemask = exts,
-                      progressMsg = 'Search files...', joiner = os.sep)
-                nd = self.list.node
-                self.list.node = ResultsFolderNode('Results', nd.resourcepath,
-                      nd.clipboard, -1, nd, nd.bookmarks)
-                self.list.node.results = res
-                self.list.node.lastSearch = dlg.GetValue()
-                self.list.refreshCurrent()
+        mapFindInFileCount = {}
+        for oFindRes in mapResults.keys():
+            if len( mapResults[oFindRes] ):
+                mapFindInFileCount[oFindRes] = len( mapResults[oFindRes] )
+        self.list.node.results = map(None, mapFindInFileCount.values(),
+                                           mapFindInFileCount.keys() )
+        self.list.node.lastSearch = pattern
+        self.list.refreshCurrent()
+
+    def OnFindFSItem(self, event):
+        # XXX This is nasty, redesign
+        self.list.addFindResults = self.addFindResults
+
+        import FindReplaceDlg
+        dlg = FindReplaceDlg.FindReplaceDlg(self.list, self.editor.finder, self.list, 0)
+        dlg.SetWorkingFolder(self.list.node.resourcepath)
+        try:
+            dlg.ShowModal()
         finally:
             dlg.Destroy()
 
@@ -233,8 +241,8 @@ class PyFileNode(ExplorerNodes.ExplorerNode):
     subExplorerReg = {'file': [], 'folder': []}
     connection = false
     pathSep = os.sep
-    def __init__(self, name, resourcepath, clipboard, imgIdx, parent,
-          bookmarks = None, properties = {}):
+    def __init__(self, name, resourcepath, clipboard, imgIdx, parent=None,
+          bookmarks=None, properties={}):
         ExplorerNodes.ExplorerNode.__init__(self, name, resourcepath, clipboard,
               imgIdx, parent, properties or {})
         self.bookmarks = bookmarks
@@ -384,7 +392,6 @@ class PyFileNode(ExplorerNodes.ExplorerNode):
         return {'BoaFiles': self.exts,
                 'StdFiles': self.exts,
                 'BoaIntFiles': EditorHelper.internalFilesReg,
-                               #EditorHelper.pythonBinaryFilesReg ,
                 'ImageFiles': EditorHelper.imageExtReg,
                 'AllFiles': ['.*']}[self.filter]
 
@@ -492,3 +499,4 @@ ExplorerNodes.register(PyFileNode, clipboard=FileSysExpClipboard,
       confdef=('explorer', 'file'), controller=FileSysController,
       category=FileSysCatNode)
 ExplorerNodes.register(CurWorkDirNode, clipboard='file', controller='file')
+ExplorerNodes.fileOpenDlgProtReg.append('file')
