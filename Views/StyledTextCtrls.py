@@ -19,6 +19,9 @@ eols = {  wxSTC_EOL_CRLF : '\r\n',
 
 from Preferences import faces
 import Preferences
+import methodparse
+
+indentLevel = 4
 
 def ver_tot(ma, mi, re):
     return ma*10000+mi*100+re
@@ -99,7 +102,7 @@ class FoldingStyledTextCtrlMix:
         for lineNum in range(lineCount):
             if self.GetFoldLevel(lineNum) & wxSTC_FOLDLEVELHEADERFLAG:
                 expanding = not self.GetFoldExpanded(lineNum)
-                break;
+                break
 
         lineNum = 0
         while lineNum < lineCount:
@@ -166,6 +169,8 @@ def idWord(line, piv, lineStart, leftDelim = word_delim, rightDelim = word_delim
     for pivR in range(piv + 1, len(line)):
         if not line[pivR] in rightDelim:
             break
+    else:
+        pivR = pivR+1
 
     return pivL + lineStart, pivR - pivL
 
@@ -173,9 +178,6 @@ class BrowseStyledTextCtrlMix:
     """ This class is to be mix-in with a wxStyledTextCtrl to add
         functionality for browsing the code.
     """
-
-    # XXX General problem; Updating all Scintilla's settings when something
-    # XXX global like this changes
     def __init__(self):
         self.handCrs = wxStockCursor(wxCURSOR_HAND)
         self.stndCrs = wxStockCursor(wxCURSOR_ARROW)
@@ -300,6 +302,132 @@ class BrowseStyledTextCtrlMix:
                   self.clearUnderline(self.styleStart, self.styleLength)
         event.Skip()
 
+class CodeHelpStyledTextCtrlMix:
+    def getCurrLineInfo(self):
+        pos = self.GetCurrentPos()
+        lnNo = self.GetCurrentLine()
+        lnStPs = self.GetLineStartPos(lnNo)
+        return (pos, lnNo, lnStPs, 
+                self.GetCurrentLineText()[0], pos - lnStPs - 1)
+
+    def getFirstContinousBlock(self, docs):
+        res = []
+        for line in string.split(docs, '\n'):
+            if string.strip(line):
+                res.append(line)
+            else:
+                break
+        return string.join(res, '\n')
+        
+
+class AutoCompleteCodeHelpSTCMix(CodeHelpStyledTextCtrlMix):
+
+##    def getCodeCompOptions(self, word, rootWord, matchWord, lnNo):
+##        return []
+
+    def codeCompCheck(self):
+        pos, lnNo, lnStPs, line, piv = self.getCurrLineInfo()
+
+        start, length = idWord(line, piv, lnStPs, object_delim, object_delim)
+        startLine = start-lnStPs
+        word = line[startLine:startLine+length]
+        pivword = piv - startLine
+        
+        dot = string.rfind(word, '.', 0, pivword+1)
+        matchWord = word
+        if dot != -1:
+            rdot = string.find(word, '.', pivword)
+            if rdot != -1:
+                matchWord = word[dot+1:rdot]
+            else:
+                matchWord = word[dot+1:]
+                
+            offset = pivword - dot
+            rootWord = word[:dot]
+        else:
+            offset = pivword + 1
+            rootWord = ''
+
+        if not matchWord:
+            offset = 0
+
+        names = self.getCodeCompOptions(word, rootWord, matchWord, lnNo)
+        
+        # remove duplicates
+        unqNms = {}
+        for name in names: unqNms[name] = None
+        names = unqNms.keys()
+
+        self.AutoCompShow(offset, string.join(names, ' '))
+        self.AutoCompSelect(matchWord)
+        
+class CallTipCodeHelpSTCMix(CodeHelpStyledTextCtrlMix):
+    def __init__(self):
+        self.lastCallTip = ''
+        self.lastTipHilite = (0, 0)
+
+    def getTipValue(self, word, lnNo):
+        return ''
+        
+    def callTipCheck(self):
+        pos, lnNo, lnStPs, line, piv = self.getCurrLineInfo()
+
+        bracket = methodparse.matchbracket(line[:piv+1], '(')
+        if bracket == -1 and self.CallTipActive():
+            self.CallTipCancel()
+            return
+        
+        cursBrktOffset = piv - bracket
+        
+        start, length = idWord(line, bracket-1, lnStPs, object_delim, object_delim)
+        startLine = start-lnStPs
+        word = line[startLine:startLine+length]
+        if word:
+            tip = self.getTipValue(word, lnNo)
+            if tip:
+                # Minus offset of 1st bracket in the tip
+                tipBrkt = string.find(tip, '(')
+                if tipBrkt != -1:
+                    pos = pos - tipBrkt - 1
+                else:
+                    tipBrkt = 0
+                    
+                # get the current parameter from source
+                paramNo = len(methodparse.safesplitfields(\
+                      line[bracket+1:piv+1]+'X', ','))
+                if paramNo:
+                    paramNo = paramNo - 1
+                
+                # get hilight & corresponding parameter from tip
+                tipBrktEnd = string.rfind(tip, ')')
+                tip_param_str = tip[tipBrkt+1:tipBrktEnd]
+                tip_params = methodparse.safesplitfields(\
+                    tip_param_str, ',', ('(', '{'), (')', '}') )
+                try: 
+                    hiliteStart = tipBrkt+1 + string.find(tip_param_str, tip_params[paramNo])
+                except IndexError: 
+                    hilite = (0, 0)
+                else:
+                    hilite = (hiliteStart, 
+                              hiliteStart+len(tip_params[paramNo]))
+
+                # don't update if active and unchanged
+                if self.CallTipActive() and tip == self.lastCallTip and \
+                      hilite == self.lastTipHilite:
+                    return
+
+                # close if active and changed
+                if self.CallTipActive() and (tip != self.lastCallTip or \
+                      hilite != self.lastTipHilite):
+                    self.CallTipCancel()
+
+                self.CallTipShow(pos - cursBrktOffset, tip)
+
+                self.CallTipSetHighlight(hilite[0], hilite[1])
+                self.lastCallTip = tip
+                self.lastTipHilite = hilite
+
+
 
 #---Language mixins-------------------------------------------------------------
 
@@ -418,6 +546,34 @@ class PythonStyledTextCtrlMix:
         else:
             self.BraceHighlight(braceAtCaret, braceOpposite)
             # self.Refresh(false)
+    
+    def doAutoIndent(self, prevline, pos):
+#        prevline = self.GetLine(lineNo -1)[:-1]
+        stripprevline = string.strip(prevline)
+        if stripprevline:
+            indent = prevline[:string.find(prevline, stripprevline)]
+        else:
+            indent = prevline[:-1]
+        if string.rstrip(prevline)[-1:] == ':':
+            indent = indent + (indentLevel*' ')
+        self.BeginUndoAction()
+        try:
+            self.InsertText(pos, indent)
+            self.GotoPos(pos + len(indent))
+        finally:
+            self.EndUndoAction()    
+
+    keymap={81: chr(64), 56: chr(91), 57: chr(93), 55: chr(123), 48: chr(125),
+            219: chr(92), 337: chr(126), 226: chr(124)}
+
+    def handleSpecialEuropeanKeys(self, event):
+        key = event.KeyCode()
+        if event.AltDown() and event.ControlDown() and self.keymap.has_key(key):
+            currPos = self.GetCurrentPos()
+            self.InsertText(currPos, self.keymap[key])
+            self.SetCurrentPos(self.GetCurrentPos()+1)
+            self.SetSelectionStart(self.GetCurrentPos())
+
 
 class HTMLStyledTextCtrlMix:
     def __init__(self, wId):
@@ -461,16 +617,19 @@ class HTMLStyledTextCtrlMix:
         'text password checkbox radio submit reset '\
         'file hidden image '
 
-        zope_elements = 'dtml-var dtml-in dtml-if dtml-else dtml-with dtml-let '\
-        'dtml-call dtml-comment dtml-tree'
+        zope_elements = 'dtml-var dtml-in dtml-if dtml-elif dtml-else dtml-unless '\
+        'dtml-with dtml-let dtml-call dtml-comment dtml-tree dtml-try dtml-except '
+
+        zope_attributes=\
+        'sequence-key sequence-item sequence-start sequence-end sequence-odd '
 
         self.SetLexer(wxSTC_LEX_HTML)
         if old_stc:
             self.SetKeywords(0, hypertext_elements + hypertext_attributes + \
-              ' public !doctype '+zope_elements)
+              ' public !doctype '+zope_elements + zope_attributes)
         else:
             self.SetKeyWords(0, hypertext_elements + hypertext_attributes + \
-              ' public !doctype '+zope_elements)
+              ' public !doctype '+zope_elements + zope_attributes)
 
         self.SetMargins(1, 1)
         # line numbers in the margin
