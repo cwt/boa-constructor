@@ -56,7 +56,7 @@ class frame1(wxFrame):
         self._init_ctrls()
 """
 
-from string import strip, split, join, find, rfind, upper
+from string import strip, split, join, find, rfind, upper, replace
 import re
 import Utils
 
@@ -315,12 +315,16 @@ class CollectionInitParse(PerLineParser):
         return 'self.%s(%s)' %(self.method, 
              join([Utils.srcRefFromCtrlName(self.comp_name)]+self.params, ', '))
 
+def decorateCollItemInitsWithCtrl(collInits, ctrlname):
+    for collInitParse in collInits:
+        collInitParse.ctrl_name = ctrlname
+        
 #item_parent = 'parent'
 is_coll_item_init = re.compile('^[ \t]*(?P<ident>'+idp+')[.](?P<method>'+idc+')[ \t]*\([ \t,]*(?P<params>.*)\)$')
-
 class CollectionItemInitParse(PerLineParser):
     def __init__(self, line = None, comp_name = '', method = '', params = None):
         self.comp_name = comp_name
+        self.ctrl_name = '&None&'
         self.method = method
         if params is None: self.params = {}
         else:              self.params = params
@@ -330,6 +334,17 @@ class CollectionItemInitParse(PerLineParser):
                 self.comp_name = self.m.group('ident')
                 self.method = self.m.group('method')
                 self.params = self.extractKVParams(self.m.group('params'))
+
+    def renameCompName2(self, old_value, new_value):
+##        if self.params.has_key('parent') and \
+##              self.params['parent'] == Utils.srcRefFromCtrlName(old_value):
+##            self.params['parent'] = Utils.srcRefFromCtrlName(new_value)
+        if self.ctrl_name == old_value:
+            self.ctrl_name = new_value
+            if self.params.has_key('id'):
+                self.params['id'] = replace(self.params['id'], upper(old_value), 
+                      upper(new_value))
+                
                     
     def asText(self):
         return '%s.%s(%s)' %(self.comp_name, self.method, self.KVParamsAsText(self.params))
