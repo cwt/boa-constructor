@@ -149,11 +149,11 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
         self.watches = WatchViewCtrl(self.nbBottom, self.viewsImgLst, self)
         self.nbBottom.AddPage(self.watches, 'Watches', imageId=watchesImgIdx)
 
-        self.locs = NamespaceViewCtrl(self.nbBottom, self.add_watch, 1, 'local')
+        self.locs = NamespaceViewCtrl(self.nbBottom, self, 1, 'local')
         self.nbBottom.AddPage(self.locs, 'Locals', imageId=localsImgIdx)
 
         self.globs = NamespaceViewCtrl(
-            self.nbBottom, self.add_watch, 0, 'global')
+            self.nbBottom, self, 0, 'global')
 
         self.nbBottom.AddPage(self.globs, 'Globals', imageId=globalsImgIdx)
 
@@ -301,7 +301,7 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
 
     def receiveVarValue(self, val):
         if val:
-            self.editor.statusBar.setHint(val)
+            self.editor.setStatus(val)
 
     def getVarValue(self, name):
         if not name.strip():
@@ -324,6 +324,10 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
         self._receivedVal = val
         self._hasReceivedVal = 1
 
+    def valueToOutput(self, name):
+        val = self.getVarValue(name)
+        self.editor.erroutFrm.outputTC.SetValue('')
+        self.editor.erroutFrm.appendToOutput(val)
 
 #---------------------------------------------------------------------------
 
@@ -730,9 +734,13 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
                 self.setBreakpoint(temp_breakpoint[0], temp_breakpoint[1], 1)
 
     def OnDebug(self, event):
+        if Preferences.minimizeOnDebug:
+            self.editor.minimizeBoa()
         self.doDebugStep('set_continue')
 
     def OnDebugFullSpeed(self, event):
+        if Preferences.minimizeOnDebug:
+            self.editor.minimizeBoa()
         self.doDebugStep('set_continue', args=(1,))
 
     def OnStep(self, event):
