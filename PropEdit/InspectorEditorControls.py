@@ -53,7 +53,7 @@ class InspectorEditorControl:
 
     def setIdx(self, idx):
         """ Move the to the given index """
-        if self.editorCtrl: 
+        if self.editorCtrl:
             self.editorCtrl.SetPosition( (-2, idx*Preferences.oiLineHeight -2) )
 
     def OnSelect(self, event):
@@ -73,10 +73,10 @@ class BevelIEC(InspectorEditorControl):
         InspectorEditorControl.destroyControl(self)
 
     def createControl(self, parent, idx, sizeX):
-        self.bevelTop = wxPanel(parent, -1, 
+        self.bevelTop = wxPanel(parent, -1,
             (0, idx*Preferences.oiLineHeight -1), (sizeX, 1))
         self.bevelTop.SetBackgroundColour(wxBLACK)
-        self.bevelBottom = wxPanel(parent, -1, 
+        self.bevelBottom = wxPanel(parent, -1,
             (0, (idx + 1)*Preferences.oiLineHeight -1), (sizeX, 1))
         self.bevelBottom.SetBackgroundColour(wxWHITE)
 
@@ -97,7 +97,11 @@ class TextCtrlIEC(InspectorEditorControl):
               self.propEditor.valueToIECValue(),
               wxPoint(-2, idx*Preferences.oiLineHeight -2),
               wxSize(sizeX, Preferences.oiLineHeight+3), style = style)
-        InspectorEditorControl.createControl(self);
+        InspectorEditorControl.createControl(self)
+
+        if value:
+            self.editorCtrl.SetSelection(0, len(self.propEditor.valueToIECValue()))
+
         # XXX Ideally the text ctrl should catch the 'enter' keystroke
         # XXX and post the inspector, but I cant seem to catch it
         # XXX This is currently handled by the Inspector with an
@@ -163,7 +167,7 @@ class ButtonIEC(BevelIEC):
             self.editorCtrl.SetDimensions(self.editorCtrl.GetPosition().x,
               idx*Preferences.oiLineHeight +1, 18, Preferences.oiLineHeight-2)
         BevelIEC.setIdx(self, idx)
- 
+
 class CheckBoxIEC2(InspectorEditorControl):
     def createControl(self, parent, idx, sizeX):
         self.editorCtrl = wxWindow(parent, wxNewId(),
@@ -176,7 +180,7 @@ class CheckBoxIEC2(InspectorEditorControl):
         def OnWinSize(evt, win=self.checkBox):
             win.SetSize(evt.GetSize())
         EVT_SIZE(self.editorCtrl, OnWinSize)
-    
+
         InspectorEditorControl.createControl(self)
 
     truefalseMap = {true: 'true', false: 'false'}
@@ -191,18 +195,18 @@ class CheckBoxIEC2(InspectorEditorControl):
     def OnSelect(self, event):
         if event.IsChecked():
             self.setValue(self.truefalseMap[event.IsChecked()])
-    
+
         InspectorEditorControl.OnSelect(self, event)
 
 class CheckBoxIEC(BevelIEC):
     def createControl(self, parent, idx, sizeX):
-        self.editorCtrl = wxCheckBox(parent, self.wID, 'false', 
+        self.editorCtrl = wxCheckBox(parent, self.wID, 'false',
             (2, idx*Preferences.oiLineHeight+1),
             (sizeX, Preferences.oiLineHeight-2) )
         EVT_CHECKBOX(self.editorCtrl, self.wID, self.OnSelect)
-    
+
         BevelIEC.createControl(self, parent, idx, sizeX)
-        
+
     truefalseMap = {true: 'true', false: 'false'}
     def getValue(self):
         if self.editorCtrl:
@@ -214,11 +218,11 @@ class CheckBoxIEC(BevelIEC):
 
     def setIdx(self, idx):
         if self.editorCtrl:
-            self.editorCtrl.SetDimensions(2, idx*Preferences.oiLineHeight +1, 
+            self.editorCtrl.SetDimensions(2, idx*Preferences.oiLineHeight +1,
             self.editorCtrl.GetSize().x, Preferences.oiLineHeight-2)
         BevelIEC.setIdx(self, idx)
 #        InspectorEditorControl.setIdx(self, idx)
     def OnSelect(self, event):
         self.setValue(self.truefalseMap[event.IsChecked()])
-    
+
         BevelIEC.OnSelect(self, event)
