@@ -6,15 +6,16 @@
 #
 # Created:     2002/02/09
 # RCS-ID:      $Id$
-# Copyright:   (c) 2002
+# Copyright:   (c) 2002 - 2003
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 
 print 'importing PythonEditorModels'
 
-import os, string, sys, pprint, imp, stat, types
+import os, sys, pprint, imp, stat, types, tempfile
 from thread import start_new_thread
 from time import time, gmtime, strftime
+from StringIO import StringIO
 
 from wxPython import wx
 
@@ -45,11 +46,12 @@ class ModuleModel(SourceModel):
     ext = '.py'
 
     def __init__(self, data, name, editor, saved, app=None):
+        self.app = app
         SourceModel.__init__(self, data, name, editor, saved)
         self.moduleName = os.path.split(self.filename)[1]
-        self.app = app
         self.lastRunParams = ''
         self.lastDebugParams = ''
+        self.useInputStream = false
 
         if data:
             if Preferences.autoReindent:
@@ -117,10 +119,10 @@ class ModuleModel(SourceModel):
         pass
 
     def update(self):
-        EditorModel.update(self)
         self.initModule()
+        EditorModel.update(self)
 
-    def runInThread(self, filename, args, app, interpreterPath):
+    def runInThread(self, filename, args, app, interpreterPath, inpLines=[]):
         cwd = os.path.abspath(os.getcwd())
         newCwd = os.path.dirname(os.path.abspath(filename))
         os.chdir(newCwd)
@@ -131,7 +133,7 @@ class ModuleModel(SourceModel):
             from ModRunner import PopenModuleRunner, ExecFinishEvent
 
             runner = PopenModuleRunner(None, app, newCwd)
-            runner.run(cmd)
+            runner.run(cmd, inpLines)
             wx.wxPostEvent(self.editor, ExecFinishEvent(runner))
         finally:
             if os: os.chdir(cwd)
@@ -144,8 +146,12 @@ class ModuleModel(SourceModel):
             self.editor.statusBar.setHint('Running %s...' % filename)
             if Preferences.minimizeOnRun:
                 self.editor.minimizeBoa()
+            if self.useInputStream:
+                inpLines = StringIO(self.editor.erroutFrm.inputPage.GetValue()).readlines()
+            else:
+                inpLines = []
             start_new_thread(self.runInThread, (filename, args,
-                  self.app, Preferences.pythonInterpreterPath))
+                  self.app, Preferences.pythonInterpreterPath, inpLines))
 
     # XXX Not used!
     def runAsScript(self):
@@ -177,14 +183,16 @@ class ModuleModel(SourceModel):
             page = ''
             try:
                 name = os.path.basename(filename)
+                report = tempfile.mktemp()
 
-                # excecute Cyclops in Python with module as parameter
-                command = '"%s" "%s" "%s"'%(Preferences.pythonInterpreterPath,
-                      Utils.toPyPath('RunCyclops.py'), name)
+                # execute Cyclops in Python with module as parameter
+                command = '"%s" "%s" "%s" "%s"'%(Preferences.pythonInterpreterPath,
+                      Utils.toPyPath('RunCyclops.py'), name, report)
                 wx.wxExecute(command, true)
 
                 # read report that Cyclops generated
-                page = open(name[:-3]+'.cycles', 'r').read()
+                page = open(report, 'r').read()
+                os.remove(report)
             finally:
                 os.chdir(cwd)
                 return page
@@ -212,7 +220,8 @@ class ModuleModel(SourceModel):
 
     def profile(self):
         filename = self.assertLocalFile()
-        statFile = os.path.splitext(filename)[0]+'.prof'
+        #statFile = os.path.splitext(filename)[0]+'.prof'
+        statFile = tempfile.mktemp()
         if os.path.exists(statFile):
             modtime = os.stat(statFile)[stat.ST_MTIME]
         else:
@@ -222,7 +231,7 @@ class ModuleModel(SourceModel):
         cwd = os.path.abspath(os.getcwd())
         os.chdir(profDir)
         try:
-            profCmd = string.strip(""""%s" -c "import profile;profile.run('execfile('+chr(34)+%s+chr(34)+')', '%s')" """)
+            profCmd = """"%s" -c "import profile;profile.run('execfile('+chr(34)+%s+chr(34)+')', '%s')" """.strip()
 
             cmd = profCmd % (`Preferences.pythonInterpreterPath`[1:-1],
                   `os.path.basename(filename)`, `statFile`[1:-1])
@@ -265,7 +274,7 @@ class ModuleModel(SourceModel):
                 file.output = []
                 ri.write(file)
 
-                newData = string.join(file.output, '')
+                newData = ''.join(file.output)
                 modified = self.data != newData
                 self.modified = self.modified or modified
 
@@ -342,7 +351,7 @@ class ModuleModel(SourceModel):
         # first search std python modules
         stdPyPath = sys.path[1:]
         srchpath = stdPyPath[:]
-        for name in string.split(modName, '.'):
+        for name in modName.split('.'):
             try:
                 file, path, (ext, mode, tpe) = imp.find_module(name, srchpath)
             except ImportError:
@@ -387,8 +396,8 @@ class ModuleModel(SourceModel):
             execDir = os.path.dirname(self.app.assertLocalFile())
             if execDir != modDir:
                 p, m = os.path.split(relpath.relpath(execDir, self.assertLocalFile()))
-                p = string.replace(p, '/', '.')
-                p = string.replace(p, '\\', '.')
+                p = p.replace('/', '.')
+                p = p.replace('\\', '.')
                 pckName = p
                 impExecStr = 'from %s import %s'%(pckName, modName)
             else:
@@ -405,7 +414,6 @@ class ModuleModel(SourceModel):
         else:
             info = ''
 
-        #self.editor.shell.pushLine('%s%s;print "## Executed from SourceView:\n%s"'%(info, impExecStr, impExecStr))
         shell.pushLine(impExecStr, impExecStr)
         if shell.lastResult != 'stderr':
             return 'Import of %s successfull'%modName, 'Info'
@@ -427,12 +435,12 @@ class ModuleModel(SourceModel):
 
     def findGlobalDict(self, name):
         s = name+' ='
-        pos = string.find(self.data, s)
+        pos = self.data.find(s)
         if pos == -1:
             raise 'Global dict %s not found in the module, please add it.'%name
-        end = string.find(self.data, '}\n', pos + len(s) +1) + 1
+        end = self.data.find('}\n', pos + len(s) +1) + 1
         if not end:
-            end = string.find(self.data, '}\r\n', pos + len(s) +1) + 1
+            end = self.data.find('}\r\n', pos + len(s) +1) + 1
             if not end:
                 raise 'Global dict %s not terminated properly, please fix it.'%name
         return pos + len(s), end
@@ -440,7 +448,7 @@ class ModuleModel(SourceModel):
     def readGlobalDict(self, name):
         start, end = self.findGlobalDict(name)
         try:
-            return eval(string.replace(self.data[start:end], '\r\n', '\n'),
+            return eval(self.data[start:end].replace('\r\n', '\n'),
                         wx.__dict__)
         except Exception, err:
             raise '"%s" must be a valid dictionary global dict.\nError: %s'%(name, str(err))
@@ -467,10 +475,10 @@ class ClassModel(ModuleModel):
             if line:
                 if line[0] != '#': break
 
-                header = string.split(string.strip(line), ':')
+                header = line.strip().split(':')
                 if (len(header) == 3) and (header[0] == sourceconst.boaIdent):
                     self.getModule().source[idx] = \
-                    string.join((header[0], header[1], newName), ':')
+                    ':'.join((header[0], header[1], newName))
                     break
             else: break
             idx = idx + 1
@@ -692,7 +700,7 @@ class BaseAppModel(ClassModel, ImportRelationshipMix):
         if os.path.splitdrive(filename)[0] != '':
             return filename
         else:
-            return string.replace(filename, '\\', '/')
+            return filename.replace('\\', '/')
 
     def save(self, overwriteNewer=false):
         ClassModel.save(self, overwriteNewer)
@@ -721,12 +729,12 @@ class BaseAppModel(ClassModel, ImportRelationshipMix):
         self.notify()
 
     def findImports(self):
-        impPos = string.find(self.data, sourceconst.defImport)
-        impPos = string.find(self.data, 'import', impPos + 1)
+        impPos = self.data.find(sourceconst.defImport)
+        impPos = self.data.find('import', impPos + 1)
 
         # XXX Add if not found
         if impPos == -1: raise 'Module import list not found in application'
-        impEnd = string.find(self.data, '\012', impPos + len('import') +1) + 1
+        impEnd = self.data.find('\012', impPos + len('import') +1) + 1
         if impEnd == -1: raise 'Module import list not terminated'
         return impPos + len('import'), impEnd
 
@@ -800,7 +808,7 @@ class BaseAppModel(ClassModel, ImportRelationshipMix):
         self.writeModules()
 
     def splitProtFile(self, uri):
-        protsplit = string.split(uri, '://')
+        protsplit = uri.split('://')
         if len(protsplit) == 1:
             return 'file', uri
         elif len(protsplit) == 2:
@@ -835,13 +843,13 @@ class BaseAppModel(ClassModel, ImportRelationshipMix):
             impLine = module.imports[oldName][0]-1
             # read in the import line
             line = module.source[impLine]
-            impIndent = string.find(line, 'import')
-            imports = string.split(line[7+impIndent:], ', ')
+            impIndent = line.find('import')
+            imports = line[7+impIndent:].split(', ')
             impIdx = imports.index(oldName)
             imports[impIdx] = newName
             module.imports[newName] = module.imports[oldName]
             del module.imports[oldName]
-            module.source[impLine] = 'import '+string.join(imports, ', ')
+            module.source[impLine] = 'import '+', '.join(imports)
             return impIdx
         return None
 
@@ -855,7 +863,7 @@ class BaseAppModel(ClassModel, ImportRelationshipMix):
 
         for idx in range(block.start, block.end):
             line = module.source[idx]
-            newLine = string.replace(line, fndOldStr, repNewStr)
+            newLine = line.replace(fndOldStr, repNewStr)
             if newLine != line:
                 module.source[idx] = newLine
 
@@ -866,11 +874,12 @@ class BaseAppModel(ClassModel, ImportRelationshipMix):
 
         # determine which module is the main module
         module = self.getModule()
-        for mod, props in filter(lambda v: v[1][0], self.modules.items()):
+        #for mod, props in filter(lambda v: v[1][0], self.modules.items()):
+        for mod, props in [i for i in self.modules.items() if i[1][0]]:
             impLine = module.imports[mod][0]-1
             line = module.source[impLine]
-            impIndent = string.find(line, 'import')
-            imports = string.split(line[7+impIndent:], ', ')
+            impIndent = line.find('import')
+            imports = line[7+impIndent:].split(', ')
             if len(imports) and imports[0] == mod:
                 try:
                     impIdx = imports.index(newMainFrameModule)
@@ -879,7 +888,7 @@ class BaseAppModel(ClassModel, ImportRelationshipMix):
                 del imports[impIdx]
 
                 imports.insert(0, newMainFrameModule)
-                module.source[impLine] = impIndent*' '+'import '+string.join(imports, ', ')
+                module.source[impLine] = impIndent*' '+'import '+', '.join(imports)
 
                 self.updateMainFrameModuleRefs(mod, newMainFrameModule)
                 self.refreshFromModule()
@@ -890,6 +899,7 @@ class BaseAppModel(ClassModel, ImportRelationshipMix):
                 self.writeModules(false)
 
                 self.update()
+                self.notify()
                 break
         else:
             raise 'No main frame module found in application'
@@ -953,28 +963,34 @@ class BaseAppModel(ClassModel, ImportRelationshipMix):
         if not self.savedAs:
             return relFilename
         else:
-            protsplit = string.split(self.filename, '://')
+            protsplit = self.filename.split('://')
             if len(protsplit) == 1:
                 prot, appFilename = 'file', self.filename
             elif len(protsplit) == 2:
                 prot, appFilename = protsplit
+            elif len(protsplit) == 3:
+                prot, archive, appFilename = protsplit
             else:
-                raise 'Unhandled protocol'
+                raise Exception, 'Unhandled protocol during normalisation:%s'%protsplit
 
+            if prot == 'zip':
+                #return '%s://%s/%s/%s'%(prot, archive, appFilename
+                return relFilename
+            
             normedpath = os.path.normpath(os.path.join(os.path.dirname(appFilename),
                   relFilename))
             if prot == 'file':
                 return '%s://%s' %(prot, normedpath)
             else:
-                return '%s://%s' %(prot, string.replace(normedpath, '\\', '/'))
+                return '%s://%s' %(prot, normedpath.replace('\\', '/'))
 
     def buildImportRelationshipDict(self):
         return ImportRelationshipMix.buildImportRelationshipDict(self,
                self.absModulesPaths())
 
     def update(self):
-        ClassModel.update(self)
         self.readModules()
+        ClassModel.update(self)
 
     def loadTextInfo(self, viewName):
         from Explorers.Explorer import openEx, TransportError
@@ -1018,7 +1034,7 @@ class SetupModuleModel(ModuleModel):
 #-------------------------------------------------------------------------------
 
 def identifyHeader(headerStr):
-    header = string.split(headerStr, ':')
+    header = headerStr.split(':')
     if len(header) and (header[0] == sourceconst.boaIdent) and \
           EditorHelper.modelReg.has_key(header[1]):
         return EditorHelper.modelReg[header[1]], header[2]
@@ -1032,7 +1048,7 @@ def identifySource(source):
             if line[0] != '#':
                 return ModuleModel, ''
 
-            headerInfo = identifyHeader(string.strip(line))
+            headerInfo = identifyHeader(line.strip())
 
             if headerInfo[0] != ModuleModel:
                 return headerInfo
@@ -1051,4 +1067,4 @@ EditorHelper.modelReg.update({
             PythonExtensionFileModel.modelIdentifier: PythonExtensionFileModel,
             })
 
-EditorHelper.inspectableFilesReg.extend(['.py'])
+EditorHelper.inspectableFilesReg['.py'] = ModuleModel
