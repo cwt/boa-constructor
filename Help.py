@@ -11,7 +11,7 @@
 #----------------------------------------------------------------------
 #Boa:FramePanel:PyDocHelpPage
 
-import os, marshal, string, socket, webbrowser
+import os, sys, marshal, string, socket, webbrowser
 
 from wxPython.wx import *
 from wxPython.html import *
