@@ -710,6 +710,25 @@ class ZopeEditorModel(EditorModel):
     def __init__(self, name, data, editor, saved, zopeObject): 
         EditorModel.__init__(self, name, data, editor, saved)
         self.zopeObj = zopeObject  #this is the instance of our node now
+
+
+class ZopeBlankEditorModel(ZopeEditorModel):
+    """ Objects which are's loaded and saved and does not have a 'Main' view,
+        but which should still be able to host views """
+    def load(self, notify = true):
+        self.modified = false
+        self.savedAs = true
+        self.saved = true
+    def save(self):
+        pass
+    def saveAs(self, filename):
+        pass
+    def getPageName(self):
+        if self.filename[-1] == '/':
+            return path.basename(self.filename[:-1])
+        else:
+            return ZopeEditorModel.getPageName(self)
+
     
 class ZopeDocumentModel(ZopeEditorModel):
     modelIdentifier = 'ZopeDocument'
@@ -720,13 +739,8 @@ class ZopeDocumentModel(ZopeEditorModel):
     saveBmp = 'Images/Editor/Save.bmp'
 
     def __init__(self, name, data, editor, saved, zopeObject): 
-        #self, name, data, editor, saved, zopeConnection, zopeObject
-        
-#        imgIdx = zopeObject.image #set correct bitmap
         ZopeEditorModel.__init__(self, name, data, editor, saved, zopeObject)
-        #self.zopeConn = zopeConnection
         self.savedAs = true
-        
         
     def addTools(self, toolbar):
         ZopeEditorModel.addTools(self, toolbar)
