@@ -525,6 +525,7 @@ class FSCVSFolderNode(ExplorerNodes.ExplorerNode):
     def __init__(self, name, resourcepath, clipboard, imgIdx, parent, bookmarks=None):
         ExplorerNodes.ExplorerNode.__init__(self, name, resourcepath, clipboard,
               EditorModels.CVSFolderModel.imgIdx, parent)
+        self.vetoSort = true
         self.dirpos = 0
         self.upImgIdx = 7
 
@@ -681,3 +682,4 @@ FileExplorer.PyFileNode.subExplorerReg['folder'].append(
       (FSCVSFolderNode, isCVS, EditorHelper.imgCVSFolder)
 )    
 
+ 
