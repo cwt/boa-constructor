@@ -150,7 +150,7 @@ if __name__ == '__main__':
 simpleAppPopupRunSrc = wsfix('''
 
 if __name__ == '__main__':
-\tapp = wxPySimpleApp()
+\tapp = wx.PySimpleApp()
 \twx.InitAllImageHandlers()
 \tframe = wx.Frame(None, -1, 'Parent')
 \tframe.SetAutoLayout(True)
