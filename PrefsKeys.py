@@ -61,7 +61,7 @@ if wxPlatform == '__WXMSW__':
                     'Uncomment'   : (wxACCEL_ALT, ord('4'), 'Alt-4'),
                     'SwitchToApp' : (wxACCEL_ALT, ord('A'), 'Alt-A')})
 elif wxPlatform == '__WXGTK__':
-    keyDefs.update({'SaveAs'      : (wxACCEL_CTRL, ord('1', 'Ctrl-1')),
+    keyDefs.update({'SaveAs'      : (wxACCEL_CTRL, ord('1'), 'Ctrl-1'),
                     'Comment'     : (wxACCEL_CTRL, ord('3'), 'Ctrl-3'),
                     'Uncomment'   : (wxACCEL_CTRL, ord('4'), 'Ctrl-4'),
                     'SwitchToApp' : (wxACCEL_CTRL, ord('5'), 'Ctrl-5')})
