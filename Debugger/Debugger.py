@@ -35,11 +35,13 @@ TEXTCTRL_GOODLEN = 20000
 
 STOP_GENTLY = 0
 
+SEL_STATE = wxLIST_STATE_SELECTED | wxLIST_STATE_FOCUSED
+
 wxID_STACKVIEW = NewId()
 class StackViewCtrl(wxListCtrl):
     def __init__(self, parent, flist, debugger):
         wxListCtrl.__init__(self, parent, wxID_STACKVIEW,
-                            style = wxLC_REPORT | wxLC_SINGLE_SEL )
+              style = wxLC_REPORT|wxLC_SINGLE_SEL|wxLC_VRULES|wxCLIP_CHILDREN)
         self.InsertColumn(0, 'Frame', wxLIST_FORMAT_LEFT, 150)
         self.InsertColumn(1, 'Line', wxLIST_FORMAT_LEFT, 35)
         self.InsertColumn(2, 'Code', wxLIST_FORMAT_LEFT, 300)
@@ -148,7 +150,7 @@ class StackViewCtrl(wxListCtrl):
 class BreakViewCtrl(wxListCtrl):
     def __init__(self, parent, debugger):#, flist, browser):
         wxListCtrl.__init__(self, parent, wxID_BREAKVIEW,
-          style = wxLC_REPORT | wxLC_SINGLE_SEL )
+          style = wxLC_REPORT|wxLC_SINGLE_SEL|wxLC_VRULES|wxCLIP_CHILDREN)
         self.InsertColumn(0, 'Module', wxLIST_FORMAT_LEFT, 90)
         self.InsertColumn(1, 'Line', wxLIST_FORMAT_CENTER, 40)
         self.InsertColumn(2, 'Ignore', wxLIST_FORMAT_CENTER, 45)
@@ -180,7 +182,7 @@ class BreakViewCtrl(wxListCtrl):
         self.menu.Append(wxID_BREAKEDIT, 'Edit condition')
         self.menu.Append(wxID_BREAKDELETE, 'Delete')
         self.menu.Append(-1, '-')
-        self.menu.Append(wxID_BREAKENABLED, 'Enabled', checkable = true)
+        self.menu.Append(wxID_BREAKENABLED, 'Enabled', '', true)
         
         self.menu.Check(wxID_BREAKENABLED, true)
 
@@ -259,6 +261,15 @@ class BreakViewCtrl(wxListCtrl):
     def addBreakpoint(self, filename, lineno):
         self.refreshList()
 
+    def selectBreakpoint(self, filename, lineno):
+        idx = 0
+        for bp in self.bps:
+            if bp['filename']==filename and bp['lineno']==lineno:
+                self.SetItemState(idx, SEL_STATE, SEL_STATE)
+                self.EnsureVisible(idx)
+                return
+            idx = idx + 1
+
 ##    def OnBreakpointSelected(self, event):
 ##        self.selection = event.m_itemIndex
 
@@ -333,8 +344,10 @@ class BreakViewCtrl(wxListCtrl):
 
     def OnRightDown(self, event):
         self.pos = event.GetPosition()
+        event.Skip()
 
     def OnRightClick(self, event):
+        event.Skip()
         if not self.pos:
             return
         sel = self.HitTest(self.pos)[0]
@@ -399,7 +412,7 @@ wxID_NSVIEW = NewId()
 class NamespaceViewCtrl(wxListCtrl):
     def __init__(self, parent, add_watch, is_local, name):  # , dict=None):
         wxListCtrl.__init__(self, parent, wxID_NSVIEW,
-          style = wxLC_REPORT | wxLC_SINGLE_SEL )
+          style=wxLC_REPORT|wxLC_SINGLE_SEL|wxLC_VRULES|wxCLIP_CHILDREN)
         self.InsertColumn(0, 'Attribute', wxLIST_FORMAT_LEFT, 125)
         self.InsertColumn(1, 'Value', wxLIST_FORMAT_LEFT, 200)
 
@@ -420,6 +433,7 @@ class NamespaceViewCtrl(wxListCtrl):
         self.menu.Append(idAs, 'Add as watch')
         self.menu.Append(idA, 'Add a %s watch' % name)
         EVT_MENU(self, idAs, self.OnAddAsWatch)
+        EVT_LEFT_DCLICK(self, self.OnAddAsWatch)
         EVT_MENU(self, idA, self.OnAddAWatch)
         self.pos = None
 
@@ -466,8 +480,8 @@ class NamespaceViewCtrl(wxListCtrl):
         #self.dict = dict
 
     def OnAddAsWatch(self, event):
-        if self.rightsel != -1:
-            name = self.names[self.rightsel]
+        if self.selected != -1:
+            name = self.names[self.selected]
             self.add_watch(name, self.is_local)
 
     def OnAddAWatch(self, event):
@@ -475,19 +489,22 @@ class NamespaceViewCtrl(wxListCtrl):
 
     def OnItemSelect(self, event):
         self.selected = event.m_itemIndex
+        event.Skip()
 
     def OnItemDeselect(self, event):
         self.selected = -1
+        event.Skip()
 
     def OnRightDown(self, event):
         self.pos = event.GetPosition()
+        event.Skip()
 
     def OnRightClick(self, event):
         if not self.pos:
             return
-        sel = self.HitTest(self.pos)[0]
-        if sel != -1:
-            self.rightsel = sel
+        #sel = self.HitTest(self.pos)[0]
+        if self.selected != -1:
+            #self.rightsel = sel
             self.PopupMenu(self.menu, self.pos)
 
 ##    def close(self):
@@ -498,7 +515,7 @@ class WatchViewCtrl(wxListCtrl):
 
     def __init__(self, parent, images, debugger):
         wxListCtrl.__init__(self, parent, wxID_WATCHVIEW,
-          style = wxLC_REPORT | wxLC_SINGLE_SEL )
+          style=wxLC_REPORT|wxLC_SINGLE_SEL|wxLC_VRULES|wxCLIP_CHILDREN)
         self.InsertColumn(0, 'Attribute', wxLIST_FORMAT_LEFT, 125)
         self.InsertColumn(1, 'Value', wxLIST_FORMAT_LEFT, 200)
 
@@ -518,7 +535,7 @@ class WatchViewCtrl(wxListCtrl):
         EVT_LIST_ITEM_DESELECTED(self, -1, self.OnItemDeselect)
 
         EVT_RIGHT_DOWN(self, self.OnRightDown)
-        #EVT_COMMAND_RIGHT_CLICK(self, -1, self.OnRightClick)
+        EVT_COMMAND_RIGHT_CLICK(self, -1, self.OnRightClick)
         EVT_RIGHT_UP(self, self.OnRightClick)
 
         self.menu = wxMenu()
@@ -551,6 +568,7 @@ class WatchViewCtrl(wxListCtrl):
         if name:
             if pos < 0 or pos >= len(self.watches):
                 self.watches.append((name, local))
+                pos = len(self.watches)-1
             else:
                 self.watches.insert(pos, (name, local))
         else:
@@ -559,8 +577,11 @@ class WatchViewCtrl(wxListCtrl):
             try:
                 if dlg.ShowModal() == wxID_OK:
                     self.watches.append((dlg.GetValue(), local))
+                    pos = len(self.watches)-1
             finally:
                 dlg.Destroy()
+        self.SetItemState(pos, SEL_STATE, SEL_STATE)
+        self.EnsureVisible(pos)
 
     def showLoading(self):
         self.load_dict(None, loading=1)
@@ -636,18 +657,21 @@ class WatchViewCtrl(wxListCtrl):
 
     def OnItemSelect(self, event):
         self.selected = event.m_itemIndex
+        event.Skip()
 
     def OnItemDeselect(self, event):
         self.selected = -1
+        event.Skip()
 
     def OnRightDown(self, event):
         self.pos = event.GetPosition()
+        event.Skip()
 
     def OnRightClick(self, event):
+        event.Skip()
         if not self.pos:
             return
-##        sel = self.HitTest(self.pos)[0]
-##        self.rightsel = sel
+
         sel = self.selected
 
         self.menu.Enable(self.editId, sel != -1)
@@ -663,9 +687,9 @@ class DebugStatusBar(wxStatusBar):
         self.SetMinHeight(30)
         #self.SetStatusWidths([-1, -1, 16])
 
-        self.stateCols = {'except': wxNamedColour('yellow'),
+        self.stateCols = {'except': wxColour(0xFF, 0xFF, 0x44),#wxNamedColour('yellow'),
                           'info':   wxNamedColour('white'),
-                          'break':  wxNamedColour('red'),
+                          'break':  wxColour(0xFF, 0x44, 0x44),#wxNamedColour('red'),
                           'busy':   wxColour(0xBB, 0xE0, 0xFF)}
 
         self.instr_ptr = wxStaticText(self, -1, ' ', 
@@ -732,7 +756,8 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
     _closing = 0
 
     def __init__(self, editor, filename=None, slave_mode=1):
-        wxFrame.__init__(self, editor, -1, 'Debugger')
+        wxFrame.__init__(self, editor, -1, 'Debugger', 
+              style=wxDEFAULT_FRAME_STYLE|wxCLIP_CHILDREN)
 
         self.winConfOption = 'debugger'
         self.loadDims()
@@ -808,7 +833,8 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
         self.toolbar.ToggleTool(self.debugBrowseId, false)
         
         self.splitter = wxSplitterWindow(self, -1, 
-              style=wxSP_NOBORDER | wxSP_3DSASH | wxSP_FULLSASH)
+               style=wxSP_NOBORDER|wxSP_3DSASH|wxSP_FULLSASH|\
+                     wxSP_LIVE_UPDATE|wxCLIP_CHILDREN)
 
         use_images = (1 or wxPlatform == '__WXMSW__')
         if use_images:
@@ -828,9 +854,9 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
         self.breakpts = BreakViewCtrl(self.nbTop, self)
         self.nbTop.AddPage(self.breakpts, 'Breakpoints', imageId=breaksImgIdx)
 
-
         # Create a Notebook
-        self.nbBottom = wxNotebook(self.splitter, wxID_PAGECHANGED)
+        self.nbBottom = wxNotebook(self.splitter, wxID_PAGECHANGED,
+              style=wxCLIP_CHILDREN)
         EVT_NOTEBOOK_PAGE_CHANGED(self.nbBottom, wxID_PAGECHANGED,
                                   self.OnPageChange)
         if use_images:
@@ -1164,6 +1190,9 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
         set breakpoints when running the client in a different environment
         from the server, you'll need to expand this.
         """
+        # XXX should we .fncache this? Files changing names are undefined 
+        # XXX during the lifetime of the debugger
+        
         from Explorers.Explorer import splitURI, getTransport, all_transports
         
         prot, category, filepath, filename = splitURI(filename)
@@ -1179,11 +1208,6 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
                 raise Exception('No Zope connection for: %s'%filename)
         elif prot == 'zopedebug':
             raise Exception('"zopedebug" is a server filename protocol')
-        
-##        if filename.startswith('file://'):
-##            return filename[7:]
-##        else:
-##            return filename
 
     def serverFNToClientFN(self, filename):
         """Converts a filename on the server to a filename on the client.
@@ -1192,14 +1216,11 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
         set breakpoints when running the client in a different environment
         from the server, you'll need to expand this.
         """
+        # XXX should we .fncache this?
+        
         from Explorers.Explorer import splitURI
         return splitURI(filename)[3]
                 
-##        if filename.find('://') < 0:
-##            return 'file://' + filename
-##        else:
-##            return filename
-
     def deleteBreakpoints(self, filename, lineno):
         fn = self.clientFNToServerFN(filename)
         self.invokeInDebugger('clearBreakpoints', (fn, lineno))
@@ -1293,12 +1314,13 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
                 item['filename'])
         self.breakpts.updateBreakpointStats(breaks)
 
+        self.breakpts.refreshList()
+
         # If at a breakpoint, display status.
         if bplist.hasBreakpoint(filename, lineno):
             bplist.clearTemporaryBreakpoints(filename, lineno)
             self.sb.updateState('Breakpoint.', 'break')
-
-        self.breakpts.refreshList()
+            self.breakpts.selectBreakpoint(filename, lineno)
 
         self.selectSourceLine(filename, lineno)
 
@@ -1313,12 +1335,13 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
         self.refreshTools()
         
     def restoreDebugger(self):
-        if self.editor.palette.IsShown():
-            if self.editor.palette.IsIconized():
-                self.editor.palette.restore()
+        if self.editor:
+            if self.editor.palette.IsShown():
+                if self.editor.palette.IsIconized():
+                    self.editor.palette.restore()
+                    self.editor.restore()
+            elif self.editor.IsIconized():
                 self.editor.restore()
-        elif self.editor.IsIconized():
-            self.editor.restore()
 
     def clearStepPos(self):
         if self.lastStepView is not None:
@@ -1507,4 +1530,3 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
             self.splitter.SplitHorizontally(self.nbTop, self.nbBottom)
             sashpos = self.splitter.GetClientSize().y / 2
         self.splitter.SetSashPosition(sashpos)
-
