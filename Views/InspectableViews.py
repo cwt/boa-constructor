@@ -22,13 +22,27 @@ from Preferences import IS
 import SelectionTags
 from ObjCollection import ObjectCollection, getCollName
 import RTTI
-import methodparse, sender
+import methodparse, sender, sourceconst
 
 import EditorViews
 
-bodyIndent = ' '*8
+bodyIndent = bodyIndent = Utils.getIndentBlock()*2
 
-class InspectableObjectView(EditorViews.EditorView):
+class InspectorSessionMix:
+    def doPost(self, inspector):
+        pass
+
+    def doCancel(self, inspector):
+        pass
+
+    def promptPostOrCancel(self, inspector):
+        pass
+
+    # Up is included because it can exit a session
+    def doUp(self, inspector):
+        pass
+
+class InspectableObjectView(EditorViews.EditorView, InspectorSessionMix):
     """ Base class for Designers
 
     A designer visually maintains one _init_* method in the source.
@@ -83,6 +97,9 @@ class InspectableObjectView(EditorViews.EditorView):
         del self.objects
         del self.senderMapper
         EditorViews.EditorView.destroy(self)
+
+    def doUp(self, inspector):
+        self.controllerView.OnSelectParent()
 
 # XXX Consider building subsets of the tree where possible
 # XXX may become an issue on frames with many controls
@@ -274,7 +291,6 @@ class InspectableObjectView(EditorViews.EditorView):
             for prop, otherRefs in depLinks[ctrlName]:
                 for oRf in otherRefs:
                     if not oRf in self.objectOrder:
-                        print 'applyDepsForCtrl', ctrlName, oRf
                         break
                 else:
                     # Dependent properties are usually one parameter name
@@ -418,6 +434,11 @@ class InspectableObjectView(EditorViews.EditorView):
         for imp in imports:
             module.addImportStatement(imp)
 
+        emptyCodeBlock = newBody == ['']
+
+        if Preferences.cgAddInitMethodWarning:
+            newBody.insert(0, '%s# %s'%(bodyIndent, sourceconst.code_gen_warning))
+
         if module.classes[self.model.main].methods.has_key(\
           self.collectionMethod):
             # Add doc string
@@ -425,19 +446,17 @@ class InspectableObjectView(EditorViews.EditorView):
               self.collectionMethod)
             if (len(docs) > 0) and docs[0]:
                 newBody.insert(0, '%s""" %s """'%(bodyIndent, docs))
+                emptyCodeBlock = false
 
-            if len(newBody):
-                module.replaceMethodBody(self.model.main,
+            if emptyCodeBlock:
+                newBody[-1:-1] = [bodyIndent+'pass']
+
+            module.replaceMethodBody(self.model.main,
                   self.collectionMethod, newBody)
-            else:
-                module.replaceMethodBody(self.model.main,
-                  self.collectionMethod, [bodyIndent+'pass', ''])
         else:
-            if len(newBody):
+            if not emptyCodeBlock:
                 module.addMethod(self.model.main,
                   self.collectionMethod, self.collectionParams, newBody, 0)
-
-        #self.model.refreshFromModule()
 
     def copyCtrls(self, selCtrls, definedCtrls, output):
         """ Write out current source of selection to a text line list.
