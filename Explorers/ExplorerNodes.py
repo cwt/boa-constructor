@@ -217,6 +217,7 @@ class ExplorerNode:
     def open(self, editor):
         return editor.openOrGotoModule(self.resourcepath, transport = self)
     def openParent(self, editor): return false
+    def checkOpenInEditor(self): return false
 
 #---Methods on sub items--------------------------------------------------------
     def deleteItems(self, names): pass
@@ -381,6 +382,7 @@ class CategoryController(Controller):
     def destroy(self):
         self.catMenuDef = ()
         self.toolbarMenus = ()
+        self.menu.Destroy()
 
     def OnInspectItem(self, event):
         if self.list.node:
@@ -615,3 +617,4 @@ class SysPathNode(ExplorerNode):
         for short, entry in self.entries:
             res.append(self.createChildNode(short, entry))
         return res
+ 

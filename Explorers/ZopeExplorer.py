@@ -451,8 +451,6 @@ class ZopeController(ExplorerNodes.Controller, ExplorerNodes.ClipboardController
         ExplorerNodes.ClipboardControllerMix.destroy(self)
         self.zopeMenuDef = ()
         self.toolbarMenus = ()
-
-    def __del__(self):
         self.menu.Destroy()
 
     def OnExportZopeItem(self, event):
@@ -800,3 +798,4 @@ zopeClassMap = { 'Folder': DirNode,
         'Script (Python)': PythonScriptNode,
         'Image': ZopeImageNode,
        }
+ 

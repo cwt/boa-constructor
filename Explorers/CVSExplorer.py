@@ -108,14 +108,14 @@ class CVSController(ExplorerNodes.Controller):
         self.fileCVSMenu = wxMenu()
         self.setupMenu(self.fileCVSMenu, self.list, self.fileCVSMenuDef)
 
-        self.cvsEnvMenu = wxMenu()
-        menus = []
-        for env, id in map(lambda x, v = cvs_environ_vars, i = cvs_environ_ids: \
-            (v[x], i[x]), range(len(cvs_environ_vars))):
-            menus.append( (id, env, self.OnEditEnv, '-') )
-        self.setupMenu(self.cvsEnvMenu, self.list, menus)
-
-        self.fileCVSMenu.AppendMenu(wxID_FSCVSENV, 'CVS shell environment vars', self.cvsEnvMenu)
+##        self.cvsEnvMenu = wxMenu()
+##        menus = []
+##        for env, id in map(lambda x, v = cvs_environ_vars, i = cvs_environ_ids: \
+##            (v[x], i[x]), range(len(cvs_environ_vars))):
+##            menus.append( (id, env, self.OnEditEnv, '-') )
+##        self.setupMenu(self.cvsEnvMenu, self.list, menus)
+##
+##        self.fileCVSMenu.AppendMenu(wxID_FSCVSENV, 'CVS shell environment vars', self.cvsEnvMenu)
 
         self.images = wxImageList(16, 16)
         self.images.Add(IS.load('Images/CvsPics/File.bmp'))
@@ -133,16 +133,13 @@ class CVSController(ExplorerNodes.Controller):
 
         FSCVSFolderNode.images = self.images
 
-    def __del__(self):
-        pass
-##        self.menu.Destroy()
-##        self.fileCVSMenu.Destroy()
-##        self.cvsEnvMenu.Destroy()
-
     def destroy(self):
         self.cvsMenuDef = ()
         self.fileCVSMenuDef = ()
         self.toolbarMenus = ()
+        self.images = None
+        FSCVSFolderNode.images = None
+        self.menu.Destroy()
 
     def getName(self, item):
         name = ExplorerNodes.Controller.getName(self, item)
@@ -685,4 +682,4 @@ class CVSConflictsView(Views.EditorViews.ListCtrlView):
 # Register cvs dirs as a subtype of file explorers
 FileExplorer.PyFileNode.subExplorerReg['folder'].append( 
       (FSCVSFolderNode, isCVS, EditorHelper.imgCVSFolder)
-)
+)    

@@ -34,9 +34,10 @@ class ZipController(ExplorerNodes.Controller, ExplorerNodes.ClipboardControllerM
     def destroy(self):
         ExplorerNodes.ClipboardControllerMix.destroy(self)
         self.toolbarMenus = ()
+        self.menu.Destroy()
 
     def __del__(self):
-        pass#self.menu.Destroy()
+        pass#
 
 class ZipExpClipboard(ExplorerNodes.ExplorerClipboard): pass
 ##    def clipPaste_FileSysExpClipboard(self, node, nodes, mode):
@@ -159,4 +160,4 @@ class ZipFileNode(ZipItemNode):
 # Register zip files as a subtype of file explorers
 FileExplorer.PyFileNode.subExplorerReg['file'].append( 
       (ZipFileNode, isZip, EditorHelper.imgZipFileModel)
-)
+) 

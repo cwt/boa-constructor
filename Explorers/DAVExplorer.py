@@ -79,6 +79,7 @@ class DAVController(ExplorerNodes.Controller, ExplorerNodes.ClipboardControllerM
     def destroy(self):
         ExplorerNodes.ClipboardControllerMix.destroy(self)
         self.toolbarMenus = ()
+        self.menu.Destroy()
 
     def OnInspectItem(self, event):
         if self.list.node:
@@ -313,3 +314,4 @@ class DAVSubCompanion(DAVPropReaderMixin, HelperDTC):
 ##            if self.propItems[idx][0] == name:
 ##                self.propItems[idx] = (name, value)
 ##                break
+ 

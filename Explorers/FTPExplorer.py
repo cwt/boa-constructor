@@ -30,9 +30,8 @@ class FTPController(ExplorerNodes.Controller, ExplorerNodes.ClipboardControllerM
     def destroy(self):
         ExplorerNodes.ClipboardControllerMix.destroy(self)
         self.toolbarMenus = ()
-
-    def __del__(self):
         self.menu.Destroy()
+
 
 ##    def OnOpenFTPItems(self, event):
 ##        if self.list.node:
@@ -181,3 +180,4 @@ class FTPExpClipboard(ExplorerNodes.ExplorerClipboard):
                 self.pasteFileSysFolder(file.resourcepath, nodepath, node.ftpConn)
             else:
                 node.ftpConn.upload(file.resourcepath, nodepath)
+ 

@@ -185,6 +185,9 @@ class PackageFolderList(wxListCtrl):
     def destroy(self):
         if self.node:
             self.node.destroy()
+        self.currImages = None
+        self.items = None
+        self.node = None
 
     def selectItemNamed(self, name):
         for idx in range(self.GetItemCount()):
@@ -323,6 +326,7 @@ class ExplorerSplitter(wxSplitterWindow):
             return None
 
     def destroy(self):
+        self.modimages = None
         self.list.destroy()
         for contr in self.controllers.values():
             contr.destroy()
@@ -447,3 +451,4 @@ class ExplorerSplitter(wxSplitterWindow):
             self.list.SetFocus()
         else:
             event.Skip()
+ 

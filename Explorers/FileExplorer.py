@@ -106,15 +106,16 @@ class FileSysController(ExplorerNodes.Controller, ExplorerNodes.ClipboardControl
 
     def __del__(self):
         pass
-##        self.newMenu.Destroy()
+#        self.newMenu.Destroy()
 ##        self.fileFilterMenu.Destroy()
-##        self.menu.Destroy()
 
     def destroy(self):
         ExplorerNodes.ClipboardControllerMix.destroy(self)
         self.fileFilterMenuDef = ()
         self.fileMenuDef = ()
         self.toolbarMenus = ()
+        self.menu.Destroy()
+#
 
 ##    def OnOpenFSItems(self, event):
 ##        if self.list.node:
@@ -446,3 +447,4 @@ class ResultsFolderNode(PyFileNode):
 class NonCheckPyFolderNode(PyFileNode):
     def isFolderish(self):
         return true
+ 

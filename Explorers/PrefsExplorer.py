@@ -56,23 +56,19 @@ class BoaPrefGroupNode(PreferenceGroupNode):
         self.preferences.append(self.source_pref)
 
         self.general_pref = UsedModuleSrcBsdPrefColNode('General',
-            Preferences.exportedProperties,
-            Preferences.pyPath+'/Preferences.py', prefImgIdx, self,
-            Preferences)
+            Preferences.exportedProperties, os.path.join(Preferences.rcPath, 
+            'prefs.rc.py'), prefImgIdx, self, Preferences)
         self.preferences.append(self.general_pref)
 
-        if wx.wxPlatform == '__WXMSW__':
-            file = 'PrefsMSW.py'
-        else:
-            file = 'PrefsGTK.py'
-        self.general_pref = UsedModuleSrcBsdPrefColNode('Platform',
-            Preferences.exportedProperties2,
-            Preferences.pyPath+'/'+file, prefImgIdx, self, Preferences)
-        self.preferences.append(self.general_pref)
+        self.platform_pref = UsedModuleSrcBsdPrefColNode('Platform',
+            Preferences.exportedProperties2, os.path.join(Preferences.rcPath,
+            'prefs.%s.rc.py' % (wx.wxPlatform == '__WXMSW__' and 'msw' or 'gtk')),
+            prefImgIdx, self, Preferences)
+        self.preferences.append(self.platform_pref)
 
-        self.pychecker_pref = SourceBasedPrefColNode('PyChecker',
-            ('*',), Preferences.pyPath+'/.pycheckrc', prefImgIdx, self)
-        self.preferences.append(self.pychecker_pref)
+##        self.pychecker_pref = SourceBasedPrefColNode('PyChecker',
+##            ('*',), Preferences.pyPath+'/.pycheckrc', prefImgIdx, self)
+##        self.preferences.append(self.pychecker_pref)
 
 
 

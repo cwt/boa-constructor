@@ -24,6 +24,7 @@ class SSHController(ExplorerNodes.Controller, ExplorerNodes.ClipboardControllerM
     def destroy(self):
         ExplorerNodes.ClipboardControllerMix.destroy(self)
         self.toolbarMenus = ()
+        self.menu.Destroy()
 
     def __del__(self):
         pass#self.menu.Destroy()
@@ -191,3 +192,4 @@ class SSHExpClipboard(ExplorerNodes.ExplorerClipboard):
                 self.clipNodes = []
             elif mode == 'copy':
                 node.copyFileFrom(sshNode)
+ 
