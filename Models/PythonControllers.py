@@ -191,9 +191,54 @@ class ModuleController(SourceController):
                     runModel = model.app
                 else:
                     runModel = model
-            runModel.run(runModel.lastRunParams)
+            runModel.run(runModel.lastRunParams, self.execStart, self.execFinish)
         finally:
             wxEndBusyCursor()
+
+##    def execFinish1(self, runner):
+##        model = self.getModel()
+##        editor = model.editor
+##        if editor.erroutFrm:
+##            if editor.palette.IsShown():
+##                editor.palette.restore()
+##            editor.restore()
+##
+##            runner.init(editor.erroutFrm)
+##            errs = runner.recheck()
+##
+##            editor.erroutFrm.processFinished(runner.pid)
+##
+##            if errs:
+##                editor.statusBar.setHint('Finished execution, there were errors', 'Warning')
+##            else:
+##                editor.statusBar.setHint('Finished execution.')
+
+    def execStart(self, pid, program, script):
+        model = self.getModel()
+        editor = model.editor
+        if editor.erroutFrm:
+            editor.erroutFrm.processStarted(program, pid, script) 
+
+    def execFinish(self, runner):
+        model = self.getModel()
+        editor = model.editor
+        if editor.erroutFrm:
+            if editor.palette.IsShown():
+                editor.palette.restore()
+            editor.restore()
+
+            runner.init(editor.erroutFrm)
+            errs = runner.recheck()
+
+            editor.erroutFrm.processFinished(runner.pid)
+
+            if errs:
+                editor.statusBar.setHint('Finished execution, there were errors', 
+                                         'Warning')
+            else:
+                editor.statusBar.setHint('Finished execution.')
+
+
 
     def OnDebug(self, event):
         self.OnDebugApp(event, self.getModel())
@@ -253,9 +298,9 @@ class ModuleController(SourceController):
                       os.path.join(Preferences.pyPath, 'ExternalLib',
                       'pychecker_custom.py'), os.path.basename(filename))
 
-                ProcessModuleRunner(self.editor.erroutFrm, model.app,
-                      newCwd).run(cmd, ErrorStack.PyCheckerErrorParser,
-                      'PyChecker', 'Warning', true)
+                ProcessModuleRunner(self.editor.erroutFrm, newCwd).run(cmd, 
+                      ErrorStack.PyCheckerErrorParser, 'PyChecker', 'Warning', 
+                      true)
             finally:
                 sys.path = oldSysPath
                 sys.stderr = oldErr
@@ -422,8 +467,9 @@ class BaseAppController(ModuleController):
 
     def createNewModel(self, modelParent=None):
         appName = self.editor.getValidName(self.Model)
-        appModel = self.createModel('', appName, appName[:-3], false)
-        appModel.transport = self.newFileTransport(appName[:-3], appName)
+        main = appName[7:-3]
+        appModel = self.createModel('', appName, main, false)
+        appModel.transport = self.newFileTransport(main, appName)
 
         return appModel, appName
 
@@ -485,7 +531,7 @@ class PackageController(ModuleController):
 
     def createNewModel(self, modelParent=None):
         name = '__init__.py'
-        filename, success = self.editor.saveAsDlg(name, dont_pop=1)
+        filename, success = self.editor.saveAsDlg(name)
         if success:
             model = self.createModel(sourceconst.defPackageSrc, filename, '', false)
             model.transport = self.newFileTransport(name, filename)
@@ -564,7 +610,7 @@ class SetupController(ModuleController):
         filedir = os.path.dirname(filename)
         os.chdir(filedir)
         try:
-            ProcessModuleRunner(self.editor.erroutFrm, model.app, filedir).run(\
+            ProcessModuleRunner(self.editor.erroutFrm, filedir).run(\
             '"%s" setup.py %s'%(`Preferences.getPythonInterpreterPath()`[1:-1], cmd),
             caption='Running distutil command...')
         finally:
@@ -585,7 +631,8 @@ class SetupController(ModuleController):
     def OnSetupBDist_RPM(self, event):
         self.runDistUtilsCmd('bdist_rpm')
     def OnSetupParams(self, event):
-        dlg = wxTextEntryDialog(self.editor, 'Edit setup.py arguments', 'Distutils setup', '')
+        dlg = wxTextEntryDialog(self.editor, 'Edit setup.py arguments', 
+                                'Distutils setup', '')
         try:
             if dlg.ShowModal() == wxID_OK:
                 self.runDistUtilsCmd(dlg.GetValue())
@@ -633,6 +680,7 @@ from Explorers import ExplorerNodes, FileExplorer
 
 def isPackage(filename):
     return os.path.exists(os.path.join(filename, PythonEditorModels.PackageModel.pckgIdnt))
+
 FileExplorer.FileSysNode.subExplorerReg['folder'].append(
   (FileExplorer.FileSysNode, isPackage, PythonEditorModels.PackageModel.imgIdx),
 )
