@@ -11,7 +11,7 @@
 # Licence:     GPL
 #----------------------------------------------------------------------
 
-import Preferences
+import Preferences, Utils
 from Preferences import IS
 from os import path
 
@@ -26,7 +26,7 @@ from Companions.Companions import *
 
 if Utils.IsComEnabled():
     print 'importing Companions.ComCompanions'
-    from Companions.ComCompanions import *    
+    from Companions.ComCompanions import *
 
 print 'importing Companions.UserCompanions'
 try:
