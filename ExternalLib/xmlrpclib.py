@@ -493,6 +493,7 @@ else:
             except KeyError:
                 self.handle_data("&%s;" % entity)
 
+expat_encodings = ('ascii', 'utf-8', 'utf-16', 'iso8859-1', 'latin-1')
 try:
     from xml.parsers import expat
     if not hasattr(expat, "ParserCreate"):
@@ -506,6 +507,8 @@ else:
         def __init__(self, target):
             try:
                 encoding = sys.getdefaultencoding()
+                if encoding not in expat_encodings:
+                    encoding = 'utf-8'
             except AttributeError:
                 encoding = None
             self._parser = parser = expat.ParserCreate(encoding, None)
