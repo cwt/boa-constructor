@@ -160,14 +160,30 @@ class PersistentController(EditorController):
     def OnSave(self, event):
         try:
             self.editor.activeModSaveOrSaveAs()
-        except ExplorerNodes.TransportSaveError, error:
-            wxLogError(str(error))
+        except ExplorerNodes.TransportModifiedSaveError, err:
+            errStr = err.args[0]
+            if errStr == 'Reload':
+                self.OnReload(event)
+            elif errStr == 'Cancel':
+                pass
+            else:
+                wxLogError(str(err))
+        except ExplorerNodes.TransportSaveError, err:
+            wxLogError(str(err))
 
     def OnSaveAs(self, event):
         try:
             self.editor.activeModSaveOrSaveAs(forceSaveAs=true)
-        except ExplorerNodes.TransportSaveError, error:
-            wxLogError(str(error))
+        except ExplorerNodes.TransportModifiedSaveError, err:
+            errStr = err.args[0]
+            if errStr == 'Reload':
+                self.OnReload(event)
+            elif errStr == 'Cancel':
+                pass
+            else:
+                wxLogError(str(err))
+        except ExplorerNodes.TransportSaveError, err:
+            wxLogError(str(err))
 
     def OnReload(self, event):
         model = self.getModel()

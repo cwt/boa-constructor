@@ -191,14 +191,19 @@ class BasePersistentModel(EditorModel):
         self.update()
         if notify: self.notify()
 
-    def save(self):
+    def save(self, overwriteNewer=false):
         """ Saves contents of data to file specified by self.filename. """
         if not self.transport:
             raise 'No transport for saving'
 
         if self.filename:
             filename = self.transport.assertFilename(self.filename)
-            self.transport.save(filename, self.data, mode=self.fileModes[1])
+            # this check is to minimise interface change.
+            if overwriteNewer:
+                self.transport.save(filename, self.data, mode=self.fileModes[1], 
+                      overwriteNewer=true)
+            else:
+                self.transport.save(filename, self.data, mode=self.fileModes[1])
             self.modified = false
             self.saved = true
 

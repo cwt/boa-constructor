@@ -241,21 +241,17 @@ class ModuleController(SourceController):
     def OnDebugApp(self, event=None, debugModel=None):
         model = self.getModel()
         if self.checkUnsaved(model): return
-        wxBeginBusyCursor()
-        try:
-            if debugModel is None:
-                if model.app:
-                    debugModel = model.app
-                else:   
-                    debugModel = model
-            
-            if debugModel.lastRunParams:
-                params = methodparse.safesplitfields(debugModel.lastRunParams, ' ')
-            else:
-                params = None
-            debugModel.debug(params, cont_if_running=1)
-        finally:
-            wxEndBusyCursor()
+        if debugModel is None:
+            if model.app:
+                debugModel = model.app
+            else:   
+                debugModel = model
+        
+        if debugModel.lastRunParams:
+            params = methodparse.safesplitfields(debugModel.lastRunParams, ' ')
+        else:
+            params = None
+        debugModel.debug(params, cont_if_running=1)
 
     def OnDebugStepIn(self, event):
         if self.editor.debugger:
@@ -300,25 +296,6 @@ class ModuleController(SourceController):
                 resultView.diffWith = filename
                 resultView.refresh()
                 resultView.focus()
-
-    def OnCyclops(self, event):
-        model = self.getModel()
-        if model:
-            wxBeginBusyCursor()
-            try:
-                report = model.cyclops()
-            finally:
-                wxEndBusyCursor()
-
-            resName = 'Cyclops report: %s'%strftime('%H:%M:%S', gmtime(time()))
-            if not model.views.has_key(resName):
-                resultView = self.editor.addNewView(resName, EditorViews.CyclopsView)
-            else:
-                resultView = model.views[resName]
-            resultView.tabName = resName
-            resultView.report = report
-            resultView.refresh()
-            resultView.focus()
 
     def OnRunPyChecker(self, event):
         model = self.getModel()
