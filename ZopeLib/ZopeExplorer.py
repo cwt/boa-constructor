@@ -1023,7 +1023,7 @@ def uriSplitZopeDebug(filename, filepath):
     if len(segs) < 3:
         raise ExplorerNodes.TransportCategoryError(
               'Zope debug path invalid', filepath)
-    host, filepath, meta = segs[0], segs[1:-1], segs[-1]
+    host, filepaths, meta = segs[0], segs[1:-1], segs[-1]
     try:               host, port = string.split(host, ':')
     except ValueError: port = 80
     else:              port = int(port)
@@ -1036,10 +1036,10 @@ def uriSplitZopeDebug(filename, filepath):
                 props = itm.properties
                 if lw(props['host']) == lw(host) and \
                       props['httpport'] == port:
-                    filepath = string.join(filepath, '/')
+                    path = string.join(filepaths, '/')
                     name = itm.name or itm.treename
-                    return 'zope', '%s|%s' %(name, meta), filepath, \
-                           'zope://%s/<%s>/%s'%(name, meta, filepath)
+                    return 'zope', '%s|%s' %(name, meta), path, \
+                           'zope://%s/<%s>/%s'%(name, meta, path)
 
     raise ExplorerNodes.TransportCategoryError(\
           'Could not map Zope debug path to defined Zope Category item',
