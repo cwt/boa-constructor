@@ -1,5 +1,7 @@
 import threading
 
+PRINT_TRACEBACKS = 0
+
 class ThreadedTaskHandler:
     '''Rather than creating a new thread for each task, reuses existing
     threads for speed.
@@ -77,10 +79,11 @@ class ThreadedTaskHandler:
                     exit_loop = 1
                     self.running_threads = self.running_threads - 1
                 except:
-                    # The task ought to do its own error handling,
-                    # but sometimes it doesn't.
-                    import traceback
-                    traceback.print_exc()
+                    if PRINT_TRACEBACKS:
+                        # The task ought to do its own error handling,
+                        # but sometimes it doesn't.
+                        import traceback
+                        traceback.print_exc()
 
 
 if __name__ == '__main__':
