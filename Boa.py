@@ -577,6 +577,14 @@ class BoaApp(wxApp):
             sys.stderr = Utils.ErrorLoggerPF()
             sys.stdout = Utils.OutputLoggerPF()
 
+        if Preferences.exWorkingDirectory:
+            try:
+                os.chdir(Preferences.exWorkingDirectory)
+            except OSError, err:
+                startupErrors.append('Could not set working directory from '\
+                      'Preferences.exWorkingDirectory :')
+                startupErrors.append(str(err))
+
         if startupErrors:
             for error in startupErrors:
                 wxLogError(error)
@@ -590,9 +598,6 @@ class BoaApp(wxApp):
             EVT_MENU(self.tbicon, self.TBMENU_RESTORE, self.OnTaskBarActivate)
             EVT_MENU(self.tbicon, self.TBMENU_CLOSE, self.OnTaskBarClose)
             EVT_MENU(self.tbicon, self.TBMENU_ABOUT, self.OnTaskBarAbout)
-
-        if Preferences.exWorkingDirectory:
-            os.chdir(Preferences.exWorkingDirectory)
 
         editor.assureRefreshed()
 
