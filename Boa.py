@@ -81,10 +81,16 @@ def processArgs(argv):
     _startupfile = ''
     _startupModules = ()
     import getopt
-    optlist, args = getopt.getopt(argv, 'CDTSBO:ERNHVhv', 
+    try:
+        optlist, args = getopt.getopt(argv, 'CDTSBO:ERNHVhv', 
          ['Constricted', 'Debug', 'Trace', 'StartupFile', 'BlockHomePrefs', 
           'OverridePrefsDirName', 'EmptyEditor', 'RemoteDebugServer', 
           'NoCmdLineTransfer', 'Help', 'Version', 'help', 'version'])
+    except getopt.GetoptError, err:
+        print 'Error: %s'%str(err)
+        print 'For options: Boa.py --help'
+        sys.exit()
+        
     if (('-D', '') in optlist or ('--Debug', '') in optlist) and len(args):
         # XXX should be able to 'debug in running Boa'
         _doDebug = 1
@@ -146,11 +152,13 @@ def processArgs(argv):
         print '-E, --EmptyEditor:'
         print "\tDon't open the files that were open last time Boa was closed."
         print '-R, --RemoteDebugServer:'
-        print "\tRuns the first filename passed on the command-line in a "
-        print "\tRemote Debugger Server that can be connected to over a socket."
+        print '\tRuns the first filename passed on the command-line in a '
+        print '\tRemote Debugger Server that can be connected to over a socket.'
         print '-N, --NoCmdLineTransfer:'
         print "\tDon't transfer command line options to a running Boa, start a "
-        print "\tnew instance."
+        print '\tnew instance.'
+        print '-H, --Help, --help:'
+        print '\tThis page.'
 
         sys.exit()
 
