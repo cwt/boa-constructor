@@ -71,6 +71,7 @@ class StackErrorParser:
 #        self.lines.append(s)
 
 def buildErrorList(lines):
+#    print 'buildErrorList', lines
     errs = []
     currerr = []
     
@@ -81,6 +82,8 @@ def buildErrorList(lines):
             currerr = []
         else:
             currerr.append(line)
+    if currerr:
+        errs.append(currerr)
     errs.reverse()
 
     # undo :)
@@ -100,9 +103,11 @@ class StdErrErrorParser(StackErrorParser):
     def parse(self):
         if len(self.lines) >= 2:
             self.error = list(string.split(self.lines.pop(), ': '))
+            self.error[1] = string.strip(self.error[1])
+#            print self.lines
 #            self.error.append(string.find(self.lines.pop(), '^'))
-            for idx in range(0, len(self.lines) -1):
-                mo = fileLine.match(self.lines[idx])
+            for idx in range(len(self.lines)):
+                mo = fileLine.match(string.rstrip(self.lines[idx]))
                 if mo:
                     self.stack.append(StackEntry(mo.group('filename'), 
                           int(mo.group('lineno')), self.lines[idx + 1]))
@@ -180,15 +185,10 @@ def crashError(file):
     except IOError:
         return []
 
+resp = {0 : 'failed', 1: 'succeeded'}
 def test():
-    class pf:
-        def __init__(self, data):
-            self.data = data
-        def readlines(self):
-            return self.data
-            
     tb = [tb_id+'\n',
-          '  File "Views\AppViews.py", line 172, in OnRun\n',
+          '  File "Views\\AppViews.py", line 172, in OnRun\n',
           '    self.model.run()\n',
           '  File "EditorModels.py", line 548, in run\n',
           "    self.checkError(c, 'Ran')",
@@ -196,13 +196,44 @@ def test():
           '    err.parse()\n',
           'AttributeError: parse\n',
           tb_id+'\n',
-          '  File "Views\AppViews.py", line 172, in OnRun\n',
+          '  File "Views\\AppViews.py", line 172, in OnRun\n',
           '    self.model.run()\n',
           '  File "EditorModels.py", line 548, in run\n',
           "    self.checkError(c, 'Ran')",
           '  File "EditorModels.py", line 513, in checkError\n',
           '    err.parse()\n',
           'AttributeError: parse\n']
-    return errorList(pf(tb))
+    tb_answ = '''[['AttributeError', 'parse']
+[File "Views\\AppViews.py", line 172
+    self.model.run()
+,
+ File "EditorModels.py", line 548
+    self.checkError(c, 'Ran'),
+ File "EditorModels.py", line 513
+    err.parse()
+], ['AttributeError', 'parse']
+[File "Views\\AppViews.py", line 172
+    self.model.run()
+,
+ File "EditorModels.py", line 548
+    self.checkError(c, 'Ran'),
+ File "EditorModels.py", line 513
+    err.parse()
+]]'''
+    tb2 = ['  File "Views\\SelectionTags.py", line 23\012', 
+            '    :\012', 
+            '    ^\012', 
+            'SyntaxError: invalid syntax\012']
+    tb2_answ = '''[['SyntaxError', 'invalid syntax']
+[File "Views\\SelectionTags.py", line 23
+    :
+]]'''
+    long_traceback = str(buildErrorList(tb))
+    print 'long traceback test', resp[long_traceback == tb_answ]
+    
+    short_traceback = str(buildErrorList(tb2))
+    print 'short traceback test', resp[short_traceback == tb2_answ]
+    print short_traceback, tb2_answ
 
-test()
+if 0:
+    test()
