@@ -37,7 +37,11 @@ htmlPath = '''<body bgcolor="#%x%x%x"><font size=-1><a href="ROOT">top</a> |
 htmlLnk = '''<a href="%s">%s</a>'''
 htmlCurrItem = '''<b><font color="#0000BB">%s</font></b>'''
 
-[wxID_WXBOAFILEDIALOG, wxID_WXBOAFILEDIALOGBTCANCEL, wxID_WXBOAFILEDIALOGBTOK, wxID_WXBOAFILEDIALOGCHTYPES, wxID_WXBOAFILEDIALOGHTMLWINDOW1, wxID_WXBOAFILEDIALOGSTATICTEXT1, wxID_WXBOAFILEDIALOGSTATICTEXT2, wxID_WXBOAFILEDIALOGTCFILENAME] = map(lambda _init_ctrls: wxNewId(), range(8))
+[wxID_WXBOAFILEDIALOG, wxID_WXBOAFILEDIALOGBTCANCEL, wxID_WXBOAFILEDIALOGBTOK, 
+ wxID_WXBOAFILEDIALOGCHTYPES, wxID_WXBOAFILEDIALOGHTMLWINDOW1, 
+ wxID_WXBOAFILEDIALOGSTATICTEXT1, wxID_WXBOAFILEDIALOGSTATICTEXT2, 
+ wxID_WXBOAFILEDIALOGTCFILENAME, 
+] = map(lambda _init_ctrls: wxNewId(), range(8))
 
 class wxBoaFileDialog(wxDialog, Utils.FrameRestorerMixin):
     currentDir = '.'
@@ -47,41 +51,71 @@ class wxBoaFileDialog(wxDialog, Utils.FrameRestorerMixin):
     _fontWidthFudge = 0.925
     _custom_classes = {'wxHtmlWindow': ['wxUrlClickHtmlWindow']}
     def _init_utils(self):
+        # generated method, don't edit
         pass
 
     def _init_ctrls(self, prnt):
-        wxDialog.__init__(self, id = wxID_WXBOAFILEDIALOG, name = 'wxBoaFileDialog', parent = prnt, pos = wxPoint(369, 279), size = wxSize(408, 283), style = wxRESIZE_BORDER | wxDEFAULT_DIALOG_STYLE | wxCLIP_CHILDREN, title = 'File Dialog')
+        # generated method, don't edit
+        wxDialog.__init__(self, id=wxID_WXBOAFILEDIALOG, name='wxBoaFileDialog',
+              parent=prnt, pos=wxPoint(369, 279), size=wxSize(408, 283),
+              style=wxRESIZE_BORDER | wxDEFAULT_DIALOG_STYLE | wxCLIP_CHILDREN,
+              title='File Dialog')
         self._init_utils()
         self.SetAutoLayout(true)
         self.SetClientSize(wxSize(400, 256))
         self.SetSizeHints(250, 200, -1, -1)
 
-        self.staticText1 = wxStaticText(id = wxID_WXBOAFILEDIALOGSTATICTEXT1, label = 'File name:', name = 'staticText1', parent = self, pos = wxPoint(8, 192), size = wxSize(70, 16), style = 0)
-        self.staticText1.SetConstraints(LayoutAnchors(self.staticText1, true, false, false, true))
+        self.staticText1 = wxStaticText(id=wxID_WXBOAFILEDIALOGSTATICTEXT1,
+              label='File name:', name='staticText1', parent=self,
+              pos=wxPoint(8, 192), size=wxSize(80, 16), style=0)
+        self.staticText1.SetConstraints(LayoutAnchors(self.staticText1, true,
+              false, false, true))
 
-        self.staticText2 = wxStaticText(id = wxID_WXBOAFILEDIALOGSTATICTEXT2, label = 'Files of type:', name = 'staticText2', parent = self, pos = wxPoint(8, 224), size = wxSize(70, 16), style = 0)
-        self.staticText2.SetConstraints(LayoutAnchors(self.staticText2, true, false, false, true))
+        self.staticText2 = wxStaticText(id=wxID_WXBOAFILEDIALOGSTATICTEXT2,
+              label='Files of type:', name='staticText2', parent=self,
+              pos=wxPoint(8, 221), size=wxSize(80, 16), style=0)
+        self.staticText2.SetConstraints(LayoutAnchors(self.staticText2, true,
+              false, false, true))
 
-        self.tcFilename = wxTextCtrl(id = wxID_WXBOAFILEDIALOGTCFILENAME, name = 'tcFilename', parent = self, pos = wxPoint(90, 184), size = wxSize(214, 24), style = wxTE_PROCESS_ENTER, value = '')
-        self.tcFilename.SetConstraints(LayoutAnchors(self.tcFilename, true, false, true, true))
-        EVT_TEXT_ENTER(self.tcFilename, wxID_WXBOAFILEDIALOGTCFILENAME, self.OnTcfilenameTextEnter)
+        self.tcFilename = wxTextCtrl(id=wxID_WXBOAFILEDIALOGTCFILENAME,
+              name='tcFilename', parent=self, pos=wxPoint(96, 184),
+              size=wxSize(208, 24), style=wxTE_PROCESS_ENTER, value='')
+        self.tcFilename.SetConstraints(LayoutAnchors(self.tcFilename, true,
+              false, true, true))
+        EVT_TEXT_ENTER(self.tcFilename, wxID_WXBOAFILEDIALOGTCFILENAME,
+              self.OnTcfilenameTextEnter)
         EVT_KEY_DOWN(self.tcFilename, self.OnTcfilenameKeyDown)
 
-        self.chTypes = wxChoice(choices = self.filterOpts, id = wxID_WXBOAFILEDIALOGCHTYPES, name = 'chTypes', parent = self, pos = wxPoint(90, 216), size = wxSize(214, 21), style = 0, validator = wxDefaultValidator)
-        self.chTypes.SetConstraints(LayoutAnchors(self.chTypes, true, false, true, true))
-        EVT_CHOICE(self.chTypes, wxID_WXBOAFILEDIALOGCHTYPES, self.OnChtypesChoice)
+        self.chTypes = wxChoice(choices=self.filterOpts,
+              id=wxID_WXBOAFILEDIALOGCHTYPES, name='chTypes', parent=self,
+              pos=wxPoint(96, 216), size=wxSize(208, 21), style=0,
+              validator=wxDefaultValidator)
+        self.chTypes.SetConstraints(LayoutAnchors(self.chTypes, true, false,
+              true, true))
+        EVT_CHOICE(self.chTypes, wxID_WXBOAFILEDIALOGCHTYPES,
+              self.OnChtypesChoice)
 
-        self.btOK = wxButton(id = wxID_WXBOAFILEDIALOGBTOK, label = 'OK', name = 'btOK', parent = self, pos = wxPoint(320, 184), size = wxSize(72, 24), style = 0)
-        self.btOK.SetConstraints(LayoutAnchors(self.btOK, false, false, true, true))
+        self.btOK = wxButton(id=wxID_WXBOAFILEDIALOGBTOK, label='OK',
+              name='btOK', parent=self, pos=wxPoint(320, 184), size=wxSize(72,
+              24), style=0)
+        self.btOK.SetConstraints(LayoutAnchors(self.btOK, false, false, true,
+              true))
         EVT_BUTTON(self.btOK, wxID_WXBOAFILEDIALOGBTOK, self.OnBtokButton)
 
-        self.btCancel = wxButton(id = wxID_WXBOAFILEDIALOGBTCANCEL, label = 'Cancel', name = 'btCancel', parent = self, pos = wxPoint(320, 216), size = wxSize(72, 24), style = 0)
-        self.btCancel.SetConstraints(LayoutAnchors(self.btCancel, false, false, true, true))
-        EVT_BUTTON(self.btCancel, wxID_WXBOAFILEDIALOGBTCANCEL, self.OnBtcancelButton)
+        self.btCancel = wxButton(id=wxID_WXBOAFILEDIALOGBTCANCEL,
+              label='Cancel', name='btCancel', parent=self, pos=wxPoint(320,
+              216), size=wxSize(72, 24), style=0)
+        self.btCancel.SetConstraints(LayoutAnchors(self.btCancel, false, false,
+              true, true))
+        EVT_BUTTON(self.btCancel, wxID_WXBOAFILEDIALOGBTCANCEL,
+              self.OnBtcancelButton)
 
-        self.htmlWindow1 = wxUrlClickHtmlWindow(id = wxID_WXBOAFILEDIALOGHTMLWINDOW1, name = 'htmlWindow1', parent = self, pos = wxPoint(8, 0), size = self._htmlWinSize)
+        self.htmlWindow1 = wxUrlClickHtmlWindow(id=wxID_WXBOAFILEDIALOGHTMLWINDOW1,
+              name='htmlWindow1', parent=self, pos=wxPoint(8, 0),
+              size=wxSize(392, 20))
         self.htmlWindow1.SetBackgroundColour(self.htmlBackCol)
-        self.htmlWindow1.SetConstraints(LayoutAnchors(self.htmlWindow1, true, true, true, false))
+        self.htmlWindow1.SetConstraints(LayoutAnchors(self.htmlWindow1, true,
+              true, true, false))
 
     def __init__(self, parent, message='Choose a file', defaultDir='.', defaultFile='', wildcard='', style=wxOPEN, pos=wxDefaultPosition):
         self.htmlBackCol = wxColour(192, 192, 192)
@@ -449,6 +483,10 @@ class wxBoaFileDialog(wxDialog, Utils.FrameRestorerMixin):
 
         try:
             prot, cat, res, _uri = Explorer.splitURI(openuri)
+            
+            if prot not in ExplorerNodes.fileOpenDlgProtReg:
+                return None
+                
             if catFile:
                 res = os.path.dirname(res)
             return Explorer.getTransport(prot, cat, res, self.transports)
@@ -467,6 +505,9 @@ class wxBoaFileDialog(wxDialog, Utils.FrameRestorerMixin):
                     raise
             else:
                 raise
+        except Explorer.TransportError, err:
+            FileOpenDlg
+            
 
 #---wxFileDialog lookalike meths------------------------------------------------
 
@@ -624,9 +665,7 @@ class FileDlgFolderList(Explorer.BaseExplorerList):
         transports.protocol = 'root'
 
         conf = Utils.createAndReadConfig('Explorer')
-        catnode = FileExplorer.FileSysCatNode(None, conf, transports, None)
-        transports.entries.append(catnode)
-        transportsByProtocol = {'file': catnode}
+        transportsByProtocol = {}
 
         catnode = ExplorerNodes.BookmarksCatNode(None, conf, transports, transports)
         transports.entries.insert(0, catnode)
