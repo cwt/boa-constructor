@@ -58,7 +58,9 @@ class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView):
               ('-', None, '', ()),
               ('Find', self.OnFind, self.findBmp, keyDefs['Find']),
               ('Find again', self.OnFindAgain, self.findAgainBmp, keyDefs['FindAgain']),
-              ('Mark place', self.OnMarkPlace, '-', keyDefs['MarkPlace']))
+              ('Mark place', self.OnMarkPlace, '-', keyDefs['MarkPlace']),
+              ('Goto line', self.OnGotoLine, '-', keyDefs['GotoLine']),
+              )
 
         EditorViews.EditorView.__init__(self, model, a + actions, defaultAction)
 
@@ -322,6 +324,15 @@ class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView):
         self.model.editor.addBrowseMarker(lineno)
         wxYield()
         self.MarkerDelete(lineno, markPlaceMrk)
+
+    def OnGotoLine(self, event):
+        dlg = wxTextEntryDialog(self, 'Enter line number:', 'Goto line', '')
+        try:
+            if dlg.ShowModal() == wxID_OK:
+                if dlg.GetValue():
+                    self.GotoLine(int(dlg.GetValue()))
+        finally:
+            dlg.Destroy()
 
 
 class PythonDisView(EditorStyledTextCtrl, PythonStyledTextCtrlMix):#, BrowseStyledTextCtrlMix, FoldingStyledTextCtrlMix):
