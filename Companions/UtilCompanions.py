@@ -195,10 +195,10 @@ class AcceleratorTableEntriesCDTC(AcceleratorTableEntriesConstr, CollectionDTC):
         return `self.textConstrLst[self.index].params.values()`
 
     def initialiser(self):
-        return ['        %s = []'%self.__class__.sourceObjName, '']
+        return ['%s%s = []'%(sourceconst.bodyIndent, self.__class__.sourceObjName), '']
 
     def finaliser(self):
-        return ['', '        return %s' %self.__class__.sourceObjName]
+        return ['', '%sreturn %s' %(sourceconst.bodyIndent, self.__class__.sourceObjName)]
 
     def applyDesignTimeDefaults(self, params):
         return
@@ -330,17 +330,6 @@ class MenuItemsCIDTC(MenuItemsConstr, BaseMenuItemsCIDTC):
         insp.pages.SetSelection(2)
         insp.events.doAddEvent('MenuEvent', 'EVT_MENU')
 
-    def generateWindowId(self, idx):
-        return
-##        if self.designer:
-##            oldId = self.textConstrLst[idx].params[self.idProp]
-##            newId = self.newWinId('%s%d' % (self.propName, idx))
-##
-##            if oldId != newId:
-##                self.textConstrLst[idx].params[self.idProp] = newId
-##                for evt in self.textEventList:
-##                    if evt.windowid == oldId:
-##                        evt.windowid = newId
 
 class MenuItemsSepCIDTC(MenuItemsSepConstr, CollectionDTC):
     #wxDocs = HelpCompanions.wxMenuDocs
@@ -350,11 +339,6 @@ class MenuItemsSepCIDTC(MenuItemsSepConstr, CollectionDTC):
     insertionMethod = 'AppendSeparator'
     idProp = 'id'
     idPropNameFrom = 'item'
-
-##    def __init__(self, name, designer, parentCompanion, ctrl):
-##        CollectionIddDTC.__init__(self, name, designer, parentCompanion, ctrl)
-##        self.editors.update({'Checkable': BoolConstrPropEdit,
-##                            })
 
     def properties(self):
         props = CollectionDTC.properties(self)
@@ -404,18 +388,6 @@ class MenuItemsMenuCIDTC(MenuItemsMenuConstr, BaseMenuItemsCIDTC):
 ##        insp = self.designer.inspector
 ##        insp.pages.SetSelection(2)
 ##        insp.events.doAddEvent('MenuEvent', 'EVT_MENU')
-
-    def generateWindowId(self, idx):
-        return
-##        if self.designer:
-##            oldId = self.textConstrLst[idx].params[self.idProp]
-##            newId = self.newWinId('%s%d' % (self.propName, idx))
-##
-##            if oldId != newId:
-##                self.textConstrLst[idx].params[self.idProp] = newId
-##                for evt in self.textEventList:
-##                    if evt.windowid == oldId:
-##                        evt.windowid = newId
 
 class MenuBarDTC(MenuBarConstr, UtilityDTC):#DesignTimeCompanion):
     #wxDocs = HelpCompanions.wxMenuBarDocs
@@ -531,7 +503,8 @@ class OwnedCollectionDTC(CollectionDTC):
             if textProp.prop_setter == self.linkProperty:
                 textProp.params[0] = collInitParse.asText()
 
-
+# XXX Support for Constraints have been dropped
+# XXX This class left for educational purposes
 class IndividualLayoutConstraintOCDTC(LayoutConstraintsConstr, OwnedCollectionDTC):
     #wxDocs = HelpCompanions.wxIndividualLayoutConstraintDocs
     propName = 'Constraints'
@@ -594,10 +567,12 @@ class IndividualLayoutConstraintOCDTC(LayoutConstraintsConstr, OwnedCollectionDT
                 'margin':    '0'}
 
     def initialiser(self):
-        return ['        %s = wxLayoutConstraints()'%self.__class__.sourceObjName, '']
+        return ['%s%s = wxLayoutConstraints()'%(sourceconst.bodyIndent, 
+                self.__class__.sourceObjName), '']
 
     def finaliser(self):
-        return ['', '        return %s' %self.__class__.sourceObjName]
+        return ['', '%sreturn %s' %(sourceconst.bodyIndent, 
+                self.__class__.sourceObjName)]
 
     def availableItems(self):
         result = ['left', 'right', 'top', 'bottom', 'width', 'height', 'centreX', 'centreY']
