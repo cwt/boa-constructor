@@ -142,6 +142,7 @@ class wxHelpFrameEx:
         else:
             self.toolbar, self.splitter = self.frame.GetChildren()
         self.html, nav = self.splitter.GetChildren()
+        self.html = wxPyTypeCast(self.html, 'wxHtmlWindow')
 
         # handle 2.3.3 change
         if isinstance(nav, wxNotebookPtr):
