@@ -301,9 +301,10 @@ class UMLView(PersistentOGLView):
 
     def processLevel(self, dc, hierc, pos, incx, fromShape = None):
         for clss in hierc.keys():
-            if self.model.module.classes.has_key(clss):
+            module = self.model.getModule()
+            if module.classes.has_key(clss):
                 toShape = self.newClass((20, 30), (pos[0], pos[1]), 
-                  clss, self.model.module.classes[clss].methods.keys())
+                  clss, module.classes[clss].methods.keys())
                 if fromShape:
                     self.newLine(dc, toShape, fromShape)
                 k = hierc[clss].keys()
@@ -331,7 +332,8 @@ class UMLView(PersistentOGLView):
         
         self.destroyShapes()
 
-        hierc = self.model.module.createHierarchy()
+        module = self.model.getModule()
+        hierc = module.createHierarchy()
 
         pos = [40, 40]
         
