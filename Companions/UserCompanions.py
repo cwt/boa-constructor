@@ -2,7 +2,7 @@
 # Name:        UserCompanions.py
 # Purpose:     Add your own companion classes to this module
 #              If you wish to define companion in separate modules, import
-#              their into this module. Use from module import *
+#              their contents into this module. Use from module import *
 #
 # Created:     2001/02/04
 # RCS-ID:      $Id$
@@ -10,7 +10,7 @@
 
 from wxPython.wx import *
 
-import BaseCompanions, Companions, HelpCompanions, EventCollections
+import BaseCompanions, Companions, HelpCompanions, EventCollections, PropEdit
 import PaletteStore
 
 # Defines a new page for the palette
@@ -22,6 +22,7 @@ PaletteStore.palette.append(['User', 'Editor/Tabs/User',
 # Objects which Boa will need at design-time needs to be imported into the
 # Companion module's namespace
 from wxPython.lib.bcrtl.user.ExampleST import *
+from wxPython.lib.bcrtl.user.StaticTextCtrl import wxStaticTextCtrl
 
 # Silly barebones example of a companion for a new component that is not
 # available in the wxPython distribution
@@ -29,12 +30,35 @@ class ExampleSTDTC(Companions.StaticTextDTC):
     def writeImports(self):
         return 'from wxPython.lib.bcrtl.user.ExampleST import *'
 
+
+class StaticTextCtrlDTC(Companions.TextCtrlDTC):
+    def __init__(self, name, designer, parent, ctrlClass):
+        Companions.TextCtrlDTC.__init__(self, name, designer, parent, ctrlClass)
+        self.editors['CaptionAlignment'] = PropEdit.PropertyEditors.EnumPropEdit
+        self.options['CaptionAlignment'] = [wx.wxTOP, wx.wxLEFT]
+        self.names['CaptionAlignment'] = {'wxTOP': wx.wxTOP, 'wxLEFT': wx.wxLEFT}
+        
+    def constructor(self):
+        return {'Value': 'value', 'Position': 'pos', 'Size': 'size',
+                'Style': 'style', 'Validator': 'validator', 'Name': 'name',
+                'Caption': 'caption'}
+
+    def writeImports(self):
+        return 'from wxPython.lib.bcrtl.user.StaticTextCtrl import *'
+
+    def designTimeSource(self, position = 'wxDefaultPosition', size = 'wxDefaultSize'):
+        dts = Companions.TextCtrlDTC.designTimeSource(self, position, size)
+        dts['caption'] = `self.name`
+        return dts
+    
+
 # Add the component's class to this list
-PaletteStore.paletteLists['User'].extend([wxExampleStaticText])
+PaletteStore.paletteLists['User'].extend([wxExampleStaticText, wxStaticTextCtrl])
 
 # Add an entry to this dict with the following structure:
 # <component class>: ['Tip name and bitmap file', <companion>]
-PaletteStore.compInfo.update({wxExampleStaticText: ['wxExampleStaticText', ExampleSTDTC]})
+PaletteStore.compInfo.update({wxExampleStaticText: ['wxExampleStaticText', ExampleSTDTC],
+                              wxStaticTextCtrl: ['wxStaticTextCtrl', StaticTextCtrlDTC]})
 
 
 # Example wrapping of a wxPython control which covers most of the aspects of
