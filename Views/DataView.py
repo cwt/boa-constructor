@@ -42,7 +42,6 @@ class DataView(wxListCtrl, InspectableObjectCollectionView):
         self.active = true
 
     def initialize(self):
-        print self.model.objectCollections
         objCol = self.model.objectCollections[self.collectionMethod]
         objCol.indexOnCtrlName()
 
