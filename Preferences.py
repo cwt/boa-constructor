@@ -6,7 +6,7 @@
 #
 # Created:     1999
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999 - 2002 Riaan Booysen
+# Copyright:   (c) 1999 - 2003 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
 
@@ -16,7 +16,7 @@ This namespace is populated by *.rc.py files from the selected
 resource configuration.
 
 The resource config files are version checked and updated from the
-resource config files in the Boa root (so that a CVS updated schema will
+resource config files in Config (so that a CVS updated schema will
 override old settings in external resource config directories.
 
 Application, Plug-ins and Image paths are initialised and the global ImageStore
@@ -24,7 +24,7 @@ is configured.
 
 """
 
-import os, sys, shutil, string
+import os, sys, shutil
 
 from wxPython import wx
 
@@ -37,7 +37,7 @@ pyPath = sys.path[0] = os.path.abspath(sys.path[0])
 print 'reading user preferences'
 
 # This cannot be stored as a Preference option for obvious reasons :)
-prefsDirName = '.boa'
+prefsDirName = '.boa-constructor'
 if '--OverridePrefsDirName' in sys.argv or '-O' in sys.argv:
     try: idx = sys.argv.index('--OverridePrefsDirName')
     except ValueError:
@@ -50,8 +50,8 @@ if '--OverridePrefsDirName' in sys.argv or '-O' in sys.argv:
         print 'using preference directory name', prefsDirName
 
 # To prevent using the HOME env variable run different versions of Boa this flag
-# forces Boa to use Preference settings either in the Boa root or in a .boa dir
-# in the Boa root
+# forces Boa to use Preference settings either in the Config dir or in a 
+# specified rc path
 if os.path.isabs(prefsDirName):
     rcPath = prefsDirName
 elif '--BlockHomePrefs' in sys.argv or '-B' in sys.argv:
@@ -61,72 +61,90 @@ else:
     homeDir = os.environ.get('HOME', None)
     if homeDir is not None and os.path.isdir(homeDir):
         rcPath = os.path.join(homeDir, prefsDirName)
-        if not os.path.isdir(rcPath):
-            try:
-                os.mkdir(rcPath)
-                print 'Created directory: %s' % rcPath
-            except OSError:
-                # Protected
-                pass
+        for fn in ('', 'docs-cache', 'Plug-ins'):
+            if fn:
+                pth = os.path.join(rcPath, fn)
+            else:
+                pth = rcPath
+
+            if not os.path.isdir(pth):
+                try:
+                    os.mkdir(pth)
+                    print 'Created directory: %s' % pth
+                except OSError:
+                    # Protected
+                    pass
     else:
         rcPath = os.path.join(pyPath, prefsDirName)
 
-# fall back to defaults in Boa src root if .boa is not available.
+# fall back to defaults in Config root if .boa-constructor is not available.
 if not os.path.isdir(rcPath):
-    rcPath = pyPath
+    rcPath = os.path.join(pyPath, 'Config')
+
+
+wxPlatforms = {'__WXMSW__': 'msw',
+               '__WXGTK__': 'gtk',
+               '__WXMAC__': 'mac'}
+thisPlatform = wxPlatforms[wx.wxPlatform]
 
 # upgrade if needed and exec in our namespace
-plat = wx.wxPlatform == '__WXMSW__' and 'msw' or 'gtk'
-for prefsFile, version in (('prefs.rc.py', 7),
-                           ('prefs.%s.rc.py'%plat, 6),
-                           ('prefskeys.rc.py', 6)):
+for prefsFile, version in (('prefs.rc.py', 8),
+                           ('prefs.%s.rc.py'%thisPlatform, 7),
+                           ('prefskeys.rc.py', 7),
+                           ('prefs.plug-ins.rc.py', None)):
     file = os.path.join(rcPath, prefsFile)
 
     # first time, install to env dir
     if not os.path.exists(file):
-        shutil.copy2(os.path.join(pyPath, prefsFile), file)
+        shutil.copy2(os.path.join(pyPath, 'Config', prefsFile), file)
     # check version
     else:
-        verline = string.strip(open(file).readline())
-
-        if len(verline) >= 14 and verline[:14] == '## rc-version:':
-            rcver = int(verline[14:-2])
-        else:
-            rcver = 0
-        if rcver < version:
-            # backup and copy newest
-            bkno=0;bkstr=''
-            while 1:
-                bkfile = os.path.splitext(file)[0]+'.py~'+bkstr
-                try:
-                    os.rename(file, bkfile)
-                except OSError, err:
-                    if err.errno != 17: raise
-                    bkno=bkno+1;bkstr=str(bkno)
-                else:
-                    break
-            shutil.copy2(os.path.join(pyPath, prefsFile), file)
-            print 'Preference file %s replaced, previous version backed up to %s'%(
-                  file, bkfile)
+        if version is not None:
+            verline = open(file).readline().strip()
+    
+            if len(verline) >= 14 and verline[:14] == '## rc-version:':
+                rcver = int(verline[14:-2])
+            else:
+                rcver = 0
+            if rcver < version:
+                # backup and copy newest
+                bkno=0;bkstr=''
+                while 1:
+                    bkfile = os.path.splitext(file)[0]+'.py~'+bkstr
+                    try:
+                        os.rename(file, bkfile)
+                    except OSError, err:
+                        if err.errno != 17: raise
+                        bkno=bkno+1;bkstr=str(bkno)
+                    else:
+                        break
+                shutil.copy2(os.path.join(pyPath, prefsFile), file)
+                print 'Preference file %s replaced, previous version backed up to %s'%(
+                      file, bkfile)
 
     execfile(file)
 
-for file in ('Explorer.%s.cfg' % plat, 'stc-styles.rc.cfg'):
+for file in ('Explorer.%s.cfg' % thisPlatform, 'stc-styles.rc.cfg'):
     rcFile = os.path.join(rcPath, file)
     if not os.path.exists(rcFile):
-        shutil.copy2(os.path.join(pyPath, file), rcFile)
+        shutil.copy2(os.path.join(pyPath, 'Config', file), rcFile)
 
 pluginPaths = []
+pluginSections = []
+
 installedPlugins = []
 failedPlugins = {}
 if pluginsEnabled:
     pluginPaths.append(os.path.join(pyPath, 'Plug-ins'))
+    pluginSections.append('plug-ins.root')
     # Library plugin path
     if extraPluginsPath:
         pluginPaths.append(extraPluginsPath)
+        pluginSections.append('plug-ins.extra')
     # User plugin path
     if rcPath != pyPath and os.path.isdir(os.path.join(rcPath, 'Plug-ins')):
         pluginPaths.append(os.path.join(rcPath, 'Plug-ins'))
+        pluginSections.append('plug-ins.home')
 
 #---Prefs dependent on user prefs-----------------------------------------------
 
@@ -150,16 +168,16 @@ if not pythonInterpreterPath:
 # thnx Mike Fletcher
 screenWidth =  wx.wxSystemSettings_GetSystemMetric(wx.wxSYS_SCREEN_X)
 screenHeight = wx.wxSystemSettings_GetSystemMetric(wx.wxSYS_SCREEN_Y)
-if wx.wxPlatform != '__WXGTK__':
-    _startx, _starty, screenWidth, screenHeight = wxGetClientDisplayRect()
+if wx.wxPlatform == '__WXMSW__':
+    _x, _y, screenWidth, screenHeight = wxGetClientDisplayRect()
+    screenHeight -= topMenuHeight
 else:
     # handle dual monitors on Linux
     if screenWidth / screenHeight >= 2:
         screenWidth = screenWidth / 2
 
     screenWidth = int(screenWidth - verticalTaskbarWidth)
-    screenHeight = int(screenHeight - horizontalTaskbarHeight)
-
+    screenHeight = int(screenHeight - horizontalTaskbarHeight - topMenuHeight)
 
 if wx.wxPlatform == '__WXMSW__':
     wxDefaultFramePos = wx.wxDefaultPosition
@@ -172,6 +190,7 @@ edWidth = int(screenWidth * editorScreenWidthPerc - windowManagerSide * 2)
 inspWidth = screenWidth - edWidth + 1 - windowManagerSide * 4
 paletteHeight = paletteHeights[paletteStyle]
 bottomHeight = screenHeight - paletteHeight
+underPalette = paletteHeight + windowManagerTop + windowManagerBottom + topMenuHeight
 paletteTitle = 'Boa Constructor'
 
 if wxPlatform == '__WXMSW__':
@@ -181,12 +200,10 @@ else:
     oglBoldFont = wxFont(12, wxDEFAULT, wxNORMAL, wxBOLD, false)
     oglStdFont = wxFont(10, wxDEFAULT, wxNORMAL, wxNORMAL, false)
 
-expandEditorOnCloseInspector = false
-
 #-------------------------------------------------------------------------------
 # Delays wxApp_Cleanup
-try: sys._wxApp_Cleanup = wx.__cleanMeUp
-except: pass
+#try: sys._wxApp_Cleanup = wx.__cleanMeUp
+#except: pass
 
 def cleanup():
     IS.cleanup()
