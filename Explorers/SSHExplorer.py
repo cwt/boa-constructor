@@ -236,7 +236,7 @@ class SSHItemNode(ExplorerNodes.ExplorerNode):
     def getNodeFromPath(self, respath):
         if not respath: respath = '/'
 
-        if not Utils.startswith(respath, '~/'):
+        if not respath.startswith('~/'):
             respath = '/' + respath
         isFolder = respath[-1] == '/'
         if isFolder:
