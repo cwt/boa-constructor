@@ -69,12 +69,12 @@ class InspectableObjectView(EditorViews.EditorView, InspectorSessionMix):
             if paramKey in dontEval:
                 args[paramKey] = params[paramKey]
             else:
-                #try:
-                args[paramKey] = PaletteMapping.evalCtrl(params[paramKey], 
-                      evalDct)
-                #except AttributeError:
-                #    args[paramKey] = PaletteMapping.evalCtrl(params[paramKey], 
-                #          {'self': self.controllerView.objectNamespace})
+                try:
+                    args[paramKey] = PaletteMapping.evalCtrl(params[paramKey], 
+                          evalDct)
+                except AttributeError:
+                    args[paramKey] = PaletteMapping.evalCtrl(params[paramKey], 
+                          {'self': self.controllerView.objectNamespace})
 
         return args
 
