@@ -1,4 +1,4 @@
-## rc-version: 5 ##
+## rc-version: 6 ##
 # RCS-ID:      $Id$
 
 # The main preference file.
@@ -111,10 +111,10 @@ autoRefreshOnCodeComplete = true
 
 # Flag for turning on special checking for european keyboard characters by
 # checking for certain codes while ctrl alt is held.
-# handleSpecialEuropeanKeys = false
+handleSpecialEuropeanKeys = false
 # Country code for keyboards,
 ## options: 'euro', 'france', 'swiss-german', 'italian'
-#euroKeysCountry = 'euro'
+euroKeysCountry = 'euro'
 
 # The undo buffer can be cleared after saving, turning this on will
 # never clear it and preserve the editing history but take extra memory
@@ -133,6 +133,9 @@ showFilenameExtensions = false
 # Should new pages be added to the end of the Editor notebook or current pos
 ## options: 'current', 'append'
 editorNotebookOpenPos = 'current'
+
+# Editor menu items can optionally display images in the menus
+editorMenuImages = true
 
 #-Explorer----------------------------------------------------------------------
 
@@ -225,10 +228,18 @@ cgAbsoluteImagePaths = true
 cgEmptyLineBetweenObjects = true
 
 # Format string used to generate keyword argument parameter
-cgKeywordArgFormat = '%(keyword)s = %(value)s'
+cgKeywordArgFormat = '%(keyword)s=%(value)s'
 
 # Adds a warning to generated _init_* methods that users should not edit them
 cgAddInitMethodWarning = true
+
+# Should generated source code lines be be wrapped at a certain width
+cgWrapLines = true
+# Width at which generated source code wraps
+cgLineWrapWidth = 80
+# Number of spaces the continued line is indented additional to the start 
+# line's indent
+cgContinuedLineIndent = 6
 
 #-Views-------------------------------------------------------------------------
 
@@ -265,7 +276,7 @@ extraPluginsPath = ''
 pluginErrorHandling = 'report'
 # Safety net so COM support has to be explicitly turned on
 # Will stay here until the win9x crashes has been sorted out
-blockCOM = false
+blockCOM = true
 
 #-Core support------------------------------------------------------------------
 
@@ -388,6 +399,7 @@ exportedProperties = ['flatTools', 'childFrameStyle', 'dataViewListStyle',
   'autoRefreshOnCodeComplete', 'autoReindent',
 
   'rememberOpenFiles', 'showFilenameExtensions', 'editorNotebookOpenPos',
+  'editorMenuImages', 
 
   'exDefaultFilter', 'exWorkingDirectory', 'exDefaultTreeWidth', 
   'exInspectInspectableFiles', 'exOpenFromHere', 'exRecentFilesListSize',
@@ -398,7 +410,8 @@ exportedProperties = ['flatTools', 'childFrameStyle', 'dataViewListStyle',
   'oiLineHeight', 'oiEventSelectionHeight', 'inspNotebookFlags',
 
   'cgAbsoluteImagePaths', 'cgEmptyLineBetweenObjects', 'cgKeywordArgFormat',
-  'cgAddInitMethodWarning',
+  'cgAddInitMethodWarning', 'cgWrapLines', 'cgLineWrapWidth', 
+  'cgContinuedLineIndent',
 
   'dsGridSize', 'dsSelectionTagSize', 'dsSelectionFrameWidth',
   'dsAnchorEnabledCol', 'dsAnchorDisabledCol', 'dsDefaultControlSize',
