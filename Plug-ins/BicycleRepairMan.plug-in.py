@@ -59,6 +59,8 @@ Plugins.registerPreference('BicycleRepairMan', 'brmProgressLogger',
 
 #-Editor plugins----------------------------------------------------------------
 
+class CancelOperation(Exception): pass
+
 from bike.query.findReferences import CouldntFindDefinitionException
 class BRMViewPlugin:
     """ Plugin class for View classes that exposes the refactoring API.
@@ -119,14 +121,14 @@ class BRMViewPlugin:
         model = self.model
         ctx = model.editor.brm_context
 
-        for path in ctx.paths:
+        for path in ctx.brmctx.paths:
             uri = 'file://'+os.path.abspath(path)
             if uri in model.editor.modules:
                 try:
                     model.editor.prepareForCloseModule(
                           model.editor.modules[uri], True,
                           'Save changes before Refactoring operation')
-                except 'Cancelled':
+                except Editor.CancelClose:
                     wx.wxLogError('Operation aborted.')
                     return False
         return True
@@ -134,12 +136,14 @@ class BRMViewPlugin:
     def getExtractionInfo(self, xtype, caption):
         selection = self.view.GetSelectedText().strip()
         if not selection:
-            raise 'No text selected. Highlight the region you want to extract.'
+            raise CancelOperation, \
+                  'No text selected. Highlight the region you want to extract.'
 
         filename = self.model.checkLocalFile()
         name = wx.wxGetTextFromUser('New %s name:'%xtype, caption)
         if not name:
-            raise 'Empty names are invalid.'
+            raise CancelOperation, \
+                  'Empty names are invalid.'
 
         startpos, endpos = self.view.GetSelection()
         startline = self.view.LineFromPosition(startpos)
@@ -275,8 +279,13 @@ class BRMViewPlugin:
             return
 
         ctx = self.model.editor.brm_context
-        ctx.extractMethod(*self.getExtractionInfo('Method', 'Extract method'))
-        self.saveAndRefresh()
+        try:
+            ctx.extractMethod(*self.getExtractionInfo('Method', 'Extract method'))
+        except CancelOperation, err:
+            wxLogError(str(err))
+        else:
+            self.view.SetSelectionEnd(self.view.GetSelectionStart())
+            self.saveAndRefresh()
 
     def OnUndoLast(self, event):
         try:
@@ -291,12 +300,16 @@ class BRMViewPlugin:
             return
         
         ctx = self.model.editor.brm_context
-        filename, startline, startcol, endline, endcol, variablename = \
-              self.getExtractionInfo('Variable', 'Extract variable')
-        
-        ctx.extractLocalVariable(filename, startline, startcol, endline, endcol, 
-                                 variablename)
-        self.saveAndRefresh()
+        try:
+            filename, startline, startcol, endline, endcol, variablename = \
+                  self.getExtractionInfo('Variable', 'Extract variable')
+        except CancelOperation, err:
+            wxLogError(str(err))
+        else:
+            ctx.extractLocalVariable(filename, startline, startcol, endline, 
+                  endcol, variablename)
+            self.view.SetSelectionEnd(self.view.GetSelectionStart())
+            self.saveAndRefresh()
         
     def OnInlineLocalVar(self, event):
         if not self.checkUnsavedChanges():
