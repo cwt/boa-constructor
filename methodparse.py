@@ -54,11 +54,11 @@ class frame1(wxFrame):
     def __init__(self):
         self._init_utils()
         self._init_ctrls()
-        
 """
 
-from string import strip, split, join, find, rfind
+from string import strip, split, join, find, rfind, upper
 import re
+import Utils
 
 containers = [('(', ')'), ('{', '}'), ('[', ']')]
 containBegin = map(lambda d: d[0], containers)    
@@ -169,6 +169,13 @@ class PerLineParser:
     def __repr__(self):
         return self.asText()
 
+    def renameCompName2(self, old_value, new_value):
+        """ notification of a rename, override to catch renames to vars and params
+            All parse lines should be notified of renames, not just entries
+            which have that name """
+        if self.comp_name == old_value:
+            self.comp_name = new_value
+    
     def extractKVParams(self, paramsStr):
         params = safesplitfields(paramsStr, ',')
         result = {}
@@ -204,7 +211,6 @@ class ConstructorParse(PerLineParser):
         if line:
             self.m = is_constr.search(line)
             if self.m:
-##                print self.m.group('name'), self.m.group('class'), self.m.group('params')
                 self.comp_name = self.m.group('name')
                 self.class_name = self.m.group('class')
                 self.params = self.extractKVParams(self.m.group('params'))
@@ -214,6 +220,17 @@ class ConstructorParse(PerLineParser):
                     self.comp_name = ''
                     self.class_name = self.m.group('class')
                     self.params = self.extractKVParams(self.m.group('params'))
+    
+    def renameCompName2(self, old_value, new_value):
+        if self.params.has_key('parent') and \
+              self.params['parent'] == Utils.srcRefFromCtrlName(old_value):
+            self.params['parent'] = Utils.srcRefFromCtrlName(new_value)
+        if self.comp_name == old_value:
+            self.comp_name = new_value
+            if self.params.has_key('name'):
+                self.params['name'] = `new_value`
+            if self.params.has_key('id'):
+                self.params['id'] = self.params['id'][:-len(old_value)]+upper(new_value)
             
     def asText(self):
         if self.comp_name:
@@ -243,7 +260,6 @@ class PropertyParse(PerLineParser):
                 compsetter = split(self.m.group('name'), '.')
                     
                 if len(compsetter) < 1: raise 'atleast 1 required '+`compsetter`
-##                if compsetter[0] != 'self': raise 'access outside component invaild', line
                 if len(compsetter) == 1:
                     self.comp_name = ''
                     self.prop_setter = compsetter[0]
@@ -252,12 +268,13 @@ class PropertyParse(PerLineParser):
                     self.prop_setter = compsetter[1]
                 else: raise 'Too many sections'
     def asText(self):
-##        print 'properties: asText()', self.params
-        if self.comp_name:
-            return 'self.%s.%s(%s)' %(self.comp_name, self.prop_setter, 
-              join(self.params, ', '))
-        else:
-            return 'self.%s(%s)' %(self.prop_setter, join(self.params, ', '))
+        return '%s.%s(%s)' %(Utils.srcRefFromCtrlName(self.comp_name), 
+                self.prop_setter, join(self.params, ', '))
+##        if self.comp_name:
+##            return 'self.%s.%s(%s)' %(self.comp_name, self.prop_setter, 
+##              join(self.params, ', '))
+##        else:
+##            return 'self.%s(%s)' %(self.prop_setter, join(self.params, ', '))
 
 coll_init = '_init_coll_'
 is_coll_init = re.compile('^[ \t]*self[.](?P<method>'+coll_init+idp+')[ \t]*\((?P<comp_name>'+idp+')[ \t,]*(?P<params>.*)\)$')
@@ -281,15 +298,22 @@ class CollectionInitParse(PerLineParser):
         return self.method[len(coll_init)+len(self.comp_name)+1:]
     
     def renameCompName(self, new_value):
+        # XXX from where is this called ???
         self.method = '%s%s_%s'%(coll_init, new_value, self.getPropName())
         self.comp_name = new_value
+    
+    def renameCompName2(self, old_value, new_value):
+        if self.comp_name == old_value:
+            self.comp_name = new_value
+            self.method = '%s%s_%s'%(coll_init, new_value, self.prop_name)
                     
     def asText(self):
-        if self.comp_name:
-            comp_name = 'self.'+self.comp_name
-        else:
-            comp_name = 'self'
-        return 'self.%s(%s)' %(self.method, join([comp_name]+self.params, ', '))
+##        if self.comp_name:
+##            comp_name = 'self.'+self.comp_name
+##        else:
+##            comp_name = 'self'
+        return 'self.%s(%s)' %(self.method, 
+             join([Utils.srcRefFromCtrlName(self.comp_name)]+self.params, ', '))
 
 #item_parent = 'parent'
 is_coll_item_init = re.compile('^[ \t]*(?P<ident>'+idp+')[.](?P<method>'+idc+')[ \t]*\([ \t,]*(?P<params>.*)\)$')
@@ -337,19 +361,23 @@ class EventParse(PerLineParser):
 
             self.event_name = self.m.group('evtname')
 
+    def renameCompName2(self, old_value, new_value):
+        if self.comp_name == old_value:
+            self.comp_name = new_value
+            self.windowid = self.windowid[:-len(old_value)]+upper(new_value)
+
     def asText(self):
-##        print 'event: asText'
-        if self.comp_name:
-            evt_comp = 'self.'+self.comp_name
-        else:
-            evt_comp = 'self'
+##        if self.comp_name:
+##            evt_comp = 'self.'+self.comp_name
+##        else:
+##            evt_comp = 'self'
 
         if self.windowid:
-            return 'EVT_%s(%s, %s, self.%s)' %(self.event_name, evt_comp, 
-              self.windowid, self.trigger_meth)
+            return 'EVT_%s(%s, %s, self.%s)' %(self.event_name, 
+              Utils.srcRefFromCtrlName(self.comp_name), self.windowid, self.trigger_meth)
         else:
-            return 'EVT_%s(%s, self.%s)' %(self.event_name, evt_comp, 
-              self.trigger_meth)
+            return 'EVT_%s(%s, self.%s)' %(self.event_name, 
+              Utils.srcRefFromCtrlName(self.comp_name), self.trigger_meth)
             
         
 
