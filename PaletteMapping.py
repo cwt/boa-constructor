@@ -1,138 +1,151 @@
 #----------------------------------------------------------------------
 # Name:        PaletteMapping.py
-# Purpose:     
+# Purpose:     Module that initialises the Palette's data and provides
+#              the namespace in which design time code is evaluated
 #
 # Author:      Riaan Booysen
 #
 # Created:     1999
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999, 2000 Riaan Booysen
+# Copyright:   (c) 1999 - 2004 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
 
+""" Based on core support preferences this module initialises Companion, Model,
+View and Controller classes. It also executes all active Plug-ins.
+
+The namespace of this module is used to evalute code at Design-Time with evalCtrl.
+Hence the needed import * and execfile.
+
+"""
+
+# XXX This module should be renamed it's function has changed over time
+# XXX Maybe: BoaNamespace/DesignTimeNamespace
+
+import os
+
+import Preferences, Utils, Plugins
+from Preferences import IS
+import PaletteStore
+
 from wxPython.wx import *
-from Companions import *
-from UtilCompanions import *
-from DialogCompanions import *
-import Preferences
-from os import path
-from wxPython.html import wxHtmlWindow
 
-utilities = [wxMenu, wxImageList, wxAcceleratorTable]
+import wx
 
-palette = [
-  ['Frame bars', 'Editor/Tabs/Singletons', 
-    [wxMenuBar, wxToolBar, wxStatusBar]],
-  ['Containers/Layout', 'Editor/Tabs/Containers', 
-    [wxPanel, wxScrolledWindow, wxNotebook, wxSplitterWindow]], 
-  ['Basic Controls', 'Editor/Tabs/Basic', 
-    [wxStaticText, wxTextCtrl, wxComboBox, wxChoice, wxButton, wxBitmapButton,
-     wxCheckBox, wxRadioButton, wxSpinButton, wxSlider, wxGauge, wxStaticBox, 
-     wxScrollBar, wxStaticBitmap, wxStaticLine, wxHtmlWindow]],
-  ['List Controls', 'Editor/Tabs/Lists', 
-    [wxRadioBox, wxListBox, wxCheckListBox, wxGrid, wxListCtrl, wxTreeCtrl]],
-  ['Utilities', 'Editor/Tabs/Utilities', 
-    utilities]]
+if Preferences.csWxPythonSupport:
+    # This should be the first time the Companion classes are imported
+    # As the modules are imported they add themselves to the PaletteStore
+    from Companions.Companions import *
 
-helperClasses = {
-    'wxFontPtr': FontDTC,
-    'wxColourPtr': ColourDTC
-}    
+    from Companions.FrameCompanions import *
+    from Companions.WizardCompanions import *
+    from Companions.ContainerCompanions import *
+    if Preferences.dsUseSizers:
+        from Companions.SizerCompanions import *
+    from Companions.BasicCompanions import *
+    from Companions.ButtonCompanions import *
+    from Companions.ListCompanions import *
+    from Companions.GizmoCompanions import *
+    from Companions.LibCompanions import *
+    if Utils.IsComEnabled():
+        from Companions.ComCompanions import *
+    # Define and add a User page to the palette
+    PaletteStore.paletteLists['User'] = upl = []
+    PaletteStore.palette.append(['User', 'Editor/Tabs/User', upl])
+    from Companions.UtilCompanions import *
+    from Companions.DialogCompanions import *
 
-dialogPalette =  ['Dialogs', 'Editor/Tabs/Dialogs', 
-    [wxColourDialog, wxFontDialog, wxFileDialog, wxDirDialog, 
-    wxPrintDialog, wxPageSetupDialog, 
-    wxSingleChoiceDialog, wxTextEntryDialog, wxMessageDialog]]
+# Zope requires spesific support
+if Plugins.transportInstalled('ZopeLib.ZopeExplorer'):
+    from ZopeLib.ZopeCompanions import *
 
-compInfo = {
-    wxApp: ['wxApp', None],
-    wxFrame: ['wxFrame', FrameDTC],
-    wxDialog: ['wxDialog', DialogDTC],
-    wxMiniFrame: ['wxMiniFrame', MiniFrameDTC],
-    wxMDIParentFrame: ['wxMDIParentFrame', MDIParentFrameDTC],
-    wxMDIChildFrame: ['wxMDIChildFrame', MDIChildFrameDTC],
-    wxMenuBar: ['wxMenuBar', DesignTimeCompanion],
-    wxToolBar: ['wxToolBar', DesignTimeCompanion],
-    wxStatusBar: ['wxStatusBar', DesignTimeCompanion],
-    wxPanel: ['wxPanel', PanelDTC], 
-    wxScrolledWindow: ['wxScrolledWindow', ScrolledWindowDTC], 
-    wxNotebook: ['wxNotebook', NotebookDTC],
-    wxSplitterWindow: ['wxSplitterWindow', DesignTimeCompanion],
-    wxStaticText: ['wxStaticText', StaticTextDTC], 
-    wxTextCtrl: ['wxTextCtrl', TextCtrlDTC], 
-    wxChoice: ['wxChoice', ChoiceDTC],
-    wxComboBox: ['wxComboBox', ComboBoxDTC],
-    wxCheckBox: ['wxCheckBox', CheckBoxDTC],
-    wxButton: ['wxButton', ButtonDTC], 
-    wxBitmapButton: ['wxBitmapButton', BitmapButtonDTC], 
-    wxRadioButton: ['wxRadioButton', RadioButtonDTC],
-    wxSpinButton: ['wxSpinButton', SpinButtonDTC],
-    wxSlider: ['wxSlider', SliderDTC],
-    wxGauge: ['wxGauge', GaugeDTC],
-    wxStaticBitmap: ['wxStaticBitmap', StaticBitmapDTC],
-    wxListBox: ['wxListBox', ListBoxDTC],
-    wxCheckListBox: ['wxCheckListBox', CheckListBoxDTC],
-    wxGrid: ['wxGrid', GridDTC], 
-    wxListCtrl: ['wxListCtrl', ListCtrlDTC],
-    wxTreeCtrl: ['wxTreeCtrl', TreeCtrlDTC],
-    wxScrollBar: ['wxScrollBar', ScrollBarDTC],
-    wxStaticBox: ['wxStaticBox', StaticBoxDTC],
-    wxStaticLine: ['wxStaticLine', StaticLineDTC],
-    wxRadioBox: ['wxRadioBox', RadioBoxDTC],
-    wxHtmlWindow: ['wxHtmlWindow', HtmlWindowDTC],
-    wxColourDialog: ['wxColorDialog', ColourDialogCDC],
-    wxFontDialog: ['wxFontDialog', FontDialogCDC],
-    wxFileDialog: ['wxFileDialog', FileDialogCDC],
-    wxPrintDialog: ['wxPrintDialog', PrintDialogCDC],
-    wxPageSetupDialog: ['wxPageSetupDialog', PageSetupDialogCDC],
-    wxDirDialog: ['wxDirDialog', DirDialogCDC],
-    wxSingleChoiceDialog: ['wxSingleChoiceDialog', SingleChoiceDialogCDC],
-    wxTextEntryDialog: ['wxTextEntryDialog', TextEntryDialogCDC],
-    wxMessageDialog: ['wxMessageDialog', MessageDialogCDC],
-    wxImageList: ['wxImageList', ImageListDTC],
-    wxAcceleratorTable: ['wxAcceleratorTable', AcceleratorTableDTC],
-    wxMenu: ['wxMenu', MenuDTC],
-    wxTimer: ['wxTimer', TimerDTC]
-}
+#-Controller imports which auto-registers themselves on the Palette-------------
 
-def compInfoByName(name):
-    for comp in compInfo.keys():
-        if comp.__name__ == name: return comp
-    raise name+' not found'
-    
-def loadBitmap(name, subfold = ''):
-    try:
-        filename = Preferences.toPyPath('Images/Palette/' + subfold + name+'.bmp')
-        f = open(filename)
-        f.close()
-#        if path.exists(filename):
-        return wxBitmap(filename, wxBITMAP_TYPE_BMP)
-    except:
-        return wxBitmap(Preferences.toPyPath('Images/Palette/Component.bmp'), 
-          wxBITMAP_TYPE_BMP)
-        
-    
-def bitmapForComponent(wxClass, wxBase = 'None', gray = false):
-    # "Aquire" bitmap thru inheritance if necessary
-    if gray: sf = 'Gray/'
-    else: sf = ''
-    if wxBase != 'None': return loadBitmap(wxBase, sf)
-    else:
-        cls = wxClass
-        try: bse = wxClass.__bases__[0]
-        except:
-            if compInfo.has_key(wxClass):
-                return loadBitmap(compInfo[wxClass][0], sf)
-            else: 
-                return loadBitmap('Component')
+from Models import EditorHelper
+
+if Preferences.csPythonSupport:
+    import Models.PythonControllers
+
+if Preferences.csWxPythonSupport:
+    import Models.wxPythonControllers
+
+if Preferences.csPythonSupport and not Preferences.csWxPythonSupport:
+    # useful hack to alias wxApp modules to PyApp modules when wxPython support
+    # is not loaded
+    from Models.PythonEditorModels import PyAppModel
+    EditorHelper.modelReg['App'] = PyAppModel
+
+# The text and makepy controllers are registered outside the Controllers
+# module so that their palette order can be fine tuned
+from Models import Controllers
+PaletteStore.newControllers['Text'] = Controllers.TextController
+PaletteStore.paletteLists['New'].append('Text')
+
+#-Registration of other built in support----------------------------------------
+if Preferences.csConfigSupport: from Models import ConfigSupport
+if Preferences.csCppSupport: from Models import CPPSupport
+if Preferences.csHtmlSupport: from Models import HTMLSupport
+if Preferences.csXmlSupport: from Models import XMLSupport
+
+if Plugins.transportInstalled('ZopeLib.ZopeExplorer'):
+    import ZopeLib.ZopeEditorModels
+
+if Utils.IsComEnabled():
+    PaletteStore.newControllers['MakePy-Dialog'] = Controllers.MakePyController
+    PaletteStore.paletteLists['New'].append('MakePy-Dialog')
+
+#-Plug-ins initialisation-------------------------------------------------------
+if Preferences.pluginPaths:
+    print 'executing plug-ins...'
+    fails = Preferences.failedPlugins
+    succeeded = Preferences.installedPlugins
+
+    for pluginFilename, ordered, enabled in Plugins.buildPluginExecList():
+        if not enabled:
+            continue
+
+        pluginBasename = os.path.basename(pluginFilename)
+        filename = pluginFilename.lower()
         try:
-            while not compInfo.has_key(cls):
-                cls = bse
-                bse = cls.__bases__[0]
-                
-            return loadBitmap(compInfo[cls][0], sf)
-        except:
-            print 'not found!'
-            return loadBitmap('Component')
+            execfile(pluginFilename)
+            succeeded.append(filename)
+        except Plugins.SkipPluginSilently, msg:
+            fails[filename] = ('Skipped', msg)
+        except Plugins.SkipPlugin, msg:
+            fails[filename] = ('Skipped', msg)
+            wxLogWarning('Plugin skipped: %s, %s'%(pluginBasename, msg))
+        except Exception, error:
+            fails[filename] = ('Error', str(error))
+            if Preferences.pluginErrorHandling == 'raise':
+                raise
+            elif Preferences.pluginErrorHandling == 'report':
+                wxLogError('Problem executing plug-in %s:\n%s' %\
+                    (pluginBasename, str(error)) )
+            # else ignore
 
-#print 'PaletteMapping:', len(locals())
+# XXX legacy references
+palette = PaletteStore.palette
+newPalette = PaletteStore.newPalette
+dialogPalette = PaletteStore.dialogPalette
+zopePalette = PaletteStore.zopePalette
+helperClasses = PaletteStore.helperClasses
+compInfo = PaletteStore.compInfo
+
+import wx
+
+_NB = None
+def evalCtrl(expr, localsDct=None):
+    """ Function usually used to evaluate source snippets.
+
+    Uses the namespace of this module which contain all the wxPython libs
+    and also adds param localDct.
+    """
+    global _NB
+    if not _NB:
+        _NB = IS.load('Images/Inspector/wxNullBitmap.png')
+    if localsDct is None:
+        localsDct = {}
+    localsDct['_'] = str
+    wx.NullBitmap = _NB
+
+    return eval(expr, globals(), localsDct)
