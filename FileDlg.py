@@ -116,7 +116,8 @@ class wxBoaFileDialog(wxDialog, Utils.FrameRestorerMixin):
         self.htmlWindow1.SetConstraints(LayoutAnchors(self.htmlWindow1, true,
               true, true, false))
 
-    def __init__(self, parent, message='Choose a file', defaultDir='.', defaultFile='', wildcard='', style=wxOPEN, pos=wxDefaultPosition):
+    def __init__(self, parent, message='Choose a file', defaultDir='.', 
+          defaultFile='', wildcard='', style=wxOPEN, pos=wxDefaultPosition):
         self.htmlBackCol = wxColour(192, 192, 192)
         self.htmlBackCol = wxSystemSettings_GetSystemColour(wxSYS_COLOUR_BTNFACE)
         self.filterOpts = ['Boa files', 'Internal files', 'Image files', 'All files']
@@ -161,9 +162,6 @@ class wxBoaFileDialog(wxDialog, Utils.FrameRestorerMixin):
         self.htmlWindow1.SetBorders(0)
         EVT_HTML_URL_CLICK(self.htmlWindow1, self.OnHtmlPathClick)
 
-        self.winConfOption = 'filedialog'
-        self.loadDims()
-
         EVT_LEFT_DCLICK(self.lcFiles, self.OnOpen)
 
         self.btOK.SetDefault()
@@ -186,7 +184,8 @@ class wxBoaFileDialog(wxDialog, Utils.FrameRestorerMixin):
         self.SetAcceleratorTable(
               wxAcceleratorTable([(0, WXK_ESCAPE, wxID_CLOSEDLG)]))
 
-        self.dont_pop = 0
+        self.winConfOption = 'filedialog'
+        self.loadDims()
 
     def setDimensions(self, dims):
         self.SetClientSize(dims)
@@ -202,7 +201,7 @@ class wxBoaFileDialog(wxDialog, Utils.FrameRestorerMixin):
 
     def Destroy(self):
         self.htmlBackCol = None
-        self.lcFiles.destroy(dont_pop=self.dont_pop)
+        self.lcFiles.destroy()
         wxDialog.Destroy(self)
 
     def OnCloseWindow(self, event):
@@ -623,7 +622,7 @@ class wxBoaFileDialog(wxDialog, Utils.FrameRestorerMixin):
             names = self.lcFiles.getAllNames()
             partial = self.GetFilename()
             for name in names:
-                if Utils.startswith(name, partial):
+                if name.startswith(partial):
                     self.lcFiles.selectItemNamed(name)
                     self.SetFilename(name)
                     self.tcFilename.SetSelection(len(partial), len(name))
@@ -682,9 +681,11 @@ class FileDlgFolderList(Explorer.BaseExplorerList):
                     transports.entries.append(catnode)
                     transportsByProtocol[protocol] = catnode
 
-        syspathnode = ExplorerNodes.nodeRegByProt['sys.path'](None, transports, None)
-        transports.entries.append(syspathnode)
-        transportsByProtocol[syspathnode.protocol] = syspathnode
+        if ExplorerNodes.nodeRegByProt.has_key('sys.path'):
+            syspathnode = ExplorerNodes.nodeRegByProt['sys.path'](
+                  None, transports, None)
+            transports.entries.append(syspathnode)
+            transportsByProtocol[syspathnode.protocol] = syspathnode
 
         oscwdnode = ExplorerNodes.nodeRegByProt['os.cwd'](None, transports, None)
         transports.entries.append(oscwdnode)
@@ -697,9 +698,9 @@ class FileDlgFolderList(Explorer.BaseExplorerList):
 
         return transports, transportsByProtocol
 
-    def destroy(self, dont_pop=0):
+    def destroy(self):
         self.menu.Destroy()
-        Explorer.BaseExplorerList.destroy(self, dont_pop)
+        Explorer.BaseExplorerList.destroy(self)
 
     def OnItemSelect(self, event):
         Explorer.BaseExplorerList.OnItemSelect(self, event)
@@ -750,7 +751,6 @@ if __name__ == '__main__':
     app = wxPySimpleApp()
     import PaletteMapping
     from Explorers import FTPExplorer, ZipExplorer
-    ExplorerNodes.fileOpenDlgProtReg.append('zip')
 
     conf = Utils.createAndReadConfig('Explorer')
     transports = ExplorerNodes.ContainerNode('Transport', EditorHelper.imgFolder)
