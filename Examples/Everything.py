@@ -57,18 +57,18 @@ class wxFrame1(wxFrame):
     def _init_coll_notebook1_Pages(self, parent):
         # generated method, don't edit
 
-        parent.AddPage(bSelect=true, imageId=-1, pPage=self.panel1,
-              strText='Containers/Layout')
-        parent.AddPage(bSelect=false, imageId=-1, pPage=self.panel2,
-              strText='Basic Controls')
-        parent.AddPage(bSelect=false, imageId=-1, pPage=self.panel3,
-              strText='Buttons')
-        parent.AddPage(bSelect=false, imageId=-1, pPage=self.panel4,
-              strText='List Controls')
-        parent.AddPage(bSelect=false, imageId=-1, pPage=self.panel5,
-              strText='Anchors')
-        parent.AddPage(bSelect=false, imageId=-1, pPage=self.panel6,
-              strText='Misc')
+        parent.AddPage(select=true, imageId=-1, page=self.panel1,
+              text='Containers/Layout')
+        parent.AddPage(select=false, imageId=-1, page=self.panel2,
+              text='Basic Controls')
+        parent.AddPage(select=false, imageId=-1, page=self.panel3,
+              text='Buttons')
+        parent.AddPage(select=false, imageId=-1, page=self.panel4,
+              text='List Controls')
+        parent.AddPage(select=false, imageId=-1, page=self.panel5,
+              text='Anchors')
+        parent.AddPage(select=false, imageId=-1, page=self.panel6,
+              text='Misc')
 
     def _init_coll_statusBar1_Fields(self, parent):
         # generated method, don't edit
