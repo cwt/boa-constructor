@@ -15,6 +15,7 @@ from wxPython.wx import *
 from wxPython.html import *
 from Preferences import IS, flatTools
 import Preferences, Search
+from PrefsKeys import keyDefs
 import os
 from os import path
 from Utils import AddToolButtonBmpFile
@@ -41,6 +42,7 @@ def showContextHelp(parent, toolbar, word):
         print 'No help found'
     
 [wxID_HELPFRAME] = map(lambda _init_ctrls: wxNewId(), range(1))
+[wxID_HELPFIND, wxID_HELPCLOSE] = map(lambda help: wxNewId(), range(2))
     
 class HelpFrame(wxFrame):
     """ Base class for help defining a home page and search facilities. """
@@ -64,6 +66,9 @@ class HelpFrame(wxFrame):
         self.home = home 
         self.index = index
 
+        # This is disabled until wxPython bug is fixed or a workaround is implemented
+        paletteToolbar = None
+        
         self.paletteToolbar = paletteToolbar
 
         self.statusBar = self.CreateStatusBar()
@@ -113,6 +118,15 @@ class HelpFrame(wxFrame):
         else: 
             self.toolIdx = None
 
+        EVT_MENU(self, wxID_HELPFIND, self.OnFindFocus)
+        EVT_MENU(self, wxID_HELPCLOSE, self.OnCloseHelp)
+        accLst = []
+        for (ctrlKey, key), wId in \
+                ( (keyDefs['Find'], wxID_HELPFIND),
+                  (keyDefs['Escape'], wxID_HELPCLOSE) ):
+            accLst.append( (ctrlKey, key, wId) ) 
+
+        self.SetAcceleratorTable(wxAcceleratorTable(accLst))
 	EVT_CLOSE(self, self.OnCloseWindow)
 
     def loadPage(self, filename = '', highlight = ''):
@@ -132,8 +146,11 @@ class HelpFrame(wxFrame):
             self.html.LoadPage(fn)
 
     def OnCloseWindow(self, event):
+#        print 'Close help', self.toolIdx, self.paletteToolbar
+
         if self.paletteToolbar:
-            self.paletteToolbar.DeleteTool(self.toolIdx)
+            print self.paletteToolbar.DeleteTool(self.toolIdx)
+            self.paletteToolbar.Realize()
 
         self.Destroy()
 
@@ -181,7 +198,13 @@ class HelpFrame(wxFrame):
         if self.IsIconized():
             self.Iconize(false)
         self.Raise()
-        
+
+    def OnFindFocus(self, event):
+        self.searchCtrl.SetFocus()
+    
+    def OnCloseHelp(self, event):
+        self.Close()
+
 class BoaHelpFrame(HelpFrame):
     toolBmp = 'Images/Shared/Help.bmp'
     helpStr = 'Boa help'
