@@ -362,6 +362,7 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix, BrowseStyl
               ('Add module info', self.OnAddModuleInfo, self.modInfoBmp, ()),
               ('Add comment line', self.OnAddCommentLine, '-', keyDefs['DashLine']),
               ('Add simple app', self.OnAddSimpleApp, '-', ()),
+              ('Add class at cursor', self.OnAddClassAtCursor, '-', keyDefs['CodeComplete']),
               ('-', None, '-', ()),
               ('Context help', self.OnContextHelp, '-', keyDefs['ContextHelp']))
             
@@ -1019,6 +1020,45 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix, BrowseStyl
     def OnLoadBreakPoints(self, event):
         self.tryLoadBreakpoints()
 
+    def OnAddClassAtCursor(self, event):
+        pos = self.GetCurrentPos()
+        lnNo = self.GetCurrentLine()
+        lnStPs = self.GetLineStartPos(lnNo)
+        line = self.GetLine(lnNo)#self.GetCurrentLineText()[0]
+        piv = pos - lnStPs
+        start, length = idWord(line, piv, lnStPs, object_delim)
+        startLine = start-lnStPs
+        word = line[startLine:startLine+length]
+        if Utils.startswith(word, 'self.'):
+            # XXX refresh model
+            #if self.model.
+            methName = word[5:]
+            # Apply if there are changes to views
+            self.model.refreshFromViews()
+            module = self.model.getModule()
+            cls = module.getClassForLineNo(lnNo)
+            if not cls.methods.has_key(methName):
+                # Check if it looks like an event
+                if len(methName) > 2 and methName[:2] == 'On' and (methName[2] 
+                                                       in string.uppercase+'_'):
+                    parms = 'self, event'
+                else:
+                    parms = 'self, '
+                
+                module.addMethod(cls.name, methName, parms, ['        pass'], true)
+                if cls.methods.has_key(methName):
+                    lnNo = cls.methods[methName].start+2
+                    self.model.refreshFromModule()
+                    self.model.modified = true
+                    self.model.editor.updateModulePage(self.model)
+                    line2pos = self.PositionFromLine(lnNo)
+                    self.SetCurrentPos(line2pos+8)
+                    self.SetSelection(line2pos+8, line2pos+12)
+                else:
+                    print 'Method was not added'
+                    
+                
+        
 class PythonDisView(EditorStyledTextCtrl, PythonStyledTextCtrlMix):#, BrowseStyledTextCtrlMix, FoldingStyledTextCtrlMix):
     viewName = 'Disassemble'
     breakBmp = 'Images/Debug/Breakpoints.bmp'
