@@ -937,14 +937,11 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix, BrowseStyl
     keymap={81:chr(64),56:chr(91),57:chr(93),55:chr(123),48:chr(125),
             219:chr(92),337:chr(126),226:chr(124)}
     def OnKeyDown(self, event):
-##        print 'STC: OnKeyDown'
         key = event.KeyCode()
-##        if self.CallTipActive():
-##            print 'tip active'
-##            event.Skip()
-##            return
 
         caretPos = self.GetCurrentPos()
+
+        # thx to Robert Boulanger
         if Preferences.handleSpecialEuropeanKeys and event.AltDown() and \
               event.ControlDown():
             if self.keymap.has_key(key):
