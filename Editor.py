@@ -618,6 +618,13 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
         # XXX raise on not found ?
         return None
 
+    def focusActiveView(self):
+        mp = self.getActiveModulePage()
+        if mp:
+            v = mp.getActiveView()
+            if v:
+                v.SetFocus()
+
     def activeApp(self):
         actMod = self.getActiveModulePage()
         if actMod and actMod.model.modelIdentifier in Controllers.appModelIdReg \
@@ -1203,12 +1210,14 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
         idx = self.tabs.GetSelection() + 1
         if idx >= pc: idx = 0
         self.tabs.SetSelection(idx)
+        self.focusActiveView()
 
     def OnPrevPage(self, event):
         pc = self.tabs.GetPageCount()
         idx = self.tabs.GetSelection() - 1
         if idx < 0: idx = pc - 1
         self.tabs.SetSelection(idx)
+        self.focusActiveView()
 
 #---Code Browsing---------------------------------------------------------------
     def addBrowseMarker(self, marker):
@@ -1374,6 +1383,7 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
             self.inspector = None
             self.controllers = None
             self.explorer.Hide()
+            self.explorer.tree.DeleteAllItems()
             self.explorer.destroy()
 
             self.newMenu.Destroy()
