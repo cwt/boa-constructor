@@ -125,7 +125,7 @@ class DesignTimeCompanion(Companion):
         propList['constructor'].append(pw)
         return propList
     
-    def GetClass(self, dummy):
+    def GetClass(self, dummy=None):
         return self.textConstr.class_name
         
     def SetClass(self, value):
