@@ -65,7 +65,7 @@ credits_html = '''
 <b>The Boa Team</b><br>
 <br>
 Riaan Booysen (riaan@e.co.za)<p>
-Shane Hathaway (shane@digicool.com)<br>
+Shane Hathaway (shane@zope.com)<br>
 Kevin Gill (kevin@telcotek.com)<br>
 Robert Boulanger (robert@boulanger.de)<br>
 Tim Hochberg (tim.hochberg@ieee.org)<br>
@@ -80,18 +80,18 @@ Neil Hodgson for Scintilla<br>
 <br>
 moduleparse.py borrows from pyclbrs.py - standard python library<br>
 PythonInterpreter.py by Fredrik Lundh<br>
-Debugger based on IDLE's debugger by Guido van Rossum<br>
 Mozilla, Delphi, WinCVS for iconic inspirations<br>
 Cyclops, ndiff, reindent by Tim Peters<br>
 Client.py, WebDAV, DateTime package and the Zope Book from Zope Corporation for Zope integration<br>
 PyChecker by Neal Norwitz & Eric C. Newton<br>
 py2exe by Thomas Heller<br>
-babeliser.py by Jonathan Feinberg and Babelfish for translation<br>
-David Adams' Speller, an xml-rpc spellchecker server<br>
 Jeff Sasmor for wxStyledTextCtrl docs<br>
 Hernan M. Foffani for ZopeShelf from which the Zope Book was converted<br>
+Phil Dawes et al for the Bicycle Repair Man project, a Python refactoring package<br>
 <p>
 Mike Fletcher for reports, ideas and patches (MakePy dialog and much improved UML layout)<br>
+<p>
+Cedric Delfosse for maintaining the Debian package of Boa
 <p>
 <b>Boa interfaces with the following external applications, thanks to their authors</b><br>
 Zope, CVS, SSH, SCP<br>
@@ -137,6 +137,19 @@ about_text = '''
 </p>
 '''
 
+wxFileSystem_AddHandler(wxMemoryFSHandler())
+
+def addImagesToFS():
+    for name, path, type in [
+        ('Boa.jpg', 'Images/Shared/Boa.jpg', wxBITMAP_TYPE_JPEG),
+        ('PythonPowered.png', 'Images/Shared/PythonPowered.png', wxBITMAP_TYPE_PNG),
+        ('wxPyButton.png', 'Images/Shared/wxPyButton.png', wxBITMAP_TYPE_PNG),
+        ('wxWinButton.png', 'Images/Shared/wxWinButton.png', wxBITMAP_TYPE_PNG)]:
+        if name not in addImagesToFS.addedImages:
+            wxMemoryFSHandler_AddFile(name, Preferences.IS.load(path), type)
+            addImagesToFS.addedImages.append(name)
+addImagesToFS.addedImages = []
+
 def createSplash(parent, modTot, fileTot):
     return AboutBoxSplash(parent, modTot, fileTot)
 
@@ -149,6 +162,8 @@ class AboutBoxMixin:
     border = 7
     def __init__(self, parent, modTot=0, fileTot=0):
         self._init_ctrls(parent)
+        
+        addImagesToFS()
 
         self.moduleTotal = modTot
         self.fileTotal = fileTot
@@ -182,10 +197,9 @@ class AboutBoxMixin:
     def OnLinkClick(self, event):
         clicked = event.linkinfo[0]
         if clicked == 'Credits':
-            self.html.SetPage(credits_html % (
-                  Utils.toPyPath('Images/Shared/PythonPowered.gif'),
-                  Utils.toPyPath('Images/Shared/wxPyButton.png'),
-                  Utils.toPyPath('Images/Shared/wxWinButton.png')))
+            self.html.SetPage(credits_html % ('memory:PythonPowered.png',
+                                              'memory:wxPyButton.png', 
+                                              'memory:wxWinButton.png'))
         elif clicked == 'Back':
             self.setPage()
             #self.html.HistoryBack()
@@ -211,7 +225,7 @@ class AboutBox(AboutBoxMixin, wxDialog):
 
     def setPage(self):
         self.html.SetPage((about_html % (
-              Utils.toPyPath('Images/Shared/Boa.jpg'), __version__.version,
+              'memory:Boa.jpg', __version__.version,
               '', about_text % (sys.version, wxPlatform, wxPython.__version__))))
 DefAboutBox = AboutBox
 
@@ -227,7 +241,7 @@ class AboutBoxSplash(AboutBoxMixin, wxFrame):
         self.SetBackgroundColour(wxColour(0x44, 0x88, 0xFF))#wxColour(0x99, 0xcc, 0xff))
 
     def setPage(self):
-        self.html.SetPage(about_html % (Utils.toPyPath('Images/Shared/Boa.jpg'),
+        self.html.SetPage(about_html % ('memory:Boa.jpg',
           __version__.version, progress_text % (self.progressId, self.gaugePId), ''))
 
         self.label = self.FindWindowById(self.progressId)
@@ -257,7 +271,7 @@ class AboutBoxSplash(AboutBoxMixin, wxFrame):
         if sys and len(sys.modules) >= self.moduleTotal:
             wx.wxPostEvent(self, ModCntUpdateEvent(self.moduleTotal, 'importing'))
         else:
-            while self._live and sys and len(sys.modules) < self.moduleTotal:
+            while self and self._live and sys and len(sys.modules) < self.moduleTotal:
                 mc = len(sys.modules)
                 if mc > lastCnt:
                     lastCnt = mc
@@ -317,3 +331,4 @@ if __name__ == '__main__':
     wxInitAllImageHandlers()
     frame = createNormal(None)
     frame.ShowModal()
+    app.MainLoop()
