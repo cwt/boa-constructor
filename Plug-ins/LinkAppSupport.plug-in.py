@@ -39,10 +39,10 @@ class LinkAppModel(PythonEditorModels.PyAppModel):
                 return model
         return None
 
-    def run(self, args = ''):
+    def run(self, args = '', execStart=None, execFinish=None):
         app = self.findAppInModules(args)
         if app:
-            app.run(args)
+            app.run(args, execStart, execFinish)
         else:
             wxLogWarning('No Application module found in modules list to link to')
 
