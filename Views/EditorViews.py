@@ -135,12 +135,18 @@ class EditorView:
             if name == '-': wId = -1
             else: wId = wxNewId()
             
-            self.menu.Append(wId, name)
+            if name[0] == '+':
+                canCheck = true
+                name = name[1:]
+            else:
+                canCheck = false
+
+            self.menu.Append(wId, name, checkable = canCheck)
             EVT_MENU(self, wId, meth)
-            self.editorMenu.Append(wId, name)
+            self.editorMenu.Append(wId, name, checkable = canCheck)
             EVT_MENU(self.model.editor, wId, meth)
             self.ids.append(wId)
-            if accl: self.accelLst.append((accl[0], accl[1], wId))
+            if accl: self.accelLst.append( (accl[0], accl[1], wId) )
     
         # Connect default action of the view to doubleclick on view 
         if dclickActionIdx < len(actions) and dclickActionIdx > -1:
@@ -164,6 +170,9 @@ class EditorView:
             if name == '-' and not bmp:
                 toolbar.AddSeparator()
             elif bmp != '-':
+                if name[0] == '+':
+                    # XXX Add toggle button
+                    name = name [1:]
                 AddToolButtonBmpObject(self.model.editor, toolbar, IS.load(bmp), name, meth)
 
     docked = true
@@ -195,7 +204,7 @@ class EditorView:
         self.modified = true
         if self.active:
             self.refresh()
-	
+
     def refresh(self):
         self.refreshCtrl()
         self.modified = false
@@ -617,7 +626,7 @@ class ToDoView(ListCtrlView):
             srcView.focus()
             module = self.model.getModule()
             srcView.gotoLine(int(module.todos[self.selected][0]) -1)
-            
+
 tPopupIDPackageOpen = 300
 
 class PackageView(ListCtrlView):
