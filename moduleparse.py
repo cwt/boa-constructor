@@ -116,9 +116,13 @@ class CodeBlock:
         return self.end - self.start
 
     def localnames(self):
-        return filter(lambda s, locls=self.locals.keys(): s not in locls,
-           map(lambda s: string.split(s, '=')[0],
-           methodparse.safesplitfields(self.signature, ',')))+self.locals.keys()
+        locls=self.locals.keys()
+        #return filter(lambda s, locls=self.locals.keys(): s not in locls,
+        #   map(lambda s: s.split('=')[0],
+        #   methodparse.safesplitfields(self.signature, ',')))+self.locals.keys()
+        return [name for name in [fld.split('=')[0] 
+                 for fld in methodparse.safesplitfields(self.signature, ',')]
+                if name not in locls] + self.locals.keys()
 
 class Attrib:
     def __init__(self, name, lineno, objtype = ''):
@@ -147,7 +151,8 @@ class Class:
         self.block = CodeBlock('', lineno, lineno)
 
     def __repr__(self):
-        return self.name+`self.block`+'\n'+string.join(map(lambda meth, meths=self.methods: '    '+meth+`meths[meth]`, self.method_order), '\n')
+        return self.name+`self.block`+'\n'+'\n'.join(
+               ['    '+meth+`self.methods[meth]` for meth in self.method_order])
 
     def add_method(self, name, sig, linestart, lineend = None, to_bottom = 1):
         if not lineend: lineend = linestart
@@ -218,7 +223,7 @@ class Module:
         if cur_class:
             # Gobble up blank lines
             lineno = lineno - 1
-            while not string.strip(self.source[lineno - 1]):
+            while not self.source[lineno - 1].strip():
                 lineno = lineno - 1
 
             if cur_meth:
@@ -248,7 +253,7 @@ class Module:
     def readcontinuedlines(self, lineno, terminator):
         contline = ''
         while lineno < len(self.source):
-            line = string.rstrip(self.decomment(self.source[lineno]))
+            line = self.decomment(self.source[lineno]).rstrip()
             if line:
                 if line[-1] in self.line_conts:
                     contline = contline + line
@@ -296,7 +301,7 @@ class Module:
         self.loc = 0
         while self.lineno < len(self.source):
             self.loc = self.loc + 1
-            line = string.rstrip(self.readline())
+            line = self.readline().rstrip()
 
             cont, cur_class, cur_meth, cur_func = self.parseLine(module, file,
                   line, self.lineno, cur_class, cur_meth, cur_func)
@@ -333,8 +338,7 @@ class Module:
     def parseLine(self, module, file, line, lineno, cur_class, cur_meth, cur_func):
         res = is_todo.match(line) or is_todo2.match(line)
         if res:
-            self.todos.append((lineno,
-                  string.strip(line[res.span()[1]:])))
+            self.todos.append((lineno, line[res.span()[1]:].strip()))
             return 0, cur_class, cur_meth, cur_func
 
         if blank_line.match(line):
@@ -359,8 +363,7 @@ class Module:
                 if lno == -1:
                     return 0, cur_class, cur_meth, cur_func
                 class_name = res2.group('id')
-                inherit = contl[string.find(contl,
-                     '('):string.rfind(contl, ')')+1]
+                inherit = contl[contl.find('('):contl.rfind(')')+1]
             else:
                 class_name = res.group('id')
                 inherit = res.group('sup')
@@ -370,16 +373,16 @@ class Module:
               cur_meth, cur_func, lineno)
             if inherit:
                 # the class inherits from other classes
-                inherit = string.strip(inherit[1:-1])
+                inherit = inherit[1:-1].strip()
                 names = []
-                for n in string.split(inherit, ','):
-                    n = string.strip(n)
+                for n in inherit.split(','):
+                    n = n.strip()
                     if n:
                         if self.classes.has_key(n):
                             # we know this super class
                             n = self.classes[n]
                         else:
-                            c = string.splitfields(n, '.')
+                            c = n.split('.')
                             if len(c) > 1:
                                 # super class is of the
                                 # form module.class:
@@ -433,8 +436,7 @@ class Module:
                 if lno == -1:
                     return 0, cur_class, cur_meth, cur_func
                 res_group_id = res2.group('id')
-                res_group_sig = contl[string.find(contl,
-                      '(')+1:string.rfind(contl, ')')]
+                res_group_sig = contl[contl.find('(')+1:contl.rfind(')')]
             else:
                 res_group_id = res.group('id')
                 res_group_sig = res.group('sig')
@@ -454,8 +456,7 @@ class Module:
                 if lno == -1:
                     return 0, cur_class, cur_meth, cur_func
                 res_group_id = res2.group('id')
-                res_group_sig = contl[string.find(contl,
-                      '(')+1:string.rfind(contl, ')')]
+                res_group_sig = contl[contl.find('(')+1:contl.rfind(')')]
             else:
                 res_group_id = res.group('id')
                 res_group_sig = res.group('sig')
@@ -499,22 +500,22 @@ class Module:
         res = is_import.match(line)
         if res:
             # import module
-            for n in string.split(res.group('imp'), ','):
-                n = string.strip(n)
+            for n in res.group('imp').split(','):
+                n = n.strip()
                 i = []
-                for s in string.split(n, '.'):
+                for s in n.split('.'):
                     i.append(s)
-                    self.imports[string.join(i, '.')] = [lineno]
+                    self.imports['.'.join(i)] = [lineno]
             return 0, cur_class, cur_meth, cur_func
 
         res = is_from.match(line)
         if res:
             # from module import stuff
-            mod, names = res.group('module'), string.splitfields(res.group('imp'), ',')
+            mod, names = res.group('module'), res.group('imp').split(',')
             self.from_imports[mod] = [lineno]
 
             for n in names:
-                n = string.strip(n)
+                n = n.strip()
                 if n:
                     self.from_imports[mod].append(n)
                     if n != '*': self.from_imports_names[n] = mod
@@ -650,7 +651,7 @@ class Module:
         self.renumber(deltaLines, code_block.start)
 
     def replaceMethodBody(self, class_name, method_name, new_body):
-        if not string.strip(string.join(new_body)): new_body = [body_indent+'pass', '']
+        if not ' '.join(new_body).strip(): new_body = [body_indent+'pass', '']
         self.replaceBody(method_name, self.classes[class_name].methods, new_body)
 
     def removeMethod(self, class_name, name):
@@ -675,7 +676,7 @@ class Module:
                 return '<i>Doc string too big for sre</i>'
         if m:
             s, e = m.span()
-            return string.strip(body[s+3:e-3])
+            return body[s+3:e-3].strip()
         else: return ''
 
     def getModuleDoc(self):
@@ -693,12 +694,12 @@ class Module:
             funcStart = len(self.source)
 
         modTop = self.source[:min(classStart, funcStart)]
-        return self.searchDoc(string.join(self.formatDocStr(modTop)))
+        return self.searchDoc(' '.join(self.formatDocStr(modTop)))
 
     def formatDocStr(self, lines):
         l = []
         for line in lines:
-            if not string.strip(line):
+            if not line.strip():
                 l.append('<P>')
             else:
                 l.append(line)
@@ -721,22 +722,22 @@ class Module:
         classDoc = self.source[cls.block.start: min(methStart,
           cls.block.end)]
 
-        return self.searchDoc(string.join(self.formatDocStr(classDoc)))
+        return self.searchDoc(' '.join(self.formatDocStr(classDoc)))
 
     def getClassMethDoc(self, class_name, meth_name):
         """ Extract the doc string for a method """
         methDoc = self.extractMethodBody(class_name, meth_name)
-        return self.searchDoc(string.join(self.formatDocStr(methDoc)))
+        return self.searchDoc(' '.join(self.formatDocStr(methDoc)))
 
     def getFunctionDoc(self, function_name):
         funcDoc = self.extractFunctionBody(function_name)
-        return self.searchDoc(string.join(self.formatDocStr(funcDoc)))
+        return self.searchDoc(' '.join(self.formatDocStr(funcDoc)))
 
     def renameClass(self, old_class_name, new_class_name):
         cls = self.classes[old_class_name]
         idx = cls.block.start -1
-        self.source[idx] = string.replace(self.source[idx], old_class_name,
-          new_class_name, 1)
+        self.source[idx] = self.source[idx].replace(old_class_name, 
+                                                    new_class_name, 1)
         cls.name = new_class_name
         del self.classes[old_class_name]
         self.classes[new_class_name] = cls
@@ -749,8 +750,8 @@ class Module:
         # untested
         meth = self.classes[class_name].methods[old_method_name]
         idx = meth.start -1
-        self.source[idx] = string.replace(self.source[idx], old_method_name,
-          new_method_name, 1)
+        self.source[idx] = self.source[idx].replace(old_method_name,
+                                                    new_method_name, 1)
         del self.classes[class_name].methods[old_method_name]
         self.classes[class_name].methods[new_method_name] = meth
         #rename order
@@ -838,12 +839,12 @@ class Module:
         for cnt in range(len(self.source)):
             if self.source[cnt][:2] == '#-': c.append(cnt)
             if len(c) ==2:
-                data = string.join(self.source[c[0]:c[1]+1], os.linesep)
+                data = os.linesep.join(self.source[c[0]:c[1]+1])
 
                 info = is_info.search(data)
                 if info:
                     for key in info.groupdict().keys():
-                        info_block[key] = string.strip(info.group(key))
+                        info_block[key] = info.group(key).strip()
                 else: return 'no info'
 
         return info_block
@@ -852,13 +853,13 @@ class Module:
         """ Adds an import statement to the code and internal dict if it isn't
             added yet """
         # XXX Split on newline
-        stmts = string.split(impStmt, '\n')
+        stmts = impStmt.split('\n')
 
         m = is_import.match(impStmt)
         impLine = ''
         if m:
-            for n in string.splitfields(m.group('imp'), ','):
-                n = string.strip(n)
+            for n in m.group('imp').split(','):
+                n = n.strip()
                 if not self.imports.has_key(n):
                     self.imports[n] = [self.lineno]
                     impLine = impStmt
@@ -943,3 +944,9 @@ def moduleFile(module, path=[], inpackage=0):
     mod = Module(module, f.readlines())
     f.close()
     return mod
+
+if __name__ == '__main__':
+    lines = open('moduleparse.py').readlines()
+    m = Module('moduleparse', lines)
+    print m.classes['Module'].methods['__init__'].localnames()
+    

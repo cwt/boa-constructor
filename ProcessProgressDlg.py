@@ -7,7 +7,7 @@
 #
 # Created:     2001/02/04
 # RCS-ID:      $Id$
-# Copyright:   (c) 2001 Riaan Booysen
+# Copyright:   (c) 2001 - 2003 Riaan Booysen
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 #Boa:Dialog:ProcessProgressDlg
@@ -15,11 +15,12 @@
 from wxPython.wx import *
 from wxPython.lib.anchors import LayoutAnchors
 
-import string, os, time, sys
+import os, time, sys
 
 # XXX Change to be non-modal, minimizable and run CVS operation in thread !!
 
 # XXX remove when 2.3.3 is minimum version
+import Preferences
 from Utils import canReadStream
 
 class ProcessRunnerMix:
@@ -31,6 +32,7 @@ class ProcessRunnerMix:
 
     def reset(self):
         self.process = None
+        self.pid = -1
         self.output = []
         self.errors = []
         self.errorStream = None
@@ -42,7 +44,7 @@ class ProcessRunnerMix:
         self.process = wxProcess(self)
         self.process.Redirect()
 
-        wxExecute(cmd, false, self.process)
+        self.pid = wxExecute(cmd, false, self.process)
 
         self.errorStream = self.process.GetErrorStream()
         self.outputStream = self.process.GetInputStream()
@@ -131,7 +133,7 @@ class ProcessProgressDlg(wxDialog, ProcessRunnerMix):
 
         self.splitterWindow1 = wxSplitterWindow(id=wxID_PROCESSPROGRESSDLGSPLITTERWINDOW1,
               name='splitterWindow1', parent=self, point=wxPoint(8, 80),
-              size=wxSize(360, 192), style=wxSP_3DSASH | wxSP_FULLSASH)
+              size=wxSize(360, 192), style=self.splitterStyle)
         self.splitterWindow1.SetConstraints(LayoutAnchors(self.splitterWindow1,
               true, true, true, true))
 
@@ -163,6 +165,7 @@ class ProcessProgressDlg(wxDialog, ProcessRunnerMix):
     def __init__(self, parent, command, caption, modally = true, linesep = os.linesep, autoClose = true, overrideDisplay = ''):
         self.dlg_caption = 'Progress'
         self.dlg_caption = caption
+        self.splitterStyle = Preferences.splitterStyle
         self._init_ctrls(parent)
 
         self.splitterWindow1.SetMinimumPaneSize(20)
@@ -246,10 +249,10 @@ class ProcessProgressDlg(wxDialog, ProcessRunnerMix):
             event.Skip()
 
     def prepareResult(self):
-        self.output = string.split(string.join(self.output, ''), self.linesep)[:-1]
+        self.output = ''.join(self.output).split(self.linesep)[:-1]
         for idx in range(len(self.output)):
             self.output[idx] = self.output[idx] + os.linesep
-        self.errors = string.split(string.join(self.errors, ''), self.linesep)[:-1]
+        self.errors = ''.join(self.errors).split(self.linesep)[:-1]
         for idx in range(len(self.errors)):
             self.errors[idx] = self.errors[idx] + os.linesep
 

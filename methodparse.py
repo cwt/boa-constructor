@@ -6,7 +6,7 @@
 #
 # Created:     1999
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999 - 2001 Riaan Booysen
+# Copyright:   (c) 1999 - 2003 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
 """
@@ -94,7 +94,7 @@ def safesplitfields(params, delim, returnBlanks = 0,
     singlequotelevel = 0
     doublequotelevel = 0
 
-    if returnBlanks and not string.strip(params):
+    if returnBlanks and not params.strip():
         return [params]
 
     while i < len(locparams):
@@ -104,7 +104,7 @@ def safesplitfields(params, delim, returnBlanks = 0,
           and (curchar == delim):
             param = locparams[:i]
             list.append(param)
-            locparams = string.strip(locparams[i +1:])
+            locparams = locparams[i +1:].strip()
             i = 0
             continue
 
@@ -134,7 +134,7 @@ def safesplitfields(params, delim, returnBlanks = 0,
             i = i + 1
 
     # add last entry not delimited by comma
-    lastentry = string.strip(locparams)
+    lastentry = locparams.strip()
     if lastentry:
         list.append(lastentry)
     return list
@@ -183,7 +183,7 @@ def parseMixedBody(parseClasses, lines):
     idx = 0
     cont = ''
     while idx < len(lines):
-        line = string.strip(lines[idx])
+        line = lines[idx].strip()
         ln = cont + line
         if (ln == 'pass') or (ln == ''):
             idx = idx + 1
@@ -235,7 +235,7 @@ class PerLineParser:
         """ Source representation of parsed line """
         return ''
     def getIdPrefix(self, name):
-        return 'wxID_%s'%string.upper(name)
+        return 'wxID_%s'%name.upper()
     def checkId(self, id, idPrfx):
         return id not in EventCollections.reservedWxNames and Utils.startswith(id, idPrfx)
     def prependFrameWinId(self, frame):
@@ -263,11 +263,11 @@ class PerLineParser:
         result = {}
         for param in params:
             try:
-                sidx = string.index(param, '=')
+                sidx = param.index('=')
             except ValueError:
                 pass
             else:
-                result[string.strip(param[:sidx])] = string.strip(param[sidx+1:])
+                result[param[:sidx].strip()] = param[sidx+1:].strip()
         return result
 
     def KVParamsAsText(self, params):
@@ -278,10 +278,10 @@ class PerLineParser:
             #_used_names[key] = 1
             kvlist.append(Preferences.cgKeywordArgFormat%{'keyword': key,
                                                           'value': params[key]})
-        return string.join(kvlist, ', ')
+        return ', '.join(kvlist)
 
     def checkContinued(self, line):
-        line = string.strip(line)
+        line = line.strip()
         if line and line[-1] == ',':
             raise IncompleteLineError
 
@@ -340,7 +340,7 @@ class ConstructorParse(PerLineParser):
             if self.params.has_key('id') and \
                   self.params['id'] not in EventCollections.reservedWxNames:
                 self.params['id'] = \
-                  self.params['id'][:-len(old_value)]+string.upper(new_value)
+                  self.params['id'][:-len(old_value)]+new_value.upper()
         if self.factory and self.factory[0] == old_value:
             self.factory = (new_value, self.factory[1])
 
@@ -392,7 +392,7 @@ class PropertyParse(PerLineParser):
             if self.m:
                 self.checkContinued(line)
                 self.params = safesplitfields(self.m.group('params'), ',')
-                compsetter = string.split(self.m.group('name'), '.')
+                compsetter = self.m.group('name').split('.')
 
                 if len(compsetter) < 1: raise 'atleast 1 required '+`compsetter`
                 if len(compsetter) == 1:
@@ -416,7 +416,7 @@ class PropertyParse(PerLineParser):
         newCtrlSrcRef = Utils.srcRefFromCtrlName(new_value)
 
         for idx in range(len(self.params)):
-            segs = string.split(self.params[idx], oldCtrlSrcRef)
+            segs = self.params[idx].split(oldCtrlSrcRef)
             if len(segs) > 1:
                 lst = [segs[0]]
                 for s in segs[1:]:
@@ -424,12 +424,12 @@ class PropertyParse(PerLineParser):
                         lst[-1] = lst[-1] + s
                     else:
                         lst.append(s)
-                self.params[idx] = string.join(lst, newCtrlSrcRef)
+                self.params[idx] = newCtrlSrcRef.join(lst)
 
             # Handle case where _init_coll_* methods are used as parameters
             param = self.params[idx]
             if Utils.startswith(param, 'self.'+coll_init):
-                nameEnd = string.rfind(param, '_')
+                nameEnd = param.rfind('_')
                 name = param[16:nameEnd]
                 if name == old_value:
                     self.params[idx] = 'self.'+coll_init+new_value+param[nameEnd:]
@@ -438,10 +438,10 @@ class PropertyParse(PerLineParser):
 
     def asText(self, stripFrameWinIdPrefix=''):
         return '%s.%s(%s)' %(Utils.srcRefFromCtrlName(self.comp_name),
-                self.prop_setter, string.join(self.params, ', '))
+                self.prop_setter, ', '.join(self.params))
 
 def ctrlNameFromMeth(meth):
-    return string.join(string.split(meth, '_')[3:-1], '_')
+    return '_'.join(meth.split('_')[3:-1])
 
 # self._init_coll_method(comp_name, params)
 is_coll_init = re.compile('^[ \t]*self[.](?P<method>'+coll_init+idp+\
@@ -473,7 +473,7 @@ class CollectionInitParse(PerLineParser):
 
     def asText(self, stripFrameWinIdPrefix=false):
         return 'self.%s(%s)' %(self.method,
-             string.join([Utils.srcRefFromCtrlName(self.comp_name)]+self.params, ', '))
+             ', '.join([Utils.srcRefFromCtrlName(self.comp_name)]+self.params))
 
 # Because the object name of some collection items cannot be directly derived
 # from the source, the information is attached to the items
@@ -563,15 +563,15 @@ class EventParse(PerLineParser):
             if self.m:
                 self.checkContinued(line)
 
-                params = string.split(self.m.group('params'), ',')
-                name = string.strip(params[0])
+                params = self.m.group('params').split(',')
+                name = params[0].strip()
                 if name != 'self':
                     self.comp_name = name[5:]
                 if len(params) == 2:
-                    self.trigger_meth = string.strip(params[1])[5:]
+                    self.trigger_meth = params[1].strip()[5:]
                 elif len(params) == 3:
-                    self.windowid = string.strip(params[1])
-                    self.trigger_meth = string.strip(params[2])[5:]
+                    self.windowid = params[1].strip()
+                    self.trigger_meth = params[2].strip()[5:]
 
                 self.event_name = self.m.group('evtname')
 

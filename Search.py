@@ -6,7 +6,7 @@
 #
 # Created:     2000/01/08
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999, 2000 Riaan Booysen
+# Copyright:   (c) 1999 - 2003 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
 
@@ -20,24 +20,26 @@ def count(filename, pattern, caseSensitive):
     try:
         data = f.read()
         if not caseSensitive:
-            data = string.lower(data)
-            pattern = string.lower(pattern)
+            data = data.lower()
+            pattern = pattern.lower()
 
-        return string.count(data, pattern)
+        return data.count(pattern)
     finally:
         f.close()
 
 def findInText(sourcelines, pattern, caseSensitive, includeLine = 0):
     results = []
     if not caseSensitive:
-        sourcelines = map(lambda sourceline: string.lower(sourceline), sourcelines)
-        pattern = string.lower(pattern)
+        #sourcelines = map(lambda sourceline: sourceline.lower(), sourcelines)
+        sourcelines = [sourceline.lower() for sourceline in sourcelines]
+        pattern = pattern.lower()
 
-    matches = map(lambda x, y: (x, y), sourcelines, range(len(sourcelines)))
+    #matches = map(lambda x, y: (x, y), sourcelines, range(len(sourcelines)))
+    matches = zip(sourcelines, range(len(sourcelines)))
     for line, sourceIdx in matches:
         idx = -1
         while 1:
-            idx = string.find(line, pattern, idx + 1)
+            idx = line.find(pattern, idx + 1)
             if idx == -1: break
             else:
                 result = [sourceIdx, idx]
