@@ -607,11 +607,14 @@ class DebuggerFrame(wxFrame, bdb.Bdb):
         self.sourceTraceId = Utils.AddToolButtonBmpIS(self, self.toolbar, 
           'Images/Debug/SourceTrace-Off.bmp',  'Trace in source',
           self.OnSourceTrace, '1')
-#          true, 'Images/Debug/SourceTrace-Off.bmp')
+        self.debugBrowseId = Utils.AddToolButtonBmpIS(self, self.toolbar, 
+          'Images/Debug/DebugBrowse.bmp',  'Debug browsing',
+          self.OnDebugBrowse, '1')
 
         self.toolbar.Realize()
         
         self.toolbar.ToggleTool(self.sourceTraceId, true)
+        self.toolbar.ToggleTool(self.debugBrowseId, true)
     
         self.splitter = wxSplitterWindow(self, -1, style = wxSP_NOBORDER)
     
@@ -718,15 +721,14 @@ class DebuggerFrame(wxFrame, bdb.Bdb):
         self.show_variables()
     
     def getVarValue(self, name):    
+        print 'getVarValue', name
         if self.frame:
-            l, g = self.frame.f_locals, self.frame.f_globals
-            if l.has_key(name): d = l
-            elif g.has_key(name): d = g
-            else: return ''    
-#            return self.repr.repr(d[name])
-            return pprint.pformat(d[name])
+            try:
+                return pprint.pformat(eval(name, self.frame.f_globals, self.frame.f_locals))
+            except Exception, message:
+                return pprint.pformat(str(message))
         else:
-            return ''
+            return '(No current frame)'
 
     def startMainLoop(self):
         self.app.MainLoop()
@@ -918,7 +920,7 @@ class DebuggerFrame(wxFrame, bdb.Bdb):
         return fn
 
     def selectSourceLine(self):
-        if self.stackView.stack and self.toolbar.GetToolState(self.sourceTraceId):
+        if self.stackView.stack and self.isSourceTracing():
             stack = self.stackView.stack
             frame, lineno = stack[len(stack)-1]
             try:
@@ -947,6 +949,12 @@ class DebuggerFrame(wxFrame, bdb.Bdb):
         self.toolbar.EnableTool(self.overId, enable)
         self.toolbar.EnableTool(self.outId, enable)
         self.toolbar.EnableTool(self.stopId, enable)
+    
+    def isSourceTracing(self):
+        return self.toolbar.GetToolState(self.sourceTraceId)        
+
+    def isDebugBrowsing(self):
+        return self.toolbar.GetToolState(self.debugBrowseId)        
 
     def OnDebug(self, event):
         if self.interacting:
@@ -973,9 +981,12 @@ class DebuggerFrame(wxFrame, bdb.Bdb):
         self.set_quit()
         self.model.editor.clearAllStepPoints()
         self.stackView.load_stack([])
-        self.stopMainLoop()
+#        self.stopMainLoop()
     
     def OnSourceTrace(self, event):
+        pass
+
+    def OnDebugBrowse(self, event):
         pass
 
     def OnCloseWindow(self, event):
@@ -987,7 +998,11 @@ class DebuggerFrame(wxFrame, bdb.Bdb):
             self.globs.destroy()
             self.breakpts.destroy()
             self.watches.destroy()
-            self.model.editor.debugger = None        
+            self.model.editor.debugger = None
+
+            # PhonyApp should set this
+            self.app.quit = true
+            
         finally:
             self.Destroy()
             event.Skip()
