@@ -88,7 +88,6 @@ class BevelIEC(InspectorEditorControl):
         if self.bevelTop:
             self.bevelTop.SetPosition(wxPoint(-2, idx*Preferences.oiLineHeight -1))
             self.bevelBottom.SetPosition(wxPoint(-2, (idx +1)*Preferences.oiLineHeight -1))
-#        InspectorEditorControl.setIdx(self, idx)
 
 class BeveledLabelIEC(BevelIEC):
     def createControl(self, parent, idx, sizeX):
@@ -231,16 +230,18 @@ class TextCtrlButtonIEC(BevelIEC):
         self.editorCtrl = [
               wxTextCtrl(parent, self.wID, value,
                (-2, idx*Preferences.oiLineHeight -2),
-               (sizeX - 18, Preferences.oiLineHeight+3)),#, style = style),
+               (sizeX - 20, Preferences.oiLineHeight+3)),#, style = style),
               wxBitmapButton(parent, self.wID2, bmp,
-               (sizeX - 18 -3, idx*Preferences.oiLineHeight +1),
-               (18, Preferences.oiLineHeight-2))]
+               (sizeX - 18 -3, idx*Preferences.oiLineHeight -1),
+               (18, Preferences.oiLineHeight))]
         EVT_BUTTON(self.editorCtrl[1], self.wID2, editMeth)
 
         if value:
             self.editorCtrl[0].SetSelection(0, len(value))
 
         BevelIEC.createControl(self, parent, idx, sizeX)
+        self.bevelTop.Show(false)
+        self.bevelBottom.Show(false)
 
     def destroyControl(self):
         """ Close an open editor control """
@@ -258,11 +259,11 @@ class TextCtrlButtonIEC(BevelIEC):
     # default sizing for controls that span the entire value width
     def setWidth(self, width):
         if self.editorCtrl:
-            self.editorCtrl[0].SetSize(wxSize(width -18,
+            self.editorCtrl[0].SetSize(wxSize(width -20,
                   self.editorCtrl[0].GetSize().y))
             self.editorCtrl[1].SetDimensions(width - 18 -3,
                   self.editorCtrl[1].GetPosition().y, 18,
-                  Preferences.oiLineHeight-2)
+                  Preferences.oiLineHeight)
 
         BevelIEC.setWidth(self, width)
 
