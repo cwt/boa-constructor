@@ -52,6 +52,8 @@ class ShellEditor(StyledTextCtrls.wxStyledTextCtrl,
         else:
             copyright = p2c
         self.CallTipSetBackground(wxColour(255, 255, 232))
+        try: self.SetWrapMode(1)
+        except AttributeError: pass
 
         EVT_KEY_DOWN(self, self.OnKeyDown)
 
