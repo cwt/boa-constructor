@@ -63,17 +63,17 @@ useBoaFileDlg = 1
 undefinedWindowCol = wx.wxColour(128, 0, 0)
 
 # Info that will be filled into the comment block. (Edit->Add module info)
+# Also used by setup.py
 staticInfoPrefs = { 'Purpose':   '',
                     'Author':    'Riaan Booysen',
-                    'Copyright': '(c) 1999, 2000 Riaan Booysen',
-                    'Licence':   'GPL'}
+                    'Copyright': '(c) 2001 Riaan Booysen',
+                    'Licence':   'GPL',
+                    'Email':     'riaan@e.co.za',
+                  }
 
 # Should modules be added to the application if it is the active Model when
 # a module is created from the palette
 autoAddToApplication = 1
-
-# Minimize the IDE while running applications
-minimizeOnRun = 1
 
 # Load images from image archive or files
 useImageArchive = 0
