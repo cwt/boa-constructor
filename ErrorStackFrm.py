@@ -174,7 +174,7 @@ class ErrorStackMF(wxFrame, Utils.FrameRestorerMixin):
 
         return parsedTracebacks
 
-    def display(self, errs):
+    def display(self, errs=None):
         # XXX errs not used !
         # docked on this frame
         if self.notebook1.GetParent() == self:
@@ -263,17 +263,19 @@ class ErrorStackMF(wxFrame, Utils.FrameRestorerMixin):
             data = self.errorStackTC.GetPyData(event.GetItem())
             if data is None:
                 return
-            if self.app:
+            if string.find(data.file, '://') != -1:
+                fn = data.file
+            elif self.app:
                 fn = os.path.join(os.path.dirname(self.app.filename), data.file)
             elif self.runningDir:
                 fn = os.path.join(self.runningDir, data.file)
             else:
                 fn = os.path.abspath(data.file)
             model, controller = self.editor.openOrGotoModule(fn, self.app)
-            model.views['Source'].focus()
-            model.views['Source'].SetFocus()
-            model.views['Source'].gotoLine(data.lineNo - 1)
-            model.views['Source'].setLinePtr(data.lineNo - 1)
+            srcView = model.getSourceView()
+            srcView.focus()
+            srcView.gotoLine(data.lineNo - 1)
+            srcView.setLinePtr(data.lineNo - 1)
             self.editor.setStatus(string.join(data.error, ' : '),
                 self.tracebackType)
 #            self.Lower()
@@ -281,8 +283,9 @@ class ErrorStackMF(wxFrame, Utils.FrameRestorerMixin):
 #            self.editor.Focus()
 #                self.editor.statusBar.setHint('%s: %s'% (err[-1].error[0], err[-1].error[0])
         finally:
-#            pass
-            event.Skip()
+            # XXX Is this skip still needed?
+            #event.Skip()
+            pass
 
     def OnErrorstackmfClose(self, event):
         self.Show(true)
