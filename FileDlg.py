@@ -49,7 +49,7 @@ class wxBoaFileDialog(wxDialog):
 
         self.stPath = wxStaticText(label = ' ', id = wxID_WXBOAFILEDIALOGSTPATH, parent = self.panel1, name = 'stPath', size = wxSize(3, 13), style = 0, pos = wxPoint(8, 8))
 
-    def __init__(self, parent, message = 'Choose a file', defaultDir = '.', defaultFile = '', wildcard = '*.*', style = wxOPEN, wildcard = '*.py; *.txt', pos = wxDefaultPosition): 
+    def __init__(self, parent, message = 'Choose a file', defaultDir = '.', defaultFile = '', style = wxOPEN, wildcard = '*.py; *.txt', pos = wxDefaultPosition): 
         self._init_ctrls(parent)
         self.SetStyle(style)
         self.SetWildcard(wildcard)
@@ -58,15 +58,17 @@ class wxBoaFileDialog(wxDialog):
         # XXX The late importing is the only way to avoid import problems because 
         # XXX the dialog swapping code is initialised so early on
 
-        import Explorer
+        from Explorers import Explorer
         class FileDlgFolderList(Explorer.PackageFolderList):
             def __init__(self, parent, dlg, filepath, pos = wxDefaultPosition, size = wxDefaultSize):
-                import Explorer
+                from Explorers import Explorer
                 Explorer.PackageFolderList.__init__(self, parent, filepath, pos, size)
                 self.dlg = dlg
+                EVT_LIST_ITEM_SELECTED(self, self.GetId(), self.OnItemSelect)
+                EVT_LIST_ITEM_DESELECTED(self, self.GetId(), self.OnItemDeselect)
                 
             def OnItemSelect(self, event):
-                import Explorer
+                from Explorers import Explorer
                 Explorer.PackageFolderList.OnItemSelect(self, event)
                 item = self.getSelection()
                 if item:
@@ -75,7 +77,7 @@ class wxBoaFileDialog(wxDialog):
                     self.dlg.SelectItem('..')
 
             def OnItemDeselect(self, event):
-                import Explorer
+                from Explorers import Explorer
                 Explorer.PackageFolderList.OnItemDeselect(self, event)
                 self.dlg.SelectItem(None)
 
@@ -91,9 +93,9 @@ class wxBoaFileDialog(wxDialog):
         self.SetFilename(defaultFile)
 
     def newFileNode(self, defaultDir):
-        import Explorer
-        return Explorer.PyFileNode(path.basename(defaultDir), defaultDir, None, 
-              Explorer.FolderModel.imgIdx, None)
+        from Explorers import FileExplorer, Explorer
+        return FileExplorer.PyFileNode(path.basename(defaultDir), defaultDir, None, 
+              Explorer.EditorModels.FolderModel.imgIdx, None, None)
 
     def updatePathLabel(self):
         self.stPath.SetLabel(self.GetPath())
@@ -120,11 +122,12 @@ class wxBoaFileDialog(wxDialog):
             if node: node.doCVS = false
             if node.resourcepath == self.lcFiles.node.resourcepath:
                 from ExternalLib.ConfigParser import ConfigParser
-                import Preferences, Explorer
+                import Preferences
+                from Explorers import FileExplorer
                 conf = ConfigParser()
                 conf.read(Preferences.pyPath+'/Explorer.'+\
                       (wxPlatform == '__WXMSW__' and 'msw' or 'gtk')+'.cfg')
-                fsn = Explorer.FileSysCatNode(None, conf, None)
+                fsn = FileExplorer.FileSysCatNode(None, conf, None)
                 self.lcFiles.refreshItems(self.modImages, fsn)
                 self.stPath.SetLabel(fsn.name)
                 if self.style & wxSAVE: btn = saveStr
