@@ -574,7 +574,6 @@ class STCStyleEditDlg(wxDialog):
         except AssertionError: wxLogError('Not a valid colour value')
 
     def OnfgColCombobox(self, event):
-        print event.GetString()
         try: self.editColTCProp(self.fgColCb, self.fgColBtn, 'fore', event.GetString())
         except AssertionError: wxLogError('Not a valid colour value')
 
@@ -1131,4 +1130,3 @@ if __name__ == '__main__':
             config)
         try: dlg.ShowModal()
         finally: dlg.Destroy()
-print 'asdf'
