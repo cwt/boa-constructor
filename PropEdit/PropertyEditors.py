@@ -1,6 +1,6 @@
 #----------------------------------------------------------------------
 # Name:        PropertyEditors.py
-# Purpose:     
+# Purpose:
 #
 # Author:      Riaan Booysen
 #
@@ -12,7 +12,7 @@
 """
     Property editors provide a design time interface for the inspector to
     examine and manipulate properties of controls.
-    
+
     Some properties are live and also update the design time control,
     others only update the source and changes may only be seen when the
     frame is reloaded.
@@ -44,7 +44,7 @@ class PropertyRegistry:
     def __init__(self):
         self.classRegistry = {}
         self.typeRegistry = {}#{type(None): None}
-    
+
     def registerClasses(self, propClass, propEditors):
         for propEdit in propEditors:
             self.classRegistry[propClass.__name__] = propEdit
@@ -52,7 +52,7 @@ class PropertyRegistry:
     def registerTypes(self, propType, propEditors):
         for propEdit in propEditors:
             self.typeRegistry[propType] = propEdit
-    
+
     def factory(self, name, parent, companion, rootCompanion, propWrapper, idx, width):
         try:
             propWrapper.connect(companion.control, companion)
@@ -60,20 +60,20 @@ class PropertyRegistry:
         except Exception, message:
             print 'Error on accessing Getter for', name, ':', message
             value = None
-                    
+
         if type(value) == InstanceType:
             if self.classRegistry.has_key(value.__class__.__name__):
-                return self.classRegistry[value.__class__.__name__](name, 
+                return self.classRegistry[value.__class__.__name__](name,
                   parent, companion, rootCompanion, propWrapper, idx, width)
             else:
                 pass
 ##                print 'e:class', value, value.__class__.__name__, 'for', name, 'not supported'
         else:
             if type(value) == type(None):
-                return None 
+                return None
             elif self.typeRegistry.has_key(type(value)):
-                 return self.typeRegistry[type(value)](name, parent, companion, 
-                   rootCompanion, propWrapper, idx, width)
+                return self.typeRegistry[type(value)](name, parent, companion,
+                  rootCompanion, propWrapper, idx, width)
             else:
                 pass
 ##                print 'e:type', value, type(value), 'for', name, 'not supported'
@@ -81,14 +81,14 @@ class PropertyRegistry:
 
 # XXX Check IEC initialisation not from Display value but from 'valueFromIEC'
 class PropertyEditor:
-    """ Class associated with a design time identified type, 
-        it manages the behaviour of a NameValue in the Inspector 
+    """ Class associated with a design time identified type,
+        it manages the behaviour of a NameValue in the Inspector
     """
 
     def __init__(self, name, parent, companion, rootCompanion, propWrapper, idx, width, _1=None , _2=None):
         self.name = name
         self.parent = parent
-        
+
         self.idx = idx
         self.width = width
         self.editorCtrl = None
@@ -121,10 +121,10 @@ class PropertyEditor:
     def refreshCompCtrl(self):
         if self.obj and hasattr(self.obj, 'Refresh'):
             self.obj.Refresh()
-    
+
     def validateProp(self, oldVal, newVal):
         pass
-        
+
     def inspectorPost(self, closeEditor = true):
         if self.editorCtrl:
             v = self.getValue()
@@ -139,13 +139,13 @@ class PropertyEditor:
                 if self.ownerPropEdit:
                     self.companion.updateOwnerFromObj()
                     self.ownerPropEdit.initFromComponent()
-                    
+
                     # XXX Font's want new objects assigned to them before
                     # XXX they update
                     if esRecreateProp in self.ownerPropEdit.getStyle():
                         v = eval(self.ownerPropEdit.valueAsExpr())
                         self.ownerPropEdit.setCtrlValue(v, v)
-                    
+
                     self.ownerPropEdit.persistValue(self.ownerPropEdit.valueAsExpr())
                     self.ownerPropEdit.refreshCompCtrl()
 
@@ -207,14 +207,14 @@ class PropertyEditor:
         self.idx = idx
         if self.editorCtrl:
             self.editorCtrl.setIdx(idx)
-                                
+
 class FactoryPropEdit(PropertyEditor):
     pass
 
 class ZopePropEdit(PropertyEditor):
-    def __init__(self, name, parent, companion, rootCompanion, propWrapper, idx, 
+    def __init__(self, name, parent, companion, rootCompanion, propWrapper, idx,
       width, options, names):
-        PropertyEditor.__init__(self, name, parent, companion, rootCompanion, 
+        PropertyEditor.__init__(self, name, parent, companion, rootCompanion,
           propWrapper, idx, width)
     def initFromComponent(self):
         self.value = self.getCtrlValue()
@@ -234,9 +234,9 @@ class EvalZopePropEdit(ZopePropEdit):
 
     def inspectorEdit(self):
         self.editorCtrl = TextCtrlIEC(self, `self.value`)
-        self.editorCtrl.createControl(self.parent, self.value, self.idx, 
+        self.editorCtrl.createControl(self.parent, self.value, self.idx,
           self.width)
-    
+
     def getValue(self):
         if self.editorCtrl:
             try:
@@ -255,9 +255,9 @@ class StrZopePropEdit(ZopePropEdit):
 
     def inspectorEdit(self):
         self.editorCtrl = TextCtrlIEC(self, self.value)
-        self.editorCtrl.createControl(self.parent, self.value, self.idx, 
+        self.editorCtrl.createControl(self.parent, self.value, self.idx,
           self.width)
-    
+
     def getValue(self):
         if self.editorCtrl:
             try:
@@ -294,9 +294,9 @@ class BoolZopePropEdit(ZopePropEdit):
         return self.value
 
 class ConfPropEdit(PropertyEditor):
-    def __init__(self, name, parent, companion, rootCompanion, propWrapper, idx, 
+    def __init__(self, name, parent, companion, rootCompanion, propWrapper, idx,
       width, options, names):
-        PropertyEditor.__init__(self, name, parent, companion, rootCompanion, 
+        PropertyEditor.__init__(self, name, parent, companion, rootCompanion,
           propWrapper, idx, width)
     def initFromComponent(self):
         self.value = self.getCtrlValue()
@@ -310,9 +310,9 @@ class StrConfPropEdit(ConfPropEdit):
 
     def inspectorEdit(self):
         self.editorCtrl = TextCtrlIEC(self, self.value)
-        self.editorCtrl.createControl(self.parent, self.value, self.idx, 
+        self.editorCtrl.createControl(self.parent, self.value, self.idx,
           self.width)
-    
+
     def getValue(self):
         if self.editorCtrl:
             try:
@@ -327,7 +327,7 @@ class StrConfPropEdit(ConfPropEdit):
 class PasswdStrConfPropEdit(StrConfPropEdit):
     def inspectorEdit(self):
         self.editorCtrl = TextCtrlIEC(self, self.value)
-        self.editorCtrl.createControl(self.parent, self.value, self.idx, 
+        self.editorCtrl.createControl(self.parent, self.value, self.idx,
           self.width, style = wxTE_PASSWORD)
     def getDisplayValue(self):
         return '*'*len(self.value)
@@ -338,9 +338,9 @@ class EvalConfPropEdit(ConfPropEdit):
 
     def inspectorEdit(self):
         self.editorCtrl = TextCtrlIEC(self, `self.value`)
-        self.editorCtrl.createControl(self.parent, self.value, self.idx, 
+        self.editorCtrl.createControl(self.parent, self.value, self.idx,
           self.width)
-    
+
     def getValue(self):
         if self.editorCtrl:
             try:
@@ -351,7 +351,7 @@ class EvalConfPropEdit(ConfPropEdit):
         else:
             self.value = self.getCtrlValue()
         return self.value
-        
+
 class OptionedPropEdit(PropertyEditor):
     """ Property editors initialised with options """
     def __init__(self, name, parent, companion, rootCompanion, propWrapper, idx, width, options, names):
@@ -374,11 +374,11 @@ class ConstrPropEditFacade:
         return ''
     def setValue(self, value):
         self.value = value
-                
+
 class ConstrPropEdit(ConstrPropEditFacade, PropertyEditor):
-    def __init__(self, name, parent, companion, rootCompanion, propWrapper, idx, 
+    def __init__(self, name, parent, companion, rootCompanion, propWrapper, idx,
       width, options, names):
-        PropertyEditor.__init__(self, name, parent, companion, rootCompanion, 
+        PropertyEditor.__init__(self, name, parent, companion, rootCompanion,
           propWrapper, idx, width)
     def initFromComponent(self):
         self.value = self.getValue()
@@ -399,9 +399,9 @@ class ConstrPropEdit(ConstrPropEditFacade, PropertyEditor):
 class IntConstrPropEdit(ConstrPropEdit):
     def inspectorEdit(self):
         self.editorCtrl = TextCtrlIEC(self, self.value)
-        self.editorCtrl.createControl(self.parent, self.value, self.idx, 
+        self.editorCtrl.createControl(self.parent, self.value, self.idx,
           self.width)
-    
+
     def getValue(self):
         if self.editorCtrl:
             try:
@@ -423,12 +423,12 @@ class SBFWidthConstrPropEdit(IntConstrPropEdit):
 
     def setCtrlValue(self, oldValue, value):
         self.companion.SetWidth(value)
-    
+
     def persistValue(self, value):
         pass
 
 class ClassLinkConstrPropEdit(IntConstrPropEdit): pass
-        
+
 class BitmapConstrPropEdit(IntConstrPropEdit):
     def inspectorEdit(self):
         self.editorCtrl = ButtonIEC(self, self.value)
@@ -452,7 +452,7 @@ class BitmapConstrPropEdit(IntConstrPropEdit):
                     print 'Edit except', str(err)
         finally:
             dlg.Destroy()
-        return '' 
+        return ''
 
     def getValue(self):
         if self.editorCtrl:
@@ -496,17 +496,17 @@ class LCCEdgeConstrPropEdit(EnumConstrPropEdit):
         else:
             self.value = self.getCtrlValue()
         return self.value
-        
+
     def setCtrlValue(self, oldValue, value):
         self.companion.SetEdge(value)
-    
+
     def persistValue(self, value):
         pass
 
     def getValues(self):
         objName = self.companion.__class__.sourceObjName
         return [self.getCtrlValue()] + \
-          map(lambda a, objName=objName: '%s.%s'%(objName, a), 
+          map(lambda a, objName=objName: '%s.%s'%(objName, a),
           self.companion.availableItems())
 
 class ObjEnumConstrPropEdit(EnumConstrPropEdit):
@@ -523,13 +523,13 @@ class ObjEnumConstrPropEdit(EnumConstrPropEdit):
         else:
             self.value = self.getCtrlValue()
         return self.value
-            
+
     def persistValue(self, value):
         pass
 
     def getObjects(self):
         return self.companion.designer.getAllObjects().keys()
-        
+
     def getValues(self):
         vals = self.getObjects()
         try:
@@ -570,14 +570,14 @@ class SizerEnumConstrPropEdit(ObjEnumConstrPropEdit):
 
 class StyleConstrPropEdit(IntConstrPropEdit):
 #class AnchorPropEdit(OptionedPropEdit):
-##    def __init__(self, name, parent, companion, rootCompanion, propWrapper, idx, 
+##    def __init__(self, name, parent, companion, rootCompanion, propWrapper, idx,
 ##      width, options, names):
-##        ClassPropEdit.__init__(self, name, parent, companion, rootCompanion, 
+##        ClassPropEdit.__init__(self, name, parent, companion, rootCompanion,
 ##          propWrapper, idx, width)
 
     def getStyle(self):
         return [esExpandable]
-    
+
     def getSubCompanion(self):
         from Companions.Companions import WindowStyleDTC
         return WindowStyleDTC
@@ -592,7 +592,7 @@ class StyleConstrPropEdit(IntConstrPropEdit):
             try:
                 anInt = eval(self.editorCtrl.getValue())
                 if type(anInt) is IntType:
-                    self.value = string.join(map(string.strip, 
+                    self.value = string.join(map(string.strip,
                         string.split(self.editorCtrl.getValue(), '|')), ' | ')
                 else:
                     self.value = self.getCtrlValue()
@@ -604,9 +604,9 @@ class StyleConstrPropEdit(IntConstrPropEdit):
         return self.value
 
 ##    def getDisplayValue(self):
-    
+
 ##    def valueAsExpr(self):
-    
+
 ##    def edit(self, event):
 
 class StrConstrPropEdit(ConstrPropEdit):
@@ -615,9 +615,9 @@ class StrConstrPropEdit(ConstrPropEdit):
 
     def inspectorEdit(self):
         self.editorCtrl = TextCtrlIEC(self, self.value)
-        self.editorCtrl.createControl(self.parent, self.value, self.idx, 
+        self.editorCtrl.createControl(self.parent, self.value, self.idx,
           self.width)
-    
+
     def getValue(self):
         if self.editorCtrl:
             try:
@@ -648,14 +648,14 @@ class NameConstrPropEdit(StrConstrPropEdit):
                     message = 'Invalid name for Python object'
                     wxLogError(message)
                     return self.value
-                    
+
                 for c in value[1:-1]:
                     if c not in string.letters+string.digits+'_':#"\'':
                         message = 'Invalid name for Python object'
                         wxLogError(message)
                         return self.value
                         #raise message
-                        
+
                 if self.companion.designer.objects.has_key(value):
                     wxLogError('Name already used by another control.')
                     return self.value
@@ -668,20 +668,20 @@ class NameConstrPropEdit(StrConstrPropEdit):
 
     def getCtrlValue(self):
         return `self.companion.name`
-        
+
     def setCtrlValue(self, oldValue, newValue):
         self.companion.checkTriggers(self.name, eval(oldValue), eval(newValue))
 #        self.companion.name = eval(newValue)
 
     def persistValue(self, value):
         pass
-        
+
 class ChoicesConstrPropEdit(ConstrPropEdit):
     def inspectorEdit(self):
         self.editorCtrl = TextCtrlIEC(self, self.value)
-        self.editorCtrl.createControl(self.parent, self.value, self.idx, 
+        self.editorCtrl.createControl(self.parent, self.value, self.idx,
           self.width)
-    
+
     def getValue(self):
         if self.editorCtrl:
             try:
@@ -700,9 +700,9 @@ class ChoicesConstrPropEdit(ConstrPropEdit):
 class MajorDimensionConstrPropEdit(ConstrPropEdit):
     def inspectorEdit(self):
         self.editorCtrl = TextCtrlIEC(self, self.value)
-        self.editorCtrl.createControl(self.parent, self.value, self.idx, 
+        self.editorCtrl.createControl(self.parent, self.value, self.idx,
           self.width)
-    
+
     def getValue(self):
         if self.editorCtrl:
             try:
@@ -717,7 +717,7 @@ class MajorDimensionConstrPropEdit(ConstrPropEdit):
         else:
             self.value = self.getCtrlValue()
         return self.value
-   
+
 class EventPropEdit(OptionedPropEdit):
     """ Property editor to handle design time definition of events """
     def initFromComponent(self):
@@ -744,11 +744,11 @@ class EventPropEdit(OptionedPropEdit):
         if self.companion:
             for evt in self.companion.textEventList:
                 if evt.trigger_meth <> '(delete)':
-                   try: vals.index(evt.trigger_meth)
-                   except: vals.append(evt.trigger_meth)
+                    try: vals.index(evt.trigger_meth)
+                    except: vals.append(evt.trigger_meth)
         vals.append('(delete)')
         return vals
-        
+
     def getValue(self):
         if self.editorCtrl:
             self.value = self.editorCtrl.getValue()
@@ -772,7 +772,7 @@ class IntPropEdit(BITPropEditor):
                 value = eval(self.editorCtrl.getValue())
             except Exception, mess:
                 Utils.ShowErrorMessage(self.parent, 'Invalid value', mess)
-                raise                          
+                raise
             self.value = value
         return self.value
 
@@ -785,7 +785,7 @@ class NamePropEdit(StrPropEdit):
         StrPropEdit.__init__(self, name, parent, companion, rootCompanion, propWrapper, idx, width)
 
     identifier = string.letters+string.digits+'_'
-    
+
     def getValue(self):
         # XXX Currently returning the old value in case of error because
         # XXX an exception here cannot be gracefully handled yet.
@@ -809,7 +809,7 @@ class NamePropEdit(StrPropEdit):
                         return self.value
             self.value = value
         return self.value
-    
+
 class TuplPropEdit(BITPropEditor):
     pass
 
@@ -841,7 +841,7 @@ class EnumPropEdit(OptionedPropEdit):
                 return self.revNames[self.value]
             except KeyError:
                 return `self.value`
-            
+
         else: OptionedPropEdit.getDisplayValue(self)
     def inspectorEdit(self):
         self.editorCtrl = ChoiceIEC(self, self.value)
@@ -872,7 +872,7 @@ class EnumPropEdit(OptionedPropEdit):
                 self.value = self.names[strVal]
             except KeyError:
                 self.value = eval(strVal)
-                
+
         return self.value
 # SetPropEdit
 
@@ -892,12 +892,12 @@ class ClassLinkPropEdit(OptionedPropEdit):
         objs = self.companion.designer.getObjectsOfClass(self.linkClass)
         for objName in objs.keys():
             if `objs[objName]` == `self.value`:
-                return objName            
+                return objName
         # Ok lets try again ;\
 ##        if hasattr(self.value, 'GetId'):
 ##            for objName in objs.keys():
 ##                if objs[objName].GetId() == self.value.GetId():
-##                    return objName            
+##                    return objName
         print 'ClassLinkPropEdit: ', self.value, 'not found'
         return `None`
     def inspectorEdit(self):
@@ -915,12 +915,12 @@ class ClassLinkPropEdit(OptionedPropEdit):
     def getValue(self):
         if self.editorCtrl:
             strVal = self.editorCtrl.getValue()
-            if strVal == `None`: 
+            if strVal == `None`:
                 self.value = None
             else:
                 objs = self.companion.designer.getObjectsOfClass(self.linkClass)
                 self.value = objs[strVal]
-            
+
         return self.value
 
 class WindowClassLinkPropEdit(ClassLinkPropEdit):
@@ -950,14 +950,14 @@ class ButtonClassLinkPropEdit(ClassLinkPropEdit):
     linkClass = wxButton
 
 class ListCtrlImageListClassLinkPropEdit(ImageListClassLinkPropEdit):
-    listTypeMap = {wxIMAGE_LIST_SMALL : 'wxIMAGE_LIST_SMALL', 
+    listTypeMap = {wxIMAGE_LIST_SMALL : 'wxIMAGE_LIST_SMALL',
                    wxIMAGE_LIST_NORMAL: 'wxIMAGE_LIST_NORMAL'}
     def valueToIECValue(self):
         if self.value[0] is None: return `None`
         objs = self.companion.designer.getObjectsOfClass(self.linkClass)
         for objName in objs.keys():
             if `objs[objName]` == `self.value[0]`:
-                return objName            
+                return objName
         print 'ClassLinkPropEdit: ', self.value[0], 'not found'
         return `None`
 
@@ -970,7 +970,7 @@ class ListCtrlImageListClassLinkPropEdit(ImageListClassLinkPropEdit):
     def getValue(self):
         if self.editorCtrl:
             strVal = self.editorCtrl.getValue()
-            if strVal == `None`: 
+            if strVal == `None`:
                 self.value = (None, self.value[1])
             else:
                 objs = self.companion.designer.getObjectsOfClass(self.linkClass)
@@ -979,7 +979,7 @@ class ListCtrlImageListClassLinkPropEdit(ImageListClassLinkPropEdit):
 
     def valueAsExpr(self):
         return '%s, %s'%(self.valueToIECValue(), self.listTypeMap[self.value[1]])
-    
+
 class ColPropEdit(ClassPropEdit):
     def getStyle(self):
         return [esExpandable]
@@ -987,11 +987,11 @@ class ColPropEdit(ClassPropEdit):
     def getSubCompanion(self):
         from Companions.Companions import ColourDTC
         return ColourDTC
-        
+
     def inspectorEdit(self):
         self.editorCtrl = ButtonIEC(self, self.value)
         self.editorCtrl.createControl(self.parent, self.idx, self.width, self.edit)
-    
+
     def edit(self, event):
         data = wxColourData()
         data.SetColour(self.value)
@@ -1026,7 +1026,7 @@ class SizePropEdit(ClassPropEdit):
                 tuplePos = eval(self.editorCtrl.getValue())
             except Exception, mess:
                 Utils.ShowErrorMessage(self.parent, 'Invalid value', mess)
-                raise                          
+                raise
             self.value = wxSize(tuplePos[0], tuplePos[1])
         return self.value
     def valueAsExpr(self):
@@ -1034,7 +1034,7 @@ class SizePropEdit(ClassPropEdit):
     def getSubCompanion(self):
         from Companions.Companions import SizeDTC
         return SizeDTC
-                
+
 class PosPropEdit(ClassPropEdit):
     def getDisplayValue(self):
         return self.valueToIECValue()
@@ -1049,7 +1049,7 @@ class PosPropEdit(ClassPropEdit):
                 tuplePos = eval(self.editorCtrl.getValue())
             except Exception, mess:
                 Utils.ShowErrorMessage(self.parent, 'Invalid value', mess)
-                raise                          
+                raise
             self.value = wxPoint(tuplePos[0], tuplePos[1])
         return self.value
     def valueAsExpr(self):
@@ -1065,7 +1065,7 @@ class FontPropEdit(ClassPropEdit):
         self.fontFamily = reverseDict(Enumerations.fontFamilyNames)
         self.fontStyle = reverseDict(Enumerations.fontStyleNames)
         self.fontWeight = reverseDict(Enumerations.fontWeightNames)
-        
+
     def getStyle(self):
         return ClassPropEdit.getStyle(self) + [esDialog, esReadOnly, esRecreateProp]
 
@@ -1079,7 +1079,7 @@ class FontPropEdit(ClassPropEdit):
 
     def getValue(self):
         return self.value
-    
+
     def edit(self, event):
         data = wxFontData()
         dlg = wxFontDialog(self.parent, data)
@@ -1094,17 +1094,17 @@ class FontPropEdit(ClassPropEdit):
         # XXX Duplication with sub property editors
         fnt = self.value
         return 'wxFont(%d, %s, %s, %s, %s, %s)'%(\
-            fnt.GetPointSize(), 
-            self.fontFamily[fnt.GetFamily()], 
+            fnt.GetPointSize(),
+            self.fontFamily[fnt.GetFamily()],
             self.fontStyle[fnt.GetStyle()],
-            self.fontWeight[fnt.GetWeight()], 
+            self.fontWeight[fnt.GetWeight()],
             fnt.GetUnderlined() and 'true' or 'false',
             `fnt.GetFaceName()`)
 
 class AnchorPropEdit(OptionedPropEdit):
     def getStyle(self):
         return [esExpandable]
-    
+
     def getSubCompanion(self):
         from Companions.Companions import AnchorsDTC
         return AnchorsDTC
@@ -1122,7 +1122,7 @@ class AnchorPropEdit(OptionedPropEdit):
                 message = 'Remove anchors?'
             else:
                 message = 'Define default Anchors?'
-                    
+
             dlg = wxMessageDialog(self.parent, message,
                               'Anchors', wxYES_NO | wxICON_QUESTION)
             try:
@@ -1133,7 +1133,7 @@ class AnchorPropEdit(OptionedPropEdit):
                     else:
                         self.companion.defaultAnchors()
                         self.inspectorPost(false)
-            finally: 
+            finally:
                 dlg.Destroy()
 
     def getValue(self):
@@ -1150,19 +1150,19 @@ class AnchorPropEdit(OptionedPropEdit):
             return '('+string.join(set, ', ')+')'
         else:
             return 'None'
-    
+
     def valueAsExpr(self):
         if self.companion.anchorSettings:
             l, t, r, b = self.companion.anchorSettings
             return 'LayoutAnchors(self.%s, %s, %s, %s, %s)'%(self.companion.name,
                 l and 'true' or 'false', t and 'true' or 'false',
                 r and 'true' or 'false', b and 'true' or 'false')
-        
-    
+
+
 class BitmapPropEdit(PropertyEditor):
     def __init__(self, name, parent, companion, rootCompanion, propWrapper, idx, width, options = None, names = None):
         PropertyEditor.__init__(self, name, parent, companion, rootCompanion, propWrapper, idx, width)
-        
+
 ##    def getStyle(self):
 ##        return ClassPropEdit.getStyle(self) + [esDialog, esReadOnly]
 
@@ -1197,7 +1197,7 @@ class BitmapPropEdit(PropertyEditor):
                 self.inspectorPost(false)
         finally:
             dlg.Destroy()
-        return '' 
+        return ''
 
     def getValue(self):
         return self.value
@@ -1231,12 +1231,12 @@ class SashVisiblePropEdit(BoolPropEdit):
             self.value = (self.value[0], self.getValues().index(self.editorCtrl.getValue()))
         return self.value
     def valueAsExpr(self):
-        return '%s, %s'%(self.sashEdgeMap[self.value[0]], 
+        return '%s, %s'%(self.sashEdgeMap[self.value[0]],
                          self.value[1] and 'true' or 'false')
 
 class CollectionPropEdit(PropertyEditor):
-    """ Class associated with a design time identified type, 
-        it manages the behaviour of a NameValue in the Inspector 
+    """ Class associated with a design time identified type,
+        it manages the behaviour of a NameValue in the Inspector
     """
 
     def __init__(self, name, parent, companion, rootCompanion, propWrapper, idx, width, names, options):
@@ -1260,7 +1260,7 @@ class CollectionPropEdit(PropertyEditor):
 
     def valueAsExpr(self):
         return self.getDisplayValue()
-    
+
     def edit(self, event):
         self.companion.designer.showCollectionEditor(\
           self.companion.name, self.name)
