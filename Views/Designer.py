@@ -1445,6 +1445,7 @@ class DesignerControlsEvtHandler(wxEvtHandler):
 
         finally:
             dsgn.forceResize = false
+            dsgn.Refresh()
             event.Skip()
 
     def OnControlDClick(self, event):
