@@ -51,7 +51,7 @@ class TransportWithAuth (xmlrpclib.Transport):
         return u.close()
 
 
-def spawnChild(monitor, process):
+def spawnChild(monitor, process, args=''):
     """Returns an xmlrpclib.Server, a connection to an xml-rpc server,
     and the input and error streams.
     """
@@ -59,7 +59,7 @@ def spawnChild(monitor, process):
     script_fn = os.path.join(os.path.dirname(__file__),
                              'ChildProcessServerStart.py')
     os.environ['PYTHONPATH'] = string.join(sys.path, os.pathsep)
-    cmd = '%s "%s"' % (sys.executable, script_fn)
+    cmd = '%s "%s" %s' % (sys.executable, script_fn, args)
     try:
         pid = wx.wxExecute(cmd, 0, process)
         line = ''
@@ -102,11 +102,12 @@ def spawnChild(monitor, process):
             if USE_TCPWATCH:
                 # Start TCPWatch as a connection forwarder.
                 from thread import start_new_thread
-                def run_tcpwatch(port):
-                    os.system("tcpwatch -L9100:%d" % int(port))
-                start_new_thread(run_tcpwatch, (port,))
-                time.sleep(1)
-                port = 9100
+                new_port = 9100
+                def run_tcpwatch(port1, port2):
+                    os.system("tcpwatch -L %d:%d" % (int(port1), int(port2)))
+                start_new_thread(run_tcpwatch, (new_port, port))
+                time.sleep(3)
+                port = new_port
 
             trans = TransportWithAuth(auth)
             server = xmlrpclib.Server(
@@ -132,7 +133,8 @@ class ChildProcessClient(MultiThreadedDebugClient):
     input_stream = None
     error_stream = None
 
-    def __init__(self, win):
+    def __init__(self, win, process_args=''):
+        self.process_args = process_args
         DebugClient.__init__(self, win)
         EVT_DEBUGGER_START(win, self.win_id, self.OnDebuggerStart)
 
@@ -203,8 +205,9 @@ class ChildProcessClient(MultiThreadedDebugClient):
                     self.process = process
                     wx.EVT_END_PROCESS(self.event_handler, self.win_id,
                                        self.OnProcessEnded)
-                    self.server, self.input_stream, self.error_stream, \
-                          self.processId = spawnChild(self, process)
+                    (self.server, self.input_stream, self.error_stream,
+                     self.processId) = spawnChild(
+                        self, process, self.process_args)
                 self.taskHandler.addTask(evt.GetTask())
             except:
                 t, v, tb = sys.exc_info()#[:2]
