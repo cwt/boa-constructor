@@ -13,10 +13,10 @@ print 'importing Views.ProfileView'
 
 import marshal, string
 from os import path
-from EditorViews import ListCtrlView, ClosableViewMix
+from EditorViews import ListCtrlView, CloseableViewMix
 from wxPython.wx import *
 
-class ProfileStatsView(ListCtrlView, ClosableViewMix):
+class ProfileStatsView(ListCtrlView, CloseableViewMix):
     viewName = 'Profile stats'
     gotoLineBmp = 'Images/Editor/GotoLine.png'
     calleesBmp = 'Images/Editor/Callees.png'
@@ -24,7 +24,7 @@ class ProfileStatsView(ListCtrlView, ClosableViewMix):
     saveAsBmp = 'Images/Editor/SaveAs.png'
 
     def __init__(self, parent, model):
-        ClosableViewMix.__init__(self, 'stats')
+        CloseableViewMix.__init__(self, 'stats')
         ListCtrlView.__init__(self, parent, model, wxLC_REPORT | wxLC_SINGLE_SEL,
           ( ('Goto line', self.OnGoto, self.gotoLineBmp, ''),
             ('-', None, '', ''),
