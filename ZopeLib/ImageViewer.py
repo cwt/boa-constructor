@@ -1,7 +1,7 @@
 #Boa:MiniFrame:ImageViewer
 
 from wxPython.wx import *
-import os, string
+import os, string, tempfile
 
 def create(parent):
     return ImageViewer(parent)
@@ -27,11 +27,20 @@ class ImageViewer(wxMiniFrame):
         self._init_ctrls(parent)
         self.Centre(wxBOTH)
 
-    def showImage(self, filename):
-        self.SetTitle('Image Viewer - %s' %(os.path.basename(filename)))
-        bmp = wxImage(filename, imgs[string.lower(os.path.splitext(filename)[1])]).ConvertToBitmap()
+    def showImage(self, filename, node = None):
+        if node is not None:
+            fn = tempfile.mktemp(os.path.splitext(node.name)[-1])
+            open(fn, 'wb').write(node.load())
+        else:
+            fn = filename
+
+        self.SetTitle('Image Viewer - %s' %(os.path.basename(fn)))
+        bmp = wxImage(fn, imgs[string.lower(os.path.splitext(fn)[-1])]).ConvertToBitmap()
         self.SetClientSize(wxSize(bmp.GetWidth(), bmp.GetHeight()))
         self.staticBitmap1.SetBitmap(bmp)
+
+        if node is not None:
+            os.remove(fn)
 
         self.Centre(wxBOTH)
         self.Show(true)
