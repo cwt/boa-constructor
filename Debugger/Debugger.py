@@ -267,10 +267,11 @@ class BreakViewCtrl(wxListCtrl):
         editor = self.debugger.editor
         editor.SetFocus()
         editor.openOrGotoModule(filename)
-        model = editor.getActiveModulePage().model
-        model.views['Source'].focus()
-        model.views['Source'].SetFocus()
-        model.views['Source'].selectLine(bp['lineno'] - 1)
+        sourceView = editor.getActiveModulePage().model.views['Source']
+        sourceView.focus()
+        #sourceView.SetFocus()
+        #sourceView.selectLine(bp['lineno'] - 1)
+        sourceView.GotoLine(bp['lineno'] - 1)
 
     def OnEdit(self, event):
         pass
@@ -282,11 +283,17 @@ class BreakViewCtrl(wxListCtrl):
             filename = bp['filename']
             bplist.deleteBreakpoints(filename, bp['lineno'])
 
+            # Delete in debug server
             server_fn = self.debugger.clientFNToServerFN(filename)
             self.debugger.invokeInDebugger(
                 'clearBreakpoints', (server_fn, bp['lineno']))
+            
+            # Unmark the breakpoint in the editor.
+            editor = self.debugger.editor
+            if editor.modules.has_key(filename):
+                sourceView = editor.modules[filename].model.views['Source']
+                sourceView.deleteBreakMarkers(bp['lineno'])
 
-            # TODO: Unmark the breakpoint in the editor.
             self.refreshList()
 
     def OnRefresh(self, event):
@@ -814,6 +821,8 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
         self.lastStepLineno = -1
 
         self.stepping_enabled = 1
+        
+        self.setParams([])
 
         EVT_DEBUGGER_OK(self, self.GetId(), self.OnDebuggerOk)
         EVT_DEBUGGER_EXC(self, self.GetId(), self.OnDebuggerException)
@@ -1318,7 +1327,9 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
             self.runProcess(cont_always)
 
     def enableTools(self, stepping, running):
-        for wid, enabled in ((self.stepId, stepping), 
+        for wid, enabled in ((self.runId, stepping), 
+                             (self.runFullSpdId, stepping), 
+                             (self.stepId, stepping), 
                              (self.overId, stepping), 
                              (self.outId, stepping), 
                              (self.pauseId, not stepping),
