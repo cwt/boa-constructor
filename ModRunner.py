@@ -38,7 +38,7 @@ class ModuleRunner:
         if self.esf:
             if err or out:
                 self.esf.updateCtrls(err, out, root, self.runningDir)
-                self.esf.Show(true)
+                self.esf.display(len(err))
                 return len(err)
             else:
                 return None
