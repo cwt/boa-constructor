@@ -22,7 +22,7 @@ Hence the needed import * and execfile.
 # XXX This module should be renamed it's function has changed over time
 # XXX Maybe: BoaNamespace/DesignTimeNamespace
 
-import os, glob
+import os
 
 import Preferences, Utils
 from Preferences import IS
@@ -55,15 +55,16 @@ if Utils.transportInstalled('ZopeLib.ZopeExplorer'):
 from Models import EditorHelper
 
 if Preferences.csPythonSupport:
-    from Models import PythonControllers
+    import Models.PythonControllers
 
 if Preferences.csWxPythonSupport:
-    from Models import wxPythonControllers
+    import Models.wxPythonControllers
 
 if Preferences.csPythonSupport and not Preferences.csWxPythonSupport:
     # useful hack to alias wxApp modules to PyApp modules when wxPython support
     # is not loaded
-    EditorHelper.modelReg['App'] = PythonControllers.PythonEditorModels.PyAppModel
+    from Models.PythonEditorModels import PyAppModel
+    EditorHelper.modelReg['App'] = PyAppModel
 
 # The text and makepy controllers are registered outside the Controllers
 # module so that their palette order can be fine tuned
@@ -71,7 +72,6 @@ from Models import Controllers
 PaletteStore.newControllers['Text'] = Controllers.TextController
 PaletteStore.paletteLists['New'].append('Text')
 
-# XXX These could possibly be driven by config
 #-Registration of other built in support---------------------------------------
 if Preferences.csConfigSupport: from Models import ConfigSupport
 if Preferences.csCppSupport: from Models import CPPSupport
@@ -87,33 +87,35 @@ if Utils.IsComEnabled():
 
 #-Plug-ins initialisation-------------------------------------------------------
 if Preferences.pluginPaths:
-    pluginPathGlobs = []
-    for ppth in Preferences.pluginPaths:
-        pluginPathGlobs.append(ppth+'/*.plug-in.py')
-
     print 'executing plug-ins...'
     fails = Preferences.failedPlugins
-    for globpath in pluginPathGlobs:
-        for pluginFilename in glob.glob(globpath):
-            pluginBasename = os.path.basename(pluginFilename)
-            filename = string.lower(pluginFilename)
-            try:
-                execfile(pluginFilename)
-                Preferences.installedPlugins.append(filename)
-            except Utils.SkipPlugin, msg:
-                fails[filename] = ('Skipped', msg)
-                wxLogWarning('Plugin skipped: %s, %s'%(pluginBasename, msg))
-            except Exception, error:
-                fails[filename] = ('Error', str(error))
-                if Preferences.pluginErrorHandling == 'raise':
-                    raise
-                elif Preferences.pluginErrorHandling == 'report':
-                    wxLogError('Problem executing plug-in %s:\n%s' %\
-                        (pluginBasename, str(error)) )
-                # else ignore
+    succeeded = Preferences.installedPlugins
+
+    for pluginFilename, ordered, enabled in Utils.buildPluginExecList():
+        if not enabled:
+            continue
+        
+        pluginBasename = os.path.basename(pluginFilename)
+        filename = string.lower(pluginFilename)
+        try:
+            execfile(pluginFilename)
+            succeeded.append(filename)
+        except Utils.SkipPluginSilently, msg:
+            fails[filename] = ('Skipped', msg)
+        except Utils.SkipPlugin, msg:
+            fails[filename] = ('Skipped', msg)
+            wxLogWarning('Plugin skipped: %s, %s'%(pluginBasename, msg))
+        except Exception, error:
+            fails[filename] = ('Error', str(error))
+            if Preferences.pluginErrorHandling == 'raise':
+                raise
+            elif Preferences.pluginErrorHandling == 'report':
+                wxLogError('Problem executing plug-in %s:\n%s' %\
+                    (pluginBasename, str(error)) )
+            # else ignore
 
 #-------------------------------------------------------------------------------
-# called after all models have been imported
+# called after all models have been imported and plugins executed
 EditorHelper.initExtMap()
 #-------------------------------------------------------------------------------
 
