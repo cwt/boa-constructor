@@ -16,17 +16,15 @@
 # XXX Going to source code on an error
 
 import string, sys, os
-from os import path
 from repr import Repr
 import traceback, linecache, imp, pprint, time
 
 from wxPython.wx import *
-import wxPython
 
 import Preferences, Utils
 from Preferences import pyPath, IS, flatTools
 from Breakpoint import bplist
-from DebugClient import EVT_DEBUGGER_OK, EVT_DEBUGGER_EXC
+from DebugClient import EVT_DEBUGGER_OK, EVT_DEBUGGER_EXC, EVT_DEBUGGER_STOPPED
 
 # When an output window surpasses these limits, it will be trimmed.
 TEXTCTRL_MAXLEN = 30000
@@ -60,19 +58,21 @@ class StackViewCtrl(wxListCtrl):
         for entry in stack:
             lineno = entry['lineno']
             modname = entry['modname']
-            filename = entry['filename']
+            filename = entry['client_filename']
             funcname = entry['funcname']
             sourceline = linecache.getline(filename, lineno)
             sourceline = string.strip(sourceline)
             if funcname in ("?", "", None):
-                item = "%s, line %d: %s" % (modname, lineno, sourceline)
+                #item = "%s, line %d: %s" % (modname, lineno, sourceline)
                 attrib = modname
             else:
-                item = "%s.%s(), line %d: %s" % (modname, funcname,
-                                                 lineno, sourceline)
-                attrib = modname+'.'+funcname
-            if pos == index:
-                item = "> " + item
+                #item = "%s.%s(), line %d: %s" % (modname, funcname,
+                #                                 lineno, sourceline)
+                # XXX methods will be shown as "module.function"
+                # when maybe they ought to be shown as "module.class.method".
+                attrib = modname + '.' + funcname
+            #if pos == index:
+            #    item = "> " + item
             if pos >= count:
                 # Insert.
                 self.InsertStringItem(pos, attrib)
@@ -120,19 +120,17 @@ class StackViewCtrl(wxListCtrl):
             entry = self.stack[self.selection]
             lineno = entry['lineno']
             modname = entry['modname']
-            filename = entry['filename']
+            filename = entry['client_filename']
+            if not filename:
+                return
 
-            if filename[0] != '<' and filename[-1] != '>':
-                filename = self.debugger.resolvePath(filename)
-                if not filename: return
-
-                editor = self.debugger.editor
-                editor.SetFocus()
-                editor.openOrGotoModule(filename)
-                model = editor.getActiveModulePage().model
-                model.views['Source'].focus()
-                model.views['Source'].SetFocus()
-                model.views['Source'].selectLine(lineno - 1)
+            editor = self.debugger.editor
+            editor.SetFocus()
+            editor.openOrGotoModule(filename)
+            model = editor.getActiveModulePage().model
+            model.views['Source'].focus()
+            model.views['Source'].SetFocus()
+            model.views['Source'].selectLine(lineno - 1)
 
 
 [wxID_BREAKVIEW, wxID_BREAKSOURCE, wxID_BREAKEDIT, wxID_BREAKDELETE,
@@ -209,18 +207,18 @@ class BreakViewCtrl(wxListCtrl):
             elif bp['temporary']: imgIdx = 3
 
             self.InsertImageStringItem(
-                p, path.basename(bp['filename']), imgIdx)
+                p, os.path.basename(bp['filename']), imgIdx)
             self.SetStringItem(p, 1, str(bp['lineno']))
             if bp['enabled']: self.SetStringItem(p, 3, '*')
 
             hits = ''
             ignore = ''
             if self.stats:
-                for sbp in self.stats:
-                    if (bp['filename'] == sbp['filename'] and
-                        bp['lineno'] == sbp['lineno']):
-                        hits = str(sbp['hits'])
-                        ignore = str(sbp['ignore'])
+                for item in self.stats:
+                    if (bp['filename'] == item['client_filename'] and
+                        bp['lineno'] == item['lineno']):
+                        hits = str(item['hits'])
+                        ignore = str(item['ignore'])
                         break
             self.SetStringItem(p, 2, ignore)
             self.SetStringItem(p, 3, hits)
@@ -239,9 +237,9 @@ class BreakViewCtrl(wxListCtrl):
         sel = self.rightsel
         if sel != -1:
             bp = self.bps[sel]
-
-            filename = self.debugger.resolvePath(bp['filename'])
-            if not filename: return
+            filename = bp['filename']
+            if not filename:
+                return
 
             editor = self.debugger.editor
             editor.SetFocus()
@@ -258,9 +256,13 @@ class BreakViewCtrl(wxListCtrl):
         sel = self.rightsel
         if sel != -1:
             bp = self.bps[sel]
-            bplist.deleteBreakpoints(bp['filename'], bp['lineno'])
+            filename = bp['filename']
+            bplist.deleteBreakpoints(filename, bp['lineno'])
+
+            server_fn = self.debugger.clientFNToServerFN(filename)
             self.debugger.invokeInDebugger(
-                'clearBreakpoints', (bp['filename'], bp['lineno']))
+                'clearBreakpoints', (server_fn, bp['lineno']))
+
             # TODO: Unmark the breakpoint in the editor.
             self.refreshList()
 
@@ -585,11 +587,9 @@ class DebuggerFrame(wxFrame):#, Utils.FrameRestorerMixin):
 
     def __init__(self, editor, filename=None, slave_mode=1):
         wxFrame.__init__(self, editor, -1, 'Debugger')
-##            wxPoint(0, Preferences.paletteHeight),
-##            wxSize(Preferences.inspWidth, Preferences.bottomHeight))
 
         self.winConfOption = 'debugger'
-        self.setDefaultDimensions()#self.loadDims()
+        self.setDefaultDimensions()
 
         self.editor = editor
         self.running = 0
@@ -651,23 +651,25 @@ class DebuggerFrame(wxFrame):#, Utils.FrameRestorerMixin):
         self.splitter = wxSplitterWindow(self, -1, style=wxSP_NOBORDER | wxSP_3DSASH | wxSP_FULLSASH)
 
         # Create a Notebook
+        use_images = (1 or wxPlatform == '__WXMSW__')
+        
         self.nbTop = wxNotebook(self.splitter, wxID_TOPPAGECHANGED)
-        if wxPlatform == '__WXMSW__':
+        if use_images:
             self.nbTop.SetImageList(self.viewsImgLst)
         EVT_NOTEBOOK_PAGE_CHANGED(self.nbTop, wxID_TOPPAGECHANGED,
                                   self.OnUpperPageChange)
 
         self.stackView = StackViewCtrl(self.nbTop, None, self)
 
-        if wxPlatform == '__WXMSW__':
+        if use_images:
             self.nbTop.AddPage(self.stackView, 'Stack', imageId = 0)
-        elif wxPlatform == '__WXGTK__':
+        else:
             self.nbTop.AddPage(self.stackView, 'Stack')
 
         self.breakpts = BreakViewCtrl(self.nbTop, self)
-        if wxPlatform == '__WXMSW__':
+        if use_images:
             self.nbTop.AddPage(self.breakpts, 'Breakpoints', imageId = 1)
-        elif wxPlatform == '__WXGTK__':
+        else:
             self.nbTop.AddPage(self.breakpts, 'Breakpoints')
 
         self.outp = wxTextCtrl(self.nbTop, -1, '',
@@ -679,10 +681,10 @@ class DebuggerFrame(wxFrame):#, Utils.FrameRestorerMixin):
             # The color setting was ignored.  Use standard colors instead.
             self.outp.SetBackgroundColour(wxWHITE)
             self.outp.SetForegroundColour(wxBLACK)
-        self.outp.SetFont(wxFont(7, wxDEFAULT, wxNORMAL, wxNORMAL, false))
-        if wxPlatform == '__WXMSW__':
+        self.outp.SetFont(wxFont(9, wxDEFAULT, wxNORMAL, wxNORMAL, false))
+        if use_images:
             self.nbTop.AddPage(self.outp, 'Output', imageId = 5)
-        elif wxPlatform == '__WXGTK__':
+        else:
             self.nbTop.AddPage(self.outp, 'Output')
 
         # Create a Notebook
@@ -690,27 +692,27 @@ class DebuggerFrame(wxFrame):#, Utils.FrameRestorerMixin):
         EVT_NOTEBOOK_PAGE_CHANGED(self.nbBottom, wxID_PAGECHANGED,
                                   self.OnPageChange)
 
-        if wxPlatform == '__WXMSW__':
+        if use_images:
             self.nbBottom.SetImageList(self.viewsImgLst)
 
         self.watches = WatchViewCtrl(self.nbBottom, self.viewsImgLst, self)
-        if wxPlatform == '__WXMSW__':
+        if use_images:
             self.nbBottom.AddPage(self.watches, 'Watches', imageId = 2)
-        elif wxPlatform == '__WXGTK__':
+        else:
             self.nbBottom.AddPage(self.watches, 'Watches')
 
         self.locs = NamespaceViewCtrl(self.nbBottom, self.add_watch, 1, 'local')
-        if wxPlatform == '__WXMSW__':
+        if use_images:
             self.nbBottom.AddPage(self.locs, 'Locals', imageId = 3)
-        elif wxPlatform == '__WXGTK__':
+        else:
             self.nbBottom.AddPage(self.locs, 'Locals')
 
         self.globs = NamespaceViewCtrl(
             self.nbBottom, self.add_watch, 0, 'global')
 
-        if wxPlatform == '__WXMSW__':
+        if use_images:
             self.nbBottom.AddPage(self.globs, 'Globals', imageId = 4)
-        elif wxPlatform == '__WXGTK__':
+        else:
             self.nbBottom.AddPage(self.globs, 'Globals')
 
         self.splitter.SetMinimumPaneSize(40)
@@ -729,6 +731,7 @@ class DebuggerFrame(wxFrame):#, Utils.FrameRestorerMixin):
 
         EVT_DEBUGGER_OK(self, self.GetId(), self.OnDebuggerOk)
         EVT_DEBUGGER_EXC(self, self.GetId(), self.OnDebuggerException)
+        EVT_DEBUGGER_STOPPED(self, self.GetId(), self.OnDebuggerStopped)
 
         self.stream_timer = wxPyTimer(self.OnStreamTimer)
 
@@ -870,29 +873,22 @@ class DebuggerFrame(wxFrame):#, Utils.FrameRestorerMixin):
 
 #---------------------------------------------------------------------------
 
-##    def canonic(self, filename):
-##        # Canonicalize filename.
-##        return os.path.normcase(os.path.abspath(filename))
-
     def setParams(self, params):
         self.params = params
 
     def setDebugFile(self, filename):
-        self.filename = path.join(pyPath, filename)
-        title = 'Debugger - %s - %s' % (path.basename(filename), filename)
+        self.filename = filename
+        title = 'Debugger - %s - %s' % (os.path.basename(filename), filename)
         self.SetTitle(title)
-        self.modpath = os.path.dirname(self.filename)
 
     def setTitleInfo(self, info):
         title = 'Debugger - %s' % info
         self.SetTitle(title)
 
     def setDebugClient(self, client=None):
-        if not client:
+        if client is None:
             from ChildProcessClient import ChildProcessClient
             client = ChildProcessClient(self)
-            # from InProcessClient import InProcessClient
-            # client_constructor = InProcessClient
         self.debug_client = client
 
     def invokeInDebugger(self, m_name, m_args=(), r_name=None, r_args=()):
@@ -904,8 +900,22 @@ class DebuggerFrame(wxFrame):#, Utils.FrameRestorerMixin):
         self.debug_client.invokeOnServer(m_name, m_args, r_name, r_args)
 
     def killDebugger(self):
+        self.running = 0
         if self.debug_client:
             self.debug_client.kill()
+        self.clearViews()
+
+    def OnDebuggerStopped(self, event):
+        """Called when a debugger process stops."""
+        show_dialog = 0
+        if self.running:
+            show_dialog = 1
+        self.killDebugger()
+        if show_dialog:
+            wxMessageDialog(
+                self, 'The debugger process stopped prematurely.',
+                'Debugger stopped',
+                wxOK | wxICON_EXCLAMATION | wxCENTRE).ShowModal()
 
     def OnStreamTimer(self, event=None, force_timer=0):
         self.updateOutputWindow()
@@ -919,7 +929,6 @@ class DebuggerFrame(wxFrame):#, Utils.FrameRestorerMixin):
         cursz = outp.GetLastPosition()
         newsz = cursz + len(t)
         if newsz >= TEXTCTRL_MAXLEN:
-            #outp.Remove(0, min(newsz - TEXTCTRL_GOODLEN, cursz))
             olddata = outp.GetValue()[newsz - TEXTCTRL_GOODLEN:]
             outp.SetValue(olddata)
         outp.AppendText(t)
@@ -970,16 +979,18 @@ class DebuggerFrame(wxFrame):#, Utils.FrameRestorerMixin):
 
         if confirm:
             self.killDebugger()
-            self.clearViews()
 
     def runProcess(self, autocont=0):
         self.running = 1
         self.sb.writeError('Waiting...', 0)
         brks = bplist.getBreakpointList()
+        for brk in brks:
+            brk['filename'] = self.clientFNToServerFN(brk['filename'])
         if self.slave_mode:
             # Work with a child process.
             add_paths = simplifyPathList(pyPath)
-            filename = path.normcase(path.abspath(self.filename))
+            add_paths = map(self.clientFNToServerFN, add_paths)
+            filename = self.clientFNToServerFN(self.filename)
             self.invokeInDebugger(
                 'runFileAndRequestStatus',
                 (filename, self.params or [], autocont, add_paths, brks),
@@ -1003,14 +1014,38 @@ class DebuggerFrame(wxFrame):#, Utils.FrameRestorerMixin):
                               (command, temp_breakpoint),
                               'receiveDebuggerStatus')
 
+    def clientFNToServerFN(self, filename):
+        """Converts a filename on the client to a filename on the server.
+
+        Currently just turns file URLs into paths.  If you want to be able to
+        set breakpoints when running the client in a different environment
+        from the server, you'll need to expand this.
+        """
+        if filename.startswith('file://'):
+            return filename[7:]
+        else:
+            return filename
+
+    def serverFNToClientFN(self, filename):
+        """Converts a filename on the server to a filename on the client.
+
+        Currently just generates URLs.  If you want to be able to
+        set breakpoints when running the client in a different environment
+        from the server, you'll need to expand this.
+        """
+        if filename.find('://') < 0:
+            return 'file://' + filename
+        else:
+            return filename
+
     def deleteBreakpoints(self, filename, lineno):
-        filename = path.normcase(path.abspath(filename))
-        self.invokeInDebugger('clearBreakpoints', (filename, lineno))
+        fn = self.clientFNToServerFN(filename)
+        self.invokeInDebugger('clearBreakpoints', (fn, lineno))
         self.breakpts.refreshList()
 
     def setBreakpoint(self, filename, lineno, tmp):
-        filename = path.normcase(path.abspath(filename))
-        self.invokeInDebugger('addBreakpoint', (filename, lineno, tmp))
+        fn = self.clientFNToServerFN(filename)
+        self.invokeInDebugger('addBreakpoint', (fn, lineno, tmp))
         self.breakpts.refreshList()
 
     def requestDebuggerStatus(self):
@@ -1027,8 +1062,14 @@ class DebuggerFrame(wxFrame):#, Utils.FrameRestorerMixin):
         if data:
             self.appendToOutputWindow(data)
 
-        # Update call stack
+        # Translate server filenames to client filenames.
         stack = info['stack']
+        for frame in stack:
+            frame['client_filename'] = self.serverFNToClientFN(
+                frame['filename'])
+
+        # Determine the current lineno, filename, and
+        # funcname from the stack.
         if stack:
             bottom = stack[-1]
             filename = bottom['filename']
@@ -1038,8 +1079,6 @@ class DebuggerFrame(wxFrame):#, Utils.FrameRestorerMixin):
         else:
             filename = funcname = lineno = base = ''
 
-        # Determine the current lineno, filename, and
-        # funcname from the stack.
         self.running = info['running']
 
         # Show running status.
@@ -1089,6 +1128,9 @@ class DebuggerFrame(wxFrame):#, Utils.FrameRestorerMixin):
 
         # Update breakpoints view with stats.
         self.breakpts.stats = info['breaks']
+        for item in self.breakpts.stats:
+            item['client_filename'] = self.serverFNToClientFN(
+                item['filename'])
         self.breakpts.refreshList()
         self.selectSourceLine(filename, lineno)
 
@@ -1099,20 +1141,6 @@ class DebuggerFrame(wxFrame):#, Utils.FrameRestorerMixin):
         # Receive stream data even if the user isn't looking.
         self.updateOutputWindow()
 
-    def resolvePath(self, filename):
-        # already resolved.
-        return filename
-##        # Try to find file in Main module directory,
-##        # Boa directory and Current directory
-##        fn = os.path.normpath(os.path.join(self.modpath, filename))
-##        if not os.path.exists(fn):
-##            fn = os.path.join(Preferences.pyPath, filename)
-##            if not os.path.exists(fn):
-##                fn = os.path.abspath(filename)
-##                if not os.path.exists(fn):
-##                    return ''
-##        return fn
-
     def clearStepPos(self):
         if self.lastStepView is not None:
             self.lastStepView.clearStepPos(self.lastStepLineno)
@@ -1121,20 +1149,19 @@ class DebuggerFrame(wxFrame):#, Utils.FrameRestorerMixin):
     def selectSourceLine(self, filename, lineno):
         if self.isSourceTracing():
             self.clearStepPos()
-            if filename and filename[:1] != '<' and filename[-1:] != '>':
-                filename = self.resolvePath(filename)
-                if not filename: return
+            if not filename:
+                return
 
-                #self.editor.SetFocus()
-                self.editor.openOrGotoModule(filename)
-                model = self.editor.getActiveModulePage().model
-                sourceView = model.views['Source']
-                sourceView.focus(false)
-                #sourceView.SetFocus()
-                sourceView.selectLine(lineno - 1)
-                sourceView.setStepPos(lineno - 1)
-                self.lastStepView = sourceView
-                self.lastStepLineno = lineno - 1
+            #self.editor.SetFocus()
+            self.editor.openOrGotoModule(filename)
+            model = self.editor.getActiveModulePage().model
+            sourceView = model.views['Source']
+            sourceView.focus(false)
+            #sourceView.SetFocus()
+            sourceView.selectLine(lineno - 1)
+            sourceView.setStepPos(lineno - 1)
+            self.lastStepView = sourceView
+            self.lastStepLineno = lineno - 1
 
     def enableTools(self, enable = true):
         self.toolbar.EnableTool(self.runId, enable)
@@ -1165,11 +1192,11 @@ class DebuggerFrame(wxFrame):#, Utils.FrameRestorerMixin):
             self.runProcess(cont_always)
 
     def enableStepping(self):
-        # FUTURE: enable the step buttons.
+        # TODO: enable the step buttons.
         self.stepping_enabled = 1
 
     def disableStepping(self):
-        # FUTURE: disable the step buttons.
+        # TODO: disable the step buttons.
         self.stepping_enabled = 0
 
     def doDebugStep(self, method=None, temp_breakpoint=None):
@@ -1182,12 +1209,10 @@ class DebuggerFrame(wxFrame):#, Utils.FrameRestorerMixin):
                 self.runProcess()
             elif method:
                 self.proceedAndRequestStatus(method, temp_breakpoint)
-            return 1
         else:
             if temp_breakpoint:
                 self.setBreakpoint(temp_breakpoint[0],
                                    temp_breakpoint[1], 1)
-            return 0
 
     def OnDebug(self, event):
         self.doDebugStep('set_continue')
@@ -1207,8 +1232,8 @@ class DebuggerFrame(wxFrame):#, Utils.FrameRestorerMixin):
             self.invokeInDebugger('set_pause')
 
     def OnStop(self, event):
+        self.clearStepPos()
         self.enableStepping()
-        #wxPhonyApp.inMainLoop = false
         self.invalidatePanes()
         self.updateSelectedPane(do_request=0)
         self.proceedAndRequestStatus('set_quit')
@@ -1230,7 +1255,6 @@ class DebuggerFrame(wxFrame):#, Utils.FrameRestorerMixin):
     def OnCloseWindow(self, event):
         try:
             self.killDebugger()
-            self.clearViews()
 ##            self.locs.destroy()
 ##            self.globs.destroy()
 ##            self.breakpts.destroy()
