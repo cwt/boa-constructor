@@ -5,29 +5,46 @@ Features
 --------
 
 * Non modal Process dialogs 
-* Debug hook for hooking GUI exceptions to the debugger
 * Multiple help windows
 * File filters
+
+
+Future features
+------------------
+
+* DB aware framework
+* Actions
+
 
 Framework Extensions
 --------------------
 
 * Allow submenus under File and Edit
-* Define resource files for menus and and menu context help (for i18n)
+* Multi-language support
+  * 1st phase
+    * Define resource files for menus and and menu context help (for i18n)
 
-format: 
-[ClassName]
-method=('menu', 'OnMethod', 'image/path.png', 'shortcut', 'description')
+      format: 
+      [ClassName]
+      method=('menu', 'OnMethod', 'image/path.png', 'shortcut', 'description')
+
+    * Message config files for message boxes and info
+
+  * 2nd phase
+    * Designer integrated multi-language support for custome frames/dialogs
+      * Possibly with gettext/_() format in generated source.
+
+  * 3rd phase
+    * Whenever actions happen, combining most of phases 1+2 with multi-language 
+      support in actions.
 
 
 Missing wxPython features
 -------------------------
 
-* wxWizard
 * wxArtProvider
 * wxAcceleratorTable
 * More wxPython.lib controls
-  * MaskEdits
 * improved wxApp support (properties and events)
 * Two step Create and extra style flags
 
@@ -47,6 +64,7 @@ Documentation
 - Tutorial
  - Debugging section
  - Image handling
+ - Sizers
 - Link to method docs from selected property
 
 
@@ -73,9 +91,15 @@ Designer
 - Add Palette as Popup menu. e.g. New->Container/Layout->wxPanel
   - Bind Inser to Popup New menu
 - Source generation for the new wx.package way of writing
+- Custom classes management
 
 Companions
 - Better initial sizes for a few controls
+
+Inspector
+- Enable/Disable toolbar buttons depending on state
+  or only show applicable buttons (not enough space for all btns)
+- Action to turn property into special attribute property
 
 
 Help
@@ -106,6 +130,7 @@ Debugging
 
 
 Explorer
+- Improve recent files
 - Simple caching for slow connections
 - Synch Explorer operations like moving files around with
   any open applications
@@ -133,10 +158,6 @@ CVS
 App
 - App may not have wxDialog as main frame because an app object
   does not quit with dialog as main frame.
-
-Inspector
-- Enable/Disable toolbar buttons depending on state
-  or only show applicable buttons (not enough space for all btns)
 
 GTK
 - Incremental typing lookup on wxListCtrl, hopefully in a base class high up :)
@@ -182,43 +203,19 @@ Boa 2.0
 Scriblings
 ----------
 
-Refactoring tools
-* Expand ExploreView to show params & method next to tree
-* Refactorings
-  * Move selection to method
-     - Input: selection, method name
-     - Process: Identify local variables
-                      Pass vars as parameters
-                      Correct indentation
-
-  * Extract common expression
-     - Input: common expr (selection), source (selection), new_name
-     - Process: Find all occurences of common expr in source
-                      Add initialiser above first use of source:
-                          new_name = common_expr
-                      Replace occurences with new_name
-
-  * Renaming of Classes/Methods/Functions/Modules within an app,
-     - This seems incredibly hard to do 100% correct given Python's
-       dynamic nature, but there are interesting possibilities in
-       post mortem inspection of profiler statistics.
-       With a thorough test suite an accurate log of all every
-       access to a certain function is recorded.
-       This leads to...
-
-  * Testing facilities, how should GUI classes be tested?
-     - Window scraping sucks!
-     - Look into PyUnit
-     - Strategies:
-       - Methods (as opposed to event methods) could be tested with doctest.py
-         another Tim Peters module :)
-         Maybe it can be extended to handle events as follows:
-         - List of events that can be posted and assertion of certain
-           control values after posting
-         I am not very optimistic about this route as none of my own GUI
-         objects seem testable in a few lines and usually depend on other
-         frames being open/initialised. Nevertheless this needs to be
-         pursued and at least those that are testable should be tested.
+* Testing facilities, how should GUI classes be tested?
+   - Window scraping sucks!
+   - Look into PyUnit
+   - Strategies:
+     - Methods (as opposed to event methods) could be tested with doctest.py
+       another Tim Peters module :)
+       Maybe it can be extended to handle events as follows:
+       - List of events that can be posted and assertion of certain
+         control values after posting
+       I am not very optimistic about this route as none of my own GUI
+       objects seem testable in a few lines and usually depend on other
+       frames being open/initialised. Nevertheless this needs to be
+       pursued and at least those that are testable should be tested.
 
 * Code tools/shortcuts
   * Expand creation params:

@@ -1,6 +1,82 @@
 Changes
 -------
 
+-- 0.2.8 (CVS) --
+
+2003-12-10
+
+* Improved EOL handling
+  * Converting (Edit->Convert...)
+  * Mode switching (Edit->STC settings...)
+  * Warning when mixed EOLs are detected
+* Added application todo view
+  * On app module, Views->Application todos
+  * Gives navigatible app wide todo list
+* Much improved support for maskededit family of controls
+* Added page about Sizers to the application help
+  * It's not linked to yet, but can be opened in a browser,
+    at Docs/boa/apphelp/Sizers.html
+* Many bug fixes
+  * Fixed process freezing if printing > 4k text
+  * Sizer, Designer and Editor bugs
+  * BicycleRepairMan plug-in bugs
+
+
+
+-- 0.2.7 (CVS) --
+
+2003-10-13
+
+* Support for wxWizards
+  On the New Palette page see, wxWizard, wxPyWizardPage and
+  wxWizardPageSimple.
+  It is your own responsibility to create the pages and run
+  the wizard.
+* Support for the masked edit family of controls:
+  wxMaskedTextCtrl, wxIpAddrCtrl, wxMaskedComboBox,
+  wxMaskedNumCtrl, wxTimeCtrl, wxIntCtrl
+  wxPython 2.4.2.4 is required.
+* Feature additions/fixes to the Debugger:
+  * Improved remote debugging capabilities by providing
+    client<->server filepath mappings.
+  * Added a Jump action/change execution point
+    supported by Python 2.3.
+  * Added script that supports hooking the Boa debugger
+    to sys.excepthook. See Debugger/sysexcepthook.
+* Improvements to sizers:
+  * Navigation to control/sizer by double clicking
+    in the collection editor on an item.
+  * Invalid sizer choices removed from the Sizer
+    property list.
+  * Less pedantic on which designer view you have to
+    click to create a new sizer or data object.
+    It now automatically switches to the right
+    designer view and creates the control there.
+  * Many sizer bugs fixed.
+* Improved process management
+  * Now using wxProcess instead of Python's popen.
+  * This means we have access to pids under windows
+    and also the ability to kill processes.
+  * A list of processes started from Boa is now available
+    as a page called Tasks in the Error/Output notebook.
+  * You will be prompted at shutdown if there are any
+    sub-processes still running.
+* Re-added non-us keyboard support.
+  Please test this if you use Alt-Gr.
+  Set under Preferences->General->Editor->handleSpecialEuropeanKeys
+  and euroKeysCountry
+* New toolbutton support through DoAddTool. This provides
+  labels and checked/radio tools.
+* Many bug fixes and small improvements.
+
+
+-- 0.2.6 (CVS) --
+
+2003-08-13
+
+* Micro release sorts out some issues on Linux and other small changes and fixes. 
+
+
 -- 0.2.5 (CVS) --
 
 2003-08-12
@@ -70,6 +146,7 @@ Changes
   Minimizing only works properly on Windows.
 * Support for editing/browsing tar.gz files, like zip files work now.
 * Editor toolbar should behave better on wxMAC.
+
 
 -- 0.2.4 (CVS) --
 
@@ -193,7 +270,47 @@ Changes
 
 2003-01-03
 
-* Generated source can now be wrapped over multiple lines.  Lines are only broken up after commas, inside brackets,  but this works well enough.  3 new Preferences added to the General->Code generation  section. This feature is now on by default.* I've abandoned the strategy of renaming plug-ins to disable them.   This was too unfriendly for things like CVS.  Also plug-ins can now be ordered.  Both these changes are implemented with a new file called  __init__.plug-in.py in your Plug-ins directory which defines the   list of disabled and ordered plugin names.  Ordered plug-ins are executed first (in order!)   Everything can be managed thru the GUI under  Preferences->Plug-ins->Plug-in files.* Improved Find/Replace dialog.  Now supports 'Find in files' and seaching in the Explorer.  Thanks to Roman Yakovenko for the patches!* Refactored Controller menu/toolbar definitions to use the  same format that View menu/toolbar definitions uses.  One visible result of this is that menu items can now display images.* Improved tab support. The frame designer can now properly generate   tab indented code.  People who care about this, please test as I don't use this.  * Added ImageEditor.plug-in.py.  This is an image editor I hacked up ages ago.  (I needed masked PNG support!)  I just wrapped up the editor as a Boa View.  It's rough but it works ;)  (Hint: When editing images with masks, set the mask again before         saving, otherwise the previous mask is used)* Shortcut keys now work better on Linux (Ctrl-S works!!!).* Composite controls like wxGrid now work properly in the Designer   on Linux.  Unfortunately many other controls still misbehave on Linux :(* Added wxSpinCtrl* Zope: Added SiteErrorLog support.   Just delete your zoa folder in your Zope root and the new  zoa will be automatically installed.* Removed the bundled PyChecker from the repository.  Boa now tries to use the one installed on your system.
+* Generated source can now be wrapped over multiple lines.
+  Lines are only broken up after commas, inside brackets,
+  but this works well enough.
+  3 new Preferences added to the General->Code generation
+  section. This feature is now on by default.
+* I've abandoned the strategy of renaming plug-ins to disable them. 
+  This was too unfriendly for things like CVS.
+  Also plug-ins can now be ordered.
+  Both these changes are implemented with a new file called
+  __init__.plug-in.py in your Plug-ins directory which defines the 
+  list of disabled and ordered plugin names.
+  Ordered plug-ins are executed first (in order!) 
+  Everything can be managed thru the GUI under
+  Preferences->Plug-ins->Plug-in files.
+* Improved Find/Replace dialog.
+  Now supports 'Find in files' and seaching in the Explorer.
+  Thanks to Roman Yakovenko for the patches!
+* Refactored Controller menu/toolbar definitions to use the
+  same format that View menu/toolbar definitions uses.
+  One visible result of this is that menu items can now display images.
+* Improved tab support. The frame designer can now properly generate 
+  tab indented code.
+  People who care about this, please test as I don't use this.  
+* Added ImageEditor.plug-in.py.
+  This is an image editor I hacked up ages ago.
+  (I needed masked PNG support!)
+  I just wrapped up the editor as a Boa View.
+  It's rough but it works ;)
+  (Hint: When editing images with masks, set the mask again before
+         saving, otherwise the previous mask is used)
+* Shortcut keys now work better on Linux (Ctrl-S works!!!).
+* Composite controls like wxGrid now work properly in the Designer 
+  on Linux.
+  Unfortunately many other controls still misbehave on Linux :(
+* Added wxSpinCtrl
+* Zope: Added SiteErrorLog support. 
+  Just delete your zoa folder in your Zope root and the new
+  zoa will be automatically installed.
+* Removed the bundled PyChecker from the repository.
+  Boa now tries to use the one installed on your system.
+
 -- 0.1.4 - alpha (CVS) --
 
 2002-12-01

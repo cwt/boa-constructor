@@ -1,5 +1,5 @@
-Sampled people and software 
----------------------------
+Credits
+-------
 
 Thanks to Guido van Rossum and Python Labs for Python.
 
@@ -42,14 +42,14 @@ Tim Hochberg <tim.hochberg@ieee.org>
 Mike C Fletcher <mcfletch@home.com>
 * MakePy dialog
 * Much improved UML layout
-Kevin Altis
+Marius van Wyk and Kevin Altis
 * MacOS X support
 Roman Yakovenko
 * Improved Find dialog
 * Clipboard plus
-Cédric Delfosse
+Cedric Delfosse
 * Debian package
 * Bug fixes
 
-Also thanks to Kevin Light, Patrick 'O Brien, John Bell, Gerrit van Dyk, 
-Cliff Baeseman, Larry Poorman and anyone else I may have forgotten!
+Also thanks to Kevin Light, Werner Brunin, Patrick 'O Brien, John Bell, 
+Gerrit van Dyk, Cliff Baeseman, Larry Poorman and anyone else I may have forgotten!
