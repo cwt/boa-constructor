@@ -289,8 +289,6 @@ class SizerItemsCDTC(CollectionDTC):
         if name in ('Size'):
             self.recreateSizers()
         elif name in ('Flag', 'Border', 'Proportion'):
-            if name == 'Proportion':
-                name = 'Option'
             si = self.control.GetChildren()[self.index]
             getattr(si, 'Set'+name)(self.eval(value))
             self.updateGUI()
