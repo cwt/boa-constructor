@@ -1,4 +1,4 @@
-## rc-version: 9 ##
+## rc-version: 10 ##
 # RCS-ID:      $Id$
 
 # The main preference file.
@@ -351,6 +351,8 @@ STCBufferedDraw = True
 # whitespace every indent size columns. They make it easy to see which constructs
 # line up especially when they extend over multiple pages.
 STCIndentationGuides = False
+# Set the code page used to interpret the bytes of the document as characters. 
+STCCodePage = 0
 
 from wxPython.stc import wxSTC_WS_INVISIBLE, wxSTC_WS_VISIBLEALWAYS, wxSTC_WS_VISIBLEAFTERINDENT
 # White space can be made visible. Space characters appear as small centred dots
@@ -425,7 +427,8 @@ exportedProperties = ['flatTools', 'childFrameStyle', 'dataViewListStyle',
   'eoErrOutDockWindow', 'eoErrOutWindowHeightPerc',
 
   'checkSyntax', 'onlyCheckIfLineModified', 'checkSourceOnSave',
-  'autoRefreshOnCodeComplete', 'autoReindent',
+  'autoRefreshOnCodeComplete', 'handleSpecialEuropeanKeys', 'euroKeysCountry',
+  'autoReindent', 'neverEmptyUndoBuffer',
 
   'rememberOpenFiles', 'showFilenameExtensions', 'editorNotebookOpenPos',
   'editorMenuImages', 'expandEditorOnCloseInspector',
@@ -455,7 +458,8 @@ exportedProperties = ['flatTools', 'childFrameStyle', 'dataViewListStyle',
 exportedSTCProps = ['STCViewEOL', 'STCUseTabs', 'STCTabWidth', 'STCIndent',
   'STCLineNumMarginWidth',
   'STCSymbolMarginWidth', 'STCFoldingMarginWidth', 'STCBufferedDraw',
-  'STCIndentationGuides', 'STCViewWhiteSpace', 'STCCaretPolicy', 'STCCaretPeriod',
+  'STCIndentationGuides', 'STCCodePage',
+  'STCViewWhiteSpace', 'STCCaretPolicy', 'STCCaretPeriod',
   'STCEdgeMode', 'STCEdgeColumnWidth',
   'STCCallTipBackColour', 'STCSyntaxErrorColour', 'STCCodeBrowseColour',
   'STCDebugBrowseColour',
