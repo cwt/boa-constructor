@@ -24,10 +24,14 @@ init_coll = '_init_coll_'
 init_utils = '_init_utils'
 init_props = '_init_props'
 init_events = '_init_events'
+code_gen_warning = "generated method, don't edit"
+
 defEnvPython = '#!/usr/bin/env python\n'
 defImport = 'from wxPython.wx import *\n\n'
 defSig = boaIdent+':%(modelIdent)s:%(main)s\n\n'
-code_gen_warning = "generated method, don't edit"
+
+methodIndent = idnt
+bodyIndent = idnt*2
 
 def tabfix(s):
     return string.replace(s, '\t', idnt)
@@ -37,10 +41,11 @@ defCreateClass = tabfix('''def create(parent):
 
 ''')
 
-wid = '[A-Za-z0-9_, ]*'
 srchWindowIds = '\[(?P<winids>[A-Za-z0-9_, ]*)\] = '+\
-'map\(lambda %s: [wx]*NewId\(\), range\((?P<count>\d+)\)\)'
+'map\(lambda %s: (wx)*NewId\(\), range\((?P<count>\d+)\)\)'
+srchWindowIdsCont = '(?P<any>.*)\] = map\(lambda %s: (wx)*NewId\(\), range\((?P<count>\d+)\)\)'
 defWindowIds = '''[%(idNames)s] = map(lambda %(idIdent)s: wxNewId(), range(%(idCount)d))\n'''
+defWindowIdsCont = '''] = map(lambda %(idIdent)s: wxNewId(), range(%(idCount)d))\n'''
 
 defClass = tabfix('''
 class %(main)s(%(defaultName)s):
@@ -64,7 +69,7 @@ class BoaApp(wxApp):
 \t\twxInitAllImageHandlers()
 \t\tself.main = %(mainModule)s.create(None)
 \t\t#workaround for running in wxProcess
-\t\tself.main.Show();self.main.Hide();self.main.Show()
+\t\tself.main.Show()
 \t\tself.SetTopWindow(self.main)
 \t\treturn true
 
@@ -122,7 +127,7 @@ if __name__ == '__main__':
 \tapp = wxPySimpleApp()
 \twxInitAllImageHandlers()
 \tframe = create(None)
-\tframe.Show();frame.Hide();frame.Show() #workaround for running in wxProcess
+\tframe.Show()
 \tapp.MainLoop()
 ''')
 
@@ -136,6 +141,7 @@ if __name__ == '__main__':
 \t\tdlg.ShowModal()
 \tfinally:
 \t\tdlg.Destroy()
+\tapp.MainLoop()
 ''')
 
 simpleAppPopupRunSrc = tabfix('''
@@ -145,7 +151,7 @@ if __name__ == '__main__':
 \twxInitAllImageHandlers()
 \tframe = wxFrame(None, -1, 'Parent')
 \tframe.SetAutoLayout(true)
-\tframe.Show();frame.Hide();frame.Show() #workaround for running in wxProcess
+\tframe.Show()
 \tpopup = create(frame)
 \tpopup.Show(true)
 \tapp.MainLoop()
