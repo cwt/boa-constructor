@@ -39,7 +39,12 @@ import re
 import string, pprint
 from types import IntType, StringType    #id([][,]id)*
 
+import Preferences, Utils
+
 import methodparse
+
+method_indent = Utils.getIndentBlock()
+body_indent = method_indent*2
 
 id = '[A-Za-z_][A-Za-z0-9_]*'
 obj_def = '[A-Za-z_][A-Za-z0-9_.]*'
@@ -608,7 +613,7 @@ class Module:
 
         # Add in source
         self.source[ins_point : ins_point] = \
-          pre_blank + ['    def %s(%s):' % (method_name, method_params)] + \
+          pre_blank + ['%sdef %s(%s):'%(method_indent, method_name, method_params)] + \
           method_body + post_blank
 
 
@@ -645,7 +650,7 @@ class Module:
         self.renumber(deltaLines, code_block.start)
 
     def replaceMethodBody(self, class_name, method_name, new_body):
-        if not string.strip(string.join(new_body)): new_body = ['        pass', '']
+        if not string.strip(string.join(new_body)): new_body = [body_indent+'pass', '']
         self.replaceBody(method_name, self.classes[class_name].methods, new_body)
 
     def removeMethod(self, class_name, name):
