@@ -11,17 +11,15 @@
 #----------------------------------------------------------------------
 #Boa:Frame:BoaFrame
 
+print 'importing Palette'
+
 import os
 
 from wxPython.wx import *
 
-print 'importing PaletteMapping'
 import PaletteMapping
-print 'importing sender'
 import sender
-print 'importing ClassBrowser'
 import ClassBrowser
-print 'importing Help'
 import Help, Preferences, Utils
 
 from Preferences import IS, toPyPath, flatTools
@@ -47,7 +45,7 @@ class CreateNewEvent(wxPyEvent):
 
 [wxID_BOAFRAMETOOLBARTOOLS0, wxID_BOAFRAMETOOLBARTOOLS1, wxID_BOAFRAMETOOLBARTOOLS2] = map(lambda _init_coll_toolBar_Tools: wxNewId(), range(3))
 
-class BoaFrame(wxFrame):
+class BoaFrame(wxFrame, Utils.FrameRestorerMixin):
     def _init_coll_toolBar_Tools(self, parent):
 
         parent.AddTool(bitmap = IS.load('Images/Shared/Inspector.bmp'), id = wxID_BOAFRAMETOOLBARTOOLS0, isToggle = false, longHelpString = '', pushedBitmap = wxNullBitmap, shortHelpString = 'Brings the Inspector to the front')
@@ -85,7 +83,10 @@ class BoaFrame(wxFrame):
             Preferences.screenWidth - Preferences.windowManagerSide * 2, 
             Preferences.paletteHeight)
 
-        if Preferences.paletteStyle == 'menu':
+        self.SetBackgroundColour(wxSystemSettings_GetSystemColour(wxSYS_COLOUR_BTNFACE))
+
+        self.paletteStyle = Preferences.paletteStyle
+        if self.paletteStyle == 'menu':
             self.menuBar = wxMenuBar()
             self.SetMenuBar(self.menuBar)
             self.palette.Show(false)
@@ -228,10 +229,10 @@ class BoaFrame(wxFrame):
         return mID
 
     def OnInspectorToolClick(self, event):
-        self.inspector.Show(true)
-        if self.inspector.IsIconized():
-            self.inspector.Iconize(false)
-        self.inspector.Raise()
+        self.inspector.restore()
+
+    def OnEditorToolClick(self, event):
+        self.editor.restore()
 
     def OnHelpToolClick(self, event):
         if self.componentSB.selection:
@@ -259,12 +260,6 @@ class BoaFrame(wxFrame):
     def OnZopePaletteClick(self, event):
         cls, cmp = self.zopePalettePage.widgets[`event.GetId()`][1:]
 
-    def OnEditorToolClick(self, event):
-        self.editor.Show(true)
-        if self.editor.IsIconized():
-            self.editor.Iconize(false)
-        self.editor.Raise()
-
     def OnExplorerToolClick(self, event):
         if not self.browser:
             wxBeginBusyCursor()
@@ -272,8 +267,7 @@ class BoaFrame(wxFrame):
                 self.browser = ClassBrowser.ClassBrowserFrame(self)
             finally:
                 wxEndBusyCursor()
-        self.browser.Show(true)
-        self.browser.Raise()
+        self.browser.restore()
 
     def OnComposeClick(self, event):
         pass
@@ -284,7 +278,6 @@ class BoaFrame(wxFrame):
         self.Close()
 
     def OnCloseWindow(self, event):
-#        self.Show(false)
         self.destroying = true
         try:
             if hasattr(self, 'editor') and self.editor:
@@ -301,22 +294,20 @@ class BoaFrame(wxFrame):
                     self.app.quit = true
                     self.app = None
 
-            f = Help._hc.GetFrame()
-            if f: 
-                f.Hide()
-                f.Close()
+            Help.delHelp()
 
             for page in self.palettePages:
                 page.destroy()
 
         finally:
             if not self.destroying:
-#                self.Show(true)
                 self.editor.destroying = false
                 self.inspector.destroying = false
             else:
                 self.Destroy()
                 event.Skip()
+                if hasattr(wxApp, 'debugger'):
+                    wxGetApp().ExitMainLoop()
 
     def OnUncheckComponent(self, event):
         self.componentSB.selectNone()
@@ -337,15 +328,21 @@ class BoaFrame(wxFrame):
 
     def OnCreateNew(self, event):
         self.editor.addNewPage(event.name, event.controller)
+    
+    def Iconize(self, iconize):
+        if Help._hc:
+            frm = Help._hc.GetFrame()
+            if frm: frm.Iconize(iconize)
+        wxFrame.Iconize(self, iconize)
 
     def OnBoaframeIconize(self, event):
 ##        self._iconized = not self._iconized
 ##        self.editor.Iconize(self._iconized)
 ##        self.inspector.Iconize(self._iconized)
         self.SetFocus()
-        frm = Help._hc.GetFrame()
-        if frm:
-            frm.Iconize(true)
+        if Help._hc:
+            frm = Help._hc.GetFrame()
+            if frm: frm.Iconize(true)
         event.Skip()
 
 class ComponentSelection:
@@ -466,7 +463,7 @@ class PanelPalettePage(wxPanel, BasePalettePage):
         for btn in self.buttons.values():
             btn.destroy()
         del self.buttons
-        if Preferences.paletteStyle == 'tabs':
+        if self.palette.paletteStyle == 'tabs':
             self.menu.Destroy()
 
     def addButton(self, widgetName, wxClass, constrClass, clickEvt, hintFunc, hintLeaveFunc, btnType):
@@ -477,7 +474,7 @@ class PanelPalettePage(wxPanel, BasePalettePage):
 
         self.widgets[`mID`] = (widgetName, wxClass, constrClass)
 
-        if Preferences.paletteStyle == 'menu':
+        if self.palette.paletteStyle == 'menu':
             return mID
         
         bmp = self.getButtonBmp(widgetName, wxClass)
@@ -544,7 +541,7 @@ class PalettePage(PanelPalettePage):
 
     def OnClickTrap(self, event):
         wId = event.GetId()
-        if Preferences.paletteStyle == 'tabs':
+        if self.palette.paletteStyle == 'tabs':
             obj = self.senders.getBtnObject(event)
             if obj.up:
                 self.selectNone()
@@ -552,7 +549,7 @@ class PalettePage(PanelPalettePage):
             else:
                 self.components.selectComponent(self, self.widgets[`wId`])
                 self.selection = obj
-        elif Preferences.paletteStyle == 'menu':
+        elif self.palette.paletteStyle == 'menu':
             sel = self.menu.FindItemById(wId)
             if not sel.IsChecked():
                 self.selectNone()
@@ -563,19 +560,17 @@ class PalettePage(PanelPalettePage):
                 self.selection = sel
             event.Skip()
             
-
     def selectNone(self):
         if self.selection:
-            if Preferences.paletteStyle == 'tabs':
+            if self.palette.paletteStyle == 'tabs':
                 self.selection.SetToggle(false)
                 self.selection.Refresh()
                 self.selection = None
-            elif Preferences.paletteStyle == 'menu':
+            elif self.palette.paletteStyle == 'menu':
                 self.selection.Check(false)
                 self.selection = None
                 
     
-
 class ZopePalettePage(PalettePage):
     def __init__(self, parent, name, bitmapPath, eventOwner, widgets, senders, components, palette):
         PalettePage.__init__(self, parent, name, bitmapPath, eventOwner, widgets, senders, components, palette)
@@ -583,4 +578,4 @@ class ZopePalettePage(PalettePage):
     def getButtonBmp(self, name, wxClass):
         return IS.load('%s%s.bmp' %(self.bitmapPath, name))
 
-           
+  
