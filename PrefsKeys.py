@@ -1,13 +1,13 @@
 #-----------------------------------------------------------------------------
-# Name:        PrefsKeys.py                                                   
-# Purpose:     Keyboard definitions                                           
-#                                                                             
-# Author:      Riaan Booysen                                                  
-#                                                                             
-# Created:     2000/05/12                                                     
-# RCS-ID:      $Id$                                             
-# Copyright:   (c) 1999, 2000 Riaan Booysen                                   
-# Licence:     GPL                                                            
+# Name:        PrefsKeys.py
+# Purpose:     Keyboard definitions
+#
+# Author:      Riaan Booysen
+#
+# Created:     2000/05/12
+# RCS-ID:      $Id$
+# Copyright:   (c) 1999, 2000 Riaan Booysen
+# Licence:     GPL
 #-----------------------------------------------------------------------------
 
 from wxPython.wx import *
@@ -43,7 +43,7 @@ keyDefs = {
   'PrevPage'    : (wxACCEL_CTRL, ord('J'), 'Ctrl-J'),
   'Cut'         : (wxACCEL_SHIFT, WXK_DELETE, 'Shft-Del'),
   'Copy'        : (wxACCEL_CTRL, WXK_INSERT, 'Ctrl-Ins'),
-  'Paste'       : (wxACCEL_SHIFT, WXK_INSERT, 'Shft-Ins'), 
+  'Paste'       : (wxACCEL_SHIFT, WXK_INSERT, 'Shft-Ins'),
   'MoveLeft'    : (wxACCEL_CTRL, WXK_LEFT, 'Ctrl-Left'),
   'MoveRight'   : (wxACCEL_CTRL, WXK_RIGHT, 'Ctrl-Right'),
   'MoveUp'      : (wxACCEL_CTRL, WXK_UP, 'Ctrl-Up'),
@@ -52,7 +52,7 @@ keyDefs = {
   'WidthInc'    : (wxACCEL_SHIFT, WXK_RIGHT, 'Shft-Right'),
   'HeightInc'   : (wxACCEL_SHIFT, WXK_DOWN, 'Shft-Down'),
   'HeightDec'   : (wxACCEL_SHIFT, WXK_UP, 'Shft-Up'),
-  'MarkPlace'   : (wxACCEL_CTRL, ord('M'), 'Ctrl-M'), 
+  'MarkPlace'   : (wxACCEL_CTRL, ord('M'), 'Ctrl-M'),
 }
 
 if wxPlatform == '__WXMSW__':
@@ -77,4 +77,4 @@ stcDefs = {'Cut'        : 'Shft-Del',
            'SelectAll'  : 'Ctrl-A',
            'Undo'       : 'Ctrl-Z',
            'Redo'       : 'Ctrl-Y',
-           'DeleteLine' : 'Ctrl-L'} 
+           'DeleteLine' : 'Ctrl-L'}

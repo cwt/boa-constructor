@@ -5,7 +5,7 @@ import types
 
 def getWxNameSpace():
     return globals().keys()
-    
+
 def getWxClass(name):
     g = globals()
     if g.has_key(name) and type(g[name]) == types.ClassType:

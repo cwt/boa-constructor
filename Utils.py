@@ -1,6 +1,6 @@
 #----------------------------------------------------------------------
 # Name:        Utils.py
-# Purpose:     
+# Purpose:
 #
 # Author:      Riaan Booysen
 #
@@ -14,7 +14,7 @@ import Preferences
 from Preferences import IS
 import string
 from ExternalLib.ConfigParser import ConfigParser
-
+from types import InstanceType
 # Why did I capitalise these ????
 
 def ShowErrorMessage(parent, caption, mess):
@@ -64,7 +64,7 @@ def AddToggleToolButtonBmpObject(frame, toolbar, thebitmap, hint, triggermeth):
 #This format follows wxWindows conventions
 def windowIdentifier(frameName, ctrlName):
     return 'wxID_' + string.upper(frameName) + string.upper(ctrlName)
-    
+
 
 class BoaFileDropTarget(wxFileDropTarget):
     def __init__(self, editor):
@@ -78,7 +78,7 @@ class BoaFileDropTarget(wxFileDropTarget):
                 self.editor.openOrGotoModule(filename)
         finally:
             wxEndBusyCursor()
-            
+
 def split_seq(seq, pivot, transformFunc = None):
     result = []
     cur_sect = []
@@ -89,8 +89,8 @@ def split_seq(seq, pivot, transformFunc = None):
         else:
             cur_sect.append(itm)
     result.append(cur_sect)
-            
-    return result        
+
+    return result
 
 allowed_width = 78
 def human_split(line):
@@ -100,7 +100,7 @@ def human_split(line):
     segments = string.split(line, ',')
     for idx in range(len(segments)-1):
         segments[idx] = segments[idx]+','
-        
+
     result = []
     cur_line = ''
     for segment in segments:
@@ -114,9 +114,9 @@ def human_split(line):
             cur_line = cur_line + segment
 
     result.append(cur_line)
-    
+
     return result
-        
+
 def duplicateMenu(source):
     dest = wxMenu()
     for menu in source.GetMenuItems():
@@ -127,41 +127,44 @@ def duplicateMenu(source):
             mi = dest.FindItemById(menu.GetId())
             if menu.IsCheckable() and menu.IsChecked():
                 mi.Check(true)
-    return dest            
-                    
+    return dest
+
 def getValidName(usedNames, baseName, ext = '', n = 1, itemCB = lambda x:x):
-    def tryName(baseName, ext, n): 
+    def tryName(baseName, ext, n):
         return '%s%d%s' %(baseName, n, ext and '.'+ext)
     while filter(lambda key, name = tryName(baseName, ext, n), itemCB = itemCB: \
                  itemCB(key) == name, usedNames): n = n + 1
     return tryName(baseName, ext, n)
 
-def srcRefFromCtrlName(ctrlName): 
+def srcRefFromCtrlName(ctrlName):
     return ctrlName and 'self.'+ctrlName or 'self'
-    
-def ctrlNameFromSrcRef(srcRef): 
+
+def ctrlNameFromSrcRef(srcRef):
     return srcRef == 'self' and '' or srcRef[5:]
-            
+
 def winIdRange(count):
-    return map(lambda x: wxNewId(), range(count))            
+    return map(lambda x: wxNewId(), range(count))
+
+def methodLooksLikeEvent(method):
+    return len(method) >= 3 and method[:2] == 'On' and method[2] in string.uppercase
 
 def startswith(str, substr):
     return len(str) >= len(substr) and str[:len(substr)] == substr
 
 class PaintEventHandler(wxEvtHandler):
-    """ This class is used to merge paint requests. 
-    
-        Each paint is captured and saved. Later on the idle event, 
-        the non-duplicated paints are executed. The code attempts to be 
-        efficient by determining the enclosing rectangle where multiple 
+    """ This class is used to merge paint requests.
+
+        Each paint is captured and saved. Later on the idle event,
+        the non-duplicated paints are executed. The code attempts to be
+        efficient by determining the enclosing rectangle where multiple
         rectangles intersect.
         This is required only on GTK systems.
-       
+
         Note: there is an assumption here that event handling is synchronous
         i.e. the paints called from the idle event handler are processed
         before the Refresh() call returns.
     """
-    
+
     def __init__(self, window):
         wxEvtHandler.__init__(self)
         self.painting=0
@@ -183,6 +186,7 @@ class PaintEventHandler(wxEvtHandler):
                 newList.append(rect)
         self.updates = newList
         self.updates.append(newRect)
+        event.Skip()
     def OnIdle(self, event):
         if len(self.updates) == 0:
             event.Skip()
@@ -245,13 +249,15 @@ def showTip(frame, forceShow = 0):
         tp = wxCreateFileTipProvider(Preferences.toPyPath('Docs/tips.txt'), index)
         showTip = wxShowTip(frame, tp, showTip)
         index = tp.GetCurrentTip()
-        if conf:            
+        if conf:
             conf.set('tips', 'showonstartup', showTip)
             conf.set('tips', 'tipindex', index)
             try:
                 conf.write(open(conf.confFile, 'w'))
             except IOError:
-                print 'Could not update tips file', showTipsFile, '(check permissions)'
+                wxLogError('Could not edit tips settings, please make '
+                      'sure that the Explorer.*.cfg file is not read only and you '
+                      'have sufficient privaledges to write to this file.')
 
 def readTextFromClipboard():
     clip = wxTheClipboard
@@ -278,5 +284,34 @@ def createAndReadConfig(name, forPlatform = 1):
         or forPlatform and '.gtk' or '')
     conf.read(confFile)
     conf.confFile = confFile
-    return conf 
-    
+    return conf
+
+from wxPython import html
+
+wxEVT_HTML_URL_CLICK = wxNewId()
+
+def EVT_HTML_URL_CLICK(win, func):
+    win.Connect(-1, -1, wxEVT_HTML_URL_CLICK, func)
+
+class wxHtmlWindowUrlClick(wxPyEvent):
+    def __init__(self, linkinfo):
+        wxPyEvent.__init__(self)
+        self.SetEventType(wxEVT_HTML_URL_CLICK)
+        self.linkinfo = (linkinfo.GetHref(), linkinfo.GetTarget())
+
+class wxUrlClickHtmlWindow(html.wxHtmlWindow):
+    def OnLinkClicked(self, linkinfo):
+        wxPostEvent(self, wxHtmlWindowUrlClick(linkinfo))
+
+def wxProxyPanel(parent, win, *args, **kwargs):
+    """ Function which put's a panel in between two controls.
+
+        Mainly for better repainting under GTK.
+        Based on a pattern by Kevin Gill.
+    """
+    panel = wxPanel(parent, -1, style=wxTAB_TRAVERSAL | wxCLIP_CHILDREN)# | wxWANTS_CHARS) doesn't help
+    win = apply(win, (panel,) + args, kwargs)
+    def OnWinSize(evt, win=win):
+        win.SetSize(evt.GetSize())
+    EVT_SIZE(panel, OnWinSize)
+    return panel, win

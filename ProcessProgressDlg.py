@@ -1,14 +1,14 @@
 #-----------------------------------------------------------------------------
-# Name:        ProcessProgressDlg.py                                          
+# Name:        ProcessProgressDlg.py
 # Purpose:     Dialog that shows errors and output of a process executed with
-#              wxProcess. Operation can be canceled.                          
-#                                                                             
-# Author:      Riaan Booysen                                                  
-#                                                                             
-# Created:     2001/02/04                                                     
-# RCS-ID:      $Id$                                   
-# Copyright:   (c) 2001 Riaan Booysen                                         
-# Licence:     GPL                                                            
+#              wxProcess. Operation can be canceled.
+#
+# Author:      Riaan Booysen
+#
+# Created:     2001/02/04
+# RCS-ID:      $Id$
+# Copyright:   (c) 2001 Riaan Booysen
+# Licence:     GPL
 #-----------------------------------------------------------------------------
 #Boa:Dialog:ProcessProgressDlg
 
@@ -20,10 +20,10 @@ import string, os, time
 [wxID_PROCESSPROGRESSDLGERRORTCTRL, wxID_PROCESSPROGRESSDLGSPLITTERWINDOW1, wxID_PROCESSPROGRESSDLGSTATUSSTXT, wxID_PROCESSPROGRESSDLGCMDSTXT, wxID_PROCESSPROGRESSDLGOUTPUTTCTRL, wxID_PROCESSPROGRESSDLGSTATUSGGE, wxID_PROCESSPROGRESSDLGCANCELBTN, wxID_PROCESSPROGRESSDLG] = map(lambda _init_ctrls: wxNewId(), range(8))
 
 class ProcessProgressDlg(wxDialog):
-    def _init_utils(self): 
+    def _init_utils(self):
         pass
 
-    def _init_ctrls(self, prnt): 
+    def _init_ctrls(self, prnt):
         wxDialog.__init__(self, size = wxSize(384, 363), id = wxID_PROCESSPROGRESSDLG, title = 'Progress', parent = prnt, name = 'ProcessProgressDlg', style = wxRESIZE_BORDER | wxDEFAULT_DIALOG_STYLE, pos = wxPoint(313, 215))
         self._init_utils()
         self.SetAutoLayout(true)
@@ -51,7 +51,7 @@ class ProcessProgressDlg(wxDialog):
         self.statusGge = wxGauge(size = wxSize(184, 16), id = wxID_PROCESSPROGRESSDLGSTATUSGGE, style = wxGA_HORIZONTAL, parent = self, name = 'statusGge', validator = wxDefaultValidator, range = 100, pos = wxPoint(8, 312))
         self.statusGge.SetConstraints(LayoutAnchors(self.statusGge, true, false, true, true))
 
-    def __init__(self, parent, command, caption, modally = true, linesep = os.linesep, autoClose = true): 
+    def __init__(self, parent, command, caption, modally = true, linesep = os.linesep, autoClose = true):
         self._init_ctrls(parent)
         self.SetTitle(caption)
         self.Center(wxBOTH)
@@ -64,28 +64,28 @@ class ProcessProgressDlg(wxDialog):
         self.responded = false
         self.linesep = linesep
         self.autoClose = autoClose
-        
+
         EVT_IDLE(self, self.OnIdle)
         EVT_END_PROCESS(self, -1, self.OnProcessEnded)
-        
+
         self.cmdStxt.SetLabel(command)
         self.execute(command, modally)
         if not modally:
             while not self.finished: wxYield()
-    
+
     def execute(self, cmd, modally = true):
         self.cancelBtn.SetLabel('Cancel')
         self.statusStxt.SetLabel('Waiting for response...')
         self.responded = false
         self.modally = modally
-        
+
         self.process = wxProcess(self)
         self.process.Redirect();
         wxExecute(cmd, false, self.process)
         self.errorStream = self.process.GetErrorStream()
         self.outputStream = self.process.GetInputStream()
         self.OnIdle(None)
-    
+
     def prepareResult(self):
         self.output = string.split(string.join(self.output, ''), self.linesep)[:-1]
         for idx in range(len(self.output)):
@@ -108,35 +108,35 @@ class ProcessProgressDlg(wxDialog):
     def OnIdle(self, event):
         if not self.finished:
             v = self.statusGge.GetValue()
-            if v > 100: 
+            if v > 100:
                 v = 0
             else:
                 v = v + 1
             self.statusGge.SetValue(v)
-        
+
         if self.process is not None:
             self.updateStream(self.errorStream, self.errors, self.errorTctrl)
             self.updateStream(self.outputStream, self.output, self.outputTctrl)
-            
+
         wxWakeUpIdle()
         time.sleep(0.01)
 
     def OnProcessEnded(self, event):
         self.OnIdle(None)
         self.statusStxt.SetLabel('Response received.')
-        
+
         self.process.Destroy()
         self.process = None
-        
+
         self.prepareResult()
         self.statusGge.SetValue(0)
-        
+
         self.finished = true
         self.cancelBtn.SetLabel('OK')
 
         if self.modally and self.autoClose:
             self.EndModal(wxOK)
-    
+
     def OnProcessprogressdlgClose(self, event):
         try:
             if self.process is not None:
@@ -156,13 +156,13 @@ class ProcessProgressDlg(wxDialog):
                 self.EndModal(wxCANCEL)
         else:
             self.EndModal(wxOK)
-                
+
 
 if __name__ == '__main__':
     app = wxPySimpleApp()
     modal = 1
     dlg = ProcessProgressDlg(None, 'cvs -H status', 'Test', modal, autoClose=false)
-    if modal: 
+    if modal:
         dlg.ShowModal()
     print dlg.errors, dlg.output
     dlg.Destroy()

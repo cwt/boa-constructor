@@ -1,6 +1,6 @@
 #----------------------------------------------------------------------
 # Name:        RTTI.py
-# Purpose:     
+# Purpose:
 #
 # Author:      Riaan Booysen
 #
@@ -14,24 +14,24 @@ from wxPython.wx import *
 
 def sort_proxy(self, other):
     return self < other and -1 or self > other and 1 or 0
-    
+
 class PropertyWrapper:
     # XXX This would be better implemented with subclassing
     def __init__(self, name, rType, getter, setter):
-        """ Types: 'CtrlRoute', 'CompnRoute', 'EventRoute', 'NoneRoute', 
+        """ Types: 'CtrlRoute', 'CompnRoute', 'EventRoute', 'NoneRoute',
                    'IndexRoute', 'NameRoute'
         """
-    
+
         self.name = name
         self.routeType = rType
         self.getter = getter
-        self.setter = setter 
+        self.setter = setter
         self.ctrl = None
         self.compn = None
-        
+
         # Not used yet
         self.setterName = ''
-    
+
     def __cmp__(self, other):
         """ This is for sorting lists of PropertyWrappers """
 #        sort_proxy(self.name, other.name)
@@ -40,15 +40,15 @@ class PropertyWrapper:
         if self.name > other.name:
             return 1
         return 0
-    
+
     def __repr__(self):
-        return '<instance PropertyWrapper: %s, %s (%s, %s)'%(self.name, 
+        return '<instance PropertyWrapper: %s, %s (%s, %s)'%(self.name,
           self.routeType, self.getter, self.setter)
-    
+
     def connect(self, ctrl, compn):
         self.ctrl = ctrl
         self.compn = compn
-    
+
     def getValue(self, *params):
 ##        print 'PropWrapper.GetValue', self.routeType, self.ctrl, self.getter
         if self.routeType == 'CtrlRoute' and self.ctrl:
@@ -80,7 +80,7 @@ class PropertyWrapper:
             apply(self.setter, [self.ctrl], params)
         elif self.routeType == 'NameRoute':
             return self.setter(self.name, value)
-    
+
     def getSetterName(self):
         from types import FunctionType, MethodType
         if self.setter:
@@ -103,27 +103,27 @@ def getPropList(obj, cmp):
        Property names that also occur in the Constructor list are stored under
        the 'constructor' key
        Vetoes are dangerous methods that should not be inspected
-       
+
        Returns:
        {'constructor': [ PropertyWrapper, ... ],
         'properties': [ PropertyWrapper, ... ] }
-            
+
     """
 
     def getMethodType(method, obj, dict):
         """ classify methods according to prefix
             return category, property name, getter, setter
         """
-    
+
         if _methodTypeCache.has_key( (method, obj) ):
             return _methodTypeCache[(method, obj)]
         else:
             if (type(dict[method]) == FunctionType):
                 prefix = method[:3]
                 property = method[3:]
-                
+
                 if (method[:2] == '__'):
-                     result = ('Built-ins', method, dict[method], dict[method])
+                    result = ('Built-ins', method, dict[method], dict[method])
                 elif (prefix == 'Get') and dict.has_key('Set'+property) and property:
                     try:
                         #see if getter breaks
@@ -142,11 +142,11 @@ def getPropList(obj, cmp):
                     result = ('Methods', method, dict[method], dict[method])
             else:
                 result = ('Methods', method, dict[method], dict[method])
-            
+
             return result
-    
+
 #            return 'Methods', method, dict[method], dict[method]
-    
+
     def catalogProperty(name, methType, meths, constructors, propLst, constrLst):
         if constructors.has_key(name):
             constrLst.append(PropertyWrapper(name, methType, meths[0], meths[1]))
@@ -158,7 +158,7 @@ def getPropList(obj, cmp):
     props['Properties']= {}
     props['Methods']= {}
     props['Built-ins']= {}
-    
+
     # traverse inheritance hierarchy
 ##    print 'traverse inheritance hierarchy'
     # populate property list
@@ -188,14 +188,14 @@ def getPropList(obj, cmp):
         propNames = props['Properties'].keys()
         propNames.sort()
         for propName in propNames:
-            if cmp and propName in cmp.hideDesignTime(): 
+            if cmp and propName in cmp.hideDesignTime():
                 continue
             propMeths = props['Properties'][propName]
             try:
-                catalogProperty(propName, 'CtrlRoute', propMeths, 
+                catalogProperty(propName, 'CtrlRoute', propMeths,
                   constrNames, propLst, constrLst)
             except:
-                catalogProperty(propName, 'NoneRoute', (None, None), 
+                catalogProperty(propName, 'NoneRoute', (None, None),
                   constrNames, propLst, constrLst)
         if cmp:
             xtraProps = cmp.properties()
@@ -206,13 +206,13 @@ def getPropList(obj, cmp):
 ##                    continue
                 propMeths = xtraProps[propName]
                 try:
-                    catalogProperty(propName, propMeths[0], propMeths[1:], 
+                    catalogProperty(propName, propMeths[0], propMeths[1:],
                       constrNames, propLst, constrLst)
                 except: pass
 
         propLst.sort()
         constrLst.sort()
-    else : 
+    else :
         if cmp:
             xtraProps = cmp.properties()
             propNames = xtraProps.keys()
@@ -220,12 +220,12 @@ def getPropList(obj, cmp):
             for propName in propNames:
                 propMeths = xtraProps[propName]
                 try:
-                    catalogProperty(propName, propMeths[0], propMeths[1:], 
+                    catalogProperty(propName, propMeths[0], propMeths[1:],
                       constrNames, propLst, constrLst)
                 except: pass
         else:
             print 'Empty object', obj, cmp
-        
+
     return {'constructor': constrLst, 'properties': propLst}
 
 def getFunction(inst, funcName):
@@ -235,6 +235,5 @@ def getFunction(inst, funcName):
         if not len(cls.__bases__): raise 'method '+funcName+' not found'
         cls = cls.__bases__[0]
         found = cls.__dict__.has_key(funcName)
-    
+
     return cls.__dict__[funcName]
-    

@@ -2,9 +2,9 @@
 # Name:        sourceconst.py
 # Purpose:     Central place for constants, templates and snippets used by the
 #              code generation process
-#                
+#
 # Author:      Riaan Booysen
-#                
+#
 # Created:     2001/19/02
 # RCS-ID:      $Id$
 # Copyright:   (c) 2001 Riaan Booysen
@@ -32,37 +32,37 @@ defWindowIds = '''[%s] = map(lambda %s: wxNewId(), range(%d))\n'''
 
 defClass = '''
 class %s(%s):
-    def '''+init_utils+'''(self): 
+    def '''+init_utils+'''(self):
         pass
 
-    def '''+init_ctrls+'''(self, prnt): 
+    def '''+init_ctrls+'''(self, prnt):
         %s.__init__(%s)
         self.'''+init_utils+'''()
-        
-    def __init__(self, parent): 
+
+    def __init__(self, parent):
         self.'''+init_ctrls+'''(parent)
 '''
 
-# This the closest I get to destroying partially created 
-# frames without mucking up my indentation. 
+# This the closest I get to destroying partially created
+# frames without mucking up my indentation.
 # This doesn't not handle the case where the constructor itself fails
 # Replace defClass with this in line 412 if you feel the need
 
 defSafeClass = '''
 class %s(%s):
-    def '''+init_utils+'''(self): 
+    def '''+init_utils+'''(self):
         pass
 
-    def '''+init_ctrls+'''(self, prnt): 
+    def '''+init_ctrls+'''(self, prnt):
         %s.__init__(%s)
-        
-    def __init__(self, parent): 
+
+    def __init__(self, parent):
         self.'''+init_utils+'''()
-        try: 
+        try:
             self.'''+init_ctrls+'''(parent)
 
             # Your code
-        except: 
+        except:
             self.Destroy()
             import traceback
             traceback.print_exc()
@@ -90,15 +90,15 @@ if __name__ == '__main__':
 defInfoBlock = '''#-----------------------------------------------------------------------------
 # Name:        %s
 # Purpose:     %s
-#                
+#
 # Author:      %s
-#                
+#
 # Created:     %s
 # RCS-ID:      %s
 # Copyright:   %s
 # Licence:     %s
 #-----------------------------------------------------------------------------
-''' 
+'''
 
 defSetup_py = '''
 from distutils.core import setup

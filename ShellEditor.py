@@ -21,6 +21,7 @@ echo = true
 
 ps1 = '>>> '
 ps2 = '... '
+ps3 = '>-> '
 p2c = 'Type "copyright", "credits" or "license" for more information.'
         
 class ShellEditor(wxStyledTextCtrl, PythonStyledTextCtrlMix):
@@ -38,10 +39,10 @@ class ShellEditor(wxStyledTextCtrl, PythonStyledTextCtrlMix):
         else:
             class MyLicensePrinter(license.__class__):
                 def __init__(self): 
-                    pass
+                    self.__lines = []
                 def __call__(self):
-                    license._Printer__setup()
-                    print "'''\n%s\n'''"%string.join(license._Printer__lines, '\n')
+                    license.__setup()
+#                    print "'''\n%s\n'''"%string.join(license._Printer__lines, '\n')
 
             self.interp.locals['license'] = MyLicensePrinter()
             
@@ -56,6 +57,11 @@ class ShellEditor(wxStyledTextCtrl, PythonStyledTextCtrlMix):
 ##        self.EnsureCaretVisible()
 ##        self.ScrollToColumn(0)
         EVT_CHAR(self, self.OnShellKey)
+        
+        
+    
+    def setDebugNamespace(self, ns):
+        pass
 
     def OnShellKey(self, event):
         if event.KeyCode() == 13:

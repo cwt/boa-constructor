@@ -1,13 +1,13 @@
 #----------------------------------------------------------------------
-# Name:        PaletteMapping.py                                       
-# Purpose:                                                             
-#                                                                      
-# Author:      Riaan Booysen                                           
-#                                                                      
-# Created:     1999                                                    
+# Name:        PaletteMapping.py
+# Purpose:
+#
+# Author:      Riaan Booysen
+#
+# Created:     1999
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999, 2000 Riaan Booysen                            
-# Licence:     GPL                                                     
+# Copyright:   (c) 1999, 2000 Riaan Booysen
+# Licence:     GPL
 #----------------------------------------------------------------------
 
 import Preferences
@@ -34,21 +34,21 @@ from Companions.ZopeCompanions import *
 utilities = [wxMenuBar, wxMenu, wxImageList]#, wxAcceleratorTable, wxTextDropTarget, wxFileDropTarget]
 
 palette = [
-##  ['Frame bars', 'Editor/Tabs/Singletons', 
+##  ['Frame bars', 'Editor/Tabs/Singletons',
 ##    [wxMenuBar, wxToolBar, wxStatusBar] ],
-  ['Containers/Layout', 'Editor/Tabs/Containers', 
-    [wxPanel, wxScrolledWindow, wxNotebook, wxSplitterWindow, 
+  ['Containers/Layout', 'Editor/Tabs/Containers',
+    [wxPanel, wxScrolledWindow, wxNotebook, wxSplitterWindow,
      wxSashWindow, wxSashLayoutWindow, wxToolBar, wxStatusBar] ], #, wxBoxSizer
-  ['Basic Controls', 'Editor/Tabs/Basic', 
-    [wxStaticText, wxTextCtrl, wxComboBox, wxChoice, wxCheckBox, wxRadioButton, 
-     wxSlider, wxGauge, wxScrollBar, wxStaticBitmap, wxStaticLine, wxStaticBox, 
+  ['Basic Controls', 'Editor/Tabs/Basic',
+    [wxStaticText, wxTextCtrl, wxComboBox, wxChoice, wxCheckBox, wxRadioButton,
+     wxSlider, wxGauge, wxScrollBar, wxStaticBitmap, wxStaticLine, wxStaticBox,
      wxHtmlWindow] ], #, wxSpinCtrl, wxCalendarCtrl, wxStyledTextCtrl] ],
   ['Buttons', 'Editor/Tabs/Basic',
-    [wxButton, wxBitmapButton, wxSpinButton, wxGenButton, wxGenBitmapButton] ], 
+    [wxButton, wxBitmapButton, wxSpinButton, wxGenButton, wxGenBitmapButton] ],
 #     wxGenToggleButton, wxGenBitmapToggleButton] ],
-  ['List Controls', 'Editor/Tabs/Lists', 
+  ['List Controls', 'Editor/Tabs/Lists',
     [wxRadioBox, wxListBox, wxCheckListBox, wxGrid, wxListCtrl, wxTreeCtrl] ],
-  ['Utilities', 'Editor/Tabs/Utilities', 
+  ['Utilities', 'Editor/Tabs/Utilities',
     utilities] ]
 
 newPalette = ['New', 'Editor/Tabs/New',
@@ -60,16 +60,16 @@ helperClasses = {
     'wxFontPtr': FontDTC,
     'wxColourPtr': ColourDTC,
     'Anchors': AnchorsDTC
-}    
+}
 
-dialogPalette =  ['Dialogs', 'Editor/Tabs/Dialogs', 
-    [wxColourDialog, wxFontDialog, wxFileDialog, wxDirDialog, 
-    wxPrintDialog, wxPageSetupDialog, 
+dialogPalette =  ['Dialogs', 'Editor/Tabs/Dialogs',
+    [wxColourDialog, wxFontDialog, wxFileDialog, wxDirDialog,
+    wxPrintDialog, wxPageSetupDialog,
     wxSingleChoiceDialog, wxTextEntryDialog, wxMessageDialog] ]
 
-zopePalette =  ['Zope', 'Editor/Tabs/Zope', 
+zopePalette =  ['Zope', 'Editor/Tabs/Zope',
     ['DTML Document', 'DTML Method', 'Folder', 'File', 'Image', 'External Method',
-     'Python Method', 'Mail Host', 'ZCatalog', 'User Folder'] ]#'SQL Method', 
+     'Python Method', 'Mail Host', 'ZCatalog', 'User Folder'] ]#'SQL Method',
 
 compInfo = {
     wxApp: ['wxApp', None],
@@ -81,17 +81,17 @@ compInfo = {
     wxMenuBar: ['wxMenuBar', MenuBarDTC],
     wxToolBar: ['wxToolBar', ToolBarDTC],
     wxStatusBar: ['wxStatusBar', StatusBarDTC],
-    wxPanel: ['wxPanel', PanelDTC], 
-    wxScrolledWindow: ['wxScrolledWindow', ScrolledWindowDTC], 
+    wxPanel: ['wxPanel', PanelDTC],
+    wxScrolledWindow: ['wxScrolledWindow', ScrolledWindowDTC],
     wxNotebook: ['wxNotebook', NotebookDTC],
     wxSplitterWindow: ['wxSplitterWindow', SplitterWindowDTC],
-    wxStaticText: ['wxStaticText', StaticTextDTC], 
-    wxTextCtrl: ['wxTextCtrl', TextCtrlDTC], 
+    wxStaticText: ['wxStaticText', StaticTextDTC],
+    wxTextCtrl: ['wxTextCtrl', TextCtrlDTC],
     wxChoice: ['wxChoice', ChoiceDTC],
     wxComboBox: ['wxComboBox', ComboBoxDTC],
     wxCheckBox: ['wxCheckBox', CheckBoxDTC],
-    wxButton: ['wxButton', ButtonDTC], 
-    wxBitmapButton: ['wxBitmapButton', BitmapButtonDTC], 
+    wxButton: ['wxButton', ButtonDTC],
+    wxBitmapButton: ['wxBitmapButton', BitmapButtonDTC],
     wxRadioButton: ['wxRadioButton', RadioButtonDTC],
     wxSpinButton: ['wxSpinButton', SpinButtonDTC],
     wxSlider: ['wxSlider', SliderDTC],
@@ -99,7 +99,7 @@ compInfo = {
     wxStaticBitmap: ['wxStaticBitmap', StaticBitmapDTC],
     wxListBox: ['wxListBox', ListBoxDTC],
     wxCheckListBox: ['wxCheckListBox', CheckListBoxDTC],
-    wxGrid: ['wxGrid', NYIDTC], 
+    wxGrid: ['wxGrid', NYIDTC],
     wxListCtrl: ['wxListCtrl', ListCtrlDTC],
     wxTreeCtrl: ['wxTreeCtrl', TreeCtrlDTC],
     wxScrollBar: ['wxScrollBar', ScrollBarDTC],
@@ -132,33 +132,33 @@ compInfo = {
     wxSashWindow: ['wxSashWindow', SashWindowDTC],
     wxSashLayoutWindow: ['wxSashLayoutWindow', SashLayoutWindowDTC],
 #    wxBoxSizer: ['wxBoxSizer', BoxSizerDTC],
-    
-    'DTML Document': ['DTMLDocument', DTMLDocumentZC], 
-    'DTML Method': ['DTMLMethod', DTMLMethodZC], 
+
+    'DTML Document': ['DTMLDocument', DTMLDocumentZC],
+    'DTML Method': ['DTMLMethod', DTMLMethodZC],
     'Folder': ['Folder', FolderZC],
     'File': ['File', FileZC],
     'Image': ['Image', ImageZC],
     'External Method': ['ExternalMethod', ExternalMethodZC],
-    'Python Method': ['PythonMethod', PythonMethodZC], 
-    'Mail Host': ['MailHost', MailHostZC], 
+    'Python Method': ['PythonMethod', PythonMethodZC],
+    'Mail Host': ['MailHost', MailHostZC],
     'ZCatalog': ['ZCatalog', ZCatalogZC],
 #    'SQL Method': ['SQLMethod', SQLMethodZC],
     'User Folder': ['UserFolder', UserFolderZC],
-    
+
 }
 
 def compInfoByName(name):
     for comp in compInfo.keys():
         if comp.__name__ == name: return comp
     raise name+' not found'
-    
+
 def loadBitmap(name, subfold = ''):
     try:
         return IS.load('Images/Palette/' + subfold + name+'.bmp')
     except:
         return IS.load('Images/Palette/Component.bmp')
-        
-    
+
+
 def bitmapForComponent(wxClass, wxBase = 'None', gray = false):
     # "Aquire" bitmap thru inheritance if necessary
     if gray: sf = 'Gray/'
@@ -170,13 +170,13 @@ def bitmapForComponent(wxClass, wxBase = 'None', gray = false):
         except:
             if compInfo.has_key(wxClass):
                 return loadBitmap(compInfo[wxClass][0], sf)
-            else: 
+            else:
                 return loadBitmap('Component')
         try:
             while not compInfo.has_key(cls):
                 cls = bse
                 bse = cls.__bases__[0]
-                
+
             return loadBitmap(compInfo[cls][0], sf)
         except:
             print 'not found!'

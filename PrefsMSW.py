@@ -18,20 +18,25 @@ paletteHeight = 118
 
 windowManagerTop = 0
 windowManagerBottom = 0
+windowManagerSide = 0
 
 editorProgressFudgePosX = 0
 editorProgressFudgeSizeY = 0
 
 # Try to use transparent bitmaps for palette
-transparentPaletteBitmaps = 1 
+transparentPaletteBitmaps = 1
 
 # Match braces in code
 braceHighLight = 1
 
 # Minimize the IDE while running applications
-minimizeOnRun = 1
+minimizeOnRun = 0
 
+# Draw grid in designer
+drawDesignerGrid = 1
 
+# Grayout (blueout actually) source while designer is open
+grayoutSource = 1
 
 pythonDocsPath = path.join(path.dirname(sys.executable), 'Doc')
 import wxPython
@@ -45,7 +50,7 @@ inspStatBarFontSize = 9
 
 explorerFileSysRootDefault = ('DRIVE:\\', 'C:\\')
 
-# Scintilla/wxStyledTextCtrl font definitions 
+# Scintilla/wxStyledTextCtrl font definitions
 faces = { 'times'  : 'Times New Roman',
           'mono'   : 'Courier New',
           'helv'   : 'Lucida Console',

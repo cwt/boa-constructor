@@ -14,10 +14,11 @@
 
 logFontSize = 10
 srchCtrlOffset = 0
-paletteHeight = 120
+paletteHeight = 100
 
 windowManagerTop = 16
 windowManagerBottom = 7
+windowManagerSide = 5
 
 editorProgressFudgePosX = -8
 editorProgressFudgeSizeY = 2
@@ -31,22 +32,28 @@ braceHighLight = 0
 # Minimize the IDE while running applications
 minimizeOnRun = 0
 
+# Draw grid in designer
+drawDesignerGrid = 0
+
+# Grayout (blueout actually) source while designer is open
+grayoutSource = 0
+
 # These settings may be specific to Red Hat, change them if the help
 # complains about missing files.
 # Note: If you want to use different versions of the help, see Scripts/HelpScrpt.py
 pythonDocsPath = '/usr/doc/python-docs-1.5.2/Doc'
 
-wxWinDocsPath = '/usr/doc/wxPython-2.2.1'
+wxWinDocsPath = '/usr/doc/wxPython-2.2.5'
 
 inspStatBarFontSize = 13
 
 explorerFileSysRootDefault = ('/', '/')
 
-# Scintilla/wxStyledTextCtrl font definitions 
+# Scintilla/wxStyledTextCtrl font definitions
 faces = { 'times'  : 'Times',
           'mono'   : 'Courier',
           'helv'   : 'Helvetica',
           'other'  : 'new century schoolbook',
-          'size'   : 11,
-          'lnsize' : 9,
+          'size'   : 9,
+          'lnsize' : 8,
           'backcol': '#FFFFFF',}

@@ -1,14 +1,14 @@
 #----------------------------------------------------------------------
-# Name:        PhonyApp.py                                             
-# Purpose:     To impersonate a second wxApp for the debugger or       
-#              profiler because there may only be one per process      
-#                                                                      
-# Author:      Riaan Booysen                                           
-#                                                                      
-# Created:     2000/01/15                                              
+# Name:        PhonyApp.py
+# Purpose:     To impersonate a second wxApp for the debugger or
+#              profiler because there may only be one per process
+#
+# Author:      Riaan Booysen
+#
+# Created:     2000/01/15
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999, 2000 Riaan Booysen                            
-# Licence:     GPL                                                     
+# Copyright:   (c) 1999, 2000 Riaan Booysen
+# Licence:     GPL
 #----------------------------------------------------------------------
 true = 1
 false = 0
@@ -64,21 +64,20 @@ class wxBasePhonyApp:
         pass
     def __repr__(self):
         return "<wxPhonyApp instance at %d>" % (self.id,)
-        
+
 class wxPhonyApp(wxBasePhonyApp):
     def MainLoop(self, *_args, **_kwargs):
-        import sys
         while self.inMainLoop:
             self.Dispatch()
             self.debugger.startMainLoop()
             self.debugger.stopMainLoop()
 
+        print 'quiting from Phony app'
         self.quit = true
-        
+
     def OnInit(self):
         pass
 
 class wxProfilerPhonyApp(wxBasePhonyApp):
     def MainLoop(self, *_args, **_kwargs):
         self.realApp.Dispatch()
-        

@@ -1,6 +1,6 @@
 #----------------------------------------------------------------------
 # Name:        methodparse.py
-# Purpose:     
+# Purpose:
 #
 # Author:      Riaan Booysen
 #
@@ -13,7 +13,7 @@
 
 Creation
 
-self.<componentname> = <wxClassname>(<constr params>) 
+self.<componentname> = <wxClassname>(<constr params>)
 
 constructor
      compname
@@ -28,7 +28,7 @@ property
     compname
     propname
     value
-    
+
 
 Event connection
 (2 identified formats)
@@ -47,10 +47,10 @@ Boilerplate
 class frame1(wxFrame):
     def _init_utils(self):
         pass
-    
+
     def _init_ctrls(self):
         pass
-        
+
     def __init__(self):
         self._init_utils()
         self._init_ctrls()
@@ -61,8 +61,8 @@ import re, string
 import Utils
 
 containers = [('(', ')'), ('{', '}'), ('[', ']')]
-containBegin = map(lambda d: d[0], containers)    
-containEnd = map(lambda d: d[1], containers)    
+containBegin = map(lambda d: d[0], containers)
+containEnd = map(lambda d: d[1], containers)
 
 def incLevel(level, pos):
     return level + 1, pos + 1
@@ -71,18 +71,18 @@ def decLevel(level, pos):
     return max(level - 1, 0), pos + 1
 
 def safesplitfields(params, delim):
-    """ Returns a list of parameters split on delim but not if commas are 
-        within containers (), {}, [], '', ""  
-        Also skip '', "" content  
+    """ Returns a list of parameters split on delim but not if commas are
+        within containers (), {}, [], '', ""
+        Also skip '', "" content
     """
-    
+
     locparams =  params
     list = []
     i = 0
     nestlevel = 0
     singlequotelevel = 0
     doublequotelevel = 0
-    
+
     while i < len(locparams):
         curchar = locparams[i]
         # only check for delimiter if not inside some block
@@ -93,7 +93,7 @@ def safesplitfields(params, delim):
             locparams = string.strip(locparams[i +1:])
             i = 0
             continue
-        
+
         if (not singlequotelevel) and (not doublequotelevel) and nestlevel and \
           (curchar in containEnd):
             nestlevel, i = decLevel(nestlevel, i)
@@ -103,7 +103,7 @@ def safesplitfields(params, delim):
           (curchar in containBegin):
             nestlevel, i = incLevel(nestlevel, i)
             continue
- 
+
         # don't check anything except end quotes inside quote blocks
         if singlequotelevel and curchar == "'":
             singlequotelevel, i = decLevel(singlequotelevel, i)
@@ -111,14 +111,14 @@ def safesplitfields(params, delim):
         if doublequotelevel and curchar == '"':
             doublequotelevel, i = decLevel(doublequotelevel, i)
             continue
-        
+
         if (not singlequotelevel) and curchar == '"':
             doublequotelevel, i = incLevel(doublequotelevel, i)
         elif (not doublequotelevel) and curchar == "'":
             singlequotelevel, i = incLevel(singlequotelevel, i)
         else:
-            i = i + 1 
-    
+            i = i + 1
+
     # add last entry not delimited by comma
     lastentry = string.strip(locparams)
     if lastentry:
@@ -129,7 +129,7 @@ def safesplitfields(params, delim):
 def parseMixedBody(parseClasses, lines):
     """ Return a dictionary with keys representing classes that
         'understood' the line and values a list of found instances
-        of the found class 
+        of the found class
     """
     cat = {}
     for parseClass in parseClasses:
@@ -140,7 +140,7 @@ def parseMixedBody(parseClasses, lines):
         if (ln == 'pass') or (ln == ''): continue
         for parseClass in parseClasses:
             try: res = parseClass(ln).value()
-            except Exception, message: 
+            except Exception, message:
                 print str(message)
             else:
                 if res:
@@ -158,7 +158,7 @@ def parseBody(parseClass, lines):
             continue
         list.append(parseClass(ln))
     return list
-    
+
 class PerLineParser:
     def value(self):
         if self.m: return self
@@ -175,7 +175,7 @@ class PerLineParser:
             which have that name """
         if self.comp_name == old_value:
             self.comp_name = new_value
-    
+
     def extractKVParams(self, paramsStr):
         params = safesplitfields(paramsStr, ',')
         result = {}
@@ -188,7 +188,7 @@ class PerLineParser:
                 result[`cnt`] = string.strip(kv[0])
             cnt = cnt + 1
         return result
-    
+
     def KVParamsAsText(self, params):
         kvlist = []
         for key in params.keys():
@@ -207,7 +207,7 @@ class ConstructorParse(PerLineParser):
         self.class_name = class_name
         if params is None: self.params = {}
         else:              self.params = params
-        
+
         if line:
             self.m = is_constr.search(line)
             if self.m:
@@ -220,7 +220,7 @@ class ConstructorParse(PerLineParser):
                     self.comp_name = ''
                     self.class_name = self.m.group('class')
                     self.params = self.extractKVParams(self.m.group('params'))
-    
+
     def renameCompName2(self, old_value, new_value):
         if self.params.has_key('parent') and \
               self.params['parent'] == Utils.srcRefFromCtrlName(old_value):
@@ -232,13 +232,13 @@ class ConstructorParse(PerLineParser):
             if self.params.has_key('id'):
                 self.params['id'] = \
                   self.params['id'][:-len(old_value)]+string.upper(new_value)
-            
+
     def asText(self):
         if self.comp_name:
-            return 'self.%s = %s(%s)' %(self.comp_name, self.class_name, 
+            return 'self.%s = %s(%s)' %(self.comp_name, self.class_name,
               self.KVParamsAsText(self.params))
         else:
-            return '%s.__init__(self, %s)' %(self.class_name, 
+            return '%s.__init__(self, %s)' %(self.class_name,
               self.KVParamsAsText(self.params))
 
 is_constr_col = re.compile('^[ \t]*self._init_coll_(?P<meth>'+idc+\
@@ -260,7 +260,7 @@ class PropertyParse(PerLineParser):
             if self.m:
                 self.params = safesplitfields(self.m.group('params'), ',')
                 compsetter = string.split(self.m.group('name'), '.')
-                    
+
                 if len(compsetter) < 1: raise 'atleast 1 required '+`compsetter`
                 if len(compsetter) == 1:
                     self.comp_name = ''
@@ -277,11 +277,11 @@ class PropertyParse(PerLineParser):
         # XXX companion which is not available for the clipboard
         # XXX The source's ctrl needs to be renamed for a companion
         # XXX to be created.
-        
+
         # Rename references to ctrl in parameters of property
         oldCtrlSrcRef = Utils.srcRefFromCtrlName(old_value)
         newCtrlSrcRef = Utils.srcRefFromCtrlName(new_value)
-        
+
         for idx in range(len(self.params)):
             segs = string.split(self.params[idx], oldCtrlSrcRef)
             #lst = ()
@@ -301,11 +301,11 @@ class PropertyParse(PerLineParser):
                 name = param[16:nameEnd]
                 if name == old_value:
                     self.params[idx] = 'self.'+coll_init+new_value+param[nameEnd:]
-        
+
         PerLineParser.renameCompName2(self, old_value, new_value)
-        
+
     def asText(self):
-        return '%s.%s(%s)' %(Utils.srcRefFromCtrlName(self.comp_name), 
+        return '%s.%s(%s)' %(Utils.srcRefFromCtrlName(self.comp_name),
                 self.prop_setter, string.join(self.params, ', '))
 
 is_coll_init = re.compile('^[ \t]*self[.](?P<method>'+coll_init+idp+')[ \t]*\((?P<comp_name>'+idp+')[ \t,]*(?P<params>.*)\)$')
@@ -324,28 +324,28 @@ class CollectionInitParse(PerLineParser):
                 self.method = self.m.group('method')
                 self.comp_name = self.m.group('comp_name')[5:]
                 self.prop_name = self.method[len(coll_init)+len(self.comp_name)+1:]
-    
+
     def getPropName(self):
         return self.method[len(coll_init)+len(self.comp_name)+1:]
-    
+
     def renameCompName(self, new_value):
         # XXX from where is this called ???
         self.method = '%s%s_%s'%(coll_init, new_value, self.getPropName())
         self.comp_name = new_value
-    
+
     def renameCompName2(self, old_value, new_value):
         if self.comp_name == old_value:
             self.comp_name = new_value
             self.method = '%s%s_%s'%(coll_init, new_value, self.prop_name)
-                    
+
     def asText(self):
-        return 'self.%s(%s)' %(self.method, 
+        return 'self.%s(%s)' %(self.method,
              string.join([Utils.srcRefFromCtrlName(self.comp_name)]+self.params, ', '))
 
 def decorateCollItemInitsWithCtrl(collInits, ctrlname):
     for collInitParse in collInits:
         collInitParse.ctrl_name = ctrlname
-        
+
 #item_parent = 'parent'
 is_coll_item_init = re.compile('^[ \t]*(?P<ident>'+idp+')[.](?P<method>'+idc+')[ \t]*\([ \t,]*(?P<params>.*)\)$')
 class CollectionItemInitParse(PerLineParser):
@@ -367,23 +367,23 @@ class CollectionItemInitParse(PerLineParser):
         if self.ctrl_name == old_value:
             self.ctrl_name = new_value
             if self.params.has_key('id'):
-                self.params['id'] = string.replace(self.params['id'], 
+                self.params['id'] = string.replace(self.params['id'],
                       string.upper(old_value), string.upper(new_value))
         # Check for references
         src_old = Utils.srcRefFromCtrlName(old_value)
         for key, val in self.params.items()[:]:
             if val == src_old:
                 self.params[key] = Utils.srcRefFromCtrlName(new_value)
-                    
+
     def asText(self):
         return '%s.%s(%s)' %(self.comp_name, self.method, self.KVParamsAsText(self.params))
-         
+
 is_event2p = re.compile('^[ \t]*EVT_(?P<evtname>'+idc+')[ \t]*\([ \t]*(?P<name>'+\
   idp+')[ \t]*\,[ \t]*self[.](?P<func>'+idp+')\)$')
 is_event3p = re.compile('^[ \t]*EVT_(?P<evtname>'+idc+')[ \t]*\([ \t]*(?P<name>'+\
   idp+')[ \t]*\,(?P<wid>.*)[ \t]*\,[ \t]*self[.](?P<func>'+idp+')\)$')
 class EventParse(PerLineParser):
-    def __init__(self, line = None, comp_name = '', event_name = '', 
+    def __init__(self, line = None, comp_name = '', event_name = '',
       trigger_meth = '', windowid = None):
         self.comp_name = comp_name
         self.event_name = event_name
@@ -399,7 +399,7 @@ class EventParse(PerLineParser):
                     self.windowid = string.strip(self.m.group('wid'))
                     self.trigger_meth = self.m.group('func')
                 else: return
-            
+
             if self.m.group('name') != 'self':
                 self.comp_name = self.m.group('name')[5:]
 
@@ -414,17 +414,8 @@ class EventParse(PerLineParser):
 
     def asText(self):
         if self.windowid:
-            return 'EVT_%s(%s, %s, self.%s)' %(self.event_name, 
+            return 'EVT_%s(%s, %s, self.%s)' %(self.event_name,
               Utils.srcRefFromCtrlName(self.comp_name), self.windowid, self.trigger_meth)
         else:
-            return 'EVT_%s(%s, self.%s)' %(self.event_name, 
+            return 'EVT_%s(%s, self.%s)' %(self.event_name,
               Utils.srcRefFromCtrlName(self.comp_name), self.trigger_meth)
-            
-        
-
-
-
-
-
-
-

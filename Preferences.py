@@ -1,25 +1,29 @@
 #----------------------------------------------------------------------
-# Name:        Preferences.py                                          
-# Purpose:     Global settings                                         
-#                                                                      
-# Author:      Riaan Booysen                                           
-#                                                                      
-# Created:     1999                                                    
+# Name:        Preferences.py
+# Purpose:     Global settings
+#
+# Author:      Riaan Booysen
+#
+# Created:     1999
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999, 2000 Riaan Booysen                            
-# Licence:     GPL                                                     
+# Copyright:   (c) 1999, 2000 Riaan Booysen
+# Licence:     GPL
 #----------------------------------------------------------------------
 import os, sys
 from os import path
 
-print 'importing wxPython...' 
-from wxPython import wx 
+print 'importing wxPython...'
+from wxPython import wx
 
 from ImageStore import ImageStore, ZippedImageStore
 
 #-Window sizes------------------------------------------------------------------
 wx_screenWidthPerc = 1.0
-wx_screenHeightPerc = 0.93
+if wx.wxPlatform == '__WXMSW__':
+    wx_screenHeightPerc = 0.94
+else:
+    wx_screenHeightPerc = 0.87
+
 w32_screenHeightOffset = 20
 try:
     import win32api, win32con
@@ -30,9 +34,6 @@ except ImportError:
 else:
     screenWidth = win32api.GetSystemMetrics(win32con.SM_CXFULLSCREEN)
     screenHeight = win32api.GetSystemMetrics(win32con.SM_CYFULLSCREEN) + w32_screenHeightOffset
-    
-inspWidth = screenWidth * (1/3.75)
-edWidth = screenWidth - inspWidth + 1
 
 if wx.wxPlatform == '__WXMSW__':
     from PrefsMSW import *
@@ -40,8 +41,11 @@ if wx.wxPlatform == '__WXMSW__':
     wxDefaultFrameSize = wx.wxDefaultSize
 elif wx.wxPlatform == '__WXGTK__':
     from PrefsGTK import *
-    wxDefaultFramePos = wx.wxSize(screenWidth / 4, screenHeight / 4)
-    wxDefaultFrameSize = wx.wxSize(screenWidth / 2, screenHeight / 2)
+    wxDefaultFramePos = (screenWidth / 4, screenHeight / 4)
+    wxDefaultFrameSize = (screenWidth / 2, screenHeight / 2)
+
+inspWidth = screenWidth * (1/3.75) - windowManagerSide * 2
+edWidth = screenWidth - inspWidth + 1 - windowManagerSide * 4
 
 bottomHeight = screenHeight - paletteHeight
 
@@ -65,10 +69,10 @@ undefinedWindowCol = wx.wxColour(128, 0, 0)
 # Info that will be filled into the comment block. (Edit->Add module info)
 # Also used by setup.py
 staticInfoPrefs = { 'Purpose':   '',
-                    'Author':    'Riaan Booysen',
-                    'Copyright': '(c) 2001 Riaan Booysen',
-                    'Licence':   'GPL',
-                    'Email':     'riaan@e.co.za',
+                    'Author':    '<Your name>',
+                    'Copyright': '(c) <Your copyright>',
+                    'Licence':   '<Your licence>',
+                    'Email':     '<Your email>',
                   }
 
 # Should modules be added to the application if it is the active Model when
@@ -79,14 +83,17 @@ autoAddToApplication = 1
 useImageArchive = 0
 
 # Draw grid in designer
-drawDesignerGrid = 1
 drawDesignerGridForSubWindows = 1
 # Grid draw method: 'lines', 'dots', 'grid', NYI: 'bitmap'
 drawGridMethod = 'grid'
 
 # Flag for turning on special checking for european keyboard characters by
-# checking for certain codes while ctrl alt is held. 
+# checking for certain codes while ctrl alt is held.
 handleSpecialEuropeanKeys = 0
+
+# Auto correct indentation and EOL characters on load, save and refresh
+# This only works for Python 2.0 and up
+autoReindent = 1
 
 #-Inspector---------------------------------------------------------------------
 
@@ -111,9 +118,9 @@ inspPageNames = {'Constr': 'Constr',
 #---Other-----------------------------------------------------------------------
 
 pyPath = path.abspath(path.join(os.getcwd(), sys.path[0]))
-if useImageArchive: 
+if useImageArchive:
     IS = ZippedImageStore(pyPath, 'Images.archive')
-else: 
+else:
     IS = ImageStore(pyPath)
 
 def toPyPath(filename):
@@ -121,7 +128,7 @@ def toPyPath(filename):
 
 def toWxDocsPath(filename):
     return path.join(wxWinDocsPath, filename)
-    
+
 if useBoaFileDlg:
     import FileDlg
     wxFileDialog = FileDlg.wxBoaFileDialog

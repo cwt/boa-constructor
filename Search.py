@@ -17,11 +17,11 @@ from wxPython.wx import wxProgressDialog, wxPD_CAN_ABORT, wxPD_APP_MODAL, wxPD_A
 ##def visit(info, dirname, names):
 ##    pattern = info[0]
 ##    results = info[1]
-##        
+##
 ##    for file in names:
 ##        if find(path.join(dirname, file), pattern):
 ##            results.append(file)
-    
+
 def count(filename, pattern, caseSensitive):
     try: f = open(filename, 'r')
     except IOError: return 0
@@ -38,9 +38,9 @@ def count(filename, pattern, caseSensitive):
 def findInText(sourcelines, pattern, caseSensitive, includeLine = 0):
     results = []
     if not caseSensitive:
-        sourcelines = map(lambda sourceline: string.lower(sourceline), sourcelines) 
+        sourcelines = map(lambda sourceline: string.lower(sourceline), sourcelines)
         pattern = string.lower(pattern)
-        
+
     matches = map(lambda x, y: (x, y), sourcelines, range(len(sourcelines)))
     for line, sourceIdx in matches:
         idx = -1
@@ -48,10 +48,10 @@ def findInText(sourcelines, pattern, caseSensitive, includeLine = 0):
             idx = string.find(line, pattern, idx + 1)
             if idx == -1: break
             else:
-               result = [sourceIdx, idx]
-               if includeLine:
-                   result.append(line)
-               results.append(tuple(result))
+                result = [sourceIdx, idx]
+                if includeLine:
+                    result.append(line)
+                results.append(tuple(result))
     return results
 
 def findInFile(filename, pattern, caseSensitive, includeLine = 0):
@@ -66,16 +66,16 @@ def findInFile(filename, pattern, caseSensitive, includeLine = 0):
 
 def defaultProgressCallback(dlg, count, file, msg):
     dlg.Update(count, msg +' '+ file)
-                
+
 def findInFiles(parent, srchPath, pattern, callback = defaultProgressCallback, deeperPath = '', filemask = ('.htm', '.html', '.txt'), progressMsg = 'Search help files...', dlg = None, joiner = '/'):
     results = []
     names = os.listdir(srchPath)
-    cnt = 0   
+    cnt = 0
 
     owndlg = false
     max = len(names)
     if not dlg:
-    	dlg = wxProgressDialog(progressMsg,
+        dlg = wxProgressDialog(progressMsg,
                            'Searching...',
                            max,
                            parent,
@@ -88,11 +88,11 @@ def findInFiles(parent, srchPath, pattern, callback = defaultProgressCallback, d
             if ext in filemask or ('.*' in filemask and ext):
                 callback(dlg, cnt, file, 'Searching')
                 ocs = count(filePath, pattern, 0)
-     	        if ocs:
+                if ocs:
                     results.append((ocs, deeperPath+file))
             else:
                 if path.isdir(filePath):
-                    results.extend(findInFiles(parent, filePath, pattern, 
+                    results.extend(findInFiles(parent, filePath, pattern,
                       callback, file+joiner, filemask, dlg = dlg, joiner = joiner))
                 else:
                     callback(dlg, cnt, file, 'Skipping')
@@ -101,4 +101,3 @@ def findInFiles(parent, srchPath, pattern, callback = defaultProgressCallback, d
     finally:
         if owndlg:
             dlg.Destroy()
-

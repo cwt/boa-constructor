@@ -1,6 +1,6 @@
 #----------------------------------------------------------------------
 # Name:        sender.py
-# Purpose:     
+# Purpose:
 #
 # Author:      Riaan Booysen
 #
@@ -14,18 +14,18 @@ import string
 class SenderMapper:
     def __init__(self):
         self.objectDict = {}
-    
+
     def stripThis(self, eventObject):
         return eventObject[1:string.find(eventObject, '_', 1)]
-        
+
     def addObject(self, obj):
         self.objectDict[self.stripThis(obj.this)] = obj
-    
+
     def getObject(self, eventObject):
         return self.objectDict[self.stripThis(eventObject.GetEventObject())]
 
     def getBtnObject(self, eventObject):
         return eventObject.theButton
-    
+
     def __repr__(self):
         return `self.objectDict`
