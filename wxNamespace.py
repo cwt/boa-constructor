@@ -9,79 +9,28 @@
 # Copyright:   (c) 2001 - 2004
 # Licence:     GPL
 #-----------------------------------------------------------------------------
-import Preferences; _Prefs = Preferences; del Preferences
+import Preferences as _Prefs
 
-from wxPython.wx import *
+import wx
 
-#if _Prefs.ccImportWxPyUtils:
-#    try: from wxPython.utils import *
-#    except ImportError: pass # >=2.5
 if _Prefs.ccImportWxPyHtml:
-    from wxPython.html import *
-#if _Prefs.ccImportWxPyHtmlHelp:
-#    try: from wxPython.htmlhelp import *
-#    except ImportError: pass # >=2.5
-#if _Prefs.ccImportWxPyHelp:
-#    try: from wxPython.help import *
-#    except ImportError: pass # >=2.5
+    import wx.html
 if _Prefs.ccImportWxPyCalendar:
-    from wxPython.calendar import *
+    import wx.calendar
 if _Prefs.ccImportWxPyGrid:
-    from wxPython.grid import *
-#if _Prefs.ccImportWxPyOgl:
-#    from wxPython.ogl import *
+    import wx.grid
 if _Prefs.ccImportWxPyStc:
-    from wxPython.stc import *
+    import wx.stc
 if _Prefs.ccImportWxPyGizmos:
-    from wxPython.gizmos import *
+    import wx.gizmos
 if _Prefs.ccImportWxPyWizard:
-    from wxPython.wizard import *
+    import wx.wizard
 
-import types; _types = types; del types
+import types as _types
 
-# remove wxPython *c modules from namespace
-_g = globals()
-for _k, _v in _g.items():
-    if type(_v) is _types.ModuleType and _k[-1] == 'c':
-        del _g[_k]
-del _g, _k, _v
-
-
-filterTypes = []
-if _Prefs.ccFilterWxConstants:
-    filterTypes.append(_types.IntType)
-if _Prefs.ccFilterWxFunctions:
-    filterTypes.extend( [_types.FunctionType, _types.BuiltinFunctionType])
-if _Prefs.ccFilterWxClasses:
-    filterTypes.append(_types.ClassType)
-if _Prefs.ccFilterWxInstances:
-    filterTypes.append(_types.InstanceType)
-
-def _getWxNameSpace():
-    if _Prefs.ccFilterWxAll:
-        return []
-    g = globals()
-    ns = filterOnPrefs(g, g)
-
-    for name in ('filterTypes', 'getWxNameSpace', 'getWxClass',
-                 'getNamesOfType', '_getWxNameSpace', '_nameSpace'):
-        try: ns.remove(name)
-        except ValueError: pass
-    return ns
-
-def filterOnPrefs(g, w):
-    ns = g.keys()
-    if _Prefs.ccFilterWxPtrNames:
-        return filter(lambda n, g=g, w=w: n[-3:] != 'Ptr' and \
-              (type(g[n]) not in filterTypes or not w.has_key(n)), ns)
-    else:
-        return filter(lambda n, g=g, w=w: \
-              type(g[n]) not in filterTypes or not w.has_key(n), ns)
 
 def getWxClass(name):
-    g = globals()
-    if g.has_key(name) and type(g[name]) == _types.ClassType:
-        return g[name]
+    return getWxObjPath(name)
 
 def getNamesOfType(aType):
     res = []
@@ -92,7 +41,22 @@ def getNamesOfType(aType):
             res.append(k)
     return res
 
-def getWxNameSpace():
-    return _nameSpace
+def getWxObjPath(objPath):
+    pathSegs = objPath.split('.')
+    if pathSegs[0] != 'wx':
+        return None
+    obj = wx
+    for name in pathSegs[1:]:
+        if hasattr(obj, name):
+            obj = getattr(obj, name)
+        else:
+            return None
+    return obj
 
-_nameSpace = _getWxNameSpace()
+def getWxNamespaceForObjPath(objPath):
+    obj = getWxObjPath(objPath)
+    if obj:
+        return dir(obj)
+    else:
+        return []
+
