@@ -29,12 +29,12 @@ Licence:
 GPL
 
 Version:
-0.3.0 - Alpha
+0.3.1 - Alpha
 Requires wxPython 2.4
 
 NOTE: 
 wxPython 2.5 is *NOT* supported at this moment.
-Also, 0.3.0 will be the last version to support wxPython 2.4.
+Also, 0.3.1 will be the last version to support wxPython 2.4.
 
 The next release of Boa will be 0.4.0 and will only support
 the wxPython 2.5 series.
@@ -45,6 +45,8 @@ Riaan Booysen 1999 - 2004
 riaan@e.co.za
 
 Release history:
+
+2004-08-25 - Boa Constructor 0.3.1
 
 2004-08-17 - Boa Constructor 0.3.0
 

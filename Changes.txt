@@ -1,6 +1,15 @@
 Changes
 -------
 
+-- 0.3.1 (Release) --
+
+2004-08-25
+
+* Primarily a bugfix release
+* Fixes issues with attribute resolution in the Designer, small issue with 
+  unicode handling and the Zope debugger product.
+
+
 -- 0.3.0 (Release) -- 
 
 2004-08-17
@@ -49,7 +58,6 @@ Changes
   * Fixed process freezing if printing > 4k text
   * Sizer, Designer and Editor bugs
   * BicycleRepairMan plug-in bugs
-
 
 
 -- 0.2.7 (CVS) --
