@@ -100,13 +100,10 @@ class PropertyEditor:
         self.style = []
     	
     def initFromComponent(self):
-##        print 'initFromComponent', self.name
         if self.obj:
             try:
                 self.value = self.propWrapper.getValue()
-##                print 'initFromComponent', self.value
             except Exception, message:
-##                print 'invalid getter for', self.name, message
                 self.value = ''
             if self.editorCtrl:
                 self.editorCtrl.setValue(self.valueToIECValue())
@@ -114,23 +111,29 @@ class PropertyEditor:
 
     def edit(self):
         pass
+
     def inspectorEdit(self):
         pass
 
     def refreshCompCtrl(self):
         if self.root and hasattr(self.root, 'Refresh'):
-            self.root.Refresh()
+            # XXX This used to be neccesary
+            pass
+            #self.root.Refresh()
+    
+    def validateProp(self, oldVal, newVal):
+        pass
         
     def inspectorPost(self, closeEditor = true):
         if self.editorCtrl:
             v = self.getValue()
             cv = self.getCtrlValue()
             if v != cv:
+                self.validateProp(v, cv)
                 self.setCtrlValue(cv, v)
                 self.persistValue(self.valueAsExpr())
             else:
                 pass
-##                print "prop's the same"
             if closeEditor:
                 self.editorCtrl.destroyControl()
                 self.editorCtrl = None
@@ -416,7 +419,40 @@ class StrConstrPropEdit(ConstrPropEdit):
             self.value = self.getCtrlValue()
         return self.value
 
+# XXX Check for name conflicts
 class NameConstrPropEdit(StrConstrPropEdit):
+    def getValue(self):
+        if self.editorCtrl:
+#            try:
+            value = self.editorCtrl.getValue()
+#                aStr = self.editorCtrl.getValue()
+            if type(value) is StringType:
+                value = `self.editorCtrl.getValue()`
+            else:
+                value = self.getCtrlValue()
+
+            if value != self.value:
+                if self.companion.designer.objects.has_key(value):
+                    wxLogError('Name already used by another control.')
+                    raise 'Name already used by another control.'
+            self.value = value
+#            except Exception, message:
+#                self.value = self.getCtrlValue()
+#                print 'invalid constr prop value', message
+        else:
+            self.value = self.getCtrlValue()
+        return self.value
+
+##    def getValue(self):
+##        if self.editorCtrl:
+##            value = self.editorCtrl.getValue()
+##            if value != self.value:
+##                if self.companion.designer.objects.has_key(value):
+##                    wxLogError('Name already used by another control.')
+##                    raise 'Name already used by another control.'
+##            self.value = value
+##        return self.value
+
     def getCtrlValue(self):
         return `self.companion.name`
         
@@ -531,7 +567,22 @@ class StrPropEdit(BITPropEditor):
     def valueToIECValue(self):
         return self.value
 
-class TuplPropEdit(BITPropEditor): pass
+class NamePropEdit(StrPropEdit):
+    def __init__(self, name, parent, companion, rootCompanion, propWrapper, idx, width, options, names):
+        StrPropEdit.__init__(self, name, parent, companion, rootCompanion, propWrapper, idx, width)
+
+    def getValue(self):
+        if self.editorCtrl:
+            value = self.editorCtrl.getValue()
+            if value != self.value:
+                if self.companion.designer.objects.has_key(value):
+                    wxLogError('Name already used by another control.')
+                    raise 'Name already used by another control.'
+            self.value = value
+        return self.value
+    
+class TuplPropEdit(BITPropEditor):
+    pass
 
 # Property editors for design type types :)
 class BoolPropEdit(OptionedPropEdit):
@@ -791,7 +842,8 @@ class FontPropEdit(ClassPropEdit):
         return self.value
     
     def edit(self, event):
-        dlg = wxFontDialog(self.parent)
+        data = wxFontData()
+        dlg = wxFontDialog(self.parent, data)
         dlg.GetFontData().SetInitialFont(self.value)
         if dlg.ShowModal() == wxID_OK:
             self.value = dlg.GetFontData().GetChosenFont()
