@@ -21,15 +21,28 @@ import ProfileView, Search, Help, Preferences, ShellEditor, Utils
 from SourceViews import EditorStyledTextCtrl, indentLevel
 from StyledTextCtrls import PythonStyledTextCtrlMix, BrowseStyledTextCtrlMix,\
      FoldingStyledTextCtrlMix, AutoCompleteCodeHelpSTCMix, CallTipCodeHelpSTCMix,\
-     idWord, new_stc, old_stc, object_delim
-from PrefsKeys import keyDefs
+     idWord, object_delim
+from Preferences import keyDefs
 import methodparse
 import wxNamespace
+from Debugger.Breakpoint import bplist
 
 brkPtMrk = 1
 stepPosMrk = 2
 tmpBrkPtMrk = 3
 markPlaceMrk = 4
+
+wxEVT_FIX_PASTE = wxNewId()
+
+def EVT_FIX_PASTE(win, func):
+    win.Connect(-1, -1, wxEVT_FIX_PASTE, func)
+
+class wxFixPasteEvent(wxPyEvent):
+    def __init__(self, stc, newtext):
+        wxPyEvent.__init__(self)
+        self.SetEventType(wxEVT_FIX_PASTE)
+        self.stc = stc
+        self.newtext = newtext
 
 class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
                        BrowseStyledTextCtrlMix, FoldingStyledTextCtrlMix,
@@ -46,7 +59,8 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
               ('Dedent', self.OnDedent, '-', keyDefs['Dedent']),
               ('-', None, '-', ()),
               ('Run to cursor', self.OnRunToCursor, self.runCrsBmp, ()),
-              ('Toggle breakpoint', self.OnSetBreakPoint, self.breakBmp, keyDefs['ToggleBrk']),
+              ('Toggle breakpoint', self.OnSetBreakPoint, self.breakBmp,
+               keyDefs['ToggleBrk']),
               ('Load breakpoints', self.OnLoadBreakPoints, '-', ()),
               ('Save breakpoints', self.OnSaveBreakPoints, '-', ()),
               ('-', None, '', ()),
@@ -54,7 +68,8 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
               ('+View EOL characters', self.OnViewEOL, '-', ()),
               ('-', None, '-', ()),
               ('Add module info', self.OnAddModuleInfo, self.modInfoBmp, ()),
-              ('Add comment line', self.OnAddCommentLine, '-', keyDefs['DashLine']),
+              ('Add comment line', self.OnAddCommentLine, '-',
+               keyDefs['DashLine']),
               ('Add simple app', self.OnAddSimpleApp, '-', ()),
               ('Code transformation', self.OnAddClassAtCursor, '-', keyDefs['CodeXform']),
               ('Code completion', self.OnCompleteCode, '-', keyDefs['CodeComplete']),
@@ -71,13 +86,19 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
         FoldingStyledTextCtrlMix.__init__(self, wxID_PYTHONSOURCEVIEW, 2)
         CallTipCodeHelpSTCMix.__init__(self)
 
-        # Initialise breakpts from file and bdb.Breakpoint
+        # Initialize breakpoints from file and running debugger
+        if Preferences.useDebugger == 'new':
+            filename = self.model.filename #string.lower(self.model.filename)
+            self.breaks = bplist.getFileBreakpoints(filename)
+
         self.tryLoadBreakpoints()
-        filename = string.lower(self.model.filename)
-        for file, lineno in bdb.Breakpoint.bplist.keys():
-            if file == filename:
-                for bp in bdb.Breakpoint.bplist[(file, lineno)]:
-                    self.breaks[lineno] = bp
+
+        if Preferences.useDebugger == 'old':
+            filename = string.lower(self.model.filename)
+            for file, lineno in bdb.Breakpoint.bplist.keys():
+                if file == filename:
+                    for bp in bdb.Breakpoint.bplist[(file, lineno)]:
+                        self.breaks[lineno] = bp
 
         self.lsp = 0
         # XXX These could be persisted
@@ -94,8 +115,7 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
         self.MarkerDefine(stepPosMrk, wxSTC_MARK_SHORTARROW, 'NAVY', 'BLUE')
         self.MarkerDefine(tmpBrkPtMrk, wxSTC_MARK_CIRCLE, 'BLACK', 'BLUE')
         self.CallTipSetBackground(wxColour(255, 255, 232))
-        if new_stc:
-            self.AutoCompSetIgnoreCase(true)
+        self.AutoCompSetIgnoreCase(true)
 
         # Error indicator
         self.IndicatorSetStyle(1, wxSTC_INDIC_SQUIGGLE)
@@ -106,6 +126,7 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
         EVT_STC_CHARADDED(self, wxID_PYTHONSOURCEVIEW, self.OnAddChar)
 
         EVT_STC_MODIFIED(self, wxID_PYTHONSOURCEVIEW, self.OnModified)
+        EVT_FIX_PASTE(self, self.OnFixPaste)
 
         self.active = true
 
@@ -189,8 +210,7 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
             if wx.__dict__.has_key(name):
                 t = type(wx.__dict__[name])
                 if t is types.ClassType:
-                    if wx.__dict__[name].__init__.__doc__:
-                        return wx.__dict__[name].__init__.__doc__
+                    return wx.__dict__[name].__init__.__doc__ or ''
         return ''
 
     def checkWxPyMethodTips(self, module, cls, name):
@@ -199,8 +219,7 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
                 Cls = wx.__dict__[cls]
                 if hasattr(Cls, name):
                     meth = getattr(Cls, name)
-                    if meth.__doc__:
-                        return meth.__doc__
+                    return meth.__doc__ or ''
         return ''
 
     def getAttribSig(self, module, cls, attrib, meth):
@@ -212,7 +231,7 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
             klass = wxNamespace.getWxClass(objtype)
             if klass:
                 if hasattr(klass, meth):
-                    return getattr(klass, meth).__doc__
+                    return getattr(klass, meth).__doc__ or ''
         return ''
 
     def prepareModSigTip(self, name, paramsStr):
@@ -235,7 +254,7 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
                 if objPth[0] == 'self':
                     return self.getAttribs(cls)
                 if objPth[0] == '':
-                    meth = cls.getMethodForLineNo(lnNo)
+                    methName, meth = cls.getMethodForLineNo(lnNo)
                     return self.getCodeNamespace(module, meth)
                 elif cls.super and type(cls.super[0]) is types.InstanceType:
                     if objPth[0] == cls.super[0].name:
@@ -316,7 +335,7 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
         else:
             return names
 
-#-------Browsing----------------------------------------------------------------
+#-------Browsing--------------------------------------------------------
     def StyleVeto(self, style):
         return style != 11
 
@@ -388,13 +407,24 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
         elif module.globals.has_key(word):
             self.doClearBrwsLn()
             self.GotoLine(module.globals[word].start-1)
+## NewDebugger code
+##            obj = globals()[word]
+##            editor = self.model.editor
+##            if hasattr(obj, '__init__'):
+##                mod = editor.openOrGotoModule(
+##                    obj.__init__.im_func.func_code.co_filename)
+##                mod.views['Source'].GotoLine(
+##                    obj.__init__.im_func.func_code.co_firstlineno -1)
+##            elif hasattr(obj, 'func_code'):
+##                mod = editor.openOrGotoModule(obj.func_code.co_filename)
+##                mod.views['Source'].GotoLine(obj.func_code.co_firstlineno -1)
             return true
         else:
             # Local names and parameters in methods and functions
             codeBlock = None
             cls = module.getClassForLineNo(lineNo)
             if cls:
-                meth = cls.getMethodForLineNo(lineNo)
+                methName, meth = cls.getMethodForLineNo(lineNo)
                 if meth:
                     codeBlock = meth
             else:
@@ -428,77 +458,117 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
 
     def underlineWord(self, start, length):
         start, length = BrowseStyledTextCtrlMix.underlineWord(self, start, length)
-        if self.model.editor.debugger and self.model.editor.debugger.isDebugBrowsing():
-            word, line, lnNo, wordStart = self.getStyledWordElems(start, length)
-            self.IndicatorSetColour(0, wxRED)
-            try:
-                val = self.model.editor.debugger.getVarValue(word)
-            except Exception, message:
-                val = str(message)
-            if val:
-                self.model.editor.statusBar.setHint(val)
-        else:
-            self.IndicatorSetColour(0, wxBLUE)
-
-        return start, length
+        debugger = self.model.editor.debugger
+        if Preferences.useDebugger == 'new':
+            start, length = BrowseStyledTextCtrlMix.underlineWord(
+                self, start, length)
+            debugger = self.model.editor.debugger
+            if debugger:
+                word, line, lnNo, wordStart = self.getStyledWordElems(
+                    start, length)
+                self.IndicatorSetForeground(0, wxRED)
+                debugger.requestVarValue(word)
+            else:
+                self.IndicatorSetForeground(0, wxBLUE)
+                    
+            return start, length
+        elif Preferences.useDebugger == 'old':
+            if debugger and debugger.isDebugBrowsing():
+                word, line, lnNo, wordStart = self.getStyledWordElems(start, length)
+                self.IndicatorSetForeground(0, wxRED)
+                try:
+                    val = debugger.getVarValue(word)
+                except Exception, message:
+                    val = str(message)
+                if val:
+                    self.model.editor.statusBar.setHint(val)
+            else:
+                self.IndicatorSetForeground(0, wxBLUE)
+    
+            return start, length
 
     def getBrowsableText(self, line, piv, lnStPs):
-        if self.model.editor.debugger and self.model.editor.debugger.isDebugBrowsing():
+        debugger = self.model.editor.debugger
+        if debugger and debugger.isDebugBrowsing():
             return idWord(line, piv, lnStPs, object_delim)
         else:
             return BrowseStyledTextCtrlMix.getBrowsableText(self, line, piv, lnStPs)
 
 #-------Debugger----------------------------------------------------------------
     def setInitialBreakpoints(self):
-        for bp in self.breaks.values():
-            self.MarkerAdd(bp.line -1, brkPtMrk)
-
-    def setBdbBreakpoints(self):
-        for bp in self.breaks.values():
-            self.MarkerAdd(bp.line -1, brkPtMrk)
+        # Adds markers where the breakpoints are located.
+        if Preferences.useDebugger == 'new':
+            for brk in self.breaks.listBreakpoints():
+                if brk['temporary']: mrk = tmpBrkPtMrk
+                else: mrk = brkPtMrk
+                self.MarkerAdd(brk['lineno'] - 1, mrk)
+        elif Preferences.useDebugger == 'old':
+            for bp in self.breaks.values():
+                self.MarkerAdd(bp.line -1, brkPtMrk)
 
     def deleteBreakPoint(self, lineNo):
-        if not self.breaks.has_key(lineNo):
-            return
-
-        bp = self.breaks[lineNo]
-        if bp.temporary:
-            self.MarkerDelete(lineNo - 1, tmpBrkPtMrk)
-        else:
+        if Preferences.useDebugger == 'new':
+            self.breaks.deleteBreakpoints(lineNo)
+            debugger = self.model.editor.debugger
+            if debugger:
+                # Try to apply to the running debugger.
+                filename = self.model.filename #string.lower(self.model.filename)
+                debugger.deleteBreakpoints(filename, lineNo)
             self.MarkerDelete(lineNo - 1, brkPtMrk)
-
-        if self.model.editor.debugger:
+            self.MarkerDelete(lineNo - 1, tmpBrkPtMrk)
+        elif Preferences.useDebugger == 'old':
+            if not self.breaks.has_key(lineNo):
+                return
             bp = self.breaks[lineNo]
-            res = self.model.editor.debugger.clear_break(bp.file, bp.line)
-            if res: print res
-            self.model.editor.debugger.breakpts.refreshList()
-        else:
-            self.breaks[lineNo].deleteMe()
-
-        del self.breaks[lineNo]
-
-    def addBreakPoint(self, lineNo, temp = 0):
-        if wxPlatform == '__WXMSW__':
-            filename = string.lower(self.model.filename)
-        else:
-            filename = self.model.filename
-
-        if self.model.editor.debugger:
-            bp = self.model.editor.debugger.set_breakpoint_here(\
-                  filename, lineNo, temp)
-        else:
-            bp = bdb.Breakpoint(filename, lineNo, temp)
-
-        if type(bp) == type(''):
-            wxLogError(bp)
-        else:
-            self.breaks[lineNo] = bp
-
-            if temp:
-                mrk = tmpBrkPtMrk
+            if bp.temporary:
+                self.MarkerDelete(lineNo - 1, tmpBrkPtMrk)
             else:
-                mrk = brkPtMrk
-            hnd = self.MarkerAdd(lineNo - 1, mrk)
+                self.MarkerDelete(lineNo - 1, brkPtMrk)
+    
+            if self.model.editor.debugger:
+                bp = self.breaks[lineNo]
+                res = self.model.editor.debugger.clear_break(bp.file, bp.line)
+                if res: print res
+                self.model.editor.debugger.breakpts.refreshList()
+            else:
+                self.breaks[lineNo].deleteMe()
+    
+            del self.breaks[lineNo]
+            
+    def addBreakPoint(self, lineNo, temp=0, notify_debugger=1):
+        if Preferences.useDebugger == 'new':
+            self.breaks.addBreakpoint(lineNo, temp)
+            if notify_debugger:
+                debugger = self.model.editor.debugger
+                if debugger:
+                    # Try to apply to the running debugger.
+                    filename = self.model.filename
+                    debugger.setBreakpoint(filename, lineNo, temp)
+            if temp: mrk = tmpBrkPtMrk
+            else: mrk = brkPtMrk
+            self.MarkerAdd(lineNo - 1, mrk)
+        elif Preferences.useDebugger == 'old':
+            if wxPlatform == '__WXMSW__':
+                filename = string.lower(self.model.filename)
+            else:
+                filename = self.model.filename
+    
+            if self.model.editor.debugger:
+                bp = self.model.editor.debugger.set_breakpoint_here(\
+                      filename, lineNo, temp)
+            else:
+                bp = bdb.Breakpoint(filename, lineNo, temp)
+    
+            if type(bp) == type(''):
+                wxLogError(bp)
+            else:
+                self.breaks[lineNo] = bp
+    
+                if temp:
+                    mrk = tmpBrkPtMrk
+                else:
+                    mrk = brkPtMrk
+                hnd = self.MarkerAdd(lineNo - 1, mrk)
 
     def moveBreakpoint(self, bpt, delta):
         #print 'moving break', delta, bpt.bplist
@@ -528,45 +598,68 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
     def tryLoadBreakpoints(self):
         import pickle
         fn = self.getBreakpointFilename()
-        update = false
-        if os.path.exists(fn):
-            self.breaks = pickle.load(open(fn))
-            self.setInitialBreakpoints()
-            BrkPt = bdb.Breakpoint
-            for lineNo, brk in self.breaks.items():
-                if self.model.editor.debugger:
-                    self.model.editor.debugger.set_break(brk.file, lineNo)
-                    update = true
-                else:
-                    BrkPt.bpbynumber.append(brk)
-                    if BrkPt.bplist.has_key((brk.file, brk.line)):
-                        BrkPt.bplist[brk.file, brk.line].append(brk)
-                    else:
-                        BrkPt.bplist[brk.file, brk.line] = [brk]
-            if update:
-                self.model.editor.debugger.breakpts.refreshList()
+        
+        if Preferences.useDebugger == 'new':
+            rval = self.breaks.loadBreakpoints(fn)
+            if rval:
+                self.setInitialBreakpoints()
+            return rval
 
-            return true
-        else:
-            self.breaks = {}
-            return false
+        elif Preferences.useDebugger == 'old':
+            update = false
+            if os.path.exists(fn):
+                self.breaks = pickle.load(open(fn))
+                self.setInitialBreakpoints()
+
+                BrkPt = bdb.Breakpoint
+                for lineNo, brk in self.breaks.items():
+                    if self.model.editor.debugger:
+                        self.model.editor.debugger.set_break(brk.file, lineNo)
+                        update = true
+                    else:
+                        BrkPt.bpbynumber.append(brk)
+                        if BrkPt.bplist.has_key((brk.file, brk.line)):
+                            BrkPt.bplist[brk.file, brk.line].append(brk)
+                        else:
+                            BrkPt.bplist[brk.file, brk.line] = [brk]
+                if update:
+                    self.model.editor.debugger.breakpts.refreshList()
+                return true
+            else:
+                self.breaks = {}
+                return false
 
     def saveBreakpoints(self):
-        # XXX This is not yet called automatically on saving a module, should it be ?
-        import pickle
+        # XXX This is not yet called automatically on saving a module,
+        # should it be ?
         fn = self.getBreakpointFilename()
-        if len(self.breaks):
-            pickle.dump(self.breaks, open(fn, 'w'))
-        elif os.path.exists(fn):
-            os.remove(fn)
+        if Preferences.useDebugger == 'new':
+            self.breaks.saveBreakpoints(fn)
+        elif Preferences.useDebugger == 'old':
+            if len(self.breaks):
+                pickle.dump(self.breaks, open(fn, 'w'))
+            elif os.path.exists(fn):
+                os.remove(fn)
+
+    def clearStepPos(self, lineNo):
+        if lineNo < 0:
+            lineNo = 0
+        self.MarkerDelete(lineNo, stepPosMrk)
 
     def setStepPos(self, lineNo):
-        if self.stepPos != lineNo:
-            if self.stepPos:
-                self.MarkerDelete(self.stepPos, stepPosMrk)
-            if lineNo:
-                self.MarkerAdd(lineNo, stepPosMrk)
-        self.stepPos = lineNo
+        if Preferences.useDebugger == 'new':
+            if lineNo < 0:
+                lineNo = 0
+            self.MarkerAdd(lineNo, stepPosMrk)
+            self.MarkerDelete(lineNo, tmpBrkPtMrk)
+        elif Preferences.useDebugger == 'old':
+            if self.stepPos != lineNo:
+                if self.stepPos:
+                    self.MarkerDelete(self.stepPos, stepPosMrk)
+                if lineNo:
+                    self.MarkerAdd(lineNo, stepPosMrk)
+            self.stepPos = lineNo
+
 
     def getBreakpointFilename(self):
         return os.path.splitext(self.model.filename)[0]+'.brk'
@@ -778,35 +871,57 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
 #-------Events------------------------------------------------------------------
     def OnMarginClick(self, event):
         if event.GetMargin() == 1:
-            lineClicked = self.GetLineFromPos(event.GetPosition()) + 1
-            if self.breaks.has_key(lineClicked):
-                self.deleteBreakPoint(lineClicked)
-            else:
-                self.addBreakPoint(lineClicked)
+            lineClicked = self.LineFromPosition(event.GetPosition()) + 1
+            if Preferences.useDebugger == 'old':
+                if self.breaks.has_key(lineClicked):
+                    self.deleteBreakPoint(lineClicked)
+                else:
+                    self.addBreakPoint(lineClicked)
+            elif Preferences.useDebugger == 'new':
+                if self.breaks.hasBreakpoint(lineClicked):
+                    self.deleteBreakPoint(lineClicked)
+                else:
+                    self.addBreakPoint(lineClicked)
         else:
             FoldingStyledTextCtrlMix.OnMarginClick(self, event)
 
     def OnSetBreakPoint(self, event):
-        line = self.GetLineFromPos(self.GetCurrentPos()) + 1
-        if self.breaks.has_key(line):
-            self.deleteBreakPoint(line)
-        else:
-            self.addBreakPoint(line)
+        line = self.LineFromPosition(self.GetCurrentPos()) + 1
+        if Preferences.useDebugger == 'old':
+            if self.breaks.has_key(line):
+                self.deleteBreakPoint(line)
+            else:
+                self.addBreakPoint(line)
+        elif Preferences.useDebugger == 'new':
+            if self.breaks.hasBreakpoint(line):
+                self.deleteBreakPoint(line)
+            else:
+                self.addBreakPoint(line)
 
     def OnRunToCursor(self, event):
-        line = self.GetLineFromPos(self.GetCurrentPos()) + 1
-        if not self.breaks.has_key(line):
-            self.addBreakPoint(line, 1)
-        if self.model.defaultName == 'App':
-            self.model.editor.debugger.debug_file(self.model.filename)
-        elif self.model.app:
-            self.model.editor.debugger.debug_file(self.model.app.filename)
+        if Preferences.useDebugger == 'new':
+            line = self.LineFromPosition(self.GetCurrentPos()) + 1
+            self.addBreakPoint(line, temp=1, notify_debugger=0)
+            # Avoid a race condition by sending the breakpoint
+            # along with the "continue" instruction.
+            temp_breakpoint = (path.normcase(path.abspath(
+                self.model.filename)), line)
+            self.model.debug(cont_if_running=1, cont_always=1,
+                             temp_breakpoint=temp_breakpoint)
+        elif Preferences.useDebugger == 'old':
+            line = self.LineFromPosition(self.GetCurrentPos()) + 1
+            if not self.breaks.has_key(line):
+                self.addBreakPoint(line, 1)
+            if self.model.defaultName == 'App':
+                self.model.editor.debugger.debug_file(self.model.filename)
+            elif self.model.app:
+                self.model.editor.debugger.debug_file(self.model.app.filename)
 
     def OnContextHelp(self, event):
         pos = self.GetCurrentPos()
         lnNo = self.GetCurrentLine()
-        lnStPs = self.GetLineStartPos(lnNo)
-        line = self.GetCurrentLineText()[0]
+        lnStPs = self.PositionFromLine(lnNo)
+        line = self.GetCurLine()[0]
         piv = pos - lnStPs
         start, length = idWord(line, piv, lnStPs)
         startLine = start-lnStPs
@@ -900,16 +1015,16 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
             if not self.AutoCompActive(): return
         # Smart delete
         elif key == 8:
-            line = self.GetCurrentLineText()
+            line = self.GetCurLine()
             if len(line): line = line[0]
             else: line = ''
             pos = self.GetCurrentPos()
-            self.damagedLine = self.GetLineFromPos(pos)
+            self.damagedLine = self.LineFromPosition(pos)
             #ignore indenting when at start of line
-            if self.GetLineStartPos(self.GetLineFromPos(pos)) != pos:
+            if self.PositionFromLine(self.LineFromPosition(pos)) != pos:
                 pos = pos -1
-                ln = self.GetLineFromPos(pos)
-                ls = self.GetLineStartPos(ln)
+                ln = self.LineFromPosition(pos)
+                ls = self.PositionFromLine(ln)
                 st = pos - ls
                 if not string.strip(line[:st]):
                     self.SetSelection(ls + st/4*4, pos+1)
@@ -921,11 +1036,11 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
 #---Meta comment----------------------------------------------------------------
     def OnAddCommentLine(self, event):
         pos = self.GetCurrentPos()
-        ln = self.GetLineFromPos(pos)
-        ls = self.GetLineStartPos(ln)
+        ln = self.LineFromPosition(pos)
+        ls = self.PositionFromLine(ln)
         self.InsertText(ls, '#-------------------------------------------'
                                     '------------------------------------'+'\n')
-        self.SetCurrentPosition(ls+4)
+        self.SetCurrentPos(ls+4)
 
     def OnViewWhitespace(self, event):
         miid = self.menu.FindItem('View whitespace')
@@ -954,8 +1069,8 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
     def OnAddClassAtCursor(self, event):
         pos = self.GetCurrentPos()
         lnNo = self.GetCurrentLine()
-        lnStPs = self.GetLineStartPos(lnNo)
-        line = self.GetLine(lnNo)#self.GetCurrentLineText()[0]
+        lnStPs = self.PositionFromLine(lnNo)
+        line = self.GetLine(lnNo)
         piv = pos - lnStPs
         start, length = idWord(line, piv, lnStPs, object_delim)
         startLine = start-lnStPs
@@ -999,7 +1114,7 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
                         baseName = base1
                     else:
                         baseName = base1.name
-                    meth = cls.getMethodForLineNo(lnNo+1)
+                    methName, meth = cls.getMethodForLineNo(lnNo+1)
                     module.addLine('%s%s.%s(%s)'%(' '*startLine, baseName,
                           word, meth.signature), lnNo+1)
                     self.model.refreshFromModule()
@@ -1016,33 +1131,52 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
         if modType == (wxSTC_MOD_CHANGEMARKER):
             pass
         linesAdded = event.GetLinesAdded()
+        textAdded = event.GetText()
 
         # Repair pasting CR/LF from clipboard to LF source
-##        if linesAdded:
-##            lines = string.split(event.GetText(), '\r\n')
-##            if len(lines) == linesAdded:
+        if linesAdded > 0:
+            lines = string.split(textAdded, '\r\n')
+            totAdded = linesAdded
+            if len(lines) > 1 and len(lines) == linesAdded + 1:
+                wxPostEvent(self, wxFixPasteEvent(self, string.join(lines, '\n')))
+
+        if self._blockUpdate: return
 
         # repair breakpoints
-##        update = false
-##        if linesAdded:
-##            line = self.LineFromPosition(event.GetPosition())
-##            for breakLine, breakPt in self.breaks.items()[:]:
-##                if breakLine >= line:
-##                    self.moveBreakpoint(breakPt, linesAdded)
-##                    update = true
-##
-##            if update and self.model.editor.debugger:
-##                self.model.editor.debugger.breakpts.refreshList()                
+        update = false
+        if linesAdded:
+            line = self.LineFromPosition(event.GetPosition())
+            if Preferences.useDebugger == 'old':
+                for breakLine, breakPt in self.breaks.items()[:]:
+                    if breakLine >= line:
+                        self.moveBreakpoint(breakPt, linesAdded)
+                        update = true
+            elif Preferences.useDebugger == 'new':
+                self.breaks.moveBreakpoint(line, line + linesAdded)
+
+            if update and self.model.editor.debugger:
+                self.model.editor.debugger.breakpts.refreshList()                
 
         # Update module line numbers 
         # module has to have been parsed at least once
-##        if linesAdded and self.model._module:
-##            lineNo = self.LineFromPosition(event.GetPosition())
-##            module = self.model.getModule()
-##            module.renumber(linesAdded, lineNo)
+        if linesAdded and self.model._module:
+            lineNo = self.LineFromPosition(event.GetPosition())
+            module = self.model.getModule()
+            module.renumber(linesAdded, lineNo)
+            
+            #if linesAdded == 1:
+            #    module.parseLineIsolated(self.GetLine(lineNo)[:-1], lineNo)
+            
+            #self.model.editor.statusBar.setHint('update ren %d %d'%(linesAdded, lineNo))
 
     def OnCompleteCode(self, event):
         self.codeCompCheck()
 
     def OnParamTips(self, event):
         self.callTipCheck()
+
+    def OnFixPaste(self, event):
+        self.Undo()
+        self.AddText(event.newtext)
+
+ 
