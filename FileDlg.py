@@ -186,6 +186,11 @@ class wxBoaFileDialog(wxDialog, Utils.FrameRestorerMixin):
         import relpath
         filepath = []
         segs = relpath.splitpath(dir)
+        
+        # handle unix root segment
+        if dir and dir[0] == '/':
+            segs[0] = '/'+segs[0]
+
         if prot == 'zip':
             url = 'file://'
             for seg in segs[:-1]:
@@ -624,7 +629,7 @@ if __name__ == '__main__':
         if dlg.ShowModal() == wxID_OK:
             wxMessageBox(dlg.GetPath())
     finally:
-        pass#dlg.Destroy()
+        dlg.Destroy()
         
     #Preferences.cleanup()
 
