@@ -1,12 +1,12 @@
 #----------------------------------------------------------------------
 # Name:        Utils.py
-# Purpose:
+# Purpose:     General purpose functions and classes
 #
 # Author:      Riaan Booysen
 #
 # Created:     1999
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999, 2000 Riaan Booysen
+# Copyright:   (c) 1999 - 2001 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
 import string, os
@@ -153,6 +153,7 @@ def ctrlNameFromSrcRef(srcRef):
 
 def winIdRange(count):
     return map(lambda x: wxNewId(), range(count))
+wxNewIds = winIdRange
 
 def methodLooksLikeEvent(method):
     return len(method) >= 3 and method[:2] == 'On' and method[2] in string.uppercase
@@ -430,7 +431,7 @@ class OutputLoggerPF(LoggerPF):
         if string.strip(s):
             if Preferences.recordModuleCallPoint:
                 frame = get_current_frame()
-                ss = '%s : <<%s, %d>>' % (string.strip(s),
+                ss = string.strip(s)+ ' : <<%s, %d>>' % (
                      frame.f_back.f_back.f_code.co_filename,
                      frame.f_back.f_back.f_lineno,)
             else:
@@ -478,4 +479,11 @@ def getEntireWxNamespace():
                            grid.__dict__, calendar.__dict__, utils.__dict__, 
                            stc.__dict__, ogl.__dict__])
     return namespace
-     
+
+class FrameRestorerMixin:
+    def restore(self):
+        self.Show(true)
+        if self.IsIconized():
+            self.Iconize(false)
+        self.Raise()
+ 
