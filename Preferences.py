@@ -65,9 +65,9 @@ if not os.path.isdir(rcPath):
 
 # upgrade if needed and exec in our namespace
 plat = wx.wxPlatform == '__WXMSW__' and 'msw' or 'gtk'
-for prefsFile, version in (('prefs.rc.py', 3),
-                           ('prefs.%s.rc.py'%plat, 3),
-                           ('prefskeys.rc.py', 3)):
+for prefsFile, version in (('prefs.rc.py', 4),
+                           ('prefs.%s.rc.py'%plat, 4),
+                           ('prefskeys.rc.py', 4)):
     file = os.path.join(rcPath, prefsFile)
 
     # first time, install to env dir

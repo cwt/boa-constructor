@@ -1,4 +1,4 @@
-## rc-version: 3 ##
+## rc-version: 4 ##
 # RCS-ID:      $Id$
 
 
@@ -6,6 +6,11 @@
 
 # Style of the Error/Output window's notebook. GTK is text only
 eoErrOutNotebookStyle = 'text'
+
+#-Explorer----------------------------------------------------------------------
+
+# Should sorting in the explorer be case insensitive
+exCaseInsensitiveSorting = false
 
 #-Editor------------------------------------------------------------------------
 # Should there be submenu with all the items from the New palete under the
@@ -97,9 +102,9 @@ ccFilterWxClasses = false
 ccFilterWxInstances = false
 
 # Editable preferences
-exportedProperties2 = ['edShowFileNewMenu', 'edUseCustomSTCPaintEvtHandler',
- 'edSTCFolding', 'verticalTaskbarWidth', 'horizontalTaskbarHeight',
- 'editorScreenWidthPerc',
+exportedProperties2 = ['exCaseInsensitiveSorting', 'edShowFileNewMenu',
+ 'edUseCustomSTCPaintEvtHandler', 'edSTCFolding', 'verticalTaskbarWidth',
+ 'horizontalTaskbarHeight', 'editorScreenWidthPerc',
  'windowManagerTop', 'windowManagerBottom', 'windowManagerSide',
  'braceHighLight', 'minimizeOnRun', 'inspStatBarFontSize',
  'drawDesignerGrid', 'drawDesignerGridForSubWindows', 'drawGridMethod',

@@ -1,4 +1,4 @@
-## rc-version: 3 ##
+## rc-version: 4 ##
 # RCS-ID:      $Id$
 
 #-Miscellaneous-----------------------------------------------------------------
@@ -6,6 +6,11 @@
 # Style of the Error/Output window's notebook.
 ## options: 'text', 'full', 'side'
 eoErrOutNotebookStyle = 'full'
+
+#-Explorer----------------------------------------------------------------------
+
+# Should sorting in the explorer be case insensitive
+exCaseInsensitiveSorting = true
 
 #-Editor------------------------------------------------------------------------
 # Should there be submenu with all the items from the New palete under the
@@ -27,7 +32,7 @@ verticalTaskbarWidth = 0
 # The amount of space Boa should leave from the bottom for a horizontal OS Taskbar.
 horizontalTaskbarHeight = 50
 # Percentage of the with that the Editor window should occupy
-editorScreenWidthPerc = 3.0/4.0
+editorScreenWidthPerc = 0.73
 
 # Window manager dependent values useful for mostly for GTK
 windowManagerTop = 0
@@ -88,7 +93,7 @@ ccFilterWxAll = false
 # Filter out all classes ending in Ptr
 ccFilterWxPtrNames = true
 # Filters out integer constant values
-ccFilterWxConstants = true
+ccFilterWxConstants = false
 # Filter out functions
 ccFilterWxFunctions = false
 # Filter out classes
@@ -97,9 +102,9 @@ ccFilterWxClasses = false
 ccFilterWxInstances = false
 
 # Editable preferences
-exportedProperties2 = ['eoErrOutNotebookStyle', 'edShowFileNewMenu',
- 'edSTCFolding', 'verticalTaskbarWidth', 'horizontalTaskbarHeight',
- 'editorScreenWidthPerc',
+exportedProperties2 = ['exCaseInsensitiveSorting', 'eoErrOutNotebookStyle',
+ 'edShowFileNewMenu', 'edSTCFolding', 'verticalTaskbarWidth',
+ 'horizontalTaskbarHeight', 'editorScreenWidthPerc',
  'windowManagerTop', 'windowManagerBottom', 'windowManagerSide',
  'braceHighLight', 'minimizeOnRun', 'inspStatBarFontSize',
  'drawDesignerGrid', 'drawDesignerGridForSubWindows', 'drawGridMethod',
