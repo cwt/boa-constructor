@@ -171,6 +171,21 @@ class ZipFileNode(ZipItemNode):
         zf.close()
 
         self.allFileNames = map(lambda fl: fl.filename, self.allFiles)
+        
+        # Add implicit folder entries
+        for filename in self.allFileNames[:]:
+            if filename[-1] == '/':
+                # don't build if zip has folder entries
+                break
+            while 1:
+                filename = os.path.dirname(filename)
+                path = filename +'/'
+                if path == '/':
+                    break
+                if path not in self.allFileNames:
+                    self.allFileNames.insert(0, path)
+                    self.allFiles.insert(0, zipfile.ZipInfo(path))
+                
         return ZipItemNode.openList(self, '')
 
     def getFiles(self, base):
