@@ -6,7 +6,7 @@
 #
 # Created:     2002/02/09
 # RCS-ID:      $Id$
-# Copyright:   (c) 2002 - 2003
+# Copyright:   (c) 2002 - 2004
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 print 'importing Models.wxPythonControllers'
