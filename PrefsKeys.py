@@ -35,6 +35,9 @@ keyDefs = {
   'Refresh'     : (wxACCEL_CTRL, ord('R')),
   'Insert'      : (wxACCEL_NORMAL, WXK_INSERT),
   'Delete'      : (wxACCEL_NORMAL, WXK_DELETE),
+  'Escape'      : (wxACCEL_NORMAL, WXK_ESCAPE),
+  'NextPage'    : (wxACCEL_CTRL, ord('K')),
+  'PrevPage'    : (wxACCEL_CTRL, ord('J')),
 }
 
 if wxPlatform == '__WXMSW__':
