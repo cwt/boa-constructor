@@ -77,7 +77,7 @@ class ZopeFTP:
     def __del__(self):
         self.disconnect()
 
-    def connect(self, username, password, host, port = 21):
+    def connect(self, username, password, host, port = 21, passive = 0):
         self.ftp = ftplib.FTP('')
 
         self.host = host
@@ -90,9 +90,12 @@ class ZopeFTP:
         # Zope returns 'Login successful' even on wrong passwords :(
         res.append(self.ftp.login(username, password))
             
+        self.connected = true
+        
+        self.ftp.set_pasv(passive)
+
         return string.join(res, '\n') 
 
-        self.connected = true
 
     def disconnect(self):
         if self.ftp: self.ftp.quit()
