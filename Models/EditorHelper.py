@@ -8,7 +8,7 @@ import Preferences, Utils
  wxID_EDITORTOGGLERO, wxID_EDITORHELPFIND, wxID_EDITORRELOAD,
  wxID_EDITORHELPABOUT, wxID_EDITORHELPGUIDE, wxID_EDITORHELPTIPS,
  wxID_EDITORPREVPAGE, wxID_EDITORNEXTPAGE,
- wxID_EDITORBROWSEFORW, wxID_EDITORBROWSEBACK,
+ wxID_EDITORBROWSEFWD, wxID_EDITORBROWSEBACK,
  wxID_EDITOREXITBOA, wxID_EDITOROPENRECENT,
  wxID_EDITORHIDEPALETTE, wxID_EDITORWINDIMS, wxID_EDITORWINDIMSLOAD,
  wxID_EDITORWINDIMSSAVE, wxID_EDITORWINDIMSRESDEFS,
@@ -20,6 +20,9 @@ builtinImgs =('Images/Modules/FolderUp_s.png',
               'Images/Modules/Folder_green_s.png',
               'Images/Modules/Folder_cyan_s.png',
               'Images/Shared/SystemObj.png',
+              'Images/Shared/SystemObjBroken.png',
+              'Images/Shared/SystemObjPending.png',
+              'Images/Shared/SystemObjDisabled.png',
               'Images/Modules/ZopeConn_s.png',
               'Images/Shared/BoaLogo.png',
               'Images/Modules/Drive_s.png',
@@ -39,12 +42,13 @@ def imgIdxRange(cnt):
 
 # Indexes for the imagelist
 (imgFolderUp, imgFolder, imgPathFolder, imgCVSFolder, imgSystemObj,
+ imgSystemObjBroken, imgSystemObjPending, imgSystemObjDisabled,
  imgZopeConnection, imgBoaLogo, imgFSDrive, imgNetDrive, imgFolderBookmark,
  imgOpenEditorModels, imgPrefsFolder, imgPrefsSTCStyles, imgRecentFiles,
 
  imgTextModel, imgBitmapFileModel, imgZipFileModel,
  imgUnknownFileModel, imgInternalFileModel,
-) = imgIdxRange(19)
+) = imgIdxRange(22)
 
 # Registry of all modules {modelIdentifier : Model} (populated by EditorModels)
 # Used for images and header identifier
@@ -57,12 +61,10 @@ imageExtReg = []
 internalFilesReg = []
 # List of files which can be further identified by reading a header from the source
 inspectableFilesReg = []
-# List of extensions used by Python
-pythonBinaryFilesReg = []
 # List of extensions for additional binary files (will not be searched)
 binaryFilesReg = []
 def getBinaryFiles():
-    return imageExtReg + binaryFilesReg + pythonBinaryFilesReg
+    return imageExtReg + binaryFilesReg
 
 def initExtMap():
     # All non python files identified by extension
