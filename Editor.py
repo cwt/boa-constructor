@@ -15,11 +15,13 @@
 # the center of creation
 # Alchemy
 
+from wxPython.wx import *
+from wxPython.stc import *
+
 import sys, string, time
 import Preferences, About, Help
-from Preferences import IS, flatTools
 from os import path
-from Utils import AddToolButtonBmpObject, BoaFileDropTarget
+import Utils, Browse
 import Zope.LoginDialog
 from Zope import ZopeFTP
 
@@ -31,10 +33,9 @@ from Views.DataView import DataView
 from Views.PySourceView import PythonSourceView, HTMLSourceView, TextView
 
 from EditorModels import *
-from wxPython.wx import *
-from wxPython.stc import *
 from PrefsKeys import keyDefs
 import Explorer, ShellEditor
+from Preferences import IS, wxFileDialog, flatTools
 
 defAppModelViews = (AppView, PythonSourceView)
 adtAppModelViews = (AppModuleDocView, ToDoView, ImportsView)
@@ -62,8 +63,9 @@ adtZopeDocModelViews = ()
  wxID_EDITORSWITCHAPP, wxID_DEFAULTVIEWS, wxID_EDITORSWITCHTO, 
  wxID_EDITORTOGGLEVIEW, wxID_EDITORSWITCHEXPLORER, wxID_EDITORSWITCHSHELL,
  wxID_EDITORSWITCHPALETTE, wxID_EDITORSWITCHINSPECTOR, wxID_EDITORDIFF,
- wxID_EDITORCMPAPPS, wxID_EDITORHELPABOUT] = \
- map(lambda _editor_menus: wxNewId(), range(19))
+ wxID_EDITORCMPAPPS, wxID_EDITORHELPABOUT, wxID_EDITORPREVPAGE, 
+ wxID_EDITORNEXTPAGE, wxID_EDITORBROWSEFORW, wxID_EDITORBROWSEBACK] = \
+ map(lambda _editor_menus: wxNewId(), range(23))
                
 [wxID_EDITORFRAME, wxID_PAGECHANGED] = map(lambda _init_ctrls: wxNewId(), range(2))
                     
@@ -97,6 +99,7 @@ class EditorFrame(wxFrame):
         self.inspector = inspector
         self.compPalette = componentPalette
         self.debugger = None
+        self.browser = Browse.Browser()
 
         self.statusBar = EditorStatusBar(self)
         self.SetStatusBar(self.statusBar)
@@ -127,6 +130,9 @@ class EditorFrame(wxFrame):
         self.modelImageList.Add(IS.load('Images/Zope/System_obj.bmp'))
         self.modelImageList.Add(IS.load('Images/Zope/Zope_connection.bmp'))
         self.modelImageList.Add(IS.load('Images/Shared/BoaLogo.bmp'))
+        self.modelImageList.Add(IS.load('Images/Modules/FolderUp_s.bmp'))
+        self.modelImageList.Add(IS.load('Images/Modules/Drive_s.bmp'))
+        self.modelImageList.Add(IS.load('Images/Modules/FolderBookmark_s.bmp'))
                                         
         if wxPlatform == '__WXMSW__':
             self.tabs.SetImageList(self.modelImageList)
@@ -139,7 +145,6 @@ class EditorFrame(wxFrame):
           self.modelImageList, '', self)
         self.tabs.AddPage(self.explorer, 'Explorer')
         self.tabs.SetSelection(1)
-        self.explorer.tree.SelectItem(self.explorer.tree.defaultWorkspaceItem)		
         
         # Menus
         self.newMenu = newMenu
@@ -167,6 +172,8 @@ class EditorFrame(wxFrame):
         EVT_MENU(self, wxID_EDITORSWITCHINSPECTOR, self.OnSwitchInspector)
         EVT_MENU(self, wxID_EDITORDIFF, self.OnDiff)
         EVT_MENU(self, wxID_EDITORCMPAPPS, self.OnCmpApps)
+        EVT_MENU(self, wxID_EDITORPREVPAGE, self.OnPrevPage)
+        EVT_MENU(self, wxID_EDITORNEXTPAGE, self.OnNextPage)
         
         self.mainMenu = wxMenuBar()
         self.SetMenuBar(self.mainMenu)
@@ -214,14 +221,31 @@ class EditorFrame(wxFrame):
         self.SetToolBar(self.toolBar)
         self.setupToolBar(viewIdx = 0)
         
-        item = self.explorer.list.GetItem(0)
-        item.SetState(wxLIST_STATE_SELECTED | wxLIST_STATE_FOCUSED)
-        self.explorer.list.SetItem(item)
+        tree = self.explorer.tree
+        if tree.defaultBookmarkItem:
+            ws = tree.getChildNamed(tree.GetRootItem(), 'Bookmarks')
+#        self.defaultBookmarkItem = self.getChildNamed(ws, self.boaRoot.entries[1].getDefault())
+#            self.getChildNamed(ws, tree.boaRoot.entries[1].getDefault())
+            tree.SelectItem(tree.getChildNamed(ws, tree.boaRoot.entries[1].getDefault()))
+#            self.explorer.tree.defaultBookmarkItem)		
+            
+#            print 'Setting default', self.explorer.tree.defaultBookmarkItem
+#            self.explorer.tree.SelectItem(self.explorer.tree.defaultBookmarkItem)		
+#            print 'Set def', self.explorer.tree.GetSelection()
 
-        dt = BoaFileDropTarget(self)
+            if self.explorer.list.GetItemCount():
+                item = self.explorer.list.GetItem(0)
+                item.SetState(wxLIST_STATE_SELECTED | wxLIST_STATE_FOCUSED)
+                self.explorer.list.SetItem(item)
+
+        dt = Utils.BoaFileDropTarget(self)
         self.SetDropTarget(dt)
 
         self.explorer.list.SetFocus()
+        
+        # Hack to feed BoaFileDialog images
+        import FileDlg
+        FileDlg.wxBoaFileDialog.modImages = self.modelImageList
     
     def defsMenu(self, model, viewClss):
         """ Default menus specifying which views are opened by default when a
@@ -246,14 +270,16 @@ class EditorFrame(wxFrame):
         accLst = []
         for (ctrlKey, key), wId in \
                 ( (keyDefs['Inspector'], wxID_EDITORSWITCHINSPECTOR),
-                  (keyDefs['Open'], wxID_EDITOROPEN) ):
+                  (keyDefs['Open'], wxID_EDITOROPEN),
+                  (keyDefs['PrevPage'], wxID_EDITORPREVPAGE),
+                  (keyDefs['NextPage'], wxID_EDITORNEXTPAGE) ):
             accLst.append( (ctrlKey, key, wId) ) 
             
         # primary option: open a module
         fileMenu = wxMenu()
         fileMenu.Append(wxID_EDITOROPEN, 'Open', 'Open a module')
 
-        AddToolButtonBmpObject(self, self.toolBar, IS.load(self.openBmp), 'Open a module', self.OnOpen)
+        Utils.AddToolButtonBmpObject(self, self.toolBar, IS.load(self.openBmp), 'Open a module', self.OnOpen)
         actMod = self.getActiveModulePage(modelIdx) 
         if actMod:
             activeView = actMod.getActiveView(viewIdx)
@@ -298,7 +324,7 @@ class EditorFrame(wxFrame):
 
         # Help button  
         self.toolBar.AddSeparator() 
-        AddToolButtonBmpObject(self, self.toolBar, IS.load(self.helpBmp), 'Help', self.OnHelp)
+        Utils.AddToolButtonBmpObject(self, self.toolBar, IS.load(self.helpBmp), 'Help', self.OnHelp)
             
         self.toolBar.Realize()
 
@@ -362,6 +388,7 @@ class EditorFrame(wxFrame):
         self.updateTitle()
 
     def addNewPackage(self):
+        print 'addNewPackage'
         filename, success = self.saveAsDlg('__init__.py')
         if success:
             model = PackageModel('# Package initialisation', filename, self, false)
@@ -463,8 +490,12 @@ class EditorFrame(wxFrame):
         
     def openModule(self, filename, app = None):
         name = filename
-        modCls, main = identifyFile(filename)
-        f = open(filename, 'r')
+        try:
+            modCls, main = identifyFile(filename)
+            f = open(filename, 'r')
+        except IOError, err:
+            Utils.ShowMessage(self, 'File error', err.strerror, wxICON_EXCLAMATION)
+            raise
         try:
             dirname, name = path.split(filename)
             name, ext = path.splitext(name)
@@ -675,15 +706,15 @@ class EditorFrame(wxFrame):
         fn = self.openFileDlg()
         if fn: self.openOrGotoModule(fn)
 
-    def OnNewConnection(self, event):
-        ld = Zope.LoginDialog.create(self)
-        if ld.ShowModal() == wxOK:
-            res = self.zftp.connect(ld.textCtrl3.GetValue(), ld.textCtrl4.GetValue(),
-              ld.textCtrl1.GetValue(), int(ld.textCtrl2.GetValue()))
-            
-            zftpi = self.zftp.add_doc('index_html', '/Projects/BoaConstructor/Web')
-            
-            self.openZopeDocument(zftpi, self.zftp)
+##    def OnNewConnection(self, event):
+##        ld = Zope.LoginDialog.create(self)
+##        if ld.ShowModal() == wxOK:
+##            res = self.zftp.connect(ld.textCtrl3.GetValue(), ld.textCtrl4.GetValue(),
+##              ld.textCtrl1.GetValue(), int(ld.textCtrl2.GetValue()))
+##            
+##            zftpi = self.zftp.add_doc('index_html', '/Projects/BoaConstructor/Web')
+##            
+##            self.openZopeDocument(zftpi, self.zftp)
             
     def saveOrSaveAs(self):
         modulePage = self.getActiveModulePage()
@@ -833,19 +864,16 @@ class EditorFrame(wxFrame):
                 self.tabs.SetSelection(mod.tIdx)
 
     def OnSwitchShell(self, event):
-        print 'switch shell'
         self.tabs.SetSelection(0)
         
     def OnSwitchExplorer(self, event):
         self.tabs.SetSelection(1)
         
     def OnSwitchPalette(self, event):
-        print 'Switch Palette'
         self.palette.Show(true)
         self.palette.Raise()
         
     def OnSwitchInspector(self, event):
-        print 'Switch Inspector'
         self.inspector.Show(true)
         if self.inspector.IsIconized():
             self.inspector.Iconize(false)
@@ -864,6 +892,18 @@ class EditorFrame(wxFrame):
             fn = self.openFileDlg()
             if fn:
                 actMod.model.compareApp(fn)
+
+    def OnNextPage(self, event):
+        pc = self.tabs.GetPageCount()
+        idx = self.tabs.GetSelection() + 1
+        if idx >= pc: idx = 0
+        self.tabs.SetSelection(idx)
+
+    def OnPrevPage(self, event):
+        pc = self.tabs.GetPageCount()
+        idx = self.tabs.GetSelection() - 1
+        if idx < 0: idx = pc - 1
+        self.tabs.SetSelection(idx)
 
 #-----Toolbar-------------------------------------------------------------------
 
@@ -931,7 +971,7 @@ class EditorStatusBar(wxStatusBar):
 
 #-----Model hoster--------------------------------------------------------------
 
-wxID_MODULEPAGEVIEWCHANGE = NewId()
+wxID_MODULEPAGEVIEWCHANGE = wxNewId()
 
 class ModulePage:
     """ Represents a notebook on a page of the top level notebook hosting 
