@@ -9,6 +9,7 @@ modules ={'wxDialog1': [0, '', 'wxDialog1.py'],
 class BoaApp(wxApp):
     """Documentation String"""
     def OnInit(self):
+        wxInitAllImageHandlers()
         self.main = wxFrame1.create(None)
         self.main.Show(true)
         self.SetTopWindow(self.main)

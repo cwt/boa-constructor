@@ -36,8 +36,8 @@ class wxDialog1(wxDialog):
               size=wxSize(199, 13), style=wxALIGN_CENTRE)
         self.staticText2.SetBackgroundColour(wxColour(64, 128, 128))
 
-        self.staticBitmap1 = wxStaticBitmap(bitmap=wxBitmap('Boa.bmp',
-              wxBITMAP_TYPE_BMP), id=wxID_WXDIALOG1STATICBITMAP1,
+        self.staticBitmap1 = wxStaticBitmap(bitmap=wxBitmap('Boa.jpg',
+              wxBITMAP_TYPE_JPEG), id=wxID_WXDIALOG1STATICBITMAP1,
               name='staticBitmap1', parent=self, pos=wxPoint(48, 104),
               size=wxSize(236, 157), style=0)
 
