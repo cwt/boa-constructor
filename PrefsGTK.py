@@ -38,9 +38,10 @@ inspStatBarFontSize = 13
 explorerFileSysRootDefault = ('/', '/')
 
 # Scintilla/wxStyledTextCtrl font definitions 
-faces = { 'times' : 'Times',
-          'mono'  : 'Courier',
-          'helv'  : 'Helvetica',
-          'other' : 'new century schoolbook',
-          'size'  : 11,
-          'lnsize': 9,}
+faces = { 'times'  : 'Times',
+          'mono'   : 'Courier',
+          'helv'   : 'Helvetica',
+          'other'  : 'new century schoolbook',
+          'size'   : 11,
+          'lnsize' : 9,
+          'backcol': '#FFFFFF',}

@@ -38,10 +38,11 @@ inspStatBarFontSize = 9
 explorerFileSysRootDefault = ('DRIVE:\\', 'C:\\')
 
 # Scintilla/wxStyledTextCtrl font definitions 
-faces = { 'times' : 'Times New Roman',
-          'mono'  : 'Courier New',
-          'helv'  : 'Lucida Console',
-          'lucd'  : 'Lucida Console',
-          'other' : 'Comic Sans MS',
-          'size'  : 8,
-          'lnsize': 6,}
+faces = { 'times'  : 'Times New Roman',
+          'mono'   : 'Courier New',
+          'helv'   : 'Lucida Console',
+          'lucd'   : 'Lucida Console',
+          'other'  : 'Comic Sans MS',
+          'size'   : 8,
+          'lnsize' : 6,
+          'backcol': '#FFFFFF',}
