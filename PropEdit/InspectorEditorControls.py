@@ -40,11 +40,11 @@ class InspectorEditorControl:
 
     def getValue(self):
         """ Read value from editor control """
-        pass
+        return self.value
 
     def setValue(self, value):
         """ Write value to editor control """
-        pass
+        self.value = value
 
     # default sizing for controls that span the entire value width
     def setWidth(self, width):
@@ -92,12 +92,20 @@ class BevelIEC(InspectorEditorControl):
             self.bevelBottom.SetPosition(wxPoint(-2, (idx +1)*Preferences.oiLineHeight -1))
 #        InspectorEditorControl.setIdx(self, idx)
 
+class BeveledLabelIEC(BevelIEC):
+    def createControl(self, parent, idx, sizeX):
+        BevelIEC.createControl(self, parent, idx, sizeX)
+        self.editorCtrl = wxStaticText(parent, -1, self.value, 
+            (2, idx*Preferences.oiLineHeight+2),
+            (sizeX, Preferences.oiLineHeight-3))
+        self.editorCtrl.SetForegroundColour(Preferences.propValueColour)
+
 class TextCtrlIEC(InspectorEditorControl):
     def createControl(self, parent, value, idx, sizeX, style = 0):
         self.editorCtrl = wxTextCtrl(parent, self.wID,
               self.propEditor.valueToIECValue(),
-              wxPoint(-2, idx*Preferences.oiLineHeight -2),
-              wxSize(sizeX, Preferences.oiLineHeight+3), style = style)
+              (-2, idx*Preferences.oiLineHeight -2),
+              (sizeX, Preferences.oiLineHeight+3), style = style)
         InspectorEditorControl.createControl(self)
 
         if value:
