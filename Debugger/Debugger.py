@@ -813,6 +813,7 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
         self.globs.destroy()
         self.sb.stateCols = None
         self.stream_timer = None
+        self._destroyed = 1
 
     def setDefaultDimensions(self):
         self.SetDimensions(0, Preferences.paletteHeight + \
@@ -989,21 +990,23 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
         show_dialog = 0
         if self.running:
             show_dialog = 1
-        self.killDebugger()
+        if not self._destroyed:
+            self.killDebugger()
         if show_dialog:
-            wxMessageDialog(
-                self, 'The debugger process stopped prematurely.',
-                'Debugger stopped',
-                wxOK | wxICON_EXCLAMATION | wxCENTRE).ShowModal()
+            wxMessageBox('The debugger process stopped prematurely.',
+                  'Debugger stopped', wxOK | wxICON_EXCLAMATION | wxCENTRE)
+        self.Destroy()
 
     def OnStreamTimer(self, event=None, force_timer=0):
         if self.stream_timer:
-            self.updateOutputWindow()
-            # A non polling stream can block a process
-            ## The user is looking at the output page.
-            ## if (force_timer or self.nbTop.GetSelection() == 2) \
             if not self.stream_timer.IsRunning():
-                self.stream_timer.Start(100, 1)  # One-shot mode.
+                self.stream_timer.Start(100)  # One-shot mode.
+            self.updateOutputWindow()
+##            # A non polling stream can block a process
+##            ## The user is looking at the output page.
+##            ## if (force_timer or self.nbTop.GetSelection() == 2) \
+##            if not self.stream_timer.IsRunning():
+##                self.stream_timer.Start(100, 1)  # One-shot mode.
 
     def appendToOutputWindow(self, t):
         # Before appending to the output, remove old data.
@@ -1356,12 +1359,12 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
         finally:
             self.debug_client = None
             self.destroy()
-            self._destroyed = 1
             try: self.editor.debugger = None
             except: pass
             self.editor = None
             #event.Skip()
-            self.Destroy()
+            self.Hide()
+            #self.Destroy()
 
     def isInShellNamepace(self):
         return self.toolbar.GetToolState(self.shellNamespaceId)
