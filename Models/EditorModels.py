@@ -26,14 +26,10 @@ import string, os, sys
 
 from wxPython import wx
 
-# XXX
-#import PaletteMapping
 import Preferences, Utils, EditorHelper
 from Preferences import keyDefs
 
-from sourceconst import *
-
-true = 1;false = 0
+true,false=1,0
 
 _vc_hook = None
 
@@ -69,7 +65,11 @@ class EditorModel:
 
         del self.views
         del self.viewsModified
-        del self.editor
+        #del self.editor
+
+    def updateNameFromTransport(self):
+        if self.transport:
+            self.filename = self.transport.getURI()
 
     def reorderFollowingViewIdxs(self, idx):
         for view in self.views.values():
@@ -81,7 +81,10 @@ class EditorModel:
 
     def setDataFromLines(self, lines):
         data = self.data
-        self.data = string.join(lines, '\012')
+        strlines = []
+        for line in lines:
+            strlines.append(str(line))
+        self.data = string.join(strlines, '\012')
         self.modified = self.modified or self.data != data
 
     def hasUnsavedChanges(self):
@@ -106,6 +109,7 @@ class EditorModel:
         else:
             return os.path.splitext(os.path.basename(self.filename))[0]
 
+    # XXX Move these names into overrideable attrs
     def getSourceView(self):
         views = self.views
         if views.has_key('Source'):
@@ -113,6 +117,8 @@ class EditorModel:
         elif views.has_key('ZopeHTML'):
             return views['ZopeHTML']
         return None
+
+
 
 
 class FolderModel(EditorModel):
@@ -190,7 +196,7 @@ class BasePersistentModel(EditorModel):
     saveBmp = 'Images/Editor/Save.png'
     saveAsBmp = 'Images/Editor/SaveAs.png'
 
-    def load(self, notify = true):
+    def load(self, notify=true):
         """ Loads contents of data from file specified by self.filename.
             Note: Load's not really used much currently cause objects are
                   constructed with their data as parameter """
@@ -212,7 +218,7 @@ class BasePersistentModel(EditorModel):
             filename = self.transport.assertFilename(self.filename)
             # this check is to minimise interface change.
             if overwriteNewer:
-                self.transport.save(filename, self.data, mode=self.fileModes[1], 
+                self.transport.save(filename, self.data, mode=self.fileModes[1],
                       overwriteNewer=true)
             else:
                 self.transport.save(filename, self.data, mode=self.fileModes[1])
@@ -240,15 +246,20 @@ class BasePersistentModel(EditorModel):
                   self.editor.explorer.tree.transports)
 
         # Rename and save
+        oldname = self.filename
         self.filename = filename
-        self.save()
+        try:
+            self.save(overwriteNewer=true)
+        except:
+            self.filename = oldname
+            raise
         self.savedAs = true
 
     def localFilename(self, filename=None):
         if filename is None: filename = self.filename
         from Explorers.Explorer import splitURI
         return splitURI(filename)[2]
-        
+
     def assertLocalFile(self, filename=None):
         if filename is None:
             filename = self.filename
@@ -257,8 +268,11 @@ class BasePersistentModel(EditorModel):
         assert prot=='file', 'Operation only supported on the filesystem.'
         return filename
 
+    def getDefaultData(self):
+        return ''
+
     def new(self):
-        self.data = ''
+        self.data = self.getDefaultData()
         self.savedAs = false
         self.modified = true
         self.update()
@@ -331,7 +345,7 @@ class TextModel(PersistentModel):
     bitmap = 'Text_s.png'
     imgIdx = EditorHelper.imgTextModel
     ext = '.txt'
-    
+
 class UnknownFileModel(TextModel):
     modelIdentifier = 'Unknown'
     defaultName = '*'
