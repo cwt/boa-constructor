@@ -1,13 +1,13 @@
 #----------------------------------------------------------------------
-# Name:        EditorViews.py
+# Name:        EditorViews.py                                          
 # Purpose:     Base view classes that are the visual plugins for models
-#
-# Author:      Riaan Booysen
-#
-# Created:     1999
+#                                                                      
+# Author:      Riaan Booysen                                           
+#                                                                      
+# Created:     1999                                                    
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999, 2000 Riaan Booysen
-# Licence:     GPL
+# Copyright:   (c) 1999, 2000 Riaan Booysen                            
+# Licence:     GPL                                                     
 #----------------------------------------------------------------------
 
 # So many views
@@ -115,7 +115,7 @@ class EditorView:
         if editorIsWindow: 
             EVT_RIGHT_DOWN(self, self.OnRightDown)
             # for wxMSW
-            EVT_COMMAND_RIGHT_CLICK(self, -1, self.OnRightClick)
+#            EVT_COMMAND_RIGHT_CLICK(self, -1, self.OnRightClick)
             # for wxGTK
             EVT_RIGHT_UP(self, self.OnRightClick)
 
@@ -140,6 +140,9 @@ class EditorView:
                 name = name[1:]
             else:
                 canCheck = false
+            
+            if accl: 
+                name = name + (accl[2] and '     <'+accl[2]+'>' or '')
 
             self.menu.Append(wId, name, checkable = canCheck)
             EVT_MENU(self, wId, meth)
@@ -162,8 +165,8 @@ class EditorView:
         del self.model
         del self.actions
 
-    def __del__(self):
-        print '__del__', self.__class__.__name__
+##    def __del__(self):
+##        print '__del__', self.__class__.__name__
         
     def addViewTools(self, toolbar):
         for name, meth, bmp, accls in self.actions:
@@ -497,8 +500,7 @@ class CyclopsView(HTMLView, ClosableViewMix):
             model.views['Source'].SetFocus()
             model.views['Source'].gotoLine(lineno - 1)
             
-
-    def genCustomPage(self, page):
+    def generatePage(self):
         return self.report
         
     def OnSaveReport(self, event):        
@@ -778,7 +780,7 @@ class ExploreView(wxTreeCtrl, EditorView):
                       wxTreeItemData(module.classes[className].methods[method]))
 
         functionList = module.functions.keys()
-        functionList.sort() 	               
+        functionList.sort()               
         for func in functionList:
             funcItem = self.AppendItem(rootItem, func, 3, -1,
               wxTreeItemData(module.functions[func]))
@@ -829,8 +831,8 @@ class HierarchyView(wxTreeCtrl, EditorView):
     def buildTree(self, parent, dict):
         for item in dict.keys():
             child = self.AppendItem(parent, item, 0)
-	    if len(dict[item].keys()):
-	        self.buildTree(child, dict[item])
+            if len(dict[item].keys()):
+                self.buildTree(child, dict[item])
             self.Expand(child)
 
     def refreshCtrl(self):
@@ -868,7 +870,19 @@ class HierarchyView(wxTreeCtrl, EditorView):
             if self.defaultActionIdx != -1:
                 self.actions[self.defaultActionIdx][1](event)
 
+class DistUtilView(wxPanel, EditorView):
+    viewName = 'DistUtils'
 
+    def __init__(self, parent, model):
+        wxPanel.__init__(self, parent, -1)
+        EditorView.__init__(self, ())#('Add comment block to code', self.OnAddInfo, ()), 5)
+        self.active = true
+        self.model = model
+
+    
+    def refreshCtrl(self):
+        pass
+    
 #class CVSView : Shows conflicts after merging CVS    
 
 #class ImportView(wxOGL, EditorView) -> AppModel: implimented in UMLView.py
