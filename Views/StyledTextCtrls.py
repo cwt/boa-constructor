@@ -563,14 +563,18 @@ class PythonStyledTextCtrlMix:
         finally:
             self.EndUndoAction()    
 
-    keymap={81: chr(64), 56: chr(91), 57: chr(93), 55: chr(123), 48: chr(125),
-            219: chr(92), 337: chr(126), 226: chr(124)}
-
-    def handleSpecialEuropeanKeys(self, event):
+    keymap={'euro': {81: chr(64), 56: chr(91), 57: chr(93), 55: chr(123), 
+                     48: chr(125), 219: chr(92), 337: chr(126), 226: chr(124)},
+            'france': {48: chr(64), 53: chr(91), 219: chr(93), 52: chr(123),
+                       337: chr(125), 56: chr(92), 50: chr(126), 226: chr(54),
+                       55: chr(96), 51: chr(35), 54: chr(124)},
+           } 
+    def handleSpecialEuropeanKeys(self, event, countryKeymap='euro'):
         key = event.KeyCode()
-        if event.AltDown() and event.ControlDown() and self.keymap.has_key(key):
+        keymap = self.keymap[countryKeymap]
+        if event.AltDown() and event.ControlDown() and keymap.has_key(key):
             currPos = self.GetCurrentPos()
-            self.InsertText(currPos, self.keymap[key])
+            self.InsertText(currPos, keymap[key])
             self.SetCurrentPos(self.GetCurrentPos()+1)
             self.SetSelectionStart(self.GetCurrentPos())
 
