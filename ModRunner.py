@@ -11,11 +11,12 @@
 #-----------------------------------------------------------------------------
 from wxPython.wx import *
 from os import path
+from popen2import import popen3
 
 import ErrorStack
 
 class ModuleRunner:
-    def __init__(self, esf, app, runningDir = ''):
+    def __init__(self, esf, app, runningDir=''):
         self.init(esf, app)
         self.runningDir = runningDir
         self.results = {}
@@ -34,7 +35,7 @@ class ModuleRunner:
         if self.results:
             return apply(self.checkError, (), self.results)
 
-    def checkError(self, err, caption, out = None, root = 'Error'):
+    def checkError(self, err, caption, out=None, root='Error'):
         if self.esf:
             if err or out:
                 self.esf.updateCtrls(err, out, root, self.runningDir)
@@ -47,10 +48,33 @@ class ModuleRunner:
 
 
 class CompileModuleRunner(ModuleRunner):
-    """ Uses compiles a module to show errors in frame"""
-    def run(self, filename):
-        import py_compile
-        py_compile.compile(filename)
+    """ Uses compiles a module to show syntax errors
+    
+    If the model is not saved, the source in the model is compiled directly.
+    Saved models (on the filesystem) are compiled from their files. This is 
+    useful for generating the .pyc files """
+    def run(self, filename, source, modified):
+        protsplit = string.find(filename, '://')
+        if protsplit != -1:
+            prot, filename = filename[:protsplit], filename[protsplit+3:]
+        else:
+            prot = 'file'
+        
+        if modified or prot != 'file':
+            try:
+                code = compile(source, filename, 'exec')
+            except:
+                # Add filename to traceback object
+                etype, value, tb = sys.exc_info()
+                msg, (_filename, lineno, offset, line) = value.args
+                if not _filename:
+                    value.args = msg, (filename, lineno, offset, line)
+                    value.filename = filename
+                import traceback
+                traceback.print_exc()
+        else:
+            import py_compile
+            py_compile.compile(filename)
 
 class ExecuteModuleRunner(ModuleRunner):
     """ Uses wxPython's wxExecute, no redirection """
@@ -81,9 +105,7 @@ class PopenModuleRunner(ModuleRunner):
     """ Uses Python's popen2, output and errors are redirected and displayed
         in a frame. """
     def run(self, cmd):
-        from popen2import import popen3
         inp, outp, errp = popen3(cmd)
-
         out = []
         while 1:
             l = outp.readline()
