@@ -6,11 +6,11 @@
 #
 # Created:     1999
 # RCS-ID:      $Id$
-# Copyright:   Changes (c) 1999, 2000 Riaan Booysen
+# Copyright:   Changes (c) 1999 - 2002 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
 
-"""Parse one Python file and retrieve classes and methods,
+"""Parse one Python file and retrieve classes, methods, functions,
 store the code spans and facilitate the manipulation of method bodies
 
 This module is heavly based on 'pyclbr.py' from the standard python lib
@@ -26,6 +26,12 @@ Continuation lines are now handled for class, method and function defs
 """
 
 # XXX Dedented block (0 indent) should trigger end of class/func
+
+# XXX Keep track of 'return' in function bodies for possible return type
+# XXX identification
+
+# XXX Add regex for __calling__ code.
+# XXX Mainly so that line conts can be used
 
 import os, sys
 import imp
@@ -47,6 +53,7 @@ is_func_start = re.compile('^def[ \t]+(?P<id>%s)[ \t]*\('%id)
 is_attrib = re.compile('[ \t]*self[.](?P<name>%s)[ \t]*=[ \t]*'%id)
 is_attrib_from_call = re.compile('[ \t]*self[.](?P<name>%s)[ \t]*=[ \t]*(?P<classpath>%s)\('%(id, obj_def))
 is_name = re.compile('[ \t]*(?P<name>%s)[ \t]*=[ \t]*'%id)
+is_name_from_call = re.compile('[ \t]*(?P<name>%s)[ \t]*=[ \t]*(?P<classpath>%s)\('%(id, obj_def))
 #are_names = re.compile('[ \t]*((?P<names>%s)[ \t]*[,][ \t]*)+(?P<lastname>%s)[ \t]*)*=[ \t]*'%(id, id))
 is_import = re.compile('^[ \t]*import[ \t]*(?P<imp>[^#;]+)')
 is_from = re.compile('^[ \t]*from[ \t]+(?P<module>%s([ \t]*\\.[ \t]*%s)*)[ \t]+import[ \t]+(?P<imp>[^#;]+)'%(id, id))
@@ -64,7 +71,6 @@ is_doc = re.compile('(?P<string>%s|%s)' % (sq3string, dq3string))
 
 # XXX Provide for lines between entries
 sep_line = '#[-]+.*'
-#blk_line = '#'
 str_name = '# Name:[ \t]*(?P<name>.*)'
 str_purpose = '# Purpose:[ \t]*(?P<purpose>.*)'
 str_author = '# Author:[ \t]*(?P<author>.*)'
@@ -76,17 +82,6 @@ str_licence = '# Licence:[ \t]*(?P<licence>[^#]*#[-]+)'
 is_info = re.compile(sep_line + str_name + str_purpose + str_author + \
   str_created + str_rcs_id + str_copyright + str_licence, re.DOTALL)
 
-def wxNewIds(cnt):
-    l = []
-    for i in range(cnt):
-        l.append(i)
-    return l
-
-def wxNewIds(cnt):
-    return map(lambda _init_ctrls: NewId(), range(cnt))
-
-##def wxNewIds(cnt):
-##    return [wxNewId() for x in range(cnt)]
 
 class CodeBlock:
     def __init__(self, sig, start, end):
@@ -95,7 +90,7 @@ class CodeBlock:
         self.end = end
         # XXX renumber
         self.locals = {}
-    
+
     def __repr__(self):
         return '[%d - %d]'%(self.start, self.end)
 
@@ -144,30 +139,22 @@ class Class:
         self.class_attributes = {}
         self.file = file
         self.block = CodeBlock('', lineno, lineno)
-        self.extent = lineno
 
     def __repr__(self):
         return self.name+`self.block`+'\n'+string.join(map(lambda meth, meths=self.methods: '    '+meth+`meths[meth]`, self.method_order), '\n')
-
-    def extend_extent(self, lineno):
-        if lineno > self.extent: self.extent = lineno
 
     def add_method(self, name, sig, linestart, lineend = None, to_bottom = 1):
         if not lineend: lineend = linestart
         self.methods[name] = CodeBlock(sig, linestart, lineend)
         if to_bottom:
             self.method_order.append(name)
-            self.extend_extent(lineend)
         else:
             self.method_order.insert(0, name)
-            self.extent = self.extent + (lineend - linestart)
 
     def end_method(self, name, lineend):
         self.methods[name].end = lineend
-        self.extend_extent(lineend)
 
     def remove_method(self, name):
-        self.extent = self.extent - self.methods[name].size()
         del self.methods[name]
         self.method_order.remove(name)
 
@@ -201,6 +188,15 @@ class Class:
             if meth.contains(line_no):
                 return name, meth
         return '', None
+
+    def calcExtent(self):
+        #return max(*[m.end for m in self.methods.values()])
+        ext = 0
+        for meth in self.methods.values():
+            if meth.end > ext:
+                ext = meth.end
+        return ext
+
 
 class Test2: pass
 
@@ -272,13 +268,18 @@ class Module:
         self.class_order = []#class_order
         self.functions = {}
         self.function_order = []
-        self.imports = {}
         self.todos = []
         self.wids = []
         self.name = module
         self.globals = {}
         self.global_order = []
         self.break_lines = {}
+
+        self.imports = {}
+        self.from_imports = {}
+        self.from_imports_names = {}
+        self.from_imports_star = []
+        self.from_imports_star_cache = {}
 
         cur_class = None
         cur_meth = ''
@@ -293,13 +294,11 @@ class Module:
 
             cont, cur_class, cur_meth, cur_func = self.parseLine(module, file,
                   line, self.lineno, cur_class, cur_meth, cur_func)
-                        
+
         # if it's the last class in the source, it will not dedent
         # check manually
         cur_class, cur_meth, cur_func = self.finaliseEntry(cur_class, cur_meth,
           cur_func, self.lineno +1)
-
-#        print self.imports
 
     def parseLineIsolated(self, line, lineno):
         cls = self.getClassForLineNo(lineno)
@@ -311,8 +310,8 @@ class Module:
             if fnc:
                 return self.parseLine('', '', line, lineno, None, '', fnc)
         return self.parseLine('', '', line, lineno, None, '', None)
-                
-                
+
+
 
     def parseLine(self, module, file, line, lineno, cur_class, cur_meth, cur_func):
         res = is_todo.match(line)
@@ -328,7 +327,7 @@ class Module:
                 res = is_break_line.match(line)
                 if res:
                     self.break_lines[lineno] = res.group('descr')
-                
+
             return 0, cur_class, cur_meth, cur_func
 
 ##            if dedent.match(line):
@@ -374,7 +373,7 @@ class Module:
                 inherit = names
             # remember this class
 
-# An attempt at maintaining state on the fly 
+# An attempt at maintaining state on the fly
 #(way to much effort, must be done for every parsed type)
 ##           order = -1
 ##            for cn in self.class_order[:]:
@@ -385,15 +384,15 @@ class Module:
 ##                    if c.name != class_name:
 ##                        del self.classes[c.name]
 ##                        self.classes[class_name] = c
-##                        
+##
 ##                        idx = self.class_order.index(c.name)
 ##                        del self.class_order[idx]
 ##                        self.class_order.insert(idx, class_name)
-##                        
+##
 ##                    c.name = class_name
 ##                    c.super = inherit
 ##                    return 0, cur_class, cur_meth, cur_func
-##                
+##
 ##                if lineno < c.block.start and order == -1:
 ##                    print 'non append order %d above %s:%d'%(lineno, c.name, c.block.start)
 ##                    order = self.class_order.index(cn)
@@ -406,7 +405,7 @@ class Module:
 ##                self.class_order.append(class_name)
 ##            else:
 ##                self.class_order.insert(order, class_name)
-                
+
             return 0, cur_class, cur_meth, cur_func
 
         res2 = is_func_start.match(line)
@@ -487,22 +486,27 @@ class Module:
         res = is_import.match(line)
         if res:
             # import module
-            for n in string.splitfields(res.group('imp'), ','):
+            for n in string.split(res.group('imp'), ','):
                 n = string.strip(n)
-                self.imports[n] = [lineno]
+                i = []
+                for s in string.split(n, '.'):
+                    i.append(s)
+                    self.imports[string.join(i, '.')] = [lineno]
             return 0, cur_class, cur_meth, cur_func
 
         res = is_from.match(line)
         if res:
             # from module import stuff
-            mod = res.group('module')
-            if not self.imports.has_key(mod):
-                self.imports[mod] = [lineno]
+            mod, names = res.group('module'), string.splitfields(res.group('imp'), ',')
+            self.from_imports[mod] = [lineno]
 
-##                names = string.splitfields(res.group('imp'), ',')
-##                for n in names:
-##                    n = string.strip(n)
-##                    self.imports[mod].append(n)
+            for n in names:
+                n = string.strip(n)
+                if n:
+                    self.from_imports[mod].append(n)
+                    if n != '*': self.from_imports_names[n] = mod
+                    else: self.from_imports_star.append(mod)
+
             return 0, cur_class, cur_meth, cur_func
 
         res = is_wid.match(line)
@@ -530,7 +534,7 @@ class Module:
             elif cur_func:
                 name = res.group('name')
                 if name not in cur_func.locals.keys():
-                        cur_func.locals[name] = Attrib(name, lineno)
+                    cur_func.locals[name] = Attrib(name, lineno)
 ##                if self.functions.has_key(cur_func):
 ##                    if name not in self.functions[cur_func].locals.keys():
 ##                        self.functions[cur_func].locals[name] = Attrib(name, lineno)
@@ -542,20 +546,22 @@ class Module:
                     self.global_order.append(name)
 
             return 0, cur_class, cur_meth, cur_func
-        
+
         return 1, cur_class, cur_meth, cur_func
 
-    def find_declarer(self, cls, attr, value, found = 0):
+    def find_declarer(self, cls, attr, value, found=0):
         if found:
             return found, cls, value
         else:
             for base in cls.super:
-                if type(base) == type(''):
+                if type(base) == StringType:
                     return found, cls, value
                 if base.attributes.has_key(attr):
                     return 1, base, base.attributes[attr]
                 elif base.methods.has_key(attr):
                     return 1, base, base.methods[attr]
+                elif base.class_attributes.has_key(attr):
+                    return 1, base, base.class_attributes[attr]
                 else:
                     found, cls, value = self.find_declarer(base, attr, value, 0)
         return found, cls, value
@@ -574,7 +580,7 @@ class Module:
 
         # Add a method code block
         if to_bottom or not a_class.method_order:
-            ins_point = a_class.extent
+            ins_point = a_class.calcExtent()
             pre_blank = ['']
             post_blank = []
         else:
@@ -668,7 +674,7 @@ class Module:
         modTop = self.source[:min(classStart, funcStart)]
         return self.searchDoc(string.join(self.formatDocStr(modTop)))
 
-    def formatDocStr(self, lines):        
+    def formatDocStr(self, lines):
         l = []
         for line in lines:
             if not string.strip(line):
@@ -700,7 +706,7 @@ class Module:
         """ Extract the doc string for a method """
         methDoc = self.extractMethodBody(class_name, meth_name)
         return self.searchDoc(string.join(self.formatDocStr(methDoc)))
-    
+
     def getFunctionDoc(self, function_name):
         funcDoc = self.extractFunctionBody(function_name)
         return self.searchDoc(string.join(self.formatDocStr(funcDoc)))
@@ -824,6 +830,9 @@ class Module:
     def addImportStatement(self, impStmt):
         """ Adds an import statement to the code and internal dict if it isn't
             added yet """
+        # XXX Split on newline
+        stmts = string.split(impStmt, '\n')
+
         m = is_import.match(impStmt)
         impLine = ''
         if m:
@@ -836,8 +845,8 @@ class Module:
             m = is_from.match(impStmt)
             if m:
                 mod = m.group('module')
-                if not self.imports.has_key(mod):
-                    self.imports[mod] = [self.lineno]
+                if not self.from_imports.has_key(mod):
+                    self.from_imports[mod] = [self.lineno]
                     impLine = impStmt
             else:
                 raise 'Import statement invalid'
@@ -846,10 +855,10 @@ class Module:
             # XXX Decide on default position if module does not have
             # XXX from wxPython.wx import *
             # Add it beneath from wxPython.wx import *
-            if self.imports.has_key('wxPython.wx'):
-                insLine = self.imports['wxPython.wx'][0]
+            if self.from_imports.has_key('wxPython.wx'):
+                insLine = self.from_imports['wxPython.wx'][0]
                 self.source.insert(insLine, impLine)
-                self.renumber(1, insLine)
+                self.renumber(1, insLine) #len(stmts)
 
     def getClassForLineNo(self, line_no):
         for cls in self.classes.values():

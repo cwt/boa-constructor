@@ -43,15 +43,15 @@ def AddToolButtonBmpObject(frame, toolbar, thebitmap, hint, triggermeth, theTogg
     EVT_TOOL(frame, nId, triggermeth)
     return nId
 
-def AddColMaskToolButtonBmpObject(frame, toolbar, thebitmap, hint, triggermeth, 
-      theToggleBitmap=wxNullBitmap, theMaskColour=None):
-    nId = wxNewId()
-    doToggle = theToggleBitmap != wxNullBitmap
-    if theMaskColour:
-        thebitmap.SetMask(wxMaskColour(thebitmap, theMaskColour))
-    toolbar.AddTool(nId, thebitmap, theToggleBitmap, shortHelpString = hint)
-    EVT_TOOL(frame, nId, triggermeth)
-    return nId
+##def AddColMaskToolButtonBmpObject(frame, toolbar, thebitmap, hint, triggermeth,
+##      theToggleBitmap=wxNullBitmap, theMaskColour=None):
+##    nId = wxNewId()
+##    doToggle = theToggleBitmap != wxNullBitmap
+##    if theMaskColour:
+##        thebitmap.SetMask(wxMaskColour(thebitmap, theMaskColour))
+##    toolbar.AddTool(nId, thebitmap, theToggleBitmap, shortHelpString = hint)
+##    EVT_TOOL(frame, nId, triggermeth)
+##    return nId
 
 def AddToolButtonBmpFile(frame, toolbar, filename, hint, triggermeth):
     return AddToolButtonBmpObject(frame, toolbar, IS.load(filename),
@@ -59,9 +59,9 @@ def AddToolButtonBmpFile(frame, toolbar, filename, hint, triggermeth):
 
 def AddToolButtonBmpIS(frame, toolbar, name, hint, triggermeth, toggleBmp = ''):
     if toggleBmp:
-        return AddToggleToolButtonBmpObject(frame, toolbar, IS.load(name), hint, triggermeth)
+        return AddToggleToolButtonBmpObject(frame, toolbar, IS.load(name), hint[:85], triggermeth)
     else:
-        return AddToolButtonBmpObject(frame, toolbar, IS.load(name), hint, triggermeth)
+        return AddToolButtonBmpObject(frame, toolbar, IS.load(name), hint[:85], triggermeth)
 
 def AddToggleToolButtonBmpObject(frame, toolbar, thebitmap, hint, triggermeth):
     nId = wxNewId()
@@ -254,7 +254,7 @@ class PaintEventHandler(wxEvtHandler):
 
 def showTip(frame, forceShow = 0):
     """ Displays tip of the day.
-    
+
     Driven from and updates config file
     """
     try:
@@ -274,7 +274,7 @@ def showTip(frame, forceShow = 0):
             conf.set('tips', 'showonstartup', showTip)
             conf.set('tips', 'tipindex', index)
             try:
-                conf.write(open(conf.confFile, 'w'))
+                writeConfig(conf)
             except IOError:
                 wxLogError('Could not edit tips settings, please make '
                       'sure that the Explorer.*.cfg file is not read only and you '
@@ -298,15 +298,25 @@ def writeTextToClipboard(text):
     finally:
         clip.Close()
 
+_sharedConfs = {}
 def createAndReadConfig(name, forPlatform = 1):
     """ Return an initialised ConfigFile object """
-    conf = ConfigParser()
     confFile = '%s/%s%s.cfg' % (Preferences.rcPath, name,
         forPlatform and wx.wxPlatform == '__WXMSW__' and '.msw' \
         or forPlatform and '.gtk' or '')
-    conf.read(confFile)
-    conf.confFile = confFile
-    return conf
+    
+    if not _sharedConfs.has_key(confFile):
+        conf = ConfigParser()
+        conf.read(confFile)
+        conf.confFile = confFile
+        _sharedConfs[confFile] = conf
+    
+    return _sharedConfs[confFile]
+
+def writeConfig(conf):
+    #f = get_current_frame()
+    #print 'writeConfig', f.f_back.f_back.f_code.co_filename
+    conf.write(open(conf.confFile, 'w'))
 
 from wxPython import html
 
@@ -323,7 +333,7 @@ class wxHtmlWindowUrlClick(wxPyEvent):
 
 class wxUrlClickHtmlWindow(html.wxHtmlWindow):
     """ HTML window that generates and OnLinkClicked event.
-    
+
     Use this to avoid having to override HTMLWindow
     """
     def OnLinkClicked(self, linkinfo):
@@ -363,6 +373,15 @@ import stat, shutil
 skipdirs = ('CVS',)
 dofiles = ('.py',)
 
+def updateFile(src, dst):
+    if not os.path.isdir(src):
+        if os.path.splitext(src)[-1] in dofiles and \
+              ( not os.path.exists(dst) or \
+              os.stat(dst)[stat.ST_MTIME] < os.stat(src)[stat.ST_MTIME]):
+            print 'copying', src, dst
+            shutil.copy2(src, dst)
+    
+
 def updateDir(src, dst):
     """ Traverse src and assures that dst is up to date """
     os.path.walk(src, visit_update, (src, dst) )
@@ -370,7 +389,10 @@ def updateDir(src, dst):
 def visit_update(paths, dirname, names):
     src, dst = paths
     reldir = dirname[len(src)+1:]
-    dstdirname = os.path.join(dst, reldir)
+    if reldir:
+        dstdirname = os.path.join(dst, reldir)
+    else:
+        dstdirname = dst
     if os.path.basename(dirname) in skipdirs:
         return
     if not os.path.exists(dstdirname):
@@ -379,18 +401,19 @@ def visit_update(paths, dirname, names):
     for name in names:
         srcname = os.path.join(dirname, name)
         dstname = os.path.join(dstdirname, name)
-        if not os.path.isdir(srcname):
-            if os.path.splitext(srcname)[-1] in dofiles and \
-                  ( not os.path.exists(dstname) or \
-                  os.stat(dstname)[stat.ST_MTIME] < os.stat(srcname)[stat.ST_MTIME]):
-                print 'copying', srcname, dstname
-                shutil.copy2(srcname, dstname)
-
+        updateFile(srcname, dstname)
+        
 def get_current_frame():
     try:
-        1 + ''  # raise an exception
+        raise 'get_exc_info'
     except:
-        return sys.exc_info()[2].tb_frame
+        return sys.exc_info()[2].tb_frame.f_back
+
+def descr_frame(frame):
+    if frame: return ('<frame:%s(%s)%s [%s]>'%(
+          os.path.basename(frame.f_code.co_filename), frame.f_lineno, 
+          frame.f_code.co_name, id(frame)) )
+    else: return 'None'
 
 padWidth = 80
 pad = padWidth*' '
@@ -432,8 +455,8 @@ class OutputLoggerPF(LoggerPF):
             if Preferences.recordModuleCallPoint:
                 frame = get_current_frame()
                 ss = string.strip(s)+ ' : <<%s, %d>>' % (
-                     frame.f_back.f_back.f_code.co_filename,
-                     frame.f_back.f_back.f_lineno,)
+                     frame.f_back.f_code.co_filename,
+                     frame.f_back.f_lineno,)
             else:
                 ss = s
             wxLogMessage(self.pad(ss))
@@ -457,9 +480,9 @@ class ErrorLoggerPF(LoggerPF):
 
 def getCtrlsFromDialog(dlg, className):
     """ Returns children of given class from dialog.
-    
+
     This is useful for standard dialogs that does not expose their children """
-    return filter(lambda d, cn=className: d.__class__.__name__ == cn, 
+    return filter(lambda d, cn=className: d.__class__.__name__ == cn,
                   dlg.GetChildren())
 
 def html2txt(htmlblock):
@@ -472,18 +495,188 @@ def html2txt(htmlblock):
     return string.strip(s.getvalue())
 
 def getEntireWxNamespace():
-    """ Return a dictionary containing the entire wxPython namespace """
-    from wxPython import wx, html, htmlhelp, grid, calendar, utils, stc, ogl
+    """ Return a dictionary containing the entire (non filtered) wxPython 
+        namespace """
+    from wxPython import wx, html, htmlhelp, grid, calendar, utils, stc, ogl, gizmos, help
     namespace = {}
-    map(namespace.update, [wx.__dict__, html.__dict__, htmlhelp.__dict__, 
-                           grid.__dict__, calendar.__dict__, utils.__dict__, 
-                           stc.__dict__, ogl.__dict__])
+    map(namespace.update, [wx.__dict__, html.__dict__, htmlhelp.__dict__,
+                           grid.__dict__, calendar.__dict__, utils.__dict__,
+                           stc.__dict__, ogl.__dict__, gizmos.__dict__,
+                           help.__dict__])
     return namespace
 
 class FrameRestorerMixin:
+    confFile = 'Explorer'
+    confSection = 'windowdims'
+
     def restore(self):
-        self.Show(true)
+        self.Show()
         if self.IsIconized():
             self.Iconize(false)
         self.Raise()
- 
+
+    def loadDims(self):
+        conf = createAndReadConfig(self.confFile)
+        dims = eval(conf.get(self.confSection , self.winConfOption))
+        if dims:
+            apply(self.SetDimensions, dims)
+        else:
+            self.setDefaultDimensions()
+
+    def saveDims(self, dims=()):
+        if dims == ():
+            dims = self.GetPosition().asTuple() + self.GetSize().asTuple()
+        conf = createAndReadConfig(self.confFile)
+        conf.set(self.confSection, self.winConfOption, `dims`)
+        writeConfig(conf)
+        
+    def restoreDefDims(self):
+        self.saveDims(None)
+        self.loadDims()
+
+
+def setupCloseWindowOnEscape(win):
+    def OnCloseWin(event, win=win): win.Close()
+
+    wxID_CLOSEWIN = wxNewId()
+    EVT_MENU(win, wxID_CLOSEWIN, OnCloseWin)
+    return (wxACCEL_NORMAL, WXK_ESCAPE, wxID_CLOSEWIN)
+
+def getModelBaseDir(model):
+    if hasattr(model, 'app') and model.app and model.app.savedAs:
+        return os.path.dirname(model.app.filename)
+    elif model.savedAs:
+        return os.path.dirname(model.filename)
+    else:
+        return ''
+
+def pathRelativeToModel(path, model):
+    from relpath import relpath
+    mbd = getModelBaseDir(model)
+    if mbd:
+        return relpath(mbd, path)
+    else:
+        return path
+
+class BottomAligningSplitterMix:
+    """ Mixin class that keeps the bottom window in a splitter at a constant height """
+    def __init__(self):
+        EVT_SIZE(self, self._OnSplitterwindowSize)
+        EVT_SPLITTER_SASH_POS_CHANGED(self, self.GetId(),
+            self._OnSplitterwindowSplitterSashPosChanged)
+        EVT_SPLITTER_DOUBLECLICKED(self, self.GetId(),
+            self._OnSplitterwindowSplitterDoubleclicked)
+        sashsize = self.GetSashSize()
+        self.SetMinimumPaneSize(sashsize)
+        sashpos = self.GetClientSize().y - sashsize
+        self.SetSashPosition(sashpos)
+        self._win2sze = self._getWin2Sze()
+
+    def bottomWindowIsOpen(self):
+        return self.GetSashPosition() != self.GetClientSize().y - self.GetSashSize()
+
+    def openBottomWindow(self):
+        self.SetSashPosition(\
+                  self.GetClientSize().y *(1.0-Preferences.eoErrOutWindowHeightPerc))
+        self._win2sze = self._getWin2Sze()
+
+    def closeBottomWindow(self):
+        self.SetSashPosition(self.GetClientSize().y - self.GetSashSize())
+        self._win2sze = self._getWin2Sze()
+
+    def _getWin2Sze(self):
+        win2 = self.GetWindow2()
+        if win2 : return win2.GetSize().y
+        else:     return 0
+
+    def _OnSplitterwindowSize(self, event):
+        sashpos = self.GetClientSize().y - self._win2sze - self.GetSashSize()
+        self.SetSashPosition(sashpos)
+
+    def _OnSplitterwindowSplitterSashPosChanged(self, event):
+        self._win2sze = self._getWin2Sze()
+        event.Skip()
+
+    def _OnSplitterwindowSplitterDoubleclicked(self, event):
+        if self.bottomWindowIsOpen():
+            self.closeBottomWindow()
+        else:
+            self.openBottomWindow()
+
+class BottomAligningSplitterWindow(wxSplitterWindow, BottomAligningSplitterMix):
+    def __init__(self, *_args, **_kwargs):
+        apply(wxSplitterWindow.__init__, (self,)+_args, _kwargs)
+        BottomAligningSplitterMix.__init__(self)
+
+def traverseTreeCtrl(tree, treeItem, func):
+    func(tree, treeItem)
+    item, cookie = tree.GetFirstChild(treeItem, 0)
+    while item.IsOk():
+        traverseTreeCtrl(tree, item, func)
+        item, cookie = tree.GetNextChild(item, cookie)
+
+
+class ListCtrlLabelEditFixEH(wxEvtHandler):
+    """Fixes broken LabelEdit/Cursor behaviour on MSW
+
+       Add in constructor:
+       ListCtrlLabelEditFixEH(<control>)
+
+       Add in destructor:
+       <control>.PopEventHandler(true)
+    """
+
+    wxEVT_CTRLEDIT = wxNewId()
+
+    def __init__(self, listCtrl):
+        wxEvtHandler.__init__(self)
+        self._blockMouseEdit = false
+
+        self.listCtrl = listCtrl
+        EVT_LIST_BEGIN_LABEL_EDIT(listCtrl, listCtrl.GetId(), self.OnBeginLabelEdit)
+        self.Connect(-1, -1, self.wxEVT_CTRLEDIT, self.OnCtrlLabelEdit)
+        listCtrl.PushEventHandler(self)
+    
+    def OnBeginLabelEdit(self, event):
+        if not self._blockMouseEdit and wxPlatform == '__WXMSW__':
+            event.Veto()
+
+            ctrlEditEvt = wxPyEvent()
+            ctrlEditEvt.SetEventType(self.wxEVT_CTRLEDIT)
+            ctrlEditEvt.idx = event.GetIndex()
+
+            wxPostEvent(self, ctrlEditEvt)
+        else:
+            self._blockMouseEdit = false
+        event.Skip()
+
+    def OnCtrlLabelEdit(self, event):
+        self._blockMouseEdit = true
+        self.listCtrl.EditLabel(event.idx)
+        event.Skip()
+
+def importFromPlugins(name):
+    # find module
+    paths = [Preferences.pyPath + '/Plug-ins']
+    if Preferences.extraPluginsPath:
+        paths.append(Preferences.extraPluginsPath)
+    if Preferences.rcPath != Preferences.pyPath and \
+          os.path.isdir(Preferences.rcPath+ '/Plug-ins'):
+        paths.append(Preferences.rcPath + '/Plug-ins')
+
+    modname = string.replace(name, '.', '/') + '.py'
+    for pth in paths:
+        modpath = os.path.join(pth, modname)
+        if os.path.isfile(modpath):
+            break
+    else:
+        raise ImportError, 'Module %s could not be found in Plug-ins'
+    
+    import new
+    mod = new.module(name)
+    
+    execfile(modpath, mod.__dict__)
+    
+    return mod
+
+    

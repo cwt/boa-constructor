@@ -6,7 +6,7 @@
 #
 # Created:     1999
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999, 2000 Riaan Booysen
+# Copyright:   (c) 1999 - 2002 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
 
@@ -60,7 +60,7 @@ def relpath(base, comp):
 
     if baseprot != compprot:
         return comp
-        
+
     base_drive, base_path = path.splitdrive(nbase)
     comp_drive, comp_path = path.splitdrive(ncomp)
     base_path_list = splitpath(base_path)
@@ -75,7 +75,7 @@ def relpath(base, comp):
     # find the first directory for which the 2 paths differ
     found = -1
     for idx in range(len(base_path_list)):
-        if base_path_list[idx] != comp_path_list[idx]:
+        if string.lower(base_path_list[idx]) != string.lower(comp_path_list[idx]):
             rel_path = comp_path_list[idx:]
             found = 0
             break

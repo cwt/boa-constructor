@@ -6,7 +6,7 @@
 #
 # Created:     2000/06/19
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999 - 2001 Riaan Booysen
+# Copyright:   (c) 1999 - 2002 Riaan Booysen
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 
@@ -18,9 +18,10 @@ from wxPython.stc import *
 
 from Views import StyledTextCtrls
 from ExternalLib.PythonInterpreter import PythonInterpreter
-import Preferences
+import Preferences, Utils
 from Preferences import keyDefs
-import Utils
+import wxNamespace
+
 echo = true
 
 p2c = 'Type "copyright", "credits" or "license" for more information.'
@@ -31,14 +32,15 @@ p2c = 'Type "copyright", "credits" or "license" for more information.'
 
 only_first_block = 1
 
-class ShellEditor(StyledTextCtrls.wxStyledTextCtrl, 
-                  StyledTextCtrls.PythonStyledTextCtrlMix, 
+class ShellEditor(StyledTextCtrls.wxStyledTextCtrl,
+                  StyledTextCtrls.PythonStyledTextCtrlMix,
                   StyledTextCtrls.AutoCompleteCodeHelpSTCMix,
                   StyledTextCtrls.CallTipCodeHelpSTCMix):
     def __init__(self, parent, wId):
-        StyledTextCtrls.wxStyledTextCtrl.__init__(self, parent, wId, 
-              style = wxCLIP_CHILDREN)
+        StyledTextCtrls.wxStyledTextCtrl.__init__(self, parent, wId,
+              style = wxCLIP_CHILDREN | wxSUNKEN_BORDER)
         StyledTextCtrls.CallTipCodeHelpSTCMix.__init__(self)
+        StyledTextCtrls.AutoCompleteCodeHelpSTCMix.__init__(self)
         StyledTextCtrls.PythonStyledTextCtrlMix.__init__(self, wId, ())
 
         self.lines = StyledTextCtrls.STCLinesList(self)
@@ -60,30 +62,23 @@ class ShellEditor(StyledTextCtrls.wxStyledTextCtrl,
         EVT_MENU(self, wxID_SHELL_CODECOMP, self.OnShellCodeComplete)
         EVT_MENU(self, wxID_SHELL_CALLTIPS, self.OnShellCallTips)
 
-        self.SetAcceleratorTable(wxAcceleratorTable( [
-         (keyDefs['HistoryUp'][0], keyDefs['HistoryUp'][1], wxID_SHELL_HISTORYUP),
-         (keyDefs['HistoryDown'][0], keyDefs['HistoryDown'][1], wxID_SHELL_HISTORYDOWN),
-         (keyDefs['CodeComplete'][0], keyDefs['CodeComplete'][1], wxID_SHELL_CODECOMP),
-         (keyDefs['CallTips'][0], keyDefs['CallTips'][1], wxID_SHELL_CALLTIPS),
-#         (0, WXK_RETURN, wxID_SHELL_ENTER),
-         (0, WXK_HOME, wxID_SHELL_HOME),
-        ] ))
+        self.bindShortcuts()
 
         self.history = []
         self.historyIndex = 1
-        
+
         self.buffer = []
 
         self.stdout = PseudoFileOut(self)
         self.stderr = PseudoFileErr(self)
         self.stdin = PseudoFileIn(self, self.buffer)
-        
+
         self._debugger = None
 
         self.AddText('# Python %s (Boa)\n# %s'%(sys.version, copyright))
         self.LineScroll(-10, 0)
         self.SetSavePoint()
-       
+
     def destroy(self):
         if self.stdin.isreading():
             self.stdin.kill()
@@ -92,6 +87,16 @@ class ShellEditor(StyledTextCtrls.wxStyledTextCtrl,
         del self.stdout
         del self.stderr
         del self.stdin
+        del self.interp
+
+    def bindShortcuts(self):
+        self.SetAcceleratorTable(wxAcceleratorTable( [
+         (keyDefs['HistoryUp'][0], keyDefs['HistoryUp'][1], wxID_SHELL_HISTORYUP),
+         (keyDefs['HistoryDown'][0], keyDefs['HistoryDown'][1], wxID_SHELL_HISTORYDOWN),
+         (keyDefs['CodeComplete'][0], keyDefs['CodeComplete'][1], wxID_SHELL_CODECOMP),
+         (keyDefs['CallTips'][0], keyDefs['CallTips'][1], wxID_SHELL_CALLTIPS),
+         (0, WXK_HOME, wxID_SHELL_HOME),
+        ] ))
 
     def execStartupScript(self, startupfile):
         if startupfile:
@@ -99,7 +104,7 @@ class ShellEditor(StyledTextCtrls.wxStyledTextCtrl,
             self.pushLine('print %s;execfile(%s)'%(`startuptext`, `startupfile`))
         else:
             self.pushLine('')
-    
+
     def debugShell(self, doDebug, debugger):
         if doDebug:
             self._debugger = debugger
@@ -140,8 +145,8 @@ class ShellEditor(StyledTextCtrls.wxStyledTextCtrl,
             self.SetSelection(pos, endpos)
             self.ReplaceSelection((self.history+[''])[self.historyIndex])
 
-    def pushLine(self, line):
-        self.AddText('\n')
+    def pushLine(self, line, addText=''):
+        self.AddText(addText+'\n')
         prompt = ''
         try:
             self.stdin.clear()
@@ -180,7 +185,7 @@ class ShellEditor(StyledTextCtrls.wxStyledTextCtrl,
 ##                return
             if self.CallTipActive():
                 self.CallTipCancel()
-                
+
             lc = self.GetLineCount()
             cl = self.GetCurrentLine()
             ct = self.GetCurLine()[0]
@@ -212,19 +217,15 @@ class ShellEditor(StyledTextCtrls.wxStyledTextCtrl,
 
     def getCodeCompOptions(self, word, rootWord, matchWord, lnNo):
         if not rootWord:
-            return eval('dir()+__builtins__.keys()', self.interp.locals) +\
-                  keyword.kwlist
+            return wxNamespace.filterOnPrefs(self.interp.locals,
+                   wxNamespace.__dict__) + __builtins__.keys() + keyword.kwlist
         else:
-            try:
-                obj = eval(rootWord, self.interp.locals)
-            except Exception, error:
-                return []
+            try: obj = eval(rootWord, self.interp.locals)
+            except Exception, error: return []
             else:
-                try:
-                    return recdir(obj)
-                except Exception, err:
-                    return [] 
-        
+                try: return recdir(obj)
+                except Exception, err: return []
+
     def OnShellCodeComplete(self, event):
         self.codeCompCheck()
 
@@ -232,46 +233,9 @@ class ShellEditor(StyledTextCtrls.wxStyledTextCtrl,
         try:
             obj = eval(word, self.interp.locals)
         except:
-            docs = ''
+            return ''
         else:
-            # we want to reroute wxPython objects to their doc strings
-            # if they are defined
-            docs = ''
-            if hasattr(obj, '__doc__') and obj.__doc__:
-                wxNS = Utils.getEntireWxNamespace()
-                if type(obj) is types.ClassType:
-                    if wxNS.has_key(obj.__name__):
-                        docs = obj.__init__.__doc__
-                elif type(obj) is types.InstanceType:
-                    if wxNS.has_key(obj.__class__.__name__):
-                        docs = obj.__doc__
-                elif type(obj) is types.MethodType:
-                    if wxNS.has_key(obj.im_class.__name__):
-                        docs = obj.__doc__
-            # Get docs from builtin's docstrings or from Signature module
-            if not docs:
-                if type(obj) is types.BuiltinFunctionType:
-                    try: docs = obj.__doc__
-                    except AttributeError: docs = ''
-                else:
-                    from ExternalLib import Signature
-                    try:
-                        sig = str(Signature.Signature(obj))
-                        docs = string.replace(sig, '(self, ', '(')
-                        docs = string.replace(docs, '(self)', '()')
-                    except (ValueError, TypeError):
-                        try: docs = obj.__doc__
-                        except AttributeError: docs = ''
-
-            if docs:
-                # Take only the first continuous block from big docstrings
-                if only_first_block:
-                    tip = self.getFirstContinousBlock(docs)
-                else:
-                    tip = docs
-                
-                return tip
-        return ''
+            return tipforobj(obj, self)
 
     def OnShellCallTips(self, event):
         self.callTipCheck()
@@ -280,7 +244,7 @@ class ShellEditor(StyledTextCtrls.wxStyledTextCtrl,
         lnNo = self.GetCurrentLine()
         lnStPs = self.PositionFromLine(lnNo)
         line = self.GetCurLine()[0]
-        
+
         if len(line) >=4 and line[:4] in (Preferences.ps1, Preferences.ps2):
             self.SetCurrentPos(lnStPs+4)
             self.SetAnchor(lnStPs+4)
@@ -312,15 +276,56 @@ class ShellEditor(StyledTextCtrls.wxStyledTextCtrl,
 
 def recdir(obj):
     res = dir(obj)
-    if hasattr(obj, '__class__'):
+    if hasattr(obj, '__class__') and type(obj) != types.ModuleType:
         res.extend(recdir(obj.__class__))
     if hasattr(obj, '__bases__'):
         for base in obj.__bases__:
             res.extend(recdir(base))
-    
+
     unq = {}
     for name in res: unq[name] = None
     return unq.keys()
+
+def tipforobj(obj, ccstc):
+    # we want to reroute wxPython objects to their doc strings
+    # if they are defined
+    docs = ''
+    if hasattr(obj, '__doc__') and obj.__doc__:
+        wxNS = Utils.getEntireWxNamespace()
+        if type(obj) is types.ClassType:
+            if wxNS.has_key(obj.__name__):
+                docs = obj.__init__.__doc__
+        elif type(obj) is types.InstanceType:
+            if wxNS.has_key(obj.__class__.__name__):
+                docs = obj.__doc__
+        elif type(obj) is types.MethodType:
+            if wxNS.has_key(obj.im_class.__name__):
+                docs = obj.__doc__
+    # Get docs from builtin's docstrings or from Signature module
+    if not docs:
+        if type(obj) is types.BuiltinFunctionType:
+            try: docs = obj.__doc__
+            except AttributeError: docs = ''
+        else:
+            from ExternalLib import Signature
+            try:
+                sig = str(Signature.Signature(obj))
+                docs = string.replace(sig, '(self, ', '(')
+                docs = string.replace(docs, '(self)', '()')
+            except (ValueError, TypeError):
+                try: docs = obj.__doc__
+                except AttributeError: docs = ''
+
+    if docs:
+        # Take only the first continuous block from big docstrings
+        if only_first_block:
+            tip = ccstc.getFirstContinousBlock(docs)
+        else:
+            tip = docs
+
+        return tip
+    return ''
+
 
 #-----Pipe redirectors--------------------------------------------------------
 
@@ -328,17 +333,18 @@ class PseudoFileIn:
     def __init__(self, output, buffer):
         self._buffer = buffer
         self._output = output
+        self._reading = false
 
     def clear(self):
         self._buffer[:] = []
         self._reading = false
-    
+
     def isreading(self):
         return self._reading
-    
+
     def kill(self):
         self._buffer.append(None)
-                        
+
     def readline(self):
         self._reading = true
         self._output.AddText('\n'+Preferences.ps4)
@@ -362,16 +368,16 @@ class QuoterPseudoFile(Utils.PseudoFile):
         Utils.PseudoFile.__init__(self, output)
         self._dirty = false
         self._quote = quote
-    
+
     def _addquotes(self):
         if self._quote:
             self.output.AddText(self.quotes+'\n')
-        
+
     def write(self, s):
         if not self._dirty:
             self._addquotes()
             self._dirty = true
-    
+
     def fin(self):
         if self._dirty:
             self._addquotes()
@@ -405,20 +411,3 @@ class PseudoFileErrTC(Utils.PseudoFile):
     def write(self, s):
         self.output.AppendText(s)
         if echo: sys.__stderr__.write(s)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

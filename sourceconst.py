@@ -7,7 +7,7 @@
 #
 # Created:     2001/19/02
 # RCS-ID:      $Id$
-# Copyright:   (c) 2001 Riaan Booysen
+# Copyright:   (c) 2001 - 2002 Riaan Booysen
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 boaIdent = '#Boa'
@@ -75,6 +75,7 @@ modules = {'%s' : [1, 'Main frame of Application', '%s.py']}
 
 class BoaApp(wxApp):
     def OnInit(self):
+        wxInitAllImageHandlers()
         self.main = %s.create(None)
         self.main.Show(true)
         self.SetTopWindow(self.main)
@@ -132,6 +133,7 @@ simpleAppFrameRunSrc = '''
 
 if __name__ == '__main__':
     app = wxPySimpleApp()
+    wxInitAllImageHandlers()
     frame = create(None)
     frame.Show(true)
     app.MainLoop()
@@ -141,9 +143,23 @@ simpleAppDialogRunSrc = '''
 
 if __name__ == '__main__':
     app = wxPySimpleApp()
+    wxInitAllImageHandlers()
     dlg = create(None)
     try:
         dlg.ShowModal()
     finally:
         dlg.Destroy()
+'''
+
+simpleAppPopupRunSrc = '''
+
+if __name__ == '__main__':
+    app = wxPySimpleApp()
+    wxInitAllImageHandlers()
+    frame = wxFrame(None, -1, 'Parent')
+    frame.SetAutoLayout(true)
+    frame.Show(true)
+    popup = create(frame)
+    popup.Show(true)
+    app.MainLoop()
 '''
