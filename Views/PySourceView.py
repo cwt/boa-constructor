@@ -29,7 +29,7 @@ import methodparse
 import wxNamespace
 from Debugger.Breakpoint import bplist
 
-brkPtMrk, stepPosMrk, tmpBrkPtMrk, markPlaceMrk = range(1, 5)
+brkPtMrk, stepPosMrk, tmpBrkPtMrk, markPlaceMrk, disabledBrkPtMrk = range(1, 6)
 brwsIndc, synErrIndc = range (0, 2)
 lineNoMrg, symbolMrg, foldMrg = range (0, 3)
 
@@ -116,6 +116,8 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
         self.MarkerDefine(stepPosMrk, markIdnt, markBorder, markCenter)
         markIdnt, markBorder, markCenter = Preferences.STCTmpBreakpointMarker
         self.MarkerDefine(tmpBrkPtMrk, markIdnt, markBorder, markCenter)
+        markIdnt, markBorder, markCenter = Preferences.STCDisabledBreakpointMarker
+        self.MarkerDefine(disabledBrkPtMrk, markIdnt, markBorder, markCenter)
 
         # Error indicator
         self.IndicatorSetStyle(synErrIndc, wxSTC_INDIC_SQUIGGLE)
@@ -650,13 +652,18 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
     def setInitialBreakpoints(self):
         # Adds markers where the breakpoints are located.
         for brk in self.breaks.listBreakpoints():
-            if brk['temporary']: mrk = tmpBrkPtMrk
-            else: mrk = brkPtMrk
-            self.MarkerAdd(brk['lineno'] - 1, mrk)
+            self.setBreakMarker(brk)
+
+    def setBreakMarker(self, brk):
+        if brk['temporary']: mrk = tmpBrkPtMrk
+        elif not brk['enabled']: mrk = disabledBrkPtMrk
+        else: mrk = brkPtMrk
+        self.MarkerAdd(brk['lineno'] - 1, mrk)
 
     def deleteBreakMarkers(self, lineNo):
         self.MarkerDelete(lineNo - 1, brkPtMrk)
         self.MarkerDelete(lineNo - 1, tmpBrkPtMrk)
+        self.MarkerDelete(lineNo - 1, disabledBrkPtMrk)
 
     def deleteBreakPoint(self, lineNo):
         self.breaks.deleteBreakpoints(lineNo)
