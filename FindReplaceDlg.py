@@ -42,7 +42,7 @@ class FindReplaceDlg(wxDialog):
         pass
 
     def _init_ctrls(self, prnt):
-        wxDialog.__init__(self, id = wxID_FINDREPLACEDLG, name = 'FindReplaceDlg', parent = prnt, pos = wxPoint(394, 361), size = wxSize(372, 234), style = wxDEFAULT_DIALOG_STYLE, title = 'Find/Replace Dialog')
+        wxDialog.__init__(self, id = wxID_FINDREPLACEDLG, name = 'FindReplaceDlg', parent = prnt, pos = wxPoint(394, 361), size = wxSize(372, 234), style = wxDEFAULT_DIALOG_STYLE, title = 'Find/Replace')
         self._init_utils()
         self.SetAutoLayout(true)
         self.SetClientSize(wxSize(364, 207))
