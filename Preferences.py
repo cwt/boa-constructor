@@ -68,15 +68,12 @@ for prefsFile, version in (('prefs.rc.py', 1),
             print 'Preference file %s replaced, previous version backed up to %s'%(
                   file, bkfile)
 
-    data = open(file).read()
-
-    exec string.strip(data)
+    execfile(file)
 
 for file in ('Explorer.%s.cfg' % plat, 'stc-styles.rc.cfg'):
     rcFile = os.path.join(rcPath, file)
     if not os.path.exists(rcFile):
         shutil.copy2(os.path.join(pyPath, file), rcFile)
-
 
 #---Prefs dependent on user prefs-----------------------------------------------
 
@@ -108,7 +105,7 @@ elif useDebugger == 'new':
 
 wx_screenWidthPerc = 1.0
 if wx.wxPlatform == '__WXMSW__':
-    wx_screenHeightPerc = 0.91
+    wx_screenHeightPerc = 0.94
 else:
     wx_screenHeightPerc = 0.87
 
@@ -134,3 +131,5 @@ inspWidth = screenWidth * (1/3.75) - windowManagerSide * 2
 edWidth = screenWidth - inspWidth + 1 - windowManagerSide * 4
 paletteHeight = paletteHeights[paletteStyle]
 bottomHeight = screenHeight - paletteHeight
+
+  
