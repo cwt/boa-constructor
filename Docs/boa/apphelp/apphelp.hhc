@@ -65,6 +65,10 @@
       <param name="Name" value="Zope support">
     </OBJECT>
     <LI> <OBJECT type="text/sitemap">
+      <param name="Local" value="NonASCII.html">
+      <param name="Name" value="Support for Non-ASCII systems">
+    </OBJECT>
+    <LI> <OBJECT type="text/sitemap">
       <param name="Local" value="MixingSource.html">
       <param name="Name" value="Mixing your code with generated code">
     </OBJECT>
