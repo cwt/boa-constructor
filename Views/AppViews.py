@@ -1,7 +1,8 @@
 from wxPython.wx import *
 
 from EditorViews import ListCtrlView, ModuleDocView, wxwAppModuleTemplate, CyclopsView, ClosableViewMix
-from ProfileView import ProfileStatsView
+import ProfileView 
+import PySourceView
 from PrefsKeys import keyDefs
 import Search
 from os import path
@@ -184,7 +185,7 @@ class AppView(ListCtrlView):
         stats = self.model.profile()
         resName = 'Profile stats: %s'%strftime('%H:%M:%S', gmtime(time()))
         if not self.model.views.has_key(resName):
-            resultView = self.model.editor.addNewView(resName, ProfileStatsView)
+            resultView = self.model.editor.addNewView(resName, ProfileView.ProfileStatsView)
         else:
             resultView = self.model.views[resName]
         resultView.tabName = resName
@@ -374,4 +375,33 @@ class AppCompareView(ListCtrlView, ClosableViewMix):
             if otherModule:
                 model.diff(otherModule)
 
-      
+class TextInfoFileView(PySourceView.EditorStyledTextCtrl):
+    viewName = 'TextInfo'
+    def __init__(self, parent, model):
+        PySourceView.EditorStyledTextCtrl.__init__(self, parent, -1, 
+          model, (), 0)
+        self.active = true
+        PySourceView.EVT_STC_UPDATEUI(self, self.GetId(), self.OnUpdateUI)
+        self.model.loadTextInfo(self.viewName)
+    
+    def OnUpdateUI(self, event):
+        # don't update if not fully initialised
+        if hasattr(self, 'pageIdx'):
+            self.updateViewState()
+
+    def getModelData(self):
+        return self.model.textInfos[self.viewName]
+        
+    def setModelData(self, data):
+        self.model.textInfos[self.viewName] = data
+        if self.viewName not in self.model.unsavedTextInfos:
+            self.model.unsavedTextInfos.append(self.viewName)
+
+class AppREADME_TIFView(TextInfoFileView): 
+    viewName = 'README'
+
+class AppTODO_TIFView(TextInfoFileView): 
+    viewName = 'TODO'
+
+class AppBUGS_TIFView(TextInfoFileView): 
+    viewName = 'BUGS'
