@@ -580,10 +580,11 @@ class BookmarksCatNode(CategoryNode):
         if type(value) == type({}):
             return SubBookmarksCatNode(self, name, value)
         else:
-            from Explorers.Explorer import splitURI, getTransport
+            from Explorers.Explorer import splitURI, getTransport, TransportError
             prot, cat, res, uri = splitURI(value)
-            node = getTransport(prot, cat, res, self.catTransports)
-            if not node:
+            try:
+                node = getTransport(prot, cat, res, self.catTransports)
+            except TransportError:
                 # XXX should return broken link items
                 #print 'transport not found %s %s %s' %(prot, cat, res)
                 return None

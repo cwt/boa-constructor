@@ -66,6 +66,8 @@ def splitURI(filename):
                 raise TransportCategoryError('Category not found', filepath)
             category = segs[0]+'|'+segs[1][1:-1]
             return prot, category, string.join(segs[2:], '/'), filename
+        # zopedebug://[host[:post]]/[path]/[meta type]
+        # magically maps zopedebug urls to Boa zope uris
         elif prot == 'zopedebug':
             segs = string.split(filepath, '/')
             if len(segs) < 3:
@@ -83,8 +85,11 @@ def splitURI(filename):
                         props = itm.properties
                         if lw(props['host']) == lw(host) and \
                               props['httpport'] == port:
-                            return 'zope', '%s|%s' %(itm.name or itm.treename,
-                             meta), string.join(filepath, '/'), filename
+                            filepath = string.join(filepath, '/')
+                            name = itm.name or itm.treename
+                            return 'zope', '%s|%s' %(name, meta), filepath, \
+                                   'zope://%s/<%s>/%s'%(name, meta, filepath)
+
             raise TransportCategoryError(\
                   'Could not map Zope debug path to defined Zope Category item', 
                   filepath)
@@ -118,7 +123,8 @@ def getTransport(prot, category, respath, transports):
         for tp in transports.entries:
             if tp.itemProtocol == 'file':
                 return tp.getNodeFromPath(respath, forceFolder=false)
-        raise 'FileSysCatNode not found in transports %s'%transports.entries
+        raise TransportError('FileSysCatNode not found in transports %s'\
+              %transports.entries)
     elif prot == 'zip':
         from ZipExplorer import ZipFileNode
         zf = ZipFileNode(os.path.basename(category), category, None, -1, None, None)
@@ -141,7 +147,8 @@ def findCatExplorerNode(prot, category, respath, transports):
                     #if itm.connection:
                     #    itm.openList()
                     return itm.getNodeFromPath(respath)
-    return None
+    raise TransportError('Catalog transport could not be found: %s || %s'%(category, respath))
+#    return None
 
 def findZopeExplorerNode(catandmeta, respath, transports):
     category, metatype = string.split(catandmeta, '|')
@@ -151,7 +158,7 @@ def findZopeExplorerNode(catandmeta, respath, transports):
             for itm in itms:
                 if itm.name == category or itm.treename == category:
                     return itm.getNodeFromPath('/'+respath, metatype)
-    return None
+    raise TransportError('Zope transport could not be found: %s || %s'%(category, respath))
 
 (wxID_PFE, wxID_PFT, wxID_PFL) = Utils.wxNewIds(3)
 
