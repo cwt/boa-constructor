@@ -13,6 +13,7 @@
 
 from wxPython.wx import *
 from PropEdit.PropertyEditors import *
+from Constructors import WindowConstr
 import HelpCompanions, RTTI, Preferences, Utils
 import methodparse
 import string, copy
@@ -505,7 +506,7 @@ class ControlDTC(DesignTimeCompanion):
         dts.update({self.windowParentName: self.parent, self.windowIdName: self.dId})
         return dts
 
-    def designTimeSource(self, position, size):
+    def designTimeSource(self, position = 'wxDefaultPosition', size = 'wxDefaultSize'):
         """ Return a dictionary of parameters for the constructor of a wxPython
             control's source. 'parent' and 'id' handled automatically
         """
@@ -680,7 +681,7 @@ class TestDTC(ControlDTC):
         return []
 
 # XXX Parents, from constructor or current selected container in designer
-class WindowDTC(ControlDTC):
+class WindowDTC(WindowConstr, ControlDTC):
     """ Defines the wxWindow interface overloading/defining specialised
         property editors. """
     def __init__(self, name, designer, parent, ctrlClass):
@@ -716,6 +717,12 @@ class WindowDTC(ControlDTC):
                 'Enabled': ('CtrlRoute', wxWindowPtr.IsEnabled.im_func, wxWindowPtr.Enable.im_func),
                 'ToolTipString': ('CompnRoute', self.GetToolTipString, self.SetToolTipString),
                 'Anchors': ('CompnRoute', self.GetAnchors, self.SetConstraints),}
+
+    def designTimeSource(self, position = 'wxDefaultPosition', size = 'wxDefaultSize'):
+        return {'pos':  position,
+                'size': size,
+                'name': `self.name`,
+                'style': '0'}
 
     def hideDesignTime(self):
         return ['NextHandler', 'PreviousHandler', 'EventHandler', 'Id', 'Caret',
