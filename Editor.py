@@ -998,6 +998,10 @@ class EditorFrame(wxFrame, Utils.FrameRestorerMixin):
 ##            while child.IsOk() and tree.GetItemText(child) != 'Editor':
 ##                child, cookie = tree.GetNextChild(node, cookie)
             tree.SelectItem(child)
+            self.explorer.list.SetFocus()
+            STATE = wxLIST_STATE_FOCUSED|wxLIST_STATE_SELECTED
+            self.explorer.list.SetItemState(0, STATE, STATE)
+
         else:
             self.tabs.SetSelection(1)
 
