@@ -9,11 +9,12 @@
 # Copyright:   (c) 2001
 # Licence:     GPL
 #-----------------------------------------------------------------------------
-import ExplorerNodes
-from wxPython.wx import *
-import EditorModels, EditorHelper, Utils, Preferences
 import string, os, time, stat
-import CVSExplorer, ZipExplorer
+
+from wxPython.wx import *
+
+import ExplorerNodes
+import EditorModels, EditorHelper, Utils, Preferences
 
 # XXX There might be a bug in the path code of Find in files
 
@@ -185,49 +186,45 @@ class FileSysExpClipboard(ExplorerNodes.ExplorerClipboard):
                 node.copyFileFrom(clipnode)
 
     clipPaste_DefaultClipboard = clipPaste_FileSysExpClipboard
+    
+    def _genericFSPaste(self, node, nodes, mode):
+        for other in nodes:
+            other.copyToFS(node)
 
     def clipPaste_ZopeEClip(self, node, nodes, mode):
         # XXX Pasting a cut from Zope does not delete the cut items from Zope
-        for file in nodes:
-            file.zopeConn.download(file.resourcepath+'/'+file.name,
-                  os.path.join(node.resourcepath, file.name))
+        for zopeNode in nodes:
+            zopeNode.downloadToFS(os.path.join(node.resourcepath, zopeNode.name))
 
-    def clipPaste_SSHExpClipboard(self, node, nodes, mode):
-        for sshNode in nodes:
-            if mode == 'cut':
-                sshNode.copyToFS(node)
-                #self.clipNodes = []
-            elif mode == 'copy':
-                sshNode.copyToFS(node)
-
-    def clipPaste_ZipExpClipboard(self, node, nodes, mode):
-        for zipNode in nodes:
-            zipNode.copyToFS(node)
+##            file.zopeConn.download(file.resourcepath+'/'+file.name,
+##                  os.path.join(node.resourcepath, file.name))
 
     def clipPaste_FTPExpClipboard(self, node, nodes, mode):
         # XXX Pasting a cut from FTP does not delete the cut items from FTP
         for file in nodes:
-#            print file.resourcepath+'/'+file.name, os.path.join(node.resourcepath, file.name)
             file.ftpConn.download(file.resourcepath,
                   os.path.join(node.resourcepath, file.name))
 
-    def clipPaste_DAVExpClipboard(self, node, nodes, mode):
-        for davNode in nodes:
-            davNode.copyToFS(node)
+    clipPaste_SSHExpClipboard = _genericFSPaste
+    clipPaste_ZipExpClipboard = _genericFSPaste
+    clipPaste_DAVExpClipboard = _genericFSPaste
 
 class PyFileNode(ExplorerNodes.ExplorerNode):
     protocol = 'file'
     filter = 'BoaFiles'
     lastSearch = ''
-    def __init__(self, name, resourcepath, clipboard, imgIdx, parent, bookmarks, properties = {}):
-        ExplorerNodes.ExplorerNode.__init__(self, name, resourcepath, clipboard, imgIdx,
-              parent, properties or {})
+    subExplorerReg = {'file': [], 'folder': []}
+    def __init__(self, name, resourcepath, clipboard, imgIdx, parent, 
+          bookmarks = None, properties = {}):
+        ExplorerNodes.ExplorerNode.__init__(self, name, resourcepath, clipboard,
+              imgIdx, parent, properties or {})
         self.bookmarks = bookmarks
-#        self.exts = map(lambda C: C.ext, EditorModels.modelReg.values())
         self.exts = EditorHelper.extMap.keys() + ['.py']
+        self.entries = []
+
         self.doCVS = true
         self.doZip = true
-        self.entries = []
+        self.allowedProtocols = ['*']        
 
     def destroy(self):
         self.entries = []
@@ -236,7 +233,8 @@ class PyFileNode(ExplorerNodes.ExplorerNode):
         return os.path.isdir(self.resourcepath)
 
     def isFolderish(self):
-        return self.isDir() or ZipExplorer.isZip(self.resourcepath)
+        return self.isDir() or filter(lambda se, rp=self.resourcepath: se[1](rp),
+            self.subExplorerReg['file'])
 
     def createParentNode(self):
         parent = os.path.abspath(os.path.join(self.resourcepath, '..'))
@@ -249,26 +247,29 @@ class PyFileNode(ExplorerNodes.ExplorerNode):
         if not filename:
             filename = os.path.join(self.resourcepath, file)
 
-        ext = os.path.splitext(filename)[1]
+        ext = string.lower(os.path.splitext(filename)[1])
+        # Files
         if (ext in self.exts) and os.path.isfile(filename):
-            if self.doZip and ZipExplorer.isZip(filename):
-                return 'fol', ZipExplorer.ZipFileNode(file, filename,
-                      self.clipboard, EditorHelper.imgZipFileModel, self)
-            else:
-                return 'mod', PyFileNode(file, filename, self.clipboard,
-                  EditorModels.identifyFile(filename)[0].imgIdx, self, self.bookmarks,
-                  {'datetime': time.strftime('%a %b %d %H:%M:%S %Y',
-                               time.gmtime(os.stat(filename)[stat.ST_MTIME]))})
+            for other, otherIdFunc, imgIdx in self.subExplorerReg['file']:
+                if '*' in self.allowedProtocols or \
+                      other.protocol in self.allowedProtocols:
+                    if otherIdFunc(filename):
+                        return 'fol', other(file, filename, self.clipboard, 
+                              imgIdx, self)
+            return 'mod', PyFileNode(file, filename, self.clipboard,
+              EditorModels.identifyFile(filename)[0].imgIdx, self, self.bookmarks,
+              {'datetime': time.strftime('%a %b %d %H:%M:%S %Y',
+                           time.gmtime(os.stat(filename)[stat.ST_MTIME]))})
+        # Directories
         elif os.path.isdir(filename):
-            if os.path.exists(os.path.join(filename, EditorModels.PackageModel.pckgIdnt)):
-                return 'fol', PyFileNode(file, filename, self.clipboard,
-                  EditorModels.PackageModel.imgIdx, self, self.bookmarks)
-            elif self.doCVS and CVSExplorer.isCVS(filename):
-                return 'fol', CVSExplorer.FSCVSFolderNode(file, filename,
-                      self.clipboard, self)
-            else:
-                return 'fol', PyFileNode(file, filename, self.clipboard,
-                      EditorHelper.imgFolder, self, self.bookmarks)
+            for other, otherIdFunc, imgIdx in self.subExplorerReg['folder']:
+                if '*' in self.allowedProtocols or \
+                      other.protocol in self.allowedProtocols:
+                    if otherIdFunc(filename):
+                        return 'fol', other(file, filename, self.clipboard, 
+                              imgIdx, self)
+            return 'fol', PyFileNode(file, filename, self.clipboard,
+                  EditorHelper.imgFolder, self, self.bookmarks)
         elif self.filter == 'AllFiles':
             return 'mod', PyFileNode(file, filename, self.clipboard,
               EditorHelper.imgUnknownFileModel, self, self.bookmarks)
@@ -287,7 +288,7 @@ class PyFileNode(ExplorerNodes.ExplorerNode):
 
         self.entries = entries['fol'] + entries['mod']
         return self.entries
-
+    
     def open(self, editor):
         apps = editor.getAppModules()
         for app in apps:
@@ -374,6 +375,14 @@ class PyFileNode(ExplorerNodes.ExplorerNode):
         else:
             f.write(data)
             f.close()
+
+def isPackage(filename):
+    return os.path.exists(os.path.join(filename, EditorModels.PackageModel.pckgIdnt))    
+
+# Register Packages as a File Explorer sub type
+PyFileNode.subExplorerReg['folder'].append( 
+      (PyFileNode, isPackage, EditorHelper.imgPackageModel),
+)
 
 class ResultsFolderNode(PyFileNode):
     results = []
