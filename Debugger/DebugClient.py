@@ -1,5 +1,5 @@
-import string, sys
-from string import rfind
+import sys
+
 from Tasks import ThreadedTaskHandler
 from wxPython.wx import wxNewId, wxPyCommandEvent
 

@@ -21,6 +21,8 @@ from repr import Repr
 from types import TupleType
 
 
+# XXX Extend breakpoints to break on exception (like conditional breakpoints)
+
 __traceable__ = 0      # Never trace the tracer.
 bdb.__traceable__ = 0
 

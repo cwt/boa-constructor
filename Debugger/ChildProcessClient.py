@@ -1,4 +1,4 @@
-import os, string, sys, time, socket
+import os, sys, time, socket
 from ExternalLib import xmlrpclib
 from wxPython import wx
 
@@ -62,7 +62,7 @@ def spawnChild(monitor, process, args=''):
     # Start ChildProcessServerStart.py in a new process.
     script_fn = os.path.join(os.path.dirname(__file__),
                              'ChildProcessServerStart.py')
-    os.environ['PYTHONPATH'] = string.join(sys.path, os.pathsep)
+    os.environ['PYTHONPATH'] = os.pathsep.join(sys.path)
     cmd = '%s "%s" %s' % (sys.executable, script_fn, args)
     try:
         if wx.wxVERSION > (2, 3, 2):
@@ -78,7 +78,7 @@ def spawnChild(monitor, process, args=''):
 
             err = ''
             # read in the port and auth hash
-            while monitor.isAlive() and string.find(line, '\n') < 0:
+            while monitor.isAlive() and line.find('\n') < 0:
                 # don't take more time than the process we wait for ;)
                 time.sleep(0.00001)
                 if canReadStream(istream):
@@ -86,27 +86,26 @@ def spawnChild(monitor, process, args=''):
                 # test for tracebacks on stderr
                 if canReadStream(estream):
                     err = estream.read()
-                    errlines = string.split(err, '\n')
-                    while not string.strip(errlines[-1]): del errlines[-1]
-                    exctype, excvalue = string.split(errlines[-1], ':')
+                    errlines = err.split('\n')
+                    while not errlines[-1].strip(): del errlines[-1]
+                    exctype, excvalue = errlines[-1].split(':')
                     while errlines and errlines[-1][:7] != '  File ':
                         del errlines[-1]
                     if errlines:
-                        errfile = ' (%s)' % string.strip(errlines[-1])
+                        errfile = ' (%s)' % errlines[-1].strip()
                     else:
                         errfile = ''
-                    raise __builtins__[string.strip(exctype)], (
-                        string.strip(excvalue)+errfile)
+                    raise __builtins__[exctype.strip()], (excvalue.strip()+errfile)
 
         if not KEEP_STREAMS_OPEN:
             process.CloseOutput()
 
         if monitor.isAlive():
-            line = string.strip(line)
+            line = line.strip()
             if not line:
                 raise RuntimeError, (
                     'The debug server address could not be read')
-            port, auth = string.split(string.strip(line))
+            port, auth = line.strip().split()
 
             if USE_TCPWATCH:
                 # Start TCPWatch as a connection forwarder.

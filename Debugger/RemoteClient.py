@@ -1,4 +1,4 @@
-import os, string, sys, base64
+import os, sys, base64
 from ExternalLib import xmlrpclib
 
 
