@@ -1,4 +1,4 @@
-## rc-version: 6 ##
+## rc-version: 7 ##
 # RCS-ID:      $Id$
 
 # The main preference file.
@@ -64,7 +64,7 @@ delayInitHelp = true
 # Try to update the wxPython.libs directory with the newest run time libs
 # (Component files and example components)
 # Turn this off if you don't have permissions to write to the wxPython/lib directory
-installBCRTL = true
+installBCRTL = false
 
 # If the environment variable PYTHONSTARTUP is set to a python file
 # this file can be executed at startup in the Shell's namespace
