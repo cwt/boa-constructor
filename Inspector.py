@@ -818,7 +818,7 @@ class NameValue:
         self.inspector.propertySelected(self)
 
     def OnExpand(self, event):
-        if event.Checked(): self.inspector.collapse(self)
+        if event.IsChecked(): self.inspector.collapse(self)
         else: self.inspector.expand(self)
 
 class PropNameValue(NameValue):
