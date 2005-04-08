@@ -309,7 +309,15 @@ class BaseFrameModel(ClassModel):
                 wxClass = PaletteMapping.evalCtrl(wxClassName)
                 res[wxClassName] = wxClass
                 for custom in customs:
-                    res[custom] = wxClass
+                    # to combine frame attrs with custom classes a phony
+                    # self object is created to resolve the class name
+                    # during frame creation
+                    if custom.startswith('self.'):
+                        if not 'self' in res:
+                            res['self'] = _your_frame_attrs_()
+                        setattr(res['self'], custom[5:], wxClass)
+                    else:
+                        res[custom] = wxClass
         return res
 
     def readComponents(self):
