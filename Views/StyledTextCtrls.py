@@ -302,6 +302,7 @@ class CodeHelpStyledTextCtrlMix:
                 self.GetCurLine()[0], pos - lnStPs - 1)
 
     def getFirstContinousBlock(self, docs):
+        docs = docs.strip()
         res = []
         for line in docs.split('\n'):
             if line.strip():
