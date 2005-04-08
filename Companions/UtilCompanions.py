@@ -397,7 +397,7 @@ class MenuItemsCIDTC(CollectionIddDTC):
                 elif name == 'wx.Menu()':
                     dtd[param] = wxMenu()
                 else:
-                    raise Exception, 'Invalid menu reference'
+                    raise Exception, 'Invalid menu reference: '+name
             elif param == self.idProp:
                 dtd[param] = wxNewId()
             else:
@@ -513,7 +513,7 @@ class MenuBarMenusCDTC(CollectionDTC):
                 elif name == 'wx.Menu()':
                     dtd[param] = wxMenu()
                 else:
-                    raise 'Invalid menu reference'
+                    raise Exception, 'Invalid menu reference: '+name
             else:
                 dtd[param] = self.eval(vals[param])
 
