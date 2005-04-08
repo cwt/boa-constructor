@@ -914,3 +914,11 @@ class InspectorSessionMix:
     # Up is included because it can exit a session
     def doUp(self, inspector):
         pass
+
+def getEventChecked(event):
+    # XXX Chaos :(
+    checked = event.IsChecked()
+    if wxPlatform == '__WXGTK__' or wxVERSION[:3] > (2, 5, 3):
+        return checked
+    else:
+        return not checked
