@@ -212,7 +212,7 @@ class PyDocHelpPage(wxPanel):
     def OnChkrunserverCheckbox(self, event):
         self.chkRunServer.Disable()
 
-        self.runServer = event.Checked()
+        self.runServer = event.IsChecked()
 
         if self.runServer:
             self.startPydocServer()
