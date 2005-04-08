@@ -460,25 +460,17 @@ class EditorStyledTextCtrl(wxStyledTextCtrl, EditorViews.EditorView,
         self.PopupMenuXY(menu, s.x/2, s.y/2)
         menu.Destroy()
 
-    def _getEventChecked(self, event):
-        # XXX Chaos :(
-        checked = not event.IsChecked()
-        if wxPlatform == '__WXGTK__' or wxVERSION[:3] > (2, 5, 3):
-            return not checked
-        else:
-            return checked
-
     def OnSTCSettingsWhiteSpace(self, event):
-        self.SetViewWhiteSpace(self._getEventChecked(event))
+        self.SetViewWhiteSpace(Utils.getEventChecked(event))
 
     def OnSTCSettingsEOL(self, event):
-        self.SetViewEOL(self._getEventChecked(event))
+        self.SetViewEOL(Utils.getEventChecked(event))
 
     def OnSTCSettingsBufferedDraw(self, event):
-        self.SetBufferedDraw(self._getEventChecked(event))
+        self.SetBufferedDraw(Utils.getEventChecked(event))
 
     def OnSTCSettingsIndentGuide(self, event):
-        self.SetIndentationGuides(self._getEventChecked(event))
+        self.SetIndentationGuides(Utils.getEventChecked(event))
 
     def OnChangeEOLMode(self, event):
         eol = {wxID_STC_EOL_CRLF: wxSTC_EOL_CRLF,
