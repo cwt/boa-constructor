@@ -214,14 +214,12 @@ class ModuleController(SourceController):
 ##                editor.statusBar.setHint('Finished execution.')
 
     def execStart(self, pid, program, script):
-        model = self.getModel()
-        editor = model.editor
+        editor = self.editor
         if editor.erroutFrm:
-            editor.erroutFrm.processStarted(program, pid, script) 
+            self.editor.erroutFrm.processStarted(program, pid, script) 
 
     def execFinish(self, runner):
-        model = self.getModel()
-        editor = model.editor
+        editor = self.editor
         if editor.erroutFrm:
             if editor.palette.IsShown():
                 editor.palette.restore()
@@ -237,7 +235,6 @@ class ModuleController(SourceController):
                                          'Warning')
             else:
                 editor.statusBar.setHint('Finished execution.')
-
 
 
     def OnDebug(self, event):
