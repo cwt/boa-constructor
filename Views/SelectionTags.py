@@ -601,12 +601,7 @@ class SideSelTag(SelectionTag):
         #self.group.showTags()
 
     def OnAnchorToggle(self, event):
-        anchor = not event.Checked()
-#        anchor = not self.menu.IsChecked(self.wxID_ANCHORED)
-        # XXX Test again !!!!
-        if wxPlatform == '__WXGTK__':
-            anchor = not anchor
-        self.updateCtrlAnchors(anchor)
+        self.updateCtrlAnchors(Utils.getEventChecked(event))
 
     def OnSelectSizer(self, event):
         # XXX maybe move hasSizer/isSizer logic to WindowDTC ?
