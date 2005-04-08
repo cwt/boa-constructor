@@ -207,7 +207,7 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
         if module.imports.has_key('wx'):
             obj = wxNamespace.getWxObjPath(name)
             if obj:
-                return obj.__init__.__doc__ or ''
+                return self.prepareWxModSigTip(obj.__init__.__doc__)
         return ''
 
     def checkWxPyMethodTips(self, module, cls, name):
@@ -215,7 +215,7 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
             Cls = wxNamespace.getWxObjPath(cls)
             if Cls and hasattr(Cls, name):
                     meth = getattr(Cls, name)
-                    return meth.__doc__ or ''
+                    return self.prepareWxModSigTip(meth.__doc__)
         return ''
 
     def getAttribSig(self, module, cls, attrib, meth):
@@ -227,8 +227,19 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
             klass = wxNamespace.getWxClass(objtype)
             if klass:
                 if hasattr(klass, meth):
-                    return getattr(klass, meth).__doc__ or ''
+                    return self.prepareWxModSigTip(getattr(klass, meth).__doc__)
         return ''
+
+    def prepareWxModSigTip(self, tip):
+        if not tip:
+            return ''
+        paramStart = tip.find('(')
+        if paramStart != -1:
+            paramEnd = tip.rfind(')')
+            if paramEnd != -1:
+                return self.prepareModSigTip(tip[:paramStart], 
+                                             tip[paramStart+1:paramEnd])
+        return tip
 
     def prepareModSigTip(self, name, paramsStr):
         if paramsStr.startswith('self,'):
