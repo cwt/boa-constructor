@@ -969,7 +969,7 @@ class STCStyleEditDlg(wxDialog):
             self.currSpeedSetting = group
 
     def OnFixedwidthchkCheckbox(self, event):
-        self.populateCombosWithCommonDefs(event.Checked())
+        self.populateCombosWithCommonDefs(event.IsChecked())
 
     def OnAddsharebtnButton(self, event):
         dlg = CommonDefDlg(self)
