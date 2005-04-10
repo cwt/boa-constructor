@@ -42,53 +42,6 @@
 # - style= i.e. style=wxDEFAULT_DIALOG_STYLE
 # - orient=wx to orient=wx.
 # - kind=wx to kind=wx.
-# - Following changes are handled, see self.specialNames2
-#   - wxInitAllImageHandlers to wx.InitAllImageHandlers
-#   - wxIcon( to wx.Icon(
-#   - wxBITMAP to wx.BITMAP
-#   - wxBitmap( to wx.Bitmap(
-#   - wxSize( to wx.Size(
-#   - wxNullBitmap to wx.NullBitmap
-#   - wxPoint( to wx.Point(
-#   - wxNewID to wx.NewID (if used in user code)
-#   - wxColour to wx.Colour
-#   - wxOPEN to wx.OPEN
-#   - wxID_OK to wx.ID_OK
-#   - wxRED to wx.RED
-#   - wxGREEN to wx.GREEN
-#   - wxBLUE to wx.BLUE
-#   - wxGrid.wxGrid to wx.grid.Grid.wxGrid
-#   - wxACCEL to wx.ACCEL
-#   - wxAcceleratorTable to wx.AcceleratorTable
-#   - wxTheClipboard to wx.TheClipboard
-#   - wxID_YES to wx.ID_YES
-#   - wxOK to wx.OK
-#   - wxICON_ to wx.ICON_
-#   - wxPySimpleApp to wx.PySimpleApp
-#   - wxYES_NO to wx.YES_NO
-#   - wxYES_DEFAULT to wx.YES_DEFAULT
-#   - wxNO_DEFAULT to wx.NO_DEFAULT
-#   - wxID_YES to wx.ID_YES
-#   - wxID_NO to wx.ID_NO
-#   - wxID_OK to wx.ID_OK
-#   - wxID_CANCEL to wx.ID_CANCEL
-#   - wxCallAfter to wx.CallAfter
-#   - wxDefault to wx.Default
-#   - wxNamedColor to wx.NamedColor
-#   - wxIMAGE to wx.IMAGE
-#   - wxLIST to wx.LIST
-#   - WXK_ to wx.WXK_
-#   - wxTL_ to wx.gizmos.TL_
-#   - wxBeginBusyCursor to wx.BeginBusyCursor
-#   - wxEndBusyCursor to wx.EndBusyCursor
-#   - wxMessageBox to wx.MessageBox
-#   - wxTreeList to wx.gizmos.TreeList
-#   - wxEmptyBitmap to wx.EmptyBitmap
-#   - wxCOPY to wx.COPY
-#   - wxImage to wx.Image
-#   - wxWave to wx.Sound
-#   - wxUsleep to wx.Usleep
-#
 # - wxFont(8,wxSWISS,wxNORMAL,wxNORMAL to wx.Font(8,wx.SWISS,wx.NORMAL,wx.NORMAL
 # - _custom_classes are changed
 #
@@ -184,6 +137,32 @@ class Upgrade:
                               "wxImage": "wx.Image",
                               "wxWave": "wx.Sound",
                               "wxUsleep": "wx.Usleep",
+                              "wxSafeYield": "wx.SafeYield",
+                              "wxToolTip": "wx.ToolTip",
+                              "wxCAP_": "wx.CAP_",
+                              "wxJOIN_": "wx.JOIN_",
+                              "wxToolTip": "wx.ToolTip",
+                              "wxSHORT_DASH": "wx.SHORT_DASH",
+                              "wxDOT_DASH": "wx.DOT_DASH",
+                              "wxDOT": "wx.DOT",
+                              "wxSAVE": "wx.SAVE",
+                              "wxOVERWRITE_PROMPT": "wx.OVERWRITE_PROMPT",
+                              "wxCHANGE_DIR": "wx.CHANGE_DIR",
+                              "wxMULTIPLE": "wx.MULTIPLE",
+                              "wxSOLID": "wx.SOLID",
+                              "wxLIGHT": "wx.LIGHT",
+                              "wxNORMAL": "wx.NORMAL",
+                              "wxBOLD": "wx.BOLD",
+                              "wxTRANSPARENT": "wx.TRANSPARENT",
+                              "wxITALIC": "wx.ITALIC",
+                              "wxSLANT": "wx.SLANT",
+                              "wxSWISS": "wx.SWISS",
+                              "wxROMAN": "wx.ROMAN",
+                              "wxSCRIPT": "wx.SCRIPT",
+                              "wxDECORATIVE": "wx.DECORATIVE",
+                              "wxMODERN": "wx.MODERN",
+                              "wxCURSOR_": "wx.CURSOR_",
+                              "wxPen": "wx.Pen",
                               }
 
         self.importNames = {"wx": "import wx",
