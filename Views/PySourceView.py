@@ -354,7 +354,7 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
             if len(loopCls.super):
                 prnt = loopCls.super[0]
                 # Modules
-                if type(prnt) == type(self): # :)
+                if isinstance(prnt, moduleparse.Class):
                     loopCls = prnt
                 # Possible wxPython ancestor
                 else:
