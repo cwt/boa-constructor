@@ -51,7 +51,7 @@ class GenStaticTextDTC(StaticTextDTC):
     windowIdName = 'ID'
 
     def writeImports(self):
-        return 'import wx.lib.stattext.GenStaticText'
+        return 'import wx.lib.stattext'
 
 #-------------------------------------------------------------------------------
 
