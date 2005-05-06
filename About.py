@@ -358,6 +358,16 @@ class StaticTextPF(Utils.PseudoFile):
             self.output.SetLabel(ss)
 
         if sys:
+##            frame = sys._getframe()
+##            try:
+##                d = 0
+##                while frame.f_back:
+##                    frame = frame.f_back
+##                    d += 1
+##            except AttributeError:
+##                pass
+##            s = '  '*d + s
+##            
             sys.__stdout__.write(s)#+':'+sys.path[-1])
         wxYield()
 
