@@ -60,7 +60,6 @@ class ListCtrlDTC(Constructors.MultiItemCtrlsConstr, WindowDTC):
         return {'pos': position,
                 'size': self.getDefCtrlSize(),
                 'style': 'wx.LC_ICON',
-                #'validator': 'wxDefaultValidator',
                 'name': `self.name`}
 
     def events(self):
@@ -191,7 +190,6 @@ class TreeCtrlDTC(Constructors.MultiItemCtrlsConstr, WindowDTC):
         return {'pos': position,
                 'size': size,
                 'style': 'wx.TR_HAS_BUTTONS',
-                #'validator': 'wxDefaultValidator',
                 'name': `self.name`}
 
     def hideDesignTime(self):
@@ -230,7 +228,6 @@ class ListBoxDTC(Constructors.ListConstr, ChoicedDTC):
                 'size': size,
                 'choices': '[]',
                 'style': '0',
-                #'validator': 'wxDefaultValidator',
                 'name': `self.name`}
 
     def events(self):
@@ -261,8 +258,8 @@ class RadioBoxDTC(ChoicedDTC):
     def constructor(self):
         return {'Label': 'label', 'Position': 'point', 'Size': 'size',
                 'Choices': 'choices', 'MajorDimension': 'majorDimension',
-                'Style': 'style', 'Name': 'name'} #'Validator': 'validator',
-
+                'Style': 'style', 'Name': 'name'}
+                
     def designTimeSource(self, position = 'wx.DefaultPosition', size = 'wx.DefaultSize'):
         return {'label': `self.name`,
                 'point': position,
@@ -270,7 +267,6 @@ class RadioBoxDTC(ChoicedDTC):
                 'choices': `['asd']`,
                 'majorDimension': '1',
                 'style': 'wx.RA_SPECIFY_COLS',
-                #'validator': 'wxDefaultValidator',
                 'name': `self.name`}
 
     def events(self):
