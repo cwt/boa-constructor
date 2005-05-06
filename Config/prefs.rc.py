@@ -1,4 +1,4 @@
-## rc-version: 13 ##
+## rc-version: 14 ##
 # RCS-ID:      $Id$
 
 # The main preference file.
@@ -101,6 +101,10 @@ eoErrOutDockWindow = 'editor'
 # When docked in the Editor, percentage wise, how high should the default
 # Error/Output window be?
 eoErrOutWindowHeightPerc = 0.2
+
+# Arguments for Debug Server
+# e.g. '--zope' for PythonScript and PageTemplate debugging support
+debugServerArgs = ''
 
 
 #-Editor------------------------------------------------------------------------
@@ -428,7 +432,7 @@ exportedProperties = ['flatTools', 'childFrameStyle', 'dataViewListStyle',
   'installBCRTL', 'debugMode',
   'suExecPythonStartup', 'suBoaConstricted',
   'suSocketFileOpenServer',
-  'eoErrOutDockWindow', 'eoErrOutWindowHeightPerc',
+  'eoErrOutDockWindow', 'eoErrOutWindowHeightPerc', 'debugServerArgs',
 
   'checkSyntax', 'onlyCheckIfLineModified', 'checkSourceOnSave',
   'autoRefreshOnCodeComplete', 'callTipsOnOpenParen', 
