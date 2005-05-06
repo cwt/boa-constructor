@@ -52,7 +52,7 @@ class ComboBoxDTC(ChoicedDTC):
     def constructor(self):
         return {'Value': 'value', 'Position': 'pos', 'Size': 'size',
                 'Choices': 'choices', 'Style': 'style',
-                'Name': 'name'} #'Validator': 'validator', 
+                'Name': 'name'} 
 
     def designTimeSource(self, position = 'wx.DefaultPosition', size = 'wx.DefaultSize'):
         return {'value': `self.name`,
@@ -60,7 +60,6 @@ class ComboBoxDTC(ChoicedDTC):
                 'size': size,
                 'choices': '[]',
                 'style': '0',
-##                'validator': 'wxDefaultValidator',
                 'name': `self.name`}
 
 ##    def vetoedMethods(self):
@@ -87,7 +86,6 @@ class ChoiceDTC(Constructors.ListConstr, ChoicedDTC):
                 'size': size,
                 'choices': `[]`,
                 'style': '0',
-##                'validator': 'wxDefaultValidator',
                 'name': `self.name`}
 
     def events(self):
@@ -141,7 +139,6 @@ class TextCtrlDTC(WindowDTC):
     def constructor(self):
         return {'Value': 'value', 'Position': 'pos', 'Size': 'size',
                 'Style': 'style', 'Name': 'name'}
-                #'Validator': 'validator', 
 
     def designTimeSource(self, position = 'wx.DefaultPosition', size = 'wx.DefaultSize'):
         return {'value': `self.name`,
@@ -226,7 +223,7 @@ class SliderDTC(WindowDTC):
     def constructor(self):
         return {'Value': 'value', 'MinValue': 'minValue', 'MaxValue': 'maxValue',
                 'Position': 'point', 'Size': 'size', 'Style': 'style',
-                'Name': 'name'} #'Validator': 'validator', 
+                'Name': 'name'} 
 
     def designTimeSource(self, position = 'wx.DefaultPosition', size = 'wx.DefaultSize'):
         return {'value': '0',
@@ -235,7 +232,6 @@ class SliderDTC(WindowDTC):
                 'point': position,
                 'size': size,
                 'style': 'wx.SL_HORIZONTAL',
-                #'validator': 'wxDefaultValidator',
                 'name': `self.name`}
 
     def hideDesignTime(self):
@@ -258,14 +254,13 @@ class GaugeDTC(WindowDTC):
 
     def constructor(self):
         return {'Range': 'range', 'Position': 'pos', 'Size': 'size',
-                'Style': 'style', 'Name': 'name'} #'Validator': 'validator', 
+                'Style': 'style', 'Name': 'name'} 
 
     def designTimeSource(self, position = 'wx.DefaultPosition', size = 'wx.DefaultSize'):
         return {'range': '100',
                 'pos': position,
                 'size': size,
                 'style': 'wx.GA_HORIZONTAL',
-                #'validator': 'wxDefaultValidator',
                 'name': `self.name`}
 
 class StaticBoxDTC(LabeledNonInputConstr, WindowDTC):

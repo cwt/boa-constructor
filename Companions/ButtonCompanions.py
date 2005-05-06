@@ -122,14 +122,12 @@ class BitmapButtonDTC(WindowDTC):
     def constructor(self):
         return {'Bitmap': 'bitmap', 'Position': 'pos', 'Size': 'size',
                 'Style': 'style', 'Name': 'name'}
-                #'Validator': 'validator', 
 
     def designTimeSource(self, position = 'wx.DefaultPosition', size = 'wx.DefaultSize'):
         return {'bitmap': 'wx.NullBitmap',
                 'pos': position,
                 'size': size,
                 'style': 'wx.BU_AUTODRAW',
-                #'validator': 'wxDefaultValidator',
                 'name': `self.name`}
 
     def properties(self):
@@ -164,7 +162,6 @@ class SpinButtonDTC(Constructors.WindowConstr, WindowDTC):
         return {'pos': position,
                 'size': size,
                 'style': 'wx.SP_HORIZONTAL',
-## cfd           'validator': 'wxDefaultValidator',
                 'name': `self.name`}
     def events(self):
         return WindowDTC.events(self) + ['SpinEvent', 'CmdScrollEvent']
@@ -281,7 +278,6 @@ class GenBitmapButtonDTC(GenButtonDTC):
     def constructor(self):
         return {'BitmapLabel': 'bitmap', 'Position': 'pos', 'Size': 'size',
                 'Style': 'style', 'Name': 'name'}
-#                'Validator': 'validator', 
 
     def designTimeSource(self, position = 'wx.DefaultPosition', size = 'wx.DefaultSize'):
         return {'bitmap': 'wx.NullBitmap',
@@ -299,7 +295,7 @@ class GenBitmapButtonDTC(GenButtonDTC):
 class GenBitmapTextButtonDTC(GenBitmapButtonDTC):
     def constructor(self):
         return {'BitmapLabel': 'bitmap', 'Position': 'pos', 'Size': 'size',
-                'Label': 'label', 'Style': 'style', #'Validator': 'validator',
+                'Label': 'label', 'Style': 'style', 
                 'Name': 'name'}
 
     def designTimeSource(self, position = 'wx.DefaultPosition', size = 'wx.DefaultSize'):
