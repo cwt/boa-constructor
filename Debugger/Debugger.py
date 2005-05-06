@@ -369,7 +369,7 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
     def setDebugClient(self, client=None):
         if client is None:
             from ChildProcessClient import ChildProcessClient
-            client = ChildProcessClient(self, '--zope')
+            client = ChildProcessClient(self, Preferences.debugServerArgs)
         self.debug_client = client
     
     def setServerClientPaths(self, paths):
