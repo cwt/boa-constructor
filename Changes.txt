@@ -1,6 +1,31 @@
 Changes
 -------
 
+-- 0.4.2 (CVS) --
+
+2004-05-06
+
+* Bugfixes, code cleanups.
+* Conversion of all gui filetype modules in the core to 2.5 style code.
+* Moved CalendarCtrl from UserCompanions plug-in to DateTimeCompanions.py
+* Added new wx.DatePickerCtrl to DateTimeCompanions.py, thanks to Oleg Deribas.
+* Added preference setting to toggle specialiased Zope debugging 
+  (for PythonScripts and PageTemplates), now off by default.
+  * Debug speed is much faster without Zope support for cpu intensive code.
+* Copy to clipboard from selection in the help controller.
+
+
+-- 0.4.1 (CVS) --
+
+2005-04-08
+
+* Bugfixes.
+* You can now combine frame attributes and custom classes.
+  * In other words you may define a custom class that maps to a frame attribute.
+  * This allows you to specify controls at run time by passing the class as a 
+    parameter and binding it to a frame attribute. 
+
+
 -- 0.4.0 (Release) --
 
 2005-03-17
