@@ -10,7 +10,7 @@
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 
-print 'importing PythonEditorModels'
+print 'importing Models.PythonEditorModels'
 
 import os, sys, pprint, imp, stat, types, tempfile
 from thread import start_new_thread
