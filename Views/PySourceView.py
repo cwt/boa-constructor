@@ -571,11 +571,17 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
         # Cache first time
         if not module.from_imports_star_cache:
             for starMod in module.from_imports_star:
-                module.from_imports_star_cache[starMod] = \
-                      self.model.findModule(starMod)
+                try:
+                    module.from_imports_star_cache[starMod] = \
+                          self.model.findModule(starMod)
+                except ImportError: pass
         # work thru open * imported modules and try to match name
         for starMod in module.from_imports_star:
-            res = module.from_imports_star_cache[starMod]
+            try:
+                res = module.from_imports_star_cache[starMod]
+            except KeyError:
+                res = None
+                continue
             if res and self.model.editor.modules.has_key('file://'+res[0]):
                 starModPage = self.model.editor.modules['file://'+res[0]]
                 starModule = starModPage.model.getModule()
