@@ -43,6 +43,7 @@ if Preferences.csWxPythonSupport:
     if Preferences.dsUseSizers:
         from Companions.SizerCompanions import *
     from Companions.BasicCompanions import *
+    from Companions.DateTimeCompanions import *
     from Companions.ButtonCompanions import *
     from Companions.ListCompanions import *
     from Companions.GizmoCompanions import *
@@ -145,7 +146,7 @@ def evalCtrl(expr, localsDct=None):
         _NB = IS.load('Images/Inspector/wxNullBitmap.png')
     if localsDct is None:
         localsDct = {}
-    localsDct['_'] = str
+    localsDct['_'] = Utils.I18nStringFactory
     wx.NullBitmap = _NB
 
     return eval(expr, globals(), localsDct)
