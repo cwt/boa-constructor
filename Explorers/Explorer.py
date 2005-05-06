@@ -618,7 +618,7 @@ class BaseExplorerSplitter(wxSplitterWindow):
             self.list.refreshItems(imgs, data)
             title = data.getTitle()
 
-        self.editor.SetTitle('Editor - Explorer - %s' % title)
+        self.editor.SetTitle('%s - Explorer - %s' % (self.editor.editorTitle, title))
 
     def initInstalledControllers(self):
         return self.store.initInstalledControllers(self.editor, self.list)
