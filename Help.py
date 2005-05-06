@@ -13,95 +13,90 @@
 
 import os, sys, marshal, string, socket, webbrowser
 
-from wxPython.wx import *
-from wxPython.html import *
-from wxPython.htmlhelp import *
-from wxPython.lib.anchors import LayoutAnchors
+import wx
+import wx.html
+#from wxPython.htmlhelp import *
+from wx.lib.anchors import LayoutAnchors
 
 import Preferences, Utils
 
-[wxID_PYDOCHELPPAGE, wxID_PYDOCHELPPAGEBOXRESULTS, 
- wxID_PYDOCHELPPAGEBTNSEARCH, wxID_PYDOCHELPPAGEBTNSTOP, 
- wxID_PYDOCHELPPAGECHKRUNSERVER, wxID_PYDOCHELPPAGEPNLSTATUS, 
- wxID_PYDOCHELPPAGESTXSTATUS, wxID_PYDOCHELPPAGETXTSEARCH, 
-] = map(lambda _init_ctrls: wxNewId(), range(8))
+[wxID_PYDOCHELPPAGE, wxID_PYDOCHELPPAGEBOXRESULTS,
+ wxID_PYDOCHELPPAGEBTNSEARCH, wxID_PYDOCHELPPAGEBTNSTOP,
+ wxID_PYDOCHELPPAGECHKRUNSERVER, wxID_PYDOCHELPPAGEPNLSTATUS,
+ wxID_PYDOCHELPPAGESTXSTATUS, wxID_PYDOCHELPPAGETXTSEARCH,
+] = [wx.NewId() for _init_ctrls in range(8)]
 
-class PyDocHelpPage(wxPanel):
+class PyDocHelpPage(wx.Panel):
     def _init_utils(self):
         # generated method, don't edit
-        self.scrBrowse = wxStockCursor(id=wxCURSOR_HAND)
+        self.scrBrowse =wx.StockCursor(id=wx.CURSOR_HAND)
 
     def _init_ctrls(self, prnt):
         # generated method, don't edit
-        wxPanel.__init__(self, id=wxID_PYDOCHELPPAGE, name='PyDocHelpPage',
-              parent=prnt, pos=wxPoint(443, 285), size=wxSize(259, 456),
-              style=wxTAB_TRAVERSAL)
+        wx.Panel.__init__(self, id=wxID_PYDOCHELPPAGE, name='PyDocHelpPage',
+              parent=prnt, pos=wx.Point(443, 285), size=wx.Size(259, 456),
+              style=wx.TAB_TRAVERSAL)
         self._init_utils()
-        self.SetClientSize(wxSize(251, 429))
+        self.SetClientSize(wx.Size(251, 429))
         self.SetAutoLayout(True)
 
-        self.txtSearch = wxTextCtrl(id=wxID_PYDOCHELPPAGETXTSEARCH,
-              name='txtSearch', parent=self, pos=wxPoint(10, 10),
-              size=wxSize(231, 21), style=0, value='')
+        self.txtSearch =wx.TextCtrl(id=wxID_PYDOCHELPPAGETXTSEARCH,
+              name='txtSearch', parent=self, pos=wx.Point(10, 10),
+              size=wx.Size(231, 21), style=0, value='')
         self.txtSearch.SetConstraints(LayoutAnchors(self.txtSearch, True, True,
               True, False))
         self.txtSearch.SetToolTipString('Enter name to search for')
-        EVT_TEXT_ENTER(self.txtSearch, wxID_PYDOCHELPPAGETXTSEARCH,
-              self.OnTxtsearchTextEnter)
+        self.txtSearch.Bind(wx.EVT_TEXT_ENTER, self.OnTxtsearchTextEnter, id=wxID_PYDOCHELPPAGETXTSEARCH)
 
-        self.boxResults = wxListBox(choices=[], id=wxID_PYDOCHELPPAGEBOXRESULTS,
-              name='boxResults', parent=self, pos=wxPoint(2, 89),
-              size=wxSize(247, 338), style=0, validator=wxDefaultValidator)
+        self.boxResults =wx.ListBox(choices=[], id=wxID_PYDOCHELPPAGEBOXRESULTS,
+              name='boxResults', parent=self, pos=wx.Point(2, 89),
+              size=wx.Size(247, 338), style=0, validator=wx.DefaultValidator)
         self.boxResults.SetConstraints(LayoutAnchors(self.boxResults, True,
               True, True, True))
-        EVT_LISTBOX(self.boxResults, wxID_PYDOCHELPPAGEBOXRESULTS,
-              self.OnBoxresultsListboxDclick)
+        self.boxResults.Bind(wx.EVT_LISTBOX, self.OnBoxresultsListboxDclick, id=wxID_PYDOCHELPPAGEBOXRESULTS)
 
-        self.btnSearch = wxButton(id=wxID_PYDOCHELPPAGEBTNSEARCH,
-              label='Search', name='btnSearch', parent=self, pos=wxPoint(89,
-              41), size=wxSize(75, 23), style=0)
+        self.btnSearch =wx.Button(id=wxID_PYDOCHELPPAGEBTNSEARCH,
+              label='Search', name='btnSearch', parent=self, pos=wx.Point(89,
+              41), size=wx.Size(75, 23), style=0)
         self.btnSearch.SetConstraints(LayoutAnchors(self.btnSearch, False, True,
               True, False))
-        EVT_BUTTON(self.btnSearch, wxID_PYDOCHELPPAGEBTNSEARCH,
-              self.OnBtnsearchButton)
+        self.btnSearch.Bind(wx.EVT_BUTTON, self.OnBtnsearchButton, id=wxID_PYDOCHELPPAGEBTNSEARCH)
 
-        self.btnStop = wxButton(id=wxID_PYDOCHELPPAGEBTNSTOP, label='Stop',
-              name='btnStop', parent=self, pos=wxPoint(166, 41), size=wxSize(75,
+        self.btnStop =wx.Button(id=wxID_PYDOCHELPPAGEBTNSTOP, label='Stop',
+              name='btnStop', parent=self, pos=wx.Point(166, 41), size=wx.Size(75,
               23), style=0)
         self.btnStop.SetConstraints(LayoutAnchors(self.btnStop, False, True,
               True, False))
         self.btnStop.Enable(False)
-        EVT_BUTTON(self.btnStop, wxID_PYDOCHELPPAGEBTNSTOP,
-              self.OnBtnstopButton)
+        self.btnStop.Bind(wx.EVT_BUTTON, self.OnBtnstopButton, id=wxID_PYDOCHELPPAGEBTNSTOP)
 
-        self.chkRunServer = wxCheckBox(id=wxID_PYDOCHELPPAGECHKRUNSERVER,
-              label='Server', name='chkRunServer', parent=self, pos=wxPoint(3,
-              72), size=wxSize(73, 13), style=0)
+        self.chkRunServer =wx.CheckBox(id=wxID_PYDOCHELPPAGECHKRUNSERVER,
+              label='Server', name='chkRunServer', parent=self, pos=wx.Point(3,
+              72), size=wx.Size(73, 13), style=0)
         self.chkRunServer.SetValue(self.runServer)
-        EVT_CHECKBOX(self.chkRunServer, wxID_PYDOCHELPPAGECHKRUNSERVER,
-              self.OnChkrunserverCheckbox)
+        self.chkRunServer.Bind(wx.EVT_CHECKBOX, self.OnChkrunserverCheckbox, id=wxID_PYDOCHELPPAGECHKRUNSERVER)
 
-        self.pnlStatus = wxPanel(id=wxID_PYDOCHELPPAGEPNLSTATUS,
-              name='pnlStatus', parent=self, pos=wxPoint(80, 72),
-              size=wxSize(168, 16), style=wxTAB_TRAVERSAL | wxNO_BORDER)
+        self.pnlStatus =wx.Panel(id=wxID_PYDOCHELPPAGEPNLSTATUS,
+              name='pnlStatus', parent=self, pos=wx.Point(80, 72),
+              size=wx.Size(168, 16), style=wx.TAB_TRAVERSAL | wx.NO_BORDER)
 
-        self.stxStatus = wxStaticText(id=wxID_PYDOCHELPPAGESTXSTATUS,
+        self.stxStatus =wx.StaticText(id=wxID_PYDOCHELPPAGESTXSTATUS,
               label='Server not running ', name='stxStatus',
-              parent=self.pnlStatus, pos=wxPoint(0, 0), size=wxSize(168, 16),
-              style=wxST_NO_AUTORESIZE | wxALIGN_RIGHT)
+              parent=self.pnlStatus, pos=wx.Point(0, 0), size=wx.Size(168, 16),
+              style=wx.ST_NO_AUTORESIZE | wx.ALIGN_RIGHT)
         self.stxStatus.SetConstraints(LayoutAnchors(self.stxStatus, True, True,
               True, False))
-        EVT_LEFT_DOWN(self.stxStatus, self.OnStxstatusLeftDown)
+        self.stxStatus.Bind(wx.EVT_LEFT_DOWN, self.OnStxstatusLeftDown)
 
     def __init__(self, parent, helpFrame):
         #print 'creating new PyDocPage'
         self.runServer = False
         self.runServer = helpFrame.pdRunServer
-        
+
         self._init_ctrls(parent)
-        
+
         self.helpFrame = helpFrame
-        
+
         self.scanner = None
         self.server = self.helpFrame.controller.server = None
         self.url = ''
@@ -112,7 +107,7 @@ class PyDocHelpPage(wxPanel):
         if self.runServer:
             self.chkRunServer.Disable()
             self.startPydocServer()
-        
+
     def startPydocServer(self):
         # silence warnings
         import warnings
@@ -121,18 +116,18 @@ class PyDocHelpPage(wxPanel):
         self.stxStatus.SetLabel('Starting pydoc server... ')
 
         if not testPydocServerAddress('localhost', 7464):
-            self.stxStatus.SetLabel('Address in use, ')            
+            self.stxStatus.SetLabel('Address in use, ')
 
             self.chkRunServer.Enable(True)
             self.chkRunServer.SetValue(False)
             self.runServer = False
 
             self.url = 'http://localhost:%d/'%7464
-        else:    
+        else:
             self.waiting = 1
             import threading, pydoc
             threading.Thread(
-                target=pydoc.serve, args=(7464, self.OnServerReady, 
+                target=pydoc.serve, args=(7464, self.OnServerReady,
                     self.OnServerQuit)).start()
 
     # called from thread
@@ -143,9 +138,9 @@ class PyDocHelpPage(wxPanel):
             self.runServer = True
             self.waiting = 0
 
-            Utils.wxCallAfter(self.chkRunServer.Enable, True)
-            Utils.wxCallAfter(self.chkRunServer.SetValue, True)
-            Utils.wxCallAfter(self.hyperlinkLabel, 
+            wx.CallAfter(self.chkRunServer.Enable, True)
+            wx.CallAfter(self.chkRunServer.SetValue, True)
+            wx.CallAfter(self.hyperlinkLabel,
                               'http://localhost:%d/'%server.server_port)
 
 
@@ -158,9 +153,9 @@ class PyDocHelpPage(wxPanel):
             self.url = ''
             self.waiting = 0
 
-            Utils.wxCallAfter(self.chkRunServer.Enable, True)
-            Utils.wxCallAfter(self.chkRunServer.SetValue, False)
-            Utils.wxCallAfter(self.stxStatus.SetLabel, 'Server quit. ')
+            wx.CallAfter(self.chkRunServer.Enable, True)
+            wx.CallAfter(self.chkRunServer.SetValue, False)
+            wx.CallAfter(self.stxStatus.SetLabel, 'Server quit. ')
 
     def OnBtnsearchButton(self, event):
         self.doSearch()
@@ -178,7 +173,7 @@ class PyDocHelpPage(wxPanel):
             self.scanner.quit = 1
         self.scanner = pydoc.ModuleScanner()
         threading.Thread(target=self.scanner.run,
-                         args=(self.OnUpdateResults, key, 
+                         args=(self.OnUpdateResults, key,
                                self.OnFinishedResults)).start()
 
     # called from thread
@@ -186,7 +181,7 @@ class PyDocHelpPage(wxPanel):
         if self:
             if modname[-9:] == '.__init__':
                 modname = modname[:-9] + ' (package)'
-            Utils.wxCallAfter(self.boxResults.Append, 
+            wx.CallAfter(self.boxResults.Append,
                               modname + ' - ' + (desc or '(no description)'))
 
     def doStop(self):
@@ -198,7 +193,7 @@ class PyDocHelpPage(wxPanel):
     def OnFinishedResults(self):
         if self:
             self.scanner = None
-            Utils.wxCallAfter(self.btnStop.Disable)
+            wx.CallAfter(self.btnStop.Disable)
 
     def OnBoxresultsListboxDclick(self, event):
         selection = self.boxResults.GetStringSelection()
@@ -221,25 +216,25 @@ class PyDocHelpPage(wxPanel):
                 self.restoreLabel('Stopping server...')
                 self.server.quit = 1
                 self.server.server_close()
-    
+
     def hyperlinkLabel(self, text):
         f = self.stxStatus.GetFont()
         f.SetUnderlined(1)
         self.stxStatus.SetFont(f)
-        self.stxStatus.SetForegroundColour(wxColour(0x11,0x22,0x88))
+        self.stxStatus.SetForegroundColour(wx.Colour(0x11,0x22,0x88))
         self.stxStatus.SetLabel(text)
         self.pnlStatus.SetCursor(self.scrBrowse)
         self.statusHyperlinked = 1
-            
+
     def restoreLabel(self, text):
         f = self.stxStatus.GetFont()
         f.SetUnderlined(0)
         self.stxStatus.SetFont(f)
-        self.stxStatus.SetForegroundColour(wxBLACK)
+        self.stxStatus.SetForegroundColour(wx.BLACK)
         self.stxStatus.SetLabel(text)
-        self.pnlStatus.SetCursor(wxSTANDARD_CURSOR)
+        self.pnlStatus.SetCursor(wx.STANDARD_CURSOR)
         self.statusHyperlinked = 0
-            
+
     def OnStxstatusLeftDown(self, event):
         if self.statusHyperlinked:
             webbrowser.open(self.stxStatus.GetLabel())
@@ -319,10 +314,10 @@ def decorateWxPythonWithDocStrs(dbfile):
             except:
                 pass
 
-class wxHtmlHelpControllerEx(wxHtmlHelpController):
+class wxHtmlHelpControllerEx(wx.html.HtmlHelpController):
     frameX = None
     def Display(self, text):
-        wxHtmlHelpController.Display(self, text)
+        wx.html.HtmlHelpController.Display(self, text)
         if not self.frameX:
             self.frameX = wxHelpFrameEx(self)
         #frameX.restore()
@@ -339,14 +334,14 @@ class wxHtmlHelpControllerEx(wxHtmlHelpController):
         if config.ReadInt('hcX') == -32000:
             map(config.DeleteEntry, ('hcX', 'hcY', 'hcW', 'hcH'))
 
-        wxHtmlHelpController.UseConfig(self, config)
-        
+        wx.html.HtmlHelpController.UseConfig(self, config)
+
         self.config = config
 
-class _CloseEvtHandler(wxEvtHandler):
+class _CloseEvtHandler(wx.EvtHandler):
     def __init__(self, frameEx):
-        wxEvtHandler.__init__(self)
-        EVT_CLOSE(frameEx.frame, self.OnClose)
+        wx.EvtHandler.__init__(self)
+        frameEx.frame.Bind(wx.EVT_CLOSE, self.OnClose)
         self.frameEx = frameEx
         self.frame = frameEx.frame
 
@@ -366,7 +361,7 @@ class _CloseEvtHandler(wxEvtHandler):
 
         self.frame.Hide()
 
-wxID_COPYTOCLIP = wxNewId()
+wxID_COPYTOCLIP =wx.NewId()
 
 # Note, this works nicely because of OOR
 class wxHelpFrameEx:
@@ -375,40 +370,37 @@ class wxHelpFrameEx:
         self.frame = helpctrlr.GetFrame()
         #self.frame.frameEx = self
 
-        wxID_QUITHELP, wxID_FOCUSHTML = wxNewId(), wxNewId()
-        EVT_MENU(self.frame, wxID_QUITHELP, self.OnQuitHelp)
-        EVT_MENU(self.frame, wxID_FOCUSHTML, self.OnFocusHtml)
+        wxID_QUITHELP, wxID_FOCUSHTML = wx.NewId(), wx.NewId()
+        self.frame.Bind(wx.EVT_MENU, self.OnQuitHelp, id=wxID_QUITHELP)
+        self.frame.Bind(wx.EVT_MENU, self.OnFocusHtml, id=wxID_FOCUSHTML)
 
         self.frame.PushEventHandler(_CloseEvtHandler(self))
 
         # helpfrm.cpp defines no accelerators so this is ok
         self.frame.SetAcceleratorTable(
-              wxAcceleratorTable([(0, WXK_ESCAPE, wxID_QUITHELP),
-                                  (wxACCEL_CTRL, ord('H'), wxID_FOCUSHTML),]))
+              wx.AcceleratorTable([(0, wx.WXK_ESCAPE, wxID_QUITHELP),
+                                  (wx.ACCEL_CTRL, ord('H'), wxID_FOCUSHTML),]))
 
         _none, self.toolbar, self.splitter = self.frame.GetChildren()
 
         self.html, nav = self.splitter.GetChildren()
 
-        # handle 2.3.3 change
-        if isinstance(nav, wxNotebookPtr):
-            self.navPages = nav
+        self.navPages = nav.GetChildren()[0]
 
-            # Extend toolbar
-            if self.toolbar.GetToolShortHelp(wxID_COPYTOCLIP) != \
-                  'Copy contents as text to clipboard':
-                self.toolbar.AddSeparator()
-                self.copyToClipId = wxID_COPYTOCLIP
-                self.toolbar.AddTool(id = self.copyToClipId, isToggle=0,
-                    bitmap=Preferences.IS.load('Images/Shared/CopyHelp.png'),
-                    pushedBitmap=wxNullBitmap,
-                    shortHelpString='Copy contents as text to clipboard',
-                    longHelpString='')
-                EVT_TOOL(self.frame, self.copyToClipId, self.OnCopyPage)
-                self.toolbar.Realize()
+        # Extend toolbar
+        if self.toolbar.FindById(wxID_COPYTOCLIP) is None:
+            self.toolbar.AddSeparator()
+            self.copyToClipId = wxID_COPYTOCLIP
+            self.toolbar.AddTool(id = self.copyToClipId, isToggle=0,
+                bitmap=Preferences.IS.load('Images/Shared/CopyHelp.png'),
+                pushedBitmap=wx.NullBitmap,
+                shortHelpString='Copy contents as text to clipboard',
+                longHelpString='')
+            self.frame.Bind(wx.EVT_TOOL, self.OnCopyPage, id=self.copyToClipId)
+            self.toolbar.Realize()
 
-        else:
-            self.navPages = nav.GetChildren()[0]
+#        else:
+#            self.navPages = nav.GetChildren()[0]
 
         assert self.navPages.GetPageText(0) == 'Contents'
         self.contentsPanel = self.navPages.GetPage(0)
@@ -436,7 +428,7 @@ class wxHelpFrameEx:
             self.navPages.AddPage(self.pydocPage, 'Pydoc')
         else:
             self.pydocPage = None
-            
+
 ##    def restore(self):
 ##        Utils.FrameRestorerMixin.restore(self.frame)
 
@@ -444,10 +436,10 @@ class wxHelpFrameEx:
         self.controller.DisplayIndex()
         self.indexTextCtrl.SetValue(text)
 
-        wxPostEvent(self.frame, wxCommandEvent(wxEVT_COMMAND_BUTTON_CLICKED,
+        wx.PostEvent(self.frame, wx.CommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED,
               self.indexFindBtn.GetId()))
 
-    def ShowNavPanel(self, show = true):
+    def ShowNavPanel(self, show = True):
         if show:
             self.splitter.SplitVertically(self.navPages, self.html)
         else:
@@ -477,8 +469,8 @@ class wxHelpFrameEx:
         self.html.SetFocus()
 
     def OnCopyPage(self, event):
-        Utils.writeTextToClipboard( Utils.html2txt(
-                open(self.html.GetOpenedPage()).read()))
+        Utils.writeTextToClipboard(self.html.SelectionToText())
+        #Utils.html2txt(open(self.html.GetOpenedPage()).read()))
 
 wxHF_TOOLBAR                = 0x0001
 wxHF_CONTENTS               = 0x0002
@@ -509,17 +501,17 @@ def getCacheDir():
     return cacheDir
 
 # needed for .htb files
-wxFileSystem_AddHandler(wxZipFSHandler())
+wx.FileSystem.AddHandler(wx.ZipFSHandler())
 
-def initHelp(calledAtStartup=false):
+def initHelp(calledAtStartup=False):
     jn = os.path.join
     docsDir = jn(Preferences.pyPath, 'Docs')
 
     global _hc
     _hc = wxHtmlHelpControllerEx(wxHF_ICONS_BOOK_CHAPTER | \
         wxHF_DEFAULT_STYLE | (Preferences.flatTools and wxHF_FLAT_TOOLBAR or 0))
-    cf = wxFileConfig(localFilename=os.path.normpath(jn(Preferences.rcPath,
-        'helpfrm.cfg')), style=wxCONFIG_USE_LOCAL_FILE)
+    cf = wx.FileConfig(localFilename=os.path.normpath(jn(Preferences.rcPath,
+        'helpfrm.cfg')), style=wx.CONFIG_USE_LOCAL_FILE)
     _hc.UseConfig(cf)
 
     cacheDir = getCacheDir()
@@ -542,10 +534,10 @@ def initWxPyDocStrs():
 
 
 def pydocWarning():
-    return wxMessageBox('The pydoc server has not completely started up yet,\n '
+    return wx.MessageBox('The pydoc server has not completely started up yet,\n '
                         'it is safer to wait for it to finish before shutting '
-                        'down.\n\nDo you want to wait?', 'Pydoc server busy', 
-                        wxYES_NO | wxICON_EXCLAMATION) == wxYES
+                        'down.\n\nDo you want to wait?', 'Pydoc server busy',
+                        wx.YES_NO | wx.ICON_EXCLAMATION) == wx.YES
 
 def canClosePydocServer():
     if _hc:
@@ -574,7 +566,7 @@ def delHelp():
         if hasattr(_hc, 'server') and _hc.server and not _hc.server.quit:
             _hc.server.quit = 1
             _hc.server.server_close()
-        
+
         f = _hc.GetFrame()
         if f:
             f.PopEventHandler().Destroy()
@@ -583,8 +575,8 @@ def delHelp():
         _hc = None
 
 def main(args):
-    app = wxPySimpleApp()
-    wxInitAllImageHandlers()
+    app = wx.PySimpleApp()
+    wx.InitAllImageHandlers()
     initHelp()
     if args:
         showContextHelp(args[0])
@@ -594,8 +586,8 @@ def main(args):
     delHelp()
 
 def _test(word):
-    app = wxPySimpleApp()
-    wxInitAllImageHandlers()
+    app = wx.PySimpleApp()
+    wx.InitAllImageHandlers()
     initHelp()
     if word:
         showContextHelp(word)
@@ -603,7 +595,7 @@ def _test(word):
         _hc.Display('')
     app.MainLoop()
     delHelp()
-    
+
 
 if __name__ == '__main__':
     #initWxPyDocStrs()
