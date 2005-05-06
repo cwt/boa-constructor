@@ -18,7 +18,7 @@ Handles creation/initialisation of main objects and commandline arguments """
 
 import sys, os, string, time, warnings
 
-#try: import psyco; psyco.background()
+#try: import psyco; psyco.full()
 #except ImportError: pass
 
 t1 = time.time()
@@ -82,15 +82,15 @@ def processArgs(argv):
     _startupModules = ()
     import getopt
     try:
-        optlist, args = getopt.getopt(argv, 'CDTSBO:ERNHVhv', 
-         ['Constricted', 'Debug', 'Trace', 'StartupFile', 'BlockHomePrefs', 
-          'OverridePrefsDirName', 'EmptyEditor', 'RemoteDebugServer', 
+        optlist, args = getopt.getopt(argv, 'CDTSBO:ERNHVhv',
+         ['Constricted', 'Debug', 'Trace', 'StartupFile', 'BlockHomePrefs',
+          'OverridePrefsDirName', 'EmptyEditor', 'RemoteDebugServer',
           'NoCmdLineTransfer', 'Help', 'Version', 'help', 'version'])
     except getopt.GetoptError, err:
         print 'Error: %s'%str(err)
         print 'For options: Boa.py --help'
         sys.exit()
-        
+
     if (('-D', '') in optlist or ('--Debug', '') in optlist) and len(args):
         # XXX should be able to 'debug in running Boa'
         _doDebug = 1
@@ -201,7 +201,7 @@ print 'importing wxPython'
 try:
     # See if there is a multi-version install of wxPython
     import wxversion
-    wxversion.select('2.5')
+    wxversion.ensureMinimal('2.5')
 except ImportError:
     # Otherwise assume a normal 2.4 install, if it isn't 2.4 it will
     # be caught below
@@ -211,26 +211,26 @@ except ImportError:
 ##from wxPython import wx
 ##try:
 ##    # wxPy 2.4.0.4 and Py 2.2 and 2.3
-##    wx.true = True
-##    wx.false = False
+##    wx.True = True
+##    wx.False = False
 ##except NameError:
 ##    try:
 ##        # wxPy 2.4.0.4 and Py 2.1
-##        wx.true = wx.True
-##        wx.false = wx.False
+##        wx.True = wx.True
+##        wx.False = wx.False
 ##    except AttributeError:
 ##        # earlier wxPys
 ##        pass
 
-from wxPython.wx import *
-wxRegisterId(15999)
+import wx
+wx.RegisterId(15999)
 
-warnings.filterwarnings('ignore', '', DeprecationWarning, 'wxPython.imageutils')
+#warnings.filterwarnings('ignore', '', DeprecationWarning, 'wxPython.imageutils')
 
 # Use package version string as it is the only one containing bugfix version number
-import wxPython
+import wx
 # Remove non number/dot characters
-wxVersion = wxPython.__version__
+wxVersion = wx.__version__
 for c in wxVersion:
     if c not in string.digits+'.':
         wxVersion = wxVersion.replace(c, '')
@@ -239,18 +239,18 @@ wxVersion = tuple(map(lambda v: int(v),
                       (wxVersion.split('.')+['0'])[:4]))
 
 if wxVersion < __version__.wx_version:
-    wxPySimpleApp()
-    wxMessageBox('Sorry! This version of Boa requires at least '\
+    wx.PySimpleApp()
+    wx.MessageBox('Sorry! This version of Boa requires at least '\
                  'wxPython %d.%d.%d.%d'%__version__.wx_version,
-                 'Version error', wxOK | wxICON_ERROR)
+                 'Version error', wx.OK | wx.ICON_ERROR)
     raise 'wxPython >= %d.%d.%d.%d required'%__version__.wx_version
 
 if __version__.wx_version_max and wxVersion > __version__.wx_version_max:
-    wxPySimpleApp()
-    wxMessageBox('Sorry! This version of Boa does not work under '\
+    wx.PySimpleApp()
+    wx.MessageBox('Sorry! This version of Boa does not work under '\
                  'wxPython %d.%d.%d.%d, please downgrade to '\
                  'wxPython %d.%d.%d.%d'% (wxVersion+__version__.wx_version_max),
-                 'Version error', wxOK | wxICON_ERROR)
+                 'Version error', wx.OK | wx.ICON_ERROR)
     raise 'wxPython %d.%d.%d.%d not supported'%wxVersion
 
 import Preferences, Utils
@@ -274,7 +274,7 @@ print 'running main...'
 
 # XXX Save as after app is closed
 
-# XXX Add wxImageBitmap, delete (prints class link error)
+# XXX Add wx.ImageBitmap, delete (prints class link error)
 
 
 modules ={'About': [0, 'About box and Splash screen', 'About.py'],
@@ -287,7 +287,6 @@ modules ={'About': [0, 'About box and Splash screen', 'About.py'],
  'ButtonCompanions': [0, '', 'Companions/ButtonCompanions.py'],
  'CPPSupport': [0, '', 'Models/CPPSupport.py'],
  'CVSExplorer': [0, '', 'Explorers/CVSExplorer.py'],
- 'CVSResults': [0, '', 'Explorers/CVSResults.py'],
  'ChildProcessClient': [0, '', 'Debugger/ChildProcessClient.py'],
  'ChildProcessServer': [0, '', 'Debugger/ChildProcessServer.py'],
  'ChildProcessServerStart': [0, '', 'Debugger/ChildProcessServerStart.py'],
@@ -315,6 +314,7 @@ modules ={'About': [0, 'About box and Splash screen', 'About.py'],
  'DataView': [0,
               'View to manage non visual frame objects',
               'Views/DataView.py'],
+ 'DateTimeCompanions': [0, '', 'Companions/DateTimeCompanions.py'],
  'DebugClient': [0, '', 'Debugger/DebugClient.py'],
  'Debugger': [0,
               'Module for out-of-process debugging of Python apps',
@@ -468,24 +468,24 @@ modules ={'About': [0, 'About box and Splash screen', 'About.py'],
  'wxPythonEditorModels': [0, '', 'Models/wxPythonEditorModels.py'],
  'xmlrpclib': [0, '', 'ExternalLib/xmlrpclib.py']}
 
-class BoaApp(wxApp):
+class BoaApp(wx.App):
     """ Application object, responsible for the Splash screen, applying command
         line switches, optional logging and creation of the main frames. """
 
     def __init__(self):
-        wxApp.__init__(self, false)
+        wx.App.__init__(self, False)
 
     def OnInit(self):
         Preferences.initScreenVars()
-        
-        wxInitAllImageHandlers()
 
-        wxToolTip_Enable(true)
+        wx.InitAllImageHandlers()
+
+        wx.ToolTip.Enable(True)
         if Preferences.debugMode == 'release':
-            self.SetAssertMode(wxPYAPP_ASSERT_SUPPRESS)
+            self.SetAssertMode(wx.PYAPP_ASSERT_SUPPRESS)
         elif Preferences.debugMode == 'development':
-            self.SetAssertMode(wxPYAPP_ASSERT_EXCEPTION)
-            
+            self.SetAssertMode(wx.PYAPP_ASSERT_EXCEPTION)
+
 
         conf = Utils.createAndReadConfig('Explorer')
         modTot = conf.getint('splash', 'modulecount')
@@ -496,48 +496,51 @@ class BoaApp(wxApp):
             abt.Show()
             abt.Update()
             # Let the splash screen repaint
-            wxYield()
-    
+            wx.Yield()
+
+            # Imported here to initialise core features and plug-ins
+            import PaletteMapping
+
             print 'creating Palette'
             import Palette
             self.main = Palette.BoaFrame(None, -1, self)
-    
+
             print 'creating Inspector'
             import Inspector
             inspector = Inspector.InspectorFrame(self.main)
-    
+
             print 'creating Editor'
             import Editor
-            editor = Editor.EditorFrame(self.main, -1, inspector, wxMenu(),
+            editor = Editor.EditorFrame(self.main, -1, inspector, wx.Menu(),
                 self.main.componentSB, self, self.main)
             self.SetTopWindow(editor)
-    
+
             inspector.editor = editor
-    
+
             conf.set('splash', 'modulecount', `len(sys.modules)`)
             try:
                 Utils.writeConfig(conf)
             except IOError, err:
                 startupErrors.append('Error writing config file: %s\nPlease '
               'ensure that the Explorer.*.cfg file is not read only.'% str(err))
-    
+
             if not emptyEditor:
                 editor.restoreEditorState()
-    
+
             self.main.initPalette(inspector, editor)
-    
+
     ##            editor.setupToolBar()
-    
+
             import Help
             #print 'attaching wxPython doc strings'
             #Help.initWxPyDocStrs()
             if not Preferences.delayInitHelp:
                 print 'initialising Help'
                 Help.initHelp()
-    
+
             global constricted
             constricted = constricted or Preferences.suBoaConstricted
-    
+
             print 'showing main frames <<100/100>>'
             if constricted:
                 editor.CenterOnScreen()
@@ -552,15 +555,15 @@ class BoaApp(wxApp):
 
             editor.Show()
             editor.doAfterShownActions()
-    
+
             # Call startup files after complete editor initialisation
             global startupfile
             if Preferences.suExecPythonStartup and startupEnv:
                 startupfile = startupEnv
-    
+
             if editor.shell:
                 editor.shell.execStartupScript(startupfile)
-        
+
         finally:
             #time.sleep(1000)
             abt.Destroy()
@@ -595,26 +598,26 @@ class BoaApp(wxApp):
 
         if startupErrors:
             for error in startupErrors:
-                wxLogError(error)
-            wxLogError('\nThere were errors during startup, please click "Details"')
+                wx.LogError(error)
+            wx.LogError('\nThere were errors during startup, please click "Details"')
 
-        if wxPlatform == '__WXMSW__':
-            self.tbicon = wxTaskBarIcon()
+        if wx.Platform == '__WXMSW__':
+            self.tbicon =wx.TaskBarIcon()
             self.tbicon.SetIcon(self.main.GetIcon(), 'Boa Constructor')
-            EVT_TASKBAR_LEFT_DCLICK(self.tbicon, self.OnTaskBarActivate)
-            EVT_TASKBAR_RIGHT_UP(self.tbicon, self.OnTaskBarMenu)
-            EVT_MENU(self.tbicon, self.TBMENU_RESTORE, self.OnTaskBarActivate)
-            EVT_MENU(self.tbicon, self.TBMENU_CLOSE, self.OnTaskBarClose)
-            EVT_MENU(self.tbicon, self.TBMENU_ABOUT, self.OnTaskBarAbout)
+            self.tbicon.Bind(wx.EVT_TASKBAR_LEFT_DCLICK, self.OnTaskBarActivate)
+            self.tbicon.Bind(wx.EVT_TASKBAR_RIGHT_UP, self.OnTaskBarMenu)
+            self.tbicon.Bind(wx.EVT_MENU, self.OnTaskBarActivate, id=self.TBMENU_RESTORE)
+            self.tbicon.Bind(wx.EVT_MENU, self.OnTaskBarClose, id=self.TBMENU_CLOSE)
+            self.tbicon.Bind(wx.EVT_MENU, self.OnTaskBarAbout, id=self.TBMENU_ABOUT)
 
         editor.assureRefreshed()
 
-        return true
+        return True
 
     [TBMENU_RESTORE, TBMENU_CLOSE, TBMENU_ABOUT] = Utils.wxNewIds(3)
 
     def OnTaskBarMenu(self, event):
-        menu = wxMenu()
+        menu = wx.Menu()
         menu.Append(self.TBMENU_RESTORE, 'Restore Boa Constructor')
         menu.Append(self.TBMENU_CLOSE,   'Exit')
         menu.AppendSeparator()
@@ -639,12 +642,11 @@ def main(argv=None):
     # XXX Custom installations, should distutil libs be used for this ?
     # XXX Binary test is no longer valid, maybe type of __import__ function
     # Only install if it's not a 'binary' distribution
-    import wx
     if Preferences.installBCRTL and hasattr(wx, '__file__'):
         join, dirname = os.path.join, os.path.dirname
         wxPythonPath = dirname(wx.__file__)
         wxPythonLibPath = join(dirname(wx.__file__), 'lib')
-        ##pythonLibPath = dirname(wxPythonPath)
+        ##pythonLibPath = dirname(wx.PythonPath)
         try:
             # Install/update run time libs if necessary
             Utils.updateDir(join(Preferences.pyPath, 'bcrtl'),
@@ -664,7 +666,7 @@ def main(argv=None):
     try:
         app = BoaApp()
     except Exception, error:
-        wxMessageBox(str(error), 'Error on startup')
+        wx.MessageBox(str(error), 'Error on startup')
         raise
 
     app.MainLoop()

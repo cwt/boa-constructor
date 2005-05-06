@@ -11,67 +11,62 @@
 #-----------------------------------------------------------------------------
 #Boa:Dialog:ControlAlignmentFrame
 
-from wxPython.wx import *
+import wx
 
 # XXX Add 'Center in window' option
 
 def create(parent):
     return ControlAlignmentFrame(parent)
 
-[wxID_CONTROLALIGNMENTFRAME, wxID_CONTROLALIGNMENTFRAMECANCELBTN,
- wxID_CONTROLALIGNMENTFRAMEOKBTN, wxID_CONTROLALIGNMENTFRAMEPANEL1,
- wxID_CONTROLALIGNMENTFRAMERADIOBOX1, wxID_CONTROLALIGNMENTFRAMERADIOBOX2,
-] = map(lambda _init_ctrls: wxNewId(), range(6))
+[wxID_CONTROLALIGNMENTFRAME, wxID_CONTROLALIGNMENTFRAMECANCELBTN, 
+ wxID_CONTROLALIGNMENTFRAMEOKBTN, wxID_CONTROLALIGNMENTFRAMEPANEL1, 
+ wxID_CONTROLALIGNMENTFRAMERADIOBOX1, wxID_CONTROLALIGNMENTFRAMERADIOBOX2, 
+] = [wx.NewId() for _init_ctrls in range(6)]
 
-class ControlAlignmentFrame(wxDialog):
-    def _init_utils(self):
-        # generated method, don't edit
-        pass
-
+class ControlAlignmentFrame(wx.Dialog):
     def _init_ctrls(self, prnt):
         # generated method, don't edit
-        wxDialog.__init__(self, id=wxID_CONTROLALIGNMENTFRAME,
-              name='ControlAlignmentFrame', parent=prnt, pos=wxPoint(341, 140),
-              size=wxSize(328, 219), style=wxDEFAULT_DIALOG_STYLE,
+        wx.Dialog.__init__(self, id=wxID_CONTROLALIGNMENTFRAME,
+              name='ControlAlignmentFrame', parent=prnt, pos=wx.Point(341, 140),
+              size=wx.Size(328, 219), style=wx.DEFAULT_DIALOG_STYLE,
               title='Alignment')
-        self._init_utils()
-        self.SetClientSize(wxSize(320, 192))
+        self.SetClientSize(wx.Size(320, 192))
 
-        self.panel1 = wxPanel(id=wxID_CONTROLALIGNMENTFRAMEPANEL1,
-              name='panel1', parent=self, pos=wxPoint(0, 0), size=wxSize(320,
-              192), style=wxTAB_TRAVERSAL)
+        self.panel1 = wx.Panel(id=wxID_CONTROLALIGNMENTFRAMEPANEL1,
+              name='panel1', parent=self, pos=wx.Point(0, 0), size=wx.Size(320,
+              192), style=wx.TAB_TRAVERSAL)
 
-        self.radioBox1 = wxRadioBox(choices=['No change', 'Left sides',
+        self.radioBox1 = wx.RadioBox(choices=['No change', 'Left sides',
               'Centers', 'Right sides', 'Space equally'],
               id=wxID_CONTROLALIGNMENTFRAMERADIOBOX1, label='Horizontal',
               majorDimension=1, name='radioBox1', parent=self.panel1,
-              point=wxPoint(8, 8), size=wxSize(144, 144),
-              style=wxRA_SPECIFY_COLS, validator=wxDefaultValidator)
+              point=wx.Point(8, 8), size=wx.Size(144, 144),
+              style=wx.RA_SPECIFY_COLS)
 
-        self.okBtn = wxButton(id=wxID_CONTROLALIGNMENTFRAMEOKBTN, label='OK',
-              name='okBtn', parent=self.panel1, pos=wxPoint(160, 160),
-              size=wxSize(72, 24), style=0)
-        EVT_BUTTON(self.okBtn, wxID_CONTROLALIGNMENTFRAMEOKBTN,
-              self.OnOkbtnButton)
+        self.okBtn = wx.Button(id=wxID_CONTROLALIGNMENTFRAMEOKBTN, label='OK',
+              name='okBtn', parent=self.panel1, pos=wx.Point(160, 160),
+              size=wx.Size(72, 24), style=0)
+        self.okBtn.Bind(wx.EVT_BUTTON, self.OnOkbtnButton,
+              id=wxID_CONTROLALIGNMENTFRAMEOKBTN)
 
-        self.cancelBtn = wxButton(id=wxID_CONTROLALIGNMENTFRAMECANCELBTN,
+        self.cancelBtn = wx.Button(id=wxID_CONTROLALIGNMENTFRAMECANCELBTN,
               label='Cancel', name='cancelBtn', parent=self.panel1,
-              pos=wxPoint(240, 160), size=wxSize(72, 24), style=0)
-        EVT_BUTTON(self.cancelBtn, wxID_CONTROLALIGNMENTFRAMECANCELBTN,
-              self.OnCancelbtnButton)
+              pos=wx.Point(240, 160), size=wx.Size(72, 24), style=0)
+        self.cancelBtn.Bind(wx.EVT_BUTTON, self.OnCancelbtnButton,
+              id=wxID_CONTROLALIGNMENTFRAMECANCELBTN)
 
-        self.radioBox2 = wxRadioBox(choices=['No change', 'Tops', 'Centers',
+        self.radioBox2 = wx.RadioBox(choices=['No change', 'Tops', 'Centers',
               'Bottoms', 'Space equally'],
               id=wxID_CONTROLALIGNMENTFRAMERADIOBOX2, label='Vertical',
               majorDimension=1, name='radioBox2', parent=self.panel1,
-              point=wxPoint(160, 8), size=wxSize(152, 144),
-              style=wxRA_SPECIFY_COLS, validator=wxDefaultValidator)
+              point=wx.Point(160, 8), size=wx.Size(152, 144),
+              style=wx.RA_SPECIFY_COLS)
 
     def __init__(self, parent, selection):
         self._init_ctrls(parent)
         self.choices = ('No change', 'No change')
         self.selection = selection
-        self.Centre(wxBOTH)
+        self.Centre(wx.BOTH)
 
     def OnOkbtnButton(self, event):
         hor = 0; ver = 1
@@ -85,64 +80,64 @@ class ControlAlignmentFrame(wxDialog):
             lastSelPos = lastSel.position
             selSize = len(self.selection)
         for sel in self.selection:
-            domove = false
+            domove = False
             newX, newY = sel.position.x, sel.position.y
 
             if self.choices[hor] == 'Left sides':
                 if sel != firstSel:
-                    domove = true
+                    domove = True
                     newX = firstSelPos.x
             elif self.choices[hor] == 'Centers':
                 if sel != firstSel:
-                    domove = true
+                    domove = True
                     newX = firstSelPos.x + firstSel.size.x / 2 - sel.size.x / 2
             elif self.choices[hor] == 'Right sides':
                 if sel != firstSel:
-                    domove = true
+                    domove = True
                     newX = firstSelPos.x + firstSel.size.x - sel.size.x
             elif self.choices[hor] == 'Space equally':
                 if sel != firstSel and sel != lastSel:
-                    domove = true
+                    domove = True
                     newX = (lastSelPos.x - firstSelPos.x) / (selSize-1) * selIdx \
                            + firstSelPos.x
 #            elif self.choices[hor] == 'Center in window': pass # not implemented
 
             if self.choices[ver] == 'Tops':
                 if sel != firstSel:
-                    domove = true
+                    domove = True
                     newY = firstSelPos.y
             elif self.choices[ver] == 'Centers':
                 if sel != firstSel:
-                    domove = true
+                    domove = True
                     newY = firstSelPos.y + firstSel.size.y / 2 - sel.size.y / 2
             elif self.choices[ver] == 'Bottoms':
                 if sel != firstSel:
-                    domove = true
+                    domove = True
                     newY = firstSelPos.y + firstSel.size.y - sel.size.y
             elif self.choices[ver] == 'Space equally':
                 if sel != firstSel and sel != lastSel:
-                    domove = true
+                    domove = True
                     newY = (lastSelPos.y - firstSelPos.y) / (selSize-1) * selIdx \
                            + firstSelPos.y
 #            elif self.choices[ver] == 'Center in window': pass
 
             if domove:
-                sel.position  = wxPoint(newX, newY)
-                sel.dragging = true
+                sel.position  =wx.Point(newX, newY)
+                sel.dragging = True
                 sel.moveRelease()
                 sel.positionUpdate()
 
             selIdx = selIdx + 1
 
-        self.EndModal(wxOK)
+        self.EndModal(wx.OK)
 
     def OnCancelbtnButton(self, event):
-        self.EndModal(wxCANCEL)
+        self.EndModal(wx.CANCEL)
 
 
 if __name__ == '__main__':
-    app = wxPySimpleApp()
-    wxInitAllImageHandlers()
+    app = wx.PySimpleApp()
+    wx.InitAllImageHandlers()
     dlg = ControlAlignmentFrame(None, [])
     try:
         dlg.ShowModal()

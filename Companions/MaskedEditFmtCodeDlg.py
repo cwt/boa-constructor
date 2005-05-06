@@ -1,7 +1,7 @@
 #Boa:Dialog:MaskedEditFormatCodesDlg
 
-from wxPython.wx import *
-from wxPython.lib.anchors import LayoutAnchors
+import wx
+from wx.lib.anchors import LayoutAnchors
 
 formatCodes = [
  ('_', 'Allow spaces'),
@@ -21,80 +21,77 @@ formatCodes = [
  ('S', 'select entire field when navigating to new field'),
 ]
 
-[wxID_MASKEDEDITFORMATCODESDLG, wxID_MASKEDEDITFORMATCODESDLGBTNCANCEL, 
- wxID_MASKEDEDITFORMATCODESDLGBTNOK, 
- wxID_MASKEDEDITFORMATCODESDLGCLBFORMATCODES, 
- wxID_MASKEDEDITFORMATCODESDLGSTATICTEXT1, 
- wxID_MASKEDEDITFORMATCODESDLGTCFORMATCODEPROPVAL, 
-] = map(lambda _init_ctrls: wxNewId(), range(6))
+[wxID_MASKEDEDITFORMATCODESDLG, wxID_MASKEDEDITFORMATCODESDLGBTNCANCEL,
+ wxID_MASKEDEDITFORMATCODESDLGBTNOK,
+ wxID_MASKEDEDITFORMATCODESDLGCLBFORMATCODES,
+ wxID_MASKEDEDITFORMATCODESDLGSTATICTEXT1,
+ wxID_MASKEDEDITFORMATCODESDLGTCFORMATCODEPROPVAL,
+] = [wx.NewId() for _init_ctrls in range(6)]
 
-class MaskedEditFormatCodesDlg(wxDialog):
+class MaskedEditFormatCodesDlg(wx.Dialog):
     def _init_ctrls(self, prnt):
         # generated method, don't edit
-        wxDialog.__init__(self, id=wxID_MASKEDEDITFORMATCODESDLG,
-              name='MaskedEditFormatCodesDlg', parent=prnt, pos=wxPoint(433,
-              218), size=wxSize(436, 399),
-              style=wxRESIZE_BORDER | wxDEFAULT_DIALOG_STYLE,
+        wx.Dialog.__init__(self, id=wxID_MASKEDEDITFORMATCODESDLG,
+              name='MaskedEditFormatCodesDlg', parent=prnt, pos=wx.Point(433,
+              218), size=wx.Size(436, 399),
+              style=wx.RESIZE_BORDER | wx.DEFAULT_DIALOG_STYLE,
               title='Masked Edit - Format Codes')
-        self.SetClientSize(wxSize(428, 372))
+        self.SetClientSize(wx.Size(428, 372))
         self.SetAutoLayout(True)
-        self.Center(wxBOTH)
+        self.Center(wx.BOTH)
 
-        self.clbFormatCodes = wxCheckListBox(choices=[],
+        self.clbFormatCodes =wx.CheckListBox(choices=[],
               id=wxID_MASKEDEDITFORMATCODESDLGCLBFORMATCODES,
-              name='clbFormatCodes', parent=self, pos=wxPoint(8, 33),
-              size=wxSize(413, 258), style=wxLB_HSCROLL | wxLB_SINGLE,
-              validator=wxDefaultValidator)
+              name='clbFormatCodes', parent=self, pos=wx.Point(8, 33),
+              size=wx.Size(413, 258), style=wx.LB_HSCROLL | wx.LB_SINGLE)
         self.clbFormatCodes.SetConstraints(LayoutAnchors(self.clbFormatCodes,
               True, True, True, True))
-        EVT_CHECKLISTBOX(self.clbFormatCodes,
-              wxID_MASKEDEDITFORMATCODESDLGCLBFORMATCODES,
-              self.OnClbformatcodesChecklistbox)
+        self.clbFormatCodes.Bind(wx.EVT_CHECKLISTBOX, self.OnClbformatcodesChecklistbox, id=wxID_MASKEDEDITFORMATCODESDLGCLBFORMATCODES)
 
-        self.tcFormatCodePropVal = wxTextCtrl(id=wxID_MASKEDEDITFORMATCODESDLGTCFORMATCODEPROPVAL,
-              name='tcFormatCodePropVal', parent=self, pos=wxPoint(8, 299),
-              size=wxSize(413, 25), style=0, value=self.formatCode)
+        self.tcFormatCodePropVal =wx.TextCtrl(id=wxID_MASKEDEDITFORMATCODESDLGTCFORMATCODEPROPVAL,
+              name='tcFormatCodePropVal', parent=self, pos=wx.Point(8, 299),
+              size=wx.Size(413, 25), style=0, value=self.formatCode)
         self.tcFormatCodePropVal.SetConstraints(LayoutAnchors(self.tcFormatCodePropVal,
               True, False, True, True))
 
-        self.btnOK = wxButton(id=wxID_OK, label='OK', name='btnOK', parent=self,
-              pos=wxPoint(261, 340), size=wxSize(75, 23), style=0)
+        self.btnOK =wx.Button(id=wx.ID_OK, label='OK', name='btnOK', parent=self,
+              pos=wx.Point(261, 340), size=wx.Size(75, 23), style=0)
         self.btnOK.SetConstraints(LayoutAnchors(self.btnOK, False, False, True,
               True))
 
-        self.btnCancel = wxButton(id=wxID_CANCEL, label='Cancel',
-              name='btnCancel', parent=self, pos=wxPoint(346, 340),
-              size=wxSize(75, 23), style=0)
+        self.btnCancel =wx.Button(id=wx.ID_CANCEL, label='Cancel',
+              name='btnCancel', parent=self, pos=wx.Point(346, 340),
+              size=wx.Size(75, 23), style=0)
         self.btnCancel.SetConstraints(LayoutAnchors(self.btnCancel, False,
               False, True, True))
 
-        self.staticText1 = wxStaticText(id=wxID_MASKEDEDITFORMATCODESDLGSTATICTEXT1,
+        self.staticText1 =wx.StaticText(id=wxID_MASKEDEDITFORMATCODESDLGSTATICTEXT1,
               label='A string of formatting codes that modify behavior of the control.',
-              name='staticText1', parent=self, pos=wxPoint(8, 5),
-              size=wxSize(409, 24), style=wxNO_BORDER | wxST_NO_AUTORESIZE)
+              name='staticText1', parent=self, pos=wx.Point(8, 5),
+              size=wx.Size(409, 24), style=wx.NO_BORDER | wx.ST_NO_AUTORESIZE)
         self.staticText1.SetConstraints(LayoutAnchors(self.staticText1, True,
               True, True, False))
 
     def __init__(self, parent, formatCode=''):
         self.formatCode = ''
         self.formatCode = formatCode
-        
+
         self._init_ctrls(parent)
 
-        if wxPlatform == '__WXGTK__': fontSize = 13
+        if wx.Platform == '__WXGTK__': fontSize = 13
         else:                         fontSize = 9
 
-        self.clbFormatCodes.SetFont(wxFont(fontSize, wxMODERN, wxNORMAL, wxBOLD))
-        self.tcFormatCodePropVal.SetFont(wxFont(fontSize+1, wxMODERN, wxNORMAL, wxBOLD))
-        
+        self.clbFormatCodes.SetFont(wx.Font(fontSize, wx.MODERN, wx.NORMAL, wx.BOLD))
+        self.tcFormatCodePropVal.SetFont(wx.Font(fontSize+1, wx.MODERN, wx.NORMAL, wx.BOLD))
+
         for fc, desc in formatCodes:
             fmtCode = fc
-            if len(fmtCode) < 4: 
+            if len(fmtCode) < 4:
                 fmtCode = ' %s  '%fmtCode
 
             self.clbFormatCodes.Append('%s - %s'%(fmtCode, desc))
             if formatCode.find(fc) != -1:
-                self.clbFormatCodes.Check(self.clbFormatCodes.GetCount()-1, true)
+                self.clbFormatCodes.Check(self.clbFormatCodes.GetCount()-1, True)
 
         self.rebuildFmtCodePropVal()
 
@@ -103,20 +100,20 @@ class MaskedEditFormatCodesDlg(wxDialog):
         for idx in range(self.clbFormatCodes.GetCount()):
             if self.clbFormatCodes.IsChecked(idx):
                 r.append(formatCodes[idx][0])
-                
+
         self.tcFormatCodePropVal.SetValue(''.join(r))
-    
+
     def getFormatCode(self):
         return self.tcFormatCodePropVal.GetValue()
 
     def OnClbformatcodesChecklistbox(self, event):
         self.rebuildFmtCodePropVal()
-            
+
 
 
 if __name__ == '__main__':
-    app = wxPySimpleApp()
-    wxInitAllImageHandlers()
+    app =wx.PySimpleApp()
+    wx.InitAllImageHandlers()
     dlg = MaskedEditFormatCodesDlg(None, 'F_,-')
     try:
         dlg.ShowModal()

@@ -12,8 +12,8 @@
 #-----------------------------------------------------------------------------
 #Boa:Dialog:ProcessProgressDlg
 
-from wxPython.wx import *
-from wxPython.lib.anchors import LayoutAnchors
+import wx
+from wx.lib.anchors import LayoutAnchors
 
 import os, time, sys
 
@@ -28,76 +28,76 @@ from wxPopen import ProcessRunnerMix
  wxID_PROCESSPROGRESSDLGKILLBTN, wxID_PROCESSPROGRESSDLGOUTPUTTCTRL, 
  wxID_PROCESSPROGRESSDLGSPLITTERWINDOW, wxID_PROCESSPROGRESSDLGSTATUSGGE, 
  wxID_PROCESSPROGRESSDLGSTATUSSTXT, 
-] = map(lambda _init_ctrls: wxNewId(), range(9))
+] = [wx.NewId() for _init_ctrls in range(9)]
 
-class ProcessProgressDlg(wxDialog, ProcessRunnerMix):
+class ProcessProgressDlg(wx.Dialog, ProcessRunnerMix):
     def _init_ctrls(self, prnt):
         # generated method, don't edit
-        wxDialog.__init__(self, id=wxID_PROCESSPROGRESSDLG,
-              name='ProcessProgressDlg', parent=prnt, pos=wxPoint(313, 215),
-              size=wxSize(428, 363),
-              style=wxRESIZE_BORDER | wxDEFAULT_DIALOG_STYLE,
+        wx.Dialog.__init__(self, id=wxID_PROCESSPROGRESSDLG,
+              name='ProcessProgressDlg', parent=prnt, pos=wx.Point(313, 215),
+              size=wx.Size(428, 363),
+              style=wx.RESIZE_BORDER | wx.DEFAULT_DIALOG_STYLE,
               title=self.dlg_caption)
-        self.SetAutoLayout(true)
-        self.SetClientSize(wxSize(420, 336))
-        EVT_CLOSE(self, self.OnProcessprogressdlgClose)
+        self.SetAutoLayout(True)
+        self.SetClientSize(wx.Size(420, 336))
+        self.Bind(wx.EVT_CLOSE, self.OnProcessprogressdlgClose)
 
-        self.cancelBtn = wxButton(id=wxID_PROCESSPROGRESSDLGCANCELBTN,
-              label='Cancel', name='cancelBtn', parent=self, pos=wxPoint(332,
-              304), size=wxSize(80, 24), style=0)
+        self.cancelBtn = wx.Button(id=wxID_PROCESSPROGRESSDLGCANCELBTN,
+              label='Cancel', name='cancelBtn', parent=self, pos=wx.Point(332,
+              304), size=wx.Size(80, 24), style=0)
         self.cancelBtn.SetConstraints(LayoutAnchors(self.cancelBtn, False,
               False, True, True))
-        EVT_BUTTON(self.cancelBtn, wxID_PROCESSPROGRESSDLGCANCELBTN,
-              self.OnCancelbtnButton)
+        self.cancelBtn.Bind(wx.EVT_BUTTON, self.OnCancelbtnButton,
+              id=wxID_PROCESSPROGRESSDLGCANCELBTN)
 
-        self.cmdStxt = wxStaticText(id=wxID_PROCESSPROGRESSDLGCMDSTXT,
-              label='staticText1', name='cmdStxt', parent=self, pos=wxPoint(8,
-              8), size=wxSize(404, 64), style=wxST_NO_AUTORESIZE)
-        self.cmdStxt.SetConstraints(LayoutAnchors(self.cmdStxt, true, true,
-              true, false))
+        self.cmdStxt = wx.StaticText(id=wxID_PROCESSPROGRESSDLGCMDSTXT,
+              label='staticText1', name='cmdStxt', parent=self, pos=wx.Point(8,
+              8), size=wx.Size(404, 64), style=wx.ST_NO_AUTORESIZE)
+        self.cmdStxt.SetConstraints(LayoutAnchors(self.cmdStxt, True, True,
+              True, False))
 
-        self.splitterWindow = wxSplitterWindow(id=wxID_PROCESSPROGRESSDLGSPLITTERWINDOW,
-              name='splitterWindow', parent=self, point=wxPoint(8, 80),
-              size=wxSize(360, 192), style=self.splitterStyle)
+        self.splitterWindow = wx.SplitterWindow(id=wxID_PROCESSPROGRESSDLGSPLITTERWINDOW,
+              name='splitterWindow', parent=self, point=wx.Point(8, 80),
+              size=wx.Size(360, 192), style=self.splitterStyle)
         self.splitterWindow.SetConstraints(LayoutAnchors(self.splitterWindow,
-              true, true, true, true))
+              True, True, True, True))
 
-        self.errorTctrl = wxTextCtrl(id=wxID_PROCESSPROGRESSDLGERRORTCTRL,
-              name='errorTctrl', parent=self.splitterWindow, pos=wxPoint(0, 0),
-              size=wxSize(360, 80), style=wxTE_MULTILINE | wxTE_RICH, value='')
-        self.errorTctrl.SetForegroundColour(wxColour(128, 0, 0))
+        self.errorTctrl = wx.TextCtrl(id=wxID_PROCESSPROGRESSDLGERRORTCTRL,
+              name='errorTctrl', parent=self.splitterWindow, pos=wx.Point(0, 0),
+              size=wx.Size(360, 80), style=wx.TE_MULTILINE | wx.TE_RICH,
+              value='')
+        self.errorTctrl.SetForegroundColour(wx.Colour(128, 0, 0))
 
-        self.outputTctrl = wxTextCtrl(id=wxID_PROCESSPROGRESSDLGOUTPUTTCTRL,
-              name='outputTctrl', parent=self.splitterWindow, pos=wxPoint(0,
-              87), size=wxSize(360, 105), style=wxTE_MULTILINE | wxTE_RICH,
+        self.outputTctrl = wx.TextCtrl(id=wxID_PROCESSPROGRESSDLGOUTPUTTCTRL,
+              name='outputTctrl', parent=self.splitterWindow, pos=wx.Point(0,
+              87), size=wx.Size(360, 105), style=wx.TE_MULTILINE | wx.TE_RICH,
               value='')
         self.splitterWindow.SplitHorizontally(self.errorTctrl, self.outputTctrl,
               80)
 
-        self.statusStxt = wxStaticText(id=wxID_PROCESSPROGRESSDLGSTATUSSTXT,
+        self.statusStxt = wx.StaticText(id=wxID_PROCESSPROGRESSDLGSTATUSSTXT,
               label='staticText1', name='statusStxt', parent=self,
-              pos=wxPoint(8, 288), size=wxSize(292, 16), style=0)
-        self.statusStxt.SetConstraints(LayoutAnchors(self.statusStxt, true,
-              false, true, true))
+              pos=wx.Point(8, 288), size=wx.Size(292, 16), style=0)
+        self.statusStxt.SetConstraints(LayoutAnchors(self.statusStxt, True,
+              False, True, True))
 
-        self.statusGge = wxGauge(id=wxID_PROCESSPROGRESSDLGSTATUSGGE,
-              name='statusGge', parent=self, pos=wxPoint(8, 312), range=100,
-              size=wxSize(208, 16), style=wxGA_HORIZONTAL,
-              validator=wxDefaultValidator)
+        self.statusGge = wx.Gauge(id=wxID_PROCESSPROGRESSDLGSTATUSGGE,
+              name='statusGge', parent=self, pos=wx.Point(8, 312), range=100,
+              size=wx.Size(208, 16), style=wx.GA_HORIZONTAL)
         self.statusGge.SetConstraints(LayoutAnchors(self.statusGge, True, False,
               True, True))
 
-        self.killBtn = wxButton(id=wxID_PROCESSPROGRESSDLGKILLBTN, label='Kill',
-              name='killBtn', parent=self, pos=wxPoint(242, 304),
-              size=wxSize(81, 24), style=0)
+        self.killBtn = wx.Button(id=wxID_PROCESSPROGRESSDLGKILLBTN,
+              label='Kill', name='killBtn', parent=self, pos=wx.Point(242, 304),
+              size=wx.Size(81, 24), style=0)
         self.killBtn.SetConstraints(LayoutAnchors(self.killBtn, False, False,
               True, True))
         self.killBtn.Enable(False)
-        EVT_BUTTON(self.killBtn, wxID_PROCESSPROGRESSDLGKILLBTN,
-              self.OnKillbtnButton)
+        self.killBtn.Bind(wx.EVT_BUTTON, self.OnKillbtnButton,
+              id=wxID_PROCESSPROGRESSDLGKILLBTN)
 
-    def __init__(self, parent, command, caption, modally=true, 
-          linesep=os.linesep, autoClose=true, overrideDisplay=''):
+    def __init__(self, parent, command, caption, modally=True,
+          linesep=os.linesep, autoClose=True, overrideDisplay=''):
 
         self.dlg_caption = 'Progress'
         self.dlg_caption = caption
@@ -108,9 +108,9 @@ class ProcessProgressDlg(wxDialog, ProcessRunnerMix):
 
         ProcessRunnerMix.__init__(self, [])
 
-        self.Center(wxBOTH)
+        self.Center(wx.BOTH)
 
-        self.modally = true
+        self.modally = True
         self.linesep = linesep
         self.autoClose = autoClose
 
@@ -123,13 +123,13 @@ class ProcessProgressDlg(wxDialog, ProcessRunnerMix):
 
         if not modally:
             while not self.finished:
-                wxYield()
+                wx.Yield()
 
-    def execute(self, cmd, modally = true):
+    def execute(self, cmd, modally = True):
         self.killBtn.Enable(True)
         self.cancelBtn.SetLabel('Cancel')
         self.statusStxt.SetLabel('Waiting for response...')
-        self.responded = false
+        self.responded = False
         self.modally = modally
 
         ProcessRunnerMix.execute(self, cmd)
@@ -178,7 +178,7 @@ class ProcessProgressDlg(wxDialog, ProcessRunnerMix):
         self.cancelBtn.SetLabel('OK')
 
         if self.modally and self.autoClose:
-            self.EndModal(wxOK)
+            self.EndModal(wx.OK)
 
     def OnProcessprogressdlgClose(self, event):
         try:
@@ -199,27 +199,27 @@ class ProcessProgressDlg(wxDialog, ProcessRunnerMix):
             self.detach()
             self.prepareResult()
             if self.modally:
-                self.EndModal(wxCANCEL)
+                self.EndModal(wx.CANCEL)
         else:
-            self.EndModal(wxOK)
+            self.EndModal(wx.OK)
 
     def OnKillbtnButton(self, event):
         if not self.finished:
             self.prepareResult()
             self.kill()
             if self.modally:
-                self.EndModal(wxCANCEL)
+                self.EndModal(wx.CANCEL)
         else:
-            self.EndModal(wxOK)
+            self.EndModal(wx.OK)
 
 if __name__ == '__main__':
-    app = wxPySimpleApp()
+    app = wx.PySimpleApp()
     #cmd = '''python.exe -c "for i in range(2049):print '*',"'''
     cmd = '''python.exe -c "print '*'*5000"'''
     #cmd = '''python.exe -c "import time; time.sleep(10)"'''
     if 1:
         modal = 1
-        dlg = ProcessProgressDlg(None, cmd, 'Test', modal, autoClose=false)
+        dlg = ProcessProgressDlg(None, cmd, 'Test', modal, autoClose=False)
         if modal:
             dlg.ShowModal()
         #print dlg.errors, dlg.output

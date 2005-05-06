@@ -11,23 +11,23 @@
 #-----------------------------------------------------------------------------
 #Boa:Dialog:ResourceSelectDlg
 
-from wxPython.wx import *
-from wxPython.lib.anchors import LayoutAnchors
+import wx
+from wx.lib.anchors import LayoutAnchors
 
-[wxID_RESOURCESELECTDLG, wxID_RESOURCESELECTDLGBTNCANCEL, 
- wxID_RESOURCESELECTDLGBTNFILEDLG, wxID_RESOURCESELECTDLGBTNOK, 
-] = map(lambda _init_ctrls: wxNewId(), range(4))
+[wxID_RESOURCESELECTDLG, wxID_RESOURCESELECTDLGBTNCANCEL,
+ wxID_RESOURCESELECTDLGBTNFILEDLG, wxID_RESOURCESELECTDLGBTNOK,
+] = [wx.NewId() for _init_ctrls in range(4)]
 
-class ResourceSelectDlg(wxDialog):
+class ResourceSelectDlg(wx.Dialog):
     def _init_coll_boxSizerButtons_Items(self, parent):
         # generated method, don't edit
 
         parent.AddWindow(self.btnOK, 0, border=15,
-              flag=wxBOTTOM | wxTOP | wxLEFT | wxALIGN_RIGHT)
+              flag=wx.BOTTOM | wx.TOP | wx.LEFT | wx.ALIGN_RIGHT)
         parent.AddWindow(self.btnCancel, 0, border=15,
-              flag=wxBOTTOM | wxTOP | wxLEFT | wxALIGN_RIGHT)
+              flag=wx.BOTTOM | wx.TOP | wx.LEFT | wx.ALIGN_RIGHT)
         parent.AddWindow(self.btnFileDlg, 0, border=15,
-              flag=wxBOTTOM | wxTOP | wxLEFT | wxALIGN_RIGHT)
+              flag=wx.BOTTOM | wx.TOP | wx.LEFT | wx.ALIGN_RIGHT)
 
     def _init_coll_boxSizerMain_Items(self, parent):
         # generated method, don't edit
@@ -36,9 +36,9 @@ class ResourceSelectDlg(wxDialog):
 
     def _init_sizers(self):
         # generated method, don't edit
-        self.boxSizerMain = wxBoxSizer(orient=wxVERTICAL)
+        self.boxSizerMain =wx.BoxSizer(orient=wx.VERTICAL)
 
-        self.boxSizerButtons = wxBoxSizer(orient=wxHORIZONTAL)
+        self.boxSizerButtons =wx.BoxSizer(orient=wx.HORIZONTAL)
 
         self._init_coll_boxSizerMain_Items(self.boxSizerMain)
         self._init_coll_boxSizerButtons_Items(self.boxSizerButtons)
@@ -47,49 +47,48 @@ class ResourceSelectDlg(wxDialog):
 
     def _init_ctrls(self, prnt):
         # generated method, don't edit
-        wxDialog.__init__(self, id=wxID_RESOURCESELECTDLG,
-              name='ResourceSelectDlg', parent=prnt, pos=wxPoint(384, 293),
-              size=wxSize(307, 359),
-              style=wxRESIZE_BORDER | wxDEFAULT_DIALOG_STYLE,
+        wx.Dialog.__init__(self, id=wxID_RESOURCESELECTDLG,
+              name='ResourceSelectDlg', parent=prnt, pos=wx.Point(384, 293),
+              size=wx.Size(307, 359),
+              style=wx.RESIZE_BORDER | wx.DEFAULT_DIALOG_STYLE,
               title='Select Resource')
-        self.SetClientSize(wxSize(299, 332))
+        self.SetClientSize(wx.Size(299, 332))
 
-        self.btnOK = wxButton(id=wxID_OK, label='OK', name='btnOK', parent=self,
-              pos=wxPoint(15, 15), size=wxSize(75, 23), style=0)
+        self.btnOK =wx.Button(id=wx.ID_OK, label='OK', name='btnOK', parent=self,
+              pos=wx.Point(15, 15), size=wx.Size(75, 23), style=0)
 
-        self.btnCancel = wxButton(id=wxID_CANCEL, label='Cancel',
-              name='btnCancel', parent=self, pos=wxPoint(105, 15),
-              size=wxSize(75, 23), style=0)
+        self.btnCancel =wx.Button(id=wx.ID_CANCEL, label='Cancel',
+              name='btnCancel', parent=self, pos=wx.Point(105, 15),
+              size=wx.Size(75, 23), style=0)
 
-        self.btnFileDlg = wxButton(id=wxID_RESOURCESELECTDLGBTNFILEDLG,
+        self.btnFileDlg =wx.Button(id=wxID_RESOURCESELECTDLGBTNFILEDLG,
               label='File Dialog...', name='btnFileDlg', parent=self,
-              pos=wxPoint(195, 15), size=wxSize(75, 23), style=0)
-        EVT_BUTTON(self.btnFileDlg, wxID_RESOURCESELECTDLGBTNFILEDLG,
-              self.OnBtnfiledlgButton)
+              pos=wx.Point(195, 15), size=wx.Size(75, 23), style=0)
+        self.btnFileDlg.Bind(wx.EVT_BUTTON, self.OnBtnfiledlgButton, id=wxID_RESOURCESELECTDLGBTNFILEDLG)
 
         self._init_sizers()
 
-    def __init__(self, parent, editor, resourceFilename, imageName='', 
-          onlyIcons=false):
+    def __init__(self, parent, editor, resourceFilename, imageName='',
+          onlyIcons=False):
         self._init_ctrls(parent)
-        
+
         from Explorers import Explorer
-        
-        model = PyResourceBitmapModel('', resourceFilename, editor, true)
+
+        model = PyResourceBitmapModel('', resourceFilename, editor, True)
         model.transport = Explorer.openEx(resourceFilename)
-        model.load(notify=false)
+        model.load(notify=False)
         self.resources = PyResourceImagesSelectionView(self, model,
-              listStyle=wxLC_SMALL_ICON | wxLC_ALIGN_TOP, 
-              imgLstStyle=wxIMAGE_LIST_SMALL)
+              listStyle=wx.LC_SMALL_ICON | wx.LC_ALIGN_TOP,
+              imgLstStyle=wx.IMAGE_LIST_SMALL)
         self.resources.onlyIcons = onlyIcons
-        
-        self.boxSizerMain.Prepend(self.resources, 1, 
-                                  wxLEFT|wxRIGHT|wxTOP|wxGROW, 15)
+
+        self.boxSizerMain.Prepend(self.resources, 1,
+                                  wx.LEFT|wx.RIGHT|wx.TOP|wx.GROW, 15)
         self.resources.refreshCtrl()
-        
+
         if imageName:
             sel = -1
-            for idx, r in zip(range(len(self.resources.imageSrcInfo)), 
+            for idx, r in zip(range(len(self.resources.imageSrcInfo)),
                               self.resources.imageSrcInfo):
                 if r[0] == imageName:
                     sel = idx
@@ -98,11 +97,11 @@ class ResourceSelectDlg(wxDialog):
             if sel != -1:
                 self.resources.Select(sel)
                 self.resources.EnsureVisible(sel)
-        
+
         self.resources.SetFocus()
 
     def OnBtnfiledlgButton(self, event):
-        self.EndModal(wxID_YES)
+        self.EndModal(wx.ID_YES)
 
 
 #-------------------------------------------------------------------------------
@@ -121,11 +120,11 @@ class PyResourceModuleExec:
         src = Utils.toUnixEOLMode(pyResImgSrc)+'\n\n'
         exec src in self.imageFunctions
 
-class PyResourceArtProvider(wxArtProvider):
+class PyResourceArtProvider(wx.ArtProvider):
     def __init__(self, pyResModExec):
-        wxArtProvider.__init__(self)
+        wx.ArtProvider.__init__(self)
         self.imageFunctions = pyResModExec.imageFunctions
-        
+
     def CreateBitmap(self, artid, client, size):
         return self.imageFunctions[artid]()
 
@@ -133,35 +132,35 @@ class PyResourceImagesView(EditorViews.ListCtrlView):
     viewName = 'Images'
 
     gotoLineBmp = 'Images/Editor/GotoLine.png'
-    
-    imageSize = (32, 32)
-    
-    onlyIcons = false
 
-    def __init__(self, parent, model, listStyle=wxLC_ICON | wxLC_ALIGN_TOP, 
-                                      imgLstStyle=wxIMAGE_LIST_NORMAL):
+    imageSize = (32, 32)
+
+    onlyIcons = False
+
+    def __init__(self, parent, model, listStyle=wx.LC_ICON | wx.LC_ALIGN_TOP,
+                                      imgLstStyle=wx.IMAGE_LIST_NORMAL):
         EditorViews.ListCtrlView.__init__(self, parent, model, listStyle,
-          (('Goto line', self.OnGoto, self.gotoLineBmp, ''), ), 0) 
+          (('Goto line', self.OnGoto, self.gotoLineBmp, ''), ), 0)
            ##('Add image', self.OnAddImage, '-', ''),
-        
-        self.images = wxImageList(*self.imageSize)
+
+        self.images =wx.ImageList(*self.imageSize)
         self.AssignImageList(self.images, imgLstStyle)
 
         self.imageSrcInfo = []
         self.functions = None
-        self.cataloged = false
+        self.cataloged = False
         self.eol = os.linesep
 
-        self.active = true
-        
+        self.active = True
+
     def refreshCtrl(self):
         EditorViews.ListCtrlView.refreshCtrl(self)
-        
+
         self.functions = PyResourceModuleExec(self.model.data)
         self.imageSrcInfo = []
         self.images.RemoveAll()
         artProv = PyResourceArtProvider(self.functions)
-        wxArtProvider_PushProvider(artProv)
+        wx.ArtProvider.PushProvider(artProv)
         try:
             m = self.model.getModule()
             self.cataloged = m.globals.has_key('catalog') and m.globals.has_key('index')
@@ -175,15 +174,15 @@ class PyResourceImagesView(EditorViews.ListCtrlView):
                     bmpFunctionStart = m.functions['get%sBitmap'%name].start
                     firstDataLine = m.source[m.functions['get%sData'%name].start]
                     compressed = firstDataLine.strip().startswith('return zlib.decompress')
-                    bmp = wxArtProvider_GetBitmap('get%sBitmap'%name, size=self.imageSize)
+                    bmp = wx.ArtProvider.GetBitmap('get%sBitmap'%name, size=self.imageSize)
                     idx = self.images.Add(bmp)
                     self.InsertImageStringItem(idx, name, idx)
-                    self.imageSrcInfo.append( 
+                    self.imageSrcInfo.append(
                         (name, (m.functions[f].start, bmpFunctionStart),
                          compressed, iconFunction) )
         finally:
-            wxArtProvider_PopProvider()
-            
+            wx.ArtProvider.PopProvider()
+
     def OnGoto(self, event):
         if self.selected != -1:
             srcView = self.model.getSourceView()
@@ -192,9 +191,9 @@ class PyResourceImagesView(EditorViews.ListCtrlView):
             srcView.gotoLine(lineNo-1)
 
 ##    def OnAddImage(self, event):
-##        dlg = wxDirDialog(self.model.editor)
+##        dlg =wx.DirDialog(self.model.editor)
 ##        try:
-##            if dlg.ShowModal() != wxID_OK:
+##            if dlg.ShowModal() != wx.ID_OK:
 ##                return
 ##            dir = dlg.GetPath()
 ##            res = []
@@ -209,11 +208,11 @@ class PyResourceImagesView(EditorViews.ListCtrlView):
 ##            files.append(filename)
 
 class PyResourceImagesSelectionView(PyResourceImagesView):
-    docked = false
+    docked = False
     imageSize = (16, 16)
     def OnGoto(self, event):
         if self.selected != -1:
-            self.GetParent().EndModal(wxID_OK)
+            self.GetParent().EndModal(wx.ID_OK)
 
 class PyResourceBitmapModel(PythonEditorModels.ModuleModel):
     modelIdentifier = 'PyImgResource'
@@ -221,17 +220,17 @@ class PyResourceBitmapModel(PythonEditorModels.ModuleModel):
     imgIdx = EditorHelper.imgPyResBitmap = EditorHelper.imgIdxRange()
 
     def updateData(self, data, subImage):
-        from wxPython.tools import img2py
+        from wx.tools import img2py
         crunched = StringIO(img2py.crunch_data(data, subImage['zip'])).readlines()
         if subImage['zip']:
             crunched[-1].rstrip()
             crunched[-1] += ' )'+subImage['eol']
         srcLines = self.getDataAsLines()
         srcLines[subImage['start']:subImage['end']] = crunched + [subImage['eol']]
-        
+
         self.setDataFromLines(srcLines)
-        self.modified = true
-        
+        self.modified = True
+
         subImage['data'] = data
 
 class PyResourceBitmapController(PythonControllers.ModuleController):

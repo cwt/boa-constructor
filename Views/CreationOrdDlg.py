@@ -1,85 +1,86 @@
 #Boa:Dialog:CreationOrderDlg
 
-from wxPython.wx import *
-from wxPython.help import *
+import wx
 
 import Preferences, Utils
 
 def create(parent):
     return CreationOrderDlg(parent)
 
-[wxID_CREATIONORDERDLG, wxID_CREATIONORDERDLGBBDOWN,
- wxID_CREATIONORDERDLGBBDOWNLAST, wxID_CREATIONORDERDLGBBUP,
- wxID_CREATIONORDERDLGBBUPFIRST, wxID_CREATIONORDERDLGBTCANCEL,
- wxID_CREATIONORDERDLGBTOK, wxID_CREATIONORDERDLGCONTEXTHELPBUTTON1,
- wxID_CREATIONORDERDLGLBOBJECTS, wxID_CREATIONORDERDLGPANEL1,
- wxID_CREATIONORDERDLGSTATICBOX1,
-] = map(lambda _init_ctrls: wxNewId(), range(11))
+[wxID_CREATIONORDERDLG, wxID_CREATIONORDERDLGBBDOWN, 
+ wxID_CREATIONORDERDLGBBDOWNLAST, wxID_CREATIONORDERDLGBBUP, 
+ wxID_CREATIONORDERDLGBBUPFIRST, wxID_CREATIONORDERDLGBTCANCEL, 
+ wxID_CREATIONORDERDLGBTOK, wxID_CREATIONORDERDLGCONTEXTHELPBUTTON1, 
+ wxID_CREATIONORDERDLGLBOBJECTS, wxID_CREATIONORDERDLGPANEL1, 
+ wxID_CREATIONORDERDLGSTATICBOX1, 
+] = [wx.NewId() for _init_ctrls in range(11)]
 
-class CreationOrderDlg(wxDialog):
+class CreationOrderDlg(wx.Dialog):
     def _init_ctrls(self, prnt):
         # generated method, don't edit
-        wxDialog.__init__(self, id=wxID_CREATIONORDERDLG,
-              name='CreationOrderDlg', parent=prnt, pos=wxPoint(396, 265),
-              size=wxSize(272, 254), style=wxDEFAULT_DIALOG_STYLE,
+        wx.Dialog.__init__(self, id=wxID_CREATIONORDERDLG,
+              name='CreationOrderDlg', parent=prnt, pos=wx.Point(396, 265),
+              size=wx.Size(280, 281), style=wx.DEFAULT_DIALOG_STYLE,
               title='Change creation order')
-        self.SetClientSize(wxSize(272, 254))
+        self.SetClientSize(wx.Size(272, 254))
 
-        self.panel1 = wxPanel(id=wxID_CREATIONORDERDLGPANEL1, name='panel1',
-              parent=self, pos=wxPoint(1, 1), size=wxSize(270, 252),
-              style=wxTAB_TRAVERSAL)
+        self.panel1 = wx.Panel(id=wxID_CREATIONORDERDLGPANEL1, name='panel1',
+              parent=self, pos=wx.Point(1, 1), size=wx.Size(270, 252),
+              style=wx.TAB_TRAVERSAL)
         self.panel1.SetHelpText('This dialog manages the order of controls on the level (share a parent). When the parent is recreated, the onjects will be recreated in the new order.')
 
-        self.staticBox1 = wxStaticBox(id=wxID_CREATIONORDERDLGSTATICBOX1,
+        self.staticBox1 = wx.StaticBox(id=wxID_CREATIONORDERDLGSTATICBOX1,
               label='Current creation/tab order', name='staticBox1',
-              parent=self.panel1, pos=wxPoint(8, 0), size=wxSize(256, 208),
+              parent=self.panel1, pos=wx.Point(8, 0), size=wx.Size(256, 208),
               style=0)
 
-        self.lbObjects = wxListBox(choices=[],
+        self.lbObjects = wx.ListBox(choices=[],
               id=wxID_CREATIONORDERDLGLBOBJECTS, name='lbObjects',
-              parent=self.panel1, pos=wxPoint(16, 16), size=wxSize(200, 184),
-              style=wxLB_EXTENDED, validator=wxDefaultValidator)
+              parent=self.panel1, pos=wx.Point(16, 16), size=wx.Size(200, 184),
+              style=wx.LB_EXTENDED)
 
-        self.bbUpFirst = wxBitmapButton(bitmap=self.bmpUpFirst,
+        self.bbUpFirst = wx.BitmapButton(bitmap=self.bmpUpFirst,
               id=wxID_CREATIONORDERDLGBBUPFIRST, name='bbUpFirst',
-              parent=self.panel1, pos=wxPoint(224, 40), size=wxSize(24, 24),
-              style=wxBU_AUTODRAW)
-        EVT_BUTTON(self.bbUpFirst, wxID_CREATIONORDERDLGBBUPFIRST,
-              self.OnBbUpFirstButton)
+              parent=self.panel1, pos=wx.Point(224, 40), size=wx.Size(24, 24),
+              style=wx.BU_AUTODRAW)
+        self.bbUpFirst.Bind(wx.EVT_BUTTON, self.OnBbUpFirstButton,
+              id=wxID_CREATIONORDERDLGBBUPFIRST)
 
-        self.bbUp = wxBitmapButton(bitmap=self.bmpUp,
+        self.bbUp = wx.BitmapButton(bitmap=self.bmpUp,
               id=wxID_CREATIONORDERDLGBBUP, name='bbUp', parent=self.panel1,
-              pos=wxPoint(224, 72), size=wxSize(24, 24), style=wxBU_AUTODRAW,
-              validator=wxDefaultValidator)
-        EVT_BUTTON(self.bbUp, wxID_CREATIONORDERDLGBBUP, self.OnBbupButton)
+              pos=wx.Point(224, 72), size=wx.Size(24, 24),
+              style=wx.BU_AUTODRAW)
+        self.bbUp.Bind(wx.EVT_BUTTON, self.OnBbupButton,
+              id=wxID_CREATIONORDERDLGBBUP)
 
-        self.bbDown = wxBitmapButton(bitmap=self.bmpDown,
+        self.bbDown = wx.BitmapButton(bitmap=self.bmpDown,
               id=wxID_CREATIONORDERDLGBBDOWN, name='bbDown', parent=self.panel1,
-              pos=wxPoint(224, 104), size=wxSize(24, 24), style=wxBU_AUTODRAW,
-              validator=wxDefaultValidator)
-        EVT_BUTTON(self.bbDown, wxID_CREATIONORDERDLGBBDOWN,
-              self.OnBbdownButton)
+              pos=wx.Point(224, 104), size=wx.Size(24, 24),
+              style=wx.BU_AUTODRAW)
+        self.bbDown.Bind(wx.EVT_BUTTON, self.OnBbdownButton,
+              id=wxID_CREATIONORDERDLGBBDOWN)
 
-        self.bbDownLast = wxBitmapButton(bitmap=self.bmpDownLast,
+        self.bbDownLast = wx.BitmapButton(bitmap=self.bmpDownLast,
               id=wxID_CREATIONORDERDLGBBDOWNLAST, name='bbDownLast',
-              parent=self.panel1, pos=wxPoint(224, 136), size=wxSize(24, 24),
-              style=wxBU_AUTODRAW)
-        EVT_BUTTON(self.bbDownLast, wxID_CREATIONORDERDLGBBDOWNLAST,
-              self.OnBbDownLastButton)
+              parent=self.panel1, pos=wx.Point(224, 136), size=wx.Size(24, 24),
+              style=wx.BU_AUTODRAW)
+        self.bbDownLast.Bind(wx.EVT_BUTTON, self.OnBbDownLastButton,
+              id=wxID_CREATIONORDERDLGBBDOWNLAST)
 
-        self.btOK = wxButton(id=wxID_CREATIONORDERDLGBTOK, label='OK',
-              name='btOK', parent=self.panel1, pos=wxPoint(112, 224),
-              size=wxSize(72, 24), style=0)
-        EVT_BUTTON(self.btOK, wxID_CREATIONORDERDLGBTOK, self.OnBtokButton)
+        self.btOK = wx.Button(id=wxID_CREATIONORDERDLGBTOK, label='OK',
+              name='btOK', parent=self.panel1, pos=wx.Point(112, 224),
+              size=wx.Size(72, 24), style=0)
+        self.btOK.Bind(wx.EVT_BUTTON, self.OnBtokButton,
+              id=wxID_CREATIONORDERDLGBTOK)
 
-        self.btCancel = wxButton(id=wxID_CREATIONORDERDLGBTCANCEL,
+        self.btCancel = wx.Button(id=wxID_CREATIONORDERDLGBTCANCEL,
               label='Cancel', name='btCancel', parent=self.panel1,
-              pos=wxPoint(192, 224), size=wxSize(72, 24), style=0)
-        EVT_BUTTON(self.btCancel, wxID_CREATIONORDERDLGBTCANCEL,
-              self.OnBtcancelButton)
+              pos=wx.Point(192, 224), size=wx.Size(72, 24), style=0)
+        self.btCancel.Bind(wx.EVT_BUTTON, self.OnBtcancelButton,
+              id=wxID_CREATIONORDERDLGBTCANCEL)
 
-        self.contextHelpButton1 = wxContextHelpButton(parent=self.panel1,
-              pos=wxPoint(8, 229), size=wxSize(20, 19), style=wxBU_AUTODRAW)
+        self.contextHelpButton1 = wx.ContextHelpButton(parent=self.panel1,
+              pos=wx.Point(8, 229), size=wx.Size(20, 19), style=wx.BU_AUTODRAW)
 
     def __init__(self, parent, controls, allctrls):
         self.bmpUp = Preferences.IS.load('Images/Shared/up.png')
@@ -132,10 +133,10 @@ class CreationOrderDlg(wxDialog):
             self.moveObject(item, item + shift)
 
     def OnBtokButton(self, event):
-        self.EndModal(wxID_OK)
+        self.EndModal(wx.ID_OK)
 
     def OnBtcancelButton(self, event):
-        self.EndModal(wxID_CANCEL)
+        self.EndModal(wx.ID_CANCEL)
 
     def moveObject(self, selIdx, newIdx):
         if selIdx != newIdx:
@@ -153,15 +154,15 @@ class CreationOrderDlg(wxDialog):
             self.lbObjects.InsertItems([name], newIdx)
 
             self.lbObjects.SetSelection(lbSel)
-            
+
             return True
         else:
             return False
 
 
 if __name__ == '__main__':
-    app = wxPySimpleApp()
-    wxInitAllImageHandlers()
+    app = wx.PySimpleApp()
+    wx.InitAllImageHandlers()
 
     dlg = CreationOrderDlg(None, [(0, 'ctrl1'), (1, 'ctrl2'), (5, 'ctrl3')],
                     [(0, 'ctrl1'), (1, 'ctrl2'), (2, 'ctrl4'), (3, 'ctrl5'), (5, 'ctrl3')])

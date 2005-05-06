@@ -1,6 +1,6 @@
 #-----------------------------------------------------------------------------
 # Name:        STCPrinting.py
-# Purpose:     
+# Purpose:
 #
 # Author:      Riaan Booysen
 #
@@ -21,8 +21,8 @@
 
 import os
 
-from wxPython.wx import *
-from wxPython.stc import *
+import wx
+import wx.stc
 
 def create(parent):
     return STCPrintDlg(parent)
@@ -31,64 +31,58 @@ def create(parent):
  wxID_STCPRINTDLGBTNPRINTPREVIEW, wxID_STCPRINTDLGBTNPRINTSETUP, 
  wxID_STCPRINTDLGCKBFILENAME, wxID_STCPRINTDLGCKBPAGENUMBERS, 
  wxID_STCPRINTDLGRDBCOLOURMODE, 
-] = map(lambda _init_ctrls: wxNewId(), range(8))
+] = [wx.NewId() for _init_ctrls in range(8)]
 
-stcPrintColourModes = [0, wxSTC_PRINT_BLACKONWHITE, wxSTC_PRINT_COLOURONWHITE, 
-                       wxSTC_PRINT_COLOURONWHITEDEFAULTBG]
+stcPrintColourModes = [0, wx.stc.STC_PRINT_BLACKONWHITE, 
+                          wx.stc.STC_PRINT_COLOURONWHITE,
+                          wx.stc.STC_PRINT_COLOURONWHITEDEFAULTBG]
 
-class STCPrintDlg(wxDialog):
-    def _init_utils(self):
-        # generated method, don't edit
-        pass
-
+class STCPrintDlg(wx.Dialog):
     def _init_ctrls(self, prnt):
         # generated method, don't edit
-        wxDialog.__init__(self, id=wxID_STCPRINTDLG, name='STCPrintDlg',
-              parent=prnt, pos=wxPoint(352, 204), size=wxSize(402, 189),
-              style=wxDEFAULT_DIALOG_STYLE, title='Print Source')
-        self._init_utils()
-        self.SetClientSize(wxSize(394, 162))
+        wx.Dialog.__init__(self, id=wxID_STCPRINTDLG, name='STCPrintDlg',
+              parent=prnt, pos=wx.Point(352, 204), size=wx.Size(402, 189),
+              style=wx.DEFAULT_DIALOG_STYLE, title='Print Source')
+        self.SetClientSize(wx.Size(394, 162))
 
-        self.rdbColourMode = wxRadioBox(choices=['Normal', 'Black on white',
+        self.rdbColourMode = wx.RadioBox(choices=['Normal', 'Black on white',
               'Colour on white', 'Colour on white default background'],
               id=wxID_STCPRINTDLGRDBCOLOURMODE, label='Colour Mode',
               majorDimension=1, name='rdbColourMode', parent=self,
-              point=wxPoint(8, 8), size=wxSize(216, 112),
-              style=wxRA_SPECIFY_COLS, validator=wxDefaultValidator)
+              point=wx.Point(8, 8), size=wx.Size(216, 112),
+              style=wx.RA_SPECIFY_COLS)
 
-        self.ckbFilename = wxCheckBox(id=wxID_STCPRINTDLGCKBFILENAME,
+        self.ckbFilename = wx.CheckBox(id=wxID_STCPRINTDLGCKBFILENAME,
               label='Filename at top', name='ckbFilename', parent=self,
-              pos=wxPoint(240, 16), size=wxSize(144, 13), style=0)
+              pos=wx.Point(240, 16), size=wx.Size(144, 13), style=0)
         self.ckbFilename.SetValue(True)
 
-        self.ckbPageNumbers = wxCheckBox(id=wxID_STCPRINTDLGCKBPAGENUMBERS,
+        self.ckbPageNumbers = wx.CheckBox(id=wxID_STCPRINTDLGCKBPAGENUMBERS,
               label='Page numbers', name='ckbPageNumbers', parent=self,
-              pos=wxPoint(240, 40), size=wxSize(136, 13), style=0)
+              pos=wx.Point(240, 40), size=wx.Size(136, 13), style=0)
         self.ckbPageNumbers.SetValue(True)
 
-        self.btnPrintSetup = wxButton(id=wxID_STCPRINTDLGBTNPRINTSETUP,
+        self.btnPrintSetup = wx.Button(id=wxID_STCPRINTDLGBTNPRINTSETUP,
               label='Print Setup', name='btnPrintSetup', parent=self,
-              pos=wxPoint(8, 128), size=wxSize(88, 23), style=0)
-        EVT_BUTTON(self.btnPrintSetup, wxID_STCPRINTDLGBTNPRINTSETUP,
-              self.OnPrintSetup)
+              pos=wx.Point(8, 128), size=wx.Size(88, 23), style=0)
+        self.btnPrintSetup.Bind(wx.EVT_BUTTON, self.OnPrintSetup,
+              id=wxID_STCPRINTDLGBTNPRINTSETUP)
 
-        self.btnPrintPreview = wxButton(id=wxID_STCPRINTDLGBTNPRINTPREVIEW,
+        self.btnPrintPreview = wx.Button(id=wxID_STCPRINTDLGBTNPRINTPREVIEW,
               label='Print Preview', name='btnPrintPreview', parent=self,
-              pos=wxPoint(104, 128), size=wxSize(88, 23), style=0)
-        EVT_BUTTON(self.btnPrintPreview, wxID_STCPRINTDLGBTNPRINTPREVIEW,
-              self.OnPrintPreview)
+              pos=wx.Point(104, 128), size=wx.Size(88, 23), style=0)
+        self.btnPrintPreview.Bind(wx.EVT_BUTTON, self.OnPrintPreview,
+              id=wxID_STCPRINTDLGBTNPRINTPREVIEW)
 
-        self.btnPrint = wxButton(id=wxID_STCPRINTDLGBTNPRINT, label='Print',
-              name='btnPrint', parent=self, pos=wxPoint(200, 128),
-              size=wxSize(88, 23), style=0)
-        EVT_BUTTON(self.btnPrint, wxID_STCPRINTDLGBTNPRINT, self.OnDoPrint)
+        self.btnPrint = wx.Button(id=wxID_STCPRINTDLGBTNPRINT, label='Print',
+              name='btnPrint', parent=self, pos=wx.Point(200, 128),
+              size=wx.Size(88, 23), style=0)
+        self.btnPrint.Bind(wx.EVT_BUTTON, self.OnDoPrint,
+              id=wxID_STCPRINTDLGBTNPRINT)
 
-        self.btnCancel = wxButton(id=wxID_CANCEL, label='Cancel',
-              name='btnCancel', parent=self, pos=wxPoint(296, 128),
-              size=wxSize(88, 23), style=0)
-
-    colourMode = 0
-    
+        self.btnCancel = wx.Button(id=wx.ID_CANCEL, label='Cancel',
+              name='btnCancel', parent=self, pos=wx.Point(296, 128),
+              size=wx.Size(88, 23), style=0)
 
     def __init__(self, parent, stc, filename=''):
         self._init_ctrls(parent)
@@ -98,17 +92,17 @@ class STCPrintDlg(wxDialog):
         self.parentFrame = parent
         self.preview = None
 
-        self.printData = wxPrintData()
-        self.printData.SetPaperId(wxPAPER_LETTER)
+        self.printData = wx.PrintData()
+        self.printData.SetPaperId(wx.PAPER_LETTER)
 
 
     def OnPrintSetup(self, event):
-        printerDlg = wxPrintDialog(self)
+        printerDlg = wx.PrintDialog(self)
         pdd = printerDlg.GetPrintDialogData()
         pdd.SetPrintData(self.printData)
-        pdd.SetSetupDialog(true)
+        pdd.SetSetupDialog(True)
         printerDlg.ShowModal()
-        self.printData = wxPrintData(pdd.GetPrintData())
+        self.printData = wx.PrintData(pdd.GetPrintData())
         printerDlg.Destroy()
 
     def createSTCPrintout(self):
@@ -120,43 +114,43 @@ class STCPrintDlg(wxDialog):
             filename = ''
 
         return STCPrintout(self.stc, colourMode, filename, doPageNums)
-    
+
     def OnPrintPreview(self, event):
         printout1 = self.createSTCPrintout()
         printout2 = self.createSTCPrintout()
-        self.preview = wxPrintPreview(printout1, printout2, self.printData)
+        self.preview = wx.PrintPreview(printout1, printout2, self.printData)
         if not self.preview.Ok():
             wxLogError('An error occured while preparing preview.')
             return
 
-        frame = wxPreviewFrame(self.preview, self.parentFrame, 'Print Preview')
+        frame = wx.PreviewFrame(self.preview, self.parentFrame, 'Print Preview')
         frame.Initialize()
-        frame.Show(true)
+        frame.Show(True)
 
 
     def OnDoPrint(self, event):
-        pdd = wxPrintDialogData()
+        pdd = wx.PrintDialogData()
         pdd.SetPrintData(self.printData)
-        printer = wxPrinter(pdd)
+        printer = wx.Printer(pdd)
         printout = self.createSTCPrintout()
-        
+
         if not printer.Print(self.parentFrame, printout):
-            wxLogError('An error occured while printing.')
+            wx.LogError('An error occured while printing.')
         else:
-            self.printData = wxPrintData(printer.GetPrintDialogData().GetPrintData())
+            self.printData = wx.PrintData(printer.GetPrintDialogData().GetPrintData())
         printout.Destroy()
-        
-        self.EndModal(wxOK)
+
+        self.EndModal(wx.OK)
 
 
 #-------------------------------------------------------------------------------
 
-class STCPrintout(wxPrintout):
+class STCPrintout(wx.Printout):
     margin = 0.1
     linesPerPage = 69
-    
+
     def __init__(self, stc, colourMode=0, filename='', doPageNums=1):
-        wxPrintout.__init__(self)
+        wx.Printout.__init__(self)
         self.stc = stc
         self.colourMode = colourMode
         self.filename = filename
@@ -164,7 +158,7 @@ class STCPrintout(wxPrintout):
 
         self.pageTotal, m = divmod(stc.GetLineCount(), self.linesPerPage)
         if m: self.pageTotal += 1
-        
+
 ##    def OnBeginDocument(self, start, end):
 ##        return self.base_OnBeginDocument(start, end)
 ##
@@ -182,9 +176,9 @@ class STCPrintout(wxPrintout):
 
     def HasPage(self, page):
         if page <= self.pageTotal:
-            return true
+            return True
         else:
-            return false
+            return False
 
     def GetPageInfo(self):
         return (1, self.pageTotal, 1, 32000)
@@ -196,31 +190,31 @@ class STCPrintout(wxPrintout):
         # calculate sizes including margin and scale
         dc = self.GetDC()
         dw, dh = dc.GetSizeTuple()
-        
+
         mw = self.margin*dw
         mh = self.margin*dh
         textAreaHeight = dh - mh*2
         textAreaWidth = dw - mw*2
-        
+
         scale = float(textAreaHeight)/(self.stcLineHeight*self.linesPerPage)
         dc.SetUserScale(scale, scale)
-        
+
         # render page titles and numbers
         f = dc.GetFont()
-        f.SetFamily(wxROMAN)
+        f.SetFamily(wx.ROMAN)
         f.SetFaceName('Times New Roman')
         f.SetPointSize(f.GetPointSize()+3)
         dc.SetFont(f)
-        
+
         if self.filename:
             tlw, tlh = dc.GetTextExtent(self.filename)
-            dc.DrawText(self.filename, 
+            dc.DrawText(self.filename,
                   int(dw/scale/2-tlw/2), int(mh/scale-tlh*3))
 
         if self.doPageNums:
             pageLabel = 'Page: %d' % page
             plw, plh = dc.GetTextExtent(pageLabel)
-            dc.DrawText(pageLabel, 
+            dc.DrawText(pageLabel,
                   int(dw/scale/2-plw/2), int((textAreaHeight+mh)/scale+plh*2))
 
         # render stc into dc
@@ -229,31 +223,31 @@ class STCPrintout(wxPrintout):
 
         maxWidth = 32000
         stc.SetPrintColourMode(self.colourMode)
-        ep = stc.FormatRange(1, stcStartPos, stcEndPos, dc, dc, 
-                        wxRect(int(mw/scale), int(mh/scale), 
-                               maxWidth, int(textAreaHeight/scale)), 
-                        wxRect(0, (page-1)*self.linesPerPage*self.stcLineHeight, 
+        ep = stc.FormatRange(1, stcStartPos, stcEndPos, dc, dc,
+                        wx.Rect(int(mw/scale), int(mh/scale),
+                               maxWidth, int(textAreaHeight/scale)),
+                        wx.Rect(0, (page-1)*self.linesPerPage*self.stcLineHeight,
                             maxWidth, self.stcLineHeight*self.linesPerPage))
 
-        # warn when less characters than expected is rendered by the stc when 
+        # warn when less characters than expected is rendered by the stc when
         # printing
         if not self.IsPreview():
             if ep < stcEndPos:
                 print 'warning: on page', page, \
                       ': not enough chars rendered, diff:', stcEndPos-ep
 
-        return true
+        return True
 
 
 #----------------------------------------------------------------------
 
 if __name__ == '__main__':
     testFile = 'STCPrinting.py'
-    app = wxPySimpleApp()
-    wxInitAllImageHandlers()
-    frame = wxFrame(None, -1, '')
+    app = wx.PySimpleApp()
+    wx.InitAllImageHandlers()
+    frame = wx.Frame(None, -1, '')
     # prepare an stc
-    frame.stc = wxStyledTextCtrl(frame, -1)
+    frame.stc = wx.stc.StyledTextCtrl(frame, -1)
     frame.stc.SetText(open(testFile).read())
     config = os.path.abspath('../Config/stc-styles.rc.cfg')
     from STCStyleEditor import initSTC
@@ -264,5 +258,5 @@ if __name__ == '__main__':
         dlg.ShowModal()
     finally:
         dlg.Destroy()
-    wxCallAfter(frame.Destroy)
+    wx.CallAfter(frame.Destroy)
     app.MainLoop()

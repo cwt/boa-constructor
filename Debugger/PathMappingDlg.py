@@ -1,8 +1,8 @@
 #Boa:Dialog:PathsMappingDlg
 
-import pprint 
+import pprint
 
-from wxPython.wx import *
+import wx
 
 from PathsPanel import PathsPanel
 
@@ -11,33 +11,35 @@ def create(parent):
 
 [wxID_PATHSMAPPINGDLG, wxID_PATHSMAPPINGDLGCANCELBTN, 
  wxID_PATHSMAPPINGDLGOKBTN, wxID_PATHSMAPPINGDLGPATHSPANEL, 
-] = map(lambda _init_ctrls: wxNewId(), range(4))
+] = [wx.NewId() for _init_ctrls in range(4)]
 
-class PathsMappingDlg(wxDialog):
-    _custom_classes = {'wxPanel': ['PathsPanel']}
+class PathsMappingDlg(wx.Dialog):
+    _custom_classes = {'wx.Panel': ['PathsPanel'],}
     def _init_ctrls(self, prnt):
         # generated method, don't edit
-        wxDialog.__init__(self, id=wxID_PATHSMAPPINGDLG, name='PathsMappingDlg',
-              parent=prnt, pos=wxPoint(345, 257), size=wxSize(487, 233),
-              style=wxDEFAULT_DIALOG_STYLE,
+        wx.Dialog.__init__(self, id=wxID_PATHSMAPPINGDLG,
+              name='PathsMappingDlg', parent=prnt, pos=wx.Point(345, 257),
+              size=wx.Size(489, 293), style=wx.DEFAULT_DIALOG_STYLE,
               title='Edit client/sever paths mapping')
-        self.SetClientSize(wxSize(479, 206))
+        self.SetClientSize(wx.Size(481, 266))
 
         self.pathsPanel = PathsPanel(id=wxID_PATHSMAPPINGDLGPATHSPANEL,
-              name='pathsPanel', parent=self, pos=wxPoint(0, 0),
-              size=wxSize(480, 152), style=wxTAB_TRAVERSAL)
+              name='pathsPanel', parent=self, pos=wx.Point(0, 0),
+              size=wx.Size(480, 216), style=wx.TAB_TRAVERSAL)
 
-        self.okBtn = wxButton(id=wxID_OK, label='OK', name='okBtn', parent=self,
-              pos=wxPoint(312, 168), size=wxSize(75, 23), style=0)
-        EVT_BUTTON(self.okBtn, wxID_PATHSMAPPINGDLGOKBTN, self.OnOkbtnButton)
+        self.okBtn = wx.Button(id=wx.ID_OK, label='OK', name='okBtn',
+              parent=self, pos=wx.Point(320, 232), size=wx.Size(75, 23),
+              style=0)
+        self.okBtn.Bind(wx.EVT_BUTTON, self.OnOkbtnButton,
+              id=wxID_PATHSMAPPINGDLGOKBTN)
 
-        self.cancelBtn = wxButton(id=wxID_CANCEL, label='Cancel',
-              name='cancelBtn', parent=self, pos=wxPoint(392, 168),
-              size=wxSize(75, 23), style=0)
+        self.cancelBtn = wx.Button(id=wx.ID_CANCEL, label='Cancel',
+              name='cancelBtn', parent=self, pos=wx.Point(400, 232),
+              size=wx.Size(75, 23), style=0)
 
     def __init__(self, parent, paths):
         self._init_ctrls(parent)
-        
+
         self.pathsPanel.init_paths(paths)
 
         import Utils
@@ -47,18 +49,18 @@ class PathsMappingDlg(wxDialog):
     def OnOkbtnButton(self, event):
         if self.conf:
             paths = self.pathsPanel.read_paths()
-            
+
             if self.conf.has_section('debugger.remote'):
                 self.conf.set('debugger.remote', 'paths', pprint.pformat(paths))
                 self.writeConfig(self.conf)
-                
-        self.EndModal(wxID_OK)
+
+        self.EndModal(wx.ID_OK)
 
 
 def showPathsMappingDlg(parent, paths):
     dlg = PathsMappingDlg(parent, paths)
     try:
-        if dlg.ShowModal() != wxID_OK:
+        if dlg.ShowModal() != wx.ID_OK:
             return None
         else:
             return dlg.pathsPanel.read_paths()
@@ -68,7 +70,7 @@ def showPathsMappingDlg(parent, paths):
 
 
 if __name__ == '__main__':
-    app = wxPySimpleApp()
-    wxInitAllImageHandlers()
+    app = wx.PySimpleApp()
+    wx.InitAllImageHandlers()
     print showPathsMappingDlg(None, [('1', '2'), ('3', '4')])
     app.MainLoop()

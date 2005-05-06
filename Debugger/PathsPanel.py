@@ -1,32 +1,33 @@
 #Boa:FramePanel:PathsPanel
 
-from wxPython.wx import *
-from wxPython.grid import *
+import wx
+import wx.grid
 
 [wxID_PATHSPANEL, wxID_PATHSPANELADD_BTN, wxID_PATHSPANELGRID, 
  wxID_PATHSPANELREMOVE_BTN, wxID_PATHSPANELSTATICBOX1, 
-] = map(lambda _init_ctrls: wxNewId(), range(5))
+] = [wx.NewId() for _init_ctrls in range(5)]
 
-class PathsPanel(wxPanel):
+class PathsPanel(wx.Panel):
     def _init_coll_staticBoxSizer1_Items(self, parent):
         # generated method, don't edit
 
-        parent.AddWindow(self.grid, 1, border=8, flag=wxALL | wxGROW)
-        parent.AddSizer(self.boxSizer1, 0, border=0, flag=wxALIGN_RIGHT)
+        parent.AddWindow(self.grid, 1, border=8, flag=wx.ALL | wx.GROW)
+        parent.AddSizer(self.boxSizer1, 0, border=0, flag=wx.ALIGN_RIGHT)
 
     def _init_coll_boxSizer1_Items(self, parent):
         # generated method, don't edit
 
-        parent.AddWindow(self.add_btn, 0, border=8, flag=wxALL | wxALIGN_RIGHT)
+        parent.AddWindow(self.add_btn, 0, border=8,
+              flag=wx.ALL | wx.ALIGN_RIGHT)
         parent.AddWindow(self.remove_btn, 0, border=8,
-              flag=wxBOTTOM | wxTOP | wxRIGHT)
+              flag=wx.BOTTOM | wx.TOP | wx.RIGHT)
 
     def _init_sizers(self):
         # generated method, don't edit
-        self.staticBoxSizer1 = wxStaticBoxSizer(box=self.staticBox1,
-              orient=wxVERTICAL)
+        self.staticBoxSizer1 = wx.StaticBoxSizer(box=self.staticBox1,
+              orient=wx.VERTICAL)
 
-        self.boxSizer1 = wxBoxSizer(orient=wxHORIZONTAL)
+        self.boxSizer1 = wx.BoxSizer(orient=wx.HORIZONTAL)
 
         self._init_coll_staticBoxSizer1_Items(self.staticBoxSizer1)
         self._init_coll_boxSizer1_Items(self.boxSizer1)
@@ -35,32 +36,33 @@ class PathsPanel(wxPanel):
 
     def _init_ctrls(self, prnt):
         # generated method, don't edit
-        wxPanel.__init__(self, id=wxID_PATHSPANEL, name='PathsPanel',
-              parent=prnt, pos=wxPoint(316, 277), size=wxSize(523, 274),
-              style=wxTAB_TRAVERSAL)
-        self.SetClientSize(wxSize(515, 247))
+        wx.Panel.__init__(self, id=wxID_PATHSPANEL, name='PathsPanel',
+              parent=prnt, pos=wx.Point(316, 277), size=wx.Size(523, 274),
+              style=wx.TAB_TRAVERSAL)
+        self.SetClientSize(wx.Size(515, 247))
 
-        self.staticBox1 = wxStaticBox(id=wxID_PATHSPANELSTATICBOX1,
+        self.staticBox1 = wx.StaticBox(id=wxID_PATHSPANELSTATICBOX1,
               label='Sever to client filepath mappings', name='staticBox1',
-              parent=self, pos=wxPoint(0, 0), size=wxSize(515, 247), style=0)
+              parent=self, pos=wx.Point(0, 0), size=wx.Size(515, 247), style=0)
 
-        self.grid = wxGrid(id=wxID_PATHSPANELGRID, name='grid', parent=self,
-              pos=wxPoint(13, 21), size=wxSize(489, 173),
-              style=wxSUNKEN_BORDER)
+        self.grid = wx.grid.Grid(id=wxID_PATHSPANELGRID, name='grid',
+              parent=self, pos=wx.Point(13, 25), size=wx.Size(489, 169),
+              style=wx.SUNKEN_BORDER)
         self.grid.SetDefaultRowSize(20)
         self.grid.SetColLabelSize(20)
         self.grid.SetRowLabelSize(0)
 
-        self.add_btn = wxButton(id=wxID_PATHSPANELADD_BTN, label='Add',
-              name='add_btn', parent=self, pos=wxPoint(344, 210),
-              size=wxSize(75, 24), style=0)
-        EVT_BUTTON(self.add_btn, wxID_PATHSPANELADD_BTN, self.OnAdd_btnButton)
+        self.add_btn = wx.Button(id=wxID_PATHSPANELADD_BTN, label='Add',
+              name='add_btn', parent=self, pos=wx.Point(344, 210),
+              size=wx.Size(75, 24), style=0)
+        self.add_btn.Bind(wx.EVT_BUTTON, self.OnAdd_btnButton,
+              id=wxID_PATHSPANELADD_BTN)
 
-        self.remove_btn = wxButton(id=wxID_PATHSPANELREMOVE_BTN, label='Remove',
-              name='remove_btn', parent=self, pos=wxPoint(427, 210),
-              size=wxSize(75, 24), style=0)
-        EVT_BUTTON(self.remove_btn, wxID_PATHSPANELREMOVE_BTN,
-              self.OnRemove_btnButton)
+        self.remove_btn = wx.Button(id=wxID_PATHSPANELREMOVE_BTN,
+              label='Remove', name='remove_btn', parent=self, pos=wx.Point(427,
+              210), size=wx.Size(75, 24), style=0)
+        self.remove_btn.Bind(wx.EVT_BUTTON, self.OnRemove_btnButton,
+              id=wxID_PATHSPANELREMOVE_BTN)
 
         self._init_sizers()
 
@@ -68,7 +70,7 @@ class PathsPanel(wxPanel):
         self._init_ctrls(parent)
 
         self.SetDimensions(pos.x, pos.y, size.x, size.y)
-        
+
     def init_paths(self, paths):
         self.paths = paths
         numRows = len(self.paths)
@@ -78,12 +80,12 @@ class PathsPanel(wxPanel):
         colWidth = self.grid.GetClientSize().x/2
         self.grid.SetColSize(0, colWidth)
         self.grid.SetColSize(1, colWidth)
-        
+
         for row, (svr, clnt) in zip(range(numRows), self.paths):
             self.grid.SetCellValue(row, 0, svr)
             self.grid.SetCellValue(row, 1, clnt)
         self.grid.ForceRefresh()
-    
+
     def read_paths(self):
         self.grid.SaveEditControlValue()
         return  [(self.grid.GetCellValue(row, 0), self.grid.GetCellValue(row, 1))
@@ -96,4 +98,3 @@ class PathsPanel(wxPanel):
         row = self.grid.GetGridCursorRow()
         if row != -1:
             self.grid.DeleteRows(row, 1)
-

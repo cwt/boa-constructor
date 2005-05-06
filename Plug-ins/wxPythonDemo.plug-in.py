@@ -2,8 +2,8 @@ print 'executing wxPythonDemo plug-in'
 
 import string, os, sys
 
-from wxPython import wx
-from wxPython.lib.anchors import LayoutAnchors
+import wx
+from wx.lib.anchors import LayoutAnchors
 
 import Preferences, Utils, Plugins
 
@@ -58,10 +58,10 @@ EditorHelper.imgWxPythonDemo = EditorHelper.addPluginImgs('Images/wxPythonDemo.p
 class SkipViewSignal(Exception):
     """ Raised when the demo is not docked """
 
-class wxPythonDemoView(wxPanel, EditorViews.EditorView, EditorViews.CloseableViewMix):
+class wxPythonDemoView(wx.Panel, EditorViews.EditorView, EditorViews.CloseableViewMix):
     viewName = tabName = 'Demo'
     def __init__(self, parent, model):
-        wxPanel.__init__(self, parent, -1)
+        wx.Panel.__init__(self, parent, -1)
         EditorViews.CloseableViewMix.__init__(self)
         EditorViews.EditorView.__init__(self, model, actions=self.closingActionItems)
         
@@ -205,7 +205,7 @@ class wxPythonDemoModuleModel(PythonEditorModels.ModuleModel):
     defaultName = 'wxpythondemomodule'
     
     def getDefaultData(self):
-        return '''from wxPython.wx import *
+        return '''import wx
     
 #-------------------------------------------------------------------------------
 
@@ -214,7 +214,7 @@ class wxPythonDemoModuleModel(PythonEditorModels.ModuleModel):
 #-------------------------------------------------------------------------------
 
 def runTest(frame, nb, log):
-    win = wxPanel(nb, -1) # Replace with your demo class 
+    win = wx.Panel(nb, -1) # Replace with your demo class 
     return win
 
 #-------------------------------------------------------------------------------

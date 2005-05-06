@@ -2,7 +2,7 @@
 
 import sys, imp
 
-from wxPython.wx import *
+import wx
 
 from Preferences import IS
 import Utils
@@ -12,37 +12,39 @@ import Utils
 [wxID_MODULEFINDERDLG, wxID_MODULEFINDERDLGCANCELBTN, 
  wxID_MODULEFINDERDLGOKBTN, wxID_MODULEFINDERDLGSTATICTEXT1, 
  wxID_MODULEFINDERDLGTXTMODULENAME, 
-] = map(lambda _init_ctrls: wxNewId(), range(5))
+] = [wx.NewId() for _init_ctrls in range(5)]
 
-class ModuleFinderDlg(wxDialog):
+class ModuleFinderDlg(wx.Dialog):
     def _init_ctrls(self, prnt):
         # generated method, don't edit
-        wxDialog.__init__(self, id=wxID_MODULEFINDERDLG, name='ModuleFinderDlg',
-              parent=prnt, pos=wxPoint(676, 466), size=wxSize(275, 133),
-              style=wxDEFAULT_DIALOG_STYLE, title='Module finder for sys.path')
-        self.SetClientSize(wxSize(267, 106))
-        self.Center(wxBOTH)
+        wx.Dialog.__init__(self, id=wxID_MODULEFINDERDLG,
+              name='ModuleFinderDlg', parent=prnt, pos=wx.Point(676, 466),
+              size=wx.Size(275, 133), style=wx.DEFAULT_DIALOG_STYLE,
+              title='Module finder for sys.path')
+        self.SetClientSize(wx.Size(267, 106))
+        self.Center(wx.BOTH)
 
-        self.staticText1 = wxStaticText(id=wxID_MODULEFINDERDLGSTATICTEXT1,
+        self.staticText1 = wx.StaticText(id=wxID_MODULEFINDERDLGSTATICTEXT1,
               label='Module name:', name='staticText1', parent=self,
-              pos=wxPoint(8, 8), size=wxSize(104, 16), style=0)
+              pos=wx.Point(8, 8), size=wx.Size(104, 16), style=0)
 
-        self.txtModuleName = wxTextCtrl(id=wxID_MODULEFINDERDLGTXTMODULENAME,
-              name='txtModuleName', parent=self, pos=wxPoint(8, 32),
-              size=wxSize(248, 21), style=0, value='')
+        self.txtModuleName = wx.TextCtrl(id=wxID_MODULEFINDERDLGTXTMODULENAME,
+              name='txtModuleName', parent=self, pos=wx.Point(8, 32),
+              size=wx.Size(248, 21), style=0, value='')
 
-        self.okBtn = wxButton(id=wxID_OK, label='OK', name='okBtn', parent=self,
-              pos=wxPoint(103, 72), size=wxSize(75, 23), style=0)
+        self.okBtn = wx.Button(id=wx.ID_OK, label='OK', name='okBtn',
+              parent=self, pos=wx.Point(103, 72), size=wx.Size(75, 23),
+              style=0)
         self.okBtn.SetDefault()
 
-        self.cancelBtn = wxButton(id=wxID_CANCEL, label='Cancel',
-              name='cancelBtn', parent=self, pos=wxPoint(183, 72),
-              size=wxSize(75, 23), style=0)
+        self.cancelBtn = wx.Button(id=wx.ID_CANCEL, label='Cancel',
+              name='cancelBtn', parent=self, pos=wx.Point(183, 72),
+              size=wx.Size(75, 23), style=0)
 
     def __init__(self, parent):
         self._init_ctrls(parent)
-        
-        icon = wxEmptyIcon()
+
+        icon = wx.EmptyIcon()
         icon.CopyFromBitmap(IS.load('Images/ModuleFinder.png'))
         self.SetIcon(icon)
 
@@ -51,13 +53,13 @@ class ModuleFinderDlg(wxDialog):
 def openModuleFinder(editor):
     dlg = ModuleFinderDlg(editor)
     try:
-        while dlg.ShowModal() == wxID_OK:
+        while dlg.ShowModal() == wx.ID_OK:
             modName = dlg.txtModuleName.GetValue()
             try:
                 f, filename, (ext, mode, type) = \
-                      Utils.find_dotted_module(modName, sys.path)
+                      Utils.find_dotted_module(modName)#, sys.path)
             except ImportError, err:
-                wxLogError('%s not found on sys.path.'%modName)
+                wx.LogError('%s not found on sys.path (%s).'%(modName, str(err)))
             else:
                 if f is not None:
                     f.close()
@@ -69,16 +71,16 @@ def openModuleFinder(editor):
                 return
     finally:
         dlg.Destroy()
-    
+
 from Models import EditorHelper
 if wxPlatform == '__WXMSW__':
     keyIdent = 'ModuleFinder'
-    Preferences.keyDefs[keyIdent] = (wxACCEL_ALT, ord('M'), 'Alt-M')
+    Preferences.keyDefs[keyIdent] = (wx.ACCEL_ALT, ord('M'), 'Alt-M')
 else:
     keyIdent = ''
-    
-EditorHelper.editorToolsReg.append( 
-      ('Module finder', openModuleFinder, 
+
+EditorHelper.editorToolsReg.append(
+      ('Module finder', openModuleFinder,
        'Images/ModuleFinder.png', keyIdent) )
 
 #-------------------------------------------------------------------------------
@@ -99,6 +101,6 @@ def getModuleFinderImgData():
 \xfcHa\xae\xbfA\x9f\n\xfd\x19\xa7\x10\x86\x8f\x9b\xf5\xf5\xf2\xcc\xab\x0f\
 \x1e\x0f-\xc6\x18\x18\x1e\x93\xdfs\xae7\x891\x12\xfe\xfa\x1a\x9f\xceg/\x9b\
 \xbc\x8fM\xbc\xb7>c\x0c\x84\xb3\x97\xf9\x1b\xa7\x9e\xfe\x8e\xda\xadz\x91\x00\
-\x00\x00\x00IEND\xaeB`\x82' 
+\x00\x00\x00IEND\xaeB`\x82'
 
 IS.registerImage('Images/ModuleFinder.png', getModuleFinderImgData())
