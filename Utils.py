@@ -323,8 +323,10 @@ from wxPython import html
 
 wxEVT_HTML_URL_CLICK = wxNewId()
 
-def EVT_HTML_URL_CLICK(win, func):
-    win.Connect(-1, -1, wxEVT_HTML_URL_CLICK, func)
+EVT_HTML_URL_CLICK = wx.PyEventBinder(wxEVT_HTML_URL_CLICK)
+
+#def EVT_HTML_URL_CLICK(win, func):
+#    win.Connect(-1, -1, wxEVT_HTML_URL_CLICK, func)
 
 class wxHtmlWindowUrlClick(wxPyEvent):
     def __init__(self, linkinfo):
@@ -922,3 +924,26 @@ def getEventChecked(event):
         return checked
     else:
         return not checked
+
+#-------------------------------------------------------------------------------
+
+class I18nString:
+    def __init__(self, string):
+        self._string = string
+    
+    def __str__(self):
+        return self._string
+    
+    def __repr__(self):
+        return '_(%r)'%self._string
+
+class I18nStringS(str, I18nString):
+    pass
+class I18nStringU(unicode, I18nString):
+    pass
+
+def I18nStringFactory(value):
+    if type(value) is str:
+        return I18nStringS(value)
+    elif type(value) is unicode:
+        return I18nStringU(value)
