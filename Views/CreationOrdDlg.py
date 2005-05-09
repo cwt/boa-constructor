@@ -105,20 +105,20 @@ class CreationOrderDlg(wx.Dialog):
 
     def OnBbUpFirstButton(self, event):
         selItems = self.lbObjects.GetSelections()
-        if selItems[0] < 1: return
+        if not selItems or selItems[0] < 1: return
         for item in selItems:
             self.moveObject(item, item - selItems[0])
 
     def OnBbupButton(self, event):
         selItems = self.lbObjects.GetSelections()
-        if selItems[0] < 1: return
+        if not selItems or selItems[0] < 1: return
         for item in selItems:
             self.moveObject(item, item - 1)
 
     def OnBbdownButton(self, event):
         selItems = self.lbObjects.GetSelections()
         cnt = len(selItems)
-        if selItems[cnt-1] > ( len(self.ctrlNames) - 2 ): return
+        if not selItems or selItems[cnt-1] > ( len(self.ctrlNames) - 2 ): return
         for i in range( cnt ):
             item = selItems[cnt - i - 1]
             self.moveObject(item, item + 1)
@@ -126,7 +126,7 @@ class CreationOrderDlg(wx.Dialog):
     def OnBbDownLastButton(self, event):
         selItems = self.lbObjects.GetSelections()
         cnt = len(selItems)
-        if selItems[cnt-1] > ( len(self.ctrlNames) - 2 ): return
+        if not selItems or selItems[cnt-1] > ( len(self.ctrlNames) - 2 ): return
         shift = len(self.ctrlNames) - 1 - selItems[cnt - 1]
         for i in range( cnt ):
             item = selItems[cnt - i - 1]
