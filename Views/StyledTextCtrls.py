@@ -357,10 +357,8 @@ class AutoCompleteCodeHelpSTCMix(CodeHelpStyledTextCtrlMix):
         for name in names: unqNms[name] = None
         names = unqNms.keys()
 
-        #sortnames = map(None, map(string.lower, names), names)
-        sortnames = [(name.lower(), name) for name in names]
+        sortnames = [(name.upper(), name) for name in names]
         sortnames.sort()
-        #names = map(lambda n: n[1], sortnames)
         names = [n[1] for n in sortnames]
 
         # move _* names to the end of the list

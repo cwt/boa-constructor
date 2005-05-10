@@ -173,10 +173,11 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
                 elif __builtins__.has_key(objPth[0]):
                     return self.getFirstContinousBlock(
                           __builtins__[objPth[0]].__doc__)
-                else:
-                    wxPyTip = self.getFirstContinousBlock(
-                           self.checkWxPyTips(module, objPth[0]))
-                    if wxPyTip: return wxPyTip
+
+            if (len(objPth) == 2 or len(objPth) == 3) and objPth[0] == 'wx':
+                wxPyTip = self.getFirstContinousBlock(
+                           self.checkWxPyTips(module, word))
+                if wxPyTip: return wxPyTip
 
             if len(objPth) == 2 and objPth[0] == 'self':
                 if cls.methods.has_key(objPth[1]):
