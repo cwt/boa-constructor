@@ -653,8 +653,13 @@ class InspectableObjectView(EditorViews.EditorView, Utils.InspectorSessionMix):
         # XXX Now that there is multiple maintained methods is may fail because
         # XXX it's only unique in the method.
         num = 1
-        if className[:2] == 'wx':
-            newName = '%s%s'%(className[2:3].lower(), className[3:])
+        
+        dotted = className.rfind('.')
+        if dotted != -1:
+            if className[:3] == 'wx.':
+                newName = '%s%s'%(className[dotted+1:dotted+2].lower(), className[dotted+2:])
+            else:
+                newName = '%s%s'%(className[0].lower(), className[1:])                
         else:
             newName = '%s%s'%(className[0].lower(), className[1:])
 
