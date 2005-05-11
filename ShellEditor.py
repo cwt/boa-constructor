@@ -79,6 +79,7 @@ class ShellEditor(StyledTextCtrls.wxStyledTextCtrl,
         self.bindShortcuts()
 
         EVT_KEY_DOWN(self, self.OnKeyDown)
+        EVT_STC_CHARADDED(self, wId, self.OnAddChar)
 
         EVT_MENU(self, wxID_SHELL_HISTORYUP, self.OnHistoryUp)
         EVT_MENU(self, wxID_SHELL_HISTORYDOWN, self.OnHistoryDown)
@@ -313,10 +314,15 @@ class ShellEditor(StyledTextCtrls.wxStyledTextCtrl,
             elif self.sc.has_key((wxACCEL_CTRL, kk)):
                 self.sc[(wxACCEL_CTRL, kk)](self)
                 return
-
+        
         if self.CallTipActive():
             self.callTipCheck()
         event.Skip()
+
+    def OnAddChar(self, event):
+        if event.GetKey() == 40 and Preferences.callTipsOnOpenParen:
+            self.callTipCheck()
+        
 
 def recdir(obj):
     res = dir(obj)
