@@ -630,7 +630,7 @@ class BottomAligningSplitterMix:
         self._win2sze = self._getWin2Sze()
 
     def bottomWindowIsOpen(self):
-        return self.GetSashPosition() != self.GetClientSize().y - self.GetSashSize()
+        return self.GetSashPosition()+1 != self.GetClientSize().y - self.GetSashSize()
 
     def openBottomWindow(self):
         self.SetSashPosition(
