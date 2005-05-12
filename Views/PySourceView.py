@@ -231,8 +231,7 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
 
     def getNameSig(self, name, method, module, codeBlock=None):
         if codeBlock:
-            locals = codeBlock.localnames()
-            if name in locals:
+            if name in codeBlock.locals:
                 objType = codeBlock.locals[name].objtype
                 res = self.getTypeSig(objType, method, module)
                 if res is not None: return res
@@ -388,8 +387,7 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
 
     def getNameAttribs(self, name, module, codeBlock=None):
         if codeBlock:
-            locals = codeBlock.localnames()
-            if name in locals:
+            if name in codeBlock.locals:
                 objType = codeBlock.locals[name].objtype
                 res = self.getTypeAttribs(objType, module)
                 if res is not None: return res
