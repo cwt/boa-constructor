@@ -187,6 +187,12 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
                     return self.getFirstContinousBlock(
                       self.checkWxPyMethodTips(module, cls.super[0], objPth[1]))
 
+            if len(objPth) == 2:
+                methName, codeBlock = cls.getMethodForLineNo(lnNo)
+                res = self.getNameSig(objPth[0], objPth[1], module, codeBlock)
+                if res is not None: return res
+
+
             if len(objPth) == 3 and objPth[0] == 'self':
                 return self.getFirstContinousBlock(
                     self.getAttribSig(module, cls, objPth[1], objPth[2]))
@@ -198,6 +204,10 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
                 elif __builtins__.has_key(objPth[0]):
                     return self.getFirstContinousBlock(
                           __builtins__[objPth[0]].__doc__)
+            if len(objPth) == 2:
+                codeBlock = module.getFunctionForLineNo(lnNo)
+                res = self.getNameSig(objPth[0], objPth[1], objmodule, codeBlock)
+                if res is not None: return res
 
         return self.checkShellTips(objPth)
 
@@ -219,6 +229,20 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
                     return self.prepareWxModSigTip(meth.__doc__)
         return ''
 
+    def getNameSig(self, name, method, module, codeBlock=None):
+        if codeBlock:
+            locals = codeBlock.localnames()
+            if name in locals:
+                objType = codeBlock.locals[name].objtype
+                res = self.getTypeSig(objType, method, module)
+                if res is not None: return res
+        if name in module.globals:
+            objType = module.globals[name].signature
+            res = self.getTypeSig(objType, method, module)
+            if res is not None: return res
+        
+        return None
+
     def getAttribSig(self, module, cls, attrib, meth):
         if cls.attributes.has_key(attrib):
             objtype = cls.attributes[attrib][0].signature
@@ -231,6 +255,27 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
                     return self.prepareWxModSigTip(getattr(klass, meth).__doc__)
         return ''
 
+    sigTypeMap = {'dict': dict, 'list': list, 'string': str, 'tuple': tuple, 
+                  'number': int}
+
+    def getTypeSig(self, objType, method, module):
+        if self.sigTypeMap.has_key(objType):
+            tpe = self.sigTypeMap[objType]
+            try:
+                return getattr(getattr(tpe, method), '__doc__')
+            except AttributeError:
+                pass
+            
+        if objType in module.classes and \
+              module.classes[objType].methods.has_key(method):
+            return self.prepareModSigTip(objType,
+                        module.classes[objType].methods[method].signature)
+        meth = wxNamespace.getWxObjPath(objType+'.'+method)
+        if meth and meth.__doc__:
+            return self.prepareWxModSigTip(meth.__doc__)
+
+        return None
+
     def prepareWxModSigTip(self, tip):
         if not tip:
             return ''
@@ -239,8 +284,8 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
             paramEnd = tip.rfind(')')
             if paramEnd != -1:
                 return self.prepareModSigTip(tip[:paramStart], 
-                                             tip[paramStart+1:paramEnd])
-        return tip
+                                             tip[paramStart+1:paramEnd]).strip()
+        return tip.strip()
 
     def prepareModSigTip(self, name, paramsStr):
         if paramsStr.startswith('self,'):
@@ -285,24 +330,17 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
                                     return self.getWxAttribs(super)
                     methName, meth = cls.getMethodForLineNo(lnNo)
                     return self.getCodeNamespace(module, meth)
-                # attribs from base class
-                elif cls.super:
-                    super = None
-                    # check for parsed base classes in this module
-                    if isinstance(cls.super[0], moduleparse.Class) and \
-                          objPth[0] == cls.super[0].name:
-                        return self.getAttribs(cls.super[0])
-                    # check for wx base classes
-                    elif type(cls.super[0]) is types.StringType and \
-                          objPth[0] == cls.super[0]:
-                        super = wxNamespace.getWxClass(cls.super[0])
-                        if super:
-                            return self.getWxAttribs(super)
+                else:
+                    methName, codeBlock = cls.getMethodForLineNo(lnNo)
+                    res = self.getNameAttribs(objPth[0], module, codeBlock)
+                    if res is not None: return res
+                    
             elif len(objPth) == 2:
                 # attributes of attrs with known type
                 if objPth[0] == 'self':
                     attrib = objPth[1]
                     return self.getAttribAttribs(module, cls, attrib)
+                    
         else:
             # handles, base classes in class declaration statement
             cls = module.getClassForLineNo(lnNo+1)
@@ -312,6 +350,10 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
             if len(objPth) == 1 and objPth[0] == '':
                 func = module.getFunctionForLineNo(lnNo)
                 return self.getCodeNamespace(module, func)
+            if len(objPth) == 1:
+                codeBlock = module.getFunctionForLineNo(lnNo)
+                res = self.getNameAttribs(objPth[0], module, codeBlock)
+                if res is not None: return res
 
         return self.getShellNames(objPth)
 
@@ -344,6 +386,30 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
         mems.extend(dir(cls))
         return mems
 
+    def getNameAttribs(self, name, module, codeBlock=None):
+        if codeBlock:
+            locals = codeBlock.localnames()
+            if name in locals:
+                objType = codeBlock.locals[name].objtype
+                res = self.getTypeAttribs(objType, module)
+                if res is not None: return res
+        if name in module.globals:
+            objType = module.globals[name].signature
+            res = self.getTypeAttribs(objType, module)
+            if res is not None: return res
+        
+        return None
+
+    def getTypeAttribs(self, objType, module):
+        if self.attrTypeMap.has_key(objType):
+            return self.attrTypeMap[objType]
+        if objType in module.classes:
+            return self.getAttribs(module.classes[objType])
+        WxClass = wxNamespace.getWxClass(objType)
+        if WxClass: 
+            return self.getWxAttribs(WxClass)
+        return None
+
     def getAttribs(self, cls, methsOnly=false):
         loopCls = cls
         lst = []
@@ -368,14 +434,14 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
 
         return lst
 
-    typeMap = {'dict': dir({}), 'list': dir([]), 'string': dir(''),
-               'tuple': dir(()), 'number': dir(0)}
+    attrTypeMap = {'dict': dir({}), 'list': dir([]), 'string': dir(''),
+                   'tuple': dir(()), 'number': dir(0)}
 
     def getAttribAttribs(self, module, cls, attrib):
         if cls.attributes.has_key(attrib):
             objtype = cls.attributes[attrib][0].signature
-            if self.typeMap.has_key(objtype):
-                return self.typeMap[objtype]
+            if self.attrTypeMap.has_key(objtype):
+                return self.attrTypeMap[objtype]
             elif module.classes.has_key(objtype):
                 return self.getAttribs(module.classes[objtype])
             else:
