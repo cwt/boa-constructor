@@ -206,7 +206,7 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
                           __builtins__[objPth[0]].__doc__)
             if len(objPth) == 2:
                 codeBlock = module.getFunctionForLineNo(lnNo)
-                res = self.getNameSig(objPth[0], objPth[1], objmodule, codeBlock)
+                res = self.getNameSig(objPth[0], objPth[1], module, codeBlock)
                 if res is not None: return res
 
         return self.checkShellTips(objPth)
