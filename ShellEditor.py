@@ -14,25 +14,26 @@
 
 import sys, keyword, types, time
 
-from wxPython.wx import *
-from wxPython.stc import *
+import wx
+import wx.stc
+import wx.py.introspect
 
 import Preferences, Utils
 from Preferences import keyDefs
 from Views import StyledTextCtrls
-from ExternalLib.PythonInterpreter import PythonInterpreter
-from ExternalLib import Signature
 from Models import EditorHelper
 
-import wxNamespace
+from ExternalLib.PythonInterpreter import PythonInterpreter
+from ExternalLib import Signature
 
-echo = true
+
+echo = True
 
 p2c = 'Type "copyright", "credits" or "license" for more information.'
 
 [wxID_SHELL_HISTORYUP, wxID_SHELL_HISTORYDOWN, wxID_SHELL_ENTER, wxID_SHELL_HOME,
  wxID_SHELL_CODECOMP, wxID_SHELL_CALLTIPS,
-] = map(lambda _init_ctrls: wxNewId(), range(6))
+] = [wx.NewId() for _init_ctrls in range(6)] 
 
 only_first_block = 1
 
@@ -60,7 +61,7 @@ class ShellEditor(StyledTextCtrls.wxStyledTextCtrl,
                   StyledTextCtrls.CallTipCodeHelpSTCMix):
     def __init__(self, parent, wId):
         StyledTextCtrls.wxStyledTextCtrl.__init__(self, parent, wId,
-              style = wxCLIP_CHILDREN | wxSUNKEN_BORDER)
+              style = wx.CLIP_CHILDREN | wx.SUNKEN_BORDER)
         StyledTextCtrls.CallTipCodeHelpSTCMix.__init__(self)
         StyledTextCtrls.AutoCompleteCodeHelpSTCMix.__init__(self)
         StyledTextCtrls.PythonStyledTextCtrlMix.__init__(self, wId, ())
@@ -69,24 +70,20 @@ class ShellEditor(StyledTextCtrls.wxStyledTextCtrl,
         self.interp = PythonInterpreter()
         self.lastResult = ''
 
-        self.CallTipSetBackground(wxColour(255, 255, 232))
-        # 2, 4, 1, 2 crashes in wrap mode.
-        # XXX remove when min version > 2.4.1.2
-        if wxVERSION[:4] != (2, 4, 1, 2):
-            try: self.SetWrapMode(1)
-            except AttributeError: pass
+        self.CallTipSetBackground(wx.Colour(255, 255, 232))
+        self.SetWrapMode(1)
 
         self.bindShortcuts()
 
-        EVT_KEY_DOWN(self, self.OnKeyDown)
-        EVT_STC_CHARADDED(self, wId, self.OnAddChar)
+        self.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
+        self.Bind(wx.stc.EVT_STC_CHARADDED, self.OnAddChar, id=wId)
 
-        EVT_MENU(self, wxID_SHELL_HISTORYUP, self.OnHistoryUp)
-        EVT_MENU(self, wxID_SHELL_HISTORYDOWN, self.OnHistoryDown)
-        #EVT_MENU(self, wxID_SHELL_ENTER, self.OnShellEnter)
-        EVT_MENU(self, wxID_SHELL_HOME, self.OnShellHome)
-        EVT_MENU(self, wxID_SHELL_CODECOMP, self.OnShellCodeComplete)
-        EVT_MENU(self, wxID_SHELL_CALLTIPS, self.OnShellCallTips)
+        self.Bind(wx.EVT_MENU, self.OnHistoryUp, id=wxID_SHELL_HISTORYUP)
+        self.Bind(wx.EVT_MENU, self.OnHistoryDown, id=wxID_SHELL_HISTORYDOWN)
+        #self.Bind(EVT_MENU, self.OnShellEnter, id=wxID_SHELL_ENTER)
+        self.Bind(wx.EVT_MENU, self.OnShellHome, id=wxID_SHELL_HOME)
+        self.Bind(wx.EVT_MENU, self.OnShellCodeComplete, id=wxID_SHELL_CODECOMP)
+        self.Bind(wx.EVT_MENU, self.OnShellCallTips, id=wxID_SHELL_CALLTIPS)
 
 
         self.history = []
@@ -104,10 +101,9 @@ class ShellEditor(StyledTextCtrls.wxStyledTextCtrl,
             copyright = sys.copyright
         else:
             copyright = p2c
-        import wxPython
         import __version__
         self.AddText('# Python %s\n# wxPython %s, Boa Constructor %s\n# %s'%(
-              sys.version, wxPython.__version__, __version__.version, copyright))
+              sys.version, wx.__version__, __version__.version, copyright))
         self.LineScroll(-10, 0)
         self.SetSavePoint()
 
@@ -191,19 +187,19 @@ class ShellEditor(StyledTextCtrls.wxStyledTextCtrl,
                 val = self._debugger.getVarValue(line)
                 if val is not None:
                     print val
-                return false
+                return False
             elif self.interp.push(line):
                 prompt = Preferences.ps2
                 self.stdout.fin(); self.stderr.fin()
-                return true
+                return True
             else:
                 # check if already destroyed
                 if not hasattr(self, 'stdin'):
-                    return false
+                    return False
 
                 prompt = Preferences.ps1
                 self.stdout.fin(); self.stderr.fin()
-                return false
+                return False
         finally:
             sys.stdout,sys.stderr,sys.stdin = tmpstdout,tmpstderr,tmpstdin
             if prompt:
@@ -251,8 +247,7 @@ class ShellEditor(StyledTextCtrls.wxStyledTextCtrl,
 
     def getCodeCompOptions(self, word, rootWord, matchWord, lnNo):
         if not rootWord:
-            return wxNamespace.filterOnPrefs(self.interp.locals,
-                   wxNamespace.__dict__) + __builtins__.keys() + keyword.kwlist
+            return self.interp.locals.keys() + __builtins__.keys() + keyword.kwlist
         else:
             try: obj = eval(rootWord, self.interp.locals)
             except Exception, error: return []
@@ -264,12 +259,13 @@ class ShellEditor(StyledTextCtrls.wxStyledTextCtrl,
         self.codeCompCheck()
 
     def getTipValue(self, word, lnNo):
-        try:
-            obj = eval(word, self.interp.locals)
-        except:
-            return ''
-        else:
-            return tipforobj(obj, self)
+        (name, argspec, tip) = wx.py.introspect.getCallTip(word, self.interp.locals)
+
+        tip = self.getFirstContinousBlock(tip)
+        tip = tip.replace('(self, ', '(')
+        tip = tip.replace('(self)', '()')
+
+        return tip
 
     def OnShellCallTips(self, event):
         self.callTipCheck()
@@ -293,26 +289,26 @@ class ShellEditor(StyledTextCtrls.wxStyledTextCtrl,
         kk = event.KeyCode()
         controlDown = event.ControlDown()
         shiftDown = event.ShiftDown()
-        if kk == WXK_RETURN and not (shiftDown or event.HasModifiers()):
+        if kk == wx.WXK_RETURN and not (shiftDown or event.HasModifiers()):
             if self.AutoCompActive():
                 self.AutoCompComplete()
                 return
             self.OnShellEnter(event)
             return
-        elif kk == WXK_BACK:
+        elif kk == wx.WXK_BACK:
                 # don't delete the prompt
             if self.lines.current == self.lines.count -1 and \
               self.lines.pos - self.PositionFromLine(self.lines.current) < 5:
                 return
-        elif kk == WXK_HOME and not (controlDown or shiftDown):
+        elif kk == wx.WXK_HOME and not (controlDown or shiftDown):
             self.OnShellHome(event)
             return
         elif controlDown:
-            if shiftDown and self.sc.has_key((wxACCEL_CTRL|wxACCEL_SHIFT, kk)):
-                self.sc[(wxACCEL_CTRL|wxACCEL_SHIFT, kk)](self)
+            if shiftDown and self.sc.has_key((wx.ACCEL_CTRL|wx.ACCEL_SHIFT, kk)):
+                self.sc[(wx.ACCEL_CTRL|wx.ACCEL_SHIFT, kk)](self)
                 return
-            elif self.sc.has_key((wxACCEL_CTRL, kk)):
-                self.sc[(wxACCEL_CTRL, kk)](self)
+            elif self.sc.has_key((wx.ACCEL_CTRL, kk)):
+                self.sc[(wx.ACCEL_CTRL, kk)](self)
                 return
         
         if self.CallTipActive():
@@ -337,6 +333,7 @@ def recdir(obj):
     for name in res: unq[name] = None
     return unq.keys()
 
+# not used anymore, now using wx.py.introspect
 def tipforobj(obj, ccstc):
     # we want to reroute wxPython objects to their doc strings
     # if they are defined
@@ -383,11 +380,11 @@ class PseudoFileIn:
     def __init__(self, output, buffer):
         self._buffer = buffer
         self._output = output
-        self._reading = false
+        self._reading = False
 
     def clear(self):
         self._buffer[:] = []
-        self._reading = false
+        self._reading = False
 
     def isreading(self):
         return self._reading
@@ -396,7 +393,7 @@ class PseudoFileIn:
         self._buffer.append(None)
 
     def readline(self):
-        self._reading = true
+        self._reading = True
         self._output.AddText('\n'+Preferences.ps4)
         self._output.EnsureCaretVisible()
         try:
@@ -405,19 +402,19 @@ class PseudoFileIn:
                 # XXX to give it back the focus
                 # wxSafeYield()
                 time.sleep(0.001)
-                wxYield()
+                wx.Yield()
             line = self._buffer.pop()
             if line is None: raise 'Terminate'
             if not(line.strip()): return '\n'
             else: return line
         finally:
-            self._reading = false
+            self._reading = False
 
 class QuoterPseudoFile(Utils.PseudoFile):
     quotes = '```'
-    def __init__(self, output = None, quote=false):
+    def __init__(self, output = None, quote=False):
         Utils.PseudoFile.__init__(self, output)
-        self._dirty = false
+        self._dirty = False
         self._quote = quote
 
     def _addquotes(self):
@@ -427,12 +424,12 @@ class QuoterPseudoFile(Utils.PseudoFile):
     def write(self, s):
         if not self._dirty:
             self._addquotes()
-            self._dirty = true
+            self._dirty = True
 
     def fin(self):
         if self._dirty:
             self._addquotes()
-            self._dirty = false
+            self._dirty = False
 
 class PseudoFileOut(QuoterPseudoFile):
     tags = 'stdout'
@@ -468,9 +465,9 @@ class PseudoFileErrTC(Utils.PseudoFile):
 
 EditorHelper.imgPyCrust = EditorHelper.addPluginImgs('Images\Editor\PyCrust.png')
 
-class PyCrustShellEditor(wxSplitterWindow):
+class PyCrustShellEditor(wx.SplitterWindow):
     def __init__(self, parent, wId):
-        wxSplitterWindow.__init__(self, parent, wId)
+        wx.SplitterWindow.__init__(self, parent, wId)
 
         from wx.py.crust import Shell, Filling
 
@@ -484,7 +481,7 @@ class PyCrustShellEditor(wxSplitterWindow):
         finally:
             sys.stdout, sys.stdin, sys.stderr = o, i, e
             
-        self.fillingWin = Filling(self, -1, style=wxSP_3DSASH,
+        self.fillingWin = Filling(self, -1, style=wx.SP_3DSASH,
               rootObject=self.shellWin.interp.locals, rootIsNamespace=True)
         
         height = Preferences.screenHeight / 2
