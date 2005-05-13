@@ -352,7 +352,8 @@ def wxProxyPanel(parent, Win, *args, **kwargs):
 
     if type(Win) is types.ClassType or type(Win) is types.TypeType:
         win = apply(Win, (panel,) + args, kwargs)
-    elif type(Win) is types.InstanceType:
+#    elif type(Win) is types.InstanceType:
+    elif isinstance(Win, wxWindow):
         win = Win
         win.Reparent(panel)
     else:
