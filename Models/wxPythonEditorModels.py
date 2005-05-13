@@ -603,20 +603,3 @@ class WizardPageSimpleModel(FramePanelModel):
         
     def getSimpleRunnerSrc(self):
         return ''
-
-#-------------------------------------------------------------------------------
-# model registry: add to this dict to register a Model (needed for explorer images)
-EditorHelper.modelReg.update({
-      AppModel.modelIdentifier: AppModel,
-      FrameModel.modelIdentifier: FrameModel,
-      DialogModel.modelIdentifier: DialogModel,
-      MiniFrameModel.modelIdentifier: MiniFrameModel,
-      MDIParentModel.modelIdentifier: MDIParentModel,
-      MDIChildModel.modelIdentifier: MDIChildModel,
-      PopupWindowModel.modelIdentifier: PopupWindowModel,
-      PopupTransientWindowModel.modelIdentifier: PopupTransientWindowModel,
-      FramePanelModel.modelIdentifier: FramePanelModel,
-      WizardModel.modelIdentifier: WizardModel,
-      PyWizardPageModel.modelIdentifier: PyWizardPageModel,
-      WizardPageSimpleModel.modelIdentifier: WizardPageSimpleModel,
-})

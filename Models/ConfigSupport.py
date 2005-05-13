@@ -11,11 +11,9 @@
 #-----------------------------------------------------------------------------
 print 'importing Models.ConfigSupport'
 
-from wxPython import wx
+import wx
 
-import Preferences, Utils
-
-true=1;false=0
+import Preferences, Utils, Plugins
 
 import EditorHelper
 EditorHelper.imgConfigFileModel = EditorHelper.imgIdxRange()
@@ -29,8 +27,6 @@ class ConfigFileModel(SourceModel):
     imgIdx = EditorHelper.imgConfigFileModel
     ext = '.cfg'
 
-EditorHelper.modelReg[ConfigFileModel.modelIdentifier] = ConfigFileModel
-EditorHelper.extMap['.ini'] = ConfigFileModel
 
 from Views.StyledTextCtrls import LanguageSTCMix, stcConfigPath
 class ConfigSTCMix(LanguageSTCMix):
@@ -38,26 +34,24 @@ class ConfigSTCMix(LanguageSTCMix):
         LanguageSTCMix.__init__(self, wId, (), 'prop', stcConfigPath)
         self.setStyles()
 
-wxID_CONFIGVIEW = wx.wxNewId()
+
+wxID_CONFIGVIEW = wx.NewId()
 from Views.SourceViews import EditorStyledTextCtrl
 class ConfigView(EditorStyledTextCtrl, ConfigSTCMix):
     viewName = 'Config'
     def __init__(self, parent, model):
         EditorStyledTextCtrl.__init__(self, parent, wxID_CONFIGVIEW, model, (), -1)
         ConfigSTCMix.__init__(self, wxID_CONFIGVIEW)
-        self.active = true
+        self.active = True
 
-from Explorers import ExplorerNodes
-ExplorerNodes.langStyleInfoReg.append( ('Config', 'prop', ConfigSTCMix,
-      'stc-styles.rc.cfg') )
 
 import Controllers
 class ConfigFileController(Controllers.SourceController):
     Model           = ConfigFileModel
     DefaultViews    = [ConfigView]
 
-Controllers.modelControllerReg[ConfigFileModel] = ConfigFileController
+#-------------------------------------------------------------------------------
 
-import PaletteStore
-PaletteStore.newControllers['Config'] = ConfigFileController
-PaletteStore.paletteLists['New'].append('Config')
+Plugins.registerFileType(ConfigFileController, aliasExts=('.ini',))
+Plugins.registerLanguageSTCStyle('Config', 'prop', ConfigSTCMix, 'stc-styles.rc.cfg')
+                         

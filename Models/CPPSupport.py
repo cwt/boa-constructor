@@ -13,11 +13,9 @@ print 'importing Models.CPPSupport'
 
 import os
 
-from wxPython import wx
+import wx
 
-import Preferences, Utils
-
-true=1;false=0
+import Preferences, Utils, Plugins
 
 import EditorHelper
 EditorHelper.imgCPPModel = EditorHelper.imgIdxRange()
@@ -43,15 +41,12 @@ class CPPModel(SourceModel):
         else:
             self.headerData = ''
 
-    def load(self, notify=true):
-        SourceModel.load(self, false)
+    def load(self, notify=True):
+        SourceModel.load(self, False)
         self.loadHeader()
         self.update()
         if notify: self.notify()
 
-EditorHelper.modelReg[CPPModel.modelIdentifier] = CPPModel
-from EditorHelper import extMap
-extMap['.cpp'] = extMap['.c'] = extMap['.h'] = CPPModel
 
 from Views.StyledTextCtrls import LanguageSTCMix, FoldingStyledTextCtrlMix, stcConfigPath
 class CPPStyledTextCtrlMix(LanguageSTCMix):
@@ -60,7 +55,8 @@ class CPPStyledTextCtrlMix(LanguageSTCMix):
               (0, Preferences.STCLineNumMarginWidth), 'cpp', stcConfigPath)
         self.setStyles()
 
-wxID_CPPSOURCEVIEW = wx.wxNewId()
+
+wxID_CPPSOURCEVIEW = wx.NewId()
 symbolFolding = 1
 from Views.SourceViews import EditorStyledTextCtrl
 class CPPSourceView(EditorStyledTextCtrl, CPPStyledTextCtrlMix, FoldingStyledTextCtrlMix):
@@ -70,10 +66,11 @@ class CPPSourceView(EditorStyledTextCtrl, CPPStyledTextCtrlMix, FoldingStyledTex
           model, (), -1)
         CPPStyledTextCtrlMix.__init__(self, wxID_CPPSOURCEVIEW)
         FoldingStyledTextCtrlMix.__init__(self, wxID_CPPSOURCEVIEW, symbolFolding)
-        self.active = true
+        self.active = True
 
     def OnMarginClick(self, event):
         FoldingStyledTextCtrlMix.OnMarginClick(self, event)
+
 
 class HPPSourceView(CPPSourceView):
     viewName = 'Header'
@@ -90,20 +87,18 @@ class HPPSourceView(CPPSourceView):
         curVsblLn = self.GetFirstVisibleLine()
         self.LineScroll(0, prevVsblLn - curVsblLn)
 
-        self.nonUserModification = false
+        self.nonUserModification = False
         self.updatePageName()
-
-from Explorers import ExplorerNodes
-ExplorerNodes.langStyleInfoReg.append( ('CPP', 'cpp', CPPStyledTextCtrlMix,
-      'stc-styles.rc.cfg') )
 
 import Controllers
 class CPPController(Controllers.SourceController):
     Model           = CPPModel
     DefaultViews    = [CPPSourceView, HPPSourceView]
 
-Controllers.modelControllerReg[CPPModel] = CPPController
 
-import PaletteStore
-PaletteStore.newControllers['Cpp'] = CPPController
-PaletteStore.paletteLists['New'].append('Cpp')
+#-------------------------------------------------------------------------------
+
+Plugins.registerFileType(CPPController, newName='Cpp', 
+                         aliasExts=('.cpp','.c','.h'))
+Plugins.registerLanguageSTCStyle('CPP', 'cpp', CPPStyledTextCtrlMix, 'stc-styles.rc.cfg')
+                         

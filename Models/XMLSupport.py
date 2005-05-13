@@ -11,11 +11,9 @@
 #-----------------------------------------------------------------------------
 print 'importing Models.XMLSupport'
 
-from wxPython import wx
+import wx
 
-true=1;false=0
-
-import Preferences, Utils
+import Preferences, Utils, Plugins
 
 import EditorHelper
 EditorHelper.imgXMLFileModel = EditorHelper.imgIdxRange()
@@ -28,8 +26,6 @@ class XMLFileModel(PersistentModel):
     imgIdx = EditorHelper.imgXMLFileModel
     ext = '.xml'
 
-EditorHelper.modelReg[XMLFileModel.modelIdentifier] = XMLFileModel
-EditorHelper.extMap['.dtd'] = EditorHelper.extMap['.xrc'] = XMLFileModel
 
 from Views.StyledTextCtrls import LanguageSTCMix, stcConfigPath
 class XMLStyledTextCtrlMix(LanguageSTCMix):
@@ -38,7 +34,8 @@ class XMLStyledTextCtrlMix(LanguageSTCMix):
               (0, Preferences.STCLineNumMarginWidth), 'xml', stcConfigPath)
         self.setStyles()
 
-wxID_XMLSOURCEVIEW = wx.wxNewId()
+
+wxID_XMLSOURCEVIEW = wx.NewId()
 from Views.SourceViews import EditorStyledTextCtrl
 class XMLSourceView(EditorStyledTextCtrl, XMLStyledTextCtrlMix):
     viewName = 'XML'
@@ -46,11 +43,8 @@ class XMLSourceView(EditorStyledTextCtrl, XMLStyledTextCtrlMix):
         EditorStyledTextCtrl.__init__(self, parent, wxID_XMLSOURCEVIEW,
           model, (), -1)
         XMLStyledTextCtrlMix.__init__(self, wxID_XMLSOURCEVIEW)
-        self.active = true
+        self.active = True
 
-from Explorers import ExplorerNodes
-ExplorerNodes.langStyleInfoReg.append( ('XML', 'xml', XMLStyledTextCtrlMix,
-     'stc-styles.rc.cfg') )
 
 import Controllers
 class XMLFileController(Controllers.PersistentController):
@@ -62,8 +56,7 @@ class XMLFileController(Controllers.PersistentController):
     except ImportError:
         AdditionalViews = []
 
-Controllers.modelControllerReg[XMLFileModel] = XMLFileController
+#-------------------------------------------------------------------------------
 
-import PaletteStore
-PaletteStore.newControllers['XML'] = XMLFileController
-PaletteStore.paletteLists['New'].append('XML')
+Plugins.registerFileType(XMLFileController, aliasExts=('.dtd', '.xrc'))
+Plugins.registerLanguageSTCStyle('XML', 'xml', XMLStyledTextCtrlMix, 'stc-styles.rc.cfg')

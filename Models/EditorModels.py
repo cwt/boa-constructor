@@ -408,7 +408,7 @@ modelReg.update({
             })
 
 extMap[''] = TextModel
-extMap['.jpg'] = extMap['.gif'] = extMap['.png'] = extMap['.ico'] =BitmapFileModel
+extMap['.jpg'] = extMap['.gif'] = extMap['.png'] = extMap['.ico'] = BitmapFileModel
 
 EditorHelper.imageExtReg.extend(['.bmp', '.jpg', '.gif', '.png', '.ico'])
 EditorHelper.internalFilesReg.extend(['.umllay', '.implay', '.brk', '.trace', '.stack', '.cycles', '.prof', '.cached'])

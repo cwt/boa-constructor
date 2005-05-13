@@ -1208,13 +1208,5 @@ def identifySource(source):
 
 #-------------------------------------------------------------------------------
 
-EditorHelper.modelReg.update({
-            PyAppModel.modelIdentifier: PyAppModel,
-            ModuleModel.modelIdentifier: ModuleModel,
-            SetupModuleModel.modelIdentifier: SetupModuleModel,
-            PackageModel.modelIdentifier: PackageModel,
-            PythonBinaryFileModel.modelIdentifier: PythonBinaryFileModel,
-            PythonExtensionFileModel.modelIdentifier: PythonExtensionFileModel,
-            })
-
+EditorHelper.modelReg[PythonBinaryFileModel.modelIdentifier] = PythonBinaryFileModel
 EditorHelper.inspectableFilesReg['.py'] = ModuleModel

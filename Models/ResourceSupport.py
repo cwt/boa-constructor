@@ -241,8 +241,9 @@ class PyResourceBitmapController(PythonControllers.ModuleController):
 
 #-------------------------------------------------------------------------------
 
-EditorHelper.modelReg[PyResourceBitmapModel.modelIdentifier] = PyResourceBitmapModel
-Controllers.modelControllerReg[PyResourceBitmapModel] = PyResourceBitmapController
+import Plugins
+
+Plugins.registerFileType(PyResourceBitmapController, addToNew=False)
 
 Controllers.resourceClasses.append(PyResourceBitmapModel)
 

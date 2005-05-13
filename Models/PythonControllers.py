@@ -15,7 +15,7 @@ import os, sys, time, imp, marshal, stat
 
 from wxPython.wx import *
 
-import Preferences, Utils
+import Preferences, Utils, Plugins
 from Preferences import keyDefs
 
 import PaletteStore
@@ -649,27 +649,14 @@ Controllers.identifySource['.py'] = PythonEditorModels.identifySource
 
 Controllers.appModelIdReg.append(PythonEditorModels.PyAppModel.modelIdentifier)
 
-Controllers.modelControllerReg.update({
-      PythonEditorModels.PyAppModel: PyAppController,
-      PythonEditorModels.ModuleModel: ModuleController,
-      PythonEditorModels.PackageModel: PackageController,
-      PythonEditorModels.SetupModuleModel: SetupController,
-      PythonEditorModels.PythonExtensionFileModel: PythonExtensionController,
-     })
-
 Controllers.fullnameTypes.update({
     '__init__.py': (PythonEditorModels.PackageModel, '', '.py'),
     'setup.py':    (PythonEditorModels.SetupModuleModel, '', '.py'),
 })
 
-PaletteStore.newControllers.update({'PythonApp': PyAppController,
-                                    'Module': ModuleController,
-                                    'Package': PackageController,
-                                    'Setup': SetupController,
-                                   })
-
-PaletteStore.paletteLists['New'].extend(['PythonApp', 'Module', 'Package', 'Setup'])
-
+Plugins.registerFileType(PyAppController, newName='PythonApp')
+Plugins.registerFileTypes(ModuleController, PackageController, SetupController)
+Plugins.registerFileType(PythonExtensionController, addToNew=False)
 
 # Python extensions to the Explorer
 
@@ -723,5 +710,5 @@ ExplorerNodes.register(SysPathNode, clipboard='file', controller='file', root=Tr
 
 
 # Hook debugger attaching to Tools menu
-EditorHelper.editorToolsReg.append( ('Attach to debugger', ToolsOnAttachToDebugger,
-      'Images/Shared/Debugger.png') )
+Plugins.registerTool('Attach to debugger', ToolsOnAttachToDebugger,
+                     'Images/Shared/Debugger.png')

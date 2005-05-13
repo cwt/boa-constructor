@@ -15,7 +15,7 @@ import os
 
 from wxPython.wx import *
 
-import Preferences, Utils
+import Preferences, Utils, Plugins
 from Preferences import keyDefs
 import PaletteStore
 
@@ -255,39 +255,18 @@ import ResourceSupport
 
 Controllers.appModelIdReg.append(wxPythonEditorModels.AppModel.modelIdentifier)
 
-Controllers.modelControllerReg.update({
-      wxPythonEditorModels.AppModel: AppController,
-      wxPythonEditorModels.FrameModel: FrameController,
-      wxPythonEditorModels.DialogModel: DialogController,
-      wxPythonEditorModels.MiniFrameModel: MiniFrameController,
-      wxPythonEditorModels.MDIParentModel: MDIParentController,
-      wxPythonEditorModels.MDIChildModel: MDIChildController,
-      wxPythonEditorModels.PopupWindowModel: PopupWindowController,
-      wxPythonEditorModels.PopupTransientWindowModel: PopupTransientWindowController,
-      wxPythonEditorModels.FramePanelModel: FramePanelController,
-      wxPythonEditorModels.WizardModel: WizardController,
-      wxPythonEditorModels.PyWizardPageModel: PyWizardPageController,
-      wxPythonEditorModels.WizardPageSimpleModel: WizardPageSimpleController,
-     })
-
-PaletteStore.newControllers.update({
-      'wx.App': AppController,
-      'wx.Frame': FrameController,
-      'wx.Dialog': DialogController,
-      'wx.MiniFrame': MiniFrameController,
-      'wx.MDIParentFrame': MDIParentController,
-      'wx.MDIChildFrame': MDIChildController,
-      'wx.PopupWindow': PopupWindowController,
-      'wx.PopupTransientWindow': PopupTransientWindowController,
-      'wx.FramePanel': FramePanelController,
-      'wx.wizard.Wizard': WizardController,
-      'wx.wizard.PyWizardPage': PyWizardPageController,
-      'wx.wizard.WizardPageSimple': WizardPageSimpleController,
-     })
-
-
-# Register controllers on the New palette
-PaletteStore.paletteLists['New'].extend(['wx.App', 'wx.Frame', 'wx.Dialog',
-  'wx.MiniFrame', 'wx.MDIParentFrame', 'wx.MDIChildFrame',
-  'wx.PopupWindow', 'wx.PopupTransientWindow', 'wx.FramePanel',
-  'wx.wizard.Wizard', 'wx.wizard.PyWizardPage', 'wx.wizard.WizardPageSimple'])
+for name, Ctrlr in [
+      ('wx.App', AppController),
+      ('wx.Frame', FrameController),
+      ('wx.Dialog', DialogController),
+      ('wx.MiniFrame', MiniFrameController),
+      ('wx.MDIParentFrame', MDIParentController),
+      ('wx.MDIChildFrame', MDIChildController),
+      ('wx.PopupWindow', PopupWindowController),
+      ('wx.PopupTransientWindow', PopupTransientWindowController),
+      ('wx.FramePanel', FramePanelController),
+      ('wx.wizard.Wizard', WizardController),
+      ('wx.wizard.PyWizardPage', PyWizardPageController),
+      ('wx.wizard.WizardPageSimple', WizardPageSimpleController),
+    ]:
+    Plugins.registerFileType(Ctrlr, newName=name)

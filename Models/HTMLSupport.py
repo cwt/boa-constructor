@@ -11,11 +11,9 @@
 #-----------------------------------------------------------------------------
 print 'importing Models.HTMLSupport'
 
-from wxPython import wx
+import wx
 
-import Preferences, Utils
-
-true=1;false=0
+import Preferences, Utils, Plugins
 
 import EditorHelper
 EditorHelper.imgHTMLFileModel = EditorHelper.imgIdxRange()
@@ -29,8 +27,6 @@ class HTMLFileModel(PersistentModel):
     imgIdx = EditorHelper.imgHTMLFileModel
     ext = '.html'
 
-EditorHelper.modelReg[HTMLFileModel.modelIdentifier] = HTMLFileModel
-EditorHelper.extMap['.htm'] = HTMLFileModel
 
 from Views.StyledTextCtrls import LanguageSTCMix, stcConfigPath
 class BaseHTMLStyledTextCtrlMix(LanguageSTCMix):
@@ -38,12 +34,14 @@ class BaseHTMLStyledTextCtrlMix(LanguageSTCMix):
         LanguageSTCMix.__init__(self, wId,
               (0, Preferences.STCLineNumMarginWidth), 'html', stcConfigPath)
 
+
 class HTMLStyledTextCtrlMix(BaseHTMLStyledTextCtrlMix):
     def __init__(self, wId):
         BaseHTMLStyledTextCtrlMix.__init__(self, wId)
         self.setStyles()
 
-wxID_HTMLSOURCEVIEW = wx.wxNewId()
+
+wxID_HTMLSOURCEVIEW = wx.NewId()
 from Views.SourceViews import EditorStyledTextCtrl
 class HTMLSourceView(EditorStyledTextCtrl, HTMLStyledTextCtrlMix):
     viewName = 'HTML'
@@ -51,11 +49,8 @@ class HTMLSourceView(EditorStyledTextCtrl, HTMLStyledTextCtrlMix):
         EditorStyledTextCtrl.__init__(self, parent, wxID_HTMLSOURCEVIEW,
           model, (), -1)
         HTMLStyledTextCtrlMix.__init__(self, wxID_HTMLSOURCEVIEW)
-        self.active = true
+        self.active = True
 
-from Explorers import ExplorerNodes
-ExplorerNodes.langStyleInfoReg.append( ('HTML', 'html',
-      BaseHTMLStyledTextCtrlMix, 'stc-styles.rc.cfg') )
 
 import Controllers
 from Views.EditorViews import HTMLFileView
@@ -64,8 +59,8 @@ class HTMLFileController(Controllers.PersistentController):
     DefaultViews    = [HTMLSourceView]
     AdditionalViews = [HTMLFileView]
 
-Controllers.modelControllerReg[HTMLFileModel] = HTMLFileController
+#-------------------------------------------------------------------------------
 
-import PaletteStore
-PaletteStore.newControllers['HTML'] = HTMLFileController
-PaletteStore.paletteLists['New'].append('HTML')
+Plugins.registerFileType(HTMLFileController, aliasExts=('.htm',))
+Plugins.registerLanguageSTCStyle('HTML', 'html', BaseHTMLStyledTextCtrlMix, 'stc-styles.rc.cfg')
+                         
