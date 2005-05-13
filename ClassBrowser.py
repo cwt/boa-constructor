@@ -15,7 +15,7 @@ import os, pyclbr
 
 import wx
 
-import Preferences, Utils
+import Preferences, Utils, Plugins
 from Preferences import IS
 
 [wxID_CLASSBROWSERFRAME, wxID_CLASSBROWSERFRAMEHIERARCHY, 
@@ -186,6 +186,8 @@ def buildTree(tree, parent, dict):
         if len(dict[item].keys()):
             buildTree(tree, child, dict[item])
 
+#-------------------------------------------------------------------------------
+
 def openClassBrowser(editor):
     palette = editor.palette
     if not palette.browser:
@@ -198,9 +200,10 @@ def openClassBrowser(editor):
     palette.browser.restore()
 
 
-from Models import EditorHelper
-EditorHelper.editorToolsReg.append( ('wxPython class browser', openClassBrowser,
-      'Images/Shared/ClassBrowser.png') )
+Plugins.registerTool('wxPython class browser', openClassBrowser,
+      'Images/Shared/ClassBrowser.png')
+
+#-------------------------------------------------------------------------------
 
 if __name__ == '__main__':
     app = wx.PySimpleApp()
