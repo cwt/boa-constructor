@@ -55,12 +55,12 @@ class IShellEditor:
         return {}
 
 
-class ShellEditor(StyledTextCtrls.wxStyledTextCtrl,
+class ShellEditor(wx.stc.StyledTextCtrl,
                   StyledTextCtrls.PythonStyledTextCtrlMix,
                   StyledTextCtrls.AutoCompleteCodeHelpSTCMix,
                   StyledTextCtrls.CallTipCodeHelpSTCMix):
     def __init__(self, parent, wId):
-        StyledTextCtrls.wxStyledTextCtrl.__init__(self, parent, wId,
+        wx.stc.StyledTextCtrl.__init__(self, parent, wId,
               style = wx.CLIP_CHILDREN | wx.SUNKEN_BORDER)
         StyledTextCtrls.CallTipCodeHelpSTCMix.__init__(self)
         StyledTextCtrls.AutoCompleteCodeHelpSTCMix.__init__(self)
@@ -262,8 +262,7 @@ class ShellEditor(StyledTextCtrls.wxStyledTextCtrl,
         (name, argspec, tip) = wx.py.introspect.getCallTip(word, self.interp.locals)
 
         tip = self.getFirstContinousBlock(tip)
-        tip = tip.replace('(self, ', '(')
-        tip = tip.replace('(self)', '()')
+        tip = tip.replace('(self, ', '(', 1).replace('(self)', '()', 1)
 
         return tip
 
