@@ -15,8 +15,9 @@ print 'importing Explorers.CVSExplorer'
 
 import time, stat, os
 
-from wxPython.lib.dialogs import wxScrolledMessageDialog
-from wxPython.wx import *
+import wx
+from wx.lib.dialogs import ScrolledMessageDialog
+
 
 import ExplorerNodes
 from Models import EditorModels, EditorHelper
@@ -26,7 +27,7 @@ import ProcessProgressDlg, Utils
 import scrm
 
 cvs_environ_vars = ['CVSROOT', 'CVS_RSH', 'HOME']
-cvs_environ_ids  = map(lambda x: wxNewId(), range(len(cvs_environ_vars)))
+cvs_environ_ids  = map(lambda x: wx.NewId(), range(len(cvs_environ_vars)))
 
 (wxID_CVSUPDATE, wxID_CVSCOMMIT, wxID_CVSADD, wxID_CVSADDBINARY, wxID_CVSREMOVE,
  wxID_CVSDIFF, wxID_CVSLOG, wxID_CVSSTATUS, wxID_FSCVSIMPORT, wxID_FSCVSCHECKOUT,
@@ -77,7 +78,7 @@ class CVSController(ExplorerNodes.Controller):
     def __init__(self, editor, list, inspector, controllers):
         ExplorerNodes.Controller.__init__(self, editor)
         self.list = list
-        self.menu = wxMenu()
+        self.menu = wx.Menu()
         self.cvsOptions = '-z7'
 
         self.cvsMenuDef = [
@@ -109,10 +110,10 @@ class CVSController(ExplorerNodes.Controller):
               (wxID_FSCVSLOGOUT, 'Logout', self.OnLogoutCVS, '-'),
         ]
 
-        self.fileCVSMenu = wxMenu()
-        self.setupMenu(self.fileCVSMenu, self.list, self.fileCVSMenuDef, false)
+        self.fileCVSMenu = wx.Menu()
+        self.setupMenu(self.fileCVSMenu, self.list, self.fileCVSMenuDef, False)
 
-##        self.cvsEnvMenu = wxMenu()
+##        self.cvsEnvMenu = wx.Menu()
 ##        menus = []
 ##        for env, id in map(lambda x, v = cvs_environ_vars, i = cvs_environ_ids: \
 ##            (v[x], i[x]), range(len(cvs_environ_vars))):
@@ -121,7 +122,7 @@ class CVSController(ExplorerNodes.Controller):
 ##
 ##        self.fileCVSMenu.AppendMenu(wxID_FSCVSENV, 'CVS shell environment vars', self.cvsEnvMenu)
 
-        self.images = wxImageList(16, 16)
+        self.images = wx.ImageList(16, 16)
         for cvsImg in ( 'Images/CvsPics/File.png',
                         'Images/CvsPics/BinaryFile.png',
                         'Images/CvsPics/ModifiedFile.png',
@@ -154,12 +155,12 @@ class CVSController(ExplorerNodes.Controller):
             return name
 
     def setupListCtrl(self):
-        self.list.SetWindowStyleFlag(wxLC_REPORT)
-        self.list.InsertColumn(0, 'Name', wxLIST_FORMAT_LEFT, 150)
-        self.list.InsertColumn(1, 'Rev.', wxLIST_FORMAT_LEFT, 50)
-        self.list.InsertColumn(2, 'Date', wxLIST_FORMAT_LEFT, 150)
-        self.list.InsertColumn(3, 'Status', wxLIST_FORMAT_LEFT, 150)
-        self.list.InsertColumn(4, 'Options', wxLIST_FORMAT_LEFT, 50)
+        self.list.SetWindowStyleFlag(wx.LC_REPORT)
+        self.list.InsertColumn(0, 'Name', wx.LIST_FORMAT_LEFT, 150)
+        self.list.InsertColumn(1, 'Rev.', wx.LIST_FORMAT_LEFT, 50)
+        self.list.InsertColumn(2, 'Date', wx.LIST_FORMAT_LEFT, 150)
+        self.list.InsertColumn(3, 'Status', wx.LIST_FORMAT_LEFT, 150)
+        self.list.InsertColumn(4, 'Options', wx.LIST_FORMAT_LEFT, 50)
 
     def cleanupListCtrl(self):
         cols = range(5)
@@ -168,7 +169,7 @@ class CVSController(ExplorerNodes.Controller):
             self.list.DeleteColumn(col)
 
     def showMessage(self, cmd, msg):
-        dlg = wxScrolledMessageDialog(self.list, msg, cmd)
+        dlg = ScrolledMessageDialog(self.list, msg, cmd)
         try: dlg.ShowModal()
         finally: dlg.Destroy()
 
@@ -183,10 +184,10 @@ class CVSController(ExplorerNodes.Controller):
             cvsroot = self.list.node.root
         else:
             cvsroot = os.environ.get('CVSROOT', '(not defined)')
-        dlg = wxTextEntryDialog(self.list, 'CVSROOT: %s\nCVS_RSH: %s\n(in dir %s)\n\n%s'\
+        dlg = wx.TextEntryDialog(self.list, 'CVSROOT: %s\nCVS_RSH: %s\n(in dir %s)\n\n%s'\
               %(cvsroot, os.environ.get('CVS_RSH', '(not defined)'), inDir, help),
               'CVS command line', wholeCommand)
-        if wxPlatform == '__WXMSW__':
+        if wx.Platform == '__WXMSW__':
             te = Utils.getCtrlsFromDialog(dlg, 'TextCtrl')[0]
             try:
                 te.SetSelection(wholeCommand.index('['),
@@ -194,7 +195,7 @@ class CVSController(ExplorerNodes.Controller):
             except ValueError:
                 te.SetInsertionPoint(len(wholeCommand))
         try:
-            if dlg.ShowModal() == wxID_OK:
+            if dlg.ShowModal() == wx.ID_OK:
                 return dlg.GetValue()
             else:
                 return ''
@@ -203,7 +204,7 @@ class CVSController(ExplorerNodes.Controller):
 
     def getCvsHelp(self, cmd, option = '-H'):
         CVSPD = ProcessProgressDlg.ProcessProgressDlg(self.list,
-                  'cvs %s %s'% (option, cmd), '', modally=false)
+                  'cvs %s %s'% (option, cmd), '', modally=False)
         try:
             return ' '.join(CVSPD.errors[:-1]).expandtabs(8)
         finally:
@@ -212,14 +213,14 @@ class CVSController(ExplorerNodes.Controller):
     # cvsOutput can be 'output window', 'dialogs' or 'tuple'
     def doCvsCmd(self, cmd, cvsDir, stdinput='', cvsOutput='output window'):
         # Repaint background
-        wxYield()
+        wx.Yield()
 
         cwd = os.getcwd()
         try:
             os.chdir(cvsDir)
             CVSPD = ProcessProgressDlg.ProcessProgressDlg(self.list, cmd, 'CVS progress...')
             try:
-                if CVSPD.ShowModal() == wxOK:
+                if CVSPD.ShowModal() == wx.OK:
                     outls = CVSPD.output
                     errls = CVSPD.errors
                 else:
@@ -236,8 +237,8 @@ class CVSController(ExplorerNodes.Controller):
 
             elif cvsOutput == 'dialogs':
                 if err.strip():
-                    dlg = wxMessageDialog(self.list, err,
-                      'Server response or Error', wxOK | wxICON_EXCLAMATION)
+                    dlg = wx.MessageDialog(self.list, err,
+                      'Server response or Error', wx.OK | wx.ICON_EXCLAMATION)
                     try: dlg.ShowModal()
                     finally: dlg.Destroy()
 
@@ -275,9 +276,9 @@ class CVSController(ExplorerNodes.Controller):
               cvsDir, self.getCvsHelp(cmd))
         if cmdStr:
             self.doCvsCmd(cmdStr, cvsDir)
-            return true
+            return True
         else:
-            return false
+            return False
 
     def importCVSItems(self):
         # Imports are called from normal folders not CVS folders
@@ -296,11 +297,11 @@ class CVSController(ExplorerNodes.Controller):
         for line in lines:
             cvsroots.append(line.split()[0])
         if cvsroots:
-            dlg = wxSingleChoiceDialog(self.list, 'Select and click OK to set CVSROOT'\
+            dlg = wx.SingleChoiceDialog(self.list, 'Select and click OK to set CVSROOT'\
              ' or Cancel to use environment variable.\n\nYou have pserver access to the following servers:',
              'Choose CVSROOT (-d parameter)', cvsroots)
             try:
-                if dlg.ShowModal() == wxID_OK:
+                if dlg.ShowModal() == wx.ID_OK:
                     cvsOpts = '-d'+dlg.GetStringSelection()
                 else:
                     cvsOpts = ''
@@ -398,13 +399,13 @@ class CVSController(ExplorerNodes.Controller):
                 else:
                     cvsroot = ''
 
-        cvsroot = self.cvsCmdPrompt(cvsroot, cvsDir, 
+        cvsroot = self.cvsCmdPrompt(cvsroot, cvsDir,
               help='Change the CVSROOT if necessary:')
 
-        dlg = wxTextEntryDialog(self.list, 'Enter cvs password for '+cvsroot, 
-              'CVS login', '', style=wxOK|wxCANCEL|wxCENTRE|wxTE_PASSWORD)
+        dlg = wx.TextEntryDialog(self.list, 'Enter cvs password for '+cvsroot,
+              'CVS login', '', style=wx.OK | wx.CANCEL | wx.CENTRE | wx.TE_PASSWORD)
         try:
-            if dlg.ShowModal() == wxID_OK:
+            if dlg.ShowModal() == wx.ID_OK:
                 password = scrm.scramble(dlg.GetValue())
             else:
                 return
@@ -440,16 +441,16 @@ class CVSController(ExplorerNodes.Controller):
     def OnEditEnv(self, event):
         envKey = cvs_environ_vars[cvs_environ_ids.index(event.GetId())]
         envVal = os.environ.get(envKey, '(not defined)')
-        dlg = wxTextEntryDialog(self.list, 'Edit CVS shell environment variable: %s\nA blank entry will remove the variable.'% envKey,
+        dlg = wx.TextEntryDialog(self.list, 'Edit CVS shell environment variable: %s\nA blank entry will remove the variable.'% envKey,
             'CVS shell environment variables', envVal)
         try:
-            if dlg.ShowModal() == wxID_OK:
+            if dlg.ShowModal() == wx.ID_OK:
                 answer = dlg.GetValue()
                 if answer and answer != '(not defined)':
                     try:
                         os.environ[envKey] = answer
                     except:
-                        wxMessageBox('Changing environment variables is not supported on this OS\nConsult CVS howtos on how to set these globally')
+                        wx.MessageBox('Changing environment variables is not supported on this OS\nConsult CVS howtos on how to set these globally')
                 else:
                     if os.environ.has_key(envKey):
                         del os.environ[envKey]
@@ -458,7 +459,7 @@ class CVSController(ExplorerNodes.Controller):
 
     def OnTest(self, event):
         print 'TEST'
-#        self.list.SetWindowStyleFlag(wxLC_REPORT)
+#        self.list.SetWindowStyleFlag(wx.LC_REPORT)
         self.setupListCtrl()
 
 class CVSFolderNode(ExplorerNodes.ExplorerNode):
@@ -478,7 +479,7 @@ class CVSFolderNode(ExplorerNodes.ExplorerNode):
         return '/'.join(('D', self.name, self.revision, self.timestamp, self.options, self.tagdate))
 
     def isFolderish(self):
-        return false
+        return False
 
     def notifyBeginLabelEdit(self, event):
         event.Veto()
@@ -509,16 +510,16 @@ class CVSFileNode(ExplorerNodes.ExplorerNode):
 
         ExplorerNodes.ExplorerNode.__init__(self, name, resourcepath, None, -1, parent)
 
-        self.missing = false
-        self.modified = false
-        self.conflict = false
+        self.missing = False
+        self.modified = False
+        self.conflict = False
         self.imgIdx = 0
         if self.timestamp:
             filename = os.path.abspath(os.path.join(self.resourcepath, '..', name))
             if os.path.exists(filename):
                 self.modified, self.conflict = cvsFileLocallyModified(filename, self.timestamp)
             else:
-                self.missing = true
+                self.missing = True
 
         self.imgIdx = self.missing and self.missing << 2 \
                       or (self.options == '-kb' and not self.modified) \
@@ -526,7 +527,7 @@ class CVSFileNode(ExplorerNodes.ExplorerNode):
                       or self.conflict *5 or self.modified << 1
 
     def isFolderish(self):
-        return false
+        return False
 
     def notifyBeginLabelEdit(self, event):
         event.Veto()
@@ -559,7 +560,7 @@ class CVSFileNode(ExplorerNodes.ExplorerNode):
                     resultView.refresh()
                     resultView.focus()
                 else:
-                    editor.setStatus('No CVS conflicts in file', 'Warning', true)
+                    editor.setStatus('No CVS conflicts in file', 'Warning', True)
 
                 return model, controller
         return None, None
@@ -582,7 +583,7 @@ class FSCVSFolderNode(ExplorerNodes.ExplorerNode):
     def __init__(self, name, resourcepath, clipboard, imgIdx, parent, bookmarks=None):
         ExplorerNodes.ExplorerNode.__init__(self, name, resourcepath, clipboard,
               EditorModels.CVSFolderModel.imgIdx, parent)
-        self.vetoSort = true
+        self.vetoSort = True
         self.dirpos = 0
         self.upImgIdx = 7
 
@@ -602,7 +603,7 @@ class FSCVSFolderNode(ExplorerNodes.ExplorerNode):
             return ExplorerNodes.ExplorerNode.getTitle(self)
 
     def isFolderish(self):
-        return true
+        return True
 
     def notifyBeginLabelEdit(self, event):
         event.Veto()
@@ -678,9 +679,9 @@ class FSCVSFolderNode(ExplorerNodes.ExplorerNode):
         cvsChd = tree.getChildNamed(cvsParentItemParent, 'CVS')
         if cvsChd.IsOk():
             tree.SelectItem(cvsChd)
-            return true
+            return True
         else:
-            return false
+            return False
 
 #---------------------------------------------------------------------------
 # Register cvs dirs as a subtype of file explorers

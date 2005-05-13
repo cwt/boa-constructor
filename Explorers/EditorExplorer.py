@@ -1,6 +1,6 @@
 #-----------------------------------------------------------------------------
 # Name:        EditorExplorer.py
-# Purpose:     
+# Purpose:
 #
 # Author:      Riaan Booysem
 #
@@ -11,16 +11,14 @@
 #-----------------------------------------------------------------------------
 import os
 
-from wxPython import wx
+import wx
 
 import Preferences, Utils
 
 import ExplorerNodes
 from Models import EditorHelper
 
-true=1;false=0
-
-[wxID_EDTGOTO, wxID_EDTRELOAD, wxID_EDTCLOSE, wxID_EDTCLOSEALL, wxID_EDTMOVEUP, 
+[wxID_EDTGOTO, wxID_EDTRELOAD, wxID_EDTCLOSE, wxID_EDTCLOSEALL, wxID_EDTMOVEUP,
  wxID_EDTMOVEDOWN, wxID_EDTCOPYPATH] = Utils.wxNewIds(7)
 
 class EditorController(ExplorerNodes.Controller):
@@ -31,9 +29,9 @@ class EditorController(ExplorerNodes.Controller):
     def __init__(self, editor, list, inspector, controllers):
         ExplorerNodes.Controller.__init__(self, editor)
         self.list = list
-        self.menu = wx.wxMenu()
+        self.menu = wx.Menu()
 
-        self.editorMenuDef = [ 
+        self.editorMenuDef = [
            (wxID_EDTGOTO, 'Goto', self.OnGotoModel, '-'),
            (-1, '-', None, ''),
            (wxID_EDTRELOAD, 'Refresh', self.OnReloadItems, '-'),
@@ -74,7 +72,7 @@ class EditorController(ExplorerNodes.Controller):
         text = self.editor.tabs.GetPageText(idx)
         imgIdx = self.editor.tabs.GetPageImage(idx)
         self.editor.tabs.RemovePage(idx)
-        self.editor.tabs.InsertPage(idx+direc, page, text, false, imgIdx)
+        self.editor.tabs.InsertPage(idx+direc, page, text, False, imgIdx)
 
         # swap the two tIdx's
         for modPage in self.editor.modules.values():
@@ -91,12 +89,12 @@ class EditorController(ExplorerNodes.Controller):
             ms = self.list.getMultiSelection()
             nodes = self.getNodesForSelection(ms)
             if len(nodes) != 1:
-                wx.wxLogError('Can only move 1 at a time')
+                wx.LogError('Can only move 1 at a time')
             else:
                 node = nodes[0]
                 idx = node.modulePage.tIdx
                 if idx == 2:
-                    wx.wxLogError('Already at the beginning')
+                    wx.LogError('Already at the beginning')
                 else:
                     self.moveModel(node, idx, -1)
 
@@ -105,12 +103,12 @@ class EditorController(ExplorerNodes.Controller):
             ms = self.list.getMultiSelection()
             nodes = self.getNodesForSelection(ms)
             if len(nodes) != 1:
-                wx.wxLogError('Can only move 1 at a time')
+                wx.LogError('Can only move 1 at a time')
             else:
                 node = nodes[0]
                 idx = node.modulePage.tIdx
                 if idx == self.editor.tabs.GetPageCount() -1:
-                    wx.wxLogError('Already at the end')
+                    wx.LogError('Already at the end')
                 else:
                     self.moveModel(node, idx, 1)
 
@@ -119,7 +117,7 @@ class EditorController(ExplorerNodes.Controller):
             ms = self.list.getMultiSelection()
             nodes = self.getNodesForSelection(ms)
             if len(nodes) != 1:
-                wx.wxLogError('Can only goto 1 at a time')
+                wx.LogError('Can only goto 1 at a time')
             else:
                 nodes[0].open(self.editor)
 
@@ -143,14 +141,14 @@ class OpenModelsNode(ExplorerNodes.ExplorerNode):
         ExplorerNodes.ExplorerNode.__init__(self, 'Editor', '', None,
               EditorHelper.imgOpenEditorModels, None, {})
         self.editor = editor
-        self.bold = true
-        self.vetoSort = true
+        self.bold = True
+        self.vetoSort = True
 
     def notifyBeginLabelEdit(self, event):
         event.Veto()
 
     def isFolderish(self):
-        return true
+        return True
 
     def createChildNode(self, name, modulePage):
         return OpenModelItemNode(modulePage.updatePageName(), name, modulePage, self)
@@ -179,7 +177,7 @@ class OpenModelItemNode(ExplorerNodes.ExplorerNode):
         event.Veto()
 
     def isFolderish(self):
-        return false
+        return False
 
     def open(self, editor):
         if not os.path.split(self.resourcepath)[0]:
@@ -204,7 +202,7 @@ class ModelViewItemNode(ExplorerNodes.ExplorerNode):
         event.Veto()
 
     def isFolderish(self):
-        return true
+        return True
 
     def openList(self):
         res = []
@@ -218,14 +216,14 @@ class ViewItemNode(ExplorerNodes.ExplorerNode):
 
 #-------------------------------------------------------------------------------
 
-wxID_NEWCREATE = wx.wxNewId()
+wxID_NEWCREATE = wx.NewId()
 class EditorNewController(ExplorerNodes.Controller):
     createBmp = 'Images/Editor/Close.png'
 
     def __init__(self, editor, list):
         ExplorerNodes.Controller.__init__(self, editor)
         self.list = list
-        self.menu = wx.wxMenu()
+        self.menu = wx.Menu()
 
         self.editorMenuDef = ( (wxID_NEWCREATE, 'Create', self.OnCreate, '-'), )
 
@@ -246,11 +244,11 @@ class NewPaletteNode(ExplorerNodes.ExplorerNode):
         ExplorerNodes.ExplorerNode.__init__(self, 'Editor', '', None,
               EditorHelper.imgOpenEditorModels, None, {})
         self.editor = editor
-        self.bold = true
-        self.vetoSort = true
+        self.bold = True
+        self.vetoSort = True
 
     def isFolderish(self):
-        return true
+        return True
 
     def createChildNode(self, name, modulePage):
         return NewPaletteItemNode(modulePage.updatePageName(), name, modulePage, self)
@@ -277,7 +275,7 @@ class NewPaletteItemNode(ExplorerNodes.ExplorerNode):
         event.Veto()
 
     def isFolderish(self):
-        return false
+        return False
 
 #-------------------------------------------------------------------------------
 ExplorerNodes.register(OpenModelsNode, controller=EditorController)

@@ -1,27 +1,37 @@
 #Boa:Dialog:CVSResultsDlg
 
-from wxPython.wx import *
+import wx
 
 def create(parent):
     return CVSResultsDlg(parent)
 
-[wxID_CVSRESULTSDLGTEXTCTRL1, wxID_CVSRESULTSDLGBUTTON3, wxID_CVSRESULTSDLGBUTTON1, wxID_CVSRESULTSDLGBUTTON2, wxID_CVSRESULTSDLG] = map(lambda _init_ctrls: wxNewId(), range(5))
+[wxID_CVSRESULTSDLG, wxID_CVSRESULTSDLGBUTTON1, wxID_CVSRESULTSDLGBUTTON2, 
+ wxID_CVSRESULTSDLGBUTTON3, wxID_CVSRESULTSDLGTEXTCTRL1, 
+] = [wx.NewId() for _init_ctrls in range(5)]
 
-class CVSResultsDlg(wxDialog):
-    def _init_utils(self):
-        pass
-
+class CVSResultsDlg(wx.Dialog):
     def _init_ctrls(self, prnt):
-        wxDialog.__init__(self, size = wxSize(488, 323), id = wxID_CVSRESULTSDLG, title = 'CVS Results', parent = prnt, name = 'CVSResultsDlg', style = wxDEFAULT_DIALOG_STYLE, pos = wxPoint(138, 124))
-        self._init_utils()
+        # generated method, don't edit
+        wx.Dialog.__init__(self, id=wxID_CVSRESULTSDLG, name='CVSResultsDlg',
+              parent=prnt, pos=wx.Point(138, 124), size=wx.Size(488, 323),
+              style=wx.DEFAULT_DIALOG_STYLE, title='CVS Results')
+        self.SetClientSize(wx.Size(480, 296))
 
-        self.textCtrl1 = wxTextCtrl(size = wxSize(480, 256), value = 'textCtrl1', pos = wxPoint(0, 0), parent = self, name = 'textCtrl1', style = 0, id = wxID_CVSRESULTSDLGTEXTCTRL1)
+        self.textCtrl1 = wx.TextCtrl(id=wxID_CVSRESULTSDLGTEXTCTRL1,
+              name='textCtrl1', parent=self, pos=wx.Point(0, 0),
+              size=wx.Size(480, 256), style=0, value='textCtrl1')
 
-        self.button1 = wxButton(label = 'Close', id = wxID_CVSRESULTSDLGBUTTON1, parent = self, name = 'button1', size = wxSize(72, 24), style = 0, pos = wxPoint(176, 264))
+        self.button1 = wx.Button(id=wxID_CVSRESULTSDLGBUTTON1, label='Close',
+              name='button1', parent=self, pos=wx.Point(176, 264),
+              size=wx.Size(72, 24), style=0)
 
-        self.button2 = wxButton(label = 'Copy', id = wxID_CVSRESULTSDLGBUTTON2, parent = self, name = 'button2', size = wxSize(72, 24), style = 0, pos = wxPoint(256, 264))
+        self.button2 = wx.Button(id=wxID_CVSRESULTSDLGBUTTON2, label='Copy',
+              name='button2', parent=self, pos=wx.Point(256, 264),
+              size=wx.Size(72, 24), style=0)
 
-        self.button3 = wxButton(label = 'Decorate open modules', id = wxID_CVSRESULTSDLGBUTTON3, parent = self, name = 'button3', size = wxSize(136, 24), style = 0, pos = wxPoint(336, 264))
+        self.button3 = wx.Button(id=wxID_CVSRESULTSDLGBUTTON3,
+              label='Decorate open modules', name='button3', parent=self,
+              pos=wx.Point(336, 264), size=wx.Size(136, 24), style=0)
 
     def __init__(self, parent):
         self._init_ctrls(parent)

@@ -13,8 +13,7 @@ print 'importing Explorers.PrefsExplorer'
 import os, sys, glob, pprint, imp
 import types
 
-from wxPython import wx
-true=1;false=0
+import wx
 
 import Preferences, Utils, Plugins
 
@@ -31,11 +30,11 @@ class PreferenceGroupNode(ExplorerNodes.ExplorerNode):
         ExplorerNodes.ExplorerNode.__init__(self, name, name, None,
               EditorHelper.imgPrefsFolder, None)
 
-        self.vetoSort = true
+        self.vetoSort = True
         self.preferences = []
 
     def isFolderish(self):
-        return true
+        return True
 
     def openList(self):
         return self.preferences
@@ -49,7 +48,7 @@ class BoaPrefGroupNode(PreferenceGroupNode):
     customPrefs = [] # list of tuples ('name', 'file')
     def __init__(self, parent):
         PreferenceGroupNode.__init__(self, 'Preferences', parent)
-        self.bold = true
+        self.bold = True
 
         prefImgIdx = EditorHelper.imgSystemObj
         stcPrefImgIdx = EditorHelper.imgPrefsSTCStyles
@@ -59,7 +58,7 @@ class BoaPrefGroupNode(PreferenceGroupNode):
         self.source_pref.preferences = [
             UsedModuleSrcBsdPrefColNode('Default settings',
                 Preferences.exportedSTCProps, os.path.join(Preferences.rcPath,
-                'prefs.rc.py'), prefImgIdx, self, Preferences, true)]
+                'prefs.rc.py'), prefImgIdx, self, Preferences, True)]
 
         for name, lang, STCClass, stylesFile in ExplorerNodes.langStyleInfoReg:
             if not os.path.isabs(stylesFile):
@@ -75,7 +74,7 @@ class BoaPrefGroupNode(PreferenceGroupNode):
 
         self.platform_pref = UsedModuleSrcBsdPrefColNode('Platform specific',
             Preferences.exportedProperties2, os.path.join(Preferences.rcPath,
-            'prefs.%s.rc.py' % (wx.wxPlatform == '__WXMSW__' and 'msw' or 'gtk')),
+            'prefs.%s.rc.py' % (wx.Platform == '__WXMSW__' and 'msw' or 'gtk')),
             prefImgIdx, self, Preferences)
         self.preferences.append(self.platform_pref)
 
@@ -98,10 +97,10 @@ class BoaPrefGroupNode(PreferenceGroupNode):
 
         self.core_plugpref = UsedModuleSrcBsdPrefColNode('Core support',
             Preferences.exportedCorePluginProps, os.path.join(Preferences.rcPath,
-            'prefs.rc.py'), prefImgIdx, self, Preferences, true)
-        self.plugin_plugpref = UsedModuleSrcBsdPrefColNode('Preferences', Preferences.exportedPluginProps,#('*',), 
-            os.path.join(Preferences.rcPath, 'prefs.plug-ins.rc.py'), prefImgIdx, 
-            self, Preferences, true)
+            'prefs.rc.py'), prefImgIdx, self, Preferences, True)
+        self.plugin_plugpref = UsedModuleSrcBsdPrefColNode('Preferences', Preferences.exportedPluginProps,#('*',),
+            os.path.join(Preferences.rcPath, 'prefs.plug-ins.rc.py'), prefImgIdx,
+            self, Preferences, True)
         self.files_plugpref = PluginFilesGroupNode()
         self.transp_plugpref = PreferenceGroupNode('Transports', self)
         self.transp_plugpref.preferences = [
@@ -139,11 +138,11 @@ class PreferenceCollectionNode(ExplorerNodes.ExplorerNode):
         editor.inspector.restore()
         if editor.inspector.pages.GetSelection() != 1:
             editor.inspector.pages.SetSelection(1)
-        editor.inspector.selectObject(comp, false)
+        editor.inspector.selectObject(comp, False)
         return None, None
 
     def isFolderish(self):
-        return false
+        return False
 
     def load(self):
         raise 'Not implemented'
@@ -168,7 +167,7 @@ class STCStyleEditPrefsCollNode(PreferenceCollectionNode):
             for view in modPge.model.views.values():
                 if isinstance(view, self.STCclass):
                     openSTCViews.append(view)
-        
+
         # also check the shell
         if Preferences.psPythonShell == 'Shell':
             if isinstance(editor.shell, self.STCclass):
@@ -176,7 +175,7 @@ class STCStyleEditPrefsCollNode(PreferenceCollectionNode):
         #elif Preferences.psPythonShell == 'PyCrust':
         #    if self.language == 'python':
         #        openSTCViews.append(editor.shell.shellWin)
-        
+
         dlg = STCStyleEditor.STCStyleEditDlg(editor, self.name, self.language,
               self.resourcepath, openSTCViews)
         try: dlg.ShowModal()
@@ -197,7 +196,7 @@ class SourceBasedPrefColNode(PreferenceCollectionNode):
     This only applies to names assigned to values ( x = 123 ) not to global
     names defined by classes functions and imports.
     """
-    def __init__(self, name, props, resourcepath, imgIdx, parent, showBreaks=true):
+    def __init__(self, name, props, resourcepath, imgIdx, parent, showBreaks=True):
         PreferenceCollectionNode.__init__(self, name, props, resourcepath,
               imgIdx, parent)
         self.showBreakLines = showBreaks
@@ -267,7 +266,7 @@ class SourceBasedPrefColNode(PreferenceCollectionNode):
 class UsedModuleSrcBsdPrefColNode(SourceBasedPrefColNode):
     """ Also update the value of a global attribute of an imported module """
     def __init__(self, name, props, resourcepath, imgIdx, parent, module,
-          showBreaks=true):
+          showBreaks=True):
         SourceBasedPrefColNode.__init__(self, name, props, resourcepath, imgIdx,
               parent, showBreaks)
         self.module = module
@@ -282,7 +281,7 @@ class KeyDefsSrcPrefColNode(PreferenceCollectionNode):
     def __init__(self, name, props, resourcepath, imgIdx, parent, keyDefs):
         PreferenceCollectionNode.__init__(self, name, props, resourcepath,
               imgIdx, parent)
-        self.showBreakLines = true
+        self.showBreakLines = True
         self._editor = None
 
     def open(self, editor):
@@ -355,9 +354,9 @@ class KeyDefConfPropEdit(PropertyEditors.ConfPropEdit):
         import KeyDefsDlg
         dlg = KeyDefsDlg.KeyDefsDialog(self.parent, self.name, self.value)
         try:
-            if dlg.ShowModal() == wx.wxID_OK:
+            if dlg.ShowModal() == wx.ID_OK:
                 self.editorCtrl.value = dlg.result
-                self.inspectorPost(false)
+                self.inspectorPost(False)
         finally:
             dlg.Destroy()
 
@@ -397,7 +396,7 @@ class PreferenceCompanion(ExplorerNodes.ExplorerCompanion):
             else:
                 return PropertyEditors.EnumConfPropEdit
 
-        if srcVal.lower() in ('true', 'false'):
+        if srcVal.lower() in ('True', 'False'):
             return PropertyEditors.BoolConfPropEdit
 
         try:
@@ -405,7 +404,7 @@ class PreferenceCompanion(ExplorerNodes.ExplorerCompanion):
         except Exception, error:
             return PropertyEditors.StrConfPropEdit
 
-        if isinstance(val, wx.wxColour):
+        if isinstance(val, wx.Colour):
             return PropertyEditors.ColourConfPropEdit
         return self.typeMap.get(type(val), PropertyEditors.StrConfPropEdit)
 
@@ -437,10 +436,10 @@ class PreferenceCompanion(ExplorerNodes.ExplorerCompanion):
                 while breaksIdx < len(breakLinenos)-1 and \
                       props[name].start > breakLinenos[breaksIdx+1]:
                     breaksIdx += 1
-                
+
                 if breaksIdx >= len(breakLinenos):
                     breaksIdx = None
-                
+
                 if breaksIdx is not None and props[name].start > breakLinenos[breaksIdx]:
                     res.append( (self._breaks[breakLinenos[breaksIdx]], '', None, '', '') )
                     breaksIdx += 1
@@ -456,12 +455,12 @@ class PreferenceCompanion(ExplorerNodes.ExplorerCompanion):
         try:
             eval(value, vars(Preferences))
         except Exception, error:
-            wx.wxLogError('Error: '+str(error))
-            return false
+            wx.LogError('Error: '+str(error))
+            return False
         else:
             newProp = (name, value) + oldProp[2:]
             self.prefNode.save(name, newProp)
-            return true
+            return True
 
     def persistedPropVal(self, name, setterName):
         if name in self._breaks.values():
@@ -506,11 +505,11 @@ class CorePluginsGroupNode(PreferenceGroupNode):
         name = 'Core support'
         PreferenceGroupNode.__init__(self, name, None)
 
-        self.vetoSort = true
+        self.vetoSort = True
         self.preferences = []
 
     def isFolderish(self):
-        return true
+        return True
 
     def openList(self):
         return self.preferences
@@ -522,7 +521,7 @@ def getPluginSection(pluginFile):
     pluginPath = os.path.dirname(pluginFile)
     return Preferences.pluginSections[
               Preferences.pluginPaths.index(pluginPath)]
-    
+
 class PluginFileExplNode(ExplorerNodes.ExplorerNode):
     """  """
     def __init__(self, name, enabled, status, resourcepath, imgIdx):
@@ -538,8 +537,8 @@ class PluginFileExplNode(ExplorerNodes.ExplorerNode):
         else:
             msg = 'Enable'
 
-        if wx.wxMessageBox('%s %s?'%(msg, self.name), 'Confirm Toggle Plug-in',
-              wx.wxYES_NO | wx.wxICON_QUESTION) == wx.wxYES:
+        if wx.MessageBox('%s %s?'%(msg, self.name), 'Confirm Toggle Plug-in',
+              wx.YES_NO | wx.ICON_QUESTION) == wx.YES:
             section = getPluginSection(self.resourcepath)
             ordered, disabled = Plugins.readPluginsState(section)
 
@@ -563,7 +562,7 @@ class PluginFileExplNode(ExplorerNodes.ExplorerNode):
                           self.pluginStatus)
 
     def isFolderish(self):
-        return false
+        return False
 
     def notifyBeginLabelEdit(self, event):
         event.Veto()
@@ -640,7 +639,7 @@ class PluginFilesGroupNodeController(ExplorerNodes.Controller):
     def __init__(self, editor, list, inspector, controllers):
         ExplorerNodes.Controller.__init__(self, editor)
         self.list = list
-        self.menu = wx.wxMenu()
+        self.menu = wx.Menu()
 
         [wxID_PF_TOGGLE, wxID_PF_OPEN, wxID_PF_UP, wxID_PF_DOWN] = Utils.wxNewIds(4)
 
@@ -682,12 +681,12 @@ class PluginFilesGroupNodeController(ExplorerNodes.Controller):
             ms = self.list.getMultiSelection()
             nodes = self.getNodesForSelection(ms)
             if len(nodes) != 1:
-                wx.wxLogError('Can only move 1 at a time')
+                wx.LogError('Can only move 1 at a time')
             else:
                 node = nodes[0]
                 idx = self.list.items.index(node)
                 if idx == 0:
-                    wx.wxLogError('Already at the beginning')
+                    wx.LogError('Already at the beginning')
                 else:
                     name = node.name
                     node.changeOrder(-1)
@@ -699,12 +698,12 @@ class PluginFilesGroupNodeController(ExplorerNodes.Controller):
             ms = self.list.getMultiSelection()
             nodes = self.getNodesForSelection(ms)
             if len(nodes) != 1:
-                wx.wxLogError('Can only move 1 at a time')
+                wx.LogError('Can only move 1 at a time')
             else:
                 node = nodes[0]
                 idx = self.list.items.index(node)
 ##                if idx >= len(self.list.items) -1:
-##                    wx.wxLogError('Already at the end')
+##                    wx.LogError('Already at the end')
 ##                else:
                 name = node.name
                 node.changeOrder(1)
@@ -736,7 +735,7 @@ class TransportPluginsController(ExplorerNodes.Controller):
     def __init__(self, editor, list, inspector, controllers):
         ExplorerNodes.Controller.__init__(self, editor)
         self.list = list
-        self.menu = wx.wxMenu()
+        self.menu = wx.Menu()
 
         [wxID_TP_NEW, wxID_TP_DEL, wxID_TP_UP, wxID_TP_DOWN] = Utils.wxNewIds(4)
 
@@ -785,12 +784,12 @@ class TransportPluginsController(ExplorerNodes.Controller):
             ms = self.list.getMultiSelection()
             nodes = self.getNodesForSelection(ms)
             if len(nodes) != 1:
-                wx.wxLogError('Can only move 1 at a time')
+                wx.LogError('Can only move 1 at a time')
             else:
                 node = nodes[0]
                 idx = self.list.items.index(node)
                 if idx == 0:
-                    wx.wxLogError('Already at the beginning')
+                    wx.LogError('Already at the beginning')
                 else:
                     self.moveTransport(node, idx, -1)
 
@@ -799,12 +798,12 @@ class TransportPluginsController(ExplorerNodes.Controller):
             ms = self.list.getMultiSelection()
             nodes = self.getNodesForSelection(ms)
             if len(nodes) != 1:
-                wx.wxLogError('Can only move 1 at a time')
+                wx.LogError('Can only move 1 at a time')
             else:
                 node = nodes[0]
                 idx = self.list.items.index(node)
                 if idx >= len(self.list.items) -1:
-                    wx.wxLogError('Already at the end')
+                    wx.LogError('Already at the end')
                 else:
                     self.moveTransport(node, idx, 1)
 
@@ -818,21 +817,21 @@ class TransportPluginsLoadOrderController(TransportPluginsController):
     itemDescr = 'Transport module'
 
     def OnNewTransport(self, event):
-        dlg = wx.wxTextEntryDialog(self.list, 'Enter the fully qualified Python '\
+        dlg = wx.TextEntryDialog(self.list, 'Enter the fully qualified Python '\
                'object path to \nthe Transport module. E.g. Explorers.FileExplorer',
                'New Transport', '')
         try:
-            if dlg.ShowModal() != wx.wxID_OK:
+            if dlg.ShowModal() != wx.ID_OK:
                 return
             transportModulePath = dlg.GetValue()
         finally:
             dlg.Destroy()
 
         if not self.list.node.checkValidModulePath(transportModulePath):
-            if wx.wxMessageBox('Cannot locate the specified module path,\n'\
+            if wx.MessageBox('Cannot locate the specified module path,\n'\
                          'are you sure you want to continue?',
                          'Module not found',
-                         wx.wxYES_NO | wx.wxICON_EXCLAMATION) == wx.wxNO:
+                         wx.YES_NO | wx.ICON_EXCLAMATION) == wx.NO:
                 return
 
         names = []
@@ -864,10 +863,10 @@ class TransportPluginsTreeDisplayOrderController(TransportPluginsController):
     itemDescr = 'Transports tree node'
 
     def OnNewTransport(self, event):
-        dlg = wx.wxTextEntryDialog(self.list, 'Enter the protocol identifier. E.g. '\
+        dlg = wx.TextEntryDialog(self.list, 'Enter the protocol identifier. E.g. '\
                'ftp, ssh', 'New Transports Tree Node', '')
         try:
-            if dlg.ShowModal() != wx.wxID_OK:
+            if dlg.ShowModal() != wx.ID_OK:
                 return
             protocol = dlg.GetValue()
         finally:
@@ -940,9 +939,9 @@ class TransportPluginsLoadOrderGroupNode(PreferenceGroupNode):
             Utils.find_dotted_module(name)
         except ImportError, err:
             #print str(err)
-            return false
+            return False
         else:
-            return true
+            return True
 
 
 class TransportPluginsTreeDisplayOrderGroupNode(PreferenceGroupNode):
@@ -999,7 +998,7 @@ class HelpConfigPGN(PreferenceGroupNode):
         PreferenceGroupNode.__init__(self, name, None)
 
     def openList(self):
-        return 
+        return
 
 
 class HelpConfigBooksPGN(PreferenceGroupNode):
@@ -1020,8 +1019,8 @@ class HelpConfigBooksPGN(PreferenceGroupNode):
                 # too disruptive to display an error
                 pass
         return res
-            
-#        return [HelpConfigBookNode(bookPath) 
+
+#        return [HelpConfigBookNode(bookPath)
 #                for bookPath in bookPaths]
 
 
@@ -1036,10 +1035,10 @@ class HelpConfigBooksPGN(PreferenceGroupNode):
 
     def preparePath(self, path):
         helpPath = Preferences.pyPath+'/Docs/'
-        
+
         if path.startswith('file://'):
             path = path[7:]
-        
+
         # Add relative paths for files inside Docs directory
         if os.path.normcase(path).startswith(os.path.normcase(helpPath)):
             return path[len(helpPath):]
@@ -1054,7 +1053,7 @@ class HelpConfigBooksPGN(PreferenceGroupNode):
     def addBook(self, path):
         path = self.preparePath(path)
         self.writeBooks(self.readBooks() + [path])
-    
+
     def removeBook(self, path):
         books = self.readBooks()
         books.remove(path)
@@ -1088,7 +1087,7 @@ class HelpConfigBookNode(ExplorerNodes.ExplorerNode):
 ##                          self.pluginStatus)
 
     def isFolderish(self):
-        return false
+        return False
 
     def notifyBeginLabelEdit(self, event):
         event.Veto()
@@ -1112,9 +1111,9 @@ class HelpConfigBooksController(ExplorerNodes.Controller):
     def __init__(self, editor, list, inspector, controllers):
         ExplorerNodes.Controller.__init__(self, editor)
         self.list = list
-        self.menu = wx.wxMenu()
+        self.menu = wx.Menu()
 
-        [wxID_HB_EDIT, wxID_HB_NEW, wxID_HB_DEL, wxID_HB_UP, wxID_HB_DOWN, 
+        [wxID_HB_EDIT, wxID_HB_NEW, wxID_HB_DEL, wxID_HB_UP, wxID_HB_DOWN,
          wxID_HB_REST, wxID_HB_CLRI, wxID_HB_OPEN] = Utils.wxNewIds(8)
 
         self.helpBooksMenuDef = [ (wxID_HB_EDIT, 'Edit '+self.itemDescr,
@@ -1170,12 +1169,12 @@ class HelpConfigBooksController(ExplorerNodes.Controller):
             ms = self.list.getMultiSelection()
             nodes = self.getNodesForSelection(ms)
             if len(nodes) != 1:
-                wx.wxLogError('Can only move 1 at a time')
+                wx.LogError('Can only move 1 at a time')
             else:
                 node = nodes[0]
                 idx = self.list.items.index(node)
                 if idx == 0:
-                    wx.wxLogError('Already at the beginning')
+                    wx.LogError('Already at the beginning')
                 else:
                     self.moveBook(node, idx, -1)
 
@@ -1184,12 +1183,12 @@ class HelpConfigBooksController(ExplorerNodes.Controller):
             ms = self.list.getMultiSelection()
             nodes = self.getNodesForSelection(ms)
             if len(nodes) != 1:
-                wx.wxLogError('Can only move 1 at a time')
+                wx.LogError('Can only move 1 at a time')
             else:
                 node = nodes[0]
                 idx = self.list.items.index(node)
                 if idx >= len(self.list.items) -1:
-                    wx.wxLogError('Already at the end')
+                    wx.LogError('Already at the end')
                 else:
                     self.moveBook(node, idx, 1)
 
@@ -1198,7 +1197,7 @@ class HelpConfigBooksController(ExplorerNodes.Controller):
             ms = self.list.getMultiSelection()
             for node in self.getNodesForSelection(ms):
                 if not os.path.isabs(node.resourcepath):
-                    path = os.path.join(Preferences.pyPath, 
+                    path = os.path.join(Preferences.pyPath,
                                         'Docs', node.resourcepath)
                 else:
                     path = node.resourcepath
@@ -1221,22 +1220,22 @@ class HelpConfigBooksController(ExplorerNodes.Controller):
             for node in self.getNodesForSelection(ms):
                 self.list.node.removeBook(node.resourcepath)
             self.list.refreshCurrent()
-            
+
     def OnRestartHelp(self, event):
         import Help
         Help.delHelp()
-        wx.wxYield()
+        wx.Yield()
         Help.initHelp()
 
     def OnClearHelpIndexes(self, event):
         import Help
-        
+
         cd = Help.getCacheDir()
         for name in os.listdir(cd):
             if os.path.splitext(name)[1] == '.cached':
                 os.remove(os.path.join(cd, name))
-                wx.wxLogMessage('Deleted %s'%name)
-            
+                wx.LogMessage('Deleted %s'%name)
+
     def OnOpenHHP(self, event):
         if self.list.node:
             ms = self.list.getMultiSelection()

@@ -13,13 +13,12 @@ print 'importing Explorers.ExplorerNodes'
 
 import sys, os, time, stat, copy, pprint
 
-from wxPython import wx
+import wx
 
 import Preferences, Utils
 
 from Models import EditorHelper
 import scrm
-false=0;true=1
 
 sensitive_properties = ('passwd', 'scp_pass')
 
@@ -84,38 +83,38 @@ class ExplorerClipboard:
 
 class Controller:
     Node = None
-    
+
     plugins = ()
     def __init__(self, editor):
         self.editor = editor
-        
+
         self.plugins = [Plugin(self, editor) for Plugin in self.plugins]
 
     def editorUpdateNotify(self, info=''):
         pass
 
-    def setupMenu(self, menu, win, menus, addPlugins=true):
+    def setupMenu(self, menu, win, menus, addPlugins=True):
         pluginMenuDefs = []
         if addPlugins:
             for plugin in self.plugins:
                 pluginMenuDefs.extend(plugin.menuDefs())
-            
+
         for wId, help, method, bmp in menus + pluginMenuDefs:
             if help != '-':
                 if help[0] == '+':
-                    canCheck = true
+                    canCheck = True
                     help = help[1:]
                 else:
-                    canCheck = false
+                    canCheck = False
 
                 if type(method) in (type(()), type([])):
-                    subMenu = wx.wxMenu()
+                    subMenu = wx.Menu()
                     self.setupMenu(subMenu, win, method)
                     menu.AppendMenu(wId, help, subMenu)
                 else:
                     menu.Append(wId, help, '', canCheck)
-                    wx.EVT_MENU(win, wId, method)
-                    wx.EVT_MENU(self.editor, wId, method)
+                    win.Bind(wx.EVT_MENU, method, id=wId)
+                    self.editor.Bind(wx.EVT_MENU, method, id=wId)
             else:
                 menu.AppendSeparator()
 
@@ -202,16 +201,16 @@ class ClipboardControllerMix:
 
     def OnPasteItems(self, event):
         if self.list.node:
-            wx.wxBeginBusyCursor()
+            wx.BeginBusyCursor()
             try:
                 self.list.node.clipPaste()
                 self.list.refreshCurrent()
             finally:
-                wx.wxEndBusyCursor()
+                wx.EndBusyCursor()
 
     def OnDeleteItems(self, event):
         if self.list.node:
-            wx.wxBeginBusyCursor()
+            wx.BeginBusyCursor()
             try:
                 idxs = self.list.getMultiSelection()
                 for item in self.getNodesForSelection(idxs):
@@ -220,7 +219,7 @@ class ClipboardControllerMix:
                 self.list.node.deleteItems(names)
                 self.list.refreshCurrent()
             finally:
-                wx.wxEndBusyCursor()
+                wx.EndBusyCursor()
 
     def OnRenameItems(self, event):
         self.list.EditLabel(self.list.selected)
@@ -246,11 +245,11 @@ class ClipboardControllerMix:
     def OnNewFolder(self, event):
         if self.list.node:
             name = Utils.getValidName(self.list.getAllNames(), 'Folder')
-            wx.wxBeginBusyCursor()
+            wx.BeginBusyCursor()
             try:
                 self.list.node.newFolder(name)
             finally:
-                wx.wxEndBusyCursor()
+                wx.EndBusyCursor()
             self.list.refreshCurrent()
             self.selectNewItem(name)
 
@@ -258,11 +257,11 @@ class ClipboardControllerMix:
     def OnNewBlankDoc(self, event):
         if self.list.node:
             name = Utils.getValidName(self.list.getAllNames(), 'BlankDoc')
-            wx.wxBeginBusyCursor()
+            wx.BeginBusyCursor()
             try:
                 self.list.node.newBlankDocument(name)
             finally:
-                wx.wxEndBusyCursor()
+                wx.EndBusyCursor()
             self.list.refreshCurrent()
             self.selectNewItem(name)
 
@@ -331,10 +330,10 @@ class ExplorerNode:
     viewMode = 'list'
     pathSep = '/'
     # Is it a stateless protocol or does it require a connection
-    connection = false
+    connection = False
     filter = ''
     # Should the node keep a reference to it's possible tree item
-    refTree = false
+    refTree = False
     def __init__(self, name, resourcepath, clipboard, imgIdx, parent=None, properties=None):
         self.name = name
         self.resourcepath = resourcepath
@@ -345,13 +344,13 @@ class ExplorerNode:
         self.parent = parent
         self.treename = name
         self.treeitem = None
-        self.bold = false
+        self.bold = False
         self.colour = None
-        self.vetoRequery = false
-        self.vetoSort = false
+        self.vetoRequery = False
+        self.vetoSort = False
         self.upImgIdx = EditorHelper.imgFolderUp
-        self.parentOpensChildren = false
-        self.ignoreParentDir = false
+        self.parentOpensChildren = False
+        self.ignoreParentDir = False
         self.category = ''
         self.stdAttrs = {'size': 0,
                          'creation-date': 0.0,
@@ -365,7 +364,7 @@ class ExplorerNode:
     def createChildNode(self, value): pass
     def openList(self): pass
     def closeList(self): pass
-    def isFolderish(self): return false
+    def isFolderish(self): return False
     def getTitle(self):
         if self.resourcepath: return self.resourcepath
         else: return self.name
@@ -382,8 +381,8 @@ class ExplorerNode:
 #---Default item actions--------------------------------------------------------
     def open(self, editor):
         return editor.openOrGotoModule(self.getURI(), transport = self)
-    def openParent(self, editor): return false
-    def checkOpenInEditor(self): return false
+    def openParent(self, editor): return False
+    def checkOpenInEditor(self): return False
 
 #---Methods on sub items--------------------------------------------------------
     def deleteItems(self, names): pass
@@ -400,7 +399,7 @@ class ExplorerNode:
         self.clipboard.clipPaste(self)
 
     def canAdd(self, paletteName):
-        return false
+        return False
 
 #---Persistance (loading and saving)--------------------------------------------
     def assertFilename(self, filename):
@@ -433,7 +432,7 @@ class CachedNodeMixin:
         Not used yet
     """
     def __init__(self):
-        self.valid = false
+        self.valid = False
         self.cache = None
 
     def openList(self):
@@ -443,7 +442,7 @@ class CachedNodeMixin:
             # define this method
             self.cache = self.openList_cache()
 
-            self.valid = true
+            self.valid = True
             return self.cache
 
 class ContainerNode(ExplorerNode):
@@ -451,10 +450,10 @@ class ContainerNode(ExplorerNode):
     def __init__(self, name, imgIdx):
         ExplorerNode.__init__(self, name, '', None, imgIdx, None)
         self.entries = []
-        self.vetoRequery = true
-        self.vetoSort = true
+        self.vetoRequery = True
+        self.vetoSort = True
     def destroy(self): pass
-    def isFolderish(self): return true
+    def isFolderish(self): return True
     def createParentNode(self): return self
     def createChildNode(self, value): return value
     def openList(self): return self.entries
@@ -479,7 +478,7 @@ class CategoryNode(ExplorerNode):
     def __init__(self, name, resourcepath, clipboard, config, parent, imgIdx=EditorHelper.imgFolder):
         ExplorerNode.__init__(self, name, resourcepath, clipboard, imgIdx, parent)
         self.config = config
-        self.bold = true
+        self.bold = True
         if not self.sharedEntries.has_key(self.protocol):
             self.sharedEntries[self.itemProtocol] = copy.copy(self.entries)
         self.entries = self.sharedEntries[self.itemProtocol]
@@ -489,7 +488,7 @@ class CategoryNode(ExplorerNode):
         pass
 
     def isFolderish(self):
-        return true
+        return True
 
     def getTitle(self):
         return self.name
@@ -532,7 +531,7 @@ class CategoryNode(ExplorerNode):
             try:
                 del self.entries[name]
             except KeyError:
-                wx.wxLogWarning('Could not find %s in %s for deletion'%(name,
+                wx.LogWarning('Could not find %s in %s for deletion'%(name,
                       self.entries.keys()))
         self.updateConfig()
 
@@ -560,14 +559,14 @@ class CategoryNode(ExplorerNode):
         self.config.set(self.resourcepath[cat_section],
                   self.resourcepath[cat_option], pprint.pformat(self.entries))
         Utils.writeConfig(self.config)
-    
+
     def copyCatFrom(self, node):
         name = Utils.getValidName(self.entries.keys(), node.name or node.treename)
         self.entries[name] = copy.copy(node.properties)
         self.updateConfig()
 
 
-(wxID_CATNEW, wxID_CATINSPECT, wxID_CATCOPY, wxID_CATDELETE, wxID_CATRENAME, 
+(wxID_CATNEW, wxID_CATINSPECT, wxID_CATCOPY, wxID_CATDELETE, wxID_CATRENAME,
  wxID_CATRELOAD) = Utils.wxNewIds(6)
 
 class CategoryController(Controller):
@@ -580,7 +579,7 @@ class CategoryController(Controller):
     def __init__(self, editor, list, inspector, controllers, menuDefs = []):
         Controller.__init__(self, editor)
         self.list = list
-        self.menu = wx.wxMenu()
+        self.menu = wx.Menu()
         self.inspector = inspector
 
         self.catMenuDef = [ (wxID_CATNEW, 'New', self.OnNewItem, self.newBmp),
@@ -608,7 +607,7 @@ class CategoryController(Controller):
             catComp = self.list.node.createCatCompanion(catItem)
             catComp.updateProps()
 
-            self.inspector.selectObject(catComp, false, focusPage=1, restore=true)
+            self.inspector.selectObject(catComp, False, focusPage=1, restore=True)
 
     def OnNewItem(self, event):
         if self.list.node:
@@ -640,13 +639,13 @@ class CategoryController(Controller):
                 self.list.node.copyCatFrom(node)
 
             self.list.refreshCurrent()
-    
+
 class BookmarksCatNode(CategoryNode):
     """ Stores folderish references to any transport protocol """
     #protocol = 'config.bookmark'
     defName = 'Bookmark'
     defaultStruct = Preferences.explorerFileSysRootDefault[1]
-    refTree = true
+    refTree = True
     def __init__(self, clipboards, config, parent, catTransports, tree=None,
           name='Bookmarks', confSpec=('explorer', 'bookmarks')):
         CategoryNode.__init__(self, name, confSpec, None, config, parent)
@@ -705,7 +704,7 @@ class BookmarksCatNode(CategoryNode):
         # XXX if under bookmarks when adding bookmarks, tree is rebuilt and
         # XXX position in tree is lost
         # XXX At least update list when Bookmarks node is selected.
-        
+
         #if self.tree and self.treeitem and self.treeitem.IsOk():
         #    if self.tree.IsExpanded(self.treeitem):
         #        self.tree.CollapseAndReset(self.treeitem)
@@ -724,7 +723,7 @@ class SubBookmarksCatNode(BookmarksCatNode):
         self._entries = bookmarks
         BookmarksCatNode.__init__(self, parent.clipboards, parent.config,
               parent, parent.catTransports, parent.tree)
-        self.bold = false
+        self.bold = False
         self.name = self.treename = name
 
     def refresh(self):
@@ -744,9 +743,9 @@ class MRUCatNode(BookmarksCatNode):
     def __init__(self, clipboards, config, parent, catTransports, tree):
         BookmarksCatNode.__init__(self, clipboards, config, parent,
               catTransports, tree, 'Recent files', ('explorer', 'recentfiles'))
-        self.vetoSort = true
+        self.vetoSort = True
         self.imgIdx = EditorHelper.imgRecentFiles
-        self.ignoreParentDir = true
+        self.ignoreParentDir = True
 
     def openList(self):
         res = []
@@ -799,10 +798,10 @@ class MRUCatController(Controller):
     def __init__(self, editor, list, inspector, controllers, menuDefs = []):
         Controller.__init__(self, editor)
         self.list = list
-        self.menu = wx.wxMenu()
+        self.menu = wx.Menu()
         self.inspector = inspector
 
-        self.mruMenuDef = [ 
+        self.mruMenuDef = [
             (wxID_MRUOPEN, 'Open', self.OnOpenItems, '-'),
             (-1, '-', None, '-'),
             (wxID_MRURELOAD, 'Reload', self.OnReloadItems, '-'),
@@ -823,12 +822,12 @@ class MRUCatController(Controller):
     def createRecentFilesMenu(self):
         # XXX not finished yet
         self.recentItemsMenuIds = {}
-        menu = wxMenu()
+        menu = wx.Menu()
         for node in self.list.node.openList():
             if node.name not in self.recentItemsMenuIds.values():
-                wid = wxNewId()
+                wid = wx.NewId()
                 self.recentItemsMenuIds[wid] = node.name
-                EVT_MENU(self.list, wid, self.OnMRUMenuItemSelect)
+                self.list.Bind(wx.EVT_MENU, self.OnMRUMenuItemSelect, id=wid)
             else:
                 for wid, name in self.recentItemsMenuIds.items():
                     if name == node.name:
@@ -896,7 +895,7 @@ class ExplorerCompanion(Companion):
     def persistProp(self, name, setterName, value):
         pass
     def propIsDefault(self, name, setterName):
-        return true
+        return True
     def persistedPropVal(self, name, setterName):
         return ''
 
@@ -999,7 +998,7 @@ class CategoryDictCompanion(CategoryCompanion):
             for entry, key, val in scrams:
                 entry[key] = val
 
-        return true
+        return True
 
 class CategoryStringCompanion(CategoryCompanion):
     def getPropertyItems(self):
@@ -1018,8 +1017,8 @@ def uriSplitNone(filename, filepath):
     return 'none', '', filepath, filename
 
 #-Registry for explorer nodes-------------------------------------------------
-# Successfully loaded modules from the 
-# Explorer.*.cfg [explorers] installedtransports import list are recorded here. 
+# Successfully loaded modules from the
+# Explorer.*.cfg [explorers] installedtransports import list are recorded here.
 # Explorer Plug-ins bypassing the Explorer imports should add themselves
 # to this list to have their controller classes hooked into the IDE
 installedModules = []
@@ -1043,12 +1042,12 @@ all_transports = None
 explorerNodeReg = {}
 nodeRegByProt = {}
 # List of protocols that don't have Category nodes, and must be created
-# at the top level of the tree 
+# at the top level of the tree
 explorerRootNodesReg = []
 
 
-def register(Node, clipboard=None, confdef=('', ''), controller=None, 
-             category=None, root=false):
+def register(Node, clipboard=None, confdef=('', ''), controller=None,
+             category=None, root=False):
     """ Register a new explorer Node.
 
     clipboard  : Clipboard class or protocol name (string) of existing clipboard
@@ -1061,7 +1060,7 @@ def register(Node, clipboard=None, confdef=('', ''), controller=None,
     explorerNodeReg[Node] = {'clipboard': clipboard, 'confdef': confdef,
                              'controller': controller, 'category': category}
     nodeRegByProt[Node.protocol] = Node
-    
+
     if root:
         explorerRootNodesReg.append(Node.protocol)
 

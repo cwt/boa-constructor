@@ -14,20 +14,20 @@ print 'importing Explorers.ZipExplorer'
 import os, zipfile, gzip, time
 from cStringIO import StringIO
 
-from wxPython.wx import wxMenu, EVT_MENU, wxMessageBox, wxPlatform, wxNewId, wxLogError
+import wx
 
 import ExplorerNodes, FileExplorer
 from Models import EditorModels, EditorHelper
 
 from ExternalLib import tarfile
 
-true = 1
-false = 0
+True = 1
+False = 0
 
 def isZip(file):
     return os.path.splitext(file)[1] == '.zip'
 
-wxID_ZIPOPEN = wxNewId()
+wxID_ZIPOPEN = wx.NewId()
 
 class ZipController(ExplorerNodes.Controller, ExplorerNodes.ClipboardControllerMix):
     def __init__(self, editor, list, inspector, controllers):
@@ -35,7 +35,7 @@ class ZipController(ExplorerNodes.Controller, ExplorerNodes.ClipboardControllerM
         ExplorerNodes.Controller.__init__(self, editor)
 
         self.list = list
-        self.menu = wxMenu()
+        self.menu = wx.Menu()
 
         self.setupMenu(self.menu, self.list,
             [ (wxID_ZIPOPEN, 'Open', self.OnOpenItems, '-'),
@@ -62,10 +62,10 @@ class ZipItemNode(ExplorerNodes.ExplorerNode):
     protocol = 'zip'
     ArchiveClass = zipfile.ZipFile
     InfoClass = zipfile.ZipInfo
-    
-    def __init__(self, name, resourcepath, clipboard, isFolder, imgIdx, parent, 
+
+    def __init__(self, name, resourcepath, clipboard, isFolder, imgIdx, parent,
           zipFileNode, ChildClass):
-        ExplorerNodes.ExplorerNode.__init__(self, name, resourcepath, clipboard, 
+        ExplorerNodes.ExplorerNode.__init__(self, name, resourcepath, clipboard,
               imgIdx, parent)
         self.isFolder = isFolder
         self.zipFileNode = zipFileNode
@@ -82,12 +82,12 @@ class ZipItemNode(ExplorerNodes.ExplorerNode):
               EditorHelper.imgTextModel
         if not isFolder:
             from Models import Controllers
-            imgIdx = Controllers.identifyFile(name, localfs=false)[0].imgIdx
-        zin = self.ChildClass(name, resourcepath and resourcepath+'/'+name or name, 
+            imgIdx = Controllers.identifyFile(name, localfs=False)[0].imgIdx
+        zin = self.ChildClass(name, resourcepath and resourcepath+'/'+name or name,
               self.clipboard, isFolder, imgIdx, self, self.zipFileNode, self.ChildClass)
         zin.category = self.category
         return zin
-    
+
     def newInfoClass(self, name):
         info = self.InfoClass(name)
         info.compress_type = self.compression
@@ -95,7 +95,7 @@ class ZipItemNode(ExplorerNodes.ExplorerNode):
 
     def splitBaseDir(self, file):
         if not file:
-            return '', '', true
+            return '', '', True
         segs = file.split('/')
         # ends on /
         if segs[-1] == '':
@@ -123,18 +123,18 @@ class ZipItemNode(ExplorerNodes.ExplorerNode):
             return self.resourcepath
         else:
             return os.path.dirname(self.resourcepath)
-    
+
     def walkFS(self, (files, excludes), dirname, names):
         for name in names:
             if name not in excludes:
                 filename = os.path.join(dirname, name)
                 if os.path.isfile(filename):
                     files.append(filename)
-                    
+
     def copyFromFS(self, fsNode, fn=''):
         if not fn:
             fn = os.path.basename(fsNode.resourcepath)
-        
+
         if fsNode.isFolderish():
             fsFiles = []
             fsDir = fsNode.resourcepath
@@ -154,7 +154,7 @@ class ZipItemNode(ExplorerNodes.ExplorerNode):
                     new.append( (destName, fn) )
             # replace existing
             filesData = [ (arcname, '', open(filename, 'rb').read())
-                          for arcname, filename in replace ]  
+                          for arcname, filename in replace ]
             self.replaceFilesInArchive(filesData)
 
             # append new
@@ -190,7 +190,7 @@ class ZipItemNode(ExplorerNodes.ExplorerNode):
     def copyToFS(self, fsFolderNode):
         fn = os.path.join(fsFolderNode.resourcepath, self.name)
 
-        zf = self.ArchiveClass(self.zipFileNode.resourcepath, 
+        zf = self.ArchiveClass(self.zipFileNode.resourcepath,
                                compression=self.compression)
         try:
             if self.isFolderish():
@@ -245,8 +245,8 @@ class ZipItemNode(ExplorerNodes.ExplorerNode):
             return zf.read(self.resourcepath)
         finally:
             zf.close()
-            
-    def save(self, filename, data, mode='wb', overwriteNewer=true):
+
+    def save(self, filename, data, mode='wb', overwriteNewer=True):
         self.replaceFilesInArchive([(self.resourcepath, filename, data)])
 
     def renameItem(self, name, newName):
@@ -261,7 +261,7 @@ class ZipItemNode(ExplorerNodes.ExplorerNode):
         zipStream = StringIO(open(self.zipFileNode.resourcepath, 'rb').read())
         zfSrc = self.ArchiveClass(zipStream, 'r')
         try:
-            changed = false
+            changed = False
             zfDst = self.ArchiveClass(self.zipFileNode.resourcepath, 'w', self.compression)
             try:
                 for zi in zfSrc.infolist():
@@ -286,7 +286,7 @@ class ZipItemNode(ExplorerNodes.ExplorerNode):
 
         if changed:
             self.zipFileNode.allFiles = None
-        
+
 
     def getNodeFromPath(self, respath):
         base, dir, isdir = self.splitBaseDir(respath)
@@ -296,13 +296,13 @@ class ZipFileNode(ZipItemNode):
     protocol = 'zip'
     ChildClass = ZipItemNode
 
-    def __init__(self, name, resourcepath, clipboard, imgIdx, parent, 
+    def __init__(self, name, resourcepath, clipboard, imgIdx, parent,
           bookmarks=None):
         if clipboard:
             zipClip = ZipExpClipboard(clipboard.globClip)
         else:
             zipClip = None
-        ZipItemNode.__init__(self, name, resourcepath, zipClip, true,
+        ZipItemNode.__init__(self, name, resourcepath, zipClip, True,
             imgIdx, parent, self, self.ChildClass)
         self.allFiles = None
         self.allFileNames = []
@@ -312,13 +312,13 @@ class ZipFileNode(ZipItemNode):
         return '%s://%s' % (self.protocol, self.getTitle())
 
     def isFolderish(self):
-        return true
+        return True
 
     def isDir(self, path = ''):
         if path:
             return path[-1] == '/'
         else:
-            return false
+            return False
 
     def getArcDir(self):
         return ''
@@ -338,20 +338,20 @@ class ZipFileNode(ZipItemNode):
                 if path not in self.allFileNames:
                     self.allFileNames.insert(0, path)
                     self.allFiles.insert(0, self.newInfoClass(path))
-                
+
         return ZipItemNode.openList(self, '')
 
-    def getFiles(self, base, nested=false):
+    def getFiles(self, base, nested=False):
         files = []
         if self.allFiles is None:
             self.updateFilelists()
-            
+
         for file in self.allFiles:
             if file.filename[-1] == '/':
                 fn = file.filename[:-1]
             else:
                 fn = file.filename
-            
+
             if nested:
                 if fn.startswith(base):
                     files.append(file.filename)
@@ -361,7 +361,7 @@ class ZipFileNode(ZipItemNode):
                 if dir and dirdir == base:
                     try: idx = files.index(dir+'/')
                     except ValueError: files.append(dir+'/')
-                    
+
                 if dir == base:
                     try: files.index(file.filename)
                     except ValueError: files.append(file.filename)
@@ -423,12 +423,12 @@ class TarGzipInfoMixin:
             info.type = tarfile.DIRTYPE
         return info
 
-class TarGzipItemNode(TarGzipInfoMixin, ZipItemNode): 
+class TarGzipItemNode(TarGzipInfoMixin, ZipItemNode):
     protocol = 'tar.gz'
     ArchiveClass = tarfile.TarFileCompat
 
 
-class TarGzipFileNode(TarGzipInfoMixin, ZipFileNode): 
+class TarGzipFileNode(TarGzipInfoMixin, ZipFileNode):
     protocol = 'tar.gz'
     ArchiveClass = tarfile.TarFileCompat
     ChildClass = TarGzipItemNode
@@ -439,7 +439,7 @@ class TarGzipFileNode(TarGzipInfoMixin, ZipFileNode):
             except ValueError: return path[-1] == '/'
             return self.allFiles[idx].isdir()
         else:
-            return false
+            return False
 
 EditorHelper.imgTarGzipFileModel = \
       EditorHelper.addPluginImgs('Images/Modules/TarGzipFile.png')

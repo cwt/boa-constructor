@@ -14,7 +14,7 @@ print 'importing Explorers.DAVExplorer'
 import os, sys
 from xml.parsers import expat
 
-from wxPython import wx
+import wx
 
 #sys.path.append('..')
 import ExplorerNodes
@@ -24,8 +24,8 @@ import RTTI, Utils
 
 # XXX Zope properties may contain invalid XML content strings (should be encoded)
 
-true = 1
-false = 0
+True = 1
+False = 0
 
 class XMLListBuilder:
     def __init__(self, data):
@@ -48,7 +48,7 @@ class XMLListBuilder:
                 raise 'Invalid XML response: %s' %str(data)
             self.status = parser.Parse(data[xmlStart:xmlEnd+1], 1)
         except:
-            wx.wxMessageBox(Utils.html2txt(data), 'Error', wx.wxICON_ERROR)
+            wx.MessageBox(Utils.html2txt(data), 'Error', wx.ICON_ERROR)
             raise
 
     def startElement(self, name, attrs):
@@ -75,7 +75,7 @@ class DAVController(ExplorerNodes.Controller, ExplorerNodes.ClipboardControllerM
         ExplorerNodes.Controller.__init__(self, editor)
 
         self.list = list
-        self.menu = wx.wxMenu()
+        self.menu = wx.Menu()
         self.inspector = inspector
 
         self.setupMenu(self.menu, self.list,
@@ -97,7 +97,7 @@ class DAVController(ExplorerNodes.Controller, ExplorerNodes.ClipboardControllerM
             davComp.updateProps()
 
             # Select in inspector
-            self.inspector.selectObject(davComp, false, focusPage=1)
+            self.inspector.selectObject(davComp, False, focusPage=1)
 
 
 class DAVCatNode(ExplorerNodes.CategoryNode):
@@ -137,7 +137,7 @@ class DAVCatDictCompanion(ExplorerNodes.CategoryDictCompanion):
 
 class DAVItemNode(ExplorerNodes.ExplorerNode):
     protocol = 'dav'
-    connection = false
+    connection = False
     def __init__(self, name, props, resourcepath, clipboard, imgIdx, parent):
         if not resourcepath:
             resourcepath = '/'
@@ -161,15 +161,15 @@ class DAVItemNode(ExplorerNodes.ExplorerNode):
 
         if name[-1] == '/':
             basename = os.path.basename(name[:-1])
-            isFolder = true
+            isFolder = True
         else:
             basename = os.path.basename(name)
-            isFolder = false
+            isFolder = False
         item = DAVItemNode(basename, props, name, self.clipboard,
               isFolder and EditorHelper.imgFolder or EditorHelper.imgTextModel, self)
         if not isFolder:
             item.imgIdx = \
-                  Controllers.identifyFile(name, localfs=false)[0].imgIdx
+                  Controllers.identifyFile(name, localfs=False)[0].imgIdx
         item.category = self.category
         item.bookmarks = self.bookmarks
         return item
@@ -236,7 +236,7 @@ class DAVItemNode(ExplorerNodes.ExplorerNode):
         except Exception, error:
             raise ExplorerNodes.TransportLoadError(error, self.resourcepath)
 
-    def save(self, filename, data, mode='wb', overwriteNewer=false):
+    def save(self, filename, data, mode='wb', overwriteNewer=False):
         if filename != self.resourcepath:
             self.name = os.path.basename(filename)
             self.resourcepath = filename

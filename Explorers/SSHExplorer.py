@@ -13,7 +13,7 @@ print 'importing Explorers.SSHExplorer'
 
 import os, sys
 
-from wxPython.wx import wxMenu, EVT_MENU, wxMessageBox, wxPlatform, wxOK, wxNewId, true, false
+import wx
 
 import Preferences, Utils
 
@@ -21,7 +21,7 @@ import ExplorerNodes
 from Models import Controllers, EditorHelper
 from ProcessProgressDlg import ProcessProgressDlg
 
-wxID_SSHOPEN = wxNewId()
+wxID_SSHOPEN = wx.NewId()
 
 class SSHController(ExplorerNodes.Controller, ExplorerNodes.ClipboardControllerMix):
     def __init__(self, editor, list, inspector, controllers):
@@ -29,7 +29,7 @@ class SSHController(ExplorerNodes.Controller, ExplorerNodes.ClipboardControllerM
         ExplorerNodes.Controller.__init__(self, editor)
 
         self.list = list
-        self.menu = wxMenu()
+        self.menu = wx.Menu()
 
         self.setupMenu(self.menu, self.list,
               [ (wxID_SSHOPEN, 'Open', self.OnOpenItems, '-'),
@@ -57,7 +57,7 @@ class SSHCatNode(ExplorerNodes.CategoryNode):
         root = props['root']
         #if root and root[0] != '/':
         #    root = '/'+root
-        itm = SSHItemNode(name, props, root, self.clipboard, true,
+        itm = SSHItemNode(name, props, root, self.clipboard, True,
               EditorHelper.imgNetDrive)
         itm.category = name
         itm.bookmarks = self.bookmarks
@@ -69,7 +69,7 @@ class SSHCatNode(ExplorerNodes.CategoryNode):
 
 class SSHItemNode(ExplorerNodes.ExplorerNode):
     protocol = 'ssh'
-    connection = false
+    connection = False
     def __init__(self, name, props, resourcepath, clipboard, isFolder, imgIdx):
         ExplorerNodes.ExplorerNode.__init__(self, name, resourcepath, clipboard,
               imgIdx, None, props)
@@ -94,7 +94,7 @@ class SSHItemNode(ExplorerNodes.ExplorerNode):
               isFolder, isFolder and EditorHelper.imgFolder or \
               EditorHelper.imgTextModel)
         if not isFolder:
-            item.imgIdx = Controllers.identifyFile(name, localfs=false)[0].imgIdx
+            item.imgIdx = Controllers.identifyFile(name, localfs=False)[0].imgIdx
         item.category = self.category
         item.bookmarks = self.bookmarks
         return item
@@ -114,7 +114,7 @@ class SSHItemNode(ExplorerNodes.ExplorerNode):
         dlg = ProcessProgressDlg(None,
             self.sshCmd(cmd), 'SSH listing', linesep = '\012')
         try:
-            if dlg.ShowModal() == wxOK:
+            if dlg.ShowModal() == wx.OK:
                 return dlg.output
         finally:
             dlg.Destroy()
@@ -204,7 +204,7 @@ class SSHItemNode(ExplorerNodes.ExplorerNode):
         except Exception, error:
             raise ExplorerNodes.TransportLoadError(error, self.resourcepath)
 
-    def save(self, filename, data, mode='wb', overwriteNewer=false):
+    def save(self, filename, data, mode='wb', overwriteNewer=False):
         from FileExplorer import FileSysNode
         import tempfile
         name = os.path.basename(self.resourcepath)

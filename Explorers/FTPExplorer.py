@@ -13,7 +13,7 @@ print 'importing Explorers.FTPExplorer'
 
 import os
 
-from wxPython.wx import wxMenu, EVT_MENU, wxMessageBox, wxPlatform, wxNewId
+import wx
 
 import Preferences, Utils
 
@@ -21,10 +21,7 @@ import ExplorerNodes
 from Models import Controllers, EditorHelper
 import ftplib
 
-true = 1
-false = 0
-
-wxID_FTPOPEN = wxNewId()
+wxID_FTPOPEN = wx.NewId()
 
 class FTPController(ExplorerNodes.Controller, ExplorerNodes.ClipboardControllerMix):
     def __init__(self, editor, list, inspector, controllers):
@@ -32,7 +29,7 @@ class FTPController(ExplorerNodes.Controller, ExplorerNodes.ClipboardControllerM
         ExplorerNodes.Controller.__init__(self, editor)
 
         self.list = list
-        self.menu = wxMenu()
+        self.menu = wx.Menu()
 
         self.setupMenu(self.menu, self.list,
               [ (wxID_FTPOPEN, 'Open', self.OnOpenItems, '-'),
@@ -73,7 +70,7 @@ class FTPCatNode(ExplorerNodes.CategoryNode):
 
 class FTPItemNode(ExplorerNodes.ExplorerNode):
     protocol = 'ftp'
-    connection = true
+    connection = True
     def __init__(self, name, props, resourcepath, clipboard, isFolder, imgIdx, parent, ftpConn, ftpObj, root):
         ExplorerNodes.ExplorerNode.__init__(self, name, resourcepath, clipboard, imgIdx,
               parent, props)
@@ -93,7 +90,7 @@ class FTPItemNode(ExplorerNodes.ExplorerNode):
         return '%s://%s%s%s' %(self.protocol, self.category,
               self.ftpObj.whole_name(), self.isFolderish() and '/' or '')
 
-    def createChildNode(self, obj, root, respath=None, createConnection=false):
+    def createChildNode(self, obj, root, respath=None, createConnection=False):
         if respath is None:
             respath=self.resourcepath+'/'+obj.name
         elif respath[0] != '/':
@@ -104,12 +101,12 @@ class FTPItemNode(ExplorerNodes.ExplorerNode):
                 self.clipboard, self)
         else:
             item = FTPItemNode(obj.name, self.properties, respath,
-                  self.clipboard, false, -1 , self, self.ftpConn, obj, root)
+                  self.clipboard, False, -1 , self, self.ftpConn, obj, root)
 
         if item.isFolderish():
             item.imgIdx = EditorHelper.imgFolder
         else:
-            item.imgIdx = Controllers.identifyFile(obj.name, localfs=false)[0].imgIdx
+            item.imgIdx = Controllers.identifyFile(obj.name, localfs=False)[0].imgIdx
         item.category = self.category
         item.bookmarks = self.bookmarks
         return item
@@ -149,7 +146,7 @@ class FTPItemNode(ExplorerNodes.ExplorerNode):
         except Exception, error:
             raise ExplorerNodes.TransportLoadError(error, self.ftpObj.whole_name())
 
-    def save(self, filename, data, mode='wb', overwriteNewer=false):
+    def save(self, filename, data, mode='wb', overwriteNewer=False):
         if filename != self.currentFilename():
             self.ftpObj.path = os.path.dirname(filename)
             self.ftpObj.name = os.path.basename(filename)
@@ -180,15 +177,15 @@ class FTPConnectionNode(FTPItemNode):
         if respath and respath[-1] == '/':
             ftpObj = ftpConn.folder_item(os.path.basename(respath),
                                          os.path.dirname(respath))
-            isFolder = true
+            isFolder = True
         else:
             ftpObj = ftpConn.add_doc(os.path.basename(respath),
                                          os.path.dirname(respath))
-            isFolder = false
+            isFolder = False
 
         FTPItemNode.__init__(self, '', properties, ftpObj.path, clipboard,
             isFolder, EditorHelper.imgNetDrive, parent, ftpConn, ftpObj, self)
-        self.connected = false
+        self.connected = False
         self.treename = name
         self.category = name
 
@@ -200,7 +197,7 @@ class FTPConnectionNode(FTPItemNode):
         self.testConnect()
         return FTPItemNode.load(self, mode)
 
-    def save(self, filename, data, mode='wb', overwriteNewer=false):
+    def save(self, filename, data, mode='wb', overwriteNewer=False):
         self.testConnect()
         FTPItemNode.save(self, filename, data, mode, overwriteNewer)
 
@@ -215,10 +212,10 @@ class FTPConnectionNode(FTPItemNode):
                                      props['host'], props['port'],
                                      props['passive'])
             except Exception, message:
-                wxMessageBox(`message.args`, 'Error on connect')
+                wx.MessageBox(`message.args`, 'Error on connect')
                 raise
             else:
-                self.connected = true
+                self.connected = True
 
 
 class FTPExpClipboard(ExplorerNodes.ExplorerClipboard):
