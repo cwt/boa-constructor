@@ -16,6 +16,14 @@ import os, glob, new, pprint
 
 import Preferences, Utils
 
+# MVC
+from Models import EditorHelper, Controllers
+# Components
+import PaletteStore
+# Explorers
+from Explorers import ExplorerNodes
+
+
 class PluginError(Exception):
     pass
 
@@ -126,6 +134,69 @@ def buildPluginExecList():
                                     pluginFilename not in disabledPlugins) )
     return pluginExecList
 
+def assureConfigFile(filename, data):
+    if not os.path.exists(filename):
+        open(filename, 'w').write(data)
+
+
+#---Registration API------------------------------------------------------------
+
+def registerFileType(Controller, Model=None, newName='', addToNew=True,
+                     aliasExts=()):
+    """ Registers an IDE filetype that can be created from the New Palette page 
+    """
+    if Model is None:
+        Model = Controller.Model
+
+    EditorHelper.modelReg[Model.modelIdentifier] = Model
+    if aliasExts:
+        for ext in aliasExts:
+            EditorHelper.extMap[ext] = Model
+
+    Controllers.modelControllerReg[Model] = Controller
+
+    if addToNew:
+        if not newName:
+            newName = Model.modelIdentifier
+        PaletteStore.newControllers[newName] = Controller
+        PaletteStore.paletteLists['New'].append(newName)
+
+def registerFileTypes(*args):
+    """ Convenience function for registerFileType, allows multiple Controller args """
+    for Controller in args:
+        registerFileType(Controller)
+
+def registerPalettePage(paletteName, paletteTitle):
+    """ Register a new page on the Palette"""
+    if paletteName not in PaletteStore.paletteLists:
+        PaletteStore.paletteLists[paletteName] = []
+        PaletteStore.palette.append([paletteTitle, '', 
+                                     PaletteStore.paletteLists[paletteName]])
+
+def registerComponent(paletteName, Control, controlName, Companion):
+    """ Registers a (design-time) component on the Palette """
+    if paletteName is not None:
+        PaletteStore.paletteLists[paletteName].append(Control)
+    PaletteStore.compInfo[Control] = [controlName, Companion]
+
+def registerComponents(paletteName, *components):
+    """ Convenience function for registerComponent, allows multiple component tuples """
+    for component in components:
+        registerComponent(paletteName, *component)
+    
+def registerTool(name, func, bmp='-', key=''):
+    """ Register an item in the Tools menu """
+    EditorHelper.editorToolsReg.append( (name, func, bmp, key) )
+
+def registerLanguageSTCStyle(name, lang, STCClass, stylesFile, insertPos=None):
+    """ Register an STC mixin class and config file parameters that can be 
+        configured under Preferences with the STC Style Editor """
+    if insertPos is not None:
+        ExplorerNodes.langStyleInfoReg.insert(insertPos, 
+              (name, lang, STCClass, stylesFile ))
+    else:
+        ExplorerNodes.langStyleInfoReg.append(
+              (name, lang, STCClass, stylesFile ))
 
 def registerPreference(pluginName, prefName, defPrefValSrc, docs=[], info=''):
     """ Define a plug-in preference. Added to prefs.plug-ins.rc.py in needed """
@@ -181,9 +252,5 @@ def registerPreference(pluginName, prefName, defPrefValSrc, docs=[], info=''):
             '%s not in Preferences, but is defined in globals of '
             'prefs.plug-ins.rc.py'%prefName)
     
-
-def assureConfigFile(filename, data):
-    if not os.path.exists(filename):
-        open(filename, 'w').write(data)
 
     
