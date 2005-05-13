@@ -31,7 +31,6 @@ import methodparse, sourceconst
 EventCategories['PanelEvent'] = ('wx.EVT_SYS_COLOUR_CHANGED',)
 
 class PanelDTC(Constructors.WindowConstr, ContainerDTC):
-    #wxDocs = HelpCompanions.wxPanelDocs
     def __init__(self, name, designer, parent, ctrlClass):
         ContainerDTC.__init__(self, name, designer, parent, ctrlClass)
         self.editors['DefaultItem'] = ButtonClassLinkPropEdit
@@ -52,7 +51,6 @@ class PanelDTC(Constructors.WindowConstr, ContainerDTC):
 EventCategories['SashEvent'] = ('wx.EVT_SASH_DRAGGED', )
 commandCategories.append('SashEvent')
 class SashWindowDTC(Constructors.WindowConstr, ContainerDTC):
-    #wxDocs = HelpCompanions.wxSashWindowDocs
     def __init__(self, name, designer, parent, ctrlClass):
         ContainerDTC.__init__(self, name, designer, parent, ctrlClass)
         self.editors.update({'SashVisibleLeft' : SashVisiblePropEdit,
@@ -110,7 +108,6 @@ class SashWindowDTC(Constructors.WindowConstr, ContainerDTC):
             ContainerDTC.persistProp(self, name, setterName, value)
 
 class SashLayoutWindowDTC(SashWindowDTC):
-    #wxDocs = HelpCompanions.wxSashLayoutWindowDocs
     def __init__(self, name, designer, parent, ctrlClass):
         SashWindowDTC.__init__(self, name, designer, parent, ctrlClass)
         self.editors.update({'Alignment'   : EnumPropEdit,
@@ -157,7 +154,6 @@ class SashLayoutWindowDTC(SashWindowDTC):
         wxLayoutAlgorithm().LayoutWindow(self.control.GetParent())
 
 class ScrolledWindowDTC(Constructors.WindowConstr, ContainerDTC):
-    #wxDocs = HelpCompanions.wxScrolledWindowDocs
     def __init__(self, name, designer, parent, ctrlClass):
         ContainerDTC.__init__(self, name, designer, parent, ctrlClass)
         self.editors['TargetWindow'] = WindowClassLinkPropEdit
@@ -185,7 +181,6 @@ EventCategories['NotebookEvent'] = ('wx.EVT_NOTEBOOK_PAGE_CHANGED',
                                     'wx.EVT_NOTEBOOK_PAGE_CHANGING')
 commandCategories.append('NotebookEvent')
 class NotebookDTC(Constructors.WindowConstr, ContainerDTC):
-    #wxDocs = HelpCompanions.wxNotebookDocs
     def __init__(self, name, designer, parent, ctrlClass):
         ContainerDTC.__init__(self, name, designer, parent, ctrlClass)
         self.editors.update({'Pages':     CollectionPropEdit,
@@ -242,7 +237,6 @@ class NotebookDTC(Constructors.WindowConstr, ContainerDTC):
                 self.control.SetImageList(None)
 
 class NotebookPagesCDTC(CollectionDTC):
-    #wxDocs = HelpCompanions.wxNotebookDocs
     propName = 'Pages'
     displayProp = 'text'
     indexProp = '(None)'
@@ -510,7 +504,6 @@ EventCategories['SplitterWindowEvent'] = ('wx.EVT_SPLITTER_SASH_POS_CHANGING',
 commandCategories.append('SplitterWindowEvent')
 
 class SplitterWindowDTC(ContainerDTC):
-    #wxDocs = HelpCompanions.wxSplitterWindowDocs
     def __init__(self, name, designer, parent, ctrlClass):
         ContainerDTC.__init__(self, name, designer, parent, ctrlClass)
         self.editors.update({'SplitMode': EnumPropEdit,
@@ -725,7 +718,6 @@ class SplitterWindowDTC(ContainerDTC):
 EventCategories['ToolEvent'] = ('wx.EVT_TOOL', 'wx.EVT_TOOL_RCLICKED')
 commandCategories.append('ToolEvent')
 class ToolBarDTC(Constructors.WindowConstr, ContainerDTC):
-    #wxDocs = HelpCompanions.wxToolBarDocs
     def __init__(self, name, designer, parent, ctrlClass):
         ContainerDTC.__init__(self, name, designer, parent, ctrlClass)
         self.editors.update({'Tools': CollectionPropEdit})
@@ -753,10 +745,26 @@ class ToolBarDTC(Constructors.WindowConstr, ContainerDTC):
         self.designer.inspector.props.getNameValue('Tools').propEditor.edit(None)
 
 
-class BlankToolControl(wxStaticBitmap): pass
+def BlankToolBitmap(width, height):
+    bmp = wxEmptyBitmap(width, height)
+    dc = wxMemoryDC()
+    dc.SelectObject(bmp)
+    dc.SetBrush(wxBrush(wxRED, wxBDIAGONAL_HATCH))
+    dc.SetBackground(wxBrush(wxWHITE))
+    dc.SetPen(wxPen(wxWHITE, 0, wxTRANSPARENT))
+    dc.BeginDrawing()
+    dc.DrawRectangle(0, 0, width, height)
+    
+    return bmp
+
+class BlankToolControl(wxStaticBitmap):
+    def __init__(self, toolbar):
+        width, height = toolbar.GetToolSize().Get()
+        bmp = BlankToolBitmap(width, height)
+        wxStaticBitmap.__init__(self, toolbar, -1, bmp, style=wxSIMPLE_BORDER)
+                
 
 class ToolBarToolsCDTC(CollectionIddDTC):
-    #wxDocs = HelpCompanions.wxToolBarDocs
     propName = 'Tools'
     displayProp = 'shortHelp'
     indexProp = '(None)'
@@ -865,24 +873,30 @@ class ToolBarToolsCDTC(CollectionIddDTC):
             method = self.insertionMethod
 
         prms = copy.copy(params)
-        ctrl = None
-        if params.has_key('control'):
+        control = None
+        if 'control' in params:
             if params['control'] == 'None':
-                ctrl = BlankToolControl(self.control, -1, 
-                      Preferences.IS.load('Images/Inspector/wxNullBitmap.png'),
-                      style=wxSIMPLE_BORDER)
+                control = BlankToolControl(self.control)
             else:
-                ctrl = self.designer.objects[Utils.ctrlNameFromSrcRef(params['control'])][1]
-
+                control = self.designer.objects[Utils.ctrlNameFromSrcRef(params['control'])][1]
             del prms['control']
+
+        bitmaps = {}
+        for bmp in ('bitmap', 'bmpDisabled', 'pushedBitmap'):
+            if bmp in params and params[bmp] == 'wx.NullBitmap':
+                bitmaps[bmp] = BlankToolBitmap(*self.control.GetToolBitmapSize().Get())
+                del prms[bmp]
 
         params = self.designTimeDefaults(prms)
         
         if method in ('AddSeparator', 'AddControl'):
             del params['id']
 
-        if ctrl:
-            params['control'] = ctrl
+        if control:
+            params['control'] = control
+        
+        for bmp in bitmaps:
+            params[bmp] = bitmaps[bmp]
 
         apply(getattr(self.control, method), (), params)
         self.control.Realize()
@@ -934,7 +948,6 @@ class ToolBarSimpleDTC(ToolBarDTC):
                 'name': `self.name`}
 
 class StatusBarDTC(ContainerDTC):
-    #wxDocs = HelpCompanions.wxStatusBarDocs
     def __init__(self, name, designer, parent, ctrlClass):
         ContainerDTC.__init__(self, name, designer, parent, ctrlClass)
         self.editors['Fields'] = CollectionPropEdit
@@ -957,7 +970,6 @@ class StatusBarDTC(ContainerDTC):
         return ContainerDTC.hideDesignTime(self) + ['Position', 'Size', 'ClientSize']
 
 class StatusBarFieldsCDTC(CollectionDTC):
-    #wxDocs = HelpCompanions.wxStatusBarDocs
     propName = 'Fields'
     displayProp = 'text'
     indexProp = 'number'
@@ -1044,22 +1056,18 @@ class StatusBarFieldsCDTC(CollectionDTC):
 
 #-------------------------------------------------------------------------------
 
-PaletteStore.paletteLists['ContainersLayout'] = []
-PaletteStore.palette.append(['Containers/Layout', 'Editor/Tabs/Containers',
-                             PaletteStore.paletteLists['ContainersLayout']])
-PaletteStore.paletteLists['ContainersLayout'].extend([wxPanel, wxScrolledWindow,
-      wxNotebook, wxSplitterWindow, wxSashWindow, wxSashLayoutWindow, 
-      wxToolBar, wxStatusBar, wxWindow]) #wxToolBarSimple,
+import Plugins
 
-PaletteStore.compInfo.update({
-    wxToolBar: ['wx.ToolBar', ToolBarDTC],
-    #wxToolBarSimple: ['wxToolBarSimple', ToolBarSimpleDTC],
-    wxStatusBar: ['wx.StatusBar', StatusBarDTC],
-    wxPanel: ['wx.Panel', PanelDTC],
-    wxScrolledWindow: ['wx.ScrolledWindow', ScrolledWindowDTC],
-    wxNotebook: ['wx.Notebook', NotebookDTC],
-    wxSplitterWindow: ['wx.SplitterWindow', SplitterWindowDTC],
-    wxSashWindow: ['wx.SashWindow', SashWindowDTC],
-    wxSashLayoutWindow: ['wx.SashLayoutWindow', SashLayoutWindowDTC],
-    wxWindow: ['wx.Window', ContainerDTC],
-})
+Plugins.registerPalettePage('ContainersLayout', 'Containers/Layout')
+
+Plugins.registerComponents('ContainersLayout',
+      (wxPanel, 'wx.Panel', PanelDTC),
+      (wxScrolledWindow, 'wx.ScrolledWindow', ScrolledWindowDTC),
+      (wxNotebook, 'wx.Notebook', NotebookDTC),
+      (wxSplitterWindow, 'wx.SplitterWindow', SplitterWindowDTC),
+      (wxSashWindow, 'wx.SashWindow', SashWindowDTC),
+      (wxSashLayoutWindow, 'wx.SashLayoutWindow', SashLayoutWindowDTC),
+      (wxToolBar, 'wx.ToolBar', ToolBarDTC),
+      (wxStatusBar, 'wx.StatusBar', StatusBarDTC),
+      (wxWindow, 'wx.Window', ContainerDTC),
+    )
