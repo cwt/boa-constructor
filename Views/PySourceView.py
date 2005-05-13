@@ -45,6 +45,8 @@ lineNoMrg, symbolMrg, foldMrg = range(0, 3)
 ##        self.stc = stc
 ##        self.newtext = newtext
 
+class ShellNameNotFound(Exception): pass
+
 class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
                        BrowseStyledTextCtrlMix, FoldingStyledTextCtrlMix,
                        AutoCompleteCodeHelpSTCMix, CallTipCodeHelpSTCMix,
@@ -165,20 +167,13 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
                        self.checkWxPyTips(module, word))
             if wxPyTip: return wxPyTip
 
-        cls = module.getClassForLineNo(lnNo)
-        if cls:
-            if len(objPth) == 1:
-                if module.classes.has_key(objPth[0]) and \
-                     module.classes[objPth[0]].methods.has_key('__init__'):
-                    return self.prepareModSigTip(objPth[0],
-                        module.classes[objPth[0]].methods['__init__'].signature)
-                elif module.functions.has_key(objPth[0]):
-                    return self.prepareModSigTip(objPth[0],
-                        module.functions[objPth[0]].signature)
-                elif __builtins__.has_key(objPth[0]):
-                    return self.getFirstContinousBlock(
-                          __builtins__[objPth[0]].__doc__)
+        if len(objPth) == 1:
+            res = self.getNameSig(objPth[0], module)
+            if res is not None: return res
 
+        cls = module.getClassForLineNo(lnNo)
+        # inside classes
+        if cls:
             if len(objPth) == 2 and objPth[0] == 'self':
                 if cls.methods.has_key(objPth[1]):
                     return self.prepareModSigTip(objPth[1],
@@ -189,30 +184,38 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
 
             if len(objPth) == 2:
                 methName, codeBlock = cls.getMethodForLineNo(lnNo)
-                res = self.getNameSig(objPth[0], objPth[1], module, codeBlock)
+                res = self.getNameMethodSig(objPth[0], objPth[1], module, codeBlock)
                 if res is not None: return res
 
 
             if len(objPth) == 3 and objPth[0] == 'self':
                 return self.getFirstContinousBlock(
                     self.getAttribSig(module, cls, objPth[1], objPth[2]))
+        # global and function scope
         else:
-            if len(objPth) == 1:
-                if module.functions.has_key(objPth[0]):
-                    return self.prepareModSigTip(objPth[0],
-                        module.functions[objPth[0]].signature)
-                elif __builtins__.has_key(objPth[0]):
-                    return self.getFirstContinousBlock(
-                          __builtins__[objPth[0]].__doc__)
             if len(objPth) == 2:
                 codeBlock = module.getFunctionForLineNo(lnNo)
-                res = self.getNameSig(objPth[0], objPth[1], module, codeBlock)
+                res = self.getNameMethodSig(objPth[0], objPth[1], module, codeBlock)
                 if res is not None: return res
 
-        return self.checkShellTips(objPth)
+        return self.checkShellTips(word)
 
-    def checkShellTips(self, words):
-        return ShellEditor.tipforobj(self.getImportedShellObj(words), self)
+    def getNameSig(self, name, module):
+        if module.classes.has_key(name) and \
+              module.classes[name].methods.has_key('__init__'):
+            return self.prepareModSigTip(name,
+                module.classes[name].methods['__init__'].signature)
+        elif module.functions.has_key(name):
+            return self.prepareModSigTip(name, module.functions[name].signature)
+        elif __builtins__.has_key(name):
+            return self.getFirstContinousBlock(__builtins__[name].__doc__)
+        return None
+
+    def checkShellTips(self, objPth):
+        if self.model.editor.shell:
+            return self.model.editor.shell.getTipValue(objPth, -1)
+        else:
+            return ''
 
     def checkWxPyTips(self, module, name):
         if module.imports.has_key('wx'):
@@ -225,11 +228,11 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
         if module.imports.has_key('wx'):
             Cls = wxNamespace.getWxObjPath(cls)
             if Cls and hasattr(Cls, name):
-                    meth = getattr(Cls, name)
-                    return self.prepareWxModSigTip(meth.__doc__)
+                meth = getattr(Cls, name)
+                return self.prepareWxModSigTip(meth.__doc__)
         return ''
 
-    def getNameSig(self, name, method, module, codeBlock=None):
+    def getNameMethodSig(self, name, method, module, codeBlock=None):
         if codeBlock:
             if name in codeBlock.locals:
                 objType = codeBlock.locals[name].objtype
@@ -267,7 +270,7 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
             
         if objType in module.classes and \
               module.classes[objType].methods.has_key(method):
-            return self.prepareModSigTip(objType,
+            return self.prepareModSigTip(method,
                         module.classes[objType].methods[method].signature)
         meth = wxNamespace.getWxObjPath(objType+'.'+method)
         if meth and meth.__doc__:
@@ -358,22 +361,25 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
 
     def getImportedShellObj(self, words):
         module = self.model.getModule()
-        names = module.imports.keys() + module.from_imports.keys() +\
+        imports = module.imports.keys() + module.from_imports.keys() +\
                 module.from_imports_names.keys()
         if self.model.editor.shell:
             shellLocals = self.model.editor.shell.getShellLocals()
-            if words[0] in names and shellLocals.has_key(words[0]):
+            if words[0] in imports and shellLocals.has_key(words[0]):
                 obj = shellLocals[words[0]]
                 for word in words[1:]:
                     if hasattr(obj, word):
                         obj = getattr(obj, word)
                     else:
-                        return None
+                        raise ShellNameNotFound
                 return obj
-        return None
+        raise ShellNameNotFound
 
     def getShellNames(self, words):
-        return ShellEditor.recdir(self.getImportedShellObj(words))
+        try:
+            return ShellEditor.recdir(self.getImportedShellObj(words))
+        except ShellNameNotFound:
+            return []
 
     def getWxAttribs(self, cls, mems = None, methsOnly=false):
         if mems is None: mems = []
@@ -1244,6 +1250,7 @@ class PythonDisView(EditorStyledTextCtrl, PythonStyledTextCtrlMix):
         self.SetReadOnly(true)
 
 #-------------------------------------------------------------------------------
+
 from Explorers import ExplorerNodes
 ExplorerNodes.langStyleInfoReg.insert(0, ('Python', 'python',
       PythonStyledTextCtrlMix, 'stc-styles.rc.cfg') )
