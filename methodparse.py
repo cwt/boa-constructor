@@ -297,26 +297,26 @@ class ConstructorParse(PerLineParser):
         self.factory = None
 
         if line:
-            self.m = is_constr.search(line)
+            self.m = is_constr_factory.search(line)
             if self.m:
                 self.checkContinued(line)
                 self.comp_name = self.m.group('name')
-                self.class_name = self.m.group('class')
+                self.class_name = ''
+                self.factory = (self.m.group('factory'), self.m.group('method'))
                 self.params = self.extractKVParams(self.m.group('params'))
             else:
-                self.m = is_constr_frm.search(line)
+                self.m = is_constr.search(line)
                 if self.m:
                     self.checkContinued(line)
-                    self.comp_name = ''
+                    self.comp_name = self.m.group('name')
                     self.class_name = self.m.group('class')
                     self.params = self.extractKVParams(self.m.group('params'))
                 else:
-                    self.m = is_constr_factory.search(line)
+                    self.m = is_constr_frm.search(line)
                     if self.m:
                         self.checkContinued(line)
-                        self.comp_name = self.m.group('name')
-                        self.class_name = ''
-                        self.factory = (self.m.group('factory'), self.m.group('method'))
+                        self.comp_name = ''
+                        self.class_name = self.m.group('class')
                         self.params = self.extractKVParams(self.m.group('params'))
 
 
