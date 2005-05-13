@@ -1,5 +1,3 @@
-import string
-
 from wxPython.wx import *
 from wxPython.xrc import *
 
@@ -69,7 +67,7 @@ class XrcPanelDTC(ContainerCompanions.PanelDTC):
                 try:
                     if dlg.ShowModal() == wxID_OK:
                         xrcObj = dlg.GetStringSelection()
-                        self.xmlResource = string.split(xrcObj, '.')[1]
+                        self.xmlResource = xrcObj.split('.')[1]
                     else:
                         raise 'Cancelled!'
                 finally:
@@ -81,7 +79,7 @@ class XrcPanelDTC(ContainerCompanions.PanelDTC):
 
         self.textConstr = methodparse.ConstructorParse(
             'self.%s = self.%s.LoadPanel(%s)'%(self.name, self.xmlResource,
-            string.join(paramStrs, ', ')))
+            ', '.join(paramStrs)))
 
         self.designer.addCtrlToObjectCollection(self.textConstr)
 
@@ -92,8 +90,11 @@ class XrcPanelDTC(ContainerCompanions.PanelDTC):
 class XrcPanel(wxPanel):
     pass
 
-import PaletteStore
-PaletteStore.paletteLists['Utilities (Data)'].append(wxXmlResource)
-PaletteStore.compInfo.update({wxXmlResource: ['wx.xrc.XmlResource', XmlResourceDTC]})
-PaletteStore.paletteLists['ContainersLayout'].append(XrcPanel)
-PaletteStore.compInfo[XrcPanel] = ['XrcPanel', XrcPanelDTC]
+#-------------------------------------------------------------------------------
+
+import Plugins
+
+Plugins.registerComponent('Utilities (Data)', wxXmlResource, 
+                          'wx.xrc.XmlResource', XmlResourceDTC)
+Plugins.registerComponent('ContainersLayout', XrcPanel, 
+                          'XrcPanel', XrcPanelDTC)

@@ -14,6 +14,8 @@ Only proxies the run and debug methods to the parent app.
 
 """
 
+import Plugins
+
 import sourceconst
 from Models import PythonEditorModels, PythonControllers, EditorHelper, Controllers
 
@@ -60,9 +62,6 @@ class LinkAppController(PythonControllers.BaseAppController):
 
 
 #-------------------------------------------------------------------------------
-modelId = LinkAppModel.modelIdentifier
-EditorHelper.modelReg[modelId] = LinkAppModel
-Controllers.modelControllerReg[LinkAppModel]=LinkAppController
-Controllers.appModelIdReg.append(modelId)
-PaletteStore.paletteLists['New'].append(modelId)
-PaletteStore.newControllers[modelId] = LinkAppController
+
+Plugins.registerFileType(LinkAppController)
+Controllers.appModelIdReg.append(LinkAppModel.modelIdentifier)

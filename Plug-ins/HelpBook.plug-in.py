@@ -314,10 +314,6 @@ import ProcessProgressDlg
 import glob, zipfile
 from cStringIO import StringIO
 
-Plugins.registerPreference('HelpBook', 'hbShowDocumentTitles', 'True',
-                           ['Should the document title be parsed from HTML and '
-                            'displayed under "Files".'])
-
 
 class HelpBookModel(EditorModels.SourceModel):
     modelIdentifier = 'HelpBook'
@@ -1093,8 +1089,7 @@ class HelpBookController(Controllers.SourceController):
 #-------------------------------------------------------------------------------
 
 
-EditorHelper.modelReg[HelpBookModel.modelIdentifier] = HelpBookModel
-EditorHelper.extMap[HelpBookModel.ext] = HelpBookModel
-Controllers.modelControllerReg[HelpBookModel] = HelpBookController
-PaletteStore.paletteLists['New'].append(HelpBookModel.modelIdentifier)
-PaletteStore.newControllers[HelpBookModel.modelIdentifier] = HelpBookController
+Plugins.registerPreference('HelpBook', 'hbShowDocumentTitles', 'True',
+                           ['Should the document title be parsed from HTML and '
+                            'displayed under "Files".'])
+Plugins.registerFileType(HelpBookController)

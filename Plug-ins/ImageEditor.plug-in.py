@@ -188,7 +188,7 @@ class ImageEditorPanel(wx.Panel):
     def initImageData(self, ext, data):
         """ Initialise editor with data """
         if data:
-            self.mDC= wx.MemoryDC()
+            self.mDC = wx.MemoryDC()
             self.bmp = wx.BitmapFromImage(wx.ImageFromStream(StringIO(data)))
             self.mDC.SelectObject(self.bmp)
         else:
@@ -1101,12 +1101,7 @@ ResourceSupport.PyResourceImagesView.plugins += (PyResourceImagesViewPlugin,)
 
 #-------------------------------------------------------------------------------
 
-Controllers.modelControllerReg[EditorModels.BitmapFileModel] = \
-      BitmapEditorFileController
-
-import PaletteStore
-PaletteStore.newControllers['Bitmap'] = BitmapEditorFileController
-PaletteStore.paletteLists['New'].append('Bitmap')
+Plugins.registerFileType(BitmapEditorFileController)
 
 #-------------------------------------------------------------------------------
 #Boa:PyImgResource:EditBitmap

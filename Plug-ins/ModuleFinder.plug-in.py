@@ -4,7 +4,7 @@ import sys, imp
 
 import wx
 
-from Preferences import IS
+import Preferences
 import Utils
 
 #-------------------------------------------------------------------------------
@@ -45,7 +45,7 @@ class ModuleFinderDlg(wx.Dialog):
         self._init_ctrls(parent)
 
         icon = wx.EmptyIcon()
-        icon.CopyFromBitmap(IS.load('Images/ModuleFinder.png'))
+        icon.CopyFromBitmap(Preferences.IS.load('Images/ModuleFinder.png'))
         self.SetIcon(icon)
 
 #-------------------------------------------------------------------------------
@@ -72,16 +72,16 @@ def openModuleFinder(editor):
     finally:
         dlg.Destroy()
 
-from Models import EditorHelper
+
 if wxPlatform == '__WXMSW__':
     keyIdent = 'ModuleFinder'
     Preferences.keyDefs[keyIdent] = (wx.ACCEL_ALT, ord('M'), 'Alt-M')
 else:
     keyIdent = ''
 
-EditorHelper.editorToolsReg.append(
-      ('Module finder', openModuleFinder,
-       'Images/ModuleFinder.png', keyIdent) )
+import Plugins
+Plugins.registerTool('Module finder', openModuleFinder,
+                     'Images/ModuleFinder.png', keyIdent)
 
 #-------------------------------------------------------------------------------
 
@@ -103,4 +103,4 @@ def getModuleFinderImgData():
 \xbc\x8fM\xbc\xb7>c\x0c\x84\xb3\x97\xf9\x1b\xa7\x9e\xfe\x8e\xda\xadz\x91\x00\
 \x00\x00\x00IEND\xaeB`\x82'
 
-IS.registerImage('Images/ModuleFinder.png', getModuleFinderImgData())
+Preferences.IS.registerImage('Images/ModuleFinder.png', getModuleFinderImgData())

@@ -3,7 +3,6 @@ from wxPython.wx import *
 import Preferences, Utils, Plugins
 from Companions import BaseCompanions
 from PropEdit import PropertyEditors
-import PaletteStore
 
 try:
     from wx.lib.plot import PlotCanvas
@@ -13,9 +12,6 @@ except ImportError:
 class PlotCanvasDTC(BaseCompanions.WindowDTC):
     def __init__(self, name, designer, parent, ctrlClass):
         BaseCompanions.WindowDTC.__init__(self, name, designer, parent, ctrlClass)
-        #self.editors['EnableZoom'] = PropertyEditors.BoolPropEdit
-        #self.editors['EnableGrid'] = PropertyEditors.BoolPropEdit
-        #self.editors['EnableLegend'] = PropertyEditors.BoolPropEdit
 
     def writeImports(self):
         return 'import wx.lib.plot'
@@ -30,9 +26,10 @@ class PlotCanvasDTC(BaseCompanions.WindowDTC):
 
 #-------------------------------------------------------------------------------
 
-# Add the component's class to this list
-PaletteStore.paletteLists['wxPython.lib'].append(PlotCanvas)
-PaletteStore.compInfo[PlotCanvas] = ['wx.lib.plot.PlotCanvas', PlotCanvasDTC]
+import Plugins
+
+Plugins.registerComponent('wxPython.lib', 
+                          PlotCanvas, 'wx.lib.plot.PlotCanvas', PlotCanvasDTC)
 
 def getPlotCanvasData():
     return \

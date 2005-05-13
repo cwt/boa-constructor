@@ -289,6 +289,4 @@ def openPyInterpChooser(editor):
 Plugins.registerPreference('PyInterpreterChooser', 'picExtraPaths', '[]',
                            ['Additional locations to choose the Python '
                             'Interpreter Path from.'])
-
-from Models import EditorHelper
-EditorHelper.editorToolsReg.append( ('Python interpreter chooser', openPyInterpChooser) )
+Plugins.registerTool('Python interpreter chooser', openPyInterpChooser)

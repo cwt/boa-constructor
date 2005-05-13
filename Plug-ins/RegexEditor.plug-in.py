@@ -6,7 +6,7 @@ import wx
 from wx.lib.anchors import LayoutAnchors
 import wx.stc
 
-import Preferences, Utils
+import Preferences, Utils, Plugins
 
 reFlags = {'IGNORECASE': re.IGNORECASE, 'LOCALE': re.LOCALE,
            'MULTILINE': re.MULTILINE, 'DOTALL': re.DOTALL,
@@ -210,5 +210,4 @@ def openRegexEditor(editor):
     frame = createRegexEditor(editor)
     frame.Show()
 
-from Models import EditorHelper
-EditorHelper.editorToolsReg.append( ('Regex editor', openRegexEditor) )
+Plugins.registerTool('Regex editor', openRegexEditor)

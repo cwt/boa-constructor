@@ -22,11 +22,8 @@ try:
 except ImportError:
     raise Plugins.SkipPlugin, 'Pyrex is not installed'
 
-import PaletteStore
-
 from Models import Controllers, EditorHelper, EditorModels, PythonEditorModels, PythonControllers
 from Views import SourceViews, StyledTextCtrls
-from Explorers import ExplorerNodes
 
 EditorHelper.imgPyrexModel = EditorHelper.imgIdxRange()
 
@@ -56,8 +53,6 @@ class PyrexSourceView(SourceViews.EditorStyledTextCtrl, PyrexStyledTextCtrlMix):
         PyrexStyledTextCtrlMix.__init__(self, wxID_PYREXSOURCEVIEW)
         self.active = true
 
-ExplorerNodes.langStyleInfoReg.append(
-      ('Pyrex', 'pyrex', PyrexStyledTextCtrlMix, pyrex_cfgfile) )
 
 #wxID_PYREXCOMPILE = wxNewId()
 class PyrexController(Controllers.SourceController):
@@ -88,12 +83,10 @@ class PyrexController(Controllers.SourceController):
             model.editor.setStatus('Pyrex compilation succeeded')
 
 
-modId = PyrexModel.modelIdentifier
-EditorHelper.modelReg[modId] = EditorHelper.extMap[PyrexModel.ext] = PyrexModel
-Controllers.modelControllerReg[PyrexModel] = PyrexController
+#-------------------------------------------------------------------------------
 
-PaletteStore.paletteLists['New'].append(modId)
-PaletteStore.newControllers[modId] = PyrexController
+Plugins.registerFileType(PyrexController)
+Plugins.registerLanguageSTCStyle('Pyrex', 'pyrex', PyrexStyledTextCtrlMix, pyrex_cfgfile)
 
 #-------------------------------------------------------------------------------
 

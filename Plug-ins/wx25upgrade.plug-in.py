@@ -309,7 +309,6 @@ class SourcePseudoFile(Utils.PseudoFileOutStore):
     
 #-------------------------------------------------------------------------------
 
-
 def showWx25CodeUpgradeDlg(editor):
     dlg = Wx25CodeUpgradeDlg(editor, editor.getOpenFromHereDir())
     try:
@@ -317,5 +316,5 @@ def showWx25CodeUpgradeDlg(editor):
     finally:
         dlg.Destroy()
     
-from Models import EditorHelper
-EditorHelper.editorToolsReg.append( ('wxPython 2.4 to 2.5 code upgrader', showWx25CodeUpgradeDlg) )
+import Plugins
+Plugins.registerTool('wxPython 2.4 to 2.5 code upgrader', showWx25CodeUpgradeDlg)

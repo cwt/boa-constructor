@@ -22,7 +22,6 @@ import PaletteStore
 
 from Models import Controllers, EditorHelper, EditorModels
 from Views import SourceViews, StyledTextCtrls
-from Explorers import ExplorerNodes
 
 # Allocate an image index for Java files
 EditorHelper.imgJavaModel = EditorHelper.imgIdxRange()
@@ -57,9 +56,6 @@ class JavaSourceView(SourceViews.EditorStyledTextCtrl, JavaStyledTextCtrlMix):
         JavaStyledTextCtrlMix.__init__(self, wxID_JAVASOURCEVIEW)
         self.active = true
 
-# Register a Java STC style editor under Preferences
-ExplorerNodes.langStyleInfoReg.append( ('Java', 'java',
-      JavaStyledTextCtrlMix, java_cfgfile) )
 
 # The compile action is just added as an example of how to add an action to
 # a controller and is not implemented
@@ -77,18 +73,10 @@ class JavaController(Controllers.SourceController):
     def OnCompile(self, event):
         wxLogWarning('Not implemented')
 
-# Register Model for opening in the Editor
-EditorHelper.modelReg[JavaModel.modelIdentifier] = JavaModel
-# Register file extensions
-EditorHelper.extMap[JavaModel.ext] = JavaModel
-# Register Controller for opening in the Editor
-Controllers.modelControllerReg[JavaModel] = JavaController
-# Add item to the New palette
-# There needs to be a 24x24 png image:
-#   Images/Palette/[Model.modelIdentifier].png
-PaletteStore.paletteLists['New'].append(JavaModel.modelIdentifier)
-# Link up controller for creation from the New palette
-PaletteStore.newControllers[JavaModel.modelIdentifier] = JavaController
+#-------------------------------------------------------------------------------
+
+Plugins.registerFileType(JavaController)
+Plugins.registerLanguageSTCStyle('Java', 'java', JavaStyledTextCtrlMix, java_cfgfile)
 
 #-------------------------------------------------------------------------------
 

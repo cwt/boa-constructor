@@ -55,8 +55,7 @@ class PascalSourceView(SourceViews.EditorStyledTextCtrl, PascalStyledTextCtrlMix
         self.active = true
 
 # Register a Pascal STC style editor under Preferences
-ExplorerNodes.langStyleInfoReg.append( ('Pascal', 'pascal',
-      PascalStyledTextCtrlMix, pascal_cfgfile) )
+Plugins.registerLanguageSTCStyle('Pascal', 'pascal', PascalStyledTextCtrlMix, pascal_cfgfile) 
 
 # The compile action is just added as an example of how to add an action to
 # a controller and is not implemented
@@ -74,19 +73,9 @@ class PascalController(Controllers.SourceController):
     def OnCompile(self, event):
         wxLogWarning('Not implemented')
 
-# Register Model for opening in the Editor
-EditorHelper.modelReg[PascalModel.modelIdentifier] = PascalModel
-# Register file extensions
-EditorHelper.extMap[PascalModel.ext] = EditorHelper.extMap['.dpr'] = PascalModel
-# Register Controller for opening in the Editor
-Controllers.modelControllerReg[PascalModel] = PascalController
-# Add item to the New palette
-# There needs to be a 24x24 png image:
-#   Images/Palette/[Model.modelIdentifier].png
-PaletteStore.paletteLists['New'].append(PascalModel.modelIdentifier)
-# Link up controller for creation from the New palette
-PaletteStore.newControllers[PascalModel.modelIdentifier] = PascalController
-
+#-------------------------------------------------------------------------------
+# Registers the filetype in the IDE framework
+Plugins.registerFileType(PascalController, aliasExts=('.dpr',))
 
 #-------------------------------------------------------------------------------
 # Config file embedded in plug-in

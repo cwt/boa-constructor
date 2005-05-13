@@ -12,7 +12,6 @@ from wxPython.wx import *
 
 from Companions import BasicCompanions
 from PropEdit import PropertyEditors
-import PaletteStore
 
 try:
     import wx.lib.bcrtl
@@ -58,17 +57,14 @@ class StaticTextCtrlDTC(BasicCompanions.TextCtrlDTC):
         return dts
 
 
-# Add the component's class to this list
-PaletteStore.paletteLists['User'].extend([
-    wx.lib.bcrtl.user.ExampleST.ExampleStaticText, 
-    wx.lib.bcrtl.user.StaticTextCtrl.StaticTextCtrl])
-
-# Add an entry to this dict with the following structure:
-# <component class>: ['Palette tip name and bitmap file', <companion>]
-PaletteStore.compInfo.update({
-    wx.lib.bcrtl.user.ExampleST.ExampleStaticText: 
-        ['ExampleStaticText', ExampleSTDTC],
-    wx.lib.bcrtl.user.StaticTextCtrl.StaticTextCtrl: 
-        ['StaticTextCtrl', StaticTextCtrlDTC]})
-
 #-------------------------------------------------------------------------------
+
+import Plugins
+
+# Register the components
+Plugins.registerComponents('User',
+      (wx.lib.bcrtl.user.ExampleST.ExampleStaticText, 
+       'ExampleStaticText', ExampleSTDTC), 
+      (wx.lib.bcrtl.user.StaticTextCtrl.StaticTextCtrl, 
+       'StaticTextCtrl', StaticTextCtrlDTC),
+    )
