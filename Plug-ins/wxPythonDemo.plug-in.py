@@ -49,7 +49,10 @@ def importFromWxPyDemo(name):
 
 def getWxPyDemoTree():
     Main = importFromWxPyDemo('Main')
-    return Main._treeList
+    if Main:
+        return Main._treeList
+    else:
+        return []
 
 
 EditorHelper.imgWxPythonDemo = EditorHelper.addPluginImgs('Images/wxPythonDemo.png')
@@ -179,7 +182,7 @@ class wxPythonDemoDirNode(ExplorerNodes.ExplorerNode):
         self.bold = true
         self.vetoSort = true
         self.treeList = getWxPyDemoTree()
-
+        
     def isFolderish(self):
         return true
 
@@ -234,10 +237,10 @@ if __name__ == '__main__':
 class wxPythonDemoModuleController(PythonControllers.ModuleController):
     Model = wxPythonDemoModuleModel
 
+#-------------------------------------------------------------------------------
+
 if Preferences.wpShowWxPythonDemoTemplate:
-    Controllers.modelControllerReg[wxPythonDemoModuleModel] = wxPythonDemoModuleController
-    PaletteStore.newControllers['wxPythonDemoModule'] = wxPythonDemoModuleController
-    PaletteStore.paletteLists['New'].append('wxPythonDemoModule')
+    Plugins.registerFileType(wxPythonDemoModuleController)
 
 #-------------------------------------------------------------------------------
 
