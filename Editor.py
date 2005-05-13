@@ -313,7 +313,7 @@ class EditorFrame(wx.Frame, Utils.FrameRestorerMixin):
                   Utils.wxProxyPanel(self.inspector.pages, self.erroutFrm.notebook)
                 self.inspector.pages.AddPage(panel, 'ErrOut')
             self.tabsSplitter.Initialize(self.tabs)
-            wxPostEvent(self.tabsSplitter, wx.SizeEvent(self.tabsSplitter.GetSize()))
+            wx.PostEvent(self.tabsSplitter, wx.SizeEvent(self.tabsSplitter.GetSize()))
 
         # Hack to feed BoaFileDialog images
         import FileDlg
