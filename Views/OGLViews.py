@@ -13,8 +13,7 @@ print 'importing Views.OGLViews'
 
 import pickle, os
 
-from wxPython.wx import *
-#from wxPython.ogl import *
+import wx
 import wx.lib.ogl as ogl
 
 import Preferences, Utils
@@ -43,14 +42,14 @@ class MyEvtHandler(ogl.ShapeEvtHandler):
     def OnLeftClick(self, x, y, keys = 0, attachment = 0):
         shape = self.GetShape()
         canvas = shape.GetCanvas()
-        dc = wxClientDC(canvas)
+        dc = wx.ClientDC(canvas)
         canvas.PrepareDC(dc)
 
         if shape.Selected():
-            shape.Select(false, dc)
+            shape.Select(False, dc)
             canvas.Redraw(dc)
         else:
-            redraw = false
+            redraw = False
             shapeList = canvas.GetDiagram().GetShapeList()
             toUnselect = []
             for s in shapeList:
@@ -62,11 +61,11 @@ class MyEvtHandler(ogl.ShapeEvtHandler):
                         toUnselect.append(s)
                 except Exception, message: pass#print Exception, message
 
-            shape.Select(true, dc)
+            shape.Select(True, dc)
 
             if toUnselect:
                 for s in toUnselect:
-                    s.Select(false, dc)
+                    s.Select(False, dc)
                 canvas.Redraw(dc)
 
     def OnEndDragLeft(self, x, y, keys = 0, attachment = 0):
@@ -84,7 +83,7 @@ class MyEvtHandler(ogl.ShapeEvtHandler):
             self.OnLeftClick(x, y, keys, attachment)
 
         if hasattr(self, 'menu') and self.menu:
-            shape.GetCanvas().PopupMenu(self.menu, wxPoint(x, y))
+            shape.GetCanvas().PopupMenu(self.menu, wx.Point(x, y))
 
     def OnRightDown(self, event):
         print "OnRightDown", event
@@ -118,17 +117,17 @@ class PersistentShapeCanvas(ogl.ShapeCanvas):
 
     def printSizes(self, filename):
         """ Export the Canvas to Postscript """
-        prdata=wxPrintData()
+        prdata = wx.PrintData()
         from Explorers.Explorer import openEx
-        t=openEx(filename)
+        t = openEx(filename)
         prdata.SetFilename(t.currentFilename())
-        dc=wxPostScriptDC(prdata)
+        dc = wx.PostScriptDC(prdata)
         if dc.Ok():
             dc.StartDoc('Export')
             self.Redraw(dc)
             dc.EndDoc()
             
-            wxLogMessage('Exported %s'%filename)
+            wx.LogMessage('Exported %s'%filename)
 
     def loadSizes(self, filename):
         from Explorers.Explorer import openEx, TransportError
@@ -136,12 +135,12 @@ class PersistentShapeCanvas(ogl.ShapeCanvas):
         try:
             persProps = pickle.loads(t.load())
         except SyntaxError:
-            if wxMessageBox('%s is possibly corrupt (cannot be unpickled), delete it?'\
+            if wx.MessageBox('%s is possibly corrupt (cannot be unpickled), delete it?'\
                             'Default layout will be used.'%filename,
-                  'Corrupt file', style = wxYES_NO | wxICON_EXCLAMATION) == wxYES:
+                  'Corrupt file', style = wx.YES_NO | wx.ICON_EXCLAMATION) == wx.YES:
                 # XXX Just lazy, must fix to use transport !!
                 if filename[:7] != 'file://':
-                    wxLogMessage('Sorry, only supported on the filesystem')
+                    wx.LogMessage('Sorry, only supported on the filesystem')
                 else:
                     os.remove(filename[7:])
 
@@ -166,7 +165,7 @@ class PersistentShapeCanvas(ogl.ShapeCanvas):
     def redraw(self):
         diagram = self.GetDiagram()
         canvas = diagram.GetCanvas()
-        dc = wxClientDC(canvas)
+        dc = wx.ClientDC(canvas)
         canvas.PrepareDC(dc)
         for shape in self.shapes:
             shape.Move(dc, shape.GetX(), shape.GetY())
@@ -211,7 +210,7 @@ class PerstDividedShape(ogl.DividedShape, PerstShape):
         regions and draws it. There seems to be a problem that
         the text is not normally drawn. """
         canvas = self.GetCanvas()
-        dc = wxClientDC(canvas)
+        dc = wx.ClientDC(canvas)
         canvas.PrepareDC(dc)
         count = 0
         for region in self.GetRegions():
@@ -219,11 +218,11 @@ class PerstDividedShape(ogl.DividedShape, PerstShape):
             self.FormatText(dc, region.GetText(), count)
             count = count + 1
 
-class ScrollingContainer(wxScrolledWindow):
+class ScrollingContainer(wx.ScrolledWindow):
     scrollStepX = 10
     scrollStepY = 10
     def __init__(self, parent, size):
-        wxScrolledWindow.__init__(self, parent, -1, style = wxSUNKEN_BORDER)
+        wx.ScrolledWindow.__init__(self, parent, -1, style = wx.SUNKEN_BORDER)
         self.SetScrollbars(self.scrollStepX, self.scrollStepY,
                            size.x / self.scrollStepX, size.y / self.scrollStepY)
 
@@ -234,7 +233,7 @@ class PersistentOGLView(ScrollingContainer, EditorViews.EditorView):
     defSize = 2000
 
     def __init__(self, parent, model, actions = ()):
-        ScrollingContainer.__init__(self, parent, wxSize(self.defSize, self.defSize))
+        ScrollingContainer.__init__(self, parent, wx.Size(self.defSize, self.defSize))
         EditorViews.EditorView.__init__(self, model,
           (('(Re)load diagram', self.OnLoad, self.loadBmp, ''),
            ('Save diagram', self.OnSave, self.saveBmp, ''),
@@ -247,7 +246,7 @@ class PersistentOGLView(ScrollingContainer, EditorViews.EditorView):
         self.canvas = PersistentShapeCanvas(self, self.shapes)
         self.canvas.SetSize(self.GetVirtualSize())
 
-        EVT_RIGHT_UP(self.canvas, self.OnRightClick)
+        self.canvas.Bind(wx.EVT_RIGHT_UP, self.OnRightClick)
 
         self.diagram = ogl.Diagram()
         self.canvas.SetDiagram(self.diagram)
@@ -257,9 +256,9 @@ class PersistentOGLView(ScrollingContainer, EditorViews.EditorView):
 
         self.size = self.defSize
 
-        self._loaded = false
+        self._loaded = False
 
-        self.active = true
+        self.active = True
 
     def destroy(self):
         self.destroyShapes()
@@ -275,9 +274,9 @@ class PersistentOGLView(ScrollingContainer, EditorViews.EditorView):
         from Explorers.Explorer import TransportError
         try:
             self.canvas.loadSizes(layoutFile)
-            self._loaded = true
+            self._loaded = True
         except TransportError:
-            self._loaded = false
+            self._loaded = False
 
     def newLine(self, dc, fromShape, toShape):
         line = ogl.LineShape()
@@ -292,14 +291,14 @@ class PersistentOGLView(ScrollingContainer, EditorViews.EditorView):
         line.MakeLineControlPoints(2)
         fromShape.AddLine(line, toShape)
         self.diagram.AddShape(line)
-        line.Show(true)
+        line.Show(True)
 
         # for some reason, the shapes have to be moved for the line to show up...
         fromShape.Move(dc, fromShape.GetX(), fromShape.GetY())
 
     def newRegion(self, font, name, textLst, maxWidth, totHeight = 10):
         region = ogl.ShapeRegion()
-        dc = wxClientDC(self.canvas)
+        dc = wx.ClientDC(self.canvas)
         dc.SetFont(font)
 
         for text in textLst:
@@ -315,17 +314,17 @@ class PersistentOGLView(ScrollingContainer, EditorViews.EditorView):
         return region, maxWidth, totHeight
 
     def addShape(self, shape, x, y, pen, brush, text):
-#        shape.SetDraggable(false)
+#        shape.SetDraggable(False)
         shape.SetCanvas(self.canvas)
         shape.SetX(x)
         shape.SetY(y)
         shape.SetPen(pen)
         shape.SetBrush(brush)
-#        shape.SetFont(wxFont(6, wxMODERN, wxNORMAL, wxNORMAL, false))
+#        shape.SetFont(wx.Font(6, wx.MODERN, wx.NORMAL, wx.NORMAL, False))
         shape.AddText(text)
         shape.SetShadowMode(ogl.SHADOW_RIGHT)
         self.diagram.AddShape(shape)
-        shape.Show(true)
+        shape.Show(True)
 
         evthandler = MyEvtHandler()
         evthandler.menu = self.shapeMenu
@@ -355,12 +354,12 @@ class PersistentOGLView(ScrollingContainer, EditorViews.EditorView):
         self.canvas.printSizes(os.path.splitext(self.model.filename)[0]+'.ps')
 
     def OnSetSize(self, event):
-        dlg = wxTextEntryDialog(self, 'Enter new canvas size (width==height)',
+        dlg = wx.TextEntryDialog(self, 'Enter new canvas size (width==height)',
             'Size', `self.size`)
         try:
-            if dlg.ShowModal() == wxID_OK:
+            if dlg.ShowModal() == wx.ID_OK:
                 self.size = int(dlg.GetValue())
-                self.setSize(wxSize(self.size, self.size))
+                self.setSize(wx.Size(self.size, self.size))
         finally:
             dlg.Destroy()
 
@@ -474,7 +473,7 @@ class SortedUMLViewMix:
         rawHeight = height
         height = height * whiteSpaceFactor
         verticalWhiteSpace = (height-rawHeight)/(len(generations)-1.0 or 2.0)
-        self.setSize(wxSize(int(width+50), int(height+50))) # fudge factors to keep some extra space
+        self.setSize(wx.Size(int(width+50), int(height+50))) # fudge factors to keep some extra space
         # distribute each generation across the width
         # and the generations across height
         y = 0
@@ -488,7 +487,7 @@ class SortedUMLViewMix:
                 # snap to diagram grid coords
                 csX, csY = self.diagram.Snap((shapeX/2.0)+x, (shapeY/2.0)+y)
                 # don't display until finished
-                classShape.Move(dc, csX, csY, false)
+                classShape.Move(dc, csX, csY, False)
                 x = x + shapeX + whiteSpace
             y = y + currentHeight + verticalWhiteSpace
 
@@ -584,13 +583,13 @@ class UMLView(PersistentOGLView, SortedUMLViewMix):
             ('-', None, '-', ''),
             ('Force layout', self.OnForceLayout, '-', ''),
         ))
-        self.menuStdClass = wxMenu()
-        id = wxNewId()
+        self.menuStdClass = wx.Menu()
+        id = wx.NewId()
         self.menuStdClass.Append(id, "Goto Source")
-        EVT_MENU(self, id, self.OnGotoSource)
-        id = wxNewId()
+        self.Bind(wx.EVT_MENU, self.OnGotoSource, id=id)
+        id = wx.NewId()
         self.menuStdClass.Append(id, "Goto Documentation",)
-        EVT_MENU(self, id, self.OnGotoDoc)
+        self.Bind(wx.EVT_MENU, self.OnGotoDoc, id=id)
 
         self.shapeMenu = self.menuStdClass
 
@@ -654,7 +653,7 @@ class UMLView(PersistentOGLView, SortedUMLViewMix):
         return self.shapes[idx]
 
     def refreshCtrl(self):
-        dc = wxClientDC(self.canvas)
+        dc = wx.ClientDC(self.canvas)
         self.canvas.PrepareDC(dc)
 
         self.destroyShapes()
@@ -722,11 +721,11 @@ class UMLView(PersistentOGLView, SortedUMLViewMix):
         # However, it may be a class or external
         if self.model.getModule().classes.has_key(name):
             (self.menuShape, self.menuClass) = (shape, name)
-            self.PopupMenu(self.menuStdClass, wxPoint(x, y))
+            self.PopupMenu(self.menuStdClass, wx.Point(x, y))
             (self.menuShape, self.menuClass) = (None, None)
 
     def OnForceLayout(self, event):
-        dc = wxClientDC(self.canvas)
+        dc = wx.ClientDC(self.canvas)
         self.canvas.PrepareDC(dc)
 
         self.destroyShapes()
@@ -783,7 +782,7 @@ class ImportsView(PersistentOGLView):
         return shape, maxWidth + 10
 
     def refreshCtrl(self):
-        dc = wxClientDC(self)
+        dc = wx.ClientDC(self)
         self.PrepareDC(dc)
 
         # Because of slow building process, cache after first time
@@ -849,7 +848,7 @@ class AppPackageView(PersistentOGLView):
 
     def newModule(self, size, pos, moduleName, importList):
         idx = self.addShape(PerstDividedShape(moduleName, size[0], size[1]),
-          pos[0], pos[1], wxBLACK_PEN, wxLIGHT_GREY_BRUSH, '')
+          pos[0], pos[1], wx.BLACK_PEN, wx.LIGHT_GREY_BRUSH, '')
 
         maxWidth = 10 #padding
 
@@ -875,7 +874,7 @@ class AppPackageView(PersistentOGLView):
         return shape, maxWidth + 10
 
     def refreshCtrl(self):
-        dc = wxClientDC(self)
+        dc = wx.ClientDC(self)
         self.PrepareDC(dc)
 
         # Because of slow building process, cache after first time
@@ -920,5 +919,5 @@ class AppPackageView(PersistentOGLView):
 ##    def __del__():
 ##        self.cleanup()
 ##
-### when this module gets cleaned up then wxOGLCleanUp() will get called
+### when this module gets cleaned up then wx.OGLCleanUp() will get called
 ##__cu = __Cleanup()

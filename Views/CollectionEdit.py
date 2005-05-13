@@ -14,7 +14,7 @@ print 'importing Views.CollectionEdit'
 
 import os, sys
 
-from wxPython.wx import *
+import wx
 
 import Preferences, Utils
 from Preferences import IS, keyDefs
@@ -22,7 +22,7 @@ import sourceconst
 
 import InspectableViews
 
-# XXX 'Select Parent' from the Inspector should select the parent companion 
+# XXX 'Select Parent' from the Inspector should select the parent companion
 # XXX of the collection property
 
 _lastDefPos = None
@@ -47,39 +47,36 @@ def getNextDefaultPos():
 
     return pos
 
-[wxID_COLLECTIONEDITOR, wxID_COLLECTIONEDITORTOOLBAR, 
- wxID_COLLECTIONEDITORITEMLIST] = map(lambda _init_ctrls: wxNewId(), range(3))
+[wxID_COLLECTIONEDITOR, wxID_COLLECTIONEDITORTOOLBAR,
+ wxID_COLLECTIONEDITORITEMLIST] = [wx.NewId() for _init_ctrls in range(3)]
 
-class CollectionEditor(wxFrame, Utils.FrameRestorerMixin):
+class CollectionEditor(wx.Frame, Utils.FrameRestorerMixin):
     def _init_ctrls(self, prnt):
-        wxFrame.__init__(self, size = wxSize(200, 250), 
-              id = wxID_COLLECTIONEDITOR, title = 'Collection Editor', 
-              parent = prnt, name = 'CollectionEditor', 
-              style = wxDEFAULT_FRAME_STYLE, pos = self.collEditPos)
+        wx.Frame.__init__(self, size = wx.Size(200, 250),
+              id = wxID_COLLECTIONEDITOR, title = 'Collection Editor',
+              parent = prnt, name = 'CollectionEditor',
+              style=wx.DEFAULT_FRAME_STYLE, pos = self.collEditPos)
 
-        self.toolBar = wxToolBar(size = wxDefaultSize, 
-              id = wxID_COLLECTIONEDITORTOOLBAR, pos = wxPoint(32, 4), 
-              parent = self, name = 'toolBar1', 
-              style = wxTB_HORIZONTAL | wxNO_BORDER | Preferences.flatTools)
+        self.toolBar = wx.ToolBar(size = wx.DefaultSize,
+              id = wxID_COLLECTIONEDITORTOOLBAR, pos = wx.Point(32, 4),
+              parent = self, name = 'toolBar1',
+              style=wx.TB_HORIZONTAL | wx.NO_BORDER | Preferences.flatTools)
         self.SetToolBar(self.toolBar)
 
-    def __init__(self, parent, collEditView, additAdders = (), 
-          lvStyle = wxLC_REPORT):
+    def __init__(self, parent, collEditView, additAdders = (),
+          lvStyle = wx.LC_REPORT):
         self.collEditPos = (-1, -1)
         self.collEditPos = getNextDefaultPos()
-        
+
         self._init_ctrls(parent)
 
-        self.itemList = wxListCtrl(size = wxPyDefaultSize, 
-              id = wxID_COLLECTIONEDITORITEMLIST, parent = self, 
-              name = 'itemList', validator = wxDefaultValidator, 
-              style = lvStyle | wxLC_SINGLE_SEL | wxSUNKEN_BORDER, 
-              pos = wxPyDefaultPosition)
-        EVT_LIST_ITEM_SELECTED(self.itemList, wxID_COLLECTIONEDITORITEMLIST, 
-              self.OnObjectSelect)
-        EVT_LIST_ITEM_DESELECTED(self.itemList, wxID_COLLECTIONEDITORITEMLIST, 
-              self.OnObjectDeselect)
-        EVT_LEFT_DCLICK(self.itemList, self.OnObjectDClick)
+        self.itemList = wx.ListCtrl(size = wx.DefaultSize,
+              id = wxID_COLLECTIONEDITORITEMLIST, parent = self,
+              name = 'itemList', style = lvStyle | wx.LC_SINGLE_SEL | wx.SUNKEN_BORDER,
+              pos = wx.DefaultPosition)
+        self.itemList.Bind(wx.EVT_LIST_ITEM_SELECTED, self.OnObjectSelect, id=wxID_COLLECTIONEDITORITEMLIST)
+        self.itemList.Bind(wx.EVT_LIST_ITEM_DESELECTED, self.OnObjectDeselect, id=wxID_COLLECTIONEDITORITEMLIST)
+        self.itemList.Bind(wx.EVT_LEFT_DCLICK, self.OnObjectDClick)
 
         self.SetIcon(IS.load('Images/Icons/Collection.ico'))
 
@@ -94,20 +91,20 @@ class CollectionEditor(wxFrame, Utils.FrameRestorerMixin):
         acclst = []
         wId = Utils.AddToolButtonBmpIS(self, self.toolBar,
               'Images/Shared/NewItem.png', 'New', self.OnNewClick)
-        EVT_MENU(self, wId, self.OnNewClick)
+        self.Bind(wx.EVT_MENU, self.OnNewClick, id=wId)
         acclst.append( (keyDefs['Insert'][0], keyDefs['Insert'][1], wId) )
         self.toolLst.append(wId)
         if additAdders:
             wId = Utils.AddToolButtonBmpIS(self, self.toolBar,
                   'Images/Shared/NewItems.png', 'More new ...', self.OnMoreNewClick)
-            EVT_MENU(self, wId, self.OnMoreNewClick)
+            self.Bind(wx.EVT_MENU, self.OnMoreNewClick, id=wId)
             self.toolLst.append(wId)
-    
+
             self.toolBar.AddSeparator()
 
         wId = Utils.AddToolButtonBmpIS(self, self.toolBar,
               'Images/Shared/DeleteItem.png', 'Delete', self.OnDeleteClick)
-        EVT_MENU(self, wId, self.OnDeleteClick)
+        self.Bind(wx.EVT_MENU, self.OnDeleteClick, id=wId)
         acclst.append( (keyDefs['Delete'][0], keyDefs['Delete'][1], wId) )
         self.toolLst.append(wId)
         self.toolBar.AddSeparator()
@@ -118,26 +115,26 @@ class CollectionEditor(wxFrame, Utils.FrameRestorerMixin):
         self.toolBar.AddSeparator()
         wId = Utils.AddToolButtonBmpIS(self, self.toolBar,
               'Images/Editor/Refresh.png', 'Refresh', self.OnRefresh)
-        EVT_MENU(self, wId, self.OnRefresh)
+        self.Bind(wx.EVT_MENU, self.OnRefresh, id=wId)
         acclst.append( (keyDefs['Refresh'][0], keyDefs['Refresh'][1], wId) )
         self.toolLst.append(wId)
 
-        wId = wxNewId()
-        EVT_MENU(self, wId, self.OnSwitchToInspector)
+        wId = wx.NewId()
+        self.Bind(wx.EVT_MENU, self.OnSwitchToInspector, id=wId)
         acclst.append( (keyDefs['Inspector'][0], keyDefs['Inspector'][1], wId) )
 
-        wId = wxNewId()
-        EVT_MENU(self, wId, self.OnSwitchToDesigner)
+        wId = wx.NewId()
+        self.Bind(wx.EVT_MENU, self.OnSwitchToDesigner, id=wId)
         acclst.append( (keyDefs['Designer'][0], keyDefs['Designer'][1], wId) )
 
-        self.SetAcceleratorTable(wxAcceleratorTable(acclst))
+        self.SetAcceleratorTable(wx.AcceleratorTable(acclst))
 
         self.toolBar.Realize()
 
-        if lvStyle == wxLC_REPORT:
+        if lvStyle == wx.LC_REPORT:
             self.itemList.InsertColumn(0, 'Name', width=180)
 
-        EVT_CLOSE(self, self.OnCloseWindow)
+        self.Bind(wx.EVT_CLOSE, self.OnCloseWindow)
 
         self.winConfOption = 'collectioneditor'
         self.loadDims()
@@ -154,7 +151,7 @@ class CollectionEditor(wxFrame, Utils.FrameRestorerMixin):
         del self.collEditView
 
     def setDefaultDimensions(self):
-        self.SetSize(wxSize(200, 250))        
+        self.SetSize(wx.Size(200, 250))
 
     def clear(self):
         self.selected = -1
@@ -164,7 +161,7 @@ class CollectionEditor(wxFrame, Utils.FrameRestorerMixin):
         self.itemList.InsertStringItem(idx, displayProp)
 
     def selectObject(self, idx):
-        wxxSELECTED = wxLIST_STATE_FOCUSED | wxLIST_STATE_SELECTED
+        wxxSELECTED = wx.LIST_STATE_FOCUSED | wx.LIST_STATE_SELECTED
         self.itemList.SetItemState(idx, wxxSELECTED, wxxSELECTED )
 
     def GetToolPopupPosition(self, id):
@@ -174,14 +171,14 @@ class CollectionEditor(wxFrame, Utils.FrameRestorerMixin):
         xPos = margins.x
         for tId in self.toolLst:
             if tId == id:
-                return wxPoint(xPos, margins.y + toolSize.y)
+                return wx.Point(xPos, margins.y + toolSize.y)
 
             if tId == -1:
                 xPos = xPos + tb.GetToolSeparation()
             else:
                 xPos = xPos + toolSize.x
 
-        return wxPoint(0, margins.y + toolSize.y)
+        return wx.Point(0, margins.y + toolSize.y)
 
     def PopupToolMenu(self, toolId, menu):
         self.PopupMenu(menu, self.GetToolPopupPosition(toolId))
@@ -189,7 +186,7 @@ class CollectionEditor(wxFrame, Utils.FrameRestorerMixin):
     def OnRefresh(self, event):
         self.collEditView.refreshCtrl(1)
 
-    _block_selected = false
+    _block_selected = False
     def OnObjectSelect(self, event):
         if not self._block_selected:
             self.selected = event.m_itemIndex
@@ -220,7 +217,7 @@ class CollectionEditor(wxFrame, Utils.FrameRestorerMixin):
             newIdx = self.collEditView.companion.moveItem(self.selected, -1)
             self.collEditView.refreshCtrl(1)
             self.selectObject(newIdx)
-            
+
     def OnDownClick(self, event):
         if (self.selected >= 0) and not self._block_selected \
               and (self.selected < self.itemList.GetItemCount() -1):
@@ -233,20 +230,20 @@ class CollectionEditor(wxFrame, Utils.FrameRestorerMixin):
             if self.collEditView.companion.defaultAction():
                 # block events so that switching actions aren't tripped up
                 # by relselection of collection items
-                self._block_selected = true
+                self._block_selected = True
                 event.Skip()
-                wxCallAfter(self._unblock)
+                wx.CallAfter(self._unblock)
             self.Raise()
-    
+
     def _unblock(self):
-        self._block_selected = false
+        self._block_selected = False
 
     def OnSeledClick(self, event):
         result = []
         for itemIdx in range(self.itemList.GetItemCount()):
-            if self.itemList.GetItemState(itemIdx, 0) & wxLIST_STATE_SELECTED:
+            if self.itemList.GetItemState(itemIdx, 0) & wx.LIST_STATE_SELECTED:
                 result.append(itemIdx)
-        wxMessageBox(`result`)
+        wx.MessageBox(`result`)
 
     def OnCloseWindow(self, event):
         if self.selected != -1:
@@ -256,20 +253,20 @@ class CollectionEditor(wxFrame, Utils.FrameRestorerMixin):
         event.Skip()
 
     def OnMoreNewClick(self, event):
-        menu = wxMenu()
+        menu = wx.Menu()
         self.additIds = {}
         for item, meth in self.additAdders:
             if item == '-':
                 menu.AppendSeparator()
             else:
-                wId = wxNewId()
+                wId = wx.NewId()
                 self.additIds[wId] = meth
-                EVT_MENU(self, wId, self.OnMoreNewItemClick)
+                self.Bind(wx.EVT_MENU, self.OnMoreNewItemClick, id=wId)
                 menu.Append(wId, item)
-        
+
         ts = self.toolBar.GetToolSize()
         # hardcoded to 2nd tool btn position
-        self.PopupMenu(menu, wxPoint(ts.x, ts.y))
+        self.PopupMenu(menu, wx.Point(ts.x, ts.y))
         menu.Destroy()
 
     def OnMoreNewItemClick(self, event):
@@ -288,8 +285,8 @@ class CollectionEditor(wxFrame, Utils.FrameRestorerMixin):
 
 class ImageListCollectionEditor(CollectionEditor):
     def __init__(self, parent, collEditView, additMeths=()):
-        CollectionEditor.__init__(self, parent, collEditView, additMeths, wxLC_REPORT)
-        self.itemList.SetImageList(collEditView.companion.control, wxIMAGE_LIST_SMALL)
+        CollectionEditor.__init__(self, parent, collEditView, additMeths, wx.LC_REPORT)
+        self.itemList.SetImageList(collEditView.companion.control, wx.IMAGE_LIST_SMALL)
 
     def addItem(self, idx, displayProp):
         self.itemList.InsertImageStringItem(idx, displayProp, idx)
@@ -301,14 +298,14 @@ class CollectionEditorView(InspectableViews.InspectableObjectView):
 
     def __init__(self, parent, inspector, model, companion):
         InspectableViews.InspectableObjectView.__init__(self, inspector,
-          model, None, (), -1, false)
+          model, None, (), -1, False)
 
         self.parent = parent
         self.frame = None
         self.companion = companion
         self.collectionMethod = companion.collectionMethod
         self.srcCollectionMethod = companion.collectionMethod
-        
+
         self.additMeths = companion.additionalMethods
 
     def initialise(self):
@@ -350,7 +347,7 @@ class CollectionEditorView(InspectableViews.InspectableObjectView):
             if lsts[1]:
                 return reduce(lambda a, b: a or b, lsts[1]) != ''
             else:
-                return false
+                return False
 
         if not module:
             module = self.model.getModule()
@@ -370,7 +367,7 @@ class CollectionEditorView(InspectableViews.InspectableObjectView):
             for imp in imps:
                 imp = imp.strip()
                 if imp:
-                    module.addImportStatement(imp, resourceImport=true)
+                    module.addImportStatement(imp, resourceImport=True)
 
         # add method to source
         if hasCode(newBody):
@@ -408,11 +405,11 @@ class CollectionEditorView(InspectableViews.InspectableObjectView):
     def copyCtrls(self, output):
         def hasCode(lst):
             lsts = Utils.split_seq(lst, '')
-#            return lsts[1] and reduce(lambda a, b: a or b, lsts[1]) != '' or false
+#            return lsts[1] and reduce(lambda a, b: a or b, lsts[1]) != '' or False
             if lsts[1]:
                 return reduce(lambda a, b: a or b, lsts[1]) != ''
             else:
-                return false
+                return False
 
         frmName=self.model.main
         self.companion.writeCollectionInitialiser(output, stripFrmId=frmName)
@@ -426,7 +423,7 @@ class CollectionEditorView(InspectableViews.InspectableObjectView):
         else:
             output = []
 
-    def refreshCtrl(self, keepSelected = false):
+    def refreshCtrl(self, keepSelected = False):
         self.deselectObject()
         if self.frame:
             if keepSelected: sel = self.frame.selected
@@ -442,9 +439,9 @@ class CollectionEditorView(InspectableViews.InspectableObjectView):
     def selectNone(self):
         if self.frame:
             for itemIdx in range(self.frame.itemList.GetItemCount()):
-                a = wxLIST_STATE_SELECTED
+                a = wx.LIST_STATE_SELECTED
                 state = self.frame.itemList.GetItemState(itemIdx, a)
-                self.frame.itemList.SetItemState(itemIdx, 0, wxLIST_STATE_SELECTED)
+                self.frame.itemList.SetItemState(itemIdx, 0, wx.LIST_STATE_SELECTED)
 
     def selectObject(self, idx):
         self.inspector.containment.cleanup()
@@ -453,7 +450,7 @@ class CollectionEditorView(InspectableViews.InspectableObjectView):
             self.inspector.pages.SetSelection(0)
 
         self.companion.setIndex(idx)
-        self.inspector.selectObject(self.companion, false, self,
+        self.inspector.selectObject(self.companion, False, self,
               sessionHandler=self.controllerView)
 
     def deselectObject(self):
@@ -473,22 +470,22 @@ class CollectionEditorView(InspectableViews.InspectableObjectView):
     def show(self):
         if not self.frame:
             if self.additMeths:
-                am = tuple([(methInfo[0], meth) 
+                am = tuple([(methInfo[0], meth)
                             for meth, methInfo in self.additMeths.items()])
             else:
                 am = ()
-            
+
             self.frame = self.companion.CollEditorFrame(self.parent, self, am)
             self.updateFrameTitle()
             self.refreshCtrl()
         self.frame.restore()
 
 if __name__ == '__main__':
-    app = wxPySimpleApp()
-    wxInitAllImageHandlers()
+    app = wx.PySimpleApp()
+    wx.InitAllImageHandlers()
     class PhonyCompanion: collectionMethod = 'None'
     class PhonyEditor: Disconnect = None
     cev = CollectionEditorView(None, None, None, PhonyCompanion())
     frame = CollectionEditor(None, cev, ('New item', '-', 'Append separator', 'New sub-menu'))
-    frame.Show(true)
+    frame.Show(True)
     app.MainLoop()

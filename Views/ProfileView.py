@@ -13,7 +13,7 @@ print 'importing Views.ProfileView'
 
 import marshal, os
 
-from wxPython.wx import *
+import wx
 
 from EditorViews import ListCtrlView, CloseableViewMix
 
@@ -26,7 +26,7 @@ class ProfileStatsView(ListCtrlView, CloseableViewMix):
 
     def __init__(self, parent, model):
         CloseableViewMix.__init__(self, 'stats')
-        ListCtrlView.__init__(self, parent, model, wxLC_REPORT | wxLC_SINGLE_SEL,
+        ListCtrlView.__init__(self, parent, model, wx.LC_REPORT | wx.LC_SINGLE_SEL,
           ( ('Goto line', self.OnGoto, self.gotoLineBmp, ''),
             ('-', None, '', ''),
             ('Callers (called this function)', self.OnCallers, self.callersBmp, ''),
@@ -53,13 +53,13 @@ class ProfileStatsView(ListCtrlView, CloseableViewMix):
         self.SetColumnWidth(6, 60)
         self.SetColumnWidth(7, 60)
 
-        EVT_LIST_COL_CLICK(self, -1, self.OnColClick)
+        self.Bind(wx.EVT_LIST_COL_CLICK, self.OnColClick)
 
-        self.sortAscend = false
+        self.sortAscend = False
         self.sortCol = 0
         self.all_callees = None
 
-        self.active = true
+        self.active = True
         self.stats = None
         self.profDir = ''
 
@@ -147,7 +147,7 @@ class ProfileStatsView(ListCtrlView, CloseableViewMix):
 
     def getStatIdx(self):
         for i in range(self.GetItemCount()):
-            if self.GetItemState(i, wxLIST_STATE_SELECTED):
+            if self.GetItemState(i, wx.LIST_STATE_SELECTED):
                 return self.GetItemData(i)
         idx = self.GetItemData(i)
         return idx
@@ -157,7 +157,7 @@ class ProfileStatsView(ListCtrlView, CloseableViewMix):
             idx = self.getStatIdx()
             key = self.statKeyList[idx]
             if key[0] == '<string>':
-                wxLogMessage("Eval'd or exec'd code, no module.")
+                wx.LogMessage("Eval'd or exec'd code, no module.")
                 return
             if os.path.isabs(key[0]):
                 model, controller = self.model.editor.openOrGotoModule(key[0])
@@ -177,19 +177,19 @@ class ProfileStatsView(ListCtrlView, CloseableViewMix):
 #            for name, number in callDct.items():
             called = map(lambda x: `x[1]`+': '+x[0][2]+' | '+\
               os.path.basename(os.path.splitext(x[0][0])[0]), callDct.items())
-            dlg = wxSingleChoiceDialog(self.model.editor,
+            dlg = wx.SingleChoiceDialog(self.model.editor,
               'Choose a function:',
               '%s was called by...' % self.statKeyList[idx][2], called)
             try:
-                if dlg.ShowModal() == wxID_OK:
+                if dlg.ShowModal() == wx.ID_OK:
                     idx = called.index(dlg.GetStringSelection())
                     key = callDct.keys()[idx]
 
                     for i in range(self.GetItemCount()):
                         if self.statKeyList[self.GetItemData(i)] == key:
                             self.SetItemState(i,
-                              wxLIST_STATE_SELECTED | wxLIST_STATE_FOCUSED,
-                              wxLIST_STATE_SELECTED | wxLIST_STATE_FOCUSED)
+                              wx.LIST_STATE_SELECTED | wx.LIST_STATE_FOCUSED,
+                              wx.LIST_STATE_SELECTED | wx.LIST_STATE_FOCUSED)
                             self.EnsureVisible(i)
             finally:
                 dlg.Destroy()
@@ -206,26 +206,26 @@ class ProfileStatsView(ListCtrlView, CloseableViewMix):
 
                 called = map(lambda x: `x[1]`+': '+x[0][2]+' | '+\
                  os.path.basename(os.path.splitext(x[0][0])[0]), callDct.items())
-                dlg = wxSingleChoiceDialog(self.model.editor,
+                dlg = wx.SingleChoiceDialog(self.model.editor,
                   'Choose a function:',
                   '%s called...' % self.statKeyList[idx][2], called)
                 try:
-                    if dlg.ShowModal() == wxID_OK:
+                    if dlg.ShowModal() == wx.ID_OK:
                         idx = called.index(dlg.GetStringSelection())
                         key = callDct.keys()[idx]
 
                         for i in range(self.GetItemCount()):
                             if self.statKeyList[self.GetItemData(i)] == key:
                                 self.SetItemState(i,
-                                  wxLIST_STATE_SELECTED | wxLIST_STATE_FOCUSED,
-                                  wxLIST_STATE_SELECTED | wxLIST_STATE_FOCUSED)
+                                  wx.LIST_STATE_SELECTED | wx.LIST_STATE_FOCUSED,
+                                  wx.LIST_STATE_SELECTED | wx.LIST_STATE_FOCUSED)
                                 self.EnsureVisible(i)
                 finally:
                     dlg.Destroy()
 
     def OnColClick(self, event):
         if self.sortCol != event.m_col:
-            self.sortAscend = false
+            self.sortAscend = False
         else:
             self.sortAscend = not self.sortAscend
 

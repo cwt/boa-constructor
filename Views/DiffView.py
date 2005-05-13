@@ -13,8 +13,8 @@
 import sys, linecache, traceback, shutil
 from cStringIO import StringIO
 
-from wxPython.stc import *
-from wxPython import wx
+import wx
+import wx.stc
 
 from ExternalLib import ndiff
 from EditorViews import EditorView, CloseableViewMix
@@ -63,16 +63,17 @@ class DiffView(EditorView):
     def genCustomPage(self, page):
         return self.report
 
-class PythonSourceDiffView(wxStyledTextCtrl, EditorView, PythonStyledTextCtrlMix, CloseableViewMix):
+class PythonSourceDiffView(wx.stc.StyledTextCtrl, EditorView, 
+                           PythonStyledTextCtrlMix, CloseableViewMix):
     viewName = 'Diff'
     refreshBmp = 'Images/Editor/Refresh.png'
     prevBmp = 'Images/Shared/Previous.png'
     nextBmp = 'Images/Shared/Next.png'
     def __init__(self, parent, model):
-        wxID_PYTHONSOURCEDIFFVIEW = wx.wxNewId()
+        wxID_PYTHONSOURCEDIFFVIEW = wx.NewId()
 
-        wxStyledTextCtrl.__init__(self, parent, wxID_PYTHONSOURCEDIFFVIEW,
-          style = wx.wxCLIP_CHILDREN | wx.wxSUNKEN_BORDER)
+        wx.stc.StyledTextCtrl.__init__(self, parent, wxID_PYTHONSOURCEDIFFVIEW,
+          style = wx.CLIP_CHILDREN | wx.SUNKEN_BORDER)
         PythonStyledTextCtrlMix.__init__(self, wxID_PYTHONSOURCEDIFFVIEW, 0)
         CloseableViewMix.__init__(self, 'diffs')
         EditorView.__init__(self, model,
@@ -83,7 +84,7 @@ class PythonSourceDiffView(wxStyledTextCtrl, EditorView, PythonStyledTextCtrlMix
             ('Next difference', self.OnNext, self.nextBmp, ''),
             ('Apply all changes', self.OnApplyAllChanges, '-', '') ), -1)
 
-        self.SetMarginType(1, wxSTC_MARGIN_SYMBOL)
+        self.SetMarginType(1, wx.stc.STC_MARGIN_SYMBOL)
         self.SetMarginWidth(1, 16)
         markIdnt, markBorder, markCenter = Preferences.STCDiffRemovedMarker
         self.MarkerDefine(uniqueFile1Mrk, markIdnt, markBorder, markCenter)
@@ -100,7 +101,7 @@ class PythonSourceDiffView(wxStyledTextCtrl, EditorView, PythonStyledTextCtrlMix
         self.currSearchLine = 1
 
         ## Install the handler for refreshs.
-        if wx.wxPlatform == '__WXGTK__' and Preferences.edUseCustomSTCPaintEvtHandler:
+        if wx.Platform == '__WXGTK__' and Preferences.edUseCustomSTCPaintEvtHandler:
             self.paint_handler = Utils.PaintEventHandler(self)
 
         self.active = True

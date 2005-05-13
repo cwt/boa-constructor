@@ -1,6 +1,6 @@
 #-----------------------------------------------------------------------------
 # Name:        StyledTextCtrls.py
-# Purpose:     Mixin classes to extend wxStyledTextCtrl
+# Purpose:     Mixin classes to extend wx.stc.StyledTextCtrl
 #
 # Author:      Riaan Booysen
 #
@@ -12,12 +12,12 @@
 
 import os, re, keyword, string
 
-from wxPython.wx import *
-from wxPython.stc import *
+import wx
+import wx.stc
 
-eols = {  wxSTC_EOL_CRLF : '\r\n',
-          wxSTC_EOL_CR : '\r',
-          wxSTC_EOL_LF : '\n'}
+eols = {  wx.stc.STC_EOL_CRLF : '\r\n',
+          wx.stc.STC_EOL_CR   : '\r',
+          wx.stc.STC_EOL_LF   : '\n'}
 
 import Preferences
 import methodparse
@@ -50,25 +50,29 @@ class FoldingStyledTextCtrlMix:
         self.__fold_margin = margin
         if Preferences.edSTCFolding:
             self.SetProperty('fold', '1')
-        self.SetMarginType(margin, wxSTC_MARGIN_SYMBOL)
-        self.SetMarginMask(margin, wxSTC_MASK_FOLDERS)
-        self.SetMarginSensitive(margin, true)
+        self.SetMarginType(margin, wx.stc.STC_MARGIN_SYMBOL)
+        self.SetMarginMask(margin, wx.stc.STC_MASK_FOLDERS)
+        self.SetMarginSensitive(margin, True)
         self.SetMarginWidth(margin, Preferences.STCFoldingMarginWidth)
 
         markIdnt, markBorder, markCenter = Preferences.STCFoldingClose
-        self.MarkerDefine(wxSTC_MARKNUM_FOLDER, markIdnt, markBorder, markCenter)
-        self.MarkerDefine(wxSTC_MARKNUM_FOLDEREND, wxSTC_MARK_EMPTY, markBorder, markCenter)
+        self.MarkerDefine(wx.stc.STC_MARKNUM_FOLDER, 
+              markIdnt, markBorder, markCenter)
+        self.MarkerDefine(wx.stc.STC_MARKNUM_FOLDEREND, 
+              wx.stc.STC_MARK_EMPTY, markBorder, markCenter)
 
         markIdnt, markBorder, markCenter = Preferences.STCFoldingOpen
-        self.MarkerDefine(wxSTC_MARKNUM_FOLDEROPEN, markIdnt, markBorder, markCenter)
-        self.MarkerDefine(wxSTC_MARKNUM_FOLDEROPENMID, wxSTC_MARK_EMPTY, markBorder, markCenter)
+        self.MarkerDefine(wx.stc.STC_MARKNUM_FOLDEROPEN, 
+              markIdnt, markBorder, markCenter)
+        self.MarkerDefine(wx.stc.STC_MARKNUM_FOLDEROPENMID, 
+              wx.stc.STC_MARK_EMPTY, markBorder, markCenter)
 
-        try: wxSTC_MARK_BACKGROUND
-        except: pass
-        else:
-            self.MarkerDefine(wxSTC_MARKNUM_FOLDERMIDTAIL, wxSTC_MARK_BACKGROUND, "white", "black")
-            self.MarkerDefine(wxSTC_MARKNUM_FOLDERSUB, wxSTC_MARK_BACKGROUND, "white", "black")
-            self.MarkerDefine(wxSTC_MARKNUM_FOLDERTAIL, wxSTC_MARK_BACKGROUND, "white", "black")
+        self.MarkerDefine(wx.stc.STC_MARKNUM_FOLDERMIDTAIL, 
+              wx.stc.STC_MARK_BACKGROUND, "white", "black")
+        self.MarkerDefine(wx.stc.STC_MARKNUM_FOLDERSUB, 
+              wx.stc.STC_MARK_BACKGROUND, "white", "black")
+        self.MarkerDefine(wx.stc.STC_MARKNUM_FOLDERTAIL, 
+              wx.stc.STC_MARK_BACKGROUND, "white", "black")
 
     def OnMarginClick(self, evt):
         # fold and unfold as needed
@@ -77,50 +81,50 @@ class FoldingStyledTextCtrlMix:
                 self.FoldAll()
             else:
                 lineClicked = self.LineFromPosition(evt.GetPosition())
-                if self.GetFoldLevel(lineClicked) & wxSTC_FOLDLEVELHEADERFLAG:
+                if self.GetFoldLevel(lineClicked) & wx.stc.STC_FOLDLEVELHEADERFLAG:
                     if evt.GetShift():
-                        self.SetFoldExpanded(lineClicked, true)
-                        self.Expand(lineClicked, true, true, 1)
+                        self.SetFoldExpanded(lineClicked, True)
+                        self.Expand(lineClicked, True, True, 1)
                     elif evt.GetControl():
                         if self.GetFoldExpanded(lineClicked):
-                            self.SetFoldExpanded(lineClicked, false)
-                            self.Expand(lineClicked, false, true, 0)
+                            self.SetFoldExpanded(lineClicked, False)
+                            self.Expand(lineClicked, False, True, 0)
                         else:
-                            self.SetFoldExpanded(lineClicked, true)
-                            self.Expand(lineClicked, true, true, 100)
+                            self.SetFoldExpanded(lineClicked, True)
+                            self.Expand(lineClicked, True, True, 100)
                     else:
                         self.ToggleFold(lineClicked)
 
 
     def FoldAll(self):
         lineCount = self.GetLineCount()
-        expanding = true
+        expanding = True
 
         # find out if we are folding or unfolding
         for lineNum in range(lineCount):
-            if self.GetFoldLevel(lineNum) & wxSTC_FOLDLEVELHEADERFLAG:
+            if self.GetFoldLevel(lineNum) & wx.stc.STC_FOLDLEVELHEADERFLAG:
                 expanding = not self.GetFoldExpanded(lineNum)
                 break
 
         lineNum = 0
         while lineNum < lineCount:
             level = self.GetFoldLevel(lineNum)
-            if level & wxSTC_FOLDLEVELHEADERFLAG and \
-               (level & wxSTC_FOLDLEVELNUMBERMASK) == wxSTC_FOLDLEVELBASE:
+            if level & wx.stc.STC_FOLDLEVELHEADERFLAG and \
+               (level & wx.stc.STC_FOLDLEVELNUMBERMASK) == wx.stc.STC_FOLDLEVELBASE:
 
                 if expanding:
-                    self.SetFoldExpanded(lineNum, true)
-                    lineNum = self.Expand(lineNum, true)
+                    self.SetFoldExpanded(lineNum, True)
+                    lineNum = self.Expand(lineNum, True)
                     lineNum = lineNum - 1
                 else:
                     lastChild = self.GetLastChild(lineNum, -1)
-                    self.SetFoldExpanded(lineNum, false)
+                    self.SetFoldExpanded(lineNum, False)
                     if lastChild > lineNum:
                         self.HideLines(lineNum+1, lastChild)
 
             lineNum = lineNum + 1
 
-    def Expand(self, line, doExpand, force=false, visLevels=0, level=-1):
+    def Expand(self, line, doExpand, force=False, visLevels=0, level=-1):
         lastChild = self.GetLastChild(line, level)
         line = line + 1
         while line <= lastChild:
@@ -136,19 +140,19 @@ class FoldingStyledTextCtrlMix:
             if level == -1:
                 level = self.GetFoldLevel(line)
 
-            if level & wxSTC_FOLDLEVELHEADERFLAG:
+            if level & wx.stc.STC_FOLDLEVELHEADERFLAG:
                 if force:
                     if visLevels > 1:
-                        self.SetFoldExpanded(line, true)
+                        self.SetFoldExpanded(line, True)
                     else:
-                        self.SetFoldExpanded(line, false)
+                        self.SetFoldExpanded(line, False)
                     line = self.Expand(line, doExpand, force, visLevels-1)
 
                 else:
                     if doExpand and self.GetFoldExpanded(line):
-                        line = self.Expand(line, true, force, visLevels-1)
+                        line = self.Expand(line, True, force, visLevels-1)
                     else:
-                        line = self.Expand(line, false, force, visLevels-1)
+                        line = self.Expand(line, False, force, visLevels-1)
             else:
                 line = line + 1;
 
@@ -180,16 +184,16 @@ class BrowseStyledTextCtrlMix:
         self.handCrs = 1
         self.stndCrs = 0
 
-        self.IndicatorSetStyle(indicator, wxSTC_INDIC_PLAIN)
-        self.IndicatorSetForeground(indicator, wxBLUE)
+        self.IndicatorSetStyle(indicator, wx.stc.STC_INDIC_PLAIN)
+        self.IndicatorSetForeground(indicator, wx.BLUE)
         self._indicator = indicator
         self.styleStart = 0
         self.styleLength = 0
-        self.ctrlDown = false
-        EVT_MOTION(self, self.OnBrowseMotion)
-        EVT_LEFT_DOWN(self, self.OnBrowseClick)
-        EVT_KEY_DOWN(self, self.OnKeyDown)
-        EVT_KEY_UP(self, self.OnKeyUp)
+        self.ctrlDown = False
+        self.Bind(wx.EVT_MOTION, self.OnBrowseMotion)
+        self.Bind(wx.EVT_LEFT_DOWN, self.OnBrowseClick)
+        self.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
+        self.Bind(wx.EVT_KEY_UP, self.OnKeyUp)
 
     def doClearBrwsLn(self):
         self.styleStart, self.styleLength = \
@@ -197,28 +201,28 @@ class BrowseStyledTextCtrlMix:
 
     def BrowseClick(self, word, line, lineNo, start, style):
         """Called when a link is clicked.
-           Override to use, return true if click is swallowed """
-        return false
+           Override to use, return True if click is swallowed """
+        return False
 
     def StyleVeto(self, style):
-        return false
+        return False
 
     # XXX Setting the cursor irrevocably changes the cursor for the whole STC
     def underlineWord(self, start, length):
         #self.SetCursor(self.handCrs)
-        self.SetLexer(wxSTC_LEX_NULL)
+        self.SetLexer(wx.stc.STC_LEX_NULL)
 
-        self.StartStyling(start, wxSTC_INDICS_MASK)
-        self.SetStyling(length, wxSTC_INDIC0_MASK)
+        self.StartStyling(start, wx.stc.STC_INDICS_MASK)
+        self.SetStyling(length, wx.stc.STC_INDIC0_MASK)
         return start, length
 
     def clearUnderline(self, start, length):
         #self.SetCursor(self.stndCrs)
 
-        self.StartStyling(start, wxSTC_INDICS_MASK)
+        self.StartStyling(start, wx.stc.STC_INDICS_MASK)
         self.SetStyling(length, 0)
-        self.SetLexer(wxSTC_LEX_PYTHON)
-        self.Refresh(false)
+        self.SetLexer(wx.stc.STC_LEX_PYTHON)
+        self.Refresh(False)
         return 0, 0
 
     def getBrowsableText(self, line, piv, lnStPs):
@@ -229,7 +233,7 @@ class BrowseStyledTextCtrlMix:
         #check if words should be underlined
         if event.ControlDown():
             mp = event.GetPosition()
-            pos = self.PositionFromPoint(wxPoint(mp.x, mp.y))
+            pos = self.PositionFromPoint(wx.Point(mp.x, mp.y))
 
             stl = self.GetStyleAt(pos) & 31
 
@@ -282,12 +286,12 @@ class BrowseStyledTextCtrlMix:
         event.Skip()
 
     def OnKeyDown(self, event):
-        if event.ControlDown(): self.ctrlDown = true
+        if event.ControlDown(): self.ctrlDown = True
         event.Skip()
 
     def OnKeyUp(self, event):
         if self.ctrlDown and (not event.ControlDown()):
-            self.ctrlDown = false
+            self.ctrlDown = False
             if self.styleLength > 0:
                 self.styleStart, self.styleLength = \
                   self.clearUnderline(self.styleStart, self.styleLength)
@@ -321,8 +325,8 @@ class AutoCompleteCodeHelpSTCMix(CodeHelpStyledTextCtrlMix):
     """
 
     def __init__(self):
-        self.AutoCompSetIgnoreCase(true)
-        self.AutoCompSetCancelAtStart(false)
+        self.AutoCompSetIgnoreCase(True)
+        self.AutoCompSetCancelAtStart(False)
 
     def codeCompCheck(self):
         pos, lnNo, lnStPs, line, piv = self.getCurrLineInfo()
@@ -372,7 +376,8 @@ class AutoCompleteCodeHelpSTCMix(CodeHelpStyledTextCtrlMix):
             else:
                 break
 
-        self.AutoCompShow(offset, ' '.join(names))
+        if names:
+            self.AutoCompShow(offset, ' '.join(names))
         #self.AutoCompSelect(matchWord)
 
 class CallTipCodeHelpSTCMix(CodeHelpStyledTextCtrlMix):
@@ -467,9 +472,9 @@ class DebuggingViewSTCMix:
         self.tryLoadBreakpoints()
 
     def setupDebuggingMargin(self, symbolMrg):
-        self.SetMarginType(symbolMrg, wxSTC_MARGIN_SYMBOL)
+        self.SetMarginType(symbolMrg, wx.stc.STC_MARGIN_SYMBOL)
         self.SetMarginWidth(symbolMrg, Preferences.STCSymbolMarginWidth)
-        self.SetMarginSensitive(symbolMrg, true)
+        self.SetMarginSensitive(symbolMrg, True)
 
         markIdnt, markBorder, markCenter = Preferences.STCBreakpointMarker
         self.MarkerDefine(self.brkPtMrk, markIdnt, markBorder, markCenter)
@@ -484,13 +489,13 @@ class DebuggingViewSTCMix:
         self.MarkerDefine(self.disabledBrkPtMrk, markIdnt, markBorder, markCenter)
 
         try:
-            wxSTC_MARK_BACKGROUND
+            wx.stc.STC_MARK_BACKGROUND
         except:
-            self.MarkerDefine(self.stepPosBackMrk, wxSTC_MARK_EMPTY,
-                              wxColour(255, 255, 255), wxColour(128, 128, 255))
+            self.MarkerDefine(self.stepPosBackMrk, wx.stc.STC_MARK_EMPTY,
+                              wx.Colour(255, 255, 255), wx.Colour(128, 128, 255))
         else:
-            self.MarkerDefine(self.stepPosBackMrk, wxSTC_MARK_BACKGROUND,
-                              wxColour(255, 255, 255), wxColour(220, 220, 255))
+            self.MarkerDefine(self.stepPosBackMrk, wx.stc.STC_MARK_BACKGROUND,
+                              wx.Colour(255, 255, 255), wx.Colour(220, 220, 255))
 
 
     def setInitialBreakpoints(self):
@@ -617,8 +622,8 @@ class DebuggingViewSTCMix:
                 # XXX also check that module has been imported
                 # XXX this should apply; with or without breakpoint
                 if debugger.running and \
-                      not modType & wxSTC_PERFORMED_UNDO:
-                    wxLogWarning('Adding or removing lines from the '
+                      not modType & wx.stc.STC_PERFORMED_UNDO:
+                    wx.LogWarning('Adding or removing lines from the '
                                  'debugger will cause the source and the '
                                  'debugger to be out of sync.'
                                  '\nPlease undo this action.')
@@ -678,7 +683,7 @@ class LanguageSTCMix:
               olsg, ds, self.lexer, self.keywords, bi) = \
               self.getSTCStyles(config, language)
 
-        #self.SetEOLMode(wxSTC_EOL_LF)
+        #self.SetEOLMode(wx.stc.STC_EOL_LF)
         #self.eol = '\n'
         self.SetBufferedDraw(Preferences.STCBufferedDraw)
         self.SetCaretPeriod(Preferences.STCCaretPeriod)
@@ -699,10 +704,10 @@ class LanguageSTCMix:
 
         if marginNumWidth:
             self.SetMargins(1, 1)
-            self.SetMarginType(marginNumWidth[0], wxSTC_MARGIN_NUMBER)
+            self.SetMarginType(marginNumWidth[0], wx.stc.STC_MARGIN_NUMBER)
             self.SetMarginWidth(marginNumWidth[0], marginNumWidth[1])
 
-        EVT_STC_UPDATEUI(self, wId, self.OnUpdateUI)
+        self.Bind(wx.stc.EVT_STC_UPDATEUI, self.OnUpdateUI, id=wId)
 
     def setStyles(self, commonOverride=None):
         commonDefs = {}
@@ -717,32 +722,32 @@ class LanguageSTCMix:
         """ Override to set values directly """
         return STCStyleEditor.initFromConfig(config, language)
 
- 
-    keymap={'euro': {226: chr(124), 69: chr(128), 81: chr(64), 77: chr(181), 
-                     48: chr(125), 337: chr(126), 50: chr(178), 51: chr(179), 
+
+    keymap={'euro': {226: chr(124), 69: chr(128), 81: chr(64), 77: chr(181),
+                     48: chr(125), 337: chr(126), 50: chr(178), 51: chr(179),
                      55: chr(123), 56: chr(91), 57: chr(93), 219: chr(92),
                     },
-            'swiss-german': {192: chr(93), 226: chr(92), 50: chr(64), 
-                             51: chr(35), 55: chr(124), 186: chr(91), 
-                             219: chr(96), 220: chr(123), 221: chr(126), 
+            'swiss-german': {192: chr(93), 226: chr(92), 50: chr(64),
+                             51: chr(35), 55: chr(124), 186: chr(91),
+                             219: chr(96), 220: chr(123), 221: chr(126),
                              223: chr(125),
                             },
-            'italian': {192: chr(64), 337: chr(93), 186: chr(91), 219: chr(123), 
+            'italian': {192: chr(64), 337: chr(93), 186: chr(91), 219: chr(123),
                         221: chr(125), 222: chr(35),
-                       }, 
-            'france': {226: chr(54), 48: chr(64), 337: chr(125), 50: chr(126), 
-                       51: chr(35), 52: chr(123), 53: chr(91), 54: chr(124), 
+                       },
+            'france': {226: chr(54), 48: chr(64), 337: chr(125), 50: chr(126),
+                       51: chr(35), 52: chr(123), 53: chr(91), 54: chr(124),
                        55: chr(96), 56: chr(92), 219: chr(93),
-                      }, 
-           }     
-    def handleSpecialEuropeanKeys(self, event, countryKeymap='euro'):   
-        key = event.KeyCode()   
-        keymap = self.keymap[countryKeymap]   
-        if event.AltDown() and event.ControlDown() and keymap.has_key(key):   
-            currPos = self.GetCurrentPos()   
-            self.InsertText(currPos, keymap[key])   
-            self.SetCurrentPos(self.GetCurrentPos()+1)   
-            self.SetSelectionStart(self.GetCurrentPos()) 
+                      },
+           }
+    def handleSpecialEuropeanKeys(self, event, countryKeymap='euro'):
+        key = event.KeyCode()
+        keymap = self.keymap[countryKeymap]
+        if event.AltDown() and event.ControlDown() and keymap.has_key(key):
+            currPos = self.GetCurrentPos()
+            self.InsertText(currPos, keymap[key])
+            self.SetCurrentPos(self.GetCurrentPos()+1)
+            self.SetSelectionStart(self.GetCurrentPos())
 
 
 stcConfigPath = os.path.join(Preferences.rcPath, 'stc-styles.rc.cfg')
@@ -753,7 +758,7 @@ class PythonStyledTextCtrlMix(LanguageSTCMix):
 
         self.keywords = self.keywords + ' yield None'
         try: True
-        except NameError: self.keywords = self.keywords + ' true false'
+        except NameError: self.keywords = self.keywords + ' True False'
         else: self.keywords = self.keywords + ' True False'
 
         self.setStyles()
@@ -799,7 +804,7 @@ class PythonStyledTextCtrlMix(LanguageSTCMix):
             self.BraceBadLight(braceAtCaret)
         else:
             self.BraceHighlight(braceAtCaret, braceOpposite)
-            # self.Refresh(false)
+            # self.Refresh(False)
 
     def doAutoIndent(self, prevline, pos):
         stripprevline = prevline.strip()

@@ -21,7 +21,8 @@ try:
 except ImportError:
     from filecmp import cmp
 
-from wxPython.wx import *
+import wx
+import wx.stc
 
 from EditorViews import ListCtrlView, ModuleDocView, wxwAppModuleTemplate, \
                         ToDoView, CloseableViewMix, FindResultsAdderMixin
@@ -34,22 +35,22 @@ class AppFindResults(ListCtrlView, CloseableViewMix):
     viewName = 'Application Find Results'
     def __init__(self, parent, model):
         CloseableViewMix.__init__(self, 'find results')
-        ListCtrlView.__init__(self, parent, model, wxLC_REPORT,
+        ListCtrlView.__init__(self, parent, model, wx.LC_REPORT,
           ( ('Goto match', self.OnGoto, self.gotoLineBmp, ''),
             ('Rerun query', self.OnRerun, '-', ''),
           ) +
             self.closingActionItems, 0)
 
         self.InsertColumn(0, 'Module', width = 100)
-        self.InsertColumn(1, 'Line no', wxLIST_FORMAT_CENTRE, 40)
-        self.InsertColumn(2, 'Col', wxLIST_FORMAT_CENTRE, 40)
+        self.InsertColumn(1, 'Line no', wx.LIST_FORMAT_CENTRE, 40)
+        self.InsertColumn(2, 'Col', wx.LIST_FORMAT_CENTRE, 40)
         self.InsertColumn(3, 'Text', width = 550)
 
         self.results = {}
         self.listResultIdxs = []
         self.tabName = 'Results'
         self.findPattern = ''
-        self.active = true
+        self.active = True
         self.model = model
 
     def refreshCtrl(self):
@@ -95,7 +96,7 @@ class AppView(ListCtrlView, FindResultsAdderMixin):
 
     viewName = 'Application'
     def __init__(self, parent, model):
-        ListCtrlView.__init__(self, parent, model, wxLC_REPORT,
+        ListCtrlView.__init__(self, parent, model, wx.LC_REPORT,
           (('Open', self.OnOpen, self.openBmp, ''),
            ('-', None, '', ''),
            ('Add', self.OnAdd, self.addModBmp, 'Insert'),
@@ -109,17 +110,17 @@ class AppView(ListCtrlView, FindResultsAdderMixin):
 
         self.InsertColumn(0, 'Module', width = 150)
         self.InsertColumn(1, 'Type', width = 50)
-#        self.InsertColumn(2, 'Autocreate', wxLIST_FORMAT_CENTRE, 50)
+#        self.InsertColumn(2, 'Autocreate', wx.LIST_FORMAT_CENTRE, 50)
         self.InsertColumn(2, 'Description', width = 150)
         self.InsertColumn(3, 'Relative path', width = 220)
 
         self.sortOnColumns = [0, 1, 3]
 
-        self.SetImageList(model.editor.modelImageList, wxIMAGE_LIST_SMALL)
+        self.SetImageList(model.editor.modelImageList, wx.IMAGE_LIST_SMALL)
 
         self.lastSearchPattern = ''
-        self.active = true
-        self.canExplore = true
+        self.active = True
+        self.canExplore = True
         self.model = model
 
 #        EVT_LIST_BEGIN_DRAG(self, self.GetId(), self.OnDrag)
@@ -172,10 +173,10 @@ class AppView(ListCtrlView, FindResultsAdderMixin):
 
     def OnEdit(self, event):
         name = self.GetItemText(self.selected)
-        dlg = wxTextEntryDialog(self, 'Set the description of the module',
+        dlg = wx.TextEntryDialog(self, 'Set the description of the module',
             'Edit item', self.model.modules[name][1])
         try:
-            if dlg.ShowModal() == wxID_OK:
+            if dlg.ShowModal() == wx.ID_OK:
                 answer = dlg.GetValue()
                 self.model.editModule(name, name, self.model.modules[name][0],
                       answer)
@@ -189,15 +190,15 @@ class AppView(ListCtrlView, FindResultsAdderMixin):
             if not self.model.modules[self.GetItemText(self.selected)][0]:
                 self.model.removeModule(self.GetItemText(self.selected))
             else:
-                wxMessageBox('Cannot remove the main frame of an application',
+                wx.MessageBox('Cannot remove the main frame of an application',
                     'Module remove error')
 
     def OnImports(self, events):
-        wxBeginBusyCursor()
+        wx.BeginBusyCursor()
         try:
             self.model.showImportsView()
         finally:
-            wxEndBusyCursor()
+            wx.EndBusyCursor()
 
         if self.model.views.has_key('Imports'):
             self.model.views['Imports'].focus()
@@ -270,7 +271,7 @@ class AppCompareView(ListCtrlView, CloseableViewMix):
     viewName = 'App. Compare'
     def __init__(self, parent, model):
         CloseableViewMix.__init__(self, 'compare results')
-        ListCtrlView.__init__(self, parent, model, wxLC_REPORT,
+        ListCtrlView.__init__(self, parent, model, wx.LC_REPORT,
           ( ('Do diff', self.OnGoto, self.gotoLineBmp, ''), ) +\
            self.closingActionItems, 0)
 
@@ -281,7 +282,7 @@ class AppCompareView(ListCtrlView, CloseableViewMix):
         self.results = {}
         self.listResultIdxs = []
         self.tabName = 'App. Compare'
-        self.active = true
+        self.active = True
         self.model = model
         self.compareTo = ''
 
@@ -289,7 +290,7 @@ class AppCompareView(ListCtrlView, CloseableViewMix):
         ListCtrlView.refreshCtrl(self)
 
         from Models.PythonEditorModels import BaseAppModel
-        otherApp = BaseAppModel('', self.compareTo, '', self.model.editor, true, {})
+        otherApp = BaseAppModel('', self.compareTo, '', self.model.editor, True, {})
 
         from Explorers.Explorer import openEx
         otherApp.transport = openEx(self.compareTo)
@@ -341,7 +342,7 @@ class AppToDoView(ListCtrlView):
     gotoLineBmp = 'Images/Editor/GotoLine.png'
 
     def __init__(self, parent, model):
-        ListCtrlView.__init__(self, parent, model, wxLC_REPORT,
+        ListCtrlView.__init__(self, parent, model, wx.LC_REPORT,
           (('Goto file', self.OnGoto, self.gotoLineBmp, ''),), 0)
 
         self.sortOnColumns = [0, 1]
@@ -354,7 +355,7 @@ class AppToDoView(ListCtrlView):
         self.SetColumnWidth(2, 350)
 
         self.todos = []
-        self.active = true
+        self.active = True
 
     def refreshCtrl(self):
         ListCtrlView.refreshCtrl(self)
@@ -426,8 +427,8 @@ class TextInfoFileView(SourceViews.EditorStyledTextCtrl):
     def __init__(self, parent, model):
         SourceViews.EditorStyledTextCtrl.__init__(self, parent, -1,
           model, (), 0)
-        self.active = true
-        SourceViews.EVT_STC_UPDATEUI(self, self.GetId(), self.OnUpdateUI)
+        self.active = True
+        wx.stc.EVT_STC_UPDATEUI(self, self.GetId(), self.OnUpdateUI)
         self.model.loadTextInfo(self.viewName)
 
     def OnUpdateUI(self, event):

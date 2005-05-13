@@ -650,7 +650,7 @@ class STCStyleEditDlg(wx.Dialog):
             # Font
             if fixedWidthOnly is None:
                 fixedWidthOnly = self.fixedWidthChk.GetValue()
-            fontEnum =wx.FontEnumerator()
+            fontEnum = wx.FontEnumerator()
             fontEnum.EnumerateFacenames(fixedWidthOnly=fixedWidthOnly)
             fontNameList = fontEnum.GetFacenames()
             fontNameList.sort()
@@ -715,10 +715,10 @@ class STCStyleEditDlg(wx.Dialog):
 
 #---Colour methods--------------------------------------------------------------
     def getColourDlg(self, colour, title=''):
-        data =wx.ColourData()
+        data = wx.ColourData()
         data.SetColour(colour)
         data.SetChooseFull(True)
-        dlg =wx.ColourDialog(self, data)
+        dlg = wx.ColourDialog(self, data)
         try:
             dlg.SetTitle(title)
             if dlg.ShowModal() == wx.ID_OK:
@@ -931,7 +931,7 @@ class STCStyleEditDlg(wx.Dialog):
         self.EndModal(wx.ID_CANCEL)
 
     def OnCommondefsbtnButton(self, event):
-        dlg =wx.TextEntryDialog(self, 'Edit common definitions dictionary',
+        dlg = wx.TextEntryDialog(self, 'Edit common definitions dictionary',
               'Common definitions', pprint.pformat(self.commonDefs),
               style=wx.TE_MULTILINE | wx.OK | wx.CANCEL | wx.CENTRE)
         try:
@@ -1056,21 +1056,21 @@ class STCStyleEditDlg(wx.Dialog):
 
 class CommonDefDlg(wx.Dialog):
     def _init_ctrls(self, prnt):
-        wx.Dialog.__init__(self, id = wxID_COMMONDEFDLG, name = 'CommonDefDlg', parent = prnt, pos =wx.Point(398, 249), size =wx.Size(192, 220), style=wx.DEFAULT_DIALOG_STYLE, title = 'Common definition')
+        wx.Dialog.__init__(self, id = wxID_COMMONDEFDLG, name = 'CommonDefDlg', parent = prnt, pos = wx.Point(398, 249), size = wx.Size(192, 220), style= wx.DEFAULT_DIALOG_STYLE, title = 'Common definition')
         self.SetClientSize(wx.Size(184, 200))
 
-        self.propTypeRBx =wx.RadioBox(choices = ['Colour value', 'Font face', 'Size value'], id = wxID_COMMONDEFDLGPROPTYPERBX, label = 'Property type', majorDimension = 1, name = 'propTypeRBx', parent = self, point =wx.Point(8, 8), size =wx.Size(168, 92), style=wx.RA_SPECIFY_COLS)
+        self.propTypeRBx = wx.RadioBox(choices = ['Colour value', 'Font face', 'Size value'], id = wxID_COMMONDEFDLGPROPTYPERBX, label = 'Property type', majorDimension = 1, name = 'propTypeRBx', parent = self, point = wx.Point(8, 8), size = wx.Size(168, 92), style= wx.RA_SPECIFY_COLS)
         self.propTypeRBx.SetSelection(self._propTypeIdx)
 
-        self.staticBox1 =wx.StaticBox(id = wxID_COMMONDEFDLGSTATICBOX1, label = 'Name', name = 'staticBox1', parent = self, pos =wx.Point(8, 108), size =wx.Size(168, 46), style = 0)
+        self.staticBox1 = wx.StaticBox(id = wxID_COMMONDEFDLGSTATICBOX1, label = 'Name', name = 'staticBox1', parent = self, pos = wx.Point(8, 108), size = wx.Size(168, 46), style = 0)
 
-        self.comDefNameTC =wx.TextCtrl(id = wxID_COMMONDEFDLGCOMDEFNAMETC, name = 'comDefNameTC', parent = self, pos =wx.Point(16, 124), size =wx.Size(152, 21), style = 0, value = '')
+        self.comDefNameTC = wx.TextCtrl(id = wxID_COMMONDEFDLGCOMDEFNAMETC, name = 'comDefNameTC', parent = self, pos = wx.Point(16, 124), size = wx.Size(152, 21), style = 0, value = '')
         self.comDefNameTC.SetLabel(self._comDefName)
 
-        self.okBtn =wx.Button(id = wxID_COMMONDEFDLGOKBTN, label = 'OK', name = 'okBtn', parent = self, pos =wx.Point(8, 164), size =wx.Size(80, 23), style = 0)
+        self.okBtn = wx.Button(id = wxID_COMMONDEFDLGOKBTN, label = 'OK', name = 'okBtn', parent = self, pos = wx.Point(8, 164), size = wx.Size(80, 23), style = 0)
         self.okBtn.Bind(wx.EVT_BUTTON, self.OnOkbtnButton, id=wxID_COMMONDEFDLGOKBTN)
 
-        self.cancelBtn =wx.Button(id = wxID_COMMONDEFDLGCANCELBTN, label = 'Cancel', name = 'cancelBtn', parent = self, pos =wx.Point(96, 164), size =wx.Size(80, 23), style = 0)
+        self.cancelBtn = wx.Button(id = wxID_COMMONDEFDLGCANCELBTN, label = 'Cancel', name = 'cancelBtn', parent = self, pos = wx.Point(96, 164), size = wx.Size(80, 23), style = 0)
         self.cancelBtn.Bind(wx.EVT_BUTTON, self.OnCancelbtnButton, id=wxID_COMMONDEFDLGCANCELBTN)
 
     def __init__(self, parent, name='', propIdx=0):
@@ -1221,7 +1221,7 @@ def readPyValFromConfig(conf, name):
 def initFromConfig(configFile, lang):
     if not os.path.exists(configFile):
         raise Exception, 'Config file %s not found'%configFile
-    cfg =wx.FileConfig(localFilename=configFile, style=wx.CONFIG_USE_LOCAL_FILE)
+    cfg = wx.FileConfig(localFilename=configFile, style= wx.CONFIG_USE_LOCAL_FILE)
     cfg.SetExpandEnvVars(False)
 
     # read in all group names for this language
@@ -1314,14 +1314,9 @@ def initSTC(stc, config, lang):
 
 #-------------------------------------------------------------------------------
 if __name__ == '__main__':
-    try:
-        from wxPython.help import *
-    except ImportError: # >= 2.5
-        pass
+    app = wx.PySimpleApp()
 
-    app =wx.PySimpleApp()
-
-    provider =wx.SimpleHelpProvider()
+    provider = wx.SimpleHelpProvider()
     wx.HelpProvider.Set(provider)
 
     home = os.environ.get('HOME')

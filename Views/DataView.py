@@ -13,7 +13,7 @@ print 'importing Views.DataView'
 
 import os, copy
 
-from wxPython.wx import *
+import wx
 
 import Preferences, Utils
 
@@ -23,15 +23,15 @@ import PaletteMapping, PaletteStore, Help
 from InspectableViews import InspectableObjectView, DesignerError
 import ObjCollection
 
-class DataView(wxListView, InspectableObjectView):
+class DataView(wx.ListView, InspectableObjectView):
     viewName = 'Data'
     collectionMethod = sourceconst.init_utils
     postBmp = 'Images/Inspector/Post.png'
     cancelBmp = 'Images/Inspector/Cancel.png'
     def __init__(self, parent, inspector, model, compPal):
-        [self.wxID_DATAVIEW] = map(lambda _init_ctrls: wxNewId(), range(1))
-        wxListView.__init__(self, parent, self.wxID_DATAVIEW, size=(0,0), 
-              style=Preferences.dataViewListStyle | wxSUNKEN_BORDER)
+        [self.wxID_DATAVIEW] = [wx.NewId() for _init_ctrls in range(1)]
+        wx.ListView.__init__(self, parent, self.wxID_DATAVIEW, size=(0,0),
+              style=Preferences.dataViewListStyle | wx.SUNKEN_BORDER)
 
         InspectableObjectView.__init__(self, inspector, model, compPal,
           (('Default editor', self.OnDefaultEditor, '-', ''),
@@ -48,24 +48,24 @@ class DataView(wxListView, InspectableObjectView):
            ('Context help', self.OnContextHelp, '-', 'ContextHelp'),
            ), 0)
 
-        self.il = wxImageList(24, 24)
-        self.SetImageList(self.il, wxIMAGE_LIST_SMALL)
+        self.il = wx.ImageList(24, 24)
+        self.SetImageList(self.il, wx.IMAGE_LIST_SMALL)
 
-        EVT_LEFT_DOWN(self, self.OnSelectOrAdd)
-        EVT_LIST_ITEM_SELECTED(self, self.wxID_DATAVIEW, self.OnObjectSelect)
-        EVT_LIST_ITEM_DESELECTED(self, self.wxID_DATAVIEW, self.OnObjectDeselect)
+        self.Bind(wx.EVT_LEFT_DOWN, self.OnSelectOrAdd)
+        self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.OnObjectSelect, id=self.wxID_DATAVIEW)
+        self.Bind(wx.EVT_LIST_ITEM_DESELECTED, self.OnObjectDeselect, id=self.wxID_DATAVIEW)
 
         self.selection = []
-        self.vetoSelect = false
+        self.vetoSelect = False
 
-        self.active = true
+        self.active = True
 
     def initialize(self):
         if self.model.objectCollections.has_key(self.collectionMethod):
             objCol = self.model.objectCollections[self.collectionMethod]
             objCol.indexOnCtrlName()
         else:
-            objCol = ObjCollection.ObjectCollection() 
+            objCol = ObjCollection.ObjectCollection()
 
         deps, depLinks = {}, {}
         self.initObjectsAndCompanions(objCol.creators, objCol, deps, depLinks)
@@ -94,11 +94,11 @@ class DataView(wxListView, InspectableObjectView):
             className = ctrl.class_name
             try:
                 ClassObj = PaletteMapping.evalCtrl(className)
-            except NameError:    
+            except NameError:
                 if className in self.model.customClasses:
                     ClassObj = self.model.customClasses[className]
                 else:
-                    idx = self.il.Add(PaletteStore.bitmapForComponent(className, 
+                    idx = self.il.Add(PaletteStore.bitmapForComponent(className,
                           'Component'))
             else:
                 className = ClassObj.__name__
@@ -108,7 +108,7 @@ class DataView(wxListView, InspectableObjectView):
 
             self.InsertImageStringItem(self.GetItemCount(), '%s : %s' % (
                   ctrl.comp_name, className), idx)
-        self.opened = true
+        self.opened = True
 
     def saveCtrls(self, definedCtrls, module=None, collDeps=None):
         InspectableObjectView.saveCtrls(self, definedCtrls, module, collDeps)
@@ -139,14 +139,14 @@ class DataView(wxListView, InspectableObjectView):
 
     def selectNone(self):
         for itemIdx in range(self.GetItemCount()):
-            a = wxLIST_STATE_SELECTED
+            a = wx.LIST_STATE_SELECTED
             state = self.GetItemState(itemIdx, a)
             self.SetItemState(itemIdx, 0, a)
 
     def selectCtrls(self, ctrls):
         for itemIdx in range(self.GetItemCount()):
             name = self.GetItemText(itemIdx).split(' : ')[0]
-            a = wxLIST_STATE_SELECTED
+            a = wx.LIST_STATE_SELECTED
             if name in ctrls: f = a
             else: f = 0
             state = self.GetItemState(itemIdx, a)
@@ -184,7 +184,7 @@ class DataView(wxListView, InspectableObjectView):
         selected = []
         for itemIdx in range(self.GetItemCount()):
             name = self.GetItemText(itemIdx).split(' : ')[0]
-            state = self.GetItemState(itemIdx, wxLIST_STATE_SELECTED)
+            state = self.GetItemState(itemIdx, wx.LIST_STATE_SELECTED)
             if state:
                 selected.append( (name, itemIdx) )
         return selected
@@ -199,8 +199,8 @@ class DataView(wxListView, InspectableObjectView):
                 view = self.model.views[CtrlCompanion.host]
                 view.focus()
                 view.OnSelectOrAdd()
-                return 
-            
+                return
+
             try:
                 objName = self.newObject(CtrlClass, CtrlCompanion)
             except DesignerError, err:
@@ -218,7 +218,7 @@ class DataView(wxListView, InspectableObjectView):
     def updateSelection(self):
         if len(self.selection) == 1:
             self.inspector.selectObject(self.objects[self.selection[0][0]][0],
-                  false, sessionHandler=self.controllerView)
+                  False, sessionHandler=self.controllerView)
         else:
             self.inspector.cleanup()
 
@@ -242,13 +242,13 @@ class DataView(wxListView, InspectableObjectView):
 
     def OnPost(self, event):
         """ Close all designers and save all changes """
-        self.controllerView.saveOnClose = true
+        self.controllerView.saveOnClose = True
         self.close()
 
     def OnCancel(self, event):
         """ Close all designers and discard all changes """
-        self.controllerView.saveOnClose = false
-        self.controllerView.confirmCancel = true
+        self.controllerView.saveOnClose = False
+        self.controllerView.confirmCancel = True
         self.close()
 
     def OnCutSelected(self, event):
@@ -279,12 +279,12 @@ class DataView(wxListView, InspectableObjectView):
             self.selectCtrls(pasted)
 
     def OnControlDelete(self, event):
-        self.vetoSelect = true
+        self.vetoSelect = True
         try:
             for name, idx in self.selection:
                 self.deleteCtrl(name)
         finally:
-            self.vetoSelect = false
+            self.vetoSelect = False
 
         self.selection = self.getSelectedNames()
         self.updateSelection()
@@ -297,11 +297,10 @@ class DataView(wxListView, InspectableObjectView):
         Help.showCtrlHelp(self.objects[self.selection[0][0]][0].GetClass())
 
     def OnRecreateSelected(self, event):
-        wxLogError('Recreating not supported in the %s view'%self.viewName)
+        wx.LogError('Recreating not supported in the %s view'%self.viewName)
 
     def OnCreationOrder(self, event):
         names = [name for name, idx in self.getSelectedNames()]
         self.showCreationOrderDlg(None)
         self.refreshCtrl()
         self.selectCtrls(names)
-

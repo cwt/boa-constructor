@@ -14,26 +14,26 @@
 import sys
 from EditorViews import EditorView
 
-from wxPython.wx import *
+import wx
 
 from xml.parsers import expat
 parsermodule = expat
 
-class XMLTreeView(wxTreeCtrl, EditorView):
+class XMLTreeView(wx.TreeCtrl, EditorView):
     viewName = 'XMLTree'
     gotoLineBmp = 'Images/Editor/GotoLine.png'
 
     def __init__(self, parent, model):
-        id = wxNewId()
-        wxTreeCtrl.__init__(self, parent, id)#, style = wxTR_HAS_BUTTONS | wxSUNKEN_BORDER)
+        id = wx.NewId()
+        wx.TreeCtrl.__init__(self, parent, id)#, style=wx.TR_HAS_BUTTONS | wx.SUNKEN_BORDER)
         EditorView.__init__(self, model,
           (('Goto line', self.OnGoto, self.gotoLineBmp, ''),), 0)
 
         self.nodeStack = []
 
-        EVT_KEY_UP(self, self.OnKeyPressed)
+        self.Bind(wx.EVT_KEY_UP, self.OnKeyPressed)
 
-        self.active = true
+        self.active = True
 
     def buildTree(self, parent, dict):
         for item in dict.keys():
@@ -102,9 +102,9 @@ class XMLTreeView(wxTreeCtrl, EditorView):
             if self.defaultActionIdx != -1:
                 self.actions[self.defaultActionIdx][1](event)
 
-class XMLTree(wxTreeCtrl):
+class XMLTree(wx.TreeCtrl):
     def __init__(self, parent, ID):
-        wxTreeCtrl.__init__(self, parent, ID)
+        wx.TreeCtrl.__init__(self, parent, ID)
         self.nodeStack = [self.AddRoot(Root)]
 
     # Define a handler for start element events

@@ -15,7 +15,7 @@ print 'importing Views.InspectableViews'
 
 import copy, os, pprint
 
-from wxPython.wx import *
+import wx
 
 import Preferences, Utils
 
@@ -35,7 +35,7 @@ class InspectableObjectView(EditorViews.EditorView, Utils.InspectorSessionMix):
     collectionMethod = 'init_'
     collectionParams = 'self'
 ##    handledProps = []
-    supportsParentView = false
+    supportsParentView = False
 
     def setupArgs(self, ctrlName, params, dontEval, evalDct):
         """ Create a dictionary of parameters for the constructor of the
@@ -51,7 +51,7 @@ class InspectableObjectView(EditorViews.EditorView, Utils.InspectorSessionMix):
             #if len(value) >= 11 and value[:11] == 'self._init_':
             #    continue
             #    collItem = methodparse.CollectionInitParse(value)
-            #    self.addCollView(paramKey, collItem.method, false)
+            #    self.addCollView(paramKey, collItem.method, False)
             if paramKey in dontEval:
                 args[paramKey] = params[paramKey]
             else:
@@ -65,7 +65,7 @@ class InspectableObjectView(EditorViews.EditorView, Utils.InspectorSessionMix):
         return args
 
     def __init__(self, inspector, model, compPal, actions=(), dclickActionIdx=-1, 
-          editorIsWindow=true):
+          editorIsWindow=True):
         self.compPal = compPal
         EditorViews.EditorView.__init__(self, model, actions, dclickActionIdx, editorIsWindow)
         self.selection = None
@@ -74,7 +74,7 @@ class InspectableObjectView(EditorViews.EditorView, Utils.InspectorSessionMix):
         self.objects = {}
         self.objectOrder = []
         self.collEditors = {}
-        self.opened = false
+        self.opened = False
 
     def destroy(self):
         del self.controllerView
@@ -132,7 +132,7 @@ class InspectableObjectView(EditorViews.EditorView, Utils.InspectorSessionMix):
 
         for ctrlName in collDeps.keys():
             for collInit in collDeps[ctrlName]:
-                self.addCollView(ctrlName, collInit.method, false)
+                self.addCollView(ctrlName, collInit.method, False)
 
     def initObjCreator(self, constrPrs):
         # Assumes all design time ctrls are imported in global scope
@@ -169,7 +169,7 @@ class InspectableObjectView(EditorViews.EditorView, Utils.InspectorSessionMix):
                 # Collection initialisers
                 elif len(prop.params) and prop.params[0][:11] == 'self._init_':
                     collItem = methodparse.CollectionInitParse(prop.params[0])
-                    self.addCollView(name, collItem.method, false)
+                    self.addCollView(name, collItem.method, False)
                 # Check for custom evaluator
                 elif comp.customPropEvaluators.has_key(prop.prop_name):
                     args = comp.customPropEvaluators[prop.prop_name](prop.params, 
@@ -218,7 +218,7 @@ class InspectableObjectView(EditorViews.EditorView, Utils.InspectorSessionMix):
                         dependents[name] = []
                     dependents[name].append(collInit)
                 else:
-                    self.addCollView(name, collInit.method, false)
+                    self.addCollView(name, collInit.method, False)
 
             # store default collection initialisers
             comp.setCollInits(collInits[name])
@@ -274,16 +274,16 @@ class InspectableObjectView(EditorViews.EditorView, Utils.InspectorSessionMix):
         if prop.prop_name in dependentProps:
             refs = self.getRefsFromProp(prop)
             # Postpone if target ctrls not yet defined
-            allCtrlsDefined = true#len(refs) > 0
+            allCtrlsDefined = True#len(refs) > 0
             for ref in refs:
                 if ref not in definedCtrls:
-                    allCtrlsDefined = false
+                    allCtrlsDefined = False
 
             if not allCtrlsDefined:
                 self.addDepLink(prop, ctrlName, deps, depLinks)
-                return true
+                return True
 
-        return false
+        return False
 
     def applyDepsForCtrl(self, ctrlName, depLinks):
         if depLinks.has_key(ctrlName):
@@ -447,7 +447,7 @@ class InspectableObjectView(EditorViews.EditorView, Utils.InspectorSessionMix):
             for imp in imps:
                 imp = imp.strip()
                 if imp:
-                    module.addImportStatement(imp, resourceImport=true)
+                    module.addImportStatement(imp, resourceImport=True)
 
         emptyCodeBlock = newBody == ['']
 
@@ -462,7 +462,7 @@ class InspectableObjectView(EditorViews.EditorView, Utils.InspectorSessionMix):
               self.collectionMethod)
             if (len(docs) > 0) and docs[0]:
                 newBody.insert(0, '%s""" %s """'%(sourceconst.bodyIndent, docs))
-                emptyCodeBlock = false
+                emptyCodeBlock = False
 
             if emptyCodeBlock:
                 module.removeMethod(self.model.main, self.collectionMethod)
@@ -630,11 +630,11 @@ class InspectableObjectView(EditorViews.EditorView, Utils.InspectorSessionMix):
         # create controls
         deps = {}
         depLnks = {}
-        self.inspector.vetoSelect = true
+        self.inspector.vetoSelect = True
         try:
             self.initObjectsAndCompanions(objCol.creators, objCol, deps, depLnks)
         finally:
-            self.inspector.vetoSelect = false
+            self.inspector.vetoSelect = False
 
         # merge pasted controls with current controls
         self.model.objectCollections[collMethod].merge(objCol)
@@ -768,14 +768,14 @@ class InspectableObjectView(EditorViews.EditorView, Utils.InspectorSessionMix):
                 results['self.'+objName] = self.objects[objName][1]
         return results
 
-    def showCollectionEditor(self, ctrlName, propName, show=true):
+    def showCollectionEditor(self, ctrlName, propName, show=True):
         """ Show the Collection Editor frame for given name and prop """
         # XXX param ctrlName is actually wrong!
         if ctrlName == self.GetName():
             ctrlName = ''
 
         if not self.collEditors.has_key((ctrlName, propName)):
-            self.addCollView(ctrlName, '_init_coll_%s_%s'%(ctrlName, propName), true)
+            self.addCollView(ctrlName, '_init_coll_%s_%s'%(ctrlName, propName), True)
 
         collEditor = self.collEditors[(ctrlName, propName)]
         
@@ -787,15 +787,15 @@ class InspectableObjectView(EditorViews.EditorView, Utils.InspectorSessionMix):
     def checkHost(self, CtrlCompanion):
         """ Checks that the companion may be hosted in this designer """
         if CtrlCompanion.host == 'Not Implemented':
-            dlg = wxMessageDialog(self, 'This component is not yet implemented',
-                              'Not Implemented', wxOK | wxICON_ERROR)
+            dlg = wx.MessageDialog(self, 'This component is not yet implemented',
+                              'Not Implemented', wx.OK | wx.ICON_ERROR)
             try: dlg.ShowModal()
             finally: dlg.Destroy()
             raise DesignerError, 'Not Implemented'
         if CtrlCompanion.host != self.viewName:
-            dlg = wxMessageDialog(self,
+            dlg = wx.MessageDialog(self,
               'This component must be created in the '+CtrlCompanion.host+' view',
-              'Wrong Designer', wxOK | wxICON_ERROR)
+              'Wrong Designer', wx.OK | wx.ICON_ERROR)
             try: dlg.ShowModal()
             finally: dlg.Destroy()
             raise DesignerError, 'Wrong Designer'
@@ -835,7 +835,7 @@ class InspectableObjectView(EditorViews.EditorView, Utils.InspectorSessionMix):
 
         from CreationOrdDlg import CreationOrderDlg
         dlg = CreationOrderDlg(self, sibs, allSibs)
-        if dlg.ShowModal() == wxID_OK:
+        if dlg.ShowModal() == wx.ID_OK:
             for idx, name in map(None, dlg.allCtrlIdxs, dlg.allCtrlNames):
                 self.objectOrder[idx] = name
 

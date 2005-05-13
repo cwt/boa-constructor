@@ -13,7 +13,7 @@ print 'importing Views.SizersView'
 
 import os, copy
 
-from wxPython.wx import *
+import wx
 
 import Preferences, Utils
 
@@ -38,7 +38,7 @@ class SizersView(DataView):
 ##        objs.reverse()
 ##        for name in objs:
 ##            self.objects[name][1].Layout()
-    
+
     def recreateSizers(self):
         # disconnect controls from sizers
         for prop in self.sizerConnectList:
@@ -69,12 +69,12 @@ class SizersView(DataView):
 
         for sizerName in self.objectOrder:
             self.objects[sizerName][0].recreateSizerItems()
-        
+
         for prop in self.sizerConnectList:
             compn, ctrl = self.controllerView.objects[prop.comp_name][:2]
             sizer = self.objects[Utils.ctrlNameFromSrcRef(prop.params[0])][1]
             compn.SetSizer(sizer)
-            
+
     def saveCtrls(self, definedCtrls, module=None):
         collDeps = []
         self.writeSizerConnectProps(collDeps)
@@ -85,7 +85,7 @@ class SizersView(DataView):
         srNewName = Utils.srcRefFromCtrlName(newName)
         for prop in self.sizerConnectList:
             if prop.params[0] == srOldName:
-                 prop.params[0] = srNewName
+                prop.params[0] = srNewName
 
     def checkCollectionRename(self, oldName, newName, companion=None):
         for objInfo in self.objects.values():
@@ -94,15 +94,15 @@ class SizersView(DataView):
                 collEditView = cmp.collections['Items']
                 objColl = self.model.objectCollections[
                       collEditView.collectionMethod]
-                objColl.renameCtrl(oldName, newName)        
-    
+                objColl.renameCtrl(oldName, newName)
+
     def designerRenameNotify(self, oldName, newName):
         for prop in self.sizerConnectList:
             if prop.comp_name == oldName:
-                 prop.comp_name = newName
-        
+                prop.comp_name = newName
+
         self.checkCollectionRename(oldName, newName)
-        
+
 
     def writeSizerConnectProps(self, output, stripFrmId=''):
         from Companions import BaseCompanions
@@ -113,7 +113,7 @@ class SizersView(DataView):
 
     def initObjectsAndCompanions(self, creators, objColl, dependents, depLinks):
         DataView.initObjectsAndCompanions(self, creators, objColl, dependents, depLinks)
-        
+
         for ctrlName in objColl.propertiesByName.keys():
             for prop in objColl.propertiesByName[ctrlName]:
                 compn, ctrl = self.controllerView.objects[ctrlName][:2]
@@ -133,9 +133,9 @@ class SizersView(DataView):
                 ctrl.Refresh()
                 self.sizerConnectList.remove(prop)
 
-        wxCallAfter(self.recreateSizers)
-        wxCallAfter(self.controllerView.OnRelayoutDesigner, None)#Refresh()
-        
+        wx.CallAfter(self.recreateSizers)
+        wx.CallAfter(self.controllerView.OnRelayoutDesigner, None)#Refresh()
+
 
 # to silence deprecation warings
-wxSizer.AddWindow = wxSizer.AddSizer = wxSizer.AddSpacer = wxSizer.Add
+wx.Sizer.AddWindow = wx.Sizer.AddSizer = wx.Sizer.AddSpacer = wx.Sizer.Add
