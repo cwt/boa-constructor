@@ -25,7 +25,6 @@ from PropEdit.PropertyEditors import *
 from PropEdit.Enumerations import *
 
 class ScrollBarDTC(Constructors.MultiItemCtrlsConstr, WindowDTC):
-    #wxDocs = HelpCompanions.wxScrollBarDocs
     def __init__(self, name, designer, parent, ctrlClass):
         WindowDTC.__init__(self, name, designer, parent, ctrlClass)
         self.windowStyles = ['wx.SB_HORIZONTAL', 'wx.SB_VERTICAL'] + self.windowStyles
@@ -43,7 +42,6 @@ EventCategories['ComboEvent'] = ('wx.EVT_COMBOBOX', 'wx.EVT_TEXT',
                                  'wx.EVT_TEXT_ENTER')
 commandCategories.append('ComboEvent')
 class ComboBoxDTC(ChoicedDTC):
-    #wxDocs = HelpCompanions.wxComboBoxDocs
     def __init__(self, name, designer, parent, ctrlClass):
         ChoicedDTC.__init__(self, name, designer, parent, ctrlClass)
         self.windowStyles = ['wx.CB_SIMPLE', 'wx.CB_DROPDOWN', 'wx.CB_READONLY',
@@ -80,7 +78,6 @@ class ComboBoxDTC(ChoicedDTC):
 EventCategories['ChoiceEvent'] = ('wx.EVT_CHOICE',)
 commandCategories.append('ChoiceEvent')
 class ChoiceDTC(Constructors.ListConstr, ChoicedDTC):
-    #wxDocs = HelpCompanions.wxChoiceDocs = 'wx41.htm'
     def designTimeSource(self, position = 'wx.DefaultPosition', size = 'wx.DefaultSize'):
         return {'pos': position,
                 'size': size,
@@ -102,7 +99,6 @@ class LabeledNonInputConstr:
                 'Style': 'style', 'Name': 'name'}
 
 class StaticTextDTC(LabeledNonInputConstr, WindowDTC):
-    #wxDocs = HelpCompanions.wxStaticTextDocs
     def __init__(self, name, designer, parent, ctrlClass):
         WindowDTC.__init__(self, name, designer, parent, ctrlClass)
         self.windowStyles = ['wx.ALIGN_LEFT', 'wx.ALIGN_RIGHT', 'wx.ALIGN_CENTRE',
@@ -118,7 +114,6 @@ EventCategories['TextCtrlEvent'] = ('wx.EVT_TEXT', 'wx.EVT_TEXT_ENTER',
                                     'wx.EVT_TEXT_URL', 'wx.EVT_TEXT_MAXLEN')
 commandCategories.append('TextCtrlEvent')
 class TextCtrlDTC(WindowDTC):
-    #wxDocs = HelpCompanions.wxTextCtrlDocs
     def __init__(self, name, designer, parent, ctrlClass):
         WindowDTC.__init__(self, name, designer, parent, ctrlClass)
         self.windowStyles = ['wx.TE_PROCESS_ENTER', 'wx.TE_PROCESS_TAB',
@@ -165,7 +160,6 @@ class TextCtrlDTC(WindowDTC):
 EventCategories['RadioButtonEvent'] = ('wx.EVT_RADIOBUTTON',)
 commandCategories.append('RadioButtonEvent')
 class RadioButtonDTC(Constructors.LabeledInputConstr, WindowDTC):
-    #wxDocs = HelpCompanions.wxRadioButtonDocs
     def __init__(self, name, designer, parent, ctrlClass):
         WindowDTC.__init__(self, name, designer, parent, ctrlClass)
         self.editors['Value'] = BoolPropEdit
@@ -190,7 +184,6 @@ class RadioButtonDTC(Constructors.LabeledInputConstr, WindowDTC):
 EventCategories['CheckBoxEvent'] = ('wx.EVT_CHECKBOX',)
 commandCategories.append('CheckBoxEvent')
 class CheckBoxDTC(Constructors.LabeledInputConstr, WindowDTC):
-    #wxDocs = HelpCompanions.wxCheckBoxDocs = 'wx39.htm'
     def __init__(self, name, designer, parent, ctrlClass):
         WindowDTC.__init__(self, name, designer, parent, ctrlClass)
         self.editors['Value'] = BoolPropEdit
@@ -210,7 +203,6 @@ class CheckBoxDTC(Constructors.LabeledInputConstr, WindowDTC):
 
 
 class SliderDTC(WindowDTC):
-    #wxDocs = HelpCompanions.wxSliderDocs
     def __init__(self, name, designer, parent, ctrlClass):
         WindowDTC.__init__(self, name, designer, parent, ctrlClass)
         self.editors['MinValue'] = IntConstrPropEdit
@@ -246,7 +238,6 @@ class SliderDTC(WindowDTC):
         insp.events.doAddEvent('ScrollEvent', 'wx.EVT_SCROLL')
 
 class GaugeDTC(WindowDTC):
-    #wxDocs = HelpCompanions.wxGaugeDocs
     def __init__(self, name, designer, parent, ctrlClass):
         WindowDTC.__init__(self, name, designer, parent, ctrlClass)
         self.windowStyles = ['wx.GA_HORIZONTAL', 'wx.GA_VERTICAL',
@@ -264,7 +255,6 @@ class GaugeDTC(WindowDTC):
                 'name': `self.name`}
 
 class StaticBoxDTC(LabeledNonInputConstr, WindowDTC):
-    #wxDocs = HelpCompanions.wxStaticBoxDocs
     def designTimeSource(self, position = 'wx.DefaultPosition', size = 'wx.DefaultSize'):
         return {'label': `self.name`,
                 'pos': position,
@@ -278,7 +268,6 @@ class StaticBoxDTC(LabeledNonInputConstr, WindowDTC):
         return props
 
 class StaticLineDTC(Constructors.WindowConstr, WindowDTC):
-    #wxDocs = HelpCompanions.wxStaticLineDocs
     def __init__(self, name, designer, parent, ctrlClass):
         WindowDTC.__init__(self, name, designer, parent, ctrlClass)
         self.windowStyles = ['wx.LI_HORIZONTAL', 'wx.LI_VERTICAL'] + self.windowStyles
@@ -290,7 +279,6 @@ class StaticLineDTC(Constructors.WindowConstr, WindowDTC):
                 'name': `self.name`}
 
 class StaticBitmapDTC(WindowDTC):
-    #wxDocs = HelpCompanions.wxStaticBitmapDocs
     def __init__(self, name, designer, parent, ctrlClass):
         WindowDTC.__init__(self, name, designer, parent, ctrlClass)
         self.editors['Bitmap'] = BitmapPropEdit
@@ -452,30 +440,24 @@ class StyledTextCtrlDTC(Constructors.WindowConstr, WindowDTC):
                            'import wx.stc') )
 
 #-------------------------------------------------------------------------------
-import PaletteStore
+import Plugins
 
-PaletteStore.paletteLists['BasicControls'] = []
-PaletteStore.palette.append(['Basic Controls', 'Editor/Tabs/Basic',
-                             PaletteStore.paletteLists['BasicControls']])
-PaletteStore.paletteLists['BasicControls'].extend([wxStaticText, wxTextCtrl,
-  wxComboBox, wxChoice, wxCheckBox, wxRadioButton, wxSlider, wxGauge,
-  wxScrollBar, wxStaticBitmap, wxStaticLine, wxStaticBox, wxHtmlWindow,
-  wxStyledTextCtrl])
+Plugins.registerPalettePage('BasicControls', 'Basic Controls')
 
-
-PaletteStore.compInfo.update({
-    wxStaticText: ['wx.StaticText', StaticTextDTC],
-    wxTextCtrl: ['wx.TextCtrl', TextCtrlDTC],
-    wxChoice: ['wx.Choice', ChoiceDTC],
-    wxComboBox: ['wx.ComboBox', ComboBoxDTC],
-    wxCheckBox: ['wx.CheckBox', CheckBoxDTC],
-    wxRadioButton: ['wx.RadioButton', RadioButtonDTC],
-    wxSlider: ['wx.Slider', SliderDTC],
-    wxGauge: ['wx.Gauge', GaugeDTC],
-    wxStaticBitmap: ['wx.StaticBitmap', StaticBitmapDTC],
-    wxScrollBar: ['wx.ScrollBar', ScrollBarDTC],
-    wxStaticBox: ['wx.StaticBox', StaticBoxDTC],
-    wxStaticLine: ['wx.StaticLine', StaticLineDTC],
-    wxHtmlWindow: ['wx.html.HtmlWindow', HtmlWindowDTC],
-    wxStyledTextCtrl: ['wx.stc.StyledTextCtrl', StyledTextCtrlDTC],
-})
+Plugins.registerComponents('BasicControls', 
+      (wxStaticText, 'wx.StaticText', StaticTextDTC),
+      (wxTextCtrl, 'wx.TextCtrl', TextCtrlDTC),
+      (wxChoice, 'wx.Choice', ChoiceDTC),
+      (wxComboBox, 'wx.ComboBox', ComboBoxDTC),
+      (wxCheckBox, 'wx.CheckBox', CheckBoxDTC),
+      (wxRadioButton, 'wx.RadioButton', RadioButtonDTC),
+      (wxSlider, 'wx.Slider', SliderDTC),
+      (wxGauge, 'wx.Gauge', GaugeDTC),
+      (wxStaticBitmap, 'wx.StaticBitmap', StaticBitmapDTC),
+      (wxScrollBar, 'wx.ScrollBar', ScrollBarDTC),
+      (wxStaticBox, 'wx.StaticBox', StaticBoxDTC),
+      (wxStaticLine, 'wx.StaticLine', StaticLineDTC),
+      (wxHtmlWindow, 'wx.html.HtmlWindow', HtmlWindowDTC),
+      (wxStyledTextCtrl, 'wx.stc.StyledTextCtrl', StyledTextCtrlDTC),
+    )
+                                

@@ -95,7 +95,6 @@ class FramesConstr(Constructors.PropertyKeywordConstructor):
                 'Style': 'style', 'Name': 'name'}
 
 class FrameDTC(FramesConstr, BaseFrameDTC):
-    #wxDocs = HelpCompanions.wxFrameDocs
     def __init__(self, name, designer, frameCtrl):
         BaseFrameDTC.__init__(self, name, designer, frameCtrl)
 
@@ -183,7 +182,6 @@ EventCategories['DialogEvent'] = ('wx.EVT_INIT_DIALOG',)
 class DialogDTC(FramesConstr, BaseFrameDTC):
     dialogLayout = true
     
-    #wxDocs = HelpCompanions.wxDialogDocs
     def __init__(self, name, designer, frameCtrl):
         BaseFrameDTC.__init__(self, name, designer, frameCtrl)
         self.windowStyles = ['wx.DIALOG_MODAL', 'wx.DIALOG_MODELESS',
@@ -209,20 +207,17 @@ class DialogDTC(FramesConstr, BaseFrameDTC):
         return BaseFrameDTC.events(self) + ['DialogEvent']
 
 class MiniFrameDTC(FramesConstr, FrameDTC):
-    #wxDocs = HelpCompanions.wxMiniFrameDocs
     def __init__(self, name, designer, frameCtrl):
         FrameDTC.__init__(self, name, designer, frameCtrl)
         self.windowStyles.extend(['wx.TINY_CAPTION_HORIZ', 'wx.TINY_CAPTION_VERT'])
 
 class MDIParentFrameDTC(FramesConstr, FrameDTC):
-    #wxDocs = HelpCompanions.wxMDIParentFrameDocs
     def designTimeSource(self):
         dts = FrameDTC.designTimeSource(self)
         dts.update({'style': 'wx.DEFAULT_FRAME_STYLE | wx.VSCROLL | wx.HSCROLL'})
         return dts
 
 class MDIChildFrameDTC(FramesConstr, FrameDTC):
-    #wxDocs = HelpCompanions.wxMDIChildFrameDocs
     pass
 
 class PopupWindowDTC(ContainerDTC):
@@ -292,21 +287,22 @@ class FramePanelDTC(Constructors.WindowConstr, BaseFrameDTC):
 class wxFramePanel(wxPanel): pass
 
 #-------------------------------------------------------------------------------
-import PaletteStore
+import Plugins
 
-PaletteStore.compInfo.update({wxApp: ['wx.App', None],
-    wxFrame: ['wx.Frame', FrameDTC],
-    wxDialog: ['wx.Dialog', DialogDTC],
-    wxMiniFrame: ['wx.MiniFrame', MiniFrameDTC],
-    wxMDIParentFrame: ['wx.MDIParentFrame', MDIParentFrameDTC],
-    wxMDIChildFrame: ['wx.MDIChildFrame', MDIChildFrameDTC],
-    wxFramePanel: ['wx.FramePanel', FramePanelDTC],
-})
+Plugins.registerComponents(None,
+      (wxFrame, 'wx.Frame', FrameDTC),
+      (wxDialog, 'wx.Dialog', DialogDTC),
+      (wxMiniFrame, 'wx.MiniFrame', MiniFrameDTC),
+      (wxMDIParentFrame, 'wx.MDIParentFrame', MDIParentFrameDTC),
+      (wxMDIChildFrame, 'wx.MDIChildFrame', MDIChildFrameDTC),
+      (wxFramePanel, 'wx.FramePanel', FramePanelDTC),
+    )    
 
 try:
-    PaletteStore.compInfo.update({
-        wxPopupWindow: ['wx.PopupWindow', PopupWindowDTC],
-        wxPopupTransientWindow: ['wx.PopupTransientWindow', PopupWindowDTC]})
+    Plugins.registerComponents(None,
+          (wxPopupWindow, 'wx.PopupWindow', PopupWindowDTC),
+          (wxPopupTransientWindow, 'wx.PopupTransientWindow', PopupWindowDTC),
+        )
 except NameError:
     # wxMAC
     pass

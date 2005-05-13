@@ -407,47 +407,29 @@ class IntCtrlDTC(TextCtrlDTC):
 
 #-------------------------------------------------------------------------------
 
-import PaletteStore
-
-PaletteStore.paletteLists['wxPython.lib'] = []
-PaletteStore.palette.append(['wxPython.lib', 'Editor/Tabs/Basic',
-                             PaletteStore.paletteLists['wxPython.lib']])
-
-# XXX clean up special casing when 2.4.1 is minimum!
-
-libPalette = [wxGenStaticText]
-libCompInfo = {wxGenStaticText:  ['wx.lib.stattext.GenStaticText',  GenStaticTextDTC]}
-
-try:
-    from wxPython.lib.maskednumctrl import wxMaskedNumCtrl, EVT_MASKEDNUM
-    from wxPython.lib.maskededit import wxMaskedTextCtrl, wxMaskedComboBox, wxIpAddrCtrl, Field
-    from wxPython.lib.timectrl import wxTimeCtrl, EVT_TIMEUPDATE
-except ImportError: # <= 2.4.1.2
-    pass
-else:
-    libPalette.extend([wxMaskedTextCtrl, wxIpAddrCtrl, wxMaskedComboBox, 
-                       wxMaskedNumCtrl, wxTimeCtrl])
-    libCompInfo.update({
-        wxMaskedTextCtrl: ['wx.lib.masked.textctrl.MaskedTextCtrl', MaskedTextCtrlDTC], 
-        wxIpAddrCtrl:     ['wx.lib.masked.ipaddrctrl.IpAddrCtrl',     IpAddrCtrlDTC],
-        wxMaskedComboBox: ['wx.lib.masked.combobox.MaskedComboBox', MaskedComboBoxDTC], 
-        wxMaskedNumCtrl:  ['wx.lib.masked.numctrl.MaskedNumCtrl',  MaskedNumCtrlDTC],
-        wxTimeCtrl:       ['wx.lib.masked.timectrl.TimeCtrl',       TimeCtrlDTC],
-    })
-
-    EventCollections.EventCategories['MaskedNumCtrlEvent'] = ('wx.lib.masked.numctrl.EVT_MASKEDNUM',)
-    EventCollections.commandCategories.append('MaskedNumCtrlEvent')    
-
-    EventCollections.EventCategories['TimeCtrlEvent'] = ('wx.lib.masked.timectrl.EVT_TIMEUPDATE',)
-    EventCollections.commandCategories.append('TimeCtrlEvent')    
-    
+from wxPython.lib.maskednumctrl import wxMaskedNumCtrl, EVT_MASKEDNUM
+from wxPython.lib.maskededit import wxMaskedTextCtrl, wxMaskedComboBox, wxIpAddrCtrl, Field
+from wxPython.lib.timectrl import wxTimeCtrl, EVT_TIMEUPDATE
 from wxPython.lib.intctrl import wxIntCtrl, EVT_INT
 
+import Plugins
+
+Plugins.registerPalettePage('wxPython.lib', 'wxPython.lib')
+
+Plugins.registerComponents('wxPython.lib',
+      (wxGenStaticText, 'wx.lib.stattext.GenStaticText', GenStaticTextDTC),
+      (wxMaskedTextCtrl, 'wx.lib.masked.textctrl.MaskedTextCtrl', MaskedTextCtrlDTC), 
+      (wxIpAddrCtrl, 'wx.lib.masked.ipaddrctrl.IpAddrCtrl', IpAddrCtrlDTC),
+      (wxMaskedComboBox, 'wx.lib.masked.combobox.MaskedComboBox', MaskedComboBoxDTC), 
+      (wxMaskedNumCtrl, 'wx.lib.masked.numctrl.MaskedNumCtrl', MaskedNumCtrlDTC),
+      (wxTimeCtrl, 'wx.lib.masked.timectrl.TimeCtrl', TimeCtrlDTC),
+      (wxIntCtrl, 'wx.lib.intctrl.IntCtrl', IntCtrlDTC),
+    )
+
+EventCollections.EventCategories['MaskedNumCtrlEvent'] = ('wx.lib.masked.numctrl.EVT_MASKEDNUM',)
+EventCollections.commandCategories.append('MaskedNumCtrlEvent')    
+EventCollections.EventCategories['TimeCtrlEvent'] = ('wx.lib.masked.timectrl.EVT_TIMEUPDATE',)
+EventCollections.commandCategories.append('TimeCtrlEvent')    
 EventCollections.EventCategories['IntCtrlEvent'] = ('wx.lib.intctrl.EVT_INT',)
 EventCollections.commandCategories.append('IntCtrlEvent')
-
-libPalette.append(wxIntCtrl)
-libCompInfo[wxIntCtrl] = ['wx.lib.intctrl.IntCtrl', IntCtrlDTC]
-
-PaletteStore.paletteLists['wxPython.lib'].extend(libPalette)
-PaletteStore.compInfo.update(libCompInfo)
+      

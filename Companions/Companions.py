@@ -237,9 +237,7 @@ class FlagsDTC(BaseFlagsDTC):
 
 
 PaletteStore.helperClasses.update({
-    'wxFontPtr': FontDTC,
-    'wxFont': FontDTC,
-    'wxColourPtr': ColourDTC,
-    'wxColour': ColourDTC,
+    'wx.Font': FontDTC,
+    'wx.Colour': ColourDTC,
     'Anchors': AnchorsDTC
 })

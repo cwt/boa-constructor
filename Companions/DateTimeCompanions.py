@@ -3,7 +3,6 @@ from wxPython.wx import *
 
 import BaseCompanions, EventCollections
 from PropEdit import PropertyEditors
-import PaletteStore
 
 class CalendarConstr:
     def constructor(self):
@@ -38,8 +37,6 @@ class CalendarDTC(CalendarConstr, BaseCompanions.WindowDTC):
     def writeImports(self):
         return 'import wx.calendar'
 
-PaletteStore.paletteLists['BasicControls'].append(wxCalendarCtrl)
-PaletteStore.compInfo[wxCalendarCtrl] = ['wx.calendar.CalendarCtrl', CalendarDTC]
 
 class DateTimePropEditor(PropertyEditors.BITPropEditor):
     def getDisplayValue(self):
@@ -64,6 +61,7 @@ class DateTimePropEditor(PropertyEditors.BITPropEditor):
         if self.value.IsValid():
             PropertyEditors.BITPropEditor.inspectorEdit(self)
 
+
 EventCollections.EventCategories['DatePickerCtrlEvent'] = ('wx.EVT_DATE_CHANGED')
 EventCollections.commandCategories.append('DatePickerCtrlEvent')
 class DatePickerCtrlDTC(BaseCompanions.WindowDTC):
@@ -85,15 +83,20 @@ class DatePickerCtrlDTC(BaseCompanions.WindowDTC):
 
     def events(self):
         return BaseCompanions.WindowDTC.events(self) + ['DatePickerCtrlEvent']
-        
+
+#-------------------------------------------------------------------------------
+
+import Plugins
+
+Plugins.registerComponent('BasicControls', wxCalendarCtrl, 
+                          'wx.calendar.CalendarCtrl', CalendarDTC)
 try:
-    PaletteStore.paletteLists['BasicControls'].append(wxDatePickerCtrl)
-    PaletteStore.compInfo[wxDatePickerCtrl] = ['wx.DatePickerCtrl', DatePickerCtrlDTC]
+    Plugins.registerComponent('BasicControls', 
+          wxDatePickerCtrl, 'wx.DatePickerCtrl', DatePickerCtrlDTC)
 except NameError:
     pass
 
 
 PropertyEditors.registeredTypes.extend( [
-#    ('Class', wxDateTimePtr, [DateTimePropEditor]),
     ('Class', wxDateTime, [DateTimePropEditor]),
 ])

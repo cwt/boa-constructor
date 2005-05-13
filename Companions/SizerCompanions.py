@@ -32,7 +32,6 @@ from PropEdit.PropertyEditors import IntConstrPropEdit, StrConstrPropEdit, \
       SizerEnumConstrPropEdit, SizeConstrPropEdit
 from PropEdit import Enumerations
 import EventCollections, RTTI, methodparse
-import PaletteStore
 
 
 class SizerItemsColPropEdit(CollectionPropEdit): pass
@@ -561,15 +560,14 @@ class NotebookSizerDTC(ControlLinkedSizerDTC):
         pass
 
 
-PaletteStore.paletteLists['ContainersLayout'].extend([
-  wxBoxSizer, wxGridSizer, wxFlexGridSizer, wxStaticBoxSizer, wxNotebookSizer, # RowColSizer,
-])
+#-------------------------------------------------------------------------------
 
-PaletteStore.compInfo.update({
-  wxBoxSizer: ['wx.BoxSizer', BoxSizerDTC],
-  wxGridSizer: ['wx.GridSizer', GridSizerDTC],
-  wxFlexGridSizer: ['wx.FlexGridSizer', FlexGridSizerDTC],
-  wxStaticBoxSizer: ['wx.StaticBoxSizer', StaticBoxSizerDTC],
-  wxNotebookSizer: ['wx.NotebookSizer', NotebookSizerDTC]
-  #RowColSizer: ['RowColSizer', RowColSizerDTC],
-})
+import Plugins
+
+Plugins.registerComponents('ContainersLayout',
+      (wxBoxSizer, 'wx.BoxSizer', BoxSizerDTC),
+      (wxGridSizer, 'wx.GridSizer', GridSizerDTC),
+      (wxFlexGridSizer, 'wx.FlexGridSizer', FlexGridSizerDTC),
+      (wxStaticBoxSizer, 'wx.StaticBoxSizer', StaticBoxSizerDTC),
+      (wxNotebookSizer, 'wx.NotebookSizer', NotebookSizerDTC),
+    )

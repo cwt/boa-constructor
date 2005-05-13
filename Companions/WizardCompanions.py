@@ -97,11 +97,10 @@ class WizardPageSimpleDTC(FramePanelDTC):
 
 
 #-------------------------------------------------------------------------------
-import PaletteStore
+import Plugins
 
-PaletteStore.compInfo.update({   
-    wxWizard: ['wx.wizard.Wizard', WizardDTC],
-    wxPyWizardPage: ['wx.wizard.PyWizardPage', PyWizardPageDTC],
-    wxWizardPageSimple: ['wx.wizard.WizardPageSimple', WizardPageSimpleDTC],
-})
-
+Plugins.registerComponents(None,
+      (wxWizard, 'wx.wizard.Wizard', WizardDTC),
+      (wxPyWizardPage, 'wx.wizard.PyWizardPage', PyWizardPageDTC),
+      (wxWizardPageSimple, 'wx.wizard.WizardPageSimple', WizardPageSimpleDTC),
+    )

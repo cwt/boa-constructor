@@ -31,7 +31,6 @@ EventCategories['ButtonEvent'] = ('wx.EVT_BUTTON',)
 commandCategories.append('ButtonEvent')
 
 class ButtonDTC(Constructors.LabeledInputConstr, WindowDTC):
-    #wxDocs = HelpCompanions.wxButtonDocs
     def __init__(self, name, designer, parent, ctrlClass):
         WindowDTC.__init__(self, name, designer, parent, ctrlClass)
         self.editors['Default'] = BoolPropEdit
@@ -109,7 +108,6 @@ class ToggleButtonDTC(ButtonDTC):
 
 
 class BitmapButtonDTC(WindowDTC):
-    #wxDocs = HelpCompanions.wxBitmapButtonDocs
     def __init__(self, name, designer, parent, ctrlClass):
         WindowDTC.__init__(self, name, designer, parent, ctrlClass)
         self.editors.update({'Bitmap':          BitmapPropEdit,
@@ -146,7 +144,6 @@ class BitmapButtonDTC(WindowDTC):
         insp.events.doAddEvent('ButtonEvent', 'wx.EVT_BUTTON')
 
 class SpinButtonDTC(Constructors.WindowConstr, WindowDTC):
-    #wxDocs = HelpCompanions.wxSpinButtonDocs
     def __init__(self, name, designer, parent, ctrlClass):
         WindowDTC.__init__(self, name, designer, parent, ctrlClass)
         self.windowStyles = ['wx.SP_HORIZONTAL', 'wx.SP_VERTICAL',
@@ -236,7 +233,6 @@ class SpinCtrlDTC(SpinButtonDTC):
 
 
 class GenButtonDTC(WindowDTC):
-    #wxDocs = HelpCompanions.wxDefaultDocs
     handledConstrParams = ('parent', 'ID')
     windowIdName = 'ID'
     def __init__(self, name, designer, parent, ctrlClass):
@@ -265,7 +261,6 @@ class GenButtonDTC(WindowDTC):
 
 
 class GenBitmapButtonDTC(GenButtonDTC):
-    #wxDocs = HelpCompanions.wxDefaultDocs
     windowIdName = 'ID'
     def __init__(self, name, designer, parent, ctrlClass):
         GenButtonDTC.__init__(self, name, designer, parent, ctrlClass)
@@ -345,39 +340,25 @@ class ContextHelpButtonDTC(WindowDTC):
 
 
 #-------------------------------------------------------------------------------
-import PaletteStore
+import Plugins
 
-PaletteStore.paletteLists['Buttons'] = []
-PaletteStore.palette.append(['Buttons', 'Editor/Tabs/Basic',
-                             PaletteStore.paletteLists['Buttons']])
-PaletteStore.paletteLists['Buttons'].extend([wxButton, wxBitmapButton,
-      wxSpinButton, wxSpinCtrl,
-      wxGenButton, wxGenBitmapButton, wxGenBitmapTextButton,
-      wxGenToggleButton, wxGenBitmapToggleButton, wxGenBitmapTextToggleButton,
-      wxContextHelpButton])
-
-try:
-    PaletteStore.paletteLists['Buttons'].append(wxToggleButton)
-except NameError:
-    # MacOS X
-    pass
-
-PaletteStore.compInfo.update({
-    wxButton: ['wx.Button', ButtonDTC],
-    wxBitmapButton: ['wx.BitmapButton', BitmapButtonDTC],
-    wxSpinButton: ['wx.SpinButton', SpinButtonDTC],
-    wxSpinCtrl: ['wx.SpinCtrl', SpinCtrlDTC],
-    wxGenButton: ['wx.lib.buttons.GenButton', GenButtonDTC],
-    wxGenBitmapButton: ['wx.lib.buttons.GenBitmapButton', GenBitmapButtonDTC],
-    wxGenToggleButton: ['wx.lib.buttons.GenToggleButton', GenToggleButtonDTC],
-    wxGenBitmapToggleButton: ['wx.lib.buttons.GenBitmapToggleButton', GenBitmapToggleButtonDTC],
-    wxGenBitmapTextButton: ['wx.lib.buttons.GenBitmapTextButton', GenBitmapTextButtonDTC],
-    wxGenBitmapTextToggleButton: ['wx.lib.buttons.GenBitmapTextToggleButton', GenBitmapTextToggleButtonDTC],
-    wxContextHelpButton: ['wx.ContextHelpButton', ContextHelpButtonDTC],
-})
+Plugins.registerPalettePage('Buttons', 'Buttons')
+Plugins.registerComponents('Buttons',
+      (wxButton, 'wx.Button', ButtonDTC),
+      (wxBitmapButton, 'wx.BitmapButton', BitmapButtonDTC),
+      (wxSpinButton, 'wx.SpinButton', SpinButtonDTC),
+      (wxSpinCtrl, 'wx.SpinCtrl', SpinCtrlDTC),
+      (wxGenButton, 'wx.lib.buttons.GenButton', GenButtonDTC),
+      (wxGenBitmapButton, 'wx.lib.buttons.GenBitmapButton', GenBitmapButtonDTC),
+      (wxGenToggleButton, 'wx.lib.buttons.GenToggleButton', GenToggleButtonDTC),
+      (wxGenBitmapToggleButton, 'wx.lib.buttons.GenBitmapToggleButton', GenBitmapToggleButtonDTC),
+      (wxGenBitmapTextButton, 'wx.lib.buttons.GenBitmapTextButton', GenBitmapTextButtonDTC),
+      (wxGenBitmapTextToggleButton, 'wx.lib.buttons.GenBitmapTextToggleButton', GenBitmapTextToggleButtonDTC),
+      (wxContextHelpButton, 'wx.ContextHelpButton', ContextHelpButtonDTC),
+    )
 
 try:
-    PaletteStore.compInfo[wxToggleButton] = ['wx.ToggleButton', ToggleButtonDTC]
+    Plugins.registerComponent('Buttons', wxToggleButton, 'wx.ToggleButton', ToggleButtonDTC)
 except NameError:
     # MacOS X
     pass

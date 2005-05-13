@@ -26,7 +26,6 @@ from PropEdit.Enumerations import *
 import methodparse
 
 class ListCtrlDTC(Constructors.MultiItemCtrlsConstr, WindowDTC):
-    #wxDocs = HelpCompanions.wxListCtrlDocs
     def __init__(self, name, designer, parent, ctrlClass):
         WindowDTC.__init__(self, name, designer, parent, ctrlClass)
         self.editors.update({'Columns':         ListColumnsColPropEdit,
@@ -113,7 +112,6 @@ class ListCtrlDTC(Constructors.MultiItemCtrlsConstr, WindowDTC):
 
 
 class ListCtrlColumnsCDTC(CollectionDTC):
-    #wxDocs = HelpCompanions.wxListCtrlDocs
     propName = 'Columns'
     displayProp = 'heading'
     indexProp = 'col'
@@ -171,7 +169,6 @@ class ListCtrlColumnsCDTC(CollectionDTC):
 class ListViewDTC(ListCtrlDTC): pass
 
 class TreeCtrlDTC(Constructors.MultiItemCtrlsConstr, WindowDTC):
-    #wxDocs = HelpCompanions.wxTreeCtrlDocs
     def __init__(self, name, designer, parent, ctrlClass):
         WindowDTC.__init__(self, name, designer, parent, ctrlClass)
         self.editors.update({'ImageList': ImageListClassLinkPropEdit,
@@ -215,7 +212,6 @@ class TreeCtrlDTC(Constructors.MultiItemCtrlsConstr, WindowDTC):
 EventCategories['ListBoxEvent'] = ('wx.EVT_LISTBOX', 'wx.EVT_LISTBOX_DCLICK')
 commandCategories.append('ListBoxEvent')
 class ListBoxDTC(Constructors.ListConstr, ChoicedDTC):
-    #wxDocs = HelpCompanions.wxListBoxDocs
     def __init__(self, name, designer, parent, ctrlClass):
         ChoicedDTC.__init__(self, name, designer, parent, ctrlClass)
         self.editors['Choices'] = ChoicesConstrPropEdit
@@ -242,14 +238,12 @@ class ListBoxDTC(Constructors.ListConstr, ChoicedDTC):
 EventCategories['CheckListBoxEvent'] = ('wx.EVT_CHECKLISTBOX',)
 commandCategories.append('CheckListBoxEvent')
 class CheckListBoxDTC(ListBoxDTC):
-    #wxDocs = HelpCompanions.wxCheckListBoxDocs
     def events(self):
         return ListBoxDTC.events(self) + ['CheckListBoxEvent']
 
 EventCategories['RadioBoxEvent'] = ('wx.EVT_RADIOBOX',)
 commandCategories.append('RadioBoxEvent')
 class RadioBoxDTC(ChoicedDTC):
-    #wxDocs = HelpCompanions.wxRadioBoxDocs
     def __init__(self, name, designer, parent, ctrlClass):
         ChoicedDTC.__init__(self, name, designer, parent, ctrlClass)
         self.editors['MajorDimension'] = MajorDimensionConstrPropEdit
@@ -314,7 +308,6 @@ EventCategories['GridEvent'] = ('wx.grid.EVT_GRID_CELL_LEFT_CLICK',
 )
 
 class GridDTC(Constructors.WindowConstr, WindowDTC):
-#    wxDocs = HelpCompanions.wxGridDocs
     def __init__(self, name, designer, parent, ctrlClass):
         WindowDTC.__init__(self, name, designer, parent, ctrlClass)
         self.editors['Editable'] = self.editors['GridLinesEnabled'] = BoolPropEdit
@@ -361,24 +354,18 @@ class GridDTC(Constructors.WindowConstr, WindowDTC):
                'DefaultEditor', 'DefaultRenderer']
 
 #-------------------------------------------------------------------------------
-import PaletteStore
 
-PaletteStore.paletteLists['ListControls'] = []
-PaletteStore.palette.append(['List Controls', 'Editor/Tabs/Lists',
-                            PaletteStore.paletteLists['ListControls']])
-PaletteStore.paletteLists['ListControls'].extend([wxRadioBox, wxListBox,
-      wxCheckListBox, wxGrid, wxListCtrl, wxListView, wxTreeCtrl])
-try:   PaletteStore.paletteLists['ListControls'].append(wxGenericDirCtrl)
-except NameError: pass
+import Plugins
 
-PaletteStore.compInfo.update({
-    wxListBox: ['wx.ListBox', ListBoxDTC],
-    wxCheckListBox: ['wx.CheckListBox', CheckListBoxDTC],
-    wxGrid: ['wx.grid.Grid', GridDTC],
-    wxListCtrl: ['wx.ListCtrl', ListCtrlDTC],
-    wxListView: ['wx.ListView', ListViewDTC],
-    wxTreeCtrl: ['wx.TreeCtrl', TreeCtrlDTC],
-    wxRadioBox: ['wx.RadioBox', RadioBoxDTC],
-})
-try: PaletteStore.compInfo[wxGenericDirCtrl] = ['wx.GenericDirCtrl', GenericDirCtrlDTC]
-except NameError: pass
+Plugins.registerPalettePage('ListControls', 'List Controls')
+
+Plugins.registerComponents('ListControls',
+      (wxListBox, 'wx.ListBox', ListBoxDTC),
+      (wxCheckListBox, 'wx.CheckListBox', CheckListBoxDTC),
+      (wxGrid, 'wx.grid.Grid', GridDTC),
+      (wxListCtrl, 'wx.ListCtrl', ListCtrlDTC),
+      (wxListView, 'wx.ListView', ListViewDTC),
+      (wxTreeCtrl, 'wx.TreeCtrl', TreeCtrlDTC),
+      (wxRadioBox, 'wx.RadioBox', RadioBoxDTC),
+      (wxGenericDirCtrl, 'wx.GenericDirCtrl', GenericDirCtrlDTC),
+    )

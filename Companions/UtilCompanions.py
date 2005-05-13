@@ -27,16 +27,10 @@ from PropEdit.PropertyEditors import IntConstrPropEdit, StrConstrPropEdit, \
       
 from PropEdit import Enumerations, InspectorEditorControls
 import EventCollections, RTTI, methodparse
-import PaletteStore
 
 import moduleparse, sourceconst
 
-PaletteStore.paletteLists['Utilities (Data)'] = []
-PaletteStore.palette.append(['Utilities (Data)', 'Editor/Tabs/Utilities',
-                             PaletteStore.paletteLists['Utilities (Data)']])
-
 class ImageListDTC(UtilityDTC):
-    #wxDocs = HelpCompanions.wxImageListDocs
     def __init__(self, name, designer, objClass):
         UtilityDTC.__init__(self, name, designer, objClass)
         self.editors.update({'Width': IntConstrPropEdit,
@@ -62,7 +56,6 @@ class ImageListDTC(UtilityDTC):
             nv.propEditor.edit(None)
 
 class ImageListImagesCDTC(CollectionDTC):
-    #wxDocs = HelpCompanions.wxImageListDocs
     propName = 'Images'
     displayProp = 'bitmap'
     indexProp = '(None)'
@@ -174,7 +167,6 @@ EventCollections.EventCategories['TimerEvent'] = ('wx.EVT_TIMER',)
 EventCollections.commandCategories.append('TimerEvent')
 class TimerDTC(UtilityDTC):
     handledConstrParams = ('id',)
-    #wxDocs = HelpCompanions.wxTimerDocs
     def __init__(self, name, designer, objClass):
         UtilityDTC.__init__(self, name, designer, objClass)
         self.id = self.getWinId()
@@ -287,7 +279,6 @@ EventCollections.EventCategories['MenuEvent'] = ('wx.EVT_MENU',)
 EventCollections.commandCategories.append('MenuEvent')
 
 class MenuDTC(UtilityDTC):
-    #wxDocs = HelpCompanions.wxMenuDocs
     def __init__(self, name, designer, objClass):
         UtilityDTC.__init__(self, name, designer, objClass)
         self.editors.update({'Title': StrConstrPropEdit,
@@ -319,7 +310,6 @@ class MenuDTC(UtilityDTC):
             nv.propEditor.edit(None)
 
 class MenuItemsCIDTC(CollectionIddDTC):
-    #wxDocs = HelpCompanions.wxMenuDocs
     propName = 'Items'
     displayProp = 'text'
     indexProp = '(None)'
@@ -446,8 +436,6 @@ class MenuItemsCIDTC(CollectionIddDTC):
 
 
 class MenuBarDTC(UtilityDTC):
-    #wxDocs = HelpCompanions.wxMenuBarDocs
-
     def __init__(self, name, designer, objClass):
         UtilityDTC.__init__(self, name, designer, objClass)
         self.editors.update({'Menus': CollectionPropEdit})
@@ -483,7 +471,6 @@ class MenuBarDTC(UtilityDTC):
             nv.propEditor.edit(None)
 
 class MenuBarMenusCDTC(CollectionDTC):
-    #wxDocs = HelpCompanions.wxMenuBarDocs
     propName = 'Menus'
     displayProp = 'title'
     indexProp = '(None)'
@@ -538,7 +525,6 @@ class MenuBarMenusCDTC(CollectionDTC):
         self.textConstrLst[self.index].params['menu'] = value
 
 class LayoutConstraintsDTC(Constructors.EmptyConstr, UtilityDTC):
-    #wxDocs = HelpCompanions.wxLayoutConstraintsDocs
     def __init__(self, name, designer, objClass):
         UtilityDTC.__init__(self, name, designer, objClass)
         self.editors.update({'Constraints': CollPropEdit})
@@ -596,19 +582,23 @@ class StockCursorDTC(UtilityDTC):
         return {'id': 'wx.CURSOR_ARROW'}
 
 
-PaletteStore.paletteLists['Utilities (Data)'].extend([wxMenuBar, wxMenu, #wxAcceleratorTable, 
-    wxImageList, wxTimer, wxStockCursor]) 
-    #wxCursor, causes problems on wxGTK
+#-------------------------------------------------------------------------------
+import Plugins
 
-PaletteStore.compInfo.update({wxMenuBar: ['wx.MenuBar', MenuBarDTC],
-    wxImageList: ['wx.ImageList', ImageListDTC],
-    #wxAcceleratorTable: ['wxAcceleratorTable', AcceleratorTableDTC],
-    wxMenu: ['wx.Menu', MenuDTC],
-    wxCursor: ['wx.Cursor', CursorDTC],
-    wxStockCursor: ['wx.StockCursor', StockCursorDTC],
+Plugins.registerPalettePage('Utilities (Data)', 'Utilities (Data)')
 
-    # these objects need design time inheritance
-    wxTimer: ['wx.Timer', TimerDTC],
-    wxTextDropTarget: ['wx.TextDropTarget', NYIDTC],
-    wxFileDropTarget: ['wx.FileDropTarget', NYIDTC],
-})
+Plugins.registerComponents('Utilities (Data)',
+      (wxMenuBar, 'wx.MenuBar', MenuBarDTC),
+      (wxMenu, 'wx.Menu', MenuDTC),
+      (wxImageList, 'wx.ImageList', ImageListDTC),
+      (wxTimer, 'wx.Timer', TimerDTC),
+      (wxStockCursor, 'wx.StockCursor', StockCursorDTC),
+
+      #(wxAcceleratorTable, 'wxAcceleratorTable', AcceleratorTableDTC),
+      #(wxCursor: ['wx.Cursor', CursorDTC],
+
+      # these objects need design time inheritance
+      #(wxTextDropTarget, 'wx.TextDropTarget', NYIDTC),
+      #(wxFileDropTarget, 'wx.FileDropTarget', NYIDTC),
+    )
+
