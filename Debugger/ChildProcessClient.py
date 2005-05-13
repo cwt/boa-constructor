@@ -1,5 +1,5 @@
 import os, sys, time, socket
-from wxPython import wx
+import wx
 
 import Preferences, Utils
 from ExternalLib import xmlrpclib
@@ -65,7 +65,7 @@ def spawnChild(monitor, process, args=''):
     pyIntpPath = Preferences.getPythonInterpreterPath()
     cmd = '%s "%s" %s' % (pyIntpPath, script_fn, args)
     try:
-        pid = wx.wxExecute(cmd, wx.wxEXEC_NOHIDE, process)
+        pid = wx.Execute(cmd, wx.EXEC_NOHIDE, process)
 
         line = ''
         if monitor.isAlive():
@@ -150,7 +150,7 @@ class ChildProcessClient(MultiThreadedDebugClient):
 
     server = None       # An xmlrpclib.Server instance
     processId = 0
-    process = None      # A wxProcess
+    process = None      # A wx.Process
     input_stream = None
     error_stream = None
     pyIntpPath = None
@@ -158,7 +158,7 @@ class ChildProcessClient(MultiThreadedDebugClient):
     def __init__(self, win, process_args=''):
         self.process_args = process_args
         DebugClient.__init__(self, win)
-        EVT_DEBUGGER_START(win, self.win_id, self.OnDebuggerStart)
+        win.Bind(EVT_DEBUGGER_START, self.OnDebuggerStart, id=self.win_id)
 
     def invokeOnServer(self, m_name, m_args=(), r_name=None, r_args=()):
         task = DebuggerTask(self, m_name, m_args, r_name, r_args)
@@ -221,11 +221,11 @@ class ChildProcessClient(MultiThreadedDebugClient):
 
     def OnDebuggerStart(self, evt):
         try:
-            wx.wxBeginBusyCursor()
+            wx.BeginBusyCursor()
             try:
                 if self.server is None:
                     # Start the subprocess.
-                    process = wx.wxProcess(self.event_handler, self.win_id)
+                    process = wx.Process(self.event_handler, self.win_id)
                     process.Redirect()
                     self.process = process
                     wx.EVT_END_PROCESS(self.event_handler, self.win_id,
@@ -245,7 +245,7 @@ class ChildProcessClient(MultiThreadedDebugClient):
                     open(fn, 'a').write(''.join(traceback.format_exception(t, v, tb)))
                 del tb
         finally:
-            wx.wxEndBusyCursor()
+            wx.EndBusyCursor()
 
     def OnProcessEnded(self, evt):
         self.pollStreams()
@@ -256,8 +256,8 @@ class ChildProcessClient(MultiThreadedDebugClient):
 
 
 if __name__ == '__main__':
-    a = wx.wxPySimpleApp()
-    f = wx.wxFrame(None, -1, '')
+    a = wx.PySimpleApp()
+    f = wx.Frame(None, -1, '')
     f.Show()
     cpc = ChildProcessClient(f)
     cpc.OnDebuggerStart(None)

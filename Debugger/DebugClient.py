@@ -1,7 +1,8 @@
 import sys
 
 from Tasks import ThreadedTaskHandler
-from wxPython.wx import wxNewId, wxPyCommandEvent
+
+import wx
 
 '''wxPython debugging client code.  This runs in the IDE.
 A debug client connects to a debug server, generally in a different
@@ -9,29 +10,22 @@ process.  The debug server does the dirty work of stepping and
 stopping at breakpoints.
 '''
 
-wxEVT_DEBUGGER_OK = wxNewId()
-wxEVT_DEBUGGER_EXC = wxNewId()
-wxEVT_DEBUGGER_START = wxNewId()
-wxEVT_DEBUGGER_STOPPED = wxNewId()
+wxEVT_DEBUGGER_OK = wx.NewId()
+wxEVT_DEBUGGER_EXC = wx.NewId()
+wxEVT_DEBUGGER_START = wx.NewId()
+wxEVT_DEBUGGER_STOPPED = wx.NewId()
 
-def EVT_DEBUGGER_OK(win, id, func):
-    win.Connect(id, -1, wxEVT_DEBUGGER_OK, func)
-
-def EVT_DEBUGGER_EXC(win, id, func):
-    win.Connect(id, -1, wxEVT_DEBUGGER_EXC, func)
-
-def EVT_DEBUGGER_START(win, id, func):
-    win.Connect(id, -1, wxEVT_DEBUGGER_START, func)
-
-def EVT_DEBUGGER_STOPPED(win, id, func):
-    win.Connect(id, -1, wxEVT_DEBUGGER_STOPPED, func)
+EVT_DEBUGGER_OK = wx.PyEventBinder(wxEVT_DEBUGGER_OK)
+EVT_DEBUGGER_EXC = wx.PyEventBinder(wxEVT_DEBUGGER_EXC)
+EVT_DEBUGGER_START = wx.PyEventBinder(wxEVT_DEBUGGER_START)
+EVT_DEBUGGER_STOPPED = wx.PyEventBinder(wxEVT_DEBUGGER_STOPPED)
 
 
 class EmptyResponseError (Exception):
     """Empty debugger response"""
 
 
-class DebuggerCommEvent(wxPyCommandEvent):
+class DebuggerCommEvent(wx.PyCommandEvent):
     receiver_name = None
     receiver_args = ()
     result = None
@@ -41,7 +35,7 @@ class DebuggerCommEvent(wxPyCommandEvent):
     tb = ('', 0)
 
     def __init__(self, evtType, id):
-        wxPyCommandEvent.__init__(self, evtType, id)
+        wx.PyCommandEvent.__init__(self, evtType, id)
 
     def SetResult(self, result):
         self.result = result

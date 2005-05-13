@@ -17,7 +17,7 @@
 
 import sys, os
 
-from wxPython.wx import *
+import wx
 
 import Preferences, Utils
 from Preferences import pyPath, IS, flatTools, keyDefs
@@ -36,16 +36,16 @@ TEXTCTRL_GOODLEN = 20000
 
 STOP_GENTLY = 0
 
-wxID_PAGECHANGED = wxNewId()
-wxID_TOPPAGECHANGED = wxNewId()
-class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
+wxID_PAGECHANGED = wx.NewId()
+wxID_TOPPAGECHANGED = wx.NewId()
+class DebuggerFrame(wx.Frame, Utils.FrameRestorerMixin):
     debug_client = None
     _destroyed = 0
     _closing = 0
 
     def __init__(self, editor, filename=None, slave_mode=1):
-        wxFrame.__init__(self, editor, -1, 'Debugger',
-         style=wxDEFAULT_FRAME_STYLE|wxCLIP_CHILDREN|Preferences.childFrameStyle)
+        wx.Frame.__init__(self, editor, -1, 'Debugger',
+         style=wx.DEFAULT_FRAME_STYLE | wx.CLIP_CHILDREN|Preferences.childFrameStyle)
 
         self.winConfOption = 'debugger'
         self.loadDims()
@@ -60,7 +60,7 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
 
         self.SetIcon(IS.load('Images/Icons/Debug.ico'))
 
-        self.viewsImgLst = wxImageList(16, 16)
+        self.viewsImgLst = wx.ImageList(16, 16)
         self.viewsImgLst.Add(IS.load('Images/Debug/Stack.png'))
         self.viewsImgLst.Add(IS.load('Images/Debug/Breakpoints.png'))
         self.viewsImgLst.Add(IS.load('Images/Debug/Watches.png'))
@@ -73,8 +73,8 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
         self.sb = DebugStatusBar(self)
         self.SetStatusBar(self.sb)
 
-        self.toolbar = wxToolBar(self, -1,
-              style=wxTB_HORIZONTAL|wxNO_BORDER|flatTools)
+        self.toolbar = wx.ToolBar(self, -1,
+              style=wx.TB_HORIZONTAL | wx.NO_BORDER|flatTools)
         self.SetToolBar(self.toolbar)
 
         self.runId = Utils.AddToolButtonBmpIS(self, self.toolbar,
@@ -96,7 +96,7 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
         if sys.version_info[:2] >= (2, 3):
             self.jumpId = Utils.AddToolButtonBmpIS(self, self.toolbar,
               'Images/Debug/Jump.png', 'Jump to line', self.OnJump)
-            
+
         self.pauseId = Utils.AddToolButtonBmpIS(self, self.toolbar,
           'Images/Debug/Pause.png',  'Pause', self.OnPause)
         self.stopId = Utils.AddToolButtonBmpIS(self, self.toolbar,
@@ -122,7 +122,7 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
           'Images/Debug/SplitOrient.png',  'Toggle split orientation',
           self.OnToggleSplitOrient)
 
-        self.SetAcceleratorTable(wxAcceleratorTable( [
+        self.SetAcceleratorTable(wx.AcceleratorTable( [
           (keyDefs['Debug'][0], keyDefs['Debug'][1], self.runId),
           (keyDefs['DebugStep'][0], keyDefs['DebugStep'][1], self.stepId),
           (keyDefs['DebugOver'][0], keyDefs['DebugOver'][1], self.overId),
@@ -130,17 +130,17 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
 
         self.toolbar.Realize()
 
-        self.toolbar.ToggleTool(self.sourceTraceId, true)
-        self.toolbar.ToggleTool(self.debugBrowseId, false)
+        self.toolbar.ToggleTool(self.sourceTraceId, True)
+        self.toolbar.ToggleTool(self.debugBrowseId, False)
 
-        self.splitter = wxSplitterWindow(self, -1,
-               style=wxSP_NOBORDER|Preferences.splitterStyle)
+        self.splitter = wx.SplitterWindow(self, -1,
+               style=wx.SP_NOBORDER|Preferences.splitterStyle)
 
         (stackImgIdx, breaksImgIdx, watchesImgIdx, localsImgIdx,
                   globalsImgIdx) = range(5)
 
         # Create a Notebook
-        self.nbTop = wxNotebook(self.splitter, wxID_TOPPAGECHANGED)
+        self.nbTop = wx.Notebook(self.splitter, wxID_TOPPAGECHANGED)
         self.nbTop.SetImageList(self.viewsImgLst)
 
         self.stackView = StackViewCtrl(self.nbTop, None, self)
@@ -150,10 +150,9 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
         self.nbTop.AddPage(self.breakpts, 'Breakpoints', imageId=breaksImgIdx)
 
         # Create a Notebook
-        self.nbBottom = wxNotebook(self.splitter, wxID_PAGECHANGED,
-              style=wxCLIP_CHILDREN)
-        EVT_NOTEBOOK_PAGE_CHANGED(self.nbBottom, wxID_PAGECHANGED,
-                                  self.OnPageChange)
+        self.nbBottom = wx.Notebook(self.splitter, wxID_PAGECHANGED,
+              style=wx.CLIP_CHILDREN)
+        self.nbBottom.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self.OnPageChange, id=wxID_PAGECHANGED)
         self.nbBottom.SetImageList(self.viewsImgLst)
 
         self.watches = WatchViewCtrl(self.nbBottom, self.viewsImgLst, self)
@@ -171,7 +170,7 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
 
         self.splitter.SplitHorizontally(self.nbTop, self.nbBottom)
         self.splitter.SetSashPosition(175)
-        self.splitter.SetSplitMode(wxSPLIT_HORIZONTAL)
+        self.splitter.SetSplitMode(wx.SPLIT_HORIZONTAL)
 
         self.mlc = 0
         self.frame = None
@@ -182,23 +181,23 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
         self.stepping_enabled = 1
 
         self.setParams([])
-        
+
         self.setServerClientPaths([])
 
-        EVT_DEBUGGER_OK(self, self.GetId(), self.OnDebuggerOk)
-        EVT_DEBUGGER_EXC(self, self.GetId(), self.OnDebuggerException)
-        EVT_DEBUGGER_STOPPED(self, self.GetId(), self.OnDebuggerStopped)
-        
+        self.Bind(EVT_DEBUGGER_OK, self.OnDebuggerOk, id=self.GetId())
+        self.Bind(EVT_DEBUGGER_EXC, self.OnDebuggerException, id=self.GetId())
+        self.Bind(EVT_DEBUGGER_STOPPED, self.OnDebuggerStopped, id=self.GetId())
+
         # used to indicate when the debugger start,
         # would be better if there was a start event in addition to the OK event
         self._pid = None
         self._erroutFrm = self.editor.erroutFrm
 
-        self.stream_timer = wxPyTimer(self.OnStreamTimer)
+        self.stream_timer = wx.PyTimer(self.OnStreamTimer)
         self.stream_timer.Start(100)
 
-        EVT_MENU_HIGHLIGHT_ALL(self, self.OnToolOver)
-        EVT_CLOSE(self, self.OnCloseWindow)
+        self.Bind(wx.EVT_MENU_HIGHLIGHT_ALL, self.OnToolOver)
+        self.Bind(wx.EVT_CLOSE, self.OnCloseWindow)
 
     def destroy(self):
         if self._destroyed:
@@ -223,9 +222,9 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
         if not self._sashes_inited:
             s = self.GetSize()
             if s.x /float(s.y) > 1:
-                mode = wxSPLIT_HORIZONTAL
+                mode = wx.SPLIT_HORIZONTAL
             else:
-                mode = wxSPLIT_VERTICAL
+                mode = wx.SPLIT_VERTICAL
             self.splitter.SetSplitMode(mode)
             self.OnToggleSplitOrient()
             self._sashes_inited = 1
@@ -332,7 +331,7 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
         # XXX I'm not comfortable with this...
         try:
             while not self._hasReceivedVal:
-                wxYield()
+                wx.Yield()
             return self._receivedVal
         finally:
             del self._hasReceivedVal
@@ -371,10 +370,10 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
             from ChildProcessClient import ChildProcessClient
             client = ChildProcessClient(self, Preferences.debugServerArgs)
         self.debug_client = client
-    
+
     def setServerClientPaths(self, paths):
         self.serverClientPaths = paths
-            
+
 
     def invokeInDebugger(self, m_name, m_args=(), r_name=None, r_args=()):
         """
@@ -406,9 +405,9 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
             self.destroy()
             self.Destroy()
         elif show_dialog:
-            wxMessageBox('The debugger process stopped prematurely.',
-                  'Debugger stopped', wxOK | wxICON_EXCLAMATION | wxCENTRE)
-        
+            wx.MessageBox('The debugger process stopped prematurely.',
+                  'Debugger stopped', wx.OK | wx.ICON_EXCLAMATION | wx.CENTRE)
+
         if self._pid:
             self._erroutFrm.processFinished(self._pid)
             self._pid = None
@@ -436,7 +435,7 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
             script = os.path.basename(self.filename)
             intp = os.path.basename(self.debug_client.pyIntpPath)
             if intp:
-                self._erroutFrm.processStarted(intp, self._pid, script, 'Debug') 
+                self._erroutFrm.processStarted(intp, self._pid, script, 'Debug')
 
         self.restoreDebugger()
         self.enableStepping()
@@ -461,10 +460,10 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
             t = t.__name__
         msg = '%s: %s.' % (t, v)
 
-        confirm = wxMessageBox(msg + '\n\nStop debugger?',
+        confirm = wx.MessageBox(msg + '\n\nStop debugger?',
                   'Debugger Communication Exception',
-                  wxYES_NO | wxYES_DEFAULT | wxICON_EXCLAMATION |
-                  wxCENTRE) == wxYES
+                  wx.YES_NO | wx.YES_DEFAULT | wx.ICON_EXCLAMATION |
+                  wx.CENTRE) == wx.YES
 
         if confirm:
             self.killDebugger()
@@ -536,7 +535,7 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
                     if normFilepath.startswith(normClientPath):
                         return serverPath+normFilepath[len(normClientPath):]
             return filepath
-            
+
     def serverFNToClientFN(self, filename):
         """Converts a filename on the server to a filename on the client.
 
@@ -696,7 +695,7 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
                 model = self.editor.getActiveModulePage().model
                 view = model.getSourceView()
                 if view is not None:
-                    view.focus(false)
+                    view.focus(False)
                     #view.selectLine(lineno - 1)
                     view.GotoLine(lineno - 1)
                     if hasattr(view, 'setStepPos'):
@@ -809,21 +808,21 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
     def OnJump(self, event):
         idx = len(self.stackView.stack)-1
         if idx < 0:
-            wxLogError('No stack available!')
+            wx.LogError('No stack available!')
             return
-        
+
         self.stackView.Select(idx)
         self.stackView.OnGotoSource()
-        dlg = wxTextEntryDialog(self, 'Enter line number to jump to:', 
+        dlg = wx.TextEntryDialog(self, 'Enter line number to jump to:',
               'Debugger - Jump', str(self.stackView.stack[idx]['lineno']))
         try:
-            if dlg.ShowModal() != wxID_OK:
+            if dlg.ShowModal() != wx.ID_OK:
                 return
-            
+
             lineno = int(dlg.GetValue())
         finally:
             dlg.Destroy()
-        
+
         #self.doDebugStep('set_step_jump', args=(lineno,))
         self.clearStepPos()
         self.invalidatePanes()
@@ -872,7 +871,7 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
 
     def isInShellNamepace(self):
         if self.shellNamespaceId == -1:
-            return false
+            return False
         else:
             return self.toolbar.GetToolState(self.shellNamespaceId)
 
@@ -881,12 +880,12 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
         self.editor.shell.debugShell(self.isInShellNamepace(), self)
 
     def OnToggleSplitOrient(self, event=None):
-        if self.splitter.GetSplitMode() == wxSPLIT_HORIZONTAL:
-            self.splitter.SetSplitMode(wxSPLIT_VERTICAL)
+        if self.splitter.GetSplitMode() == wx.SPLIT_HORIZONTAL:
+            self.splitter.SetSplitMode(wx.SPLIT_VERTICAL)
             self.splitter.SplitVertically(self.nbTop, self.nbBottom)
             sashpos = self.splitter.GetClientSize().x / 2
         else:
-            self.splitter.SetSplitMode(wxSPLIT_HORIZONTAL)
+            self.splitter.SetSplitMode(wx.SPLIT_HORIZONTAL)
             self.splitter.SplitHorizontally(self.nbTop, self.nbBottom)
             sashpos = self.splitter.GetClientSize().y / 2
         self.splitter.SetSashPosition(sashpos)
@@ -898,9 +897,9 @@ class DebuggerFrame(wxFrame, Utils.FrameRestorerMixin):
         newPaths = PathMappingDlg.showPathsMappingDlg(self, paths)
         if newPaths is not None:
             self.serverClientPaths = newPaths
-            return true
+            return True
         else:
-            return false
+            return False
 
     def OnToolOver(self, event):
         pass

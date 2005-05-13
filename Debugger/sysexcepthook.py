@@ -22,9 +22,9 @@ def hook_debugger(tpe, val, tb):
     traceback.print_exception(tpe, val, tb)
     
     #if sys.modules.has_key('wxPython.wx'):
-    from wxPython import wx
-    if wx.wxMessageBox('%s: %s\n\nStart DebugServer?'%(tpe, val), 
-          'Uncaught Exception', wx.wxICON_ERROR | wx.wxYES_NO) == wx.wxNO:
+    import wx
+    if wx.MessageBox('%s: %s\n\nStart DebugServer?'%(tpe, val), 
+          'Uncaught Exception', wx.ICON_ERROR | wx.YES_NO) == wx.NO:
         return
 
     if not hasattr(sys, 'debugger_control'):
