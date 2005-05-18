@@ -144,7 +144,7 @@ class PyInterpreterChooserDlg(wx.Dialog):
 
         self.populateFoundInstallations()
 
-        EVT_LEFT_DCLICK(self.gdcInstallPath.GetChildren()[0],
+        self.gdcInstallPath.GetChildren()[0].Bind(wx.EVT_LEFT_DCLICK,
              self.OnGdcinstallpathLeftDclick)
 
     def populateFoundInstallations(self):

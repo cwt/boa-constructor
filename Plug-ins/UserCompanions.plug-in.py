@@ -8,7 +8,7 @@
 # RCS-ID:      $Id$
 #-----------------------------------------------------------------------------
 
-from wxPython.wx import *
+import wx
 
 from Companions import BasicCompanions
 from PropEdit import PropertyEditors
@@ -40,8 +40,8 @@ class StaticTextCtrlDTC(BasicCompanions.TextCtrlDTC):
     def __init__(self, name, designer, parent, ctrlClass):
         BasicCompanions.TextCtrlDTC.__init__(self, name, designer, parent, ctrlClass)
         self.editors['CaptionAlignment'] = PropertyEditors.EnumPropEdit
-        self.options['CaptionAlignment'] = [wxTOP, wxLEFT]
-        self.names['CaptionAlignment'] = {'wx.TOP': wxTOP, 'wx.LEFT': wxLEFT}
+        self.options['CaptionAlignment'] = [wx.TOP, wx.LEFT]
+        self.names['CaptionAlignment'] = {'wx.TOP': wx.TOP, 'wx.LEFT': wx.LEFT}
 
     def constructor(self):
         return {'Value': 'value', 'Position': 'pos', 'Size': 'size',
@@ -63,8 +63,8 @@ import Plugins
 
 # Register the components
 Plugins.registerComponents('User',
-      (wx.lib.bcrtl.user.ExampleST.ExampleStaticText, 
-       'ExampleStaticText', ExampleSTDTC), 
-      (wx.lib.bcrtl.user.StaticTextCtrl.StaticTextCtrl, 
+      (wx.lib.bcrtl.user.ExampleST.ExampleStaticText,
+       'ExampleStaticText', ExampleSTDTC),
+      (wx.lib.bcrtl.user.StaticTextCtrl.StaticTextCtrl,
        'StaticTextCtrl', StaticTextCtrlDTC),
     )

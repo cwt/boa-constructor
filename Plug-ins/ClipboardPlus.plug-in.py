@@ -10,7 +10,8 @@
 # Licence:
 #-----------------------------------------------------------------------------
 
-from wxPython.wx import *
+import wx
+
 from types import *
 
 class ClipboardPlus:
@@ -19,22 +20,22 @@ class ClipboardPlus:
         self._buffer_size = buffer_size
 
     def _read(self):
-        doData = wxTextDataObject()
-        wxTheClipboard.Open()
-        success = wxTheClipboard.GetData(doData)
-        wxTheClipboard.Close()
+        doData = wx.TextDataObject()
+        wx.TheClipboard.Open()
+        success = wx.TheClipboard.GetData(doData)
+        wx.TheClipboard.Close()
         if success:
             return doData.GetText()
         else:
-            wxBell()
+            wx.Bell()
             return ''
 
     def _write(self, what):
-        doWhat = wxTextDataObject()
+        doWhat = wx.TextDataObject()
         doWhat.SetText(what)
-        wxTheClipboard.Open()
-        wxTheClipboard.SetData(doWhat)
-        wxTheClipboard.Close()
+        wx.TheClipboard.Open()
+        wx.TheClipboard.SetData(doWhat)
+        wx.TheClipboard.Close()
 
     def _smart_insert(self, text):
         try:
@@ -76,7 +77,7 @@ class ClipboardPlusViewPlugin:
               ('Paste+', self.OnEditPastePlus, '-', 'PastePlus'),
         ) )
 
-    
+
     def OnEditCopyPlus(self, event):
         self.clipboardPlus.updateClipboard(self.view.GetSelectedText())
 
@@ -85,9 +86,9 @@ class ClipboardPlusViewPlugin:
         if len(buffer) == 1:
             self.view.Paste()
         else:
-            dlg = wxSingleChoiceDialog(self.view, 'Context', 'Smart clipboard', buffer)
+            dlg = wx.SingleChoiceDialog(self.view, 'Context', 'Smart clipboard', buffer)
             try:
-                if dlg.ShowModal() == wxID_OK:
+                if dlg.ShowModal() == wx.ID_OK:
                     self.clipboardPlus.updateClipboard( dlg.GetStringSelection() )
                     self.view.Paste()
             finally:
@@ -96,5 +97,5 @@ class ClipboardPlusViewPlugin:
 from Views import SourceViews
 SourceViews.EditorStyledTextCtrl.plugins += (ClipboardPlusViewPlugin,)
 
-Preferences.keyDefs['CopyPlus'] = (wxACCEL_CTRL|wxACCEL_SHIFT, ord('C') , 'Ctrl-Shift-C')
-Preferences.keyDefs['PastePlus'] = (wxACCEL_CTRL|wxACCEL_SHIFT, ord('V'), 'Ctrl-Shift-V')
+Preferences.keyDefs['CopyPlus'] = (wx.ACCEL_CTRL|wx.ACCEL_SHIFT, ord('C') , 'Ctrl-Shift-C')
+Preferences.keyDefs['PastePlus'] = (wx.ACCEL_CTRL|wx.ACCEL_SHIFT, ord('V'), 'Ctrl-Shift-V')

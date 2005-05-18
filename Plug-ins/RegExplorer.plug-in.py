@@ -13,7 +13,7 @@ print 'importing Explorers.RegExplorer'
 
 import string, os, sys
 
-from wxPython import wx
+import wx
 
 import Preferences, Utils, Plugins
 
@@ -26,9 +26,6 @@ try:
 except ImportError:
     raise Plugins.SkipPluginSilently, 'Requires windows'
 
-true = 1
-false = 0
-
 #---Explorer classes------------------------------------------------------------
 
 wxID_REGOPEN, wxID_REGINSPECT = Utils.wxNewIds(2)
@@ -39,7 +36,7 @@ class RegController(ExplorerNodes.Controller, ExplorerNodes.ClipboardControllerM
         ExplorerNodes.Controller.__init__(self, editor)
 
         self.list = list
-        self.menu = wx.wxMenu()
+        self.menu = wx.Menu()
         self.inspector = inspector
 
         self.setupMenu(self.menu, self.list,
@@ -64,7 +61,7 @@ class RegController(ExplorerNodes.Controller, ExplorerNodes.ClipboardControllerM
             self.inspector.restore()
             if self.inspector.pages.GetSelection() != 1:
                 self.inspector.pages.SetSelection(1)
-            self.inspector.selectObject(regComp, false)
+            self.inspector.selectObject(regComp, False)
 
 
 class RegCatNode(ExplorerNodes.CategoryNode):
@@ -101,7 +98,7 @@ class RegCatNode(ExplorerNodes.CategoryNode):
 
 class RegItemNode(ExplorerNodes.ExplorerNode):
     protocol = 'reg'
-    connection = false
+    connection = False
     def __init__(self, name, props, resourcepath, clipboard, imgIdx, parent):
         if not resourcepath:
             resourcepath = '/'
@@ -132,7 +129,7 @@ class RegItemNode(ExplorerNodes.ExplorerNode):
         return '%s://%s' % (self.protocol, self.resourcepath)
 
     def isFolderish(self):
-        return true
+        return True
 
     def createChildNode(self, name, props):
         newname = os.path.join(self.resourcepath, name)

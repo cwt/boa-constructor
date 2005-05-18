@@ -14,6 +14,8 @@ Only proxies the run and debug methods to the parent app.
 
 """
 
+import wx
+
 import Plugins
 
 import sourceconst
@@ -46,7 +48,7 @@ class LinkAppModel(PythonEditorModels.PyAppModel):
         if app:
             app.run(args, execStart, execFinish)
         else:
-            wxLogWarning('No Application module found in modules list to link to')
+            wx.LogWarning('No Application module found in modules list to link to')
 
     def debug(self, params=None, cont_if_running=0, cont_always=0,
               temp_breakpoint=None):
@@ -54,7 +56,7 @@ class LinkAppModel(PythonEditorModels.PyAppModel):
         if app:
             app.debug(params, cont_if_running, cont_always, temp_breakpoint)
         else:
-            wxLogWarning('No Application module found in modules list to link to')
+            wx.LogWarning('No Application module found in modules list to link to')
                 
 
 class LinkAppController(PythonControllers.BaseAppController):

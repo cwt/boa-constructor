@@ -12,8 +12,8 @@
 
 import os
 
-from wxPython.wx import *
-from wxPython.stc import *
+import wx
+import wx.stc
 
 import Preferences, Utils, Plugins
 import PaletteStore
@@ -26,7 +26,7 @@ from Explorers import ExplorerNodes
 EditorHelper.imgPascalModel = EditorHelper.imgIdxRange()
 
 # Register plug-in preference
-Plugins.registerPreference('PascalSupport', 'psPascalCompilerPath', "''", 
+Plugins.registerPreference('PascalSupport', 'psPascalCompilerPath', "''",
                            ['Path to the compiler'], 'type: filepath')
 
 class PascalModel(EditorModels.SourceModel):
@@ -45,21 +45,21 @@ class PascalStyledTextCtrlMix(StyledTextCtrls.LanguageSTCMix):
               (0, Preferences.STCLineNumMarginWidth), 'pascal', pascal_cfgfile)
         self.setStyles()
 
-wxID_PASSOURCEVIEW = wxNewId()
+wxID_PASSOURCEVIEW = wx.NewId()
 class PascalSourceView(SourceViews.EditorStyledTextCtrl, PascalStyledTextCtrlMix):
     viewName = 'Source'
     def __init__(self, parent, model):
         SourceViews.EditorStyledTextCtrl.__init__(self, parent, wxID_PASSOURCEVIEW,
           model, (), -1)
         PascalStyledTextCtrlMix.__init__(self, wxID_PASSOURCEVIEW)
-        self.active = true
+        self.active = True
 
 # Register a Pascal STC style editor under Preferences
-Plugins.registerLanguageSTCStyle('Pascal', 'pascal', PascalStyledTextCtrlMix, pascal_cfgfile) 
+Plugins.registerLanguageSTCStyle('Pascal', 'pascal', PascalStyledTextCtrlMix, pascal_cfgfile)
 
 # The compile action is just added as an example of how to add an action to
 # a controller and is not implemented
-wxID_PASCALCOMPILE = wxNewId()
+wxID_PASCALCOMPILE = wx.NewId()
 class PascalController(Controllers.SourceController):
     Model = PascalModel
     DefaultViews = [PascalSourceView]
@@ -71,7 +71,7 @@ class PascalController(Controllers.SourceController):
               ('Compile', self.OnCompile, '-', 'CheckSource')]
 
     def OnCompile(self, event):
-        wxLogWarning('Not implemented')
+        wx.LogWarning('Not implemented')
 
 #-------------------------------------------------------------------------------
 # Registers the filetype in the IDE framework
@@ -117,7 +117,7 @@ end.
 pascalStyleEditorConfig = '''
 common.defs.msw={'size': 10, 'backcol': '#FFFFFF', 'lnsize2': 7, 'mono': 'Courier New', 'lnsize': 8, 'helv': 'Lucida Console'}
 common.defs.gtk={'mono': 'Courier', 'helv': 'Helvetica', 'other': 'new century schoolbook', 'size': 9, 'lnsize': 6, 'backcol': '#FFFFFF'}
-common.styleidnames = {wxSTC_STYLE_DEFAULT: 'Style default', wxSTC_STYLE_LINENUMBER: 'Line numbers', wxSTC_STYLE_BRACELIGHT: 'Matched braces', wxSTC_STYLE_BRACEBAD: 'Unmatched brace', wxSTC_STYLE_CONTROLCHAR: 'Control characters', wxSTC_STYLE_INDENTGUIDE: 'Indent guide'}
+common.styleidnames = {wx.stc.STC_STYLE_DEFAULT: 'Style default', wx.stc.STC_STYLE_LINENUMBER: 'Line numbers', wx.stc.STC_STYLE_BRACELIGHT: 'Matched braces', wx.stc.STC_STYLE_BRACEBAD: 'Unmatched brace', wx.stc.STC_STYLE_CONTROLCHAR: 'Control characters', wx.stc.STC_STYLE_INDENTGUIDE: 'Indent guide'}
 
 [style.pascal]
 setting.pascal.-3=fore:#8080FF
@@ -150,8 +150,8 @@ style.pascal.037=
 displaysrc='''+`pascalSource`[1:-1]+'''
 braces={}
 keywords=and array as asm begin case class const constructor destructor dispinterface div do downto else end except exports file finalization finally for function goto if implementation in inherited initialization inline interface is label library mod nil not object of or out packed procedure program property raise record repeat resourcestring set shl shr string then threadvar to try type unit until uses var while with xor private protected public published automated at on
-lexer=wxSTC_LEX_PASCAL
-styleidnames={wxSTC_C_DEFAULT: 'Default', wxSTC_C_COMMENT: 'Comment',wxSTC_C_COMMENTLINE: 'Comment line',wxSTC_C_COMMENTDOC: 'Comment doc',wxSTC_C_NUMBER: 'Number',wxSTC_C_WORD: 'Keyword',wxSTC_C_STRING: 'String',wxSTC_C_CHARACTER: 'Character',wxSTC_C_PREPROCESSOR: 'Preprocessor',wxSTC_C_OPERATOR: 'Operator', wxSTC_C_IDENTIFIER: 'Identifier', wxSTC_C_STRINGEOL: 'EOL unclosed string'}
+lexer=wx.stc.STC_LEX_PASCAL
+styleidnames={wx.stc.STC_C_DEFAULT: 'Default', wx.stc.STC_C_COMMENT: 'Comment',wx.stc.STC_C_COMMENTLINE: 'Comment line',wx.stc.STC_C_COMMENTDOC: 'Comment doc',wx.stc.STC_C_NUMBER: 'Number',wx.stc.STC_C_WORD: 'Keyword',wx.stc.STC_C_STRING: 'String',wx.stc.STC_C_CHARACTER: 'Character',wx.stc.STC_C_PREPROCESSOR: 'Preprocessor',wx.stc.STC_C_OPERATOR: 'Operator', wx.stc.STC_C_IDENTIFIER: 'Identifier', wx.stc.STC_C_STRINGEOL: 'EOL unclosed string'}
 '''
 
 Plugins.assureConfigFile(pascal_cfgfile, pascalStyleEditorConfig)
@@ -174,7 +174,7 @@ J\x9b!\xfbM\xc1\xc9\xc5\x04\xb0\xc4\x071\xc3\xb3!\xf6\xc5\x02`\xd7 \'\x02\
 \xd2\xaa\xb5E\xadC\x9e\x96\xd3\xe8\xf6\xe6\x11c\x0c\xc9\xe1N|y\x8f\x97\xb8\
 \x17\x00@D\x10I\x01\xebs<\x1c\xa0\xaa\xc1\xc2A\x80\xaa\xc3\xa7\xf4\xfb\x9e\
 \xebP\xf3\xba\xc9]\xec\xef\xb7\xa8w\xc0\x1b@\xbfT\xe9_od\x9f\x00\x00\x00\x00\
-IEND\xaeB`\x82' 
+IEND\xaeB`\x82'
 
 def getPascalModuleData():
     return \
@@ -191,8 +191,7 @@ ogg\xd8@D\xe8\x8aD\xd5\xbf\x88\x04\xbf\xd5\xf7\xfa\xcc\xabN|\x07`\xae\xeaW90\
 \xd9\x84l\xdf\xb7\x95\x12c\xd7\x10\x1fY\xae\x8b\x05N]\xe3\t\x8d!\xce\x8aYpw\
 \xfbD\x92$\xc4\x87\xa5y\xf9@\xab\xb9\x15\x00 "\x88\xa4\x80m+\xf7\x03T\xb5\
 \xd7\xd8\tp=\x1f\xac\x170$\xfe\r\xf8\x00P\xd5U\xa2\xb4=\x18n\x00\x00\x00\x00\
-IEND\xaeB`\x82' 
+IEND\xaeB`\x82'
 
 Preferences.IS.registerImage('Images/Modules/Pascal.png', getPascalModuleData())
 Preferences.IS.registerImage('Images/Palette/Pascal.png', getPascalPaletteData())
-

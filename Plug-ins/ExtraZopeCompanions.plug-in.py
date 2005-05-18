@@ -1,4 +1,4 @@
-from wxPython import wx
+import wx
 
 import Preferences, Utils, Plugins
 
@@ -53,7 +53,7 @@ class LFNode(LFSNode):
     def __init__(self, name, resourcepath, clipboard, imgIdx, parent, xmlrpcsvr,
           root, properties, metatype):
         Mod = Controllers.identifyFile(
-              os.path.basename(resourcepath), localfs=false)[0]
+              os.path.basename(resourcepath), localfs=False)[0]
         imgIdx = Mod.imgIdx
         self.defaultViews = self.supportedViews.get(Mod.modelIdentifier,
               (SourceViews.TextView,))
@@ -85,7 +85,7 @@ class LFNode(LFSNode):
               {'file': file, 'Content-Type': 'multipart/form-data'} )
 
     def isFolderish(self):
-        return false
+        return False
 
 
 class LFDirNode(LFSNode):
@@ -101,10 +101,10 @@ zopeClassMap.update({
 
 class ZODBCDAZC(DBAdapterZC):
     def create(self):
-        dlg = wx.wxTextEntryDialog(None, 'Enter the Connection String',
+        dlg = wx.TextEntryDialog(None, 'Enter the Connection String',
               'Z ODBC DB Adapter', '')
         try:
-            if dlg.ShowModal() == wx.wxID_OK:
+            if dlg.ShowModal() == wx.ID_OK:
                 connId = dlg.GetValue()
                 mime, res = self.call(self.objPath, 'manage_addZODBCConnection',
                       id=self.name, title='', connection=connId, check=1)

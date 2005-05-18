@@ -1,5 +1,5 @@
-from wxPython.wx import *
-from wxPython.xrc import *
+import wx
+import wx.xrc
 
 from Companions import BaseCompanions
 
@@ -26,7 +26,7 @@ from Companions import ContainerCompanions
 import methodparse
 
 class XrcPanelDTC(ContainerCompanions.PanelDTC):
-    suppressWindowId = true
+    suppressWindowId = True
     def constructor(self):
         return {'Name': 'name'}
 
@@ -41,9 +41,9 @@ class XrcPanelDTC(ContainerCompanions.PanelDTC):
         self.initDesignTimeControl()
         return self.control
 
-    def designTimeDefaults(self, position = wxDefaultPosition,
-                                 size = wxDefaultSize):
-        xrcObjs = self.designer.getObjectsOfClass(wxXmlResource)
+    def designTimeDefaults(self, position = wx.DefaultPosition,
+                                 size = wx.DefaultSize):
+        xrcObjs = self.designer.getObjectsOfClass(wx.xrc.XmlResource)
         if not xrcObjs:
             raise 'No wx.xrc.XmlResource objects found'
         # factory/LoadPage allows no positional info
@@ -59,13 +59,13 @@ class XrcPanelDTC(ContainerCompanions.PanelDTC):
             paramStrs.append('%s = %s'%(param, params[param]))
 
         if not self.textConstr:
-            xrcObjs = self.designer.getObjectsOfClass(wxXmlResource)
+            xrcObjs = self.designer.getObjectsOfClass(wx.xrc.XmlResource)
             names = xrcObjs.keys()
             if names:
-                dlg = wxSingleChoiceDialog(self.designer, 'Select wx.xrc.XmlResource to LoadPanel from',
+                dlg = wx.SingleChoiceDialog(self.designer, 'Select wx.xrc.XmlResource to LoadPanel from',
                       'wx.xrc.XmlResource.LoadPanel', names)
                 try:
-                    if dlg.ShowModal() == wxID_OK:
+                    if dlg.ShowModal() == wx.ID_OK:
                         xrcObj = dlg.GetStringSelection()
                         self.xmlResource = xrcObj.split('.')[1]
                     else:
@@ -87,14 +87,14 @@ class XrcPanelDTC(ContainerCompanions.PanelDTC):
         return {'name':  `self.name`}
 
 
-class XrcPanel(wxPanel):
+class XrcPanel(wx.Panel):
     pass
 
 #-------------------------------------------------------------------------------
 
 import Plugins
 
-Plugins.registerComponent('Utilities (Data)', wxXmlResource, 
+Plugins.registerComponent('Utilities (Data)', wx.xrc.XmlResource,
                           'wx.xrc.XmlResource', XmlResourceDTC)
-Plugins.registerComponent('ContainersLayout', XrcPanel, 
+Plugins.registerComponent('ContainersLayout', XrcPanel,
                           'XrcPanel', XrcPanelDTC)

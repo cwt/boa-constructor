@@ -372,7 +372,7 @@ class ImageEditorPanel(wx.Panel):
                     self.mDC.SetLogicalFunction(wx.COPY)
                     self.mDC.SetPen(self.fgpen)
                     self.mDC.SetUserScale(1.0, 1.0)
-                    apply(self.mDC.DrawLine, self.line)
+                    self.mDC.DrawLine(*self.line)
                     self.mDC.DrawPoint(self.line[2], self.line[3])
 
                     x1, y1, x2, y2 = self.line
@@ -510,7 +510,7 @@ class ImageEditorPanel(wx.Panel):
                 self.mDC.SetLogicalFunction(wx.COPY)
                 self.mDC.SetPen(self.invpen)
                 self.mDC.SetBrush(self.bgbsh)
-                apply(self.mDC.DrawRectangle, self.dragsrcrect)
+                self.mDC.DrawRectangle(*self.dragsrcrect)
 
                 self.mDC.DrawBitmap(self.dragbmp, dx, dy)
 
@@ -543,7 +543,7 @@ class ImageEditorPanel(wx.Panel):
             self.setMode('Draw', updateGUI=True)
 
     def drawGrid(self, dc):
-        pen = wx.Pen(wxWHITE)
+        pen = wx.Pen(wx.WHITE)
         dc.SetPen(pen)
         dc.SetLogicalFunction(wx.XOR)
         scale = self.slider1.GetValue()
@@ -587,7 +587,7 @@ class ImageEditorPanel(wx.Panel):
                 framesize = 1
 
             dc.SetLogicalFunction(wx.COPY)
-            pen = wx.Pen(wxBLACK, framesize, wxSOLID)
+            pen = wx.Pen(wx.BLACK, framesize, wx.SOLID)
             dc.SetPen(pen)
             dc.SetBrush(wx.TRANSPARENT_BRUSH)
             dc.DrawRectangle(xoffset-1 , yoffset-1, width+2, height+2)

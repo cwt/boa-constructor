@@ -1,6 +1,6 @@
 #-----------------------------------------------------------------------------
 # Name:        PyrexSupport.py
-# Purpose:     Support for editing pyrex files and compiling to C 
+# Purpose:     Support for editing pyrex files and compiling to C
 #
 # Author:      Riaan Booysen
 #
@@ -12,8 +12,8 @@
 
 import os, imp
 
-from wxPython.wx import *
-from wxPython.stc import *
+import wx
+import wx.stc
 
 import Preferences, Utils, Plugins
 
@@ -44,17 +44,17 @@ class PyrexStyledTextCtrlMix(StyledTextCtrls.LanguageSTCMix):
               (0, Preferences.STCLineNumMarginWidth), 'pyrex', pyrex_cfgfile)
         self.setStyles()
 
-wxID_PYREXSOURCEVIEW = wxNewId()
+wxID_PYREXSOURCEVIEW = wx.NewId()
 class PyrexSourceView(SourceViews.EditorStyledTextCtrl, PyrexStyledTextCtrlMix):
     viewName = 'Source'
     def __init__(self, parent, model):
         SourceViews.EditorStyledTextCtrl.__init__(self, parent,
               wxID_PYREXSOURCEVIEW, model, (), -1)
         PyrexStyledTextCtrlMix.__init__(self, wxID_PYREXSOURCEVIEW)
-        self.active = true
+        self.active = True
 
 
-#wxID_PYREXCOMPILE = wxNewId()
+#wxID_PYREXCOMPILE = wx.NewId()
 class PyrexController(Controllers.SourceController):
     Model = PyrexModel
     DefaultViews = [PyrexSourceView]
@@ -72,7 +72,7 @@ class PyrexController(Controllers.SourceController):
         try:
             result = Main.compile(model.localFilename(), c_only=1)
         except Errors.PyrexError, err:
-            wxLogError(str(err))
+            wx.LogError(str(err))
             msg = 'Error'
         else:
             msg = 'Info'
@@ -108,7 +108,7 @@ cdef extern from "Numeric/arrayobject.h":
 pyrexStyleEditorConfig = '''
 common.defs.msw={'size': 10, 'backcol': '#FFFFFF', 'lnsize2': 7, 'mono': 'Courier New', 'lnsize': 8, 'helv': 'Lucida Console', 'ln-font': 'Lucida Console', 'ln-size': 8}
 common.defs.gtk={'mono': 'Courier', 'helv': 'Helvetica', 'other': 'new century schoolbook', 'size': 9, 'lnsize': 6, 'backcol': '#FFFFFF', 'ln-font': 'Lucida Console', 'ln-size': 8}
-common.styleidnames = {wxSTC_STYLE_DEFAULT: 'Style default', wxSTC_STYLE_LINENUMBER: 'Line numbers', wxSTC_STYLE_BRACELIGHT: 'Matched braces', wxSTC_STYLE_BRACEBAD: 'Unmatched brace', wxSTC_STYLE_CONTROLCHAR: 'Control characters', wxSTC_STYLE_INDENTGUIDE: 'Indent guide'}
+common.styleidnames = {wx.stc.STC_STYLE_DEFAULT: 'Style default', wx.stc.STC_STYLE_LINENUMBER: 'Line numbers', wx.stc.STC_STYLE_BRACELIGHT: 'Matched braces', wx.stc.STC_STYLE_BRACEBAD: 'Unmatched brace', wx.stc.STC_STYLE_CONTROLCHAR: 'Control characters', wx.stc.STC_STYLE_INDENTGUIDE: 'Indent guide'}
 
 [style.pyrex]
 setting.pyrex.-3=
@@ -140,8 +140,8 @@ style.pyrex.037=
 [pyrex]
 displaysrc='''+`pyrexSource`[1:-1]+'''
 braces={}
-styleidnames={wxSTC_P_DEFAULT: 'Default', wxSTC_P_COMMENTLINE: 'Comment', wxSTC_P_NUMBER : 'Number', wxSTC_P_STRING : 'String', wxSTC_P_CHARACTER: 'Single quoted string', wxSTC_P_WORD: 'Keyword', wxSTC_P_TRIPLE:'Triple quotes', wxSTC_P_TRIPLEDOUBLE: 'Triple double quotes', wxSTC_P_CLASSNAME: 'Class definition', wxSTC_P_DEFNAME: 'Function or method', wxSTC_P_OPERATOR: 'Operators', wxSTC_P_IDENTIFIER: 'Identifiers', wxSTC_P_COMMENTBLOCK: 'Comment blocks', wxSTC_P_STRINGEOL: 'EOL unclosed string'}
-lexer=wxSTC_LEX_PYTHON
+styleidnames={wx.stc.STC_P_DEFAULT: 'Default', wx.stc.STC_P_COMMENTLINE: 'Comment', wx.stc.STC_P_NUMBER : 'Number', wx.stc.STC_P_STRING : 'String', wx.stc.STC_P_CHARACTER: 'Single quoted string', wx.stc.STC_P_WORD: 'Keyword', wx.stc.STC_P_TRIPLE:'Triple quotes', wx.stc.STC_P_TRIPLEDOUBLE: 'Triple double quotes', wx.stc.STC_P_CLASSNAME: 'Class definition', wx.stc.STC_P_DEFNAME: 'Function or method', wx.stc.STC_P_OPERATOR: 'Operators', wx.stc.STC_P_IDENTIFIER: 'Identifiers', wx.stc.STC_P_COMMENTBLOCK: 'Comment blocks', wx.stc.STC_P_STRINGEOL: 'EOL unclosed string'}
+lexer=wx.stc.STC_LEX_PYTHON
 keywords=and assert break class continue def del elif else except exec finally for from global if import in is lambda not or pass print raise return try while struct union enum ctypedef cdef void extern NULL
 '''
 
@@ -163,7 +163,7 @@ def getPyrexModuleData():
 \xca\xfb\xcb\x1c\xfd\x98\x10\x86\xf6\x02\xc1m\xf5\xc2\xcd9\x1e\xdd\x84\x07P\
 \xc6,D\x04a\x00\xde\xbd\x9c\x1d\xbd\xed\xfc\xde?\xea\x8f\xa3S\xf8\xf46\xea~\
 \xcb\x8b\xe60\xb99a\xdf\x10\xc6\x9e\xdb\x9df_\xc3T\'\x12\x19Tq\xde\x83\xea\
-\xfa\x03.(\xfa\xcc\xbb\xaeS\xb9\x00\x00\x00\x00IEND\xaeB`\x82' 
+\xfa\x03.(\xfa\xcc\xbb\xaeS\xb9\x00\x00\x00\x00IEND\xaeB`\x82'
 
 def getPyrexPaletteData():
     return \
@@ -182,9 +182,7 @@ def getPyrexPaletteData():
 \xcaatT\xc1b\xf2\x88Z\xabS\x80\x0e\x1e\xb5o\xca\xeb\xfb\xfd7\xeb\xf4cg\xb4\
 \x16=\x9a\x8d\xf9\xfd\xa8r\xef\xc5!\x81\x15#\x91\xb0\xf7m\xb3\x95N\xb8\x03m\
 \x871\xaez]\x8c>\x94\x08&\x99 \x9c`+\xc6\xf5s\x05\xfd1\xc1o\xc4\xdf\xffe\xde\
-\x9d\xe0\x1b_\xc7\xa9{G\x16\x95\x05\x00\x00\x00\x00IEND\xaeB`\x82' 
+\x9d\xe0\x1b_\xc7\xa9{G\x16\x95\x05\x00\x00\x00\x00IEND\xaeB`\x82'
 
 Preferences.IS.registerImage('Images/Modules/Pyrex.png', getPyrexModuleData())
 Preferences.IS.registerImage('Images/Palette/Pyrex.png', getPyrexPaletteData())
-
-

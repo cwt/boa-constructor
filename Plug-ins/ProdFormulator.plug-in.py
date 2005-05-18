@@ -1,5 +1,4 @@
 import os, sys, string
-true=1;false=0
 
 import Preferences, Utils, Plugins
 
@@ -34,9 +33,9 @@ Controllers.modelControllerReg[FormulatorFormModel] = ZopeController
 #---Views-----------------------------------------------------------------------
 
 from Views.EditorViews import EditorView
-from wxPython import wx
+import wx
 
-class FormulatorFormOrderView(wx.wxTreeCtrl, EditorView):
+class FormulatorFormOrderView(wx.TreeCtrl, EditorView):
     viewName = 'Order'
     refreshBmp = 'Images/Editor/Refresh.png'
     addGroupBmp = 'Images/Shared/NewItem.png'
@@ -45,9 +44,9 @@ class FormulatorFormOrderView(wx.wxTreeCtrl, EditorView):
     moveDownBmp = 'Images/Shared/down.png'
 
     def __init__(self, parent, model):
-        wid = wx.wxNewId()
-        wx.wxTreeCtrl.__init__(self, parent, wid,
-         style = wx.wxTR_HAS_BUTTONS | wx.wxSUNKEN_BORDER | wx.wxTR_EDIT_LABELS)
+        wid = wx.NewId()
+        wx.TreeCtrl.__init__(self, parent, wid,
+         style = wx.TR_HAS_BUTTONS | wx.SUNKEN_BORDER | wx.TR_EDIT_LABELS)
         EditorView.__init__(self, model,
           (('Refresh', self.OnRefresh, self.refreshBmp, 'Refresh'),
            ('-', None, '', ''),
@@ -60,13 +59,13 @@ class FormulatorFormOrderView(wx.wxTreeCtrl, EditorView):
            ('Move fields to other group', self.OnMoveFieldToGroup, '-', ''),
             ), -1)
 
-        wx.EVT_KEY_UP(self, self.OnKeyPressed)
-        wx.EVT_TREE_BEGIN_LABEL_EDIT(self, wid, self.OnBeginLabelEdit)
-        wx.EVT_TREE_END_LABEL_EDIT(self, wid, self.OnEndLabelEdit)
+        self.Bind(wx.EVT_KEY_UP, self.OnKeyPressed)
+        self.Bind(wx.EVT_TREE_BEGIN_LABEL_EDIT, self.OnBeginLabelEdit, id=wid)
+        self.Bind(wx.EVT_TREE_END_LABEL_EDIT, self.OnEndLabelEdit, id=wid)
 
         self._groupedFields = []
-        self.canExplore = true
-        self.active = true
+        self.canExplore = True
+        self.active = True
 
     def destroy(self):
         EditorView.destroy(self)
@@ -114,7 +113,7 @@ class FormulatorFormOrderView(wx.wxTreeCtrl, EditorView):
                 si = gi
             for field, meta in fields:
                 fi = self.AppendItem(gi, '%s [%s]' %(field, meta),
-                      data=wx.wxTreeItemData( (field, meta, group) ))
+                      data=wx.TreeItemData( (field, meta, group) ))
                 if group == selGrp and field == selFld:
                     si = fi
             self.Expand(gi)
@@ -139,9 +138,9 @@ class FormulatorFormOrderView(wx.wxTreeCtrl, EditorView):
             self.EndEditLabel(self.GetSelection(), 0)
 
     def OnAddGroup(self, event):
-        dlg = wx.wxTextEntryDialog(self, 'Enter new group name', 'Add Group', '')
+        dlg = wx.TextEntryDialog(self, 'Enter new group name', 'Add Group', '')
         try:
-            if dlg.ShowModal() == wx.wxID_OK:
+            if dlg.ShowModal() == wx.ID_OK:
                 grpName = dlg.GetValue()
                 self.getFormulatorForm().add_group(grpName)
                 self.refreshCtrl( (grpName, None) )
@@ -151,7 +150,7 @@ class FormulatorFormOrderView(wx.wxTreeCtrl, EditorView):
     def OnRemoveGroup(self, event):
         ti = self.GetSelection()
         if self.getItemLevel(ti) != 1:
-            wx.wxLogError('Selected item is not a group')
+            wx.LogError('Selected item is not a group')
         else:
             grpName = self.GetItemText(ti)
             self.getFormulatorForm().remove_group(grpName)
@@ -160,7 +159,7 @@ class FormulatorFormOrderView(wx.wxTreeCtrl, EditorView):
     def OnRenameGroup(self, event):
         ti = self.GetSelection()
         if self.getItemLevel(ti) != 1:
-            wx.wxLogError('Selected item is not a group')
+            wx.LogError('Selected item is not a group')
         else:
             self.EditLabel(ti)
 
@@ -176,7 +175,7 @@ class FormulatorFormOrderView(wx.wxTreeCtrl, EditorView):
             self.statusUpdate(self.getFormulatorForm().zoa.props.Formulator.move_field('up', grp, fld))
             self.refreshCtrl( (grp, fld) )
         else:
-            wx.wxLogError('Cannot move root')
+            wx.LogError('Cannot move root')
 
     def OnMoveDown(self, event):
         ti = self.GetSelection()
@@ -190,22 +189,22 @@ class FormulatorFormOrderView(wx.wxTreeCtrl, EditorView):
             self.statusUpdate(self.getFormulatorForm().zoa.props.Formulator.move_field('down', grp, fld))
             self.refreshCtrl( (grp, fld) )
         else:
-            wx.wxLogError('Cannot move root (%d)'%lev)
+            wx.LogError('Cannot move root (%d)'%lev)
 
     def OnMoveFieldToGroup(self, event):
         ti = self.GetSelection()
         lev = self.getItemLevel(ti)
         lbl = self.GetItemText(ti)
         if lev != 2:
-            wx.wxLogError('Not a field')
+            wx.LogError('Not a field')
         else:
             groups = map(lambda d: d[0], self._groupedFields)
             fld, mta, fromGroup = self.GetItemData(ti).GetData()
             groups.remove(fromGroup)
-            dlg = wx.wxSingleChoiceDialog(self, 'Choose group to move to',
+            dlg = wx.SingleChoiceDialog(self, 'Choose group to move to',
                   'Move to other group', groups)
             try:
-                if dlg.ShowModal() == wx.wxID_OK:
+                if dlg.ShowModal() == wx.ID_OK:
                     toGroup = dlg.GetStringSelection()
                     self.statusUpdate(
                       self.getFormulatorForm().zoa.props.Formulator.move_field(
@@ -253,7 +252,7 @@ class FormulatorFormNode(ZopeItemNode):
     defaultViews = (FormulatorFormOrderView,)
     additionalViews = (ZopeViews.ZopeUndoView, ZopeViews.ZopeSecurityView)
     def isFolderish(self):
-        return true
+        return True
     def checkentry(self, name, metatype, path):
         return apply(FormulatorFieldNode, (name, path, self.clipboard,
             -1, self, self.server, self.root, self.properties, metatype))
@@ -422,10 +421,10 @@ class FormulatorFieldZC(CustomZopePropsMixIn, ZopeCompanion):
         availableFields = eval(res)
 
         fieldNames = keyListFromDictList('name', availableFields)
-        dlg = wx.wxSingleChoiceDialog(None, 'Choose the formulator field to add',
+        dlg = wx.SingleChoiceDialog(None, 'Choose the formulator field to add',
             'Add field', fieldNames)
         try:
-            if dlg.ShowModal() == wx.wxID_OK:
+            if dlg.ShowModal() == wx.ID_OK:
                 fieldName = dlg.GetStringSelection()
             else:
                 return

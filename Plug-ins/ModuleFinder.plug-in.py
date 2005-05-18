@@ -73,7 +73,7 @@ def openModuleFinder(editor):
         dlg.Destroy()
 
 
-if wxPlatform == '__WXMSW__':
+if wx.Platform == '__WXMSW__':
     keyIdent = 'ModuleFinder'
     Preferences.keyDefs[keyIdent] = (wx.ACCEL_ALT, ord('M'), 'Alt-M')
 else:

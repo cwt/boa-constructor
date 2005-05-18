@@ -3,8 +3,8 @@
 import re
 
 import wx
-from wx.lib.anchors import LayoutAnchors
 import wx.stc
+from wx.lib.anchors import LayoutAnchors
 
 import Preferences, Utils, Plugins
 
@@ -37,11 +37,11 @@ class RegexEditorFrm(wx.Frame, Utils.FrameRestorerMixin):
     def _init_coll_lcGroups_Columns(self, parent):
         # generated method, don't edit
 
-        parent.InsertColumn(col=0, format=wxLIST_FORMAT_LEFT, heading='#',
+        parent.InsertColumn(col=0, format=wx.LIST_FORMAT_LEFT, heading='#',
               width=35)
-        parent.InsertColumn(col=1, format=wxLIST_FORMAT_LEFT, heading='Name',
+        parent.InsertColumn(col=1, format=wx.LIST_FORMAT_LEFT, heading='Name',
               width=75)
-        parent.InsertColumn(col=2, format=wxLIST_FORMAT_LEFT, heading='Value',
+        parent.InsertColumn(col=2, format=wx.LIST_FORMAT_LEFT, heading='Value',
               width=117)
 
     def _init_utils(self):
@@ -129,8 +129,7 @@ class RegexEditorFrm(wx.Frame, Utils.FrameRestorerMixin):
 
         self.lcGroups = wx.ListCtrl(id=wxID_REGEXEDITORFRMLCGROUPS,
               name='lcGroups', parent=self.panel, pos=wx.Point(256, 328),
-              size=wx.Size(231, 128), style=wx.LC_REPORT,
-              validator=wxDefaultValidator)
+              size=wx.Size(231, 128), style=wx.LC_REPORT)
         self.lcGroups.SetConstraints(LayoutAnchors(self.lcGroups, True, True,
               True, True))
         self._init_coll_lcGroups_Columns(self.lcGroups)

@@ -21,57 +21,56 @@ def createContentsDlg(parent, title, htmlTitle, location, anchors):
     return HelpBookItemDlg(parent, 'Help Book - Contents', title, 'Title', htmlTitle,
                      location, 'Location', anchors)
 
-[wxID_HELPBOOKITEMDLG, wxID_HELPBOOKITEMDLGBTNREADTITLE,
- wxID_HELPBOOKITEMDLGBUTTON2, wxID_HELPBOOKITEMDLGBUTTON3,
- wxID_HELPBOOKITEMDLGCBBANCHORS, wxID_HELPBOOKITEMDLGSTATICTEXT1,
- wxID_HELPBOOKITEMDLGSTATICTEXT2, wxID_HELPBOOKITEMDLGTXTPAGE,
- wxID_HELPBOOKITEMDLGTXTTITLE,
+[wxID_HELPBOOKITEMDLG, wxID_HELPBOOKITEMDLGBTNREADTITLE, 
+ wxID_HELPBOOKITEMDLGBUTTON2, wxID_HELPBOOKITEMDLGBUTTON3, 
+ wxID_HELPBOOKITEMDLGCBBANCHORS, wxID_HELPBOOKITEMDLGSTATICTEXT1, 
+ wxID_HELPBOOKITEMDLGSTATICTEXT2, wxID_HELPBOOKITEMDLGTXTPAGE, 
+ wxID_HELPBOOKITEMDLGTXTTITLE, 
 ] = [wx.NewId() for _init_ctrls in range(9)]
 
 class HelpBookItemDlg(wx.Dialog):
-    def _init_utils(self):
-        # generated method, don't edit
-        pass
-
     def _init_ctrls(self, prnt):
         # generated method, don't edit
-        wx.Dialog.__init__(self, id=wxID_HELPBOOKITEMDLG, name='HelpBookItemDlg',
-              parent=prnt, pos=wx.Point(452, 359), size=wx.Size(446, 136),
-              style=wx.DEFAULT_DIALOG_STYLE, title=self.caption)
-        self._init_utils()
+        wx.Dialog.__init__(self, id=wxID_HELPBOOKITEMDLG,
+              name='HelpBookItemDlg', parent=prnt, pos=wx.Point(452, 359),
+              size=wx.Size(446, 136), style=wx.DEFAULT_DIALOG_STYLE,
+              title=self.caption)
         self.SetClientSize(wx.Size(438, 109))
 
-        self.staticText1 =wx.StaticText(id=wxID_HELPBOOKITEMDLGSTATICTEXT1,
+        self.staticText1 = wx.StaticText(id=wxID_HELPBOOKITEMDLGSTATICTEXT1,
               label=self.nameLabel, name='staticText1', parent=self,
               pos=wx.Point(8, 16), size=wx.Size(56, 13), style=0)
 
-        self.txtTitle =wx.TextCtrl(id=wxID_HELPBOOKITEMDLGTXTTITLE,
-              name='txtTitle', parent=self, pos=wx.Point(72, 8), size=wx.Size(232,
-              21), style=0, value=self.name)
+        self.txtTitle = wx.TextCtrl(id=wxID_HELPBOOKITEMDLGTXTTITLE,
+              name='txtTitle', parent=self, pos=wx.Point(72, 8),
+              size=wx.Size(232, 21), style=0, value=self.name)
 
-        self.staticText2 =wx.StaticText(id=wxID_HELPBOOKITEMDLGSTATICTEXT2,
+        self.staticText2 = wx.StaticText(id=wxID_HELPBOOKITEMDLGSTATICTEXT2,
               label=self.valueLabel, name='staticText2', parent=self,
               pos=wx.Point(8, 48), size=wx.Size(64, 13), style=0)
 
-        self.txtPage =wx.TextCtrl(id=wxID_HELPBOOKITEMDLGTXTPAGE,
-              name='txtPage', parent=self, pos=wx.Point(72, 40), size=wx.Size(232,
-              21), style=0, value=self.value)
+        self.txtPage = wx.TextCtrl(id=wxID_HELPBOOKITEMDLGTXTPAGE,
+              name='txtPage', parent=self, pos=wx.Point(72, 40),
+              size=wx.Size(232, 21), style=0, value=self.value)
 
-        self.cbbAnchors =wx.ComboBox(choices=self.valueAnchors,
+        self.cbbAnchors = wx.ComboBox(choices=self.valueAnchors,
               id=wxID_HELPBOOKITEMDLGCBBANCHORS, name='cbbAnchors', parent=self,
               pos=wx.Point(304, 40), size=wx.Size(125, 21), style=0,
-              validator=wx.DefaultValidator, value=self.valueAnchorsValue)
+              value=self.valueAnchorsValue)
 
-        self.btnReadTitle =wx.Button(id=wxID_HELPBOOKITEMDLGBTNREADTITLE,
+        self.btnReadTitle = wx.Button(id=wxID_HELPBOOKITEMDLGBTNREADTITLE,
               label='Title from HTML', name='btnReadTitle', parent=self,
               pos=wx.Point(304, 8), size=wx.Size(123, 23), style=0)
-        self.btnReadTitle.Bind(wx.EVT_BUTTON, self.OnBtnreadtitleButton, id=wxID_HELPBOOKITEMDLGBTNREADTITLE)
+        self.btnReadTitle.Bind(wx.EVT_BUTTON, self.OnBtnreadtitleButton,
+              id=wxID_HELPBOOKITEMDLGBTNREADTITLE)
 
-        self.button2 =wx.Button(id=wx.ID_OK, label='OK', name='button2',
-              parent=self, pos=wx.Point(272, 72), size=wx.Size(75, 23), style=0)
+        self.button2 = wx.Button(id=wx.ID_OK, label='OK', name='button2',
+              parent=self, pos=wx.Point(272, 72), size=wx.Size(75, 23),
+              style=0)
 
-        self.button3 =wx.Button(id=wx.ID_CANCEL, label='Cancel', name='button3',
-              parent=self, pos=wx.Point(353, 72), size=wx.Size(75, 23), style=0)
+        self.button3 = wx.Button(id=wx.ID_CANCEL, label='Cancel',
+              name='button3', parent=self, pos=wx.Point(353, 72),
+              size=wx.Size(75, 23), style=0)
 
     def __init__(self, parent, caption, name, nameLabel, nameDefault,
                  value, valueLabel, valueAnchors):

@@ -14,8 +14,8 @@ print 'importing JavaSupport'
 
 import os
 
-from wxPython.wx import *
-from wxPython.stc import *
+import wx
+import wx.stc
 
 import Preferences, Utils, Plugins
 import PaletteStore
@@ -26,7 +26,7 @@ from Views import SourceViews, StyledTextCtrls
 # Allocate an image index for Java files
 EditorHelper.imgJavaModel = EditorHelper.imgIdxRange()
 
-Plugins.registerPreference('JavaSupport', 'jsJavaCompilerPath', "''", 
+Plugins.registerPreference('JavaSupport', 'jsJavaCompilerPath', "''",
                            ['Path to the compiler'], 'type: filepath')
 
 class JavaModel(EditorModels.SourceModel):
@@ -47,19 +47,19 @@ class JavaStyledTextCtrlMix(StyledTextCtrls.LanguageSTCMix):
               (0, Preferences.STCLineNumMarginWidth), 'java', java_cfgfile)
         self.setStyles()
 
-wxID_JAVASOURCEVIEW = wxNewId()
+wxID_JAVASOURCEVIEW = wx.NewId()
 class JavaSourceView(SourceViews.EditorStyledTextCtrl, JavaStyledTextCtrlMix):
     viewName = 'Source'
     def __init__(self, parent, model):
         SourceViews.EditorStyledTextCtrl.__init__(self, parent, wxID_JAVASOURCEVIEW,
           model, (), -1)
         JavaStyledTextCtrlMix.__init__(self, wxID_JAVASOURCEVIEW)
-        self.active = true
+        self.active = True
 
 
 # The compile action is just added as an example of how to add an action to
 # a controller and is not implemented
-wxID_JAVACOMPILE = wxNewId()
+wxID_JAVACOMPILE = wx.NewId()
 class JavaController(Controllers.SourceController):
     Model = JavaModel
     DefaultViews = [JavaSourceView]
@@ -71,7 +71,7 @@ class JavaController(Controllers.SourceController):
               ('Compile', self.OnCompile, '-', 'CheckSource')]
 
     def OnCompile(self, event):
-        wxLogWarning('Not implemented')
+        wx.LogWarning('Not implemented')
 
 #-------------------------------------------------------------------------------
 
@@ -91,14 +91,14 @@ void wxStyledTextCtrl::StyleSetSpec(int styleNum, const wxString& spec) {
         wxString option = token.BeforeFirst(':');
         wxString val = token.AfterFirst(':');
         if (option == "bold")
-            StyleSetBold(styleNum, true);
+            StyleSetBold(styleNum, True);
 /* End of code snippet */ @"Verbatim"
 '''
 
 javaStyleEditorConfig = '''
 common.defs.msw={'size': 10, 'backcol': '#FFFFFF', 'lnsize2': 7, 'mono': 'Courier New', 'ln-size': 8, 'helv': 'Lucida Console'}
 common.defs.gtk={'mono': 'Courier', 'helv': 'Helvetica', 'other': 'new century schoolbook', 'size': 9, 'ln-size': 6, 'backcol': '#FFFFFF'}
-common.styleidnames = {wxSTC_STYLE_DEFAULT: 'Style default', wxSTC_STYLE_LINENUMBER: 'Line numbers', wxSTC_STYLE_BRACELIGHT: 'Matched braces', wxSTC_STYLE_BRACEBAD: 'Unmatched brace', wxSTC_STYLE_CONTROLCHAR: 'Control characters', wxSTC_STYLE_INDENTGUIDE: 'Indent guide'}
+common.styleidnames = {wx.stc.STC_STYLE_DEFAULT: 'Style default', wx.stc.STC_STYLE_LINENUMBER: 'Line numbers', wx.stc.STC_STYLE_BRACELIGHT: 'Matched braces', wx.stc.STC_STYLE_BRACEBAD: 'Unmatched brace', wx.stc.STC_STYLE_CONTROLCHAR: 'Control characters', wx.stc.STC_STYLE_INDENTGUIDE: 'Indent guide'}
 
 [style.java]
 setting.java.-3=fore:#C4C4FF
@@ -130,9 +130,9 @@ style.java.037=
 [java]
 displaysrc='''+`javaSource`[1:-1]+'''
 braces={'good': (5, 10), 'bad': (5, 38)}
-keywords=abstract double int strictfp boolean else interface super break extends long switch byte final native synchronized case finally new this catch float package throw har for private throws class goto protected transient const if public try continue implements return void default import short volatile do instanceof static while true false null
-lexer=wxSTC_LEX_CPP
-styleidnames={wxSTC_C_DEFAULT: 'Default', wxSTC_C_COMMENT: 'Comment',wxSTC_C_COMMENTLINE: 'Comment line',wxSTC_C_COMMENTDOC: 'Comment doc',wxSTC_C_NUMBER: 'Number',wxSTC_C_WORD: 'Keyword',wxSTC_C_STRING: 'String',wxSTC_C_CHARACTER: 'Character',wxSTC_C_UUID: 'UUID',wxSTC_C_PREPROCESSOR: 'Preprocessor',wxSTC_C_OPERATOR: 'Operator', wxSTC_C_IDENTIFIER: 'Identifier', wxSTC_C_STRINGEOL: 'EOL unclosed string', wxSTC_C_VERBATIM: 'Verbatim'}
+keywords=abstract double int strictfp boolean else interface super break extends long switch byte final native synchronized case finally new this catch float package throw har for private throws class goto protected transient const if public try continue implements return void default import short volatile do instanceof static while True False null
+lexer=wx.stc.STC_LEX_CPP
+styleidnames={wx.stc.STC_C_DEFAULT: 'Default', wx.stc.STC_C_COMMENT: 'Comment',wx.stc.STC_C_COMMENTLINE: 'Comment line',wx.stc.STC_C_COMMENTDOC: 'Comment doc',wx.stc.STC_C_NUMBER: 'Number',wx.stc.STC_C_WORD: 'Keyword',wx.stc.STC_C_STRING: 'String',wx.stc.STC_C_CHARACTER: 'Character',wx.stc.STC_C_UUID: 'UUID',wx.stc.STC_C_PREPROCESSOR: 'Preprocessor',wx.stc.STC_C_OPERATOR: 'Operator', wx.stc.STC_C_IDENTIFIER: 'Identifier', wx.stc.STC_C_STRINGEOL: 'EOL unclosed string', wx.stc.STC_C_VERBATIM: 'Verbatim'}
 '''
 
 Plugins.assureConfigFile(java_cfgfile, javaStyleEditorConfig)
@@ -168,7 +168,7 @@ t\x94\xfa\xa9\xfd\xb4\x8c\x9c\xbb@4\xdf\xcc\xbc5\'\x93\xd6\xf4\x80\xcb\xd7\
 \xe8(3\xb3\xefXZ\\\xc2\xee\xb4\xe1\xf5\xd6\xb0}G\x15\xe1H\x98\xd2-\xc5\x0c\
 \x0c>Hy\x17RFt\xebv\xbfT]\xed\x16S\x93S<}\xfc\x9c\xbb\x83\xf7\xfe\x884\x1e?)\
 \xbe|\xfe\x8a\xdda\xc5\x96\xe7L\xb9{\xc8\xf0-\xfa\x9bZ_?\xda\xff\t\xf8\tge\
-\xd3\xa54\xf7\xa6\xda\x00\x00\x00\x00IEND\xaeB`\x82' 
+\xd3\xa54\xf7\xa6\xda\x00\x00\x00\x00IEND\xaeB`\x82'
 
 #Boa:PyImgResource:JavaModule
 def getJavaModuleData():
@@ -198,7 +198,7 @@ dR\xa3\xc8\xe3\xa1\xa1\xf1<J\x8eY\x86\xc3a\xb1n0\xfbv\x9a\xde\xf0u\xfc558\
 \x9fh:wA\x9aU\x0b\xa0\xf2l|\x9c\xb9\xf9\x0f\xac,\xaf\xe0t;\xf0\xfb\xab\xd8\
 \xb9\xab\x82H4B\xf1\xb6B\x86\x86\x1f\x89\x14\x00\xc0\x9d\xbb\x83\xa2\xb2\xd2\
 +g\xa6gx\xfe\xf4%\xf7\x87\x1f\xac\x17\xd5\x9f<-\xbf}\xfd\x8e\xd3e\xc7\x91\
-\xe3N\xd9\x83\xdf\xc7*\xd3\xf0\xe4\xd9j@\x00\x00\x00\x00IEND\xaeB`\x82' 
+\xe3N\xd9\x83\xdf\xc7*\xd3\xf0\xe4\xd9j@\x00\x00\x00\x00IEND\xaeB`\x82'
 
 Preferences.IS.registerImage('Images/Modules/Java.png', getJavaModuleData())
 Preferences.IS.registerImage('Images/Palette/Java.png', getJavaPaletteData())

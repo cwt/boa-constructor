@@ -1,13 +1,13 @@
-from wxPython.wx import *
+import wx
 
 import Preferences, Utils, Plugins
 from Companions import BaseCompanions
 from PropEdit import PropertyEditors
 
 try:
-    from wx.lib.plot import PlotCanvas
+    import wx.lib.plot
 except ImportError:
-    raise Plugins.SkipPlugin, 'PyPlot can not be imported (it requires Numeric)'
+    raise Plugins.SkipPlugin, 'PyPlot can not be imported (it probably requires Numeric)'
 
 class PlotCanvasDTC(BaseCompanions.WindowDTC):
     def __init__(self, name, designer, parent, ctrlClass):
@@ -22,14 +22,14 @@ class PlotCanvasDTC(BaseCompanions.WindowDTC):
 
     def applyRunTime(self):
         return BaseCompanions.WindowDTC.applyRunTime(self) + \
-               ['EnableZoom'] 
+               ['EnableZoom']
 
 #-------------------------------------------------------------------------------
 
 import Plugins
 
-Plugins.registerComponent('wxPython.lib', 
-                          PlotCanvas, 'wx.lib.plot.PlotCanvas', PlotCanvasDTC)
+Plugins.registerComponent('wxPython.lib', wx.lib.plot.PlotCanvas, 
+                          'wx.lib.plot.PlotCanvas', PlotCanvasDTC)
 
 def getPlotCanvasData():
     return \
@@ -43,6 +43,6 @@ o\x89)\xd1\x82\x1c\xb8=7T\x11I\x9b\x8c\xbc\xae\xe6\x91\xb7\xc9\xd0\xa2A\xa6t\
 \xf0\xc6.+n\xb5\x8aiB%7\xcb\xe5Z\xa7\x1dd^EQ\xb5X\x11Z\xc4\xae$_\x13xdO\xc2%\
 h\xd5\xf7\xbdi6\xbeM\x10\xf5\xa5\xcc\x0eS\xed\x1a\x98\xf7\xaaO\t\x9e\xe6\xe3\
 $h?s_FY\t\x0e\x00\\\xfd\xdb\xf2\x03D\x18iL\x82$\x10\xc0\x00\x00\x00\x00IEND\
-\xaeB`\x82" 
+\xaeB`\x82"
 
 Preferences.IS.registerImage('Images/Palette/wx.lib.plot.PlotCanvas.png', getPlotCanvasData())

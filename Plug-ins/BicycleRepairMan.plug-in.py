@@ -23,13 +23,13 @@ Also clearing the current context can be called from the Explorer menu.
 """
 
 print 'importing BicycleRepairMan'
- 
+
 import os, linecache, traceback
 from thread import start_new_thread
 
 import bike
 
-from wxPython.wx import *
+import wx
 
 import Preferences, Utils, Plugins
 
@@ -42,7 +42,7 @@ Editor.EditorFrame.brm_context = None
 
 # Issues
 # * On Windows filenames aren't guaranteed to always match those in the Editor
-# * When the Boa IDE framework supports it, the BRM support should have 
+# * When the Boa IDE framework supports it, the BRM support should have
 #   it's own menu, e.g. Tools->BicycleRepairMan->[Actions]
 #   or a submenu under Edit, e.g. Edit->BicycleRepairMan->[Actions]
 
@@ -52,9 +52,9 @@ Editor.EditorFrame.brm_context = None
 #       before passing a BRM lineno to Scintilla, minus 1
 # Settings to control how the collection of files that BRM tracks is built up
 
-Plugins.registerPreference('BicycleRepairMan', 'brmProgressLogger', 
-                           "'ProgressStatusLogger'", 
-                           ['Destination for progress messages from BRM.'], 
+Plugins.registerPreference('BicycleRepairMan', 'brmProgressLogger',
+                           "'ProgressStatusLogger'",
+                           ['Destination for progress messages from BRM.'],
                            "options: 'ProgressStatusLogger', 'ProgressErrOutLogger'")
 
 #-Editor plugins----------------------------------------------------------------
@@ -64,8 +64,8 @@ class CancelOperation(Exception): pass
 from bike.query.findReferences import CouldntFindDefinitionException
 class BRMViewPlugin:
     """ Plugin class for View classes that exposes the refactoring API.
-    
-    Handles """ 
+
+    Handles """
     def __init__(self, model, view, actions):
         self.model = model
         self.view = view
@@ -129,7 +129,7 @@ class BRMViewPlugin:
                           model.editor.modules[uri], True,
                           'Save changes before Refactoring operation')
                 except Editor.CancelClose:
-                    wxLogError('Operation aborted.')
+                    wx.LogError('Operation aborted.')
                     return False
         return True
 
@@ -140,7 +140,7 @@ class BRMViewPlugin:
                   'No text selected. Highlight the region you want to extract.'
 
         filename = self.model.checkLocalFile()
-        name = wxGetTextFromUser('New %s name:'%xtype, caption)
+        name = wx.GetTextFromUser('New %s name:'%xtype, caption)
         if not name:
             raise CancelOperation, \
                   'Empty names are invalid.'
@@ -156,7 +156,7 @@ class BRMViewPlugin:
     def OnFindReferences(self, event=None):
         ctx, sel, filename, lineno, column = self.prepareForSelectOperation()
 
-        start_new_thread(self.findReferencesThread, 
+        start_new_thread(self.findReferencesThread,
            (ctx, filename, lineno, column, sel) )
 
         self.model.editor.setStatus('BRM - Finding references...')
@@ -166,21 +166,21 @@ class BRMViewPlugin:
             matches = [ReferencesMatcher([ref])
               for ref in ctx.findReferencesByCoordinates(fname, lineno, column)]
         except CouldntFindDefinitionException:
-            wxCallAfter(self.findReferencesFindDefinition)
+            wx.CallAfter(self.findReferencesFindDefinition)
         except Exception, err:
-            wxCallAfter(wxLogError, 
+            wx.CallAfter(wx.LogError,
                            ''.join(traceback.format_exception(*sys.exc_info())))
-            wxCallAfter(self.model.editor.setStatus, 
+            wx.CallAfter(self.model.editor.setStatus,
                            'BRM - Error %s'%str(err), 'Error')
         else:
-            wxCallAfter(self.findReferencesFinished, matches, sel)
-        
-            
+            wx.CallAfter(self.findReferencesFinished, matches, sel)
+
+
     def findReferencesFindDefinition(self):
         self.model.editor.setStatus('BRM - Could not find definition')
 
-        if wxMessageBox('Perform Find Definition?', 'Find References', 
-              wxYES_NO | wxICON_WARNING) == wxYES:
+        if wx.MessageBox('Perform Find Definition?', 'Find References',
+              wx.YES_NO | wx.ICON_WARNING) == wx.YES:
             self.OnFindDefinition()
 
     def findReferencesFinished(self, matches, sel):
@@ -197,12 +197,12 @@ class BRMViewPlugin:
         if x:
             errout.notebook.SetSelection(0)
             self.model.editor.setStatus('BRM - %s reference(s) found'%x)
-            
+
 
     def OnFindDefinition(self, event=None):
         ctx, sel, filename, lineno, column = self.prepareForSelectOperation()
 
-        start_new_thread(self.findDefinitionThread, 
+        start_new_thread(self.findDefinitionThread,
                          (ctx, filename, lineno, column, sel))
 
         self.model.editor.setStatus('BRM - Finding definition...')
@@ -213,15 +213,15 @@ class BRMViewPlugin:
             try:
                 match = defs.next()
             except StopIteration:
-                wxCallAfter(wxLogError, "Couldn't find definition")
-                wxCallAfter(self.model.editor.setStatus,
+                wx.CallAfter(wx.LogError, "Couldn't find definition")
+                wx.CallAfter(self.model.editor.setStatus,
                                'BRM - Could not find definition', 'Error')
             else:
-                wxCallAfter(self.findDefinitionFinished, match, sel, defs)
+                wx.CallAfter(self.findDefinitionFinished, match, sel, defs)
         except Exception, err:
-            wxCallAfter(wxLogError, 
+            wx.CallAfter(wx.LogError,
                            ''.join(traceback.format_exception(*sys.exc_info())))
-            wxCallAfter(self.model.editor.setStatus, 
+            wx.CallAfter(self.model.editor.setStatus,
                            'BRM - Error %s'%str(err), 'Error')
 
     def findDefinitionFinished(self, match, sel, defs):
@@ -238,7 +238,7 @@ class BRMViewPlugin:
             entry = ReferencesMatcher([ref])
             x = errout.addTracebackNode(entry, x)
 
-        tree.SetItemHasChildren(root, true)
+        tree.SetItemHasChildren(root, True)
         tree.Expand(root)
 
         if x:
@@ -253,7 +253,7 @@ class BRMViewPlugin:
 
         ctx.setRenameMethodPromptCallback(self.renameCallback)
 
-        newname = wxGetTextFromUser('Rename to:', 'Rename', sel)
+        newname = wx.GetTextFromUser('Rename to:', 'Rename', sel)
         if not newname:
             return
 
@@ -268,9 +268,9 @@ class BRMViewPlugin:
         edge = view.PositionFromLine(lineno-1)
         view.SetSelection(edge+colbegin, edge+colend)
 
-        res = wxMessageBox('Cannot deduce the type of highlighted object'
+        res = wx.MessageBox('Cannot deduce the type of highlighted object'
                  ' reference.\nRename this declaration?', 'Rename?',
-                 wxYES_NO | wxICON_QUESTION) == wxYES
+                 wx.YES_NO | wx.ICON_QUESTION) == wx.YES
         self.model.editor.openOrGotoModule(currfile)
         return res
 
@@ -282,7 +282,7 @@ class BRMViewPlugin:
         try:
             ctx.extractMethod(*self.getExtractionInfo('Method', 'Extract method'))
         except CancelOperation, err:
-            wxLogError(str(err))
+            wx.LogError(str(err))
         else:
             self.view.SetSelectionEnd(self.view.GetSelectionStart())
             self.saveAndRefresh()
@@ -291,26 +291,26 @@ class BRMViewPlugin:
         try:
             self.model.editor.brm_context.undo()
         except bike.UndoStackEmptyException, msg:
-            wxLogWarning('Nothing to undo, the undo stack is empty.')
+            wx.LogWarning('Nothing to undo, the undo stack is empty.')
         else:
             self.saveAndRefresh()
 
     def OnExtractLocalVar(self, event):
         if not self.checkUnsavedChanges():
             return
-        
+
         ctx = self.model.editor.brm_context
         try:
             filename, startline, startcol, endline, endcol, variablename = \
                   self.getExtractionInfo('Variable', 'Extract variable')
         except CancelOperation, err:
-            wxLogError(str(err))
+            wx.LogError(str(err))
         else:
-            ctx.extractLocalVariable(filename, startline, startcol, endline, 
+            ctx.extractLocalVariable(filename, startline, startcol, endline,
                   endcol, variablename)
             self.view.SetSelectionEnd(self.view.GetSelectionStart())
             self.saveAndRefresh()
-        
+
     def OnInlineLocalVar(self, event):
         if not self.checkUnsavedChanges():
             return
@@ -318,16 +318,16 @@ class BRMViewPlugin:
         ctx, sel, filename, lineno, column = self.prepareForSelectOperation()
 
         ctx.inlineLocalVariable(filename, lineno, column)
-        
+
         self.saveAndRefresh()
 
     def OnGetExprType(self, event):
         ctx, sel, filename, lineno, column = self.prepareForSelectOperation()
 
-        wxLogMessage(
+        wx.LogMessage(
            `ctx.getTypeOfExpression(filename, lineno, column, column+len(sel))`)
 
-        
+
 PySourceView.PythonSourceView.plugins += (BRMViewPlugin,)
 
 
@@ -378,7 +378,7 @@ class ProgressErrOutLogger:
         self.errout = editor.erroutFrm
 
     def write(self, txt):
-        wxCallAfter(self.errout.appendToOutput, txt)
+        wx.CallAfter(self.errout.appendToOutput, txt)
 
 class ProgressStatusLogger:
     """ File like logger that uses the Editor statusbar as output """
@@ -389,7 +389,7 @@ class ProgressStatusLogger:
     def write(self, txt):
         self._buffer += txt
         if txt.endswith('\n'):
-            wxCallAfter(self.editor.setStatus, self._buffer.strip())
+            wx.CallAfter(self.editor.setStatus, self._buffer.strip())
             self._buffer = ''
 
 class ReferencesMatcher(ErrorStack.StackErrorParser):
@@ -408,13 +408,13 @@ class ReferencesMatcher(ErrorStack.StackErrorParser):
 ##    def __init__(self, controller, editor):
 ##        self.controller = controller
 ##        self.editor = editor
-##    
+##
 ##    def menuDefs(self):
 ##        return []
 ##        return [
 ##         (-1, '-', None, '-'),
-##         (wx.wxNewId(), 'BRM - Import selection', self.OnImportItem, '-'),
-##         (wx.wxNewId(), 'BRM - Clear refactoring context', self.OnClearContext, '-'),
+##         (wx.NewId(), 'BRM - Import selection', self.OnImportItem, '-'),
+##         (wx.NewId(), 'BRM - Clear refactoring context', self.OnClearContext, '-'),
 ##         (-1, '-', None, '-'),
 ##        ]
 ##
