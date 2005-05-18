@@ -21,9 +21,6 @@ from Models import EditorModels, EditorHelper
 
 from ExternalLib import tarfile
 
-True = 1
-False = 0
-
 def isZip(file):
     return os.path.splitext(file)[1] == '.zip'
 
@@ -181,7 +178,7 @@ class ZipItemNode(ExplorerNodes.ExplorerNode):
                     zi = self.newInfoClass(destName)
                     zi.compress_type = zipfile.ZIP_DEFLATED
                     zi.file_size = len(data)
-                    zi.date_time = time.gmtime(fsNode.stdAttrs['modify-date'])[:6]
+                    zi.date_time = time.localtime(fsNode.stdAttrs['modify-date'])[:6]
                     zf.writestr(zi, data)
                 finally:
                     zf.close()
@@ -216,7 +213,7 @@ class ZipItemNode(ExplorerNodes.ExplorerNode):
             zi = self.newInfoClass(newArcName)
             zi.file_size = 0
             zi.flag_bits = 0x02
-            zi.date_time = time.gmtime()[:6]
+            zi.date_time = time.localtime()[:6]
             zf.writestr(zi, '')
             self.zipFileNode.allFiles = None
         finally:
@@ -232,7 +229,7 @@ class ZipItemNode(ExplorerNodes.ExplorerNode):
             newArcName = '%s%s'%(ad, name)
             zi = self.newInfoClass(newArcName)
             zi.file_size = 0
-            zi.date_time = time.gmtime()[:6]
+            zi.date_time = time.localtime()[:6]
             zf.writestr(zi, '')
             self.zipFileNode.allFiles = None
         finally:
