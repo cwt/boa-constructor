@@ -267,7 +267,7 @@ class FileSysCompanion(ExplorerNodes.ExplorerCompanion):
             value = attrs[date]
             if value:
                 res.append( (date,
-                             time.strftime(self.timeFmt, time.gmtime(value))) )
+                             time.strftime(self.timeFmt, time.localtime(value))) )
 
         value = attrs['read-only']
         res.append( ('read-only', value and 'True' or 'False') )
