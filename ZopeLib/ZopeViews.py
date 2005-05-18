@@ -13,7 +13,7 @@ print 'importing ZopeLib.ZopeViews'
 
 import os, time
 
-from wxPython import wx
+import wx
 
 from Views.EditorViews import HTMLView, ListCtrlView
 from Views.SourceViews import EditorStyledTextCtrl
@@ -24,11 +24,8 @@ import Utils, ErrorStack
 
 from ExternalLib import xmlrpclib
 
-true=1; false=0
-
 # Can be extended by plug-ins, used by syntax highlighted styles
 zope_additional_attributes = ''
-
 
 # XXX This is expensive and will really need to delay generatePage until View
 # XXX is focused (like ExploreView)
@@ -57,11 +54,11 @@ class ZopeHTMLSourceView(EditorStyledTextCtrl, ZopeHTMLStyledTextCtrlMix):
     breakBmp = 'Images/Debug/Breakpoints.png'
     defaultEOL = '\n'
     def __init__(self, parent, model, actions=()):
-        wxID_ZOPEHTMLSOURCEVIEW = wx.wxNewId()
+        wxID_ZOPEHTMLSOURCEVIEW = wx.NewId()
         EditorStyledTextCtrl.__init__(self, parent, wxID_ZOPEHTMLSOURCEVIEW,
           model, (('Refresh', self.OnRefresh, '-', 'Refresh'),) + actions, -1)
         ZopeHTMLStyledTextCtrlMix.__init__(self, wxID_ZOPEHTMLSOURCEVIEW)
-        self.active = true
+        self.active = True
 
 class ZopeDebugHTMLSourceView(ZopeHTMLSourceView, DebuggingViewSTCMix):
     breakBmp = 'Images/Debug/Breakpoints.png'
@@ -77,7 +74,7 @@ class ZopeDebugHTMLSourceView(ZopeHTMLSourceView, DebuggingViewSTCMix):
               disabledBrkPtMrk, stepPosMrk))
         self.setupDebuggingMargin(symbolMrg)
 
-        self.active = true
+        self.active = True
 
     def OnMarginClick(self, event):
         DebuggingViewSTCMix.OnMarginClick(self, event)
@@ -102,11 +99,11 @@ class ZopeUndoView(ListCtrlView):
     undoBmp = 'Images/Shared/Undo.png'
 
     def __init__(self, parent, model):
-        ListCtrlView.__init__(self, parent, model, wx.wxLC_REPORT,
+        ListCtrlView.__init__(self, parent, model, wx.LC_REPORT,
           (('Undo', self.OnUndo, self.undoBmp, ''),), -1)
         self.addReportColumns( (('Action', 300), ('User', 75), ('Date', 130)) )
 
-        self.active = true
+        self.active = True
 
         self.undoIds = []
 
@@ -116,7 +113,7 @@ class ZopeUndoView(ListCtrlView):
         try:
             undos = self.model.transport.getUndoableTransactions()
         except xmlrpclib.Fault, error:
-            wx.wxLogError(Utils.html2txt(error.faultString))
+            wx.LogError(Utils.html2txt(error.faultString))
         else:
             i = 0
             self.undoIds = []
@@ -132,13 +129,13 @@ class ZopeUndoView(ListCtrlView):
             try:
                 self.model.transport.undoTransaction([self.undoIds[self.selected]])
             except xmlrpclib.Fault, error:
-                wx.wxLogError(Utils.html2txt(error.faultString))
+                wx.LogError(Utils.html2txt(error.faultString))
             except xmlrpclib.ProtocolError, error:
                 if error.errmsg == 'Moved Temporarily':
                     # This is actually a successful move
                     self.refreshCtrl()
                 else:
-                    wx.wxLogError(Utils.html2txt(error.errmsg))
+                    wx.LogError(Utils.html2txt(error.errmsg))
             else:
                 self.refreshCtrl()
 
@@ -147,9 +144,9 @@ class ZopeSecurityView(ListCtrlView):
     undoBmp = 'Images/Shared/Undo.png'
 
     def __init__(self, parent, model):
-        ListCtrlView.__init__(self, parent, model, wx.wxLC_REPORT,
+        ListCtrlView.__init__(self, parent, model, wx.LC_REPORT,
           (('Edit', self.OnEdit, self.undoBmp, ''),), -1)
-        self.active = true
+        self.active = True
 
     def refreshCtrl(self):
         ListCtrlView.refreshCtrl(self)
@@ -165,8 +162,7 @@ class ZopeSecurityView(ListCtrlView):
 
         i = 0
         for perm in perms:
-            apply(self.addReportItems,
-                  (i, ((perm['acquire'] == 'CHECKED' and '*' or '',
+            self.addReportItems(*(i, ((perm['acquire'] == 'CHECKED' and '*' or '',
                   perm['name']) + tuple(map( lambda x: x['checked'] == 'CHECKED' and '*' or '',
                   perm['roles'])) )))
             i = i + 1
@@ -244,10 +240,10 @@ class ZopeSiteErrorLogView(ListCtrlView):
     refreshBmp = 'Images/Editor/Refresh.png'
 
     def __init__(self, parent, model):
-        ListCtrlView.__init__(self, parent, model, wx.wxLC_REPORT,
+        ListCtrlView.__init__(self, parent, model, wx.LC_REPORT,
           (('Open traceback', self.OnOpen, self.gotoTracebackBmp, ''),
            ('Refresh', self.OnRefresh, self.refreshBmp, 'Refresh')), 0)
-        self.active = true
+        self.active = True
 
     logEntryIds = []
     def refreshCtrl(self):
@@ -258,7 +254,7 @@ class ZopeSiteErrorLogView(ListCtrlView):
         try:
             entries = errLogNode.getResource().getLogEntries()
         except xmlrpclib.Fault, error:
-            wx.wxLogError(Utils.html2txt(error.faultString))
+            wx.LogError(Utils.html2txt(error.faultString))
         else:
 
             cols = [('Time', 150), ('User', 100), ('Type', 80),
@@ -286,7 +282,7 @@ class ZopeSiteErrorLogView(ListCtrlView):
             try:
                 textEntry = errLogNode.getResource().getLogEntryAsText(logId)
             except xmlrpclib.Fault, error:
-                wx.wxLogError(Utils.html2txt(error.faultString))
+                wx.LogError(Utils.html2txt(error.faultString))
             else:
                 lines = textEntry.split('\n')
                 lines.reverse()

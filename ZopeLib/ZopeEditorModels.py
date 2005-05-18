@@ -13,14 +13,12 @@ print 'importing ZopeLib.ZopeEditorModels'
 
 import os
 
-from wxPython import wx
+import wx
 
 import Preferences, Utils
 from Preferences import keyDefs
 
 from Models import EditorModels, EditorHelper, HTMLSupport
-
-true=1; false=0
 
 def addZOAIcon(metatype):
     ZOAIcons[metatype] = EditorHelper.imgCounter
@@ -87,14 +85,14 @@ class ZopeEditorModel(EditorModels.BasePersistentModel):
         EditorModels.BasePersistentModel.__init__(self, data, name, editor, saved)
         self.transport = zopeObject  #this is the instance of our node now
 
-    def load(self, notify = true):
+    def load(self, notify = True):
         EditorModels.BasePersistentModel.load(self, notify)
 
-        self.modified = false
-        self.savedAs = true
-        self.saved = true
+        self.modified = False
+        self.savedAs = True
+        self.saved = True
 
-    def save(self, overwriteNewer=false):
+    def save(self, overwriteNewer=False):
         """ This is perhaps not the best style, but here all exceptions
             on saving are caught and transformed to TransportSaveErrors.
             To much maintenance for every Node type to add exceptions
@@ -110,10 +108,10 @@ class ZopeEditorModel(EditorModels.BasePersistentModel):
 class ZopeBlankEditorModel(ZopeEditorModel):
     """ Objects which are not loaded and saved and does not have a 'Main' view,
         but which should still be able to host views """
-    def load(self, notify = true):
-        self.modified = false
-        self.savedAs = true
-        self.saved = true
+    def load(self, notify = True):
+        self.modified = False
+        self.savedAs = True
+        self.saved = True
     def getPageName(self):
         if self.filename[-1] == '/':
             return os.path.basename(self.filename[:-1])
@@ -130,7 +128,7 @@ class ZopeDocumentModel(ZopeEditorModel):
 
     def __init__(self, data, name, editor, saved, zopeObject):
         ZopeEditorModel.__init__(self, data, name, editor, saved, zopeObject)
-        self.savedAs = true
+        self.savedAs = True
 
     def saveAs(self, filename):
         raise 'Save as not supported'
@@ -160,12 +158,12 @@ class ZopePythonSourceModel(ZopeDocumentModel):
     def getModule(self):
         if self._module is None:
             import moduleparse
-            wx.wxBeginBusyCursor()
+            wx.BeginBusyCursor()
             try:
                 self._module = moduleparse.Module(
                     self.transport.whole_name, self.data.split('\012'))
             finally:
-                wx.wxEndBusyCursor()
+                wx.EndBusyCursor()
         return self._module
 
 class ZopePythonScriptModel(ZopePythonSourceModel):
@@ -231,14 +229,14 @@ class ZopeExportFileController(Controllers.UndockedController):
                     lp = itm.properties['localpath']
                     if lp: localZopes[itm.treename] = itm.properties
                 if not localZopes:
-                    wx.wxMessageBox('''No locally reachable Zopes found.
+                    wx.MessageBox('''No locally reachable Zopes found.
 (Hint: Set the localpath property of the Zope connection)''')
                 else:
-                    dlg = wx.wxSingleChoiceDialog(self.editor,
+                    dlg = wx.SingleChoiceDialog(self.editor,
                         "To which Zope's import directory should this file be copied?",
                         'Choose Zope instance', localZopes.keys())
                     try:
-                        if dlg.ShowModal() == wx.wxID_OK:
+                        if dlg.ShowModal() == wx.ID_OK:
                             selected = dlg.GetStringSelection()
                             props = localZopes[selected]
                             zexppath = (props['localpath'] +'/import/' +\

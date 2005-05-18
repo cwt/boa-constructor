@@ -11,7 +11,7 @@
 #-----------------------------------------------------------------------------
 #Boa:Dialog:ZopeFindDlg
 
-from wxPython.wx import *
+import wx
 
 def create(parent):
     return ZopeFindDlg(parent)
@@ -20,59 +20,59 @@ def create(parent):
  wxID_ZOPEFINDDLGMETATYPE, wxID_ZOPEFINDDLGOBJIDS, wxID_ZOPEFINDDLGRECURSE,
  wxID_ZOPEFINDDLGSEARCHTEXT, wxID_ZOPEFINDDLGSTATICTEXT1,
  wxID_ZOPEFINDDLGSTATICTEXT2, wxID_ZOPEFINDDLGSTATICTEXT3,
-] = map(lambda _init_ctrls: wxNewId(), range(10))
+] = [wx.NewId() for _init_ctrls in range(10)]
 
-class ZopeFindDlg(wxDialog):
+class ZopeFindDlg(wx.Dialog):
     def _init_utils(self):
         # generated method, don't edit
         pass
 
     def _init_ctrls(self, prnt):
         # generated method, don't edit
-        wxDialog.__init__(self, id=wxID_ZOPEFINDDLG, name='ZopeFindDlg',
-              parent=prnt, pos=wxPoint(653, 438), size=wxSize(319, 188),
-              style=wxDEFAULT_DIALOG_STYLE, title='Zope find dialog')
+        wx.Dialog.__init__(self, id=wxID_ZOPEFINDDLG, name='ZopeFindDlg',
+              parent=prnt, pos=wx.Point(653, 438), size=wx.Size(319, 188),
+              style=wx.DEFAULT_DIALOG_STYLE, title='Zope find dialog')
         self._init_utils()
-        self.SetClientSize(wxSize(311, 161))
-        self.Center(wxBOTH)
+        self.SetClientSize(wx.Size(311, 161))
+        self.Center(wx.BOTH)
 
-        self.staticText1 = wxStaticText(id=wxID_ZOPEFINDDLGSTATICTEXT1,
+        self.staticText1 =wx.StaticText(id=wxID_ZOPEFINDDLGSTATICTEXT1,
               label='Find objects of type:', name='staticText1', parent=self,
-              pos=wxPoint(8, 8), size=wxSize(120, 16), style=0)
+              pos=wx.Point(8, 8), size=wx.Size(120, 16), style=0)
 
-        self.metaType = wxChoice(choices=['All types'],
+        self.metaType =wx.Choice(choices=['All types'],
               id=wxID_ZOPEFINDDLGMETATYPE, name='metaType', parent=self,
-              pos=wxPoint(136, 8), size=wxSize(168, 21), style=0,
-              validator=wxDefaultValidator)
+              pos=wx.Point(136, 8), size=wx.Size(168, 21), style=0,
+              validator=wx.DefaultValidator)
         self.metaType.SetSelection(0)
-        self.metaType.Enable(false)
+        self.metaType.Enable(False)
 
-        self.staticText2 = wxStaticText(id=wxID_ZOPEFINDDLGSTATICTEXT2,
+        self.staticText2 =wx.StaticText(id=wxID_ZOPEFINDDLGSTATICTEXT2,
               label='with ids:\n(comma separated)', name='staticText2',
-              parent=self, pos=wxPoint(8, 40), size=wxSize(120, 32), style=0)
+              parent=self, pos=wx.Point(8, 40), size=wx.Size(120, 32), style=0)
 
-        self.objIds = wxTextCtrl(id=wxID_ZOPEFINDDLGOBJIDS, name='objIds',
-              parent=self, pos=wxPoint(136, 40), size=wxSize(168, 21), style=0,
+        self.objIds =wx.TextCtrl(id=wxID_ZOPEFINDDLGOBJIDS, name='objIds',
+              parent=self, pos=wx.Point(136, 40), size=wx.Size(168, 21), style=0,
               value='')
 
-        self.staticText3 = wxStaticText(id=wxID_ZOPEFINDDLGSTATICTEXT3,
+        self.staticText3 =wx.StaticText(id=wxID_ZOPEFINDDLGSTATICTEXT3,
               label='containing:', name='staticText3', parent=self,
-              pos=wxPoint(8, 72), size=wxSize(72, 16), style=0)
+              pos=wx.Point(8, 72), size=wx.Size(72, 16), style=0)
 
-        self.searchText = wxTextCtrl(id=wxID_ZOPEFINDDLGSEARCHTEXT,
-              name='searchText', parent=self, pos=wxPoint(136, 72),
-              size=wxSize(168, 21), style=0, value='')
+        self.searchText =wx.TextCtrl(id=wxID_ZOPEFINDDLGSEARCHTEXT,
+              name='searchText', parent=self, pos=wx.Point(136, 72),
+              size=wx.Size(168, 21), style=0, value='')
 
-        self.button1 = wxButton(id=wxID_OK, label='Find', name='button1',
-              parent=self, pos=wxPoint(144, 128), size=wxSize(75, 23), style=0)
+        self.button1 =wx.Button(id=wx.ID_OK, label='Find', name='button1',
+              parent=self, pos=wx.Point(144, 128), size=wx.Size(75, 23), style=0)
 
-        self.button2 = wxButton(id=wxID_CANCEL, label='Cancel', name='button2',
-              parent=self, pos=wxPoint(228, 128), size=wxSize(76, 23), style=0)
+        self.button2 =wx.Button(id=wx.ID_CANCEL, label='Cancel', name='button2',
+              parent=self, pos=wx.Point(228, 128), size=wx.Size(76, 23), style=0)
 
-        self.recurse = wxCheckBox(id=wxID_ZOPEFINDDLGRECURSE, label='recurse',
-              name='recurse', parent=self, pos=wxPoint(8, 104), size=wxSize(73,
+        self.recurse =wx.CheckBox(id=wxID_ZOPEFINDDLGRECURSE, label='recurse',
+              name='recurse', parent=self, pos=wx.Point(8, 104), size=wx.Size(73,
               13), style=0)
-        self.recurse.SetValue(true)
+        self.recurse.SetValue(True)
 
     def __init__(self, parent):
         self._init_ctrls(parent)
@@ -82,8 +82,8 @@ class ZopeFindDlg(wxDialog):
 
 
 if __name__ == '__main__':
-    app = wxPySimpleApp()
-    wxInitAllImageHandlers()
+    app =wx.PySimpleApp()
+    wx.InitAllImageHandlers()
     dlg = create(None)
     try:
         dlg.ShowModal()

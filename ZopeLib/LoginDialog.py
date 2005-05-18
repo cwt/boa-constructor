@@ -11,91 +11,88 @@
 #-----------------------------------------------------------------------------
 #Boa:Dialog:LoginDialog
 
-from wxPython.wx import *
+import wx
 
 def create(parent):
     return LoginDialog(parent)
 
-[wxID_LOGINDIALOG, wxID_LOGINDIALOGBUTTON1, wxID_LOGINDIALOGBUTTON2,
- wxID_LOGINDIALOGFTPPORTTC, wxID_LOGINDIALOGHOSTTC,
- wxID_LOGINDIALOGHTTPPORTTC, wxID_LOGINDIALOGPANEL1,
- wxID_LOGINDIALOGPASSWORDTC, wxID_LOGINDIALOGSTATICTEXT1,
- wxID_LOGINDIALOGSTATICTEXT2, wxID_LOGINDIALOGSTATICTEXT3,
- wxID_LOGINDIALOGSTATICTEXT4, wxID_LOGINDIALOGSTATICTEXT5,
- wxID_LOGINDIALOGUSERNAMETC,
-] = map(lambda _init_ctrls: wxNewId(), range(14))
+[wxID_LOGINDIALOG, wxID_LOGINDIALOGBUTTON1, wxID_LOGINDIALOGBUTTON2, 
+ wxID_LOGINDIALOGFTPPORTTC, wxID_LOGINDIALOGHOSTTC, 
+ wxID_LOGINDIALOGHTTPPORTTC, wxID_LOGINDIALOGPANEL1, 
+ wxID_LOGINDIALOGPASSWORDTC, wxID_LOGINDIALOGSTATICTEXT1, 
+ wxID_LOGINDIALOGSTATICTEXT2, wxID_LOGINDIALOGSTATICTEXT3, 
+ wxID_LOGINDIALOGSTATICTEXT4, wxID_LOGINDIALOGSTATICTEXT5, 
+ wxID_LOGINDIALOGUSERNAMETC, 
+] = [wx.NewId() for _init_ctrls in range(14)]
 
-class LoginDialog(wxDialog):
-    def _init_utils(self):
-        # generated method, don't edit
-        pass
-
+class LoginDialog(wx.Dialog):
     def _init_ctrls(self, prnt):
         # generated method, don't edit
-        wxDialog.__init__(self, id=wxID_LOGINDIALOG, name='LoginDialog',
-              parent=prnt, pos=wxPoint(421, 324), size=wxSize(239, 215),
-              style=wxDEFAULT_DIALOG_STYLE, title='Open connection')
-        self._init_utils()
-        self.SetClientSize(wxSize(231, 188))
+        wx.Dialog.__init__(self, id=wxID_LOGINDIALOG, name='LoginDialog',
+              parent=prnt, pos=wx.Point(421, 324), size=wx.Size(239, 215),
+              style=wx.DEFAULT_DIALOG_STYLE, title='Open connection')
+        self.SetClientSize(wx.Size(231, 188))
 
-        self.panel1 = wxPanel(id=wxID_LOGINDIALOGPANEL1, name='panel1',
-              parent=self, pos=wxPoint(0, 0), size=wxSize(231, 188),
-              style=wxTAB_TRAVERSAL)
+        self.panel1 = wx.Panel(id=wxID_LOGINDIALOGPANEL1, name='panel1',
+              parent=self, pos=wx.Point(0, 0), size=wx.Size(231, 188),
+              style=wx.TAB_TRAVERSAL)
 
-        self.staticText2 = wxStaticText(id=wxID_LOGINDIALOGSTATICTEXT2,
+        self.staticText2 = wx.StaticText(id=wxID_LOGINDIALOGSTATICTEXT2,
               label='Host:', name='staticText2', parent=self.panel1,
-              pos=wxPoint(8, 12), size=wxSize(24, 12), style=0)
+              pos=wx.Point(8, 12), size=wx.Size(24, 12), style=0)
 
-        self.staticText3 = wxStaticText(id=wxID_LOGINDIALOGSTATICTEXT3,
+        self.staticText3 = wx.StaticText(id=wxID_LOGINDIALOGSTATICTEXT3,
               label='FTP Port:', name='staticText3', parent=self.panel1,
-              pos=wxPoint(8, 40), size=wxSize(52, 12), style=0)
+              pos=wx.Point(8, 40), size=wx.Size(52, 12), style=0)
 
-        self.staticText4 = wxStaticText(id=wxID_LOGINDIALOGSTATICTEXT4,
+        self.staticText4 = wx.StaticText(id=wxID_LOGINDIALOGSTATICTEXT4,
               label='User name:', name='staticText4', parent=self.panel1,
-              pos=wxPoint(8, 96), size=wxSize(56, 12), style=0)
+              pos=wx.Point(8, 96), size=wx.Size(56, 12), style=0)
 
-        self.staticText5 = wxStaticText(id=wxID_LOGINDIALOGSTATICTEXT5,
+        self.staticText5 = wx.StaticText(id=wxID_LOGINDIALOGSTATICTEXT5,
               label='Password:', name='staticText5', parent=self.panel1,
-              pos=wxPoint(8, 124), size=wxSize(48, 12), style=wxTE_PASSWORD)
+              pos=wx.Point(8, 124), size=wx.Size(48, 12), style=wx.TE_PASSWORD)
 
-        self.hostTC = wxTextCtrl(id=wxID_LOGINDIALOGHOSTTC, name='hostTC',
-              parent=self.panel1, pos=wxPoint(72, 4), size=wxSize(148, 24),
+        self.hostTC = wx.TextCtrl(id=wxID_LOGINDIALOGHOSTTC, name='hostTC',
+              parent=self.panel1, pos=wx.Point(72, 4), size=wx.Size(148, 24),
               style=0, value='127.0.0.1')
 
-        self.ftpPortTC = wxTextCtrl(id=wxID_LOGINDIALOGFTPPORTTC,
-              name='ftpPortTC', parent=self.panel1, pos=wxPoint(72, 32),
-              size=wxSize(148, 24), style=0, value='8021')
+        self.ftpPortTC = wx.TextCtrl(id=wxID_LOGINDIALOGFTPPORTTC,
+              name='ftpPortTC', parent=self.panel1, pos=wx.Point(72, 32),
+              size=wx.Size(148, 24), style=0, value='8021')
 
-        self.usernameTC = wxTextCtrl(id=wxID_LOGINDIALOGUSERNAMETC,
-              name='usernameTC', parent=self.panel1, pos=wxPoint(72, 88),
-              size=wxSize(148, 24), style=0, value='')
+        self.usernameTC = wx.TextCtrl(id=wxID_LOGINDIALOGUSERNAMETC,
+              name='usernameTC', parent=self.panel1, pos=wx.Point(72, 88),
+              size=wx.Size(148, 24), style=0, value='')
 
-        self.passwordTC = wxTextCtrl(id=wxID_LOGINDIALOGPASSWORDTC,
-              name='passwordTC', parent=self.panel1, pos=wxPoint(72, 116),
-              size=wxSize(148, 24), style=wxTE_PASSWORD, value='')
+        self.passwordTC = wx.TextCtrl(id=wxID_LOGINDIALOGPASSWORDTC,
+              name='passwordTC', parent=self.panel1, pos=wx.Point(72, 116),
+              size=wx.Size(148, 24), style=wx.TE_PASSWORD, value='')
 
-        self.button1 = wxButton(id=wxID_LOGINDIALOGBUTTON1, label='OK',
-              name='button1', parent=self.panel1, pos=wxPoint(36, 156),
-              size=wxSize(76, 24), style=0)
-        EVT_BUTTON(self.button1, wxID_LOGINDIALOGBUTTON1, self.OnButton1Button)
+        self.button1 = wx.Button(id=wxID_LOGINDIALOGBUTTON1, label='OK',
+              name='button1', parent=self.panel1, pos=wx.Point(36, 156),
+              size=wx.Size(76, 24), style=0)
+        self.button1.Bind(wx.EVT_BUTTON, self.OnButton1Button,
+              id=wxID_LOGINDIALOGBUTTON1)
 
-        self.button2 = wxButton(id=wxID_LOGINDIALOGBUTTON2, label='Cancel',
-              name='button2', parent=self.panel1, pos=wxPoint(116, 156),
-              size=wxSize(76, 24), style=0)
-        EVT_BUTTON(self.button2, wxID_LOGINDIALOGBUTTON2, self.OnButton2Button)
+        self.button2 = wx.Button(id=wxID_LOGINDIALOGBUTTON2, label='Cancel',
+              name='button2', parent=self.panel1, pos=wx.Point(116, 156),
+              size=wx.Size(76, 24), style=0)
+        self.button2.Bind(wx.EVT_BUTTON, self.OnButton2Button,
+              id=wxID_LOGINDIALOGBUTTON2)
 
-        self.staticText1 = wxStaticText(id=wxID_LOGINDIALOGSTATICTEXT1,
+        self.staticText1 = wx.StaticText(id=wxID_LOGINDIALOGSTATICTEXT1,
               label='HTTP Port:', name='staticText1', parent=self.panel1,
-              pos=wxPoint(8, 68), size=wxSize(56, 12), style=0)
+              pos=wx.Point(8, 68), size=wx.Size(56, 12), style=0)
 
-        self.httpPortTC = wxTextCtrl(id=wxID_LOGINDIALOGHTTPPORTTC,
-              name='httpPortTC', parent=self.panel1, pos=wxPoint(72, 60),
-              size=wxSize(148, 24), style=0, value='8080')
+        self.httpPortTC = wx.TextCtrl(id=wxID_LOGINDIALOGHTTPPORTTC,
+              name='httpPortTC', parent=self.panel1, pos=wx.Point(72, 60),
+              size=wx.Size(148, 24), style=0, value='8080')
 
     def __init__(self, parent):
         self._init_utils()
         self._init_ctrls(parent)
-        self.Centre(wxBOTH)
+        self.Centre(wx.BOTH)
 
     def setup(self, host, ftpport, httpport, username, password):
         self.hostTC.SetValue(host)
@@ -111,7 +108,7 @@ class LoginDialog(wxDialog):
 
 
     def OnButton1Button(self, event):
-        self.EndModal(wxOK)
+        self.EndModal(wx.OK)
 
     def OnButton2Button(self, event):
-        self.EndModal(wxCANCEL)
+        self.EndModal(wx.CANCEL)

@@ -1,43 +1,49 @@
 #Boa:MiniFrame:ImageViewer
 
-from wxPython.wx import *
+import wx
 import os, tempfile
 
 def create(parent):
     return ImageViewer(parent)
 
-imgs = {'.bmp' : wxBITMAP_TYPE_BMP,
-        '.gif' : wxBITMAP_TYPE_GIF,
-        '.png' : wxBITMAP_TYPE_PNG,
-        '.jpg' : wxBITMAP_TYPE_JPEG}
+imgs = {'.bmp' : wx.BITMAP_TYPE_BMP,
+        '.gif' : wx.BITMAP_TYPE_GIF,
+        '.png' : wx.BITMAP_TYPE_PNG,
+        '.jpg' : wx.BITMAP_TYPE_JPEG}
 
-[wxID_IMAGEVIEWER, wxID_IMAGEVIEWERSASHWINDOW1, wxID_IMAGEVIEWERSTATICBITMAP1] = map(lambda _init_ctrls: wxNewId(), range(3))
+[wxID_IMAGEVIEWER, wxID_IMAGEVIEWERSASHWINDOW1, wxID_IMAGEVIEWERSTATICBITMAP1, 
+] = [wx.NewId() for _init_ctrls in range(3)]
 
-class ImageViewer(wxMiniFrame):
-    def _init_utils(self):
-        pass
-
+class ImageViewer(wx.MiniFrame):
     def _init_ctrls(self, prnt):
-        wxMiniFrame.__init__(self, id = wxID_IMAGEVIEWER, name = 'ImageViewer', parent = prnt, pos = wxPoint(401, 286), size = wxSize(32, 32), style = wxDEFAULT_FRAME_STYLE | wxSTAY_ON_TOP, title = 'Image viewer')
-        self._init_utils()
-        self.SetClientSize(wxSize(32, 32))
+        # generated method, don't edit
+        wx.MiniFrame.__init__(self, id=wxID_IMAGEVIEWER, name='ImageViewer',
+              parent=prnt, pos=wx.Point(401, 286), size=wx.Size(127, 131),
+              style=wx.DEFAULT_FRAME_STYLE | wx.STAY_ON_TOP,
+              title='Image viewer')
+        self.SetClientSize(wx.Size(119, 104))
 
-        self.sashWindow1 = wxSashWindow(id = wxID_IMAGEVIEWERSASHWINDOW1, name = 'sashWindow1', parent = self, pos = wxPoint(0, 0), size = wxSize(221, 185), style = wxSW_BORDER | wxTHICK_FRAME | wxSW_3D)
+        self.sashWindow1 = wx.SashWindow(id=wxID_IMAGEVIEWERSASHWINDOW1,
+              name='sashWindow1', parent=self, pos=wx.Point(0, 0),
+              size=wx.Size(119, 104),
+              style=wx.SW_BORDER | wx.THICK_FRAME | wx.SW_3D)
         self.sashWindow1.SetExtraBorderSize(self.borderSize)
         self.sashWindow1.SetMinimumSizeX(24)
         self.sashWindow1.SetMinimumSizeY(24)
-        EVT_SIZE(self.sashWindow1, self.OnSashwindow1Size)
+        self.sashWindow1.Bind(wx.EVT_SIZE, self.OnSashwindow1Size)
 
-        self.staticBitmap1 = wxStaticBitmap(bitmap = wxNullBitmap, id = wxID_IMAGEVIEWERSTATICBITMAP1, name = 'staticBitmap1', parent = self.sashWindow1, pos = wxPoint(9, 9), size = wxSize(203, 167), style = 0)
+        self.staticBitmap1 = wx.StaticBitmap(bitmap=wx.NullBitmap,
+              id=wxID_IMAGEVIEWERSTATICBITMAP1, name='staticBitmap1',
+              parent=self.sashWindow1, pos=wx.Point(9, 9), size=wx.Size(101,
+              86), style=0)
 
     def __init__(self, parent, doubleClickCallback=None):
-        self.borderSize = 9
-        self._init_utils()
+        self.borderSize = 30
         self._init_ctrls(parent)
-        self.Centre(wxBOTH)
+        self.Centre(wx.BOTH)
 
         if doubleClickCallback:
-            EVT_LEFT_DCLICK(self.staticBitmap1, doubleClickCallback)
+            self.staticBitmap1.Bind(wx.EVT_LEFT_DCLICK, doubleClickCallback)
 
     def showImage(self, filename, node = None):
         if node is not None:
@@ -47,8 +53,8 @@ class ImageViewer(wxMiniFrame):
             fn = filename
 
         self.SetTitle('Image Viewer - %s' %(os.path.basename(fn)))
-        bmp = wxImage(fn, imgs[os.path.splitext(fn)[-1].lower()]).ConvertToBitmap()
-        self.sashWindow1.SetClientSize(wxSize(bmp.GetWidth()+self.borderSize*2,
+        bmp = wx.Image(fn, imgs[os.path.splitext(fn)[-1].lower()]).ConvertToBitmap()
+        self.sashWindow1.SetClientSize(wx.Size(bmp.GetWidth()+self.borderSize*2,
                                               bmp.GetHeight()+self.borderSize*2))
         self.SetClientSize(self.sashWindow1.GetSize())
         self.staticBitmap1.SetBitmap(bmp)
@@ -56,8 +62,8 @@ class ImageViewer(wxMiniFrame):
         if node is not None:
             os.remove(fn)
 
-        self.Centre(wxBOTH)
-        self.Show(true)
+        self.Centre(wx.BOTH)
+        self.Show(True)
 
     def OnSashwindow1Size(self, event):
         self.sashWindow1.Refresh()
@@ -66,9 +72,9 @@ class ImageViewer(wxMiniFrame):
 
 
 if __name__ == '__main__':
-    app = wxPySimpleApp()
-    wxInitAllImageHandlers()
+    app = wx.PySimpleApp()
+    wx.InitAllImageHandlers()
     frame = create(None)
-    frame.Show(true)
+    frame.Show(True)
     frame.showImage('../Images/Modules/wx.Frame.png')
     app.MainLoop()

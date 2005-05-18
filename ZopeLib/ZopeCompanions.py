@@ -13,7 +13,7 @@ print 'importing ZopeLib.ZopeCompanions'
 
 import os
 
-from wxPython import wx
+import wx
 
 from Explorers.ExplorerNodes import ExplorerCompanion
 from PropEdit.PropertyEditors import PropertyEditor
@@ -23,8 +23,6 @@ import methodparse, RTTI
 
 from ZopeLib import Client, ExtMethDlg
 from ZopeLib.DateTime import DateTime
-
-true=1;false=0
 
 # XXX This creation logic should be in the model, the companions should only
 # XXX manage prperties
@@ -141,25 +139,25 @@ class ZopeConnection:
 
     def call(self, objPath, method, **kw):
         try:
-            wx.wxBeginBusyCursor()
+            wx.BeginBusyCursor()
             try:
                 if objPath and objPath[0] != '/': objPath = '/'+objPath
                 url = 'http://%s:%d%s/%s' % (self.host, self.port, objPath, method)
-                return apply(Client.call, (url, self.user, self.password), kw)
+                return Client.call(*(url, self.user, self.password), **kw)
             finally:
-                wx.wxEndBusyCursor()
+                wx.EndBusyCursor()
         except Client.ServerError, rex:
             return None, rex
 
     def callkw(self, objPath, method, kw):
         try:
-            wx.wxBeginBusyCursor()
+            wx.BeginBusyCursor()
             try:
                 if objPath and objPath[0] != '/': objPath = '/'+objPath
                 url = 'http://%s:%d%s/%s' % (self.host, self.port, objPath, method)
-                return apply(Client.call, (url, self.user, self.password), kw)
+                return Client.call(*(url, self.user, self.password), **kw)
             finally:
-                wx.wxEndBusyCursor()
+                wx.EndBusyCursor()
         except Client.ServerError, rex:
             return None, rex
 
@@ -229,7 +227,7 @@ class ZopeCompanion(ExplorerCompanion, ZopeConnection):
     def setPropHook(self, name, value, oldProp):
         mime, res = self.callkw(self.objPath,
               'manage_changeProperties', {name: value})
-        return true
+        return True
 
     def addProperty(self, name, value, tpe):
         mime, res = self.call(self.objPath,
@@ -350,7 +348,7 @@ class ExternalMethodZC(CustomZopePropsMixIn, ZopeCompanion):
         prodPath = '/manage_addProduct/ExternalMethod/'
         dlg = ExtMethDlg.ExtMethDlg(None, self.localPath)
         try:
-            if dlg.ShowModal() == wx.wxID_OK:
+            if dlg.ShowModal() == wx.ID_OK:
                 mime, res = self.call(self.objPath,
                       prodPath+'manage_addExternalMethod',
                       id = self.name, title = '',
@@ -412,9 +410,9 @@ class ZCatalogZC(ZopeCompanion):
 
 class SQLMethodZC(CustomZopePropsMixIn, ZopeCompanion):
     def create(self):
-        dlg = wx.wxTextEntryDialog(None, 'Enter the Connection Id', 'Z SQL Method', '')
+        dlg = wx.TextEntryDialog(None, 'Enter the Connection Id', 'Z SQL Method', '')
         try:
-            if dlg.ShowModal() == wx.wxID_OK:
+            if dlg.ShowModal() == wx.ID_OK:
                 connId = dlg.GetValue()
                 mime, res = self.call(self.objPath,
                     'manage_addProduct/ZSQLMethods/manage_addZSQLMethod',
@@ -483,10 +481,10 @@ class DBAdapterZC(CustomZopePropsMixIn, ZopeCompanion):
 
 class GadflyDAZC(DBAdapterZC):
     def create(self):
-        dlg = wx.wxTextEntryDialog(None, 'Enter the Data Source',
+        dlg = wx.TextEntryDialog(None, 'Enter the Data Source',
               'Z Gadfly DB Adapter', '')
         try:
-            if dlg.ShowModal() == wx.wxID_OK:
+            if dlg.ShowModal() == wx.ID_OK:
                 connId = dlg.GetValue()
                 mime, res = self.call(self.objPath, 'manage_addZGadflyConnection',
                       id=self.name, title='', connection=connId, check=1)
@@ -508,11 +506,11 @@ class UserZC(CustomZopePropsMixIn, ZopeCompanion):
         pass
 
     def create(self):
-        dlg = wx.wxTextEntryDialog(None, 'Enter the username:\n(The password will '\
+        dlg = wx.TextEntryDialog(None, 'Enter the username:\n(The password will '\
               'be set to this username and\ncan be updated in the Inspector)',
               'New User', '')
         try:
-            if dlg.ShowModal() == wx.wxID_OK:
+            if dlg.ShowModal() == wx.ID_OK:
                 username = dlg.GetValue()
                 mime, res = self.call(self.objPath, 'manage_users',
                    submit='Add', name=username, password=username, confirm=username)

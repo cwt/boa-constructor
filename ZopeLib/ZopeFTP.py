@@ -13,8 +13,6 @@
 import socket
 import ftplib, os
 
-true = 1
-false = 0
 
 class ZopeFTPItem:
     def __init__(self, path = '', name = '', perms = '----------', id = 0, size = 0, date = ''):
@@ -88,7 +86,7 @@ class ZopeFTP:
         self.port = 21
         self.username = ''
         self.password = ''
-        self.connected = false
+        self.connected = False
         self.http_port = 8080
 
     def __del__(self):
@@ -109,7 +107,7 @@ class ZopeFTP:
         # Zope returns 'Login successful' even on wrong passwords :(
         res.append(self.ftp.login(username, password))
 
-        self.connected = true
+        self.connected = True
 
         self.ftp.set_pasv(passive)
 
@@ -119,7 +117,7 @@ class ZopeFTP:
     def disconnect(self):
         if self.ftp: self.ftp.quit()
         self.ftp = None
-        self.connected = false
+        self.connected = False
 
     # XXX ren to doc_item
     def add_doc(self, name, path):
@@ -171,10 +169,10 @@ class ZopeFTP:
     def delete(self, item):
         if item.isFolder():
             self.ftp.rmd(item.whole_name())
-            return true
+            return True
         else:
             self.ftp.delete(item.whole_name())
-            return false
+            return False
 
     def rename(self, item, new_name):
         old_path = item.whole_name()
