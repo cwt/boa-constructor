@@ -27,7 +27,7 @@ class DataCDC(CommonDialogCompanion):
 class ColourDialogCDC(DataCDC):
     def body(self):
         return '''data = wx.ColourData()
-data.SetChooseFull(true)
+data.SetChooseFull(True)
 dlg = wx.ColourDialog(self, data)
 try:
     if dlg.ShowModal() == wx.ID_OK:
@@ -55,9 +55,9 @@ finally:
 class PrintDialogCDC(DataCDC):
     def body(self):
         return '''data = wx.PrintDialogData()
-data.EnablePrintToFile(true)
-data.EnablePageNumbers(true)
-data.EnableSelection(true)
+data.EnablePrintToFile(True)
+data.EnablePageNumbers(True)
+data.EnableSelection(True)
 dlg = wx.PrintDialog(self, data)
 try:
     if dlg.ShowModal() == wx.ID_OK:

@@ -50,13 +50,13 @@ class ComCtrlDTC(WindowDTC):
     comImports = 'ComImports'
 
     def writeImports(self):
-        return '\n'.join( (WindowDTC.writeImports(self), 
+        return '\n'.join( (WindowDTC.writeImports(self),
                            'from wxPython.lib.bcrtl.activex.%s import %s' % (
                             self.comModule, self.comImports)) )
 
     def designTimeControl(self, position, size, args = None):
         dtc = WindowDTC.designTimeControl(self, position, size, args)
-        dtc.Enable(false)
+        dtc.Enable(False)
         return dtc
 
 # Com objects are individually tested and added (or not) to the palette so that
@@ -65,7 +65,7 @@ class ComCtrlDTC(WindowDTC):
 
 # Acrobat PDF control
 try:
-    from wxPython.lib.bcrtl.activex.acrobat import wxComPdf
+    from wx.lib.bcrtl.activex.acrobat import wxComPdf
 except ImportError, error:
     print 'Acrobat not registered', error
 else:
@@ -74,12 +74,12 @@ else:
         comModule = 'acrobat'
         comImports = 'wxComPdf'
 
-    PaletteStore.paletteLists['COM'].append(wxComPdf)
+    PaletteStore.paletteLists['COM'].append(wx.ComPdf)
     PaletteStore.compInfo[wxComPdf] = ['AcrobatPdf', PdfComCDTC]
 
 # Internet Explorer webbrowser
 try:
-    from wxPython.lib.bcrtl.activex.IE import *
+    from wx.lib.bcrtl.activex.IE import *
 except ImportError, error:
     print 'Internet Explorer not registered', error
 else:
@@ -99,7 +99,7 @@ else:
         def events(self):
             return ComCtrlDTC.events(self) + ['WebBrowserEvent']
 
-    PaletteStore.paletteLists['COM'].append(wxComWebBrowser)
+    PaletteStore.paletteLists['COM'].append(wx.ComWebBrowser)
     PaletteStore.compInfo[wxComWebBrowser] = ['IEWebBrowser', WebBrowserComCDTC]
 
 

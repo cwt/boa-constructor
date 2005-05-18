@@ -11,7 +11,7 @@
 #-----------------------------------------------------------------------------
 print 'importing Companions.FrameCompanions'
 
-from wxPython.wx import *
+import wx
 
 from BaseCompanions import ContainerDTC
 
@@ -26,12 +26,12 @@ from Preferences import wxDefaultFrameSize, wxDefaultFramePos
 import sourceconst
 
 class BaseFrameDTC(ContainerDTC):
-    defFramePos = wxPyDefaultPosition
-    defFrameSize = wxPyDefaultSize
-    defFrameStyle = wxDEFAULT_FRAME_STYLE
-    
-    dialogLayout = false
-    
+    defFramePos = wx.DefaultPosition
+    defFrameSize = wx.DefaultSize
+    defFrameStyle = wx.DEFAULT_FRAME_STYLE
+
+    dialogLayout = False
+
     def __init__(self, name, designer, frameCtrl):
         ContainerDTC.__init__(self, name, designer, None, None)
         self.control = frameCtrl
@@ -61,7 +61,7 @@ class BaseFrameDTC(ContainerDTC):
     def generateWindowId(self):
         if self.designer:
             self.id = Utils.windowIdentifier(self.designer.GetName(), '')
-        else: self.id = `wxNewId()`
+        else: self.id = `wx.NewId()`
 
     def events(self):
         return ContainerDTC.events(self) + ['FrameEvent']
@@ -86,7 +86,7 @@ class BaseFrameDTC(ContainerDTC):
             if self.textConstr.comp_name == '' and \
               collectionMethod == sourceconst.init_ctrls:
                 if self.designer.dataView.objects:
-                    output.append('%sself.%s()'%(sourceconst.bodyIndent, 
+                    output.append('%sself.%s()'%(sourceconst.bodyIndent,
                                                  sourceconst.init_utils))
 
 class FramesConstr(Constructors.PropertyKeywordConstructor):
@@ -141,12 +141,12 @@ class FrameDTC(FramesConstr, BaseFrameDTC):
             # XXX Actually not even once!
             mb = self.control.GetMenuBar()
             if mb and `mb` == `compn.control`:
-                if wxPlatform == '__WXGTK__':
-                    raise 'May not delete a wxMenuBar, it would cause a segfault on wxGTK'
+                if wx.Platform == '__WXGTK__':
+                    raise 'May not delete a wx.MenuBar, it would cause a segfault on wxGTK'
                 self.propRevertToDefault('MenuBar', 'SetMenuBar')
                 self.control.SetMenuBar(None)
-                #if wxPlatform == '__WXGTK__':
-                #    wxLogWarning('GTK only allows connecting the wxMenuBar once to the wxFrame')
+                #if wx.Platform == '__WXGTK__':
+                #    wx.LogWarning('GTK only allows connecting the wxMenuBar once to the wxFrame')
 
             # ToolBar
             tb = self.control.GetToolBar()
@@ -174,14 +174,14 @@ class FrameDTC(FramesConstr, BaseFrameDTC):
     def SetStatusBar(self, value):
         self.control.SetStatusBar(value)
         # force a resize event so that statusbar can layout
-        if value: 
+        if value:
             self.control.SendSizeEvent()
 
 
 EventCategories['DialogEvent'] = ('wx.EVT_INIT_DIALOG',)
 class DialogDTC(FramesConstr, BaseFrameDTC):
-    dialogLayout = true
-    
+    dialogLayout = True
+
     def __init__(self, name, designer, frameCtrl):
         BaseFrameDTC.__init__(self, name, designer, frameCtrl)
         self.windowStyles = ['wx.DIALOG_MODAL', 'wx.DIALOG_MODELESS',
@@ -221,12 +221,12 @@ class MDIChildFrameDTC(FramesConstr, FrameDTC):
     pass
 
 class PopupWindowDTC(ContainerDTC):
-    defFramePos = wxPyDefaultPosition
-    defFrameSize = wxPyDefaultSize
-    defFrameStyle = wxDEFAULT_FRAME_STYLE
-    
-    dialogLayout = false
-    suppressWindowId = true
+    defFramePos = wx.DefaultPosition
+    defFrameSize = wx.DefaultSize
+    defFrameStyle = wx.DEFAULT_FRAME_STYLE
+
+    dialogLayout = False
+    suppressWindowId = True
 
     def __init__(self, name, designer, frameCtrl):
         ContainerDTC.__init__(self, name, designer, None, None)
@@ -258,8 +258,8 @@ class PopupWindowDTC(ContainerDTC):
 EventCategories['PanelEvent'] = ('wx.EVT_SYS_COLOUR_CHANGED',)
 
 class FramePanelDTC(Constructors.WindowConstr, BaseFrameDTC):
-    dialogLayout = true
-    suppressWindowId = false
+    dialogLayout = True
+    suppressWindowId = False
 
     def __init__(self, name, designer, frameCtrl):
         BaseFrameDTC.__init__(self, name, designer, frameCtrl)
@@ -284,19 +284,19 @@ class FramePanelDTC(Constructors.WindowConstr, BaseFrameDTC):
     def dependentProps(self):
         return BaseFrameDTC.dependentProps(self) + ['DefaultItem']
 
-class wxFramePanel(wxPanel): pass
+class wxFramePanel(wx.Panel): pass
 
 #-------------------------------------------------------------------------------
 import Plugins
 
 Plugins.registerComponents(None,
-      (wxFrame, 'wx.Frame', FrameDTC),
-      (wxDialog, 'wx.Dialog', DialogDTC),
-      (wxMiniFrame, 'wx.MiniFrame', MiniFrameDTC),
-      (wxMDIParentFrame, 'wx.MDIParentFrame', MDIParentFrameDTC),
-      (wxMDIChildFrame, 'wx.MDIChildFrame', MDIChildFrameDTC),
+      (wx.Frame, 'wx.Frame', FrameDTC),
+      (wx.Dialog, 'wx.Dialog', DialogDTC),
+      (wx.MiniFrame, 'wx.MiniFrame', MiniFrameDTC),
+      (wx.MDIParentFrame, 'wx.MDIParentFrame', MDIParentFrameDTC),
+      (wx.MDIChildFrame, 'wx.MDIChildFrame', MDIChildFrameDTC),
       (wxFramePanel, 'wx.FramePanel', FramePanelDTC),
-    )    
+    )
 
 try:
     Plugins.registerComponents(None,

@@ -13,7 +13,7 @@ print 'importing Companions.ContainerCompanions'
 
 import copy
 
-from wxPython.wx import *
+import wx
 
 import Preferences, Utils
 
@@ -59,10 +59,10 @@ class SashWindowDTC(Constructors.WindowConstr, ContainerDTC):
                              'SashVisibleBottom' : SashVisiblePropEdit})
         self.windowStyles = ['wx.SW_3D', 'wx.SW_3DSASH', 'wx.SW_3DBORDER',
                              'wx.SW_BORDER'] + self.windowStyles
-        self.edgeNameMap = {'SashVisibleLeft'  : wxSASH_LEFT,
-                            'SashVisibleTop'   : wxSASH_TOP,
-                            'SashVisibleRight' : wxSASH_RIGHT,
-                            'SashVisibleBottom': wxSASH_BOTTOM}
+        self.edgeNameMap = {'SashVisibleLeft'  : wx.SASH_LEFT,
+                            'SashVisibleTop'   : wx.SASH_TOP,
+                            'SashVisibleRight' : wx.SASH_RIGHT,
+                            'SashVisibleBottom': wx.SASH_BOTTOM}
         for name in self.edgeNameMap.keys() + ['SashVisible']:
             self.customPropEvaluators[name] = self.EvalSashVisible
         #self.customPropEvaluators['SashVisible'] = self.EvalSashVisible
@@ -142,7 +142,7 @@ class SashLayoutWindowDTC(SashWindowDTC):
         if self.control:
             return self.control.GetSize()
         else:
-            return wxSize(15, 15)
+            return wx.Size(15, 15)
 
     def SetDefaultSize(self, size):
         if self.control:
@@ -151,7 +151,7 @@ class SashLayoutWindowDTC(SashWindowDTC):
     def defaultAction(self):
         # should be called from 'Relayout' command
         self.control.SetDefaultSize(self.control.GetSize())
-        wxLayoutAlgorithm().LayoutWindow(self.control.GetParent())
+        wx.LayoutAlgorithm().LayoutWindow(self.control.GetParent())
 
 class ScrolledWindowDTC(Constructors.WindowConstr, ContainerDTC):
     def __init__(self, name, designer, parent, ctrlClass):
@@ -189,7 +189,7 @@ class NotebookDTC(Constructors.WindowConstr, ContainerDTC):
         self.windowStyles = ['wx.NB_FIXEDWIDTH', 'wx.NB_LEFT', 'wx.NB_RIGHT',
                              'wx.NB_BOTTOM', 'wx.NB_MULTILINE'] + \
                              self.windowStyles
-        self.letClickThru = true
+        self.letClickThru = True
 
     def properties(self):
         props = ContainerDTC.properties(self)
@@ -199,7 +199,7 @@ class NotebookDTC(Constructors.WindowConstr, ContainerDTC):
 
     def designTimeControl(self, position, size, args = None):
         ctrl = ContainerDTC.designTimeControl(self, position, size, args)
-        EVT_NOTEBOOK_PAGE_CHANGED(ctrl, ctrl.GetId(), self.OnPageChanged)
+        ctrl.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self.OnPageChanged, id=ctrl.GetId())
         return ctrl
 
     def designTimeSource(self, position = 'wx.DefaultPosition', size = 'wx.DefaultSize'):
@@ -224,7 +224,7 @@ class NotebookDTC(Constructors.WindowConstr, ContainerDTC):
         try:
             if self.collections.has_key('Pages'):
                 self.collections['Pages'].updateSelection(event.GetSelection())
-                wxPostEvent(self.control, wxSizeEvent( self.control.GetSize() ))
+                wx.PostEvent(self.control, wx.SizeEvent( self.control.GetSize() ))
         except Exception, err:
             print 'OnPageChanged exception', str(err)
         event.Skip()
@@ -259,13 +259,13 @@ class NotebookPagesCDTC(CollectionDTC):
     def properties(self):
         props = CollectionDTC.properties(self)
         props.update({'Page': ('NoneRoute', None, None),
-                      'Text': ('IndexRoute', wxNotebook.GetPageText.im_func, wxNotebook.SetPageText.im_func),
+                      'Text': ('IndexRoute', wx.Notebook.GetPageText.im_func, wx.Notebook.SetPageText.im_func),
                       'Selected' : ('CompnRoute', self.GetPageSelected, self.SetPageSelected),
-                      'ImageId': ('IndexRoute', wxNotebook.GetPageImage.im_func, wxNotebook.SetPageImage.im_func)})
+                      'ImageId': ('IndexRoute', wx.Notebook.GetPageImage.im_func, wx.Notebook.SetPageImage.im_func)})
         return props
 
 ##    def appendItem(self):
-##        tph = wxWindow(self.control, -1)
+##        tph = wx.Window(self.control, -1)
 ##        self.tempPlaceHolders.append(tph)
 ##        CollectionDTC.appendItem(self)
 
@@ -277,11 +277,11 @@ class NotebookPagesCDTC(CollectionDTC):
 
     def initDesignTimeEvents(self, ctrl):
         ctrlEvtHandler = self.designer.ctrlEvtHandler
-        EVT_MOTION(ctrl, ctrlEvtHandler.OnMouseOver)
-        EVT_LEFT_DOWN(ctrl, ctrlEvtHandler.OnControlSelect)
-        EVT_LEFT_UP(ctrl, ctrlEvtHandler.OnControlRelease)
-        EVT_LEFT_DCLICK(ctrl, ctrlEvtHandler.OnControlDClick)
-        EVT_SIZE(ctrl, ctrlEvtHandler.OnControlResize)
+        ctrl.Bind(wx.EVT_MOTION, ctrlEvtHandler.OnMouseOver)
+        ctrl.Bind(wx.EVT_LEFT_DOWN, ctrlEvtHandler.OnControlSelect)
+        ctrl.Bind(wx.EVT_LEFT_UP, ctrlEvtHandler.OnControlRelease)
+        ctrl.Bind(wx.EVT_LEFT_DCLICK, ctrlEvtHandler.OnControlDClick)
+        ctrl.Bind(wx.EVT_SIZE, ctrlEvtHandler.OnControlResize)
 
     def applyDesignTimeDefaults(self, params, method=None):
         prms = copy.copy(params)
@@ -297,7 +297,7 @@ class NotebookPagesCDTC(CollectionDTC):
         params = self.designTimeDefaults(prms, method)
         params['page'] = page
 
-        apply(getattr(self.control, self.insertionMethod), (), params)
+        getattr(self.control, self.insertionMethod)(**params)
 
     def moveItem(self, idx, dir):
         newIdx = CollectionDTC.moveItem(self, idx, dir)
@@ -342,7 +342,7 @@ class NotebookPagesCDTC(CollectionDTC):
             idx = idx + 1
 
     def defaultAction(self):
-        self.SetPageSelected(true)
+        self.SetPageSelected(True)
 
     def GetPageSelected(self, compn):
         pass
@@ -373,21 +373,21 @@ class NotebookPagesCDTC(CollectionDTC):
         warn = 0
         for constr in self.textConstrLst:
             if constr.params['page'] == 'None':
-                wxLogWarning('No control for %s, page %s'%(
+                wx.LogWarning('No control for %s, page %s'%(
                       self.parentCompanion.name, constr.params['text']))
                 warn = 1
         if warn:
-            wxLogWarning('The red-dashed area of a wxNotebook page must contain\n'\
+            wx.LogWarning('The red-dashed area of a wx.Notebook page must contain\n'\
             'a control or the generated source will be invalid outside the Designer')
 
 
 [wxID_CTRLPARENT, wxID_EDITPASTE, wxID_EDITDELETE] = Utils.wxNewIds(3)
 
-class BlankWindowPage(wxWindow):
+class BlankWindowPage(wx.Window):
     """ Window representing uninitialised space, it grabs the first control
         dropped onto it and replaces None with new ctrl in code.
 
-        Used by wxNotebook for a default page
+        Used by wx.Notebook for a default page
     """
 
     # XXX A delete of this object should remove the page from the notebook
@@ -395,35 +395,35 @@ class BlankWindowPage(wxWindow):
     # XXX Copy/Cutting a blank page does not make sense ???
 
     def __init__(self, parent, designer, params, nameKey):
-        wxWindow.__init__(self, parent, -1)
+        wx.Window.__init__(self, parent, -1)
         self.params = params
         self.designer = designer
 
         # XXX how/when can I delete this menu, it will leak !!
-        self.menu = wxMenu()
+        self.menu = wx.Menu()
         self.menu.Append(wxID_CTRLPARENT, 'Up')
         self.menu.AppendSeparator()
         self.menu.Append(wxID_EDITPASTE, 'Paste')
         self.menu.Append(wxID_EDITDELETE, 'Delete')
-        EVT_MENU(self, wxID_CTRLPARENT, self.OnCtrlParent)
-        EVT_MENU(self, wxID_EDITPASTE, self.OnCtrlPaste)
-        EVT_MENU(self, wxID_EDITDELETE, self.OnCtrlDelete)
+        self.Bind(wx.EVT_MENU, self.OnCtrlParent, id=wxID_CTRLPARENT)
+        self.Bind(wx.EVT_MENU, self.OnCtrlPaste, id=wxID_EDITPASTE)
+        self.Bind(wx.EVT_MENU, self.OnCtrlDelete, id=wxID_EDITDELETE)
 
         ctrlEvtHandler = self.designer.ctrlEvtHandler
-        EVT_MOTION(self, ctrlEvtHandler.OnMouseOver)
-        EVT_LEFT_DOWN(self, self.OnControlSelect)
-        EVT_LEFT_UP(self, ctrlEvtHandler.OnControlRelease)
-        EVT_LEFT_DCLICK(self, ctrlEvtHandler.OnControlDClick)
-        EVT_SIZE(self, self.OnControlResize)
-        EVT_MOVE(self, self.OnControlMove)
-        EVT_PAINT(self, self.OnPaint)
-        EVT_RIGHT_UP(self, self.OnPopupMenu)
+        self.Bind(wx.EVT_MOTION, ctrlEvtHandler.OnMouseOver)
+        self.Bind(wx.EVT_LEFT_DOWN, self.OnControlSelect)
+        self.Bind(wx.EVT_LEFT_UP, ctrlEvtHandler.OnControlRelease)
+        self.Bind(wx.EVT_LEFT_DCLICK, ctrlEvtHandler.OnControlDClick)
+        self.Bind(wx.EVT_SIZE, self.OnControlResize)
+        self.Bind(wx.EVT_MOVE, self.OnControlMove)
+        self.Bind(wx.EVT_PAINT, self.OnPaint)
+        self.Bind(wx.EVT_RIGHT_UP, self.OnPopupMenu)
 
         self.SetName(parent.GetName())
         self.ctrl = None
         self.nameKey = nameKey
 
-        self.proxyContainer = true
+        self.proxyContainer = True
 
     def clearCtrl(self):
         self.ctrl = None
@@ -460,10 +460,10 @@ class BlankWindowPage(wxWindow):
         """
         try:
             if self.ctrl is None:
-                dc = wxPaintDC(self)
+                dc = wx.PaintDC(self)
                 sze = self.GetClientSize()
 
-                dc.SetPen(wxRED_PEN)
+                dc.SetPen(wx.RED_PEN)
                 dc.BeginDrawing()
                 try:
                     for i in range((sze.x + sze.y) / self.dashSize):
@@ -477,7 +477,7 @@ class BlankWindowPage(wxWindow):
         """ When moved or sized, ignore and fill the proxy container
         """
         parent = self.GetParent()
-        wxPostEvent(parent, wxSizeEvent( parent.GetSize() ))
+        wx.PostEvent(parent, wx.SizeEvent( parent.GetSize() ))
 
     def OnCtrlParent(self, event):
         self.designer.OnSelectParent(event)
@@ -512,9 +512,9 @@ class SplitterWindowDTC(ContainerDTC):
         self.options['SplitMode'] = splitterWindowSplitMode
         self.names['SplitMode'] = splitterWindowSplitModeNames
         self.windowStyles = ['wx.SP_3D', 'wx.SP_3DSASH', 'wx.SP_3DBORDER',
-                             'wx.SP_BORDER', 'wx.SP_NOBORDER', #'wxSP_FULLSASH',
+                             'wx.SP_BORDER', 'wx.SP_NOBORDER', 
                              'wx.SP_PERMIT_UNSPLIT', 'wx.SP_LIVE_UPDATE',
-                             ] + self.windowStyles #'wxSP_3DSASH', 'wxSP_3DBORDER', 'wxSP_FULLSASH',
+                             ] + self.windowStyles 
         self.win1 = None
         self.win2 = None
 
@@ -545,8 +545,8 @@ class SplitterWindowDTC(ContainerDTC):
     def events(self):
         return ContainerDTC.events(self) + ['SplitterWindowEvent']
 
-    modeMethMap = {wxSPLIT_VERTICAL:   'SplitVertically',
-                   wxSPLIT_HORIZONTAL: 'SplitHorizontally'}
+    modeMethMap = {wx.SPLIT_VERTICAL:   'SplitVertically',
+                   wx.SPLIT_HORIZONTAL: 'SplitHorizontally'}
 
     def renameCtrlRefs(self, oldName, newName):
         ContainerDTC.renameCtrlRefs(self, oldName, newName)
@@ -587,8 +587,8 @@ class SplitterWindowDTC(ContainerDTC):
             sm = self.control.GetSplitMode()
             setterName = self.modeMethMap[sm]
             for prop in self.textPropList:
-                if prop.prop_setter == 'SplitVertically' and sm == wxSPLIT_HORIZONTAL or \
-                   prop.prop_setter == 'SplitHorizontally' and sm == wxSPLIT_VERTICAL:
+                if prop.prop_setter == 'SplitVertically' and sm == wx.SPLIT_HORIZONTAL or \
+                   prop.prop_setter == 'SplitHorizontally' and sm == wx.SPLIT_VERTICAL:
                     prop.prop_setter = setterName
                     return
 
@@ -623,7 +623,7 @@ class SplitterWindowDTC(ContainerDTC):
             # If Window1 is None, splitter can only be unsplit
             if compn.control == self.win1:#self.GetWindow1(None):
                 self.control.Unsplit(self.win1)
-                if self.win2: self.win2.Show(true)
+                if self.win2: self.win2.Show(True)
                 self.win1 = self.win2 = None
 
                 setterName = self.modeMethMap[self.control.GetSplitMode()]
@@ -659,9 +659,9 @@ class SplitterWindowDTC(ContainerDTC):
         if ctrl.IsSplit():
             ctrl.Unsplit()
 
-        if sm == wxSPLIT_VERTICAL:
+        if sm == wx.SPLIT_VERTICAL:
             splitMeth = ctrl.SplitVertically
-        elif sm == wxSPLIT_HORIZONTAL:
+        elif sm == wx.SPLIT_HORIZONTAL:
             splitMeth = ctrl.SplitHorizontally
         else:
             return
@@ -674,8 +674,8 @@ class SplitterWindowDTC(ContainerDTC):
             else:
                 ctrl.Initialize(window2)
 
-        if window1: window1.Show(true)
-        if window2: window2.Show(true)
+        if window1: window1.Show(True)
+        if window2: window2.Show(True)
 
         self.designer.inspector.propertyUpdate('SashPosition')
 
@@ -746,23 +746,23 @@ class ToolBarDTC(Constructors.WindowConstr, ContainerDTC):
 
 
 def BlankToolBitmap(width, height):
-    bmp = wxEmptyBitmap(width, height)
-    dc = wxMemoryDC()
+    bmp = wx.EmptyBitmap(width, height)
+    dc = wx.MemoryDC()
     dc.SelectObject(bmp)
-    dc.SetBrush(wxBrush(wxRED, wxBDIAGONAL_HATCH))
-    dc.SetBackground(wxBrush(wxWHITE))
-    dc.SetPen(wxPen(wxWHITE, 0, wxTRANSPARENT))
+    dc.SetBrush(wx.Brush(wx.RED, wx.BDIAGONAL_HATCH))
+    dc.SetBackground(wx.Brush(wx.WHITE))
+    dc.SetPen(wx.Pen(wx.WHITE, 0, wx.TRANSPARENT))
     dc.BeginDrawing()
     dc.DrawRectangle(0, 0, width, height)
-    
+
     return bmp
 
-class BlankToolControl(wxStaticBitmap):
+class BlankToolControl(wx.StaticBitmap):
     def __init__(self, toolbar):
         width, height = toolbar.GetToolSize().Get()
         bmp = BlankToolBitmap(width, height)
-        wxStaticBitmap.__init__(self, toolbar, -1, bmp, style=wxSIMPLE_BORDER)
-                
+        wx.StaticBitmap.__init__(self, toolbar, -1, bmp, style=wx.SIMPLE_BORDER)
+
 
 class ToolBarToolsCDTC(CollectionIddDTC):
     propName = 'Tools'
@@ -772,7 +772,7 @@ class ToolBarToolsCDTC(CollectionIddDTC):
     deletionMethod = 'DeleteToolByPos'
     idProp = 'id'
     idPropNameFrom = 'tools'
-    
+
     additionalMethods = {'AddSeparator': ('Add separator', '', '(None)'),
                          'AddControl': ('Add control', 'control', '(None)'),
                          'AddTool': ('Old add tool', 'shortHelpString', '(None)')
@@ -797,14 +797,14 @@ class ToolBarToolsCDTC(CollectionIddDTC):
         tcl = self.textConstrLst[self.index]
         if tcl.method == 'DoAddTool':
             return {'ItemId': 'id',
-                    'Label': 'label', 
+                    'Label': 'label',
                     'Bitmap': 'bitmap',
                     'BitmapDisabled': 'bmpDisabled',
                     'Kind': 'kind',
                     'ShortHelp': 'shortHelp',
                     'LongHelp': 'longHelp'}
         elif tcl.method == 'AddTool':
-            return {'ItemId': 'id', 'Bitmap': 'bitmap', 
+            return {'ItemId': 'id', 'Bitmap': 'bitmap',
                     'PushedBitmap': 'pushedBitmap',
                     'IsToggle': 'isToggle',
                     'ShortHelpString': 'shortHelpString',
@@ -826,7 +826,7 @@ class ToolBarToolsCDTC(CollectionIddDTC):
     def designTimeSource(self, wId, method=None):
         if method is None:
             method = self.insertionMethod
-        
+
         newItemName, winId = self.newUnusedItemNames(wId)
 
         if method == 'DoAddTool':
@@ -841,7 +841,7 @@ class ToolBarToolsCDTC(CollectionIddDTC):
             return {'id': winId,
                     'bitmap': 'wx.NullBitmap',
                     'pushedBitmap': 'wx.NullBitmap',
-                    'isToggle': 'false',
+                    'isToggle': 'False',
                     'shortHelpString': `newItemName`,
                     'longHelpString': `''`}
         elif method == 'AddSeparator':
@@ -867,7 +867,7 @@ class ToolBarToolsCDTC(CollectionIddDTC):
             for crt in self.textConstrLst:
                 self.applyDesignTimeDefaults(crt.params, crt.method)
         return newIdx
-    
+
     def applyDesignTimeDefaults(self, params, method=None):
         if method is None:
             method = self.insertionMethod
@@ -888,17 +888,18 @@ class ToolBarToolsCDTC(CollectionIddDTC):
                 del prms[bmp]
 
         params = self.designTimeDefaults(prms)
-        
+
         if method in ('AddSeparator', 'AddControl'):
             del params['id']
 
         if control:
             params['control'] = control
-        
+
         for bmp in bitmaps:
             params[bmp] = bitmaps[bmp]
 
-        apply(getattr(self.control, method), (), params)
+        getattr(self.control, method)(**params)
+
         self.control.Realize()
 
     def events(self):
@@ -927,11 +928,11 @@ class ToolBarToolsCDTC(CollectionIddDTC):
         warn = 0
         for constr in self.textConstrLst:
             if constr.params.has_key('control') and constr.params['control'] == 'None':
-                wxLogWarning("Invalid None control for toolbar %s's AddControl"%(
+                wx.LogWarning("Invalid None control for toolbar %s's AddControl"%(
                       self.parentCompanion.name))
                 warn = 1
         if warn:
-            wxLogWarning('Control may not be None or the generated source will '
+            wx.LogWarning('Control may not be None or the generated source will '
                          'be invalid outside the Designer.')
 
     def GetOtherWin(self):
@@ -940,7 +941,7 @@ class ToolBarToolsCDTC(CollectionIddDTC):
     def SetOtherWin(self, value):
         self.textConstrLst[self.index].params['control'] = value
 
-class ToolBarSimpleDTC(ToolBarDTC): 
+class ToolBarSimpleDTC(ToolBarDTC):
     def designTimeSource(self, position = 'wx.DefaultPosition', size = 'wx.DefaultSize'):
         return {'pos': position,
                 'size': self.getDefCtrlSize(),
@@ -954,7 +955,7 @@ class StatusBarDTC(ContainerDTC):
         self.subCompanions['Fields'] = StatusBarFieldsCDTC
         self.windowStyles = ['wx.ST_SIZEGRIP'] + self.windowStyles
 
-    def constructor(self): 
+    def constructor(self):
         return {'Style': 'style', 'Name': 'name'}
 
     def properties(self):
@@ -1061,13 +1062,13 @@ import Plugins
 Plugins.registerPalettePage('ContainersLayout', 'Containers/Layout')
 
 Plugins.registerComponents('ContainersLayout',
-      (wxPanel, 'wx.Panel', PanelDTC),
-      (wxScrolledWindow, 'wx.ScrolledWindow', ScrolledWindowDTC),
-      (wxNotebook, 'wx.Notebook', NotebookDTC),
-      (wxSplitterWindow, 'wx.SplitterWindow', SplitterWindowDTC),
-      (wxSashWindow, 'wx.SashWindow', SashWindowDTC),
-      (wxSashLayoutWindow, 'wx.SashLayoutWindow', SashLayoutWindowDTC),
-      (wxToolBar, 'wx.ToolBar', ToolBarDTC),
-      (wxStatusBar, 'wx.StatusBar', StatusBarDTC),
-      (wxWindow, 'wx.Window', ContainerDTC),
+      (wx.Panel, 'wx.Panel', PanelDTC),
+      (wx.ScrolledWindow, 'wx.ScrolledWindow', ScrolledWindowDTC),
+      (wx.Notebook, 'wx.Notebook', NotebookDTC),
+      (wx.SplitterWindow, 'wx.SplitterWindow', SplitterWindowDTC),
+      (wx.SashWindow, 'wx.SashWindow', SashWindowDTC),
+      (wx.SashLayoutWindow, 'wx.SashLayoutWindow', SashLayoutWindowDTC),
+      (wx.ToolBar, 'wx.ToolBar', ToolBarDTC),
+      (wx.StatusBar, 'wx.StatusBar', StatusBarDTC),
+      (wx.Window, 'wx.Window', ContainerDTC),
     )

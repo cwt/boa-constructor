@@ -11,10 +11,10 @@
 #-----------------------------------------------------------------------------
 print 'importing Companions.BasicCompanions'
 
-from wxPython.wx import *
+import wx
 
-from wxPython.html import *
-from wxPython.stc import *
+import wx.html
+import wx.stc
 
 from BaseCompanions import WindowDTC, ChoicedDTC
 
@@ -38,7 +38,7 @@ class ScrollBarDTC(Constructors.MultiItemCtrlsConstr, WindowDTC):
     def events(self):
         return WindowDTC.events(self) + ['ScrollEvent', 'CmdScrollEvent']
 
-EventCategories['ComboEvent'] = ('wx.EVT_COMBOBOX', 'wx.EVT_TEXT', 
+EventCategories['ComboEvent'] = ('wx.EVT_COMBOBOX', 'wx.EVT_TEXT',
                                  'wx.EVT_TEXT_ENTER')
 commandCategories.append('ComboEvent')
 class ComboBoxDTC(ChoicedDTC):
@@ -50,7 +50,7 @@ class ComboBoxDTC(ChoicedDTC):
     def constructor(self):
         return {'Value': 'value', 'Position': 'pos', 'Size': 'size',
                 'Choices': 'choices', 'Style': 'style',
-                'Name': 'name'} 
+                'Name': 'name'}
 
     def designTimeSource(self, position = 'wx.DefaultPosition', size = 'wx.DefaultSize'):
         return {'value': `self.name`,
@@ -110,7 +110,7 @@ class StaticTextDTC(LabeledNonInputConstr, WindowDTC):
                 'style': '0',
                 'name': `self.name`}
 
-EventCategories['TextCtrlEvent'] = ('wx.EVT_TEXT', 'wx.EVT_TEXT_ENTER', 
+EventCategories['TextCtrlEvent'] = ('wx.EVT_TEXT', 'wx.EVT_TEXT_ENTER',
                                     'wx.EVT_TEXT_URL', 'wx.EVT_TEXT_MAXLEN')
 commandCategories.append('TextCtrlEvent')
 class TextCtrlDTC(WindowDTC):
@@ -118,9 +118,9 @@ class TextCtrlDTC(WindowDTC):
         WindowDTC.__init__(self, name, designer, parent, ctrlClass)
         self.windowStyles = ['wx.TE_PROCESS_ENTER', 'wx.TE_PROCESS_TAB',
                              'wx.TE_MULTILINE', 'wx.TE_PASSWORD',
-                             'wx.TE_READONLY', 'wx.TE_RICH', 'wx.TE_RICH2', 
+                             'wx.TE_READONLY', 'wx.TE_RICH', 'wx.TE_RICH2',
                              'wx.TE_AUTO_URL', 'wx.TE_NOHIDESEL',
-                             'wx.TE_LEFT', 'wx.TE_CENTER', 'wx.TE_RIGHT', 
+                             'wx.TE_LEFT', 'wx.TE_CENTER', 'wx.TE_RIGHT',
                              'wx.TE_DONTWRAP', 'wx.TE_LINEWRAP', 'wx.TE_WORDWRAP',
                              ] + self.windowStyles
         self._maxLength = 0
@@ -215,7 +215,7 @@ class SliderDTC(WindowDTC):
     def constructor(self):
         return {'Value': 'value', 'MinValue': 'minValue', 'MaxValue': 'maxValue',
                 'Position': 'point', 'Size': 'size', 'Style': 'style',
-                'Name': 'name'} 
+                'Name': 'name'}
 
     def designTimeSource(self, position = 'wx.DefaultPosition', size = 'wx.DefaultSize'):
         return {'value': '0',
@@ -245,7 +245,7 @@ class GaugeDTC(WindowDTC):
 
     def constructor(self):
         return {'Range': 'range', 'Position': 'pos', 'Size': 'size',
-                'Style': 'style', 'Name': 'name'} 
+                'Style': 'style', 'Name': 'name'}
 
     def designTimeSource(self, position = 'wx.DefaultPosition', size = 'wx.DefaultSize'):
         return {'range': '100',
@@ -261,7 +261,7 @@ class StaticBoxDTC(LabeledNonInputConstr, WindowDTC):
                 'size': self.getDefCtrlSize(),
                 'style': '0',
                 'name': `self.name`}
-    
+
     def properties(self):
         props = WindowDTC.properties(self)
         del props['Sizer']
@@ -319,7 +319,7 @@ class HtmlWindowDTC(WindowDTC):
         return WindowDTC.events(self) + ['ScrollEvent']
 
     def writeImports(self):
-        return '\n'.join( (WindowDTC.writeImports(self), 
+        return '\n'.join( (WindowDTC.writeImports(self),
                            'import wx.html') )
 
     def GetBorders(self, x):
@@ -329,63 +329,63 @@ class HtmlWindowDTC(WindowDTC):
         self._borders = value
         self.control.SetBorders(value)
 
-stcEOLMode = [wxSTC_EOL_CRLF, wxSTC_EOL_CR, wxSTC_EOL_LF]
-stcEOLModeNames = {'wx.stc.STC_EOL_CRLF': wxSTC_EOL_CRLF,
-                   'wx.stc.STC_EOL_CR': wxSTC_EOL_CR,
-                   'wx.stc.STC_EOL_LF': wxSTC_EOL_LF}
+stcEOLMode = [wx.stc.STC_EOL_CRLF, wx.stc.STC_EOL_CR, wx.stc.STC_EOL_LF]
+stcEOLModeNames = {'wx.stc.STC_EOL_CRLF': wx.stc.STC_EOL_CRLF,
+                   'wx.stc.STC_EOL_CR': wx.stc.STC_EOL_CR,
+                   'wx.stc.STC_EOL_LF': wx.stc.STC_EOL_LF}
 
-stcEdgeMode = [wxSTC_EDGE_NONE, wxSTC_EDGE_LINE, wxSTC_EDGE_BACKGROUND]
-stcEdgeModeNames = {'wx.stc.STC_EDGE_NONE': wxSTC_EDGE_NONE,
-                    'wx.stc.STC_EDGE_LINE': wxSTC_EDGE_LINE,
-                    'wx.stc.STC_EDGE_BACKGROUND': wxSTC_EDGE_BACKGROUND}
+stcEdgeMode = [wx.stc.STC_EDGE_NONE, wx.stc.STC_EDGE_LINE, wx.stc.STC_EDGE_BACKGROUND]
+stcEdgeModeNames = {'wx.stc.STC_EDGE_NONE': wx.stc.STC_EDGE_NONE,
+                    'wx.stc.STC_EDGE_LINE': wx.stc.STC_EDGE_LINE,
+                    'wx.stc.STC_EDGE_BACKGROUND': wx.stc.STC_EDGE_BACKGROUND}
 
-stcLexer = [wxSTC_LEX_NULL, wxSTC_LEX_PYTHON, wxSTC_LEX_CONTAINER,
-            wxSTC_LEX_CPP , wxSTC_LEX_HTML , wxSTC_LEX_XML, wxSTC_LEX_PERL,
-            wxSTC_LEX_SQL, wxSTC_LEX_VB, wxSTC_LEX_PROPERTIES,
-            wxSTC_LEX_ERRORLIST, wxSTC_LEX_MAKEFILE, wxSTC_LEX_BATCH,
-            wxSTC_LEX_XCODE, wxSTC_LEX_LATEX, wxSTC_LEX_LUA, wxSTC_LEX_DIFF,
-            wxSTC_LEX_CONF, wxSTC_LEX_PASCAL, wxSTC_LEX_AVE, wxSTC_LEX_ADA,
-            wxSTC_LEX_LISP, wxSTC_LEX_RUBY, wxSTC_LEX_EIFFEL, wxSTC_LEX_EIFFELKW,
-            wxSTC_LEX_TCL, wxSTC_LEX_NNCRONTAB, wxSTC_LEX_BULLANT,
-            wxSTC_LEX_VBSCRIPT, wxSTC_LEX_ASP, wxSTC_LEX_PHP, wxSTC_LEX_BAAN,
-            wxSTC_LEX_MATLAB, wxSTC_LEX_SCRIPTOL, wxSTC_LEX_AUTOMATIC]
-stcLexerNames = {'wx.stc.STC_LEX_NULL': wxSTC_LEX_NULL,
-      'wx.stc.STC_LEX_PYTHON': wxSTC_LEX_PYTHON,
-      'wx.stc.STC_LEX_CONTAINER': wxSTC_LEX_CONTAINER,
-      'wx.stc.STC_LEX_CPP': wxSTC_LEX_CPP, 'wx.stc.STC_LEX_HTML': wxSTC_LEX_HTML,
-      'wx.stc.STC_LEX_XML': wxSTC_LEX_XML, 'wx.stc.STC_LEX_PERL': wxSTC_LEX_PERL,
-      'wx.stc.STC_LEX_SQL': wxSTC_LEX_SQL, 'wx.stc.STC_LEX_VB': wxSTC_LEX_VB,
-      'wx.stc.STC_LEX_PROPERTIES': wxSTC_LEX_PROPERTIES,
-      'wx.stc.STC_LEX_ERRORLIST': wxSTC_LEX_ERRORLIST,
-      'wx.stc.STC_LEX_MAKEFILE': wxSTC_LEX_MAKEFILE,
-      'wx.stc.STC_LEX_BATCH': wxSTC_LEX_BATCH,
-      'wx.stc.STC_LEX_XCODE': wxSTC_LEX_XCODE, 'wx.stc.STC_LEX_LATEX': wxSTC_LEX_LATEX,
-      'wx.stc.STC_LEX_LUA': wxSTC_LEX_LUA, 'wx.stc.STC_LEX_DIFF': wxSTC_LEX_DIFF,
-      'wx.stc.STC_LEX_CONF': wxSTC_LEX_CONF, 'wx.stc.STC_LEX_PASCAL': wxSTC_LEX_PASCAL,
-      'wx.stc.STC_LEX_AVE': wxSTC_LEX_AVE, 'wx.stc.STC_LEX_ADA': wxSTC_LEX_ADA,
-      'wx.stc.STC_LEX_LISP': wxSTC_LEX_LISP, 'wx.stc.STC_LEX_RUBY': wxSTC_LEX_RUBY,
-      'wx.stc.STC_LEX_EIFFEL': wxSTC_LEX_EIFFEL,
-      'wx.stc.STC_LEX_EIFFELKW': wxSTC_LEX_EIFFELKW,
-      'wx.stc.STC_LEX_TCL': wxSTC_LEX_TCL, 'wx.stc.STC_LEX_NNCRONTAB': wxSTC_LEX_NNCRONTAB,
-      'wx.stc.STC_LEX_BULLANT': wxSTC_LEX_BULLANT,
-      'wx.stc.STC_LEX_VBSCRIPT': wxSTC_LEX_VBSCRIPT, 'wx.stc.STC_LEX_ASP': wxSTC_LEX_ASP,
-      'wx.stc.STC_LEX_PHP': wxSTC_LEX_PHP, 'wx.stc.STC_LEX_BAAN': wxSTC_LEX_BAAN,
-      'wx.stc.STC_LEX_MATLAB': wxSTC_LEX_MATLAB,
-      'wx.stc.STC_LEX_SCRIPTOL': wxSTC_LEX_SCRIPTOL,
-      'wx.stc.STC_LEX_AUTOMATIC': wxSTC_LEX_AUTOMATIC}
+stcLexer = [wx.stc.STC_LEX_NULL, wx.stc.STC_LEX_PYTHON, wx.stc.STC_LEX_CONTAINER,
+            wx.stc.STC_LEX_CPP , wx.stc.STC_LEX_HTML , wx.stc.STC_LEX_XML, wx.stc.STC_LEX_PERL,
+            wx.stc.STC_LEX_SQL, wx.stc.STC_LEX_VB, wx.stc.STC_LEX_PROPERTIES,
+            wx.stc.STC_LEX_ERRORLIST, wx.stc.STC_LEX_MAKEFILE, wx.stc.STC_LEX_BATCH,
+            wx.stc.STC_LEX_XCODE, wx.stc.STC_LEX_LATEX, wx.stc.STC_LEX_LUA, wx.stc.STC_LEX_DIFF,
+            wx.stc.STC_LEX_CONF, wx.stc.STC_LEX_PASCAL, wx.stc.STC_LEX_AVE, wx.stc.STC_LEX_ADA,
+            wx.stc.STC_LEX_LISP, wx.stc.STC_LEX_RUBY, wx.stc.STC_LEX_EIFFEL, wx.stc.STC_LEX_EIFFELKW,
+            wx.stc.STC_LEX_TCL, wx.stc.STC_LEX_NNCRONTAB, wx.stc.STC_LEX_BULLANT,
+            wx.stc.STC_LEX_VBSCRIPT, wx.stc.STC_LEX_ASP, wx.stc.STC_LEX_PHP, wx.stc.STC_LEX_BAAN,
+            wx.stc.STC_LEX_MATLAB, wx.stc.STC_LEX_SCRIPTOL, wx.stc.STC_LEX_AUTOMATIC]
+stcLexerNames = {'wx.stc.STC_LEX_NULL': wx.stc.STC_LEX_NULL,
+      'wx.stc.STC_LEX_PYTHON': wx.stc.STC_LEX_PYTHON,
+      'wx.stc.STC_LEX_CONTAINER': wx.stc.STC_LEX_CONTAINER,
+      'wx.stc.STC_LEX_CPP': wx.stc.STC_LEX_CPP, 'wx.stc.STC_LEX_HTML': wx.stc.STC_LEX_HTML,
+      'wx.stc.STC_LEX_XML': wx.stc.STC_LEX_XML, 'wx.stc.STC_LEX_PERL': wx.stc.STC_LEX_PERL,
+      'wx.stc.STC_LEX_SQL': wx.stc.STC_LEX_SQL, 'wx.stc.STC_LEX_VB': wx.stc.STC_LEX_VB,
+      'wx.stc.STC_LEX_PROPERTIES': wx.stc.STC_LEX_PROPERTIES,
+      'wx.stc.STC_LEX_ERRORLIST': wx.stc.STC_LEX_ERRORLIST,
+      'wx.stc.STC_LEX_MAKEFILE': wx.stc.STC_LEX_MAKEFILE,
+      'wx.stc.STC_LEX_BATCH': wx.stc.STC_LEX_BATCH,
+      'wx.stc.STC_LEX_XCODE': wx.stc.STC_LEX_XCODE, 'wx.stc.STC_LEX_LATEX': wx.stc.STC_LEX_LATEX,
+      'wx.stc.STC_LEX_LUA': wx.stc.STC_LEX_LUA, 'wx.stc.STC_LEX_DIFF': wx.stc.STC_LEX_DIFF,
+      'wx.stc.STC_LEX_CONF': wx.stc.STC_LEX_CONF, 'wx.stc.STC_LEX_PASCAL': wx.stc.STC_LEX_PASCAL,
+      'wx.stc.STC_LEX_AVE': wx.stc.STC_LEX_AVE, 'wx.stc.STC_LEX_ADA': wx.stc.STC_LEX_ADA,
+      'wx.stc.STC_LEX_LISP': wx.stc.STC_LEX_LISP, 'wx.stc.STC_LEX_RUBY': wx.stc.STC_LEX_RUBY,
+      'wx.stc.STC_LEX_EIFFEL': wx.stc.STC_LEX_EIFFEL,
+      'wx.stc.STC_LEX_EIFFELKW': wx.stc.STC_LEX_EIFFELKW,
+      'wx.stc.STC_LEX_TCL': wx.stc.STC_LEX_TCL, 'wx.stc.STC_LEX_NNCRONTAB': wx.stc.STC_LEX_NNCRONTAB,
+      'wx.stc.STC_LEX_BULLANT': wx.stc.STC_LEX_BULLANT,
+      'wx.stc.STC_LEX_VBSCRIPT': wx.stc.STC_LEX_VBSCRIPT, 'wx.stc.STC_LEX_ASP': wx.stc.STC_LEX_ASP,
+      'wx.stc.STC_LEX_PHP': wx.stc.STC_LEX_PHP, 'wx.stc.STC_LEX_BAAN': wx.stc.STC_LEX_BAAN,
+      'wx.stc.STC_LEX_MATLAB': wx.stc.STC_LEX_MATLAB,
+      'wx.stc.STC_LEX_SCRIPTOL': wx.stc.STC_LEX_SCRIPTOL,
+      'wx.stc.STC_LEX_AUTOMATIC': wx.stc.STC_LEX_AUTOMATIC}
 
-stcPrintColourMode = [wxSTC_PRINT_NORMAL, wxSTC_PRINT_INVERTLIGHT,
-      wxSTC_PRINT_BLACKONWHITE, wxSTC_PRINT_COLOURONWHITE,
-      wxSTC_PRINT_COLOURONWHITEDEFAULTBG]
-stcPrintColourModeNames = {'wx.stc.STC_PRINT_NORMAL': wxSTC_PRINT_NORMAL,
-      'wx.stc.STC_PRINT_INVERTLIGHT': wxSTC_PRINT_INVERTLIGHT,
-      'wx.stc.STC_PRINT_BLACKONWHITE': wxSTC_PRINT_BLACKONWHITE,
-      'wx.stc.STC_PRINT_COLOURONWHITE': wxSTC_PRINT_COLOURONWHITE,
-      'wx.stc.STC_PRINT_COLOURONWHITEDEFAULTBG': wxSTC_PRINT_COLOURONWHITEDEFAULTBG}
+stcPrintColourMode = [wx.stc.STC_PRINT_NORMAL, wx.stc.STC_PRINT_INVERTLIGHT,
+      wx.stc.STC_PRINT_BLACKONWHITE, wx.stc.STC_PRINT_COLOURONWHITE,
+      wx.stc.STC_PRINT_COLOURONWHITEDEFAULTBG]
+stcPrintColourModeNames = {'wx.stc.STC_PRINT_NORMAL': wx.stc.STC_PRINT_NORMAL,
+      'wx.stc.STC_PRINT_INVERTLIGHT': wx.stc.STC_PRINT_INVERTLIGHT,
+      'wx.stc.STC_PRINT_BLACKONWHITE': wx.stc.STC_PRINT_BLACKONWHITE,
+      'wx.stc.STC_PRINT_COLOURONWHITE': wx.stc.STC_PRINT_COLOURONWHITE,
+      'wx.stc.STC_PRINT_COLOURONWHITEDEFAULTBG': wx.stc.STC_PRINT_COLOURONWHITEDEFAULTBG}
 
-stcWrapMode = [wxSTC_WRAP_NONE, wxSTC_WRAP_WORD]
-stcWrapModeNames = {'wx.stc.STC_WRAP_NONE': wxSTC_WRAP_NONE,
-                    'wx.stc.STC_WRAP_WORD': wxSTC_WRAP_WORD}
+stcWrapMode = [wx.stc.STC_WRAP_NONE, wx.stc.STC_WRAP_WORD]
+stcWrapModeNames = {'wx.stc.STC_WRAP_NONE': wx.stc.STC_WRAP_NONE,
+                    'wx.stc.STC_WRAP_WORD': wx.stc.STC_WRAP_WORD}
 
 class StyledTextCtrlDTC(Constructors.WindowConstr, WindowDTC):
     def __init__(self, name, designer, parent, ctrlClass):
@@ -436,7 +436,7 @@ class StyledTextCtrlDTC(Constructors.WindowConstr, WindowDTC):
                'Status', 'STCFocus']
 
     def writeImports(self):
-        return '\n'.join( (WindowDTC.writeImports(self), 
+        return '\n'.join( (WindowDTC.writeImports(self),
                            'import wx.stc') )
 
 #-------------------------------------------------------------------------------
@@ -444,20 +444,19 @@ import Plugins
 
 Plugins.registerPalettePage('BasicControls', 'Basic Controls')
 
-Plugins.registerComponents('BasicControls', 
-      (wxStaticText, 'wx.StaticText', StaticTextDTC),
-      (wxTextCtrl, 'wx.TextCtrl', TextCtrlDTC),
-      (wxChoice, 'wx.Choice', ChoiceDTC),
-      (wxComboBox, 'wx.ComboBox', ComboBoxDTC),
-      (wxCheckBox, 'wx.CheckBox', CheckBoxDTC),
-      (wxRadioButton, 'wx.RadioButton', RadioButtonDTC),
-      (wxSlider, 'wx.Slider', SliderDTC),
-      (wxGauge, 'wx.Gauge', GaugeDTC),
-      (wxStaticBitmap, 'wx.StaticBitmap', StaticBitmapDTC),
-      (wxScrollBar, 'wx.ScrollBar', ScrollBarDTC),
-      (wxStaticBox, 'wx.StaticBox', StaticBoxDTC),
-      (wxStaticLine, 'wx.StaticLine', StaticLineDTC),
-      (wxHtmlWindow, 'wx.html.HtmlWindow', HtmlWindowDTC),
-      (wxStyledTextCtrl, 'wx.stc.StyledTextCtrl', StyledTextCtrlDTC),
+Plugins.registerComponents('BasicControls',
+      (wx.StaticText, 'wx.StaticText', StaticTextDTC),
+      (wx.TextCtrl, 'wx.TextCtrl', TextCtrlDTC),
+      (wx.Choice, 'wx.Choice', ChoiceDTC),
+      (wx.ComboBox, 'wx.ComboBox', ComboBoxDTC),
+      (wx.CheckBox, 'wx.CheckBox', CheckBoxDTC),
+      (wx.RadioButton, 'wx.RadioButton', RadioButtonDTC),
+      (wx.Slider, 'wx.Slider', SliderDTC),
+      (wx.Gauge, 'wx.Gauge', GaugeDTC),
+      (wx.StaticBitmap, 'wx.StaticBitmap', StaticBitmapDTC),
+      (wx.ScrollBar, 'wx.ScrollBar', ScrollBarDTC),
+      (wx.StaticBox, 'wx.StaticBox', StaticBoxDTC),
+      (wx.StaticLine, 'wx.StaticLine', StaticLineDTC),
+      (wx.html.HtmlWindow, 'wx.html.HtmlWindow', HtmlWindowDTC),
+      (wx.stc.StyledTextCtrl, 'wx.stc.StyledTextCtrl', StyledTextCtrlDTC),
     )
-                                

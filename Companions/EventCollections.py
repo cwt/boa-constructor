@@ -146,11 +146,9 @@
 ##def EVT_SPLITTER_DOUBLECLICKED(win, id, func):
 
 
-from wxPython.wx import *
-from wxPython.help import *
-
 class wxMiscEvent :
     pass
+
 """ Collections of event class macros """
 EventCategories = {'ActivateEvent': ('wx.EVT_ACTIVATE', 'wx.EVT_ACTIVATE_APP'),
 'MiscEvent':   ('wx.EVT_SIZE',

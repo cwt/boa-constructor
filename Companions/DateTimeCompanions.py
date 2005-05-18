@@ -1,5 +1,5 @@
-from wxPython.calendar import *
-from wxPython.wx import *
+import wx
+import  wx.calendar
 
 import BaseCompanions, EventCollections
 from PropEdit import PropertyEditors
@@ -10,7 +10,7 @@ class CalendarConstr:
                 'Style': 'style', 'Name': 'name'}
 
 EventCollections.EventCategories['CalendarEvent'] = ('wx.calendar.EVT_CALENDAR',
-      'wx.calendar.EVT_CALENDAR_SEL_CHANGED', 
+      'wx.calendar.EVT_CALENDAR_SEL_CHANGED',
       'wx.calendar.EVT_CALENDAR_DAY, EVT_CALENDAR_MONTH',
       'wx.calendar.EVT_CALENDAR_YEAR', 'wx.calendar.EVT_CALENDAR_WEEKDAY_CLICKED')
 EventCollections.commandCategories.append('CalendarEvent')
@@ -22,7 +22,7 @@ class CalendarDTC(CalendarConstr, BaseCompanions.WindowDTC):
               'wx.calendar.CAL_SHOW_HOLIDAYS', 'wx.calendar.CAL_NO_YEAR_CHANGE',
               'wx.calendar.CAL_NO_MONTH_CHANGE'] + self.windowStyles
 
-        self.compositeCtrl = true
+        self.compositeCtrl = True
 
     def designTimeSource(self, position = 'wx.DefaultPosition', size = 'wx.DefaultSize'):
         return {'date': 'wx.DateTime.Now()',
@@ -44,16 +44,16 @@ class DateTimePropEditor(PropertyEditors.BITPropEditor):
             return '<%s>' % self.value.Format()
         else:
             return '<Invalid date>'
-            
+
     def valueAsExpr(self):
         if self.value.IsValid():
             v = self.value
             return 'wx.DateTimeFromDMY(%d, %d, %d, %d, %d, %d)'%(
-               v.GetDay(), v.GetMonth(), v.GetYear(), 
-               v.GetHour(), v.GetMinute(), v.GetSecond()) 
+               v.GetDay(), v.GetMonth(), v.GetYear(),
+               v.GetHour(), v.GetMinute(), v.GetSecond())
         else:
             return '<Invalid date>'
-        
+
     def valueToIECValue(self):
         return self.valueAsExpr()
 
@@ -88,15 +88,15 @@ class DatePickerCtrlDTC(BaseCompanions.WindowDTC):
 
 import Plugins
 
-Plugins.registerComponent('BasicControls', wxCalendarCtrl, 
+Plugins.registerComponent('BasicControls', wx.calendar.CalendarCtrl,
                           'wx.calendar.CalendarCtrl', CalendarDTC)
 try:
-    Plugins.registerComponent('BasicControls', 
-          wxDatePickerCtrl, 'wx.DatePickerCtrl', DatePickerCtrlDTC)
+    Plugins.registerComponent('BasicControls',
+          wx.DatePickerCtrl, 'wx.DatePickerCtrl', DatePickerCtrlDTC)
 except NameError:
     pass
 
 
 PropertyEditors.registeredTypes.extend( [
-    ('Class', wxDateTime, [DateTimePropEditor]),
+    ('Class', wx.DateTime, [DateTimePropEditor]),
 ])

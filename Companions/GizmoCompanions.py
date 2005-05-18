@@ -11,7 +11,8 @@
 #-----------------------------------------------------------------------------
 print 'importing Companions.GizmoCompanion'
 
-from wxPython.wx import *
+import wx
+import wx.gizmos
 
 import Preferences, Utils
 
@@ -20,8 +21,6 @@ import BaseCompanions, Companions, ContainerCompanions
 import EventCollections, Constructors
 from PropEdit import PropertyEditors
 
-#-------------------------------------------------------------------------------
-from wxPython.gizmos import *
 
 class GizmoDTCMix:
     def writeImports(self):
@@ -37,7 +36,7 @@ class DynamicSashWindowDTC(GizmoDTCMix, Constructors.WindowConstr, BaseCompanion
     def __init__(self, name, designer, parent, ctrlClass):
         BaseCompanions.WindowDTC.__init__(self, name, designer, parent, ctrlClass)
         self.windowStyles = ['wx.gizmos.DS_MANAGE_SCROLLBARS', 'wx.gizmos.DS_DRAG_CORNER'] + self.windowStyles
-        self.ctrlDisabled = true
+        self.ctrlDisabled = True
 
     def designTimeSource(self, position = 'wx.DefaultPosition', size = 'wx.DefaultSize'):
         return {'pos':   position,
@@ -49,18 +48,18 @@ class DynamicSashWindowDTC(GizmoDTCMix, Constructors.WindowConstr, BaseCompanion
         return BaseCompanions.WindowDTC.events(self) + ['DynamicSashEvent']
 
     def writeImports(self):
-        return '\n'.join( (BaseCompanions.WindowDTC.writeImports(self), 
+        return '\n'.join( (BaseCompanions.WindowDTC.writeImports(self),
                            GizmoDTCMix.writeImports(self)) )
 
 #-------------------------------------------------------------------------------
 
-LEDNumberCtrlAlignment = [wxLED_ALIGN_LEFT, wxLED_ALIGN_RIGHT,
-                          wxLED_ALIGN_CENTER, wxLED_ALIGN_MASK, wxLED_DRAW_FADED]
-LEDNumberCtrlAlignmentNames = {'wx.gizmos.LED_ALIGN_LEFT': wxLED_ALIGN_LEFT,
-                               'wx.gizmos.LED_ALIGN_RIGHT': wxLED_ALIGN_RIGHT,
-                               'wx.gizmos.LED_ALIGN_CENTER': wxLED_ALIGN_CENTER,
-                               'wx.gizmos.LED_ALIGN_MASK': wxLED_ALIGN_MASK,
-                               'wx.gizmos.LED_DRAW_FADED': wxLED_DRAW_FADED}
+LEDNumberCtrlAlignment = [wx.gizmos.LED_ALIGN_LEFT, wx.gizmos.LED_ALIGN_RIGHT,
+                          wx.gizmos.LED_ALIGN_CENTER, wx.gizmos.LED_ALIGN_MASK, wx.gizmos.LED_DRAW_FADED]
+LEDNumberCtrlAlignmentNames = {'wx.gizmos.LED_ALIGN_LEFT': wx.gizmos.LED_ALIGN_LEFT,
+                               'wx.gizmos.LED_ALIGN_RIGHT': wx.gizmos.LED_ALIGN_RIGHT,
+                               'wx.gizmos.LED_ALIGN_CENTER': wx.gizmos.LED_ALIGN_CENTER,
+                               'wx.gizmos.LED_ALIGN_MASK': wx.gizmos.LED_ALIGN_MASK,
+                               'wx.gizmos.LED_DRAW_FADED': wx.gizmos.LED_DRAW_FADED}
 
 class LEDNumberCtrlDTC(GizmoDTCMix, BaseCompanions.WindowDTC):
     def __init__(self, name, designer, parent, ctrlClass):
@@ -80,10 +79,10 @@ class LEDNumberCtrlDTC(GizmoDTCMix, BaseCompanions.WindowDTC):
         return {'pos':   position,
                 'size':  'wx.Size(%d, %d)'%(Preferences.dsDefaultControlSize.x,
                                            Preferences.dsDefaultControlSize.y),
-                'style': 'wx.LED_ALIGN_LEFT'}
+                'style': 'wx.gizmos.LED_ALIGN_LEFT'}
 
     def writeImports(self):
-        return '\n'.join( (BaseCompanions.WindowDTC.writeImports(self), 
+        return '\n'.join( (BaseCompanions.WindowDTC.writeImports(self),
                            GizmoDTCMix.writeImports(self)) )
 
 #-------------------------------------------------------------------------------
@@ -92,8 +91,8 @@ class EditableListBoxDTC(GizmoDTCMix, ContainerCompanions.PanelDTC):
     def __init__(self, name, designer, parent, ctrlClass):
         ContainerCompanions.PanelDTC.__init__(self, name, designer, parent, ctrlClass)
         self.editors['Strings'] = PropertyEditors.BITPropEditor
-        self.ctrlDisabled = true
-        self.compositeCtrl = true
+        self.ctrlDisabled = True
+        self.compositeCtrl = True
 
     def constructor(self):
         return {'Label': 'label', 'Position': 'pos', 'Size': 'size', 'Name': 'name'}
@@ -105,7 +104,7 @@ class EditableListBoxDTC(GizmoDTCMix, ContainerCompanions.PanelDTC):
                 'name': `self.name`}
 
     def writeImports(self):
-        return '\n'.join( (ContainerCompanions.PanelDTC.writeImports(self), 
+        return '\n'.join( (ContainerCompanions.PanelDTC.writeImports(self),
                            GizmoDTCMix.writeImports(self)) )
 
 #-------------------------------------------------------------------------------
@@ -121,8 +120,8 @@ class TreeListCtrlDTC(GizmoDTCMix, ListCompanions.TreeCtrlDTC):
                              'StateImageList':    ImgLstPropEdit,
                             })
         self.subCompanions['Columns'] = TreeListCtrlColumnsCDTC
-        self.ctrlDisabled = true
-        self.compositeCtrl = true
+        self.ctrlDisabled = True
+        self.compositeCtrl = True
 
     def properties(self):
         props = ListCompanions.TreeCtrlDTC.properties(self)
@@ -142,7 +141,7 @@ class TreeListCtrlDTC(GizmoDTCMix, ListCompanions.TreeCtrlDTC):
                GizmoDTCMix.writeImports(self)
 
     def designTimeSource(self, position='wx.DefaultPosition', size='wx.DefaultSize'):
-        return ListCompanions.TreeCtrlDTC.designTimeSource(self, position, 
+        return ListCompanions.TreeCtrlDTC.designTimeSource(self, position,
                                                            self.getDefCtrlSize())
     def defaultAction(self):
         self.designer.inspector.props.getNameValue('Columns').propEditor.edit(None)
@@ -165,8 +164,8 @@ class TreeListCtrlColumnsCDTC(BaseCompanions.CollectionDTC):
 
     def properties(self):
         props = BaseCompanions.CollectionDTC.properties(self)
-        props.update({'Text':  ('IndexRoute', wxTreeListCtrl.GetColumnText, 
-                                              wxTreeListCtrl.SetColumnText)})
+        props.update({'Text':  ('IndexRoute', wx.gizmos.TreeListCtrl.GetColumnText,
+                                              wx.gizmos.TreeListCtrl.SetColumnText)})
         return props
 
     def designTimeSource(self, wId, method=None):
@@ -185,11 +184,11 @@ class TreeListCtrlColumnsCDTC(BaseCompanions.CollectionDTC):
 #-------------------------------------------------------------------------------
 
 import Plugins
-Plugins.registerComponent('ContainersLayout', wxDynamicSashWindow, 
+Plugins.registerComponent('ContainersLayout', wx.gizmos.DynamicSashWindow,
                           'wx.gizmos.DynamicSashWindow', DynamicSashWindowDTC)
-Plugins.registerComponent('BasicControls', wxLEDNumberCtrl,
+Plugins.registerComponent('BasicControls', wx.gizmos.LEDNumberCtrl,
                           'wx.gizmos.LEDNumberCtrl', LEDNumberCtrlDTC)
-Plugins.registerComponent('ListControls', wxEditableListBox, 
+Plugins.registerComponent('ListControls', wx.gizmos.EditableListBox,
                           'wx.gizmos.EditableListBox', EditableListBoxDTC)
-Plugins.registerComponent('ListControls', wxTreeListCtrl, 
+Plugins.registerComponent('ListControls', wx.gizmos.TreeListCtrl,
                           'wx.gizmos.TreeListCtrl', TreeListCtrlDTC)

@@ -13,9 +13,9 @@
 
 """ Classes defining and implementing the design time behaviour of controls """
 
-from wxPython.wx import *
+import wx
 
-from wxPython.lib.anchors import LayoutAnchors
+from wx.lib.anchors import LayoutAnchors
 
 from PropEdit import PropertyEditors
 from PropEdit.Enumerations import *
@@ -33,7 +33,7 @@ class FontDTC(HelperDTC):
                         'Weight'    : PropertyEditors.EnumPropEdit,
                         'Underlined': PropertyEditors.BoolPropEdit,}
 
-        fontEnum = wxFontEnumerator()
+        fontEnum = wx.FontEnumerator()
         fontEnum.EnumerateFacenames()
         fontNameList = fontEnum.GetFacenames()
         fontFaceName = []
@@ -102,8 +102,27 @@ class PosDTC(HelperDTC):
     def SetY(self, value):
         self.obj.Set(self.obj.x, value)
 
-class SizeDTC(HelperDTC): pass
+class SizeDTC(HelperDTC):
+    def __init__(self, name, designer, cmpn, obj, ownerPW):
+        HelperDTC.__init__(self, name, designer, cmpn, obj, ownerPW)
+        self.editors = {'Width' : PropertyEditors.IntPropEdit,
+                        'Height' : PropertyEditors.IntPropEdit}
 
+    def properties(self):
+        return {'Width': ('CompnRoute', self.GetWidth, self.SetWidth),
+                'Height': ('CompnRoute', self.GetHeight, self.SetHeight)}
+
+    def GetWidth(self, comp):
+        return self.obj.width
+    def SetWidth(self, value):
+        self.obj.width = value
+
+    def GetHeight(self, comp):
+        return self.obj.height
+    def SetHeight(self, value):
+        self.obj.height = value
+        
+        
 class AnchorsDTC(HelperDTC):
     def __init__(self, name, designer, cmpn, obj, ownerPW):
         HelperDTC.__init__(self, name, designer, cmpn, obj, ownerPW)

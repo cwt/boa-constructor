@@ -11,11 +11,9 @@
 #-----------------------------------------------------------------------------
 print 'importing Companions.ButtonCompanions'
 
-from wxPython.wx import *
+import wx
 
-from wxPython.lib.buttons import wxGenButton, wxGenBitmapButton, wxGenBitmapTextButton
-from wxPython.lib.buttons import wxGenToggleButton, wxGenBitmapToggleButton, wxGenBitmapTextToggleButton
-from wxPython.help import *
+import wx.lib.buttons
 
 from BaseCompanions import WindowDTC
 
@@ -37,7 +35,7 @@ class ButtonDTC(Constructors.LabeledInputConstr, WindowDTC):
         self.windowStyles = ['wx.BU_LEFT', 'wx.BU_TOP', 'wx.BU_RIGHT',
                              'wx.BU_BOTTOM', 'wx.BU_EXACTFIT'] + self.windowStyles
         self.customPropEvaluators['Default'] = self.EvalDefault
-        
+
     def properties(self):
         props = WindowDTC.properties(self)
         props['Default'] = ('CompnRoute', self.GetDefault, self.SetDefault)
@@ -63,7 +61,7 @@ class ButtonDTC(Constructors.LabeledInputConstr, WindowDTC):
         if hasattr(prnt, '_default'):
             return prnt._default == self
         else:
-            return false
+            return False
 
     def SetDefault(self, value):
         prnt = self.control.GetParent()
@@ -76,19 +74,19 @@ class ButtonDTC(Constructors.LabeledInputConstr, WindowDTC):
             del prnt._default
 
     def EvalDefault(self, exprs, objects):
-        self.SetDefault(true)
+        self.SetDefault(True)
         return ()
 
     def persistProp(self, name, setterName, value):
         if name == 'Default':
             for prop in self.textPropList:
                 if prop.prop_setter == setterName:
-                    if value.lower() == 'true':
+                    if value.lower() == 'True':
                         prop.params = []
                     else:
                         del self.textPropList[self.textPropList.index(prop)]
                     return
-            if value.lower() == 'true':
+            if value.lower() == 'True':
                 self.textPropList.append(methodparse.PropertyParse(
                       None, self.getCompName(), setterName, [], name))
         else:
@@ -130,8 +128,8 @@ class BitmapButtonDTC(WindowDTC):
 
     def properties(self):
         props = WindowDTC.properties(self)
-        props.update({'Bitmap': ('CtrlRoute', wxBitmapButton.GetBitmapLabel,
-          wxBitmapButton.SetBitmapLabel)})
+        props.update({'Bitmap': ('CtrlRoute', wx.BitmapButton.GetBitmapLabel,
+                                              wx.BitmapButton.SetBitmapLabel)})
         return props
 
     def events(self):
@@ -203,7 +201,7 @@ class SpinCtrlDTC(SpinButtonDTC):
         self.editors['Min'] = IntConstrPropEdit
         self.editors['Max'] = IntConstrPropEdit
         self.editors['Initial'] = IntConstrPropEdit
-        self.compositeCtrl = true
+        self.compositeCtrl = True
 
     def constructor(self):
         return {'Min': 'min', 'Max': 'max',
@@ -238,12 +236,12 @@ class GenButtonDTC(WindowDTC):
     def __init__(self, name, designer, parent, ctrlClass):
         WindowDTC.__init__(self, name, designer, parent, ctrlClass)
         self.editors['UseFocusIndicator'] = BoolPropEdit
-        self.ctrlDisabled = true
+        self.ctrlDisabled = True
 
     def constructor(self):
         return {'Label': 'label', 'Position': 'pos', 'Size': 'size',
                 'Style': 'style', 'Name': 'name'}
-                
+
 
     def designTimeSource(self, position = 'wx.DefaultPosition', size = 'wx.DefaultSize'):
         return {'label': `self.name`,
@@ -256,7 +254,7 @@ class GenButtonDTC(WindowDTC):
         return WindowDTC.events(self) + ['ButtonEvent']
 
     def writeImports(self):
-        return '\n'.join( (WindowDTC.writeImports(self), 
+        return '\n'.join( (WindowDTC.writeImports(self),
                            'import wx.lib.buttons') )
 
 
@@ -290,7 +288,7 @@ class GenBitmapButtonDTC(GenButtonDTC):
 class GenBitmapTextButtonDTC(GenBitmapButtonDTC):
     def constructor(self):
         return {'BitmapLabel': 'bitmap', 'Position': 'pos', 'Size': 'size',
-                'Label': 'label', 'Style': 'style', 
+                'Label': 'label', 'Style': 'style',
                 'Name': 'name'}
 
     def designTimeSource(self, position = 'wx.DefaultPosition', size = 'wx.DefaultSize'):
@@ -320,7 +318,7 @@ class GenBitmapTextToggleButtonDTC(GenBitmapTextButtonDTC, GenToggleButtonMix):
 
 
 class ContextHelpButtonDTC(WindowDTC):
-    suppressWindowId = true
+    suppressWindowId = True
     def __init__(self, name, designer, parent, ctrlClass):
         WindowDTC.__init__(self, name, designer, parent, ctrlClass)
         self.windowStyles = ['wx.BU_AUTODRAW', 'wx.BU_LEFT', 'wx.BU_TOP',
@@ -334,31 +332,27 @@ class ContextHelpButtonDTC(WindowDTC):
                 'size':  size,
                 'style': 'wx.BU_AUTODRAW',}
 
-    #def writeImports(self):
-    #    return '\n'.join( (WindowDTC.writeImports(self), 
-    #                       'from wxPython.help import *') )
-
 
 #-------------------------------------------------------------------------------
 import Plugins
 
 Plugins.registerPalettePage('Buttons', 'Buttons')
 Plugins.registerComponents('Buttons',
-      (wxButton, 'wx.Button', ButtonDTC),
-      (wxBitmapButton, 'wx.BitmapButton', BitmapButtonDTC),
-      (wxSpinButton, 'wx.SpinButton', SpinButtonDTC),
-      (wxSpinCtrl, 'wx.SpinCtrl', SpinCtrlDTC),
-      (wxGenButton, 'wx.lib.buttons.GenButton', GenButtonDTC),
-      (wxGenBitmapButton, 'wx.lib.buttons.GenBitmapButton', GenBitmapButtonDTC),
-      (wxGenToggleButton, 'wx.lib.buttons.GenToggleButton', GenToggleButtonDTC),
-      (wxGenBitmapToggleButton, 'wx.lib.buttons.GenBitmapToggleButton', GenBitmapToggleButtonDTC),
-      (wxGenBitmapTextButton, 'wx.lib.buttons.GenBitmapTextButton', GenBitmapTextButtonDTC),
-      (wxGenBitmapTextToggleButton, 'wx.lib.buttons.GenBitmapTextToggleButton', GenBitmapTextToggleButtonDTC),
-      (wxContextHelpButton, 'wx.ContextHelpButton', ContextHelpButtonDTC),
+      (wx.Button, 'wx.Button', ButtonDTC),
+      (wx.BitmapButton, 'wx.BitmapButton', BitmapButtonDTC),
+      (wx.SpinButton, 'wx.SpinButton', SpinButtonDTC),
+      (wx.SpinCtrl, 'wx.SpinCtrl', SpinCtrlDTC),
+      (wx.lib.buttons.GenButton, 'wx.lib.buttons.GenButton', GenButtonDTC),
+      (wx.lib.buttons.GenBitmapButton, 'wx.lib.buttons.GenBitmapButton', GenBitmapButtonDTC),
+      (wx.lib.buttons.GenToggleButton, 'wx.lib.buttons.GenToggleButton', GenToggleButtonDTC),
+      (wx.lib.buttons.GenBitmapToggleButton, 'wx.lib.buttons.GenBitmapToggleButton', GenBitmapToggleButtonDTC),
+      (wx.lib.buttons.GenBitmapTextButton, 'wx.lib.buttons.GenBitmapTextButton', GenBitmapTextButtonDTC),
+      (wx.lib.buttons.GenBitmapTextToggleButton, 'wx.lib.buttons.GenBitmapTextToggleButton', GenBitmapTextToggleButtonDTC),
+      (wx.ContextHelpButton, 'wx.ContextHelpButton', ContextHelpButtonDTC),
     )
 
 try:
-    Plugins.registerComponent('Buttons', wxToggleButton, 'wx.ToggleButton', ToggleButtonDTC)
-except NameError:
+    Plugins.registerComponent('Buttons', wx.ToggleButton, 'wx.ToggleButton', ToggleButtonDTC)
+except AttributeError:
     # MacOS X
     pass
