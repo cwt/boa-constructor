@@ -12,7 +12,7 @@
 
 import sys
 
-from wxPython.wx import *
+import wx
 
 import Preferences, Utils
 
@@ -26,7 +26,7 @@ class InspectorEditorControl:
     def __init__(self, propEditor, value):
         self.propEditor = propEditor
         self.editorCtrl = None
-        self.wID = wxNewId()
+        self.wID = wx.NewId()
         self.value = value
 
     def createControl(self):
@@ -50,7 +50,7 @@ class InspectorEditorControl:
     def setWidth(self, width):
         if self.editorCtrl:
             height = self.editorCtrl.GetSize().y
-            self.editorCtrl.SetSize(wxSize(width -1, height))
+            self.editorCtrl.SetSize(wx.Size(width -1, height))
 
     def setIdx(self, idx):
         """ Move the to the given index """
@@ -62,7 +62,7 @@ class InspectorEditorControl:
 
             Bind the event of the control that 'sets' the value to this method
         """
-        self.propEditor.inspectorPost(false)
+        self.propEditor.inspectorPost(False)
         event.Skip()
 
 class BevelIEC(InspectorEditorControl):
@@ -74,38 +74,38 @@ class BevelIEC(InspectorEditorControl):
         InspectorEditorControl.destroyControl(self)
 
     def createControl(self, parent, idx, sizeX):
-        self.bevelTop = wxPanel(parent, -1,
+        self.bevelTop = wx.Panel(parent, -1,
             (0, idx*Preferences.oiLineHeight -1), (sizeX, 1))
-        self.bevelTop.SetBackgroundColour(wxBLACK)
-        self.bevelBottom = wxPanel(parent, -1,
+        self.bevelTop.SetBackgroundColour(wx.BLACK)
+        self.bevelBottom = wx.Panel(parent, -1,
             (0, (idx + 1)*Preferences.oiLineHeight -1), (sizeX, 1))
-        self.bevelBottom.SetBackgroundColour(wxWHITE)
+        self.bevelBottom.SetBackgroundColour(wx.WHITE)
 
     def setWidth(self, width):
         if self.bevelTop:
-            self.bevelTop.SetSize(wxSize(width, 1))
-            self.bevelBottom.SetSize(wxSize(width, 1))
+            self.bevelTop.SetSize(wx.Size(width, 1))
+            self.bevelBottom.SetSize(wx.Size(width, 1))
 
     def setIdx(self, idx):
         if self.bevelTop:
-            self.bevelTop.SetPosition(wxPoint(-2, idx*Preferences.oiLineHeight -1))
-            self.bevelBottom.SetPosition(wxPoint(-2, (idx +1)*Preferences.oiLineHeight -1))
+            self.bevelTop.SetPosition(wx.Point(-2, idx*Preferences.oiLineHeight -1))
+            self.bevelBottom.SetPosition(wx.Point(-2, (idx +1)*Preferences.oiLineHeight -1))
 
 class BeveledLabelIEC(BevelIEC):
     def createControl(self, parent, idx, sizeX):
         BevelIEC.createControl(self, parent, idx, sizeX)
-        self.editorCtrl = wxStaticText(parent, -1, self.value,
+        self.editorCtrl = wx.StaticText(parent, -1, self.value,
             (2, idx*Preferences.oiLineHeight+2),
             (sizeX, Preferences.oiLineHeight-3))
         self.editorCtrl.SetForegroundColour(Preferences.propValueColour)
 
 class TextCtrlIEC(InspectorEditorControl):
-    def createControl(self, parent, value, idx, sizeX, style=wxTE_PROCESS_ENTER):
+    def createControl(self, parent, value, idx, sizeX, style=wx.TE_PROCESS_ENTER):
         value = self.propEditor.valueToIECValue()
-        self.editorCtrl = wxTextCtrl(parent, self.wID, value,
+        self.editorCtrl = wx.TextCtrl(parent, self.wID, value,
               (-2, idx*Preferences.oiLineHeight -2),
               (sizeX, Preferences.oiLineHeight+3), style = style)
-        EVT_TEXT_ENTER(parent, self.wID, self.OnSelect)
+        parent.Bind(wx.EVT_TEXT_ENTER, self.OnSelect, id=self.wID)
         InspectorEditorControl.createControl(self)
 
         if value:
@@ -124,12 +124,12 @@ class TextCtrlIEC(InspectorEditorControl):
 class SpinCtrlIEC(InspectorEditorControl):
     def createControl(self, parent, value, idx, sizeX):
         value = self.propEditor.valueToIECValue()
-        self.editorCtrl = wxSpinCtrl(parent, self.wID, value,
+        self.editorCtrl = wx.SpinCtrl(parent, self.wID, value,
               (-2, idx*Preferences.oiLineHeight -2),
-              (sizeX, Preferences.oiLineHeight+3), style=wxSP_VERTICAL,
+              (sizeX, Preferences.oiLineHeight+3), style=wx.SP_VERTICAL,
               max=sys.maxint, min=-sys.maxint)
-        EVT_TEXT_ENTER(parent, self.wID, self.OnSelect)
-        EVT_SPINCTRL(parent, self.wID, self.OnSelect)
+        parent.Bind(wx.EVT_TEXT_ENTER, self.OnSelect, id=self.wID)
+        parent.Bind(wx.EVT_SPINCTRL, self.OnSelect, id=self.wID)
         InspectorEditorControl.createControl(self)
 
         #if value:
@@ -147,10 +147,11 @@ class SpinCtrlIEC(InspectorEditorControl):
 
 class ChoiceIEC(InspectorEditorControl):
     def createControl(self, parent, idx, sizeX):
-        self.editorCtrl = wxChoice(parent, self.wID,
-         wxPoint(-2, idx*Preferences.oiLineHeight -1), wxSize(sizeX, Preferences.oiLineHeight+3),
+        self.editorCtrl = wx.Choice(parent, self.wID,
+         wx.Point(-2, idx*Preferences.oiLineHeight -1), 
+         wx.Size(sizeX, Preferences.oiLineHeight+3),
          self.propEditor.getValues())
-        EVT_CHOICE(self.editorCtrl, self.wID, self.OnSelect)
+        self.editorCtrl.Bind(wx.EVT_CHOICE, self.OnSelect, id=self.wID)
         InspectorEditorControl.createControl(self);
     def getValue(self):
         if self.editorCtrl:
@@ -166,8 +167,8 @@ class ChoiceIEC(InspectorEditorControl):
 
 class ComboIEC(InspectorEditorControl):
     def createControl(self, parent, idx, sizeX):
-        self.editorCtrl = wxComboBox(parent, self.wID, self.value,
-         wxPoint(-2, idx*Preferences.oiLineHeight -1), wxSize(sizeX, Preferences.oiLineHeight+3),
+        self.editorCtrl = wx.ComboBox(parent, self.wID, self.value,
+         wx.Point(-2, idx*Preferences.oiLineHeight -1), wx.Size(sizeX, Preferences.oiLineHeight+3),
          self.propEditor.getValues())
         InspectorEditorControl.createControl(self);
     def getValue(self):
@@ -181,23 +182,23 @@ class ButtonIEC(BevelIEC):
     btnSize = 18
     def createControl(self, parent, idx, sizeX, editMeth):
         bmp = Preferences.IS.load('Images/Shared/ellipsis.png')
-        self.editorCtrl = wxBitmapButton(parent, self.wID, bmp,
-          wxPoint(sizeX - self.btnSize - 3, idx*Preferences.oiLineHeight +1),
-          wxSize(self.btnSize, Preferences.oiLineHeight-2))
-        self.propValLabel = wxStaticText(parent, -1, str(self.getValue()),
-          wxPoint(2, idx*Preferences.oiLineHeight+2), 
-          wxSize(sizeX - self.btnSize - 6, Preferences.oiLineHeight-3),
-          style=wxST_NO_AUTORESIZE)
-        EVT_BUTTON(self.editorCtrl, self.wID, editMeth)
+        self.editorCtrl = wx.BitmapButton(parent, self.wID, bmp,
+          wx.Point(sizeX - self.btnSize - 3, idx*Preferences.oiLineHeight +1),
+          wx.Size(self.btnSize, Preferences.oiLineHeight-2))
+        self.propValLabel = wx.StaticText(parent, -1, str(self.getValue()),
+          wx.Point(2, idx*Preferences.oiLineHeight+2),
+          wx.Size(sizeX - self.btnSize - 6, Preferences.oiLineHeight-3),
+          style=wx.ST_NO_AUTORESIZE)
+        self.editorCtrl.Bind(wx.EVT_BUTTON, editMeth, id=self.wID)
         BevelIEC.createControl(self, parent, idx, sizeX)
 
     def setWidth(self, width):
         if self.editorCtrl:
-            self.editorCtrl.SetDimensions(width - self.btnSize - 3, 
-              self.editorCtrl.GetPosition().y, self.btnSize, 
+            self.editorCtrl.SetDimensions(width - self.btnSize - 3,
+              self.editorCtrl.GetPosition().y, self.btnSize,
               Preferences.oiLineHeight-2)
-            self.propValLabel.SetDimensions(2, 
-              self.propValLabel.GetPosition().y, width - self.btnSize - 6, 
+            self.propValLabel.SetDimensions(2,
+              self.propValLabel.GetPosition().y, width - self.btnSize - 6,
               Preferences.oiLineHeight-3)
 
         BevelIEC.setWidth(self, width)
@@ -205,10 +206,10 @@ class ButtonIEC(BevelIEC):
     def setIdx(self, idx):
         if self.editorCtrl:
             self.editorCtrl.SetDimensions(self.editorCtrl.GetPosition().x,
-              idx*Preferences.oiLineHeight +2, self.btnSize, 
+              idx*Preferences.oiLineHeight +2, self.btnSize,
               Preferences.oiLineHeight-2)
             self.propValLabel.SetDimensions(
-              self.propValLabel.GetPosition().x, 
+              self.propValLabel.GetPosition().x,
               idx*Preferences.oiLineHeight +1, self.propValueLabel.GetSize().x,
               Preferences.oiLineHeight-3)
 
@@ -229,22 +230,23 @@ class TextCtrlButtonIEC(BevelIEC):
     def createControl(self, parent, idx, sizeX, editMeth):
         bmp = Preferences.IS.load('Images/Shared/ellipsis.png')
         value = self.propEditor.valueToIECValue()
-        self.wID2 = wxNewId()
+        self.wID2 = wx.NewId()
         self.editorCtrl = [
-              wxTextCtrl(parent, self.wID, value,
+              wx.TextCtrl(parent, self.wID, value,
                (-2, idx*Preferences.oiLineHeight -2),
                (sizeX - 20, Preferences.oiLineHeight+3)),#, style = style),
-              wxBitmapButton(parent, self.wID2, bmp,
+              wx.BitmapButton(parent, self.wID2, bmp,
                (sizeX - 18 -3, idx*Preferences.oiLineHeight -1),
                (18, Preferences.oiLineHeight))]
-        EVT_BUTTON(self.editorCtrl[1], self.wID2, editMeth)
+        self.editorCtrl[1].Bind(wx.EVT_BUTTON, editMeth, id=self.wID2)
+        self.editorCtrl[0].SetFocus()
 
         if value:
             self.editorCtrl[0].SetSelection(0, len(value))
 
         BevelIEC.createControl(self, parent, idx, sizeX)
-        self.bevelTop.Show(false)
-        self.bevelBottom.Show(false)
+        self.bevelTop.Show(False)
+        self.bevelBottom.Show(False)
 
     def destroyControl(self):
         """ Close an open editor control """
@@ -262,7 +264,7 @@ class TextCtrlButtonIEC(BevelIEC):
     # default sizing for controls that span the entire value width
     def setWidth(self, width):
         if self.editorCtrl:
-            self.editorCtrl[0].SetSize(wxSize(width -20,
+            self.editorCtrl[0].SetSize(wx.Size(width -20,
                   self.editorCtrl[0].GetSize().y))
             self.editorCtrl[1].SetDimensions(width - 18 -3,
                   self.editorCtrl[1].GetPosition().y, 18,
@@ -289,54 +291,54 @@ class TextCtrlButtonIEC(BevelIEC):
 
 class CheckBoxIEC2(InspectorEditorControl):
     def createControl(self, parent, idx, sizeX):
-        self.editorCtrl = wxWindow(parent, wxNewId(),
-         style = wxTAB_TRAVERSAL | wxSUNKEN_BORDER)
+        self.editorCtrl = wx.Window(parent, wx.NewId(),
+         style=wx.TAB_TRAVERSAL | wx.SUNKEN_BORDER)
         self.editorCtrl.SetDimensions(-2, idx*Preferences.oiLineHeight-2,
          sizeX, Preferences.oiLineHeight+3)
 
-        self.checkBox = wxCheckBox(self.editorCtrl, self.wID, 'False', (2, 1))
-        EVT_CHECKBOX(self.editorCtrl, self.wID, self.OnSelect)
+        self.checkBox = wx.CheckBox(self.editorCtrl, self.wID, 'False', (2, 1))
+        self.editorCtrl.Bind(wx.EVT_CHECKBOX, self.OnSelect, id=self.wID)
         def OnWinSize(evt, win=self.checkBox):
             win.SetSize(evt.GetSize())
-        EVT_SIZE(self.editorCtrl, OnWinSize)
+        self.editorCtrl.Bind(wx.EVT_SIZE, OnWinSize)
 
         InspectorEditorControl.createControl(self)
 
-    truefalseMap = {true: 'True', false: 'False'}
+    TrueFalseMap = {True: 'True', False: 'False'}
     def getValue(self):
         if self.editorCtrl:
-            return self.truefalseMap[self.editorCtrl.GetValue()]
+            return self.TrueFalseMap[self.editorCtrl.GetValue()]
     def setValue(self, value):
         if self.editorCtrl:
             self.editorCtrl.SetLabel(value)
-            self.editorCtrl.SetValue(self.truefalseMap[true] == value)
+            self.editorCtrl.SetValue(self.TrueFalseMap[True] == value)
 
     def OnSelect(self, event):
         if event.IsChecked():
-            self.setValue(self.truefalseMap[event.IsChecked()])
+            self.setValue(self.TrueFalseMap[event.IsChecked()])
 
         InspectorEditorControl.OnSelect(self, event)
 
 class CheckBoxIEC(BevelIEC):
     def createControl(self, parent, idx, sizeX):
-        self.editorCtrl = wxCheckBox(parent, self.wID, 'False',
+        self.editorCtrl = wx.CheckBox(parent, self.wID, 'False',
             (2, idx*Preferences.oiLineHeight+1),
             (sizeX, Preferences.oiLineHeight-2) )
-        EVT_CHECKBOX(self.editorCtrl, self.wID, self.OnSelect)
+        self.editorCtrl.Bind(wx.EVT_CHECKBOX, self.OnSelect, id=self.wID)
 
         BevelIEC.createControl(self, parent, idx, sizeX)
 
-    truefalseMap = {true: 'True', false: 'False'}
+    TrueFalseMap = {True: 'True', False: 'False'}
     def getValue(self):
         if self.editorCtrl:
-            return self.truefalseMap[self.editorCtrl.GetValue()]
+            return self.TrueFalseMap[self.editorCtrl.GetValue()]
         else:
             return self.value
     def setValue(self, value):
         if self.editorCtrl:
             self.editorCtrl.SetLabel(value)
             self.editorCtrl.SetValue(
-                self.truefalseMap[true].lower() == value.lower())
+                self.TrueFalseMap[True].lower() == value.lower())
 
     def setIdx(self, idx):
         if self.editorCtrl:
@@ -345,6 +347,6 @@ class CheckBoxIEC(BevelIEC):
         BevelIEC.setIdx(self, idx)
 #        InspectorEditorControl.setIdx(self, idx)
     def OnSelect(self, event):
-        self.setValue(self.truefalseMap[event.IsChecked()])
+        self.setValue(self.TrueFalseMap[event.IsChecked()])
 
         BevelIEC.OnSelect(self, event)

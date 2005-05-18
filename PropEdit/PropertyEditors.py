@@ -26,8 +26,7 @@ print 'importing PropertyEditors'
 from types import *
 import os, string
 
-from wxPython.wx import *
-#from wxPython.utils import *
+import wx
 
 from InspectorEditorControls import *
 
@@ -118,7 +117,7 @@ class PropertyEditor:
         self.root = rootCompanion.control
         self.style = []
         self.ownerPropEdit = None
-        self.expanded = false
+        self.expanded = False
         self.initFromComponent()
 
     def initFromComponent(self):
@@ -138,7 +137,7 @@ class PropertyEditor:
             self.obj.Refresh()
 
     def isValuesEqual(self, propVal, ctrlVal):
-        if isinstance(propVal, wxFont) and isinstance(ctrlVal, wxFont):
+        if isinstance(propVal, wx.Font) and isinstance(ctrlVal, wx.Font):
             return fontAsExpr(propVal) == fontAsExpr(ctrlVal)
         elif isinstance(propVal, (StringType, UnicodeType)) and \
              isinstance(ctrlVal, (StringType, UnicodeType)):
@@ -149,7 +148,7 @@ class PropertyEditor:
     def validateProp(self, oldVal, newVal):
         pass
 
-    def inspectorPost(self, closeEditor = true):
+    def inspectorPost(self, closeEditor = True):
         """ Post inspector editor control, update ctrl and persist value """
         if self.editorCtrl:
             v = self.getValue()
@@ -317,7 +316,7 @@ class PasswdStrConfPropEdit(StrConfPropEdit):
     def inspectorEdit(self):
         self.editorCtrl = TextCtrlIEC(self, self.value)
         self.editorCtrl.createControl(self.parent, self.value, self.idx,
-          self.width, style = wxTE_PASSWORD)
+          self.width, style=wx.TE_PASSWORD)
     def getDisplayValue(self):
         return '*'*len(self.value)
 
@@ -356,16 +355,16 @@ class ColourConfPropEdit(ConfPropEdit):
         self.editorCtrl.createControl(self.parent, self.idx, self.width, self.edit)
 
     def edit(self, event):
-        data = wxColourData()
+        data = wx.ColourData()
         data.SetColour(self.companion.eval(self.value))
-        data.SetChooseFull(true)
-        dlg = wxColourDialog(self.parent, data)
+        data.SetChooseFull(True)
+        dlg = wx.ColourDialog(self.parent, data)
         try:
-            if dlg.ShowModal() == wxID_OK:
+            if dlg.ShowModal() == wx.ID_OK:
                 col = dlg.GetColourData().GetColour()
                 self.editorCtrl.value = \
                       'wx.Colour(%d, %d, %d)'%(col.Red(),col.Green(),col.Blue())
-                self.inspectorPost(false)
+                self.inspectorPost(False)
         finally:
             dlg.Destroy()
 
@@ -376,16 +375,16 @@ class FilepathConfPropEdit(ConfPropEdit):
 
     def edit(self, event):
         from FileDlg import wxFileDialog
-        dlg = wxFileDialog(self.parent, 'Choose the file', '.', '', 'AllFiles', wxSAVE)
+        dlg = wxFileDialog(self.parent, 'Choose the file', '.', '', 'AllFiles', wx.SAVE)
         try:
-            if dlg.ShowModal() == wxID_OK:
+            if dlg.ShowModal() == wx.ID_OK:
                 self.editorCtrl.setValue(`dlg.GetFilePath()`)
-                self.inspectorPost(false)
+                self.inspectorPost(False)
             else:
-                if wxMessageBox('Clear the current property value?',
-                      'Clear filepath?', style=wxICON_QUESTION | wxYES_NO) == wxYES:
+                if wx.MessageBox('Clear the current property value?',
+                      'Clear filepath?', style=wx.ICON_QUESTION | wx.YES_NO) == wx.YES:
                     self.editorCtrl.setValue("''")
-                    self.inspectorPost(false)
+                    self.inspectorPost(False)
         finally:
             dlg.Destroy()
 
@@ -395,17 +394,17 @@ class DirpathConfPropEdit(ConfPropEdit):
         self.editorCtrl.createControl(self.parent, self.idx, self.width, self.edit)
 
     def edit(self, event):
-        dlg = wxDirDialog(self.parent)#, defaultPath=self.editorCtrl.value)
+        dlg = wx.DirDialog(self.parent)#, defaultPath=self.editorCtrl.value)
         try:
             dlg.SetPath(self.companion.eval(self.editorCtrl.value))
-            if dlg.ShowModal() == wxID_OK:
+            if dlg.ShowModal() == wx.ID_OK:
                 self.editorCtrl.setValue(`dlg.GetPath()`)
-                self.inspectorPost(false)
+                self.inspectorPost(False)
             else:
-                if wxMessageBox('Clear the current property value?',
-                      'Clear dirpath?', style=wxICON_QUESTION | wxYES_NO) == wxYES:
+                if wx.MessageBox('Clear the current property value?',
+                      'Clear dirpath?', style=wx.ICON_QUESTION | wx.YES_NO) == wx.YES:
                     self.editorCtrl.setValue("''")
-                    self.inspectorPost(false)
+                    self.inspectorPost(False)
         finally:
             dlg.Destroy()
 
@@ -476,7 +475,7 @@ class ReadOnlyConstrPropEdit(ConstrPropEdit):
         self.editorCtrl.createControl(self.parent, self.idx, self.width)
 ##    def getDisplayValue(self):
 ##        return 'RO:`self.getValue()`
-    
+
 class ColourConstrPropEdit(ConstrPropEdit):
     def getValue(self):
         if self.editorCtrl:
@@ -490,16 +489,16 @@ class ColourConstrPropEdit(ConstrPropEdit):
         self.editorCtrl.createControl(self.parent, self.idx, self.width, self.edit)
 
     def edit(self, event):
-        data = wxColourData()
+        data = wx.ColourData()
         data.SetColour(self.companion.eval(self.value))
-        data.SetChooseFull(true)
-        dlg = wxColourDialog(self.parent, data)
+        data.SetChooseFull(True)
+        dlg = wx.ColourDialog(self.parent, data)
         try:
-            if dlg.ShowModal() == wxID_OK:
+            if dlg.ShowModal() == wx.ID_OK:
                 col = dlg.GetColourData().GetColour()
                 self.value = 'wx.Colour(%d, %d, %d)'%(col.Red(),col.Green(),col.Blue())
                 self.editorCtrl.setValue(self.value)
-                self.inspectorPost(false)
+                self.inspectorPost(False)
         finally:
             dlg.Destroy()
 
@@ -576,45 +575,45 @@ class BitmapPropEditMix:
                   '.py':  'ResourceModule'}
 
     srcClass = 'wx.Bitmap'
-    ctrlClass = wxBitmap
+    ctrlClass = wx.Bitmap
     nullClass = 'wx.NullBitmap'
 
-    onlyIcons = false
+    onlyIcons = False
 
     def showImgDlg(self, dir, name, tpe='Bitmap'):
         model = self.companion.designer.model
         selImg = ''
         if tpe == 'Bitmap' and not os.path.isdir(dir):
-            wxMessageBox('The given directory is invalid, using current '
-                         'directory.\n(%s)'%dir, 'Warning', 
-                         wxOK | wxICON_EXCLAMATION)
+            wx.MessageBox('The given directory is invalid, using current '
+                         'directory.\n(%s)'%dir, 'Warning',
+                         wx.OK | wx.ICON_EXCLAMATION)
             dir = '.'
         elif tpe == 'ResourceModule':
             selImg = name
-            
+
         from FileDlg import wxFileDialog
-        
-        keepShowing = true
+
+        keepShowing = True
         while keepShowing:
-            keepShowing = false
+            keepShowing = False
             if tpe == 'ResourceModule':
                 mod = model.resources[dir]
                 ext = '.py'
                 pth = abspth = os.path.splitext(mod.__file__)[0]+ext
             else:
                 dlg = wxFileDialog(self.parent, 'Choose an image', dir, name,
-                      'ImageFiles', wxOPEN)
+                      'ImageFiles', wx.OPEN)
                 try:
-                    if dlg.ShowModal() != wxID_OK:
+                    if dlg.ShowModal() != wx.ID_OK:
                         return '', '', ''
                     pth = abspth = dlg.GetFilePath().replace('\\', '/')
                 finally:
                     dlg.Destroy()
-    
+
                 if not Preferences.cgAbsoluteImagePaths:
                     pth = Utils.pathRelativeToModel(pth, model)
-            
-                ext = os.path.splitext(pth)[-1].lower()    
+
+                ext = os.path.splitext(pth)[-1].lower()
 
             if ext == '.py':
                 if os.path.isabs(pth):
@@ -626,7 +625,7 @@ class BitmapPropEditMix:
                         return '', '', ''
                     if resInfo == 'FileDlg':
                         dir, name = os.path.split(abspth)
-                        keepShowing = true
+                        keepShowing = True
                         tpe = 'Bitmap'
                         continue
                     return resInfo[0], resInfo[1], 'ResourceModule'
@@ -635,7 +634,7 @@ class BitmapPropEditMix:
             except KeyError, err:
                 raise Exception('Files of type %s not allowed for this '
                                 'property editor.\n The following types '
-                                'are allowed %s'%(str(err), 
+                                'are allowed %s'%(str(err),
                                 ', '.join(self.extTypeMap.keys())))
             else:
                 return abspth, pth, ext
@@ -649,12 +648,12 @@ class BitmapPropEditMix:
                     filename = src[len('wx.Bitmap(')+1:]
                 else:
                     filename = src[len('wx.Icon(')+1:]
-                    
+
                 pth = filename[:filename.rfind(',')-1]
                 if not os.path.isabs(pth):
                     mbd = Utils.getModelBaseDir(self.companion.designer.model)
                     if mbd: mbd = mbd[7:]
-                    pth = os.path.normpath(os.path.join(mbd, pth)).replace('\\', 
+                    pth = os.path.normpath(os.path.join(mbd, pth)).replace('\\',
                           '/')
                 dir, name = os.path.split(pth)
                 if not dir: dir = '.'
@@ -678,19 +677,19 @@ class BitmapPropEditMix:
                 break
         else:
             return # not a resource module
-                
+
         idx, imageName = self.showResourceDlg(resourceFilename, image)
         if idx is None: return 'FileDlg'
         if idx == -1:   return -1
 
-        importName = os.path.splitext(relResourceFilename)[0].replace('\\', 
+        importName = os.path.splitext(relResourceFilename)[0].replace('\\',
               '/').replace('/', '.')
         if os.path.isabs(relResourceFilename):
             importName = os.path.splitdrive(importName)[1][1:]
-            impNameDlg = wxTextEntryDialog(self.parent, 'Correct the module '
+            impNameDlg = wx.TextEntryDialog(self.parent, 'Correct the module '
                   'name that must be imported', 'Resource module', importName)
             try:
-                if impNameDlg.ShowModal() != wxID_OK:
+                if impNameDlg.ShowModal() != wx.ID_OK:
                     return
                 importName = impNameDlg.GetValue()
                 # XXX test with imp?
@@ -701,7 +700,7 @@ class BitmapPropEditMix:
                 while importName.startswith('../'):
                     importName = importName[3:]
             importName = importName.replace('/', '.')
-        
+
         return importName, imageName
 
     def getSrcForResPath(self, importName, imageName):
@@ -711,15 +710,15 @@ class BitmapPropEditMix:
 
     def showResourceDlg(self, filename, image=''):
         from Models import ResourceSupport
-        resDlg = ResourceSupport.ResourceSelectDlg(self.parent, 
+        resDlg = ResourceSupport.ResourceSelectDlg(self.parent,
           self.companion.designer.model.editor, filename, image, self.onlyIcons)
         try:
             result = resDlg.ShowModal()
-            if result == wxID_CANCEL:
+            if result == wx.ID_CANCEL:
                 return -1, ''
-            if result == wxID_YES:
+            if result == wx.ID_YES:
                 return None, None
-            if result == wxID_OK:
+            if result == wx.ID_OK:
                 idx = resDlg.resources.selected
                 return idx, resDlg.resources.imageSrcInfo[idx][0]
             return -1, ''
@@ -734,11 +733,11 @@ class BitmapPropEditMix:
             value = self.companion.eval(src)
             bmpPath = os.path.join(importName, imageName, 'ResourceModule')
             self.companion.registerResourceModule(importName)
-            
+
             return src, value, bmpPath
         else:
             raise Exception, '%s could not be loaded as a Resource Module'%importName
-            #wxLogError('%s could not be loaded as a Resource Module'%importName)
+            #wx.LogError('%s could not be loaded as a Resource Module'%importName)
             #return '', None, ''
 
 
@@ -757,7 +756,7 @@ class BitmapConstrPropEdit(IntConstrPropEdit, BitmapPropEditMix):
             self.value, ctrlVal, bmpPath = self.assureResourceLoaded(abspth, pth)
         elif abspth:
             self.value = 'wx.Bitmap(%s, %s)'%(`pth`, tpe)
-            ctrlVal = wxBitmap(abspth, self.companion.eval(tpe))
+            ctrlVal = wx.Bitmap(abspth, self.companion.eval(tpe))
 
         self.persistValue(self.value)
         self.propWrapper.setValue(ctrlVal, self.companion.index)
@@ -786,7 +785,7 @@ class BitmapPropEdit(PropertyEditor, BitmapPropEditMix):
         if constrs.has_key(self.name):
             constr = self.companion.textConstr.params[constrs[self.name]]
         else:
-            constr = self.companion.persistedPropVal(self.name, 
+            constr = self.companion.persistedPropVal(self.name,
                   self.propWrapper.getSetterName())
             if constr is not None:
                 constr = constr[0]
@@ -808,7 +807,7 @@ class BitmapPropEdit(PropertyEditor, BitmapPropEditMix):
         else:
             self.value = self.ctrlClass(abspth, self.companion.eval(tpe))
             self.bmpPath = os.path.join(pth, 'Bitmap')
-        self.inspectorPost(false)
+        self.inspectorPost(False)
 
     def getValue(self):
         return self.value
@@ -837,9 +836,9 @@ class BitmapPropEdit(PropertyEditor, BitmapPropEditMix):
 
 class IconPropEdit(BitmapPropEdit):
     srcClass = 'wx.Icon'
-    ctrlClass = wxIcon
+    ctrlClass = wx.Icon
     nullClass = 'wx.NullIcon'
-    onlyIcons = true
+    onlyIcons = True
 
     extTypeMap = {'.ico': 'wx.BITMAP_TYPE_ICO',
                   '.py':  'ResourceModule'}
@@ -856,7 +855,7 @@ class EnumConstrPropEdit(IntConstrPropEdit):
         self.editorCtrl = ChoiceIEC(self, value)
         self.editorCtrl.createControl(self.parent, self.idx, self.width)
         self.editorCtrl.setValue(value)
-        
+
     def getDisplayValue(self):
         return self.valueToIECValue()
     def getValues(self):
@@ -906,9 +905,9 @@ class ClassConstrPropEdit(ConstrPropEdit):
 ##        return dv
 
 class BoolConstrPropEdit(EnumConstrPropEdit):
-    def __init__(self, name, parent, companion, rootCompanion, propWrapper, idx, 
+    def __init__(self, name, parent, companion, rootCompanion, propWrapper, idx,
                  width, options, names):
-        EnumConstrPropEdit.__init__(self, name, parent, companion, rootCompanion, 
+        EnumConstrPropEdit.__init__(self, name, parent, companion, rootCompanion,
                  propWrapper, idx, width, options, ['True', 'False'])
 
     def inspectorEdit(self):
@@ -942,8 +941,7 @@ class LCCEdgeConstrPropEdit(EnumConstrPropEdit):
     def getValues(self):
         objName = self.companion.__class__.sourceObjName
         return [self.getCtrlValue()] + \
-          map(lambda a, objName=objName: '%s.%s'%(objName, a),
-          self.companion.availableItems())
+          ['%s.%s'%(objName, ai) for ai in self.companion.availableItems()]
 
 class ObjEnumConstrPropEdit(EnumConstrPropEdit):
     def getValue(self):
@@ -977,7 +975,7 @@ class ObjEnumConstrPropEdit(EnumConstrPropEdit):
 class WinEnumConstrPropEdit(ObjEnumConstrPropEdit):
     def getObjects(self):
         return ['None'] + self.companion.designer.getObjectsOfClassWithParent(
-                                wxWindow, self.companion.name).keys()
+                                wx.Window, self.companion.name).keys()
     def getCtrlValue(self):
         return self.companion.GetOtherWin()
     def setCtrlValue(self, oldValue, value):
@@ -987,8 +985,8 @@ class MenuEnumConstrPropEdit(ObjEnumConstrPropEdit):
     def getValues(self):
         return ['wx.Menu()'] + ObjEnumConstrPropEdit.getValues(self)
     def getObjects(self):
-        menus = self.companion.designer.getObjectsOfClass(wxMenu).keys()
-        if isinstance(self.companion.control, wxMenu):
+        menus = self.companion.designer.getObjectsOfClass(wx.Menu).keys()
+        if isinstance(self.companion.control, wx.Menu):
             menus.remove(Utils.srcRefFromCtrlName(self.companion.name))
         return menus
     def setCtrlValue(self, oldValue, value):
@@ -1000,7 +998,7 @@ class MenuEnumConstrPropEdit(ObjEnumConstrPropEdit):
 ####    def getValues(self):
 ####        return ['wxMenu()'] + ObjEnumConstrPropEdit.getValues(self)
 ##    def getObjects(self):
-##        return self.companion.designer.getObjectsOfClass(wxControl).keys()
+##        return self.companion.designer.getObjectsOfClass(wx.Control).keys()
 ##    def setCtrlValue(self, oldValue, value):
 ##        self.companion.SetControl(value)
 ##    def getCtrlValue(self):
@@ -1008,9 +1006,9 @@ class MenuEnumConstrPropEdit(ObjEnumConstrPropEdit):
 
 class SizerEnumConstrPropEdit(ObjEnumConstrPropEdit):
 ##    def getValues(self):
-##        return ['wxMenu()'] + ObjEnumConstrPropEdit.getValues(self)
+##        return ['wx.Menu()'] + ObjEnumConstrPropEdit.getValues(self)
     def getObjects(self):
-        return self.companion.designer.getObjectsOfClass(wxBoxSizer).keys()
+        return self.companion.designer.getObjectsOfClass(wx.BoxSizer).keys()
 ##    def setCtrlValue(self, oldValue, value):
 ##        self.companion.SetMenu(value)
 ##    def getCtrlValue(self):
@@ -1077,6 +1075,20 @@ class StrConstrPropEdit(ConstrPropEdit):
             self.value = self.getCtrlValue()
         return self.value
 
+##        self.editorCtrl = TextCtrlButtonIEC(self, self.value)
+##        self.editorCtrl.createControl(self.parent, self.idx,
+##          self.width, self.OnButton)
+##    def OnButton(self, event):
+##        import StringEditDlg
+##        dlg = StringEditDlg.StringEditDlg(self.parent, self.value)
+##        try:
+##            if dlg.ShowModal() == wx.ID_OK:
+##                filename = dlg.GetPath()
+##                # Your code
+##        finally:
+##            dlg.Destroy()
+
+
 class SizeConstrPropEdit(ConstrPropEdit):
     def inspectorEdit(self):
         self.editorCtrl = TextCtrlIEC(self, self.value)
@@ -1109,18 +1121,18 @@ class NameConstrPropEdit(StrConstrPropEdit):
                 strVal = self.companion.eval(value)
                 if not strVal:
                     message = 'Invalid name for Python object'
-                    wxLogError(message)
+                    wx.LogError(message)
                     return self.value
 
                 for c in strVal:
                     if c not in string.letters+string.digits+'_':#"\'':
                         message = 'Invalid name for Python object'
-                        wxLogError(message)
+                        wx.LogError(message)
                         return self.value
                         #raise message
 
                 if self.companion.designer.objects.has_key(value):
-                    wxLogError('Name already used by another control.')
+                    wx.LogError('Name already used by another control.')
                     return self.value
                     #raise 'Name already used by another control.'
             self.value = value
@@ -1133,8 +1145,8 @@ class NameConstrPropEdit(StrConstrPropEdit):
         return `self.companion.name`
 
     def setCtrlValue(self, oldValue, newValue):
-        self.companion.checkTriggers(self.name, 
-              self.companion.eval(oldValue), 
+        self.companion.checkTriggers(self.name,
+              self.companion.eval(oldValue),
               self.companion.eval(newValue))
 
     def persistValue(self, value):
@@ -1257,10 +1269,10 @@ class EventPropEdit(OptionedPropEdit):
                             defVal = evt.prev_trigger_meth
                             break
 
-                ted = wxTextEntryDialog(self.parent, 'Enter a new method name:',
+                ted = wx.TextEntryDialog(self.parent, 'Enter a new method name:',
                       'Rename event method', defVal)
                 try:
-                    if ted.ShowModal() == wxID_OK:
+                    if ted.ShowModal() == wx.ID_OK:
                         self.value = ted.GetValue()
 
                         # XXX All references should be renamed !!!!
@@ -1311,7 +1323,7 @@ class BITPropEditor(FactoryPropEdit):
             try:
                 value = self.companion.eval(self.editorCtrl.getValue())
             except Exception, mess:
-                wxLogError('Invalid value: %s' % str(mess))
+                wx.LogError('Invalid value: %s' % str(mess))
                 raise
             self.value = value
         return self.value
@@ -1344,8 +1356,8 @@ class StrPropEdit(BITPropEditor):
 ##        import StringPropEditorDlg
 ##        dlg = StringPropEditorDlg.create(self.parent, repr(self.value))
 ##        try:
-##            if dlg.ShowModal() == wxID_OK:
-##                self.inspectorPost(false)
+##            if dlg.ShowModal() == wx.ID_OK:
+##                self.inspectorPost(False)
 ##                pass
 ##        finally:
 ##            dlg.Destroy()
@@ -1365,18 +1377,18 @@ class NamePropEdit(StrPropEdit):
             value = self.editorCtrl.getValue()
             if value != self.value:
                 if self.companion.designer.objects.has_key(value):
-                    wxLogError('Name already used by another control.')
+                    wx.LogError('Name already used by another control.')
                     return self.value
 
                 if not value:
                     message = 'Invalid name for Python object'
-                    wxLogError(message)
+                    wx.LogError(message)
                     return self.value
 
                 for c in value:
                     if c not in self.identifier:
                         message = 'Invalid name for Python object'
-                        wxLogError(message)
+                        wx.LogError(message)
                         return self.value
             self.value = value
         return self.value
@@ -1470,7 +1482,7 @@ class ClassLinkPropEdit(OptionedPropEdit):
         return []
     def valueToIECValue(self):
         return self.getNameForValue(self.value, self.linkClass)
-    
+
     def getNameForValue(self, value, LinkClass):
         for k, v in self.defaults.items():
             if value == v:
@@ -1480,7 +1492,7 @@ class ClassLinkPropEdit(OptionedPropEdit):
             if objs[objName] and value and objs[objName] == value:
                 return objName
         return `None`
-    
+
     def inspectorEdit(self):
         self.editorCtrl = ChoiceIEC(self, self.value)
         self.editorCtrl.createControl(self.parent, self.idx, self.width)
@@ -1507,7 +1519,7 @@ class ClassLinkPropEdit(OptionedPropEdit):
         return self.value
 
 class WindowClassLinkPropEdit(ClassLinkPropEdit):
-    linkClass = wxWindow
+    linkClass = wx.Window
 
 class WindowClassLinkWithParentPropEdit(WindowClassLinkPropEdit):
     def getValues(self):
@@ -1515,29 +1527,29 @@ class WindowClassLinkWithParentPropEdit(WindowClassLinkPropEdit):
                self.linkClass, self.companion.name).keys()
 
 class StatusBarClassLinkPropEdit(ClassLinkPropEdit):
-    linkClass = wxStatusBar
+    linkClass = wx.StatusBar
 
 class ToolBarClassLinkPropEdit(ClassLinkPropEdit):
-    linkClass = wxToolBarBase
+    linkClass = wx.ToolBarBase
 
 class MenuBarClassLinkPropEdit(ClassLinkPropEdit):
-    linkClass = wxMenuBar
+    linkClass = wx.MenuBar
 
 class ImageListClassLinkPropEdit(ClassLinkPropEdit):
-    linkClass = wxImageList
+    linkClass = wx.ImageList
 
 class ButtonClassLinkPropEdit(ClassLinkPropEdit):
-    linkClass = wxButton
+    linkClass = wx.Button
 
 class CursorClassLinkPropEdit(ClassLinkPropEdit):
-    defaults = {'None': wxNullCursor, 'wx.STANDARD_CURSOR': wxSTANDARD_CURSOR,
-                'wx.HOURGLASS_CURSOR': wxHOURGLASS_CURSOR,
-                'wx.CROSS_CURSOR': wxCROSS_CURSOR}
-    linkClass = wxCursor
+    defaults = {'None': wx.NullCursor, 'wx.STANDARD_CURSOR': wx.STANDARD_CURSOR,
+                'wx.HOURGLASS_CURSOR': wx.HOURGLASS_CURSOR,
+                'wx.CROSS_CURSOR': wx.CROSS_CURSOR}
+    linkClass = wx.Cursor
 
 class ListCtrlImageListClassLinkPropEdit(ImageListClassLinkPropEdit):
-    listTypeMap = {wxIMAGE_LIST_SMALL : 'wx.IMAGE_LIST_SMALL',
-                   wxIMAGE_LIST_NORMAL: 'wx.IMAGE_LIST_NORMAL'}
+    listTypeMap = {wx.IMAGE_LIST_SMALL : 'wx.IMAGE_LIST_SMALL',
+                   wx.IMAGE_LIST_NORMAL: 'wx.IMAGE_LIST_NORMAL'}
     def valueToIECValue(self):
         if self.value[0] is None: return `None`
         objs = self.companion.designer.getObjectsOfClass(self.linkClass)
@@ -1583,7 +1595,7 @@ class SplitterWindow1LinkPropEdit(SplitterWindowLinkPropEdit):
         return self.companion.GetWindow2(None)
 
 class SplitterWindow2LinkPropEdit(SplitterWindowLinkPropEdit):
-    def getOtherWindow(self): 
+    def getOtherWindow(self):
         return self.companion.GetWindow1(None)
 
 def getValidSizers(parent, designer, value):
@@ -1593,7 +1605,7 @@ def getValidSizers(parent, designer, value):
         parent = parent._sub_sizer
         sizerParents.append(parent)
 
-    sizers = designer.getObjectsOfClass(wxSizer)
+    sizers = designer.getObjectsOfClass(wx.Sizer)
     # remove invalid sizers from the list
     for n, s in sizers.items():
         if s in sizerParents or \
@@ -1607,12 +1619,12 @@ def getValidSizers(parent, designer, value):
     if value != 'None':
         res.insert(1, value)
     return res
-    
+
 
 
 class SizerEnumConstrPropEdit(ObjEnumConstrPropEdit):
     def getObjects(self):
-        return getValidSizers(self.companion.parentCompanion.control, 
+        return getValidSizers(self.companion.parentCompanion.control,
                               self.companion.designer, self.value)
 
     def getCtrlValue(self):
@@ -1621,17 +1633,17 @@ class SizerEnumConstrPropEdit(ObjEnumConstrPropEdit):
         self.companion.SetSizer(value)
 
 class SizerClassLinkPropEdit(ClassLinkPropEdit):
-    linkClass = wxSizer
+    linkClass = wx.Sizer
     def getValues(self):
         if self.value is None:
             value = 'None'
         else:
             value = self.getNameForValue(self.value, self.linkClass)
-            
-        return getValidSizers(self.companion.control, 
+
+        return getValidSizers(self.companion.control,
                               self.companion.designer, value)
-    
-    
+
+
 class ColPropEdit(ClassPropEdit):
     def getStyle(self):
         return [esExpandable]
@@ -1645,14 +1657,14 @@ class ColPropEdit(ClassPropEdit):
         self.editorCtrl.createControl(self.parent, self.idx, self.width, self.edit)
 
     def edit(self, event):
-        data = wxColourData()
+        data = wx.ColourData()
         data.SetColour(self.value)
-        data.SetChooseFull(true)
-        dlg = wxColourDialog(self.parent, data)
+        data.SetChooseFull(True)
+        dlg = wx.ColourDialog(self.parent, data)
         try:
-            if dlg.ShowModal() == wxID_OK:
+            if dlg.ShowModal() == wx.ID_OK:
                 self.value = dlg.GetColourData().GetColour()
-                self.inspectorPost(false)
+                self.inspectorPost(False)
                 self.editorCtrl.setValue(self.value)
                 #self.propWrapper.setValue(self.value)
                 #self.obj.Refresh()
@@ -1660,7 +1672,7 @@ class ColPropEdit(ClassPropEdit):
             dlg.Destroy()
 
     def getValue(self):
-        return self.value#wxColour(self.value.Red(), self.value.Green(), self.value.Blue())
+        return self.value#wx.Colour(self.value.Red(), self.value.Green(), self.value.Blue())
 
     def valueAsExpr(self):
         return 'wx.Colour(%d, %d, %d)'%(self.value.Red(), self.value.Green(), self.value.Blue())
@@ -1680,7 +1692,7 @@ class SizePropEdit(ClassPropEdit):
             except Exception, mess:
                 Utils.ShowErrorMessage(self.parent, 'Invalid value', mess)
                 raise
-            self.value = wxSize(tuplePos[0], tuplePos[1])
+            self.value = wx.Size(tuplePos[0], tuplePos[1])
         return self.value
     def valueAsExpr(self):
         return 'wx.Size(%d, %d)'%(self.value.x, self.value.y)
@@ -1703,7 +1715,7 @@ class PosPropEdit(ClassPropEdit):
             except Exception, mess:
                 Utils.ShowErrorMessage(self.parent, 'Invalid value', mess)
                 raise
-            self.value = wxPoint(tuplePos[0], tuplePos[1])
+            self.value = wx.Point(tuplePos[0], tuplePos[1])
         return self.value
     def valueAsExpr(self):
         return 'wx.Point(%d, %d)'%(self.value.x, self.value.y)
@@ -1730,13 +1742,13 @@ class FontPropEdit(ClassPropEdit):
         return self.value
 
     def edit(self, event):
-        data = wxFontData()
-        dlg = wxFontDialog(self.parent, data)
+        data = wx.FontData()
+        dlg = wx.FontDialog(self.parent, data)
         dlg.GetFontData().SetInitialFont(self.value)
         try:
-            if dlg.ShowModal() == wxID_OK:
+            if dlg.ShowModal() == wx.ID_OK:
                 self.value = dlg.GetFontData().GetChosenFont()
-                self.inspectorPost(false)
+                self.inspectorPost(False)
         finally:
             dlg.Destroy()
 
@@ -1748,13 +1760,13 @@ def fontAsExpr(fnt):
     fontFamily = Enumerations.reverseDict(Enumerations.fontFamilyNames)
     fontStyle = Enumerations.reverseDict(Enumerations.fontStyleNames)
     fontWeight = Enumerations.reverseDict(Enumerations.fontWeightNames)
-    
+
     family = fontFamily.get(fnt.GetFamily(), fnt.GetFamily())
     style = fontStyle.get(fnt.GetStyle(), fnt.GetStyle())
     weight = fontWeight.get(fnt.GetWeight(), fnt.GetWeight())
 
     return 'wx.Font(%d, %s, %s, %s, %s, %s)'%(
-        fnt.GetPointSize(), family, style, weight, 
+        fnt.GetPointSize(), family, style, weight,
         fnt.GetUnderlined() and 'True' or 'False',
         `fnt.GetFaceName()`)
 
@@ -1773,7 +1785,7 @@ class AnchorPropEdit(OptionedPropEdit):
 
     def edit(self, event):
         if self.expanded:
-            wxMessageBox('Anchors can not be reset while the property is expanded',
+            wx.MessageBox('Anchors can not be reset while the property is expanded',
                   'Anchors')
         else:
             if self.companion.anchorSettings:
@@ -1781,16 +1793,16 @@ class AnchorPropEdit(OptionedPropEdit):
             else:
                 message = 'Define default Anchors?'
 
-            dlg = wxMessageDialog(self.parent, message,
-                              'Anchors', wxYES_NO | wxICON_QUESTION)
+            dlg = wx.MessageDialog(self.parent, message,
+                              'Anchors', wx.YES_NO | wx.ICON_QUESTION)
             try:
-                if dlg.ShowModal() == wxID_YES:
+                if dlg.ShowModal() == wx.ID_YES:
                     if self.companion.anchorSettings:
                         self.companion.removeAnchors()
                         self.propWrapper.setValue(self.getValue())
                     else:
                         self.companion.defaultAnchors()
-                        self.inspectorPost(false)
+                        self.inspectorPost(False)
             finally:
                 dlg.Destroy()
 
@@ -1820,8 +1832,8 @@ class AnchorPropEdit(OptionedPropEdit):
 
 
 class SashVisiblePropEdit(BoolPropEdit):
-    sashEdgeMap = {wxSASH_LEFT: 'wx.SASH_LEFT', wxSASH_TOP: 'wx.SASH_TOP',
-                   wxSASH_RIGHT: 'wx.SASH_RIGHT', wxSASH_BOTTOM: 'wx.SASH_BOTTOM'}
+    sashEdgeMap = {wx.SASH_LEFT: 'wx.SASH_LEFT', wx.SASH_TOP: 'wx.SASH_TOP',
+                   wx.SASH_RIGHT: 'wx.SASH_RIGHT', wx.SASH_BOTTOM: 'wx.SASH_BOTTOM'}
     def valueToIECValue(self):
         v = self.value[1]
         if type(v) == IntType:
@@ -1834,7 +1846,7 @@ class SashVisiblePropEdit(BoolPropEdit):
 ##    def getDisplayValue(self):
 ##        return self.valueToIECValue()
 ##    def getValues(self):
-##        return ['false', 'true']
+##        return ['False', 'True']
     def getValue(self):
         if self.editorCtrl:
             # trick to convert boolean string to integer
@@ -1857,7 +1869,7 @@ class CollectionPropEdit(PropertyEditor):
         self.editorCtrl = ButtonIEC(self, self.value)
         self.editorCtrl.createControl(self.parent, self.idx, self.width, self.edit)
 
-    def inspectorPost(self, closeEditor = true):
+    def inspectorPost(self, closeEditor = True):
         """ Code persistance taken over by companion because collection
             transactions live longer than properties
         """
@@ -1897,22 +1909,15 @@ registeredTypes = [
     ('Type', StringType, [StrPropEdit]),
     ('Type', UnicodeType, [StrPropEdit]),
     ('Type', TupleType, [TuplePropEdit]),
-    ('Class', wxSize, [SizePropEdit]),
-    ('Class', wxSizePtr, [SizePropEdit]),
-    ('Class', wxPoint, [PosPropEdit]),
-    ('Class', wxPointPtr, [PosPropEdit]),
-    ('Class', wxFontPtr, [FontPropEdit]),
-    ('Class', wxFont, [FontPropEdit]),
-    ('Class', wxColourPtr, [ColPropEdit]),
-    ('Class', wxColour, [ColPropEdit]),
-    ('Class', wxBitmapPtr, [BitmapPropEdit]),
-    ('Class', wxBitmap, [BitmapPropEdit]),
-    ('Class', wxIconPtr, [IconPropEdit]),
-    ('Class', wxIcon, [IconPropEdit]),
-    ('Class', wxValidator, [ClassLinkPropEdit]),
+    ('Class', wx.Size, [SizePropEdit]),
+    ('Class', wx.Point, [PosPropEdit]),
+    ('Class', wx.Font, [FontPropEdit]),
+    ('Class', wx.Colour, [ColPropEdit]),
+    ('Class', wx.Bitmap, [BitmapPropEdit]),
+    ('Class', wx.Icon, [IconPropEdit]),
 ]
 
 try:
     registeredTypes.append( ('Type', BooleanType, [BoolPropEdit]) )
 except NameError: # 2.2
-    pass 
+    pass

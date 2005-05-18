@@ -9,7 +9,7 @@
 # Copyright:   (c) 1999 - 2005 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
-from wxPython.wx import *
+import wx
 
 def reverseDict(dict):
     rev = {}
@@ -17,27 +17,27 @@ def reverseDict(dict):
         rev[dict[k]] = k
     return rev
 
-windowStyles =[wxCAPTION, wxMINIMIZE_BOX, wxMAXIMIZE_BOX, wxTHICK_FRAME,
-wxSIMPLE_BORDER, wxDOUBLE_BORDER, wxSUNKEN_BORDER, wxRAISED_BORDER,
-wxSTATIC_BORDER, wxTRANSPARENT_WINDOW, wxNO_3D, wxTAB_TRAVERSAL, wxVSCROLL,
-wxHSCROLL, wxCLIP_CHILDREN]
+windowStyles =[wx.CAPTION, wx.MINIMIZE_BOX, wx.MAXIMIZE_BOX, wx.THICK_FRAME,
+wx.SIMPLE_BORDER, wx.DOUBLE_BORDER, wx.SUNKEN_BORDER, wx.RAISED_BORDER,
+wx.STATIC_BORDER, wx.TRANSPARENT_WINDOW, wx.NO_3D, wx.TAB_TRAVERSAL, wx.VSCROLL,
+wx.HSCROLL, wx.CLIP_CHILDREN]
 
-windowNameStyles = {'wx.CAPTION':wxCAPTION, 'wx.MINIMIZE_BOX':wxMINIMIZE_BOX,
-'wx.MAXIMIZE_BOX':wxMAXIMIZE_BOX, 'wx.THICK_FRAME':wxTHICK_FRAME,
-'wx.SIMPLE_BORDER':wxSIMPLE_BORDER, 'wx.DOUBLE_BORDER':wxDOUBLE_BORDER,
-'wx.SUNKEN_BORDER':wxSUNKEN_BORDER, 'wx.RAISED_BORDER':wxRAISED_BORDER,
-'wx.STATIC_BORDER':wxSTATIC_BORDER, 'wx.TRANSPARENT_WINDOW':wxTRANSPARENT_WINDOW,
-'wx.NO_3D':wxNO_3D, 'wx.TAB_TRAVERSAL':wxTAB_TRAVERSAL, 'wx.VSCROLL':wxVSCROLL,
-'wx.HSCROLL':wxHSCROLL, 'wx.CLIP_CHILDREN':wxCLIP_CHILDREN}
+windowNameStyles = {'wx.CAPTION':wx.CAPTION, 'wx.MINIMIZE_BOX':wx.MINIMIZE_BOX,
+'wx.MAXIMIZE_BOX':wx.MAXIMIZE_BOX, 'wx.THICK_FRAME':wx.THICK_FRAME,
+'wx.SIMPLE_BORDER':wx.SIMPLE_BORDER, 'wx.DOUBLE_BORDER':wx.DOUBLE_BORDER,
+'wx.SUNKEN_BORDER':wx.SUNKEN_BORDER, 'wx.RAISED_BORDER':wx.RAISED_BORDER,
+'wx.STATIC_BORDER':wx.STATIC_BORDER, 'wx.TRANSPARENT_WINDOW':wx.TRANSPARENT_WINDOW,
+'wx.NO_3D':wx.NO_3D, 'wx.TAB_TRAVERSAL':wx.TAB_TRAVERSAL, 'wx.VSCROLL':wx.VSCROLL,
+'wx.HSCROLL':wx.HSCROLL, 'wx.CLIP_CHILDREN':wx.CLIP_CHILDREN}
 
 # Fonts
-fontFamily = [wxDEFAULT, wxDECORATIVE, wxROMAN, wxSCRIPT, wxSWISS, wxMODERN]
-fontFamilyNames = {'wx.DEFAULT':wxDEFAULT, 'wx.DECORATIVE':wxDECORATIVE, 'wx.ROMAN':wxROMAN,
-                   'wx.SCRIPT':wxSCRIPT, 'wx.SWISS':wxSWISS, 'wx.MODERN':wxMODERN}
-fontStyle = [wxNORMAL, wxSLANT, wxITALIC]
-fontStyleNames = {'wx.NORMAL':wxNORMAL, 'wx.SLANT':wxSLANT, 'wx.ITALIC':wxITALIC}
-fontWeight = [wxNORMAL, wxLIGHT, wxBOLD]
-fontWeightNames = {'wx.NORMAL':wxNORMAL, 'wx.LIGHT':wxLIGHT, 'wx.BOLD':wxBOLD}
+fontFamily = [wx.DEFAULT, wx.DECORATIVE, wx.ROMAN, wx.SCRIPT, wx.SWISS, wx.MODERN]
+fontFamilyNames = {'wx.DEFAULT':wx.DEFAULT, 'wx.DECORATIVE':wx.DECORATIVE, 'wx.ROMAN':wx.ROMAN,
+                   'wx.SCRIPT':wx.SCRIPT, 'wx.SWISS':wx.SWISS, 'wx.MODERN':wx.MODERN}
+fontStyle = [wx.NORMAL, wx.SLANT, wx.ITALIC]
+fontStyleNames = {'wx.NORMAL':wx.NORMAL, 'wx.SLANT':wx.SLANT, 'wx.ITALIC':wx.ITALIC}
+fontWeight = [wx.NORMAL, wx.LIGHT, wx.BOLD]
+fontWeightNames = {'wx.NORMAL':wx.NORMAL, 'wx.LIGHT':wx.LIGHT, 'wx.BOLD':wx.BOLD}
 
 splitterWindowSplitMode = [1, 2]
 splitterWindowSplitModeNames = {'wx.SPLIT_HORIZONTAL': 1,
@@ -52,17 +52,17 @@ constraintRelationships = ['wx.Unconstrained', 'wx.AsIs', 'wx.Above', 'wx.Below'
 formatStyle = ['wx.LIST_FORMAT_LEFT', 'wx.LIST_FORMAT_RIGHT','wx.LIST_FORMAT_CENTRE',
                'wx.LIST_FORMAT_CENTER']
 
-sashLayoutOrientation = [wxLAYOUT_HORIZONTAL, wxLAYOUT_VERTICAL]
-sashLayoutOrientationNames = {'wx.LAYOUT_HORIZONTAL' : wxLAYOUT_HORIZONTAL,
-                              'wx.LAYOUT_VERTICAL' : wxLAYOUT_VERTICAL}
+sashLayoutOrientation = [wx.LAYOUT_HORIZONTAL, wx.LAYOUT_VERTICAL]
+sashLayoutOrientationNames = {'wx.LAYOUT_HORIZONTAL' : wx.LAYOUT_HORIZONTAL,
+                              'wx.LAYOUT_VERTICAL' : wx.LAYOUT_VERTICAL}
 
-sashLayoutAlignment = [wxLAYOUT_NONE, wxLAYOUT_TOP, wxLAYOUT_LEFT, wxLAYOUT_RIGHT,
-                       wxLAYOUT_BOTTOM]
-sashLayoutAlignmentNames = {'wx.LAYOUT_NONE' : wxLAYOUT_NONE,
-                            'wx.LAYOUT_TOP' : wxLAYOUT_TOP,
-                            'wx.LAYOUT_LEFT' : wxLAYOUT_LEFT,
-                            'wx.LAYOUT_RIGHT' : wxLAYOUT_RIGHT,
-                            'wx.LAYOUT_BOTTOM' : wxLAYOUT_BOTTOM}
+sashLayoutAlignment = [wx.LAYOUT_NONE, wx.LAYOUT_TOP, wx.LAYOUT_LEFT, wx.LAYOUT_RIGHT,
+                       wx.LAYOUT_BOTTOM]
+sashLayoutAlignmentNames = {'wx.LAYOUT_NONE' : wx.LAYOUT_NONE,
+                            'wx.LAYOUT_TOP' : wx.LAYOUT_TOP,
+                            'wx.LAYOUT_LEFT' : wx.LAYOUT_LEFT,
+                            'wx.LAYOUT_RIGHT' : wx.LAYOUT_RIGHT,
+                            'wx.LAYOUT_BOTTOM' : wx.LAYOUT_BOTTOM}
 class BinarySet:
     def __init__(self, elements, names, set):
         self.elements = elements
@@ -99,8 +99,8 @@ class BinarySet:
         element = self.names[elementName]
         for i in self.set:
             if i == element:
-                return true
-        return false
+                return True
+        return False
 
     def values(self):
         v = []
