@@ -1,30 +1,25 @@
 #Boa:Frame:wxFrame1
 
-from wxPython.wx import *
-from wxPython.grid import *
+import wx
+import wx.grid
 
 def create(parent):
     return wxFrame1(parent)
 
-[wxID_WXFRAME1, wxID_WXFRAME1GRID1,
-] = map(lambda _init_ctrls: wxNewId(), range(2))
+[wxID_WXFRAME1, wxID_WXFRAME1GRID1, 
+] = [wx.NewId() for _init_ctrls in range(2)]
 
-class wxFrame1(wxFrame):
-    def _init_utils(self):
-        # generated method, don't edit
-        pass
-
+class wxFrame1(wx.Frame):
     def _init_ctrls(self, prnt):
         # generated method, don't edit
-        wxFrame.__init__(self, id=wxID_WXFRAME1, name='', parent=prnt,
-              pos=wxPoint(318, 214), size=wxSize(432, 242),
-              style=wxDEFAULT_FRAME_STYLE, title='wxFrame1')
-        self._init_utils()
-        self.SetClientSize(wxSize(424, 215))
+        wx.Frame.__init__(self, id=wxID_WXFRAME1, name='', parent=prnt,
+              pos=wx.Point(318, 214), size=wx.Size(432, 242),
+              style=wx.DEFAULT_FRAME_STYLE, title='wxFrame1')
+        self.SetClientSize(wx.Size(424, 215))
 
-        self.grid1 = wxGrid(id=wxID_WXFRAME1GRID1, name='grid1', parent=self,
-              pos=wxPoint(0, 0), size=wxSize(424, 215), style=0)
-        self.grid1.EnableGridLines(true)
+        self.grid1 = wx.grid.Grid(id=wxID_WXFRAME1GRID1, name='grid1',
+              parent=self, pos=wx.Point(0, 0), size=wx.Size(424, 215), style=0)
+        self.grid1.EnableGridLines(True)
 
     def __init__(self, parent):
         self._init_ctrls(parent)
@@ -35,8 +30,8 @@ class wxFrame1(wxFrame):
 
 
 if __name__ == '__main__':
-    app = wxPySimpleApp()
-    wxInitAllImageHandlers()
+    app = wx.PySimpleApp()
+    wx.InitAllImageHandlers()
     frame = create(None)
     frame.Show()
     app.MainLoop()

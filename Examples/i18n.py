@@ -1,11 +1,11 @@
 #Boa:Frame:wxFrame1
 
 """ Examples of using Frame Attributes to implement internationalisation
-integration compatible with the Designer. See wxFrame1.__init__ """
+integration compatible with the Designer. See wx.Frame1.__init__ """
 
 from gettext import gettext as _
 
-from wxPython.wx import *
+import wx
 
 def create(parent):
     return wxFrame1(parent)
@@ -15,32 +15,32 @@ GlobalLang = AFR
 
 [wxID_WXFRAME1, wxID_WXFRAME1BUTTON1, wxID_WXFRAME1BUTTON2,
  wxID_WXFRAME1STATICTEXT1,
-] = map(lambda _init_ctrls: wxNewId(), range(4))
+] = [wx.NewId() for _init_ctrls in range(4)]
 
-class wxFrame1(wxFrame):
+class wxFrame1(wx.Frame):
     def _init_utils(self):
         # generated method, don't edit
         pass
 
     def _init_ctrls(self, prnt):
         # generated method, don't edit
-        wxFrame.__init__(self, id=wxID_WXFRAME1, name='', parent=prnt,
-              pos=wxPoint(324, 193), size=wxSize(173, 149),
-              style=wxDEFAULT_FRAME_STYLE, title='i18n')
+        wx.Frame.__init__(self, id=wxID_WXFRAME1, name='', parent=prnt,
+              pos= wx.Point(324, 193), size= wx.Size(173, 149),
+              style=wx.DEFAULT_FRAME_STYLE, title='i18n')
         self._init_utils()
-        self.SetClientSize(wxSize(165, 122))
-        self.SetBackgroundColour(wxColour(128, 128, 255))
+        self.SetClientSize(wx.Size(165, 122))
+        self.SetBackgroundColour(wx.Colour(128, 128, 255))
 
-        self.staticText1 = wxStaticText(id=wxID_WXFRAME1STATICTEXT1,
+        self.staticText1 = wx.StaticText(id=wxID_WXFRAME1STATICTEXT1,
               label=self.ST1Text, name='staticText1', parent=self,
-              pos=wxPoint(8, 8), size=wxSize(136, 16), style=0)
+              pos= wx.Point(8, 8), size= wx.Size(136, 16), style=0)
 
-        self.button1 = wxButton(id=wxID_WXFRAME1BUTTON1, label=self.BT1Text,
-              name='button1', parent=self, pos=wxPoint(8, 48), size=wxSize(136,
+        self.button1 = wx.Button(id=wxID_WXFRAME1BUTTON1, label=self.BT1Text,
+              name='button1', parent=self, pos= wx.Point(8, 48), size= wx.Size(136,
               23), style=0)
 
-        self.button2 = wxButton(id=wxID_WXFRAME1BUTTON2, label=self.BT2Text,
-              name='button2', parent=self, pos=wxPoint(8, 80), size=wxSize(136,
+        self.button2 = wx.Button(id=wxID_WXFRAME1BUTTON2, label=self.BT2Text,
+              name='button2', parent=self, pos= wx.Point(8, 80), size= wx.Size(136,
               23), style=0)
 
     def __init__(self, parent):
@@ -62,7 +62,7 @@ class wxFrame1(wxFrame):
 
 
 if __name__ == '__main__':
-    app = wxPySimpleApp()
+    app = wx.PySimpleApp()
     frame = create(None)
-    frame.Show(true)
+    frame.Show(True)
     app.MainLoop()

@@ -1,31 +1,31 @@
 #Boa:PyWizardPage:wxPyWizardPage1
 
-from wxPython.wx import *
-from wxPython.wizard import *
+import wx
+import wx.wizard 
 
 [wxID_WXPYWIZARDPAGE1, wxID_WXPYWIZARDPAGE1BUTTON1, 
  wxID_WXPYWIZARDPAGE1BUTTON2, wxID_WXPYWIZARDPAGE1STATICTEXT1, 
-] = map(lambda _init_ctrls: wxNewId(), range(4))
+] = [wx.NewId() for _init_ctrls in range(4)]
 
-class wxPyWizardPage1(wxPyWizardPage):
+class wxPyWizardPage1(wx.wizard.PyWizardPage):
     def _init_ctrls(self, prnt):
         # generated method, don't edit
-        wxPyWizardPage.__init__(self, bitmap=wxNullBitmap, parent=prnt,
+        wx.wizard.PyWizardPage.__init__(self, bitmap=wx.NullBitmap, parent=prnt,
               resource='')
 
-        self.staticText1 = wxStaticText(id=wxID_WXPYWIZARDPAGE1STATICTEXT1,
+        self.staticText1 = wx.StaticText(id=wxID_WXPYWIZARDPAGE1STATICTEXT1,
               label='PyWizardPage1', name='staticText1', parent=self,
-              pos=wxPoint(8, 8), size=wxSize(76, 13), style=0)
+              pos=wx.Point(8, 8), size=wx.Size(76, 13), style=0)
 
-        self.button1 = wxButton(id=wxID_WXPYWIZARDPAGE1BUTTON1, label='button1',
-              name='button1', parent=self, pos=wxPoint(8, 32), size=wxSize(75,
-              23), style=0)
-        EVT_BUTTON(self.button1, wxID_WXPYWIZARDPAGE1BUTTON1,
-              self.OnButton1Button)
+        self.button1 = wx.Button(id=wxID_WXPYWIZARDPAGE1BUTTON1,
+              label='button1', name='button1', parent=self, pos=wx.Point(8, 32),
+              size=wx.Size(75, 23), style=0)
+        self.button1.Bind(wx.EVT_BUTTON, self.OnButton1Button,
+              id=wxID_WXPYWIZARDPAGE1BUTTON1)
 
-        self.button2 = wxButton(id=wxID_WXPYWIZARDPAGE1BUTTON2, label='button2',
-              name='button2', parent=self, pos=wxPoint(400, 88), size=wxSize(75,
-              23), style=0)
+        self.button2 = wx.Button(id=wxID_WXPYWIZARDPAGE1BUTTON2,
+              label='button2', name='button2', parent=self, pos=wx.Point(400,
+              88), size=wx.Size(75, 23), style=0)
 
     def __init__(self, parent):
         self._init_ctrls(parent)

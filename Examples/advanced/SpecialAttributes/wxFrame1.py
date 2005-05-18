@@ -1,32 +1,45 @@
 #Boa:Frame:wxFrame1
 
-from wxPython.wx import *
+import wx
 
 def create(parent, title):
     return wxFrame1(parent, title)
 
-[wxID_WXFRAME1, wxID_WXFRAME1BUTTON1, wxID_WXFRAME1SPLITTERWINDOW1, wxID_WXFRAME1TEXTCTRL1, wxID_WXFRAME1TEXTCTRL2, wxID_WXFRAME1TEXTCTRL3] = map(lambda _init_ctrls: wxNewId(), range(6))
+[wxID_WXFRAME1, wxID_WXFRAME1BUTTON1, wxID_WXFRAME1SPLITTERWINDOW1, 
+ wxID_WXFRAME1TEXTCTRL1, wxID_WXFRAME1TEXTCTRL2, wxID_WXFRAME1TEXTCTRL3, 
+] = [wx.NewId() for _init_ctrls in range(6)]
 
-class wxFrame1(wxFrame):
-    def _init_utils(self):
-        pass
-
+class wxFrame1(wx.Frame):
     def _init_ctrls(self, prnt):
-        wxFrame.__init__(self, id = wxID_WXFRAME1, name = '', parent = prnt, pos = wxPoint(286, 235), size = wxSize(307, 300), style = wxDEFAULT_FRAME_STYLE, title = self.frameTitle)
-        self._init_utils()
-        self.SetClientSize(wxSize(299, 273))
+        # generated method, don't edit
+        wx.Frame.__init__(self, id=wxID_WXFRAME1, name='', parent=prnt,
+              pos=wx.Point(286, 235), size=wx.Size(307, 300),
+              style=wx.DEFAULT_FRAME_STYLE, title=self.frameTitle)
+        self.SetClientSize(wx.Size(299, 273))
 
-        self.button1 = wxButton(id = wxID_WXFRAME1BUTTON1, label = self.buttonLabel, name = 'button1', parent = self, pos = wxPoint(96, 104), size = wxSize(104, 24), style = 0)
-        EVT_BUTTON(self.button1, wxID_WXFRAME1BUTTON1, self.OnButton1Button)
+        self.button1 = wx.Button(id=wxID_WXFRAME1BUTTON1,
+              label=self.buttonLabel, name='button1', parent=self,
+              pos=wx.Point(96, 104), size=wx.Size(104, 24), style=0)
+        self.button1.Bind(wx.EVT_BUTTON, self.OnButton1Button,
+              id=wxID_WXFRAME1BUTTON1)
 
-        self.textCtrl1 = wxTextCtrl(id = wxID_WXFRAME1TEXTCTRL1, name = 'textCtrl1', parent = self, pos = wxPoint(8, 8), size = wxSize(280, 72), style = 0, value = 'textCtrl1')
+        self.textCtrl1 = wx.TextCtrl(id=wxID_WXFRAME1TEXTCTRL1,
+              name='textCtrl1', parent=self, pos=wx.Point(8, 8),
+              size=wx.Size(280, 72), style=0, value='textCtrl1')
 
-        self.splitterWindow1 = wxSplitterWindow(id = wxID_WXFRAME1SPLITTERWINDOW1, name = 'splitterWindow1', parent = self, point = wxPoint(8, 144), size = wxSize(280, 120), style = wxSP_3D)
+        self.splitterWindow1 = wx.SplitterWindow(id=wxID_WXFRAME1SPLITTERWINDOW1,
+              name='splitterWindow1', parent=self, point=wx.Point(8, 144),
+              size=wx.Size(280, 120), style=wx.SP_3D)
 
-        self.textCtrl2 = wxTextCtrl(id = wxID_WXFRAME1TEXTCTRL2, name = 'textCtrl2', parent = self.splitterWindow1, pos = wxPoint(2, 2), size = wxSize(138, 116), style = 0, value = 'textCtrl2')
+        self.textCtrl2 = wx.TextCtrl(id=wxID_WXFRAME1TEXTCTRL2,
+              name='textCtrl2', parent=self.splitterWindow1, pos=wx.Point(2, 2),
+              size=wx.Size(138, 116), style=0, value='textCtrl2')
 
-        self.textCtrl3 = wxTextCtrl(id = wxID_WXFRAME1TEXTCTRL3, name = 'textCtrl3', parent = self.splitterWindow1, pos = wxPoint(147, 2), size = wxSize(131, 116), style = 0, value = 'textCtrl3')
-        self.splitterWindow1.SplitVertically(self.textCtrl2, self.textCtrl3, self.splitSize)
+        self.textCtrl3 = wx.TextCtrl(id=wxID_WXFRAME1TEXTCTRL3,
+              name='textCtrl3', parent=self.splitterWindow1, pos=wx.Point(147,
+              2), size=wx.Size(131, 116), style=0, value='textCtrl3')
+        self.splitterWindow1.SplitVertically(self.textCtrl2, self.textCtrl3,
+              self.splitSize)
 
     def __init__(self, parent, frameTitle):
         self.frameTitle = 'Frame Caption'
@@ -40,7 +53,7 @@ class wxFrame1(wxFrame):
 
 
 if __name__ == '__main__':
-    app = wxPySimpleApp()
+    app = wx.PySimpleApp()
     frame = create(None, 'Hello World')
-    frame.Show(true)
+    frame.Show(True)
     app.MainLoop()

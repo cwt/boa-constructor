@@ -1,24 +1,24 @@
 #Boa:Frame:wxFrame3
 
-from wxPython.wx import *
+import wx
 
 def create(parent):
     return wxFrame3(parent)
 
-[wxID_WXFRAME3] = map(lambda _init_ctrls: wxNewId(), range(1))
+[wxID_WXFRAME3] = [wx.NewId() for _init_ctrls in range(1)]
 
-class wxFrame3(wxFrame):
+class wxFrame3(wx.Frame):
     def _init_utils(self):
         # generated method, don't edit
         pass
 
     def _init_ctrls(self, prnt):
         # generated method, don't edit
-        wxFrame.__init__(self, id=wxID_WXFRAME3, name='', parent=prnt,
-              pos=wxPoint(176, 176), size=wxSize(960, 692),
-              style=wxDEFAULT_FRAME_STYLE, title='wxFrame3')
+        wx.Frame.__init__(self, id=wxID_WXFRAME3, name='', parent=prnt,
+              pos= wx.Point(176, 176), size= wx.Size(960, 692),
+              style=wx.DEFAULT_FRAME_STYLE, title='wxFrame3')
         self._init_utils()
-        self.SetClientSize(wxSize(952, 665))
+        self.SetClientSize(wx.Size(952, 665))
 
     def __init__(self, parent):
         self._init_ctrls(parent)

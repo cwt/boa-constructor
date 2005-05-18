@@ -1,19 +1,19 @@
 #!/usr/bin/env python
 #Boa:App:BoaApp
 
-from wxPython.wx import *
+import wx
 
 import wxMDIParentFrame1
 
 modules ={'wxMDIChildFrame1': [0, '', 'wxMDIChildFrame1.py'],
  'wxMDIParentFrame1': [1, '', 'wxMDIParentFrame1.py']}
 
-class BoaApp(wxApp):
+class BoaApp(wx.App):
     def OnInit(self):
         self.main = wxMDIParentFrame1.create(None)
-        self.main.Show(true)
+        self.main.Show(True)
         self.SetTopWindow(self.main)
-        return true
+        return True
 
 def main():
     application = BoaApp(0)

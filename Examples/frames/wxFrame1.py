@@ -1,36 +1,39 @@
 #Boa:Frame:wxFrame1
 
-from wxPython.wx import *
+import wx
 
 def create(parent):
     return wxFrame1(parent)
 
 [wxID_WXFRAME1, wxID_WXFRAME1BUTTON1, wxID_WXFRAME1BUTTON2, 
  wxID_WXFRAME1BUTTON3, 
-] = map(lambda _init_ctrls: wxNewId(), range(4))
+] = [wx.NewId() for _init_ctrls in range(4)]
 
-class wxFrame1(wxFrame):
+class wxFrame1(wx.Frame):
     def _init_ctrls(self, prnt):
         # generated method, don't edit
-        wxFrame.__init__(self, id=wxID_WXFRAME1, name='', parent=prnt,
-              pos=wxPoint(299, 227), size=wxSize(370, 146),
-              style=wxDEFAULT_FRAME_STYLE, title='wxFrame1')
-        self.SetClientSize(wxSize(362, 119))
+        wx.Frame.__init__(self, id=wxID_WXFRAME1, name='', parent=prnt,
+              pos=wx.Point(299, 227), size=wx.Size(370, 146),
+              style=wx.DEFAULT_FRAME_STYLE, title='wxFrame1')
+        self.SetClientSize(wx.Size(362, 119))
 
-        self.button1 = wxButton(id=wxID_WXFRAME1BUTTON1, label='Show Frame 2',
-              name='button1', parent=self, pos=wxPoint(112, 16),
-              size=wxSize(152, 23), style=0)
-        EVT_BUTTON(self.button1, wxID_WXFRAME1BUTTON1, self.OnButton1Button)
+        self.button1 = wx.Button(id=wxID_WXFRAME1BUTTON1, label='Show Frame 2',
+              name='button1', parent=self, pos=wx.Point(112, 16),
+              size=wx.Size(152, 23), style=0)
+        self.button1.Bind(wx.EVT_BUTTON, self.OnButton1Button,
+              id=wxID_WXFRAME1BUTTON1)
 
-        self.button2 = wxButton(id=wxID_WXFRAME1BUTTON2, label='Show Frame 3',
-              name='button2', parent=self, pos=wxPoint(112, 48),
-              size=wxSize(152, 23), style=0)
-        EVT_BUTTON(self.button2, wxID_WXFRAME1BUTTON2, self.OnButton2Button)
+        self.button2 = wx.Button(id=wxID_WXFRAME1BUTTON2, label='Show Frame 3',
+              name='button2', parent=self, pos=wx.Point(112, 48),
+              size=wx.Size(152, 23), style=0)
+        self.button2.Bind(wx.EVT_BUTTON, self.OnButton2Button,
+              id=wxID_WXFRAME1BUTTON2)
 
-        self.button3 = wxButton(id=wxID_WXFRAME1BUTTON3, label='Show Wizard',
-              name='button3', parent=self, pos=wxPoint(112, 80),
-              size=wxSize(152, 23), style=0)
-        EVT_BUTTON(self.button3, wxID_WXFRAME1BUTTON3, self.OnButton3Button)
+        self.button3 = wx.Button(id=wxID_WXFRAME1BUTTON3, label='Show Wizard',
+              name='button3', parent=self, pos=wx.Point(112, 80),
+              size=wx.Size(152, 23), style=0)
+        self.button3.Bind(wx.EVT_BUTTON, self.OnButton3Button,
+              id=wxID_WXFRAME1BUTTON3)
 
     def __init__(self, parent):
         self._init_ctrls(parent)
@@ -43,28 +46,28 @@ class wxFrame1(wxFrame):
 
         Note it was created in __init__
         """
-        self.frame2.Show(true)
+        self.frame2.Show(True)
 
     def OnButton2Button(self, event):
         """ Example of a dynamic unreferenced frame """
         import wxFrame3
-        wxFrame3.create(self).Show(true)
+        wxFrame3.create(self).Show(True)
 
     def OnButton3Button(self, event):
         """ Example of calling a wxWizard """
-        import wxWizard123
+        import wxWizard1
 
         if wxWizard1.run(self):
-            wxMessageBox('Wizard completed')
+            wx.MessageBox('Wizard completed')
         else:
-            wxMessageBox('Wizard cancelled')
-        
-        
+            wx.MessageBox('Wizard cancelled')
+
+
 
 
 if __name__ == '__main__':
-    app = wxPySimpleApp()
-    wxInitAllImageHandlers()
+    app = wx.PySimpleApp()
+    wx.InitAllImageHandlers()
     frame = create(None)
     # needed when running from Boa under Windows 9X
     frame.Show();frame.Hide();frame.Show()
