@@ -12,7 +12,7 @@
 
 import os, cStringIO
 
-from wxPython import wx
+import wx
 
 class ImageStoreError(Exception): pass
 class InvalidImgPathError(ImageStoreError): pass
@@ -36,18 +36,18 @@ class ImageStore:
 
     def createImage(self, filename, ext):
         if ext == '.bmp':
-            return wx.wxImage(filename, wx.wxBITMAP_TYPE_BMP).ConvertToBitmap()
+            return wx.Image(filename, wx.BITMAP_TYPE_BMP).ConvertToBitmap()
         elif ext == '.png':
-            return wx.wxImage(filename, wx.wxBITMAP_TYPE_PNG).ConvertToBitmap()
+            return wx.Image(filename, wx.BITMAP_TYPE_PNG).ConvertToBitmap()
         elif ext == '.jpg':
-            return wx.wxImage(filename, wx.wxBITMAP_TYPE_JPEG).ConvertToBitmap()
+            return wx.Image(filename, wx.BITMAP_TYPE_JPEG).ConvertToBitmap()
         elif ext == '.gif':
-            return wx.wxImage(filename, wx.wxBITMAP_TYPE_GIF).ConvertToBitmap()
+            return wx.Image(filename, wx.BITMAP_TYPE_GIF).ConvertToBitmap()
         elif ext == '.ico':
-            return wx.wxIcon(filename, wx.wxBITMAP_TYPE_ICO)
+            return wx.Icon(filename, wx.BITMAP_TYPE_ICO)
         elif ext == 'data':
             stream = cStringIO.StringIO(self.dataReg[filename])
-            return wx.wxBitmapFromImage(wx.wxImageFromStream(stream))
+            return wx.BitmapFromImage(wx.ImageFromStream(stream))
         else:
             raise UnhandledExtError, 'Extension not handled: '+ext
 

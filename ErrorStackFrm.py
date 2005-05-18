@@ -14,26 +14,26 @@
 
 import os, pickle
 
-from wxPython.wx import *
-from wxPython.stc import *
+import wx
+import wx.stc
 
 import Preferences, Utils
 
-[wxID_EO_LOADHIST, wxID_EO_SAVEHIST, wxID_EO_CLRHIST, wxID_EO_CLOSEDIFF, 
+[wxID_EO_LOADHIST, wxID_EO_SAVEHIST, wxID_EO_CLRHIST, wxID_EO_CLOSEDIFF,
  wxID_EO_CLOSEINPT, wxID_EO_KILLPROC, wxID_EO_CHECKPROCS] = Utils.wxNewIds(7)
 
-[wxID_ERRORSTACKMFSTATUSBAR, wxID_ERRORSTACKMFERRORSTACKTC, wxID_ERRORSTACKMF, 
- wxID_ERRORSTACKMFNOTEBOOK, wxID_ERRORSTACKMFOUTPUTTC, 
- wxID_ERRORSTACKMFERRORTC] = map(lambda _init_ctrls: wxNewId(), range(6))
+[wxID_ERRORSTACKMFSTATUSBAR, wxID_ERRORSTACKMFERRORSTACKTC, wxID_ERRORSTACKMF,
+ wxID_ERRORSTACKMFNOTEBOOK, wxID_ERRORSTACKMFOUTPUTTC,
+ wxID_ERRORSTACKMFERRORTC] = [wx.NewId() for _init_ctrls in range(6)]
 
-class ErrorStackMF(wxFrame, Utils.FrameRestorerMixin):
+class ErrorStackMF(wx.Frame, Utils.FrameRestorerMixin):
     def _init_coll_notebook_Pages(self, parent):
 
-        parent.AddPage(select = true, imageId = self.tracebackImgIdx, 
+        parent.AddPage(select = True, imageId = self.tracebackImgIdx,
               page = self.errorStackTC, text = self.tracebackText)
-        parent.AddPage(select = false, imageId = self.outputImgIdx, 
+        parent.AddPage(select = False, imageId = self.outputImgIdx,
               page = self.outputTC, text = self.outputText)
-        parent.AddPage(select = false, imageId = self.errorsImgIdx, 
+        parent.AddPage(select = False, imageId = self.errorsImgIdx,
               page = self.errorTC, text = self.errorsText)
 
     def _init_coll_statusBar_Fields(self, parent):
@@ -44,53 +44,51 @@ class ErrorStackMF(wxFrame, Utils.FrameRestorerMixin):
         parent.SetStatusWidths([-1])
 
     def _init_utils(self):
-        self.images = wxImageList(16, 16)
+        self.images = wx.ImageList(16, 16)
 
     def _init_ctrls(self, prnt):
-        wxFrame.__init__(self, size = wxSize(330, 443), id = wxID_ERRORSTACKMF,     
-              title = 'Traceback and Output browser', parent = prnt, 
-              name = 'ErrorStackMF', 
-              style = wxDEFAULT_FRAME_STYLE | wxFRAME_TOOL_WINDOW, 
-              pos = wxPoint(464, 228))
+        wx.Frame.__init__(self, size = wx.Size(330, 443), id = wxID_ERRORSTACKMF,
+              title = 'Traceback and Output browser', parent = prnt,
+              name = 'ErrorStackMF',
+              style=wx.DEFAULT_FRAME_STYLE | wx.FRAME_TOOL_WINDOW,
+              pos = wx.Point(464, 228))
         self._init_utils()
-        EVT_CLOSE(self, self.OnErrorstackmfClose)
+        self.Bind(wx.EVT_CLOSE, self.OnErrorstackmfClose)
 
-        self.notebook = wxNotebook(size = wxSize(330, 418), 
-              id = wxID_ERRORSTACKMFNOTEBOOK, parent = self, 
-              name = 'notebook', 
-              style = self.notebookStyle, pos = wxPoint(0, 0))
+        self.notebook = wx.Notebook(size = wx.Size(330, 418),
+              id = wxID_ERRORSTACKMFNOTEBOOK, parent = self,
+              name = 'notebook',
+              style = self.notebookStyle, pos = wx.Point(0, 0))
 
-        self.statusBar = wxStatusBar(id = wxID_ERRORSTACKMFSTATUSBAR, 
+        self.statusBar = wx.StatusBar(id = wxID_ERRORSTACKMFSTATUSBAR,
               parent = self, name = 'statusBar', style = 0)
         self.SetStatusBar(self.statusBar)
 
-        self.outputTC = wxTextCtrl(size = wxSize(326, 384), value = '', 
-              pos = wxPoint(0, 0), parent = self.notebook, 
-              name = 'outputTC', style = wxTE_MULTILINE | wxTE_RICH, 
+        self.outputTC = wx.TextCtrl(size = wx.Size(326, 384), value = '',
+              pos = wx.Point(0, 0), parent = self.notebook,
+              name = 'outputTC', style=wx.TE_MULTILINE | wx.TE_RICH,
               id = wxID_ERRORSTACKMFOUTPUTTC)
 
-        self.errorTC = wxTextCtrl(size = wxSize(326, 384), value = '', 
-              pos = wxPoint(0, 0), parent = self.notebook, name = 'errorTC', 
-              style = wxTE_MULTILINE | wxTE_RICH, id = wxID_ERRORSTACKMFERRORTC)
-        self.errorTC.SetForegroundColour(wxColour(64, 0, 0))
+        self.errorTC = wx.TextCtrl(size = wx.Size(326, 384), value = '',
+              pos = wx.Point(0, 0), parent = self.notebook, name = 'errorTC',
+              style=wx.TE_MULTILINE | wx.TE_RICH, id = wxID_ERRORSTACKMFERRORTC)
+        self.errorTC.SetForegroundColour(wx.Colour(64, 0, 0))
 
         #--
         # Special case to fix GTK redraw problem
-        if wxPlatform == '__WXGTK__':
-            prxy, errorStackTC = Utils.wxProxyPanel(self.notebook, wxTreeCtrl, 
-                  size = wxSize(312, 390), id = wxID_ERRORSTACKMFERRORSTACKTC, 
-                  name = 'errorStackTC', validator = wxDefaultValidator, 
-                  style = wxTR_HAS_BUTTONS | wxSUNKEN_BORDER, 
-                  pos = wxPoint(0, 0))
+        if wx.Platform == '__WXGTK__':
+            prxy, errorStackTC = Utils.wxProxyPanel(self.notebook, wx.TreeCtrl,
+                  size = wx.Size(312, 390), id = wxID_ERRORSTACKMFERRORSTACKTC,
+                  name = 'errorStackTC', style=wx.TR_HAS_BUTTONS | wx.SUNKEN_BORDER,
+                  pos = wx.Point(0, 0))
             self.errorStackTC = prxy
             self._init_coll_notebook_Pages(self.notebook)
             self.errorStackTC = errorStackTC
         else:
-            self.errorStackTC = wxTreeCtrl(size = wxSize(312, 390), 
-                  id = wxID_ERRORSTACKMFERRORSTACKTC, parent = self.notebook, 
-                  name = 'errorStackTC', validator = wxDefaultValidator, 
-                  pos = wxPoint(4, 22), 
-                  style = wxTR_HAS_BUTTONS | wxSUNKEN_BORDER)
+            self.errorStackTC = wx.TreeCtrl(size = wx.Size(312, 390),
+                  id = wxID_ERRORSTACKMFERRORSTACKTC, parent = self.notebook,
+                  name = 'errorStackTC', pos = wx.Point(4, 22),
+                  style=wx.TR_HAS_BUTTONS | wx.SUNKEN_BORDER)
             self._init_coll_notebook_Pages(self.notebook)
         #--
 
@@ -113,12 +111,12 @@ class ErrorStackMF(wxFrame, Utils.FrameRestorerMixin):
 
         self.inputPage = None
         self.inputImgIdx = 5
-        
+
         self.history = []
         self.historyIdx = None
 
         if Preferences.eoErrOutNotebookStyle == 'side':
-            self.notebookStyle = wxNB_LEFT
+            self.notebookStyle = wx.NB_LEFT
             self.tracebackText = '  '
             self.outputText = '  '
             self.errorsText = '  '
@@ -130,13 +128,13 @@ class ErrorStackMF(wxFrame, Utils.FrameRestorerMixin):
         self._init_ctrls(parent)
 
         self._init_coll_statusBar_Fields(self.statusBar)
-        
+
         self.outputTC.SetFont(Preferences.eoErrOutFont)
         self.errorTC.SetFont(Preferences.eoErrOutFont)
-        self.errorTC.SetForegroundColour(wxColour(64, 0, 0))
+        self.errorTC.SetForegroundColour(wx.Colour(64, 0, 0))
 
         if Preferences.eoErrOutNotebookStyle == 'side':
-            self.notebook.SetPadding(wxSize(1, 5))
+            self.notebook.SetPadding(wx.Size(1, 5))
 
         if Preferences.eoErrOutNotebookStyle != 'text':
             for img in ('Images/Shared/Traceback.png',
@@ -152,39 +150,39 @@ class ErrorStackMF(wxFrame, Utils.FrameRestorerMixin):
         self.SetIcon(Preferences.IS.load('Images/Icons/OutputError.ico'))
 
         self.editor = editor
-        self.vetoEvents = false
-        EVT_TREE_ITEM_ACTIVATED(self.errorStackTC, wxID_ERRORSTACKMFERRORSTACKTC, self.OnErrorstacktcTreeItemActivated)
-        EVT_TREE_SEL_CHANGED(self.errorStackTC, wxID_ERRORSTACKMFERRORSTACKTC, self.OnErrorstacktcTreeSelChanged)
-        #EVT_LEFT_DOWN(self.errorStackTC, self.OnErrorstacktcLeftDown)
+        self.vetoEvents = False
+        self.errorStackTC.Bind(wx.EVT_TREE_ITEM_ACTIVATED, self.OnErrorstacktcTreeItemActivated, id=wxID_ERRORSTACKMFERRORSTACKTC)
+        self.errorStackTC.Bind(wx.EVT_TREE_SEL_CHANGED, self.OnErrorstacktcTreeSelChanged, id=wxID_ERRORSTACKMFERRORSTACKTC)
+        #self.errorStackTC.Bind(wx.EVT_LEFT_DOWN, self.OnErrorstacktcLeftDown)
 
         #self.lastClick = (0, 0)
 
-        self.menu = wxMenu()
-        EVT_MENU(self, wxID_EO_LOADHIST, self.OnLoadHistory)
+        self.menu = wx.Menu()
+        self.Bind(wx.EVT_MENU, self.OnLoadHistory, id=wxID_EO_LOADHIST)
         self.menu.Append(wxID_EO_LOADHIST, 'Load history...')
-        EVT_MENU(self, wxID_EO_SAVEHIST, self.OnSaveHistory)
+        self.Bind(wx.EVT_MENU, self.OnSaveHistory, id=wxID_EO_SAVEHIST)
         self.menu.Append(wxID_EO_SAVEHIST, 'Save history...')
-        EVT_MENU(self, wxID_EO_CLRHIST, self.OnClearHistory)
+        self.Bind(wx.EVT_MENU, self.OnClearHistory, id=wxID_EO_CLRHIST)
         self.menu.Append(wxID_EO_CLRHIST, 'Clear history')
         self.menu.AppendSeparator()
-        EVT_MENU(self, wxID_EO_CLOSEDIFF, self.OnCloseDiff)
+        self.Bind(wx.EVT_MENU, self.OnCloseDiff, id=wxID_EO_CLOSEDIFF)
         self.menu.Append(wxID_EO_CLOSEDIFF, 'Close diff page')
-        self.menu.Enable(wxID_EO_CLOSEDIFF, false)
-        EVT_MENU(self, wxID_EO_CLOSEINPT, self.OnCloseInput)
+        self.menu.Enable(wxID_EO_CLOSEDIFF, False)
+        self.Bind(wx.EVT_MENU, self.OnCloseInput, id=wxID_EO_CLOSEINPT)
         self.menu.Append(wxID_EO_CLOSEINPT, 'Close input page')
-        self.menu.Enable(wxID_EO_CLOSEINPT, false)
+        self.menu.Enable(wxID_EO_CLOSEINPT, False)
 
-        EVT_RIGHT_UP(self.notebook, self.OnRightDown)
+        self.notebook.Bind(wx.EVT_RIGHT_UP, self.OnRightDown)
 
-        self.processesMenu = wxMenu()
-        EVT_MENU(self, wxID_EO_KILLPROC, self.OnKillProcess)
+        self.processesMenu = wx.Menu()
+        self.Bind(wx.EVT_MENU, self.OnKillProcess, id=wxID_EO_KILLPROC)
         self.processesMenu.Append(wxID_EO_KILLPROC, 'Kill process')
         self.processesMenu.AppendSeparator()
-        EVT_MENU(self, wxID_EO_CHECKPROCS, self.OnCheckProcesses)
+        self.Bind(wx.EVT_MENU, self.OnCheckProcesses, id=wxID_EO_CHECKPROCS)
         self.processesMenu.Append(wxID_EO_CHECKPROCS, 'Check processes')
 
         self.displayProcesses()
-        EVT_RIGHT_DOWN(self.processesPage, self.OnProcessesRightDown)
+        self.processesPage.Bind(wx.EVT_RIGHT_DOWN, self.OnProcessesRightDown)
 
         self.winConfOption = 'errout'
         if Preferences.eoErrOutDockWindow == 'undocked':
@@ -207,23 +205,23 @@ class ErrorStackMF(wxFrame, Utils.FrameRestorerMixin):
                       os.path.basename(si.file), si.line.strip()))
                 tree.SetPyData(siTI, si)
             if err.stack:
-                tree.SetItemHasChildren(errTI, true)
+                tree.SetItemHasChildren(errTI, True)
                 tree.SetPyData(errTI, err.stack[-1])
                 parsedTracebacks += 1
         return parsedTracebacks
-        
+
 
     def updateCtrls(self, errorList, outputList=None, rootName='Error',
-          runningDir='', errRaw=None, addToHistory=true):
-        
+          runningDir='', errRaw=None, addToHistory=True):
+
         if addToHistory:
             if errorList or outputList or errRaw:
-                self.history.append( (errorList, outputList, rootName, 
+                self.history.append( (errorList, outputList, rootName,
                                       runningDir, errRaw) )
                 while len(self.history) > self.historySize:
                     del self.history[0]
                 self.historyIdx = None
-            
+
         self.runningDir = runningDir
         self.tracebackType = rootName
         tree = self.errorStackTC
@@ -233,7 +231,7 @@ class ErrorStackMF(wxFrame, Utils.FrameRestorerMixin):
         for err in errorList:
             parsedTracebacks += self.addTracebackNode(err, parsedTracebacks)
 
-        tree.SetItemHasChildren(rtTI, true)
+        tree.SetItemHasChildren(rtTI, True)
         tree.Expand(rtTI)
         firstErr, cookie = tree.GetFirstChild(rtTI)
         if firstErr.IsOk():
@@ -261,7 +259,7 @@ class ErrorStackMF(wxFrame, Utils.FrameRestorerMixin):
 
         if selIdx >= 0:
             self.notebook.SetSelection(selIdx)
-        
+
         tree.Refresh()
 
         return parsedTracebacks
@@ -319,8 +317,8 @@ class ErrorStackMF(wxFrame, Utils.FrameRestorerMixin):
 
     def Destroy(self):
         self.menu.Destroy()
-        self.vetoEvents = true
-        wxFrame.Destroy(self)
+        self.vetoEvents = True
+        wx.Frame.Destroy(self)
 
     def findPage(self, name):
         for idx in range(self.notebook.GetPageCount()):
@@ -330,29 +328,29 @@ class ErrorStackMF(wxFrame, Utils.FrameRestorerMixin):
 
     def displayDiff(self, diffResult):
         if not self.diffPage:
-            self.diffPage = wxStyledTextCtrl(self.notebook, -1,
-                style=wxSUNKEN_BORDER|wxCLIP_CHILDREN)
+            self.diffPage = wx.stc.StyledTextCtrl(self.notebook, -1,
+                style=wx.SUNKEN_BORDER | wx.CLIP_CHILDREN)
             self.diffPage.SetMarginWidth(1, 0)
-            self.diffPage.SetLexer(wxSTC_LEX_DIFF)
+            self.diffPage.SetLexer(wx.stc.STC_LEX_DIFF)
             self.diffPage.StyleClearAll()
             # XXX Should be moved to StyleEditor
             fontPropStr = 'face:%s,size:%d'%(
                        Preferences.eoErrOutFont.GetFaceName(),
                        Preferences.eoErrOutFont.GetPointSize())
             for num, style in (
-                  (wxSTC_DIFF_DEFAULT, fontPropStr),
-                  (wxSTC_DIFF_COMMENT,  fontPropStr+',back:#EEEEFF'),      # comment
-                  (wxSTC_DIFF_COMMAND,  fontPropStr+',fore:#FFFFCC,back:#000000,bold'), #diff
-                  (wxSTC_DIFF_HEADER,   fontPropStr+',back:#FFFFCC'),      #"--- ","+++ ",
-                  (wxSTC_DIFF_POSITION, fontPropStr+',back:#CCCCFF,bold'), #'@'
-                  (wxSTC_DIFF_DELETED,  fontPropStr+',back:#FFCCCC'),      #'-'
-                  (wxSTC_DIFF_ADDED,    fontPropStr+',back:#CCFFCC'),      #'+'
-                 ):    
+                  (wx.stc.STC_DIFF_DEFAULT,  fontPropStr),
+                  (wx.stc.STC_DIFF_COMMENT,  fontPropStr+',back:#EEEEFF'),      # comment
+                  (wx.stc.STC_DIFF_COMMAND,  fontPropStr+',fore:#FFFFCC,back:#000000,bold'), #diff
+                  (wx.stc.STC_DIFF_HEADER,   fontPropStr+',back:#FFFFCC'),      #"--- ","+++ ",
+                  (wx.stc.STC_DIFF_POSITION, fontPropStr+',back:#CCCCFF,bold'), #'@'
+                  (wx.stc.STC_DIFF_DELETED,  fontPropStr+',back:#FFCCCC'),      #'-'
+                  (wx.stc.STC_DIFF_ADDED,    fontPropStr+',back:#CCFFCC'),      #'+'
+                 ):
                 self.diffPage.StyleSetSpec(num, style)
             self.diffPage.SetText(diffResult)
             self.notebook.AddPage(text='Diffs', select=not not diffResult,
                 page=self.diffPage, imageId=self.diffImgIdx)
-            self.menu.Enable(wxID_EO_CLOSEDIFF, true)
+            self.menu.Enable(wxID_EO_CLOSEDIFF, True)
         else:
             self.diffPage.SetText(diffResult)
             if diffResult:
@@ -363,29 +361,29 @@ class ErrorStackMF(wxFrame, Utils.FrameRestorerMixin):
         self.display()
 
     displayPageIdx = 3
-    def displayInput(self, display=true):
+    def displayInput(self, display=True):
         if not self.inputPage:
-            self.inputPage = wxTextCtrl(self.notebook, -1, value='',
-                style=wxTE_MULTILINE|wxTE_RICH|wxSUNKEN_BORDER|wxCLIP_CHILDREN)
-            EVT_LEFT_DCLICK(self.inputPage, self.OnInputDoubleClick)
-            self.notebook.InsertPage(self.displayPageIdx, self.inputPage, 
-                  'Input', true, self.inputImgIdx)
-            self.menu.Enable(wxID_EO_CLOSEINPT, true)
+            self.inputPage = wx.TextCtrl(self.notebook, -1, value='',
+                style=wx.TE_MULTILINE | wx.TE_RICH | wx.SUNKEN_BORDER | wx.CLIP_CHILDREN)
+            self.inputPage.Bind(wx.EVT_LEFT_DCLICK, self.OnInputDoubleClick)
+            self.notebook.InsertPage(self.displayPageIdx, self.inputPage,
+                  'Input', True, self.inputImgIdx)
+            self.menu.Enable(wxID_EO_CLOSEINPT, True)
         else:
             self.notebook.SetSelection(self.displayPageIdx)
         self.display()
 
     def displayProcesses(self):
         if not self.processesPage:
-            self.processesPage = wxListView(self.notebook, -1, 
-                  style=wxLC_LIST | wxLC_ALIGN_TOP)
+            self.processesPage = wx.ListView(self.notebook, -1,
+                  style=wx.LC_LIST | wx.LC_ALIGN_TOP)
             self.notebook.AddPage(self.processesPage, self.processesText,
-                  false, self.processesImgIdx)
+                  False, self.processesImgIdx)
         else:
             pageIdx = self.findPage(self.processesText)
             if pageIdx != -1:
                 self.notebook.SetSelection(pageIdx)
-    
+
     def processStarted(self, name, pid, script='', processType=''):
         if self.processesPage:
             idx = self.processesPage.GetItemCount()
@@ -393,7 +391,7 @@ class ErrorStackMF(wxFrame, Utils.FrameRestorerMixin):
                 name = '%s (%s)'%(name, script)
             self.processesPage.InsertStringItem(idx, '%s : %s'%(name, pid))
             self.processesPage.SetItemData(idx, pid)
-            
+
             self.checkProcesses()
 
     def processFinished(self, pid):
@@ -404,47 +402,47 @@ class ErrorStackMF(wxFrame, Utils.FrameRestorerMixin):
                     break
             self.checkProcesses()
 
-    
+
     def checkProcesses(self):
         if self.processesPage:
             idxs = range(self.processesPage.GetItemCount())
             idxs.reverse()
             for idx in idxs:
                 pid = self.processesPage.GetItemData(idx)
-                if not wxProcess_Exists(pid):
+                if not wx.Process.Exists(pid):
                     self.processesPage.DeleteItem(idx)
-    
+
     def killProcess(self, pid):
-        res = wxProcess_Kill(pid, wxSIGTERM)
-        if res == wxKILL_ERROR:
-            res = wxProcess_Kill(pid, wxSIGKILL)
-            if res == wxKILL_ERROR:
-                wxLogError('Cannot kill process %d.'%pid)
-                
-        if res == wxKILL_ACCESS_DENIED:
-            wxLogError('Cannot kill process %d, access denied.'%pid)
-        elif res == wxKILL_OK:
-            self.editor.setStatus('Killed process %d.'%pid) 
-        
+        res = wx.Process.Kill(pid, wx.SIGTERM)
+        if res == wx.KILL_ERROR:
+            res = wx.Process.Kill(pid, wx.SIGKILL)
+            if res == wx.KILL_ERROR:
+                wx.LogError('Cannot kill process %d.'%pid)
+
+        if res == wx.KILL_ACCESS_DENIED:
+            wx.LogError('Cannot kill process %d, access denied.'%pid)
+        elif res == wx.KILL_OK:
+            self.editor.setStatus('Killed process %d.'%pid)
+
     def checkProcessesAtExit(self):
         if self.processesPage:
             self.checkProcesses()
-            wxYield()
+            wx.Yield()
             cnt = self.processesPage.GetItemCount()
             if cnt:
                 self.display()
                 pageIdx = self.findPage(self.processesText)
                 self.notebook.SetSelection(pageIdx)
-                
-                if wxMessageBox('There are still running processes that were '
+
+                if wx.MessageBox('There are still running processes that were '
                              'started from Boa, please close or kill them '
-                             'before quitting.\n\nClick Cancel to quit anyway.', 
+                             'before quitting.\n\nClick Cancel to quit anyway.',
                              'Child processes running',
-                             wxICON_WARNING | wxOK | wxCANCEL) == wxCANCEL:
-                    return true
-                return false
-        return true
-    
+                             wx.ICON_WARNING | wx.OK | wx.CANCEL) == wx.CANCEL:
+                    return True
+                return False
+        return True
+
     def stepBackInHistory(self):
         if len(self.history) > 1:
             if self.historyIdx is None:
@@ -453,15 +451,15 @@ class ErrorStackMF(wxFrame, Utils.FrameRestorerMixin):
                 self.historyIdx = max(self.historyIdx - 1, 0)
 
             self.updateCtrls(
-                  *(self.history[self.historyIdx]+(false,)))
+                  *(self.history[self.historyIdx]+(False,)))
 
     def stepFwdInHistory(self):
         if len(self.history) > 1 and self.historyIdx is not None:
             self.historyIdx = min(self.historyIdx + 1, len(self.history)-1)
 
             self.updateCtrls(
-                  *(self.history[self.historyIdx]+(false,)))
-                
+                  *(self.history[self.historyIdx]+(False,)))
+
     def OnErrorstacktcTreeItemActivated(self, event):
         data = self.errorStackTC.GetPyData(event.GetItem())
         if data is None:
@@ -484,13 +482,13 @@ class ErrorStackMF(wxFrame, Utils.FrameRestorerMixin):
         self.editor.setStatus(' : '.join(data.error), self.tracebackType)
 
     def OnErrorstackmfClose(self, event):
-        self.Show(true)
-        self.Show(false)
+        self.Show(True)
+        self.Show(False)
 
     def OnErrorstacktcTreeSelChanged(self, event):
         if self.vetoEvents: return
         selLine = self.errorStackTC.GetItemText(event.GetItem())
-        if wxPlatform == '__WXGTK__':
+        if wx.Platform == '__WXGTK__':
             self.errorStackTC.SetToolTipString(selLine)
         self.statusBar.SetStatusText(selLine)
 
@@ -523,32 +521,32 @@ class ErrorStackMF(wxFrame, Utils.FrameRestorerMixin):
             from Explorers import Explorer
             n = Explorer.openEx(fn)
             n.save(n.resourcepath, data)
-            
+
     def OnCloseDiff(self, event):
         if self.diffPage:
             pageIdx = self.findPage('Diffs')
             if pageIdx != -1:
                 self.notebook.DeletePage(pageIdx)
                 self.diffPage = None
-                self.menu.Enable(wxID_EO_CLOSEDIFF, false)
+                self.menu.Enable(wxID_EO_CLOSEDIFF, False)
 
     def OnCloseInput(self, event):
         if self.inputPage:
             self.notebook.DeletePage(3)
             self.inputPage = None
-            self.menu.Enable(wxID_EO_CLOSEINPT, false)
-            
+            self.menu.Enable(wxID_EO_CLOSEINPT, False)
+
 
     def OnClearHistory(self, event):
-        self.updateCtrls([], addToHistory=false)
+        self.updateCtrls([], addToHistory=False)
         self.history = []
         self.historyIdx = None
-        
+
         self.editor.setStatus('History cleared.')
 
     def OnProcessesRightDown(self, event):
 ##        event.Skip()
-##        wxYield()
+##        wx.Yield()
         sp = self.processesPage.ClientToScreen(event.GetPosition())
         mp = self.ScreenToClient(sp)
         self.PopupMenu(self.processesMenu, mp)
@@ -559,7 +557,7 @@ class ErrorStackMF(wxFrame, Utils.FrameRestorerMixin):
             while idx != -1:
                 pid = self.processesPage.GetItemData(idx)
                 self.killProcess(pid)
-                
+
                 idx = self.processesPage.GetNextSelected(idx)
 
         self.checkProcesses()
@@ -570,8 +568,8 @@ class ErrorStackMF(wxFrame, Utils.FrameRestorerMixin):
 
 
 if __name__ == '__main__':
-    app = wxPySimpleApp()
-    wxInitAllImageHandlers()
+    app = wx.PySimpleApp()
+    wx.InitAllImageHandlers()
     frame = ErrorStackMF(None, None)
-    frame.Show(true)
+    frame.Show(True)
     app.MainLoop()

@@ -28,7 +28,8 @@ import Preferences, Utils, Plugins
 from Preferences import IS
 import PaletteStore
 
-from wxPython.wx import *
+# keep until 2.5 upgrade complete
+#from wxPython.wx import *
 
 import wx
 
@@ -71,7 +72,7 @@ if Preferences.csWxPythonSupport:
     import Models.wxPythonControllers
 
 if Preferences.csPythonSupport and not Preferences.csWxPythonSupport:
-    # useful hack to alias wxApp modules to PyApp modules when wxPython support
+    # useful hack to alias wx.App modules to PyApp modules when wxPython support
     # is not loaded
     from Models.PythonEditorModels import PyAppModel
     EditorHelper.modelReg['App'] = PyAppModel
@@ -114,13 +115,13 @@ if Preferences.pluginPaths:
             fails[filename] = ('Skipped', msg)
         except Plugins.SkipPlugin, msg:
             fails[filename] = ('Skipped', msg)
-            wxLogWarning('Plugin skipped: %s, %s'%(pluginBasename, msg))
+            wx.LogWarning('Plugin skipped: %s, %s'%(pluginBasename, msg))
         except Exception, error:
             fails[filename] = ('Error', str(error))
             if Preferences.pluginErrorHandling == 'raise':
                 raise
             elif Preferences.pluginErrorHandling == 'report':
-                wxLogError('Problem executing plug-in %s:\n%s' %\
+                wx.LogError('Problem executing plug-in %s:\n%s' %\
                     (pluginBasename, str(error)) )
             # else ignore
 
@@ -131,8 +132,6 @@ dialogPalette = PaletteStore.dialogPalette
 zopePalette = PaletteStore.zopePalette
 helperClasses = PaletteStore.helperClasses
 compInfo = PaletteStore.compInfo
-
-import wx
 
 _NB = None
 def evalCtrl(expr, localsDct=None):

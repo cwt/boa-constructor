@@ -26,7 +26,8 @@ is configured.
 
 import os, sys, shutil
 
-from wxPython import wx
+import wx
+#from wxPython.wx import *
 
 #---Paths-----------------------------------------------------------------------
 
@@ -89,19 +90,19 @@ if not os.path.isdir(rcPath):
     rcPath = os.path.join(pyPath, 'Config')
 
 # no editors for these settings yet, can be redefined in prefs.rc.py if needed
-# e.g. wx.wxFont(10, wx.wxDEFAULT, wx.wxNORMAL, wx.wxNORMAL, 0, 'Courier New')
-eoErrOutFont = wx.wxNORMAL_FONT
+# e.g. wx.Font(10, wx.DEFAULT, wx.NORMAL, wx.NORMAL, 0, 'Courier New')
+eoErrOutFont = wx.NORMAL_FONT
 
 
 wxPlatforms = {'__WXMSW__': 'msw',
                '__WXGTK__': 'gtk',
                '__WXMAC__': 'mac'}
-thisPlatform = wxPlatforms[wx.wxPlatform]
+thisPlatform = wxPlatforms[wx.Platform]
 
 # upgrade if needed and exec in our namespace
-for prefsFile, version in (('prefs.rc.py', 14),
-                           ('prefs.%s.rc.py'%thisPlatform, 8),
-                           ('prefs.keys.rc.py', 9),
+for prefsFile, version in (('prefs.rc.py', 15),
+                           ('prefs.%s.rc.py'%thisPlatform, 9),
+                           ('prefs.keys.rc.py', 10),
                            ('prefs.plug-ins.rc.py', None)):
     file = os.path.join(rcPath, prefsFile)
 
@@ -188,9 +189,9 @@ def initScreenVars():
     global edWidth, inspWidth, paletteHeight, bottomHeight, underPalette
     global oglBoldFont, oglStdFont 
     
-    screenWidth = wx.wxSystemSettings_GetSystemMetric(wx.wxSYS_SCREEN_X)
-    screenHeight = wx.wxSystemSettings_GetSystemMetric(wx.wxSYS_SCREEN_Y)
-    if wx.wxPlatform == '__WXMSW__':
+    screenWidth = wx.SystemSettings.GetMetric(wx.SYS_SCREEN_X)
+    screenHeight = wx.SystemSettings.GetMetric(wx.SYS_SCREEN_Y)
+    if wx.Platform == '__WXMSW__':
         _x, _y, screenWidth, screenHeight = wxGetClientDisplayRect()
         screenHeight -= topMenuHeight
     else:
@@ -201,9 +202,9 @@ def initScreenVars():
         screenWidth = int(screenWidth - verticalTaskbarWidth)
         screenHeight = int(screenHeight - horizontalTaskbarHeight - topMenuHeight)
     
-    if wx.wxPlatform == '__WXMSW__':
-        wxDefaultFramePos = wx.wxDefaultPosition
-        wxDefaultFrameSize = wx.wxDefaultSize
+    if wx.Platform == '__WXMSW__':
+        wxDefaultFramePos = wx.DefaultPosition
+        wxDefaultFrameSize = wx.DefaultSize
     else:
         wxDefaultFramePos = (screenWidth / 4, screenHeight / 4)
         wxDefaultFrameSize = (int(round(screenWidth / 1.5)), int(round(screenHeight / 1.5)))
@@ -214,12 +215,12 @@ def initScreenVars():
     bottomHeight = screenHeight - paletteHeight
     underPalette = paletteHeight + windowManagerTop + windowManagerBottom + topMenuHeight
 
-    if wxPlatform == '__WXMSW__':
-        oglBoldFont = wxFont(7, wxDEFAULT, wxNORMAL, wxBOLD, false)
-        oglStdFont = wxFont(7, wxDEFAULT, wxNORMAL, wxNORMAL, false)
+    if wx.Platform == '__WXMSW__':
+        oglBoldFont = wx.Font(7, wx.DEFAULT, wx.NORMAL, wx.BOLD, False)
+        oglStdFont = wx.Font(7, wx.DEFAULT, wx.NORMAL, wx.NORMAL, False)
     else:
-        oglBoldFont = wxFont(12, wxDEFAULT, wxNORMAL, wxBOLD, false)
-        oglStdFont = wxFont(10, wxDEFAULT, wxNORMAL, wxNORMAL, false)
+        oglBoldFont = wx.Font(12, wx.DEFAULT, wx.NORMAL, wx.BOLD, False)
+        oglStdFont = wx.Font(10, wx.DEFAULT, wx.NORMAL, wx.NORMAL, False)
 
 
 paletteTitle = 'Boa Constructor'
@@ -232,16 +233,16 @@ paletteTitle = 'Boa Constructor'
 
 def cleanup():
     IS.cleanup()
-    g = globals()
-    cleanWxClasses = (wxColourPtr, wxPointPtr, wxSizePtr, wxFontPtr,
-                      wxPenPtr, wxBrushPtr, wxPen, wxBrush)
-    for k, v in g.items():
-        if hasattr(wx, k):
-            continue
-        for Class in cleanWxClasses:
-            if isinstance(v, Class):
-                g[k] = None
-                break
+##    g = globals()
+##    cleanWxClasses = (wxColourPtr, wxPointPtr, wxSizePtr, wxFontPtr,
+##                      wxPenPtr, wxBrushPtr, wxPen, wxBrush)
+##    for k, v in g.items():
+##        if hasattr(wx, k):
+##            continue
+##        for Class in cleanWxClasses:
+##            if isinstance(v, Class):
+##                g[k] = None
+##                break
 
     import PaletteMapping
     PaletteMapping._NB = None

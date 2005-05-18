@@ -120,6 +120,16 @@ class CodeBlock:
     def size(self):
         return self.end - self.start
 
+    def getparams(self):
+        self.params = {}
+        for fld in methodparse.safesplitfields(self.sig, ','):
+            kv = fld.split('=', 1)
+            if len(kv) == 1:
+                self.params[kv] = None
+            else:
+                self.params[kv[0]] = kv[1]
+        return self.params
+
     def localnames(self):
         locls=self.locals.keys()
         return [name for name in [fld.split('=')[0] 
@@ -912,10 +922,10 @@ class Module:
                 raise ModuleParseError, 'Import statement invalid: %s'%impStmt
 
         if impLine:
-            # Add it beneath from wxPython.wx import *
+            # Add it beneath import wx
             if self.imports.has_key('wx'):
                 insLine = self.imports['wx'][0]
-                # Component imports are in a block with the wxPython.wx import
+                # Component imports are in a block with the wx import
                 if not resourceImport:
                     self.source.insert(insLine, impLine)
                     self.renumber(1, insLine) 

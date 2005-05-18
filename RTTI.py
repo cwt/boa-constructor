@@ -13,7 +13,7 @@
 import sys
 
 from types import *
-from wxPython.wx import *
+import wx
 
 def sort_proxy(self, other):
     return self < other and -1 or self > other and 1 or 0
@@ -80,7 +80,7 @@ class PropertyWrapper:
         elif self.routeType == 'IdRoute' and self.ctrl and self.compn:
             self.setter(self.ctrl, self.compn.getDesignTimeWinId(), value)
         elif self.routeType == 'ReApplyRoute' and self.compn and len(params):
-            apply(self.setter, [self.ctrl], params)
+            self.setter(*[self.ctrl], **params)
         elif self.routeType == 'NameRoute':
             return self.setter(self.name, value)
 
@@ -129,7 +129,7 @@ def getPropList(obj, cmp):
     propLst = []
     constrLst = []
     #           2.4                          2.5
-    if obj and (type(obj) is InstanceType or isinstance(obj, wxObject)):
+    if obj and (type(obj) is InstanceType or isinstance(obj, wx.Object)):
         traverseAndBuildProps(props, cmp.vetoedMethods(), obj, obj.__class__)
 
         # populate property list
@@ -225,9 +225,9 @@ def traverseAndBuildProps(props, vetoes, obj, Class):
         traverseAndBuildProps(props, vetoes, obj, Cls)
 
 if __name__ == '__main__':
-    wxPySimpleApp()
-    f = wxFrame(None, -1, 'asd')
-    c = wxComboBox(f, -1)
+    wx.PySimpleApp()
+    f = wx.Frame(None, -1, 'asd')
+    c = wx.ComboBox(f, -1)
     props = {'Properties': {}, 'Built-ins': {}, 'Methods': {}}
     traverseAndBuildProps(props, [], c, c.__class__)
     import pprint

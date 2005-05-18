@@ -11,7 +11,7 @@
 #-----------------------------------------------------------------------------
 import os, re
 
-from wxPython.wx import *
+import wx
 
 from FindResults import FindResults
 import Utils
@@ -78,7 +78,7 @@ class FindReplaceEngine:
         self.addFind(pattern)
         start = view.GetSelection()[not self.reverse]
         if self.selection:
-            result = self._find(apply(view.GetTextRange, region), pattern, start, region[0])
+            result = self._find(view.GetTextRange(*region), pattern, start, region[0])
         else:
             result = self._find(view.GetText(), pattern, start, 0)
         if result is None:
@@ -90,7 +90,7 @@ class FindReplaceEngine:
             view.model.editor.setStatus('Search wrapped', 'Warning', ringBell=1)
 
         view.SetSelection(result[0], result[1])
-        
+
         view.EnsureVisible(view.LineFromPosition(result[0]))
 
     def findNextInSource(self, view):
@@ -111,7 +111,7 @@ class FindReplaceEngine:
         region = self.getRegion(view)
         self.addFind(pattern)
         if self.selection:
-            results = self._findAllInSource(apply(view.GetTextRange, region), pattern, region[0])
+            results = self._findAllInSource(view.GetTextRange(*region), pattern, region[0])
         else:
             results = self._findAllInSource(view.GetText(), pattern, 0)
         name = 'Results: ' + pattern
@@ -142,7 +142,7 @@ class FindReplaceEngine:
         if self._find(selText, pattern, 0, 0) is not None: # XXX make more specific
             start = selRange[self.reverse]
             if self.selection:
-                result = self._find(apply(view.GetTextRange, region), pattern, start, region[0])
+                result = self._find(view.GetTextRange(*region), pattern, start, region[0])
             else:
                 result = self._find(view.GetText(), pattern, start, 0)
             if result is None:
@@ -168,7 +168,7 @@ class FindReplaceEngine:
         # the indices getting messed up.
         self.reverse, oldReverse = 1, self.reverse
         if self.selection:
-            results = self._findAll(apply(view.GetTextRange, region), pattern, region[0], region[0])
+            results = self._findAll(view.GetTextRange(*region), pattern, region[0], region[0])
         else:
             results = self._findAll(view.GetText(), pattern, 0, 0)
         self.reverse = oldReverse
@@ -188,8 +188,7 @@ class FindReplaceEngine:
         names = []
         packages = [os.path.dirname(view.model.assertLocalFile())]
         for base in packages:
-            for p in map(lambda n, base=base: os.path.join(base, n), os.listdir(base)):
-            #for p in [os.path.join(base, n) for n in os.listdir(base)]: #1.5.2 support
+            for p in [os.path.join(base, n) for n in os.listdir(base)]: 
                 if os.path.isfile(p) and os.path.splitext(p)[1] in self.suffixes:
                     names.append(p)
                 elif os.path.isdir(p) and os.path.isfile(os.path.join(base, "__init__.py")):
@@ -201,11 +200,11 @@ class FindReplaceEngine:
         self.addFind(pattern)
         results = {}
         # Setup progress dialog
-        dlg = wxProgressDialog("Finding '%s' in files" % pattern,
+        dlg = wx.ProgressDialog("Finding '%s' in files" % pattern,
                            'Searching...',
                             len(names),
                             view,
-                            wxPD_CAN_ABORT | wxPD_APP_MODAL | wxPD_AUTO_HIDE)
+                            wx.PD_CAN_ABORT | wx.PD_APP_MODAL | wx.PD_AUTO_HIDE)
         try:
 
             for i in range(len(names)):
@@ -308,7 +307,7 @@ class FindReplaceEngine:
         protsplit = filename.split('://')
         if len(protsplit) > 1:
             if protsplit[0] != 'file' or len(protsplit) > 2:
-                wxLogWarning('%s not searched, only local files allowed'%filename)
+                wx.LogWarning('%s not searched, only local files allowed'%filename)
                 return ''
             return protsplit[1]
         return filename

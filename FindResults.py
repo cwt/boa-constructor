@@ -13,7 +13,7 @@
 
 import os
 
-from wxPython.wx import *
+import wx
 
 from Views.EditorViews import ListCtrlView, CloseableViewMix
 from Preferences import keyDefs
@@ -24,34 +24,34 @@ class FindResults(ListCtrlView, CloseableViewMix):
 
     def __init__(self, parent, model):
         CloseableViewMix.__init__(self, 'find results')
-        ListCtrlView.__init__(self, parent, model, wxLC_REPORT,
+        ListCtrlView.__init__(self, parent, model, wx.LC_REPORT,
           ( ('Goto match', self.OnGoto, self.gotoLineBmp, ()),
             ('Re-run query', self.OnRerun, '-', 'Refresh')
           ) + self.closingActionItems, 0)
 
         self.InsertColumn(0, 'Module', width = 100)
-        self.InsertColumn(1, 'Line no', wxLIST_FORMAT_CENTRE, 40)
-        self.InsertColumn(2, 'Col', wxLIST_FORMAT_CENTRE, 40)
+        self.InsertColumn(1, 'Line no', wx.LIST_FORMAT_CENTRE, 40)
+        self.InsertColumn(2, 'Col', wx.LIST_FORMAT_CENTRE, 40)
         self.InsertColumn(3, 'Text', width = 550)
 
         self.results = {}
         self.listResultIdxs = []
         self.tabName = 'Results'
         self.findPattern = ''
-        self.active = true
+        self.active = True
         self.model = model
         self.rerunCallback = None
         self.rerunParams = ()
 
-        #EVT_IDLE(self, self.OnIdle)
+        #self.Bind(wx.EVT_IDLE, self.OnIdle)
         #self.doRefresh = 0
 
 ##    def _refresh(self):
 ##        self.refreshCtrl()
-##        self.modified = false
+##        self.modified = False
 
     def refreshCtrl(self):
-        wxBeginBusyCursor()
+        wx.BeginBusyCursor()
         try:
             ListCtrlView.refreshCtrl(self)
             i = 0
@@ -65,7 +65,7 @@ class FindResults(ListCtrlView, CloseableViewMix):
             self.model.editor.statusBar.setHint('%d matches of "%s".'%(i, self.findPattern))
             self.pastelise()
         finally:
-            wxEndBusyCursor()
+            wx.EndBusyCursor()
 
     def refresh(self):
         self.refreshCtrl()
@@ -98,4 +98,4 @@ class FindResults(ListCtrlView, CloseableViewMix):
 
     def OnRerun(self, event):
         if self.rerunCallback:
-            apply(self.rerunCallback, self.rerunParams)
+            self.rerunCallback(*self.rerunParams)

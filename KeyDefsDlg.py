@@ -4,7 +4,7 @@
 
 import string
 
-import wx, wxPython.wx
+import wx
 
 import Preferences, Utils
 
@@ -31,19 +31,19 @@ class KeyDefsDialog(wx.Dialog):
               size=wx.Size(136, 96), style=0)
 
         self.ctrlFlagChb = wx.CheckBox(id=wxID_KEYDEFSDIALOGCTRLFLAGCHB,
-              label='wxACCEL_CTRL', name='ctrlFlagChb', parent=self,
+              label='wx.ACCEL_CTRL', name='ctrlFlagChb', parent=self,
               pos=wx.Point(16, 24), size=wx.Size(120, 19), style=0)
         self.ctrlFlagChb.Bind(wx.EVT_CHECKBOX, self.OnUpdateShortcut,
               id=wxID_KEYDEFSDIALOGCTRLFLAGCHB)
 
         self.altFlagChb = wx.CheckBox(id=wxID_KEYDEFSDIALOGALTFLAGCHB,
-              label='wxACCEL_ALT', name='altFlagChb', parent=self,
+              label='wx.ACCEL_ALT', name='altFlagChb', parent=self,
               pos=wx.Point(16, 48), size=wx.Size(120, 19), style=0)
         self.altFlagChb.Bind(wx.EVT_CHECKBOX, self.OnUpdateShortcut,
               id=wxID_KEYDEFSDIALOGALTFLAGCHB)
 
         self.shiftFlagChb = wx.CheckBox(id=wxID_KEYDEFSDIALOGSHIFTFLAGCHB,
-              label='wxACCEL_SHIFT', name='shiftFlagChb', parent=self,
+              label='wx.ACCEL_SHIFT', name='shiftFlagChb', parent=self,
               pos=wx.Point(16, 72), size=wx.Size(120, 19), style=0)
         self.shiftFlagChb.Bind(wx.EVT_CHECKBOX, self.OnUpdateShortcut,
               id=wxID_KEYDEFSDIALOGSHIFTFLAGCHB)
@@ -83,7 +83,7 @@ class KeyDefsDialog(wx.Dialog):
     def __init__(self, parent, entryName, accelEntry):
         #possibly raise exception for invalid format before creating the dialog
         # XXX fix when 2.5 is used for resource config values
-        flags, keyCode, shortcut = eval(accelEntry, wxPython.wx.__dict__)[0]
+        flags, keyCode, shortcut = eval(accelEntry, {'wx': wx})[0]
 
         self.preDefKeys = []
         self.preDefKeys = specialKeys.keys() + otherKeys1 + otherKeys2
@@ -117,7 +117,7 @@ class KeyDefsDialog(wx.Dialog):
         if flags:
             flags = ' | '.join(flags)
         else:
-            flags = 'wxACCEL_NORMAL'
+            flags = 'wx.ACCEL_NORMAL'
 
         keyCode = self.keyCodeCbb.GetValue()
         if not keyCode:
@@ -164,32 +164,37 @@ class KeyDefsDialog(wx.Dialog):
 
 
 def printableKeyCode(keyCode):
-    if len(keyCode) >=5 and keyCode[:4] == 'WXK_':
-        return keyCode[4:].capitalize()
+    if len(keyCode) >=8 and keyCode[:7] == 'wx.WXK_':
+        return keyCode[7:].capitalize()
     else:
         return keyCode.upper()
 
-flagValNames = {wx.ACCEL_CTRL:  ('wxACCEL_CTRL', 'Ctrl'),
-                wx.ACCEL_ALT:   ('wxACCEL_ALT', 'Alt'),
-                wx.ACCEL_SHIFT: ('wxACCEL_SHIFT', 'Shift')}
+flagValNames = {wx.ACCEL_CTRL:  ('wx.ACCEL_CTRL', 'Ctrl'),
+                wx.ACCEL_ALT:   ('wx.ACCEL_ALT', 'Alt'),
+                wx.ACCEL_SHIFT: ('wx.ACCEL_SHIFT', 'Shift')}
 
-specialKeys = {'WXK_BACK': 8, 'WXK_TAB': 9, 'WXK_RETURN': 13, 'WXK_ESCAPE': 27,
-               'WXK_SPACE': 32, 'WXK_DELETE': 127}
+specialKeys = {'wx.WXK_BACK': 8, 'wx.WXK_TAB': 9, 'wx.WXK_RETURN': 13, 
+               'wx.WXK_ESCAPE': 27, 'wx.WXK_SPACE': 32, 'wx.WXK_DELETE': 127}
 # values 300+
-otherKeys1 = ['WXK_START', 'WXK_LBUTTON', 'WXK_RBUTTON', 'WXK_CANCEL', 'WXK_MBUTTON',
- 'WXK_CLEAR', 'WXK_SHIFT']
+otherKeys1 = ['wx.WXK_START', 'wx.WXK_LBUTTON', 'wx.WXK_RBUTTON',
+     'wx.WXK_CANCEL', 'wx.WXK_MBUTTON', 'wx.WXK_CLEAR', 'wx.WXK_SHIFT']
 # values 308+
-otherKeys2 = ['WXK_CONTROL', 'WXK_MENU', 'WXK_PAUSE', 'WXK_CAPITAL',
- 'WXK_PRIOR', 'WXK_NEXT', 'WXK_END', 'WXK_HOME', 'WXK_LEFT', 'WXK_UP', 'WXK_RIGHT',
- 'WXK_DOWN', 'WXK_SELECT', 'WXK_PRINT', 'WXK_EXECUTE', 'WXK_SNAPSHOT', 'WXK_INSERT',
- 'WXK_HELP', 'WXK_NUMPAD0', 'WXK_NUMPAD1', 'WXK_NUMPAD2', 'WXK_NUMPAD3', 'WXK_NUMPAD4',
- 'WXK_NUMPAD5', 'WXK_NUMPAD6', 'WXK_NUMPAD7', 'WXK_NUMPAD8', 'WXK_NUMPAD9',
- 'WXK_MULTIPLY', 'WXK_ADD', 'WXK_SEPARATOR', 'WXK_SUBTRACT', 'WXK_DECIMAL',
- 'WXK_DIVIDE', 'WXK_F1', 'WXK_F2', 'WXK_F3', 'WXK_F4', 'WXK_F5', 'WXK_F6',
- 'WXK_F7', 'WXK_F8', 'WXK_F9', 'WXK_F10', 'WXK_F11', 'WXK_F12', 'WXK_F13',
- 'WXK_F14', 'WXK_F15', 'WXK_F16', 'WXK_F17', 'WXK_F18', 'WXK_F19', 'WXK_F20',
- 'WXK_F21', 'WXK_F22', 'WXK_F23', 'WXK_F24', 'WXK_NUMLOCK', 'WXK_SCROLL',
- 'WXK_PAGEUP', 'WXK_PAGEDOWN', ]
+otherKeys2 = ['wx.WXK_CONTROL', 'wx.WXK_MENU', 'wx.WXK_PAUSE',
+     'wx.WXK_CAPITAL', 'wx.WXK_PRIOR', 'wx.WXK_NEXT', 'wx.WXK_END',
+     'wx.WXK_HOME', 'wx.WXK_LEFT', 'wx.WXK_UP', 'wx.WXK_RIGHT',
+     'wx.WXK_DOWN', 'wx.WXK_SELECT', 'wx.WXK_PRINT', 'wx.WXK_EXECUTE',
+     'wx.WXK_SNAPSHOT', 'wx.WXK_INSERT', 'wx.WXK_HELP', 'wx.WXK_NUMPAD0',
+     'wx.WXK_NUMPAD1', 'wx.WXK_NUMPAD2', 'wx.WXK_NUMPAD3',
+     'wx.WXK_NUMPAD4', 'wx.WXK_NUMPAD5', 'wx.WXK_NUMPAD6',
+     'wx.WXK_NUMPAD7', 'wx.WXK_NUMPAD8', 'wx.WXK_NUMPAD9',
+     'wx.WXK_MULTIPLY', 'wx.WXK_ADD', 'wx.WXK_SEPARATOR',
+     'wx.WXK_SUBTRACT', 'wx.WXK_DECIMAL', 'wx.WXK_DIVIDE', 'wx.WXK_F1',
+     'wx.WXK_F2', 'wx.WXK_F3', 'wx.WXK_F4', 'wx.WXK_F5', 'wx.WXK_F6',
+     'wx.WXK_F7', 'wx.WXK_F8', 'wx.WXK_F9', 'wx.WXK_F10', 'wx.WXK_F11',
+     'wx.WXK_F12', 'wx.WXK_F13', 'wx.WXK_F14', 'wx.WXK_F15', 'wx.WXK_F16',
+     'wx.WXK_F17', 'wx.WXK_F18', 'wx.WXK_F19', 'wx.WXK_F20', 'wx.WXK_F21',
+     'wx.WXK_F22', 'wx.WXK_F23', 'wx.WXK_F24', 'wx.WXK_NUMLOCK',
+     'wx.WXK_SCROLL', 'wx.WXK_PAGEUP', 'wx.WXK_PAGEDOWN', ]
 
 # build reverse mapping
 valNameMap = {}
@@ -208,7 +213,7 @@ for name in otherKeys2:
 
 if __name__ == '__main__':
     app =wx.PySimpleApp()
-    dlg = KeyDefsDialog(None, 'ContextHelp', "(wxACCEL_NORMAL, WXK_F1, 'F1'),")
+    dlg = KeyDefsDialog(None, 'ContextHelp', "(wx.ACCEL_NORMAL, wx.WXK_F1, 'F1'),")
     try:
         if dlg.ShowModal() == wx.ID_OK:
             print dlg.result

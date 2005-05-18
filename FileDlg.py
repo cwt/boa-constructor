@@ -83,8 +83,7 @@ class wxBoaFileDialog(wx.Dialog, Utils.FrameRestorerMixin):
 
         self.chTypes = wx.Choice(choices=self.filterOpts,
               id=wxID_WXBOAFILEDIALOGCHTYPES, name='chTypes', parent=self,
-              pos=wx.Point(96, 216), size=wx.Size(208, 21), style=0,
-              validator=wx.DefaultValidator)
+              pos=wx.Point(96, 216), size=wx.Size(208, 21), style=0)
         self.chTypes.SetConstraints(LayoutAnchors(self.chTypes, True, False,
               True, True))
         self.chTypes.Bind(wx.EVT_CHOICE, self.OnChtypesChoice,

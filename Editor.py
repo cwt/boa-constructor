@@ -686,7 +686,7 @@ class EditorFrame(wx.Frame, Utils.FrameRestorerMixin):
 
     def getController(self, Controller, *args):
         if not self.controllers.has_key(Controller):
-            self.controllers[Controller] = apply(Controller, (self,) + args)
+            self.controllers[Controller] = Controller(*((self,) + args))
 
         return self.controllers[Controller]
 
@@ -1151,8 +1151,10 @@ class EditorFrame(wx.Frame, Utils.FrameRestorerMixin):
         if page.__class__.__name__ != 'Notebook':
             page = page.GetChildren()[0]
 
-        view = page.GetPage(page.GetSelection())
-        view.SetFocus()
+        sel = page.GetSelection()
+        if sel >= 0:
+            view = page.GetPage(sel)
+            view.SetFocus()
 
 #---Help events-----------------------------------------------------------------
     def OnHelp(self, event):
@@ -1190,7 +1192,7 @@ class EditorFrame(wx.Frame, Utils.FrameRestorerMixin):
             evtId = event.GetId()
         mod = self.getActiveModulePage()
         if mod:
-            modVwClss = map(lambda x: x.__class__, mod.model.views.values())
+            modVwClss = [v.__class__ for v in mod.model.views.values()]
             #Find view class associated with this id
             for viewCls, wId in mod.adtViews:
                 if wId == evtId:

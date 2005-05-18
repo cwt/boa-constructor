@@ -81,6 +81,6 @@ def relpath(base, comp):
     for cnt in range(max(len(base_path_list) - idx + found, 0)):
         rel_path.insert(0, os.pardir)
 
-    return apply(os.path.join, rel_path)
+    return os.path.join(*rel_path)
 
 #print relpath(b, d)

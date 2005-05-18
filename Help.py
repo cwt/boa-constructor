@@ -15,7 +15,6 @@ import os, sys, marshal, string, socket, webbrowser
 
 import wx
 import wx.html
-#from wxPython.htmlhelp import *
 from wx.lib.anchors import LayoutAnchors
 
 import Preferences, Utils
@@ -50,7 +49,7 @@ class PyDocHelpPage(wx.Panel):
 
         self.boxResults =wx.ListBox(choices=[], id=wxID_PYDOCHELPPAGEBOXRESULTS,
               name='boxResults', parent=self, pos=wx.Point(2, 89),
-              size=wx.Size(247, 338), style=0, validator=wx.DefaultValidator)
+              size=wx.Size(247, 338), style=0)
         self.boxResults.SetConstraints(LayoutAnchors(self.boxResults, True,
               True, True, True))
         self.boxResults.Bind(wx.EVT_LISTBOX, self.OnBoxresultsListboxDclick, id=wxID_PYDOCHELPPAGEBOXRESULTS)
@@ -268,8 +267,8 @@ def showHelp(filename):
 
 def showContextHelp(word):
     if word.startswith('EVT_'):
-        word = 'wx%sEvent' % string.join(map(lambda s: string.capitalize(string.lower(s)),
-                                string.split(word[4:], '_')), '')
+        word = 'wx%sEvent' % ''.join([s.lower().capitalize() 
+                                      for s in word[4:].split('_')])
     elif word in sys.builtin_module_names:
         word = '%s (built-in module)'%word
     else:
@@ -503,16 +502,21 @@ def getCacheDir():
 # needed for .htb files
 wx.FileSystem.AddHandler(wx.ZipFSHandler())
 
+use_standard_controller = False
 def initHelp(calledAtStartup=False):
     jn = os.path.join
     docsDir = jn(Preferences.pyPath, 'Docs')
 
     global _hc
-    _hc = wxHtmlHelpControllerEx(wxHF_ICONS_BOOK_CHAPTER | \
-        wxHF_DEFAULT_STYLE | (Preferences.flatTools and wxHF_FLAT_TOOLBAR or 0))
-    cf = wx.FileConfig(localFilename=os.path.normpath(jn(Preferences.rcPath,
-        'helpfrm.cfg')), style=wx.CONFIG_USE_LOCAL_FILE)
-    _hc.UseConfig(cf)
+    if use_standard_controller:
+        _hc = wx.html.HtmlHelpController(wxHF_ICONS_BOOK_CHAPTER | \
+            wxHF_DEFAULT_STYLE | (Preferences.flatTools and wxHF_FLAT_TOOLBAR or 0))
+    else:
+        _hc = wxHtmlHelpControllerEx(wxHF_ICONS_BOOK_CHAPTER | \
+            wxHF_DEFAULT_STYLE | (Preferences.flatTools and wxHF_FLAT_TOOLBAR or 0))
+        cf = wx.FileConfig(localFilename=os.path.normpath(jn(Preferences.rcPath,
+            'helpfrm.cfg')), style=wx.CONFIG_USE_LOCAL_FILE)
+        _hc.UseConfig(cf)
 
     cacheDir = getCacheDir()
     _hc.SetTempDir(cacheDir)
@@ -562,15 +566,19 @@ def testPydocServerAddress(host, port):
 def delHelp():
     global _hc
     if _hc:
-        _hc.config.Flush()
-        if hasattr(_hc, 'server') and _hc.server and not _hc.server.quit:
-            _hc.server.quit = 1
-            _hc.server.server_close()
-
-        f = _hc.GetFrame()
-        if f:
-            f.PopEventHandler().Destroy()
-            f.Destroy()
+        try:
+            _hc.config.Flush()
+        except AttributeError:
+            pass
+        else:
+            if hasattr(_hc, 'server') and _hc.server and not _hc.server.quit:
+                _hc.server.quit = 1
+                _hc.server.server_close()
+    
+            f = _hc.GetFrame()
+            if f:
+                f.PopEventHandler().Destroy()
+                f.Destroy()
         _hc.Destroy()
         _hc = None
 

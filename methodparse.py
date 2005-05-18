@@ -57,7 +57,6 @@ class frame1(wxFrame):
         self._init_ctrls()
 """
 
-#from string import strip, split, join, find, rfind, upper, replace
 import re, string
 
 import Preferences, Utils
@@ -65,11 +64,9 @@ from Companions import EventCollections
 
 import sourceconst
 
-true,false=1,0
-
 containers = [('(', ')'), ('{', '}'), ('[', ']')]
-containBegin = map(lambda d: d[0], containers)
-containEnd = map(lambda d: d[1], containers)
+containBegin = [_c[0] for _c in containers]
+containEnd = [_c[1] for _c in containers]
 
 def incLevel(level, pos):
     return level + 1, pos + 1
@@ -465,7 +462,7 @@ class CollectionInitParse(PerLineParser):
             self.comp_name = new_value
             self.method = '%s%s_%s'%(coll_init, new_value, self.prop_name)
 
-    def asText(self, stripFrameWinIdPrefix=false):
+    def asText(self, stripFrameWinIdPrefix=False):
         return 'self.%s(%s)' %(self.method,
              ', '.join([Utils.srcRefFromCtrlName(self.comp_name)]+self.params))
 
@@ -677,7 +674,7 @@ def testRename():
     cp2 = ConstructorParse(cp.asText('wx.Frame1'))
     cp2.prependFrameWinId('wx.Frame2')
     print cp2.asText()
-    ciip = CollectionItemInitParse("parent.Append(checkable = false, helpString = '', id = wxID_WXFRAME1MENU1ITEMS0, item = 'Items0')")
+    ciip = CollectionItemInitParse("parent.Append(checkable = False, helpString = '', id = wxID_WXFRAME1MENU1ITEMS0, item = 'Items0')")
     print ciip.asText('wx.Frame1')
     ciip2 = CollectionItemInitParse(ciip.asText('wx.Frame1'))
     ciip2.prependFrameWinId('wx.Frame2')

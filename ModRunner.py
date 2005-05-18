@@ -14,7 +14,7 @@ import string, traceback
 import os, sys
 from cStringIO import StringIO
 
-from wxPython.wx import *
+import wx
 
 import Preferences, Utils
 
@@ -35,7 +35,7 @@ class ModuleRunner:
 
     def recheck(self):
         if self.results:
-            return apply(self.checkError, (), self.results)
+            return self.checkError(**self.results)
 
     def checkError(self, err, caption, out=None, root='Error', errRaw=()):
         if self.esf:
@@ -98,16 +98,16 @@ class CompileModuleRunner(ModuleRunner):
         ##            py_compile.compile(filename)
 
 class ExecuteModuleRunner(ModuleRunner):
-    """ Uses wxPython's wxExecute, no redirection """
+    """ Uses wxPython's wx.Execute, no redirection """
     def run(self, cmd):
-        wxExecute(cmd, true)
+        wx.Execute(cmd, True)
 
 class ProcessModuleRunner(ModuleRunner):
-    """ Uses wxPython's wxProcess, output and errors are redirected and displayed
+    """ Uses wxPython's wx.Process, output and errors are redirected and displayed
         in a frame. A cancelable dialog displays while the process executes
         This currently only works for non GUI processes """
     def run(self, cmd, Parser=ErrorStack.StdErrErrorParser,
-            caption='Execute module', root='Error', autoClose=false):
+            caption='Execute module', root='Error', autoClose=False):
         import ProcessProgressDlg
         dlg = ProcessProgressDlg.ProcessProgressDlg(None, cmd, caption,
               autoClose=autoClose)
@@ -125,17 +125,17 @@ class wxPopenModuleRunner(ModuleRunner):
         out=[]
         def outputFunc(val):
             out.append(val)
-        
+
         err = []
         def errorsFunc(val):
             err.append(val)
-        
+
         def finFunc():
             errors = StringIO(''.join(err)).readlines()
             output = StringIO(''.join(out)).readlines()
-            
+
             serr = ErrorStack.buildErrorList(errors)
-    
+
             if serr or output:
                 self.checkError(serr, 'Ran', output, errRaw=errors)
 
@@ -144,9 +144,9 @@ class wxPopenModuleRunner(ModuleRunner):
 
         import wxPopen
         self.proc = wxPopen.wxPopen3(cmd, inpLines, outputFunc, errorsFunc, finFunc, self.esf)
-        
+
         self.pid = self.proc.pid
-        
+
 
 class PopenModuleRunner(ModuleRunner):
     """ Uses Python's popen2, output and errors are redirected and displayed
@@ -156,7 +156,7 @@ class PopenModuleRunner(ModuleRunner):
         inp, outp, errp = os.popen3(cmd)
         pid = 0 # XXX only available on unix :(
         if execStart:
-            wxCallAfter(execStart, pid)
+            wx.CallAfter(execStart, pid)
         out = []
         while 1:
             if inpLines:
@@ -176,13 +176,12 @@ class PopenModuleRunner(ModuleRunner):
 
 PreferredRunner = PopenModuleRunner
 
-wxEVT_EXEC_FINISH = wxNewId()
+wxEVT_EXEC_FINISH = wx.NewId()
 
-def EVT_EXEC_FINISH(win, func):
-    win.Connect(-1, -1, wxEVT_EXEC_FINISH, func)
+EVT_EXEC_FINISH = wx.PyEventBinder(wxEVT_EXEC_FINISH)
 
-class ExecFinishEvent(wxPyEvent):
+class ExecFinishEvent(wx.PyEvent):
     def __init__(self, runner):
-        wxPyEvent.__init__(self)
+        wx.PyEvent.__init__(self)
         self.SetEventType(wxEVT_EXEC_FINISH)
         self.runner = runner

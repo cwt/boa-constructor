@@ -1,34 +1,35 @@
 import os, time, threading, socket
 
-from wxPython.wx import *
+import wx
+
 import Preferences, Utils
 
 #-----Toolbar-------------------------------------------------------------------
 
-class MyToolBar(wxToolBar):
+class MyToolBar(wx.ToolBar):
     def __init__(self, *_args, **_kwargs):
-        wxToolBar.__init__(self, _kwargs['parent'], _kwargs['id'],
-          style = wxTB_HORIZONTAL|wxNO_BORDER|Preferences.flatTools)
+        wx.ToolBar.__init__(self, _kwargs['parent'], _kwargs['id'],
+          style=wx.TB_HORIZONTAL | wx.NO_BORDER|Preferences.flatTools)
         self.toolLst = []
         self.toolCount = 0
 
-    def AddTool(self, id, bitmap, toggleBitmap=wxNullBitmap, shortHelpString='', isToggle=false):
-        wxToolBar.AddTool(self, id, bitmap, toggleBitmap, isToggle=isToggle,
+    def AddTool(self, id, bitmap, toggleBitmap=wx.NullBitmap, shortHelpString='', isToggle=False):
+        wx.ToolBar.AddTool(self, id, bitmap, toggleBitmap, isToggle=isToggle,
             shortHelpString=shortHelpString)
 
         self.toolLst.append(id)
         self.toolCount = self.toolCount + 1
 
-    def AddTool2(self, id, bitmapname, shortHelpString='', toggleBitmap=wxNullBitmap, isToggle=false):
+    def AddTool2(self, id, bitmapname, shortHelpString='', toggleBitmap=wx.NullBitmap, isToggle=False):
         self.AddTool(id, Preferences.IS.load(bitmapname), toggleBitmap, shortHelpString, isToggle)
 
     def AddSeparator(self):
-        wxToolBar.AddSeparator(self)
+        wx.ToolBar.AddSeparator(self)
         self.toolLst.append(-1)
         self.toolCount = self.toolCount + 1
 
     def DeleteTool(self, id):
-        wxToolBar.DeleteTool(self, id)
+        wx.ToolBar.DeleteTool(self, id)
         self.toolLst.remove(id)
         self.toolCount = self.toolCount - 1
 
@@ -49,14 +50,14 @@ class MyToolBar(wxToolBar):
         xPos = margins.x
         for tId in self.toolLst:
             if tId == id:
-                return wxPoint(xPos, margins.y + toolSize.y)
+                return wx.Point(xPos, margins.y + toolSize.y)
 
             if tId == -1:
                 xPos = xPos + self.GetToolSeparation()
             else:
                 xPos = xPos + toolSize.x
 
-        return wxPoint(0, 0)
+        return wx.Point(0, 0)
 
     def PopupToolMenu(self, toolId, menu):
         self.PopupMenu(menu, self.GetToolPopupPosition(toolId))
@@ -73,14 +74,14 @@ class EditorToolBar(MyToolBar):
 # fields
 sbfIcon, sbfBrwsBtns, sbfStatus, sbfCrsInfo, sbfProgress = range(5)
 
-class EditorStatusBar(wxStatusBar):
+class EditorStatusBar(wx.StatusBar):
     """ Displays information about the current view. Also global stats/
         progress bar etc. """
     maxHistorySize = 250
     def __init__(self, *_args, **_kwargs):
-        wxStatusBar.__init__(self, _kwargs['parent'], _kwargs['id'], style=wxST_SIZEGRIP)
+        wx.StatusBar.__init__(self, _kwargs['parent'], _kwargs['id'], style=wx.ST_SIZEGRIP)
         self.SetFieldsCount(6)
-        if wxPlatform == '__WXGTK__':
+        if wx.Platform == '__WXGTK__':
             imgWidth = 21
         else:
             imgWidth = 16
@@ -88,18 +89,18 @@ class EditorStatusBar(wxStatusBar):
         self.SetStatusWidths([imgWidth, 36, 400, 25, 150, -1])
 
         rect = self.GetFieldRect(sbfIcon)
-        self.img = wxStaticBitmap(self, -1,
+        self.img = wx.StaticBitmap(self, -1,
             Preferences.IS.load('Images/Shared/BoaLogo.png'),
             (rect.x+1, rect.y+1), (16, 16))
-        EVT_LEFT_DCLICK(self.img, self.OnShowHistory)
+        self.img.Bind(wx.EVT_LEFT_DCLICK, self.OnShowHistory)
 
         rect = self.GetFieldRect(sbfBrwsBtns)
-        #self.historyBtns = wxSpinButton(self, -1, (rect.x+1, rect.y+1),
+        #self.historyBtns = wx.SpinButton(self, -1, (rect.x+1, rect.y+1),
 #                                                  (rect.width-2, rect.height-2))
-        self.historyBtnBack = wxBitmapButton(self, -1, 
+        self.historyBtnBack = wx.BitmapButton(self, -1,
               Preferences.IS.load('Images/Shared/PreviousSmall.png'),
               (rect.x+1, rect.y+1), (rect.width/2-1, rect.height-2))
-        self.historyBtnFwd = wxBitmapButton(self, -1, 
+        self.historyBtnFwd = wx.BitmapButton(self, -1,
               Preferences.IS.load('Images/Shared/NextSmall.png'),
               (rect.x+1+rect.width/2, rect.y+1), (rect.width/2-1, rect.height-2))
 
@@ -107,14 +108,14 @@ class EditorStatusBar(wxStatusBar):
         tip = 'Browse the Traceback/Error/Output window history.'
         self.historyBtnBack.SetToolTipString(tip)
         self.historyBtnFwd.SetToolTipString(tip)
-        #EVT_SPIN_DOWN(self.historyBtns, self.historyBtns.GetId(), self.OnErrOutHistoryBack)
-        #EVT_SPIN_UP(self.historyBtns, self.historyBtns.GetId(), self.OnErrOutHistoryFwd)
-        EVT_BUTTON(self.historyBtnBack, self.historyBtnBack.GetId(), self.OnErrOutHistoryBack)
-        EVT_BUTTON(self.historyBtnFwd, self.historyBtnFwd.GetId(), self.OnErrOutHistoryFwd)
+        #self.historyBtns.Bind(wx.EVT_SPIN_DOWN, self.OnErrOutHistoryBack, id=self.historyBtns.GetId())
+        #self.historyBtns.Bind(wx.EVT_SPIN_UP, self.OnErrOutHistoryFwd, id=self.historyBtns.GetId())
+        self.historyBtnBack.Bind(wx.EVT_BUTTON, self.OnErrOutHistoryBack, id=self.historyBtnBack.GetId())
+        self.historyBtnFwd.Bind(wx.EVT_BUTTON, self.OnErrOutHistoryFwd, id=self.historyBtnFwd.GetId())
 
         self.erroutFrm = None
 
-        self.progress = wxGauge(self, -1, 100)
+        self.progress = wx.Gauge(self, -1, 100)
         self.linkProgressToStatusBar()
 
         self.images = {'Info': Preferences.IS.load('Images/Shared/Info.png'),
@@ -126,7 +127,7 @@ class EditorStatusBar(wxStatusBar):
     def destroy(self):
         self.images = None
 
-    def setHint(self, hint, msgType='Info', ringBell=false):
+    def setHint(self, hint, msgType='Info', ringBell=False):
         """ Show a status message in the statusbar, optionally rings a bell.
 
         msgType can be 'Info', 'Warning' or 'Error'
@@ -136,21 +137,21 @@ class EditorStatusBar(wxStatusBar):
         self._histcnt = self._histcnt - 1
         if hint.strip():
             self.history.append( (msgType, time.strftime('%H:%M:%S',
-              time.gmtime(time.time())), hint, ringBell) )
+              time.localtime(time.time())), hint, ringBell) )
         if len(self.history) > self.maxHistorySize:
             del self.history[0]
 
         self.SetStatusText(hint, sbfStatus)
         self.img.SetToolTipString(hint)
         self.img.SetBitmap(self.images[msgType])
-        if ringBell: wxBell()
+        if ringBell: wx.Bell()
 
     def OnEditorNotification(self, event):
         self.setHint(event.message)
 
-    logDlgs = {'Info': wxLogMessage,
-               'Warning': wxLogWarning,
-               'Error': wxLogError}
+    logDlgs = {'Info': wx.LogMessage,
+               'Warning': wx.LogWarning,
+               'Error': wx.LogError}
     def OnShowHistory(self, event):
         hist = self.history[:]
         hp = HistoryPopup(self.GetParent(), hist, self.images)
@@ -164,7 +165,7 @@ class EditorStatusBar(wxStatusBar):
 
     def OnErrOutHistoryBack(self, event):
         if self.erroutFrm:
-             self.erroutFrm.stepBackInHistory()
+            self.erroutFrm.stepBackInHistory()
 
     def OnErrOutHistoryFwd(self, event):
         if self.erroutFrm:
@@ -172,13 +173,13 @@ class EditorStatusBar(wxStatusBar):
 
 
 def HistoryPopup(parent, hist, imgs):
-    f = wxMiniFrame(parent, -1, 'Editor status history', size = (350, 200))
-    lc = wxListCtrl(f, style=wxLC_REPORT | wxLC_VRULES | wxLC_NO_HEADER)
-    lc.il = wxImageList(16, 16)
+    f = wx.MiniFrame(parent, -1, 'Editor status history', size = (350, 200))
+    lc = wx.ListCtrl(f, style=wx.LC_REPORT | wx.LC_VRULES | wx.LC_NO_HEADER)
+    lc.il = wx.ImageList(16, 16)
     idxs = {}
     for tpe, img in imgs.items():
         idxs[tpe] = lc.il.Add(img)
-    lc.SetImageList(lc.il, wxIMAGE_LIST_SMALL)
+    lc.SetImageList(lc.il, wx.IMAGE_LIST_SMALL)
     lc.InsertColumn(0, 'Time')
     lc.InsertColumn(1, 'Message')
     lc.SetColumnWidth(0, 75)
@@ -188,7 +189,7 @@ def HistoryPopup(parent, hist, imgs):
         lc.SetStringItem(0, 1, msg)
     f.Center()
     f.Show()
-    wxPostEvent(f, wxSizeEvent(f.GetSize()))
+    wx.PostEvent(f, wx.SizeEvent(f.GetSize()))
     return f
 
 
@@ -202,22 +203,22 @@ class ModulePage:
         the model instance. """
     def __init__(self, parent, model, defViews, views, idx, editor):
         self.editor = editor
-        self.defViews = map(lambda x: (x, wxNewId()), defViews)
-        self.adtViews = map(lambda x: (x, wxNewId()), views)
+        self.defViews = [(v, wx.NewId()) for v in defViews]
+        self.adtViews = [(v, wx.NewId()) for v in views]
         self.viewIds = []
         self.model = model
         self.parent = parent
-        self.notebook = wxNotebook(parent, -1, style = wxWANTS_CHARS | wxCLIP_CHILDREN)
-        EVT_NOTEBOOK_PAGE_CHANGED(self.notebook, self.notebook.GetId(), self.OnPageChange)
+        self.notebook = wx.Notebook(parent, -1, style=wx.WANTS_CHARS | wx.CLIP_CHILDREN)
+        self.notebook.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self.OnPageChange, id=self.notebook.GetId())
         self.tIdx = idx
         self.updatePageName()
 
-        self.windowId = wxNewId()
+        self.windowId = wx.NewId()
         self.editor.winMenu.Append(self.windowId, self.getMenuLabel(),
               'Switch to highlighted file')
-        EVT_MENU(self.editor, self.windowId, self.editor.OnGotoModulePage)
-        EVT_MENU(self.notebook, wxID_MODULEPAGECLOSEVIEW, self.OnDirectActionClose)
-        EVT_RIGHT_DOWN(self.notebook, self.OnRightDown)
+        self.editor.Bind(wx.EVT_MENU, self.editor.OnGotoModulePage, id=self.windowId)
+        self.notebook.Bind(wx.EVT_MENU, self.OnDirectActionClose, id=wxID_MODULEPAGECLOSEVIEW)
+        self.notebook.Bind(wx.EVT_RIGHT_DOWN, self.OnRightDown)
 
         Class = model.__class__
 ##        if not editor.defaultAdtViews.has_key(cls):
@@ -306,9 +307,9 @@ class ModulePage:
         except KeyError:
             return None
 
-### decl viewSelectionMenu(self) -> wxMenu
+### decl viewSelectionMenu(self) -> wx.Menu
     def viewSelectionMenu(self):
-        menu = wxMenu()
+        menu = wx.Menu()
         for View, wId in self.defViews:
             menu.Append(wId, View.viewName)
         menu.AppendSeparator()
@@ -319,9 +320,9 @@ class ModulePage:
 
     def connectEvts(self):
         for view, wId in self.defViews:
-            EVT_MENU(self.editor, wId, self.editor.OnSwitchedToView)
+            self.editor.Bind(wx.EVT_MENU, self.editor.OnSwitchedToView, id=wId)
         for view, wId in self.adtViews:
-            EVT_MENU(self.editor, wId, self.editor.OnToggleView)
+            self.editor.Bind(wx.EVT_MENU, self.editor.OnToggleView, id=wId)
 
     def disconnectEvts(self):
         if self.model:
@@ -329,7 +330,7 @@ class ModulePage:
                 self.editor.Disconnect(wId)
 
     def setActiveViewsMenu(self):
-        viewClss = map(lambda x: x.__class__, self.model.views.values())
+        viewClss = [x.__class__ for x in self.model.views.values()]
         for view, wId in self.adtViews:
             self.viewMenu.Check(wId, view in viewClss)
 
@@ -337,7 +338,7 @@ class ModulePage:
         """ Add a view to the model and display it as a page in the notebook
             of view instances."""
         if not viewName: viewName = View.viewName
-        if wxPlatform == '__WXGTK__':
+        if wx.Platform == '__WXGTK__':
             panel, view = Utils.wxProxyPanel(self.notebook, View, self.model)
             self.model.views[viewName] = view
             if View.docked:
@@ -377,7 +378,7 @@ class ModulePage:
             self.editor.updateTitle()
         return success
 
-    def saveOrSaveAs(self, forceSaveAs=false):
+    def saveOrSaveAs(self, forceSaveAs=False):
         model = self.model
         editor = self.editor
         if forceSaveAs or not model.savedAs:
@@ -392,15 +393,15 @@ class ModulePage:
             try:
                 model.save()
             except TransportModifiedSaveError, err:
-                choice = wxMessageBox(str(err)+'\nDo you want to overwrite these '
+                choice = wx.MessageBox(str(err)+'\nDo you want to overwrite these '
                   'changes (Yes), reload your file (No) or cancel this operation '
                   '(Cancel)?', 'Overwrite newer file warning',
-                  wxYES_NO | wxCANCEL | wxICON_WARNING)
-                if choice == wxYES:
-                    model.save(overwriteNewer=true)
-                elif choice == wxNO:
+                  wx.YES_NO | wx.CANCEL | wx.ICON_WARNING)
+                if choice == wx.YES:
+                    model.save(overwriteNewer=True)
+                elif choice == wx.NO:
                     raise TransportModifiedSaveError('Reload')
-                elif choice == wxCANCEL:
+                elif choice == wx.CANCEL:
                     raise TransportModifiedSaveError('Cancel')
 
             editor.updateModulePage(model)
@@ -411,7 +412,7 @@ class ModulePage:
 
     def OnPageChange(self, event):
         viewIdx = event.GetSelection()
-        if event.GetOldSelection() != viewIdx or wxPlatform == '__WXGTK__':
+        if event.GetOldSelection() != viewIdx or wx.Platform == '__WXGTK__':
             self.editor.setupToolBar(viewIdx=viewIdx)
             view = self.getActiveView(viewIdx)
             if hasattr(view, 'OnPageActivated'):
@@ -421,19 +422,19 @@ class ModulePage:
     def OnRightDown(self, event):
         actView = self.getActiveView()
 
-        doDirectMenuPopup = false
+        doDirectMenuPopup = False
         for View, wid in self.adtViews:
             if isinstance(actView, View):
-                doDirectMenuPopup = true
+                doDirectMenuPopup = True
                 break
 
         if not doDirectMenuPopup:
             from Views.EditorViews import CloseableViewMix
             if isinstance(actView, CloseableViewMix):
-                doDirectMenuPopup = true
+                doDirectMenuPopup = True
 
         if doDirectMenuPopup:
-            directMenu = wxMenu()
+            directMenu = wx.Menu()
             directMenu.Append(wxID_MODULEPAGECLOSEVIEW, 'Close active view')
 
             self.notebook.PopupMenu(directMenu, event.GetPosition())
@@ -447,7 +448,7 @@ class ModulePage:
             if isinstance(actView, View):
                 actView.deleteFromNotebook(self.default, actView.viewName)
 
-                self.editor.mainMenu.Check(wid, false)
+                self.editor.mainMenu.Check(wid, False)
                 return
 
         from Views.EditorViews import CloseableViewMix
@@ -507,7 +508,7 @@ class Listener(threading.Thread):
                 l.append(data)
             name = ''.join(l)
             if name.strip():
-                Utils.wxCallAfter(self.editor.openOrGotoModule, name)
+                wx.CallAfter(self.editor.openOrGotoModule, name)
             conn.close()
 
 
@@ -519,6 +520,6 @@ def socketFileOpenServerListen(editor):
 
 
 if __name__ == '__main__':
-    app = wxPySimpleApp()
+    app = wx.PySimpleApp()
     frame = HistoryPopup(None, (), {})
     app.MainLoop()

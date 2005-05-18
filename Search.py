@@ -12,7 +12,8 @@
 
 import os
 import string, time
-from wxPython.wx import wxProgressDialog, wxPD_CAN_ABORT, wxPD_APP_MODAL, wxPD_AUTO_HIDE, true, false
+
+import wx
 
 def count(filename, pattern, caseSensitive):
     try: f = open(filename, 'r')
@@ -30,11 +31,9 @@ def count(filename, pattern, caseSensitive):
 def findInText(sourcelines, pattern, caseSensitive, includeLine = 0):
     results = []
     if not caseSensitive:
-        #sourcelines = map(lambda sourceline: sourceline.lower(), sourcelines)
         sourcelines = [sourceline.lower() for sourceline in sourcelines]
         pattern = pattern.lower()
 
-    #matches = map(lambda x, y: (x, y), sourcelines, range(len(sourcelines)))
     matches = zip(sourcelines, range(len(sourcelines)))
     for line, sourceIdx in matches:
         idx = -1
@@ -66,14 +65,14 @@ def findInFiles(parent, srchPath, pattern, callback = defaultProgressCallback, d
     names = os.listdir(srchPath)
     cnt = 0
 
-    owndlg = false
+    owndlg = False
     maxval = len(names)
     if not dlg:
-        dlg = wxProgressDialog(progressMsg, 'Searching...', maxval, parent,
-                           wxPD_CAN_ABORT | wxPD_APP_MODAL | wxPD_AUTO_HIDE)
+        dlg = wx.ProgressDialog(progressMsg, 'Searching...', maxval, parent,
+                           wx.PD_CAN_ABORT | wx.PD_APP_MODAL | wx.PD_AUTO_HIDE)
         dlg.max = maxval
         dlg.cont = 1
-        owndlg = true
+        owndlg = True
     try:
         for file in names:
             filePath = os.path.join(srchPath, file)
@@ -128,7 +127,7 @@ class _file_iter:
         self._files = [] #resulting list
 
     def _is_to_include(self, sFullFileName):
-        """This function will return true if file must be included and false if not"""
+        """This function will return True if file must be included and False if not"""
         if not self._filters:
             return 1 #all files must be included
         tpFileNameOnly = os.path.split( sFullFileName )
@@ -181,7 +180,6 @@ def listFiles(folders, file_filter, bIncludeFilter=1, bRecursive=1):
 
 
 if __name__ == '__main__':
-    from wxPython.wx import *
-    wxPySimpleApp()
-    f = wxFrame(None, -1, 'results', size=(0, 0))
+    wx.PySimpleApp()
+    f = wx.Frame(None, -1, 'results', size=(0, 0))
     print findInFiles(f, os.path.abspath('ExternalLib'), 'riaan', filemask = ('.*',))

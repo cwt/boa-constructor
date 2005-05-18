@@ -11,8 +11,6 @@
 #----------------------------------------------------------------------
 import string, os, sys, glob, pprint, types
 
-from wxPython.wx import *
-
 import wx
 
 import Preferences
@@ -23,26 +21,26 @@ def toPyPath(filename):
     return os.path.join(Preferences.pyPath, filename)
 
 def ShowErrorMessage(parent, caption, mess):
-    dlg = wxMessageDialog(parent, mess.__class__.__name__ +': '+`mess`,
-                          caption, wxOK | wxICON_EXCLAMATION)
+    dlg = wx.MessageDialog(parent, mess.__class__.__name__ +': '+`mess`,
+                          caption, wx.OK | wx.ICON_EXCLAMATION)
     try: dlg.ShowModal()
     finally: dlg.Destroy()
 
-def ShowMessage(parent, caption, message, msgTpe=wxICON_INFORMATION):
-    dlg = wxMessageDialog(parent, message, caption, wxOK | msgTpe)
+def ShowMessage(parent, caption, message, msgTpe=wx.ICON_INFORMATION):
+    dlg = wx.MessageDialog(parent, message, caption, wx.OK | msgTpe)
     try: dlg.ShowModal()
     finally: dlg.Destroy()
 
 def yesNoDialog(parent, title, question):
-    dlg = wxMessageDialog(parent, question, title, wxYES_NO | wxICON_QUESTION)
-    try: return (dlg.ShowModal() == wxID_YES)
+    dlg = wx.MessageDialog(parent, question, title, wx.YES_NO | wx.ICON_QUESTION)
+    try: return (dlg.ShowModal() == wx.ID_YES)
     finally: dlg.Destroy()
 
 def AddToolButtonBmpObject(frame, toolbar, thebitmap, hint, triggermeth,
-      theToggleBitmap=wxNullBitmap):
-    nId = wxNewId()
+      theToggleBitmap=wx.NullBitmap):
+    nId = wx.NewId()
     toolbar.AddTool(nId, thebitmap, theToggleBitmap, shortHelpString = hint)
-    EVT_TOOL(frame, nId, triggermeth)
+    frame.Bind(wx.EVT_TOOL, triggermeth, id=nId)
     return nId
 
 def AddToolButtonBmpFile(frame, toolbar, filename, hint, triggermeth):
@@ -56,9 +54,9 @@ def AddToolButtonBmpIS(frame, toolbar, name, hint, triggermeth, toggleBmp = ''):
         return AddToolButtonBmpObject(frame, toolbar, IS.load(name), hint[:85], triggermeth)
 
 def AddToggleToolButtonBmpObject(frame, toolbar, thebitmap, hint, triggermeth):
-    nId = wxNewId()
-    toolbar.AddTool(nId, thebitmap, thebitmap, shortHelpString = hint, isToggle = true)
-    EVT_TOOL(frame, nId, triggermeth)
+    nId = wx.NewId()
+    toolbar.AddTool(nId, thebitmap, thebitmap, shortHelpString = hint, isToggle = True)
+    frame.Bind(wx.EVT_TOOL, triggermeth, id=nId)
     return nId
 
 #This format follows wxWidgets conventions
@@ -66,18 +64,18 @@ def windowIdentifier(frameName, ctrlName):
     return 'wxID_' + frameName.upper() + ctrlName.upper()
 
 
-class BoaFileDropTarget(wxFileDropTarget):
+class BoaFileDropTarget(wx.FileDropTarget):
     def __init__(self, editor):
-        wxFileDropTarget.__init__(self)
+        wx.FileDropTarget.__init__(self)
         self.editor = editor
 
     def OnDropFiles(self, x, y, filenames):
-        wxBeginBusyCursor()
+        wx.BeginBusyCursor()
         try:
             for filename in filenames:
                 self.editor.openOrGotoModule(filename)
         finally:
-            wxEndBusyCursor()
+            wx.EndBusyCursor()
 
 def split_seq(seq, pivot, transformFunc = None):
     result = []
@@ -119,7 +117,7 @@ def human_split(line):
 
 def duplicateMenu(source):
     """ Create an duplicate of a menu (does not do sub menus)"""
-    dest = wxMenu()
+    dest = wx.Menu()
     for menu in source.GetMenuItems():
         if menu.IsSeparator():
             dest.AppendSeparator()
@@ -127,7 +125,7 @@ def duplicateMenu(source):
             dest.Append(menu.GetId(), menu.GetText(), menu.GetHelp(), menu.IsCheckable())
             mi = dest.FindItemById(menu.GetId())
             if menu.IsCheckable() and menu.IsChecked():
-                mi.Check(true)
+                mi.Check(True)
     return dest
 
 def getValidName(usedNames, baseName, ext = '', n = 1, itemCB = lambda x:x):
@@ -149,7 +147,8 @@ def getWxPyNameForClass(Class):
     return '.'.join([pathSeg for pathSeg in classPathSegs if pathSeg[0] != '_'])
 
 def winIdRange(count):
-    return map(lambda x: wxNewId(), range(count))
+    return [wx.NewId() for x in range(count)]
+
 wxNewIds = winIdRange
 
 def methodLooksLikeEvent(method):
@@ -165,7 +164,7 @@ def whitespacetospace(str):
 ##tst_str = ' 1\t\n 3'
 ##print `whitespacetospace(tst_str)`
 
-class PaintEventHandler(wxEvtHandler):
+class PaintEventHandler(wx.EvtHandler):
     """ This class is used to merge paint requests.
 
         Each paint is captured and saved. Later on the idle event,
@@ -180,13 +179,13 @@ class PaintEventHandler(wxEvtHandler):
     """
 
     def __init__(self, window):
-        wxEvtHandler.__init__(self)
+        wx.EvtHandler.__init__(self)
         self.painting=0
         self.updates=[]
         self.window = window
         window.PushEventHandler(self)
-        EVT_PAINT(self, self.OnPaint)
-        EVT_IDLE(self, self.OnIdle)
+        self.Bind(wx.EVT_PAINT, self.OnPaint)
+        self.Bind(wx.EVT_IDLE, self.OnIdle)
     def OnPaint(self, event):
         if self.painting == 1:
             event.Skip()
@@ -246,7 +245,7 @@ class PaintEventHandler(wxEvtHandler):
                 height = rect2.height
             else:
                 height = rect1.y + rect1.height - rect2.y
-        rv = wxRect(x, y, width, height)
+        rv = wx.Rect(x, y, width, height)
         return rv
 
 def showTip(frame, forceShow=0):
@@ -264,8 +263,8 @@ def showTip(frame, forceShow=0):
         index = conf.getint('tips', 'tipindex')
 
     if showTip or forceShow:
-        tp = wxCreateFileTipProvider(toPyPath('Docs/tips.txt'), index)
-        showTip = wxShowTip(frame, tp, showTip)
+        tp = wx.CreateFileTipProvider(toPyPath('Docs/tips.txt'), index)
+        showTip = wx.ShowTip(frame, tp, showTip)
         index = tp.GetCurrentTip()
         if conf:
             conf.set('tips', 'showonstartup', int(showTip))
@@ -273,25 +272,25 @@ def showTip(frame, forceShow=0):
             try:
                 writeConfig(conf)
             except IOError:
-                wxLogError('Could not edit tips settings, please make '
+                wx.LogError('Could not edit tips settings, please make '
                       'sure that the Explorer.*.cfg file is not read only and you '
                       'have sufficient priviledges to write to this file.')
 
 def readTextFromClipboard():
-    clip = wxTheClipboard
+    clip = wx.TheClipboard
     clip.Open()
     try:
-        data = wxTextDataObject()
+        data = wx.TextDataObject()
         clip.GetData(data)
         return data.GetText()
     finally:
         clip.Close()
 
 def writeTextToClipboard(text):
-    clip = wxTheClipboard
+    clip = wx.TheClipboard
     clip.Open()
     try:
-        clip.SetData(wxTextDataObject(text))
+        clip.SetData(wx.TextDataObject(text))
     finally:
         clip.Close()
 
@@ -299,7 +298,7 @@ def writeTextToClipboard(text):
 _sharedConfs = {}
 def createAndReadConfig(name, forPlatform=1):
     # XXX Switch to standard ConfigParser module !!
-    
+
     """ Return an initialised ConfigFile object """
     confFile = os.path.join(Preferences.rcPath, '%s%s.cfg' % (name,
         forPlatform and '.'+Preferences.thisPlatform or ''))
@@ -319,28 +318,25 @@ def createAndReadConfig(name, forPlatform=1):
 def writeConfig(conf):
     conf.write(open(conf.confFile, 'w'))
 
-from wxPython import html
+import wx.html
 
-wxEVT_HTML_URL_CLICK = wxNewId()
-
+wxEVT_HTML_URL_CLICK = wx.NewId()
 EVT_HTML_URL_CLICK = wx.PyEventBinder(wxEVT_HTML_URL_CLICK)
 
-#def EVT_HTML_URL_CLICK(win, func):
-#    win.Connect(-1, -1, wxEVT_HTML_URL_CLICK, func)
 
-class wxHtmlWindowUrlClick(wxPyEvent):
+class wxHtmlWindowUrlClick(wx.PyEvent):
     def __init__(self, linkinfo):
-        wxPyEvent.__init__(self)
+        wx.PyEvent.__init__(self)
         self.SetEventType(wxEVT_HTML_URL_CLICK)
         self.linkinfo = (linkinfo.GetHref(), linkinfo.GetTarget())
 
-class wxUrlClickHtmlWindow(html.wxHtmlWindow):
+class wxUrlClickHtmlWindow(wx.html.HtmlWindow):
     """ HTML window that generates and OnLinkClicked event.
 
     Use this to avoid having to override HTMLWindow
     """
     def OnLinkClicked(self, linkinfo):
-        wxPostEvent(self, wxHtmlWindowUrlClick(linkinfo))
+        wx.PostEvent(self, wxHtmlWindowUrlClick(linkinfo))
 
 def wxProxyPanel(parent, Win, *args, **kwargs):
     """ Function which put's a panel in between two controls.
@@ -348,12 +344,11 @@ def wxProxyPanel(parent, Win, *args, **kwargs):
         Mainly for better repainting under GTK.
         Based on a pattern by Kevin Gill.
     """
-    panel = wxPanel(parent, -1, style=wxTAB_TRAVERSAL | wxCLIP_CHILDREN)
+    panel = wx.Panel(parent, -1, style=wx.TAB_TRAVERSAL | wx.CLIP_CHILDREN)
 
     if type(Win) is types.ClassType or type(Win) is types.TypeType:
-        win = apply(Win, (panel,) + args, kwargs)
-#    elif type(Win) is types.InstanceType:
-    elif isinstance(Win, wxWindow):
+        win = Win(*((panel,) + args), **kwargs)
+    elif isinstance(Win, wx.Window):
         win = Win
         win.Reparent(panel)
     else:
@@ -361,17 +356,17 @@ def wxProxyPanel(parent, Win, *args, **kwargs):
 
     def OnWinSize(evt, win=win):
         win.SetSize(evt.GetSize())
-    EVT_SIZE(panel, OnWinSize)
+    panel.Bind(wx.EVT_SIZE, OnWinSize)
     return panel, win
 
 def IsComEnabled():
-    if Preferences.blockCOM: return false
+    if Preferences.blockCOM: return False
     try:
         import win32com
     except ImportError:
-        return false
+        return False
     else:
-        return true
+        return True
 
 import stat, shutil
 skipdirs = ('CVS',)
@@ -436,9 +431,9 @@ class PseudoFile:
 
     def flush(self):
         pass
-    
+
     def isatty(self):
-        return false
+        return False
 
 class PseudoFileOutStore(PseudoFile):
     """ File like obj with list storage """
@@ -466,7 +461,7 @@ class OutputLoggerPF(LoggerPF):
                      frame.f_back.f_lineno,)
             else:
                 ss = s
-            wxLogMessage(self.pad(ss).replace('%', '%%'))
+            wx.LogMessage(self.pad(ss).replace('%', '%%'))
 
         sys.__stdout__.write(s)
 
@@ -484,7 +479,7 @@ class ErrorLoggerPF(LoggerPF):
         elif s[-1] != '\n':
             self.buffer = self.buffer + s
         else:
-            wxLogError(self.pad(self.buffer+s[:-1]).replace('%', '%%'))
+            wx.LogError(self.pad(self.buffer+s[:-1]).replace('%', '%%'))
 
         sys.__stderr__.write(s)
 
@@ -512,17 +507,17 @@ def html2txt(htmlblock):
     p.feed(htmlblock)
     return s.getvalue().strip()
 
-def getEntireWxNamespace():
-    """ Return a dictionary containing the entire (non filtered) wxPython
-        namespace """
-    from wxPython import wx, html, htmlhelp, grid, calendar, stc
-    from wxPython import help, gizmos, wizard
-    namespace = {}
-    map(namespace.update, [wx.__dict__, html.__dict__, htmlhelp.__dict__,
-                           grid.__dict__, calendar.__dict__, 
-                           stc.__dict__, gizmos.__dict__,
-                           help.__dict__, wizard.__dict__])
-    return namespace
+##def getEntireWxNamespace():
+##    """ Return a dictionary containing the entire (non filtered) wxPython
+##        namespace """
+##    from wxPython import wx, html, htmlhelp, grid, calendar, stc
+##    from wxPython import help, gizmos, wizard
+##    namespace = {}
+##    map(namespace.update, [wx.__dict__, html.__dict__, htmlhelp.__dict__,
+##                           grid.__dict__, calendar.__dict__,
+##                           stc.__dict__, gizmos.__dict__,
+##                           help.__dict__, wizard.__dict__])
+##    return namespace
 
 class FrameRestorerMixin:
     """ Used by top level windows to restore from gidden or iconised state
@@ -538,7 +533,7 @@ class FrameRestorerMixin:
     def restore(self):
         self.Show()
         if self.IsIconized():
-            self.Iconize(false)
+            self.Iconize(False)
         self.Raise()
 
     def setDimensions(self, dims):
@@ -561,10 +556,10 @@ class FrameRestorerMixin:
         if not conf.has_option(self.confSection, self.winConfOption):
             dims = None
         else:
-            dims = eval(conf.get(self.confSection , self.winConfOption), 
-                        {'wxSize': wxSize, 'wxPoint': wxPoint,
-                         'wxDefaultSize': wxDefaultSize, 
-                         'wxDefaultPosition': wxDefaultPosition,
+            dims = eval(conf.get(self.confSection , self.winConfOption),
+                        {'wxSize': wx.Size, 'wxPoint': wx.Point,
+                         'wxDefaultSize': wx.DefaultSize,
+                         'wxDefaultPosition': wx.DefaultPosition,
                          'wx': wx})
 
         if dims:
@@ -596,9 +591,9 @@ def callOnFrameRestorers(method):
 def setupCloseWindowOnEscape(win):
     def OnCloseWin(event, win=win): win.Close()
 
-    wxID_CLOSEWIN = wxNewId()
-    EVT_MENU(win, wxID_CLOSEWIN, OnCloseWin)
-    return (wxACCEL_NORMAL, WXK_ESCAPE, wxID_CLOSEWIN)
+    wxID_CLOSEWIN = wx.NewId()
+    win.Bind(wx.EVT_MENU, OnCloseWin, id=wxID_CLOSEWIN)
+    return (wx.ACCEL_NORMAL, wx.WXK_ESCAPE, wxID_CLOSEWIN)
 
 def getModelBaseDir(model):
     if hasattr(model, 'app') and model.app and model.app.savedAs:
@@ -619,11 +614,9 @@ def pathRelativeToModel(path, model):
 class BottomAligningSplitterMix:
     """ Mixin class that keeps the bottom window in a splitter at a constant height """
     def __init__(self):
-        EVT_SIZE(self, self._OnSplitterwindowSize)
-        EVT_SPLITTER_SASH_POS_CHANGED(self, self.GetId(),
-            self._OnSplitterwindowSplitterSashPosChanged)
-        EVT_SPLITTER_DOUBLECLICKED(self, self.GetId(),
-            self._OnSplitterwindowSplitterDoubleclicked)
+        self.Bind(wx.EVT_SIZE, self._OnSplitterwindowSize)
+        self.Bind(wx.EVT_SPLITTER_SASH_POS_CHANGED, self._OnSplitterwindowSplitterSashPosChanged, id=self.GetId())
+        self.Bind(wx.EVT_SPLITTER_DOUBLECLICKED, self._OnSplitterwindowSplitterDoubleclicked, id=self.GetId())
         sashsize = self.GetSashSize()
         self.SetMinimumPaneSize(sashsize)
         sashpos = self.GetClientSize().y - sashsize
@@ -661,9 +654,9 @@ class BottomAligningSplitterMix:
         else:
             self.openBottomWindow()
 
-class BottomAligningSplitterWindow(wxSplitterWindow, BottomAligningSplitterMix):
+class BottomAligningSplitterWindow(wx.SplitterWindow, BottomAligningSplitterMix):
     def __init__(self, *_args, **_kwargs):
-        apply(wxSplitterWindow.__init__, (self,)+_args, _kwargs)
+        wx.SplitterWindow.__init__(*((self,)+_args), **_kwargs)
         BottomAligningSplitterMix.__init__(self)
 
 def traverseTreeCtrl(tree, treeItem, func):
@@ -674,60 +667,60 @@ def traverseTreeCtrl(tree, treeItem, func):
         item, cookie = tree.GetNextChild(item, cookie)
 
 
-class ListCtrlLabelEditFixEH(wxEvtHandler):
+class ListCtrlLabelEditFixEH(wx.EvtHandler):
     """Fixes broken LabelEdit/Cursor behaviour on MSW
 
        Add in constructor:
        ListCtrlLabelEditFixEH(<control>)
 
        Add in destructor:
-       <control>.PopEventHandler(true)
+       <control>.PopEventHandler(True)
     """
 
-    wxEVT_CTRLEDIT = wxNewId()
+    wxEVT_CTRLEDIT = wx.NewId()
 
     def __init__(self, listCtrl):
-        wxEvtHandler.__init__(self)
-        self._blockMouseEdit = false
+        wx.EvtHandler.__init__(self)
+        self._blockMouseEdit = False
 
         self.listCtrl = listCtrl
-        EVT_LIST_BEGIN_LABEL_EDIT(listCtrl, listCtrl.GetId(), self.OnBeginLabelEdit)
+        listCtrl.Bind(wx.EVT_LIST_BEGIN_LABEL_EDIT, self.OnBeginLabelEdit, id=listCtrl.GetId())
         listCtrl.PushEventHandler(self)
 
     def OnBeginLabelEdit(self, event):
-        if not self._blockMouseEdit and wxPlatform == '__WXMSW__':
+        if not self._blockMouseEdit and wx.Platform == '__WXMSW__':
             event.Veto()
-            wxCallAfter(self.ctrlLabelEdit, event.GetIndex())
+            wx.CallAfter(self.ctrlLabelEdit, event.GetIndex())
         else:
-            self._blockMouseEdit = false
+            self._blockMouseEdit = False
         event.Skip()
 
     def ctrlLabelEdit(self, idx):
-        self._blockMouseEdit = true
+        self._blockMouseEdit = True
         self.listCtrl.EditLabel(idx)
 
-SEL_FOC = wxLIST_STATE_SELECTED | wxLIST_STATE_FOCUSED
+SEL_FOC = wx.LIST_STATE_SELECTED | wx.LIST_STATE_FOCUSED
 def selectBeforePopup(event):
     """Ensures the item the mouse is pointing at is selected before a popup.
 
     Works with both single-select and multi-select lists."""
     ctrl = event.GetEventObject()
-    if isinstance(ctrl, wxListCtrl):
+    if isinstance(ctrl, wx.ListCtrl):
         n, flags = ctrl.HitTest(event.GetPosition())
         if n >= 0:
-            if not ctrl.GetItemState(n, wxLIST_STATE_SELECTED):
-                if not (ctrl.GetWindowStyleFlag() & wxLC_SINGLE_SEL):
+            if not ctrl.GetItemState(n, wx.LIST_STATE_SELECTED):
+                if not (ctrl.GetWindowStyleFlag() & wx.LC_SINGLE_SEL):
                     # Clear selection if multi-select.
                     for i in range(ctrl.GetItemCount()):
                         ctrl.SetItemState(i, 0, SEL_FOC)
                 ctrl.SetItemState(n, SEL_FOC, SEL_FOC)
 
-def getListCtrlSelection(listctrl, state=wxLIST_STATE_SELECTED):
+def getListCtrlSelection(listctrl, state=wx.LIST_STATE_SELECTED):
     """ Returns list of item indexes of given state """
     res = []
     idx = -1
     while 1:
-        idx = listctrl.GetNextItem(idx, wxLIST_NEXT_ALL, state)
+        idx = listctrl.GetNextItem(idx, wx.LIST_NEXT_ALL, state)
         if idx == -1:
             break
         res.append(idx)
@@ -739,11 +732,11 @@ class ListCtrlSelectionManagerMix:
     As selection single and multi-select list return the item index or a
     list of item indexes respectively.
     """
-    wxEVT_DOPOPUPMENU = wxNewId()
+    wxEVT_DOPOPUPMENU = wx.NewId()
     _menu = None
 
     def __init__(self):
-        EVT_RIGHT_DOWN(self, self.OnLCSMRightDown)
+        self.Bind(wx.EVT_RIGHT_DOWN, self.OnLCSMRightDown)
         self.Connect(-1, -1, self.wxEVT_DOPOPUPMENU, self.OnLCSMDoPopup)
 
     def getPopupMenu(self):
@@ -760,7 +753,7 @@ class ListCtrlSelectionManagerMix:
 
     def getSelection(self):
         res = getListCtrlSelection(self)
-        if self.GetWindowStyleFlag() & wxLC_SINGLE_SEL:
+        if self.GetWindowStyleFlag() & wx.LC_SINGLE_SEL:
             if res:
                 return res[0]
             else:
@@ -778,42 +771,42 @@ class ListCtrlSelectionManagerMix:
             self.afterPopupMenu(menu)
             return
 
-            evt = wxPyEvent()
+            evt = wx.PyEvent()
             evt.SetEventType(self.wxEVT_DOPOPUPMENU)
             evt.menu = menu
             evt.pos = event.GetPosition()
-            wxPostEvent(self, evt)
+            wx.PostEvent(self, evt)
 
     def OnLCSMDoPopup(self, event):
         self.PopupMenu(event.menu, event.pos)
         self.afterPopupMenu(event.menu)
 
 
-# Does this version leak event handlers?
-def wxCallAfter(callable, *args, **kw):
-    handler, evtType = wxEvtHandler(), wxNewId()
-    handler.Connect(-1, -1, evtType, lambda event, handler=handler,
-          callable=callable, args=args, kw=kw: apply(callable, args, kw) )
-    evt = wxPyEvent()
-    evt.SetEventType(evtType)
-    wxPostEvent(handler, evt)
-
-_wxCallAfterId = None
-def wxCallAfter(callable, *args, **kw):
-    app = wxGetApp()
-    assert app, 'No wxApp created yet'
-
-    global _wxCallAfterId
-    if _wxCallAfterId is None:
-        _wxCallAfterId = wxNewId()
-        app.Connect(-1, -1, _wxCallAfterId,
-              lambda event: apply(event.callable, event.args, event.kw) )
-    evt = wxPyEvent()
-    evt.SetEventType(_wxCallAfterId)
-    evt.callable = callable
-    evt.args = args
-    evt.kw = kw
-    wxPostEvent(app, evt)
+### Does this version leak event handlers?
+##def wxCallAfter(callable, *args, **kw):
+##    handler, evtType = wx.EvtHandler(), wx.NewId()
+##    handler.Connect(-1, -1, evtType, lambda event, handler=handler,
+##          callable=callable, args=args, kw=kw: callable(*args, **kw) )
+##    evt = wx.PyEvent()
+##    evt.SetEventType(evtType)
+##    wx.PostEvent(handler, evt)
+##
+##_wxCallAfterId = None
+##def wxCallAfter(callable, *args, **kw):
+##    app = wx.GetApp()
+##    assert app, 'No wxApp created yet'
+##
+##    global _wxCallAfterId
+##    if _wxCallAfterId is None:
+##        _wxCallAfterId = wx.NewId()
+##        app.Connect(-1, -1, _wxCallAfterId,
+##              lambda event: event.callable(*event.args, **event.kw) )
+##    evt = wx.PyEvent()
+##    evt.SetEventType(_wxCallAfterId)
+##    evt.callable = callable
+##    evt.args = args
+##    evt.kw = kw
+##    wx.PostEvent(app, evt)
 
 def getIndentBlock():
     if Preferences.STCUseTabs:
@@ -841,21 +834,21 @@ def find_dotted_module(name, path=None):
     return file, filename, desc
 
 def appendMenuItem(menu, wId, label, code=(), bmp='', help=''):
-    # XXX Add kind=wxITEM_NORMAL when 2.3.3 is minimum.
+    # XXX Add kind=wx.ITEM_NORMALwhen 2.3.3 is minimum.
     text = label + (code and ' \t'+code[2] or '')
-    menuItem = wxMenuItem(menu, wId, text, help)
+    menuItem = wx.MenuItem(menu, wId, text, help)
     if Preferences.editorMenuImages and bmp and bmp != '-':
-        if wxPlatform == '__WXGTK__' and wxVERSION >= (2,3,3) or \
-              wxPlatform == '__WXMSW__':
+        if wx.Platform == '__WXGTK__' and wx.VERSION >= (2,3,3) or \
+              wx.Platform == '__WXMSW__':
             menuItem.SetBitmap(Preferences.IS.load(bmp))
     menu.AppendItem(menuItem)
 
 def stringFromControl(u):
-    try: wxUSE_UNICODE, UnicodeError
+    try: wx.USE_UNICODE, UnicodeError
     except NameError: return u
 
-    if wxUSE_UNICODE:
-        try: 
+    if wx.USE_UNICODE:
+        try:
             return str(u)
         except UnicodeError, err:
             raise Exception, 'Unable to encode unicode string, please change '\
@@ -863,13 +856,13 @@ def stringFromControl(u):
                   'encoding.\nError message %s'%str(err)
     else:
         return u
-        
+
 def stringToControl(s):
-    try: wxUSE_UNICODE, UnicodeError
+    try: wx.USE_UNICODE, UnicodeError
     except NameError: return s
 
-    if wxUSE_UNICODE:
-        try: 
+    if wx.USE_UNICODE:
+        try:
             return unicode(s)
         except UnicodeError, err:
             raise Exception, 'Unable to decode unicode string, please change '\
@@ -889,18 +882,18 @@ def toUnixEOLMode(text):
     return text.replace('\r\n', '\n').replace('\r', '\n')
 
 def checkMixedEOLs(text):
-    """ Returns false for mixed EOLs """
+    """ Returns False for mixed EOLs """
 
     crlf = text.count('\r\n')
     lf = text.count('\n')
     cr = text.count('\r')
 
     if crlf and (lf > crlf or cr > crlf):
-        return true
+        return True
     elif not crlf and cr and lf:
-        return true
+        return True
     else:
-        return false
+        return False
 
 #-------------------------------------------------------------------------------
 
@@ -921,7 +914,7 @@ class InspectorSessionMix:
 def getEventChecked(event):
     # XXX Chaos :(
     checked = event.IsChecked()
-    if wxPlatform == '__WXGTK__' or wxVERSION[:3] > (2, 5, 3):
+    if wx.Platform == '__WXGTK__' or wx.VERSION[:3] > (2, 5, 3):
         return checked
     else:
         return not checked
@@ -931,10 +924,10 @@ def getEventChecked(event):
 class I18nString:
     def __init__(self, string):
         self._string = string
-    
+
     def __str__(self):
         return self._string
-    
+
     def __repr__(self):
         return '_(%r)'%self._string
 

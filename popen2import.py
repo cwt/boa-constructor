@@ -1,4 +1,3 @@
-from wxPython import wx
 import popen2
 
 def popen3(cmd):

@@ -51,9 +51,6 @@ srchWindowIdsCont = '(?P<any>.*)\] = ' + srchWindowIdsLC
 defWindowIdsCont = wsfix('] = [wx.NewId() for %(idIdent)s in range(%(idCount)d)]\n')
 defWindowIds = wsfix('[%(idNames)s')+defWindowIdsCont
 
-#[wx.NewId() for _init_ctrls in range(1)]
-#map(lambda _init_ctrls: wxNewId(), range(1))
-
 defClass = wsfix('''
 class %(main)s(%(defaultName)s):
 \tdef '''+init_ctrls+'''(self, prnt):

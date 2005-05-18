@@ -13,15 +13,16 @@
 import sys, time, re, string
 from thread import start_new_thread
 
-from wxPython.wx   import *
-from wxPython.html import *
-import wxPython
-import wxPython.lib.wxpTag
+import wx
+import wx.html
+import wx.lib.wxpTag
+
+##import wxPython
+##import wxPython.lib.wxpTag
 
 import __version__
 import Preferences, Utils
 
-import wx, wx.lib.wxpTag
 
 # XXX Replace img tags with wxpTags/wxStaticBitmap controls and load from
 # XXX ImageStore
@@ -133,7 +134,7 @@ about_text = '''
 <a href="Credits">Credits</a>
 </p>
 <p><font size=-1 color="#000077">Python %s</font><br>
-<font size=-1 color="#000077">wxPlatform: %s %s</font></p>
+<font size=-1 color="#000077">wx.Platform: %s %s</font></p>
 <hr>
 <wxp module="wx" class="Button">
   <param name="label" value="Okay">
@@ -150,20 +151,20 @@ about_text = '''
 </p>
 '''
 
-wxFileSystem_AddHandler(wxMemoryFSHandler())
+wx.FileSystem.AddHandler(wx.MemoryFSHandler())
 
 def addImagesToFS():
     for name, path, type in [
-        ('Boa.jpg', 'Images/Shared/Boa.jpg', wxBITMAP_TYPE_JPEG),
-        ('PythonPowered.png', 'Images/Shared/PythonPowered.png', wxBITMAP_TYPE_PNG),
-        ('wxPyButton.png', 'Images/Shared/wxPyButton.png', wxBITMAP_TYPE_PNG),
-        ('wxWidgetsButton.png', 'Images/Shared/wxWidgetsButton.png', wxBITMAP_TYPE_PNG),
-        ('Debian.png', 'Images/Shared/Debian.png', wxBITMAP_TYPE_PNG),
-        ('Gentoo.png', 'Images/Shared/Gentoo.png', wxBITMAP_TYPE_PNG),
-        ('FreeBSD.png', 'Images/Shared/FreeBSD.png', wxBITMAP_TYPE_PNG),
+        ('Boa.jpg', 'Images/Shared/Boa.jpg', wx.BITMAP_TYPE_JPEG),
+        ('PythonPowered.png', 'Images/Shared/PythonPowered.png', wx.BITMAP_TYPE_PNG),
+        ('wxPyButton.png', 'Images/Shared/wxPyButton.png', wx.BITMAP_TYPE_PNG),
+        ('wxWidgetsButton.png', 'Images/Shared/wxWidgetsButton.png', wx.BITMAP_TYPE_PNG),
+        ('Debian.png', 'Images/Shared/Debian.png', wx.BITMAP_TYPE_PNG),
+        ('Gentoo.png', 'Images/Shared/Gentoo.png', wx.BITMAP_TYPE_PNG),
+        ('FreeBSD.png', 'Images/Shared/FreeBSD.png', wx.BITMAP_TYPE_PNG),
         ]:
         if name not in addImagesToFS.addedImages:
-            wxMemoryFSHandler_AddFile(name, Preferences.IS.load(path), type)
+            wx.MemoryFSHandler.AddFile(name, Preferences.IS.load(path), type)
             addImagesToFS.addedImages.append(name)
 addImagesToFS.addedImages = []
 
@@ -173,7 +174,7 @@ def createSplash(parent, modTot, fileTot):
 def createNormal(parent):
     return AboutBox(parent)
 
-[wxID_ABOUTBOX] = map(lambda _init_ctrls: wxNewId(), range(1))
+wxID_ABOUTBOX = wx.NewId()
 
 class AboutBoxMixin:
     border = 7
@@ -185,23 +186,24 @@ class AboutBoxMixin:
         self.moduleTotal = modTot
         self.fileTotal = fileTot
 
-        self.blackback = wxWindow(self, -1, pos=(0, 0),
-              size=self.GetClientSize(), style=wxCLIP_CHILDREN)
-        self.blackback.SetBackgroundColour(wxBLACK)
+        self.blackback = wx.Window(self, -1, pos=(0, 0),
+              size=self.GetClientSize(), style=wx.CLIP_CHILDREN)
+        self.blackback.SetBackgroundColour(wx.BLACK)
 
-        self.html = Utils.wxUrlClickHtmlWindow(self.blackback)#, -1, style=wxCLIP_CHILDREN)
+        self.html = Utils.wxUrlClickHtmlWindow(self.blackback, -1, 
+              style=wx.CLIP_CHILDREN | wx.html.HW_NO_SELECTION)
         Utils.EVT_HTML_URL_CLICK(self.html, self.OnLinkClick)
         self.setPage()
-        self.blackback.SetAutoLayout(true)
-        lc = wxLayoutConstraints()
-        lc.top.SameAs(self.blackback, wxTop, self.border)
-        lc.left.SameAs(self.blackback, wxLeft, self.border)
-        lc.bottom.SameAs(self.blackback, wxBottom, self.border)
-        lc.right.SameAs(self.blackback, wxRight, self.border)
+        self.blackback.SetAutoLayout(True)
+        lc = wx.LayoutConstraints()
+        lc.top.SameAs(self.blackback, wx.Top, self.border)
+        lc.left.SameAs(self.blackback, wx.Left, self.border)
+        lc.bottom.SameAs(self.blackback, wx.Bottom, self.border)
+        lc.right.SameAs(self.blackback, wx.Right, self.border)
         self.html.SetConstraints(lc)
         self.blackback.Layout()
-        self.Center(wxBOTH)
-        self.SetAcceleratorTable(wxAcceleratorTable([(0, WXK_ESCAPE, wxID_OK)]))
+        self.Center(wx.BOTH)
+        self.SetAcceleratorTable(wx.AcceleratorTable([(0, wx.WXK_ESCAPE, wx.ID_OK)]))
 
     def gotoInternetUrl(self, url):
         try:
@@ -247,54 +249,54 @@ class AboutBoxMixin:
             self.gotoInternetUrl('mailto:riaan@e.co.za')
 
 
-class AboutBox(AboutBoxMixin, wxDialog):
+class AboutBox(AboutBoxMixin, wx.Dialog):
     def _init_ctrls(self, prnt):
-        wxDialog.__init__(self, size=wxSize(410, 545), pos=(-1, -1),
+        wx.Dialog.__init__(self, size=wx.Size(410, 545), pos=(-1, -1),
               id=wxID_ABOUTBOX, title='About Boa Constructor', parent=prnt,
-              name='AboutBox', style=wxDEFAULT_DIALOG_STYLE)
+              name='AboutBox', style=wx.DEFAULT_DIALOG_STYLE)
 
     def setPage(self):
         self.html.SetPage((about_html % (
               'memory:Boa.jpg', __version__.version,
-              '', about_text % (sys.version, wxPlatform, wxPython.__version__))))
+              '', about_text % (sys.version, wx.Platform, wx.__version__))))
 DefAboutBox = AboutBox
 
-class AboutBoxSplash(AboutBoxMixin, wxFrame):
+class AboutBoxSplash(AboutBoxMixin, wx.Frame):
     progressBorder = 1
     fileOpeningFactor = 10
     def _init_ctrls(self, prnt):
-        wxFrame.__init__(self, size=wxSize(418, 320), pos=(-1, -1),
+        wx.Frame.__init__(self, size=wx.Size(418, 320), pos=(-1, -1),
               id=wxID_ABOUTBOX, title='Boa Constructor', parent=prnt,
-              name='AboutBoxSplash', style=wxSIMPLE_BORDER)
-        self.progressId = wxNewId()
-        self.gaugePId = wxNewId()
-        self.SetBackgroundColour(wxColour(0x44, 0x88, 0xFF))#wxColour(0x99, 0xcc, 0xff))
+              name='AboutBoxSplash', style=wx.SIMPLE_BORDER)
+        self.progressId = wx.NewId()
+        self.gaugePId = wx.NewId()
+        self.SetBackgroundColour(wx.Colour(0x44, 0x88, 0xFF))#wxColour(0x99, 0xcc, 0xff))
 
     def setPage(self):
         self.html.SetPage(about_html % ('memory:Boa.jpg',
           __version__.version, progress_text % (self.progressId, self.gaugePId), ''))
 
-        wxCallAfter(self.initCtrlNames)
+        wx.CallAfter(self.initCtrlNames)
 
 
     def initCtrlNames(self):
         self.label = self.FindWindowById(self.progressId)
-        self.label.SetBackgroundColour(wxWHITE)
+        self.label.SetBackgroundColour(wx.WHITE)
         parentWidth = self.label.GetParent().GetClientSize().x
         self.label.SetSize((parentWidth - 40, self.label.GetSize().y))
 
         gaugePrnt = self.FindWindowById(self.gaugePId)
-        gaugePrnt.SetBackgroundColour(wxBLACK)#wxColour(0x99, 0xcc, 0xff))
+        gaugePrnt.SetBackgroundColour(wx.BLACK)#wx.Colour(0x99, 0xcc, 0xff))
         gaugeSze = gaugePrnt.GetClientSize()
-        self.gauge = wxGauge(gaugePrnt, -1,
+        self.gauge = wx.Gauge(gaugePrnt, -1,
               range=self.moduleTotal+self.fileTotal*self.fileOpeningFactor,
-              style=wxGA_HORIZONTAL|wxGA_SMOOTH,
+              style=wx.GA_HORIZONTAL|wx.GA_SMOOTH,
               pos=(self.progressBorder, self.progressBorder),
               size=(gaugeSze.x - 2 * self.progressBorder,
                     gaugeSze.y - 2 * self.progressBorder))
-        self.gauge.SetBackgroundColour(wxColour(0xff, 0x33, 0x00))
+        self.gauge.SetBackgroundColour(wx.Colour(0xff, 0x33, 0x00))
         # secret early quit option
-        EVT_LEFT_DOWN(self.gauge, self.OnGaugeDClick)
+        self.gauge.Bind(wx.EVT_LEFT_DOWN, self.OnGaugeDClick)
         self._gaugeClicks = 0
         
         # route all printing thru the text on the splash screen
@@ -304,25 +306,25 @@ class AboutBoxSplash(AboutBoxMixin, wxFrame):
         EVT_MOD_CNT_UPD(self, self.OnUpdateProgress)
 
     def monitorModuleCount(self):
-        self._live = true
+        self._live = True
         lastCnt = 0
         if self and sys and len(sys.modules) >= self.moduleTotal:
-            wxPostEvent(self, ModCntUpdateEvent(self.moduleTotal, 'importing'))
+            wx.PostEvent(self, ModCntUpdateEvent(self.moduleTotal, 'importing'))
         else:
             while self and self._live and sys and len(sys.modules) < self.moduleTotal:
                 mc = len(sys.modules)
                 if mc > lastCnt:
                     lastCnt = mc
-                    wxPostEvent(self, ModCntUpdateEvent(mc, 'importing'))
+                    wx.PostEvent(self, ModCntUpdateEvent(mc, 'importing'))
                 time.sleep(0.125)
 
     def Destroy(self):
-        self._live = false
+        self._live = False
         self.gauge = None
 
         if sys:
             sys.stdout = sys.__stdout__
-        wxFrame.Destroy(self)
+        wx.Frame.Destroy(self)
 
     def OnUpdateProgress(self, event):
         self._live = event.tpe == 'importing' and self._live
@@ -343,13 +345,13 @@ class AboutBoxSplash(AboutBoxMixin, wxFrame):
 
 class StaticTextPF(Utils.PseudoFile):
     def write(self, s):
-        if not wxThread_IsMain():
-            locker = wxMutexGuiLocker()
+        if not wx.Thread_IsMain():
+            locker = wx.MutexGuiLocker()
 
         res = prog_update.search(s)
         if res:
             cnt = int(res.group('cnt'))
-            wxPostEvent(self.output.GetGrandParent().GetParent(),
+            wx.PostEvent(self.output.GetGrandParent().GetParent(),
                   ModCntUpdateEvent(cnt, 'opening'))
             s = s[:res.start()]
 
@@ -369,24 +371,22 @@ class StaticTextPF(Utils.PseudoFile):
 ##            s = '  '*d + s
 ##            
             sys.__stdout__.write(s)#+':'+sys.path[-1])
-        wxYield()
+        wx.Yield()
 
-wxEVT_MOD_CNT_UPD = wxNewId()
+wxEVT_MOD_CNT_UPD = wx.NewId()
+EVT_MOD_CNT_UPD = wx.PyEventBinder(wxEVT_MOD_CNT_UPD)
 
-def EVT_MOD_CNT_UPD(win, func):
-    win.Connect(-1, -1, wxEVT_MOD_CNT_UPD, func)
-
-class ModCntUpdateEvent(wxPyEvent):
+class ModCntUpdateEvent(wx.PyEvent):
     def __init__(self, cnt, tpe):
-        wxPyEvent.__init__(self)
+        wx.PyEvent.__init__(self)
         self.SetEventType(wxEVT_MOD_CNT_UPD)
         self.cnt = cnt
         self.tpe = tpe
 
 if __name__ == '__main__':
 
-    app = wxPySimpleApp()
-    wxInitAllImageHandlers()
+    app = wx.PySimpleApp()
+    wx.InitAllImageHandlers()
 
     #dialog
     #frame = createNormal(None)
@@ -401,6 +401,6 @@ if __name__ == '__main__':
         
     frame = createSplash(None, 0, 0)
     frame.Show()
-    wxCallAfter(updlbl, frame)
+    wx.CallAfter(updlbl, frame)
 
     app.MainLoop()

@@ -115,7 +115,7 @@ def buildPluginExecList():
             try:
                 idx = globList.index(pluginFilename)
             except ValueError:
-                #wxLogWarning('Ordered plugin: %s not found: %'%pluginFilename)
+                #wx.LogWarning('Ordered plugin: %s not found: %'%pluginFilename)
                 pass
             else:
                 del globList[idx]

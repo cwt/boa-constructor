@@ -2,36 +2,44 @@
 
 import string
 
-from wxPython.wx import *
-from wxPython.html import *
+import wx
+import wx.html
 
 def create(parent, data):
     return HTMLResponseFrm(parent, data)
 
-[wxID_HTMLRESPONSEFRM, wxID_HTMLRESPONSEFRMHTMLWINDOW, wxID_HTMLRESPONSEFRMNOTEBOOK1, wxID_HTMLRESPONSEFRMTEXTCTRL] = map(lambda _init_ctrls: wxNewId(), range(4))
+[wxID_HTMLRESPONSEFRM, wxID_HTMLRESPONSEFRMHTMLWINDOW, 
+ wxID_HTMLRESPONSEFRMNOTEBOOK1, wxID_HTMLRESPONSEFRMTEXTCTRL, 
+] = [wx.NewId() for _init_ctrls in range(4)]
 
-class HTMLResponseFrm(wxFrame):
+class HTMLResponseFrm(wx.Frame):
     def _init_coll_notebook1_Pages(self, parent):
         # generated method, don't edit
 
-        parent.AddPage(select = true, imageId = -1, page = self.htmlWindow, text = 'Response')
-        parent.AddPage(select = false, imageId = -1, page = self.textCtrl, text = 'Source')
-
-    def _init_utils(self):
-        # generated method, don't edit
-        pass
+        parent.AddPage(imageId=-1, page=self.htmlWindow, select=True,
+              text='Response')
+        parent.AddPage(imageId=-1, page=self.textCtrl, select=False,
+              text='Source')
 
     def _init_ctrls(self, prnt):
         # generated method, don't edit
-        wxFrame.__init__(self, id = wxID_HTMLRESPONSEFRM, name = 'HTMLResponseFrm', parent = prnt, pos = wxPoint(311, 225), size = wxSize(429, 286), style = wxSTAY_ON_TOP | wxDEFAULT_FRAME_STYLE, title = 'HTML Response')
-        self._init_utils()
-        self.SetClientSize(wxSize(421, 259))
+        wx.Frame.__init__(self, id=wxID_HTMLRESPONSEFRM, name='HTMLResponseFrm',
+              parent=prnt, pos=wx.Point(311, 225), size=wx.Size(429, 286),
+              style=wx.STAY_ON_TOP | wx.DEFAULT_FRAME_STYLE,
+              title='HTML Response')
+        self.SetClientSize(wx.Size(421, 259))
 
-        self.notebook1 = wxNotebook(id = wxID_HTMLRESPONSEFRMNOTEBOOK1, name = 'notebook1', parent = self, pos = wxPoint(0, 0), size = wxSize(421, 259), style = 0)
+        self.notebook1 = wx.Notebook(id=wxID_HTMLRESPONSEFRMNOTEBOOK1,
+              name='notebook1', parent=self, pos=wx.Point(0, 0),
+              size=wx.Size(421, 259), style=0)
 
-        self.htmlWindow = wxHtmlWindow(id = wxID_HTMLRESPONSEFRMHTMLWINDOW, name = 'htmlWindow', parent = self.notebook1, pos = wxPoint(0, 0), size = wxSize(413, 233))
+        self.htmlWindow = wx.html.HtmlWindow(id=wxID_HTMLRESPONSEFRMHTMLWINDOW,
+              name='htmlWindow', parent=self.notebook1, pos=wx.Point(0, 0),
+              size=wx.Size(413, 233))
 
-        self.textCtrl = wxTextCtrl(id = wxID_HTMLRESPONSEFRMTEXTCTRL, name = 'textCtrl', parent = self.notebook1, pos = wxPoint(0, 0), size = wxSize(413, 233), style = wxTE_MULTILINE, value = '')
+        self.textCtrl = wx.TextCtrl(id=wxID_HTMLRESPONSEFRMTEXTCTRL,
+              name='textCtrl', parent=self.notebook1, pos=wx.Point(0, 0),
+              size=wx.Size(413, 233), style=wx.TE_MULTILINE, value='')
 
         self._init_coll_notebook1_Pages(self.notebook1)
 
@@ -48,7 +56,7 @@ class HTMLResponseFrm(wxFrame):
         self.htmlWindow.SetPage(data)
         self.textCtrl.SetValue(data)
 
-        self.Center(wxBOTH)
+        self.Center(wx.BOTH)
 
 
 testResponse = '''Unexpected Zope error value: <html><head><title>ZOA</title></head><body bgcolor="#FFFFFF">
@@ -95,7 +103,7 @@ testResponse = '''Unexpected Zope error value: <html><head><title>ZOA</title></h
 '''
 
 if __name__ == '__main__':
-    app = wxPySimpleApp()
+    app = wx.PySimpleApp()
     frame = create(None, testResponse)
-    frame.Show(true)
+    frame.Show(True)
     app.MainLoop()
