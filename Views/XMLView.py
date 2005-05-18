@@ -12,12 +12,11 @@
 #-----------------------------------------------------------------------------
 
 import sys
-from EditorViews import EditorView
 
 import wx
 
-from xml.parsers import expat
-parsermodule = expat
+from EditorViews import EditorView
+
 
 class XMLTreeView(wx.TreeCtrl, EditorView):
     viewName = 'XMLTree'
@@ -75,7 +74,9 @@ class XMLTreeView(wx.TreeCtrl, EditorView):
 
     def loadTree(self, filename):
         # Create a parser
-        Parser = parsermodule.ParserCreate()
+
+        from xml.parsers import expat
+        Parser = expat.ParserCreate()
 
         # Tell the parser what the start element handler is
         Parser.StartElementHandler = self.startElement
@@ -102,36 +103,36 @@ class XMLTreeView(wx.TreeCtrl, EditorView):
             if self.defaultActionIdx != -1:
                 self.actions[self.defaultActionIdx][1](event)
 
-class XMLTree(wx.TreeCtrl):
-    def __init__(self, parent, ID):
-        wx.TreeCtrl.__init__(self, parent, ID)
-        self.nodeStack = [self.AddRoot(Root)]
-
-    # Define a handler for start element events
-    def StartElement(self, name, attrs ):
-        if py2:
-            name = name.encode()
-        id = self.AppendItem(self.nodeStack[-1], name)
-        self.nodeStack.append(id)
-
-    def EndElement(self,  name ):
-        self.nodeStack = self.nodeStack[:-1]
-
-    def CharacterData(self, data ):
-        if data.strip():
-            if py2:
-                data = data.encode()
-            self.AppendItem(self.nodeStack[-1], data)
-
-
-    def LoadTree(self, filename):
-        # Create a parser
-        Parser = parsermodule.ParserCreate()
-
-        # Tell the parser what the start element handler is
-        Parser.StartElementHandler = self.StartElement
-        Parser.EndElementHandler = self.EndElement
-        Parser.CharacterDataHandler = self.CharacterData
-
-        # Parse the XML File
-        ParserStatus = Parser.Parse(open(filename,'r').read(), 1)
+##class XMLTree(wx.TreeCtrl):
+##    def __init__(self, parent, ID):
+##        wx.TreeCtrl.__init__(self, parent, ID)
+##        self.nodeStack = [self.AddRoot(Root)]
+##
+##    # Define a handler for start element events
+##    def StartElement(self, name, attrs ):
+##        if py2:
+##            name = name.encode()
+##        id = self.AppendItem(self.nodeStack[-1], name)
+##        self.nodeStack.append(id)
+##
+##    def EndElement(self,  name ):
+##        self.nodeStack = self.nodeStack[:-1]
+##
+##    def CharacterData(self, data ):
+##        if data.strip():
+##            if py2:
+##                data = data.encode()
+##            self.AppendItem(self.nodeStack[-1], data)
+##
+##
+##    def LoadTree(self, filename):
+##        # Create a parser
+##        Parser = parsermodule.ParserCreate()
+##
+##        # Tell the parser what the start element handler is
+##        Parser.StartElementHandler = self.StartElement
+##        Parser.EndElementHandler = self.EndElement
+##        Parser.CharacterDataHandler = self.CharacterData
+##
+##        # Parse the XML File
+##        ParserStatus = Parser.Parse(open(filename,'r').read(), 1)

@@ -1154,7 +1154,6 @@ def parsePropLine(prop):
     return int(name.split('.')[-1]), value
 
 def setSTCStyles(stc, styles, styleIdNames, commonDefs, lang, lexer, keywords):
-    #wxLogMessage('Set style')
     styleDict = {}
     styleNumIdxMap = {}
 
@@ -1214,9 +1213,15 @@ commonDefsFile = 'common.defs.%s'%(platformSettings[wx.Platform][0])
 
 def readPyValFromConfig(conf, name):
     ns = {}
-    ns.update(wx.stc.__dict__)
+    #ns.update(wx.stc.__dict__)
     ns.update(wxPython.stc.__dict__)
-    return eval(conf.Read(name).replace('\r\n', '\n')+'\n', ns)
+    ns['wx'] = wx
+    value = conf.Read(name).replace('\r\n', '\n')+'\n'
+    try:
+        return eval(value, ns)
+    except:
+        print value
+        raise
 
 def initFromConfig(configFile, lang):
     if not os.path.exists(configFile):

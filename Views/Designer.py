@@ -281,7 +281,7 @@ class DesignerView(wx.Frame, InspectableObjectView, Utils.FrameRestorerMixin):
         InspectableObjectView.saveCtrls(self, definedCtrls, module, collDeps)
 
         # Regenerate window ids
-        companions = map(lambda i: i[0], self.objects.values())
+        companions = [i[0] for i in self.objects.values()]
         self.model.writeWindowIds(self.collectionMethod, companions)
 
     def renameCtrlAndParentRefs(self, oldName, newName, children=()):
@@ -971,7 +971,7 @@ class DesignerView(wx.Frame, InspectableObjectView, Utils.FrameRestorerMixin):
                     return
                 ctrls = [self.selection.name]
             elif self.multiSelection:
-                ctrls = map(lambda sel: sel.name, self.multiSelection)
+                ctrls = [sel.name for sel in self.multiSelection]
 
             #map(self.deleteCtrl, ctrls)
             for ctrlName in ctrls:
@@ -1016,7 +1016,7 @@ class DesignerView(wx.Frame, InspectableObjectView, Utils.FrameRestorerMixin):
                 ctrls = [self.selection.name]
             #self.selectParent(self.selection.selection)
         elif self.multiSelection:
-            ctrls = map(lambda sel: sel.name, self.multiSelection)
+            ctrls = [sel.name for sel in self.multiSelection]
 
         output = []
         self.cutCtrls(ctrls, [], output)
@@ -1034,8 +1034,7 @@ class DesignerView(wx.Frame, InspectableObjectView, Utils.FrameRestorerMixin):
             else:
                 ctrls = [self.selection.name]
         elif self.multiSelection:
-            ctrls = map(lambda sel: sel.name, self.multiSelection)
-
+            ctrls = [sel.name for sel in self.multiSelection]
         output = []
         self.copyCtrls(ctrls, [], output)
 

@@ -174,9 +174,8 @@ class ProfileStatsView(ListCtrlView, CloseableViewMix):
             idx = self.getStatIdx()
             callDct = self.stats[self.statKeyList[idx]][4]
 
-#            for name, number in callDct.items():
-            called = map(lambda x: `x[1]`+': '+x[0][2]+' | '+\
-              os.path.basename(os.path.splitext(x[0][0])[0]), callDct.items())
+            called = [`x[1]`+': '+x[0][2]+' | '+os.path.basename(os.path.splitext(x[0][0])[0])
+                      for x in callDct.items()]
             dlg = wx.SingleChoiceDialog(self.model.editor,
               'Choose a function:',
               '%s was called by...' % self.statKeyList[idx][2], called)
@@ -204,8 +203,9 @@ class ProfileStatsView(ListCtrlView, CloseableViewMix):
             if self.all_callees.has_key(key):
                 callDct = self.all_callees[key]
 
-                called = map(lambda x: `x[1]`+': '+x[0][2]+' | '+\
-                 os.path.basename(os.path.splitext(x[0][0])[0]), callDct.items())
+                called = [`x[1]`+': '+x[0][2]+' | '+os.path.basename(os.path.splitext(x[0][0])[0])
+                          for x in callDct.items()]
+                 
                 dlg = wx.SingleChoiceDialog(self.model.editor,
                   'Choose a function:',
                   '%s called...' % self.statKeyList[idx][2], called)

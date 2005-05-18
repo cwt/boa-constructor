@@ -435,7 +435,8 @@ class SingleSelectionGroup(SelectionGroup):
 
 class MultiSelectionGroup(SelectionGroup):
     def __init__(self, parent, inspector, designer):
-        SelectionGroup.__init__(self, parent, inspector, designer, wx.Colour(160, 160, 160), wxSIMPLE_BORDER)#wx.LIGHT_GREY)
+        SelectionGroup.__init__(self, parent, inspector, designer, 
+              wx.Colour(160, 160, 160), wx.SIMPLE_BORDER)#wx.LIGHT_GREY)
 
     def selectCtrl(self, ctrl, compn):
         SelectionGroup.selectCtrl(self, ctrl, compn)
@@ -476,7 +477,7 @@ class MultiSelectionGroup(SelectionGroup):
 
 class SelectionTag(wx.Panel):
     toggleAnchors = (0, 0, 0, 0)
-    def __init__(self, parent, cursor, tagSize, group, pnlStyle):# = wxSIMPLE_BORDER):
+    def __init__(self, parent, cursor, tagSize, group, pnlStyle):# = wx.SIMPLE_BORDER):
         wx.Panel.__init__(self, parent, -1, size = wx.Size(tagSize, tagSize), style = pnlStyle)
         self.Hide()
         self.group = group
@@ -646,7 +647,7 @@ class SideSelTag(SelectionTag):
                                         collEditor.frame.selectObject(idx)
                                         return
         else:
-            wxLogWarning('Not part of a sizer')
+            wx.LogWarning('Not part of a sizer')
 
 class TLSelTag(CornerSelTag):
     name = 'top left'

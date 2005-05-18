@@ -39,7 +39,7 @@ class ControlSizeFrame(wx.Dialog):
               'Grow to largest', 'Width:'], id=wxID_CONTROLSIZEFRAMERADIOBOX1,
               label='Width', majorDimension=1, name='radioBox1',
               parent=self.panel1, point=wx.Point(8, 8), size=wx.Size(144, 128),
-              style=wx.RA_SPECIFY_COLS, validator=wx.DefaultValidator)
+              style=wx.RA_SPECIFY_COLS)
 
         self.widthTC = wx.TextCtrl(id=wxID_CONTROLSIZEFRAMEWIDTHTC,
               name='widthTC', parent=self.panel1, pos=wx.Point(31, 104),
@@ -49,7 +49,7 @@ class ControlSizeFrame(wx.Dialog):
               'Grow to largest', 'Height:'], id=wxID_CONTROLSIZEFRAMERADIOBOX2,
               label='Height', majorDimension=1, name='radioBox2',
               parent=self.panel1, point=wx.Point(160, 8), size=wx.Size(152,
-              128), style=wx.RA_SPECIFY_COLS, validator=wx.DefaultValidator)
+              128), style=wx.RA_SPECIFY_COLS)
 
         self.heightTC = wx.TextCtrl(id=wxID_CONTROLSIZEFRAMEHEIGHTTC,
               name='heightTC', parent=self.panel1, pos=wx.Point(183, 103),

@@ -178,9 +178,9 @@ class InspectableObjectView(EditorViews.EditorView, Utils.InspectorSessionMix):
                     # XXX argument list with more than one prop value are
                     # XXX initialised thru the companion instead of the control
                     if prop.prop_name in comp.initPropsThruCompanion:
-                        apply(getattr(comp, prop.prop_setter), (args,))
+                        getattr(comp, prop.prop_setter)(*(args,))
                     else:
-                        apply(getattr(ctrl, prop.prop_setter), args)
+                        getattr(ctrl, prop.prop_setter)(*args)
                 # Check for pops which don't update the control
                 elif prop.prop_name in comp.onlyPersistProps():
                     continue
@@ -322,7 +322,7 @@ class InspectableObjectView(EditorViews.EditorView, Utils.InspectorSessionMix):
                             else:
                                 refs.append(self.companion.eval(param))
 
-                        apply(getattr(ctrl, prop.prop_setter), refs)
+                        getattr(ctrl, prop.prop_setter)(*refs)
 
             del depLinks[ctrlName]
 

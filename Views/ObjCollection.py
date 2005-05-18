@@ -57,8 +57,9 @@ class ObjectCollection:
 
     def getCtrlNames(self):
         """ Return a list of (name, class) tuples """
-        return map(lambda x, d=self.creatorByName: (d[x][0].comp_name,
-              d[x][0].class_name), self.creatorByName.keys())
+        return [ (self.creatorByName[n][0].comp_name, 
+                  self.creatorByName[n][0].class_name )
+                for n in self.creatorByName]
 
     def removeReference(self, name, method):
         i = 0
