@@ -8,5 +8,5 @@
 
 """ A module for storing Plug-in file preferences """
 
-from wxPython.wx import *
+import wx
 

@@ -1,37 +1,38 @@
-## rc-version: 14 ##
+## rc-version: 15 ##
 # RCS-ID:      $Id$
 
 # The main preference file.
 
-from wxPython.wx import *
+import wx
+import wx.stc
 
 #-Miscellaneous-----------------------------------------------------------------
 
 # Should toolbars have flat buttons, 0 for beveled buttons
-flatTools = wxTB_FLAT
+flatTools = wx.TB_FLAT
 # Frame style for child windows of the main frame
 # E.g. to prevent child windows from appearing on the taskbar set
-# childFrameStyle = wx.wxCLIP_CHILDREN | wxFRAME_TOOL_WINDOW
-childFrameStyle = wxCLIP_CHILDREN
+# childFrameStyle = wx.CLIP_CHILDREN | wx.FRAME_TOOL_WINDOW
+childFrameStyle = wx.CLIP_CHILDREN
 # Style that the DataView ListCtrl is created in
-## options: wxLC_SMALL_ICON, wxLC_LIST
-dataViewListStyle = wxLC_LIST
+## options: wx.LC_SMALL_ICON, wx.LC_LIST
+dataViewListStyle = wx.LC_LIST
 # Should the palette be a menubar or a notebook
 ## options: 'tabs', 'menu'
 paletteStyle = 'tabs'
 # Frame test button on the Palette toolbar
 showFrameTestButton = False
 # Style flags used by most splitters in the IDE
-splitterStyle = wxSP_LIVE_UPDATE | wxSP_3DSASH | wxNO_3D
+splitterStyle = wx.SP_LIVE_UPDATE | wx.SP_3DSASH | wx.NO_3D
 
 # Alternating background colours used in ListCtrls (pastel blue and yellow)
 pastels = True
-pastelMedium = wxColour(235, 246, 255)
-pastelLight = wxColour(255, 255, 240)
+pastelMedium = wx.Colour(235, 246, 255)
+pastelLight = wx.Colour(255, 255, 240)
 
 # Colour (indicating danger) used to display uninitialised window space.
 # A control must be placed in this space before valid code can be generated
-undefinedWindowCol = wxColour(128, 0, 0)
+undefinedWindowCol = wx.Colour(128, 0, 0)
 
 # Info that will be filled into the comment block. (Edit->Add module info)
 # Also used by setup.py
@@ -208,13 +209,13 @@ ps4 = '<<< '
 # Display properties for which source will be generated in Bold
 showModifiedProps = True
 # Colour of property value static text ctrls
-propValueColour = wxColour(0, 0, 120)
+propValueColour = wx.Colour(0, 0, 120)
 # Inspector row height
 oiLineHeight = 18
 # Default height of event selection window in Inspector
 oiEventSelectionHeight = 140
 # Inspector notebook style flags
-## options: 0, wxNB_FIXEDWIDTH, wxNB_LEFT, wxNB_RIGHT, wxNB_BOTTOM
+## options: 0, wx.NB_FIXEDWIDTH, wx.NB_LEFT, wx.NB_RIGHT, wx.NB_BOTTOM
 inspNotebookFlags = 0
 # Page names for the inspector notebook
 inspPageNames = {'Constr': 'Constr', ##'Constructor',
@@ -235,18 +236,18 @@ dsSelectionTagSize = 8
 dsSelectionFrameWidth = 2
 
 # Default control size if control itself has no sensible default
-dsDefaultControlSize = wxSize(200, 100)
+dsDefaultControlSize = wx.Size(200, 100)
 
 # Colours for the selection tags when they represent Anchors
-dsAnchorEnabledCol = wxColour(0, 0, 255)
-dsAnchorDisabledCol = wxColour(40, 100, 110)
+dsAnchorEnabledCol = wx.Colour(0, 0, 255)
+dsAnchorDisabledCol = wx.Colour(40, 100, 110)
 
 # Should sizers be unabled in the Designer
-dsUseSizers = true
+dsUseSizers = True
 
 # Colour for the selection tags and boxes when control is layed out by a sizer
-dsInSizerCol = wxColour(128, 255, 0)
-dsHasSizerCol = wxColour(255, 255, 0)
+dsInSizerCol = wx.Colour(128, 255, 0)
+dsHasSizerCol = wx.Colour(255, 255, 0)
 
 #-Code generation---------------------------------------------------------------
 
@@ -279,22 +280,22 @@ cgContinuedLineIndent = 6
 #-Views-------------------------------------------------------------------------
 
 # Background colour of the canvas used by OGL views.
-vpOGLCanvasBackgroundColour = wxWHITE
+vpOGLCanvasBackgroundColour = wx.WHITE
 # Colours of the connection lines between shapes in diagrams
-vpOGLLinePen = wxBLACK_PEN
-vpOGLLineBrush = wxBLACK_BRUSH
+vpOGLLinePen = wx.BLACK_PEN
+vpOGLLineBrush = wx.BLACK_BRUSH
 # Pen used to draw Class shapes
-vpOGLClassShapePen = wxBLACK_PEN
+vpOGLClassShapePen = wx.BLACK_PEN
 # Brush used to draw Class shapes
-vpOGLClassShapeBrush = wxLIGHT_GREY_BRUSH
+vpOGLClassShapeBrush = wx.LIGHT_GREY_BRUSH
 # Pen used to draw Class shapes defined in other modules
-vpOGLExternalClassShapePen = wxBLACK_PEN
+vpOGLExternalClassShapePen = wx.BLACK_PEN
 # Brush used to draw Class shapes defined in other modules
-vpOGLExternalClassShapeBrush = wxGREY_BRUSH
+vpOGLExternalClassShapeBrush = wx.GREY_BRUSH
 # Pen used to draw Modules
-vpOGLModuleShapePen = wxBLACK_PEN
+vpOGLModuleShapePen = wx.BLACK_PEN
 # Brush used to draw Modules
-vpOGLModuleShapeBrush = wxLIGHT_GREY_BRUSH
+vpOGLModuleShapeBrush = wx.LIGHT_GREY_BRUSH
 
 #-Plug-ins----------------------------------------------------------------------
 
@@ -358,26 +359,23 @@ STCBufferedDraw = True
 # line up especially when they extend over multiple pages.
 STCIndentationGuides = False
 # Set the code page used to interpret the bytes of the document as characters. 
-from wxPython.stc import wxSTC_CP_UTF8, wxSTC_CP_DBCS
-## options: 0, wxSTC_CP_UTF8, wxSTC_CP_DBCS
+## options: 0, wx.stc.STC_CP_UTF8, wx.stc.STC_CP_DBCS
 STCCodePage = 0
 
-from wxPython.stc import wxSTC_WS_INVISIBLE, wxSTC_WS_VISIBLEALWAYS, wxSTC_WS_VISIBLEAFTERINDENT
 # White space can be made visible. Space characters appear as small centred dots
 # and tab characters as light arrows pointing to the right.
 # With the SCWS_VISIBLEAFTERINDENT option, white space used for indentation is
 # invisible but after the first visible character, it is visible.
-## options: wxSTC_WS_INVISIBLE, wxSTC_WS_VISIBLEALWAYS, wxSTC_WS_VISIBLEAFTERINDENT
-STCViewWhiteSpace = wxSTC_WS_INVISIBLE
+## options: wx.stc.STC_WS_INVISIBLE, wx.stc.STC_WS_VISIBLEALWAYS, wx.stc.STC_WS_VISIBLEAFTERINDENT
+STCViewWhiteSpace = wx.stc.STC_WS_INVISIBLE
 
-from wxPython.stc import wxSTC_CARET_SLOP, wxSTC_CARET_STRICT
-wxSTC_CARET_SLOP_STRICT = wxSTC_CARET_SLOP | wxSTC_CARET_STRICT
+wx.stc.STC_CARET_SLOP_STRICT = wx.stc.STC_CARET_SLOP | wx.stc.STC_CARET_STRICT
 # Can be set to a combination of the flags CARET_SLOP and CARET_STRICT to change
 # the automatic vertical positioning of the view when ensuring a position is visible.
 # If CARET_SLOP is off then the caret is centred within the view.
 # When CARET_STRICT is set then caret policy is rechecked even if the caret is completely visible.
 # Setting this value to 0 will leave the policy at startup default
-## options: 0, wxSTC_CARET_SLOP, wxSTC_CARET_STRICT, wxSTC_CARET_SLOP_STRICT
+## options: 0, wx.stc.STC_CARET_SLOP, wx.stc.STC_CARET_STRICT, wx.stc.STC_CARET_SLOP_STRICT
 STCCaretPolicy = 0
 # If CARET_SLOP is on then the slop value determines the number of lines at top
 # and bottom of the view where the caret should not go.
@@ -387,39 +385,34 @@ STCCaretPolicySlop = 0
 # Setting the period to 0 stops the caret blinking.
 STCCaretPeriod = 500
 
-from wxPython.stc import wxSTC_EDGE_NONE, wxSTC_EDGE_LINE, wxSTC_EDGE_BACKGROUND
 # This mechanism marks lines that are longer than a specified length in one of two ways.
 # A vertical line can be displayed at the specified column number (EDGE_LINE) or
 # characters after that column can be displayed with a specified background colour
 # (EDGE_BACKGROUND). The vertical line works well for monospaced fonts but not for
 # proportional fonts which should use EDGE_BACKGROUND.
-## options: wxSTC_EDGE_NONE, wxSTC_EDGE_LINE, wxSTC_EDGE_BACKGROUND
-STCEdgeMode = wxSTC_EDGE_LINE
+## options: wx.stc.STC_EDGE_NONE, wx.stc.STC_EDGE_LINE, wx.stc.STC_EDGE_BACKGROUND
+STCEdgeMode = wx.stc.STC_EDGE_LINE
 STCEdgeColumnWidth = 80
 
 # Colours
-STCCallTipBackColour = wxColour(255, 255, 240)
-STCSyntaxErrorColour = wxColour(255, 0, 0)
-STCCodeBrowseColour = wxColour(0, 0, 255)
-STCDebugBrowseColour = wxColour(255, 0, 0)
+STCCallTipBackColour = wx.Colour(255, 255, 240)
+STCSyntaxErrorColour = wx.Colour(255, 0, 0)
+STCCodeBrowseColour = wx.Colour(0, 0, 255)
+STCDebugBrowseColour = wx.Colour(255, 0, 0)
 
 # Markers
-from wxPython.stc import wxSTC_MARK_CIRCLE, wxSTC_MARK_ROUNDRECT, \
-      wxSTC_MARK_ARROW, wxSTC_MARK_SMALLRECT, wxSTC_MARK_SHORTARROW, \
-      wxSTC_MARK_EMPTY, wxSTC_MARK_ARROWDOWN, wxSTC_MARK_MINUS, wxSTC_MARK_PLUS
+STCLinePointer = wx.stc.STC_MARK_SHORTARROW, 'BLACK', 'BLUE'
+STCBreakpointMarker = wx.stc.STC_MARK_CIRCLE, 'BLACK', 'RED'
+STCTmpBreakpointMarker = wx.stc.STC_MARK_CIRCLE, 'BLACK', 'BLUE'
+STCDisabledBreakpointMarker = wx.stc.STC_MARK_CIRCLE, 'BLACK', wx.Colour(0xCC, 0xCC, 0xCC)
+STCMarkPlaceMarker = wx.stc.STC_MARK_SHORTARROW, 'BLACK', 'YELLOW'
 
-STCLinePointer = wxSTC_MARK_SHORTARROW, 'BLACK', 'BLUE'
-STCBreakpointMarker = wxSTC_MARK_CIRCLE, 'BLACK', 'RED'
-STCTmpBreakpointMarker = wxSTC_MARK_CIRCLE, 'BLACK', 'BLUE'
-STCDisabledBreakpointMarker = wxSTC_MARK_CIRCLE, 'BLACK', wxColour(0xCC, 0xCC, 0xCC)
-STCMarkPlaceMarker = wxSTC_MARK_SHORTARROW, 'BLACK', 'YELLOW'
+STCDiffAddedMarker = wx.stc.STC_MARK_PLUS, 'BLACK', 'WHITE'
+STCDiffRemovedMarker = wx.stc.STC_MARK_MINUS, 'BLACK', 'WHITE'
+STCDiffChangesMarker = wx.stc.STC_MARK_SMALLRECT, 'BLACK', 'WHITE'
 
-STCDiffAddedMarker = wxSTC_MARK_PLUS, 'BLACK', 'WHITE'
-STCDiffRemovedMarker = wxSTC_MARK_MINUS, 'BLACK', 'WHITE'
-STCDiffChangesMarker = wxSTC_MARK_SMALLRECT, 'BLACK', 'WHITE'
-
-STCFoldingOpen = wxSTC_MARK_MINUS, 'BLACK', 'WHITE'
-STCFoldingClose = wxSTC_MARK_PLUS, 'BLACK', 'WHITE'
+STCFoldingOpen = wx.stc.STC_MARK_MINUS, 'BLACK', 'WHITE'
+STCFoldingClose = wx.stc.STC_MARK_PLUS, 'BLACK', 'WHITE'
 
 #-------------------------------------------------------------------------------
 

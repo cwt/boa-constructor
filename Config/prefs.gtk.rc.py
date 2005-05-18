@@ -1,4 +1,4 @@
-## rc-version: 8 ##
+## rc-version: 9 ##
 # RCS-ID:      $Id$
 
 
@@ -10,17 +10,17 @@ eoErrOutNotebookStyle = 'text'
 #-Explorer----------------------------------------------------------------------
 
 # Should sorting in the explorer be case insensitive
-exCaseInsensitiveSorting = false
+exCaseInsensitiveSorting = False
 
 #-Editor------------------------------------------------------------------------
 # Should there be submenu with all the items from the New palete under the
 # Editor's File menu. Causes warnings under wxGTK.
-edShowFileNewMenu = false
+edShowFileNewMenu = False
 
 # Should a custom wxSTC paint handler he installed which minimizes refresing?
-edUseCustomSTCPaintEvtHandler = false
+edUseCustomSTCPaintEvtHandler = False
 # There is a problem with folding on GTK
-edSTCFolding = false
+edSTCFolding = False
 
 #-Window settings---------------------------------------------------------------
 
@@ -45,68 +45,29 @@ windowManagerSide = 5
 inspStatBarFontSize = 13
 
 # Match braces in code
-braceHighLight = false
+braceHighLight = False
 
 # Minimize the IDE while running applications
-minimizeOnRun = false
+minimizeOnRun = False
 
 # Minimize the IDE when using Debug/Continue while debugging 
-minimizeOnDebug = false
+minimizeOnDebug = False
 
 explorerFileSysRootDefault = ('/', '/')
 
 #-Designer----------------------------------------------------------------------
 
 # Draw grid in designer
-drawDesignerGrid = false
+drawDesignerGrid = False
 # Also draw grid for child container controls in the frame
-drawDesignerGridForSubWindows = false
+drawDesignerGridForSubWindows = False
 # Grid draw method: 'lines', 'dots', 'grid', NYI: 'bitmap'
 ## options: 'lines', 'dots', 'grid'
 drawGridMethod = 'grid'
 
 # Grayout (blueout actually) source while designer is open
-grayoutSource = false
+grayoutSource = False
 
-#-Code completion---------------------------------------------------------------
-
-# With these flags you can set which wxPython libraries are available to code completion.
-
-# Import wxPython.utils for Code Completion
-ccImportWxPyUtils = true
-# Import wxPython.html for Code Completion
-ccImportWxPyHtml = true
-# Import wxPython.htmlhelp for Code Completion
-ccImportWxPyHtmlHelp = true
-# Import wxPython.help for Code Completion
-ccImportWxPyHelp = true
-# Import wxPython.calendar for Code Completion
-ccImportWxPyCalendar = true
-# Import wxPython.grid for Code Completion
-ccImportWxPyGrid = true
-# Import wxPython.ogl for Code Completion
-ccImportWxPyOgl = true
-# Import wxPython.stc for Code Completion
-ccImportWxPyStc = true
-# Import wxPython.gizmos for Code Completion
-ccImportWxPyGizmos = true
-# Import wxPython.wizard for Code Completion
-ccImportWxPyWizard = true
-
-# With these filters the names available to code completion can be narrowed down further.
-
-# Filter out all wxPython names
-ccFilterWxAll = false
-# Filter out all classes ending in Ptr
-ccFilterWxPtrNames = true
-# Filters out integer constant values
-ccFilterWxConstants = true
-# Filter out functions
-ccFilterWxFunctions = false
-# Filter out classes
-ccFilterWxClasses = false
-# Filter out instances
-ccFilterWxInstances = false
 
 # Editable preferences
 exportedProperties2 = ['exCaseInsensitiveSorting', 'edShowFileNewMenu',
@@ -116,9 +77,4 @@ exportedProperties2 = ['exCaseInsensitiveSorting', 'edShowFileNewMenu',
  'braceHighLight', 'minimizeOnRun', 'minimizeOnDebug', 'inspStatBarFontSize', 
  'drawDesignerGrid', 'drawDesignerGridForSubWindows',  'drawGridMethod', 
  'grayoutSource',
- 'ccImportWxPyUtils', 'ccImportWxPyHtml', 'ccImportWxPyHtmlHelp',
- 'ccImportWxPyHelp', 'ccImportWxPyCalendar', 'ccImportWxPyGrid',
- 'ccImportWxPyOgl', 'ccImportWxPyStc', 'ccImportWxPyGizmos',
- 'ccFilterWxAll', 'ccFilterWxPtrNames', 'ccFilterWxConstants',
- 'ccFilterWxFunctions', 'ccFilterWxClasses', 'ccFilterWxInstances',
 ]
