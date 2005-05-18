@@ -103,6 +103,8 @@ class Upgrade:
                               "wxRED": "wx.RED",
                               "wxBLUE": "wx.BLUE",
                               "wxGREEN": "wx.GREEN",
+                              "wxBLACK": "wx.BLACK",
+                              "wxWHITE": "wx.WHITE",
                               "wxGridTable": "wx.grid.GridTable",
                               "wxGRIDTABLE": "wx.grid.GRIDTABLE",
                               "wxGrid.wxGrid": "wx.grid.Grid.wxGrid",
@@ -114,6 +116,9 @@ class Upgrade:
                               "wxICON_": "wx.ICON_",
                               "wxPySimpleApp": "wx.PySimpleApp",
                               "wxYES_NO": "wx.YES_NO",
+                              "wxYES": "wx.YES",
+                              "wxNO": "wx.NO",
+                              "wxCANCEL": "wx.CANCEL",
                               "wxYES_DEFAULT": "wx.YES_DEFAULT",
                               "wxNO_DEFAULT": "wx.NO_DEFAULT",
                               "wxID_YES": "wx.ID_YES",
@@ -138,6 +143,7 @@ class Upgrade:
                               "wxWave": "wx.Sound",
                               "wxUsleep": "wx.Usleep",
                               "wxSafeYield": "wx.SafeYield",
+                              "wxYield": "wx.Yield",
                               "wxToolTip": "wx.ToolTip",
                               "wxCAP_": "wx.CAP_",
                               "wxJOIN_": "wx.JOIN_",
@@ -163,6 +169,13 @@ class Upgrade:
                               "wxMODERN": "wx.MODERN",
                               "wxCURSOR_": "wx.CURSOR_",
                               "wxPen": "wx.Pen",
+                              "wxBrush": "wx.Brush",
+                              "wxLogError": "wx.LogError",
+                              "wxLogMessage": "wx.LogMessage",
+                              "wxLogInfo": "wx.LogInfo",
+                              "wxLogWarning": "wx.LogWarning",
+                              "wxPlatform": "wx.Platform",
+                              "wxPostEvent": "wx.PostEvent",
                               }
 
         self.importNames = {"wx": "import wx",
@@ -398,7 +411,7 @@ class Upgrade:
             newWX = self.specialNames[c]
             return a +newWX +d
         except KeyError:
-            return a +"wx." +c +d
+            return a +" wx." +c +d
 
     def repWX3Action(self, s, l, t):
         a, b, c = t
