@@ -1,6 +1,30 @@
 Changes
 -------
 
+- 0.4.3 (CVS) --
+
+2004-05-18
+
+* Converted all core/plugins/example code to wxPython 2.5 style code.
+* Improved Code Completion and Call Tips.
+  * Bugfixes for 2.5 style wx code completion/call tips.
+  * Using wx.py.introspect for shell call tips.
+  * Added code completion/call tips for local/global variables if their
+    type could be picked up from the scope in which the name is used.
+* IDE Framework registration api in Plugins.py.
+  * registerFileType(Controller, Model=None, newName='', addToNew=True, aliasExts=())
+  * registerPalettePage(paletteName, paletteTitle)
+  * registerComponent(paletteName, Control, controlName, Companion)
+  * registerTool(name, func, bmp='-', key='')
+  * registerLanguageSTCStyle(name, lang, STCClass, stylesFile, insertPos=None)
+  * registerPreference(pluginName, prefName, defPrefValSrc, docs=[], info='')
+  * All core and plugin code updated to use the api
+    This hopefully makes extending Boa less cryptic
+* Bugfixes, code cleanups, removed wxPython <= 2.4 special cased code.
+* Python modernizations.
+  e.g. List Comps instead of "map(lambda" and *arg passing instead of "apply()"
+
+
 -- 0.4.2 (CVS) --
 
 2004-05-06
