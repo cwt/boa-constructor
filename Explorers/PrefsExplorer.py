@@ -362,7 +362,7 @@ class KeyDefConfPropEdit(PropertyEditors.ConfPropEdit):
 
     def getDisplayValue(self):
         try:
-            return eval(self.value, wx.__dict__)[0][2]
+            return eval(self.value, {'wx': wx})[0][2]
         except Exception, err:
             return str(err)
 
@@ -396,7 +396,7 @@ class PreferenceCompanion(ExplorerNodes.ExplorerCompanion):
             else:
                 return PropertyEditors.EnumConfPropEdit
 
-        if srcVal.lower() in ('True', 'False'):
+        if srcVal.lower() in ('true', 'false'):
             return PropertyEditors.BoolConfPropEdit
 
         try:

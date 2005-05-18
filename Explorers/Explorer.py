@@ -72,8 +72,9 @@ def splitURI(filename):
     else:
         itemLen = len(protsplit)
         if ExplorerNodes.uriSplitReg.has_key( (protsplit[0], itemLen) ):
-            return apply(ExplorerNodes.uriSplitReg[(protsplit[0], itemLen)],
-                        [filename]+protsplit[1:])
+            return ExplorerNodes.uriSplitReg[(protsplit[0], itemLen)]\
+                   (*([filename]+protsplit[1:]))
+
         else:
             prot, filepath = protsplit
             idx = filepath.find('/')
@@ -141,7 +142,6 @@ class BaseExplorerTree(wx.TreeCtrl):
         return children
 
     def getChildrenNames(self):
-        #return map(lambda id, tree = self: tree.GetItemText(id), self.getChildren())
         return [self.GetItemText(id) for id in self.getChildren()]
 
     def getChildNamed(self, node, name):

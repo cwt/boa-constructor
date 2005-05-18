@@ -24,9 +24,6 @@ import RTTI, Utils
 
 # XXX Zope properties may contain invalid XML content strings (should be encoded)
 
-True = 1
-False = 0
-
 class XMLListBuilder:
     def __init__(self, data):
         self.lists = []
