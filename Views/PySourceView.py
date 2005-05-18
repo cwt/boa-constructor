@@ -11,7 +11,7 @@
 #-----------------------------------------------------------------------------
 print 'importing Views.PySourceView'
 
-import os, string, bdb, sys, types
+import os, string, bdb, sys, types, keyword
 
 import wx
 import wx.stc
@@ -125,7 +125,7 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
         self.setInitialBreakpoints()
 
     def processComment(self, textLst, idntBlock):
-        return map(lambda l: '##%s'%l, textLst)
+        return ['##%s'%l for l in textLst]
 
     def processUncomment(self, textLst, idntBlock):
         for idx in range(len(textLst)):
@@ -134,7 +134,6 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
         return textLst
 
     def processIndent(self, textLst, idntBlock):
-        #return map(lambda l, idntBlock=idntBlock: '%s%s'%(idntBlock, l), textLst)
         return ['%s%s'%(idntBlock, t) for t in textLst]
 
     def processDedent(self, textLst, idntBlock):
@@ -464,6 +463,7 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
         names.extend(module.function_order)
         names.extend(module.global_order)
         names.extend(__builtins__.keys())
+        names.extend(keyword.kwlist)
 
         if block:
             names.extend(block.localnames())
@@ -616,8 +616,8 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
 
         if shellLocals.has_key(word):
             obj = shellLocals[word]
-        elif hasattr(wx.Namespace, wx.word):
-            obj = getattr(wx.Namespace, wx.word)
+        elif hasattr(wxNamespace, wx.word):
+            obj = getattr(wxNamespace, wx.word)
         else:
             return False
 
