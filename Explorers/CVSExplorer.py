@@ -27,7 +27,7 @@ import ProcessProgressDlg, Utils
 import scrm
 
 cvs_environ_vars = ['CVSROOT', 'CVS_RSH', 'HOME']
-cvs_environ_ids  = map(lambda x: wx.NewId(), range(len(cvs_environ_vars)))
+cvs_environ_ids  = [wx.NewId() for ev in cvs_environ_vars]
 
 (wxID_CVSUPDATE, wxID_CVSCOMMIT, wxID_CVSADD, wxID_CVSADDBINARY, wxID_CVSREMOVE,
  wxID_CVSDIFF, wxID_CVSLOG, wxID_CVSSTATUS, wxID_FSCVSIMPORT, wxID_FSCVSCHECKOUT,
@@ -35,6 +35,7 @@ cvs_environ_ids  = map(lambda x: wx.NewId(), range(len(cvs_environ_vars)))
  wxID_CVSLOCK, wxID_CVSUNLOCK, wxID_CVSTEST) = Utils.wxNewIds(18)
 
 cvsFolderImgIdx = 6
+maxHelpLines = 30
 
 def isCVS(filename):
     file = os.path.basename(filename)
@@ -206,7 +207,7 @@ class CVSController(ExplorerNodes.Controller):
         CVSPD = ProcessProgressDlg.ProcessProgressDlg(self.list,
                   'cvs %s %s'% (option, cmd), '', modally=False)
         try:
-            return ' '.join(CVSPD.errors[:-1]).expandtabs(8)
+            return ' '.join(CVSPD.errors[:-1][:maxHelpLines]).expandtabs(8)
         finally:
             CVSPD.Destroy()
 
@@ -641,7 +642,7 @@ class FSCVSFolderNode(ExplorerNodes.ExplorerNode):
         self.dirpos = 0
         fileEntries = self.parent.openList()
         txtEntries = open(os.path.join(self.resourcepath, 'Entries')).readlines()
-        filenames = map(lambda x: x.name, fileEntries)
+        filenames = [f.name for f in fileEntries]
         missingEntries = []
 
         for txtEntry in txtEntries:
