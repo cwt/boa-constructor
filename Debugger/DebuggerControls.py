@@ -124,7 +124,7 @@ class StackViewCtrl(DebuggerListCtrl):
                       'be computed.\nPress "No" to open the path dialog.'%filename,
                       'File Open Error, try to compute path?',
                       wx.ICON_WARNING | wx.YES_NO | wx.CANCEL)
-                if res == wxYES:
+                if res == wx.YES:
                     clientPath = editor.openFileDlg(curfile=os.path.basename(filename))
                     if clientPath:
                         clientPath = prevClientPath = Explorer.splitURI(clientPath)[2]

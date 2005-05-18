@@ -197,7 +197,7 @@ class DebuggerConnection:
                        'set_disconnect', 'set_step_jump')
             if command not in allowed:
                 raise DebugError('Illegal command: %s' % command)
-            apply(getattr(self, command), args)
+             getattr(self, command)(*args)
         ss = self.getStatusSummary()
         return ss
 
@@ -345,7 +345,7 @@ class MethodCall (ServerMessage):
 
     def execute(self, ob):
         try:
-            result = apply(getattr(ob, self.func_name), self.args, self.kw)
+            result = getattr(ob, self.func_name)(*self.args, **self.kw)
         except (SystemExit, BdbQuit):
             raise
         except:
@@ -894,7 +894,7 @@ class DebugServer (Bdb):
         self.clear_all_breaks()
         if brks:
             for brk in brks:
-                apply(self.addBreakpoint, (), brk)
+                self.addBreakpoint(**bkr)
 
     def addBreakpoint(self, filename, lineno, temporary=0,
                       cond='', enabled=1, ignore=0):

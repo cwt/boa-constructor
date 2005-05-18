@@ -173,7 +173,7 @@ class ChildProcessClient(MultiThreadedDebugClient):
 
     def invoke(self, m_name, m_args):
         m = getattr(self.server, m_name)
-        result = apply(m, m_args)
+        result = m(*m_args)
         return result
 
     def isAlive(self):

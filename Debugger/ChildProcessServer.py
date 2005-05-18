@@ -41,7 +41,7 @@ class DebugRequestHandler (RequestHandler):
             return 1
         else:
             m = getattr(connection, method)
-            result = apply(m, params)
+            result = m(*params)
             if result is None:
                 result = 0
             return result

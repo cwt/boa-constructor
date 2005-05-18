@@ -39,7 +39,7 @@ class InProcessClient (DebugClient):
             self.event_handler, self.win_id, r_name, r_args)
         conn.setCallback(cb)
         try:
-            apply(getattr(conn, m_name), m_args)
+            getattr(conn, m_name)(*m_args)
         except:
             cb.notifyException()
 

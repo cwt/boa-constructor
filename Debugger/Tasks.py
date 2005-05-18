@@ -72,9 +72,9 @@ class ThreadedTaskHandler:
                 #print 'performing task: %s(%s, %s)'%(task, args, kw)
                 try:
                     if kw is not None:
-                        apply(task, args, kw)
+                        task(*args, **kw)
                     else:
-                        apply(task, args)
+                        task(*args)
                 except SystemExit:
                     exit_loop = 1
                     self.running_threads = self.running_threads - 1

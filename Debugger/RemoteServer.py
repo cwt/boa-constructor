@@ -35,7 +35,7 @@ class DebugRequestHandler (RequestHandler):
         # Override of xmlrpcserver.RequestHandler.call()
         self._authenticate()
         m = getattr(connection, method)
-        result = apply(m, params)
+        result = m(*params)
         if result is None:
             result = 0
         return result

@@ -2,7 +2,7 @@ import os, sys
 sys.path[0:0] = [os.pardir]
 
 from ChildProcessClient import spawnChild
-from wxPython.wx import wxProcess
+import wx
 from time import sleep
 import threading
 
@@ -12,7 +12,7 @@ class Monitor:
 monitor = Monitor()
 
 
-process = wxProcess()
+process = wx.Process()
 process.Redirect()
 
 def pollStreams():

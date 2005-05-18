@@ -37,7 +37,7 @@ class RemoteClient (MultiThreadedDebugClient):
                 self.host, int(self.port))
             self.server = xmlrpclib.Server(url, trans)
         m = getattr(self.server, m_name)
-        result = apply(m, m_args)
+        result = m(*m_args)
         return result
 
     def kill(self):

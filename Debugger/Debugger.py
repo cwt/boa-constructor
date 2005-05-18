@@ -442,7 +442,7 @@ class DebuggerFrame(wx.Frame, Utils.FrameRestorerMixin):
         receiver_name = event.GetReceiverName()
         if receiver_name is not None:
             rcv = getattr(self, receiver_name)
-            apply(rcv, (event.GetResult(),) + event.GetReceiverArgs())
+            rcv( *( (event.GetResult(),) + event.GetReceiverArgs()) )
 
     def OnDebuggerException(self, event):
         if self._destroyed:
