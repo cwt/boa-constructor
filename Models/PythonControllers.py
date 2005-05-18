@@ -13,7 +13,7 @@ print 'importing Models.PythonControllers'
 
 import os, sys, time, imp, marshal, stat
 
-from wxPython.wx import *
+import wx
 
 import Preferences, Utils, Plugins
 from Preferences import keyDefs
@@ -87,7 +87,7 @@ class ModuleController(SourceController):
             actions.extend([
                   ('Run PyChecker', self.OnRunPyChecker, '-', ''),
                   ('Configure PyChecker', self.OnConfigPyChecker, '-', '')])
-    
+
         return SourceController.actions(self, model) + actions
 
     def createModel(self, source, filename, main, saved, modelParent=None):
@@ -99,7 +99,7 @@ class ModuleController(SourceController):
         else:
             name = self.editor.getValidName(self.Model)
 
-        model = self.createModel('', name, '', false, modelParent)
+        model = self.createModel('', name, '', False, modelParent)
         model.transport = self.newFileTransport('', name)
         self.activeApp = modelParent
 
@@ -120,16 +120,17 @@ class ModuleController(SourceController):
         if modtime is not None:
             curmodtime = os.stat(statFile)[stat.ST_MTIME]
             if curmodtime == modtime:
-                wxLogError('Stats file date unchanged, check for errors in script.')
+                wx.LogError('Stats file date unchanged, check for errors in script.')
                 return
         elif not os.path.exists(statFile):
-            wxLogError('Stats file not found, check for errors in script.')
+            wx.LogError('Stats file not found, check for errors in script.')
             return
 
         self.editor.setStatus('Loading stats...')
         stats = marshal.load(open(statFile, 'rb'))
 
-        resName = 'Profile stats: %s'%time.strftime('%H:%M:%S', time.gmtime(time.time()))
+        resName = 'Profile stats: %s'%time.strftime('%H:%M:%S', 
+              time.localtime(time.time()))
         if not model.views.has_key(resName):
             resultView = self.editor.addNewView(resName,
               ProfileView.ProfileStatsView)
@@ -162,10 +163,10 @@ class ModuleController(SourceController):
 
     def OnSetRunParams(self, event):
         model = self.getModel()
-        dlg = wxTextEntryDialog(self.editor, 'Parameters:',
+        dlg = wx.TextEntryDialog(self.editor, 'Parameters:',
           'Command-line parameters', model.lastRunParams)
         try:
-            if dlg.ShowModal() == wxID_OK:
+            if dlg.ShowModal() == wx.ID_OK:
                 model.lastRunParams = dlg.GetValue()
                 # update running debuggers debugging this module
                 debugger = self.editor.debugger
@@ -184,7 +185,7 @@ class ModuleController(SourceController):
     def OnRunApp(self, event=None, runModel=None):
         model = self.getModel()
         if self.checkUnsaved(model): return
-        wxBeginBusyCursor()
+        wx.BeginBusyCursor()
         try:
             if runModel is None:
                 if model.app:
@@ -193,7 +194,7 @@ class ModuleController(SourceController):
                     runModel = model
             runModel.run(runModel.lastRunParams, self.execStart, self.execFinish)
         finally:
-            wxEndBusyCursor()
+            wx.EndBusyCursor()
 
 ##    def execFinish1(self, runner):
 ##        model = self.getModel()
@@ -216,7 +217,7 @@ class ModuleController(SourceController):
     def execStart(self, pid, program, script):
         editor = self.editor
         if editor.erroutFrm:
-            self.editor.erroutFrm.processStarted(program, pid, script) 
+            self.editor.erroutFrm.processStarted(program, pid, script)
 
     def execFinish(self, runner):
         editor = self.editor
@@ -231,7 +232,7 @@ class ModuleController(SourceController):
             editor.erroutFrm.processFinished(runner.pid)
 
             if errs:
-                editor.statusBar.setHint('Finished execution, there were errors', 
+                editor.statusBar.setHint('Finished execution, there were errors',
                                          'Warning')
             else:
                 editor.statusBar.setHint('Finished execution.')
@@ -295,9 +296,9 @@ class ModuleController(SourceController):
                       os.path.join(Preferences.pyPath, 'ExternalLib',
                       'pychecker_custom.py'), os.path.basename(filename))
 
-                ProcessModuleRunner(self.editor.erroutFrm, newCwd).run(cmd, 
-                      ErrorStack.PyCheckerErrorParser, 'PyChecker', 'Warning', 
-                      true)
+                ProcessModuleRunner(self.editor.erroutFrm, newCwd).run(cmd,
+                      ErrorStack.PyCheckerErrorParser, 'PyChecker', 'Warning',
+                      True)
             finally:
                 sys.path = oldSysPath
                 sys.stderr = oldErr
@@ -315,11 +316,11 @@ class ModuleController(SourceController):
                 appDir = os.path.dirname(filename)
                 appConfig = appDir+'/.pycheckrc'
             if not os.path.exists(appConfig):
-                dlg = wxMessageDialog(self.editor, 'The PyChecker configuration file '
+                dlg = wx.MessageDialog(self.editor, 'The PyChecker configuration file '
                   'can not be found. Copy the default file here?',
-                  'Config file not found', wxYES_NO | wxICON_QUESTION)
+                  'Config file not found', wx.YES_NO | wx.ICON_QUESTION)
                 try:
-                    if dlg.ShowModal() == wxID_YES:
+                    if dlg.ShowModal() == wx.ID_YES:
                         from pychecker import Config
                         open(appConfig, 'w').write(Config.outputRc(Config.Config()))
                     else:
@@ -335,13 +336,13 @@ class ModuleController(SourceController):
         if model:
             if self.checkUnsaved(model): return
             self.editor.setStatus('Running Cyclopse on %s ...'%model.filename)
-            wxBeginBusyCursor()
+            wx.BeginBusyCursor()
             try:
                 report = model.cyclops()
             finally:
-                wxEndBusyCursor()
+                wx.EndBusyCursor()
 
-            resName = 'Cyclops report: %s'%time.strftime('%H:%M:%S', time.gmtime(time.time()))
+            resName = 'Cyclops report: %s'%time.strftime('%H:%M:%S', time.localtime(time.time()))
             if not model.views.has_key(resName):
                 resultView = self.editor.addNewView(resName, EditorViews.CyclopsView)
             else:
@@ -364,14 +365,14 @@ class ModuleController(SourceController):
     def chooseOpenApp(self, model, msg, capt):
         openApps = self.editor.getAppModules()
         if not openApps:
-            wxMessageBox('No open applications.', style=wxICON_ERROR)
+            wx.MessageBox('No open applications.', style=wx.ICON_ERROR)
             return
         chooseApps = {}
         for app in openApps:
             chooseApps[os.path.basename(app.filename)] = app
-        dlg = wxSingleChoiceDialog(self.editor, msg, capt, chooseApps.keys())
+        dlg = wx.SingleChoiceDialog(self.editor, msg, capt, chooseApps.keys())
         try:
-            if dlg.ShowModal() == wxID_OK:
+            if dlg.ShowModal() == wx.ID_OK:
                 return chooseApps[dlg.GetStringSelection()]
             else:
                 return None
@@ -432,10 +433,10 @@ class ModuleController(SourceController):
         if model:
             model.useInputStream = not model.useInputStream
             if model.useInputStream:
-                self.editor.erroutFrm.displayInput(true)
-                wxLogMessage('Using input stream for running')
+                self.editor.erroutFrm.displayInput(True)
+                wx.LogMessage('Using input stream for running')
             else:
-                wxLogMessage('Not using input stream for running')
+                wx.LogMessage('Not using input stream for running')
 
 def ToolsOnAttachToDebugger(editor):
     from Debugger.RemoteDialog import create
@@ -466,7 +467,7 @@ class BaseAppController(ModuleController):
     def createNewModel(self, modelParent=None):
         appName = self.editor.getValidName(self.Model)
         main = appName[7:-3]
-        appModel = self.createModel('', appName, main, false)
+        appModel = self.createModel('', appName, main, False)
         appModel.transport = self.newFileTransport(main, appName)
 
         return appModel, appName
@@ -507,11 +508,11 @@ class BaseAppController(ModuleController):
     def OnCrashLog(self, event):
         model = self.getModel()
         if model:
-            wxBeginBusyCursor()
+            wx.BeginBusyCursor()
             try:
                 model.crashLog()
             finally:
-                wxEndBusyCursor()
+                wx.EndBusyCursor()
 
 class PyAppController(BaseAppController):
     Model = PythonEditorModels.PyAppModel
@@ -531,7 +532,7 @@ class PackageController(ModuleController):
         name = '__init__.py'
         filename, success = self.editor.saveAsDlg(name)
         if success:
-            model = self.createModel(sourceconst.defPackageSrc, filename, '', false)
+            model = self.createModel(sourceconst.defPackageSrc, filename, '', False)
             model.transport = self.newFileTransport(name, filename)
             model.save()
 
@@ -575,7 +576,7 @@ class SetupController(ModuleController):
               ('setup.py sdist', self.OnSetupSDist, '-', ''),
               ('setup.py bdist', self.OnSetupBDist, '-', '')]
 
-        if wxPlatform == '__WXGTK__':
+        if wx.Platform == '__WXGTK__':
             actions.append(('setup.py bdist_rpm', self.OnSetupBDist_RPM, '-', ''))
         else:
             actions.append(('setup.py bdist_wininst', self.OnSetupBDist_WinInst, '-', ''))
@@ -591,7 +592,7 @@ class SetupController(ModuleController):
 
     def createNewModel(self, modelParent=None):
         name = 'setup.py'
-        model = self.createModel(sourceconst.defSetup_py, name, '', false)
+        model = self.createModel(sourceconst.defSetup_py, name, '', False)
         model.transport = self.newFileTransport('', name)
         model.new()
 
@@ -600,7 +601,7 @@ class SetupController(ModuleController):
     def runDistUtilsCmd(self, cmd):
         model = self.getModel()
         if not model.savedAs:
-            wxLogError('Cannot run distutils on an unsaved module')
+            wx.LogError('Cannot run distutils on an unsaved module')
             return
 
         cwd = os.path.abspath(os.getcwd())
@@ -629,10 +630,10 @@ class SetupController(ModuleController):
     def OnSetupBDist_RPM(self, event):
         self.runDistUtilsCmd('bdist_rpm')
     def OnSetupParams(self, event):
-        dlg = wxTextEntryDialog(self.editor, 'Edit setup.py arguments', 
+        dlg = wx.TextEntryDialog(self.editor, 'Edit setup.py arguments',
                                 'Distutils setup', '')
         try:
-            if dlg.ShowModal() == wxID_OK:
+            if dlg.ShowModal() == wx.ID_OK:
                 self.runDistUtilsCmd(dlg.GetValue())
         finally:
             dlg.Destroy()
@@ -655,7 +656,8 @@ Controllers.fullnameTypes.update({
 })
 
 Plugins.registerFileType(PyAppController, newName='PythonApp')
-Plugins.registerFileTypes(ModuleController, PackageController, SetupController)
+Plugins.registerFileTypes(ModuleController, PackageController)
+Plugins.registerFileType(SetupController, newName='Setup')
 Plugins.registerFileType(PythonExtensionController, addToNew=False)
 
 # Python extensions to the Explorer
@@ -676,11 +678,11 @@ class SysPathNode(ExplorerNodes.ExplorerNode):
         ExplorerNodes.ExplorerNode.__init__(self, 'sys.path', '', clipboard,
               EditorHelper.imgPathFolder, parent)
         self.bookmarks = bookmarks
-        self.bold = true
-        self.vetoSort = true
+        self.bold = True
+        self.vetoSort = True
 
     def isFolderish(self):
-        return true
+        return True
 
     def createChildNode(self, shpth, pth):
         return FileExplorer.FileSysNode(shpth, pth, self.clipboard,
@@ -705,7 +707,7 @@ class SysPathNode(ExplorerNodes.ExplorerNode):
         for short, entry in self.entries:
             res.append(self.createChildNode(short, entry))
         return res
-    
+
 ExplorerNodes.register(SysPathNode, clipboard='file', controller='file', root=True)
 
 

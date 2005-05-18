@@ -63,4 +63,3 @@ class HTMLFileController(Controllers.PersistentController):
 
 Plugins.registerFileType(HTMLFileController, aliasExts=('.htm',))
 Plugins.registerLanguageSTCStyle('HTML', 'html', BaseHTMLStyledTextCtrlMix, 'stc-styles.rc.cfg')
-                         

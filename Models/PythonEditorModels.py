@@ -14,10 +14,10 @@ print 'importing Models.PythonEditorModels'
 
 import os, sys, pprint, imp, stat, types, tempfile
 from thread import start_new_thread
-from time import time, gmtime, strftime
+from time import time, localtime, strftime
 from StringIO import StringIO
 
-from wxPython import wx
+import wx
 
 import Preferences, Utils
 
@@ -26,7 +26,7 @@ from EditorModels import PersistentModel, SourceModel, EditorModel, BitmapFileMo
 
 import relpath, sourceconst
 
-true,false=1,0
+True,False=1,0
 
 (imgPyAppModel, imgModuleModel, imgPackageModel, imgSetupModel,
  imgPythonBinaryFileModel,
@@ -49,11 +49,11 @@ class ModuleModel(SourceModel):
         self.moduleName = os.path.split(self.filename)[1]
         self.lastRunParams = ''
         self.lastDebugParams = ''
-        self.useInputStream = false
+        self.useInputStream = False
 
         if data:
             if Preferences.autoReindent:
-                if not self.reindent(false):
+                if not self.reindent(False):
                     self.update()
             else:
                 self.update()
@@ -62,8 +62,8 @@ class ModuleModel(SourceModel):
         SourceModel.destroy(self)
         del self.app
 
-    def load(self, notify = true):
-        SourceModel.load(self, false)
+    def load(self, notify = True):
+        SourceModel.load(self, False)
         if Preferences.autoReindent:
             if not self.reindent():
                 self.update()
@@ -71,9 +71,9 @@ class ModuleModel(SourceModel):
             self.update()
         if notify: self.notify()
 
-    def save(self, overwriteNewer=false):
+    def save(self, overwriteNewer=False):
         if Preferences.autoReindent:
-            self.reindent(false)
+            self.reindent(False)
         SourceModel.save(self, overwriteNewer)
 
     def saveAs(self, filename):
@@ -94,13 +94,13 @@ class ModuleModel(SourceModel):
     _module = None
     def getModule(self):
         if self._module is None:
-            wx.wxBeginBusyCursor()
+            wx.BeginBusyCursor()
             try:
                 import moduleparse
                 self._module = moduleparse.Module(
                     self.moduleName, self.getDataAsLines())
             finally:
-                wx.wxEndBusyCursor()
+                wx.EndBusyCursor()
         return self._module
 
     def initModule(self):
@@ -133,9 +133,9 @@ class ModuleModel(SourceModel):
 
             runner = PopenModuleRunner(None, newCwd)
             runner.run(cmd, inpLines, execStart)
-            #wx.wxPostEvent(self.editor, ExecFinishEvent(runner))
+            #wx.PostEvent(self.editor, ExecFinishEvent(runner))
             if execFinish:
-                wx.wxCallAfter(execFinish, runner)
+                wx.CallAfter(execFinish, runner)
         finally:
             if os: os.chdir(cwd)
 
@@ -229,7 +229,7 @@ class ModuleModel(SourceModel):
                 command = '"%s" "%s" "%s" "%s"'%(
                       Preferences.getPythonInterpreterPath(),
                       Utils.toPyPath('RunCyclops.py'), name, report)
-                wx.wxExecute(command, true)
+                wx.Execute(command, True)
 
                 # read report that Cyclops generated
                 page = open(report, 'r').read()
@@ -238,7 +238,7 @@ class ModuleModel(SourceModel):
                 os.chdir(cwd)
                 return page
         else:
-            wx.wxLogWarning('Save before running Cyclops')
+            wx.LogWarning('Save before running Cyclops')
             raise 'Not saved yet!'
 
     def debug(self, params=None, cont_if_running=0, cont_always=0,
@@ -297,15 +297,15 @@ class ModuleModel(SourceModel):
 
         dollar = '$' # has to be obscured from CVS :)
         prefs['Name'] = self.moduleName
-        prefs['Created'] = strftime('%Y/%d/%m', gmtime(time()))
+        prefs['Created'] = strftime('%Y/%d/%m', localtime(time()))
         prefs['RCS-ID'] = '%sId: %s %s' % (dollar, self.moduleName , dollar)
 
         self.data = (sourceconst.defInfoBlock % prefs) + self.data
-        self.modified = true
+        self.modified = True
         self.update()
         self.notify()
 
-    def reindent(self, updateModulePage=true):
+    def reindent(self, updateModulePage=True):
         from ExternalLib import reindent
         self.refreshFromViews()
         eol = Utils.getEOLMode(self.data)
@@ -329,12 +329,12 @@ class ModuleModel(SourceModel):
 
                     self.editor.statusBar.setHint(\
                           'Code reformatted (indents and or EOL characters fixed)')
-                    return true
+                    return True
         except Exception, error:
             self.editor.statusBar.setHint(\
                   'Reindent failed - %s : %s' % (error.__class__, str(error)) , 'Error')
 
-        return false
+        return False
 
     def getSimpleRunnerSrc(self):
         return sourceconst.simpleModuleRunSrc
@@ -415,7 +415,7 @@ class ModuleModel(SourceModel):
                 return path, 'name'
             if tpe == imp.PY_COMPILED:
                 self.editor.setStatus('Compiled file found, check sys.path!',
-                      'Warning', true)
+                      'Warning', True)
                 raise ImportError('Compiled file found')
             else:
                 raise ImportError('Unhandled import type')
@@ -490,7 +490,7 @@ class ModuleModel(SourceModel):
     def readGlobalDict(self, name):
         start, end = self.findGlobalDict(name)
         try:
-            return eval(Utils.toUnixEOLMode(self.data[start:end]), wx.__dict__)
+            return eval(Utils.toUnixEOLMode(self.data[start:end]), {'wx': wx})
         except Exception, err:
             raise '"%s" must be a valid dictionary global dict.\nError: %s'%(name, str(err))
 
@@ -527,7 +527,7 @@ class ModuleModel(SourceModel):
         return imageMod, rootModName, rootMod
 
     def assureResourceLoaded(self, importName, resources, searchPath=None,
-                             specialAttrs=None, report=false):
+                             specialAttrs=None, report=False):
         if searchPath is None:
             searchPath = self.buildResourceSearchList()
 
@@ -536,10 +536,10 @@ class ModuleModel(SourceModel):
         except ImportError:
             if report:
                 self.editor.setStatus('Could not find %s'%importName, 'Error')
-            return false
+            return False
         
         if f is None:
-            return false
+            return False
         
         f.close()
         
@@ -556,12 +556,12 @@ class ModuleModel(SourceModel):
                         self.editor.setStatus('Loaded resource: %s'%importName)
                 except ImportError:
                     self.editor.setStatus('Could not load %s'%importName, 'Error')
-                    return false
-                return true
+                    return False
+                return True
 
         if report:
             self.editor.setStatus('%s is not a valid Resource Module'%importName, 'Error')
-        return false
+        return False
     
     def readResources(self, mod, cls, specialAttrs):
         resources = {}
@@ -653,8 +653,8 @@ class PackageModel(ModuleModel, ImportRelationshipMix):
         ModuleModel.__init__(self, data, name, editor, saved, app)
         self.packagePath = os.path.split(self.filename)[0]
         self.packageName = os.path.split(self.packagePath)[1]
-        self.savedAs = true
-        self.modified = false
+        self.savedAs = True
+        self.modified = False
 
     def openPackage(self, name):
         if self.views.has_key('Folder'):
@@ -759,7 +759,7 @@ class PythonExtensionFileModel(PythonBinaryFileModel):
 
     def __init__(self, data, name, editor, saved):
         # XXX data not read as binary anyway
-        PythonBinaryFileModel.__init__(self, '', name, editor, true)
+        PythonBinaryFileModel.__init__(self, '', name, editor, True)
 
         filename = self.checkLocalFile()
         dirName, pydName = os.path.split(filename)
@@ -816,7 +816,7 @@ class BaseAppModel(ClassModel, ImportRelationshipMix):
         else:
             return filename.replace('\\', '/')
 
-    def save(self, overwriteNewer=false):
+    def save(self, overwriteNewer=False):
         ClassModel.save(self, overwriteNewer)
         for tin in self.unsavedTextInfos:
             fn = os.path.join(os.path.dirname(self.filename), tin)
@@ -880,10 +880,10 @@ class BaseAppModel(ClassModel, ImportRelationshipMix):
         for mod in self.modules.keys():
             self.idModel(mod)
 
-    def writeModules(self, notify=true):
+    def writeModules(self, notify=True):
         self.writeGlobalDict('modules', self.modules)
 
-        self.modified = true
+        self.modified = True
         self.editor.updateTitle()
         self.editor.updateModulePage(self)
 
@@ -1011,7 +1011,7 @@ class BaseAppModel(ClassModel, ImportRelationshipMix):
                 # Update autocreation status
                 props[0] = 0
                 self.modules[newMainFrameModule][0] = 1
-                self.writeModules(false)
+                self.writeModules(False)
 
                 self.update()
                 self.notify()
@@ -1067,7 +1067,7 @@ class BaseAppModel(ClassModel, ImportRelationshipMix):
                 frm.display(err)
                 return frm
         else:
-            wx.wxLogError('Trace file not found. Run with command line param -T')
+            wx.LogError('Trace file not found. Run with command line param -T')
             return None
 
     def openModule(self, name):
@@ -1076,9 +1076,9 @@ class BaseAppModel(ClassModel, ImportRelationshipMix):
             return self.editor.openOrGotoModule(self.moduleFilename(name), self)
         except TransportError, err:
             if str(err) == 'Unhandled transport' and err[1][0] == 'none':
-                if wx.wxMessageBox('Unsaved file no longer open in the Editor.\n'
+                if wx.MessageBox('Unsaved file no longer open in the Editor.\n'
                       'Remove it from application modules ?', 'Missing file',
-                      wx.wxYES_NO | wx.wxICON_QUESTION) == wx.wxYES:
+                      wx.YES_NO | wx.ICON_QUESTION) == wx.YES:
                     self.removeModule(name)
                 return None, None
             else:
@@ -1164,7 +1164,7 @@ class SetupModuleModel(ModuleModel):
 ##        updateViews = 0
 ##        if newExt != oldExt:
 ##            updateViews = 1
-##            bmp = wx.wxBitmapFromImage(wx.wxImageFromStream(StringIO(self.data)))
+##            bmp = wx.BitmapFromImage(wx.ImageFromStream(StringIO(self.data)))
 ##            fn = tempfile.mktemp(newExt)
 ##            try:
 ##                bmp.SaveFile(fn, self.extTypeMap[newExt])

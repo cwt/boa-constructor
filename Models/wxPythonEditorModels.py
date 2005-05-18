@@ -14,7 +14,7 @@ print 'importing Models.wxPythonEditorModels'
 
 import re, string, os, imp, sys, new
 
-from wxPython import wx
+import wx
 
 import Preferences, Utils
 
@@ -23,8 +23,6 @@ from PythonEditorModels import ClassModel, BaseAppModel, ModuleModel
 from Companions import BaseCompanions, FrameCompanions, WizardCompanions
 
 import sourceconst
-
-true,false=1,0
 
 (imgAppModel, imgFrameModel, imgDialogModel, imgMiniFrameModel,
  imgMDIParentModel, imgMDIChildModel, imgPopupWindowModel,
@@ -42,7 +40,7 @@ class BaseFrameModel(ClassModel):
     Designer and maintaining other special values like window id declarations
     """
     modelIdentifier = 'Frames'
-    dialogLook = false
+    dialogLook = False
     Companion = BaseCompanions.DesignTimeCompanion
     def __init__(self, data, name, main, editor, saved, app=None):
         ClassModel.__init__(self, data, name, main, editor, saved, app)
@@ -89,8 +87,8 @@ class BaseFrameModel(ClassModel):
                      self.defCreateClass + self.defWindowIds + \
                      self.defClass) % srcValsDict
 
-        self.savedAs = false
-        self.modified = true
+        self.savedAs = False
+        self.modified = True
         self.initModule()
         self.notify()
 
@@ -158,11 +156,11 @@ class BaseFrameModel(ClassModel):
         newObjColl.setup(creators, properties, events, collectionInits, inits, fins)
 
         if unmatched:
-            wx.wxLogWarning('The following lines were not used by the Designer '\
+            wx.LogWarning('The following lines were not used by the Designer '\
                          'and will be lost:\n')
             for line in unmatched:
-                wx.wxLogWarning(line)
-            wx.wxLogWarning('\nThere were unprocessed lines in the source code of '\
+                wx.LogWarning(line)
+            wx.LogWarning('\nThere were unprocessed lines in the source code of '\
                          'method: %s\nIf this was unexpected, it is advised '\
                          'that you cancel this Designer session and correct '\
                          'the problem before continuing.'%meth)
@@ -272,7 +270,7 @@ class BaseFrameModel(ClassModel):
         Custom Classes can be defined as a class attribute named _custom_classes
         containing a dictionary defining wxPython classes and their custom
         equivalents, e.g.
-        _custom_classes = {'wxTreeCtrl': ['MyTreeCtrl', 'AdvancedTreeCtrl']}
+        _custom_classes = {'wx.TreeCtrl': ['MyTreeCtrl', 'AdvancedTreeCtrl']}
 
         These custom classes will then be available to the Designer
         and will act as equivalent to the corresponding wxPython class,
@@ -453,7 +451,7 @@ class DialogModel(BaseFrameModel):
     defaultName = 'wx.Dialog'
     bitmap = 'wx.Dialog.png'
     imgIdx = imgDialogModel
-    dialogLook = true
+    dialogLook = True
     Companion = FrameCompanions.DialogDTC
 
     def getSimpleRunnerSrc(self):
@@ -478,7 +476,7 @@ class MDIChildModel(BaseFrameModel):
     defaultName = 'wx.MDIChildFrame'
     bitmap = 'wx.MDIChildFrame.png'
     imgIdx = imgMDIChildModel
-    dialogLook = true
+    dialogLook = True
     Companion = FrameCompanions.MDIChildFrameDTC
 
 class PopupWindowModel(BaseFrameModel):
@@ -486,7 +484,7 @@ class PopupWindowModel(BaseFrameModel):
     defaultName = 'wx.PopupWindow'
     bitmap = 'wx.PopupWindow.png'
     imgIdx = imgPopupWindowModel
-    dialogLook = true
+    dialogLook = True
     Companion = FrameCompanions.PopupWindowDTC
 
     def getSimpleRunnerSrc(self):
@@ -497,7 +495,7 @@ class PopupTransientWindowModel(BaseFrameModel):
     defaultName = 'wx.PopupTransientWindow'
     bitmap = 'wx.PopupTransientWindow.png'
     imgIdx = imgPopupTransientWindowModel
-    dialogLook = true
+    dialogLook = True
     Companion = FrameCompanions.PopupWindowDTC
 
     def getSimpleRunnerSrc(self):
@@ -520,8 +518,8 @@ class AppModel(BaseAppModel):
                 'modelIdent': self.modelIdentifier,
                 'main': sourceconst.boaClass,
                 'mainModule': mainModule}
-        self.saved = false
-        self.modified = true
+        self.saved = False
+        self.modified = True
         self.update()
         self.notify()
 
@@ -530,7 +528,7 @@ class FramePanelModel(BaseFrameModel):
     defaultName = 'wx.Panel'
     bitmap = 'wx.FramePanel.png'
     imgIdx = imgFramePanelModel
-    dialogLook = true
+    dialogLook = True
     Companion = FrameCompanions.FramePanelDTC
 
     def __init__(self, data, name, main, editor, saved, app=None):
@@ -551,7 +549,7 @@ class WizardModel(DialogModel):
     defaultName = 'wx.Wizard'
     bitmap = 'wx.wizard.Wizard.png'
     imgIdx = imgWizardModel
-    dialogLook = true
+    dialogLook = True
     Companion = WizardCompanions.WizardDTC
 
     def __init__(self, data, name, main, editor, saved, app=None):
@@ -575,7 +573,7 @@ class PyWizardPageModel(FramePanelModel):
     defaultName = 'wx.PyWizardPage'
     bitmap = 'wx.wizard.PyWizardPage.png'
     imgIdx = imgPyWizardPageModel
-    dialogLook = true
+    dialogLook = True
     Companion = WizardCompanions.PyWizardPageDTC
 
     def __init__(self, data, name, main, editor, saved, app=None):
@@ -592,7 +590,7 @@ class WizardPageSimpleModel(FramePanelModel):
     defaultName = 'wx.WizardPageSimple'
     bitmap = 'wx.wizard.WizardPageSimple.png'
     imgIdx = imgWizardPageSimpleModel
-    dialogLook = true
+    dialogLook = True
     Companion = WizardCompanions.WizardPageSimpleDTC
 
     def __init__(self, data, name, main, editor, saved, app=None):

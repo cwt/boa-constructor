@@ -19,12 +19,10 @@ print 'importing Models.EditorModels'
 import os, sys, tempfile
 from StringIO import StringIO
 
-from wxPython import wx
+import wx
 
 import Preferences, Utils, EditorHelper
 from Preferences import keyDefs
-
-true,false=1,0
 
 _vc_hook = None
 
@@ -35,7 +33,7 @@ class EditorModel:
     objCnt = 0
     plugins = ()
     def __init__(self, data, name, editor, saved):
-        self.active = false
+        self.active = False
         self.data = data
         self.savedAs = saved
         self.filename = name
@@ -123,7 +121,7 @@ class FolderModel(EditorModel):
     imgIdx = EditorHelper.imgFolder
 
     def __init__(self, data, name, editor, filepath):
-        EditorModel.__init__(self, data, name, editor, true)
+        EditorModel.__init__(self, data, name, editor, True)
         self.filepath = filepath
 
 class SysPathFolderModel(FolderModel):
@@ -177,7 +175,7 @@ class BasePersistentModel(EditorModel):
     saveBmp = 'Images/Editor/Save.png'
     saveAsBmp = 'Images/Editor/SaveAs.png'
 
-    def load(self, notify=true):
+    def load(self, notify=True):
         """ Loads contents of data from file specified by self.filename.
             Note: Load's not really used much currently cause objects are
                   constructed with their data as parameter """
@@ -185,12 +183,12 @@ class BasePersistentModel(EditorModel):
             raise 'No transport for loading'
 
         self.data = self.transport.load(mode=self.fileModes[0])
-        self.modified = false
-        self.saved = false
+        self.modified = False
+        self.saved = False
         self.update()
         if notify: self.notify()
 
-    def save(self, overwriteNewer=false):
+    def save(self, overwriteNewer=False):
         """ Saves contents of data to file specified by self.filename. """
         if not self.transport:
             raise 'No transport for saving'
@@ -200,11 +198,11 @@ class BasePersistentModel(EditorModel):
             # this check is to minimise interface change.
             if overwriteNewer:
                 self.transport.save(filename, self.data, mode=self.fileModes[1],
-                      overwriteNewer=true)
+                      overwriteNewer=True)
             else:
                 self.transport.save(filename, self.data, mode=self.fileModes[1])
-            self.modified = false
-            self.saved = true
+            self.modified = False
+            self.saved = True
 
             for view in self.views.values():
                 view.saveNotification()
@@ -230,11 +228,11 @@ class BasePersistentModel(EditorModel):
         oldname = self.filename
         self.filename = filename
         try:
-            self.save(overwriteNewer=true)
+            self.save(overwriteNewer=True)
         except:
             self.filename = oldname
             raise
-        self.savedAs = true
+        self.savedAs = True
 
     def localFilename(self, filename=None):
         if filename is None: filename = self.filename
@@ -267,8 +265,8 @@ class BasePersistentModel(EditorModel):
 
     def new(self):
         self.data = self.getDefaultData()
-        self.savedAs = false
-        self.modified = true
+        self.savedAs = False
+        self.modified = True
         self.update()
         self.notify()
 
@@ -277,8 +275,8 @@ class PersistentModel(BasePersistentModel):
         BasePersistentModel.__init__(self, data, name, editor, saved)
         if data: self.update()
 
-    def load(self, notify=true):
-        BasePersistentModel.load(self, false)
+    def load(self, notify=True):
+        BasePersistentModel.load(self, False)
         self.update()
         if notify: self.notify()
 
@@ -291,10 +289,10 @@ class BitmapFileModel(PersistentModel):
 
     fileModes = ('rb', 'wb')
 
-    extTypeMap = {'.bmp': wx.wxBITMAP_TYPE_BMP, #'.gif': wx.wxBITMAP_TYPE_GIF,
-                  '.jpg': wx.wxBITMAP_TYPE_JPEG, '.png': wx.wxBITMAP_TYPE_PNG}
+    extTypeMap = {'.bmp': wx.BITMAP_TYPE_BMP, #'.gif': wx.BITMAP_TYPE_GIF,
+                  '.jpg': wx.BITMAP_TYPE_JPEG, '.png': wx.BITMAP_TYPE_PNG}
 
-    def save(self, overwriteNewer=false):
+    def save(self, overwriteNewer=False):
         ext = os.path.splitext(self.filename)[1].lower()
         if ext == '.gif':
             raise Exception, 'Saving .gif format not supported'
@@ -309,7 +307,7 @@ class BitmapFileModel(PersistentModel):
         if newExt != oldExt:
             updateViews = 1
             import cStringIO
-            bmp = wx.wxBitmapFromImage(wx.wxImageFromStream(
+            bmp = wx.BitmapFromImage(wx.ImageFromStream(
                   cStringIO.StringIO(self.data)))
             fn = tempfile.mktemp(newExt)
             try:

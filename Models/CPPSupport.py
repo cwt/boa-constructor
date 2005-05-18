@@ -98,7 +98,6 @@ class CPPController(Controllers.SourceController):
 
 #-------------------------------------------------------------------------------
 
-Plugins.registerFileType(CPPController, newName='Cpp', 
+Plugins.registerFileType(CPPController, newName='Cpp',
                          aliasExts=('.cpp','.c','.h'))
 Plugins.registerLanguageSTCStyle('CPP', 'cpp', CPPStyledTextCtrlMix, 'stc-styles.rc.cfg')
-                         

@@ -54,4 +54,3 @@ class ConfigFileController(Controllers.SourceController):
 
 Plugins.registerFileType(ConfigFileController, aliasExts=('.ini',))
 Plugins.registerLanguageSTCStyle('Config', 'prop', ConfigSTCMix, 'stc-styles.rc.cfg')
-                         

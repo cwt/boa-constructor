@@ -70,7 +70,7 @@ pluginImgs = []
 def addPluginImgs(imgPath):
     imgIdx = imgIdxRange()
     pluginImgs.append( (imgIdx, imgPath) )
-    
+
     return imgIdx
 
 

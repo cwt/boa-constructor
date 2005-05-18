@@ -13,7 +13,7 @@ print 'importing Models.Controllers'
 
 import os
 
-from wxPython.wx import *
+import wx
 
 import Preferences, Utils
 from Preferences import keyDefs, IS
@@ -26,7 +26,6 @@ from Explorers import ExplorerNodes
 
 addTool = Utils.AddToolButtonBmpIS
 
-true=1;false=0
 
 class BaseEditorController:
     """ Between user and model operations
@@ -35,18 +34,18 @@ class BaseEditorController:
     Manages toolbar and menu actions
     Custom classes should define Model operations as events
     """
-    docked = true
+    docked = True
 
     Model           = None
     DefaultViews    = []
     AdditionalViews = []
-    
+
     plugins = ()
 
     def __init__(self, editor):
         self.editor = editor
         self.evts = []
-        
+
         self.plugins = [Plugin(self) for Plugin in self.plugins]
 
     def getModel(self):
@@ -66,7 +65,7 @@ class BaseEditorController:
         return FileSysNode(name, filename, None, -1, None, None, properties = {})
 
     def addEvt(self, wId, meth):
-        EVT_MENU(self.editor, wId, meth)
+        self.editor.Bind(wx.EVT_MENU, meth, id=wId)
         self.evts.append(wId)
 
     def disconnectEvts(self):
@@ -92,12 +91,12 @@ class BaseEditorController:
         actions = self.actions(model)
         for plugin in self.plugins:
             actions.extend(plugin.actions(model))
-        
+
         accls = []
 
         for name, event, bmp, key in actions:
             if name != '-':
-                wId = wxNewId()
+                wId = wx.NewId()
                 self.addEvt(wId, event)
                 if key: code = keyDefs[key]
                 else:   code = ()
@@ -142,20 +141,20 @@ class PersistentController(EditorController):
 
     def createNewModel(self, modelParent=None):
         name = self.editor.getValidName(self.Model)
-        model = self.createModel('', name, '', false)
+        model = self.createModel('', name, '', False)
         model.transport = self.newFileTransport('', name)
         model.new()
 
         return model, name
 
-    def checkUnsaved(self, model, checkModified=false):
+    def checkUnsaved(self, model, checkModified=False):
         if not model.savedAs or checkModified and (model.modified or \
               len(model.viewsModified)):
-            wxLogError('Cannot perform this action on an unsaved%s module'%(
+            wx.LogError('Cannot perform this action on an unsaved%s module'%(
                   checkModified and '/modified' or '') )
-            return true
+            return True
         else:
-            return false
+            return False
 
     def OnSave(self, event):
         try:
@@ -167,13 +166,13 @@ class PersistentController(EditorController):
             elif errStr == 'Cancel':
                 pass
             else:
-                wxLogError(str(err))
+                wx.LogError(str(err))
         except ExplorerNodes.TransportSaveError, err:
-            wxLogError(str(err))
+            wx.LogError(str(err))
 
     def OnSaveAs(self, event):
         try:
-            self.editor.activeModSaveOrSaveAs(forceSaveAs=true)
+            self.editor.activeModSaveOrSaveAs(forceSaveAs=True)
         except ExplorerNodes.TransportModifiedSaveError, err:
             errStr = err.args[0]
             if errStr == 'Reload':
@@ -181,29 +180,29 @@ class PersistentController(EditorController):
             elif errStr == 'Cancel':
                 pass
             else:
-                wxLogError(str(err))
+                wx.LogError(str(err))
         except ExplorerNodes.TransportSaveError, err:
-            wxLogError(str(err))
+            wx.LogError(str(err))
 
     def OnReload(self, event):
         model = self.getModel()
         if model:
             if not model.savedAs:
-                wxMessageBox('Cannot reload, this file has not been saved yet.', 
-                             'Reload', wxOK | wxICON_ERROR)
+                wx.MessageBox('Cannot reload, this file has not been saved yet.',
+                             'Reload', wx.OK | wx.ICON_ERROR)
                 return
-                
+
             if model.hasUnsavedChanges() and \
-                  wxMessageBox('There are unsaved changes.\n'\
+                  wx.MessageBox('There are unsaved changes.\n'\
                   'Are you sure you want to reload?',
-                  'Confirm reload', wxYES_NO | wxICON_WARNING) != wxYES:
+                  'Confirm reload', wx.YES_NO | wx.ICON_WARNING) != wx.YES:
                 return
             try:
                 model.load()
 
                 self.editor.updateModuleState(model)
             except ExplorerNodes.TransportLoadError, error:
-                wxLogError(str(error))
+                wx.LogError(str(error))
 
     def OnToggleReadOnly(self, event):
         model = self.getModel()
@@ -217,7 +216,7 @@ class PersistentController(EditorController):
 
             self.editor.updateModuleState(model)
         else:
-            wxLogError('Read-only not supported on this transport')
+            wx.LogError('Read-only not supported on this transport')
 
     def OnNDiffFile(self, event=None, filename=''):
         model = self.getModel()
@@ -229,7 +228,7 @@ class PersistentController(EditorController):
             if filename:
                 tbName = 'Diff with : '+filename
                 if not model.views.has_key(tbName):
-                    resultView = self.editor.addNewView(tbName, 
+                    resultView = self.editor.addNewView(tbName,
                           DiffView.PythonSourceDiffView)
                 else:
                     resultView = model.views[tbName]
@@ -265,7 +264,7 @@ class TextController(PersistentController):
     AdditionalViews = []
 
 class UndockedController(BaseEditorController):
-    docked          = false
+    docked          = False
     def createModel(self, source, filename, main, saved, modelParent=None):
         return self.Model(source, filename, self.editor, saved)
 
@@ -283,7 +282,7 @@ class BitmapFileController(UndockedController):
 
 # XXX move to a new module PythonComControllers
 class MakePyController(BaseEditorController):
-    docked          = false
+    docked          = False
     Model           = None
     DefaultViews    = []
     AdditionalViews = []
@@ -295,7 +294,7 @@ class MakePyController(BaseEditorController):
         import makepydialog
         dlg = makepydialog.create(self.editor)
         try:
-            if dlg.ShowModal() == wxID_OK and dlg.generatedFilename:
+            if dlg.ShowModal() == wx.ID_OK and dlg.generatedFilename:
                 self.editor.openOrGotoModule(dlg.generatedFilename)
         finally:
             dlg.Destroy()
@@ -317,7 +316,7 @@ def identifyFilename(filename):
         return EditorModels.InternalFileModel, '', lext
     return None, '', lext
 
-def identifyFile(filename, source=None, localfs=true):
+def identifyFile(filename, source=None, localfs=True):
     """ Return appropriate model for given source file.
         Assumes header will be part of the first continious comment block """
     Model, main, lext = identifyFilename(filename)
