@@ -616,8 +616,8 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
 
         if shellLocals.has_key(word):
             obj = shellLocals[word]
-        elif hasattr(wxNamespace, wx.word):
-            obj = getattr(wxNamespace, wx.word)
+        elif hasattr(wxNamespace, word):
+            obj = getattr(wxNamespace, word)
         else:
             return False
 
