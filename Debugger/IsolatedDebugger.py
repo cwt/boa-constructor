@@ -197,7 +197,7 @@ class DebuggerConnection:
                        'set_disconnect', 'set_step_jump')
             if command not in allowed:
                 raise DebugError('Illegal command: %s' % command)
-             getattr(self, command)(*args)
+            getattr(self, command)(*args)
         ss = self.getStatusSummary()
         return ss
 
@@ -894,7 +894,7 @@ class DebugServer (Bdb):
         self.clear_all_breaks()
         if brks:
             for brk in brks:
-                self.addBreakpoint(**bkr)
+                self.addBreakpoint(**brk)
 
     def addBreakpoint(self, filename, lineno, temporary=0,
                       cond='', enabled=1, ignore=0):
