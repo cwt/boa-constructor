@@ -192,7 +192,7 @@ def initScreenVars():
     screenWidth = wx.SystemSettings.GetMetric(wx.SYS_SCREEN_X)
     screenHeight = wx.SystemSettings.GetMetric(wx.SYS_SCREEN_Y)
     if wx.Platform == '__WXMSW__':
-        _x, _y, screenWidth, screenHeight = wxGetClientDisplayRect()
+        _x, _y, screenWidth, screenHeight = wx.GetClientDisplayRect()
         screenHeight -= topMenuHeight
     else:
         # handle dual monitors on Linux
