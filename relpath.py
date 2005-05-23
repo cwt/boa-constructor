@@ -73,6 +73,7 @@ def relpath(base, comp):
     rel_path = comp_path_list[len(base_path_list):]
     # find the first directory for which the 2 paths differ
     found = -1
+    idx = 0
     for idx in range(len(base_path_list)):
         if base_path_list[idx].lower() != comp_path_list[idx].lower():
             rel_path = comp_path_list[idx:]
