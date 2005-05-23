@@ -365,7 +365,9 @@ class DesignTimeCompanion(Companion):
             if evt.event_name == name:
                 evt.trigger_meth = value
                 return
-        if self.control == self.designer or not isinstance(self.control, wx.EvtHandler): # or wId is not None:
+        if self.control == self.designer or \
+              not isinstance(self.control, wx.EvtHandler) or \
+              isinstance(self.control, wx.Timer):
             comp_name = ''
         else:
             comp_name = self.name
