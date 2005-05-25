@@ -81,9 +81,9 @@ class PropertyRegistry:
         if self.typeRegistry.has_key(type(value)):
             return self.typeRegistry[type(value)](name, parent, companion,
               rootCompanion, propWrapper, idx, width)
-        elif isinstance(value, object):
-            if self.classRegistry.has_key(value.__class__.__name__):
-                return self.classRegistry[value.__class__.__name__](name,
+        elif isinstance(value, object) and hasattr(value, '__class__') and \
+              self.classRegistry.has_key(value.__class__.__name__):
+            return self.classRegistry[value.__class__.__name__](name,
                   parent, companion, rootCompanion, propWrapper, idx, width)
         else:
             if type(value) == type(None):
