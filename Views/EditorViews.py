@@ -670,6 +670,16 @@ class ListCtrlView(wx.ListView, EditorView, Utils.ListCtrlSelectionManagerMix):
     def sortColumn(self, itemIdx1, itemIdx2):
         item1 = self.sortData[itemIdx1][self.sortCol]
         item2 = self.sortData[itemIdx2][self.sortCol]
+
+        # try to sort integer columns by int value
+        try: 
+            i1 = int(item1)
+            i2 = int(item2)
+        except (TypeError, ValueError):
+            pass
+        else:
+            item1, item2 = i1, i2
+
         if self.flipDir:
             item1, item2 = item2, item1
         if item1 < item2: return -1
