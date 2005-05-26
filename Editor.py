@@ -278,7 +278,15 @@ class EditorFrame(wx.Frame, Utils.FrameRestorerMixin):
         self.Bind(wx.EVT_MENU, self.OnHelpFindIndex, id=EditorHelper.wxID_EDITORHELPFIND)
         self.Bind(wx.EVT_MENU, self.OnOpenExample, id=EditorHelper.wxID_EDITORHELPOPENEX)
 
-        self.mainMenu.Append(self.helpMenu, 'Help')
+        if wx.Platform == '__WXMAC__':
+            helpMenuTitleName = '&Help'
+            self.mainMenu.Append(self.helpMenu, helpMenuTitleName)
+            wx.App.SetMacExitMenuItemId(EditorHelper.wxID_EDITOREXITBOA)
+            wx.App.SetMacAboutMenuItemId(EditorHelper.wxID_EDITORHELPABOUT)
+            wx.App.SetMacPreferencesMenuItemId(EditorHelper.wxID_EDITORSWITCHPREFS)
+        else:
+            helpMenuTitleName = 'Help'
+            self.mainMenu.Append(self.helpMenu, helpMenuTitleName)
 
         if Preferences.suSocketFileOpenServer:
             # Start listening for requests to open files. Listener will run,
