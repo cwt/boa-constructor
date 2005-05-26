@@ -390,7 +390,7 @@ class EditorStyledTextCtrl(wx.stc.StyledTextCtrl, EditorViews.EditorView,
             if dlg.ShowModal() == wx.ID_OK:
                 if dlg.GetValue():
                     try:
-                        lineNo = int(dlg.GetValue())
+                        lineNo = int(dlg.GetValue()) - 1
                     except ValueError:
                         wx.LogError('Integer line number required')
                     else:
