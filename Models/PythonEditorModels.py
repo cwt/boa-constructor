@@ -297,7 +297,7 @@ class ModuleModel(SourceModel):
 
         dollar = '$' # has to be obscured from CVS :)
         prefs['Name'] = self.moduleName
-        prefs['Created'] = strftime('%Y/%d/%m', localtime(time()))
+        prefs['Created'] = strftime('%Y/%m/%d', localtime(time()))
         prefs['RCS-ID'] = '%sId: %s %s' % (dollar, self.moduleName , dollar)
 
         self.data = (sourceconst.defInfoBlock % prefs) + self.data
