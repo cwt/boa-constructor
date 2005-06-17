@@ -147,7 +147,6 @@ class Upgrade:
                               "wxToolTip": "wx.ToolTip",
                               "wxCAP_": "wx.CAP_",
                               "wxJOIN_": "wx.JOIN_",
-                              "wxToolTip": "wx.ToolTip",
                               "wxSHORT_DASH": "wx.SHORT_DASH",
                               "wxDOT_DASH": "wx.DOT_DASH",
                               "wxDOT": "wx.DOT",
@@ -169,6 +168,9 @@ class Upgrade:
                               "wxMODERN": "wx.MODERN",
                               "wxCURSOR_": "wx.CURSOR_",
                               "wxPen": "wx.Pen",
+                              "wxPlatformInfo": "wx.PlatformInfo",
+                              "wxLeft": "wx.Left",
+                              "wxRight": "wx.Right",
                               "wxBrush": "wx.Brush",
                               "wxLogError": "wx.LogError",
                               "wxLogMessage": "wx.LogMessage",
@@ -242,7 +244,8 @@ class Upgrade:
         evt_P3a.setParseAction(self.evt_P3aAction)
 
         # Append keyword args
-        karg = ident + EQ + (quotedString | ident)
+        unicodeString = Literal("u") + quotedString
+        karg = ident + EQ + ((quotedString | unicodeString) | ident)
         append = Suppress(".Append") \
             + LPAREN + karg + COMMA + karg + COMMA \
             + karg + COMMA + karg + RPAREN
@@ -346,12 +349,39 @@ class Upgrade:
         ev, evname, win, id, fn = t
         return "%s.Bind(wx.%s%s, %s, id=%s)" % (win, ev, evname, fn, id)
 
+##    def appendAction(self, s, l, t):
+##        # tokens assumed to be in keyword, arg pairs in sequence
+##        subs = {"helpString": "help", "item": "text"}
+##        skipOne = False
+##        arglist = []
+##        for i in range(0, len(t), 1):
+##            if skipOne == True:
+##                skipOne = False
+##            else:
+##                kw, arg = t[i:i+2]
+##                if arg == 'u':
+##                    arg = 'u' + t[i+2:i+3][0]
+##                    skipOne = True
+##                try:
+##                    kw = subs[kw]
+##                except:
+##                    pass
+##                if kw == "kind":
+##                    arg = arg.replace("wx", "wx.")
+##                arglist.append("%s=%s" % (kw, arg))
+##        return ".Append(" + string.join(arglist, ", ") + ")"
     def appendAction(self, s, l, t):
         # tokens assumed to be in keyword, arg pairs in sequence
         subs = {"helpString": "help", "item": "text"}
         arglist = []
-        for i in range(0, len(t), 2):
+        i = 0
+        while i < len(t):
             kw, arg = t[i:i+2]
+            if arg == 'u':
+                arg = 'u' + t[i+2:i+3][0]
+                i = i+3
+            else:
+                i = i+2
             try:
                 kw = subs[kw]
             except:
