@@ -613,7 +613,7 @@ class NameValue:
 
         self.showPropNameModified(self.isCat)
 
-        self.value = wx.StaticText(valueParent, -1, displayVal,
+        self.value = wx.lib.stattext.GenStaticText(valueParent, -1, displayVal,
           wx.Point(2, idx * oiLineHeight +2), wx.Size(inspector.getValueWidth(),
           oiLineHeight -3), style=wx.ST_NO_AUTORESIZE) #wxCLIP_CHILDREN |
         self.value.SetForegroundColour(Preferences.propValueColour)
