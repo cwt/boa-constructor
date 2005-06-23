@@ -524,6 +524,28 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
             return True
         return False
 
+    def handleBrwsWxNames(self, module, word, words, currLineNo):
+        wxObj = wxNamespace.getWxObjPath(word)
+        if wxObj is not None:
+            if hasattr(wxObj, '__module__'):
+                try: path, impType = self.model.findModule(wxObj.__module__)
+                except ImportError: return False, None
+                else:
+                    if impType == 'package':
+                        self.model.editor.addBrowseMarker(currLineNo)
+                        model, ctrlr = self.model.editor.openOrGotoModule(
+                              os.path.join(path, '__init__.py'))
+                        return True, model
+                    elif impType in ('name', 'module'):
+                        self.model.editor.addBrowseMarker(currLineNo)
+                        model, ctrlr = self.model.editor.openOrGotoModule(path)
+                        if impType == 'name':
+                            model.views['Source'].gotoName(model.getModule(), 
+                                  words[-1], currLineNo)
+                        return True, model
+        return False, None
+                
+
     def handleBrwsImports(self, module, word, currLineNo):
         words = word.split('.')
 
@@ -616,8 +638,8 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
 
         if shellLocals.has_key(word):
             obj = shellLocals[word]
-        elif hasattr(wxNamespace, word):
-            obj = getattr(wxNamespace, word)
+        #elif hasattr(wxNamespace, word):
+        #    obj = getattr(wxNamespace, word)
         else:
             return False
 
@@ -686,6 +708,9 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
         # Obj names
         if len(words) >= 2 and words[0] == 'self':
             return self.handleBrwsObjAttrs(module, words[1], lineNo)
+        # wx names
+        if len(words) >= 2 and words[0] == 'wx':
+            return self.handleBrwsWxNames(module, word, words, lineNo)
         # Imports
         handled, model = self.handleBrwsImports(module, word, lineNo)
         if handled is not None:
@@ -733,7 +758,7 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
 
     def disableSource(self, doDisable):
         self.SetReadOnly(doDisable)
-        self.grayout(doDisable)
+        #self.grayout(doDisable)
 
     def OnBrowseTo(self, event):
         word, line, lnNo, start, startOffset = self.getWordAtCursor()
