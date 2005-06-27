@@ -186,12 +186,12 @@ class FlexGridGrowablesDlg(wx.Dialog):
         rows, cols = self.rows, self.cols
         self.flex.Add(wx.Size(10, 10))
         for idx, col in zip(range(len(cols)), cols):
-            self.flex.Add(self.colBtns[idx], 0, wxGROW)
+            self.flex.Add(self.colBtns[idx], 0, wx.GROW)
             if col:
                 self.flex.AddGrowableCol(idx+1)
 
         for idx, row in zip(range(len(rows)), rows):
-            self.flex.Add(self.rowBtns[idx], 0, wxGROW)
+            self.flex.Add(self.rowBtns[idx], 0, wx.GROW)
             for s in range(len(cols)):
                 self.flex.Add(wx.Size(10, 10))
             if row:
@@ -199,7 +199,7 @@ class FlexGridGrowablesDlg(wx.Dialog):
 
         self.boxSizer1.Layout()
         # needed to repaint the custom drawn window
-        wxPostEvent(self, wx.SizeEvent(self.GetSize(), self.GetId()))
+        wx.PostEvent(self, wx.SizeEvent(self.GetSize(), self.GetId()))
 
 if __name__ == '__main__':
     app = wx.PySimpleApp()
