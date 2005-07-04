@@ -1,6 +1,6 @@
 #Boa:FramePanel:ImageEditorPanel
 
-import os, math, tempfile
+import os, math, tempfile, string
 from cStringIO import StringIO
 
 import wx
@@ -1013,9 +1013,24 @@ class BitmapEditorFileController(Controllers.PersistentController):
         imgPath = model.localFilename()
         ConvertImgToPy(imgPath, self.editor)
 
+validFuncChars = string.letters+string.digits+'_'
+funcCharMap = {'-': '_', '.': '_'}
+def fileNameToFunctionName(fn):
+    res = []
+    if fn and fn[0] in string.letters+'_':
+        res.append(fn[0])
+    for c in fn[1:]:
+        if c not in validFuncChars:
+            if c in funcCharMap:
+                res.append(funcCharMap[c])
+        else:
+            res.append(c)
+    return ''.join(res)
+
 zopt = '-u '
 def ConvertImgToPy(imgPath, editor):
-    pyResPath, ok = editor.saveAsDlg(os.path.splitext(imgPath)[0]+'_img.py')
+    funcName = fileNameToFunctionName(os.path.basename(os.path.splitext(imgPath)[0]))
+    pyResPath, ok = editor.saveAsDlg(funcName+'_img.py')
     if ok:
         if pyResPath.find('://') != -1:
             pyResPath = pyResPath.split('://', 1)[1]
@@ -1023,7 +1038,7 @@ def ConvertImgToPy(imgPath, editor):
         # snip script usage, leave only options
         docs = img2py.__doc__[img2py.__doc__.find('Options:')+11:]
 
-        cmdLine = zopt+'-n %s'%(os.path.basename(os.path.splitext(imgPath)[0]))
+        cmdLine = zopt+'-n %s'%(funcName)
         if os.path.exists(pyResPath):
             cmdLine = '-a ' + cmdLine
 
@@ -1048,14 +1063,17 @@ def ConvertImgToPy(imgPath, editor):
 
         import sourceconst
         header = (sourceconst.defSig%{'modelIdent':'PyImgResource', 'main':''}).strip()
-        src = open(pyResPath, 'r').readlines()
-        if not (src and src[0].startswith(header)):
-            src.insert(0, header+'\n')
-            src.insert(1, '\n')
-            open(pyResPath, 'w').writelines(src)
-
-        m, c = editor.openOrGotoModule(pyResPath)
-        c.OnReload(None)
+        if os.path.exists(pyResPath):
+            src = open(pyResPath, 'r').readlines()
+            if not (src and src[0].startswith(header)):
+                src.insert(0, header+'\n')
+                src.insert(1, '\n')
+                open(pyResPath, 'w').writelines(src)
+    
+            m, c = editor.openOrGotoModule(pyResPath)
+            c.OnReload(None)
+        else:
+            wx.LogWarning('Resource module not found. img2py failed to create the module')
 
 class CloseableImageEditorView(ImageEditorView, EditorViews.CloseableViewMix):
     def __init__(self, parent, model):
