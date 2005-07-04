@@ -28,7 +28,7 @@ class PlotCanvasDTC(BaseCompanions.WindowDTC):
 
 import Plugins
 
-Plugins.registerComponent('wxPython.lib', wx.lib.plot.PlotCanvas, 
+Plugins.registerComponent('Library', wx.lib.plot.PlotCanvas, 
                           'wx.lib.plot.PlotCanvas', PlotCanvasDTC)
 
 def getPlotCanvasData():

@@ -390,9 +390,9 @@ import wx.lib.intctrl
 
 import Plugins
 
-Plugins.registerPalettePage('wxPython.lib', 'wxPython.lib')
+Plugins.registerPalettePage('Library', 'Library')
 
-Plugins.registerComponents('wxPython.lib',
+Plugins.registerComponents('Library',
       (wx.lib.stattext.GenStaticText, 'wx.lib.stattext.GenStaticText', GenStaticTextDTC),
       (wx.lib.masked.textctrl.TextCtrl, 'wx.lib.masked.textctrl.TextCtrl', MaskedTextCtrlDTC),
       (wx.lib.masked.ipaddrctrl.IpAddrCtrl, 'wx.lib.masked.ipaddrctrl.IpAddrCtrl', IpAddrCtrlDTC),
