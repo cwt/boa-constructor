@@ -489,7 +489,11 @@ class BoaApp(wx.App):
 
 
         conf = Utils.createAndReadConfig('Explorer')
-        modTot = conf.getint('splash', 'modulecount')
+        if not conf.has_section('splash'):
+            conf.add_section('splash')
+            modTot = 1
+        else:
+            modTot = conf.getint('splash', 'modulecount')
         fileTot = len(eval(conf.get('editor', 'openfiles'), {}))
 
         abt = About.createSplash(None, modTot, fileTot)
@@ -518,7 +522,7 @@ class BoaApp(wx.App):
 
             inspector.editor = editor
 
-            conf.set('splash', 'modulecount', `len(sys.modules)`)
+            conf.set('splash', 'modulecount', str(len(sys.modules)))
             try:
                 Utils.writeConfig(conf)
             except IOError, err:
