@@ -297,8 +297,8 @@ class FindReplaceEngine:
         try:
             conf = Utils.createAndReadConfig('Explorer')
             if not conf.has_section('finder'): conf.add_section('finder')
-            conf.set('finder', 'wrap', self.wrap)
-            conf.set('finder', 'closeonfound', self.closeOnFound)
+            conf.set('finder', 'wrap', str(self.wrap))
+            conf.set('finder', 'closeonfound', str(self.closeOnFound))
             Utils.writeConfig(conf)
         except Exception, err:
             print 'Problem saving finder options: %s' % err

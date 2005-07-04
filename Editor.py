@@ -1389,7 +1389,7 @@ class EditorFrame(wx.Frame, Utils.FrameRestorerMixin):
             conf = Utils.createAndReadConfig('Explorer')
             if not conf.has_section('editor'): conf.add_section('editor')
             conf.set('editor', 'openfiles', pprint.pformat(mods))
-            conf.set('editor', 'activepage', self.tabs.GetSelection())
+            conf.set('editor', 'activepage', str(self.tabs.GetSelection()))
             try:
                 Utils.writeConfig(conf)
             except Exception, error:
