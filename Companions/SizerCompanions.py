@@ -434,7 +434,7 @@ class GrowablesCDTC(CollectionDTC):
         for idx, row in zip(range(len(rows)), rows):
             if row:
                 self._appendItem('AddGrowableRow', idx)
-        for idx, col in zip(range(len(rows)), cols):
+        for idx, col in zip(range(len(cols)), cols):
             if col:
                 self._appendItem('AddGrowableCol', idx)
 
@@ -569,5 +569,5 @@ Plugins.registerComponents('ContainersLayout',
       (wx.GridSizer, 'wx.GridSizer', GridSizerDTC),
       (wx.FlexGridSizer, 'wx.FlexGridSizer', FlexGridSizerDTC),
       (wx.StaticBoxSizer, 'wx.StaticBoxSizer', StaticBoxSizerDTC),
-      (wx.NotebookSizer, 'wx.NotebookSizer', NotebookSizerDTC),
+      #(wx.NotebookSizer, 'wx.NotebookSizer', NotebookSizerDTC),
     )
