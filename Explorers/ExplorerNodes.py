@@ -12,6 +12,7 @@
 print 'importing Explorers.ExplorerNodes'
 
 import sys, os, time, stat, copy, pprint
+from ConfigParser import ConfigParser
 
 import wx
 
@@ -494,7 +495,6 @@ class CategoryNode(ExplorerNode):
         return self.name
 
     def getConfigValue(self):
-        from ExternalLib import ConfigParser
         try:
             return eval(self.config.get(self.resourcepath[cat_section],
                         self.resourcepath[cat_option]), {})
