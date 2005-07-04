@@ -15,7 +15,7 @@ import wx
 
 import Preferences
 from Preferences import IS
-from ExternalLib.ConfigParser import ConfigParser
+from ConfigParser import ConfigParser
 
 def toPyPath(filename):
     return os.path.join(Preferences.pyPath, filename)
@@ -297,18 +297,12 @@ def writeTextToClipboard(text):
 
 _sharedConfs = {}
 def createAndReadConfig(name, forPlatform=1):
-    # XXX Switch to standard ConfigParser module !!
-
     """ Return an initialised ConfigFile object """
     confFile = os.path.join(Preferences.rcPath, '%s%s.cfg' % (name,
         forPlatform and '.'+Preferences.thisPlatform or ''))
 
-    # paths are within quotes in config, simpler to use fwd slash
-    _confDefaults = {'BOAROOT': Preferences.pyPath.replace('\\', '/'),
-                     'RESOURCECONFIG': Preferences.rcPath.replace('\\', '/')}
-
     if not _sharedConfs.has_key(confFile):
-        conf = ConfigParser(_confDefaults)
+        conf = ConfigParser()
         conf.read(confFile)
         conf.confFile = confFile
         _sharedConfs[confFile] = conf
@@ -843,6 +837,15 @@ def appendMenuItem(menu, wId, label, code=(), bmp='', help=''):
             menuItem.SetBitmap(Preferences.IS.load(bmp))
     menu.AppendItem(menuItem)
 
+def getNotebookPage(notebook, name):
+    for i in range(notebook.GetPageCount()):
+        if notebook.GetPageText(i) == name:
+            return i
+    return -1
+            
+
+#-------------------------------------------------------------------------------
+
 def stringFromControl(u):
     try: wx.USE_UNICODE, UnicodeError
     except NameError: return u
@@ -871,6 +874,7 @@ def stringToControl(s):
     else:
         return s
 
+#-------------------------------------------------------------------------------
 
 def getEOLMode(text, default=os.linesep):
     if text.find('\r\n') != -1: return '\r\n'
