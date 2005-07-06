@@ -191,7 +191,7 @@ class EditorStyledTextCtrl(wx.stc.StyledTextCtrl, EditorViews.EditorView,
         prevVsblLn = self.GetFirstVisibleLine()
         sel = self.GetSelection()
 
-        self.setModelData(str(self.GetText()))
+        self.setModelData(Utils.stringFromControl(self.GetText()))
 
         self.GotoPos(pos)
         self.SetSelection(*sel)
