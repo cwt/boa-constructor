@@ -9,7 +9,7 @@
 # Copyright:   (c) 1999 - 2005 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
-import string, os, sys, glob, pprint, types
+import string, os, sys, glob, pprint, types, re
 
 import wx
 
@@ -846,31 +846,63 @@ def getNotebookPage(notebook, name):
 
 #-------------------------------------------------------------------------------
 
+coding_re = re.compile("coding[:=]\s*([-\w_.]+)")
+
+def coding_spec(str):
+    """Return the encoding declaration according to PEP 263.
+
+    Raise LookupError if the encoding is declared but unknown.
+    """
+    # Only consider the first two lines
+    str = str.split("\n", 2)[:2]
+    str = "\n".join(str)
+
+    match = coding_re.search(str)
+    if not match:
+        return None
+    name = match.group(1)
+    # Check whether the encoding is known
+    import codecs
+    try:
+        codecs.lookup(name)
+    except LookupError:
+        # The standard encoding error does not indicate the encoding
+        raise LookupError, "Unknown encoding "+name
+    return name
+
 def stringFromControl(u):
     try: wx.USE_UNICODE, UnicodeError
-    except NameError: return u
+    except (AttributeError, NameError): return u
 
     if wx.USE_UNICODE:
         try:
             return str(u)
         except UnicodeError, err:
-            raise Exception, 'Unable to encode unicode string, please change '\
-                  'the defaultencoding in sitecustomize.py to handle this '\
-                  'encoding.\nError message %s'%str(err)
+            try:
+                spec = coding_spec(u)
+                return u.encode(spec)
+            except UnicodeError, err:
+                raise Exception, 'Unable to encode unicode string, please change '\
+                      'the defaultencoding in sitecustomize.py to handle this '\
+                      'encoding.\nError message %s'%str(err)            
     else:
         return u
 
 def stringToControl(s):
     try: wx.USE_UNICODE, UnicodeError
-    except NameError: return s
+    except (AttributeError, NameError): return s
 
     if wx.USE_UNICODE:
         try:
             return unicode(s)
         except UnicodeError, err:
-            raise Exception, 'Unable to decode unicode string, please change '\
-                  'the defaultencoding in sitecustomize.py to handle this '\
-                  'encoding.\n Error message %s'%str(err)
+            try:
+                spec = coding_spec(s)
+                return s.decode(spec)
+            except UnicodeError, err:
+                raise Exception, 'Unable to decode unicode string, please change '\
+                      'the defaultencoding in sitecustomize.py to handle this '\
+                      'encoding.\n Error message %s'%str(err)
     else:
         return s
 
