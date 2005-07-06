@@ -479,7 +479,8 @@ class ModuleModel(SourceModel):
         s = name+' ='
         pos = self.data.find(s)
         if pos == -1:
-            raise 'Global dict %s not found in the module, please add it.'%name
+            raise 'Global dict %s not found in the module, please add '\
+                  '"%s = {}" as a global variable.'%(name, name)
         end = self.data.find('}\n', pos + len(s) +1) + 1
         if not end:
             end = self.data.find('}\r\n', pos + len(s) +1) + 1
