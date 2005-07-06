@@ -73,6 +73,7 @@ class EditorModel:
         data = self.data
         strlines = []
         for line in lines:
+            # XXX This is an unneeded bottleneck, why not on the joined str ???
             # encodes unicode in the default encoding
             strlines.append(Utils.stringFromControl(line))
         self.data = ''.join(strlines)
