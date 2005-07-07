@@ -94,7 +94,7 @@ class PythonSourceDiffView(wx.stc.StyledTextCtrl, EditorView,
         self.MarkerDefine(newToBothMrk, markIdnt, markBorder, markCenter)
 
         self.SetMarginSensitive(1, True)
-        EVT_STC_MARGINCLICK(self, wxID_PYTHONSOURCEDIFFVIEW, self.OnMarginClick)
+        wx.stc.EVT_STC_MARGINCLICK(self, wxID_PYTHONSOURCEDIFFVIEW, self.OnMarginClick)
 
         self.tabName = 'Diff'
         self.diffWith = ''
