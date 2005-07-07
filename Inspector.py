@@ -1214,7 +1214,7 @@ class InspectorScrollWin(NameValueEditorScrollWin):
                 except Exception, err:
                     wx.MessageBox('%s: %s'%(err.__class__, str(err)),
                           'Unable to post, please correct.',
-                          wx.OK | wxCENTER | wx.ICON_ERROR, self)
+                          wx.OK | wx.CENTER | wx.ICON_ERROR, self)
 
     def OnUndo(self, event):
         # XXX Implement!
