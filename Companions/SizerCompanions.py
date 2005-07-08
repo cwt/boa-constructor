@@ -29,7 +29,10 @@ from PropEdit.PropertyEditors import IntConstrPropEdit, StrConstrPropEdit, \
       CollectionPropEdit, ObjEnumConstrPropEdit, EnumConstrPropEdit, \
       FlagsConstrPropEdit, WinEnumConstrPropEdit, BoolConstrPropEdit, \
       BoolPropEdit, EnumPropEdit, ReadOnlyConstrPropEdit, \
-      SizerEnumConstrPropEdit, SizeConstrPropEdit
+      SizerEnumConstrPropEdit, SizeConstrPropEdit, ConstrPropEdit
+
+from PropEdit.InspectorEditorControls import TextCtrlIEC
+
 from PropEdit import Enumerations
 import EventCollections, RTTI, methodparse
 
@@ -285,7 +288,7 @@ class SizerItemsCDTC(CollectionDTC):
 
     def persistProp(self, name, setterName, value):
         CollectionDTC.persistProp(self, name, setterName, value)
-        if name in ('Size'):
+        if name in ('Size',):
             self.recreateSizers()
         elif name in ('Flag', 'Border', 'Proportion'):
             si = self.control.GetChildren()[self.index]
@@ -344,8 +347,7 @@ class GrowablesColPropEdit(CollectionPropEdit):
         growableRows, growableCols = ce.companion.getGrowables()
 
         fgsCompn = ce.companion.parentCompanion
-        numRows = self.companion.eval(fgsCompn.textConstr.params['rows'])
-        numCols = self.companion.eval(fgsCompn.textConstr.params['cols'])
+        numRows, numCols = fgsCompn.getNumRowsCols(ce.companion)
 
         if not numRows and not numCols:
             wx.LogError('Rows and Cols may not both be 0')
@@ -461,6 +463,12 @@ class FlexGridSizerDTC(GridSizerDTC):
     def dependentProps(self):
         return GridSizerDTC.dependentProps(self) + ['Growables']
 
+    def getNumRowsCols(self, childCompanion):
+        numRows = self.eval(self.textConstr.params['rows'])
+        numCols = self.eval(self.textConstr.params['cols'])
+        
+        return numRows, numCols
+
 #class RowColSizerDTC(FlexGridSizerDTC):
 #    def writeImports(self):
 #        return '\n'.join( (GridSizerDTC.writeImports(self),
@@ -549,6 +557,7 @@ class NotebookSizerDTC(ControlLinkedSizerDTC):
         return {'Name': 'name', 'Notebook': 'nb'}
 
     def designTimeSource(self):
+        wx.LogWarning('wx.NotebookSizer no longer needed, please remove from source. Support will be removed.')
         return {'nb': 'None'}
 
     def properties(self):
@@ -558,6 +567,98 @@ class NotebookSizerDTC(ControlLinkedSizerDTC):
 
     def defaultAction(self):
         pass
+
+class GridBagSizerDTC(FlexGridSizerDTC):
+    def __init__(self, name, designer, objClass):
+        FlexGridSizerDTC.__init__(self, name, designer, objClass)
+        self.subCompanions['Items'] = GBSizerItemsCDTC
+
+    def constructor(self):
+        return {'Name': 'name', 'VGap': 'vgap', 'HGap': 'hgap'}
+
+    def designTimeSource(self):
+        return {'vgap': '0', 'hgap': '0'}
+
+    def getNumRowsCols(self, childCompanion):
+        maxRow = 0
+        maxCol = 0
+        for si in self.control.GetChildren():
+            (sipr, sipc), (sisr, sisc) = si.GetPos(), si.GetSpan()
+            if sipr + sisr -1 > maxRow:
+                maxRow = sipr + sisr -1
+            if sipc + sisc -1 > maxCol:
+                maxCol = sipc + sisc -1
+            
+        return maxRows, maxCols
+
+class GBSizerItemsCDTC(SizerItemsCDTC):
+    def __init__(self, name, designer, parentCompanion, ctrl):
+        SizerItemsCDTC.__init__(self, name, designer, parentCompanion, ctrl)
+        self.editors.update({'Position': TupleConstrPropEdit,
+                             'Span': TupleConstrPropEdit })
+                             
+    def constructor(self):
+        tcl = self.textConstrLst[self.index]
+        if tcl.method == 'AddWindow':
+            return {'Window': 0, 'Position': 1, 'Span': 'span', 'Flag': 'flag',
+                    'Border': 'border'}
+        elif tcl.method == 'AddSizer':
+            return {'Sizer': 0, 'Position': 1, 'Span': 'span', 'Flag': 'flag',
+                    'Border': 'border'}
+        elif tcl.method == 'AddSpacer':
+            return {'Size': 0, 'Position': 1, 'Span': 'span', 'Flag': 'flag',
+                    'Border': 'border'}
+
+    def designTimeSource(self, wId, method=None):
+        if method is None:
+            method = self.insertionMethod
+
+        if method == 'AddWindow':
+            return {0: 'None', 1: '(0, 0)', 'span': '(1, 1)', 'flag': '0', 'border': '0'}
+        elif method == 'AddSizer':
+            return {0: 'None', 1: '(0, 0)', 'span': '(1, 1)', 'flag': '0', 'border': '0'}
+        elif method == 'AddSpacer':
+            return {0: 'wx.Size(8, 8)', 1: '(0, 0)', 'span': '(1, 1)', 'flag': '0', 'border': '0'}
+
+    def applyDesignTimeDefaults(self, params, method=None):
+        if method is None:
+            method = self.insertionMethod
+
+        if (method in ('AddWindow', 'AddSizer') and params[0] == 'None') or \
+           (method == 'Insert' and params[1] == 'None'):
+            defaults = self.designTimeDefaults(params, method)
+            self.control.AddSizer(BlankSizer(), defaults[1], 
+                  defaults['span'], defaults['flag'], defaults['border'])
+        else:
+            SizerItemsCDTC.applyDesignTimeDefaults(self, params, method)
+
+    def persistProp(self, name, setterName, value):
+        SizerItemsCDTC.persistProp(self, name, setterName, value)
+        if name in ('Position', 'Span'):
+            #si = self.control.GetChildren()[self.index]
+            constr = self.textConstrLst[self.index]
+            
+            srcRef = constr.params[0]
+            if srcRef != 'None':
+                if srcRef.startswith('wx.Size'):
+                    obj = self.index
+                else:
+                    obj = self.designer.controllerView.getAllObjects()[srcRef]
+                getattr(self.control, 'SetItem'+name)(obj, self.eval(value))
+            self.updateGUI()
+
+class TupleConstrPropEdit(ConstrPropEdit):
+    def inspectorEdit(self):
+        self.editorCtrl = TextCtrlIEC(self, self.value)
+        self.editorCtrl.createControl(self.parent, self.value, self.idx,
+          self.width)
+
+    def getValue(self):
+        if self.editorCtrl:
+            self.value = self.editorCtrl.getValue()
+        else:
+            self.value = self.getCtrlValue()
+        return self.value
 
 
 #-------------------------------------------------------------------------------
@@ -569,5 +670,6 @@ Plugins.registerComponents('ContainersLayout',
       (wx.GridSizer, 'wx.GridSizer', GridSizerDTC),
       (wx.FlexGridSizer, 'wx.FlexGridSizer', FlexGridSizerDTC),
       (wx.StaticBoxSizer, 'wx.StaticBoxSizer', StaticBoxSizerDTC),
-      #(wx.NotebookSizer, 'wx.NotebookSizer', NotebookSizerDTC),
+      (wx.NotebookSizer, 'wx.NotebookSizer', NotebookSizerDTC),
+      (wx.GridBagSizer, 'wx.GridBagSizer', GridBagSizerDTC),
     )
