@@ -136,6 +136,3 @@ class SizersView(DataView):
         wx.CallAfter(self.recreateSizers)
         wx.CallAfter(self.controllerView.OnRelayoutDesigner, None)#Refresh()
 
-
-# to silence deprecation warings
-wx.Sizer.AddWindow = wx.Sizer.AddSizer = wx.Sizer.AddSpacer = wx.Sizer.Add
