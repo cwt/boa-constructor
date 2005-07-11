@@ -80,6 +80,9 @@ class BevelIEC(InspectorEditorControl):
         self.bevelBottom = wx.Panel(parent, -1,
             (0, (idx + 1)*Preferences.oiLineHeight -1), (sizeX, 1))
         self.bevelBottom.SetBackgroundColour(wx.WHITE)
+        
+        self.bevelTop.Refresh()
+        self.bevelBottom.Refresh()
 
     def setWidth(self, width):
         if self.bevelTop:
