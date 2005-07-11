@@ -822,23 +822,38 @@ class WindowDTC(WindowConstr, ControlDTC):
                         'Cursor': CursorClassLinkPropEdit,
                         'Centered': EnumPropEdit,
                         'ThemeEnabled': BoolPropEdit,
+                        'WindowVariant': EnumPropEdit,
+                        'BackgroundStyle': EnumPropEdit,
                         })
         self.options['Centered'] = [None, wx.HORIZONTAL, wx.VERTICAL, wx.BOTH]
         self.names['Centered'] = {'None': None, 'wx.HORIZONTAL': wx.HORIZONTAL,
                                   'wx.VERTICAL': wx.VERTICAL, 'wx.BOTH': wx.BOTH}
+        self.options['WindowVariant'] = [wx.WINDOW_VARIANT_NORMAL, 
+              wx.WINDOW_VARIANT_SMALL, wx.WINDOW_VARIANT_MINI, 
+              wx.WINDOW_VARIANT_LARGE]
+        self.names['WindowVariant'] = {
+            'wx.WINDOW_VARIANT_NORMAL': wx.WINDOW_VARIANT_NORMAL, 
+            'wx.WINDOW_VARIANT_SMALL':  wx.WINDOW_VARIANT_SMALL, 
+            'wx.WINDOW_VARIANT_MINI': wx.WINDOW_VARIANT_MINI, 
+            'wx.WINDOW_VARIANT_LARGE': wx.WINDOW_VARIANT_LARGE}
+        self.options['BackgroundStyle'] = [wx.BG_STYLE_SYSTEM, 
+              wx.BG_STYLE_COLOUR, wx.BG_STYLE_CUSTOM]
+        self.names['BackgroundStyle'] = {
+            'wx.BG_STYLE_SYSTEM': wx.BG_STYLE_SYSTEM, 
+            'wx.BG_STYLE_COLOUR': wx.BG_STYLE_COLOUR, 
+            'wx.BG_STYLE_CUSTOM': wx.BG_STYLE_CUSTOM}
         self.triggers.update({'Size'     : self.SizeUpdate,
                               'Position' : self.PositionUpdate})
         self.customPropEvaluators.update({'Constraints': self.EvalConstraints,
                                           'SizeHints': self.EvalSizeHints,})
 
         self.windowStyles = ['wx.CAPTION', 'wx.MINIMIZE_BOX', 'wx.MAXIMIZE_BOX',
-                             'wx.THICK_FRAME', 'wx.SIMPLE_BORDER', 'wx.DOUBLE_BORDER',
-                             'wx.SUNKEN_BORDER', 'wx.RAISED_BORDER',
-                             'wx.STATIC_BORDER', 'wx.TRANSPARENT_WINDOW', 'wx.NO_3D',
-                             'wx.TAB_TRAVERSAL', 'wx.WANTS_CHARS',
-                             'wx.NO_FULL_REPAINT_ON_RESIZE', 'wx.VSCROLL', 'wx.HSCROLL',
-                             'wx.CLIP_CHILDREN', 'wx.NO_BORDER']
-
+            'wx.THICK_FRAME', 'wx.SIMPLE_BORDER', 'wx.DOUBLE_BORDER',
+            'wx.SUNKEN_BORDER', 'wx.RAISED_BORDER', 'wx.STATIC_BORDER', 
+            'wx.TRANSPARENT_WINDOW', 'wx.NO_3D', 'wx.TAB_TRAVERSAL', 
+            'wx.WANTS_CHARS', 'wx.NO_FULL_REPAINT_ON_RESIZE', 'wx.VSCROLL', 
+            'wx.HSCROLL', 'wx.CLIP_CHILDREN', 'wx.NO_BORDER', 'wx.ALWAYS_SHOW_SB']
+        
         self.mutualDepProps = ['Value', 'Title', 'Label']
 
         #import UtilCompanions
@@ -878,7 +893,8 @@ class WindowDTC(WindowConstr, ControlDTC):
         return ['NextHandler', 'PreviousHandler', 'EventHandler', 'EvtHandlerEnabled',
                 'Id', 'Caret', 'WindowStyleFlag', 'ToolTip', 'Title', 'Rect',
                 'DragTarget', 'DropTarget', 'Cursor', 'VirtualSize', 'Sizer',
-                'ContainingSizer', 'Constraints', 'DefaultItem', 'Validator']
+                'ContainingSizer', 'Constraints', 'DefaultItem', 'Validator',
+                'WindowStyle', 'AcceleratorTable', 'ClientRect']
 
     def dontPersistProps(self):
         return ControlDTC.dontPersistProps(self) + ['ClientSize']
