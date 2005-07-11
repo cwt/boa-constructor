@@ -1471,7 +1471,7 @@ class StringEnumPropEdit(EnumPropEdit):
 # Property editors for classes
 class ClassPropEdit(FactoryPropEdit):
     def getDisplayValue(self):
-        return '('+self.value.__class__.__name__+')'
+        return '(%s)'%Utils.getWxPyNameForClass(self.value.__class__)
     def getStyle(self):
         return [esExpandable]
 
