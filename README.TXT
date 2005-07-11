@@ -22,8 +22,8 @@ Licence:
 GPL
 
 Version:
-0.4.0 - Alpha
-Requires wxPython 2.5, Python 2.3/2.4
+0.4.4 - Alpha
+Requires wxPython 2.5 or higher, Python 2.3/2.4
 
 NOTE: 
 wxPython 2.4 is no longer supported.
@@ -48,6 +48,8 @@ riaan@e.co.za
 
 
 Release history:
+
+2005-07-11 - Boa Constructor 0.4.4
 
 2005-03-17 - Boa Constructor 0.4.0
 

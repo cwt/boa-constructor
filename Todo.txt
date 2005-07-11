@@ -11,15 +11,6 @@ Features
 * Non modal Process dialogs 
 * Multiple help windows
 
-wxPython 2.5 migration issues
------------------------------
-* General compatibility issues with renamers and API changes
-  * Menu item parameters
-* from wxPython.wx import * -> import wx 
-  * GUI Code generation
-  * Boa code base
-
-
 Future features
 ------------------
 
@@ -32,6 +23,11 @@ Future features
 Framework Extensions
 --------------------
 
+* Plug-in / IDE framework
+  Move import level framework registration into a register() function
+  (ugly because an import is not enough to setup a valid runtime
+   nice because module can be re-registered and plugins can be independent
+   of the framework)
 * Allow submenus under File and Edit
 * Multi-language support
   * 1st phase
@@ -96,13 +92,16 @@ Editor
 
 
 Designer
+- Optional default parameters
+  - Sizers need this very much for pos and size
+- Make generated source less verbose
+  - Can ids be optional (except for menus, tools?)
 - Multi-select, when moving not all tags snap togeter
 - Correctly ordered parameters
 - Multi-select/multi-edit, showing a filtering of only properties that can 
   be edited en mass
 - Add Palette as Popup menu. e.g. New->Container/Layout->wxPanel
   - Bind Inser to Popup New menu
-- Source generation for the new wx.package way of writing
 - Custom classes management
 
 Companions
@@ -135,7 +134,6 @@ Zope
 
 Debugging
 - Preferences to
-  - Toggle script debugging
   - Optionally break in with the debugger on top level GUI exceptions using
     sys.excepthook
   - Specify modules and packages which the debugger should not step into
@@ -265,6 +263,3 @@ Handle more than one class per source file
 
 Add inheritable components
 
-
-Add revision entry frmt:
-# Revision 1.23  1999/08/03 20:49:05  riaan

@@ -1,11 +1,6 @@
 Bugs & Issues 
 -------------
 
-Sometimes (but rarely, not seen under wxPython 2.5 yet) Boa crashes at startup 
-while opening files in the Editor.
-I've added code to start Boa empty at the next startup attempt to work around 
-this issue.
-
 Under wxGTK, Num Lock *must* be turned off. Because of a strange bug in 
 wxWidgets having Num Lock on is the same as holding in Alt. 
 This causes the short cuts to trigger, e.g. pressing "S" in the Editor

@@ -1,11 +1,26 @@
 Changes
 -------
 
-- 0.4.3 (CVS) --
+-- 0.4.4 (Release) --
 
-2004-05-18
+2005-07-11
+
+* Bugfixes and more wx 2.5 name fixes
+* wxMAC compatibility improvements thanks to Kevin Walzer.
+  * Recommended to use at least Python 2.4.1 and wxPython 2.6.0 under OS X
+* Added support for the unicode encoding declaration (PEP 263), thanks to 
+  Eggert Magnusson.
+* Added support for wx.GridBagSizer
+* Added property editors for BackgroundStyle and WindowVariant
+* Fixed Inspector redraw issues
+
+
+-- 0.4.3 (CVS) --
+
+2005-05-18
 
 * Converted all core/plugins/example code to wxPython 2.5 style code.
+  The migration to 2.5 is now complete :)
 * Improved Code Completion and Call Tips.
   * Bugfixes for 2.5 style wx code completion/call tips.
   * Using wx.py.introspect for shell call tips.
@@ -18,8 +33,8 @@ Changes
   * registerTool(name, func, bmp='-', key='')
   * registerLanguageSTCStyle(name, lang, STCClass, stylesFile, insertPos=None)
   * registerPreference(pluginName, prefName, defPrefValSrc, docs=[], info='')
-  * All core and plugin code updated to use the api
-    This hopefully makes extending Boa less cryptic
+  * All core and plugin code updated to use the api.
+    This hopefully makes extending Boa less cryptic.
 * Bugfixes, code cleanups, removed wxPython <= 2.4 special cased code.
 * Python modernizations.
   e.g. List Comps instead of "map(lambda" and *arg passing instead of "apply()"
@@ -27,7 +42,7 @@ Changes
 
 -- 0.4.2 (CVS) --
 
-2004-05-06
+2005-05-06
 
 * Bugfixes, code cleanups.
 * Conversion of all gui filetype modules in the core to 2.5 style code.
