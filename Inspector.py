@@ -781,6 +781,11 @@ class NameValue:
               wx.Size(self.inspector.getValueWidth(), 1))
             self.valueBevelBottom.SetBackgroundColour(wx.WHITE)
         self.editing = True
+        
+        self.nameBevelTop.Refresh()
+        self.nameBevelBottom.Refresh()
+        if self.valueBevelTop: self.valueBevelTop.Refresh()
+        if self.valueBevelBottom: self.valueBevelBottom.Refresh()
 
     def hideEditor(self, cancel=False, noUpdate=False):
         if self.propEditor:# and (not self.destr):
@@ -1028,7 +1033,6 @@ class NameValueEditorScrollWin(wx.ScrolledWindow):
         self.splitter.SplitVertically(self.panelNames, self.panelValues)
         self.splitter.SetSashPosition(100)
         self.splitter.SetMinimumPaneSize(20)
-        self.splitter.SetSashSize(4)
 
         self.Bind(wx.EVT_SIZE, self.OnSize)
 
