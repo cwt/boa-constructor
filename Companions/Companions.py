@@ -143,16 +143,6 @@ class AnchorsDTC(HelperDTC):
                 'Right'   : ('CompnRoute', self.GetRightAnchor, self.SetRightAnchor),
                 'Bottom'  : ('CompnRoute', self.GetBottomAnchor, self.SetBottomAnchor),}
 
-##    def getPropList(self):
-##        props = self.properties()
-##        keys = props.keys()
-##        keys.sort();keys.reverse()
-##        pl = []
-##        for key in keys:
-##            rType, getter, setter = props[key]
-##            pl.append(RTTI.PropertyWrapper(key, rType, getter, setter))
-##        return {'properties': pl}
-
     def assureAnchors(self):
         if not self.ownerCompn.anchorSettings:
             self.ownerCompn.defaultAnchors()
@@ -207,21 +197,12 @@ class BaseFlagsDTC(HelperDTC):
         for flag in self.ownerCompn.windowStyles:
             self.editors[flag] = PropertyEditors.BoolPropEdit
 
-    # XXX One of these 2 methods is redundant !
-
     def properties(self):
         props = {}
         prop = ('NameRoute', self.GetStyle, self.SetStyle)
         for flag in self.ownerCompn.windowStyles:
             props[flag] = prop
         return props
-
-    def getPropList(self):
-        propLst = []
-        for prop in self.ownerCompn.windowStyles:
-            propLst.append(RTTI.PropertyWrapper(prop, 'NameRoute',
-                  self.GetStyle, self.SetStyle))
-        return {'constructor':[], 'properties': propLst}
 
     def GetStyle(self, name):
         return name in self.ownerCompn.textConstr.params[self.paramName].split(' | ')
