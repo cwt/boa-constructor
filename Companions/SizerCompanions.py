@@ -22,14 +22,15 @@ import wx
 
 import Preferences, Utils
 
-from BaseCompanions import UtilityDTC, CollectionDTC, CollectionIddDTC, NYIDTC
+from BaseCompanions import UtilityDTC, CollectionDTC, CollectionIddDTC, NYIDTC, HelperDTC
 import Companions
 
 from PropEdit.PropertyEditors import IntConstrPropEdit, StrConstrPropEdit, \
       CollectionPropEdit, ObjEnumConstrPropEdit, EnumConstrPropEdit, \
       FlagsConstrPropEdit, WinEnumConstrPropEdit, BoolConstrPropEdit, \
       BoolPropEdit, EnumPropEdit, ReadOnlyConstrPropEdit, \
-      SizerEnumConstrPropEdit, SizeConstrPropEdit, ConstrPropEdit
+      SizerEnumConstrPropEdit, SizeConstrPropEdit, ConstrPropEdit, \
+      IntPropEdit, esExpandable
 
 from PropEdit.InspectorEditorControls import TextCtrlIEC
 
@@ -594,31 +595,33 @@ class GridBagSizerDTC(FlexGridSizerDTC):
 class GBSizerItemsCDTC(SizerItemsCDTC):
     def __init__(self, name, designer, parentCompanion, ctrl):
         SizerItemsCDTC.__init__(self, name, designer, parentCompanion, ctrl)
-        self.editors.update({'Position': TupleConstrPropEdit,
-                             'Span': TupleConstrPropEdit })
-                             
+        self.editors.update({'Position': PositionTuplePropEdit,
+                             'Span': SpanTuplePropEdit })
     def constructor(self):
         tcl = self.textConstrLst[self.index]
         if tcl.method == 'AddWindow':
-            return {'Window': 0, 'Position': 1, 'Span': 'span', 'Flag': 'flag',
-                    'Border': 'border'}
+            return {'Window': 0, 'Position': 1, 
+                    'Span': 'span', 'Flag': 'flag', 'Border': 'border'}
         elif tcl.method == 'AddSizer':
-            return {'Sizer': 0, 'Position': 1, 'Span': 'span', 'Flag': 'flag',
-                    'Border': 'border'}
+            return {'Sizer': 0, 'Position': 1, 
+                    'Span': 'span', 'Flag': 'flag', 'Border': 'border'}
         elif tcl.method == 'AddSpacer':
-            return {'Size': 0, 'Position': 1, 'Span': 'span', 'Flag': 'flag',
-                    'Border': 'border'}
+            return {'Size': 0, 'Position': 1, 
+                    'Span': 'span', 'Flag': 'flag', 'Border': 'border'}
 
     def designTimeSource(self, wId, method=None):
         if method is None:
             method = self.insertionMethod
 
         if method == 'AddWindow':
-            return {0: 'None', 1: '(0, 0)', 'span': '(1, 1)', 'flag': '0', 'border': '0'}
+            return {0: 'None', 1: '(0, 0)', 
+                    'span': '(1, 1)', 'flag': '0', 'border': '0'}
         elif method == 'AddSizer':
-            return {0: 'None', 1: '(0, 0)', 'span': '(1, 1)', 'flag': '0', 'border': '0'}
+            return {0: 'None', 1: '(0, 0)', 
+                    'span': '(1, 1)', 'flag': '0', 'border': '0'}
         elif method == 'AddSpacer':
-            return {0: 'wx.Size(8, 8)', 1: '(0, 0)', 'span': '(1, 1)', 'flag': '0', 'border': '0'}
+            return {0: 'wx.Size(8, 8)', 1: '(0, 0)', 
+                    'span': '(1, 1)', 'flag': '0', 'border': '0'}
 
     def applyDesignTimeDefaults(self, params, method=None):
         if method is None:
@@ -632,20 +635,27 @@ class GBSizerItemsCDTC(SizerItemsCDTC):
         else:
             SizerItemsCDTC.applyDesignTimeDefaults(self, params, method)
 
+    def getSizerGUIObject(self):
+        """ Returns a control, sizer, integer or None """
+        constr = self.textConstrLst[self.index]
+        
+        srcRef = constr.params[0]
+        if srcRef != 'None':
+            if srcRef.startswith('wx.Size'):
+                return self.index
+            else:
+                return self.designer.controllerView.getAllObjects()[srcRef]
+        else:
+            return None
+
     def persistProp(self, name, setterName, value):
         SizerItemsCDTC.persistProp(self, name, setterName, value)
         if name in ('Position', 'Span'):
-            #si = self.control.GetChildren()[self.index]
-            constr = self.textConstrLst[self.index]
-            
-            srcRef = constr.params[0]
-            if srcRef != 'None':
-                if srcRef.startswith('wx.Size'):
-                    obj = self.index
-                else:
-                    obj = self.designer.controllerView.getAllObjects()[srcRef]
+            obj = self.getSizerGUIObject()
+            if obj is not None:
                 getattr(self.control, 'SetItem'+name)(obj, self.eval(value))
-            self.updateGUI()
+                self.updateGUI()
+
 
 class TupleConstrPropEdit(ConstrPropEdit):
     def inspectorEdit(self):
@@ -660,6 +670,60 @@ class TupleConstrPropEdit(ConstrPropEdit):
             self.value = self.getCtrlValue()
         return self.value
 
+class PositionTuplePropEdit(TupleConstrPropEdit):
+    def getStyle(self):
+        return [esExpandable]
+    def getSubCompanion(self):
+        return PositionRowColDTC
+
+class SpanTuplePropEdit(TupleConstrPropEdit):
+    def getStyle(self):
+        return [esExpandable]
+    def getSubCompanion(self):
+        return SpanRowColDTC
+
+class RowColDTC(HelperDTC):
+    propName = 'Prop'
+    paramName = 'param'
+    setterMethod = 'Setter'
+    
+    def __init__(self, name, designer, cmpn, obj, ownerPW):
+        HelperDTC.__init__(self, name, designer, cmpn, obj, ownerPW)
+        self.editors = {'Row' : IntPropEdit,
+                        'Column' : IntPropEdit}
+
+    def properties(self):
+        return {'Row': ('NameRoute', self.GetRowCol, self.SetRowCol),
+                'Column': ('NameRoute', self.GetRowCol, self.SetRowCol)}
+
+    def GetRowCol(self, name):
+        t = self.eval(self.ownerCompn.textConstr.params[self.paramName])
+        if name == 'Row': 
+            return t[0]
+        elif name == 'Column': 
+            return t[1]
+        
+    def SetRowCol(self, name, value):
+        t = self.eval(self.ownerCompn.textConstr.params[self.paramName])
+        obj = self.ownerCompn.getSizerGUIObject()
+        if name == 'Row': 
+            newVal = (value, t[1])
+        elif name == 'Column': 
+            newVal = (t[0], value)
+        self.ownerCompn.textConstr.params[self.paramName] = `newVal`
+        self.designer.inspector.constructorUpdate(self.propName)
+        getattr(self.ownerCompn.control, self.setterMethod)( obj, newVal )
+
+
+class PositionRowColDTC(RowColDTC):
+    propName = 'Position'
+    paramName = 1
+    setterMethod = 'SetItemPosition'
+
+class SpanRowColDTC(RowColDTC):
+    propName = 'Span'
+    paramName = 'span'
+    setterMethod = 'SetItemSpan'
 
 #-------------------------------------------------------------------------------
 
