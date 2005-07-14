@@ -62,7 +62,7 @@ class DateTimePropEditor(PropertyEditors.BITPropEditor):
             PropertyEditors.BITPropEditor.inspectorEdit(self)
 
 
-EventCollections.EventCategories['DatePickerCtrlEvent'] = ('wx.EVT_DATE_CHANGED')
+EventCollections.EventCategories['DatePickerCtrlEvent'] = ('wx.EVT_DATE_CHANGED',)
 EventCollections.commandCategories.append('DatePickerCtrlEvent')
 class DatePickerCtrlDTC(BaseCompanions.WindowDTC):
     def __init__(self, name, designer, parent, ctrlClass):
@@ -93,7 +93,7 @@ Plugins.registerComponent('BasicControls', wx.calendar.CalendarCtrl,
 try:
     Plugins.registerComponent('BasicControls',
           wx.DatePickerCtrl, 'wx.DatePickerCtrl', DatePickerCtrlDTC)
-except NameError:
+except AttributeError:
     pass
 
 
