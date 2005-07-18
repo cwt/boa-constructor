@@ -27,7 +27,7 @@
 # self.specialNames2, for other names, e.g. 'wxGrid.wxGrid': 'wx.grid.Grid.wxGrid'
 # 
 # This file currently munges the 
-# - EVT_xxx change from wxPython 2.4 style to 2.5 style
+# - EVT_xxx change from wxPython 2.4 style to 2.5/2.6 style
 # - .Append for menu, changes 'helpString' to 'help', 'item' to 'text' and
 #   wxITEM to wx.ITEM
 # - changes the 'map(lambda _init_whatever: wxNewId()' to the new format
@@ -178,6 +178,9 @@ class Upgrade:
                               "wxLogWarning": "wx.LogWarning",
                               "wxPlatform": "wx.Platform",
                               "wxPostEvent": "wx.PostEvent",
+                              "wxArtProvider_": "wx.ArtProvider.",
+                              "wxART_": "wx.ART_",
+                              "wxTreeItemIcon_": "wx.TreeItemIcon_",
                               }
 
         self.importNames = {"wx": "import wx",
@@ -475,7 +478,7 @@ class Upgrade:
         return res
 
     def upgrade(self, intext):
-        '''Upgrade the text from wx2.4 style to wx2.5'''
+        '''Upgrade the text from wx2.4 style to wx2.5/2.6'''
         return self.grammar.transformString(intext)
 
 if __name__ == "__main__":
