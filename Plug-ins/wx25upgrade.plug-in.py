@@ -317,4 +317,4 @@ def showWx25CodeUpgradeDlg(editor):
         dlg.Destroy()
     
 import Plugins
-Plugins.registerTool('wxPython 2.4 to 2.5 code upgrader', showWx25CodeUpgradeDlg)
+Plugins.registerTool('wxPython 2.4 to 2.5/2.6 code upgrader', showWx25CodeUpgradeDlg)
