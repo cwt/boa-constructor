@@ -116,10 +116,11 @@ class SizersView(DataView):
 
         for ctrlName in objColl.propertiesByName.keys():
             for prop in objColl.propertiesByName[ctrlName]:
-                compn, ctrl = self.controllerView.objects[ctrlName][:2]
-                sizer = self.objects[Utils.ctrlNameFromSrcRef(prop.params[0])][1]
-                compn.SetSizer(sizer)
-                self.sizerConnectList.append(prop)
+                if prop.prop_setter == 'SetSizer':
+                    compn, ctrl = self.controllerView.objects[ctrlName][:2]
+                    sizer = self.objects[Utils.ctrlNameFromSrcRef(prop.params[0])][1]
+                    compn.SetSizer(sizer)
+                    self.sizerConnectList.append(prop)
 
 
     def deleteCtrl(self, name, parentRef = None):
