@@ -11,7 +11,7 @@
 #-----------------------------------------------------------------------------
 print 'importing Explorers.FileExplorer'
 
-import os, time, stat
+import os, time, stat, sys
 
 import wx
 
@@ -391,7 +391,16 @@ class FileSysNode(ExplorerNodes.ExplorerNode):
 
     def openList(self):
         try:
-            files = os.listdir(self.resourcepath)
+            #----------------------------------------
+            # A hack for locally-encoded filesystems:
+            # We need to convert filesystem names
+            # from local encoding to unicode
+            if type(self.resourcepath) is str:
+                files = os.listdir(self.resourcepath.decode(
+                      sys.getfilesystemencoding()))
+            else: # unicode or other
+                files = os.listdir(self.resourcepath)
+            #---------------------------------------- 
         except Exception, err:
             raise ExplorerNodes.TransportError(err)
         files.sort()
