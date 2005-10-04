@@ -581,14 +581,14 @@ class GridBagSizerDTC(FlexGridSizerDTC):
         return {'vgap': '0', 'hgap': '0'}
 
     def getNumRowsCols(self, childCompanion):
-        maxRow = 0
-        maxCol = 0
+        maxRows = 0
+        maxCols = 0
         for si in self.control.GetChildren():
             (sipr, sipc), (sisr, sisc) = si.GetPos(), si.GetSpan()
-            if sipr + sisr -1 > maxRow:
-                maxRow = sipr + sisr -1
-            if sipc + sisc -1 > maxCol:
-                maxCol = sipc + sisc -1
+            if sipr + sisr > maxRows:
+                maxRows = sipr + sisr
+            if sipc + sisc > maxCols:
+                maxCols = sipc + sisc
             
         return maxRows, maxCols
 
