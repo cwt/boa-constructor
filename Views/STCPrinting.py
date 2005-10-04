@@ -93,7 +93,7 @@ class STCPrintDlg(wx.Dialog):
         self.preview = None
 
         self.printData = wx.PrintData()
-        self.printData.SetPaperId(wx.PAPER_LETTER)
+        #self.printData.SetPaperId(wx.PAPER_LETTER)
 
 
     def OnPrintSetup(self, event):
