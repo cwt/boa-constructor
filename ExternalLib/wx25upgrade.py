@@ -188,7 +188,7 @@ class Upgrade:
                             "gizmos": "import wx.gizmos",
                             "grid": "import wx.grid",
                             "lib.buttons": "import wx.lib.buttons",
-                            "lib.stattext": "import wx.lib.stattext.GenStaticText",
+                            "lib.stattext": "import wx.lib.stattext",
                             "lib.maskededit": "import wx.lib.masked.maskededit",
                             "lib.maskededit": "import wx.lib.masked.maskededit",
                             "lib.maskednumctrl": "import wx.lib.masked.numctrl",
