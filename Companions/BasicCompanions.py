@@ -6,7 +6,7 @@
 #
 # Created:     2002
 # RCS-ID:      $Id$
-# Copyright:   (c) 2002 - 2005
+# Copyright:   (c) 2002 - 2006
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 print 'importing Companions.BasicCompanions'
@@ -15,6 +15,8 @@ import wx
 
 import wx.html
 import wx.stc
+import wx.animate
+import wx.media
 
 from BaseCompanions import WindowDTC, ChoicedDTC
 
@@ -23,6 +25,7 @@ from EventCollections import *
 
 from PropEdit.PropertyEditors import *
 from PropEdit.Enumerations import *
+from PropEdit import InspectorEditorControls
 
 class ScrollBarDTC(Constructors.MultiItemCtrlsConstr, WindowDTC):
     def __init__(self, name, designer, parent, ctrlClass):
@@ -123,12 +126,14 @@ class TextCtrlDTC(WindowDTC):
                              'wx.TE_LEFT', 'wx.TE_CENTER', 'wx.TE_RIGHT',
                              'wx.TE_DONTWRAP', 'wx.TE_LINEWRAP', 'wx.TE_WORDWRAP',
                              ] + self.windowStyles
+        self.editors['Editable'] = BoolPropEdit
         self._maxLength = 0
         self.initPropsThruCompanion.append('MaxLength')
 
     def properties(self):
         props = WindowDTC.properties(self)
-        props.update({'MaxLength':  ('CompnRoute', self.GetMaxLength, self.SetMaxLength)})
+        props.update({'MaxLength': ('CompnRoute', self.GetMaxLength, self.SetMaxLength),
+                      'Editable':  ('CtrlRoute', wx.TextCtrl.IsEditable, wx.TextCtrl.SetEditable)})
         return props
 
     def constructor(self):
@@ -187,12 +192,15 @@ class CheckBoxDTC(Constructors.LabeledInputConstr, WindowDTC):
     def __init__(self, name, designer, parent, ctrlClass):
         WindowDTC.__init__(self, name, designer, parent, ctrlClass)
         self.editors['Value'] = BoolPropEdit
+        self.windowStyles = ['wx.ALIGN_RIGHT'] + self.windowStyles
+        
     def designTimeSource(self, position = 'wx.DefaultPosition', size = 'wx.DefaultSize'):
         return {'label': `self.name`,
                 'pos': position,
                 'size': size,
                 'style': '0',
                 'name': `self.name`}
+
     def events(self):
         return WindowDTC.events(self) + ['CheckBoxEvent']
 
@@ -214,14 +222,14 @@ class SliderDTC(WindowDTC):
 
     def constructor(self):
         return {'Value': 'value', 'MinValue': 'minValue', 'MaxValue': 'maxValue',
-                'Position': 'point', 'Size': 'size', 'Style': 'style',
+                'Position': 'pos', 'Size': 'size', 'Style': 'style',
                 'Name': 'name'}
 
     def designTimeSource(self, position = 'wx.DefaultPosition', size = 'wx.DefaultSize'):
         return {'value': '0',
                 'minValue': '0',
                 'maxValue': '100',
-                'point': position,
+                'pos': position,
                 'size': size,
                 'style': 'wx.SL_HORIZONTAL',
                 'name': `self.name`}
@@ -347,7 +355,7 @@ stcLexer = [wx.stc.STC_LEX_NULL, wx.stc.STC_LEX_PYTHON, wx.stc.STC_LEX_CONTAINER
             wx.stc.STC_LEX_CONF, wx.stc.STC_LEX_PASCAL, wx.stc.STC_LEX_AVE, wx.stc.STC_LEX_ADA,
             wx.stc.STC_LEX_LISP, wx.stc.STC_LEX_RUBY, wx.stc.STC_LEX_EIFFEL, wx.stc.STC_LEX_EIFFELKW,
             wx.stc.STC_LEX_TCL, wx.stc.STC_LEX_NNCRONTAB, wx.stc.STC_LEX_BULLANT,
-            wx.stc.STC_LEX_VBSCRIPT, wx.stc.STC_LEX_ASP, wx.stc.STC_LEX_PHP, wx.stc.STC_LEX_BAAN,
+            wx.stc.STC_LEX_VBSCRIPT, wx.stc.STC_LEX_BAAN, 
             wx.stc.STC_LEX_MATLAB, wx.stc.STC_LEX_SCRIPTOL, wx.stc.STC_LEX_AUTOMATIC]
 stcLexerNames = {'wx.stc.STC_LEX_NULL': wx.stc.STC_LEX_NULL,
       'wx.stc.STC_LEX_PYTHON': wx.stc.STC_LEX_PYTHON,
@@ -368,8 +376,8 @@ stcLexerNames = {'wx.stc.STC_LEX_NULL': wx.stc.STC_LEX_NULL,
       'wx.stc.STC_LEX_EIFFELKW': wx.stc.STC_LEX_EIFFELKW,
       'wx.stc.STC_LEX_TCL': wx.stc.STC_LEX_TCL, 'wx.stc.STC_LEX_NNCRONTAB': wx.stc.STC_LEX_NNCRONTAB,
       'wx.stc.STC_LEX_BULLANT': wx.stc.STC_LEX_BULLANT,
-      'wx.stc.STC_LEX_VBSCRIPT': wx.stc.STC_LEX_VBSCRIPT, 'wx.stc.STC_LEX_ASP': wx.stc.STC_LEX_ASP,
-      'wx.stc.STC_LEX_PHP': wx.stc.STC_LEX_PHP, 'wx.stc.STC_LEX_BAAN': wx.stc.STC_LEX_BAAN,
+      'wx.stc.STC_LEX_VBSCRIPT': wx.stc.STC_LEX_VBSCRIPT, 
+      'wx.stc.STC_LEX_BAAN': wx.stc.STC_LEX_BAAN,
       'wx.stc.STC_LEX_MATLAB': wx.stc.STC_LEX_MATLAB,
       'wx.stc.STC_LEX_SCRIPTOL': wx.stc.STC_LEX_SCRIPTOL,
       'wx.stc.STC_LEX_AUTOMATIC': wx.stc.STC_LEX_AUTOMATIC}
@@ -439,6 +447,89 @@ class StyledTextCtrlDTC(Constructors.WindowConstr, WindowDTC):
         return '\n'.join( (WindowDTC.writeImports(self),
                            'import wx.stc') )
 
+class FilenameConstrPropEdit(ConstrPropEdit):
+    dlgCaption = 'Choose a file'
+    fileTypeFilter = '*.*'
+    def getValue(self):
+        if self.editorCtrl:
+            self.value = self.editorCtrl.getValue()
+        else:
+            self.value = self.getCtrlValue()
+        return self.value
+
+    def inspectorEdit(self):
+        self.editorCtrl = InspectorEditorControls.ButtonIEC(self, self.value)
+        self.editorCtrl.createControl(self.parent, self.idx, self.width, self.edit)
+
+    def edit(self, event):
+        dlg = wx.FileDialog(self.parent, self.dlgCaption, '.', self.value, 
+              self.fileTypeFilter, wx.OPEN)
+        try:
+            if dlg.ShowModal() == wx.ID_OK:
+                value = dlg.GetPath()
+                if os.path.isfile(value):
+                    self.value = `value`
+                    self.editorCtrl.setValue(self.value)
+                    self.inspectorPost(False)
+        finally:
+            dlg.Destroy()
+        
+
+class GIFFilenameConstrPropEdit(FilenameConstrPropEdit):
+    dlgCaption = 'Choose a gif file'
+    fileTypeFilter = '*.gif'
+
+class GIFAnimationCtrlDTC(WindowDTC):
+    def __init__(self, name, designer, parent, ctrlClass):
+        WindowDTC.__init__(self, name, designer, parent, ctrlClass)
+        self.windowStyles = ['wx.animate.AN_FIT_ANIMATION'] + self.windowStyles
+        self.editors['Filename'] = GIFFilenameConstrPropEdit
+        
+    def constructor(self):
+        return {'Position': 'pos', 'Size': 'size', 'Name': 'name', 'Style': 'style',
+                'Filename': 'filename'}
+
+    def designTimeSource(self, position='wx.DefaultPosition', size='wx.DefaultSize'):
+        return {'pos': position,
+                'size': size,#self.getDefCtrlSize(),
+                'style': 'wx.animate.AN_FIT_ANIMATION|wx.NO_BORDER',
+                'name': `self.name`,
+                'filename': `''`}
+
+    def writeImports(self):
+        return '\n'.join( (WindowDTC.writeImports(self),
+                           'import wx.animate') )
+
+class MediaCtrlDTC(WindowDTC):
+    def __init__(self, name, designer, parent, ctrlClass):
+        WindowDTC.__init__(self, name, designer, parent, ctrlClass)
+        self.editors['Filename'] = FilenameConstrPropEdit
+        self.editors['Backend'] = EnumConstrPropEdit
+        self.editors['Volume'] = BITPropEditor
+        self.editors['PlaybackRate'] = BITPropEditor
+
+        self.names['Backend'] = ['wx.media.MEDIABACKEND_DIRECTSHOW', 
+                                 'wx.media.MEDIABACKEND_MCI',
+                                 'wx.media.MEDIABACKEND_QUICKTIME',
+                                 'wx.media.MEDIABACKEND_GSTREAMER', "''"]
+        
+    def constructor(self):
+        return {'Position': 'pos', 'Size': 'size', 'Name': 'name', 'Style': 'style',
+                'Filename': 'fileName', 'Backend': 'szBackend'}
+
+    def designTimeSource(self, position='wx.DefaultPosition', size='wx.DefaultSize'):
+        return {'pos': position,
+                'size': self.getDefCtrlSize(),
+                'style': '0',
+                'name': `self.name`,
+                'fileName': `''`,
+                'szBackend': `''`}
+
+    def writeImports(self):
+        return '\n'.join( (WindowDTC.writeImports(self),
+                           'import wx.media') )
+
+
 #-------------------------------------------------------------------------------
 import Plugins
 
@@ -459,4 +550,6 @@ Plugins.registerComponents('BasicControls',
       (wx.StaticLine, 'wx.StaticLine', StaticLineDTC),
       (wx.html.HtmlWindow, 'wx.html.HtmlWindow', HtmlWindowDTC),
       (wx.stc.StyledTextCtrl, 'wx.stc.StyledTextCtrl', StyledTextCtrlDTC),
+      (wx.animate.GIFAnimationCtrl, 'wx.animate.GIFAnimationCtrl', GIFAnimationCtrlDTC),
+      (wx.media.MediaCtrl, 'wx.media.MediaCtrl', MediaCtrlDTC),
     )
