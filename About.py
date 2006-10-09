@@ -6,7 +6,7 @@
 #
 # Created:     2000
 # RCS-ID:      $Id$
-# Copyright:   (c) 2000 - 2005
+# Copyright:   (c) 2000 - 2006
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 
@@ -17,15 +17,8 @@ import wx
 import wx.html
 import wx.lib.wxpTag
 
-##import wxPython
-##import wxPython.lib.wxpTag
-
 import __version__
 import Preferences, Utils
-
-
-# XXX Replace img tags with wxpTags/wxStaticBitmap controls and load from
-# XXX ImageStore
 
 prog_update = re.compile('<<(?P<cnt>[0-9]+)/(?P<tot>[0-9]+)>>')
 
@@ -134,10 +127,10 @@ about_text = '''
 <a href="Credits">Credits</a>
 </p>
 <p><font size=-1 color="#000077">Python %s</font><br>
-<font size=-1 color="#000077">wx.Platform: %s %s</font></p>
+<font size=-1 color="#000077">wx.Platform: %s %s, %s</font></p>
 <hr>
 <wxp module="wx" class="Button">
-  <param name="label" value="Okay">
+  <param name="label" value="OK">
   <param name="id"    value="ID_OK">
 </wxp>
 </center>
@@ -258,7 +251,8 @@ class AboutBox(AboutBoxMixin, wx.Dialog):
     def setPage(self):
         self.html.SetPage((about_html % (
               'memory:Boa.jpg', __version__.version,
-              '', about_text % (sys.version, wx.Platform, wx.__version__))))
+              '', about_text % (sys.version, wx.Platform, wx.__version__, 
+              wx.Locale.GetLanguageName(Preferences.i18nLanguage)))))
 DefAboutBox = AboutBox
 
 class AboutBoxSplash(AboutBoxMixin, wx.Frame):
