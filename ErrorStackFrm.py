@@ -6,13 +6,13 @@
 #
 # Created:     2001
 # RCS-ID:      $Id$
-# Copyright:   (c) 2001 - 2005 Riaan Booysen
+# Copyright:   (c) 2001 - 2006 Riaan Booysen
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 ##Boa:Frame:ErrorStackMF
 # remove between #-- comments before editing visually
 
-import os, pickle
+import os, sys, pickle
 
 import wx
 import wx.stc
@@ -238,12 +238,12 @@ class ErrorStackMF(wx.Frame, Utils.FrameRestorerMixin):
             tree.Expand(firstErr)
 
         if outputList:
-            self.outputTC.SetValue(''.join(outputList))
+            self.outputTC.SetValue(Utils.stringToControl(''.join(outputList), safe=True))
         else:
             self.outputTC.SetValue('')
 
         if errRaw:
-            self.errorTC.SetValue(''.join(errRaw))
+            self.errorTC.SetValue(Utils.stringToControl(''.join(errRaw), safe=True))
         else:
             self.errorTC.SetValue('')
 
