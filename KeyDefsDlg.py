@@ -1,7 +1,5 @@
 #Boa:Dialog:KeyDefsDialog
 
-# XXX fix accel names/ key codes when 2.5 is used for resource config values
-
 import string
 
 import wx
@@ -173,8 +171,9 @@ flagValNames = {wx.ACCEL_CTRL:  ('wx.ACCEL_CTRL', 'Ctrl'),
                 wx.ACCEL_ALT:   ('wx.ACCEL_ALT', 'Alt'),
                 wx.ACCEL_SHIFT: ('wx.ACCEL_SHIFT', 'Shift')}
 
-specialKeys = {'wx.WXK_BACK': 8, 'wx.WXK_TAB': 9, 'wx.WXK_RETURN': 13, 
-               'wx.WXK_ESCAPE': 27, 'wx.WXK_SPACE': 32, 'wx.WXK_DELETE': 127}
+specialKeys = {'wx.WXK_BACK': wx.WXK_BACK, 'wx.WXK_TAB': wx.WXK_TAB, 
+               'wx.WXK_RETURN': wx.WXK_RETURN, 'wx.WXK_ESCAPE': wx.WXK_ESCAPE, 
+               'wx.WXK_SPACE': wx.WXK_SPACE, 'wx.WXK_DELETE': wx.WXK_DELETE}
 # values 300+
 otherKeys1 = ['wx.WXK_START', 'wx.WXK_LBUTTON', 'wx.WXK_RBUTTON',
      'wx.WXK_CANCEL', 'wx.WXK_MBUTTON', 'wx.WXK_CLEAR', 'wx.WXK_SHIFT']
@@ -212,7 +211,7 @@ for name in otherKeys2:
 #-------------------------------------------------------------------------------
 
 if __name__ == '__main__':
-    app =wx.PySimpleApp()
+    app = wx.PySimpleApp()
     dlg = KeyDefsDialog(None, 'ContextHelp', "(wx.ACCEL_NORMAL, wx.WXK_F1, 'F1'),")
     try:
         if dlg.ShowModal() == wx.ID_OK:
