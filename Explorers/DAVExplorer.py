@@ -6,7 +6,7 @@
 #
 # Created:     2001/06/02
 # RCS-ID:      $Id$
-# Copyright:   (c) 2001 - 2005 Riaan Booysen
+# Copyright:   (c) 2001 - 2006 Riaan Booysen
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 print 'importing Explorers.DAVExplorer'
@@ -39,10 +39,10 @@ class XMLListBuilder:
         try:
             xmlStart = data.find('<')
             if xmlStart == -1:
-                raise 'Invalid XML response: %s' %str(data)
+                raise Exception, 'Invalid XML response: %s' %str(data)
             xmlEnd = data.rfind('>')
             if xmlEnd == -1:
-                raise 'Invalid XML response: %s' %str(data)
+                raise Exception, 'Invalid XML response: %s' %str(data)
             self.status = parser.Parse(data[xmlStart:xmlEnd+1], 1)
         except:
             wx.MessageBox(Utils.html2txt(data), 'Error', wx.ICON_ERROR)
@@ -328,7 +328,7 @@ class DAVCompanion(DAVPropReaderMixin, ExplorerCompanion):
         return items
 
     def SetProp(self, name, value):
-        raise 'Property editing not supported yet'
+        raise Exception, 'Property editing not supported yet'
 
 # XXX Helper is already slightly contaminated by the Designer
 class DAVSubCompanion(DAVPropReaderMixin, HelperDTC):
@@ -355,7 +355,7 @@ class DAVSubCompanion(DAVPropReaderMixin, HelperDTC):
             if prop[0] == name: return prop[1]
 
     def SetProp(self, name, value):
-        raise 'Property editing not supported yet'
+        raise Exception, 'Property editing not supported yet'
 
 #-------------------------------------------------------------------------------
 ExplorerNodes.register(DAVItemNode, clipboard=DAVExpClipboard,
