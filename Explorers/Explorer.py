@@ -6,7 +6,7 @@
 #
 # Created:     2000/11/02
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999 - 2005 Riaan Booysen
+# Copyright:   (c) 1999 - 2006 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
 
@@ -680,7 +680,7 @@ class BaseExplorerSplitter(wx.SplitterWindow):
                     list.openNodeInEditor(item, self.editor, self.store.recentFiles)
 
     def OnKeyPressed(self, event):
-        key = event.KeyCode()
+        key = event.GetKeyCode()
         if key == 13:
             self.OnOpen(event)
         else:
