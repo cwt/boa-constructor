@@ -9,10 +9,10 @@ from Tasks import ThreadedTaskHandler
 
 try:
     from ExternalLib.xmlrpcserver import RequestHandler
-except:
+except ImportError:
     # Add parent directory to the path search.
-    sys.path[0:0] = [os.pardir]
-    from ExternalLib.xmlrpcserver import RequestHandler
+    #sys.path[0:0] = [os.pardir]
+    from xmlrpcserver import RequestHandler
 
 
 debug_server = None
@@ -28,8 +28,7 @@ class DebugRequestHandler (RequestHandler):
         if auth_str:
             s = h.get('authentication')
             if not s or s.split()[-1] != auth_str:
-                raise 'Unauthorized', (
-                    'Authentication header missing or incorrect')
+                raise Exception, 'Unauthorized: Authentication header missing or incorrect'
 
     def call(self, method, params):
         # Override of xmlrpcserver.RequestHandler.call()
