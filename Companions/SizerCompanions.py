@@ -6,7 +6,7 @@
 #
 # Created:     2003
 # RCS-ID:      $Id$
-# Copyright:   (c) 2003 - 2005
+# Copyright:   (c) 2003 - 2006
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 
@@ -33,6 +33,7 @@ from PropEdit.PropertyEditors import IntConstrPropEdit, StrConstrPropEdit, \
       IntPropEdit, esExpandable
 
 from PropEdit.InspectorEditorControls import TextCtrlIEC
+from PropEdit.FlexGridGrowablesDlg import FlexGridGrowablesDlg
 
 from PropEdit import Enumerations
 import EventCollections, RTTI, methodparse
@@ -129,7 +130,8 @@ class SizerItemsCDTC(CollectionDTC):
     deletionMethod = 'Remove'
 
     additionalMethods = { 'AddSizer': ('Add sizer', 0, '(None)'),
-                          'AddSpacer': ('Add spacer', '', '(None)')
+                          'AddSpacer': ('Add spacer', '', '(None)'),
+                          #'AddStretchSpacer': ('Add stretch spacer', '', '(None)')
                         }
 
     def __init__(self, name, designer, parentCompanion, ctrl):
@@ -159,6 +161,8 @@ class SizerItemsCDTC(CollectionDTC):
         elif tcl.method == 'AddSpacer':
             return {'Size': 0, 'Flag': 'flag',
                     'Border': 'border'}
+        #elif tcl.method == 'AddStretchSpacer':
+        #    return {'Proportion': 0}
 
     def designTimeSource(self, wId, method=None):
         if method is None:
@@ -169,7 +173,9 @@ class SizerItemsCDTC(CollectionDTC):
         elif method == 'AddSizer':
             return {0: 'None', 1: '0', 'flag': '0', 'border': '0'}
         elif method == 'AddSpacer':
-            return {0:  'wx.Size(8, 8)', 'flag': '0', 'border': '0'}
+            return {0: 'wx.Size(8, 8)', 'flag': '0', 'border': '0'}
+        #elif method == 'AddStretchSpacer':
+        #    return {0: '1'}
 
     def notification(self, compn, action):
         if action == 'delete':
@@ -181,14 +187,17 @@ class SizerItemsCDTC(CollectionDTC):
                         self.recreateSizers()
                         return
 
-    def appendItem(self, method=None):
-        CollectionDTC.appendItem(self, method)
-        self.updateGUI()
+    def appendItem(self, method=None, srcParams={}):
+        CollectionDTC.appendItem(self, method, srcParams)
+        
+        self.recreateSizers()
+        #self.updateGUI()
 
     def deleteItem(self, idx):
         CollectionDTC.deleteItem(self, idx)
         del self.textConstrLst[idx]
-        self.updateGUI()
+        self.recreateSizers()
+        #self.updateGUI()
 
     def moveItem(self, idx, dir):
         newIdx = CollectionDTC.moveItem(self, idx, dir)
@@ -373,7 +382,6 @@ class GrowablesColPropEdit(CollectionPropEdit):
         for col in range(numCols):
             cols.append(col in growableCols)
 
-        from FlexGridGrowableDlg import FlexGridGrowablesDlg
         dlg = FlexGridGrowablesDlg(self.parent, rows, cols)
         try:
             res = dlg.ShowModal()
@@ -455,6 +463,20 @@ class FlexGridSizerDTC(GridSizerDTC):
         GridSizerDTC.__init__(self, name, designer, objClass)
         self.editors['Growables'] = GrowablesColPropEdit
         self.subCompanions['Growables'] = GrowablesCDTC
+
+        self.editors['FlexibleDirection'] = EnumPropEdit
+        self.names['FlexibleDirection'] = {'wx.VERTICAL': wx.VERTICAL,
+                                     'wx.HORIZONTAL': wx.HORIZONTAL,
+                                     'wx.BOTH': wx.BOTH}
+        self.options['FlexibleDirection'] = [wx.VERTICAL, wx.HORIZONTAL, wx.BOTH]
+
+        self.editors['NonFlexibleGrowMode'] = EnumPropEdit
+        self.names['NonFlexibleGrowMode'] = {'wx.FLEX_GROWMODE_NONE': wx.FLEX_GROWMODE_NONE,
+              'wx.FLEX_GROWMODE_SPECIFIED': wx.FLEX_GROWMODE_SPECIFIED,
+              'wx.FLEX_GROWMODE_ALL': wx.FLEX_GROWMODE_ALL}
+        self.options['NonFlexibleGrowMode'] = [wx.FLEX_GROWMODE_NONE, 
+                                               wx.FLEX_GROWMODE_SPECIFIED,
+                                               wx.FLEX_GROWMODE_ALL]
 
     def properties(self):
         props = GridSizerDTC.properties(self)
@@ -547,27 +569,27 @@ class StaticBoxSizerDTC(ControlLinkedSizerDTC):
 
 
 
-class NotebookSizerDTC(ControlLinkedSizerDTC):
-    LinkClass = wx.Notebook
-    ctrlParam = 'nb'
-    def __init__(self, name, designer, objClass):
-        ControlLinkedSizerDTC.__init__(self, name, designer, objClass)
-        self.editors['Notebook'] = ReadOnlyConstrPropEdit
-
-    def constructor(self):
-        return {'Name': 'name', 'Notebook': 'nb'}
-
-    def designTimeSource(self):
-        wx.LogWarning('wx.NotebookSizer no longer needed, please remove from source. Support will be removed.')
-        return {'nb': 'None'}
-
-    def properties(self):
-        props = ControlLinkedSizerDTC.properties(self)
-        del props['Items']
-        return props
-
-    def defaultAction(self):
-        pass
+##class NotebookSizerDTC(ControlLinkedSizerDTC):
+##    LinkClass = wx.Notebook
+##    ctrlParam = 'nb'
+##    def __init__(self, name, designer, objClass):
+##        ControlLinkedSizerDTC.__init__(self, name, designer, objClass)
+##        self.editors['Notebook'] = ReadOnlyConstrPropEdit
+##
+##    def constructor(self):
+##        return {'Name': 'name', 'Notebook': 'nb'}
+##
+##    def designTimeSource(self):
+##        wx.LogWarning('wx.NotebookSizer no longer needed, please remove from source. Support will be removed.')
+##        return {'nb': 'None'}
+##
+##    def properties(self):
+##        props = ControlLinkedSizerDTC.properties(self)
+##        del props['Items']
+##        return props
+##
+##    def defaultAction(self):
+##        pass
 
 class GridBagSizerDTC(FlexGridSizerDTC):
     def __init__(self, name, designer, objClass):
@@ -734,6 +756,6 @@ Plugins.registerComponents('ContainersLayout',
       (wx.GridSizer, 'wx.GridSizer', GridSizerDTC),
       (wx.FlexGridSizer, 'wx.FlexGridSizer', FlexGridSizerDTC),
       (wx.StaticBoxSizer, 'wx.StaticBoxSizer', StaticBoxSizerDTC),
-      (wx.NotebookSizer, 'wx.NotebookSizer', NotebookSizerDTC),
+#      (wx.NotebookSizer, 'wx.NotebookSizer', NotebookSizerDTC),
       (wx.GridBagSizer, 'wx.GridBagSizer', GridBagSizerDTC),
     )
