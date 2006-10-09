@@ -6,7 +6,7 @@
 #
 # Created:     1999
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999 - 2005 Riaan Booysen
+# Copyright:   (c) 1999 - 2006 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
 """
@@ -151,7 +151,7 @@ def matchbracket(text, findBracket, dir=None):
         end = len(text)
         brktIdx = containEnd.index(findBracket)
     else:
-        raise 'Unhandled bracket'
+        raise Exception, 'Unhandled bracket'
 
     # () {} []
     levels = [0, 0, 0]
@@ -382,14 +382,14 @@ class PropertyParse(PerLineParser):
                 self.params = safesplitfields(self.m.group('params'), ',')
                 compsetter = self.m.group('name').split('.')
 
-                if len(compsetter) < 1: raise 'atleast 1 required '+`compsetter`
+                if len(compsetter) < 1: raise Exception, 'atleast 1 required '+`compsetter`
                 if len(compsetter) == 1:
                     self.comp_name = ''
                     self.prop_setter = compsetter[0]
                 elif len(compsetter) == 2:
                     self.comp_name = compsetter[0]
                     self.prop_setter = compsetter[1]
-                else: raise 'Too many attribute levels'
+                else: raise Exception, 'Too many attribute levels'
                 
                 if self.prop_setter == 'Bind':
                     self.m = None
