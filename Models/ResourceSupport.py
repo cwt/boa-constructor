@@ -6,12 +6,15 @@
 #
 # Created:     2003/07/27
 # RCS-ID:      $Id$
-# Copyright:   (c) 2003 - 2005
+# Copyright:   (c) 2003 - 2006
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 #Boa:Dialog:ResourceSelectDlg
 
+import string, sys
+
 import wx
+from wx.tools import img2py
 from wx.lib.anchors import LayoutAnchors
 
 [wxID_RESOURCESELECTDLG, wxID_RESOURCESELECTDLGBTNCANCEL,
@@ -128,10 +131,18 @@ class PyResourceArtProvider(wx.ArtProvider):
     def CreateBitmap(self, artid, client, size):
         return self.imageFunctions[artid]()
 
+extTypeMap = {'.bmp': wx.BITMAP_TYPE_BMP,
+              '.gif': wx.BITMAP_TYPE_GIF,
+              '.jpg': wx.BITMAP_TYPE_JPEG,
+              '.png': wx.BITMAP_TYPE_PNG}
+
 class PyResourceImagesView(EditorViews.ListCtrlView):
     viewName = 'Images'
 
     gotoLineBmp = 'Images/Editor/GotoLine.png'
+    moveUpBmp = 'Images/Shared/up.png'
+    moveDownBmp = 'Images/Shared/down.png'
+    deleteBmp = 'Images/Shared/Delete.png'
 
     imageSize = (32, 32)
 
@@ -140,10 +151,15 @@ class PyResourceImagesView(EditorViews.ListCtrlView):
     def __init__(self, parent, model, listStyle=wx.LC_ICON | wx.LC_ALIGN_TOP,
                                       imgLstStyle=wx.IMAGE_LIST_NORMAL):
         EditorViews.ListCtrlView.__init__(self, parent, model, listStyle,
-          (('Goto line', self.OnGoto, self.gotoLineBmp, ''), ), 0)
-           ##('Add image', self.OnAddImage, '-', ''),
+          (('Goto line', self.OnGoto, self.gotoLineBmp, ''), 
+#           ('Move up', self.OnMoveUp, self.moveUpBmp, ''), 
+#           ('Move down', self.OnMoveDown, self.moveDownBmp, ''), 
+#           ('Delete image', self.OnDeleteImage, self.deleteBmp, ''), 
+##           ('Add image', self.OnAddImage, '-', ''),
+#           ('Export image', self.OnExportImage, '-', ''), 
+           ), 0)
 
-        self.images =wx.ImageList(*self.imageSize)
+        self.images = wx.ImageList(*self.imageSize)
         self.AssignImageList(self.images, imgLstStyle)
 
         self.imageSrcInfo = []
@@ -191,6 +207,12 @@ class PyResourceImagesView(EditorViews.ListCtrlView):
             srcView.gotoLine(lineNo-1)
 
 ##    def OnAddImage(self, event):
+##        from Explorers.Explorer import openEx
+##        fn = self.model.editor.openFileDlg(filter='*.*', curdir='.')
+##        if fn.find('://') != -1:
+##            fn = fn.split('://', 1)[1]
+##        ConvertImgToPy
+        
 ##        dlg =wx.DirDialog(self.model.editor)
 ##        try:
 ##            if dlg.ShowModal() != wx.ID_OK:
@@ -206,6 +228,33 @@ class PyResourceImagesView(EditorViews.ListCtrlView):
 ##        filename = os.path.join(dirname, name)
 ##        if os.path.isfile(filename):
 ##            files.append(filename)
+
+    def OnExportImage(self, event):
+        if self.selected != -1:
+            name = self.imageSrcInfo[self.selected][0]
+            dlg = wx.FileDialog(self, 'Save image', '.', name+'.png', 
+                  ';'.join(['*%s'%e for e in extTypeMap]), wx.SAVE)
+            try:
+                if dlg.ShowModal() == wx.ID_OK:
+                    path = dlg.GetPath()
+                    ext = os.path.splitext(path)[-1].lower()
+                    if ext in extTypeMap:
+                        func = self.functions.imageFunctions['get%sBitmap'%name]()
+                        func.SaveFile(path, extTypeMap[ext])
+                    else:
+                        wx.LogError('Unsupported image type: %s'%ext)
+            finally:
+                dlg.Destroy()
+
+    def OnMoveUp(self, event):
+        pass
+
+    def OnMoveDown(self, event):
+        pass
+
+    def OnDeleteImage(self, event):
+        pass
+            
 
 class PyResourceImagesSelectionView(PyResourceImagesView):
     docked = False
@@ -238,6 +287,68 @@ class PyResourceBitmapController(PythonControllers.ModuleController):
     DefaultViews    = PythonControllers.ModuleController.DefaultViews + \
                       [PyResourceImagesView]
 
+
+validFuncChars = string.letters+string.digits+'_'
+funcCharMap = {'-': '_', '.': '_'}
+def fileNameToFunctionName(fn):
+    res = []
+    if fn and fn[0] in string.letters+'_':
+        res.append(fn[0])
+    for c in fn[1:]:
+        if c not in validFuncChars:
+            if c in funcCharMap:
+                res.append(funcCharMap[c])
+        else:
+            res.append(c)
+    return ''.join(res)
+
+zopt = '-u '
+def ConvertImgToPy(imgPath, editor):
+    funcName = fileNameToFunctionName(os.path.basename(os.path.splitext(imgPath)[0]))
+    pyResPath, ok = editor.saveAsDlg(funcName+'_img.py')
+    if ok:
+        if pyResPath.find('://') != -1:
+            pyResPath = pyResPath.split('://', 1)[1]
+
+        # snip script usage, leave only options
+        docs = img2py.__doc__[img2py.__doc__.find('Options:')+11:]
+
+        cmdLine = zopt+'-n %s'%(funcName)
+        if os.path.exists(pyResPath):
+            cmdLine = '-a ' + cmdLine
+
+        dlg = wx.TextEntryDialog(editor,
+              'Options:\n\n%s\n\nEdit options string:'%docs, 'img2py', cmdLine)
+        try:
+            if dlg.ShowModal() != wx.ID_OK:
+                return
+            cmdLine = dlg.GetValue().strip()
+        finally:
+            dlg.Destroy()
+
+        opts = cmdLine.split()
+        opts.extend([imgPath, pyResPath])
+
+        tmp = sys.argv[0]
+        sys.argv[0] = 'Boa Constructor'
+        try:
+            img2py.main(opts)
+        finally:
+            sys.argv[0] = tmp
+
+        import sourceconst
+        header = (sourceconst.defSig%{'modelIdent':'PyImgResource', 'main':''}).strip()
+        if os.path.exists(pyResPath):
+            src = open(pyResPath, 'r').readlines()
+            if not (src and src[0].startswith(header)):
+                src.insert(0, header+'\n')
+                src.insert(1, '\n')
+                open(pyResPath, 'w').writelines(src)
+    
+            m, c = editor.openOrGotoModule(pyResPath)
+            c.OnReload(None)
+        else:
+            wx.LogWarning('Resource module not found. img2py failed to create the module')
 
 #-------------------------------------------------------------------------------
 
