@@ -6,7 +6,7 @@
 #
 # Created:     1999
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999 - 2005 Riaan Booysen
+# Copyright:   (c) 1999 - 2006 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
 
@@ -187,7 +187,11 @@ def getMethodType(method, obj, Class):
         return category, property name, getter, setter
     """
     result = ('Methods', method, None, None)
-    meth = getattr(obj, method)
+    try:
+        meth = getattr(obj, method)
+    except TypeError:
+        return result
+
     if (type(meth) == MethodType):
         func = meth.im_func
         result = ('Methods', method, func, func)
