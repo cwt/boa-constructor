@@ -6,7 +6,7 @@
 #
 # Created:     2002
 # RCS-ID:      $Id$
-# Copyright:   (c) 2002 - 2005
+# Copyright:   (c) 2002 - 2006
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 print 'importing Companions.ListCompanions'
@@ -249,13 +249,13 @@ class RadioBoxDTC(ChoicedDTC):
         self.windowStyles = ['wx.RA_SPECIFY_ROWS', 'wx.RA_SPECIFY_COLS'] + self.windowStyles
 
     def constructor(self):
-        return {'Label': 'label', 'Position': 'point', 'Size': 'size',
+        return {'Label': 'label', 'Position': 'pos', 'Size': 'size',
                 'Choices': 'choices', 'MajorDimension': 'majorDimension',
                 'Style': 'style', 'Name': 'name'}
 
     def designTimeSource(self, position = 'wx.DefaultPosition', size = 'wx.DefaultSize'):
         return {'label': `self.name`,
-                'point': position,
+                'pos': position,
                 'size': size,
                 'choices': `['asd']`,
                 'majorDimension': '1',
@@ -350,7 +350,8 @@ class GridDTC(Constructors.WindowConstr, WindowDTC):
     def hideDesignTime(self):
         return WindowDTC.hideDesignTime(self) + \
               ['RowLabelAlignment', 'ColLabelAlignment', 'Table',
-               'DefaultEditor', 'DefaultRenderer']
+               'DefaultEditor', 'DefaultRenderer', 'TargetWindow', 'TargetRect',
+               'DefaultCellAlignment']
 
 #-------------------------------------------------------------------------------
 
