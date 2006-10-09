@@ -12,9 +12,10 @@ boa_root = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
 if boa_root not in sys.path:
     sys.path.insert(0, boa_root)
 
-from ExternalLib.xmlrpcserver import RequestHandler
-
-
+try:
+    from ExternalLib.xmlrpcserver import RequestHandler
+except ImportError:
+    from xmlrpcserver import RequestHandler
 
 serving = 1
 
@@ -30,7 +31,7 @@ class DebugRequestHandler (RequestHandler):
         h = self.headers
         if auth_str and (not h.has_key('x-auth')
                          or h['x-auth'] != auth_str):
-            raise 'Unauthorized', 'X-Auth header missing or incorrect'
+            raise Exception, 'Unauthorized: X-Auth header missing or incorrect'
 
     def call(self, method, params):
         # Override of xmlrpcserver.RequestHandler.call()
