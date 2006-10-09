@@ -12,6 +12,8 @@ helperClasses = {}
 compInfo = {}
 newControllers = {}
 
+artProviderArtIds = []
+
 #-------------------------------------------------------------------------------
 
 from Preferences import IS
@@ -19,9 +21,9 @@ from Preferences import IS
 def loadBitmap(name):
     """ Loads bitmap if it exists, else loads default bitmap """
     imgPath = 'Images/Palette/' + name+'.png'
-    if IS.canLoad(imgPath):
+    try:
         return IS.load(imgPath)
-    else:
+    except IS.Error:
         return IS.load('Images/Palette/Component.png')
 
 
