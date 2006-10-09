@@ -6,21 +6,22 @@
 #
 # Created:     2003
 # RCS-ID:      $Id$
-# Copyright:   (c) 2003 - 2005
+# Copyright:   (c) 2003 - 2006
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 print 'importing Companions.LibCompanions'
 
 import wx
 
+import Constructors, ContainerCompanions, BasicCompanions
 from BaseCompanions import WindowDTC
 from BasicCompanions import StaticTextDTC, TextCtrlDTC, ComboBoxDTC
+from ContainerCompanions import PanelDTC
 
 from PropEdit import PropertyEditors, InspectorEditorControls
 import EventCollections
 
-
-import MaskedEditFmtCodeDlg
+from PropEdit import MaskedEditFmtCodeDlg, BitmapListEditorDlg
 
 
 class GenStaticTextDTC(StaticTextDTC):
@@ -28,7 +29,7 @@ class GenStaticTextDTC(StaticTextDTC):
     windowIdName = 'ID'
 
     def writeImports(self):
-        return 'import wx.lib.stattext'
+        return '\n'.join( (StaticTextDTC.writeImports(self), 'import wx.lib.stattext'))
 
 #-------------------------------------------------------------------------------
 
@@ -152,11 +153,11 @@ class MaskedTextCtrlDTC(BaseMaskedTextCtrlDTC, AutoFormatPropMixin):
         return props
 
     def writeImports(self):
-        return 'import wx.lib.masked.textctrl'
+        return '\n'.join( (BaseMaskedTextCtrlDTC.writeImports(self), 'import wx.lib.masked.textctrl'))
 
 class IpAddrCtrlDTC(BaseMaskedTextCtrlDTC):
     def writeImports(self):
-        return 'import wx.lib.masked.ipaddrctrl'
+        return '\n'.join( (BaseMaskedTextCtrlDTC.writeImports(self), 'import wx.lib.masked.ipaddrctrl'))
 
 
 class MaskedComboBoxDTC(ComboBoxDTC, MaskedDTCMixin, AutoFormatPropMixin):
@@ -181,7 +182,7 @@ class MaskedComboBoxDTC(ComboBoxDTC, MaskedDTCMixin, AutoFormatPropMixin):
 ##               ['Mark', 'EmptyInvalid']
 
     def writeImports(self):
-        return 'import wx.lib.masked.combobox'
+        return '\n'.join( (ComboBoxDTC.writeImports(self), 'import wx.lib.masked.combobox'))
 
 class MaskedNumCtrlDTC(TextCtrlDTC, MaskedDTCMixin):
     def __init__(self, name, designer, parent, ctrlClass):
@@ -203,7 +204,7 @@ class MaskedNumCtrlDTC(TextCtrlDTC, MaskedDTCMixin):
         return TextCtrlDTC.events(self) + ['MaskedNumCtrlEvent']
 
     def writeImports(self):
-        return 'import wx.lib.masked.numctrl'
+        return '\n'.join( (TextCtrlDTC.writeImports(self), 'import wx.lib.masked.numctrl'))
 
     def hideDesignTime(self):
         return TextCtrlDTC.hideDesignTime(self) + \
@@ -256,7 +257,7 @@ class TimeCtrlDTC(MaskedTextCtrlDTC):
                              'UseFixedWidthFont': BoolPE,
                              'Format': PropertyEditors.StringEnumPropEdit})
 
-        format = ['MILHHMMSS', 'MILHHMM', 'HHMMSS', 'HHMM']
+        format = ['24HHMMSS', '24HHMM', 'HHMMSS', 'HHMM']
         self.options['Format'] = format
         self.names['Format'] = {}
         for name in format: self.names['Format'][name] = name
@@ -304,7 +305,7 @@ class TimeCtrlDTC(MaskedTextCtrlDTC):
         return MaskedTextCtrlDTC.events(self) + ['TimeCtrlEvent']
 
     def writeImports(self):
-        return 'import wx.lib.masked.timectrl'
+        return '\n'.join( (MaskedTextCtrlDTC.writeImports(self), 'import wx.lib.masked.timectrl'))
 
 ##    def hideDesignTime(self):
 ##        return MaskedTextCtrlDTC.hideDesignTime(self) + ['Mask',
@@ -375,9 +376,265 @@ class IntCtrlDTC(TextCtrlDTC):
         return TextCtrlDTC.events(self) + ['IntCtrlEvent']
 
     def writeImports(self):
-        return 'import wx.lib.intctrl'
+        return '\n'.join( (TextCtrlDTC.writeImports(self), 'import wx.lib.intctrl'))
+
+#-------------------------------------------------------------------------------
+
+class AnalogClockDTC(WindowDTC):
+    def __init__(self, name, designer, parent, ctrlClass):
+        WindowDTC.__init__(self, name, designer, parent, ctrlClass)
+        
+##        wx.lib.analogclock.SHOW_QUARTERS_TICKS, 
+##        wx.lib.analogclock.SHOW_HOURS_TICKS,
+##        wx.lib.analogclock.SHOW_MINUTES_TICKS,
+##        wx.lib.analogclock.ROTATE_TICKS,
+##        wx.lib.analogclock.SHOW_HOURS_HAND,
+##        wx.lib.analogclock.SHOW_MINUTES_HAND,
+##        wx.lib.analogclock.SHOW_SECONDS_HAND,
+##        wx.lib.analogclock.SHOW_SHADOWS,
+##        wx.lib.analogclock.OVERLAP_TICKS,
+##        wx.lib.analogclock.DEFAULT_CLOCK_STYLE,
+
+##        wx.lib.analogclock.TICKS_NONE,
+##        wx.lib.analogclock.TICKS_SQUARE,
+##        wx.lib.analogclock.TICKS_CIRCLE,
+##        wx.lib.analogclock.TICKS_POLY,
+##        wx.lib.analogclock.TICKS_DECIMAL,
+##        wx.lib.analogclock.TICKS_ROMAN,
+##        wx.lib.analogclock.TICKS_BINARY,
+##        wx.lib.analogclock.TICKS_HEX,
+
+    def hideDesignTime(self):
+        return WindowDTC.hideDesignTime(self) + ['HandSize', 'HandBorderWidth',
+              'HandBorderColour', 'HandFillColour', 'TickSize', 'TickStyle', 
+              'TickOffset', 'TickBorderWidth', 'TickBorderColour', 
+              'TickFillColour', 'TickFont', 'ClockStyle']
+
+    def writeImports(self):
+        return '\n'.join( (WindowDTC.writeImports(self), 'import wx.lib.analogclock'))
+
+#-------------------------------------------------------------------------------
+
+class ScrolledPanelDTC(Constructors.WindowConstr, 
+                       ContainerCompanions.ScrolledWindowDTC):
+    """Currently you need to manually add the following call to the source
+    after self._init_ctrls(parent).
+    
+    e.g.
+    self.panel1.SetupScrolling(scroll_x=True, scroll_y=True, rate_x=20, rate_y=20)
+    """
+    def __init__(self, name, designer, parent, ctrlClass):
+        ContainerCompanions.ScrolledWindowDTC.__init__(self, name, designer, parent, ctrlClass)
+
+    def designTimeSource(self, position = 'wx.DefaultPosition', size = 'wx.DefaultSize'):
+        return {'pos':   position,
+                'size': self.getDefCtrlSize(),
+                'style': 'wx.TAB_TRAVERSAL',
+                'name':  `self.name`}
+
+    def writeImports(self):
+        return '\n'.join( (ContainerCompanions.ScrolledWindowDTC.writeImports(self),
+                          'import wx.lib.scrolledpanel'))
+
+#-------------------------------------------------------------------------------
+
+EventCollections.EventCategories['HyperLinkEvent'] = (
+    'wx.lib.hyperlink.EVT_HYPERLINK_LEFT',
+    'wx.lib.hyperlink.EVT_HYPERLINK_MIDDLE',
+    'wx.lib.hyperlink.EVT_HYPERLINK_RIGHT')
+
+#Link Visited LinkRollover
+
+class HyperLinkCtrlDTC(BasicCompanions.StaticTextDTC):
+    def __init__(self, name, designer, parent, ctrlClass):
+       BasicCompanions.StaticTextDTC.__init__(self, name, designer, parent, ctrlClass)
+       self.editors.update({
+            'AutoBrowse': PropertyEditors.BoolPropEdit,
+            'Bold': PropertyEditors.BoolPropEdit,
+            'DoPopup': PropertyEditors.BoolPropEdit,
+            'EnableRollover': PropertyEditors.BoolPropEdit,
+            'OpenInSameWindow': PropertyEditors.BoolPropEdit,
+            'ReportErrors': PropertyEditors.BoolPropEdit,
+            'Visited': PropertyEditors.BoolPropEdit,
+        })
+
+    def constructor(self):
+        return {'Position': 'pos', 'Size': 'size', 'Label': 'label',
+                'Style': 'style', 'Name': 'name', 'URL': 'URL'}
+
+    def initDesignTimeControl(self):
+        BasicCompanions.StaticTextDTC.initDesignTimeControl(self)
+        self.control.AutoBrowse(False)
+
+    def writeImports(self):
+        return '\n'.join( (BasicCompanions.StaticTextDTC.writeImports(self),
+                          'import wx.lib.hyperlink'))
+
+    def events(self):
+        return BasicCompanions.StaticTextDTC.events(self) + ['HyperLinkEvent']
+
+    def properties(self):
+        return {
+            'AutoBrowse': ('CompnRoute', self.GetAutoBrowse, self.AutoBrowse),
+            'Bold': ('CompnRoute', self.GetBold, self.SetBold), 
+        }
+
+    def GetAutoBrowse(self, x):
+        for prop in self.textPropList:
+            if prop.prop_setter == 'AutoBrowse':
+                return prop.params[0].lower() == 'true'
+        return True
+
+    def AutoBrowse(self, value):
+        pass
+
+    def GetBold(self, x):
+        return self.control.GetBold()
+
+    def SetBold(self, value):
+        self.control.SetBold(value)
+        self.control.UpdateLink()
 
 
+#-------------------------------------------------------------------------------
+
+class FileBrowseButtonDTC(PanelDTC):
+    def __init__(self, name, designer, parent, ctrlClass):
+        PanelDTC.__init__(self, name, designer, parent, ctrlClass)
+        StrPropEdit = PropertyEditors.StrConstrPropEdit
+        self.editors.update({
+            'LabelText': StrPropEdit, 'ButtonText': StrPropEdit,
+            'ToolTip': StrPropEdit, 'DialogTitle': StrPropEdit,
+            'StartDirectory': StrPropEdit, 'InitialValue': StrPropEdit, 
+            'FileMask': StrPropEdit,
+        })
+    
+    def designTimeSource(self, position='wx.DefaultPosition', size='wx.DefaultSize'):
+        return {'pos':   position,
+                'size': 'wx.Size(296, 48)',
+                'style': 'wx.TAB_TRAVERSAL',
+                'labelText': `'File Entry:'`,
+                'buttonText': `'Browse'`,
+                'toolTip': `'Type filename or click browse to choose file'`,
+                'dialogTitle': `'Choose a file'`,
+                'startDirectory': `'.'`,
+                'initialValue': `''`,
+                'fileMask': `'*.*'`,
+                }
+
+    def constructor(self):
+        return {'Position': 'pos', 'Size': 'size', 'Style': 'style',
+                'LabelText': 'labelText', 'ButtonText': 'buttonText',
+                'ToolTip': 'toolTip', 'DialogTitle': 'dialogTitle',
+                'StartDirectory': 'startDirectory', 
+                'InitialValue': 'initialValue', 'FileMask': 'fileMask'}
+
+    def writeImports(self):
+        return '\n'.join( (PanelDTC.writeImports(self),
+                          'import wx.lib.filebrowser'))
+
+class FileBrowseButtonWithHistoryDTC(FileBrowseButtonDTC): 
+    pass
+
+class DirBrowseButtonDTC(FileBrowseButtonDTC):
+    def designTimeSource(self, position='wx.DefaultPosition', size='wx.DefaultSize'):
+        return {'pos':   position,
+                'size': 'wx.Size(296, 48)',
+                'style': 'wx.TAB_TRAVERSAL',
+                'labelText': `'Select a directory:'`,
+                'buttonText': `'Browse'`,
+                'toolTip': `'Type directory name or browse to select'`,
+                'dialogTitle': `''`,
+                'startDirectory': `'.'`,
+                'newDirectory': 'False',
+                }
+
+    def constructor(self):
+        return {'Position': 'pos', 'Size': 'size', 'Style': 'style',
+                'LabelText': 'labelText', 'ButtonText': 'buttonText',
+                'ToolTip': 'toolTip', 'DialogTitle': 'dialogTitle',
+                'StartDirectory': 'startDirectory', 
+                'NewDirectory': 'newDirectory'}
+    
+
+class MultiSplitterWindowDTC(PanelDTC):
+    def __init__(self, name, designer, parent, ctrlClass):
+        PanelDTC.__init__(self, name, designer, parent, ctrlClass)
+
+class BitmapsConstrPropEdit(PropertyEditors.ConstrPropEdit):
+    def getValue(self):
+        if self.editorCtrl:
+            self.value = self.editorCtrl.getValue()
+        else:
+            self.value = self.getCtrlValue()
+        return self.value
+
+    def inspectorEdit(self):
+        self.editorCtrl = InspectorEditorControls.ButtonIEC(self, self.value)
+        self.editorCtrl.createControl(self.parent, self.idx, self.width, self.edit)
+
+    def edit(self, event):
+        dlg = BitmapListEditorDlg.BitmapListEditorDlg(self.parent, self.value, self.companion)
+        try:
+            if dlg.ShowModal() == wx.ID_OK:
+                self.value = dlg.getBitmapsSource()
+                self.editorCtrl.setValue(self.value)
+                self.inspectorPost(False)
+        finally:
+            dlg.Destroy()
+
+class ThrobberDTC(PanelDTC):
+    def __init__(self, name, designer, parent, ctrlClass):
+        PanelDTC.__init__(self, name, designer, parent, ctrlClass)
+        self.editors.update({'Bitmaps': BitmapsConstrPropEdit})
+
+    def designTimeSource(self, position='wx.DefaultPosition', size='wx.DefaultSize'):
+        return {'pos':   position,
+                'size': self.getDefCtrlSize(),
+                'style': '0',
+                'name': `self.name`,
+                'bitmap': '[wx.NullBitmap]', 
+                'frameDelay': '0.1',
+                'label': 'None',
+                'overlay': 'None',
+                'reverse': '0',
+                'rest': '0',
+                'current': '0',
+                'direction': '1'}
+
+    def constructor(self):
+        return {'Position': 'pos', 'Size': 'size', 'Style': 'style', 'Name': 'name',
+                'Bitmaps': 'bitmap', 'FrameDelay': 'frameDelay', 'Label': 'label', 
+                'Overlay': 'overlay', 'Reverse': 'reverse', 'Rest': 'rest', 
+                'Current': 'current', 'Direction': 'direction'}
+
+    def writeImports(self):
+        return '\n'.join( (PanelDTC.writeImports(self),
+                          'import wx.lib.throbber'))
+
+
+class TickerDTC(WindowDTC):
+    def __init__(self, name, designer, parent, ctrlClass):
+        WindowDTC.__init__(self, name, designer, parent, ctrlClass)
+        self.editors['Start'] = PropertyEditors.BoolConstrPropEdit
+
+    def writeImports(self):
+        return '\n'.join((WindowDTC.writeImports(self), 'import wx.lib.ticker'))
+
+    def constructor(self):
+        return {'Position': 'pos', 'Size': 'size', 'Style': 'style', 
+                'Name': 'name', 'Text': 'text', 'Start': 'start',
+                'Direction': 'direction'}
+
+    def designTimeSource(self, position = 'wx.DefaultPosition', size = 'wx.DefaultSize'):
+        return {'text': `self.name`,
+                'start': 'False',
+                'direction': `'rtl'`,
+                'pos': position,
+                'size': size,
+                'style': '0',
+                'name': `self.name`}
+                                
 #-------------------------------------------------------------------------------
 
 import wx.lib.stattext
@@ -387,6 +644,14 @@ import wx.lib.masked.combobox
 import wx.lib.masked.numctrl
 import wx.lib.masked.timectrl
 import wx.lib.intctrl
+
+import wx.lib.scrolledpanel
+import wx.lib.hyperlink
+import wx.lib.analogclock
+import wx.lib.filebrowsebutton 
+import wx.lib.splitter
+import wx.lib.throbber
+import wx.lib.ticker
 
 import Plugins
 
@@ -400,6 +665,15 @@ Plugins.registerComponents('Library',
       (wx.lib.masked.numctrl.NumCtrl, 'wx.lib.masked.numctrl.NumCtrl', MaskedNumCtrlDTC),
       (wx.lib.masked.timectrl.TimeCtrl, 'wx.lib.masked.timectrl.TimeCtrl', TimeCtrlDTC),
       (wx.lib.intctrl.IntCtrl, 'wx.lib.intctrl.IntCtrl', IntCtrlDTC),
+      (wx.lib.scrolledpanel.ScrolledPanel, 'wx.lib.scrolledpanel.ScrolledPanel', ScrolledPanelDTC),
+      (wx.lib.hyperlink.HyperLinkCtrl, 'wx.lib.hyperlink.HyperLinkCtrl', HyperLinkCtrlDTC),       
+      (wx.lib.analogclock.AnalogClock, 'wx.lib.analogclock.AnalogClock', AnalogClockDTC),
+      (wx.lib.filebrowsebutton.FileBrowseButton, 'wx.lib.filebrowsebutton.FileBrowseButton', FileBrowseButtonDTC),
+      (wx.lib.filebrowsebutton.FileBrowseButtonWithHistory, 'wx.lib.filebrowsebutton.FileBrowseButtonWithHistory', FileBrowseButtonWithHistoryDTC),
+      (wx.lib.filebrowsebutton.DirBrowseButton, 'wx.lib.filebrowsebutton.DirBrowseButton', DirBrowseButtonDTC),
+      (wx.lib.splitter.MultiSplitterWindow, 'wx.lib.splitter.MultiSplitterWindow', MultiSplitterWindowDTC),
+      (wx.lib.throbber.Throbber, 'wx.lib.throbber.Throbber', ThrobberDTC),
+      (wx.lib.ticker.Ticker, 'wx.lib.ticker.Ticker', TickerDTC),
     )
 
 EventCollections.EventCategories['MaskedNumCtrlEvent'] = ('wx.lib.masked.numctrl.EVT_MASKEDNUM',)
