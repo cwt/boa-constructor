@@ -7,7 +7,7 @@
 #
 # Created:     1999
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999 - 2005 Riaan Booysen
+# Copyright:   (c) 1999 - 2006 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
 
@@ -133,6 +133,8 @@ zopePalette = PaletteStore.zopePalette
 helperClasses = PaletteStore.helperClasses
 compInfo = PaletteStore.compInfo
 
+class DesignTimeExpressionError(Exception): pass
+
 _NB = None
 def evalCtrl(expr, localsDct=None):
     """ Function usually used to evaluate source snippets.
@@ -147,5 +149,8 @@ def evalCtrl(expr, localsDct=None):
         localsDct = {}
     localsDct['_'] = Utils.I18nStringFactory
     wx.NullBitmap = _NB
-
-    return eval(expr, globals(), localsDct)
+    try:
+        return eval(expr, globals(), localsDct)
+    except Exception, err:
+        clsName = err.__class__.__name__
+        raise DesignTimeExpressionError, clsName+': '+str(err)
