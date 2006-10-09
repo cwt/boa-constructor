@@ -6,13 +6,13 @@
 #
 # Created:     2002/02/09
 # RCS-ID:      $Id$
-# Copyright:   (c) 2002 - 2005
+# Copyright:   (c) 2002 - 2006
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 
 print 'importing Models.PythonEditorModels'
 
-import os, sys, pprint, imp, stat, types, tempfile
+import os, sys, pprint, imp, stat, types, tempfile, codecs
 from thread import start_new_thread
 from time import time, localtime, strftime
 from StringIO import StringIO
@@ -26,7 +26,12 @@ from EditorModels import PersistentModel, SourceModel, EditorModel, BitmapFileMo
 
 import relpath, sourceconst
 
-True,False=1,0
+# try to use new cProfile module
+try:
+    import cProfile
+    prof = 'cProfile'
+except ImportError:
+    prof = 'profile'
 
 (imgPyAppModel, imgModuleModel, imgPackageModel, imgSetupModel,
  imgPythonBinaryFileModel,
@@ -239,7 +244,7 @@ class ModuleModel(SourceModel):
                 return page
         else:
             wx.LogWarning('Save before running Cyclops')
-            raise 'Not saved yet!'
+            raise Exception, 'Not saved yet!'
 
     def debug(self, params=None, cont_if_running=0, cont_always=0,
               temp_breakpoint=None):
@@ -272,10 +277,10 @@ class ModuleModel(SourceModel):
         cwd = os.path.abspath(os.getcwd())
         os.chdir(profDir)
         try:
-            profCmd = """"%s" -c "import profile;profile.run('execfile('+chr(34)+%s+chr(34)+')', '%s')" """.strip()
+            profCmd = """"%s" -c "import %s;%s.run('execfile('+chr(34)+%s+chr(34)+')', '%s')" """.strip()
 
-            cmd = profCmd % (`Preferences.getPythonInterpreterPath()`[1:-1],
-                  `os.path.basename(filename)`, `statFile`[1:-1])
+            cmd = profCmd % (`Preferences.getPythonInterpreterPath()`[1:-1], 
+                  prof, prof, `os.path.basename(filename)`, `statFile`[1:-1])
 
             if hasattr(self, 'app'): app = self.app
             else: app = None
@@ -479,13 +484,13 @@ class ModuleModel(SourceModel):
         s = name+' ='
         pos = self.data.find(s)
         if pos == -1:
-            raise 'Global dict %s not found in the module, please add '\
+            raise Exception, 'Global dict %s not found in the module, please add '\
                   '"%s = {}" as a global variable.'%(name, name)
         end = self.data.find('}\n', pos + len(s) +1) + 1
         if not end:
             end = self.data.find('}\r\n', pos + len(s) +1) + 1
             if not end:
-                raise 'Global dict %s not terminated properly, please fix it.'%name
+                raise Exception, 'Global dict %s not terminated properly, please fix it.'%name
         return pos + len(s), end
 
     def readGlobalDict(self, name):
@@ -493,7 +498,7 @@ class ModuleModel(SourceModel):
         try:
             return eval(Utils.toUnixEOLMode(self.data[start:end]), {'wx': wx})
         except Exception, err:
-            raise '"%s" must be a valid dictionary global dict.\nError: %s'%(name, str(err))
+            raise Exception, '"%s" must be a valid dictionary global dict.\nError: %s'%(name, str(err))
 
     def writeGlobalDict(self, name, dct):
         start, end = self.findGlobalDict(name)
@@ -848,9 +853,9 @@ class BaseAppModel(ClassModel, ImportRelationshipMix):
         impPos = self.data.find('import', impPos + 1)
 
         # XXX Add if not found
-        if impPos == -1: raise 'Module import list not found in application'
+        if impPos == -1: raise Exception, 'Module import list not found in application'
         impEnd = self.data.find('\012', impPos + len('import') +1) + 1
-        if impEnd == -1: raise 'Module import list not terminated'
+        if impEnd == -1: raise Exception, 'Module import list not terminated'
         return impPos + len('import'), impEnd
 
     def idModel(self, name, src=None):
@@ -910,7 +915,7 @@ class BaseAppModel(ClassModel, ImportRelationshipMix):
         self.writeModules()
 
     def removeModule(self, name):
-        if not self.modules.has_key(name): raise 'No such module in application'
+        if not self.modules.has_key(name): raise Exception, 'No such module in application'
 
         del self.modules[name]
         self.writeModules()
@@ -929,12 +934,12 @@ class BaseAppModel(ClassModel, ImportRelationshipMix):
         elif len(protsplit) == 2:
             return protsplit
         else:
-            raise 'Unhandled protocol %s'%uri
+            raise Exception, 'Unhandled protocol %s'%uri
 
     def moduleFilename(self, name):
         """ Return absolute filename of the given module """
         if not self.modules.has_key(name):
-            raise 'No such module in application: '+name
+            raise Exception, 'No such module in application: '+name
 
         prot, modFilename = self.splitProtFile(self.modules[name][2])
         if self.savedAs:
@@ -1018,7 +1023,7 @@ class BaseAppModel(ClassModel, ImportRelationshipMix):
                 self.notify()
                 break
         else:
-            raise 'No main frame module found in application'
+            raise Exception, 'No main frame module found in application'
 
     def moduleSaveAsNotify(self, module, oldFilename, newFilename):
         if module != self:
@@ -1026,7 +1031,7 @@ class BaseAppModel(ClassModel, ImportRelationshipMix):
             oldName = os.path.splitext(os.path.basename(oldFilename))[0]
 
             if not self.modules.has_key(oldName):
-                raise 'Module does not exists in application'
+                raise Exception, 'Module does not exists in application'
 
             if self.savedAs:
                 relative = relpath.relpath(os.path.dirname(self.filename), newFilename)
@@ -1195,6 +1200,9 @@ def identifySource(source):
         The logic is a copy paste from above func """
     for line in source:
         if line:
+            if line.startswith(codecs.BOM_UTF8):
+                line = line[len(codecs.BOM_UTF8):]
+            
             if line[0] != '#':
                 return ModuleModel, ''
 
