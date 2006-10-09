@@ -7,7 +7,7 @@
 #
 # Created:     1999
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999 - 2005 Riaan Booysen
+# Copyright:   (c) 1999 - 2006 Riaan Booysen
 # Licence:     GPL
 #-------------------------------------------------------------------------------
 
@@ -568,7 +568,7 @@ class NYIDTC(DesignTimeCompanion):
     """ Blank holder for companions which have not been implemented."""
     host = 'Not Implemented'
     def __init__(self, name, designer, parent, ctrlClass):
-        raise 'Not Implemented'
+        raise Exception, 'Not Implemented'
 
 
 class ControlDTC(DesignTimeCompanion):
@@ -894,7 +894,7 @@ class WindowDTC(WindowConstr, ControlDTC):
                 'Id', 'Caret', 'WindowStyleFlag', 'ToolTip', 'Title', 'Rect',
                 'DragTarget', 'DropTarget', 'Cursor', 'VirtualSize', 'Sizer',
                 'ContainingSizer', 'Constraints', 'DefaultItem', 'Validator',
-                'WindowStyle', 'AcceleratorTable', 'ClientRect']
+                'WindowStyle', 'AcceleratorTable', 'ClientRect', 'ExtraStyle']
 
     def dontPersistProps(self):
         return ControlDTC.dontPersistProps(self) + ['ClientSize']
@@ -1225,12 +1225,14 @@ class CollectionDTC(DesignTimeCompanion):
         """ When overriding, append this before derived finaliser """
         return []
 
-    def appendItem(self, method=None):
+    def appendItem(self, method=None, srcParams={}):
         self.index = self.getCount()
         if method is None:
             method = self.insertionMethod
+        src = self.designTimeSource(self.index, method)        
+        src.update(srcParams)
         collItemInit = methodparse.CollectionItemInitParse(None,
-          self.sourceObjName, method, self.designTimeSource(self.index, method))
+          self.sourceObjName, method, src)
 
         self.textConstrLst.append(collItemInit)
         self.setConstr(collItemInit)
