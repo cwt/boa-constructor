@@ -6,7 +6,7 @@
 #
 # Created:     2001/03/06
 # RCS-ID:      $Id$
-# Copyright:   (c) 2001 - 2005 Riaan Booysen
+# Copyright:   (c) 2001 - 2006 Riaan Booysen
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 print 'importing Explorers.FileExplorer'
@@ -78,10 +78,10 @@ class FileSysCatNode(ExplorerNodes.CategoryNode):
         return cn
 
 
-(wxID_FSOPEN, wxID_FSTEST, wxID_FSNEW, wxID_FSNEWFOLDER, wxID_FSCVS,
+(wxID_FSOPEN, wxID_FSTEST, wxID_FSNEW, wxID_FSNEWFOLDER, wxID_FSCVS, wxID_FSSVN,
  wxID_FSBOOKMARK, wxID_FSFINDINFILES, wxID_FSFINDFILES, wxID_FSFILTERIMAGES,
  wxID_FSSETASCWD, wxID_FSNEWZIP, wxID_FSINSPECT,
-) = Utils.wxNewIds(12)
+) = Utils.wxNewIds(13)
 
 (wxID_FSFILTER, wxID_FSFILTERBOAMODULES, wxID_FSFILTERSTDMODULES,
  wxID_FSFILTERINTMODULES, wxID_FSFILTERALLMODULES,
@@ -149,8 +149,11 @@ class FileSysController(ExplorerNodes.Controller, ExplorerNodes.ClipboardControl
 
         self.menu.AppendMenu(wxID_FSFILTER, 'Filter', self.fileFilterMenu)
 
+        # XXX this should not be done here
         if controllers.has_key('cvs'):
             self.menu.AppendMenu(wxID_FSCVS, 'CVS', controllers['cvs'].fileCVSMenu)
+        if controllers.has_key('svn'):
+            self.menu.AppendMenu(wxID_FSSVN, 'SVN', controllers['svn'].fileSVNMenu)
 
         self.toolbarMenus = [self.fileMenuDef]
 
@@ -487,7 +490,7 @@ class FileSysNode(ExplorerNodes.ExplorerNode):
                 'BoaIntFiles': (EditorHelper.internalFilesReg, {}),
                 'ImageFiles': (EditorHelper.imageExtReg,
                                EditorHelper.imageSubTypeExtReg),
-                'AllFiles': (['.*'], {})}[self.filter]
+                'AllFiles': (['.*'], {})}.get(self.filter, (self.exts, {}))
 
     def load(self, mode='rb'):
         try:
