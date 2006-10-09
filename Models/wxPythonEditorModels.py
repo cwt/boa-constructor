@@ -6,7 +6,7 @@
 #
 # Created:     2002/02/09
 # RCS-ID:      $Id$
-# Copyright:   (c) 2002 - 2005
+# Copyright:   (c) 2002 - 2006
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 
@@ -126,7 +126,7 @@ class BaseFrameModel(ClassModel):
                 res = Utils.split_seq(codeBody, '', string.strip)
                 inits, body, fins = res[:3]
             except ValueError:
-                raise 'Collection body %s not in init, body, fin form' % meth
+                raise Exception, 'Collection body %s not in init, body, fin form' % meth
 
             allInitialisers, unmatched = methodparse.parseMixedBody(\
              [methodparse.EventParse, methodparse.CollectionItemInitParse],body)
@@ -205,7 +205,7 @@ class BaseFrameModel(ClassModel):
                 extAttrInitLine = idx
                 extAttrInitName = line.split('.__init__')[0]
         else:
-            raise 'self._init_ctrls not found in __init__'
+            raise Exception, 'self._init_ctrls not found in __init__'
 
         # build list of attrs
         attrs = []
@@ -227,7 +227,7 @@ class BaseFrameModel(ClassModel):
 
         if extAttrInitName:
             if not mod.from_imports_names.has_key(extAttrInitName):
-                raise '%s.__init__ called, but not imported in the form: '\
+                raise Exception, '%s.__init__ called, but not imported in the form: '\
                       'from [ModuleName] import %s'%(extAttrInitName, extAttrInitName)
             # try to load external attrs
             extModName = mod.from_imports_names[extAttrInitName]
@@ -237,7 +237,7 @@ class BaseFrameModel(ClassModel):
             try:
                 data = openEx(extModFilename).load()
             except Exception, error:
-                raise 'Problem loading %s: File expected at: %s'%(extModName,
+                raise Exception, 'Problem loading %s: File expected at: %s'%(extModName,
                                                                  extModFilename)
             exModModel = ModuleModel(data, extModFilename, self.editor, 1)
             extModule = exModModel.getModule()
@@ -301,7 +301,7 @@ class BaseFrameModel(ClassModel):
                         else:
                             raise
             except Exception, err:
-                raise '_custom_classes is not valid: '+str(err)
+                raise Exception, '_custom_classes is not valid: '+str(err)
 
             for wxClassName, customs in custClasses.items():
                 wxClass = PaletteMapping.evalCtrl(wxClassName)
@@ -349,9 +349,9 @@ class BaseFrameModel(ClassModel):
                     self.mainConstr = \
                       self.objectCollections[sourceconst.init_ctrls].creators[0]
                 except IndexError:
-                    raise 'Inherited __init__ method missing'
+                    Exception, 'Inherited __init__ method missing'
         else:
-            raise 'Main class "%s" not found. Please fix file header or class name.'%self.main
+            Exception, 'Main class "%s" not found. Please fix file header or class name.'%self.main
 
     def removeWindowIds(self, colMeth):
         """ Remove a method's corresponding window ids from the source code """
