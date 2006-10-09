@@ -6,7 +6,7 @@
 #
 # Created:     2002
 # RCS-ID:      $Id$
-# Copyright:   (c) 2002 - 2005
+# Copyright:   (c) 2002 - 2006
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 print 'importing Companions.ButtonCompanions'
@@ -231,8 +231,13 @@ class SpinCtrlDTC(SpinButtonDTC):
 
 
 class GenButtonDTC(WindowDTC):
-    handledConstrParams = ('parent', 'ID')
-    windowIdName = 'ID'
+    if wx.VERSION[:2] >= (2, 7):
+        handledConstrParams = ('parent', 'id')
+        windowIdName = 'id'
+    else:
+        handledConstrParams = ('parent', 'ID')
+        windowIdName = 'ID'
+        
     def __init__(self, name, designer, parent, ctrlClass):
         WindowDTC.__init__(self, name, designer, parent, ctrlClass)
         self.editors['UseFocusIndicator'] = BoolPropEdit
@@ -259,7 +264,6 @@ class GenButtonDTC(WindowDTC):
 
 
 class GenBitmapButtonDTC(GenButtonDTC):
-    windowIdName = 'ID'
     def __init__(self, name, designer, parent, ctrlClass):
         GenButtonDTC.__init__(self, name, designer, parent, ctrlClass)
         self.editors.update({'Bitmap'         : BitmapConstrPropEdit,
