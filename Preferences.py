@@ -6,7 +6,7 @@
 #
 # Created:     1999
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999 - 2005 Riaan Booysen
+# Copyright:   (c) 1999 - 2006 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
 
@@ -27,13 +27,15 @@ is configured.
 import os, sys, shutil
 
 import wx
-#from wxPython.wx import *
 
 #---Paths-----------------------------------------------------------------------
 
 #pyPath = sys.path[0] = os.path.abspath(sys.path[0])
 #sys.path.insert(1, '')
-pyPath = os.path.abspath(os.path.dirname(__file__))
+if getattr(sys, "frozen", None):
+    pyPath = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
+else:
+    pyPath = os.path.abspath(os.path.dirname(__file__))
 
 #---Import preference namespace from resource .rc. files------------------------
 
@@ -49,7 +51,7 @@ if '--OverridePrefsDirName' in sys.argv or '-O' in sys.argv:
 
     if idx != -1:
         try: prefsDirName = sys.argv[idx + 1]
-        except IndexError: raise 'OverridePrefsDirName must specify a directory'
+        except IndexError: raise Exception, 'OverridePrefsDirName must specify a directory'
         print 'using preference directory name', prefsDirName
 
 # To prevent using the HOME env variable run different versions of Boa this flag
@@ -100,7 +102,7 @@ wxPlatforms = {'__WXMSW__': 'msw',
 thisPlatform = wxPlatforms[wx.Platform]
 
 # upgrade if needed and exec in our namespace
-for prefsFile, version in (('prefs.rc.py', 15),
+for prefsFile, version in (('prefs.rc.py', 18),
                            ('prefs.%s.rc.py'%thisPlatform, 9),
                            ('prefs.keys.rc.py', 10),
                            ('prefs.plug-ins.rc.py', None)):
@@ -161,15 +163,14 @@ if pluginsEnabled:
 #---Prefs dependent on user prefs-----------------------------------------------
 
 imageStorePaths = [pyPath]
+if hasattr(sys, 'frozen'):
+    imageStorePaths.append(sys.executable)
 for ppth in pluginPaths:
     imageStorePaths.append(ppth)
 
 import ImageStore
-if useImageArchive:
-    UseImageStore = ImageStore.ZippedImageStore
-else:
-    UseImageStore = ImageStore.ImageStore
-IS = UseImageStore(imageStorePaths, cache=useImageCache)
+
+IS = ImageStore.ImageStoreClasses[imageStoreType](imageStorePaths, cache=useImageCache)
 
 def getPythonInterpreterPath():
     if not pythonInterpreterPath:
