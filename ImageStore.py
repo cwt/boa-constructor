@@ -1,16 +1,17 @@
 #----------------------------------------------------------------------
 # Name:        ImageStore.py
-# Purpose:     Cache images used in a central place.
+# Purpose:     Centralised loading of images, supports different 
+#              methods of loading: image files, zip files and modules
 #
 # Author:      Riaan Booysen
 #
 # Created:     2000/03/15
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999 - 2005 Riaan Booysen
+# Copyright:   (c) 1999 - 2006 Riaan Booysen
 # Licence:     BSD
 #----------------------------------------------------------------------
 
-import os, cStringIO
+import sys, os, cStringIO
 
 import wx
 
@@ -19,6 +20,9 @@ class InvalidImgPathError(ImageStoreError): pass
 class UnhandledExtError(ImageStoreError): pass
 
 class ImageStore:
+
+    Error = ImageStoreError
+    
     def __init__(self, rootpaths, images=None, cache=1):
         if not images: images = {}
         self.rootpaths = []
@@ -47,7 +51,13 @@ class ImageStore:
             return wx.Icon(filename, wx.BITMAP_TYPE_ICO)
         elif ext == 'data':
             stream = cStringIO.StringIO(self.dataReg[filename])
-            return wx.BitmapFromImage(wx.ImageFromStream(stream))
+            bitmap = wx.BitmapFromImage(wx.ImageFromStream(stream))
+            if filename[-3:].lower() == 'ico':
+                icon = wx.EmptyIcon()
+                icon.CopyFromBitmap(bitmap)
+                return icon
+            else:
+                return bitmap
         else:
             raise UnhandledExtError, 'Extension not handled: '+ext
 
@@ -58,7 +68,7 @@ class ImageStore:
         return imgPath, ext
 
     def load(self, name):
-        if self.dataReg.has_key(name):
+        if name in self.dataReg:
             return self.createImage(name, 'data')
             
         for rootpath in self.rootpaths:
@@ -75,24 +85,11 @@ class ImageStore:
                 return self.createImage(imgpath, ext)
         raise InvalidImgPathError, '%s not found in image paths' %name
 
-    def canLoad(self, name):
-        if self.dataReg.has_key(name):
-            return 1
-
-        for rootpath in self.rootpaths:
-            try:
-                imgpath, ext = self.pathExtFromName(rootpath, name)
-            except InvalidImgPathError:
-                continue
-            else:
-                return 1
-        return 0
-
     def canonizePath(self, imgPath):
         return os.path.normpath(imgPath).replace('\\', '/')
 
     def checkPath(self, imgPath):
-        if self.dataReg.has_key(imgPath):
+        if imgPath in self.dataReg:
             return
 
         if not os.path.isfile(imgPath):
@@ -114,47 +111,78 @@ class ZippedImageStore(ImageStore):
 
         archive = os.path.join(rootPath, 'Images.archive.zip')
         if os.path.exists(archive):
-            print 'reading Image archive...'
+            print 'reading image archive...'
             import zipfile
             zf = zipfile.ZipFile(archive)
             self.archives[archive] = [fl.filename for fl in zf.filelist]
 
-            for img in self.archives[archive]:
-                if img[-1] == '/':
+            for imgPath in self.archives[archive]:
+                if imgPath[-1] == '/':
                     continue
 
-                imgData = zf.read(img)
-                imgExt = os.path.splitext(img)[1]
-                bmpPath = img
-                self.images[bmpPath] = (imgData, imgExt)
+                imgData = zf.read(imgPath)
+                self.registerImage(imgPath, imgData)
+
             zf.close()
+        else:
+            print 'image archive %s not found'%archive
 
     def load(self, name):
-        import tempfile
         name = self.canonizePath(name)
-        try:
-            imgData, imgExt = self.images[name]
-        except KeyError:
-            return ImageStore.load(self, name)
-        else:
-            tmpname = tempfile.mktemp()
-            open(tmpname, 'wb').write(imgData)
-            try:
-                try:
-                    return self.createImage(tmpname, imgExt)
-                except Exception, error:
-                    return ImageStore.load(self, name)
-            finally:
-                os.remove(tmpname)
-
-    def canLoad(self, name):
-        name = self.canonizePath(name)
-        if not self.images.has_key(name):
-            return ImageStore.canLoad(self, name)
-    
-
-class ResourseImageStore(ImageStore):
-    def __init__(self, rootpaths, images=None, cache=1):
-        self.resources = {}
-        ImageStore.__init__(self, rootpaths, images, cache)
         
+        if name in self.dataReg:
+            return self.createImage(name, 'data')
+        else:
+            return ImageStore.load(self, name)
+
+
+class ResourceImageStore(ImageStore):
+    def __init__(self, rootpaths, images=None, cache=1):
+        ImageStore.__init__(self, rootpaths, images, cache)
+
+    def subModuleImport(self, name):     
+        realSysPath = sys.path
+        try:
+            for path in self.rootpaths:
+                sys.path = [path]
+                try:
+                    mod = __import__(name) 
+                except ImportError:
+                    continue
+                
+                components = name.split('.') 
+                for comp in components[1:]: 
+                    mod = getattr(mod, comp) 
+                return mod 
+            raise ImportError, 'Could not find %s'%name
+        finally:
+            sys.path = realSysPath
+
+    def load(self, pathName):
+        name = self.transformPathToModuleSpace(pathName)
+        if name not in self.dataReg:
+            try:
+                mod = self.subModuleImport(name)
+            except ImportError, err:
+                #print '%s not found: %s'%(name, str(err))
+                return ImageStore.load(self, pathName)
+            self.dataReg[name] = mod.data
+
+        return ImageStore.load(self, name)
+
+    def registerImage(self, name, data):
+        name = self.transformPathToModuleSpace(name)
+        ImageStore.registerImage(self, name, data)
+        
+    def transformPathToModuleSpace(self, name):
+        name = self.canonizePath(name)
+        name = name.replace('.', '_').replace('/', '.')
+        return name
+
+        
+ImageStoreClasses = {
+     'files': ImageStore,
+     'zip' : ZippedImageStore,
+     'resource': ResourceImageStore,
+}     
+    
