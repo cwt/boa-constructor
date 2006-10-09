@@ -7,7 +7,7 @@
 #
 # Created:     1999
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999 - 2005 Riaan Booysen
+# Copyright:   (c) 1999 - 2006 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
 
@@ -51,11 +51,9 @@ class EditorModel:
         self.plugins = plugins
 
     def destroy(self):
-        #print 'destroyed %s'%self.__class__.__name__
-        del self.views
-        del self.viewsModified
-        del self.plugins
-        #del self.editor
+        self.views = ()
+        self.viewsModified = ()
+        self.plugins = ()
 
     def updateNameFromTransport(self):
         if self.transport:
@@ -181,7 +179,7 @@ class BasePersistentModel(EditorModel):
             Note: Load's not really used much currently cause objects are
                   constructed with their data as parameter """
         if not self.transport:
-            raise 'No transport for loading'
+            raise Exception, 'No transport for loading'
 
         self.data = self.transport.load(mode=self.fileModes[0])
         self.modified = False
@@ -192,7 +190,7 @@ class BasePersistentModel(EditorModel):
     def save(self, overwriteNewer=False):
         """ Saves contents of data to file specified by self.filename. """
         if not self.transport:
-            raise 'No transport for saving'
+            raise Exception, 'No transport for saving'
 
         if self.filename:
             filename = self.transport.assertFilename(self.filename)
@@ -211,7 +209,7 @@ class BasePersistentModel(EditorModel):
             if _vc_hook:
                 _vc_hook.save(filename, self.data, mode=self.fileModes[1])
         else:
-            raise 'No filename'
+            raise Exception, 'No filename'
 
     def saveAs(self, filename):
         """ Saves contents of data to file specified by filename.

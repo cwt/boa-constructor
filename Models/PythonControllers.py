@@ -6,7 +6,7 @@
 #
 # Created:     2002/02/09
 # RCS-ID:      $Id$
-# Copyright:   (c) 2002 - 2005
+# Copyright:   (c) 2002 - 2006
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 print 'importing Models.PythonControllers'
@@ -555,7 +555,7 @@ class PythonExtensionController(EditorController):
         return self.Model(source, filename, self.editor, saved)
 
     def createNewModel(self, modelParent=None):
-        raise 'Cannot create a new Python Extension, use distutils to build it'
+        raise Exception, 'Cannot create a new Python Extension, use distutils to build it'
 
     def new(self):
         pass
