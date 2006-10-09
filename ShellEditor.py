@@ -6,7 +6,7 @@
 #
 # Created:     2000/06/19
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999 - 2005 Riaan Booysen
+# Copyright:   (c) 1999 - 2006 Riaan Booysen
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 
@@ -285,7 +285,7 @@ class ShellEditor(wx.stc.StyledTextCtrl,
         if Preferences.handleSpecialEuropeanKeys:
             self.handleSpecialEuropeanKeys(event, Preferences.euroKeysCountry)
 
-        kk = event.KeyCode()
+        kk = event.GetKeyCode()
         controlDown = event.ControlDown()
         shiftDown = event.ShiftDown()
         if kk == wx.WXK_RETURN and not (shiftDown or event.HasModifiers()):
@@ -403,7 +403,7 @@ class PseudoFileIn:
                 time.sleep(0.001)
                 wx.Yield()
             line = self._buffer.pop()
-            if line is None: raise 'Terminate'
+            if line is None: raise Exception, 'Terminate'
             if not(line.strip()): return '\n'
             else: return line
         finally:
