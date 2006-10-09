@@ -7,7 +7,7 @@
 #
 # Created:     2001/02/04
 # RCS-ID:      $Id$
-# Copyright:   (c) 2001 - 2005 Riaan Booysen
+# Copyright:   (c) 2001 - 2006 Riaan Booysen
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 #Boa:Dialog:ProcessProgressDlg
@@ -15,7 +15,7 @@
 import wx
 from wx.lib.anchors import LayoutAnchors
 
-import os, time, sys
+import os, time, sys, StringIO
 
 # XXX Change to be non-modal, minimizable and run CVS operation in thread !!
 
@@ -57,7 +57,7 @@ class ProcessProgressDlg(wx.Dialog, ProcessRunnerMix):
               True, False))
 
         self.splitterWindow = wx.SplitterWindow(id=wxID_PROCESSPROGRESSDLGSPLITTERWINDOW,
-              name='splitterWindow', parent=self, point=wx.Point(8, 80),
+              name='splitterWindow', parent=self, pos=wx.Point(8, 80),
               size=wx.Size(360, 192), style=self.splitterStyle)
         self.splitterWindow.SetConstraints(LayoutAnchors(self.splitterWindow,
               True, True, True, True))
@@ -187,12 +187,8 @@ class ProcessProgressDlg(wx.Dialog, ProcessRunnerMix):
             event.Skip()
 
     def prepareResult(self):
-        self.output = ''.join(self.output).split(self.linesep)[:-1]
-        for idx in range(len(self.output)):
-            self.output[idx] = self.output[idx] + os.linesep
-        self.errors = ''.join(self.errors).split(self.linesep)[:-1]
-        for idx in range(len(self.errors)):
-            self.errors[idx] = self.errors[idx] + os.linesep
+        self.output = StringIO.StringIO(''.join(self.output)).readlines()
+        self.errors = StringIO.StringIO(''.join(self.errors)).readlines()
 
     def OnCancelbtnButton(self, event):
         if not self.finished:
