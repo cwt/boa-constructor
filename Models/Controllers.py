@@ -6,12 +6,12 @@
 #
 # Created:     2001/13/08
 # RCS-ID:      $Id$
-# Copyright:   (c) 2001 - 2005 Riaan Booysen
+# Copyright:   (c) 2001 - 2006 Riaan Booysen
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 print 'importing Models.Controllers'
 
-import os
+import os, codecs
 
 import wx
 
@@ -346,6 +346,8 @@ def identifyFile(filename, source=None, localfs=True):
                     line = f.readline()
                     if not line: break
                     line = line.strip()
+                    if line.startswith(codecs.BOM_UTF8):
+                        line = line[len(codecs.BOM_UTF8):]
                     if line and headerStartChar.has_key(lext):
                         if line[0] != headerStartChar[lext]:
                             return BaseModel, ''
