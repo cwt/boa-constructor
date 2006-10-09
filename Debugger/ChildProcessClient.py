@@ -2,7 +2,10 @@ import os, sys, time, socket
 import wx
 
 import Preferences, Utils
-from ExternalLib import xmlrpclib
+try:
+    from ExternalLib import xmlrpclib
+except ImportError:
+    import xmlrpclib
 
 from DebugClient import DebugClient, MultiThreadedDebugClient, \
      EmptyResponseError, DebuggerTask, EVT_DEBUGGER_START, \
@@ -60,7 +63,11 @@ def spawnChild(monitor, process, args=''):
     and the input and error streams.
     """
     # Start ChildProcessServerStart.py in a new process.
-    script_fn = os.path.join(os.path.dirname(__file__),
+    if hasattr(sys, 'frozen'):
+        script_fn = os.path.join(os.path.dirname(sys.executable), 'Debugger', 
+              'ChildProcessServerStart.py')
+    else:
+        script_fn = os.path.join(os.path.dirname(__file__),
                              'ChildProcessServerStart.py')
     pyIntpPath = Preferences.getPythonInterpreterPath()
     cmd = '%s "%s" %s' % (pyIntpPath, script_fn, args)
@@ -83,7 +90,10 @@ def spawnChild(monitor, process, args=''):
                 if estream.CanRead():
                     err = estream.read()
                     if LOG_TRACEBACKS:
-                        fn = os.path.join(os.path.dirname(__file__), 'DebugTracebacks.txt')
+                        if hasattr(sys, 'frozen'):
+                            fn = os.path.join(os.path.dirname(sys.executable), 'DebugTracebacks.txt')
+                        else:
+                            fn = os.path.join(os.path.dirname(__file__), 'DebugTracebacks.txt')
                         open(fn, 'a').write(err)
                     errlines = err.split('\n')
                     while not errlines[-1].strip(): del errlines[-1]
