@@ -145,7 +145,7 @@ class PreferenceCollectionNode(ExplorerNodes.ExplorerNode):
         return False
 
     def load(self):
-        raise 'Not implemented'
+        raise Exception, 'Not implemented'
 
     def save(self, filename, data):
         pass
@@ -366,6 +366,17 @@ class KeyDefConfPropEdit(PropertyEditors.ConfPropEdit):
         except Exception, err:
             return str(err)
 
+
+class LanguagesConfPropEdit(PropertyEditors.ConfPropEdit):
+    def inspectorEdit(self):
+        self.editorCtrl = InspectorEditorControls.ChoiceIEC(self, self.getValue())
+        self.editorCtrl.createControl(self.parent, self.idx, self.width)
+        self.editorCtrl.setValue(self.value)
+  
+    def getValues(self):
+        return ['wx.'+n for n in dir(wx) if n.startswith('LANGUAGE_')]
+
+        
 class PreferenceCompanion(ExplorerNodes.ExplorerCompanion):
     def __init__(self, name, prefNode, ):
         ExplorerNodes.ExplorerCompanion.__init__(self, name)
@@ -376,7 +387,9 @@ class PreferenceCompanion(ExplorerNodes.ExplorerCompanion):
     typeMap = {}
     customTypeMap = {'filepath': PropertyEditors.FilepathConfPropEdit,
                      'dirpath': PropertyEditors.DirpathConfPropEdit,
-                     'keydef': KeyDefConfPropEdit}
+                     'keydef': KeyDefConfPropEdit,
+                     'languages': LanguagesConfPropEdit}
+                     
     def getPropEditor(self, prop):
         # XXX Using name equality to identify _breaks' prop edit is ugly !
         for aProp in self.propItems:
