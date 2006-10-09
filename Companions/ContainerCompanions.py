@@ -6,7 +6,7 @@
 #
 # Created:     2002
 # RCS-ID:      $Id$
-# Copyright:   (c) 2002 - 2005
+# Copyright:   (c) 2002 - 2006
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 print 'importing Companions.ContainerCompanions'
@@ -180,15 +180,13 @@ class ScrolledWindowDTC(Constructors.WindowConstr, ContainerDTC):
 EventCategories['NotebookEvent'] = ('wx.EVT_NOTEBOOK_PAGE_CHANGED',
                                     'wx.EVT_NOTEBOOK_PAGE_CHANGING')
 commandCategories.append('NotebookEvent')
-class NotebookDTC(Constructors.WindowConstr, ContainerDTC):
+class BookCtrlDTC(Constructors.WindowConstr, ContainerDTC):
+    bookCtrlName = 'wx.BookCtrl'
     def __init__(self, name, designer, parent, ctrlClass):
         ContainerDTC.__init__(self, name, designer, parent, ctrlClass)
         self.editors.update({'Pages':     CollectionPropEdit,
                              'ImageList': ImageListClassLinkPropEdit})
-        self.subCompanions['Pages'] = NotebookPagesCDTC
-        self.windowStyles = ['wx.NB_FIXEDWIDTH', 'wx.NB_LEFT', 'wx.NB_RIGHT',
-                             'wx.NB_BOTTOM', 'wx.NB_MULTILINE'] + \
-                             self.windowStyles
+        self.subCompanions['Pages'] = BookCtrlPagesCDTC
         self.letClickThru = True
 
     def properties(self):
@@ -236,7 +234,7 @@ class NotebookDTC(Constructors.WindowConstr, ContainerDTC):
                 self.propRevertToDefault('ImageList', 'SetImageList')
                 self.control.SetImageList(None)
 
-class NotebookPagesCDTC(CollectionDTC):
+class BookCtrlPagesCDTC(CollectionDTC):
     propName = 'Pages'
     displayProp = 'text'
     indexProp = '(None)'
@@ -377,9 +375,9 @@ class NotebookPagesCDTC(CollectionDTC):
                       self.parentCompanion.name, constr.params['text']))
                 warn = 1
         if warn:
-            wx.LogWarning('The red-dashed area of a wx.Notebook page must contain\n'\
-            'a control or the generated source will be invalid outside the Designer')
-
+            wx.LogWarning('The red-dashed area of a %s page must contain\n'\
+            'a control or the generated source will be invalid outside the '\
+            'Designer'% self.parentCompanion.bookCtrlName)
 
 [wxID_CTRLPARENT, wxID_EDITPASTE, wxID_EDITDELETE] = Utils.wxNewIds(3)
 
@@ -387,7 +385,7 @@ class BlankWindowPage(wx.Window):
     """ Window representing uninitialised space, it grabs the first control
         dropped onto it and replaces None with new ctrl in code.
 
-        Used by wx.Notebook for a default page
+        Used by BookCtrls for a default page
     """
 
     # XXX A delete of this object should remove the page from the notebook
@@ -496,6 +494,30 @@ class BlankWindowPage(wx.Window):
         self.params[self.nameKey] = Utils.srcRefFromCtrlName(self.ctrl.GetName())
         self.OnControlResize(None)
 
+class NotebookDTC(BookCtrlDTC):
+    bookCtrlName = 'wx.Notebook'
+    def __init__(self, name, designer, parent, ctrlClass):
+        BookCtrlDTC.__init__(self, name, designer, parent, ctrlClass)
+        self.windowStyles = ['wx.NB_FIXEDWIDTH', 'wx.NB_LEFT', 'wx.NB_RIGHT',
+                             'wx.NB_BOTTOM', 'wx.NB_MULTILINE'] + self.windowStyles
+
+
+class ListbookDTC(BookCtrlDTC):
+    bookCtrlName = 'wx.Listbook'
+    def __init__(self, name, designer, parent, ctrlClass):
+        BookCtrlDTC.__init__(self, name, designer, parent, ctrlClass)
+        self.windowStyles = ['wx.LB_DEFAULT', 'wx.LB_TOP', 'wx.LB_LEFT', 
+              'wx.LB_RIGHT', 'wx.LB_BOTTOM' ] + self.windowStyles
+
+
+class ChoicebookDTC(BookCtrlDTC):
+    bookCtrlName = 'wx.Choicebook'
+    def __init__(self, name, designer, parent, ctrlClass):
+        BookCtrlDTC.__init__(self, name, designer, parent, ctrlClass)
+        self.windowStyles = ['wx.CHB_DEFAULT', 'wx.CHB_TOP', 'wx.CHB_LEFT', 
+              'wx.CHB_RIGHT', 'wx.CHB_BOTTOM' ] + self.windowStyles
+    
+
 
 EventCategories['SplitterWindowEvent'] = ('wx.EVT_SPLITTER_SASH_POS_CHANGING',
                                           'wx.EVT_SPLITTER_SASH_POS_CHANGED',
@@ -519,7 +541,7 @@ class SplitterWindowDTC(ContainerDTC):
         self.win2 = None
 
     def constructor(self):
-        return {'Position': 'point', 'Size': 'size', 'Style': 'style',
+        return {'Position': 'pos', 'Size': 'size', 'Style': 'style',
                 'Name': 'name'}
 
     def properties(self):
@@ -530,7 +552,7 @@ class SplitterWindowDTC(ContainerDTC):
         return props
 
     def designTimeSource(self, position = 'wx.DefaultPosition', size = 'wx.DefaultSize'):
-        return {'point': position,
+        return {'pos': position,
                 'size': self.getDefCtrlSize(),
                 'style': 'wx.SP_3D',
                 'name':  `self.name`}
@@ -1055,6 +1077,7 @@ class StatusBarFieldsCDTC(CollectionDTC):
     def SetText(self, value):
         self.control.SetStatusText(value, self.index)
 
+
 #-------------------------------------------------------------------------------
 
 import Plugins
@@ -1065,6 +1088,8 @@ Plugins.registerComponents('ContainersLayout',
       (wx.Panel, 'wx.Panel', PanelDTC),
       (wx.ScrolledWindow, 'wx.ScrolledWindow', ScrolledWindowDTC),
       (wx.Notebook, 'wx.Notebook', NotebookDTC),
+      (wx.Listbook, 'wx.Listbook', ListbookDTC),
+      (wx.Choicebook, 'wx.Choicebook', ChoicebookDTC),
       (wx.SplitterWindow, 'wx.SplitterWindow', SplitterWindowDTC),
       (wx.SashWindow, 'wx.SashWindow', SashWindowDTC),
       (wx.SashLayoutWindow, 'wx.SashLayoutWindow', SashLayoutWindowDTC),
