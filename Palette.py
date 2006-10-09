@@ -6,7 +6,7 @@
 #
 # Created:     1999
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999 - 2005 Riaan Booysen
+# Copyright:   (c) 1999 - 2006 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
 #Boa:Frame:BoaFrame
@@ -474,7 +474,10 @@ class NewPalettePage(PanelPalettePage):
         return mID
 
     def getButtonBmp(self, name, wxClass):
-        return IS.load('%s%s.png' %(self.bitmapPath, name))
+        try:
+            return IS.load('%s%s.png' %(self.bitmapPath, name))
+        except IS.Error:
+            return IS.load('Images/Palette/Component.png')
 
     def OnClickTrap(self, event):
         modPageInfo = self.widgets[event.GetId()]
@@ -543,5 +546,7 @@ if __name__ == '__main__':
     wx.InitAllImageHandlers()
     palette = BoaFrame(None, -1, app)
     palette.Show()
+    palette.palette.AddPage(wx.Panel(palette.palette, -1), 'test')
+    
 
     app.MainLoop()

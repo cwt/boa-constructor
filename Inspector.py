@@ -6,7 +6,7 @@
 #
 # Created:     1999
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999 - 2005 Riaan Booysen
+# Copyright:   (c) 1999 - 2006 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
 #Boa:Frame:InspectorFrame
@@ -123,7 +123,7 @@ class InspectorFrame(wx.Frame, Utils.FrameRestorerMixin):
               size=wx.Size(274, 408), style=wx.SUNKEN_BORDER)
 
         self.events = EventsWindow(id=wxID_INSPECTORFRAMEEVENTS, name='events',
-              parent=self.pages, point=wx.Point(0, 0), size=wx.Size(274, 404),
+              parent=self.pages, pos=wx.Point(0, 0), size=wx.Size(274, 404),
               style=wx.SP_3D)
 
         self._init_coll_toolBar_Tools(self.toolBar)
@@ -152,10 +152,9 @@ class InspectorFrame(wx.Frame, Utils.FrameRestorerMixin):
 
         for cmpInf in PaletteStore.compInfo.values():
             filename ='Images/Palette/'+ cmpInf[0]+'.png'
-            if IS.canLoad(filename):
-            #if os.path.exists(Preferences.pyPath+'/'+filename):
+            try:
                 cmpInf.append(self.paletteImages.Add(IS.load(filename)))
-            else:
+            except IS.Error:
                 cmpInf.append(self.paletteImages.Add(IS.load('Images/Palette/Component.png')))
 
         self.SetIcon(IS.load('Images/Icons/Inspector.ico'))
@@ -928,7 +927,7 @@ class EventsWindow(wx.SplitterWindow):
         for macro in EventCollections.EventCategories[\
               self.categoryClasses.GetItemText(self.selCatClass)]:
             if macro == name: return macro
-        raise 'Macro: '+name+' not found.'
+        raise Exception, 'Macro: '+name+' not found.'
 
     def addEvent(self, name, value, wid = None):
         self.inspector.selCmp.persistEvt(name, value, wid)
