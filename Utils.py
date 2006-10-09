@@ -6,7 +6,7 @@
 #
 # Created:     1999
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999 - 2005 Riaan Booysen
+# Copyright:   (c) 1999 - 2006 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
 import string, os, sys, glob, pprint, types, re
@@ -16,6 +16,10 @@ import wx
 import Preferences
 from Preferences import IS
 from ConfigParser import ConfigParser
+
+# Centralised i18n gettext compatible definition
+_ = wx.GetTranslation
+
 
 def toPyPath(filename):
     return os.path.join(Preferences.pyPath, filename)
@@ -259,7 +263,7 @@ def showTip(frame, forceShow=0):
         conf = None
         showTip, index = (1, 0)
     else:
-        showTip = conf.getint('tips', 'showonstartup')
+        showTip = conf.getboolean('tips', 'showonstartup')
         index = conf.getint('tips', 'tipindex')
 
     if showTip or forceShow:
@@ -267,8 +271,8 @@ def showTip(frame, forceShow=0):
         showTip = wx.ShowTip(frame, tp, showTip)
         index = tp.GetCurrentTip()
         if conf:
-            conf.set('tips', 'showonstartup', int(showTip))
-            conf.set('tips', 'tipindex', index)
+            conf.set('tips', 'showonstartup', showTip and 'true' or 'false')
+            conf.set('tips', 'tipindex', str(index))
             try:
                 writeConfig(conf)
             except IOError:
@@ -346,7 +350,7 @@ def wxProxyPanel(parent, Win, *args, **kwargs):
         win = Win
         win.Reparent(panel)
     else:
-        raise 'Unhandled type for Win'
+        raise Exception, 'Unhandled type for Win'
 
     def OnWinSize(evt, win=win):
         win.SetSize(evt.GetSize())
@@ -398,7 +402,7 @@ def visit_update(paths, dirname, names):
 
 def get_current_frame():
     try:
-        raise 'get_exc_info'
+        Exception, 'get_exc_info'
     except:
         return sys.exc_info()[2].tb_frame.f_back
 
@@ -880,6 +884,8 @@ def stringFromControl(u):
         except UnicodeError, err:
             try:
                 spec = coding_spec(u)
+                if spec is None:
+                    raise
                 return u.encode(spec)
             except UnicodeError, err:
                 raise Exception, 'Unable to encode unicode string, please change '\
@@ -888,16 +894,21 @@ def stringFromControl(u):
     else:
         return u
 
-def stringToControl(s):
+def stringToControl(s, safe=False):
     try: wx.USE_UNICODE, UnicodeError
     except (AttributeError, NameError): return s
 
     if wx.USE_UNICODE:
         try:
-            return unicode(s)
+            if safe:
+                return s.decode(sys.getdefaultencoding(), 'ignore')
+            else:
+                return unicode(s)
         except UnicodeError, err:
             try:
                 spec = coding_spec(s)
+                if spec is None:
+                    raise
                 return s.decode(spec)
             except UnicodeError, err:
                 raise Exception, 'Unable to decode unicode string, please change '\
@@ -905,6 +916,9 @@ def stringToControl(s):
                       'encoding.\n Error message %s'%str(err)
     else:
         return s
+
+def safeDecode(s):
+    return s.decode(sys.getdefaultencoding(), 'replace')    
 
 #-------------------------------------------------------------------------------
 
