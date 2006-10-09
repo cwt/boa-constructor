@@ -1,6 +1,8 @@
 import os, sys, base64
-from ExternalLib import xmlrpclib
-
+try:
+    from ExternalLib import xmlrpclib
+except ImportError:
+    import xmlrpclib
 
 class TransportWithAuthentication (xmlrpclib.Transport):
     """Adds a proprietary but simple authentication header to the
