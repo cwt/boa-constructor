@@ -6,7 +6,7 @@
 #
 # Created:     1999
 # RCS-ID:      $Id$
-# Copyright:   Changes (c) 1999 - 2005 Riaan Booysen
+# Copyright:   Changes (c) 1999 - 2006 Riaan Booysen
 # Licence:     Python
 #----------------------------------------------------------------------
 
@@ -60,7 +60,7 @@ is_attrib_from_call = re.compile('[ \t]*self[.](?P<name>%s)[ \t]*=[ \t]*(?P<clas
 is_name = re.compile('[ \t]*(?P<name>%s)[ \t]*=[ \t]*'%id)
 is_name_from_call = re.compile('[ \t]*(?P<name>%s)[ \t]*=[ \t]*(?P<classpath>%s)\('%(id, obj_def))
 #are_names = re.compile('[ \t]*((?P<names>%s)[ \t]*[,][ \t]*)+(?P<lastname>%s)[ \t]*)*=[ \t]*'%(id, id))
-is_import = re.compile('^[ \t]*import[ \t]*(?P<imp>[^#;]+)')
+is_import = re.compile('^[ \t]*import[ \t]+(?P<imp>[^#;]+)')
 is_from = re.compile('^[ \t]*from[ \t]+(?P<module>%s([ \t]*\\.[ \t]*%s)*)[ \t]+import[ \t]+(?P<imp>[^#;]+)'%(id, id))
 dedent = re.compile('^[^ \t]')
 indent = re.compile('^[^ \t]*')
@@ -637,7 +637,7 @@ class Module:
         if not method_body: return
         a_class = self.classes[class_name]
         if method_name in a_class.method_order:
-            raise 'Method exists'
+            raise Exception, 'Method exists'
 
         # Add a method code block
         if to_bottom or not a_class.method_order:
