@@ -6,7 +6,7 @@
 #
 # Created:     2002
 # RCS-ID:      $Id$
-# Copyright:   (c) 2002 - 2005
+# Copyright:   (c) 2002 - 2006
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 print 'importing Companions.FrameCompanions'
@@ -103,9 +103,10 @@ class FrameDTC(FramesConstr, BaseFrameDTC):
                              'ToolBar': ToolBarClassLinkPropEdit })
         self.triggers.update({'ToolBar': self.ChangeToolBar})
         self.windowStyles = ['wx.DEFAULT_FRAME_STYLE', 'wx.ICONIZE',
-              'wx.MINIMIZE', 'wx.MAXIMIZE', 'wx.STAY_ON_TOP', 'wx.SYSTEM_MENU',
-              'wx.RESIZE_BORDER', 'wx.FRAME_FLOAT_ON_PARENT',
-              'wx.FRAME_TOOL_WINDOW'] + self.windowStyles
+              'wx.MINIMIZE', 'wx.MAXIMIZE', 'wx.CLOSE', 'wx.STAY_ON_TOP', 
+              'wx.SYSTEM_MENU', 'wx.RESIZE_BORDER', 'wx.FRAME_FLOAT_ON_PARENT',
+              'wx.FRAME_TOOL_WINDOW', 'wx.FRAME_NO_TASKBAR', 'wx.FRAME_SHAPED',
+              ] + self.windowStyles
 
     def designTimeSource(self):
         return {'title': `self.name`,
@@ -142,7 +143,7 @@ class FrameDTC(FramesConstr, BaseFrameDTC):
             mb = self.control.GetMenuBar()
             if mb and `mb` == `compn.control`:
                 if wx.Platform == '__WXGTK__':
-                    raise 'May not delete a wx.MenuBar, it would cause a segfault on wxGTK'
+                    raise Exception, 'May not delete a wx.MenuBar, it would cause a segfault on wxGTK'
                 self.propRevertToDefault('MenuBar', 'SetMenuBar')
                 self.control.SetMenuBar(None)
                 #if wx.Platform == '__WXGTK__':
@@ -186,7 +187,8 @@ class DialogDTC(FramesConstr, BaseFrameDTC):
         BaseFrameDTC.__init__(self, name, designer, frameCtrl)
         self.windowStyles = ['wx.DIALOG_MODAL', 'wx.DIALOG_MODELESS',
               'wx.CAPTION', 'wx.DEFAULT_DIALOG_STYLE', 'wx.RESIZE_BORDER',
-              'wx.THICK_FRAME', 'wx.STAY_ON_TOP', 'wx.NO_3D', 'wx.DIALOG_NO_PARENT']\
+              'wx.THICK_FRAME', 'wx.STAY_ON_TOP', 'wx.NO_3D', 'wx.DIALOG_NO_PARENT',
+              'wx.SYSTEM_MENU', 'wx.CLOSE_BOX']\
               + self.windowStyles
 
     def hideDesignTime(self):
