@@ -7,7 +7,7 @@
 #
 # Created:      November 2000
 # RCS-ID:       $Id$
-# Copyright:    (c) 2000 - 2005 : Shane Hathaway, Riaan Booysen
+# Copyright:    (c) 2000 - 2006 : Shane Hathaway, Riaan Booysen
 # Licence:      GPL
 #----------------------------------------------------------------------------
 
@@ -620,7 +620,7 @@ class DebugServer (Bdb):
     def remove_trace_hooks(self):
         sys.settrace(None)
         try:
-            raise 'gen_exc_info'
+            raise Exception, 'gen_exc_info'
         except:
             frame = sys.exc_info()[2].tb_frame
             while frame:
@@ -665,7 +665,7 @@ class DebugServer (Bdb):
         if enable:
             # Add trace hooks.
             try:
-                raise 'gen_exc_info'
+                raise Exception, 'gen_exc_info'
             except:
                 frame = sys.exc_info()[2].tb_frame.f_back
             self.add_trace_hooks(frame)
@@ -697,7 +697,7 @@ class DebugServer (Bdb):
         Called by hard breakpoints.
         """
         try:
-            raise 'gen_exc_info'
+            raise Exception, 'gen_exc_info'
         except:
             frame = sys.exc_info()[2].tb_frame.f_back
         stop = self.hard_break_here(frame)
