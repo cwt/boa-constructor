@@ -182,17 +182,19 @@ class RegexEditorFrm(wx.Frame, Utils.FrameRestorerMixin):
             s, e = mo.span()
             self.txtMatch.SetValue(string[s:e])
 
-            namedGrpVals = {}
-            for name, val in mo.groupdict().items():
-                namedGrpVals[val] = name
+            # we want the named groups sorted in the order they appear in the re
+            # so lets get the index, name and group into a list of tuples and
+            # sort the list
+            namedGroups = []
+            for name, idx in ro.groupindex.items():
+                namedGroups += [(idx, name, mo.group(name))]
+            namedGroups.sort()
 
-            grps = []
-            for idx, grp in zip(range(1, len(mo.groups())+1), mo.groups()):
-                name = namedGrpVals.get(grp, '')
+            # now add the sorted list items to lcGroups 
+            for idx, name, group in namedGroups:
                 self.lcGroups.InsertStringItem(idx-1, str(idx))
                 self.lcGroups.SetStringItem(idx-1, 1, name)
-                self.lcGroups.SetStringItem(idx-1, 2, str(grp))
-
+                self.lcGroups.SetStringItem(idx-1, 2, group)
 
     def setStatus(self, mo):
         if mo:
