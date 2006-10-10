@@ -6,7 +6,7 @@
 #
 # Created:     1999
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999 - 2005 Riaan Booysen
+# Copyright:   (c) 1999 - 2006 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
 
@@ -86,7 +86,7 @@ class DesignerView(wx.Frame, InspectableObjectView, Utils.FrameRestorerMixin):
                 dot = srcPrnt.find('.')
                 if dot != -1:
                     srcPrnt = srcPrnt[dot + 1:]
-                else: raise 'Component name illegal '+ srcPrnt
+                else: raise Exception, 'Component name illegal '+ srcPrnt
                 args[prnt] = self.objects[srcPrnt][1]
 
 
@@ -511,7 +511,12 @@ class DesignerView(wx.Frame, InspectableObjectView, Utils.FrameRestorerMixin):
         # decorate class_name if it's a factory constructor
         if not constrPrs.class_name and constrPrs.factory:
             factoryObj, factoryMeth = constrPrs.factory
-            constrPrs.class_name = self.dataView.objects[factoryObj][0].factory(factoryMeth)
+            if factoryObj in self.dataView.objects:
+                constrPrs.class_name = self.dataView.objects[factoryObj][0].factory(factoryMeth)
+            elif factoryObj in self.objects:
+                constrPrs.class_name = self.objects[factoryObj][0].factory(factoryMeth)
+            else:
+                raise Exception, factoryObj + ' not found'
         InspectableObjectView.initObjCreator(self, constrPrs)
 
     def initSizers(self, sizersView):
@@ -742,14 +747,28 @@ class DesignerView(wx.Frame, InspectableObjectView, Utils.FrameRestorerMixin):
             return intem in list
         exp = ctrlNames[:]
 
-        #colLst = filter(\
-        #    lambda name, names=ctrlNames, objs=self.objects: \
-        #        objs[name][2] not in names, ctrlNames)
-
         colLst = [name for name in ctrlNames
                   if self.objects[name][2] not in ctrlNames]
 
         return colLst
+
+    def buildSizerInfo(self, sizer, res):
+        sp = sizer.GetPosition()
+        ss = sizer.GetSize()
+        res.append( (wx.Rect(sp.x, sp.y, ss.width, ss.height), sizer) )
+
+        if sizer.__class__.__name__ == 'BlankSizer':
+            return
+
+        c = sizer.GetChildren()
+        for sc in c:
+            if sc.IsSizer():
+                self.buildSizerInfo(sc.GetSizer(), res)
+            else:
+                sp = sc.GetPosition()
+                ss = sc.GetSize()
+                res.append( (wx.Rect(sp.x, sp.y, ss.width, ss.height), sc) )
+
 
     def selectControlByPos(self, ctrl, pos, multiSelect):
         """ Handle selection of a control from a users click of creation
@@ -762,6 +781,18 @@ class DesignerView(wx.Frame, InspectableObjectView, Utils.FrameRestorerMixin):
 
             Also handles single and multiple selection logic.
         """
+
+        # Patch to workaround SizerItem identity problem
+        def _contains(d, k):
+            for key in d:
+                if str(k) == str(key):
+                    return True
+            return False
+        def _get(d, k):
+            for key in d:
+                if str(k) == str(key):
+                    return d[key]
+            raise KeyError, k
 
         self.vetoResize = True
         try:
@@ -793,18 +824,186 @@ class DesignerView(wx.Frame, InspectableObjectView, Utils.FrameRestorerMixin):
 
                 # Granularise position
                 pos = wx.Point(SelectionTags.granularise(pos.x),
-                              SelectionTags.granularise(pos.y))
+                               SelectionTags.granularise(pos.y))
 
                 CtrlClass, CtrlCompanion = self.compPal.selection[1:3]
+                
+                destSizer, destSizerCmpn = None, None
+                parentSzr = parent.GetSizer()
+                if parentSzr:
+                    # build a mapping from sizers to companions
+                    sizerCompns = {}
+                    view = self.model.views['Sizers']#CtrlCompanion.host]
+                    for name, vals in view.objects.items():
+                        compn = vals[0]
+                        sizerCompns[compn.control] = compn
+                        items = compn.control.GetChildren()
+                        for idx in range(len(items)):
+                            si = items[idx]
+                            if si.IsSizer() and si.GetSizer().__class__.__name__=='BlankSizer':
+                                sizerCompns[si.GetSizer()] = (compn.collections['Items'], idx)#compn.collections['Items'].textConstrLst[idx]
+                            else:
+                                sizerCompns[si] = (compn.collections['Items'], idx)
+                    res = []
+                    self.buildSizerInfo(parentSzr, res)
+                    res.reverse() # find deepest regions first
+                    for rect, s in res:
+                        if wx.IntersectRect(rect, wx.Rect(pos.x, pos.y, 1, 1)):
+                            #if s in sizerCompns:
+                            if _contains(sizerCompns, s):
+                                destSizer = s
+                                #destSizerCmpn = sizerCompns[s]
+                                destSizerCmpn = _get(sizerCompns, s)
+                                break
+                            else:
+                                # sizer item
+                                print 'err', s
+
+                if CtrlCompanion.host == 'Sizers':
+                    # create sizer
+                    view = self.model.views[CtrlCompanion.host]
+                    ctrlName = view.OnSelectOrAdd()
+                    if ctrlName is not None:
+                        compn, sizer = view.objects[ctrlName][:2]
+                        ctrlSzr = selCompn.GetSizer(None)
+                        
+                        if destSizer is not None:
+                            # sizer dropped on sizer item
+                            if type(destSizerCmpn) is type(()):
+                                destSizerCmpn, sizerItemIdx = destSizerCmpn
+
+                                tcl = destSizerCmpn.textConstrLst[sizerItemIdx]
+                                if tcl.params[0] == 'None':
+                                    tcl.method = 'AddSizer'
+                                    tcl.params[0] = 'self.%s'%ctrlName
+                                    destSizerCmpn.recreateSizers()
+
+                                    collEditView = SelectionTags.openCollEditorForSizerItems(
+                                        self.inspector, destSizerCmpn.parentCompanion, 
+                                        destSizerCmpn.designer, destSizerCmpn.parentCompanion.control)
+                                    if collEditView is not None:    
+                                        collEditView.refreshCtrl()
+                                        if collEditView.frame:
+                                            collEditView.frame.selectObject(sizerItemIdx)
+
+                                    return
+                                else:
+                                    collEditView = SelectionTags.openCollEditorForSizerItems(
+                                        self.inspector, destSizerCmpn.parentCompanion, 
+                                        destSizerCmpn.designer, destSizerCmpn.parentCompanion.control)
+                                    if collEditView is not None:    
+                                        ci = collEditView.companion.appendItem(
+                                              method='AddSizer', 
+                                              srcParams={0: 'self.%s'%ctrlName})
+                                        collEditView.refreshCtrl()
+                                        collEditView.selectObject(
+                                              collEditView.frame.itemList.GetItemCount() -1)
+                                        return
+
+                            # sizer dropped on sizer
+                            else:
+                                collEditView = SelectionTags.openCollEditorForSizerItems(
+                                    self.inspector, destSizerCmpn, 
+                                    destSizerCmpn.designer, destSizer)
+                                if collEditView is not None:    
+                                    ci = collEditView.companion.appendItem(
+                                          method='AddSizer', 
+                                          srcParams={0: 'self.%s'%ctrlName})
+                                    collEditView.refreshCtrl()
+                                    collEditView.selectObject(
+                                          collEditView.frame.itemList.GetItemCount() -1)
+                                    return
+                            
+                        
+                        # no sizer on the parent ctrl, link this new sizer to it
+                        if ctrlSzr is None:
+                            selCompn.SetSizer(sizer)
+                            selCompn.persistProp('Sizer', 'SetSizer', 'self.%s'%compn.name)
+                            return 
+
+                        # parent control already has a sizer, add this sizer as a sizer item
+                        else:
+                            collEditView = SelectionTags.openCollEditorForSizerItems(
+                                self.inspector, selCompn)
+                            if collEditView is not None:    
+                                ci = collEditView.companion.appendItem(
+                                      method='AddSizer', 
+                                      srcParams={0: 'self.%s'%ctrlName})
+                                collEditView.refreshCtrl()
+                                collEditView.selectObject(
+                                      collEditView.frame.itemList.GetItemCount() -1)
+                                return
+                    
                 if CtrlCompanion.host in ('Data', 'Sizers'):
                     view = self.model.views[CtrlCompanion.host]
                     view.focus()
                     view.OnSelectOrAdd()
                     return
 
+                # create ctrl
                 ctrlName = self.newControl(parent, CtrlClass, CtrlCompanion, pos)
                 self.compPal.selectNone()
+                view = self.model.views[CtrlCompanion.host]
+                compn, sizer = view.objects[ctrlName][:2]
+                ctrlSzr = selCompn.GetSizer(None)
+                if ctrlSzr is not None:
+                    if destSizer is not None:
+                        # ctrl dropped on sizer item
+                        if type(destSizerCmpn) is type(()):
+                            destSizerCmpn, sizerItemIdx = destSizerCmpn
+                            tcl = destSizerCmpn.textConstrLst[sizerItemIdx]
+                            tcl.method = 'AddWindow'
+                            tcl.params[0] = 'self.%s'%ctrlName
+                            tcl.params[1] = '0'
+                            destSizerCmpn.recreateSizers()
 
+                            collEditView = SelectionTags.openCollEditorForSizerItems(
+                                self.inspector, destSizerCmpn.parentCompanion, 
+                                destSizerCmpn.designer, destSizerCmpn.parentCompanion.control)
+                            if collEditView is not None:    
+                                collEditView.refreshCtrl()
+                                collEditView.selectObject(sizerItemIdx)
+
+                            return
+
+                        # ctrl dropped on sizer
+                        collEditView = SelectionTags.openCollEditorForSizerItems(
+                            self.inspector, destSizerCmpn, 
+                            destSizerCmpn.designer, destSizer)
+                        if collEditView is not None:    
+                            ci = collEditView.companion.appendItem(
+                                  srcParams={0: 'self.%s'%ctrlName})
+                            collEditView.refreshCtrl()
+                            collEditView.selectObject(
+                                  collEditView.frame.itemList.GetItemCount() -1)
+                            return
+
+                    collEditView = SelectionTags.openCollEditorForSizerItems(
+                        self.inspector, selCompn)
+                    if collEditView is not None:    
+                        ci = collEditView.companion.appendItem(srcParams={0: 'self.%s'%ctrlName})
+                        collEditView.refreshCtrl()
+                        collEditView.selectObject(collEditView.frame.itemList.GetItemCount() -1)
+                else:
+                    prntCtrlSzr = parent.GetSizer()
+                    if prntCtrlSzr is not None:
+                        if destSizer is not None:
+                            # ctrl dropped on sizer item with ctrl, append to items
+                            if type(destSizerCmpn) is type(()):
+                                destSizerCmpn, sizerItemIdx = destSizerCmpn
+                                collEditView = SelectionTags.openCollEditorForSizerItems(
+                                    self.inspector, destSizerCmpn.parentCompanion, 
+                                    destSizerCmpn.designer, prntCtrlSzr)#destSizer)
+                                if collEditView is not None:    
+                                    ci = collEditView.companion.appendItem(
+                                          srcParams={0: 'self.%s'%ctrlName})
+                                    collEditView.refreshCtrl()
+                                    collEditView.selectObject(
+                                          collEditView.frame.itemList.GetItemCount() -1)
+                                return
+
+                    
+                
                 if self.selection:
                     ctrl = self.objects[ctrlName][1]
                     self.selection.selectCtrl(ctrl, self.objects[ctrlName][0])
@@ -1382,18 +1581,8 @@ class DesignerControlsEvtHandler(wx.EvtHandler):
         """ Control is clicked. Either select it or add control from palette """
         dsgn = self.designer
         ctrl, pos = self.getCtrlAndPosFromEvt(event)
-##        ctrl = event.GetEventObject()
-##        # XXX only here for when testing
-##        if not ctrl:
-##            ctrl = dsgn
-##        else:
-##            if hasattr(ctrl, '_composite_child'):
-##                pos = ctrl.ClientToScreen(pos)
-##                ctrl = ctrl.GetParent()
-##                pos = ctrl.ScreenToClient(pos)
-##
-        if dsgn.selectControlByPos(ctrl, pos, event.ShiftDown()):
-            event.Skip()
+        dsgn.selectControlByPos(ctrl, pos, event.ShiftDown())
+        event.Skip()
 
     def OnControlRelease(self, event):
         """ A select or drag operation is ended """
@@ -1558,12 +1747,12 @@ class DesignerControlsEvtHandler(wx.EvtHandler):
         dc.SetPen(pen)
         dc.SetBrush(brush)
 
-    def drawSizerInfo(self, dc, sizer):
+    def drawSizerInfo(self, dc, sizer, yoffset=0):
         self.updateDCProps(dc, sizer, Preferences.dsHasSizerCol)
 
         sp = sizer.GetPosition()
         ss = sizer.GetSize()
-        dc.DrawRectangle(sp.x, sp.y, ss.width, ss.height)
+        dc.DrawRectangle(sp.x, sp.y+yoffset, ss.width, ss.height)
 
         c = sizer.GetChildren()
         for sc in c:
@@ -1573,7 +1762,7 @@ class DesignerControlsEvtHandler(wx.EvtHandler):
                 self.updateDCProps(dc, sizer, Preferences.dsInSizerCol)
                 sp = sc.GetPosition()
                 ss = sc.GetSize()
-                dc.DrawRectangle(sp.x, sp.y, ss.width, ss.height)
+                dc.DrawRectangle(sp.x, sp.y+yoffset, ss.width, ss.height)
 
 
     def OnPaint(self, event):
@@ -1584,6 +1773,12 @@ class DesignerControlsEvtHandler(wx.EvtHandler):
 #            sze = ctrl.GetClientSize()
             sze = ctrl.GetSize()
             sg = Preferences.dsGridSize
+            # Workaround toolbar offset bug
+            yoffset = 0
+            if ctrl == self.designer:
+                tb = self.designer.GetToolBar()
+                if tb:
+                    yoffset = tb.GetSize().y
 
             drawGrid = self.drawGridMethods[Preferences.drawGridMethod]
 
@@ -1593,7 +1788,7 @@ class DesignerControlsEvtHandler(wx.EvtHandler):
 
                 sizer = ctrl.GetSizer()
                 if sizer:
-                    self.drawSizerInfo(dc, sizer)
+                    self.drawSizerInfo(dc, sizer, yoffset)
 
             finally:
                 dc.EndDrawing()
