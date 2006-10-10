@@ -6,7 +6,7 @@
 #
 # Created:     2003/04/26
 # RCS-ID:      $Id$
-# Copyright:   (c) 2003 - 2005
+# Copyright:   (c) 2003 - 2006
 # Licence:     BSD
 #-----------------------------------------------------------------------------
 
@@ -87,7 +87,7 @@ class BRMViewPlugin:
     def prepareForSelectOperation(self):
         selection = self.view.GetSelectedText().strip()
         if not selection:
-            raise 'No text selected.'
+            raise Exception, 'No text selected.'
 
         ctx = self.model.editor.brm_context
         filename = self.model.checkLocalFile()
