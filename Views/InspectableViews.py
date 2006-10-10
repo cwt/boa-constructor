@@ -8,7 +8,7 @@
 #
 # Created:     2001
 # RCS-ID:      $Id$
-# Copyright:   (c) 2001 - 2005 Riaan Booysen
+# Copyright:   (c) 2001 - 2006 Riaan Booysen
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 print 'importing Views.InspectableViews'
@@ -239,8 +239,10 @@ class InspectableObjectView(EditorViews.EditorView, Utils.InspectorSessionMix):
     def addCollView(self, name, collInitMethod, create):
         comp, ctrl = self.objects[name][:2]
         collName = getCollName(collInitMethod, name)
-        collCompClass = comp.subCompanions[collName]
-        # decl collComp -> CollectionDTC
+        try:
+            collCompClass = comp.subCompanions[collName]
+        except KeyError:
+            raise Exception, 'Sub-Companion not found for %s in %s'%(name, collInitMethod)
         collComp = collCompClass(name, self, comp, ctrl)
         if create:
             collComp.persistCollInit(collInitMethod, name, collName)
@@ -541,7 +543,7 @@ class InspectableObjectView(EditorViews.EditorView, Utils.InspectorSessionMix):
                 except NameError:
                     print 'PASTE ERROR', input
         if not methList:
-            raise 'Nothing to paste'
+            raise Exception, 'Nothing to paste'
 
         collObjColls = []
         pastedCtrls = []
@@ -568,7 +570,7 @@ class InspectableObjectView(EditorViews.EditorView, Utils.InspectorSessionMix):
                 collObjColls.append( (meth[0], ctrlName, newObjColl) )
 
         if not collMethod:
-            raise DesignerError, 'Method % not found' % self.collectionMethod
+            raise DesignerError, 'Method %s not found' % self.collectionMethod
 
         # Parse input source
         objCol = self.model.readDesignerMethod(collMethod, methBody)
