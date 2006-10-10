@@ -1,4 +1,4 @@
-## rc-version: 15 ##
+## rc-version: 18 ##
 # RCS-ID:      $Id$
 
 # The main preference file.
@@ -38,7 +38,7 @@ undefinedWindowCol = wx.Colour(128, 0, 0)
 # Also used by setup.py
 staticInfoPrefs = { 'Purpose':   '',
                     'Author':    '<your name>',
-                    'Copyright': '(c) 2004',
+                    'Copyright': '(c) 2006',
                     'Licence':   '<your licence>',
                     'Email':     '<your email>',
                   }
@@ -47,8 +47,11 @@ staticInfoPrefs = { 'Purpose':   '',
 # a module is created from the palette
 autoAddToApplication = True
 
-# Load images from a singe file Image.archive (zip of Image directory)
-useImageArchive = False
+# Load images from normal image files, 
+# a singe file Image.archive (zip of Image directory)
+# or modules created by resourcepackage
+## options: 'files', 'zip', 'resource',
+imageStoreType = 'files'
 # Only load image 1st time it is requested then cache it
 # Turn this off to conserve resources on win9x
 useImageCache = False
@@ -107,6 +110,9 @@ eoErrOutWindowHeightPerc = 0.2
 # e.g. '--zope' for PythonScript and PageTemplate debugging support
 debugServerArgs = ''
 
+# Language to use for translations in the IDE. Requires a restart of Boa
+## type: languages
+i18nLanguage = wx.LANGUAGE_DEFAULT
 
 #-Editor------------------------------------------------------------------------
 
@@ -125,13 +131,16 @@ checkSourceOnSave = True
 # This causes a delay but is more accurate.
 autoRefreshOnCodeComplete = True
 
+# Import module when code completion is invoked.
+importOnCodeComplete = False
+
 # Should call tips be invoked after typing an open paren
 callTipsOnOpenParen = False
 
 # Flag for turning on special checking for european keyboard characters by
 # checking for certain codes while ctrl alt is held.
 handleSpecialEuropeanKeys = False
-# Country code for keyboards,
+# Country code for keyboards
 ## options: 'euro', 'france', 'swiss-german', 'italian'
 euroKeysCountry = 'euro'
 
@@ -238,6 +247,9 @@ dsSelectionFrameWidth = 2
 # Default control size if control itself has no sensible default
 dsDefaultControlSize = wx.Size(200, 100)
 
+# Default colour for the selection tags
+dsSelectionTagCol = wx.Colour(0, 0, 0)
+
 # Colours for the selection tags when they represent Anchors
 dsAnchorEnabledCol = wx.Colour(0, 0, 255)
 dsAnchorDisabledCol = wx.Colour(40, 100, 110)
@@ -251,12 +263,16 @@ dsHasSizerCol = wx.Colour(255, 255, 0)
 
 #-Code generation---------------------------------------------------------------
 
-# Should the paths to image file be created as absolute paths or relative to
-# either the directory of the application file or the directory of the module?
-# When a path is created for a module that has never been saved it will always
-# be absolute.
-# Remember, when a path is stored relatively, the current directory of the
-# process must be correct (relatively ;) when your code executes.
+# Should the paths to image file be created as 
+# absolute paths or relative to either the directory 
+# of the application file or the directory of the 
+# module?
+# When a path is created for a module that has 
+# never been saved it will always be absolute.
+# Remember, when a path is stored relatively, 
+# the current directory of the process must be 
+# correct (relative to the path) when your code 
+# executes.
 cgAbsoluteImagePaths = True
 
 # Should there be an empty line between objects in _init_* methods?
@@ -420,15 +436,16 @@ STCFoldingClose = wx.stc.STC_MARK_PLUS, 'BLACK', 'WHITE'
 exportedProperties = ['flatTools', 'childFrameStyle', 'dataViewListStyle',
   'paletteStyle', 'showFrameTestButton',
   'pastels', 'pastelMedium', 'pastelLight', 'undefinedWindowCol',
-  'useImageArchive', 'pythonInterpreterPath', 'delayInitHelp', 'usePydocHelp',
+  'imageStoreType', 'pythonInterpreterPath', 'delayInitHelp', 'usePydocHelp',
   'logStdStreams', 'recordModuleCallPoint', 'autoAddToApplication',
   'installBCRTL', 'debugMode',
   'suExecPythonStartup', 'suBoaConstricted',
   'suSocketFileOpenServer',
   'eoErrOutDockWindow', 'eoErrOutWindowHeightPerc', 'debugServerArgs',
+  'i18nLanguage',
 
   'checkSyntax', 'onlyCheckIfLineModified', 'checkSourceOnSave',
-  'autoRefreshOnCodeComplete', 'callTipsOnOpenParen', 
+  'autoRefreshOnCodeComplete', 'importOnCodeComplete', 'callTipsOnOpenParen', 
   'handleSpecialEuropeanKeys', 'euroKeysCountry', 'autoReindent', 
   'neverEmptyUndoBuffer',
 
@@ -448,8 +465,8 @@ exportedProperties = ['flatTools', 'childFrameStyle', 'dataViewListStyle',
   'cgContinuedLineIndent',
 
   'dsGridSize', 'dsSelectionTagSize', 'dsSelectionFrameWidth',
-  'dsDefaultControlSize', 'dsAnchorEnabledCol', 'dsAnchorDisabledCol', 
-  'dsUseSizers', 'dsInSizerCol', 'dsHasSizerCol',
+  'dsDefaultControlSize', 'dsSelectionTagCol', 'dsAnchorEnabledCol', 
+  'dsAnchorDisabledCol', 'dsUseSizers', 'dsInSizerCol', 'dsHasSizerCol',
 
   'vpOGLCanvasBackgroundColour', 'vpOGLLinePen', 'vpOGLLineBrush',
   'vpOGLClassShapePen', 'vpOGLClassShapeBrush', 'vpOGLExternalClassShapePen',
