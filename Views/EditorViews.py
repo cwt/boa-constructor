@@ -6,7 +6,7 @@
 #
 # Created:     1999
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999 - 2005 Riaan Booysen
+# Copyright:   (c) 1999 - 2006 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
 print 'importing Views'
@@ -687,7 +687,7 @@ class ListCtrlView(wx.ListView, EditorView, Utils.ListCtrlSelectionManagerMix):
         return 0
 
     def OnKeyPressed(self, event):
-        key = event.KeyCode()
+        key = event.GetKeyCode()
         if key == 13:
             if self.defaultActionIdx != -1:
                 self.actions[self.defaultActionIdx][1](event)
@@ -1044,7 +1044,7 @@ class ExploreView(wx.TreeCtrl, EditorView):
                     srcView.gotoLine(dat.start -1)
 
     def OnKeyPressed(self, event):
-        key = event.KeyCode()
+        key = event.GetKeyCode()
         if key == 13:
             if self.defaultActionIdx != -1:
                 self.actions[self.defaultActionIdx][1](event)
@@ -1259,7 +1259,7 @@ class HierarchyView(wx.TreeCtrl, EditorView):
                 srcView.gotoLine(int(module.classes[name].block.start) -1)
 
     def OnKeyPressed(self, event):
-        key = event.KeyCode()
+        key = event.GetKeyCode()
         if key == 13:
             if self.defaultActionIdx != -1:
                 self.actions[self.defaultActionIdx][1](event)
