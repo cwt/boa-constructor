@@ -6,7 +6,7 @@
 #
 # Created:     2001/06/04
 # RCS-ID:      $Id$
-# Copyright:   (c) 2001 - 2005 Riaan Booysen
+# Copyright:   (c) 2001 - 2006 Riaan Booysen
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 print 'importing ZopeLib.ZopeEditorModels'
@@ -131,7 +131,7 @@ class ZopeDocumentModel(ZopeEditorModel):
         self.savedAs = True
 
     def saveAs(self, filename):
-        raise 'Save as not supported'
+        raise Exception, 'Save as not supported'
 
     def getPageName(self):
         if self.transport.name == 'index_html':

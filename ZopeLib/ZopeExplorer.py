@@ -6,7 +6,7 @@
 #
 # Created:     2001/02/04
 # RCS-ID:      $Id$
-# Copyright:   (c) 2001 - 2005
+# Copyright:   (c) 2001 - 2006
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 print 'importing ZopeLib.ZopeExplorer'
@@ -660,12 +660,12 @@ class ZopeController(ExplorerNodes.Controller, ExplorerNodes.ClipboardController
                 zopeItem = self.list.getSelection()
 
             if not zopeItem:
-                raise 'No item selected'
+                raise Exception, 'No item selected'
             try:
                 import webbrowser
                 webbrowser.open('http://%s%s'%(zopeItem.buildUrl(), addToUrl))
             except ImportError:
-                raise 'Python 2.0 or higher required'
+                raise Exception, 'Python 2.0 or higher required'
 
     def OnViewInBrowser(self, event):
         self.openSelItemInBrowser()
