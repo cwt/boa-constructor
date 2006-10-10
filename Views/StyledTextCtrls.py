@@ -6,7 +6,7 @@
 #
 # Created:     2000/04/26
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999 - 2005 Riaan Booysen
+# Copyright:   (c) 1999 - 2006 Riaan Booysen
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 
@@ -96,15 +96,17 @@ class FoldingStyledTextCtrlMix:
                         self.ToggleFold(lineClicked)
 
 
-    def FoldAll(self):
+    def FoldAll(self, expanding=None):
         lineCount = self.GetLineCount()
-        expanding = True
 
-        # find out if we are folding or unfolding
-        for lineNum in range(lineCount):
-            if self.GetFoldLevel(lineNum) & wx.stc.STC_FOLDLEVELHEADERFLAG:
-                expanding = not self.GetFoldExpanded(lineNum)
-                break
+        if expanding is None:
+            expanding = True
+    
+            # find out if we are folding or unfolding
+            for lineNum in range(lineCount):
+                if self.GetFoldLevel(lineNum) & wx.stc.STC_FOLDLEVELHEADERFLAG:
+                    expanding = not self.GetFoldExpanded(lineNum)
+                    break
 
         lineNum = 0
         while lineNum < lineCount:
@@ -741,7 +743,7 @@ class LanguageSTCMix:
                       },
            }
     def handleSpecialEuropeanKeys(self, event, countryKeymap='euro'):
-        key = event.KeyCode()
+        key = event.GetKeyCode()
         keymap = self.keymap[countryKeymap]
         if event.AltDown() and event.ControlDown() and keymap.has_key(key):
             currPos = self.GetCurrentPos()
