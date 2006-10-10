@@ -8,7 +8,7 @@
 #
 # Created:     1999
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999 - 2005 Riaan Booysen
+# Copyright:   (c) 1999 - 2006 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
 
@@ -55,7 +55,7 @@ class SelectionGroup:
     def newLine(self):
         line = wx.Panel(self.parent, -1)
         line.SetSize(wx.Size(1, 1))
-        line.SetBackgroundColour(wx.BLACK)
+        line.SetBackgroundColour(Preferences.dsSelectionTagCol)
         line.Bind(wx.EVT_MOTION, self.OnMouseOver)
         line.Bind(wx.EVT_LEFT_UP, self.OnSizeEnd)
         return line
@@ -388,7 +388,7 @@ class SelectionGroup:
 
 class SingleSelectionGroup(SelectionGroup):
     def __init__(self, parent, inspector, designer):
-        SelectionGroup.__init__(self, parent, inspector, designer, wx.BLACK, 0)
+        SelectionGroup.__init__(self, parent, inspector, designer, Preferences.dsSelectionTagCol, 0)
 
     def selectCtrl(self, ctrl, compn):
         SelectionGroup.selectCtrl(self, ctrl, compn)
@@ -606,10 +606,10 @@ class SideSelTag(SelectionTag):
 
     def OnSelectSizer(self, event):
         # XXX maybe move hasSizer/isSizer logic to WindowDTC ?
+        inspector = self.group.inspector
+        companion = self.group.selCompn
+        designer = companion.designer
         if self.hasSizer:
-            inspector = self.group.inspector
-            companion = self.group.selCompn
-            designer = companion.designer
             if designer.sizersView:
                 s = companion.GetSizer(None)
                 for objInfo in designer.sizersView.objects.values():
@@ -621,31 +621,8 @@ class SideSelTag(SelectionTag):
                         return
 
         elif self.inSizer:
-            inspector = self.group.inspector
-            companion = self.group.selCompn
-            designer = companion.designer
-            if designer.sizersView:
-                s = companion.control.GetContainingSizer()#companion.control._in_sizer
-                #print s, companion.control.GetContainingSizer()
-                for objName, objInfo in designer.sizersView.objects.items():
-                    if objInfo[1] == s:
-                        compn = objInfo[0]
-                        inspector.selectObject(compn)
-                        designer.sizersView.focus()
-                        nv = inspector.props.getNameValue('Items')
-                        if nv:
-                            nv.propEditor.edit(None)
-                            collEditor = designer.sizersView.collEditors[(objName, 'Items')]
-                            for idx, crt in zip(
-                                 range(len(collEditor.companion.textConstrLst)),
-                                 collEditor.companion.textConstrLst):
-                                if crt.method == 'AddWindow' and \
-                                      crt.params[0] != 'None':
-                                    itemWin=Utils.ctrlNameFromSrcRef(crt.params[0])
-                                    if itemWin == companion.name:
-                                        collEditor.selectObject(idx)
-                                        collEditor.frame.selectObject(idx)
-                                        return
+            openCollEditorForSizerItem(inspector, companion)
+            designer.Raise()
         else:
             wx.LogWarning('Not part of a sizer')
 
@@ -749,3 +726,57 @@ class BSelTag(SideSelTag):
 
 def InspDbgInfo(insp, msg, i):
     insp.statusBar.SetStatusText(msg, i)
+
+def openCollEditorForSizerItem(inspector, companion, sizersView=None):
+    if sizersView is None:
+        sizersView = companion.designer.sizersView
+    if sizersView:
+        s = companion.control.GetContainingSizer()
+        for objName, objInfo in sizersView.objects.items():
+            if objInfo[1] == s:
+                compn = objInfo[0]
+                inspector.selectObject(compn)
+                sizersView.focus()
+                nv = inspector.props.getNameValue('Items')
+                if nv:
+                    nv.propEditor.edit(None)
+                    collEditor = sizersView.collEditors[(objName, 'Items')]
+                    for idx, crt in zip(
+                         range(len(collEditor.companion.textConstrLst)),
+                         collEditor.companion.textConstrLst):
+                        if crt.method == 'AddWindow' and \
+                              crt.params[0] != 'None':
+                            itemWin=Utils.ctrlNameFromSrcRef(crt.params[0])
+                            if itemWin == companion.name:
+                                collEditor.selectObject(idx)
+                                collEditor.frame.selectObject(idx)
+                                return
+
+def openCollEditorForSizerItems(inspector, companion, sizersView=None, sizer=None):
+    if sizersView is None:
+        sizersView = companion.designer.sizersView
+
+    if sizersView:
+        if sizer is None:
+            sizer = companion.control.GetSizer()
+        for objName, objInfo in sizersView.objects.items():
+            if objInfo[1] == sizer:
+                compn = objInfo[0]
+                inspector.selectObject(compn)
+                sizersView.focus()
+                nv = inspector.props.getNameValue('Items')
+                if nv:
+                    nv.propEditor.edit(None)
+                    return sizersView.collEditors[(objName, 'Items')]
+    return None
+                    
+##                    for idx, crt in zip(
+##                         range(len(collEditor.companion.textConstrLst)),
+##                         collEditor.companion.textConstrLst):
+##                        if crt.method == 'AddWindow' and \
+##                              crt.params[0] != 'None':
+##                            itemWin=Utils.ctrlNameFromSrcRef(crt.params[0])
+##                            if itemWin == companion.name:
+##                                collEditor.selectObject(idx)
+##                                collEditor.frame.selectObject(idx)
+##                                return
