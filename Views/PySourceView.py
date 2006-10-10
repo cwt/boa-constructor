@@ -6,7 +6,7 @@
 #
 # Created:     2000/04/26
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999 - 2005 Riaan Booysen
+# Copyright:   (c) 1999 - 2006 Riaan Booysen
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 print 'importing Views.PySourceView'
@@ -32,18 +32,6 @@ SourceViews.markerCnt = mrkCnt + 4
 
 brwsIndc, synErrIndc = range(0, 2)
 lineNoMrg, symbolMrg, foldMrg = range(0, 3)
-
-##wxEVT_FIX_PASTE = wx.NewId()
-##
-##def win.Bind(wx.EVT_FIX_PASTE, func):
-##    win.Connect(-1, -1, wxEVT_FIX_PASTE, func)
-##
-##class wxFixPasteEvent(wx.PyEvent):
-##    def __init__(self, stc, newtext):
-##        wx.PyEvent.__init__(self)
-##        self.SetEventType(wx.EVT_FIX_PASTE)
-##        self.stc = stc
-##        self.newtext = newtext
 
 class ShellNameNotFound(Exception): pass
 
@@ -325,7 +313,7 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
                         if wrds and wrds[0] == 'def':
                             if isinstance(cls.super[0], moduleparse.Class):
                                 return self.getAttribs(cls.super[0], methsOnly=True)
-                            elif type(cls.super[0]) is types.StringType:
+                            elif type(cls.super[0]) in types.StringTypes:
                                 super = wxNamespace.getWxClass(cls.super[0])
                                 if super:
                                     return self.getWxAttribs(super)
@@ -358,20 +346,51 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
 
         return self.getShellNames(objPth)
 
+    def importInShell(self, name, fromlist=()):
+        locs = self.model.editor.shell.getShellLocals()
+        try:
+            mod = __import__(name, {}, locs, fromlist) 
+        except Exception:
+            # just swallow all errors, no way to guess what code could execute 
+            # in the global scope of arbitrary modules
+            return None
+        
+        if fromlist and hasattr(mod, fromlist[0]):
+            return getattr(mod, fromlist[0])
+
+        components = name.split('.') 
+        for comp in components[1:]: 
+            if hasattr(mod, comp):
+                mod = getattr(mod, comp) 
+        return mod 
+
     def getImportedShellObj(self, words):
         module = self.model.getModule()
         imports = module.imports.keys() + module.from_imports.keys() +\
                 module.from_imports_names.keys()
         if self.model.editor.shell:
             shellLocals = self.model.editor.shell.getShellLocals()
-            if words[0] in imports and shellLocals.has_key(words[0]):
-                obj = shellLocals[words[0]]
-                for word in words[1:]:
-                    if hasattr(obj, word):
-                        obj = getattr(obj, word)
-                    else:
+            name = words[0]
+            if name in imports:
+                if Preferences.importOnCodeComplete and name not in shellLocals:
+                    fromlist = []
+                    if name in module.from_imports_names:
+                        fromlist = [name]
+                        name = module.from_imports_names[name]
+                    
+                    m = self.importInShell(name, fromlist)
+                    if m is None:
                         raise ShellNameNotFound
-                return obj
+                    shellLocals[name] = m
+
+                if name in shellLocals:
+                    obj = shellLocals[name]
+                    for word in words[1:]:
+                        if hasattr(obj, word):
+                            obj = getattr(obj, word)
+                        else:
+                            raise ShellNameNotFound
+                    return obj
         raise ShellNameNotFound
 
     def getShellNames(self, words):
@@ -1098,7 +1117,7 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
         if self.CallTipActive():
             self.callTipCheck()
 
-        key = event.KeyCode()
+        key = event.GetKeyCode()
 
         # thx to Robert Boulanger
         if Preferences.handleSpecialEuropeanKeys:
