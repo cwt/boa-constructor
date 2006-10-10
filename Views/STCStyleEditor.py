@@ -56,7 +56,7 @@ import os, sys, string, pprint, copy
 import wx
 from wx.lib.anchors import LayoutAnchors
 import wx.stc
-import wxPython.stc # needed names from 2.4 for config files
+#import wxPython.stc # needed names from 2.4 for config files
 
 settingsIdNames = {-1: 'Selection', -2: 'Caret', -3: 'Edge'}
 
@@ -1212,10 +1212,7 @@ def setSTCStyles(stc, styles, styleIdNames, commonDefs, lang, lexer, keywords):
 commonDefsFile = 'common.defs.%s'%(platformSettings[wx.Platform][0])
 
 def readPyValFromConfig(conf, name):
-    ns = {}
-    #ns.update(wx.stc.__dict__)
-    ns.update(wxPython.stc.__dict__)
-    ns['wx'] = wx
+    ns = {'wx': wx}
     value = conf.Read(name).replace('\r\n', '\n')+'\n'
     try:
         return eval(value, ns)
