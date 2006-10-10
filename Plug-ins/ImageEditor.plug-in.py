@@ -1,14 +1,12 @@
 #Boa:FramePanel:ImageEditorPanel
 
-import os, math, tempfile, string
+import os, math, tempfile
 from cStringIO import StringIO
 
 import wx
 from wx.lib.anchors import LayoutAnchors
 
-from wx.tools import img2py
-
-import Utils, Plugins
+import Utils, Plugins, Models.ResourceSupport
 
 # draw destination consts
 ddCanvas = 1
@@ -285,7 +283,7 @@ class ImageEditorPanel(wx.Panel):
 
     def setMemDCBmp(self, bmp):
         if not bmp or not bmp.Ok():
-            raise 'Invalid bitmap'
+            raise Exception, 'Invalid bitmap'
         self.mDC.SelectObject(wx.NullBitmap)
         self.bmp = bmp
         self.mDC.SelectObject(self.bmp)
@@ -889,9 +887,9 @@ class ImageView(wx.Panel, EditorViews.EditorView):
             self.staticBitmapSmall.SetBitmap(bmp)
             self.staticBitmapSmall.SetDimensions(self.imgsep, self.imgsep,
                                                  bmp.GetWidth(), bmp.GetHeight())
-            self.staticBitmapBig.SetBitmap(bmp)
-            self.staticBitmapBig.SetDimensions(bmp.GetWidth()+self.imgsep*2,
-                  self.imgsep, bmp.GetWidth()*2, bmp.GetHeight()*2)
+            #self.staticBitmapBig.SetBitmap(bmp)
+            #self.staticBitmapBig.SetDimensions(bmp.GetWidth()+self.imgsep*2,
+            #      self.imgsep, bmp.GetWidth()*2, bmp.GetHeight()*2)
 
 class ImageEditorView(ImageEditorPanel, EditorViews.EditorView):
     viewName = 'Edit'
@@ -1011,69 +1009,8 @@ class BitmapEditorFileController(Controllers.PersistentController):
     def OnConvertToModule(self, event):
         model = self.getModel()
         imgPath = model.localFilename()
-        ConvertImgToPy(imgPath, self.editor)
+        Models.ResourceSupport.ConvertImgToPy(imgPath, self.editor)
 
-validFuncChars = string.letters+string.digits+'_'
-funcCharMap = {'-': '_', '.': '_'}
-def fileNameToFunctionName(fn):
-    res = []
-    if fn and fn[0] in string.letters+'_':
-        res.append(fn[0])
-    for c in fn[1:]:
-        if c not in validFuncChars:
-            if c in funcCharMap:
-                res.append(funcCharMap[c])
-        else:
-            res.append(c)
-    return ''.join(res)
-
-zopt = '-u '
-def ConvertImgToPy(imgPath, editor):
-    funcName = fileNameToFunctionName(os.path.basename(os.path.splitext(imgPath)[0]))
-    pyResPath, ok = editor.saveAsDlg(funcName+'_img.py')
-    if ok:
-        if pyResPath.find('://') != -1:
-            pyResPath = pyResPath.split('://', 1)[1]
-
-        # snip script usage, leave only options
-        docs = img2py.__doc__[img2py.__doc__.find('Options:')+11:]
-
-        cmdLine = zopt+'-n %s'%(funcName)
-        if os.path.exists(pyResPath):
-            cmdLine = '-a ' + cmdLine
-
-        dlg = wx.TextEntryDialog(editor,
-              'Options:\n\n%s\n\nEdit options string:'%docs, 'img2py', cmdLine)
-        try:
-            if dlg.ShowModal() != wx.ID_OK:
-                return
-            cmdLine = dlg.GetValue().strip()
-        finally:
-            dlg.Destroy()
-
-        opts = cmdLine.split()
-        opts.extend([imgPath, pyResPath])
-
-        tmp = sys.argv[0]
-        sys.argv[0] = 'Boa Constructor'
-        try:
-            img2py.main(opts)
-        finally:
-            sys.argv[0] = tmp
-
-        import sourceconst
-        header = (sourceconst.defSig%{'modelIdent':'PyImgResource', 'main':''}).strip()
-        if os.path.exists(pyResPath):
-            src = open(pyResPath, 'r').readlines()
-            if not (src and src[0].startswith(header)):
-                src.insert(0, header+'\n')
-                src.insert(1, '\n')
-                open(pyResPath, 'w').writelines(src)
-    
-            m, c = editor.openOrGotoModule(pyResPath)
-            c.OnReload(None)
-        else:
-            wx.LogWarning('Resource module not found. img2py failed to create the module')
 
 class CloseableImageEditorView(ImageEditorView, EditorViews.CloseableViewMix):
     def __init__(self, parent, model):
@@ -1135,4 +1072,22 @@ def getEditBitmapData():
 \xc1x\xdf\xee\x9e\x86{\x81\xa4pwZkip\x12\\\x99\'\xc3{a\x05\x01 \x1c\xda\x00\
 \x00\x00\x00IEND\xaeB`\x82'
 
+def getBitmapData():
+    return \
+'\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x18\x00\x00\x00\x18\x08\x06\
+\x00\x00\x00\xe0w=\xf8\x00\x00\x00\x04sBIT\x08\x08\x08\x08|\x08d\x88\x00\x00\
+\x01\x18IDATH\x89\xdd\x95MR\xc4 \x10\x85_3s))g!\xd7"\xc1Q\xe4dI\x85K\xe9\xb4\
+\x8b\xc4a(~u\xccB\xbb*\x8b\x00\xf5\xbe\xee\xe6\x01D\xe2\x80=C\xec\xaa\xfe/\
+\x00\xc7\xdc\xa0=\xbfp\xaf\xc0x~\xa6o\x03\x00@\x8f\xba)\xeeg\x0f\x00\\\x83\
+\xdc\xdd"=\xeaj\xc5\xc5\nr\xe1(Nt\x88\xa7\x99\xc4!\xa9\xa4\x1b\xe0\xac\x03^\
+\xdf\xc2\x80\x19\xc0\xbc&\xeeg\x0fy\x92\xe0\xcb;\x938F\x90n\x806q\xbe.Y\x91\
+\xefR\x13@6$Tj\xb4<=\x14\xb1U\x00Y\x02\x8f\xc0\x17\x82L\n\t\xdb\xe2@"uS\xd3E\
+%\xff\xa9i\x89\xc4\x93-\xef\x05$\xc1\x0c0C>\x86\xb6,\x93*.\xaf\x02x\xe4\xb5\
+\x04\x02`pu\x8d\xb3n\xeb\x8d\x03s\xfd@6+`\xe6\xf5\x03\x00"8\xeb\xa0\x9e\xd46\
+\xd7>\xedm\x9bn\x8d\xbe\xfa\xc3\x0c\x90\x08\xd5\xdc\x05\xb8=\xb9\xfaF\xb0\
+\x9dw\x07\xc0\xcf\x1ejZ\xa2\xff\x9f\x04\xe5\x9eL\xbe|t_\xd7\x91X\xe6.\xca\
+\x02~3\xfe\xfe\x93\xb9;\xe0\x13]\x82[\x14\xe0\xb9\xd5\x88\x00\x00\x00\x00IEN\
+D\xaeB`\x82' 
+
 Preferences.IS.registerImage('Images/EditBitmap.png', getEditBitmapData())
+Preferences.IS.registerImage('Images/Palette/Bitmap.png', getBitmapData())
