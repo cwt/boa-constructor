@@ -6,7 +6,7 @@
 #
 # Created:     2003
 # RCS-ID:      $Id$
-# Copyright:   (c) 2003 - 2005
+# Copyright:   (c) 2003 - 2006
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 #Boa:Dialog:HelpBookItemDlg

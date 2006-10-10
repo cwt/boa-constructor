@@ -6,7 +6,7 @@
 #
 # Created:     2000/09/11
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999 - 2005 Riaan Booysen
+# Copyright:   (c) 1999 - 2006 Riaan Booysen
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 #Boa:Dialog:ControlSizeFrame
@@ -38,7 +38,7 @@ class ControlSizeFrame(wx.Dialog):
         self.radioBox1 = wx.RadioBox(choices=['No change', 'Shrink to smallest',
               'Grow to largest', 'Width:'], id=wxID_CONTROLSIZEFRAMERADIOBOX1,
               label='Width', majorDimension=1, name='radioBox1',
-              parent=self.panel1, point=wx.Point(8, 8), size=wx.Size(144, 128),
+              parent=self.panel1, pos=wx.Point(8, 8), size=wx.Size(144, 128),
               style=wx.RA_SPECIFY_COLS)
 
         self.widthTC = wx.TextCtrl(id=wxID_CONTROLSIZEFRAMEWIDTHTC,
@@ -48,7 +48,7 @@ class ControlSizeFrame(wx.Dialog):
         self.radioBox2 = wx.RadioBox(choices=['No change', 'Shrink to smallest',
               'Grow to largest', 'Height:'], id=wxID_CONTROLSIZEFRAMERADIOBOX2,
               label='Height', majorDimension=1, name='radioBox2',
-              parent=self.panel1, point=wx.Point(160, 8), size=wx.Size(152,
+              parent=self.panel1, pos=wx.Point(160, 8), size=wx.Size(152,
               128), style=wx.RA_SPECIFY_COLS)
 
         self.heightTC = wx.TextCtrl(id=wxID_CONTROLSIZEFRAMEHEIGHTTC,

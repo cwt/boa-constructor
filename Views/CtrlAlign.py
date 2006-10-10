@@ -6,7 +6,7 @@
 #
 # Created:     2000/09/11
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999 - 2005 Riaan Booysen
+# Copyright:   (c) 1999 - 2006 Riaan Booysen
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 #Boa:Dialog:ControlAlignmentFrame
@@ -40,7 +40,7 @@ class ControlAlignmentFrame(wx.Dialog):
               'Centers', 'Right sides', 'Space equally'],
               id=wxID_CONTROLALIGNMENTFRAMERADIOBOX1, label='Horizontal',
               majorDimension=1, name='radioBox1', parent=self.panel1,
-              point=wx.Point(8, 8), size=wx.Size(144, 144),
+              pos=wx.Point(8, 8), size=wx.Size(144, 144),
               style=wx.RA_SPECIFY_COLS)
 
         self.okBtn = wx.Button(id=wxID_CONTROLALIGNMENTFRAMEOKBTN, label='OK',
@@ -59,7 +59,7 @@ class ControlAlignmentFrame(wx.Dialog):
               'Bottoms', 'Space equally'],
               id=wxID_CONTROLALIGNMENTFRAMERADIOBOX2, label='Vertical',
               majorDimension=1, name='radioBox2', parent=self.panel1,
-              point=wx.Point(160, 8), size=wx.Size(152, 144),
+              pos=wx.Point(160, 8), size=wx.Size(152, 144),
               style=wx.RA_SPECIFY_COLS)
 
     def __init__(self, parent, selection):
