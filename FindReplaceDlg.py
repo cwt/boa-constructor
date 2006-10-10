@@ -6,7 +6,7 @@
 #
 # Created:     2001/29/08
 # RCS-ID:      $Id$
-# Copyright:   (c) 2001 - 2005 Tim Hochberg
+# Copyright:   (c) 2001 - 2006 Tim Hochberg
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 #Boa:Dialog:FindReplaceDlg
@@ -89,14 +89,14 @@ class FindReplaceDlg(wx.Dialog):
         self.directionRB = wx.RadioBox(choices=['Forward', 'Backward'],
               id=wxID_FINDREPLACEDLGDIRECTIONRB, label='Direction',
               majorDimension=1, name='directionRB', parent=self,
-              point=wx.Point(8, 103), size=wx.Size(104, 64),
+              pos=wx.Point(8, 103), size=wx.Size(104, 64),
               style=wx.RA_SPECIFY_COLS)
         self.directionRB.Bind(wx.EVT_RADIOBOX, self.OnDirectionrbRadiobox,
               id=wxID_FINDREPLACEDLGDIRECTIONRB)
 
         self.scopeRB = wx.RadioBox(choices=['All', 'Selected'],
               id=wxID_FINDREPLACEDLGSCOPERB, label='Scope', majorDimension=1,
-              name='scopeRB', parent=self, point=wx.Point(8, 195),
+              name='scopeRB', parent=self, pos=wx.Point(8, 195),
               size=wx.Size(104, 64), style=wx.RA_SPECIFY_COLS)
         self.scopeRB.Bind(wx.EVT_RADIOBOX, self.OnScoperbRadiobox,
               id=wxID_FINDREPLACEDLGSCOPERB)

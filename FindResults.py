@@ -6,7 +6,7 @@
 #
 # Created:     2001/29/08
 # RCS-ID:      $Id$
-# Copyright:   (c) 2001 - 2005 Tim Hochberg,
+# Copyright:   (c) 2001 - 2006 Tim Hochberg,
 #              but substantially derived from code (c) by Riaan Booysen
 # Licence:     GPL
 #-----------------------------------------------------------------------------

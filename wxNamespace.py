@@ -6,7 +6,7 @@
 #
 # Created:     2001
 # RCS-ID:      $Id$
-# Copyright:   (c) 2001 - 2005
+# Copyright:   (c) 2001 - 2006
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 import Preferences as _Prefs

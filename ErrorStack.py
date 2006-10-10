@@ -6,7 +6,7 @@
 #
 # Created:     2000/05/29
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999 - 2005 Riaan Booysen
+# Copyright:   (c) 1999 - 2006 Riaan Booysen
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 import string, re, os, sys, pprint

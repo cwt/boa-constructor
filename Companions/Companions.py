@@ -7,7 +7,7 @@
 #
 # Created:     1999
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999 - 2005 Riaan Booysen
+# Copyright:   (c) 1999 - 2006 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
 
@@ -188,7 +188,7 @@ class AnchorsDTC(HelperDTC):
         self.updateAnchors()
 
 
-class BaseFlagsDTC(HelperDTC):
+class BaseConstrFlagsDTC(HelperDTC):
     paramName = 'param'
     propName = 'Prop'
     def __init__(self, name, designer, cmpn, obj, ownerPW):
@@ -227,11 +227,11 @@ class BaseFlagsDTC(HelperDTC):
         if hasattr(ctrl, 'SetWindowStyleFlag'):
             ctrl.SetWindowStyleFlag(flagsVal)
 
-class WindowStyleDTC(BaseFlagsDTC):
+class WindowStyleDTC(BaseConstrFlagsDTC):
     paramName = 'style'
     propName = 'Style'
 
-class FlagsDTC(BaseFlagsDTC):
+class FlagsDTC(BaseConstrFlagsDTC):
     paramName = 'flags'
     propName = 'Flags'
 
