@@ -7,7 +7,7 @@
 #
 # Created:     2001/01/06
 # RCS-ID:      $Id$
-# Copyright:   (c) 2001 - 2005
+# Copyright:   (c) 2001 - 2006
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 
@@ -29,6 +29,8 @@ class XMLTreeView(wx.TreeCtrl, EditorView):
           (('Goto line', self.OnGoto, self.gotoLineBmp, ''),), 0)
 
         self.nodeStack = []
+        self.locations = {}
+        self._parser = None
 
         self.Bind(wx.EVT_KEY_UP, self.OnKeyPressed)
 
@@ -62,6 +64,8 @@ class XMLTreeView(wx.TreeCtrl, EditorView):
 
         id = self.AppendItem(self.nodeStack[-1], name)
         self.nodeStack.append(id)
+        if self._parser:
+            self.locations[id] = (self._parser.CurrentColumnNumber, self._parser.CurrentLineNumber)
 
     def endElement(self,  name ):
         self.nodeStack = self.nodeStack[:-1]
@@ -76,29 +80,27 @@ class XMLTreeView(wx.TreeCtrl, EditorView):
         # Create a parser
 
         from xml.parsers import expat
-        Parser = expat.ParserCreate()
+        self._parser = parser = expat.ParserCreate()
 
         # Tell the parser what the start element handler is
-        Parser.StartElementHandler = self.startElement
-        Parser.EndElementHandler = self.endElement
-        Parser.CharacterDataHandler = self.characterData
+        parser.StartElementHandler = self.startElement
+        parser.EndElementHandler = self.endElement
+        parser.CharacterDataHandler = self.characterData
 
         # Parse the XML File
-        ParserStatus = Parser.Parse(self.model.data, 1)
+        parserStatus = parser.Parse(self.model.data, 1)
 
     def OnGoto(self, event):
         idx  = self.GetSelection()
         if idx.IsOk():
-            name = self.GetItemText(idx)
-            if self.model.views.has_key('Source') and \
-              self.model.getModule().classes.has_key(name):
-                srcView = self.model.views['Source']
-                srcView.focus()
-                module = self.model.getModule()
-                srcView.gotoLine(int(module.classes[name].block.start) -1)
+            if idx in self.locations:
+                col, line = self.locations[idx]
+                xmlSrcView = self.model.views['XML']
+                xmlSrcView.focus()
+                xmlSrcView.gotoLine(line)
 
     def OnKeyPressed(self, event):
-        key = event.KeyCode()
+        key = event.GetKeyCode()
         if key == 13:
             if self.defaultActionIdx != -1:
                 self.actions[self.defaultActionIdx][1](event)
