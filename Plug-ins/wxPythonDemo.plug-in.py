@@ -98,6 +98,8 @@ class wxPythonDemoView(wx.Panel, EditorViews.EditorView, EditorViews.CloseableVi
     
     def WriteText(self, text):
         """ When View used as demo log """
+        if not self.model: return
+        
         ef = self.model.editor.erroutFrm
         ef.appendToOutput(text)
         ef.display()
