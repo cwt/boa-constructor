@@ -7,7 +7,7 @@
 #
 # Created:     1999
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999 - 2005 Riaan Booysen
+# Copyright:   (c) 1999 - 2006 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
 #Boa:App:BoaApp
@@ -17,6 +17,9 @@
 Handles creation/initialisation of main objects and commandline arguments """
 
 import sys, os, string, time, warnings
+
+#sys.stdout = sys.__stdout__#open('stdout.txt', 'w')
+#sys.stderr = sys.__stderr__#open('stderr.txt', 'w')
 
 #try: import psyco; psyco.full()
 #except ImportError: pass
@@ -44,7 +47,7 @@ def trace_func(frame, event, arg):
     return trace_func
 
 def get_current_frame():
-    try: raise 'get_exc_info'
+    try: raise Exception, 'get_exc_info'
     except: return sys.exc_info()[2].tb_frame.f_back
 
 def sendToRunningBoa(names, host='127.0.0.1', port=50007):
@@ -74,107 +77,113 @@ doDebug = constricted = emptyEditor = blockSocketServer = 0
 startupfile = ''
 startupModules = ()
 startupEnv = os.environ.get('BOASTARTUP') or os.environ.get('PYTHONSTARTUP')
+wxVersionSelect = None
 
 def processArgs(argv):
     _doDebug = _doRemoteDebugSvr = _constricted = _emptyEditor = 0
     _blockSocketServer = 0
     _startupfile = ''
     _startupModules = ()
+    _wxVersionSelect = None
     import getopt
     try:
-        optlist, args = getopt.getopt(argv, 'CDTSBO:ERNHVhv',
+        optlist, args = getopt.getopt(argv, 'CDTSBERNHVhvO:W:',
          ['Constricted', 'Debug', 'Trace', 'StartupFile', 'BlockHomePrefs',
-          'OverridePrefsDirName', 'EmptyEditor', 'RemoteDebugServer',
-          'NoCmdLineTransfer', 'Help', 'Version', 'help', 'version'])
+          'EmptyEditor', 'RemoteDebugServer', 'NoCmdLineTransfer', 'Help', 
+          'Version', 'help', 'version', 'OverridePrefsDirName', 'WxVersionSelect'])
     except getopt.GetoptError, err:
         print 'Error: %s'%str(err)
         print 'For options: Boa.py --help'
         sys.exit()
-
-    if (('-D', '') in optlist or ('--Debug', '') in optlist) and len(args):
-        # XXX should be able to 'debug in running Boa'
-        _doDebug = 1
-    elif (('-R', '') in optlist or ('--RemoteDebugServer', '') in optlist) and len(args):
-        _doRemoteDebugSvr = 1
-    elif ('-T', '') in optlist or ('--Trace', '') in optlist:
-        print 'Running in trace mode.'
-        global tracefile
-        tracefile = open('Boa.trace', 'wt')
-        tracefile.write(os.getcwd()+'\n')
-        trace_func(get_current_frame().f_back, 'call', None)
-        trace_func(get_current_frame(), 'call', None)
-        if trace_mode == 'functions':
-            sys.setprofile(trace_func)
-        elif trace_mode == 'lines':
-            sys.settrace(trace_func)
 
     if len(args):
         # XXX Only the first file appears in the list when multiple files
         # XXX are drag/dropped on a Boa shortcut, why?
         _startupModules = args
 
-    if ('-S', '') in optlist or ('--StartupFile', '') in optlist:
-        _startupfile = startupEnv
-
-    if ('-C', '') in optlist or ('--Constricted', '') in optlist:
-        _constricted = 1
-
-    if ('-E', '') in optlist or ('--EmptyEditor', '') in optlist:
-        _emptyEditor = 1
-
-    if ('-N', '') in optlist or ('--NoCmdLineTransfer', '') in optlist:
-        _blockSocketServer = 1
-
-    if ('-h', '') in optlist or ('--help', '') in optlist or \
-       ('-H', '') in optlist or ('--Help', '') in optlist:
-        print 'Boa Constructor (%s)'%__version__.version
-        print 'Command-line usage: %s [options] [file1] [file2] ...'%main_script
-        print '-C, --Constricted:'
-        print '\tRuns in constricted mode, overrides the Preference'
-        print '-D, --Debug:'
-        print '\tRuns the first filename passed on the command-line in the Debugger '
-        print '\ton startup'
-        print '-T, --Trace:'
-        print '\tRuns in traceing mode. Used for tracking down core dumps. Every '
-        print '\tfunction call is logged to a file which can later be parsed for '
-        print '\ta traceback'
-        print '-S, --StartupFile:'
-        print '\tExecutes the script pointed to by $BOASTARTUP or '\
-              '$PYTHONSTARTUP in'
-        print '\tthe Shell namespace. The Editor object is available as sys.boa_ide.'
-        print '\tOverrides the Preference'
-        print '-B, --BlockHomePrefs:'
-        print '\tPrevents the $HOME directory being used '
-        print '-O dirname, --OverridePrefsDirName dirname:'
-        print '\tSpecify a different directory to load Preferences from.'
-        print '\tDefault is .boa and is used if it exists'
-        print '\tDirectory will be created (and populated) if it does not exist'
-        print '-E, --EmptyEditor:'
-        print "\tDon't open the files that were open last time Boa was closed."
-        print '-R, --RemoteDebugServer:'
-        print '\tRuns the first filename passed on the command-line in a '
-        print '\tRemote Debugger Server that can be connected to over a socket.'
-        print '-N, --NoCmdLineTransfer:'
-        print "\tDon't transfer command line options to a running Boa, start a "
-        print '\tnew instance.'
-        print '-H, --Help, --help:'
-        print '\tThis page.'
-
-        sys.exit()
-
-    if ('-v', '') in optlist or ('--version', '') in optlist or \
-       ('-V', '') in optlist or ('--Version', '') in optlist:
-        print 'Version: %s'%__version__.version
-        sys.exit()
+    for opt, arg in optlist:
+        if opt in ('-D', '--Debug') and len(args):
+            # XXX should be able to 'debug in running Boa'
+            _doDebug = 1
+        elif opt in ('-R', '--RemoteDebugServer') and len(args):
+            _doRemoteDebugSvr = 1
+        elif opt in ('-T', '--Trace'):
+            print 'Running in trace mode.'
+            global tracefile
+            tracefile = open('Boa.trace', 'wt')
+            tracefile.write(os.getcwd()+'\n')
+            trace_func(get_current_frame().f_back, 'call', None)
+            trace_func(get_current_frame(), 'call', None)
+            if trace_mode == 'functions':
+                sys.setprofile(trace_func)
+            elif trace_mode == 'lines':
+                sys.settrace(trace_func)
+    
+        if opt in ('-S', '--StartupFile'):
+            _startupfile = startupEnv
+    
+        if opt in ('-C', '--Constricted'):
+            _constricted = 1
+    
+        if opt in ('-E', '--EmptyEditor'):
+            _emptyEditor = 1
+    
+        if opt in ('-N', '--NoCmdLineTransfer'):
+            _blockSocketServer = 1
+        
+        if opt in ('-W', '--wxVersionSelect', ''):
+            _wxVersionSelect = arg
+    
+        if opt in ('-h', '--help', '-H', '--Help'):
+            print 'Boa Constructor (%s)'%__version__.version
+            print 'Command-line usage: %s [options] [file1] [file2] ...'%main_script
+            print '-C, --Constricted:'
+            print '\tRuns in constricted mode, overrides the Preference'
+            print '-D, --Debug:'
+            print '\tRuns the first filename passed on the command-line in the Debugger '
+            print '\ton startup'
+            print '-T, --Trace:'
+            print '\tRuns in traceing mode. Used for tracking down core dumps. Every '
+            print '\tfunction call is logged to a file which can later be parsed for '
+            print '\ta traceback'
+            print '-S, --StartupFile:'
+            print '\tExecutes the script pointed to by $BOASTARTUP or '\
+                  '$PYTHONSTARTUP in'
+            print '\tthe Shell namespace. The Editor object is available as sys.boa_ide.'
+            print '\tOverrides the Preference'
+            print '-B, --BlockHomePrefs:'
+            print '\tPrevents the $HOME directory being used '
+            print '-O dirname, --OverridePrefsDirName dirname:'
+            print '\tSpecify a different directory to load Preferences from.'
+            print '\tDefault is .boa and is used if it exists'
+            print '\tDirectory will be created (and populated) if it does not exist'
+            print '-E, --EmptyEditor:'
+            print "\tDon't open the files that were open last time Boa was closed."
+            print '-R, --RemoteDebugServer:'
+            print '\tRuns the first filename passed on the command-line in a '
+            print '\tRemote Debugger Server that can be connected to over a socket.'
+            print '-N, --NoCmdLineTransfer:'
+            print "\tDon't transfer command line options to a running Boa, start a "
+            print '\tnew instance.'
+            print '-W version, --wxVersionSelect version:'
+            print '\tSpecify a spesific version of wxPython to use.'
+            print '-H, --Help, -h, --help:'
+            print '\tThis page.'
+    
+            sys.exit()
+    
+        if opt in ('-v', '--version', '-V', '--Version'):
+            print 'Version: %s'%__version__.version
+            sys.exit()
 
     return (_doDebug, _startupfile, _startupModules, _constricted, _emptyEditor,
-            _doRemoteDebugSvr, _blockSocketServer, optlist, args)
+            _doRemoteDebugSvr, _blockSocketServer, _wxVersionSelect, optlist, args)
 
 # This happens as early as possible (before wxPython loads) to make filename
 # transfer to a running Boa as quick as possible and little NS pollution
 if __name__ == '__main__' and len(sys.argv) > 1:
     (doDebug, startupfile, startupModules, constricted, emptyEditor, doDebugSvr,
-     blockSocketServer, opts, args) = processArgs(sys.argv[1:])
+     blockSocketServer, wxVersionSelect, opts, args) = processArgs(sys.argv[1:])
     if doDebugSvr and startupModules:
         print 'Running as a Remote Debug Server'
         from Debugger.RemoteServer import start
@@ -200,27 +209,16 @@ print 'importing wxPython'
 
 try:
     # See if there is a multi-version install of wxPython
-    import wxversion
-    wxversion.ensureMinimal('2.5')
+    if not hasattr(sys, 'frozen'):
+        import wxversion
+        if wxVersionSelect is None:
+            wxversion.ensureMinimal('2.5')
+        else:
+            wxversion.select(wxVersionSelect)
 except ImportError:
     # Otherwise assume a normal 2.4 install, if it isn't 2.4 it will
     # be caught below
     pass
-
-### silence wxPython's bool deprecations
-##from wxPython import wx
-##try:
-##    # wxPy 2.4.0.4 and Py 2.2 and 2.3
-##    wx.True = True
-##    wx.False = False
-##except NameError:
-##    try:
-##        # wxPy 2.4.0.4 and Py 2.1
-##        wx.True = wx.True
-##        wx.False = wx.False
-##    except AttributeError:
-##        # earlier wxPys
-##        pass
 
 import wx
 wx.RegisterId(15999)
@@ -228,7 +226,6 @@ wx.RegisterId(15999)
 #warnings.filterwarnings('ignore', '', DeprecationWarning, 'wxPython.imageutils')
 
 # Use package version string as it is the only one containing bugfix version number
-import wx
 # Remove non number/dot characters
 wxVersion = wx.__version__
 for c in wxVersion:
@@ -243,7 +240,7 @@ if wxVersion < __version__.wx_version:
     wx.MessageBox('Sorry! This version of Boa requires at least '\
                  'wxPython %d.%d.%d.%d'%__version__.wx_version,
                  'Version error', wx.OK | wx.ICON_ERROR)
-    raise 'wxPython >= %d.%d.%d.%d required'%__version__.wx_version
+    raise Exception, 'wxPython >= %d.%d.%d.%d required'%__version__.wx_version
 
 if __version__.wx_version_max and wxVersion > __version__.wx_version_max:
     wx.PySimpleApp()
@@ -251,7 +248,7 @@ if __version__.wx_version_max and wxVersion > __version__.wx_version_max:
                  'wxPython %d.%d.%d.%d, please downgrade to '\
                  'wxPython %d.%d.%d.%d'% (wxVersion+__version__.wx_version_max),
                  'Version error', wx.OK | wx.ICON_ERROR)
-    raise 'wxPython %d.%d.%d.%d not supported'%wxVersion
+    raise Exception, 'wxPython %d.%d.%d.%d not supported'%wxVersion
 
 import Preferences, Utils
 import About
@@ -279,6 +276,7 @@ print 'running main...'
 
 modules ={'About': [0, 'About box and Splash screen', 'About.py'],
  'AppViews': [0, 'Views for the AppModel', 'Views/AppViews.py'],
+ 'ArtProviderBrowser': [0, '', 'PropEdit/ArtProviderBrowser.py'],
  'BaseCompanions': [0, '', 'Companions/BaseCompanions.py'],
  'BasicCompanions': [0, '', 'Companions/BasicCompanions.py'],
  'BicycleRepairMan.plug-in': [0, '', 'Plug-ins/BicycleRepairMan.plug-in.py'],
@@ -354,7 +352,6 @@ modules ={'About': [0, 'About box and Splash screen', 'About.py'],
  'FindResults': [0, '', 'FindResults.py'],
  'FlexGridGrowableDlg': [0, '', 'Companions/FlexGridGrowableDlg.py'],
  'FrameCompanions': [0, '', 'Companions/FrameCompanions.py'],
- 'GCFrame': [0, '', 'GCFrame.py'],
  'GizmoCompanions': [0, '', 'Companions/GizmoCompanions.py'],
  'HTMLCyclops': [0, '', 'HTMLCyclops.py'],
  'HTMLResponse': [0, '', 'HTMLResponse.py'],
@@ -479,7 +476,10 @@ class BoaApp(wx.App):
     def OnInit(self):
         Preferences.initScreenVars()
 
-        wx.InitAllImageHandlers()
+        # i18n support
+        self.locale = wx.Locale(Preferences.i18nLanguage)
+        wx.Locale.AddCatalogLookupPathPrefix('locale')
+        self.locale.AddCatalog('boa-constructor') 
 
         wx.ToolTip.Enable(True)
         if Preferences.debugMode == 'release':
@@ -607,7 +607,7 @@ class BoaApp(wx.App):
             wx.LogError('\nThere were errors during startup, please click "Details"')
 
         if wx.Platform == '__WXMSW__':
-            self.tbicon =wx.TaskBarIcon()
+            self.tbicon = wx.TaskBarIcon()
             self.tbicon.SetIcon(self.main.GetIcon(), 'Boa Constructor')
             self.tbicon.Bind(wx.EVT_TASKBAR_LEFT_DCLICK, self.OnTaskBarActivate)
             self.tbicon.Bind(wx.EVT_TASKBAR_RIGHT_UP, self.OnTaskBarMenu)
@@ -665,9 +665,9 @@ def main(argv=None):
 
     if argv is not None:
         global doDebug, startupfile, startupModules, constricted, emptyEditor, \
-              doDebugSvr, blockSocketServer
+              doDebugSvr, blockSocketServer, wxVersionSelect
         doDebug, startupfile, startupModules, constricted, emptyEditor, \
-              doDebugSvr, blockSocketServer, opts, args = processArgs(argv)
+              doDebugSvr, blockSocketServer, wxVersionSelect, opts, args = processArgs(argv)
     try:
         app = BoaApp()
     except Exception, error:
