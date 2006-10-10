@@ -6,7 +6,7 @@
 #
 # Created:     1999, rewritten 2001
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999 - 2005 Riaan Booysen
+# Copyright:   (c) 1999 - 2006 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
 #Boa:FramePanel:PyDocHelpPage
@@ -266,19 +266,20 @@ def showHelp(filename):
     getHelpController().Display(filename)
 
 def showContextHelp(word):
-    if word.startswith('EVT_'):
-        word = 'wx%sEvent' % ''.join([s.lower().capitalize() 
-                                      for s in word[4:].split('_')])
-    elif word in sys.builtin_module_names:
-        word = '%s (built-in module)'%word
-    else:
-        try:
-            libPath = os.path.dirname(os.__file__)
-        except AttributeError, error:
-            pass
-        else:
-            if os.path.isfile('%s/%s.py'%(libPath, word)):
-                word = '%s (standard module)'%word
+# not useful atm
+##    if word.startswith('EVT_'):
+##        word = 'wx%sEvent' % ''.join([s.lower().capitalize() 
+##                                      for s in word[4:].split('_')])
+##    elif word in sys.builtin_module_names:
+##        word = '%s (built-in module)'%word
+##    else:
+##        try:
+##            libPath = os.path.dirname(os.__file__)
+##        except AttributeError, error:
+##            pass
+##        else:
+##            if os.path.isfile('%s/%s.py'%(libPath, word)):
+##                word = '%s (standard module)'%word
     if string.strip(word):
         getHelpController().Display(word).IndexFind(word)
     else:
@@ -380,7 +381,12 @@ class wxHelpFrameEx:
               wx.AcceleratorTable([(0, wx.WXK_ESCAPE, wxID_QUITHELP),
                                   (wx.ACCEL_CTRL, ord('H'), wxID_FOCUSHTML),]))
 
-        _none, self.toolbar, self.splitter = self.frame.GetChildren()
+        try:
+            _none, self.toolbar, self.splitter = self.frame.GetChildren()
+        # 2.7
+        except ValueError:
+            _statusBar, _helpWindow = self.frame.GetChildren()
+            self.toolbar, self.splitter = _helpWindow.GetChildren()
 
         self.html, nav = self.splitter.GetChildren()
 
@@ -512,7 +518,7 @@ def initHelp(calledAtStartup=False):
         _hc = wx.html.HtmlHelpController(wxHF_ICONS_BOOK_CHAPTER | \
             wxHF_DEFAULT_STYLE | (Preferences.flatTools and wxHF_FLAT_TOOLBAR or 0))
     else:
-        _hc = wxHtmlHelpControllerEx(wxHF_ICONS_BOOK_CHAPTER | \
+        _hc = wxHtmlHelpControllerEx(wxHF_ICONS_BOOK | \
             wxHF_DEFAULT_STYLE | (Preferences.flatTools and wxHF_FLAT_TOOLBAR or 0))
         cf = wx.FileConfig(localFilename=os.path.normpath(jn(Preferences.rcPath,
             'helpfrm.cfg')), style=wx.CONFIG_USE_LOCAL_FILE)
