@@ -147,7 +147,7 @@ def evalCtrl(expr, localsDct=None):
         _NB = IS.load('Images/Inspector/wxNullBitmap.png')
     if localsDct is None:
         localsDct = {}
-    localsDct['_'] = Utils.I18nStringFactory
+    localsDct['_'] = lambda x: x
     wx.NullBitmap = _NB
     try:
         return eval(expr, globals(), localsDct)

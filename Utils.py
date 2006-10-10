@@ -969,25 +969,3 @@ def getEventChecked(event):
     else:
         return not checked
 
-#-------------------------------------------------------------------------------
-
-class I18nString:
-    def __init__(self, string):
-        self._string = string
-
-    def __str__(self):
-        return self._string
-
-    def __repr__(self):
-        return '_(%r)'%self._string
-
-class I18nStringS(str, I18nString):
-    pass
-class I18nStringU(unicode, I18nString):
-    pass
-
-def I18nStringFactory(value):
-    if type(value) is str:
-        return I18nStringS(value)
-    elif type(value) is unicode:
-        return I18nStringU(value)
