@@ -6,7 +6,7 @@
 #
 # Created:     1999
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999 - 2005 Riaan Booysen
+# Copyright:   (c) 1999 - 2006 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
 """
@@ -29,6 +29,8 @@ import os, string
 import wx
 
 from InspectorEditorControls import *
+
+import methodparse
 
 import Utils
 import Enumerations
@@ -242,7 +244,7 @@ class PropertyEditor:
         self.values = values
 
     def valueToIECValue(self):
-        """ Return prop value in the form that the form that the editor control expects """
+        """ Return prop value in the form that the editor control expects """
         return self.value
 
     def setValueFromIECValue(self, value):
@@ -456,8 +458,8 @@ class ConstrPropEdit(ConstrPropEditFacade, PropertyEditor):
     def getDisplayValue(self):
         return self.getValue()
     def getCtrlValue(self):
-        return self.companion.textConstr.params[ \
-          self.companion.constructor()[self.name]]
+        paramName = self.companion.constructor()[self.name]
+        return self.companion.textConstr.params[paramName]
     def setCtrlValue(self, oldValue, value):
         self.companion.checkTriggers(self.name, oldValue, value)
         if hasattr(self.companion, 'index'):
@@ -567,6 +569,15 @@ class SBFWidthConstrPropEdit(IntConstrPropEdit):
 
 class ClassLinkConstrPropEdit(IntConstrPropEdit): pass
 
+def patchExplorerFileTypes(add=True):
+    from Explorers import FileExplorer
+    if add:
+        FileExplorer.filterDescrOrd.append('ArtProvider')
+        FileExplorer.filterDescr['ArtProvider'] = ('ArtProvider', -1)
+    else:
+        FileExplorer.filterDescrOrd.remove('ArtProvider')
+        del FileExplorer.filterDescr['ArtProvider']
+        
 class BitmapPropEditMix:
     extTypeMap = {'.bmp': 'wx.BITMAP_TYPE_BMP',
                   '.gif': 'wx.BITMAP_TYPE_GIF',
@@ -577,12 +588,16 @@ class BitmapPropEditMix:
     srcClass = 'wx.Bitmap'
     ctrlClass = wx.Bitmap
     nullClass = 'wx.NullBitmap'
+    artProvClass = 'wx.ArtProvider'
 
     onlyIcons = False
 
     def showImgDlg(self, dir, name, tpe='Bitmap'):
         model = self.companion.designer.model
         selImg = ''
+        apClientId = ''
+        apSize = ''
+        
         if tpe == 'Bitmap' and not os.path.isdir(dir):
             wx.MessageBox('The given directory is invalid, using current '
                          'directory.\n(%s)'%dir, 'Warning',
@@ -590,9 +605,15 @@ class BitmapPropEditMix:
             dir = '.'
         elif tpe == 'ResourceModule':
             selImg = name
+        elif tpe == 'ArtProvider':
+            selImg = name
+            apClientId = dir[0]
+            apSize = dir[-1]
+            dir = '.'
 
         from FileDlg import wxFileDialog
 
+        filter = ''
         keepShowing = True
         while keepShowing:
             keepShowing = False
@@ -600,22 +621,46 @@ class BitmapPropEditMix:
                 mod = model.resources[dir]
                 ext = '.py'
                 pth = abspth = os.path.splitext(mod.__file__)[0]+ext
+            elif tpe == 'ArtProvider':
+                filter = 'ArtProvider'
             else:
+                patchExplorerFileTypes(True)
                 dlg = wxFileDialog(self.parent, 'Choose an image', dir, name,
                       'ImageFiles', wx.OPEN)
                 try:
                     if dlg.ShowModal() != wx.ID_OK:
                         return '', '', ''
                     pth = abspth = dlg.GetFilePath().replace('\\', '/')
+                    filter = dlg.chTypes.GetStringSelection()
                 finally:
                     dlg.Destroy()
+                    patchExplorerFileTypes(False)
 
-                if not Preferences.cgAbsoluteImagePaths:
+                if filter != 'ArtProvider' and not Preferences.cgAbsoluteImagePaths:
                     pth = Utils.pathRelativeToModel(pth, model)
 
                 ext = os.path.splitext(pth)[-1].lower()
 
-            if ext == '.py':
+            if filter == 'ArtProvider':
+                import ArtProviderBrowser
+                dlg = ArtProviderBrowser.ArtProviderBrowser(self.parent, name, apClientId, apSize)
+                try:
+                    result = dlg.ShowModal()
+                    if result == wx.ID_OK:
+                        return ( (dlg.clientId.GetStringSelection(), 
+                                 dlg.imgSize.GetValue()), dlg.artId.GetValue(), 
+                                 'ArtProvider')
+                    elif result == wx.ID_YES:
+                        keepShowing = True
+                        tpe = 'Bitmap'
+                        continue
+                    else:
+                        return '', '', ''
+
+                finally:
+                    dlg.Destroy()
+                
+            elif ext == '.py':
                 if os.path.isabs(pth):
                     pth = Utils.pathRelativeToModel(pth, model)
 
@@ -642,7 +687,7 @@ class BitmapPropEditMix:
     def extractPathFromSrc(self, src):
         if src:
             if src.startswith(self.nullClass):
-                return os.path.join('.', self.nullClass, 'Bitmap'), '.', '', 'Bitmap'
+                return os.path.join('.', self.nullClass, 'Bitmap'), '.', 'wx.NullBitmap', 'Bitmap'
             elif src.startswith('wx.Bitmap(') or src.startswith('wx.Icon('):
                 if src.startswith('wx.Bitmap('):
                     filename = src[len('wx.Bitmap(')+1:]
@@ -658,6 +703,13 @@ class BitmapPropEditMix:
                 dir, name = os.path.split(pth)
                 if not dir: dir = '.'
                 return os.path.join(pth, 'Bitmap'), dir, name, 'Bitmap'
+            elif src.startswith('wx.ArtProvider.'):
+                bs = src.find('(')
+                be = src.rfind(')')
+                params = methodparse.safesplitfields(src[bs+1:be], ',')
+                #params = src[bs+1:be].split(',')
+                artId, clientId, size = params
+                return src+'/ArtProvider', (clientId, size), artId, 'ArtProvider'
             else:
                 import moduleparse
                 m = moduleparse.is_resource_bitmap.search(src)
@@ -725,6 +777,16 @@ class BitmapPropEditMix:
         finally:
             resDlg.Destroy()
 
+    def assureArtProviderImageLoaded(self, infoSrc, artIdSrc):
+        clientIdSrc, sizeSrc = infoSrc
+        clientId = self.companion.eval(clientIdSrc)
+        size = self.companion.eval(sizeSrc)
+        artId = self.companion.eval(artIdSrc)
+        
+        src = 'wx.ArtProvider.GetBitmap(%s, %s, %s)'%(artIdSrc, clientIdSrc, sizeSrc)
+
+        return src, wx.ArtProvider.GetBitmap(artId, clientId, size), src+'/ArtProvider'
+
     def assureResourceLoaded(self, importName, imageName):
         model = self.companion.designer.model
         if model.assureResourceLoaded(importName, model.resources,
@@ -737,8 +799,6 @@ class BitmapPropEditMix:
             return src, value, bmpPath
         else:
             raise Exception, '%s could not be loaded as a Resource Module'%importName
-            #wx.LogError('%s could not be loaded as a Resource Module'%importName)
-            #return '', None, ''
 
 
 class BitmapConstrPropEdit(IntConstrPropEdit, BitmapPropEditMix):
@@ -748,12 +808,14 @@ class BitmapConstrPropEdit(IntConstrPropEdit, BitmapPropEditMix):
 
     def edit(self, event):
         model = self.companion.designer.model
-        dummy, dir, name, tpe = self.extractPathFromSrc(self.value)
+        src, dir, name, tpe = self.extractPathFromSrc(self.value)
         abspth, pth, tpe = self.showImgDlg(dir, name, tpe)
         if not tpe:
             return
         elif tpe == 'ResourceModule':
             self.value, ctrlVal, bmpPath = self.assureResourceLoaded(abspth, pth)
+        elif tpe == 'ArtProvider':
+            self.value, ctrlVal, bmpPath = self.assureArtProviderImageLoaded(abspth, pth)
         elif abspth:
             self.value = 'wx.Bitmap(%s, %s)'%(`pth`, tpe)
             ctrlVal = wx.Bitmap(abspth, self.companion.eval(tpe))
@@ -795,7 +857,10 @@ class BitmapPropEdit(PropertyEditor, BitmapPropEditMix):
     def edit(self, event):
         if self.bmpPath:
             path, tpe = os.path.split(self.bmpPath)
-            dir, name = os.path.split(path)
+            if tpe == 'ArtProvider':
+                src, dir, name, tpe = self.extractPathFromSrc(path)
+            else:
+                dir, name = os.path.split(path)
         else:
             dir, name, tpe = '.', '', 'Bitmap'
 
@@ -803,7 +868,9 @@ class BitmapPropEdit(PropertyEditor, BitmapPropEditMix):
         if not tpe or not abspth:
             return
         if tpe == 'ResourceModule':
-            self.value, self.bmpPath = self.assureResourceLoaded(abspth, pth)[1:]
+            src, self.value, self.bmpPath = self.assureResourceLoaded(abspth, pth)
+        elif tpe == 'ArtProvider':
+            src, self.value, self.bmpPath = self.assureArtProviderImageLoaded(abspth, pth)
         else:
             self.value = self.ctrlClass(abspth, self.companion.eval(tpe))
             self.bmpPath = os.path.join(pth, 'Bitmap')
@@ -827,6 +894,8 @@ class BitmapPropEdit(PropertyEditor, BitmapPropEditMix):
                            self.extTypeMap[os.path.splitext(path)[-1].lower()])
             elif tpe == 'ResourceModule':
                 return self.getSrcForResPath(dir, name)
+            elif tpe == 'ArtProvider':
+                return path
             elif tpe == 'Unknown':
                 return self.nullClass
             else:
@@ -895,9 +964,6 @@ class ClassConstrPropEdit(ConstrPropEdit):
         vals.remove(Utils.getWxPyNameForClass(MyCls))
         vals.insert(0, Utils.getWxPyNameForClass(MyCls))
         return vals
-
-
-
 
 ##    def getDisplayValue(self):
 ##        dv = EnumConstrPropEdit.getDisplayValue(self)
@@ -1056,16 +1122,19 @@ class StrConstrPropEdit(ConstrPropEdit):
         return self.companion.eval(self.value)
 
     def inspectorEdit(self):
-        self.editorCtrl = TextCtrlIEC(self, self.value)
-        self.editorCtrl.createControl(self.parent, self.value, self.idx,
-          self.width)
+        self.editorCtrl = TextCtrlButtonIEC(self, self.value)
+        self.editorCtrl.createControl(self.parent, self.idx,
+          self.width, self.edit)
 
     def getValue(self):
         if self.editorCtrl:
             try:
                 aStr = self.editorCtrl.getValue()
                 if type(aStr) in StringTypes:
-                    self.value = `aStr`
+                    if self.value.startswith('_('):
+                        self.value = '_(%r)'%aStr
+                    else:
+                        self.value = `aStr`
                 else:
                     self.value = self.getCtrlValue()
             except Exception, message:
@@ -1075,19 +1144,16 @@ class StrConstrPropEdit(ConstrPropEdit):
             self.value = self.getCtrlValue()
         return self.value
 
-##        self.editorCtrl = TextCtrlButtonIEC(self, self.value)
-##        self.editorCtrl.createControl(self.parent, self.idx,
-##          self.width, self.OnButton)
-##    def OnButton(self, event):
-##        import StringEditDlg
-##        dlg = StringEditDlg.StringEditDlg(self.parent, self.value)
-##        try:
-##            if dlg.ShowModal() == wx.ID_OK:
-##                filename = dlg.GetPath()
-##                # Your code
-##        finally:
-##            dlg.Destroy()
-
+    def edit(self, event):
+        import StringEditDlg
+        dlg = StringEditDlg.StringEditDlg(self.parent, self.value, self.companion)
+        try:
+            if dlg.ShowModal() == wx.ID_OK:
+                self.value = dlg.getStrSrc()
+                self.editorCtrl.setValue(dlg.stringTC.GetValue())
+                self.inspectorPost(False)
+        finally:
+            dlg.Destroy()
 
 class SizeConstrPropEdit(ConstrPropEdit):
     def inspectorEdit(self):
@@ -1106,9 +1172,15 @@ class SizeConstrPropEdit(ConstrPropEdit):
             self.value = self.getCtrlValue()
         return self.value
 
+class NameConstrPropEdit(ConstrPropEdit):
+    def valueToIECValue(self):
+        return self.companion.eval(self.value)
 
-# XXX Check for name conflicts
-class NameConstrPropEdit(StrConstrPropEdit):
+    def inspectorEdit(self):
+        self.editorCtrl = TextCtrlIEC(self, self.value)
+        self.editorCtrl.createControl(self.parent, self.value, self.idx,
+          self.width)
+
     def getValue(self):
         if self.editorCtrl:
             value = self.editorCtrl.getValue()
@@ -1125,16 +1197,15 @@ class NameConstrPropEdit(StrConstrPropEdit):
                     return self.value
 
                 for c in strVal:
-                    if c not in string.letters+string.digits+'_':#"\'':
+                    if c not in string.letters+string.digits+'_':
                         message = 'Invalid name for Python object'
                         wx.LogError(message)
                         return self.value
-                        #raise message
 
                 if self.companion.designer.objects.has_key(value):
-                    wx.LogError('Name already used by another control.')
+                    message = 'Name already used by another control.'
+                    wx.LogError(message)
                     return self.value
-                    #raise 'Name already used by another control.'
             self.value = value
         else:
             self.value = self.getCtrlValue()
@@ -1340,39 +1411,83 @@ class IntPropEdit(BITPropEditor):
 
 class StrPropEdit(BITPropEditor):
     def valueToIECValue(self):
-        return self.value
+        return self.companion.eval(self.value)
+
+    def inspectorEdit(self):
+        self.editorCtrl = TextCtrlButtonIEC(self, self.valueToIECValue())
+        self.editorCtrl.createControl(self.parent, self.idx,
+          self.width, self.edit)
+
     def getValue(self):
-        return FactoryPropEdit.getValue(self)
+        if self.editorCtrl:
+            aStr = self.editorCtrl.getValue()
+            if self.value.startswith('_('):
+                self.value = '_(%r)'%aStr
+            else:
+                self.value = `aStr`
+        else:
+            cv = self.getCtrlValue()
+            self.value = `cv`
+            ps = self.findPropSrc()
+            if ps is not None:
+                src = ps[0]
+                cv = self.getCtrlValue()
+                if src.startswith('_('):
+                    self.value = '_(%r)'%cv
 
-# The following is a work in progress for having a string editor dlg that
-# also handles gettext formatted strings
-#
-# The current problem is that for normal string properties, the property
-# refers to a string object, not to the source reference, iow _() is not a string
-##    def inspectorEdit(self):
-##        self.editorCtrl = TextCtrlButtonIEC(self, self.value)
-##        self.editorCtrl.createControl(self.parent, self.idx, self.width, self.edit)
-##    def edit(self, event):
-##        import StringPropEditorDlg
-##        dlg = StringPropEditorDlg.create(self.parent, repr(self.value))
-##        try:
-##            if dlg.ShowModal() == wx.ID_OK:
-##                self.inspectorPost(False)
-##                pass
-##        finally:
-##            dlg.Destroy()
+        return self.value
 
+    def getDisplayValue(self):
+        return self.value
 
-class NamePropEdit(StrPropEdit):
-    def __init__(self, name, parent, companion, rootCompanion, propWrapper, idx, width, options, names):
-        StrPropEdit.__init__(self, name, parent, companion, rootCompanion, propWrapper, idx, width)
+    def edit(self, event):
+        import StringEditDlg
+        dlg = StringEditDlg.StringEditDlg(self.parent, self.value, self.companion)
+        try:
+            if dlg.ShowModal() == wx.ID_OK:
+                self.value = dlg.getStrSrc()
+                self.editorCtrl.setValue(dlg.stringTC.GetValue())
+                self.inspectorPost(False)
+        finally:
+            dlg.Destroy()
+
+    def initFromComponent(self):
+        v = self.propWrapper.getValue()
+        self.value = `v`
+        ps = self.findPropSrc()
+        if ps is not None:
+            src = ps[0]
+            if src.startswith('_('):
+                self.value = '_(%r)'%v
+        
+        if self.editorCtrl:
+            self.editorCtrl.setValue(self.valueToIECValue())
+    
+    def findPropSrc(self):
+        constr = self.companion.constructor()
+        if self.name in constr:
+            paramName = constr[self.name]
+            
+            return [self.companion.textConstr.params[paramName]]
+        else:
+            setterName = self.propWrapper.getSetterName()
+            for prop in self.companion.textPropList:
+                if prop.prop_setter == setterName:
+                    return prop.params
+        return None
+
+    def setCtrlValue(self, oldValue, value):
+        self.companion.checkTriggers(self.name, oldValue, value)
+
+        self.propWrapper.setValue(self.companion.eval(value))
+    
+
+class NamePropEdit(BITPropEditor):
+    def valueToIECValue(self):
+        return self.value
 
     identifier = string.letters+string.digits+'_'
-
     def getValue(self):
-        # XXX Currently returning the old value in case of error because
-        # XXX an exception here cannot be gracefully handled yet.
-        # XXX Specifically closing the frame with the focus on the
         if self.editorCtrl:
             value = self.editorCtrl.getValue()
             if value != self.value:
