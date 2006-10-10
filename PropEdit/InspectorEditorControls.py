@@ -6,7 +6,7 @@
 #
 # Created:     1999
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999 - 2005 Riaan Booysen
+# Copyright:   (c) 1999 - 2006 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
 
@@ -279,7 +279,7 @@ class TextCtrlButtonIEC(BevelIEC):
         """ Move the to the given index """
         if self.editorCtrl:
             for ec in self.editorCtrl:
-                ec.SetPosition(ec.GetPosition().x, idx*Preferences.oiLineHeight -2)
+                ec.SetPosition( (ec.GetPosition().x, idx*Preferences.oiLineHeight -2) )
         BevelIEC.setIdx(self, idx)
 
     def getValue(self):
@@ -295,9 +295,9 @@ class TextCtrlButtonIEC(BevelIEC):
 class CheckBoxIEC2(InspectorEditorControl):
     def createControl(self, parent, idx, sizeX):
         self.editorCtrl = wx.Window(parent, wx.NewId(),
-         style=wx.TAB_TRAVERSAL | wx.SUNKEN_BORDER)
+              style=wx.TAB_TRAVERSAL | wx.SUNKEN_BORDER)
         self.editorCtrl.SetDimensions(-2, idx*Preferences.oiLineHeight-2,
-         sizeX, Preferences.oiLineHeight+3)
+              sizeX, Preferences.oiLineHeight+3)
 
         self.checkBox = wx.CheckBox(self.editorCtrl, self.wID, 'False', (2, 1))
         self.editorCtrl.Bind(wx.EVT_CHECKBOX, self.OnSelect, id=self.wID)
