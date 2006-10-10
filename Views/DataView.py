@@ -6,7 +6,7 @@
 #
 # Created:     1999
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999 - 2005 Riaan Booysen
+# Copyright:   (c) 1999 - 2006 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
 print 'importing Views.DataView'
@@ -210,10 +210,13 @@ class DataView(wx.ListView, InspectableObjectView):
             self.compPal.selectNone()
             self.refreshCtrl()
             self.selectCtrls([objName])
+            
+            return objName
         else:
             # Skip so that OnObjectSelect may be fired
             if event:
                 event.Skip()
+            
 
     def updateSelection(self):
         if len(self.selection) == 1:
