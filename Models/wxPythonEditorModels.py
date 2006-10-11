@@ -291,7 +291,7 @@ class BaseFrameModel(ClassModel):
                 # multiline parser ;)
                 while 1:
                     try:
-                        custClasses = PaletteMapping.evalCtrl(attr_val)
+                        custClasses = PaletteMapping.evalCtrl(attr_val, preserveExc=True)
                         assert type(custClasses) == type({})
                         break
                     except SyntaxError, err:
