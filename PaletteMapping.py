@@ -136,7 +136,7 @@ compInfo = PaletteStore.compInfo
 class DesignTimeExpressionError(Exception): pass
 
 _NB = None
-def evalCtrl(expr, localsDct=None):
+def evalCtrl(expr, localsDct=None, preserveExc=False):
     """ Function usually used to evaluate source snippets.
 
     Uses the namespace of this module which contain all the wxPython libs
@@ -152,5 +152,8 @@ def evalCtrl(expr, localsDct=None):
     try:
         return eval(expr, globals(), localsDct)
     except Exception, err:
-        clsName = err.__class__.__name__
-        raise DesignTimeExpressionError, clsName+': '+str(err)
+        if preserveExc:
+            raise
+        else:
+            clsName = err.__class__.__name__
+            raise DesignTimeExpressionError, clsName+': '+str(err)
