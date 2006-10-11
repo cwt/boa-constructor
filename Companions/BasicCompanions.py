@@ -292,8 +292,8 @@ class StaticBitmapDTC(WindowDTC):
         self.editors['Bitmap'] = BitmapPropEdit
 
     def constructor(self):
-        return {'Bitmap': 'bitmap', 'Label': 'label', 'Position': 'pos',
-                'Size': 'size', 'Style': 'style', 'Name': 'name'}
+        return {'Bitmap': 'bitmap', 'Position': 'pos', 'Size': 'size', 
+                'Style': 'style', 'Name': 'name'}
 
     def designTimeSource(self, position = 'wx.DefaultPosition', size = 'wx.DefaultSize'):
         return {'bitmap': 'wx.NullBitmap',
