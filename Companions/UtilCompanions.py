@@ -586,7 +586,7 @@ class StockCursorDTC(UtilityDTC):
 #-------------------------------------------------------------------------------
 import Plugins
 
-Plugins.registerPalettePage('Utilities (Data)', 'Utilities (Data)')
+Plugins.registerPalettePage('Utilities (Data)', _('Utilities (Data)'))
 
 Plugins.registerComponents('Utilities (Data)',
       (wx.MenuBar, 'wx.MenuBar', MenuBarDTC),

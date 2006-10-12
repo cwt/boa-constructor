@@ -1083,7 +1083,7 @@ class StatusBarFieldsCDTC(CollectionDTC):
 
 import Plugins
 
-Plugins.registerPalettePage('ContainersLayout', 'Containers/Layout')
+Plugins.registerPalettePage('ContainersLayout', _('Containers/Layout'))
 
 Plugins.registerComponents('ContainersLayout',
       (wx.Panel, 'wx.Panel', PanelDTC),

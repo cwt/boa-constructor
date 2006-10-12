@@ -1,12 +1,16 @@
+from Preferences import IS
+from Utils import _
+
+
 paletteLists = {'New': [],
                 'Dialogs': [],
                 'Zope': [],
 }
 
-newPalette = ['New', 'Editor/Tabs/New', paletteLists['New']]
+newPalette = [_('New'), 'Editor/Tabs/New', paletteLists['New']]
 palette = []
-dialogPalette =  ['Dialogs', 'Editor/Tabs/Dialogs', paletteLists['Dialogs']]
-zopePalette =  ['Zope', 'Editor/Tabs/Zope', paletteLists['Zope']]
+dialogPalette =  [_('Dialogs'), 'Editor/Tabs/Dialogs', paletteLists['Dialogs']]
+zopePalette =  [_('Zope'), 'Editor/Tabs/Zope', paletteLists['Zope']]
 
 helperClasses = {}
 compInfo = {}
@@ -15,8 +19,6 @@ newControllers = {}
 artProviderArtIds = []
 
 #-------------------------------------------------------------------------------
-
-from Preferences import IS
 
 def loadBitmap(name):
     """ Loads bitmap if it exists, else loads default bitmap """

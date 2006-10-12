@@ -535,7 +535,7 @@ class MediaCtrlDTC(WindowDTC):
 #-------------------------------------------------------------------------------
 import Plugins
 
-Plugins.registerPalettePage('BasicControls', 'Basic Controls')
+Plugins.registerPalettePage('BasicControls', _('Basic Controls'))
 
 Plugins.registerComponents('BasicControls',
       (wx.StaticText, 'wx.StaticText', StaticTextDTC),

@@ -55,7 +55,7 @@ if Preferences.csWxPythonSupport:
         from Companions.ComCompanions import *
     # Define and add a User page to the palette
     PaletteStore.paletteLists['User'] = upl = []
-    PaletteStore.palette.append(['User', 'Editor/Tabs/User', upl])
+    PaletteStore.palette.append([_('User'), 'Editor/Tabs/User', upl])
     from Companions.UtilCompanions import *
     from Companions.DialogCompanions import *
 
@@ -100,7 +100,7 @@ if Utils.IsComEnabled():
 
 #-Plug-ins initialisation-------------------------------------------------------
 if Preferences.pluginPaths:
-    print _('executing plug-ins...')
+    print 'executing plug-ins...'
     fails = Preferences.failedPlugins
     succeeded = Preferences.installedPlugins
 

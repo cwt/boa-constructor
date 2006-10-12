@@ -342,7 +342,7 @@ class ContextHelpButtonDTC(WindowDTC):
 #-------------------------------------------------------------------------------
 import Plugins
 
-Plugins.registerPalettePage('Buttons', 'Buttons')
+Plugins.registerPalettePage('Buttons', _('Buttons'))
 Plugins.registerComponents('Buttons',
       (wx.Button, 'wx.Button', ButtonDTC),
       (wx.BitmapButton, 'wx.BitmapButton', BitmapButtonDTC),

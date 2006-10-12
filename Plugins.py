@@ -12,8 +12,6 @@
 
 import os, glob, new, pprint
 
-#from wxPython import wx
-
 import Preferences, Utils
 from Utils import _
 
@@ -58,7 +56,7 @@ def importFromPlugins(name):
         if os.path.isfile(modpath):
             break
     else:
-        raise ImportError, _('Module %s could not be found in Plug-ins')
+        raise ImportError, _('Module %s could not be found in Plug-ins')%modname
 
     mod = new.module(name)
 

@@ -359,7 +359,7 @@ class GridDTC(Constructors.WindowConstr, WindowDTC):
 
 import Plugins
 
-Plugins.registerPalettePage('ListControls', 'List Controls')
+Plugins.registerPalettePage('ListControls', _('List Controls'))
 
 Plugins.registerComponents('ListControls',
       (wx.ListBox, 'wx.ListBox', ListBoxDTC),

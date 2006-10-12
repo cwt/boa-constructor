@@ -17,7 +17,7 @@ import os, sys
 
 import wx
 
-import PaletteMapping, PaletteStore
+import PaletteStore
 import Help, Preferences, Utils, Plugins
 from Preferences import IS, flatTools
 from Utils import _
@@ -152,48 +152,51 @@ class BoaFrame(wx.Frame, Utils.FrameRestorerMixin):
         # XXX Set these from class
         if not hasattr(sys, 'cyclops'):
             # 'New' page
-            palettePage = NewPalettePage(self.palette, 'New',
-                  'Images/Palette/'+transpSF, self, self.widgetSet,
-                  self)
+            palettePage = NewPalettePage(self.palette, PaletteStore.newPalette[0],
+                  'Images/Palette/'+transpSF, self, self.widgetSet, self)
 
             for modelName in PaletteStore.paletteLists['New']:
                 palettePage.addButton2(modelName,
                     PaletteStore.newControllers[modelName],
                     wx.lib.buttons.GenBitmapButton)
-            if mb: mb.Append(menu = palettePage.menu, title = 'New')
+            if mb: mb.Append(menu=palettePage.menu, title=PaletteStore.newPalette[0])
             self.palettePages.append(palettePage)
+
             # Normal control pages
-            for palette in PaletteMapping.palette:
+            for palette in PaletteStore.palette:
                 palettePage = PalettePage(self.palette, palette[0],
                       'Images/Palette/'+transpSF, self, self.widgetSet,
                       self.componentSB, self)
                 palettePage.addToggleBitmaps(palette[2], None, None)
                 self.palettePages.append(palettePage)
-                if mb: mb.Append(menu = palettePage.menu, title = palette[0])
+                if mb: mb.Append(menu=palettePage.menu, title=palette[0])
+
             # Dialog page
-            if PaletteMapping.dialogPalette[2]:
+            if PaletteStore.dialogPalette[2]:
                 self.dialogPalettePage = PanelPalettePage(self.palette,
-                      PaletteMapping.dialogPalette[0],
+                      PaletteStore.dialogPalette[0],
                       'Images/Palette/'+transpSF, self, self.widgetSet,
                       self.componentSB, self)
-                for dialog in PaletteMapping.dialogPalette[2]:
+                for dialog in PaletteStore.dialogPalette[2]:
                     self.dialogPalettePage.addButton(
-                          PaletteMapping.compInfo[dialog][0],
-                          dialog, PaletteMapping.compInfo[dialog][1],
+                          PaletteStore.compInfo[dialog][0],
+                          dialog, PaletteStore.compInfo[dialog][1],
                           self.OnDialogPaletteClick, None, None,
                           wx.lib.buttons.GenBitmapButton)
                 self.palettePages.append(self.dialogPalettePage)
-                if mb:
-                    mb.Append(menu = self.dialogPalettePage.menu, title = 'Dialogs')
+                if mb: mb.Append(menu=self.dialogPalettePage.menu, 
+                                 title=PaletteStore.dialogPalette[0])
+
             # Zope page
             if Plugins.transportInstalled('ZopeLib.ZopeExplorer'):
                 self.zopePalettePage = ZopePalettePage(self.palette,
-                      PaletteMapping.zopePalette[0], 'Images/Palette/'+transpSF,
+                      PaletteStore.zopePalette[0], 'Images/Palette/'+transpSF,
                       self, self.widgetSet, self.componentSB, self)
                 self.zopePalettePage.addToggleBitmaps(
-                      PaletteMapping.zopePalette[2], None, None)
+                      PaletteStore.zopePalette[2], None, None)
                 self.palettePages.append(self.zopePalettePage)
-                if mb: mb.Append(menu = self.zopePalettePage.menu, title = 'Zope')
+                if mb: mb.Append(menu=self.zopePalettePage.menu, 
+                                 title=PaletteStore.zopePalette[0])
         else:
             palettePage = None
 
@@ -495,7 +498,7 @@ class PalettePage(PanelPalettePage):
 
     def addToggleBitmaps(self, classes, hintFunc, hintLeaveFunc):
         for wxClass in classes:
-            ci = PaletteMapping.compInfo[wxClass]
+            ci = PaletteStore.compInfo[wxClass]
             self.addButton(ci[0], wxClass, ci[1], self.OnClickTrap, hintFunc, 
                   hintLeaveFunc, wx.lib.buttons.GenBitmapToggleButton)
 

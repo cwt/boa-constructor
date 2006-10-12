@@ -13,6 +13,8 @@ print 'importing Companions.LibCompanions'
 
 import wx
 
+from Utils import _
+
 import Constructors, ContainerCompanions, BasicCompanions
 from BaseCompanions import WindowDTC
 from BasicCompanions import StaticTextDTC, TextCtrlDTC, ComboBoxDTC
@@ -654,7 +656,7 @@ import wx.lib.ticker
 
 import Plugins
 
-Plugins.registerPalettePage('Library', 'Library')
+Plugins.registerPalettePage('Library', _('Library'))
 
 Plugins.registerComponents('Library',
       (wx.lib.stattext.GenStaticText, 'wx.lib.stattext.GenStaticText', GenStaticTextDTC),
