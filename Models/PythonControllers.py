@@ -17,6 +17,7 @@ import wx
 
 import Preferences, Utils, Plugins
 from Preferences import keyDefs
+from Utils import _
 
 import PaletteStore
 
@@ -52,32 +53,32 @@ class ModuleController(SourceController):
     def actions(self, model):
         actions = [
               ('-', None, '', ''),
-              ('Import module into Shell', self.OnImportInShell, '-', ''),
-              ('Reload module in Shell', self.OnReloadInShell, '-', ''),
+              (_('Import module into Shell'), self.OnImportInShell, '-', ''),
+              (_('Reload module in Shell'), self.OnReloadInShell, '-', ''),
               ('-', None, '', ''),
-              ('Set command-line parameters', self.OnSetRunParams, '-', ''),
-              ('Toggle use input stream', self.OnToggleUseInputStream, '-', ''),
-              ('Run application', self.OnRunApp, self.runAppBmp, 'RunApp'),
-              ('Run module', self.OnRun, self.runBmp, 'RunMod'),
-              ('Debug application', self.OnDebugApp, self.debugBmp, 'Debug'),
-              ('Debug module', self.OnDebug, '-', ''),
-              ('Step in', self.OnDebugStepIn, '-', 'DebugStep'),
-              ('Step over', self.OnDebugStepOver, '-', 'DebugOver'),
-              ('Step out', self.OnDebugStepOut, '-', 'DebugOut'),
+              (_('Set command-line parameters'), self.OnSetRunParams, '-', ''),
+              (_('Toggle use input stream'), self.OnToggleUseInputStream, '-', ''),
+              (_('Run application'), self.OnRunApp, self.runAppBmp, 'RunApp'),
+              (_('Run module'), self.OnRun, self.runBmp, 'RunMod'),
+              (_('Debug application'), self.OnDebugApp, self.debugBmp, 'Debug'),
+              (_('Debug module'), self.OnDebug, '-', ''),
+              (_('Step in'), self.OnDebugStepIn, '-', 'DebugStep'),
+              (_('Step over'), self.OnDebugStepOver, '-', 'DebugOver'),
+              (_('Step out'), self.OnDebugStepOut, '-', 'DebugOut'),
               ('-', None, '-', ''),
-              ('Profile', self.OnProfile, self.profileBmp, ''),
-              ('Check source', self.OnCheckSource, self.compileBmp, 'CheckSource'),
-              ('Cyclops', self.OnCyclops, '-', ''),
+              (_('Profile'), self.OnProfile, self.profileBmp, ''),
+              (_('Check source'), self.OnCheckSource, self.compileBmp, 'CheckSource'),
+              (_('Cyclops'), self.OnCyclops, '-', ''),
               ('-', None, '', ''),
-              ('Reindent whole file', self.OnReindent, '-', ''),
+              (_('Reindent whole file'), self.OnReindent, '-', ''),
               ('-', None, '', '')]
 
         if hasattr(model, 'app') and model.app:
-            actions.append(('Switch to app', self.OnSwitchApp, '-', 'SwitchToApp'))
+            actions.append((_('Switch to app'), self.OnSwitchApp, '-', 'SwitchToApp'))
         else:
             actions.extend(
-             [('Add to an open application', self.OnAddToOpenApp, '-', ''),
-              ('Associate with an open application', self.OnAssosiateWithOpenApp, '-', '')])
+             [(_('Add to an open application'), self.OnAddToOpenApp, '-', ''),
+              (_('Associate with an open application'), self.OnAssosiateWithOpenApp, '-', '')])
 
         try:
             imp.find_module('pychecker')
@@ -85,8 +86,8 @@ class ModuleController(SourceController):
             pass
         else:
             actions.extend([
-                  ('Run PyChecker', self.OnRunPyChecker, '-', ''),
-                  ('Configure PyChecker', self.OnConfigPyChecker, '-', '')])
+                  (_('Run PyChecker'), self.OnRunPyChecker, '-', ''),
+                  (_('Configure PyChecker'), self.OnConfigPyChecker, '-', '')])
 
         return SourceController.actions(self, model) + actions
 
@@ -120,16 +121,16 @@ class ModuleController(SourceController):
         if modtime is not None:
             curmodtime = os.stat(statFile)[stat.ST_MTIME]
             if curmodtime == modtime:
-                wx.LogError('Stats file date unchanged, check for errors in script.')
+                wx.LogError(_('Stats file date unchanged, check for errors in script.'))
                 return
         elif not os.path.exists(statFile):
-            wx.LogError('Stats file not found, check for errors in script.')
+            wx.LogError(_('Stats file not found, check for errors in script.'))
             return
 
-        self.editor.setStatus('Loading stats...')
+        self.editor.setStatus(_('Loading stats...'))
         stats = marshal.load(open(statFile, 'rb'))
 
-        resName = 'Profile stats: %s'%time.strftime('%H:%M:%S', 
+        resName = _('Profile stats: %s')%time.strftime('%H:%M:%S', 
               time.localtime(time.time()))
         if not model.views.has_key(resName):
             resultView = self.editor.addNewView(resName,
@@ -139,32 +140,32 @@ class ModuleController(SourceController):
         resultView.tabName = resName
         resultView.stats = stats
         resultView.profDir = profDir
-        self.editor.setStatus('Refreshing view...')
+        self.editor.setStatus(_('Refreshing view...'))
         resultView.refresh()
         resultView.focus()
-        self.editor.setStatus('Profiling complete.')
+        self.editor.setStatus(_('Profiling complete.'))
 
     def OnCheckSource(self, event):
         model = self.getModel()
-        self.editor.setStatus('Compiling...')
+        self.editor.setStatus(_('Compiling...'))
         if model.compile():
-            self.editor.setStatus('There were errors', 'Warning')
+            self.editor.setStatus(_('There were errors'), 'Warning')
         else:
-            self.editor.setStatus('Compiled successfully')
+            self.editor.setStatus(_('Compiled successfully'))
 
         if Preferences.runPyLintOnCheckSource:
-            self.editor.setStatus('Running lint...')
+            self.editor.setStatus(_('Running lint...'))
             warnings = model.runLint()
             if warnings and self.editor.erroutFrm:
                 self.editor.erroutFrm.updateCtrls(warnings, [], 'Warning',
                     os.path.dirname(model.assertLocalFile()))
                 self.editor.erroutFrm.display(len(warnings))
-            self.editor.setStatus('Lint completed')
+            self.editor.setStatus(_('Lint completed'))
 
     def OnSetRunParams(self, event):
         model = self.getModel()
-        dlg = wx.TextEntryDialog(self.editor, 'Parameters:',
-          'Command-line parameters', model.lastRunParams)
+        dlg = wx.TextEntryDialog(self.editor, _('Parameters:'),
+          _('Command-line parameters'), model.lastRunParams)
         try:
             if dlg.ShowModal() == wx.ID_OK:
                 model.lastRunParams = dlg.GetValue()
@@ -232,10 +233,10 @@ class ModuleController(SourceController):
             editor.erroutFrm.processFinished(runner.pid)
 
             if errs:
-                editor.statusBar.setHint('Finished execution, there were errors',
-                                         'Warning')
+                editor.statusBar.setHint(_('Finished execution, there were errors'),
+                                           'Warning')
             else:
-                editor.statusBar.setHint('Finished execution.')
+                editor.statusBar.setHint(_('Finished execution.'))
 
 
     def OnDebug(self, event):
@@ -316,9 +317,9 @@ class ModuleController(SourceController):
                 appDir = os.path.dirname(filename)
                 appConfig = appDir+'/.pycheckrc'
             if not os.path.exists(appConfig):
-                dlg = wx.MessageDialog(self.editor, 'The PyChecker configuration file '
-                  'can not be found. Copy the default file here?',
-                  'Config file not found', wx.YES_NO | wx.ICON_QUESTION)
+                dlg = wx.MessageDialog(self.editor, _('The PyChecker configuration file '
+                  'can not be found. Copy the default file here?'),
+                  _('Config file not found'), wx.YES_NO | wx.ICON_QUESTION)
                 try:
                     if dlg.ShowModal() == wx.ID_YES:
                         from pychecker import Config
@@ -335,14 +336,14 @@ class ModuleController(SourceController):
         model = self.getModel()
         if model:
             if self.checkUnsaved(model): return
-            self.editor.setStatus('Running Cyclopse on %s ...'%model.filename)
+            self.editor.setStatus(_('Running Cyclops on %s ...')%model.filename)
             wx.BeginBusyCursor()
             try:
                 report = model.cyclops()
             finally:
                 wx.EndBusyCursor()
 
-            resName = 'Cyclops report: %s'%time.strftime('%H:%M:%S', time.localtime(time.time()))
+            resName = _('Cyclops report: %s')%time.strftime('%H:%M:%S', time.localtime(time.time()))
             if not model.views.has_key(resName):
                 resultView = self.editor.addNewView(resName, EditorViews.CyclopsView)
             else:
@@ -365,7 +366,7 @@ class ModuleController(SourceController):
     def chooseOpenApp(self, model, msg, capt):
         openApps = self.editor.getAppModules()
         if not openApps:
-            wx.MessageBox('No open applications.', style=wx.ICON_ERROR)
+            wx.MessageBox(_('No open applications.'), style=wx.ICON_ERROR)
             return
         chooseApps = {}
         for app in openApps:
@@ -383,8 +384,8 @@ class ModuleController(SourceController):
         model = self.getModel()
         if model:
             app = self.chooseOpenApp(model,
-                  'Select application to add the current file to',
-                  'Add to Application')
+                  _('Select application to add the current file to'),
+                  _('Add to Application'))
 
             if app:
                 if model.savedAs: src = None
@@ -398,8 +399,8 @@ class ModuleController(SourceController):
         model = self.getModel()
         if model:
             app = self.chooseOpenApp(model,
-                  'Select application to associate the current file with',
-                  'Associate with Application')
+                  _('Select application to associate the current file with'),
+                  _('Associate with Application'))
 
             if app:
                 model.app = app
@@ -434,9 +435,9 @@ class ModuleController(SourceController):
             model.useInputStream = not model.useInputStream
             if model.useInputStream:
                 self.editor.erroutFrm.displayInput(True)
-                wx.LogMessage('Using input stream for running')
+                wx.LogMessage(_('Using input stream for running'))
             else:
-                wx.LogMessage('Not using input stream for running')
+                wx.LogMessage(_('Not using input stream for running'))
 
 def ToolsOnAttachToDebugger(editor):
     from Debugger.RemoteDialog import create
@@ -456,9 +457,9 @@ class BaseAppController(ModuleController):
 
     def actions(self, model):
         return ModuleController.actions(self, model) + [
-              ('Save modified modules', self.OnSaveAll, self.saveAllBmp, ''),
-              ('Compare apps', self.OnCmpApps, '-', ''),
-              ('View crash log as traceback', self.OnCrashLog, '-', '')]
+              (_('Save modified modules'), self.OnSaveAll, self.saveAllBmp, ''),
+              (_('Compare apps'), self.OnCmpApps, '-', ''),
+              (_('View crash log as traceback'), self.OnCrashLog, '-', '')]
 
     def createModel(self, source, filename, main, saved, modelParent=None):
         return self.Model(source, filename, main, self.editor, saved,
@@ -555,7 +556,7 @@ class PythonExtensionController(EditorController):
         return self.Model(source, filename, self.editor, saved)
 
     def createNewModel(self, modelParent=None):
-        raise Exception, 'Cannot create a new Python Extension, use distutils to build it'
+        raise Exception, _('Cannot create a new Python Extension, use distutils to build it')
 
     def new(self):
         pass
@@ -601,7 +602,7 @@ class SetupController(ModuleController):
     def runDistUtilsCmd(self, cmd):
         model = self.getModel()
         if not model.savedAs:
-            wx.LogError('Cannot run distutils on an unsaved module')
+            wx.LogError(_('Cannot run distutils on an unsaved module'))
             return
 
         cwd = os.path.abspath(os.getcwd())
@@ -611,7 +612,7 @@ class SetupController(ModuleController):
         try:
             ProcessModuleRunner(self.editor.erroutFrm, filedir).run(\
             '"%s" setup.py %s'%(`Preferences.getPythonInterpreterPath()`[1:-1], cmd),
-            caption='Running distutil command...')
+            caption=_('Running distutil command...'))
         finally:
             os.chdir(cwd)
 
@@ -630,8 +631,8 @@ class SetupController(ModuleController):
     def OnSetupBDist_RPM(self, event):
         self.runDistUtilsCmd('bdist_rpm')
     def OnSetupParams(self, event):
-        dlg = wx.TextEntryDialog(self.editor, 'Edit setup.py arguments',
-                                'Distutils setup', '')
+        dlg = wx.TextEntryDialog(self.editor, _('Edit setup.py arguments'),
+                                _('Distutils setup'), '')
         try:
             if dlg.ShowModal() == wx.ID_OK:
                 self.runDistUtilsCmd(dlg.GetValue())
@@ -712,5 +713,5 @@ ExplorerNodes.register(SysPathNode, clipboard='file', controller='file', root=Tr
 
 
 # Hook debugger attaching to Tools menu
-Plugins.registerTool('Attach to debugger', ToolsOnAttachToDebugger,
-                     'Images/Shared/Debugger.png')
+Plugins.registerTool(
+ _('Attach to debugger'), ToolsOnAttachToDebugger, 'Images/Shared/Debugger.png')

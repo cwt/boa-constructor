@@ -17,6 +17,7 @@ import wx
 
 import Preferences, Utils
 from Preferences import keyDefs, IS
+from Utils import _
 
 import EditorHelper, PaletteStore, EditorModels
 
@@ -118,7 +119,7 @@ class EditorController(BaseEditorController):
 
     def actions(self, model):
         return BaseEditorController.actions(self, model) + \
-               [('Close', self.OnClose, self.closeBmp, 'Close')]
+               [(_('Close'), self.OnClose, self.closeBmp, 'Close')]
 
     def OnClose(self, event):
         self.editor.closeModulePage(self.editor.getActiveModulePage())
@@ -129,12 +130,12 @@ class PersistentController(EditorController):
 
     def actions(self, model):
         return EditorController.actions(self, model) + \
-               [('Reload', self.OnReload, '-', ''),
-                ('Save', self.OnSave, self.saveBmp, 'Save'),
-                ('Save as...', self.OnSaveAs, self.saveAsBmp, 'SaveAs'),
+               [(_('Reload'), self.OnReload, '-', ''),
+                (_('Save'), self.OnSave, self.saveBmp, 'Save'),
+                (_('Save as...'), self.OnSaveAs, self.saveAsBmp, 'SaveAs'),
                 ('-', None, '', ''),
-                ('Toggle read-only', self.OnToggleReadOnly, '-', ''),
-                ('NDiff files...', self.OnNDiffFile, '-', '')]
+                (_('Toggle read-only'), self.OnToggleReadOnly, '-', ''),
+                (_('NDiff files...'), self.OnNDiffFile, '-', '')]
 
     def createModel(self, source, filename, main, saved, modelParent=None):
         return self.Model(source, filename, self.editor, saved)
@@ -150,7 +151,7 @@ class PersistentController(EditorController):
     def checkUnsaved(self, model, checkModified=False):
         if not model.savedAs or checkModified and (model.modified or \
               len(model.viewsModified)):
-            wx.LogError('Cannot perform this action on an unsaved%s module'%(
+            wx.LogError(_('Cannot perform this action on an unsaved%s module')%(
                   checkModified and '/modified' or '') )
             return True
         else:
@@ -188,14 +189,14 @@ class PersistentController(EditorController):
         model = self.getModel()
         if model:
             if not model.savedAs:
-                wx.MessageBox('Cannot reload, this file has not been saved yet.',
-                             'Reload', wx.OK | wx.ICON_ERROR)
+                wx.MessageBox(_('Cannot reload, this file has not been saved yet.'),
+                             _('Reload'), wx.OK | wx.ICON_ERROR)
                 return
 
             if model.hasUnsavedChanges() and \
-                  wx.MessageBox('There are unsaved changes.\n'\
-                  'Are you sure you want to reload?',
-                  'Confirm reload', wx.YES_NO | wx.ICON_WARNING) != wx.YES:
+                  wx.MessageBox(_('There are unsaved changes.\n'\
+                                  'Are you sure you want to reload?'),
+                                _('Confirm reload'), wx.YES_NO | wx.ICON_WARNING) != wx.YES:
                 return
             try:
                 model.load()
@@ -216,7 +217,7 @@ class PersistentController(EditorController):
 
             self.editor.updateModuleState(model)
         else:
-            wx.LogError('Read-only not supported on this transport')
+            wx.LogError(_('Read-only not supported on this transport'))
 
     def OnNDiffFile(self, event=None, filename=''):
         model = self.getModel()

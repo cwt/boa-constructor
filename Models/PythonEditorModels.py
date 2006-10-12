@@ -20,6 +20,7 @@ from StringIO import StringIO
 import wx
 
 import Preferences, Utils
+from Utils import _
 
 import EditorHelper, ErrorStack
 from EditorModels import PersistentModel, SourceModel, EditorModel, BitmapFileModel
@@ -149,7 +150,7 @@ class ModuleModel(SourceModel):
         if self.savedAs:
             filename = self.assertLocalFile()
 
-            self.editor.statusBar.setHint('Running %s...' % filename)
+            self.editor.statusBar.setHint(_('Running %s...')%filename)
             if Preferences.minimizeOnRun:
                 self.editor.minimizeBoa()
             inpLines = []
@@ -170,7 +171,7 @@ class ModuleModel(SourceModel):
         if self.savedAs:
             filename = self.assertLocalFile()
 
-            self.editor.statusBar.setHint('Running %s...' % filename)
+            self.editor.statusBar.setHint(_('Running %s...')%filename)
             if Preferences.minimizeOnRun:
                 self.editor.minimizeBoa()
 
@@ -243,8 +244,8 @@ class ModuleModel(SourceModel):
                 os.chdir(cwd)
                 return page
         else:
-            wx.LogWarning('Save before running Cyclops')
-            raise Exception, 'Not saved yet!'
+            wx.LogWarning(_('Save before running Cyclops'))
+            raise Exception, _('Not saved yet!')
 
     def debug(self, params=None, cont_if_running=0, cont_always=0,
               temp_breakpoint=None):
@@ -332,12 +333,12 @@ class ModuleModel(SourceModel):
                     self.update()
                     self.notify()
 
-                    self.editor.statusBar.setHint(\
-                          'Code reformatted (indents and or EOL characters fixed)')
+                    self.editor.statusBar.setHint(
+                     _('Code reformatted (indents and or EOL characters fixed)'))
                     return True
         except Exception, error:
-            self.editor.statusBar.setHint(\
-                  'Reindent failed - %s : %s' % (error.__class__, str(error)) , 'Error')
+            self.editor.statusBar.setHint(
+             _('Reindent failed - %s : %s') % (error.__class__, str(error)) , 'Error')
 
         return False
 
@@ -352,11 +353,11 @@ class ModuleModel(SourceModel):
             oldOut = sys.stdout
             sys.stdout = Utils.PseudoFileOutStore()
             try:
-                print "''' Code does not compile\n\n    Disassembly of Traceback:\n'''"
+                print _("''' Code does not compile\n\n    Disassembly of Traceback:\n'''")
                 try:
                     dis.distb(sys.exc_info()[2])
                 except:
-                    print "''' Could not disassemble traceback '''\n"
+                    print _("''' Could not disassemble traceback '''\n")
                 return sys.stdout.read()
             finally:
                 sys.stdout = oldOut
@@ -419,11 +420,11 @@ class ModuleModel(SourceModel):
                 # handle from [package.]module import name
                 return path, 'name'
             if tpe == imp.PY_COMPILED:
-                self.editor.setStatus('Compiled file found, check sys.path!',
+                self.editor.setStatus(_('Compiled file found, check sys.path!'),
                       'Warning', True)
-                raise ImportError('Compiled file found')
+                raise ImportError(_('Compiled file found'))
             else:
-                raise ImportError('Unhandled import type')
+                raise ImportError(_('Unhandled import type'))
         # handle from package import module
         if srchpath and srchpath != stdPyPath:
             if impName:
@@ -434,7 +435,7 @@ class ModuleModel(SourceModel):
                 return srchpath[-1], 'package'
 
         #print '%s not found in %s'%(modName, `srchpath`)
-        raise ImportError('Module not found')
+        raise ImportError(_('Module not found'))
 
     def importInShell(self):
         modDir, modFile = os.path.split(self.assertLocalFile())
@@ -463,9 +464,9 @@ class ModuleModel(SourceModel):
 
         shell.pushLine(impExecStr, impExecStr)
         if shell.lastResult != 'stderr':
-            return 'Import of %s successfull'%modName, 'Info'
+            return _('Import of %s successfull')%modName, 'Info'
         else:
-            return 'Import of %s failed'%modName, 'Error'
+            return _('Import of %s failed')%modName, 'Error'
 
     def reloadInShell(self):
         modDir, modFile = os.path.split(self.assertLocalFile())
@@ -476,21 +477,21 @@ class ModuleModel(SourceModel):
         shell.pushLine(impExecStr, impExecStr)
 
         if shell.lastResult != 'stderr':
-            return 'Reload of %s successfull'%modName, 'Info'
+            return _('Reload of %s successfull')%modName, 'Info'
         else:
-            return 'Reload of %s failed'%modName, 'Error'
+            return _('Reload of %s failed')%modName, 'Error'
 
     def findGlobalDict(self, name):
         s = name+' ='
         pos = self.data.find(s)
         if pos == -1:
-            raise Exception, 'Global dict %s not found in the module, please add '\
-                  '"%s = {}" as a global variable.'%(name, name)
+            raise Exception, _('Global dict %s not found in the module, please add '\
+                  '"%s = {}" as a global variable.')%(name, name)
         end = self.data.find('}\n', pos + len(s) +1) + 1
         if not end:
             end = self.data.find('}\r\n', pos + len(s) +1) + 1
             if not end:
-                raise Exception, 'Global dict %s not terminated properly, please fix it.'%name
+                raise Exception, _('Global dict %s not terminated properly, please fix it.')%name
         return pos + len(s), end
 
     def readGlobalDict(self, name):
@@ -498,7 +499,7 @@ class ModuleModel(SourceModel):
         try:
             return eval(Utils.toUnixEOLMode(self.data[start:end]), {'wx': wx})
         except Exception, err:
-            raise Exception, '"%s" must be a valid dictionary global dict.\nError: %s'%(name, str(err))
+            raise Exception, _('"%s" must be a valid dictionary global dict.\nError: %s')%(name, str(err))
 
     def writeGlobalDict(self, name, dct):
         start, end = self.findGlobalDict(name)
@@ -541,7 +542,7 @@ class ModuleModel(SourceModel):
             f, fn, desc = Utils.find_dotted_module(importName, searchPath)
         except ImportError:
             if report:
-                self.editor.setStatus('Could not find %s'%importName, 'Error')
+                self.editor.setStatus(_('Could not find %s')%importName, 'Error')
             return False
         
         if f is None:
@@ -559,14 +560,14 @@ class ModuleModel(SourceModel):
                     resources[importName] = imageMod
                     specialAttrs[rootName] = rootMod
                     if report:
-                        self.editor.setStatus('Loaded resource: %s'%importName)
+                        self.editor.setStatus(_('Loaded resource: %s')%importName)
                 except ImportError:
-                    self.editor.setStatus('Could not load %s'%importName, 'Error')
+                    self.editor.setStatus(_('Could not load %s')%importName, 'Error')
                     return False
                 return True
 
         if report:
-            self.editor.setStatus('%s is not a valid Resource Module'%importName, 'Error')
+            self.editor.setStatus(_('%s is not a valid Resource Module')%importName, 'Error')
         return False
     
     def readResources(self, mod, cls, specialAttrs):
@@ -638,7 +639,7 @@ class ImportRelationshipMix:
                 totLOC = totLOC + model.getModule().loc
                 classCnt = classCnt + len(model.getModule().classes)
 
-            print 'Project LOC: %d,\n%d classes in %d modules.'%(totLOC, classCnt, len(modules))
+            #print 'Project LOC: %d,\n%d classes in %d modules.'%(totLOC, classCnt, len(modules))
         finally:
             self.editor.statusBar.progress.SetValue(0)
             self.editor.statusBar.setHint('')
@@ -853,9 +854,9 @@ class BaseAppModel(ClassModel, ImportRelationshipMix):
         impPos = self.data.find('import', impPos + 1)
 
         # XXX Add if not found
-        if impPos == -1: raise Exception, 'Module import list not found in application'
+        if impPos == -1: raise Exception, _('Module import list not found in application')
         impEnd = self.data.find('\012', impPos + len('import') +1) + 1
-        if impEnd == -1: raise Exception, 'Module import list not terminated'
+        if impEnd == -1: raise Exception, _('Module import list not terminated')
         return impPos + len('import'), impEnd
 
     def idModel(self, name, src=None):
@@ -903,7 +904,7 @@ class BaseAppModel(ClassModel, ImportRelationshipMix):
     def addModule(self, filename, descr, source=None):
         name, ext = os.path.splitext(os.path.basename(filename))
         if self.modules.has_key(name):
-            raise Exception('Module name exists in application')
+            raise Exception(_('Module name exists in application'))
         if self.savedAs:
             relative = relpath.relpath(os.path.dirname(self.filename), filename)
         else:
@@ -915,7 +916,7 @@ class BaseAppModel(ClassModel, ImportRelationshipMix):
         self.writeModules()
 
     def removeModule(self, name):
-        if not self.modules.has_key(name): raise Exception, 'No such module in application'
+        if not self.modules.has_key(name): raise Exception, _('No such module in application')
 
         del self.modules[name]
         self.writeModules()
@@ -939,7 +940,7 @@ class BaseAppModel(ClassModel, ImportRelationshipMix):
     def moduleFilename(self, name):
         """ Return absolute filename of the given module """
         if not self.modules.has_key(name):
-            raise Exception, 'No such module in application: '+name
+            raise Exception, _('No such module in application: ')+name
 
         prot, modFilename = self.splitProtFile(self.modules[name][2])
         if self.savedAs:
@@ -1023,7 +1024,7 @@ class BaseAppModel(ClassModel, ImportRelationshipMix):
                 self.notify()
                 break
         else:
-            raise Exception, 'No main frame module found in application'
+            raise Exception, _('No main frame module found in application')
 
     def moduleSaveAsNotify(self, module, oldFilename, newFilename):
         if module != self:
@@ -1031,7 +1032,7 @@ class BaseAppModel(ClassModel, ImportRelationshipMix):
             oldName = os.path.splitext(os.path.basename(oldFilename))[0]
 
             if not self.modules.has_key(oldName):
-                raise Exception, 'Module does not exists in application'
+                raise Exception, _('Module does not exists in application')
 
             if self.savedAs:
                 relative = relpath.relpath(os.path.dirname(self.filename), newFilename)
@@ -1073,7 +1074,7 @@ class BaseAppModel(ClassModel, ImportRelationshipMix):
                 frm.display(err)
                 return frm
         else:
-            wx.LogError('Trace file not found. Run with command line param -T')
+            wx.LogError(_('Trace file not found. Run with command line param -T'))
             return None
 
     def openModule(self, name):
@@ -1082,8 +1083,8 @@ class BaseAppModel(ClassModel, ImportRelationshipMix):
             return self.editor.openOrGotoModule(self.moduleFilename(name), self)
         except TransportError, err:
             if str(err) == 'Unhandled transport' and err[1][0] == 'none':
-                if wx.MessageBox('Unsaved file no longer open in the Editor.\n'
-                      'Remove it from application modules ?', 'Missing file',
+                if wx.MessageBox(_('Unsaved file no longer open in the Editor.\n'
+                      'Remove it from application modules ?'), _('Missing file'),
                       wx.YES_NO | wx.ICON_QUESTION) == wx.YES:
                     self.removeModule(name)
                 return None, None
@@ -1103,7 +1104,7 @@ class BaseAppModel(ClassModel, ImportRelationshipMix):
             elif len(protsplit) == 3:
                 prot, archive, appFilename = protsplit
             else:
-                raise Exception, 'Unhandled protocol during normalisation:%s'%protsplit
+                raise Exception, _('Unhandled protocol during normalisation:%s')%protsplit
 
             if prot == 'zip':
                 return relFilename

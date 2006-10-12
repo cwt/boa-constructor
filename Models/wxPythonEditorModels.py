@@ -17,6 +17,7 @@ import re, string, os, imp, sys, new
 import wx
 
 import Preferences, Utils
+from Utils import _
 
 import EditorHelper
 from PythonEditorModels import ClassModel, BaseAppModel, ModuleModel
@@ -126,7 +127,7 @@ class BaseFrameModel(ClassModel):
                 res = Utils.split_seq(codeBody, '', string.strip)
                 inits, body, fins = res[:3]
             except ValueError:
-                raise Exception, 'Collection body %s not in init, body, fin form' % meth
+                raise Exception, _('Collection body %s not in init, body, fin form') % meth
 
             allInitialisers, unmatched = methodparse.parseMixedBody(\
              [methodparse.EventParse, methodparse.CollectionItemInitParse],body)
@@ -156,14 +157,14 @@ class BaseFrameModel(ClassModel):
         newObjColl.setup(creators, properties, events, collectionInits, inits, fins)
 
         if unmatched:
-            wx.LogWarning('The following lines were not used by the Designer '\
-                         'and will be lost:\n')
+            wx.LogWarning(_('The following lines were not used by the Designer '\
+                            'and will be lost:\n'))
             for line in unmatched:
                 wx.LogWarning(line)
-            wx.LogWarning('\nThere were unprocessed lines in the source code of '\
-                         'method: %s\nIf this was unexpected, it is advised '\
-                         'that you cancel this Designer session and correct '\
-                         'the problem before continuing.'%meth)
+            wx.LogWarning(_('\nThere were unprocessed lines in the source code of '\
+                            'method: %s\nIf this was unexpected, it is advised '\
+                            'that you cancel this Designer session and correct '\
+                            'the problem before continuing.')%meth)
 
         return newObjColl
 
@@ -301,7 +302,7 @@ class BaseFrameModel(ClassModel):
                         else:
                             raise
             except Exception, err:
-                raise Exception, '_custom_classes is not valid: '+str(err)
+                raise Exception, _('_custom_classes is not valid: ')+str(err)
 
             for wxClassName, customs in custClasses.items():
                 wxClass = PaletteMapping.evalCtrl(wxClassName)
@@ -349,9 +350,9 @@ class BaseFrameModel(ClassModel):
                     self.mainConstr = \
                       self.objectCollections[sourceconst.init_ctrls].creators[0]
                 except IndexError:
-                    Exception, 'Inherited __init__ method missing'
+                    Exception, _('Inherited __init__ method missing')
         else:
-            Exception, 'Main class "%s" not found. Please fix file header or class name.'%self.main
+            Exception, _('Main class "%s" not found. Please fix file header or class name.')%self.main
 
     def removeWindowIds(self, colMeth):
         """ Remove a method's corresponding window ids from the source code """

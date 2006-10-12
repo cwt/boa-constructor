@@ -17,8 +17,10 @@ import wx
 from wx.tools import img2py
 from wx.lib.anchors import LayoutAnchors
 
-[wxID_RESOURCESELECTDLG, wxID_RESOURCESELECTDLGBTNCANCEL,
- wxID_RESOURCESELECTDLGBTNFILEDLG, wxID_RESOURCESELECTDLGBTNOK,
+from Utils import _
+
+[wxID_RESOURCESELECTDLG, wxID_RESOURCESELECTDLGBTNCANCEL, 
+ wxID_RESOURCESELECTDLGBTNFILEDLG, wxID_RESOURCESELECTDLGBTNOK, 
 ] = [wx.NewId() for _init_ctrls in range(4)]
 
 class ResourceSelectDlg(wx.Dialog):
@@ -39,9 +41,9 @@ class ResourceSelectDlg(wx.Dialog):
 
     def _init_sizers(self):
         # generated method, don't edit
-        self.boxSizerMain =wx.BoxSizer(orient=wx.VERTICAL)
+        self.boxSizerMain = wx.BoxSizer(orient=wx.VERTICAL)
 
-        self.boxSizerButtons =wx.BoxSizer(orient=wx.HORIZONTAL)
+        self.boxSizerButtons = wx.BoxSizer(orient=wx.HORIZONTAL)
 
         self._init_coll_boxSizerMain_Items(self.boxSizerMain)
         self._init_coll_boxSizerButtons_Items(self.boxSizerButtons)
@@ -54,20 +56,21 @@ class ResourceSelectDlg(wx.Dialog):
               name='ResourceSelectDlg', parent=prnt, pos=wx.Point(384, 293),
               size=wx.Size(307, 359),
               style=wx.RESIZE_BORDER | wx.DEFAULT_DIALOG_STYLE,
-              title='Select Resource')
+              title=_('Select Resource'))
         self.SetClientSize(wx.Size(299, 332))
 
-        self.btnOK =wx.Button(id=wx.ID_OK, label='OK', name='btnOK', parent=self,
-              pos=wx.Point(15, 15), size=wx.Size(75, 23), style=0)
+        self.btnOK = wx.Button(id=wx.ID_OK, label=_('OK'), name='btnOK',
+              parent=self, pos=wx.Point(15, 15), size=wx.Size(75, 23), style=0)
 
-        self.btnCancel =wx.Button(id=wx.ID_CANCEL, label='Cancel',
+        self.btnCancel = wx.Button(id=wx.ID_CANCEL, label=_('Cancel'),
               name='btnCancel', parent=self, pos=wx.Point(105, 15),
               size=wx.Size(75, 23), style=0)
 
-        self.btnFileDlg =wx.Button(id=wxID_RESOURCESELECTDLGBTNFILEDLG,
-              label='File Dialog...', name='btnFileDlg', parent=self,
+        self.btnFileDlg = wx.Button(id=wxID_RESOURCESELECTDLGBTNFILEDLG,
+              label=_('File Dialog...'), name='btnFileDlg', parent=self,
               pos=wx.Point(195, 15), size=wx.Size(75, 23), style=0)
-        self.btnFileDlg.Bind(wx.EVT_BUTTON, self.OnBtnfiledlgButton, id=wxID_RESOURCESELECTDLGBTNFILEDLG)
+        self.btnFileDlg.Bind(wx.EVT_BUTTON, self.OnBtnfiledlgButton,
+              id=wxID_RESOURCESELECTDLGBTNFILEDLG)
 
         self._init_sizers()
 
@@ -151,7 +154,7 @@ class PyResourceImagesView(EditorViews.ListCtrlView):
     def __init__(self, parent, model, listStyle=wx.LC_ICON | wx.LC_ALIGN_TOP,
                                       imgLstStyle=wx.IMAGE_LIST_NORMAL):
         EditorViews.ListCtrlView.__init__(self, parent, model, listStyle,
-          (('Goto line', self.OnGoto, self.gotoLineBmp, ''), 
+          ((_('Goto line'), self.OnGoto, self.gotoLineBmp, ''), 
 #           ('Move up', self.OnMoveUp, self.moveUpBmp, ''), 
 #           ('Move down', self.OnMoveDown, self.moveDownBmp, ''), 
 #           ('Delete image', self.OnDeleteImage, self.deleteBmp, ''), 
@@ -242,7 +245,7 @@ class PyResourceImagesView(EditorViews.ListCtrlView):
                         func = self.functions.imageFunctions['get%sBitmap'%name]()
                         func.SaveFile(path, extTypeMap[ext])
                     else:
-                        wx.LogError('Unsupported image type: %s'%ext)
+                        wx.LogError(_('Unsupported image type: %s')%ext)
             finally:
                 dlg.Destroy()
 
@@ -318,7 +321,7 @@ def ConvertImgToPy(imgPath, editor):
             cmdLine = '-a ' + cmdLine
 
         dlg = wx.TextEntryDialog(editor,
-              'Options:\n\n%s\n\nEdit options string:'%docs, 'img2py', cmdLine)
+              _('Options:\n\n%s\n\nEdit options string:')%docs, 'img2py', cmdLine)
         try:
             if dlg.ShowModal() != wx.ID_OK:
                 return
@@ -348,7 +351,7 @@ def ConvertImgToPy(imgPath, editor):
             m, c = editor.openOrGotoModule(pyResPath)
             c.OnReload(None)
         else:
-            wx.LogWarning('Resource module not found. img2py failed to create the module')
+            wx.LogWarning(_('Resource module not found. img2py failed to create the module'))
 
 #-------------------------------------------------------------------------------
 

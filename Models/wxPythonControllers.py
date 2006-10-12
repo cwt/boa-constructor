@@ -15,6 +15,8 @@ import os
 
 import Preferences, Utils, Plugins
 from Preferences import keyDefs
+from Utils import _
+
 import PaletteStore
 
 import Controllers
@@ -40,7 +42,7 @@ class BaseFrameController(ModuleController):
 
     def actions(self, model):
         return ModuleController.actions(self, model) + [
-              ('Frame Designer', self.OnDesigner, self.designerBmp, 'Designer')]
+              (_('Frame Designer'), self.OnDesigner, self.designerBmp, 'Designer')]
 
     def createModel(self, source, filename, main, saved, modelParent=None):
         return self.Model(source, filename, main, self.editor, saved, modelParent)
@@ -168,15 +170,15 @@ class BaseFrameController(ModuleController):
                 # Make source read only
                 model.views['Source'].disableSource(True)
 
-                self.editor.setStatus('Designer session started.')
+                self.editor.setStatus(_('Designer session started.'))
 
             finally:
                 os.chdir(cwd)
 
         except Exception, error:
             self.editor.setStatus(\
-                'An error occured while opening the Designer: %s'%str(error),
-                'Error')
+                _('An error occured while opening the Designer: %s')%str(error),
+                  'Error')
             self.editor.statusBar.progress.SetValue(0)
             raise
 

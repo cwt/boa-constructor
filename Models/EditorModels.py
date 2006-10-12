@@ -23,6 +23,7 @@ import wx
 
 import Preferences, Utils, EditorHelper
 from Preferences import keyDefs
+from Utils import _
 
 _vc_hook = None
 
@@ -179,7 +180,7 @@ class BasePersistentModel(EditorModel):
             Note: Load's not really used much currently cause objects are
                   constructed with their data as parameter """
         if not self.transport:
-            raise Exception, 'No transport for loading'
+            raise Exception, _('No transport for loading')
 
         self.data = self.transport.load(mode=self.fileModes[0])
         self.modified = False
@@ -190,7 +191,7 @@ class BasePersistentModel(EditorModel):
     def save(self, overwriteNewer=False):
         """ Saves contents of data to file specified by self.filename. """
         if not self.transport:
-            raise Exception, 'No transport for saving'
+            raise Exception, _('No transport for saving')
 
         if self.filename:
             filename = self.transport.assertFilename(self.filename)
@@ -209,7 +210,7 @@ class BasePersistentModel(EditorModel):
             if _vc_hook:
                 _vc_hook.save(filename, self.data, mode=self.fileModes[1])
         else:
-            raise Exception, 'No filename'
+            raise Exception, _('No filename')
 
     def saveAs(self, filename):
         """ Saves contents of data to file specified by filename.
@@ -245,7 +246,7 @@ class BasePersistentModel(EditorModel):
             filename = self.filename
         from Explorers.Explorer import splitURI
         prot, cat, filename, uri = splitURI(filename)
-        assert prot=='file', 'Operation only supported on the filesystem.'
+        assert prot=='file', _('Operation only supported on the filesystem.')
         return filename
 
     def checkLocalFile(self, filename=None):
@@ -256,7 +257,7 @@ class BasePersistentModel(EditorModel):
         from Explorers.Explorer import splitURI, TransportError
         prot, cat, filename, uri = splitURI(filename)
         if prot != 'file':
-            raise TransportError, 'Operation only supported on the filesystem.'
+            raise TransportError, _('Operation only supported on the filesystem.')
         return filename
 
     def getDefaultData(self):
@@ -294,7 +295,7 @@ class BitmapFileModel(PersistentModel):
     def save(self, overwriteNewer=False):
         ext = os.path.splitext(self.filename)[1].lower()
         if ext == '.gif':
-            raise Exception, 'Saving .gif format not supported'
+            raise Exception, _('Saving .gif format not supported')
 
         PersistentModel.save(self, overwriteNewer)
 
@@ -312,7 +313,7 @@ class BitmapFileModel(PersistentModel):
             try:
                 bmp.SaveFile(fn, self.extTypeMap[newExt])
             except KeyError:
-                raise Exception, '%s image file types not supported'%newExt
+                raise Exception, _('%s image file types not supported')%newExt
             try:
                 # convert data to new image format
                 self.data = open(fn, 'rb').read()
