@@ -104,10 +104,8 @@ class SVNController(ExplorerNodes.Controller):
     diffBmp = 'Images/CvsPics/Diff.png'
     logBmp = 'Images/CvsPics/Log.png'
     statusBmp = 'Images/CvsPics/Status.png'
-    infoBmp = 'Images/CvsPics/Info.png'
-    resolvedBmp = 'Images/CvsPics/ResolvedConflict.png'
-    #tagBmp = 'Images/CvsPics/Tag.png'
-    #branchBmp = 'Images/CvsPics/Branch.png'
+    #infoBmp = 'Images/CvsPics/Info.png'
+    #resolvedBmp = 'Images/CvsPics/ResolvedConflict.png'
     def __init__(self, editor, list, inspector, controllers):
         ExplorerNodes.Controller.__init__(self, editor)
         self.list = list
@@ -117,7 +115,7 @@ class SVNController(ExplorerNodes.Controller):
         self.svnMenuDef = [
               (wxID_SVNUPDATE, 'Update', self.OnUpdateSVNItems, self.updateBmp),
               (wxID_SVNCOMMIT, 'Commit', self.OnCommitSVNItems, self.commitBmp),
-              (wxID_SVNRESOLVED, 'Resolved', self.OnResolvedSVNItems, self.resolvedBmp),
+              (wxID_SVNRESOLVED, 'Resolved', self.OnResolvedSVNItems, '-'),
               (-1, '-', None, ''),
               (wxID_SVNADD, 'Add', self.OnAddSVNItems, self.addBmp),
               (wxID_SVNREMOVE, 'Remove', self.OnRemoveSVNItems, self.removeBmp),
@@ -125,12 +123,11 @@ class SVNController(ExplorerNodes.Controller):
               (wxID_SVNDIFF, 'Diff', self.OnDiffSVNItems, self.diffBmp),
               (wxID_SVNLOG, 'Log', self.OnLogSVNItems, self.logBmp),
               (wxID_SVNSTATUS, 'Status', self.OnStatusSVNItems, self.statusBmp),
-              (wxID_SVNINFO, 'Info', self.OnInfoSVNItems, self.infoBmp),
-              (-1, '-', None, ''),
-              #(wxID_SVNTAG, 'Tag', self.OnTagSVNItems, self.tagBmp),
-              #(wxID_SVNBRANCH, 'Branch', self.OnBranchSVNItems, self.branchBmp),
-              (wxID_SVNLOCK, 'Lock', self.OnLockSVNItems, '-'),
-              (wxID_SVNUNLOCK, 'Unlock', self.OnUnlockSVNItems, '-') ]
+              (wxID_SVNINFO, 'Info', self.OnInfoSVNItems, '-'),
+              #(-1, '-', None, ''),
+              #(wxID_SVNLOCK, 'Lock', self.OnLockSVNItems, '-'),
+              #(wxID_SVNUNLOCK, 'Unlock', self.OnUnlockSVNItems, '-'), 
+        ]
 
         self.setupMenu(self.menu, self.list, self.svnMenuDef)
 
@@ -378,11 +375,11 @@ class SVNController(ExplorerNodes.Controller):
     def OnBranchSVNItems(self, event):
         self.doSvnCmdOnSelection('tag', '-b')
 
-    def OnLockSVNItems(self, event):
-        self.doSvnCmdOnSelection('admin', '-l[REV]')
-
-    def OnUnlockSVNItems(self, event):
-        self.doSvnCmdOnSelection('admin', '-u[REV]')
+##    def OnLockSVNItems(self, event):
+##        self.doSvnCmdOnSelection('admin', '-l[REV]')
+##
+##    def OnUnlockSVNItems(self, event):
+##        self.doSvnCmdOnSelection('admin', '-u[REV]')
 
     def OnResolvedSVNItems(self, event):
         self.doSvnCmdOnSelection('resolved', '')
