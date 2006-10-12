@@ -1,6 +1,17 @@
 Changes
 -------
 
+-- 0.5.1 (CVS) --
+
+2006-10-12
+
+* I18N _() string marking of the source code base 
+  excluded sections: ZopeSupport, STCStyleEditor, About, CVS/SVN, 
+                     HelpBook Support, ImageEdit Support and Cyclops
+  excluded UI elements: Palette tab names, View names, Preference help strings,
+                        startup messages, command-line help, 
+
+
 -- 0.5.0 (CVS) --
 
 2006-10-10
