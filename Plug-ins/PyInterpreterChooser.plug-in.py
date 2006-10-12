@@ -14,6 +14,8 @@ import os, sys
 
 import wx
 
+from Utils import _
+
 PyCoreRegPath = 'SOFTWARE\\Python\\Pythoncore'
 
 [wxID_PYINTERPRETERCHOOSERDLG, wxID_PYINTERPRETERCHOOSERDLGBTNCANCEL, 
@@ -57,9 +59,9 @@ class PyInterpreterChooserDlg(wx.Dialog):
         # generated method, don't edit
 
         parent.InsertColumn(col=0, format=wx.LIST_FORMAT_LEFT,
-              heading='Version', width=50)
+              heading=_('Version'), width=50)
         parent.InsertColumn(col=1, format=wx.LIST_FORMAT_LEFT,
-              heading='Install Path', width=170)
+              heading=_('Install Path'), width=170)
 
     def _init_sizers(self):
         # generated method, don't edit
@@ -85,13 +87,13 @@ class PyInterpreterChooserDlg(wx.Dialog):
               name='PyInterpreterChooserDlg', parent=prnt, pos=wx.Point(548,
               354), size=wx.Size(532, 358),
               style=wx.RESIZE_BORDER | wx.DEFAULT_DIALOG_STYLE,
-              title='Python Interpreter Chooser')
+              title=_('Python Interpreter Chooser'))
         self._init_utils()
         self.SetClientSize(wx.Size(524, 331))
         self.Center(wx.BOTH)
 
         self.staticText1 = wx.StaticText(id=wxID_PYINTERPRETERCHOOSERDLGSTATICTEXT1,
-              label='Found installations: (double click to select)',
+              label=_('Found installations: (double click to select)'),
               name='staticText1', parent=self, pos=wx.Point(10, 10),
               size=wx.Size(256, 22), style=0)
 
@@ -112,7 +114,7 @@ class PyInterpreterChooserDlg(wx.Dialog):
               id=wxID_PYINTERPRETERCHOOSERDLGLCINSTALLATIONS)
 
         self.staticText2 = wx.StaticText(id=wxID_PYINTERPRETERCHOOSERDLGSTATICTEXT2,
-              label='Current interpreter path (Blank means sys.executable will be used.)',
+              label=_('Current interpreter path (Blank means sys.executable will be used.)'),
               name='staticText2', parent=self, pos=wx.Point(10, 218),
               size=wx.Size(376, 19), style=0)
 
@@ -120,11 +122,11 @@ class PyInterpreterChooserDlg(wx.Dialog):
               name='txtPyIntpPath', parent=self, pos=wx.Point(10, 257),
               size=wx.Size(504, 21), style=0, value=self.pythonInterpreterPath)
 
-        self.btnOK = wx.Button(id=wx.ID_OK, label='OK', name='btnOK',
+        self.btnOK = wx.Button(id=wx.ID_OK, label=_('OK'), name='btnOK',
               parent=self, pos=wx.Point(287, 298), size=wx.Size(101, 23),
               style=0)
 
-        self.btnCancel = wx.Button(id=wx.ID_CANCEL, label='Cancel',
+        self.btnCancel = wx.Button(id=wx.ID_CANCEL, label=_('Cancel'),
               name='btnCancel', parent=self, pos=wx.Point(408, 298),
               size=wx.Size(106, 23), style=0)
 
@@ -238,8 +240,7 @@ class PyInterpreterChooserDlg(wx.Dialog):
 
 
 if __name__ == '__main__':
-    app =wx.PySimpleApp()
-    wx.InitAllImageHandlers()
+    app = wx.PySimpleApp()
     dlg = PyInterpreterChooserDlg(None)
     try:
         dlg.ShowModal()
@@ -289,4 +290,4 @@ def openPyInterpChooser(editor):
 Plugins.registerPreference('PyInterpreterChooser', 'picExtraPaths', '[]',
                            ['Additional locations to choose the Python '
                             'Interpreter Path from.'])
-Plugins.registerTool('Python interpreter chooser', openPyInterpChooser)
+Plugins.registerTool(_('Python interpreter chooser'), openPyInterpChooser)

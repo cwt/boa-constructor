@@ -6,6 +6,7 @@ import wx
 
 import Preferences
 import Utils
+from Utils import _
 
 #-------------------------------------------------------------------------------
 
@@ -20,24 +21,24 @@ class ModuleFinderDlg(wx.Dialog):
         wx.Dialog.__init__(self, id=wxID_MODULEFINDERDLG,
               name='ModuleFinderDlg', parent=prnt, pos=wx.Point(676, 466),
               size=wx.Size(275, 133), style=wx.DEFAULT_DIALOG_STYLE,
-              title='Module finder for sys.path')
+              title=_('Module finder for sys.path'))
         self.SetClientSize(wx.Size(267, 106))
         self.Center(wx.BOTH)
 
         self.staticText1 = wx.StaticText(id=wxID_MODULEFINDERDLGSTATICTEXT1,
-              label='Module name:', name='staticText1', parent=self,
+              label=_('Module name:'), name='staticText1', parent=self,
               pos=wx.Point(8, 8), size=wx.Size(104, 16), style=0)
 
         self.txtModuleName = wx.TextCtrl(id=wxID_MODULEFINDERDLGTXTMODULENAME,
               name='txtModuleName', parent=self, pos=wx.Point(8, 32),
               size=wx.Size(248, 21), style=0, value='')
 
-        self.okBtn = wx.Button(id=wx.ID_OK, label='OK', name='okBtn',
+        self.okBtn = wx.Button(id=wx.ID_OK, label=_('OK'), name='okBtn',
               parent=self, pos=wx.Point(103, 72), size=wx.Size(75, 23),
               style=0)
         self.okBtn.SetDefault()
 
-        self.cancelBtn = wx.Button(id=wx.ID_CANCEL, label='Cancel',
+        self.cancelBtn = wx.Button(id=wx.ID_CANCEL, label=_('Cancel'),
               name='cancelBtn', parent=self, pos=wx.Point(183, 72),
               size=wx.Size(75, 23), style=0)
 
@@ -59,7 +60,7 @@ def openModuleFinder(editor):
                 f, filename, (ext, mode, type) = \
                       Utils.find_dotted_module(modName)#, sys.path)
             except ImportError, err:
-                wx.LogError('%s not found on sys.path (%s).'%(modName, str(err)))
+                wx.LogError(_('%s not found on sys.path (%s).')%(modName, str(err)))
             else:
                 if f is not None:
                     f.close()
@@ -80,7 +81,7 @@ else:
     keyIdent = ''
 
 import Plugins
-Plugins.registerTool('Module finder', openModuleFinder,
+Plugins.registerTool(_('Module finder'), openModuleFinder,
                      'Images/ModuleFinder.png', keyIdent)
 
 #-------------------------------------------------------------------------------

@@ -3,6 +3,7 @@
 import wx
 
 import Preferences, Utils, Plugins
+from Utils import _
 
 # only install if ErrOut is docked in the Editor
 if Preferences.eoErrOutDockWindow != 'editor':
@@ -14,4 +15,4 @@ def toggleErrOutWindow(editor):
     editor.tabsSplitter._OnSplitterwindowSplitterDoubleclicked(None)
 
 Plugins.registerTool(
-      'Toggle Error/Output window', toggleErrOutWindow, key='ToggleErrOut')
+      _('Toggle Error/Output window'), toggleErrOutWindow, key='ToggleErrOut')

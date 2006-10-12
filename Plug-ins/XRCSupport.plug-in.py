@@ -1,6 +1,8 @@
 import wx
 import wx.xrc
 
+from Utils import _
+
 from Companions import BaseCompanions
 
 class XmlResourceDTC(BaseCompanions.UtilityDTC):
@@ -45,7 +47,7 @@ class XrcPanelDTC(ContainerCompanions.PanelDTC):
                                  size = wx.DefaultSize):
         xrcObjs = self.designer.getObjectsOfClass(wx.xrc.XmlResource)
         if not xrcObjs:
-            raise 'No wx.xrc.XmlResource objects found'
+            raise Exception, _('No wx.xrc.XmlResource objects found')
         # factory/LoadPage allows no positional info
         if not position: posx, posy = 0, 0
         else:            posx, posy = position.x, position.y
@@ -62,18 +64,19 @@ class XrcPanelDTC(ContainerCompanions.PanelDTC):
             xrcObjs = self.designer.getObjectsOfClass(wx.xrc.XmlResource)
             names = xrcObjs.keys()
             if names:
-                dlg = wx.SingleChoiceDialog(self.designer, 'Select wx.xrc.XmlResource to LoadPanel from',
+                dlg = wx.SingleChoiceDialog(self.designer, 
+                      _('Select wx.xrc.XmlResource to LoadPanel from'),
                       'wx.xrc.XmlResource.LoadPanel', names)
                 try:
                     if dlg.ShowModal() == wx.ID_OK:
                         xrcObj = dlg.GetStringSelection()
                         self.xmlResource = xrcObj.split('.')[1]
                     else:
-                        raise 'Cancelled!'
+                        raise Exception, 'Cancelled!'
                 finally:
                     dlg.Destroy()
             else:
-                raise 'No wx.xrc.XmlResource objects found'
+                raise Exception, _('No wx.xrc.XmlResource objects found')
         else:
             self.xmlResource = self.textConstr.factory[0]
 

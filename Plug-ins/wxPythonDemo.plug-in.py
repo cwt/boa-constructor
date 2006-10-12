@@ -6,6 +6,7 @@ import wx
 from wx.lib.anchors import LayoutAnchors
 
 import Preferences, Utils, Plugins
+from Utils import _
 
 from Explorers import ExplorerNodes, FileExplorer
 from Models import EditorModels, EditorHelper, Controllers
@@ -26,8 +27,8 @@ else:
     demoDir = os.path.join(os.path.dirname(wx.__file__), 'demo')
 
 if not os.path.exists(demoDir):
-    raise Plugins.SkipPlugin('wxPython demo directory not found.\n'
-          'Please define the path under Preferences->Plug-ins')
+    raise Plugins.SkipPlugin(_('wxPython demo directory not found.\n'
+          'Please define the path under Preferences->Plug-ins'))
 
 true = 1
 false = 0
@@ -120,7 +121,7 @@ class wxPythonDemoOverView(EditorViews.HTMLView, EditorViews.CloseableViewMix):
         if self.model.demoModule:
             return self.model.demoModule.overview
         else:
-            return 'No module imported'
+            return _('No module imported')
 
 
 class wxPythonDemoNode(FileExplorer.FileSysNode):
@@ -178,7 +179,7 @@ class wxPythonDemoSectionNode(ExplorerNodes.ExplorerNode):
 class wxPythonDemoDirNode(ExplorerNodes.ExplorerNode):
     protocol = 'wxpydemo'
     def __init__(self, clipboard, parent, bookmarks):
-        ExplorerNodes.ExplorerNode.__init__(self, 'wxPython demo', '', 
+        ExplorerNodes.ExplorerNode.__init__(self, _('wxPython demo'), '', 
               clipboard, EditorHelper.imgWxPythonDemo)
         self.bookmarks = bookmarks
         self.bold = true

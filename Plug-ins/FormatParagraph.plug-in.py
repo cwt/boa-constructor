@@ -18,6 +18,8 @@
 
 import re
 
+from Utils import _
+
 class FormatParagraph:
     def __init__(self, stc):
         self.stc = stc
@@ -150,7 +152,7 @@ class FormatParagraphViewPlugin:
         self.formatter = FormatParagraph(view)
         actions.extend( (
               ('-', None, '-', ''),
-              ('Format paragraph', self.OnFormatParagraph, '-', '') ) )
+              (_('Format paragraph'), self.OnFormatParagraph, '-', '') ) )
 
     def OnFormatParagraph(self, event):
         self.formatter.format_paragraph()

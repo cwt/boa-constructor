@@ -5,6 +5,8 @@ import os, sys, time
 import wx
 
 import Preferences, Utils
+from Utils import _
+
 from Models import PythonControllers
 
 from Explorers import Explorer
@@ -15,14 +17,14 @@ class AppTimeTrackView(ListCtrlView):
     viewName = 'Time Tracking'
     def __init__(self, parent, model):
         ListCtrlView.__init__(self, parent, model, wx.LC_REPORT,
-          (('Start', self.OnStart, '-', ''),
-           ('End', self.OnEnd, '-', ''),
-           ('Delete', self.OnDelete, '-', ''),
+          ((_('Start'), self.OnStart, '-', ''),
+           (_('End'), self.OnEnd, '-', ''),
+           (_('Delete'), self.OnDelete, '-', ''),
           ), 1)
 
-        self.InsertColumn(0, 'Start', width=150)
-        self.InsertColumn(1, 'End', width=150)
-        self.InsertColumn(2, 'Description', width=350)
+        self.InsertColumn(0, _('Start'), width=150)
+        self.InsertColumn(1, _('End'), width=150)
+        self.InsertColumn(2, _('Description'), width=350)
 
         self.sortOnColumns = [0, 1]
 
@@ -92,9 +94,9 @@ class AppTimeTrackView(ListCtrlView):
         if not end:
             end = time.time()
 
-        dlg = wx.TextEntryDialog(self, 'Start time :%s\nEnd time :%s\n\n'\
-            'Enter a description for the time spent' % (self.getTimeStr(start),
-              self.getTimeStr(end)), 'Time tracking', desc)
+        dlg = wx.TextEntryDialog(self, _('Start time :%s\nEnd time :%s\n\n'\
+            'Enter a description for the time spent') % (self.getTimeStr(start),
+              self.getTimeStr(end)), _('Time tracking'), desc)
         try:
             if dlg.ShowModal() == wx.ID_OK:
                 answer = dlg.GetValue()
@@ -110,7 +112,7 @@ class AppTimeTrackView(ListCtrlView):
         if selIdx == -1:
             return
 
-        dlg = wx.MessageDialog(self, 'Are you sure?',
+        dlg = wx.MessageDialog(self, _('Are you sure?'),
           'Delete', wx.OK | wx.CANCEL | wx.ICON_QUESTION)
         try:
             if dlg.ShowModal() == wx.ID_OK:

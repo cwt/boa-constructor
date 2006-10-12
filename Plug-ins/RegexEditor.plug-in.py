@@ -7,6 +7,7 @@ import wx.stc
 from wx.lib.anchors import LayoutAnchors
 
 import Preferences, Utils, Plugins
+from Utils import _
 
 reFlags = {'IGNORECASE': re.IGNORECASE, 'LOCALE': re.LOCALE,
            'MULTILINE': re.MULTILINE, 'DOTALL': re.DOTALL,
@@ -52,7 +53,7 @@ class RegexEditorFrm(wx.Frame, Utils.FrameRestorerMixin):
         # generated method, don't edit
         wx.Frame.__init__(self, id=wxID_REGEXEDITORFRM, name='RegexEditorFrm',
               parent=prnt, pos=wx.Point(562, 278), size=wx.Size(503, 509),
-              style=wx.DEFAULT_FRAME_STYLE, title='Regex Editor')
+              style=wx.DEFAULT_FRAME_STYLE, title=_('Regex Editor'))
         self._init_utils()
         self.SetClientSize(wx.Size(495, 482))
 
@@ -62,7 +63,7 @@ class RegexEditorFrm(wx.Frame, Utils.FrameRestorerMixin):
         self.panel.SetAutoLayout(True)
 
         self.staticText1 = wx.StaticText(id=wxID_REGEXEDITORFRMSTATICTEXT1,
-              label='Regular Expression', name='staticText1', parent=self.panel,
+              label=_('Regular Expression'), name='staticText1', parent=self.panel,
               pos=wx.Point(8, 8), size=wx.Size(91, 13), style=0)
 
         self.txtRegex = wx.TextCtrl(id=wxID_REGEXEDITORFRMTXTREGEX,
@@ -73,7 +74,7 @@ class RegexEditorFrm(wx.Frame, Utils.FrameRestorerMixin):
         self.txtRegex.Bind(wx.EVT_TEXT, self.OnUpdate, id=wxID_REGEXEDITORFRMTXTREGEX)
 
         self.staticText2 = wx.StaticText(id=wxID_REGEXEDITORFRMSTATICTEXT2,
-              label='String', name='staticText2', parent=self.panel,
+              label=_('String'), name='staticText2', parent=self.panel,
               pos=wx.Point(8, 160), size=wx.Size(27, 13), style=0)
 
         self.txtString = wx.TextCtrl(id=wxID_REGEXEDITORFRMTXTSTRING,
@@ -84,7 +85,7 @@ class RegexEditorFrm(wx.Frame, Utils.FrameRestorerMixin):
         self.txtString.Bind(wx.EVT_TEXT, self.OnUpdate, id=wxID_REGEXEDITORFRMTXTSTRING)
 
         self.staticText3 = wx.StaticText(id=wxID_REGEXEDITORFRMSTATICTEXT3,
-              label='Match', name='staticText3', parent=self.panel,
+              label=_('Match'), name='staticText3', parent=self.panel,
               pos=wx.Point(8, 304), size=wx.Size(30, 13), style=0)
 
         self.clbFlags = wx.CheckListBox(choices=['IGNORECASE', 'LOCALE',
@@ -97,11 +98,11 @@ class RegexEditorFrm(wx.Frame, Utils.FrameRestorerMixin):
         self.clbFlags.Bind(wx.EVT_CHECKLISTBOX, self.OnUpdate, id=wxID_REGEXEDITORFRMCLBFLAGS)
 
         self.staticText4 = wx.StaticText(id=wxID_REGEXEDITORFRMSTATICTEXT4,
-              label='Groups', name='staticText4', parent=self.panel,
+              label=_('Groups'), name='staticText4', parent=self.panel,
               pos=wx.Point(256, 304), size=wx.Size(34, 13), style=0)
 
-        self.rbAction = wx.RadioBox(choices=['Search', 'Match'],
-              id=wxID_REGEXEDITORFRMRBACTION, label='Action', majorDimension=1,
+        self.rbAction = wx.RadioBox(choices=[_('Search'), _('Match')],
+              id=wxID_REGEXEDITORFRMRBACTION, label=_('Action'), majorDimension=1,
               name='rbAction', parent=self.panel, point=wx.Point(376, 176),
               size=wx.Size(112, 120), style=wx.RA_SPECIFY_COLS)
         self.rbAction.SetConstraints(LayoutAnchors(self.rbAction, False, True,
@@ -116,7 +117,7 @@ class RegexEditorFrm(wx.Frame, Utils.FrameRestorerMixin):
         self.SetStatusBar(self.statusBar)
 
         self.staticText5 = wx.StaticText(id=wxID_REGEXEDITORFRMSTATICTEXT5,
-              label='Flags', name='staticText5', parent=self.panel,
+              label=_('Flags'), name='staticText5', parent=self.panel,
               pos=wx.Point(378, 8), size=wx.Size(25, 13), style=0)
         self.staticText5.SetConstraints(LayoutAnchors(self.staticText5, False,
               True, True, False))
@@ -165,7 +166,7 @@ class RegexEditorFrm(wx.Frame, Utils.FrameRestorerMixin):
         try:
             ro = re.compile(regex, flags)
         except Exception, err:
-            self.statusBar.SetStatusText('Error: %s: %s'%(err.__class__, err), 1)
+            self.statusBar.SetStatusText(_('Error: %s: %s')%(err.__class__, err), 1)
             self.sbImage.SetBitmap(self.statusImages[0])
             return
 
@@ -198,10 +199,10 @@ class RegexEditorFrm(wx.Frame, Utils.FrameRestorerMixin):
 
     def setStatus(self, mo):
         if mo:
-            self.statusBar.SetStatusText('Match', 1)
+            self.statusBar.SetStatusText(_('Match'), 1)
             self.sbImage.SetBitmap(self.statusImages[1])
         else:
-            self.statusBar.SetStatusText('Failed to match', 1)
+            self.statusBar.SetStatusText(_('Failed to match'), 1)
             self.sbImage.SetBitmap(self.statusImages[0])
 
 
@@ -211,4 +212,4 @@ def openRegexEditor(editor):
     frame = createRegexEditor(editor)
     frame.Show()
 
-Plugins.registerTool('Regex editor', openRegexEditor)
+Plugins.registerTool(_('Regex editor'), openRegexEditor)
