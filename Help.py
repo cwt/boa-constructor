@@ -18,6 +18,7 @@ import wx.html
 from wx.lib.anchors import LayoutAnchors
 
 import Preferences, Utils
+from Utils import _
 
 [wxID_PYDOCHELPPAGE, wxID_PYDOCHELPPAGEBOXRESULTS,
  wxID_PYDOCHELPPAGEBTNSEARCH, wxID_PYDOCHELPPAGEBTNSTOP,
@@ -44,7 +45,7 @@ class PyDocHelpPage(wx.Panel):
               size=wx.Size(231, 21), style=0, value='')
         self.txtSearch.SetConstraints(LayoutAnchors(self.txtSearch, True, True,
               True, False))
-        self.txtSearch.SetToolTipString('Enter name to search for')
+        self.txtSearch.SetToolTipString(_('Enter name to search for'))
         self.txtSearch.Bind(wx.EVT_TEXT_ENTER, self.OnTxtsearchTextEnter, id=wxID_PYDOCHELPPAGETXTSEARCH)
 
         self.boxResults =wx.ListBox(choices=[], id=wxID_PYDOCHELPPAGEBOXRESULTS,
@@ -55,13 +56,13 @@ class PyDocHelpPage(wx.Panel):
         self.boxResults.Bind(wx.EVT_LISTBOX, self.OnBoxresultsListboxDclick, id=wxID_PYDOCHELPPAGEBOXRESULTS)
 
         self.btnSearch =wx.Button(id=wxID_PYDOCHELPPAGEBTNSEARCH,
-              label='Search', name='btnSearch', parent=self, pos=wx.Point(89,
+              label=_('Search'), name='btnSearch', parent=self, pos=wx.Point(89,
               41), size=wx.Size(75, 23), style=0)
         self.btnSearch.SetConstraints(LayoutAnchors(self.btnSearch, False, True,
               True, False))
         self.btnSearch.Bind(wx.EVT_BUTTON, self.OnBtnsearchButton, id=wxID_PYDOCHELPPAGEBTNSEARCH)
 
-        self.btnStop =wx.Button(id=wxID_PYDOCHELPPAGEBTNSTOP, label='Stop',
+        self.btnStop =wx.Button(id=wxID_PYDOCHELPPAGEBTNSTOP, label=_('Stop'),
               name='btnStop', parent=self, pos=wx.Point(166, 41), size=wx.Size(75,
               23), style=0)
         self.btnStop.SetConstraints(LayoutAnchors(self.btnStop, False, True,
@@ -70,7 +71,7 @@ class PyDocHelpPage(wx.Panel):
         self.btnStop.Bind(wx.EVT_BUTTON, self.OnBtnstopButton, id=wxID_PYDOCHELPPAGEBTNSTOP)
 
         self.chkRunServer =wx.CheckBox(id=wxID_PYDOCHELPPAGECHKRUNSERVER,
-              label='Server', name='chkRunServer', parent=self, pos=wx.Point(3,
+              label=_('Server'), name='chkRunServer', parent=self, pos=wx.Point(3,
               72), size=wx.Size(73, 13), style=0)
         self.chkRunServer.SetValue(self.runServer)
         self.chkRunServer.Bind(wx.EVT_CHECKBOX, self.OnChkrunserverCheckbox, id=wxID_PYDOCHELPPAGECHKRUNSERVER)
@@ -80,7 +81,7 @@ class PyDocHelpPage(wx.Panel):
               size=wx.Size(168, 16), style=wx.TAB_TRAVERSAL | wx.NO_BORDER)
 
         self.stxStatus =wx.StaticText(id=wxID_PYDOCHELPPAGESTXSTATUS,
-              label='Server not running ', name='stxStatus',
+              label=_('Server not running '), name='stxStatus',
               parent=self.pnlStatus, pos=wx.Point(0, 0), size=wx.Size(168, 16),
               style=wx.ST_NO_AUTORESIZE | wx.ALIGN_RIGHT)
         self.stxStatus.SetConstraints(LayoutAnchors(self.stxStatus, True, True,
@@ -112,10 +113,10 @@ class PyDocHelpPage(wx.Panel):
         import warnings
         warnings.filterwarnings('ignore', '', DeprecationWarning, 'pydoc')
 
-        self.stxStatus.SetLabel('Starting pydoc server... ')
+        self.stxStatus.SetLabel(_('Starting pydoc server... '))
 
         if not testPydocServerAddress('localhost', 7464):
-            self.stxStatus.SetLabel('Address in use, ')
+            self.stxStatus.SetLabel(_('Address in use, '))
 
             self.chkRunServer.Enable(True)
             self.chkRunServer.SetValue(False)
@@ -154,7 +155,7 @@ class PyDocHelpPage(wx.Panel):
 
             wx.CallAfter(self.chkRunServer.Enable, True)
             wx.CallAfter(self.chkRunServer.SetValue, False)
-            wx.CallAfter(self.stxStatus.SetLabel, 'Server quit. ')
+            wx.CallAfter(self.stxStatus.SetLabel, _('Server quit. '))
 
     def OnBtnsearchButton(self, event):
         self.doSearch()
@@ -212,7 +213,7 @@ class PyDocHelpPage(wx.Panel):
             self.startPydocServer()
         else:
             if self.server:
-                self.restoreLabel('Stopping server...')
+                self.restoreLabel(_('Stopping server...'))
                 self.server.quit = 1
                 self.server.server_close()
 
@@ -399,7 +400,7 @@ class wxHelpFrameEx:
             self.toolbar.AddTool(id = self.copyToClipId, isToggle=0,
                 bitmap=Preferences.IS.load('Images/Shared/CopyHelp.png'),
                 pushedBitmap=wx.NullBitmap,
-                shortHelpString='Copy contents as text to clipboard',
+                shortHelpString=_('Copy contents as text to clipboard'),
                 longHelpString='')
             self.frame.Bind(wx.EVT_TOOL, self.OnCopyPage, id=self.copyToClipId)
             self.toolbar.Realize()
@@ -407,21 +408,21 @@ class wxHelpFrameEx:
 #        else:
 #            self.navPages = nav.GetChildren()[0]
 
-        assert self.navPages.GetPageText(0) == 'Contents'
+        assert self.navPages.GetPageText(0) == _('Contents')
         self.contentsPanel = self.navPages.GetPage(0)
 
         self.contentsAddBookmark, self.contentsDelBookmark, \
               self.contentsChooseBookmark, self.contentsTree = \
               self.contentsPanel.GetChildren()
 
-        assert self.navPages.GetPageText(1) == 'Index'
+        assert self.navPages.GetPageText(1) == _('Index')
         self.indexPanel = self.navPages.GetPage(1)
 
         self.indexTextCtrl, btn1, btn2 = \
               self.indexPanel.GetChildren()[:3]
 
         # done this way to work on 2.3.2 and 2.3.3
-        if btn1.GetLabel() == 'Show all':
+        if btn1.GetLabel() == _('Show all'):
             self.indexShowAllBtn, self.indexFindBtn = btn1, btn2
         else:
             self.indexShowAllBtn, self.indexFindBtn = btn2, btn1
@@ -531,7 +532,7 @@ def initHelp(calledAtStartup=False):
     books = eval(conf.get('help', 'books'), {})
     for book in books:
         if calledAtStartup:
-            print 'Help: loading %s'% os.path.basename(book)
+            print _('Help: loading %s')% os.path.basename(book)
         bookPath = os.path.normpath(jn(docsDir, book))
         if os.path.exists(bookPath):
             _hc.AddBook(bookPath,
@@ -544,9 +545,9 @@ def initWxPyDocStrs():
 
 
 def pydocWarning():
-    return wx.MessageBox('The pydoc server has not completely started up yet,\n '
+    return wx.MessageBox(_('The pydoc server has not completely started up yet,\n '
                         'it is safer to wait for it to finish before shutting '
-                        'down.\n\nDo you want to wait?', 'Pydoc server busy',
+                        'down.\n\nDo you want to wait?'), _('Pydoc server busy'),
                         wx.YES_NO | wx.ICON_EXCLAMATION) == wx.YES
 
 def canClosePydocServer():
@@ -590,7 +591,6 @@ def delHelp():
 
 def main(args):
     app = wx.PySimpleApp()
-    wx.InitAllImageHandlers()
     initHelp()
     if args:
         showContextHelp(args[0])
@@ -601,7 +601,6 @@ def main(args):
 
 def _test(word):
     app = wx.PySimpleApp()
-    wx.InitAllImageHandlers()
     initHelp()
     if word:
         showContextHelp(word)

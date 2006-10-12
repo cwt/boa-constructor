@@ -14,6 +14,7 @@
 import sys, os, cStringIO
 
 import wx
+_ = wx.GetTranslation
 
 class ImageStoreError(Exception): pass
 class InvalidImgPathError(ImageStoreError): pass
@@ -59,7 +60,7 @@ class ImageStore:
             else:
                 return bitmap
         else:
-            raise UnhandledExtError, 'Extension not handled: '+ext
+            raise UnhandledExtError, _('Extension not handled: %s')%ext
 
     def pathExtFromName(self, root, name):
         imgPath = self.canonizePath(os.path.join(root, name))
@@ -83,7 +84,7 @@ class ImageStore:
                 return self.images[name]
             else:
                 return self.createImage(imgpath, ext)
-        raise InvalidImgPathError, '%s not found in image paths' %name
+        raise InvalidImgPathError, _('%s not found in image paths')%name
 
     def canonizePath(self, imgPath):
         return os.path.normpath(imgPath).replace('\\', '/')
@@ -93,7 +94,7 @@ class ImageStore:
             return
 
         if not os.path.isfile(imgPath):
-            raise InvalidImgPathError, '%s not valid' %imgPath
+            raise InvalidImgPathError, _('%s not valid') %imgPath
 
     def addRootPath(self, rootPath):
         self.rootpaths.append(rootPath)
@@ -111,7 +112,7 @@ class ZippedImageStore(ImageStore):
 
         archive = os.path.join(rootPath, 'Images.archive.zip')
         if os.path.exists(archive):
-            print 'reading image archive...'
+            print _('reading image archive...')
             import zipfile
             zf = zipfile.ZipFile(archive)
             self.archives[archive] = [fl.filename for fl in zf.filelist]
@@ -125,7 +126,7 @@ class ZippedImageStore(ImageStore):
 
             zf.close()
         else:
-            print 'image archive %s not found'%archive
+            print _('image archive %s not found')%archive
 
     def load(self, name):
         name = self.canonizePath(name)
@@ -154,7 +155,7 @@ class ResourceImageStore(ImageStore):
                 for comp in components[1:]: 
                     mod = getattr(mod, comp) 
                 return mod 
-            raise ImportError, 'Could not find %s'%name
+            raise ImportError, _('Could not find %s')%name
         finally:
             sys.path = realSysPath
 

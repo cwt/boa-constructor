@@ -5,6 +5,7 @@ import string
 import wx
 
 import Preferences, Utils
+from Utils import _
 
 class InvalidValueError(Exception): pass
 
@@ -55,25 +56,25 @@ class KeyDefsDialog(wx.Dialog):
               id=wxID_KEYDEFSDIALOGKEYCODECBB)
 
         self.staticText1 = wx.StaticText(id=wxID_KEYDEFSDIALOGSTATICTEXT1,
-              label='Key code:', name='staticText1', parent=self,
+              label=_('Key code:'), name='staticText1', parent=self,
               pos=wx.Point(152, 16), size=wx.Size(120, 13), style=0)
 
         self.staticText2 = wx.StaticText(id=wxID_KEYDEFSDIALOGSTATICTEXT2,
-              label='Shortcut text:', name='staticText2', parent=self,
+              label=_('Shortcut text:'), name='staticText2', parent=self,
               pos=wx.Point(152, 64), size=wx.Size(120, 13), style=0)
 
         self.shortcutTc = wx.TextCtrl(id=wxID_KEYDEFSDIALOGSHORTCUTTC,
               name='shortcutTc', parent=self, pos=wx.Point(152, 80),
               size=wx.Size(124, 21), style=0, value='')
 
-        self.okBtn = wx.Button(id=wxID_KEYDEFSDIALOGOKBTN, label='OK',
+        self.okBtn = wx.Button(id=wxID_KEYDEFSDIALOGOKBTN, label=_('OK'),
               name='okBtn', parent=self, pos=wx.Point(120, 120),
               size=wx.Size(75, 23), style=0)
         self.okBtn.Bind(wx.EVT_BUTTON, self.OnOkbtnButton,
               id=wxID_KEYDEFSDIALOGOKBTN)
 
         self.cancelBtn = wx.Button(id=wxID_KEYDEFSDIALOGCANCELBTN,
-              label='Cancel', name='cancelBtn', parent=self, pos=wx.Point(200,
+              label=_('Cancel'), name='cancelBtn', parent=self, pos=wx.Point(200,
               120), size=wx.Size(75, 23), style=0)
         self.cancelBtn.Bind(wx.EVT_BUTTON, self.OnCancelbtnButton,
               id=wxID_KEYDEFSDIALOGCANCELBTN)
@@ -86,7 +87,7 @@ class KeyDefsDialog(wx.Dialog):
         self.preDefKeys = []
         self.preDefKeys = specialKeys.keys() + otherKeys1 + otherKeys2
         self.entryTitle = 'Key binding definition:'
-        self.entryTitle = 'Key binding definition: %s' % entryName
+        self.entryTitle = _('Key binding definition: %s') % entryName
 
         self._init_ctrls(parent)
 
@@ -119,15 +120,15 @@ class KeyDefsDialog(wx.Dialog):
 
         keyCode = self.keyCodeCbb.GetValue()
         if not keyCode:
-            raise InvalidValueError('Key code may not be blank')
+            raise InvalidValueError(_('Key code may not be blank'))
         if keyCode not in specialKeys.keys() + otherKeys1 + otherKeys2:
             if len(keyCode) != 1 or keyCode not in string.letters+string.digits:
-                raise InvalidValueError('Key code must either be a single character (letter or digit) or an identifier selected from the combobox')
+                raise InvalidValueError(_('Key code must either be a single character (letter or digit) or an identifier selected from the combobox'))
             keyCode = "ord('%s')" % keyCode.upper()
 
         shortcut = self.shortcutTc.GetValue()
         if not shortcut:
-            raise InvalidValueError('Shortcut may not be blank, enter a concise description, e.g. Ctrl-Shift-S')
+            raise InvalidValueError(_('Shortcut may not be blank, enter a concise description, e.g. Ctrl-Shift-S'))
 
         return "(%s, %s, '%s')," % (flags, keyCode, shortcut)
 
@@ -147,7 +148,7 @@ class KeyDefsDialog(wx.Dialog):
         try:
             self.result = self.validateCtrls()
         except InvalidValueError, err:
-            wx.MessageBox(str(err), 'Invalid value error', wx.OK | wx.ICON_ERROR, self)
+            wx.MessageBox(str(err), _('Invalid value error'), wx.OK | wx.ICON_ERROR, self)
         else:
             self.EndModal(wx.ID_OK)
 

@@ -19,8 +19,8 @@ import wx
 
 import PaletteMapping, PaletteStore
 import Help, Preferences, Utils, Plugins
-
 from Preferences import IS, flatTools
+from Utils import _
 
 import wx.lib.buttons
 
@@ -43,11 +43,11 @@ class BoaFrame(wx.Frame, Utils.FrameRestorerMixin):
         parent.AddTool(bitmap=IS.load('Images/Shared/Inspector.png'),
               id=wxID_BOAFRAMETOOLBARTOOLS0, isToggle=False, longHelpString='',
               pushedBitmap=wx.NullBitmap,
-              shortHelpString='Brings the Inspector to the front')
+              shortHelpString=_('Brings the Inspector to the front'))
         parent.AddTool(bitmap=IS.load('Images/Shared/Editor.png'),
               id=wxID_BOAFRAMETOOLBARTOOLS1, isToggle=False, longHelpString='',
               pushedBitmap=wx.NullBitmap,
-              shortHelpString='Brings the Editor to the front')
+              shortHelpString=_('Brings the Editor to the front'))
         self.Bind(wx.EVT_TOOL, self.OnInspectorToolClick,
               id=wxID_BOAFRAMETOOLBARTOOLS0)
         self.Bind(wx.EVT_TOOL, self.OnEditorToolClick,
@@ -113,12 +113,12 @@ class BoaFrame(wx.Frame, Utils.FrameRestorerMixin):
         self.paletteHelpItems = eval(conf.get('help', 'palettehelp'), {})
 
         self.toolBar.AddSeparator()
-        self.addTool('Images/Shared/Help', 'Boa or selected component help',
-              'Show help', self.OnHelpToolClick)
-        self.addTool('Images/Shared/wxWinHelp', 'wxPython help',
-              'Show help', self.OnWxWinHelpToolClick)
-        self.addTool('Images/Shared/PythonHelp', 'Python help',
-              'Show help', self.OnPythonHelpToolClick)
+        self.addTool('Images/Shared/Help', _('Boa or selected component help'),
+              _('Show help'), self.OnHelpToolClick)
+        self.addTool('Images/Shared/wxWinHelp', _('wxPython help'),
+              _('Show help'), self.OnWxWinHelpToolClick)
+        self.addTool('Images/Shared/PythonHelp', _('Python help'),
+              _('Show help'), self.OnPythonHelpToolClick)
 
         # Add additional helpbuttons if defined in the config file
         customHelpItems = eval(conf.get('help', 'customhelp'), {})
@@ -339,8 +339,8 @@ class ComponentSelection:
         palette mapping structures. Accessed by the Designer """
     def __init__(self, palette):
         wID = wx.NewId()
-        self.selComp = wx.CheckBox(palette.toolBar, wID, '  (Nothing selected)',
-              size =wx.Size(160, 20))
+        self.selComp = wx.CheckBox(palette.toolBar, wID, '  '+_('(Nothing selected)'),
+              size =wx.Size(180, 20))
         self.selComp.Enable(False)
         self.selComp.Bind(wx.EVT_CHECKBOX, palette.OnUncheckComponent, id=wID)
         palette.toolBar.AddControl(self.selComp)
@@ -368,7 +368,7 @@ class ComponentSelection:
         if self.prevPage: self.prevPage.selectNone()
         self.selection = None
         self.selComp.Enable(False)
-        self.selComp.SetLabel('  (Nothing selected)')
+        self.selComp.SetLabel('  '+_('(Nothing selected)'))
         self.selComp.SetValue(False)
 
 class BasePalettePage:
@@ -543,7 +543,6 @@ class ZopePalettePage(PalettePage):
 
 if __name__ == '__main__':
     app = wx.PySimpleApp()
-    wx.InitAllImageHandlers()
     palette = BoaFrame(None, -1, app)
     palette.Show()
     palette.palette.AddPage(wx.Panel(palette.palette, -1), 'test')

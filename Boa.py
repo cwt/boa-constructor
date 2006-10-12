@@ -251,8 +251,12 @@ if __version__.wx_version_max and wxVersion > __version__.wx_version_max:
     raise Exception, 'wxPython %d.%d.%d.%d not supported'%wxVersion
 
 import Preferences, Utils
+from Utils import _
+
 import About
+
 print 'running main...'
+
 # XXX auto created frames (main frame handled currently)
 # XXX More property editors!
 # XXX More companion classes! $
@@ -479,7 +483,7 @@ class BoaApp(wx.App):
         # i18n support
         self.locale = wx.Locale(Preferences.i18nLanguage)
         wx.Locale.AddCatalogLookupPathPrefix('locale')
-        self.locale.AddCatalog('boa-constructor') 
+        self.locale.AddCatalog('boa') 
 
         wx.ToolTip.Enable(True)
         if Preferences.debugMode == 'release':
@@ -526,8 +530,8 @@ class BoaApp(wx.App):
             try:
                 Utils.writeConfig(conf)
             except IOError, err:
-                startupErrors.append('Error writing config file: %s\nPlease '
-              'ensure that the Explorer.*.cfg file is not read only.'% str(err))
+                startupErrors.append(_('Error writing config file: %s\nPlease '
+              'ensure that the Explorer.*.cfg file is not read only.')% str(err))
 
             if not emptyEditor:
                 editor.restoreEditorState()
@@ -537,10 +541,8 @@ class BoaApp(wx.App):
     ##            editor.setupToolBar()
 
             import Help
-            #print 'attaching wxPython doc strings'
-            #Help.initWxPyDocStrs()
             if not Preferences.delayInitHelp:
-                print 'initialising Help'
+                print 'initialising help'
                 Help.initHelp()
 
             global constricted
@@ -570,10 +572,7 @@ class BoaApp(wx.App):
                 editor.shell.execStartupScript(startupfile)
 
         finally:
-            #time.sleep(1000)
             abt.Destroy()
-            #del abt
-            pass
 
         # Apply command line switches
         if doDebug and startupModules:
@@ -585,7 +584,7 @@ class BoaApp(wx.App):
 
         editor.setupToolBar()
 
-        editor.setStatus('Startup time: %5.2f' % (time.time() - t1))
+        #editor.setStatus('Startup time: %5.2f' % (time.time() - t1))
 
         Utils.showTip(self.main.editor)
 
@@ -597,14 +596,14 @@ class BoaApp(wx.App):
             try:
                 os.chdir(Preferences.exWorkingDirectory)
             except OSError, err:
-                startupErrors.append('Could not set working directory from '\
-                      'Preferences.exWorkingDirectory :')
+                startupErrors.append(_('Could not set working directory from '
+                                       'Preferences.exWorkingDirectory :'))
                 startupErrors.append(str(err))
 
         if startupErrors:
             for error in startupErrors:
                 wx.LogError(error)
-            wx.LogError('\nThere were errors during startup, please click "Details"')
+            wx.LogError(_('\nThere were errors during startup, please click "Details"'))
 
         if wx.Platform == '__WXMSW__':
             self.tbicon = wx.TaskBarIcon()
@@ -623,10 +622,10 @@ class BoaApp(wx.App):
 
     def OnTaskBarMenu(self, event):
         menu = wx.Menu()
-        menu.Append(self.TBMENU_RESTORE, 'Restore Boa Constructor')
-        menu.Append(self.TBMENU_CLOSE,   'Exit')
+        menu.Append(self.TBMENU_RESTORE, _('Restore Boa Constructor'))
+        menu.Append(self.TBMENU_CLOSE,   _('Exit'))
         menu.AppendSeparator()
-        menu.Append(self.TBMENU_ABOUT,   'About')
+        menu.Append(self.TBMENU_ABOUT,   _('About'))
         self.tbicon.PopupMenu(menu)
         menu.Destroy()
 
@@ -671,7 +670,7 @@ def main(argv=None):
     try:
         app = BoaApp()
     except Exception, error:
-        wx.MessageBox(str(error), 'Error on startup')
+        wx.MessageBox(str(error), _('Error on startup'))
         raise
 
     app.MainLoop()

@@ -60,6 +60,8 @@ class frame1(wxFrame):
 import re, string
 
 import Preferences, Utils
+from Utils import _
+
 from Companions import EventCollections
 
 import sourceconst
@@ -151,7 +153,7 @@ def matchbracket(text, findBracket, dir=None):
         end = len(text)
         brktIdx = containEnd.index(findBracket)
     else:
-        raise Exception, 'Unhandled bracket'
+        raise Exception, _('Unhandled bracket')
 
     # () {} []
     levels = [0, 0, 0]
@@ -382,14 +384,14 @@ class PropertyParse(PerLineParser):
                 self.params = safesplitfields(self.m.group('params'), ',')
                 compsetter = self.m.group('name').split('.')
 
-                if len(compsetter) < 1: raise Exception, 'atleast 1 required '+`compsetter`
+                if len(compsetter) < 1: raise Exception, _('Atleast 1 segment required, got: %r')%compsetter
                 if len(compsetter) == 1:
                     self.comp_name = ''
                     self.prop_setter = compsetter[0]
                 elif len(compsetter) == 2:
                     self.comp_name = compsetter[0]
                     self.prop_setter = compsetter[1]
-                else: raise Exception, 'Too many attribute levels'
+                else: raise Exception, _('Too many attribute levels')
                 
                 if self.prop_setter == 'Bind':
                     self.m = None

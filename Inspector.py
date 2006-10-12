@@ -31,6 +31,7 @@ from Companions import EventCollections
 import Preferences, RTTI, Utils
 from Preferences import IS, oiLineHeight, inspPageNames, flatTools
 from Preferences import keyDefs
+from Utils import _
 
 scrollBarWidth = 0
 IECWidthFudge = 3
@@ -69,7 +70,7 @@ class InspectorFrame(wx.Frame, Utils.FrameRestorerMixin):
 
         parent.AddTool(bitmap=self.up_bmp, id=wxID_INSPECTORFRAMETOOLBARTOOLS0,
               isToggle=False, longHelpString='', pushedBitmap=wx.NullBitmap,
-              shortHelpString='Select parent')
+              shortHelpString=_('Select parent'))
         self.Bind(wx.EVT_TOOL, self.OnUp, id=wxID_INSPECTORFRAMETOOLBARTOOLS0)
 
         parent.Realize()
@@ -78,7 +79,7 @@ class InspectorFrame(wx.Frame, Utils.FrameRestorerMixin):
         # generated method, don't edit
         parent.SetFieldsCount(2)
 
-        parent.SetStatusText('Nothing selected', 0)
+        parent.SetStatusText(_('Nothing selected'), 0)
         parent.SetStatusText('', 1)
 
         parent.SetStatusWidths([-1, -1])
@@ -92,7 +93,7 @@ class InspectorFrame(wx.Frame, Utils.FrameRestorerMixin):
         wx.Frame.__init__(self, id=wxID_INSPECTORFRAME, name='', parent=prnt,
               pos=wx.Point(363, 272), size=wx.Size(290, 505),
               style=wx.DEFAULT_FRAME_STYLE| Preferences.childFrameStyle,
-              title='Inspector')
+              title=_('Inspector'))
         self._init_utils()
         self.SetClientSize(wx.Size(282, 478))
         self.Bind(wx.EVT_SIZE, self.OnSizing)
@@ -169,30 +170,30 @@ class InspectorFrame(wx.Frame, Utils.FrameRestorerMixin):
 
         self.toolBar.AddSeparator()
         Utils.AddToolButtonBmpIS(self, self.toolBar,
-          'Images/Shared/Delete.png', 'Delete selection', self.OnDelete)
+          'Images/Shared/Delete.png', _('Delete selection'), self.OnDelete)
         Utils.AddToolButtonBmpIS(self, self.toolBar,
-          'Images/Shared/Cut.png', 'Cut selection', self.OnCut)
+          'Images/Shared/Cut.png', _('Cut selection'), self.OnCut)
         Utils.AddToolButtonBmpIS(self, self.toolBar,
-          'Images/Shared/Copy.png', 'Copy selection', self.OnCopy)
+          'Images/Shared/Copy.png', _('Copy selection'), self.OnCopy)
         Utils.AddToolButtonBmpIS(self, self.toolBar,
-          'Images/Shared/Paste.png', 'Paste selection', self.OnPaste)
+          'Images/Shared/Paste.png', _('Paste selection'), self.OnPaste)
         Utils.AddToolButtonBmpIS(self, self.toolBar,
-          'Images/Editor/Refresh.png', 'Recreate selection', self.OnRecreateSelection)
+          'Images/Editor/Refresh.png', _('Recreate selection'), self.OnRecreateSelection)
         self.toolBar.AddSeparator()
         self.wxID_POST = Utils.AddToolButtonBmpIS(self, self.toolBar,
-          'Images/Inspector/Post.png', 'Post the session', self.OnPost)
+          'Images/Inspector/Post.png', _('Post the session'), self.OnPost)
         self.wxID_CANCEL = Utils.AddToolButtonBmpIS(self, self.toolBar,
-          'Images/Inspector/Cancel.png', 'Cancel the session', self.OnCancel)
+          'Images/Inspector/Cancel.png', _('Cancel the session'), self.OnCancel)
         self.toolBar.AddSeparator()
 ##        Utils.AddToolButtonBmpIS(self, self.toolBar, 'Images/Shared/RevertItem.png',
 ##          'Revert item', self.OnRevertItem)
         self.wxID_ADDITEM = Utils.AddToolButtonBmpIS(self, self.toolBar,
-              'Images/Shared/NewItem.png', 'New item', self.OnNewItem)
+              'Images/Shared/NewItem.png', _('New item'), self.OnNewItem)
         self.wxID_DELITEM = Utils.AddToolButtonBmpIS(self, self.toolBar,
-          'Images/Shared/DeleteItem.png', 'Delete item', self.OnDelItem)
+          'Images/Shared/DeleteItem.png', _('Delete item'), self.OnDelItem)
         self.toolBar.AddSeparator()
         Utils.AddToolButtonBmpIS(self, self.toolBar,
-          'Images/Shared/Help.png', 'Show help', self.OnHelp)
+          'Images/Shared/Help.png', _('Show help'), self.OnHelp)
         self.toolBar.Realize()
 
         self.constr.setInspector(self)
@@ -796,7 +797,7 @@ class NameValue:
                     try:
                         self.propEditor.inspectorPost()
                     except Exception, err:
-                        wx.LogError('Could not post %s because: %s: %s'%(
+                        wx.LogError(_('Could not post %s because: %s: %s')%(
                               self.propName, err.__class__.__name__, str(err)))
                 else:
                     self.propEditor.inspectorPost()
@@ -927,7 +928,7 @@ class EventsWindow(wx.SplitterWindow):
         for macro in EventCollections.EventCategories[\
               self.categoryClasses.GetItemText(self.selCatClass)]:
             if macro == name: return macro
-        raise Exception, 'Macro: '+name+' not found.'
+        raise Exception, _('Macro: %s not found.')%name
 
     def addEvent(self, name, value, wid = None):
         self.inspector.selCmp.persistEvt(name, value, wid)
@@ -1216,7 +1217,7 @@ class InspectorScrollWin(NameValueEditorScrollWin):
                     nv.propEditor.inspectorPost(False)
                 except Exception, err:
                     wx.MessageBox('%s: %s'%(err.__class__, str(err)),
-                          'Unable to post, please correct.',
+                          _('Unable to post, please correct.'),
                           wx.OK | wx.CENTER | wx.ICON_ERROR, self)
 
     def OnUndo(self, event):
@@ -1461,7 +1462,6 @@ class InspectorNotebook(wx.Notebook):
 
 if __name__ == '__main__':
     app = wx.PySimpleApp()
-    wx.InitAllImageHandlers()
     frame = InspectorFrame(None)
     frame.Show(True)
     frame.initSashes()

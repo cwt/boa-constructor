@@ -19,6 +19,7 @@ import wx.lib.wxpTag
 
 import __version__
 import Preferences, Utils
+from Utils import _
 
 prog_update = re.compile('<<(?P<cnt>[0-9]+)/(?P<tot>[0-9]+)>>')
 
@@ -245,7 +246,7 @@ class AboutBoxMixin:
 class AboutBox(AboutBoxMixin, wx.Dialog):
     def _init_ctrls(self, prnt):
         wx.Dialog.__init__(self, size=wx.Size(410, 545), pos=(-1, -1),
-              id=wxID_ABOUTBOX, title='About Boa Constructor', parent=prnt,
+              id=wxID_ABOUTBOX, title=_('About Boa Constructor'), parent=prnt,
               name='AboutBox', style=wx.DEFAULT_DIALOG_STYLE)
 
     def setPage(self):
@@ -364,7 +365,12 @@ class StaticTextPF(Utils.PseudoFile):
 ##                pass
 ##            s = '  '*d + s
 ##            
-            sys.__stdout__.write(s)#+':'+sys.path[-1])
+            try:
+                sys.__stdout__.write(s)#+':'+sys.path[-1])
+            except UnicodeEncodeError:
+                s = s.encode(sys.getdefaultencoding(), 'replace')
+                sys.__stdout__.write(s)
+            
         wx.Yield()
 
 wxEVT_MOD_CNT_UPD = wx.NewId()

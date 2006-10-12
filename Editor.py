@@ -99,7 +99,7 @@ class EditorFrame(wx.Frame, Utils.FrameRestorerMixin):
         wx.Frame.__init__(self, id=wxID_EDITORFRAME, name='', parent=prnt,
               pos=wx.Point(68, 72), size=wx.Size(810, 515),
               style=wx.DEFAULT_FRAME_STYLE| Preferences.childFrameStyle,
-              title='Editor')
+              title=_('Editor'))
         self._init_utils()
         self.SetMenuBar(self.mainMenu)
         self.SetClientSize(wx.Size(802, 488))
@@ -1346,7 +1346,7 @@ class EditorFrame(wx.Frame, Utils.FrameRestorerMixin):
                     cnt = 0
                     for file in files:
                         try:
-                            print _('opening in Editor') +': %s <<%d/%d>>' % (
+                            print 'opening in Editor: %s <<%d/%d>>' % (
                                   os.path.basename(file).split('::')[0], cnt,
                                   len(files))
 
@@ -1529,7 +1529,6 @@ class EditorFrame(wx.Frame, Utils.FrameRestorerMixin):
 
 if __name__ == '__main__':
     app = wx.PySimpleApp()
-    wx.InitAllImageHandlers()
 
     import Palette
     palette = Palette.BoaFrame(None, -1, app)

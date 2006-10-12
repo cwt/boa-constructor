@@ -15,6 +15,8 @@ import string, time
 
 import wx
 
+from Utils import _
+
 def count(filename, pattern, caseSensitive):
     try: f = open(filename, 'r')
     except IOError: return 0
@@ -68,7 +70,7 @@ def findInFiles(parent, srchPath, pattern, callback = defaultProgressCallback, d
     owndlg = False
     maxval = len(names)
     if not dlg:
-        dlg = wx.ProgressDialog(progressMsg, 'Searching...', maxval, parent,
+        dlg = wx.ProgressDialog(progressMsg, _('Searching...'), maxval, parent,
                            wx.PD_CAN_ABORT | wx.PD_APP_MODAL | wx.PD_AUTO_HIDE)
         dlg.max = maxval
         dlg.cont = 1
@@ -83,12 +85,12 @@ def findInFiles(parent, srchPath, pattern, callback = defaultProgressCallback, d
             else:
                 ext = os.path.splitext(file)[1]
                 if ext in filemask or ('.*' in filemask and ext):
-                    callback(dlg, cnt, file, 'Searching')
+                    callback(dlg, cnt, file, _('Searching'))
                     ocs = count(filePath, pattern, 0)
                     if ocs:
                         results.append((ocs, deeperPath+file))
                 else:
-                    callback(dlg, cnt, file, 'Skipping')
+                    callback(dlg, cnt, file, _('Skipping'))
 
             if cnt < maxval -1:
                 cnt = cnt + 1
@@ -118,7 +120,7 @@ class _file_iter:
         """
         self._folders = folders
         if not self._folders:
-            raise LookupError("Root folder was not specified")
+            raise LookupError(_("Root folder was not specified"))
         self._filters = []
         for sExt in file_filter:
             self._filters.append(sExt.lower())

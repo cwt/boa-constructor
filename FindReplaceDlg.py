@@ -17,6 +17,8 @@ from wx.lib.anchors import LayoutAnchors
 import os, string
 
 import Preferences, Utils
+from Utils import _
+
 from FindReplaceEngine import FindError
 
 import Search
@@ -36,7 +38,7 @@ def findAgain(parent, finder, view):
         try:
             finder.findNextInSource(view)
         except FindError, err:
-            wx.MessageBox(str(err), 'Find/Replace', wx.OK | wx.ICON_INFORMATION, view)
+            wx.MessageBox(str(err), _('Find/Replace'), wx.OK | wx.ICON_INFORMATION, view)
 
 
 [wxID_FINDREPLACEDLG, wxID_FINDREPLACEDLGBTNBROWSE, 
@@ -60,7 +62,7 @@ class FindReplaceDlg(wx.Dialog):
         # generated method, don't edit
         wx.Dialog.__init__(self, id=wxID_FINDREPLACEDLG, name='FindReplaceDlg',
               parent=prnt, pos=wx.Point(323, 272), size=wx.Size(372, 300),
-              style=wx.DEFAULT_DIALOG_STYLE, title='Find/Replace')
+              style=wx.DEFAULT_DIALOG_STYLE, title=_('Find/Replace'))
         self.SetAutoLayout(True)
         self.SetClientSize(wx.Size(364, 273))
 
@@ -77,77 +79,77 @@ class FindReplaceDlg(wx.Dialog):
               id=wxID_FINDREPLACEDLGCMBFOLDER, name='cmbFolder', parent=self,
               pos=wx.Point(88, 51), size=wx.Size(239, 21), style=0, value='')
         self.cmbFolder.SetLabel('')
-        self.cmbFolder.SetToolTipString('Insert path to find in files')
+        self.cmbFolder.SetToolTipString(_('Insert path to find in files'))
 
         self.cmbFileFilter = wx.ComboBox(choices=[],
               id=wxID_FINDREPLACEDLGCMBFILEFILTER, name='cmbFileFilter',
               parent=self, pos=wx.Point(88, 74), size=wx.Size(269, 21), style=0,
               value='*.py')
         self.cmbFileFilter.SetLabel('*.py')
-        self.cmbFileFilter.SetToolTipString('Files that will be included in search')
+        self.cmbFileFilter.SetToolTipString(_('Files that will be included in search'))
 
-        self.directionRB = wx.RadioBox(choices=['Forward', 'Backward'],
-              id=wxID_FINDREPLACEDLGDIRECTIONRB, label='Direction',
+        self.directionRB = wx.RadioBox(choices=[_('Forward'), _('Backward')],
+              id=wxID_FINDREPLACEDLGDIRECTIONRB, label=_('Direction'),
               majorDimension=1, name='directionRB', parent=self,
               pos=wx.Point(8, 103), size=wx.Size(104, 64),
               style=wx.RA_SPECIFY_COLS)
         self.directionRB.Bind(wx.EVT_RADIOBOX, self.OnDirectionrbRadiobox,
               id=wxID_FINDREPLACEDLGDIRECTIONRB)
 
-        self.scopeRB = wx.RadioBox(choices=['All', 'Selected'],
-              id=wxID_FINDREPLACEDLGSCOPERB, label='Scope', majorDimension=1,
+        self.scopeRB = wx.RadioBox(choices=[_('All'), _('Selected')],
+              id=wxID_FINDREPLACEDLGSCOPERB, label=_('Scope'), majorDimension=1,
               name='scopeRB', parent=self, pos=wx.Point(8, 195),
               size=wx.Size(104, 64), style=wx.RA_SPECIFY_COLS)
         self.scopeRB.Bind(wx.EVT_RADIOBOX, self.OnScoperbRadiobox,
               id=wxID_FINDREPLACEDLGSCOPERB)
 
         self.optionsSB = wx.StaticBox(id=wxID_FINDREPLACEDLGOPTIONSSB,
-              label='Options', name='optionsSB', parent=self, pos=wx.Point(120,
+              label=_('Options'), name='optionsSB', parent=self, pos=wx.Point(120,
               103), size=wx.Size(144, 158), style=0)
 
         self.caseSensitiveCB = wx.CheckBox(id=wxID_FINDREPLACEDLGCASESENSITIVECB,
-              label='Case sensitive', name='caseSensitiveCB', parent=self,
+              label=_('Case sensitive'), name='caseSensitiveCB', parent=self,
               pos=wx.Point(125, 120), size=wx.Size(120, 19), style=0)
         self.caseSensitiveCB.Bind(wx.EVT_CHECKBOX,
               self.OnCasesensitivecbCheckbox,
               id=wxID_FINDREPLACEDLGCASESENSITIVECB)
 
         self.wholeWordsCB = wx.CheckBox(id=wxID_FINDREPLACEDLGWHOLEWORDSCB,
-              label='Whole words', name='wholeWordsCB', parent=self,
+              label=_('Whole words'), name='wholeWordsCB', parent=self,
               pos=wx.Point(125, 138), size=wx.Size(120, 19), style=0)
         self.wholeWordsCB.Bind(wx.EVT_CHECKBOX, self.OnWholewordscbCheckbox,
               id=wxID_FINDREPLACEDLGWHOLEWORDSCB)
 
         self.wildcardCB = wx.CheckBox(id=wxID_FINDREPLACEDLGWILDCARDCB,
-              label='Wildcards', name='wildcardCB', parent=self,
+              label=_('Wildcards'), name='wildcardCB', parent=self,
               pos=wx.Point(125, 156), size=wx.Size(120, 19), style=0)
         self.wildcardCB.Bind(wx.EVT_CHECKBOX, self.OnWildcardcbCheckbox,
               id=wxID_FINDREPLACEDLGWILDCARDCB)
 
         self.regExprCB = wx.CheckBox(id=wxID_FINDREPLACEDLGREGEXPRCB,
-              label='Regular expressions', name='regExprCB', parent=self,
+              label=_('Regular expressions'), name='regExprCB', parent=self,
               pos=wx.Point(125, 174), size=wx.Size(131, 19), style=0)
         self.regExprCB.Bind(wx.EVT_CHECKBOX, self.OnRegexprcbCheckbox,
               id=wxID_FINDREPLACEDLGREGEXPRCB)
 
         self.wrapCB = wx.CheckBox(id=wxID_FINDREPLACEDLGWRAPCB,
-              label='Wrap search', name='wrapCB', parent=self, pos=wx.Point(125,
+              label=_('Wrap search'), name='wrapCB', parent=self, pos=wx.Point(125,
               191), size=wx.Size(120, 21), style=0)
         self.wrapCB.Bind(wx.EVT_CHECKBOX, self.OnWrapcbCheckbox,
               id=wxID_FINDREPLACEDLGWRAPCB)
 
         self.closeOnFoundCB = wx.CheckBox(id=wxID_FINDREPLACEDLGCLOSEONFOUNDCB,
-              label='Close on found', name='closeOnFoundCB', parent=self,
+              label=_('Close on found'), name='closeOnFoundCB', parent=self,
               pos=wx.Point(125, 211), size=wx.Size(120, 19), style=0)
         self.closeOnFoundCB.Bind(wx.EVT_CHECKBOX, self.OnCloseonfoundcbCheckbox,
               id=wxID_FINDREPLACEDLGCLOSEONFOUNDCB)
 
         self.chkRecursiveSearch = wx.CheckBox(id=wxID_FINDREPLACEDLGCHKRECURSIVESEARCH,
-              label='Recursive search', name='chkRecursiveSearch', parent=self,
+              label=_('Recursive search'), name='chkRecursiveSearch', parent=self,
               pos=wx.Point(125, 233), size=wx.Size(120, 14), style=0)
         self.chkRecursiveSearch.SetValue(False)
 
-        self.findBtn = wx.Button(id=wxID_FINDREPLACEDLGFINDBTN, label='Find',
+        self.findBtn = wx.Button(id=wxID_FINDREPLACEDLGFINDBTN, label=_('Find'),
               name='findBtn', parent=self, pos=wx.Point(270, 101),
               size=wx.Size(83, 23), style=0)
         self.findBtn.Bind(wx.EVT_BUTTON, self.OnFindbtnButton,
@@ -155,62 +157,62 @@ class FindReplaceDlg(wx.Dialog):
         self.findBtn.Bind(wx.EVT_KEY_UP, self.OnFindtxtChar)
 
         self.findAllBtn = wx.Button(id=wxID_FINDREPLACEDLGFINDALLBTN,
-              label='Find all', name='findAllBtn', parent=self,
+              label=_('Find all'), name='findAllBtn', parent=self,
               pos=wx.Point(270, 129), size=wx.Size(84, 23), style=0)
         self.findAllBtn.Bind(wx.EVT_BUTTON, self.OnFindallbtnButton,
               id=wxID_FINDREPLACEDLGFINDALLBTN)
 
         self.btnFindInFiles = wx.Button(id=wxID_FINDREPLACEDLGBTNFINDINFILES,
-              label='Find in files', name='btnFindInFiles', parent=self,
+              label=_('Find in files'), name='btnFindInFiles', parent=self,
               pos=wx.Point(270, 156), size=wx.Size(84, 23), style=0)
         self.btnFindInFiles.Bind(wx.EVT_BUTTON, self.OnFindInFiles,
               id=wxID_FINDREPLACEDLGBTNFINDINFILES)
 
         self.replaceBtn = wx.Button(id=wxID_FINDREPLACEDLGREPLACEBTN,
-              label='Replace', name='replaceBtn', parent=self, pos=wx.Point(270,
+              label=_('Replace'), name='replaceBtn', parent=self, pos=wx.Point(270,
               183), size=wx.Size(83, 23), style=0)
         self.replaceBtn.Bind(wx.EVT_BUTTON, self.OnReplacebtnButton,
               id=wxID_FINDREPLACEDLGREPLACEBTN)
 
         self.replaceAllBtn = wx.Button(id=wxID_FINDREPLACEDLGREPLACEALLBTN,
-              label='Replace all', name='replaceAllBtn', parent=self,
+              label=_('Replace all'), name='replaceAllBtn', parent=self,
               pos=wx.Point(270, 210), size=wx.Size(83, 23), style=0)
         self.replaceAllBtn.Bind(wx.EVT_BUTTON, self.OnReplaceallbtnButton,
               id=wxID_FINDREPLACEDLGREPLACEALLBTN)
 
         self.cancelBtn = wx.Button(id=wxID_FINDREPLACEDLGCANCELBTN,
-              label='Cancel', name='cancelBtn', parent=self, pos=wx.Point(270,
+              label=_('Cancel'), name='cancelBtn', parent=self, pos=wx.Point(270,
               238), size=wx.Size(83, 23), style=0)
         self.cancelBtn.Bind(wx.EVT_BUTTON, self.OnCancelbtnButton,
               id=wxID_FINDREPLACEDLGCANCELBTN)
 
         self.staticText2 = wx.StaticText(id=wxID_FINDREPLACEDLGSTATICTEXT2,
-              label='Text to find', name='staticText2', parent=self,
+              label=_('Text to find'), name='staticText2', parent=self,
               pos=wx.Point(8, 8), size=wx.Size(80, 20), style=0)
 
         self.staticText1 = wx.StaticText(id=wxID_FINDREPLACEDLGSTATICTEXT1,
-              label='Replace with', name='staticText1', parent=self,
+              label=_('Replace with'), name='staticText1', parent=self,
               pos=wx.Point(8, 32), size=wx.Size(80, 15), style=0)
 
         self.staticText3 = wx.StaticText(id=wxID_FINDREPLACEDLGSTATICTEXT3,
-              label='Files to find in', name='staticText3', parent=self,
+              label=_('Files to find in'), name='staticText3', parent=self,
               pos=wx.Point(8, 56), size=wx.Size(80, 13), style=0)
 
         self.staticText4 = wx.StaticText(id=wxID_FINDREPLACEDLGSTATICTEXT4,
-              label='File filter', name='staticText4', parent=self,
+              label=_('File filter'), name='staticText4', parent=self,
               pos=wx.Point(8, 80), size=wx.Size(80, 15), style=0)
 
         self.btnBuildInFind = wx.Button(id=wxID_FINDREPLACEDLGBTNBUILDINFIND,
               label='...', name='btnBuildInFind', parent=self, pos=wx.Point(329,
               4), size=wx.Size(27, 21), style=0)
-        self.btnBuildInFind.SetToolTipString('Build-in ready to run searches')
+        self.btnBuildInFind.SetToolTipString(_('Build-in ready to run searches'))
         self.btnBuildInFind.Bind(wx.EVT_BUTTON, self.OnBuildInFind,
               id=wxID_FINDREPLACEDLGBTNBUILDINFIND)
 
         self.btnBrowse = wx.Button(id=wxID_FINDREPLACEDLGBTNBROWSE, label='...',
               name='btnBrowse', parent=self, pos=wx.Point(329, 51),
               size=wx.Size(27, 21), style=0)
-        self.btnBrowse.SetToolTipString('Folders tree')
+        self.btnBrowse.SetToolTipString(_('Folders tree'))
         self.btnBrowse.Bind(wx.EVT_BUTTON, self.OnBrowse,
               id=wxID_FINDREPLACEDLGBTNBROWSE)
 
@@ -353,7 +355,7 @@ class FindReplaceDlg(wx.Dialog):
             else:
                 self._checkSelectionDlgOverlap()
         except FindError, err:
-            wx.MessageBox(str(err), 'Find/Replace', wx.OK | wx.ICON_INFORMATION, self)
+            wx.MessageBox(str(err), _('Find/Replace'), wx.OK | wx.ICON_INFORMATION, self)
 
     def findAll(self):
         pattern = self.findTxt.GetValue()
@@ -374,7 +376,7 @@ class FindReplaceDlg(wx.Dialog):
             self._checkSelectionDlgOverlap()
             self.setComboBoxes('replace')
         except FindError, err:
-            wx.MessageBox(str(err), 'Find/Replace', wx.OK | wx.ICON_INFORMATION, self)
+            wx.MessageBox(str(err), _('Find/Replace'), wx.OK | wx.ICON_INFORMATION, self)
 
     def replaceAll(self):
         pattern = self.findTxt.GetValue()
@@ -391,8 +393,8 @@ class FindReplaceDlg(wx.Dialog):
         folder = [self.cmbFolder.GetValue()]
         self.engine.addFolder(folder[0])
         self.engine.addSuffix(self.cmbFileFilter.GetValue())
-        dlg = wx.ProgressDialog("Building file list from directory '%s'" % (folder[0]),
-                       'Searching...', 100, self.view,
+        dlg = wx.ProgressDialog(_("Building file list from directory '%s'") % (folder[0]),
+                       _('Searching...'), 100, self.view,
                         wx.PD_CAN_ABORT | wx.PD_APP_MODAL | wx.PD_AUTO_HIDE)
         try:
             iterDirFiles = Search.listFiles(folder, file_filter, 1, bRecursive)
@@ -414,17 +416,17 @@ class FindReplaceDlg(wx.Dialog):
     def _validate(self, what):
         ##Doesn't matter how we want to search we need smth to search to.
         if not self.findTxt.GetValue():
-            wx.MessageBox('There is nothing to find.', 'Boa - Find/Replace')
+            wx.MessageBox(_('There is nothing to find.'), _('Boa - Find/Replace'))
             return False
         if what in ['find', 'findAll']:
             pass
         elif what in ['replace', 'replaceAll']:
             if not self.replaceTxt.GetValue():
-                wx.MessageBox('There is nothing to replace with.', 'Boa - Find/Replace')
+                wx.MessageBox(_('There is nothing to replace with.'), _('Boa - Find/Replace'))
                 return False
         elif what == 'findInFiles':
             if not os.path.isdir( self.cmbFolder.GetValue() ):
-                wx.MessageBox('The folder you entered is not valid folder.', 'Boa - Find/Replace' )
+                wx.MessageBox(_('The folder you entered is not valid folder.'), _('Boa - Find/Replace'))
                 return False
         else:
             pass
@@ -521,7 +523,7 @@ class FindReplaceDlg(wx.Dialog):
         event.Skip()
 
     def OnBuildInFind(self, event):
-        dlg = wx.SingleChoiceDialog(self, 'Find', 'Build in finds', self._mapBuildInFinds.keys())
+        dlg = wx.SingleChoiceDialog(self, _('Find'), _('Build in finds'), self._mapBuildInFinds.keys())
         try:
             if dlg.ShowModal() == wx.ID_OK:
                 selected = dlg.GetStringSelection()

@@ -40,6 +40,7 @@ import string, pprint
 from types import IntType, StringType    #id([][,]id)*
 
 import Preferences, Utils
+from Utils import _
 
 import methodparse
 
@@ -637,7 +638,7 @@ class Module:
         if not method_body: return
         a_class = self.classes[class_name]
         if method_name in a_class.method_order:
-            raise Exception, 'Method exists'
+            raise Exception, _('Method exists')
 
         # Add a method code block
         if to_bottom or not a_class.method_order:
@@ -919,7 +920,7 @@ class Module:
                     impLine = impStmt
                     isImportFrom = 1
             else:
-                raise ModuleParseError, 'Import statement invalid: %s'%impStmt
+                raise ModuleParseError, _('Import statement invalid: %s')%impStmt
 
         if impLine:
             # Add it beneath import wx

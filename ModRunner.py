@@ -17,6 +17,7 @@ from cStringIO import StringIO
 import wx
 
 import Preferences, Utils
+from Utils import _
 
 import ErrorStack
 
@@ -111,14 +112,14 @@ class ProcessModuleRunner(ModuleRunner):
         in a frame. A cancelable dialog displays while the process executes
         This currently only works for non GUI processes """
     def run(self, cmd, Parser=ErrorStack.StdErrErrorParser,
-            caption='Execute module', root='Error', autoClose=False):
+            caption=_('Execute module'), root='Error', autoClose=False):
         import ProcessProgressDlg
         dlg = ProcessProgressDlg.ProcessProgressDlg(None, cmd, caption,
               autoClose=autoClose)
         try:
             dlg.ShowModal()
             serr = ErrorStack.buildErrorList(dlg.errors, Parser)
-            return self.checkError(serr, 'Ran', dlg.output, root, dlg.errors)
+            return self.checkError(serr, _('Ran'), dlg.output, root, dlg.errors)
 
         finally:
             dlg.Destroy()
@@ -141,7 +142,7 @@ class wxPopenModuleRunner(ModuleRunner):
             serr = ErrorStack.buildErrorList(errors)
 
             if serr or output:
-                self.checkError(serr, 'Ran', output, errRaw=errors)
+                self.checkError(serr, _('Ran'), output, errRaw=errors)
 
             if execFinish:
                 execFinish(self)
@@ -174,7 +175,7 @@ class PopenModuleRunner(ModuleRunner):
         self.pid = pid
 
         if serr or out:
-            return self.checkError(serr, 'Ran', out, errRaw=errLines)
+            return self.checkError(serr, _('Ran'), out, errRaw=errLines)
         else:
             return None
 

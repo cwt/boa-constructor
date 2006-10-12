@@ -15,6 +15,7 @@ import wx
 
 from FindResults import FindResults
 import Utils
+from Utils import _
 
 class FindError(ValueError):
     pass
@@ -82,12 +83,12 @@ class FindReplaceEngine:
         else:
             result = self._find(view.GetText(), pattern, start, 0)
         if result is None:
-            raise FindError("'%s' not found" % pattern)
+            raise FindError(_("'%s' not found") % pattern)
         view.model.editor.addBrowseMarker(view.GetCurrentLine())
 
         if (result[0] < view.GetCurrentPos() and not self.reverse and self.wrap) or \
            (result[0] > view.GetCurrentPos() and self.reverse and self.wrap):
-            view.model.editor.setStatus('Search wrapped', 'Warning', ringBell=1)
+            view.model.editor.setStatus(_('Search wrapped'), _('Warning'), ringBell=1)
 
         view.SetSelection(result[0], result[1])
 
@@ -114,7 +115,7 @@ class FindReplaceEngine:
             results = self._findAllInSource(view.GetTextRange(*region), pattern, region[0])
         else:
             results = self._findAllInSource(view.GetText(), pattern, 0)
-        name = 'Results: ' + pattern
+        name = _('Results:') + ' ' + pattern
         if not view.model.views.has_key(name):
             resultView = view.model.editor.addNewView(name, FindResults)
         else:
@@ -146,7 +147,7 @@ class FindReplaceEngine:
             else:
                 result = self._find(view.GetText(), pattern, start, 0)
             if result is None:
-                raise FindError("'%s' not found" % pattern)
+                raise FindError(_("'%s' not found") % pattern)
             view.SetSelection(result[0], result[1])
             compiled = self._compile(pattern)
             if self.mode == 'regex':
@@ -182,7 +183,7 @@ class FindReplaceEngine:
             if self.mode == 'regex':
                 n = compiled.sub(new, view.GetSelectedText())
             view.ReplaceSelection(n)
-        view.model.editor.statusBar.setHint("%s items replaced" % len(results))
+        view.model.editor.statusBar.setHint(_("%s items replaced") % len(results))
 
     def findNamesInPackage(self, view):
         names = []
@@ -200,8 +201,8 @@ class FindReplaceEngine:
         self.addFind(pattern)
         results = {}
         # Setup progress dialog
-        dlg = wx.ProgressDialog("Finding '%s' in files" % pattern,
-                           'Searching...',
+        dlg = wx.ProgressDialog(_("Finding '%s' in files") % pattern,
+                           _('Searching...'),
                             len(names),
                             view,
                             wx.PD_CAN_ABORT | wx.PD_APP_MODAL | wx.PD_AUTO_HIDE)
@@ -214,9 +215,9 @@ class FindReplaceEngine:
                     results[names[i]] = self._findAllInSource(open(filename).read(), pattern, 0)
                 except IOError:
                     continue
-                if not dlg.Update(i, "Searching in file '%s'"%filename):
+                if not dlg.Update(i, _("Searching in file '%s'")%filename):
                     try:
-                        view.model.editor.statusBar.setHint("Search aborted")
+                        view.model.editor.statusBar.setHint(_("Search aborted"))
                     except:
                         pass
 
@@ -307,7 +308,7 @@ class FindReplaceEngine:
         protsplit = filename.split('://')
         if len(protsplit) > 1:
             if protsplit[0] != 'file' or len(protsplit) > 2:
-                wx.LogWarning('%s not searched, only local files allowed'%filename)
+                wx.LogWarning(_('%s not searched, only local files allowed')%filename)
                 return ''
             return protsplit[1]
         return filename

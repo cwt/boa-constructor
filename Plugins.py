@@ -15,6 +15,7 @@ import os, glob, new, pprint
 #from wxPython import wx
 
 import Preferences, Utils
+from Utils import _
 
 # MVC
 from Models import EditorHelper, Controllers
@@ -57,7 +58,7 @@ def importFromPlugins(name):
         if os.path.isfile(modpath):
             break
     else:
-        raise ImportError, 'Module %s could not be found in Plug-ins'
+        raise ImportError, _('Module %s could not be found in Plug-ins')
 
     mod = new.module(name)
 
@@ -239,7 +240,7 @@ def registerPreference(pluginName, prefName, defPrefValSrc, docs=[], info=''):
             value = eval(defPrefValSrc, Preferences.__dict__)
         except Exception, err:
             raise PluginError(
-                  ('Could not create default value from "%s" for %s. (%s:%s)'%(
+                  (_('Could not create default value from "%s" for %s. (%s:%s)')%(
                   defPrefValSrc, prefName, err.__class__, err)))
 
         m.addLine('%s = %s'%(prefName, defPrefValSrc), lineNo)
@@ -249,8 +250,8 @@ def registerPreference(pluginName, prefName, defPrefValSrc, docs=[], info=''):
         open(pluginPrefs, 'wb').write(os.linesep.join(m.source))
     else:
         raise PluginError(
-            '%s not in Preferences, but is defined in globals of '
-            'prefs.plug-ins.rc.py'%prefName)
+            _('%s not in Preferences, but is defined in globals of '
+            'prefs.plug-ins.rc.py')%prefName)
     
 
     

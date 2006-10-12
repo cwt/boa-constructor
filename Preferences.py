@@ -27,6 +27,7 @@ is configured.
 import os, sys, shutil
 
 import wx
+_ = wx.GetTranslation # cannot import Utils
 
 #---Paths-----------------------------------------------------------------------
 
@@ -39,7 +40,7 @@ else:
 
 #---Import preference namespace from resource .rc. files------------------------
 
-print 'reading user preferences'
+print _('reading user preferences')
 
 # This cannot be stored as a Preference option for obvious reasons :)
 prefsDirName = '.boa-constructor'
@@ -51,8 +52,8 @@ if '--OverridePrefsDirName' in sys.argv or '-O' in sys.argv:
 
     if idx != -1:
         try: prefsDirName = sys.argv[idx + 1]
-        except IndexError: raise Exception, 'OverridePrefsDirName must specify a directory'
-        print 'using preference directory name', prefsDirName
+        except IndexError: raise Exception, _('OverridePrefsDirName must specify a directory')
+        print _('using preference directory name'), prefsDirName
 
 # To prevent using the HOME env variable run different versions of Boa this flag
 # forces Boa to use Preference settings either in the Config dir or in a 
@@ -80,7 +81,7 @@ else:
             if not os.path.isdir(pth):
                 try:
                     os.mkdir(pth)
-                    print 'Created directory: %s' % pth
+                    print _('Created directory: %s') % pth
                 except OSError:
                     # Protected
                     pass
@@ -133,7 +134,7 @@ for prefsFile, version in (('prefs.rc.py', 18),
                     else:
                         break
                 shutil.copy2(os.path.join(pyPath, 'Config', prefsFile), file)
-                print 'Preference file %s replaced, previous version backed up to %s'%(
+                print _('Preference file %s replaced, previous version backed up to %s')%(
                       file, bkfile)
 
     execfile(file)

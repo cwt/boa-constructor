@@ -276,9 +276,9 @@ def showTip(frame, forceShow=0):
             try:
                 writeConfig(conf)
             except IOError:
-                wx.LogError('Could not edit tips settings, please make '
+                wx.LogError(_('Could not edit tips settings, please make '
                       'sure that the Explorer.*.cfg file is not read only and you '
-                      'have sufficient priviledges to write to this file.')
+                      'have sufficient priviledges to write to this file.'))
 
 def readTextFromClipboard():
     clip = wx.TheClipboard
@@ -350,7 +350,7 @@ def wxProxyPanel(parent, Win, *args, **kwargs):
         win = Win
         win.Reparent(panel)
     else:
-        raise Exception, 'Unhandled type for Win'
+        raise Exception, _('Unhandled type for Win')
 
     def OnWinSize(evt, win=win):
         win.SetSize(evt.GetSize())
@@ -871,7 +871,7 @@ def coding_spec(str):
         codecs.lookup(name)
     except LookupError:
         # The standard encoding error does not indicate the encoding
-        raise LookupError, "Unknown encoding "+name
+        raise LookupError, _('Unknown encoding %s')%name
     return name
 
 def stringFromControl(u):
@@ -888,9 +888,9 @@ def stringFromControl(u):
                     raise
                 return u.encode(spec)
             except UnicodeError, err:
-                raise Exception, 'Unable to encode unicode string, please change '\
+                raise Exception, _('Unable to encode unicode string, please change '\
                       'the defaultencoding in sitecustomize.py to handle this '\
-                      'encoding.\nError message %s'%str(err)            
+                      'encoding.\nError message %s')%str(err)            
     else:
         return u
 
@@ -911,9 +911,9 @@ def stringToControl(s, safe=False):
                     raise
                 return s.decode(spec)
             except UnicodeError, err:
-                raise Exception, 'Unable to decode unicode string, please change '\
+                raise Exception, _('Unable to decode unicode string, please change '\
                       'the defaultencoding in sitecustomize.py to handle this '\
-                      'encoding.\n Error message %s'%str(err)
+                      'encoding.\n Error message %s')%str(err)
     else:
         return s
 

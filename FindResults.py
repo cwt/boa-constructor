@@ -17,22 +17,23 @@ import wx
 
 from Views.EditorViews import ListCtrlView, CloseableViewMix
 from Preferences import keyDefs
+from Utils import _
 
 class FindResults(ListCtrlView, CloseableViewMix):
     gotoLineBmp = 'Images/Editor/GotoLine.png'
     viewName = 'Find Results'
 
     def __init__(self, parent, model):
-        CloseableViewMix.__init__(self, 'find results')
+        CloseableViewMix.__init__(self, _('find results'))
         ListCtrlView.__init__(self, parent, model, wx.LC_REPORT,
-          ( ('Goto match', self.OnGoto, self.gotoLineBmp, ()),
-            ('Re-run query', self.OnRerun, '-', 'Refresh')
+          ( (_('Goto match'), self.OnGoto, self.gotoLineBmp, ()),
+            (_('Re-run query'), self.OnRerun, '-', 'Refresh')
           ) + self.closingActionItems, 0)
 
-        self.InsertColumn(0, 'Module', width = 100)
-        self.InsertColumn(1, 'Line no', wx.LIST_FORMAT_CENTRE, 40)
-        self.InsertColumn(2, 'Col', wx.LIST_FORMAT_CENTRE, 40)
-        self.InsertColumn(3, 'Text', width = 550)
+        self.InsertColumn(0, _('Module'), width = 100)
+        self.InsertColumn(1, _('Line no'), wx.LIST_FORMAT_CENTRE, 40)
+        self.InsertColumn(2, _('Col'), wx.LIST_FORMAT_CENTRE, 40)
+        self.InsertColumn(3, _('Text'), width = 550)
 
         self.results = {}
         self.listResultIdxs = []
@@ -62,7 +63,7 @@ class FindResults(ListCtrlView, CloseableViewMix):
                     i = self.addReportItems(i, (os.path.basename(mod), `result[0]`,
                       `result[1]`, result[2].strip()) )
 
-            self.model.editor.statusBar.setHint('%d matches of "%s".'%(i, self.findPattern))
+            self.model.editor.statusBar.setHint(_('%d matches of "%s".')%(i, self.findPattern))
             self.pastelise()
         finally:
             wx.EndBusyCursor()

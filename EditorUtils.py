@@ -3,6 +3,7 @@ import os, time, threading, socket
 import wx
 
 import Preferences, Utils
+from Utils import _
 
 #-----Toolbar-------------------------------------------------------------------
 
@@ -105,7 +106,7 @@ class EditorStatusBar(wx.StatusBar):
               (rect.x+1+rect.width/2, rect.y+1), (rect.width/2-1, rect.height-2))
 
         #self.historyBtns.SetToolTipString('Browse the Traceback/Error/Output window history.')
-        tip = 'Browse the Traceback/Error/Output window history.'
+        tip = _('Browse the Traceback/Error/Output window history.')
         self.historyBtnBack.SetToolTipString(tip)
         self.historyBtnFwd.SetToolTipString(tip)
         #self.historyBtns.Bind(wx.EVT_SPIN_DOWN, self.OnErrOutHistoryBack, id=self.historyBtns.GetId())
@@ -173,15 +174,15 @@ class EditorStatusBar(wx.StatusBar):
 
 
 def HistoryPopup(parent, hist, imgs):
-    f = wx.MiniFrame(parent, -1, 'Editor status history', size = (350, 200))
+    f = wx.MiniFrame(parent, -1, _('Editor status history'), size = (350, 200))
     lc = wx.ListCtrl(f, style=wx.LC_REPORT | wx.LC_VRULES | wx.LC_NO_HEADER)
     lc.il = wx.ImageList(16, 16)
     idxs = {}
     for tpe, img in imgs.items():
         idxs[tpe] = lc.il.Add(img)
     lc.SetImageList(lc.il, wx.IMAGE_LIST_SMALL)
-    lc.InsertColumn(0, 'Time')
-    lc.InsertColumn(1, 'Message')
+    lc.InsertColumn(0, _('Time'))
+    lc.InsertColumn(1, _('Message'))
     lc.SetColumnWidth(0, 75)
     lc.SetColumnWidth(1, 750)
     for tpe, tme, msg, _bell in hist:
@@ -215,7 +216,7 @@ class ModulePage:
 
         self.windowId = wx.NewId()
         self.editor.winMenu.Append(self.windowId, self.getMenuLabel(),
-              'Switch to highlighted file')
+              _('Switch to highlighted file'))
         self.editor.Bind(wx.EVT_MENU, self.editor.OnGotoModulePage, id=self.windowId)
         self.notebook.Bind(wx.EVT_MENU, self.OnDirectActionClose, id=wxID_MODULEPAGECLOSEVIEW)
         self.notebook.Bind(wx.EVT_RIGHT_DOWN, self.OnRightDown)
@@ -386,16 +387,16 @@ class ModulePage:
             if self.saveAs(oldName) and (oldName != model.filename):
                 self.rename(oldName, model.filename)
 
-                editor.statusBar.setHint('%s saved.'%\
+                editor.statusBar.setHint(_('%s saved.')%\
                       os.path.basename(model.filename))
         else:
             from Explorers.ExplorerNodes import TransportModifiedSaveError
             try:
                 model.save()
             except TransportModifiedSaveError, err:
-                choice = wx.MessageBox(str(err)+'\nDo you want to overwrite these '
+                choice = wx.MessageBox(_('%s\nDo you want to overwrite these '
                   'changes (Yes), reload your file (No) or cancel this operation '
-                  '(Cancel)?', 'Overwrite newer file warning',
+                  '(Cancel)?')%str(err), _('Overwrite newer file warning'),
                   wx.YES_NO | wx.CANCEL | wx.ICON_WARNING)
                 if choice == wx.YES:
                     model.save(overwriteNewer=True)
@@ -407,7 +408,7 @@ class ModulePage:
             editor.updateModulePage(model)
             editor.updateTitle()
 
-            editor.statusBar.setHint('%s saved.'%\
+            editor.statusBar.setHint(_('%s saved.')%\
                   os.path.basename(model.filename))
 
     def OnPageChange(self, event):
@@ -435,7 +436,7 @@ class ModulePage:
 
         if doDirectMenuPopup:
             directMenu = wx.Menu()
-            directMenu.Append(wxID_MODULEPAGECLOSEVIEW, 'Close active view')
+            directMenu.Append(wxID_MODULEPAGECLOSEVIEW, _('Close active view'))
 
             self.notebook.PopupMenu(directMenu, event.GetPosition())
             directMenu.Destroy()

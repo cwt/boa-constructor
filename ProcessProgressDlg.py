@@ -20,6 +20,7 @@ import os, time, sys, StringIO
 # XXX Change to be non-modal, minimizable and run CVS operation in thread !!
 
 import Preferences
+from Utils import _
 
 from wxPopen import ProcessRunnerMix
 
@@ -43,7 +44,7 @@ class ProcessProgressDlg(wx.Dialog, ProcessRunnerMix):
         self.Bind(wx.EVT_CLOSE, self.OnProcessprogressdlgClose)
 
         self.cancelBtn = wx.Button(id=wxID_PROCESSPROGRESSDLGCANCELBTN,
-              label='Cancel', name='cancelBtn', parent=self, pos=wx.Point(332,
+              label=_('Cancel'), name='cancelBtn', parent=self, pos=wx.Point(332,
               304), size=wx.Size(80, 24), style=0)
         self.cancelBtn.SetConstraints(LayoutAnchors(self.cancelBtn, False,
               False, True, True))
@@ -88,7 +89,7 @@ class ProcessProgressDlg(wx.Dialog, ProcessRunnerMix):
               True, True))
 
         self.killBtn = wx.Button(id=wxID_PROCESSPROGRESSDLGKILLBTN,
-              label='Kill', name='killBtn', parent=self, pos=wx.Point(242, 304),
+              label=_('Kill'), name='killBtn', parent=self, pos=wx.Point(242, 304),
               size=wx.Size(81, 24), style=0)
         self.killBtn.SetConstraints(LayoutAnchors(self.killBtn, False, False,
               True, True))
@@ -127,8 +128,8 @@ class ProcessProgressDlg(wx.Dialog, ProcessRunnerMix):
 
     def execute(self, cmd, modally = True):
         self.killBtn.Enable(True)
-        self.cancelBtn.SetLabel('Cancel')
-        self.statusStxt.SetLabel('Waiting for response...')
+        self.cancelBtn.SetLabel(_('Cancel'))
+        self.statusStxt.SetLabel(_('Waiting for response...'))
         self.responded = False
         self.modally = modally
 
@@ -140,7 +141,7 @@ class ProcessProgressDlg(wx.Dialog, ProcessRunnerMix):
             return ProcessRunnerMix.updateStream(self, stream, data)
         finally:
             if self.responded == (not resp):
-                self.statusStxt.SetLabel('Receiving response...')
+                self.statusStxt.SetLabel(_('Receiving response...'))
 
     def updateErrStream(self, stream, data):
         txt = ProcessRunnerMix.updateErrStream(self, stream, data)
@@ -169,13 +170,13 @@ class ProcessProgressDlg(wx.Dialog, ProcessRunnerMix):
     def OnProcessEnded(self, event):
         ProcessRunnerMix.OnProcessEnded(self, event)
 
-        self.statusStxt.SetLabel('Response received.')
+        self.statusStxt.SetLabel(_('Response received.'))
 
         self.prepareResult()
         self.statusGge.SetValue(0)
 
         self.killBtn.Enable(False)
-        self.cancelBtn.SetLabel('OK')
+        self.cancelBtn.SetLabel(_('OK'))
 
         if self.modally and self.autoClose:
             self.EndModal(wx.OK)

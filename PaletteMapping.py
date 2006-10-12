@@ -26,6 +26,8 @@ import os
 
 import Preferences, Utils, Plugins
 from Preferences import IS
+from Utils import _
+
 import PaletteStore
 
 # keep until 2.5 upgrade complete
@@ -98,7 +100,7 @@ if Utils.IsComEnabled():
 
 #-Plug-ins initialisation-------------------------------------------------------
 if Preferences.pluginPaths:
-    print 'executing plug-ins...'
+    print _('executing plug-ins...')
     fails = Preferences.failedPlugins
     succeeded = Preferences.installedPlugins
 
@@ -115,13 +117,13 @@ if Preferences.pluginPaths:
             fails[filename] = ('Skipped', msg)
         except Plugins.SkipPlugin, msg:
             fails[filename] = ('Skipped', msg)
-            wx.LogWarning('Plugin skipped: %s, %s'%(pluginBasename, msg))
+            wx.LogWarning(_('Plugin skipped: %s, %s')%(pluginBasename, msg))
         except Exception, error:
             fails[filename] = ('Error', str(error))
             if Preferences.pluginErrorHandling == 'raise':
                 raise
             elif Preferences.pluginErrorHandling == 'report':
-                wx.LogError('Problem executing plug-in %s:\n%s' %\
+                wx.LogError(_('Problem executing plug-in %s:\n%s') %\
                     (pluginBasename, str(error)) )
             # else ignore
 
