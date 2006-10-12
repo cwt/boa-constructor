@@ -22,6 +22,7 @@ from PropEdit.PropertyEditors import *
 from PropEdit.Enumerations import *
 
 from Preferences import wxDefaultFrameSize, wxDefaultFramePos
+from Utils import _
 
 import sourceconst
 
@@ -143,7 +144,7 @@ class FrameDTC(FramesConstr, BaseFrameDTC):
             mb = self.control.GetMenuBar()
             if mb and `mb` == `compn.control`:
                 if wx.Platform == '__WXGTK__':
-                    raise Exception, 'May not delete a wx.MenuBar, it would cause a segfault on wxGTK'
+                    raise Exception, _('May not delete a wx.MenuBar, it would cause a segfault on wxGTK')
                 self.propRevertToDefault('MenuBar', 'SetMenuBar')
                 self.control.SetMenuBar(None)
                 #if wx.Platform == '__WXGTK__':

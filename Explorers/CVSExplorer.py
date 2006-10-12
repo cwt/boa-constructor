@@ -18,12 +18,14 @@ import time, stat, os
 import wx
 from wx.lib.dialogs import ScrolledMessageDialog
 
+import Utils
+from Preferences import IS
+from Utils import _
 
 import ExplorerNodes
 from Models import EditorModels, EditorHelper
-from Preferences import IS
 
-import ProcessProgressDlg, Utils
+import ProcessProgressDlg
 import scrm
 
 cvs_environ_vars = ['CVSROOT', 'CVS_RSH', 'HOME']
@@ -233,13 +235,13 @@ class CVSController(ExplorerNodes.Controller):
 
             if cvsOutput == 'output window':
                 errout = self.editor.erroutFrm
-                tbs = errout.updateCtrls((), outls, 'CVS Result', '', err)
+                tbs = errout.updateCtrls((), outls, _('CVS Result'), '', err)
                 errout.display(tbs)
 
             elif cvsOutput == 'dialogs':
                 if err.strip():
                     dlg = wx.MessageDialog(self.list, err,
-                      'Server response or Error', wx.OK | wx.ICON_EXCLAMATION)
+                      _('Server response or Error'), wx.OK | wx.ICON_EXCLAMATION)
                     try: dlg.ShowModal()
                     finally: dlg.Destroy()
 
@@ -251,7 +253,7 @@ class CVSController(ExplorerNodes.Controller):
             #msgType = 'warning' if err else 'info' # i wish
             if err: msgType = 'Warning'
             else: msgType = 'Info'
-            self.editor.setStatus('CVS command completed: %s'%cmd, msgType)
+            self.editor.setStatus(_('CVS command completed: %s')%cmd, msgType)
 
         finally:
             os.chdir(cwd)
@@ -298,9 +300,9 @@ class CVSController(ExplorerNodes.Controller):
         for line in lines:
             cvsroots.append(line.split()[0])
         if cvsroots:
-            dlg = wx.SingleChoiceDialog(self.list, 'Select and click OK to set CVSROOT'\
-             ' or Cancel to use environment variable.\n\nYou have pserver access to the following servers:',
-             'Choose CVSROOT (-d parameter)', cvsroots)
+            dlg = wx.SingleChoiceDialog(self.list, _('Select and click OK to set CVSROOT'\
+             ' or Cancel to use environment variable.\n\nYou have pserver access to the following servers:'),
+             _('Choose CVSROOT (-d parameter)'), cvsroots)
             try:
                 if dlg.ShowModal() == wx.ID_OK:
                     cvsOpts = '-d'+dlg.GetStringSelection()
@@ -358,7 +360,7 @@ class CVSController(ExplorerNodes.Controller):
         if res is not None and len(res)==2:
             outls, errls = res
             errout = self.editor.erroutFrm
-            tbs = errout.updateCtrls((), outls, 'CVS Result', '', errls)
+            tbs = errout.updateCtrls((), outls, _('CVS Result'), '', errls)
             errout.display(tbs)
             errout.displayDiff(''.join(outls))
 
@@ -401,9 +403,9 @@ class CVSController(ExplorerNodes.Controller):
                     cvsroot = ''
 
         cvsroot = self.cvsCmdPrompt(cvsroot, cvsDir,
-              help='Change the CVSROOT if necessary:')
+              help=_('Change the CVSROOT if necessary:'))
 
-        dlg = wx.TextEntryDialog(self.list, 'Enter cvs password for '+cvsroot,
+        dlg = wx.TextEntryDialog(self.list, _('Enter cvs password for %s')%cvsroot,
               'CVS login', '', style=wx.OK | wx.CANCEL | wx.CENTRE | wx.TE_PASSWORD)
         try:
             if dlg.ShowModal() == wx.ID_OK:
@@ -433,7 +435,7 @@ class CVSController(ExplorerNodes.Controller):
             else:
                 return open(cvspass, 'w'), []
         else:
-            raise Exception('HOME env var is not defined or not legal')
+            raise Exception(_('HOME env var is not defined or not legal'))
 
     def OnLogoutCVS(self, event):
         cvsDir = self.list.node.resourcepath
@@ -441,17 +443,17 @@ class CVSController(ExplorerNodes.Controller):
 
     def OnEditEnv(self, event):
         envKey = cvs_environ_vars[cvs_environ_ids.index(event.GetId())]
-        envVal = os.environ.get(envKey, '(not defined)')
-        dlg = wx.TextEntryDialog(self.list, 'Edit CVS shell environment variable: %s\nA blank entry will remove the variable.'% envKey,
-            'CVS shell environment variables', envVal)
+        envVal = os.environ.get(envKey, _('(not defined)'))
+        dlg = wx.TextEntryDialog(self.list, _('Edit CVS shell environment variable: %s\nA blank entry will remove the variable.')% envKey,
+            _('CVS shell environment variables'), envVal)
         try:
             if dlg.ShowModal() == wx.ID_OK:
                 answer = dlg.GetValue()
-                if answer and answer != '(not defined)':
+                if answer and answer != _('(not defined)'):
                     try:
                         os.environ[envKey] = answer
                     except:
-                        wx.MessageBox('Changing environment variables is not supported on this OS\nConsult CVS howtos on how to set these globally')
+                        wx.MessageBox(_('Changing environment variables is not supported on this OS\nConsult CVS howtos on how to set these globally'))
                 else:
                     if os.environ.has_key(envKey):
                         del os.environ[envKey]
@@ -561,7 +563,7 @@ class CVSFileNode(ExplorerNodes.ExplorerNode):
                     resultView.refresh()
                     resultView.focus()
                 else:
-                    editor.setStatus('No CVS conflicts in file', 'Warning', True)
+                    editor.setStatus(_('No CVS conflicts in file'), 'Warning', True)
 
                 return model, controller
         return None, None

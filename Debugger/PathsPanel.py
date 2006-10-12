@@ -3,6 +3,8 @@
 import wx
 import wx.grid
 
+from Utils import _
+
 [wxID_PATHSPANEL, wxID_PATHSPANELADD_BTN, wxID_PATHSPANELGRID, 
  wxID_PATHSPANELREMOVE_BTN, wxID_PATHSPANELSTATICBOX1, 
 ] = [wx.NewId() for _init_ctrls in range(5)]
@@ -42,7 +44,7 @@ class PathsPanel(wx.Panel):
         self.SetClientSize(wx.Size(515, 247))
 
         self.staticBox1 = wx.StaticBox(id=wxID_PATHSPANELSTATICBOX1,
-              label='Sever to client filepath mappings', name='staticBox1',
+              label=_('Server to client filepath mappings'), name='staticBox1',
               parent=self, pos=wx.Point(0, 0), size=wx.Size(515, 247), style=0)
 
         self.grid = wx.grid.Grid(id=wxID_PATHSPANELGRID, name='grid',
@@ -52,14 +54,14 @@ class PathsPanel(wx.Panel):
         self.grid.SetColLabelSize(20)
         self.grid.SetRowLabelSize(0)
 
-        self.add_btn = wx.Button(id=wxID_PATHSPANELADD_BTN, label='Add',
+        self.add_btn = wx.Button(id=wxID_PATHSPANELADD_BTN, label=_('Add'),
               name='add_btn', parent=self, pos=wx.Point(344, 210),
               size=wx.Size(75, 24), style=0)
         self.add_btn.Bind(wx.EVT_BUTTON, self.OnAdd_btnButton,
               id=wxID_PATHSPANELADD_BTN)
 
         self.remove_btn = wx.Button(id=wxID_PATHSPANELREMOVE_BTN,
-              label='Remove', name='remove_btn', parent=self, pos=wx.Point(427,
+              label=_('Remove'), name='remove_btn', parent=self, pos=wx.Point(427,
               210), size=wx.Size(75, 24), style=0)
         self.remove_btn.Bind(wx.EVT_BUTTON, self.OnRemove_btnButton,
               id=wxID_PATHSPANELREMOVE_BTN)
@@ -75,8 +77,8 @@ class PathsPanel(wx.Panel):
         self.paths = paths
         numRows = len(self.paths)
         self.grid.CreateGrid(numRows, 2)
-        self.grid.SetColLabelValue(0, 'Map server filenames starting with')
-        self.grid.SetColLabelValue(1, 'To client filenames starting with')
+        self.grid.SetColLabelValue(0, _('Map server filenames starting with'))
+        self.grid.SetColLabelValue(1, _('To client filenames starting with'))
         colWidth = self.grid.GetClientSize().x/2
         self.grid.SetColSize(0, colWidth)
         self.grid.SetColSize(1, colWidth)

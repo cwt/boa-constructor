@@ -21,6 +21,7 @@ import wx
 
 import Preferences, Utils
 from Preferences import pyPath, IS, flatTools, keyDefs
+from Utils import _
 
 from DebuggerControls import StackViewCtrl, BreakViewCtrl, NamespaceViewCtrl,\
                              WatchViewCtrl, DebugStatusBar
@@ -44,7 +45,7 @@ class DebuggerFrame(wx.Frame, Utils.FrameRestorerMixin):
     _closing = 0
 
     def __init__(self, editor, filename=None, slave_mode=1):
-        wx.Frame.__init__(self, editor, -1, 'Debugger',
+        wx.Frame.__init__(self, editor, -1, _('Debugger'),
          style=wx.DEFAULT_FRAME_STYLE | wx.CLIP_CHILDREN|Preferences.childFrameStyle)
 
         self.winConfOption = 'debugger'
@@ -78,48 +79,48 @@ class DebuggerFrame(wx.Frame, Utils.FrameRestorerMixin):
         self.SetToolBar(self.toolbar)
 
         self.runId = Utils.AddToolButtonBmpIS(self, self.toolbar,
-          'Images/Debug/Debug.png', 'Debug/Continue - %s'%keyDefs['Debug'][2],
+          'Images/Debug/Debug.png', _('Debug/Continue - %s')%keyDefs['Debug'][2],
           self.OnDebug) #, runs in debugger, stops at breaks and exceptions'
         self.runFullSpdId = Utils.AddToolButtonBmpIS(self, self.toolbar,
-          'Images/Debug/DebugFullSpeed.png', 'Debug/Continue full speed',
+          'Images/Debug/DebugFullSpeed.png', _('Debug/Continue full speed'),
           self.OnDebugFullSpeed) #'stops only at hard (code) breaks and exceptions'
         self.stepId = Utils.AddToolButtonBmpIS(self, self.toolbar,
-          'Images/Debug/Step.png', 'Step - %s'%keyDefs['DebugStep'][2],
+          'Images/Debug/Step.png', _('Step - %s')%keyDefs['DebugStep'][2],
           self.OnStep)
         self.overId = Utils.AddToolButtonBmpIS(self, self.toolbar,
-          'Images/Debug/Over.png', 'Over - %s'%keyDefs['DebugOver'][2],
+          'Images/Debug/Over.png', _('Over - %s')%keyDefs['DebugOver'][2],
           self.OnOver)
         self.outId = Utils.AddToolButtonBmpIS(self, self.toolbar,
-          'Images/Debug/Out.png', 'Out - %s'%keyDefs['DebugOut'][2],
+          'Images/Debug/Out.png', _('Out - %s')%keyDefs['DebugOut'][2],
           self.OnOut)
         self.jumpId = -1
         if sys.version_info[:2] >= (2, 3):
             self.jumpId = Utils.AddToolButtonBmpIS(self, self.toolbar,
-              'Images/Debug/Jump.png', 'Jump to line', self.OnJump)
+              'Images/Debug/Jump.png', _('Jump to line'), self.OnJump)
 
         self.pauseId = Utils.AddToolButtonBmpIS(self, self.toolbar,
-          'Images/Debug/Pause.png',  'Pause', self.OnPause)
+          'Images/Debug/Pause.png',  _('Pause'), self.OnPause)
         self.stopId = Utils.AddToolButtonBmpIS(self, self.toolbar,
-          'Images/Debug/Stop.png',  'Stop', self.OnStop)
+          'Images/Debug/Stop.png',  _('Stop'), self.OnStop)
         self.toolbar.AddSeparator()
         self.sourceTraceId = Utils.AddToolButtonBmpIS(self, self.toolbar,
-          'Images/Debug/SourceTrace-Off.png',  'Trace in source',
+          'Images/Debug/SourceTrace-Off.png',  _('Trace in source'),
           self.OnSourceTrace, '1')
         self.debugBrowseId = Utils.AddToolButtonBmpIS(self, self.toolbar,
-          'Images/Debug/DebugBrowse.png',  'Debug browsing',
+          'Images/Debug/DebugBrowse.png',  _('Debug browsing'),
           self.OnDebugBrowse, '1')
         if Preferences.psPythonShell == 'Shell':
             self.shellNamespaceId = Utils.AddToolButtonBmpIS(self, self.toolbar,
-              'Images/Debug/ShellDebug.png',  'Eval in shell',
+              'Images/Debug/ShellDebug.png',  _('Eval in shell'),
               self.OnDebugNamespace, '1')
         else:
             self.shellNamespaceId = -1
         self.toolbar.AddSeparator()
         self.pathMappingsId = Utils.AddToolButtonBmpIS(self, self.toolbar,
-          'Images/Debug/PathMapping.png',  'Edit client/server path mappings...',
+          'Images/Debug/PathMapping.png', _('Edit client/server path mappings...'),
           self.OnPathMappings)
         self.splitOrientId = Utils.AddToolButtonBmpIS(self, self.toolbar,
-          'Images/Debug/SplitOrient.png',  'Toggle split orientation',
+          'Images/Debug/SplitOrient.png', _('Toggle split orientation'),
           self.OnToggleSplitOrient)
 
         self.SetAcceleratorTable(wx.AcceleratorTable( [
@@ -144,10 +145,10 @@ class DebuggerFrame(wx.Frame, Utils.FrameRestorerMixin):
         self.nbTop.SetImageList(self.viewsImgLst)
 
         self.stackView = StackViewCtrl(self.nbTop, None, self)
-        self.nbTop.AddPage(self.stackView, 'Stack', imageId=stackImgIdx)
+        self.nbTop.AddPage(self.stackView, _('Stack'), imageId=stackImgIdx)
 
         self.breakpts = BreakViewCtrl(self.nbTop, self)
-        self.nbTop.AddPage(self.breakpts, 'Breakpoints', imageId=breaksImgIdx)
+        self.nbTop.AddPage(self.breakpts, _('Breakpoints'), imageId=breaksImgIdx)
 
         # Create a Notebook
         self.nbBottom = wx.Notebook(self.splitter, wxID_PAGECHANGED,
@@ -156,15 +157,15 @@ class DebuggerFrame(wx.Frame, Utils.FrameRestorerMixin):
         self.nbBottom.SetImageList(self.viewsImgLst)
 
         self.watches = WatchViewCtrl(self.nbBottom, self.viewsImgLst, self)
-        self.nbBottom.AddPage(self.watches, 'Watches', imageId=watchesImgIdx)
+        self.nbBottom.AddPage(self.watches, _('Watches'), imageId=watchesImgIdx)
 
         self.locs = NamespaceViewCtrl(self.nbBottom, self, 1, 'local')
-        self.nbBottom.AddPage(self.locs, 'Locals', imageId=localsImgIdx)
+        self.nbBottom.AddPage(self.locs, _('Locals'), imageId=localsImgIdx)
 
         self.globs = NamespaceViewCtrl(
             self.nbBottom, self, 0, 'global')
 
-        self.nbBottom.AddPage(self.globs, 'Globals', imageId=globalsImgIdx)
+        self.nbBottom.AddPage(self.globs, _('Globals'), imageId=globalsImgIdx)
 
         self.splitter.SetMinimumPaneSize(40)
 
@@ -362,7 +363,7 @@ class DebuggerFrame(wx.Frame, Utils.FrameRestorerMixin):
             pid = self.debug_client.getProcessId()
             if pid:
                 pidinfo = '(%s) ' % pid
-        title = 'Debugger %s- %s' % (pidinfo, info)
+        title = _('Debugger %s- %s') % (pidinfo, info)
         self.SetTitle(title)
 
     def setDebugClient(self, client=None):
@@ -391,7 +392,7 @@ class DebuggerFrame(wx.Frame, Utils.FrameRestorerMixin):
             try:
                 self.debug_client.kill()
             except:
-                print 'Error on killing debugger: %s: %s'%sys.exc_info()[:2]
+                print _('Error on killing debugger: %s: %s')%sys.exc_info()[:2]
         self.clearViews()
 
     def OnDebuggerStopped(self, event):
@@ -405,8 +406,8 @@ class DebuggerFrame(wx.Frame, Utils.FrameRestorerMixin):
             self.destroy()
             self.Destroy()
         elif show_dialog:
-            wx.MessageBox('The debugger process stopped prematurely.',
-                  'Debugger stopped', wx.OK | wx.ICON_EXCLAMATION | wx.CENTRE)
+            wx.MessageBox(_('The debugger process stopped prematurely.'),
+                  _('Debugger stopped'), wx.OK | wx.ICON_EXCLAMATION | wx.CENTRE)
 
         if self._pid:
             self._erroutFrm.processFinished(self._pid)
@@ -460,8 +461,8 @@ class DebuggerFrame(wx.Frame, Utils.FrameRestorerMixin):
             t = t.__name__
         msg = '%s: %s.' % (t, v)
 
-        confirm = wx.MessageBox(msg + '\n\nStop debugger?',
-                  'Debugger Communication Exception',
+        confirm = wx.MessageBox(_('%s\n\nStop debugger?')%msg,
+                  _('Debugger Communication Exception'),
                   wx.YES_NO | wx.YES_DEFAULT | wx.ICON_EXCLAMATION |
                   wx.CENTRE) == wx.YES
 
@@ -470,7 +471,7 @@ class DebuggerFrame(wx.Frame, Utils.FrameRestorerMixin):
 
     def runProcess(self, autocont=0):
         self.running = 1
-        self.sb.updateState('Waiting...', 'busy')
+        self.sb.updateState(_('Waiting...'), 'busy')
         brks = bplist.getBreakpointList()
         for brk in brks:
             brk['filename'] = self.clientFNToServerFN(brk['filename'])
@@ -495,7 +496,7 @@ class DebuggerFrame(wx.Frame, Utils.FrameRestorerMixin):
 
     def proceedAndRequestStatus(self, command, temp_breakpoint=None, args=()):
         # Non-blocking.
-        self.sb.updateState('Running...', 'busy')
+        self.sb.updateState(_('Running...'), 'busy')
         if not temp_breakpoint:
             temp_breakpoint = 0
         self.invokeInDebugger('proceedAndRequestStatus',
@@ -523,9 +524,9 @@ class DebuggerFrame(wx.Frame, Utils.FrameRestorerMixin):
                 return 'zopedebug://%s:%s/%s/%s'%(props['host'],
                       props['httpport'], filepath, node.metatype)
             else:
-                raise Exception('No Zope connection for: %s'%filename)
+                raise Exception(_('No Zope connection for: %s')%filename)
         elif prot == 'zopedebug':
-            raise Exception('"zopedebug" is a server filename protocol')
+            raise Exception(_('"zopedebug" is a server filename protocol'))
         else:
         #if prot == 'file':
             if self.serverClientPaths:
@@ -607,7 +608,7 @@ class DebuggerFrame(wx.Frame, Utils.FrameRestorerMixin):
             if funcname != "?":
                 message = "%s: %s()" % (message, funcname)
         else:
-            message = 'Finished.'
+            message = _('Finished.')
         self.sb.updateInstructionPtr(message)
 
         # Show exception information.
@@ -622,7 +623,7 @@ class DebuggerFrame(wx.Frame, Utils.FrameRestorerMixin):
                     m1 = 'internal error'
             self.sb.updateState(m1)
         else:
-            self.sb.updateState('Ready.', 'info')
+            self.sb.updateState(_('Ready.'), 'info')
 
         # Load the stack view.
         sv = self.stackView
@@ -643,7 +644,7 @@ class DebuggerFrame(wx.Frame, Utils.FrameRestorerMixin):
         # If at a breakpoint, display status.
         if bplist.hasBreakpoint(filename, lineno):
             bplist.clearTemporaryBreakpoints(filename, lineno)
-            self.sb.updateState('Breakpoint.', 'break')
+            self.sb.updateState(_('Breakpoint.'), 'break')
             self.breakpts.selectBreakpoint(filename, lineno)
 
         self.selectSourceLine(filename, lineno)
@@ -690,7 +691,7 @@ class DebuggerFrame(wx.Frame, Utils.FrameRestorerMixin):
                 self.editor.openOrGotoModule(filename)
             except Exception, err:
                 self.editor.setStatus(
-                      'Debugger: Failed to open file %s'%filename, 'Error')
+                      _('Debugger: Failed to open file %s')%filename, 'Error')
             else:
                 model = self.editor.getActiveModulePage().model
                 view = model.getSourceView()
@@ -808,13 +809,13 @@ class DebuggerFrame(wx.Frame, Utils.FrameRestorerMixin):
     def OnJump(self, event):
         idx = len(self.stackView.stack)-1
         if idx < 0:
-            wx.LogError('No stack available!')
+            wx.LogError(_('No stack available!'))
             return
 
         self.stackView.Select(idx)
         self.stackView.OnGotoSource()
-        dlg = wx.TextEntryDialog(self, 'Enter line number to jump to:',
-              'Debugger - Jump', str(self.stackView.stack[idx]['lineno']))
+        dlg = wx.TextEntryDialog(self, _('Enter line number to jump to:'),
+              _('Debugger - Jump'), str(self.stackView.stack[idx]['lineno']))
         try:
             if dlg.ShowModal() != wx.ID_OK:
                 return
@@ -844,7 +845,7 @@ class DebuggerFrame(wx.Frame, Utils.FrameRestorerMixin):
         self.watches.load_dict({})
         self.locs.load_dict({})
         self.globs.load_dict({})
-        self.sb.updateState('Ready', 'info')
+        self.sb.updateState(_('Ready.'), 'info')
         self.refreshTools()
 
     def OnCloseWindow(self, event):

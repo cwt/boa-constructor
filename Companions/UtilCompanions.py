@@ -15,6 +15,7 @@ import os, copy
 import wx
 
 import Preferences, Utils
+from Utils import _
 
 from BaseCompanions import UtilityDTC, CollectionDTC, CollectionIddDTC, NYIDTC
 
@@ -387,7 +388,7 @@ class MenuItemsCIDTC(CollectionIddDTC):
                 elif name == 'wx.Menu()':
                     dtd[param] = wx.Menu()
                 else:
-                    raise Exception, 'Invalid menu reference: '+name
+                    raise Exception, _('Invalid menu reference: %s')%name
             elif param == self.idProp:
                 dtd[param] = wx.NewId()
             else:
@@ -500,7 +501,7 @@ class MenuBarMenusCDTC(CollectionDTC):
                 elif name == 'wx.Menu()':
                     dtd[param] = wx.Menu()
                 else:
-                    raise Exception, 'Invalid menu reference: '+name
+                    raise Exception, _('Invalid menu reference: %s')%name
             else:
                 dtd[param] = self.eval(vals[param])
 

@@ -2,6 +2,8 @@ import os, sys, time, socket
 import wx
 
 import Preferences, Utils
+from Utils import _
+
 try:
     from ExternalLib import xmlrpclib
 except ImportError:
@@ -50,7 +52,7 @@ class TransportWithAuth (xmlrpclib.Transport):
 
         f.close()
         if not got_data:
-            raise EmptyResponseError, 'Empty response from debugger process'
+            raise EmptyResponseError, _('Empty response from debugger process')
 
         p.close()
         return u.close()
@@ -126,7 +128,7 @@ def spawnChild(monitor, process, args=''):
             line = line.strip()
             if not line:
                 raise RuntimeError, (
-                    'The debug server address could not be read')
+                    _('The debug server address could not be read'))
             port, auth = line.strip().split()
 
             if USE_TCPWATCH:
@@ -145,7 +147,7 @@ def spawnChild(monitor, process, args=''):
                 'http://127.0.0.1:%d' % int(port), trans)
             return server, istream, estream, pid, pyIntpPath
         else:
-            raise RuntimeError, 'The debug server failed to start'
+            raise RuntimeError, _('The debug server failed to start')
     except:
         if monitor.isAlive():
             process.CloseOutput()

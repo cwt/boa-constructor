@@ -531,7 +531,7 @@ class FileBrowseButtonDTC(PanelDTC):
 
     def writeImports(self):
         return '\n'.join( (PanelDTC.writeImports(self),
-                          'import wx.lib.filebrowser'))
+                          'import wx.lib.filebrowsebutton'))
 
 class FileBrowseButtonWithHistoryDTC(FileBrowseButtonDTC): 
     pass
@@ -649,7 +649,6 @@ import wx.lib.scrolledpanel
 import wx.lib.hyperlink
 import wx.lib.analogclock
 import wx.lib.filebrowsebutton 
-import wx.lib.splitter
 import wx.lib.throbber
 import wx.lib.ticker
 
@@ -671,10 +670,16 @@ Plugins.registerComponents('Library',
       (wx.lib.filebrowsebutton.FileBrowseButton, 'wx.lib.filebrowsebutton.FileBrowseButton', FileBrowseButtonDTC),
       (wx.lib.filebrowsebutton.FileBrowseButtonWithHistory, 'wx.lib.filebrowsebutton.FileBrowseButtonWithHistory', FileBrowseButtonWithHistoryDTC),
       (wx.lib.filebrowsebutton.DirBrowseButton, 'wx.lib.filebrowsebutton.DirBrowseButton', DirBrowseButtonDTC),
-      (wx.lib.splitter.MultiSplitterWindow, 'wx.lib.splitter.MultiSplitterWindow', MultiSplitterWindowDTC),
       (wx.lib.throbber.Throbber, 'wx.lib.throbber.Throbber', ThrobberDTC),
       (wx.lib.ticker.Ticker, 'wx.lib.ticker.Ticker', TickerDTC),
     )
+
+try:
+    import wx.lib.splitter
+    Plugins.registerComponent('Library', wx.lib.splitter.MultiSplitterWindow, 
+          'wx.lib.splitter.MultiSplitterWindow', MultiSplitterWindowDTC)
+except ImportError:
+    pass
 
 EventCollections.EventCategories['MaskedNumCtrlEvent'] = ('wx.lib.masked.numctrl.EVT_MASKEDNUM',)
 EventCollections.commandCategories.append('MaskedNumCtrlEvent')

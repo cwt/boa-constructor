@@ -17,6 +17,7 @@ from ConfigParser import ConfigParser
 import wx
 
 import Preferences, Utils
+from Utils import _
 
 from Models import EditorHelper
 import scrm
@@ -173,19 +174,19 @@ class ClipboardControllerMix:
          (wxID_CLIPNEWFOLDER, 'Folder', self.OnNewFolder, '-'),
          (wxID_CLIPNEWBLANKDOC, 'Blank document', self.OnNewBlankDoc, '-'),
         ]
-        self.clipMenuDef = [ (wxID_CLIPRELOAD, 'Reload', self.OnReloadItems, '-'),
+        self.clipMenuDef = [ (wxID_CLIPRELOAD, _('Reload'), self.OnReloadItems, '-'),
          (-1, '-', None, '-'),
-         (wxID_CLIPCUT, 'Cut', self.OnCutItems, self.cutBmp),
-         (wxID_CLIPCOPY, 'Copy', self.OnCopyItems, self.copyBmp),
-         (wxID_CLIPPASTE, 'Paste', self.OnPasteItems, self.pasteBmp),
+         (wxID_CLIPCUT, _('Cut'), self.OnCutItems, self.cutBmp),
+         (wxID_CLIPCOPY, _('Copy'), self.OnCopyItems, self.copyBmp),
+         (wxID_CLIPPASTE, _('Paste'), self.OnPasteItems, self.pasteBmp),
          (-1, '-', None, ''),
-         (wxID_CLIPDELETE, 'Delete', self.OnDeleteItems, self.deleteBmp),
-         (wxID_CLIPRENAME, 'Rename', self.OnRenameItems, '-'),
+         (wxID_CLIPDELETE, _('Delete'), self.OnDeleteItems, self.deleteBmp),
+         (wxID_CLIPRENAME, _('Rename'), self.OnRenameItems, '-'),
          (-1, '-', None, ''),
-         (wxID_CLIPNEWMENU, 'New', self.newMenuDef, '-'),
+         (wxID_CLIPNEWMENU, _('New'), self.newMenuDef, '-'),
          (-1, '-', None, '-'),
-         (wxID_CLIPBOOKMARK, 'Bookmark', self.OnBookmarkItems, self.bookmarkBmp),
-         (wxID_CLIPCOPYPATH, 'Copy path(s) to clipboard', self.OnCopyPath, '-'),
+         (wxID_CLIPBOOKMARK, _('Bookmark'), self.OnBookmarkItems, self.bookmarkBmp),
+         (wxID_CLIPCOPYPATH, _('Copy path(s) to clipboard'), self.OnCopyPath, '-'),
         ]
     def destroy(self):
         self.clipMenuDef = []
@@ -277,12 +278,12 @@ class ClipboardControllerMix:
                 if node.bookmarks:
                     node.bookmarks.add(node.getURI())
                     self.editor.statusBar.setHint(
-                          'Bookmarked %s'% node.resourcepath, 'Info')
+                          _('Bookmarked %s')% node.resourcepath, 'Info')
             else:
                 node = self.list.node
                 if not nodes and node.bookmarks:
                     node.bookmarks.add(node.getURI())
-                    self.editor.setStatus('Bookmarked %s'% node.getURI())
+                    self.editor.setStatus(_('Bookmarked %s')% node.getURI())
 
     def OnCopyPath(self, event):
         if self.list.node:
@@ -293,7 +294,7 @@ class ClipboardControllerMix:
                 paths.append(node.getURI())
             Utils.writeTextToClipboard(os.linesep.join(paths))
 
-            self.editor.setStatus('Path(s) copied to clipboard')
+            self.editor.setStatus(_('Path(s) copied to clipboard'))
 
 class TransportError(Exception):
     def __str__(self):
@@ -407,7 +408,7 @@ class ExplorerNode:
         """ Utility function to strip and assert the protocol from the uri """
         from Explorers.Explorer import splitURI
         prot, cat, res, uri = splitURI(filename)
-        assert self.protocol==prot, 'Illegal protocol change'
+        assert self.protocol==prot, _('Illegal protocol change')
         return res
     def currentFilename(self):
         return self.assertFilename(self.getURI())
@@ -531,7 +532,7 @@ class CategoryNode(ExplorerNode):
             try:
                 del self.entries[name]
             except KeyError:
-                wx.LogWarning('Could not find %s in %s for deletion'%(name,
+                wx.LogWarning(_('Could not find %s in %s for deletion')%(name,
                       self.entries.keys()))
         self.updateConfig()
 
@@ -539,9 +540,9 @@ class CategoryNode(ExplorerNode):
     def renameItem(self, name, newName):
         for ill_substr in self.illegal_substrs:
             if newName.find(ill_substr) != -1:
-                raise Exception('Contains invalid string sequence or char: "%s"'%ill_substr)
+                raise Exception, _('Contains invalid string sequence or char: "%s"')%ill_substr
         if self.entries.has_key(newName):
-            raise Exception, 'Name exists'
+            raise Exception, _('Name exists')
         self.entries[newName] = self.entries[name]
         del self.entries[name]
         self.updateConfig()
@@ -554,7 +555,7 @@ class CategoryNode(ExplorerNode):
 
     def updateConfig(self):
         assert type(self.entries) is type(self.__class__.entries), \
-               'Entries type %s invalid, expected %s'%(str(type(self.entries)),
+               _('Entries type %s invalid, expected %s')%(str(type(self.entries)),
                                               str(type(self.__class__.entries)))
         self.config.set(self.resourcepath[cat_section],
                   self.resourcepath[cat_option], pprint.pformat(self.entries))
@@ -582,14 +583,14 @@ class CategoryController(Controller):
         self.menu = wx.Menu()
         self.inspector = inspector
 
-        self.catMenuDef = [ (wxID_CATNEW, 'New', self.OnNewItem, self.newBmp),
-                            (wxID_CATINSPECT, 'Inspect', self.OnInspectItem, self.inspectBmp),
-                            (wxID_CATRELOAD, 'Reload', self.OnReloadItems, '-'),
+        self.catMenuDef = [ (wxID_CATNEW, _('New'), self.OnNewItem, self.newBmp),
+                            (wxID_CATINSPECT, _('Inspect'), self.OnInspectItem, self.inspectBmp),
+                            (wxID_CATRELOAD, _('Reload'), self.OnReloadItems, '-'),
                             (-1, '-', None, ''),
-                            (wxID_CATCOPY, 'Create copy', self.OnCreateCopy, self.copyBmp),
+                            (wxID_CATCOPY, _('Create copy'), self.OnCreateCopy, self.copyBmp),
                             (-1, '-', None, ''),
-                            (wxID_CATDELETE, 'Delete', self.OnDeleteItems, self.deleteBmp),
-                            (wxID_CATRENAME, 'Rename', self.OnRenameItem, '-') ]
+                            (wxID_CATDELETE, _('Delete'), self.OnDeleteItems, self.deleteBmp),
+                            (wxID_CATRENAME, _('Rename'), self.OnRenameItem, '-') ]
 
         self.setupMenu(self.menu, self.list, self.catMenuDef + menuDefs)
         self.toolbarMenus = [self.catMenuDef + menuDefs]
@@ -643,11 +644,11 @@ class CategoryController(Controller):
 class BookmarksCatNode(CategoryNode):
     """ Stores folderish references to any transport protocol """
     #protocol = 'config.bookmark'
-    defName = 'Bookmark'
+    defName = _('Bookmark')
     defaultStruct = Preferences.explorerFileSysRootDefault[1]
     refTree = True
     def __init__(self, clipboards, config, parent, catTransports, tree=None,
-          name='Bookmarks', confSpec=('explorer', 'bookmarks')):
+          name=_('Bookmarks'), confSpec=('explorer', 'bookmarks')):
         CategoryNode.__init__(self, name, confSpec, None, config, parent)
         self.catTransports = catTransports
         self.tree = tree
@@ -737,12 +738,12 @@ class SubBookmarksCatNode(BookmarksCatNode):
 
 class MRUCatNode(BookmarksCatNode):
     protocol = 'recent.files'
-    defName = 'Recent files'
+    defName = _('Recent files')
     entries = []
     defaultStruct = ''
     def __init__(self, clipboards, config, parent, catTransports, tree):
         BookmarksCatNode.__init__(self, clipboards, config, parent,
-              catTransports, tree, 'Recent files', ('explorer', 'recentfiles'))
+              catTransports, tree, _('Recent files'), ('explorer', 'recentfiles'))
         self.vetoSort = True
         self.imgIdx = EditorHelper.imgRecentFiles
         self.ignoreParentDir = True
@@ -802,11 +803,11 @@ class MRUCatController(Controller):
         self.inspector = inspector
 
         self.mruMenuDef = [
-            (wxID_MRUOPEN, 'Open', self.OnOpenItems, '-'),
+            (wxID_MRUOPEN, _('Open'), self.OnOpenItems, '-'),
             (-1, '-', None, '-'),
-            (wxID_MRURELOAD, 'Reload', self.OnReloadItems, '-'),
+            (wxID_MRURELOAD, _('Reload'), self.OnReloadItems, '-'),
             (-1, '-', None, ''),
-            (wxID_MRUREMOVE, 'Remove', self.OnRemoveItems, self.deleteBmp)
+            (wxID_MRUREMOVE, _('Remove'), self.OnRemoveItems, self.deleteBmp)
         ]
 
         self.setupMenu(self.menu, self.list, self.mruMenuDef + menuDefs)
@@ -977,8 +978,8 @@ class CategoryDictCompanion(CategoryCompanion):
         # scramble sensitive properties before saving
         try:
             if not self.catNode.entries.has_key(self.name):
-                raise Exception('%s not found in the config, renaming config '\
-                            'entries while Inspecting is not allowed.'%self.name)
+                raise Exception(_('%s not found in the config, renaming config '
+                          'entries while Inspecting is not allowed.')%self.name)
 
             entry = self.catNode.entries[self.name]
             entry[name] = value

@@ -16,6 +16,7 @@ import os
 import wx
 
 import Preferences, Utils
+from Utils import _
 
 import ExplorerNodes
 from Models import Controllers, EditorHelper
@@ -32,7 +33,7 @@ class FTPController(ExplorerNodes.Controller, ExplorerNodes.ClipboardControllerM
         self.menu = wx.Menu()
 
         self.setupMenu(self.menu, self.list,
-              [ (wxID_FTPOPEN, 'Open', self.OnOpenItems, '-'),
+              [ (wxID_FTPOPEN, _('Open'), self.OnOpenItems, '-'),
                 (-1, '-', None, '') ] + self.clipMenuDef)
         self.toolbarMenus = [self.clipMenuDef]
 

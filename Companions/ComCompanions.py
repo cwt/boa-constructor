@@ -51,7 +51,7 @@ class ComCtrlDTC(WindowDTC):
 
     def writeImports(self):
         return '\n'.join( (WindowDTC.writeImports(self),
-                           'from wxPython.lib.bcrtl.activex.%s import %s' % (
+                           'from wx.lib.bcrtl.activex.%s import %s' % (
                             self.comModule, self.comImports)) )
 
     def designTimeControl(self, position, size, args = None):

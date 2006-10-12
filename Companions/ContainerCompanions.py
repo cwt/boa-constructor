@@ -16,6 +16,7 @@ import copy
 import wx
 
 import Preferences, Utils
+from Utils import _
 
 from BaseCompanions import ContainerDTC, CollectionDTC, CollectionIddDTC
 import PaletteStore
@@ -375,9 +376,9 @@ class BookCtrlPagesCDTC(CollectionDTC):
                       self.parentCompanion.name, constr.params['text']))
                 warn = 1
         if warn:
-            wx.LogWarning('The red-dashed area of a %s page must contain\n'\
+            wx.LogWarning(_('The red-dashed area of a %s page must contain\n'\
             'a control or the generated source will be invalid outside the '\
-            'Designer'% self.parentCompanion.bookCtrlName)
+            'Designer')% self.parentCompanion.bookCtrlName)
 
 [wxID_CTRLPARENT, wxID_EDITPASTE, wxID_EDITDELETE] = Utils.wxNewIds(3)
 
@@ -795,9 +796,9 @@ class ToolBarToolsCDTC(CollectionIddDTC):
     idProp = 'id'
     idPropNameFrom = 'tools'
 
-    additionalMethods = {'AddSeparator': ('Add separator', '', '(None)'),
-                         'AddControl': ('Add control', 'control', '(None)'),
-                         'AddTool': ('Old add tool', 'shortHelpString', '(None)')
+    additionalMethods = {'AddSeparator': (_('Add separator'), '', '(None)'),
+                         'AddControl': (_('Add control'), 'control', '(None)'),
+                         'AddTool': (_('Old add tool'), 'shortHelpString', '(None)')
                         }
 
     def __init__(self, name, designer, parentCompanion, ctrl):
@@ -950,12 +951,12 @@ class ToolBarToolsCDTC(CollectionIddDTC):
         warn = 0
         for constr in self.textConstrLst:
             if constr.params.has_key('control') and constr.params['control'] == 'None':
-                wx.LogWarning("Invalid None control for toolbar %s's AddControl"%(
+                wx.LogWarning(_("Invalid None control for toolbar %s's AddControl")%(
                       self.parentCompanion.name))
                 warn = 1
         if warn:
-            wx.LogWarning('Control may not be None or the generated source will '
-                         'be invalid outside the Designer.')
+            wx.LogWarning(_('Control may not be None or the generated source will '
+                            'be invalid outside the Designer.'))
 
     def GetOtherWin(self):
         return self.textConstrLst[self.index].params['control']

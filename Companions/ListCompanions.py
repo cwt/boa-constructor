@@ -14,6 +14,8 @@ print 'importing Companions.ListCompanions'
 import wx
 import wx.grid
 
+from Utils import _
+
 from BaseCompanions import WindowDTC, ChoicedDTC, CollectionDTC, CollectionIddDTC
 
 import Constructors
@@ -146,7 +148,7 @@ class ListCtrlColumnsCDTC(CollectionDTC):
 
     def appendItem(self, method=None):
         if not (self.control.GetWindowStyleFlag() & wx.LC_REPORT):
-            wx.MessageBox('wx.ListCtrl must be created with the wx.LC_REPORT flag.',
+            wx.MessageBox(_('wx.ListCtrl must be created with the wx.LC_REPORT flag.'),
                   'Error', wx.ICON_ERROR | wx.OK, self.designer)
             return
         CollectionDTC.appendItem(self, method)

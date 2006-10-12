@@ -16,6 +16,7 @@ import os, time, stat, sys
 import wx
 
 import Preferences, Utils
+from Utils import _
 
 import ExplorerNodes
 from Models import Controllers, EditorHelper
@@ -26,7 +27,7 @@ class FileSysCatNode(ExplorerNodes.CategoryNode):
     itemProtocol = 'file'
     defName, defaultStruct = Preferences.explorerFileSysRootDefault
     def __init__(self, clipboard, config, parent, bookmarks):
-        ExplorerNodes.CategoryNode.__init__(self, 'Filesystem', ('explorer', 'file'),
+        ExplorerNodes.CategoryNode.__init__(self, _('Filesystem'), ('explorer', 'file'),
               clipboard, config, parent)
         self.bookmarks = bookmarks
 
@@ -39,7 +40,7 @@ class FileSysCatNode(ExplorerNodes.CategoryNode):
 
             self.entries = drives
             self.updateConfig()
-            wx.LogMessage('%d drives added to the filesystem definition.'%len(drives))
+            wx.LogMessage(_('%d drives added to the filesystem definition.')%len(drives))
 
     def createParentNode(self):
         return self.parent
@@ -68,7 +69,7 @@ class FileSysCatNode(ExplorerNodes.CategoryNode):
 
     def renameItem(self, name, newName):
         if self.entries.has_key(newName):
-            raise Exception, 'Name exists'
+            raise Exception, _('Name exists')
         self.entries[newName] = newName
         del self.entries[name]
         self.updateConfig()
@@ -89,11 +90,11 @@ class FileSysCatNode(ExplorerNodes.CategoryNode):
 
 filterDescrOrd = ['BoaFiles', 'StdFiles', 'BoaIntFiles', 'ImageFiles', 'AllFiles']
 
-filterDescr = {'BoaFiles': ('Boa files', wxID_FSFILTERBOAMODULES),
-               'StdFiles': ('Standard files', wxID_FSFILTERSTDMODULES),
-               'BoaIntFiles': ('Internal files', wxID_FSFILTERINTMODULES),
-               'ImageFiles': ('Image files', wxID_FSFILTERIMAGES),
-               'AllFiles': ('All files', wxID_FSFILTERALLMODULES)}
+filterDescr = {'BoaFiles': (_('Boa files'), wxID_FSFILTERBOAMODULES),
+               'StdFiles': (_('Standard files'), wxID_FSFILTERSTDMODULES),
+               'BoaIntFiles': (_('Internal files'), wxID_FSFILTERINTMODULES),
+               'ImageFiles': (_('Image files'), wxID_FSFILTERIMAGES),
+               'AllFiles': (_('All files'), wxID_FSFILTERALLMODULES)}
 
 # XXX CVS and Zip support must also move to registering
 class FileSysController(ExplorerNodes.Controller, ExplorerNodes.ClipboardControllerMix):
@@ -116,22 +117,22 @@ class FileSysController(ExplorerNodes.Controller, ExplorerNodes.ClipboardControl
         self.menu = wx.Menu()
 
         self.fileMenuDef = [
-              (wxID_FSOPEN, 'Open', self.OnOpenItems, '-'),
+              (wxID_FSOPEN, _('Open'), self.OnOpenItems, '-'),
               (-1, '-', None, ''),
-              (wxID_FSINSPECT, 'Inspect', self.OnInspectItem, self.inspectBmp),
+              (wxID_FSINSPECT, _('Inspect'), self.OnInspectItem, self.inspectBmp),
               (-1, '-', None, ''),
         ] + self.clipMenuDef + [
-              (wxID_FSSETASCWD, 'Set as os.cwd', self.OnSetAsSysCwd, '-'),
+              (wxID_FSSETASCWD, _('Set as os.cwd'), self.OnSetAsSysCwd, '-'),
               (-1, '-', None, ''),
-              (wxID_FSFINDINFILES, 'Find', self.OnFindFSItem, self.findBmp),
+              (wxID_FSFINDINFILES, _('Find'), self.OnFindFSItem, self.findBmp),
         ]
 
         if controllers.has_key('zip'):
             self.newMenuDef.append(
-             (wxID_FSNEWZIP, 'Empty zip archive', self.OnEmptyZipArchive, '-') )
+             (wxID_FSNEWZIP, _('Empty zip archive'), self.OnEmptyZipArchive, '-') )
         if controllers.has_key('tar.gz'):
             self.newMenuDef.append(
-             (wxID_FSNEWZIP, 'Empty tar.gz archive', self.OnEmptyTarGzipArchive, '-') )
+             (wxID_FSNEWZIP, _('Empty tar.gz archive'), self.OnEmptyTarGzipArchive, '-') )
 
         self.setupMenu(self.menu, self.list, self.fileMenuDef)
 
@@ -147,7 +148,7 @@ class FileSysController(ExplorerNodes.Controller, ExplorerNodes.ClipboardControl
         # Check default option
         self.fileFilterMenu.Check(wxID_FSFILTERBOAMODULES, True)
 
-        self.menu.AppendMenu(wxID_FSFILTER, 'Filter', self.fileFilterMenu)
+        self.menu.AppendMenu(wxID_FSFILTER, _('Filter'), self.fileFilterMenu)
 
         # XXX this should not be done here
         if controllers.has_key('cvs'):
@@ -183,7 +184,7 @@ class FileSysController(ExplorerNodes.Controller, ExplorerNodes.ClipboardControl
         """
         nd = self.list.node
         if not isinstance( self.list.node, ResultsFolderNode ):
-            self.list.node = ResultsFolderNode('Results', nd.resourcepath,
+            self.list.node = ResultsFolderNode(_('Results'), nd.resourcepath,
                   nd.clipboard, -1, nd, nd.bookmarks)
 
         mapFindInFileCount = {}
@@ -215,7 +216,7 @@ class FileSysController(ExplorerNodes.Controller, ExplorerNodes.ClipboardControl
         if os.path.isfile(path): path = os.path.split(path)[0]
         os.chdir(path)
 
-        self.editor.setStatus('Updated os.cwd to %s'%path, ringBell=True)
+        self.editor.setStatus(_('Updated os.cwd to %s')%path, ringBell=True)
 
     def OnEmptyZipArchive(self, event):
         # must move to zip
@@ -506,8 +507,8 @@ class FileSysNode(ExplorerNodes.ExplorerNode):
             self.name = os.path.basename(self.resourcepath)
         try:
             if not overwriteNewer and self.fileIsNewer():
-                raise ExplorerNodes.TransportModifiedSaveError('This file has '
-                  'been saved by someone else since it was loaded',
+                raise ExplorerNodes.TransportModifiedSaveError(_('This file has '
+                  'been saved by someone else since it was loaded'),
                   self.resourcepath)
             open(self.resourcepath, mode).write(data)
         except IOError, error:
@@ -572,7 +573,7 @@ class ResultsFolderNode(FileSysNode):
         return mod, cntrl
 
     def getTitle(self):
-        return 'Find results for %s in %s' % (self.lastSearch, self.resourcepath)
+        return _('Find results for %s in %s') % (self.lastSearch, self.resourcepath)
 
 class NonCheckPyFolderNode(FileSysNode):
     def isFolderish(self):
@@ -605,7 +606,7 @@ def findFileExplorerNode(category, respath, transports):
         if tp.itemProtocol == 'file':
             return tp.getNodeFromPath(respath, forceFolder=False)
     raise ExplorerNodes.TransportError(
-          'FileSysCatNode not found in transports %s'%transports.entries)
+          _('FileSysCatNode not found in transports %s')%transports.entries)
 
 #-------------------------------------------------------------------------------
 ExplorerNodes.register(FileSysNode, clipboard=FileSysExpClipboard,

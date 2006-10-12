@@ -16,6 +16,8 @@ from cStringIO import StringIO
 
 import wx
 
+from Utils import _
+
 import ExplorerNodes, FileExplorer
 from Models import EditorModels, EditorHelper
 
@@ -35,7 +37,7 @@ class ZipController(ExplorerNodes.Controller, ExplorerNodes.ClipboardControllerM
         self.menu = wx.Menu()
 
         self.setupMenu(self.menu, self.list,
-            [ (wxID_ZIPOPEN, 'Open', self.OnOpenItems, '-'),
+            [ (wxID_ZIPOPEN, _('Open'), self.OnOpenItems, '-'),
               (-1, '-', None, '') ] + self.clipMenuDef)
 
         self.toolbarMenus = [self.clipMenuDef]

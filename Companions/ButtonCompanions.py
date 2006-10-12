@@ -15,6 +15,8 @@ import wx
 
 import wx.lib.buttons
 
+from Utils import _
+
 from BaseCompanions import WindowDTC
 
 import Constructors
@@ -81,12 +83,12 @@ class ButtonDTC(Constructors.LabeledInputConstr, WindowDTC):
         if name == 'Default':
             for prop in self.textPropList:
                 if prop.prop_setter == setterName:
-                    if value.lower() == 'True':
+                    if value.lower() == 'true':
                         prop.params = []
                     else:
                         del self.textPropList[self.textPropList.index(prop)]
                     return
-            if value.lower() == 'True':
+            if value.lower() == 'true':
                 self.textPropList.append(methodparse.PropertyParse(
                       None, self.getCompName(), setterName, [], name))
         else:

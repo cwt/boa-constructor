@@ -6,6 +6,8 @@ import wx.lib.stattext
 
 import Preferences, Utils
 from Preferences import IS
+from Utils import _
+
 from Explorers import Explorer
 
 from Breakpoint import bplist
@@ -23,9 +25,9 @@ class StackViewCtrl(DebuggerListCtrl):
     def __init__(self, parent, flist, debugger):
         DebuggerListCtrl.__init__(self, parent, wxID_STACKVIEW)
 
-        self.InsertColumn(0, 'Frame', wx.LIST_FORMAT_LEFT, 150)
-        self.InsertColumn(1, 'Line', wx.LIST_FORMAT_LEFT, 35)
-        self.InsertColumn(2, 'Code', wx.LIST_FORMAT_LEFT, 300)
+        self.InsertColumn(0, _('Frame'), wx.LIST_FORMAT_LEFT, 150)
+        self.InsertColumn(1, _('Line'), wx.LIST_FORMAT_LEFT, 35)
+        self.InsertColumn(2, _('Code'), wx.LIST_FORMAT_LEFT, 300)
 
         self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.OnStackItemSelected, id=wxID_STACKVIEW)
         self.Bind(wx.EVT_LEFT_DCLICK, self.OnGotoSource)
@@ -114,15 +116,15 @@ class StackViewCtrl(DebuggerListCtrl):
             except Explorer.TransportLoadError, err:
                 serverPath = entry['filename']
                 if serverPath[0] == '<' and serverPath[-1] == '>':
-                    wx.LogError('Not a source file: %s, probably an executed '
-                               'string.'%serverPath)
+                    wx.LogError(_('Not a source file: %s, probably an executed '
+                               'string.')%serverPath)
                     return
 
-                res = wx.MessageBox('Could not open file: %s.\n\nIf This is a '
+                res = wx.MessageBox(_('Could not open file: %s.\n\nIf This is a '
                       'server path for which you\nhave not defined a mapping '
                       'click "Yes" to browse to the file to the mapping can '
-                      'be computed.\nPress "No" to open the path dialog.'%filename,
-                      'File Open Error, try to compute path?',
+                      'be computed.\nPress "No" to open the path dialog.')%filename,
+                      _('File Open Error, try to compute path?'),
                       wx.ICON_WARNING | wx.YES_NO | wx.CANCEL)
                 if res == wx.YES:
                     clientPath = editor.openFileDlg(curfile=os.path.basename(filename))
@@ -141,7 +143,7 @@ class StackViewCtrl(DebuggerListCtrl):
                                 break
 
                             if not serverPath or not clientPath:
-                                wx.LogError('Paths are identical')
+                                wx.LogError(_('Paths are identical'))
                                 break
 
                             prevClientPath = clientPath
@@ -172,11 +174,11 @@ class BreakViewCtrl(DebuggerListCtrl):
     def __init__(self, parent, debugger):
         DebuggerListCtrl.__init__(self, parent, wxID_BREAKVIEW)
 
-        self.InsertColumn(0, 'Module', wx.LIST_FORMAT_LEFT, 90)
-        self.InsertColumn(1, 'Line', wx.LIST_FORMAT_CENTER, 40)
-        self.InsertColumn(2, 'Ignore', wx.LIST_FORMAT_CENTER, 45)
-        self.InsertColumn(3, 'Hits', wx.LIST_FORMAT_CENTER, 45)
-        self.InsertColumn(4, 'Condition', wx.LIST_FORMAT_LEFT, 250)
+        self.InsertColumn(0, _('Module'), wx.LIST_FORMAT_LEFT, 90)
+        self.InsertColumn(1, _('Line'), wx.LIST_FORMAT_CENTER, 40)
+        self.InsertColumn(2, _('Ignore'), wx.LIST_FORMAT_CENTER, 45)
+        self.InsertColumn(3, _('Hits'), wx.LIST_FORMAT_CENTER, 45)
+        self.InsertColumn(4, _('Condition'), wx.LIST_FORMAT_LEFT, 250)
 
         self.brkImgLst = wx.ImageList(16, 16)
         self.brkImgLst.Add(IS.load('Images/Debug/Breakpoint-red.png'))
@@ -190,14 +192,14 @@ class BreakViewCtrl(DebuggerListCtrl):
 
         self.menu = wx.Menu()
 
-        self.menu.Append(wxID_BREAKSOURCE, 'Goto source')
-        self.menu.Append(wxID_BREAKREFRESH, 'Refresh')
+        self.menu.Append(wxID_BREAKSOURCE, _('Goto source'))
+        self.menu.Append(wxID_BREAKREFRESH, _('Refresh'))
         self.menu.AppendSeparator()
-        self.menu.Append(wxID_BREAKIGNORE, 'Edit ignore count')
-        self.menu.Append(wxID_BREAKEDIT, 'Edit condition')
-        self.menu.Append(wxID_BREAKDELETE, 'Delete')
+        self.menu.Append(wxID_BREAKIGNORE, _('Edit ignore count'))
+        self.menu.Append(wxID_BREAKEDIT, _('Edit condition'))
+        self.menu.Append(wxID_BREAKDELETE, _('Delete'))
         self.menu.AppendSeparator()
-        self.menu.Append(wxID_BREAKENABLED, 'Enabled', '', True)
+        self.menu.Append(wxID_BREAKENABLED, _('Enabled'), '', True)
 
         self.menu.Check(wxID_BREAKENABLED, True)
 
@@ -367,8 +369,8 @@ class BreakViewCtrl(DebuggerListCtrl):
             lineno = bp['lineno']
             cond = bp['cond']
 
-            dlg = wx.TextEntryDialog(self, 'Condition to break on:',
-                  'Change condition', cond)
+            dlg = wx.TextEntryDialog(self, _('Condition to break on:'),
+                  _('Change condition'), cond)
             try:
                 if dlg.ShowModal() == wx.ID_OK:
                     cond = dlg.GetValue().strip()
@@ -392,8 +394,8 @@ class BreakViewCtrl(DebuggerListCtrl):
             lineno = bp['lineno']
             ignore = bp['ignore']
 
-            dlg = wx.TextEntryDialog(self, 'Number of hits to ignore:',
-                  'Change ignore count', `ignore`)
+            dlg = wx.TextEntryDialog(self, _('Number of hits to ignore:'),
+                  _('Change ignore count'), `ignore`)
             try:
                 if dlg.ShowModal() == wx.ID_OK:
                     ignore = int(dlg.GetValue())
@@ -415,8 +417,8 @@ class NamespaceViewCtrl(DebuggerListCtrl):
     def __init__(self, parent, debugger, is_local, name):
         DebuggerListCtrl.__init__(self, parent, wxID_NSVIEW)
 
-        self.InsertColumn(0, 'Attribute', wx.LIST_FORMAT_LEFT, 125)
-        self.InsertColumn(1, 'Value', wx.LIST_FORMAT_LEFT, 200)
+        self.InsertColumn(0, _('Attribute'), wx.LIST_FORMAT_LEFT, 125)
+        self.InsertColumn(1, _('Value'), wx.LIST_FORMAT_LEFT, 200)
 
         self.is_local = is_local
 
@@ -424,12 +426,12 @@ class NamespaceViewCtrl(DebuggerListCtrl):
 
         idAs = wx.NewId()
         idA = wx.NewId()
-        self.menu.Append(idAs, 'Add as watch')
-        self.menu.Append(idA, 'Add a %s watch' % name)
+        self.menu.Append(idAs, _('Add as watch'))
+        self.menu.Append(idA, _('Add a %s watch') % name)
         self.Bind(wx.EVT_MENU, self.OnAddAsWatch, id=idAs)
         self.Bind(wx.EVT_MENU, self.OnAddAWatch, id=idA)
         outputId = wx.NewId()
-        self.menu.Append(outputId, 'Write value to Output')
+        self.menu.Append(outputId, _('Write value to Output'))
         self.Bind(wx.EVT_MENU, self.OnValueToOutput, id=outputId)
 
         self.Bind(wx.EVT_LEFT_DCLICK, self.OnDoubleClick)
@@ -496,8 +498,8 @@ class WatchViewCtrl(DebuggerListCtrl):
     def __init__(self, parent, images, debugger):
         DebuggerListCtrl.__init__(self, parent, wxID_WATCHVIEW)
 
-        self.InsertColumn(0, 'Attribute', wx.LIST_FORMAT_LEFT, 125)
-        self.InsertColumn(1, 'Value', wx.LIST_FORMAT_LEFT, 200)
+        self.InsertColumn(0, _('Attribute'), wx.LIST_FORMAT_LEFT, 125)
+        self.InsertColumn(1, _('Value'), wx.LIST_FORMAT_LEFT, 200)
 
         self.repr = Repr()
         self.repr.maxstring = 60
@@ -511,25 +513,25 @@ class WatchViewCtrl(DebuggerListCtrl):
         self.menu = wx.Menu()
 
         wid = wx.NewId()
-        self.menu.Append(wid, 'Add local watch')
+        self.menu.Append(wid, _('Add local watch'))
         self.Bind(wx.EVT_MENU, self.OnAddLocal, id=wid)
         wid = wx.NewId()
-        self.menu.Append(wid, 'Add global watch')
+        self.menu.Append(wid, _('Add global watch'))
         self.Bind(wx.EVT_MENU, self.OnAddGlobal, id=wid)
         self.editId = wx.NewId()
-        self.menu.Append(self.editId, 'Edit watch')
+        self.menu.Append(self.editId, _('Edit watch'))
         self.Bind(wx.EVT_MENU, self.OnEdit, id=self.editId)
         self.outputId = wx.NewId()
-        self.menu.Append(self.outputId, 'Write value to Output')
+        self.menu.Append(self.outputId, _('Write value to Output'))
         self.Bind(wx.EVT_MENU, self.OnValueToOutput, id=self.outputId)
         self.deleteId = wx.NewId()
-        self.menu.Append(self.deleteId, 'Delete')
+        self.menu.Append(self.deleteId, _('Delete'))
         self.Bind(wx.EVT_MENU, self.OnDelete, id=self.deleteId)
         self.expandId = wx.NewId()
-        self.menu.Append(self.expandId, 'Expand')
+        self.menu.Append(self.expandId, _('Expand'))
         self.Bind(wx.EVT_MENU, self.OnExpand, id=self.expandId)
         wid = wx.NewId()
-        self.menu.Append(wid, 'Delete All')
+        self.menu.Append(wid, _('Delete All'))
         self.Bind(wx.EVT_MENU, self.OnDeleteAll, id=wid)
 
         self.Bind(wx.EVT_LEFT_DCLICK, self.OnDoubleClick)
@@ -604,7 +606,7 @@ class WatchViewCtrl(DebuggerListCtrl):
         if selected != -1:
             name, local = self.watches[selected]
             dlg = wx.TextEntryDialog(
-                self, 'Expression:', 'Edit watch:', name)
+                self, _('Expression:'), _('Edit watch:'), name)
             try:
                 if dlg.ShowModal() == wx.ID_OK:
                     self.watches[selected] = (dlg.GetValue(), local)
@@ -669,7 +671,7 @@ class DebugStatusBar(wx.StatusBar):
         self.instr_ptr.SetBackgroundColour(wx.Colour(0xEE, 0xEE, 0xEE))
         self._setCtrlDims(self.instr_ptr, self.GetFieldRect(0))
 
-        self.state = wx.lib.stattext.GenStaticText(self, -1, 'Ready.',
+        self.state = wx.lib.stattext.GenStaticText(self, -1, _('Ready.'),
               style=wx.ALIGN_CENTER | wx.ST_NO_AUTORESIZE)
         self.state.SetBackgroundColour(self.stateCols['info'])
         self._setCtrlDims(self.state, self.GetFieldRect(1))

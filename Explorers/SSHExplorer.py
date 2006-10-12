@@ -16,6 +16,7 @@ import os, sys
 import wx
 
 import Preferences, Utils
+from Utils import _
 
 import ExplorerNodes
 from Models import Controllers, EditorHelper
@@ -112,7 +113,7 @@ class SSHItemNode(ExplorerNodes.ExplorerNode):
 
     def execCmd(self, cmd):
         dlg = ProcessProgressDlg(None,
-            self.sshCmd(cmd), 'SSH listing', linesep = '\012')
+            self.sshCmd(cmd), _('SSH listing'), linesep = '\012')
         try:
             if dlg.ShowModal() == wx.OK:
                 return dlg.output
@@ -200,7 +201,7 @@ class SSHItemNode(ExplorerNodes.ExplorerNode):
                     os.remove(fn)
             else:
                 raise ExplorerNodes.TransportLoadError(
-                      'File was not downloaded locally.', self.resourcepath)
+                      _('File was not downloaded locally.'), self.resourcepath)
         except Exception, error:
             raise ExplorerNodes.TransportLoadError(error, self.resourcepath)
 

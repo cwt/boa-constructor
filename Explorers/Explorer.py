@@ -21,6 +21,7 @@ import wx
 
 import Preferences, Utils
 from Preferences import IS
+from Utils import _
 
 from Models import EditorHelper
 
@@ -47,7 +48,7 @@ def makeCategoryEx(protocol, name='', struct=None):
 
             return name
 
-    raise TransportCategoryError, 'No category found for protocol %s'%protocol
+    raise TransportCategoryError, _('No category found for protocol %s')%protocol
 
 def openEx(filename, transports=None):
     """ Returns a transport node for the given uri """
@@ -79,7 +80,7 @@ def splitURI(filename):
             prot, filepath = protsplit
             idx = filepath.find('/')
             if idx == -1:
-                raise TransportCategoryError('Category not found', filepath)
+                raise TransportCategoryError(_('Category not found'), filepath)
             else:
                 category, respath = filepath[:idx], filepath[idx+1:]
             return prot, category, respath, filename
@@ -90,7 +91,7 @@ def getTransport(prot, category, respath, transports):
     elif category:
         return findCatExplorerNode(prot, category, respath, transports)
     else:
-        raise TransportError('Unhandled transport', (prot, category, respath))
+        raise TransportError(_('Unhandled transport'), (prot, category, respath))
 
 
 def findCatExplorerNode(prot, category, respath, transports):
@@ -103,7 +104,7 @@ def findCatExplorerNode(prot, category, respath, transports):
                     #if itm.connection:
                     #    itm.openList()
                     return itm.getNodeFromPath(respath)
-    raise TransportError('Catalog transport could not be found: %s || %s'%(category, respath))
+    raise TransportError(_('Catalog transport could not be found: %s || %s')%(category, respath))
 
 #-------------------------------------------------------------------------------
 
@@ -196,7 +197,7 @@ def importTransport(moduleName):
     except ImportError, error:
         if Preferences.pluginErrorHandling == 'raise':
             raise
-        wx.LogWarning('%s not installed: %s' %(moduleName, str(error)))
+        wx.LogWarning(_('%s not installed: %s') %(moduleName, str(error)))
         ExplorerNodes.failedModules[moduleName] = str(error)
         return True
     else:
@@ -245,7 +246,7 @@ class ExplorerStore:
         self.preferences = \
               ExplorerNodes.nodeRegByProt['boa.prefs.group'](self.boaRoot)
 
-        assert self.clipboards.has_key('file'), 'File system transport must be loaded'
+        assert self.clipboards.has_key('file'), _('File system transport must be loaded')
 
         # root level of the tree
         self.boaRoot.entries = [self.openEditorFiles, self.recentFiles, self.bookmarks,
@@ -275,7 +276,7 @@ class ExplorerStore:
                             self.transports.entries.append(cat)
                             self.transports.entriesByProt[Cat.itemProtocol] = cat
                         except Exception, error:
-                            wx.LogWarning('Transport category %s not added: %s'\
+                            wx.LogWarning(_('Transport category %s not added: %s')\
                                    %(Cat.defName, str(error)))
                     break
 
@@ -288,9 +289,9 @@ class ExplorerStore:
         for moduleName in installTransports:
             warned = warned | importTransport(moduleName)
         if warned:
-            wx.LogWarning('One or more transports could not be loaded, if the problem '
+            wx.LogWarning(_('One or more transports could not be loaded, if the problem '
                          'is not rectifiable,\nconsider removing the transport under '
-                         'Preferences->Plug-ins->Transports. Click "Details"')
+                         'Preferences->Plug-ins->Transports. Click "Details"'))
 
     def initInstalledControllers(self, editor, list):
         """ Creates controllers for built-in, plugged-in and installed nodes
@@ -712,7 +713,7 @@ class BaseExplorerSplitter(wx.SplitterWindow):
     def OnEndLabelEdit(self, event):
         newText = event.GetText()
         renameNode = self.list.getSelection()
-        assert renameNode, 'There must be a selection to rename'
+        assert renameNode, _('There must be a selection to rename')
         oldURI = renameNode.getURI()
         if newText != self.oldLabelVal:
             event.Skip()

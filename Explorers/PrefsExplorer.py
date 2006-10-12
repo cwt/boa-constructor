@@ -16,6 +16,7 @@ import types
 import wx
 
 import Preferences, Utils, Plugins
+from Utils import _
 
 import ExplorerNodes
 from Models import EditorHelper
@@ -47,16 +48,16 @@ class BoaPrefGroupNode(PreferenceGroupNode):
     protocol = 'boa.prefs.group'
     customPrefs = [] # list of tuples ('name', 'file')
     def __init__(self, parent):
-        PreferenceGroupNode.__init__(self, 'Preferences', parent)
+        PreferenceGroupNode.__init__(self, _('Preferences'), parent)
         self.bold = True
 
         prefImgIdx = EditorHelper.imgSystemObj
         stcPrefImgIdx = EditorHelper.imgPrefsSTCStyles
 
-        self.source_pref = PreferenceGroupNode('Source', self)
+        self.source_pref = PreferenceGroupNode(_('Source'), self)
 
         self.source_pref.preferences = [
-            UsedModuleSrcBsdPrefColNode('Default settings',
+            UsedModuleSrcBsdPrefColNode(_('Default settings'),
                 Preferences.exportedSTCProps, os.path.join(Preferences.rcPath,
                 'prefs.rc.py'), prefImgIdx, self, Preferences, True)]
 
@@ -67,18 +68,18 @@ class BoaPrefGroupNode(PreferenceGroupNode):
                   name, lang, STCClass, stylesFile, stcPrefImgIdx, self))
         self.preferences.append(self.source_pref)
 
-        self.general_pref = UsedModuleSrcBsdPrefColNode('General',
+        self.general_pref = UsedModuleSrcBsdPrefColNode(_('General'),
             Preferences.exportedProperties, os.path.join(Preferences.rcPath,
             'prefs.rc.py'), prefImgIdx, self, Preferences)
         self.preferences.append(self.general_pref)
 
-        self.platform_pref = UsedModuleSrcBsdPrefColNode('Platform specific',
+        self.platform_pref = UsedModuleSrcBsdPrefColNode(_('Platform specific'),
             Preferences.exportedProperties2, os.path.join(Preferences.rcPath,
             'prefs.%s.rc.py' % (wx.Platform == '__WXMSW__' and 'msw' or 'gtk')),
             prefImgIdx, self, Preferences)
         self.preferences.append(self.platform_pref)
 
-        self.keys_pref = KeyDefsSrcPrefColNode('Key bindings', ('*',),
+        self.keys_pref = KeyDefsSrcPrefColNode(_('Key bindings'), ('*',),
             os.path.join(Preferences.rcPath, 'prefs.keys.rc.py'), prefImgIdx,
             self, Preferences.keyDefs)
         self.preferences.append(self.keys_pref)
@@ -93,16 +94,16 @@ class BoaPrefGroupNode(PreferenceGroupNode):
 ##            ('*',), Preferences.pyPath+'/.pycheckrc', prefImgIdx, self)
 ##        self.preferences.append(self.pychecker_pref)
 
-        self.plugin_pref = PreferenceGroupNode('Plug-ins', self)
+        self.plugin_pref = PreferenceGroupNode(_('Plug-ins'), self)
 
-        self.core_plugpref = UsedModuleSrcBsdPrefColNode('Core support',
+        self.core_plugpref = UsedModuleSrcBsdPrefColNode(_('Core support'),
             Preferences.exportedCorePluginProps, os.path.join(Preferences.rcPath,
             'prefs.rc.py'), prefImgIdx, self, Preferences, True)
-        self.plugin_plugpref = UsedModuleSrcBsdPrefColNode('Preferences', Preferences.exportedPluginProps,#('*',),
+        self.plugin_plugpref = UsedModuleSrcBsdPrefColNode(_('Preferences'), Preferences.exportedPluginProps,#('*',),
             os.path.join(Preferences.rcPath, 'prefs.plug-ins.rc.py'), prefImgIdx,
             self, Preferences, True)
         self.files_plugpref = PluginFilesGroupNode()
-        self.transp_plugpref = PreferenceGroupNode('Transports', self)
+        self.transp_plugpref = PreferenceGroupNode(_('Transports'), self)
         self.transp_plugpref.preferences = [
             TransportPluginsLoadOrderGroupNode(),
             TransportPluginsTreeDisplayOrderGroupNode(),
@@ -145,7 +146,7 @@ class PreferenceCollectionNode(ExplorerNodes.ExplorerNode):
         return False
 
     def load(self):
-        raise Exception, 'Not implemented'
+        raise Exception, _('Not implemented')
 
     def save(self, filename, data):
         pass
@@ -515,7 +516,7 @@ class CorePluginsGroupNode(PreferenceGroupNode):
     protocol = 'prefs.group.plug-in.core'
     defName = 'CorePluginPrefsGroup'
     def __init__(self):
-        name = 'Core support'
+        name = _('Core support')
         PreferenceGroupNode.__init__(self, name, None)
 
         self.vetoSort = True
@@ -546,11 +547,11 @@ class PluginFileExplNode(ExplorerNodes.ExplorerNode):
     def open(self, editor):
         """  """
         if self.pluginEnabled:
-            msg = 'Disable'
+            msg = _('Disable')
         else:
-            msg = 'Enable'
+            msg = _('Enable')
 
-        if wx.MessageBox('%s %s?'%(msg, self.name), 'Confirm Toggle Plug-in',
+        if wx.MessageBox('%s %s?'%(msg, self.name), _('Confirm Toggle Plug-in'),
               wx.YES_NO | wx.ICON_QUESTION) == wx.YES:
             section = getPluginSection(self.resourcepath)
             ordered, disabled = Plugins.readPluginsState(section)
@@ -603,7 +604,7 @@ class PluginFilesGroupNode(PreferenceGroupNode):
     protocol = 'prefs.group.plug-in.files'
     defName = 'PluginFilesPrefsGroup'
     def __init__(self):
-        name = 'Plug-in files'
+        name = _('Plug-in files')
         PreferenceGroupNode.__init__(self, name, None)
 
     def openList(self):
@@ -616,27 +617,27 @@ class PluginFilesGroupNode(PreferenceGroupNode):
             name = splitext(splitext(os.path.basename(filename))[0])[0]
             if not enabled:
                 name = splitext(name)[0]
-                status = 'Disabled'
+                status = _('Disabled')
                 imgIdx = EditorHelper.imgSystemObjDisabled
             else:
                 fn = filename.lower()
                 if Preferences.failedPlugins.has_key(fn):
                     kind, msg = Preferences.failedPlugins[fn]
                     if kind == 'Skipped':
-                        status = 'Skipped plug-in: %s'% msg
+                        status = _('Skipped plug-in: %s')% msg
                         imgIdx = EditorHelper.imgSystemObjPending
                     else:
-                        status = 'Broken plug-in: %s'% msg
+                        status = _('Broken plug-in: %s')% msg
                         imgIdx = EditorHelper.imgSystemObjBroken
                 elif fn in Preferences.installedPlugins:
                     if ordered:
-                        status = 'Installed, ordered'
+                        status = _('Installed, ordered')
                         imgIdx = EditorHelper.imgSystemObjOrdered
                     else:
-                        status = 'Installed'
+                        status = _('Installed')
                         imgIdx = EditorHelper.imgSystemObj
                 else:
-                    status = 'Pending restart'
+                    status = _('Pending restart')
                     imgIdx = EditorHelper.imgSystemObjPending
 
             res.append(PluginFileExplNode(name, enabled, status, filename, imgIdx))
@@ -647,7 +648,7 @@ class PluginFilesGroupNodeController(ExplorerNodes.Controller):
     moveUpBmp = 'Images/Shared/up.png'
     moveDownBmp = 'Images/Shared/down.png'
 
-    itemDescr = 'item'
+    itemDescr = _('item')
 
     def __init__(self, editor, list, inspector, controllers):
         ExplorerNodes.Controller.__init__(self, editor)
@@ -656,14 +657,14 @@ class PluginFilesGroupNodeController(ExplorerNodes.Controller):
 
         [wxID_PF_TOGGLE, wxID_PF_OPEN, wxID_PF_UP, wxID_PF_DOWN] = Utils.wxNewIds(4)
 
-        self.transpMenuDef = [ (wxID_PF_TOGGLE, 'Toggle Enable/Disabled',
+        self.transpMenuDef = [ (wxID_PF_TOGGLE, _('Toggle Enable/Disabled'),
                                 self.OnToggleState, '-'),
-                               (wxID_PF_OPEN, 'Open plug-in file',
+                               (wxID_PF_OPEN, _('Open plug-in file'),
                                 self.OnOpenPlugin, '-'),
                                (-1, '-', None, ''),
-                               (wxID_PF_UP, 'Move up',
+                               (wxID_PF_UP, _('Move up'),
                                 self.OnMovePluginUp, self.moveUpBmp),
-                               (wxID_PF_DOWN, 'Move down',
+                               (wxID_PF_DOWN, _('Move down'),
                                 self.OnMovePluginDown, self.moveDownBmp),
                              ]
 
@@ -694,12 +695,12 @@ class PluginFilesGroupNodeController(ExplorerNodes.Controller):
             ms = self.list.getMultiSelection()
             nodes = self.getNodesForSelection(ms)
             if len(nodes) != 1:
-                wx.LogError('Can only move 1 at a time')
+                wx.LogError(_('Can only move 1 at a time'))
             else:
                 node = nodes[0]
                 idx = self.list.items.index(node)
                 if idx == 0:
-                    wx.LogError('Already at the beginning')
+                    wx.LogError(_('Already at the beginning'))
                 else:
                     name = node.name
                     node.changeOrder(-1)
@@ -711,7 +712,7 @@ class PluginFilesGroupNodeController(ExplorerNodes.Controller):
             ms = self.list.getMultiSelection()
             nodes = self.getNodesForSelection(ms)
             if len(nodes) != 1:
-                wx.LogError('Can only move 1 at a time')
+                wx.LogError(_('Can only move 1 at a time'))
             else:
                 node = nodes[0]
                 idx = self.list.items.index(node)
@@ -743,7 +744,7 @@ class TransportPluginsController(ExplorerNodes.Controller):
     moveUpBmp = 'Images/Shared/up.png'
     moveDownBmp = 'Images/Shared/down.png'
 
-    itemDescr = 'item'
+    itemDescr = _('item')
 
     def __init__(self, editor, list, inspector, controllers):
         ExplorerNodes.Controller.__init__(self, editor)
@@ -752,14 +753,14 @@ class TransportPluginsController(ExplorerNodes.Controller):
 
         [wxID_TP_NEW, wxID_TP_DEL, wxID_TP_UP, wxID_TP_DOWN] = Utils.wxNewIds(4)
 
-        self.transpMenuDef = [ (wxID_TP_NEW, 'Add new '+self.itemDescr,
+        self.transpMenuDef = [ (wxID_TP_NEW, _('Add new %s')%self.itemDescr,
                                 self.OnNewTransport, self.addItemBmp),
-                               (wxID_TP_DEL, 'Remove '+self.itemDescr,
+                               (wxID_TP_DEL, _('Remove %s')%self.itemDescr,
                                 self.OnDeleteTransport, self.removeItemBmp),
                                (-1, '-', None, ''),
-                               (wxID_TP_UP, 'Move up',
+                               (wxID_TP_UP, _('Move up'),
                                 self.OnMoveTransportUp, self.moveUpBmp),
-                               (wxID_TP_DOWN, 'Move down',
+                               (wxID_TP_DOWN, _('Move down'),
                                 self.OnMoveTransportDown, self.moveDownBmp),
                              ]
 
@@ -797,12 +798,12 @@ class TransportPluginsController(ExplorerNodes.Controller):
             ms = self.list.getMultiSelection()
             nodes = self.getNodesForSelection(ms)
             if len(nodes) != 1:
-                wx.LogError('Can only move 1 at a time')
+                wx.LogError(_('Can only move 1 at a time'))
             else:
                 node = nodes[0]
                 idx = self.list.items.index(node)
                 if idx == 0:
-                    wx.LogError('Already at the beginning')
+                    wx.LogError(_('Already at the beginning'))
                 else:
                     self.moveTransport(node, idx, -1)
 
@@ -811,12 +812,12 @@ class TransportPluginsController(ExplorerNodes.Controller):
             ms = self.list.getMultiSelection()
             nodes = self.getNodesForSelection(ms)
             if len(nodes) != 1:
-                wx.LogError('Can only move 1 at a time')
+                wx.LogError(_('Can only move 1 at a time'))
             else:
                 node = nodes[0]
                 idx = self.list.items.index(node)
                 if idx >= len(self.list.items) -1:
-                    wx.LogError('Already at the end')
+                    wx.LogError(_('Already at the end'))
                 else:
                     self.moveTransport(node, idx, 1)
 
@@ -827,12 +828,12 @@ class TransportPluginsController(ExplorerNodes.Controller):
         pass
 
 class TransportPluginsLoadOrderController(TransportPluginsController):
-    itemDescr = 'Transport module'
+    itemDescr = _('Transport module')
 
     def OnNewTransport(self, event):
-        dlg = wx.TextEntryDialog(self.list, 'Enter the fully qualified Python '\
-               'object path to \nthe Transport module. E.g. Explorers.FileExplorer',
-               'New Transport', '')
+        dlg = wx.TextEntryDialog(self.list, _('Enter the fully qualified Python '\
+               'object path to \nthe Transport module. E.g. Explorers.FileExplorer'),
+               _('New Transport'), '')
         try:
             if dlg.ShowModal() != wx.ID_OK:
                 return
@@ -841,9 +842,9 @@ class TransportPluginsLoadOrderController(TransportPluginsController):
             dlg.Destroy()
 
         if not self.list.node.checkValidModulePath(transportModulePath):
-            if wx.MessageBox('Cannot locate the specified module path,\n'\
-                         'are you sure you want to continue?',
-                         'Module not found',
+            if wx.MessageBox(_('Cannot locate the specified module path,\n'\
+                         'are you sure you want to continue?'),
+                         _('Module not found'),
                          wx.YES_NO | wx.ICON_EXCLAMATION) == wx.NO:
                 return
 
@@ -873,11 +874,11 @@ class TransportPluginsLoadOrderController(TransportPluginsController):
         self.list.refreshCurrent()
 
 class TransportPluginsTreeDisplayOrderController(TransportPluginsController):
-    itemDescr = 'Transports tree node'
+    itemDescr = _('Transports tree node')
 
     def OnNewTransport(self, event):
-        dlg = wx.TextEntryDialog(self.list, 'Enter the protocol identifier. E.g. '\
-               'ftp, ssh', 'New Transports Tree Node', '')
+        dlg = wx.TextEntryDialog(self.list, _('Enter the protocol identifier. E.g. '\
+               'ftp, ssh'), _('New Transports Tree Node'), '')
         try:
             if dlg.ShowModal() != wx.ID_OK:
                 return
@@ -918,7 +919,7 @@ class TransportPluginsLoadOrderGroupNode(PreferenceGroupNode):
     protocol = 'prefs.group.plug-in.transport.load-order'
     defName = 'TransportPluginsPrefsGroup'
     def __init__(self):
-        name = 'Loading order'
+        name = _('Loading order')
         PreferenceGroupNode.__init__(self, name, None)
 
     def openList(self):
@@ -930,13 +931,13 @@ class TransportPluginsLoadOrderGroupNode(PreferenceGroupNode):
         res = []
         for mod in modules:
             if mod in ExplorerNodes.installedModules:
-                status = 'Installed'
+                status = _('Installed')
                 imgIdx = EditorHelper.imgSystemObjOrdered
             elif mod in ExplorerNodes.failedModules.keys():
-                status = 'Broken: %s'%ExplorerNodes.failedModules[mod]
+                status = _('Broken: %s')%ExplorerNodes.failedModules[mod]
                 imgIdx = EditorHelper.imgSystemObjBroken
             else:
-                status = 'Pending restart'
+                status = _('Pending restart')
                 imgIdx = EditorHelper.imgSystemObjPending
 
             res.append(TransportPluginExplNode(mod, status, imgIdx))
@@ -962,7 +963,7 @@ class TransportPluginsTreeDisplayOrderGroupNode(PreferenceGroupNode):
     protocol = 'prefs.group.plug-in.transport.tree-order'
     defName = 'TransportPluginsPrefsGroup'
     def __init__(self):
-        name = 'Tree display order'
+        name = _('Tree display order')
         PreferenceGroupNode.__init__(self, name, None)
 
     def openList(self):
@@ -974,10 +975,10 @@ class TransportPluginsTreeDisplayOrderGroupNode(PreferenceGroupNode):
         res = []
         for prot in treeOrder:
             if not ExplorerNodes.nodeRegByProt.has_key(prot):
-                status = 'Protocol not installed'
+                status = _('Protocol not installed')
                 imgIdx = EditorHelper.imgSystemObjPending
             else:
-                status = 'Installed'
+                status = _('Installed')
                 imgIdx = EditorHelper.imgSystemObjOrdered
 
             res.append(TransportPluginExplNode(prot, status, imgIdx))
@@ -1007,7 +1008,7 @@ class HelpConfigPGN(PreferenceGroupNode):
     protocol = 'prefs.group.help.config'
     defName = 'HelpConfigPrefsGroup'
     def __init__(self):
-        name = 'Help system'
+        name = _('Help system')
         PreferenceGroupNode.__init__(self, name, None)
 
     def openList(self):
@@ -1019,7 +1020,7 @@ class HelpConfigBooksPGN(PreferenceGroupNode):
     protocol = 'prefs.group.help.config.books'
     defName = 'HelpConfigBooksPrefsGroup'
     def __init__(self):
-        name = 'Help books'
+        name = _('Help books')
         PreferenceGroupNode.__init__(self, name, None)
 
     def openList(self):
@@ -1119,7 +1120,7 @@ class HelpConfigBooksController(ExplorerNodes.Controller):
     moveUpBmp = 'Images/Shared/up.png'
     moveDownBmp = 'Images/Shared/down.png'
 
-    itemDescr = 'item'
+    itemDescr = _('item')
 
     def __init__(self, editor, list, inspector, controllers):
         ExplorerNodes.Controller.__init__(self, editor)
@@ -1129,24 +1130,24 @@ class HelpConfigBooksController(ExplorerNodes.Controller):
         [wxID_HB_EDIT, wxID_HB_NEW, wxID_HB_DEL, wxID_HB_UP, wxID_HB_DOWN,
          wxID_HB_REST, wxID_HB_CLRI, wxID_HB_OPEN] = Utils.wxNewIds(8)
 
-        self.helpBooksMenuDef = [ (wxID_HB_EDIT, 'Edit '+self.itemDescr,
+        self.helpBooksMenuDef = [ (wxID_HB_EDIT, _('Edit %s')%self.itemDescr,
                                    self.OnEditBookPath, '-'),
-                                  (wxID_HB_NEW, 'Add new '+self.itemDescr,
+                                  (wxID_HB_NEW, _('Add new %s')%self.itemDescr,
                                    self.OnNewBook, self.addItemBmp),
-                                  (wxID_HB_DEL, 'Remove '+self.itemDescr,
+                                  (wxID_HB_DEL, _('Remove %s')%self.itemDescr,
                                    self.OnRemoveBook, self.removeItemBmp),
                                   (-1, '-', None, ''),
-                                  (wxID_HB_UP, 'Move up',
+                                  (wxID_HB_UP, _('Move up'),
                                    self.OnMoveBookUp, self.moveUpBmp),
-                                  (wxID_HB_DOWN, 'Move down',
+                                  (wxID_HB_DOWN, _('Move down'),
                                    self.OnMoveBookDown, self.moveDownBmp),
                                   (-1, '-', None, '-'),
-                                  (wxID_HB_OPEN, 'Open hhp file',
+                                  (wxID_HB_OPEN, _('Open hhp file'),
                                    self.OnOpenHHP, '-'),
                                   (-1, '-', None, '-'),
-                                  (wxID_HB_REST, 'Restart the help system',
+                                  (wxID_HB_REST, _('Restart the help system'),
                                    self.OnRestartHelp, '-'),
-                                  (wxID_HB_CLRI, 'Clear the help indexes',
+                                  (wxID_HB_CLRI, _('Clear the help indexes'),
                                    self.OnClearHelpIndexes, '-'),
                                 ]
 
@@ -1182,12 +1183,12 @@ class HelpConfigBooksController(ExplorerNodes.Controller):
             ms = self.list.getMultiSelection()
             nodes = self.getNodesForSelection(ms)
             if len(nodes) != 1:
-                wx.LogError('Can only move 1 at a time')
+                wx.LogError(_('Can only move 1 at a time'))
             else:
                 node = nodes[0]
                 idx = self.list.items.index(node)
                 if idx == 0:
-                    wx.LogError('Already at the beginning')
+                    wx.LogError(_('Already at the beginning'))
                 else:
                     self.moveBook(node, idx, -1)
 
@@ -1196,12 +1197,12 @@ class HelpConfigBooksController(ExplorerNodes.Controller):
             ms = self.list.getMultiSelection()
             nodes = self.getNodesForSelection(ms)
             if len(nodes) != 1:
-                wx.LogError('Can only move 1 at a time')
+                wx.LogError(_('Can only move 1 at a time'))
             else:
                 node = nodes[0]
                 idx = self.list.items.index(node)
                 if idx >= len(self.list.items) -1:
-                    wx.LogError('Already at the end')
+                    wx.LogError(_('Already at the end'))
                 else:
                     self.moveBook(node, idx, 1)
 
@@ -1247,7 +1248,7 @@ class HelpConfigBooksController(ExplorerNodes.Controller):
         for name in os.listdir(cd):
             if os.path.splitext(name)[1] == '.cached':
                 os.remove(os.path.join(cd, name))
-                wx.LogMessage('Deleted %s'%name)
+                wx.LogMessage(_('Deleted %s')%name)
 
     def OnOpenHHP(self, event):
         if self.list.node:

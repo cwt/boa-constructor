@@ -21,6 +21,7 @@ import wx
 #from wx.lib.rcsizer import RowColSizer
 
 import Preferences, Utils
+from Utils import _
 
 from BaseCompanions import UtilityDTC, CollectionDTC, CollectionIddDTC, NYIDTC, HelperDTC
 import Companions
@@ -129,8 +130,8 @@ class SizerItemsCDTC(CollectionDTC):
     insertionMethod = 'AddWindow'
     deletionMethod = 'Remove'
 
-    additionalMethods = { 'AddSizer': ('Add sizer', 0, '(None)'),
-                          'AddSpacer': ('Add spacer', '', '(None)'),
+    additionalMethods = { 'AddSizer': (_('Add sizer'), 0, '(None)'),
+                          'AddSpacer': (_('Add spacer'), '', '(None)'),
                           #'AddStretchSpacer': ('Add stretch spacer', '', '(None)')
                         }
 
@@ -310,14 +311,14 @@ class SizerItemsCDTC(CollectionDTC):
         warn = 0
         for constr in self.textConstrLst:
             if constr.params[0] == 'None':
-                wx.LogWarning('No control/sizer for sizer item of %s'%(
+                wx.LogWarning(_('No control/sizer for sizer item of %s')%(
                       self.parentCompanion.name))
                 warn = 1
         if warn:
-            wx.LogWarning('None values are only valid in the Designer.\n'
-                         'The generated source will be invalid outside the '
-                         'Designer and should be fixed before executing.')
-
+            wx.LogWarning(_('None values are only valid in the Designer.\n'
+                            'The generated source will be invalid outside the '
+                            'Designer and should be fixed before executing.'))
+  
     def recreateSizers(self):
         self.designer.recreateSizers()
         self.updateGUI()
@@ -360,7 +361,7 @@ class GrowablesColPropEdit(CollectionPropEdit):
         numRows, numCols = fgsCompn.getNumRowsCols(ce.companion)
 
         if not numRows and not numCols:
-            wx.LogError('Rows and Cols may not both be 0')
+            wx.LogError(_('Rows and Cols may not both be 0'))
             return
 
         if not numRows or not numCols:
@@ -509,18 +510,18 @@ class ControlLinkedSizerDTC(SizerDTC):
             dtd = self.designTimeDefaults()
             linkObjs = self.designer.controllerView.getObjectsOfClass(self.LinkClass).items()
             if not linkObjs:
-                raise Exception, 'No %s controls available'%linkClassName
+                raise Exception, _('No %s controls available')%linkClassName
 
             linkObjs.sort()
             names, objs = [], []
             for name, obj in linkObjs:
                 names.append(name); objs.append(obj)
 
-            dlg = wx.SingleChoiceDialog(self.designer, 'Choose control',
-                  'Create sizer', names)
+            dlg = wx.SingleChoiceDialog(self.designer, _('Choose control'),
+                  _('Create sizer'), names)
             try:
                 if dlg.ShowModal() != wx.ID_OK:
-                    raise Exception, 'Must choose control to link with sizer'
+                    raise Exception, _('Must choose a control to link with sizer')
                 idx = dlg.GetSelection()
             finally:
                 dlg.Destroy()

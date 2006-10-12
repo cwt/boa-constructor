@@ -18,6 +18,8 @@ import wx.stc
 import wx.animate
 import wx.media
 
+from Utils import _
+
 from BaseCompanions import WindowDTC, ChoicedDTC
 
 import Constructors
@@ -448,7 +450,7 @@ class StyledTextCtrlDTC(Constructors.WindowConstr, WindowDTC):
                            'import wx.stc') )
 
 class FilenameConstrPropEdit(ConstrPropEdit):
-    dlgCaption = 'Choose a file'
+    dlgCaption = _('Choose a file')
     fileTypeFilter = '*.*'
     def getValue(self):
         if self.editorCtrl:
@@ -476,7 +478,7 @@ class FilenameConstrPropEdit(ConstrPropEdit):
         
 
 class GIFFilenameConstrPropEdit(FilenameConstrPropEdit):
-    dlgCaption = 'Choose a gif file'
+    dlgCaption = _('Choose a gif file')
     fileTypeFilter = '*.gif'
 
 class GIFAnimationCtrlDTC(WindowDTC):

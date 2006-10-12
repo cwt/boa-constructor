@@ -21,6 +21,7 @@ import ExplorerNodes
 from Models import Controllers, EditorHelper
 from ExternalLib.WebDAV import client
 import RTTI, Utils
+from Utils import _
 
 # XXX Zope properties may contain invalid XML content strings (should be encoded)
 
@@ -39,13 +40,13 @@ class XMLListBuilder:
         try:
             xmlStart = data.find('<')
             if xmlStart == -1:
-                raise Exception, 'Invalid XML response: %s' %str(data)
+                raise Exception, _('Invalid XML response: %s') %str(data)
             xmlEnd = data.rfind('>')
             if xmlEnd == -1:
-                raise Exception, 'Invalid XML response: %s' %str(data)
+                raise Exception, _('Invalid XML response: %s') %str(data)
             self.status = parser.Parse(data[xmlStart:xmlEnd+1], 1)
         except:
-            wx.MessageBox(Utils.html2txt(data), 'Error', wx.ICON_ERROR)
+            wx.MessageBox(Utils.html2txt(data), _('Error'), wx.ICON_ERROR)
             raise
 
     def startElement(self, name, attrs):
@@ -76,8 +77,8 @@ class DAVController(ExplorerNodes.Controller, ExplorerNodes.ClipboardControllerM
         self.inspector = inspector
 
         self.setupMenu(self.menu, self.list,
-              [ (wxID_DAVOPEN, 'Open', self.OnOpenItems, '-'),
-                (wxID_DAVINSPECT, 'Inspect', self.OnInspectItem, '-'),
+              [ (wxID_DAVOPEN, _('Open'), self.OnOpenItems, '-'),
+                (wxID_DAVINSPECT, _('Inspect'), self.OnInspectItem, '-'),
                 (-1, '-', None, '') ] + self.clipMenuDef)
         self.toolbarMenus = [self.clipMenuDef]
 
@@ -328,7 +329,7 @@ class DAVCompanion(DAVPropReaderMixin, ExplorerCompanion):
         return items
 
     def SetProp(self, name, value):
-        raise Exception, 'Property editing not supported yet'
+        raise Exception, _('Property editing not supported yet')
 
 # XXX Helper is already slightly contaminated by the Designer
 class DAVSubCompanion(DAVPropReaderMixin, HelperDTC):
@@ -355,7 +356,7 @@ class DAVSubCompanion(DAVPropReaderMixin, HelperDTC):
             if prop[0] == name: return prop[1]
 
     def SetProp(self, name, value):
-        raise Exception, 'Property editing not supported yet'
+        raise Exception, _('Property editing not supported yet')
 
 #-------------------------------------------------------------------------------
 ExplorerNodes.register(DAVItemNode, clipboard=DAVExpClipboard,

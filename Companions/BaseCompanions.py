@@ -23,6 +23,7 @@ import copy
 import wx
 
 import Preferences, Utils
+from Utils import _
 
 from PropEdit.PropertyEditors import *
 from Constructors import WindowConstr
@@ -313,7 +314,7 @@ class DesignTimeCompanion(Companion):
                     if prop.prop_setter == setterName:
                         return prop.params
                 except:
-                    print 'except in persistprop'
+                    #print 'except in persistprop'
                     raise
         return None
 
@@ -399,7 +400,7 @@ class DesignTimeCompanion(Companion):
     def SetName(self, oldValue, newValue):
         """ Triggered when the 'Name' property is changed """
         if self.designer.objects.has_key(newValue):
-            wx.LogError('There is already an object named '+newValue)
+            wx.LogError(_('There is already an object named %s')%newValue)
         else:
             self.name = newValue
             self.designer.model.renameCtrl(oldValue, newValue)
@@ -437,7 +438,7 @@ class DesignTimeCompanion(Companion):
         try:
             return PaletteMapping.evalCtrl(expr, self.designer.model.specialAttrs)
         except Exception, err:
-            print 'Illegal expression: %s'%expr
+            print _('Illegal expression: %s')%expr
             raise
 
     def defaultAction(self):
@@ -517,7 +518,7 @@ class DesignTimeCompanion(Companion):
             definition not defined in source add an empty method declaration to
             the bottom of the class """
         for evt in self.textEventList:
-            if evt.trigger_meth != '(delete)':
+            if evt.trigger_meth != _('(delete)'):
                 self.addContinuedLine(
                       sourceconst.bodyIndent + evt.asText(stripFrmId),
                       output, sourceconst.bodyIndent)
@@ -568,7 +569,7 @@ class NYIDTC(DesignTimeCompanion):
     """ Blank holder for companions which have not been implemented."""
     host = 'Not Implemented'
     def __init__(self, name, designer, parent, ctrlClass):
-        raise Exception, 'Not Implemented'
+        raise Exception, _('Not Implemented')
 
 
 class ControlDTC(DesignTimeCompanion):

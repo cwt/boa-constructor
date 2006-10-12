@@ -5,6 +5,8 @@ import pprint
 import wx
 import wx.grid
 
+from Utils import _
+
 from PathsPanel import PathsPanel
 
 def create(parent):
@@ -32,24 +34,24 @@ class AttachDlg(wx.Dialog):
         # generated method, don't edit
         wx.Dialog.__init__(self, id=wxID_ATTACHDLG, name='AttachDlg',
               parent=prnt, pos=wx.Point(270, 335), size=wx.Size(527, 391),
-              style=wx.DEFAULT_DIALOG_STYLE, title='Attach to debugger')
+              style=wx.DEFAULT_DIALOG_STYLE, title=_('Attach to debugger'))
         self.SetClientSize(wx.Size(519, 364))
         self.Bind(wx.EVT_CLOSE, self.OnCloseWindow)
 
         self.staticText1 = wx.StaticText(id=wxID_ATTACHDLGSTATICTEXT1,
-              label='Host', name='staticText1', parent=self, pos=wx.Point(16,
+              label=_('Host'), name='staticText1', parent=self, pos=wx.Point(16,
               24), size=wx.Size(56, 16), style=0)
 
         self.staticText2 = wx.StaticText(id=wxID_ATTACHDLGSTATICTEXT2,
-              label='Port', name='staticText2', parent=self, pos=wx.Point(16,
+              label=_('Port'), name='staticText2', parent=self, pos=wx.Point(16,
               56), size=wx.Size(56, 16), style=0)
 
         self.staticText3 = wx.StaticText(id=wxID_ATTACHDLGSTATICTEXT3,
-              label='Username', name='staticText3', parent=self,
+              label=_('Username'), name='staticText3', parent=self,
               pos=wx.Point(16, 88), size=wx.Size(56, 16), style=0)
 
         self.staticText4 = wx.StaticText(id=wxID_ATTACHDLGSTATICTEXT4,
-              label='Password', name='staticText4', parent=self,
+              label=_('Password'), name='staticText4', parent=self,
               pos=wx.Point(16, 120), size=wx.Size(56, 16), style=0)
 
         self.host_ctrl = wx.TextCtrl(id=wxID_ATTACHDLGHOST_CTRL,
@@ -68,24 +70,24 @@ class AttachDlg(wx.Dialog):
               name='password_ctrl', parent=self, pos=wx.Point(80, 112),
               size=wx.Size(96, 24), style=wx.TE_PASSWORD, value=self.pwd)
 
-        self.ok_button = wx.Button(id=wxID_ATTACHDLGOK_BUTTON, label='Ok',
+        self.ok_button = wx.Button(id=wxID_ATTACHDLGOK_BUTTON, label=_('OK'),
               name='ok_button', parent=self, pos=wx.Point(266, 323),
               size=wx.Size(72, 24), style=0)
         self.ok_button.Bind(wx.EVT_BUTTON, self.OnOkButton,
               id=wxID_ATTACHDLGOK_BUTTON)
 
-        self.cancel_button = wx.Button(id=wx.ID_CANCEL, label='Cancel',
+        self.cancel_button = wx.Button(id=wx.ID_CANCEL, label=_('Cancel'),
               name='cancel_button', parent=self, pos=wx.Point(346, 323),
               size=wx.Size(72, 24), style=0)
 
-        self.help_button = wx.Button(id=wxID_ATTACHDLGHELP_BUTTON, label='Help',
+        self.help_button = wx.Button(id=wxID_ATTACHDLGHELP_BUTTON, label=_('Help'),
               name='help_button', parent=self, pos=wx.Point(426, 323),
               size=wx.Size(72, 24), style=0)
         self.help_button.Bind(wx.EVT_BUTTON, self.OnHelpButton,
               id=wxID_ATTACHDLGHELP_BUTTON)
 
         self.rem_pass_ctrl = wx.CheckBox(id=wxID_ATTACHDLGREM_PASS_CTRL,
-              label='Remember', name='rem_pass_ctrl', parent=self,
+              label=_('Remember'), name='rem_pass_ctrl', parent=self,
               pos=wx.Point(184, 120), size=wx.Size(73, 13), style=0)
         self.rem_pass_ctrl.SetValue(False)
 
@@ -207,7 +209,7 @@ class AttachDlg(wx.Dialog):
 if __name__ == '__main__':
     import sys; sys.path.append('..')
     app = wx.PySimpleApp()
-    wx.InitAllImageHandlers()
+
     dlg = create(None)
     try:
         dlg.ShowModal()

@@ -14,6 +14,7 @@ import os
 import wx
 
 import Preferences, Utils
+from Utils import _
 
 import ExplorerNodes
 from Models import EditorHelper
@@ -32,17 +33,17 @@ class EditorController(ExplorerNodes.Controller):
         self.menu = wx.Menu()
 
         self.editorMenuDef = [
-           (wxID_EDTGOTO, 'Goto', self.OnGotoModel, '-'),
+           (wxID_EDTGOTO, _('Goto'), self.OnGotoModel, '-'),
            (-1, '-', None, ''),
-           (wxID_EDTRELOAD, 'Refresh', self.OnReloadItems, '-'),
+           (wxID_EDTRELOAD, _('Refresh'), self.OnReloadItems, '-'),
            (-1, '-', None, '-'),
-           (wxID_EDTCLOSE, 'Close', self.OnCloseModels, self.closeBmp),
-           (wxID_EDTCLOSEALL, 'Close all', self.OnCloseAllModels, '-'),
+           (wxID_EDTCLOSE, _('Close'), self.OnCloseModels, self.closeBmp),
+           (wxID_EDTCLOSEALL, _('Close all'), self.OnCloseAllModels, '-'),
            (-1, '-', None, ''),
-           (wxID_EDTMOVEUP, 'Move up', self.OnMoveModelUp, self.moveUpBmp),
-           (wxID_EDTMOVEDOWN, 'Move down', self.OnMoveModelDown, self.moveDownBmp),
+           (wxID_EDTMOVEUP, _('Move up'), self.OnMoveModelUp, self.moveUpBmp),
+           (wxID_EDTMOVEDOWN, _('Move down'), self.OnMoveModelDown, self.moveDownBmp),
            (-1, '-', None, '-'),
-           (wxID_EDTCOPYPATH, 'Copy filepath(s) to clipboard', self.OnCopyPath, '-'),
+           (wxID_EDTCOPYPATH, _('Copy filepath(s) to clipboard'), self.OnCopyPath, '-'),
         ]
 
         self.setupMenu(self.menu, self.list, self.editorMenuDef)
@@ -89,12 +90,12 @@ class EditorController(ExplorerNodes.Controller):
             ms = self.list.getMultiSelection()
             nodes = self.getNodesForSelection(ms)
             if len(nodes) != 1:
-                wx.LogError('Can only move 1 at a time')
+                wx.LogError(_('Can only move 1 at a time'))
             else:
                 node = nodes[0]
                 idx = node.modulePage.tIdx
                 if idx == 2:
-                    wx.LogError('Already at the beginning')
+                    wx.LogError(_('Already at the beginning'))
                 else:
                     self.moveModel(node, idx, -1)
 
@@ -103,12 +104,12 @@ class EditorController(ExplorerNodes.Controller):
             ms = self.list.getMultiSelection()
             nodes = self.getNodesForSelection(ms)
             if len(nodes) != 1:
-                wx.LogError('Can only move 1 at a time')
+                wx.LogError(_('Can only move 1 at a time'))
             else:
                 node = nodes[0]
                 idx = node.modulePage.tIdx
                 if idx == self.editor.tabs.GetPageCount() -1:
-                    wx.LogError('Already at the end')
+                    wx.LogError(_('Already at the end'))
                 else:
                     self.moveModel(node, idx, 1)
 
@@ -117,7 +118,7 @@ class EditorController(ExplorerNodes.Controller):
             ms = self.list.getMultiSelection()
             nodes = self.getNodesForSelection(ms)
             if len(nodes) != 1:
-                wx.LogError('Can only goto 1 at a time')
+                wx.LogError(_('Can only goto 1 at a time'))
             else:
                 nodes[0].open(self.editor)
 
