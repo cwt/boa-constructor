@@ -2,6 +2,8 @@
 
 import wx
 
+from Utils import _
+
 def create(parent):
     return StringEditDlg(parent, 'test')
 
@@ -41,18 +43,18 @@ class StringEditDlg(wx.Dialog):
         wx.Dialog.__init__(self, id=wxID_STRINGEDITDLG, name='StringEditDlg',
               parent=prnt, pos=wx.Point(519, 228), size=wx.Size(411, 324),
               style=wx.RESIZE_BORDER | wx.DEFAULT_DIALOG_STYLE,
-              title='String Edit Dialog')
+              title=_('String Edit Dialog'))
         self.SetClientSize(wx.Size(403, 297))
 
         self.stringTC = wx.TextCtrl(id=wxID_STRINGEDITDLGSTRINGTC,
               name='stringTC', parent=self, pos=wx.Point(10, 10),
               size=wx.Size(383, 233), style=wx.TE_MULTILINE, value='')
 
-        self.button1 = wx.Button(id=wx.ID_OK, label='OK', name='button1',
+        self.button1 = wx.Button(id=wx.ID_OK, label=_('OK'), name='button1',
               parent=self, pos=wx.Point(235, 263), size=wx.Size(75, 23),
               style=0)
 
-        self.button2 = wx.Button(id=wx.ID_CANCEL, label='Cancel',
+        self.button2 = wx.Button(id=wx.ID_CANCEL, label=_('Cancel'),
               name='button2', parent=self, pos=wx.Point(318, 263),
               size=wx.Size(75, 23), style=0)
 
@@ -80,7 +82,7 @@ class StringEditDlg(wx.Dialog):
 
 if __name__ == '__main__':
     app = wx.PySimpleApp()
-    wx.InitAllImageHandlers()
+
     dlg = create(None)
     try:
         dlg.ShowModal()

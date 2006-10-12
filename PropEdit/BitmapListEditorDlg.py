@@ -15,6 +15,8 @@ import wx
 
 import methodparse
 
+from Utils import _
+
 from PropertyEditors import BitmapPropEditMix
 
 
@@ -99,7 +101,7 @@ class BitmapListEditorDlg(wx.Dialog):
               name='BitmapListEditorDlg', parent=prnt, pos=wx.Point(581, 347),
               size=wx.Size(465, 371),
               style=wx.RESIZE_BORDER | wx.DEFAULT_DIALOG_STYLE,
-              title='Bitmap List Editor')
+              title=_('Bitmap List Editor'))
         self.SetClientSize(wx.Size(457, 344))
         self.Center(wx.BOTH)
 
@@ -113,40 +115,40 @@ class BitmapListEditorDlg(wx.Dialog):
               id=wxID_BITMAPLISTEDITORDLGLISTCTRL)
 
         self.buttonAdd = wx.Button(id=wxID_BITMAPLISTEDITORDLGBUTTONADD,
-              label='Add', name='buttonAdd', parent=self, pos=wx.Point(366, 79),
+              label=_('Add'), name='buttonAdd', parent=self, pos=wx.Point(366, 79),
               size=wx.Size(75, 23), style=0)
         self.buttonAdd.Bind(wx.EVT_BUTTON, self.OnButtonAddButton,
               id=wxID_BITMAPLISTEDITORDLGBUTTONADD)
 
         self.buttonRemove = wx.Button(id=wxID_BITMAPLISTEDITORDLGBUTTONREMOVE,
-              label='Remove', name='buttonRemove', parent=self,
+              label=_('Remove'), name='buttonRemove', parent=self,
               pos=wx.Point(366, 110), size=wx.Size(75, 23), style=0)
         self.buttonRemove.Bind(wx.EVT_BUTTON, self.OnButtonRemoveButton,
               id=wxID_BITMAPLISTEDITORDLGBUTTONREMOVE)
 
         self.buttonEdit = wx.Button(id=wxID_BITMAPLISTEDITORDLGBUTTONEDIT,
-              label='Edit', name='buttonEdit', parent=self, pos=wx.Point(366,
+              label=_('Edit'), name='buttonEdit', parent=self, pos=wx.Point(366,
               141), size=wx.Size(75, 23), style=0)
         self.buttonEdit.Bind(wx.EVT_BUTTON, self.OnButtonEditButton,
               id=wxID_BITMAPLISTEDITORDLGBUTTONEDIT)
 
         self.buttonMoveUp = wx.Button(id=wxID_BITMAPLISTEDITORDLGBUTTONMOVEUP,
-              label='Move up', name='buttonMoveUp', parent=self,
+              label=_('Move up'), name='buttonMoveUp', parent=self,
               pos=wx.Point(366, 172), size=wx.Size(75, 23), style=0)
         self.buttonMoveUp.Bind(wx.EVT_BUTTON, self.OnButtonMoveUpButton,
               id=wxID_BITMAPLISTEDITORDLGBUTTONMOVEUP)
 
         self.buttonMoveDown = wx.Button(id=wxID_BITMAPLISTEDITORDLGBUTTONMOVEDOWN,
-              label='Move down', name='buttonMoveDown', parent=self,
+              label=_('Move down'), name='buttonMoveDown', parent=self,
               pos=wx.Point(366, 203), size=wx.Size(75, 23), style=0)
         self.buttonMoveDown.Bind(wx.EVT_BUTTON, self.OnButtonMoveDownButton,
               id=wxID_BITMAPLISTEDITORDLGBUTTONMOVEDOWN)
 
-        self.button6 = wx.Button(id=wx.ID_OK, label='OK', name='button6',
+        self.button6 = wx.Button(id=wx.ID_OK, label=_('OK'), name='button6',
               parent=self, pos=wx.Point(283, 305), size=wx.Size(75, 23),
               style=0)
 
-        self.button7 = wx.Button(id=wx.ID_CANCEL, label='Cancel',
+        self.button7 = wx.Button(id=wx.ID_CANCEL, label=_('Cancel'),
               name='button7', parent=self, pos=wx.Point(366, 305),
               size=wx.Size(75, 23), style=0)
 
@@ -223,7 +225,7 @@ class BitmapListEditorDlg(wx.Dialog):
             return
 
         elif self.width != bmp.GetWidth() or self.height != bmp.GetHeight():
-            wx.LogError('Size mismatch, all images must have the same size (%s, %s), not (%s, %s)'%(
+            wx.LogError(_('Size mismatch, all images must have the same size (%s, %s), not (%s, %s)')%(
                   self.width, self.height, bmp.GetWidth(), bmp.GetHeight()))
             return
         
@@ -246,7 +248,7 @@ class BitmapListEditorDlg(wx.Dialog):
                 return
 
             if self.width != bmp.GetWidth() or self.height != bmp.GetHeight():
-                wx.LogError('Size mismatch, all images must have the same size (%s, %s)'%(
+                wx.LogError(_('Size mismatch, all images must have the same size (%s, %s)')%(
                       self.width, self.height))
                 return
 

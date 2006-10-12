@@ -3,22 +3,24 @@
 import wx
 from wx.lib.anchors import LayoutAnchors
 
+from Utils import _
+
 formatCodes = [
- ('_', 'Allow spaces'),
- ('!', 'Force upper'),
- ('^', 'Force lower'),
- ('R', 'Right-align field(s)'),
- ('r', 'Right-insert in field(s) (implies R)'),
- ('<', 'Stay in field until explicit navigation out of it'),
- ('>', 'Allow insert/delete within partially filled fields'),
- (',', 'Allow comma to be typed as grouping character; auto-group/regroup digits in\ninteger fields (if result fits) when leaving such a field.'),
- ('-', 'Prepend and reserve leading space for sign to mask and allow signed values (negative #s shown in red by default)'),
- ('0', 'integer fields get leading zeros'),
- ('D', 'Date[/time] field'),
- ('T', 'Time field'),
- ('F', 'Auto-Fit: the control calulates its size from the length of the template mask'),
- ('V', 'Validate entered chars against ValidRegex, blocking invalid characters'),
- ('S', 'select entire field when navigating to new field'),
+ ('_', _('Allow spaces')),
+ ('!', _('Force upper')),
+ ('^', _('Force lower')),
+ ('R', _('Right-align field(s)')),
+ ('r', _('Right-insert in field(s) (implies R)')),
+ ('<', _('Stay in field until explicit navigation out of it')),
+ ('>', _('Allow insert/delete within partially filled fields')),
+ (',', _('Allow comma to be typed as grouping character; auto-group/regroup digits in\ninteger fields (if result fits) when leaving such a field.')),
+ ('-', _('Prepend and reserve leading space for sign to mask and allow signed values (negative #s shown in red by default)')),
+ ('0', _('integer fields get leading zeros')),
+ ('D', _('Date[/time] field')),
+ ('T', _('Time field')),
+ ('F', _('Auto-Fit: the control calulates its size from the length of the template mask')),
+ ('V', _('Validate entered chars against ValidRegex, blocking invalid characters')),
+ ('S', _('select entire field when navigating to new field')),
 ]
 
 [wxID_MASKEDEDITFORMATCODESDLG, wxID_MASKEDEDITFORMATCODESDLGBTNCANCEL,
@@ -35,7 +37,7 @@ class MaskedEditFormatCodesDlg(wx.Dialog):
               name='MaskedEditFormatCodesDlg', parent=prnt, pos=wx.Point(433,
               218), size=wx.Size(436, 399),
               style=wx.RESIZE_BORDER | wx.DEFAULT_DIALOG_STYLE,
-              title='Masked Edit - Format Codes')
+              title=_('Masked Edit - Format Codes'))
         self.SetClientSize(wx.Size(428, 372))
         self.SetAutoLayout(True)
         self.Center(wx.BOTH)
@@ -54,19 +56,19 @@ class MaskedEditFormatCodesDlg(wx.Dialog):
         self.tcFormatCodePropVal.SetConstraints(LayoutAnchors(self.tcFormatCodePropVal,
               True, False, True, True))
 
-        self.btnOK =wx.Button(id=wx.ID_OK, label='OK', name='btnOK', parent=self,
+        self.btnOK =wx.Button(id=wx.ID_OK, label=_('OK'), name='btnOK', parent=self,
               pos=wx.Point(261, 340), size=wx.Size(75, 23), style=0)
         self.btnOK.SetConstraints(LayoutAnchors(self.btnOK, False, False, True,
               True))
 
-        self.btnCancel =wx.Button(id=wx.ID_CANCEL, label='Cancel',
+        self.btnCancel =wx.Button(id=wx.ID_CANCEL, label=_('Cancel'),
               name='btnCancel', parent=self, pos=wx.Point(346, 340),
               size=wx.Size(75, 23), style=0)
         self.btnCancel.SetConstraints(LayoutAnchors(self.btnCancel, False,
               False, True, True))
 
         self.staticText1 =wx.StaticText(id=wxID_MASKEDEDITFORMATCODESDLGSTATICTEXT1,
-              label='A string of formatting codes that modify behavior of the control.',
+              label=_('A string of formatting codes that modify behavior of the control.'),
               name='staticText1', parent=self, pos=wx.Point(8, 5),
               size=wx.Size(409, 24), style=wx.NO_BORDER | wx.ST_NO_AUTORESIZE)
         self.staticText1.SetConstraints(LayoutAnchors(self.staticText1, True,
@@ -112,8 +114,8 @@ class MaskedEditFormatCodesDlg(wx.Dialog):
 
 
 if __name__ == '__main__':
-    app =wx.PySimpleApp()
-    wx.InitAllImageHandlers()
+    app = wx.PySimpleApp()
+
     dlg = MaskedEditFormatCodesDlg(None, 'F_,-')
     try:
         dlg.ShowModal()

@@ -33,6 +33,8 @@ from InspectorEditorControls import *
 import methodparse
 
 import Utils
+from Utils import _
+
 import Enumerations
 
 StringTypes = [StringType]
@@ -68,7 +70,7 @@ class PropertyRegistry:
             propWrapper.connect(companion.control, companion)
             value = propWrapper.getValue()
         except Exception, message:
-            print 'Error on accessing Getter for', name, ':', message
+            print _('Error on accessing Getter for %s: %s')%(name, message)
             value = None
 
         #2.4
@@ -377,14 +379,14 @@ class FilepathConfPropEdit(ConfPropEdit):
 
     def edit(self, event):
         from FileDlg import wxFileDialog
-        dlg = wxFileDialog(self.parent, 'Choose the file', '.', '', 'AllFiles', wx.SAVE)
+        dlg = wxFileDialog(self.parent, _('Choose the file'), '.', '', 'AllFiles', wx.SAVE)
         try:
             if dlg.ShowModal() == wx.ID_OK:
                 self.editorCtrl.setValue(`dlg.GetFilePath()`)
                 self.inspectorPost(False)
             else:
-                if wx.MessageBox('Clear the current property value?',
-                      'Clear filepath?', style=wx.ICON_QUESTION | wx.YES_NO) == wx.YES:
+                if wx.MessageBox(_('Clear the current property value?'),
+                      _('Clear filepath?'), style=wx.ICON_QUESTION | wx.YES_NO) == wx.YES:
                     self.editorCtrl.setValue("''")
                     self.inspectorPost(False)
         finally:
@@ -403,8 +405,8 @@ class DirpathConfPropEdit(ConfPropEdit):
                 self.editorCtrl.setValue(`dlg.GetPath()`)
                 self.inspectorPost(False)
             else:
-                if wx.MessageBox('Clear the current property value?',
-                      'Clear dirpath?', style=wx.ICON_QUESTION | wx.YES_NO) == wx.YES:
+                if wx.MessageBox(_('Clear the current property value?'),
+                      _('Clear dirpath?'), style=wx.ICON_QUESTION | wx.YES_NO) == wx.YES:
                     self.editorCtrl.setValue("''")
                     self.inspectorPost(False)
         finally:
@@ -599,8 +601,8 @@ class BitmapPropEditMix:
         apSize = ''
         
         if tpe == 'Bitmap' and not os.path.isdir(dir):
-            wx.MessageBox('The given directory is invalid, using current '
-                         'directory.\n(%s)'%dir, 'Warning',
+            wx.MessageBox(_('The given directory is invalid, using current '
+                         'directory.\n(%s)')%dir, _('Warning'),
                          wx.OK | wx.ICON_EXCLAMATION)
             dir = '.'
         elif tpe == 'ResourceModule':
@@ -625,7 +627,7 @@ class BitmapPropEditMix:
                 filter = 'ArtProvider'
             else:
                 patchExplorerFileTypes(True)
-                dlg = wxFileDialog(self.parent, 'Choose an image', dir, name,
+                dlg = wxFileDialog(self.parent, _('Choose an image'), dir, name,
                       'ImageFiles', wx.OPEN)
                 try:
                     if dlg.ShowModal() != wx.ID_OK:
@@ -677,9 +679,9 @@ class BitmapPropEditMix:
             try:
                 ext = self.extTypeMap[ext]
             except KeyError, err:
-                raise Exception('Files of type %s not allowed for this '
+                raise Exception(_('Files of type %s not allowed for this '
                                 'property editor.\n The following types '
-                                'are allowed %s'%(str(err),
+                                'are allowed %s')%(str(err),
                                 ', '.join(self.extTypeMap.keys())))
             else:
                 return abspth, pth, ext
@@ -738,8 +740,8 @@ class BitmapPropEditMix:
               '/').replace('/', '.')
         if os.path.isabs(relResourceFilename):
             importName = os.path.splitdrive(importName)[1][1:]
-            impNameDlg = wx.TextEntryDialog(self.parent, 'Correct the module '
-                  'name that must be imported', 'Resource module', importName)
+            impNameDlg = wx.TextEntryDialog(self.parent, _('Correct the module '
+                  'name that must be imported'), _('Resource module'), importName)
             try:
                 if impNameDlg.ShowModal() != wx.ID_OK:
                     return
@@ -798,7 +800,7 @@ class BitmapPropEditMix:
 
             return src, value, bmpPath
         else:
-            raise Exception, '%s could not be loaded as a Resource Module'%importName
+            raise Exception, _('%s could not be loaded as a Resource Module')%importName
 
 
 class BitmapConstrPropEdit(IntConstrPropEdit, BitmapPropEditMix):
@@ -899,7 +901,7 @@ class BitmapPropEdit(PropertyEditor, BitmapPropEditMix):
             elif tpe == 'Unknown':
                 return self.nullClass
             else:
-                raise Exception, 'Unhandled image handling type: %s'%tpe
+                raise Exception, _('Unhandled image handling type: %s')%tpe
         else:
             return self.nullClass
 
@@ -1192,18 +1194,18 @@ class NameConstrPropEdit(ConstrPropEdit):
             if value != self.value:
                 strVal = self.companion.eval(value)
                 if not strVal:
-                    message = 'Invalid name for Python object'
+                    message = _('Invalid name for a Python object')
                     wx.LogError(message)
                     return self.value
 
                 for c in strVal:
                     if c not in string.letters+string.digits+'_':
-                        message = 'Invalid name for Python object'
+                        message = _('Invalid name for a Python object')
                         wx.LogError(message)
                         return self.value
 
                 if self.companion.designer.objects.has_key(value):
-                    message = 'Name already used by another control.'
+                    message = _('Name already used by another control.')
                     wx.LogError(message)
                     return self.value
             self.value = value
@@ -1285,9 +1287,9 @@ class EventPropEdit(OptionedPropEdit):
     def getDisplayValue(self):
         return self.valueToIECValue()
 
-    extraOpts = ['(delete)', '(rename)']
-    scopeOpts = {'(show all)': 'all',
-                 '(show own)': 'own'}
+    extraOpts = [_('(delete)'), _('(rename)')]
+    scopeOpts = {_('(show all)'): 'all',
+                 _('(show own)'): 'own'}
     def getValues(self):
         """ Build event list based on currently selected scope for the event """
         # XXX Should ideally do this one day:
@@ -1333,15 +1335,15 @@ class EventPropEdit(OptionedPropEdit):
             oldVal = defVal = self.value
             value = self.editorCtrl.getValue()
             # Event rename
-            if value == '(rename)':
-                if oldVal == '(delete)':
+            if value == _('(rename)'):
+                if oldVal == _('(delete)'):
                     for evt in self.companion.textEventList:
                         if evt.trigger_meth == oldVal:
                             defVal = evt.prev_trigger_meth
                             break
 
-                ted = wx.TextEntryDialog(self.parent, 'Enter a new method name:',
-                      'Rename event method', defVal)
+                ted = wx.TextEntryDialog(self.parent, _('Enter a new method name:'),
+                      _('Rename event method'), defVal)
                 try:
                     if ted.ShowModal() == wx.ID_OK:
                         self.value = ted.GetValue()
@@ -1358,7 +1360,7 @@ class EventPropEdit(OptionedPropEdit):
                 finally:
                     ted.Destroy()
             # Event deletion
-            elif value == '(delete)':
+            elif value == _('(delete)'):
                 for evt in self.companion.textEventList:
                     if evt.trigger_meth == oldVal:
                         if not evt.prev_trigger_meth:
@@ -1394,7 +1396,7 @@ class BITPropEditor(FactoryPropEdit):
             try:
                 value = self.companion.eval(self.editorCtrl.getValue())
             except Exception, mess:
-                wx.LogError('Invalid value: %s' % str(mess))
+                wx.LogError(_('Invalid value: %s') % str(mess))
                 raise
             self.value = value
         return self.value
@@ -1492,17 +1494,17 @@ class NamePropEdit(BITPropEditor):
             value = self.editorCtrl.getValue()
             if value != self.value:
                 if self.companion.designer.objects.has_key(value):
-                    wx.LogError('Name already used by another control.')
+                    wx.LogError(_('Name already used by another control.'))
                     return self.value
 
                 if not value:
-                    message = 'Invalid name for Python object'
+                    message = _('Invalid name for a Python object')
                     wx.LogError(message)
                     return self.value
 
                 for c in value:
                     if c not in self.identifier:
-                        message = 'Invalid name for Python object'
+                        message = _('Invalid name for a Python object')
                         wx.LogError(message)
                         return self.value
             self.value = value
@@ -1805,7 +1807,7 @@ class SizePropEdit(ClassPropEdit):
             try:
                 tuplePos = self.companion.eval(self.editorCtrl.getValue())
             except Exception, mess:
-                Utils.ShowErrorMessage(self.parent, 'Invalid value', mess)
+                Utils.ShowErrorMessage(self.parent, _('Invalid value'), mess)
                 raise
             self.value = wx.Size(tuplePos[0], tuplePos[1])
         return self.value
@@ -1828,7 +1830,7 @@ class PosPropEdit(ClassPropEdit):
             try:
                 tuplePos = self.companion.eval(self.editorCtrl.getValue())
             except Exception, mess:
-                Utils.ShowErrorMessage(self.parent, 'Invalid value', mess)
+                Utils.ShowErrorMessage(self.parent, _('Invalid value'), mess)
                 raise
             self.value = wx.Point(tuplePos[0], tuplePos[1])
         return self.value
@@ -1900,16 +1902,16 @@ class AnchorPropEdit(OptionedPropEdit):
 
     def edit(self, event):
         if self.expanded:
-            wx.MessageBox('Anchors can not be reset while the property is expanded',
-                  'Anchors')
+            wx.MessageBox(_('Anchors can not be reset while the property is expanded'),
+                  _('Anchors'))
         else:
             if self.companion.anchorSettings:
-                message = 'Remove anchors?'
+                message = _('Remove anchors?')
             else:
-                message = 'Define default Anchors?'
+                message = _('Define default Anchors?')
 
             dlg = wx.MessageDialog(self.parent, message,
-                              'Anchors', wx.YES_NO | wx.ICON_QUESTION)
+                              _('Anchors'), wx.YES_NO | wx.ICON_QUESTION)
             try:
                 if dlg.ShowModal() == wx.ID_YES:
                     if self.companion.anchorSettings:

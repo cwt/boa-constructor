@@ -14,6 +14,8 @@
 import wx
 import wx.lib.buttons
 
+from Utils import _
+
 [wxID_FLEXGRIDGROWABLESDLG, wxID_FLEXGRIDGROWABLESDLGBUTTON1, 
  wxID_FLEXGRIDGROWABLESDLGBUTTON2, wxID_FLEXGRIDGROWABLESDLGBUTTON3, 
  wxID_FLEXGRIDGROWABLESDLGGRIDWIN, 
@@ -63,15 +65,15 @@ class FlexGridGrowablesDlg(wx.Dialog):
               name='FlexGridGrowablesDlg', parent=prnt, pos=wx.Point(139, 88),
               size=wx.Size(435, 279),
               style=wx.RESIZE_BORDER | wx.DEFAULT_DIALOG_STYLE,
-              title='Define Growable Rows and Columns (resize to test)')
+              title=_('Define Growable Rows and Columns (resize to test)'))
         self.SetClientSize(wx.Size(427, 252))
         self.Bind(wx.EVT_SIZE, self.OnFlexgridgrowablesdlgSize)
 
-        self.button1 = wx.Button(id=wx.ID_OK, label='OK', name='button1',
+        self.button1 = wx.Button(id=wx.ID_OK, label=_('OK'), name='button1',
               parent=self, pos=wx.Point(237, 209), size=wx.Size(75, 23),
               style=0)
 
-        self.button2 = wx.Button(id=wx.ID_CANCEL, label='Cancel',
+        self.button2 = wx.Button(id=wx.ID_CANCEL, label=_('Cancel'),
               name='button2', parent=self, pos=wx.Point(332, 209),
               size=wx.Size(75, 23), style=0)
 
@@ -81,7 +83,7 @@ class FlexGridGrowablesDlg(wx.Dialog):
         self.gridWin.Bind(wx.EVT_PAINT, self.OnGridwinPaint)
 
         self.button3 = wx.Button(id=wxID_FLEXGRIDGROWABLESDLGBUTTON3,
-              label='Editor', name='button3', parent=self, pos=wx.Point(142,
+              label=_('Editor'), name='button3', parent=self, pos=wx.Point(142,
               209), size=wx.Size(75, 23), style=0)
         self.button3.Enable(False)
 
@@ -203,7 +205,7 @@ class FlexGridGrowablesDlg(wx.Dialog):
 
 if __name__ == '__main__':
     app = wx.PySimpleApp()
-    wx.InitAllImageHandlers()
+
     dlg = FlexGridGrowablesDlg(None, [1, 0], [1, 0, 0])
     try:
         dlg.ShowModal()
