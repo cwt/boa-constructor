@@ -18,6 +18,8 @@ import wx
 
 import Preferences, Utils, Help
 from Preferences import IS
+from Utils import _
+
 import CtrlAlign, CtrlSize
 import sourceconst
 
@@ -86,7 +88,7 @@ class DesignerView(wx.Frame, InspectableObjectView, Utils.FrameRestorerMixin):
                 dot = srcPrnt.find('.')
                 if dot != -1:
                     srcPrnt = srcPrnt[dot + 1:]
-                else: raise Exception, 'Component name illegal '+ srcPrnt
+                else: raise Exception, _('Component name illegal %s')%srcPrnt
                 args[prnt] = self.objects[srcPrnt][1]
 
 
@@ -162,29 +164,29 @@ class DesignerView(wx.Frame, InspectableObjectView, Utils.FrameRestorerMixin):
 
         self.menu = wx.Menu()
 
-        self.menu.Append(wxID_CTRLPARENT, 'Up')
+        self.menu.Append(wxID_CTRLPARENT, _('Up'))
         self.menu.AppendSeparator()
-        self.menu.Append(wxID_EDITCUT, 'Cut')
-        self.menu.Append(wxID_EDITCOPY, 'Copy')
-        self.menu.Append(wxID_EDITPASTE, 'Paste')
-        self.menu.Append(wxID_EDITDELETE, 'Delete')
+        self.menu.Append(wxID_EDITCUT, _('Cut'))
+        self.menu.Append(wxID_EDITCOPY, _('Copy'))
+        self.menu.Append(wxID_EDITPASTE, _('Paste'))
+        self.menu.Append(wxID_EDITDELETE, _('Delete'))
         self.menu.AppendSeparator()
-        self.menu.Append(wxID_EDITRECREATE, 'Recreate')
-        self.menu.Append(wxID_EDITRELAYOUTSEL, 'Relayout selection')
-        self.menu.Append(wxID_EDITRELAYOUTDESGN, 'Relayout Designer')
+        self.menu.Append(wxID_EDITRECREATE, _('Recreate'))
+        self.menu.Append(wxID_EDITRELAYOUTSEL, _('Relayout selection'))
+        self.menu.Append(wxID_EDITRELAYOUTDESGN, _('Relayout Designer'))
         self.menu.AppendSeparator()
-        self.menu.Append(wxID_EDITFITSIZER, 'Fit sizer')
+        self.menu.Append(wxID_EDITFITSIZER, _('Fit sizer'))
         #self.menu.Append(wxID_EDITFITINSIDESIZER, 'Fit sizer')
         self.menu.AppendSeparator()
-        self.menu.Append(wxID_EDITSNAPGRID, 'Snap to grid')
-        self.menu.Append(wxID_EDITALIGN, 'Align...')
-        self.menu.Append(wxID_EDITSIZE, 'Size...')
+        self.menu.Append(wxID_EDITSNAPGRID, _('Snap to grid'))
+        self.menu.Append(wxID_EDITALIGN, _('Align...'))
+        self.menu.Append(wxID_EDITSIZE, _('Size...'))
         self.menu.AppendSeparator()
         Utils.appendMenuItem(self.menu, wxID_FINDININDEX,
-              'Find in index...', Preferences.keyDefs['HelpFind'], '',
-              'Pops up a text input for starting a search of the help indexes')
+              _('Find in index...'), Preferences.keyDefs['HelpFind'], '',
+              _('Pops up a text input for starting a search of the help indexes'))
         self.menu.AppendSeparator()
-        self.menu.Append(wxID_EDITCREATEORDER, 'Creation/Tab order...')
+        self.menu.Append(wxID_EDITCREATEORDER, _('Creation/Tab order...'))
 
         self.Bind(wx.EVT_CLOSE, self.OnCloseWindow)
         self.Bind(wx.EVT_MENU, self.OnControlDelete, id=wxID_EDITDELETE)
@@ -361,7 +363,7 @@ class DesignerView(wx.Frame, InspectableObjectView, Utils.FrameRestorerMixin):
             self.selection = \
                   SelectionTags.SingleSelectionGroup(self, self.inspector, self)
 
-        self.model.editor.statusBar.setHint('Creating frame')
+        self.model.editor.statusBar.setHint(_('Creating frame'))
 
         try:
             objCol = self.model.objectCollections[self.collectionMethod]
@@ -400,7 +402,7 @@ class DesignerView(wx.Frame, InspectableObjectView, Utils.FrameRestorerMixin):
 
                 if len(depLnks):
                     wx.LogWarning(pprint.pformat(depLnks))
-                    wx.LogWarning('These links were not resolved (Details...)')
+                    wx.LogWarning(_('These links were not resolved (Details...)'))
 
             finally:
                 self.inspector.vetoSelect = False
@@ -408,7 +410,7 @@ class DesignerView(wx.Frame, InspectableObjectView, Utils.FrameRestorerMixin):
             self.model.editor.statusBar.progress.SetValue(80)
             self.refreshContainment()
             self.model.editor.statusBar.progress.SetValue(0)
-            self.model.editor.statusBar.setHint('Designer refreshed')
+            self.model.editor.statusBar.setHint(_('Designer refreshed'))
             self.opened = True
         except:
             self.model.editor.statusBar.progress.SetValue(0)
@@ -453,13 +455,13 @@ class DesignerView(wx.Frame, InspectableObjectView, Utils.FrameRestorerMixin):
                 self.model.views['Source'].GotoLine(module.classes[\
                   self.model.main].methods['__init__'].start)
 
-            self.model.editor.setStatus('Designer session Posted.')
+            self.model.editor.setStatus(_('Designer session Posted.'))
         else:
             self.dataView.deleteFromNotebook('Source', 'Data')
             if self.sizersView:
                 self.sizersView.deleteFromNotebook('Source', 'Sizers')
 
-            self.model.editor.setStatus('Designer session Cancelled.', 'Warning')
+            self.model.editor.setStatus(_('Designer session Cancelled.'), 'Warning')
 
     def initSelection(self):
         """ Create a selection group """
@@ -516,7 +518,7 @@ class DesignerView(wx.Frame, InspectableObjectView, Utils.FrameRestorerMixin):
             elif factoryObj in self.objects:
                 constrPrs.class_name = self.objects[factoryObj][0].factory(factoryMeth)
             else:
-                raise Exception, factoryObj + ' not found'
+                raise Exception, _('%s not found')%factoryObj
         InspectableObjectView.initObjCreator(self, constrPrs)
 
     def initSizers(self, sizersView):
@@ -575,7 +577,7 @@ class DesignerView(wx.Frame, InspectableObjectView, Utils.FrameRestorerMixin):
         """ Delete a control, update selection and parent tree """
         ctrlInfo = self.objects[name]
         if ctrlInfo[1] == self:
-            wx.MessageBox("Can't delete frame", style=wx.OK | wx.ICON_ERROR, parent=self)
+            wx.MessageBox(_("Can't delete frame"), style=wx.OK | wx.ICON_ERROR, parent=self)
             return
         parRel = None
         # build relationship, this will only happen for the first call
@@ -1095,7 +1097,7 @@ class DesignerView(wx.Frame, InspectableObjectView, Utils.FrameRestorerMixin):
             General Inspector and Designer clean-up """
 
         if not self.saveOnClose and self.confirmCancel and wx.MessageBox(
-              'Cancel Designer session?', 'Cancel',
+              _('Cancel Designer session?'), _('Cancel'),
               wx.YES_NO | wx.ICON_WARNING, parent=None) == wx.NO:
             self.saveOnClose = True
             self.confirmCancel = False
@@ -1166,7 +1168,7 @@ class DesignerView(wx.Frame, InspectableObjectView, Utils.FrameRestorerMixin):
             ctrls = []
             if self.selection:
                 if self.selection.isProxySelection():
-                    wx.LogError('Nothing to delete')
+                    wx.LogError(_('Nothing to delete'))
                     return
                 ctrls = [self.selection.name]
             elif self.multiSelection:
@@ -1209,7 +1211,7 @@ class DesignerView(wx.Frame, InspectableObjectView, Utils.FrameRestorerMixin):
         """ Cut current selection to the clipboard """
         if self.selection:
             if self.selection.isProxySelection():
-                wx.LogError('Nothing to cut')
+                wx.LogError(_('Nothing to cut'))
                 return
             else:
                 ctrls = [self.selection.name]
@@ -1228,7 +1230,7 @@ class DesignerView(wx.Frame, InspectableObjectView, Utils.FrameRestorerMixin):
         """ Copy current selection to the clipboard """
         if self.selection:
             if self.selection.isProxySelection():
-                wx.LogError('Nothing to copy')
+                wx.LogError(_('Nothing to copy'))
                 return
             else:
                 ctrls = [self.selection.name]
@@ -1268,7 +1270,7 @@ class DesignerView(wx.Frame, InspectableObjectView, Utils.FrameRestorerMixin):
                             self.deleteCtrl(ctrlName)
                         self.selection.selectNone()
                         self.inspector.cleanup()
-                        wx.LogError('Only 1 control can be pasted into this container')
+                        wx.LogError(_('Only 1 control can be pasted into this container'))
                     else:
                         self.selection.destroy()
                         self.selection = None

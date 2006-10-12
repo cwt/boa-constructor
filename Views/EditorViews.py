@@ -18,6 +18,7 @@ import wx.html
 
 import Preferences, Utils
 from Preferences import IS, staticInfoPrefs, keyDefs
+from Utils import _
 
 import Search
 from Models import EditorHelper
@@ -336,8 +337,8 @@ class HTMLView(wx.html.HtmlWindow, EditorView):
     viewName = 'HTML'
     def __init__(self, parent, model, actions = ()):
         wx.html.HtmlWindow.__init__(self, parent, style=wx.SUNKEN_BORDER)
-        EditorView.__init__(self, model, (('Back', self.OnPrev, self.prevBmp, ''),
-                      ('Forward', self.OnNext, self.nextBmp, '') )+ actions, -1)
+        EditorView.__init__(self, model, ((_('Back'), self.OnPrev, self.prevBmp, ''),
+                      (_('Forward'), self.OnNext, self.nextBmp, '') )+ actions, -1)
         self.SetRelatedFrame(model.editor, 'Editor')
         self.SetRelatedStatusBar(1)
 
@@ -374,8 +375,8 @@ class HTMLDocView(HTMLView):
     def __init__(self, parent, model, actions = ()):
         HTMLView.__init__(self, parent, model, (
               ('-', None, '', ''),
-              ('Save HTML', self.OnSaveHTML, '-', ''),
-              ('Print', self.OnPrintHTML, self.printBmp, ''), )+ actions)
+              (_('Save HTML'), self.OnSaveHTML, '-', ''),
+              (_('Print'), self.OnPrintHTML, self.printBmp, ''), )+ actions)
         self.title = 'Boa docs'
 
         self.printer = wx.html.HtmlEasyPrinting()
@@ -391,7 +392,7 @@ class HTMLDocView(HTMLView):
 
     def OnSaveHTML(self, event):
         from FileDlg import wxFileDialog
-        dlg = wx.FileDialog(self, 'Save as...', '.', '', '*.html',
+        dlg = wx.FileDialog(self, _('Save as...'), '.', '', '*.html',
           wx.SAVE | wx.OVERWRITE_PROMPT)
         try:
             if dlg.ShowModal() == wx.ID_OK:
@@ -507,8 +508,8 @@ class CloseableViewMix:
     """
     closeViewBmp = 'Images/Editor/CloseView.png'
 
-    def __init__(self, hint = 'results'):
-        self.closingActionItems = ( ('Close '+ hint, self.OnClose,
+    def __init__(self, hint = _('results')):
+        self.closingActionItems = ( (_('Close ')+ hint, self.OnClose,
                                      self.closeViewBmp, 'CloseView'), )
 
     def OnClose(self, event):
@@ -781,9 +782,9 @@ class ToDoView(ListCtrlView):
 
         self.sortOnColumns = [0, 1]
 
-        self.InsertColumn(0, 'Line#')
-        self.InsertColumn(1, 'Urgency')
-        self.InsertColumn(2, 'Entry')
+        self.InsertColumn(0, _('Line#'))
+        self.InsertColumn(1, _('Urgency'))
+        self.InsertColumn(2, _('Entry'))
         self.SetColumnWidth(0, 40)
         self.SetColumnWidth(1, 75)
         self.SetColumnWidth(2, 350)
@@ -890,8 +891,8 @@ class PackageView(ListCtrlView, FindResultsAdderMixin):
 
     def __init__(self, parent, model):
         ListCtrlView.__init__(self, parent, model, wx.LC_LIST,
-          (('Open', self.OnOpen, '-', ()),
-           ('Find', self.OnFind, self.findBmp, 'Find'),), 0)
+          ((_('Open'), self.OnOpen, '-', ()),
+           (_('Find'), self.OnFind, self.findBmp, 'Find'),), 0)
         self.SetImageList(model.editor.modelImageList, wx.IMAGE_LIST_SMALL)
 
     def refreshCtrl(self):
@@ -923,7 +924,7 @@ class InfoView(wx.TextCtrl, EditorView):
 
     def __init__(self, parent, model):
         wx.TextCtrl.__init__(self, parent, -1, '', style=wx.TE_MULTILINE | wx.TE_RICH | wx.HSCROLL)
-        EditorView.__init__(self, ('Add comment block to code', self.OnAddInfo, ''), 5)
+        EditorView.__init__(self, (_('Add comment block to code'), self.OnAddInfo, ''), 5)
         self.active = True
         self.model = model
         self.SetFont(wx.Font(9,wx.MODERN,wx.NORMAL,wx.NORMAL, False))
@@ -1101,7 +1102,7 @@ class ExploreEventsView(ExploreView):
         if not load_now and not self.IsShown():
             self._populated_tree = 0
             return
-        self.AddRoot('Loading...')
+        self.AddRoot(_('Loading...'))
 
         from moduleparse import CodeBlock
 
@@ -1230,7 +1231,7 @@ class HierarchyView(wx.TreeCtrl, EditorView):
 
     def refreshCtrl(self):
         self.DeleteAllItems()
-        self.AddRoot('Loading...')
+        self.AddRoot(_('Loading...'))
         module = self.model.getModule()
         self.DeleteAllItems()
         hierc = module.createHierarchy()
@@ -1284,10 +1285,10 @@ class DistUtilManifestView(ListCtrlView):
 
     def __init__(self, parent, model):
         ListCtrlView.__init__(self, parent, model, wx.LC_REPORT,
-          (('Open', self.OnOpen, '-', ()),
-           ('Refresh', self.OnRefresh, self.refreshBmp, 'Refresh')), 0)
-        self.InsertColumn(0, 'Name')
-        self.InsertColumn(1, 'Filepath')
+          ((_('Open'), self.OnOpen, '-', ()),
+           (_('Refresh'), self.OnRefresh, self.refreshBmp, 'Refresh')), 0)
+        self.InsertColumn(0, _('Name'))
+        self.InsertColumn(1, _('Filepath'))
         self.SetColumnWidth(0, 150)
         self.SetColumnWidth(1, 450)
 
@@ -1304,7 +1305,7 @@ class DistUtilManifestView(ListCtrlView):
         try:
             manifest = openEx(manifestPath).load()
         except TransportError, err:
-            self.InsertStringItem(0, 'Error')
+            self.InsertStringItem(0, _('Error'))
             self.SetStringItem(0, 1, str(err))
             self.manifest = None
         else:
@@ -1339,12 +1340,12 @@ class CVSConflictsView(ListCtrlView):
 
     def __init__(self, parent, model):
         ListCtrlView.__init__(self, parent, model, wx.LC_REPORT,
-          (('Goto line', self.OnGoto, self.gotoLineBmp, ()),
-           ('Accept changes', self.OnAcceptChanges, self.acceptBmp, ()),
-           ('Reject changes', self.OnRejectChanges, self.rejectBmp, ()) ), 0)
-        self.InsertColumn(0, 'Rev')
-        self.InsertColumn(1, 'Line#')
-        self.InsertColumn(2, 'Size')
+          ((_('Goto line'), self.OnGoto, self.gotoLineBmp, ()),
+           (_('Accept changes'), self.OnAcceptChanges, self.acceptBmp, ()),
+           (_('Reject changes'), self.OnRejectChanges, self.rejectBmp, ()) ), 0)
+        self.InsertColumn(0, _('Rev'))
+        self.InsertColumn(1, _('Line#'))
+        self.InsertColumn(2, _('Size'))
         self.SetColumnWidth(0, 40)
         self.SetColumnWidth(1, 40)
         self.SetColumnWidth(2, 40)

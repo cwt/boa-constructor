@@ -18,6 +18,7 @@ import copy, os, pprint
 import wx
 
 import Preferences, Utils
+from Utils import _
 
 import PaletteMapping, EditorViews
 from ObjCollection import ObjectCollection, getCollName
@@ -141,12 +142,12 @@ class InspectableObjectView(EditorViews.EditorView, Utils.InspectorSessionMix):
                   self.model.customClasses)
         except NameError:
             raise DesignerError, \
-                  '%s is not defined on the Palette.'%constrPrs.class_name
+                  _('%s is not defined on the Palette.')%constrPrs.class_name
         try:
             ctrlCompnClass = PaletteMapping.compInfo[ctrlClass][1]
         except KeyError:
             raise DesignerError, \
-                  '%s is not defined on the Palette.'%ctrlClass.__name__
+                  _('%s is not defined on the Palette.')%ctrlClass.__name__
         else:
             ctrlName = self.loadControl(ctrlClass, ctrlCompnClass,
               constrPrs.comp_name, constrPrs.params)
@@ -193,7 +194,7 @@ class InspectableObjectView(EditorViews.EditorView, Utils.InspectorSessionMix):
                         value = PaletteMapping.evalCtrl(prop.params[0], 
                           {'self': self.controllerView.objectNamespace})
                     except:
-                        print 'Problem with: %s' % prop.asText()
+                        print _('Problem with: %s') % prop.asText()
                         raise
 
                     if prop.prop_name in comp.initPropsThruCompanion:
@@ -242,7 +243,7 @@ class InspectableObjectView(EditorViews.EditorView, Utils.InspectorSessionMix):
         try:
             collCompClass = comp.subCompanions[collName]
         except KeyError:
-            raise Exception, 'Sub-Companion not found for %s in %s'%(name, collInitMethod)
+            raise Exception, _('Sub-Companion not found for %s in %s')%(name, collInitMethod)
         collComp = collCompClass(name, self, comp, ctrl)
         if create:
             collComp.persistCollInit(collInitMethod, name, collName)
@@ -543,7 +544,7 @@ class InspectableObjectView(EditorViews.EditorView, Utils.InspectorSessionMix):
                 except NameError:
                     print 'PASTE ERROR', input
         if not methList:
-            raise Exception, 'Nothing to paste'
+            raise Exception, _('Nothing to paste')
 
         collObjColls = []
         pastedCtrls = []
@@ -570,7 +571,7 @@ class InspectableObjectView(EditorViews.EditorView, Utils.InspectorSessionMix):
                 collObjColls.append( (meth[0], ctrlName, newObjColl) )
 
         if not collMethod:
-            raise DesignerError, 'Method %s not found' % self.collectionMethod
+            raise DesignerError, _('Method %s not found') % self.collectionMethod
 
         # Parse input source
         objCol = self.model.readDesignerMethod(collMethod, methBody)
@@ -789,18 +790,18 @@ class InspectableObjectView(EditorViews.EditorView, Utils.InspectorSessionMix):
     def checkHost(self, CtrlCompanion):
         """ Checks that the companion may be hosted in this designer """
         if CtrlCompanion.host == 'Not Implemented':
-            dlg = wx.MessageDialog(self, 'This component is not yet implemented',
-                              'Not Implemented', wx.OK | wx.ICON_ERROR)
+            dlg = wx.MessageDialog(self, _('This component is not yet implemented'),
+                              _('Not Implemented'), wx.OK | wx.ICON_ERROR)
             try: dlg.ShowModal()
             finally: dlg.Destroy()
-            raise DesignerError, 'Not Implemented'
+            raise DesignerError, _('Not Implemented')
         if CtrlCompanion.host != self.viewName:
             dlg = wx.MessageDialog(self,
-              'This component must be created in the '+CtrlCompanion.host+' view',
-              'Wrong Designer', wx.OK | wx.ICON_ERROR)
+              _('This component must be created in the %s view')%CtrlCompanion.host,
+              _('Wrong Designer'), wx.OK | wx.ICON_ERROR)
             try: dlg.ShowModal()
             finally: dlg.Destroy()
-            raise DesignerError, 'Wrong Designer'
+            raise DesignerError, _('Wrong Designer')
 
     def expandNamesToContainers(self, ctrlNames):
         """ Expand set of names to include the names of all their children """

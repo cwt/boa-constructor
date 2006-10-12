@@ -15,6 +15,8 @@ import marshal, os
 
 import wx
 
+from Utils import _
+
 from EditorViews import ListCtrlView, CloseableViewMix
 
 class ProfileStatsView(ListCtrlView, CloseableViewMix):
@@ -25,15 +27,15 @@ class ProfileStatsView(ListCtrlView, CloseableViewMix):
     saveAsBmp = 'Images/Editor/SaveAs.png'
 
     def __init__(self, parent, model):
-        CloseableViewMix.__init__(self, 'stats')
+        CloseableViewMix.__init__(self, _('stats'))
         ListCtrlView.__init__(self, parent, model, wx.LC_REPORT | wx.LC_SINGLE_SEL,
-          ( ('Goto line', self.OnGoto, self.gotoLineBmp, ''),
+          ( (_('Goto line'), self.OnGoto, self.gotoLineBmp, ''),
             ('-', None, '', ''),
-            ('Callers (called this function)', self.OnCallers, self.callersBmp, ''),
-            ('Callees (are called by this function)', self.OnCallees, self.calleesBmp, ''),
+            (_('Callers (called this function)'), self.OnCallers, self.callersBmp, ''),
+            (_('Callees (are called by this function)'), self.OnCallees, self.calleesBmp, ''),
             ('-', None, '', '') ) +
             self.closingActionItems +
-          ( ('Save stats', self.OnSaveStats, self.saveAsBmp, ''),
+          ( (_('Save stats'), self.OnSaveStats, self.saveAsBmp, ''),
             ), 0)
 
         self.InsertColumn(0, 'module')
@@ -157,7 +159,7 @@ class ProfileStatsView(ListCtrlView, CloseableViewMix):
             idx = self.getStatIdx()
             key = self.statKeyList[idx]
             if key[0] == '<string>':
-                wx.LogMessage("Eval'd or exec'd code, no module.")
+                wx.LogMessage(_("Eval'd or exec'd code, no module."))
                 return
             if os.path.isabs(key[0]):
                 model, controller = self.model.editor.openOrGotoModule(key[0])
@@ -176,9 +178,8 @@ class ProfileStatsView(ListCtrlView, CloseableViewMix):
 
             called = [`x[1]`+': '+x[0][2]+' | '+os.path.basename(os.path.splitext(x[0][0])[0])
                       for x in callDct.items()]
-            dlg = wx.SingleChoiceDialog(self.model.editor,
-              'Choose a function:',
-              '%s was called by...' % self.statKeyList[idx][2], called)
+            dlg = wx.SingleChoiceDialog(self.model.editor, _('Choose a function:'),
+              _('%s was called by...') % self.statKeyList[idx][2], called)
             try:
                 if dlg.ShowModal() == wx.ID_OK:
                     idx = called.index(dlg.GetStringSelection())
@@ -206,9 +207,8 @@ class ProfileStatsView(ListCtrlView, CloseableViewMix):
                 called = [`x[1]`+': '+x[0][2]+' | '+os.path.basename(os.path.splitext(x[0][0])[0])
                           for x in callDct.items()]
                  
-                dlg = wx.SingleChoiceDialog(self.model.editor,
-                  'Choose a function:',
-                  '%s called...' % self.statKeyList[idx][2], called)
+                dlg = wx.SingleChoiceDialog(self.model.editor, _('Choose a function:'),
+                  _('%s called...') % self.statKeyList[idx][2], called)
                 try:
                     if dlg.ShowModal() == wx.ID_OK:
                         idx = called.index(dlg.GetStringSelection())

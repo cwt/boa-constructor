@@ -17,6 +17,7 @@ import wx
 import wx.lib.ogl as ogl
 
 import Preferences, Utils
+from Utils import _
 
 from Preferences import IS
 
@@ -135,16 +136,16 @@ class PersistentShapeCanvas(ogl.ShapeCanvas):
         try:
             persProps = pickle.loads(t.load())
         except SyntaxError:
-            if wx.MessageBox('%s is possibly corrupt (cannot be unpickled), delete it?'\
-                            'Default layout will be used.'%filename,
-                  'Corrupt file', style = wx.YES_NO | wx.ICON_EXCLAMATION) == wx.YES:
-                # XXX Just lazy, must fix to use transport !!
+            if wx.MessageBox(_('%s is possibly corrupt (cannot be unpickled), delete it?'\
+                  'Default layout will be used.')%filename, _('Corrupt file'), 
+                  style = wx.YES_NO | wx.ICON_EXCLAMATION) == wx.YES:
+                # XXX update to use transport !!
                 if filename[:7] != 'file://':
-                    wx.LogMessage('Sorry, only supported on the filesystem')
+                    wx.LogMessage(_('Sorry, only supported on the filesystem'))
                 else:
                     os.remove(filename[7:])
 
-            raise TransportError('Corrupt layout file')
+            raise TransportError(_('Corrupt layout file'))
 
         unmatchedPcls = persProps.keys()
         matchedShapes = []
@@ -235,11 +236,11 @@ class PersistentOGLView(ScrollingContainer, EditorViews.EditorView):
     def __init__(self, parent, model, actions = ()):
         ScrollingContainer.__init__(self, parent, wx.Size(self.defSize, self.defSize))
         EditorViews.EditorView.__init__(self, model,
-          (('(Re)load diagram', self.OnLoad, self.loadBmp, ''),
-           ('Save diagram', self.OnSave, self.saveBmp, ''),
-           ('Print diagram to PostScript', self.OnPrintToPS, '-', ''), 
+          ((_('(Re)load diagram'), self.OnLoad, self.loadBmp, ''),
+           (_('Save diagram'), self.OnSave, self.saveBmp, ''),
+           (_('Print diagram to PostScript'), self.OnPrintToPS, '-', ''), 
            ('-', None, '-', ''),
-           ('Change size', self.OnSetSize, '-', ''),
+           (_('Change size'), self.OnSetSize, '-', ''),
            )+actions)
 
         self.shapes = []
@@ -578,17 +579,17 @@ class UMLView(PersistentOGLView, SortedUMLViewMix):
     def __init__(self, parent, model):
         PersistentOGLView.__init__(self, parent, model, (
             ('-', None, '-', ''),
-            ('Toggle Attributes', self.OnToggleAttributes, self.toggleAttrBmp, ''),
-            ('Toggle Methods', self.OnToggleMethods, self.toggleMethBmp, ''),
+            (_('Toggle Attributes'), self.OnToggleAttributes, self.toggleAttrBmp, ''),
+            (_('Toggle Methods'), self.OnToggleMethods, self.toggleMethBmp, ''),
             ('-', None, '-', ''),
-            ('Force layout', self.OnForceLayout, '-', ''),
+            (_('Force layout'), self.OnForceLayout, '-', ''),
         ))
         self.menuStdClass = wx.Menu()
         id = wx.NewId()
-        self.menuStdClass.Append(id, "Goto Source")
+        self.menuStdClass.Append(id, _('Goto Source'))
         self.Bind(wx.EVT_MENU, self.OnGotoSource, id=id)
         id = wx.NewId()
-        self.menuStdClass.Append(id, "Goto Documentation",)
+        self.menuStdClass.Append(id, _('Goto Documentation'),)
         self.Bind(wx.EVT_MENU, self.OnGotoDoc, id=id)
 
         self.shapeMenu = self.menuStdClass
@@ -684,9 +685,9 @@ class UMLView(PersistentOGLView, SortedUMLViewMix):
                 module = self.model.getModule()
                 #srcView.gotoLine(int(module.classes[name].block.start) -1)
             else:
-                print "Documentation View is not open"
+                print _('Documentation View is not open')
         else:
-            print "No shape selected"
+            print _('No shape selected')
 
     def OnGotoSource(self, event):
         if self.menuClass:
@@ -698,9 +699,9 @@ class UMLView(PersistentOGLView, SortedUMLViewMix):
                 module = self.model.getModule()
                 srcView.gotoLine(int(module.classes[name].block.start) -1)
             else:
-                print "No source for selection"
+                print _('No source for selection')
         else:
-            print "No shape selected"
+            print _('No shape selected')
 
     ## This allows me to pop-up a menu for the shape. However it loses the
     ## main menu position (x, y) go to 0,0 after the skip
@@ -745,7 +746,7 @@ class ImportsView(PersistentOGLView):
     def __init__(self, parent, model):
         PersistentOGLView.__init__(self, parent, model,
           (('-', None, '', ''),
-           ('Refresh', self.OnRefresh, self.refreshBmp, ''))
+           (_('Refresh'), self.OnRefresh, self.refreshBmp, ''))
         )
         self.relationships = None
         self.showImports = 1
@@ -842,7 +843,7 @@ class AppPackageView(PersistentOGLView):
     def __init__(self, parent, model):
         PersistentOGLView.__init__(self, parent, model,
           (('-', None, '', ''),
-           ('Refresh', self.OnRefresh, self.refreshBmp, ''))
+           (_('Refresh'), self.OnRefresh, self.refreshBmp, ''))
         )
         self.relationships = None
 

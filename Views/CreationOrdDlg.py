@@ -3,6 +3,7 @@
 import wx
 
 import Preferences, Utils
+from Utils import _
 
 def create(parent):
     return CreationOrderDlg(parent)
@@ -21,16 +22,16 @@ class CreationOrderDlg(wx.Dialog):
         wx.Dialog.__init__(self, id=wxID_CREATIONORDERDLG,
               name='CreationOrderDlg', parent=prnt, pos=wx.Point(396, 265),
               size=wx.Size(280, 281), style=wx.DEFAULT_DIALOG_STYLE,
-              title='Change creation order')
+              title=_('Change creation order'))
         self.SetClientSize(wx.Size(272, 254))
 
         self.panel1 = wx.Panel(id=wxID_CREATIONORDERDLGPANEL1, name='panel1',
               parent=self, pos=wx.Point(1, 1), size=wx.Size(270, 252),
               style=wx.TAB_TRAVERSAL)
-        self.panel1.SetHelpText('This dialog manages the order of controls on the level (share a parent). When the parent is recreated, the onjects will be recreated in the new order.')
+        self.panel1.SetHelpText(_('This dialog manages the order of controls on the level (share a parent). When the parent is recreated, the objects will be recreated in the new order.'))
 
         self.staticBox1 = wx.StaticBox(id=wxID_CREATIONORDERDLGSTATICBOX1,
-              label='Current creation/tab order', name='staticBox1',
+              label=_('Current creation/tab order'), name='staticBox1',
               parent=self.panel1, pos=wx.Point(8, 0), size=wx.Size(256, 208),
               style=0)
 
@@ -67,14 +68,14 @@ class CreationOrderDlg(wx.Dialog):
         self.bbDownLast.Bind(wx.EVT_BUTTON, self.OnBbDownLastButton,
               id=wxID_CREATIONORDERDLGBBDOWNLAST)
 
-        self.btOK = wx.Button(id=wxID_CREATIONORDERDLGBTOK, label='OK',
+        self.btOK = wx.Button(id=wxID_CREATIONORDERDLGBTOK, label=_('OK'),
               name='btOK', parent=self.panel1, pos=wx.Point(112, 224),
               size=wx.Size(72, 24), style=0)
         self.btOK.Bind(wx.EVT_BUTTON, self.OnBtokButton,
               id=wxID_CREATIONORDERDLGBTOK)
 
         self.btCancel = wx.Button(id=wxID_CREATIONORDERDLGBTCANCEL,
-              label='Cancel', name='btCancel', parent=self.panel1,
+              label=_('Cancel'), name='btCancel', parent=self.panel1,
               pos=wx.Point(192, 224), size=wx.Size(72, 24), style=0)
         self.btCancel.Bind(wx.EVT_BUTTON, self.OnBtcancelButton,
               id=wxID_CREATIONORDERDLGBTCANCEL)
@@ -162,7 +163,6 @@ class CreationOrderDlg(wx.Dialog):
 
 if __name__ == '__main__':
     app = wx.PySimpleApp()
-    wx.InitAllImageHandlers()
 
     dlg = CreationOrderDlg(None, [(0, 'ctrl1'), (1, 'ctrl2'), (5, 'ctrl3')],
                     [(0, 'ctrl1'), (1, 'ctrl2'), (2, 'ctrl4'), (3, 'ctrl5'), (5, 'ctrl3')])

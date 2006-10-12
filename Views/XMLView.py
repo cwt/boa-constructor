@@ -15,6 +15,8 @@ import sys
 
 import wx
 
+from Utils import _
+
 from EditorViews import EditorView
 
 
@@ -26,7 +28,7 @@ class XMLTreeView(wx.TreeCtrl, EditorView):
         id = wx.NewId()
         wx.TreeCtrl.__init__(self, parent, id)#, style=wx.TR_HAS_BUTTONS | wx.SUNKEN_BORDER)
         EditorView.__init__(self, model,
-          (('Goto line', self.OnGoto, self.gotoLineBmp, ''),), 0)
+          ((_('Goto line'), self.OnGoto, self.gotoLineBmp, ''),), 0)
 
         self.nodeStack = []
         self.locations = {}

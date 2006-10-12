@@ -17,6 +17,7 @@ import wx
 import wx.stc
 
 import ProfileView, Search, Help, Preferences, ShellEditor, Utils, SourceViews
+from Utils import _
 
 from SourceViews import EditorStyledTextCtrl
 from StyledTextCtrls import PythonStyledTextCtrlMix, BrowseStyledTextCtrlMix,\
@@ -45,27 +46,27 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
     modInfoBmp = 'Images/Modules/InfoBlock.png'
     def __init__(self, parent, model):
         a1 = (('-', None, '', ''),
-              ('Comment', self.OnComment, '-', 'Comment'),
-              ('Uncomment', self.OnUnComment, '-', 'Uncomment'),
-              ('Indent', self.OnIndent, '-', 'Indent'),
-              ('Dedent', self.OnDedent, '-', 'Dedent'),
+              (_('Comment'), self.OnComment, '-', 'Comment'),
+              (_('Uncomment'), self.OnUnComment, '-', 'Uncomment'),
+              (_('Indent'), self.OnIndent, '-', 'Indent'),
+              (_('Dedent'), self.OnDedent, '-', 'Dedent'),
               ('-', None, '-', ''),
-              ('Run to cursor', self.OnRunToCursor, self.runCrsBmp, ''),
+              (_('Run to cursor'), self.OnRunToCursor, self.runCrsBmp, ''),
               # evts defined in DebuggingViewSTCMix
-              ('Toggle breakpoint', self.OnSetBreakPoint, self.breakBmp, 'ToggleBrk'),
-              ('Load breakpoints', self.OnLoadBreakPoints, '-', ''),
-              ('Save breakpoints', self.OnSaveBreakPoints, '-', ''),
+              (_('Toggle breakpoint'), self.OnSetBreakPoint, self.breakBmp, 'ToggleBrk'),
+              (_('Load breakpoints'), self.OnLoadBreakPoints, '-', ''),
+              (_('Save breakpoints'), self.OnSaveBreakPoints, '-', ''),
               ('-', None, '', ''),
-              ('Add simple app', self.OnAddSimpleApp, '-', ''),
+              (_('Add simple app'), self.OnAddSimpleApp, '-', ''),
               ('-', None, '-', ''),
-              ('Add module info', self.OnAddModuleInfo, self.modInfoBmp, ''),
-              ('Add comment line', self.OnAddCommentLine, '-', 'DashLine'),
-              ('Code transformation', self.OnCodeTransform, '-', 'CodeXform'),
-              ('Code completion', self.OnCompleteCode, '-', 'CodeComplete'),
-              ('Call tips', self.OnParamTips, '-', 'CallTips'),
-              ('Browse to', self.OnBrowseTo, '-', 'BrowseTo'),
+              (_('Add module info'), self.OnAddModuleInfo, self.modInfoBmp, ''),
+              (_('Add comment line'), self.OnAddCommentLine, '-', 'DashLine'),
+              (_('Code transformation'), self.OnCodeTransform, '-', 'CodeXform'),
+              (_('Code completion'), self.OnCompleteCode, '-', 'CodeComplete'),
+              (_('Call tips'), self.OnParamTips, '-', 'CallTips'),
+              (_('Browse to'), self.OnBrowseTo, '-', 'BrowseTo'),
               ('-', None, '-', ''),
-              ('Context help', self.OnContextHelp, '-', 'ContextHelp'))
+              (_('Context help'), self.OnContextHelp, '-', 'ContextHelp'))
 
         wxID_PYTHONSOURCEVIEW = wx.NewId()
 
@@ -619,7 +620,7 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
                 elif handled:
                     if not model.views['Source'].gotoName(model.getModule(),
                           words[-1], currLineNo):
-                        wx.LogWarning('"%s" not found.'%words[-1])
+                        wx.LogWarning(_('"%s" not found.')%words[-1])
                     return True, model
                 else:
                     return False, None
@@ -1167,7 +1168,7 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
         self.SetAnchor(ls+4)
 
     def OnViewWhitespace(self, event):
-        miid = self.menu.FindItem('View whitespace')
+        miid = self.menu.FindItem(_('View whitespace'))
         if self.menu.IsChecked(miid):
             mode = wx.stc.STC_WS_INVISIBLE
             self.menu.Check(miid, False)
@@ -1179,7 +1180,7 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
 #        self.menu.Check(miid, not self.menu.IsChecked(miid))
 
     def OnViewEOL(self, event):
-        miid = self.menu.FindItem('View EOL characters')
+        miid = self.menu.FindItem(_('View EOL characters'))
         check = not self.menu.IsChecked(miid)
         self.menu.Check(miid, check)
         self.SetViewEOL(check)

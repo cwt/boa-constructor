@@ -24,6 +24,8 @@ import os
 import wx
 import wx.stc
 
+from Utils import _
+
 def create(parent):
     return STCPrintDlg(parent)
 
@@ -42,45 +44,45 @@ class STCPrintDlg(wx.Dialog):
         # generated method, don't edit
         wx.Dialog.__init__(self, id=wxID_STCPRINTDLG, name='STCPrintDlg',
               parent=prnt, pos=wx.Point(352, 204), size=wx.Size(402, 189),
-              style=wx.DEFAULT_DIALOG_STYLE, title='Print Source')
+              style=wx.DEFAULT_DIALOG_STYLE, title=_('Print Source'))
         self.SetClientSize(wx.Size(394, 162))
 
-        self.rdbColourMode = wx.RadioBox(choices=['Normal', 'Black on white',
-              'Colour on white', 'Colour on white default background'],
-              id=wxID_STCPRINTDLGRDBCOLOURMODE, label='Colour Mode',
+        self.rdbColourMode = wx.RadioBox(choices=[_('Normal'), _('Black on white'),
+              _('Colour on white'), _('Colour on white default background')],
+              id=wxID_STCPRINTDLGRDBCOLOURMODE, label=_('Colour Mode'),
               majorDimension=1, name='rdbColourMode', parent=self,
               point=wx.Point(8, 8), size=wx.Size(216, 112),
               style=wx.RA_SPECIFY_COLS)
 
         self.ckbFilename = wx.CheckBox(id=wxID_STCPRINTDLGCKBFILENAME,
-              label='Filename at top', name='ckbFilename', parent=self,
+              label=_('Filename at top'), name='ckbFilename', parent=self,
               pos=wx.Point(240, 16), size=wx.Size(144, 13), style=0)
         self.ckbFilename.SetValue(True)
 
         self.ckbPageNumbers = wx.CheckBox(id=wxID_STCPRINTDLGCKBPAGENUMBERS,
-              label='Page numbers', name='ckbPageNumbers', parent=self,
+              label=_('Page numbers'), name='ckbPageNumbers', parent=self,
               pos=wx.Point(240, 40), size=wx.Size(136, 13), style=0)
         self.ckbPageNumbers.SetValue(True)
 
         self.btnPrintSetup = wx.Button(id=wxID_STCPRINTDLGBTNPRINTSETUP,
-              label='Print Setup', name='btnPrintSetup', parent=self,
+              label=_('Print Setup'), name='btnPrintSetup', parent=self,
               pos=wx.Point(8, 128), size=wx.Size(88, 23), style=0)
         self.btnPrintSetup.Bind(wx.EVT_BUTTON, self.OnPrintSetup,
               id=wxID_STCPRINTDLGBTNPRINTSETUP)
 
         self.btnPrintPreview = wx.Button(id=wxID_STCPRINTDLGBTNPRINTPREVIEW,
-              label='Print Preview', name='btnPrintPreview', parent=self,
+              label=_('Print Preview'), name='btnPrintPreview', parent=self,
               pos=wx.Point(104, 128), size=wx.Size(88, 23), style=0)
         self.btnPrintPreview.Bind(wx.EVT_BUTTON, self.OnPrintPreview,
               id=wxID_STCPRINTDLGBTNPRINTPREVIEW)
 
-        self.btnPrint = wx.Button(id=wxID_STCPRINTDLGBTNPRINT, label='Print',
+        self.btnPrint = wx.Button(id=wxID_STCPRINTDLGBTNPRINT, label=_('Print'),
               name='btnPrint', parent=self, pos=wx.Point(200, 128),
               size=wx.Size(88, 23), style=0)
         self.btnPrint.Bind(wx.EVT_BUTTON, self.OnDoPrint,
               id=wxID_STCPRINTDLGBTNPRINT)
 
-        self.btnCancel = wx.Button(id=wx.ID_CANCEL, label='Cancel',
+        self.btnCancel = wx.Button(id=wx.ID_CANCEL, label=_('Cancel'),
               name='btnCancel', parent=self, pos=wx.Point(296, 128),
               size=wx.Size(88, 23), style=0)
 
@@ -120,10 +122,10 @@ class STCPrintDlg(wx.Dialog):
         printout2 = self.createSTCPrintout()
         self.preview = wx.PrintPreview(printout1, printout2, self.printData)
         if not self.preview.Ok():
-            wxLogError('An error occured while preparing preview.')
+            wx.LogError(_('An error occured while preparing preview.'))
             return
 
-        frame = wx.PreviewFrame(self.preview, self.parentFrame, 'Print Preview')
+        frame = wx.PreviewFrame(self.preview, self.parentFrame, _('Print Preview'))
         frame.Initialize()
         frame.Show(True)
 
@@ -135,7 +137,7 @@ class STCPrintDlg(wx.Dialog):
         printout = self.createSTCPrintout()
 
         if not printer.Print(self.parentFrame, printout):
-            wx.LogError('An error occured while printing.')
+            wx.LogError(_('An error occured while printing.'))
         else:
             self.printData = wx.PrintData(printer.GetPrintDialogData().GetPrintData())
         printout.Destroy()
@@ -212,7 +214,7 @@ class STCPrintout(wx.Printout):
                   int(dw/scale/2-tlw/2), int(mh/scale-tlh*3))
 
         if self.doPageNums:
-            pageLabel = 'Page: %d' % page
+            pageLabel = _('Page: %d') % page
             plw, plh = dc.GetTextExtent(pageLabel)
             dc.DrawText(pageLabel,
                   int(dw/scale/2-plw/2), int((textAreaHeight+mh)/scale+plh*2))
@@ -233,8 +235,7 @@ class STCPrintout(wx.Printout):
         # printing
         if not self.IsPreview():
             if ep < stcEndPos:
-                print 'warning: on page', page, \
-                      ': not enough chars rendered, diff:', stcEndPos-ep
+                print _('warning: on page %s: not enough chars rendered, diff:')%(page, stcEndPos-ep)
 
         return True
 

@@ -16,6 +16,7 @@ import os, copy
 import wx
 
 import Preferences, Utils
+from Utils import _
 
 import sourceconst
 import PaletteMapping, PaletteStore, Help
@@ -34,18 +35,18 @@ class DataView(wx.ListView, InspectableObjectView):
               style=Preferences.dataViewListStyle | wx.SUNKEN_BORDER)
 
         InspectableObjectView.__init__(self, inspector, model, compPal,
-          (('Default editor', self.OnDefaultEditor, '-', ''),
-           ('Post', self.OnPost, self.postBmp, ''),
-           ('Cancel', self.OnCancel, self.cancelBmp, ''),
+          ((_('Default editor'), self.OnDefaultEditor, '-', ''),
+           (_('Post'), self.OnPost, self.postBmp, ''),
+           (_('Cancel'), self.OnCancel, self.cancelBmp, ''),
            ('-', None, '-', ''),
-           ('Cut', self.OnCutSelected, '-', ''),
-           ('Copy', self.OnCopySelected, '-', 'Copy'),
-           ('Paste', self.OnPasteSelected, '-', 'Paste'),
-           ('Delete', self.OnControlDelete, '-', 'Delete'),
+           (_('Cut'), self.OnCutSelected, '-', ''),
+           (_('Copy'), self.OnCopySelected, '-', 'Copy'),
+           (_('Paste'), self.OnPasteSelected, '-', 'Paste'),
+           (_('Delete'), self.OnControlDelete, '-', 'Delete'),
            ('-', None, '-', ''),
-           ('Creation/Tab order...', self.OnCreationOrder, '-', ''),
+           (_('Creation/Tab order...'), self.OnCreationOrder, '-', ''),
            ('-', None, '-', ''),
-           ('Context help', self.OnContextHelp, '-', 'ContextHelp'),
+           (_('Context help'), self.OnContextHelp, '-', 'ContextHelp'),
            ), 0)
 
         self.il = wx.ImageList(24, 24)
@@ -204,7 +205,7 @@ class DataView(wx.ListView, InspectableObjectView):
             try:
                 objName = self.newObject(CtrlClass, CtrlCompanion)
             except DesignerError, err:
-                if str(err) == 'Wrong Designer':
+                if str(err) == _('Wrong Designer'):
                     return
                 raise
             self.compPal.selectNone()
@@ -300,7 +301,7 @@ class DataView(wx.ListView, InspectableObjectView):
         Help.showCtrlHelp(self.objects[self.selection[0][0]][0].GetClass())
 
     def OnRecreateSelected(self, event):
-        wx.LogError('Recreating not supported in the %s view'%self.viewName)
+        wx.LogError(_('Recreating not supported in the %s view')%self.viewName)
 
     def OnCreationOrder(self, event):
         names = [name for name, idx in self.getSelectedNames()]

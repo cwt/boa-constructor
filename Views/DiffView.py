@@ -20,6 +20,7 @@ from ExternalLib import ndiff
 from EditorViews import EditorView, CloseableViewMix
 from StyledTextCtrls import PythonStyledTextCtrlMix
 import Preferences, Utils
+from Utils import _
 
 uniqueFile1Mrk = 1
 uniqueFile2Mrk = 2
@@ -40,7 +41,7 @@ def ndiff_lcompare(a, b):
         elif tag == 'equal':
             ndiff.dump(' ', a, alo, ahi)
         else:
-            raise ValueError, 'unknown tag ' + `tag`
+            raise ValueError, _('unknown tag %r')%tag
 
     return 1
 
@@ -75,14 +76,14 @@ class PythonSourceDiffView(wx.stc.StyledTextCtrl, EditorView,
         wx.stc.StyledTextCtrl.__init__(self, parent, wxID_PYTHONSOURCEDIFFVIEW,
           style = wx.CLIP_CHILDREN | wx.SUNKEN_BORDER)
         PythonStyledTextCtrlMix.__init__(self, wxID_PYTHONSOURCEDIFFVIEW, 0)
-        CloseableViewMix.__init__(self, 'diffs')
+        CloseableViewMix.__init__(self, _('diffs'))
         EditorView.__init__(self, model,
-          ( ('Refresh', self.OnRefresh, self.refreshBmp, 'Refresh'), ) +
+          ( (_('Refresh'), self.OnRefresh, self.refreshBmp, 'Refresh'), ) +
             self.closingActionItems +
           ( ('-', None, '', ''),
-            ('Previous difference', self.OnPrev, self.prevBmp, ''),
-            ('Next difference', self.OnNext, self.nextBmp, ''),
-            ('Apply all changes', self.OnApplyAllChanges, '-', '') ), -1)
+            (_('Previous difference'), self.OnPrev, self.prevBmp, ''),
+            (_('Next difference'), self.OnNext, self.nextBmp, ''),
+            (_('Apply all changes'), self.OnApplyAllChanges, '-', '') ), -1)
 
         self.SetMarginType(1, wx.stc.STC_MARGIN_SYMBOL)
         self.SetMarginWidth(1, 16)
@@ -163,8 +164,8 @@ class PythonSourceDiffView(wx.stc.StyledTextCtrl, EditorView,
         filename = self.model.checkLocalFile()
         if self.diffWith:
             diffWith = self.model.checkLocalFile(self.diffWith) 
-            if Utils.yesNoDialog(self, 'Are you sure?',
-                  'Replace %s with %s?'% (filename, diffWith)):
+            if Utils.yesNoDialog(self, _('Are you sure?'),
+                  _('Replace %s with %s?')% (filename, diffWith)):
                 shutil.copyfile(diffWith, filename)
                 # reload
                 self.model.load()

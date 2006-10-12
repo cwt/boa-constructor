@@ -20,6 +20,8 @@ eols = {  wx.stc.STC_EOL_CRLF : '\r\n',
           wx.stc.STC_EOL_LF   : '\n'}
 
 import Preferences
+from Utils import _
+
 import methodparse
 import STCStyleEditor
 
@@ -625,10 +627,10 @@ class DebuggingViewSTCMix:
                 # XXX this should apply; with or without breakpoint
                 if debugger.running and \
                       not modType & wx.stc.STC_PERFORMED_UNDO:
-                    wx.LogWarning('Adding or removing lines from the '
-                                 'debugger will cause the source and the '
-                                 'debugger to be out of sync.'
-                                 '\nPlease undo this action.')
+                    wx.LogWarning(_('Adding or removing lines from the '
+                                    'debugger will cause the source and the '
+                                    'debugger to be out of sync.'
+                                    '\nPlease undo this action.'))
 
                 debugger.adjustBreakpoints(self.model.filename, line,
                       linesAdded)
@@ -758,10 +760,8 @@ class PythonStyledTextCtrlMix(LanguageSTCMix):
     def __init__(self, wId, margin):
         LanguageSTCMix.__init__(self, wId, margin, 'python', stcConfigPath)
 
-        self.keywords = self.keywords + ' yield None'
-        try: True
-        except NameError: self.keywords = self.keywords + ' True False'
-        else: self.keywords = self.keywords + ' True False'
+        # XXX add 'with'. here or in stc config?
+        self.keywords += ' yield None True False'
 
         self.setStyles()
 
@@ -875,7 +875,7 @@ class STCLinesList:
                 res.append(self[idx])
             return res
         else:
-            raise TypeError, '%s not supported' % `type(key)`
+            raise TypeError, _('%s not supported') % `type(key)`
 
     def __setitem__(self, key, value):
         stc = self.__STC
@@ -892,7 +892,7 @@ class STCLinesList:
                   stc.GetLineEndPosition(key.stop))
             stc.ReplaceSelection(lines)
         else:
-            raise TypeError, '%s not supported' % `type(key)`
+            raise TypeError, _('%s not supported') % `type(key)`
 
     def __delitem__(self, key):
         stc = self.__STC
@@ -904,7 +904,7 @@ class STCLinesList:
                   stc.GetLineEndPosition(key.stop)+1)
             stc.ReplaceSelection('')
         else:
-            raise TypeError, '%s not supported' % `type(key)`
+            raise TypeError, _('%s not supported') % `type(key)`
 
     def __getattr__(self, name):
         if name == 'current':

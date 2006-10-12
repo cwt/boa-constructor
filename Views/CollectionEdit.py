@@ -18,6 +18,8 @@ import wx
 
 import Preferences, Utils
 from Preferences import IS, keyDefs
+from Utils import _
+
 import sourceconst
 
 import InspectableViews
@@ -90,31 +92,31 @@ class CollectionEditor(wx.Frame, Utils.FrameRestorerMixin):
 
         acclst = []
         wId = Utils.AddToolButtonBmpIS(self, self.toolBar,
-              'Images/Shared/NewItem.png', 'New', self.OnNewClick)
+              'Images/Shared/NewItem.png', _('New'), self.OnNewClick)
         self.Bind(wx.EVT_MENU, self.OnNewClick, id=wId)
         acclst.append( (keyDefs['Insert'][0], keyDefs['Insert'][1], wId) )
         self.toolLst.append(wId)
         if additAdders:
             wId = Utils.AddToolButtonBmpIS(self, self.toolBar,
-                  'Images/Shared/NewItems.png', 'More new ...', self.OnMoreNewClick)
+                  'Images/Shared/NewItems.png', _('More new ...'), self.OnMoreNewClick)
             self.Bind(wx.EVT_MENU, self.OnMoreNewClick, id=wId)
             self.toolLst.append(wId)
 
             self.toolBar.AddSeparator()
 
         wId = Utils.AddToolButtonBmpIS(self, self.toolBar,
-              'Images/Shared/DeleteItem.png', 'Delete', self.OnDeleteClick)
+              'Images/Shared/DeleteItem.png', _('Delete'), self.OnDeleteClick)
         self.Bind(wx.EVT_MENU, self.OnDeleteClick, id=wId)
         acclst.append( (keyDefs['Delete'][0], keyDefs['Delete'][1], wId) )
         self.toolLst.append(wId)
         self.toolBar.AddSeparator()
         Utils.AddToolButtonBmpIS(self, self.toolBar, 'Images/Shared/up.png',
-          'Up', self.OnUpClick)
+          _('Up'), self.OnUpClick)
         Utils.AddToolButtonBmpIS(self, self.toolBar, 'Images/Shared/down.png',
-          'Down', self.OnDownClick)
+          _('Down'), self.OnDownClick)
         self.toolBar.AddSeparator()
         wId = Utils.AddToolButtonBmpIS(self, self.toolBar,
-              'Images/Editor/Refresh.png', 'Refresh', self.OnRefresh)
+              'Images/Editor/Refresh.png', _('Refresh'), self.OnRefresh)
         self.Bind(wx.EVT_MENU, self.OnRefresh, id=wId)
         acclst.append( (keyDefs['Refresh'][0], keyDefs['Refresh'][1], wId) )
         self.toolLst.append(wId)
@@ -132,7 +134,7 @@ class CollectionEditor(wx.Frame, Utils.FrameRestorerMixin):
         self.toolBar.Realize()
 
         if lvStyle == wx.LC_REPORT:
-            self.itemList.InsertColumn(0, 'Name', width=180)
+            self.itemList.InsertColumn(0, _('Name'), width=180)
 
         self.Bind(wx.EVT_CLOSE, self.OnCloseWindow)
 
@@ -338,7 +340,7 @@ class CollectionEditorView(InspectableViews.InspectableObjectView):
             self.updateFrameTitle()
 
     def updateFrameTitle(self):
-        self.frame.SetTitle('%s.%s - Collection Editor'%(self.companion.name,
+        self.frame.SetTitle(_('%s.%s - Collection Editor')%(self.companion.name,
           self.companion.propName))
 
     def saveCtrls(self, module=None):
