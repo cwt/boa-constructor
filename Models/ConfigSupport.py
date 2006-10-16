@@ -14,6 +14,7 @@ print 'importing Models.ConfigSupport'
 import wx
 
 import Preferences, Utils, Plugins
+from Utils import _
 
 import EditorHelper
 EditorHelper.imgConfigFileModel = EditorHelper.imgIdxRange()
@@ -39,6 +40,7 @@ wxID_CONFIGVIEW = wx.NewId()
 from Views.SourceViews import EditorStyledTextCtrl
 class ConfigView(EditorStyledTextCtrl, ConfigSTCMix):
     viewName = 'Config'
+    viewTitle = _('Config')
     def __init__(self, parent, model):
         EditorStyledTextCtrl.__init__(self, parent, wxID_CONFIGVIEW, model, (), -1)
         ConfigSTCMix.__init__(self, wxID_CONFIGVIEW)

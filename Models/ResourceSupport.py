@@ -141,6 +141,7 @@ extTypeMap = {'.bmp': wx.BITMAP_TYPE_BMP,
 
 class PyResourceImagesView(EditorViews.ListCtrlView):
     viewName = 'Images'
+    viewTitle = _('Images')
 
     gotoLineBmp = 'Images/Editor/GotoLine.png'
     moveUpBmp = 'Images/Shared/up.png'

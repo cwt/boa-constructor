@@ -14,6 +14,7 @@ print 'importing Models.HTMLSupport'
 import wx
 
 import Preferences, Utils, Plugins
+from Utils import _
 
 import EditorHelper
 EditorHelper.imgHTMLFileModel = EditorHelper.imgIdxRange()
@@ -45,6 +46,8 @@ wxID_HTMLSOURCEVIEW = wx.NewId()
 from Views.SourceViews import EditorStyledTextCtrl
 class HTMLSourceView(EditorStyledTextCtrl, HTMLStyledTextCtrlMix):
     viewName = 'HTML'
+    viewTitle = _('HTML')
+    
     def __init__(self, parent, model):
         EditorStyledTextCtrl.__init__(self, parent, wxID_HTMLSOURCEVIEW,
           model, (), -1)

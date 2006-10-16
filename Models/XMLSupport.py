@@ -14,6 +14,7 @@ print 'importing Models.XMLSupport'
 import wx
 
 import Preferences, Utils, Plugins
+from Utils import _
 
 import EditorHelper
 EditorHelper.imgXMLFileModel = EditorHelper.imgIdxRange()
@@ -39,6 +40,8 @@ wxID_XMLSOURCEVIEW = wx.NewId()
 from Views.SourceViews import EditorStyledTextCtrl
 class XMLSourceView(EditorStyledTextCtrl, XMLStyledTextCtrlMix):
     viewName = 'XML'
+    viewTitle = _('XML')
+
     def __init__(self, parent, model):
         EditorStyledTextCtrl.__init__(self, parent, wxID_XMLSOURCEVIEW,
           model, (), -1)

@@ -16,6 +16,7 @@ import os
 import wx
 
 import Preferences, Utils, Plugins
+from Utils import _
 
 import EditorHelper
 EditorHelper.imgCPPModel = EditorHelper.imgIdxRange()
@@ -61,6 +62,8 @@ symbolFolding = 1
 from Views.SourceViews import EditorStyledTextCtrl
 class CPPSourceView(EditorStyledTextCtrl, CPPStyledTextCtrlMix, FoldingStyledTextCtrlMix):
     viewName = 'Source'
+    viewTitle = _('Title')
+    
     def __init__(self, parent, model):
         EditorStyledTextCtrl.__init__(self, parent, wxID_CPPSOURCEVIEW,
           model, (), -1)
@@ -74,6 +77,8 @@ class CPPSourceView(EditorStyledTextCtrl, CPPStyledTextCtrlMix, FoldingStyledTex
 
 class HPPSourceView(CPPSourceView):
     viewName = 'Header'
+    viewTitle = _('Header')
+
     def __init__(self, parent, model):
         CPPSourceView.__init__(self, parent, model)
 
