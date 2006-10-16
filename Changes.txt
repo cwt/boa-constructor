@@ -1,6 +1,18 @@
 Changes
 -------
 
+-- 0.5.2 (CVS) --
+
+2006-10-16
+
+* I18N _() string marking of source code base of names that needed core changes:
+  Palette tab names, View names, Preference help strings
+* Startup messages, command-line help will not be translated 
+* I18N _() string marking module: STCStyleEditor, HelpBook Support, ImageEdit Support
+* locale/boa.pot available as a PO Template file
+* Bug fixes
+
+
 -- 0.5.1 (CVS) --
 
 2006-10-12
