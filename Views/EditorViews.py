@@ -89,6 +89,9 @@ wxwFunctionTemplate = '''
 wxwFooterTemplate = '</body></html>'
 
 class EditorView:
+    viewName = 'viewName undefined'
+    viewTitle = 'viewTitle undefined'
+    
     plugins = ()
     def __init__(self, model, actions=(), dclickActionIdx=-1,
           editorIsWindow=True, overrideDClick=False):
@@ -208,16 +211,17 @@ class EditorView:
 
 #---Page management-------------------------------------------------------------
     docked = True
-    def addToNotebook(self, notebook, viewName='', panel=None):
+    def addToNotebook(self, notebook, viewTitle='', panel=None):
         self.notebook = notebook
-        if not viewName: viewName = self.viewName
-        if panel:
-            notebook.AddPage(panel, viewName)
-        else:
-            notebook.AddPage(self, viewName)
+        if not viewTitle:
+            viewTitle = Utils.getViewTitle(self)
 
-        #wxYield()
-        self.pageIdx = notebook.GetPageCount() -1
+        self.pageIdx = notebook.GetPageCount()
+        if panel:
+            notebook.AddPage(panel, viewTitle)
+        else:
+            notebook.AddPage(self, viewTitle)
+
         self.modified =  False
         self.readOnly = False
 
@@ -244,11 +248,13 @@ class EditorView:
         if hasattr(self, 'notebook'):
             currName = self.notebook.GetPageText(self.pageIdx)
 
-            if self.isModified(): newName = '~%s~' % self.viewName
-            else: newName = self.viewName
+            viewTitle = Utils.getViewTitle(self)
+
+            if self.isModified(): newName = '~%s~' % viewTitle
+            else: newName = viewTitle
 
             if currName != newName:
-                if newName == self.viewName:
+                if newName == viewTitle:
                     if self.model.viewsModified.count(self.viewName):
                         self.model.viewsModified.remove(self.viewName)
                 else:
@@ -321,6 +327,7 @@ class EditorView:
 
 class TestView(wx.TextCtrl, EditorView):
     viewName = 'Test'
+    viewTitle = _('Test')
     def __init__(self, parent, model):
         wx.TextCtrl.__init__(self, parent, -1, '',
               style=wx.TE_MULTILINE | wx.TE_RICH | wx.HSCROLL)
@@ -335,6 +342,7 @@ class HTMLView(wx.html.HtmlWindow, EditorView):
     nextBmp = 'Images/Shared/Next.png'
 
     viewName = 'HTML'
+    viewTitle = _('HTML')
     def __init__(self, parent, model, actions = ()):
         wx.html.HtmlWindow.__init__(self, parent, style=wx.SUNKEN_BORDER)
         EditorView.__init__(self, model, ((_('Back'), self.OnPrev, self.prevBmp, ''),
@@ -363,6 +371,7 @@ class HTMLView(wx.html.HtmlWindow, EditorView):
 
 class HTMLFileView(HTMLView):
     viewName = 'View'
+    viewTitle = _('View')
     def generatePage(self):
         return self.model.data
 
@@ -370,6 +379,7 @@ class HTMLFileView(HTMLView):
 # XXX Option to only list documented methods
 class HTMLDocView(HTMLView):
     viewName = 'Documentation'
+    viewTitle = _('Documentation')
 
     printBmp = 'Images/Shared/Print.png'
     def __init__(self, parent, model, actions = ()):
@@ -518,6 +528,7 @@ class CloseableViewMix:
 
 class CyclopsView(HTMLView, CloseableViewMix):
     viewName = 'Cyclops report'
+    viewTitle = _('Cyclops report')
     def __init__(self, parent, model):
         CloseableViewMix.__init__(self)
         HTMLView.__init__(self, parent, model, ( ('-', -1, '', ''), ) +
@@ -596,6 +607,7 @@ class CyclopsView(HTMLView, CloseableViewMix):
 # XXX Add addReportColumns( list of name, width tuples) !
 class ListCtrlView(wx.ListView, EditorView, Utils.ListCtrlSelectionManagerMix):
     viewName = 'List (abstract)'
+    viewTitle = 'List (abstract)'
     def __init__(self, parent, model, listStyle, actions, dclickActionIdx=-1):
         wx.ListView.__init__(self, parent, -1,
               style=listStyle | wx.SUNKEN_BORDER | wx.LC_SINGLE_SEL)
@@ -774,6 +786,7 @@ class VirtualListCtrlView(wx.ListCtrl, EditorView):
 idGotoLine = wx.NewId()
 class ToDoView(ListCtrlView):
     viewName = 'Todo'
+    viewTitle = _('Todo')
     gotoLineBmp = 'Images/Editor/GotoLine.png'
 
     def __init__(self, parent, model):
@@ -887,6 +900,7 @@ class FindResultsAdderMixin:
 
 class PackageView(ListCtrlView, FindResultsAdderMixin):
     viewName = 'Package'
+    viewTitle = _('Package')
     findBmp = 'Images/Shared/Find.png'
 
     def __init__(self, parent, model):
@@ -921,6 +935,7 @@ class PackageView(ListCtrlView, FindResultsAdderMixin):
 
 class InfoView(wx.TextCtrl, EditorView):
     viewName = 'Info'
+    viewTitle = _('Info')
 
     def __init__(self, parent, model):
         wx.TextCtrl.__init__(self, parent, -1, '', style=wx.TE_MULTILINE | wx.TE_RICH | wx.HSCROLL)
@@ -942,6 +957,7 @@ class InfoView(wx.TextCtrl, EditorView):
 # XXX Could also expand all containers with bold items
 class ExploreView(wx.TreeCtrl, EditorView):
     viewName = 'Explore'
+    viewTitle = _('Explore')
     gotoLineBmp = 'Images/Editor/GotoLine.png'
 
     def __init__(self, parent, model):
@@ -1053,6 +1069,7 @@ class ExploreView(wx.TreeCtrl, EditorView):
 
 class ExplorePythonExtensionView(ExploreView):
     viewName = 'Explore'
+    viewTitle = _('Explore')
     def refreshCtrl(self, load_now=0):
         self.DeleteAllItems()
 
@@ -1090,6 +1107,7 @@ class ExplorePythonExtensionView(ExploreView):
 
 class ExploreEventsView(ExploreView):
     viewName = 'Events'
+    viewTitle = _('Events')
     def __init__(self, parent, model):
         ExploreView.__init__(self, parent, model)
         self.objectColls = {}
@@ -1196,6 +1214,7 @@ class ExploreEventsView(ExploreView):
 
 class HierarchyView(wx.TreeCtrl, EditorView):
     viewName = 'Hierarchy'
+    viewTitle = _('Hierarchy')
     gotoLineBmp = 'Images/Editor/GotoLine.png'
 
     def __init__(self, parent, model):
@@ -1267,6 +1286,7 @@ class HierarchyView(wx.TreeCtrl, EditorView):
 
 class DistUtilView(wx.Panel, EditorView):
     viewName = 'DistUtils'
+    viewTitle = _('DistUtils')
 
     def __init__(self, parent, model):
         wx.Panel.__init__(self, parent, -1)
@@ -1280,6 +1300,7 @@ class DistUtilView(wx.Panel, EditorView):
 
 class DistUtilManifestView(ListCtrlView):
     viewName = 'Manifest'
+    viewTitle = _('Manifest')
 
     refreshBmp = 'Images/Editor/Refresh.png'
 
@@ -1334,6 +1355,8 @@ class DistUtilManifestView(ListCtrlView):
 
 class CVSConflictsView(ListCtrlView):
     viewName = 'CVS conflicts'
+    viewTitle = _('CVS conflicts')
+
     gotoLineBmp = 'Images/Editor/GotoLine.png'
     acceptBmp = 'Images/Inspector/Post.png'
     rejectBmp = 'Images/Inspector/Cancel.png'
@@ -1387,6 +1410,7 @@ class CVSConflictsView(ListCtrlView):
 
 class FolderEditorView(wx.Notebook, EditorView):
     viewName = 'Folder'
+    viewTitle = _('Folder')
 
     def __init__(self, parent, model):
         wx.Notebook.__init__(self, parent, -1)

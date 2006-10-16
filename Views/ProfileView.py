@@ -21,6 +21,8 @@ from EditorViews import ListCtrlView, CloseableViewMix
 
 class ProfileStatsView(ListCtrlView, CloseableViewMix):
     viewName = 'Profile stats'
+    viewTitle = _('Profile stats')
+    
     gotoLineBmp = 'Images/Editor/GotoLine.png'
     calleesBmp = 'Images/Editor/Callees.png'
     callersBmp = 'Images/Editor/Callers.png'

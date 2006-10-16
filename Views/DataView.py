@@ -26,6 +26,8 @@ import ObjCollection
 
 class DataView(wx.ListView, InspectableObjectView):
     viewName = 'Data'
+    viewTitle = _('Data')
+    
     collectionMethod = sourceconst.init_utils
     postBmp = 'Images/Inspector/Post.png'
     cancelBmp = 'Images/Inspector/Cancel.png'

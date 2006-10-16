@@ -22,6 +22,8 @@ from EditorViews import EditorView
 
 class XMLTreeView(wx.TreeCtrl, EditorView):
     viewName = 'XMLTree'
+    viewTitle = _('XMLTree')
+    
     gotoLineBmp = 'Images/Editor/GotoLine.png'
 
     def __init__(self, parent, model):

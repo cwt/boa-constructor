@@ -33,6 +33,8 @@ class InspectableObjectView(EditorViews.EditorView, Utils.InspectorSessionMix):
     A designer visually maintains one _init_* method in the source.
     """
     viewName = 'InspectableObject'
+    viewTitle = _('InspectableObject')
+    
     collectionMethod = 'init_'
     collectionParams = 'self'
 ##    handledProps = []

@@ -295,6 +295,8 @@ class ImageListCollectionEditor(CollectionEditor):
 
 class CollectionEditorView(InspectableViews.InspectableObjectView):
     viewName = 'CollectionEditor'
+    viewTitle = _('CollectionEditor') 
+
     collectionMethod = sourceconst.init_coll
     collectionParams = 'self, parent'
 

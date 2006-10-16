@@ -31,9 +31,11 @@ import Search, Utils
 from Utils import _
 
 class AppFindResults(ListCtrlView, CloseableViewMix):
+    viewName = 'Application Find Results'
+    viewTitle = _('Application Find Results')
+
     gotoLineBmp = 'Images/Editor/GotoLine.png'
 
-    viewName = 'Application Find Results'
     def __init__(self, parent, model):
         CloseableViewMix.__init__(self, _('find results'))
         ListCtrlView.__init__(self, parent, model, wx.LC_REPORT,
@@ -90,12 +92,14 @@ class AppFindResults(ListCtrlView, CloseableViewMix):
 
 # XXX Add 'Get description from module info' option
 class AppView(ListCtrlView, FindResultsAdderMixin):
+    viewName = 'Application'
+    viewTitle = _('Application')
+
     openBmp = 'Images/Editor/OpenFromApp.png'
     addModBmp = 'Images/Editor/AddToApp.png'
     remModBmp = 'Images/Editor/RemoveFromApp.png'
     findBmp = 'Images/Shared/Find.png'
 
-    viewName = _('Application')
     def __init__(self, parent, model):
         ListCtrlView.__init__(self, parent, model, wx.LC_REPORT,
           ((_('Open'), self.OnOpen, self.openBmp, ''),
@@ -225,6 +229,7 @@ class AppView(ListCtrlView, FindResultsAdderMixin):
 
 class AppModuleDocView(ModuleDocView):
     viewName = 'Application Documentation'
+    viewTitle = _('Application Documentation')
 
     def OnLinkClicked(self, linkinfo):
         url = linkinfo.GetHref()
@@ -266,9 +271,11 @@ class AppModuleDocView(ModuleDocView):
 #        return self.genClassesSect(page + modBody, classNames)
 
 class AppCompareView(ListCtrlView, CloseableViewMix):
+    viewName = 'App. Compare'
+    viewTitle = _('App. Compare')
+
     gotoLineBmp = 'Images/Editor/GotoLine.png'
 
-    viewName = 'App. Compare'
     def __init__(self, parent, model):
         CloseableViewMix.__init__(self, _('compare results'))
         ListCtrlView.__init__(self, parent, model, wx.LC_REPORT,
@@ -338,6 +345,8 @@ class AppCompareView(ListCtrlView, CloseableViewMix):
 
 class AppToDoView(ListCtrlView):
     viewName = 'Application Todo'
+    viewTitle = _('Application Todo')
+
     gotoLineBmp = 'Images/Editor/GotoLine.png'
 
     def __init__(self, parent, model):
@@ -423,6 +432,8 @@ class AppToDoView(ListCtrlView):
 
 class TextInfoFileView(SourceViews.EditorStyledTextCtrl):
     viewName = 'TextInfo'
+    viewTitle = 'TextInfo'
+
     def __init__(self, parent, model):
         SourceViews.EditorStyledTextCtrl.__init__(self, parent, -1,
           model, (), 0)
@@ -445,12 +456,16 @@ class TextInfoFileView(SourceViews.EditorStyledTextCtrl):
 
 class AppREADME_TIFView(TextInfoFileView):
     viewName = 'Readme.txt'
-
+    viewTitle = 'Readme.txt'
+    
 class AppTODO_TIFView(TextInfoFileView):
     viewName = 'Todo.txt'
-
+    viewTitle = 'Todo.txt'
+    
 class AppBUGS_TIFView(TextInfoFileView):
     viewName = 'Bugs.txt'
+    viewTitle = 'Bugs.txt'
 
 class AppCHANGES_TIFView(TextInfoFileView):
     viewName = 'Changes.txt'
+    viewTitle = 'Changes.txt'

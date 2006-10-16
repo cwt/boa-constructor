@@ -47,6 +47,8 @@ class DesignerView(wx.Frame, InspectableObjectView, Utils.FrameRestorerMixin):
     """ Frame Designer for design-time creation/manipulation of visual controls
         on frames. """
     viewName = 'Designer'
+    viewTitle = _('Designer')
+    
     docked = False
     collectionMethod = sourceconst.init_ctrls
     supportsParentView = True

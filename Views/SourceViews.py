@@ -19,6 +19,7 @@ import wx.stc
 
 from Preferences import keyDefs
 import Utils
+from Utils import _
 
 import EditorViews, Search, Help, Preferences, Utils
 from StyledTextCtrls import TextSTCMix, idWord, object_delim, eols as endOfLines
@@ -533,6 +534,8 @@ class EditorStyledTextCtrl(wx.stc.StyledTextCtrl, EditorViews.EditorView,
 
 class TextView(EditorStyledTextCtrl, TextSTCMix):
     viewName = 'Text'
+    viewTitle = _('Text')
+    
     def __init__(self, parent, model, actions=()):
         EditorStyledTextCtrl.__init__(self, parent, wxID_TEXTVIEW, model,
               actions, -1)

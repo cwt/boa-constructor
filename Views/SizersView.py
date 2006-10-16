@@ -16,6 +16,7 @@ import os, copy
 import wx
 
 import Preferences, Utils
+from Utils import _
 
 import sourceconst
 import PaletteMapping, PaletteStore, Help
@@ -26,6 +27,8 @@ import ObjCollection
 
 class SizersView(DataView):
     viewName = 'Sizers'
+    viewTitle = _('Sizers')
+    
     collectionMethod = sourceconst.init_sizers
     def __init__(self, parent, inspector, model, compPal, designer):
         DataView.__init__(self, parent, inspector, model, compPal)

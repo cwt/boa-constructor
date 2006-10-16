@@ -229,6 +229,7 @@ class ScrollingContainer(wx.ScrolledWindow):
 
 class PersistentOGLView(ScrollingContainer, EditorViews.EditorView):
     viewName = 'OGL'
+    viewTitle = _('OGL')
     loadBmp = 'Images/Editor/Open.png'
     saveBmp = 'Images/Editor/Save.png'
     defSize = 2000
@@ -568,8 +569,10 @@ def _buildChildrenLists (routes):
     return childrenTable, parentTable
 
 class UMLView(PersistentOGLView, SortedUMLViewMix):
-    ext = '.umllay'
     viewName = 'UML'
+    viewTitle = _('UML')
+
+    ext = '.umllay'
     showAttributes = 1
     showMethods = 1
     AllClasses = {}
@@ -739,9 +742,11 @@ class UMLView(PersistentOGLView, SortedUMLViewMix):
 #-------------------------------------------------------------------------------
 
 class ImportsView(PersistentOGLView):
+    viewName = 'Imports'
+    viewTitle = _('Imports')
+
     ext = '.implay'
     refreshBmp = 'Images/Editor/Refresh.png'
-    viewName = 'Imports'
 
     def __init__(self, parent, model):
         PersistentOGLView.__init__(self, parent, model,
@@ -836,9 +841,11 @@ class ImportsView(PersistentOGLView):
 
 
 class AppPackageView(PersistentOGLView):
+    viewName = 'Application packages'
+    viewTitle = _('Application packages')
+
     ext = '.apklay'
     refreshBmp = 'Images/Editor/Refresh.png'
-    viewName = 'Application packages'
 
     def __init__(self, parent, model):
         PersistentOGLView.__init__(self, parent, model,

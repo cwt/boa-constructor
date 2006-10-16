@@ -41,6 +41,8 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
                        AutoCompleteCodeHelpSTCMix, CallTipCodeHelpSTCMix,
                        DebuggingViewSTCMix):
     viewName = 'Source'
+    viewTitle = _('Source')
+    
     breakBmp = 'Images/Debug/Breakpoints.png'
     runCrsBmp = 'Images/Editor/RunToCursor.png'
     modInfoBmp = 'Images/Modules/InfoBlock.png'
@@ -1271,6 +1273,8 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
 
 class PythonDisView(EditorStyledTextCtrl, PythonStyledTextCtrlMix):
     viewName = 'Disassemble'
+    viewTitle = _('Disassemble')
+    
     breakBmp = 'Images/Debug/Breakpoints.png'
     def __init__(self, parent, model):
         wxID_PYTHONDISVIEW = wx.NewId()

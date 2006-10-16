@@ -67,6 +67,8 @@ class DiffView(EditorView):
 class PythonSourceDiffView(wx.stc.StyledTextCtrl, EditorView, 
                            PythonStyledTextCtrlMix, CloseableViewMix):
     viewName = 'Diff'
+    viewTitle = _('Diff')
+    
     refreshBmp = 'Images/Editor/Refresh.png'
     prevBmp = 'Images/Shared/Previous.png'
     nextBmp = 'Images/Shared/Next.png'
