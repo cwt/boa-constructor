@@ -51,6 +51,8 @@ class ZopeHTMLStyledTextCtrlMix(BaseHTMLStyledTextCtrlMix):
 
 class ZopeHTMLSourceView(EditorStyledTextCtrl, ZopeHTMLStyledTextCtrlMix):
     viewName = 'ZopeHTML'
+    viewTitle = 'ZopeHTML'
+
     breakBmp = 'Images/Debug/Breakpoints.png'
     defaultEOL = '\n'
     def __init__(self, parent, model, actions=()):
@@ -85,6 +87,7 @@ class ZopeDebugHTMLSourceView(ZopeHTMLSourceView, DebuggingViewSTCMix):
 
 class ZopeHTMLView(HTMLView):
     viewName = 'View'
+    viewTitle = 'View'
     def generatePage(self):
         import urllib
         url = 'http://%s:%d/%s'%(self.model.transport.properties['host'],
@@ -96,6 +99,7 @@ class ZopeHTMLView(HTMLView):
 
 class ZopeUndoView(ListCtrlView):
     viewName = 'Undo'
+    viewTitle = 'Undo'
     undoBmp = 'Images/Shared/Undo.png'
 
     def __init__(self, parent, model):
@@ -141,6 +145,7 @@ class ZopeUndoView(ListCtrlView):
 
 class ZopeSecurityView(ListCtrlView):
     viewName = 'Security'
+    viewTitle = 'Security'
     undoBmp = 'Images/Shared/Undo.png'
 
     def __init__(self, parent, model):
@@ -236,6 +241,7 @@ class ZopeSiteErrorLogParser(ErrorStack.StackErrorParser):
 
 class ZopeSiteErrorLogView(ListCtrlView):
     viewName = 'Site Error Log'
+    viewTitle = 'Site Error Log'
     gotoTracebackBmp = 'Images/Shared/Traceback.png'
     refreshBmp = 'Images/Editor/Refresh.png'
 
