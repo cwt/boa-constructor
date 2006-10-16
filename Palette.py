@@ -143,7 +143,6 @@ class BoaFrame(wx.Frame, Utils.FrameRestorerMixin):
         self.inspector = inspector
         self.editor = editor
 
-        transpSF = ''
         if Preferences.paletteStyle == 'menu':
             mb = self.menuBar
         else:
@@ -153,7 +152,7 @@ class BoaFrame(wx.Frame, Utils.FrameRestorerMixin):
         if not hasattr(sys, 'cyclops'):
             # 'New' page
             palettePage = NewPalettePage(self.palette, PaletteStore.newPalette[0],
-                  'Images/Palette/'+transpSF, self, self.widgetSet, self)
+                  'Images/Palette/', self, self.widgetSet, self)
 
             for modelName in PaletteStore.paletteLists['New']:
                 palettePage.addButton2(modelName,
@@ -165,7 +164,7 @@ class BoaFrame(wx.Frame, Utils.FrameRestorerMixin):
             # Normal control pages
             for palette in PaletteStore.palette:
                 palettePage = PalettePage(self.palette, palette[0],
-                      'Images/Palette/'+transpSF, self, self.widgetSet,
+                      'Images/Palette/', self, self.widgetSet,
                       self.componentSB, self)
                 palettePage.addToggleBitmaps(palette[2], None, None)
                 self.palettePages.append(palettePage)
@@ -175,7 +174,7 @@ class BoaFrame(wx.Frame, Utils.FrameRestorerMixin):
             if PaletteStore.dialogPalette[2]:
                 self.dialogPalettePage = PanelPalettePage(self.palette,
                       PaletteStore.dialogPalette[0],
-                      'Images/Palette/'+transpSF, self, self.widgetSet,
+                      'Images/Palette/', self, self.widgetSet,
                       self.componentSB, self)
                 for dialog in PaletteStore.dialogPalette[2]:
                     self.dialogPalettePage.addButton(
@@ -190,7 +189,7 @@ class BoaFrame(wx.Frame, Utils.FrameRestorerMixin):
             # Zope page
             if Plugins.transportInstalled('ZopeLib.ZopeExplorer'):
                 self.zopePalettePage = ZopePalettePage(self.palette,
-                      PaletteStore.zopePalette[0], 'Images/Palette/'+transpSF,
+                      PaletteStore.zopePalette[0], 'Images/Palette/',
                       self, self.widgetSet, self.componentSB, self)
                 self.zopePalettePage.addToggleBitmaps(
                       PaletteStore.zopePalette[2], None, None)
@@ -199,33 +198,6 @@ class BoaFrame(wx.Frame, Utils.FrameRestorerMixin):
                                  title=PaletteStore.zopePalette[0])
         else:
             palettePage = None
-
-        # Prototype for composites
-        # Composites are very much not thought out right now, but basically
-        # reflects Frames in Delphi 5. A D5 frame is a composite component
-        # for reuse of common control combinations. In implementation it's
-        # very much like Delphi's form inheritance, i.e. by changing the parent
-        # all children will be updated.
-        # Current thoughts on implementation in Boa:
-        #    To centralise, I like the idea of storing initialisations in a
-        #    sepatate file and using 'import' to load controls into a frame.
-
-##        self.composites = CompositeListCtrlPalPage(self.palette, -1, style=wx.LC_SMALL_ICON)
-##        self.palette.AddPage(self.composites, 'Composites')
-##        self.composites.InsertStringItem(0, 'OK / Cancel buttons')
-##        self.composites.InsertStringItem(0, 'Tabbed dialog')
-##        self.composites.InsertStringItem(0, 'Name/Value')
-##        self.composites.Enable(False)
-
-        # Prototype for templates
-        # Templates is a real simple idea, instead of starting from a blank
-        # frame, start from a previously saved frame in the templates directory
-
-##        self.templates = TemplateListCtrlPalPage(self.palette, -1, style=wx.LC_SMALL_ICON)
-##        self.palette.AddPage(self.templates, 'Templates')
-##        self.templates.InsertStringItem(0, 'Menu/Toolbar/StatusBar')
-##        self.templates.InsertStringItem(0, 'Wizard')
-##        self.templates.Enable(False)
 
     def setDefaultDimensions(self):
         self.SetDimensions(0, Preferences.topMenuHeight,
