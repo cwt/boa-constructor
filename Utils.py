@@ -846,7 +846,12 @@ def getNotebookPage(notebook, name):
         if notebook.GetPageText(i) == name:
             return i
     return -1
-            
+
+def getViewTitle(view):
+    if hasattr(view, 'viewTitle'):
+        return view.viewTitle
+    else:
+        return view.viewName
 
 #-------------------------------------------------------------------------------
 

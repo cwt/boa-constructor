@@ -297,25 +297,30 @@ class ModulePage:
 
         return self.pageName
 
-### decl getActiveView(self, idx : int) -> EditorView
     def getActiveView(self, idx=None):
         if idx is None: idx = self.notebook.GetSelection()
         if idx == -1: return None
-        name = self.notebook.GetPageText(idx)
-        if name and name[0] == '~': name = name[1:-1]
-        try:
-            return self.model.views[name]
-        except KeyError:
-            return None
 
-### decl viewSelectionMenu(self) -> wx.Menu
+        for name, view in self.model.views.items():
+            if view.pageIdx == idx:
+                return view
+
+        return None
+
+##        name = self.notebook.GetPageText(idx)
+##        if name and name[0] == '~': name = name[1:-1]
+##        try:
+##            return self.model.views[name]
+##        except KeyError:
+##            return None
+
     def viewSelectionMenu(self):
         menu = wx.Menu()
         for View, wId in self.defViews:
-            menu.Append(wId, View.viewName)
+            menu.Append(wId, Utils.getViewTitle(View))
         menu.AppendSeparator()
         for View, wId in self.adtViews:
-            menu.Append(wId, View.viewName, '', View not in self.adtViews)
+            menu.Append(wId, Utils.getViewTitle(View), '', View not in self.adtViews)
 
         return menu
 
@@ -338,18 +343,23 @@ class ModulePage:
     def addView(self, View, viewName=''):
         """ Add a view to the model and display it as a page in the notebook
             of view instances."""
-        if not viewName: viewName = View.viewName
+        if not viewName: 
+            viewName = View.viewName
+            viewTitle = Utils.getViewTitle(View)
+        else:
+            viewTitle = viewName
+
         if wx.Platform == '__WXGTK__':
             panel, view = Utils.wxProxyPanel(self.notebook, View, self.model)
             self.model.views[viewName] = view
             if View.docked:
-                self.model.views[viewName].addToNotebook(self.notebook, viewName,
+                self.model.views[viewName].addToNotebook(self.notebook, viewTitle,
                         panel=panel)
         else:
             view = View(self.notebook, self.model)
             self.model.views[viewName] = view
             if View.docked:
-                self.model.views[viewName].addToNotebook(self.notebook, viewName)
+                self.model.views[viewName].addToNotebook(self.notebook, viewTitle)
 
         return self.model.views[viewName]
 
