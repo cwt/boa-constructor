@@ -17,6 +17,7 @@ import wx
 
 import Preferences, Utils, Plugins
 from Preferences import IS
+from Utils import _
 
 [wxID_CLASSBROWSERFRAME, wxID_CLASSBROWSERFRAMEHIERARCHY, 
  wxID_CLASSBROWSERFRAMEPAGES, wxID_CLASSBROWSERFRAMESTATUSBAR, 
@@ -28,15 +29,15 @@ class ClassBrowserFrame(wx.Frame, Utils.FrameRestorerMixin):
         # generated method, don't edit
 
         parent.AddPage(imageId=-1, page=self.hierarchy, select=True,
-              text='Hierarchy')
-        parent.AddPage(imageId=-1, page=self.tree, select=False, text='Modules')
+              text=_('Hierarchy'))
+        parent.AddPage(imageId=-1, page=self.tree, select=False, text=_('Modules'))
 
     def _init_ctrls(self, prnt):
         # generated method, don't edit
         wx.Frame.__init__(self, id=wxID_CLASSBROWSERFRAME, name='', parent=prnt,
               pos=wx.Point(475, 238), size=wx.Size(299, 497),
               style=wx.DEFAULT_FRAME_STYLE | Preferences.childFrameStyle,
-              title='wxPython Class Browser')
+              title=_('wxPython Class Browser'))
         self.SetClientSize(wx.Size(291, 470))
         self.Bind(wx.EVT_CLOSE, self.OnCloseWindow)
 
@@ -72,7 +73,7 @@ class ClassBrowserFrame(wx.Frame, Utils.FrameRestorerMixin):
 
 
         tID =wx.NewId()
-        root = self.hierarchy.AddRoot('wxObject')
+        root = self.hierarchy.AddRoot('wx.Object')
 
         clsDict = {}
 
@@ -84,7 +85,7 @@ class ClassBrowserFrame(wx.Frame, Utils.FrameRestorerMixin):
 
         tID =wx.NewId()
 
-        root = self.tree.AddRoot('Modules')
+        root = self.tree.AddRoot(_('Modules'))
         modules = {}
         moduleName = ''
         for className in self.classes.keys():
@@ -118,16 +119,16 @@ class ClassBrowserFrame(wx.Frame, Utils.FrameRestorerMixin):
             classLst.sort()
             for classes in classLst:
                 aClass = self.tree.AppendItem(roots, classes)
-                methItem = self.tree.AppendItem(aClass, 'Methods')
+                methItem = self.tree.AppendItem(aClass, _('Methods'))
                 for methods in modules[module][classes]['Methods'].keys():
                     methodsItem = self.tree.AppendItem(methItem, methods)
-                propItem = self.tree.AppendItem(aClass, 'Properties')
+                propItem = self.tree.AppendItem(aClass, _('Properties'))
                 for properties in modules[module][classes]['Properties'].keys():
                     propertyItem = self.tree.AppendItem(propItem, properties)
-                bInItem = self.tree.AppendItem(aClass, 'Built-in')
+                bInItem = self.tree.AppendItem(aClass, _('Built-in'))
                 for builtIns in modules[module][classes]['Built-in'].keys():
                     builtInItem = self.tree.AppendItem(bInItem, builtIns)
-                suprItem = self.tree.AppendItem(aClass, 'Super')
+                suprItem = self.tree.AppendItem(aClass, _('Super'))
                 for supers in self.classes[classes].super:
                     try:
                         superItem = self.tree.AppendItem(suprItem, supers.name)
@@ -200,7 +201,7 @@ def openClassBrowser(editor):
     palette.browser.restore()
 
 
-Plugins.registerTool('wxPython class browser', openClassBrowser,
+Plugins.registerTool(_('wxPython class browser'), openClassBrowser,
       'Images/Shared/ClassBrowser.png')
 
 #-------------------------------------------------------------------------------
