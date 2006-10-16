@@ -649,10 +649,6 @@ import wx.lib.intctrl
 
 import wx.lib.scrolledpanel
 import wx.lib.hyperlink
-import wx.lib.analogclock
-import wx.lib.filebrowsebutton 
-import wx.lib.throbber
-import wx.lib.ticker
 
 import Plugins
 
@@ -668,20 +664,36 @@ Plugins.registerComponents('Library',
       (wx.lib.intctrl.IntCtrl, 'wx.lib.intctrl.IntCtrl', IntCtrlDTC),
       (wx.lib.scrolledpanel.ScrolledPanel, 'wx.lib.scrolledpanel.ScrolledPanel', ScrolledPanelDTC),
       (wx.lib.hyperlink.HyperLinkCtrl, 'wx.lib.hyperlink.HyperLinkCtrl', HyperLinkCtrlDTC),       
-      (wx.lib.analogclock.AnalogClock, 'wx.lib.analogclock.AnalogClock', AnalogClockDTC),
-      (wx.lib.filebrowsebutton.FileBrowseButton, 'wx.lib.filebrowsebutton.FileBrowseButton', FileBrowseButtonDTC),
-      (wx.lib.filebrowsebutton.FileBrowseButtonWithHistory, 'wx.lib.filebrowsebutton.FileBrowseButtonWithHistory', FileBrowseButtonWithHistoryDTC),
-      (wx.lib.filebrowsebutton.DirBrowseButton, 'wx.lib.filebrowsebutton.DirBrowseButton', DirBrowseButtonDTC),
-      (wx.lib.throbber.Throbber, 'wx.lib.throbber.Throbber', ThrobberDTC),
-      (wx.lib.ticker.Ticker, 'wx.lib.ticker.Ticker', TickerDTC),
     )
 
 try:
     import wx.lib.splitter
-    Plugins.registerComponent('Library', wx.lib.splitter.MultiSplitterWindow, 
-          'wx.lib.splitter.MultiSplitterWindow', MultiSplitterWindowDTC)
-except ImportError:
-    pass
+    Plugins.registerComponent('Library', wx.lib.splitter.MultiSplitterWindow, 'wx.lib.splitter.MultiSplitterWindow', MultiSplitterWindowDTC)
+except ImportError: pass
+
+try:
+    import wx.lib.analogclock
+    Plugins.registerComponent('Library', wx.lib.analogclock.AnalogClock, 'wx.lib.analogclock.AnalogClock', AnalogClockDTC)
+except ImportError: pass
+    
+try:
+    import wx.lib.filebrowsebutton 
+    Plugins.registerComponents('Library',
+      (wx.lib.filebrowsebutton.FileBrowseButton, 'wx.lib.filebrowsebutton.FileBrowseButton', FileBrowseButtonDTC),
+      (wx.lib.filebrowsebutton.FileBrowseButtonWithHistory, 'wx.lib.filebrowsebutton.FileBrowseButtonWithHistory', FileBrowseButtonWithHistoryDTC),
+      (wx.lib.filebrowsebutton.DirBrowseButton, 'wx.lib.filebrowsebutton.DirBrowseButton', DirBrowseButtonDTC))
+except ImportError: pass
+
+try:
+    import wx.lib.throbber
+    Plugins.registerComponent('Library', wx.lib.throbber.Throbber, 'wx.lib.throbber.Throbber', ThrobberDTC)
+except ImportError: pass
+
+try:
+    import wx.lib.ticker
+    Plugins.registerComponent('Library', wx.lib.ticker.Ticker, 'wx.lib.ticker.Ticker', TickerDTC)
+except ImportError: pass
+
 
 EventCollections.EventCategories['MaskedNumCtrlEvent'] = ('wx.lib.masked.numctrl.EVT_MASKEDNUM',)
 EventCollections.commandCategories.append('MaskedNumCtrlEvent')
