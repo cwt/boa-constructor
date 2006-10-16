@@ -1048,6 +1048,9 @@ class NameValueEditorScrollWin(wx.ScrolledWindow):
         self.nameValues = []
         self.refreshSplitter()
 
+        # work around a scrollwindow bug, size event fixes layout
+        wx.CallAfter(self.ProcessEvent, wx.SizeEvent((-1,-1)))
+        
     def getNameValue(self, name):
         for nv in self.nameValues:
             if nv.propName == name:
@@ -1071,7 +1074,7 @@ class NameValueEditorScrollWin(wx.ScrolledWindow):
             hOffset = 0
         self.splitter.SetDimensions(wOffset * puw, hOffset * puh * -1, s.x, s.y)
         self.updateScrollbars(wOffset, hOffset)
-
+        
     def updateScrollbars(self, wOffset, hOffset):
         height = len(self.nameValues)
         self.SetScrollbars(oiLineHeight, oiLineHeight, 0, height + 1, wOffset, hOffset) #height + 1
