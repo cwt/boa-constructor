@@ -13,13 +13,15 @@
 
 import wx
 
+from Utils import _
+
 def createIndexDlg(parent, keyword, location, anchors):
-    return HelpBookItemDlg(parent, 'Help Book - Index', keyword, 'Keyword(s)', '',
-                     location, 'Location', anchors)
+    return HelpBookItemDlg(parent, _('Help Book - Index'), keyword, _('Keyword(s)'), '',
+                     location, _('Location'), anchors)
 
 def createContentsDlg(parent, title, htmlTitle, location, anchors):
-    return HelpBookItemDlg(parent, 'Help Book - Contents', title, 'Title', htmlTitle,
-                     location, 'Location', anchors)
+    return HelpBookItemDlg(parent, _('Help Book - Contents'), title, _('Title'), htmlTitle,
+                     location, _('Location'), anchors)
 
 [wxID_HELPBOOKITEMDLG, wxID_HELPBOOKITEMDLGBTNREADTITLE, 
  wxID_HELPBOOKITEMDLGBUTTON2, wxID_HELPBOOKITEMDLGBUTTON3, 
@@ -59,16 +61,16 @@ class HelpBookItemDlg(wx.Dialog):
               value=self.valueAnchorsValue)
 
         self.btnReadTitle = wx.Button(id=wxID_HELPBOOKITEMDLGBTNREADTITLE,
-              label='Title from HTML', name='btnReadTitle', parent=self,
+              label=_('Title from HTML'), name='btnReadTitle', parent=self,
               pos=wx.Point(304, 8), size=wx.Size(123, 23), style=0)
         self.btnReadTitle.Bind(wx.EVT_BUTTON, self.OnBtnreadtitleButton,
               id=wxID_HELPBOOKITEMDLGBTNREADTITLE)
 
-        self.button2 = wx.Button(id=wx.ID_OK, label='OK', name='button2',
+        self.button2 = wx.Button(id=wx.ID_OK, label=_('OK'), name='button2',
               parent=self, pos=wx.Point(272, 72), size=wx.Size(75, 23),
               style=0)
 
-        self.button3 = wx.Button(id=wx.ID_CANCEL, label='Cancel',
+        self.button3 = wx.Button(id=wx.ID_CANCEL, label=_('Cancel'),
               name='button3', parent=self, pos=wx.Point(353, 72),
               size=wx.Size(75, 23), style=0)
 
@@ -380,8 +382,8 @@ class HelpBookModel(EditorModels.SourceModel):
         oldDir, oldName = os.path.split(self.filename)
         if self.savedAs and newDir != oldDir:
             raise ExplorerNodes.TransportSaveError, \
-                  'Once saved, help books files cannot be moved, only renamed.\n'\
-                  'Please move the entrire directory.'
+                  _('Once saved, help books files cannot be moved, only renamed.\n'\
+                  'Please move the entrire directory.')
 
         if newName != oldName:
             self.config.updateFilenameOptions(os.path.splitext(newName)[0])
@@ -428,17 +430,18 @@ class HTBHelpBookModel(HelpBookModel):
 
 class HelpBookFilesView(EditorViews.VirtualListCtrlView):
     viewName = 'Files'
+    viewTitle = _('Files')
 
     addBmp = 'Images/Shared/NewItem.png'
     delBmp = 'Images/Shared/DeleteItem.png'
     def __init__(self, parent, model, provideActions=True):
         if provideActions:
-            actions = (('Add file', self.OnAddFile, self.addBmp, ''),
-                       ('Add files', self.OnAddFiles, '-', ''),
-                       ('Remove file', self.OnRemoveFile, self.delBmp, ''),
-                       ('Open file', self.OnOpenFile, '-', ''),
+            actions = ((_('Add file'), self.OnAddFile, self.addBmp, ''),
+                       (_('Add files'), self.OnAddFiles, '-', ''),
+                       (_('Remove file'), self.OnRemoveFile, self.delBmp, ''),
+                       (_('Open file'), self.OnOpenFile, '-', ''),
                        ('-', None, '-', ''),
-                       ('Normalise paths', self.OnNormalisePaths, '-', ''),)
+                       (_('Normalise paths'), self.OnNormalisePaths, '-', ''),)
         else:
             actions = ()
         EditorViews.VirtualListCtrlView.__init__(self, parent, model,
@@ -448,15 +451,15 @@ class HelpBookFilesView(EditorViews.VirtualListCtrlView):
 
         #self.sortOnColumns = [0, 1, 2]
 
-        self.InsertColumn(0, 'No')
-        self.InsertColumn(1, 'Name')
-        self.InsertColumn(2, 'Path')
+        self.InsertColumn(0, _('Num'))
+        self.InsertColumn(1, _('Name'))
+        self.InsertColumn(2, _('Path'))
         self.SetColumnWidth(0, 30)
         self.SetColumnWidth(1, 150)
         self.SetColumnWidth(2, 300)
 
         if Preferences.hbShowDocumentTitles:
-            self.InsertColumn(3, 'Title')
+            self.InsertColumn(3, _('Title'))
             self.SetColumnWidth(3, 300)
 
         self.active = True
@@ -511,11 +514,11 @@ class HelpBookFilesView(EditorViews.VirtualListCtrlView):
         event.Skip()
         wx.CallAfter(self.doStartDrag)
 
-    helpBookDirMsg = 'Help documents must be in the same directory as the help '\
-                     'book, or a sub-directory. Not allowed outside the tree.'
+    helpBookDirMsg = _('Help documents must be in the same directory as the help '\
+                     'book, or a sub-directory. Not allowed outside the tree.')
     def OnAddFile(self, event):
         if not self.model.savedAs:
-            wx.LogError('Please save the help book before adding files\n'+self.helpBookDirMsg)
+            wx.LogError(_('Please save the help book before adding files\n')+self.helpBookDirMsg)
             return
 
         filename = self.model.editor.openFileDlg()
@@ -575,8 +578,8 @@ class HelpBookFilesView(EditorViews.VirtualListCtrlView):
                                  self.model.config.files):
             absfn = os.path.normpath(os.path.join(helpBookDir, filename))
             if absfn[:len(helpBookDir)] != helpBookDir:
-                if wx.MessageBox('Filename "%s" not inside help book directory.'
-                      '\n\nRemove?'%absfn, 'Invalid file',
+                if wx.MessageBox(_('Filename "%s" not inside help book directory.'
+                      '\n\nRemove?')%absfn, _('Invalid file'),
                       wx.ICON_QUESTION | wx.YES_NO) == wx.YES:
                     delidxs.append(idx)
             else:
@@ -608,7 +611,7 @@ class HelpBookFilesView(EditorViews.VirtualListCtrlView):
             wx.LogError(self.helpBookDirMsg)
             return
 
-        dlg = wx.TextEntryDialog(self, 'Enter wildcard', 'Add Files', '*.*')
+        dlg = wx.TextEntryDialog(self, _('Enter wildcard'), _('Add Files'), '*.*')
         try:
             if dlg.ShowModal() != wx.ID_OK:
                 return
@@ -674,7 +677,8 @@ class HelpBookIndexDropTarget(FileListDropTarget):
 
 class HelpBookIndexView(wx.SplitterWindow, EditorViews.EditorView):
     viewName = 'Index'
-
+    viewTitle = _('Index')
+    
     addBmp = 'Images/Shared/NewItem.png'
     delBmp = 'Images/Shared/DeleteItem.png'
     def __init__(self, parent, model):
@@ -687,9 +691,9 @@ class HelpBookIndexView(wx.SplitterWindow, EditorViews.EditorView):
         self.SplitVertically(self.indexes, self.files, 350)
 
         EditorViews.EditorView.__init__(self, model, (
-            ('Add index', self.indexes.OnAddIndex, self.addBmp, ''),
-            ('Edit index', self.indexes.OnEditIndex, '-', ''),
-            ('Delete index', self.indexes.OnDeleteIndex, self.delBmp, ''),
+            (_('Add index'), self.indexes.OnAddIndex, self.addBmp, ''),
+            (_('Edit index'), self.indexes.OnEditIndex, '-', ''),
+            (_('Delete index'), self.indexes.OnDeleteIndex, self.delBmp, ''),
         ), 0)
 
         self.active = True
@@ -709,8 +713,8 @@ class HelpBookIndexListView(EditorViews.VirtualListCtrlView):
 
         #self.sortOnColumns = [0, 1]
 
-        self.InsertColumn(0, 'Keyword')
-        self.InsertColumn(1, 'Location')
+        self.InsertColumn(0, _('Keyword'))
+        self.InsertColumn(1, _('Location'))
         self.SetColumnWidth(0, 100)
         self.SetColumnWidth(1, 400)
 
@@ -844,6 +848,7 @@ def doContentsDlg(title, text, docsDir):
 
 class HelpBookContentsView(wx.SplitterWindow, EditorViews.EditorView):
     viewName = 'Contents'
+    viewTitle = _('Contents')
 
     addBmp = 'Images/Shared/NewItem.png'
     delBmp = 'Images/Shared/DeleteItem.png'
@@ -856,9 +861,9 @@ class HelpBookContentsView(wx.SplitterWindow, EditorViews.EditorView):
 
         self.SplitVertically(self.contents, self.files, 350)
 
-        actions = (('Edit entry', self.contents.OnEditEntry, '-', ''),
-                   ('Delete entry', self.contents.OnDeleteEntry, self.delBmp, ''),
-                   ('Import...', self.OnImportContents, '-', ''), )
+        actions = ((_('Edit entry'), self.contents.OnEditEntry, '-', ''),
+                   (_('Delete entry'), self.contents.OnDeleteEntry, self.delBmp, ''),
+                   (_('Import...'), self.OnImportContents, '-', ''), )
         EditorViews.EditorView.__init__(self, model, actions, -1)
 
         self.active = True
@@ -873,6 +878,7 @@ class HelpBookContentsView(wx.SplitterWindow, EditorViews.EditorView):
 
 class HelpBookContentsTreeView(wx.TreeCtrl, EditorViews.EditorView):
     viewName = 'Contents'
+    viewTitle = _('Contents')
 
     def __init__(self, parent, model, parentView=None):
         wx.TreeCtrl.__init__(self, parent, -1,
@@ -945,9 +951,9 @@ class HelpBookContentsTreeView(wx.TreeCtrl, EditorViews.EditorView):
 
         if item == tree.GetRootItem():
             options = self.model.config.options
-            dlg =  HelpBookItemDlg(self.model.editor, 'Help Book - Contents properties',
-                   options['Title'], 'Title', '',
-                   options['Default topic'], 'Default topic', [])
+            dlg =  HelpBookItemDlg(self.model.editor, _('Help Book - Contents properties'),
+                   options['Title'], _('Title'), '',
+                   options['Default topic'], _('Default topic'), [])
             try:
                 if dlg.ShowModal() != wx.ID_OK:
                     return
@@ -991,7 +997,7 @@ class HelpBookContentsTreeView(wx.TreeCtrl, EditorViews.EditorView):
         item = self.GetSelection()
 
         if item == self.GetRootItem():
-            wx.LogError('Cannot delete root node.')
+            wx.LogError(_('Cannot delete root node.'))
             return
 
         name = self.GetItemText(item)
@@ -999,7 +1005,7 @@ class HelpBookContentsTreeView(wx.TreeCtrl, EditorViews.EditorView):
 
         idx = items.index( (name, value, children) )
 
-        if wx.MessageBox('Delete %s'%name, 'Delete node and children',
+        if wx.MessageBox(_('Delete %s')%name, _('Delete node and children'),
               wx.ICON_WARNING | wx.YES_NO) == wx.YES:
             del items[idx]
             self.model.modified = True
@@ -1024,17 +1030,17 @@ class HelpBookController(Controllers.SourceController):
     def actions(self, model):
         actions = [
               ('-', None, '', ''),
-              ('Make HTB', self.OnMakeHTB, '', ''),
+              (_('Make HTB'), self.OnMakeHTB, '', ''),
               ]
         if wx.Platform == '__WXMSW__':
-            actions.append( ('Make CHM', self.OnMakeCHM, '', '') )
+            actions.append( (_('Make CHM'), self.OnMakeCHM, '', '') )
 
         return Controllers.SourceController.actions(self, model) + actions
 
     def OnMakeHTB(self, event):
         model = self.getModel()
-        dlg = wx.SingleChoiceDialog(model.editor, 'Choose source files',
-              'Make HTB', ['Files list', 'Entire help book directory'])
+        dlg = wx.SingleChoiceDialog(model.editor, _('Choose source files'),
+              _('Make HTB'), [_('Files list'), _('Entire help book directory')])
         try:
             if dlg.ShowModal() != wx.ID_OK:
                 return
@@ -1062,7 +1068,7 @@ class HelpBookController(Controllers.SourceController):
             wx.EndBusyCursor()
             zf.close()
 
-        wx.LogMessage('Written %s.'%zipfilename)
+        wx.LogMessage(_('Written %s.')%zipfilename)
 
     def OnMakeCHM(self, event):
         modelFile = model.localFilename()
@@ -1071,7 +1077,7 @@ class HelpBookController(Controllers.SourceController):
         cwd = os.getcwd()
         try:
             os.chdir(runDir)
-            dlg = ProcessProgressDlg.ProcessProgressDlg(self.editor, cmd, 'Make CHM')
+            dlg = ProcessProgressDlg.ProcessProgressDlg(self.editor, cmd, _('Make CHM'))
             try:
                 if dlg.ShowModal() == wx.OK:
                     outls = dlg.output
@@ -1089,6 +1095,6 @@ class HelpBookController(Controllers.SourceController):
 
 
 Plugins.registerPreference('HelpBook', 'hbShowDocumentTitles', 'True',
-                           ['Should the document title be parsed from HTML and '
-                            'displayed under "Files".'])
+                           [_('Should the document title be parsed from HTML and '
+                            'displayed under "Files".')])
 Plugins.registerFileType(HelpBookController)

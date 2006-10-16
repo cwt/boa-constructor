@@ -7,6 +7,7 @@ import wx
 from wx.lib.anchors import LayoutAnchors
 
 import Utils, Plugins, Models.ResourceSupport
+from Utils import _
 
 # draw destination consts
 ddCanvas = 1
@@ -42,7 +43,7 @@ class ImageEditorPanel(wx.Panel):
         self.modeChoice = wx.Choice(choices=self.drawingModes,
               id=wxID_IMAGEEDITORPANELMODECHOICE, name='modeChoice',
               parent=self, pos=wx.Point(8, 7), size=wx.Size(64, 21), style=0)
-        self.modeChoice.SetToolTipString('Current drawing mode')
+        self.modeChoice.SetToolTipString(_('Current drawing mode'))
         self.modeChoice.Bind(wx.EVT_CHOICE, self.OnModeChoiceChoice,
               id=wxID_IMAGEEDITORPANELMODECHOICE)
 
@@ -50,7 +51,7 @@ class ImageEditorPanel(wx.Panel):
               name='FGColBtn', parent=self, pos=wx.Point(78, 5),
               size=wx.Size(24, 24), style=0)
         self.FGColBtn.SetBackgroundColour(wx.Colour(0, 0, 0))
-        self.FGColBtn.SetToolTipString('Pen colour')
+        self.FGColBtn.SetToolTipString(_('Pen colour'))
         self.FGColBtn.Bind(wx.EVT_BUTTON, self.OnFgcolbtnButton,
               id=wxID_IMAGEEDITORPANELFGCOLBTN)
 
@@ -58,7 +59,7 @@ class ImageEditorPanel(wx.Panel):
               name='spinButton3', parent=self, pos=wx.Point(106, 5),
               size=wx.Size(16, 24), style=wx.SP_VERTICAL)
         self.spinButton3.SetRange(0, 32)
-        self.spinButton3.SetToolTipString('Pen width')
+        self.spinButton3.SetToolTipString(_('Pen width'))
         self.spinButton3.Bind(wx.EVT_COMMAND_SCROLL,
               self.OnSpinbutton3CommandScroll,
               id=wxID_IMAGEEDITORPANELSPINBUTTON3)
@@ -67,7 +68,7 @@ class ImageEditorPanel(wx.Panel):
               name='spinButton2', parent=self, pos=wx.Point(122, 5),
               size=wx.Size(16, 24), style=wx.SP_VERTICAL)
         self.spinButton2.SetRange(0, 11)
-        self.spinButton2.SetToolTipString('Pen style')
+        self.spinButton2.SetToolTipString(_('Pen style'))
         self.spinButton2.Bind(wx.EVT_COMMAND_SCROLL,
               self.OnSpinbutton2CommandScroll,
               id=wxID_IMAGEEDITORPANELSPINBUTTON2)
@@ -75,14 +76,14 @@ class ImageEditorPanel(wx.Panel):
         self.penBrushWindow = wx.Window(id=wxID_IMAGEEDITORPANELPENBRUSHWINDOW,
               name='penBrushWindow', parent=self, pos=wx.Point(137, 5),
               size=wx.Size(32, 24), style=wx.SUNKEN_BORDER)
-        self.penBrushWindow.SetToolTipString('Pen / Brush preview')
+        self.penBrushWindow.SetToolTipString(_('Pen / Brush preview'))
         self.penBrushWindow.Bind(wx.EVT_PAINT, self.OnPenBrushWindowPaint)
 
         self.spinButton1 = wx.SpinButton(id=wxID_IMAGEEDITORPANELSPINBUTTON1,
               name='spinButton1', parent=self, pos=wx.Point(168, 5),
               size=wx.Size(16, 24), style=wx.SP_VERTICAL)
         self.spinButton1.SetRange(0, 7)
-        self.spinButton1.SetToolTipString('Brush style')
+        self.spinButton1.SetToolTipString(_('Brush style'))
         self.spinButton1.Bind(wx.EVT_COMMAND_SCROLL,
               self.OnSpinbutton1CommandScroll,
               id=wxID_IMAGEEDITORPANELSPINBUTTON1)
@@ -91,7 +92,7 @@ class ImageEditorPanel(wx.Panel):
               label='', name='brushColBtn', parent=self, pos=wx.Point(189, 5),
               size=wx.Size(24, 24), style=0)
         self.brushColBtn.SetBackgroundColour(wx.Colour(255, 255, 255))
-        self.brushColBtn.SetToolTipString('Brush colour')
+        self.brushColBtn.SetToolTipString(_('Brush colour'))
         self.brushColBtn.Bind(wx.EVT_BUTTON, self.OnBrushcolbtnButton,
               id=wxID_IMAGEEDITORPANELBRUSHCOLBTN)
 
@@ -99,14 +100,14 @@ class ImageEditorPanel(wx.Panel):
               name='BGColBtn', parent=self, pos=wx.Point(213, 5),
               size=wx.Size(24, 24), style=0)
         self.BGColBtn.SetBackgroundColour(wx.Colour(192, 192, 192))
-        self.BGColBtn.SetToolTipString('Background brush colour')
+        self.BGColBtn.SetToolTipString(_('Background brush colour'))
         self.BGColBtn.Bind(wx.EVT_BUTTON, self.OnBgcolbtnButton,
               id=wxID_IMAGEEDITORPANELBGCOLBTN)
 
         self.slider1 = wx.Slider(id=wxID_IMAGEEDITORPANELSLIDER1, maxValue=25,
               minValue=1, name='slider1', parent=self, point=wx.Point(244, 5),
               size=wx.Size(108, 24), style=wx.SL_HORIZONTAL, value=16)
-        self.slider1.SetToolTipString('Zoom factor')
+        self.slider1.SetToolTipString(_('Zoom factor'))
         self.slider1.Bind(wx.EVT_SCROLL, self.OnSlider1ScrollThumbtrack)
 
         self.editWindow = wx.ScrolledWindow(id=wxID_IMAGEEDITORPANELEDITWINDOW,
@@ -122,28 +123,28 @@ class ImageEditorPanel(wx.Panel):
         self.editWindow.Bind(wx.EVT_SCROLLWIN, self.OnEditWindowScroll)
 
         self.staticText1 = wx.StaticText(id=wxID_IMAGEEDITORPANELSTATICTEXT1,
-              label='Image info', name='staticText1', parent=self,
+              label=_('Image info'), name='staticText1', parent=self,
               pos=wx.Point(360, 2), size=wx.Size(208, 27),
               style=wx.ST_NO_AUTORESIZE)
 
     def __init__(self, parent):
-        self.drawingModes = ['Select', 'Draw', 'Line', 'Circle', 'Box', 'Fill', 'Colour']
+        self.drawingModes = [_('Select'), _('Draw'), _('Line'), _('Circle'), _('Box'), _('Fill'), _('Colour')]
         self._init_ctrls(parent)
 
         self.currentCursor = None
 
-        self.drawingMethMap = {'Select': (ddCanvas|ddGrid, self.drawSelection),
-                               'Draw'  : (ddCanvas,        self.drawPoint),
-                               'Line'  : (ddCanvas|ddGrid, self.drawLine),
-                               'Circle': (ddCanvas|ddGrid, self.drawCircle),
-                               'Box'   : (ddCanvas|ddGrid, self.drawBox),
-                               'Fill'  : (ddCanvas,        self.drawFill),
-                               'Move'  : (ddCanvas|ddGrid, self.drawMove),
-                               'Colour': (ddCanvas,        self.drawPickColour),
+        self.drawingMethMap = {_('Select'): (ddCanvas|ddGrid, self.drawSelection),
+                               _('Draw')  : (ddCanvas,        self.drawPoint),
+                               _('Line')  : (ddCanvas|ddGrid, self.drawLine),
+                               _('Circle'): (ddCanvas|ddGrid, self.drawCircle),
+                               _('Box')   : (ddCanvas|ddGrid, self.drawBox),
+                               _('Fill')  : (ddCanvas,        self.drawFill),
+                               _('Move')  : (ddCanvas|ddGrid, self.drawMove),
+                               _('Colour'): (ddCanvas,        self.drawPickColour),
                               }
 
         self.mode = ''
-        self.setMode('Draw')
+        self.setMode(_('Draw'))
 
         self.mDC = self.bmp = None
 
@@ -233,7 +234,7 @@ class ImageEditorPanel(wx.Panel):
 
     def setMode(self, mode, updateGUI=False):
         if self.mode != mode:
-            if mode in ('Draw', 'Line', 'Circle', 'Box', 'Fill'):
+            if mode in (_('Draw'), _('Line'), _('Circle'), _('Box'), _('Fill')):
                 self.currentCursor = self.cursorDraw
             else:
                 self.currentCursor = self.cursorCross
@@ -283,7 +284,7 @@ class ImageEditorPanel(wx.Panel):
 
     def setMemDCBmp(self, bmp):
         if not bmp or not bmp.Ok():
-            raise Exception, 'Invalid bitmap'
+            raise Exception, _('Invalid bitmap')
         self.mDC.SelectObject(wx.NullBitmap)
         self.bmp = bmp
         self.mDC.SelectObject(self.bmp)
@@ -612,17 +613,17 @@ class ImageEditorPanel(wx.Panel):
     def OnEditWindowLeftDown(self, event):
         self.editWindow.CaptureMouse()
 
-        if self.mode == 'Select' and self.sel:
+        if self.mode == _('Select') and self.sel:
             x1, y1, x2, y2 = self.sel
             x, y = self.getImgPos(event)
             if x >= x1 and x <= x2 and y >= y1 and y <= y2:
-                self.setMode('Move')
+                self.setMode(_('Move'))
                 self.sel = x1, y1, x2, y2
-        elif self.mode == 'Move' and self.sel:
+        elif self.mode == _('Move') and self.sel:
             x1, y1, x2, y2 = self.sel
             x, y = self.getImgPos(event)
             if not (x >= x1 and x <= x2 and y >= y1 and y <= y2):
-                self.setMode('Select')
+                self.setMode(_('Select'))
                 self.sel = x1, y1, x2, y2
 
         if (self.drawDest & ddCanvas) and self.drawMeth:
@@ -726,7 +727,7 @@ class ImageEditorPanel(wx.Panel):
             try:
                 clip.GetData(data)
             except:
-                wx.LogError('Not a picture')
+                wx.LogError(_('Not a picture'))
             else:
                 self.modeChoice.SetSelection(0)
                 self.setMode('Move')
@@ -778,8 +779,8 @@ class ImageEditorPanel(wx.Panel):
         self.imageModified()
 
     def OnResize(self, event):
-        dlg = wx.TextEntryDialog(self, 'Enter a tuple for the new size',
-              'Resize', '%s, %s'%(self.bmp.GetWidth(), self.bmp.GetHeight()))
+        dlg = wx.TextEntryDialog(self, _('Enter a tuple for the new size'),
+              _('Resize'), '%s, %s'%(self.bmp.GetWidth(), self.bmp.GetHeight()))
         try:
             if dlg.ShowModal() != wx.ID_OK:
                 return
@@ -800,8 +801,8 @@ class ImageEditorPanel(wx.Panel):
         self.imageModified()
 
     def OnScale(self, event):
-        dlg = wx.TextEntryDialog(self, 'Enter a tuple for the new size',
-              'Scale', '%s, %s'%(self.bmp.GetWidth(), self.bmp.GetHeight()))
+        dlg = wx.TextEntryDialog(self, _('Enter a tuple for the new size'),
+              _('Scale'), '%s, %s'%(self.bmp.GetWidth(), self.bmp.GetHeight()))
         try:
             if dlg.ShowModal() != wx.ID_OK:
                 return
@@ -872,6 +873,7 @@ from Views import EditorViews
 
 class ImageView(wx.Panel, EditorViews.EditorView):
     viewName = 'View'
+    viewTitle = 'View'
     def __init__(self, parent, model):
         wx.Panel.__init__(self, parent, -1, style= wx.SUNKEN_BORDER)
         self.staticBitmapSmall = wx.StaticBitmap(self, -1, wx.NullBitmap)
@@ -893,6 +895,7 @@ class ImageView(wx.Panel, EditorViews.EditorView):
 
 class ImageEditorView(ImageEditorPanel, EditorViews.EditorView):
     viewName = 'Edit'
+    viewTitle = _('Edit')
 
     refreshBmp = 'Images/Editor/Refresh.png'
     copyBmp = 'Images/Shared/Copy.png'
@@ -901,20 +904,20 @@ class ImageEditorView(ImageEditorPanel, EditorViews.EditorView):
     def __init__(self, parent, model, actions=()):
         ImageEditorPanel.__init__(self, parent)
         EditorViews.EditorView.__init__(self, model, (
-          ('Refresh', self.OnRefresh, self.refreshBmp, ''),
+          (_('Refresh'), self.OnRefresh, self.refreshBmp, ''),
           ('-', None, '-', ''),
-          ('Copy', self.OnCopy, self.copyBmp, ''),
-          ('Paste', self.OnPaste, self.pasteBmp, ''),
-          ('Undo last change', self.OnUndo, self.undoBmp, ''),
-          ('Undo view changes', self.OnUndoViewChanges, '-', ''),
-          ('Clear', self.OnClear, '-', ''),
+          (_('Copy'), self.OnCopy, self.copyBmp, ''),
+          (_('Paste'), self.OnPaste, self.pasteBmp, ''),
+          (_('Undo last change'), self.OnUndo, self.undoBmp, ''),
+          (_('Undo view changes'), self.OnUndoViewChanges, '-', ''),
+          (_('Clear'), self.OnClear, '-', ''),
           ('-', None, '-', ''),
-          ('Crop', self.OnCrop, '-', ''),
-          ('Resize...', self.OnResize, '-', ''),
-          ('Scale...', self.OnScale, '-', ''),
+          (_('Crop'), self.OnCrop, '-', ''),
+          (_('Resize...'), self.OnResize, '-', ''),
+          (_('Scale...'), self.OnScale, '-', ''),
           ('-', None, '-', ''),
-          ('Use current colour to set transparent mask', self.OnSetTransparentMask, '-', ''),
-          ('Clear current transparent mask', self.OnClearTransparentMask, '-', ''),
+          (_('Use current colour to set transparent mask'), self.OnSetTransparentMask, '-', ''),
+          (_('Clear current transparent mask'), self.OnClearTransparentMask, '-', ''),
           ('-', None, '-', ''),
         ) + actions, -1)
 
@@ -989,8 +992,8 @@ class BitmapEditorFileController(Controllers.PersistentController):
     def actions(self, model):
         return Controllers.PersistentController.actions(self, model) + [
               ('-', None, '-', ''),
-              ('Edit image', self.OnGotoEditView, self.editBmpBmp, ''),
-              ('Convert to module', self.OnConvertToModule, self.conv2ModBmp, ''),]
+              (_('Edit image'), self.OnGotoEditView, self.editBmpBmp, ''),
+              (_('Convert to module'), self.OnConvertToModule, self.conv2ModBmp, ''),]
 
     def OnGotoEditView(self, event):
         model = self.getModel()
@@ -1027,7 +1030,7 @@ class PyResourceImagesViewPlugin:
         self.model = model
         self.view = view
         actions.extend( (
-              ('Edit image', self.OnEditImage, self.editImgBmp, ''),
+              (_('Edit image'), self.OnEditImage, self.editImgBmp, ''),
         ) )
 
     def OnEditImage(self, event):
