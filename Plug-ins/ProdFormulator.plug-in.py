@@ -37,6 +37,8 @@ import wx
 
 class FormulatorFormOrderView(wx.TreeCtrl, EditorView):
     viewName = 'Order'
+    viewTitle = 'Order'
+    
     refreshBmp = 'Images/Editor/Refresh.png'
     addGroupBmp = 'Images/Shared/NewItem.png'
     remGroupBmp = 'Images/Shared/DeleteItem.png'

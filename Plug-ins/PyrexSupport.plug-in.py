@@ -16,11 +16,12 @@ import wx
 import wx.stc
 
 import Preferences, Utils, Plugins
+from Utils import _
 
 try:
     imp.find_module('Pyrex')
 except ImportError:
-    raise Plugins.SkipPlugin, 'Pyrex is not installed'
+    raise Plugins.SkipPlugin, _('Pyrex is not installed')
 
 from Models import Controllers, EditorHelper, EditorModels, PythonEditorModels, PythonControllers
 from Views import SourceViews, StyledTextCtrls
@@ -47,6 +48,7 @@ class PyrexStyledTextCtrlMix(StyledTextCtrls.LanguageSTCMix):
 wxID_PYREXSOURCEVIEW = wx.NewId()
 class PyrexSourceView(SourceViews.EditorStyledTextCtrl, PyrexStyledTextCtrlMix):
     viewName = 'Source'
+    viewTitle = _('Source')
     def __init__(self, parent, model):
         SourceViews.EditorStyledTextCtrl.__init__(self, parent,
               wxID_PYREXSOURCEVIEW, model, (), -1)

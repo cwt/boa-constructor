@@ -15,6 +15,7 @@ from Views.AppViews import TextInfoFileView
 
 class AppTimeTrackView(ListCtrlView):
     viewName = 'Time Tracking'
+    viewTitle = _('Time Tracking')
     def __init__(self, parent, model):
         ListCtrlView.__init__(self, parent, model, wx.LC_REPORT,
           ((_('Start'), self.OnStart, '-', ''),
@@ -126,6 +127,7 @@ class AppTimeTrackView(ListCtrlView):
 
 class AppFEATURES_TIFView(TextInfoFileView):
     viewName = 'Features.txt'
+    viewTitle = 'Features.txt'
 
 
 #-------------------------------------------------------------------------------

@@ -18,6 +18,8 @@ import wx
 import wx.stc
 
 import Preferences, Utils, Plugins
+from Utils import _
+
 import PaletteStore
 
 from Models import Controllers, EditorHelper, EditorModels
@@ -50,6 +52,7 @@ class JavaStyledTextCtrlMix(StyledTextCtrls.LanguageSTCMix):
 wxID_JAVASOURCEVIEW = wx.NewId()
 class JavaSourceView(SourceViews.EditorStyledTextCtrl, JavaStyledTextCtrlMix):
     viewName = 'Source'
+    viewTitle = _('Source')
     def __init__(self, parent, model):
         SourceViews.EditorStyledTextCtrl.__init__(self, parent, wxID_JAVASOURCEVIEW,
           model, (), -1)
@@ -68,10 +71,10 @@ class JavaController(Controllers.SourceController):
 
     def actions(self, model):
         return Controllers.SourceController.actions(self, model) + [
-              ('Compile', self.OnCompile, '-', 'CheckSource')]
+              (_('Compile'), self.OnCompile, '-', 'CheckSource')]
 
     def OnCompile(self, event):
-        wx.LogWarning('Not implemented')
+        wx.LogWarning(_('Not implemented'))
 
 #-------------------------------------------------------------------------------
 

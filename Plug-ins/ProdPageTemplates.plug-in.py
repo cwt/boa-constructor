@@ -46,6 +46,7 @@ ZopeViews.zope_additional_attributes += \
 
 class ZopePTHTMLView(ZopeViews.ZopeHTMLView):
     viewName = 'Source.html'
+    viewTitle = 'Source.html'
     def generatePage(self):
         props = self.model.transport.properties
         url = 'http://%s:%s@%s:%d/%s/source.html'%(props['username'],

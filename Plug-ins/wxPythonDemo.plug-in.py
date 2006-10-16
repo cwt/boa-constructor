@@ -64,6 +64,8 @@ class SkipViewSignal(Exception):
 
 class wxPythonDemoView(wx.Panel, EditorViews.EditorView, EditorViews.CloseableViewMix):
     viewName = tabName = 'Demo'
+    viewTitle = _('Demo')
+    
     def __init__(self, parent, model):
         wx.Panel.__init__(self, parent, -1)
         EditorViews.CloseableViewMix.__init__(self)
@@ -111,6 +113,8 @@ class wxPythonDemoView(wx.Panel, EditorViews.EditorView, EditorViews.CloseableVi
 
 class wxPythonDemoOverView(EditorViews.HTMLView, EditorViews.CloseableViewMix):
     viewName = tabName = 'Overview'
+    viewTitle = _('Overview')
+
     def __init__(self, parent, model):
         EditorViews.CloseableViewMix.__init__(self)
         EditorViews.HTMLView.__init__(self, parent, model, actions=self.closingActionItems)
