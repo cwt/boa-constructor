@@ -249,7 +249,7 @@ class SourceBasedPrefColNode(PreferenceCollectionNode):
                     else:
                         break
                 comment.reverse()
-                comments.append('\n'.join(comment))
+                comments.append(_('\n'.join(comment)))
                 options.append(option)
 
         if self.showBreakLines: breaks = module.break_lines
@@ -311,7 +311,7 @@ class KeyDefsSrcPrefColNode(PreferenceCollectionNode):
                     break
                 elif line[0] != '#':
                     colon = line.find(':')
-                    if colon == -1: raise Exception('Invalid KeyDef item: %s'%line)
+                    if colon == -1: raise Exception(_('Invalid KeyDef item: %s')%line)
                     name = line[:colon].rstrip()[1:-1]
                     val = line[colon+1:].lstrip()
                     keydefs[name] = moduleparse.CodeBlock(val, idx+1, idx+1)
@@ -396,7 +396,7 @@ class PreferenceCompanion(ExplorerNodes.ExplorerCompanion):
         for aProp in self.propItems:
             if aProp[0] == prop: break
         else:
-            raise Exception('Property "%s" not found'%prop)
+            raise Exception(_('Property "%s" not found')%prop)
 
         srcVal = aProp[1]
         opts = aProp[4]
