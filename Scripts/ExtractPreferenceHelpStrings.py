@@ -7,7 +7,7 @@ sys.path.insert(0, '..')
 
 import moduleparse
 
-def parsePrefsFile(prefsPath, comments):
+def parsePrefsFile(prefsPath, comments, breaks):
     module = moduleparse.Module(os.path.basename(prefsPath), open(prefsPath).readlines())
 
     for name in module.global_order[:]:
@@ -30,19 +30,23 @@ def parsePrefsFile(prefsPath, comments):
                 break
         comment.reverse()
         comments.append( (name, '\n'.join(comment)) )
+        breaks.update(module.break_lines)
 
-def createStringsFile(comments):
-    src = '\n'.join(['%s = _(%r)'%(name, comment) 
-                     for name, comment in comments 
-                     if comment])
-    open('prefs.rc.i18n.py', 'w').write(src)
+def createStringsFile(comments, breaks):
+    srcComments = '\n'.join(['%s = _(%r)'%(name, comment) 
+                             for name, comment in comments 
+                             if comment])
+    srcBreaks = '\n'.join(['_(%r)'%text for text in breaks.values() if text])
+    
+    open('prefs.rc.i18n.py', 'w').write(srcComments+'\n\n'+srcBreaks)
 
 #-------------------------------------------------------------------------------
     
 if __name__ == '__main__':
     comments = []
-    parsePrefsFile('../Config/prefs.rc.py', comments)
-    parsePrefsFile('../Config/prefs.msw.rc.py', comments)
+    breaks = {}
+    parsePrefsFile('../Config/prefs.rc.py', comments, breaks)
+    parsePrefsFile('../Config/prefs.msw.rc.py', comments, breaks)
     
-    createStringsFile(comments)
+    createStringsFile(comments, breaks)
     #print comments
