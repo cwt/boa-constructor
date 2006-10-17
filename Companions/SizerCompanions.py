@@ -14,7 +14,7 @@ print 'importing Companions.SizerCompanions'
 
 # XXX _in_sizer is not necessary, use GetContainingSizer() instead
 
-import os, copy
+import os, sys, copy
 
 import wx
 
@@ -636,19 +636,38 @@ class GBSizerItemsCDTC(SizerItemsCDTC):
         if method is None:
             method = self.insertionMethod
 
+        pos = self.findOpenPosition()
+
         if method == 'AddWindow':
-            return {0: 'None', 1: '(0, 0)', 
-                    'span': '(1, 1)', 'flag': '0', 'border': '0'}
+            return {0: 'None', 1: repr(pos),  'span': '(1, 1)', 
+                    'flag': '0', 'border': '0'}
         elif method == 'AddSizer':
-            return {0: 'None', 1: '(0, 0)', 
-                    'span': '(1, 1)', 'flag': '0', 'border': '0'}
+            return {0: 'None', 1: repr(pos), 'span': '(1, 1)', 
+                    'flag': '0', 'border': '0'}
         elif method == 'AddSpacer':
-            return {0: 'wx.Size(8, 8)', 1: '(0, 0)', 
-                    'span': '(1, 1)', 'flag': '0', 'border': '0'}
+            return {0: 'wx.Size(8, 8)', 1: repr(pos), 'span': '(1, 1)', 
+                    'flag': '0', 'border': '0'}
+
+    def findOpenPosition(self):
+        pos = [0, 0]
+        while self.control.FindItemAtPosition(tuple(pos)):
+            pos[1] += 1
+        return tuple(pos)
 
     def applyDesignTimeDefaults(self, params, method=None):
         if method is None:
             method = self.insertionMethod
+
+        pos = self.eval(params[1])
+        if self.control.FindItemAtPosition(pos):
+            raise Exception, _('Cannot use Position %s, an item is already at that position')%params[1]
+        if pos[0] < 0 or pos[1] < 0:
+            raise Exception, _('Position %s invalid, cannot contain negative values')%params[1]
+        
+        span = self.eval(params['span'])
+        if span[0] < 0 or span[1] < 0:
+            raise Exception, _('Span %s invalid, cannot contain negative values')%params[1]
+        
 
         if (method in ('AddWindow', 'AddSizer') and params[0] == 'None') or \
            (method == 'Insert' and params[1] == 'None'):
@@ -679,7 +698,6 @@ class GBSizerItemsCDTC(SizerItemsCDTC):
                 getattr(self.control, 'SetItem'+name)(obj, self.eval(value))
                 self.updateGUI()
 
-
 class TupleConstrPropEdit(ConstrPropEdit):
     def inspectorEdit(self):
         self.editorCtrl = TextCtrlIEC(self, self.value)
@@ -705,6 +723,11 @@ class SpanTuplePropEdit(TupleConstrPropEdit):
     def getSubCompanion(self):
         return SpanRowColDTC
 
+class PositiveIntPropEdit(IntPropEdit):
+    def inspectorEdit(self):
+        IntPropEdit.inspectorEdit(self)
+        self.editorCtrl.editorCtrl.SetRange(0, sys.maxint)
+    
 class RowColDTC(HelperDTC):
     propName = 'Prop'
     paramName = 'param'
@@ -712,8 +735,8 @@ class RowColDTC(HelperDTC):
     
     def __init__(self, name, designer, cmpn, obj, ownerPW):
         HelperDTC.__init__(self, name, designer, cmpn, obj, ownerPW)
-        self.editors = {'Row' : IntPropEdit,
-                        'Column' : IntPropEdit}
+        self.editors = {'Row' : PositiveIntPropEdit,
+                        'Column' : PositiveIntPropEdit}
 
     def properties(self):
         return {'Row': ('NameRoute', self.GetRowCol, self.SetRowCol),
@@ -735,6 +758,8 @@ class RowColDTC(HelperDTC):
             newVal = (t[0], value)
         self.ownerCompn.textConstr.params[self.paramName] = `newVal`
         self.designer.inspector.constructorUpdate(self.propName)
+        # XXX Setting to an existing position causes asserts and is wrong
+        # XXX Not sure how to handle this everywhere in the GridBagSizer support
         getattr(self.ownerCompn.control, self.setterMethod)( obj, newVal )
 
 
