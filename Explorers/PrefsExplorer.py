@@ -252,8 +252,10 @@ class SourceBasedPrefColNode(PreferenceCollectionNode):
                 comments.append(_('\n'.join(comment)))
                 options.append(option)
 
-        if self.showBreakLines: breaks = module.break_lines
-        else: breaks = {}
+        breaks = {}
+        if self.showBreakLines: 
+            for k, v in module.break_lines.items():
+                breaks[k] = _(v)
 
         return (module.global_order, values, module.globals, comments, options,
                 breaks)
