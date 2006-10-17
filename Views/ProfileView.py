@@ -146,7 +146,7 @@ class ProfileStatsView(ListCtrlView, CloseableViewMix):
                       stats[0] and '%f' % (stats[2]/stats[0]) or '',
                       '%f' % stats[3],
                       stats[0] and '%f' % (stats[3]/stats[0]) or ''))
-                self.SetItemData(i, i)
+                self.SetItemData(i-1, i-1)
         self.pastelise()
 
     def getStatIdx(self):
