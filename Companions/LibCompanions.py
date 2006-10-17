@@ -674,7 +674,7 @@ except ImportError: pass
 try:
     import wx.lib.analogclock
     Plugins.registerComponent('Library', wx.lib.analogclock.AnalogClock, 'wx.lib.analogclock.AnalogClock', AnalogClockDTC)
-except ImportError: pass
+except (ImportError, AttributeError): pass
     
 try:
     import wx.lib.filebrowsebutton 
