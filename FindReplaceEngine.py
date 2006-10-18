@@ -88,7 +88,7 @@ class FindReplaceEngine:
 
         if (result[0] < view.GetCurrentPos() and not self.reverse and self.wrap) or \
            (result[0] > view.GetCurrentPos() and self.reverse and self.wrap):
-            view.model.editor.setStatus(_('Search wrapped'), _('Warning'), ringBell=1)
+            view.model.editor.setStatus(_('Search wrapped'), 'Warning', ringBell=1)
 
         view.SetSelection(result[0], result[1])
 
