@@ -112,7 +112,7 @@ class ZippedImageStore(ImageStore):
 
         archive = os.path.join(rootPath, 'Images.archive.zip')
         if os.path.exists(archive):
-            print _('reading image archive...')
+            print 'reading image archive...'
             import zipfile
             zf = zipfile.ZipFile(archive)
             self.archives[archive] = [fl.filename for fl in zf.filelist]
@@ -126,7 +126,7 @@ class ZippedImageStore(ImageStore):
 
             zf.close()
         else:
-            print _('image archive %s not found')%archive
+            print 'image archive %s not found'%archive
 
     def load(self, name):
         name = self.canonizePath(name)
