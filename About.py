@@ -74,6 +74,13 @@ Marius van Wyk (marius@e.co.za)<br>
 Werner F. Bruhin (werner.bruhin@free.fr)<br>
 
 <p>
+<b>Translators</b><br>
+<br>
+German - Werner F. Bruhin (werner.bruhin@free.fr)<br>
+Italian - Michele Petrazzo (michele.petrazzo@unipex.it)<br>
+Brazilian Portuguese - Sergio Brant (sergiobrant@yahoo.com.br)<br>
+
+<p>
 <b>Many thanks to</b><br>
 <br>
 Guido van Rossum and PythonLabs for Python<br>
@@ -97,7 +104,7 @@ Mike Fletcher for reports, ideas and patches (MakePy dialog and much improved UM
 Cedric Delfosse for maintaining the Debian package of Boa
 <p>
 <b>Boa interfaces with the following external applications, thanks to their authors</b><br>
-Zope, CVS, SSH, SCP<br>
+Zope, CVS, SVN, SSH, SCP<br>
 <p>
 Last but not least, a very big thank you to <a href="TBS">Tangible Business Software</a> for partially
 sponsoring my time on this project.<br>
