@@ -78,19 +78,21 @@ startupfile = ''
 startupModules = ()
 startupEnv = os.environ.get('BOASTARTUP') or os.environ.get('PYTHONSTARTUP')
 wxVersionSelect = None
+unicodeEncoding = None
 
 def processArgs(argv):
     _doDebug = _doRemoteDebugSvr = _constricted = _emptyEditor = 0
     _blockSocketServer = 0
     _startupfile = ''
     _startupModules = ()
-    _wxVersionSelect = None
+    _wxVersionSelect = _unicodeEncoding = None
     import getopt
     try:
-        optlist, args = getopt.getopt(argv, 'CDTSBERNHVhvO:W:',
+        optlist, args = getopt.getopt(argv, 'CDTSBERNHVhvO:W:U:',
          ['Constricted', 'Debug', 'Trace', 'StartupFile', 'BlockHomePrefs',
           'EmptyEditor', 'RemoteDebugServer', 'NoCmdLineTransfer', 'Help', 
-          'Version', 'help', 'version', 'OverridePrefsDirName', 'WxVersionSelect'])
+          'Version', 'help', 'version', 'OverridePrefsDirName', 'WxVersionSelect',
+          'UnicodeEncoding'])
     except getopt.GetoptError, err:
         print 'Error: %s'%str(err)
         print 'For options: Boa.py --help'
@@ -133,6 +135,9 @@ def processArgs(argv):
         
         if opt in ('-W', '--wxVersionSelect', ''):
             _wxVersionSelect = arg
+
+        if opt in ('-U', '--UnicodeEncoding', ''):
+            _unicodeEncoding = arg
     
         if opt in ('-h', '--help', '-H', '--Help'):
             print 'Boa Constructor (%s)'%__version__.version
@@ -165,6 +170,8 @@ def processArgs(argv):
             print '-N, --NoCmdLineTransfer:'
             print "\tDon't transfer command line options to a running Boa, start a "
             print '\tnew instance.'
+            print '-U encoding, --UnicodeEncoding encoding:'
+            print '\tSpecify a spesific encoding to use.'
             print '-W version, --wxVersionSelect version:'
             print '\tSpecify a spesific version of wxPython to use.'
             print '-H, --Help, -h, --help:'
@@ -177,13 +184,15 @@ def processArgs(argv):
             sys.exit()
 
     return (_doDebug, _startupfile, _startupModules, _constricted, _emptyEditor,
-            _doRemoteDebugSvr, _blockSocketServer, _wxVersionSelect, optlist, args)
+            _doRemoteDebugSvr, _blockSocketServer, _wxVersionSelect, 
+            _unicodeEncoding, optlist, args)
 
 # This happens as early as possible (before wxPython loads) to make filename
 # transfer to a running Boa as quick as possible and little NS pollution
 if __name__ == '__main__' and len(sys.argv) > 1:
     (doDebug, startupfile, startupModules, constricted, emptyEditor, doDebugSvr,
-     blockSocketServer, wxVersionSelect, opts, args) = processArgs(sys.argv[1:])
+     blockSocketServer, wxVersionSelect, unicodeEncoding, 
+     opts, args) = processArgs(sys.argv[1:])
     if doDebugSvr and startupModules:
         print 'Running as a Remote Debug Server'
         from Debugger.RemoteServer import start
@@ -206,6 +215,15 @@ if __name__ == '__main__' and len(sys.argv) > 1:
 
 print 'Starting Boa Constructor v%s'%__version__.version
 print 'importing wxPython'
+
+if unicodeEncoding is not None:
+    print 'using encoding %s'%unicodeEncoding
+    if hasattr(sys, 'frozen'):  
+        sys.setdefaultencoding(unicodeEncoding)
+    else:   
+        reload(sys)
+        sys.setdefaultencoding(unicodeEncoding)
+        del sys.setdefaultencoding
 
 try:
     # See if there is a multi-version install of wxPython
@@ -664,9 +682,10 @@ def main(argv=None):
 
     if argv is not None:
         global doDebug, startupfile, startupModules, constricted, emptyEditor, \
-              doDebugSvr, blockSocketServer, wxVersionSelect
+              doDebugSvr, blockSocketServer, wxVersionSelect, unicodeEncoding
         doDebug, startupfile, startupModules, constricted, emptyEditor, \
-              doDebugSvr, blockSocketServer, wxVersionSelect, opts, args = processArgs(argv)
+              doDebugSvr, blockSocketServer, wxVersionSelect, \
+              unicodeEncoding, opts, args = processArgs(argv)
     try:
         app = BoaApp()
     except Exception, error:
