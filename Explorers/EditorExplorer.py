@@ -139,7 +139,7 @@ class EditorController(ExplorerNodes.Controller):
 class OpenModelsNode(ExplorerNodes.ExplorerNode):
     protocol = 'boa.open-models'
     def __init__(self, editor, parent):
-        ExplorerNodes.ExplorerNode.__init__(self, 'Editor', '', None,
+        ExplorerNodes.ExplorerNode.__init__(self, _('Editor'), '', None,
               EditorHelper.imgOpenEditorModels, None, {})
         self.editor = editor
         self.bold = True
