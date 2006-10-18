@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Boa Constructor - 0.5.2\n"
 "POT-Creation-Date: \n"
-"PO-Revision-Date: 2006-10-16 15:43+0200\n"
+"PO-Revision-Date: 2006-10-19 02:10+0200\n"
 "Last-Translator: Riaan Booysen <riaan@e.co.za>\n"
 "Language-Team: Riaan Booysen <riaan@e.co.za>\n"
 "MIME-Version: 1.0\n"
@@ -12,41 +12,41 @@ msgstr ""
 "X-Poedit-Language: English\n"
 "X-Poedit-SearchPath-0: boa\n"
 
-#: boa/About.py:249
+#: boa/About.py:257
 msgid "About Boa Constructor"
 msgstr ""
 
-#: boa/Boa.py:533
+#: boa/Boa.py:551
 #, python-format
 msgid ""
 "Error writing config file: %s\n"
 "Please ensure that the Explorer.*.cfg file is not read only."
 msgstr ""
 
-#: boa/Boa.py:599
+#: boa/Boa.py:617
 msgid "Could not set working directory from Preferences.exWorkingDirectory :"
 msgstr ""
 
-#: boa/Boa.py:606
+#: boa/Boa.py:624
 msgid ""
 "\n"
 "There were errors during startup, please click \"Details\""
 msgstr ""
 
-#: boa/Boa.py:625
+#: boa/Boa.py:643
 msgid "Restore Boa Constructor"
 msgstr ""
 
-#: boa/Boa.py:626
+#: boa/Boa.py:644
 msgid "Exit"
 msgstr ""
 
-#: boa/Boa.py:628
+#: boa/Boa.py:646
 #: boa/Editor.py:273
 msgid "About"
 msgstr ""
 
-#: boa/Boa.py:673
+#: boa/Boa.py:692
 msgid "Error on startup"
 msgstr ""
 
@@ -91,7 +91,10 @@ msgstr ""
 
 #: boa/Editor.py:54
 #: boa/Editor.py:102
+#: boa/Explorers/EditorExplorer.py:142
 #: boa/PropEdit/FlexGridGrowablesDlg.py:86
+#: boa/Scripts/prefs.rc.i18n.py:140
+#: boa/Scripts/prefs.rc.i18n.py:142
 msgid "Editor"
 msgstr ""
 
@@ -115,6 +118,7 @@ msgstr ""
 #: boa/Editor.py:78
 #: boa/Editor.py:481
 #: boa/Editor.py:502
+#: boa/Scripts/prefs.rc.i18n.py:141
 msgid "Views"
 msgstr ""
 
@@ -159,6 +163,7 @@ msgstr ""
 #: boa/Editor.py:221
 #: boa/Editor.py:535
 #: boa/Inspector.py:96
+#: boa/Scripts/prefs.rc.i18n.py:144
 msgid "Inspector"
 msgstr ""
 
@@ -168,6 +173,7 @@ msgstr ""
 
 #: boa/Editor.py:226
 #: boa/Editor.py:537
+#: boa/Scripts/prefs.rc.i18n.py:143
 msgid "Shell"
 msgstr ""
 
@@ -178,6 +184,8 @@ msgstr ""
 #: boa/Editor.py:230
 #: boa/Editor.py:539
 #: boa/Editor.py:581
+#: boa/Scripts/prefs.rc.i18n.py:133
+#: boa/Scripts/prefs.rc.i18n.py:137
 msgid "Explorer"
 msgstr ""
 
@@ -671,7 +679,6 @@ msgid "Could not open %s"
 msgstr ""
 
 #: boa/FileDlg.py:562
-#: boa/FindReplaceEngine.py:91
 #: boa/PropEdit/PropertyEditors.py:605
 msgid "Warning"
 msgstr ""
@@ -1008,15 +1015,6 @@ msgstr ""
 msgid "%s not valid"
 msgstr ""
 
-#: boa/ImageStore.py:115
-msgid "reading image archive..."
-msgstr ""
-
-#: boa/ImageStore.py:129
-#, python-format
-msgid "image archive %s not found"
-msgstr ""
-
 #: boa/ImageStore.py:158
 #: boa/Models/PythonEditorModels.py:545
 #, python-format
@@ -1213,28 +1211,6 @@ msgstr ""
 msgid "%s not in Preferences, but is defined in globals of prefs.plug-ins.rc.py"
 msgstr ""
 
-#: boa/Preferences.py:43
-msgid "reading user preferences"
-msgstr ""
-
-#: boa/Preferences.py:55
-msgid "OverridePrefsDirName must specify a directory"
-msgstr ""
-
-#: boa/Preferences.py:56
-msgid "using preference directory name"
-msgstr ""
-
-#: boa/Preferences.py:84
-#, python-format
-msgid "Created directory: %s"
-msgstr ""
-
-#: boa/Preferences.py:137
-#, python-format
-msgid "Preference file %s replaced, previous version backed up to %s"
-msgstr ""
-
 #: boa/ProcessProgressDlg.py:92
 msgid "Kill"
 msgstr ""
@@ -1361,7 +1337,7 @@ msgstr ""
 msgid "May not delete a wx.MenuBar, it would cause a segfault on wxGTK"
 msgstr ""
 
-#: boa/Companions/LibCompanions.py:659
+#: boa/Companions/LibCompanions.py:655
 msgid "Library"
 msgstr ""
 
@@ -1411,6 +1387,21 @@ msgstr ""
 
 #: boa/Companions/SizerCompanions.py:524
 msgid "Must choose a control to link with sizer"
+msgstr ""
+
+#: boa/Companions/SizerCompanions.py:663
+#, python-format
+msgid "Cannot use Position %s, an item is already at that position"
+msgstr ""
+
+#: boa/Companions/SizerCompanions.py:665
+#, python-format
+msgid "Position %s invalid, cannot contain negative values"
+msgstr ""
+
+#: boa/Companions/SizerCompanions.py:669
+#, python-format
+msgid "Span %s invalid, cannot contain negative values"
 msgstr ""
 
 #: boa/Companions/UtilCompanions.py:391
@@ -1652,6 +1643,7 @@ msgstr ""
 #: boa/Views/EditorViews.py:1310
 #: boa/Views/OGLViews.py:754
 #: boa/Views/OGLViews.py:853
+#: boa/Views/SourceViews.py:58
 msgid "Refresh"
 msgstr ""
 
@@ -1915,17 +1907,17 @@ msgid "Close all"
 msgstr ""
 
 #: boa/Explorers/EditorExplorer.py:43
-#: boa/Explorers/PrefsExplorer.py:665
-#: boa/Explorers/PrefsExplorer.py:761
-#: boa/Explorers/PrefsExplorer.py:1140
+#: boa/Explorers/PrefsExplorer.py:667
+#: boa/Explorers/PrefsExplorer.py:763
+#: boa/Explorers/PrefsExplorer.py:1142
 #: boa/PropEdit/BitmapListEditorDlg.py:136
 msgid "Move up"
 msgstr ""
 
 #: boa/Explorers/EditorExplorer.py:44
-#: boa/Explorers/PrefsExplorer.py:667
-#: boa/Explorers/PrefsExplorer.py:763
-#: boa/Explorers/PrefsExplorer.py:1142
+#: boa/Explorers/PrefsExplorer.py:669
+#: boa/Explorers/PrefsExplorer.py:765
+#: boa/Explorers/PrefsExplorer.py:1144
 #: boa/PropEdit/BitmapListEditorDlg.py:142
 msgid "Move down"
 msgstr ""
@@ -1936,25 +1928,25 @@ msgstr ""
 
 #: boa/Explorers/EditorExplorer.py:93
 #: boa/Explorers/EditorExplorer.py:107
-#: boa/Explorers/PrefsExplorer.py:698
-#: boa/Explorers/PrefsExplorer.py:715
-#: boa/Explorers/PrefsExplorer.py:801
-#: boa/Explorers/PrefsExplorer.py:815
-#: boa/Explorers/PrefsExplorer.py:1186
-#: boa/Explorers/PrefsExplorer.py:1200
+#: boa/Explorers/PrefsExplorer.py:700
+#: boa/Explorers/PrefsExplorer.py:717
+#: boa/Explorers/PrefsExplorer.py:803
+#: boa/Explorers/PrefsExplorer.py:817
+#: boa/Explorers/PrefsExplorer.py:1188
+#: boa/Explorers/PrefsExplorer.py:1202
 msgid "Can only move 1 at a time"
 msgstr ""
 
 #: boa/Explorers/EditorExplorer.py:98
-#: boa/Explorers/PrefsExplorer.py:703
-#: boa/Explorers/PrefsExplorer.py:806
-#: boa/Explorers/PrefsExplorer.py:1191
+#: boa/Explorers/PrefsExplorer.py:705
+#: boa/Explorers/PrefsExplorer.py:808
+#: boa/Explorers/PrefsExplorer.py:1193
 msgid "Already at the beginning"
 msgstr ""
 
 #: boa/Explorers/EditorExplorer.py:112
-#: boa/Explorers/PrefsExplorer.py:820
-#: boa/Explorers/PrefsExplorer.py:1205
+#: boa/Explorers/PrefsExplorer.py:822
+#: boa/Explorers/PrefsExplorer.py:1207
 msgid "Already at the end"
 msgstr ""
 
@@ -2011,6 +2003,7 @@ msgstr ""
 #: boa/Explorers/ExplorerNodes.py:179
 #: boa/Views/DataView.py:44
 #: boa/Views/Designer.py:171
+#: boa/Views/SourceViews.py:63
 msgid "Cut"
 msgstr ""
 
@@ -2018,6 +2011,7 @@ msgstr ""
 #: boa/Plug-ins/ImageEditor.plug-in.py:909
 #: boa/Views/DataView.py:45
 #: boa/Views/Designer.py:172
+#: boa/Views/SourceViews.py:64
 msgid "Copy"
 msgstr ""
 
@@ -2025,6 +2019,7 @@ msgstr ""
 #: boa/Plug-ins/ImageEditor.plug-in.py:910
 #: boa/Views/DataView.py:46
 #: boa/Views/Designer.py:173
+#: boa/Views/SourceViews.py:65
 msgid "Paste"
 msgstr ""
 
@@ -2172,11 +2167,13 @@ msgid "Key bindings"
 msgstr ""
 
 #: boa/Explorers/PrefsExplorer.py:97
+#: boa/Scripts/prefs.rc.i18n.py:147
 msgid "Plug-ins"
 msgstr ""
 
 #: boa/Explorers/PrefsExplorer.py:99
-#: boa/Explorers/PrefsExplorer.py:519
+#: boa/Explorers/PrefsExplorer.py:521
+#: boa/Scripts/prefs.rc.i18n.py:139
 msgid "Core support"
 msgstr ""
 
@@ -2195,167 +2192,167 @@ msgstr ""
 msgid "\n"
 msgstr ""
 
-#: boa/Explorers/PrefsExplorer.py:314
+#: boa/Explorers/PrefsExplorer.py:316
 #, python-format
 msgid "Invalid KeyDef item: %s"
 msgstr ""
 
-#: boa/Explorers/PrefsExplorer.py:399
+#: boa/Explorers/PrefsExplorer.py:401
 #, python-format
 msgid "Property \"%s\" not found"
 msgstr ""
 
-#: boa/Explorers/PrefsExplorer.py:550
+#: boa/Explorers/PrefsExplorer.py:552
 msgid "Disable"
 msgstr ""
 
-#: boa/Explorers/PrefsExplorer.py:552
+#: boa/Explorers/PrefsExplorer.py:554
 msgid "Enable"
 msgstr ""
 
-#: boa/Explorers/PrefsExplorer.py:554
+#: boa/Explorers/PrefsExplorer.py:556
 msgid "Confirm Toggle Plug-in"
 msgstr ""
 
-#: boa/Explorers/PrefsExplorer.py:607
+#: boa/Explorers/PrefsExplorer.py:609
 msgid "Plug-in files"
 msgstr ""
 
-#: boa/Explorers/PrefsExplorer.py:620
+#: boa/Explorers/PrefsExplorer.py:622
 msgid "Disabled"
 msgstr ""
 
-#: boa/Explorers/PrefsExplorer.py:627
+#: boa/Explorers/PrefsExplorer.py:629
 #, python-format
 msgid "Skipped plug-in: %s"
 msgstr ""
 
-#: boa/Explorers/PrefsExplorer.py:630
+#: boa/Explorers/PrefsExplorer.py:632
 #, python-format
 msgid "Broken plug-in: %s"
 msgstr ""
 
-#: boa/Explorers/PrefsExplorer.py:634
+#: boa/Explorers/PrefsExplorer.py:636
 msgid "Installed, ordered"
 msgstr ""
 
-#: boa/Explorers/PrefsExplorer.py:637
-#: boa/Explorers/PrefsExplorer.py:934
-#: boa/Explorers/PrefsExplorer.py:981
+#: boa/Explorers/PrefsExplorer.py:639
+#: boa/Explorers/PrefsExplorer.py:936
+#: boa/Explorers/PrefsExplorer.py:983
 msgid "Installed"
 msgstr ""
 
-#: boa/Explorers/PrefsExplorer.py:640
-#: boa/Explorers/PrefsExplorer.py:940
+#: boa/Explorers/PrefsExplorer.py:642
+#: boa/Explorers/PrefsExplorer.py:942
 msgid "Pending restart"
 msgstr ""
 
-#: boa/Explorers/PrefsExplorer.py:651
-#: boa/Explorers/PrefsExplorer.py:747
-#: boa/Explorers/PrefsExplorer.py:1123
+#: boa/Explorers/PrefsExplorer.py:653
+#: boa/Explorers/PrefsExplorer.py:749
+#: boa/Explorers/PrefsExplorer.py:1125
 msgid "item"
 msgstr ""
 
-#: boa/Explorers/PrefsExplorer.py:660
+#: boa/Explorers/PrefsExplorer.py:662
 msgid "Toggle Enable/Disabled"
 msgstr ""
 
-#: boa/Explorers/PrefsExplorer.py:662
+#: boa/Explorers/PrefsExplorer.py:664
 msgid "Open plug-in file"
-msgstr ""
-
-#: boa/Explorers/PrefsExplorer.py:756
-#: boa/Explorers/PrefsExplorer.py:1135
-#, python-format
-msgid "Add new %s"
 msgstr ""
 
 #: boa/Explorers/PrefsExplorer.py:758
 #: boa/Explorers/PrefsExplorer.py:1137
 #, python-format
+msgid "Add new %s"
+msgstr ""
+
+#: boa/Explorers/PrefsExplorer.py:760
+#: boa/Explorers/PrefsExplorer.py:1139
+#, python-format
 msgid "Remove %s"
 msgstr ""
 
-#: boa/Explorers/PrefsExplorer.py:831
+#: boa/Explorers/PrefsExplorer.py:833
 msgid "Transport module"
 msgstr ""
 
-#: boa/Explorers/PrefsExplorer.py:834
+#: boa/Explorers/PrefsExplorer.py:836
 msgid ""
 "Enter the fully qualified Python object path to \n"
 "the Transport module. E.g. Explorers.FileExplorer"
 msgstr ""
 
-#: boa/Explorers/PrefsExplorer.py:836
+#: boa/Explorers/PrefsExplorer.py:838
 msgid "New Transport"
 msgstr ""
 
-#: boa/Explorers/PrefsExplorer.py:845
+#: boa/Explorers/PrefsExplorer.py:847
 msgid ""
 "Cannot locate the specified module path,\n"
 "are you sure you want to continue?"
 msgstr ""
 
-#: boa/Explorers/PrefsExplorer.py:847
+#: boa/Explorers/PrefsExplorer.py:849
 #: boa/Models/PythonEditorModels.py:438
 msgid "Module not found"
 msgstr ""
 
-#: boa/Explorers/PrefsExplorer.py:877
+#: boa/Explorers/PrefsExplorer.py:879
 msgid "Transports tree node"
 msgstr ""
 
-#: boa/Explorers/PrefsExplorer.py:880
+#: boa/Explorers/PrefsExplorer.py:882
 msgid "Enter the protocol identifier. E.g. ftp, ssh"
 msgstr ""
 
-#: boa/Explorers/PrefsExplorer.py:881
+#: boa/Explorers/PrefsExplorer.py:883
 msgid "New Transports Tree Node"
 msgstr ""
 
-#: boa/Explorers/PrefsExplorer.py:922
+#: boa/Explorers/PrefsExplorer.py:924
 msgid "Loading order"
 msgstr ""
 
-#: boa/Explorers/PrefsExplorer.py:937
+#: boa/Explorers/PrefsExplorer.py:939
 #, python-format
 msgid "Broken: %s"
 msgstr ""
 
-#: boa/Explorers/PrefsExplorer.py:966
+#: boa/Explorers/PrefsExplorer.py:968
 msgid "Tree display order"
 msgstr ""
 
-#: boa/Explorers/PrefsExplorer.py:978
+#: boa/Explorers/PrefsExplorer.py:980
 msgid "Protocol not installed"
 msgstr ""
 
-#: boa/Explorers/PrefsExplorer.py:1011
+#: boa/Explorers/PrefsExplorer.py:1013
 msgid "Help system"
 msgstr ""
 
-#: boa/Explorers/PrefsExplorer.py:1023
+#: boa/Explorers/PrefsExplorer.py:1025
 msgid "Help books"
 msgstr ""
 
-#: boa/Explorers/PrefsExplorer.py:1133
+#: boa/Explorers/PrefsExplorer.py:1135
 #, python-format
 msgid "Edit %s"
 msgstr ""
 
-#: boa/Explorers/PrefsExplorer.py:1145
+#: boa/Explorers/PrefsExplorer.py:1147
 msgid "Open hhp file"
 msgstr ""
 
-#: boa/Explorers/PrefsExplorer.py:1148
+#: boa/Explorers/PrefsExplorer.py:1150
 msgid "Restart the help system"
 msgstr ""
 
-#: boa/Explorers/PrefsExplorer.py:1150
+#: boa/Explorers/PrefsExplorer.py:1152
 msgid "Clear the help indexes"
 msgstr ""
 
-#: boa/Explorers/PrefsExplorer.py:1251
+#: boa/Explorers/PrefsExplorer.py:1253
 #, python-format
 msgid "Deleted %s"
 msgstr ""
@@ -2826,6 +2823,8 @@ msgstr ""
 #: boa/Models/ResourceSupport.py:158
 #: boa/Views/EditorViews.py:1366
 #: boa/Views/ProfileView.py:34
+#: boa/Views/SourceViews.py:71
+#: boa/Views/SourceViews.py:389
 #: boa/Views/XMLView.py:33
 msgid "Goto line"
 msgstr ""
@@ -4382,6 +4381,25 @@ msgstr ""
 msgid "Grayout (blueout actually) source while designer is open"
 msgstr ""
 
+#: boa/Scripts/prefs.rc.i18n.py:134
+#: boa/Scripts/prefs.rc.i18n.py:136
+msgid "Miscellaneous"
+msgstr ""
+
+#: boa/Scripts/prefs.rc.i18n.py:135
+msgid "Code generation"
+msgstr ""
+
+#: boa/Scripts/prefs.rc.i18n.py:138
+#: boa/Scripts/prefs.rc.i18n.py:146
+#: boa/Views/Designer.py:50
+msgid "Designer"
+msgstr ""
+
+#: boa/Scripts/prefs.rc.i18n.py:145
+msgid "Window settings"
+msgstr ""
+
 #: boa/Views/AppViews.py:35
 msgid "Application Find Results"
 msgstr ""
@@ -4644,10 +4662,6 @@ msgstr ""
 #: boa/Views/DataView.py:306
 #, python-format
 msgid "Recreating not supported in the %s view"
-msgstr ""
-
-#: boa/Views/Designer.py:50
-msgid "Designer"
 msgstr ""
 
 #: boa/Views/Designer.py:93
@@ -5062,7 +5076,7 @@ msgid "Save breakpoints"
 msgstr ""
 
 #: boa/Views/PySourceView.py:62
-msgid "Add simple app"
+msgid "Add module runner"
 msgstr ""
 
 #: boa/Views/PySourceView.py:64
@@ -5108,6 +5122,87 @@ msgstr ""
 
 #: boa/Views/SizersView.py:30
 msgid "Sizers"
+msgstr ""
+
+#: boa/Views/SourceViews.py:60
+msgid "Undo"
+msgstr ""
+
+#: boa/Views/SourceViews.py:61
+msgid "Redo"
+msgstr ""
+
+#: boa/Views/SourceViews.py:67
+msgid "Find \\ Replace"
+msgstr ""
+
+#: boa/Views/SourceViews.py:68
+msgid "Find again"
+msgstr ""
+
+#: boa/Views/SourceViews.py:69
+msgid "Print..."
+msgstr ""
+
+#: boa/Views/SourceViews.py:70
+msgid "Mark place"
+msgstr ""
+
+#: boa/Views/SourceViews.py:72
+msgid "STC settings..."
+msgstr ""
+
+#: boa/Views/SourceViews.py:73
+msgid "Convert..."
+msgstr ""
+
+#: boa/Views/SourceViews.py:170
+#, python-format
+msgid "Mixed EOLs detected in %s, please use Edit->Convert... to fix this problem."
+msgstr ""
+
+#: boa/Views/SourceViews.py:379
+msgid "Code marker added to Browse History"
+msgstr ""
+
+#: boa/Views/SourceViews.py:389
+msgid "Enter line number:"
+msgstr ""
+
+#: boa/Views/SourceViews.py:396
+msgid "Integer line number required"
+msgstr ""
+
+#: boa/Views/SourceViews.py:437
+msgid "View Whitespace"
+msgstr ""
+
+#: boa/Views/SourceViews.py:439
+msgid "Buffered draw"
+msgstr ""
+
+#: boa/Views/SourceViews.py:441
+msgid "Use indentation guides"
+msgstr ""
+
+#: boa/Views/SourceViews.py:443
+msgid "View EOL symbols"
+msgstr ""
+
+#: boa/Views/SourceViews.py:455
+msgid "EOL mode"
+msgstr ""
+
+#: boa/Views/SourceViews.py:484
+msgid "EOLs to CRLF"
+msgstr ""
+
+#: boa/Views/SourceViews.py:485
+msgid "EOLs to LF"
+msgstr ""
+
+#: boa/Views/SourceViews.py:486
+msgid "EOLs to CR"
 msgstr ""
 
 #: boa/Views/STCPrinting.py:47
