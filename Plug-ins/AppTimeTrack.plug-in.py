@@ -31,7 +31,7 @@ class AppTimeTrackView(ListCtrlView):
 
         self.times = []
 
-        self.active = true
+        self.active = True
         self.model = model
 
     def refreshCtrl(self):
