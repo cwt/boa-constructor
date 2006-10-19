@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Boa Constructor - 0.5.2\n"
 "POT-Creation-Date: \n"
-"PO-Revision-Date: 2006-10-19 02:10+0200\n"
+"PO-Revision-Date: 2006-10-19 19:53+0200\n"
 "Last-Translator: Riaan Booysen <riaan@e.co.za>\n"
 "Language-Team: Riaan Booysen <riaan@e.co.za>\n"
 "MIME-Version: 1.0\n"
@@ -309,10 +309,6 @@ msgstr ""
 
 #: boa/Editor.py:283
 msgid "&Help"
-msgstr ""
-
-#: boa/Editor.py:341
-msgid "Not running in server mode"
 msgstr ""
 
 #: boa/Editor.py:434
@@ -981,11 +977,6 @@ msgstr ""
 
 #: boa/Help.py:425
 msgid "Show all"
-msgstr ""
-
-#: boa/Help.py:535
-#, python-format
-msgid "Help: loading %s"
 msgstr ""
 
 #: boa/Help.py:548
