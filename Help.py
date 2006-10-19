@@ -532,7 +532,7 @@ def initHelp(calledAtStartup=False):
     books = eval(conf.get('help', 'books'), {})
     for book in books:
         if calledAtStartup:
-            print _('Help: loading %s')% os.path.basename(book)
+            print 'Help: loading %s'% os.path.basename(book)
         bookPath = os.path.normpath(jn(docsDir, book))
         if os.path.exists(bookPath):
             _hc.AddBook(bookPath,
