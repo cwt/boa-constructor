@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Boa\n"
 "POT-Creation-Date: \n"
-"PO-Revision-Date: 2006-10-19 11:46+0100\n"
+"PO-Revision-Date: 2006-10-19 16:10+0100\n"
 "Last-Translator: Werner F. Bruhin <wbruhin@thewinecellarbook.com>\n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -22,16 +22,20 @@ msgid ""
 "Error writing config file: %s\n"
 "Please ensure that the Explorer.*.cfg file is not read only."
 msgstr ""
+"Fehler beim schreiben der \"config\" Datei: %s\n"
+"Bitte stellen Sie sicher das die \"Explorer.*.cfg\" Dateien nicht schreib geschützt sind."
 
 #: boa/Boa.py:617
 msgid "Could not set working directory from Preferences.exWorkingDirectory :"
-msgstr ""
+msgstr "Konnte das Arbeits Verzeichnis von \"Preferences.exWorkingDirectory\" nicht setzten:"
 
 #: boa/Boa.py:624
 msgid ""
 "\n"
 "There were errors during startup, please click \"Details\""
 msgstr ""
+"\n"
+"Es gab Fehler beim starten, bitte klicken Sie auf \"Details\""
 
 #: boa/Boa.py:643
 msgid "Restore Boa Constructor"
@@ -491,7 +495,7 @@ msgstr "Fehler"
 
 #: boa/ErrorStackFrm.py:108
 msgid "Tasks"
-msgstr ""
+msgstr "Tasks"
 
 #: boa/ErrorStackFrm.py:163
 msgid "Load history..."
@@ -525,7 +529,7 @@ msgstr "Prozess überprüfen"
 #: boa/ErrorStackFrm.py:358
 #: boa/ErrorStackFrm.py:528
 msgid "Diffs"
-msgstr ""
+msgstr "Diffs"
 
 #: boa/ErrorStackFrm.py:371
 msgid "Input"
@@ -758,11 +762,11 @@ msgstr "Platzhalter"
 
 #: boa/FindReplaceDlg.py:130
 msgid "Regular expressions"
-msgstr ""
+msgstr "Regular expressions"
 
 #: boa/FindReplaceDlg.py:136
 msgid "Wrap search"
-msgstr ""
+msgstr "\"Wrap\" Suche"
 
 #: boa/FindReplaceDlg.py:142
 msgid "Close on found"
@@ -770,7 +774,7 @@ msgstr "Schliessen wenn gefunden"
 
 #: boa/FindReplaceDlg.py:148
 msgid "Recursive search"
-msgstr ""
+msgstr "Rekursive Suche"
 
 #: boa/FindReplaceDlg.py:152
 #: boa/FindReplaceDlg.py:526
@@ -814,7 +818,7 @@ msgstr "Datei Filter"
 
 #: boa/FindReplaceDlg.py:208
 msgid "Build-in ready to run searches"
-msgstr ""
+msgstr "Eingebaute such Expressions"
 
 #: boa/FindReplaceDlg.py:215
 msgid "Folders tree"
@@ -851,7 +855,7 @@ msgstr "Das eingegebene Verzeichnis ist nicht gültig."
 
 #: boa/FindReplaceDlg.py:526
 msgid "Build in finds"
-msgstr ""
+msgstr "Eingebaute Suchen"
 
 #: boa/FindReplaceEngine.py:86
 #: boa/FindReplaceEngine.py:150
@@ -861,7 +865,7 @@ msgstr "'%s' nicht gefunden"
 
 #: boa/FindReplaceEngine.py:91
 msgid "Search wrapped"
-msgstr ""
+msgstr "Suche \"wrapped\""
 
 #: boa/FindReplaceEngine.py:118
 msgid "Results:"
@@ -899,11 +903,11 @@ msgstr "Such Resultate"
 #: boa/FindResults.py:29
 #: boa/Views/AppViews.py:42
 msgid "Goto match"
-msgstr ""
+msgstr "Spring zum \"match\""
 
 #: boa/FindResults.py:30
 msgid "Re-run query"
-msgstr ""
+msgstr "Query wiederholen"
 
 #: boa/FindResults.py:33
 #: boa/Debugger/DebuggerControls.py:177
@@ -933,7 +937,7 @@ msgstr "Text"
 #: boa/Views/AppViews.py:69
 #, python-format
 msgid "%d matches of \"%s\"."
-msgstr ""
+msgstr "%d \"matches\" von \"%s\"."
 
 #: boa/Help.py:48
 msgid "Enter name to search for"
@@ -1088,7 +1092,7 @@ msgstr "Hilfe anzeigen"
 #: boa/Inspector.py:800
 #, python-format
 msgid "Could not post %s because: %s: %s"
-msgstr ""
+msgstr "Konnte nicht speichern %s da: %s: %s"
 
 #: boa/Inspector.py:931
 #, python-format
@@ -1129,8 +1133,9 @@ msgid "Invalid value error"
 msgstr "Ungültiger Wert Fehler"
 
 #: boa/methodparse.py:156
+#, fuzzy
 msgid "Unhandled bracket"
-msgstr ""
+msgstr "Unbearbeitete Klammer"
 
 #: boa/methodparse.py:387
 #, python-format
@@ -1256,7 +1261,7 @@ msgstr "Root Verzeichnis war nicht specifiziert"
 
 #: boa/Utils.py:279
 msgid "Could not edit tips settings, please make sure that the Explorer.*.cfg file is not read only and you have sufficient priviledges to write to this file."
-msgstr ""
+msgstr "Konnte die \"Tip\" Definitionen nicht ändern, bitte stellen Sie sicher das die \"Explorer.*.cfg\" Dateien nicht schreib geschützt sind und das Sie genügende Privilegien haben."
 
 #: boa/Utils.py:353
 msgid "Unhandled type for Win"
@@ -1339,7 +1344,7 @@ msgstr "Kontrolle hinzufügen"
 
 #: boa/Companions/ContainerCompanions.py:801
 msgid "Old add tool"
-msgstr ""
+msgstr "Old add tool"
 
 #: boa/Companions/ContainerCompanions.py:954
 #, python-format
@@ -1415,17 +1420,17 @@ msgstr "Muss eine Kontrolle auswählen um mit dem Sizer zu verbinden"
 #: boa/Companions/SizerCompanions.py:663
 #, python-format
 msgid "Cannot use Position %s, an item is already at that position"
-msgstr ""
+msgstr "Kann Position \"%s\" nicht benutzen, es gibt schon einen Eintrag an dieser Position."
 
 #: boa/Companions/SizerCompanions.py:665
 #, python-format
 msgid "Position %s invalid, cannot contain negative values"
-msgstr ""
+msgstr "Position \"%s\" ist nicht gültig, kann keine Negativen Werte akzeptieren."
 
 #: boa/Companions/SizerCompanions.py:669
 #, python-format
 msgid "Span %s invalid, cannot contain negative values"
-msgstr ""
+msgstr "\"Span\" \"%s\" ist nicht gültig, kann keine Negativen Werte akzeptieren."
 
 #: boa/Companions/UtilCompanions.py:391
 #: boa/Companions/UtilCompanions.py:504
@@ -1487,15 +1492,15 @@ msgstr "Pause"
 
 #: boa/Debugger/Debugger.py:107
 msgid "Trace in source"
-msgstr ""
+msgstr "\"Trace\" in Quellecode"
 
 #: boa/Debugger/Debugger.py:110
 msgid "Debug browsing"
-msgstr ""
+msgstr "Debug browsing"
 
 #: boa/Debugger/Debugger.py:114
 msgid "Eval in shell"
-msgstr ""
+msgstr "Eval in shell"
 
 #: boa/Debugger/Debugger.py:120
 msgid "Edit client/server path mappings..."
@@ -1507,41 +1512,42 @@ msgstr "Hin-/Herschalten der \"split\" Orientierung"
 
 #: boa/Debugger/Debugger.py:148
 msgid "Stack"
-msgstr ""
+msgstr "Stack"
 
 #: boa/Debugger/Debugger.py:151
 msgid "Breakpoints"
-msgstr ""
+msgstr "Breakpoints"
 
 #: boa/Debugger/Debugger.py:160
 msgid "Watches"
-msgstr ""
+msgstr "Watches"
 
 #: boa/Debugger/Debugger.py:163
 msgid "Locals"
-msgstr ""
+msgstr "Locals"
 
 #: boa/Debugger/Debugger.py:168
 msgid "Globals"
-msgstr ""
+msgstr "Globals"
 
 #: boa/Debugger/Debugger.py:366
 #, python-format
 msgid "Debugger %s- %s"
-msgstr ""
+msgstr "Debugger %s- %s"
 
 #: boa/Debugger/Debugger.py:395
 #, python-format
 msgid "Error on killing debugger: %s: %s"
-msgstr ""
+msgstr "Fehler beim Abbrechen des Debugger: %s: %s"
 
 #: boa/Debugger/Debugger.py:409
 msgid "The debugger process stopped prematurely."
-msgstr ""
+msgstr "Der Debugger Process wurde unerwarted gestopped."
 
 #: boa/Debugger/Debugger.py:410
+#, fuzzy
 msgid "Debugger stopped"
-msgstr ""
+msgstr "Debugger gestopped"
 
 #: boa/Debugger/Debugger.py:464
 #, python-format
@@ -1550,10 +1556,13 @@ msgid ""
 "\n"
 "Stop debugger?"
 msgstr ""
+"%s\n"
+"\n"
+"Debugger stoppen?"
 
 #: boa/Debugger/Debugger.py:465
 msgid "Debugger Communication Exception"
-msgstr ""
+msgstr "Debugger Kommunikation Exception"
 
 #: boa/Debugger/Debugger.py:474
 msgid "Waiting..."
@@ -1561,16 +1570,16 @@ msgstr "Wartet..."
 
 #: boa/Debugger/Debugger.py:499
 msgid "Running..."
-msgstr ""
+msgstr "Läuft..."
 
 #: boa/Debugger/Debugger.py:527
 #, python-format
 msgid "No Zope connection for: %s"
-msgstr ""
+msgstr "Keine \"Zope\" Verbindung für: %s"
 
 #: boa/Debugger/Debugger.py:529
 msgid "\"zopedebug\" is a server filename protocol"
-msgstr ""
+msgstr "\"zopedebug\" ist ein Server Datei Namen Protokol"
 
 #: boa/Debugger/Debugger.py:611
 msgid "Finished."
@@ -1584,16 +1593,16 @@ msgstr "Bereit."
 
 #: boa/Debugger/Debugger.py:647
 msgid "Breakpoint."
-msgstr ""
+msgstr "Breakpoint."
 
 #: boa/Debugger/Debugger.py:694
 #, python-format
 msgid "Debugger: Failed to open file %s"
-msgstr ""
+msgstr "Debugger: Konnte Datei \"%s\" nicht öffnen"
 
 #: boa/Debugger/Debugger.py:812
 msgid "No stack available!"
-msgstr ""
+msgstr "Kein \"stack\" verfügbar!"
 
 #: boa/Debugger/Debugger.py:817
 msgid "Enter line number to jump to:"
@@ -1601,11 +1610,11 @@ msgstr "Die Zeilennummer zum Springen eingeben:"
 
 #: boa/Debugger/Debugger.py:818
 msgid "Debugger - Jump"
-msgstr ""
+msgstr "Debugger - Jump"
 
 #: boa/Debugger/DebuggerControls.py:28
 msgid "Frame"
-msgstr ""
+msgstr "Frame"
 
 #: boa/Debugger/DebuggerControls.py:29
 #: boa/Debugger/DebuggerControls.py:178
@@ -1700,7 +1709,7 @@ msgstr "Aktivieren"
 
 #: boa/Debugger/DebuggerControls.py:372
 msgid "Condition to break on:"
-msgstr ""
+msgstr "Kondition für den \"break\":"
 
 #: boa/Debugger/DebuggerControls.py:373
 msgid "Change condition"
@@ -1726,12 +1735,12 @@ msgstr "Wert"
 
 #: boa/Debugger/DebuggerControls.py:429
 msgid "Add as watch"
-msgstr ""
+msgstr "Als \"watch\" hinzufügen"
 
 #: boa/Debugger/DebuggerControls.py:430
 #, python-format
 msgid "Add a %s watch"
-msgstr ""
+msgstr "%s \"watch\" hinzufügen"
 
 #: boa/Debugger/DebuggerControls.py:434
 #: boa/Debugger/DebuggerControls.py:525
@@ -1740,15 +1749,15 @@ msgstr "Wert zum \"Output\" schreiben"
 
 #: boa/Debugger/DebuggerControls.py:516
 msgid "Add local watch"
-msgstr ""
+msgstr "Eine \"local watch\" hinzufügen"
 
 #: boa/Debugger/DebuggerControls.py:519
 msgid "Add global watch"
-msgstr ""
+msgstr "Eine \"global watch\" hinzufügen"
 
 #: boa/Debugger/DebuggerControls.py:522
 msgid "Edit watch"
-msgstr ""
+msgstr "\"watch\" ändern"
 
 #: boa/Debugger/DebuggerControls.py:531
 msgid "Expand"
@@ -1760,11 +1769,11 @@ msgstr "Alle löschen"
 
 #: boa/Debugger/DebuggerControls.py:609
 msgid "Expression:"
-msgstr ""
+msgstr "Expression:"
 
 #: boa/Debugger/DebuggerControls.py:609
 msgid "Edit watch:"
-msgstr ""
+msgstr "\"watch\" ändern:"
 
 #: boa/Debugger/PathMappingDlg.py:25
 msgid "Edit client/sever paths mapping"
@@ -1791,24 +1800,24 @@ msgstr "Entfernen"
 
 #: boa/Debugger/PathsPanel.py:80
 msgid "Map server filenames starting with"
-msgstr ""
+msgstr "\"Map\" der Server Datei Namen beginnened mit"
 
 #: boa/Debugger/PathsPanel.py:81
 msgid "To client filenames starting with"
-msgstr ""
+msgstr "Zu Klienten Datei Namen beginnened mit"
 
 #: boa/Debugger/RemoteDialog.py:37
 #: boa/Models/PythonControllers.py:717
 msgid "Attach to debugger"
-msgstr ""
+msgstr "An Debugger anknüpfen"
 
 #: boa/Debugger/RemoteDialog.py:42
 msgid "Host"
-msgstr ""
+msgstr "Host"
 
 #: boa/Debugger/RemoteDialog.py:46
 msgid "Port"
-msgstr ""
+msgstr "Port"
 
 #: boa/Debugger/RemoteDialog.py:50
 msgid "Username"
@@ -1992,16 +2001,16 @@ msgstr "Kann nur zu 1 springen"
 #: boa/Explorers/Explorer.py:51
 #, python-format
 msgid "No category found for protocol %s"
-msgstr ""
+msgstr "Keine Kategorie gefunden für dieses Protokol %s"
 
 #: boa/Explorers/Explorer.py:94
 msgid "Unhandled transport"
-msgstr ""
+msgstr "Nicht bearbeiteter Transport"
 
 #: boa/Explorers/Explorer.py:107
 #, python-format
 msgid "Catalog transport could not be found: %s || %s"
-msgstr ""
+msgstr "Transport Katalog konnte nicht gefunden werden: %s || %s"
 
 #: boa/Explorers/Explorer.py:200
 #, python-format
@@ -2010,18 +2019,20 @@ msgstr "%s nicht Installiert: %s"
 
 #: boa/Explorers/Explorer.py:249
 msgid "File system transport must be loaded"
-msgstr ""
+msgstr "Datei System Transport muss geladen sein"
 
 #: boa/Explorers/Explorer.py:279
 #, python-format
 msgid "Transport category %s not added: %s"
-msgstr ""
+msgstr "Transport Kategorie %s nicht hinzugefügt: %s"
 
 #: boa/Explorers/Explorer.py:292
 msgid ""
 "One or more transports could not be loaded, if the problem is not rectifiable,\n"
 "consider removing the transport under Preferences->Plug-ins->Transports. Click \"Details\""
 msgstr ""
+"Ein oder mehrere Transporte konnten nicht geladen werden, sollte das Problem nicht korrigierbar sein,\n"
+"überlege den Transport von Preferences->Plug-ins->Transports zu entfernen.  Klick \"Details\"."
 
 #: boa/Explorers/Explorer.py:716
 msgid "There must be a selection to rename"
@@ -2095,7 +2106,7 @@ msgstr "Konnte \"%s\" in \"%s\" zum löschen nicht finden"
 #: boa/Explorers/ExplorerNodes.py:543
 #, python-format
 msgid "Contains invalid string sequence or char: \"%s\""
-msgstr ""
+msgstr "Beinhaltet ungültige Zeichenfolge oder Zeichen: \"%s\""
 
 #: boa/Explorers/ExplorerNodes.py:545
 #: boa/Explorers/FileExplorer.py:72
@@ -2105,7 +2116,7 @@ msgstr "Name existiert"
 #: boa/Explorers/ExplorerNodes.py:558
 #, python-format
 msgid "Entries type %s invalid, expected %s"
-msgstr ""
+msgstr "Eintrag Type %s ungültig, erwartete %s"
 
 #: boa/Explorers/ExplorerNodes.py:590
 msgid "Create copy"
@@ -2123,20 +2134,20 @@ msgstr "Letzte Dateien"
 #: boa/Explorers/ExplorerNodes.py:981
 #, python-format
 msgid "%s not found in the config, renaming config entries while Inspecting is not allowed."
-msgstr ""
+msgstr "%s nicht in der \"config\" gefunden, umbenennen von \"config\" Einträgen während man Sie Inspiziert ist nicht erlaubt."
 
 #: boa/Explorers/FileExplorer.py:30
 msgid "Filesystem"
-msgstr ""
+msgstr "Datei System"
 
 #: boa/Explorers/FileExplorer.py:43
 #, python-format
 msgid "%d drives added to the filesystem definition."
-msgstr ""
+msgstr "%d \"drives\" zur Datei System definition hinzugefügt."
 
 #: boa/Explorers/FileExplorer.py:94
 msgid "Standard files"
-msgstr ""
+msgstr "Standard Dateien"
 
 #: boa/Explorers/FileExplorer.py:125
 msgid "Set as os.cwd"
@@ -2175,7 +2186,7 @@ msgstr "Such Resultate für %s in %s"
 #: boa/Explorers/FileExplorer.py:609
 #, python-format
 msgid "FileSysCatNode not found in transports %s"
-msgstr ""
+msgstr "\"FileSysCatNode\" im Transport nicht gefunden - %s"
 
 #: boa/Explorers/PrefsExplorer.py:57
 #: boa/Plug-ins/JavaSupport.plug-in.py:55
@@ -2215,7 +2226,7 @@ msgstr "Basis Unterstützung"
 
 #: boa/Explorers/PrefsExplorer.py:106
 msgid "Transports"
-msgstr ""
+msgstr "Transporte"
 
 #: boa/Explorers/PrefsExplorer.py:149
 #: boa/Plug-ins/JavaSupport.plug-in.py:77
@@ -2311,65 +2322,69 @@ msgstr "%s entfernen"
 
 #: boa/Explorers/PrefsExplorer.py:833
 msgid "Transport module"
-msgstr ""
+msgstr "Transport Modul"
 
 #: boa/Explorers/PrefsExplorer.py:836
 msgid ""
 "Enter the fully qualified Python object path to \n"
 "the Transport module. E.g. Explorers.FileExplorer"
 msgstr ""
+"Den voll qualifizierten Python Objekt Pfad zum \n"
+"Transport Modul eingeben.  z.b. Explorers.FileExplorer"
 
 #: boa/Explorers/PrefsExplorer.py:838
 msgid "New Transport"
-msgstr ""
+msgstr "Neuer Transport"
 
 #: boa/Explorers/PrefsExplorer.py:847
 msgid ""
 "Cannot locate the specified module path,\n"
 "are you sure you want to continue?"
 msgstr ""
+"Kann den specifizierten Modul Pfad nicht lokalisieren,\n"
+"sind Sie sicher das Sie weitermachen wollen?"
 
 #: boa/Explorers/PrefsExplorer.py:849
 #: boa/Models/PythonEditorModels.py:438
 msgid "Module not found"
-msgstr ""
+msgstr "Modul nicht gefunden"
 
 #: boa/Explorers/PrefsExplorer.py:879
 msgid "Transports tree node"
-msgstr ""
+msgstr "Transport \"tree node\""
 
 #: boa/Explorers/PrefsExplorer.py:882
 msgid "Enter the protocol identifier. E.g. ftp, ssh"
-msgstr ""
+msgstr "Den Protokol Identifizierer eingeben. z.b. \"ftp\", \"ssh\""
 
 #: boa/Explorers/PrefsExplorer.py:883
 msgid "New Transports Tree Node"
-msgstr ""
+msgstr "Neuer Transport \"tree node\""
 
 #: boa/Explorers/PrefsExplorer.py:924
 msgid "Loading order"
-msgstr ""
+msgstr "Lade-folge"
 
 #: boa/Explorers/PrefsExplorer.py:939
 #, python-format
 msgid "Broken: %s"
-msgstr ""
+msgstr "Defekt: %s"
 
 #: boa/Explorers/PrefsExplorer.py:968
 msgid "Tree display order"
-msgstr ""
+msgstr "\"Tree\" Anzeige-folge"
 
 #: boa/Explorers/PrefsExplorer.py:980
 msgid "Protocol not installed"
-msgstr ""
+msgstr "Protokol nicht installiert"
 
 #: boa/Explorers/PrefsExplorer.py:1013
 msgid "Help system"
-msgstr ""
+msgstr "Hilfe System"
 
 #: boa/Explorers/PrefsExplorer.py:1025
 msgid "Help books"
-msgstr ""
+msgstr "Hilfe Bücher"
 
 #: boa/Explorers/PrefsExplorer.py:1135
 #, python-format
@@ -2382,45 +2397,46 @@ msgstr "Öffnen der \"hhp\" Datei"
 
 #: boa/Explorers/PrefsExplorer.py:1150
 msgid "Restart the help system"
-msgstr ""
+msgstr "Hilfe System neu starten"
 
 #: boa/Explorers/PrefsExplorer.py:1152
 msgid "Clear the help indexes"
-msgstr ""
+msgstr "Löschen der Hilfe Indexe"
 
 #: boa/Explorers/PrefsExplorer.py:1253
 #, python-format
 msgid "Deleted %s"
-msgstr ""
+msgstr "Gelöscht %s"
 
 #: boa/Explorers/SSHExplorer.py:116
 msgid "SSH listing"
-msgstr ""
+msgstr "SSH Verzeichnis"
 
 #: boa/Explorers/SSHExplorer.py:204
 msgid "File was not downloaded locally."
-msgstr ""
+msgstr "Datei wurde nicht Lokal runtergeladen."
 
 #: boa/Models/ConfigSupport.py:43
 msgid "Config"
-msgstr ""
+msgstr "Config"
 
 #: boa/Models/Controllers.py:137
+#, fuzzy
 msgid "Toggle read-only"
-msgstr ""
+msgstr "Toggle read-only"
 
 #: boa/Models/Controllers.py:138
 msgid "NDiff files..."
-msgstr ""
+msgstr "NDiff Dateien..."
 
 #: boa/Models/Controllers.py:154
 #, python-format
 msgid "Cannot perform this action on an unsaved%s module"
-msgstr ""
+msgstr "Kann diese Aktion auf einen ungesicherten Modul nicht ausführen - %s"
 
 #: boa/Models/Controllers.py:192
 msgid "Cannot reload, this file has not been saved yet."
-msgstr ""
+msgstr "Kann nicht neu Laden, diese Datei ist noch nicht gesichert."
 
 #: boa/Models/Controllers.py:197
 msgid ""
@@ -2432,11 +2448,11 @@ msgstr ""
 
 #: boa/Models/Controllers.py:199
 msgid "Confirm reload"
-msgstr ""
+msgstr "Neu laden bestättigen"
 
 #: boa/Models/Controllers.py:220
 msgid "Read-only not supported on this transport"
-msgstr ""
+msgstr "\"Read-only\" nicht unterstützt für diesen Transport"
 
 #: boa/Models/CPPSupport.py:65
 #: boa/Plug-ins/HelpBook.plug-in.py:23
@@ -2447,28 +2463,28 @@ msgstr "Titel"
 
 #: boa/Models/CPPSupport.py:80
 msgid "Header"
-msgstr ""
+msgstr "Header"
 
 #: boa/Models/EditorModels.py:183
 msgid "No transport for loading"
-msgstr ""
+msgstr "Kein Transport zum Laden"
 
 #: boa/Models/EditorModels.py:194
 msgid "No transport for saving"
-msgstr ""
+msgstr "Kein Transport zum Speichern"
 
 #: boa/Models/EditorModels.py:213
 msgid "No filename"
-msgstr ""
+msgstr "Kein Datei Name"
 
 #: boa/Models/EditorModels.py:249
 #: boa/Models/EditorModels.py:260
 msgid "Operation only supported on the filesystem."
-msgstr ""
+msgstr "Operation nur für Datei System unterstützt."
 
 #: boa/Models/EditorModels.py:298
 msgid "Saving .gif format not supported"
-msgstr ""
+msgstr "Sichern von \".gif\" Format ist nicht unterstützt"
 
 #: boa/Models/EditorModels.py:316
 #, python-format
@@ -2482,23 +2498,23 @@ msgstr "HTML"
 
 #: boa/Models/PythonControllers.py:56
 msgid "Import module into Shell"
-msgstr ""
+msgstr "Import Module in die Shell"
 
 #: boa/Models/PythonControllers.py:57
 msgid "Reload module in Shell"
-msgstr ""
+msgstr "Modul neu in die Shell laden"
 
 #: boa/Models/PythonControllers.py:59
 msgid "Set command-line parameters"
-msgstr ""
+msgstr "Befehls-Zeile Parameter setzen"
 
 #: boa/Models/PythonControllers.py:60
 msgid "Toggle use input stream"
-msgstr ""
+msgstr "\"Toggle\" benutze \"input stream\""
 
 #: boa/Models/PythonControllers.py:61
 msgid "Run application"
-msgstr ""
+msgstr "Applikation ausführen"
 
 #: boa/Models/PythonControllers.py:62
 msgid "Run module"
@@ -2506,7 +2522,7 @@ msgstr "Modul ausführen"
 
 #: boa/Models/PythonControllers.py:63
 msgid "Debug application"
-msgstr ""
+msgstr "Applikation debuggen"
 
 #: boa/Models/PythonControllers.py:64
 msgid "Debug module"
@@ -2514,213 +2530,217 @@ msgstr "Modul \"debuggen\""
 
 #: boa/Models/PythonControllers.py:65
 msgid "Step in"
-msgstr ""
+msgstr "Einsteigen"
 
 #: boa/Models/PythonControllers.py:66
 msgid "Step over"
-msgstr ""
+msgstr "Übersteigen"
 
 #: boa/Models/PythonControllers.py:67
 msgid "Step out"
-msgstr ""
+msgstr "Aussteigen"
 
 #: boa/Models/PythonControllers.py:69
+#, fuzzy
 msgid "Profile"
-msgstr ""
+msgstr "Profile"
 
 #: boa/Models/PythonControllers.py:70
 msgid "Check source"
 msgstr "Quellecode überprüfen"
 
 #: boa/Models/PythonControllers.py:71
+#, fuzzy
 msgid "Cyclops"
-msgstr ""
+msgstr "Cyclops"
 
 #: boa/Models/PythonControllers.py:73
+#, fuzzy
 msgid "Reindent whole file"
-msgstr ""
+msgstr "Ganze Datei neu Einrücken"
 
 #: boa/Models/PythonControllers.py:77
 msgid "Switch to app"
-msgstr ""
+msgstr "Zur Applikation wechseln"
 
 #: boa/Models/PythonControllers.py:80
 msgid "Add to an open application"
-msgstr ""
+msgstr "Zur offen Applikation hinzufügen"
 
 #: boa/Models/PythonControllers.py:81
 msgid "Associate with an open application"
-msgstr ""
+msgstr "Verbinden mit einer offenen Applikation"
 
 #: boa/Models/PythonControllers.py:89
 msgid "Run PyChecker"
-msgstr ""
+msgstr "PyChecker ausführen"
 
 #: boa/Models/PythonControllers.py:90
 msgid "Configure PyChecker"
-msgstr ""
+msgstr "PyChecker konfigurien"
 
 #: boa/Models/PythonControllers.py:124
 msgid "Stats file date unchanged, check for errors in script."
-msgstr ""
+msgstr "Stats Datei Datum ungeändert, Script auf Fehler überprüfen."
 
 #: boa/Models/PythonControllers.py:127
 msgid "Stats file not found, check for errors in script."
-msgstr ""
+msgstr "Stats Datei nicht gefunden, Script auf Fehler überprüfen."
 
 #: boa/Models/PythonControllers.py:130
 msgid "Loading stats..."
-msgstr ""
+msgstr "Stats Laden..."
 
 #: boa/Models/PythonControllers.py:133
 #, python-format
 msgid "Profile stats: %s"
-msgstr ""
+msgstr "Profile stats: %s"
 
 #: boa/Models/PythonControllers.py:143
+#, fuzzy
 msgid "Refreshing view..."
-msgstr ""
+msgstr "Anzeige erneuern..."
 
 #: boa/Models/PythonControllers.py:146
 msgid "Profiling complete."
-msgstr ""
+msgstr "Profiling fertig."
 
 #: boa/Models/PythonControllers.py:150
 msgid "Compiling..."
-msgstr ""
+msgstr "Kompiliert..."
 
 #: boa/Models/PythonControllers.py:152
 msgid "There were errors"
-msgstr ""
+msgstr "Es gab Fehler"
 
 #: boa/Models/PythonControllers.py:154
 msgid "Compiled successfully"
-msgstr ""
+msgstr "Kompilation erfolgreich"
 
 #: boa/Models/PythonControllers.py:157
 msgid "Running lint..."
-msgstr ""
+msgstr "lint ausführen"
 
 #: boa/Models/PythonControllers.py:163
 msgid "Lint completed"
-msgstr ""
+msgstr "lint fertig ausgeführt"
 
 #: boa/Models/PythonControllers.py:167
 msgid "Parameters:"
-msgstr ""
+msgstr "Parameter"
 
 #: boa/Models/PythonControllers.py:168
 msgid "Command-line parameters"
-msgstr ""
+msgstr "Command-Zeile Parameter"
 
 #: boa/Models/PythonControllers.py:236
 msgid "Finished execution, there were errors"
-msgstr ""
+msgstr "Ausführung fertig, es gab Fehler"
 
 #: boa/Models/PythonControllers.py:239
 msgid "Finished execution."
-msgstr ""
+msgstr "Ausführung fertig."
 
 #: boa/Models/PythonControllers.py:320
 msgid "The PyChecker configuration file can not be found. Copy the default file here?"
-msgstr ""
+msgstr "Die PyChecker Konfigurations Datei konnte nicht gefunden werden.  Kopiere die vorgabe Datei hierher?"
 
 #: boa/Models/PythonControllers.py:322
 msgid "Config file not found"
-msgstr ""
+msgstr "Konfigurations Datei nicht gefunden"
 
 #: boa/Models/PythonControllers.py:339
 #, python-format
 msgid "Running Cyclops on %s ..."
-msgstr ""
+msgstr "Cyclops wird für \"%s\" ausgeführt"
 
 #: boa/Models/PythonControllers.py:346
 #, python-format
 msgid "Cyclops report: %s"
-msgstr ""
+msgstr "Cyclops Bericht: %s"
 
 #: boa/Models/PythonControllers.py:369
 msgid "No open applications."
-msgstr ""
+msgstr "Keine offene Applikation"
 
 #: boa/Models/PythonControllers.py:387
 msgid "Select application to add the current file to"
-msgstr ""
+msgstr "Selektiere Applikation um die aktuelle Datei hinzuzufügen"
 
 #: boa/Models/PythonControllers.py:388
 msgid "Add to Application"
-msgstr ""
+msgstr "Zur Applikation hinzufügen"
 
 #: boa/Models/PythonControllers.py:402
 msgid "Select application to associate the current file with"
-msgstr ""
+msgstr "Selektiere Applikation um aktuelle Datei zu verbinden"
 
 #: boa/Models/PythonControllers.py:403
 msgid "Associate with Application"
-msgstr ""
+msgstr "Verbinde mit der Applikation"
 
 #: boa/Models/PythonControllers.py:438
 msgid "Using input stream for running"
-msgstr ""
+msgstr "Benutze den \"input stream\" zur Ausführung"
 
 #: boa/Models/PythonControllers.py:440
 msgid "Not using input stream for running"
-msgstr ""
+msgstr "Benutze nicht den \"input stream\" zur Ausführung"
 
 #: boa/Models/PythonControllers.py:460
 msgid "Save modified modules"
-msgstr ""
+msgstr "Sichern der geänderten Module"
 
 #: boa/Models/PythonControllers.py:461
 msgid "Compare apps"
-msgstr ""
+msgstr "Apps vergleichen"
 
 #: boa/Models/PythonControllers.py:462
 msgid "View crash log as traceback"
-msgstr ""
+msgstr "\"crash log\" als \"Traceback\" anschauen"
 
 #: boa/Models/PythonControllers.py:559
 msgid "Cannot create a new Python Extension, use distutils to build it"
-msgstr ""
+msgstr "Kann keine neue Python Extension kreieren, benutze \"distutils\" dazu"
 
 #: boa/Models/PythonControllers.py:605
 msgid "Cannot run distutils on an unsaved module"
-msgstr ""
+msgstr "\"distutils\" kann nicht ausgeführt werden - Modul ungesichert."
 
 #: boa/Models/PythonControllers.py:615
 msgid "Running distutil command..."
-msgstr ""
+msgstr "\"distutil\" Befehl wird ausgeführt"
 
 #: boa/Models/PythonControllers.py:634
 msgid "Edit setup.py arguments"
-msgstr ""
+msgstr "Ändern der \"setup.py\" Argumente"
 
 #: boa/Models/PythonControllers.py:635
 msgid "Distutils setup"
-msgstr ""
+msgstr "\"distutils\" Setup"
 
 #: boa/Models/PythonEditorModels.py:153
 #: boa/Models/PythonEditorModels.py:174
-#, python-format
+#, fuzzy, python-format
 msgid "Running %s..."
-msgstr ""
+msgstr "Ausführen von %s..."
 
 #: boa/Models/PythonEditorModels.py:247
 msgid "Save before running Cyclops"
-msgstr ""
+msgstr "Vorher sichern, dann Cyclops ausführen"
 
 #: boa/Models/PythonEditorModels.py:248
 msgid "Not saved yet!"
-msgstr ""
+msgstr "Noch nicht gesichert!"
 
 #: boa/Models/PythonEditorModels.py:337
 msgid "Code reformatted (indents and or EOL characters fixed)"
-msgstr ""
+msgstr "Code neu formatiert (Einrücken und/oder EOL korrigiert)"
 
 #: boa/Models/PythonEditorModels.py:341
 #, python-format
 msgid "Reindent failed - %s : %s"
-msgstr ""
+msgstr "Konnte nicht Einrücken - %s: %s"
 
 #: boa/Models/PythonEditorModels.py:356
 msgid ""
@@ -2729,47 +2749,51 @@ msgid ""
 "    Disassembly of Traceback:\n"
 "'''"
 msgstr ""
+"''' Code kompiliert nicht\n"
+"\n"
+"   Disassembly vom Traceback:\n"
+"'''"
 
 #: boa/Models/PythonEditorModels.py:360
 msgid "''' Could not disassemble traceback '''\n"
-msgstr ""
+msgstr "''' Konnte Traceback nicht disassemble '''\n"
 
 #: boa/Models/PythonEditorModels.py:423
 msgid "Compiled file found, check sys.path!"
-msgstr ""
+msgstr "Komplierte Datei gefunden, überprüfe sys.path!"
 
 #: boa/Models/PythonEditorModels.py:425
 msgid "Compiled file found"
-msgstr ""
+msgstr "Kompilierte Datei gefunden"
 
 #: boa/Models/PythonEditorModels.py:427
 msgid "Unhandled import type"
-msgstr ""
+msgstr "Unbearbeiter Import Typ"
 
 #: boa/Models/PythonEditorModels.py:467
 #, python-format
 msgid "Import of %s successfull"
-msgstr ""
+msgstr "Import von %s erfolgreich"
 
 #: boa/Models/PythonEditorModels.py:469
 #, python-format
 msgid "Import of %s failed"
-msgstr ""
+msgstr "Import von %s nicht erfolgreich"
 
 #: boa/Models/PythonEditorModels.py:480
 #, python-format
 msgid "Reload of %s successfull"
-msgstr ""
+msgstr "Neu Laden von %s erfolgreich"
 
 #: boa/Models/PythonEditorModels.py:482
 #, python-format
 msgid "Reload of %s failed"
-msgstr ""
+msgstr "Neu Laden von %s nicht erfolgreich"
 
 #: boa/Models/PythonEditorModels.py:488
 #, python-format
 msgid "Global dict %s not found in the module, please add \"%s = {}\" as a global variable."
-msgstr ""
+msgstr "Global dict %s wurde in diesem Modul nicht gefunden, bitte \"%s = {}\" als eine global variable hinzufügen."
 
 #: boa/Models/PythonEditorModels.py:494
 #, python-format
@@ -2786,59 +2810,61 @@ msgstr ""
 #: boa/Models/PythonEditorModels.py:563
 #, python-format
 msgid "Loaded resource: %s"
-msgstr ""
+msgstr "Geladene Resource: %s"
 
 #: boa/Models/PythonEditorModels.py:565
 #, python-format
 msgid "Could not load %s"
-msgstr ""
+msgstr "Konnte \"%s\" nicht laden"
 
 #: boa/Models/PythonEditorModels.py:570
 #, python-format
 msgid "%s is not a valid Resource Module"
-msgstr ""
+msgstr "%s ist kein gültiges Resource Modul"
 
 #: boa/Models/PythonEditorModels.py:857
 msgid "Module import list not found in application"
-msgstr ""
+msgstr "Modul import Liste in der Applikation nicht gefunden"
 
 #: boa/Models/PythonEditorModels.py:859
 msgid "Module import list not terminated"
-msgstr ""
+msgstr "Modul import Liste ist nicht beendet"
 
 #: boa/Models/PythonEditorModels.py:907
 msgid "Module name exists in application"
-msgstr ""
+msgstr "Modul Name existiert in der Applikation"
 
 #: boa/Models/PythonEditorModels.py:919
 msgid "No such module in application"
-msgstr ""
+msgstr "Kein solches Modul in der Applikation"
 
 #: boa/Models/PythonEditorModels.py:943
 msgid "No such module in application: "
-msgstr ""
+msgstr "Kein solches Modul in der Applikation:"
 
 #: boa/Models/PythonEditorModels.py:1027
 msgid "No main frame module found in application"
-msgstr ""
+msgstr "Kein \"main frame\" Modul in der Applikation gefunden"
 
 #: boa/Models/PythonEditorModels.py:1035
 msgid "Module does not exists in application"
-msgstr ""
+msgstr "Modul existiert nicht in der Applikation"
 
 #: boa/Models/PythonEditorModels.py:1077
 msgid "Trace file not found. Run with command line param -T"
-msgstr ""
+msgstr "Trace Datei nicht gefunden.  Mit Befehlszeile Parameter \"-T\" ausführen"
 
 #: boa/Models/PythonEditorModels.py:1086
 msgid ""
 "Unsaved file no longer open in the Editor.\n"
 "Remove it from application modules ?"
 msgstr ""
+"Ungesicherte Datei nicht mehr im Editor geöffnet.\n"
+"Von den Applikations Modulen entfernen?"
 
 #: boa/Models/PythonEditorModels.py:1087
 msgid "Missing file"
-msgstr ""
+msgstr "Fehlende Datei"
 
 #: boa/Models/PythonEditorModels.py:1107
 #, python-format
@@ -2847,16 +2873,16 @@ msgstr ""
 
 #: boa/Models/ResourceSupport.py:59
 msgid "Select Resource"
-msgstr ""
+msgstr "Resource auswählen"
 
 #: boa/Models/ResourceSupport.py:70
 #: boa/PropEdit/ArtProviderBrowser.py:105
 msgid "File Dialog..."
-msgstr ""
+msgstr "Datei Dialog..."
 
 #: boa/Models/ResourceSupport.py:144
 msgid "Images"
-msgstr ""
+msgstr "Bilder"
 
 #: boa/Models/ResourceSupport.py:158
 #: boa/Views/EditorViews.py:1366
@@ -2865,12 +2891,12 @@ msgstr ""
 #: boa/Views/SourceViews.py:389
 #: boa/Views/XMLView.py:33
 msgid "Goto line"
-msgstr ""
+msgstr "Zur Zeile springen"
 
 #: boa/Models/ResourceSupport.py:249
 #, python-format
 msgid "Unsupported image type: %s"
-msgstr ""
+msgstr "Nicht unterstützter Bild Typ: %s"
 
 #: boa/Models/ResourceSupport.py:325
 #, python-format
@@ -2881,23 +2907,28 @@ msgid ""
 "\n"
 "Edit options string:"
 msgstr ""
+"Optionen:\n"
+"\n"
+"%s\n"
+"\n"
+"Ändern der Optionen Zeichenfolge:"
 
 #: boa/Models/ResourceSupport.py:355
 msgid "Resource module not found. img2py failed to create the module"
-msgstr ""
+msgstr "Resource Modul nicht gefunden. img2py konnte das Modul nicht kreieren."
 
 #: boa/Models/wxPythonControllers.py:45
 msgid "Frame Designer"
-msgstr ""
+msgstr "Rahmen Designer"
 
 #: boa/Models/wxPythonControllers.py:173
 msgid "Designer session started."
-msgstr ""
+msgstr "Designer Session gestartet."
 
 #: boa/Models/wxPythonControllers.py:180
 #, python-format
 msgid "An error occured while opening the Designer: %s"
-msgstr ""
+msgstr "Es gab einen Fehler beim öffnen des Designer: %s"
 
 #: boa/Models/wxPythonEditorModels.py:130
 #, python-format
@@ -2906,7 +2937,7 @@ msgstr ""
 
 #: boa/Models/wxPythonEditorModels.py:160
 msgid "The following lines were not used by the Designer and will be lost:\n"
-msgstr ""
+msgstr "Die folgenden Zeilen wurden vom Designer nicht benutzt und werden verloren gehen:\n"
 
 #: boa/Models/wxPythonEditorModels.py:164
 #, python-format
@@ -2921,7 +2952,7 @@ msgstr ""
 
 #: boa/Models/wxPythonEditorModels.py:305
 msgid "_custom_classes is not valid: "
-msgstr ""
+msgstr "_custom_classes ist nicht gültig: "
 
 #: boa/Models/wxPythonEditorModels.py:353
 msgid "Inherited __init__ method missing"
@@ -2934,26 +2965,26 @@ msgstr ""
 
 #: boa/Models/XMLSupport.py:43
 msgid "XML"
-msgstr ""
+msgstr "XML"
 
 #: boa/Plug-ins/AppTimeTrack.plug-in.py:18
 msgid "Time Tracking"
-msgstr ""
+msgstr "Time Tracking"
 
 #: boa/Plug-ins/AppTimeTrack.plug-in.py:21
 #: boa/Plug-ins/AppTimeTrack.plug-in.py:26
 msgid "Start"
-msgstr ""
+msgstr "Starten"
 
 #: boa/Plug-ins/AppTimeTrack.plug-in.py:22
 #: boa/Plug-ins/AppTimeTrack.plug-in.py:27
 msgid "End"
-msgstr ""
+msgstr "Beenden"
 
 #: boa/Plug-ins/AppTimeTrack.plug-in.py:28
 #: boa/Views/AppViews.py:118
 msgid "Description"
-msgstr ""
+msgstr "Beschreibung"
 
 #: boa/Plug-ins/AppTimeTrack.plug-in.py:98
 #, python-format
@@ -2963,15 +2994,19 @@ msgid ""
 "\n"
 "Enter a description for the time spent"
 msgstr ""
+"Start Zeit :%s\n"
+"End Zeit :%s\n"
+"\n"
+"Eine Beschreibung für die benutzte Zeit eingeben"
 
 #: boa/Plug-ins/AppTimeTrack.plug-in.py:100
 msgid "Time tracking"
-msgstr ""
+msgstr "Zeit Verfolgen"
 
 #: boa/Plug-ins/AppTimeTrack.plug-in.py:116
 #: boa/Views/DiffView.py:169
 msgid "Are you sure?"
-msgstr ""
+msgstr "Sind Sie sicher?"
 
 #: boa/Plug-ins/BicycleRepairMan.plug-in.py:75
 msgid "BRM - Find references"
@@ -2979,71 +3014,73 @@ msgstr "BRM - Such Präferenzen"
 
 #: boa/Plug-ins/BicycleRepairMan.plug-in.py:76
 msgid "BRM - Find definition"
-msgstr ""
+msgstr "BRM - Find definition"
 
 #: boa/Plug-ins/BicycleRepairMan.plug-in.py:78
 msgid "BRM - Rename"
-msgstr ""
+msgstr "BRM - Umbenennen"
 
 #: boa/Plug-ins/BicycleRepairMan.plug-in.py:79
 msgid "BRM - Extract method"
-msgstr ""
+msgstr "BRM - Extract method"
 
 #: boa/Plug-ins/BicycleRepairMan.plug-in.py:81
 msgid "BRM - Extract local variable"
-msgstr ""
+msgstr "BRM - Extract local variable"
 
 #: boa/Plug-ins/BicycleRepairMan.plug-in.py:82
 msgid "BRM - Inline local variable"
-msgstr ""
+msgstr "BRM - Inline local variable"
 
 #: boa/Plug-ins/BicycleRepairMan.plug-in.py:85
 msgid "BRM - Undo last"
-msgstr ""
+msgstr "BRM - Undo last"
 
 #: boa/Plug-ins/BicycleRepairMan.plug-in.py:91
 msgid "No text selected."
-msgstr ""
+msgstr "Kein Text selektiert"
 
 #: boa/Plug-ins/BicycleRepairMan.plug-in.py:131
 msgid "Save changes before Refactoring operation"
-msgstr ""
+msgstr "Zuerst Änderung sichern, dann den \"Refactoring\" Arbeitsgang ausführen"
 
 #: boa/Plug-ins/BicycleRepairMan.plug-in.py:133
 msgid "Operation aborted."
-msgstr ""
+msgstr "Arbeitsgang abgebrochen"
 
 #: boa/Plug-ins/BicycleRepairMan.plug-in.py:141
+#, fuzzy
 msgid "No text selected. Highlight the region you want to extract."
-msgstr ""
+msgstr "Kein Text selektiert.  Den Bereich zum extrahieren auswählen"
 
 #: boa/Plug-ins/BicycleRepairMan.plug-in.py:144
 #, python-format
 msgid "New %s name:"
-msgstr ""
+msgstr "Neuer %s Name:"
 
 #: boa/Plug-ins/BicycleRepairMan.plug-in.py:146
 msgid "Empty names are invalid."
-msgstr ""
+msgstr "Leere Namen sind nicht gültig."
 
 #: boa/Plug-ins/BicycleRepairMan.plug-in.py:162
 msgid "BRM - Finding references..."
-msgstr ""
+msgstr "BRM - Finding references..."
 
 #: boa/Plug-ins/BicycleRepairMan.plug-in.py:174
 #: boa/Plug-ins/BicycleRepairMan.plug-in.py:225
 #, python-format
 msgid "BRM - Error %s"
-msgstr ""
+msgstr "BRM - Fehler %s"
 
 #: boa/Plug-ins/BicycleRepairMan.plug-in.py:180
 #: boa/Plug-ins/BicycleRepairMan.plug-in.py:218
 msgid "BRM - Could not find definition"
-msgstr ""
+msgstr "BRM - Could not find definition"
 
 #: boa/Plug-ins/BicycleRepairMan.plug-in.py:182
+#, fuzzy
 msgid "Perform Find Definition?"
-msgstr ""
+msgstr "Perform Find Definition?"
 
 #: boa/Plug-ins/BicycleRepairMan.plug-in.py:182
 msgid "Find References"
@@ -3052,34 +3089,35 @@ msgstr "Such Präferenzen"
 #: boa/Plug-ins/BicycleRepairMan.plug-in.py:188
 #, python-format
 msgid "BRM - References for %s"
-msgstr ""
+msgstr "BRM - References for %s"
 
 #: boa/Plug-ins/BicycleRepairMan.plug-in.py:199
 #, python-format
 msgid "BRM - %s reference(s) found"
-msgstr ""
+msgstr "BRM - %s reference(s) found"
 
 #: boa/Plug-ins/BicycleRepairMan.plug-in.py:208
 msgid "BRM - Finding definition..."
-msgstr ""
+msgstr "BRM - Finding definition..."
 
 #: boa/Plug-ins/BicycleRepairMan.plug-in.py:216
+#, fuzzy
 msgid "Couldn't find definition"
-msgstr ""
+msgstr "Couldn't find definition"
 
 #: boa/Plug-ins/BicycleRepairMan.plug-in.py:234
 #, python-format
 msgid "BRM - Definition for %s"
-msgstr ""
+msgstr "BRM - Definition for %s"
 
 #: boa/Plug-ins/BicycleRepairMan.plug-in.py:246
 #, python-format
 msgid "BRM - %s matches(s) found"
-msgstr ""
+msgstr "BRM - %s matches(s) found"
 
 #: boa/Plug-ins/BicycleRepairMan.plug-in.py:256
 msgid "Rename to:"
-msgstr ""
+msgstr "Umbenennen nach:"
 
 #: boa/Plug-ins/BicycleRepairMan.plug-in.py:271
 msgid ""
@@ -3089,7 +3127,7 @@ msgstr ""
 
 #: boa/Plug-ins/BicycleRepairMan.plug-in.py:272
 msgid "Rename?"
-msgstr ""
+msgstr "Umbenennen?"
 
 #: boa/Plug-ins/BicycleRepairMan.plug-in.py:283
 msgid "Extract method"
@@ -3107,7 +3145,7 @@ msgstr ""
 #: boa/Plug-ins/FlatNotebook.plug-in.py:9
 #, python-format
 msgid "Module %s not found"
-msgstr ""
+msgstr "Modul %s nicht gefunden"
 
 #: boa/Plug-ins/ErrOutShortcut.plug-in.py:18
 msgid "Toggle Error/Output window"
@@ -3115,15 +3153,15 @@ msgstr ""
 
 #: boa/Plug-ins/FormatParagraph.plug-in.py:155
 msgid "Format paragraph"
-msgstr ""
+msgstr "Paragraph formatieren"
 
 #: boa/Plug-ins/HelpBook.plug-in.py:19
 msgid "Help Book - Index"
-msgstr ""
+msgstr "Hilfe Buch - Index"
 
 #: boa/Plug-ins/HelpBook.plug-in.py:19
 msgid "Keyword(s)"
-msgstr ""
+msgstr "Schlüssel Wort(e)"
 
 #: boa/Plug-ins/HelpBook.plug-in.py:20
 #: boa/Plug-ins/HelpBook.plug-in.py:24
@@ -3133,11 +3171,11 @@ msgstr ""
 
 #: boa/Plug-ins/HelpBook.plug-in.py:23
 msgid "Help Book - Contents"
-msgstr ""
+msgstr "Hilfe Buch - Inhalt"
 
 #: boa/Plug-ins/HelpBook.plug-in.py:64
 msgid "Title from HTML"
-msgstr ""
+msgstr "Titel vom HTML"
 
 #: boa/Plug-ins/HelpBook.plug-in.py:385
 msgid ""
@@ -3151,7 +3189,7 @@ msgstr "Datei"
 
 #: boa/Plug-ins/HelpBook.plug-in.py:439
 msgid "Add file"
-msgstr ""
+msgstr "Datei hinzufügen"
 
 #: boa/Plug-ins/HelpBook.plug-in.py:440
 msgid "Add files"
@@ -3179,7 +3217,7 @@ msgstr ""
 #: boa/Views/EditorViews.py:1311
 #: boa/Views/STCStyleEditor.py:1076
 msgid "Name"
-msgstr ""
+msgstr "Name"
 
 #: boa/Plug-ins/HelpBook.plug-in.py:456
 msgid "Path"
@@ -3203,11 +3241,11 @@ msgstr ""
 
 #: boa/Plug-ins/HelpBook.plug-in.py:582
 msgid "Invalid file"
-msgstr ""
+msgstr "Ungültige Datei"
 
 #: boa/Plug-ins/HelpBook.plug-in.py:614
 msgid "Enter wildcard"
-msgstr ""
+msgstr "Platzhalter eingeben"
 
 #: boa/Plug-ins/HelpBook.plug-in.py:614
 msgid "Add Files"
@@ -3215,7 +3253,7 @@ msgstr "Datei hinzufügen"
 
 #: boa/Plug-ins/HelpBook.plug-in.py:694
 msgid "Add index"
-msgstr ""
+msgstr "Index hinzufügen"
 
 #: boa/Plug-ins/HelpBook.plug-in.py:695
 msgid "Edit index"
@@ -3227,7 +3265,7 @@ msgstr "Index löschen"
 
 #: boa/Plug-ins/HelpBook.plug-in.py:716
 msgid "Keyword"
-msgstr ""
+msgstr "Schlüsselwort"
 
 #: boa/Plug-ins/HelpBook.plug-in.py:864
 msgid "Edit entry"
@@ -3239,15 +3277,15 @@ msgstr "Eintrag löschen"
 
 #: boa/Plug-ins/HelpBook.plug-in.py:866
 msgid "Import..."
-msgstr ""
+msgstr "Import..."
 
 #: boa/Plug-ins/HelpBook.plug-in.py:954
 msgid "Help Book - Contents properties"
-msgstr ""
+msgstr "Hilfe Buch - Inhalts Eigenschaften"
 
 #: boa/Plug-ins/HelpBook.plug-in.py:956
 msgid "Default topic"
-msgstr ""
+msgstr "Vorgabe Thema"
 
 #: boa/Plug-ins/HelpBook.plug-in.py:1000
 msgid "Cannot delete root node."
@@ -3278,7 +3316,7 @@ msgstr "Quellecode Dateien auswählen"
 
 #: boa/Plug-ins/HelpBook.plug-in.py:1043
 msgid "Files list"
-msgstr ""
+msgstr "Datei Liste"
 
 #: boa/Plug-ins/HelpBook.plug-in.py:1043
 msgid "Entire help book directory"
@@ -3295,7 +3333,7 @@ msgstr ""
 
 #: boa/Plug-ins/I18NWrap.plug-in.py:13
 msgid "Wrap selection with _()"
-msgstr ""
+msgstr "Wrap selektion mit _()"
 
 #: boa/Plug-ins/ImageEditor.plug-in.py:46
 msgid "Current drawing mode"
@@ -3383,16 +3421,16 @@ msgstr ""
 
 #: boa/Plug-ins/ImageEditor.plug-in.py:287
 msgid "Invalid bitmap"
-msgstr ""
+msgstr "Ungültige \"bitmap\""
 
 #: boa/Plug-ins/ImageEditor.plug-in.py:730
 msgid "Not a picture"
-msgstr ""
+msgstr "Ist kein Bild"
 
 #: boa/Plug-ins/ImageEditor.plug-in.py:782
 #: boa/Plug-ins/ImageEditor.plug-in.py:804
 msgid "Enter a tuple for the new size"
-msgstr ""
+msgstr "Ein \"tupe\" für die neue Grösse eingeben"
 
 #: boa/Plug-ins/ImageEditor.plug-in.py:783
 msgid "Resize"
@@ -3446,7 +3484,7 @@ msgstr "Zum Modul konvertieren"
 #: boa/Plug-ins/JavaSupport.plug-in.py:74
 #: boa/Plug-ins/PascalSupport.plug-in.py:74
 msgid "Compile"
-msgstr ""
+msgstr "Kompilieren"
 
 #: boa/Plug-ins/ModuleFinder.plug-in.py:24
 msgid "Module finder for sys.path"
@@ -3454,12 +3492,12 @@ msgstr ""
 
 #: boa/Plug-ins/ModuleFinder.plug-in.py:29
 msgid "Module name:"
-msgstr ""
+msgstr "Modul Name:"
 
 #: boa/Plug-ins/ModuleFinder.plug-in.py:63
 #, python-format
 msgid "%s not found on sys.path (%s)."
-msgstr ""
+msgstr "%s nicht gefunden auf sys.path (%s)."
 
 #: boa/Plug-ins/ModuleFinder.plug-in.py:84
 msgid "Module finder"
@@ -3467,11 +3505,11 @@ msgstr ""
 
 #: boa/Plug-ins/PyInterpreterChooser.plug-in.py:62
 msgid "Version"
-msgstr ""
+msgstr "Version"
 
 #: boa/Plug-ins/PyInterpreterChooser.plug-in.py:64
 msgid "Install Path"
-msgstr ""
+msgstr "Installations Pfad"
 
 #: boa/Plug-ins/PyInterpreterChooser.plug-in.py:90
 msgid "Python Interpreter Chooser"
@@ -3479,7 +3517,7 @@ msgstr ""
 
 #: boa/Plug-ins/PyInterpreterChooser.plug-in.py:96
 msgid "Found installations: (double click to select)"
-msgstr ""
+msgstr "Gefunde Installationen: (Doppelt klicken zum selektieren)"
 
 #: boa/Plug-ins/PyInterpreterChooser.plug-in.py:117
 msgid "Current interpreter path (Blank means sys.executable will be used.)"
@@ -3503,17 +3541,17 @@ msgstr ""
 
 #: boa/Plug-ins/RegexEditor.plug-in.py:77
 msgid "String"
-msgstr ""
+msgstr "Zeichenfolge"
 
 #: boa/Plug-ins/RegexEditor.plug-in.py:88
 #: boa/Plug-ins/RegexEditor.plug-in.py:104
 #: boa/Plug-ins/RegexEditor.plug-in.py:202
 msgid "Match"
-msgstr ""
+msgstr "Match"
 
 #: boa/Plug-ins/RegexEditor.plug-in.py:101
 msgid "Groups"
-msgstr ""
+msgstr "Groupen"
 
 #: boa/Plug-ins/RegexEditor.plug-in.py:105
 msgid "Action"
@@ -3544,24 +3582,24 @@ msgstr ""
 
 #: boa/Plug-ins/wxPythonDemo.plug-in.py:67
 msgid "Demo"
-msgstr ""
+msgstr "Demo"
 
 #: boa/Plug-ins/wxPythonDemo.plug-in.py:116
 msgid "Overview"
-msgstr ""
+msgstr "Übersicht"
 
 #: boa/Plug-ins/wxPythonDemo.plug-in.py:128
 msgid "No module imported"
-msgstr ""
+msgstr "Kein Modul importiert"
 
 #: boa/Plug-ins/wxPythonDemo.plug-in.py:186
 msgid "wxPython demo"
-msgstr ""
+msgstr "wxPython demo"
 
 #: boa/Plug-ins/XRCSupport.plug-in.py:50
 #: boa/Plug-ins/XRCSupport.plug-in.py:79
 msgid "No wx.xrc.XmlResource objects found"
-msgstr ""
+msgstr "Keine \"wx.xrc.XmlResource\" Objekte gefunden"
 
 #: boa/Plug-ins/XRCSupport.plug-in.py:68
 msgid "Select wx.xrc.XmlResource to LoadPanel from"
@@ -3603,19 +3641,19 @@ msgstr ""
 
 #: boa/PropEdit/MaskedEditFmtCodeDlg.py:9
 msgid "Allow spaces"
-msgstr ""
+msgstr "Erlaube Leerzeichen"
 
 #: boa/PropEdit/MaskedEditFmtCodeDlg.py:10
 msgid "Force upper"
-msgstr ""
+msgstr "Erlaube nur Grossbuchstaben"
 
 #: boa/PropEdit/MaskedEditFmtCodeDlg.py:11
 msgid "Force lower"
-msgstr ""
+msgstr "Erlaube nur Kleinbuchstaben"
 
 #: boa/PropEdit/MaskedEditFmtCodeDlg.py:12
 msgid "Right-align field(s)"
-msgstr ""
+msgstr "Rechts ausrichten Feld(er)"
 
 #: boa/PropEdit/MaskedEditFmtCodeDlg.py:13
 msgid "Right-insert in field(s) (implies R)"
@@ -3645,15 +3683,15 @@ msgstr ""
 
 #: boa/PropEdit/MaskedEditFmtCodeDlg.py:19
 msgid "Date[/time] field"
-msgstr ""
+msgstr "Datum[/Zeit] Feld"
 
 #: boa/PropEdit/MaskedEditFmtCodeDlg.py:20
 msgid "Time field"
-msgstr ""
+msgstr "Zeit Feld"
 
 #: boa/PropEdit/MaskedEditFmtCodeDlg.py:21
 msgid "Auto-Fit: the control calulates its size from the length of the template mask"
-msgstr ""
+msgstr "Auto-Fit: Die Kontrolle kalkuliert die Grösse von der Breite der \"template mask\""
 
 #: boa/PropEdit/MaskedEditFmtCodeDlg.py:22
 msgid "Validate entered chars against ValidRegex, blocking invalid characters"
@@ -3741,20 +3779,20 @@ msgstr ""
 #: boa/PropEdit/PropertyEditors.py:1208
 #: boa/PropEdit/PropertyEditors.py:1497
 msgid "Name already used by another control."
-msgstr ""
+msgstr "Name schon von einer anderen Kontrolle benutzt."
 
 #: boa/PropEdit/PropertyEditors.py:1290
 #: boa/PropEdit/PropertyEditors.py:1338
 msgid "(rename)"
-msgstr ""
+msgstr "(umbenennen)"
 
 #: boa/PropEdit/PropertyEditors.py:1291
 msgid "(show all)"
-msgstr ""
+msgstr "(all anzeigen)"
 
 #: boa/PropEdit/PropertyEditors.py:1292
 msgid "(show own)"
-msgstr ""
+msgstr "(eigene anzeigen)"
 
 #: boa/PropEdit/PropertyEditors.py:1345
 msgid "Enter a new method name:"
@@ -3933,7 +3971,7 @@ msgstr ""
 
 #: boa/Scripts/prefs.rc.i18n.py:26
 msgid "Language to use for translations in the IDE. Requires a restart of Boa"
-msgstr ""
+msgstr "Übersetzungs Sprache für die IDE.  Benötigt einen neu Start von Boa."
 
 #: boa/Scripts/prefs.rc.i18n.py:27
 msgid ""
@@ -4507,12 +4545,12 @@ msgstr ""
 
 #: boa/Views/AppViews.py:287
 msgid "Result"
-msgstr ""
+msgstr "Resultat"
 
 #: boa/Views/AppViews.py:315
 #: boa/Views/AppViews.py:324
 msgid "changed"
-msgstr ""
+msgstr "geändert"
 
 #: boa/Views/AppViews.py:328
 msgid "deleted"
@@ -4520,7 +4558,7 @@ msgstr "gelöscht"
 
 #: boa/Views/AppViews.py:334
 msgid "added"
-msgstr ""
+msgstr "hinzugefügt"
 
 #: boa/Views/AppViews.py:348
 msgid "Application Todo"
@@ -4599,7 +4637,7 @@ msgstr ""
 #: boa/Views/CtrlSize.py:51
 #: boa/Views/CtrlSize.py:76
 msgid "No change"
-msgstr ""
+msgstr "Keine Änderung"
 
 #: boa/Views/CtrlAlign.py:41
 #: boa/Views/CtrlAlign.py:88
@@ -4665,24 +4703,24 @@ msgstr ""
 #: boa/Views/CtrlSize.py:41
 #: boa/Views/CtrlSize.py:111
 msgid "Width:"
-msgstr ""
+msgstr "Breite:"
 
 #: boa/Views/CtrlSize.py:42
 msgid "Width"
-msgstr ""
+msgstr "Breite"
 
 #: boa/Views/CtrlSize.py:52
 #: boa/Views/CtrlSize.py:123
 msgid "Height:"
-msgstr ""
+msgstr "Höhe:"
 
 #: boa/Views/CtrlSize.py:53
 msgid "Height"
-msgstr ""
+msgstr "Höhe"
 
 #: boa/Views/DataView.py:29
 msgid "Data"
-msgstr ""
+msgstr "Daten"
 
 #: boa/Views/DataView.py:40
 msgid "Default editor"
@@ -4690,7 +4728,7 @@ msgstr ""
 
 #: boa/Views/DataView.py:41
 msgid "Post"
-msgstr ""
+msgstr "Speichern"
 
 #: boa/Views/DataView.py:49
 #: boa/Views/Designer.py:191
@@ -4769,7 +4807,7 @@ msgstr ""
 #: boa/Views/Designer.py:523
 #, python-format
 msgid "%s not found"
-msgstr ""
+msgstr "%s nicht gefunden"
 
 #: boa/Views/Designer.py:582
 msgid "Can't delete frame"
@@ -4781,7 +4819,7 @@ msgstr ""
 
 #: boa/Views/Designer.py:1173
 msgid "Nothing to delete"
-msgstr ""
+msgstr "Nichts zu löschen"
 
 #: boa/Views/Designer.py:1216
 msgid "Nothing to cut"
@@ -4789,7 +4827,7 @@ msgstr "Nichts zum ausschneiden"
 
 #: boa/Views/Designer.py:1235
 msgid "Nothing to copy"
-msgstr ""
+msgstr "Nichts zu kopieren"
 
 #: boa/Views/Designer.py:1275
 msgid "Only 1 control can be pasted into this container"
@@ -4839,7 +4877,7 @@ msgstr "Ansicht"
 
 #: boa/Views/EditorViews.py:382
 msgid "Documentation"
-msgstr ""
+msgstr "Dokumentation"
 
 #: boa/Views/EditorViews.py:388
 msgid "Save HTML"
@@ -4848,11 +4886,11 @@ msgstr "HTML sichern"
 #: boa/Views/EditorViews.py:389
 #: boa/Views/STCPrinting.py:79
 msgid "Print"
-msgstr ""
+msgstr "Drucken"
 
 #: boa/Views/EditorViews.py:521
 msgid "results"
-msgstr ""
+msgstr "Resultate"
 
 #: boa/Views/EditorViews.py:522
 msgid "Close "
@@ -4860,7 +4898,7 @@ msgstr "Schliessen"
 
 #: boa/Views/EditorViews.py:531
 msgid "Cyclops report"
-msgstr ""
+msgstr "Cyclops Bericht"
 
 #: boa/Views/EditorViews.py:789
 msgid "Todo"
@@ -4869,27 +4907,27 @@ msgstr "Todo"
 #: boa/Views/EditorViews.py:798
 #: boa/Views/EditorViews.py:1370
 msgid "Line#"
-msgstr ""
+msgstr "Zeilen#"
 
 #: boa/Views/EditorViews.py:799
 msgid "Urgency"
-msgstr ""
+msgstr "Dringlichkeit"
 
 #: boa/Views/EditorViews.py:800
 msgid "Entry"
-msgstr ""
+msgstr "Eintrag"
 
 #: boa/Views/EditorViews.py:903
 msgid "Package"
-msgstr ""
+msgstr "Paket"
 
 #: boa/Views/EditorViews.py:938
 msgid "Info"
-msgstr ""
+msgstr "Info"
 
 #: boa/Views/EditorViews.py:942
 msgid "Add comment block to code"
-msgstr ""
+msgstr "Kommentar block zum Code hinzufügen"
 
 #: boa/Views/EditorViews.py:960
 #: boa/Views/EditorViews.py:1072
@@ -4915,7 +4953,7 @@ msgstr ""
 
 #: boa/Views/EditorViews.py:1358
 msgid "CVS conflicts"
-msgstr ""
+msgstr "CVS konflikte"
 
 #: boa/Views/EditorViews.py:1367
 msgid "Accept changes"
@@ -4946,7 +4984,7 @@ msgstr ""
 #: boa/Views/InspectableViews.py:199
 #, python-format
 msgid "Problem with: %s"
-msgstr ""
+msgstr "Problem mit: %s"
 
 #: boa/Views/InspectableViews.py:248
 #, python-format
@@ -4955,7 +4993,7 @@ msgstr ""
 
 #: boa/Views/InspectableViews.py:549
 msgid "Nothing to paste"
-msgstr ""
+msgstr "Nichts zum einfügen"
 
 #: boa/Views/InspectableViews.py:576
 #, python-format
