@@ -191,6 +191,9 @@ def getMethodType(method, obj, Class):
         meth = getattr(obj, method)
     except TypeError:
         return result
+    except Exception:
+        #print obj, method
+        return result
 
     if (type(meth) == MethodType):
         func = meth.im_func
