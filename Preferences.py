@@ -174,7 +174,11 @@ IS = ImageStore.ImageStoreClasses[imageStoreType](imageStorePaths, cache=useImag
 
 def getPythonInterpreterPath():
     if not pythonInterpreterPath:
-        return sys.executable
+        if hasattr(sys, 'frozen'):
+            from Utils import _
+            raise Exception, _('No python interpreter defined')
+        else:
+            return sys.executable
     else:
         return pythonInterpreterPath
 
