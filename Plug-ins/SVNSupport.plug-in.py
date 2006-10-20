@@ -657,7 +657,7 @@ class FSSVNFolderNode(ExplorerNodes.ExplorerNode):
         tree = editor.explorer.tree
         svnParentItemParent = tree.GetItemParent(tree.GetItemParent(tree.GetSelection()))
 
-        svnChd = tree.getChildNamed(svnParentItemParent, 'SVN')
+        svnChd = tree.getChildNamed(svnParentItemParent, '.svn')
         if svnChd.IsOk():
             tree.SelectItem(svnChd)
             return True
