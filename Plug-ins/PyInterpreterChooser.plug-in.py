@@ -291,3 +291,11 @@ Plugins.registerPreference('PyInterpreterChooser', 'picExtraPaths', '[]',
                            ['Additional locations to choose the Python '
                             'Interpreter Path from.'])
 Plugins.registerTool(_('Python interpreter chooser'), openPyInterpChooser)
+
+# warn the user if the Preferences.pythonInterpreterPath is not valid
+def checkInterpreter():
+    if hasattr(sys, 'frozen') and not Preferences.pythonInterpreterPath:
+        wx.LogWarning(_('No interpreter set to run programs with.\n'
+                      'Please set it up as soon as possible via:\n'
+                      'Tools->Python interpreter chooser'))
+wx.CallAfter(checkInterpreter)
