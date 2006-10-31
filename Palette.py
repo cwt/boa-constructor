@@ -171,20 +171,20 @@ class BoaFrame(wx.Frame, Utils.FrameRestorerMixin):
                 if mb: mb.Append(menu=palettePage.menu, title=palette[0])
 
             # Dialog page
-            if PaletteStore.dialogPalette[2]:
-                self.dialogPalettePage = PanelPalettePage(self.palette,
-                      PaletteStore.dialogPalette[0],
-                      'Images/Palette/', self, self.widgetSet,
-                      self.componentSB, self)
-                for dialog in PaletteStore.dialogPalette[2]:
-                    self.dialogPalettePage.addButton(
-                          PaletteStore.compInfo[dialog][0],
-                          dialog, PaletteStore.compInfo[dialog][1],
-                          self.OnDialogPaletteClick, None, None,
-                          wx.lib.buttons.GenBitmapButton)
-                self.palettePages.append(self.dialogPalettePage)
-                if mb: mb.Append(menu=self.dialogPalettePage.menu, 
-                                 title=PaletteStore.dialogPalette[0])
+##            if PaletteStore.dialogPalette[2]:
+##                self.dialogPalettePage = PanelPalettePage(self.palette,
+##                      PaletteStore.dialogPalette[0],
+##                      'Images/Palette/', self, self.widgetSet,
+##                      self.componentSB, self)
+##                for dialog in PaletteStore.dialogPalette[2]:
+##                    self.dialogPalettePage.addButton(
+##                          PaletteStore.compInfo[dialog][0],
+##                          dialog, PaletteStore.compInfo[dialog][1],
+##                          self.OnDialogPaletteClick, None, None,
+##                          wx.lib.buttons.GenBitmapButton)
+##                self.palettePages.append(self.dialogPalettePage)
+##                if mb: mb.Append(menu=self.dialogPalettePage.menu, 
+##                                 title=PaletteStore.dialogPalette[0])
 
             # Zope page
             if Plugins.transportInstalled('ZopeLib.ZopeExplorer'):
@@ -320,13 +320,13 @@ class ComponentSelection:
         self.selComp.Bind(wx.EVT_CHECKBOX, palette.OnUncheckComponent, id=wID)
         palette.toolBar.AddControl(self.selComp)
 
-        cId = palette.addTool('Images/Shared/Compose', 'Compose', ' ',
-              palette.OnComposeClick, toggle = True)
-        iId = palette.addTool('Images/Shared/Inherit', 'Inherit', ' ',
-              palette.OnInheritClick, toggle = True)
-        palette.toolBar.ToggleTool(cId, True)
-        palette.toolBar.EnableTool(cId, False)
-        palette.toolBar.EnableTool(iId, False)
+##        cId = palette.addTool('Images/Shared/Compose', 'Compose', ' ',
+##              palette.OnComposeClick, toggle = True)
+##        iId = palette.addTool('Images/Shared/Inherit', 'Inherit', ' ',
+##              palette.OnInheritClick, toggle = True)
+##        palette.toolBar.ToggleTool(cId, True)
+##        palette.toolBar.EnableTool(cId, False)
+##        palette.toolBar.EnableTool(iId, False)
 
         self.selection = None
         self.prevPage = None
