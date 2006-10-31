@@ -36,14 +36,6 @@ class PyInterpreterChooserDlg(wx.Dialog):
         parent.AddWindow(self.btnCancel, 0, border=10,
               flag=wx.ALL | wx.ALIGN_RIGHT)
 
-    def _init_coll_boxSizer2_Items(self, parent):
-        # generated method, don't edit
-
-        parent.AddWindow(self.lcInstallations, 1, border=10,
-              flag=wx.GROW | wx.ALL)
-        parent.AddWindow(self.gdcInstallPath, 1, border=10,
-              flag=wx.GROW | wx.ALL)
-
     def _init_coll_boxSizer1_Items(self, parent):
         # generated method, don't edit
 
@@ -54,6 +46,14 @@ class PyInterpreterChooserDlg(wx.Dialog):
               flag=wx.GROW | wx.ALL)
         parent.AddSizer(self.boxSizer3, 0, border=0,
               flag=wx.ALIGN_RIGHT | wx.GROW | wx.ALL)
+
+    def _init_coll_boxSizer2_Items(self, parent):
+        # generated method, don't edit
+
+        parent.AddWindow(self.lcInstallations, 1, border=10,
+              flag=wx.GROW | wx.ALL)
+        parent.AddWindow(self.gdcInstallPath, 1, border=10,
+              flag=wx.GROW | wx.ALL)
 
     def _init_coll_lcInstallations_Columns(self, parent):
         # generated method, don't edit
@@ -85,7 +85,7 @@ class PyInterpreterChooserDlg(wx.Dialog):
         # generated method, don't edit
         wx.Dialog.__init__(self, id=wxID_PYINTERPRETERCHOOSERDLG,
               name='PyInterpreterChooserDlg', parent=prnt, pos=wx.Point(548,
-              354), size=wx.Size(532, 358),
+              346), size=wx.Size(532, 358),
               style=wx.RESIZE_BORDER | wx.DEFAULT_DIALOG_STYLE,
               title=_('Python Interpreter Chooser'))
         self._init_utils()
@@ -116,7 +116,7 @@ class PyInterpreterChooserDlg(wx.Dialog):
         self.staticText2 = wx.StaticText(id=wxID_PYINTERPRETERCHOOSERDLGSTATICTEXT2,
               label=_('Current interpreter path (Blank means sys.executable will be used.)'),
               name='staticText2', parent=self, pos=wx.Point(10, 218),
-              size=wx.Size(376, 19), style=0)
+              size=wx.Size(502, 19), style=0)
 
         self.txtPyIntpPath = wx.TextCtrl(id=wxID_PYINTERPRETERCHOOSERDLGTXTPYINTPPATH,
               name='txtPyIntpPath', parent=self, pos=wx.Point(10, 257),
