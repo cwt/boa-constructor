@@ -347,8 +347,8 @@ class HTMLView(wx.html.HtmlWindow, EditorView):
         wx.html.HtmlWindow.__init__(self, parent, style=wx.SUNKEN_BORDER)
         EditorView.__init__(self, model, ((_('Back'), self.OnPrev, self.prevBmp, ''),
                       (_('Forward'), self.OnNext, self.nextBmp, '') )+ actions, -1)
-        self.SetRelatedFrame(model.editor, 'Editor')
-        self.SetRelatedStatusBar(1)
+        #self.SetRelatedFrame(model.editor, _('Editor %s)')
+        #self.SetRelatedStatusBar(1)
 
         model.editor.statusBar.setHint('')
 
@@ -519,7 +519,7 @@ class CloseableViewMix:
     closeViewBmp = 'Images/Editor/CloseView.png'
 
     def __init__(self, hint = _('results')):
-        self.closingActionItems = ( (_('Close ')+ hint, self.OnClose,
+        self.closingActionItems = ( (_('Close %s')%hint, self.OnClose,
                                      self.closeViewBmp, 'CloseView'), )
 
     def OnClose(self, event):
@@ -791,7 +791,7 @@ class ToDoView(ListCtrlView):
 
     def __init__(self, parent, model):
         ListCtrlView.__init__(self, parent, model, wx.LC_REPORT,
-          (('Goto line', self.OnGoto, self.gotoLineBmp, ''),), 0)
+          ((_('Goto line'), self.OnGoto, self.gotoLineBmp, ''),), 0)
 
         self.sortOnColumns = [0, 1]
 
@@ -886,7 +886,7 @@ class FindResultsAdderMixin:
             Value - ('Line no', 'Col', 'Text')
         """
         from FindResults import FindResults
-        name = 'Results: ' + pattern
+        name = _('Results: %s')%pattern
         if not self.model.views.has_key(name):
             resultView = self.model.editor.addNewView(name, FindResults)
         else:
@@ -962,7 +962,7 @@ class ExploreView(wx.TreeCtrl, EditorView):
 
     def __init__(self, parent, model):
         wx.TreeCtrl.__init__(self, parent, -1, style=wx.TR_HAS_BUTTONS | wx.SUNKEN_BORDER)
-        EditorView.__init__(self, model, (('Goto line', self.OnGoto, self.gotoLineBmp, ''),), 0)
+        EditorView.__init__(self, model, ((_('Goto line'), self.OnGoto, self.gotoLineBmp, ''),), 0)
 
         self.tokenImgLst = wx.ImageList(16, 16)
         for exploreImg in ('Images/Views/Explore/class.png',
@@ -998,7 +998,7 @@ class ExploreView(wx.TreeCtrl, EditorView):
         if not load_now and not self.IsShown():
             self._populated_tree = 0
             return
-        self.AddRoot('Loading...')
+        self.AddRoot(_('Loading...'))
 
         from moduleparse import CodeBlock
 
@@ -1221,7 +1221,7 @@ class HierarchyView(wx.TreeCtrl, EditorView):
         id = wx.NewId()
         wx.TreeCtrl.__init__(self, parent, id, style=wx.TR_HAS_BUTTONS | wx.SUNKEN_BORDER)
         EditorView.__init__(self, model,
-          (('Goto line', self.OnGoto, self.gotoLineBmp, ''),), 0)
+          ((_('Goto line'), self.OnGoto, self.gotoLineBmp, ''),), 0)
 
         self.tokenImgLst = wx.ImageList(16, 16)
         for hierImg in ('Images/Views/Hierarchy/inherit.png',
