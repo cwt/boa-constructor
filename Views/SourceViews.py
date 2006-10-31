@@ -242,12 +242,11 @@ class EditorStyledTextCtrl(wx.stc.StyledTextCtrl, EditorViews.EditorView,
         ln = self.LineFromPosition(cp)
         indent = cp - self.PositionFromLine(ln)
         lns = text.split('\n')
-        # XXX adapt for tab mode
-        text = (self.eol+indent*' ').join(lns)
+        text = (self.eol+Utils.getIndentedStrForLen(indent)).join(lns)
 
         selTxtPos = text.find('# Your code')
         self.InsertText(cp, text)
-        self.nonUserModification = True
+        #self.nonUserModification = True
         self.updateViewState()
         self.SetFocus()
         if selTxtPos != -1:
