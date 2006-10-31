@@ -322,7 +322,7 @@ class EditorFrame(wx.Frame, Utils.FrameRestorerMixin):
                   Utils.wxProxyPanel(self.inspector.pages, self.erroutFrm.notebook)
                 self.inspector.pages.AddPage(panel, 'ErrOut')
             self.tabsSplitter.Initialize(self.tabs)
-            wx.PostEvent(self.tabsSplitter, wx.SizeEvent(self.tabsSplitter.GetSize()))
+        wx.PostEvent(self.tabsSplitter, wx.SizeEvent(self.tabsSplitter.GetSize()))
 
         # Hack to feed BoaFileDialog images
         import FileDlg
@@ -338,7 +338,7 @@ class EditorFrame(wx.Frame, Utils.FrameRestorerMixin):
         # already a server running, but don't connect idle if not necessary
         if self.closed:
             if self.closed.isSet():
-                print _('Not running in server mode')
+                print 'Not running in server mode'
 
     def __repr__(self):
         return '<EditorFrame (Boa IDE) instance at %d>'%id(self)
@@ -1130,7 +1130,7 @@ class EditorFrame(wx.Frame, Utils.FrameRestorerMixin):
             if self.explorer:
                 tree = self.explorer.tree
                 node = tree.GetPyData(tree.GetSelection())
-                if node.protocol == 'recent.files':
+                if node and node.protocol == 'recent.files':
                     self.explorer.list.refreshCurrent()
 
     def OnOpenRecent(self, event, curdir='.'):
