@@ -31,8 +31,8 @@ saveStr = _('Save')
 
 textPath = _('''top | up | new folder || %s://%s''')
 
-htmlPath = '''<body bgcolor="#%x%x%x"><font size=-1><a href="ROOT">top</a> |
-<a href="UP">up</a> | <a href="NEWFOLDER">new folder</a>
+htmlPath = '''<body bgcolor="#%x%x%x"><font size=-1><a href="ROOT">'''+_('top')+'''</a> |
+<a href="UP">'''+_('up')+'''</a> | <a href="NEWFOLDER">'''+_('new folder')+'''</a>
 ||&nbsp;<a href="PROTROOT">%s</a><b>://</b>%s</font></body>'''
 htmlLnk = '''<a href="%s">%s</a>'''
 htmlCurrItem = '''<b><font color="#0000BB">%s</font></b>'''
