@@ -812,6 +812,15 @@ def getIndentBlock():
     else:
         return Preferences.STCIndent*' '
 
+def getIndentedStrForLen(n):
+    if Preferences.STCUseTabs:
+        d, m = divmod(n, Preferences.STCTabWidth)
+        if m: 
+            d += 1
+        return '\t'*d
+    else:
+        return n*' '
+    
 #-------------------------------------------------------------------------------
 
 def canReadStream(stream):
