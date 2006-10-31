@@ -1546,12 +1546,9 @@ class DesignerControlsEvtHandler(wx.EvtHandler):
             ctrl.Bind(wx.EVT_SIZE, self.OnControlResize)
             ctrl.Bind(wx.EVT_MOVE, self.OnControlMove)
 
-        # XXX Hack testing grid paint, should be flag esPaintGrid for companions
-        if Preferences.drawDesignerGrid:
-            if Preferences.drawDesignerGridForSubWindows and \
-                  ctrl.__class__  in (wx.Panel, wx.ScrolledWindow) or \
-                  ctrl.__class__ == DesignerView:
-                ctrl.Bind(wx.EVT_PAINT, self.OnPaint)
+        if isinstance(ctrl, (wx.Panel, wx.ScrolledWindow)) or \
+           ctrl.__class__ == DesignerView:
+            ctrl.Bind(wx.EVT_PAINT, self.OnPaint)
 
 
     def OnMouseOver(self, event):
@@ -1788,7 +1785,8 @@ class DesignerControlsEvtHandler(wx.EvtHandler):
 
             dc.BeginDrawing()
             try:
-                drawGrid(dc, sze, sg)
+                if Preferences.drawDesignerGrid:
+                    drawGrid(dc, sze, sg)
 
                 sizer = ctrl.GetSizer()
                 if sizer:
