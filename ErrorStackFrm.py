@@ -437,8 +437,8 @@ class ErrorStackMF(wx.Frame, Utils.FrameRestorerMixin):
 
                 if wx.MessageBox(_('There are still running processes that were '
                              'started from Boa, please close or kill them '
-                             'before quitting.\n\nClick Cancel to quit anyway.',
-                             'Child processes running'),
+                             'before quitting.\n\nClick Cancel to quit anyway.'),
+                             _('Child processes running'),
                              wx.ICON_WARNING | wx.OK | wx.CANCEL) == wx.CANCEL:
                     return True
                 return False
@@ -467,12 +467,9 @@ class ErrorStackMF(wx.Frame, Utils.FrameRestorerMixin):
             return
         if data.file.find('://') != -1 or os.path.isabs(data.file):
             fn = data.file
-#            elif self.app:
-#                fn = os.path.join(os.path.dirname(self.app.filename), data.file)
         elif self.runningDir:
             fn = os.path.join(self.runningDir, data.file)
         else:
-            print 'no running dir for relative path'
             fn = os.path.abspath(data.file)
 
         model, controller = self.editor.openOrGotoModule(fn)#, self.app)
