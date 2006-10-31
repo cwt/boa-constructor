@@ -201,7 +201,7 @@ class SelectionGroup:
             self.OnSizeEnd()
             self.showTags()
 
-        if self.dragging:
+        if self.dragging and self.selection:
             # XXX Have to hide and show to clean up artifacts, refreshing
             # XXX is not sufficient. Show/hiding seems to screw up Z order
             self.hideTags()
