@@ -116,7 +116,11 @@ class ModuleController(SourceController):
         model = self.getModel()
         if self.checkUnsaved(model): return
 
-        statFile, modtime, profDir = model.profile()
+        try:
+            statFile, modtime, profDir = model.profile()
+        except Exception, err:
+            wx.LogError(str(err))
+            return
 
         if modtime is not None:
             curmodtime = os.stat(statFile)[stat.ST_MTIME]
@@ -186,6 +190,13 @@ class ModuleController(SourceController):
     def OnRunApp(self, event=None, runModel=None):
         model = self.getModel()
         if self.checkUnsaved(model): return
+        
+        try:
+            Preferences.getPythonInterpreterPath()
+        except Exception, err:
+            wx.LogError(str(err))
+            return
+        
         wx.BeginBusyCursor()
         try:
             if runModel is None:
