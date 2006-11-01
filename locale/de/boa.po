@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Boa\n"
 "POT-Creation-Date: \n"
-"PO-Revision-Date: 2006-10-20 15:39+0100\n"
+"PO-Revision-Date: 2006-11-01 10:29+0100\n"
 "Last-Translator: Werner F. Bruhin <wbruhin@thewinecellarbook.com>\n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -477,7 +477,6 @@ msgid "Traceback and Output browser"
 msgstr "\"Traceback und Output\" Browser"
 
 #: boa/ErrorStackFrm.py:100
-#, fuzzy
 msgid "Tracebacks"
 msgstr "Tracebacks"
 
@@ -678,7 +677,6 @@ msgid "Category not found"
 msgstr "Kategorie nicht gefunden"
 
 #: boa/FileDlg.py:550
-#, fuzzy
 msgid "Only filesystem paths allowed"
 msgstr "Nur \"filesystem\" Pfad ist erlaubt"
 
@@ -855,7 +853,7 @@ msgstr "Eingebaute Suchen"
 
 #: boa/FindReplaceEngine.py:86
 #: boa/FindReplaceEngine.py:150
-#, fuzzy, python-format
+#, python-format
 msgid "'%s' not found"
 msgstr "'%s' nicht gefunden"
 
@@ -1124,7 +1122,6 @@ msgid "Invalid value error"
 msgstr "Ungültiger Wert Fehler"
 
 #: boa/methodparse.py:156
-#, fuzzy
 msgid "Unhandled bracket"
 msgstr "Unbearbeitete Klammer"
 
@@ -1536,9 +1533,8 @@ msgid "The debugger process stopped prematurely."
 msgstr "Der Debugger Process wurde unerwarted gestopped."
 
 #: boa/Debugger/Debugger.py:410
-#, fuzzy
 msgid "Debugger stopped"
-msgstr "Debugger gestopped"
+msgstr ""
 
 #: boa/Debugger/Debugger.py:464
 #, python-format
@@ -1620,7 +1616,7 @@ msgid "Code"
 msgstr "Kode"
 
 #: boa/Debugger/DebuggerControls.py:119
-#, fuzzy, python-format
+#, python-format
 msgid "Not a source file: %s, probably an executed string."
 msgstr "Ist keine Quellecode Datei: %s, wahrscheinlich \"an executed string\"."
 
@@ -1694,9 +1690,8 @@ msgid "Delete"
 msgstr "Löschen"
 
 #: boa/Debugger/DebuggerControls.py:202
-#, fuzzy
 msgid "Enabled"
-msgstr "Aktivieren"
+msgstr "Aktiviert"
 
 #: boa/Debugger/DebuggerControls.py:372
 msgid "Condition to break on:"
@@ -2412,9 +2407,8 @@ msgid "Config"
 msgstr "Config"
 
 #: boa/Models/Controllers.py:137
-#, fuzzy
 msgid "Toggle read-only"
-msgstr "Toggle read-only"
+msgstr ""
 
 #: boa/Models/Controllers.py:138
 msgid "NDiff files..."
@@ -2532,7 +2526,6 @@ msgid "Step out"
 msgstr "Aussteigen"
 
 #: boa/Models/PythonControllers.py:69
-#, fuzzy
 msgid "Profile"
 msgstr "Profile"
 
@@ -2541,12 +2534,10 @@ msgid "Check source"
 msgstr "Quellecode überprüfen"
 
 #: boa/Models/PythonControllers.py:71
-#, fuzzy
 msgid "Cyclops"
 msgstr "Cyclops"
 
 #: boa/Models/PythonControllers.py:73
-#, fuzzy
 msgid "Reindent whole file"
 msgstr "Ganze Datei neu Einrücken"
 
@@ -2588,7 +2579,6 @@ msgid "Profile stats: %s"
 msgstr "Profile stats: %s"
 
 #: boa/Models/PythonControllers.py:143
-#, fuzzy
 msgid "Refreshing view..."
 msgstr "Anzeige erneuern..."
 
@@ -2712,7 +2702,7 @@ msgstr "\"distutils\" Setup"
 
 #: boa/Models/PythonEditorModels.py:153
 #: boa/Models/PythonEditorModels.py:174
-#, fuzzy, python-format
+#, python-format
 msgid "Running %s..."
 msgstr "Ausführen von %s..."
 
@@ -2789,7 +2779,7 @@ msgstr "Global dict %s wurde in diesem Modul nicht gefunden, bitte \"%s = {}\" a
 #: boa/Models/PythonEditorModels.py:494
 #, python-format
 msgid "Global dict %s not terminated properly, please fix it."
-msgstr ""
+msgstr "\"Global dict\" %s ist nicht korrekt beendet (terminated), bitte korrigieren."
 
 #: boa/Models/PythonEditorModels.py:502
 #, python-format
@@ -2862,7 +2852,7 @@ msgstr "Fehlende Datei"
 #: boa/Models/PythonEditorModels.py:1107
 #, python-format
 msgid "Unhandled protocol during normalisation:%s"
-msgstr ""
+msgstr "Unbearbeitetes Protokol während der Normalisierung: %s"
 
 #: boa/Models/ResourceSupport.py:59
 msgid "Select Resource"
@@ -2924,9 +2914,9 @@ msgid "An error occured while opening the Designer: %s"
 msgstr "Es gab einen Fehler beim öffnen des Designer: %s"
 
 #: boa/Models/wxPythonEditorModels.py:130
-#, fuzzy, python-format
+#, python-format
 msgid "Collection body %s not in init, body, fin form"
-msgstr "Collection body %s not in init, body, fin form"
+msgstr ""
 
 #: boa/Models/wxPythonEditorModels.py:160
 msgid "The following lines were not used by the Designer and will be lost:\n"
@@ -3042,7 +3032,6 @@ msgid "Operation aborted."
 msgstr "Arbeitsgang abgebrochen"
 
 #: boa/Plug-ins/BicycleRepairMan.plug-in.py:141
-#, fuzzy
 msgid "No text selected. Highlight the region you want to extract."
 msgstr "Kein Text selektiert.  Den Bereich zum extrahieren auswählen"
 
@@ -3071,9 +3060,8 @@ msgid "BRM - Could not find definition"
 msgstr "BRM - Could not find definition"
 
 #: boa/Plug-ins/BicycleRepairMan.plug-in.py:182
-#, fuzzy
 msgid "Perform Find Definition?"
-msgstr "Perform Find Definition?"
+msgstr ""
 
 #: boa/Plug-ins/BicycleRepairMan.plug-in.py:182
 msgid "Find References"
@@ -3094,9 +3082,8 @@ msgid "BRM - Finding definition..."
 msgstr "BRM - Finding definition..."
 
 #: boa/Plug-ins/BicycleRepairMan.plug-in.py:216
-#, fuzzy
 msgid "Couldn't find definition"
-msgstr "Couldn't find definition"
+msgstr "Konnte Definition nicht finden"
 
 #: boa/Plug-ins/BicycleRepairMan.plug-in.py:234
 #, python-format
@@ -3161,7 +3148,6 @@ msgstr "Schlüssel Wort(e)"
 #: boa/Plug-ins/HelpBook.plug-in.py:20
 #: boa/Plug-ins/HelpBook.plug-in.py:24
 #: boa/Plug-ins/HelpBook.plug-in.py:717
-#, fuzzy
 msgid "Location"
 msgstr "Position"
 
@@ -3561,7 +3547,6 @@ msgid "Action"
 msgstr "Aktion"
 
 #: boa/Plug-ins/RegexEditor.plug-in.py:120
-#, fuzzy
 msgid "Flags"
 msgstr "Flags"
 
@@ -3666,9 +3651,8 @@ msgid "Right-insert in field(s) (implies R)"
 msgstr "Rechts-Eingabe in Feld(ern) (impliziert \"R\")"
 
 #: boa/PropEdit/MaskedEditFmtCodeDlg.py:14
-#, fuzzy
 msgid "Stay in field until explicit navigation out of it"
-msgstr "Im Feld bleiben bis mann ausdrücklich aus im raus Navigiert"
+msgstr "Im Feld bleiben bis man ausdrücklich aus im raus Navigiert"
 
 #: boa/PropEdit/MaskedEditFmtCodeDlg.py:15
 msgid "Allow insert/delete within partially filled fields"
@@ -3712,7 +3696,7 @@ msgstr "Ganzes Feld selektieren wenn man in eines Feld navigiert"
 
 #: boa/PropEdit/MaskedEditFmtCodeDlg.py:40
 msgid "Masked Edit - Format Codes"
-msgstr ""
+msgstr "Masked Edit - Formatier Kode"
 
 #: boa/PropEdit/MaskedEditFmtCodeDlg.py:71
 msgid "A string of formatting codes that modify behavior of the control."
@@ -3778,7 +3762,7 @@ msgstr "%s konnte das Resource Modul nicht laden"
 #: boa/PropEdit/PropertyEditors.py:904
 #, python-format
 msgid "Unhandled image handling type: %s"
-msgstr ""
+msgstr "Unbearbeitete Bild bearbeitungs Type: %s"
 
 #: boa/PropEdit/PropertyEditors.py:1197
 #: boa/PropEdit/PropertyEditors.py:1203
@@ -3824,9 +3808,8 @@ msgid "Invalid value"
 msgstr "Ungültiger Wert"
 
 #: boa/PropEdit/PropertyEditors.py:1905
-#, fuzzy
 msgid "Anchors can not be reset while the property is expanded"
-msgstr "\"Anchors\" können nicht zurückgestetzt werden die Eigenschaft expandiert ist"
+msgstr "\"Anchors\" können nicht zurückgestetzt werden während die Eigenschaft expandiert ist"
 
 #: boa/PropEdit/PropertyEditors.py:1906
 #: boa/PropEdit/PropertyEditors.py:1914
@@ -3960,7 +3943,6 @@ msgid "Determines how Boa reacts to errors when running"
 msgstr "Bestimmt wie Boa auf Fehler reagiert beim ausführen"
 
 #: boa/Scripts/prefs.rc.i18n.py:20
-#, fuzzy
 msgid ""
 "If the environment variable PYTHONSTARTUP is set to a python file\n"
 "this file can be executed at startup in the Shell's namespace\n"
@@ -3971,7 +3953,6 @@ msgstr ""
 "Die Befehls-Zeile parameter \"-S\" kann benutzt werden um dies zu ändern."
 
 #: boa/Scripts/prefs.rc.i18n.py:21
-#, fuzzy
 msgid ""
 "In constricted mode Boa starts up showing only the Editor window.\n"
 "In the future this mode will be extended to not load support for the Designer.\n"
@@ -4133,7 +4114,7 @@ msgstr "Den \"öffnen Datei Dialog\" relative zur Datei der aktiven Modul Seite 
 
 #: boa/Scripts/prefs.rc.i18n.py:49
 msgid "Maximum Recent files list size"
-msgstr ""
+msgstr "Maximum Anzahl der Dateien für die \"Letzten Datein\" Liste"
 
 #: boa/Scripts/prefs.rc.i18n.py:50
 msgid "Which shell (if any) should be used"
@@ -4160,7 +4141,6 @@ msgid "Display properties for which source will be generated in Bold"
 msgstr "Zeige Eigenschaften an für welche der Quellecode in \"Bold\" generiert wird"
 
 #: boa/Scripts/prefs.rc.i18n.py:56
-#, fuzzy
 msgid "Colour of property value static text ctrls"
 msgstr "Farbe des Eigenschaft Wertes für wx.StaticText"
 
@@ -4182,7 +4162,7 @@ msgstr "Seiten Namen für das Inspector Notizbuch"
 
 #: boa/Scripts/prefs.rc.i18n.py:61
 msgid "Granularity of the Designer's grid."
-msgstr ""
+msgstr "Granularität für das Designer Gitter"
 
 #: boa/Scripts/prefs.rc.i18n.py:62
 msgid ""
@@ -4194,7 +4174,7 @@ msgstr ""
 
 #: boa/Scripts/prefs.rc.i18n.py:63
 msgid "Width of the lines of frame around the selection."
-msgstr ""
+msgstr "Breite der Linien um den selektierten Frame."
 
 #: boa/Scripts/prefs.rc.i18n.py:64
 msgid "Default control size if control itself has no sensible default"
@@ -4249,9 +4229,8 @@ msgid "Should generated source code lines be be wrapped at a certain width"
 msgstr "Sollten generierte Quellecode Zeilen nach einer gewissen Länge umgebrochen werden"
 
 #: boa/Scripts/prefs.rc.i18n.py:74
-#, fuzzy
 msgid "Width at which generated source code wraps"
-msgstr "Länge an der generierter Quellecode umbricht"
+msgstr "Länge an der der generierte Quellecode umbricht"
 
 #: boa/Scripts/prefs.rc.i18n.py:75
 msgid ""
@@ -4303,11 +4282,11 @@ msgstr ""
 
 #: boa/Scripts/prefs.rc.i18n.py:85
 msgid "Path to an additional Plug-ins directory"
-msgstr ""
+msgstr "Pfad zu einem zusätzlichen \"Plug-ins\" Verzeichnis"
 
 #: boa/Scripts/prefs.rc.i18n.py:86
 msgid "How should errors from plugins be handled"
-msgstr ""
+msgstr "Wie sollen Fehler von \"Plug-ins\" bearbeitet werden"
 
 #: boa/Scripts/prefs.rc.i18n.py:87
 msgid ""
@@ -4317,13 +4296,15 @@ msgstr ""
 
 #: boa/Scripts/prefs.rc.i18n.py:88
 msgid "Should Python Companions, Models and Views be loaded at startup"
-msgstr ""
+msgstr "Sollen Python \"Companions, Models und Views\" beim start geladen werden"
 
 #: boa/Scripts/prefs.rc.i18n.py:89
 msgid ""
 "Should wxPython Companions, Models and Views be loaded at startup\n"
 "Depends on csPythonSupport"
 msgstr ""
+"Sollen wxPython \"Companions, Models und Views\" beim start geladen werden\n"
+"Hängt vom \"csPythonSupport\" ab"
 
 #: boa/Scripts/prefs.rc.i18n.py:90
 msgid "Handle config files"
@@ -4335,7 +4316,7 @@ msgstr "C++ Dateien bearbeiten"
 
 #: boa/Scripts/prefs.rc.i18n.py:92
 msgid "Handle html files"
-msgstr ""
+msgstr "Bearbeite \"html\" Dateien"
 
 #: boa/Scripts/prefs.rc.i18n.py:93
 msgid "Handle xml files"
@@ -4343,7 +4324,7 @@ msgstr "XML Dateien bearbeiten"
 
 #: boa/Scripts/prefs.rc.i18n.py:94
 msgid "Makes end-of-line characters visible or not."
-msgstr ""
+msgstr "Zeigt \"Zeilenende Zeichen\" an oder nicht"
 
 #: boa/Scripts/prefs.rc.i18n.py:95
 msgid ""
@@ -4436,7 +4417,7 @@ msgstr "Farben"
 
 #: boa/Scripts/prefs.rc.i18n.py:110
 msgid "Markers"
-msgstr ""
+msgstr "Markers"
 
 #: boa/Scripts/prefs.rc.i18n.py:111
 #: boa/Scripts/prefs.rc.i18n.py:131
@@ -4445,11 +4426,11 @@ msgstr "Änderbare Präferenzen"
 
 #: boa/Scripts/prefs.rc.i18n.py:112
 msgid "Style of the Error/Output window's notebook."
-msgstr ""
+msgstr "Stil des \"Error/Output\" Fenster's Notizbuch"
 
 #: boa/Scripts/prefs.rc.i18n.py:113
 msgid "Should sorting in the explorer be case insensitive"
-msgstr ""
+msgstr "Sollte die Sortierung im \"Explorer\" auf Gross/Kleinschrift sensitiv sein"
 
 #: boa/Scripts/prefs.rc.i18n.py:114
 msgid ""
@@ -4467,19 +4448,19 @@ msgstr ""
 
 #: boa/Scripts/prefs.rc.i18n.py:117
 msgid "Height of the Palette window. Adjust if you use big fonts"
-msgstr ""
+msgstr "Höhe des \"Palette\" Fensters.  Ajustieren wenn ein grosser Schrifttyp benutzt wird"
 
 #: boa/Scripts/prefs.rc.i18n.py:118
 msgid "Used my Mac toplevel main menu"
-msgstr ""
+msgstr "Benutzt vom Mac \"toplevel\" Hauptmenu"
 
 #: boa/Scripts/prefs.rc.i18n.py:119
 msgid "The amount of space Boa should leave on the right for a vertical OS Taskbar."
-msgstr ""
+msgstr "Den freien Platz den Boa rechts freilassen sollte für einen vertikalen OS Taskbar."
 
 #: boa/Scripts/prefs.rc.i18n.py:120
 msgid "The amount of space Boa should leave from the bottom for a horizontal OS Taskbar."
-msgstr ""
+msgstr "Den freien Platz den Boa unten freilassen sollte für einen horizontalen OS Taskbar."
 
 #: boa/Scripts/prefs.rc.i18n.py:121
 msgid "Percentage of the with that the Editor window should occupy"
@@ -4491,7 +4472,7 @@ msgstr ""
 
 #: boa/Scripts/prefs.rc.i18n.py:123
 msgid "Font size of the text in the Inspector's statusbar"
-msgstr ""
+msgstr "Schrifttyp grösse des Textes im Inspector Statusbar"
 
 #: boa/Scripts/prefs.rc.i18n.py:124
 msgid "Match braces in code"
@@ -4499,23 +4480,23 @@ msgstr ""
 
 #: boa/Scripts/prefs.rc.i18n.py:125
 msgid "Minimize the IDE while running applications"
-msgstr ""
+msgstr "Die IDE minimizieren when Applikation ausgeführt wird"
 
 #: boa/Scripts/prefs.rc.i18n.py:126
 msgid "Minimize the IDE when using Debug/Continue while debugging"
-msgstr ""
+msgstr "`"
 
 #: boa/Scripts/prefs.rc.i18n.py:127
 msgid "Draw grid in designer"
-msgstr ""
+msgstr "Gitter im Designer zeichnen"
 
 #: boa/Scripts/prefs.rc.i18n.py:128
 msgid "Also draw grid for child container controls in the frame"
-msgstr ""
+msgstr "Auch Gitter für Kind Behälter Kontrollen im \"Frame\" zeichnen"
 
 #: boa/Scripts/prefs.rc.i18n.py:129
 msgid "Grid drawing method"
-msgstr ""
+msgstr "Gitter zeichnungs Methode"
 
 #: boa/Scripts/prefs.rc.i18n.py:130
 msgid "Grayout (blueout actually) source while designer is open"
@@ -4524,23 +4505,21 @@ msgstr "\"Grayout (actually blueout)\" Quellecode when der Designer geöffnet is
 #: boa/Scripts/prefs.rc.i18n.py:134
 #: boa/Scripts/prefs.rc.i18n.py:136
 msgid "Miscellaneous"
-msgstr ""
+msgstr "Verschiedenes"
 
 #: boa/Scripts/prefs.rc.i18n.py:135
-#, fuzzy
 msgid "Code generation"
-msgstr "Selektierung kopieren"
+msgstr "Kode generierung"
 
 #: boa/Scripts/prefs.rc.i18n.py:138
 #: boa/Scripts/prefs.rc.i18n.py:146
 #: boa/Views/Designer.py:50
 msgid "Designer"
-msgstr ""
+msgstr "Designer"
 
 #: boa/Scripts/prefs.rc.i18n.py:145
-#, fuzzy
 msgid "Window settings"
-msgstr "Fenster"
+msgstr ""
 
 #: boa/Views/AppViews.py:35
 msgid "Application Find Results"
@@ -4552,28 +4531,27 @@ msgstr ""
 
 #: boa/Views/AppViews.py:96
 msgid "Application"
-msgstr ""
+msgstr "Applikation"
 
 #: boa/Views/AppViews.py:113
 msgid "Make module main module"
-msgstr ""
+msgstr "Modul als Hauptmodul definieren"
 
 #: boa/Views/AppViews.py:117
 msgid "Type"
-msgstr ""
+msgstr "Typ"
 
 #: boa/Views/AppViews.py:119
 msgid "Relative path"
-msgstr ""
+msgstr "Relativer Pfad"
 
 #: boa/Views/AppViews.py:180
 msgid "Set the description of the module"
-msgstr ""
+msgstr "Die Beschreibung des Modul's eingeben"
 
 #: boa/Views/AppViews.py:181
-#, fuzzy
 msgid "Edit item"
-msgstr "Stück ändern"
+msgstr "Eintrag ändern"
 
 #: boa/Views/AppViews.py:197
 msgid "Cannot remove the main frame of an application"
@@ -4585,11 +4563,11 @@ msgstr ""
 
 #: boa/Views/AppViews.py:232
 msgid "Application Documentation"
-msgstr ""
+msgstr "Applikations Dokumentation"
 
 #: boa/Views/AppViews.py:275
 msgid "App. Compare"
-msgstr ""
+msgstr "App. Vergleich"
 
 #: boa/Views/AppViews.py:280
 msgid "compare results"
@@ -4618,7 +4596,7 @@ msgstr "hinzugefügt"
 
 #: boa/Views/AppViews.py:348
 msgid "Application Todo"
-msgstr ""
+msgstr "Applikation Todo"
 
 #: boa/Views/AppViews.py:354
 msgid "Goto file"
@@ -4646,7 +4624,7 @@ msgstr ""
 #: boa/Views/AppViews.py:390
 #, python-format
 msgid "couldn't load %s"
-msgstr ""
+msgstr "konnte %s nicht laden"
 
 #: boa/Views/AppViews.py:403
 msgid "Finished parsing"
@@ -4654,16 +4632,16 @@ msgstr ""
 
 #: boa/Views/CollectionEdit.py:101
 msgid "More new ..."
-msgstr ""
+msgstr "Mehr Neues ..."
 
 #: boa/Views/CollectionEdit.py:114
 #: boa/Views/Designer.py:169
 msgid "Up"
-msgstr ""
+msgstr "Hoch"
 
 #: boa/Views/CollectionEdit.py:116
 msgid "Down"
-msgstr ""
+msgstr "Runter"
 
 #: boa/Views/CollectionEdit.py:298
 msgid "CollectionEditor"
@@ -4794,13 +4772,13 @@ msgstr ""
 #: boa/Views/DataView.py:51
 #: boa/Views/PySourceView.py:71
 msgid "Context help"
-msgstr ""
+msgstr "Kontext Hilfe"
 
 #: boa/Views/DataView.py:210
 #: boa/Views/InspectableViews.py:803
 #: boa/Views/InspectableViews.py:806
 msgid "Wrong Designer"
-msgstr ""
+msgstr "Falscher Designer"
 
 #: boa/Views/DataView.py:306
 #, python-format
@@ -4818,11 +4796,11 @@ msgstr ""
 
 #: boa/Views/Designer.py:177
 msgid "Relayout selection"
-msgstr ""
+msgstr "Selektion neu auslegen"
 
 #: boa/Views/Designer.py:178
 msgid "Relayout Designer"
-msgstr ""
+msgstr "Designer neu auslegen"
 
 #: boa/Views/Designer.py:180
 msgid "Fit sizer"
@@ -4921,11 +4899,11 @@ msgstr ""
 
 #: boa/Views/EditorViews.py:330
 msgid "Test"
-msgstr ""
+msgstr "Test"
 
 #: boa/Views/EditorViews.py:348
 msgid "Back"
-msgstr ""
+msgstr "Zurück"
 
 #: boa/Views/EditorViews.py:374
 msgid "View"
@@ -4997,15 +4975,15 @@ msgstr ""
 #: boa/Views/EditorViews.py:1123
 #: boa/Views/EditorViews.py:1253
 msgid "Loading..."
-msgstr ""
+msgstr "Laden..."
 
 #: boa/Views/EditorViews.py:1289
 msgid "DistUtils"
-msgstr ""
+msgstr "DistUtils"
 
 #: boa/Views/EditorViews.py:1303
 msgid "Manifest"
-msgstr ""
+msgstr "Manifest"
 
 #: boa/Views/EditorViews.py:1358
 msgid "CVS conflicts"
@@ -5013,15 +4991,15 @@ msgstr "CVS konflikte"
 
 #: boa/Views/EditorViews.py:1367
 msgid "Accept changes"
-msgstr ""
+msgstr "Änderungen akzeptieren"
 
 #: boa/Views/EditorViews.py:1368
 msgid "Reject changes"
-msgstr ""
+msgstr "Änderung nicht akzeptieren"
 
 #: boa/Views/EditorViews.py:1369
 msgid "Rev"
-msgstr ""
+msgstr "Rev"
 
 #: boa/Views/EditorViews.py:1413
 msgid "Folder"
@@ -5029,13 +5007,13 @@ msgstr "Verzeichnis"
 
 #: boa/Views/InspectableViews.py:36
 msgid "InspectableObject"
-msgstr ""
+msgstr "InspectableObject"
 
 #: boa/Views/InspectableViews.py:147
 #: boa/Views/InspectableViews.py:152
 #, python-format
 msgid "%s is not defined on the Palette."
-msgstr ""
+msgstr "%s ist auf der \"Palette\" nicht definiert"
 
 #: boa/Views/InspectableViews.py:199
 #, python-format
@@ -5054,11 +5032,11 @@ msgstr "Nichts zum einfügen"
 #: boa/Views/InspectableViews.py:576
 #, python-format
 msgid "Method %s not found"
-msgstr ""
+msgstr "Methode %s nicht gefunden"
 
 #: boa/Views/InspectableViews.py:795
 msgid "This component is not yet implemented"
-msgstr ""
+msgstr "Dieser Komponent ist noch nicht implementiert"
 
 #: boa/Views/InspectableViews.py:802
 #, python-format
@@ -5072,7 +5050,7 @@ msgstr ""
 
 #: boa/Views/OGLViews.py:140
 msgid "Corrupt file"
-msgstr ""
+msgstr "Beschädigte Datei"
 
 #: boa/Views/OGLViews.py:144
 msgid "Sorry, only supported on the filesystem"
@@ -5080,11 +5058,11 @@ msgstr ""
 
 #: boa/Views/OGLViews.py:148
 msgid "Corrupt layout file"
-msgstr ""
+msgstr "Beschädigte \"layout\" Datei"
 
 #: boa/Views/OGLViews.py:232
 msgid "OGL"
-msgstr ""
+msgstr "OGL"
 
 #: boa/Views/OGLViews.py:240
 msgid "(Re)load diagram"
@@ -5104,7 +5082,7 @@ msgstr ""
 
 #: boa/Views/OGLViews.py:573
 msgid "UML"
-msgstr ""
+msgstr "UML"
 
 #: boa/Views/OGLViews.py:585
 msgid "Toggle Attributes"
@@ -5196,11 +5174,11 @@ msgstr ""
 
 #: boa/Views/PySourceView.py:53
 msgid "Indent"
-msgstr ""
+msgstr "Einrücken"
 
 #: boa/Views/PySourceView.py:54
 msgid "Dedent"
-msgstr ""
+msgstr "Ausrücken"
 
 #: boa/Views/PySourceView.py:56
 msgid "Run to cursor"
@@ -5212,11 +5190,11 @@ msgstr ""
 
 #: boa/Views/PySourceView.py:59
 msgid "Load breakpoints"
-msgstr ""
+msgstr "Breakpoints laden"
 
 #: boa/Views/PySourceView.py:60
 msgid "Save breakpoints"
-msgstr ""
+msgstr "Breakpoints sichern"
 
 #: boa/Views/PySourceView.py:62
 msgid "Add module runner"
@@ -5276,18 +5254,16 @@ msgid "Redo"
 msgstr ""
 
 #: boa/Views/SourceViews.py:67
-#, fuzzy
 msgid "Find \\ Replace"
 msgstr "Suche/Ersetzen"
 
 #: boa/Views/SourceViews.py:68
-#, fuzzy
 msgid "Find again"
-msgstr "Alle suchen"
+msgstr "Wieder suchen"
 
 #: boa/Views/SourceViews.py:69
 msgid "Print..."
-msgstr ""
+msgstr "Drucken..."
 
 #: boa/Views/SourceViews.py:70
 msgid "Mark place"
@@ -5311,14 +5287,12 @@ msgid "Code marker added to Browse History"
 msgstr ""
 
 #: boa/Views/SourceViews.py:389
-#, fuzzy
 msgid "Enter line number:"
-msgstr "Die Zeilennummer zum Springen eingeben:"
+msgstr "Die Zeilennummer eingeben:"
 
 #: boa/Views/SourceViews.py:396
-#, fuzzy
 msgid "Integer line number required"
-msgstr "Die Zeilennummer zum Springen eingeben:"
+msgstr ""
 
 #: boa/Views/SourceViews.py:437
 msgid "View Whitespace"
@@ -5338,19 +5312,19 @@ msgstr ""
 
 #: boa/Views/SourceViews.py:455
 msgid "EOL mode"
-msgstr ""
+msgstr "EOL Modus"
 
 #: boa/Views/SourceViews.py:484
 msgid "EOLs to CRLF"
-msgstr ""
+msgstr "EOLs zu CRLF"
 
 #: boa/Views/SourceViews.py:485
 msgid "EOLs to LF"
-msgstr ""
+msgstr "EOLs zu LF"
 
 #: boa/Views/SourceViews.py:486
 msgid "EOLs to CR"
-msgstr ""
+msgstr "EOLs zu CR"
 
 #: boa/Views/STCPrinting.py:47
 msgid "Print Source"
@@ -5358,32 +5332,31 @@ msgstr "Quellecode drucken"
 
 #: boa/Views/STCPrinting.py:50
 msgid "Normal"
-msgstr ""
+msgstr "Normal"
 
 #: boa/Views/STCPrinting.py:50
 msgid "Black on white"
-msgstr ""
+msgstr "Schwarz auf Weiss"
 
 #: boa/Views/STCPrinting.py:51
 msgid "Colour on white"
-msgstr ""
+msgstr "Farbig auf Weiss"
 
 #: boa/Views/STCPrinting.py:51
 msgid "Colour on white default background"
-msgstr ""
+msgstr "Farbig auf weissem vorgabe hintergrund"
 
 #: boa/Views/STCPrinting.py:52
 msgid "Colour Mode"
 msgstr "Farben Modus"
 
 #: boa/Views/STCPrinting.py:58
-#, fuzzy
 msgid "Filename at top"
-msgstr "Dateiname oben"
+msgstr "Dateiname oben anzeigen"
 
 #: boa/Views/STCPrinting.py:63
 msgid "Page numbers"
-msgstr ""
+msgstr "Seitennummern"
 
 #: boa/Views/STCPrinting.py:68
 msgid "Print Setup"
@@ -5405,7 +5378,7 @@ msgstr ""
 #: boa/Views/STCPrinting.py:217
 #, python-format
 msgid "Page: %d"
-msgstr ""
+msgstr "Seite: %d"
 
 #: boa/Views/STCPrinting.py:238
 #, python-format
@@ -5470,7 +5443,7 @@ msgstr "Speichern der Änderungen in der Konfigurationsdatei"
 
 #: boa/Views/STCStyleEditor.py:230
 msgid "Close dialog without saving changes"
-msgstr ""
+msgstr "Dialog schliessen ohne Änderungen zu sichern"
 
 #: boa/Views/STCStyleEditor.py:235
 msgid "Face:"
@@ -5487,12 +5460,12 @@ msgstr ""
 #: boa/Views/STCStyleEditor.py:266
 #: boa/Views/STCStyleEditor.py:731
 msgid "Foreground"
-msgstr ""
+msgstr "Vordergrund"
 
 #: boa/Views/STCStyleEditor.py:288
 #: boa/Views/STCStyleEditor.py:731
 msgid "Background"
-msgstr ""
+msgstr "Hintergrund"
 
 #: boa/Views/STCStyleEditor.py:302
 msgid "Text attributes"
@@ -5540,18 +5513,18 @@ msgstr ""
 
 #: boa/Views/STCStyleEditor.py:629
 msgid "Accept value"
-msgstr ""
+msgstr "Wert akzeptieren"
 
 #: boa/Views/STCStyleEditor.py:734
 msgid "colour"
-msgstr ""
+msgstr "Farbe"
 
 #: boa/Views/STCStyleEditor.py:766
 #: boa/Views/STCStyleEditor.py:771
 #: boa/Views/STCStyleEditor.py:775
 #: boa/Views/STCStyleEditor.py:780
 msgid "Not a valid colour value"
-msgstr ""
+msgstr "Kein gültiger Farb Wert"
 
 #: boa/Views/STCStyleEditor.py:812
 #: boa/Views/STCStyleEditor.py:825
