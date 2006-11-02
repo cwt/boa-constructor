@@ -20,7 +20,8 @@ Jeff Sasmor for wxStyledTextCtrl docs
 Hernan M. Foffani for ZopeShelf from which the Zope Book was converted
 Phil Dawes et al for the Bicycle Repair Man project, a Python refactoring package
 
-The authors of CVS, SSH, SCP
+The authors of CVS, SVN, SSH, SCP
+
 
 People who have helped out or contributed:
 
@@ -56,6 +57,19 @@ Werner Brunin
 * Bug reports and fixes
 * Help with the 2.5 Upgrader
 
+
+Translators:
+
+German - Werner F. Bruhin (werner.bruhin@free.fr)
+Italian - Michele Petrazzo (michele.petrazzo@unipex.it)
+Brazilian Portuguese - Sergio Brant (sergiobrant@yahoo.com.br)
+Afrikaans - Riaan Booysen (riaan@e.co.za)
+Spanish - Felix Medrano Sanz (xukosky@yahoo.es)
+
+
 Also thanks to Kevin Light, Paul Sorenson, Oleg Deribas, Patrick 'O Brien, 
-John Bell, Gerrit van Dyk, Cliff Baeseman, Larry Poorman and anyone else 
-I may have forgotten!
+John Bell, Gerrit van Dyk, Cliff Baeseman, Larry Poorman and anyone else I 
+may have forgotten!
+
+Last but not least, a very big thank you to Tangible Business Software
+(http://tbs.co.za) for partially sponsoring my time on this project.
