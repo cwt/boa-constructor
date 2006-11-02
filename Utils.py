@@ -252,6 +252,18 @@ class PaintEventHandler(wx.EvtHandler):
         rv = wx.Rect(x, y, width, height)
         return rv
 
+def getI18NLangDir():
+    d = wx.GetApp().locale.GetCanonicalName()
+    path = toPyPath(os.path.join('locale', d))
+    if not os.path.exists(path):
+        if '_' in d:
+            path = os.path.join('locale', d.split('_', 1)[0])
+            if not os.path.exists(path):
+                return ''
+        else:
+            return ''
+    return path
+
 def showTip(frame, forceShow=0):
     """ Displays tip of the day.
 
@@ -267,7 +279,16 @@ def showTip(frame, forceShow=0):
         index = conf.getint('tips', 'tipindex')
 
     if showTip or forceShow:
-        tp = wx.CreateFileTipProvider(toPyPath('Docs/tips.txt'), index)
+        # try to find translated tips
+        tipsDir = getI18NLangDir()
+        if not tipsDir:
+            tipsFile = toPyPath('Docs/tips.txt')
+        else:
+            tipsFile = tipsDir+'/tips.txt'
+            if not os.path.exists(tipsFile):
+                tipsFile = toPyPath('Docs/tips.txt')
+        
+        tp = wx.CreateFileTipProvider(tipsFile, index)
         showTip = wx.ShowTip(frame, tp, showTip)
         index = tp.GetCurrentTip()
         if conf:
