@@ -501,6 +501,8 @@ class BoaApp(wx.App):
         # i18n support
         self.locale = wx.Locale(Preferences.i18nLanguage)
         wx.Locale.AddCatalogLookupPathPrefix('locale')
+        if hasattr(sys, 'frozen'):
+            self.locale.AddCatalog('wxstd')   
         self.locale.AddCatalog('boa') 
 
         wx.ToolTip.Enable(True)
