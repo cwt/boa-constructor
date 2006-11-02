@@ -7,7 +7,6 @@ Boa supports 'constricted' mode where only the Editor window opens at startup. P
 If you have a reproduceable test which crashes Boa and are adventurous you may run Boa in tracing mode using command-line flag -T. This creates a (huge) log of every function call. After the crash, restart Boa, open Boa.py and select File->View crashlog as traceback and wait (patiently) while the log is crunched to create a traceback.
 To add a control to a frame, select the control on the Palette and click on the place that you want to place it in the Designer.
 To define an event, select the control, go to the events page in the Inspector, select the event category and double-click the event.
-When using Dialogs from the Palette, don't try and use them with the Designer, position your cursor where you want the code in the Source Editor and click the Palette button.
 Constructor properties are not live (yet). A frame has to be closed and reopened before changes will take effect.
 Double click on a component to open the default editor or define the default event.
 To multiple-select components, hold down shift while selecting components. Only controls on the same level can be multiple selected.
