@@ -200,8 +200,12 @@ class PyInterpreterChooserDlg(wx.Dialog):
                                      '%s\\%s'%(PyCoreRegPath, version))
             except EnvironmentError:
                 continue
-            pyIntpPath = os.path.join(winreg.QueryValue(reg, 'InstallPath'),
+            try:
+                pyIntpPath = os.path.join(winreg.QueryValue(reg, 'InstallPath'),
                                       self.sysBinName)
+            except WindowsError:
+                continue
+            
             if os.path.exists(pyIntpPath):
                 try:
                     res.index( (version, pyIntpPath) )
