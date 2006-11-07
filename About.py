@@ -81,6 +81,7 @@ Italian - Michele Petrazzo (michele.petrazzo@unipex.it)<br>
 Brazilian Portuguese - Sergio Brant (sergiobrant@yahoo.com.br)<br>
 Afrikaans - Riaan Booysen (riaan@e.co.za)<br>
 Spanish - Felix Medrano Sanz (xukosky@yahoo.es)<br>
+French - Olivier Thiery (olivier.th@gmail.com)<br>
 
 <p>
 <b>Many thanks to</b><br>
