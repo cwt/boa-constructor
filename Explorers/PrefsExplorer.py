@@ -377,7 +377,8 @@ class LanguagesConfPropEdit(PropertyEditors.ConfPropEdit):
         self.editorCtrl.setValue(self.value)
   
     def getValues(self):
-        return ['wx.'+n for n in dir(wx) if n.startswith('LANGUAGE_')]
+        return ['wx.'+n for n in dir(wx) 
+         if n.startswith('LANGUAGE_') and wx.Locale.IsAvailable(getattr(wx, n))]
 
         
 class PreferenceCompanion(ExplorerNodes.ExplorerCompanion):
