@@ -10,10 +10,12 @@
 # Licence:     GPL
 #----------------------------------------------------------------------
 
-import sys
+import sys, warnings
 
 from types import *
 import wx
+
+warnings.filterwarnings('ignore', '', DeprecationWarning, 'RTTI')
 
 def sort_proxy(self, other):
     return self < other and -1 or self > other and 1 or 0
