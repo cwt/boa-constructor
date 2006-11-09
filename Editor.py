@@ -312,6 +312,8 @@ class EditorFrame(wx.Frame, Utils.FrameRestorerMixin):
         import ErrorStackFrm
         self.erroutFrm = ErrorStackFrm.ErrorStackMF(self, self)
 
+        self.tabs.SetMinSize(wx.DefaultSize)
+        self.erroutFrm.notebook.SetMinSize(wx.DefaultSize)
         if Preferences.eoErrOutDockWindow == 'editor':
             self.erroutFrm.notebook.Reparent(self.tabsSplitter)
             self.tabsSplitter.SplitHorizontally(self.tabs, self.erroutFrm.notebook,
