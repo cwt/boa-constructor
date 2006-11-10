@@ -547,7 +547,7 @@ sourceconst.defWizardImport = sourceconst.wsfix('\nimport wx.wizard\n')
 
 class WizardModel(DialogModel):
     modelIdentifier = 'Wizard'
-    defaultName = 'wx.Wizard'
+    defaultName = 'wx.wizard.Wizard'
     bitmap = 'wx.wizard.Wizard.png'
     imgIdx = imgWizardModel
     dialogLook = True
@@ -571,7 +571,7 @@ sourceconst.defPyWizPageClass = sourceconst.defClass+sourceconst.wsfix('''
 
 class PyWizardPageModel(FramePanelModel):
     modelIdentifier = 'PyWizardPage'
-    defaultName = 'wx.PyWizardPage'
+    defaultName = 'wx.wizard.PyWizardPage'
     bitmap = 'wx.wizard.PyWizardPage.png'
     imgIdx = imgPyWizardPageModel
     dialogLook = True
@@ -588,7 +588,7 @@ class PyWizardPageModel(FramePanelModel):
 
 class WizardPageSimpleModel(FramePanelModel):
     modelIdentifier = 'WizardPageSimple'
-    defaultName = 'wx.WizardPageSimple'
+    defaultName = 'wx.wizard.WizardPageSimple'
     bitmap = 'wx.wizard.WizardPageSimple.png'
     imgIdx = imgWizardPageSimpleModel
     dialogLook = True
