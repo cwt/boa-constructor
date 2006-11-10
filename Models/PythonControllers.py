@@ -711,7 +711,8 @@ class SysPathNode(ExplorerNodes.ExplorerNode):
                     shortPath = pth[len(pythonDir):]
                     if not shortPath:
                         shortPath = '<Python root>'
-                self.entries.append( (shortPath, pth) )
+                if (shortPath, pth) not in self.entries and os.path.isdir(pth):
+                    self.entries.append( (shortPath, pth) )
 
     def openList(self):
         self.refresh()
