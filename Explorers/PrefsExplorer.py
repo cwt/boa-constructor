@@ -377,9 +377,19 @@ class LanguagesConfPropEdit(PropertyEditors.ConfPropEdit):
         self.editorCtrl.setValue(self.value)
   
     def getValues(self):
-        return ['wx.'+n for n in dir(wx) 
-         if n.startswith('LANGUAGE_') and wx.Locale.IsAvailable(getattr(wx, n))]
-
+        all = [n for n in dir(wx) if n.startswith('LANGUAGE_') ]
+        avl = []
+        for n in all:
+            try: 
+                if wx.Locale.IsAvailable(getattr(wx, n)):
+                    avl.append('wx.'+n)
+            except wx.PyAssertionError: 
+                # invalid language assertions
+                pass
+            except AttributeError:
+                # wx version < 2.7
+                avl.append('wx.'+n)
+        return avl
         
 class PreferenceCompanion(ExplorerNodes.ExplorerCompanion):
     def __init__(self, name, prefNode, ):
