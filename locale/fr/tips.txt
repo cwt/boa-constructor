@@ -1,0 +1,55 @@
+﻿Vous pouvez créer un nouveau fichier source à partir de l'onglet 'Nouveau' de la palette.
+Les modules wxApp servent aussi de fichier de projet pour les applications wxPython. Pour créer des projets python simples, vous pouvez utiliser PythonApp dans l'onglet 'Nouveau' de la palette.
+Vous pouvez ouvrir des fichiers dans Boa simplement en les faisant glisser depuis votre explorateur de fichiers.
+Vous pouvez passer un nom de fichier à ouvrir à Boa comme paramètre de ligne de commande, et même un numéro de ligne où positionner le curseur en ajoutant ::<n° de ligne>.
+Quand Boa est exécuté en mode serveur et que vous lui passez un nom de fichier en ligne de commande, c'est l'instance déjà ouverte qui reçoit ce nom et ouvre le fichier.
+Avec le paramètre de ligne de commande -C, Boa peut être démarré en mode 'constricted', c'est-à-dire en affichant seulement l'éditeur.
+Si vous trouvez un test reproductible qui entraîne un crash de Boa et que vous êtes un peu aventureux, vous pouvez lancer Boa en mode déboguage avec le paramètre -T. Ceci crée un gigantesque fichier qui enregistre chaque appel de fonction. Après le crash, redémarrez Boa, puis sélectionnez Fichier->Voir la trace du crash et allez vous faire un café en attendant que Boa ait fini de traiter le fichier.
+Pour ajouter un composant à un cadre, sélectionnez le composant sur la palette et cliquez à l'endroit où vous voulez le placer dans l'éditeur graphique.
+Pour créer un événement, sélectionnez un contrôle dans l'éditeur graphique, puis une catégorie dans l'onglets des événements de l'inspecteur, et enfin double-cliquez sur l'événement qui vous intéresse.
+Les propriétés du contrusteur ne sont pas (encore) immédiatement prises en charge. Il faut fermer puis rouvrir le cadre pour que les changements prennent effet.
+Double-cliquez sur un composant pour ouvrir son éditeur par défaut ou créer son événement par défaut.
+Pour sélectionner plusieurs composants simultanément, vous pouvez les sélectionner les uns après les autres en maintenant la touche <MAJ> enfoncée. Seuls les composants de même niveau peuvent être sélectionnés simultanément.
+Vous pouvez déplacer la sélection entre des composants du même niveau qu'un composant déjà sélectionné avec les flêches du clavier.
+Vous pouvez redimensionner ou déplacer précisément les composants avec les flêches du clavier en maintenant respectivement les touches <MAJ> et <CTRL> enfoncées. Ca marche aussi pour les sélections multiples.
+Vous pouvez modifier la taille et l'alignement des composants d'une sélection avec un clic droit puis 'Alignement...' ou 'Taille...'
+L'ordre de création et de tabulation entre les composants d'un conteneur sélectionné peut être modifié par un clic droit puis 'Ordre de création / navigation...'. Lorsque la session de l'éditeur graphique est validée, les composants seront enregistrés dans le nouvel ordre.
+Si vous voulez créer plusieurs composants sur une wxFrame, il est recommandé de les créer sur un wxPanel plutôt que directement sur le cadre. Un seul conteneur à la fois devrait se trouver sur un cadre en dehors des barres de menu, d'outils et de statut.
+Vous pouvez basculer vers les différentes vues associées à un module par le menu 'Affichage'.
+Vous pouvez utiliser les ancres pour gérer la mise en page des fenêtres. Le principe est d'ancrer un côté du composant au même côté de son parent.
+Les ancres sont intégrées à l'éditeur graphique. Faites un clic droit sur une poignée de sélection dans l'éditeur graphique pour afficher le menu qui permet d'activer ou désactiver les ancres.
+L'éditeur graphique supporte les opérations de copier/coller. Il est également parfois utile de copier les composants dans l'éditeur graphique et de les coller directement dans le source.
+Pour modifier les propriétés d'un élément dans l'explorateur, double-cliquez dessus pour afficher l'inspecteur.
+Les onglets vides d'un wxNotebook (remplis par des lignes rouges en diagonale) doivent être associées à un composant. Sinon elles génèreront un code source qui ne fonctionne pas.
+Les lignes rouges en diagonale sur un composant d'image signifient que le bitmap est défini comme un wxNullBitmap.
+Les composants de l'onglet 'Divers' de la palette sont des objets non visuels qui doivent être créés dans la vue 'Données' (une page blanche qui s'ouvre dans l'éditeur lorsque l'éditeur graphique est lancé).
+Pour tester un module wxFrame indépendemment du reste de l'application, sélectionnez Edition->Ajouter un exécuteur de module. Un code d'exécution basique s'ajoute à la fin du fichier. Il vous suffit alors de cliquer sur le bouton 'Exécuter le module' (flêche bleu).
+Vous pouvez accéder aux préférences via l'explorateur et l'inspecteur de propriétés. Sélectionnez 'Préférences' dans l'explorateur, puis double-cliquez sur un élément pour éditer ses réglages dans l'inspecteur.
+La plupart des préférences disposent d'une aide sous forme de bulle d'aide, qui apparaît lorsque vous laissez le pointeur de la souris survoler une option.
+Certaines préférences ne prennent effet qu'au redémarrage de Boa. D'autres valeurs sont utilisées seulement au démarrage.
+Les préférences sont enregistrées dans les fichiers Preferences.py, prefs.rc.py, prefs.(msw|gtk).rc.py et prefskeys.rc.py. Ces fichiers peuvent se trouver à la racine de Boa ou dans votre répertoire .boa.
+Vous pouvez changer les paramètres de colorisation syntaxique dans l'explorateur sous Préférences->Source
+Les raccourcis clavier de Boa peuvent être modifiés dans l'explorateur sous Préférences->Raccourcis clavier
+Les claviers non américains sont supportés par Boa. Définissez handleSpecialEuropeanKeys à true dans les préférences. Modifiez votre pays avec euroKeysCountry. Si votre clavier n'est pas supporté, ajoutez vos propres clés dans Views/wxStyledTextCtrls.py et envoyez-les aux développeurs.
+Si vous avez défini une variable d'environnement HOME et créé un répertoire nommé '.boa' dans votre répertoire personnel, Boa enregistrera automatiquement vos réglages optionnels et vos préférences dans ce répertoire. Il peut aussi y stocker des répertoires 'docs-cache' et 'Plug-ins'.
+Le support de COM est désactivé par défaut à cause de problèmes de stabilité sous win9x. Si les démonstrations de COM de la démo wxPython fonctionnent chez vous, vous pouvez activer le support de COM dans les préférences.
+Les contrôles ActiveX ne peuvent pas être automatiquement ajoutés à la palette. Vous devez pour cela écrire une classe spéciale pour le composant que vous souhaitez ajouter. Voyez Companions/ComCompanions.py et bcrtl/activex.
+Déplacez le curseur vers un mot dans l'éditeur de source, puis appuyez sur F1 pour obtenir une aide contextuelle.
+L'IntelliSense et les infos paramètres sont parfois disponibles. Les raccourcis par défaut sont Ctrl-Espace et Ctrl-Maj-Espace.
+En laissant la touche <CTRL> enfoncée et en balayant le code source avec le pointeur de la souris, certains mots se transforment en hyperliens. Vous pouvez alors cliquer dessus pour aller à leur définition, si celle-ci est disponible.
+La transformation de code effectue des opérations contextuelles (selon la position du curseur) : ajouter une définition pour une méthode qui n'existe pas dans la classe courante, écrire le code d'appel à une classe parente.
+La vérification de syntaxe de votre code python s'effectue lorsque le curseur quitte une ligne qui vient d'être modifiée. Les erreurs sont soulignées en rouge. Cette fonctionnalité peut poser certains problèmes et être désactivée dans les préférences.
+CVS est intégré à l'explorateur. Pour l'utiliser, vous devez installer un client CVS en ligne de commande. Lorsqu'un dépôt CVS a été mis à jour, les répertoires CVS sont affichés en bleu. Vous pouvez les ouvrir pour voir l'état CVS des fichiers et exécuter des opérations comme la validation et la mise à jour.
+Le premier noeud de l'explorateur est appelé 'Editeur'. Il affiche la liste de tous les modules ouverts dans Boa, permet d'en changer l'ordre et de fermer un groupe de fichiers en une seule opération.
+Vous pouvez copier/coller, ajouter des signets, ouvrir et enregistrer sur et entre les méthodes d'accès suivantes : système de fichiers, FTP, DAV, SSH et Zope.
+Boa contient beaucoup de fonctionnalités dédiées à la gestion et à l'édition des objets Zope. Vous devez importer le fichier zoa.zexp à la racine de votre arborescence Zope. Ce fichier se trouve dans le répertoire ZopeLib.
+Si votre serveur Zope s'exécute en local ou se trouve disponible à travers un répertoire réseau, veuillez définir la propriété localpath des éléments sous Méthodes d'accès->Zope. Ceci améliore l'import des objets Zope et l'ouverture des méthodes externes.
+Après avoir inspecté et modifié les propriétés des éléments dans l'explorateur, faites un clic droit et sélectionnez 'Recharger' avant d'ouvrir l'élément.
+Pour ajouter de nouvelles définitions de méthodes d'accès différentes du système de fichiers, sélectionnez la méthode d'accès dans l'arbre de l'explorateur et faites un clic droit puis 'Nouveau'. Renommez l'élément. Ensuite cliquez sur 'Inspecter' et configurez l'élément. Recharhez puis ouvrez la nouvelle méthode d'accès.
+Certains composants inhabituels n'enregistrent pas les événements de souris comme la sélection et le déplacement dans l'éditeur graphique. Vous pouvez tout de même les sélectionner dans l'onglet 'Obj' de l'inspecteur.
+Vous pouvez étendre Boa avec vos propres composants ou extensions à des composants existants. Tous les modules du répertoire d'extensions peuvent être exécutés au démarrage. Cette fonctionnalité est désactivée par défaut, mais peut être activée dans les préférences. Vous trouverez des exemples dans Plug-ins/UserCompanions.py.
+Distutils est partiellement supporté. Sur l'onglet 'Nouveau' de la palette, cliquez sur Setup pour créer un script setup.py. Ce script devra être maintenu à la main, mais les commandes distutils peuvent être lancées depuis le menu Fichier.
+Si py2exe est installé, il peut être invoqué en paramètre à un script setup.py dans le menu Fichier.
+Par défaut, Boa démarre dans le répertoire courant de son processus (qui peut être défini par un raccourci). Ce répertoire peut être remplacé par l'option exWorkingDirectory dans Préférences->Général. Dans l'arbre de l'explorateur, le noeud os.cwd montre le répertoire d'exécution courant.
+Au démarrage, les objets wxPython (même wxSTC) voient leur attribut __doc__ définis dans une version texte de l'aide HTML wxWindows. Les signatures des méthodes sont "pythonisées" et utilisées comme infos paramètres sur les objets wxPython. Vous pouvez aussi afficher le contenu de l'attribut __doc__ d'une classe ou d'une méthode dans le shell.
+Les éléments des menus et de la barre d'outil ont maintenant une propriété ItemId utilisée pour générer l'identifiant de fenêtre de l'élément, mais également le nom de la méthode de l'événement. Modifiez cette propriété avant d'associer l'événement.
