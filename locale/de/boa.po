@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Boa\n"
 "POT-Creation-Date: \n"
-"PO-Revision-Date: 2006-11-01 10:29+0100\n"
+"PO-Revision-Date: 2006-12-23 13:36+0100\n"
 "Last-Translator: Werner F. Bruhin <wbruhin@thewinecellarbook.com>\n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -1466,7 +1466,7 @@ msgid "Over - %s"
 msgstr "über - %s"
 
 #: boa/Debugger/Debugger.py:94
-#, fuzzy, python-format
+#, python-format
 msgid "Out - %s"
 msgstr "Out - %s"
 
@@ -1534,7 +1534,7 @@ msgstr "Der Debugger Process wurde unerwarted gestopped."
 
 #: boa/Debugger/Debugger.py:410
 msgid "Debugger stopped"
-msgstr ""
+msgstr "Debugger gestoppt"
 
 #: boa/Debugger/Debugger.py:464
 #, python-format
@@ -2206,7 +2206,6 @@ msgstr "Plug-ins"
 #: boa/Explorers/PrefsExplorer.py:99
 #: boa/Explorers/PrefsExplorer.py:521
 #: boa/Scripts/prefs.rc.i18n.py:139
-#, fuzzy
 msgid "Core support"
 msgstr "Basis Unterstützung"
 
@@ -2408,7 +2407,7 @@ msgstr "Config"
 
 #: boa/Models/Controllers.py:137
 msgid "Toggle read-only"
-msgstr ""
+msgstr "Toggle \"read-only\""
 
 #: boa/Models/Controllers.py:138
 msgid "NDiff files..."
@@ -3061,7 +3060,7 @@ msgstr "BRM - Could not find definition"
 
 #: boa/Plug-ins/BicycleRepairMan.plug-in.py:182
 msgid "Perform Find Definition?"
-msgstr ""
+msgstr "Definitions Suche ausführen?"
 
 #: boa/Plug-ins/BicycleRepairMan.plug-in.py:182
 msgid "Find References"
@@ -3557,7 +3556,7 @@ msgstr "Fehler: %s: %s"
 
 #: boa/Plug-ins/RegexEditor.plug-in.py:205
 msgid "Failed to match"
-msgstr ""
+msgstr "Nichts entsprechendes gefunden"
 
 #: boa/Plug-ins/RegexEditor.plug-in.py:215
 msgid "Regex editor"
@@ -4437,6 +4436,8 @@ msgid ""
 "Should there be submenu with all the items from the New palete under the\n"
 "Editor's File menu."
 msgstr ""
+"Soll ein unter Menu kreiert werden mit allen Einträgen von der \"Neu\" Pallette\n"
+" unter dem Editor's Datei Menu?"
 
 #: boa/Scripts/prefs.rc.i18n.py:115
 msgid "Should a custom wxSTC paint handler he installed which minimizes refresing?"
@@ -4713,12 +4714,12 @@ msgstr ""
 
 #: boa/Views/CtrlAlign.py:62
 msgid "Vertical"
-msgstr ""
+msgstr "Vertikal"
 
 #: boa/Views/CtrlSize.py:33
 #: boa/Views/EditorViews.py:1371
 msgid "Size"
-msgstr ""
+msgstr "Grösse"
 
 #: boa/Views/CtrlSize.py:41
 #: boa/Views/CtrlSize.py:52
@@ -4812,11 +4813,11 @@ msgstr ""
 
 #: boa/Views/Designer.py:184
 msgid "Align..."
-msgstr ""
+msgstr "Ausrichten..."
 
 #: boa/Views/Designer.py:185
 msgid "Size..."
-msgstr ""
+msgstr "Grösse..."
 
 #: boa/Views/Designer.py:368
 msgid "Creating frame"
@@ -5102,11 +5103,11 @@ msgstr "Zum Quellecode springen"
 
 #: boa/Views/OGLViews.py:595
 msgid "Goto Documentation"
-msgstr ""
+msgstr "Zur Dokumentation springen"
 
 #: boa/Views/OGLViews.py:691
 msgid "Documentation View is not open"
-msgstr ""
+msgstr "Dokumentions Ansicht ist nicht offen"
 
 #: boa/Views/OGLViews.py:693
 #: boa/Views/OGLViews.py:707
@@ -5541,7 +5542,7 @@ msgstr ""
 
 #: boa/Views/STCStyleEditor.py:940
 msgid "Not a valid dictionary"
-msgstr ""
+msgstr "Kein gültiges Verzeichnis"
 
 #: boa/Views/STCStyleEditor.py:946
 #, python-format
