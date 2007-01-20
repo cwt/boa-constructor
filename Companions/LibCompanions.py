@@ -695,7 +695,7 @@ try:
 except ImportError: pass
 
 
-EventCollections.EventCategories['MaskedNumCtrlEvent'] = ('wx.lib.masked.numctrl.EVT_MASKEDNUM',)
+EventCollections.EventCategories['MaskedNumCtrlEvent'] = ('wx.lib.masked.numctrl.EVT_NUM',)
 EventCollections.commandCategories.append('MaskedNumCtrlEvent')
 EventCollections.EventCategories['TimeCtrlEvent'] = ('wx.lib.masked.timectrl.EVT_TIMEUPDATE',)
 EventCollections.commandCategories.append('TimeCtrlEvent')
