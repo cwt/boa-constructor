@@ -1,390 +1,244 @@
-<!DOCTYPE html PUBLIC "-//w3c//dtd html 4.0 transitional//en">
-<html>
-<head>
-  <meta http-equiv="Content-Type"
- content="text/html; charset=iso-8859-1">
-  <meta name="GENERATOR"
- content="Mozilla/4.5 [en] (WinNT; I) [Netscape]">
-  <title>2.8 Creating a Dialog Window - with sizers</title>
-</head>
-<body style="color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);"
- alink="#ff0000" link="#0000bb" vlink="#551a8b">
-<div class="navigation">&nbsp;
-<table cellpadding="0" cellspacing="2" width="100%">
-  <tbody>
-    <tr>
-      <td height="32" width="32"><a href="index.html"><img
- src="icons/next.gif" alt="Next Page" border="0" height="32"
- width="32"></a></td>
-      <td height="32" width="32"><a href="index.html"><img
- src="icons/up.gif" alt="Up One Level" border="0" height="32"
- width="32"></a></td>
-      <td height="32" width="32"><a href="node26.html"><img
- src="icons/previous.gif" alt="Previous Page" border="0" height="32"
- width="32"></a></td>
-      <td align="center" bgcolor="#99ccff" width="100%"><b>Getting
-Started Guide
-for Boa Constructor</b></td>
-      <td height="32" width="32"><a href="index.html"><img
- src="icons/contents.gif" alt="Contents" border="0" height="32"
- width="32"></a></td>
-      <td height="32" width="32"><img src="icons/blank.gif" alt=""
- border="0" height="32" width="32"></td>
-      <td height="32" width="32"><img src="icons/blank.gif" alt=""
- border="0" height="32" width="32"></td>
-    </tr>
-  </tbody>
-</table>
-<b>Next:<span class="sectref"></span></b><a href="index.html">Getting
-Started
-Guide for Boa Constructor</a> <b>Up:<span class="sectref"></span></b><a
- href="index.html">Getting
-Started Guide for Boa Constructor</a> <b>Previous:<span class="sectref"></span></b><a
- href="node26.html">Adding
-File Menu Functionality</a>
-<br>
-<hr></div>
-<!--End of Navigation Panel-->
-<h1>2.8 Creating a Dialog Window - with sizers<br>
-</h1>
-Sizers are a great way to ensure that your GUI layout is nice and
-clean.&nbsp; They come in especially handy when you do not know exactly
-how much space a control needs and/or should be allowed to use, this
-can be the case when you internationalize your application (I18N) or
-for such controls are lists or grids where you like to give as much
-space as possible to them (or maybe as little as practical).<br>
-<p>Please note that the following will just explain how to use Sizers
-in Boa.&nbsp; For more detailed information about sizers you should
-check the wxPython documentation and you might also find the following
-links interesting.<br>
-</p>
-<p></p>
-<div style="margin-left: 40px;">
-<p><a href="http://wiki.wxpython.org/index.cgi/UsingSizers">http://wiki.wxpython.org/index.cgi/UsingSizers</a></p>
-<p><a
- href="http://wiki.wxpython.org/index.cgi/wxDesigner_20Sizer_20Tutorial">http://wiki.wxpython.org/index.cgi/wxDesigner_20Sizer_20Tutorial</a></p>
-</div>
-<br>
-In the previous section you already created a Dialog, now we are going
-to do another one but to align things we will use sizers.<br>
-<ul>
-  <li>The dialog we are going to create will require a new window. It
-is not
-a component of the Frame1 window. It will exist in our application as
-a separate Python file. Select the application module 'App1' in the
-editor.
-Chose the 'Application' pane.</li>
-  <li>On the palette, select the 'New' pane. Select the 'wx.Dialog'
-button.
-This
-will create a new source file Dialog2.py, and will automatically add
-this new source file to your application module.</li>
-  <li>Select the Frame1 pane. We will just change the code for the
-'About'
-menu
-option, which is used to display the dialog. This option is implemented
-by the method 'OnHelpAboutMenu'. The code is as follows:</li>
-</ul>
-<p><br>
-</p>
-<table
- style="margin-left: auto; margin-right: auto; width: 50%; text-align: left;"
- border="1" cellpadding="2" cellspacing="2">
-  <tbody>
-    <tr>
-      <td style="vertical-align: top;">&nbsp;&nbsp;&nbsp; def
-OnMenuHelpAboutMenu(self, event):<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; dlg = Dialog2.Dialog2(self)<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; try:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-dlg.ShowModal()<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; finally:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-dlg.Destroy() </td>
-    </tr>
-  </tbody>
-</table>
-<p><br>
-</p>
-<ul>
-  <li>This code references the Dialog2 module. Before this code works,
-we must
-import the Dialog2 module. By convention, we keep imports at the start
-of the source. Add the line 'import Dialog2' to the Frame1.py after the
-line
-'import wx'.</li>
-</ul>
-<p><br>
-</p>
-<table
- style="margin-left: auto; margin-right: auto; width: 50%; text-align: left;"
- border="1" cellpadding="2" cellspacing="2">
-  <tbody>
-    <tr>
-      <td style="vertical-align: top;">import wx<br>
-import Dialog2 </td>
-    </tr>
-  </tbody>
-</table>
-<p>&nbsp;
-</p>
-<ul>
-  <li>Save all your source files. You can run the application now.
-When you
-select the 'About' option from the 'Help' menu your new Dialog will
-appear.
-Notice that the dialog is modal, i.e. you must close it before you can
-access the Frame1 window. Exit the application and return to Boa
-Constructor.</li>
-  <li>Select the Dialog2.py pane. Start the Designer by clicking on the
-button <img alt="Designer" title="Designer" src="image/Designer.jpg"
- style="width: 16px; height: 16px;" align="middle"> .</li>
-  <li>Now add some sizers to the "Sizers" pane (they are on
-Containers/Layout pane).</li>
-  <ul>
-    <li>A BoxSizer and change its name to 'bsDialog'</li>
-    <li>A FlexGridSizer and change its name to 'fsTextctrls' and change
-the 'Cols' value to '1' and the 'Rows' value to '0'</li>
-    <li>Another FlexGridSizer and change its name to 'fsImages' and
-change the 'Cols' value to '2' and the 'Rows' value to '0'</li>
-    <li>And one more FlexGridSizer and change its name to 'fgsButton'
-and change the 'Cols' value to '1' and the 'Rows' value to '0'</li>
-  </ul>
-  <li>Things should now look similar to the image shown below.</li>
-</ul>
-<p><br>
-</p>
-<p><img alt="Sizers" title="Sizers" src="image/Boa28.png"
- style="width: 819px; height: 497px;"><br>
-</p>
-<p><br>
-</p>
-<ul>
-  <li>Select the Dialog2 in the Designer and change its Property Sizer
-on the 'Props' pane to self.bsDialog.</li>
-  <ul>
-    <li>If you look at the Designer now you will see a yellow frame.</li>
-  </ul>
-  <li>On the Sizers pane double click on the bsDialog entry to open the
-Collection Editor.</li>
-  <li>Create three items by clicking on the 'More new' button and
-selecting Add sizer</li>
-</ul>
-<p><br>
-<img alt="Sizer - items" title="Sizer - items" src="image/Boa28b.png"
- style="width: 819px; height: 494px;"><br>
-</p>
-<p><br>
-</p>
-<ul>
-  <li>Change the three items as shown on the above image.</li>
-  <ul>
-    <li>Set 'Border'&nbsp; to '2', 'Flag' to 'wx.ALL', 'Proportion' to
-'1' and the 'Sizer' to the sizers 'fgsImages', 'fsTextctrls' and
-'fgsButton'</li>
-  </ul>
-  <li>Post all the changes and save all your source files.</li>
-  <li>Select the Dialog2.py pane again and start the Designer by
-clicking on the
-button <img alt="Designer" title="Designer" src="image/Designer.jpg"
- style="width: 16px; height: 16px;" align="middle"> .</li>
-  <li>Lets add a label to the Dialog. On the palette select
-'Basic
-Controls'. From this pane select the wx.StaticText control. On the
-Designer
-click the mouse button to create the control.</li>
-  <li>On the Inspector edit the field 'Label'. Set the value to 'Note
-book -
-Simple Text Editor'. Notice that the label in the Designer will grow to
-accomodate your text.</li>
-  <li>We use the style property to configure the alignment of the text
-within
-the label. Set the style property to 'wx.ALIGN_CENTRE' or select this
-style after clicking on the check box to the left of style.<br>
-  </li>
-  <li>Select the 'Properties' pane in the inspector. Edit the field
-called
-'font'.
-Set the font to a reasonably large font, e.g. 12 or 14 point. Notice
-that
-you can change both the font and point size with this property.</li>
-  <li>Now add another label below the first. Set the text to 'This is
-my
-first
-Boa Contstructor application'. In the Inspector, select the
-'Properties'
-pane. Edit the value 'BackgroundColour'. Pick a colour from the set
-available
-and press OK.</li>
-  <li>We will now add three images, I used Boa.jpg, Debian.png and
-wxWidgetsButton.png. You can
-create your own bitmap using a paint utility. Copy the bitmap to your
-application
-directory.</li>
-  <li>Next we will add the bitmaps. From the 'Basic Controls' select
-the
-wx.StaticBitmap
-control. Place this below the second label on your dialog. In the
-Inspector
-select the Constructor pane. Edit the Bitmap field. This will give you
-an 'Open File' dialog. Choose the bitmap you painted earlier. The
-wx.StaticBitmap
-field in the Designer will change to accomodate your bitmap.</li>
-  <ul>
-    <li>Repeat this for the other two bitmaps</li>
-  </ul>
-  <li>Finally, we will add a button to the Dialog. In the Palette
-select the
-'Buttons' pane. Select the basic button type, wx.Button. Place this on
-the
-form below the bitmap. On the Inspector Constructor pane edit the
-'Label'.
-Set this to 'Close'. Select the Events pane in the Inspector. Add a
-handler
-for event type EVT_BUTTON.</li>
-  <ul>
-    <li>Hint: select the event group first, then the
-event.</li>
-  </ul>
-  <li>You should now see something similar to the image below - one
-could say a bit messy!</li>
-</ul>
-<p><br>
-<img alt="Designer - with images" title="Designer - with images"
- src="image/Boa28c.png" style="width: 503px; height: 380px;"><br>
-</p>
-<p><br>
-</p>
-<ul>
-  <li>Post your changes and save your source file and open the Designer
-again.</li>
-  <li>This are all the controls we are going to add to the Dialog.</li>
-  <li>Now we need to add these different controls to the appropriate
-sizer.</li>
-  <li>Select the 'fgsTextctrl' sizer, double click and add two new
-items.</li>
-  <li>Change the items as shown on the image below.</li>
-</ul>
-<p><br>
-<img alt="Sizer - items" title="Sizer - items" src="image/Boa28d.png"
- style="width: 819px; height: 494px;"><br>
-</p>
-<p><br>
-</p>
-<ul>
-  <li>Press the 'Refresh' button on the Collection Editor and check
-what effect this has on the Designer.</li>
-  <li>Now add the images to 'fgsImages' sizer.</li>
-  <li>Now add the button to 'fgsButton' sizer.</li>
-  <li>How does this look?&nbsp; Not quite what we want!</li>
-  <li>Select the 'bsDialog' sizer, double click it and use the up and
-down arrows to put the sizers into the following order; 'fsTextCtrls',
-'fgsImages' and 'fgsButton'.</li>
-  <li>Now select the 'fgsImages' and change the 'Cols' constructor to
-'3'.</li>
-  <li>Double click the 'fgsImages' entry on the Sizers pane and move
-the images into the following order, wxWidgets, Boa, Debian.</li>
-  <li>Your dialog should now look similar to the following.</li>
-</ul>
-<p><br>
-</p>
-<img alt="Dialog - a bit nicer" title="Dialog - a bit nicer"
- src="image/Boa28e.png" style="width: 560px; height: 319px;"><br>
-<p><br>
-</p>
-<ul>
-  <li>This is still not what we want, the button is half hidden, and
-lots of space is wasted, the images are not nicely aligned.</li>
-  <li>A little challange: Go back to the sizers pane and make
-adjustements to e.g. settings such as proportion, aligment flags,
-correct the text of the first text control etc to arrive at a dialog
-which looks more like the following.</li>
-</ul>
-<p><br>
-<img alt="Dialog - nice" title="Dialog - nice" src="image/Boa28f.png"
- style="width: 692px; height: 283px;"><br>
-</p>
-<p><br>
-</p>
-<ul>
-  <li>Select the Dialog2 in the Designer. In the Constructor pane in
-the
-Inspector,
-edit the Title field. Set this to 'About Notebook'.</li>
-  <li>Press either post button to update the source code with your
-changes.</li>
-  <li>Finally, we need to implement the event handler for the Close
-button.
-In
-the Editor select the source for Dialog2. Go to the source for your
-method
-'OnButton1Button'. We will use the same 'Close' method as we used in
-the
-'Exit' menu item. Note that this closes the window. Closing the root
-window exits the application. However, closing a child window will
-simply
-return to the parent window<span style="font-family: monospace;">.</span></li>
-</ul>
-<p>
-</p>
-<table
- style="margin-left: auto; margin-right: auto; width: 50%; text-align: left;"
- border="1" cellpadding="2" cellspacing="2">
-  <tbody>
-    <tr>
-      <td style="vertical-align: top;"> def OnButton1Button(self,
-event):<br>
-&nbsp;&nbsp; <b>self.Close()</b> </td>
-    </tr>
-  </tbody>
-</table>
-<p><br>
-</p>
-Run the application. Your new Dialog should look something like this.<br>
-<p><br>
-</p>
-<img alt="Dialog 2 - final" title="Dialog 2 - final"
- src="image/Boa28g.png" style="width: 587px; height: 275px;"><br>
-<p><br>
-Please note that the files generated during this example are also
-available in the directory "Examples\guide" under your Boa installation
-directory.<br>
-</p>
-<div class="navigation">&nbsp;
-<table cellpadding="0" cellspacing="2" width="100%">
-  <tbody>
-    <tr>
-      <td height="32" width="32"><a href="index.html"><img
- src="icons/next.gif" alt="Next Page" border="0" height="32"
- width="32"></a></td>
-      <td height="32" width="32"><a href="index.html"><img
- src="icons/up.gif" alt="Up One Level" border="0" height="32"
- width="32"></a></td>
-      <td height="32" width="32"><a href="node26.html"><img
- src="icons/previous.gif" alt="Previous Page" border="0" height="32"
- width="32"></a></td>
-      <td align="center" bgcolor="#99ccff" width="100%"><b>Getting
-Started Guide
-for Boa Constructor</b></td>
-      <td height="32" width="32"><a href="index.html"><img
- src="icons/contents.gif" alt="Contents" border="0" height="32"
- width="32"></a></td>
-      <td height="32" width="32"><img src="icons/blank.gif" alt=""
- border="0" height="32" width="32"></td>
-      <td height="32" width="32"><img src="icons/blank.gif" alt=""
- border="0" height="32" width="32"></td>
-    </tr>
-  </tbody>
-</table>
-<b>Next:<span class="sectref"></span></b><a href="index.html">Getting
-Started
-Guide for Boa Constructor</a> <b>Up:<span class="sectref"></span></b><a
- href="index.html">Getting
-Started Guide for Boa Constructor</a> <b>Previous:<span class="sectref"></span></b><a
- href="node26.html">Adding
-File Menu Functionality</a>
-<br>
-<hr></div>
-<!--End of Navigation Panel-->
-</body>
-</html>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=windows-1252">
+	<TITLE>2.8 Creating a Dialog Window - with sizers</TITLE>
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 2.0  (Win32)">
+	<META NAME="CREATED" CONTENT="20070320;15462415">
+	<META NAME="CHANGED" CONTENT="20070320;18401831">
+	<STYLE>
+	<!--
+		TD P { color: #000000 }
+		H1 { color: #000000 }
+		P { color: #000000 }
+		A:link { color: #0000bb }
+		A:visited { color: #551a8b }
+	-->
+	</STYLE>
+</HEAD>
+<BODY LANG="fr-FR" TEXT="#000000" LINK="#0000bb" VLINK="#551a8b" BGCOLOR="#ffffff" DIR="LTR">
+<P STYLE="margin-bottom: 0cm">&nbsp; 
+</P>
+<TABLE WIDTH=100% CELLPADDING=0 CELLSPACING=2>
+	<TR>
+		<TD WIDTH=32 HEIGHT=38>
+			<P><A HREF="index.html"><IMG SRC="icons/next.gif" NAME="graphics1" ALT="Next Page" ALIGN=BOTTOM WIDTH=32 HEIGHT=32 BORDER=0></A></P>
+		</TD>
+		<TD WIDTH=32>
+			<P><A HREF="index.html"><IMG SRC="icons/up.gif" NAME="graphics2" ALT="Up One Level" ALIGN=BOTTOM WIDTH=32 HEIGHT=32 BORDER=0></A></P>
+		</TD>
+		<TD WIDTH=32>
+			<P><A HREF="node26.html"><IMG SRC="icons/previous.gif" NAME="graphics3" ALT="Previous Page" ALIGN=BOTTOM WIDTH=32 HEIGHT=32 BORDER=0></A></P>
+		</TD>
+		<TD WIDTH=100% BGCOLOR="#99ccff">
+			<P ALIGN=CENTER><B>Getting Started Guide for Boa Constructor</B></P>
+		</TD>
+		<TD WIDTH=32>
+			<P><A HREF="index.html"><IMG SRC="icons/contents.gif" NAME="graphics4" ALT="Contents" ALIGN=BOTTOM WIDTH=32 HEIGHT=32 BORDER=0></A></P>
+		</TD>
+		<TD WIDTH=32>
+			<P><IMG SRC="icons/blank.gif" NAME="graphics5" ALIGN=BOTTOM WIDTH=32 HEIGHT=32 BORDER=0></P>
+		</TD>
+		<TD WIDTH=32>
+			<P><IMG SRC="icons/blank.gif" NAME="graphics6" ALIGN=BOTTOM WIDTH=32 HEIGHT=32 BORDER=0></P>
+		</TD>
+	</TR>
+</TABLE>
+<P STYLE="margin-bottom: 0cm"><B>Next:</B><A HREF="index.html">Getting
+Started Guide for Boa Constructor</A> <B>Up:</B><A HREF="index.html">Getting
+Started Guide for Boa Constructor</A> <B>Previous:</B><A HREF="node26.html">Adding
+File Menu Functionality</A> 
+</P>
+<HR>
+<H1><!--End of Navigation Panel-->2.8 Creating an application window
+using sizers</H1>
+<P>Sizers are a great way to ensure that your GUI layout is nice and
+clean. They come in especially handy when you do not know exactly how
+much space a control needs and/or should be allowed to use, this can
+be the case when you internationalize your application (I18N) or for
+such controls as lists or grids where you like to give as much space
+as possible to them (or maybe as little as practical).</P>
+<P>Please note that the following will just explain how to use sizers
+in Boa (note that this assumes version 0.5.x of Boa). For more
+detailed information about sizers you should check the wxPython
+documentation and you might also find the following links
+interesting.</P>
+<P><A HREF="http://wiki.wxpython.org/index.cgi/UsingSizers">http://wiki.wxpython.org/index.cgi/UsingSizers</A></P>
+<P><A HREF="http://wiki.wxpython.org/index.cgi/LearnSizers1">http://wiki.wxpython.org/index.cgi/LearnSizers1</A></P>
+<P><A HREF="http://wiki.wxpython.org/index.cgi/wxDesigner_20Sizer_20Tutorial">http://wiki.wxpython.org/index.cgi/wxDesigner_20Sizer_20Tutorial</A></P>
+<P STYLE="margin-left: 1.06cm"><BR>We will use a wx.Frame and create
+a screen for address information entry. In this first tutorial we
+will just use one sizer to control the layout of the screen, there
+will be another tutorial (hopefully soon) with a layout a bit more
+complex using multiple sizers.</P>
+<UL>
+	<LI><P STYLE="margin-bottom: 0cm">Close all the source files in your
+	editor, so not to add this to the application you created
+	previously. 
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm">On the palette, select the 'New'
+	pane. Select the 'wx.Frame' button. This will create a new source
+	file *(Frame1)*. 
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm">Click on the Save button (or menu
+	File/Save) and save it as AddressEntry.py.</P>
+	<LI><P STYLE="margin-bottom: 0cm">Select from the menu Edit the
+	option Add module runner. This will add some code to your file so
+	you can run without having to have a separate wx.App file.</P>
+	<LI><P STYLE="margin-bottom: 0cm">Save the file and you can run this
+	application, you will see just Frame1 in the title bar and a grey
+	background.</P>
+</UL>
+<UL>
+	<LI><P STYLE="margin-bottom: 0cm">Select the AddressEntry pane.
+	Start the Designer by clicking on the button 
+	<IMG SRC="image/Designer.jpg" NAME="graphics7" ALT="Designer" ALIGN=MIDDLE WIDTH=16 HEIGHT=16 BORDER=0>
+	. 
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm">On the palette, select the
+	'Containers/Layout' pane. Click on the wx.Panel button to select it
+	and click anywhere within the AddressEntry frame. This will drop the
+	panel onto your frame. 
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm">On the same palette pane click on
+	the wx.FlexGridSizer button to select it and click anywhere on the
+	wx.Panel you just added to your frame. You should see a yellow line
+	around your panel.</P>
+	<LI><P STYLE="margin-bottom: 0cm">In the Inspector change the 'Cols'
+	setting from '0' to '2' and the 'Rows' setting from '1' to '0', as
+	we will have to columns of controls/widgets.</P>
+	<LI><P STYLE="margin-bottom: 0cm">Post the changes, save the file
+	and open the Designer again. In the Inspector change the Name from
+	'Frame1' to 'AddressEntry' and the Title from 'Frame1' to 'Address
+	entry form'. You will see that the wx.Panel is using up all
+	available space and if you run the application and resize the window
+	you see that it will resize accordingly.</P>
+	<LI><P STYLE="margin-bottom: 0cm">We will now add the controls, to
+	have less work later you should try to add them in the sequence you
+	want to have them.</P>
+	<UL>
+		<LI><P STYLE="margin-bottom: 0cm">We will have a wx.StaticText and
+		a wx.TextCtrl for each of the fields we need. The fields are: First
+		name, Last name, address, postal, city, country and notes.</P>
+		<LI><P STYLE="margin-bottom: 0cm">To add these controls/widgets
+		select the palette 'Basic Controls' and click wx.StaticText and
+		click anywhere on the designer window. This will create the control
+		and add it to the sizer. Now bring the designer window to the front
+		again (i.e. click on 
+		<IMG SRC="image/Designer.jpg" NAME="graphics22" ALT="Designer" ALIGN=MIDDLE WIDTH=16 HEIGHT=16 BORDER=0>),
+		click on the wx.TextCtrl on the palette pane and click anywhere on
+		the designer window. This has created the control and added it to
+		the sizer.</P>
+		<LI><P STYLE="margin-bottom: 0cm">Now repeat the above for all the
+		fields needed.</P>
+		<LI><P STYLE="margin-bottom: 0cm">At this point your designer
+		windows should look like the following image.</P>
+	</UL>
+</UL>
+<P><BR><BR>
+</P>
+<P><IMG SRC="image/Boa28.png" NAME="graphics8" ALT="Sizers" ALIGN=BOTTOM WIDTH=400 HEIGHT=251 BORDER=0></P>
+<P><BR><BR>
+</P>
+<UL>
+	<LI><P STYLE="margin-bottom: 0cm">Select the Sizers pane in the
+	Editor window and double click on flexGridSizer1 item (if you use
+	many sizers you should probably also rename this to something a bit
+	more meaning full).</P>
+	<LI><P STYLE="margin-bottom: 0cm">Please note that the flags etc
+	being used in the following are explained on the links mentioned
+	above or in the wxPython documentation.</P>
+	<LI><P STYLE="margin-bottom: 0cm">Now click on the first item and in
+	the Inspector change the Border setting from '0' to '4' and the Flag
+	setting from '0' to <BR>'wx.ALIGN_CENTER_VERTICAL | wx.ALL' and
+	repeat this for each wx.StaticText control.</P>
+	<LI><P STYLE="margin-bottom: 0cm">For all the wx.TextCtrl change the
+	Border setting from '0' to '4' and the Flag setting from '0' to
+	'wx.ALL', with the exception of the last one which you set to
+	'wx.ALL | wx.EXPAND' and for this one you set the Proportion setting
+	from '0' to '1'.</P>
+	<LI><P STYLE="margin-bottom: 0cm">Select the Sizers pane again and
+	click on the flexGridSizer1 item and select the Props pane in the
+	Inspector and click on the Edit button for the Growables property.
+	On the dialog which opens click on the column 1 and row 6 button and
+	then on OK.</P>
+	<LI><P STYLE="margin-bottom: 0cm">Post the changes you made and open
+	the Designer again. You see that the last wx.TextCtrl is growing to
+	fill the available space, this is due to the Flag 'wx.EXPAND', the
+	Proportion '1' setting and the growable row/column settings. If you
+	change the size of the designer window you see how your screen will
+	react when a user changes its size.</P>
+	<LI><P STYLE="margin-bottom: 0cm">It is always a good policy to
+	change the names of your controls to something meaning full. This is
+	as good a time as any to do this. I suggest to name the staticText
+	controls as 'stFieldName' and the textCtrl as 'fieldName', but you
+	should follow whater coding standards you use, or if you have none
+	defined you could follow the one defined on this page
+	<A HREF="http://wiki.wxpython.org/index.cgi/wxPython_Style_Guide">http://wiki.wxpython.org/index.cgi/wxPython_Style_Guide</A>
+	. To do this select each control by clicking on it in the Designer
+	window and change the properties in the Inspector. So, select the
+	staticText1 control and in the Inspector Constr pane change the
+	Label to 'First name' and the Name to 'stFirstName', then select the
+	textCtrl1 and change Name to 'firstName' and Value to '' (blank).</P>
+	<LI><P STYLE="margin-bottom: 0cm">Repeat the above for all fields.</P>
+	<LI><P STYLE="margin-bottom: 0cm">Now your designer windows should
+	look something like the following.</P>
+</UL>
+<P><BR><IMG SRC="image/Boa28b.png" NAME="graphics9" ALT="Sizer - items" ALIGN=BOTTOM WIDTH=438 HEIGHT=296 BORDER=0></P>
+<P><BR><BR>
+</P>
+<UL>
+	<LI><P STYLE="margin-bottom: 0cm">Oh, you mean it does not quit look
+	like this :).</P>
+	<LI><P STYLE="margin-bottom: 0cm">I manually changed the sizes of
+	the controls, i.e. made them wider and also set some additional
+	properties.  On the address wx.TextCtrl I set the the property Style
+	to 'wx.TE_MULTILINE' and on the notes control I set Style to
+	'wx.TE_RICH2 | wx.TE_MULTILINE'.</P>
+	<LI><P STYLE="margin-bottom: 0cm">After these changes you should see
+	a similar display when you run this little application &ndash;
+	obviously one should add some validation and a way to store things,
+	but this was not the point of this tutorial &ndash; maybe some other
+	time.</P>
+</UL>
+<P><BR><IMG SRC="image/Boa28c.png" NAME="graphics11" ALT="Designer - with images" ALIGN=BOTTOM WIDTH=503 HEIGHT=380 BORDER=0></P>
+<P><BR>Please note that the files generated during this example are
+also available in the directory &quot;Examples\guide&quot; under your
+Boa installation directory.</P>
+<P STYLE="margin-bottom: 0cm">&nbsp; 
+</P>
+<TABLE WIDTH=100% CELLPADDING=0 CELLSPACING=2>
+	<TR>
+		<TD WIDTH=32 HEIGHT=38>
+			<P><A HREF="index.html"><IMG SRC="icons/next.gif" NAME="graphics16" ALT="Next Page" ALIGN=BOTTOM WIDTH=32 HEIGHT=32 BORDER=0></A></P>
+		</TD>
+		<TD WIDTH=32>
+			<P><A HREF="index.html"><IMG SRC="icons/up.gif" NAME="graphics17" ALT="Up One Level" ALIGN=BOTTOM WIDTH=32 HEIGHT=32 BORDER=0></A></P>
+		</TD>
+		<TD WIDTH=32>
+			<P><A HREF="node26.html"><IMG SRC="icons/previous.gif" NAME="graphics18" ALT="Previous Page" ALIGN=BOTTOM WIDTH=32 HEIGHT=32 BORDER=0></A></P>
+		</TD>
+		<TD WIDTH=100% BGCOLOR="#99ccff">
+			<P ALIGN=CENTER><B>Getting Started Guide for Boa Constructor</B></P>
+		</TD>
+		<TD WIDTH=32>
+			<P><A HREF="index.html"><IMG SRC="icons/contents.gif" NAME="graphics19" ALT="Contents" ALIGN=BOTTOM WIDTH=32 HEIGHT=32 BORDER=0></A></P>
+		</TD>
+		<TD WIDTH=32>
+			<P><IMG SRC="icons/blank.gif" NAME="graphics20" ALIGN=BOTTOM WIDTH=32 HEIGHT=32 BORDER=0></P>
+		</TD>
+		<TD WIDTH=32>
+			<P><IMG SRC="icons/blank.gif" NAME="graphics21" ALIGN=BOTTOM WIDTH=32 HEIGHT=32 BORDER=0></P>
+		</TD>
+	</TR>
+</TABLE>
+<P STYLE="margin-bottom: 0cm"><B>Next:</B><A HREF="index.html">Getting
+Started Guide for Boa Constructor</A> <B>Up:</B><A HREF="index.html">Getting
+Started Guide for Boa Constructor</A> <B>Previous:</B><A HREF="node26.html">Adding
+File Menu Functionality</A> 
+</P>
+<HR>
+<P><!--End of Navigation Panel--><BR><BR>
+</P>
+</BODY>
+</HTML>
