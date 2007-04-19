@@ -104,7 +104,7 @@ class FrameDTC(FramesConstr, BaseFrameDTC):
                              'ToolBar': ToolBarClassLinkPropEdit })
         self.triggers.update({'ToolBar': self.ChangeToolBar})
         self.windowStyles = ['wx.DEFAULT_FRAME_STYLE', 'wx.ICONIZE',
-              'wx.MINIMIZE', 'wx.MAXIMIZE', 'wx.CLOSE', 'wx.STAY_ON_TOP', 
+              'wx.MINIMIZE', 'wx.MAXIMIZE', 'wx.CLOSE_BOX', 'wx.STAY_ON_TOP', 
               'wx.SYSTEM_MENU', 'wx.RESIZE_BORDER', 'wx.FRAME_FLOAT_ON_PARENT',
               'wx.FRAME_TOOL_WINDOW', 'wx.FRAME_NO_TASKBAR', 'wx.FRAME_SHAPED',
               ] + self.windowStyles
