@@ -62,6 +62,12 @@ class CompileModuleRunner(ModuleRunner):
     Saved models (on the filesystem) are compiled from their files. This is
     useful for generating the .pyc files """
     def run(self, filename, source, modified):
+        # If "filename" is passed as unicode,
+        # we need to convert it back to the filesystem's encoding
+        # because the "compile" function needs it so.
+        if type(filename) is unicode:
+            filename = filename.encode(sys.getfilesystemencoding())
+            
         protsplit = string.find(filename, '://')
         if protsplit != -1:
             prot, _filename = filename[:protsplit], filename[protsplit+3:]
