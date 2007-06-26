@@ -895,7 +895,8 @@ class WindowDTC(WindowConstr, ControlDTC):
                 'Id', 'Caret', 'WindowStyleFlag', 'ToolTip', 'Title', 'Rect',
                 'DragTarget', 'DropTarget', 'Cursor', 'VirtualSize', 'Sizer',
                 'ContainingSizer', 'Constraints', 'DefaultItem', 'Validator',
-                'WindowStyle', 'AcceleratorTable', 'ClientRect', 'ExtraStyle']
+                'WindowStyle', 'AcceleratorTable', 'ClientRect', 'ExtraStyle',
+                'LayoutDirection']
 
     def dontPersistProps(self):
         return ControlDTC.dontPersistProps(self) + ['ClientSize']
