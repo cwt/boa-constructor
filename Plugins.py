@@ -137,6 +137,17 @@ def assureConfigFile(filename, data):
     if not os.path.exists(filename):
         open(filename, 'w').write(data)
 
+def updateRcFile(rcFile, propName, propSrcValue):
+    from Explorers.PrefsExplorer import UsedModuleSrcBsdPrefColNode
+    import moduleparse
+
+    prefsRcFile = os.path.join(Preferences.rcPath, rcFile)
+    m = moduleparse.Module(rcFile, open(prefsRcFile).readlines())
+    prefsRcNode = UsedModuleSrcBsdPrefColNode('', ('*',), prefsRcFile, -1, None,
+                                              Preferences, True)
+    newProp = (propName, propSrcValue, m.globals[propName])
+    prefsRcNode.save(propName, newProp)
+
 
 #---Registration API------------------------------------------------------------
 
