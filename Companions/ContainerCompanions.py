@@ -170,6 +170,10 @@ class ScrolledWindowDTC(Constructors.WindowConstr, ContainerDTC):
 
     def events(self):
         return ContainerDTC.events(self) + ['ScrollWinEvent']
+    
+    def hideDesignTime(self):
+        return ContainerDTC.hideDesignTime(self) + ['TargetRect']
+
 
     def notification(self, compn, action):
         ContainerDTC.notification(self, compn, action)
@@ -178,9 +182,6 @@ class ScrolledWindowDTC(Constructors.WindowConstr, ContainerDTC):
                 self.propRevertToDefault('TargetWindow', 'SetTargetWindow')
                 self.control.SetTargetWindow(self.control)
 
-EventCategories['NotebookEvent'] = ('wx.EVT_NOTEBOOK_PAGE_CHANGED',
-                                    'wx.EVT_NOTEBOOK_PAGE_CHANGING')
-commandCategories.append('NotebookEvent')
 class BookCtrlDTC(Constructors.WindowConstr, ContainerDTC):
     bookCtrlName = 'wx.BookCtrl'
     def __init__(self, name, designer, parent, ctrlClass):
@@ -212,9 +213,6 @@ class BookCtrlDTC(Constructors.WindowConstr, ContainerDTC):
 
     def dontPersistProps(self):
         return ContainerDTC.dontPersistProps(self) + ['Selection']
-
-    def events(self):
-        return ContainerDTC.events(self) + ['NotebookEvent']
 
     def defaultAction(self):
         self.designer.inspector.props.getNameValue('Pages').propEditor.edit(None)
@@ -495,29 +493,69 @@ class BlankWindowPage(wx.Window):
         self.params[self.nameKey] = Utils.srcRefFromCtrlName(self.ctrl.GetName())
         self.OnControlResize(None)
 
+
+EventCategories['NotebookEvent'] = ('wx.EVT_NOTEBOOK_PAGE_CHANGED',
+                                    'wx.EVT_NOTEBOOK_PAGE_CHANGING')
+commandCategories.append('NotebookEvent')
 class NotebookDTC(BookCtrlDTC):
     bookCtrlName = 'wx.Notebook'
     def __init__(self, name, designer, parent, ctrlClass):
         BookCtrlDTC.__init__(self, name, designer, parent, ctrlClass)
         self.windowStyles = ['wx.NB_FIXEDWIDTH', 'wx.NB_LEFT', 'wx.NB_RIGHT',
                              'wx.NB_BOTTOM', 'wx.NB_MULTILINE'] + self.windowStyles
+    def events(self):
+        return BookCtrlDTC.events(self) + ['NotebookEvent']
 
 
+EventCategories['ListbookEvent'] = ('wx.EVT_LISTBOOK_PAGE_CHANGED', 
+                                    'wx.EVT_LISTBOOK_PAGE_CHANGING')
+commandCategories.append('ListbookEvent')
 class ListbookDTC(BookCtrlDTC):
     bookCtrlName = 'wx.Listbook'
     def __init__(self, name, designer, parent, ctrlClass):
         BookCtrlDTC.__init__(self, name, designer, parent, ctrlClass)
         self.windowStyles = ['wx.LB_DEFAULT', 'wx.LB_TOP', 'wx.LB_LEFT', 
-              'wx.LB_RIGHT', 'wx.LB_BOTTOM' ] + self.windowStyles
+              'wx.LB_RIGHT', 'wx.LB_BOTTOM', 'wx.LB_ALIGN_MASK'] + self.windowStyles
+    def events(self):
+        return BookCtrlDTC.events(self) + ['ListbookEvent']
 
 
+EventCategories['ChoicebookEvent'] = ('wx.EVT_CHOICEBOOK_PAGE_CHANGED', 
+                                      'wx.EVT_CHOICEBOOK_PAGE_CHANGING')
+commandCategories.append('ListbookEvent')
 class ChoicebookDTC(BookCtrlDTC):
     bookCtrlName = 'wx.Choicebook'
     def __init__(self, name, designer, parent, ctrlClass):
         BookCtrlDTC.__init__(self, name, designer, parent, ctrlClass)
         self.windowStyles = ['wx.CHB_DEFAULT', 'wx.CHB_TOP', 'wx.CHB_LEFT', 
-              'wx.CHB_RIGHT', 'wx.CHB_BOTTOM' ] + self.windowStyles
-    
+              'wx.CHB_RIGHT', 'wx.CHB_BOTTOM', 'wx.CHB_ALIGN_MASK'] + self.windowStyles
+    def events(self):
+        return BookCtrlDTC.events(self) + ['ChoicebookEvent']
+
+EventCategories['TreebookEvent'] = ('wx.EVT_TREEBOOK_PAGE_CHANGED', 
+                                    'wx.EVT_TREEBOOK_PAGE_CHANGING',
+                                    'wx.EVT_TREEBOOK_NODE_COLLAPSED',
+                                    'wx.EVT_TREEBOOK_NODE_EXPANDED')
+commandCategories.append('TreebookEvent')
+class TreebookDTC(BookCtrlDTC):
+    bookCtrlName = 'wx.Treebook'
+    def __init__(self, name, designer, parent, ctrlClass):
+        BookCtrlDTC.__init__(self, name, designer, parent, ctrlClass)
+        self.windowStyles = ['wx.BK_DEFAULT', 'wx.BK_TOP', 'wx.BK_LEFT', 
+              'wx.BK_RIGHT', 'wx.BK_BOTTOM'] + self.windowStyles
+    def events(self):
+        return BookCtrlDTC.events(self) + ['TreebookEvent']
+
+EventCategories['ToolbookEvent'] = ('wx.EVT_TOOLBOOK_PAGE_CHANGED', 
+                                    'wx.EVT_TOOLBOOK_PAGE_CHANGING')
+commandCategories.append('ToolbookEvent')
+class ToolbookDTC(BookCtrlDTC):
+    bookCtrlName = 'wx.Toolbook'
+    def __init__(self, name, designer, parent, ctrlClass):
+        BookCtrlDTC.__init__(self, name, designer, parent, ctrlClass)
+        self.windowStyles = ['wx.BK_DEFAULT'] + self.windowStyles
+    def events(self):
+        return BookCtrlDTC.events(self) + ['ToolbookEvent']
 
 
 EventCategories['SplitterWindowEvent'] = ('wx.EVT_SPLITTER_SASH_POS_CHANGING',
@@ -1078,6 +1116,26 @@ class StatusBarFieldsCDTC(CollectionDTC):
     def SetText(self, value):
         self.control.SetStatusText(value, self.index)
 
+# Designer support incomplete for this control
+# Children created in this control need to reference their parent parameter
+# as e.g. parent=self.collapsiblePane1.GetPane()
+EventCategories['CollapsiblePaneEvent'] = ('wx.EVT_COLLAPSIBLEPANE_CHANGED', )
+commandCategories.append('CollapsiblePaneEvent')
+class CollapsiblePaneDTC(Constructors.LabeledInputConstr, ContainerDTC):
+    suppressWindowId = True
+    def __init__(self, name, designer, parent, ctrlClass):
+        ContainerDTC.__init__(self, name, designer, parent, ctrlClass)
+        self.windowStyles = ['wx.CP_DEFAULT_STYLE', 'wx.CP_NO_TLW_RESIZE'] +self.windowStyles
+
+    def designTimeSource(self, position = 'wx.DefaultPosition', size = 'wx.DefaultSize'):
+        return {'pos':   position,
+                'size':  self.getDefCtrlSize(),
+                'style': 'wx.CP_DEFAULT_STYLE',
+                'name':  `self.name`,
+                'label': `self.name`}
+
+    def events(self):
+        return ContainerDTC.events(self) + ['CollapsiblePaneEvent']
 
 #-------------------------------------------------------------------------------
 
@@ -1088,13 +1146,24 @@ Plugins.registerPalettePage('ContainersLayout', _('Containers/Layout'))
 Plugins.registerComponents('ContainersLayout',
       (wx.Panel, 'wx.Panel', PanelDTC),
       (wx.ScrolledWindow, 'wx.ScrolledWindow', ScrolledWindowDTC),
-      (wx.Notebook, 'wx.Notebook', NotebookDTC),
-      (wx.Listbook, 'wx.Listbook', ListbookDTC),
-      (wx.Choicebook, 'wx.Choicebook', ChoicebookDTC),
       (wx.SplitterWindow, 'wx.SplitterWindow', SplitterWindowDTC),
       (wx.SashWindow, 'wx.SashWindow', SashWindowDTC),
       (wx.SashLayoutWindow, 'wx.SashLayoutWindow', SashLayoutWindowDTC),
       (wx.ToolBar, 'wx.ToolBar', ToolBarDTC),
       (wx.StatusBar, 'wx.StatusBar', StatusBarDTC),
       (wx.Window, 'wx.Window', ContainerDTC),
+      (wx.Notebook, 'wx.Notebook', NotebookDTC),
+      (wx.Listbook, 'wx.Listbook', ListbookDTC),
+      (wx.Choicebook, 'wx.Choicebook', ChoicebookDTC),
     )
+
+try:
+    Plugins.registerComponents('ContainersLayout',
+      (wx.Treebook, 'wx.Treebook', TreebookDTC),
+      (wx.Toolbook, 'wx.Toolbook', ToolbookDTC),
+#      (wx.CollapsiblePane, 'wx.CollapsiblePane', CollapsiblePaneDTC),
+    )  
+except AttributeError:
+    pass
+    
+    
