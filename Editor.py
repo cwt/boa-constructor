@@ -349,9 +349,9 @@ class EditorFrame(wx.Frame, Utils.FrameRestorerMixin):
         return '<EditorFrame (Boa IDE) instance at %d>'%id(self)
 
     def setDefaultDimensions(self):
-        self.SetDimensions(Preferences.inspWidth + Preferences.windowManagerSide*2,
-              Preferences.underPalette, Preferences.edWidth,
-              Preferences.bottomHeight)
+        self.SetDimensions(Preferences.inspWidth + Preferences.windowManagerSide*2 +\
+              Preferences.screenX, Preferences.underPalette + Preferences.screenY, 
+              Preferences.edWidth, Preferences.bottomHeight)
         #if not self.palette.IsShown():
         #    self.Center()
 
