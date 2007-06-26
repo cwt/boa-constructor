@@ -30,17 +30,23 @@ import methodparse
 EventCategories['ButtonEvent'] = ('wx.EVT_BUTTON',)
 commandCategories.append('ButtonEvent')
 
-class ButtonDTC(Constructors.LabeledInputConstr, WindowDTC):
+class ButtonDTC(WindowDTC):
     def __init__(self, name, designer, parent, ctrlClass):
         WindowDTC.__init__(self, name, designer, parent, ctrlClass)
         self.editors['Default'] = BoolPropEdit
+        self.editors['Id'] = ButtonIdConstrPropEdit
         self.windowStyles = ['wx.BU_LEFT', 'wx.BU_TOP', 'wx.BU_RIGHT',
                              'wx.BU_BOTTOM', 'wx.BU_EXACTFIT'] + self.windowStyles
         self.customPropEvaluators['Default'] = self.EvalDefault
 
+    def constructor(self):
+        return {'Position': 'pos', 'Size': 'size', 'Label': 'label',
+                'Style': 'style', 'Name': 'name', 'Id': 'id'} 
+
     def properties(self):
         props = WindowDTC.properties(self)
         props['Default'] = ('CompnRoute', self.GetDefault, self.SetDefault)
+        props['Id'] = ('CompnRoute', self.GetId, self.SetId)
         return props
 
     def designTimeSource(self, position = 'wx.DefaultPosition', size = 'wx.DefaultSize'):
@@ -78,6 +84,12 @@ class ButtonDTC(Constructors.LabeledInputConstr, WindowDTC):
     def EvalDefault(self, exprs, objects):
         self.SetDefault(True)
         return ()
+
+    def GetId(self, x):
+        return self.textConstr.params['id']
+    
+    def SetId(self, value):
+        self.textConstr.params['id'] = value
 
     def persistProp(self, name, setterName, value):
         if name == 'Default':
@@ -338,6 +350,112 @@ class ContextHelpButtonDTC(WindowDTC):
                 'size':  size,
                 'style': 'wx.BU_AUTODRAW',}
 
+class PickerCtrlDTC(WindowDTC):
+    pass
+
+EventCategories['ColourPickerEvent'] = ('wx.EVT_COLOURPICKER_CHANGED',)
+commandCategories.append('ColourPickerEvent')
+class ColourPickerCtrlDTC(PickerCtrlDTC):
+    def __init__(self, name, designer, parent, ctrlClass):
+        PickerCtrlDTC.__init__(self, name, designer, parent, ctrlClass)
+        self.windowStyles = ['wx.CLRP_DEFAULT_STYLE', 'wx.CLRP_USE_TEXTCTRL', 
+                             'wx.CLRP_SHOW_LABEL'] + self.windowStyles
+        self.editors['Bitmap'] = ColPropEdit
+        self.ctrlDisabled = True
+        
+    def events(self):
+        return PickerCtrlDTC.events(self) + ['ColourPickerEvent']
+    def constructor(self):
+        return {'Position': 'pos', 'Size': 'size', 'Style': 'style', 
+                'Colour': 'col', 'Name': 'name'}
+
+    def designTimeSource(self, position = 'wx.DefaultPosition', size = 'wx.DefaultSize'):
+        return {'pos':   position,
+                'size':  size,
+                'style': 'wx.CLRP_DEFAULT_STYLE',
+                'col': 'wx.BLACK',
+                'name': `self.name`}
+
+
+EventCategories['FontPickerEvent'] = ('wx.EVT_FONTPICKER_CHANGED',)
+commandCategories.append('FontPickerEvent')
+class FontPickerCtrlDTC(PickerCtrlDTC):
+    def __init__(self, name, designer, parent, ctrlClass):
+        PickerCtrlDTC.__init__(self, name, designer, parent, ctrlClass)
+        self.windowStyles = ['wx.FNTP_DEFAULT_STYLE', 'wx.FNTP_USE_TEXTCTRL', 
+          'wx.FNTP_FONTDESC_AS_LABEL', 'wx.FNTP_USEFONT_FOR_LABEL'] + self.windowStyles
+        self.editors['Font'] = FontPropEdit
+        self.ctrlDisabled = True
+
+    def events(self):
+        return PickerCtrlDTC.events(self) + ['FontPickerEvent']
+    def constructor(self):
+        return {'Position': 'pos', 'Size': 'size', 'Style': 'style', 
+                'Font': 'initial', 'Name': 'name'}
+
+    def designTimeSource(self, position = 'wx.DefaultPosition', size = 'wx.DefaultSize'):
+        return {'pos':   position,
+                'size':  size,
+                'style': 'wx.FNTP_DEFAULT_STYLE',
+                'initial': 'wx.NullFont',
+                'name': `self.name`}
+
+
+
+EventCategories['DirPickerEvent'] = ('wx.EVT_DIRPICKER_CHANGED',)
+commandCategories.append('DirPickerEvent')
+class DirPickerCtrlDTC(PickerCtrlDTC):
+    def __init__(self, name, designer, parent, ctrlClass):
+        PickerCtrlDTC.__init__(self, name, designer, parent, ctrlClass)
+        self.windowStyles = ['wx.DIRP_DEFAULT_STYLE', 'wx.DIRP_USE_TEXTCTRL', 
+          'wx.DIRP_DIR_MUST_EXIST', 'wx.DIRP_CHANGE_DIR'] + self.windowStyles
+        self.editors['Message'] = StrConstrPropEdit
+        self.ctrlDisabled = True
+
+    def events(self):
+        return PickerCtrlDTC.events(self) + ['DirPickerEvent']
+    def constructor(self):
+        return {'Position': 'pos', 'Size': 'size', 'Style': 'style', 
+                'Path': 'path', 'Message': 'message', 'Name': 'name'}
+
+    def designTimeSource(self, position = 'wx.DefaultPosition', size = 'wx.DefaultSize'):
+        return {'pos':   position,
+                'size':  size,
+                'style': 'wx.DIRP_DEFAULT_STYLE',
+                'path': "''",
+                'message': "'Select a folder'",
+                'name': `self.name`}
+
+ 
+EventCategories['FilePickerEvent'] = ('wx.EVT_FILEPICKER_CHANGED',)
+commandCategories.append('FilePickerEvent')
+class FilePickerCtrlDTC(PickerCtrlDTC):
+    def __init__(self, name, designer, parent, ctrlClass):
+        PickerCtrlDTC.__init__(self, name, designer, parent, ctrlClass)
+        self.windowStyles = ['wx.FLP_DEFAULT_STYLE', 'wx.FLP_USE_TEXTCTRL', 
+              'wx.FLP_OPEN', 'wx.FLP_SAVE', 'wx.FLP_OVERWRITE_PROMPT', 
+              'wx.FLP_FILE_MUST_EXIST', 'wx.FLP_CHANGE_DIR'] + self.windowStyles
+        self.editors['Message'] = StrConstrPropEdit
+        self.editors['Wildcard'] = StrConstrPropEdit
+        self.ctrlDisabled = True
+
+    def events(self):
+        return PickerCtrlDTC.events(self) + ['FilePickerEvent']
+    def constructor(self):
+        return {'Position': 'pos', 'Size': 'size', 'Style': 'style', 
+                'Path': 'path', 'Message': 'message', 'Name': 'name',
+                'Wildcard': 'wildcard'}
+
+    def designTimeSource(self, position = 'wx.DefaultPosition', size = 'wx.DefaultSize'):
+        return {'pos':   position,
+                'size':  size,
+                'style': 'wx.DIRP_DEFAULT_STYLE',
+                'path': "''",
+                'message': "'Select a folder'",
+                'wildcard': "'*.*'",
+                'name': `self.name`}
+
+
 
 #-------------------------------------------------------------------------------
 import Plugins
@@ -362,3 +480,12 @@ try:
 except AttributeError:
     # MacOS X
     pass
+
+try:
+    Plugins.registerComponent('Buttons', wx.ColourPickerCtrl, 'wx.ColourPickerCtrl', ColourPickerCtrlDTC)
+    Plugins.registerComponent('Buttons', wx.FontPickerCtrl, 'wx.FontPickerCtrl', FontPickerCtrlDTC)
+    Plugins.registerComponent('Buttons', wx.DirPickerCtrl, 'wx.DirPickerCtrl', DirPickerCtrlDTC)
+    Plugins.registerComponent('Buttons', wx.FilePickerCtrl, 'wx.FilePickerCtrl', FilePickerCtrlDTC)
+except AttributeError:
+    pass
+    
