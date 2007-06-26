@@ -662,6 +662,7 @@ class BottomAligningSplitterMix:
     def _OnSplitterwindowSize(self, event):
         sashpos = self.GetClientSize().y - self._win2sze - self.GetSashSize()
         self.SetSashPosition(sashpos)
+        event.Skip()
 
     def _OnSplitterwindowSplitterSashPosChanged(self, event):
         self._win2sze = self._getWin2Sze()
@@ -672,6 +673,7 @@ class BottomAligningSplitterMix:
             self.closeBottomWindow()
         else:
             self.openBottomWindow()
+        event.Skip()
 
 class BottomAligningSplitterWindow(wx.SplitterWindow, BottomAligningSplitterMix):
     def __init__(self, *_args, **_kwargs):
@@ -883,6 +885,13 @@ def getViewTitle(view):
     else:
         return view.viewName
 
+def resetMinSize(parent):
+    parent.SetMinSize(wx.DefaultSize)
+    parent.SetSize(wx.Size(1, 1))
+    for child in parent.GetChildren():
+        resetMinSize(child) 
+    
+
 #-------------------------------------------------------------------------------
 
 coding_re = re.compile("coding[:=]\s*([-\w_.]+)")
@@ -909,6 +918,9 @@ def coding_spec(str):
         raise LookupError, _('Unknown encoding %s')%name
     return name
 
+unicodeErrorMsg = 'Please change the defaultencoding in sitecustomize.py or '\
+    'use Boa command-line parameter -U handle this encoding.\nError message %s'
+
 def stringFromControl(u):
     try: wx.USE_UNICODE, UnicodeError
     except (AttributeError, NameError): return u
@@ -923,9 +935,16 @@ def stringFromControl(u):
                     raise
                 return u.encode(spec)
             except UnicodeError, err:
-                raise Exception, _('Unable to encode unicode string, please change '\
-                      'the defaultencoding in sitecustomize.py to handle this '\
-                      'encoding.\nError message %s')%str(err)            
+                try:
+                    s = _('Unable to encode unicode string, please change '\
+                          'the defaultencoding in sitecustomize.py to handle this '\
+                          'encoding.\nError message %s')%str(err)
+                except UnicodeError, err:
+                    raise Exception, 'Unable to encode unicode string, please change '\
+                          'the defaultencoding in sitecustomize.py to handle this '\
+                          'encoding.\nError message %s'%str(err)
+                else:
+                    raise Exception, s
     else:
         return u
 
@@ -946,9 +965,16 @@ def stringToControl(s, safe=False):
                     raise
                 return s.decode(spec)
             except UnicodeError, err:
-                raise Exception, _('Unable to decode unicode string, please change '\
-                      'the defaultencoding in sitecustomize.py to handle this '\
-                      'encoding.\n Error message %s')%str(err)
+                try:
+                    s = _('Unable to decode unicode string, please change '\
+                          'the defaultencoding in sitecustomize.py to handle this '\
+                          'encoding.\n Error message %s')
+                except UnicodeError, err:
+                    raise Exception, 'Unable to decode unicode string, please change '\
+                          'the defaultencoding in sitecustomize.py to handle this '\
+                          'encoding.\n Error message %s'%str(err)
+                else:
+                    raise Exception, s
     else:
         return s
 
