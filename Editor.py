@@ -38,6 +38,9 @@ from Explorers.ExplorerNodes import TransportError, TransportSaveError, Transpor
 import ShellEditor
 #from ModRunner import EVT_EXEC_FINISH
 
+# register language chooser
+import LanguageSelectDlg
+
 addTool = Utils.AddToolButtonBmpIS
 
 class CancelClose(Exception): pass
