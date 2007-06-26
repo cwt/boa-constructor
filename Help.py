@@ -340,11 +340,12 @@ class wxHtmlHelpControllerEx(wx.html.HtmlHelpController):
         self.config = config
 
 class _CloseEvtHandler(wx.EvtHandler):
-    def __init__(self, frameEx):
+    def __init__(self, frameEx, controller):
         wx.EvtHandler.__init__(self)
         frameEx.frame.Bind(wx.EVT_CLOSE, self.OnClose)
         self.frameEx = frameEx
         self.frame = frameEx.frame
+        self.controller = controller
 
     def OnClose(self, event):
         if hasattr(self.frameEx, 'pydocPage') and self.frameEx.pydocPage:
@@ -360,7 +361,8 @@ class _CloseEvtHandler(wx.EvtHandler):
             event.Skip()
             self.frame.PopEventHandler().Destroy()
 
-        self.frame.Hide()
+        self.controller.frameX = None
+        event.Skip()#self.frame.Hide()
 
 wxID_COPYTOCLIP =wx.NewId()
 
@@ -375,7 +377,7 @@ class wxHelpFrameEx:
         self.frame.Bind(wx.EVT_MENU, self.OnQuitHelp, id=wxID_QUITHELP)
         self.frame.Bind(wx.EVT_MENU, self.OnFocusHtml, id=wxID_FOCUSHTML)
 
-        self.frame.PushEventHandler(_CloseEvtHandler(self))
+        self.frame.PushEventHandler(_CloseEvtHandler(self, helpctrlr))
 
         # helpfrm.cpp defines no accelerators so this is ok
         self.frame.SetAcceleratorTable(
@@ -584,7 +586,7 @@ def delHelp():
     
             f = _hc.GetFrame()
             if f:
-                f.PopEventHandler().Destroy()
+                #f.PopEventHandler().Destroy()
                 f.Destroy()
         _hc.Destroy()
         _hc = None
