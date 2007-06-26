@@ -2,7 +2,7 @@
 # Name:        FindReplaceDlg.py
 # Purpose:
 #
-# Author:      Tim Hochberg
+# Authors:      Tim Hochberg, Ianare Sevi
 #
 # Created:     2001/29/08
 # RCS-ID:      $Id$
@@ -57,167 +57,300 @@ def findAgain(parent, finder, view):
  wxID_FINDREPLACEDLGWRAPCB, 
 ] = [wx.NewId() for _init_ctrls in range(27)]
 
-class FindReplaceDlg(wx.Dialog):
+class FindReplaceDlg(wx.Dialog):    
+    def _init_coll_staticBoxSizer1_Items(self, parent):
+        # generated method, don't edit
+
+        parent.AddWindow(self.caseSensitiveCB, 0, border=3, flag=wx.BOTTOM)
+        parent.AddWindow(self.wholeWordsCB, 0, border=3, flag=wx.BOTTOM)
+        parent.AddWindow(self.wildcardCB, 0, border=3, flag=wx.BOTTOM)
+        parent.AddWindow(self.regExprCB, 0, border=3, flag=wx.BOTTOM)
+        parent.AddWindow(self.wrapCB, 0, border=3, flag=wx.BOTTOM)
+        parent.AddWindow(self.closeOnFoundCB, 0, border=3, flag=wx.BOTTOM)
+        parent.AddWindow(self.chkRecursiveSearch, 0, border=3, flag=wx.BOTTOM)
+
+    def _init_coll_boxSizer7_Items(self, parent):
+        # generated method, don't edit
+
+        parent.AddWindow(self.directionRB, 0, border=0, flag=wx.ALIGN_CENTER)
+        parent.AddWindow(self.scopeRB, 0, border=10,
+              flag=wx.ALIGN_CENTER | wx.TOP)
+
+    def _init_coll_boxSizer8_Items(self, parent):
+        # generated method, don't edit
+
+        parent.AddWindow(self.findBtn, 0, border=4, flag=wx.EXPAND | wx.BOTTOM)
+        parent.AddWindow(self.findAllBtn, 0, border=4,
+              flag=wx.EXPAND | wx.BOTTOM)
+        parent.AddWindow(self.btnFindInFiles, 0, border=4,
+              flag=wx.EXPAND | wx.BOTTOM)
+        parent.AddWindow(self.replaceBtn, 0, border=4,
+              flag=wx.EXPAND | wx.BOTTOM)
+        parent.AddWindow(self.replaceAllBtn, 0, border=4,
+              flag=wx.EXPAND | wx.BOTTOM)
+        parent.AddWindow(self.cancelBtn, 0, border=4,
+              flag=wx.EXPAND | wx.BOTTOM)
+
+    def _init_coll_boxSizer6_Items(self, parent):
+        # generated method, don't edit
+
+        parent.AddSizer(self.boxSizer7, 0, border=5,
+              flag=wx.EXPAND | wx.RIGHT | wx.LEFT)
+        parent.AddSizer(self.staticBoxSizer1, 1, border=5,
+              flag=wx.GROW | wx.RIGHT)
+        parent.AddSizer(self.boxSizer8, 0, border=5, flag=wx.EXPAND | wx.RIGHT)
+
+    def _init_coll_boxSizer4_Items(self, parent):
+        # generated method, don't edit
+
+        parent.AddWindow(self.staticText3, 0, border=0, flag=wx.ALIGN_CENTER)
+        parent.AddWindow(self.cmbFolder, 1, border=0, flag=0)
+        parent.AddWindow(self.btnBrowse, 0, border=3,
+              flag=wx.ALIGN_CENTER | wx.LEFT)
+
+    def _init_coll_boxSizer5_Items(self, parent):
+        # generated method, don't edit
+
+        parent.AddWindow(self.staticText4, 0, border=0, flag=wx.ALIGN_CENTER)
+        parent.AddWindow(self.cmbFileFilter, 1, border=0, flag=0)
+
+    def _init_coll_boxSizer3_Items(self, parent):
+        # generated method, don't edit
+
+        parent.AddWindow(self.staticText1, 0, border=0, flag=wx.ALIGN_CENTER)
+        parent.AddWindow(self.replaceTxt, 1, border=0, flag=0)
+
+    def _init_coll_boxSizer1_Items(self, parent):
+        # generated method, don't edit
+
+        parent.AddSizer(self.boxSizer2, 0, border=5, flag=wx.ALL | wx.EXPAND)
+        parent.AddSizer(self.boxSizer3, 0, border=5,
+              flag=wx.RIGHT | wx.LEFT | wx.EXPAND)
+        parent.AddSizer(self.boxSizer4, 0, border=5, flag=wx.ALL | wx.EXPAND)
+        parent.AddSizer(self.boxSizer5, 0, border=5,
+              flag=wx.RIGHT | wx.LEFT | wx.BOTTOM | wx.EXPAND)
+        parent.AddSizer(self.boxSizer6, 1, border=0, flag=wx.EXPAND)
+
+    def _init_coll_boxSizer2_Items(self, parent):
+        # generated method, don't edit
+
+        parent.AddWindow(self.staticText2, 0, border=0, flag=wx.ALIGN_CENTER)
+        parent.AddWindow(self.findTxt, 1, border=0, flag=wx.ALIGN_CENTER)
+        parent.AddWindow(self.btnBuildInFind, 0, border=3,
+              flag=wx.LEFT | wx.ALIGN_CENTER)
+
+    def _init_sizers(self):
+        # generated method, don't edit
+        self.boxSizer1 = wx.BoxSizer(orient=wx.VERTICAL)
+
+        self.boxSizer2 = wx.BoxSizer(orient=wx.HORIZONTAL)
+
+        self.boxSizer3 = wx.BoxSizer(orient=wx.HORIZONTAL)
+
+        self.boxSizer4 = wx.BoxSizer(orient=wx.HORIZONTAL)
+
+        self.boxSizer5 = wx.BoxSizer(orient=wx.HORIZONTAL)
+
+        self.boxSizer6 = wx.BoxSizer(orient=wx.HORIZONTAL)
+
+        self.boxSizer7 = wx.BoxSizer(orient=wx.VERTICAL)
+
+        self.boxSizer8 = wx.BoxSizer(orient=wx.VERTICAL)
+
+        self.staticBoxSizer1 = wx.StaticBoxSizer(box=self.optionsSB,
+              orient=wx.VERTICAL)
+
+        self._init_coll_boxSizer1_Items(self.boxSizer1)
+        self._init_coll_boxSizer2_Items(self.boxSizer2)
+        self._init_coll_boxSizer3_Items(self.boxSizer3)
+        self._init_coll_boxSizer4_Items(self.boxSizer4)
+        self._init_coll_boxSizer5_Items(self.boxSizer5)
+        self._init_coll_boxSizer6_Items(self.boxSizer6)
+        self._init_coll_boxSizer7_Items(self.boxSizer7)
+        self._init_coll_boxSizer8_Items(self.boxSizer8)
+        self._init_coll_staticBoxSizer1_Items(self.staticBoxSizer1)
+
+        self.SetSizer(self.boxSizer1)
+
     def _init_ctrls(self, prnt):
         # generated method, don't edit
         wx.Dialog.__init__(self, id=wxID_FINDREPLACEDLG, name='FindReplaceDlg',
-              parent=prnt, pos=wx.Point(323, 272), size=wx.Size(372, 300),
-              style=wx.DEFAULT_DIALOG_STYLE, title=_('Find/Replace'))
-        self.SetAutoLayout(True)
-        self.SetClientSize(wx.Size(364, 273))
+              parent=prnt, pos=wx.Point(212, 511), size=wx.Size(460, 354),
+              style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER,
+              title=_('Find/Replace'))
+        self.SetClientSize(wx.Size(452, 327))
 
         self.findTxt = wx.ComboBox(choices=[], id=wxID_FINDREPLACEDLGFINDTXT,
-              name='findTxt', parent=self, pos=wx.Point(88, 4),
-              size=wx.Size(239, 21), style=0, value='')
+              name='findTxt', parent=self, pos=wx.Point(88, 9),
+              size=wx.Size(332, 21), style=0, value='')
+
+        self.staticText2 = wx.StaticText(id=wxID_FINDREPLACEDLGSTATICTEXT2,
+              label=_('Text to find'), name='staticText2', parent=self,
+              pos=wx.Point(5, 11), size=wx.Size(83, 17), style=0)
 
         self.replaceTxt = wx.ComboBox(choices=[],
               id=wxID_FINDREPLACEDLGREPLACETXT, name='replaceTxt', parent=self,
-              pos=wx.Point(88, 28), size=wx.Size(269, 21), style=0, value='')
+              pos=wx.Point(88, 39), size=wx.Size(359, 21), style=0, value='')
         self.replaceTxt.Bind(wx.EVT_KEY_UP, self.OnFindtxtChar)
+
+        self.staticText1 = wx.StaticText(id=wxID_FINDREPLACEDLGSTATICTEXT1,
+              label=_('Replace with'), name='staticText1', parent=self,
+              pos=wx.Point(5, 41), size=wx.Size(83, 17), style=0)
 
         self.cmbFolder = wx.ComboBox(choices=[],
               id=wxID_FINDREPLACEDLGCMBFOLDER, name='cmbFolder', parent=self,
-              pos=wx.Point(88, 51), size=wx.Size(239, 21), style=0, value='')
+              pos=wx.Point(88, 65), size=wx.Size(332, 21), style=0, value='')
         self.cmbFolder.SetLabel('')
-        self.cmbFolder.SetToolTipString(_('Insert path to find in files'))
+        self.cmbFolder.SetToolTipString(_('Insert a path to find in files'))
+
+        self.staticText3 = wx.StaticText(id=wxID_FINDREPLACEDLGSTATICTEXT3,
+              label=_('Files to find in'), name='staticText3', parent=self,
+              pos=wx.Point(5, 71), size=wx.Size(83, 17), style=0)
 
         self.cmbFileFilter = wx.ComboBox(choices=[],
               id=wxID_FINDREPLACEDLGCMBFILEFILTER, name='cmbFileFilter',
-              parent=self, pos=wx.Point(88, 74), size=wx.Size(269, 21), style=0,
+              parent=self, pos=wx.Point(88, 99), size=wx.Size(359, 21), style=0,
               value='*.py')
         self.cmbFileFilter.SetLabel('*.py')
         self.cmbFileFilter.SetToolTipString(_('Files that will be included in search'))
 
+        self.staticText4 = wx.StaticText(id=wxID_FINDREPLACEDLGSTATICTEXT4,
+              label=_('File filter'), name='staticText4', parent=self,
+              pos=wx.Point(5, 99), size=wx.Size(83, 21), style=0)
+
         self.directionRB = wx.RadioBox(choices=[_('Forward'), _('Backward')],
               id=wxID_FINDREPLACEDLGDIRECTIONRB, label=_('Direction'),
-              majorDimension=1, name='directionRB', parent=self,
-              pos=wx.Point(8, 103), size=wx.Size(104, 64),
-              style=wx.RA_SPECIFY_COLS)
+              majorDimension=1, name='directionRB', parent=self, pos=wx.Point(5,
+              125), size=wx.Size(91, 68), style=wx.RA_SPECIFY_COLS)
         self.directionRB.Bind(wx.EVT_RADIOBOX, self.OnDirectionrbRadiobox,
               id=wxID_FINDREPLACEDLGDIRECTIONRB)
 
         self.scopeRB = wx.RadioBox(choices=[_('All'), _('Selected')],
               id=wxID_FINDREPLACEDLGSCOPERB, label=_('Scope'), majorDimension=1,
-              name='scopeRB', parent=self, pos=wx.Point(8, 195),
-              size=wx.Size(104, 64), style=wx.RA_SPECIFY_COLS)
+              name='scopeRB', parent=self, pos=wx.Point(7, 203),
+              size=wx.Size(86, 68), style=wx.RA_SPECIFY_COLS)
         self.scopeRB.Bind(wx.EVT_RADIOBOX, self.OnScoperbRadiobox,
               id=wxID_FINDREPLACEDLGSCOPERB)
 
         self.optionsSB = wx.StaticBox(id=wxID_FINDREPLACEDLGOPTIONSSB,
-              label=_('Options'), name='optionsSB', parent=self, pos=wx.Point(120,
-              103), size=wx.Size(144, 158), style=0)
+              label=_('Options'), name='optionsSB', parent=self,
+              pos=wx.Point(101, 125), size=wx.Size(233, 202), style=0)
 
         self.caseSensitiveCB = wx.CheckBox(id=wxID_FINDREPLACEDLGCASESENSITIVECB,
               label=_('Case sensitive'), name='caseSensitiveCB', parent=self,
-              pos=wx.Point(125, 120), size=wx.Size(120, 19), style=0)
+              pos=wx.Point(106, 142), size=wx.Size(116, 22), style=0)
         self.caseSensitiveCB.Bind(wx.EVT_CHECKBOX,
               self.OnCasesensitivecbCheckbox,
               id=wxID_FINDREPLACEDLGCASESENSITIVECB)
 
         self.wholeWordsCB = wx.CheckBox(id=wxID_FINDREPLACEDLGWHOLEWORDSCB,
               label=_('Whole words'), name='wholeWordsCB', parent=self,
-              pos=wx.Point(125, 138), size=wx.Size(120, 19), style=0)
+              pos=wx.Point(106, 166), size=wx.Size(103, 22), style=0)
         self.wholeWordsCB.Bind(wx.EVT_CHECKBOX, self.OnWholewordscbCheckbox,
               id=wxID_FINDREPLACEDLGWHOLEWORDSCB)
 
         self.wildcardCB = wx.CheckBox(id=wxID_FINDREPLACEDLGWILDCARDCB,
               label=_('Wildcards'), name='wildcardCB', parent=self,
-              pos=wx.Point(125, 156), size=wx.Size(120, 19), style=0)
+              pos=wx.Point(106, 190), size=wx.Size(84, 22), style=0)
         self.wildcardCB.Bind(wx.EVT_CHECKBOX, self.OnWildcardcbCheckbox,
               id=wxID_FINDREPLACEDLGWILDCARDCB)
 
         self.regExprCB = wx.CheckBox(id=wxID_FINDREPLACEDLGREGEXPRCB,
               label=_('Regular expressions'), name='regExprCB', parent=self,
-              pos=wx.Point(125, 174), size=wx.Size(131, 19), style=0)
+              pos=wx.Point(106, 214), size=wx.Size(151, 22), style=0)
         self.regExprCB.Bind(wx.EVT_CHECKBOX, self.OnRegexprcbCheckbox,
               id=wxID_FINDREPLACEDLGREGEXPRCB)
 
         self.wrapCB = wx.CheckBox(id=wxID_FINDREPLACEDLGWRAPCB,
-              label=_('Wrap search'), name='wrapCB', parent=self, pos=wx.Point(125,
-              191), size=wx.Size(120, 21), style=0)
+              label=_('Wrap search'), name='wrapCB', parent=self,
+              pos=wx.Point(106, 238), size=wx.Size(102, 22), style=0)
         self.wrapCB.Bind(wx.EVT_CHECKBOX, self.OnWrapcbCheckbox,
               id=wxID_FINDREPLACEDLGWRAPCB)
 
         self.closeOnFoundCB = wx.CheckBox(id=wxID_FINDREPLACEDLGCLOSEONFOUNDCB,
-              label=_('Close on found'), name='closeOnFoundCB', parent=self,
-              pos=wx.Point(125, 211), size=wx.Size(120, 19), style=0)
+              label=_('Close on found'), name='closeOnFoundCB',
+              parent=self, pos=wx.Point(106, 262), size=wx.Size(195, 22),
+              style=0)
         self.closeOnFoundCB.Bind(wx.EVT_CHECKBOX, self.OnCloseonfoundcbCheckbox,
               id=wxID_FINDREPLACEDLGCLOSEONFOUNDCB)
 
         self.chkRecursiveSearch = wx.CheckBox(id=wxID_FINDREPLACEDLGCHKRECURSIVESEARCH,
-              label=_('Recursive search'), name='chkRecursiveSearch', parent=self,
-              pos=wx.Point(125, 233), size=wx.Size(120, 14), style=0)
+              label=_('Recursive search'), name='chkRecursiveSearch',
+              parent=self, pos=wx.Point(106, 286), size=wx.Size(131, 22),
+              style=0)
         self.chkRecursiveSearch.SetValue(False)
 
         self.findBtn = wx.Button(id=wxID_FINDREPLACEDLGFINDBTN, label=_('Find'),
-              name='findBtn', parent=self, pos=wx.Point(270, 101),
-              size=wx.Size(83, 23), style=0)
+              name='findBtn', parent=self, pos=wx.Point(339, 125),
+              size=wx.Size(108, 27), style=0)
         self.findBtn.Bind(wx.EVT_BUTTON, self.OnFindbtnButton,
               id=wxID_FINDREPLACEDLGFINDBTN)
         self.findBtn.Bind(wx.EVT_KEY_UP, self.OnFindtxtChar)
 
         self.findAllBtn = wx.Button(id=wxID_FINDREPLACEDLGFINDALLBTN,
               label=_('Find all'), name='findAllBtn', parent=self,
-              pos=wx.Point(270, 129), size=wx.Size(84, 23), style=0)
+              pos=wx.Point(339, 156), size=wx.Size(108, 28), style=0)
         self.findAllBtn.Bind(wx.EVT_BUTTON, self.OnFindallbtnButton,
               id=wxID_FINDREPLACEDLGFINDALLBTN)
 
         self.btnFindInFiles = wx.Button(id=wxID_FINDREPLACEDLGBTNFINDINFILES,
               label=_('Find in files'), name='btnFindInFiles', parent=self,
-              pos=wx.Point(270, 156), size=wx.Size(84, 23), style=0)
+              pos=wx.Point(339, 188), size=wx.Size(108, 28), style=0)
         self.btnFindInFiles.Bind(wx.EVT_BUTTON, self.OnFindInFiles,
               id=wxID_FINDREPLACEDLGBTNFINDINFILES)
 
         self.replaceBtn = wx.Button(id=wxID_FINDREPLACEDLGREPLACEBTN,
-              label=_('Replace'), name='replaceBtn', parent=self, pos=wx.Point(270,
-              183), size=wx.Size(83, 23), style=0)
+              label=_('Replace'), name='replaceBtn', parent=self,
+              pos=wx.Point(339, 220), size=wx.Size(108, 28), style=0)
         self.replaceBtn.Bind(wx.EVT_BUTTON, self.OnReplacebtnButton,
               id=wxID_FINDREPLACEDLGREPLACEBTN)
 
         self.replaceAllBtn = wx.Button(id=wxID_FINDREPLACEDLGREPLACEALLBTN,
               label=_('Replace all'), name='replaceAllBtn', parent=self,
-              pos=wx.Point(270, 210), size=wx.Size(83, 23), style=0)
+              pos=wx.Point(339, 252), size=wx.Size(108, 28), style=0)
         self.replaceAllBtn.Bind(wx.EVT_BUTTON, self.OnReplaceallbtnButton,
               id=wxID_FINDREPLACEDLGREPLACEALLBTN)
 
-        self.cancelBtn = wx.Button(id=wxID_FINDREPLACEDLGCANCELBTN,
-              label=_('Cancel'), name='cancelBtn', parent=self, pos=wx.Point(270,
-              238), size=wx.Size(83, 23), style=0)
-        self.cancelBtn.Bind(wx.EVT_BUTTON, self.OnCancelbtnButton,
-              id=wxID_FINDREPLACEDLGCANCELBTN)
-
-        self.staticText2 = wx.StaticText(id=wxID_FINDREPLACEDLGSTATICTEXT2,
-              label=_('Text to find'), name='staticText2', parent=self,
-              pos=wx.Point(8, 8), size=wx.Size(80, 20), style=0)
-
-        self.staticText1 = wx.StaticText(id=wxID_FINDREPLACEDLGSTATICTEXT1,
-              label=_('Replace with'), name='staticText1', parent=self,
-              pos=wx.Point(8, 32), size=wx.Size(80, 15), style=0)
-
-        self.staticText3 = wx.StaticText(id=wxID_FINDREPLACEDLGSTATICTEXT3,
-              label=_('Files to find in'), name='staticText3', parent=self,
-              pos=wx.Point(8, 56), size=wx.Size(80, 13), style=0)
-
-        self.staticText4 = wx.StaticText(id=wxID_FINDREPLACEDLGSTATICTEXT4,
-              label=_('File filter'), name='staticText4', parent=self,
-              pos=wx.Point(8, 80), size=wx.Size(80, 15), style=0)
+        self.cancelBtn = wx.Button(id=wx.ID_CANCEL, label=_('Cancel'),
+              name='cancelBtn', parent=self, pos=wx.Point(339, 284),
+              size=wx.Size(108, 28), style=0)
 
         self.btnBuildInFind = wx.Button(id=wxID_FINDREPLACEDLGBTNBUILDINFIND,
-              label='...', name='btnBuildInFind', parent=self, pos=wx.Point(329,
-              4), size=wx.Size(27, 21), style=0)
+              label='...', name='btnBuildInFind', parent=self, pos=wx.Point(423,
+              5), size=wx.Size(24, 29), style=wx.BU_EXACTFIT)
         self.btnBuildInFind.SetToolTipString(_('Build-in ready to run searches'))
         self.btnBuildInFind.Bind(wx.EVT_BUTTON, self.OnBuildInFind,
               id=wxID_FINDREPLACEDLGBTNBUILDINFIND)
 
         self.btnBrowse = wx.Button(id=wxID_FINDREPLACEDLGBTNBROWSE, label='...',
-              name='btnBrowse', parent=self, pos=wx.Point(329, 51),
-              size=wx.Size(27, 21), style=0)
+              name='btnBrowse', parent=self, pos=wx.Point(423, 65),
+              size=wx.Size(24, 29), style=wx.BU_EXACTFIT)
         self.btnBrowse.SetToolTipString(_('Folders tree'))
         self.btnBrowse.Bind(wx.EVT_BUTTON, self.OnBrowse,
               id=wxID_FINDREPLACEDLGBTNBROWSE)
 
+        self._init_sizers()
+
     def __init__(self, parent, engine, view, bModeFindReplace = 1):
         self._init_ctrls(parent)
+        
+        # reset all sizes to default
+        # ungraceful kludge, but allows to bypass Boa's
+        # sizing limitations
+        Utils.resetMinSize(self)
+        
+        # get the longest text size and apply it to all texts
+        # XXX better to put the top controls in a flexgrid so this is automatic
+        longest_text=self.staticText3.GetLabel()
+        textSize = self.staticText3.GetTextExtent(longest_text)
+        texts = (self.staticText1, self.staticText2,
+                 self.staticText3, self.staticText4)        
+        for text in texts:
+            text.SetMinSize((textSize[0]+3,-1))
+        
+        # now set the sizer properly
+        self.SetSizerAndFit(self.boxSizer1)
+        
         self.engine = engine
         self.view = view
         # Bind enter event using acceleratorTable
@@ -271,7 +404,7 @@ class FindReplaceDlg(wx.Dialog):
                                   (wx.ACCEL_CTRL, wx.WXK_F3, wxID_DOREPLACE),
                                   ]))
 
-        #woraround for above bug, bind key evt to all ctrls
+        # workaround for above bug, bind key evt to all ctrls
         for ctrl in (self.findTxt, self.replaceTxt, self.directionRB, self.scopeRB,
                      self.optionsSB, self.caseSensitiveCB, self.wholeWordsCB,
                      self.wildcardCB, self.regExprCB, self.wrapCB,
@@ -338,9 +471,6 @@ class FindReplaceDlg(wx.Dialog):
             for x in history:
                 self.replaceTxt.Append(x)
             self.replaceTxt.SetValue(history[0])
-
-    def OnCancelbtnButton(self, event):
-        self.EndModal(wx.ID_CANCEL)
 
     def OnFindbtnButton(self, event):
         self.find()
