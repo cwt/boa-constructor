@@ -55,7 +55,7 @@ class BaseFrameDTC(ContainerDTC):
         return props
 
     def hideDesignTime(self):
-        hdt = ContainerDTC.hideDesignTime(self) + ['Label', 'Constraints']
+        hdt = ContainerDTC.hideDesignTime(self) + ['Label', 'Constraints', 'TmpDefaultItem']
         hdt.remove('Title')
         return hdt
 
