@@ -1,0 +1,56 @@
+﻿Crea nuevos archivos de código desde la pestaña Nuevo en la Paleta.
+Los módulos wxApp sirven de archivos de proyecto para las aplicaciones wxPython. Para proyectos Python puros selecciona PythonApp desde Nuevo en la Paleta.
+Puedes soltar archivos en Boa desde el gestor de archivos de tu sistema operativo.
+Boa acepta un archivo como parámetro en línea de comandos que abrirá al inciar. También puedes incluir el número de linea donde quieres llevar el cursor añadiendo ::<numlinea>
+Cuando Boa se ejecuta en modo servidor y se inicia otro Boa especificando archivo, el archivo se pasa hasta la primera instancia de Boa (a través de socket) y es abierto allí.
+Boa soporta el modo compacto donde solo se mestra el Editor al iniciar. Arranca Boa con el parámetro -C para utilizar este modo.
+Si tienes un test reproducible que hace fallar a Boa y eres aventurero puedes ejecutar Boa en modo trazas con el parámetro -T. Esto crea un (enorme) log de cada llamada a función. Tras el fallo, reinicia Boa, abre Boa.py y selecciona Archivo->Ver trazas de fallo como pila de llamadas y espera pacientemente mientras se procesa el log.
+Para añadir un control a un marco, selecciona el control en la Paleta y haz click en el lugar deseado en el Diseñador.
+Para definir un evento, selecciona el control, ve a la página de parámetros en el Inspector, selecciona una categoría de eventos y haz doble click en el evento.
+Las propiedades del Constructor no son dinámicas (aun). Un marco tiene que ser cerrado y reabierto para que los cambios surjan efecto.
+Haz doble click en un componente para abrir el editor predeterminado o definir el evento predeterminado.
+Para seleccionar múltiples elementos, mantén pulsado shift mientras seleccionas. Sólo funciona con controles en el mismo nivel.
+Utiliza los cursores para seleccionar otro control en el mismo nivel que el actualmente seleccionado.
+Los controles pueden ser dimensionados con precisión manteniendo shift y utilizando los cursores o movidos manteniendo control y utilizando los cursores. Mover funciona con selecciones múltiples.
+Las selecciones múltiples pueden ser alineadas y dimensionadas en un paso. Haz una selección múltiple, botón derecho y elige 'Alineación...' o 'Tamaño...'
+El orden de Creación/Tabulación de controles se puede cambiar marcando con botón derecho el contenedor y seleccionando 'Orden de creación/tabulación...'. Cuando el Diseñador es enviado, los controles se guardarán en el nuevo orden.
+Cuando usas un wxFrame y quieres crear varios controles en él, es altamente recomendado que los pongas en un wxPanel en lugar de directamente en el marco. Además de una barra dé menú, de herramientas y/o de estado, un contenedor debería ir directamente sobre el marco.
+Intercambia las diferentes vistas para cada tipo de módulo en el menú Vistas.
+Los Anchors pueden usarse para gestionar el layout de ventanas. Resumidamente los Anchors trabajan sobre el principio de ajustar el lado de un control al de su padre.
+Los Anchors están integrados con el Diseñador; haz click derecho en una pestaña de selección en el Diseñador para acceder a un menú para intercambiar sus Anchors.
+El Diseñador tiene soporte para copiar y pegar. Es a menudo útil copiar controles desde el Diseñador y pegarlos directamente en el código.
+Para cambiar las propiedades de elementos en el Explorador, selecciona el elemento en el ListCTrl y elige Inspeccionar.
+Las páginas vacías en un wxNotebook (llenado con líneas rojas diagonales) deben tener un control asociado o generarán código ilegal.
+Las líneas diagonales en un control de imagen significan que el mapa de bits está establecido a wxNullBitmap.
+Los componentes de la página 'Utilidades' no son objetos visuales y deben ser creados en la vista de datos (página blanca que se abre en el Editor cuando el Diseñador está abierto).
+Para probar módulos de tipo Frame de forma autónoma, selecciona Editar->Añadir aplicación simple. El código se añadirá al final del archivo. Ahora haz click en Ejecutar módulo (botón azul de play)
+Las preferencias son accesibles a través del Explorador en el Inspector. Selecciona Preferencias en el Explorador y haz doble click en un elemento para editar sus características en el Inspector.
+La mayoría de las preferencias tienen ayuda. Situa el puntero sobre el nombre de la preferencia y espera hasta que salga la pista.
+Algunos cambios en las preferencias solo tienen efecto al reinciar Boa. Algunos de los valores solo se usan en el inicio.
+Las preferencias se almacenan en Preferences.py, prefs.rc.py, prefs.(msw|gtk).rc.py y prefskeys.rc.py. Pueden estar en el directorio de Boa o en tu directorio .boa personal.
+Cambia los colores y las fuentes del código en el Editor bajo Preferences.Source en el Explorador.
+Los accesos rápidos de teclado para Boa se pueden modificar en el Explorador bajo Preferences.Key bindings
+Los teclados no americanos están soportados. Pon handleSpecialEuropeanKeys a true en las preferencias. Cambia a tu país con euroKeysCountry. Si tu teclado no está soportado, por favor añade tus teclas y envíamelas, mira en Views/wxStyledTextCtrls.py
+Si tienes una variable de entorno HOME, y creas un directorio llamado '.boa' en él, Boa automáticamente guardará tus opciones y preferencias ahí. El directorio .boa puede opcionalmente contener también directorios 'docs-cache' y 'Plug-ins'.
+El soporte COM está desactivado por problemas de estabilidad en Win9x. Funciona para mi en WinNT/Win2000. Si las demos COM en la demo de wxPython funcionan puedes activar el soporte COM en las preferencias.
+Los controles ActiveX no pueden añadirse automáticamente a la Paleta. Tienes que escribir un pequeño wrapper para los controles que quieres añadir. Mira en Companions/ComCompanions.py y bcrtl/activex.
+Pon tu cursor en un apalabra en el Editor de código y pulsa F1 para ayuda contextual.
+El completado de código y las pistas están (a veces) disponibles. Las teclas por defecto son Control-Espacio y Control-Shift-Espacio.
+La exploración de código está disponible para el código Python pulsando Control y moviendo tu ratón sobre los identificadores en el código. Si la palabra se convierte en enlace, puedes seleccionarla para saltar a la declaración o inicialización (si se encuentra).
+La transformación de código hace completados de código dependientes de la posición del cursor. Añade la definición de método si no está definido en la clase actual y escribe la llamada heredada a la clase base en un método.
+El chequeo de sintaxis en el código Python se realiza cuando abandonas una línea que fue modificada. Un error se indica subrayando con ondas rojas. Esta característica tiene alguna sobrecarga y se puede desactivar en las preferencias.
+CVS está integrado con el Explorador. CVS en línea de comandos tiene que estar instalado y funcionando. Una vez que el repositorio CVS se ha inspeccionado, los directorios CVS se mostrarán como carpetas cian. Abre un directorio CVS para ver el estado de los archivos y realizar operaciones CVS como Update y Commit.
+La raíz del árbol en el Explorador se llama Editor y muestra una lista de todos los módulos abiertos en el IDE. Aquí puedes cambiar el orden de los módulos y cerrar grupos de archivos en una operación.
+Los archivos pueden ser copiados/pegados, añadidos a marcadores, abiertos, editados y guardados sobre los siguientes transportes: Sistema de archivos, FTP, DAV, SSH y Zope.
+Boa tiene un buen soporte para editar y manejar objetos Zope. Necesitas importar el archivo zoa.zexp en la raíz de tu árbol Zope. Este archivo está en el directorio ZopeLib.
+Si tu servidor Zope está disponible en una red, por favor define la ruta local de los elementos en Transportes->Zope. Esto mejora la importación de objetos Zope y la apertura de ExternalMethods.
+Tras inspeccionar y cambiar las propiedades de elementos en el Explorador, haz click derecho y selecciona Recargar antes de abrir el elemento.
+Para añadir nuevas definiciones de transportes que no sean sistemas de archivos, selecciona el transporte en el árbol del Explorador y haz click derecho->Nuevo o desde la barra de herramientas. Renombra el elemento. Ahora selecciona Inspeccionar y configura el elemento. Tras seleccionar Recargar podrás abrir el nuevo transporte.
+Algunos controles procesan eventos diferentes a los habitales y no registran eventos de ratón como seleccionar y mover en el Diseñador. Selecciona estos controles desde la página de objetos en el Inspector.
+Te animamos a que extiendas Boa con tus propios controles o extensiones de controles existentes, tipo de archivos o transportes. Todos los módulos en el directorio de Plugins pueden ejecutarse en el inicio. Esto está desactivado por defecto. Actívalo en las preferencias. Busca ejemplos en Plug-ins/UserCompanions.py
+Hay algún soporte para distutils. En la paleta Nuevo, seleccionando Setup se creará un script setup.py. Este script debe ser mantenido manualmente, pero los comandos de distutils pueden ejectarse desde el menú Archivo.
+Si py2exe está instalado, puede ser invocado por un módulo setup.py desde el menú Archivo.
+Por defecto Boa se inicia en el directorio del proceso (configurable desde el acceso directo). Esto se puede sobreescribir en Preferences.General sobre exWorkingDirectory. En el árbol del Explorador, el nodo os.cwd muestra el directorio actual.
+Al iniciar, los objetos wxPython (incluso wxSTC) tienen su atributo __doc__ definido a una versión de texto en la ayuda html de wxWindows. Las firmas del método están adaptadas a Python y se usan por las pistas de parámetros en los objetos wxPython. También puedes mostrar el atributo __doc__ de la clase o método en la consola.
+Los objetos de menú y barras de herramientas tienen una propiedad Itemid que se utiliza para generar el identificador de ventana para el elemento y también el nombre de método del evento. Cambia esta propiedad antes de asignar el evento.
+Los identificadores de ventana incorporados (ej: wxID_OK, wxID_CANCEL, etc.) son ahora respetados por el Diseñador. Ten en cuenta que tienes que cambiar el identificador manualmente en el código generado. Deja el nombre en la lista donde se definen todos los identificadores de ventana.
