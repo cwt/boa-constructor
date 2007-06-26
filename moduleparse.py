@@ -48,6 +48,7 @@ method_indent = Utils.getIndentBlock()
 body_indent = method_indent*2
 
 id = '[A-Za-z_][A-Za-z0-9_]*'
+is_id = re.compile(id)
 obj_def = '[A-Za-z_][A-Za-z0-9_.]*'
 blank_line = re.compile('^[ \t]*($|#)')
 is_class = re.compile('^[ \t]*class[ \t]+(?P<id>%s)[ \t]*(?P<sup>\([^)]*\))?[ \t]*:'%id)
@@ -63,6 +64,7 @@ is_name_from_call = re.compile('[ \t]*(?P<name>%s)[ \t]*=[ \t]*(?P<classpath>%s)
 #are_names = re.compile('[ \t]*((?P<names>%s)[ \t]*[,][ \t]*)+(?P<lastname>%s)[ \t]*)*=[ \t]*'%(id, id))
 is_import = re.compile('^[ \t]*import[ \t]+(?P<imp>[^#;]+)')
 is_from = re.compile('^[ \t]*from[ \t]+(?P<module>%s([ \t]*\\.[ \t]*%s)*)[ \t]+import[ \t]+(?P<imp>[^#;]+)'%(id, id))
+is_for = re.compile('^[ \t]*for[ \t]+(?P<names>.+)[ \t]+in[ \t]+.+[ \t]*:')
 dedent = re.compile('^[^ \t]')
 indent = re.compile('^[^ \t]*')
 is_doc_quote = re.compile("'''")
@@ -521,6 +523,37 @@ class Module:
                 rem = line[res.end():]
                 objtype = self.getObjType(rem)
                 cur_class.add_attr(res.group('name'), lineno, objtype)
+
+            return 0, cur_class, cur_meth, cur_func
+
+        res = is_for.match(line)
+        if res:
+            names = []
+            for name in methodparse.safesplitfields(res.group('names'), ','):
+                name = name.strip('()')
+                if is_id.match(name):
+                    names.append(name)
+
+            if cur_class:
+                # and we know the class it belongs to
+                if cur_meth:
+                    for name in names:
+                        cur_class.add_local(name, cur_meth, lineno)
+                # class variablr
+                else:
+                    for name in names:
+                        cur_class.add_class_attr(name, lineno)
+            # function
+            elif cur_func:
+                for name in names:
+                    if name not in cur_func.locals.keys():
+                        cur_func.locals[name] = Attrib(name, lineno)
+            #global
+            else:
+                for name in names:
+                    if not self.globals.has_key(name):
+                        self.globals[name] = CodeBlock('', self.lineno, lineno)
+                        self.global_order.append(name)
 
             return 0, cur_class, cur_meth, cur_func
 
