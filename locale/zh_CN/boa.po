@@ -1,0 +1,5687 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Boa\n"
+"POT-Creation-Date: \n"
+"PO-Revision-Date: 2006-12-04 16:52+0800\n"
+"Last-Translator: Dylan Yang <otherrrr@gmail.com>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Poedit-Language: Chinese\n"
+"X-Poedit-Country: CHINA\n"
+
+#: boa/About.py:257
+msgid "About Boa Constructor"
+msgstr "关于Boa Constructor"
+
+#: boa/Boa.py:551
+#, python-format
+msgid ""
+"Error writing config file: %s\n"
+"Please ensure that the Explorer.*.cfg file is not read only."
+msgstr ""
+"写设置文件%s时出错\n"
+"请确定Explorer.*.cfg文件不是只读文件."
+
+#: boa/Boa.py:617
+msgid "Could not set working directory from Preferences.exWorkingDirectory :"
+msgstr "无法从Preferences.exWorkingDirectory设置工作目录:"
+
+#: boa/Boa.py:624
+msgid ""
+"\n"
+"There were errors during startup, please click \"Details\""
+msgstr ""
+"\n"
+"在启动中出现一些错误, 请点击\"细节说明\""
+
+#: boa/Boa.py:643
+msgid "Restore Boa Constructor"
+msgstr "恢复Boa Constructor"
+
+#: boa/Boa.py:644
+msgid "Exit"
+msgstr "退出"
+
+#: boa/Boa.py:646
+#: boa/Editor.py:273
+msgid "About"
+msgstr "关于"
+
+#: boa/Boa.py:692
+msgid "Error on startup"
+msgstr "启动中出错"
+
+#: boa/ClassBrowser.py:32
+#: boa/Views/EditorViews.py:1217
+msgid "Hierarchy"
+msgstr "层级"
+
+#: boa/ClassBrowser.py:33
+#: boa/ClassBrowser.py:88
+msgid "Modules"
+msgstr "模块"
+
+#: boa/ClassBrowser.py:40
+msgid "wxPython Class Browser"
+msgstr "wxPython类浏览器"
+
+#: boa/ClassBrowser.py:122
+msgid "Methods"
+msgstr "方法"
+
+#: boa/ClassBrowser.py:125
+msgid "Properties"
+msgstr "属性"
+
+#: boa/ClassBrowser.py:128
+msgid "Built-in"
+msgstr "内置"
+
+#: boa/ClassBrowser.py:131
+msgid "Super"
+msgstr "超"
+
+#: boa/ClassBrowser.py:204
+msgid "wxPython class browser"
+msgstr "wxPython类浏览器"
+
+#: boa/Dialog1.py:12
+#: boa/Views/STCStyleEditor.py:1065
+msgid "Common definition"
+msgstr "公共定义"
+
+#: boa/Editor.py:54
+#: boa/Editor.py:102
+#: boa/Explorers/EditorExplorer.py:142
+#: boa/PropEdit/FlexGridGrowablesDlg.py:86
+#: boa/Scripts/prefs.rc.i18n.py:140
+#: boa/Scripts/prefs.rc.i18n.py:142
+msgid "Editor"
+msgstr "编辑器"
+
+#: boa/Editor.py:76
+#: boa/Editor.py:463
+#: boa/Editor.py:499
+msgid "File"
+msgstr "文件 "
+
+#: boa/Editor.py:77
+#: boa/Editor.py:473
+#: boa/Editor.py:488
+#: boa/Editor.py:491
+#: boa/Editor.py:494
+#: boa/Plug-ins/ImageEditor.plug-in.py:898
+#: boa/PropEdit/BitmapListEditorDlg.py:130
+#: boa/Views/AppViews.py:108
+msgid "Edit"
+msgstr "编辑"
+
+#: boa/Editor.py:78
+#: boa/Editor.py:481
+#: boa/Editor.py:502
+#: boa/Scripts/prefs.rc.i18n.py:141
+msgid "Views"
+msgstr "视图"
+
+#: boa/Editor.py:79
+msgid "Tools"
+msgstr "工具"
+
+#: boa/Editor.py:210
+msgid "Load"
+msgstr "载入"
+
+#: boa/Editor.py:211
+msgid "Load window dimensions from the config."
+msgstr "从config中读取窗口尺寸"
+
+#: boa/Editor.py:212
+#: boa/FileDlg.py:30
+#: boa/Models/Controllers.py:134
+msgid "Save"
+msgstr "保存"
+
+#: boa/Editor.py:213
+msgid "Save window dimensions to the config."
+msgstr "保存窗口尺寸到config"
+
+#: boa/Editor.py:215
+msgid "Restore defaults"
+msgstr "恢复缺省"
+
+#: boa/Editor.py:215
+msgid "Restore dimensions to defaults"
+msgstr "恢复缺省尺寸"
+
+#: boa/Editor.py:219
+msgid "Palette"
+msgstr "调色板"
+
+#: boa/Editor.py:219
+msgid "Switch to the Palette frame."
+msgstr "切换至插板框架."
+
+#: boa/Editor.py:221
+#: boa/Editor.py:535
+#: boa/Inspector.py:96
+#: boa/Scripts/prefs.rc.i18n.py:144
+msgid "Inspector"
+msgstr "检视器"
+
+#: boa/Editor.py:222
+msgid "Switch to the Inspector frame."
+msgstr "切换至检视器页"
+
+#: boa/Editor.py:226
+#: boa/Editor.py:537
+#: boa/Scripts/prefs.rc.i18n.py:143
+msgid "Shell"
+msgstr "Shell"
+
+#: boa/Editor.py:227
+msgid "Switch to the Shell page"
+msgstr "切换至Shell页"
+
+#: boa/Editor.py:230
+#: boa/Editor.py:539
+#: boa/Editor.py:581
+#: boa/Scripts/prefs.rc.i18n.py:133
+#: boa/Scripts/prefs.rc.i18n.py:137
+msgid "Explorer"
+msgstr "资源管理器"
+
+#: boa/Editor.py:231
+msgid "Switch to the Explorer page"
+msgstr "切换至资源管理器页"
+
+#: boa/Editor.py:233
+#: boa/Explorers/PrefsExplorer.py:51
+#: boa/Explorers/PrefsExplorer.py:102
+msgid "Preferences"
+msgstr "设置"
+
+#: boa/Editor.py:234
+msgid "Switch to the Preferences in the Explorer"
+msgstr "切换至资源管理器中的参数设置"
+
+#: boa/Editor.py:238
+#: boa/Editor.py:443
+msgid "Browse back"
+msgstr "向后浏览"
+
+#: boa/Editor.py:239
+msgid "Go back in browsing history stack"
+msgstr "在浏览历史堆栈中后退"
+
+#: boa/Editor.py:241
+#: boa/Editor.py:444
+msgid "Browse forward"
+msgstr "向前浏览"
+
+#: boa/Editor.py:242
+msgid "Go forward in browsing history stack"
+msgstr "在浏览历史堆栈中前进"
+
+#: boa/Editor.py:244
+msgid "Previous page"
+msgstr "上一页"
+
+#: boa/Editor.py:245
+msgid "Switch to the previous page of the main notebook"
+msgstr "切换至主笔记本的上一页"
+
+#: boa/Editor.py:247
+msgid "Next page"
+msgstr "下一页"
+
+#: boa/Editor.py:248
+msgid "Switch to the next page of the main notebook"
+msgstr "切换至主笔记本的下一页"
+
+#: boa/Editor.py:251
+msgid "All window dimensions"
+msgstr "所有窗口尺寸"
+
+#: boa/Editor.py:252
+msgid "Load, save or restore IDE windows dimensions"
+msgstr "读取, 保存或恢复IDE窗口尺寸"
+
+#: boa/Editor.py:254
+msgid "Hide Palette"
+msgstr "隐藏调色板"
+
+#: boa/Editor.py:254
+msgid "Hide the Palette frame"
+msgstr "隐藏调色板框架"
+
+#: boa/Editor.py:256
+msgid "Windows"
+msgstr "窗口"
+
+#: boa/Editor.py:259
+#: boa/Editor.py:289
+#: boa/Editor.py:507
+#: boa/Debugger/RemoteDialog.py:83
+msgid "Help"
+msgstr "帮助"
+
+#: boa/Editor.py:260
+msgid "Opens help for the Editor"
+msgstr "在编辑器中打开帮助"
+
+#: boa/Editor.py:262
+msgid "Getting started guide"
+msgstr "起步指南"
+
+#: boa/Editor.py:262
+msgid "Opens the Getting started guide"
+msgstr "打开起步指南"
+
+#: boa/Editor.py:265
+#: boa/Editor.py:545
+#: boa/Views/Designer.py:188
+msgid "Find in index..."
+msgstr "在索引中查找"
+
+#: boa/Editor.py:266
+#: boa/Views/Designer.py:189
+msgid "Pops up a text input for starting a search of the help indexes"
+msgstr "为了开始帮助索引的查找升起一个文本输入框"
+
+#: boa/Editor.py:267
+msgid "Open an example..."
+msgstr "打开一个例字..."
+
+#: boa/Editor.py:268
+msgid "Opens file dialog in the Examples directory"
+msgstr "打开文件对话框在Examples目录"
+
+#: boa/Editor.py:270
+msgid "Tips"
+msgstr "每日一贴"
+
+#: boa/Editor.py:270
+msgid "Opens the \"Tip of the Day\" window"
+msgstr "打开\"每日一贴\"窗口"
+
+#: boa/Editor.py:273
+msgid "Opens the About box"
+msgstr "打开关于窗口"
+
+#: boa/Editor.py:283
+msgid "&Help"
+msgstr "&帮助"
+
+#: boa/Editor.py:434
+#: boa/PaletteStore.py:10
+#: boa/Explorers/ExplorerNodes.py:186
+#: boa/Explorers/ExplorerNodes.py:586
+#: boa/Views/CollectionEdit.py:95
+msgid "New"
+msgstr "新建"
+
+#: boa/Editor.py:436
+#: boa/FileDlg.py:29
+#: boa/FileDlg.py:584
+#: boa/Explorers/DAVExplorer.py:80
+#: boa/Explorers/ExplorerNodes.py:806
+#: boa/Explorers/FileExplorer.py:120
+#: boa/Explorers/FTPExplorer.py:36
+#: boa/Explorers/ZipExplorer.py:40
+#: boa/Views/AppViews.py:105
+#: boa/Views/EditorViews.py:908
+#: boa/Views/EditorViews.py:1309
+msgid "Open"
+msgstr "打开"
+
+#: boa/Editor.py:437
+#: boa/Editor.py:441
+msgid "Open a module"
+msgstr "打开一个模块"
+
+#: boa/Editor.py:439
+msgid "Open recent files"
+msgstr "打开最近文件"
+
+#: boa/Editor.py:462
+#: boa/Editor.py:498
+msgid "Exit Boa Constructor"
+msgstr "退出Boa Constructor"
+
+#: boa/Editor.py:541
+msgid "Previous window"
+msgstr "前一个窗口"
+
+#: boa/Editor.py:543
+msgid "Next window"
+msgstr "下一个窗口"
+
+#: boa/Editor.py:810
+msgid "File already open."
+msgstr "文件已经打开."
+
+#: boa/Editor.py:833
+msgid "Cannot open, no transport defined."
+msgstr "无法打开, 未定义传送"
+
+#: boa/Editor.py:907
+#, python-format
+msgid "Zope Object %s not supported"
+msgstr "Zope对象%s不被支持"
+
+#: boa/Editor.py:946
+#: boa/FileDlg.py:116
+#: boa/Companions/BasicCompanions.py:453
+msgid "Choose a file"
+msgstr "选择文件"
+
+#: boa/Editor.py:965
+#: boa/Models/Controllers.py:135
+#: boa/Views/EditorViews.py:405
+msgid "Save as..."
+msgstr "另存为"
+
+#: boa/Editor.py:983
+msgid "Close module"
+msgstr "关闭模块"
+
+#: boa/Editor.py:1010
+msgid "There are changes, do you want to save?"
+msgstr "有改动, 需要保存吗?"
+
+#: boa/Editor.py:1187
+msgid "Enter term to search for in the index"
+msgstr "键入条件开始在索引中搜索"
+
+#: boa/Editor.py:1188
+msgid "Help - Find in index"
+msgstr "帮助 - 在索引中查找"
+
+#: boa/Editor.py:1334
+msgid "Skipped opening files because Boa possibly crashed last time while opening"
+msgstr "跳过打开的文件因为Boa有可能在上次打开时崩溃"
+
+#: boa/Editor.py:1344
+#: boa/Editor.py:1375
+msgid "Could not update config."
+msgstr "无法升级config."
+
+#: boa/Editor.py:1400
+msgid "Could not save open file list: "
+msgstr "无法保存打开文件列表:"
+
+#: boa/Editor.py:1428
+msgid "Please close the application running in the debugger before continuing."
+msgstr "在继续之前请在调试器中关闭正在运行的程序"
+
+#: boa/Editor.py:1519
+msgid "Window dimensions loaded"
+msgstr "窗口尺寸重载"
+
+#: boa/Editor.py:1523
+msgid "Window dimensions saved"
+msgstr "窗口尺寸保存"
+
+#: boa/Editor.py:1527
+msgid "Window dimensions restored to defaults"
+msgstr "窗口尺寸恢复至默认值"
+
+#: boa/EditorUtils.py:109
+msgid "Browse the Traceback/Error/Output window history."
+msgstr "浏览报告/错误/输出窗口历史."
+
+#: boa/EditorUtils.py:177
+msgid "Editor status history"
+msgstr "编辑器状态历史"
+
+#: boa/EditorUtils.py:184
+msgid "Time"
+msgstr "时间"
+
+#: boa/EditorUtils.py:185
+msgid "Message"
+msgstr "消息"
+
+#: boa/EditorUtils.py:219
+msgid "Switch to highlighted file"
+msgstr "切换至高亮文件"
+
+#: boa/EditorUtils.py:400
+#: boa/EditorUtils.py:421
+#, python-format
+msgid "%s saved."
+msgstr "%s已保存."
+
+#: boa/EditorUtils.py:407
+#, python-format
+msgid ""
+"%s\n"
+"Do you want to overwrite these changes (Yes), reload your file (No) or cancel this operation (Cancel)?"
+msgstr ""
+"%s\n"
+"你想要覆盖这些修改吗(是), 重载你的文件(否)或者取消此操作(取消)?"
+
+#: boa/EditorUtils.py:409
+msgid "Overwrite newer file warning"
+msgstr "覆盖更新的文件警告"
+
+#: boa/EditorUtils.py:449
+msgid "Close active view"
+msgstr "关闭当前视图"
+
+#: boa/ErrorStackFrm.py:52
+msgid "Traceback and Output browser"
+msgstr "报告和输出浏览器"
+
+#: boa/ErrorStackFrm.py:100
+msgid "Tracebacks"
+msgstr "报告"
+
+#: boa/ErrorStackFrm.py:102
+msgid "Output"
+msgstr "输出"
+
+#: boa/ErrorStackFrm.py:104
+msgid "Errors"
+msgstr "错误"
+
+#: boa/ErrorStackFrm.py:108
+msgid "Tasks"
+msgstr "人物"
+
+#: boa/ErrorStackFrm.py:163
+msgid "Load history..."
+msgstr "加载历史..."
+
+#: boa/ErrorStackFrm.py:165
+msgid "Save history..."
+msgstr "保存历史..."
+
+#: boa/ErrorStackFrm.py:167
+msgid "Clear history"
+msgstr "清楚历史"
+
+#: boa/ErrorStackFrm.py:170
+msgid "Close diff page"
+msgstr "关闭差异页面"
+
+#: boa/ErrorStackFrm.py:173
+msgid "Close input page"
+msgstr "关闭输入页面"
+
+#: boa/ErrorStackFrm.py:180
+msgid "Kill process"
+msgstr "终止进程"
+
+#: boa/ErrorStackFrm.py:183
+msgid "Check processes"
+msgstr "检查进程"
+
+#: boa/ErrorStackFrm.py:352
+#: boa/ErrorStackFrm.py:358
+#: boa/ErrorStackFrm.py:528
+msgid "Diffs"
+msgstr "差异"
+
+#: boa/ErrorStackFrm.py:371
+msgid "Input"
+msgstr "输入"
+
+#: boa/ErrorStackFrm.py:421
+#, python-format
+msgid "Cannot kill process %d."
+msgstr "无法终止进程%d."
+
+#: boa/ErrorStackFrm.py:424
+#, python-format
+msgid "Cannot kill process %d, access denied."
+msgstr "无法终止进程%d, 访问被拒绝."
+
+#: boa/ErrorStackFrm.py:426
+#, python-format
+msgid "Killed process %d."
+msgstr "终止进程%d."
+
+#: boa/ErrorStackFrm.py:438
+msgid ""
+"There are still running processes that were started from Boa, please close or kill them before quitting.\n"
+"\n"
+"Click Cancel to quit anyway."
+msgstr ""
+"仍有Boa启动的进程在运行, 请在退出前关闭或终止它们.\n"
+"\n"
+"执意退出请点击取消."
+
+#: boa/ErrorStackFrm.py:546
+msgid "History cleared."
+msgstr "历史已清楚."
+
+#: boa/FileDlg.py:32
+#, python-format
+msgid "top | up | new folder || %s://%s"
+msgstr "顶部 | 上一层 | 新文件夹 || %s://%s"
+
+#: boa/FileDlg.py:59
+#: boa/FileDlg.py:581
+msgid "File Dialog"
+msgstr "文件对话框"
+
+#: boa/FileDlg.py:65
+msgid "File name:"
+msgstr "文件名:"
+
+#: boa/FileDlg.py:71
+msgid "Files of type:"
+msgstr "文件类型"
+
+#: boa/FileDlg.py:93
+#: boa/FileDlg.py:582
+#: boa/KeyDefsDlg.py:70
+#: boa/ProcessProgressDlg.py:179
+#: boa/Debugger/PathMappingDlg.py:32
+#: boa/Debugger/RemoteDialog.py:73
+#: boa/Models/ResourceSupport.py:62
+#: boa/Plug-ins/HelpBook.plug-in.py:69
+#: boa/Plug-ins/ModuleFinder.plug-in.py:36
+#: boa/Plug-ins/PyInterpreterChooser.plug-in.py:125
+#: boa/PropEdit/ArtProviderBrowser.py:96
+#: boa/PropEdit/BitmapListEditorDlg.py:147
+#: boa/PropEdit/FlexGridGrowablesDlg.py:72
+#: boa/PropEdit/MaskedEditFmtCodeDlg.py:59
+#: boa/PropEdit/StringEditDlg.py:53
+#: boa/Views/CreationOrdDlg.py:71
+#: boa/Views/CtrlAlign.py:49
+#: boa/Views/CtrlSize.py:62
+#: boa/Views/STCStyleEditor.py:216
+#: boa/Views/STCStyleEditor.py:1084
+msgid "OK"
+msgstr "OK"
+
+#: boa/FileDlg.py:102
+#: boa/FindReplaceDlg.py:184
+#: boa/KeyDefsDlg.py:77
+#: boa/ProcessProgressDlg.py:47
+#: boa/ProcessProgressDlg.py:131
+#: boa/Debugger/PathMappingDlg.py:38
+#: boa/Debugger/RemoteDialog.py:79
+#: boa/Models/ResourceSupport.py:65
+#: boa/Plug-ins/HelpBook.plug-in.py:73
+#: boa/Plug-ins/ModuleFinder.plug-in.py:41
+#: boa/Plug-ins/PyInterpreterChooser.plug-in.py:129
+#: boa/PropEdit/ArtProviderBrowser.py:100
+#: boa/PropEdit/BitmapListEditorDlg.py:151
+#: boa/PropEdit/FlexGridGrowablesDlg.py:76
+#: boa/PropEdit/MaskedEditFmtCodeDlg.py:64
+#: boa/PropEdit/StringEditDlg.py:57
+#: boa/Views/CreationOrdDlg.py:78
+#: boa/Views/CtrlAlign.py:55
+#: boa/Views/CtrlSize.py:69
+#: boa/Views/DataView.py:42
+#: boa/Views/Designer.py:1102
+#: boa/Views/STCPrinting.py:85
+#: boa/Views/STCStyleEditor.py:226
+#: boa/Views/STCStyleEditor.py:1091
+msgid "Cancel"
+msgstr "取消"
+
+#: boa/FileDlg.py:120
+#: boa/Explorers/FileExplorer.py:93
+msgid "Boa files"
+msgstr "Boa文件"
+
+#: boa/FileDlg.py:120
+#: boa/Explorers/FileExplorer.py:95
+msgid "Internal files"
+msgstr "内部文件"
+
+#: boa/FileDlg.py:120
+#: boa/Explorers/FileExplorer.py:96
+msgid "Image files"
+msgstr "图像文件"
+
+#: boa/FileDlg.py:120
+#: boa/Explorers/FileExplorer.py:97
+msgid "All files"
+msgstr "所有文件"
+
+#: boa/FileDlg.py:361
+msgid "Transport Error"
+msgstr "传送错误"
+
+#: boa/FileDlg.py:393
+msgid "Not a valid absolute path"
+msgstr "非有效绝对路径"
+
+#: boa/FileDlg.py:406
+msgid "Not a valid directory"
+msgstr "非有效目录"
+
+#: boa/FileDlg.py:444
+msgid ""
+"This file already exists.\n"
+"Do you want to overwrite the file?"
+msgstr ""
+"文件已经存在.\n"
+"你想要覆盖它吗?"
+
+#: boa/FileDlg.py:445
+msgid "Overwrite file?"
+msgstr "覆盖文件?"
+
+#: boa/FileDlg.py:496
+#: boa/Explorers/Explorer.py:83
+msgid "Category not found"
+msgstr "未找到类别"
+
+#: boa/FileDlg.py:550
+msgid "Only filesystem paths allowed"
+msgstr "只允许文件系统路径"
+
+#: boa/FileDlg.py:561
+#, python-format
+msgid "Could not open %s"
+msgstr "无法打开%s"
+
+#: boa/FileDlg.py:562
+#: boa/PropEdit/PropertyEditors.py:605
+msgid "Warning"
+msgstr "警告"
+
+#: boa/FileDlg.py:587
+msgid "Save As"
+msgstr "另存为"
+
+#: boa/FileDlg.py:651
+msgid "New Folder"
+msgstr "新文件夹"
+
+#: boa/FindReplaceDlg.py:41
+#: boa/FindReplaceDlg.py:65
+#: boa/FindReplaceDlg.py:358
+#: boa/FindReplaceDlg.py:379
+msgid "Find/Replace"
+msgstr "查找/替换"
+
+#: boa/FindReplaceDlg.py:82
+msgid "Insert path to find in files"
+msgstr "插入寻找文件路径"
+
+#: boa/FindReplaceDlg.py:89
+msgid "Files that will be included in search"
+msgstr "搜索中应包括的文件"
+
+#: boa/FindReplaceDlg.py:91
+#: boa/Views/EditorViews.py:349
+msgid "Forward"
+msgstr "前进"
+
+#: boa/FindReplaceDlg.py:91
+msgid "Backward"
+msgstr "后退"
+
+#: boa/FindReplaceDlg.py:92
+msgid "Direction"
+msgstr "方向"
+
+#: boa/FindReplaceDlg.py:99
+msgid "All"
+msgstr "所有"
+
+#: boa/FindReplaceDlg.py:99
+msgid "Selected"
+msgstr "已选择"
+
+#: boa/FindReplaceDlg.py:100
+msgid "Scope"
+msgstr "范围"
+
+#: boa/FindReplaceDlg.py:107
+msgid "Options"
+msgstr "选项"
+
+#: boa/FindReplaceDlg.py:111
+msgid "Case sensitive"
+msgstr "区分大小写"
+
+#: boa/FindReplaceDlg.py:118
+msgid "Whole words"
+msgstr "全词匹配"
+
+#: boa/FindReplaceDlg.py:124
+msgid "Wildcards"
+msgstr "使用通配符"
+
+#: boa/FindReplaceDlg.py:130
+msgid "Regular expressions"
+msgstr "正则表达式"
+
+#: boa/FindReplaceDlg.py:136
+msgid "Wrap search"
+msgstr "环绕搜索"
+
+#: boa/FindReplaceDlg.py:142
+msgid "Close on found"
+msgstr "找到时关闭"
+
+#: boa/FindReplaceDlg.py:148
+msgid "Recursive search"
+msgstr "递归搜索"
+
+#: boa/FindReplaceDlg.py:152
+#: boa/FindReplaceDlg.py:526
+#: boa/Explorers/FileExplorer.py:127
+#: boa/Views/AppViews.py:111
+#: boa/Views/EditorViews.py:909
+msgid "Find"
+msgstr "查找"
+
+#: boa/FindReplaceDlg.py:160
+msgid "Find all"
+msgstr "查找全部"
+
+#: boa/FindReplaceDlg.py:166
+msgid "Find in files"
+msgstr "在文件中查找"
+
+#: boa/FindReplaceDlg.py:172
+msgid "Replace"
+msgstr "替换"
+
+#: boa/FindReplaceDlg.py:178
+msgid "Replace all"
+msgstr "替换全部"
+
+#: boa/FindReplaceDlg.py:190
+msgid "Text to find"
+msgstr "查找文本"
+
+#: boa/FindReplaceDlg.py:194
+msgid "Replace with"
+msgstr "替换为"
+
+#: boa/FindReplaceDlg.py:198
+msgid "Files to find in"
+msgstr "查找文件"
+
+#: boa/FindReplaceDlg.py:202
+msgid "File filter"
+msgstr "文件类型"
+
+#: boa/FindReplaceDlg.py:208
+msgid "Build-in ready to run searches"
+msgstr "运行内置查找"
+
+#: boa/FindReplaceDlg.py:215
+msgid "Folders tree"
+msgstr "文件夹树"
+
+#: boa/FindReplaceDlg.py:396
+#, python-format
+msgid "Building file list from directory '%s'"
+msgstr "从目录'%s'创建文件列表"
+
+#: boa/FindReplaceDlg.py:397
+#: boa/FindReplaceEngine.py:205
+#: boa/Search.py:73
+msgid "Searching..."
+msgstr "查找..."
+
+#: boa/FindReplaceDlg.py:419
+msgid "There is nothing to find."
+msgstr "未找到搜索项."
+
+#: boa/FindReplaceDlg.py:419
+#: boa/FindReplaceDlg.py:425
+#: boa/FindReplaceDlg.py:429
+msgid "Boa - Find/Replace"
+msgstr "Boa - 查找/替换"
+
+#: boa/FindReplaceDlg.py:425
+msgid "There is nothing to replace with."
+msgstr "未找到搜索项."
+
+#: boa/FindReplaceDlg.py:429
+msgid "The folder you entered is not valid folder."
+msgstr "输入的文件夹不是有效文件夹."
+
+#: boa/FindReplaceDlg.py:526
+msgid "Build in finds"
+msgstr "内置查找"
+
+#: boa/FindReplaceEngine.py:86
+#: boa/FindReplaceEngine.py:150
+#, python-format
+msgid "'%s' not found"
+msgstr "'%s'未找到"
+
+#: boa/FindReplaceEngine.py:91
+msgid "Search wrapped"
+msgstr "环绕搜索"
+
+#: boa/FindReplaceEngine.py:118
+msgid "Results:"
+msgstr "结果:"
+
+#: boa/FindReplaceEngine.py:186
+#, python-format
+msgid "%s items replaced"
+msgstr "%s项被替换"
+
+#: boa/FindReplaceEngine.py:204
+#, python-format
+msgid "Finding '%s' in files"
+msgstr "在文件中查找'%s'"
+
+#: boa/FindReplaceEngine.py:218
+#, python-format
+msgid "Searching in file '%s'"
+msgstr "在文件'%s'中搜索"
+
+#: boa/FindReplaceEngine.py:220
+msgid "Search aborted"
+msgstr "查找失败"
+
+#: boa/FindReplaceEngine.py:311
+#, python-format
+msgid "%s not searched, only local files allowed"
+msgstr "未找到%s, 只允许本地文件"
+
+#: boa/FindResults.py:27
+#: boa/Views/AppViews.py:40
+msgid "find results"
+msgstr "查找结果"
+
+#: boa/FindResults.py:29
+#: boa/Views/AppViews.py:42
+msgid "Goto match"
+msgstr "自动匹配"
+
+#: boa/FindResults.py:30
+msgid "Re-run query"
+msgstr "再次查询"
+
+#: boa/FindResults.py:33
+#: boa/Debugger/DebuggerControls.py:177
+#: boa/Views/AppViews.py:47
+#: boa/Views/AppViews.py:116
+#: boa/Views/AppViews.py:285
+msgid "Module"
+msgstr "模块"
+
+#: boa/FindResults.py:34
+#: boa/Views/AppViews.py:48
+msgid "Line no"
+msgstr "行数"
+
+#: boa/FindResults.py:35
+#: boa/Views/AppViews.py:49
+msgid "Col"
+msgstr "列"
+
+#: boa/FindResults.py:36
+#: boa/Views/AppViews.py:50
+#: boa/Views/SourceViews.py:537
+msgid "Text"
+msgstr "文本"
+
+#: boa/FindResults.py:66
+#: boa/Views/AppViews.py:69
+#, python-format
+msgid "%d matches of \"%s\"."
+msgstr "%d匹配\"%s\"."
+
+#: boa/Help.py:48
+msgid "Enter name to search for"
+msgstr "输入搜索名称"
+
+#: boa/Help.py:59
+#: boa/Plug-ins/RegexEditor.plug-in.py:104
+msgid "Search"
+msgstr "查找"
+
+#: boa/Help.py:65
+#: boa/Debugger/Debugger.py:104
+msgid "Stop"
+msgstr "停止"
+
+#: boa/Help.py:74
+msgid "Server"
+msgstr "服务器"
+
+#: boa/Help.py:84
+msgid "Server not running "
+msgstr "服务器未运行"
+
+#: boa/Help.py:116
+msgid "Starting pydoc server... "
+msgstr "启动pydoc服务器..."
+
+#: boa/Help.py:119
+msgid "Address in use, "
+msgstr "已用地址,"
+
+#: boa/Help.py:158
+msgid "Server quit. "
+msgstr "服务器退出."
+
+#: boa/Help.py:216
+msgid "Stopping server..."
+msgstr "停止服务器..."
+
+#: boa/Help.py:403
+msgid "Copy contents as text to clipboard"
+msgstr "将内容作为文本复制至剪贴板"
+
+#: boa/Help.py:411
+#: boa/Plug-ins/HelpBook.plug-in.py:851
+#: boa/Plug-ins/HelpBook.plug-in.py:881
+msgid "Contents"
+msgstr "目录"
+
+#: boa/Help.py:418
+#: boa/Plug-ins/HelpBook.plug-in.py:680
+msgid "Index"
+msgstr "索引"
+
+#: boa/Help.py:425
+msgid "Show all"
+msgstr "显示全部"
+
+#: boa/Help.py:548
+msgid ""
+"The pydoc server has not completely started up yet,\n"
+" it is safer to wait for it to finish before shutting down.\n"
+"\n"
+"Do you want to wait?"
+msgstr ""
+"pydoc服务器还未完全启动完成, \n"
+"最好在完成后再关闭, 这样会更安全.\n"
+"您是否想要等待?"
+
+#: boa/Help.py:550
+msgid "Pydoc server busy"
+msgstr "Pydoc服务器忙"
+
+#: boa/ImageStore.py:63
+#, python-format
+msgid "Extension not handled: %s"
+msgstr "扩展为处理: %s"
+
+#: boa/ImageStore.py:87
+#, python-format
+msgid "%s not found in image paths"
+msgstr "在图片路径中未找到%s"
+
+#: boa/ImageStore.py:97
+#, python-format
+msgid "%s not valid"
+msgstr "%s不是有效的"
+
+#: boa/ImageStore.py:158
+#: boa/Models/PythonEditorModels.py:545
+#, python-format
+msgid "Could not find %s"
+msgstr "无法找到%s"
+
+#: boa/Inspector.py:73
+msgid "Select parent"
+msgstr "选择父类"
+
+#: boa/Inspector.py:82
+msgid "Nothing selected"
+msgstr "未选中"
+
+#: boa/Inspector.py:173
+msgid "Delete selection"
+msgstr "删除选中"
+
+#: boa/Inspector.py:175
+msgid "Cut selection"
+msgstr "剪切选中"
+
+#: boa/Inspector.py:177
+msgid "Copy selection"
+msgstr "复制选中"
+
+#: boa/Inspector.py:179
+msgid "Paste selection"
+msgstr "粘贴选中"
+
+#: boa/Inspector.py:181
+msgid "Recreate selection"
+msgstr "重建选中"
+
+#: boa/Inspector.py:184
+msgid "Post the session"
+msgstr "提交会话"
+
+#: boa/Inspector.py:186
+msgid "Cancel the session"
+msgstr "取消会话"
+
+#: boa/Inspector.py:191
+msgid "New item"
+msgstr "新建项"
+
+#: boa/Inspector.py:193
+msgid "Delete item"
+msgstr "删除项"
+
+#: boa/Inspector.py:196
+#: boa/Palette.py:117
+#: boa/Palette.py:119
+#: boa/Palette.py:121
+msgid "Show help"
+msgstr "显示帮助"
+
+#: boa/Inspector.py:800
+#, python-format
+msgid "Could not post %s because: %s: %s"
+msgstr "无法提交%s因为: %s: %s"
+
+#: boa/Inspector.py:931
+#, python-format
+msgid "Macro: %s not found."
+msgstr "宏: %s未找到."
+
+#: boa/Inspector.py:1223
+msgid "Unable to post, please correct."
+msgstr "无法提交, 请修改."
+
+#: boa/KeyDefsDlg.py:59
+msgid "Key code:"
+msgstr "键值:"
+
+#: boa/KeyDefsDlg.py:63
+msgid "Shortcut text:"
+msgstr "快捷键文本:"
+
+#: boa/KeyDefsDlg.py:90
+#, python-format
+msgid "Key binding definition: %s"
+msgstr "预设键: %s"
+
+#: boa/KeyDefsDlg.py:123
+msgid "Key code may not be blank"
+msgstr "键值不能为空"
+
+#: boa/KeyDefsDlg.py:126
+msgid "Key code must either be a single character (letter or digit) or an identifier selected from the combobox"
+msgstr "键值必须是一个单字符(字母或数字)或者一个组合框标识符"
+
+#: boa/KeyDefsDlg.py:131
+msgid "Shortcut may not be blank, enter a concise description, e.g. Ctrl-Shift-S"
+msgstr "快捷键不能为空, 输入一个简单描述, 例如Ctrl-Shift-S"
+
+#: boa/KeyDefsDlg.py:151
+msgid "Invalid value error"
+msgstr "无效值错误"
+
+#: boa/methodparse.py:156
+msgid "Unhandled bracket"
+msgstr "不支持的支架"
+
+#: boa/methodparse.py:387
+#, python-format
+msgid "Atleast 1 segment required, got: %r"
+msgstr "至少需要1小结, 获得: %r"
+
+#: boa/methodparse.py:394
+msgid "Too many attribute levels"
+msgstr "太多属性级别"
+
+#: boa/ModRunner.py:115
+msgid "Execute module"
+msgstr "执行模块"
+
+#: boa/ModRunner.py:122
+#: boa/ModRunner.py:145
+#: boa/ModRunner.py:178
+msgid "Ran"
+msgstr "已运行"
+
+#: boa/moduleparse.py:641
+msgid "Method exists"
+msgstr "方法存在"
+
+#: boa/moduleparse.py:923
+#, python-format
+msgid "Import statement invalid: %s"
+msgstr "导入无效声明: %s"
+
+#: boa/Palette.py:46
+msgid "Brings the Inspector to the front"
+msgstr "将检视器推倒前台"
+
+#: boa/Palette.py:50
+msgid "Brings the Editor to the front"
+msgstr "将编辑器推倒前台"
+
+#: boa/Palette.py:116
+msgid "Boa or selected component help"
+msgstr "Boa或选择的组件帮助"
+
+#: boa/Palette.py:118
+msgid "wxPython help"
+msgstr "wxPython帮助"
+
+#: boa/Palette.py:120
+msgid "Python help"
+msgstr "Python帮助"
+
+#: boa/Palette.py:317
+#: boa/Palette.py:346
+msgid "(Nothing selected)"
+msgstr "(未选择)"
+
+#: boa/PaletteMapping.py:58
+msgid "User"
+msgstr "用户"
+
+#: boa/PaletteMapping.py:120
+#, python-format
+msgid "Plugin skipped: %s, %s"
+msgstr "已忽略插件: %s, %s"
+
+#: boa/PaletteMapping.py:126
+#, python-format
+msgid ""
+"Problem executing plug-in %s:\n"
+"%s"
+msgstr ""
+"运行插件问题%s:\n"
+"%s"
+
+#: boa/PaletteStore.py:12
+msgid "Dialogs"
+msgstr "对话框"
+
+#: boa/PaletteStore.py:13
+msgid "Zope"
+msgstr "Zope"
+
+#: boa/Plugins.py:59
+#, python-format
+msgid "Module %s could not be found in Plug-ins"
+msgstr "在插件中无法找到模块%s"
+
+#: boa/Plugins.py:241
+#, python-format
+msgid "Could not create default value from \"%s\" for %s. (%s:%s)"
+msgstr "无法创建默认值从\"%s\"为%s.(%s:%s)"
+
+#: boa/Plugins.py:251
+#, python-format
+msgid "%s not in Preferences, but is defined in globals of prefs.plug-ins.rc.py"
+msgstr "%s不在参数设定中,但是它在prefs.plug-ins.rc.py中定义为外部变量"
+
+#: boa/ProcessProgressDlg.py:92
+msgid "Kill"
+msgstr "终止"
+
+#: boa/ProcessProgressDlg.py:132
+msgid "Waiting for response..."
+msgstr "等待相应..."
+
+#: boa/ProcessProgressDlg.py:144
+msgid "Receiving response..."
+msgstr "接收相应..."
+
+#: boa/ProcessProgressDlg.py:173
+msgid "Response received."
+msgstr "已接受到相应."
+
+#: boa/Search.py:88
+msgid "Searching"
+msgstr "搜索"
+
+#: boa/Search.py:93
+msgid "Skipping"
+msgstr "跳过"
+
+#: boa/Search.py:123
+msgid "Root folder was not specified"
+msgstr "根目录未指定"
+
+#: boa/Utils.py:279
+msgid "Could not edit tips settings, please make sure that the Explorer.*.cfg file is not read only and you have sufficient priviledges to write to this file."
+msgstr "无法编辑技巧设置, 请确认Explorer.*.cfg文件不是只读的而且您有足够权限可以读写它"
+
+#: boa/Utils.py:353
+msgid "Unhandled type for Win"
+msgstr "未处理窗口类型"
+
+#: boa/Utils.py:879
+#, python-format
+msgid "Unknown encoding %s"
+msgstr "未知编码%s"
+
+#: boa/Utils.py:896
+#, python-format
+msgid ""
+"Unable to encode unicode string, please change the defaultencoding in sitecustomize.py to handle this encoding.\n"
+"Error message %s"
+msgstr ""
+"无法对unicode语句进行编码, 请修改sitecustomize.py中的默认编码以处理此问题. \n"
+"错误信息%s"
+
+#: boa/Utils.py:919
+#, python-format
+msgid ""
+"Unable to decode unicode string, please change the defaultencoding in sitecustomize.py to handle this encoding.\n"
+" Error message %s"
+msgstr ""
+"无法对unicode语句进行编码, 请修改sitecustomize.py中的默认编码以处理此问题. \n"
+"错误信息%s"
+
+#: boa/Companions/BaseCompanions.py:403
+#, python-format
+msgid "There is already an object named %s"
+msgstr "已经有对象命名为%s"
+
+#: boa/Companions/BaseCompanions.py:441
+#, python-format
+msgid "Illegal expression: %s"
+msgstr "出错语法:%s"
+
+#: boa/Companions/BaseCompanions.py:521
+#: boa/PropEdit/PropertyEditors.py:1290
+#: boa/PropEdit/PropertyEditors.py:1339
+#: boa/PropEdit/PropertyEditors.py:1363
+msgid "(delete)"
+msgstr "(删除)"
+
+#: boa/Companions/BaseCompanions.py:572
+#: boa/Views/InspectableViews.py:796
+#: boa/Views/InspectableViews.py:799
+msgid "Not Implemented"
+msgstr "未实现"
+
+#: boa/Companions/BasicCompanions.py:481
+msgid "Choose a gif file"
+msgstr "选择一个gif文件"
+
+#: boa/Companions/BasicCompanions.py:538
+msgid "Basic Controls"
+msgstr "基础控件"
+
+#: boa/Companions/ButtonCompanions.py:345
+msgid "Buttons"
+msgstr "按钮"
+
+#: boa/Companions/ContainerCompanions.py:379
+#, python-format
+msgid ""
+"The red-dashed area of a %s page must contain\n"
+"a control or the generated source will be invalid outside the Designer"
+msgstr ""
+"%s页中的红色虚线区域必须包含\n"
+"一个控件或在外部设计器中生成的有效源代码"
+
+#: boa/Companions/ContainerCompanions.py:799
+msgid "Add separator"
+msgstr "添加分割器"
+
+#: boa/Companions/ContainerCompanions.py:800
+msgid "Add control"
+msgstr "添加控件"
+
+#: boa/Companions/ContainerCompanions.py:801
+msgid "Old add tool"
+msgstr "添加工具"
+
+#: boa/Companions/ContainerCompanions.py:954
+#, python-format
+msgid "Invalid None control for toolbar %s's AddControl"
+msgstr "不是工具栏%s中的添加组件中的有效的空组件"
+
+#: boa/Companions/ContainerCompanions.py:958
+msgid "Control may not be None or the generated source will be invalid outside the Designer."
+msgstr "组件不能为空或外部设计器中生成的非有效源代码"
+
+#: boa/Companions/ContainerCompanions.py:1086
+msgid "Containers/Layout"
+msgstr "容器/设计"
+
+#: boa/Companions/FrameCompanions.py:147
+msgid "May not delete a wx.MenuBar, it would cause a segfault on wxGTK"
+msgstr "不能删除wx.MenuBar, 它会引起wxGTK的seffault"
+
+#: boa/Companions/LibCompanions.py:655
+msgid "Library"
+msgstr "库"
+
+#: boa/Companions/ListCompanions.py:151
+msgid "wx.ListCtrl must be created with the wx.LC_REPORT flag."
+msgstr "wx.ListCtrl必须用wx.LC_REPORT标记创建."
+
+#: boa/Companions/ListCompanions.py:362
+msgid "List Controls"
+msgstr "控件列表"
+
+#: boa/Companions/SizerCompanions.py:133
+msgid "Add sizer"
+msgstr "添加大小控制器"
+
+#: boa/Companions/SizerCompanions.py:134
+msgid "Add spacer"
+msgstr "添加体积控制器"
+
+#: boa/Companions/SizerCompanions.py:314
+#, python-format
+msgid "No control/sizer for sizer item of %s"
+msgstr "没有控件/大小控制器中的%s"
+
+#: boa/Companions/SizerCompanions.py:318
+msgid ""
+"None values are only valid in the Designer.\n"
+"The generated source will be invalid outside the Designer and should be fixed before executing."
+msgstr ""
+"空值尽在设计器中是有效的.\n"
+"在设计器外部生成的有效代码将会在执行时被修正."
+
+#: boa/Companions/SizerCompanions.py:364
+msgid "Rows and Cols may not both be 0"
+msgstr "行和列均不能为0"
+
+#: boa/Companions/SizerCompanions.py:513
+#, python-format
+msgid "No %s controls available"
+msgstr "没有%s组件可用"
+
+#: boa/Companions/SizerCompanions.py:520
+msgid "Choose control"
+msgstr "选择组件"
+
+#: boa/Companions/SizerCompanions.py:521
+msgid "Create sizer"
+msgstr "创建大小控制器"
+
+#: boa/Companions/SizerCompanions.py:524
+msgid "Must choose a control to link with sizer"
+msgstr "必须选择一个控件链接至大小控制器"
+
+#: boa/Companions/SizerCompanions.py:663
+#, python-format
+msgid "Cannot use Position %s, an item is already at that position"
+msgstr "位置%s无法使用, 一个项目已经在此位置"
+
+#: boa/Companions/SizerCompanions.py:665
+#, python-format
+msgid "Position %s invalid, cannot contain negative values"
+msgstr "位置%s不是有效的, 不能包含负值"
+
+#: boa/Companions/SizerCompanions.py:669
+#, python-format
+msgid "Span %s invalid, cannot contain negative values"
+msgstr "范围%s不是有效的, 不能包含负值"
+
+#: boa/Companions/UtilCompanions.py:391
+#: boa/Companions/UtilCompanions.py:504
+#, python-format
+msgid "Invalid menu reference: %s"
+msgstr "菜单参数不是有效的:%s"
+
+#: boa/Companions/UtilCompanions.py:589
+msgid "Utilities (Data)"
+msgstr "有效(数据)"
+
+#: boa/Debugger/ChildProcessClient.py:55
+msgid "Empty response from debugger process"
+msgstr "来自调试器进程的空相应"
+
+#: boa/Debugger/ChildProcessClient.py:131
+msgid "The debug server address could not be read"
+msgstr "调试器服务器地址不能读"
+
+#: boa/Debugger/ChildProcessClient.py:150
+msgid "The debug server failed to start"
+msgstr "调试器服务器启动失败"
+
+#: boa/Debugger/Debugger.py:48
+msgid "Debugger"
+msgstr "调试器"
+
+#: boa/Debugger/Debugger.py:82
+#, python-format
+msgid "Debug/Continue - %s"
+msgstr "调试/据悉 - %s"
+
+#: boa/Debugger/Debugger.py:85
+msgid "Debug/Continue full speed"
+msgstr "调试/继续 满速"
+
+#: boa/Debugger/Debugger.py:88
+#, python-format
+msgid "Step - %s"
+msgstr "步骤 - %s"
+
+#: boa/Debugger/Debugger.py:91
+#, python-format
+msgid "Over - %s"
+msgstr "结束 - %s"
+
+#: boa/Debugger/Debugger.py:94
+#, python-format
+msgid "Out - %s"
+msgstr "通过 - %s"
+
+#: boa/Debugger/Debugger.py:99
+msgid "Jump to line"
+msgstr "跳至行"
+
+#: boa/Debugger/Debugger.py:102
+msgid "Pause"
+msgstr "暂停"
+
+#: boa/Debugger/Debugger.py:107
+msgid "Trace in source"
+msgstr "回溯至源码"
+
+#: boa/Debugger/Debugger.py:110
+msgid "Debug browsing"
+msgstr "调试浏览"
+
+#: boa/Debugger/Debugger.py:114
+msgid "Eval in shell"
+msgstr "在shell中评价"
+
+#: boa/Debugger/Debugger.py:120
+msgid "Edit client/server path mappings..."
+msgstr "编辑客户/服务器路径映射..."
+
+#: boa/Debugger/Debugger.py:123
+msgid "Toggle split orientation"
+msgstr "牢固分裂方向"
+
+#: boa/Debugger/Debugger.py:148
+msgid "Stack"
+msgstr "堆栈"
+
+#: boa/Debugger/Debugger.py:151
+msgid "Breakpoints"
+msgstr "断点"
+
+#: boa/Debugger/Debugger.py:160
+msgid "Watches"
+msgstr "监视"
+
+#: boa/Debugger/Debugger.py:163
+msgid "Locals"
+msgstr "当前"
+
+#: boa/Debugger/Debugger.py:168
+msgid "Globals"
+msgstr "外部"
+
+#: boa/Debugger/Debugger.py:366
+#, python-format
+msgid "Debugger %s- %s"
+msgstr "调试器 %s- %s"
+
+#: boa/Debugger/Debugger.py:395
+#, python-format
+msgid "Error on killing debugger: %s: %s"
+msgstr "终止调试器时出错: %s: %s"
+
+#: boa/Debugger/Debugger.py:409
+msgid "The debugger process stopped prematurely."
+msgstr "调试器进程结束过早."
+
+#: boa/Debugger/Debugger.py:410
+msgid "Debugger stopped"
+msgstr "调试器停止"
+
+#: boa/Debugger/Debugger.py:464
+#, python-format
+msgid ""
+"%s\n"
+"\n"
+"Stop debugger?"
+msgstr ""
+"%s\n"
+"\n"
+"停止调试器?"
+
+#: boa/Debugger/Debugger.py:465
+msgid "Debugger Communication Exception"
+msgstr "调试器通讯错误"
+
+#: boa/Debugger/Debugger.py:474
+msgid "Waiting..."
+msgstr "请等待..."
+
+#: boa/Debugger/Debugger.py:499
+msgid "Running..."
+msgstr "正在运行..."
+
+#: boa/Debugger/Debugger.py:527
+#, python-format
+msgid "No Zope connection for: %s"
+msgstr "无Zope链接:%s"
+
+#: boa/Debugger/Debugger.py:529
+msgid "\"zopedebug\" is a server filename protocol"
+msgstr "\"zopedebug\"是服务器文件名歇息"
+
+#: boa/Debugger/Debugger.py:611
+msgid "Finished."
+msgstr "已完成."
+
+#: boa/Debugger/Debugger.py:626
+#: boa/Debugger/Debugger.py:848
+#: boa/Debugger/DebuggerControls.py:674
+msgid "Ready."
+msgstr "已就绪."
+
+#: boa/Debugger/Debugger.py:647
+msgid "Breakpoint."
+msgstr "断点."
+
+#: boa/Debugger/Debugger.py:694
+#, python-format
+msgid "Debugger: Failed to open file %s"
+msgstr "调试器: 打开文件%s失败"
+
+#: boa/Debugger/Debugger.py:812
+msgid "No stack available!"
+msgstr "无可用堆栈!"
+
+#: boa/Debugger/Debugger.py:817
+msgid "Enter line number to jump to:"
+msgstr "输入跳转的行数:"
+
+#: boa/Debugger/Debugger.py:818
+msgid "Debugger - Jump"
+msgstr "调试器 - 跳转"
+
+#: boa/Debugger/DebuggerControls.py:28
+msgid "Frame"
+msgstr "框架"
+
+#: boa/Debugger/DebuggerControls.py:29
+#: boa/Debugger/DebuggerControls.py:178
+#: boa/Plug-ins/ImageEditor.plug-in.py:131
+#: boa/Plug-ins/ImageEditor.plug-in.py:138
+#: boa/Plug-ins/ImageEditor.plug-in.py:237
+msgid "Line"
+msgstr "行"
+
+#: boa/Debugger/DebuggerControls.py:30
+msgid "Code"
+msgstr "代码"
+
+#: boa/Debugger/DebuggerControls.py:119
+#, python-format
+msgid "Not a source file: %s, probably an executed string."
+msgstr "不是一个源文件: %s, 有可能一个已执行字符串."
+
+#: boa/Debugger/DebuggerControls.py:123
+#, python-format
+msgid ""
+"Could not open file: %s.\n"
+"\n"
+"If This is a server path for which you\n"
+"have not defined a mapping click \"Yes\" to browse to the file to the mapping can be computed.\n"
+"Press \"No\" to open the path dialog."
+msgstr ""
+"无法打开文件: %s.\n"
+"\n"
+"如果服务器路径\n"
+"未指定映射, 请点击 \"是\"浏览文件的映射会被估算.\n"
+"点击\"否\"打开路径对话框."
+
+#: boa/Debugger/DebuggerControls.py:127
+msgid "File Open Error, try to compute path?"
+msgstr "文件打开错误, 尝试估计路径?"
+
+#: boa/Debugger/DebuggerControls.py:146
+msgid "Paths are identical"
+msgstr "路径相同"
+
+#: boa/Debugger/DebuggerControls.py:179
+msgid "Ignore"
+msgstr "忽略"
+
+#: boa/Debugger/DebuggerControls.py:180
+msgid "Hits"
+msgstr "采样数"
+
+#: boa/Debugger/DebuggerControls.py:181
+msgid "Condition"
+msgstr "条件"
+
+#: boa/Debugger/DebuggerControls.py:195
+msgid "Goto source"
+msgstr "溯源"
+
+#: boa/Debugger/DebuggerControls.py:196
+#: boa/Explorers/EditorExplorer.py:38
+#: boa/Plug-ins/ImageEditor.plug-in.py:907
+#: boa/Views/CollectionEdit.py:119
+#: boa/Views/DiffView.py:83
+#: boa/Views/EditorViews.py:1310
+#: boa/Views/OGLViews.py:754
+#: boa/Views/OGLViews.py:853
+#: boa/Views/SourceViews.py:58
+msgid "Refresh"
+msgstr "刷新"
+
+#: boa/Debugger/DebuggerControls.py:198
+msgid "Edit ignore count"
+msgstr "编辑忽略数"
+
+#: boa/Debugger/DebuggerControls.py:199
+msgid "Edit condition"
+msgstr "编辑条件"
+
+#: boa/Debugger/DebuggerControls.py:200
+#: boa/Debugger/DebuggerControls.py:528
+#: boa/Explorers/ExplorerNodes.py:183
+#: boa/Explorers/ExplorerNodes.py:592
+#: boa/Plug-ins/AppTimeTrack.plug-in.py:23
+#: boa/Views/CollectionEdit.py:108
+#: boa/Views/DataView.py:47
+#: boa/Views/Designer.py:174
+msgid "Delete"
+msgstr "删除"
+
+#: boa/Debugger/DebuggerControls.py:202
+msgid "Enabled"
+msgstr "启用"
+
+#: boa/Debugger/DebuggerControls.py:372
+msgid "Condition to break on:"
+msgstr "暂停在条件:"
+
+#: boa/Debugger/DebuggerControls.py:373
+msgid "Change condition"
+msgstr "改变条件"
+
+#: boa/Debugger/DebuggerControls.py:397
+msgid "Number of hits to ignore:"
+msgstr "忽略的采样数:"
+
+#: boa/Debugger/DebuggerControls.py:398
+msgid "Change ignore count"
+msgstr "改变忽略值"
+
+#: boa/Debugger/DebuggerControls.py:420
+#: boa/Debugger/DebuggerControls.py:501
+msgid "Attribute"
+msgstr "属性"
+
+#: boa/Debugger/DebuggerControls.py:421
+#: boa/Debugger/DebuggerControls.py:502
+msgid "Value"
+msgstr "值"
+
+#: boa/Debugger/DebuggerControls.py:429
+msgid "Add as watch"
+msgstr "作为监视添加"
+
+#: boa/Debugger/DebuggerControls.py:430
+#, python-format
+msgid "Add a %s watch"
+msgstr "添加一个%s监视"
+
+#: boa/Debugger/DebuggerControls.py:434
+#: boa/Debugger/DebuggerControls.py:525
+msgid "Write value to Output"
+msgstr "监视输出值"
+
+#: boa/Debugger/DebuggerControls.py:516
+msgid "Add local watch"
+msgstr "添加本地监视"
+
+#: boa/Debugger/DebuggerControls.py:519
+msgid "Add global watch"
+msgstr "添加外部监视"
+
+#: boa/Debugger/DebuggerControls.py:522
+msgid "Edit watch"
+msgstr "编辑监视"
+
+#: boa/Debugger/DebuggerControls.py:531
+msgid "Expand"
+msgstr "扩展"
+
+#: boa/Debugger/DebuggerControls.py:534
+msgid "Delete All"
+msgstr "删除全部"
+
+#: boa/Debugger/DebuggerControls.py:609
+msgid "Expression:"
+msgstr "表达式:"
+
+#: boa/Debugger/DebuggerControls.py:609
+msgid "Edit watch:"
+msgstr "编辑监视:"
+
+#: boa/Debugger/PathMappingDlg.py:25
+msgid "Edit client/sever paths mapping"
+msgstr "编辑客户端/服务器映射路径"
+
+#: boa/Debugger/PathsPanel.py:47
+msgid "Server to client filepath mappings"
+msgstr "服务器至客户文件路径映射"
+
+#: boa/Debugger/PathsPanel.py:57
+#: boa/PropEdit/BitmapListEditorDlg.py:118
+#: boa/Views/AppViews.py:107
+#: boa/Views/STCStyleEditor.py:138
+msgid "Add"
+msgstr "添加"
+
+#: boa/Debugger/PathsPanel.py:64
+#: boa/Explorers/ExplorerNodes.py:810
+#: boa/PropEdit/BitmapListEditorDlg.py:124
+#: boa/Views/AppViews.py:109
+#: boa/Views/STCStyleEditor.py:145
+msgid "Remove"
+msgstr "删除"
+
+#: boa/Debugger/PathsPanel.py:80
+msgid "Map server filenames starting with"
+msgstr "映射服务器文件名开始于"
+
+#: boa/Debugger/PathsPanel.py:81
+msgid "To client filenames starting with"
+msgstr "指向客户端文件名开始于"
+
+#: boa/Debugger/RemoteDialog.py:37
+#: boa/Models/PythonControllers.py:717
+msgid "Attach to debugger"
+msgstr "添加调试器"
+
+#: boa/Debugger/RemoteDialog.py:42
+msgid "Host"
+msgstr "主机名"
+
+#: boa/Debugger/RemoteDialog.py:46
+msgid "Port"
+msgstr "端口"
+
+#: boa/Debugger/RemoteDialog.py:50
+msgid "Username"
+msgstr "用户名"
+
+#: boa/Debugger/RemoteDialog.py:54
+msgid "Password"
+msgstr "密码"
+
+#: boa/Debugger/RemoteDialog.py:90
+msgid "Remember"
+msgstr "记住"
+
+#: boa/Examples/i18n/FrameI18N_py.py:22
+#: boa/Examples/i18n/FrameI18N_py.py:29
+#: boa/Examples/i18n/FrameI18N_wx.py:21
+#: boa/Examples/i18n/FrameI18N_wx.py:28
+#: boa/Examples/i18n/FrameI18N_wx.py:34
+msgid "I18N Example"
+msgstr "I18N例子"
+
+# 包含26个英文字母
+#: boa/Examples/i18n/FrameI18N_py.py:26
+#: boa/Examples/i18n/FrameI18N_wx.py:25
+msgid "the quick brown fox jumps over the lazy dog"
+msgstr "敏捷的棕色狐狸跳过懒狗身上"
+
+#: boa/Explorers/CVSExplorer.py:238
+#: boa/Explorers/CVSExplorer.py:363
+msgid "CVS Result"
+msgstr "CVS结果"
+
+#: boa/Explorers/CVSExplorer.py:244
+msgid "Server response or Error"
+msgstr "服务器相应或错误"
+
+#: boa/Explorers/CVSExplorer.py:256
+#, python-format
+msgid "CVS command completed: %s"
+msgstr "CVS命令已完成:%s"
+
+#: boa/Explorers/CVSExplorer.py:303
+msgid ""
+"Select and click OK to set CVSROOT or Cancel to use environment variable.\n"
+"\n"
+"You have pserver access to the following servers:"
+msgstr ""
+"选择并点击OK来启动CVSROOT或点击取消使用环境变量.\n"
+"\n"
+"你使用pserver访问下列服务器:"
+
+#: boa/Explorers/CVSExplorer.py:305
+msgid "Choose CVSROOT (-d parameter)"
+msgstr "选择CVSROOT (-d 参数)"
+
+#: boa/Explorers/CVSExplorer.py:406
+msgid "Change the CVSROOT if necessary:"
+msgstr "如需要更换CVSROOT:"
+
+#: boa/Explorers/CVSExplorer.py:408
+#, python-format
+msgid "Enter cvs password for %s"
+msgstr "输入%s的cvs密码"
+
+#: boa/Explorers/CVSExplorer.py:438
+msgid "HOME env var is not defined or not legal"
+msgstr "HOME环境变量未指定或非法"
+
+#: boa/Explorers/CVSExplorer.py:446
+#: boa/Explorers/CVSExplorer.py:452
+msgid "(not defined)"
+msgstr "(未指定)"
+
+#: boa/Explorers/CVSExplorer.py:447
+#, python-format
+msgid ""
+"Edit CVS shell environment variable: %s\n"
+"A blank entry will remove the variable."
+msgstr ""
+"编辑CVS shell环境变量: %s\n"
+"空白条目将会在变量中移除."
+
+#: boa/Explorers/CVSExplorer.py:448
+msgid "CVS shell environment variables"
+msgstr "CVS shell环境变量"
+
+#: boa/Explorers/CVSExplorer.py:456
+msgid ""
+"Changing environment variables is not supported on this OS\n"
+"Consult CVS howtos on how to set these globally"
+msgstr ""
+"变换操作系统所不支持的环境变量\n"
+"参考CVS帮助中的如何在外部设置环境变量"
+
+#: boa/Explorers/CVSExplorer.py:566
+msgid "No CVS conflicts in file"
+msgstr "在文件中非CVS冲突"
+
+#: boa/Explorers/DAVExplorer.py:43
+#: boa/Explorers/DAVExplorer.py:46
+#, python-format
+msgid "Invalid XML response: %s"
+msgstr "无效XML应答: %s"
+
+#: boa/Explorers/DAVExplorer.py:49
+#: boa/Views/EditorViews.py:1329
+msgid "Error"
+msgstr "错误"
+
+#: boa/Explorers/DAVExplorer.py:81
+#: boa/Explorers/ExplorerNodes.py:587
+#: boa/Explorers/FileExplorer.py:122
+msgid "Inspect"
+msgstr "检视"
+
+#: boa/Explorers/DAVExplorer.py:332
+#: boa/Explorers/DAVExplorer.py:359
+msgid "Property editing not supported yet"
+msgstr "不支持的属性编辑"
+
+#: boa/Explorers/EditorExplorer.py:36
+msgid "Goto"
+msgstr "转到"
+
+#: boa/Explorers/EditorExplorer.py:40
+#: boa/Models/Controllers.py:122
+msgid "Close"
+msgstr "关闭"
+
+#: boa/Explorers/EditorExplorer.py:41
+msgid "Close all"
+msgstr "关闭所有"
+
+#: boa/Explorers/EditorExplorer.py:43
+#: boa/Explorers/PrefsExplorer.py:667
+#: boa/Explorers/PrefsExplorer.py:763
+#: boa/Explorers/PrefsExplorer.py:1142
+#: boa/PropEdit/BitmapListEditorDlg.py:136
+msgid "Move up"
+msgstr "上移"
+
+#: boa/Explorers/EditorExplorer.py:44
+#: boa/Explorers/PrefsExplorer.py:669
+#: boa/Explorers/PrefsExplorer.py:765
+#: boa/Explorers/PrefsExplorer.py:1144
+#: boa/PropEdit/BitmapListEditorDlg.py:142
+msgid "Move down"
+msgstr "下移"
+
+#: boa/Explorers/EditorExplorer.py:46
+msgid "Copy filepath(s) to clipboard"
+msgstr "复制文件路径至剪贴板"
+
+#: boa/Explorers/EditorExplorer.py:93
+#: boa/Explorers/EditorExplorer.py:107
+#: boa/Explorers/PrefsExplorer.py:700
+#: boa/Explorers/PrefsExplorer.py:717
+#: boa/Explorers/PrefsExplorer.py:803
+#: boa/Explorers/PrefsExplorer.py:817
+#: boa/Explorers/PrefsExplorer.py:1188
+#: boa/Explorers/PrefsExplorer.py:1202
+msgid "Can only move 1 at a time"
+msgstr "一次只允许移动1"
+
+#: boa/Explorers/EditorExplorer.py:98
+#: boa/Explorers/PrefsExplorer.py:705
+#: boa/Explorers/PrefsExplorer.py:808
+#: boa/Explorers/PrefsExplorer.py:1193
+msgid "Already at the beginning"
+msgstr "已在开始处"
+
+#: boa/Explorers/EditorExplorer.py:112
+#: boa/Explorers/PrefsExplorer.py:822
+#: boa/Explorers/PrefsExplorer.py:1207
+msgid "Already at the end"
+msgstr "已在结尾处"
+
+#: boa/Explorers/EditorExplorer.py:121
+msgid "Can only goto 1 at a time"
+msgstr "一次只允许转到1"
+
+#: boa/Explorers/Explorer.py:51
+#, python-format
+msgid "No category found for protocol %s"
+msgstr "未找到协议%s类别"
+
+#: boa/Explorers/Explorer.py:94
+msgid "Unhandled transport"
+msgstr "不支持传送"
+
+#: boa/Explorers/Explorer.py:107
+#, python-format
+msgid "Catalog transport could not be found: %s || %s"
+msgstr "传送类别未找到: %s || %s"
+
+#: boa/Explorers/Explorer.py:200
+#, python-format
+msgid "%s not installed: %s"
+msgstr "%s未安装: %s"
+
+#: boa/Explorers/Explorer.py:249
+msgid "File system transport must be loaded"
+msgstr "必须加载文件系统传送"
+
+#: boa/Explorers/Explorer.py:279
+#, python-format
+msgid "Transport category %s not added: %s"
+msgstr "传送类别%s未添加: %s"
+
+#: boa/Explorers/Explorer.py:292
+msgid ""
+"One or more transports could not be loaded, if the problem is not rectifiable,\n"
+"consider removing the transport under Preferences->Plug-ins->Transports. Click \"Details\""
+msgstr ""
+"一个或多个传送未被加载, 如果问题无法矫正, \n"
+"考虑在参数设定->插件->传送中移除传送. 点击\"详细\""
+
+#: boa/Explorers/Explorer.py:716
+msgid "There must be a selection to rename"
+msgstr "重命名时需选择一项"
+
+#: boa/Explorers/ExplorerNodes.py:177
+#: boa/Explorers/ExplorerNodes.py:588
+#: boa/Explorers/ExplorerNodes.py:808
+#: boa/Models/Controllers.py:133
+#: boa/Models/Controllers.py:193
+msgid "Reload"
+msgstr "重载"
+
+#: boa/Explorers/ExplorerNodes.py:179
+#: boa/Views/DataView.py:44
+#: boa/Views/Designer.py:171
+#: boa/Views/SourceViews.py:63
+msgid "Cut"
+msgstr "剪切"
+
+#: boa/Explorers/ExplorerNodes.py:180
+#: boa/Plug-ins/ImageEditor.plug-in.py:909
+#: boa/Views/DataView.py:45
+#: boa/Views/Designer.py:172
+#: boa/Views/SourceViews.py:64
+msgid "Copy"
+msgstr "拷贝"
+
+#: boa/Explorers/ExplorerNodes.py:181
+#: boa/Plug-ins/ImageEditor.plug-in.py:910
+#: boa/Views/DataView.py:46
+#: boa/Views/Designer.py:173
+#: boa/Views/SourceViews.py:65
+msgid "Paste"
+msgstr "粘贴"
+
+#: boa/Explorers/ExplorerNodes.py:184
+#: boa/Explorers/ExplorerNodes.py:593
+#: boa/Plug-ins/BicycleRepairMan.plug-in.py:256
+msgid "Rename"
+msgstr "重命名"
+
+#: boa/Explorers/ExplorerNodes.py:188
+#: boa/Explorers/ExplorerNodes.py:647
+msgid "Bookmark"
+msgstr "书签"
+
+#: boa/Explorers/ExplorerNodes.py:189
+msgid "Copy path(s) to clipboard"
+msgstr "复制路径至剪贴板"
+
+#: boa/Explorers/ExplorerNodes.py:281
+#: boa/Explorers/ExplorerNodes.py:286
+#, python-format
+msgid "Bookmarked %s"
+msgstr "书签%s"
+
+#: boa/Explorers/ExplorerNodes.py:297
+msgid "Path(s) copied to clipboard"
+msgstr "路径已复制至剪贴板"
+
+#: boa/Explorers/ExplorerNodes.py:411
+msgid "Illegal protocol change"
+msgstr "非法协议更换"
+
+#: boa/Explorers/ExplorerNodes.py:535
+#, python-format
+msgid "Could not find %s in %s for deletion"
+msgstr "无法为删除找到%s在%s中"
+
+#: boa/Explorers/ExplorerNodes.py:543
+#, python-format
+msgid "Contains invalid string sequence or char: \"%s\""
+msgstr "包含无效字符串或字符: \"%s\""
+
+#: boa/Explorers/ExplorerNodes.py:545
+#: boa/Explorers/FileExplorer.py:72
+msgid "Name exists"
+msgstr "名称存在"
+
+#: boa/Explorers/ExplorerNodes.py:558
+#, python-format
+msgid "Entries type %s invalid, expected %s"
+msgstr "条目类型%s无效, 预想为%s"
+
+#: boa/Explorers/ExplorerNodes.py:590
+msgid "Create copy"
+msgstr "创建拷贝"
+
+#: boa/Explorers/ExplorerNodes.py:651
+msgid "Bookmarks"
+msgstr "书签"
+
+#: boa/Explorers/ExplorerNodes.py:741
+#: boa/Explorers/ExplorerNodes.py:746
+msgid "Recent files"
+msgstr "最近文件"
+
+#: boa/Explorers/ExplorerNodes.py:981
+#, python-format
+msgid "%s not found in the config, renaming config entries while Inspecting is not allowed."
+msgstr "未在config中找到%s, 监视中重命名config条目是不允许的."
+
+#: boa/Explorers/FileExplorer.py:30
+msgid "Filesystem"
+msgstr "文件系统"
+
+#: boa/Explorers/FileExplorer.py:43
+#, python-format
+msgid "%d drives added to the filesystem definition."
+msgstr "%d项驱动已添加至文件系统定义中."
+
+#: boa/Explorers/FileExplorer.py:94
+msgid "Standard files"
+msgstr "标准文件"
+
+#: boa/Explorers/FileExplorer.py:125
+msgid "Set as os.cwd"
+msgstr "设置为os.cwd"
+
+#: boa/Explorers/FileExplorer.py:132
+msgid "Empty zip archive"
+msgstr "空zip文档"
+
+#: boa/Explorers/FileExplorer.py:135
+msgid "Empty tar.gz archive"
+msgstr "空tar.gz文档"
+
+#: boa/Explorers/FileExplorer.py:151
+msgid "Filter"
+msgstr "过滤器"
+
+#: boa/Explorers/FileExplorer.py:187
+msgid "Results"
+msgstr "结果"
+
+#: boa/Explorers/FileExplorer.py:219
+#, python-format
+msgid "Updated os.cwd to %s"
+msgstr "升级os.cwd至%s"
+
+#: boa/Explorers/FileExplorer.py:510
+msgid "This file has been saved by someone else since it was loaded"
+msgstr "文件加载后已被别人保存"
+
+#: boa/Explorers/FileExplorer.py:576
+#, python-format
+msgid "Find results for %s in %s"
+msgstr "查找结果%s在%s中"
+
+#: boa/Explorers/FileExplorer.py:609
+#, python-format
+msgid "FileSysCatNode not found in transports %s"
+msgstr "FileSysCatNode未在传送%s中找到"
+
+#: boa/Explorers/PrefsExplorer.py:57
+#: boa/Plug-ins/JavaSupport.plug-in.py:55
+#: boa/Plug-ins/PascalSupport.plug-in.py:53
+#: boa/Plug-ins/PyrexSupport.plug-in.py:51
+#: boa/Views/PySourceView.py:44
+msgid "Source"
+msgstr "源"
+
+#: boa/Explorers/PrefsExplorer.py:60
+msgid "Default settings"
+msgstr "默认设置"
+
+#: boa/Explorers/PrefsExplorer.py:71
+msgid "General"
+msgstr "概要"
+
+#: boa/Explorers/PrefsExplorer.py:76
+msgid "Platform specific"
+msgstr "平台详细说明"
+
+#: boa/Explorers/PrefsExplorer.py:82
+msgid "Key bindings"
+msgstr "绑定关键字"
+
+#: boa/Explorers/PrefsExplorer.py:97
+#: boa/Scripts/prefs.rc.i18n.py:147
+msgid "Plug-ins"
+msgstr "插件"
+
+#: boa/Explorers/PrefsExplorer.py:99
+#: boa/Explorers/PrefsExplorer.py:521
+#: boa/Scripts/prefs.rc.i18n.py:139
+msgid "Core support"
+msgstr "支持核心"
+
+#: boa/Explorers/PrefsExplorer.py:106
+msgid "Transports"
+msgstr "传送"
+
+#: boa/Explorers/PrefsExplorer.py:149
+#: boa/Plug-ins/JavaSupport.plug-in.py:77
+#: boa/Plug-ins/PascalSupport.plug-in.py:77
+msgid "Not implemented"
+msgstr "未执行"
+
+#: boa/Explorers/PrefsExplorer.py:252
+#: boa/Views/STCStyleEditor.py:1003
+msgid "\n"
+msgstr "\n"
+
+#: boa/Explorers/PrefsExplorer.py:316
+#, python-format
+msgid "Invalid KeyDef item: %s"
+msgstr "无效KeyDef项: %s"
+
+#: boa/Explorers/PrefsExplorer.py:401
+#, python-format
+msgid "Property \"%s\" not found"
+msgstr "属性\"%s\"未找到"
+
+#: boa/Explorers/PrefsExplorer.py:552
+msgid "Disable"
+msgstr "取消"
+
+#: boa/Explorers/PrefsExplorer.py:554
+msgid "Enable"
+msgstr "应用"
+
+#: boa/Explorers/PrefsExplorer.py:556
+msgid "Confirm Toggle Plug-in"
+msgstr "确认绑定插件"
+
+#: boa/Explorers/PrefsExplorer.py:609
+msgid "Plug-in files"
+msgstr "插件文件"
+
+#: boa/Explorers/PrefsExplorer.py:622
+msgid "Disabled"
+msgstr "取消"
+
+#: boa/Explorers/PrefsExplorer.py:629
+#, python-format
+msgid "Skipped plug-in: %s"
+msgstr "跳过插件: %s"
+
+#: boa/Explorers/PrefsExplorer.py:632
+#, python-format
+msgid "Broken plug-in: %s"
+msgstr "损坏插件: %s"
+
+#: boa/Explorers/PrefsExplorer.py:636
+msgid "Installed, ordered"
+msgstr "已安装, 已预定"
+
+#: boa/Explorers/PrefsExplorer.py:639
+#: boa/Explorers/PrefsExplorer.py:936
+#: boa/Explorers/PrefsExplorer.py:983
+msgid "Installed"
+msgstr "已安装"
+
+#: boa/Explorers/PrefsExplorer.py:642
+#: boa/Explorers/PrefsExplorer.py:942
+msgid "Pending restart"
+msgstr "未知重启"
+
+#: boa/Explorers/PrefsExplorer.py:653
+#: boa/Explorers/PrefsExplorer.py:749
+#: boa/Explorers/PrefsExplorer.py:1125
+msgid "item"
+msgstr "项"
+
+#: boa/Explorers/PrefsExplorer.py:662
+msgid "Toggle Enable/Disabled"
+msgstr "绑定启动/失效"
+
+#: boa/Explorers/PrefsExplorer.py:664
+msgid "Open plug-in file"
+msgstr "打开插件文件"
+
+#: boa/Explorers/PrefsExplorer.py:758
+#: boa/Explorers/PrefsExplorer.py:1137
+#, python-format
+msgid "Add new %s"
+msgstr "添加新%s"
+
+#: boa/Explorers/PrefsExplorer.py:760
+#: boa/Explorers/PrefsExplorer.py:1139
+#, python-format
+msgid "Remove %s"
+msgstr "移除%s"
+
+#: boa/Explorers/PrefsExplorer.py:833
+msgid "Transport module"
+msgstr "传送模块"
+
+#: boa/Explorers/PrefsExplorer.py:836
+msgid ""
+"Enter the fully qualified Python object path to \n"
+"the Transport module. E.g. Explorers.FileExplorer"
+msgstr ""
+"输入晚辈Python对象路径至\n"
+"传送模块. 例如Explorers.FileExplorer"
+
+#: boa/Explorers/PrefsExplorer.py:838
+msgid "New Transport"
+msgstr "新传送"
+
+#: boa/Explorers/PrefsExplorer.py:847
+msgid ""
+"Cannot locate the specified module path,\n"
+"are you sure you want to continue?"
+msgstr ""
+"无法锁定指定的模块路径,\n"
+"你确定想要继续吗?"
+
+#: boa/Explorers/PrefsExplorer.py:849
+#: boa/Models/PythonEditorModels.py:438
+msgid "Module not found"
+msgstr "未找到模块"
+
+#: boa/Explorers/PrefsExplorer.py:879
+msgid "Transports tree node"
+msgstr "传送结构节点"
+
+#: boa/Explorers/PrefsExplorer.py:882
+msgid "Enter the protocol identifier. E.g. ftp, ssh"
+msgstr "输入协议标识符. 例如ftp, ssh"
+
+#: boa/Explorers/PrefsExplorer.py:883
+msgid "New Transports Tree Node"
+msgstr "新传送结构节点"
+
+#: boa/Explorers/PrefsExplorer.py:924
+msgid "Loading order"
+msgstr "读取预定"
+
+#: boa/Explorers/PrefsExplorer.py:939
+#, python-format
+msgid "Broken: %s"
+msgstr "损坏: %s"
+
+#: boa/Explorers/PrefsExplorer.py:968
+msgid "Tree display order"
+msgstr "树显示预定"
+
+#: boa/Explorers/PrefsExplorer.py:980
+msgid "Protocol not installed"
+msgstr "协议未安装"
+
+#: boa/Explorers/PrefsExplorer.py:1013
+msgid "Help system"
+msgstr "帮助系统"
+
+#: boa/Explorers/PrefsExplorer.py:1025
+msgid "Help books"
+msgstr "帮助册"
+
+#: boa/Explorers/PrefsExplorer.py:1135
+#, python-format
+msgid "Edit %s"
+msgstr "编辑%s"
+
+#: boa/Explorers/PrefsExplorer.py:1147
+msgid "Open hhp file"
+msgstr "打开hhp文件"
+
+#: boa/Explorers/PrefsExplorer.py:1150
+msgid "Restart the help system"
+msgstr "重启帮助系统"
+
+#: boa/Explorers/PrefsExplorer.py:1152
+msgid "Clear the help indexes"
+msgstr "清除帮助索引"
+
+#: boa/Explorers/PrefsExplorer.py:1253
+#, python-format
+msgid "Deleted %s"
+msgstr "%s已删除"
+
+#: boa/Explorers/SSHExplorer.py:116
+msgid "SSH listing"
+msgstr "SSH列表"
+
+#: boa/Explorers/SSHExplorer.py:204
+msgid "File was not downloaded locally."
+msgstr "文件未下载至本地."
+
+#: boa/Models/ConfigSupport.py:43
+msgid "Config"
+msgstr "配置"
+
+#: boa/Models/Controllers.py:137
+msgid "Toggle read-only"
+msgstr "绑定只读"
+
+#: boa/Models/Controllers.py:138
+msgid "NDiff files..."
+msgstr "NDiff文件..."
+
+#: boa/Models/Controllers.py:154
+#, python-format
+msgid "Cannot perform this action on an unsaved%s module"
+msgstr "无法在未保存%s模块上执行操作"
+
+#: boa/Models/Controllers.py:192
+msgid "Cannot reload, this file has not been saved yet."
+msgstr "无法重载, 此文件还未保存."
+
+#: boa/Models/Controllers.py:197
+msgid ""
+"There are unsaved changes.\n"
+"Are you sure you want to reload?"
+msgstr ""
+"有未保存改动. \n"
+"想要继续重载吗?"
+
+#: boa/Models/Controllers.py:199
+msgid "Confirm reload"
+msgstr "确认重载"
+
+#: boa/Models/Controllers.py:220
+msgid "Read-only not supported on this transport"
+msgstr "此传送不支持只读"
+
+#: boa/Models/CPPSupport.py:65
+#: boa/Plug-ins/HelpBook.plug-in.py:23
+#: boa/Plug-ins/HelpBook.plug-in.py:462
+#: boa/Plug-ins/HelpBook.plug-in.py:955
+msgid "Title"
+msgstr "标题"
+
+#: boa/Models/CPPSupport.py:80
+msgid "Header"
+msgstr "标题"
+
+#: boa/Models/EditorModels.py:183
+msgid "No transport for loading"
+msgstr "无传送加载"
+
+#: boa/Models/EditorModels.py:194
+msgid "No transport for saving"
+msgstr "无传送保存"
+
+#: boa/Models/EditorModels.py:213
+msgid "No filename"
+msgstr "无文件名"
+
+#: boa/Models/EditorModels.py:249
+#: boa/Models/EditorModels.py:260
+msgid "Operation only supported on the filesystem."
+msgstr "操作只在文件系统中被支持."
+
+#: boa/Models/EditorModels.py:298
+msgid "Saving .gif format not supported"
+msgstr "不支持保存成.gif格式"
+
+#: boa/Models/EditorModels.py:316
+#, python-format
+msgid "%s image file types not supported"
+msgstr "不支持%s图片文件类型"
+
+#: boa/Models/HTMLSupport.py:49
+#: boa/Views/EditorViews.py:345
+msgid "HTML"
+msgstr "HTML"
+
+#: boa/Models/PythonControllers.py:56
+msgid "Import module into Shell"
+msgstr "输入模块至Shell"
+
+#: boa/Models/PythonControllers.py:57
+msgid "Reload module in Shell"
+msgstr "重载模块至Shell"
+
+#: boa/Models/PythonControllers.py:59
+msgid "Set command-line parameters"
+msgstr "设置命令行参数"
+
+#: boa/Models/PythonControllers.py:60
+msgid "Toggle use input stream"
+msgstr "绑定使用输入流"
+
+#: boa/Models/PythonControllers.py:61
+msgid "Run application"
+msgstr "运行应用程序"
+
+#: boa/Models/PythonControllers.py:62
+msgid "Run module"
+msgstr "运行模块"
+
+#: boa/Models/PythonControllers.py:63
+msgid "Debug application"
+msgstr "调试应用程序"
+
+#: boa/Models/PythonControllers.py:64
+msgid "Debug module"
+msgstr "调试模块"
+
+#: boa/Models/PythonControllers.py:65
+msgid "Step in"
+msgstr "插入"
+
+#: boa/Models/PythonControllers.py:66
+msgid "Step over"
+msgstr "越过"
+
+#: boa/Models/PythonControllers.py:67
+msgid "Step out"
+msgstr "离开"
+
+#: boa/Models/PythonControllers.py:69
+msgid "Profile"
+msgstr "预览"
+
+#: boa/Models/PythonControllers.py:70
+msgid "Check source"
+msgstr "检查源"
+
+#: boa/Models/PythonControllers.py:71
+msgid "Cyclops"
+msgstr "Cyclops"
+
+#: boa/Models/PythonControllers.py:73
+msgid "Reindent whole file"
+msgstr "缩进整个文件"
+
+#: boa/Models/PythonControllers.py:77
+msgid "Switch to app"
+msgstr "切换至app"
+
+#: boa/Models/PythonControllers.py:80
+msgid "Add to an open application"
+msgstr "添加至一个打开的应用程序"
+
+#: boa/Models/PythonControllers.py:81
+msgid "Associate with an open application"
+msgstr "关联一个打开的应用程序"
+
+#: boa/Models/PythonControllers.py:89
+msgid "Run PyChecker"
+msgstr "运行PyChecker"
+
+#: boa/Models/PythonControllers.py:90
+msgid "Configure PyChecker"
+msgstr "配置PyChecker"
+
+#: boa/Models/PythonControllers.py:124
+msgid "Stats file date unchanged, check for errors in script."
+msgstr "统计文件日期未更改, 在脚本中检查错误."
+
+#: boa/Models/PythonControllers.py:127
+msgid "Stats file not found, check for errors in script."
+msgstr "统计文件未找到, 在脚本中检查错误."
+
+#: boa/Models/PythonControllers.py:130
+msgid "Loading stats..."
+msgstr "读取冬季..."
+
+#: boa/Models/PythonControllers.py:133
+#, python-format
+msgid "Profile stats: %s"
+msgstr "预览统计: %s"
+
+#: boa/Models/PythonControllers.py:143
+msgid "Refreshing view..."
+msgstr "刷新视图..."
+
+#: boa/Models/PythonControllers.py:146
+msgid "Profiling complete."
+msgstr "预览完成."
+
+#: boa/Models/PythonControllers.py:150
+msgid "Compiling..."
+msgstr "编译..."
+
+#: boa/Models/PythonControllers.py:152
+msgid "There were errors"
+msgstr "有错误."
+
+#: boa/Models/PythonControllers.py:154
+msgid "Compiled successfully"
+msgstr "编译完成"
+
+#: boa/Models/PythonControllers.py:157
+msgid "Running lint..."
+msgstr "运行lint..."
+
+#: boa/Models/PythonControllers.py:163
+msgid "Lint completed"
+msgstr "Lint完成"
+
+#: boa/Models/PythonControllers.py:167
+msgid "Parameters:"
+msgstr "参数:"
+
+#: boa/Models/PythonControllers.py:168
+msgid "Command-line parameters"
+msgstr "命令行参数"
+
+#: boa/Models/PythonControllers.py:236
+msgid "Finished execution, there were errors"
+msgstr "执行完毕, 有错误."
+
+#: boa/Models/PythonControllers.py:239
+msgid "Finished execution."
+msgstr "执行完毕."
+
+#: boa/Models/PythonControllers.py:320
+msgid "The PyChecker configuration file can not be found. Copy the default file here?"
+msgstr "PyChecker配置文件未找到. 复制默认文件?"
+
+#: boa/Models/PythonControllers.py:322
+msgid "Config file not found"
+msgstr "配置文件未找到"
+
+#: boa/Models/PythonControllers.py:339
+#, python-format
+msgid "Running Cyclops on %s ..."
+msgstr "运行Cyclops在%s"
+
+#: boa/Models/PythonControllers.py:346
+#, python-format
+msgid "Cyclops report: %s"
+msgstr "Cyclops报告: %s"
+
+#: boa/Models/PythonControllers.py:369
+msgid "No open applications."
+msgstr "无打开程序."
+
+#: boa/Models/PythonControllers.py:387
+msgid "Select application to add the current file to"
+msgstr "选择程序来添加当前文件"
+
+#: boa/Models/PythonControllers.py:388
+msgid "Add to Application"
+msgstr "添加到Application"
+
+#: boa/Models/PythonControllers.py:402
+msgid "Select application to associate the current file with"
+msgstr "选择程序关联当前文件"
+
+#: boa/Models/PythonControllers.py:403
+msgid "Associate with Application"
+msgstr "关联应用程序"
+
+#: boa/Models/PythonControllers.py:438
+msgid "Using input stream for running"
+msgstr "运行时使用输入流"
+
+#: boa/Models/PythonControllers.py:440
+msgid "Not using input stream for running"
+msgstr "运行时未使用输入流"
+
+#: boa/Models/PythonControllers.py:460
+msgid "Save modified modules"
+msgstr "保存修改后模块"
+
+#: boa/Models/PythonControllers.py:461
+msgid "Compare apps"
+msgstr "对比应用程序"
+
+#: boa/Models/PythonControllers.py:462
+msgid "View crash log as traceback"
+msgstr "回溯查看崩溃记录"
+
+#: boa/Models/PythonControllers.py:559
+msgid "Cannot create a new Python Extension, use distutils to build it"
+msgstr "无法创建新Python扩展, 使用distutils来创建"
+
+#: boa/Models/PythonControllers.py:605
+msgid "Cannot run distutils on an unsaved module"
+msgstr "无法在未保存模块上运行distutils"
+
+#: boa/Models/PythonControllers.py:615
+msgid "Running distutil command..."
+msgstr "运行distutil命令"
+
+#: boa/Models/PythonControllers.py:634
+msgid "Edit setup.py arguments"
+msgstr "编辑setup.py参数"
+
+#: boa/Models/PythonControllers.py:635
+msgid "Distutils setup"
+msgstr "安装Distutils"
+
+#: boa/Models/PythonEditorModels.py:153
+#: boa/Models/PythonEditorModels.py:174
+#, python-format
+msgid "Running %s..."
+msgstr "运行%s..."
+
+#: boa/Models/PythonEditorModels.py:247
+msgid "Save before running Cyclops"
+msgstr "在运行Cyclops之前请保存"
+
+#: boa/Models/PythonEditorModels.py:248
+msgid "Not saved yet!"
+msgstr "未保存!"
+
+#: boa/Models/PythonEditorModels.py:337
+msgid "Code reformatted (indents and or EOL characters fixed)"
+msgstr "编码重新格式化(缩进以及行尾结束符修正)"
+
+#: boa/Models/PythonEditorModels.py:341
+#, python-format
+msgid "Reindent failed - %s : %s"
+msgstr "Reindent失败 - %s : %s"
+
+#: boa/Models/PythonEditorModels.py:356
+msgid ""
+"''' Code does not compile\n"
+"\n"
+"    Disassembly of Traceback:\n"
+"'''"
+msgstr ""
+"'''代码未编译\n"
+"\n"
+"   跟踪分解:\n"
+"'''"
+
+#: boa/Models/PythonEditorModels.py:360
+msgid "''' Could not disassemble traceback '''\n"
+msgstr "'''无法分解跟踪'''\n"
+
+#: boa/Models/PythonEditorModels.py:423
+msgid "Compiled file found, check sys.path!"
+msgstr "找到编译文件,请检查sys.path!"
+
+#: boa/Models/PythonEditorModels.py:425
+msgid "Compiled file found"
+msgstr "找到编译文件"
+
+#: boa/Models/PythonEditorModels.py:427
+msgid "Unhandled import type"
+msgstr "无法处理的输入类型"
+
+#: boa/Models/PythonEditorModels.py:467
+#, python-format
+msgid "Import of %s successfull"
+msgstr "%s导入成功"
+
+#: boa/Models/PythonEditorModels.py:469
+#, python-format
+msgid "Import of %s failed"
+msgstr "%s导入失败"
+
+#: boa/Models/PythonEditorModels.py:480
+#, python-format
+msgid "Reload of %s successfull"
+msgstr "%s重载成功"
+
+#: boa/Models/PythonEditorModels.py:482
+#, python-format
+msgid "Reload of %s failed"
+msgstr "%s重载失败"
+
+#: boa/Models/PythonEditorModels.py:488
+#, python-format
+msgid "Global dict %s not found in the module, please add \"%s = {}\" as a global variable."
+msgstr "在模块中无法找到外部字典%s, 请添加\"%s = {}\"作为一个外部变量"
+
+#: boa/Models/PythonEditorModels.py:494
+#, python-format
+msgid "Global dict %s not terminated properly, please fix it."
+msgstr "外部字典%s结束不正常, 请修复它."
+
+#: boa/Models/PythonEditorModels.py:502
+#, python-format
+msgid ""
+"\"%s\" must be a valid dictionary global dict.\n"
+"Error: %s"
+msgstr ""
+"\"%s\"必须是一个有效外部字典.\n"
+"错误: %s"
+
+#: boa/Models/PythonEditorModels.py:563
+#, python-format
+msgid "Loaded resource: %s"
+msgstr "已加载资源: %s"
+
+#: boa/Models/PythonEditorModels.py:565
+#, python-format
+msgid "Could not load %s"
+msgstr "无法加载%s"
+
+#: boa/Models/PythonEditorModels.py:570
+#, python-format
+msgid "%s is not a valid Resource Module"
+msgstr "%s不是一个有效资源模块"
+
+#: boa/Models/PythonEditorModels.py:857
+msgid "Module import list not found in application"
+msgstr "在程序中未找到模块导入列表"
+
+#: boa/Models/PythonEditorModels.py:859
+msgid "Module import list not terminated"
+msgstr "模块导入列表未终止"
+
+#: boa/Models/PythonEditorModels.py:907
+msgid "Module name exists in application"
+msgstr "程序中存在模块名"
+
+#: boa/Models/PythonEditorModels.py:919
+msgid "No such module in application"
+msgstr "程序中没有此模块."
+
+#: boa/Models/PythonEditorModels.py:943
+msgid "No such module in application: "
+msgstr "程序中没有此模块:"
+
+#: boa/Models/PythonEditorModels.py:1027
+msgid "No main frame module found in application"
+msgstr "程序中未找到主框架模块"
+
+#: boa/Models/PythonEditorModels.py:1035
+msgid "Module does not exists in application"
+msgstr "程序中不存在模块"
+
+#: boa/Models/PythonEditorModels.py:1077
+msgid "Trace file not found. Run with command line param -T"
+msgstr "跟踪文件未找到. 运行命令行参数-T"
+
+#: boa/Models/PythonEditorModels.py:1086
+msgid ""
+"Unsaved file no longer open in the Editor.\n"
+"Remove it from application modules ?"
+msgstr ""
+"未保存文件无法在编辑器中打开. \n"
+"从程序模块中移除它?"
+
+#: boa/Models/PythonEditorModels.py:1087
+msgid "Missing file"
+msgstr "缺失文件"
+
+#: boa/Models/PythonEditorModels.py:1107
+#, python-format
+msgid "Unhandled protocol during normalisation:%s"
+msgstr "标准化期间无法处理的协议: %s"
+
+#: boa/Models/ResourceSupport.py:59
+msgid "Select Resource"
+msgstr "选择资源"
+
+#: boa/Models/ResourceSupport.py:70
+#: boa/PropEdit/ArtProviderBrowser.py:105
+msgid "File Dialog..."
+msgstr "文件对话框..."
+
+#: boa/Models/ResourceSupport.py:144
+msgid "Images"
+msgstr "图片"
+
+#: boa/Models/ResourceSupport.py:158
+#: boa/Views/EditorViews.py:1366
+#: boa/Views/ProfileView.py:34
+#: boa/Views/SourceViews.py:71
+#: boa/Views/SourceViews.py:389
+#: boa/Views/XMLView.py:33
+msgid "Goto line"
+msgstr "跳至行"
+
+#: boa/Models/ResourceSupport.py:249
+#, python-format
+msgid "Unsupported image type: %s"
+msgstr "不支持的图片类型: %s"
+
+#: boa/Models/ResourceSupport.py:325
+#, python-format
+msgid ""
+"Options:\n"
+"\n"
+"%s\n"
+"\n"
+"Edit options string:"
+msgstr ""
+"选项: \n"
+"\n"
+"%s\n"
+"\n"
+"编辑选项字符串:"
+
+#: boa/Models/ResourceSupport.py:355
+msgid "Resource module not found. img2py failed to create the module"
+msgstr "未找到资源模块. imp2py创建模块失败"
+
+#: boa/Models/wxPythonControllers.py:45
+msgid "Frame Designer"
+msgstr "框架设计器"
+
+#: boa/Models/wxPythonControllers.py:173
+msgid "Designer session started."
+msgstr "设计器会话开启."
+
+#: boa/Models/wxPythonControllers.py:180
+#, python-format
+msgid "An error occured while opening the Designer: %s"
+msgstr "打开设计器时出现错误: %s"
+
+#: boa/Models/wxPythonEditorModels.py:130
+#, python-format
+msgid "Collection body %s not in init, body, fin form"
+msgstr "收集器主体%s不能在实例, 主题, 最终形式"
+
+#: boa/Models/wxPythonEditorModels.py:160
+msgid "The following lines were not used by the Designer and will be lost:\n"
+msgstr "下列行未在设计器中被使用, 会丢失:\n"
+
+#: boa/Models/wxPythonEditorModels.py:164
+#, python-format
+msgid ""
+"\n"
+"There were unprocessed lines in the source code of method: %s\n"
+"If this was unexpected, it is advised that you cancel this Designer session and correct the problem before continuing."
+msgstr ""
+"\n"
+"方法的源代码中有未处理行:%s\n"
+"如果不希望这样, 建议在继续之前取消设计器对话修改错误"
+
+#: boa/Models/wxPythonEditorModels.py:305
+msgid "_custom_classes is not valid: "
+msgstr "_custom_classes不是有效的: "
+
+#: boa/Models/wxPythonEditorModels.py:353
+msgid "Inherited __init__ method missing"
+msgstr "继承__init__方法缺失"
+
+#: boa/Models/wxPythonEditorModels.py:355
+#, python-format
+msgid "Main class \"%s\" not found. Please fix file header or class name."
+msgstr "未找到主类\"%s\". 请修改文件头或类名."
+
+#: boa/Models/XMLSupport.py:43
+msgid "XML"
+msgstr "XML"
+
+#: boa/Plug-ins/AppTimeTrack.plug-in.py:18
+msgid "Time Tracking"
+msgstr "Time Tracking"
+
+#: boa/Plug-ins/AppTimeTrack.plug-in.py:21
+#: boa/Plug-ins/AppTimeTrack.plug-in.py:26
+msgid "Start"
+msgstr "开始"
+
+#: boa/Plug-ins/AppTimeTrack.plug-in.py:22
+#: boa/Plug-ins/AppTimeTrack.plug-in.py:27
+msgid "End"
+msgstr "结束"
+
+#: boa/Plug-ins/AppTimeTrack.plug-in.py:28
+#: boa/Views/AppViews.py:118
+msgid "Description"
+msgstr "描述"
+
+#: boa/Plug-ins/AppTimeTrack.plug-in.py:98
+#, python-format
+msgid ""
+"Start time :%s\n"
+"End time :%s\n"
+"\n"
+"Enter a description for the time spent"
+msgstr ""
+"开始时间:%s\n"
+"结束时间:%s\n"
+"\n"
+"输入花费时间的描述"
+
+#: boa/Plug-ins/AppTimeTrack.plug-in.py:100
+msgid "Time tracking"
+msgstr "时间跟踪"
+
+#: boa/Plug-ins/AppTimeTrack.plug-in.py:116
+#: boa/Views/DiffView.py:169
+msgid "Are you sure?"
+msgstr "你确定吗?"
+
+#: boa/Plug-ins/BicycleRepairMan.plug-in.py:75
+msgid "BRM - Find references"
+msgstr "BRM - 查找参考"
+
+#: boa/Plug-ins/BicycleRepairMan.plug-in.py:76
+msgid "BRM - Find definition"
+msgstr "BRM - 查找定义"
+
+#: boa/Plug-ins/BicycleRepairMan.plug-in.py:78
+msgid "BRM - Rename"
+msgstr "BRM - 重命名"
+
+#: boa/Plug-ins/BicycleRepairMan.plug-in.py:79
+msgid "BRM - Extract method"
+msgstr "BRM - 获取方法"
+
+#: boa/Plug-ins/BicycleRepairMan.plug-in.py:81
+msgid "BRM - Extract local variable"
+msgstr "BRM - 获取本地变量"
+
+#: boa/Plug-ins/BicycleRepairMan.plug-in.py:82
+msgid "BRM - Inline local variable"
+msgstr "BRM - 潜入本地变量"
+
+#: boa/Plug-ins/BicycleRepairMan.plug-in.py:85
+msgid "BRM - Undo last"
+msgstr "BRM - 取消上一次"
+
+#: boa/Plug-ins/BicycleRepairMan.plug-in.py:91
+msgid "No text selected."
+msgstr "没有选择任何文本."
+
+#: boa/Plug-ins/BicycleRepairMan.plug-in.py:131
+msgid "Save changes before Refactoring operation"
+msgstr "在重构操作前保存修改"
+
+#: boa/Plug-ins/BicycleRepairMan.plug-in.py:133
+msgid "Operation aborted."
+msgstr "操作忽略."
+
+#: boa/Plug-ins/BicycleRepairMan.plug-in.py:141
+msgid "No text selected. Highlight the region you want to extract."
+msgstr "没有选择任何文本. 想要获取的区域高亮显示."
+
+#: boa/Plug-ins/BicycleRepairMan.plug-in.py:144
+#, python-format
+msgid "New %s name:"
+msgstr "新%s名称:"
+
+#: boa/Plug-ins/BicycleRepairMan.plug-in.py:146
+msgid "Empty names are invalid."
+msgstr "空白名称无效."
+
+#: boa/Plug-ins/BicycleRepairMan.plug-in.py:162
+msgid "BRM - Finding references..."
+msgstr "BRM - 查找参考"
+
+#: boa/Plug-ins/BicycleRepairMan.plug-in.py:174
+#: boa/Plug-ins/BicycleRepairMan.plug-in.py:225
+#, python-format
+msgid "BRM - Error %s"
+msgstr "BRM - 错误 %s"
+
+#: boa/Plug-ins/BicycleRepairMan.plug-in.py:180
+#: boa/Plug-ins/BicycleRepairMan.plug-in.py:218
+msgid "BRM - Could not find definition"
+msgstr "BRM - 无法找到定义"
+
+#: boa/Plug-ins/BicycleRepairMan.plug-in.py:182
+msgid "Perform Find Definition?"
+msgstr "执行查找定义?"
+
+#: boa/Plug-ins/BicycleRepairMan.plug-in.py:182
+msgid "Find References"
+msgstr "查找参考"
+
+#: boa/Plug-ins/BicycleRepairMan.plug-in.py:188
+#, python-format
+msgid "BRM - References for %s"
+msgstr "BRM - %s参考"
+
+#: boa/Plug-ins/BicycleRepairMan.plug-in.py:199
+#, python-format
+msgid "BRM - %s reference(s) found"
+msgstr "BRM - %s参考未找到"
+
+#: boa/Plug-ins/BicycleRepairMan.plug-in.py:208
+msgid "BRM - Finding definition..."
+msgstr "BRM - 查找定义..."
+
+#: boa/Plug-ins/BicycleRepairMan.plug-in.py:216
+msgid "Couldn't find definition"
+msgstr "未找到定义"
+
+#: boa/Plug-ins/BicycleRepairMan.plug-in.py:234
+#, python-format
+msgid "BRM - Definition for %s"
+msgstr "BRM - %s的定义"
+
+#: boa/Plug-ins/BicycleRepairMan.plug-in.py:246
+#, python-format
+msgid "BRM - %s matches(s) found"
+msgstr "BRM - 找到%s匹配"
+
+#: boa/Plug-ins/BicycleRepairMan.plug-in.py:256
+msgid "Rename to:"
+msgstr "重命名为:"
+
+#: boa/Plug-ins/BicycleRepairMan.plug-in.py:271
+msgid ""
+"Cannot deduce the type of highlighted object reference.\n"
+"Rename this declaration?"
+msgstr ""
+"无法推测高亮对象参考类型.\n"
+"重命名这个声明?"
+
+#: boa/Plug-ins/BicycleRepairMan.plug-in.py:272
+msgid "Rename?"
+msgstr "重命名?"
+
+#: boa/Plug-ins/BicycleRepairMan.plug-in.py:283
+msgid "Extract method"
+msgstr "获取方法"
+
+#: boa/Plug-ins/BicycleRepairMan.plug-in.py:294
+msgid "Nothing to undo, the undo stack is empty."
+msgstr "没有任何可以撤销, 撤销堆栈为空."
+
+#: boa/Plug-ins/BicycleRepairMan.plug-in.py:305
+msgid "Extract variable"
+msgstr "获取变量"
+
+#: boa/Plug-ins/DragScroller.plug-in.py:9
+#: boa/Plug-ins/FlatNotebook.plug-in.py:9
+#, python-format
+msgid "Module %s not found"
+msgstr "未找到模块%s"
+
+#: boa/Plug-ins/ErrOutShortcut.plug-in.py:18
+msgid "Toggle Error/Output window"
+msgstr "绑定错误/输出窗口"
+
+#: boa/Plug-ins/FormatParagraph.plug-in.py:155
+msgid "Format paragraph"
+msgstr "格式化段落"
+
+#: boa/Plug-ins/HelpBook.plug-in.py:19
+msgid "Help Book - Index"
+msgstr "帮助手册 - 索引"
+
+#: boa/Plug-ins/HelpBook.plug-in.py:19
+msgid "Keyword(s)"
+msgstr "关键字"
+
+#: boa/Plug-ins/HelpBook.plug-in.py:20
+#: boa/Plug-ins/HelpBook.plug-in.py:24
+#: boa/Plug-ins/HelpBook.plug-in.py:717
+msgid "Location"
+msgstr "位置"
+
+#: boa/Plug-ins/HelpBook.plug-in.py:23
+msgid "Help Book - Contents"
+msgstr "帮助手册 - 目录"
+
+#: boa/Plug-ins/HelpBook.plug-in.py:64
+msgid "Title from HTML"
+msgstr "HTML的标题"
+
+#: boa/Plug-ins/HelpBook.plug-in.py:385
+msgid ""
+"Once saved, help books files cannot be moved, only renamed.\n"
+"Please move the entrire directory."
+msgstr ""
+"一旦保存, 帮助册文件不能再移动, 只能重命名.\n"
+"请移动完成目录."
+
+#: boa/Plug-ins/HelpBook.plug-in.py:433
+msgid "Files"
+msgstr "文件"
+
+#: boa/Plug-ins/HelpBook.plug-in.py:439
+msgid "Add file"
+msgstr "添加文件"
+
+#: boa/Plug-ins/HelpBook.plug-in.py:440
+msgid "Add files"
+msgstr "添加文件"
+
+#: boa/Plug-ins/HelpBook.plug-in.py:441
+msgid "Remove file"
+msgstr "删除文件"
+
+#: boa/Plug-ins/HelpBook.plug-in.py:442
+msgid "Open file"
+msgstr "打开文件"
+
+#: boa/Plug-ins/HelpBook.plug-in.py:444
+msgid "Normalise paths"
+msgstr "标准化路径"
+
+#: boa/Plug-ins/HelpBook.plug-in.py:454
+msgid "Num"
+msgstr "数值"
+
+#: boa/Plug-ins/HelpBook.plug-in.py:455
+#: boa/Views/AppViews.py:358
+#: boa/Views/CollectionEdit.py:137
+#: boa/Views/EditorViews.py:1311
+#: boa/Views/STCStyleEditor.py:1076
+msgid "Name"
+msgstr "名称"
+
+#: boa/Plug-ins/HelpBook.plug-in.py:456
+msgid "Path"
+msgstr "路径"
+
+#: boa/Plug-ins/HelpBook.plug-in.py:517
+msgid "Help documents must be in the same directory as the help book, or a sub-directory. Not allowed outside the tree."
+msgstr "帮助文档必须和帮助册在相同目录下, 或子目录下. 不允许在目录外部."
+
+#: boa/Plug-ins/HelpBook.plug-in.py:521
+msgid "Please save the help book before adding files\n"
+msgstr "请在添加文件前保存帮助册\n"
+
+#: boa/Plug-ins/HelpBook.plug-in.py:581
+#, python-format
+msgid ""
+"Filename \"%s\" not inside help book directory.\n"
+"\n"
+"Remove?"
+msgstr ""
+"文件名\"%s\"不在帮助册目录中.\n"
+"\n"
+"移除?"
+
+#: boa/Plug-ins/HelpBook.plug-in.py:582
+msgid "Invalid file"
+msgstr "无效文件"
+
+#: boa/Plug-ins/HelpBook.plug-in.py:614
+msgid "Enter wildcard"
+msgstr "键入通配符"
+
+#: boa/Plug-ins/HelpBook.plug-in.py:614
+msgid "Add Files"
+msgstr "添加文件"
+
+#: boa/Plug-ins/HelpBook.plug-in.py:694
+msgid "Add index"
+msgstr "添加索引"
+
+#: boa/Plug-ins/HelpBook.plug-in.py:695
+msgid "Edit index"
+msgstr "编辑索引"
+
+#: boa/Plug-ins/HelpBook.plug-in.py:696
+msgid "Delete index"
+msgstr "删除索引"
+
+#: boa/Plug-ins/HelpBook.plug-in.py:716
+msgid "Keyword"
+msgstr "关键字"
+
+#: boa/Plug-ins/HelpBook.plug-in.py:864
+msgid "Edit entry"
+msgstr "编辑条目"
+
+#: boa/Plug-ins/HelpBook.plug-in.py:865
+msgid "Delete entry"
+msgstr "删除条目"
+
+#: boa/Plug-ins/HelpBook.plug-in.py:866
+msgid "Import..."
+msgstr "导入..."
+
+#: boa/Plug-ins/HelpBook.plug-in.py:954
+msgid "Help Book - Contents properties"
+msgstr "帮助册 - 内容属性"
+
+#: boa/Plug-ins/HelpBook.plug-in.py:956
+msgid "Default topic"
+msgstr "缺省主题"
+
+#: boa/Plug-ins/HelpBook.plug-in.py:1000
+msgid "Cannot delete root node."
+msgstr "无法删除根结点"
+
+#: boa/Plug-ins/HelpBook.plug-in.py:1008
+#, python-format
+msgid "Delete %s"
+msgstr "删除%s"
+
+#: boa/Plug-ins/HelpBook.plug-in.py:1008
+msgid "Delete node and children"
+msgstr "删除节点和子节点"
+
+#: boa/Plug-ins/HelpBook.plug-in.py:1033
+#: boa/Plug-ins/HelpBook.plug-in.py:1043
+msgid "Make HTB"
+msgstr "构造HTB"
+
+#: boa/Plug-ins/HelpBook.plug-in.py:1036
+#: boa/Plug-ins/HelpBook.plug-in.py:1080
+msgid "Make CHM"
+msgstr "构造CHM"
+
+#: boa/Plug-ins/HelpBook.plug-in.py:1042
+msgid "Choose source files"
+msgstr "选择源文件"
+
+#: boa/Plug-ins/HelpBook.plug-in.py:1043
+msgid "Files list"
+msgstr "文件列表"
+
+#: boa/Plug-ins/HelpBook.plug-in.py:1043
+msgid "Entire help book directory"
+msgstr "完整帮助册目录"
+
+#: boa/Plug-ins/HelpBook.plug-in.py:1071
+#, python-format
+msgid "Written %s."
+msgstr "%s已写."
+
+#: boa/Plug-ins/HelpBook.plug-in.py:1098
+msgid "Should the document title be parsed from HTML and displayed under \"Files\"."
+msgstr "HTML文档标题被解析和显示在\"文件\"."
+
+#: boa/Plug-ins/I18NWrap.plug-in.py:13
+msgid "Wrap selection with _()"
+msgstr "利用_()环绕选择"
+
+#: boa/Plug-ins/ImageEditor.plug-in.py:46
+msgid "Current drawing mode"
+msgstr "当前绘图方式"
+
+#: boa/Plug-ins/ImageEditor.plug-in.py:54
+msgid "Pen colour"
+msgstr "钢笔颜色"
+
+#: boa/Plug-ins/ImageEditor.plug-in.py:62
+msgid "Pen width"
+msgstr "钢笔宽度"
+
+#: boa/Plug-ins/ImageEditor.plug-in.py:71
+msgid "Pen style"
+msgstr "钢笔类型"
+
+#: boa/Plug-ins/ImageEditor.plug-in.py:79
+msgid "Pen / Brush preview"
+msgstr "钢笔/刷预览"
+
+#: boa/Plug-ins/ImageEditor.plug-in.py:86
+msgid "Brush style"
+msgstr "刷类型"
+
+#: boa/Plug-ins/ImageEditor.plug-in.py:95
+msgid "Brush colour"
+msgstr "刷颜色"
+
+#: boa/Plug-ins/ImageEditor.plug-in.py:103
+msgid "Background brush colour"
+msgstr "背景刷颜色"
+
+#: boa/Plug-ins/ImageEditor.plug-in.py:110
+msgid "Zoom factor"
+msgstr "放大倍数"
+
+#: boa/Plug-ins/ImageEditor.plug-in.py:126
+msgid "Image info"
+msgstr "图片信息"
+
+#: boa/Plug-ins/ImageEditor.plug-in.py:131
+#: boa/Plug-ins/ImageEditor.plug-in.py:136
+#: boa/Plug-ins/ImageEditor.plug-in.py:616
+#: boa/Plug-ins/ImageEditor.plug-in.py:626
+msgid "Select"
+msgstr "选择"
+
+#: boa/Plug-ins/ImageEditor.plug-in.py:131
+#: boa/Plug-ins/ImageEditor.plug-in.py:137
+#: boa/Plug-ins/ImageEditor.plug-in.py:147
+#: boa/Plug-ins/ImageEditor.plug-in.py:237
+msgid "Draw"
+msgstr "画"
+
+#: boa/Plug-ins/ImageEditor.plug-in.py:131
+#: boa/Plug-ins/ImageEditor.plug-in.py:139
+#: boa/Plug-ins/ImageEditor.plug-in.py:237
+msgid "Circle"
+msgstr "圆"
+
+#: boa/Plug-ins/ImageEditor.plug-in.py:131
+#: boa/Plug-ins/ImageEditor.plug-in.py:140
+#: boa/Plug-ins/ImageEditor.plug-in.py:237
+msgid "Box"
+msgstr "方形"
+
+#: boa/Plug-ins/ImageEditor.plug-in.py:131
+#: boa/Plug-ins/ImageEditor.plug-in.py:141
+#: boa/Plug-ins/ImageEditor.plug-in.py:237
+msgid "Fill"
+msgstr "填充"
+
+#: boa/Plug-ins/ImageEditor.plug-in.py:131
+#: boa/Plug-ins/ImageEditor.plug-in.py:143
+#: boa/Views/STCStyleEditor.py:357
+msgid "Colour"
+msgstr "颜色"
+
+#: boa/Plug-ins/ImageEditor.plug-in.py:142
+#: boa/Plug-ins/ImageEditor.plug-in.py:620
+#: boa/Plug-ins/ImageEditor.plug-in.py:622
+msgid "Move"
+msgstr "移动"
+
+#: boa/Plug-ins/ImageEditor.plug-in.py:287
+msgid "Invalid bitmap"
+msgstr "无效位图"
+
+#: boa/Plug-ins/ImageEditor.plug-in.py:730
+msgid "Not a picture"
+msgstr "不是一副图片"
+
+#: boa/Plug-ins/ImageEditor.plug-in.py:782
+#: boa/Plug-ins/ImageEditor.plug-in.py:804
+msgid "Enter a tuple for the new size"
+msgstr "输入一个元祖作为新的尺寸"
+
+#: boa/Plug-ins/ImageEditor.plug-in.py:783
+msgid "Resize"
+msgstr "调整尺寸"
+
+#: boa/Plug-ins/ImageEditor.plug-in.py:805
+msgid "Scale"
+msgstr "刻度"
+
+#: boa/Plug-ins/ImageEditor.plug-in.py:911
+msgid "Undo last change"
+msgstr "撤销上次修改"
+
+#: boa/Plug-ins/ImageEditor.plug-in.py:912
+msgid "Undo view changes"
+msgstr "撤销视图修改"
+
+#: boa/Plug-ins/ImageEditor.plug-in.py:913
+msgid "Clear"
+msgstr "清除"
+
+#: boa/Plug-ins/ImageEditor.plug-in.py:915
+msgid "Crop"
+msgstr "修建"
+
+#: boa/Plug-ins/ImageEditor.plug-in.py:916
+msgid "Resize..."
+msgstr "调整大小..."
+
+#: boa/Plug-ins/ImageEditor.plug-in.py:917
+msgid "Scale..."
+msgstr "刻度..."
+
+#: boa/Plug-ins/ImageEditor.plug-in.py:919
+msgid "Use current colour to set transparent mask"
+msgstr "使用当前颜色设置透明遮罩"
+
+#: boa/Plug-ins/ImageEditor.plug-in.py:920
+msgid "Clear current transparent mask"
+msgstr "清除当前透明遮罩"
+
+#: boa/Plug-ins/ImageEditor.plug-in.py:995
+#: boa/Plug-ins/ImageEditor.plug-in.py:1033
+msgid "Edit image"
+msgstr "编辑图片"
+
+#: boa/Plug-ins/ImageEditor.plug-in.py:996
+msgid "Convert to module"
+msgstr "转换为模块"
+
+#: boa/Plug-ins/JavaSupport.plug-in.py:74
+#: boa/Plug-ins/PascalSupport.plug-in.py:74
+msgid "Compile"
+msgstr "编译"
+
+#: boa/Plug-ins/ModuleFinder.plug-in.py:24
+msgid "Module finder for sys.path"
+msgstr "sys.path中的模块探测器"
+
+#: boa/Plug-ins/ModuleFinder.plug-in.py:29
+msgid "Module name:"
+msgstr "模块名:"
+
+#: boa/Plug-ins/ModuleFinder.plug-in.py:63
+#, python-format
+msgid "%s not found on sys.path (%s)."
+msgstr "%s未在sys.path(%s)中找到."
+
+#: boa/Plug-ins/ModuleFinder.plug-in.py:84
+msgid "Module finder"
+msgstr "模块探测器"
+
+#: boa/Plug-ins/PyInterpreterChooser.plug-in.py:62
+msgid "Version"
+msgstr "版本"
+
+#: boa/Plug-ins/PyInterpreterChooser.plug-in.py:64
+msgid "Install Path"
+msgstr "安装路径"
+
+#: boa/Plug-ins/PyInterpreterChooser.plug-in.py:90
+msgid "Python Interpreter Chooser"
+msgstr "Python解释器的选择器"
+
+#: boa/Plug-ins/PyInterpreterChooser.plug-in.py:96
+msgid "Found installations: (double click to select)"
+msgstr "已知安装: (双击选择)"
+
+#: boa/Plug-ins/PyInterpreterChooser.plug-in.py:117
+msgid "Current interpreter path (Blank means sys.executable will be used.)"
+msgstr "当前解释器路径(空白表示sys.executable将被使用.)"
+
+#: boa/Plug-ins/PyInterpreterChooser.plug-in.py:293
+msgid "Python interpreter chooser"
+msgstr "Python解释器的选择器"
+
+#: boa/Plug-ins/PyrexSupport.plug-in.py:24
+msgid "Pyrex is not installed"
+msgstr "Pyrex未被安装"
+
+#: boa/Plug-ins/RegexEditor.plug-in.py:56
+msgid "Regex Editor"
+msgstr "Regex编辑器"
+
+#: boa/Plug-ins/RegexEditor.plug-in.py:66
+msgid "Regular Expression"
+msgstr "正则表达式"
+
+#: boa/Plug-ins/RegexEditor.plug-in.py:77
+msgid "String"
+msgstr "字符串"
+
+#: boa/Plug-ins/RegexEditor.plug-in.py:88
+#: boa/Plug-ins/RegexEditor.plug-in.py:104
+#: boa/Plug-ins/RegexEditor.plug-in.py:202
+msgid "Match"
+msgstr "匹配"
+
+#: boa/Plug-ins/RegexEditor.plug-in.py:101
+msgid "Groups"
+msgstr "组"
+
+#: boa/Plug-ins/RegexEditor.plug-in.py:105
+msgid "Action"
+msgstr "动作"
+
+#: boa/Plug-ins/RegexEditor.plug-in.py:120
+msgid "Flags"
+msgstr "标记"
+
+#: boa/Plug-ins/RegexEditor.plug-in.py:169
+#, python-format
+msgid "Error: %s: %s"
+msgstr "错误: %s: %s"
+
+#: boa/Plug-ins/RegexEditor.plug-in.py:205
+msgid "Failed to match"
+msgstr "匹配失败"
+
+#: boa/Plug-ins/RegexEditor.plug-in.py:215
+msgid "Regex editor"
+msgstr "Regex编辑器"
+
+#: boa/Plug-ins/wxPythonDemo.plug-in.py:30
+msgid ""
+"wxPython demo directory not found.\n"
+"Please define the path under Preferences->Plug-ins"
+msgstr ""
+"wxPython演示目录未找到.\n"
+"请确认路径在参数设置->插件"
+
+#: boa/Plug-ins/wxPythonDemo.plug-in.py:67
+msgid "Demo"
+msgstr "演示"
+
+#: boa/Plug-ins/wxPythonDemo.plug-in.py:116
+msgid "Overview"
+msgstr "总览"
+
+#: boa/Plug-ins/wxPythonDemo.plug-in.py:128
+msgid "No module imported"
+msgstr "无输入模块"
+
+#: boa/Plug-ins/wxPythonDemo.plug-in.py:186
+msgid "wxPython demo"
+msgstr "wxPython演示"
+
+#: boa/Plug-ins/XRCSupport.plug-in.py:50
+#: boa/Plug-ins/XRCSupport.plug-in.py:79
+msgid "No wx.xrc.XmlResource objects found"
+msgstr "未找到wx.xrc.XmlResource对象"
+
+#: boa/Plug-ins/XRCSupport.plug-in.py:68
+msgid "Select wx.xrc.XmlResource to LoadPanel from"
+msgstr "选择wx.xrc.XmlResource至LoadPanel来自"
+
+#: boa/PropEdit/ArtProviderBrowser.py:91
+msgid "ArtProvider Browser"
+msgstr "ArtProvider浏览器"
+
+#: boa/PropEdit/ArtProviderBrowser.py:121
+msgid "Client id"
+msgstr "客户端id"
+
+#: boa/PropEdit/ArtProviderBrowser.py:126
+msgid "Art id for bitmap"
+msgstr "位图的Art id"
+
+#: boa/PropEdit/ArtProviderBrowser.py:132
+msgid "Image size"
+msgstr "图片大小"
+
+#: boa/PropEdit/BitmapListEditorDlg.py:104
+msgid "Bitmap List Editor"
+msgstr "位图列表编辑器"
+
+#: boa/PropEdit/BitmapListEditorDlg.py:228
+#, python-format
+msgid "Size mismatch, all images must have the same size (%s, %s), not (%s, %s)"
+msgstr "大小不匹配, 所有图片必须有相同大小(%s, %s), 不是(%s, %s)"
+
+#: boa/PropEdit/BitmapListEditorDlg.py:251
+#, python-format
+msgid "Size mismatch, all images must have the same size (%s, %s)"
+msgstr "大小不匹配, 所有图片必须有相同大小(%s, %s)"
+
+#: boa/PropEdit/FlexGridGrowablesDlg.py:68
+msgid "Define Growable Rows and Columns (resize to test)"
+msgstr "定义可增加行和列(调整大小测试)"
+
+#: boa/PropEdit/MaskedEditFmtCodeDlg.py:9
+msgid "Allow spaces"
+msgstr "允许间隔"
+
+#: boa/PropEdit/MaskedEditFmtCodeDlg.py:10
+msgid "Force upper"
+msgstr "强制大写"
+
+#: boa/PropEdit/MaskedEditFmtCodeDlg.py:11
+msgid "Force lower"
+msgstr "强制小写"
+
+#: boa/PropEdit/MaskedEditFmtCodeDlg.py:12
+msgid "Right-align field(s)"
+msgstr "右侧排列区域"
+
+#: boa/PropEdit/MaskedEditFmtCodeDlg.py:13
+msgid "Right-insert in field(s) (implies R)"
+msgstr "右侧插入区域(可用R)"
+
+#: boa/PropEdit/MaskedEditFmtCodeDlg.py:14
+msgid "Stay in field until explicit navigation out of it"
+msgstr "停留在此区域会出现外部导航"
+
+#: boa/PropEdit/MaskedEditFmtCodeDlg.py:15
+msgid "Allow insert/delete within partially filled fields"
+msgstr "允许在部分填充区域插入/删除"
+
+#: boa/PropEdit/MaskedEditFmtCodeDlg.py:16
+msgid ""
+"Allow comma to be typed as grouping character; auto-group/regroup digits in\n"
+"integer fields (if result fits) when leaving such a field."
+msgstr ""
+"允许逗号显示为组标志: 自动分组/重编组数字在\n"
+"整数区域(如果结果符合)当离开此区域时."
+
+#: boa/PropEdit/MaskedEditFmtCodeDlg.py:17
+msgid "Prepend and reserve leading space for sign to mask and allow signed values (negative #s shown in red by default)"
+msgstr "预留前置空格为标记成遮罩, 允许标记值(默认负数#s显示为红色)"
+
+#: boa/PropEdit/MaskedEditFmtCodeDlg.py:18
+msgid "integer fields get leading zeros"
+msgstr "整数区域前置为0"
+
+#: boa/PropEdit/MaskedEditFmtCodeDlg.py:19
+msgid "Date[/time] field"
+msgstr "日期[/时间]区域"
+
+#: boa/PropEdit/MaskedEditFmtCodeDlg.py:20
+msgid "Time field"
+msgstr "时间区域"
+
+#: boa/PropEdit/MaskedEditFmtCodeDlg.py:21
+msgid "Auto-Fit: the control calulates its size from the length of the template mask"
+msgstr "自匹配: 控件根据模版遮罩的长度计算大小"
+
+#: boa/PropEdit/MaskedEditFmtCodeDlg.py:22
+msgid "Validate entered chars against ValidRegex, blocking invalid characters"
+msgstr "验证输入字符相对ValidRegex, 防止无效字符"
+
+#: boa/PropEdit/MaskedEditFmtCodeDlg.py:23
+msgid "select entire field when navigating to new field"
+msgstr "当导航至新区域时选择完整区域"
+
+#: boa/PropEdit/MaskedEditFmtCodeDlg.py:40
+msgid "Masked Edit - Format Codes"
+msgstr "已标记的编辑 - 格式化代码"
+
+#: boa/PropEdit/MaskedEditFmtCodeDlg.py:71
+msgid "A string of formatting codes that modify behavior of the control."
+msgstr "格式化代码语句修改控件行为."
+
+#: boa/PropEdit/PropertyEditors.py:73
+#, python-format
+msgid "Error on accessing Getter for %s: %s"
+msgstr "访问Getter时出错因为%s: %s"
+
+#: boa/PropEdit/PropertyEditors.py:382
+msgid "Choose the file"
+msgstr "选择文件"
+
+#: boa/PropEdit/PropertyEditors.py:388
+#: boa/PropEdit/PropertyEditors.py:408
+msgid "Clear the current property value?"
+msgstr "清楚当前属性值?"
+
+#: boa/PropEdit/PropertyEditors.py:389
+msgid "Clear filepath?"
+msgstr "清楚文件路径?"
+
+#: boa/PropEdit/PropertyEditors.py:409
+msgid "Clear dirpath?"
+msgstr "清楚上级路径?"
+
+#: boa/PropEdit/PropertyEditors.py:604
+#, python-format
+msgid ""
+"The given directory is invalid, using current directory.\n"
+"(%s)"
+msgstr ""
+"给出的路径无效, 使用当前路径. \n"
+"(%s)"
+
+#: boa/PropEdit/PropertyEditors.py:630
+msgid "Choose an image"
+msgstr "选择一个图片"
+
+#: boa/PropEdit/PropertyEditors.py:682
+#, python-format
+msgid ""
+"Files of type %s not allowed for this property editor.\n"
+" The following types are allowed %s"
+msgstr ""
+"此属性编辑器不允许文件类型%s.\n"
+"允许下列类型%s"
+
+#: boa/PropEdit/PropertyEditors.py:743
+msgid "Correct the module name that must be imported"
+msgstr "更正必须被导入的模块名"
+
+#: boa/PropEdit/PropertyEditors.py:744
+msgid "Resource module"
+msgstr "资源模块"
+
+#: boa/PropEdit/PropertyEditors.py:803
+#, python-format
+msgid "%s could not be loaded as a Resource Module"
+msgstr "%s无法作为资源模块被重载"
+
+#: boa/PropEdit/PropertyEditors.py:904
+#, python-format
+msgid "Unhandled image handling type: %s"
+msgstr "无法处理的图片类型: %s"
+
+#: boa/PropEdit/PropertyEditors.py:1197
+#: boa/PropEdit/PropertyEditors.py:1203
+#: boa/PropEdit/PropertyEditors.py:1501
+#: boa/PropEdit/PropertyEditors.py:1507
+msgid "Invalid name for a Python object"
+msgstr "无效Python对象名"
+
+#: boa/PropEdit/PropertyEditors.py:1208
+#: boa/PropEdit/PropertyEditors.py:1497
+msgid "Name already used by another control."
+msgstr "此名称已被其他控件使用"
+
+#: boa/PropEdit/PropertyEditors.py:1290
+#: boa/PropEdit/PropertyEditors.py:1338
+msgid "(rename)"
+msgstr "(重命名)"
+
+#: boa/PropEdit/PropertyEditors.py:1291
+msgid "(show all)"
+msgstr "(显示全部)"
+
+#: boa/PropEdit/PropertyEditors.py:1292
+msgid "(show own)"
+msgstr "(显示自有)"
+
+#: boa/PropEdit/PropertyEditors.py:1345
+msgid "Enter a new method name:"
+msgstr "输入一个新方法名:"
+
+#: boa/PropEdit/PropertyEditors.py:1346
+msgid "Rename event method"
+msgstr "重命名时间方法"
+
+#: boa/PropEdit/PropertyEditors.py:1399
+#, python-format
+msgid "Invalid value: %s"
+msgstr "无效值: %s"
+
+#: boa/PropEdit/PropertyEditors.py:1810
+#: boa/PropEdit/PropertyEditors.py:1833
+msgid "Invalid value"
+msgstr "无效值"
+
+#: boa/PropEdit/PropertyEditors.py:1905
+msgid "Anchors can not be reset while the property is expanded"
+msgstr "当属性扩展时锚点无法重置"
+
+#: boa/PropEdit/PropertyEditors.py:1906
+#: boa/PropEdit/PropertyEditors.py:1914
+msgid "Anchors"
+msgstr "锚点"
+
+#: boa/PropEdit/PropertyEditors.py:1909
+msgid "Remove anchors?"
+msgstr "移除锚点?"
+
+#: boa/PropEdit/PropertyEditors.py:1911
+msgid "Define default Anchors?"
+msgstr "定义默认锚点?"
+
+#: boa/PropEdit/StringEditDlg.py:46
+msgid "String Edit Dialog"
+msgstr "语句编辑对话框"
+
+#: boa/Scripts/prefs.rc.i18n.py:1
+msgid "Should toolbars have flat buttons, 0 for beveled buttons"
+msgstr "工具栏已有平按钮, 0为斜按钮"
+
+#: boa/Scripts/prefs.rc.i18n.py:2
+msgid ""
+"Frame style for child windows of the main frame\n"
+"E.g. to prevent child windows from appearing on the taskbar set\n"
+"childFrameStyle = wx.CLIP_CHILDREN | wx.FRAME_TOOL_WINDOW"
+msgstr ""
+"主框架的子窗口的框架类型\n"
+"例如防止子窗口出现在任务栏设定\n"
+"childFrameStyle = wx.CLIP_CHILDREN | wx.FRAME_TOOL_WINDOW"
+
+#: boa/Scripts/prefs.rc.i18n.py:3
+msgid "Style that the DataView ListCtrl is created in"
+msgstr "DataView ListCtrl创建类型"
+
+#: boa/Scripts/prefs.rc.i18n.py:4
+msgid "Should the palette be a menubar or a notebook"
+msgstr "调色板应为菜单栏或笔记本"
+
+#: boa/Scripts/prefs.rc.i18n.py:5
+msgid "Frame test button on the Palette toolbar"
+msgstr "框架测试按钮在调色板工具栏"
+
+#: boa/Scripts/prefs.rc.i18n.py:6
+msgid "Style flags used by most splitters in the IDE"
+msgstr "在IDE中分割器中应用的类型标签"
+
+#: boa/Scripts/prefs.rc.i18n.py:7
+msgid "Alternating background colours used in ListCtrls (pastel blue and yellow)"
+msgstr "在ListCtrls中使用的交互式背景颜色(柔和的蓝色和绿色)"
+
+#: boa/Scripts/prefs.rc.i18n.py:8
+msgid ""
+"Colour (indicating danger) used to display uninitialised window space.\n"
+"A control must be placed in this space before valid code can be generated"
+msgstr ""
+"颜色(指示危险)用来显示初始窗口空间.\n"
+"在有效代码生成之前控件必须放置于这个空间"
+
+#: boa/Scripts/prefs.rc.i18n.py:9
+msgid ""
+"Info that will be filled into the comment block. (Edit->Add module info)\n"
+"Also used by setup.py"
+msgstr ""
+"信息添加至注释区域. (编辑->添加模块信息)\n"
+"也会被setup.py使用"
+
+#: boa/Scripts/prefs.rc.i18n.py:10
+msgid ""
+"Should modules be added to the application if it is the active Model when\n"
+"a module is created from the palette"
+msgstr ""
+"如果是激活状态下的模块则应该被添加至程序中\n"
+"淡然此模块是由调色板创建的"
+
+#: boa/Scripts/prefs.rc.i18n.py:11
+msgid ""
+"Load images from normal image files,\n"
+"a singe file Image.archive (zip of Image directory)\n"
+"or modules created by resourcepackage"
+msgstr ""
+"从标准图片文件中读取图片,\n"
+"一个单独的文件Image.archive(图片文件夹压缩)\n"
+"或源程序包创建的模块"
+
+#: boa/Scripts/prefs.rc.i18n.py:12
+msgid ""
+"Only load image 1st time it is requested then cache it\n"
+"Turn this off to conserve resources on win9x"
+msgstr ""
+"只有第一次读取图片时才需要缓存它\n"
+"在win9x系统中关闭为保存资源关闭此项"
+
+#: boa/Scripts/prefs.rc.i18n.py:13
+msgid "Redirect stderrout to logmessages"
+msgstr "重定向stderrout到logmessages"
+
+#: boa/Scripts/prefs.rc.i18n.py:14
+msgid "Add module and line number where 'print' was called from"
+msgstr "在有'print'的地方添加模块和行号"
+
+#: boa/Scripts/prefs.rc.i18n.py:15
+msgid ""
+"Path to an alternative Python Interpreter. By default (blank string) Boa\n"
+"will use the same interpreter it is running on"
+msgstr ""
+"路径至交互Python解释器. 默认情况下(空字符串)Boa\n"
+"会使用正在运行的相同的解释器"
+
+#: boa/Scripts/prefs.rc.i18n.py:16
+msgid "Should the initialisation of the help be delayed until first usage?"
+msgstr "初次使用时, 帮助才初始化?"
+
+#: boa/Scripts/prefs.rc.i18n.py:17
+msgid "A page for PyDoc in the Help Controller frame's notebook."
+msgstr "在帮助管理器框架笔记本中的PyDoc的一页"
+
+#: boa/Scripts/prefs.rc.i18n.py:18
+msgid ""
+"Try to update the wxPython.libs directory with the newest run time libs\n"
+"(Component files and example components)\n"
+"Turn this off if you don't have permissions to write to the wxPython/lib directory"
+msgstr ""
+"当运行最新时间库时尝试升级wxPython.libs目录\n"
+"(组件文件和例子组件)\n"
+"如果你没有权限写wxPython/lib目录请关闭此项"
+
+#: boa/Scripts/prefs.rc.i18n.py:19
+msgid "Determines how Boa reacts to errors when running"
+msgstr "确定Boa如何在运行时对错误有所反应"
+
+#: boa/Scripts/prefs.rc.i18n.py:20
+msgid ""
+"If the environment variable PYTHONSTARTUP is set to a python file\n"
+"this file can be executed at startup in the Shell's namespace\n"
+"The command-line flag -S can override this setting."
+msgstr ""
+"如果环境变量PYTHONSTARTUP设置为一个python文件\n"
+"此文件在启动时会在Shell的命名空间中被执行\n"
+"命令行标记-S会忽略此项设定."
+
+#: boa/Scripts/prefs.rc.i18n.py:21
+msgid ""
+"In constricted mode Boa starts up showing only the Editor window.\n"
+"In the future this mode will be extended to not load support for the Designer.\n"
+"This will be the Python Editor mode.\n"
+"The command-line flag -C can override this setting."
+msgstr ""
+"收缩模式的Boa启动时仅显示编辑器窗口.\n"
+"不久之后此模式会被扩展, 将不加载设计器支持.\n"
+"这就是Python编辑器模式.\n"
+"命令行标记-C会忽略此项设定."
+
+#: boa/Scripts/prefs.rc.i18n.py:22
+msgid ""
+"This flag determines if Boa should create and listen on the socket for\n"
+"filenames sent by other instances of Boa. This way when you start another\n"
+"instance of Boa with a filename as command-line switch, that instance\n"
+"will send the filename to this one running the socket and the file will\n"
+"open here"
+msgstr ""
+"此标记会使Boa创建和监听接口\n"
+"文件名由其他Boa实例发送. 这种方式当你启动另一个\n"
+"Boa实例文件名作为命令行切换时, 这个实例\n"
+"会发送文件名至运行的接口而且这个文件\n"
+"会被打开"
+
+#: boa/Scripts/prefs.rc.i18n.py:23
+msgid "Where should the stderr and stdout notebook be docked?"
+msgstr "在什么地方stderr和stdout笔记本会被装备扩展坞?"
+
+#: boa/Scripts/prefs.rc.i18n.py:24
+msgid ""
+"When docked in the Editor, percentage wise, how high should the default\n"
+"Error/Output window be?"
+msgstr ""
+"当编辑器转载扩展坞时, 就百分比而言, 默认的\n"
+"错误/输出窗口应该是多少?"
+
+#: boa/Scripts/prefs.rc.i18n.py:25
+msgid ""
+"Arguments for Debug Server\n"
+"e.g. '--zope' for PythonScript and PageTemplate debugging support"
+msgstr ""
+"调试服务器的参数\n"
+"例如'--zope'支持Python脚本和页面模版调试"
+
+#: boa/Scripts/prefs.rc.i18n.py:26
+msgid "Language to use for translations in the IDE. Requires a restart of Boa"
+msgstr "IDE中用到的翻译语言. 需要重启Boa"
+
+#: boa/Scripts/prefs.rc.i18n.py:27
+msgid ""
+"Syntax checking\n"
+"Underlines possible syntax errors with a red squigly line"
+msgstr ""
+"语法检查\n"
+"标注有下划线的红色花体行有可能是语法错误"
+
+#: boa/Scripts/prefs.rc.i18n.py:28
+msgid "Only do syntax checking if cursor moves off line that was modified"
+msgstr "只有指针移开修改行时才会进行语法检查"
+
+#: boa/Scripts/prefs.rc.i18n.py:29
+msgid "Also run pylint (very spurious!) on 'Check source'"
+msgstr "在点击'检查源'时也会运行pylint(非真实!)"
+
+#: boa/Scripts/prefs.rc.i18n.py:30
+msgid "Check Source (e.g. compile) when saving"
+msgstr "当保存时检查源文件(例如编译)"
+
+#: boa/Scripts/prefs.rc.i18n.py:31
+msgid ""
+"Should the model be refresh before invoking code completion or call tips.\n"
+"This causes a delay but is more accurate."
+msgstr ""
+"在调用代码自动完成前或启用帮助前模块应被刷新.\n"
+"虽然会引起延迟但是很有必要."
+
+#: boa/Scripts/prefs.rc.i18n.py:32
+msgid "Import module when code completion is invoked."
+msgstr "当代码自动完成被调用时导入模块."
+
+#: boa/Scripts/prefs.rc.i18n.py:33
+msgid "Should call tips be invoked after typing an open paren"
+msgstr "提示帮助会被调用在键入一个括号之后"
+
+#: boa/Scripts/prefs.rc.i18n.py:34
+msgid ""
+"Flag for turning on special checking for european keyboard characters by\n"
+"checking for certain codes while ctrl alt is held."
+msgstr ""
+"转换成欧洲键盘字符特殊检查时的参数\n"
+"当按下ctrl和alt时检查特定代码."
+
+#: boa/Scripts/prefs.rc.i18n.py:35
+msgid "Country code for keyboards"
+msgstr "键盘的国别代码"
+
+#: boa/Scripts/prefs.rc.i18n.py:36
+msgid ""
+"The undo buffer can be cleared after saving, turning this on will\n"
+"never clear it and preserve the editing history but take extra memory"
+msgstr ""
+"在保存后撤销缓存器会被清除, 开启这个选项\n"
+"将不会清除, 这样会保护编辑历史但是会占用额外的内存"
+
+#: boa/Scripts/prefs.rc.i18n.py:37
+msgid ""
+"Auto correct indentation and EOL characters on load, save and refresh\n"
+"This only works for Python 2.0 and up"
+msgstr ""
+"当加载, 保存, 刷新时自动更正缩进和行尾结束字符\n"
+"Python 2.0及以上有效"
+
+#: boa/Scripts/prefs.rc.i18n.py:38
+msgid "Should the files open when closing Boa be reloaded at next startup?"
+msgstr "在下次启动时上次关闭Boa时开着的文件会被重新加载吗?"
+
+#: boa/Scripts/prefs.rc.i18n.py:39
+msgid "Show filename extensions on the page tabs"
+msgstr "在页标签显示文件扩展名"
+
+#: boa/Scripts/prefs.rc.i18n.py:40
+msgid "Should new pages be added to the end of the Editor notebook or current pos"
+msgstr "新页面被添加至编辑器笔记本的结尾处或者当前位置"
+
+#: boa/Scripts/prefs.rc.i18n.py:41
+msgid "Editor menu items can optionally display images in the menus"
+msgstr "编辑器菜单项选择性的可以显示菜单图片"
+
+#: boa/Scripts/prefs.rc.i18n.py:42
+msgid "Should the Editor fill the available width when the Inspector is closed"
+msgstr "当检视器关闭后编辑器填充可用宽度"
+
+#: boa/Scripts/prefs.rc.i18n.py:43
+msgid "Should the Explorer page be active in the Editor (Highly advised)"
+msgstr "探索器页面会在编辑器中被激活(强烈推荐)"
+
+#: boa/Scripts/prefs.rc.i18n.py:44
+msgid ""
+"Default filter for the Explorer and the File Dialog.\n"
+"BoaFiles - The most detailed and slowest, showing Packages and the different\n"
+"types of Python modules.\n"
+"StdFiles - The fastest, displaying only file association information."
+msgstr ""
+"探索器的默认过滤器和文件对话框.\n"
+"BoaFiles - 最越详细最慢, 显示包和不同的\n"
+"Python模块的类型.\n"
+"StdFiles - 最快, 只显示文件关联信息."
+
+#: boa/Scripts/prefs.rc.i18n.py:45
+msgid ""
+"Normally Boa will startup and run in the Current Working Directory of it's\n"
+"process. With this setting you may overwrite it."
+msgstr ""
+"正常情况下Boa会启动和它的在当前工作目录下运行\n"
+"它的进程. 使用此选项你可以覆盖它."
+
+#: boa/Scripts/prefs.rc.i18n.py:46
+msgid "Default width of the tree in the Explorer"
+msgstr "默认的探索器目录树宽度"
+
+#: boa/Scripts/prefs.rc.i18n.py:47
+msgid ""
+"Should filetypes which are known to optionally contain a header be opened\n"
+"and read when listing items"
+msgstr ""
+"文件类型可选的包含一个源文件被打开\n"
+"和读取当列出选项时"
+
+#: boa/Scripts/prefs.rc.i18n.py:48
+msgid "Start the open file dialog relative to the file in the active module page"
+msgstr "开始打开文件对话框联系到激活模块页面文件"
+
+#: boa/Scripts/prefs.rc.i18n.py:49
+msgid "Maximum Recent files list size"
+msgstr "最大化最近文件列表大小"
+
+#: boa/Scripts/prefs.rc.i18n.py:50
+msgid "Which shell (if any) should be used"
+msgstr "那个shell(如果存在多个)会被使用"
+
+#: boa/Scripts/prefs.rc.i18n.py:51
+msgid "Shell prompt (must be 3 chars with trailing space)'"
+msgstr "Shell提示(必须有3字符的后缀空间)'"
+
+#: boa/Scripts/prefs.rc.i18n.py:52
+msgid "Shell prompt, continued line (must be 3 chars with trailing space)'"
+msgstr "Shell提示, 延续行(必须有3字符的后缀空间)'"
+
+#: boa/Scripts/prefs.rc.i18n.py:53
+msgid "Shell debug prompt (must be 3 chars with trailing space)'"
+msgstr "Shell调试提示(必须有3字符后缀空间)'"
+
+#: boa/Scripts/prefs.rc.i18n.py:54
+msgid "Shell prompt, standard input request (must be 3 chars with trailing space)"
+msgstr "Shell提示, 标准输入请求(必须有3字符后缀空间)"
+
+#: boa/Scripts/prefs.rc.i18n.py:55
+msgid "Display properties for which source will be generated in Bold"
+msgstr "显示生成的粗体源文件的属性"
+
+#: boa/Scripts/prefs.rc.i18n.py:56
+msgid "Colour of property value static text ctrls"
+msgstr "属性值静态文本空间颜色"
+
+#: boa/Scripts/prefs.rc.i18n.py:57
+msgid "Inspector row height"
+msgstr "检视器行高"
+
+#: boa/Scripts/prefs.rc.i18n.py:58
+msgid "Default height of event selection window in Inspector"
+msgstr "检视器默认事件选择窗口高度"
+
+#: boa/Scripts/prefs.rc.i18n.py:59
+msgid "Inspector notebook style flags"
+msgstr "检视器笔记本风格标记"
+
+#: boa/Scripts/prefs.rc.i18n.py:60
+msgid "Page names for the inspector notebook"
+msgstr "监视器笔记本页名"
+
+#: boa/Scripts/prefs.rc.i18n.py:61
+msgid "Granularity of the Designer's grid."
+msgstr "设计器栅格间隔尺寸"
+
+#: boa/Scripts/prefs.rc.i18n.py:62
+msgid ""
+"Size of the selection tags (small black squares) used in the Designer for\n"
+"sizing and to show selection."
+msgstr ""
+"在设计器中用到的选择标签(小黑色方块)大小\n"
+"为重新修改大小和显示所选."
+
+#: boa/Scripts/prefs.rc.i18n.py:63
+msgid "Width of the lines of frame around the selection."
+msgstr "框架选择区域周围行的宽度"
+
+#: boa/Scripts/prefs.rc.i18n.py:64
+msgid "Default control size if control itself has no sensible default"
+msgstr "默认空间大小, 如果空间本身没有准确默认"
+
+#: boa/Scripts/prefs.rc.i18n.py:65
+msgid "Default colour for the selection tags"
+msgstr "所选标签的默认颜色"
+
+#: boa/Scripts/prefs.rc.i18n.py:66
+msgid "Colours for the selection tags when they represent Anchors"
+msgstr "出现锚点时的选择标签颜色"
+
+#: boa/Scripts/prefs.rc.i18n.py:67
+msgid "Should sizers be unabled in the Designer"
+msgstr "禁用在设计器中的大小变换器"
+
+#: boa/Scripts/prefs.rc.i18n.py:68
+msgid "Colour for the selection tags and boxes when control is layed out by a sizer"
+msgstr "所选标签和方框颜色当控件被大小控制器设计时"
+
+#: boa/Scripts/prefs.rc.i18n.py:69
+msgid ""
+"Should the paths to image file be created as\n"
+"absolute paths or relative to either the directory\n"
+"of the application file or the directory of the\n"
+"module?\n"
+"When a path is created for a module that has\n"
+"never been saved it will always be absolute.\n"
+"Remember, when a path is stored relatively,\n"
+"the current directory of the process must be\n"
+"correct (relative to the path) when your code\n"
+"executes."
+msgstr ""
+"图片文件路径应该被创建作为\n"
+"绝对路径或者相关其他目录\n"
+"应用程序文件或者其他模块\n"
+"的目录?\n"
+"当路径被创建为了一个没有保存\n"
+"过的模块, 它应该是绝对路径.\n"
+"请记住, 当路径保存为相对路径,\n"
+"代码执行时当前进程\n"
+"的目录(相对于路径)必须\n"
+"是正确的"
+
+#: boa/Scripts/prefs.rc.i18n.py:70
+msgid ""
+"Should there be an empty line between objects in _init_* methods?\n"
+"Note that in _init_coll_* methods, blank lines between are NOT optional"
+msgstr ""
+"在_init_*方法中的对象之间应该有空行吗?\n"
+"注意是在_init_coll_*方法中, 空白行不是可选项"
+
+#: boa/Scripts/prefs.rc.i18n.py:71
+msgid "Format string used to generate keyword argument parameter"
+msgstr "格式化字符串用来生成关键字符参数"
+
+#: boa/Scripts/prefs.rc.i18n.py:72
+msgid "Adds a warning to generated _init_* methods that users should not edit them"
+msgstr "添加用户不编辑_init_*方法时生成的一个警告"
+
+#: boa/Scripts/prefs.rc.i18n.py:73
+msgid "Should generated source code lines be be wrapped at a certain width"
+msgstr "生成源文件行应该被包装在一个特定宽度"
+
+#: boa/Scripts/prefs.rc.i18n.py:74
+msgid "Width at which generated source code wraps"
+msgstr "生成源文件包装的宽度"
+
+#: boa/Scripts/prefs.rc.i18n.py:75
+msgid ""
+"Number of spaces the continued line is indented additional to the start\n"
+"line's indent"
+msgstr ""
+"在行速进的开始出的连续行的额外缩进\n"
+"空格数量"
+
+#: boa/Scripts/prefs.rc.i18n.py:76
+msgid "Background colour of the canvas used by OGL views."
+msgstr "OGL视图用到的帆布背景颜色"
+
+#: boa/Scripts/prefs.rc.i18n.py:77
+msgid "Colours of the connection lines between shapes in diagrams"
+msgstr "在图表中连接图形的线的颜色"
+
+#: boa/Scripts/prefs.rc.i18n.py:78
+msgid "Pen used to draw Class shapes"
+msgstr "钢笔用来画类的形状"
+
+#: boa/Scripts/prefs.rc.i18n.py:79
+msgid "Brush used to draw Class shapes"
+msgstr "刷用来画类的形状"
+
+#: boa/Scripts/prefs.rc.i18n.py:80
+msgid "Pen used to draw Class shapes defined in other modules"
+msgstr "钢笔用来画在其他模块中定义的类的形状"
+
+#: boa/Scripts/prefs.rc.i18n.py:81
+msgid "Brush used to draw Class shapes defined in other modules"
+msgstr "刷用来画在其他模块中定义的类的形状"
+
+#: boa/Scripts/prefs.rc.i18n.py:82
+msgid "Pen used to draw Modules"
+msgstr "钢笔用来画模块"
+
+#: boa/Scripts/prefs.rc.i18n.py:83
+msgid "Brush used to draw Modules"
+msgstr "刷用来画模块"
+
+#: boa/Scripts/prefs.rc.i18n.py:84
+msgid ""
+"Any module in the Plug-ins directory is automatically executed at startup\n"
+"While developing or debugging new plugins it is sometimes useful to\n"
+"turn off plugins if some plugin problem prevents Boa from starting up.\n"
+"Note: you may also create the Plug-ins directory : $HOME/.boa/Plug-ins"
+msgstr ""
+"开始时在插件目录中的任何模块会被自动执行\n"
+"当开发或调试新的插件时有时会关闭插件\n"
+"如果插件问题防止Boa启动.\n"
+"注意: 你也需要创建插件目录: $HOME/.boa/Plug-ins"
+
+#: boa/Scripts/prefs.rc.i18n.py:85
+msgid "Path to an additional Plug-ins directory"
+msgstr "路径到额外插件目录"
+
+#: boa/Scripts/prefs.rc.i18n.py:86
+msgid "How should errors from plugins be handled"
+msgstr "插件错误如果被处理"
+
+#: boa/Scripts/prefs.rc.i18n.py:87
+msgid ""
+"Safety net so COM support has to be explicitly turned on\n"
+"Will stay here until the win9x crashes has been sorted out"
+msgstr ""
+"为了网络安全, 所以COM支持必须明确的开启\n"
+"将保持直到win9x冲突被解决"
+
+#: boa/Scripts/prefs.rc.i18n.py:88
+msgid "Should Python Companions, Models and Views be loaded at startup"
+msgstr "初始时Python伙伴, 模型和视图会被加载"
+
+#: boa/Scripts/prefs.rc.i18n.py:89
+msgid ""
+"Should wxPython Companions, Models and Views be loaded at startup\n"
+"Depends on csPythonSupport"
+msgstr "初始时wxPython伙伴, 模型和视图会被加载=n取决于csPythonSupport"
+
+#: boa/Scripts/prefs.rc.i18n.py:90
+msgid "Handle config files"
+msgstr "处理配置文件"
+
+#: boa/Scripts/prefs.rc.i18n.py:91
+msgid "Handle C++ files"
+msgstr "处理C++文件"
+
+#: boa/Scripts/prefs.rc.i18n.py:92
+msgid "Handle html files"
+msgstr "处理html文件"
+
+#: boa/Scripts/prefs.rc.i18n.py:93
+msgid "Handle xml files"
+msgstr "处理xml文件"
+
+#: boa/Scripts/prefs.rc.i18n.py:94
+msgid "Makes end-of-line characters visible or not."
+msgstr "行结束符显示或不显示."
+
+#: boa/Scripts/prefs.rc.i18n.py:95
+msgid ""
+"Determines whether indentation should be created out of a mixture of tabs and\n"
+"space or be based purely on spaces."
+msgstr ""
+"决定是否缩进会被创建为混合标签和\n"
+"空白或基于纯空白."
+
+#: boa/Scripts/prefs.rc.i18n.py:96
+msgid ""
+"Sets the size of a tab as a multiple of the size of a space character in the\n"
+"style of the language's default style definition."
+msgstr ""
+"设置标签大小作为一个扩展空白字符在\n"
+"风格在语言默认风格预定义中."
+
+#: boa/Scripts/prefs.rc.i18n.py:97
+msgid "Sets the size of indentation in terms of characters."
+msgstr "设置字符块缩进的大小."
+
+#: boa/Scripts/prefs.rc.i18n.py:98
+msgid "Margin width used for line numbering"
+msgstr "行计数的标注宽度"
+
+#: boa/Scripts/prefs.rc.i18n.py:99
+msgid "Margin width used by symbols such as breakpoints and line pointers"
+msgstr "用于断点和行指示器的符号标注宽度"
+
+#: boa/Scripts/prefs.rc.i18n.py:100
+msgid "Margin width used for line folding, set to 0 to 'disable' folding"
+msgstr "用于行折叠的标注宽度, '取消'折叠设置为0"
+
+#: boa/Scripts/prefs.rc.i18n.py:101
+msgid ""
+"Turns buffered drawing on or off. Buffered drawing draws each line into a bitmap\n"
+"rather than directly to the screen and then copies the bitmap to the screen.\n"
+"This avoids flickering although it does take slightly longer."
+msgstr ""
+"切换缓存读取开启或关闭. 缓存读取每一行到位图=n直接到屏幕和复制位图到屏幕.\n"
+"这会避免长时间时的闪烁."
+
+#: boa/Scripts/prefs.rc.i18n.py:102
+msgid ""
+"Indentation guides are dotted vertical lines that appear within indentation\n"
+"whitespace every indent size columns. They make it easy to see which constructs\n"
+"line up especially when they extend over multiple pages."
+msgstr ""
+"由点垂直行指引缩进, 发生在索引\n"
+"空白每个索引大小列. 使得结构更易\n"
+"计算行, 特别是当它们扩展为很多页时."
+
+#: boa/Scripts/prefs.rc.i18n.py:103
+msgid "Set the code page used to interpret the bytes of the document as characters."
+msgstr "设置页的编码用来将文档字节解释成字符."
+
+#: boa/Scripts/prefs.rc.i18n.py:104
+msgid ""
+"White space can be made visible. Space characters appear as small centred dots\n"
+"and tab characters as light arrows pointing to the right.\n"
+"With the SCWS_VISIBLEAFTERINDENT option, white space used for indentation is\n"
+"invisible but after the first visible character, it is visible."
+msgstr ""
+"空白会设置为可视. 空白字符出现为小中点\n"
+"和标签字符右侧凉箭头.\n"
+"使用SCWS_VISIBLEAFTERINDENT选项, 空白字符用在缩进\n"
+"可视化但是在第一次可视字符, 它是可视的."
+
+#: boa/Scripts/prefs.rc.i18n.py:105
+msgid ""
+"Can be set to a combination of the flags CARET_SLOP and CARET_STRICT to change\n"
+"the automatic vertical positioning of the view when ensuring a position is visible.\n"
+"If CARET_SLOP is off then the caret is centred within the view.\n"
+"When CARET_STRICT is set then caret policy is rechecked even if the caret is completely visible.\n"
+"Setting this value to 0 will leave the policy at startup default"
+msgstr ""
+"可以被设置为联合标签CARET_SLOP和CARET_STRICT来更改\n"
+"视图的自动垂直位置当确定位置可视时.\n"
+"如果CARET_SLOP关闭, ^符号放置于视图中心.=n当CARET_STRICT被设置, ^符号策略会被再次核对即使^符号完全可见.\n"
+"设置此值为0会留下默认启动策略"
+
+#: boa/Scripts/prefs.rc.i18n.py:106
+msgid ""
+"If CARET_SLOP is on then the slop value determines the number of lines at top\n"
+"and bottom of the view where the caret should not go."
+msgstr ""
+"如果CARET_SLOP开启当溢出值决定顶部和底部\n"
+"的行数, 在视图中没有^字符处."
+
+#: boa/Scripts/prefs.rc.i18n.py:107
+msgid ""
+"Sets rate at which the caret blinks, this determines the time in milliseconds\n"
+"that the caret is visible or invisible before changing state.\n"
+"Setting the period to 0 stops the caret blinking."
+msgstr ""
+"设置^字符的闪烁速度, 时间为毫秒\n"
+"修改状态前^字符可视或不可视.\n"
+"设置长度为0则^字符不闪烁."
+
+#: boa/Scripts/prefs.rc.i18n.py:108
+msgid ""
+"This mechanism marks lines that are longer than a specified length in one of two ways.\n"
+"A vertical line can be displayed at the specified column number (EDGE_LINE) or\n"
+"characters after that column can be displayed with a specified background colour\n"
+"(EDGE_BACKGROUND). The vertical line works well for monospaced fonts but not for\n"
+"proportional fonts which should use EDGE_BACKGROUND."
+msgstr ""
+"这个机制标记的行, 这些行不长于两类之一的特定长度.\n"
+"垂直线能被显示在特定列号(EDGE_LINE)或者\n"
+"在显示特定背景颜色的列后面的字符\n"
+"(EDGE_BACKGROUND). 垂直线工作会很好为等宽字符但是不是为\n"
+"等比例字符, 等比例字符应该使用EDGE_BACKGROUND."
+
+#: boa/Scripts/prefs.rc.i18n.py:109
+msgid "Colours"
+msgstr "颜色"
+
+#: boa/Scripts/prefs.rc.i18n.py:110
+msgid "Markers"
+msgstr "标记"
+
+#: boa/Scripts/prefs.rc.i18n.py:111
+#: boa/Scripts/prefs.rc.i18n.py:131
+msgid "Editable preferences"
+msgstr "可编辑参数"
+
+#: boa/Scripts/prefs.rc.i18n.py:112
+msgid "Style of the Error/Output window's notebook."
+msgstr "错误/输出窗口的笔记本的风格"
+
+#: boa/Scripts/prefs.rc.i18n.py:113
+msgid "Should sorting in the explorer be case insensitive"
+msgstr "资源管理器排列时大小写敏感"
+
+#: boa/Scripts/prefs.rc.i18n.py:114
+msgid ""
+"Should there be submenu with all the items from the New palete under the\n"
+"Editor's File menu."
+msgstr ""
+"新调色板应该有子菜单包含所有项\n"
+"在编辑器文件菜单下."
+
+#: boa/Scripts/prefs.rc.i18n.py:115
+msgid "Should a custom wxSTC paint handler he installed which minimizes refresing?"
+msgstr "一个已安装的定制wxSTC绘制处理器当最小化时会刷新吗?"
+
+#: boa/Scripts/prefs.rc.i18n.py:116
+msgid "There is a problem with folding on GTK"
+msgstr "GTK的折叠错误"
+
+#: boa/Scripts/prefs.rc.i18n.py:117
+msgid "Height of the Palette window. Adjust if you use big fonts"
+msgstr "调色板窗口靠独. 取决于使用的最大字号"
+
+#: boa/Scripts/prefs.rc.i18n.py:118
+msgid "Used my Mac toplevel main menu"
+msgstr "使用我的Mac顶层主菜单"
+
+#: boa/Scripts/prefs.rc.i18n.py:119
+msgid "The amount of space Boa should leave on the right for a vertical OS Taskbar."
+msgstr "Boa在操作系统右侧垂直任务栏中会留下的空白量"
+
+#: boa/Scripts/prefs.rc.i18n.py:120
+msgid "The amount of space Boa should leave from the bottom for a horizontal OS Taskbar."
+msgstr "Boa在操作系统底部水平任务栏中会留下的空白量"
+
+#: boa/Scripts/prefs.rc.i18n.py:121
+msgid "Percentage of the with that the Editor window should occupy"
+msgstr "编辑器窗口被占用的百分比"
+
+#: boa/Scripts/prefs.rc.i18n.py:122
+msgid "Window manager dependent values useful for mostly for GTK"
+msgstr "窗口管理器依靠值, 主要用于GTK"
+
+#: boa/Scripts/prefs.rc.i18n.py:123
+msgid "Font size of the text in the Inspector's statusbar"
+msgstr "检视器状态栏中的文字的字体大小"
+
+#: boa/Scripts/prefs.rc.i18n.py:124
+msgid "Match braces in code"
+msgstr "匹配代码中的支撑"
+
+#: boa/Scripts/prefs.rc.i18n.py:125
+msgid "Minimize the IDE while running applications"
+msgstr "运行程序时最小化IDE"
+
+#: boa/Scripts/prefs.rc.i18n.py:126
+msgid "Minimize the IDE when using Debug/Continue while debugging"
+msgstr "当调试时使用调试/继续时最小化IDE"
+
+#: boa/Scripts/prefs.rc.i18n.py:127
+msgid "Draw grid in designer"
+msgstr "在设计器中绘制栅格"
+
+#: boa/Scripts/prefs.rc.i18n.py:128
+msgid "Also draw grid for child container controls in the frame"
+msgstr "在框架的子容器控件中绘制栅格"
+
+#: boa/Scripts/prefs.rc.i18n.py:129
+msgid "Grid drawing method"
+msgstr "栅格绘制方法"
+
+#: boa/Scripts/prefs.rc.i18n.py:130
+msgid "Grayout (blueout actually) source while designer is open"
+msgstr "当设计器开启时模糊源文件(实际为蓝色化)"
+
+#: boa/Scripts/prefs.rc.i18n.py:134
+#: boa/Scripts/prefs.rc.i18n.py:136
+msgid "Miscellaneous"
+msgstr "混杂"
+
+#: boa/Scripts/prefs.rc.i18n.py:135
+msgid "Code generation"
+msgstr "代码生成"
+
+#: boa/Scripts/prefs.rc.i18n.py:138
+#: boa/Scripts/prefs.rc.i18n.py:146
+#: boa/Views/Designer.py:50
+msgid "Designer"
+msgstr "设计器"
+
+#: boa/Scripts/prefs.rc.i18n.py:145
+msgid "Window settings"
+msgstr "窗口设置"
+
+#: boa/Views/AppViews.py:35
+msgid "Application Find Results"
+msgstr "程序查找结果"
+
+#: boa/Views/AppViews.py:43
+msgid "Rerun query"
+msgstr "再次查询"
+
+#: boa/Views/AppViews.py:96
+msgid "Application"
+msgstr "程序"
+
+#: boa/Views/AppViews.py:113
+msgid "Make module main module"
+msgstr "运行主模块"
+
+#: boa/Views/AppViews.py:117
+msgid "Type"
+msgstr "类型"
+
+#: boa/Views/AppViews.py:119
+msgid "Relative path"
+msgstr "相对路径"
+
+#: boa/Views/AppViews.py:180
+msgid "Set the description of the module"
+msgstr "设定模块描述"
+
+#: boa/Views/AppViews.py:181
+msgid "Edit item"
+msgstr "编辑项"
+
+#: boa/Views/AppViews.py:197
+msgid "Cannot remove the main frame of an application"
+msgstr "无法移除程序主框架"
+
+#: boa/Views/AppViews.py:198
+msgid "Module remove error"
+msgstr "模块移除错误"
+
+#: boa/Views/AppViews.py:232
+msgid "Application Documentation"
+msgstr "程序文档"
+
+#: boa/Views/AppViews.py:275
+msgid "App. Compare"
+msgstr "程序对比"
+
+#: boa/Views/AppViews.py:280
+msgid "compare results"
+msgstr "对比结果"
+
+#: boa/Views/AppViews.py:286
+msgid "Differs from"
+msgstr "不同处"
+
+#: boa/Views/AppViews.py:287
+msgid "Result"
+msgstr "结果"
+
+#: boa/Views/AppViews.py:315
+#: boa/Views/AppViews.py:324
+msgid "changed"
+msgstr "已更换"
+
+#: boa/Views/AppViews.py:328
+msgid "deleted"
+msgstr "已删除"
+
+#: boa/Views/AppViews.py:334
+msgid "added"
+msgstr "已添加"
+
+#: boa/Views/AppViews.py:348
+msgid "Application Todo"
+msgstr "将要执行程序"
+
+#: boa/Views/AppViews.py:354
+msgid "Goto file"
+msgstr "跳转至文件"
+
+#: boa/Views/AppViews.py:359
+msgid "#Todos"
+msgstr "#需要做的事"
+
+#: boa/Views/AppViews.py:360
+#: boa/Views/EditorViews.py:1312
+msgid "Filepath"
+msgstr "文件目录"
+
+#: boa/Views/AppViews.py:380
+#, python-format
+msgid "Parsing %s..."
+msgstr "解析%s..."
+
+#: boa/Views/AppViews.py:384
+#, python-format
+msgid "%s skipped, only local files supported for Imports View"
+msgstr "%s跳过, 导入驶入仅支持本地文件"
+
+#: boa/Views/AppViews.py:390
+#, python-format
+msgid "couldn't load %s"
+msgstr "无法加载%s"
+
+#: boa/Views/AppViews.py:403
+msgid "Finished parsing"
+msgstr "完成解析"
+
+#: boa/Views/CollectionEdit.py:101
+msgid "More new ..."
+msgstr "更新..."
+
+#: boa/Views/CollectionEdit.py:114
+#: boa/Views/Designer.py:169
+msgid "Up"
+msgstr "上"
+
+#: boa/Views/CollectionEdit.py:116
+msgid "Down"
+msgstr "下"
+
+#: boa/Views/CollectionEdit.py:298
+msgid "CollectionEditor"
+msgstr "收集编辑器"
+
+#: boa/Views/CollectionEdit.py:345
+#, python-format
+msgid "%s.%s - Collection Editor"
+msgstr "%s.%s - 收集编辑器"
+
+#: boa/Views/CreationOrdDlg.py:25
+msgid "Change creation order"
+msgstr "更换创建顺序"
+
+#: boa/Views/CreationOrdDlg.py:31
+msgid "This dialog manages the order of controls on the level (share a parent). When the parent is recreated, the objects will be recreated in the new order."
+msgstr "对话框管理此级别控件顺序(共享一个父类).当父类被重建, 对象也按照一个新顺序重建."
+
+#: boa/Views/CreationOrdDlg.py:34
+msgid "Current creation/tab order"
+msgstr "当前创建/标签顺序"
+
+#: boa/Views/CtrlAlign.py:41
+#: boa/Views/CtrlAlign.py:60
+#: boa/Views/CtrlAlign.py:69
+#: boa/Views/CtrlSize.py:40
+#: boa/Views/CtrlSize.py:51
+#: boa/Views/CtrlSize.py:76
+msgid "No change"
+msgstr "没有修改"
+
+#: boa/Views/CtrlAlign.py:41
+#: boa/Views/CtrlAlign.py:88
+msgid "Left sides"
+msgstr "作则"
+
+#: boa/Views/CtrlAlign.py:42
+#: boa/Views/CtrlAlign.py:61
+#: boa/Views/CtrlAlign.py:92
+#: boa/Views/CtrlAlign.py:111
+msgid "Centers"
+msgstr "中央"
+
+#: boa/Views/CtrlAlign.py:42
+#: boa/Views/CtrlAlign.py:96
+msgid "Right sides"
+msgstr "右侧"
+
+#: boa/Views/CtrlAlign.py:42
+#: boa/Views/CtrlAlign.py:61
+#: boa/Views/CtrlAlign.py:100
+#: boa/Views/CtrlAlign.py:119
+msgid "Space equally"
+msgstr "等距间隔"
+
+#: boa/Views/CtrlAlign.py:43
+msgid "Horizontal"
+msgstr "水平"
+
+#: boa/Views/CtrlAlign.py:60
+#: boa/Views/CtrlAlign.py:107
+msgid "Tops"
+msgstr "顶部"
+
+#: boa/Views/CtrlAlign.py:61
+#: boa/Views/CtrlAlign.py:115
+msgid "Bottoms"
+msgstr "底部"
+
+#: boa/Views/CtrlAlign.py:62
+msgid "Vertical"
+msgstr "垂直"
+
+#: boa/Views/CtrlSize.py:33
+#: boa/Views/EditorViews.py:1371
+msgid "Size"
+msgstr "大小"
+
+#: boa/Views/CtrlSize.py:41
+#: boa/Views/CtrlSize.py:52
+#: boa/Views/CtrlSize.py:103
+#: boa/Views/CtrlSize.py:115
+msgid "Shrink to smallest"
+msgstr "收缩至最小"
+
+#: boa/Views/CtrlSize.py:41
+#: boa/Views/CtrlSize.py:52
+#: boa/Views/CtrlSize.py:107
+#: boa/Views/CtrlSize.py:119
+msgid "Grow to largest"
+msgstr "扩展至最大"
+
+#: boa/Views/CtrlSize.py:41
+#: boa/Views/CtrlSize.py:111
+msgid "Width:"
+msgstr "宽:"
+
+#: boa/Views/CtrlSize.py:42
+msgid "Width"
+msgstr "宽"
+
+#: boa/Views/CtrlSize.py:52
+#: boa/Views/CtrlSize.py:123
+msgid "Height:"
+msgstr "高:"
+
+#: boa/Views/CtrlSize.py:53
+msgid "Height"
+msgstr "高"
+
+#: boa/Views/DataView.py:29
+msgid "Data"
+msgstr "数据"
+
+#: boa/Views/DataView.py:40
+msgid "Default editor"
+msgstr "默认编辑器"
+
+#: boa/Views/DataView.py:41
+msgid "Post"
+msgstr "发布"
+
+#: boa/Views/DataView.py:49
+#: boa/Views/Designer.py:191
+msgid "Creation/Tab order..."
+msgstr "创建/标签顺序..."
+
+#: boa/Views/DataView.py:51
+#: boa/Views/PySourceView.py:71
+msgid "Context help"
+msgstr "目录帮助"
+
+#: boa/Views/DataView.py:210
+#: boa/Views/InspectableViews.py:803
+#: boa/Views/InspectableViews.py:806
+msgid "Wrong Designer"
+msgstr "错误的设计器"
+
+#: boa/Views/DataView.py:306
+#, python-format
+msgid "Recreating not supported in the %s view"
+msgstr "%s视图不支持重建"
+
+#: boa/Views/Designer.py:93
+#, python-format
+msgid "Component name illegal %s"
+msgstr "非法组件名%s"
+
+#: boa/Views/Designer.py:176
+msgid "Recreate"
+msgstr "重建"
+
+#: boa/Views/Designer.py:177
+msgid "Relayout selection"
+msgstr "重新规划选择"
+
+#: boa/Views/Designer.py:178
+msgid "Relayout Designer"
+msgstr "重新规划设计器"
+
+#: boa/Views/Designer.py:180
+msgid "Fit sizer"
+msgstr "适合大小控制器"
+
+#: boa/Views/Designer.py:183
+msgid "Snap to grid"
+msgstr "跳至栅格"
+
+#: boa/Views/Designer.py:184
+msgid "Align..."
+msgstr "排列..."
+
+#: boa/Views/Designer.py:185
+msgid "Size..."
+msgstr "大小..."
+
+#: boa/Views/Designer.py:368
+msgid "Creating frame"
+msgstr "创建框架"
+
+#: boa/Views/Designer.py:407
+msgid "These links were not resolved (Details...)"
+msgstr "不包括下列链接(详细...)"
+
+#: boa/Views/Designer.py:415
+msgid "Designer refreshed"
+msgstr "设计器刷新"
+
+#: boa/Views/Designer.py:460
+msgid "Designer session Posted."
+msgstr "设计器对话已激活."
+
+#: boa/Views/Designer.py:466
+msgid "Designer session Cancelled."
+msgstr "设计器对话已取消."
+
+#: boa/Views/Designer.py:523
+#, python-format
+msgid "%s not found"
+msgstr "未找到%s"
+
+#: boa/Views/Designer.py:582
+msgid "Can't delete frame"
+msgstr "无法删除框架"
+
+#: boa/Views/Designer.py:1102
+msgid "Cancel Designer session?"
+msgstr "取消设计器对话?"
+
+#: boa/Views/Designer.py:1173
+msgid "Nothing to delete"
+msgstr "没有可删除的项"
+
+#: boa/Views/Designer.py:1216
+msgid "Nothing to cut"
+msgstr "没有可剪切的项"
+
+#: boa/Views/Designer.py:1235
+msgid "Nothing to copy"
+msgstr "没有可复制的项"
+
+#: boa/Views/Designer.py:1275
+msgid "Only 1 control can be pasted into this container"
+msgstr "只有一个空间可以被粘贴至此容器"
+
+#: boa/Views/DiffView.py:44
+#, python-format
+msgid "unknown tag %r"
+msgstr "未知标签%r"
+
+#: boa/Views/DiffView.py:70
+msgid "Diff"
+msgstr "不同点"
+
+#: boa/Views/DiffView.py:81
+msgid "diffs"
+msgstr "不同点"
+
+#: boa/Views/DiffView.py:86
+msgid "Previous difference"
+msgstr "上一个不同点"
+
+#: boa/Views/DiffView.py:87
+msgid "Next difference"
+msgstr "下一个不同点"
+
+#: boa/Views/DiffView.py:88
+msgid "Apply all changes"
+msgstr "应用所有修改"
+
+#: boa/Views/DiffView.py:170
+#, python-format
+msgid "Replace %s with %s?"
+msgstr "替换%s用%s?"
+
+#: boa/Views/EditorViews.py:330
+msgid "Test"
+msgstr "测试"
+
+#: boa/Views/EditorViews.py:348
+msgid "Back"
+msgstr "后退"
+
+#: boa/Views/EditorViews.py:374
+msgid "View"
+msgstr "预览"
+
+#: boa/Views/EditorViews.py:382
+msgid "Documentation"
+msgstr "文档"
+
+#: boa/Views/EditorViews.py:388
+msgid "Save HTML"
+msgstr "保存HTML"
+
+#: boa/Views/EditorViews.py:389
+#: boa/Views/STCPrinting.py:79
+msgid "Print"
+msgstr "打印"
+
+#: boa/Views/EditorViews.py:521
+msgid "results"
+msgstr "结果"
+
+#: boa/Views/EditorViews.py:522
+msgid "Close "
+msgstr "关闭"
+
+#: boa/Views/EditorViews.py:531
+msgid "Cyclops report"
+msgstr "Cyclops报告"
+
+#: boa/Views/EditorViews.py:789
+msgid "Todo"
+msgstr "将要做"
+
+#: boa/Views/EditorViews.py:798
+#: boa/Views/EditorViews.py:1370
+msgid "Line#"
+msgstr "行#"
+
+#: boa/Views/EditorViews.py:799
+msgid "Urgency"
+msgstr "紧急"
+
+#: boa/Views/EditorViews.py:800
+msgid "Entry"
+msgstr "条目"
+
+#: boa/Views/EditorViews.py:903
+msgid "Package"
+msgstr "包"
+
+#: boa/Views/EditorViews.py:938
+msgid "Info"
+msgstr "信息"
+
+#: boa/Views/EditorViews.py:942
+msgid "Add comment block to code"
+msgstr "添加评论块到代码"
+
+#: boa/Views/EditorViews.py:960
+#: boa/Views/EditorViews.py:1072
+msgid "Explore"
+msgstr "探测"
+
+#: boa/Views/EditorViews.py:1110
+msgid "Events"
+msgstr "事件"
+
+#: boa/Views/EditorViews.py:1123
+#: boa/Views/EditorViews.py:1253
+msgid "Loading..."
+msgstr "加载..."
+
+#: boa/Views/EditorViews.py:1289
+msgid "DistUtils"
+msgstr "DistUtils"
+
+#: boa/Views/EditorViews.py:1303
+msgid "Manifest"
+msgstr "Manifest"
+
+#: boa/Views/EditorViews.py:1358
+msgid "CVS conflicts"
+msgstr "CVS冲突"
+
+#: boa/Views/EditorViews.py:1367
+msgid "Accept changes"
+msgstr "接受修改"
+
+#: boa/Views/EditorViews.py:1368
+msgid "Reject changes"
+msgstr "拒绝修改"
+
+#: boa/Views/EditorViews.py:1369
+msgid "Rev"
+msgstr "回转"
+
+#: boa/Views/EditorViews.py:1413
+msgid "Folder"
+msgstr "文件夹"
+
+#: boa/Views/InspectableViews.py:36
+msgid "InspectableObject"
+msgstr "可检测对象"
+
+#: boa/Views/InspectableViews.py:147
+#: boa/Views/InspectableViews.py:152
+#, python-format
+msgid "%s is not defined on the Palette."
+msgstr "%s未在调色板中定义"
+
+#: boa/Views/InspectableViews.py:199
+#, python-format
+msgid "Problem with: %s"
+msgstr "问题: %s"
+
+#: boa/Views/InspectableViews.py:248
+#, python-format
+msgid "Sub-Companion not found for %s in %s"
+msgstr "次级共事者%s未在%s中找到"
+
+#: boa/Views/InspectableViews.py:549
+msgid "Nothing to paste"
+msgstr "没有可粘贴的项"
+
+#: boa/Views/InspectableViews.py:576
+#, python-format
+msgid "Method %s not found"
+msgstr "模块%s未找到"
+
+#: boa/Views/InspectableViews.py:795
+msgid "This component is not yet implemented"
+msgstr "组件未被实现"
+
+#: boa/Views/InspectableViews.py:802
+#, python-format
+msgid "This component must be created in the %s view"
+msgstr "组件必须在%s视图中创建"
+
+#: boa/Views/OGLViews.py:139
+#, python-format
+msgid "%s is possibly corrupt (cannot be unpickled), delete it?Default layout will be used."
+msgstr "%s有可能被占用(无法解开), 删除它? 默认设计将被使用."
+
+#: boa/Views/OGLViews.py:140
+msgid "Corrupt file"
+msgstr "错误文件"
+
+#: boa/Views/OGLViews.py:144
+msgid "Sorry, only supported on the filesystem"
+msgstr "抱歉, 只支持文件系统"
+
+#: boa/Views/OGLViews.py:148
+msgid "Corrupt layout file"
+msgstr "错误设计文件"
+
+#: boa/Views/OGLViews.py:232
+msgid "OGL"
+msgstr "OGL"
+
+#: boa/Views/OGLViews.py:240
+msgid "(Re)load diagram"
+msgstr "(重)加载图标"
+
+#: boa/Views/OGLViews.py:241
+msgid "Save diagram"
+msgstr "保存图标"
+
+#: boa/Views/OGLViews.py:242
+msgid "Print diagram to PostScript"
+msgstr "打印图标至后记"
+
+#: boa/Views/OGLViews.py:244
+msgid "Change size"
+msgstr "修改大小"
+
+#: boa/Views/OGLViews.py:573
+msgid "UML"
+msgstr "UML"
+
+#: boa/Views/OGLViews.py:585
+msgid "Toggle Attributes"
+msgstr "绑定属性"
+
+#: boa/Views/OGLViews.py:586
+msgid "Toggle Methods"
+msgstr "绑定模块"
+
+#: boa/Views/OGLViews.py:588
+msgid "Force layout"
+msgstr "强制输出"
+
+#: boa/Views/OGLViews.py:592
+msgid "Goto Source"
+msgstr "跳转至源文件"
+
+#: boa/Views/OGLViews.py:595
+msgid "Goto Documentation"
+msgstr "跳转至文档"
+
+#: boa/Views/OGLViews.py:691
+msgid "Documentation View is not open"
+msgstr "文档视图未开启"
+
+#: boa/Views/OGLViews.py:693
+#: boa/Views/OGLViews.py:707
+msgid "No shape selected"
+msgstr "没有可选择的形状"
+
+#: boa/Views/OGLViews.py:705
+msgid "No source for selection"
+msgstr "没有可选择的源文件"
+
+#: boa/Views/OGLViews.py:746
+msgid "Imports"
+msgstr "导入"
+
+#: boa/Views/OGLViews.py:845
+msgid "Application packages"
+msgstr "应用程序包"
+
+#: boa/Views/ProfileView.py:24
+msgid "Profile stats"
+msgstr "档案状态"
+
+#: boa/Views/ProfileView.py:32
+msgid "stats"
+msgstr "状态"
+
+#: boa/Views/ProfileView.py:36
+msgid "Callers (called this function)"
+msgstr "调用者(调用函数)"
+
+#: boa/Views/ProfileView.py:37
+msgid "Callees (are called by this function)"
+msgstr "被调用者(被函数调用)"
+
+#: boa/Views/ProfileView.py:40
+msgid "Save stats"
+msgstr "保存状态"
+
+#: boa/Views/ProfileView.py:164
+msgid "Eval'd or exec'd code, no module."
+msgstr "Eval或者exec代码, 非模块"
+
+#: boa/Views/ProfileView.py:183
+#: boa/Views/ProfileView.py:212
+msgid "Choose a function:"
+msgstr "选择一个函数:"
+
+#: boa/Views/ProfileView.py:184
+#, python-format
+msgid "%s was called by..."
+msgstr "%s被调用..."
+
+#: boa/Views/ProfileView.py:213
+#, python-format
+msgid "%s called..."
+msgstr "%s调用..."
+
+#: boa/Views/PySourceView.py:51
+msgid "Comment"
+msgstr "评论"
+
+#: boa/Views/PySourceView.py:52
+msgid "Uncomment"
+msgstr "无评论"
+
+#: boa/Views/PySourceView.py:53
+msgid "Indent"
+msgstr "缩进"
+
+#: boa/Views/PySourceView.py:54
+msgid "Dedent"
+msgstr "无缩进"
+
+#: boa/Views/PySourceView.py:56
+msgid "Run to cursor"
+msgstr "运行指针"
+
+#: boa/Views/PySourceView.py:58
+msgid "Toggle breakpoint"
+msgstr "绑定断点"
+
+#: boa/Views/PySourceView.py:59
+msgid "Load breakpoints"
+msgstr "加载断点"
+
+#: boa/Views/PySourceView.py:60
+msgid "Save breakpoints"
+msgstr "保存断点"
+
+#: boa/Views/PySourceView.py:62
+msgid "Add module runner"
+msgstr "添加模块运行器"
+
+#: boa/Views/PySourceView.py:64
+msgid "Add module info"
+msgstr "添加模块信息"
+
+#: boa/Views/PySourceView.py:65
+msgid "Add comment line"
+msgstr "添加评论行"
+
+#: boa/Views/PySourceView.py:66
+msgid "Code transformation"
+msgstr "代码转换"
+
+#: boa/Views/PySourceView.py:67
+msgid "Code completion"
+msgstr "代码自动完成"
+
+#: boa/Views/PySourceView.py:68
+msgid "Call tips"
+msgstr "调用提示"
+
+#: boa/Views/PySourceView.py:69
+msgid "Browse to"
+msgstr "浏览"
+
+#: boa/Views/PySourceView.py:625
+#, python-format
+msgid "\"%s\" not found."
+msgstr "未找到\"%s\"."
+
+#: boa/Views/PySourceView.py:1173
+msgid "View whitespace"
+msgstr "查看空白"
+
+#: boa/Views/PySourceView.py:1185
+msgid "View EOL characters"
+msgstr "查看行尾结束符"
+
+#: boa/Views/PySourceView.py:1276
+msgid "Disassemble"
+msgstr "分解"
+
+#: boa/Views/SizersView.py:30
+msgid "Sizers"
+msgstr "大小控制器"
+
+#: boa/Views/SourceViews.py:60
+msgid "Undo"
+msgstr "撤销"
+
+#: boa/Views/SourceViews.py:61
+msgid "Redo"
+msgstr "重做"
+
+#: boa/Views/SourceViews.py:67
+msgid "Find \\ Replace"
+msgstr "查找\\替换"
+
+#: boa/Views/SourceViews.py:68
+msgid "Find again"
+msgstr "再次查找"
+
+#: boa/Views/SourceViews.py:69
+msgid "Print..."
+msgstr "打印..."
+
+#: boa/Views/SourceViews.py:70
+msgid "Mark place"
+msgstr "标记未知"
+
+#: boa/Views/SourceViews.py:72
+msgid "STC settings..."
+msgstr "STC设置..."
+
+#: boa/Views/SourceViews.py:73
+msgid "Convert..."
+msgstr "传唤..."
+
+#: boa/Views/SourceViews.py:170
+#, python-format
+msgid "Mixed EOLs detected in %s, please use Edit->Convert... to fix this problem."
+msgstr "在%s发现混合行尾结束符, 请使用编辑=>转换...修正此问题."
+
+#: boa/Views/SourceViews.py:379
+msgid "Code marker added to Browse History"
+msgstr "代码生成器添加到浏览历史"
+
+#: boa/Views/SourceViews.py:389
+msgid "Enter line number:"
+msgstr "输入行号:"
+
+#: boa/Views/SourceViews.py:396
+msgid "Integer line number required"
+msgstr "行号需为整型"
+
+#: boa/Views/SourceViews.py:437
+msgid "View Whitespace"
+msgstr "查看空白"
+
+#: boa/Views/SourceViews.py:439
+msgid "Buffered draw"
+msgstr "缓冲器提取"
+
+#: boa/Views/SourceViews.py:441
+msgid "Use indentation guides"
+msgstr "使用缩进指引"
+
+#: boa/Views/SourceViews.py:443
+msgid "View EOL symbols"
+msgstr "查看行尾结束符符号"
+
+#: boa/Views/SourceViews.py:455
+msgid "EOL mode"
+msgstr "EOL模式"
+
+#: boa/Views/SourceViews.py:484
+msgid "EOLs to CRLF"
+msgstr "CRLF的EOL"
+
+#: boa/Views/SourceViews.py:485
+msgid "EOLs to LF"
+msgstr "LF的EOL"
+
+#: boa/Views/SourceViews.py:486
+msgid "EOLs to CR"
+msgstr "CR的EOL"
+
+#: boa/Views/STCPrinting.py:47
+msgid "Print Source"
+msgstr "打印源文件"
+
+#: boa/Views/STCPrinting.py:50
+msgid "Normal"
+msgstr "标准"
+
+#: boa/Views/STCPrinting.py:50
+msgid "Black on white"
+msgstr "白底黑色"
+
+#: boa/Views/STCPrinting.py:51
+msgid "Colour on white"
+msgstr "白底彩色"
+
+#: boa/Views/STCPrinting.py:51
+msgid "Colour on white default background"
+msgstr "底彩色默认背景"
+
+#: boa/Views/STCPrinting.py:52
+msgid "Colour Mode"
+msgstr "颜色模式"
+
+#: boa/Views/STCPrinting.py:58
+msgid "Filename at top"
+msgstr "顶部文件名"
+
+#: boa/Views/STCPrinting.py:63
+msgid "Page numbers"
+msgstr "页码"
+
+#: boa/Views/STCPrinting.py:68
+msgid "Print Setup"
+msgstr "打印设置"
+
+#: boa/Views/STCPrinting.py:74
+#: boa/Views/STCPrinting.py:128
+msgid "Print Preview"
+msgstr "打印预览"
+
+#: boa/Views/STCPrinting.py:125
+msgid "An error occured while preparing preview."
+msgstr "准备预览时出错."
+
+#: boa/Views/STCPrinting.py:140
+msgid "An error occured while printing."
+msgstr "打印时出错."
+
+#: boa/Views/STCPrinting.py:217
+#, python-format
+msgid "Page: %d"
+msgstr "页: %d"
+
+#: boa/Views/STCPrinting.py:238
+#, python-format
+msgid "warning: on page %s: not enough chars rendered, diff:"
+msgstr "警告: 在页码%s: 没有足够的字符提交, 不同点:"
+
+#: boa/Views/STCStyleEditor.py:67
+msgid "Styles specific to the language"
+msgstr "语言详细风格"
+
+#: boa/Views/STCStyleEditor.py:68
+msgid "Styles shared by all languages"
+msgstr "所有语言共享风格"
+
+#: boa/Views/STCStyleEditor.py:69
+msgid "Properties set by STC methods"
+msgstr "STC方法设置属性"
+
+#: boa/Views/STCStyleEditor.py:70
+msgid "User definable values that can be shared between languages"
+msgstr "语言间可共享的用户定义值"
+
+#: boa/Views/STCStyleEditor.py:124
+msgid "The speed setting allows you to revert to one of the predefined style sets. This will overwrite your current settings when tha dialog is posted."
+msgstr "速度设置允许你传唤一个预定义的风格设定. 当此对话框被提交时会覆盖当前设置."
+
+#: boa/Views/STCStyleEditor.py:133
+msgid "Select a style here to edit it. Common definitions can be added and maintained here.  A common definition is a property that can be shared between styles and special cased per platform."
+msgstr "选择一个风格并编辑. 普通的预定义可以被添加和维护. 一个普通的预定义可以是类型和基于每个平台的特殊类型之间共享的一个属性."
+
+#: boa/Views/STCStyleEditor.py:140
+msgid "Add new Common definition"
+msgstr "添加一个普通预定义"
+
+#: boa/Views/STCStyleEditor.py:147
+msgid "Remove the selected Common definition"
+msgstr "移除所选的普通预定义"
+
+#: boa/Views/STCStyleEditor.py:153
+msgid "(nothing selected)"
+msgstr "(未选中)"
+
+#: boa/Views/STCStyleEditor.py:168
+msgid "Style"
+msgstr "风格"
+
+#: boa/Views/STCStyleEditor.py:172
+msgid "Style def:"
+msgstr "风格定义:"
+
+#: boa/Views/STCStyleEditor.py:176
+msgid "SpeedSetting:"
+msgstr "速度设定:"
+
+#: boa/Views/STCStyleEditor.py:207
+msgid "The style preview window. Click or move the cursor over a specific style to select the style for editing in the editors above."
+msgstr "风格预览窗口. 点击或移动一个特定风格上的指针来选择风格, 并在上面的编辑器窗口进行编辑."
+
+#: boa/Views/STCStyleEditor.py:221
+msgid "Save changes to the config file"
+msgstr "保存修改到设定文件"
+
+#: boa/Views/STCStyleEditor.py:230
+msgid "Close dialog without saving changes"
+msgstr "关闭对话框不保存修改"
+
+#: boa/Views/STCStyleEditor.py:235
+msgid "Face:"
+msgstr "朝向:"
+
+#: boa/Views/STCStyleEditor.py:241
+msgid "Check this for Fixed Width fonts"
+msgstr "检查修改宽度字体"
+
+#: boa/Views/STCStyleEditor.py:250
+msgid "Size:"
+msgstr "大小:"
+
+#: boa/Views/STCStyleEditor.py:266
+#: boa/Views/STCStyleEditor.py:731
+msgid "Foreground"
+msgstr "前景"
+
+#: boa/Views/STCStyleEditor.py:288
+#: boa/Views/STCStyleEditor.py:731
+msgid "Background"
+msgstr "背景"
+
+#: boa/Views/STCStyleEditor.py:302
+msgid "Text attributes"
+msgstr "文本属性"
+
+#: boa/Views/STCStyleEditor.py:306
+msgid "Text attribute flags."
+msgstr "文本属性标记."
+
+#: boa/Views/STCStyleEditor.py:329
+msgid "EOL filled"
+msgstr "行尾结束符填充"
+
+#: boa/Views/STCStyleEditor.py:335
+msgid "Underlined"
+msgstr "下划线"
+
+#: boa/Views/STCStyleEditor.py:341
+msgid "Italic"
+msgstr "意大利体"
+
+#: boa/Views/STCStyleEditor.py:347
+msgid "Bold"
+msgstr "粗体"
+
+#: boa/Views/STCStyleEditor.py:372
+#, python-format
+msgid "wxStyledTextCtrl Style Editor - %s"
+msgstr "wxStyledTextCtrl风格编辑器 - %s"
+
+#: boa/Views/STCStyleEditor.py:456
+msgid "Toggle defaults"
+msgstr "绑定默认"
+
+#: boa/Views/STCStyleEditor.py:483
+#, python-format
+msgid "Name not found in Common definition, please enter valid reference. (%s)"
+msgstr "在普通预定义中未找到命名, 请输入有效参考.(%s)"
+
+#: boa/Views/STCStyleEditor.py:627
+msgid ""
+"Select from list or click \"ok\" button on the right to change a manual entry, right double-click \n"
+"the drop down button to select Common definition in the Style Editor (if applicable)"
+msgstr ""
+"从列表中选择或点击在右侧的\"ok\"按钮来修改手动输入, 右侧双击\n"
+"下拉按钮来选择普通预定义在风格编辑器中(如果可行的话)"
+
+#: boa/Views/STCStyleEditor.py:629
+msgid "Accept value"
+msgstr "接受的值"
+
+#: boa/Views/STCStyleEditor.py:734
+msgid "colour"
+msgstr "颜色"
+
+#: boa/Views/STCStyleEditor.py:766
+#: boa/Views/STCStyleEditor.py:771
+#: boa/Views/STCStyleEditor.py:775
+#: boa/Views/STCStyleEditor.py:780
+msgid "Not a valid colour value"
+msgstr "非有效颜色值"
+
+#: boa/Views/STCStyleEditor.py:812
+#: boa/Views/STCStyleEditor.py:825
+msgid "Invalid common definition"
+msgstr "无效普通预定义"
+
+#: boa/Views/STCStyleEditor.py:824
+msgid "Not a valid integer size value"
+msgstr "非有效整型大小值"
+
+#: boa/Views/STCStyleEditor.py:934
+msgid "Edit common definitions dictionary"
+msgstr "编辑普通预定义字典"
+
+#: boa/Views/STCStyleEditor.py:940
+msgid "Not a valid dictionary"
+msgstr "非有效字典"
+
+#: boa/Views/STCStyleEditor.py:946
+#, python-format
+msgid ""
+"%s not defined but required, \n"
+"reverting to previous common definition"
+msgstr ""
+"所需的%s未定义, \n"
+"转换至上一个普通预定义"
+
+#: boa/Views/STCStyleEditor.py:1001
+#, python-format
+msgid ""
+"Aborted: %s is still used in the styles of the \n"
+"following groups in the config file (stc-styles.rc.cfg):\n"
+msgstr ""
+"忽略: %s仍然在风格中被使用\n"
+"在配置文件的在下列组中(stc-styles.rc.cfg):\n"
+
+#: boa/Views/STCStyleEditor.py:1023
+#, python-format
+msgid "Style %i not defined, sorry."
+msgstr "风格%i未定义, 对不起."
+
+#: boa/Views/STCStyleEditor.py:1068
+msgid "Colour value"
+msgstr "颜色"
+
+#: boa/Views/STCStyleEditor.py:1068
+msgid "Font face"
+msgstr "字体"
+
+#: boa/Views/STCStyleEditor.py:1069
+msgid "Size value"
+msgstr "大小"
+
+#: boa/Views/STCStyleEditor.py:1070
+msgid "Property type"
+msgstr "属性类型"
+
+#: boa/Views/STCStyleEditor.py:1137
+#, python-format
+msgid "Not a valid colour string: %s"
+msgstr "不是一个有效的颜色线: %s"
+
+#: boa/Views/STCStyleEditor.py:1245
+#, python-format
+msgid "Config file %s not found"
+msgstr "配置文件%s未找到"
+
+#: boa/Views/STCStyleEditor.py:1266
+#: boa/Views/STCStyleEditor.py:1270
+#, python-format
+msgid "Common definitions (%s) not a valid dict"
+msgstr "普通预定义(%s)不是一个有效字典"
+
+#: boa/Views/STCStyleEditor.py:1276
+#, python-format
+msgid "Not a valid dict [%s] styleidnames"
+msgstr "不是一个有效字典[%s] styleidnames"
+
+#: boa/Views/STCStyleEditor.py:1281
+#, python-format
+msgid "Not a valid dict [%s] braces"
+msgstr "不是一个有效字典[%s] braces"
+
+#: boa/Views/StyledTextCtrls.py:630
+msgid ""
+"Adding or removing lines from the debugger will cause the source and the debugger to be out of sync.\n"
+"Please undo this action."
+msgstr ""
+"添加或移除调试器中的行会引起源文件和调试器失去同步.\n"
+"请取消此操作."
+
+#: boa/Views/StyledTextCtrls.py:878
+#: boa/Views/StyledTextCtrls.py:895
+#: boa/Views/StyledTextCtrls.py:907
+#, python-format
+msgid "%s not supported"
+msgstr "不支持%s"
+
+#: boa/Views/XMLView.py:25
+msgid "XMLTree"
+msgstr "XMLTree"
+
