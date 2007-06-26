@@ -32,8 +32,8 @@ import wx
 
 #pyPath = sys.path[0] = os.path.abspath(sys.path[0])
 #sys.path.insert(1, '')
-if getattr(sys, "frozen", None):
-    pyPath = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
+if hasattr(sys, "frozen"):
+    pyPath = os.path.abspath(os.path.dirname(sys.executable))
 else:
     pyPath = os.path.abspath(os.path.dirname(__file__))
 
@@ -42,7 +42,10 @@ else:
 print 'reading user preferences'
 
 # This cannot be stored as a Preference option for obvious reasons :)
-prefsDirName = '.boa-constructor'
+if hasattr(sys, "frozen"):
+    prefsDirName = '.boa-constructor-exe'
+else:
+    prefsDirName = '.boa-constructor'
 if '--OverridePrefsDirName' in sys.argv or '-O' in sys.argv:
     try: idx = sys.argv.index('--OverridePrefsDirName')
     except ValueError:
@@ -101,6 +104,9 @@ wxPlatforms = {'__WXMSW__': 'msw',
                '__WXMAC__': 'mac'}
 thisPlatform = wxPlatforms[wx.Platform]
 
+if not os.path.exists(rcPath):
+    raise Exception, 'Config directory is missing'
+
 # upgrade if needed and exec in our namespace
 for prefsFile, version in (('prefs.rc.py', 18),
                            ('prefs.%s.rc.py'%thisPlatform, 9),
@@ -110,7 +116,11 @@ for prefsFile, version in (('prefs.rc.py', 18),
 
     # first time, install to env dir
     if not os.path.exists(file):
-        shutil.copy2(os.path.join(pyPath, 'Config', prefsFile), file)
+        prefsFilePath = os.path.join(pyPath, 'Config', prefsFile)
+        if not os.path.exists(prefsFilePath):
+            raise Exception, 'Config file %s not found'%prefsFilePath
+        else:
+            shutil.copy2(os.path.join(pyPath, 'Config', prefsFile), file)
     # check version
     else:
         if version is not None:
@@ -192,14 +202,15 @@ screenWidth = screenHeight = wxDefaultFramePos = wxDefaultFrameSize = \
 def initScreenVars():
     global screenWidth, screenHeight, wxDefaultFramePos, wxDefaultFrameSize
     global edWidth, inspWidth, paletteHeight, bottomHeight, underPalette
-    global oglBoldFont, oglStdFont 
+    global oglBoldFont, oglStdFont, screenX, screenY 
     
     screenWidth = wx.SystemSettings.GetMetric(wx.SYS_SCREEN_X)
     screenHeight = wx.SystemSettings.GetMetric(wx.SYS_SCREEN_Y)
     if wx.Platform == '__WXMSW__':
-        _x, _y, screenWidth, screenHeight = wx.GetClientDisplayRect()
+        screenX, screenY, screenWidth, screenHeight = wx.GetClientDisplayRect()
         screenHeight -= topMenuHeight
     else:
+        screenX, screenY = 0, 0
         # handle dual monitors on Linux
         if screenWidth / screenHeight >= 2:
             screenWidth = screenWidth / 2
@@ -218,7 +229,7 @@ def initScreenVars():
     inspWidth = screenWidth - edWidth + 1 - windowManagerSide * 4
     paletteHeight = paletteHeights[paletteStyle]
     bottomHeight = screenHeight - paletteHeight
-    underPalette = paletteHeight + windowManagerTop + windowManagerBottom + topMenuHeight
+    underPalette = paletteHeight + windowManagerTop + windowManagerBottom + topMenuHeight + screenY
 
     if wx.Platform == '__WXMSW__':
         oglBoldFont = wx.Font(7, wx.DEFAULT, wx.NORMAL, wx.BOLD, False)
