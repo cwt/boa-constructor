@@ -21,6 +21,18 @@ import __version__
 import Preferences, Utils
 from Utils import _
 
+from ExternalLib import langlistctrl
+
+translations = [
+  (wx.LANGUAGE_AFRIKAANS, 'Riaan Booysen (riaan@e.co.za)'),
+  (wx.LANGUAGE_CHINESE, 'Dylan Yang (otherrrr@gmail.com)'),
+  (wx.LANGUAGE_FRENCH, 'Olivier Thiery (olivier.th@gmail.com)'),
+  (wx.LANGUAGE_GERMAN, 'Werner F. Bruhin (werner.bruhin@free.fr), Jens Klein (jens@bluedynamics.com)'),
+  (wx.LANGUAGE_ITALIAN, 'Michele Petrazzo (michele.petrazzo@unipex.it)'),
+  (wx.LANGUAGE_PORTUGUESE_BRAZILIAN, 'Sergio Brant (sergiobrant@yahoo.com.br)'),
+  (wx.LANGUAGE_SPANISH, 'Felix Medrano Sanz (xukosky@yahoo.es)'),
+]
+
 prog_update = re.compile('<<(?P<cnt>[0-9]+)/(?P<tot>[0-9]+)>>')
 
 about_html = '''
@@ -65,24 +77,18 @@ credits_html = '''
 <b>The Boa Team</b><br>
 <br>
 Riaan Booysen (riaan@e.co.za)<p>
+Werner F. Bruhin (werner.bruhin@free.fr)<br>
 Shane Hathaway (shane@zope.com)<br>
 Kevin Gill (kevin@telcotek.com)<br>
 Robert Boulanger (robert@boulanger.de)<br>
 Tim Hochberg (tim.hochberg@ieee.org)<br>
 Kevin Light (klight@walkertechnical.com)<br>
 Marius van Wyk (marius@e.co.za)<br>
-Werner F. Bruhin (werner.bruhin@free.fr)<br>
 
 <p>
 <b>Translators</b><br>
 <br>
-German - Werner F. Bruhin (werner.bruhin@free.fr)<br>
-Italian - Michele Petrazzo (michele.petrazzo@unipex.it)<br>
-Brazilian Portuguese - Sergio Brant (sergiobrant@yahoo.com.br)<br>
-Afrikaans - Riaan Booysen (riaan@e.co.za)<br>
-Spanish - Felix Medrano Sanz (xukosky@yahoo.es)<br>
-French - Olivier Thiery (olivier.th@gmail.com)<br>
-
+%s
 <p>
 <b>Many thanks to</b><br>
 <br>
@@ -134,46 +140,55 @@ about_text = '''
 <p>A <b>Python</b> IDE and <b>wxPython</b> GUI builder
 </p>
 <p><a href="Boa">http://boa-constructor.sourceforge.net</a><br></u>
-&copy;1999-2005 <b>Riaan Booysen</b>. <a href="MailMe">riaan@e.co.za</a><br>
+&copy;1999-2006 <b>Riaan Booysen</b>. <a href="MailMe">riaan@e.co.za</a><br>
 <a href="Credits">Credits</a>
 </p>
 <p><font size=-1 color="#000077">Python %s</font><br>
-<font size=-1 color="#000077">wx.Platform: %s %s, %s</font></p>
+<font size=-1 color="#000077">wx.Python %s: %s, <img src="%s">&nbsp;%s, %s</font></p>
 <hr>
 <wxp module="wx" class="Button">
   <param name="label" value="OK">
   <param name="id"    value="ID_OK">
 </wxp>
 </center>
-<br><br>
-<p>
+<br>
 <p>
 <center>
 <font size=-1><i>for <font color="#AA0000"><b>Bonnie</b></font></i></font>
 </center>
-</p>
 </p>
 '''
 
 wx.FileSystem.AddHandler(wx.MemoryFSHandler())
 
 def addImagesToFS():
+    PNG = wx.BITMAP_TYPE_PNG
     for name, path, type in [
         ('Boa.jpg', 'Images/Shared/Boa.jpg', wx.BITMAP_TYPE_JPEG),
-        ('PythonPowered.png', 'Images/Shared/PythonPowered.png', wx.BITMAP_TYPE_PNG),
-        ('wxPyButton.png', 'Images/Shared/wxPyButton.png', wx.BITMAP_TYPE_PNG),
-        ('wxWidgetsButton.png', 'Images/Shared/wxWidgetsButton.png', wx.BITMAP_TYPE_PNG),
-        ('Debian.png', 'Images/Shared/Debian.png', wx.BITMAP_TYPE_PNG),
-        ('Gentoo.png', 'Images/Shared/Gentoo.png', wx.BITMAP_TYPE_PNG),
-        ('FreeBSD.png', 'Images/Shared/FreeBSD.png', wx.BITMAP_TYPE_PNG),
+        ('PythonPowered.png', 'Images/Shared/PythonPowered.png', PNG),
+        ('wxPyButton.png', 'Images/Shared/wxPyButton.png', PNG),
+        ('wxWidgetsButton.png', 'Images/Shared/wxWidgetsButton.png', PNG),
+        ('Debian.png', 'Images/Shared/Debian.png', PNG),
+        ('Gentoo.png', 'Images/Shared/Gentoo.png', PNG),
+        ('FreeBSD.png', 'Images/Shared/FreeBSD.png', PNG),
         ]:
         if name not in addImagesToFS.addedImages:
             wx.MemoryFSHandler.AddFile(name, Preferences.IS.load(path), type)
             addImagesToFS.addedImages.append(name)
+
+    for lid, _tr in translations:
+        li = wx.Locale.GetLanguageInfo(lid)
+        name = 'flag-%s'%li.CanonicalName
+        if name not in addImagesToFS.addedImages:
+            bmp = langlistctrl.GetLanguageFlag(lid)
+            wx.MemoryFSHandler.AddFile(name, bmp, wx.BITMAP_TYPE_PNG)
+            addImagesToFS.addedImages.append(name)
+
+    
 addImagesToFS.addedImages = []
 
 def createSplash(parent, modTot, fileTot):
-    return AboutBoxSplash(parent, modTot, fileTot)
+    return AboutBoxSplash(parent, modTot, fileTot, extraStyle=wx.html.HW_SCROLLBAR_NEVER)
 
 def createNormal(parent):
     return AboutBox(parent)
@@ -182,7 +197,7 @@ wxID_ABOUTBOX = wx.NewId()
 
 class AboutBoxMixin:
     border = 7
-    def __init__(self, parent, modTot=0, fileTot=0):
+    def __init__(self, parent, modTot=0, fileTot=0, extraStyle=0):
         self._init_ctrls(parent)
         
         addImagesToFS()
@@ -195,7 +210,7 @@ class AboutBoxMixin:
         self.blackback.SetBackgroundColour(wx.BLACK)
 
         self.html = Utils.wxUrlClickHtmlWindow(self.blackback, -1, 
-              style=wx.CLIP_CHILDREN | wx.html.HW_NO_SELECTION)
+              style=wx.CLIP_CHILDREN | wx.html.HW_NO_SELECTION | extraStyle)
         Utils.EVT_HTML_URL_CLICK(self.html, self.OnLinkClick)
         self.setPage()
         self.blackback.SetAutoLayout(True)
@@ -213,14 +228,22 @@ class AboutBoxMixin:
         try:
             import webbrowser
         except ImportError:
-            wxMessageBox('Please point your browser at: %s' % url)
+            wx.MessageBox('Please point your browser at: %s' % url)
         else:
             webbrowser.open(url)
 
     def OnLinkClick(self, event):
         clicked = event.linkinfo[0]
         if clicked == 'Credits':
-            self.html.SetPage(credits_html % ('memory:PythonPowered.png',
+            translators = []
+            for lid, name in translations:
+                li = wx.Locale.GetLanguageInfo(lid)
+                translators.append('<img src="memory:flag-%s">&nbsp;%s - %s<br>'%(
+                      li.CanonicalName, li.Description, name))
+            translators = ''.join(translators)          
+
+            self.html.SetPage(credits_html % (translators, 
+                                              'memory:PythonPowered.png',
                                               'memory:wxPyButton.png', 
                                               'memory:wxWidgetsButton.png',
                                               'memory:Debian.png',
@@ -255,15 +278,27 @@ class AboutBoxMixin:
 
 class AboutBox(AboutBoxMixin, wx.Dialog):
     def _init_ctrls(self, prnt):
-        wx.Dialog.__init__(self, size=wx.Size(410, 545), pos=(-1, -1),
+        wx.Dialog.__init__(self, size=wx.Size(410, 570), pos=(-1, -1),
               id=wxID_ABOUTBOX, title=_('About Boa Constructor'), parent=prnt,
               name='AboutBox', style=wx.DEFAULT_DIALOG_STYLE)
+        
+        try:
+            if 'Language.png' not in addImagesToFS.addedImages:
+                wx.MemoryFSHandler.AddFile('Language.png', 
+                 langlistctrl.GetLanguageFlag(wx.GetApp().locale.GetLanguage()), 
+                 wx.BITMAP_TYPE_PNG)
+                addImagesToFS.addedImages.append('Language.png')
+        except Exception, err:
+            pass
 
     def setPage(self):
+        sysLangName = wx.GetApp().locale.GetSysName()
         self.html.SetPage((about_html % (
               'memory:Boa.jpg', __version__.version,
-              '', about_text % (sys.version, wx.Platform, wx.__version__, 
-              wx.Locale.GetLanguageName(Preferences.i18nLanguage)))))
+              '', about_text % (sys.version, wx.VERSION_STRING, 
+                ', '.join(wx.PlatformInfo), 'memory:Language.png', sysLangName,
+                sys.getdefaultencoding()))))
+
 DefAboutBox = AboutBox
 
 class AboutBoxSplash(AboutBoxMixin, wx.Frame):
