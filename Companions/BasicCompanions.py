@@ -20,7 +20,7 @@ import wx.media
 
 from Utils import _
 
-from BaseCompanions import WindowDTC, ChoicedDTC
+from BaseCompanions import WindowDTC, ChoicedDTC, CollectionDTC
 
 import Constructors
 from EventCollections import *
@@ -532,6 +532,144 @@ class MediaCtrlDTC(WindowDTC):
                            'import wx.media') )
 
 
+EventCategories['RichTextEvent'] = (
+    'wx.richtext.EVT_RICHTEXT_CHARACTER', 
+    'wx.richtext.EVT_RICHTEXT_DELETE', 
+    'wx.richtext.EVT_RICHTEXT_RETURN', 
+    'wx.richtext.EVT_RICHTEXT_STYLE_CHANGED', 
+    'wx.richtext.EVT_RICHTEXT_STYLESHEET_CHANGING',
+    'wx.richtext.EVT_RICHTEXT_STYLESHEET_CHANGED',
+    'wx.richtext.EVT_RICHTEXT_STYLESHEET_REPLACING', 
+    'wx.richtext.EVT_RICHTEXT_STYLESHEET_REPLACED',
+    'wx.richtext.EVT_RICHTEXT_CONTENT_INSERTED', 
+    'wx.richtext.EVT_RICHTEXT_CONTENT_DELETED')
+commandCategories.append('RichTextEvent')
+
+class RichTextCtrlDTC(WindowDTC):
+    def __init__(self, name, designer, parent, ctrlClass):
+        WindowDTC.__init__(self, name, designer, parent, ctrlClass)
+        self.windowStyles = ['wx.richtext.RE_MULTILINE', 'wx.richtext.RE_READONLY',
+                            ] + self.windowStyles
+        self.editors['Editable'] = BoolPropEdit
+    def constructor(self):
+        return {'Value': 'value', 'Position': 'pos', 'Size': 'size',
+                'Style': 'style'}
+    def designTimeSource(self, position = 'wx.DefaultPosition', size = 'wx.DefaultSize'):
+        return {'value': `self.name`,
+                'pos': position,
+                'size': self.getDefCtrlSize(),
+                'style': 'wx.richtext.RE_MULTILINE'}
+    def vetoedMethods(self):
+        return ['GetTargetWindow', 'SetTargetWindow', 'ViewStart', 'TargetWindow']
+    def writeImports(self):
+        return '\n'.join( (WindowDTC.writeImports(self),
+                           'import wx.richtext') )
+    def properties(self):
+        import wx.richtext
+        props = WindowDTC.properties(self)
+        props.update({'Editable':  ('CtrlRoute', wx.richtext.RichTextCtrl.IsEditable, wx.richtext.RichTextCtrl.SetEditable)})
+        return props
+    def hideDesignTime(self):
+        return WindowDTC.hideDesignTime(self) + ['TargetRect', 
+              'InternalSelectionRange', 'SelectionRange', 'HandlerFlags', 
+              'StyleSheet']
+    def events(self):
+        return WindowDTC.events(self) + ['RichTextEvent']
+
+# Designer support needed to use ComboCtrl directly
+# SetPopupControl(wx.SomeComboPopup) must be generated and set
+EventCategories['ComboCtrlEvent'] = ('wx.EVT_TEXT', 'wx.EVT_TEXT_ENTER')
+commandCategories.append('ComboCtrlEvent')
+class ComboCtrlDTC(WindowDTC):
+    def __init__(self, name, designer, parent, ctrlClass):
+        WindowDTC.__init__(self, name, designer, parent, ctrlClass)
+        self.windowStyles = ['wx.CB_READONLY', 'wx.CB_SORT', 'wx.TE_PROCESS_ENTER',
+          'wx.combo.CC_SPECIAL_DCLICK', 'wx.combo.CC_STD_BUTTON'] + self.windowStyles
+        self.ctrlDisabled = True  
+
+    def constructor(self):
+        return {'Value': 'value', 'Position': 'pos', 'Size': 'size',
+                'Style': 'style', 'Name': 'name'}
+
+    def designTimeSource(self, position = 'wx.DefaultPosition', size = 'wx.DefaultSize'):
+        return {'value': `self.name`,
+                'pos': position,
+                'size': size,
+                'style': '0',
+                'name': `self.name`}
+
+##    def vetoedMethods(self):
+##        return ['GetColumns', 'SetColumns', 'GetSelection', 'SetSelection',
+##                'GetStringSelection', 'SetStringSelection']
+##
+##    def hideDesignTime(self):
+##        return ['Label']
+
+    def events(self):
+        return WindowDTC.events(self) + ['ComboCtrlEvent']
+
+    def writeImports(self):
+        return '\n'.join( (WindowDTC.writeImports(self),
+                           'import wx.combo') )
+
+class BitmapComboBoxDTC(ComboCtrlDTC): 
+    def __init__(self, name, designer, parent, ctrlClass):
+        ComboCtrlDTC.__init__(self, name, designer, parent, ctrlClass)
+        self.editors['Items'] = CollectionPropEdit
+        self.subCompanions['Items'] = BitmapComboBoxItemsCDTC
+
+class BitmapComboBoxItemsCDTC(CollectionDTC):
+    propName = 'Items'
+    displayProp = 'item'
+    indexProp = 'pos'
+    insertionMethod = 'Insert'
+    deletionMethod = 'Delete'
+
+    def __init__(self, name, designer, parentCompanion, ctrl):
+        CollectionDTC.__init__(self, name, designer, parentCompanion, ctrl)
+        self.editors = {'Position' : IntConstrPropEdit,
+                        'Item': StrConstrPropEdit,
+                        'Bitmap': BitmapConstrPropEdit}
+
+    def constructor(self):
+        return {'Position': 'pos', 'Item': 'item', 'Bitmap': 'bitmap'}
+
+    def properties(self):
+        props = CollectionDTC.properties(self)
+        props.update({'Position': ('NoneRoute', None, None),
+                      'Item':     ('NoneRoute', None, None),
+                      'Bitmap':   ('CompnRoute', self.GetItemBitmap, self.SetItemBitmap)})
+        return props
+
+    def designTimeSource(self, wId, method=None):
+        return {'pos': `wId`,
+                'item': `'%s%d'%(self.propName, wId)`,
+                'bitmap': 'wx.NullBitmap'}
+
+    def GetItemBitmap(self):
+        return self.control.GetItemBitmap(self.index)
+
+    def SetItemBitmap(self, bitmap):
+        self.control.SetItemBitmap(self.index, bitmap)
+        
+
+class SearchCtrlDTC(TextCtrlDTC):
+    def __init__(self, name, designer, parent, ctrlClass):
+        TextCtrlDTC.__init__(self, name, designer, parent, ctrlClass)
+        self.editors['SearchButtonVisible'] = BoolPropEdit
+        self.editors['CancelButtonVisible'] = BoolPropEdit
+        self.ctrlDisabled = True  
+        
+
+    def properties(self):
+        props = TextCtrlDTC.properties(self)
+        props.update({'SearchButtonVisible': ('CtrlRoute', 
+            wx.SearchCtrl.IsSearchButtonVisible, wx.SearchCtrl.ShowSearchButton),
+                      'CancelButtonVisible': ('CtrlRoute', 
+            wx.SearchCtrl.IsCancelButtonVisible, wx.SearchCtrl.ShowCancelButton)})
+        return props
+    
+
 #-------------------------------------------------------------------------------
 import Plugins
 
@@ -555,3 +693,21 @@ Plugins.registerComponents('BasicControls',
       (wx.animate.GIFAnimationCtrl, 'wx.animate.GIFAnimationCtrl', GIFAnimationCtrlDTC),
       (wx.media.MediaCtrl, 'wx.media.MediaCtrl', MediaCtrlDTC),
     )
+
+try:
+    import wx.richtext
+    Plugins.registerComponent('BasicControls', wx.richtext.RichTextCtrl, 'wx.richtext.RichTextCtrl', RichTextCtrlDTC)
+except ImportError:
+    pass
+
+try:
+    import wx.combo
+#    Plugins.registerComponent('BasicControls', wx.combo.ComboCtrl, 'wx.combo.ComboCtrl', ComboCtrlDTC)
+    Plugins.registerComponent('BasicControls', wx.combo.BitmapComboBox, 'wx.combo.BitmapComboBox', BitmapComboBoxDTC)
+except ImportError:
+    pass
+
+try:
+    Plugins.registerComponent('BasicControls', wx.SearchCtrl, 'wx.SearchCtrl', SearchCtrlDTC)
+except AttributeError:
+    pass
