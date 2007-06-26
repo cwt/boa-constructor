@@ -2,18 +2,18 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Boa Constructor - 0.5.2\n"
 "POT-Creation-Date: \n"
-"PO-Revision-Date: 2006-10-19 19:50+0200\n"
+"PO-Revision-Date: 2007-06-27 01:23+0200\n"
 "Last-Translator: Riaan Booysen <riaan@e.co.za>\n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: boa/About.py:257
+#: boa/About.py:282
 msgid "About Boa Constructor"
 msgstr "Aangaande Boa Constructor"
 
-#: boa/Boa.py:551
+#: boa/Boa.py:553
 #, python-format
 msgid ""
 "Error writing config file: %s\n"
@@ -22,11 +22,11 @@ msgstr ""
 "Fout gedurende die skryf van die konfigurasie lêer: %s\n"
 "Maak seker dat die Explorer.*.cfg lêer skryfbaar is."
 
-#: boa/Boa.py:617
+#: boa/Boa.py:619
 msgid "Could not set working directory from Preferences.exWorkingDirectory :"
 msgstr "Kon nie die werk gids stel vanaf Preferences.exWorkingDirectory nie:"
 
-#: boa/Boa.py:624
+#: boa/Boa.py:626
 msgid ""
 "\n"
 "There were errors during startup, please click \"Details\""
@@ -34,25 +34,25 @@ msgstr ""
 "\n"
 "Daarwas foute gedurende die laai proses, kliek \"Besonderhede\""
 
-#: boa/Boa.py:643
+#: boa/Boa.py:645
 msgid "Restore Boa Constructor"
 msgstr "Bring Boa Constructor vorentoe"
 
-#: boa/Boa.py:644
+#: boa/Boa.py:646
 msgid "Exit"
 msgstr "Verlaat"
 
-#: boa/Boa.py:646
-#: boa/Editor.py:273
+#: boa/Boa.py:648
+#: boa/Editor.py:276
 msgid "About"
 msgstr "Aangaande"
 
-#: boa/Boa.py:692
+#: boa/Boa.py:694
 msgid "Error on startup"
 msgstr "Fout gedurende laai"
 
 #: boa/ClassBrowser.py:32
-#: boa/Views/EditorViews.py:1217
+#: boa/Views/EditorViews.py:1236
 msgid "Hierarchy"
 msgstr "Hierargie"
 
@@ -85,13 +85,8 @@ msgstr "Super"
 msgid "wxPython class browser"
 msgstr "wxPython klas blaaier"
 
-#: boa/Dialog1.py:12
-#: boa/Views/STCStyleEditor.py:1065
-msgid "Common definition"
-msgstr "Gedeelde definiesie"
-
-#: boa/Editor.py:54
-#: boa/Editor.py:102
+#: boa/Editor.py:57
+#: boa/Editor.py:105
 #: boa/Explorers/EditorExplorer.py:142
 #: boa/PropEdit/FlexGridGrowablesDlg.py:86
 #: boa/Scripts/prefs.rc.i18n.py:140
@@ -99,220 +94,220 @@ msgstr "Gedeelde definiesie"
 msgid "Editor"
 msgstr "Redigeerder"
 
-#: boa/Editor.py:76
-#: boa/Editor.py:463
-#: boa/Editor.py:499
+#: boa/Editor.py:79
+#: boa/Editor.py:468
+#: boa/Editor.py:504
 msgid "File"
 msgstr "Lêer"
 
-#: boa/Editor.py:77
-#: boa/Editor.py:473
-#: boa/Editor.py:488
-#: boa/Editor.py:491
-#: boa/Editor.py:494
-#: boa/Plug-ins/ImageEditor.plug-in.py:898
+#: boa/Editor.py:80
+#: boa/Editor.py:478
+#: boa/Editor.py:493
+#: boa/Editor.py:496
+#: boa/Editor.py:499
+#: boa/Plug-ins/ImageEditor.plug-in.py:899
 #: boa/PropEdit/BitmapListEditorDlg.py:130
 #: boa/Views/AppViews.py:108
 msgid "Edit"
 msgstr "Redigeer"
 
-#: boa/Editor.py:78
-#: boa/Editor.py:481
-#: boa/Editor.py:502
+#: boa/Editor.py:81
+#: boa/Editor.py:486
+#: boa/Editor.py:507
 #: boa/Scripts/prefs.rc.i18n.py:141
 msgid "Views"
 msgstr "Aansigte"
 
-#: boa/Editor.py:79
+#: boa/Editor.py:82
 msgid "Tools"
 msgstr "Gereedskap"
 
-#: boa/Editor.py:210
+#: boa/Editor.py:213
 msgid "Load"
 msgstr "Laai"
 
-#: boa/Editor.py:211
+#: boa/Editor.py:214
 msgid "Load window dimensions from the config."
 msgstr "Laai venster grootes uit die konfigurasie."
 
-#: boa/Editor.py:212
+#: boa/Editor.py:215
 #: boa/FileDlg.py:30
 #: boa/Models/Controllers.py:134
 msgid "Save"
 msgstr "Stoor"
 
-#: boa/Editor.py:213
+#: boa/Editor.py:216
 msgid "Save window dimensions to the config."
 msgstr "Stoor venster grootes na die konfigurasie."
 
-#: boa/Editor.py:215
+#: boa/Editor.py:218
 msgid "Restore defaults"
 msgstr "Restoreer verstek waardes"
 
-#: boa/Editor.py:215
+#: boa/Editor.py:218
 msgid "Restore dimensions to defaults"
 msgstr "Restoreer grootes na verstek waardes"
 
-#: boa/Editor.py:219
+#: boa/Editor.py:222
 msgid "Palette"
 msgstr "Palette"
 
-#: boa/Editor.py:219
+#: boa/Editor.py:222
 msgid "Switch to the Palette frame."
 msgstr "Skakel oor na die Palette venster."
 
-#: boa/Editor.py:221
-#: boa/Editor.py:535
+#: boa/Editor.py:224
+#: boa/Editor.py:540
 #: boa/Inspector.py:96
 #: boa/Scripts/prefs.rc.i18n.py:144
 msgid "Inspector"
 msgstr "Inspekteur"
 
-#: boa/Editor.py:222
+#: boa/Editor.py:225
 msgid "Switch to the Inspector frame."
 msgstr "Skakel oor na die Inspekteur venster."
 
-#: boa/Editor.py:226
-#: boa/Editor.py:537
+#: boa/Editor.py:229
+#: boa/Editor.py:542
 #: boa/Scripts/prefs.rc.i18n.py:143
 msgid "Shell"
 msgstr "Python Dop"
 
-#: boa/Editor.py:227
+#: boa/Editor.py:230
 msgid "Switch to the Shell page"
 msgstr "Skakel oor na die Python Dop bladsy"
 
-#: boa/Editor.py:230
-#: boa/Editor.py:539
-#: boa/Editor.py:581
+#: boa/Editor.py:233
+#: boa/Editor.py:544
+#: boa/Editor.py:586
 #: boa/Scripts/prefs.rc.i18n.py:133
 #: boa/Scripts/prefs.rc.i18n.py:137
 msgid "Explorer"
 msgstr "Verkenner"
 
-#: boa/Editor.py:231
+#: boa/Editor.py:234
 msgid "Switch to the Explorer page"
 msgstr "Skakel oor na die Verkenner bladsy"
 
-#: boa/Editor.py:233
+#: boa/Editor.py:236
 #: boa/Explorers/PrefsExplorer.py:51
 #: boa/Explorers/PrefsExplorer.py:102
 msgid "Preferences"
 msgstr "Voorkeure"
 
-#: boa/Editor.py:234
+#: boa/Editor.py:237
 msgid "Switch to the Preferences in the Explorer"
 msgstr "Skakel oor na Voorkeure in die Verkenner"
 
-#: boa/Editor.py:238
-#: boa/Editor.py:443
+#: boa/Editor.py:241
+#: boa/Editor.py:448
 msgid "Browse back"
 msgstr "Blaai terug"
 
-#: boa/Editor.py:239
+#: boa/Editor.py:242
 msgid "Go back in browsing history stack"
 msgstr "Gaan terug in blaai die geskiedenis stapel"
 
-#: boa/Editor.py:241
-#: boa/Editor.py:444
+#: boa/Editor.py:244
+#: boa/Editor.py:449
 msgid "Browse forward"
 msgstr "Blaai vorentoe"
 
-#: boa/Editor.py:242
+#: boa/Editor.py:245
 msgid "Go forward in browsing history stack"
 msgstr "Gaan vorentoe in die blaai geskiedenis stapel"
 
-#: boa/Editor.py:244
+#: boa/Editor.py:247
 msgid "Previous page"
 msgstr "Vorige bladsy"
 
-#: boa/Editor.py:245
+#: boa/Editor.py:248
 msgid "Switch to the previous page of the main notebook"
 msgstr "Skakel terug na die vorige bladsy van die hoof notaboek"
 
-#: boa/Editor.py:247
+#: boa/Editor.py:250
 msgid "Next page"
 msgstr "Volgende bladsy"
 
-#: boa/Editor.py:248
+#: boa/Editor.py:251
 msgid "Switch to the next page of the main notebook"
 msgstr "Skakel oor na die volgende bladsy van die hoof notaboek"
 
-#: boa/Editor.py:251
+#: boa/Editor.py:254
 msgid "All window dimensions"
 msgstr "Alle venster grootes"
 
-#: boa/Editor.py:252
+#: boa/Editor.py:255
 msgid "Load, save or restore IDE windows dimensions"
 msgstr "Laai, stoor of herset IDE venster grootes"
 
-#: boa/Editor.py:254
+#: boa/Editor.py:257
 msgid "Hide Palette"
 msgstr "Steek Palette weg"
 
-#: boa/Editor.py:254
+#: boa/Editor.py:257
 msgid "Hide the Palette frame"
 msgstr "Steek die Palette raam weg"
 
-#: boa/Editor.py:256
+#: boa/Editor.py:259
 msgid "Windows"
 msgstr "Vensters"
 
-#: boa/Editor.py:259
-#: boa/Editor.py:289
-#: boa/Editor.py:507
+#: boa/Editor.py:262
+#: boa/Editor.py:292
+#: boa/Editor.py:512
 #: boa/Debugger/RemoteDialog.py:83
 msgid "Help"
 msgstr "Hulp"
 
-#: boa/Editor.py:260
+#: boa/Editor.py:263
 msgid "Opens help for the Editor"
 msgstr "Maak hulp oop vir die Redigeerder"
 
-#: boa/Editor.py:262
+#: boa/Editor.py:265
 msgid "Getting started guide"
 msgstr "Beginners hulpleiding"
 
-#: boa/Editor.py:262
+#: boa/Editor.py:265
 msgid "Opens the Getting started guide"
 msgstr "Maak die beginners hulpleiding oop"
 
-#: boa/Editor.py:265
-#: boa/Editor.py:545
-#: boa/Views/Designer.py:188
+#: boa/Editor.py:268
+#: boa/Editor.py:550
+#: boa/Views/Designer.py:193
 msgid "Find in index..."
 msgstr "Vind in indeks..."
 
-#: boa/Editor.py:266
-#: boa/Views/Designer.py:189
+#: boa/Editor.py:269
+#: boa/Views/Designer.py:194
 msgid "Pops up a text input for starting a search of the help indexes"
 msgstr "Bring teks dialoog op waar 'n soekterm ingevoer kan word "
 
-#: boa/Editor.py:267
+#: boa/Editor.py:270
 msgid "Open an example..."
 msgstr "Maak 'n voorbeeld oop.."
 
-#: boa/Editor.py:268
+#: boa/Editor.py:271
 msgid "Opens file dialog in the Examples directory"
 msgstr "Maak die lêer dialoog oop in die Examples gids"
 
-#: boa/Editor.py:270
+#: boa/Editor.py:273
 msgid "Tips"
 msgstr "Wenke"
 
-#: boa/Editor.py:270
+#: boa/Editor.py:273
 msgid "Opens the \"Tip of the Day\" window"
 msgstr "Maak die \"Wenk van die Dag\" venster oop"
 
-#: boa/Editor.py:273
+#: boa/Editor.py:276
 msgid "Opens the About box"
 msgstr "Maak die Aangaande boks oop"
 
-#: boa/Editor.py:283
+#: boa/Editor.py:286
 msgid "&Help"
-msgstr "&hulp"
+msgstr "&Hulp"
 
-#: boa/Editor.py:434
+#: boa/Editor.py:439
 #: boa/PaletteStore.py:10
 #: boa/Explorers/ExplorerNodes.py:186
 #: boa/Explorers/ExplorerNodes.py:586
@@ -320,7 +315,7 @@ msgstr "&hulp"
 msgid "New"
 msgstr "Nuut"
 
-#: boa/Editor.py:436
+#: boa/Editor.py:441
 #: boa/FileDlg.py:29
 #: boa/FileDlg.py:584
 #: boa/Explorers/DAVExplorer.py:80
@@ -330,99 +325,99 @@ msgstr "Nuut"
 #: boa/Explorers/ZipExplorer.py:40
 #: boa/Views/AppViews.py:105
 #: boa/Views/EditorViews.py:908
-#: boa/Views/EditorViews.py:1309
+#: boa/Views/EditorViews.py:1328
 msgid "Open"
 msgstr "Open"
 
-#: boa/Editor.py:437
-#: boa/Editor.py:441
+#: boa/Editor.py:442
+#: boa/Editor.py:446
 msgid "Open a module"
 msgstr "Open 'n module"
 
-#: boa/Editor.py:439
+#: boa/Editor.py:444
 msgid "Open recent files"
 msgstr "Open onlangse lêers"
 
-#: boa/Editor.py:462
-#: boa/Editor.py:498
+#: boa/Editor.py:467
+#: boa/Editor.py:503
 msgid "Exit Boa Constructor"
 msgstr "Verlaat Boa Constructor"
 
-#: boa/Editor.py:541
+#: boa/Editor.py:546
 msgid "Previous window"
 msgstr "Vorige venster"
 
-#: boa/Editor.py:543
+#: boa/Editor.py:548
 msgid "Next window"
 msgstr "Volgende venster"
 
-#: boa/Editor.py:810
+#: boa/Editor.py:815
 msgid "File already open."
 msgstr "Lêer alreeds oop."
 
-#: boa/Editor.py:833
+#: boa/Editor.py:838
 msgid "Cannot open, no transport defined."
 msgstr "Kan nie oopmaak nie, geen transport gedefineer."
 
-#: boa/Editor.py:907
+#: boa/Editor.py:912
 #, python-format
 msgid "Zope Object %s not supported"
 msgstr "Zope Objek %s word nie ondersteun nie"
 
-#: boa/Editor.py:946
+#: boa/Editor.py:951
 #: boa/FileDlg.py:116
 #: boa/Companions/BasicCompanions.py:453
 msgid "Choose a file"
 msgstr "Kies 'n lêer"
 
-#: boa/Editor.py:965
+#: boa/Editor.py:970
 #: boa/Models/Controllers.py:135
 #: boa/Views/EditorViews.py:405
 msgid "Save as..."
 msgstr "Stoor as.."
 
-#: boa/Editor.py:983
+#: boa/Editor.py:988
 msgid "Close module"
-msgstr "Sluit module"
+msgstr "Maak module toe"
 
-#: boa/Editor.py:1010
+#: boa/Editor.py:1015
 msgid "There are changes, do you want to save?"
-msgstr "Daar is veranderinge, will jy stoor?"
+msgstr "Daar is veranderinge, wil jy stoor?"
 
-#: boa/Editor.py:1187
+#: boa/Editor.py:1192
 msgid "Enter term to search for in the index"
 msgstr "Sleutel term in om voor te soek in die indeks"
 
-#: boa/Editor.py:1188
+#: boa/Editor.py:1193
 msgid "Help - Find in index"
 msgstr "Hulp - Vind in indeks"
 
-#: boa/Editor.py:1334
+#: boa/Editor.py:1339
 msgid "Skipped opening files because Boa possibly crashed last time while opening"
 msgstr "Lêers oopmaak is oorgeslaan omdat Boa moontlik die vorige keer omgeval het gedurende lêers oopmaak"
 
-#: boa/Editor.py:1344
-#: boa/Editor.py:1375
+#: boa/Editor.py:1349
+#: boa/Editor.py:1380
 msgid "Could not update config."
 msgstr "Kon nie die konfigurasie opdateer nie."
 
-#: boa/Editor.py:1400
+#: boa/Editor.py:1405
 msgid "Could not save open file list: "
 msgstr "Kon nie oop lêer lys stoor nie:"
 
-#: boa/Editor.py:1428
+#: boa/Editor.py:1433
 msgid "Please close the application running in the debugger before continuing."
-msgstr "Sluit die program wat onder die Ontfouter loop voordat jy aangaan."
+msgstr "Maak die program wat onder die Ontfouter loop toe voordat jy aangaan."
 
-#: boa/Editor.py:1519
+#: boa/Editor.py:1524
 msgid "Window dimensions loaded"
 msgstr "Venster grootes gelaai"
 
-#: boa/Editor.py:1523
+#: boa/Editor.py:1528
 msgid "Window dimensions saved"
 msgstr "Venster grootes gestoor"
 
-#: boa/Editor.py:1527
+#: boa/Editor.py:1532
 msgid "Window dimensions restored to defaults"
 msgstr "Venster grootes herset na verstek waardes"
 
@@ -507,7 +502,7 @@ msgstr "Maak diff bladsy toe"
 
 #: boa/ErrorStackFrm.py:173
 msgid "Close input page"
-msgstr "Maak invoer bladsy toe"
+msgstr "Maak toevoer bladsy toe"
 
 #: boa/ErrorStackFrm.py:180
 msgid "Kill process"
@@ -519,7 +514,7 @@ msgstr "Gaan prosesse na"
 
 #: boa/ErrorStackFrm.py:352
 #: boa/ErrorStackFrm.py:358
-#: boa/ErrorStackFrm.py:528
+#: boa/ErrorStackFrm.py:525
 msgid "Diffs"
 msgstr "Diffs"
 
@@ -552,7 +547,11 @@ msgstr ""
 "\n"
 "Kliek Kanselleer on dadelik Boa te verlaat."
 
-#: boa/ErrorStackFrm.py:546
+#: boa/ErrorStackFrm.py:441
+msgid "Child processes running"
+msgstr "Kind prosesse hardloop"
+
+#: boa/ErrorStackFrm.py:543
 msgid "History cleared."
 msgstr "Geskiedenis skoongemaak."
 
@@ -560,6 +559,18 @@ msgstr "Geskiedenis skoongemaak."
 #, python-format
 msgid "top | up | new folder || %s://%s"
 msgstr "top | op | nuwe gids || %s://%s"
+
+#: boa/FileDlg.py:34
+msgid "top"
+msgstr "top"
+
+#: boa/FileDlg.py:35
+msgid "up"
+msgstr "op"
+
+#: boa/FileDlg.py:35
+msgid "new folder"
+msgstr "nuwe gids"
 
 #: boa/FileDlg.py:59
 #: boa/FileDlg.py:581
@@ -598,7 +609,8 @@ msgid "OK"
 msgstr "Goed"
 
 #: boa/FileDlg.py:102
-#: boa/FindReplaceDlg.py:184
+#: boa/FindReplaceDlg.old.py:184
+#: boa/FindReplaceDlg.py:314
 #: boa/KeyDefsDlg.py:77
 #: boa/ProcessProgressDlg.py:47
 #: boa/ProcessProgressDlg.py:131
@@ -617,12 +629,12 @@ msgstr "Goed"
 #: boa/Views/CtrlAlign.py:55
 #: boa/Views/CtrlSize.py:69
 #: boa/Views/DataView.py:42
-#: boa/Views/Designer.py:1102
+#: boa/Views/Designer.py:1108
 #: boa/Views/STCPrinting.py:85
 #: boa/Views/STCStyleEditor.py:226
 #: boa/Views/STCStyleEditor.py:1091
 msgid "Cancel"
-msgstr "Kanseleer"
+msgstr "Kanselleer"
 
 #: boa/FileDlg.py:120
 #: boa/Explorers/FileExplorer.py:93
@@ -683,7 +695,7 @@ msgid "Could not open %s"
 msgstr "Kon nie %s oopmaak nie"
 
 #: boa/FileDlg.py:562
-#: boa/PropEdit/PropertyEditors.py:605
+#: boa/PropEdit/PropertyEditors.py:623
 msgid "Warning"
 msgstr "Waarskuwing"
 
@@ -695,158 +707,203 @@ msgstr "Stoor As"
 msgid "New Folder"
 msgstr "Nuwe Gids"
 
+#: boa/FindReplaceDlg.old.py:41
+#: boa/FindReplaceDlg.old.py:65
+#: boa/FindReplaceDlg.old.py:358
+#: boa/FindReplaceDlg.old.py:379
 #: boa/FindReplaceDlg.py:41
-#: boa/FindReplaceDlg.py:65
-#: boa/FindReplaceDlg.py:358
-#: boa/FindReplaceDlg.py:379
+#: boa/FindReplaceDlg.py:180
+#: boa/FindReplaceDlg.py:488
+#: boa/FindReplaceDlg.py:509
 msgid "Find/Replace"
 msgstr "Vind/Vervang"
 
-#: boa/FindReplaceDlg.py:82
+#: boa/FindReplaceDlg.old.py:82
 msgid "Insert path to find in files"
 msgstr "Gids pad om op te soek"
 
-#: boa/FindReplaceDlg.py:89
+#: boa/FindReplaceDlg.old.py:89
+#: boa/FindReplaceDlg.py:215
 msgid "Files that will be included in search"
 msgstr "Lêers wat by die soek ingesluit is"
 
-#: boa/FindReplaceDlg.py:91
+#: boa/FindReplaceDlg.old.py:91
+#: boa/FindReplaceDlg.py:221
 #: boa/Views/EditorViews.py:349
 msgid "Forward"
 msgstr "Vorentoe"
 
-#: boa/FindReplaceDlg.py:91
+#: boa/FindReplaceDlg.old.py:91
+#: boa/FindReplaceDlg.py:221
 msgid "Backward"
 msgstr "Agtertoe"
 
-#: boa/FindReplaceDlg.py:92
+#: boa/FindReplaceDlg.old.py:92
+#: boa/FindReplaceDlg.py:222
 msgid "Direction"
 msgstr "Rigting"
 
-#: boa/FindReplaceDlg.py:99
+#: boa/FindReplaceDlg.old.py:99
+#: boa/FindReplaceDlg.py:228
 msgid "All"
 msgstr "Alles"
 
-#: boa/FindReplaceDlg.py:99
+#: boa/FindReplaceDlg.old.py:99
+#: boa/FindReplaceDlg.py:228
 msgid "Selected"
 msgstr "Gekose"
 
-#: boa/FindReplaceDlg.py:100
+#: boa/FindReplaceDlg.old.py:100
+#: boa/FindReplaceDlg.py:229
 msgid "Scope"
 msgstr "Omvang"
 
-#: boa/FindReplaceDlg.py:107
+#: boa/FindReplaceDlg.old.py:107
+#: boa/FindReplaceDlg.py:236
 msgid "Options"
 msgstr "Opsies"
 
-#: boa/FindReplaceDlg.py:111
+#: boa/FindReplaceDlg.old.py:111
+#: boa/FindReplaceDlg.py:240
 msgid "Case sensitive"
 msgstr "Kassensitief"
 
-#: boa/FindReplaceDlg.py:118
+#: boa/FindReplaceDlg.old.py:118
+#: boa/FindReplaceDlg.py:247
 msgid "Whole words"
 msgstr "Heel woorde"
 
-#: boa/FindReplaceDlg.py:124
+#: boa/FindReplaceDlg.old.py:124
+#: boa/FindReplaceDlg.py:253
 msgid "Wildcards"
 msgstr "Wisselkaart"
 
-#: boa/FindReplaceDlg.py:130
+#: boa/FindReplaceDlg.old.py:130
+#: boa/FindReplaceDlg.py:259
 msgid "Regular expressions"
 msgstr "Stringpatroon uitdrukkings"
 
-#: boa/FindReplaceDlg.py:136
+#: boa/FindReplaceDlg.old.py:136
+#: boa/FindReplaceDlg.py:265
 msgid "Wrap search"
 msgstr "Vou soek"
 
-#: boa/FindReplaceDlg.py:142
+#: boa/FindReplaceDlg.old.py:142
+#: boa/FindReplaceDlg.py:271
 msgid "Close on found"
 msgstr "Maak toe op vind"
 
-#: boa/FindReplaceDlg.py:148
+#: boa/FindReplaceDlg.old.py:148
+#: boa/FindReplaceDlg.py:278
 msgid "Recursive search"
 msgstr "Rekursiewe soek"
 
-#: boa/FindReplaceDlg.py:152
-#: boa/FindReplaceDlg.py:526
+#: boa/FindReplaceDlg.old.py:152
+#: boa/FindReplaceDlg.old.py:526
+#: boa/FindReplaceDlg.py:283
+#: boa/FindReplaceDlg.py:656
 #: boa/Explorers/FileExplorer.py:127
 #: boa/Views/AppViews.py:111
 #: boa/Views/EditorViews.py:909
 msgid "Find"
 msgstr "Vind"
 
-#: boa/FindReplaceDlg.py:160
+#: boa/FindReplaceDlg.old.py:160
+#: boa/FindReplaceDlg.py:291
 msgid "Find all"
 msgstr "Vind alles"
 
-#: boa/FindReplaceDlg.py:166
+#: boa/FindReplaceDlg.old.py:166
+#: boa/FindReplaceDlg.py:297
 msgid "Find in files"
 msgstr "Find in lêers"
 
-#: boa/FindReplaceDlg.py:172
+#: boa/FindReplaceDlg.old.py:172
+#: boa/FindReplaceDlg.py:303
 msgid "Replace"
 msgstr "Vervang"
 
-#: boa/FindReplaceDlg.py:178
+#: boa/FindReplaceDlg.old.py:178
+#: boa/FindReplaceDlg.py:309
 msgid "Replace all"
 msgstr "Vervang Alles"
 
-#: boa/FindReplaceDlg.py:190
+#: boa/FindReplaceDlg.old.py:190
+#: boa/FindReplaceDlg.py:188
 msgid "Text to find"
 msgstr "Teks om te vind"
 
-#: boa/FindReplaceDlg.py:194
+#: boa/FindReplaceDlg.old.py:194
+#: boa/FindReplaceDlg.py:197
 msgid "Replace with"
 msgstr "Vervang met"
 
-#: boa/FindReplaceDlg.py:198
+#: boa/FindReplaceDlg.old.py:198
+#: boa/FindReplaceDlg.py:207
 msgid "Files to find in"
 msgstr "Vind in gids"
 
-#: boa/FindReplaceDlg.py:202
+#: boa/FindReplaceDlg.old.py:202
+#: boa/FindReplaceDlg.py:218
 msgid "File filter"
 msgstr "Lêer filter"
 
-#: boa/FindReplaceDlg.py:208
+#: boa/FindReplaceDlg.old.py:208
+#: boa/FindReplaceDlg.py:321
 msgid "Build-in ready to run searches"
 msgstr "Ingeboude soeke"
 
-#: boa/FindReplaceDlg.py:215
+#: boa/FindReplaceDlg.old.py:215
+#: boa/FindReplaceDlg.py:328
 msgid "Folders tree"
 msgstr "Gidsboom"
 
-#: boa/FindReplaceDlg.py:396
+#: boa/FindReplaceDlg.old.py:396
+#: boa/FindReplaceDlg.py:526
 #, python-format
 msgid "Building file list from directory '%s'"
 msgstr "Bou 'n lêerlys van gids '%s'"
 
-#: boa/FindReplaceDlg.py:397
+#: boa/FindReplaceDlg.old.py:397
+#: boa/FindReplaceDlg.py:527
 #: boa/FindReplaceEngine.py:205
 #: boa/Search.py:73
 msgid "Searching..."
 msgstr "Soek..."
 
-#: boa/FindReplaceDlg.py:419
+#: boa/FindReplaceDlg.old.py:419
+#: boa/FindReplaceDlg.py:549
 msgid "There is nothing to find."
 msgstr "Daar is niks om te vind nie."
 
-#: boa/FindReplaceDlg.py:419
-#: boa/FindReplaceDlg.py:425
-#: boa/FindReplaceDlg.py:429
+#: boa/FindReplaceDlg.old.py:419
+#: boa/FindReplaceDlg.old.py:425
+#: boa/FindReplaceDlg.old.py:429
+#: boa/FindReplaceDlg.py:549
+#: boa/FindReplaceDlg.py:555
+#: boa/FindReplaceDlg.py:559
 msgid "Boa - Find/Replace"
 msgstr "Boa - Vind/Vervang"
 
-#: boa/FindReplaceDlg.py:425
+#: boa/FindReplaceDlg.old.py:425
+#: boa/FindReplaceDlg.py:555
 msgid "There is nothing to replace with."
 msgstr "Daar is niks om mee te vervang nie."
 
-#: boa/FindReplaceDlg.py:429
+#: boa/FindReplaceDlg.old.py:429
+#: boa/FindReplaceDlg.py:559
 msgid "The folder you entered is not valid folder."
 msgstr "Die ingevoerde gids is ongeldig."
 
-#: boa/FindReplaceDlg.py:526
+#: boa/FindReplaceDlg.old.py:526
+#: boa/FindReplaceDlg.py:656
 msgid "Build in finds"
 msgstr "Ingeboude vinde"
+
+#: boa/FindReplaceDlg.py:204
+#, fuzzy
+msgid "Insert a path to find in files"
+msgstr "Gids pad om op te soek"
 
 #: boa/FindReplaceEngine.py:86
 #: boa/FindReplaceEngine.py:150
@@ -920,7 +977,7 @@ msgstr "Kol"
 
 #: boa/FindResults.py:36
 #: boa/Views/AppViews.py:50
-#: boa/Views/SourceViews.py:537
+#: boa/Views/SourceViews.py:536
 msgid "Text"
 msgstr "Teks"
 
@@ -935,7 +992,7 @@ msgid "Enter name to search for"
 msgstr "Sleutel naam in om voor te soek"
 
 #: boa/Help.py:59
-#: boa/Plug-ins/RegexEditor.plug-in.py:104
+#: boa/Plug-ins/RegexEditor.plug-in.py:103
 msgid "Search"
 msgstr "Soek"
 
@@ -968,31 +1025,26 @@ msgstr "Bediener gestop."
 msgid "Stopping server..."
 msgstr "Bediener word gestop..."
 
-#: boa/Help.py:403
+#: boa/Help.py:405
 msgid "Copy contents as text to clipboard"
 msgstr "Kopieer inhoud as teks na die knipbord"
 
-#: boa/Help.py:411
+#: boa/Help.py:413
 #: boa/Plug-ins/HelpBook.plug-in.py:851
 #: boa/Plug-ins/HelpBook.plug-in.py:881
 msgid "Contents"
 msgstr "Inhoud"
 
-#: boa/Help.py:418
+#: boa/Help.py:420
 #: boa/Plug-ins/HelpBook.plug-in.py:680
 msgid "Index"
 msgstr "Indeks"
 
-#: boa/Help.py:425
+#: boa/Help.py:427
 msgid "Show all"
 msgstr "Wys alles"
 
-#: boa/Help.py:535
-#, python-format
-msgid "Help: loading %s"
-msgstr ""
-
-#: boa/Help.py:548
+#: boa/Help.py:550
 msgid ""
 "The pydoc server has not completely started up yet,\n"
 " it is safer to wait for it to finish before shutting down.\n"
@@ -1004,7 +1056,7 @@ msgstr ""
 "\n"
 "Wil jy wag?"
 
-#: boa/Help.py:550
+#: boa/Help.py:552
 msgid "Pydoc server busy"
 msgstr "Pydoc bediener is besig"
 
@@ -1063,7 +1115,7 @@ msgstr "Pos die sessie"
 
 #: boa/Inspector.py:186
 msgid "Cancel the session"
-msgstr "Kanseleer die sessie"
+msgstr "Kanselleer die sessie"
 
 #: boa/Inspector.py:191
 msgid "New item"
@@ -1136,21 +1188,21 @@ msgstr "Tenminste 1 segment word vereis, gekry: %r"
 msgid "Too many attribute levels"
 msgstr "Te veel attribuut vlakke"
 
-#: boa/ModRunner.py:115
+#: boa/ModRunner.py:121
 msgid "Execute module"
 msgstr "Voer module uit"
 
-#: boa/ModRunner.py:122
-#: boa/ModRunner.py:145
-#: boa/ModRunner.py:178
+#: boa/ModRunner.py:128
+#: boa/ModRunner.py:151
+#: boa/ModRunner.py:184
 msgid "Ran"
 msgstr "Hardloop"
 
-#: boa/moduleparse.py:641
+#: boa/moduleparse.py:674
 msgid "Method exists"
 msgstr "Metode bestaan"
 
-#: boa/moduleparse.py:923
+#: boa/moduleparse.py:956
 #, python-format
 msgid "Import statement invalid: %s"
 msgstr "Import stelling ongeldig: %s"
@@ -1195,7 +1247,7 @@ msgid ""
 "Problem executing plug-in %s:\n"
 "%s"
 msgstr ""
-"Probleem om plug-in uittevoer %s:\n"
+"Probleem om plug-in %s uittevoer:\n"
 "%s"
 
 #: boa/PaletteStore.py:12
@@ -1211,15 +1263,19 @@ msgstr "Zope"
 msgid "Module %s could not be found in Plug-ins"
 msgstr "Module %s kon nie in Plug-ins gevind word nie"
 
-#: boa/Plugins.py:241
+#: boa/Plugins.py:252
 #, python-format
 msgid "Could not create default value from \"%s\" for %s. (%s:%s)"
 msgstr "Kon nie verstek waarde skep van \"%s\" vir %s nie. (%s:%s)"
 
-#: boa/Plugins.py:251
+#: boa/Plugins.py:262
 #, python-format
 msgid "%s not in Preferences, but is defined in globals of prefs.plug-ins.rc.py"
 msgstr "%s is nie in Preferences (Voorkeure) nie, maar in die globale van prefs.plug-ins.rc.py"
+
+#: boa/Preferences.py:189
+msgid "No python interpreter defined"
+msgstr "Geen Python interpreteerder gedefinieer nie"
 
 #: boa/ProcessProgressDlg.py:92
 msgid "Kill"
@@ -1249,20 +1305,20 @@ msgstr "Spring oor"
 msgid "Root folder was not specified"
 msgstr "Basis gids was nie voorsien nie"
 
-#: boa/Utils.py:279
+#: boa/Utils.py:300
 msgid "Could not edit tips settings, please make sure that the Explorer.*.cfg file is not read only and you have sufficient priviledges to write to this file."
 msgstr "Kon nie wenk stellings wysig nie, maak asseblief seker dat die Explorer.*.cfg lêer skryfbaar is."
 
-#: boa/Utils.py:353
+#: boa/Utils.py:374
 msgid "Unhandled type for Win"
 msgstr "Onhateerde tipe vir Win"
 
-#: boa/Utils.py:879
+#: boa/Utils.py:918
 #, python-format
 msgid "Unknown encoding %s"
 msgstr "Onbekende enkodering %s"
 
-#: boa/Utils.py:896
+#: boa/Utils.py:939
 #, python-format
 msgid ""
 "Unable to encode unicode string, please change the defaultencoding in sitecustomize.py to handle this encoding.\n"
@@ -1271,7 +1327,7 @@ msgstr ""
 "Kan nie unikode string enkodeer nie, verander asseblief die defaultencoding in sitecustomize.py om hierdie enkodering te hanteer.\n"
 "Fout boodskap: %s"
 
-#: boa/Utils.py:919
+#: boa/Utils.py:969
 #, python-format
 msgid ""
 "Unable to decode unicode string, please change the defaultencoding in sitecustomize.py to handle this encoding.\n"
@@ -1291,9 +1347,9 @@ msgid "Illegal expression: %s"
 msgstr "Onwettige uitdrukking: %s"
 
 #: boa/Companions/BaseCompanions.py:521
-#: boa/PropEdit/PropertyEditors.py:1290
-#: boa/PropEdit/PropertyEditors.py:1339
-#: boa/PropEdit/PropertyEditors.py:1363
+#: boa/PropEdit/PropertyEditors.py:1308
+#: boa/PropEdit/PropertyEditors.py:1357
+#: boa/PropEdit/PropertyEditors.py:1381
 msgid "(delete)"
 msgstr "(skrap)"
 
@@ -1307,15 +1363,15 @@ msgstr "Nie Geskryf Nie"
 msgid "Choose a gif file"
 msgstr "Kies 'n gif lêer"
 
-#: boa/Companions/BasicCompanions.py:538
+#: boa/Companions/BasicCompanions.py:676
 msgid "Basic Controls"
 msgstr "Basiese Kontrole"
 
-#: boa/Companions/ButtonCompanions.py:345
+#: boa/Companions/ButtonCompanions.py:463
 msgid "Buttons"
 msgstr "Knoppies"
 
-#: boa/Companions/ContainerCompanions.py:379
+#: boa/Companions/ContainerCompanions.py:377
 #, python-format
 msgid ""
 "The red-dashed area of a %s page must contain\n"
@@ -1324,28 +1380,28 @@ msgstr ""
 "Die rooi gesteepte aria van 'n %s bladsy moet 'n kontrole\n"
 "bevat of die gegenereerde kode sal ongeldig wees buite die Ontwerper"
 
-#: boa/Companions/ContainerCompanions.py:799
+#: boa/Companions/ContainerCompanions.py:837
 msgid "Add separator"
 msgstr "Voeg verdeler by"
 
-#: boa/Companions/ContainerCompanions.py:800
+#: boa/Companions/ContainerCompanions.py:838
 msgid "Add control"
 msgstr "Voeg kontrole by"
 
-#: boa/Companions/ContainerCompanions.py:801
+#: boa/Companions/ContainerCompanions.py:839
 msgid "Old add tool"
 msgstr "Ou add tool"
 
-#: boa/Companions/ContainerCompanions.py:954
+#: boa/Companions/ContainerCompanions.py:992
 #, python-format
 msgid "Invalid None control for toolbar %s's AddControl"
 msgstr "Ongeldige None vir kontrole vir nutsbalk %s se AddControl"
 
-#: boa/Companions/ContainerCompanions.py:958
+#: boa/Companions/ContainerCompanions.py:996
 msgid "Control may not be None or the generated source will be invalid outside the Designer."
 msgstr "Kontrolle mag nie None wees nie of die gegenereerde kode sal ongeldig wees buite die Ontwerper."
 
-#: boa/Companions/ContainerCompanions.py:1086
+#: boa/Companions/ContainerCompanions.py:1144
 msgid "Containers/Layout"
 msgstr "Houers/Uitleg"
 
@@ -1407,17 +1463,17 @@ msgstr "Skep sizer"
 msgid "Must choose a control to link with sizer"
 msgstr "Daar moet 'n kontrole gekies word om aan die sizer te bind"
 
-#: boa/Companions/SizerCompanions.py:663
+#: boa/Companions/SizerCompanions.py:680
 #, python-format
 msgid "Cannot use Position %s, an item is already at that position"
 msgstr "Kan nie Position %s gebruik nie, 'n item is alreeds op daardie posisie"
 
-#: boa/Companions/SizerCompanions.py:665
+#: boa/Companions/SizerCompanions.py:682
 #, python-format
 msgid "Position %s invalid, cannot contain negative values"
 msgstr "Position %s is ongeldig, kan nie negatiewe waardes bevat nie"
 
-#: boa/Companions/SizerCompanions.py:669
+#: boa/Companions/SizerCompanions.py:686
 #, python-format
 msgid "Span %s invalid, cannot contain negative values"
 msgstr "Span %s is ongeldig, kan nie negatiewe waardes bevat nie"
@@ -1663,10 +1719,10 @@ msgstr "Gaan na bronkode"
 
 #: boa/Debugger/DebuggerControls.py:196
 #: boa/Explorers/EditorExplorer.py:38
-#: boa/Plug-ins/ImageEditor.plug-in.py:907
+#: boa/Plug-ins/ImageEditor.plug-in.py:908
 #: boa/Views/CollectionEdit.py:119
 #: boa/Views/DiffView.py:83
-#: boa/Views/EditorViews.py:1310
+#: boa/Views/EditorViews.py:1329
 #: boa/Views/OGLViews.py:754
 #: boa/Views/OGLViews.py:853
 #: boa/Views/SourceViews.py:58
@@ -1688,7 +1744,7 @@ msgstr "Wysig kondisie"
 #: boa/Plug-ins/AppTimeTrack.plug-in.py:23
 #: boa/Views/CollectionEdit.py:108
 #: boa/Views/DataView.py:47
-#: boa/Views/Designer.py:174
+#: boa/Views/Designer.py:179
 msgid "Delete"
 msgstr "Skrap"
 
@@ -1796,7 +1852,7 @@ msgid "To client filenames starting with"
 msgstr "Na kliënt paaie beginende met"
 
 #: boa/Debugger/RemoteDialog.py:37
-#: boa/Models/PythonControllers.py:717
+#: boa/Models/PythonControllers.py:729
 msgid "Attach to debugger"
 msgstr "Heg aan die ontfouter"
 
@@ -1831,6 +1887,7 @@ msgstr ""
 
 # From Examples
 #: boa/Examples/i18n/FrameI18N_py.py:26
+#: boa/Examples/i18n/FrameI18N_py.py:34
 #: boa/Examples/i18n/FrameI18N_wx.py:25
 msgid "the quick brown fox jumps over the lazy dog"
 msgstr ""
@@ -1913,7 +1970,7 @@ msgid "Invalid XML response: %s"
 msgstr "Ongeldige XML antwoord: %s"
 
 #: boa/Explorers/DAVExplorer.py:49
-#: boa/Views/EditorViews.py:1329
+#: boa/Views/EditorViews.py:1348
 msgid "Error"
 msgstr "Fout"
 
@@ -1942,17 +1999,17 @@ msgid "Close all"
 msgstr "Maak alles toe"
 
 #: boa/Explorers/EditorExplorer.py:43
-#: boa/Explorers/PrefsExplorer.py:667
-#: boa/Explorers/PrefsExplorer.py:763
-#: boa/Explorers/PrefsExplorer.py:1142
+#: boa/Explorers/PrefsExplorer.py:678
+#: boa/Explorers/PrefsExplorer.py:774
+#: boa/Explorers/PrefsExplorer.py:1153
 #: boa/PropEdit/BitmapListEditorDlg.py:136
 msgid "Move up"
 msgstr "Skuif op"
 
 #: boa/Explorers/EditorExplorer.py:44
-#: boa/Explorers/PrefsExplorer.py:669
-#: boa/Explorers/PrefsExplorer.py:765
-#: boa/Explorers/PrefsExplorer.py:1144
+#: boa/Explorers/PrefsExplorer.py:680
+#: boa/Explorers/PrefsExplorer.py:776
+#: boa/Explorers/PrefsExplorer.py:1155
 #: boa/PropEdit/BitmapListEditorDlg.py:142
 msgid "Move down"
 msgstr "Skuif af"
@@ -1963,25 +2020,25 @@ msgstr "Kopieer lêer paaie na knipbord"
 
 #: boa/Explorers/EditorExplorer.py:93
 #: boa/Explorers/EditorExplorer.py:107
-#: boa/Explorers/PrefsExplorer.py:700
-#: boa/Explorers/PrefsExplorer.py:717
-#: boa/Explorers/PrefsExplorer.py:803
-#: boa/Explorers/PrefsExplorer.py:817
-#: boa/Explorers/PrefsExplorer.py:1188
-#: boa/Explorers/PrefsExplorer.py:1202
+#: boa/Explorers/PrefsExplorer.py:711
+#: boa/Explorers/PrefsExplorer.py:728
+#: boa/Explorers/PrefsExplorer.py:814
+#: boa/Explorers/PrefsExplorer.py:828
+#: boa/Explorers/PrefsExplorer.py:1199
+#: boa/Explorers/PrefsExplorer.py:1213
 msgid "Can only move 1 at a time"
 msgstr "Can slegs 1 op 'n slag skuif"
 
 #: boa/Explorers/EditorExplorer.py:98
-#: boa/Explorers/PrefsExplorer.py:705
-#: boa/Explorers/PrefsExplorer.py:808
-#: boa/Explorers/PrefsExplorer.py:1193
+#: boa/Explorers/PrefsExplorer.py:716
+#: boa/Explorers/PrefsExplorer.py:819
+#: boa/Explorers/PrefsExplorer.py:1204
 msgid "Already at the beginning"
 msgstr "Alreeds aan die begin"
 
 #: boa/Explorers/EditorExplorer.py:112
-#: boa/Explorers/PrefsExplorer.py:822
-#: boa/Explorers/PrefsExplorer.py:1207
+#: boa/Explorers/PrefsExplorer.py:833
+#: boa/Explorers/PrefsExplorer.py:1218
 msgid "Already at the end"
 msgstr "Alreeds aan die einde"
 
@@ -2003,21 +2060,21 @@ msgstr "Onhanteerde transport"
 msgid "Catalog transport could not be found: %s || %s"
 msgstr "Catalog transport kon nie gevind word nie: %s || %s"
 
-#: boa/Explorers/Explorer.py:200
+#: boa/Explorers/Explorer.py:203
 #, python-format
 msgid "%s not installed: %s"
 msgstr "%s is nie geinstaller nie: %s"
 
-#: boa/Explorers/Explorer.py:249
+#: boa/Explorers/Explorer.py:252
 msgid "File system transport must be loaded"
 msgstr "Lêerstelsel transport moet gelaai wees"
 
-#: boa/Explorers/Explorer.py:279
+#: boa/Explorers/Explorer.py:282
 #, python-format
 msgid "Transport category %s not added: %s"
 msgstr "Transport katagorie %s is nie bygevoeg nie: %s"
 
-#: boa/Explorers/Explorer.py:292
+#: boa/Explorers/Explorer.py:295
 msgid ""
 "One or more transports could not be loaded, if the problem is not rectifiable,\n"
 "consider removing the transport under Preferences->Plug-ins->Transports. Click \"Details\""
@@ -2025,7 +2082,7 @@ msgstr ""
 "Een of meer transporte kon nie gelaai word nie, as die probleem nie reggestel\n"
 "kan word nie, oorweeg om the transport te verwyder onder Voorkeure->Plug-ins->Transporte.Kliek \"Besonderhede\""
 
-#: boa/Explorers/Explorer.py:716
+#: boa/Explorers/Explorer.py:719
 msgid "There must be a selection to rename"
 msgstr "Daar moet iets gekies wees om te hernoem"
 
@@ -2039,30 +2096,30 @@ msgstr "Herlaai"
 
 #: boa/Explorers/ExplorerNodes.py:179
 #: boa/Views/DataView.py:44
-#: boa/Views/Designer.py:171
+#: boa/Views/Designer.py:176
 #: boa/Views/SourceViews.py:63
 msgid "Cut"
 msgstr "Knip"
 
 #: boa/Explorers/ExplorerNodes.py:180
-#: boa/Plug-ins/ImageEditor.plug-in.py:909
+#: boa/Plug-ins/ImageEditor.plug-in.py:910
 #: boa/Views/DataView.py:45
-#: boa/Views/Designer.py:172
+#: boa/Views/Designer.py:177
 #: boa/Views/SourceViews.py:64
 msgid "Copy"
 msgstr "Kopieer"
 
 #: boa/Explorers/ExplorerNodes.py:181
-#: boa/Plug-ins/ImageEditor.plug-in.py:910
+#: boa/Plug-ins/ImageEditor.plug-in.py:911
 #: boa/Views/DataView.py:46
-#: boa/Views/Designer.py:173
+#: boa/Views/Designer.py:178
 #: boa/Views/SourceViews.py:65
 msgid "Paste"
 msgstr "Plak"
 
 #: boa/Explorers/ExplorerNodes.py:184
 #: boa/Explorers/ExplorerNodes.py:593
-#: boa/Plug-ins/BicycleRepairMan.plug-in.py:256
+#: boa/Plug-ins/BicycleRepairMan.plug-in.py:262
 msgid "Rename"
 msgstr "Hernoem"
 
@@ -2209,7 +2266,7 @@ msgid "Plug-ins"
 msgstr "Plug-ins"
 
 #: boa/Explorers/PrefsExplorer.py:99
-#: boa/Explorers/PrefsExplorer.py:521
+#: boa/Explorers/PrefsExplorer.py:532
 #: boa/Scripts/prefs.rc.i18n.py:139
 msgid "Core support"
 msgstr "Kern steun"
@@ -2235,87 +2292,87 @@ msgstr "\n"
 msgid "Invalid KeyDef item: %s"
 msgstr "Ongeldige KeyDef item: %s"
 
-#: boa/Explorers/PrefsExplorer.py:401
+#: boa/Explorers/PrefsExplorer.py:412
 #, python-format
 msgid "Property \"%s\" not found"
 msgstr "Eienskap \"%s\" is nie gevind nie"
 
-#: boa/Explorers/PrefsExplorer.py:552
+#: boa/Explorers/PrefsExplorer.py:563
 msgid "Disable"
 msgstr "Versper"
 
-#: boa/Explorers/PrefsExplorer.py:554
+#: boa/Explorers/PrefsExplorer.py:565
 msgid "Enable"
 msgstr "Ontsper"
 
-#: boa/Explorers/PrefsExplorer.py:556
+#: boa/Explorers/PrefsExplorer.py:567
 msgid "Confirm Toggle Plug-in"
 msgstr "Bevestig Wissel Plug-in"
 
-#: boa/Explorers/PrefsExplorer.py:609
+#: boa/Explorers/PrefsExplorer.py:620
 msgid "Plug-in files"
 msgstr "Plug-in lêers"
 
-#: boa/Explorers/PrefsExplorer.py:622
+#: boa/Explorers/PrefsExplorer.py:633
 msgid "Disabled"
 msgstr "Versper"
 
-#: boa/Explorers/PrefsExplorer.py:629
+#: boa/Explorers/PrefsExplorer.py:640
 #, python-format
 msgid "Skipped plug-in: %s"
 msgstr "Oorgeslaande plug-in: %s"
 
-#: boa/Explorers/PrefsExplorer.py:632
+#: boa/Explorers/PrefsExplorer.py:643
 #, python-format
 msgid "Broken plug-in: %s"
 msgstr "Gebreekde plug-in: %s"
 
-#: boa/Explorers/PrefsExplorer.py:636
+#: boa/Explorers/PrefsExplorer.py:647
 msgid "Installed, ordered"
 msgstr "Geinstalleer, georden"
 
-#: boa/Explorers/PrefsExplorer.py:639
-#: boa/Explorers/PrefsExplorer.py:936
-#: boa/Explorers/PrefsExplorer.py:983
+#: boa/Explorers/PrefsExplorer.py:650
+#: boa/Explorers/PrefsExplorer.py:947
+#: boa/Explorers/PrefsExplorer.py:994
 msgid "Installed"
 msgstr "Geinstalleer"
 
-#: boa/Explorers/PrefsExplorer.py:642
-#: boa/Explorers/PrefsExplorer.py:942
+#: boa/Explorers/PrefsExplorer.py:653
+#: boa/Explorers/PrefsExplorer.py:953
 msgid "Pending restart"
 msgstr "Vereis oor begin"
 
-#: boa/Explorers/PrefsExplorer.py:653
-#: boa/Explorers/PrefsExplorer.py:749
-#: boa/Explorers/PrefsExplorer.py:1125
+#: boa/Explorers/PrefsExplorer.py:664
+#: boa/Explorers/PrefsExplorer.py:760
+#: boa/Explorers/PrefsExplorer.py:1136
 msgid "item"
 msgstr "item"
 
-#: boa/Explorers/PrefsExplorer.py:662
+#: boa/Explorers/PrefsExplorer.py:673
 msgid "Toggle Enable/Disabled"
 msgstr "Wissel Ontsper/Versper"
 
-#: boa/Explorers/PrefsExplorer.py:664
+#: boa/Explorers/PrefsExplorer.py:675
 msgid "Open plug-in file"
 msgstr "Open plug-in lêer"
 
-#: boa/Explorers/PrefsExplorer.py:758
-#: boa/Explorers/PrefsExplorer.py:1137
+#: boa/Explorers/PrefsExplorer.py:769
+#: boa/Explorers/PrefsExplorer.py:1148
 #, python-format
 msgid "Add new %s"
 msgstr "Voeg nuwe %s by"
 
-#: boa/Explorers/PrefsExplorer.py:760
-#: boa/Explorers/PrefsExplorer.py:1139
+#: boa/Explorers/PrefsExplorer.py:771
+#: boa/Explorers/PrefsExplorer.py:1150
 #, python-format
 msgid "Remove %s"
 msgstr "Verwyder %s"
 
-#: boa/Explorers/PrefsExplorer.py:833
+#: boa/Explorers/PrefsExplorer.py:844
 msgid "Transport module"
 msgstr "Transport module"
 
-#: boa/Explorers/PrefsExplorer.py:836
+#: boa/Explorers/PrefsExplorer.py:847
 msgid ""
 "Enter the fully qualified Python object path to \n"
 "the Transport module. E.g. Explorers.FileExplorer"
@@ -2323,76 +2380,76 @@ msgstr ""
 "Sleutel die gekwalifiseerde objek pad na die \n"
 "Transport module hier in. Bv. Explorers.FileExplorer"
 
-#: boa/Explorers/PrefsExplorer.py:838
+#: boa/Explorers/PrefsExplorer.py:849
 msgid "New Transport"
 msgstr "Nuwe Transport"
 
-#: boa/Explorers/PrefsExplorer.py:847
+#: boa/Explorers/PrefsExplorer.py:858
 msgid ""
 "Cannot locate the specified module path,\n"
 "are you sure you want to continue?"
 msgstr "Kan nie die module pad opspoor nie,is jy seker jy wil voortgaan?"
 
-#: boa/Explorers/PrefsExplorer.py:849
+#: boa/Explorers/PrefsExplorer.py:860
 #: boa/Models/PythonEditorModels.py:438
 msgid "Module not found"
 msgstr "Module is nie gevind nie"
 
-#: boa/Explorers/PrefsExplorer.py:879
+#: boa/Explorers/PrefsExplorer.py:890
 msgid "Transports tree node"
 msgstr "Transport boom node"
 
-#: boa/Explorers/PrefsExplorer.py:882
+#: boa/Explorers/PrefsExplorer.py:893
 msgid "Enter the protocol identifier. E.g. ftp, ssh"
 msgstr "Voer die protokol naam in. Bv. ftp of ssh"
 
-#: boa/Explorers/PrefsExplorer.py:883
+#: boa/Explorers/PrefsExplorer.py:894
 msgid "New Transports Tree Node"
 msgstr "Nuwe Transporte Boom Node"
 
-#: boa/Explorers/PrefsExplorer.py:924
+#: boa/Explorers/PrefsExplorer.py:935
 msgid "Loading order"
 msgstr "Laai orde"
 
-#: boa/Explorers/PrefsExplorer.py:939
+#: boa/Explorers/PrefsExplorer.py:950
 #, python-format
 msgid "Broken: %s"
 msgstr "Gebreek: %s"
 
-#: boa/Explorers/PrefsExplorer.py:968
+#: boa/Explorers/PrefsExplorer.py:979
 msgid "Tree display order"
 msgstr "Boom vertoon orde"
 
-#: boa/Explorers/PrefsExplorer.py:980
+#: boa/Explorers/PrefsExplorer.py:991
 msgid "Protocol not installed"
 msgstr "Protokol is nie geinstalleer nie"
 
-#: boa/Explorers/PrefsExplorer.py:1013
+#: boa/Explorers/PrefsExplorer.py:1024
 msgid "Help system"
 msgstr "Hulp stelsel"
 
-#: boa/Explorers/PrefsExplorer.py:1025
+#: boa/Explorers/PrefsExplorer.py:1036
 msgid "Help books"
 msgstr "Hulp boeke"
 
-#: boa/Explorers/PrefsExplorer.py:1135
+#: boa/Explorers/PrefsExplorer.py:1146
 #, python-format
 msgid "Edit %s"
 msgstr "Wysig %s"
 
-#: boa/Explorers/PrefsExplorer.py:1147
+#: boa/Explorers/PrefsExplorer.py:1158
 msgid "Open hhp file"
 msgstr "Open hhp lêer"
 
-#: boa/Explorers/PrefsExplorer.py:1150
+#: boa/Explorers/PrefsExplorer.py:1161
 msgid "Restart the help system"
 msgstr "Herbegin die hulp stelsel"
 
-#: boa/Explorers/PrefsExplorer.py:1152
+#: boa/Explorers/PrefsExplorer.py:1163
 msgid "Clear the help indexes"
 msgstr "Maak die help indekse skoon"
 
-#: boa/Explorers/PrefsExplorer.py:1253
+#: boa/Explorers/PrefsExplorer.py:1264
 #, python-format
 msgid "Deleted %s"
 msgstr "%s geskrap"
@@ -2498,7 +2555,7 @@ msgstr "Stel opdrag-lyn parameters"
 
 #: boa/Models/PythonControllers.py:60
 msgid "Toggle use input stream"
-msgstr "Wissel gebruik van invoer stroom"
+msgstr "Wissel gebruik van toevoer stroom"
 
 #: boa/Models/PythonControllers.py:61
 msgid "Run application"
@@ -2564,142 +2621,142 @@ msgstr "Hardloop PyChecker"
 msgid "Configure PyChecker"
 msgstr "Konfigureer PyChecker"
 
-#: boa/Models/PythonControllers.py:124
+#: boa/Models/PythonControllers.py:128
 msgid "Stats file date unchanged, check for errors in script."
 msgstr "Statistiek lêer datum onverandered, kyk vir foute in die program."
 
-#: boa/Models/PythonControllers.py:127
+#: boa/Models/PythonControllers.py:131
 msgid "Stats file not found, check for errors in script."
 msgstr "Statistiek lêer is nie gevind nie, kyk vir foute in die program."
 
-#: boa/Models/PythonControllers.py:130
+#: boa/Models/PythonControllers.py:134
 msgid "Loading stats..."
 msgstr "Laai statistiek..."
 
-#: boa/Models/PythonControllers.py:133
+#: boa/Models/PythonControllers.py:137
 #, python-format
 msgid "Profile stats: %s"
 msgstr "Profileer statistiek: %s"
 
-#: boa/Models/PythonControllers.py:143
+#: boa/Models/PythonControllers.py:147
 msgid "Refreshing view..."
 msgstr "Verfris aansig..."
 
-#: boa/Models/PythonControllers.py:146
+#: boa/Models/PythonControllers.py:150
 msgid "Profiling complete."
 msgstr "Profileering voltooi."
 
-#: boa/Models/PythonControllers.py:150
+#: boa/Models/PythonControllers.py:154
 msgid "Compiling..."
 msgstr "Kompileer..."
 
-#: boa/Models/PythonControllers.py:152
+#: boa/Models/PythonControllers.py:156
 msgid "There were errors"
 msgstr "Daar was foute"
 
-#: boa/Models/PythonControllers.py:154
+#: boa/Models/PythonControllers.py:158
 msgid "Compiled successfully"
 msgstr "Kompilasie suksesvol"
 
-#: boa/Models/PythonControllers.py:157
+#: boa/Models/PythonControllers.py:161
 msgid "Running lint..."
 msgstr "Hardloop lint..."
 
-#: boa/Models/PythonControllers.py:163
+#: boa/Models/PythonControllers.py:167
 msgid "Lint completed"
 msgstr "Lint voltooi"
 
-#: boa/Models/PythonControllers.py:167
+#: boa/Models/PythonControllers.py:171
 msgid "Parameters:"
 msgstr "Parameters:"
 
-#: boa/Models/PythonControllers.py:168
+#: boa/Models/PythonControllers.py:172
 msgid "Command-line parameters"
 msgstr "Opdrag-lyn parameters"
 
-#: boa/Models/PythonControllers.py:236
+#: boa/Models/PythonControllers.py:247
 msgid "Finished execution, there were errors"
 msgstr "Uitvoering klaar, daar was foute"
 
-#: boa/Models/PythonControllers.py:239
+#: boa/Models/PythonControllers.py:250
 msgid "Finished execution."
 msgstr "Uitvoering klaar."
 
-#: boa/Models/PythonControllers.py:320
+#: boa/Models/PythonControllers.py:331
 msgid "The PyChecker configuration file can not be found. Copy the default file here?"
 msgstr "Die PyChecker konfigurasie lêer is nie gevind nie. Kopieer die verstek lêer hier?"
 
-#: boa/Models/PythonControllers.py:322
+#: boa/Models/PythonControllers.py:333
 msgid "Config file not found"
 msgstr "Konfigurasie lêer is nie gevind nie"
 
-#: boa/Models/PythonControllers.py:339
+#: boa/Models/PythonControllers.py:350
 #, python-format
 msgid "Running Cyclops on %s ..."
 msgstr "Hardloop Cyclops op %s ..."
 
-#: boa/Models/PythonControllers.py:346
+#: boa/Models/PythonControllers.py:357
 #, python-format
 msgid "Cyclops report: %s"
 msgstr "Cyclops verslag: %s"
 
-#: boa/Models/PythonControllers.py:369
+#: boa/Models/PythonControllers.py:380
 msgid "No open applications."
 msgstr "Geen oop applikasies nie."
 
-#: boa/Models/PythonControllers.py:387
+#: boa/Models/PythonControllers.py:398
 msgid "Select application to add the current file to"
 msgstr "Kies applikasie om die huidige lêer by te voeg"
 
-#: boa/Models/PythonControllers.py:388
+#: boa/Models/PythonControllers.py:399
 msgid "Add to Application"
 msgstr "Voeg by Applikasie"
 
-#: boa/Models/PythonControllers.py:402
+#: boa/Models/PythonControllers.py:413
 msgid "Select application to associate the current file with"
 msgstr "Kies applikasie om die huidige lêer mee te assosieer"
 
-#: boa/Models/PythonControllers.py:403
+#: boa/Models/PythonControllers.py:414
 msgid "Associate with Application"
 msgstr "Assosieer met Applikasie"
 
-#: boa/Models/PythonControllers.py:438
+#: boa/Models/PythonControllers.py:449
 msgid "Using input stream for running"
-msgstr "Invoer stroom word gebruik"
+msgstr "Toevoer stroom word gebruik"
 
-#: boa/Models/PythonControllers.py:440
+#: boa/Models/PythonControllers.py:451
 msgid "Not using input stream for running"
-msgstr "Invoer stroom word nie gebruik nie"
+msgstr "Toevoer stroom word nie gebruik nie"
 
-#: boa/Models/PythonControllers.py:460
+#: boa/Models/PythonControllers.py:471
 msgid "Save modified modules"
 msgstr "Stoor veranderde modules"
 
-#: boa/Models/PythonControllers.py:461
+#: boa/Models/PythonControllers.py:472
 msgid "Compare apps"
 msgstr "Vergelyk applikasies"
 
-#: boa/Models/PythonControllers.py:462
+#: boa/Models/PythonControllers.py:473
 msgid "View crash log as traceback"
 msgstr "Wys omval log as stapelspoor"
 
-#: boa/Models/PythonControllers.py:559
+#: boa/Models/PythonControllers.py:570
 msgid "Cannot create a new Python Extension, use distutils to build it"
 msgstr "Kan nie 'n nuwe Python Extension skep nie, gebruik distutils om dit te bou"
 
-#: boa/Models/PythonControllers.py:605
+#: boa/Models/PythonControllers.py:616
 msgid "Cannot run distutils on an unsaved module"
 msgstr "Kannie distutils op 'n ongestoorde module hardloop nie"
 
-#: boa/Models/PythonControllers.py:615
+#: boa/Models/PythonControllers.py:626
 msgid "Running distutil command..."
 msgstr "Hardloop distutils opdrag"
 
-#: boa/Models/PythonControllers.py:634
+#: boa/Models/PythonControllers.py:645
 msgid "Edit setup.py arguments"
 msgstr "Wysig setup.py argumente"
 
-#: boa/Models/PythonControllers.py:635
+#: boa/Models/PythonControllers.py:646
 msgid "Distutils setup"
 msgstr "Distutils opstel"
 
@@ -2871,10 +2928,13 @@ msgid "Images"
 msgstr "Beelde"
 
 #: boa/Models/ResourceSupport.py:158
-#: boa/Views/EditorViews.py:1366
+#: boa/Views/EditorViews.py:794
+#: boa/Views/EditorViews.py:965
+#: boa/Views/EditorViews.py:1243
+#: boa/Views/EditorViews.py:1385
 #: boa/Views/ProfileView.py:34
 #: boa/Views/SourceViews.py:71
-#: boa/Views/SourceViews.py:389
+#: boa/Views/SourceViews.py:388
 #: boa/Views/XMLView.py:33
 msgid "Goto line"
 msgstr "Gaan na lyn"
@@ -2933,7 +2993,7 @@ msgid ""
 msgstr ""
 "\n"
 "Daar was ongebruikte lyne in die bronkode van metode: %s\n"
-"As dit onverwags was, kanseleer die Ontwerper sessie en maak die probleem reg voordat jy aangaan."
+"As dit onverwags was, kanselleer die Ontwerper sessie en maak die probleem reg voordat jy aangaan."
 
 #: boa/Models/wxPythonEditorModels.py:305
 msgid "_custom_classes is not valid: "
@@ -3051,13 +3111,14 @@ msgid "BRM - Finding references..."
 msgstr "BRM - Vind verwysings..."
 
 #: boa/Plug-ins/BicycleRepairMan.plug-in.py:174
-#: boa/Plug-ins/BicycleRepairMan.plug-in.py:225
+#: boa/Plug-ins/BicycleRepairMan.plug-in.py:231
 #, python-format
 msgid "BRM - Error %s"
 msgstr "BRM - Fout %s"
 
 #: boa/Plug-ins/BicycleRepairMan.plug-in.py:180
-#: boa/Plug-ins/BicycleRepairMan.plug-in.py:218
+#: boa/Plug-ins/BicycleRepairMan.plug-in.py:219
+#: boa/Plug-ins/BicycleRepairMan.plug-in.py:225
 msgid "BRM - Could not find definition"
 msgstr "BRM - Kon nie definisie vind nie"
 
@@ -3083,25 +3144,26 @@ msgstr "BRM - %s verwysing(s) gevind"
 msgid "BRM - Finding definition..."
 msgstr "BRM - Vind definisie..."
 
-#: boa/Plug-ins/BicycleRepairMan.plug-in.py:216
+#: boa/Plug-ins/BicycleRepairMan.plug-in.py:217
+#: boa/Plug-ins/BicycleRepairMan.plug-in.py:223
 msgid "Couldn't find definition"
 msgstr "Kon nie definisie vind nie"
 
-#: boa/Plug-ins/BicycleRepairMan.plug-in.py:234
+#: boa/Plug-ins/BicycleRepairMan.plug-in.py:240
 #, python-format
 msgid "BRM - Definition for %s"
 msgstr "BRM - Definisie vir %s"
 
-#: boa/Plug-ins/BicycleRepairMan.plug-in.py:246
+#: boa/Plug-ins/BicycleRepairMan.plug-in.py:252
 #, python-format
 msgid "BRM - %s matches(s) found"
 msgstr "BRM - %s treffe gevind"
 
-#: boa/Plug-ins/BicycleRepairMan.plug-in.py:256
+#: boa/Plug-ins/BicycleRepairMan.plug-in.py:262
 msgid "Rename to:"
 msgstr "Hernoem na:"
 
-#: boa/Plug-ins/BicycleRepairMan.plug-in.py:271
+#: boa/Plug-ins/BicycleRepairMan.plug-in.py:277
 msgid ""
 "Cannot deduce the type of highlighted object reference.\n"
 "Rename this declaration?"
@@ -3109,21 +3171,34 @@ msgstr ""
 "Kan nie die tipe van die gekose objek verwysing aflei nie.\n"
 "Hernoem hierdie verklaring?"
 
-#: boa/Plug-ins/BicycleRepairMan.plug-in.py:272
+#: boa/Plug-ins/BicycleRepairMan.plug-in.py:278
 msgid "Rename?"
 msgstr "Hernoem?"
 
-#: boa/Plug-ins/BicycleRepairMan.plug-in.py:283
+#: boa/Plug-ins/BicycleRepairMan.plug-in.py:289
 msgid "Extract method"
 msgstr "Onttrek metode"
 
-#: boa/Plug-ins/BicycleRepairMan.plug-in.py:294
+#: boa/Plug-ins/BicycleRepairMan.plug-in.py:300
 msgid "Nothing to undo, the undo stack is empty."
 msgstr "Niks om te herroep nie, die herroep stapel is leeg."
 
-#: boa/Plug-ins/BicycleRepairMan.plug-in.py:305
+#: boa/Plug-ins/BicycleRepairMan.plug-in.py:311
 msgid "Extract variable"
 msgstr "Onttrek veranderlike"
+
+#: boa/Plug-ins/CodeTemplates.plug-in.py:30
+msgid "Code Template Manager"
+msgstr ""
+
+#: boa/Plug-ins/CodeTemplates.plug-in.py:76
+#, python-format
+msgid "Code Template: %s not found"
+msgstr "Kode Sjabloon: %s is nie gevind nie"
+
+#: boa/Plug-ins/CodeTemplates.plug-in.py:86
+msgid "Code Templates"
+msgstr "Kode Sjablone"
 
 #: boa/Plug-ins/DragScroller.plug-in.py:9
 #: boa/Plug-ins/FlatNotebook.plug-in.py:9
@@ -3200,7 +3275,7 @@ msgstr "Nom"
 #: boa/Plug-ins/HelpBook.plug-in.py:455
 #: boa/Views/AppViews.py:358
 #: boa/Views/CollectionEdit.py:137
-#: boa/Views/EditorViews.py:1311
+#: boa/Views/EditorViews.py:1330
 #: boa/Views/STCStyleEditor.py:1076
 msgid "Name"
 msgstr "Naam"
@@ -3316,12 +3391,29 @@ msgstr "Hele hulp boek gids"
 msgid "Written %s."
 msgstr "%s is geskryf."
 
-#: boa/Plug-ins/HelpBook.plug-in.py:1098
+#: boa/Plug-ins/HelpBook.plug-in.py:1096
 msgid "Should the document title be parsed from HTML and displayed under \"Files\"."
 msgstr "Moet die dokument titel ontleed word uit die HTML en vertoon word onder \"Lêers\""
 
-#: boa/Plug-ins/I18NWrap.plug-in.py:13
+#: boa/Plug-ins/I18NUtils.plug-in.py:32
 msgid "Wrap selection with _()"
+msgstr ""
+
+#: boa/Plug-ins/I18NUtils.plug-in.py:49
+msgid "Compile to MO"
+msgstr "Kompileer na MO"
+
+#: boa/Plug-ins/I18NUtils.plug-in.py:54
+msgid "Cannot compile an unsaved module"
+msgstr "Kannie ongestoorde module kompileer nie"
+
+#: boa/Plug-ins/I18NUtils.plug-in.py:61
+#, python-format
+msgid "%s created"
+msgstr "%s geskep"
+
+#: boa/Plug-ins/I18NUtils.plug-in.py:63
+msgid "MO file not created"
 msgstr ""
 
 #: boa/Plug-ins/ImageEditor.plug-in.py:46
@@ -3429,44 +3521,44 @@ msgstr "Verander grootte"
 msgid "Scale"
 msgstr "Skaal"
 
-#: boa/Plug-ins/ImageEditor.plug-in.py:911
+#: boa/Plug-ins/ImageEditor.plug-in.py:912
 msgid "Undo last change"
 msgstr "Herroep laaste verandering"
 
-#: boa/Plug-ins/ImageEditor.plug-in.py:912
+#: boa/Plug-ins/ImageEditor.plug-in.py:913
 msgid "Undo view changes"
 msgstr "Herroep aansig veranderinge"
 
-#: boa/Plug-ins/ImageEditor.plug-in.py:913
+#: boa/Plug-ins/ImageEditor.plug-in.py:914
 msgid "Clear"
 msgstr "Maak skoon"
 
-#: boa/Plug-ins/ImageEditor.plug-in.py:915
+#: boa/Plug-ins/ImageEditor.plug-in.py:916
 msgid "Crop"
 msgstr "Skeer"
 
-#: boa/Plug-ins/ImageEditor.plug-in.py:916
+#: boa/Plug-ins/ImageEditor.plug-in.py:917
 msgid "Resize..."
 msgstr "Grootte..."
 
-#: boa/Plug-ins/ImageEditor.plug-in.py:917
+#: boa/Plug-ins/ImageEditor.plug-in.py:918
 msgid "Scale..."
 msgstr "Skaal..."
 
-#: boa/Plug-ins/ImageEditor.plug-in.py:919
+#: boa/Plug-ins/ImageEditor.plug-in.py:920
 msgid "Use current colour to set transparent mask"
 msgstr "Gebruik huidige kleur om deursigtige masker te stel"
 
-#: boa/Plug-ins/ImageEditor.plug-in.py:920
+#: boa/Plug-ins/ImageEditor.plug-in.py:921
 msgid "Clear current transparent mask"
 msgstr "Maak huidige deursigtige masker skoon"
 
-#: boa/Plug-ins/ImageEditor.plug-in.py:995
-#: boa/Plug-ins/ImageEditor.plug-in.py:1033
+#: boa/Plug-ins/ImageEditor.plug-in.py:996
+#: boa/Plug-ins/ImageEditor.plug-in.py:1034
 msgid "Edit image"
 msgstr "Wysig beeld"
 
-#: boa/Plug-ins/ImageEditor.plug-in.py:996
+#: boa/Plug-ins/ImageEditor.plug-in.py:997
 msgid "Convert to module"
 msgstr "Omskep na module"
 
@@ -3512,54 +3604,68 @@ msgstr "Gevonde installasies: (dubbel kliek om te kies)"
 msgid "Current interpreter path (Blank means sys.executable will be used.)"
 msgstr "Huidige interpreteerder pad (Leeg beteken dat sys.executable gebruik sal word.)"
 
-#: boa/Plug-ins/PyInterpreterChooser.plug-in.py:293
+#: boa/Plug-ins/PyInterpreterChooser.plug-in.py:283
+msgid "Additional locations to choose the Python Interpreter Path from."
+msgstr ""
+
+#: boa/Plug-ins/PyInterpreterChooser.plug-in.py:288
 msgid "Python interpreter chooser"
 msgstr "Python interpreteerder kieser"
+
+#: boa/Plug-ins/PyInterpreterChooser.plug-in.py:293
+msgid ""
+"No interpreter set to run programs with.\n"
+"Please set it up as soon as possible via:\n"
+"Tools->Python interpreter chooser"
+msgstr ""
+"Geen interpreteerder gedefinieer om programme mee te hardloop nie.\n"
+"Stel dit so gou as moontlik op via:\n"
+"Gereedskap->Python interpreteerder kieser"
 
 #: boa/Plug-ins/PyrexSupport.plug-in.py:24
 msgid "Pyrex is not installed"
 msgstr "Pyrex is nie geinstalleer nie"
 
-#: boa/Plug-ins/RegexEditor.plug-in.py:56
+#: boa/Plug-ins/RegexEditor.plug-in.py:52
 msgid "Regex Editor"
 msgstr "Regex Redigeerder"
 
-#: boa/Plug-ins/RegexEditor.plug-in.py:66
+#: boa/Plug-ins/RegexEditor.plug-in.py:61
 msgid "Regular Expression"
 msgstr "Stringpatroon Uitdrukking"
 
-#: boa/Plug-ins/RegexEditor.plug-in.py:77
+#: boa/Plug-ins/RegexEditor.plug-in.py:74
 msgid "String"
 msgstr "String"
 
-#: boa/Plug-ins/RegexEditor.plug-in.py:88
-#: boa/Plug-ins/RegexEditor.plug-in.py:104
-#: boa/Plug-ins/RegexEditor.plug-in.py:202
+#: boa/Plug-ins/RegexEditor.plug-in.py:86
+#: boa/Plug-ins/RegexEditor.plug-in.py:103
+#: boa/Plug-ins/RegexEditor.plug-in.py:203
 msgid "Match"
 msgstr "Pas"
 
-#: boa/Plug-ins/RegexEditor.plug-in.py:101
+#: boa/Plug-ins/RegexEditor.plug-in.py:100
 msgid "Groups"
 msgstr "Groepe"
 
-#: boa/Plug-ins/RegexEditor.plug-in.py:105
+#: boa/Plug-ins/RegexEditor.plug-in.py:104
 msgid "Action"
 msgstr "Aksie"
 
-#: boa/Plug-ins/RegexEditor.plug-in.py:120
+#: boa/Plug-ins/RegexEditor.plug-in.py:121
 msgid "Flags"
 msgstr "Merkers"
 
-#: boa/Plug-ins/RegexEditor.plug-in.py:169
+#: boa/Plug-ins/RegexEditor.plug-in.py:170
 #, python-format
 msgid "Error: %s: %s"
 msgstr "Fout: %s: %s"
 
-#: boa/Plug-ins/RegexEditor.plug-in.py:205
+#: boa/Plug-ins/RegexEditor.plug-in.py:206
 msgid "Failed to match"
 msgstr "Geen passing"
 
-#: boa/Plug-ins/RegexEditor.plug-in.py:215
+#: boa/Plug-ins/RegexEditor.plug-in.py:216
 msgid "Regex editor"
 msgstr "Regex redigeerder"
 
@@ -3724,7 +3830,7 @@ msgstr "Maak lêerpad skoon?"
 msgid "Clear dirpath?"
 msgstr "Maak gidspad skoon?"
 
-#: boa/PropEdit/PropertyEditors.py:604
+#: boa/PropEdit/PropertyEditors.py:622
 #, python-format
 msgid ""
 "The given directory is invalid, using current directory.\n"
@@ -3733,11 +3839,11 @@ msgstr ""
 "Die gegewe gids is ongeldig, die huidige gids word gebruik.\n"
 "(%s)"
 
-#: boa/PropEdit/PropertyEditors.py:630
+#: boa/PropEdit/PropertyEditors.py:648
 msgid "Choose an image"
 msgstr "Kies 'n beeld"
 
-#: boa/PropEdit/PropertyEditors.py:682
+#: boa/PropEdit/PropertyEditors.py:700
 #, python-format
 msgid ""
 "Files of type %s not allowed for this property editor.\n"
@@ -3746,81 +3852,81 @@ msgstr ""
 "Lêers van tipe %s word nie toegelaat vir hierdie eienskap redigeerder nie.\n"
 "Die volgende tipes word aanvaar %s"
 
-#: boa/PropEdit/PropertyEditors.py:743
+#: boa/PropEdit/PropertyEditors.py:761
 msgid "Correct the module name that must be imported"
 msgstr "Maak reg die module naam wat geimport moet word"
 
-#: boa/PropEdit/PropertyEditors.py:744
+#: boa/PropEdit/PropertyEditors.py:762
 msgid "Resource module"
 msgstr "Resource module"
 
-#: boa/PropEdit/PropertyEditors.py:803
+#: boa/PropEdit/PropertyEditors.py:821
 #, python-format
 msgid "%s could not be loaded as a Resource Module"
 msgstr "%s kon nie as 'n Resource Module gelaai word nie"
 
-#: boa/PropEdit/PropertyEditors.py:904
+#: boa/PropEdit/PropertyEditors.py:922
 #, python-format
 msgid "Unhandled image handling type: %s"
 msgstr "Onhanteerde beeld tipe: %s"
 
-#: boa/PropEdit/PropertyEditors.py:1197
-#: boa/PropEdit/PropertyEditors.py:1203
-#: boa/PropEdit/PropertyEditors.py:1501
-#: boa/PropEdit/PropertyEditors.py:1507
+#: boa/PropEdit/PropertyEditors.py:1215
+#: boa/PropEdit/PropertyEditors.py:1221
+#: boa/PropEdit/PropertyEditors.py:1519
+#: boa/PropEdit/PropertyEditors.py:1525
 msgid "Invalid name for a Python object"
 msgstr "Ongeldige naam vir 'n Python objek"
 
-#: boa/PropEdit/PropertyEditors.py:1208
-#: boa/PropEdit/PropertyEditors.py:1497
+#: boa/PropEdit/PropertyEditors.py:1226
+#: boa/PropEdit/PropertyEditors.py:1515
 msgid "Name already used by another control."
 msgstr "Naam word alreeds deur 'n ander kontrole gebruik."
 
-#: boa/PropEdit/PropertyEditors.py:1290
-#: boa/PropEdit/PropertyEditors.py:1338
+#: boa/PropEdit/PropertyEditors.py:1308
+#: boa/PropEdit/PropertyEditors.py:1356
 msgid "(rename)"
 msgstr "(hernoem)"
 
-#: boa/PropEdit/PropertyEditors.py:1291
+#: boa/PropEdit/PropertyEditors.py:1309
 msgid "(show all)"
 msgstr "(wys alles)"
 
-#: boa/PropEdit/PropertyEditors.py:1292
+#: boa/PropEdit/PropertyEditors.py:1310
 msgid "(show own)"
 msgstr "(wys eie)"
 
-#: boa/PropEdit/PropertyEditors.py:1345
+#: boa/PropEdit/PropertyEditors.py:1363
 msgid "Enter a new method name:"
 msgstr "Voer 'n nuwe metode naam in:"
 
-#: boa/PropEdit/PropertyEditors.py:1346
+#: boa/PropEdit/PropertyEditors.py:1364
 msgid "Rename event method"
 msgstr "Hernoem event metode"
 
-#: boa/PropEdit/PropertyEditors.py:1399
+#: boa/PropEdit/PropertyEditors.py:1417
 #, python-format
 msgid "Invalid value: %s"
 msgstr "Ongeldige waarde: %s"
 
-#: boa/PropEdit/PropertyEditors.py:1810
-#: boa/PropEdit/PropertyEditors.py:1833
+#: boa/PropEdit/PropertyEditors.py:1828
+#: boa/PropEdit/PropertyEditors.py:1851
 msgid "Invalid value"
 msgstr "Ongeldige waarde"
 
-#: boa/PropEdit/PropertyEditors.py:1905
+#: boa/PropEdit/PropertyEditors.py:1923
 msgid "Anchors can not be reset while the property is expanded"
 msgstr "Ankers kan nie herset word terwyl die eienskap oop gemaak is nie"
 
-#: boa/PropEdit/PropertyEditors.py:1906
-#: boa/PropEdit/PropertyEditors.py:1914
+#: boa/PropEdit/PropertyEditors.py:1924
+#: boa/PropEdit/PropertyEditors.py:1932
 msgid "Anchors"
 msgstr "Ankers"
 
-#: boa/PropEdit/PropertyEditors.py:1909
+#: boa/PropEdit/PropertyEditors.py:1927
 msgid "Remove anchors?"
 msgstr "Verwyder ankers?"
 
-#: boa/PropEdit/PropertyEditors.py:1911
+#: boa/PropEdit/PropertyEditors.py:1929
 msgid "Define default Anchors?"
 msgstr "Definieer verstek ankers?"
 
@@ -4117,7 +4223,7 @@ msgstr "Dop ontvouter porteken (moet 3 karakters gevolg deur 'n spasie wees)"
 
 #: boa/Scripts/prefs.rc.i18n.py:54
 msgid "Shell prompt, standard input request (must be 3 chars with trailing space)"
-msgstr "Dop invoer porteken (moet 3 karakters gevolg deur 'n spasie wees)"
+msgstr "Dop toevoer porteken (moet 3 karakters gevolg deur 'n spasie wees)"
 
 #: boa/Scripts/prefs.rc.i18n.py:55
 msgid "Display properties for which source will be generated in Bold"
@@ -4499,7 +4605,7 @@ msgstr "Kode generasie"
 
 #: boa/Scripts/prefs.rc.i18n.py:138
 #: boa/Scripts/prefs.rc.i18n.py:146
-#: boa/Views/Designer.py:50
+#: boa/Views/Designer.py:52
 msgid "Designer"
 msgstr "Ontwerper"
 
@@ -4593,7 +4699,7 @@ msgid "#Todos"
 msgstr "#Take"
 
 #: boa/Views/AppViews.py:360
-#: boa/Views/EditorViews.py:1312
+#: boa/Views/EditorViews.py:1331
 msgid "Filepath"
 msgstr "Lêerpad"
 
@@ -4621,7 +4727,7 @@ msgid "More new ..."
 msgstr "Meer nuwe..."
 
 #: boa/Views/CollectionEdit.py:114
-#: boa/Views/Designer.py:169
+#: boa/Views/Designer.py:174
 msgid "Up"
 msgstr "Op"
 
@@ -4702,7 +4808,7 @@ msgid "Vertical"
 msgstr "Vertikaal"
 
 #: boa/Views/CtrlSize.py:33
-#: boa/Views/EditorViews.py:1371
+#: boa/Views/EditorViews.py:1390
 msgid "Size"
 msgstr "Groote"
 
@@ -4751,7 +4857,7 @@ msgid "Post"
 msgstr "Pos"
 
 #: boa/Views/DataView.py:49
-#: boa/Views/Designer.py:191
+#: boa/Views/Designer.py:196
 msgid "Creation/Tab order..."
 msgstr "Skepping/Tab orde..."
 
@@ -4771,85 +4877,85 @@ msgstr "Verkeerde Ontwerper"
 msgid "Recreating not supported in the %s view"
 msgstr "Herskepping is nie ondersteun in die %s aansig nie"
 
-#: boa/Views/Designer.py:93
+#: boa/Views/Designer.py:95
 #, python-format
 msgid "Component name illegal %s"
 msgstr "Komponent name onwettig %s"
 
-#: boa/Views/Designer.py:176
+#: boa/Views/Designer.py:181
 msgid "Recreate"
 msgstr "Herskep"
 
-#: boa/Views/Designer.py:177
+#: boa/Views/Designer.py:182
 msgid "Relayout selection"
 msgstr "Herlê kiesgroep uit"
 
-#: boa/Views/Designer.py:178
+#: boa/Views/Designer.py:183
 msgid "Relayout Designer"
 msgstr "Herlê Ontwerper uit"
 
-#: boa/Views/Designer.py:180
+#: boa/Views/Designer.py:185
 msgid "Fit sizer"
 msgstr "Pas sizer"
 
-#: boa/Views/Designer.py:183
+#: boa/Views/Designer.py:188
 msgid "Snap to grid"
 msgstr "Pas oor rooster"
 
-#: boa/Views/Designer.py:184
+#: boa/Views/Designer.py:189
 msgid "Align..."
 msgstr "Rig..."
 
-#: boa/Views/Designer.py:185
+#: boa/Views/Designer.py:190
 msgid "Size..."
 msgstr "Grootte.."
 
-#: boa/Views/Designer.py:368
+#: boa/Views/Designer.py:373
 msgid "Creating frame"
 msgstr "Raam word geskep"
 
-#: boa/Views/Designer.py:407
+#: boa/Views/Designer.py:412
 msgid "These links were not resolved (Details...)"
 msgstr "Hierdie skakels was nie ontbind nie (Details...)"
 
-#: boa/Views/Designer.py:415
+#: boa/Views/Designer.py:420
 msgid "Designer refreshed"
 msgstr "Ontwerper verfris"
 
-#: boa/Views/Designer.py:460
+#: boa/Views/Designer.py:465
 msgid "Designer session Posted."
 msgstr "Ontwerper sessie Gepos."
 
-#: boa/Views/Designer.py:466
+#: boa/Views/Designer.py:471
 msgid "Designer session Cancelled."
 msgstr "Ontwerper sessie Gekanseleer."
 
-#: boa/Views/Designer.py:523
+#: boa/Views/Designer.py:528
 #, python-format
 msgid "%s not found"
 msgstr "%s nie gevind nie"
 
-#: boa/Views/Designer.py:582
+#: boa/Views/Designer.py:587
 msgid "Can't delete frame"
 msgstr "Kan nie raam skrap nie"
 
-#: boa/Views/Designer.py:1102
+#: boa/Views/Designer.py:1108
 msgid "Cancel Designer session?"
-msgstr "Kanseleer Ontwerper sessie?"
+msgstr "Kanselleer Ontwerper sessie?"
 
-#: boa/Views/Designer.py:1173
+#: boa/Views/Designer.py:1179
 msgid "Nothing to delete"
 msgstr "Niks om te skrap nie"
 
-#: boa/Views/Designer.py:1216
+#: boa/Views/Designer.py:1222
 msgid "Nothing to cut"
 msgstr "Niks om te knip nie"
 
-#: boa/Views/Designer.py:1235
+#: boa/Views/Designer.py:1241
 msgid "Nothing to copy"
 msgstr "Niks om te kopieer nie"
 
-#: boa/Views/Designer.py:1275
+#: boa/Views/Designer.py:1281
 msgid "Only 1 control can be pasted into this container"
 msgstr "Slegs 1 kontrole kan geplak word in hierdie houer"
 
@@ -4913,8 +5019,9 @@ msgid "results"
 msgstr "resultate"
 
 #: boa/Views/EditorViews.py:522
-msgid "Close "
-msgstr "Maak toe"
+#, python-format
+msgid "Close %s"
+msgstr "Maak %s toe"
 
 #: boa/Views/EditorViews.py:531
 msgid "Cyclops report"
@@ -4925,7 +5032,7 @@ msgid "Todo"
 msgstr "TaakLys"
 
 #: boa/Views/EditorViews.py:798
-#: boa/Views/EditorViews.py:1370
+#: boa/Views/EditorViews.py:1389
 msgid "Line#"
 msgstr "Lyn#"
 
@@ -4936,6 +5043,11 @@ msgstr "Belangrikheid"
 #: boa/Views/EditorViews.py:800
 msgid "Entry"
 msgstr "Inskrywing"
+
+#: boa/Views/EditorViews.py:889
+#, python-format
+msgid "Results: %s"
+msgstr "Resultate: %s"
 
 #: boa/Views/EditorViews.py:903
 msgid "Package"
@@ -4950,44 +5062,45 @@ msgid "Add comment block to code"
 msgstr "Voeg komentaar blok by kode"
 
 #: boa/Views/EditorViews.py:960
-#: boa/Views/EditorViews.py:1072
+#: boa/Views/EditorViews.py:1091
 msgid "Explore"
 msgstr "Verken"
 
-#: boa/Views/EditorViews.py:1110
-msgid "Events"
-msgstr "Events"
-
-#: boa/Views/EditorViews.py:1123
-#: boa/Views/EditorViews.py:1253
+#: boa/Views/EditorViews.py:1002
+#: boa/Views/EditorViews.py:1142
+#: boa/Views/EditorViews.py:1272
 msgid "Loading..."
 msgstr "Laai..."
 
-#: boa/Views/EditorViews.py:1289
+#: boa/Views/EditorViews.py:1129
+msgid "Events"
+msgstr "Events"
+
+#: boa/Views/EditorViews.py:1308
 msgid "DistUtils"
 msgstr "DistUtils"
 
-#: boa/Views/EditorViews.py:1303
+#: boa/Views/EditorViews.py:1322
 msgid "Manifest"
 msgstr "Manifes"
 
-#: boa/Views/EditorViews.py:1358
+#: boa/Views/EditorViews.py:1377
 msgid "CVS conflicts"
 msgstr "CVS konflikte"
 
-#: boa/Views/EditorViews.py:1367
+#: boa/Views/EditorViews.py:1386
 msgid "Accept changes"
 msgstr "Aanvaar veranderinge"
 
-#: boa/Views/EditorViews.py:1368
+#: boa/Views/EditorViews.py:1387
 msgid "Reject changes"
 msgstr "Weier veranderinge"
 
-#: boa/Views/EditorViews.py:1369
+#: boa/Views/EditorViews.py:1388
 msgid "Rev"
 msgstr "Rev"
 
-#: boa/Views/EditorViews.py:1413
+#: boa/Views/EditorViews.py:1432
 msgid "Folder"
 msgstr "Gids"
 
@@ -5101,7 +5214,7 @@ msgstr "Geen vorm gekies nie"
 
 #: boa/Views/OGLViews.py:705
 msgid "No source for selection"
-msgstr "Geen bronkode kies groep nie"
+msgstr "Geen bronkode vir kiesgroep nie"
 
 #: boa/Views/OGLViews.py:746
 msgid "Imports"
@@ -5268,47 +5381,47 @@ msgstr "Verander..."
 msgid "Mixed EOLs detected in %s, please use Edit->Convert... to fix this problem."
 msgstr "Gemengde EOLs bespeur in %s, gebruik asseblief Redigeer->Verander... om dit op te los."
 
-#: boa/Views/SourceViews.py:379
+#: boa/Views/SourceViews.py:378
 msgid "Code marker added to Browse History"
 msgstr "Kode merker by Blaai Geskiedenis gevoeg"
 
-#: boa/Views/SourceViews.py:389
+#: boa/Views/SourceViews.py:388
 msgid "Enter line number:"
 msgstr "Voer lyn nommer in:"
 
-#: boa/Views/SourceViews.py:396
+#: boa/Views/SourceViews.py:395
 msgid "Integer line number required"
 msgstr "Heelgetal lyn nommer word verwag"
 
-#: boa/Views/SourceViews.py:437
+#: boa/Views/SourceViews.py:436
 msgid "View Whitespace"
 msgstr "Wys Witspasie"
 
-#: boa/Views/SourceViews.py:439
+#: boa/Views/SourceViews.py:438
 msgid "Buffered draw"
 msgstr "Gebufferde teken"
 
-#: boa/Views/SourceViews.py:441
+#: boa/Views/SourceViews.py:440
 msgid "Use indentation guides"
 msgstr "Gebruik inkeer gidse"
 
-#: boa/Views/SourceViews.py:443
+#: boa/Views/SourceViews.py:442
 msgid "View EOL symbols"
 msgstr "Wys EOL simbole"
 
-#: boa/Views/SourceViews.py:455
+#: boa/Views/SourceViews.py:454
 msgid "EOL mode"
 msgstr "EOL modus"
 
-#: boa/Views/SourceViews.py:484
+#: boa/Views/SourceViews.py:483
 msgid "EOLs to CRLF"
 msgstr "EOLs na CRLF"
 
-#: boa/Views/SourceViews.py:485
+#: boa/Views/SourceViews.py:484
 msgid "EOLs to LF"
 msgstr "EOLs na LF"
 
-#: boa/Views/SourceViews.py:486
+#: boa/Views/SourceViews.py:485
 msgid "EOLs to CR"
 msgstr "EOLs na CR"
 
@@ -5349,24 +5462,24 @@ msgid "Print Setup"
 msgstr "Druk Opstelling"
 
 #: boa/Views/STCPrinting.py:74
-#: boa/Views/STCPrinting.py:128
+#: boa/Views/STCPrinting.py:142
 msgid "Print Preview"
 msgstr "Druk Voorskou"
 
-#: boa/Views/STCPrinting.py:125
+#: boa/Views/STCPrinting.py:139
 msgid "An error occured while preparing preview."
 msgstr "Daar was 'n fout gedurende die voorskou."
 
-#: boa/Views/STCPrinting.py:140
+#: boa/Views/STCPrinting.py:154
 msgid "An error occured while printing."
 msgstr "Daar was 'n fout gedurende druk."
 
-#: boa/Views/STCPrinting.py:217
+#: boa/Views/STCPrinting.py:231
 #, python-format
 msgid "Page: %d"
 msgstr "Bladsy: %d"
 
-#: boa/Views/STCPrinting.py:238
+#: boa/Views/STCPrinting.py:252
 #, python-format
 msgid "warning: on page %s: not enough chars rendered, diff:"
 msgstr "waarskuwing: op bladsy %s: nie genoeg karakters gedruk nie, verskil:"
@@ -5553,6 +5666,10 @@ msgstr ""
 #, python-format
 msgid "Style %i not defined, sorry."
 msgstr "Styl %i nie defefinieer nie."
+
+#: boa/Views/STCStyleEditor.py:1065
+msgid "Common definition"
+msgstr "Gedeelde definiesie"
 
 #: boa/Views/STCStyleEditor.py:1068
 msgid "Colour value"
