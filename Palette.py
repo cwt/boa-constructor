@@ -200,7 +200,7 @@ class BoaFrame(wx.Frame, Utils.FrameRestorerMixin):
             palettePage = None
 
     def setDefaultDimensions(self):
-        self.SetDimensions(0, Preferences.topMenuHeight,
+        self.SetDimensions(Preferences.screenX, Preferences.screenY + Preferences.topMenuHeight,
             Preferences.screenWidth - Preferences.windowManagerSide * 2,
             Preferences.paletteHeight)
 

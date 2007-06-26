@@ -229,7 +229,7 @@ class InspectorFrame(wx.Frame, Utils.FrameRestorerMixin):
             self.selDesgn.restore()
 
     def setDefaultDimensions(self):
-        self.SetDimensions(0, Preferences.underPalette,
+        self.SetDimensions(Preferences.screenX, Preferences.underPalette + Preferences.screenY,
                            Preferences.inspWidth, Preferences.bottomHeight)
 
 #---Object selection------------------------------------------------------------
