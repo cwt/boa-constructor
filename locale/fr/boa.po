@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Boa Constructor 0.5.2\n"
 "POT-Creation-Date: \n"
-"PO-Revision-Date: 2006-11-10 17:50+0100\n"
+"PO-Revision-Date: 2006-11-17 10:07+0100\n"
 "Last-Translator: Olivier Thiery <olivier.th@gmail.com>\n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -226,7 +226,7 @@ msgstr "Avancer dans la pile de l'historique"
 
 #: boa/Editor.py:244
 msgid "Previous page"
-msgstr "Page précédente"
+msgstr "Fichier précédent"
 
 #: boa/Editor.py:245
 msgid "Switch to the previous page of the main notebook"
@@ -234,7 +234,7 @@ msgstr "Aller à l'onglet précédente"
 
 #: boa/Editor.py:247
 msgid "Next page"
-msgstr "Page suivante"
+msgstr "Fichier suivant"
 
 #: boa/Editor.py:248
 msgid "Switch to the next page of the main notebook"
