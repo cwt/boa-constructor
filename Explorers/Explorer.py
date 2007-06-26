@@ -146,6 +146,9 @@ class BaseExplorerTree(wx.TreeCtrl):
         return [self.GetItemText(id) for id in self.getChildren()]
 
     def getChildNamed(self, node, name):
+        if not node.IsOk():
+            return None
+        
         child, cookie = self.GetFirstChild(node)
 
         while child.IsOk() and self.GetItemText(child) != name:
