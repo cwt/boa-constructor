@@ -561,6 +561,10 @@ class StaticBoxSizerDTC(ControlLinkedSizerDTC):
                                      'wx.HORIZONTAL': wx.HORIZONTAL}
         self.options['Orientation'] = [wx.VERTICAL, wx.HORIZONTAL]
         self.editors['StaticBox'] = ReadOnlyConstrPropEdit
+        
+        self._staticBoxParent = None
+        self._staticBoxLabel = ''
+        self._staticBoxName = wx.StaticBoxNameStr
 
     def constructor(self):
         return {'Name': 'name', 'StaticBox': 'box', 'Orientation': 'orient'}
@@ -568,6 +572,19 @@ class StaticBoxSizerDTC(ControlLinkedSizerDTC):
     def designTimeSource(self):
         return {'box': 'None', 'orient': 'wx.VERTICAL'}
 
+    def designTimeObject(self, args = None):
+        if args and 'box' in args:
+            b = args['box']
+            if b is not None:
+                if not b: # deleted static box
+                    args['box'] = wx.StaticBox(self._staticBoxParent, -1, 
+                          self._staticBoxLabel, name=self._staticBoxName)
+                else:
+                    self._staticBoxParent = b.GetParent()
+                    self._staticBoxLabel = b.GetLabel()
+                    self._staticBoxName = b.GetName()
+                
+        return ControlLinkedSizerDTC.designTimeObject(self, args)
 
 
 ##class NotebookSizerDTC(ControlLinkedSizerDTC):
