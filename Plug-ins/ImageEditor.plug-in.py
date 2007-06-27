@@ -877,11 +877,11 @@ class ImageView(wx.Panel, EditorViews.EditorView):
     def __init__(self, parent, model):
         wx.Panel.__init__(self, parent, -1, style= wx.SUNKEN_BORDER)
         self.staticBitmapSmall = wx.StaticBitmap(self, -1, wx.NullBitmap)
-        self.staticBitmapBig = wx.StaticBitmap(self, -1, wx.NullBitmap)
+        #self.staticBitmapBig = wx.StaticBitmap(self, -1, wx.NullBitmap)
         EditorViews.EditorView.__init__(self, model, (), -1)
         self.active = True
 
-    imgsep = 32
+    imgsep = 16
     def refreshCtrl(self):
         if self.model.data:
             sio = StringIO(self.model.data)
@@ -889,6 +889,7 @@ class ImageView(wx.Panel, EditorViews.EditorView):
             self.staticBitmapSmall.SetBitmap(bmp)
             self.staticBitmapSmall.SetDimensions(self.imgsep, self.imgsep,
                                                  bmp.GetWidth(), bmp.GetHeight())
+            self.staticBitmapSmall.Refresh()                                     
             #self.staticBitmapBig.SetBitmap(bmp)
             #self.staticBitmapBig.SetDimensions(bmp.GetWidth()+self.imgsep*2,
             #      self.imgsep, bmp.GetWidth()*2, bmp.GetHeight()*2)
