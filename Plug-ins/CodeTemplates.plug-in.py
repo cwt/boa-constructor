@@ -73,7 +73,7 @@ class CodeTemplateManager:
     def getTemplate(self, name):
         if self.conf.has_section(name):
             return self.conf.get(name, 'template')
-        raise Exception, 'Code Template: %s not found'%name
+        raise Exception, _('Code Template: %s not found')%name
 
 codeTemplateManager = CodeTemplateManager()
 
