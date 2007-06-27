@@ -45,15 +45,18 @@ Changes
   * This reduces the number of files in a typical boa installation enormously
   * Help updated to wxPython 2.8 and Python 2.5
   * wxPython api help included
-  * Help files back in the repository
+  * All help files back in the repository and included in packages
 * New release format added: exe
   * Installs as a self contained exe
   * A python/wxPython installation is still required to run external scripts 
     and the debugger
 * Boa FindReplaceDialog improved to use sizers
+* Config files (Explorer.*.cfg, etc) now contain a version field and will
+  be backed up and replaced if there is a newer version
 * Many bugfixes
   * Better handling of wxStaticBoxSizer
   * Improved code completion, names defined by for loops now available
+  * Improved window placement with os taskbar in other positions
 
 
 -- 0.5.2 (CVS) --
