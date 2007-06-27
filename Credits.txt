@@ -25,6 +25,11 @@ The authors of CVS, SVN, SSH, SCP
 
 People who have helped out or contributed:
 
+Werner Brunin
+* Mailing list help
+* Tutorial updates
+* Bug reports and fixes
+* Help with the 2.5 Upgrader
 Shane Hathaway <shane@zope.com>
 * Bug fixes and obtimizations
 * Out of process debugger
@@ -51,11 +56,6 @@ Roman Yakovenko
 Cedric Delfosse
 * Debian package
 * Bug fixes
-Werner Brunin
-* Mailing list help
-* Tutorial updates
-* Bug reports and fixes
-* Help with the 2.5 Upgrader
 
 
 Translators:
@@ -65,7 +65,8 @@ Italian - Michele Petrazzo (michele.petrazzo@unipex.it)
 Brazilian Portuguese - Sergio Brant (sergiobrant@yahoo.com.br)
 Afrikaans - Riaan Booysen (riaan@e.co.za)
 Spanish - Felix Medrano Sanz (xukosky@yahoo.es)
-
+French - Olivier Thiery (olivier.th@gmail.com)
+Chinese - Dylan Yang (otherrrr@gmail.com)
 
 Also thanks to Kevin Light, Paul Sorenson, Oleg Deribas, Patrick 'O Brien, 
 John Bell, Gerrit van Dyk, Cliff Baeseman, Larry Poorman and anyone else I 

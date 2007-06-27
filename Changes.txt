@@ -1,6 +1,61 @@
 Changes
 -------
 
+-- 0.6.0 - beta (CVS) --
+
+2007-06-27
+
+* Translations available for:
+  Afrikaans, Brazilian Portuguese, Chinese, French, German, Italian, Spanish
+* Added Plug-ins/I18NUtils.plug-in.py
+  * Edit->Wrap selection with _() in python files
+  * Very basic support for opening .po files
+    * Edit as a text file in the IDE
+    * File->Compile to MO
+* IDE Language Chooser Dialog under Tools
+* Added support for using translated tips
+* -U, -UnicodeEncoding command-line switch, for setting the ide encoding without
+  using sitecustomize.py
+* Code Templates added:
+  * A Code Template is a small idiomatic snippet of code that can be selected from 
+    a popup list and inserted at the current caret position.
+  * The plugin is at Plug-ins/CodeTemplates.plug-in.py and the code template 
+    definitions are under Plug-ins/CodeTemplates/*.cfg
+  * The action is available from Source Views under Edit->Code Templates and 
+    currently bound to Alt-T.
+  * CodeTemplates functionality replaces the functionality of the Dialogs 
+    palette page. The page has been removed.
+  * Code templates available for:
+    * Boa: sys.breakpoint, customclasses, codetemplates, html document skeleton
+    * Python: class, method, function, iterator, descriptor
+    * wxPython: wx.ColourDialog, wx.FontDialog, wx.PrintDialogData, 
+                wx.PageSetupDialog, wx.DirDialog, wx.FileDialog,
+                wx.SingleChoiceDialog, wx.TextEntryDialog, wx.MessageDialog,
+                wx.FindReplaceDialog, wx.MultiChoiceDialog, wx.BusyCursor,
+                wx.Locale, wx.AboutBox
+* New controls supported:
+  wx.Treebook, wx.Toolbook, wx.richtext.RichTextCtrl, wx.combo.BitmapComboBox,
+  wx.SearchCtrl, wx.ColourPickerCtrl, wx.FontPickerCtrl, wx.DirPickerCtrl,
+  wx.FilePickerCtrl
+* Optional support for FlatNotebook under plugins
+* Basic support for Stock Ids for buttons
+  * You still need to clear the label manually recreate the button before the 
+    stock id is applied
+* All help files now distributed as .htb help files.
+  * This reduces the number of files in a typical boa installation enormously
+  * Help updated to wxPython 2.8 and Python 2.5
+  * wxPython api help included
+  * Help files back in the repository
+* New release format added: exe
+  * Installs as a self contained exe
+  * A python/wxPython installation is still required to run external scripts 
+    and the debugger
+* Boa FindReplaceDialog improved to use sizers
+* Many bugfixes
+  * Better handling of wxStaticBoxSizer
+  * Improved code completion, names defined by for loops now available
+
+
 -- 0.5.2 (CVS) --
 
 2006-10-16
