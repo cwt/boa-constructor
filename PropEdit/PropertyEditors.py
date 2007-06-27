@@ -545,6 +545,24 @@ class ItemIdConstrPropEdit(ConstrPropEdit):
         self.companion.checkTriggers(self.name, oldValue, value)
         self.propWrapper.setValue(value, self.companion.index)
 
+class ButtonIdConstrPropEdit(ConstrPropEdit):
+    def inspectorEdit(self):
+        self.editorCtrl = ChoiceIEC(self, self.getValue())
+        self.editorCtrl.createControl(self.parent, self.idx, self.width)
+        self.editorCtrl.setValue(self.value)
+
+    def getValues(self):
+        return [Utils.windowIdentifier(self.companion.designer.GetName(), 
+                self.companion.name)] + Enumerations.wxStockIds
+
+    def getValue(self):
+        if self.editorCtrl and self.editorCtrl.getValue():
+            self.value = self.editorCtrl.getValue()
+        else:
+            self.value = self.getCtrlValue()
+        return self.value
+
+
 class IntConstrPropEdit(ConstrPropEdit):
     def inspectorEdit(self):
         self.editorCtrl = SpinCtrlIEC(self, self.value)
