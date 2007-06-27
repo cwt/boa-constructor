@@ -255,17 +255,6 @@ if __name__ == '__main__':
 #-------------------------------------------------------------------------------
 
 import Preferences, Utils, Plugins
-from Explorers.PrefsExplorer import UsedModuleSrcBsdPrefColNode
-import moduleparse
-
-def updateRcFile(rcFile, propName, propSrcValue):
-    prefsRcFile = os.path.join(Preferences.rcPath, rcFile)
-    m = moduleparse.Module(rcFile, open(prefsRcFile).readlines())
-    prefsRcNode = UsedModuleSrcBsdPrefColNode('', ('*',), prefsRcFile, -1, None,
-                                              Preferences, True)
-    newProp = (propName, propSrcValue, m.globals[propName])
-    prefsRcNode.save(propName, newProp)
-
 
 def openPyInterpChooser(editor):
     dlg = PyInterpreterChooserDlg(editor, Preferences.pythonInterpreterPath)
@@ -276,7 +265,7 @@ def openPyInterpChooser(editor):
         pyIntpPath = dlg.txtPyIntpPath.GetValue()
 
         if pyIntpPath != Preferences.pythonInterpreterPath:
-            updateRcFile('prefs.rc.py', 'pythonInterpreterPath', `pyIntpPath`)
+            Plugins.updateRcFile('prefs.rc.py', 'pythonInterpreterPath', `pyIntpPath`)
 
             for ver, path in dlg.installedPaths:
                 if path == pyIntpPath:
@@ -286,10 +275,12 @@ def openPyInterpChooser(editor):
                     if path == pyIntpPath:
                         break
                 else:
-                    updateRcFile('prefs.plug-ins.rc.py', 'picExtraPaths',
+                    Plugins.updateRcFile('prefs.plug-ins.rc.py', 'picExtraPaths',
                         `Preferences.picExtraPaths+[pyIntpPath]`)
     finally:
         dlg.Destroy()
+
+_('Additional locations to choose the Python Interpreter Path from.')
 
 Plugins.registerPreference('PyInterpreterChooser', 'picExtraPaths', '[]',
                            ['Additional locations to choose the Python '
@@ -303,3 +294,4 @@ def checkInterpreter():
                       'Please set it up as soon as possible via:\n'
                       'Tools->Python interpreter chooser'))
 wx.CallAfter(checkInterpreter)
+    
