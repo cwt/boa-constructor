@@ -95,17 +95,31 @@ class STCPrintDlg(wx.Dialog):
         self.preview = None
 
         self.printData = wx.PrintData()
+        self.printData.SetPaperId(wx.PAPER_LETTER)
+        self.printData.SetOrientation(wx.PORTRAIT)
+        self.margins = (wx.Point(15,15), wx.Point(15,15))
+
         #self.printData.SetPaperId(wx.PAPER_LETTER)
 
 
     def OnPrintSetup(self, event):
-        printerDlg = wx.PrintDialog(self)
-        pdd = printerDlg.GetPrintDialogData()
-        pdd.SetPrintData(self.printData)
-        pdd.SetSetupDialog(True)
-        printerDlg.ShowModal()
-        self.printData = wx.PrintData(pdd.GetPrintData())
-        printerDlg.Destroy()
+        data = wx.PageSetupDialogData()
+        data.SetPrintData(self.printData)
+
+        data.SetDefaultMinMargins(True)
+        data.SetMarginTopLeft(self.margins[0])
+        data.SetMarginBottomRight(self.margins[1])
+
+        dlg = wx.PageSetupDialog(self, data)
+        try:
+            if dlg.ShowModal() == wx.ID_OK:
+                data = dlg.GetPageSetupData()
+                self.printData = wx.PrintData(data.GetPrintData()) 
+                self.printData.SetPaperId(data.GetPaperId())
+                self.margins = (data.GetMarginTopLeft(),
+                                data.GetMarginBottomRight())
+        finally:
+            dlg.Destroy()
 
     def createSTCPrintout(self):
         colourMode = stcPrintColourModes[self.rdbColourMode.GetSelection()]
