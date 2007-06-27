@@ -24,7 +24,7 @@ is configured.
 
 """
 
-import os, sys, shutil
+import os, sys, shutil, ConfigParser
 
 import wx
 
@@ -98,6 +98,21 @@ if not os.path.isdir(rcPath):
 # e.g. wx.Font(10, wx.DEFAULT, wx.NORMAL, wx.NORMAL, 0, 'Courier New')
 eoErrOutFont = wx.NORMAL_FONT
 
+def _backupAndCopyNewestConfig(prefsFile, file, ext):
+    bkno=0;bkstr=''
+    while 1:
+        bkfile = os.path.splitext(file)[0]+ext+'~'+bkstr
+        try:
+            os.rename(file, bkfile)
+        except OSError, err:
+            if err.errno != 17: raise
+            bkno=bkno+1;bkstr=str(bkno)
+        else:
+            break
+    shutil.copy2(os.path.join(pyPath, 'Config', prefsFile), file)
+    print 'Preference file %s replaced, previous version backed up to %s'%(
+          file, bkfile)
+
 
 wxPlatforms = {'__WXMSW__': 'msw',
                '__WXGTK__': 'gtk',
@@ -131,27 +146,39 @@ for prefsFile, version in (('prefs.rc.py', 18),
             else:
                 rcver = 0
             if rcver < version:
-                # backup and copy newest
-                bkno=0;bkstr=''
-                while 1:
-                    bkfile = os.path.splitext(file)[0]+'.py~'+bkstr
-                    try:
-                        os.rename(file, bkfile)
-                    except OSError, err:
-                        if err.errno != 17: raise
-                        bkno=bkno+1;bkstr=str(bkno)
-                    else:
-                        break
-                shutil.copy2(os.path.join(pyPath, 'Config', prefsFile), file)
-                print 'Preference file %s replaced, previous version backed up to %s'%(
-                      file, bkfile)
+                _backupAndCopyNewestConfig(prefsFile, file, '.py')
 
     execfile(file)
 
-for file in ('Explorer.%s.cfg' % thisPlatform, 'stc-styles.rc.cfg'):
-    rcFile = os.path.join(rcPath, file)
-    if not os.path.exists(rcFile):
-        shutil.copy2(os.path.join(pyPath, 'Config', file), rcFile)
+# upgrade/install config files if needed, different config filetypes handled seperately
+# ConfigParser files
+for confFile, version in (('Explorer.%s.cfg' % thisPlatform, 1),):
+    file = os.path.join(rcPath, confFile)
+    confVersion = 0
+    if os.path.exists(file):
+        c = ConfigParser.ConfigParser()
+        c.read(file)
+        if c.has_section('resourceconfig') and c.has_option('resourceconfig', 'version'):
+            confVersion = c.getint('resourceconfig', 'version')
+
+        if confVersion < version:
+            _backupAndCopyNewestConfig(confFile, file, '.cfg')
+    else:
+        shutil.copy2(os.path.join(pyPath, 'Config', confFile), file)
+
+# wx.FileConfig files
+for confFile, version in (('stc-styles.rc.cfg', 1),):
+    file = os.path.join(rcPath, confFile)
+    confVersion = 0
+    if os.path.exists(file):
+        c = wx.FileConfig(localFilename=file, style= wx.CONFIG_USE_LOCAL_FILE)
+        confVersion = c.ReadInt('/resourceconfig/version')
+
+        if confVersion < version:
+            _backupAndCopyNewestConfig(confFile, file, '.cfg')
+    else:
+        shutil.copy2(os.path.join(pyPath, 'Config', confFile), file)
+
 
 pluginPaths = []
 pluginSections = []
