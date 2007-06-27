@@ -662,18 +662,18 @@ class BottomAligningSplitterMix:
     def _OnSplitterwindowSize(self, event):
         sashpos = self.GetClientSize().y - self._win2sze - self.GetSashSize()
         self.SetSashPosition(sashpos)
-        event.Skip()
+        if event: event.Skip()
 
     def _OnSplitterwindowSplitterSashPosChanged(self, event):
         self._win2sze = self._getWin2Sze()
-        event.Skip()
+        if event: event.Skip()
 
     def _OnSplitterwindowSplitterDoubleclicked(self, event):
         if self.bottomWindowIsOpen():
             self.closeBottomWindow()
         else:
             self.openBottomWindow()
-        event.Skip()
+        if event: event.Skip()
 
 class BottomAligningSplitterWindow(wx.SplitterWindow, BottomAligningSplitterMix):
     def __init__(self, *_args, **_kwargs):
