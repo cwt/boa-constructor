@@ -973,6 +973,7 @@ class ExploreView(wx.TreeCtrl, EditorView):
                            'Images/Modules/'+self.model.bitmap,
                            'Images/Views/Explore/global.png',
                            'Images/Views/Explore/dottedline.png',
+                           'Images/Views/Explore/import.png',
                            ):
             self.tokenImgLst.Add(IS.load(exploreImg))
         self.SetImageList(self.tokenImgLst)
@@ -1011,6 +1012,13 @@ class ExploreView(wx.TreeCtrl, EditorView):
         self.DeleteAllItems()
         rootItem = self.AddRoot(self.model.moduleName, 5, -1,
               wx.TreeItemData(CodeBlock('', 0, 0)))
+        if module.imports or module.from_imports_names:
+            importsItem = self.AppendItem(rootItem, 'Imports', 8, data=wx.TreeItemData(CodeBlock('', 0, 0)))
+            for i in module.imports:
+                self.AppendItem(importsItem, i, 6, data=wx.TreeItemData(CodeBlock('', module.imports[i][0], 0)))
+            for i in module.from_imports_names:
+                self.AppendItem(importsItem, i, 6, data=wx.TreeItemData(CodeBlock('', module.from_imports[module.from_imports_names[i]][0], 0)))
+                
         for className in module.class_order:
             classItem = self.AppendItem(rootItem, className, 0, -1,
                   wx.TreeItemData(module.classes[className].block))
@@ -1029,17 +1037,28 @@ class ExploreView(wx.TreeCtrl, EditorView):
                         del breaks[brkLnNo]
 
                 if Utils.methodLooksLikeEvent(method):
-                    methodsItem = self.AppendItem(classItem, method, 2, -1,
-                      wx.TreeItemData(methBlock))
+                    methodsItem = self.AppendItem(classItem, method, 2, -1, wx.TreeItemData(methBlock))
+                    if methBlock.locals:
+                        for l in methBlock.locals:
+                            methodLocalsItem = self.AppendItem(methodsItem, l, 6, -1,
+                                  wx.TreeItemData(CodeBlock('', methBlock.locals[l].lineno, 0)))
                 else:
-                    methodsItem = self.AppendItem(classItem, method, 1, -1,
-                      wx.TreeItemData(methBlock))
+                    methodsItem = self.AppendItem(classItem, method, 1, -1, wx.TreeItemData(methBlock))
+                    if methBlock.locals:
+                        for l in methBlock.locals:
+                            methodLocalsItem = self.AppendItem(methodsItem, l, 6, -1,
+                                  wx.TreeItemData(CodeBlock('', methBlock.locals[l].lineno, 0)))
 
         functionList = module.functions.keys()
         functionList.sort()
         for func in functionList:
+            funcBlock = module.functions[func]
             funcItem = self.AppendItem(rootItem, func, 3, -1,
-              wx.TreeItemData(module.functions[func]))
+              wx.TreeItemData(funcBlock))
+            if funcBlock.locals:
+                for l in funcBlock.locals:
+                    funcLocalsItem = self.AppendItem(funcItem, l, 6, -1,
+                          wx.TreeItemData(CodeBlock('', funcBlock.locals[l].lineno, 0)))
 
         for globalName in module.global_order:
             globalItem = self.AppendItem(rootItem, globalName, 6, -1,
