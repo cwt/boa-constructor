@@ -26,6 +26,8 @@ import sourceconst
 from InspectableViews import InspectableObjectView
 import SelectionTags
 
+from PropEdit import Enumerations
+
 [wxID_CTRLPARENT, wxID_EDITCUT, wxID_EDITCOPY, wxID_EDITPASTE, wxID_EDITDELETE,
  wxID_SHOWINSP, wxID_SHOWEDTR, wxID_CTRLHELP, wxID_EDITALIGN, wxID_EDITSIZE,
  wxID_EDITRECREATE, wxID_EDITSNAPGRID, wxID_EDITRELAYOUT, wxID_EDITRELAYOUTSEL,
@@ -93,8 +95,11 @@ class DesignerView(wx.Frame, InspectableObjectView, Utils.FrameRestorerMixin):
                 else: raise Exception, _('Component name illegal %s')%srcPrnt
                 args[prnt] = self.objects[srcPrnt][1]
 
-
-        if doId: args[wId] = wx.NewId()
+        # hack to allow stock ids to set the button
+        if wId in args and args[wId] in Enumerations.wxStockIds:
+            args[wId] = getattr(wx, args[wId].split('.')[1])
+        elif doId: 
+            args[wId] = wx.NewId()
 
         return args
 
@@ -958,7 +963,8 @@ class DesignerView(wx.Frame, InspectableObjectView, Utils.FrameRestorerMixin):
                             tcl = destSizerCmpn.textConstrLst[sizerItemIdx]
                             tcl.method = 'AddWindow'
                             tcl.params[0] = 'self.%s'%ctrlName
-                            tcl.params[1] = '0'
+                            if tcl.params[1] and tcl.params[1][0] != '(' and tcl.params[1][-1] != ')':
+                                tcl.params[1] = '0'
                             destSizerCmpn.recreateSizers()
 
                             collEditView = SelectionTags.openCollEditorForSizerItems(
@@ -1512,7 +1518,13 @@ class DesignerNamespace:
     def __getattr__(self, name):
         designer = self.__dict__['_designer']
         if designer.objects.has_key(name):
-            return designer.objects[name][1]
+            #return designer.objects[name][1]
+            obj = designer.objects[name]
+            if isinstance(obj[1], wx._core._wxPyDeadObject):
+                obj[0].parent = designer.objects[obj[2]][1]
+                obj[1] = obj[0].designTimeControl(wx.DefaultPosition, wx.DefaultSize)
+                obj[0].control = obj[1]
+            return obj[1]
         elif designer.dataView.objects.has_key(name):
             return designer.dataView.objects[name][1]
         elif designer.sizersView and \
