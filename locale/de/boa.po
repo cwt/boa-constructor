@@ -14,7 +14,7 @@ msgstr ""
 
 #: boa/About.py:257
 msgid "About Boa Constructor"
-msgstr "About - Boa Constructor"
+msgstr "Über Boa Constructor"
 
 #: boa/Boa.py:551
 #, python-format
@@ -22,12 +22,12 @@ msgid ""
 "Error writing config file: %s\n"
 "Please ensure that the Explorer.*.cfg file is not read only."
 msgstr ""
-"Fehler beim schreiben der \"config\" Datei: %s\n"
-"Bitte stellen Sie sicher das die \"Explorer.*.cfg\" Dateien nicht schreib geschützt sind."
+"Fehler beim Schreiben der \"config\" Datei: %s\n"
+"Bitte stellen Sie sicher das die \"Explorer.*.cfg\" Dateien nicht schreibgeschützt sind."
 
 #: boa/Boa.py:617
 msgid "Could not set working directory from Preferences.exWorkingDirectory :"
-msgstr "Konnte das Arbeits Verzeichnis von \"Preferences.exWorkingDirectory\" nicht setzten:"
+msgstr "Konnte das Arbeitsverzeichnis von \"Preferences.exWorkingDirectory\" nicht setzten:"
 
 #: boa/Boa.py:624
 msgid ""
@@ -35,24 +35,24 @@ msgid ""
 "There were errors during startup, please click \"Details\""
 msgstr ""
 "\n"
-"Es gab Fehler beim starten, bitte klicken Sie auf \"Details\""
+"Es gab Fehler beim Starten, bitte klicken Sie auf \"Details\""
 
 #: boa/Boa.py:643
 msgid "Restore Boa Constructor"
-msgstr "Rückspeichern - Boa Constructor"
+msgstr "Wiederherstellen von Boa Constructor"
 
 #: boa/Boa.py:644
 msgid "Exit"
-msgstr "Verlassen"
+msgstr "Beenden"
 
 #: boa/Boa.py:646
 #: boa/Editor.py:273
 msgid "About"
-msgstr "About"
+msgstr "Über"
 
 #: boa/Boa.py:692
 msgid "Error on startup"
-msgstr "Fehler beim starten"
+msgstr "Fehler beim Starten"
 
 #: boa/ClassBrowser.py:32
 #: boa/Views/EditorViews.py:1217
@@ -117,7 +117,7 @@ msgstr "Datei"
 #: boa/PropEdit/BitmapListEditorDlg.py:130
 #: boa/Views/AppViews.py:108
 msgid "Edit"
-msgstr "Ändern"
+msgstr "Bearbeiten"
 
 #: boa/Editor.py:78
 #: boa/Editor.py:481
@@ -128,7 +128,7 @@ msgstr "Ansichten"
 
 #: boa/Editor.py:79
 msgid "Tools"
-msgstr "Tools"
+msgstr "Werkzeuge"
 
 #: boa/Editor.py:210
 msgid "Load"
@@ -150,11 +150,11 @@ msgstr "Speichern der Fenster Dimensionen zu der \"config\"."
 
 #: boa/Editor.py:215
 msgid "Restore defaults"
-msgstr "Vorgabe rückspeichern"
+msgstr "Vorgaben wiederherstellen"
 
 #: boa/Editor.py:215
 msgid "Restore dimensions to defaults"
-msgstr "Rückspeichern der vorgabe Dimensionen"
+msgstr "Wiederherstellen der Dimensions-Vorgaben"
 
 #: boa/Editor.py:219
 msgid "Palette"
@@ -162,7 +162,7 @@ msgstr "Palette"
 
 #: boa/Editor.py:219
 msgid "Switch to the Palette frame."
-msgstr "Zur \"Palette\" Seite wechseln"
+msgstr "Zum Palette Fenster wechseln"
 
 #: boa/Editor.py:221
 #: boa/Editor.py:535
@@ -173,7 +173,7 @@ msgstr "Inspektor"
 
 #: boa/Editor.py:222
 msgid "Switch to the Inspector frame."
-msgstr "Zur Inspektor Seite wechseln"
+msgstr "Zum Inspektor Fenster wechseln"
 
 #: boa/Editor.py:226
 #: boa/Editor.py:537
@@ -183,7 +183,7 @@ msgstr "Shell"
 
 #: boa/Editor.py:227
 msgid "Switch to the Shell page"
-msgstr "Zur \"Shell\" Seite wechseln"
+msgstr "Zum \"Shell\" Fenster wechseln"
 
 #: boa/Editor.py:230
 #: boa/Editor.py:539
@@ -195,17 +195,17 @@ msgstr "Explorer"
 
 #: boa/Editor.py:231
 msgid "Switch to the Explorer page"
-msgstr "Zur Explorer Seite wechseln"
+msgstr "Zum Explorer Fenster wechseln"
 
 #: boa/Editor.py:233
 #: boa/Explorers/PrefsExplorer.py:51
 #: boa/Explorers/PrefsExplorer.py:102
 msgid "Preferences"
-msgstr "Präferenzen"
+msgstr "Einstellungen"
 
 #: boa/Editor.py:234
 msgid "Switch to the Preferences in the Explorer"
-msgstr "Im \"Explorer\" zu den Präferenzen wechseln"
+msgstr "In den \"Explorer\" zu den Einstellungen wechseln"
 
 #: boa/Editor.py:238
 #: boa/Editor.py:443
@@ -214,7 +214,7 @@ msgstr "Rückwärts durchsuchen"
 
 #: boa/Editor.py:239
 msgid "Go back in browsing history stack"
-msgstr "Zurückgehen im durchsuchen des \"History stack\"."
+msgstr "Zurückgehen durch Durchsuchen des Verlauf-Stacks."
 
 #: boa/Editor.py:241
 #: boa/Editor.py:444
@@ -223,7 +223,7 @@ msgstr "Vorwärts durchsuchen"
 
 #: boa/Editor.py:242
 msgid "Go forward in browsing history stack"
-msgstr "Vorwärtsgehen im durchsuchen des \"History stack\"."
+msgstr "Vorwärtsgehen im Durchsuchen des Verlauf-Stacks."
 
 #: boa/Editor.py:244
 msgid "Previous page"
@@ -231,7 +231,7 @@ msgstr "Letzte Seite"
 
 #: boa/Editor.py:245
 msgid "Switch to the previous page of the main notebook"
-msgstr "Zur letzten Seite wechseln im Haupt Notizbuch"
+msgstr "Zur letzten Seite im Haupt Notizbuch wechseln"
 
 #: boa/Editor.py:247
 msgid "Next page"
@@ -239,7 +239,7 @@ msgstr "Nächste Seite"
 
 #: boa/Editor.py:248
 msgid "Switch to the next page of the main notebook"
-msgstr "Zur nächtsten Seite wechseln im Haupt Notizbuch"
+msgstr "Zur nächtsten Seite im Haupt Notizbuch wechseln"
 
 #: boa/Editor.py:251
 msgid "All window dimensions"
@@ -247,7 +247,7 @@ msgstr "Alle Fenster Dimensionen"
 
 #: boa/Editor.py:252
 msgid "Load, save or restore IDE windows dimensions"
-msgstr "Laden, speichern oder rück-speichern der IDE Fenster Dimensionen"
+msgstr "Laden, Speichern oder Wiedeherstellen der IDE Fenster Dimensionen"
 
 #: boa/Editor.py:254
 msgid "Hide Palette"
@@ -274,11 +274,11 @@ msgstr "Öffnet die Hilfe für den Editor"
 
 #: boa/Editor.py:262
 msgid "Getting started guide"
-msgstr "\"Getting started\" Führer"
+msgstr "\"Getting started\" Handbuch"
 
 #: boa/Editor.py:262
 msgid "Opens the Getting started guide"
-msgstr "Öffnet den \"Getting started\" Führer"
+msgstr "Öffnet das \"Getting started\" Handbuch"
 
 #: boa/Editor.py:265
 #: boa/Editor.py:545
@@ -301,15 +301,15 @@ msgstr "Öffnet den Datei Dialog im Bespiel Verzeichnis"
 
 #: boa/Editor.py:270
 msgid "Tips"
-msgstr "Tips"
+msgstr "Tipps"
 
 #: boa/Editor.py:270
 msgid "Opens the \"Tip of the Day\" window"
-msgstr "Öffnet das \"Tip des Tages\" Fenster"
+msgstr "Öffnet das \"Tipp des Tages\" Fenster"
 
 #: boa/Editor.py:273
 msgid "Opens the About box"
-msgstr "Öffnet das \"About\" Fenster"
+msgstr "Öffnet das \"Über\" Fenster"
 
 #: boa/Editor.py:283
 msgid "&Help"
@@ -340,7 +340,7 @@ msgstr "Öffnen"
 #: boa/Editor.py:437
 #: boa/Editor.py:441
 msgid "Open a module"
-msgstr "Ein Module öffnen"
+msgstr "Ein Modul öffnen"
 
 #: boa/Editor.py:439
 msgid "Open recent files"
@@ -349,7 +349,7 @@ msgstr "Öffnen der letzten Dateien"
 #: boa/Editor.py:462
 #: boa/Editor.py:498
 msgid "Exit Boa Constructor"
-msgstr "Boa Constructor schliessen"
+msgstr "Boa Constructor beenden"
 
 #: boa/Editor.py:541
 msgid "Previous window"
@@ -361,7 +361,7 @@ msgstr "Nächstes Fenster"
 
 #: boa/Editor.py:810
 msgid "File already open."
-msgstr "Datei ist schon offen."
+msgstr "Datei ist schon geöffnet."
 
 #: boa/Editor.py:833
 msgid "Cannot open, no transport defined."
@@ -376,25 +376,25 @@ msgstr "Zope Objekt \"%s\" ist nicht unterstützt"
 #: boa/FileDlg.py:116
 #: boa/Companions/BasicCompanions.py:453
 msgid "Choose a file"
-msgstr "Eine Datei auswählen"
+msgstr "Wählen Sie eine Datei aus"
 
 #: boa/Editor.py:965
 #: boa/Models/Controllers.py:135
 #: boa/Views/EditorViews.py:405
 msgid "Save as..."
-msgstr "Speichern als..."
+msgstr "Speichern unter..."
 
 #: boa/Editor.py:983
 msgid "Close module"
-msgstr "Module schliessen"
+msgstr "Modul schließen"
 
 #: boa/Editor.py:1010
 msgid "There are changes, do you want to save?"
-msgstr "Es gibt Änderungen, wollen Sie sie speichern?"
+msgstr "Es gibt Änderungen, wollen Sie speichern?"
 
 #: boa/Editor.py:1187
 msgid "Enter term to search for in the index"
-msgstr "Den Suchbegriff eingeben um im Index zu suchen"
+msgstr "Den Suchbegriff eingeben, um im Index zu suchen"
 
 #: boa/Editor.py:1188
 msgid "Help - Find in index"
@@ -402,20 +402,20 @@ msgstr "Hilfe - Im Index finden"
 
 #: boa/Editor.py:1334
 msgid "Skipped opening files because Boa possibly crashed last time while opening"
-msgstr "Übersprang das öffnen der Dateien da Boa wahrscheinlich abstürtzte beim letzten öffnen"
+msgstr "Übersprang das Öffnen der Dateien, da Boa möglicherweise beim letzten Öffnen abstürzte."
 
 #: boa/Editor.py:1344
 #: boa/Editor.py:1375
 msgid "Could not update config."
-msgstr "Konnte die \"config\" nicht ändern."
+msgstr "Konnte die \"config\" nicht aktualisieren."
 
 #: boa/Editor.py:1400
 msgid "Could not save open file list: "
-msgstr "Konnte die offenen Dateien nicht sichern:"
+msgstr "Konnte die offenen Dateien nicht sichern: "
 
 #: boa/Editor.py:1428
 msgid "Please close the application running in the debugger before continuing."
-msgstr "Bitte die Applikation im Debugger schliessen und dann weiter machen."
+msgstr "Bitte die Applikation im Debugger schließen, dann fortführen."
 
 #: boa/Editor.py:1519
 msgid "Window dimensions loaded"
@@ -462,7 +462,7 @@ msgid ""
 "Do you want to overwrite these changes (Yes), reload your file (No) or cancel this operation (Cancel)?"
 msgstr ""
 "\"%s\"\n"
-"Wollen Sie diese Änderungen überschreiben (Ja), Datei neu laden (Nein), oder diese Operation annulieren (Annulieren)?"
+"Wollen Sie diese Änderungen überschreiben (Ja), Datei neu laden (Nein), oder diese Operation abbrechen (Abbrechen)?"
 
 #: boa/EditorUtils.py:409
 msgid "Overwrite newer file warning"
@@ -551,9 +551,9 @@ msgid ""
 "\n"
 "Click Cancel to quit anyway."
 msgstr ""
-"Es gibt noch Prozesse die aus Boa gestartet wurden, bitte schliessen oder abschalten (kill) vor dem Verlassen.\n"
+"Es gibt noch Prozesse die aus Boa gestartet wurden, bitte diese schliessen oder Prozess beenden (kill) vor dem Verlassen.\n"
 "\n"
-"Klick \"Annulieren\" um Boa trotzdem zu Verlassen."
+"Klicke \"Abbrechen\" um Boa trotzdem zu verlassen."
 
 #: boa/ErrorStackFrm.py:546
 msgid "History cleared."
@@ -562,7 +562,7 @@ msgstr "Historie gelöscht."
 #: boa/FileDlg.py:32
 #, python-format
 msgid "top | up | new folder || %s://%s"
-msgstr "top | up | neues Verzeichniss || %s://%s"
+msgstr "höher | runter | neues Verzeichnis || %s://%s"
 
 #: boa/FileDlg.py:59
 #: boa/FileDlg.py:581
@@ -575,7 +575,7 @@ msgstr "Datei Name:"
 
 #: boa/FileDlg.py:71
 msgid "Files of type:"
-msgstr "Datei des Types:"
+msgstr "Datei vom Typ:"
 
 #: boa/FileDlg.py:93
 #: boa/FileDlg.py:582
@@ -625,7 +625,7 @@ msgstr "OK"
 #: boa/Views/STCStyleEditor.py:226
 #: boa/Views/STCStyleEditor.py:1091
 msgid "Cancel"
-msgstr "Annulieren"
+msgstr "Abbrechen"
 
 #: boa/FileDlg.py:120
 #: boa/Explorers/FileExplorer.py:93
@@ -678,12 +678,12 @@ msgstr "Kategorie nicht gefunden"
 
 #: boa/FileDlg.py:550
 msgid "Only filesystem paths allowed"
-msgstr "Nur \"filesystem\" Pfad ist erlaubt"
+msgstr "Nur Dateisystem-Pfade sind erlaubt"
 
 #: boa/FileDlg.py:561
 #, python-format
 msgid "Could not open %s"
-msgstr "Konnte \"%s\" nicht öffnen"
+msgstr "%s konnte nicht geöffnet werden."
 
 #: boa/FileDlg.py:562
 #: boa/PropEdit/PropertyEditors.py:605
@@ -692,7 +692,7 @@ msgstr "Warnung"
 
 #: boa/FileDlg.py:587
 msgid "Save As"
-msgstr "Sichern als"
+msgstr "Speichern unter"
 
 #: boa/FileDlg.py:651
 msgid "New Folder"
@@ -707,11 +707,11 @@ msgstr "Suche/Ersetzen"
 
 #: boa/FindReplaceDlg.py:82
 msgid "Insert path to find in files"
-msgstr "Pfad eingeben um Dateien zu suchen"
+msgstr "Pfad eingeben um in Dateien zu suchen"
 
 #: boa/FindReplaceDlg.py:89
 msgid "Files that will be included in search"
-msgstr "Dateien die in der Suche berücksichtigt werden"
+msgstr "Dateien, die in der Suche berücksichtigt werden"
 
 #: boa/FindReplaceDlg.py:91
 #: boa/Views/EditorViews.py:349
@@ -732,11 +732,11 @@ msgstr "Alle"
 
 #: boa/FindReplaceDlg.py:99
 msgid "Selected"
-msgstr "Selektiert"
+msgstr "Ausgewählt"
 
 #: boa/FindReplaceDlg.py:100
 msgid "Scope"
-msgstr "Umfang (Scope)"
+msgstr "Wirkungsbereich"
 
 #: boa/FindReplaceDlg.py:107
 msgid "Options"
@@ -744,7 +744,7 @@ msgstr "Optionen"
 
 #: boa/FindReplaceDlg.py:111
 msgid "Case sensitive"
-msgstr "Gross-/Kleinschreibung beachten"
+msgstr "Groß-/Kleinschreibung beachten"
 
 #: boa/FindReplaceDlg.py:118
 msgid "Whole words"
@@ -756,7 +756,7 @@ msgstr "Platzhalter"
 
 #: boa/FindReplaceDlg.py:130
 msgid "Regular expressions"
-msgstr "Regular expressions"
+msgstr "Reguläre Ausdrücke"
 
 #: boa/FindReplaceDlg.py:136
 msgid "Wrap search"
@@ -764,7 +764,7 @@ msgstr "\"Wrap\" Suche"
 
 #: boa/FindReplaceDlg.py:142
 msgid "Close on found"
-msgstr "Schliessen wenn gefunden"
+msgstr "Schließen nach Fund"
 
 #: boa/FindReplaceDlg.py:148
 msgid "Recursive search"
@@ -784,7 +784,7 @@ msgstr "Alle suchen"
 
 #: boa/FindReplaceDlg.py:166
 msgid "Find in files"
-msgstr "Finden in Dateien"
+msgstr "Suchen in Dateien"
 
 #: boa/FindReplaceDlg.py:172
 msgid "Replace"
@@ -796,7 +796,7 @@ msgstr "Alle Ersetzen"
 
 #: boa/FindReplaceDlg.py:190
 msgid "Text to find"
-msgstr "Text zum finden"
+msgstr "Suchtext"
 
 #: boa/FindReplaceDlg.py:194
 msgid "Replace with"
@@ -804,7 +804,7 @@ msgstr "Ersetzen mit"
 
 #: boa/FindReplaceDlg.py:198
 msgid "Files to find in"
-msgstr "Dateien zu suchen in"
+msgstr "In Dateien suchen"
 
 #: boa/FindReplaceDlg.py:202
 msgid "File filter"
@@ -812,7 +812,7 @@ msgstr "Datei Filter"
 
 #: boa/FindReplaceDlg.py:208
 msgid "Build-in ready to run searches"
-msgstr "Eingebaute such Expressions"
+msgstr "Fertig eingebaute Suchen"
 
 #: boa/FindReplaceDlg.py:215
 msgid "Folders tree"
@@ -827,7 +827,7 @@ msgstr "Erstellen der Datei Liste für das Verzeichnis \"%s\""
 #: boa/FindReplaceEngine.py:205
 #: boa/Search.py:73
 msgid "Searching..."
-msgstr "Ich suche..."
+msgstr "Beim Suchen..."
 
 #: boa/FindReplaceDlg.py:419
 msgid "There is nothing to find."
@@ -837,11 +837,11 @@ msgstr "Es wurde nichts gefunden."
 #: boa/FindReplaceDlg.py:425
 #: boa/FindReplaceDlg.py:429
 msgid "Boa - Find/Replace"
-msgstr "Boa - Suche/Ersetzen"
+msgstr "Boa - Suchen/Ersetzen"
 
 #: boa/FindReplaceDlg.py:425
 msgid "There is nothing to replace with."
-msgstr "Es gibt nichts um damit zu Ersetzen."
+msgstr "Es gibt nichts zu Ersetzen."
 
 #: boa/FindReplaceDlg.py:429
 msgid "The folder you entered is not valid folder."
@@ -863,12 +863,12 @@ msgstr "Suche \"wrapped\""
 
 #: boa/FindReplaceEngine.py:118
 msgid "Results:"
-msgstr "Resultate:"
+msgstr "Ergebnisse:"
 
 #: boa/FindReplaceEngine.py:186
 #, python-format
 msgid "%s items replaced"
-msgstr "%s Stücke ersetzt"
+msgstr "%s Stellen ersetzt"
 
 #: boa/FindReplaceEngine.py:204
 #, python-format
@@ -897,11 +897,11 @@ msgstr "Such Resultate"
 #: boa/FindResults.py:29
 #: boa/Views/AppViews.py:42
 msgid "Goto match"
-msgstr "Spring zum \"match\""
+msgstr "Gehe zum Treffer"
 
 #: boa/FindResults.py:30
 msgid "Re-run query"
-msgstr "Query wiederholen"
+msgstr "Abfrage wiederholen"
 
 #: boa/FindResults.py:33
 #: boa/Debugger/DebuggerControls.py:177
@@ -919,7 +919,7 @@ msgstr "Zeilen Nr."
 #: boa/FindResults.py:35
 #: boa/Views/AppViews.py:49
 msgid "Col"
-msgstr "Kol"
+msgstr "Sp."
 
 #: boa/FindResults.py:36
 #: boa/Views/AppViews.py:50
@@ -931,11 +931,11 @@ msgstr "Text"
 #: boa/Views/AppViews.py:69
 #, python-format
 msgid "%d matches of \"%s\"."
-msgstr "%d \"matches\" von \"%s\"."
+msgstr "%d Treffer von \"%s\"."
 
 #: boa/Help.py:48
 msgid "Enter name to search for"
-msgstr "Den Namen zur Suche eingeben"
+msgstr "Zu suchenden Namen eingeben"
 
 #: boa/Help.py:59
 #: boa/Plug-ins/RegexEditor.plug-in.py:104
@@ -957,11 +957,11 @@ msgstr "Server läuft nicht"
 
 #: boa/Help.py:116
 msgid "Starting pydoc server... "
-msgstr "\"pydoc\" Server startet"
+msgstr "Pydoc Server startet..."
 
 #: boa/Help.py:119
 msgid "Address in use, "
-msgstr "Adresse ist benutzt,"
+msgstr "Adresse ist benutzt, "
 
 #: boa/Help.py:158
 msgid "Server quit. "
@@ -969,17 +969,17 @@ msgstr "Server verlassen"
 
 #: boa/Help.py:216
 msgid "Stopping server..."
-msgstr "Server stoped"
+msgstr "Stoppe Server..."
 
 #: boa/Help.py:403
 msgid "Copy contents as text to clipboard"
-msgstr "Kontent als Text in die Zwischenablage kopieren"
+msgstr "Inhalt als Text in die Zwischenablage kopieren"
 
 #: boa/Help.py:411
 #: boa/Plug-ins/HelpBook.plug-in.py:851
 #: boa/Plug-ins/HelpBook.plug-in.py:881
 msgid "Contents"
-msgstr "Kontent"
+msgstr "Inhalt"
 
 #: boa/Help.py:418
 #: boa/Plug-ins/HelpBook.plug-in.py:680
@@ -997,19 +997,19 @@ msgid ""
 "\n"
 "Do you want to wait?"
 msgstr ""
-"Der \"pydoc\" Server ist nicht vollständig gestartet,\n"
-"es ist sicherer zu warten bevor man ihn verlässt.\n"
+"Der Pydoc-Server ist nicht vollständig gestartet,\n"
+"es ist sicherer vor dem Abschalten zu warten.\n"
 "\n"
 "Möchten Sie warten?"
 
 #: boa/Help.py:550
 msgid "Pydoc server busy"
-msgstr "\"pydoc\" Server ist beschäftigt"
+msgstr "Pydoc-Server ist beschäftigt"
 
 #: boa/ImageStore.py:63
 #, python-format
 msgid "Extension not handled: %s"
-msgstr "Extansion ist nicht unterstützt: %s"
+msgstr "Erweiterung ist nicht unterstützt: %s"
 
 #: boa/ImageStore.py:87
 #, python-format
@@ -1025,43 +1025,43 @@ msgstr "%s nicht gültig"
 #: boa/Models/PythonEditorModels.py:545
 #, python-format
 msgid "Could not find %s"
-msgstr "\"%s\" wurde nicht gefunden"
+msgstr "%s wurde nicht gefunden"
 
 #: boa/Inspector.py:73
 msgid "Select parent"
-msgstr "\"parent\" selektieren"
+msgstr "Vorgänger auswählen"
 
 #: boa/Inspector.py:82
 msgid "Nothing selected"
-msgstr "Nichts selektiert"
+msgstr "Nichts ausgewählt"
 
 #: boa/Inspector.py:173
 msgid "Delete selection"
-msgstr "Selektierung löschen"
+msgstr "Auswahl löschen"
 
 #: boa/Inspector.py:175
 msgid "Cut selection"
-msgstr "Selektierung ausschneiden"
+msgstr "Auswahl ausschneiden"
 
 #: boa/Inspector.py:177
 msgid "Copy selection"
-msgstr "Selektierung kopieren"
+msgstr "Auswahl kopieren"
 
 #: boa/Inspector.py:179
 msgid "Paste selection"
-msgstr "Selektierung einfügen"
+msgstr "Auswahl einfügen"
 
 #: boa/Inspector.py:181
 msgid "Recreate selection"
-msgstr "Selektierung wiederherstellen"
+msgstr "Auswahl wiederherstellen"
 
 #: boa/Inspector.py:184
 msgid "Post the session"
-msgstr "Die Session speichern"
+msgstr "Session speichern"
 
 #: boa/Inspector.py:186
 msgid "Cancel the session"
-msgstr "Die Session annulieren"
+msgstr "Session abbrechen"
 
 #: boa/Inspector.py:191
 msgid "New item"
@@ -1081,20 +1081,20 @@ msgstr "Hilfe anzeigen"
 #: boa/Inspector.py:800
 #, python-format
 msgid "Could not post %s because: %s: %s"
-msgstr "Konnte nicht speichern %s da: %s: %s"
+msgstr "Konnte %s nicht speichern da: %s: %s"
 
 #: boa/Inspector.py:931
 #, python-format
 msgid "Macro: %s not found."
-msgstr "Macro: %s nicht gefunden."
+msgstr "Makro: %s nicht gefunden."
 
 #: boa/Inspector.py:1223
 msgid "Unable to post, please correct."
-msgstr "Kannt nicht speichern, bitte korrigieren."
+msgstr "Kann nicht speichern, bitte korrigieren."
 
 #: boa/KeyDefsDlg.py:59
 msgid "Key code:"
-msgstr "Tasten Kode:"
+msgstr "Tasten Code:"
 
 #: boa/KeyDefsDlg.py:63
 msgid "Shortcut text:"
@@ -1111,11 +1111,11 @@ msgstr "Tasten Kode kann nicht leer sein"
 
 #: boa/KeyDefsDlg.py:126
 msgid "Key code must either be a single character (letter or digit) or an identifier selected from the combobox"
-msgstr "Tasten Kode muss ein einzelner Karakter sein (Buchstabe oder Zahl) oder ein \"identifier\" von der combobox selektiert"
+msgstr "Tasten Code muss ein einzelnes Zeichen sein (Buchstabe oder Zahl) oder ein aus der Auswahlbox gewählter Identifier"
 
 #: boa/KeyDefsDlg.py:131
 msgid "Shortcut may not be blank, enter a concise description, e.g. Ctrl-Shift-S"
-msgstr "\"Shortcut\" kann nicht leer sein, geben Sie eine kurze beschreibung ein, z.b. Ctrl-Shift-S"
+msgstr "\"Shortcut\" kann nicht leer sein, geben Sie eine kurze Beschreibung ein, z.b. Ctrl-Shift-S"
 
 #: boa/KeyDefsDlg.py:151
 msgid "Invalid value error"
@@ -1128,11 +1128,11 @@ msgstr "Unbearbeitete Klammer"
 #: boa/methodparse.py:387
 #, python-format
 msgid "Atleast 1 segment required, got: %r"
-msgstr "Mindenstens 1 Segment wird benötigt, erhielt: %r"
+msgstr "Mindenstens ein Segment wird benötigt, erhielt: %r"
 
 #: boa/methodparse.py:394
 msgid "Too many attribute levels"
-msgstr "Zu viel Attribut Niveaus"
+msgstr "Zu viele Attribut-Ebenen"
 
 #: boa/ModRunner.py:115
 msgid "Execute module"
@@ -1151,7 +1151,7 @@ msgstr "Methode existiert"
 #: boa/moduleparse.py:923
 #, python-format
 msgid "Import statement invalid: %s"
-msgstr "Import \"statement\" ungültig: %s"
+msgstr "Import Statement ungültig: %s"
 
 #: boa/Palette.py:46
 msgid "Brings the Inspector to the front"
@@ -1163,7 +1163,7 @@ msgstr "Bringt den Editor in den Vordergrund"
 
 #: boa/Palette.py:116
 msgid "Boa or selected component help"
-msgstr "Boa oder selektierter Komponent Hilfe"
+msgstr "Boa oder selektierte Komponenten Hilfe"
 
 #: boa/Palette.py:118
 msgid "wxPython help"
@@ -1176,7 +1176,7 @@ msgstr "Python Hilfe"
 #: boa/Palette.py:317
 #: boa/Palette.py:346
 msgid "(Nothing selected)"
-msgstr "(nichts selektiert)"
+msgstr "(nichts ausgewählt)"
 
 #: boa/PaletteMapping.py:58
 msgid "User"
@@ -1193,7 +1193,7 @@ msgid ""
 "Problem executing plug-in %s:\n"
 "%s"
 msgstr ""
-"Problem beim ausführen des plug-in %s:\n"
+"Problem beim Ausführen des Plugins %s:\n"
 "%s"
 
 #: boa/PaletteStore.py:12
@@ -1207,29 +1207,29 @@ msgstr "Zope"
 #: boa/Plugins.py:59
 #, python-format
 msgid "Module %s could not be found in Plug-ins"
-msgstr "Modul %s konnte nicht in den Plug-ins gefunden werden"
+msgstr "Modul %s konnte nicht in den Plugins gefunden werden"
 
 #: boa/Plugins.py:241
 #, python-format
 msgid "Could not create default value from \"%s\" for %s. (%s:%s)"
-msgstr "Konnte Voreinstellungs Wert nicht kreiren von \"%s\" für %s. (%s:%s)"
+msgstr "Konnte Wert der Voreinstellung von \"%s\" nicht für %s erstellen. (%s:%s)"
 
 #: boa/Plugins.py:251
 #, python-format
 msgid "%s not in Preferences, but is defined in globals of prefs.plug-ins.rc.py"
-msgstr "%s nicht in Präferenzen, ist aber in den \"globals\" von prefs.plug-ins.rc.py definiert"
+msgstr "%s ist nicht in den Einstellungen, ist aber in den globalen Werten von prefs.plug-ins.rc.py definiert"
 
 #: boa/ProcessProgressDlg.py:92
 msgid "Kill"
-msgstr "Kill"
+msgstr "Töten"
 
 #: boa/ProcessProgressDlg.py:132
 msgid "Waiting for response..."
-msgstr "Warte für Antwort..."
+msgstr "Warte auf Antwort..."
 
 #: boa/ProcessProgressDlg.py:144
 msgid "Receiving response..."
-msgstr "Erhalte Antword..."
+msgstr "Erhalte Antwort..."
 
 #: boa/ProcessProgressDlg.py:173
 msgid "Response received."
@@ -1245,20 +1245,20 @@ msgstr "Überspringe"
 
 #: boa/Search.py:123
 msgid "Root folder was not specified"
-msgstr "Root Verzeichnis war nicht specifiziert"
+msgstr "Wurzel Verzeichnis war nicht festgelegt"
 
 #: boa/Utils.py:279
 msgid "Could not edit tips settings, please make sure that the Explorer.*.cfg file is not read only and you have sufficient priviledges to write to this file."
-msgstr "Konnte die \"Tip\" Definitionen nicht ändern, bitte stellen Sie sicher das die \"Explorer.*.cfg\" Dateien nicht schreib geschützt sind und das Sie genügende Privilegien haben."
+msgstr "Konnte die Tipp Definitionen nicht bearbeiten, bitte stellen Sie sicher das die \"Explorer.*.cfg\" Dateien nicht schreibgeschützt sind und das Sie genügende Rechte haben."
 
 #: boa/Utils.py:353
 msgid "Unhandled type for Win"
-msgstr "Type des Fensters ist nicht unterstützt"
+msgstr "Typ des Fensters ist nicht unterstützt"
 
 #: boa/Utils.py:879
 #, python-format
 msgid "Unknown encoding %s"
-msgstr "Unbekanntest \"encoding\" %s"
+msgstr "Unbekannte  Encoding %s"
 
 #: boa/Utils.py:896
 #, python-format
@@ -1266,7 +1266,7 @@ msgid ""
 "Unable to encode unicode string, please change the defaultencoding in sitecustomize.py to handle this encoding.\n"
 "Error message %s"
 msgstr ""
-"Konnte Unicode Text nicht \"encoden\", bitte die \"defaultencoding\" in \"sitecustomize.py\" ändern für dieses \"encoding\".\n"
+"Konnte nicht zu Unicode String encodieren, bitte die \"defaultencoding\" in \"sitecustomize.py\" ändern für dieses \"encoding\".\n"
 "Fehler Nachricht %s"
 
 #: boa/Utils.py:919
@@ -1275,7 +1275,7 @@ msgid ""
 "Unable to decode unicode string, please change the defaultencoding in sitecustomize.py to handle this encoding.\n"
 " Error message %s"
 msgstr ""
-"Konnte Unicode Text nicht \"encoden\", bitte die \"defaultencoding\" in \"sitecustomize.py\" ändern für dieses \"encoding\".\n"
+"Konnte Unicode String nicht decodieren, bitte die \"defaultencoding\" in \"sitecustomize.py\" ändern für dieses Encoding.\n"
 "Fehler Nachricht %s"
 
 #: boa/Companions/BaseCompanions.py:403
@@ -1286,7 +1286,7 @@ msgstr "Es gibt schon ein Objekt mit diesem Namen: %s"
 #: boa/Companions/BaseCompanions.py:441
 #, python-format
 msgid "Illegal expression: %s"
-msgstr "Ilegale \"expression\": %s"
+msgstr "Unerlaubter Ausdruck: %s"
 
 #: boa/Companions/BaseCompanions.py:521
 #: boa/PropEdit/PropertyEditors.py:1290
@@ -1303,7 +1303,7 @@ msgstr "Nicht implementiert"
 
 #: boa/Companions/BasicCompanions.py:481
 msgid "Choose a gif file"
-msgstr "Eine \"gif\" Datei auswählen"
+msgstr "Eine gif-Datei auswählen"
 
 #: boa/Companions/BasicCompanions.py:538
 msgid "Basic Controls"
@@ -1311,7 +1311,7 @@ msgstr "Basic Kontrollen"
 
 #: boa/Companions/ButtonCompanions.py:345
 msgid "Buttons"
-msgstr "Tasten"
+msgstr "Schaltflächen"
 
 #: boa/Companions/ContainerCompanions.py:379
 #, python-format
@@ -1320,7 +1320,7 @@ msgid ""
 "a control or the generated source will be invalid outside the Designer"
 msgstr ""
 "Die rot-gestrichene Region auf der %s Seite muss eine\n"
-"Kontrolle beinhalten, sonst ist der Quellecode auserhalb des Designers nicht gültig."
+"Kontrolle beinhalten, sonst ist der Quellcode ausserhalb des Designers nicht gültig."
 
 #: boa/Companions/ContainerCompanions.py:799
 msgid "Add separator"
@@ -1341,7 +1341,7 @@ msgstr "Ungültige \"None\" Kontrolle für \"Toolbar\" %s's \"AddControl\""
 
 #: boa/Companions/ContainerCompanions.py:958
 msgid "Control may not be None or the generated source will be invalid outside the Designer."
-msgstr "Kontrolle kann nicht \"None\" sein, sonst ist die generierte Quellecode nicht gültig auserhalb des Designer."
+msgstr "Kontrolle kann nicht \"None\" sein, sonst ist die generierte Quellcode nicht gültig auserhalb des Designer."
 
 #: boa/Companions/ContainerCompanions.py:1086
 msgid "Containers/Layout"
@@ -1382,7 +1382,7 @@ msgid ""
 "The generated source will be invalid outside the Designer and should be fixed before executing."
 msgstr ""
 "\"None\" Wert ist nur im Designer gültig.\n"
-"Die generierte Quellecode ist nicht gültig auserhalb des Designer und sollte korrigiert werden."
+"Die generierte Quellcode ist nicht gültig ausserhalb des Designer und sollte korrigiert werden."
 
 #: boa/Companions/SizerCompanions.py:364
 msgid "Rows and Cols may not both be 0"
@@ -1480,7 +1480,7 @@ msgstr "Pause"
 
 #: boa/Debugger/Debugger.py:107
 msgid "Trace in source"
-msgstr "\"Trace\" in Quellecode"
+msgstr "\"Trace\" in Quellcode"
 
 #: boa/Debugger/Debugger.py:110
 msgid "Debug browsing"
@@ -1618,7 +1618,7 @@ msgstr "Kode"
 #: boa/Debugger/DebuggerControls.py:119
 #, python-format
 msgid "Not a source file: %s, probably an executed string."
-msgstr "Ist keine Quellecode Datei: %s, wahrscheinlich \"an executed string\"."
+msgstr "Ist keine Quellcode Datei: %s, wahrscheinlich \"an executed string\"."
 
 #: boa/Debugger/DebuggerControls.py:123
 #, python-format
@@ -1656,7 +1656,7 @@ msgstr "Kondition"
 
 #: boa/Debugger/DebuggerControls.py:195
 msgid "Goto source"
-msgstr "Zum Quellecode springen"
+msgstr "Zum Quellcode springen"
 
 #: boa/Debugger/DebuggerControls.py:196
 #: boa/Explorers/EditorExplorer.py:38
@@ -2053,7 +2053,7 @@ msgstr "Kopieren"
 #: boa/Views/Designer.py:173
 #: boa/Views/SourceViews.py:65
 msgid "Paste"
-msgstr "Eingfügen"
+msgstr "Einfügen"
 
 #: boa/Explorers/ExplorerNodes.py:184
 #: boa/Explorers/ExplorerNodes.py:593
@@ -2180,7 +2180,7 @@ msgstr "\"FileSysCatNode\" im Transport nicht gefunden - %s"
 #: boa/Plug-ins/PyrexSupport.plug-in.py:51
 #: boa/Views/PySourceView.py:44
 msgid "Source"
-msgstr "Quellecode"
+msgstr "Quellcode"
 
 #: boa/Explorers/PrefsExplorer.py:60
 msgid "Default settings"
@@ -5099,7 +5099,7 @@ msgstr ""
 
 #: boa/Views/OGLViews.py:592
 msgid "Goto Source"
-msgstr "Zum Quellecode springen"
+msgstr "Zum Quellcode springen"
 
 #: boa/Views/OGLViews.py:595
 msgid "Goto Documentation"
@@ -5116,7 +5116,7 @@ msgstr ""
 
 #: boa/Views/OGLViews.py:705
 msgid "No source for selection"
-msgstr "Kein Quellecode zum Selektieren"
+msgstr "Kein Quellcode zum Selektieren"
 
 #: boa/Views/OGLViews.py:746
 msgid "Imports"
@@ -5329,7 +5329,7 @@ msgstr "EOLs zu CR"
 
 #: boa/Views/STCPrinting.py:47
 msgid "Print Source"
-msgstr "Quellecode drucken"
+msgstr "Quellcode drucken"
 
 #: boa/Views/STCPrinting.py:50
 msgid "Normal"
@@ -5610,7 +5610,7 @@ msgid ""
 "Adding or removing lines from the debugger will cause the source and the debugger to be out of sync.\n"
 "Please undo this action."
 msgstr ""
-"Hinzufügen oder entfernen von Zeilen vom \"Debugger\" wird verursachen das der Quellecode und der \"Debugger\" \"out of sync\" sind.\n"
+"Hinzufügen oder entfernen von Zeilen vom \"Debugger\" wird verursachen das der Quellcode und der \"Debugger\" \"out of sync\" sind.\n"
 "Bitte die Änderung rückgängig machen."
 
 #: boa/Views/StyledTextCtrls.py:878
