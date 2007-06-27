@@ -57,14 +57,17 @@ class XMLTreeView(wx.TreeCtrl, EditorView):
     def startElement(self, name, attrs ):
         name = name.encode()
         if attrs:
-            if attrs.has_key('class'):
-                if attrs.has_key('name'):
-                    name = '%s (%s:%s)' % (name, attrs['name'], attrs['class'])
-                else:
-                    name = '%s (%s)' % (name, attrs['class'])
-            else:
-                if attrs.has_key('name'):
-                    name = '%s :%s' % (name, attrs['name'])
+            for k in attrs:
+                name += ', %s=%s' % (k, attrs[k])
+            
+##            if attrs.has_key('class'):
+##                if attrs.has_key('name'):
+##                    name = '%s (%s:%s)' % (name, attrs['name'], attrs['class'])
+##                else:
+##                    name = '%s (%s)' % (name, attrs['class'])
+##            else:
+##                if attrs.has_key('name'):
+##                    name = '%s :%s' % (name, attrs['name'])
 
         id = self.AppendItem(self.nodeStack[-1], name)
         self.nodeStack.append(id)
