@@ -34,7 +34,7 @@ import wx
 import Preferences, Utils, Plugins
 from Utils import _
 
-from Views import PySourceView
+from Views import PySourceView, SourceViews
 from Models import PythonEditorModels, PythonControllers
 from Explorers import ExplorerNodes, FileExplorer
 import ErrorStack, Editor
@@ -210,14 +210,20 @@ class BRMViewPlugin:
     def findDefinitionThread(self, ctx, filename, lineno, column, sel):
         try:
             defs = ctx.findDefinitionByCoordinates(filename, lineno, column)
-            try:
-                match = defs.next()
-            except StopIteration:
+            if defs:
+                try:
+                    match = defs.next()
+                except StopIteration:
+                    wx.CallAfter(wx.LogError, _("Couldn't find definition"))
+                    wx.CallAfter(self.model.editor.setStatus,
+                                   _('BRM - Could not find definition'), 'Error')
+                else:
+                    wx.CallAfter(self.findDefinitionFinished, match, sel, defs)
+            else:
                 wx.CallAfter(wx.LogError, _("Couldn't find definition"))
                 wx.CallAfter(self.model.editor.setStatus,
                                _('BRM - Could not find definition'), 'Error')
-            else:
-                wx.CallAfter(self.findDefinitionFinished, match, sel, defs)
+                
         except Exception, err:
             wx.CallAfter(wx.LogError,
                            ''.join(traceback.format_exception(*sys.exc_info())))
