@@ -1093,8 +1093,9 @@ class HelpBookController(Controllers.SourceController):
 
 #-------------------------------------------------------------------------------
 
+_('Should the document title be parsed from HTML and displayed under "Files".')
 
 Plugins.registerPreference('HelpBook', 'hbShowDocumentTitles', 'True',
-                           [_('Should the document title be parsed from HTML and '
-                            'displayed under "Files".')])
+                           ['Should the document title be parsed from HTML and '
+                            'displayed under "Files".'])
 Plugins.registerFileType(HelpBookController)
