@@ -405,7 +405,7 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
     def getWxAttribs(self, cls, mems = None, methsOnly=False):
         if mems is None: mems = []
 
-        for base in cls.__bases__:
+        for base in getattr(cls, '__bases__', ()):
             self.getWxAttribs(base, mems, methsOnly)
 
         # wx attrs are always methods
