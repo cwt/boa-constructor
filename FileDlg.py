@@ -108,18 +108,19 @@ class wxBoaFileDialog(wx.Dialog, Utils.FrameRestorerMixin):
 
         self.htmlWindow1 = wxUrlClickHtmlWindow(id=wxID_WXBOAFILEDIALOGHTMLWINDOW1,
               name='htmlWindow1', parent=self, pos=wx.Point(8, 0),
-              size=wx.Size(392, 20))
+              size=wx.Size(392, 20), style=0)
         self.htmlWindow1.SetBackgroundColour(self.htmlBackCol)
         self.htmlWindow1.SetConstraints(LayoutAnchors(self.htmlWindow1, True,
               True, True, False))
 
     def __init__(self, parent, message=_('Choose a file'), defaultDir='.',
           defaultFile='', wildcard='', style=wx.OPEN, pos=wx.DefaultPosition):
-        self.htmlBackCol =wx.Colour(192, 192, 192)
-        self.htmlBackCol =wx.SystemSettings.GetColour(wx.SYS_COLOUR_BTNFACE)
-        self.filterOpts = [_('Boa files'), _('Internal files'), _('Image files'), _('All files')]
+        self.htmlBackCol = wx.Colour(192, 192, 192)
+        self.htmlBackCol = wx.SystemSettings.GetColour(wx.SYS_COLOUR_BTNFACE)
 
+        self.filterOpts = [_('Boa files'), _('Internal files'), _('Image files'), _('All files')]
         self.filterOpts = []
+
         self.filters = {}
 
         for flt in FileExplorer.filterDescrOrd:
