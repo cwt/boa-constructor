@@ -172,5 +172,5 @@ else:
         finally:
             dlg.Destroy()
     
-    Plugins.registerTool('Choose IDE Language', showChooseIDELanguage)
+    Plugins.registerTool('Choose IDE Language', showChooseIDELanguage, 'Images/Editor/LanguageSelect.png')
     
