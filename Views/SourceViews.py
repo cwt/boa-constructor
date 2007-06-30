@@ -490,11 +490,14 @@ class EditorStyledTextCtrl(wx.stc.StyledTextCtrl, EditorViews.EditorView,
         menu.Destroy()
 
     def OnConvertEols(self, event):
-        eol = {wxID_CVT_EOL_CRLF: wx.stc.STC_EOL_CRLF,
-               wxID_CVT_EOL_LF:   wx.stc.STC_EOL_LF,
-               wxID_CVT_EOL_CR:   wx.stc.STC_EOL_CR}[event.GetId()]
+        eol, viewEOL = {wxID_CVT_EOL_CRLF: (wx.stc.STC_EOL_CRLF, '\r\n'),
+                        wxID_CVT_EOL_LF:   (wx.stc.STC_EOL_LF, '\n'),
+                        wxID_CVT_EOL_CR:   (wx.stc.STC_EOL_CR, '\r')}[event.GetId()]
 
         self.ConvertEOLs(eol)
+        self.SetEOLMode(eol)
+        self.eol = viewEOL
+        
 
 #---Macro recording/playback----------------------------------------------------
     _recordingMacro = False
