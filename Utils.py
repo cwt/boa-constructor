@@ -885,12 +885,22 @@ def getViewTitle(view):
     else:
         return view.viewName
 
-def resetMinSize(parent):
-    parent.SetMinSize(wx.DefaultSize)
+# reset all sizes to platform defaults
+def resetMinSize(parent, ignoreCtrls=(), ignoreClasses=()):
+    # need this for some cases in linux, otherwise cuts off text
+    if wx.Platform == '__WXGTK__' and isinstance(parent, wx.StaticText):
+        textSize = parent.GetTextExtent(parent.GetLabel())
+        size = wx.Size(textSize[0]+2,-1)
+    else:
+        size = wx.DefaultSize
+          
+    parent.SetMinSize(size)    
     parent.SetSize(wx.Size(1, 1))
-    for child in parent.GetChildren():
-        resetMinSize(child) 
     
+    for child in parent.GetChildren():
+        if child not in ignoreCtrls and not isinstance(child, ignoreClasses):
+            resetMinSize(child, ignoreCtrls, ignoreClasses) 
+
 
 #-------------------------------------------------------------------------------
 
