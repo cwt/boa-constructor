@@ -1,6 +1,9 @@
 #Boa:Dialog:LanguageSelectDlg
 
 import wx
+import Utils
+from Preferences import IS
+
 
 from ExternalLib import langlistctrl
 
@@ -13,39 +16,38 @@ def create(parent):
 ] = [wx.NewId() for _init_ctrls in range(6)]
 
 class LanguageSelectDlg(wx.Dialog):
-    def _init_coll_boxSizer3_Items(self, parent):
-        # generated method, don't edit
-
-        parent.AddWindow(self.langCtrlContainer, 1, border=0, flag=wx.GROW)
-        parent.AddSpacer(wx.Size(8, 8), border=0, flag=0)
-        parent.AddWindow(self.langFilterRB, 0, border=0, flag=0)
-
-    def _init_coll_boxSizer1_Items(self, parent):
+    def _init_coll_mainSizer_Items(self, parent):
         # generated method, don't edit
 
         parent.AddWindow(self.staticText1, 0, border=8, flag=wx.ALL)
-        parent.AddSizer(self.boxSizer3, 1, border=8, flag=wx.ALL | wx.GROW)
-        parent.AddSizer(self.boxSizer2, 0, border=0, flag=wx.ALIGN_RIGHT)
+        parent.AddSizer(self.middleSizer, 1, border=8, flag=wx.ALL | wx.EXPAND)
+        parent.AddSizer(self.buttonSizer, 0, border=0, flag=wx.ALIGN_RIGHT)
 
-    def _init_coll_boxSizer2_Items(self, parent):
+    def _init_coll_buttonSizer_Items(self, parent):
         # generated method, don't edit
 
         parent.AddWindow(self.okBtn, 0, border=8, flag=wx.ALL)
         parent.AddWindow(self.button2, 0, border=8, flag=wx.ALL)
 
+    def _init_coll_middleSizer_Items(self, parent):
+        # generated method, don't edit
+
+        parent.AddWindow(self.langCtrlContainer, 1, border=0, flag=wx.EXPAND)
+        parent.AddWindow(self.langFilterRB, 0, border=8, flag=wx.LEFT)
+
     def _init_sizers(self):
         # generated method, don't edit
-        self.boxSizer1 = wx.BoxSizer(orient=wx.VERTICAL)
+        self.mainSizer = wx.BoxSizer(orient=wx.VERTICAL)
 
-        self.boxSizer2 = wx.BoxSizer(orient=wx.HORIZONTAL)
+        self.buttonSizer = wx.BoxSizer(orient=wx.HORIZONTAL)
 
-        self.boxSizer3 = wx.BoxSizer(orient=wx.HORIZONTAL)
+        self.middleSizer = wx.BoxSizer(orient=wx.HORIZONTAL)
 
-        self._init_coll_boxSizer1_Items(self.boxSizer1)
-        self._init_coll_boxSizer2_Items(self.boxSizer2)
-        self._init_coll_boxSizer3_Items(self.boxSizer3)
+        self._init_coll_mainSizer_Items(self.mainSizer)
+        self._init_coll_buttonSizer_Items(self.buttonSizer)
+        self._init_coll_middleSizer_Items(self.middleSizer)
 
-        self.SetSizer(self.boxSizer1)
+        self.SetSizer(self.mainSizer)
 
     def _init_ctrls(self, prnt):
         # generated method, don't edit
@@ -60,11 +62,12 @@ class LanguageSelectDlg(wx.Dialog):
         self.staticText1 = wx.StaticText(id=wxID_LANGUAGESELECTDLGSTATICTEXT1,
               label=u'Choose a language that will be used for translation in the IDE.\nThe IDE will require a restart for the change to take effect.',
               name='staticText1', parent=self, pos=wx.Point(8, 8),
-              size=wx.Size(299, 26), style=0)
+              size=wx.Size(422, 26), style=0)
 
         self.langCtrlContainer = wx.Panel(id=wxID_LANGUAGESELECTDLGLANGCTRLCONTAINER,
               name='langCtrlContainer', parent=self, pos=wx.Point(8, 50),
               size=wx.Size(196, 142), style=wx.TAB_TRAVERSAL)
+        self.langCtrlContainer.SetMinSize(wx.Size(196, 142))
         self.langCtrlContainer.SetBackgroundColour(wx.Colour(255, 255, 255))
         self.langCtrlContainer.Bind(wx.EVT_SIZE, self.OnLangCtrlContainerSize)
 
@@ -102,12 +105,23 @@ class LanguageSelectDlg(wx.Dialog):
                              2: 'all'}
         self.boaLangs = boaLangs
         self.langCtrl = langlistctrl.LanguageListCtrl(self.langCtrlContainer, -1, 
-              filter=self.filterMap[filter], only=boaLangs, select=lang)
-              
+              filter=self.filterMap[filter], only=boaLangs, select=lang,
+              style=wx.LC_REPORT | wx.LC_NO_HEADER | wx.LC_SINGLE_SEL | wx.SUNKEN_BORDER)
+        
+        # reset min sizes for all controls except the language selector
+        Utils.resetMinSize(self, (self.langCtrlContainer,))
+        
+        # set language selector size
         self.OnLangCtrlContainerSize()
+        
+        # now set the sizer properly
+        self.SetSizerAndFit(self.mainSizer)
+        
+        self.SetIcon(IS.load('Images/Icons/langSelect.ico'))
+        
 
     def OnLangCtrlContainerSize(self, event=None):
-        if event: event.Skip()
+        #if event: event.Skip()
         self.langCtrl.SetSize(self.langCtrlContainer.GetSize())
 
     def OnLangFilterRBRadiobox(self, event):
