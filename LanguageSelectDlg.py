@@ -117,7 +117,7 @@ class LanguageSelectDlg(wx.Dialog):
         # now set the sizer properly
         self.SetSizerAndFit(self.mainSizer)
         
-        self.SetIcon(IS.load('Images/Icons/langSelect.ico'))
+        self.SetIcon(IS.load('Images/Icons/LanguageSelect.ico'))
         
 
     def OnLangCtrlContainerSize(self, event=None):
