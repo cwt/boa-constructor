@@ -361,7 +361,8 @@ class _CloseEvtHandler(wx.EvtHandler):
             event.Skip()
             self.frame.PopEventHandler().Destroy()
 
-        self.controller.frameX = None
+        if self.controller:
+            self.controller.frameX = None
         event.Skip()#self.frame.Hide()
 
 wxID_COPYTOCLIP =wx.NewId()
@@ -444,7 +445,7 @@ class wxHelpFrameEx:
         self.controller.DisplayIndex()
         self.indexTextCtrl.SetValue(text)
 
-        wx.PostEvent(self.frame, wx.CommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED,
+        wx.PostEvent(self.indexFindBtn, wx.CommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED,
               self.indexFindBtn.GetId()))
 
     def ShowNavPanel(self, show = True):
