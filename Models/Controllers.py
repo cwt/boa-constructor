@@ -6,7 +6,7 @@
 #
 # Created:     2001/13/08
 # RCS-ID:      $Id$
-# Copyright:   (c) 2001 - 2006 Riaan Booysen
+# Copyright:   (c) 2001 - 2007 Riaan Booysen
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 print 'importing Models.Controllers'

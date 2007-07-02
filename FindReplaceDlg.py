@@ -6,7 +6,7 @@
 #
 # Created:     2001/29/08
 # RCS-ID:      $Id$
-# Copyright:   (c) 2001 - 2006 Tim Hochberg
+# Copyright:   (c) 2001 - 2007 Tim Hochberg
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 #Boa:Dialog:FindReplaceDlg

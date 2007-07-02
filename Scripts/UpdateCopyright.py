@@ -1,6 +1,6 @@
 import os
 
-def update_copyright(old_date='2005', new_date='2006'):
+def update_copyright(old_date='2006', new_date='2007'):
     os.chdir('..') # Boa root
     for p, d, files in os.walk('.'):
         for f in files:

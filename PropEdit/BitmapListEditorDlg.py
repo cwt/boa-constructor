@@ -6,7 +6,7 @@
 #
 # Created:     2006
 # RCS-ID:      $Id$
-# Copyright:   (c) 2006
+# Copyright:   (c) 2007
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 #Boa:Dialog:BitmapListEditorDlg

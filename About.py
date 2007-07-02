@@ -6,7 +6,7 @@
 #
 # Created:     2000
 # RCS-ID:      $Id$
-# Copyright:   (c) 2000 - 2006
+# Copyright:   (c) 2000 - 2007
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 
@@ -140,7 +140,7 @@ about_text = '''
 <p>A <b>Python</b> IDE and <b>wxPython</b> GUI builder
 </p>
 <p><a href="Boa">http://boa-constructor.sourceforge.net</a><br></u>
-&copy;1999-2006 <b>Riaan Booysen</b>. <a href="MailMe">riaan@e.co.za</a><br>
+&copy;1999-2007 <b>Riaan Booysen</b>. <a href="MailMe">riaan@e.co.za</a><br>
 <a href="Credits">Credits</a>
 </p>
 <p><font size=-1 color="#000077">Python %s</font><br>

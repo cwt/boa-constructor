@@ -6,7 +6,7 @@
 #
 # Created:     2000/09/11
 # RCS-ID:      $Id$
-# Copyright:   (c) 1999 - 2006 Riaan Booysen
+# Copyright:   (c) 1999 - 2007 Riaan Booysen
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 #Boa:Dialog:ControlAlignmentFrame

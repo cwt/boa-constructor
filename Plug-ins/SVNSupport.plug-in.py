@@ -6,7 +6,7 @@
 #
 # Created:     2006
 # RCS-ID:      $Id$
-# Copyright:   (c) 2006 Riaan Booysen
+# Copyright:   (c) 2007 Riaan Booysen
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 print 'importing Explorers.SVNExplorer'
