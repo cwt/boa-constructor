@@ -598,7 +598,7 @@ class SetupController(ModuleController):
         except ImportError:
             pass
         else:
-            actions.append(('setup.py py2exe', self.OnSetupPy2Exe, '-', ''))
+            actions.append(('setup.py py2exe', self.OnSetupPy2Exe, 'Images/Editor/Build.png', ''))
 
         return ModuleController.actions(self, model) + actions
 
