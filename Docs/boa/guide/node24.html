@@ -1,63 +1,77 @@
 <!DOCTYPE html PUBLIC "-//w3c//dtd html 4.0 transitional//en">
 <html>
 <head>
-  <meta http-equiv="Content-Type"
- content="text/html; charset=iso-8859-1">
-  <meta name="GENERATOR"
- content="Mozilla/4.5 [en] (WinNT; I) [Netscape]">
+
+  
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+
+  
+  <meta name="GENERATOR" content="Mozilla/4.5 [en] (WinNT; I) [Netscape]">
+
+  
   <title>2.4 Add a Menu Bar</title>
 </head>
-<body style="color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);"
- alink="#ff0000" link="#0000bb" vlink="#551a8b">
+
+
+<body style="color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);" alink="#ff0000" link="#0000bb" vlink="#551a8b">
+
 <div class="navigation">&nbsp;
 <table cellpadding="0" cellspacing="2" width="100%">
+
   <tbody>
+
     <tr>
-      <td height="32" width="32"><a href="node25.html"><img
- src="icons/next.gif" alt="Next Page" border="0" height="32"
- width="32"></a></td>
-      <td height="32" width="32"><a href="index.html"><img
- src="icons/up.gif" alt="Up One Level" border="0" height="32"
- width="32"></a></td>
-      <td height="32" width="32"><a href="node23.html"><img
- src="icons/previous.gif" alt="Previous Page" border="0" height="32"
- width="32"></a></td>
+
+      <td height="32" width="32"><a href="node25.html"><img src="icons/next.gif" alt="Next Page" border="0" height="32" width="32"></a></td>
+
+      <td height="32" width="32"><a href="index.html"><img src="icons/up.gif" alt="Up One Level" border="0" height="32" width="32"></a></td>
+
+      <td height="32" width="32"><a href="node23.html"><img src="icons/previous.gif" alt="Previous Page" border="0" height="32" width="32"></a></td>
+
       <td align="center" bgcolor="#99ccff" width="100%"><b>Getting
 Started Guide
 for Boa Constructor</b></td>
-      <td height="32" width="32"><a href="index.html"><img
- src="icons/contents.gif" alt="Contents" border="0" height="32"
- width="32"></a></td>
-      <td height="32" width="32"><img src="icons/blank.gif" alt=""
- border="0" height="32" width="32"></td>
-      <td height="32" width="32"><img src="icons/blank.gif" alt=""
- border="0" height="32" width="32"></td>
+
+      <td height="32" width="32"><a href="index.html"><img src="icons/contents.gif" alt="Contents" border="0" height="32" width="32"></a></td>
+
+      <td height="32" width="32"><img src="icons/blank.gif" alt="" border="0" height="32" width="32"></td>
+
+      <td height="32" width="32"><img src="icons/blank.gif" alt="" border="0" height="32" width="32"></td>
+
     </tr>
+
+  
   </tbody>
 </table>
+
 <b>Next:<span class="sectref"></span></b><a href="node25.html">Adding
 the Text
 Control</a> <b>Up:<span class="sectref"></span></b><a href="index.html">Getting
-Started Guide for Boa Constructor</a> <b>Previous:<span class="sectref"></span></b><a
- href="node23.html">Add
+Started Guide for Boa Constructor</a> <b>Previous:<span class="sectref"></span></b><a href="node23.html">Add
 a Status Bar</a>
 <br>
+
 <hr></div>
+
 <!--End of Navigation Panel-->
 <h1>2.4 Add a Menu Bar</h1>
+
 The next component we are going to add to the application is a menubar.
 A menubar is a common component on windows programs. Our menu bar will
 contain two entries, File and Help. Selecting one of these will display
 a dropdown menu. The user can select an option from the drop down menu.
 <ul>
+
   <li>Select the Frame1 tab in the Editor to ensure that we are editing
 the
 Frame.</li>
-  <li>Start the Designer, by clicking the designer button <img
- alt="Designer Button" title="Designer Button" src="image/Designer.jpg"
- style="width: 16px; height: 16px;" align="middle"> from the Editor
+
+  <li>Start the Designer, by clicking the designer button <img alt="Designer Button" title="Designer Button" src="image/Designer.jpg" style="width: 16px; height: 16px;" align="middle"> from the Editor
 toolbar.</li>
+
+  
   <ul>
+
     <li>The Designer will add in the Editor window two additional
 panes,
 they
@@ -65,66 +79,96 @@ are the 'Data' and 'Sizer' view. On the Palette select the tab called
 'Utilities (Data)'. The
 dropdown
 menu (wx.Menu) is one of the components listed on that tab. </li>
+
+  
   </ul>
+
   <li>Move
 the mouse over the buttons. Help tips show that one of these
 buttons represents the wx.Menu control. This is the control we want.
 Click on this button.</li>
+
   <li>The button should change shading to indicate that it is pressed.
 The
 Palette
 contains a checkbox to show the currently selected component type. This
 should say wx.Menu.</li>
+
 </ul>
+
 <p><br>
+
 </p>
-<p><img alt="Designer - Menu" title="Designer - Menu"
- src="image/Boa24.png" style="width: 819px; height: 590px;"><br>
+
+<p><img alt="Designer - Menu" title="Designer - Menu" src="image/Boa24.png" style="width: 819px; height: 590px;"><br>
+
 <br>
+
 </p>
+
 <ul>
-  <li><>Now click the left mouse button either in the Editor's Data
+
+  <li>Now click the left mouse button either in the Editor's Data
 View
 or in the Designer, in which case you have to be carefull to ensure
-that you click on 'Frame1' area and not on the 'statusbar'.</></li>
-  <li><>The menu will not be visible on the frame. However,
-there will now be an entry on the Data View.</></li>
+that you click on 'Frame1' area and not on the 'statusbar'.</li>
+
+  <li>The menu will not be visible on the frame. However,
+there will now be an entry on the Data View.</li>
+
   <li>Repeat the procedure. You should now have two wx.Menus in the
 Data
 View,
 called menu1 and menu2. Select menu1 using the mouse. The Inspector
 will
 now display the Name and Title for menu1. </li>
+
   <li>Edit the name of the first wx.Menu to call it menuFile. Call the
 second wx.Menu
 menuHelp. Set the titles to File and Help respectively.</li>
+
+  
   <ul>
+
     <li>Double click the menuHelp entry in the Data View. This opens
 the
 'Collection Editor'. The Collection
 Editor is used to add items to our menus. </li>
+
+  
   </ul>
+
   <li>Press the 'New' button on the Collection Editor. This creates a
 new menu
 item within the dropdown menu. This becomes the current item in the
 Inspector.</li>
+
   <li>Edit the field 'Label'. Set the name from 'Items0' to 'About' and
 I would also recommend to set the
 ItemId from 'ITEMS0' to 'ABOUT'.</li>
+
   <li>Edit the field 'Help String' to 'Display general
 information about Notebook'.</li>
+
   <li>The Collection Editor toolbar contains a 'Refresh' button. Press
 this
 button
 to see the Inspector change in the Collection Editor window.</li>
+
 </ul>
+
 <p><br>
+
 </p>
-<p><img alt="Collection - About" title="Collection - About"
- src="image/Boa24b.png" style="width: 819px; height: 494px;"><br>
+
+<p><img alt="Collection - About" title="Collection - About" src="image/Boa24b.png" style="width: 819px; height: 494px;"><br>
+
 <br>
+
 </p>
+
 <ul>
+
   <li>In the Inspector, select the Events Pane. This is the pane used
 to configure
 events. We need to configure the action which occurs when the 'About'
@@ -134,27 +178,35 @@ called
 'EVT_MENU' is generated and sent to our program. We must add a method
 to
 our class to handle this event.<br>
+
   </li>
+
 </ul>
-<table style="width: 100%; text-align: left;" border="1" cellpadding="2"
- cellspacing="2">
+
+<table style="width: 100%; text-align: left;" border="1" cellpadding="2" cellspacing="2">
+
   <tbody>
+
     <tr>
-      <td style="vertical-align: top;"><img alt="Inspector - Event"
- title="Inspector - Event" src="image/Boa24c.png"
- style="width: 222px; height: 494px;"></td>
+
+      <td style="vertical-align: top;"><img alt="Inspector - Event" title="Inspector - Event" src="image/Boa24c.png" style="width: 222px; height: 494px;"></td>
+
       <td style="vertical-align: top;">
+      
       <ul>
+
         <li>The left hand side of the events pane shows the groups of
 events which
 are available. For the menuitem, there is only 'MenuEvent' group.
 Select
 this group using the mouse.</li>
+
         <li>The right hand side of the events pane now shows the events
 in the selected
 group. For the menu item, there is only one event EVT_MENU in the
 'MenuEvent'
 group. Doubleclick on this Event using the mouse.</li>
+
         <li>The bottom of the Events pane shows the event handlers in
 your application
 for the current component (the 'About' menu item). You should now have
@@ -162,6 +214,7 @@ a
 new handler called OnMenuHelpAboutMenu. This is the name of the method
 which will be invoked when the 'About' option is selected from the Help
 menu.</li>
+
         <li>Notice the naming of the event handler. Boa Constructor
 generates the names
 in this manner. The event is the last part (Menu). The component is the
@@ -169,45 +222,70 @@ middle part and here it is the 'About' sub-component of the 'menuHelp'
 component.
 Finally, Boa Constructor follows the convention of prefixing all event
 handlers with the word 'On'.</li>
+
         <li>Close the collection Editor.</li>
+
+      
       </ul>
+
       </td>
+
     </tr>
+
+  
   </tbody>
 </table>
+
 <h4>Now we must repeat the process to add options to the file menu.
 </h4>
+
 <ul>
-  <li><>From the Data View in the Editor, double click on the
+
+  <li>From the Data View in the Editor, double click on the
 'menuFile'
-item to open the Collection Editor.</></li>
-  <li><>Add five new items.</></li>
+item to open the Collection Editor.</li>
+
+  <li>Add five new items.</li>
+
   <li>Select each menu item in turn, and label them 'Open', 'Save',
 'Save
 As',
 'Close' and 'Exit', and again I would recommend to also change the
 ItemId. Enter some help text for each menu item. Press the
 Collection Editor refresh button to display the new labels.</li>
+
   <li>Select each menu item in turn. For each item select the Events
 pane in
 the Inspector, and add an event handler for EVT_MENU to each item.</li>
+
   <li>Close the collection Editor.</li>
+
 </ul>
+
 <h4>Now we are going to create the menubar.
 </h4>
+
 <ul>
+
   <li>On the Palette window, select the 'Utilites (Data)' pane. On this
 pane
 select
 the menubar component.</li>
+
+  
   <ul>
+
     <li>Move the cursor over the Editor Data View. Click the left mouse
 button
 on this pane to add a menubar called 'menuBar1' to the application.</li>
+
     <li>Double
 click on the menuBar1 item to open it's Collection Editor (as you can
 see on the image below you can keep multiple of these open).</li>
+
+  
   </ul>
+
   <li>Add two items to the menubar using the collection Editor. Select
 Menus0, in the Inspector Constructor Pane, edit the 'Menu' field. This
 is a
@@ -216,74 +294,100 @@ menu, with three items, the wx.Menu() constructor, and our two dropdown
 menus, select the self.menuFile item and set the title to 'File'. This
 makes the
 menu 'menuFile' the first dropdown menu on the menubar.</li>
+
   <li>In the Collection Editor select the second item. Repeat the
 process to
 link Menus1 to the Help dropdown menu, with the label 'Help'.</li>
+
   <li>Select the main Frame, Frame1 on the Designer. The frame should
 now
 be
 the current control in the Inspector.</li>
+
   <li>Select the Properties pane ('Props') in the Inspector. Edit the
 field 'MenuBar'.
 This is a pop-up menu. Select your new menubar self.menuBar1. This
 property defines which menuBar to associate with the frame.</li>
+
 </ul>
+
 <p><br>
+
 </p>
-<p><img alt="Inspector - Frame" title="Inspector - Frame"
- src="image/Boa24d.png" style="width: 819px; height: 495px;"><br>
+
+<p><img alt="Inspector - Frame" title="Inspector - Frame" src="image/Boa24d.png" style="width: 819px; height: 495px;"><br>
+
 <br>
+
 </p>
+
 <ul>
-  <li><>Save the changes using either Post button to close the Designer
-and let Boa generate the source code.</></li>
-  <li><>Save the source code for your generated source file Frame1.py</></li>
+
+  <li>Save the changes using either Post button to close the Designer
+and let Boa generate the source code.</li>
+
+  <li>Save the source code for your generated source file Frame1.py</li>
+
   <li>Run the program.</li>
+
+  
   <ul>
+
     <li>You should now see the menus and the status bar.</li>
+
     <li>When you select a menu option, the help text
 should appear
 in the status bar.</li>
+
+  
   </ul>
+
 </ul>
+
 <p><br>
-<img alt="Frame1" title="Frame1" src="image/Boa24e.png"
- style="width: 413px; height: 264px;"><br>
+
+<img alt="Frame1" title="Frame1" src="image/Boa24e.png" style="width: 413px; height: 264px;"><br>
+
 <!--Start of Navigation Panel--></p>
+
 <div class="navigation">&nbsp;
 <table cellpadding="0" cellspacing="2" width="100%">
+
   <tbody>
+
     <tr>
-      <td height="32" width="32"><a href="node25.html"><img
- src="icons/next.gif" alt="Next Page" border="0" height="32"
- width="32"></a></td>
-      <td height="32" width="32"><a href="index.html"><img
- src="icons/up.gif" alt="Up One Level" border="0" height="32"
- width="32"></a></td>
-      <td height="32" width="32"><a href="node23.html"><img
- src="icons/previous.gif" alt="Previous Page" border="0" height="32"
- width="32"></a></td>
+
+      <td height="32" width="32"><a href="node25.html"><img src="icons/next.gif" alt="Next Page" border="0" height="32" width="32"></a></td>
+
+      <td height="32" width="32"><a href="index.html"><img src="icons/up.gif" alt="Up One Level" border="0" height="32" width="32"></a></td>
+
+      <td height="32" width="32"><a href="node23.html"><img src="icons/previous.gif" alt="Previous Page" border="0" height="32" width="32"></a></td>
+
       <td align="center" bgcolor="#99ccff" width="100%"><b>Getting
 Started Guide
 for Boa Constructor</b></td>
-      <td height="32" width="32"><a href="index.html"><img
- src="icons/contents.gif" alt="Contents" border="0" height="32"
- width="32"></a></td>
-      <td height="32" width="32"><img src="icons/blank.gif" alt=""
- border="0" height="32" width="32"></td>
-      <td height="32" width="32"><img src="icons/blank.gif" alt=""
- border="0" height="32" width="32"></td>
+
+      <td height="32" width="32"><a href="index.html"><img src="icons/contents.gif" alt="Contents" border="0" height="32" width="32"></a></td>
+
+      <td height="32" width="32"><img src="icons/blank.gif" alt="" border="0" height="32" width="32"></td>
+
+      <td height="32" width="32"><img src="icons/blank.gif" alt="" border="0" height="32" width="32"></td>
+
     </tr>
+
+  
   </tbody>
 </table>
+
 <b>Next:<span class="sectref"></span></b><a href="node25.html">Adding
 the Text
 Control</a> <b>Up:<span class="sectref"></span></b><a href="index.html">Getting
-Started Guide for Boa Constructor</a> <b>Previous:<span class="sectref"></span></b><a
- href="node23.html">Add
+Started Guide for Boa Constructor</a> <b>Previous:<span class="sectref"></span></b><a href="node23.html">Add
 a Status Bar</a>
 <br>
+
 <hr></div>
+
 <!--End of Navigation Panel-->
 </body>
 </html>
