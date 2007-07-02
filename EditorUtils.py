@@ -13,6 +13,7 @@ class MyToolBar(wx.ToolBar):
           style=wx.TB_HORIZONTAL | wx.NO_BORDER|Preferences.flatTools)
         self.toolLst = []
         self.toolCount = 0
+        self.SetToolBitmapSize((16, 16))
 
     def AddTool(self, id, bitmap, toggleBitmap=wx.NullBitmap, shortHelpString='', isToggle=False):
         wx.ToolBar.AddTool(self, id, bitmap, toggleBitmap, isToggle=isToggle,
