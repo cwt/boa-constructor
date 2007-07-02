@@ -9,7 +9,8 @@ def create(parent):
 imgs = {'.bmp' : wx.BITMAP_TYPE_BMP,
         '.gif' : wx.BITMAP_TYPE_GIF,
         '.png' : wx.BITMAP_TYPE_PNG,
-        '.jpg' : wx.BITMAP_TYPE_JPEG}
+        '.jpg' : wx.BITMAP_TYPE_JPEG,
+        '.ico' : wx.BITMAP_TYPE_ICO}
 
 [wxID_IMAGEVIEWER, wxID_IMAGEVIEWERSASHWINDOW1, wxID_IMAGEVIEWERSTATICBITMAP1, 
 ] = [wx.NewId() for _init_ctrls in range(3)]
@@ -53,7 +54,12 @@ class ImageViewer(wx.MiniFrame):
             fn = filename
 
         self.SetTitle('Image Viewer - %s' %(os.path.basename(fn)))
-        bmp = wx.Image(fn, imgs[os.path.splitext(fn)[-1].lower()]).ConvertToBitmap()
+        try:
+            ext = os.path.splitext(fn)[-1].lower()
+            bmp = wx.Image(fn, imgs[ext]).ConvertToBitmap()
+        except KeyError:
+            wx.LogError('Unsupported extension: %s'%ext)
+            return
         self.sashWindow1.SetClientSize(wx.Size(bmp.GetWidth()+self.borderSize*2,
                                               bmp.GetHeight()+self.borderSize*2))
         self.SetClientSize(self.sashWindow1.GetSize())
