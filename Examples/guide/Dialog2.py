@@ -74,7 +74,7 @@ class Dialog2(wx.Dialog):
     def _init_ctrls(self, prnt):
         # generated method, don't edit
         wx.Dialog.__init__(self, id=wxID_DIALOG2, name='', parent=prnt,
-              pos=wx.Point(302, 249), size=wx.Size(589, 279),
+              pos=wx.Point(302, 249), size=wx.Size(597, 281),
               style=wx.DEFAULT_DIALOG_STYLE, title='About Notebook')
         self.SetClientSize(wx.Size(581, 245))
 
@@ -91,17 +91,17 @@ class Dialog2(wx.Dialog):
               size=wx.Size(201, 13), style=0)
         self.staticText2.SetBackgroundColour(wx.Colour(255, 255, 0))
 
-        self.staticBitmap1 = wx.StaticBitmap(bitmap=wx.Bitmap('C:/Python24/Lib/site-packages/boa/Examples/guide/Boa.jpg',
+        self.staticBitmap1 = wx.StaticBitmap(bitmap=wx.Bitmap('Boa.jpg',
               wx.BITMAP_TYPE_JPEG), id=wxID_DIALOG2STATICBITMAP1,
               name='staticBitmap1', parent=self, pos=wx.Point(173, 53),
               size=wx.Size(236, 157), style=0)
 
-        self.staticBitmap2 = wx.StaticBitmap(bitmap=wx.Bitmap('C:/Python24/Lib/site-packages/boa/Examples/guide/Debian.png',
+        self.staticBitmap2 = wx.StaticBitmap(bitmap=wx.Bitmap('Debian.png',
               wx.BITMAP_TYPE_PNG), id=wxID_DIALOG2STATICBITMAP2,
               name='staticBitmap2', parent=self, pos=wx.Point(52, 116),
               size=wx.Size(117, 31), style=0)
 
-        self.staticBitmap3 = wx.StaticBitmap(bitmap=wx.Bitmap('C:/Python24/Lib/site-packages/boa/Examples/guide/wxWidgetsButton.png',
+        self.staticBitmap3 = wx.StaticBitmap(bitmap=wx.Bitmap('wxWidgetsButton.png',
               wx.BITMAP_TYPE_PNG), id=wxID_DIALOG2STATICBITMAP3,
               name='staticBitmap3', parent=self, pos=wx.Point(413, 107),
               size=wx.Size(116, 49), style=0)
