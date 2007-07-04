@@ -14,7 +14,7 @@ import os, sys
 
 import wx
 
-from Utils import _
+from Utils import _, resetMinSize
 
 PyCoreRegPath = 'SOFTWARE\\Python\\Pythoncore'
 
@@ -28,26 +28,7 @@ PyCoreRegPath = 'SOFTWARE\\Python\\Pythoncore'
 ] = [wx.NewId() for _init_ctrls in range(9)]
 
 class PyInterpreterChooserDlg(wx.Dialog):
-    def _init_coll_boxSizer3_Items(self, parent):
-        # generated method, don't edit
-
-        parent.AddWindow(self.panel1, 1, border=0, flag=wx.GROW)
-        parent.AddWindow(self.btnOK, 0, border=10, flag=wx.ALL | wx.ALIGN_RIGHT)
-        parent.AddWindow(self.btnCancel, 0, border=10,
-              flag=wx.ALL | wx.ALIGN_RIGHT)
-
-    def _init_coll_boxSizer1_Items(self, parent):
-        # generated method, don't edit
-
-        parent.AddWindow(self.staticText1, 0, border=10, flag=wx.ALL)
-        parent.AddSizer(self.boxSizer2, 1, border=0, flag=wx.GROW)
-        parent.AddWindow(self.staticText2, 0, border=10, flag=wx.ALL)
-        parent.AddWindow(self.txtPyIntpPath, 0, border=10,
-              flag=wx.GROW | wx.ALL)
-        parent.AddSizer(self.boxSizer3, 0, border=0,
-              flag=wx.ALIGN_RIGHT | wx.GROW | wx.ALL)
-
-    def _init_coll_boxSizer2_Items(self, parent):
+    def _init_coll_browserSizer_Items(self, parent):
         # generated method, don't edit
 
         parent.AddWindow(self.lcInstallations, 1, border=10,
@@ -55,27 +36,48 @@ class PyInterpreterChooserDlg(wx.Dialog):
         parent.AddWindow(self.gdcInstallPath, 1, border=10,
               flag=wx.GROW | wx.ALL)
 
+    def _init_coll_mainSizer_Items(self, parent):
+        # generated method, don't edit
+
+        parent.AddWindow(self.staticText1, 0, border=10,
+              flag=wx.EXPAND | wx.ALL)
+        parent.AddSizer(self.browserSizer, 1, border=0, flag=wx.GROW)
+        parent.AddWindow(self.staticText2, 0, border=10,
+              flag=wx.EXPAND | wx.ALL)
+        parent.AddWindow(self.txtPyIntpPath, 0, border=10,
+              flag=wx.GROW | wx.ALL)
+        parent.AddSizer(self.buttonsSizer, 0, border=0,
+              flag=wx.ALIGN_RIGHT | wx.GROW | wx.ALL)
+
+    def _init_coll_buttonsSizer_Items(self, parent):
+        # generated method, don't edit
+
+        parent.AddWindow(self.panel1, 1, border=0, flag=wx.GROW)
+        parent.AddWindow(self.btnOK, 0, border=10, flag=wx.ALL | wx.ALIGN_RIGHT)
+        parent.AddWindow(self.btnCancel, 0, border=10,
+              flag=wx.ALL | wx.ALIGN_RIGHT)
+
     def _init_coll_lcInstallations_Columns(self, parent):
         # generated method, don't edit
 
         parent.InsertColumn(col=0, format=wx.LIST_FORMAT_LEFT,
-              heading=_('Version'), width=50)
+              heading=_('Version'), width=60)
         parent.InsertColumn(col=1, format=wx.LIST_FORMAT_LEFT,
               heading=_('Install Path'), width=170)
 
     def _init_sizers(self):
         # generated method, don't edit
-        self.boxSizer1 = wx.BoxSizer(orient=wx.VERTICAL)
+        self.mainSizer = wx.BoxSizer(orient=wx.VERTICAL)
 
-        self.boxSizer2 = wx.BoxSizer(orient=wx.HORIZONTAL)
+        self.browserSizer = wx.BoxSizer(orient=wx.HORIZONTAL)
 
-        self.boxSizer3 = wx.BoxSizer(orient=wx.HORIZONTAL)
+        self.buttonsSizer = wx.BoxSizer(orient=wx.HORIZONTAL)
 
-        self._init_coll_boxSizer1_Items(self.boxSizer1)
-        self._init_coll_boxSizer2_Items(self.boxSizer2)
-        self._init_coll_boxSizer3_Items(self.boxSizer3)
+        self._init_coll_mainSizer_Items(self.mainSizer)
+        self._init_coll_browserSizer_Items(self.browserSizer)
+        self._init_coll_buttonsSizer_Items(self.buttonsSizer)
 
-        self.SetSizer(self.boxSizer1)
+        self.SetSizer(self.mainSizer)
 
     def _init_utils(self):
         # generated method, don't edit
@@ -84,8 +86,8 @@ class PyInterpreterChooserDlg(wx.Dialog):
     def _init_ctrls(self, prnt):
         # generated method, don't edit
         wx.Dialog.__init__(self, id=wxID_PYINTERPRETERCHOOSERDLG,
-              name='PyInterpreterChooserDlg', parent=prnt, pos=wx.Point(548,
-              346), size=wx.Size(532, 358),
+              name='PyInterpreterChooserDlg', parent=prnt, pos=wx.Point(479,
+              474), size=wx.Size(524, 331),
               style=wx.RESIZE_BORDER | wx.DEFAULT_DIALOG_STYLE,
               title=_('Python Interpreter Chooser'))
         self._init_utils()
@@ -95,7 +97,7 @@ class PyInterpreterChooserDlg(wx.Dialog):
         self.staticText1 = wx.StaticText(id=wxID_PYINTERPRETERCHOOSERDLGSTATICTEXT1,
               label=_('Found installations: (double click to select)'),
               name='staticText1', parent=self, pos=wx.Point(10, 10),
-              size=wx.Size(256, 22), style=0)
+              size=wx.Size(504, 22), style=0)
 
         self.gdcInstallPath = wx.GenericDirCtrl(defaultFilter=0, dir='.',
               filter=self.installPathFilter,
@@ -116,7 +118,7 @@ class PyInterpreterChooserDlg(wx.Dialog):
         self.staticText2 = wx.StaticText(id=wxID_PYINTERPRETERCHOOSERDLGSTATICTEXT2,
               label=_('Current interpreter path (Blank means sys.executable will be used.)'),
               name='staticText2', parent=self, pos=wx.Point(10, 218),
-              size=wx.Size(502, 19), style=0)
+              size=wx.Size(504, 19), style=0)
 
         self.txtPyIntpPath = wx.TextCtrl(id=wxID_PYINTERPRETERCHOOSERDLGTXTPYINTPPATH,
               name='txtPyIntpPath', parent=self, pos=wx.Point(10, 257),
@@ -143,6 +145,11 @@ class PyInterpreterChooserDlg(wx.Dialog):
         self.installPathFilter = self.getInstallPathFilter()
 
         self._init_ctrls(parent)
+        
+        # adjust sizes for different platforms
+        resetMinSize(self)
+        self.gdcInstallPath.SetMinSize(wx.Size(242, 146))
+        self.SetSizerAndFit(self.mainSizer)
 
         self.populateFoundInstallations()
 
@@ -254,6 +261,16 @@ if __name__ == '__main__':
 
 #-------------------------------------------------------------------------------
 
+# warn the user if the Preferences.pythonInterpreterPath is not valid
+def checkInterpreter():
+    if hasattr(sys, 'frozen') and not Preferences.pythonInterpreterPath:
+        wx.LogWarning(_('No interpreter set to run programs with.\n'
+                      'Please set it up as soon as possible via:\n'
+                      'Tools->Python interpreter chooser'))
+wx.CallAfter(checkInterpreter)
+
+#-------------------------------------------------------------------------------
+
 import Preferences, Utils, Plugins
 
 def openPyInterpChooser(editor):
@@ -285,13 +302,31 @@ _('Additional locations to choose the Python Interpreter Path from.')
 Plugins.registerPreference('PyInterpreterChooser', 'picExtraPaths', '[]',
                            ['Additional locations to choose the Python '
                             'Interpreter Path from.'])
-Plugins.registerTool(_('Python interpreter chooser'), openPyInterpChooser)
+Plugins.registerTool(_('Python interpreter chooser'), openPyInterpChooser,
+                     'Images/PyInterpreterChooser.png')
 
-# warn the user if the Preferences.pythonInterpreterPath is not valid
-def checkInterpreter():
-    if hasattr(sys, 'frozen') and not Preferences.pythonInterpreterPath:
-        wx.LogWarning(_('No interpreter set to run programs with.\n'
-                      'Please set it up as soon as possible via:\n'
-                      'Tools->Python interpreter chooser'))
-wx.CallAfter(checkInterpreter)
+#-------------------------------------------------------------------------------
+
+def getPyInterpreterChooserImgData():
+    return \
+'\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x10\x00\x00\x00\x10\x08\x02\
+\x00\x00\x00\x90\x91h6\x00\x00\x00\x03sBIT\x08\x08\x08\xdb\xe1O\xe0\x00\x00\
+\x01}IDAT(\x91uR!\x92\x1bA\x0cl\xe7\xfc\x00AC=A?\x88~\x90}\xc2\xc0@\xff\xe0\
+\xc6,p\xf3\x03\x85\x1d\xdc\x1fXf\x81\x13f\xd8a\x07\x87\x1a9`\xd6\xf69\xa9\
+\xa8\x06\xa8Fj\xa9\xba\xd5\xb8\xde\xa2\x14W\x85;J\xf1\xeb\x7f""6\xd7\xeb\xf5\
+t:E\x84jd\xc2\x1d$\x80RJ\xc1?\x91\x99\xdb\x91\x91T\xad\xee\xb5\xd6\xab\xfbF\
+\xa4\x93\xfc\xd8*""\x02\xe0\x01\x00*\x89Z7$2\x17\x11133\x1b\r\xaa:Fl2\xb3Vw\
+\x7f^\r(\x01\xa0w\xdb\xef\xe7; 3_\xc8PE\xef\x10\x01\x00*\x96\t\xed\x0b\xda/L\
+\x82\xdd\xee=\x13f&"\xbdw\x92[*\xd4\x01\x80@\x0e\xc6\x05\x1a\xb83 \x03x\x08\
+\xb0U\xf5\xf4\\k\x05\x00\xbc"\x0b\xbc"\x81[\xe5\x11\x9f\x8e\xafG*B\xa1\xe3\
+\x05\xfabE\x0bu\xa5!bO\x80A\xb1&HP\xe1\xb5Lb\xe9\xe1\t%H\xb8?\x1dd\x8b\xc3\
+\xa1\x9b\xc9\xac.bf\x94\xa8\xaf\xad\xfcX\xbb\xcd\xe6\xbb\xb2C\xfd\x97z<^.\
+\x171kmi\x12?\xbf\xbe\xef\xbfC:H\xb4ff\xb6\xdb\xed"BD\xce\xe7\xf3\xdb\xdb\
+\xb7\xd5\x1a\xcb\xb2\xcc\xd3\x8c\xcf\xa8\x871i\x1c\x0b$z7\xb36~\xc8\xdb\xa5[\
+k>\x81\xbfq\xbb\xeb\xc7\xa4\rz\x00\x14e\xdd\xd0Z\x9be\xaf\x8aU\x9c\x04\xf5\
+\x06\xab\x98\xa6y\xe0{\xef\x9b\x88\x18&!\x19\x1aJ\x00\xeap\xac\x06\xc3_\xb6\
+\xf9\x03t}\xfb\xbaG1\'\x18\x00\x00\x00\x00IEND\xaeB`\x82' 
+
+
+Preferences.IS.registerImage('Images/PyInterpreterChooser.png', getPyInterpreterChooserImgData())
     
