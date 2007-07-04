@@ -9,7 +9,7 @@
 # Copyright:   (c) 2001 - 2007 Tim Hochberg
 # Licence:     GPL
 #-----------------------------------------------------------------------------
-import os, re
+import os, re, sys
 
 import wx
 
@@ -215,6 +215,10 @@ class FindReplaceEngine:
                     results[names[i]] = self._findAllInSource(open(filename).read(), pattern, 0)
                 except IOError:
                     continue
+
+                if type(filename) is unicode:
+                    filename = filename.encode(sys.getfilesystemencoding())
+
                 if not dlg.Update(i, _("Searching in file '%s'")%filename):
                     try:
                         view.model.editor.statusBar.setHint(_("Search aborted"))
