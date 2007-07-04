@@ -56,7 +56,6 @@ langIdCountryMap = {
     wx.LANGUAGE_CROATIAN: 'HR',
     wx.LANGUAGE_CZECH: 'CZ',
     wx.LANGUAGE_DANISH: 'DK',
-    wx.LANGUAGE_DEFAULT: 'ZA',
     wx.LANGUAGE_DUTCH: 'NL',
     wx.LANGUAGE_DUTCH_BELGIAN: 'BE',
     wx.LANGUAGE_ENGLISH: 'GB',
