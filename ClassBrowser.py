@@ -11,7 +11,7 @@
 #----------------------------------------------------------------------
 #Boa:Frame:ClassBrowserFrame
 
-import os, pyclbr
+import os, pyclbr, sys
 
 import wx
 
@@ -201,8 +201,10 @@ def openClassBrowser(editor):
     palette.browser.restore()
 
 
-Plugins.registerTool(_('wxPython class browser'), openClassBrowser,
-      'Images/Shared/ClassBrowser.png')
+# pyclbr doesn't work without source
+if not hasattr(sys, 'frozen'):
+    Plugins.registerTool(_('wxPython class browser'), openClassBrowser,
+                         'Images/Shared/ClassBrowser.png')
 
 #-------------------------------------------------------------------------------
 
