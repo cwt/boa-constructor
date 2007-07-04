@@ -2,6 +2,35 @@ import wx
 
 import Preferences, Plugins
 from Utils import _
+"""
+A DragScroller scrolls a wx.ScrollWindow in the direction and speed of a mouse drag
+
+To use this plug-in in the Designer you'd need to define the mouse click events
+you want to use for the drag scroller (from it's scrollwindow) and add code like 
+this to start and stop the dragging.
+
+# designer code
+
+        ...
+        self.dragScroller = wx.lib.dragscroller.DragScroller(rate=35, scrollwin=None)
+        ...
+        self.scrollWindow.Bind(wx.EVT_RIGHT_DOWN, self.OnRightDown)
+        self.scrollWindow.Bind(wx.EVT_RIGHT_UP, self.OnRightUp)
+
+# your code:
+    
+        ...
+        self._init_ctrls(parent)
+
+        self.scroller.SetScrollWindow(self.scrollwindow)
+    ...
+    def OnRightDown(self, event):
+        self.scroller.Start(event.GetPosition())
+
+    def OnRightUp(self, event):
+        self.scroller.Stop()
+
+"""
 
 try:
     import wx.lib.dragscroller
