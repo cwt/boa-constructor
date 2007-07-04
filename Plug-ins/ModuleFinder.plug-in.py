@@ -6,7 +6,7 @@ import wx
 
 import Preferences
 import Utils
-from Utils import _
+from Utils import _, resetMinSize
 
 #-------------------------------------------------------------------------------
 
@@ -16,31 +16,61 @@ from Utils import _
 ] = [wx.NewId() for _init_ctrls in range(5)]
 
 class ModuleFinderDlg(wx.Dialog):
+    def _init_coll_mainSizer_Items(self, parent):
+        # generated method, don't edit
+
+        parent.AddWindow(self.staticText1, 0, border=10,
+              flag=wx.ALL | wx.EXPAND)
+        parent.AddWindow(self.txtModuleName, 0, border=10,
+              flag=wx.EXPAND | wx.RIGHT | wx.LEFT)
+        parent.AddSizer(self.buttonsSizer, 0, border=10,
+              flag=wx.ALIGN_RIGHT | wx.ALL)
+
+    def _init_coll_buttonsSizer_Items(self, parent):
+        # generated method, don't edit
+
+        parent.AddWindow(self.okBtn, 0, border=10, flag=wx.RIGHT)
+        parent.AddWindow(self.cancelBtn, 0, border=0, flag=0)
+
+    def _init_sizers(self):
+        # generated method, don't edit
+        self.mainSizer = wx.BoxSizer(orient=wx.VERTICAL)
+
+        self.buttonsSizer = wx.BoxSizer(orient=wx.HORIZONTAL)
+
+        self._init_coll_mainSizer_Items(self.mainSizer)
+        self._init_coll_buttonsSizer_Items(self.buttonsSizer)
+
+        self.SetSizer(self.mainSizer)
+
     def _init_ctrls(self, prnt):
         # generated method, don't edit
         wx.Dialog.__init__(self, id=wxID_MODULEFINDERDLG,
-              name='ModuleFinderDlg', parent=prnt, pos=wx.Point(676, 466),
-              size=wx.Size(275, 133), style=wx.DEFAULT_DIALOG_STYLE,
+              name='ModuleFinderDlg', parent=prnt, pos=wx.Point(858, 575),
+              size=wx.Size(317, 135),
+              style=wx.RESIZE_BORDER | wx.DEFAULT_DIALOG_STYLE,
               title=_('Module finder for sys.path'))
-        self.SetClientSize(wx.Size(267, 106))
+        self.SetClientSize(wx.Size(309, 106))
         self.Center(wx.BOTH)
 
         self.staticText1 = wx.StaticText(id=wxID_MODULEFINDERDLGSTATICTEXT1,
               label=_('Module name:'), name='staticText1', parent=self,
-              pos=wx.Point(8, 8), size=wx.Size(104, 16), style=0)
+              pos=wx.Point(10, 10), size=wx.Size(289, 16), style=0)
 
         self.txtModuleName = wx.TextCtrl(id=wxID_MODULEFINDERDLGTXTMODULENAME,
-              name='txtModuleName', parent=self, pos=wx.Point(8, 32),
-              size=wx.Size(248, 21), style=0, value='')
+              name='txtModuleName', parent=self, pos=wx.Point(10, 36),
+              size=wx.Size(289, 21), style=0, value='')
 
         self.okBtn = wx.Button(id=wx.ID_OK, label=_('OK'), name='okBtn',
-              parent=self, pos=wx.Point(103, 72), size=wx.Size(75, 23),
+              parent=self, pos=wx.Point(139, 67), size=wx.Size(75, 23),
               style=0)
         self.okBtn.SetDefault()
 
         self.cancelBtn = wx.Button(id=wx.ID_CANCEL, label=_('Cancel'),
-              name='cancelBtn', parent=self, pos=wx.Point(183, 72),
+              name='cancelBtn', parent=self, pos=wx.Point(224, 67),
               size=wx.Size(75, 23), style=0)
+
+        self._init_sizers()
 
     def __init__(self, parent):
         self._init_ctrls(parent)
@@ -48,6 +78,11 @@ class ModuleFinderDlg(wx.Dialog):
         icon = wx.EmptyIcon()
         icon.CopyFromBitmap(Preferences.IS.load('Images/ModuleFinder.png'))
         self.SetIcon(icon)
+        
+        # adjust sizes for different platforms
+        resetMinSize(self)
+        self.SetMinSize(wx.Size(309, 106))
+        self.SetSizerAndFit(self.mainSizer)
 
 #-------------------------------------------------------------------------------
 
