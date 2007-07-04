@@ -1,0 +1,48 @@
+Boa Constructor is a cross platform Python IDE, wxPython GUI Builder and Zope IDE. 
+It was inspired by the Delphi IDE, is written in Python and uses the wxPython 
+library which wraps wxWidgets.
+
+For wxPython it offers a GUI Designer for visual frame creation and manipulation 
+with an object Inspector for managing properties.
+Most of the wxPython library is supported and available for creation from the 
+Palette.
+
+There are also many views on the source, like object browsers, inheritance 
+hierarchies, doc string generated html documentation, todo lists, simple UML 
+views, a regular expression editor and more.
+The Python code editor has many features like code completion, parameter
+call tips, code transformations and code templates.
+
+It has an out-of-process debugger with standard features like breakpoints,
+watches and interactive inspection with the shell. 
+There are also more advanced features like remote debugging and debugging threads.
+
+The IDE has been translated to Afrikaans, Chinese, French, German, Italian, 
+Brazillian Portugese and Spanish.
+Internationalization of your own projects is also supported in the Designer.
+
+The transport of files are independent of the filetype. This means that
+files can be edited over any of the supported transports like the filesystem,
+FTP, SSH and WebDAV. 
+Version control is available via a special CVS and SVN transports.
+
+The IDE is built on an extensible framework where new filetypes, controls,
+transports and tools can be added as plugins without changing any Boa sources. 
+Interfaces of existing filetypes can also be extended with a plugin.
+
+Support for many Python technologies have been integrated in the IDE like 
+distutils, py2exe, Zope, BicycleRepairMan (a refactoring browser), PyChecker, 
+Pyrex and Cyclops (for finding circular references)
+
+For Zope development it supports object creation and editing, cut, copy, paste, 
+import and export. Zope properties can be created and edited in the Inspector.
+Many standard Zope objects are supported.
+In addition to normal Python debugging of Zope Products debugging Zope Python 
+Scripts is also supported.
+
+Although primarily a Python editor, it also supports basic editing for a host 
+of other filetypes like text, config files, HTML, XML, C, Java, Pascal and
+Help projects.
+
+Almost all of the major features can also be optionally turned off if they
+are not needed, for quicker startup and less clutter.
