@@ -152,7 +152,7 @@ for prefsFile, version in (('prefs.rc.py', 18),
 
 # upgrade/install config files if needed, different config filetypes handled seperately
 # ConfigParser files
-for confFile, version in (('Explorer.%s.cfg' % thisPlatform, 1),):
+for confFile, version in (('Explorer.%s.cfg' % thisPlatform, 2),):
     file = os.path.join(rcPath, confFile)
     confVersion = 0
     if os.path.exists(file):
