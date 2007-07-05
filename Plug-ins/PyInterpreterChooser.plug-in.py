@@ -22,10 +22,10 @@ PyCoreRegPath = 'SOFTWARE\\Python\\Pythoncore'
  wxID_PYINTERPRETERCHOOSERDLGBTNOK, 
  wxID_PYINTERPRETERCHOOSERDLGGDCINSTALLPATH, 
  wxID_PYINTERPRETERCHOOSERDLGLCINSTALLATIONS, 
- wxID_PYINTERPRETERCHOOSERDLGPANEL1, wxID_PYINTERPRETERCHOOSERDLGSTATICTEXT1, 
+ wxID_PYINTERPRETERCHOOSERDLGSTATICTEXT1, 
  wxID_PYINTERPRETERCHOOSERDLGSTATICTEXT2, 
  wxID_PYINTERPRETERCHOOSERDLGTXTPYINTPPATH, 
-] = [wx.NewId() for _init_ctrls in range(9)]
+] = [wx.NewId() for _init_ctrls in range(8)]
 
 class PyInterpreterChooserDlg(wx.Dialog):
     def _init_coll_browserSizer_Items(self, parent):
@@ -35,6 +35,13 @@ class PyInterpreterChooserDlg(wx.Dialog):
               flag=wx.GROW | wx.ALL)
         parent.AddWindow(self.gdcInstallPath, 1, border=10,
               flag=wx.GROW | wx.ALL)
+
+    def _init_coll_buttonsSizer_Items(self, parent):
+        # generated method, don't edit
+
+        parent.AddWindow(self.btnOK, 0, border=10, flag=wx.ALL | wx.ALIGN_RIGHT)
+        parent.AddWindow(self.btnCancel, 0, border=10,
+              flag=wx.ALL | wx.ALIGN_RIGHT)
 
     def _init_coll_mainSizer_Items(self, parent):
         # generated method, don't edit
@@ -47,15 +54,7 @@ class PyInterpreterChooserDlg(wx.Dialog):
         parent.AddWindow(self.txtPyIntpPath, 0, border=10,
               flag=wx.GROW | wx.ALL)
         parent.AddSizer(self.buttonsSizer, 0, border=0,
-              flag=wx.ALIGN_RIGHT | wx.GROW | wx.ALL)
-
-    def _init_coll_buttonsSizer_Items(self, parent):
-        # generated method, don't edit
-
-        parent.AddWindow(self.panel1, 1, border=0, flag=wx.GROW)
-        parent.AddWindow(self.btnOK, 0, border=10, flag=wx.ALL | wx.ALIGN_RIGHT)
-        parent.AddWindow(self.btnCancel, 0, border=10,
-              flag=wx.ALL | wx.ALIGN_RIGHT)
+              flag=wx.ALIGN_RIGHT | wx.ALL)
 
     def _init_coll_lcInstallations_Columns(self, parent):
         # generated method, don't edit
@@ -86,8 +85,8 @@ class PyInterpreterChooserDlg(wx.Dialog):
     def _init_ctrls(self, prnt):
         # generated method, don't edit
         wx.Dialog.__init__(self, id=wxID_PYINTERPRETERCHOOSERDLG,
-              name='PyInterpreterChooserDlg', parent=prnt, pos=wx.Point(479,
-              474), size=wx.Size(524, 331),
+              name='PyInterpreterChooserDlg', parent=prnt, pos=wx.Point(548,
+              354), size=wx.Size(532, 358),
               style=wx.RESIZE_BORDER | wx.DEFAULT_DIALOG_STYLE,
               title=_('Python Interpreter Chooser'))
         self._init_utils()
@@ -97,7 +96,7 @@ class PyInterpreterChooserDlg(wx.Dialog):
         self.staticText1 = wx.StaticText(id=wxID_PYINTERPRETERCHOOSERDLGSTATICTEXT1,
               label=_('Found installations: (double click to select)'),
               name='staticText1', parent=self, pos=wx.Point(10, 10),
-              size=wx.Size(504, 22), style=0)
+              size=wx.Size(203, 13), style=0)
 
         self.gdcInstallPath = wx.GenericDirCtrl(defaultFilter=0, dir='.',
               filter=self.installPathFilter,
@@ -108,7 +107,7 @@ class PyInterpreterChooserDlg(wx.Dialog):
 
         self.lcInstallations = wx.ListView(id=wxID_PYINTERPRETERCHOOSERDLGLCINSTALLATIONS,
               name='lcInstallations', parent=self, pos=wx.Point(10, 52),
-              size=wx.Size(242, 146), style=wx.LC_REPORT,
+              size=wx.Size(242, 146), style=wx.SUNKEN_BORDER | wx.LC_REPORT,
               validator=wx.DefaultValidator)
         self._init_coll_lcInstallations_Columns(self.lcInstallations)
         self.lcInstallations.Bind(wx.EVT_LIST_ITEM_ACTIVATED,
@@ -131,10 +130,6 @@ class PyInterpreterChooserDlg(wx.Dialog):
         self.btnCancel = wx.Button(id=wx.ID_CANCEL, label=_('Cancel'),
               name='btnCancel', parent=self, pos=wx.Point(408, 298),
               size=wx.Size(106, 23), style=0)
-
-        self.panel1 = wx.Panel(id=wxID_PYINTERPRETERCHOOSERDLGPANEL1,
-              name='panel1', parent=self, pos=wx.Point(0, 288),
-              size=wx.Size(277, 43), style=wx.TAB_TRAVERSAL)
 
         self._init_sizers()
 
@@ -162,28 +157,33 @@ class PyInterpreterChooserDlg(wx.Dialog):
             self.lcInstallations.InsertStringItem(idx, version)
             self.lcInstallations.SetStringItem(idx, 1, path)
 
-        # Bold the current installation
-        li = self.lcInstallations.GetItem(0)
-        f = li.GetFont()
-        f.SetWeight(wx.BOLD)
-        li.SetFont(f)
-        self.lcInstallations.SetItem(li)
+        if not hasattr(sys, 'frozen'):
+            # Bold the current installation
+            li = self.lcInstallations.GetItem(0)
+            f = li.GetFont()
+            f.SetWeight(wx.BOLD)
+            li.SetFont(f)
+            self.lcInstallations.SetItem(li)
 
     def getInstallations(self):
-        res = [(self.sysBinVer, sys.executable)]
+        if hasattr(sys, 'frozen'):
+            res = []
+        else:
+            res = [(self.sysBinVer, sys.executable)]
 
         import Preferences
         for path in Preferences.picExtraPaths:
             if os.path.exists(path):
                 res.append( ('?', path) )
 
-        # XXX search common locations on Linux?
+        # XXX search common locations on Linux and Mac?
 
         try:
             import _winreg as winreg
         except ImportError:
             return res
 
+        # Windows, add pythons defined in registry
         try:
             reg = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, PyCoreRegPath)
         except EnvironmentError:
@@ -192,14 +192,17 @@ class PyInterpreterChooserDlg(wx.Dialog):
         idx = 0
         versions = []
         try:
-            while 1:
+            while True:
                 versions.append(winreg.EnumKey(reg, idx))
                 idx += 1
         except EnvironmentError:
             pass
 
-        try: versions.remove(self.sysBinVer)
-        except ValueError: pass
+        if not hasattr(sys, 'frozen'):
+            try: 
+                versions.remove(self.sysBinVer)
+            except ValueError: 
+                pass
 
         for version in versions:
             try:
@@ -209,7 +212,7 @@ class PyInterpreterChooserDlg(wx.Dialog):
                 continue
             try:
                 pyIntpPath = os.path.join(winreg.QueryValue(reg, 'InstallPath'),
-                                      self.sysBinName)
+                                      'Python.exe')
             except WindowsError:
                 continue
             
@@ -300,10 +303,10 @@ def openPyInterpChooser(editor):
 _('Additional locations to choose the Python Interpreter Path from.')
 
 Plugins.registerPreference('PyInterpreterChooser', 'picExtraPaths', '[]',
-                           ['Additional locations to choose the Python '
+                          ['Additional locations to choose the Python '
                             'Interpreter Path from.'])
 Plugins.registerTool(_('Python interpreter chooser'), openPyInterpChooser,
-                     'Images/PyInterpreterChooser.png')
+                       'Images/PyInterpreterChooser.png')
 
 #-------------------------------------------------------------------------------
 
