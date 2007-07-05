@@ -109,6 +109,9 @@ if Preferences.pluginPaths:
             continue
 
         pluginBasename = os.path.basename(pluginFilename)
+        
+        print 'executing %s'% os.path.splitext(pluginBasename)[0]
+        
         filename = pluginFilename.lower()
         try:
             execfile(pluginFilename)
