@@ -1,5 +1,3 @@
-print 'executing wxPythonDemo plug-in'
-
 import string, os, sys
 
 import wx

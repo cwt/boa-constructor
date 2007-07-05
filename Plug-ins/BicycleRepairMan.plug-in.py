@@ -22,8 +22,6 @@ Also clearing the current context can be called from the Explorer menu.
 
 """
 
-print 'importing BicycleRepairMan'
-
 import os, linecache, traceback
 from thread import start_new_thread
 

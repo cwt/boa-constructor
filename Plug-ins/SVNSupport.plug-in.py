@@ -9,8 +9,6 @@
 # Copyright:   (c) 2007 Riaan Booysen
 # Licence:     GPL
 #-----------------------------------------------------------------------------
-print 'importing Explorers.SVNExplorer'
-
 """ Explorer classes for SVN browsing and operations """
 
 import time, stat, os

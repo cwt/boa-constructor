@@ -10,8 +10,6 @@
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 
-print 'importing JavaSupport'
-
 import os
 
 import wx
