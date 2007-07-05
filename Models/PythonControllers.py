@@ -721,7 +721,8 @@ class SysPathNode(ExplorerNodes.ExplorerNode):
             res.append(self.createChildNode(short, entry))
         return res
 
-ExplorerNodes.register(SysPathNode, clipboard='file', controller='file', root=True)
+if not hasattr(sys, 'frozen'):
+    ExplorerNodes.register(SysPathNode, clipboard='file', controller='file', root=True)
 
 
 # Hook debugger attaching to Tools menu
