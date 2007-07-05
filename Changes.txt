@@ -1,6 +1,17 @@
 Changes
 -------
 
+-- 0.6.1 - beta (Release) --
+
+2007-07-5
+
+* Improvements for sizers in the turorial, thanks to Werner
+* Further sizer/GTK improvements by Ianare for the ModuleFinder and 
+  InterpreterChooser dialogs
+* More improvements for running as a binary
+* Bug fixes and config changes
+
+
 -- 0.6.0 - beta (CVS) --
 
 2007-06-27
