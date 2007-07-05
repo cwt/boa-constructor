@@ -1,0 +1,49 @@
+﻿Skep nuwe bron kode vanaf die Nuut bladsy op die Palette.
+wx.App modules tree op as Projek leêrs vir wxPython applikasies. Vir suiwer Python projekte gebruik PythonApp vanaf die Nuut bladsy op die Palette.
+Jy kan leêrs vanaf die bedryfstelsel na Boa toe sleep-en-los.
+Boa aanvaar leêrs as opdrag lyn parameters wat sal oopmaak na Boa begin het. Opsioneel kan 'n lynnommer bygevoeg word as volg <leêrnaam>[::<lynno>]
+As Boa in bediener modus loop, kan 'n ander Boa begin word met 'n leernaam as parameter wat dan na die eerste Boa gevoer sal word om oop te maak.
+Boa ondersteun 'n 'constricted' modus waar net die Redigeerder venster oopmaak aan die begin. Gebruik die _C opdrag-lyn parameter of stel dit onder Voorkeure.
+As jy 'n herhaalbare toets het wat Boa kan laat omval, kan jy Boa in 'n spoor modus hardloop deur die -T opdrag lyn parameter te gebruik. Dit skep 'n logboek van elke funksie roep. Na die omval, begin Boa oor, maak Boa.py oop en kies Leer->Wys omval log as stapelspoor. Wag geduldig dat 'n stapelspoor van die fout geskep word.
+Om 'n kontrole by 'n raam te voeg, kies die kontrole op die Palette, en kliek op die plek waar jy dit wil skep in die Ontwerper.
+Om 'n event te definieer, kies die kontrole in die Ontwerper, gaan na die Evts bladsy in die Inspekteur, kies die event katagorie en dubbel kliek die event.
+Skepper eienskappe (Constr bladsy in die Inspekteur) is nie lewendig nie. Die kontrole moet herskep word of die raam moet toegemaak en heropen word voordat veranderinge aan sulke eienskappe sal vertoon.
+Dubbel kliek op 'n komponent in die ontwerper om sy verstekredigeerder te aktiveer.
+Om veelvoudige komponente te kies, hou Shift in terwyl jy op die kontrole kliek in die Ontwerper. Net kontrole op die selfde vlak kan so gekies word.
+Gebruik die kursor sleutels om 'n ander kontrole as die huidig gekose kontrole te kies in die Ontwerper. 
+Kontrole groottes kan presies beheer word deur Shift in te hou terwyl die kursor sleutels gebruik word om die grootte te stel. Soortgelyk kan die posisie gestel word deur die Ctrl sleutel in te hou. 
+Veelvoudige kies groepe kan gerig en van grootte verander word in een stap. Maak 'n veelvoudige kiesgroep, regs-kliek en kies 'Rig...' of 'Grootte...'
+Die Skep/Tab orde van kontroles kan verander word deur op die kies groep te regs-kliek en 'Skep/Tab orde' te kies.
+As jy 'n wx.Frame gebruik wat veelvuldige kontrole direk op die raam bevat, is dit hoogs aanbeveel dat die kontrole eerder in 'n wx.Panel gesit word.
+Die verskillende Aansigte van 'n oop leêr kan onder die Aansigte kieskaart gewissel word.
+Sizers kan gebruik word om kontrole uit te lê. Gebruik Sizers vanaf die Houers/Uitleg Palette bladsy en klik op die kontrole in die Ontwerper waaraan die sizer geheg moet word.
+Ankers kan gebruik word om kontrole uit te lê. Kortliks werk Ankers op die beginsel om die kante van 'n kontrol aan die ooreenkomstige kant van sy ouer te koppel.
+Ankers is geintegreer met die Ontwerper; regs klik op 'n kies groep in die Ontwerper om sy Ankers te stel.
+Die Ontwerper ondersteun kopieer/plak operasies. Dit is somtyds hulpvaardig om gekopieerde kontrole direk in jou bron kode te plak.
+Om die eienskappe van items in die Verkenner te verander, kies die item en klik Inspekteur.
+Leë bladsye in 'n wx.Notebook (gevul met rooi diagonale lyne) moet 'n kontrole bevat of onwettige kode sal vir hulle gegenereer word.
+Diagonale lyne op 'n beeld kontrole beteken dat die bisruit nog na wx.NullBitmap gestel is.
+Komponente op die 'Nuts objekte' bladsy is non visueele objekte wat in die 'Data' aansig geskep moet word.
+Om Raam tipe modules alleen te toets, kies Redigeer->Voeg module hardloper by. Daar sal kode aan die onderkant van die leêr bygevoeg word en die module kan met die blou hardloop knoppie toets word.
+Voorkeure kan gestel word deur die Verkenner en die Inspekteur. Kies Voorkeure in the Verkenner se boom en dubbel-klik op 'n item in die lys om dit in die Inspekteur te redigeer.
+Meeste Voorkeure het hulp. Hou die muis bo oor die Voorkeur naam in die Inspekteur en wag vir die hulp om te verskyn.
+Sommige Voorkeur veranderinge sal net effek vat as Boa weer gehardloop word. 
+Voorkeure word in prefs.rc.py, prefs.(msw|gtk|mac).rc.py en prefskeys.rc.py gestoor. 
+Bronkode kleure en lettertipes kan in die Verkenner gestel word onder Voorkeure->Bronkode.
+Versnellersleuteldefinisies vir Boa kan gestel word onder Voorkeure->Sleutel bindings.
+Ander sleutelbord tipes work ook ondersteun. Stel handleSpecialEuropeanKeys onder Voorkeure->Algemeen->Redigeerder.
+Voorkeure en konfigurasies word binne in 'n .boa-constructor gids in jou tuis gids gestoor.
+Ondersteuning vir COM modules is af by versek. Dit kan onder Voorkeure->Plug-ins->Kern steun->Plug-ins gestel word.
+ActiveX kontrole kan nie outomaties ondersteun word nie. Vir voorbeelde hoe om ActiveX te ondersteun sien Companions/ComCompanions.py en bcrtl/activex.
+Sit jou karet op 'n woord en druk F1 in die bronkode redigeerder om konteks hulp vir die woord te kry.
+Kode Voltooing en Parameter Wenke kan opgeroep word deur Ctrl-Space en Ctrl-Shft-Space te druk.
+Om Kode Blaaing te gebruik in Python bronkode, hou Ctrl in en beweeg die muis bo-oor identifiseerders in die bronkode. As die woord in blou onderlyn is, klik daarop om na die definisie te spring.
+Kode Transformasies is konteks afhanklik. So ver kan metodes by klasse automaties bygevoeg word en 'n ouer se oorerfwings metode outomaties begevoeg word.
+Sintaks Kontrole word gedoen op Python bronkode as jy van 'n lyn afbeweeg na dit verander is. 'n Vout word aangedui deur die word met 'n rooi riffellyn te onderstreep.
+CVS en SVN is geintegreer met Verkenner. Die opdrag-lyn weergawes van CVS en SVN moet op jou stelsel geinstaller wees.
+Die boonste node in die Verkenner boom is die Redigeerder en dit wys 'n lys van al die oop modules in Boa. Hier kan jy die orde van modules verander en groepe van leêrs toemaak.
+Leêrs kan gekopieër/plak, geboekmerk, laai, stoor en geredigeer word op die volgende transporte: Leêrstelsel, FTP, SSH, DAV en Zope.
+Om nuwe konneksies vir non-leêrstelsel transporte te definieer, kies die transport in the Verkenner boom en regs-klik en kies Nuut. Die konneksie se eienskappe kan in die Inspekteur geredigeer work.
+Sommige kontrole reageer nie korrek op muis klik gebeure in die Ontwerper nie. Gebruik die Inspekteur se Objs bladsy om met sulke kontrole te werk.
+Jy kan Boa uitbrei met jou eie kontrole, leêrtipes of transporte deur 'n Plug-in te skryf. Bv. sien Plug-ins/UserCompanions.plug-in.py, Plug-ins/JavaSupport.plug-in.py of Plug-ins/SVNSupport.plug-in.py, 
+Ondersteuning vir distutils (en py2exe) is beskikbaar vanaf die Setup leêr tipe op die Nuut Palette blady. Distutils opdragte kan vannaf die Leêr kieslys uitgevoer word.
