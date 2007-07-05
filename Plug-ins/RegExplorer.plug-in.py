@@ -9,7 +9,6 @@
 # Copyright:   (c) 2001 - 2007 Riaan Booysen
 # Licence:     GPL
 #-----------------------------------------------------------------------------
-print 'importing Explorers.RegExplorer'
 
 import string, os, sys
 
@@ -84,17 +83,10 @@ class RegCatNode(ExplorerNodes.CategoryNode):
         itm.bookmarks = self.bookmarks
         return itm
 
-##    def createCatCompanion(self, catNode):
-##        comp = DAVCatDictCompanion(catNode.treename, self)
-##        return comp
+    def createCatCompanion(self, catNode):
+        comp = ExplorerNodes.CategoryDictCompanion(catNode.treename, self)
+        return comp
 
-##class DAVCatDictCompanion(ExplorerNodes.CategoryDictCompanion):
-##    """ Prop validator for 'path' prop """
-##    def setPropHook(self, name, value, oldProp = None):
-##        ExplorerNodes.CategoryDictCompanion.setPropHook(self, name, value, oldProp)
-##        if name == 'path' and value and value != '/':
-##            if value[-1] != '/': raise Exception('DAV paths must end in "/"')
-##            if value[0] == '/': raise Exception('DAV paths shouldn\'t start with "/"')
 
 class RegItemNode(ExplorerNodes.ExplorerNode):
     protocol = 'reg'
@@ -106,15 +98,12 @@ class RegItemNode(ExplorerNodes.ExplorerNode):
               imgIdx, parent, props)
 
         self.hkey = None
-        #self.initResource()
-
-##    def initResource(self):
-##        props = self.properties
-##        self.resource = client.Resource(('http://%(host)s:%(port)s/'%props)+\
-##              self.resourcepath, props['username'], props['passwd'])
 
     def initHkey(self):
-        key, subkey = string.split(self.resourcepath, '\\', 1)
+        if self.resourcepath.find('\\') == -1:
+            key, subkey = self.resourcepath, None
+        else:    
+            key, subkey = string.split(self.resourcepath, '\\', 1)
         key =_winreg.__dict__[key]
         if self.properties['computername']:
             compName = self.properties['computername']
@@ -162,72 +151,31 @@ class RegItemNode(ExplorerNodes.ExplorerNode):
         return res
 
     def deleteItems(self, names):
-        absNames = []
-##        for name in names:
-##            self.checkResp(self.createChildNode(self.resourcepath+name,
-##                  self.properties).resource.delete())
+        pass
 
     def renameItem(self, name, newName):
         pass
-##        self.checkResp(self.createChildNode(self.resourcepath+name,
-##            self.properties).resource.move(self.resourcepath+newName))
 
     def load(self, mode='rb'):
         return ''
-##        try:
-##            return self.checkResp(self.resource.get()).body
-##        except Exception, error:
-##            raise ExplorerNodes.TransportLoadError(error, self.resourcepath)
 
     def save(self, filename, data, mode='wb'):
         pass
-##        if filename != self.resourcepath:
-##            self.name = os.path.basename(filename)
-##            self.resourcepath = filename
-##            self.initResource()
-##        try:
-##            self.checkResp(self.resource.put(data))
-##        except Exception, error:
-##            raise ExplorerNodes.TransportSaveError(error, self.resourcepath)
 
     def newFolder(self, name):
         # add key
         pass
 
-##        self.checkResp(self.createChildNode(self.resourcepath+name+'/',
-##              self.properties).resource.mkcol())
-
     def newBlankDocument(self, name):
         # add blank string
         pass
-##        self.checkResp(self.createChildNode(self.resourcepath+name,
-##              self.properties).resource.put(' '))
 
     def getNodeFromPath(self, respath):
         return self.createChildNode(respath, self.properties)
 
-##    def checkResp(self, resp):
-##        assert resp.code < 300, '%s %d %s' %(resp.version, resp.code, resp.msg)
-##        return resp
-
 
 class RegExpClipboard(ExplorerNodes.ExplorerClipboard):
     pass
-##    def clipPaste_FileSysExpClipboard(self, node, nodes, mode):
-##        for clipnode in nodes:
-##            if mode == 'cut':
-##                node.copyFromFS(clipnode)
-##                self.clipNodes = []
-##            elif mode == 'copy':
-##                node.copyFromFS(clipnode)
-##
-##    def clipPaste_DAVExpClipboard(self, node, nodes, mode):
-##        for davNode in nodes:
-##            if mode == 'cut':
-##                node.moveFileFrom(davNode)
-##                self.clipNodes = []
-##            elif mode == 'copy':
-##                node.copyFileFrom(davNode)
 
 #---Companion classes-----------------------------------------------------------
 
@@ -267,32 +215,6 @@ class RegCompanion(RegPropReaderMixin, ExplorerNodes.ExplorerCompanion):
     def SetProp(self, name, value):
         raise 'Property editing not supported yet'
 
-### XXX Helper is already slightly contaminated by the Designer
-##class SubCompanion(DAVPropReaderMixin, HelperDTC):
-##    def __init__(self, name, designer, ownerCompanion, obj, ownerPropWrap):
-##        HelperDTC.__init__(self, name, designer, ownerCompanion, obj,
-##              ownerPropWrap)
-##        self.propItems = []
-##
-##    def getPropList(self):
-##        propLst = []
-##        if type(self.obj) is types.ListType:
-##            props = self.obj
-##        else:
-##            props = [self.obj]
-##        subProps = self.buildItems([], props)
-##        for prop in subProps:
-##            propLst.append(RTTI.PropertyWrapper(prop[0], 'NameRoute',
-##                  self.GetProp, self.SetProp))
-##        self.propItems = subProps
-##        return {'constructor': [], 'properties': propLst}
-##
-##    def GetProp(self, name):
-##        for prop in self.propItems:
-##            if prop[0] == name: return prop[1]
-##
-##    def SetProp(self, name, value):
-##        raise 'Property editing not supported yet'
 
 #-------------------------------------------------------------------------------
 ExplorerNodes.register(RegItemNode, clipboard=RegExpClipboard,
