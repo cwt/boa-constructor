@@ -9,7 +9,7 @@
 # Copyright:   (c) 1999 - 2007 Riaan Booysen
 # Licence:     GPL
 #----------------------------------------------------------------------
-import string, os, sys, glob, pprint, types, re
+import string, os, sys, glob, pprint, types, re, traceback
 
 import wx
 
@@ -257,7 +257,7 @@ def getI18NLangDir():
     path = toPyPath(os.path.join('locale', d))
     if not os.path.exists(path):
         if '_' in d:
-            path = os.path.join('locale', d.split('_', 1)[0])
+            path = toPyPath(os.path.join('locale', d.split('_', 1)[0]))
             if not os.path.exists(path):
                 return ''
         else:
@@ -900,6 +900,13 @@ def resetMinSize(parent, ignoreCtrls=(), ignoreClasses=()):
     for child in parent.GetChildren():
         if child not in ignoreCtrls and not isinstance(child, ignoreClasses):
             resetMinSize(child, ignoreCtrls, ignoreClasses) 
+
+def wxPyExceptHook(type, value, trace):
+    if wx and sys and traceback:
+        exc = traceback.format_exception(type, value, trace)
+        for e in exc: 
+            wx.LogError(e)
+        sys.__excepthook__(type, value, trace)
 
 
 #-------------------------------------------------------------------------------
