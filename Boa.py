@@ -610,8 +610,8 @@ class BoaApp(wx.App):
         Utils.showTip(self.main.editor)
 
         if Preferences.logStdStreams:
-            sys.stderr = Utils.ErrorLoggerPF()
             sys.stdout = Utils.OutputLoggerPF()
+            sys.excepthook = Utils.wxPyExceptHook
 
         if Preferences.exWorkingDirectory:
             try:
