@@ -422,7 +422,7 @@ class wxHelpFrameEx:
         self.indexPanel = self.navPages.GetPage(1)
 
         self.indexTextCtrl, btn1, btn2 = \
-              self.indexPanel.GetChildren()[:3]
+                list(self.indexPanel.GetChildren())[:3]
 
         # done this way to work on 2.3.2 and 2.3.3
         if btn1.GetLabel() == _('Show all'):
