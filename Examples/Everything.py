@@ -3,7 +3,7 @@
 """ Frame containing all controls available on the Palette. """
 
 import wxversion
-wxversion.select('2.5')
+wxversion.ensureMinimal('2.8')
 
 import wx
 from wx.lib.anchors import LayoutAnchors
@@ -260,26 +260,26 @@ class Frame1(wx.Frame):
         self.toggleButton1.Bind(wx.EVT_BUTTON, self.OnTogglebutton1Button,
               id=wxID_FRAME1TOGGLEBUTTON1)
 
-        self.genButton1 = wx.lib.buttons.GenButton(ID=wxID_FRAME1GENBUTTON1,
+        self.genButton1 = wx.lib.buttons.GenButton(id=wxID_FRAME1GENBUTTON1,
               label='genButton1', name='genButton1', parent=self.panel3,
               pos=wx.Point(16, 160), size=wx.Size(88, 37), style=0)
 
-        self.genBitmapButton1 = wx.lib.buttons.GenBitmapButton(ID=wxID_FRAME1GENBITMAPBUTTON1,
+        self.genBitmapButton1 = wx.lib.buttons.GenBitmapButton(id=wxID_FRAME1GENBITMAPBUTTON1,
               bitmap=Everything_img.getBoaBitmap(), name='genBitmapButton1',
               parent=self.panel3, pos=wx.Point(16, 192), size=wx.Size(59, 58),
               style=0)
 
-        self.genToggleButton1 = wx.lib.buttons.GenToggleButton(ID=wxID_FRAME1GENTOGGLEBUTTON1,
+        self.genToggleButton1 = wx.lib.buttons.GenToggleButton(id=wxID_FRAME1GENTOGGLEBUTTON1,
               label='genToggleButton1', name='genToggleButton1',
               parent=self.panel3, pos=wx.Point(104, 160), size=wx.Size(113, 37),
               style=0)
 
-        self.genBitmapToggleButton1 = wx.lib.buttons.GenBitmapToggleButton(ID=wxID_FRAME1GENBITMAPTOGGLEBUTTON1,
+        self.genBitmapToggleButton1 = wx.lib.buttons.GenBitmapToggleButton(id=wxID_FRAME1GENBITMAPTOGGLEBUTTON1,
               bitmap=Everything_img.getBoaBitmap(),
               name='genBitmapToggleButton1', parent=self.panel3,
               pos=wx.Point(72, 192), size=wx.Size(59, 58), style=0)
 
-        self.genBitmapTextToggleButton1 = wx.lib.buttons.GenBitmapTextToggleButton(ID=wxID_FRAME1GENBITMAPTEXTTOGGLEBUTTON1,
+        self.genBitmapTextToggleButton1 = wx.lib.buttons.GenBitmapTextToggleButton(id=wxID_FRAME1GENBITMAPTEXTTOGGLEBUTTON1,
               bitmap=Everything_img.getBoaBitmap(),
               label='genBitmapTextToggleButton1',
               name='genBitmapTextToggleButton1', parent=self.panel3,
