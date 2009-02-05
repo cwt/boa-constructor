@@ -50,7 +50,7 @@ class ComboBoxDTC(ChoicedDTC):
     def __init__(self, name, designer, parent, ctrlClass):
         ChoicedDTC.__init__(self, name, designer, parent, ctrlClass)
         self.windowStyles = ['wx.CB_SIMPLE', 'wx.CB_DROPDOWN', 'wx.CB_READONLY',
-                             'wx.CB_SORT'] + self.windowStyles
+                             'wx.CB_SORT', 'wx.TE_PROCESS_ENTER'] + self.windowStyles
 
     def constructor(self):
         return {'Value': 'value', 'Position': 'pos', 'Size': 'size',
