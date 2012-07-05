@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 #----------------------------------------------------------------------
 # Name:        Boa.py
 # Purpose:     The main file for Boa.
@@ -16,7 +17,13 @@
 
 Handles creation/initialisation of main objects and commandline arguments """
 
-import sys, os, string, time, warnings
+import sys
+if sys.getdefaultencoding() != 'utf-8':
+    reload(sys)
+    set_default_encoding = getattr(sys, 'setdefaultencoding')
+    set_default_encoding('utf-8')
+
+import os, string, time, warnings
 
 #sys.stdout = sys.__stdout__#open('stdout.txt', 'w')
 #sys.stderr = sys.__stderr__#open('stderr.txt', 'w')
