@@ -39,7 +39,7 @@ def granularise(val, oldVal = None):
             if dvOld <= dvPrev <= dvNext or dvOld <= dvNext <= dvPrev:
                 return oldVal
 
-    return ((val + gran / 2) /gran)*gran
+    return int(round((val + gran / 2.0) / float(gran)))*gran
 
 def granulariseMove(val, oldVal):
     """ Snap value to screen gran multiples of oldVal.
@@ -335,10 +335,10 @@ class SelectionGroup:
             self.stBR.SetDimensions(trPos.x -offsetI + trSze.x, trPos.y -offsetI + trSze.y, tagSize, tagSize)
             self.stBL.SetDimensions(trPos.x -offsetO, trPos.y -offsetI + trSze.y, tagSize, tagSize)
 
-            self.stT.SetDimensions(trPos.x -offsetO + trSze.x/2, trPos.y -offsetO, tagSize, tagSize)
-            self.stB.SetDimensions(trPos.x -offsetO + trSze.x/2, trPos.y -offsetI + trSze.y, tagSize, tagSize)
-            self.stL.SetDimensions(trPos.x -offsetO, trPos.y -offsetO + trSze.y/2, tagSize, tagSize)
-            self.stR.SetDimensions(trPos.x -offsetI +trSze.x, trPos.y -offsetO + trSze.y/2, tagSize, tagSize)
+            self.stT.SetDimensions(trPos.x -offsetO + int(round(trSze.x/2.0)), trPos.y -offsetO, tagSize, tagSize)
+            self.stB.SetDimensions(trPos.x -offsetO + int(round(trSze.x/2.0)), trPos.y -offsetI + trSze.y, tagSize, tagSize)
+            self.stL.SetDimensions(trPos.x -offsetO, trPos.y -offsetO + int(round(trSze.y/2.0)), tagSize, tagSize)
+            self.stR.SetDimensions(trPos.x -offsetI +trSze.x, trPos.y -offsetO + int(round(trSze.y/2.0)), tagSize, tagSize)
 
         else:
             # Moving
@@ -363,10 +363,10 @@ class SelectionGroup:
             self.stBR.SetDimensions(trPos.x -offsetI + trSze.x, trPos.y -offsetI + trSze.y, tagSize, tagSize)
             self.stBL.SetDimensions(trPos.x -offsetO, trPos.y -offsetI + trSze.y, tagSize, tagSize)
 
-            self.stT.SetDimensions(trPos.x -offsetO + trSze.x/2, trPos.y -offsetO, tagSize, tagSize)
-            self.stB.SetDimensions(trPos.x -offsetO + trSze.x/2, trPos.y -offsetI + trSze.y, tagSize, tagSize)
-            self.stL.SetDimensions(trPos.x -offsetO, trPos.y -offsetO + trSze.y/2, tagSize, tagSize)
-            self.stR.SetDimensions(trPos.x -offsetI +trSze.x, trPos.y -offsetO + trSze.y/2, tagSize, tagSize)
+            self.stT.SetDimensions(trPos.x -offsetO + int(round(trSze.x/2.0)), trPos.y -offsetO, tagSize, tagSize)
+            self.stB.SetDimensions(trPos.x -offsetO + int(round(trSze.x/2.0)), trPos.y -offsetI + trSze.y, tagSize, tagSize)
+            self.stL.SetDimensions(trPos.x -offsetO, trPos.y -offsetO + int(round(trSze.y/2.0)), tagSize, tagSize)
+            self.stR.SetDimensions(trPos.x -offsetI +trSze.x, trPos.y -offsetO + int(round(trSze.y/2.0)), tagSize, tagSize)
 
         self.position  = trPos
         self.size = trSze
