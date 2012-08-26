@@ -186,7 +186,7 @@ class DialogDTC(FramesConstr, BaseFrameDTC):
 
     def __init__(self, name, designer, frameCtrl):
         BaseFrameDTC.__init__(self, name, designer, frameCtrl)
-        self.windowStyles = ['wx.DIALOG_MODAL', 'wx.DIALOG_MODELESS',
+        self.windowStyles = ['wx.wxDIALOG_MODAL', 'wx.wxDIALOG_MODELESS',
               'wx.CAPTION', 'wx.DEFAULT_DIALOG_STYLE', 'wx.RESIZE_BORDER',
               'wx.THICK_FRAME', 'wx.STAY_ON_TOP', 'wx.wxNO_3D', 'wx.DIALOG_NO_PARENT',
               'wx.SYSTEM_MENU', 'wx.CLOSE_BOX']\
