@@ -316,8 +316,7 @@ class AboutBoxSplash(AboutBoxMixin, wx.Frame):
         self.html.SetPage(about_html % ('memory:Boa.jpg',
           __version__.version, progress_text % (self.progressId, self.gaugePId), ''))
 
-        wx.CallAfter(self.initCtrlNames)
-
+        self.initCtrlNames()
 
     def initCtrlNames(self):
         self.label = self.FindWindowById(self.progressId)

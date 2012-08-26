@@ -171,11 +171,13 @@ for confFile, version in (('stc-styles.rc.cfg', 1),):
     file = os.path.join(rcPath, confFile)
     confVersion = 0
     if os.path.exists(file):
-        c = wx.FileConfig(localFilename=file, style= wx.CONFIG_USE_LOCAL_FILE)
-        confVersion = c.ReadInt('/resourceconfig/version')
+        # don't do the wx.FileConfig version verification/upgrade until Riaan can fix this
+        pass
+        #c = wx.FileConfig(localFilename=file, style= wx.CONFIG_USE_LOCAL_FILE)
+        #confVersion = c.ReadInt('/resourceconfig/version')
 
-        if confVersion < version:
-            _backupAndCopyNewestConfig(confFile, file, '.cfg')
+        #if confVersion < version:
+        #    _backupAndCopyNewestConfig(confFile, file, '.cfg')
     else:
         shutil.copy2(os.path.join(pyPath, 'Config', confFile), file)
 
