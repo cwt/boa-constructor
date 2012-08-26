@@ -12,6 +12,7 @@
 print 'importing Companions.FrameCompanions'
 
 import wx
+from wxCompat import wxNO_3D
 
 from BaseCompanions import ContainerDTC
 
@@ -188,7 +189,7 @@ class DialogDTC(FramesConstr, BaseFrameDTC):
         BaseFrameDTC.__init__(self, name, designer, frameCtrl)
         self.windowStyles = ['wx.wxDIALOG_MODAL', 'wx.wxDIALOG_MODELESS',
               'wx.CAPTION', 'wx.DEFAULT_DIALOG_STYLE', 'wx.RESIZE_BORDER',
-              'wx.THICK_FRAME', 'wx.STAY_ON_TOP', 'wx.wxNO_3D', 'wx.DIALOG_NO_PARENT',
+              'wx.THICK_FRAME', 'wx.STAY_ON_TOP', 'wxNO_3D', 'wx.DIALOG_NO_PARENT',
               'wx.SYSTEM_MENU', 'wx.CLOSE_BOX']\
               + self.windowStyles
 

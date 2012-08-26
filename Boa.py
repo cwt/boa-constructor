@@ -25,13 +25,6 @@ if sys.getdefaultencoding() != 'utf-8':
 
 import os, string, time, warnings
 
-if sys.getdefaultencoding() != 'utf-8':
-    from imp import reload
-    reload(sys)
-    set_default_encoding = getattr(sys, 'setdefaultencoding')
-    if set_default_encoding:
-        set_default_encoding('utf-8')
-
 #sys.stdout = sys.__stdout__#open('stdout.txt', 'w')
 #sys.stderr = sys.__stderr__#open('stderr.txt', 'w')
 

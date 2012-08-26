@@ -21,6 +21,7 @@ print 'importing Companions'
 import copy
 
 import wx
+from wxCompat import wxNO_3D
 
 import Preferences, Utils
 from Utils import _
@@ -851,7 +852,7 @@ class WindowDTC(WindowConstr, ControlDTC):
         self.windowStyles = ['wx.CAPTION', 'wx.MINIMIZE_BOX', 'wx.MAXIMIZE_BOX',
             'wx.THICK_FRAME', 'wx.SIMPLE_BORDER', 'wx.DOUBLE_BORDER',
             'wx.SUNKEN_BORDER', 'wx.RAISED_BORDER', 'wx.STATIC_BORDER', 
-            'wx.TRANSPARENT_WINDOW', 'wx.wxNO_3D', 'wx.TAB_TRAVERSAL', 
+            'wx.TRANSPARENT_WINDOW', 'wxNO_3D', 'wx.TAB_TRAVERSAL', 
             'wx.WANTS_CHARS', 'wx.NO_FULL_REPAINT_ON_RESIZE', 'wx.VSCROLL', 
             'wx.HSCROLL', 'wx.CLIP_CHILDREN', 'wx.NO_BORDER', 'wx.ALWAYS_SHOW_SB']
         
