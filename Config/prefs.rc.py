@@ -23,7 +23,7 @@ paletteStyle = 'tabs'
 # Frame test button on the Palette toolbar
 showFrameTestButton = False
 # Style flags used by most splitters in the IDE
-splitterStyle = wx.SP_LIVE_UPDATE | wx.SP_3DSASH | wx.NO_3D
+splitterStyle = wx.SP_LIVE_UPDATE | wx.SP_3DSASH | wx.wxNO_3D
 
 # Alternating background colours used in ListCtrls (pastel blue and yellow)
 pastels = True

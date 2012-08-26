@@ -871,7 +871,7 @@ class EventsWindow(wx.SplitterWindow):
           style = Preferences.splitterStyle)
 
         self.categories = wx.SplitterWindow(self, -1,
-              style=wx.NO_3D | wx.SP_3D | wx.SP_LIVE_UPDATE)
+              style=wx.wxNO_3D | wx.SP_3D | wx.SP_LIVE_UPDATE)
         self.definitions = InspectorEventScrollWin(self, -1,
               style=wx.SUNKEN_BORDER | wx.TAB_TRAVERSAL)
 
