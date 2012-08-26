@@ -12,7 +12,7 @@
 print 'importing Companions.FrameCompanions'
 
 import wx
-from wxCompat import wxNO_3D
+from wxCompat import wxNO_3D, wxDIALOG_MODAL, wxDIALOG_MODELESS
 
 from BaseCompanions import ContainerDTC
 
@@ -187,11 +187,28 @@ class DialogDTC(FramesConstr, BaseFrameDTC):
 
     def __init__(self, name, designer, frameCtrl):
         BaseFrameDTC.__init__(self, name, designer, frameCtrl)
-        self.windowStyles = ['wx.wxDIALOG_MODAL', 'wx.wxDIALOG_MODELESS',
-              'wx.CAPTION', 'wx.DEFAULT_DIALOG_STYLE', 'wx.RESIZE_BORDER',
-              'wx.THICK_FRAME', 'wx.STAY_ON_TOP', 'wxNO_3D', 'wx.DIALOG_NO_PARENT',
-              'wx.SYSTEM_MENU', 'wx.CLOSE_BOX']\
-              + self.windowStyles
+        self.windowStyles += ['wx.CAPTION', 'wx.DEFAULT_DIALOG_STYLE',
+              'wx.RESIZE_BORDER', 'wx.THICK_FRAME', 'wx.STAY_ON_TOP',
+              'wx.DIALOG_NO_PARENT', 'wx.SYSTEM_MENU', 'wx.CLOSE_BOX']
+
+        # wx.DIALOG_MODAL compat
+        if hasattr(wx, 'DIALOG_MODAL'):
+            self.windowStyles += ['wx.DIALOG_MODAL']
+        elif hasattr(wx, 'wxDIALOG_MODAL'):
+            self.windowStyles += ['wx.wxDIALOG_MODAL']
+
+        # wx.DIALOG_MODELESS compat
+        if hasattr(wx, 'DIALOG_MODELESS'):
+            self.windowStyles += ['wx.DIALOG_MODELESS']
+        elif hasattr(wx, 'wxDIALOG_MODELESS'):
+            self.windowStyles += ['wx.wxDIALOG_MODELESS']
+
+        # wx.NO_3D compat
+        if hasattr(wx, 'NO_3D'):
+            self.windowStyles += ['wx.NO_3D']
+        elif hasattr(wx, 'wxNO_3D'):
+            self.windowStyles += ['wx.wxNO_3D']
+
 
     def hideDesignTime(self):
         # Because the Designer is actually a wxFrame pretending to be a
