@@ -101,10 +101,10 @@ class EditorStatusBar(wx.StatusBar):
 #                                                  (rect.width-2, rect.height-2))
         self.historyBtnBack = wx.BitmapButton(self, -1,
               Preferences.IS.load('Images/Shared/PreviousSmall.png'),
-              (rect.x+1, rect.y+1), (rect.width/2-1, rect.height-2))
+              (rect.x+1, rect.y+1), (int(round(rect.width/2.0))-1, rect.height-2))
         self.historyBtnFwd = wx.BitmapButton(self, -1,
               Preferences.IS.load('Images/Shared/NextSmall.png'),
-              (rect.x+1+rect.width/2, rect.y+1), (rect.width/2-1, rect.height-2))
+              (rect.x+1+int(round(rect.width/2.0)), rect.y+1), (int(round(rect.width/2.0))-1, rect.height-2))
 
         #self.historyBtns.SetToolTipString('Browse the Traceback/Error/Output window history.')
         tip = _('Browse the Traceback/Error/Output window history.')

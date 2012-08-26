@@ -326,7 +326,7 @@ def createAndReadConfig(name, forPlatform=1):
     confFile = os.path.join(Preferences.rcPath, '%s%s.cfg' % (name,
         forPlatform and '.'+Preferences.thisPlatform or ''))
 
-    if not _sharedConfs.has_key(confFile):
+    if not confFile in _sharedConfs:
         conf = ConfigParser()
         conf.read(confFile)
         conf.confFile = confFile

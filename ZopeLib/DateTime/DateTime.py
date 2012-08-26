@@ -107,7 +107,7 @@ tm=((0, 0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334),
     (0, 0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335))
 yr,mo,dy,hr,mn,sc=gmtime(0)[:6]
 i=int(yr-1)
-to_year =int(i*365+i/4-i/100+i/400-693960.0)
+to_year =int(round(i*365+int(round(i/4.0))-int(round(i/100.0))+int(round(i/400.0))-693960.0))
 to_month=tm[yr%4==0 and (yr%100!=0 or yr%400==0)][mo]
 EPOCH  =(to_year+to_month+dy+(hr/24.0+mn/1440.0+sc/86400.0))*86400
 jd1901 =2415385L
@@ -336,7 +336,7 @@ def _findLocalTimeZoneName(isDST):
                 localzone = altzone
             else:
                 localzone = timezone
-            offset=(-localzone/(60*60))
+            offset=int(round(-localzone/float(60*60)))
             majorOffset=int(offset)
             if majorOffset != 0 :
                 minorOffset=abs(int((offset % majorOffset) * 60.0))

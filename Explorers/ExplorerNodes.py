@@ -481,7 +481,7 @@ class CategoryNode(ExplorerNode):
         ExplorerNode.__init__(self, name, resourcepath, clipboard, imgIdx, parent)
         self.config = config
         self.bold = True
-        if not self.sharedEntries.has_key(self.protocol):
+        if not self.protocol in self.sharedEntries:
             self.sharedEntries[self.itemProtocol] = copy.copy(self.entries)
         self.entries = self.sharedEntries[self.itemProtocol]
         self.refresh()
@@ -541,7 +541,7 @@ class CategoryNode(ExplorerNode):
         for ill_substr in self.illegal_substrs:
             if newName.find(ill_substr) != -1:
                 raise Exception, _('Contains invalid string sequence or char: "%s"')%ill_substr
-        if self.entries.has_key(newName):
+        if newName in self.entries:
             raise Exception, _('Name exists')
         self.entries[newName] = self.entries[name]
         del self.entries[name]
@@ -693,7 +693,7 @@ class BookmarksCatNode(CategoryNode):
             name = os.path.splitext(os.path.basename(respath[:-1]))[0]
         else:
             name = os.path.splitext(os.path.basename(respath))[0]
-        if self.entries.has_key(name):
+        if name in self.entries:
             name = Utils.getValidName(self.entries.keys(), name)
         self.entries[name] = respath
         self.updateConfig()
@@ -977,7 +977,7 @@ class CategoryDictCompanion(CategoryCompanion):
     def setPropHook(self, name, value, oldProp = None):
         # scramble sensitive properties before saving
         try:
-            if not self.catNode.entries.has_key(self.name):
+            if not self.name in self.catNode.entries:
                 raise Exception(_('%s not found in the config, renaming config '
                           'entries while Inspecting is not allowed.')%self.name)
 
@@ -1066,7 +1066,7 @@ def register(Node, clipboard=None, confdef=('', ''), controller=None,
         explorerRootNodesReg.append(Node.protocol)
 
 def isTransportAvailable(conf, section, prot):
-    return conf.has_option(section, prot) and nodeRegByProt.has_key(prot)
+    return conf.has_option(section, prot) and (prot in nodeRegByProt)
 
 
 #-------------------------------------------------------------------------------

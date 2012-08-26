@@ -90,7 +90,7 @@ class ClassBrowserFrame(wx.Frame, Utils.FrameRestorerMixin):
         moduleName = ''
         for className in self.classes.keys():
             moduleName = os.path.basename(self.classes[className].file)
-            if not modules.has_key(moduleName):
+            if not moduleName in modules:
                 modules[moduleName] = {}
             modules[moduleName][className] = {}
             modules[moduleName][className]['Properties'] = {}
@@ -100,12 +100,12 @@ class ClassBrowserFrame(wx.Frame, Utils.FrameRestorerMixin):
                 if (method[:2] == '__'):
                     modules[moduleName][className]['Built-in'][method] = self.classes[className].lineno
                 elif (method[:3] == 'Get'):
-                    if self.classes[className].methods.has_key('Set'+method[3:]):
+                    if 'Set'+method[3:] in self.classes[className].methods:
                         modules[moduleName][className]['Properties'][method[3:]] = self.classes[className].lineno
                     else:
                         modules[moduleName][className]['Methods'][method] = self.classes[className].lineno
                 elif (method[:3] == 'Set'):
-                    if self.classes[className].methods.has_key('Get'+method[3:]):
+                    if 'Get'+method[3:] in self.classes[className].methods:
                         modules[moduleName][className]['Properties'][method[3:]] = self.classes[className].lineno
                     else:
                         modules[moduleName][className]['Methods'][method] = self.classes[className].lineno
@@ -162,12 +162,12 @@ def findInsertModules(name, tree):
     return tree.AddRoot(name)
 
 def travTilBase(name, classes, root):
-    if not classes.has_key(name):
-        if not root.has_key(name):
+    if not name in classes:
+        if not name in root:
             root[name] = {}
         return root[name]
     elif len(classes[name].super) == 0:
-        if not root.has_key(name):
+        if not name in root:
             root[name] = {}
         return root[name]
     else:
@@ -175,7 +175,7 @@ def travTilBase(name, classes, root):
         if type(super1) != type(''):
             super1 = super1.name
         c = travTilBase(super1, classes, root)
-        if not c.has_key(name):
+        if not name in c:
             c[name] = {}
         return c[name]
 

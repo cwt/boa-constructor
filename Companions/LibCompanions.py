@@ -289,7 +289,7 @@ class TimeCtrlDTC(MaskedTextCtrlDTC):
 
     def properties(self):
         props = MaskedTextCtrlDTC.properties(self)
-        if props.has_key('Autoformat'):
+        if 'Autoformat' in props:
             del props['Autoformat']
         props['SpinButton'] = ('CompnRoute', self.GetSpinButton,
                                              self.BindSpinButton)

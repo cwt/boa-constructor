@@ -483,7 +483,7 @@ class PyCrustShellEditor(wx.SplitterWindow):
         self.fillingWin = Filling(self, -1, style=wx.SP_3DSASH,
               rootObject=self.shellWin.interp.locals, rootIsNamespace=True)
         
-        height = Preferences.screenHeight / 2
+        height = int(round(Preferences.screenHeight / 2.0))
         #int(self.GetSize().y * 0.75)
         self.SplitHorizontally(self.shellWin, self.fillingWin, height)
         self.SetMinimumPaneSize(5)

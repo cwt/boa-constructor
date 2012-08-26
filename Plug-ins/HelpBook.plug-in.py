@@ -475,7 +475,7 @@ class HelpBookFilesView(EditorViews.VirtualListCtrlView):
     def OnGetItemText(self, item, col):
         f = self.model.config.files[item]
         if col == 0:
-            return `item`
+            return repr(item)
         elif col == 1:
             return os.path.basename(f)
         elif col == 2:
@@ -504,7 +504,7 @@ class HelpBookFilesView(EditorViews.VirtualListCtrlView):
         if sel:
             filenames = [self.model.config.files[idx] for idx in sel]
             filelist = wx.CustomDataObject(wx.CustomDataFormat('FileList'))
-            filelist.SetData(`filenames`)
+            filelist.SetData(repr(filenames))
             #tdo =wx.TextDataObject(filename)
             ds = wx.DropSource(self)
             ds.SetData(filelist)
@@ -1015,7 +1015,8 @@ class HelpBookContentsTreeView(wx.TreeCtrl, EditorViews.EditorView):
             self.Delete(item)
 
 
-def visitDir((files, excludes), dirname, names):
+def visitDir(files_excludes, dirname, names):
+    files, excludes = files_excludes
     for name in names:
         if name not in excludes:
             filename = os.path.join(dirname, name)

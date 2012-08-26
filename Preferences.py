@@ -148,7 +148,7 @@ for prefsFile, version in (('prefs.rc.py', 18),
             if rcver < version:
                 _backupAndCopyNewestConfig(prefsFile, file, '.py')
 
-    execfile(file)
+    exec(open(file,'r'))
 
 # upgrade/install config files if needed, different config filetypes handled seperately
 # ConfigParser files
@@ -241,8 +241,8 @@ def initScreenVars():
     else:
         screenX, screenY = 0, 0
         # handle dual monitors on Linux
-        if screenWidth / screenHeight >= 2:
-            screenWidth = screenWidth / 2
+        if float(screenWidth) / float(screenHeight) >= 2.0:
+            screenWidth = int(round(screenWidth / 2.0))
     
         screenWidth = int(screenWidth - verticalTaskbarWidth)
         screenHeight = int(screenHeight - horizontalTaskbarHeight - topMenuHeight)
@@ -251,7 +251,7 @@ def initScreenVars():
         wxDefaultFramePos = wx.DefaultPosition
         wxDefaultFrameSize = wx.DefaultSize
     else:
-        wxDefaultFramePos = (screenWidth / 4, screenHeight / 4)
+        wxDefaultFramePos = (int(round(screenWidth / 4.0)), int(round(screenHeight / 4.0)))
         wxDefaultFrameSize = (int(round(screenWidth / 1.5)), int(round(screenHeight / 1.5)))
     
     edWidth = int(screenWidth * editorScreenWidthPerc - windowManagerSide * 2)

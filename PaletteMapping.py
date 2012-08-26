@@ -114,7 +114,7 @@ if Preferences.pluginPaths:
         
         filename = pluginFilename.lower()
         try:
-            execfile(pluginFilename)
+            exec(open(pluginFilename,'r'))
             succeeded.append(filename)
         except Plugins.SkipPluginSilently, msg:
             fails[filename] = ('Skipped', msg)

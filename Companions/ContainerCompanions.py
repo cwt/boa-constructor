@@ -219,7 +219,7 @@ class BookCtrlDTC(Constructors.WindowConstr, ContainerDTC):
 
     def OnPageChanged(self, event):
         try:
-            if self.collections.has_key('Pages'):
+            if 'Pages' in self.collections:
                 self.collections['Pages'].updateSelection(event.GetSelection())
                 wx.PostEvent(self.control, wx.SizeEvent( self.control.GetSize() ))
         except Exception, err:
@@ -976,7 +976,7 @@ class ToolBarToolsCDTC(CollectionIddDTC):
             if compn != self:
                 compnSrcRef = Utils.srcRefFromCtrlName(compn.name)
                 for constr in self.textConstrLst:
-                    if constr.params.has_key('control'):
+                    if 'control' in constr.params:
                         if compnSrcRef == constr.params['control']:
                             constr.params['control'] = 'None'
                             idx = self.textConstrLst.index(constr)
@@ -988,7 +988,7 @@ class ToolBarToolsCDTC(CollectionIddDTC):
         CollectionIddDTC.writeCollectionItems(self, output, stripFrmId)
         warn = 0
         for constr in self.textConstrLst:
-            if constr.params.has_key('control') and constr.params['control'] == 'None':
+            if 'control' in constr.params and constr.params['control'] == 'None':
                 wx.LogWarning(_("Invalid None control for toolbar %s's AddControl")%(
                       self.parentCompanion.name))
                 warn = 1

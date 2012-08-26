@@ -370,8 +370,8 @@ class PanelPalettePage(wx.Panel, BasePalettePage):
         self.widgets = widgets
         self.buttons = {}
         parent.AddPage(self, name)
-        self.posX = self.buttonSep/2
-        self.posY = (self.GetSize().y -(24+self.buttonBorder))/2
+        self.posX = int(round(self.buttonSep/2.0))
+        self.posY = int(round((self.GetSize().y -(24+self.buttonBorder))/2.0))
         self.eventOwner = eventOwner
         self.menu =wx.Menu()
         self.menusCheckable = False

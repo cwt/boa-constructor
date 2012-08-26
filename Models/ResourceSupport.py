@@ -183,12 +183,12 @@ class PyResourceImagesView(EditorViews.ListCtrlView):
         wx.ArtProvider.PushProvider(artProv)
         try:
             m = self.model.getModule()
-            self.cataloged = m.globals.has_key('catalog') and m.globals.has_key('index')
+            self.cataloged = ('catalog' in m.globals) and ('index' in m.globals)
             self.eol = m.eol
             for f in m.function_order:
                 if f.startswith('get') and f.endswith('Data'):
                     name = f[3:-4]
-                    iconFunction = m.functions.has_key('get%sIcon'%name)
+                    iconFunction = 'get%sIcon'%name in m.functions
                     if self.onlyIcons and not iconFunction:
                         continue
                     bmpFunctionStart = m.functions['get%sBitmap'%name].start
@@ -363,6 +363,6 @@ Plugins.registerFileType(PyResourceBitmapController, addToNew=False)
 Controllers.resourceClasses.append(PyResourceBitmapModel)
 
 EditorHelper.imageExtReg.append('.py')
-if not EditorHelper.imageSubTypeExtReg.has_key('.py'):
+if not '.py' in EditorHelper.imageSubTypeExtReg:
     EditorHelper.imageSubTypeExtReg['.py'] = []
 EditorHelper.imageSubTypeExtReg['.py'].append(PyResourceBitmapModel)

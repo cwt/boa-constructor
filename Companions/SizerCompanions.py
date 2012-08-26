@@ -283,7 +283,7 @@ class SizerItemsCDTC(CollectionDTC):
     def SetWindow(self, value):
         self.setParamAndUpdate(0, value)
         colEdKey = (self.parentCompanion.name, 'Items')
-        if self.designer.collEditors.has_key(colEdKey):
+        if colEdKey in self.designer.collEditors:
             collEditView = self.designer.collEditors[colEdKey]
             wx.CallAfter(self.setWindowRefresh, collEditView)
 
@@ -546,7 +546,7 @@ class ControlLinkedSizerDTC(SizerDTC):
     def notification(self, compn, action):
         if action == 'delete' and compn != self:
             compnSrcRef = Utils.srcRefFromCtrlName(compn.name)
-            if self.textConstr.params.has_key(self.ctrlParam) and \
+            if self.ctrlParam in self.textConstr.params and \
                   compnSrcRef == self.textConstr.params[self.ctrlParam]:
                 self.designer.deleteCtrl(self.name)
 

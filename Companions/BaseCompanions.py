@@ -224,16 +224,16 @@ class DesignTimeCompanion(Companion):
         pass
 
     def getPropEditor(self, prop):
-        if self.editors.has_key(prop): return self.editors[prop]
+        if prop in self.editors: return self.editors[prop]
         else: return None
 
     def getPropOptions(self, prop):
-        if self.options.has_key(prop): return self.options[prop]
+        if prop in self.options: return self.options[prop]
         else: return None
 
     def getPropNames(self, prop):
 
-        if self.names.has_key(prop):
+        if prop in self.names:
             return self.names[prop]
         else:
             return None
@@ -278,7 +278,7 @@ class DesignTimeCompanion(Companion):
 
     def checkTriggers(self, name, oldValue, newValue):
         #trigger specially handled callbacks for property changes with consequences
-        if self.triggers.has_key(name):
+        if name in self.triggers:
             self.triggers[name](oldValue, newValue)
 
     def getCompName(self):
@@ -290,7 +290,7 @@ class DesignTimeCompanion(Companion):
     def persistProp(self, name, setterName, value):
         c = self.constructor()
         #constructor
-        if c.has_key(name):
+        if name in c:
             self.textConstr.params[c[name]] = value
         #property
         elif name not in self.dontPersistProps():
@@ -305,7 +305,7 @@ class DesignTimeCompanion(Companion):
     def persistedPropVal(self, name, setterName):
         c = self.constructor()
         #constructor
-        if c.has_key(name):
+        if name in c:
             return self.textConstr.params[c[name]]
         #property
         elif name not in self.dontPersistProps():
@@ -323,7 +323,7 @@ class DesignTimeCompanion(Companion):
             parameters to default values """
         c = self.constructor()
         #constructor
-        if c.has_key(name):
+        if name in c:
             defVal = self.designTimeSource()[c[name]]
             self.textConstr.params[c[name]] = defVal
         #property
@@ -341,13 +341,13 @@ class DesignTimeCompanion(Companion):
             or constructor parameter """
         c = self.constructor()
         #constructor
-        if c.has_key(name):
+        if name in c:
             try:
                 dts = self.designTimeSource()
             except TypeError:
                 return True
             else:
-                if dts.has_key(c[name]):
+                if c[name] in dts:
                     defVal = self.designTimeSource()[c[name]]
                     return self.textConstr.params[c[name]] == defVal
                 else:
@@ -399,7 +399,7 @@ class DesignTimeCompanion(Companion):
 
     def SetName(self, oldValue, newValue):
         """ Triggered when the 'Name' property is changed """
-        if self.designer.objects.has_key(newValue):
+        if newValue in self.designer.objects:
             wx.LogError(_('There is already an object named %s')%newValue)
         else:
             self.name = newValue
@@ -525,12 +525,12 @@ class DesignTimeCompanion(Companion):
                 model = self.designer.model
                 # Either rename the event or add if a new one
                 # The first streamed occurrence will do the rename or add
-                if evt.prev_trigger_meth and module and module.classes[
-                      model.main].methods.has_key(evt.prev_trigger_meth):
+                if (evt.prev_trigger_meth and module
+                        and (evt.prev_trigger_meth in
+                            module.classes[model.main].methods)):
                     module.renameMethod(model.main, evt.prev_trigger_meth,
                           evt.trigger_meth)
-                elif module and not module.classes[
-                      model.main].methods.has_key(evt.trigger_meth):
+                elif module and not evt.trigger_meth in module.classes[model.main].methods:
                     module.addMethod(model.main, evt.trigger_meth,
                        'self, event', [sourceconst.bodyIndent + 'event.Skip()'])
 
@@ -551,7 +551,7 @@ class DesignTimeCompanion(Companion):
         """ Write out dependent properties if all the ctrls they reference
             have been created.
         """
-        if depLinks.has_key(ctrlName):
+        if ctrlName in depLinks:
             for prop, otherRefs in depLinks[ctrlName]:
                 for oRf in otherRefs:
                     if oRf not in definedCtrls:
@@ -694,8 +694,8 @@ class ControlDTC(DesignTimeCompanion):
         #print 'afterResize'
 
     def updatePosAndSize(self):
-        if self.textConstr and self.textConstr.params.has_key('pos') \
-              and self.textConstr.params.has_key('size'):
+        if self.textConstr and 'pos' in self.textConstr.params \
+              and 'size' in self.textConstr.params:
             pos = self.control.GetPosition()
             size = self.control.GetSize()
             self.textConstr.params['pos'] = 'wx.Point(%d, %d)' % (pos.x, pos.y)
@@ -1203,14 +1203,14 @@ class CollectionDTC(DesignTimeCompanion):
     def getDisplayProp(self):
         tcl = self.textConstrLst[self.index]
         if tcl.method != self.insertionMethod:
-            if self.additionalMethods.has_key(tcl.method):
+            if tcl.method in self.additionalMethods:
                 displayProp = self.additionalMethods[tcl.method][1]
             else:
                 return '-'
         else:
             displayProp = self.displayProp
 
-        if tcl.params.has_key(displayProp):
+        if displayProp in tcl.params:
             propSrc = tcl.params[displayProp]
             if propSrc and (propSrc[0] in ("'", '"') or propSrc[:2] in ('u"', "u'")):
                 return self.eval(propSrc)
@@ -1383,7 +1383,7 @@ class CollectionIddDTC(CollectionDTC):
 
     def getWinId(self):
         tcl = self.textConstrLst[self.index]
-        if tcl.params.has_key(self.idProp):
+        if self.idProp in tcl.params:
             return tcl.params[self.idProp]
         else:
             return -1
@@ -1393,7 +1393,7 @@ class CollectionIddDTC(CollectionDTC):
 
     def addIds(self, lst):
         for constr in self.textConstrLst:
-            if constr.params.has_key(self.idProp):
+            if self.idProp in constr.params:
                 wId = constr.params[self.idProp]
                 if wId in EventCollections.reservedWxIds:
                     name, wId = self.newUnusedItemNames(0)
@@ -1407,7 +1407,7 @@ class CollectionIddDTC(CollectionDTC):
 
     def deleteItemEvents(self, idx):
         constr = self.textConstrLst[idx]
-        if constr.params.has_key(self.idProp):
+        if self.idProp in constr.params:
             wIdStr = constr.params[self.idProp]
             for evt in self.textEventList[:]:
                 if evt.windowid == wIdStr:
@@ -1429,7 +1429,7 @@ class CollectionIddDTC(CollectionDTC):
 
     def isIdUsed(self, wId):
         for tc in self.textConstrLst:
-            if tc.params.has_key(self.idProp) and tc.params[self.idProp] == wId:
+            if self.idProp in tc.params and tc.params[self.idProp] == wId:
                 return True
         return False
 

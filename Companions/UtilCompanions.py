@@ -117,7 +117,7 @@ class ImageListImagesCDTC(CollectionDTC):
     def getDisplayProp(self):
         value = '-'
         tcl = self.textConstrLst[self.index]
-        if tcl.params.has_key(self.displayProp):
+        if self.displayProp in tcl.params:
             value = tcl.params[self.displayProp]
             if value != 'wx.NullBitmap':
                 if value.startswith('wx.Bitmap'):
@@ -158,7 +158,7 @@ class ImageListImagesCDTC(CollectionDTC):
 
     def applyDesignTimeDefaults(self, params, method=None):
         dtparams = {}; dtparams.update(params)
-        if dtparams.has_key('mask') and dtparams['mask'] == 'wx.NullBitmap':
+        if 'mask' in dtparams and dtparams['mask'] == 'wx.NullBitmap':
             del dtparams['mask']
         CollectionDTC.applyDesignTimeDefaults(self, dtparams, method)
 
@@ -425,7 +425,7 @@ class MenuItemsCIDTC(CollectionIddDTC):
             if compn != self:
                 compnSrcRef = Utils.srcRefFromCtrlName(compn.name)
                 for constr in self.textConstrLst:
-                    if constr.params.has_key('submenu'):
+                    if 'submenu' in constr.params:
                         if compnSrcRef == constr.params['submenu']:
                             constr.params['submenu'] = 'wx.Menu()'
 
