@@ -1,3 +1,4 @@
+#!/usr/bin/env pythonw
 # -*- coding: utf-8 -*-
 
 import sys
