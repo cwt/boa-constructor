@@ -5,6 +5,8 @@
 
 import wx
 import wx.stc
+if not hasattr(wx.stc, 'STC_CP_DBCS'):
+    wx.stc.STC_CP_DBCS = None
 from wxCompat import wxNO_3D
 
 #-Miscellaneous-----------------------------------------------------------------
@@ -377,7 +379,7 @@ STCBufferedDraw = True
 STCIndentationGuides = False
 # Set the code page used to interpret the bytes of the document as characters. 
 ## options: 0, wx.stc.STC_CP_UTF8, wx.stc.STC_CP_DBCS
-STCCodePage = 0
+STCCodePage = wx.stc.STC_CP_UTF8
 
 # White space can be made visible. Space characters appear as small centred dots
 # and tab characters as light arrows pointing to the right.
