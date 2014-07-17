@@ -3,5 +3,8 @@ syntax: glob
 
 *.pyc
 *.pyo
+*.orig
 *~
-
+.project
+.pydevproject
+.settings
