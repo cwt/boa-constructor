@@ -1,5 +1,5 @@
 import time
-from StringIO import StringIO
+from cStringIO import StringIO
 
 import wx
 

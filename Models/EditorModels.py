@@ -17,7 +17,7 @@
 print 'importing Models.EditorModels'
 
 import os, sys, tempfile
-from StringIO import StringIO
+from cStringIO import StringIO
 
 import wx
 

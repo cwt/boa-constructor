@@ -64,14 +64,14 @@ class AppTimeTrackView(ListCtrlView):
         file.write("(%s, %s, %s)\n" % (`start`, `end`, `desc`))
 
     def readTimes(self):
-        from StringIO import StringIO
+        from cStringIO import StringIO
         transp = Explorer.openEx(self.getTTVFilename())
         data = StringIO(transp.load())
 
         return map(lambda line: eval(line), data.readlines())
 
     def writeTimes(self):
-        from StringIO import StringIO
+        from cStringIO import StringIO
         timesFile = StringIO('')#open(self.getTTVFilename(), 'w')
         for start, end, desc in self.times:
             self.writeTimeEntry(timesFile, start, end, desc)

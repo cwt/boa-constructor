@@ -1127,7 +1127,7 @@ class DebugServer (Bdb):
         return inst_items + clss_items
 
     def pythonShell(self, code, globalsDict, localsDict, name='<debug>'):
-        from StringIO import StringIO
+        from cStringIO import StringIO
 
         _ts, sys.stdout = sys.stdout, StringIO('')
         try:

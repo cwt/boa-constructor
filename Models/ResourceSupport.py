@@ -113,7 +113,7 @@ class ResourceSelectDlg(wx.Dialog):
 #-------------------------------------------------------------------------------
 
 import os
-from StringIO import StringIO
+from cStringIO import StringIO
 
 import Preferences, Utils
 

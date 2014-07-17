@@ -15,7 +15,7 @@ print 'importing Models.PythonEditorModels'
 import os, sys, pprint, imp, stat, types, tempfile, codecs
 from thread import start_new_thread
 from time import time, localtime, strftime
-from StringIO import StringIO
+from cStringIO import StringIO
 
 import wx
 
@@ -378,8 +378,8 @@ class ModuleModel(SourceModel):
     def runLint(self):
         filename = self.assertLocalFile()
         from ExternalLib import pylint
-        import StringIO
-        pylint.pylint(StringIO.StringIO(self.data), filename)
+        import cStringIO
+        pylint.pylint(cStringIO.StringIO(self.data), filename)
         if pylint.warnings:
             return ErrorStack.buildLintWarningList(pylint.warnings[:])
 
