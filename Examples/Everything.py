@@ -412,7 +412,7 @@ class Frame1(wx.Frame):
         print 'Menu0'
 
     def OnToolbar1tools0Tool(self, event):
-        raise 'Tool0'
+        raise Exception('Tool0')
 
     def OnButton1Button(self, event):
         self.timer1.Start(1000, False)
