@@ -507,7 +507,8 @@ class wxBoaFileDialog(wx.Dialog, Utils.FrameRestorerMixin):
             else:
                 raise
         except Explorer.TransportError, err:
-            FileOpenDlg
+            #FileOpenDlg
+            raise
 
 
 #---wxFileDialog lookalike meths------------------------------------------------

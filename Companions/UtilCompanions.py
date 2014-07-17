@@ -525,16 +525,16 @@ class MenuBarMenusCDTC(CollectionDTC):
     def SetMenu(self, value):
         self.textConstrLst[self.index].params['menu'] = value
 
-class LayoutConstraintsDTC(Constructors.EmptyConstr, UtilityDTC):
-    def __init__(self, name, designer, objClass):
-        UtilityDTC.__init__(self, name, designer, objClass)
-        self.editors.update({'Constraints': CollPropEdit})
-        self.subCompanions['Constraints'] = IndividualLayoutConstraintCDTC
-
-    def properties(self):
-        props = UtilityDTC.properties(self)
-        props.update({'Constraints': ('NoneRoute', None, None)})
-        return props
+#class LayoutConstraintsDTC(Constructors.EmptyConstr, UtilityDTC):
+#    def __init__(self, name, designer, objClass):
+#        UtilityDTC.__init__(self, name, designer, objClass)
+#        self.editors.update({'Constraints': CollPropEdit})
+#        self.subCompanions['Constraints'] = IndividualLayoutConstraintCDTC
+#
+#    def properties(self):
+#        props = UtilityDTC.properties(self)
+#        props.update({'Constraints': ('NoneRoute', None, None)})
+#        return props
 
 cursorIconTypes = ['wx.BITMAP_TYPE_XBM', 'wx.BITMAP_TYPE_CUR',
                    'wx.BITMAP_TYPE_CUR_RESOURCE', 'wx.BITMAP_TYPE_ICO']

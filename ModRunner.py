@@ -89,7 +89,7 @@ class CompileModuleRunner(ModuleRunner):
             # Add filename to traceback object
             etype, value, tb = sys.exc_info()
             try:
-                if len(value.args) == 2 and len(values.args[1]) == 4:
+                if len(value.args) == 2 and len(value.args[1]) == 4:
                     msg, (_filename, lineno, offset, line) = value.args
                     if not _filename:
                         # XXX this is broken on too long lines

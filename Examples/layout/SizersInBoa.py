@@ -86,8 +86,6 @@ class Frame1(wx.Frame):
 
     def _init_sizers(self):
         # generated method, don't edit
-        self.notebookSizer1 = wx.NotebookSizer(nb=self.notebook1)
-
         self.boxSizer1 = wx.BoxSizer(orient=wx.VERTICAL)
 
         self.gridSizer1 = wx.GridSizer(cols=2, hgap=0, rows=3, vgap=0)

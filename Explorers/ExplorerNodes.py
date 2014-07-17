@@ -12,7 +12,7 @@
 print 'importing Explorers.ExplorerNodes'
 
 import sys, os, time, stat, copy, pprint
-from ConfigParser import ConfigParser
+from ConfigParser import ConfigParser, NoOptionError
 
 import wx
 
@@ -499,7 +499,7 @@ class CategoryNode(ExplorerNode):
         try:
             return eval(self.config.get(self.resourcepath[cat_section],
                         self.resourcepath[cat_option]), {})
-        except ConfigParser.NoOptionError, err:
+        except NoOptionError, err:
             return self.entries
 
     def refresh(self):

@@ -193,12 +193,13 @@ class ConfigParser:
         return opts.keys()
 
     def has_option(self, section, option):
-        """Return whether the given section has the given option."""
-        try:
-            opts = self.__sections[section]
-        except KeyError:
-            raise NoSectionError(section)
-        return opts.has_key(option)
+        """Check for the existence of a given option in a given section."""
+        if not section or section == "DEFAULT":
+            return self.__defaults.has_key(option)
+        elif not self.has_section(section):
+            return 0
+        else:
+            return self.__sections[section].has_key(option)
 
     def read(self, filenames):
         """Read and parse a filename or a list of filenames.
@@ -299,14 +300,7 @@ class ConfigParser:
     def optionxform(self, optionstr):
         return string.lower(optionstr)
 
-    def has_option(self, section, option):
-        """Check for the existence of a given option in a given section."""
-        if not section or section == "DEFAULT":
-            return self.__defaults.has_key(option)
-        elif not self.has_section(section):
-            return 0
-        else:
-            return self.__sections[section].has_key(option)
+
 
     def set(self, section, option, value):
         """Set an option."""

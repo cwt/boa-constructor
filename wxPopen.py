@@ -131,7 +131,8 @@ def _test():
     def errors(v):
         print 'ERRORS:', v
     def fin():
-        p.Close()
+        p = locals().get('p')
+        if p: p.Close()
         f.Close()
         print 'FINISHED'
 

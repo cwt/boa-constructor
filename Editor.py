@@ -1500,7 +1500,7 @@ class EditorFrame(wx.Frame, Utils.FrameRestorerMixin):
             if self.shell:
                 self.shell.destroy()
 
-            if sys.boa_ide == self:
+            if getattr(sys, 'boa_ide', None) == self:
                 del sys.boa_ide
 
             self._prevMod = None

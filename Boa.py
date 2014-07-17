@@ -17,13 +17,7 @@
 
 Handles creation/initialisation of main objects and commandline arguments """
 
-import sys
-if sys.getdefaultencoding() != 'utf-8':
-    reload(sys)
-    set_default_encoding = getattr(sys, 'setdefaultencoding')
-    set_default_encoding('utf-8')
-
-import os, string, time, warnings
+import sys, os, string, time, warnings
 
 #sys.stdout = sys.__stdout__#open('stdout.txt', 'w')
 #sys.stderr = sys.__stderr__#open('stderr.txt', 'w')
@@ -223,14 +217,17 @@ if __name__ == '__main__' and len(sys.argv) > 1:
 print 'Starting Boa Constructor v%s'%__version__.version
 print 'importing wxPython'
 
+reload(sys)
+set_default_encoding = getattr(sys, 'setdefaultencoding')
 if unicodeEncoding is not None:
     print 'using encoding %s'%unicodeEncoding
+
     if hasattr(sys, 'frozen'):  
-        sys.setdefaultencoding(unicodeEncoding)
+        set_default_encoding(unicodeEncoding)
     else:   
-        reload(sys)
-        sys.setdefaultencoding(unicodeEncoding)
-        del sys.setdefaultencoding
+        set_default_encoding(unicodeEncoding)
+else:
+    set_default_encoding('utf-8')
 
 try:
     # See if there is a multi-version install of wxPython

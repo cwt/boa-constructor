@@ -200,6 +200,7 @@ class ZopeExportFileModel(EditorModels.BasePersistentModel):
     modelIdentifier = 'ZopeExport'
     defaultName = 'zexp'
     bitmap = 'ZopeExport.png'
+    global EditorHelper
     imgIdx = EditorHelper.imgZopeExportFileModel
     ext = '.zexp'
     fileModes = ('rb', 'wb')

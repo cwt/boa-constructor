@@ -656,7 +656,7 @@ class DebuggingViewSTCMix:
                         if bpList.has_key((filename, brk.line)):
                             bpList[filename, brk.line].append(brk)
                         else:
-                            bplist[filename, brk.line] = [brk]
+                            bpList[filename, brk.line] = [brk]
 
     def OnSaveBreakPoints(self, event):
         self.saveBreakpoints()

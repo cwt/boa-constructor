@@ -59,7 +59,7 @@ class BoaPrefGroupNode(PreferenceGroupNode):
         self.source_pref.preferences = [
             UsedModuleSrcBsdPrefColNode(_('Default settings'),
                 Preferences.exportedSTCProps, os.path.join(Preferences.rcPath,
-                'prefs.rc.py'), prefImgIdx, self, Preferences, True)]
+                'prefs_rc.py'), prefImgIdx, self, Preferences, True)]
 
         for name, lang, STCClass, stylesFile in ExplorerNodes.langStyleInfoReg:
             if not os.path.isabs(stylesFile):
@@ -70,17 +70,17 @@ class BoaPrefGroupNode(PreferenceGroupNode):
 
         self.general_pref = UsedModuleSrcBsdPrefColNode(_('General'),
             Preferences.exportedProperties, os.path.join(Preferences.rcPath,
-            'prefs.rc.py'), prefImgIdx, self, Preferences)
+            'prefs_rc.py'), prefImgIdx, self, Preferences)
         self.preferences.append(self.general_pref)
 
         self.platform_pref = UsedModuleSrcBsdPrefColNode(_('Platform specific'),
             Preferences.exportedProperties2, os.path.join(Preferences.rcPath,
-            'prefs.%s.rc.py' % (wx.Platform == '__WXMSW__' and 'msw' or 'gtk')),
+            'prefs_%s_rc.py' % (wx.Platform == '__WXMSW__' and 'msw' or 'gtk')),
             prefImgIdx, self, Preferences)
         self.preferences.append(self.platform_pref)
 
         self.keys_pref = KeyDefsSrcPrefColNode(_('Key bindings'), ('*',),
-            os.path.join(Preferences.rcPath, 'prefs.keys.rc.py'), prefImgIdx,
+            os.path.join(Preferences.rcPath, 'prefs_keys_rc.py'), prefImgIdx,
             self, Preferences.keyDefs)
         self.preferences.append(self.keys_pref)
 
@@ -98,9 +98,9 @@ class BoaPrefGroupNode(PreferenceGroupNode):
 
         self.core_plugpref = UsedModuleSrcBsdPrefColNode(_('Core support'),
             Preferences.exportedCorePluginProps, os.path.join(Preferences.rcPath,
-            'prefs.rc.py'), prefImgIdx, self, Preferences, True)
+            'prefs_rc.py'), prefImgIdx, self, Preferences, True)
         self.plugin_plugpref = UsedModuleSrcBsdPrefColNode(_('Preferences'), Preferences.exportedPluginProps,#('*',),
-            os.path.join(Preferences.rcPath, 'prefs.plug-ins.rc.py'), prefImgIdx,
+            os.path.join(Preferences.rcPath, 'prefs_plugins_rc.py'), prefImgIdx,
             self, Preferences, True)
         self.files_plugpref = PluginFilesGroupNode()
         self.transp_plugpref = PreferenceGroupNode(_('Transports'), self)

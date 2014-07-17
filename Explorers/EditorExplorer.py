@@ -268,7 +268,7 @@ class NewPaletteNode(ExplorerNodes.ExplorerNode):
 
 class NewPaletteItemNode(ExplorerNodes.ExplorerNode):
     protocol = 'boa.new-item'
-    def __init__(self, name, resourcepath, palette, newitem):
+    def __init__(self, name, resourcepath, modulePage, parent):
         ExplorerNodes.ExplorerNode.__init__(self, name, resourcepath, None,
               modulePage.model.imgIdx, parent, {})
 

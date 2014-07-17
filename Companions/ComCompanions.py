@@ -74,12 +74,13 @@ else:
         comModule = 'acrobat'
         comImports = 'wxComPdf'
 
-    PaletteStore.paletteLists['COM'].append(wx.ComPdf)
+    PaletteStore.paletteLists['COM'].append(wxComPdf)
     PaletteStore.compInfo[wxComPdf] = ['AcrobatPdf', PdfComCDTC]
 
 # Internet Explorer webbrowser
 try:
-    from wx.lib.bcrtl.activex.IE import *
+    #from wx.lib.bcrtl.activex.IE import *
+    from bcrtl.activex.IE import *
 except ImportError, error:
     print 'Internet Explorer not registered', error
 else:
@@ -99,7 +100,7 @@ else:
         def events(self):
             return ComCtrlDTC.events(self) + ['WebBrowserEvent']
 
-    PaletteStore.paletteLists['COM'].append(wx.ComWebBrowser)
+    PaletteStore.paletteLists['COM'].append(wxComWebBrowser)
     PaletteStore.compInfo[wxComWebBrowser] = ['IEWebBrowser', WebBrowserComCDTC]
 
 

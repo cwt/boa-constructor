@@ -1,3 +1,4 @@
+import sys
 from DebugClient import DebugClient, DebuggerCommEvent, \
      wxEVT_DEBUGGER_OK, wxEVT_DEBUGGER_EXC
 from IsolatedDebugger import NonBlockingDebuggerConnection, DebuggerController

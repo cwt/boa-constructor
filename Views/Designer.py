@@ -753,7 +753,7 @@ class DesignerView(wx.Frame, InspectableObjectView, Utils.FrameRestorerMixin):
         """ Collapse set of names to exclude the names of all their children """
 
         def hasParentInList(item, list):
-            return intem in list
+            return item in list
         exp = ctrlNames[:]
 
         colLst = [name for name in ctrlNames

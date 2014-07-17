@@ -1628,7 +1628,7 @@ class DateTime:
         try:
             return self.__parse_iso8601(s)
         except IndexError:
-            raise self.DateError,'Not an ISO 8601 compliant date string: "%s"' %  string
+            raise self.DateError,'Not an ISO 8601 compliant date string: "%s"' %  s
 
 
     def __parse_iso8601(self,s):

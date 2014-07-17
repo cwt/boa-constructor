@@ -223,6 +223,7 @@ if __name__ == '__main__':
         dlg.Destroy()
         app.MainLoop()
     else:
+        from wxPopen import ProcessRunner
         class TestProcessRunner(ProcessRunner):
             def updateErrStream(self, stream, data):
                 txt = ProcessRunner.updateErrStream(self, stream, data)

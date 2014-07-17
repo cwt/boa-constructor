@@ -220,7 +220,7 @@ def registerPreference(pluginName, prefName, defPrefValSrc, docs=[], info=''):
     if hasattr(Preferences, prefName):
         return 
     
-    pluginPrefs = os.path.join(Preferences.rcPath, 'prefs.plug-ins.rc.py')
+    pluginPrefs = os.path.join(Preferences.rcPath, 'prefs_plugins_rc.py')
     lines = [l.rstrip() for l in open(pluginPrefs).readlines()]
     import moduleparse
     m = moduleparse.Module(pluginName, lines)
@@ -260,7 +260,7 @@ def registerPreference(pluginName, prefName, defPrefValSrc, docs=[], info=''):
     else:
         raise PluginError(
             _('%s not in Preferences, but is defined in globals of '
-            'prefs.plug-ins.rc.py')%prefName)
+            'prefs_plugins_rc.py')%prefName)
     
 
     

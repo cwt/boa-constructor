@@ -1090,11 +1090,11 @@ class MenuEnumConstrPropEdit(ObjEnumConstrPropEdit):
 ##    def getCtrlValue(self):
 ##        return self.companion.GetControl()
 
-class SizerEnumConstrPropEdit(ObjEnumConstrPropEdit):
+##class SizerEnumConstrPropEdit(ObjEnumConstrPropEdit):
 ##    def getValues(self):
 ##        return ['wx.Menu()'] + ObjEnumConstrPropEdit.getValues(self)
-    def getObjects(self):
-        return self.companion.designer.getObjectsOfClass(wx.BoxSizer).keys()
+##    def getObjects(self):
+##        return self.companion.designer.getObjectsOfClass(wx.BoxSizer).keys()
 ##    def setCtrlValue(self, oldValue, value):
 ##        self.companion.SetMenu(value)
 ##    def getCtrlValue(self):

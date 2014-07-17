@@ -969,8 +969,8 @@ class CycleFinder:
 
 def _test():
     class X:
-        def __init__(me, name):
-            me.name = name
+        def __init__(self, name):
+            self.name = name
         def __repr__(self):
             return "X(" + `self.name` + ")"
 

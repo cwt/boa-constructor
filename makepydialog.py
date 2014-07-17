@@ -210,9 +210,9 @@ if __name__ == "__main__":
 
     class DemoApp(wx.App):
         def OnInit(self):
-            wxImage_AddHandler(wxJPEGHandler())
-            wx.Image_AddHandler(wxPNGHandler())
-            wx.Image_AddHandler(wxGIFHandler())
+            wx.Image_AddHandler(wx.JPEGHandler())
+            wx.Image_AddHandler(wx.PNGHandler())
+            wx.Image_AddHandler(wx.GIFHandler())
             frame = DemoFrame(None)
             frame.Show(True)
             self.SetTopWindow(frame)

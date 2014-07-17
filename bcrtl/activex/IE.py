@@ -16,7 +16,7 @@ defaultNamedNotOptArg = IEModule.defaultNamedNotOptArg
  wxEVT_CWB_DOWNLOADCOMPLETE, wxEVT_CWB_WINDOWRESIZE, wxEVT_CWB_WINDOWMOVE,
  wxEVT_CWB_PROGRESSCHANGE, wxEVT_CWB_FRAMENEWWINDOW, wxEVT_CWB_STATUSTEXTCHANGE,
  wxEVT_CWB_FRAMENAVIGATECOMPLETE, wxEVT_CWB_QUIT, wxEVT_CWB_NAVIGATECOMPLETE,
-] = [wxNewId() for _init_events in range(17)]
+] = [wx.NewId() for _init_events in range(17)]
 
 EVT_CWB_BEFORENAVIGATE = wx.PyEventBinder(wxEVT_CWB_BEFORENAVIGATE)
 EVT_CWB_TITLECHANGE = wx.PyEventBinder(wxEVT_CWB_TITLECHANGE)
@@ -36,9 +36,9 @@ EVT_CWB_FRAMENAVIGATECOMPLETE = wx.PyEventBinder(wxEVT_CWB_FRAMENAVIGATECOMPLETE
 EVT_CWB_QUIT = wx.PyEventBinder(wxEVT_CWB_QUIT)
 EVT_CWB_NAVIGATECOMPLETE = wx.PyEventBinder(wxEVT_CWB_NAVIGATECOMPLETE)
 
-class wxComWebBrowserEvent(wxPyEvent):
+class wxComWebBrowserEvent(wx.PyEvent):
     def __init__(self, eventType, evtArgs):
-        wxPyEvent.__init__(self)
+        wx.PyEvent.__init__(self)
         self.SetEventType(eventType)
         self.__dict__.update(evtArgs)
 
@@ -101,11 +101,11 @@ class wxComWebBrowserEvents:
         wx.PostEvent(self.eventhandler, wxComWebBrowserEvent(wxEVT_CWB_QUIT, varnames2dict(self.OnQuit.im_func.func_code.co_varnames[1:], locals())))
     def OnNavigateComplete(self, URL=defaultNamedNotOptArg):
         "Fired when the document being navigated to becomes visible and enters the navigation stack."
-        wx.PostEvent(self.eventhandler, wxComWebBrowserEvent(wxEVT_NAVIGATECOMPLETE, varnames2dict(self.OnNavigateComplete.im_func.func_code.co_varnames[1:], locals())))
+        wx.PostEvent(self.eventhandler, wxComWebBrowserEvent(wxEVT_CWB_NAVIGATECOMPLETE, varnames2dict(self.OnNavigateComplete.im_func.func_code.co_varnames[1:], locals())))
 
 wxComWebBrowserPtr = MakeActiveXClass(IEModule.WebBrowser)
 class wxComWebBrowser(wxComWebBrowserPtr):
-    def __init__(self, parent = None, id = -1, pos=wxDefaultPosition, size=wxDefaultSize, style=0, name=''):
+    def __init__(self, parent = None, id = -1, pos=wx.DefaultPosition, size=wx.DefaultSize, style=0, name=''):
         wxComWebBrowserPtr.__init__(self, parent, id, pos, size, style)
         self._eventObj = wxComWebBrowserEvents(self)
         self.SetName(name)

@@ -321,8 +321,8 @@ Plugins.registerComponents(None,
 
 try:
     Plugins.registerComponents(None,
-          (wxPopupWindow, 'wx.PopupWindow', PopupWindowDTC),
-          (wxPopupTransientWindow, 'wx.PopupTransientWindow', PopupWindowDTC),
+          (wx.PopupWindow, 'wx.PopupWindow', PopupWindowDTC),
+          (wx.PopupTransientWindow, 'wx.PopupTransientWindow', PopupWindowDTC),
         )
 except NameError:
     # wxMAC

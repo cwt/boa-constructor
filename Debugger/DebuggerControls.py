@@ -149,7 +149,7 @@ class StackViewCtrl(DebuggerListCtrl):
                             prevClientPath = clientPath
                             prevServerPath = serverPath
 
-                elif res == wxNO:
+                elif res == wx.NO:
                     if self.debugger.OnPathMappings():
                         self.refreshClientFilenames()
                 return

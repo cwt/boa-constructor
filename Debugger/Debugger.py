@@ -712,8 +712,8 @@ class DebuggerFrame(wx.Frame, Utils.FrameRestorerMixin):
     def isDebugBrowsing(self):
         return self.toolbar.GetToolState(self.debugBrowseId) and self.running
 
-    def isInShellNamepace(self):
-        return self.toolbar.GetToolState(self.shellNamespaceId)
+    #def isInShellNamepace(self):
+    #    return self.toolbar.GetToolState(self.shellNamespaceId)
 
     def isRunning(self):
         return self.running

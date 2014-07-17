@@ -122,11 +122,19 @@ thisPlatform = wxPlatforms[wx.Platform]
 if not os.path.exists(rcPath):
     raise Exception, 'Config directory is missing'
 
+# load default config
+from Config.prefs_rc import *
+if thisPlatform == 'msw': from Config.prefs_msw_rc import *
+if thisPlatform == 'gtk': from Config.prefs_gtk_rc import *
+if thisPlatform == 'mac': from Config.prefs_mac_rc import *
+from Config.prefs_keys_rc import *
+from Config.prefs_plugins_rc import *
+
 # upgrade if needed and exec in our namespace
-for prefsFile, version in (('prefs.rc.py', 18),
-                           ('prefs.%s.rc.py'%thisPlatform, 9),
-                           ('prefs.keys.rc.py', 10),
-                           ('prefs.plug-ins.rc.py', None)):
+for prefsFile, version in (('prefs_rc.py', 18),
+                           ('prefs_%s_rc.py'%thisPlatform, 9),
+                           ('prefs_keys_rc.py', 10),
+                           ('prefs_plugins_rc.py', None)):
     file = os.path.join(rcPath, prefsFile)
 
     # first time, install to env dir
@@ -207,9 +215,13 @@ if hasattr(sys, 'frozen'):
 for ppth in pluginPaths:
     imageStorePaths.append(ppth)
 
-import ImageStore
-
-IS = ImageStore.ImageStoreClasses[imageStoreType](imageStorePaths, cache=useImageCache)
+if imageStoreType == 'files':
+    from ImageStore import ImageStore
+if imageStoreType == 'zip' :
+    from ImageStore import ZippedImageStore as ImageStore
+if imageStoreType == 'resource':
+    from ImageStore import ResourceImageStore as ImageStore
+IS = ImageStore(imageStorePaths, cache=useImageCache)
 
 def getPythonInterpreterPath():
     if not pythonInterpreterPath:
@@ -228,6 +240,8 @@ screenWidth = screenHeight = wxDefaultFramePos = wxDefaultFrameSize = \
     edWidth = inspWidth = paletteHeight = bottomHeight = underPalette = \
     oglBoldFont = oglStdFont = None
 
+if locals().get('screenX') is None: screenX = 0
+if locals().get('screenY') is None: screenY = 0
 def initScreenVars():
     global screenWidth, screenHeight, wxDefaultFramePos, wxDefaultFrameSize
     global edWidth, inspWidth, paletteHeight, bottomHeight, underPalette

@@ -273,8 +273,8 @@ class PyResourceBitmapModel(PythonEditorModels.ModuleModel):
     imgIdx = EditorHelper.imgPyResBitmap = EditorHelper.imgIdxRange()
 
     def updateData(self, data, subImage):
-        from wx.tools import img2py
-        crunched = StringIO(img2py.crunch_data(data, subImage['zip'])).readlines()
+        from wxCompat import crunch_data
+        crunched = StringIO(crunch_data(data, subImage['zip'])).readlines()
         if subImage['zip']:
             crunched[-1].rstrip()
             crunched[-1] += ' )'+subImage['eol']

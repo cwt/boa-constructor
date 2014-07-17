@@ -526,17 +526,21 @@ def html2txt(htmlblock):
     p.feed(htmlblock)
     return s.getvalue().strip()
 
-##def getEntireWxNamespace():
-##    """ Return a dictionary containing the entire (non filtered) wxPython
-##        namespace """
-##    from wxPython import wx, html, htmlhelp, grid, calendar, stc
-##    from wxPython import help, gizmos, wizard
-##    namespace = {}
-##    map(namespace.update, [wx.__dict__, html.__dict__, htmlhelp.__dict__,
-##                           grid.__dict__, calendar.__dict__,
-##                           stc.__dict__, gizmos.__dict__,
-##                           help.__dict__, wizard.__dict__])
-##    return namespace
+def getEntireWxNamespace():
+    """ Return a dictionary containing the entire (non filtered) wxPython
+        namespace """
+    modules = ['activex', 'animate', 'aui', 'calendar', 'combo', 'dataview',
+               'gizmos', 'glcanvas', 'grid', 'html', 'html2', 'media',
+               'propgrid', 'richtext', 'stc', 'webkit', 'wizard', 'wx']
+    namespace = {}
+    for module in modules:
+        try:
+            exec('from wx import %s' % module)
+        except ImportError:
+            pass
+        else:
+            namespace.update(locals()[module].__dict__)
+    return namespace
 
 class FrameRestorerMixin:
     """ Used by top level windows to restore from gidden or iconised state

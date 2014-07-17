@@ -186,4 +186,3 @@ ImageStoreClasses = {
      'zip' : ZippedImageStore,
      'resource': ResourceImageStore,
 }     
-    

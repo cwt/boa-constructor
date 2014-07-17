@@ -685,7 +685,7 @@ def testRename():
     #print ep.asText('wxFrame1')
     #ep2 = EventParse(ep.asText('wxFrame1'))
     #ep2.prependFrameWinId('wxFrame2')
-    print ep2.asText()
+    #print ep2.asText()
 
 def testEvent():
     pass

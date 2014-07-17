@@ -402,7 +402,7 @@ if __name__ == '__main__':
     s=wx.BoxSizer(wx.VERTICAL)
     f.p.SetSizer(s)
     try:
-        f.lc=LanguageChoice(f.p, pos = (220, 10), size = (200, 25))
+        f.lc=LanguageListCtrl(f.p, pos = (220, 10), size = (200, 25))
         s.Add(f.lc, 0, wx.GROW)
     except:
         pass

@@ -759,7 +759,7 @@ class STCStyleEditDlg(wx.Dialog):
             else:
                 colBtn.SetForegroundColour(wx.Colour(255, 255, 255))
                 colBtn.SetBackgroundColour(\
-                      wxSystemSettings.GetColour(wx.SYS_COLOUR_BTNFACE))
+                      wx.SystemSettings.GetColour(wx.SYS_COLOUR_BTNFACE))
 
     def OnfgColRet(self, event):
         try: self.editColTCProp(self.fgColCb, self.fgColBtn, 'fore')
