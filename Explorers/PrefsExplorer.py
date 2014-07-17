@@ -75,7 +75,7 @@ class BoaPrefGroupNode(PreferenceGroupNode):
 
         self.platform_pref = UsedModuleSrcBsdPrefColNode(_('Platform specific'),
             Preferences.exportedProperties2, os.path.join(Preferences.rcPath,
-            'prefs_%s_rc.py' % (wx.Platform == '__WXMSW__' and 'msw' or 'gtk')),
+            'prefs_%s_rc.py' % Preferences.thisPlatform),
             prefImgIdx, self, Preferences)
         self.preferences.append(self.platform_pref)
 
