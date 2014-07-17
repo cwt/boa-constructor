@@ -36,7 +36,10 @@ class wxFrame2(wx.Frame):
 
 
 if __name__ == '__main__':
-    app = wx.PySimpleApp()
+    if float('%d.%d' % wx.VERSION[:2]) > 2.8:
+        app = wx.App(False)
+    else:
+        app = wx.PySimpleApp()
     # Note this help provider is needed and was added by hand
     provider = wx.SimpleHelpProvider()
     wx.HelpProvider.Set(provider)
