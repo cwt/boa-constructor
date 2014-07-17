@@ -30,8 +30,11 @@ class wxFrame1(wx.Frame):
 
 
 if __name__ == '__main__':
-    app = wx.PySimpleApp()
-    wx.InitAllImageHandlers()
+    if float('%d.%d' % wx.VERSION[:2]) > 2.8:
+        app = wx.App(False)
+    else:
+        app = wx.PySimpleApp()
+        wx.InitAllImageHandlers()
     frame = create(None)
     frame.Show()
     app.MainLoop()
