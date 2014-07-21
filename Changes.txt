@@ -1,6 +1,16 @@
 Changes
 -------
 
+-- 0.7.0 - beta (Release) --
+
+2014-07-22
+
+* Source code repository forked to https://bitbucket.org/cwt/boa-constructor
+* Compatible with wxPython 2.6/2.7/2.8/2.9/3.0
+* UTF-8 as a default encoding
+* Bug fixes and performance improvement
+
+
 -- 0.6.1 - beta (Release) --
 
 2007-07-5

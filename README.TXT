@@ -22,16 +22,22 @@ Licence:
 GPL
 
 Version:
-0.6.1 - Beta
-Requires wxPython 2.6 or higher, Python 2.3/2.4/2.5
+0.7.0 - Beta
+Requires wxPython 2.6 or higher, Python 2.5/2.6/2.7
 
 
 Copyright:
+
+Chaiwat Suttipongsakul 2012 - 2014
+cwt@bashell.com
+
 Riaan Booysen 1999 - 2007
 riaan@e.co.za
 
 
 Release history:
+
+2014-07-22 - Boa Constructor 0.7.0 beta
 
 2007-07-05 - Boa Constructor 0.6.1 beta
 

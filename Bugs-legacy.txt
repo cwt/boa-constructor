@@ -1,0 +1,102 @@
+Bugs & Issues 
+-------------
+
+Under wxGTK, Num Lock *must* be turned off. Because of a strange bug in 
+wxWidgets having Num Lock on is the same as holding in Alt. 
+This causes the short cuts to trigger, e.g. pressing "S" in the Editor
+would cause the Save As dialog to pop up because Alt-S is registered.
+The only know solution for wxPython 2.4.2.4 is to turn off Num Lock.
+
+---
+Current Designer behaviour may seem weird where a
+single control is dropped on a frame; At first the control keeps its
+default size, but when the frame is resized, it fills the frame.
+(toolbars, statusbars and menubars connected to the frame are 
+excepted from this rule)
+This behaviour emulates the way frames/containers auto sizes a control 
+if only one is dropped on a frame/container, but it gives you the 
+chance to add a second control (before it fills the parent). 
+If you have a control filling a parent and want to add another to
+the parent, resize/move it out of the way and drop the second
+(painful I know)
+
+White space is quite significant for collection item methods!
+The spacing/blank lines within the method delimit the 3 possible
+sections, I might change this to rather be delimited by comments
+(but I don't want to have meaningfull comments either :( )
+Anyway don't mess with the whitespace and expect this to change.
+
+Another biggish gotcha is that changes to many (there are exceptions) 
+constructor properties and collection item constructor properties 
+will only take effect after the frame has been opened and closed
+or the property refreshed.
+This is partially due to constructors only being called once ;)
+
+Cyclops and wxGenButtons don't mix for some strange reason. Disable
+any wxGenButtons code before running Cyclops.
+To run Boa in Cyclops, turn the cyclopsing flag on in Palette.py
+
+Other bugs
+----------
+
+Recreate controls not implemented for the Data View.
+
+ToolBars confuse the Designer somtimes (and the author).
+Components are offset by the height of the toolbar
+
+Toolbars still cause big trouble by moving the frame coordinates down
+when linked to a frame.
+The only way I can see this working is by always having the toolbar
+as the first component and immediately linking it before creating any
+other components (this breaks the pattern completely ouch :()
+Also have to compensate for all top level controls (ctrls directly on
+frame) by adjusting their coordinates upon linking of the toolbar,
+because their source won't be updated.
+The moral of the story is to not have controls directly on a frame for
+now, rather put them in a panel, this is the recommended procedure
+in any case.
+
+Parser must be fixed sometime to correctly parse
+nested methods and nested classes
+
+Sometimes get a DeadObject assertion error when using the debugger by attaching
+to it.
+
+GTK
+---
+
+Under RedHat 8, fonts are sometimes displayed incorrectly, the suggested 
+workaround is to have an environment variable like this defined:
+LANG=en_US
+
+GTK Critical warnings are produced in the following cases:
+- When there is a 'New' submenu connected under 'File'. Off by default on wxGTK.
+- When controls are reparented from the Notebook to another control. 
+  - This now causes a coredump :(
+
+---
+
+Find in App does not search app
+
+moduleparse.Module.name sometimes have extension, sometimes not. Decide!
+
+Remove the silly assert for local uris (assertLocalFile), should be 
+checkLocalFile that raises a TransportError
+
+Check AccelEnter -> Notebook paste bug
+
+refreshCtrl is called twice on open pyd
+
+Snap to grid snaps more to left/top sides
+
+Filenames starting with . aren't handled correctly.
+
+moduleparse does not pick up 1st variable if defined before any other construct
+
+F10 outside Boa seems to set the dir according to app, breaks traceback.
+Clue; seems os.cwd is sometimes used.
+
+When an App is closed, it's remaining open modules stil refer to it.
+
+Inspector page splitter sometimes ends up in the center of the page after
+selecting nothing.
