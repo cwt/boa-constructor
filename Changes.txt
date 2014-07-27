@@ -1,6 +1,13 @@
 Changes
 -------
 
+-- 0.7.1 - beta (Release) --
+
+* Add UTF-8 to generaterd code header (PEP-0263)
+* Add link to the new repository at BitBucket
+* Apply patches from debian http://goo.gl/vqSOMy
+* Bug fixes
+
 -- 0.7.0 - beta (Release) --
 
 2014-07-22
