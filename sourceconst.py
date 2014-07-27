@@ -18,7 +18,7 @@ import Preferences, Utils
 idnt = Utils.getIndentBlock()
 
 methodIndent = idnt
-bodyIndent = idnt*2
+bodyIndent = idnt * 2
 
 def wsfix(s):
     return s.replace('\t', idnt).replace('\n', os.linesep)
@@ -36,9 +36,11 @@ init_sizers = '_init_sizers'
 code_gen_warning = "generated method, don't edit"
 
 defEnvPython = wsfix('#!/usr/bin/env python\n')
+defCodingUtf8 = wsfix('# -*- coding: utf-8 -*-\n')
+
 # XXX Frame Companion could return this source in writeImports?
 defImport = wsfix('import wx\n\n')
-defSig = boaIdent+wsfix(':%(modelIdent)s:%(main)s\n\n')
+defSig = defCodingUtf8 + boaIdent + wsfix(':%(modelIdent)s:%(main)s\n\n')
 
 defCreateClass = wsfix('''def create(parent):
 \treturn %(main)s(parent)
@@ -49,15 +51,15 @@ srchWindowIdsLC = '\[wx.NewId\(\) for %s in range\((?P<count>\d+)\)\]'
 srchWindowIds = '\[(?P<winids>[A-Za-z0-9_, ]*)\] = ' + srchWindowIdsLC
 srchWindowIdsCont = '(?P<any>.*)\] = ' + srchWindowIdsLC
 defWindowIdsCont = wsfix('] = [wx.NewId() for %(idIdent)s in range(%(idCount)d)]\n')
-defWindowIds = wsfix('[%(idNames)s')+defWindowIdsCont
+defWindowIds = wsfix('[%(idNames)s') + defWindowIdsCont
 
 defClass = wsfix('''
 class %(main)s(%(defaultName)s):
-\tdef '''+init_ctrls+'''(self, prnt):
+\tdef ''' + init_ctrls + '''(self, prnt):
 \t\t%(defaultName)s.__init__(%(params)s)
 
 \tdef __init__(self, parent):
-\t\tself.'''+init_ctrls+'''(parent)
+\t\tself.''' + init_ctrls + '''(parent)
 ''')
 
 defApp = wsfix('''import %(mainModule)s
