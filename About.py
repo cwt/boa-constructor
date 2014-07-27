@@ -139,10 +139,14 @@ sponsoring my time on this project.<br>
 about_text = '''
 <p>A <b>Python</b> IDE and <b>wxPython</b> GUI builder
 </p>
-<p><a href="Boa">http://boa-constructor.sourceforge.net</a><br></u>
-&copy;1999-2007 <b>Riaan Booysen</b>. <a href="MailMe">riaan@e.co.za</a><br>
-<a href="Credits">Credits</a>
-</p>
+
+<p><a href="Boa">https://bitbucket.org/cwt/boa-constructor</a><br></u>
+&copy;2012-2014 <b>Chaiwat Suttipongsakul</b>.<br>
+<a href="MailMe">cwt@bashell.com</a></p>
+<p><a href="BoaLegacy">http://boa-constructor.sourceforge.net</a><br></u>
+&copy;1999-2007 <b>Riaan Booysen</b>.<br>
+<a href="MailRiaan">riaan@e.co.za</a></p>
+<p><a href="Credits">Credits</a></p>
 <p><font size=-1 color="#000077">Python %s</font><br>
 <font size=-1 color="#000077">wx.Python %s: %s, <img src="%s">&nbsp;%s, %s</font></p>
 <hr>
@@ -178,13 +182,13 @@ def addImagesToFS():
 
     for lid, _tr in translations:
         li = wx.Locale.GetLanguageInfo(lid)
-        name = 'flag-%s'%li.CanonicalName
+        name = 'flag-%s' % li.CanonicalName
         if name not in addImagesToFS.addedImages:
             bmp = langlistctrl.GetLanguageFlag(lid)
             wx.MemoryFSHandler.AddFile(name, bmp, wx.BITMAP_TYPE_PNG)
             addImagesToFS.addedImages.append(name)
 
-    
+
 addImagesToFS.addedImages = []
 
 def createSplash(parent, modTot, fileTot):
@@ -199,7 +203,7 @@ class AboutBoxMixin:
     border = 7
     def __init__(self, parent, modTot=0, fileTot=0, extraStyle=0):
         self._init_ctrls(parent)
-        
+
         addImagesToFS()
 
         self.moduleTotal = modTot
@@ -209,7 +213,7 @@ class AboutBoxMixin:
               size=self.GetClientSize(), style=wx.CLIP_CHILDREN)
         self.blackback.SetBackgroundColour(wx.BLACK)
 
-        self.html = Utils.wxUrlClickHtmlWindow(self.blackback, -1, 
+        self.html = Utils.wxUrlClickHtmlWindow(self.blackback, -1,
               style=wx.CLIP_CHILDREN | wx.html.HW_NO_SELECTION | extraStyle)
         Utils.EVT_HTML_URL_CLICK(self.html, self.OnLinkClick)
         self.setPage()
@@ -238,13 +242,13 @@ class AboutBoxMixin:
             translators = []
             for lid, name in translations:
                 li = wx.Locale.GetLanguageInfo(lid)
-                translators.append('<img src="memory:flag-%s">&nbsp;%s - %s<br>'%(
+                translators.append('<img src="memory:flag-%s">&nbsp;%s - %s<br>' % (
                       li.CanonicalName, li.Description, name))
-            translators = ''.join(translators)          
+            translators = ''.join(translators)
 
-            self.html.SetPage(credits_html % (translators, 
+            self.html.SetPage(credits_html % (translators,
                                               'memory:PythonPowered.png',
-                                              'memory:wxPyButton.png', 
+                                              'memory:wxPyButton.png',
                                               'memory:wxWidgetsButton.png',
                                               'memory:Debian.png',
                                               'memory:Gentoo.png',
@@ -252,7 +256,7 @@ class AboutBoxMixin:
                                              ))
         elif clicked == 'Back':
             self.setPage()
-            #self.html.HistoryBack()
+            # self.html.HistoryBack()
         elif clicked == 'Python':
             self.gotoInternetUrl('http://www.python.org')
         elif clicked == 'wxPython':
@@ -269,23 +273,27 @@ class AboutBoxMixin:
             self.gotoInternetUrl(
                'http://www.freebsd.org/ports/python.html#boaconstructor-0.2.3')
         elif clicked == 'Boa':
+            self.gotoInternetUrl('https://bitbucket.org/cwt/boa-constructor')
+        elif clicked == 'BoaLegacy':
             self.gotoInternetUrl('http://boa-constructor.sourceforge.net')
         elif clicked == 'TBS':
             self.gotoInternetUrl('http://www.tbs.co.za')
         elif clicked == 'MailMe':
+            self.gotoInternetUrl('mailto:cwt@bashell.com')
+        elif clicked == 'MailRiaan':
             self.gotoInternetUrl('mailto:riaan@e.co.za')
 
 
 class AboutBox(AboutBoxMixin, wx.Dialog):
     def _init_ctrls(self, prnt):
-        wx.Dialog.__init__(self, size=wx.Size(410, 570), pos=(-1, -1),
+        wx.Dialog.__init__(self, size=wx.Size(410, 600), pos=(-1, -1),
               id=wxID_ABOUTBOX, title=_('About Boa Constructor'), parent=prnt,
               name='AboutBox', style=wx.DEFAULT_DIALOG_STYLE)
-        
+
         try:
             if 'Language.png' not in addImagesToFS.addedImages:
-                wx.MemoryFSHandler.AddFile('Language.png', 
-                 langlistctrl.GetLanguageFlag(wx.GetApp().locale.GetLanguage()), 
+                wx.MemoryFSHandler.AddFile('Language.png',
+                 langlistctrl.GetLanguageFlag(wx.GetApp().locale.GetLanguage()),
                  wx.BITMAP_TYPE_PNG)
                 addImagesToFS.addedImages.append('Language.png')
         except Exception, err:
@@ -295,7 +303,7 @@ class AboutBox(AboutBoxMixin, wx.Dialog):
         sysLangName = wx.GetApp().locale.GetSysName()
         self.html.SetPage((about_html % (
               'memory:Boa.jpg', __version__.version,
-              '', about_text % (sys.version, wx.VERSION_STRING, 
+              '', about_text % (sys.version, wx.VERSION_STRING,
                 ', '.join(wx.PlatformInfo), 'memory:Language.png', sysLangName,
                 sys.getdefaultencoding()))))
 
@@ -310,7 +318,7 @@ class AboutBoxSplash(AboutBoxMixin, wx.Frame):
               name='AboutBoxSplash', style=wx.SIMPLE_BORDER)
         self.progressId = wx.NewId()
         self.gaugePId = wx.NewId()
-        self.SetBackgroundColour(wx.Colour(0x44, 0x88, 0xFF))#wxColour(0x99, 0xcc, 0xff))
+        self.SetBackgroundColour(wx.Colour(0x44, 0x88, 0xFF))  # wxColour(0x99, 0xcc, 0xff))
 
     def setPage(self):
         self.html.SetPage(about_html % ('memory:Boa.jpg',
@@ -325,11 +333,11 @@ class AboutBoxSplash(AboutBoxMixin, wx.Frame):
         self.label.SetSize((parentWidth - 40, self.label.GetSize().y))
 
         gaugePrnt = self.FindWindowById(self.gaugePId)
-        gaugePrnt.SetBackgroundColour(wx.BLACK)#wx.Colour(0x99, 0xcc, 0xff))
+        gaugePrnt.SetBackgroundColour(wx.BLACK)  # wx.Colour(0x99, 0xcc, 0xff))
         gaugeSze = gaugePrnt.GetClientSize()
         self.gauge = wx.Gauge(gaugePrnt, -1,
-              range=self.moduleTotal+self.fileTotal*self.fileOpeningFactor,
-              style=wx.GA_HORIZONTAL|wx.GA_SMOOTH,
+              range=self.moduleTotal + self.fileTotal * self.fileOpeningFactor,
+              style=wx.GA_HORIZONTAL | wx.GA_SMOOTH,
               pos=(self.progressBorder, self.progressBorder),
               size=(gaugeSze.x - 2 * self.progressBorder,
                     gaugeSze.y - 2 * self.progressBorder))
@@ -337,7 +345,7 @@ class AboutBoxSplash(AboutBoxMixin, wx.Frame):
         # secret early quit option
         self.gauge.Bind(wx.EVT_LEFT_DOWN, self.OnGaugeDClick)
         self._gaugeClicks = 0
-        
+
         # route all printing thru the text on the splash screen
         sys.stdout = StaticTextPF(self.label)
         start_new_thread(self.monitorModuleCount, ())
@@ -375,10 +383,10 @@ class AboutBoxSplash(AboutBoxMixin, wx.Frame):
         self.Update()
 
     def OnGaugeDClick(self, event):
-        if event.GetPosition().x <10:
+        if event.GetPosition().x < 10:
             self._gaugeClicks += 1
             if self._gaugeClicks >= 5:
-                print 
+                print
                 print 'Received early abort...'
                 sys.exit()
 
@@ -399,22 +407,12 @@ class StaticTextPF(Utils.PseudoFile):
             self.output.SetLabel(ss)
 
         if sys:
-##            frame = sys._getframe()
-##            try:
-##                d = 0
-##                while frame.f_back:
-##                    frame = frame.f_back
-##                    d += 1
-##            except AttributeError:
-##                pass
-##            s = '  '*d + s
-##            
             try:
-                sys.__stdout__.write(s)#+':'+sys.path[-1])
+                sys.__stdout__.write(s)
             except UnicodeEncodeError:
                 s = s.encode(sys.getdefaultencoding(), 'replace')
                 sys.__stdout__.write(s)
-            
+
         wx.Yield()
 
 wxEVT_MOD_CNT_UPD = wx.NewId()
@@ -432,17 +430,13 @@ if __name__ == '__main__':
     app = wx.PySimpleApp()
     wx.InitAllImageHandlers()
 
-    #dialog
-    #frame = createNormal(None)
-    #frame.ShowModal()
-
-    #frame
+    # frame
     def updlbl(frame):
         frame.label.SetLabel('Testing')
         frame.label.SetLabel('Testing 1')
         frame.label.SetLabel('Testing 2')
         frame.label.SetLabel('Testing 3')
-        
+
     frame = createSplash(None, 0, 0)
     frame.Show()
     wx.CallAfter(updlbl, frame)
