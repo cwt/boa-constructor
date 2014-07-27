@@ -1467,11 +1467,6 @@ class EditorFrame(wx.Frame, Utils.FrameRestorerMixin):
                     wx.LogError(str(error))
                     return
 
-            # disconnect and destroy menus that would have been cleaned up by
-            # closeModulePage
-            for idx, name, modPage in modPageList:
-                modPage.destroy()
-
             # stop accepting files over socket
             if self.closed:
                 self.closed.set()
