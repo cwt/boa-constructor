@@ -234,7 +234,7 @@ try:
     if not hasattr(sys, 'frozen'):
         import wxversion
         if wxVersionSelect is None:
-            wxversion.ensureMinimal('2.5')
+            wxversion.ensureMinimal('2.6')
         else:
             wxversion.select(wxVersionSelect)
 except ImportError:
