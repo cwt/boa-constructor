@@ -743,7 +743,7 @@ class SpanTuplePropEdit(TupleConstrPropEdit):
 class PositiveIntPropEdit(IntPropEdit):
     def inspectorEdit(self):
         IntPropEdit.inspectorEdit(self)
-        self.editorCtrl.editorCtrl.SetRange(0, sys.maxint)
+        self.editorCtrl.editorCtrl.SetRange(0, 2L**31-1)
     
 class RowColDTC(HelperDTC):
     propName = 'Prop'

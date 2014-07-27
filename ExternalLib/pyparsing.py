@@ -770,7 +770,7 @@ class Word(Token):
         if max > 0:
             self.maxLen = max
         else:
-            self.maxLen = sys.maxint
+            self.maxLen = 2L**31-1
 
         if exact > 0:
             self.maxLen = exact
@@ -843,7 +843,7 @@ class CharsNotIn(Token):
         if max > 0:
             self.maxLen = max
         else:
-            self.maxLen = sys.maxint
+            self.maxLen = 2L**31-1
 
         if exact > 0:
             self.maxLen = exact
@@ -921,7 +921,7 @@ class White(Token):
         if max > 0:
             self.maxLen = max
         else:
-            self.maxLen = sys.maxint
+            self.maxLen = 2L**31-1
 
         if exact > 0:
             self.maxLen = exact

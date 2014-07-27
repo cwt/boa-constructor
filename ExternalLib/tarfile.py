@@ -1685,7 +1685,7 @@ class _FileObject:
            be mixed up (!).
         """
         if size < 0:
-            size = sys.maxint
+            size = 2L**31-1
 
         nl = self.linebuffer.find("\n")
         if nl >= 0:
