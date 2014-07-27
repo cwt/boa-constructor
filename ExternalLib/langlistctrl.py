@@ -1,6 +1,6 @@
 #-----------------------------------------------------------------------------
 # Name:        languagectrls.py
-# Purpose:     
+# Purpose:
 #
 # Author:      Riaan Booysen
 #
@@ -191,7 +191,7 @@ langIdCountryMap = {
     wx.LANGUAGE_AMHARIC: 'ET',
     wx.LANGUAGE_ASSAMESE: 'IN',
     wx.LANGUAGE_AYMARA: 'BO',
-    wx.LANGUAGE_ARABIC: 'SA', 
+    wx.LANGUAGE_ARABIC: 'SA',
     wx.LANGUAGE_BASHKIR: 'RU',
     wx.LANGUAGE_BHUTANI: 'BT',
     wx.LANGUAGE_BIHARI: 'IN',
@@ -203,7 +203,7 @@ langIdCountryMap = {
     wx.LANGUAGE_FIJI: 'FJ',
     wx.LANGUAGE_GUARANI: 'PY',
     wx.LANGUAGE_HAUSA: 'NG',
-    wx.LANGUAGE_INTERLINGUA: 'US', 
+    wx.LANGUAGE_INTERLINGUA: 'US',
     wx.LANGUAGE_INTERLINGUE: 'US',
     wx.LANGUAGE_INUPIAK: 'US',
     wx.LANGUAGE_JAVANESE: 'IN',
@@ -266,26 +266,26 @@ def CreateLanguagesResourceLists(filter=LC_AVAILABLE, only=()):
 
     wxLangIds = []
     for li in _wxLangIds:
-         wxLI = getattr(wx, li)
-         try: 
-             if (filter == LC_ONLY and wxLI in only) or \
-                (filter == LC_AVAILABLE and wx.Locale.IsAvailable(wxLI)) or \
-                (filter == LC_ALL):
-                 wxLangIds.append(wxLI)
-         except wx.PyAssertionError: 
-             # invalid language assertions
-             pass
-         except AttributeError:
-             # wx 2.6
-             wxLangIds.append(wxLI)
-                 
-    langCodes = [(langIdNameMap[wxLangId], wxLangId) 
-                 for wxLangId in wxLangIds 
+        wxLI = getattr(wx, li)
+        try:
+            if (filter == LC_ONLY and wxLI in only) or \
+               (filter == LC_AVAILABLE and wx.Locale.IsAvailable(wxLI)) or \
+               (filter == LC_ALL):
+                wxLangIds.append(wxLI)
+        except wx.PyAssertionError:
+            # invalid language assertions
+            pass
+        except AttributeError:
+            # wx 2.6
+            wxLangIds.append(wxLI)
+
+    langCodes = [(langIdNameMap[wxLangId], wxLangId)
+                 for wxLangId in wxLangIds
                  if wxLangId in langIdNameMap]
-    
+
     for lc, wxli in langCodes:
         l, cnt = lc.split('_')
-        
+
         if cnt in flagart.catalog:
             bmp = flagart.catalog[cnt].getBitmap()
         else:
@@ -294,11 +294,11 @@ def CreateLanguagesResourceLists(filter=LC_AVAILABLE, only=()):
         icons.Add(bmp)
         name = wx.Locale.GetLanguageName(wxli)
         if wxli == wx.LANGUAGE_DEFAULT:
-            name = 'Default: '+name
-        
+            name = 'Default: ' + name
+
         names.append(name)
         langs.append(wxli)
-    
+
     return icons, names, langs
 
 def GetLanguageFlag(lang):
@@ -314,32 +314,32 @@ def BuildLanguageCountryMapping():
     """ Builds a mapping of language ids to LANG_COUNTRY codes """
     res = {}
     for name in _wxLangIds:
-        n = 'wx.'+name
+        n = 'wx.' + name
         wn = getattr(wx, name)
-        
+
         li = wx.Locale.GetLanguageInfo(wn)
-        if li: 
+        if li:
             code = li.CanonicalName
 
             if wn in langIdCountryMap:
                 # override, drop country
                 if '_' in code:
                     code = code.split('_')[0]
-                code += '_'+langIdCountryMap[wn]
+                code += '_' + langIdCountryMap[wn]
 
             # map unhandled to blank images
             elif '_' not in code:
                 code += '_BLANK'
-    
+
             res[wn] = code
     return res
 
 def GetWxIdentifierForLanguage(lang):
-    """ Returns the language id as a string """ 
+    """ Returns the language id as a string """
     for n in dir(wx):
         if n.startswith('LANGUAGE_') and getattr(wx, n) == lang:
             return n
-    raise Exception, 'Language %s not found'%lang
+    raise Exception, 'Language %s not found' % lang
 
 
 #-------------------------------------------------------------------------------
@@ -347,28 +347,28 @@ def GetWxIdentifierForLanguage(lang):
 class LanguageListCtrl(wx.ListCtrl):
     """ wx.ListCtrl derived control that displays languages and flags """
     def __init__(self, parent, id=wx.ID_ANY, pos=wx.DefaultPosition,
-                 size=wx.DefaultSize, style=wx.LC_REPORT | wx.LC_NO_HEADER | wx.LC_SINGLE_SEL, 
+                 size=wx.DefaultSize, style=wx.LC_REPORT | wx.LC_NO_HEADER | wx.LC_SINGLE_SEL,
                  filter=LC_AVAILABLE, only=(), select=None, name='languagelistctrl'):
 
         wx.ListCtrl.__init__(self, parent, id, pos, size, style, name=name)
-        
+
         self.SetUpFilter(filter, only)
         self.Language = select
 
     def SetUpFilter(self, filter=LC_AVAILABLE, only=()):
         """ Filters the languages displayed in the control """
         lang = self.GetLanguage()
-        
+
         self.filter, self.only = filter, only
         self.icons, self.choices, self.langs = CreateLanguagesResourceLists(filter, only)
-        
+
         self.AssignImageList(self.icons, wx.IMAGE_LIST_SMALL)
-        
+
         self.ClearAll()
         self.InsertColumn(0, '', width=175)
         for i in range(len(self.choices)):
             self.InsertImageStringItem(i, self.choices[i], i)
-        
+
         self.SetLanguage(lang)
 
     def GetLanguage(self):
@@ -378,7 +378,7 @@ class LanguageListCtrl(wx.ListCtrl):
             return self.langs[idx]
         else:
             None
-    
+
     def SetLanguage(self, lang):
         """ Selects the given language ids item in the control """
         if lang is not None:
@@ -387,33 +387,33 @@ class LanguageListCtrl(wx.ListCtrl):
                 self.Select(idx)
                 self.Focus(idx)
 
-    Language = property(GetLanguage, SetLanguage, doc="See `GetLanguage` and `SetLanguage`") 
-    
+    Language = property(GetLanguage, SetLanguage, doc="See `GetLanguage` and `SetLanguage`")
+
 #-------------------------------------------------------------------------------
 
 
 if __name__ == '__main__':
     a = wx.PySimpleApp()
-    
+
     print GetLanguageFlag(wx.LANGUAGE_AFRIKAANS)
-    
-    f=wx.Frame(None, -1)
-    f.p=wx.Panel(f, -1)
-    s=wx.BoxSizer(wx.VERTICAL)
+
+    f = wx.Frame(None, -1)
+    f.p = wx.Panel(f, -1)
+    s = wx.BoxSizer(wx.VERTICAL)
     f.p.SetSizer(s)
     try:
-        f.lc=LanguageListCtrl(f.p, pos = (220, 10), size = (200, 25))
+        f.lc = LanguageListCtrl(f.p, pos=(220, 10), size=(200, 25))
         s.Add(f.lc, 0, wx.GROW)
     except:
         pass
-    f.llc=LanguageListCtrl(f.p, pos = (10, 10), size = (200, 200), 
-          filter=LC_ONLY, 
-          only=(wx.LANGUAGE_AFRIKAANS, wx.LANGUAGE_ENGLISH, 
-            wx.LANGUAGE_FRENCH, wx.LANGUAGE_GERMAN, wx.LANGUAGE_ITALIAN, 
-            wx.LANGUAGE_PORTUGUESE_BRAZILIAN, wx.LANGUAGE_SPANISH), 
+    f.llc = LanguageListCtrl(f.p, pos=(10, 10), size=(200, 200),
+          filter=LC_ONLY,
+          only=(wx.LANGUAGE_AFRIKAANS, wx.LANGUAGE_ENGLISH,
+            wx.LANGUAGE_FRENCH, wx.LANGUAGE_GERMAN, wx.LANGUAGE_ITALIAN,
+            wx.LANGUAGE_PORTUGUESE_BRAZILIAN, wx.LANGUAGE_SPANISH),
           select=wx.LANGUAGE_ENGLISH)
-##            filter=LC_ALL)
+# #            filter=LC_ALL)
     s.Add(f.llc, 1, wx.GROW)
     f.Show()
-    
+
     a.MainLoop()
