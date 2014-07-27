@@ -18,7 +18,7 @@ sys.ps2 = "... "
 
 class PythonInterpreter:
 
-    def __init__(self, name = "<console>"):
+    def __init__(self, name="<console>"):
 
         self.name = name
         self.locals = {}
@@ -33,14 +33,14 @@ class PythonInterpreter:
         if self.lines:
             if line:
                 self.lines.append(line)
-                return 1 # want more!
+                return 1  # want more!
             else:
                 line = string.join(self.lines, "\n") + "\n"
         else:
             if not line:
                 return 0
             else:
-                line = line.rstrip()+'\n'
+                line = line.rstrip() + '\n'
 
         #
         # compile what we've got this far
@@ -57,7 +57,7 @@ class PythonInterpreter:
             if why[0] == "unexpected EOF while parsing":
                 # start collecting lines
                 self.lines.append(line)
-                return 1 # want more!
+                return 1  # want more!
             else:
                 self.showtraceback()
 
@@ -78,25 +78,25 @@ class PythonInterpreter:
         self.lines = []
 
         exc_type, exc_value, exc_traceback = sys.exc_info()
-        if exc_type == SyntaxError:# and len(sys.exc_value) == 2:
+        if exc_type == SyntaxError:  # and len(sys.exc_value) == 2:
             # emulate interpreter behaviour
-            if len(sys.exc_value.args) == 2:
-                fn, ln, indent = sys.exc_value[1][:3]
+            if len(exc_value.args) == 2:
+                fn, ln, indent = exc_value[1][:3]
                 indent += 3
                 pad = " " * indent
                 if fn is not None:
-                    src = linecache.getline(fn, ln)                    
+                    src = linecache.getline(fn, ln)
                     if src:
-                        src = src.rstrip()+'\n'
-                        sys.stderr.write('  File "%s", line %d\n%s%s'%(
+                        src = src.rstrip() + '\n'
+                        sys.stderr.write('  File "%s", line %d\n%s%s' % (
                                          fn, ln, pad, src))
                 sys.stderr.write(pad + "^\n")
-            sys.stderr.write("''' %s '''\n"%(str(sys.exc_type) + \
-                str(sys.exc_value.args and (" : " +sys.exc_value[0]) or '')))
+            sys.stderr.write("''' %s '''\n" % (str(exc_type) + \
+                str(exc_value.args and (" : " + exc_value[0]) or '')))
         else:
-            traceback.print_tb(sys.exc_traceback.tb_next, None)
-            sys.stderr.write("''' %s '''\n" %(str(sys.exc_type) + " : " + \
-                                            str(sys.exc_value)))
+            traceback.print_tb(exc_traceback.tb_next, None)
+            sys.stderr.write("''' %s '''\n" % (str(exc_type) + " : " + \
+                                            str(exc_value)))
 
 
 # --------------------------------------------------------------------
