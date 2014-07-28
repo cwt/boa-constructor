@@ -92,8 +92,8 @@ def processArgs(argv):
         optlist, args = getopt.getopt(argv, 'CDTSBERNHVhvO:W:U:',
          ['Constricted', 'Debug', 'Trace', 'StartupFile', 'BlockHomePrefs',
           'EmptyEditor', 'RemoteDebugServer', 'NoCmdLineTransfer', 'Help', 
-          'Version', 'help', 'version', 'OverridePrefsDirName', 'WxVersionSelect',
-          'UnicodeEncoding'])
+          'Version', 'help', 'version', 'OverridePrefsDirName=', 'WxVersionSelect=',
+          'UnicodeEncoding='])
     except getopt.GetoptError, err:
         print 'Error: %s'%str(err)
         print 'For options: Boa.py --help'
