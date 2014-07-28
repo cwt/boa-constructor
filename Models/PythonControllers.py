@@ -65,6 +65,8 @@ class ModuleController(SourceController):
               (_('Step in'), self.OnDebugStepIn, '-', 'DebugStep'),
               (_('Step over'), self.OnDebugStepOver, '-', 'DebugOver'),
               (_('Step out'), self.OnDebugStepOut, '-', 'DebugOut'),
+              (_('Pause debug'), self.OnDebugPause, '-', 'DebugPause'),
+              (_('Stop debug'), self.OnDebugStop, '-', 'DebugStop'),
               ('-', None, '-', ''),
               (_('Profile'), self.OnProfile, self.profileBmp, ''),
               (_('Check source'), self.OnCheckSource, self.compileBmp, 'CheckSource'),
@@ -279,6 +281,14 @@ class ModuleController(SourceController):
     def OnDebugStepOut(self, event):
         if self.editor.debugger:
             self.editor.debugger.OnOut(event)
+
+    def OnDebugPause(self, event):
+        if self.editor.debugger:
+            self.editor.debugger.OnPause(event)
+
+    def OnDebugStop(self, event):
+        if self.editor.debugger:
+            self.editor.debugger.OnStop(event)
 
     def OnSwitchApp(self, event):
         model = self.getModel()

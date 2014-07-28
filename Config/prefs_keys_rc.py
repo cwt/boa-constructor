@@ -35,6 +35,8 @@ keyDefs = {
   'DebugOut'    : (wx.ACCEL_NORMAL, wx.WXK_F6, 'F6'),
   'DebugStep'   : (wx.ACCEL_NORMAL, wx.WXK_F7, 'F7'),
   'DebugOver'   : (wx.ACCEL_NORMAL, wx.WXK_F8, 'F8'),
+  'DebugPause'  : (wx.ACCEL_SHIFT, wx.WXK_F4, 'Shift-F4'),
+  'DebugStop'   : (wx.ACCEL_CTRL|wx.ACCEL_SHIFT, wx.WXK_F4, 'Ctrl-Shift-F4'),
   'SwitchToApp' : (wx.ACCEL_ALT, ord('A'), 'Alt-A'),
 #--General----------------------------------------------------------------------
   'ContextHelp' : (wx.ACCEL_NORMAL, wx.WXK_F1, 'F1'),
