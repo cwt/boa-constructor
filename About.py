@@ -286,7 +286,11 @@ class AboutBoxMixin:
 
 class AboutBox(AboutBoxMixin, wx.Dialog):
     def _init_ctrls(self, prnt):
-        wx.Dialog.__init__(self, size=wx.Size(410, 600), pos=(-1, -1),
+        if Preferences.thisPlatform == 'msw':
+            boxSize=wx.Size(410, 645)
+        else:
+            boxSize=wx.Size(410, 600)
+        wx.Dialog.__init__(self, size=boxSize, pos=(-1, -1),
               id=wxID_ABOUTBOX, title=_('About Boa Constructor'), parent=prnt,
               name='AboutBox', style=wx.DEFAULT_DIALOG_STYLE)
 
