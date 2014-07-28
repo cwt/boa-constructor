@@ -188,16 +188,18 @@ class ImageEditorPanel(wx.Panel):
         """ Initialise editor with data """
         if data:
             # WAR: On Windows7 x64 with Aero disabled, Python 2.7 x64 and 
-            #      wx-2.8-msw-unicode x64, doing
-            #           bmp = BitmapFromImage(....)
-            #           mDC = wx.MemoryDC()
-            #           mDC.SelectObject(bmp)
-            #      causes the bitmap not to be scaled by updateScrollbars 
-            #      (the bitmap is still modified when plotting to it, but it 
-            #       appears at the unscaled size at the top left corner of the 
-            #       editWindow no matter the scale slider value)
-            #      To WAR this, create a new empty bmp and blit to it from the 
-            #      incoming one 
+            #      wx-2.8-msw-unicode x64, SetUserScale fails when used on a DC 
+            #      with a Bitmap selected coming from a BitmapFromImage
+            #
+            #      This is likely wxWidgets issue 3494 "wxDC::Blit ignores SetUserScale
+            #      on source DC" [when a DIB is selected on the HDC]
+            #      http://trac.wxwidgets.org/ticket/3494
+            #
+            #      To WAR this, create a new empty bitmap and blit to it from the 
+            #      incoming DIB instead of selecting the incoming DIB onto the DC
+            #      (another tested WAR is to use a colordepth of 16 in the 
+            #       BitmapFromImage call, this probably causes the original 32-bit
+            #       DIB to be exchanged by a color-converted BMP)
             bmp = wx.BitmapFromImage(wx.ImageFromStream(StringIO(data)))
             self.mDC, self.bmp = self.getTempMemDC(bmp.GetWidth(), bmp.GetHeight())
             self.mDC.DrawBitmap(bmp, 0, 0)
