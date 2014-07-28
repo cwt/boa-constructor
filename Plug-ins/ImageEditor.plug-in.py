@@ -117,6 +117,7 @@ class ImageEditorPanel(wx.Panel):
         self.editWindow.SetConstraints(LayoutAnchors(self.editWindow, True,
               True, True, True))
         self.editWindow.Bind(wx.EVT_PAINT, self.OnEditWindowPaint)
+        self.editWindow.Bind(wx.EVT_ERASE_BACKGROUND, self.OnEditWindowEraseBackground)
         self.editWindow.Bind(wx.EVT_LEFT_DOWN, self.OnEditWindowLeftDown)
         self.editWindow.Bind(wx.EVT_LEFT_UP, self.OnEditWindowLeftUp)
         self.editWindow.Bind(wx.EVT_MOTION, self.OnEditWindowMotion)
@@ -574,8 +575,20 @@ class ImageEditorPanel(wx.Panel):
 
 #---View control events---------------------------------------------------------
 
+    def OnEditWindowEraseBackground(self, event):
+
+        # Prevent erasing the background to avoid flicker, the background will
+        # be cleared in OnEditWindowPaint
+        pass
+
     def OnEditWindowPaint(self, event):
-        dc = wx.PaintDC(self.editWindow)
+
+        # Double buffer the DC in OSs that require it to avoid flicker
+        # Another option would be to only clear to background the parts of the
+        # window that won't be covered by the bitmap (drawing the grid on top
+        # will still flicker, though)
+        dc = wx.AutoBufferedPaintDC(self.editWindow)
+
         self.editWindow.PrepareDC(dc)
 
         if not self.mDC or not self.bmp:
@@ -589,6 +602,7 @@ class ImageEditorPanel(wx.Panel):
             height = self.bmp.GetHeight()*scale
             xoffset = max((self.editWindow.GetSize().x - width) / 2, 0)
             yoffset = max((self.editWindow.GetSize().y - height) / 2, 0)
+            dc.Clear()
             dc.Blit(xoffset, yoffset, width, height, self.mDC, 0, 0)
             self.mDC.SetUserScale(1.0, 1.0)
             self.offset = xoffset, yoffset
