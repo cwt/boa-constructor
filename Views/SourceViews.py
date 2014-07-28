@@ -49,6 +49,7 @@ class EditorStyledTextCtrl(wx.stc.StyledTextCtrl, EditorViews.EditorView,
     pasteBmp = 'Images/Shared/Paste.png'
     findBmp = 'Images/Shared/Find.png'
     findAgainBmp = 'Images/Shared/FindAgain.png'
+    findAgainPrevBmp = 'Images/Shared/FindAgainPrev.png'
     printBmp = 'Images/Shared/Print.png'
 
     defaultEOL = os.linesep
@@ -65,7 +66,8 @@ class EditorStyledTextCtrl(wx.stc.StyledTextCtrl, EditorViews.EditorView,
               (_('Paste'), self.OnEditPaste, self.pasteBmp, ''),
               ('-', None, '', ''),
               (_('Find \ Replace'), self.OnFind, self.findBmp, 'Find'),
-              (_('Find again'), self.OnFindAgain, self.findAgainBmp, 'FindAgain'),
+              (_('Find previous'), self.OnFindAgainPrev, self.findAgainPrevBmp, 'FindAgainPrev'),
+              (_('Find next'), self.OnFindAgain, self.findAgainBmp, 'FindAgain'),
               (_('Print...'), self.OnPrint, self.printBmp, ''),
               (_('Mark place'), self.OnMarkPlace, '-', 'MarkPlace'),
               (_('Goto line'), self.OnGotoLine, '-', 'GotoLine'),
@@ -366,7 +368,11 @@ class EditorStyledTextCtrl(wx.stc.StyledTextCtrl, EditorViews.EditorView,
 
     def OnFindAgain(self, event):
         import FindReplaceDlg
-        FindReplaceDlg.findAgain(self, self.model.editor.finder, self)
+        FindReplaceDlg.findAgain(self, self.model.editor.finder, self, False)
+        
+    def OnFindAgainPrev(self, event):
+        import FindReplaceDlg
+        FindReplaceDlg.findAgain(self, self.model.editor.finder, self, True)
 
     def OnMarkPlace(self, event):
         if self._marking : return

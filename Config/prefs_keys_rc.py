@@ -10,6 +10,7 @@ keyDefs = {
   'Refresh'     : (wx.ACCEL_CTRL, ord('R'), 'Ctrl-R'),
   'Find'        : (wx.ACCEL_CTRL, ord('F'), 'Ctrl-F'),
   'FindAgain'   : (wx.ACCEL_NORMAL, wx.WXK_F3, 'F3'),
+  'FindAgainPrev' : (wx.ACCEL_SHIFT, wx.WXK_F3, 'Shift-F3'),
   'ToggleBrk'   : (wx.ACCEL_NORMAL, wx.WXK_F5, 'F5'),
   'Indent'      : (wx.ACCEL_CTRL, ord('I'), 'Ctrl-I'),
   'Dedent'      : (wx.ACCEL_CTRL, ord('U'), 'Ctrl-U'),

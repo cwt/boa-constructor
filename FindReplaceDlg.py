@@ -31,7 +31,25 @@ def find(parent, finder, view):
     finally:
         dlg.Destroy()
 
-def findAgain(parent, finder, view):
+def findAgain(parent, finder, view, invertFinderReverse = False):
+    """
+    Repeats the last search in the given finder or prompts for a new search if
+    the finder has no search history.
+    
+    Called by OnFindAgain/OnFindAgainPrev event handlers at SourceViews.py
+    
+    :param finder: Finder state to use.
+    :param view: View whose contents to search over.
+    :param invertFinderReverse: True if we want to invert the current finder 
+    reverse state (forward vs. backward search). 
+    This parameter is used to find the "next" occurrence (don't invert) or the 
+    "previous" occurrence (invert). Note that the meaning of "previous" and 
+    "next" is wrt the finder.reverse state (ie. if finder.reverse is true, it
+    means that backwards search is enabled and that inverting the backwards search
+    will return the "next" ocurrence towards the beginning of the text)
+    """
+    oldFinderReverse = finder.reverse
+    finder.reverse = finder.reverse != invertFinderReverse 
     if len(finder.findHistory) == 1:
         find(parent, finder, view)
     else:
@@ -39,7 +57,7 @@ def findAgain(parent, finder, view):
             finder.findNextInSource(view)
         except FindError, err:
             wx.MessageBox(str(err), _('Find/Replace'), wx.OK | wx.ICON_INFORMATION, view)
-
+    finder.reverse = oldFinderReverse 
 
 [wxID_FINDREPLACEDLG, wxID_FINDREPLACEDLGBTNBROWSE, 
  wxID_FINDREPLACEDLGBTNBUILDINFIND, wxID_FINDREPLACEDLGBTNFINDINFILES, 
