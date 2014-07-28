@@ -187,9 +187,20 @@ class ImageEditorPanel(wx.Panel):
     def initImageData(self, ext, data):
         """ Initialise editor with data """
         if data:
-            self.mDC = wx.MemoryDC()
-            self.bmp = wx.BitmapFromImage(wx.ImageFromStream(StringIO(data)))
-            self.mDC.SelectObject(self.bmp)
+            # WAR: On Windows7 x64 with Aero disabled, Python 2.7 x64 and 
+            #      wx-2.8-msw-unicode x64, doing
+            #           bmp = BitmapFromImage(....)
+            #           mDC = wx.MemoryDC()
+            #           mDC.SelectObject(bmp)
+            #      causes the bitmap not to be scaled by updateScrollbars 
+            #      (the bitmap is still modified when plotting to it, but it 
+            #       appears at the unscaled size at the top left corner of the 
+            #       editWindow no matter the scale slider value)
+            #      To WAR this, create a new empty bmp and blit to it from the 
+            #      incoming one 
+            bmp = wx.BitmapFromImage(wx.ImageFromStream(StringIO(data)))
+            self.mDC, self.bmp = self.getTempMemDC(bmp.GetWidth(), bmp.GetHeight())
+            self.mDC.DrawBitmap(bmp, 0, 0)
         else:
             self.mDC, self.bmp = self.getTempMemDC(16, 16)
             brush = wx.Brush(self.bgcol)
