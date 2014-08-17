@@ -1,6 +1,14 @@
 Changes
 -------
 
+-- 0.7.2 - beta (Release) --
+* Add changes made by Tinker Tonyo <tinker.tonyo@gmail.com>
+  (https://github.com/tinkertonyo/boa-constructor)
+* Add "find previous" occurrence functionality
+* Hotkeys for DebugStop and DebugPause
+* Flicker free on redraw
+* Bug fixes
+
 -- 0.7.1 - beta (Release) --
 
 * Add UTF-8 to generaterd code header (PEP-0263)
