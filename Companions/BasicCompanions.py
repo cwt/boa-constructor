@@ -16,7 +16,7 @@ import wx
 import wx.html
 import wx.stc
 import wx.animate
-import wx.media
+#import wx.media
 
 from Utils import _
 
@@ -502,35 +502,35 @@ class GIFAnimationCtrlDTC(WindowDTC):
         return '\n'.join( (WindowDTC.writeImports(self),
                            'import wx.animate') )
 
-class MediaCtrlDTC(WindowDTC):
-    def __init__(self, name, designer, parent, ctrlClass):
-        WindowDTC.__init__(self, name, designer, parent, ctrlClass)
-        self.editors['Filename'] = FilenameConstrPropEdit
-        self.editors['Backend'] = EnumConstrPropEdit
-        self.editors['Volume'] = BITPropEditor
-        self.editors['PlaybackRate'] = BITPropEditor
-
-        self.names['Backend'] = ['wx.media.MEDIABACKEND_DIRECTSHOW', 
-                                 'wx.media.MEDIABACKEND_MCI',
-                                 'wx.media.MEDIABACKEND_QUICKTIME',
-                                 'wx.media.MEDIABACKEND_GSTREAMER', "''"]
-        
-    def constructor(self):
-        return {'Position': 'pos', 'Size': 'size', 'Name': 'name', 'Style': 'style',
-                'Filename': 'fileName', 'Backend': 'szBackend'}
-
-    def designTimeSource(self, position='wx.DefaultPosition', size='wx.DefaultSize'):
-        return {'pos': position,
-                'size': self.getDefCtrlSize(),
-                'style': '0',
-                'name': `self.name`,
-                'fileName': `''`,
-                'szBackend': `''`}
-
-    def writeImports(self):
-        return '\n'.join( (WindowDTC.writeImports(self),
-                           'import wx.media') )
-
+# class MediaCtrlDTC(WindowDTC):
+#    def __init__(self, name, designer, parent, ctrlClass):
+#        WindowDTC.__init__(self, name, designer, parent, ctrlClass)
+#        self.editors['Filename'] = FilenameConstrPropEdit
+#        self.editors['Backend'] = EnumConstrPropEdit
+#        self.editors['Volume'] = BITPropEditor
+#        self.editors['PlaybackRate'] = BITPropEditor
+#
+#        self.names['Backend'] = ['wx.media.MEDIABACKEND_DIRECTSHOW', 
+#                                 'wx.media.MEDIABACKEND_MCI',
+#                                 'wx.media.MEDIABACKEND_QUICKTIME',
+#                                 'wx.media.MEDIABACKEND_GSTREAMER', "''"]
+#        
+#    def constructor(self):
+#        return {'Position': 'pos', 'Size': 'size', 'Name': 'name', 'Style': 'style',
+#                'Filename': 'fileName', 'Backend': 'szBackend'}
+#
+#    def designTimeSource(self, position='wx.DefaultPosition', size='wx.DefaultSize'):
+#        return {'pos': position,
+#                'size': self.getDefCtrlSize(),
+#                'style': '0',
+#                'name': `self.name`,
+#                'fileName': `''`,
+#                'szBackend': `''`}
+#
+#    def writeImports(self):
+#        return '\n'.join( (WindowDTC.writeImports(self),
+#                           'import wx.media') )
+#
 
 EventCategories['RichTextEvent'] = (
     'wx.richtext.EVT_RICHTEXT_CHARACTER', 
@@ -691,7 +691,7 @@ Plugins.registerComponents('BasicControls',
       (wx.html.HtmlWindow, 'wx.html.HtmlWindow', HtmlWindowDTC),
       (wx.stc.StyledTextCtrl, 'wx.stc.StyledTextCtrl', StyledTextCtrlDTC),
       (wx.animate.GIFAnimationCtrl, 'wx.animate.GIFAnimationCtrl', GIFAnimationCtrlDTC),
-      (wx.media.MediaCtrl, 'wx.media.MediaCtrl', MediaCtrlDTC),
+      
     )
 
 try:
