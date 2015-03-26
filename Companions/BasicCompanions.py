@@ -16,7 +16,6 @@ import wx
 import wx.html
 import wx.stc
 import wx.animate
-#import wx.media
 
 from Utils import _
 
@@ -195,7 +194,7 @@ class CheckBoxDTC(Constructors.LabeledInputConstr, WindowDTC):
         WindowDTC.__init__(self, name, designer, parent, ctrlClass)
         self.editors['Value'] = BoolPropEdit
         self.windowStyles = ['wx.ALIGN_RIGHT'] + self.windowStyles
-        
+
     def designTimeSource(self, position = 'wx.DefaultPosition', size = 'wx.DefaultSize'):
         return {'label': `self.name`,
                 'pos': position,
@@ -294,7 +293,7 @@ class StaticBitmapDTC(WindowDTC):
         self.editors['Bitmap'] = BitmapPropEdit
 
     def constructor(self):
-        return {'Bitmap': 'bitmap', 'Position': 'pos', 'Size': 'size', 
+        return {'Bitmap': 'bitmap', 'Position': 'pos', 'Size': 'size',
                 'Style': 'style', 'Name': 'name'}
 
     def designTimeSource(self, position = 'wx.DefaultPosition', size = 'wx.DefaultSize'):
@@ -357,7 +356,7 @@ stcLexer = [wx.stc.STC_LEX_NULL, wx.stc.STC_LEX_PYTHON, wx.stc.STC_LEX_CONTAINER
             wx.stc.STC_LEX_CONF, wx.stc.STC_LEX_PASCAL, wx.stc.STC_LEX_AVE, wx.stc.STC_LEX_ADA,
             wx.stc.STC_LEX_LISP, wx.stc.STC_LEX_RUBY, wx.stc.STC_LEX_EIFFEL, wx.stc.STC_LEX_EIFFELKW,
             wx.stc.STC_LEX_TCL, wx.stc.STC_LEX_NNCRONTAB, wx.stc.STC_LEX_BULLANT,
-            wx.stc.STC_LEX_VBSCRIPT, wx.stc.STC_LEX_BAAN, 
+            wx.stc.STC_LEX_VBSCRIPT, wx.stc.STC_LEX_BAAN,
             wx.stc.STC_LEX_MATLAB, wx.stc.STC_LEX_SCRIPTOL, wx.stc.STC_LEX_AUTOMATIC]
 stcLexerNames = {'wx.stc.STC_LEX_NULL': wx.stc.STC_LEX_NULL,
       'wx.stc.STC_LEX_PYTHON': wx.stc.STC_LEX_PYTHON,
@@ -378,7 +377,7 @@ stcLexerNames = {'wx.stc.STC_LEX_NULL': wx.stc.STC_LEX_NULL,
       'wx.stc.STC_LEX_EIFFELKW': wx.stc.STC_LEX_EIFFELKW,
       'wx.stc.STC_LEX_TCL': wx.stc.STC_LEX_TCL, 'wx.stc.STC_LEX_NNCRONTAB': wx.stc.STC_LEX_NNCRONTAB,
       'wx.stc.STC_LEX_BULLANT': wx.stc.STC_LEX_BULLANT,
-      'wx.stc.STC_LEX_VBSCRIPT': wx.stc.STC_LEX_VBSCRIPT, 
+      'wx.stc.STC_LEX_VBSCRIPT': wx.stc.STC_LEX_VBSCRIPT,
       'wx.stc.STC_LEX_BAAN': wx.stc.STC_LEX_BAAN,
       'wx.stc.STC_LEX_MATLAB': wx.stc.STC_LEX_MATLAB,
       'wx.stc.STC_LEX_SCRIPTOL': wx.stc.STC_LEX_SCRIPTOL,
@@ -464,7 +463,7 @@ class FilenameConstrPropEdit(ConstrPropEdit):
         self.editorCtrl.createControl(self.parent, self.idx, self.width, self.edit)
 
     def edit(self, event):
-        dlg = wx.FileDialog(self.parent, self.dlgCaption, '.', self.value, 
+        dlg = wx.FileDialog(self.parent, self.dlgCaption, '.', self.value,
               self.fileTypeFilter, wx.OPEN)
         try:
             if dlg.ShowModal() == wx.ID_OK:
@@ -475,7 +474,7 @@ class FilenameConstrPropEdit(ConstrPropEdit):
                     self.inspectorPost(False)
         finally:
             dlg.Destroy()
-        
+
 
 class GIFFilenameConstrPropEdit(FilenameConstrPropEdit):
     dlgCaption = _('Choose a gif file')
@@ -486,7 +485,7 @@ class GIFAnimationCtrlDTC(WindowDTC):
         WindowDTC.__init__(self, name, designer, parent, ctrlClass)
         self.windowStyles = ['wx.animate.AN_FIT_ANIMATION'] + self.windowStyles
         self.editors['Filename'] = GIFFilenameConstrPropEdit
-        
+
     def constructor(self):
         return {'Position': 'pos', 'Size': 'size', 'Name': 'name', 'Style': 'style',
                 'Filename': 'filename'}
@@ -502,46 +501,46 @@ class GIFAnimationCtrlDTC(WindowDTC):
         return '\n'.join( (WindowDTC.writeImports(self),
                            'import wx.animate') )
 
-# class MediaCtrlDTC(WindowDTC):
-#    def __init__(self, name, designer, parent, ctrlClass):
-#        WindowDTC.__init__(self, name, designer, parent, ctrlClass)
-#        self.editors['Filename'] = FilenameConstrPropEdit
-#        self.editors['Backend'] = EnumConstrPropEdit
-#        self.editors['Volume'] = BITPropEditor
-#        self.editors['PlaybackRate'] = BITPropEditor
-#
-#        self.names['Backend'] = ['wx.media.MEDIABACKEND_DIRECTSHOW', 
-#                                 'wx.media.MEDIABACKEND_MCI',
-#                                 'wx.media.MEDIABACKEND_QUICKTIME',
-#                                 'wx.media.MEDIABACKEND_GSTREAMER', "''"]
-#        
-#    def constructor(self):
-#        return {'Position': 'pos', 'Size': 'size', 'Name': 'name', 'Style': 'style',
-#                'Filename': 'fileName', 'Backend': 'szBackend'}
-#
-#    def designTimeSource(self, position='wx.DefaultPosition', size='wx.DefaultSize'):
-#        return {'pos': position,
-#                'size': self.getDefCtrlSize(),
-#                'style': '0',
-#                'name': `self.name`,
-#                'fileName': `''`,
-#                'szBackend': `''`}
-#
-#    def writeImports(self):
-#        return '\n'.join( (WindowDTC.writeImports(self),
-#                           'import wx.media') )
-#
+class MediaCtrlDTC(WindowDTC):
+    def __init__(self, name, designer, parent, ctrlClass):
+        WindowDTC.__init__(self, name, designer, parent, ctrlClass)
+        self.editors['Filename'] = FilenameConstrPropEdit
+        self.editors['Backend'] = EnumConstrPropEdit
+        self.editors['Volume'] = BITPropEditor
+        self.editors['PlaybackRate'] = BITPropEditor
+
+        self.names['Backend'] = ['wx.media.MEDIABACKEND_DIRECTSHOW',
+                                 'wx.media.MEDIABACKEND_MCI',
+                                 'wx.media.MEDIABACKEND_QUICKTIME',
+                                 'wx.media.MEDIABACKEND_GSTREAMER', "''"]
+
+    def constructor(self):
+        return {'Position': 'pos', 'Size': 'size', 'Name': 'name', 'Style': 'style',
+                'Filename': 'fileName', 'Backend': 'szBackend'}
+
+    def designTimeSource(self, position='wx.DefaultPosition', size='wx.DefaultSize'):
+        return {'pos': position,
+                'size': self.getDefCtrlSize(),
+                'style': '0',
+                'name': `self.name`,
+                'fileName': `''`,
+                'szBackend': `''`}
+
+    def writeImports(self):
+        return '\n'.join( (WindowDTC.writeImports(self),
+                           'import wx.media') )
+
 
 EventCategories['RichTextEvent'] = (
-    'wx.richtext.EVT_RICHTEXT_CHARACTER', 
-    'wx.richtext.EVT_RICHTEXT_DELETE', 
-    'wx.richtext.EVT_RICHTEXT_RETURN', 
-    'wx.richtext.EVT_RICHTEXT_STYLE_CHANGED', 
+    'wx.richtext.EVT_RICHTEXT_CHARACTER',
+    'wx.richtext.EVT_RICHTEXT_DELETE',
+    'wx.richtext.EVT_RICHTEXT_RETURN',
+    'wx.richtext.EVT_RICHTEXT_STYLE_CHANGED',
     'wx.richtext.EVT_RICHTEXT_STYLESHEET_CHANGING',
     'wx.richtext.EVT_RICHTEXT_STYLESHEET_CHANGED',
-    'wx.richtext.EVT_RICHTEXT_STYLESHEET_REPLACING', 
+    'wx.richtext.EVT_RICHTEXT_STYLESHEET_REPLACING',
     'wx.richtext.EVT_RICHTEXT_STYLESHEET_REPLACED',
-    'wx.richtext.EVT_RICHTEXT_CONTENT_INSERTED', 
+    'wx.richtext.EVT_RICHTEXT_CONTENT_INSERTED',
     'wx.richtext.EVT_RICHTEXT_CONTENT_DELETED')
 commandCategories.append('RichTextEvent')
 
@@ -570,8 +569,8 @@ class RichTextCtrlDTC(WindowDTC):
         props.update({'Editable':  ('CtrlRoute', wx.richtext.RichTextCtrl.IsEditable, wx.richtext.RichTextCtrl.SetEditable)})
         return props
     def hideDesignTime(self):
-        return WindowDTC.hideDesignTime(self) + ['TargetRect', 
-              'InternalSelectionRange', 'SelectionRange', 'HandlerFlags', 
+        return WindowDTC.hideDesignTime(self) + ['TargetRect',
+              'InternalSelectionRange', 'SelectionRange', 'HandlerFlags',
               'StyleSheet']
     def events(self):
         return WindowDTC.events(self) + ['RichTextEvent']
@@ -585,7 +584,7 @@ class ComboCtrlDTC(WindowDTC):
         WindowDTC.__init__(self, name, designer, parent, ctrlClass)
         self.windowStyles = ['wx.CB_READONLY', 'wx.CB_SORT', 'wx.TE_PROCESS_ENTER',
           'wx.combo.CC_SPECIAL_DCLICK', 'wx.combo.CC_STD_BUTTON'] + self.windowStyles
-        self.ctrlDisabled = True  
+        self.ctrlDisabled = True
 
     def constructor(self):
         return {'Value': 'value', 'Position': 'pos', 'Size': 'size',
@@ -612,7 +611,7 @@ class ComboCtrlDTC(WindowDTC):
         return '\n'.join( (WindowDTC.writeImports(self),
                            'import wx.combo') )
 
-class BitmapComboBoxDTC(ComboCtrlDTC): 
+class BitmapComboBoxDTC(ComboCtrlDTC):
     def __init__(self, name, designer, parent, ctrlClass):
         ComboCtrlDTC.__init__(self, name, designer, parent, ctrlClass)
         self.editors['Items'] = CollectionPropEdit
@@ -651,24 +650,24 @@ class BitmapComboBoxItemsCDTC(CollectionDTC):
 
     def SetItemBitmap(self, bitmap):
         self.control.SetItemBitmap(self.index, bitmap)
-        
+
 
 class SearchCtrlDTC(TextCtrlDTC):
     def __init__(self, name, designer, parent, ctrlClass):
         TextCtrlDTC.__init__(self, name, designer, parent, ctrlClass)
         self.editors['SearchButtonVisible'] = BoolPropEdit
         self.editors['CancelButtonVisible'] = BoolPropEdit
-        self.ctrlDisabled = True  
-        
+        self.ctrlDisabled = True
+
 
     def properties(self):
         props = TextCtrlDTC.properties(self)
-        props.update({'SearchButtonVisible': ('CtrlRoute', 
+        props.update({'SearchButtonVisible': ('CtrlRoute',
             wx.SearchCtrl.IsSearchButtonVisible, wx.SearchCtrl.ShowSearchButton),
-                      'CancelButtonVisible': ('CtrlRoute', 
+                      'CancelButtonVisible': ('CtrlRoute',
             wx.SearchCtrl.IsCancelButtonVisible, wx.SearchCtrl.ShowCancelButton)})
         return props
-    
+
 
 #-------------------------------------------------------------------------------
 import Plugins
@@ -691,7 +690,6 @@ Plugins.registerComponents('BasicControls',
       (wx.html.HtmlWindow, 'wx.html.HtmlWindow', HtmlWindowDTC),
       (wx.stc.StyledTextCtrl, 'wx.stc.StyledTextCtrl', StyledTextCtrlDTC),
       (wx.animate.GIFAnimationCtrl, 'wx.animate.GIFAnimationCtrl', GIFAnimationCtrlDTC),
-      
     )
 
 try:
@@ -704,6 +702,12 @@ try:
     import wx.combo
 #    Plugins.registerComponent('BasicControls', wx.combo.ComboCtrl, 'wx.combo.ComboCtrl', ComboCtrlDTC)
     Plugins.registerComponent('BasicControls', wx.combo.BitmapComboBox, 'wx.combo.BitmapComboBox', BitmapComboBoxDTC)
+except ImportError:
+    pass
+
+try:
+    import wx.media
+    Plugins.registerComponent('BasicControls', wx.media.MediaCtrl, 'wx.media.MediaCtrl', MediaCtrlDTC)
 except ImportError:
     pass
 
